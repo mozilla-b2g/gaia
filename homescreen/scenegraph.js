@@ -3,6 +3,21 @@
 
 'use strict';
 
+var GetAnimationStartTime() {
+  return window.mozAnimationStartTime ||
+         window.webkitAnimationStartTime ||
+         window.animationStartTime;
+}
+
+var RequestAnimationFrame() {
+  if (window.mozRequestAnimationFrame)
+    window.mozRequestAnimationFrame();
+  else if (window.webkitRequestAnimationFrame)
+    window.webkitRequestAnimationFrame();
+  else if (window.requestAnimationFrame)
+    window.requestAnimationFrame();
+}
+
 function Sprite(canvas, x, y) {
   this.imageData = canvas.getImageData(0, 0, canvas.width, canvas.height);
   this.setPosition(x, y);
@@ -15,10 +30,11 @@ Sprite.prototype = {
   },
   setAnimation: function(fn, duration) {
     this.fn = fn;
-    this.startTime = Date.now();
+    this.startTime = GetAnimiationStartTime();
     this.stopTime = this.startTime + duration;
     this.startX = this.x;
     this.startY = this.y;
+    RequestAnimationFrame();
   },
   stopAnimation: function() {
     this.fn = null;
@@ -32,6 +48,8 @@ Sprite.prototype = {
                   ? 1
                   : ((now - startTime) / (stopTime - startTime));
     this.fn.call(this, elapsed, this.x, this.y, this.startX, this.startY);
+    if (elapsed == 1)
+      this.stopAnimation();
   },
   move: function(stopX, stopY, duration) {
     this.setAnimation(function (elapsed, x, y, startX, startY) {
@@ -42,26 +60,50 @@ Sprite.prototype = {
 }
 
 function SceneGraph(canvas) {
-  this.canvas = canvas;
   this.sprites = [];
+
+  // animate the scene graph, returning false if the animation is done
+  function animate(sprites, now) {
+    var more = false;
+    for (var n = 0; n < sprites.length; ++n) {
+      var sprite = sprites[n];
+      if (sprite.fn) {
+        more = true;
+        sprite.animate(now);
+      }
+    }
+    return more;
+  }
+  // fallback 2D canvas backend
+  function draw(sprites) {
+    var ctx = canvas.getContext('2d');
+    for (var n = 0; n < sprites.length; ++n) {
+      var sprite = sprites[n];
+      ctx.putImageData(sprite.imageData, sprite.x, sprite.y);
+    }
+  }
+
+  var self = this;
+  window.addEventListener("MozBeforePaint", function(event) {
+      // continue painting until we are run out of animations
+      if (animate(self.sprites, event.timeStamp)) {
+        draw(sprites);
+        RequestAnimationFrame();
+      }
+    }, false);
 }
 
 SceneGraph.prototype = {
+  // add a sprite to the scene graph
   add: function(sprite) {
     var sprites = this.sprites;
     sprite.index = sprites.length;
+    sprite.sceneGraph = this;
     sprites.push(sprite);
   },
+  // remove a sprite from the scene graph
   remove: function(sprite) {
     var sprites = this.sprites;
     sprites.splice(sprites.length, 1);
-  },
-  animate: function() {
-    var now = Date.now();
-    for (var n = 0; n < sprites.length; ++n) {
-      var sprite = sprites[n];
-      if (sprite.fn)
-        sprite.animate(now);
-    }
   }
 }
