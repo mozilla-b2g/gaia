@@ -107,8 +107,9 @@ function SceneGraph(canvas) {
   }
   // fallback 2D canvas backend
   function draw(canvas, sprites) {
-    canvas.width = canvas.width;
     var ctx = canvas.getContext('2d');
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     for (var n = 0; n < sprites.length; ++n) {
       var sprite = sprites[n];
       var canvas = sprite.canvas;

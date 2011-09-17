@@ -4,6 +4,8 @@
 'use strict';
 
 function IconGrid(canvas, icons, iconWidth, iconHeight, border, reflowTime) {
+  canvas.mozOpaque = true;
+
   this.iconWidth = iconWidth;
   this.iconHeight = iconHeight;
   this.reflowTime = reflowTime || 250;
@@ -20,6 +22,7 @@ function IconGrid(canvas, icons, iconWidth, iconHeight, border, reflowTime) {
     // Load the image
     var img = new Image();
     img.src = icon.src;
+    img.label = icon.label;
     img.sprite = sprite;
     img.onload = function() {
       // After the image loads, update the sprite
@@ -30,6 +33,11 @@ function IconGrid(canvas, icons, iconWidth, iconHeight, border, reflowTime) {
       ctx.drawImage(this, iconWidth * border, iconHeight * border,
                     iconWidth * (1 - border * 2),
                     iconHeight * (1 - border * 2));
+      ctx.font = Math.floor(iconHeight * border * 0.7) + "pt Arial, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillStyle = "black";
+      ctx.textBaseline = "top";
+      ctx.fillText(this.label, iconWidth/2, iconHeight - iconHeight*border, iconWidth*0.9);
       this.sprite.setCanvas(canvas);
     }
   }
@@ -114,5 +122,5 @@ function OnLoad() {
                }
               ];
   new IconGrid(document.getElementById("screen"),
-               icons, 120, 120, 0.1, 250);
+               icons, 120, 120, 0.15, 250);
 }
