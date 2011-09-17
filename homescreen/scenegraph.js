@@ -49,7 +49,7 @@ Sprite.prototype = {
       this.targetY = targetY;
       this.moveStart = GetAnimationStartTime();
       this.moveStop = this.moveStart + duration;
-      this.moveFunction = fn || Physics.Spring;
+      this.moveFunction = fn || Physics.Linear;
       RequestAnimationFrame();
       return;
     }
@@ -63,7 +63,7 @@ Sprite.prototype = {
       this.targetScale = targetScale;
       this.scaleStart = GetAnimationStartTime();
       this.scaleStop = this.scaleStart + duration;
-      this.scaleFunction = fn || Physics.Spring;
+      this.scaleFunction = fn || Physics.Linear;
       RequestAnimationFrame();
       return;
     }

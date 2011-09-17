@@ -42,7 +42,7 @@ function IconGrid(canvas, icons, iconWidth, iconHeight, border, reflowTime) {
   }
 
   // reflow the icon grid (initial reflow, no animation)
-  this.reflow(canvas.width, canvas.height, false);
+  this.reflow(canvas.width, canvas.height, true);
 
   // install event handlers
   canvas.addEventListener("touchstart", this, true);
@@ -139,5 +139,5 @@ function OnLoad() {
                }
               ];
   new IconGrid(document.getElementById("screen"),
-               icons, 120, 120, 0.15, 250);
+               icons, 120, 120, 0.15, 2000);
 }
