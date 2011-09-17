@@ -15,7 +15,6 @@ function IconGrid(canvas, icons, iconWidth, iconHeight, border, reflowTime) {
     var icon = icons[n];
     // Create a sprite for this icon
     var sprite = new Sprite();
-    sprite.setScale(0.5);
     sprite.onclick = icon.onclick;
     this.sceneGraph.add(sprite);
     // Load the image
@@ -36,7 +35,7 @@ function IconGrid(canvas, icons, iconWidth, iconHeight, border, reflowTime) {
   }
 
   // reflow the icon grid (initial reflow, no animation)
-  this.reflow(canvas.width, canvas.height, true);
+  this.reflow(canvas.width, canvas.height, false);
 }
 
 IconGrid.prototype = {
@@ -115,5 +114,5 @@ function OnLoad() {
                }
               ];
   new IconGrid(document.getElementById("screen"),
-               icons, 120, 120, 0.1, 5000);
+               icons, 120, 120, 0.1, 250);
 }

@@ -21,6 +21,9 @@ function RequestAnimationFrame() {
 var Physics = {
   Linear: function(elapsed, start, current, target) {
     return start + (target - start) * elapsed;
+  },
+  Spring: function(elapsed, start, current, target) {
+    return current + (target - current) * elapsed;
   }
 }
 
@@ -43,7 +46,7 @@ Sprite.prototype = {
       this.targetY = targetY;
       this.moveStart = GetAnimationStartTime();
       this.moveStop = this.moveStart + duration;
-      this.moveFunction = fn || Physics.Linear;
+      this.moveFunction = fn || Physics.Spring;
       RequestAnimationFrame();
       return;
     }
@@ -57,7 +60,7 @@ Sprite.prototype = {
       this.targetScale = targetScale;
       this.scaleStart = GetAnimationStartTime();
       this.scaleStop = this.scaleStart + duration;
-      this.scaleFunction = fn || Physics.Linear;
+      this.scaleFunction = fn || Physics.Spring;
       RequestAnimationFrame();
       return;
     }
