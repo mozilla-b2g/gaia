@@ -91,6 +91,7 @@ function SceneGraph(canvas) {
 
   // animate the scene graph, returning false if the animation is done
   function animate(sprites, now) {
+    console.log(uneval(sprites));
     var more = false;
     for (var n = 0; n < sprites.length; ++n) {
       var sprite = sprites[n];
@@ -127,13 +128,12 @@ SceneGraph.prototype = {
   add: function(sprite) {
     var sprites = this.sprites;
     sprite.index = sprites.length;
-    sprite.sceneGraph = this;
     sprites.push(sprite);
   },
   // remove a sprite from the scene graph
   remove: function(sprite) {
     var sprites = this.sprites;
-    sprites.splice(sprites.length, 1);
+    sprites.splice(sprites.index, 1);
   },
   // walk over all sprites in the scene
   forAll: function(callback) {
