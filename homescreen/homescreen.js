@@ -19,21 +19,22 @@ function IconGrid(canvas, icons, iconWidth, iconHeight, border, reflowTime) {
     // Load the image
     var img = new Image();
     img.src = icon.src;
+    img.sprite = sprite;
     img.onload = function() {
       // After the image loads, update the sprite
       var canvas = document.createElement('canvas');
       canvas.width = iconWidth;
       canvas.height = iconHeight;
       var ctx = canvas.getContext('2d');
-      ctx.drawImage(img, iconWidth * border, iconHeight * border,
+      ctx.drawImage(this, iconWidth * border, iconHeight * border,
                     iconWidth * (1 - border * 2),
                     iconHeight * (1 - border * 2));
-      sprite.setCanvas(canvas);
+      this.sprite.setCanvas(canvas);
     }
   }
 
   // reflow the icon grid (initial reflow, no animation)
-  this.reflow(false);
+  this.reflow(canvas.width, canvas.height, false);
 }
 
 IconGrid.prototype = {
@@ -46,18 +47,16 @@ IconGrid.prototype = {
     return Math.floor(slot / this.columnCount) * this.itemBoxHeight;
   },
   // reflow the icon grid
-  reflow: function(animated) {
+  reflow: function(width, height, animated) {
     // first recalculate all the layout information
-    var canvas = this.canvas;
-    this.containerWidth = canvas.width;
-    this.containerHeight = canvas.height;
+    this.containerWidth = width;
+    this.containerHeight = height;
     this.panelWidth = this.containerWidth;
     this.pageIndicatorWidth = this.containerWidth;
     this.pageIndicatorHeight = Math.min(Math.max(this.containerHeight * 0.7, 14), 20);
     this.panelHeight = this.containerHeight - this.pageindicatorHeight;
     this.rows = Math.floor(this.panelWidth / this.iconWidth);
     this.columns = Math.floor(this.panelHeight / this.iconHeight);
-    this.itemsPerPage = rows * columns;
     this.itemBoxWidth = Math.floor(this.panelWidth / this.columnCount);
     this.itemBoxHeight = Math.floor(this.panelHeight / this.rowCount);
 

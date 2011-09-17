@@ -3,13 +3,13 @@
 
 'use strict';
 
-var GetAnimationStartTime() {
+function GetAnimationStartTime() {
   return window.mozAnimationStartTime ||
          window.webkitAnimationStartTime ||
          window.animationStartTime;
 }
 
-var RequestAnimationFrame() {
+function RequestAnimationFrame() {
   if (window.mozRequestAnimationFrame)
     window.mozRequestAnimationFrame();
   else if (window.webkitRequestAnimationFrame)
@@ -44,12 +44,12 @@ Sprite.prototype = {
       RequestAnimationFrame();
       return;
     }
-    this.x = x;
-    this.y = y;
+    this.x = targetX;
+    this.y = targetY;
     this.moveFuncton = null;
   },
   setScale: function(targetScale, duration, fn) {
-    if (duration && this.scale != targetScale)) {
+    if (duration && this.scale != targetScale) {
       this.targetScale = targetScale;
       this.scaleStart = GetAnimationStartTime();
       this.scaleStop = this.scaleStart + duration;
@@ -60,7 +60,7 @@ Sprite.prototype = {
       RequestAnimationFrame();
       return;
     }
-    this.scale = x;
+    this.scale = targetScale;
     this.scaleFunction = null;
   },
   stopAnimation: function() {
@@ -72,7 +72,7 @@ Sprite.prototype = {
     }
     if (this.moveFunction) {
       var elapsed = GetElapsed(this.moveStart, this.moveStop, now);
-      this.moveFunction(elapsed):
+      this.moveFunction(elapsed);
       if (elapsed == 1)
         this.moveFunction = null;
     }
