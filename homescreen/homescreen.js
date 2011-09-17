@@ -17,12 +17,11 @@ function IconGrid(canvas, icons, iconWidth, iconHeight, border, reflowTime) {
     var icon = icons[n];
     // Create a sprite for this icon
     var sprite = new Sprite();
-    sprite.onclick = icon.onclick;
+    sprite.label = icon.label;
     this.sceneGraph.add(sprite);
     // Load the image
     var img = new Image();
     img.src = icon.src;
-    img.label = icon.label;
     img.sprite = sprite;
     img.onload = function() {
       // After the image loads, update the sprite
@@ -37,13 +36,17 @@ function IconGrid(canvas, icons, iconWidth, iconHeight, border, reflowTime) {
       ctx.textAlign = "center";
       ctx.fillStyle = "black";
       ctx.textBaseline = "top";
-      ctx.fillText(this.label, iconWidth/2, iconHeight - iconHeight*border, iconWidth*0.9);
+      ctx.fillText(this.sprite.label, iconWidth/2, iconHeight - iconHeight*border, iconWidth*0.9);
       this.sprite.setCanvas(canvas);
     }
   }
 
   // reflow the icon grid (initial reflow, no animation)
   this.reflow(canvas.width, canvas.height, false);
+
+  // install event handlers
+  canvas.addEventListener("touchstart", this, true);
+  canvas.addEventListener("mousedown", this, true);
 }
 
 IconGrid.prototype = {
@@ -83,6 +86,20 @@ IconGrid.prototype = {
         sprite.setScale(1, duration);
         ++count;
       });
+  },
+  handleEvent: function(e) {
+    switch (e.type) {
+    case 'touchstart':
+      if (e.touches.length == 1)
+        this.onTouchStart(e.touches[0]);
+      break;
+    case 'mousedown':
+      this.onTouchStart(e);
+      break;
+    }
+  },
+  onTouchStart: function(e) {
+    this.sceneGraph.forHit(e.pageX, e.pageY, function(sprite) { console.log(sprite.label); });
   }
 }
 

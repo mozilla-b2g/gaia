@@ -29,6 +29,7 @@ var Physics = {
 
 function Sprite(canvas, x, y, scale) {
   this.canvas = canvas || null;
+  this.width = this.height = 0;
   this.setPosition(x | 0, y | 0);
   this.setScale(scale || 1);
 }
@@ -36,6 +37,8 @@ function Sprite(canvas, x, y, scale) {
 Sprite.prototype = {
   setCanvas: function(canvas) {
     this.canvas = canvas;
+    this.width = canvas.width;
+    this.height = canvas.height;
     RequestAnimationFrame();
   },
   setPosition: function(targetX, targetY, duration, fn) {
@@ -146,5 +149,21 @@ SceneGraph.prototype = {
     var sprites = this.sprites;
     for (var n = 0; n < sprites.length; ++n)
       callback(sprites[n]);
+  },
+  forHit: function(x, y, callback) {
+    var canvas = this.canvas;
+    x -= canvas.clientLeft;
+    y -= canvas.clientTop;
+    if (x >= canvas.clientWidth || y >= canvas.clientHeight)
+      return;
+    var sprites = this.sprites;
+    for (var n = 0; n < sprites.length; ++n) {
+      var sprite = sprites[n];
+      if (x >= sprite.x && x < sprite.x + sprite.width &&
+          y >= sprite.y && y < sprite.y + sprite.height) {
+        callback(sprite);
+        return;
+      }
+    }
   }
 }
