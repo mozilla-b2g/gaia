@@ -9,8 +9,9 @@ function IconGrid(canvas, icons) {
 }
 
 IconGrid.prototype = {
-  // update the metrics of this grid
-  resize: function () {
+  // reflow the icon grid
+  resize: function (animate) {
+    // first recalculate all the layout information
     var canvas = this.canvas;
     this.containerWidth = canvas.width;
     this.containerHeight = canvas.height;

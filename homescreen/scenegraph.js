@@ -25,46 +25,60 @@ function Sprite(canvas, x, y, scale) {
 }
 
 Sprite.prototype = {
-  setPosition: function(x, y) {
-    this.x = x;
-    this.y = y;
-  },
-  setScale: function(scale) {
-    this.scale = x;
-  },
-  setAnimation: function(fn, duration) {
-    this.fn = fn;
-    this.startTime = GetAnimiationStartTime();
-    this.stopTime = this.startTime + duration;
-    this.startX = this.x;
-    this.startY = this.y;
-    this.startScale = this.scale;
-    RequestAnimationFrame();
-  },
-  stopAnimation: function() {
-    this.fn = null;
-    this.startTime = this.stopTime = 0;
-  },
-  animate: function(now) {
-    var startTime = this.startTime;
-    var stopTime = this.stopTime;
-    // elapsed time scaled to [0..1]
-    var elapsed = (now < startTime || now > stopTime)
-                  ? 1
-                  : ((now - startTime) / (stopTime - startTime));
-    this.fn.call(this, elapsed);
-    if (elapsed == 1)
-      this.stopAnimation();
-  },
-  move: function(stopX, stopY, stopScale, duration) {
-    this.setAnimation(function (elapsed) {
+  setPosition: function(targetX, targetY, duration, fn) {
+    if (duration) {
+      this.targetX = targetX;
+      this.targetY = targetY;
+      this.moveStart = GetAnimationStartTime();
+      this.moveStop = this.moveStart + duration;
+      this.moveFunction = fn || function(elapsed) {
         var x = this.x;
         var y = this.y;
-        this.setPosition(x + (stopX - x) * elapsed,
-                         y + (stopY - y) * elapsed);
+        this.x = x + (this.targetX - x) * elapsed;
+        this.y = y + (this.targetY - y) * elapsed;
+      }
+      RequestAnimationFrame();
+      return;
+    }
+    this.x = x;
+    this.y = y;
+    this.moveFuncton = null;
+  },
+  setScale: function(targetScale, duration, fn) {
+    if (duration) {
+      this.targetScale = targetScale;
+      this.scaleStart = GetAnimationStartTime();
+      this.scaleStop = this.scaleStart + duration;
+      this.scaleFunction = fn || function(elapsed) {
         var scale = this.scale;
-        this.setScale(scale + (stopScale - scale) * elapsed);
-      }, duration);
+        this.scale = scale + (this.targetScale - scale) * elapsed;
+      }
+      RequestAnimationFrame();
+      return;
+    }
+    this.scale = x;
+    this.scaleFunction = null;
+  },
+  stopAnimation: function() {
+    this.moveFunction = this.scaleFunction = null;
+  },
+  animate: function(now) {
+    function GetElapsed(start, stop, now) {
+      return (now < start || now > stop) ? 1 : ((now - start) / (stop - start));
+    }
+    if (this.moveFunction) {
+      var elapsed = GetElapsed(this.moveStart, this.moveStop, now);
+      this.moveFunction(elapsed):
+      if (elapsed == 1)
+        this.moveFunction = null;
+    }
+    if (this.scaleFunction) {
+      var elapsed = GetElapsed(this.scaleStart, this.scaleStop, now);
+      this.scaleFunction(elapsed);
+      if (elapsed == 1)
+        this.scaleFunction = null;
+    }
+    return this.moveFunction || this.scaleFunction;
   }
 }
 
@@ -76,10 +90,8 @@ function SceneGraph(canvas) {
     var more = false;
     for (var n = 0; n < sprites.length; ++n) {
       var sprite = sprites[n];
-      if (sprite.fn) {
+      if (sprite.animate(now))
         more = true;
-        sprite.animate(now);
-      }
     }
     return more;
   }
