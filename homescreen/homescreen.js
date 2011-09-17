@@ -16,6 +16,7 @@ function IconGrid(canvas, icons, iconWidth, iconHeight, border, reflowTime) {
     // Create a sprite for this icon
     var sprite = new Sprite();
     sprite.onclick = icon.onclick;
+    this.sceneGraph.add(sprite);
     // Load the image
     var img = new Image();
     img.src = icon.src;
@@ -44,7 +45,7 @@ IconGrid.prototype = {
   },
   // return the Y coordinate of the top left corner of a slot
   slotTop: function(slot) {
-    return Math.floor(slot / this.columnCount) * this.itemBoxHeight;
+    return Math.floor(slot / this.columns) * this.itemBoxHeight;
   },
   // reflow the icon grid
   reflow: function(width, height, animated) {
@@ -54,21 +55,24 @@ IconGrid.prototype = {
     this.panelWidth = this.containerWidth;
     this.pageIndicatorWidth = this.containerWidth;
     this.pageIndicatorHeight = Math.min(Math.max(this.containerHeight * 0.7, 14), 20);
-    this.panelHeight = this.containerHeight - this.pageindicatorHeight;
+    this.panelHeight = this.containerHeight - this.pageIndicatorHeight;
     this.rows = Math.floor(this.panelWidth / this.iconWidth);
     this.columns = Math.floor(this.panelHeight / this.iconHeight);
-    this.itemBoxWidth = Math.floor(this.panelWidth / this.columnCount);
-    this.itemBoxHeight = Math.floor(this.panelHeight / this.rowCount);
+    this.itemsPerPage = this.rows * this.columns;
+    this.itemBoxWidth = Math.floor(this.panelWidth / this.columns);
+    this.itemBoxHeight = Math.floor(this.panelHeight / this.rows);
 
     // now (re-)position all the sprites
     var duration = animated ? this.reflowTime : 0;
     var count = 0;
+    var self = this;
     this.sceneGraph.forAll(function(sprite) {
-        var slot = count++ % this.itemsPerPage;
-        var page = n / this.itemsPerPage;
-        sprite.setPosition(page * this.containerWidth + this.slotLeft(slot),
-                           this.slotTop(slot),
+        var slot = count % self.itemsPerPage;
+        var page = count / self.itemsPerPage;
+        sprite.setPosition(page * self.containerWidth + self.slotLeft(slot),
+                           self.slotTop(slot),
                            duration);
+        ++count;
       });
   }
 }
