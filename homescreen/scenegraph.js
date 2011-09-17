@@ -87,11 +87,11 @@ Sprite.prototype = {
 }
 
 function SceneGraph(canvas) {
+  this.canvas = canvas;
   this.sprites = [];
 
   // animate the scene graph, returning false if the animation is done
   function animate(sprites, now) {
-    console.log(uneval(sprites));
     var more = false;
     for (var n = 0; n < sprites.length; ++n) {
       var sprite = sprites[n];
@@ -101,7 +101,8 @@ function SceneGraph(canvas) {
     return more;
   }
   // fallback 2D canvas backend
-  function draw(sprites) {
+  function draw(canvas, sprites) {
+    canvas.width = canvas.width;
     var ctx = canvas.getContext('2d');
     for (var n = 0; n < sprites.length; ++n) {
       var sprite = sprites[n];
@@ -116,10 +117,9 @@ function SceneGraph(canvas) {
   var self = this;
   window.addEventListener("MozBeforePaint", function(event) {
       // continue painting until we are run out of animations
-      if (animate(self.sprites, event.timeStamp)) {
-        draw(sprites);
+      if (animate(self.sprites, event.timeStamp))
         RequestAnimationFrame();
-      }
+      draw(self.canvas, self.sprites);
     }, false);
 }
 

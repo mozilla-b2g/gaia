@@ -35,13 +35,13 @@ function IconGrid(canvas, icons, iconWidth, iconHeight, border, reflowTime) {
   }
 
   // reflow the icon grid (initial reflow, no animation)
-  this.reflow(canvas.width, canvas.height, false);
+  this.reflow(canvas.width, canvas.height, true);
 }
 
 IconGrid.prototype = {
   // return the X coordinate of the top left corner of a slot
   slotLeft: function(slot) {
-    return this.itemBoxWidth * (slot % this.itemBoxHeight);
+    return this.itemBoxWidth * (slot % this.columns);
   },
   // return the Y coordinate of the top left corner of a slot
   slotTop: function(slot) {
@@ -56,8 +56,8 @@ IconGrid.prototype = {
     this.pageIndicatorWidth = this.containerWidth;
     this.pageIndicatorHeight = Math.min(Math.max(this.containerHeight * 0.7, 14), 20);
     this.panelHeight = this.containerHeight - this.pageIndicatorHeight;
-    this.rows = Math.floor(this.panelWidth / this.iconWidth);
-    this.columns = Math.floor(this.panelHeight / this.iconHeight);
+    this.columns = Math.floor(this.panelWidth / this.iconWidth);
+    this.rows = Math.floor(this.panelHeight / this.iconHeight);
     this.itemsPerPage = this.rows * this.columns;
     this.itemBoxWidth = Math.floor(this.panelWidth / this.columns);
     this.itemBoxHeight = Math.floor(this.panelHeight / this.rows);
@@ -68,7 +68,7 @@ IconGrid.prototype = {
     var self = this;
     this.sceneGraph.forAll(function(sprite) {
         var slot = count % self.itemsPerPage;
-        var page = count / self.itemsPerPage;
+        var page = Math.floor(count / self.itemsPerPage);
         sprite.setPosition(page * self.containerWidth + self.slotLeft(slot),
                            self.slotTop(slot),
                            duration);
@@ -113,5 +113,5 @@ function OnLoad() {
                }
               ];
   new IconGrid(document.getElementById("screen"),
-               icons, 120, 120, 0.1, 250);
+               icons, 120, 120, 0.1, 2000);
 }
