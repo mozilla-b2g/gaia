@@ -18,9 +18,10 @@ var RequestAnimationFrame() {
     window.requestAnimationFrame();
 }
 
-function Sprite(canvas, x, y) {
-  this.imageData = canvas.getImageData(0, 0, canvas.width, canvas.height);
+function Sprite(canvas, x, y, scale) {
+  this.canvas = canvas;
   this.setPosition(x, y);
+  this.setScale(scale);
 }
 
 Sprite.prototype = {
@@ -28,12 +29,16 @@ Sprite.prototype = {
     this.x = x;
     this.y = y;
   },
+  setScale: function(scale) {
+    this.scale = x;
+  },
   setAnimation: function(fn, duration) {
     this.fn = fn;
     this.startTime = GetAnimiationStartTime();
     this.stopTime = this.startTime + duration;
     this.startX = this.x;
     this.startY = this.y;
+    this.startScale = this.scale;
     RequestAnimationFrame();
   },
   stopAnimation: function() {
@@ -47,14 +52,18 @@ Sprite.prototype = {
     var elapsed = (now < startTime || now > stopTime)
                   ? 1
                   : ((now - startTime) / (stopTime - startTime));
-    this.fn.call(this, elapsed, this.x, this.y, this.startX, this.startY);
+    this.fn.call(this, elapsed);
     if (elapsed == 1)
       this.stopAnimation();
   },
-  move: function(stopX, stopY, duration) {
-    this.setAnimation(function (elapsed, x, y, startX, startY) {
+  move: function(stopX, stopY, stopScale, duration) {
+    this.setAnimation(function (elapsed) {
+        var x = this.x;
+        var y = this.y;
         this.setPosition(x + (stopX - x) * elapsed,
                          y + (stopY - y) * elapsed);
+        var scale = this.scale;
+        this.setScale(scale + (stopScale - scale) * elapsed);
       }, duration);
   }
 }
@@ -79,7 +88,9 @@ function SceneGraph(canvas) {
     var ctx = canvas.getContext('2d');
     for (var n = 0; n < sprites.length; ++n) {
       var sprite = sprites[n];
-      ctx.putImageData(sprite.imageData, sprite.x, sprite.y);
+      var canvas = sprite.canvas;
+      var scale = sprite.scale;
+      ctx.drawImage(canvas, sprite.x, sprite.y, canvas.width * scale, canvas.height * scale);
     }
   }
 
