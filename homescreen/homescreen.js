@@ -15,6 +15,7 @@ function IconGrid(canvas, icons, iconWidth, iconHeight, border, reflowTime) {
     var icon = icons[n];
     // Create a sprite for this icon
     var sprite = new Sprite();
+    sprite.setScale(0.5);
     sprite.onclick = icon.onclick;
     this.sceneGraph.add(sprite);
     // Load the image
@@ -72,6 +73,7 @@ IconGrid.prototype = {
         sprite.setPosition(page * self.containerWidth + self.slotLeft(slot),
                            self.slotTop(slot),
                            duration);
+        sprite.setScale(1, duration);
         ++count;
       });
   }
@@ -113,5 +115,5 @@ function OnLoad() {
                }
               ];
   new IconGrid(document.getElementById("screen"),
-               icons, 120, 120, 0.1, 2000);
+               icons, 120, 120, 0.1, 5000);
 }

@@ -18,6 +18,12 @@ function RequestAnimationFrame() {
     window.requestAnimationFrame();
 }
 
+var Physics = {
+  Linear: function(elapsed, start, current, target) {
+    return start + (target - start) * elapsed;
+  }
+}
+
 function Sprite(canvas, x, y, scale) {
   this.canvas = canvas || null;
   this.setPosition(x | 0, y | 0);
@@ -31,16 +37,13 @@ Sprite.prototype = {
   },
   setPosition: function(targetX, targetY, duration, fn) {
     if (duration && (this.x != targetX || this.y != targetY)) {
+      this.startX = this.x;
+      this.startY = this.y;
       this.targetX = targetX;
       this.targetY = targetY;
       this.moveStart = GetAnimationStartTime();
       this.moveStop = this.moveStart + duration;
-      this.moveFunction = fn || function(elapsed) {
-        var x = this.x;
-        var y = this.y;
-        this.x = x + (this.targetX - x) * elapsed;
-        this.y = y + (this.targetY - y) * elapsed;
-      }
+      this.moveFunction = fn || Physics.Linear;
       RequestAnimationFrame();
       return;
     }
@@ -50,13 +53,11 @@ Sprite.prototype = {
   },
   setScale: function(targetScale, duration, fn) {
     if (duration && this.scale != targetScale) {
+      this.startScale = this.scale;
       this.targetScale = targetScale;
       this.scaleStart = GetAnimationStartTime();
       this.scaleStop = this.scaleStart + duration;
-      this.scaleFunction = fn || function(elapsed) {
-        var scale = this.scale;
-        this.scale = scale + (this.targetScale - scale) * elapsed;
-      }
+      this.scaleFunction = fn || Physics.Linear;
       RequestAnimationFrame();
       return;
     }
@@ -72,13 +73,14 @@ Sprite.prototype = {
     }
     if (this.moveFunction) {
       var elapsed = GetElapsed(this.moveStart, this.moveStop, now);
-      this.moveFunction(elapsed);
+      this.x = this.moveFunction(elapsed, this.startX, this.x, this.targetX);
+      this.y = this.moveFunction(elapsed, this.startY, this.y, this.targetY);
       if (elapsed == 1)
         this.moveFunction = null;
     }
     if (this.scaleFunction) {
       var elapsed = GetElapsed(this.scaleStart, this.scaleStop, now);
-      this.scaleFunction(elapsed);
+      this.scale = this.scaleFunction(elapsed, this.startScale, this.scale, this.targetScale);
       if (elapsed == 1)
         this.scaleFunction = null;
     }
