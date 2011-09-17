@@ -19,14 +19,18 @@ var RequestAnimationFrame() {
 }
 
 function Sprite(canvas, x, y, scale) {
-  this.canvas = canvas;
-  this.setPosition(x, y);
-  this.setScale(scale);
+  this.canvas = canvas || null;
+  this.setPosition(x | 0, y | 0);
+  this.setScale(scale || 1);
 }
 
 Sprite.prototype = {
+  setCanvas: function(canvas) {
+    this.canvas = canvas;
+    RequestAnimationFrame();
+  },
   setPosition: function(targetX, targetY, duration, fn) {
-    if (duration) {
+    if (duration && (this.x != targetX || this.y != targetY)) {
       this.targetX = targetX;
       this.targetY = targetY;
       this.moveStart = GetAnimationStartTime();
@@ -45,7 +49,7 @@ Sprite.prototype = {
     this.moveFuncton = null;
   },
   setScale: function(targetScale, duration, fn) {
-    if (duration) {
+    if (duration && this.scale != targetScale)) {
       this.targetScale = targetScale;
       this.scaleStart = GetAnimationStartTime();
       this.scaleStop = this.scaleStart + duration;
@@ -101,8 +105,10 @@ function SceneGraph(canvas) {
     for (var n = 0; n < sprites.length; ++n) {
       var sprite = sprites[n];
       var canvas = sprite.canvas;
-      var scale = sprite.scale;
-      ctx.drawImage(canvas, sprite.x, sprite.y, canvas.width * scale, canvas.height * scale);
+      if (canvas) {
+        var scale = sprite.scale;
+        ctx.drawImage(canvas, sprite.x, sprite.y, canvas.width * scale, canvas.height * scale);
+      }
     }
   }
 
@@ -128,5 +134,11 @@ SceneGraph.prototype = {
   remove: function(sprite) {
     var sprites = this.sprites;
     sprites.splice(sprites.length, 1);
+  },
+  // walk over all sprites in the scene
+  forAll: function(callback) {
+    var sprites = this.sprites;
+    for (var n = 0; n < sprites.length; ++n)
+      callback(sprites[n]);
   }
 }
