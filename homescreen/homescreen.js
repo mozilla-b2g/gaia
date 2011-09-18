@@ -11,6 +11,8 @@ function IconGrid(canvas, icons, iconWidth, iconHeight, border, reflowTime) {
   this.reflowTime = reflowTime || 250;
   this.sceneGraph = new SceneGraph(canvas);
   this.border = border || 0.1;
+  this.pendingIcons = [ ];
+  this.numUnloadedPendingIcons = icons.length;
 
   // Initialize the scene graph
   for (var n = 0; n < icons.length; ++n) {
@@ -18,17 +20,28 @@ function IconGrid(canvas, icons, iconWidth, iconHeight, border, reflowTime) {
     // Create a sprite for this icon
     var sprite = new Sprite();
     sprite.label = icon.label;
-    this.sceneGraph.add(sprite);
+    this.pendingIcons.push(sprite);
     // Load the image
     var img = new Image();
+    img.iconGrid = this;
     img.src = icon.src;
     img.sprite = sprite;
     img.onload = function() {
+      var iconGrid = this.iconGrid;
       // After the image loads, update the sprite
       var canvas = document.createElement('canvas');
+      var sprite = this.sprite;
       canvas.width = iconWidth;
       canvas.height = iconHeight;
       var ctx = canvas.getContext('2d');
+      // XXX it appears that canvases aren't translated into GL
+      // coordinates before uploading, unlike <img>s :/.  So hack
+      // here.  Need to figure out if that's a FF bug or actually
+      // spec'd like that.
+      if (kUseGL) {
+        ctx.translate(0, canvas.height);
+        ctx.scale(1, -1);
+      }
       ctx.drawImage(this, iconWidth * border, iconHeight * border,
                     iconWidth * (1 - border * 2),
                     iconHeight * (1 - border * 2));
@@ -37,12 +50,16 @@ function IconGrid(canvas, icons, iconWidth, iconHeight, border, reflowTime) {
       ctx.fillStyle = "black";
       ctx.textBaseline = "top";
       ctx.fillText(this.sprite.label, iconWidth/2, iconHeight - iconHeight*border, iconWidth*0.9);
-      this.sprite.setCanvas(canvas);
+      sprite.setCanvas(canvas);
+
+      if (0 === --iconGrid.numUnloadedPendingIcons) {
+        iconGrid.addPendingIcons();
+      }
     }
   }
 
   // reflow the icon grid (initial reflow, no animation)
-  this.reflow(canvas.width, canvas.height, true);
+  this.reflow(canvas.width, canvas.height, false);
 
   // install event handlers
   canvas.addEventListener("touchstart", this, true);
@@ -50,6 +67,16 @@ function IconGrid(canvas, icons, iconWidth, iconHeight, border, reflowTime) {
 }
 
 IconGrid.prototype = {
+  addPendingIcons: function() {
+    var newIcons = this.pendingIcons;
+    var sceneGraph = this.sceneGraph;
+    for (var i = 0; i < newIcons.length; ++i) {
+      sceneGraph.add(newIcons[i]);
+    }
+    this.pendingIcons = [ ];
+
+    this.reflow(this.containerWidth, this.containerHeight, true);
+  },
   // return the X coordinate of the top left corner of a slot
   slotLeft: function(slot) {
     return this.itemBoxWidth * (slot % this.columns);
@@ -139,5 +166,5 @@ function OnLoad() {
                }
               ];
   new IconGrid(document.getElementById("screen"),
-               icons, 120, 120, 0.15, 2000);
+               icons, 120, 120, 0.15, 500);
 }
