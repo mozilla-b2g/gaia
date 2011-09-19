@@ -34,19 +34,27 @@ var Physics = {
   }
 }
 
-function Sprite(canvas, x, y, scale) {
-  this.canvas = canvas || null;
-  this.width = this.height = 0;
-  this.setPosition(x | 0, y | 0);
-  this.setScale(scale || 1);
+function Sprite(width, height) {
+  var canvas = document.createElement('canvas');
+  this.width = canvas.width = width;
+  this.height = canvas.height = height;
+  this.canvas = canvas;
+  this.setPosition(0, 0);
+  this.setScale(1);
 }
 
 Sprite.prototype = {
-  setCanvas: function(canvas) {
-    this.canvas = canvas;
-    this.width = canvas.width;
-    this.height = canvas.height;
-    RequestAnimationFrame();
+  getContext2D: function() {
+    var ctx = this.canvas.getContext('2d');
+    // XXX it appears that canvases aren't translated into GL
+    // coordinates before uploading, unlike <img>s :/.  So hack
+    // here.  Need to figure out if that's a FF bug or actually
+    // spec'd like that.
+    if (kUseGL) {
+      ctx.translate(0, this.height);
+      ctx.scale(1, -1);
+    }
+    return ctx;
   },
   setPosition: function(targetX, targetY, duration, fn) {
     if (duration && (this.x != targetX || this.y != targetY)) {

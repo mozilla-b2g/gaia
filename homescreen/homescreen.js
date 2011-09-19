@@ -18,7 +18,7 @@ function IconGrid(canvas, icons, iconWidth, iconHeight, border, reflowTime) {
   for (var n = 0; n < icons.length; ++n) {
     var icon = icons[n];
     // Create a sprite for this icon
-    var sprite = new Sprite();
+    var sprite = new Sprite(iconWidth, iconHeight);
     sprite.label = icon.label;
     this.pendingIcons.push(sprite);
     // Load the image
@@ -29,19 +29,8 @@ function IconGrid(canvas, icons, iconWidth, iconHeight, border, reflowTime) {
     img.onload = function() {
       var iconGrid = this.iconGrid;
       // After the image loads, update the sprite
-      var canvas = document.createElement('canvas');
       var sprite = this.sprite;
-      canvas.width = iconWidth;
-      canvas.height = iconHeight;
-      var ctx = canvas.getContext('2d');
-      // XXX it appears that canvases aren't translated into GL
-      // coordinates before uploading, unlike <img>s :/.  So hack
-      // here.  Need to figure out if that's a FF bug or actually
-      // spec'd like that.
-      if (kUseGL) {
-        ctx.translate(0, canvas.height);
-        ctx.scale(1, -1);
-      }
+      var ctx = sprite.getContext2D();
       ctx.drawImage(this, iconWidth * border, iconHeight * border,
                     iconWidth * (1 - border * 2),
                     iconHeight * (1 - border * 2));
@@ -50,7 +39,6 @@ function IconGrid(canvas, icons, iconWidth, iconHeight, border, reflowTime) {
       ctx.fillStyle = "black";
       ctx.textBaseline = "top";
       ctx.fillText(this.sprite.label, iconWidth/2, iconHeight - iconHeight*border, iconWidth*0.9);
-      sprite.setCanvas(canvas);
 
       if (0 === --iconGrid.numUnloadedPendingIcons) {
         iconGrid.addPendingIcons();
