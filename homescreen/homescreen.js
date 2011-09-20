@@ -25,7 +25,7 @@ DefaultPhysics.prototype = {
     var touchState = this.touchState;
     if (touchState.active) {
       iconGrid.sceneGraph.setViewportTopLeft(iconGrid.currentPage * iconGrid.containerWidth +
-                                  touchState.startX - e.pageX, 0, 100);
+                                             touchState.startX - e.pageX, 0, 0);
     }
   },
   onTouchEnd: function(e) {
