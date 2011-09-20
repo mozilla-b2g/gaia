@@ -137,7 +137,7 @@ IconGrid.prototype = {
 }
 
 function OnLoad() {
-  var icons = [
+  var fruits = [
                {
                  label: 'Strawberry',
                  src: 'images/strawberry.png'
@@ -171,6 +171,17 @@ function OnLoad() {
                  src: 'images/pineapple.png'
                }
               ];
+
+  var icons = [];
+  for (var n = 0; n < fruits.length; ++n)
+    icons.push(fruits[n]);
+  for (var n = 0; n < fruits.length; ++n)
+    icons.push(fruits[n]);
+  for (var n = 0; n < fruits.length; ++n)
+    icons.push(fruits[n]);
+  for (var n = 0; n < fruits.length; ++n)
+    icons.push(fruits[n]);
+
   var iconGrid = new IconGrid(document.getElementById("screen"), 120, 120, 0.15, 500);
   for (var n = 0; n < icons.length; ++n)
     iconGrid.add(icons[n].src, icons[n].label);
