@@ -209,38 +209,17 @@ IconGrid.prototype = {
 
 function OnLoad() {
   var fruits = [
-               {
-                 label: 'Strawberry',
-                 src: 'images/strawberry.png'
-               },
-               {
-                 label: 'Watermelon',
-                 src: 'images/watermelon.png'
-               },
-               {
-                 label: 'Apple',
-                 src: 'images/apple.png'
-               },
-               {
-                 label: 'Banana',
-                 src: 'images/banana.png'
-               },
-               {
-                 label: 'Grape',
-                 src: 'images/grape.png'
-               },
-               {
-                 label: 'Orange',
-                 src: 'images/orange.png'
-               },
-               {
-                 label: 'Papaya',
-                 src: 'images/papaya.png'
-               },
-               {
-                 label: 'Pineapple',
-                 src: 'images/pineapple.png'
-               }
+               { label: 'Phone', src: 'images/Phone.png' },
+               { label: 'Messages', src: 'images/Messages.png' },
+               { label: 'Calendar', src: 'images/Calendar.png' },
+               { label: 'Gallery', src: 'images/Gallery.png' },
+               { label: 'Camera', src: 'images/Camera.png' },
+               { label: 'Maps', src: 'images/Maps.png' },
+               { label: 'YouTube', src: 'images/YouTube.png' },
+               { label: 'Calculator', src: 'images/Calculator.png' },
+               { label: 'Books', src: 'images/Books.png' },
+               { label: 'Browser', src: 'images/Browser.png' },
+               { label: 'Music', src: 'images/Music.png' }
               ];
 
   var icons = [];
