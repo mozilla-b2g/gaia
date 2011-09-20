@@ -3,7 +3,62 @@
 
 'use strict';
 
-function IconGrid(canvas, icons, iconWidth, iconHeight, border, reflowTime) {
+function Icon(iconGrid, index) {
+  this.iconGrid = iconGrid;
+  this.index = index;
+}
+
+Icon.prototype = {
+  update: function(img, label) {
+    var iconGrid = this.iconGrid;
+    var iconWidth = iconGrid.iconWidth;
+    var iconHeight = iconGrid.iconHeight;
+    var border = iconGrid.border;
+    var sprite = this.sprite;
+    if (!sprite) {
+      var sceneGraph = iconGrid.sceneGraph;
+      sprite = new Sprite(iconWidth, iconHeight);
+      sceneGraph.add(sprite);
+      this.sprite = sprite;
+    }
+    var ctx = sprite.getContext2D();
+    ctx.drawImage(img, iconWidth * border, iconHeight * border,
+                  iconWidth * (1 - border * 2),
+                  iconHeight * (1 - border * 2));
+    ctx.font = Math.floor(iconHeight * border * 0.7) + "pt Arial, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillStyle = "black";
+    ctx.textBaseline = "top";
+    ctx.fillText(label, iconWidth/2, iconHeight - iconHeight*border, iconWidth*0.9);
+    this.reflow();
+  },
+  // return the X coordinate of the top left corner of a slot
+  slotLeft: function() {
+    var iconGrid = this.iconGrid;
+    return iconGrid.itemBoxWidth * (this.index % iconGrid.columns);
+  },
+  // return the Y coordinate of the top left corner of a slot
+  slotTop: function() {
+    var iconGrid = this.iconGrid;    
+    return Math.floor(this.index / iconGrid.columns) * iconGrid.itemBoxHeight;
+  },
+  reflow: function(animated) {
+    var sprite = this.sprite;
+    if (!sprite)
+      return;
+    var iconGrid = this.iconGrid;
+    var duration = animated ? iconGrid.reflowTime : 0;
+    var index = this.index;
+    var itemsPerPage = iconGrid.itemsPerPage;
+    var page = Math.floor(index / iconGrid.itemsPerPage);
+    sprite.setPosition(page * iconGrid.containerWidth + this.slotLeft(),
+                       this.slotTop(),
+                       duration);
+    sprite.setScale(1, duration);
+  }
+}
+
+function IconGrid(canvas, iconWidth, iconHeight, border, reflowTime) {
   canvas.mozOpaque = true;
 
   this.iconWidth = iconWidth;
@@ -11,42 +66,9 @@ function IconGrid(canvas, icons, iconWidth, iconHeight, border, reflowTime) {
   this.reflowTime = reflowTime || 250;
   this.sceneGraph = new SceneGraph(canvas);
   this.border = border || 0.1;
-  this.pendingIcons = [ ];
-  this.numUnloadedPendingIcons = icons.length;
+  this.icons = [];
 
-  // Initialize the scene graph
-  for (var n = 0; n < icons.length; ++n) {
-    var icon = icons[n];
-    // Create a sprite for this icon
-    var sprite = new Sprite(iconWidth, iconHeight);
-    sprite.label = icon.label;
-    this.pendingIcons.push(sprite);
-    // Load the image
-    var img = new Image();
-    img.iconGrid = this;
-    img.src = icon.src;
-    img.sprite = sprite;
-    img.onload = function() {
-      var iconGrid = this.iconGrid;
-      // After the image loads, update the sprite
-      var sprite = this.sprite;
-      var ctx = sprite.getContext2D();
-      ctx.drawImage(this, iconWidth * border, iconHeight * border,
-                    iconWidth * (1 - border * 2),
-                    iconHeight * (1 - border * 2));
-      ctx.font = Math.floor(iconHeight * border * 0.7) + "pt Arial, sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillStyle = "black";
-      ctx.textBaseline = "top";
-      ctx.fillText(this.sprite.label, iconWidth/2, iconHeight - iconHeight*border, iconWidth*0.9);
-
-      if (0 === --iconGrid.numUnloadedPendingIcons) {
-        iconGrid.addPendingIcons();
-      }
-    }
-  }
-
-  // reflow the icon grid (initial reflow, no animation)
+  // update the layout state
   this.reflow(canvas.width, canvas.height, false);
 
   // install event handlers
@@ -55,23 +77,28 @@ function IconGrid(canvas, icons, iconWidth, iconHeight, border, reflowTime) {
 }
 
 IconGrid.prototype = {
-  addPendingIcons: function() {
-    var newIcons = this.pendingIcons;
-    var sceneGraph = this.sceneGraph;
-    for (var i = 0; i < newIcons.length; ++i) {
-      sceneGraph.add(newIcons[i]);
+  add: function(src, label) {
+    // Create the icon in the icon grid
+    var icons = this.icons;
+    var icon = new Icon(this, this.icons.length);
+    icon.index = icons.length;
+    icons.push(icon);
+    // Load the image, sprite will be created when image load is complete
+    var img = new Image();
+    img.src = src;
+    img.label = label;
+    img.icon = icon;
+    img.onload = function() {
+      // Update the icon (this will trigger a reflow and a repaint)
+      var icon = this.icon;
+      icon.update(this, this.label);
     }
-    this.pendingIcons = [ ];
-
-    this.reflow(this.containerWidth, this.containerHeight, true);
+    return icon;
   },
-  // return the X coordinate of the top left corner of a slot
-  slotLeft: function(slot) {
-    return this.itemBoxWidth * (slot % this.columns);
-  },
-  // return the Y coordinate of the top left corner of a slot
-  slotTop: function(slot) {
-    return Math.floor(slot / this.columns) * this.itemBoxHeight;
+  remove: function(icon) {
+    this.icons.splice(icon.index);
+    if (icon.sprite)
+      sceneGraph.remove(icon.sprite);
   },
   // reflow the icon grid
   reflow: function(width, height, animated) {
@@ -88,19 +115,10 @@ IconGrid.prototype = {
     this.itemBoxWidth = Math.floor(this.panelWidth / this.columns);
     this.itemBoxHeight = Math.floor(this.panelHeight / this.rows);
 
-    // now (re-)position all the sprites
-    var duration = animated ? this.reflowTime : 0;
-    var count = 0;
-    var self = this;
-    this.sceneGraph.forAll(function(sprite) {
-        var slot = count % self.itemsPerPage;
-        var page = Math.floor(count / self.itemsPerPage);
-        sprite.setPosition(page * self.containerWidth + self.slotLeft(slot),
-                           self.slotTop(slot),
-                           duration);
-        sprite.setScale(1, duration);
-        ++count;
-      });
+    // now reflow all the icons
+    var icons = this.icons;
+    for (var n = 0; n < icons.length; ++n)
+      icons[n].reflow();
   },
   handleEvent: function(e) {
     switch (e.type) {
@@ -153,6 +171,7 @@ function OnLoad() {
                  src: 'images/pineapple.png'
                }
               ];
-  new IconGrid(document.getElementById("screen"),
-               icons, 120, 120, 0.15, 500);
+  var iconGrid = new IconGrid(document.getElementById("screen"), 120, 120, 0.15, 500);
+  for (var n = 0; n < icons.length; ++n)
+    iconGrid.add(icons[n].src, icons[n].label);
 }

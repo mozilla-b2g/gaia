@@ -3,7 +3,7 @@
 
 'use strict';
 
-/*const*/var kUseGL = 1;
+/*const*/var kUseGL = 0;
 
 function abort(why) { alert(why); throw why; }
 function assert(cond, msg) { if (!cond) abort(msg); }
@@ -57,6 +57,7 @@ Sprite.prototype = {
     return ctx;
   },
   setPosition: function(targetX, targetY, duration, fn) {
+    RequestAnimationFrame();
     if (duration && (this.x != targetX || this.y != targetY)) {
       this.startX = this.x;
       this.startY = this.y;
@@ -65,7 +66,6 @@ Sprite.prototype = {
       this.moveStart = GetAnimationClockTime();
       this.moveStop = this.moveStart + duration;
       this.moveFunction = fn || Physics.Linear;
-      RequestAnimationFrame();
       return;
     }
     this.x = targetX;
@@ -73,13 +73,13 @@ Sprite.prototype = {
     this.moveFuncton = null;
   },
   setScale: function(targetScale, duration, fn) {
+    RequestAnimationFrame();
     if (duration && this.scale != targetScale) {
       this.startScale = this.scale;
       this.targetScale = targetScale;
       this.scaleStart = GetAnimationClockTime();
       this.scaleStop = this.scaleStart + duration;
       this.scaleFunction = fn || Physics.Linear;
-      RequestAnimationFrame();
       return;
     }
     this.scale = targetScale;
@@ -145,8 +145,7 @@ SceneGraph.prototype = {
   },
   // remove a sprite from the scene graph
   remove: function(sprite) {
-    var sprites = this.sprites;
-    sprites.splice(sprites.index, 1);
+    this.sprites.splice(sprite.index, 1);
     this.blitter.spriteRemoved(sprite);
   },
   // walk over all sprites in the scene
