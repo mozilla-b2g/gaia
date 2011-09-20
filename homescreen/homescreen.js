@@ -60,7 +60,7 @@ Icon.prototype = {
   }
 }
 
-function IconGrid(canvas, iconWidth, iconHeight, border) {
+function IconGrid(canvas, background, iconWidth, iconHeight, border) {
   canvas.mozOpaque = true;
 
   this.iconWidth = iconWidth;
@@ -70,6 +70,9 @@ function IconGrid(canvas, iconWidth, iconHeight, border) {
   this.icons = [];
   this.touchState = { active: false, startX: 0, startY: 0 };
   this.currentPage = 0;
+
+  // add the background image
+  
 
   // update the layout state
   this.reflow(canvas.width, canvas.height, 0);
@@ -231,7 +234,9 @@ function OnLoad() {
   for (var n = 0; n < fruits.length; ++n)
     icons.push(fruits[n]);
 
-  var iconGrid = new IconGrid(document.getElementById("screen"), 120, 120, 0.2);
+  var iconGrid = new IconGrid(document.getElementById("screen"),
+                              "images/background.png",
+                              120, 120, 0.2);
   for (var n = 0; n < icons.length; ++n)
     iconGrid.add(icons[n].src, icons[n].label);
 }
