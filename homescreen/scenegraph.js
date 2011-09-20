@@ -114,24 +114,15 @@ function SceneGraph(canvas) {
     kUseGL ? new SpriteBlitterGL(canvas) : new SpriteBlitter2D(canvas);
   this.canvas = canvas;
   this.sprites = [];
-
-  // animate the scene graph, returning false if the animation is done
-  function animate(sprites, now) {
-    var more = false;
-    for (var n = 0; n < sprites.length; ++n) {
-      var sprite = sprites[n];
-      if (sprite.animate(now))
-        more = true;
-    }
-    return more;
-  }
+  this.x = 0;
+  this.y = 0;
 
   var self = this;
   window.addEventListener("MozBeforePaint", function(event) {
       // continue painting until we are run out of animations
-      if (animate(self.sprites, GetAnimationClockTime()))
+      if (self.animate(GetAnimationClockTime()))
         RequestAnimationFrame();
-      self.blitter.draw(self.sprites);
+      self.blitter.draw(self.x, self.y, self.sprites);
     }, false);
 }
 
@@ -147,6 +138,30 @@ SceneGraph.prototype = {
   remove: function(sprite) {
     this.sprites.splice(sprite.index, 1);
     this.blitter.spriteRemoved(sprite);
+  },
+  // animate the scene graph, returning false if the animation is done
+  animate: function(now) {
+    function GetElapsed(start, stop, now) {
+      return (now < start || now > stop) ? 1 : ((now - start) / (stop - start));
+    }
+    var more = false;
+    if (this.scrollFunction) {
+      var elapsed = GetElapsed(this.scrollStart, this.scrollStop, now);
+      this.x = this.scrollFunction(elapsed, this.startX, this.x, this.targetX);
+      this.y = this.scrollFunction(elapsed, this.startY, this.y, this.targetY);
+      console.log(this.x + " " + this.y);
+      if (elapsed == 1)
+        this.scrollFunction = null;
+      else
+        more = true;
+    }
+    var sprites = this.sprites;
+    for (var n = 0; n < sprites.length; ++n) {
+      var sprite = sprites[n];
+      if (sprite.animate(now))
+        more = true;
+    }
+    return more;
   },
   // walk over all sprites in the scene
   forAll: function(callback) {
@@ -169,6 +184,25 @@ SceneGraph.prototype = {
         return;
       }
     }
+  },
+  setViewport: function(targetX, targetY, duration, fn) {
+    RequestAnimationFrame();
+    if (duration && (this.x != targetX || this.y != targetY)) {
+      this.startX = this.x;
+      this.startY = this.y;
+      this.targetX = targetX;
+      this.targetY = targetY;
+      this.scrollStart = GetAnimationClockTime();
+      this.scrollStop = this.scrollStart + duration;
+      this.scrollFunction = fn || Physics.Linear;
+      return;
+    }
+    this.x = targetX;
+    this.y = targetY;
+    this.scrollFuncton = null;
+  },
+  stopAnimation: function() {
+    this.moveFunction = this.scaleFunction = null;
   }
 }
 
@@ -177,17 +211,19 @@ function SpriteBlitter2D(canvas) {
   this.canvas = canvas;
 }
 SpriteBlitter2D.prototype = {
-  draw: function(sprites) {
+  draw: function(x, y, sprites) {
     var canvas = this.canvas;
     var ctx = canvas.getContext('2d');
+    var width = canvas.width;
+    var height = canvas.height;
     ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, width, height);
     for (var n = 0; n < sprites.length; ++n) {
       var sprite = sprites[n];
       var canvas = sprite.canvas;
       if (canvas) {
         var scale = sprite.scale;
-        ctx.drawImage(canvas, sprite.x, sprite.y, canvas.width * scale, canvas.height * scale);
+        ctx.drawImage(canvas, sprite.x - x, sprite.y - y, canvas.width * scale, canvas.height * scale);
       }
     }    
   },
@@ -259,7 +295,7 @@ function SpriteBlitterGL(canvas) {
   gl.clearColor(0.0, 0.0, 0.0, 0.0);
 }
 SpriteBlitterGL.prototype = {
-  draw: function(sprites) {
+  draw: function(x, y, sprites) {
     var gl = this.gl;
     var posAndTexCoordArray = this.posAndTexCoordArray;
     var posAndTexCoordBuffer = this.posAndTexCoordBuffer;

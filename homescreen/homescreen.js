@@ -186,4 +186,5 @@ function OnLoad() {
   var iconGrid = new IconGrid(document.getElementById("screen"), 120, 120, 0.15, 500);
   for (var n = 0; n < icons.length; ++n)
     iconGrid.add(icons[n].src, icons[n].label);
+  iconGrid.sceneGraph.setViewport(300,0,1000);
 }
