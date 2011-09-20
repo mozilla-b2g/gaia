@@ -142,7 +142,6 @@ IconGrid.prototype = {
   setPage: function(page, duration) {
     page = Math.max(0, page);
     page = Math.min(page, this.getLastPage());
-    console.log(this.getLastPage());
     this.sceneGraph.setViewport(this.containerWidth * page, 0, duration);
     this.currentPage = page;
   },
