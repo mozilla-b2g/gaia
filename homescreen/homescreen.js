@@ -25,7 +25,7 @@ Icon.prototype = {
     ctx.drawImage(img, iconWidth * border, iconHeight * border,
                   iconWidth * (1 - border * 2),
                   iconHeight * (1 - border * 2));
-    ctx.font = Math.floor(iconHeight * border * 0.7) + "pt Arial, sans-serif";
+    ctx.font = Math.floor(iconHeight * border * 0.6) + "pt Arial, sans-serif";
     ctx.textAlign = "center";
     ctx.fillStyle = "black";
     ctx.textBaseline = "top";
@@ -45,12 +45,11 @@ Icon.prototype = {
     var slot = this.index % iconGrid.itemsPerPage;
     return Math.floor(slot / iconGrid.columns) * iconGrid.itemBoxHeight;
   },
-  reflow: function(animated) {
+  reflow: function(duration) {
     var sprite = this.sprite;
     if (!sprite)
       return;
     var iconGrid = this.iconGrid;
-    var duration = animated ? iconGrid.reflowTime : 0;
     var index = this.index;
     var itemsPerPage = iconGrid.itemsPerPage;
     var page = Math.floor(index / iconGrid.itemsPerPage);
@@ -61,27 +60,27 @@ Icon.prototype = {
   }
 }
 
-function IconGrid(canvas, iconWidth, iconHeight, border, reflowTime) {
+function IconGrid(canvas, iconWidth, iconHeight, border) {
   canvas.mozOpaque = true;
 
   this.iconWidth = iconWidth;
   this.iconHeight = iconHeight;
-  this.reflowTime = reflowTime || 250;
   this.sceneGraph = new SceneGraph(canvas);
   this.border = border || 0.1;
   this.icons = [];
   this.touchState = { active: false, startX: 0, startY: 0 };
+  this.currentPage = 0;
 
   // update the layout state
-  this.reflow(canvas.width, canvas.height, false);
+  this.reflow(canvas.width, canvas.height, 0);
 
   // install event handlers
-  canvas.addEventListener("touchstart", this, true);
-  canvas.addEventListener("mousedown", this, true);
-  canvas.addEventListener("touchmove", this, true);
-  canvas.addEventListener("mousemove", this, true);
-  canvas.addEventListener("touchend", this, true);
-  canvas.addEventListener("mouseup", this, true);
+  document.addEventListener("touchstart", this, true);
+  document.addEventListener("mousedown", this, true);
+  document.addEventListener("touchmove", this, true);
+  document.addEventListener("mousemove", this, true);
+  document.addEventListener("touchend", this, true);
+  document.addEventListener("mouseup", this, true);
 }
 
 IconGrid.prototype = {
@@ -109,7 +108,7 @@ IconGrid.prototype = {
       sceneGraph.remove(icon.sprite);
   },
   // reflow the icon grid
-  reflow: function(width, height, animated) {
+  reflow: function(width, height, duration) {
     // first recalculate all the layout information
     this.containerWidth = width;
     this.containerHeight = height;
@@ -123,10 +122,18 @@ IconGrid.prototype = {
     this.itemBoxWidth = Math.floor(this.panelWidth / this.columns);
     this.itemBoxHeight = Math.floor(this.panelHeight / this.rows);
 
+    // switch to the right page
+    this.setPage(this.currentPage, duration);
+
     // now reflow all the icons
     var icons = this.icons;
     for (var n = 0; n < icons.length; ++n)
-      icons[n].reflow();
+      icons[n].reflow(duration);
+  },
+  // switch to a different page
+  setPage: function(page, duration) {
+    this.sceneGraph.setViewport(this.containerWidth * page, 0, duration);
+    this.currentPage = page;
   },
   handleEvent: function(e) {
     switch (e.type) {
@@ -150,15 +157,42 @@ IconGrid.prototype = {
       touchState.active = true;
       touchState.startX = e.pageX;
       touchState.startY = e.pageY;
+      touchState.startTime = e.timeStamp;
     }
   },
   onTouchMove: function(e) {
     var touchState = this.touchState;
     if (touchState.active)
-      this.sceneGraph.setViewport(touchState.startX - e.pageX, touchState.startY - e.pageY, 250);
+      this.sceneGraph.setViewport(touchState.startX - e.pageX, 0, 100);
   },
   onTouchEnd: function(e) {
-    this.touchState.active = false;
+    var touchState = this.touchState;
+    if (!touchState.active)
+      return;
+    touchState.active = false;
+
+    var startX = touchState.startX;
+    var endX = e.pageX;
+    var diffX = endX - startX;
+    var dir = (diffX > 0) ? -1 : 1;
+
+    var quick = (e.timeStamp - touchState.startTime < 200);
+    var small = Math.abs(diffX) < 10;
+
+    var flick = quick && !small;
+    var tap = small;
+    var drag = !quick;
+
+    if (tap) {
+      console.log("tap");
+    } else if (flick) {
+      this.setPage(this.currentPage + dir, 250);
+    } else {
+      if (Math.abs(diffX) < this.containerWidth/2)
+        this.setPage(this.currentPage, 250);
+      else
+        this.setPage(this.currentPage + dir, 250);
+    }
   }
 }
 
@@ -208,7 +242,7 @@ function OnLoad() {
   for (var n = 0; n < fruits.length; ++n)
     icons.push(fruits[n]);
 
-  var iconGrid = new IconGrid(document.getElementById("screen"), 120, 120, 0.15, 500);
+  var iconGrid = new IconGrid(document.getElementById("screen"), 120, 120, 0.2);
   for (var n = 0; n < icons.length; ++n)
     iconGrid.add(icons[n].src, icons[n].label);
 }

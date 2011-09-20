@@ -85,9 +85,6 @@ Sprite.prototype = {
     this.scale = targetScale;
     this.scaleFunction = null;
   },
-  stopAnimation: function() {
-    this.moveFunction = this.scaleFunction = null;
-  },
   animate: function(now) {
     function GetElapsed(start, stop, now) {
       return (now < start || now > stop) ? 1 : ((now - start) / (stop - start));
@@ -200,9 +197,6 @@ SceneGraph.prototype = {
     this.x = targetX;
     this.y = targetY;
     this.scrollFuncton = null;
-  },
-  stopAnimation: function() {
-    this.moveFunction = this.scaleFunction = null;
   }
 }
 
