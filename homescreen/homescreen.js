@@ -70,6 +70,7 @@ function IconGrid(canvas, iconWidth, iconHeight, border, reflowTime) {
   this.sceneGraph = new SceneGraph(canvas);
   this.border = border || 0.1;
   this.icons = [];
+  this.touchState = { active: false, startX: 0, startY: 0 };
 
   // update the layout state
   this.reflow(canvas.width, canvas.height, false);
@@ -77,6 +78,10 @@ function IconGrid(canvas, iconWidth, iconHeight, border, reflowTime) {
   // install event handlers
   canvas.addEventListener("touchstart", this, true);
   canvas.addEventListener("mousedown", this, true);
+  canvas.addEventListener("touchmove", this, true);
+  canvas.addEventListener("mousemove", this, true);
+  canvas.addEventListener("touchend", this, true);
+  canvas.addEventListener("mouseup", this, true);
 }
 
 IconGrid.prototype = {
@@ -140,23 +145,20 @@ IconGrid.prototype = {
     }
   },
   onTouchStart: function(e) {
-    this.startX = e.pageX;
-    this.startY = e.pageY;
-    var canvas = this.sceneGraph.canvas;
-    canvas.addEventListener("touchmove", this, true);
-    canvas.addEventListener("mousemove", this, true);
-    canvas.addEventListener("touchend", this, true);
-    canvas.addEventListener("mouseup", this, true);
+    var touchState = this.touchState;
+    if (!touchState.active) {
+      touchState.active = true;
+      touchState.startX = e.pageX;
+      touchState.startY = e.pageY;
+    }
   },
   onTouchMove: function(e) {
-    this.sceneGraph.setViewport(this.startX - e.pageX, this.startY - e.pageY, 250);
+    var touchState = this.touchState;
+    if (touchState.active)
+      this.sceneGraph.setViewport(touchState.startX - e.pageX, touchState.startY - e.pageY, 250);
   },
   onTouchEnd: function(e) {
-    var canvas = this.sceneGraph.canvas;
-    canvas.removeEventListener("touchmove", this);
-    canvas.removeEventListener("mousemove", this);
-    canvas.removeEventListener("touchend", this);
-    canvas.removeEventListener("mouseup", this);
+    this.touchState.active = false;
   }
 }
 
