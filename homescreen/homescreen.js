@@ -15,10 +15,10 @@ Icon.prototype = {
     var iconHeight = iconGrid.iconHeight;
     var border = iconGrid.border;
     var sprite = this.sprite;
-    if (!sprite) {
+    var createSprite = !sprite;
+    if (createSprite) {
       var sceneGraph = iconGrid.sceneGraph;
       sprite = new Sprite(iconWidth, iconHeight);
-      sceneGraph.add(sprite);
       this.sprite = sprite;
     }
     var ctx = sprite.getContext2D();
@@ -30,6 +30,10 @@ Icon.prototype = {
     ctx.fillStyle = "black";
     ctx.textBaseline = "top";
     ctx.fillText(label, iconWidth/2, iconHeight - iconHeight*border, iconWidth*0.9);
+
+    if (createSprite) {
+      sceneGraph.add(sprite);
+    }
     this.reflow();
   },
   // return the X coordinate of the top left corner of a slot
