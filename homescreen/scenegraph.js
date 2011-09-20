@@ -149,7 +149,6 @@ SceneGraph.prototype = {
       var elapsed = GetElapsed(this.scrollStart, this.scrollStop, now);
       this.x = this.scrollFunction(elapsed, this.startX, this.x, this.targetX);
       this.y = this.scrollFunction(elapsed, this.startY, this.y, this.targetY);
-      console.log(this.x + " " + this.y);
       if (elapsed == 1)
         this.scrollFunction = null;
       else
