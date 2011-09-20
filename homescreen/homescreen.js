@@ -130,8 +130,19 @@ IconGrid.prototype = {
     for (var n = 0; n < icons.length; ++n)
       icons[n].reflow(duration);
   },
+  // get last page with an icon
+  getLastPage: function() {
+    var itemsPerPage = this.itemsPerPage;
+    var lastPage = Math.floor((this.icons.length + (itemsPerPage - 1)) / itemsPerPage);
+    if (lastPage > 0)
+      --lastPage;
+    return lastPage;
+  },
   // switch to a different page
   setPage: function(page, duration) {
+    page = Math.max(0, page);
+    page = Math.min(page, this.getLastPage());
+    console.log(this.getLastPage());
     this.sceneGraph.setViewport(this.containerWidth * page, 0, duration);
     this.currentPage = page;
   },
@@ -186,12 +197,12 @@ IconGrid.prototype = {
     if (tap) {
       console.log("tap");
     } else if (flick) {
-      this.setPage(this.currentPage + dir, 250);
+      this.setPage(this.currentPage + dir, 200);
     } else {
       if (Math.abs(diffX) < this.containerWidth/2)
-        this.setPage(this.currentPage, 250);
+        this.setPage(this.currentPage, 200);
       else
-        this.setPage(this.currentPage + dir, 250);
+        this.setPage(this.currentPage + dir, 200);
     }
   }
 }
