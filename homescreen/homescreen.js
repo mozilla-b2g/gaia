@@ -153,17 +153,17 @@ IconGrid.prototype = {
   },
   onTouchStart: function(e) {
     var touchState = this.touchState;
-    if (!touchState.active) {
-      touchState.active = true;
-      touchState.startX = e.pageX;
-      touchState.startY = e.pageY;
-      touchState.startTime = e.timeStamp;
-    }
+    touchState.active = true;
+    touchState.startX = e.pageX;
+    touchState.startY = e.pageY;
+    touchState.startTime = e.timeStamp;
   },
   onTouchMove: function(e) {
     var touchState = this.touchState;
-    if (touchState.active)
-      this.sceneGraph.setViewport(touchState.startX - e.pageX, 0, 100);
+    if (touchState.active) {
+      this.sceneGraph.setViewport(this.currentPage * this.containerWidth +
+                                  touchState.startX - e.pageX, 0, 100);
+    }
   },
   onTouchEnd: function(e) {
     var touchState = this.touchState;
