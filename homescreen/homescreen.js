@@ -39,8 +39,9 @@ Icon.prototype = {
   },
   // return the Y coordinate of the top left corner of a slot
   slotTop: function() {
-    var iconGrid = this.iconGrid;    
-    return Math.floor(this.index / iconGrid.columns) * iconGrid.itemBoxHeight;
+    var iconGrid = this.iconGrid;
+    var slot = this.index % iconGrid.itemsPerPage;
+    return Math.floor(slot / iconGrid.columns) * iconGrid.itemBoxHeight;
   },
   reflow: function(animated) {
     var sprite = this.sprite;
