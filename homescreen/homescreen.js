@@ -126,16 +126,37 @@ IconGrid.prototype = {
   handleEvent: function(e) {
     switch (e.type) {
     case 'touchstart':
-      if (e.touches.length == 1)
-        this.onTouchStart(e.touches[0]);
-      break;
     case 'mousedown':
-      this.onTouchStart(e);
+      this.onTouchStart(e.touches ? e.touches[0] : e);
+      break;
+    case 'touchmove':
+    case 'mousemove':
+      this.onTouchMove(e.touches ? e.touches[0] : e);
+      break;
+    case 'touchend':
+    case 'mouseup':
+      this.onTouchEnd(e.touches ? e.touches[0] : e);
       break;
     }
   },
   onTouchStart: function(e) {
-    this.sceneGraph.forHit(e.pageX, e.pageY, function(sprite) { console.log(sprite.label); });
+    this.startX = e.pageX;
+    this.startY = e.pageY;
+    var canvas = this.sceneGraph.canvas;
+    canvas.addEventListener("touchmove", this, true);
+    canvas.addEventListener("mousemove", this, true);
+    canvas.addEventListener("touchend", this, true);
+    canvas.addEventListener("mouseup", this, true);
+  },
+  onTouchMove: function(e) {
+    this.sceneGraph.setViewport(this.startX - e.pageX, this.startY - e.pageY, 250);
+  },
+  onTouchEnd: function(e) {
+    var canvas = this.sceneGraph.canvas;
+    canvas.removeEventListener("touchmove", this);
+    canvas.removeEventListener("mousemove", this);
+    canvas.removeEventListener("touchend", this);
+    canvas.removeEventListener("mouseup", this);
   }
 }
 
@@ -188,5 +209,4 @@ function OnLoad() {
   var iconGrid = new IconGrid(document.getElementById("screen"), 120, 120, 0.15, 500);
   for (var n = 0; n < icons.length; ++n)
     iconGrid.add(icons[n].src, icons[n].label);
-  iconGrid.sceneGraph.setViewport(300,0,1000);
 }

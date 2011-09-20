@@ -119,8 +119,9 @@ function SceneGraph(canvas) {
 
   var self = this;
   window.addEventListener("MozBeforePaint", function(event) {
+      var now = GetAnimationClockTime();
       // continue painting until we are run out of animations
-      if (self.animate(GetAnimationClockTime()))
+      if (self.animate(now))
         RequestAnimationFrame();
       self.blitter.draw(self.x, self.y, self.sprites);
     }, false);
