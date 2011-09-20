@@ -30,10 +30,8 @@ Icon.prototype = {
     ctx.fillStyle = "black";
     ctx.textBaseline = "top";
     ctx.fillText(label, iconWidth/2, iconHeight - iconHeight*border, iconWidth*0.9);
-
-    if (createSprite) {
+    if (createSprite)
       sceneGraph.add(sprite);
-    }
     this.reflow();
   },
   // return the X coordinate of the top left corner of a slot

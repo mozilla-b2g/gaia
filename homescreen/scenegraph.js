@@ -3,7 +3,7 @@
 
 'use strict';
 
-/*const*/var kUseGL = 0;
+/*const*/var kUseGL = 1;
 
 function abort(why) { alert(why); throw why; }
 function assert(cond, msg) { if (!cond) abort(msg); }
@@ -316,12 +316,15 @@ SpriteBlitterGL.prototype = {
     gl.uniformMatrix4fv(program.uProjection, false, this.projectionMatrix);
     gl.uniform1i(program.uTexture, 0);
 
+    var translateX = x;
+    var translateY = y;
+
     for (var n = 0; n < sprites.length; ++n) {
       var sprite = sprites[n];
       var canvas = sprite.canvas;
       var scale = sprite.scale;
-      var x = sprite.x / viewportWidth;
-      var y = sprite.y / viewportHeight;
+      var x = (sprite.x - translateX) / viewportWidth;
+      var y = (sprite.y - translateY) / viewportHeight;
       var width = canvas.width * scale;
       var height = canvas.height * scale;
       var xmost = x + width / viewportWidth;
