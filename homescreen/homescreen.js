@@ -3,6 +3,64 @@
 
 'use strict';
 
+function createPhysicsFor(iconGrid) {
+  return new DefaultPhysics(iconGrid);
+}
+
+function DefaultPhysics(iconGrid) {
+  this.iconGrid = iconGrid;
+  this.touchState = { active: false, startX: 0, startY: 0 };
+}
+
+DefaultPhysics.prototype = {
+  onTouchStart: function(e) {
+    var touchState = this.touchState;
+    touchState.active = true;
+    touchState.startX = e.pageX;
+    touchState.startY = e.pageY;
+    touchState.startTime = e.timeStamp;
+  },
+  onTouchMove: function(e) {
+    var iconGrid = this.iconGrid;
+    var touchState = this.touchState;
+    if (touchState.active) {
+      iconGrid.sceneGraph.setViewportTopLeft(iconGrid.currentPage * iconGrid.containerWidth +
+                                  touchState.startX - e.pageX, 0, 100);
+    }
+  },
+  onTouchEnd: function(e) {
+    var touchState = this.touchState;
+    if (!touchState.active)
+      return;
+    touchState.active = false;
+
+    var startX = touchState.startX;
+    var endX = e.pageX;
+    var diffX = endX - startX;
+    var dir = (diffX > 0) ? -1 : 1;
+
+    var quick = (e.timeStamp - touchState.startTime < 200);
+    var small = Math.abs(diffX) < 10;
+
+    var flick = quick && !small;
+    var tap = small;
+    var drag = !quick;
+
+    var iconGrid = this.iconGrid;
+    var currentPage = iconGrid.currentPage
+    if (tap) {
+      console.log("tap");
+    } else if (flick) {
+      iconGrid.setPage(currentPage + dir, 200);
+    } else {
+      if (Math.abs(diffX) < this.containerWidth/2)
+        iconGrid.setPage(currentPage, 200);
+      else
+        iconGrid.setPage(currentPage + dir, 200);
+    }
+  }
+};
+
 function Icon(iconGrid, index) {
   this.iconGrid = iconGrid;
   this.index = index;
@@ -68,8 +126,8 @@ function IconGrid(canvas, background, iconWidth, iconHeight, border) {
   this.sceneGraph = new SceneGraph(canvas);
   this.border = border || 0.1;
   this.icons = [];
-  this.touchState = { active: false, startX: 0, startY: 0 };
   this.currentPage = 0;
+  this.physics = createPhysicsFor(this);
 
   // add the background image
   
@@ -145,66 +203,24 @@ IconGrid.prototype = {
   setPage: function(page, duration) {
     page = Math.max(0, page);
     page = Math.min(page, this.getLastPage());
-    this.sceneGraph.setViewport(this.containerWidth * page, 0, duration);
+    this.sceneGraph.setViewportTopLeft(this.containerWidth * page, 0, duration);
     this.currentPage = page;
   },
   handleEvent: function(e) {
+    var physics = this.physics;
     switch (e.type) {
     case 'touchstart':
     case 'mousedown':
-      this.onTouchStart(e.touches ? e.touches[0] : e);
+      physics.onTouchStart(e.touches ? e.touches[0] : e);
       break;
     case 'touchmove':
     case 'mousemove':
-      this.onTouchMove(e.touches ? e.touches[0] : e);
+      physics.onTouchMove(e.touches ? e.touches[0] : e);
       break;
     case 'touchend':
     case 'mouseup':
-      this.onTouchEnd(e.touches ? e.touches[0] : e);
+      physics.onTouchEnd(e.touches ? e.touches[0] : e);
       break;
-    }
-  },
-  onTouchStart: function(e) {
-    var touchState = this.touchState;
-    touchState.active = true;
-    touchState.startX = e.pageX;
-    touchState.startY = e.pageY;
-    touchState.startTime = e.timeStamp;
-  },
-  onTouchMove: function(e) {
-    var touchState = this.touchState;
-    if (touchState.active) {
-      this.sceneGraph.setViewport(this.currentPage * this.containerWidth +
-                                  touchState.startX - e.pageX, 0, 100);
-    }
-  },
-  onTouchEnd: function(e) {
-    var touchState = this.touchState;
-    if (!touchState.active)
-      return;
-    touchState.active = false;
-
-    var startX = touchState.startX;
-    var endX = e.pageX;
-    var diffX = endX - startX;
-    var dir = (diffX > 0) ? -1 : 1;
-
-    var quick = (e.timeStamp - touchState.startTime < 200);
-    var small = Math.abs(diffX) < 10;
-
-    var flick = quick && !small;
-    var tap = small;
-    var drag = !quick;
-
-    if (tap) {
-      console.log("tap");
-    } else if (flick) {
-      this.setPage(this.currentPage + dir, 200);
-    } else {
-      if (Math.abs(diffX) < this.containerWidth/2)
-        this.setPage(this.currentPage, 200);
-      else
-        this.setPage(this.currentPage + dir, 200);
     }
   }
 }

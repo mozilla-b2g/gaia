@@ -3,7 +3,7 @@
 
 'use strict';
 
-/*const*/var kUseGL = 1;
+/*const*/var kUseGL = 0;
 
 function abort(why) { alert(why); throw why; }
 function assert(cond, msg) { if (!cond) abort(msg); }
@@ -182,7 +182,7 @@ SceneGraph.prototype = {
       }
     }
   },
-  setViewport: function(targetX, targetY, duration, fn) {
+  setViewportTopLeft: function(targetX, targetY, duration, fn) {
     RequestAnimationFrame();
     if (duration && (this.x != targetX || this.y != targetY)) {
       this.startX = this.x;
