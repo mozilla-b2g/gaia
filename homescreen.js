@@ -29,7 +29,7 @@ DefaultPhysics.prototype = {
       var dx = touchState.startX - e.pageX;
       if (dx !== 0) {
         iconGrid.sceneGraph.setViewportTopLeft(
-          iconGrid.currentPage * iconGrid.containerWidth + dx, 0, 0);
+          iconGrid.currentPage * iconGrid.containerWidth + dx, 0, 100);
         this.moved = true;
       }
     }
