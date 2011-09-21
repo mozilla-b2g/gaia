@@ -111,6 +111,7 @@ function SceneGraph(canvas) {
     kUseGL ? new SpriteBlitterGL(canvas) : new SpriteBlitter2D(canvas);
   this.canvas = canvas;
   this.sprites = [];
+  this.background = null;
   this.x = 0;
   this.y = 0;
 
@@ -177,6 +178,17 @@ SceneGraph.prototype = {
       }
     }
   },
+  setBackground: function(imageUrl) {
+    var bgImg = document.createElement('img');
+    bgImg.src = imageUrl;
+    bgImg.sceneGraph = this;
+    bgImg.onload = function() {
+      var sceneGraph = this.sceneGraph;
+      sceneGraph.background = this;
+      sceneGraph.blitter.backgroundChanged(this);
+      RequestAnimationFrame();
+    };
+  },
   setViewportTopLeft: function(targetX, targetY, duration, fn) {
     RequestAnimationFrame();
     if (duration && (this.x != targetX || this.y != targetY)) {
@@ -197,15 +209,17 @@ SceneGraph.prototype = {
 
 // fallback 2D canvas backend
 function SpriteBlitter2D(canvas) {
+  this.background = 'white';
   this.canvas = canvas;
+  this.ctx = canvas.getContext('2d');
 }
 SpriteBlitter2D.prototype = {
-  draw: function(x, y, sprites) {
+draw: function(x, y, sprites, background) {
     var canvas = this.canvas;
-    var ctx = canvas.getContext('2d');
+    var ctx = this.ctx;
     var width = canvas.width;
     var height = canvas.height;
-    ctx.fillStyle = "white";
+    ctx.fillStyle = this.background;
     ctx.fillRect(0, 0, width, height);
     for (var n = 0; n < sprites.length; ++n) {
       var sprite = sprites[n];
@@ -215,6 +229,9 @@ SpriteBlitter2D.prototype = {
         ctx.drawImage(canvas, sprite.x - x, sprite.y - y, canvas.width * scale, canvas.height * scale);
       }
     }    
+  },
+  backgroundChanged: function(background) {
+    this.background = this.ctx.createPattern(background, 'repeat');
   },
   // nothing to do here
   spriteAdded: function(sprite) {},
@@ -351,6 +368,9 @@ SpriteBlitterGL.prototype = {
     }
 
     gl.bindTexture(gl.TEXTURE_2D, null);
+  },
+  backgroundChanged: function(background) {
+    // TODO
   },
   spriteAdded: function(sprite) {
     if (('texture' in sprite) && sprite.texture !== null)
