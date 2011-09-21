@@ -167,11 +167,6 @@ SceneGraph.prototype = {
       callback(sprites[n]);
   },
   forHit: function(x, y, callback) {
-    var canvas = this.canvas;
-    x -= canvas.clientLeft;
-    y -= canvas.clientTop;
-    if (x >= canvas.clientWidth || y >= canvas.clientHeight)
-      return;
     var sprites = this.sprites;
     for (var n = 0; n < sprites.length; ++n) {
       var sprite = sprites[n];

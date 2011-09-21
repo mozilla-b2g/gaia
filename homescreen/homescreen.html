@@ -1,11 +1,21 @@
 <html>
   <head>
-    <link href='http://fonts.googleapis.com/css?family=Droid+Sans' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Droid+Sans'
+          rel='stylesheet' type='text/css'>
+    <link href='homescreen.css' rel='stylesheet' type='text/css'>
     <script type="text/javascript" src="scenegraph.js"></script>
     <script type="text/javascript" src="homescreen.js"></script> 
     <img src="images/background.png" width="0">
   </head>
   <body onload="OnLoad();">
-    <canvas id="screen" width="480" height="800"></canvas>
+    <div id="screen">
+      <div id="home">
+        <canvas id="homeCanvas" width="480" height="800"></canvas>
+      </div>
+      <div id="windows">
+        <div id="loadAnimationScreen"></div>
+        <!-- application windows are added here -->
+      </div>
+    </div>
   </body>
 </html>

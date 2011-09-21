@@ -9,12 +9,14 @@ function createPhysicsFor(iconGrid) {
 
 function DefaultPhysics(iconGrid) {
   this.iconGrid = iconGrid;
+  this.moved = false;
   this.touchState = { active: false, startX: 0, startY: 0 };
 }
 
 DefaultPhysics.prototype = {
   onTouchStart: function(e) {
     var touchState = this.touchState;
+    this.moved = false;
     touchState.active = true;
     touchState.startX = e.pageX;
     touchState.startY = e.pageY;
@@ -24,8 +26,12 @@ DefaultPhysics.prototype = {
     var iconGrid = this.iconGrid;
     var touchState = this.touchState;
     if (touchState.active) {
-      iconGrid.sceneGraph.setViewportTopLeft(iconGrid.currentPage * iconGrid.containerWidth +
-                                             touchState.startX - e.pageX, 0, 0);
+      var dx = touchState.startX - e.pageX;
+      if (dx !== 0) {
+        iconGrid.sceneGraph.setViewportTopLeft(
+          iconGrid.currentPage * iconGrid.containerWidth + dx, 0, 0);
+        this.moved = true;
+      }
     }
   },
   onTouchEnd: function(e) {
@@ -43,13 +49,14 @@ DefaultPhysics.prototype = {
     var small = Math.abs(diffX) < 10;
 
     var flick = quick && !small;
-    var tap = small;
+    var tap = !this.moved && small;
     var drag = !quick;
 
     var iconGrid = this.iconGrid;
     var currentPage = iconGrid.currentPage
     if (tap) {
-      console.log("tap");
+      iconGrid.tap(currentPage * iconGrid.containerWidth + startX,
+                   touchState.startY);
     } else if (flick) {
       iconGrid.setPage(currentPage + dir, 200);
     } else {
@@ -67,7 +74,13 @@ function Icon(iconGrid, index) {
 }
 
 Icon.prototype = {
-  update: function(img, label) {
+update: function(img, label, url) {
+
+
+    this.label = label;
+    this.url = url;
+
+
     var iconGrid = this.iconGrid;
     var iconWidth = iconGrid.iconWidth;
     var iconHeight = iconGrid.iconHeight;
@@ -77,6 +90,7 @@ Icon.prototype = {
     if (createSprite) {
       var sceneGraph = iconGrid.sceneGraph;
       sprite = new Sprite(iconWidth, iconHeight);
+      sprite.icon = this;
       this.sprite = sprite;
     }
     var ctx = sprite.getContext2D();
@@ -130,7 +144,7 @@ function IconGrid(canvas, background, iconWidth, iconHeight, border) {
   this.physics = createPhysicsFor(this);
 
   // add the background image
-  
+
 
   // update the layout state
   this.reflow(canvas.width, canvas.height, 0);
@@ -145,7 +159,7 @@ function IconGrid(canvas, background, iconWidth, iconHeight, border) {
 }
 
 IconGrid.prototype = {
-  add: function(src, label) {
+  add: function(src, label, url) {
     // Create the icon in the icon grid
     var icons = this.icons;
     var icon = new Icon(this, this.icons.length);
@@ -155,11 +169,12 @@ IconGrid.prototype = {
     var img = new Image();
     img.src = src;
     img.label = label;
+    img.url = url;
     img.icon = icon;
     img.onload = function() {
       // Update the icon (this will trigger a reflow and a repaint)
       var icon = this.icon;
-      icon.update(this, this.label);
+      icon.update(this, this.label, this.url);
     }
     return icon;
   },
@@ -206,6 +221,12 @@ IconGrid.prototype = {
     this.sceneGraph.setViewportTopLeft(this.containerWidth * page, 0, duration);
     this.currentPage = page;
   },
+  // process a computed tap at the given scene-graph coordinates
+  tap: function(x, y) {
+    this.sceneGraph.forHit(
+      x, y,
+      function(sprite) { openApplication(sprite.icon.url); });
+  },
   handleEvent: function(e) {
     var physics = this.physics;
     switch (e.type) {
@@ -227,18 +248,29 @@ IconGrid.prototype = {
 
 function OnLoad() {
   var fruits = [
-               { label: 'Phone', src: 'images/Phone.png' },
-               { label: 'Messages', src: 'images/Messages.png' },
-               { label: 'Calendar', src: 'images/Calendar.png' },
-               { label: 'Gallery', src: 'images/Gallery.png' },
-               { label: 'Camera', src: 'images/Camera.png' },
-               { label: 'Maps', src: 'images/Maps.png' },
-               { label: 'YouTube', src: 'images/YouTube.png' },
-               { label: 'Calculator', src: 'images/Calculator.png' },
-               { label: 'Books', src: 'images/Books.png' },
-               { label: 'Browser', src: 'images/Browser.png' },
-               { label: 'Music', src: 'images/Music.png' }
-              ];
+    { label: 'Phone', src: 'images/Phone.png',
+      url: 'data:text/html,<font color="blue">Hello' },
+    { label: 'Messages', src: 'images/Messages.png',
+      url: 'data:text/html,<font color="blue">Hello' },
+    { label: 'Calendar', src: 'images/Calendar.png',
+      url: 'data:text/html,<font color="blue">Hello' },
+    { label: 'Gallery', src: 'images/Gallery.png',
+      url: 'data:text/html,<font color="blue">Hello' },
+    { label: 'Camera', src: 'images/Camera.png',
+      url: 'data:text/html,<font color="blue">Hello' },
+    { label: 'Maps', src: 'images/Maps.png',
+      url: 'data:text/html,<font color="blue">Hello' },
+    { label: 'YouTube', src: 'images/YouTube.png',
+      url: 'data:text/html,<font color="blue">Hello' },
+    { label: 'Calculator', src: 'images/Calculator.png',
+      url: 'data:text/html,<font color="blue">Hello' },
+    { label: 'Books', src: 'images/Books.png',
+      url: 'data:text/html,<font color="blue">Hello' },
+    { label: 'Browser', src: 'images/Browser.png',
+      url: 'data:text/html,<font color="blue">Hello' },
+    { label: 'Music', src: 'images/Music.png',
+      url: 'data:text/html,<font color="blue">Hello' }
+  ];
 
   var icons = [];
   for (var n = 0; n < fruits.length; ++n)
@@ -250,9 +282,38 @@ function OnLoad() {
   for (var n = 0; n < fruits.length; ++n)
     icons.push(fruits[n]);
 
-  var iconGrid = new IconGrid(document.getElementById("screen"),
+  var iconGrid = new IconGrid(document.getElementById("homeCanvas"),
                               "images/background.png",
                               120, 120, 0.2);
   for (var n = 0; n < icons.length; ++n)
-    iconGrid.add(icons[n].src, icons[n].label);
+    iconGrid.add(icons[n].src, icons[n].label, icons[n].url);
+}
+
+// open the application referred to by |url| into a new window, or
+// bring its window to front if already open.
+function openApplication(url) {
+  // TODO
+  //var existingWindow = document.querySelector('#windows > ...');
+
+  var newWindow = document.createElement('iframe');
+  newWindow.className = 'appWindow';
+  newWindow.style.display = 'none';
+  // XXX need to decide whether to try to load this during animation
+  newWindow.src = url;
+
+  var windows = document.getElementById('windows');
+  windows.appendChild(newWindow);
+
+  var loadScreen = document.getElementById('loadAnimationScreen');
+  loadScreen.className = 'animateOpening';
+  loadScreen.style.display = 'block';
+
+  window.addEventListener(
+    'animationend',
+    function listener() {
+      loadScreen.style.display = 'none';
+      newWindow.style.display = 'block';
+      window.removeEventListener('animationend', listener, false);
+    },
+    false);
 }

@@ -1,0 +1,55 @@
+body {
+  margin: 0px;
+  padding: 0px;
+}
+#screen {
+  position: absolute;
+  width: 480px;
+  height: 800px;
+}
+#windows {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+}
+
+iframe.appWindow {
+  position: absolute;
+  background-color: black;
+  border: 0px;
+  margin: 0px;
+  padding: 0px;
+  overflow: hidden;
+  left: 0px;
+  top: 0px;
+  width: 480px;
+  height: 800px;
+}
+
+#loadAnimationScreen {
+  display: none;
+  position: absolute;
+  background-color: black;
+  border: 0px;
+  margin: 0px;
+  padding: 0px;
+  overflow: hidden;
+}
+.animateOpening {
+  -moz-animation-duration: 200ms;
+  -moz-animation-name: openingAnimation;
+}
+@-moz-keyframes openingAnimation {
+  from {
+    left: 240px;
+    top: 400px;
+    width: 0px;
+    height: 0px;
+  }
+  to {
+    left: 0px;
+    top: 0px;
+    width: 480px;
+    height: 800px;
+  }
+}
