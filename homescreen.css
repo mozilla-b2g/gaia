@@ -5,12 +5,12 @@ body {
 #screen {
   position: absolute;
   width: 480px;
-  height: 800px;
+  height: 780px;
 }
 #windows {
   position: absolute;
   left: 0px;
-  top: 0px;
+  top: 20px;
 }
 
 iframe.appWindow {
@@ -23,7 +23,7 @@ iframe.appWindow {
   left: 0px;
   top: 0px;
   width: 480px;
-  height: 800px;
+  height: 780px;
 }
 
 #loadAnimationScreen {
@@ -50,6 +50,21 @@ iframe.appWindow {
     left: 0px;
     top: 0px;
     width: 480px;
-    height: 800px;
+    height: 780px;
   }
 }
+
+#statusBar {
+  display: -moz-box;
+  -moz-box-orient: horizontal;
+  width: 476px;
+  height: 20px;
+  padding: 2px;
+  background-color: #444;
+  color: #fff;
+  font: 16px Arial, sans-serif;
+  overflow: hidden;
+}
+#statusText    { -moz-box-flex: 0; }
+#statusPadding { -moz-box-flex: 1; }
+#statusClock   { -moz-box-flex: 0; }
