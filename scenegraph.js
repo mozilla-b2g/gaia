@@ -4,6 +4,7 @@
 'use strict';
 
 /*const*/var kUseGL = 0;
+/*const*/var kSnapToWholePixels = !kUseGL;
 
 function abort(why) { alert(why); throw why; }
 function assert(cond, msg) { if (!cond) abort(msg); }
@@ -121,7 +122,7 @@ function SceneGraph(canvas) {
       // continue painting until we are run out of animations
       if (self.animate(now))
         RequestAnimationFrame();
-      self.blitter.draw(self.x, self.y, self.sprites);
+      self.draw();
     }, false);
 }
 
@@ -160,6 +161,14 @@ SceneGraph.prototype = {
         more = true;
     }
     return more;
+  },
+  draw: function() {
+    var x = this.x, y = this.y;
+    if (kSnapToWholePixels) {
+      x |= 0;
+      y |= 0;
+    }
+    this.blitter.draw(x, y, this.sprites);
   },
   // walk over all sprites in the scene
   forAll: function(callback) {
