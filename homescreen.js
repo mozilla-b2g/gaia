@@ -142,7 +142,7 @@ function IconGrid(canvas, background, iconWidth, iconHeight, border) {
   this.physics = createPhysicsFor(this);
 
   // add the background image
-  this.sceneGraph.setBackground('images/background.png');
+//  this.sceneGraph.setBackground('images/background.png');
 
   // update the layout state
   this.reflow(canvas.width, canvas.height, 0);
@@ -288,6 +288,9 @@ function OnLoad() {
 
   window.setInterval(updateClock, 60000);
   updateClock();
+
+  document.getElementById('statusPadding').innerHTML =
+    kUseGL ? '(WebGL)' : '(2D canvas)';
 }
 
 // open the application referred to by |url| into a new window, or

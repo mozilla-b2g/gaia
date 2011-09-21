@@ -65,6 +65,13 @@ iframe.appWindow {
   font: 16px Arial, sans-serif;
   overflow: hidden;
 }
-#statusText    { -moz-box-flex: 0; }
-#statusPadding { -moz-box-flex: 1; }
-#statusClock   { -moz-box-flex: 0; }
+#statusText {
+  -moz-box-flex: 0;
+}
+#statusPadding {
+  -moz-box-flex: 1;
+  text-align: center;
+}
+#statusClock {
+  -moz-box-flex: 0;
+}
