@@ -71,16 +71,14 @@ DefaultPhysics.prototype = {
 function Icon(iconGrid, index) {
   this.iconGrid = iconGrid;
   this.index = index;
+  this.label = '';
+  this.url = '';
 }
 
 Icon.prototype = {
 update: function(img, label, url) {
-
-
     this.label = label;
     this.url = url;
-
-
     var iconGrid = this.iconGrid;
     var iconWidth = iconGrid.iconWidth;
     var iconHeight = iconGrid.iconHeight;
@@ -99,7 +97,7 @@ update: function(img, label, url) {
                   iconHeight * (1 - border * 2));
     ctx.font = Math.floor(iconHeight * border * 0.6) + "pt Arial, sans-serif";
     ctx.textAlign = "center";
-    ctx.fillStyle = "black";
+    ctx.fillStyle = "white";
     ctx.textBaseline = "top";
     ctx.fillText(label, iconWidth/2, iconHeight - iconHeight*border, iconWidth*0.9);
     if (createSprite)
@@ -287,6 +285,9 @@ function OnLoad() {
                               120, 120, 0.2);
   for (var n = 0; n < icons.length; ++n)
     iconGrid.add(icons[n].src, icons[n].label, icons[n].url);
+
+  window.setInterval(updateClock, 60000);
+  updateClock();
 }
 
 // open the application referred to by |url| into a new window, or
@@ -316,4 +317,14 @@ function openApplication(url) {
       window.removeEventListener('animationend', listener, false);
     },
     false);
+}
+
+function updateClock() {
+  var now = new Date();
+  var str = now.getHours();
+  str += ':';
+  var mins = now.getMinutes();
+  if (mins < 10) str += "0";
+  str += mins;
+  document.getElementById('statusClock').innerHTML = str;
 }
