@@ -249,7 +249,7 @@ IconGrid.prototype = {
 function OnLoad() {
   var fruits = [
     { label: 'Phone', src: 'images/Phone.png',
-      url: 'data:text/html,<font color="blue">Hello' },
+      url: 'dialer/dialer.html' },
     { label: 'Messages', src: 'images/Messages.png',
       url: 'data:text/html,<font color="blue">Hello' },
     { label: 'Calendar', src: 'images/Calendar.png',
