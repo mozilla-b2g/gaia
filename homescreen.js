@@ -76,7 +76,7 @@ function Icon(iconGrid, index) {
 }
 
 Icon.prototype = {
-update: function(img, label, url) {
+  update: function(img, label, url) {
     this.label = label;
     this.url = url;
     var iconGrid = this.iconGrid;
@@ -142,7 +142,7 @@ function IconGrid(canvas, background, iconWidth, iconHeight, border) {
   this.physics = createPhysicsFor(this);
 
   // add the background image
-//  this.sceneGraph.setBackground('images/background.png');
+  // this.sceneGraph.setBackground('images/background.png');
 
   // update the layout state
   this.reflow(canvas.width, canvas.height, 0);
@@ -226,6 +226,10 @@ IconGrid.prototype = {
       function(sprite) { openApplication(sprite.icon.url); });
   },
   handleEvent: function(e) {
+    // If the focus is over another window, ignore events over the homescreen
+    if (document.getElementById("windows").childElementCount > 1)
+      return;
+
     var physics = this.physics;
     switch (e.type) {
     case 'touchstart':
@@ -273,12 +277,6 @@ function OnLoad() {
   var icons = [];
   for (var n = 0; n < fruits.length; ++n)
     icons.push(fruits[n]);
-  for (var n = 0; n < fruits.length; ++n)
-    icons.push(fruits[n]);
-  for (var n = 0; n < fruits.length; ++n)
-    icons.push(fruits[n]);
-  for (var n = 0; n < fruits.length; ++n)
-    icons.push(fruits[n]);
 
   var iconGrid = new IconGrid(document.getElementById("homeCanvas"),
                               "images/background.png",
@@ -315,6 +313,7 @@ function openApplication(url) {
   window.addEventListener(
     'animationend',
     function listener() {
+      loadScreen.className = '';
       loadScreen.style.display = 'none';
       newWindow.style.display = 'block';
       window.removeEventListener('animationend', listener, false);
@@ -327,7 +326,8 @@ function updateClock() {
   var str = now.getHours();
   str += ':';
   var mins = now.getMinutes();
-  if (mins < 10) str += "0";
+  if (mins < 10)
+    str += "0";
   str += mins;
   document.getElementById('statusClock').innerHTML = str;
 }
