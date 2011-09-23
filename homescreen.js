@@ -271,8 +271,10 @@ function OnLoad() {
   ];
 
   var icons = [];
-  for (var n = 0; n < fruits.length; ++n)
-    icons.push(fruits[n]);
+  // XXX this add 5 times the same set of icons
+  for (var i = 0; i < 5; i++)
+    for (var n = 0; n < fruits.length; ++n)
+      icons.push(fruits[n]);
 
   var iconGrid = new IconGrid(document.getElementById("homeCanvas"),
                               "images/background.png",
