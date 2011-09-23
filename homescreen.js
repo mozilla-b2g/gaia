@@ -148,12 +148,12 @@ function IconGrid(canvas, background, iconWidth, iconHeight, border) {
   this.reflow(canvas.width, canvas.height, 0);
 
   // install event handlers
-  document.addEventListener("touchstart", this, true);
-  document.addEventListener("mousedown", this, true);
-  document.addEventListener("touchmove", this, true);
-  document.addEventListener("mousemove", this, true);
-  document.addEventListener("touchend", this, true);
-  document.addEventListener("mouseup", this, true);
+  canvas.addEventListener("touchstart", this, true);
+  canvas.addEventListener("mousedown", this, true);
+  canvas.addEventListener("touchmove", this, true);
+  canvas.addEventListener("mousemove", this, true);
+  canvas.addEventListener("touchend", this, true);
+  canvas.addEventListener("mouseup", this, true);
 }
 
 IconGrid.prototype = {
@@ -226,10 +226,6 @@ IconGrid.prototype = {
       function(sprite) { openApplication(sprite.icon.url); });
   },
   handleEvent: function(e) {
-    // If the focus is over another window, ignore events over the homescreen
-    if (document.getElementById("windows").childElementCount > 1)
-      return;
-
     var physics = this.physics;
     switch (e.type) {
     case 'touchstart':
@@ -284,12 +280,52 @@ function OnLoad() {
   for (var n = 0; n < icons.length; ++n)
     iconGrid.add(icons[n].src, icons[n].label, icons[n].url);
 
+  // XXX In the long term this is probably bad for battery
   window.setInterval(updateClock, 60000);
   updateClock();
 
   document.getElementById('statusPadding').innerHTML =
     kUseGL ? '(WebGL)' : '(2D canvas)';
+
+  WindowManager.start();
 }
+
+var WindowManager = {
+  start: function wm_start() {
+    window.addEventListener("appclose", this, true);
+  },
+  stop: function wm_stop() {},
+  handleEvent: function wm_handleEvent(evt) {
+    switch (evt.type) {
+      case "appclose":
+        var windows = document.getElementById('windows');
+        if (windows.childElementCount <= 1)
+          return;
+
+        var loadScreen = document.getElementById('loadAnimationScreen');
+        loadScreen.style.display = 'block';
+        loadScreen.classList.toggle('animateClosing');
+
+        // TODO when existing window will be checked, this should be
+        // point to the real window
+        var topWindow = windows.lastChild;
+        windows.removeChild(topWindow);
+
+        window.addEventListener(
+          'animationend',
+          function listener() {
+            loadScreen.className = '';
+            loadScreen.style.display = 'none';
+            window.removeEventListener('animationend', listener, false);
+          },
+          false);
+        break;
+      default:
+        throw new Error("Unhandled event in WindowManager");
+        break;
+    }
+  }
+};
 
 // open the application referred to by |url| into a new window, or
 // bring its window to front if already open.
