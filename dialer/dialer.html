@@ -10,7 +10,7 @@
         background-color: black;
         font-size: 18px;
         color: white;
-        height: 800px;
+        height: 780px;
         width: 480px;
         overflow: hidden;
       }
@@ -23,6 +23,7 @@
       }
 
       #keyboard {
+        height: 580px;
         display: -moz-box;
         -moz-box-orient: vertical;
         -moz-box-flex: 1;
@@ -214,7 +215,7 @@
               char = target.getAttribute("value");
               if (char == "call") {
                 try {
-                   window.navigator.mozPhone.call(this.phoneNumber.value);
+                   window.navigator.mozPhone.call(phoneNumber.value);
                 } catch (e) {
                    console.log("error calling number: "+ e);
                 }
