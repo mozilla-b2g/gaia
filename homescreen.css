@@ -53,6 +53,24 @@ iframe.appWindow {
     height: 780px;
   }
 }
+.animateClosing {
+  -moz-animation-duration: 100ms;
+  -moz-animation-name: closingAnimation;
+}
+@-moz-keyframes closingAnimation {
+  from {
+    left: 0px;
+    top: 0px;
+    width: 480px;
+    height: 780px;
+  }
+  to {
+    left: 240px;
+    top: 400px;
+    width: 0px;
+    height: 0px;
+  }
+}
 
 #statusBar {
   display: -moz-box;
