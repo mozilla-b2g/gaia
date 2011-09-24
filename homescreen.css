@@ -1,16 +1,20 @@
-body {
+html, body {
+  width: 100%;
+  height: 100%;
   margin: 0px;
   padding: 0px;
 }
 #screen {
   position: absolute;
-  width: 480px;
-  height: 780px;
+  width: 100%;
+  height: 100%; 
 }
 #windows {
   position: absolute;
   left: 0px;
   top: 20px;
+  width: -moz-calc(100%);
+  height: -moz-calc(100% - 20px);
 }
 
 iframe.appWindow {
@@ -22,8 +26,8 @@ iframe.appWindow {
   overflow: hidden;
   left: 0px;
   top: 0px;
-  width: 480px;
-  height: 780px;
+  width: -moz-calc(100%);
+  height: -moz-calc(100%);
 }
 
 #loadAnimationScreen {
@@ -41,16 +45,16 @@ iframe.appWindow {
 }
 @-moz-keyframes openingAnimation {
   from {
-    left: 240px;
-    top: 400px;
+    left: 50%;
+    top: 50%;
     width: 0px;
     height: 0px;
   }
   to {
     left: 0px;
     top: 0px;
-    width: 480px;
-    height: 780px;
+    width: 100%;
+    height: 100%;
   }
 }
 .animateClosing {
@@ -61,12 +65,12 @@ iframe.appWindow {
   from {
     left: 0px;
     top: 0px;
-    width: 480px;
-    height: 780px;
+    width: 100%;
+    height: 100%;
   }
   to {
-    left: 240px;
-    top: 400px;
+    left: 50%;
+    top: 50%;
     width: 0px;
     height: 0px;
   }
@@ -75,7 +79,7 @@ iframe.appWindow {
 #statusBar {
   display: -moz-box;
   -moz-box-orient: horizontal;
-  width: 476px;
+  width: -moz-calc(100% - 4px);
   height: 20px;
   padding: 2px;
   background-color: #444;
@@ -93,3 +97,4 @@ iframe.appWindow {
 #statusClock {
   -moz-box-flex: 0;
 }
+

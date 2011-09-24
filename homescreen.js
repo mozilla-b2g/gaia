@@ -131,6 +131,7 @@ Icon.prototype = {
 }
 
 function IconGrid(canvas, background, iconWidth, iconHeight, border) {
+  this.canvas = canvas;
   canvas.mozOpaque = true;
 
   this.iconWidth = iconWidth;
@@ -154,6 +155,7 @@ function IconGrid(canvas, background, iconWidth, iconHeight, border) {
   canvas.addEventListener("mousemove", this, true);
   canvas.addEventListener("touchend", this, true);
   canvas.addEventListener("mouseup", this, true);
+  window.addEventListener("resize", this, true);
 }
 
 IconGrid.prototype = {
@@ -240,6 +242,16 @@ IconGrid.prototype = {
     case 'mouseup':
       physics.onTouchEnd(e.touches ? e.touches[0] : e);
       break;
+    case "resize":
+      var canvas = this.canvas;
+      var width = canvas.width = window.innerWidth;
+      var height = canvas.height = window.innerHeight;
+      if (kUseGL) {
+        this.sceneGraph.blitter.viewportWidth = width;
+        this.sceneGraph.blitter.viewportHeight = height;
+      }
+      this.reflow(width, height, 0);
+      break;
     }
   }
 }
@@ -319,6 +331,9 @@ var WindowManager = {
             loadScreen.className = '';
             loadScreen.style.display = 'none';
             window.removeEventListener('animationend', listener, false);
+
+            if (windows.childElementCount <= 1)
+              windows.setAttribute("hidden", "true");
           },
           false);
         break;
@@ -342,6 +357,7 @@ function openApplication(url) {
   newWindow.src = url;
 
   var windows = document.getElementById('windows');
+  windows.removeAttribute("hidden");
   windows.appendChild(newWindow);
 
   var loadScreen = document.getElementById('loadAnimationScreen');

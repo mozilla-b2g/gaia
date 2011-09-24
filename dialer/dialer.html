@@ -5,29 +5,38 @@
 	  <meta name="viewport" content="width=device-width, initial-scale=1.0, min-scale=1.0, max-scale=1.0, user-scalable=no"/>
     <style>
       html, body {
+        width: 100%;
+        height: 100%;
         margin: 0;
         -moz-user-select: none;
+        -moz-box-orient: vertical;
         background-color: black;
-        font-size: 18px;
+        font-size: 16px;
         color: white;
-        height: 780px;
-        width: 480px;
         overflow: hidden;
       }
 
+      body, body * {
+        display: -moz-box;
+        -moz-box-flex: 1;
+      }
+
       #phoneNumberView {
-        height: 200px;
+        min-height: 150px;
         color: white;
         background-image: -moz-linear-gradient(bottom, rgb(33,31,33) 24%, rgb(19,27,19) 74%, rgb(17,17,17) 84%);
         font-size: 4em;
       }
 
       #keyboard {
-        height: 580px;
         display: -moz-box;
         -moz-box-orient: vertical;
         -moz-box-flex: 1;
         background-image: -moz-linear-gradient(top, rgb(33,31,33) 24%, rgb(79,77,79) 74%, rgb(87,87,87) 84%);
+      }
+
+      #mainKeyset {
+        -moz-box-orient: vertical;
       }
     
       .keyboard-row {
@@ -95,6 +104,28 @@
       .keyboard-key.delete > span:last-child {
         color: white;
         font-size: 3em;
+      }
+
+      @media all and (max-height: 699px) {
+        #phoneNumberView {
+          min-height: 100px;
+        }
+
+        #keyboard {
+          -moz-box-orient: horizontal;
+        }
+        #additionalKeyset > div {
+          -moz-box-orient: vertical;
+          -moz-box-direction: reverse;
+        }
+
+        #additionalKeyset .call {
+          -moz-box-flex: 1;
+        }
+
+        #additionalKeyset .delete {
+          -moz-box-flex: 2;
+        }
       }
     </style>
 
@@ -243,68 +274,72 @@
     <div id="phoneNumberView"></div>
 
     <div id="keyboard" onmousedown="KeyHandler.keyDown(event)" onmouseup="KeyHandler.keyUp(event)">
-      <div class="keyboard-row">
-        <div class="keyboard-key" value="1">
-          <span>1</span>
-          <span></span>
+      <div id="mainKeyset">
+        <div class="keyboard-row">
+          <div class="keyboard-key" value="1">
+            <span>1</span>
+            <span></span>
+          </div>
+          <div class="keyboard-key" value="2">
+            <span>2</span>
+            <span>abc</span>
+          </div>
+          <div class="keyboard-key" value="3">
+            <span>3</span>
+            <span>def</span>
+          </div>
         </div>
-        <div class="keyboard-key" value="2">
-          <span>2</span>
-          <span>abc</span>
+        <div class="keyboard-row">
+          <div class="keyboard-key" value="4">
+            <span>4</span>
+            <span>ghi</span>
+          </div>
+          <div class="keyboard-key" value="5">
+            <span>5</span>
+            <span>jkl</span>
+          </div>
+          <div class="keyboard-key" value="6">
+            <span>6</span>
+            <span>mno</span>
+          </div>
         </div>
-        <div class="keyboard-key" value="3">
-          <span>3</span>
-          <span>def</span>
+        <div class="keyboard-row">
+          <div class="keyboard-key" value="7">
+            <span>7</span>
+            <span>pqrs</span>
+          </div>
+          <div class="keyboard-key" value="8">
+            <span>8</span>
+            <span>tuv</span>
+          </div>
+          <div class="keyboard-key" value="9">
+            <span>9</span>
+            <span>wxyz</span>
+          </div>
+        </div>
+        <div class="keyboard-row">
+          <div class="keyboard-key" value="*">
+            <span>&#8727;</span>
+            <span></span>
+          </div>
+          <div class="keyboard-key" value="0">
+            <span>0</span>
+            <span>+</span>
+          </div>
+          <div class="keyboard-key" value="#">
+            <span>#</span>
+            <span></span>
+          </div>
         </div>
       </div>
-      <div class="keyboard-row">
-        <div class="keyboard-key" value="4">
-          <span>4</span>
-          <span>ghi</span>
-        </div>
-        <div class="keyboard-key" value="5">
-          <span>5</span>
-          <span>jkl</span>
-        </div>
-        <div class="keyboard-key" value="6">
-          <span>6</span>
-          <span>mno</span>
-        </div>
-      </div>
-      <div class="keyboard-row">
-        <div class="keyboard-key" value="7">
-          <span>7</span>
-          <span>pqrs</span>
-        </div>
-        <div class="keyboard-key" value="8">
-          <span>8</span>
-          <span>tuv</span>
-        </div>
-        <div class="keyboard-key" value="9">
-          <span>9</span>
-          <span>wxyz</span>
-        </div>
-      </div>
-      <div class="keyboard-row">
-        <div class="keyboard-key" value="*">
-          <span>&#8727;</span>
-          <span></span>
-        </div>
-        <div class="keyboard-key" value="0">
-          <span>0</span>
-          <span>+</span>
-        </div>
-        <div class="keyboard-key" value="#">
-          <span>#</span>
-          <span></span>
-        </div>
-      </div>
-      <div class="keyboard-row">
-        <div class="keyboard-key call" value="call">
-          <span>&#9742;</span>
-        </div>
-        <div class="keyboard-key delete" value="del">
-          <span>&#8653;</span>
+      <div id="additionalKeyset">
+        <div class="keyboard-row">
+          <div class="keyboard-key call" value="call">
+            <span>&#9742;</span>
+          </div>
+          <div class="keyboard-key delete" value="del">
+            <span>&#8653;</span>
+          </div>
         </div>
       </div>
     </div>
