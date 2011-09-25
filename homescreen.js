@@ -155,6 +155,7 @@ function IconGrid(canvas, background, iconWidth, iconHeight, border) {
   canvas.addEventListener("mousemove", this, true);
   canvas.addEventListener("touchend", this, true);
   canvas.addEventListener("mouseup", this, true);
+  canvas.addEventListener("mouseout", this, true);
   window.addEventListener("resize", this, true);
 }
 
@@ -240,6 +241,7 @@ IconGrid.prototype = {
       break;
     case 'touchend':
     case 'mouseup':
+    case 'mouseout':
       physics.onTouchEnd(e.touches ? e.touches[0] : e);
       break;
     case "resize":
