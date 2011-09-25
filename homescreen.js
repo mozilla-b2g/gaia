@@ -142,7 +142,7 @@ function IconGrid(canvas, background, iconWidth, iconHeight, border) {
   this.physics = createPhysicsFor(this);
 
   // add the background image
-  // this.sceneGraph.setBackground('images/background.png');
+  this.sceneGraph.setBackground(background);
 
   // update the layout state
   this.reflow(canvas.width, canvas.height, 0);
