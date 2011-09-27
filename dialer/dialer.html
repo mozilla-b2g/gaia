@@ -5,29 +5,51 @@
 	  <meta name="viewport" content="width=device-width, initial-scale=1.0, min-scale=1.0, max-scale=1.0, user-scalable=no"/>
     <style>
       html, body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
         margin: 0;
         -moz-user-select: none;
-        background-color: black;
-        font-size: 18px;
+        -moz-box-orient: vertical;
+        font-size: 16px;
         color: white;
-        height: 780px;
-        width: 480px;
+      }
+
+      body {
+        background-image: -moz-linear-gradient(bottom, rgb(66,66,66) 24%, rgb(33,33,33) 44%, rgb(17,17,17) 64%);
+      }
+
+      body, body * {
+        display: -moz-box;
+        -moz-box-flex: 1;
+      }
+
+      #phoneNumberViewContainer {
         overflow: hidden;
+        width: 100%;
       }
 
       #phoneNumberView {
-        height: 200px;
-        color: white;
-        background-image: -moz-linear-gradient(bottom, rgb(33,31,33) 24%, rgb(19,27,19) 74%, rgb(17,17,17) 84%);
+        -moz-box-align: center;
+        min-height: 150px;
+        max-height: 240px;
         font-size: 4em;
       }
 
+      #fakePhoneNumberView {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+      }
+
       #keyboard {
-        height: 580px;
         display: -moz-box;
         -moz-box-orient: vertical;
         -moz-box-flex: 1;
-        background-image: -moz-linear-gradient(top, rgb(33,31,33) 24%, rgb(79,77,79) 74%, rgb(87,87,87) 84%);
+      }
+
+      #mainKeyset {
+        -moz-box-orient: vertical;
       }
     
       .keyboard-row {
@@ -50,12 +72,8 @@
         box-shadow: 0 1px 3px black;
       }
 
-      .keyboard-key:hover {
-        background: -moz-linear-gradient(top, #555555, #353535 50%, #222222 51%);
-      }
-
       .keyboard-key:hover:active {
-        -moz-box-shadow: 0 2px 6px #aaaaaa;
+        background: -moz-linear-gradient(top, #484848, #404040 50%, #222222 51%);
       }
 
       .keyboard-key > span {
@@ -91,18 +109,53 @@
         box-shadow: 0 1px 3px black;
       }
 
+      .keyboard-key.call:hover:active {
+        background: -moz-linear-gradient(top, #55d555, #45c545 50%, #31b131 51%);
+      }
+
       .keyboard-key.call > span:last-child,
       .keyboard-key.delete > span:last-child {
         color: white;
         font-size: 3em;
       }
+
+      @media all and (max-height: 699px) {
+        #phoneNumberView {
+          min-height: 100px;
+        }
+
+        #keyboard {
+          -moz-box-orient: horizontal;
+        }
+        #additionalKeyset > div {
+          -moz-box-orient: vertical;
+          -moz-box-direction: reverse;
+        }
+
+        #additionalKeyset .call {
+          -moz-box-flex: 1;
+        }
+
+        #additionalKeyset .delete {
+          -moz-box-flex: 2;
+        }
+      }
     </style>
 
     <script>
+      var kFontStep = 8;
+      var kMinFontSize = 24;
+      var kDefaultFontSize = 64;
+
       var KeyHandler = {
         get phoneNumber() {
           delete this.phoneNumber;
           return this.phoneNumber = document.getElementById("phoneNumber");
+        },
+
+        get fakePhoneNumberView() {
+          delete this.fakePhoneNumberView;
+          return this.fakePhoneNumberView = document.getElementById("fakePhoneNumberView");
         },
         
         get phoneNumberView() {
@@ -125,19 +178,16 @@
         },
 
         updateFontSize: function() {
+          var self = this;
           function getNextFontSize(fontSize, text) {
-            var div = document.createElement("div");
-            div.style.position = "absolute";
-            div.style.top = "-1000px";
+            var div = self.fakePhoneNumberView;
             div.style.fontSize = fontSize + "px";
             div.innerHTML = text;
-            document.body.appendChild(div);
 
-            var kFontStep = 8;
             var windowWidth = document.body.clientWidth;
             var rect = div.getBoundingClientRect();
             if (rect.width > windowWidth) {
-              fontSize -= kFontStep;
+              fontSize = Math.max(fontSize - kFontStep, kMinFontSize);
             } else if (fontSize < kDefaultFontSize) {
               div.style.fontSize = (fontSize + kFontStep) + "px";
               rect = div.getBoundingClientRect();
@@ -145,7 +195,6 @@
                 fontSize += kFontStep;
             }
 
-            document.body.removeChild(div);
             return fontSize;
           }
 
@@ -156,155 +205,132 @@
           var text = this.formatPhoneNumber(this.phoneNumber.value);
           view.innerHTML = text;
 
-          var kDefaultFontSize = 72;
-          fontSize = (text) ? getNextFontSize(parseInt(fontSize), text)
-                            : kDefaultFontSize;
-          view.style.fontSize = fontSize + "px";
+          var newFontSize = text ? getNextFontSize(parseInt(fontSize), text)
+                                 : kDefaultFontSize;
+          if (newFontSize != fontSize)
+            view.style.fontSize = newFontSize + "px";
         },
 
         keyDown: function(event) {
-          var target = event.target;
-          var key = target.getAttribute("value"); 
+          var key = event.target.getAttribute("value"); 
           if (!key)
             return;
 
           var callback = function(self) {
             switch (key) {
               case "0":
-                self.phoneNumber.value += "+";
-                self.updateFontSize();
-                self._target = null;
+                self.phoneNumber.value = self.phoneNumber.value.slice(0, -1) + "+";
                 break;
               case "del":
                 self.phoneNumber.value = "";
-                self.updateFontSize();
-                self._target = null;
                 break;
               default:
                 if (self.isContactShortcut(key)) {
-                  self._target = null;
                   return;
                 }
                 break;
             }
+            self.updateFontSize();
           };
 
-          KeyHandler._target = target;
-          KeyHandler._timeout = window.setTimeout(callback, 400, KeyHandler);
+          if (key == "del") {
+            this.phoneNumber.value = KeyHandler.phoneNumber.value.slice(0, -1);
+            this.updateFontSize();
+          } else if (key == "call") {
+            try {
+              window.navigator.mozPhone.call(this.phoneNumber.value);
+            } catch (e) {
+              console.log("Error while trying to call number: " + e);
+            }
+          } else {
+            this.phoneNumber.value += key;
+            this.updateFontSize();
+          }
+
+          this._timeout = window.setTimeout(callback, 400, this);
         },
 
         keyUp: function(event) {
-          var char;
-          var phoneNumber = KeyHandler.phoneNumber;
-          switch (event.type) {
-            case "keypress":
-              var code = event.charCode;
-              if (!code)
-                return;
-
-              char = String.fromCharCode(code);
-              event.preventDefault();
-              break;
-
-            case "mouseup":
-              clearTimeout(KeyHandler._timeout);
-              var target = KeyHandler._target;
-              if (!target)
-                return;
-
-              char = target.getAttribute("value");
-              if (char == "call") {
-                try {
-                   window.navigator.mozPhone.call(phoneNumber.value);
-                } catch (e) {
-                   console.log("error calling number: "+ e);
-                }
-                return;
-              } else if (char == "del") {
-                // TODO delete at the current position
-                phoneNumber.value = phoneNumber.value.slice(0, -1);
-                KeyHandler.updateFontSize();
-                return;
-              }
-              break;
-          }
-
-          phoneNumber.value += char;
-          KeyHandler.updateFontSize();
+          clearTimeout(this._timeout);
         }
       };
-
-      window.addEventListener("keypress", KeyHandler.keyup, true);
     </script>
   </head>
 
   <body onload="KeyHandler.init();">
     <input type="hidden" id="phoneNumber"></input>
-    <div id="phoneNumberView"></div>
+    <div id="fakePhoneNumberView"></div>
+    <div id="phoneNumberViewContainer">
+      <div id="phoneNumberView"></div>
+    </div>
 
     <div id="keyboard" onmousedown="KeyHandler.keyDown(event)" onmouseup="KeyHandler.keyUp(event)">
-      <div class="keyboard-row">
-        <div class="keyboard-key" value="1">
-          <span>1</span>
-          <span></span>
+      <div id="mainKeyset">
+        <div class="keyboard-row">
+          <div class="keyboard-key" value="1">
+            <span>1</span>
+            <span></span>
+          </div>
+          <div class="keyboard-key" value="2">
+            <span>2</span>
+            <span>abc</span>
+          </div>
+          <div class="keyboard-key" value="3">
+            <span>3</span>
+            <span>def</span>
+          </div>
         </div>
-        <div class="keyboard-key" value="2">
-          <span>2</span>
-          <span>abc</span>
+        <div class="keyboard-row">
+          <div class="keyboard-key" value="4">
+            <span>4</span>
+            <span>ghi</span>
+          </div>
+          <div class="keyboard-key" value="5">
+            <span>5</span>
+            <span>jkl</span>
+          </div>
+          <div class="keyboard-key" value="6">
+            <span>6</span>
+            <span>mno</span>
+          </div>
         </div>
-        <div class="keyboard-key" value="3">
-          <span>3</span>
-          <span>def</span>
+        <div class="keyboard-row">
+          <div class="keyboard-key" value="7">
+            <span>7</span>
+            <span>pqrs</span>
+          </div>
+          <div class="keyboard-key" value="8">
+            <span>8</span>
+            <span>tuv</span>
+          </div>
+          <div class="keyboard-key" value="9">
+            <span>9</span>
+            <span>wxyz</span>
+          </div>
+        </div>
+        <div class="keyboard-row">
+          <div class="keyboard-key" value="*">
+            <span>&#8727;</span>
+            <span></span>
+          </div>
+          <div class="keyboard-key" value="0">
+            <span>0</span>
+            <span>+</span>
+          </div>
+          <div class="keyboard-key" value="#">
+            <span>#</span>
+            <span></span>
+          </div>
         </div>
       </div>
-      <div class="keyboard-row">
-        <div class="keyboard-key" value="4">
-          <span>4</span>
-          <span>ghi</span>
-        </div>
-        <div class="keyboard-key" value="5">
-          <span>5</span>
-          <span>jkl</span>
-        </div>
-        <div class="keyboard-key" value="6">
-          <span>6</span>
-          <span>mno</span>
-        </div>
-      </div>
-      <div class="keyboard-row">
-        <div class="keyboard-key" value="7">
-          <span>7</span>
-          <span>pqrs</span>
-        </div>
-        <div class="keyboard-key" value="8">
-          <span>8</span>
-          <span>tuv</span>
-        </div>
-        <div class="keyboard-key" value="9">
-          <span>9</span>
-          <span>wxyz</span>
-        </div>
-      </div>
-      <div class="keyboard-row">
-        <div class="keyboard-key" value="*">
-          <span>&#8727;</span>
-          <span></span>
-        </div>
-        <div class="keyboard-key" value="0">
-          <span>0</span>
-          <span>+</span>
-        </div>
-        <div class="keyboard-key" value="#">
-          <span>#</span>
-          <span></span>
-        </div>
-      </div>
-      <div class="keyboard-row">
-        <div class="keyboard-key call" value="call">
-          <span>&#9742;</span>
-        </div>
-        <div class="keyboard-key delete" value="del">
-          <span>&#8653;</span>
+      <div id="additionalKeyset">
+        <div class="keyboard-row">
+          <div class="keyboard-key call" value="call">
+            <span>&#9742;</span>
+          </div>
+          <div class="keyboard-key delete" value="del">
+            <span>&#8653;</span>
+          </div>
         </div>
       </div>
     </div>
