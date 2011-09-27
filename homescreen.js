@@ -301,6 +301,16 @@ function OnLoad() {
   window.setInterval(updateClock, 60000);
   updateClock();
 
+  try {
+    var battery = window.navigator.mozBattery;
+    battery.addEventListener("chargingchange", updateBattery);
+    battery.addEventListener("levelchange", updateBattery);
+    battery.addEventListener("statuschange", updateBattery);
+    updateBattery();
+  } catch(e) {
+    console.log("Error when initializing the battery: " + e);
+  }
+
   document.getElementById('statusPadding').innerHTML =
     kUseGL ? '(WebGL)' : '(2D canvas)';
 
@@ -387,4 +397,21 @@ function updateClock() {
     str += "0";
   str += mins;
   document.getElementById('statusClock').innerHTML = str;
+}
+
+function updateBattery() {
+  var battery = document.getElementById('statusBattery');
+  var level = window.navigator.mozBattery.level;
+  var charging = window.navigator.mozBattery.charging;
+  if (charging) {
+    battery.className = 'batteryCharging';
+  } else {
+    document.getElementById('battery-fuel').style.width = (level / 4) + 'px';
+    if (level <= 5)
+      battery.className = 'critical';
+    else if (level <= 15)
+      battery.className = 'low';
+    else
+      battery.className = '';
+  }
 }
