@@ -196,78 +196,48 @@
         },
 
         keyDown: function(event) {
-          var target = event.target;
-          var key = target.getAttribute("value"); 
+          var key = event.target.getAttribute("value"); 
           if (!key)
             return;
 
           var callback = function(self) {
             switch (key) {
               case "0":
-                self.phoneNumber.value += "+";
-                self.updateFontSize();
-                self._target = null;
+                self.phoneNumber.value = self.phoneNumber.value.slice(0, -1) + "+";
                 break;
               case "del":
                 self.phoneNumber.value = "";
-                self.updateFontSize();
-                self._target = null;
                 break;
               default:
                 if (self.isContactShortcut(key)) {
-                  self._target = null;
                   return;
                 }
                 break;
             }
+            self.updateFontSize();
           };
 
-          KeyHandler._target = target;
-          KeyHandler._timeout = window.setTimeout(callback, 400, KeyHandler);
+          if (key == "del") {
+            this.phoneNumber.value = KeyHandler.phoneNumber.value.slice(0, -1);
+            this.updateFontSize();
+          } else if (key == "call") {
+            try {
+              window.navigator.mozPhone.call(this.phoneNumber.value);
+            } catch (e) {
+              console.log("Error while trying to call number: " + e);
+            }
+          } else {
+            this.phoneNumber.value += key;
+            this.updateFontSize();
+          }
+
+          this._timeout = window.setTimeout(callback, 400, this);
         },
 
         keyUp: function(event) {
-          var char;
-          var phoneNumber = KeyHandler.phoneNumber;
-          switch (event.type) {
-            case "keypress":
-              var code = event.charCode;
-              if (!code)
-                return;
-
-              char = String.fromCharCode(code);
-              event.preventDefault();
-              break;
-
-            case "mouseup":
-              clearTimeout(KeyHandler._timeout);
-              var target = KeyHandler._target;
-              if (!target)
-                return;
-
-              char = target.getAttribute("value");
-              if (char == "call") {
-                try {
-                  window.navigator.mozPhone.call(phoneNumber.value);
-                } catch (e) {
-                  console.log("Error while trying to call number: " + e);
-                }
-                return;
-              } else if (char == "del") {
-                // TODO delete at the current position
-                phoneNumber.value = phoneNumber.value.slice(0, -1);
-                KeyHandler.updateFontSize();
-                return;
-              }
-              break;
-          }
-
-          phoneNumber.value += char;
-          KeyHandler.updateFontSize();
+          clearTimeout(this._timeout);
         }
       };
-
-      window.addEventListener("keypress", KeyHandler.keyup, true);
     </script>
   </head>
 
