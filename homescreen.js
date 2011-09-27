@@ -247,7 +247,8 @@ IconGrid.prototype = {
     case "resize":
       var canvas = this.canvas;
       var width = canvas.width = window.innerWidth;
-      var height = canvas.height = window.innerHeight;
+      // TODO Substract the height of the statusbar
+      var height = canvas.height = window.innerHeight - 24;
       if (kUseGL) {
         this.sceneGraph.blitter.viewportWidth = width;
         this.sceneGraph.blitter.viewportHeight = height;
@@ -324,7 +325,7 @@ var WindowManager = {
 
         // TODO when existing window will be checked, this should be
         // point to the real window
-        var topWindow = windows.lastChild;
+        var topWindow = windows.lastElementChild;
         windows.removeChild(topWindow);
 
         window.addEventListener(
@@ -363,13 +364,13 @@ function openApplication(url) {
   windows.appendChild(newWindow);
 
   var loadScreen = document.getElementById('loadAnimationScreen');
-  loadScreen.className = 'animateOpening';
+  loadScreen.classList.toggle('animateOpening');
   loadScreen.style.display = 'block';
 
   window.addEventListener(
     'animationend',
     function listener() {
-      loadScreen.className = '';
+      loadScreen.classList.toggle('animateOpening');
       loadScreen.style.display = 'none';
       newWindow.style.display = 'block';
       window.removeEventListener('animationend', listener, false);
