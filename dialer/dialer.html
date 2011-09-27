@@ -25,10 +25,22 @@
         background-image: -moz-linear-gradient(bottom, rgb(66,66,66) 24%, rgb(33,33,33) 44%, rgb(17,17,17) 64%);
       }
 
+      #phoneNumberContainer {
+        -moz-box-align: center;
+      }
+
       #phoneNumberView {
+        -moz-box-align: center;
+        -moz-box-pack: center;
         min-height: 150px;
         color: white;
         font-size: 4em;
+      }
+
+      #fakePhoneNumberView {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
       }
 
       #keyboard {
@@ -137,6 +149,11 @@
           delete this.phoneNumber;
           return this.phoneNumber = document.getElementById("phoneNumber");
         },
+
+        get fakePhoneNumberView() {
+          delete this.fakePhoneNumberView;
+          return this.fakePhoneNumberView = document.getElementById("fakePhoneNumberView");
+        },
         
         get phoneNumberView() {
           delete this.phoneNumberView;
@@ -158,13 +175,11 @@
         },
 
         updateFontSize: function() {
+          var self = this;
           function getNextFontSize(fontSize, text) {
-            var div = document.createElement("div");
-            div.style.position = "absolute";
-            div.style.top = "-1000px";
+            var div = self.fakePhoneNumberView;
             div.style.fontSize = fontSize + "px";
             div.innerHTML = text;
-            document.body.appendChild(div);
 
             var kFontStep = 8;
             var windowWidth = document.body.clientWidth;
@@ -178,7 +193,6 @@
                 fontSize += kFontStep;
             }
 
-            document.body.removeChild(div);
             return fontSize;
           }
 
@@ -189,10 +203,11 @@
           var text = this.formatPhoneNumber(this.phoneNumber.value);
           view.innerHTML = text;
 
-          var kDefaultFontSize = 72;
-          fontSize = (text) ? getNextFontSize(parseInt(fontSize), text)
-                            : kDefaultFontSize;
-          view.style.fontSize = fontSize + "px";
+          var kDefaultFontSize = 64;
+          var newFontSize = text ? getNextFontSize(parseInt(fontSize), text)
+                                 : kDefaultFontSize;
+          if (newFontSize != fontSize)
+            view.style.fontSize = newFontSize + "px";
         },
 
         keyDown: function(event) {
@@ -242,8 +257,11 @@
   </head>
 
   <body onload="KeyHandler.init();">
-    <input type="hidden" id="phoneNumber"></input>
-    <div id="phoneNumberView"></div>
+    <div id="phoneNumberContainer">
+      <input type="hidden" id="phoneNumber"></input>
+      <div id="fakePhoneNumberView"></div>
+      <div id="phoneNumberView"></div>
+    </div>
 
     <div id="keyboard" onmousedown="KeyHandler.keyDown(event)" onmouseup="KeyHandler.keyUp(event)">
       <div id="mainKeyset">
