@@ -7,33 +7,32 @@
       html, body {
         width: 100%;
         height: 100%;
+        overflow: hidden;
         margin: 0;
         -moz-user-select: none;
         -moz-box-orient: vertical;
-        background-color: black;
         font-size: 16px;
         color: white;
-        overflow: hidden;
+      }
+
+      body {
+        background-image: -moz-linear-gradient(bottom, rgb(66,66,66) 24%, rgb(33,33,33) 44%, rgb(17,17,17) 64%);
       }
 
       body, body * {
         display: -moz-box;
         -moz-box-flex: 1;
       }
-        
-      body {
-        background-image: -moz-linear-gradient(bottom, rgb(66,66,66) 24%, rgb(33,33,33) 44%, rgb(17,17,17) 64%);
-      }
 
-      #phoneNumberContainer {
-        -moz-box-align: center;
+      #phoneNumberViewContainer {
+        overflow: hidden;
+        width: 100%;
       }
 
       #phoneNumberView {
         -moz-box-align: center;
-        -moz-box-pack: center;
         min-height: 150px;
-        color: white;
+        max-height: 240px;
         font-size: 4em;
       }
 
@@ -144,6 +143,10 @@
     </style>
 
     <script>
+      var kFontStep = 8;
+      var kMinFontSize = 24;
+      var kDefaultFontSize = 64;
+
       var KeyHandler = {
         get phoneNumber() {
           delete this.phoneNumber;
@@ -181,11 +184,10 @@
             div.style.fontSize = fontSize + "px";
             div.innerHTML = text;
 
-            var kFontStep = 8;
             var windowWidth = document.body.clientWidth;
             var rect = div.getBoundingClientRect();
             if (rect.width > windowWidth) {
-              fontSize -= kFontStep;
+              fontSize = Math.max(fontSize - kFontStep, kMinFontSize);
             } else if (fontSize < kDefaultFontSize) {
               div.style.fontSize = (fontSize + kFontStep) + "px";
               rect = div.getBoundingClientRect();
@@ -203,7 +205,6 @@
           var text = this.formatPhoneNumber(this.phoneNumber.value);
           view.innerHTML = text;
 
-          var kDefaultFontSize = 64;
           var newFontSize = text ? getNextFontSize(parseInt(fontSize), text)
                                  : kDefaultFontSize;
           if (newFontSize != fontSize)
@@ -257,9 +258,9 @@
   </head>
 
   <body onload="KeyHandler.init();">
-    <div id="phoneNumberContainer">
-      <input type="hidden" id="phoneNumber"></input>
-      <div id="fakePhoneNumberView"></div>
+    <input type="hidden" id="phoneNumber"></input>
+    <div id="fakePhoneNumberView"></div>
+    <div id="phoneNumberViewContainer">
       <div id="phoneNumberView"></div>
     </div>
 
