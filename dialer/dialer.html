@@ -248,9 +248,9 @@
               char = target.getAttribute("value");
               if (char == "call") {
                 try {
-                   window.navigator.mozPhone.call(phoneNumber.value);
+                  window.navigator.mozPhone.call(phoneNumber.value);
                 } catch (e) {
-                   console.log("error calling number: "+ e);
+                  console.log("Error while trying to call number: " + e);
                 }
                 return;
               } else if (char == "del") {

@@ -23,7 +23,7 @@ iframe.appWindow {
   border: 0px;
   margin: 0px;
   padding: 0px;
-  overflow: hidden;
+  overflow: auto;
   left: 0px;
   top: 0px;
   width: -moz-calc(100%);
