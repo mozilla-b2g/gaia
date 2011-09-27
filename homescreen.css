@@ -97,4 +97,53 @@ iframe.appWindow {
 #statusClock {
   -moz-box-flex: 0;
 }
-
+#statusBattery {
+  margin: 3px;
+  height: 13px;
+  width: 29px;
+  background-image: url(images/battery-main.png);
+  background-repeat: no-repeat;
+  background-size: 29px 13px;
+}
+#statusBattery > #battery-fuel {
+  height: 11px;
+  width: 0px;
+  background-image: -moz-linear-gradient(top, lightgreen 10%, green 80%, darkgreen);
+  background-repeat: no-repeat;
+  margin-left: 1px;
+  margin-top: 1px;
+}
+#statusBattery.critical > #battery-fuel {
+  background-image: -moz-linear-gradient(top, lightcoral 10%, red 80%, darkred);
+}
+#statusBattery.low > #battery-fuel {
+  background-image: -moz-linear-gradient(top, lightyellow 10%, yellow 80%, gold);
+}
+#statusBattery.batteryCharging > #battery-fuel {
+  background-image: -moz-linear-gradient(top, lightgreen 10%, green 80%, darkgreen);
+  -moz-animation-duration: 4s;
+  -moz-animation-name: batteryCharging;
+  -moz-animation-iteration-count: infinite;
+}
+@-moz-keyframes batteryCharging {
+  from {
+    width: 0px;
+  }
+  to {
+    width: 25px;
+  }
+}
+#statusBattery > #battery-charging {
+  display: none;
+  height: 15px;
+  width: 15px;
+  background-image: url(images/battery-charging.png);
+  background-repeat: no-repeat;
+  background-size: 15px 15px;
+  position: absolute;
+  margin-left: 10px;
+  top: 4px;
+}
+#statusBattery.batteryCharging > #battery-charging {
+  display: inline-block;
+}
