@@ -131,6 +131,7 @@ Icon.prototype = {
 }
 
 function IconGrid(canvas, background, iconWidth, iconHeight, border) {
+  this.canvas = canvas;
   canvas.mozOpaque = true;
 
   this.iconWidth = iconWidth;
@@ -154,6 +155,8 @@ function IconGrid(canvas, background, iconWidth, iconHeight, border) {
   canvas.addEventListener("mousemove", this, true);
   canvas.addEventListener("touchend", this, true);
   canvas.addEventListener("mouseup", this, true);
+  canvas.addEventListener("mouseout", this, true);
+  window.addEventListener("resize", this, true);
 }
 
 IconGrid.prototype = {
@@ -238,7 +241,19 @@ IconGrid.prototype = {
       break;
     case 'touchend':
     case 'mouseup':
+    case 'mouseout':
       physics.onTouchEnd(e.touches ? e.touches[0] : e);
+      break;
+    case "resize":
+      var canvas = this.canvas;
+      var width = canvas.width = window.innerWidth;
+      // TODO Substract the height of the statusbar
+      var height = canvas.height = window.innerHeight - 24;
+      if (kUseGL) {
+        this.sceneGraph.blitter.viewportWidth = width;
+        this.sceneGraph.blitter.viewportHeight = height;
+      }
+      this.reflow(width, height, 0);
       break;
     }
   }
@@ -310,7 +325,7 @@ var WindowManager = {
 
         // TODO when existing window will be checked, this should be
         // point to the real window
-        var topWindow = windows.lastChild;
+        var topWindow = windows.lastElementChild;
         windows.removeChild(topWindow);
 
         window.addEventListener(
@@ -319,6 +334,9 @@ var WindowManager = {
             loadScreen.className = '';
             loadScreen.style.display = 'none';
             window.removeEventListener('animationend', listener, false);
+
+            if (windows.childElementCount <= 1)
+              windows.setAttribute("hidden", "true");
           },
           false);
         break;
@@ -342,16 +360,17 @@ function openApplication(url) {
   newWindow.src = url;
 
   var windows = document.getElementById('windows');
+  windows.removeAttribute("hidden");
   windows.appendChild(newWindow);
 
   var loadScreen = document.getElementById('loadAnimationScreen');
-  loadScreen.className = 'animateOpening';
+  loadScreen.classList.toggle('animateOpening');
   loadScreen.style.display = 'block';
 
   window.addEventListener(
     'animationend',
     function listener() {
-      loadScreen.className = '';
+      loadScreen.classList.toggle('animateOpening');
       loadScreen.style.display = 'none';
       newWindow.style.display = 'block';
       window.removeEventListener('animationend', listener, false);
