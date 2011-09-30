@@ -3,8 +3,8 @@
 
 'use strict';
 
-/*const*/var kUseGL = 1;
-/*const*/var kSnapToWholePixels = !kUseGL;
+const kUseGL = true;
+const kSnapToWholePixels = !kUseGL;
 
 function abort(why) { alert(why); throw why; }
 function assert(cond, msg) { if (!cond) abort(msg); }

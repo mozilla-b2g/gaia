@@ -3,7 +3,10 @@
 
 'use strict';
 
+const kAutoUnlock = false;
+
 var displayState;
+var lockScreen;
 
 // Change the display state (off, locked, default)
 function changeDisplayState(state) {
@@ -292,18 +295,32 @@ LockScreen.prototype = {
   },
   onTouchEnd: function(e) {
     if (this.moving) {
-      var style = this.overlay.style;
-      var dy = -(this.startY - e.pageY);
-      var offset;
-      if (Math.abs(dy) < window.innerHeight/4) {
-        offset = "0%";
-      } else {
-        offset = (dy < 0) ? "-100%" : "100%";
-      }
-      style.MozTransition = "-moz-transform 0.2s linear";
-      style.MozTransform = "translateY(" + offset + ")";
       this.moving = false;
+      var dy = -(this.startY - e.pageY);
+      if (Math.abs(dy) < window.innerHeight/4)
+        this.lock();
+      else
+        this.unlock(dy);
     }
+  },
+  unlock: function(direction) {
+    if (displayState == "unlocked")
+      return;
+    var offset = "100%";
+    if (direction < 0)
+      offset = "-" + offset;
+    var style = this.overlay.style;
+    style.MozTransition = "-moz-transform 0.2s linear";
+    style.MozTransform = "translateY(" + offset + ")";
+    changeDisplayState("unlocked");
+  },
+  lock: function() {
+    if (displayState == "locked")
+      return;
+    var style = this.overlay.style;
+    style.MozTransition = "-moz-transform 0.2s linear";
+    style.MozTransform = "translateY(0)";
+    changeDisplayState("locked");
   },
   handleEvent: function(e) {
     switch (e.type) {
@@ -325,9 +342,8 @@ LockScreen.prototype = {
 }
 
 function OnLoad() {
-  var lockScreen = new LockScreen(document.getElementById("lockScreen"));
-
-  changeDisplayState("locked");
+  lockScreen = new LockScreen(document.getElementById("lockScreen"));
+  kAutoUnlock ? lockScreen.unlock(-1) : lockScreen.lock();
 
   var fruits = [
     { label: 'Phone', src: 'images/Phone.png',
