@@ -396,22 +396,16 @@ var WindowManager = {
         if (windows.childElementCount <= 1)
           return;
 
-        var loadScreen = document.getElementById('loadAnimationScreen');
-        loadScreen.style.display = 'block';
-        loadScreen.classList.toggle('animateClosing');
-
         // TODO when existing window will be checked, this should be
         // point to the real window
         var topWindow = windows.lastElementChild;
-        windows.removeChild(topWindow);
+        topWindow.classList.toggle('animateClosing');
 
         window.addEventListener(
           'animationend',
           function listener() {
-            loadScreen.className = '';
-            loadScreen.style.display = 'none';
             window.removeEventListener('animationend', listener, false);
-
+            windows.removeChild(topWindow);
             if (windows.childElementCount <= 1)
               windows.setAttribute("hidden", "true");
           },
@@ -432,24 +426,20 @@ function openApplication(url) {
 
   var newWindow = document.createElement('iframe');
   newWindow.className = 'appWindow';
-  newWindow.style.display = 'none';
   // XXX need to decide whether to try to load this during animation
   newWindow.src = url;
+
+  // animate the window opening
+  newWindow.classList.toggle('animateOpening');
 
   var windows = document.getElementById('windows');
   windows.removeAttribute("hidden");
   windows.appendChild(newWindow);
 
-  var loadScreen = document.getElementById('loadAnimationScreen');
-  loadScreen.classList.toggle('animateOpening');
-  loadScreen.style.display = 'block';
-
   window.addEventListener(
     'animationend',
     function listener() {
-      loadScreen.classList.toggle('animateOpening');
-      loadScreen.style.display = 'none';
-      newWindow.style.display = 'block';
+      newWindow.classList.toggle('animateOpening');
       window.removeEventListener('animationend', listener, false);
     },
     false);

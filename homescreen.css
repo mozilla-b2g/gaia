@@ -85,51 +85,32 @@ iframe.appWindow {
   top: 0px;
   width: -moz-calc(100%);
   height: -moz-calc(100%);
+  -moz-transform-origin: center bottom;
 }
 
-#loadAnimationScreen {
-  display: none;
-  position: absolute;
-  background-color: black;
-  border: 0px;
-  margin: 0px;
-  padding: 0px;
-  overflow: hidden;
-}
 .animateOpening {
   -moz-animation-duration: 200ms;
   -moz-animation-name: openingAnimation;
 }
 @-moz-keyframes openingAnimation {
   from {
-    left: 50%;
-    top: 50%;
-    width: 0px;
-    height: 0px;
+    -moz-transform: scale(0);
   }
   to {
-    left: 0px;
-    top: 0px;
-    width: 100%;
-    height: -moz-calc(100% - 24px);
+    -moz-transform: scale(1);
   }
 }
+
 .animateClosing {
   -moz-animation-duration: 100ms;
   -moz-animation-name: closingAnimation;
 }
 @-moz-keyframes closingAnimation {
   from {
-    left: 0px;
-    top: 0px;
-    width: 100%;
-    height: -moz-calc(100% - 24px);
+    -moz-transform: scale(1);
   }
   to {
-    left: 50%;
-    top: 50%;
-    width: 0px;
-    height: 0px;
+    -moz-transform: scale(0);
   }
 }
 
