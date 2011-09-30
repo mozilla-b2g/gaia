@@ -3,7 +3,7 @@
 
 'use strict';
 
-/*const*/var kUseGL = 1;
+/*const*/var kUseGL = 0;
 /*const*/var kSnapToWholePixels = !kUseGL;
 
 function abort(why) { alert(why); throw why; }
@@ -112,7 +112,6 @@ function SceneGraph(canvas) {
     kUseGL ? new SpriteBlitterGL(canvas) : new SpriteBlitter2D(canvas);
   this.canvas = canvas;
   this.sprites = [];
-  this.background = null;
   this.x = 0;
   this.y = 0;
 
@@ -187,17 +186,6 @@ SceneGraph.prototype = {
       }
     }
   },
-  setBackground: function(imageUrl) {
-    var bgImg = document.createElement('img');
-    bgImg.src = imageUrl;
-    bgImg.sceneGraph = this;
-    bgImg.onload = function() {
-      var sceneGraph = this.sceneGraph;
-      sceneGraph.background = this;
-      sceneGraph.blitter.backgroundChanged(this);
-      RequestAnimationFrame();
-    };
-  },
   setViewportTopLeft: function(targetX, targetY, duration, fn) {
     RequestAnimationFrame();
     if (duration && (this.x != targetX || this.y != targetY)) {
@@ -218,18 +206,16 @@ SceneGraph.prototype = {
 
 // fallback 2D canvas backend
 function SpriteBlitter2D(canvas) {
-  this.background = 'black';
   this.canvas = canvas;
   this.ctx = canvas.getContext('2d');
 }
 SpriteBlitter2D.prototype = {
-draw: function(x, y, sprites, background) {
+draw: function(x, y, sprites) {
     var canvas = this.canvas;
     var ctx = this.ctx;
     var width = canvas.width;
     var height = canvas.height;
-    ctx.fillStyle = this.background;
-    ctx.fillRect(0, 0, width, height);
+    ctx.clearRect(0, 0, width, height);
     for (var n = 0; n < sprites.length; ++n) {
       var sprite = sprites[n];
       var canvas = sprite.canvas;
@@ -238,9 +224,6 @@ draw: function(x, y, sprites, background) {
         ctx.drawImage(canvas, sprite.x - x, sprite.y - y, canvas.width * scale, canvas.height * scale);
       }
     }    
-  },
-  backgroundChanged: function(background) {
-    this.background = this.ctx.createPattern(background, 'repeat');
   },
   // nothing to do here
   spriteAdded: function(sprite) {},
@@ -283,7 +266,6 @@ var kMaxTextureSize = 0;
 // it stands we should assume that they're drawn in an undefined
 // z-order (GL may actually specify that, not sure).
 function SpriteBlitterGL(canvas) {
-  this.backgroundTexture = null;
   this.canvas = canvas;
   var gl =
     this.gl = canvas.getContext('experimental-webgl');
@@ -373,11 +355,6 @@ SpriteBlitterGL.prototype = {
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }
 
-    // draw the background
-    // NB: this will dumbly rescale the background image
-    drawTexturedQuad(this.backgroundTexture,
-                     0, 0, viewportWidth, viewportHeight);
-
     for (var n = 0; n < sprites.length; ++n) {
       var sprite = sprites[n];
       var canvas = sprite.canvas;
@@ -390,28 +367,6 @@ SpriteBlitterGL.prototype = {
       drawTexturedQuad(sprite.texture, x, y, width, height);
     }
 
-    gl.bindTexture(gl.TEXTURE_2D, null);
-  },
-  backgroundChanged: function(background) {
-    var gl = this.gl;
-    var oldTexture = this.backgroundTexture;
-    if (oldTexture !== null) {
-      gl.deleteTexture(sprite.texture);
-    }
-    var texture = this.backgroundTexture = gl.createTexture();
-
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE,
-                  background);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    // XXX it'd be great to wrap with GL_REPEAT and not worry about
-    // size, but that would constrain us to POT textures or POT tiles.
-    // The former severely limits background design, and the former is
-    // annoying.  Punt for now.  There might also be cases in which
-    // we'd prefer to rescale the background or center-fit it.
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.bindTexture(gl.TEXTURE_2D, null);
   },
   spriteAdded: function(sprite) {

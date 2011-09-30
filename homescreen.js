@@ -140,9 +140,8 @@ Icon.prototype = {
   }
 }
 
-function IconGrid(canvas, background, iconWidth, iconHeight, border) {
+function IconGrid(canvas, iconWidth, iconHeight, border) {
   this.canvas = canvas;
-  canvas.mozOpaque = true;
 
   this.iconWidth = iconWidth;
   this.iconHeight = iconHeight;
@@ -151,9 +150,6 @@ function IconGrid(canvas, background, iconWidth, iconHeight, border) {
   this.icons = [];
   this.currentPage = 0;
   this.physics = createPhysicsFor(this);
-
-  // add the background image
-  this.sceneGraph.setBackground(background);
 
   // update the layout state
   this.reflow(canvas.width, canvas.height, 0);
@@ -368,9 +364,7 @@ function OnLoad() {
   var width = canvas.width = window.innerWidth;
   var height = canvas.height = window.innerHeight - 24;
 
-  var iconGrid = new IconGrid(canvas,
-                              "images/background.png",
-                              120, 120, 0.2);
+  var iconGrid = new IconGrid(canvas, 120, 120, 0.2);
   for (var n = 0; n < icons.length; ++n)
     iconGrid.add(icons[n].src, icons[n].label, icons[n].url);
 
