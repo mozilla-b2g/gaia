@@ -381,9 +381,6 @@ function OnLoad() {
   for (var n = 0; n < icons.length; ++n)
     iconGrid.add(icons[n].src, icons[n].label, icons[n].url);
 
-  document.getElementById('statusPadding').innerHTML =
-    kUseGL ? '(WebGL)' : '(2D canvas)';
-
   WindowManager.start();
 }
 

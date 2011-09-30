@@ -133,10 +133,9 @@ iframe.appWindow {
   }
 }
 
-#statusBar {
+#statusbar {
   display: -moz-box;
   -moz-box-orient: horizontal;
-  -moz-box-flex: 0;
   width: -moz-calc(100% - 4px);
   height: 20px;
   padding: 2px;
@@ -145,9 +144,12 @@ iframe.appWindow {
   overflow: hidden;
 }
 
-#statusPadding {
+#statusbar > * {
+  -moz-box-flex: 0;
+}
+
+#statusbar > #padding {
   -moz-box-flex: 1;
-  text-align: center;
 }
 
 .battery {
