@@ -283,6 +283,7 @@ var kMaxTextureSize = 0;
 // it stands we should assume that they're drawn in an undefined
 // z-order (GL may actually specify that, not sure).
 function SpriteBlitterGL(canvas) {
+  this.backgroundTexture = null;
   this.canvas = canvas;
   var gl =
     this.gl = canvas.getContext('experimental-webgl');
@@ -334,14 +335,10 @@ SpriteBlitterGL.prototype = {
     var translateX = x;
     var translateY = y;
 
-    for (var n = 0; n < sprites.length; ++n) {
-      var sprite = sprites[n];
-      var canvas = sprite.canvas;
-      var scale = sprite.scale;
-      var x = (sprite.x - translateX) / viewportWidth;
-      var y = (sprite.y - translateY) / viewportHeight;
-      var width = canvas.width * scale;
-      var height = canvas.height * scale;
+    // Draw a quad at <x, y, width, height> textured by |texture|.
+    function drawTexturedQuad(texture, x, y, width, height) {
+      x /= viewportWidth;
+      y /= viewportHeight;
       var xmost = x + width / viewportWidth;
       var ymost = y + height / viewportHeight;
 
@@ -368,7 +365,7 @@ SpriteBlitterGL.prototype = {
       posAndTexCoordArray[i++] = 1;
 
       gl.activeTexture(gl.TEXTURE0);
-      gl.bindTexture(gl.TEXTURE_2D, sprite.texture);
+      gl.bindTexture(gl.TEXTURE_2D, texture);
 
       gl.bindBuffer(gl.ARRAY_BUFFER, posAndTexCoordBuffer);
       gl.bufferData(gl.ARRAY_BUFFER, posAndTexCoordArray, gl.STREAM_DRAW);
@@ -376,10 +373,46 @@ SpriteBlitterGL.prototype = {
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }
 
+    // draw the background
+    // NB: this will dumbly rescale the background image
+    drawTexturedQuad(this.backgroundTexture,
+                     0, 0, viewportWidth, viewportHeight);
+
+    for (var n = 0; n < sprites.length; ++n) {
+      var sprite = sprites[n];
+      var canvas = sprite.canvas;
+      var scale = sprite.scale;
+      var x = sprite.x - translateX;
+      var y = sprite.y - translateY;
+      var width = canvas.width * scale;
+      var height = canvas.height * scale;
+
+      drawTexturedQuad(sprite.texture, x, y, width, height);
+    }
+
     gl.bindTexture(gl.TEXTURE_2D, null);
   },
   backgroundChanged: function(background) {
-    // TODO
+    var gl = this.gl;
+    var oldTexture = this.backgroundTexture;
+    if (oldTexture !== null) {
+      gl.deleteTexture(sprite.texture);
+    }
+    var texture = this.backgroundTexture = gl.createTexture();
+
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE,
+                  background);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    // XXX it'd be great to wrap with GL_REPEAT and not worry about
+    // size, but that would constrain us to POT textures or POT tiles.
+    // The former severely limits background design, and the former is
+    // annoying.  Punt for now.  There might also be cases in which
+    // we'd prefer to rescale the background or center-fit it.
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.bindTexture(gl.TEXTURE_2D, null);
   },
   spriteAdded: function(sprite) {
     if (('texture' in sprite) && sprite.texture !== null)
