@@ -12,8 +12,9 @@ var lockScreen;
 function changeDisplayState(state) {
   displayState = state;
 
-  // update clock (if needed)
+  // update clock and battery status (if needed)
   updateClock();
+  updateBattery();
 }
 
 function createPhysicsFor(iconGrid) {
@@ -384,14 +385,6 @@ function OnLoad() {
   for (var n = 0; n < icons.length; ++n)
     iconGrid.add(icons[n].src, icons[n].label, icons[n].url);
 
-  var battery = window.navigator.mozBattery;
-  if (battery) {
-    battery.addEventListener("chargingchange", updateBattery);
-    battery.addEventListener("levelchange", updateBattery);
-    battery.addEventListener("statuschange", updateBattery);
-    updateBattery();
-  }
-
   document.getElementById('statusPadding').innerHTML =
     kUseGL ? '(WebGL)' : '(2D canvas)';
 
@@ -489,18 +482,35 @@ function updateClock() {
 }
 
 function updateBattery() {
-  var battery = document.getElementById('statusBattery');
-  var level = window.navigator.mozBattery.level;
-  var charging = window.navigator.mozBattery.charging;
+  var battery = window.navigator.mozBattery;
+  if (!battery)
+    return;
+
+  // If the display is off, there is nothing to do here
+  if (displayState == "off") {
+    battery.removeEventListener("chargingchange", updateBattery);
+    battery.removeEventListener("levelchange", updateBattery);
+    battery.removeEventListener("statuschange", updateBattery);
+    return;
+  }
+
+  var icon = document.getElementById('statusBattery');
+  var level = battery.level;
+  var charging = battery.charging;
   if (charging) {
-    battery.className = 'batteryCharging';
+    icon.className = 'batteryCharging';
   } else {
     document.getElementById('battery-fuel').style.width = (level / 4) + 'px';
     if (level <= 5)
-      battery.className = 'critical';
+      icon.className = 'critical';
     else if (level <= 15)
-      battery.className = 'low';
+      icon.className = 'low';
     else
-      battery.className = '';
+      icon.className = '';
   }
+
+  // Make sure we will be called for any changes to the battery status
+  battery.addEventListener("chargingchange", updateBattery);
+  battery.addEventListener("levelchange", updateBattery);
+  battery.addEventListener("statuschange", updateBattery);
 }
