@@ -3,7 +3,7 @@
 
 'use strict';
 
-/*const*/var kUseGL = 0;
+/*const*/var kUseGL = 1;
 /*const*/var kSnapToWholePixels = !kUseGL;
 
 function abort(why) { alert(why); throw why; }
@@ -290,7 +290,7 @@ function SpriteBlitterGL(canvas) {
   program.uProjection = gl.getUniformLocation(program, 'uProjection');
   program.uTexture = gl.getUniformLocation(program, 'uTexture');
 
-  gl.clearColor(0.0, 0.0, 0.0, 1.0);
+  gl.clearColor(0.0, 0.0, 0.0, 0.0);
 }
 SpriteBlitterGL.prototype = {
   draw: function(x, y, sprites) {
