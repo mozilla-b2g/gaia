@@ -13,14 +13,30 @@
           <div id="battery-fuel"></div>
           <div id="battery-charging"></div>
         </div>
-        <div id="statusClock"></div>
+        <div class="time" data-format="%H:%M"></div>
       </div>
       <div id="home">
-        <canvas id="homeCanvas" width="480" height="776"></canvas>
+        <canvas id="homeCanvas"></canvas>
       </div>
       <div id="windows" hidden="true">
         <div id="loadAnimationScreen"></div>
         <!-- application windows are added here -->
+      </div>
+      <div id="lockScreen">
+	<div id="status">
+	  <div id="signal"></div>
+	  <div id="network"></div>
+	</div>
+	<div id="clock">
+	  <div class="time" data-format="%H:%M %p"></div>
+	  <div class="time" data-format="%A"></div>
+	  <div class="time" data-format="%d %b"></div>
+	</div>
+	<div id="notifications">
+	  SMS: <div id="sms">0</div>
+	  Phone: <div id="phone">0</div>
+	  Email: <div id="email">0</div>
+	</div>
       </div>
     </div>
   </body>

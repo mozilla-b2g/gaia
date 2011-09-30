@@ -3,6 +3,16 @@
 
 'use strict';
 
+var displayState;
+
+// Change the display state (off, locked, default)
+function changeDisplayState(state) {
+  displayState = state;
+
+  // update clock (if needed)
+  updateClock();
+}
+
 function createPhysicsFor(iconGrid) {
   return new DefaultPhysics(iconGrid);
 }
@@ -259,7 +269,70 @@ IconGrid.prototype = {
   }
 }
 
+function LockScreen(overlay) {
+  this.overlay = overlay;
+  overlay.addEventListener("touchstart", this, true);
+  overlay.addEventListener("mousedown", this, true);
+  overlay.addEventListener("touchmove", this, true);
+  overlay.addEventListener("mousemove", this, true);
+  overlay.addEventListener("touchend", this, true);
+  overlay.addEventListener("mouseup", this, true);
+  overlay.addEventListener("mouseout", this, true);
+}
+
+LockScreen.prototype = {
+  onTouchStart: function(e) {
+    this.startX = e.pageX;
+    this.startY = e.pageY;
+    this.moving = true;
+  },
+  onTouchMove: function(e) {
+    if (this.moving) {
+      var dy = -(this.startY - e.pageY);
+      var style = this.overlay.style;
+      style.MozTransition = "";
+      style.MozTransform = "translateY(" + dy + "px)";
+    }
+  },
+  onTouchEnd: function(e) {
+    if (this.moving) {
+      var style = this.overlay.style;
+      var dy = -(this.startY - e.pageY);
+      var offset;
+      if (Math.abs(dy) < window.innerHeight/4) {
+        offset = "0%";
+      } else {
+        offset = (dy < 0) ? "-100%" : "100%";
+      }
+      style.MozTransition = "-moz-transform 0.2s linear";
+      style.MozTransform = "translateY(" + offset + ")";
+      this.moving = false;
+    }
+  },
+  handleEvent: function(e) {
+    switch (e.type) {
+    case 'touchstart':
+    case 'mousedown':
+      this.onTouchStart(e.touches ? e.touches[0] : e);
+      break;
+    case 'touchmove':
+    case 'mousemove':
+      this.onTouchMove(e.touches ? e.touches[0] : e);
+      break;
+    case 'touchend':
+    case 'mouseup':
+    case 'mouseout':
+      this.onTouchEnd(e.touches ? e.touches[0] : e);
+      break;
+    }
+  }
+}
+
 function OnLoad() {
+  var lockScreen = new LockScreen(document.getElementById("lockScreen"));
+
+  changeDisplayState("locked");
+
   var fruits = [
     { label: 'Phone', src: 'images/Phone.png',
       url: 'dialer/dialer.html' },
@@ -291,24 +364,22 @@ function OnLoad() {
     for (var n = 0; n < fruits.length; ++n)
       icons.push(fruits[n]);
 
-  var iconGrid = new IconGrid(document.getElementById("homeCanvas"),
+  var canvas = document.getElementById("homeCanvas");
+  var width = canvas.width = window.innerWidth;
+  var height = canvas.height = window.innerHeight - 24;
+
+  var iconGrid = new IconGrid(canvas,
                               "images/background.png",
                               120, 120, 0.2);
   for (var n = 0; n < icons.length; ++n)
     iconGrid.add(icons[n].src, icons[n].label, icons[n].url);
 
-  // XXX In the long term this is probably bad for battery
-  window.setInterval(updateClock, 60000);
-  updateClock();
-
-  try {
-    var battery = window.navigator.mozBattery;
+  var battery = window.navigator.mozBattery;
+  if (battery) {
     battery.addEventListener("chargingchange", updateBattery);
     battery.addEventListener("levelchange", updateBattery);
     battery.addEventListener("statuschange", updateBattery);
     updateBattery();
-  } catch(e) {
-    console.log("Error when initializing the battery: " + e);
   }
 
   document.getElementById('statusPadding').innerHTML =
@@ -388,15 +459,23 @@ function openApplication(url) {
     false);
 }
 
+// Update the clock and schedule a new update if appropriate
 function updateClock() {
+  // If the display is off, there is nothing to do here
+  if (displayState == "off")
+    return;
+
   var now = new Date();
-  var str = now.getHours();
-  str += ':';
-  var mins = now.getMinutes();
-  if (mins < 10)
-    str += "0";
-  str += mins;
-  document.getElementById('statusClock').innerHTML = str;
+  var match = document.getElementsByClassName('time');
+  for (var n = 0; n < match.length; ++n) {
+    var element = match[n];
+    element.textContent = now.toLocaleFormat(element.dataset.format);
+  }
+
+  // Schedule another clock update when a new minute rolls around
+  var now = new Date();
+  var sec = now.getSeconds();
+  setTimeout(updateClock, (59 - sec) * 1000);
 }
 
 function updateBattery() {

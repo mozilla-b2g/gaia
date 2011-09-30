@@ -3,12 +3,54 @@ html, body {
   height: 100%;
   margin: 0px;
   padding: 0px;
+  font-family: "Trebuchet MS", Helvetica, sans-serif;
 }
+
 #screen {
   position: absolute;
   width: 100%;
   height: 100%; 
 }
+
+#lockScreen {
+  position: absolute;
+  top: 0px;
+  width: -moz-calc(100%);
+  height: -moz-calc(100%);
+  color: white;
+  overflow: hidden;
+  padding-left: 5%;
+  background-color: black;
+  background-image: url('images/lockscreen.jpg');
+  background-size: cover;
+}
+
+#lockScreen > #clock {
+  position: absolute;
+  top: -moz-calc(50%);
+  font-size: 58px;
+}
+
+#lockScreen > #clock > *[data-format*="%b"] {
+  font-size: 100px;
+}
+
+#lockScreen > #notifications {
+  position: absolute;
+  bottom: 2%;
+}
+
+#lockScreen > #notifications > * {
+  display: inline-block;
+}
+
+#home {
+  position: absolute;
+  top: 24px;
+  width: -moz-calc(100%);
+  height: -moz-calc(100% - 24px);
+}
+
 #windows {
   position: absolute;
   left: 0px;
