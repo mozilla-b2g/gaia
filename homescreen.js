@@ -305,8 +305,6 @@ LockScreen.prototype = {
     }
   },
   unlock: function(direction) {
-    if (displayState == "unlocked")
-      return;
     var offset = "100%";
     if (direction < 0)
       offset = "-" + offset;
@@ -316,8 +314,6 @@ LockScreen.prototype = {
     changeDisplayState("unlocked");
   },
   lock: function() {
-    if (displayState == "locked")
-      return;
     var style = this.overlay.style;
     style.MozTransition = "-moz-transform 0.2s linear";
     style.MozTransform = "translateY(0)";
@@ -343,7 +339,7 @@ LockScreen.prototype = {
 }
 
 function OnLoad() {
-  lockScreen = new LockScreen(document.getElementById("lockScreen"));
+  lockScreen = new LockScreen(document.getElementById("lockscreen"));
   kAutoUnlock ? lockScreen.unlock(-1) : lockScreen.lock();
 
   var fruits = [
@@ -494,19 +490,24 @@ function updateBattery() {
     return;
   }
 
-  var icon = document.getElementById('statusBattery');
-  var level = battery.level;
-  var charging = battery.charging;
-  if (charging) {
-    icon.className = 'batteryCharging';
-  } else {
-    document.getElementById('battery-fuel').style.width = (level / 4) + 'px';
-    if (level <= 5)
-      icon.className = 'critical';
-    else if (level <= 15)
-      icon.className = 'low';
-    else
-      icon.className = '';
+  var elements = document.getElementsByClassName("battery");
+  for (var n = 0; n < elements.length; ++n) {
+    var element = elements[n];
+    var fuel = element.children[0];
+    var charging = element.children[1];
+    if (battery.charging) {
+      fuel.className = 'charging';
+      charging.visible = true;
+    } else {
+      var level = battery.level;
+      fuel.style.width = (level / 4) + 'px';
+      if (level <= 5)
+        fuel.className = "critical";
+      else if (level <= 15)
+        fuel.className = "low";
+      else
+        fuel.className = "";
+    }
   }
 
   // Make sure we will be called for any changes to the battery status

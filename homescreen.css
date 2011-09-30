@@ -4,6 +4,7 @@ html, body {
   margin: 0px;
   padding: 0px;
   font-family: "Trebuchet MS", Helvetica, sans-serif;
+  font-size: 16px;
 }
 
 #screen {
@@ -14,7 +15,7 @@ html, body {
   background-size: cover;
 }
 
-#lockScreen {
+#lockscreen {
   position: absolute;
   top: 0px;
   width: -moz-calc(100%);
@@ -27,22 +28,34 @@ html, body {
   background-size: cover;
 }
 
-#lockScreen > #clock {
+#lockscreen > #status {
+  display: -moz-box;
+  -moz-box-orient: horizontal;
+  width: -moz-calc(100% - 4px);
+  height: 20px;
+  padding: 2px;
+}
+
+#lockscreen > #status > #padding {
+  -moz-box-flex: 1;
+}
+
+#lockscreen > #clock {
   position: absolute;
   top: -moz-calc(50%);
   font-size: 58px;
 }
 
-#lockScreen > #clock > *[data-format*="%b"] {
+#lockscreen > #clock > *[data-format*="%b"] {
   font-size: 100px;
 }
 
-#lockScreen > #notifications {
+#lockscreen > #notifications {
   position: absolute;
   bottom: 2%;
 }
 
-#lockScreen > #notifications > * {
+#lockscreen > #notifications > * {
   display: inline-block;
 }
 
@@ -123,25 +136,21 @@ iframe.appWindow {
 #statusBar {
   display: -moz-box;
   -moz-box-orient: horizontal;
+  -moz-box-flex: 0;
   width: -moz-calc(100% - 4px);
   height: 20px;
   padding: 2px;
   background-color: #444;
   color: #fff;
-  font: 16px Arial, sans-serif;
   overflow: hidden;
 }
-#statusText {
-  -moz-box-flex: 0;
-}
+
 #statusPadding {
   -moz-box-flex: 1;
   text-align: center;
 }
-#statusClock {
-  -moz-box-flex: 0;
-}
-#statusBattery {
+
+.battery {
   margin: 3px;
   height: 13px;
   width: 29px;
@@ -149,35 +158,40 @@ iframe.appWindow {
   background-repeat: no-repeat;
   background-size: 29px 13px;
 }
-#statusBattery > #battery-fuel {
-  height: 11px;
-  width: 0px;
+.battery > #fuel {
+  height: 11px;	 
+  width: 25px;
   background-image: -moz-linear-gradient(top, lightgreen 10%, green 80%, darkgreen);
   background-repeat: no-repeat;
   margin-left: 1px;
-  margin-top: 1px;
+  margin-top: 1x;
 }
-#statusBattery.critical > #battery-fuel {
-  background-image: -moz-linear-gradient(top, lightcoral 10%, red 80%, darkred);
-}
-#statusBattery.low > #battery-fuel {
+
+.battery > #fuel.low {
   background-image: -moz-linear-gradient(top, lightyellow 10%, yellow 80%, gold);
 }
-#statusBattery.batteryCharging > #battery-fuel {
+
+.battery > #fuel.critical {
+  background-image: -moz-linear-gradient(top, lightcoral 10%, red 80%, darkred);
+}
+
+.battery > #fuel.charging {
   background-image: -moz-linear-gradient(top, lightgreen 10%, green 80%, darkgreen);
   -moz-animation-duration: 4s;
   -moz-animation-name: batteryCharging;
   -moz-animation-iteration-count: infinite;
+  -moz-animation-timing-function: linear;
 }
+
 @-moz-keyframes batteryCharging {
   from {
-    width: 0px;
+    width: 0;
   }
   to {
     width: 25px;
   }
 }
-#statusBattery > #battery-charging {
+.battery > #charging {
   display: none;
   height: 15px;
   width: 15px;
@@ -187,7 +201,4 @@ iframe.appWindow {
   position: absolute;
   margin-left: 10px;
   top: 4px;
-}
-#statusBattery.batteryCharging > #battery-charging {
-  display: inline-block;
 }
