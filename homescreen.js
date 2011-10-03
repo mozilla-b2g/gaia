@@ -15,25 +15,28 @@ function IconGrid(container, iconWidth, iconHeight) {
 
   // install event handlers
   window.addEventListener("resize", this, true);
-  window.addEventListener("MozBeforePaint", this, true);
 
   // install custom panning handler
   var self = this;
   var customDragger = {
+    kinetic: false,
+    dragging: null,
     isDraggable: function isDraggable(target, scroller) {
-      return { x: true, y: true }; 
+      return { x: true, y: false }; 
     },   
 
     dragStart: function dragStart(cx, cy, target, scroller) {
       this.max = container.scrollLeft + window.innerWidth;
       this.min = container.scrollLeft - window.innerWidth;
       container.setAttribute("panning", "true");
+      window.removeEventListener("MozBeforePaint", self, true);
     },   
 
     dragStop: function dragStop(dx, dy, scroller) {
       var currentPage = Math.round(container.scrollLeft / window.innerWidth);
       self.setPage(currentPage);
       container.removeAttribute("panning");
+      window.addEventListener("MozBeforePaint", self, true);
     },   
 
     dragMove: function dragMove(dx, dy, scroller) {
@@ -127,7 +130,9 @@ IconGrid.prototype = {
   handleEvent: function(evt) {
     switch (evt.type) {
       case "resize":
+        var currentPage = this.page;
         this.reflow(window.innerWidth, window.innerHeight);
+        this.page = currentPage;
         break;
       case "MozBeforePaint":
         var container = this.grid;
@@ -135,9 +140,9 @@ IconGrid.prototype = {
         var pagePosition = this.page * window.innerWidth;
 
         var kSlowFactor = 5;
-        currentPosition += (pagePosition - currentPosition) / kSlowFactor;
-        if (Math.abs(pagePosition - currentPosition) >= 1) {
-          container.scrollLeft = currentPosition;
+        var step = (pagePosition - currentPosition) / kSlowFactor;
+        if (Math.abs(step) >= 1) {
+          container.scrollLeft += step;
           window.mozRequestAnimationFrame();
           return;
         }
