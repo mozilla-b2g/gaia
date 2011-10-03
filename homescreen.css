@@ -3,6 +3,9 @@ html, body {
   height: 100%;
   margin: 0px;
   color: white;
+  padding: 0px;
+  font-family: "Trebuchet MS", Helvetica, sans-serif;
+  font-size: 16px;
 }
 
 /* === Main Window === */
@@ -10,6 +13,53 @@ html, body {
   position: absolute;
   width: 100%;
   height: 100%; 
+  background-image: url('images/background.jpg');
+  background-size: cover;
+}
+
+#lockscreen {
+  position: absolute;
+  top: 0px;
+  width: -moz-calc(100%);
+  height: -moz-calc(100%);
+  color: white;
+  overflow: hidden;
+  padding-left: 5%;
+  background-color: black;
+  background-image: url('images/lockscreen.jpg');
+  background-size: cover;
+  -moz-user-select: none;
+}
+
+#lockscreen > #status {
+  display: -moz-box;
+  -moz-box-orient: horizontal;
+  width: -moz-calc(100% - 4px);
+  height: 20px;
+  padding: 2px;
+}
+
+#lockscreen > #status > #padding {
+  -moz-box-flex: 1;
+}
+
+#lockscreen > #clock {
+  position: absolute;
+  top: -moz-calc(50%);
+  font-size: 58px;
+}
+
+#lockscreen > #clock > *[data-format*="%b"] {
+  font-size: 100px;
+}
+
+#lockscreen > #notifications {
+  position: absolute;
+  bottom: 2%;
+}
+
+#lockscreen > #notifications > * {
+  display: inline-block;
 }
 
 /* === Status bar === */
@@ -40,7 +90,7 @@ html, body {
   -moz-box-flex: 0;
 }
 
-#statusBattery {
+.battery {
   margin: 0.5mozmm;
   margin-right: 1mozmm;
   height: 13px;
@@ -50,8 +100,8 @@ html, body {
   background-size: 29px 13px;
 }
 
-#statusBattery > #battery-fuel {
-  height: 11px;
+.battery > #fuel {
+  height: 11px;	 
   width: 0px;
   background-image: -moz-linear-gradient(top, lightgreen 10%, green 80%, darkgreen);
   background-repeat: no-repeat;
@@ -59,31 +109,32 @@ html, body {
   margin-top: 1px;
 }
 
-#statusBattery.critical > #battery-fuel {
-  background-image: -moz-linear-gradient(top, lightcoral 10%, red 80%, darkred);
-}
-
-#statusBattery.low > #battery-fuel {
+.battery > #fuel.low {
   background-image: -moz-linear-gradient(top, lightyellow 10%, yellow 80%, gold);
 }
 
-#statusBattery.batteryCharging > #battery-fuel {
+.battery > #fuel.critical {
+  background-image: -moz-linear-gradient(top, lightcoral 10%, red 80%, darkred);
+}
+
+.battery > #fuel.charging {
   background-image: -moz-linear-gradient(top, lightgreen 10%, green 80%, darkgreen);
   -moz-animation-duration: 4s;
   -moz-animation-name: batteryCharging;
   -moz-animation-iteration-count: infinite;
+  -moz-animation-timing-function: linear;
 }
 
 @-moz-keyframes batteryCharging {
   from {
-    width: 0px;
+    width: 0;
   }
   to {
     width: 25px;
   }
 }
 
-#statusBattery > #battery-charging {
+.battery > #charging {
   display: none;
   height: 15px;
   width: 15px;
@@ -95,7 +146,7 @@ html, body {
   top: -moz-calc(0.5mozmm + 2px);
 }
 
-#statusBattery.batteryCharging > #battery-charging {
+.batteryCharging > #battery-charging {
   display: inline-block;
 }
 

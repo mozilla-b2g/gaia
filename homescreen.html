@@ -9,16 +9,33 @@
       <div id="statusBar">
         <div id="statusText">Boot To Gecko</div>
         <div id="statusPadding"></div>
-        <div id="statusBattery">
-          <div id="battery-fuel"></div>
-          <div id="battery-charging"></div>
+        <div class="battery">
+          <div id="fuel"></div>
+          <div id="charging"></div>
         </div>
-        <div id="statusClock"></div>
+        <div class="time" data-format="%H:%M"></div>
       </div>
       <div id="homescreen"></div>
       <div id="windows" hidden="true">
         <div id="loadAnimationScreen"></div>
         <!-- application windows are added here -->
+      </div>
+      <div id="lockscreen">
+	      <div id="status">
+	        <div id="signal"></div>
+	        <div id="network"></div>
+	        <div id="padding"></div>
+	      </div>
+	      <div id="clock">
+	        <div class="time" data-format="%H:%M %p"></div>
+	        <div class="time" data-format="%A"></div>
+	        <div class="time" data-format="%d %b"></div>
+	      </div>
+	      <div id="notifications">
+	        Phone: <div id="phone">0</div>
+	        SMS: <div id="sms">0</div>
+	        Email: <div id="email">0</div>
+	      </div>
       </div>
     </div>
   </body>
