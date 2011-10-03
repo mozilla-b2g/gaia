@@ -3,264 +3,152 @@
 
 'use strict';
 
-function createPhysicsFor(iconGrid) {
-  return new DefaultPhysics(iconGrid);
-}
-
-function DefaultPhysics(iconGrid) {
-  this.iconGrid = iconGrid;
-  this.moved = false;
-  this.touchState = { active: false, startX: 0, startY: 0 };
-}
-
-DefaultPhysics.prototype = {
-  onTouchStart: function(e) {
-    var touchState = this.touchState;
-    this.moved = false;
-    touchState.active = true;
-    touchState.startX = e.pageX;
-    touchState.startY = e.pageY;
-    touchState.startTime = e.timeStamp;
-  },
-  onTouchMove: function(e) {
-    var iconGrid = this.iconGrid;
-    var touchState = this.touchState;
-    if (touchState.active) {
-      var dx = touchState.startX - e.pageX;
-      if (dx !== 0) {
-        iconGrid.sceneGraph.setViewportTopLeft(
-          iconGrid.currentPage * iconGrid.containerWidth + dx, 0, 0);
-        this.moved = true;
-      }
-    }
-  },
-  onTouchEnd: function(e) {
-    var touchState = this.touchState;
-    if (!touchState.active)
-      return;
-    touchState.active = false;
-
-    var startX = touchState.startX;
-    var endX = e.pageX;
-    var diffX = endX - startX;
-    var dir = (diffX > 0) ? -1 : 1;
-
-    var quick = (e.timeStamp - touchState.startTime < 200);
-    var small = Math.abs(diffX) < 10;
-
-    var flick = quick && !small;
-    var tap = !this.moved && small;
-    var drag = !quick;
-
-    var iconGrid = this.iconGrid;
-    var currentPage = iconGrid.currentPage
-    if (tap) {
-      iconGrid.tap(currentPage * iconGrid.containerWidth + startX,
-                   touchState.startY);
-    } else if (flick) {
-      iconGrid.setPage(currentPage + dir, 200);
-    } else {
-      if (Math.abs(diffX) < this.containerWidth/2)
-        iconGrid.setPage(currentPage, 200);
-      else
-        iconGrid.setPage(currentPage + dir, 200);
-    }
-  }
-};
-
-function Icon(iconGrid, index) {
-  this.iconGrid = iconGrid;
-  this.index = index;
-  this.label = '';
-  this.url = '';
-}
-
-Icon.prototype = {
-  update: function(img, label, url) {
-    this.label = label;
-    this.url = url;
-    var iconGrid = this.iconGrid;
-    var iconWidth = iconGrid.iconWidth;
-    var iconHeight = iconGrid.iconHeight;
-    var border = iconGrid.border;
-    var sprite = this.sprite;
-    var createSprite = !sprite;
-    if (createSprite) {
-      var sceneGraph = iconGrid.sceneGraph;
-      sprite = new Sprite(iconWidth, iconHeight);
-      sprite.icon = this;
-      this.sprite = sprite;
-    }
-    var ctx = sprite.getContext2D();
-    ctx.drawImage(img, iconWidth * border, iconHeight * border,
-                  iconWidth * (1 - border * 2),
-                  iconHeight * (1 - border * 2));
-    ctx.font = Math.floor(iconHeight * border * 0.6) + "pt Arial, sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillStyle = "white";
-    ctx.textBaseline = "top";
-    ctx.fillText(label, iconWidth/2, iconHeight - iconHeight*border, iconWidth*0.9);
-    if (createSprite)
-      sceneGraph.add(sprite);
-    this.reflow();
-  },
-  // return the X coordinate of the top left corner of a slot
-  slotLeft: function() {
-    var iconGrid = this.iconGrid;
-    return iconGrid.itemBoxWidth * (this.index % iconGrid.columns);
-  },
-  // return the Y coordinate of the top left corner of a slot
-  slotTop: function() {
-    var iconGrid = this.iconGrid;
-    var slot = this.index % iconGrid.itemsPerPage;
-    return Math.floor(slot / iconGrid.columns) * iconGrid.itemBoxHeight;
-  },
-  reflow: function(duration) {
-    var sprite = this.sprite;
-    if (!sprite)
-      return;
-    var iconGrid = this.iconGrid;
-    var index = this.index;
-    var itemsPerPage = iconGrid.itemsPerPage;
-    var page = Math.floor(index / iconGrid.itemsPerPage);
-    sprite.setPosition(page * iconGrid.containerWidth + this.slotLeft(),
-                       this.slotTop(),
-                       duration);
-    sprite.setScale(1, duration);
-  }
-}
-
-function IconGrid(canvas, background, iconWidth, iconHeight, border) {
-  this.canvas = canvas;
-  canvas.mozOpaque = true;
-
+function IconGrid(container, iconWidth, iconHeight) {
+  this.grid = container;
   this.iconWidth = iconWidth;
   this.iconHeight = iconHeight;
-  this.sceneGraph = new SceneGraph(canvas);
-  this.border = border || 0.1;
-  this.icons = [];
-  this.currentPage = 0;
-  this.physics = createPhysicsFor(this);
-
-  // add the background image
-  // this.sceneGraph.setBackground('images/background.png');
 
   // update the layout state
-  this.reflow(canvas.width, canvas.height, 0);
+  var pageWidth = window.innerWidth;
+  var pageHeight = window.innerHeight;
+  this.reflow(pageWidth, pageHeight);
 
   // install event handlers
-  canvas.addEventListener("touchstart", this, true);
-  canvas.addEventListener("mousedown", this, true);
-  canvas.addEventListener("touchmove", this, true);
-  canvas.addEventListener("mousemove", this, true);
-  canvas.addEventListener("touchend", this, true);
-  canvas.addEventListener("mouseup", this, true);
-  canvas.addEventListener("mouseout", this, true);
   window.addEventListener("resize", this, true);
+  window.addEventListener("MozBeforePaint", this, true);
+
+  // install custom panning handler
+  var self = this;
+  var customDragger = {
+    isDraggable: function isDraggable(target, scroller) {
+      return { x: true, y: true }; 
+    },   
+
+    dragStart: function dragStart(cx, cy, target, scroller) {
+      this.max = container.scrollLeft + window.innerWidth;
+      this.min = container.scrollLeft - window.innerWidth;
+      container.setAttribute("panning", "true");
+    },   
+
+    dragStop: function dragStop(dx, dy, scroller) {
+      var currentPage = Math.round(container.scrollLeft / window.innerWidth);
+      self.setPage(currentPage);
+      container.removeAttribute("panning");
+    },   
+
+    dragMove: function dragMove(dx, dy, scroller) {
+      var oldX = container.scrollLeft;
+      container.scrollLeft = 
+        Math.max(Math.min(container.scrollLeft + dx, this.max), this.min); 
+      var newX = container.scrollLeft;
+      return (oldX - newX);
+    },
+    
+    handleEvent: function handleEvent(evt) {
+      var target = evt.target;
+      switch(evt.type) {
+        case "TapLong":
+          if (!target.classList || !target.classList.contains("app"))
+            return;
+ 
+          target.setAttribute("draggable", "true");
+          target.style.MozTransform = "translate(0px, 0px)";
+          this.startX = evt.clientX;
+          this.startY = evt.clientY;
+          this.dragging = target;
+          break;
+        case "mousemove":
+          target = this.dragging;
+          if (!target)
+            return;
+
+          var offsetX = evt.clientX - this.startX;
+          var offsetY = evt.clientY - this.startY;
+          target.style.MozTransform = "translate(" + offsetX + "px, " + offsetY + "px)";
+          break;
+        case "mouseup":
+          target = this.dragging;
+          if (!target)
+            return;
+
+          target.removeAttribute("draggable");
+          target.style.MozTransform = "";
+          this.dragging = null;
+          break;
+        case "TapSingle":
+          openApplication(evt.target.getAttribute("data-url"));
+          break;
+      }
+    }
+  };
+  container.customDragger = customDragger;
+  window.addEventListener("mouseup", customDragger, true);
+  window.addEventListener("mousemove", customDragger, true);
+  window.addEventListener("TapSingle", customDragger, true);
+  window.addEventListener("TapLong", customDragger, true);
 }
 
 IconGrid.prototype = {
-  add: function(src, label, url) {
-    // Create the icon in the icon grid
-    var icons = this.icons;
-    var icon = new Icon(this, this.icons.length);
-    icon.index = icons.length;
-    icons.push(icon);
-    // Load the image, sprite will be created when image load is complete
-    var img = new Image();
-    img.src = src;
-    img.label = label;
-    img.url = url;
-    img.icon = icon;
-    img.onload = function() {
-      // Update the icon (this will trigger a reflow and a repaint)
-      var icon = this.icon;
-      icon.update(this, this.label, this.url);
-    }
-    return icon;
-  },
-  remove: function(icon) {
-    this.icons.splice(icon.index);
-    if (icon.sprite)
-      sceneGraph.remove(icon.sprite);
-  },
-  // reflow the icon grid
-  reflow: function(width, height, duration) {
-    // first recalculate all the layout information
-    this.containerWidth = width;
-    this.containerHeight = height;
-    this.panelWidth = this.containerWidth;
-    this.pageIndicatorWidth = this.containerWidth;
-    this.pageIndicatorHeight = Math.min(Math.max(this.containerHeight * 0.7, 14), 20);
-    this.panelHeight = this.containerHeight - this.pageIndicatorHeight;
-    this.columns = Math.floor(this.panelWidth / this.iconWidth);
-    this.rows = Math.floor(this.panelHeight / this.iconHeight);
-    this.itemsPerPage = this.rows * this.columns;
-    this.itemBoxWidth = Math.floor(this.panelWidth / this.columns);
-    this.itemBoxHeight = Math.floor(this.panelHeight / this.rows);
+  add: function(url, src, label) {
+    var app = document.createElement("div");
+    app.classList.toggle("app");
+    app.setAttribute("data-url", url);
 
-    // switch to the right page
-    this.setPage(this.currentPage, duration);
+    var icon = document.createElement("img");
+    icon.classList.toggle("icon");
+    icon.src = src;
 
-    // now reflow all the icons
-    var icons = this.icons;
-    for (var n = 0; n < icons.length; ++n)
-      icons[n].reflow(duration);
+    var title = document.createElement("span");
+    title.classList.toggle("title");
+    title.appendChild(document.createTextNode(label));
+
+    app.appendChild(icon);
+    app.appendChild(title);
+    this.grid.appendChild(app);
   },
-  // get last page with an icon
-  getLastPage: function() {
-    var itemsPerPage = this.itemsPerPage;
-    var lastPage = Math.floor((this.icons.length + (itemsPerPage - 1)) / itemsPerPage);
-    if (lastPage > 0)
-      --lastPage;
-    return lastPage;
+
+  remove: function(app) {
+    this.grid.removeChild(app);
   },
-  // switch to a different page
-  setPage: function(page, duration) {
-    page = Math.max(0, page);
-    page = Math.min(page, this.getLastPage());
-    this.sceneGraph.setViewportTopLeft(this.containerWidth * page, 0, duration);
-    this.currentPage = page;
+
+  reflow: function(width, height) {
+    var calcWidth = width + "px";
+    this.grid.style.MozColumnWidth = calcWidth;
+
+    var calcHeight = "-moz-calc(" + height + "px - 9.5mozmm)";
+    this.grid.style.height = calcHeight;
   },
-  // process a computed tap at the given scene-graph coordinates
-  tap: function(x, y) {
-    this.sceneGraph.forHit(
-      x, y,
-      function(sprite) { openApplication(sprite.icon.url); });
+
+  setPage: function(page) {
+    this.page = page;
+    window.mozRequestAnimationFrame();
   },
-  handleEvent: function(e) {
-    var physics = this.physics;
-    switch (e.type) {
-    case 'touchstart':
-    case 'mousedown':
-      physics.onTouchStart(e.touches ? e.touches[0] : e);
-      break;
-    case 'touchmove':
-    case 'mousemove':
-      physics.onTouchMove(e.touches ? e.touches[0] : e);
-      break;
-    case 'touchend':
-    case 'mouseup':
-    case 'mouseout':
-      physics.onTouchEnd(e.touches ? e.touches[0] : e);
-      break;
-    case "resize":
-      var canvas = this.canvas;
-      var width = canvas.width = window.innerWidth;
-      // TODO Substract the height of the statusbar
-      var height = canvas.height = window.innerHeight - 24;
-      if (kUseGL) {
-        this.sceneGraph.blitter.viewportWidth = width;
-        this.sceneGraph.blitter.viewportHeight = height;
-      }
-      this.reflow(width, height, 0);
-      break;
+
+  handleEvent: function(evt) {
+    switch (evt.type) {
+      case "resize":
+        this.reflow(window.innerWidth, window.innerHeight);
+        break;
+      case "MozBeforePaint":
+        var container = this.grid;
+        var currentPosition = container.scrollLeft;
+        var pagePosition = this.page * window.innerWidth;
+
+        var kSlowFactor = 5;
+        currentPosition += (pagePosition - currentPosition) / kSlowFactor;
+        if (Math.abs(pagePosition - currentPosition) >= 1) {
+          container.scrollLeft = currentPosition;
+          window.mozRequestAnimationFrame();
+          return;
+        }
+        container.scrollLeft = pagePosition;
+        break;
     }
   }
 }
 
-function OnLoad() {
-  var fruits = [
+function startup() {
+  var applications = [
     { label: 'Phone', src: 'images/Phone.png',
       url: 'dialer/dialer.html' },
     { label: 'Messages', src: 'images/Messages.png',
@@ -282,20 +170,18 @@ function OnLoad() {
     { label: 'Browser', src: 'images/Browser.png',
       url: 'data:text/html,<font color="blue">Hello' },
     { label: 'Music', src: 'images/Music.png',
-      url: 'data:text/html,<font color="blue">Hello' }
+      url: 'data:text/html,<font color="blue">Hello' },
+    { label: 'Settings', src: 'images/Settings.png',
+      url: 'settings/settings.html' },
   ];
 
-  var icons = [];
-  // XXX this add 5 times the same set of icons
-  for (var i = 0; i < 5; i++)
-    for (var n = 0; n < fruits.length; ++n)
-      icons.push(fruits[n]);
-
-  var iconGrid = new IconGrid(document.getElementById("homeCanvas"),
-                              "images/background.png",
-                              120, 120, 0.2);
-  for (var n = 0; n < icons.length; ++n)
-    iconGrid.add(icons[n].src, icons[n].label, icons[n].url);
+  var homescreen = document.getElementById("homescreen");
+  var iconGrid = new IconGrid(homescreen, 96, 96);
+  for (var k = 0; k < 10; k++)
+  for (var i = 0; i < applications.length; i++) {
+    var app = applications[i];
+    iconGrid.add(app.url, app.src, app.label);
+  }
 
   // XXX In the long term this is probably bad for battery
   window.setInterval(updateClock, 60000);
@@ -310,9 +196,6 @@ function OnLoad() {
   } catch(e) {
     console.log("Error when initializing the battery: " + e);
   }
-
-  document.getElementById('statusPadding').innerHTML =
-    kUseGL ? '(WebGL)' : '(2D canvas)';
 
   WindowManager.start();
 }

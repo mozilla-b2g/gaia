@@ -1,11 +1,10 @@
 <html>
   <head>
     <link href='homescreen.css' rel='stylesheet' type='text/css'>
-    <script type="text/javascript" src="scenegraph.js"></script>
-    <script type="text/javascript" src="homescreen.js"></script> 
-    <img src="images/background.png" width="0">
+    <script type="text/javascript" src="homescreen.js"></script>
   </head>
-  <body onload="OnLoad();">
+
+  <body onload="startup();">
     <div id="screen">
       <div id="statusBar">
         <div id="statusText">Boot To Gecko</div>
@@ -16,13 +15,12 @@
         </div>
         <div id="statusClock"></div>
       </div>
-      <div id="home">
-        <canvas id="homeCanvas" width="480" height="776"></canvas>
-      </div>
+      <div id="homescreen"></div>
       <div id="windows" hidden="true">
         <div id="loadAnimationScreen"></div>
         <!-- application windows are added here -->
       </div>
     </div>
+  </body>
   </body>
 </html>

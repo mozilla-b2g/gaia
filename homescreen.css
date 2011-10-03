@@ -2,19 +2,214 @@ html, body {
   width: 100%;
   height: 100%;
   margin: 0px;
-  padding: 0px;
+  color: white;
 }
+
+/* === Main Window === */
 #screen {
   position: absolute;
   width: 100%;
   height: 100%; 
 }
+
+/* === Status bar === */
+#statusBar {
+  display: -moz-box;
+  -moz-box-orient: horizontal;
+  width: -moz-calc(100% - 1mozmm);
+  height: 2.5mozmm;
+  padding: 0.5mozmm;
+  background: -moz-linear-gradient(top, #444, #222);
+  -moz-user-select: none;
+  color: #fff;
+  font: 2mozmm Arial, sans-serif;
+  font-weight: bold;
+  overflow: hidden;
+}
+
+#statusText {
+  -moz-box-flex: 0;
+}
+
+#statusPadding {
+  -moz-box-flex: 1;
+  text-align: center;
+}
+
+#statusClock {
+  -moz-box-flex: 0;
+}
+
+#statusBattery {
+  margin: 0.5mozmm;
+  margin-right: 1mozmm;
+  height: 13px;
+  width: 29px;
+  background-image: url(images/battery-main.png);
+  background-repeat: no-repeat;
+  background-size: 29px 13px;
+}
+
+#statusBattery > #battery-fuel {
+  height: 11px;
+  width: 0px;
+  background-image: -moz-linear-gradient(top, lightgreen 10%, green 80%, darkgreen);
+  background-repeat: no-repeat;
+  margin-left: 1px;
+  margin-top: 1px;
+}
+
+#statusBattery.critical > #battery-fuel {
+  background-image: -moz-linear-gradient(top, lightcoral 10%, red 80%, darkred);
+}
+
+#statusBattery.low > #battery-fuel {
+  background-image: -moz-linear-gradient(top, lightyellow 10%, yellow 80%, gold);
+}
+
+#statusBattery.batteryCharging > #battery-fuel {
+  background-image: -moz-linear-gradient(top, lightgreen 10%, green 80%, darkgreen);
+  -moz-animation-duration: 4s;
+  -moz-animation-name: batteryCharging;
+  -moz-animation-iteration-count: infinite;
+}
+
+@-moz-keyframes batteryCharging {
+  from {
+    width: 0px;
+  }
+  to {
+    width: 25px;
+  }
+}
+
+#statusBattery > #battery-charging {
+  display: none;
+  height: 15px;
+  width: 15px;
+  background-image: url(images/battery-charging.png);
+  background-repeat: no-repeat;
+  background-size: 15px 15px;
+  position: absolute;
+  margin-left: 10px;
+  top: -moz-calc(0.5mozmm + 2px);
+}
+
+#statusBattery.batteryCharging > #battery-charging {
+  display: inline-block;
+}
+
+/* === Homescreen === */
+#homescreen {
+  padding-top: 3mozmm;
+  padding-bottom: 3mozmm;
+  width: 100%;
+  height: -moz-calc(800px - 9.5mozmm); 
+  -moz-column-width: 400px;
+  -moz-column-gap: 0px;
+  overflow: auto;
+  background: url(images/background.png) no-repeat;
+  background-size: 100% 100%;
+  -moz-user-select: none;
+  color: white;
+  text-align: center;
+}
+
+.app {
+  display: inline-block;
+  text-align: center;
+}
+
+.app[draggable] {
+  z-index: 99999;
+}
+
+.app[draggable] > .icon {
+  -moz-transform: scale(1.5);
+}
+
+.app[draggable] > .title {
+  visibility: hidden;
+}
+
+/*-moz-animation: vibrate 1ms linear infinite alternate;*/
+@-moz-keyframes vibrate {
+  from {
+    -moz-transform: rotate(-4deg);
+  }
+  to {
+    -moz-transform: rotate(4deg);
+  }
+}
+
+.app:not([draggable]):hover:active > .icon {
+  background: -moz-radial-gradient(orangered, orange, tan);
+  border-radius: 8px;
+}
+
+@media all and (min-width: 0px) {
+  .app {
+    width: -moz-calc(100% / 3);
+  }
+}
+
+@media all and (min-width: 451px) {
+  .app {
+    width: -moz-calc(100% / 4);
+  }
+}
+
+@media all and (min-width: 651px) {
+  .app {
+    width: -moz-calc(100% / 6);
+  }
+}
+
+@media all and (min-height: 0px) {
+  .app {
+    height: -moz-calc(100% / 3);
+  }
+}
+
+@media all and (min-height: 501px) {
+  .app {
+    height: -moz-calc(100% / 4);
+  }
+}
+
+@media all and (min-height: 801px) {
+  .app {
+    height: -moz-calc(100% / 5);
+  }
+}
+
+.app > .icon {
+  width: 64px;
+  height: 64px;
+  display: block;
+  margin: auto;
+  margin-bottom: 1mozmm;
+  pointer-events: none;
+}
+
+.app > .title {
+  font-size: 2mozmm;
+  font-family: sans-serif;
+  font-weight: 600;
+  opacity: 0.8;
+  background: -moz-linear-gradient(top, #000000, #303030);
+  border-radius: 6px;
+  padding: 2px 4px 2px 4px;
+  pointer-events: none;
+}
+
+/* === Application Windows */
 #windows {
   position: absolute;
   left: 0px;
-  top: 24px;
+  top: 3.5mozmm; 
   width: -moz-calc(100%);
-  height: -moz-calc(100% - 24px);
+  height: -moz-calc(100% - 3.5mozmm);
 }
 
 iframe.appWindow {
@@ -39,10 +234,12 @@ iframe.appWindow {
   padding: 0px;
   overflow: hidden;
 }
+
 .animateOpening {
   -moz-animation-duration: 200ms;
   -moz-animation-name: openingAnimation;
 }
+
 @-moz-keyframes openingAnimation {
   from {
     left: 50%;
@@ -57,10 +254,12 @@ iframe.appWindow {
     height: -moz-calc(100% - 24px);
   }
 }
+
 .animateClosing {
   -moz-animation-duration: 100ms;
   -moz-animation-name: closingAnimation;
 }
+
 @-moz-keyframes closingAnimation {
   from {
     left: 0px;
@@ -76,74 +275,3 @@ iframe.appWindow {
   }
 }
 
-#statusBar {
-  display: -moz-box;
-  -moz-box-orient: horizontal;
-  width: -moz-calc(100% - 4px);
-  height: 20px;
-  padding: 2px;
-  background-color: #444;
-  color: #fff;
-  font: 16px Arial, sans-serif;
-  overflow: hidden;
-}
-#statusText {
-  -moz-box-flex: 0;
-}
-#statusPadding {
-  -moz-box-flex: 1;
-  text-align: center;
-}
-#statusClock {
-  -moz-box-flex: 0;
-}
-#statusBattery {
-  margin: 3px;
-  height: 13px;
-  width: 29px;
-  background-image: url(images/battery-main.png);
-  background-repeat: no-repeat;
-  background-size: 29px 13px;
-}
-#statusBattery > #battery-fuel {
-  height: 11px;
-  width: 0px;
-  background-image: -moz-linear-gradient(top, lightgreen 10%, green 80%, darkgreen);
-  background-repeat: no-repeat;
-  margin-left: 1px;
-  margin-top: 1px;
-}
-#statusBattery.critical > #battery-fuel {
-  background-image: -moz-linear-gradient(top, lightcoral 10%, red 80%, darkred);
-}
-#statusBattery.low > #battery-fuel {
-  background-image: -moz-linear-gradient(top, lightyellow 10%, yellow 80%, gold);
-}
-#statusBattery.batteryCharging > #battery-fuel {
-  background-image: -moz-linear-gradient(top, lightgreen 10%, green 80%, darkgreen);
-  -moz-animation-duration: 4s;
-  -moz-animation-name: batteryCharging;
-  -moz-animation-iteration-count: infinite;
-}
-@-moz-keyframes batteryCharging {
-  from {
-    width: 0px;
-  }
-  to {
-    width: 25px;
-  }
-}
-#statusBattery > #battery-charging {
-  display: none;
-  height: 15px;
-  width: 15px;
-  background-image: url(images/battery-charging.png);
-  background-repeat: no-repeat;
-  background-size: 15px 15px;
-  position: absolute;
-  margin-left: 10px;
-  top: 4px;
-}
-#statusBattery.batteryCharging > #battery-charging {
-  display: inline-block;
-}
