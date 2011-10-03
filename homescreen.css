@@ -34,9 +34,9 @@ html, body {
 #lockscreen > #status {
   display: -moz-box;
   -moz-box-orient: horizontal;
-  width: -moz-calc(100% - 4px);
+  width: -moz-calc(100% - 1mozmm);
   height: 20px;
-  padding: 2px;
+  padding: 0.5mozmm;
 }
 
 #lockscreen > #status > #padding {
@@ -47,6 +47,12 @@ html, body {
   position: absolute;
   top: -moz-calc(50%);
   font-size: 58px;
+}
+
+@media all and (orientation:landscape) {
+  #lockscreen > #clock {
+    top: -moz-calc(25%);
+  }
 }
 
 #lockscreen > #clock > *[data-format*="%b"] {
@@ -239,6 +245,7 @@ html, body {
   height: 64px;
   display: block;
   margin: auto;
+  margin-top: -moz-calc(50% - 1mozmm);
   margin-bottom: 1mozmm;
   pointer-events: none;
 }
