@@ -17,6 +17,13 @@ html, body {
   background-size: cover;
 }
 
+/* For debugging if we are on a big screen, limit the width of the homescreen */
+@media all and (min-width: 801px) {
+  #screen {
+    max-width: 480px;
+  }
+}
+
 #lockscreen {
   position: absolute;
   top: 0px;
