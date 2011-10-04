@@ -265,6 +265,13 @@ function startup() {
     console.log('Error when initializing the battery: ' + e);
   }
 
+  var lastFrame = window.mozPaintCount;
+  var frameRateWidget = document.getElementById("statusPadding");
+  window.setInterval(function showFrameRate() {
+    frameRateWidget.innerHTML = '(' + (window.mozPaintCount - lastFrame) + ')';
+    lastFrame = window.mozPaintCount;
+  }, 1000);
+
   WindowManager.start();
 }
 
