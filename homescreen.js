@@ -20,9 +20,10 @@ function IconGrid(container, iconWidth, iconHeight) {
   this.iconHeight = iconHeight;
 
   // update the layout state
-  var pageWidth = window.innerWidth;
-  var pageHeight = window.innerHeight;
-  this.reflow(pageWidth, pageHeight);
+  var rect = container.getBoundingClientRect();
+  this.pageWidth = rect.width;
+  this.pageHeight = window.innerHeight;
+  this.reflow();
 
   // install event handlers
   window.addEventListener('resize', this, true);
@@ -37,14 +38,14 @@ function IconGrid(container, iconWidth, iconHeight) {
     },   
 
     onTouchStart: function onTouchStart(cx, cy, target, scroller) {
-      this.max = container.scrollLeft + window.innerWidth;
-      this.min = container.scrollLeft - window.innerWidth;
+      this.max = container.scrollLeft + self.pageWidth;
+      this.min = container.scrollLeft - self.pageWidth;
       container.setAttribute('panning', 'true');
       window.removeEventListener('MozBeforePaint', self, true);
     },   
 
     onTouchEnd: function onTouchEnd(dx, dy, scroller) {
-      var currentPage = Math.round(container.scrollLeft / window.innerWidth);
+      var currentPage = Math.round(container.scrollLeft / self.pageWidth);
       self.setPage(currentPage);
       container.removeAttribute('panning');
       window.addEventListener('MozBeforePaint', self, true);
@@ -125,11 +126,11 @@ IconGrid.prototype = {
     this.grid.removeChild(app);
   },
 
-  reflow: function(width, height) {
-    var calcWidth = width + 'px';
+  reflow: function() {
+    var calcWidth = this.pageWidth + 'px';
     this.grid.style.MozColumnWidth = calcWidth;
 
-    var calcHeight = '-moz-calc(' + height + 'px - 9.5mozmm)';
+    var calcHeight = '-moz-calc(' + this.pageHeight + 'px - 9.5mozmm)';
     this.grid.style.height = calcHeight;
   },
 
@@ -141,14 +142,17 @@ IconGrid.prototype = {
   handleEvent: function(evt) {
     switch (evt.type) {
       case 'resize':
+        var rect = this.grid.getBoundingClientRect();
+        this.pageWidth = rect.width;
+        this.pageHeight = window.innerHeight;
         var currentPage = this.page;
-        this.reflow(window.innerWidth, window.innerHeight);
+        this.reflow();
         this.page = currentPage;
         break;
       case 'MozBeforePaint':
         var container = this.grid;
         var currentPosition = container.scrollLeft;
-        var pagePosition = this.page * window.innerWidth;
+        var pagePosition = this.page * this.pageWidth;
 
         var kSlowFactor = 5;
         var step = (pagePosition - currentPosition) / kSlowFactor;
