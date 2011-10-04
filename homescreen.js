@@ -53,7 +53,7 @@ function IconGrid(container, iconWidth, iconHeight) {
     onTouchMove: function onTouchMove(dx, dy, scroller) {
       var oldX = container.scrollLeft;
       container.scrollLeft = 
-        Math.max(Math.min(container.scrollLeft + dx, this.max), this.min); 
+        Math.max(Math.min(container.scrollLeft + dx, this.max), this.min);
       var newX = container.scrollLeft;
       return (oldX - newX);
     },
@@ -207,6 +207,8 @@ LockScreen.prototype = {
 }
 
 function startup() {
+  var mouseModule = new MouseModule();
+
   var lockScreen = new LockScreen(document.getElementById('lockscreen'));
   kAutoUnlock ? lockScreen.unlock(-1) : lockScreen.lock();
 
