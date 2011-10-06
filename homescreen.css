@@ -210,36 +210,6 @@ html, body {
   border-radius: 8px;
 }
 
-@media all and (min-width: 0px) {
-  .app {
-  }
-}
-
-@media all and (min-width: 451px) {
-  .app {
-  }
-}
-
-@media all and (min-width: 651px) {
-  .app {
-  }
-}
-
-@media all and (min-height: 0px) {
-  .app {
-  }
-}
-
-@media all and (min-height: 501px) {
-  .app {
-  }
-}
-
-@media all and (min-height: 801px) {
-  .app {
-  }
-}
-
 .app > .icon {
   width: 64px;
   height: 64px;
