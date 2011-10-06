@@ -14,19 +14,14 @@ function changeDisplayState(state) {
   updateBattery();
 }
 
-function IconGrid(container, iconWidth, iconHeight) {
+function IconGrid(container) {
   this.grid = container;
-  this.iconWidth = iconWidth;
-  this.iconHeight = iconHeight;
 
   // update the layout state
   var rect = container.getBoundingClientRect();
   this.pageWidth = rect.width;
   this.pageHeight = window.innerHeight;
   this.reflow();
-
-  // install event handlers
-  window.addEventListener('resize', this, true);
 
   // install custom panning handler
   var self = this;
@@ -135,6 +130,7 @@ function IconGrid(container, iconWidth, iconHeight) {
       }
     }
   };
+  // install event handlers
   container.customDragger = customDragger;
   container.addEventListener('mousedown', customDragger, true);
   container.addEventListener('touchstart', customDragger, true);
@@ -144,6 +140,7 @@ function IconGrid(container, iconWidth, iconHeight) {
   window.addEventListener('touchend', customDragger, true);
   container.addEventListener('click', customDragger, true);
   container.addEventListener('contextmenu', customDragger, true);
+  window.addEventListener('resize', this, true);
 }
 
 IconGrid.prototype = {
@@ -312,7 +309,7 @@ function startup() {
   ];
 
   var homescreen = document.getElementById('homescreen');
-  var iconGrid = new IconGrid(homescreen, 96, 96);
+  var iconGrid = new IconGrid(homescreen);
   for (var k = 0; k < 10; k++)
   for (var i = 0; i < applications.length; i++) {
     var app = applications[i];

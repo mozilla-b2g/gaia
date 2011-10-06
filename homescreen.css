@@ -172,7 +172,6 @@ html, body {
   height: -moz-calc(800px - 9.5mozmm); 
   -moz-column-width: 400px;
   -moz-column-gap: 0px;
-  overflow: auto;
   -moz-user-select: none;
   color: white;
   text-align: center;
@@ -190,7 +189,7 @@ html, body {
 .app {
   display: inline-block;
   text-align: center;
-  width: 96px;
+  width: 120px;
 }
 
 .app[draggable] {
@@ -211,8 +210,8 @@ html, body {
 }
 
 .app > .icon {
-  width: 64px;
-  height: 64px;
+  width: 80px;
+  height: 80px;
   display: block;
   margin: auto;
   margin-top: -moz-calc(50% - 1mozmm);
@@ -242,7 +241,7 @@ html, body {
 
 iframe.appWindow {
   position: absolute;
-  background-color: black;
+  background-color: #171717;
   border: 0px;
   margin: 0px;
   padding: 0px;
@@ -256,7 +255,7 @@ iframe.appWindow {
 #loadAnimationScreen {
   display: none;
   position: absolute;
-  background-color: black;
+  background-color: #171717;
   border: 0px;
   margin: 0px;
   padding: 0px;
