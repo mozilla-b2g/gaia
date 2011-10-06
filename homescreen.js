@@ -16,6 +16,7 @@ function changeDisplayState(state) {
 
 function IconGrid(container) {
   this.grid = container;
+  this.page = 0;
 
   // update the layout state
   var rect = container.getBoundingClientRect();
@@ -28,34 +29,39 @@ function IconGrid(container) {
   var customDragger = {
     dragging: null,
     panning: null,
+    isPan: function isPan(x1, y1, x2, y2) {
+      return Math.abs(x1 - x2) > 3 || Math.abs(y1 - y2) > 3;
+    },
     onTouchStart: function onTouchStart(evt) {
-      this.max = container.scrollLeft + self.pageWidth;
-      this.min = container.scrollLeft - self.pageWidth;
       window.removeEventListener('MozBeforePaint', self, true);
       this.startX = this.lastX = evt.pageX;
       this.startY = this.lastY = evt.pageY;
+      this.startTime = evt.timeStamp;
     }, 
 
     onTouchEnd: function onTouchEnd(evt) {
-      var currentPage = container.scrollLeft / self.pageWidth;
       var offsetX = this.startX - evt.pageX;
-      if (offsetX > 0 && offsetX / self.pageWidth > 0.25)
-        currentPage = Math.ceil(currentPage);
-      else if (offsetX < 0 && Math.abs(offsetX) / self.pageWidth > 0.25)
-        currentPage = Math.floor(currentPage);
-      else
-        currentPage = Math.round(currentPage);
+      var diffX = Math.abs(offsetX);
 
-      self.setPage(currentPage, 200);
+      var quick = (evt.timeStamp - this.startTime < 200);
+      var small = diffX < 100;
+      var flick = quick && small;
+      dump(flick + ":" + diffX + ":" + quick);
+
+      if (flick) {
+        var direction = offsetX > 0 ? 1 : -1;
+        self.setPage(self.page + direction, 400);
+      } else {
+        var page = Math.round(container.scrollLeft / self.pageWidth);
+        self.setPage(page, 200);
+      }
       window.addEventListener('MozBeforePaint', self, true);
-      this.startX = this.startY = -1;
     },   
 
     onTouchMove: function onTouchMove(evt) {
       var offsetX = this.lastX - evt.pageX;
       this.lastX = evt.pageX;
-      container.scrollLeft = 
-        Math.max(Math.min(container.scrollLeft + offsetX, this.max), this.min);
+      container.scrollLeft = container.scrollLeft + offsetX;
     },
     
     handleEvent: function handleEvent(evt) {
@@ -65,50 +71,48 @@ function IconGrid(container) {
           evt.preventDefault();
         case 'mousedown':
           customDragger.onTouchStart(evt.touches ? evt.touches[0] : evt);
+          this.touch = true;
           break
         case "touchmove":
           evt.preventDefault();
         case 'mousemove':
-          if (!this.dragging) {
-            if (!this.panning && this.startX != -1 && this.startY != -1) {
-              if (Math.abs(evt.pageX - this.startX) > 3 || 
-                  Math.abs(evt.pageY - this.startY) > 3) {
-                this.startX = this.lastX = evt.pageX;
-                this.startY = this.lastY = evt.pageY;
-                this.panning = true;
-                document.getElementById('activeHandler').setCapture();
-                container.setAttribute('panning', true);
-                customDragger.onTouchMove(evt.touches ? evt.touches[0] : evt);
-              }
-            } else if (this.startX != -1 && this.startY != -1) {
-              customDragger.onTouchMove(evt.touches ? evt.touches[0] : evt);
-            }
+          if (!this.touch)
             return;
+
+          if (this.dragging) {
+            container.setAttribute('panning', true);
+            var offsetX = evt.pageX - this.lastX;
+            var offsetY = evt.pageY - this.lastY;
+            this.dragging.style.MozTransform = 'translate(' + offsetX + 'px, ' + offsetY + 'px)';
+          } else if (!this.panning && this.isPan(evt.pageX, evt.pageX, this.startX, this.startY)) {
+            this.panning = true;
+            this.startX = this.lastX = evt.pageX;
+            this.startY = this.lastY = evt.pageY;
+            document.getElementById('activeHandler').setCapture();
+            container.setAttribute('panning', true);
+            customDragger.onTouchMove(evt.touches ? evt.touches[0] : evt);
+          } else if (this.panning) {
+            customDragger.onTouchMove(evt.touches ? evt.touches[0] : evt);
           }
-          
-          container.setAttribute('panning', true);
-          var offsetX = evt.pageX - this.lastX;
-          var offsetY = evt.pageY - this.lastY;
-          this.dragging.style.MozTransform = 'translate(' + offsetX + 'px, ' + offsetY + 'px)';
           break;
         case "touchend":
           evt.preventDefault();
         case 'mouseup':
-          if (!this.dragging) {
-            if (this.panning) {
-              this.panning = false;
-              document.releaseCapture();
-              container.removeAttribute('panning');
-              customDragger.onTouchEnd(evt.touches ? evt.touches[0] : evt);
-            }
-            return;
-          }
+          if (this.dragging) {
+            container.removeAttribute('panning');
+            this.dragging.removeAttribute('draggable');
+            this.dragging.style.MozTransform = '';
 
-          container.removeAttribute('panning');
-          this.dragging.removeAttribute('draggable');
-          this.dragging.style.MozTransform = '';
-          this.dragging = false;
-          this.startX = this.startY = -1;
+            // if the mouseup has not generated a click, let's say the action
+            // is finished, otherwise it will be done in 'click'
+            if (!evt.detail)
+              this.dragging = this.touch = false;
+          } else if (this.panning) {
+            document.releaseCapture();
+            container.removeAttribute('panning');
+            this.panning = this.touch = false;
+          }
+          customDragger.onTouchEnd(evt.touches ? evt.touches[0] : evt);
           break;
         case 'contextmenu':
           if (!target.classList || !target.classList.contains('app'))
@@ -121,10 +125,8 @@ function IconGrid(container) {
           this.dragging = target;
           break;
         case 'click':
-          this.panning = null;
-          this.startX = this.startY = -1;
           if (this.dragging) {
-            this.dragging = null;
+            this.dragging = this.touch = false;
             return;
           }
           openApplication(evt.target.getAttribute('data-url'));
