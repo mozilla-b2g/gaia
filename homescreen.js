@@ -46,7 +46,7 @@ function IconGrid(container) {
       else
         currentPage = Math.round(currentPage);
 
-      self.setPage(currentPage);
+      self.setPage(currentPage, 200);
       window.addEventListener('MozBeforePaint', self, true);
       this.startX = this.startY = -1;
     },   
@@ -71,8 +71,10 @@ function IconGrid(container) {
         case 'mousemove':
           if (!this.dragging) {
             if (!this.panning && this.startX != -1 && this.startY != -1) {
-              if (Math.abs(evt.pageX - this.startX) > 10 || 
-                  Math.abs(evt.pageY - this.startY) > 10) {
+              if (Math.abs(evt.pageX - this.startX) > 3 || 
+                  Math.abs(evt.pageY - this.startY) > 3) {
+                this.startX = this.lastX = evt.pageX;
+                this.startY = this.lastY = evt.pageY;
                 this.panning = true;
                 document.getElementById('activeHandler').setCapture();
                 container.setAttribute('panning', true);
@@ -175,9 +177,14 @@ IconGrid.prototype = {
     this.grid.style.height = calcHeight;
   },
 
-  setPage: function(page) {
+  setPage: function(page, duration) {
     this.page = page;
-    window.mozRequestAnimationFrame();
+
+    RequestAnimationFrame();
+    this.startPosition = this.grid.scrollLeft;
+    this.pagePosition = page * this.pageWidth;
+    this.startTime = GetAnimationClockTime();
+    this.stopTime = this.startTime + duration;
   },
 
   handleEvent: function(evt) {
@@ -201,19 +208,47 @@ IconGrid.prototype = {
         break;
       case 'MozBeforePaint':
         var container = this.grid;
-        var currentPosition = container.scrollLeft;
-        var pagePosition = this.page * this.pageWidth;
-
-        var kSlowFactor = 5;
-        var step = (pagePosition - currentPosition) / kSlowFactor;
-        if (Math.abs(step) >= 1) {
-          container.scrollLeft += step;
-          window.mozRequestAnimationFrame();
+        var elapsed = GetElapsed(this.startTime,
+                                 this.stopTime,
+                                 GetAnimationClockTime());
+        var position = Physics.Linear(elapsed,
+                                      this.startPosition,
+                                      container.scrollLeft,
+                                      this.pagePosition);
+        container.scrollLeft = position;
+        if (position == this.pagePosition)
           return;
-        }
-        container.scrollLeft = pagePosition;
+
+        RequestAnimationFrame();
         break;
     }
+  }
+}
+
+// Return the current time of the "animation clock", which ticks on
+// each frame drawn.
+function GetAnimationClockTime() {
+  return window.mozAnimationStartTime ||
+         window.webkitAnimationStartTime ||
+         window.animationStartTime;
+}
+
+function RequestAnimationFrame() {
+  if (window.mozRequestAnimationFrame)
+    window.mozRequestAnimationFrame();
+  else if (window.webkitRequestAnimationFrame)
+    window.webkitRequestAnimationFrame();
+  else if (window.requestAnimationFrame)
+    window.requestAnimationFrame();
+}
+
+function GetElapsed(start, stop, now) {
+  return (now < start || now > stop) ? 1 : ((now - start) / (stop - start));
+};
+
+var Physics = {
+  Linear: function(elapsed, start, current, target) {
+    return start + (target - start) * elapsed;
   }
 }
 
