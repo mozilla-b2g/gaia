@@ -6,6 +6,7 @@ html, body {
   padding: 0px;
   font-family: "Trebuchet MS", Helvetica, sans-serif;
   font-size: 16px;
+  overflow: hidden;
 }
 
 /* === Main Window === */
@@ -172,11 +173,18 @@ html, body {
   -moz-column-width: 400px;
   -moz-column-gap: 0px;
   overflow: auto;
-  background: url(images/background.png) no-repeat;
-  background-size: 100% 100%;
   -moz-user-select: none;
   color: white;
   text-align: center;
+  overflow: hidden;
+}
+
+#homescreen[panning] {
+  pointer-events: none;
+}
+
+#homescreen[panning] img {
+  image-rendering: optimizeSpeed;
 }
 
 .app {
@@ -194,16 +202,6 @@ html, body {
 
 .app[draggable] > .title {
   visibility: hidden;
-}
-
-/*-moz-animation: vibrate 1ms linear infinite alternate;*/
-@-moz-keyframes vibrate {
-  from {
-    -moz-transform: rotate(-4deg);
-  }
-  to {
-    -moz-transform: rotate(4deg);
-  }
 }
 
 .app:not([draggable]):hover:active > .icon {
@@ -262,7 +260,7 @@ html, body {
   font-family: sans-serif;
   font-weight: 600;
   opacity: 0.8;
-  background: -moz-linear-gradient(top, #000000, #303030);
+  /*background: -moz-linear-gradient(top, #000000, #303030);*/
   border-radius: 6px;
   padding: 2px 4px 2px 4px;
   pointer-events: none;

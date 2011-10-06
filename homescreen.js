@@ -31,38 +31,89 @@ function IconGrid(container, iconWidth, iconHeight) {
   // install custom panning handler
   var self = this;
   var customDragger = {
-    kinetic: false,
+    dragging: null,
     panning: null,
-    isPannable: function isPannable(target, scroller) {
-      return { x: true, y: false }; 
-    },   
-
-    onTouchStart: function onTouchStart(cx, cy, target, scroller) {
+    onTouchStart: function onTouchStart(evt) {
       this.max = container.scrollLeft + self.pageWidth;
       this.min = container.scrollLeft - self.pageWidth;
-      container.setAttribute('panning', 'true');
       window.removeEventListener('MozBeforePaint', self, true);
-    },   
+      this.startX = this.lastX = evt.pageX;
+      this.startY = this.lastY = evt.pageY;
+    }, 
 
-    onTouchEnd: function onTouchEnd(dx, dy, scroller) {
-      var currentPage = Math.round(container.scrollLeft / self.pageWidth);
+    onTouchEnd: function onTouchEnd(evt) {
+      var currentPage = container.scrollLeft / self.pageWidth;
+      var offsetX = this.startX - evt.pageX;
+      if (offsetX > 0 && offsetX / self.pageWidth > 0.25)
+        currentPage = Math.ceil(currentPage);
+      else if (offsetX < 0 && Math.abs(offsetX) / self.pageWidth > 0.25)
+        currentPage = Math.floor(currentPage);
+      else
+        currentPage = Math.round(currentPage);
+
       self.setPage(currentPage);
-      container.removeAttribute('panning');
       window.addEventListener('MozBeforePaint', self, true);
+      this.startX = this.startY = -1;
     },   
 
-    onTouchMove: function onTouchMove(dx, dy, scroller) {
-      var oldX = container.scrollLeft;
+    onTouchMove: function onTouchMove(evt) {
+      var offsetX = this.lastX - evt.pageX;
+      this.lastX = evt.pageX;
       container.scrollLeft = 
-        Math.max(Math.min(container.scrollLeft + dx, this.max), this.min);
-      var newX = container.scrollLeft;
-      return (oldX - newX);
+        Math.max(Math.min(container.scrollLeft + offsetX, this.max), this.min);
     },
     
     handleEvent: function handleEvent(evt) {
       var target = evt.target;
       switch(evt.type) {
-        case 'TapLong':
+        case "touchstart":
+          evt.preventDefault();
+        case 'mousedown':
+          customDragger.onTouchStart(evt.touches ? evt.touches[0] : evt);
+          break
+        case "touchmove":
+          evt.preventDefault();
+        case 'mousemove':
+          if (!this.dragging) {
+            if (!this.panning && this.startX != -1 && this.startY != -1) {
+              if (Math.abs(evt.pageX - this.startX) > 10 || 
+                  Math.abs(evt.pageY - this.startY) > 10) {
+                this.panning = true;
+                document.getElementById('activeHandler').setCapture();
+                container.setAttribute('panning', true);
+                customDragger.onTouchMove(evt.touches ? evt.touches[0] : evt);
+              }
+            } else if (this.startX != -1 && this.startY != -1) {
+              customDragger.onTouchMove(evt.touches ? evt.touches[0] : evt);
+            }
+            return;
+          }
+          
+          container.setAttribute('panning', true);
+          var offsetX = evt.pageX - this.lastX;
+          var offsetY = evt.pageY - this.lastY;
+          this.dragging.style.MozTransform = 'translate(' + offsetX + 'px, ' + offsetY + 'px)';
+          break;
+        case "touchend":
+          evt.preventDefault();
+        case 'mouseup':
+          if (!this.dragging) {
+            if (this.panning) {
+              this.panning = false;
+              document.releaseCapture();
+              container.removeAttribute('panning');
+              customDragger.onTouchEnd(evt.touches ? evt.touches[0] : evt);
+            }
+            return;
+          }
+
+          container.removeAttribute('panning');
+          this.dragging.removeAttribute('draggable');
+          this.dragging.style.MozTransform = '';
+          this.dragging = false;
+          this.startX = this.startY = -1;
+          break;
+        case 'contextmenu':
           if (!target.classList || !target.classList.contains('app'))
             return;
  
@@ -70,37 +121,29 @@ function IconGrid(container, iconWidth, iconHeight) {
           target.style.MozTransform = 'translate(0px, 0px)';
           this.startX = evt.clientX;
           this.startY = evt.clientY;
-          this.panning = target;
+          this.dragging = target;
           break;
-        case 'mousemove':
-          target = this.panning;
-          if (!target)
-            return;
-
-          var offsetX = evt.clientX - this.startX;
-          var offsetY = evt.clientY - this.startY;
-          target.style.MozTransform = 'translate(' + offsetX + 'px, ' + offsetY + 'px)';
-          break;
-        case 'mouseup':
-          target = this.panning;
-          if (!target)
-            return;
-
-          target.removeAttribute('draggable');
-          target.style.MozTransform = '';
+        case 'click':
           this.panning = null;
-          break;
-        case 'TapSingle':
+          this.startX = this.startY = -1;
+          if (this.dragging) {
+            this.dragging = null;
+            return;
+          }
           openApplication(evt.target.getAttribute('data-url'));
           break;
       }
     }
   };
   container.customDragger = customDragger;
-  window.addEventListener('mouseup', customDragger, true);
+  container.addEventListener('mousedown', customDragger, true);
+  container.addEventListener('touchstart', customDragger, true);
   window.addEventListener('mousemove', customDragger, true);
-  window.addEventListener('TapSingle', customDragger, true);
-  window.addEventListener('TapLong', customDragger, true);
+  window.addEventListener('touchmove', customDragger, true);
+  window.addEventListener('mouseup', customDragger, true);
+  window.addEventListener('touchend', customDragger, true);
+  container.addEventListener('click', customDragger, true);
+  container.addEventListener('contextmenu', customDragger, true);
 }
 
 IconGrid.prototype = {
@@ -169,29 +212,56 @@ IconGrid.prototype = {
 
 function LockScreen(overlay) {
   this.overlay = overlay;
-  overlay.customDragger = this;
+  overlay.addEventListener('touchstart', this, true);
+  overlay.addEventListener('touchmove', this, true);
+  overlay.addEventListener('touchend', this, true);
+  overlay.addEventListener('mousedown', this, true);
+  overlay.addEventListener('mouseup', this, true);
+  overlay.addEventListener('mousemove', this, true);
 }
 
 LockScreen.prototype = {
-  isPannable: function isPannable(target, scroller) {
-    return { x: false, y: true };
+  onTouchStart: function onTouchStart(evt) {
+    this.start = evt.pageY;
+    this.panning = true;
   },
-  onTouchStart: function onTouchStart(cx, cy, target, scroller) {
-    this.offsetY = 0;
-  },
-  onTouchMove: function onTouchMove(dx, dy, scroller) {
-    this.offsetY -= dy
+  onTouchMove: function onTouchMove(evt) {
+    if (!this.panning)
+      return;
+
+    this.offset = evt.pageY - this.start;
 
     var style = this.overlay.style;
     style.MozTransition = '';
-    style.MozTransform = 'translateY(' + this.offsetY + 'px)';
+    style.MozTransform = 'translateY(' + this.offset + 'px)';
   },
-  onTouchEnd: function onTouchEnd(dx, dy, scroller) {
-    this.offsetY -= dy
-    if (Math.abs(this.offsetY) < window.innerHeight / 4)
+  onTouchEnd: function onTouchEnd(evt) {
+    if (!this.panning)
+      return;
+
+    this.offset = evt.pageY - this.start;
+    if (Math.abs(this.offset) < window.innerHeight / 4)
       this.lock();
     else
-      this.unlock(this.offsetY);
+      this.unlock(this.offset);
+    this.panning = false;
+  },
+  handleEvent: function handleEvent(evt) {
+    switch (evt.type) {
+      case 'mousedown':
+      case 'touchstart':
+        this.onTouchStart(evt.touches ? evt.touches[0] : evt);
+        break;
+      case 'mousemove':
+      case 'touchmove':
+        this.onTouchMove(evt.touches ? evt.touches[0] : evt);
+        break;
+      case 'mouseup':
+      case 'touchend':
+        this.onTouchEnd(evt.touches ? evt.touches[0] : evt);
+        break;
+    }
+    evt.preventDefault();
   },
   unlock: function(direction) {
     var offset = '100%';
@@ -211,8 +281,6 @@ LockScreen.prototype = {
 }
 
 function startup() {
-  var mouseModule = new MouseModule();
-
   var lockScreen = new LockScreen(document.getElementById('lockscreen'));
   kAutoUnlock ? lockScreen.unlock(-1) : lockScreen.lock();
 
@@ -265,11 +333,11 @@ function startup() {
     console.log('Error when initializing the battery: ' + e);
   }
 
-  var lastFrame = window.mozPaintCount;
+  var lastPaintCount = window.mozPaintCount;
   var frameRateWidget = document.getElementById("statusPadding");
   window.setInterval(function showFrameRate() {
-    frameRateWidget.innerHTML = '(' + (window.mozPaintCount - lastFrame) + ')';
-    lastFrame = window.mozPaintCount;
+    frameRateWidget.innerHTML = '(' + (window.mozPaintCount - lastPaintCount) + ')';
+    lastPaintCount = window.mozPaintCount;
   }, 1000);
 
   WindowManager.start();
