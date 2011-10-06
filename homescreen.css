@@ -190,6 +190,7 @@ html, body {
 .app {
   display: inline-block;
   text-align: center;
+  width: 96px;
 }
 
 .app[draggable] {
@@ -211,37 +212,31 @@ html, body {
 
 @media all and (min-width: 0px) {
   .app {
-    width: -moz-calc(100% / 3);
   }
 }
 
 @media all and (min-width: 451px) {
   .app {
-    width: -moz-calc(100% / 4);
   }
 }
 
 @media all and (min-width: 651px) {
   .app {
-    width: -moz-calc(100% / 6);
   }
 }
 
 @media all and (min-height: 0px) {
   .app {
-    height: -moz-calc(100% / 3);
   }
 }
 
 @media all and (min-height: 501px) {
   .app {
-    height: -moz-calc(100% / 4);
   }
 }
 
 @media all and (min-height: 801px) {
   .app {
-    height: -moz-calc(100% / 5);
   }
 }
 
