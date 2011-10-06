@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
-const kAutoUnlock = false;
+const kAutoUnlock = true;
 
 // Change the display state (off, locked, default)
 var displayState;
@@ -141,6 +141,7 @@ function IconGrid(container) {
   container.addEventListener('click', customDragger, true);
   container.addEventListener('contextmenu', customDragger, true);
   window.addEventListener('resize', this, true);
+  window.addEventListener('keypress', this, true);
 }
 
 IconGrid.prototype = {
@@ -188,6 +189,15 @@ IconGrid.prototype = {
         var currentPage = this.page;
         this.reflow();
         this.page = currentPage;
+        break;
+      case 'keypress':
+        if (evt.keyCode != evt.DOM_VK_ESCAPE)
+          break;
+
+        var windows = document.getElementById('windows');
+        var event = document.createEvent("UIEvents");
+        event.initUIEvent("appclose", true, true, window, 1);
+        windows.dispatchEvent(event);
         break;
       case 'MozBeforePaint':
         var container = this.grid;
@@ -285,7 +295,7 @@ function startup() {
     { label: 'Phone', src: 'images/Phone.png',
       url: 'dialer/dialer.html' },
     { label: 'Messages', src: 'images/Messages.png',
-      url: 'data:text/html,<font color="blue">Hello' },
+      url: 'sms/sms.html' },
     { label: 'Calendar', src: 'images/Calendar.png',
       url: 'data:text/html,<font color="blue">Hello' },
     { label: 'Gallery', src: 'images/Gallery.png',
@@ -342,7 +352,8 @@ function startup() {
 
 var WindowManager = {
   start: function wm_start() {
-    window.addEventListener('appclose', this, true);
+    var windows = document.getElementById('windows');
+    windows.addEventListener('appclose', this, true);
   },
   stop: function wm_stop() {},
   handleEvent: function wm_handleEvent(evt) {
