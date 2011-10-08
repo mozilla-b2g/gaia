@@ -265,7 +265,10 @@ IconGrid.prototype = {
       }
       this.reflow(width, height, 0);
       break;
+    default:
+      return;
     }
+    e.preventDefault();
   }
 }
 
@@ -334,7 +337,10 @@ LockScreen.prototype = {
     case 'mouseout':
       this.onTouchEnd(e.touches ? e.touches[0] : e);
       break;
+    default:
+      return;
     }
+    e.preventDefault();
   }
 }
 
@@ -373,9 +379,13 @@ function OnLoad() {
     for (var n = 0; n < fruits.length; ++n)
       icons.push(fruits[n]);
 
-  var canvas = document.getElementById("homeCanvas");
-  var width = canvas.width = window.innerWidth;
-  var height = canvas.height = window.innerHeight - 24;
+  var screen = document.getElementById('screen');
+  var screenRect = screen.getBoundingClientRect();
+  var screenWidth = screenRect.right - screenRect.left;
+  var screenHeight = screenRect.bottom - screenRect.top;
+  var canvas = document.getElementById('homeCanvas');
+  var width = canvas.width = screenWidth;
+  var height = canvas.height = screenHeight - 24;
 
   var iconGrid = new IconGrid(canvas, 120, 120, 0.2);
   for (var n = 0; n < icons.length; ++n)

@@ -9,10 +9,23 @@ html, body {
 
 #screen {
   position: absolute;
+  overflow: hidden;
   width: 100%;
   height: 100%; 
   background-image: url('images/background.jpg');
   background-size: cover;
+}
+
+/*
+ * Simulate a common device-screen size on large monitors, for testing
+ * on desktops/laptops.  1300px is just wider than the widest tablet
+ * screen on the market today.
+ */
+@media all and (min-width: 1300px) {
+  #screen {
+    max-width: 480px;
+    max-height: 800px;
+  }
 }
 
 #lockscreen {
@@ -26,6 +39,10 @@ html, body {
   background-color: black;
   background-image: url('images/lockscreen.jpg');
   background-size: cover;
+}
+
+#lockscreen > * {
+  pointer-events: none;
 }
 
 #lockscreen > #status {
