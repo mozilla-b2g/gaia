@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
-const kAutoUnlock = true;
+const kAutoUnlock = false;
 
 // Change the display state (off, locked, default)
 var displayState;
