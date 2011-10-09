@@ -36,7 +36,10 @@ html, body {
   background-color: black;
   background-image: url('images/lockscreen.jpg');
   background-size: cover;
-  -moz-user-select: none;
+}
+
+#lockscreen * {
+  pointer-events: none;
 }
 
 #lockscreen > #status {
@@ -182,53 +185,50 @@ html, body {
   pointer-events: none;
 }
 
-#homescreen[panning] img {
+#homescreen[panning] .app {
   image-rendering: optimizeSpeed;
+  text-rendering: optimizeSpeed;
 }
 
 .app {
   display: inline-block;
   text-align: center;
+  -moz-box-sizing: border-box;
   width: 120px;
+  height: 120px;
+  padding-top: 90px;
+  background-size: 80px 80px;
+  background-position: center 10px;
+  background-repeat: no-repeat;
+}
+
+@media all and (orientation:landscape) {
+  .app {
+    width: 133px;
+  }
 }
 
 .app[draggable] {
   z-index: 99999;
 }
 
-.app[draggable] > .icon {
-  -moz-transform: scale(1.5);
-}
-
-.app[draggable] > .title {
+.app[draggable]:after {
   visibility: hidden;
 }
 
-.app:not([draggable]):hover:active > .icon {
-  background: -moz-radial-gradient(orangered, orange, tan);
-  border-radius: 8px;
-}
-
-.app > .icon {
-  width: 80px;
-  height: 80px;
-  display: block;
-  margin: auto;
-  margin-top: -moz-calc(50% - 1mozmm);
-  margin-bottom: 1mozmm;
-  pointer-events: none;
-}
-
-.app > .title {
+.app:after {
   font-size: 2mozmm;
   font-family: sans-serif;
   font-weight: 600;
-  opacity: 0.8;
-  /*background: -moz-linear-gradient(top, #000000, #303030);*/
-  border-radius: 6px;
-  padding: 2px 4px 2px 4px;
+  content: attr(data-text);
+  z-index: -1;
   pointer-events: none;
 }
+
+.app:not([draggable]):hover:active {
+  opacity: 0.8;
+}
+
 
 /* === Application Windows */
 #windows {

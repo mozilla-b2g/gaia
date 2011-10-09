@@ -30,7 +30,8 @@ function IconGrid(container) {
     dragging: null,
     panning: null,
     isPan: function isPan(x1, y1, x2, y2) {
-      return Math.abs(x1 - x2) > 3 || Math.abs(y1 - y2) > 3;
+      var kRadius = 10;
+      return Math.abs(x1 - x2) > kRadius || Math.abs(y1 - y2) > kRadius;
     },
     onTouchStart: function onTouchStart(evt) {
       window.removeEventListener('MozBeforePaint', self, true);
@@ -44,9 +45,8 @@ function IconGrid(container) {
       var diffX = Math.abs(offsetX);
 
       var quick = (evt.timeStamp - this.startTime < 200);
-      var small = diffX < 100;
+      var small = diffX > 10 && diffX < 100;
       var flick = quick && small;
-      dump(flick + ":" + diffX + ":" + quick);
 
       if (flick) {
         var direction = offsetX > 0 ? 1 : -1;
@@ -84,7 +84,7 @@ function IconGrid(container) {
             var offsetX = evt.pageX - this.lastX;
             var offsetY = evt.pageY - this.lastY;
             this.dragging.style.MozTransform = 'translate(' + offsetX + 'px, ' + offsetY + 'px)';
-          } else if (!this.panning && this.isPan(evt.pageX, evt.pageX, this.startX, this.startY)) {
+          } else if (!this.panning && this.isPan(evt.pageX, evt.pageY, this.startX, this.startY)) {
             this.panning = true;
             this.startX = this.lastX = evt.pageX;
             this.startY = this.lastY = evt.pageY;
@@ -102,17 +102,18 @@ function IconGrid(container) {
             container.removeAttribute('panning');
             this.dragging.removeAttribute('draggable');
             this.dragging.style.MozTransform = '';
-
-            // if the mouseup has not generated a click, let's say the action
-            // is finished, otherwise it will be done in 'click'
-            if (!evt.detail)
-              this.dragging = this.touch = false;
+            this.dragging = this.touch = false;
           } else if (this.panning) {
             document.releaseCapture();
             container.removeAttribute('panning');
             this.panning = this.touch = false;
+            customDragger.onTouchEnd(evt.touches ? evt.touches[0] : evt);
+          } else if (this.touch) {
+            this.touch = false;
+            var event = document.createEvent("UIEvents");
+            event.initUIEvent("tap", true, true, window, 1);
+            evt.target.dispatchEvent(event);
           }
-          customDragger.onTouchEnd(evt.touches ? evt.touches[0] : evt);
           break;
         case 'contextmenu':
           if (!target.classList || !target.classList.contains('app'))
@@ -124,11 +125,7 @@ function IconGrid(container) {
           this.startY = evt.clientY;
           this.dragging = target;
           break;
-        case 'click':
-          if (this.dragging) {
-            this.dragging = this.touch = false;
-            return;
-          }
+        case 'tap':
           openApplication(evt.target.getAttribute('data-url'));
           break;
       }
@@ -142,7 +139,7 @@ function IconGrid(container) {
   window.addEventListener('touchmove', customDragger, true);
   window.addEventListener('mouseup', customDragger, true);
   window.addEventListener('touchend', customDragger, true);
-  container.addEventListener('click', customDragger, true);
+  container.addEventListener('tap', customDragger, true);
   container.addEventListener('contextmenu', customDragger, true);
   window.addEventListener('resize', this, true);
   window.addEventListener('keypress', this, true);
@@ -153,17 +150,8 @@ IconGrid.prototype = {
     var app = document.createElement('div');
     app.classList.toggle('app');
     app.setAttribute('data-url', url);
-
-    var icon = document.createElement('img');
-    icon.classList.toggle('icon');
-    icon.src = src;
-
-    var title = document.createElement('span');
-    title.classList.toggle('title');
-    title.appendChild(document.createTextNode(label));
-
-    app.appendChild(icon);
-    app.appendChild(title);
+    app.setAttribute("data-text", label);
+    app.style.backgroundImage = 'url(' + src + ')';
     this.grid.appendChild(app);
   },
 
@@ -259,9 +247,11 @@ function LockScreen(overlay) {
   overlay.addEventListener('touchstart', this, true);
   overlay.addEventListener('touchmove', this, true);
   overlay.addEventListener('touchend', this, true);
+  overlay.addEventListener('touchcancel', this, true);
   overlay.addEventListener('mousedown', this, true);
   overlay.addEventListener('mouseup', this, true);
   overlay.addEventListener('mousemove', this, true);
+  overlay.addEventListener('mouseout', this, true);
 }
 
 LockScreen.prototype = {
@@ -301,7 +291,9 @@ LockScreen.prototype = {
         this.onTouchMove(evt.touches ? evt.touches[0] : evt);
         break;
       case 'mouseup':
+      case 'mouseout':
       case 'touchend':
+      case 'touchcancel':
         this.onTouchEnd(evt.touches ? evt.touches[0] : evt);
         break;
     }
