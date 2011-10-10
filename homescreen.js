@@ -398,7 +398,7 @@ var WindowManager = {
     switch (evt.type) {
       case 'appclose':
         var windows = document.getElementById('windows');
-        if (windows.childElementCount <= 1)
+        if (!windows.childElementCount)
           return;
 
         // TODO when existing window will be checked, this should be
