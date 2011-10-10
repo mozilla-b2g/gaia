@@ -15,6 +15,10 @@ function changeDisplayState(state) {
   // update clock and battery status (if needed)
   updateClock();
   updateBattery();
+
+  // Make sure the source viewer is not visible.
+  if (state == "locked")
+    hideSourceViewer();
 }
 
 function createPhysicsFor(iconGrid) {
@@ -29,6 +33,8 @@ function DefaultPhysics(iconGrid) {
 
 DefaultPhysics.prototype = {
   onTouchStart: function(e) {
+    hideSourceViewer();
+
     var touchState = this.touchState;
     this.moved = false;
     touchState.active = true;
@@ -60,11 +66,22 @@ DefaultPhysics.prototype = {
     var dir = (diffX > 0) ? -1 : 1;
 
     var quick = (e.timeStamp - touchState.startTime < 200);
+    var long = (e.timeStamp - touchState.startTime > 2000);
     var small = Math.abs(diffX) < 10;
 
     var flick = quick && !small;
     var tap = !this.moved && small;
     var drag = !quick;
+
+    if (!this.moved && long) {
+      var doc = e.target.ownerDocument || window.document;
+      var url = doc.URL;
+
+      var viewsource = document.getElementById("viewsource");
+      viewsource.style.visibility = "visible";
+      viewsource.src = "view-source: " + url;
+      return;
+    }
 
     var iconGrid = this.iconGrid;
     var currentPage = iconGrid.currentPage
@@ -81,6 +98,10 @@ DefaultPhysics.prototype = {
     }
   }
 };
+
+function hideSourceViewer() {
+  document.getElementById("viewsource").style.visibility = "hidden";
+}
 
 function Icon(iconGrid, index) {
   this.iconGrid = iconGrid;
@@ -323,6 +344,8 @@ LockScreen.prototype = {
     changeDisplayState("locked");
   },
   handleEvent: function(e) {
+    hideSourceViewer();
+
     switch (e.type) {
     case 'touchstart':
     case 'mousedown':
