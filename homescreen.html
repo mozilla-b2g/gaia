@@ -7,10 +7,9 @@
 
   <body onload="startup();">
     <div id="screen">
-      <div id="statusBar">
-        <div id="statusText">Boot To Gecko</div>
-        <div id="statusFrameRate"></div>
-        <div id="statusPadding"></div>
+      <div id="statusbar">
+        <div id="frameRate"></div>
+        <div id="padding"></div>
         <div class="battery">
           <div id="fuel"></div>
           <div id="charging"></div>
@@ -19,7 +18,6 @@
       </div>
       <div id="homescreen"></div>
       <div id="windows" hidden="true">
-        <div id="loadAnimationScreen"></div>
         <!-- application windows are added here -->
       </div>
       <div id="lockscreen">
@@ -39,6 +37,7 @@
 	        Email: <div id="email">0</div>
 	      </div>
       </div>
+      <iframe id="viewsource"></iframe>
     </div>
     <div id="activeHandler"></div>
   </body>
