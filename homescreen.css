@@ -99,7 +99,7 @@ html, body {
 }
 
 /* === Status bar === */
-#statusBar {
+#statusbar {
   display: -moz-box;
   -moz-box-orient: horizontal;
   width: -moz-calc(100% - 1mozmm);
@@ -113,8 +113,13 @@ html, body {
   overflow: hidden;
 }
 
-.time {
+#statusbar > * {
+  display: -moz-box;
   -moz-box-flex: 0;
+}
+
+#statusbar > .spacer {
+  -moz-box-flex: 1;
 }
 
 .battery {
@@ -269,16 +274,6 @@ iframe.appWindow {
   -moz-transform-origin: center bottom;
 }
 
-#loadAnimationScreen {
-  display: none;
-  position: absolute;
-  background-color: #171717;
-  border: 0px;
-  margin: 0px;
-  padding: 0px;
-  overflow: hidden;
-}
-
 .animateOpening {
   -moz-animation-duration: 200ms;
   -moz-animation-name: openingAnimation;
@@ -305,77 +300,5 @@ iframe.appWindow {
   to {
     -moz-transform: scale(0);
   }
-}
-
-#statusbar {
-  display: -moz-box;
-  -moz-box-orient: horizontal;
-  width: -moz-calc(100% - 4px);
-  height: 20px;
-  padding: 2px;
-  background-color: #444;
-  color: #fff;
-  overflow: hidden;
-}
-
-#statusbar > * {
-  -moz-box-flex: 0;
-}
-
-#statusbar > #padding {
-  -moz-box-flex: 1;
-}
-
-.battery {
-  margin: 3px;
-  height: 13px;
-  width: 29px;
-  background-image: url(images/battery-main.png);
-  background-repeat: no-repeat;
-  background-size: 29px 13px;
-}
-.battery > #fuel {
-  height: 11px;	 
-  width: 25px;
-  background-image: -moz-linear-gradient(top, lightgreen 10%, green 80%, darkgreen);
-  background-repeat: no-repeat;
-  margin-left: 1px;
-  margin-top: 1px;
-}
-
-.battery > #fuel.low {
-  background-image: -moz-linear-gradient(top, lightyellow 10%, yellow 80%, gold);
-}
-
-.battery > #fuel.critical {
-  background-image: -moz-linear-gradient(top, lightcoral 10%, red 80%, darkred);
-}
-
-.battery > #fuel.charging {
-  background-image: -moz-linear-gradient(top, lightgreen 10%, green 80%, darkgreen);
-  -moz-animation-duration: 4s;
-  -moz-animation-name: batteryCharging;
-  -moz-animation-iteration-count: infinite;
-  -moz-animation-timing-function: linear;
-}
-
-@-moz-keyframes batteryCharging {
-  from {
-    width: 0;
-  }
-  to {
-    width: 25px;
-  }
-}
-.battery > #charging {
-  display: none;
-  height: 15px;
-  width: 15px;
-  background-image: url(images/battery-charging.png);
-  background-repeat: no-repeat;
-  background-size: 15px 15px;
-  position: absolute;
-  margin-left: 10px;
-  top: 4px;
 }
 
