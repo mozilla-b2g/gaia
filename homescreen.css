@@ -12,17 +12,36 @@ html, body {
 /* === Main Window === */
 #screen {
   position: absolute;
+  overflow: hidden;
   width: 100%;
   height: 100%; 
   background-image: url('images/background.jpg');
   background-size: cover;
 }
 
-/* For debugging if we are on a big screen, limit the width of the homescreen */
-@media all and (min-width: 801px) {
+/*
+ * Simulate a common device-screen size on large monitors, for testing
+ * on desktops/laptops.  1300px is just wider than the widest tablet
+ * screen on the market today.
+ */
+@media all and (min-width: 1300px) {
   #screen {
     max-width: 480px;
   }
+}
+
+#viewsource {
+  position: absolute;
+  top: -moz-calc(10%);
+  left: -moz-calc(10%);
+  width: -moz-calc(80% - 2 * 15px);
+  height: -moz-calc(80% - 2 * 15px);
+  visibility: hidden;
+  box-shadow: 10px 10px 5px #888;
+  margin: 15px;
+  background-color: white;
+  opacity: 0.92;
+  color: black;
 }
 
 #lockscreen {
@@ -38,7 +57,7 @@ html, body {
   background-size: cover;
 }
 
-#lockscreen * {
+#lockscreen > * {
   pointer-events: none;
 }
 
@@ -60,7 +79,7 @@ html, body {
   font-size: 58px;
 }
 
-@media all and (orientation:landscape) {
+@media all and (orientation: landscape) {
   #lockscreen > #clock {
     top: -moz-calc(25%);
   }
@@ -80,7 +99,7 @@ html, body {
 }
 
 /* === Status bar === */
-#statusBar {
+#statusbar {
   display: -moz-box;
   -moz-box-orient: horizontal;
   width: -moz-calc(100% - 1mozmm);
@@ -94,17 +113,13 @@ html, body {
   overflow: hidden;
 }
 
-#statusText {
+#statusbar > * {
+  display: -moz-box;
   -moz-box-flex: 0;
 }
 
-#statusPadding {
+#statusbar > .spacer {
   -moz-box-flex: 1;
-  text-align: center;
-}
-
-#statusClock {
-  -moz-box-flex: 0;
 }
 
 .battery {
@@ -208,6 +223,12 @@ html, body {
   }
 }
 
+@media all and (orientation:landscape) and (min-width: 1300px) {
+  .app {
+    width: 120px;
+  }
+}
+
 .app[draggable] {
   z-index: 99999;
 }
@@ -250,16 +271,7 @@ iframe.appWindow {
   top: 0px;
   width: -moz-calc(100%);
   height: -moz-calc(100%);
-}
-
-#loadAnimationScreen {
-  display: none;
-  position: absolute;
-  background-color: #171717;
-  border: 0px;
-  margin: 0px;
-  padding: 0px;
-  overflow: hidden;
+  -moz-transform-origin: center bottom;
 }
 
 .animateOpening {
@@ -269,16 +281,10 @@ iframe.appWindow {
 
 @-moz-keyframes openingAnimation {
   from {
-    left: 50%;
-    top: 50%;
-    width: 0px;
-    height: 0px;
+    -moz-transform: scale(0);
   }
   to {
-    left: 0px;
-    top: 0px;
-    width: 100%;
-    height: -moz-calc(100% - 24px);
+    -moz-transform: scale(1);
   }
 }
 
@@ -289,16 +295,10 @@ iframe.appWindow {
 
 @-moz-keyframes closingAnimation {
   from {
-    left: 0px;
-    top: 0px;
-    width: 100%;
-    height: -moz-calc(100% - 24px);
+    -moz-transform: scale(1);
   }
   to {
-    left: 50%;
-    top: 50%;
-    width: 0px;
-    height: 0px;
+    -moz-transform: scale(0);
   }
 }
 

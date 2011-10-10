@@ -12,6 +12,10 @@ function changeDisplayState(state) {
   // update clock and battery status (if needed)
   updateClock();
   updateBattery();
+
+  // Make sure the source viewer is not visible.
+  if (state == "locked")
+    hideSourceViewer();
 }
 
 function IconGrid(container) {
@@ -70,6 +74,7 @@ function IconGrid(container) {
         case "touchstart":
           evt.preventDefault();
         case 'mousedown':
+          hideSourceViewer();
           customDragger.onTouchStart(evt.touches ? evt.touches[0] : evt);
           this.touch = true;
           break
@@ -143,6 +148,10 @@ function IconGrid(container) {
   container.addEventListener('contextmenu', customDragger, true);
   window.addEventListener('resize', this, true);
   window.addEventListener('keypress', this, true);
+};
+
+function hideSourceViewer() {
+  document.getElementById("viewsource").style.visibility = "hidden";
 }
 
 IconGrid.prototype = {
@@ -370,7 +379,7 @@ function startup() {
   }
 
   var lastPaintCount = window.mozPaintCount;
-  var frameRateWidget = document.getElementById("statusPadding");
+  var frameRateWidget = document.getElementById("frameRate");
   window.setInterval(function showFrameRate() {
     frameRateWidget.innerHTML = '(' + (window.mozPaintCount - lastPaintCount) + ')';
     lastPaintCount = window.mozPaintCount;
@@ -391,25 +400,19 @@ var WindowManager = {
     switch (evt.type) {
       case 'appclose':
         var windows = document.getElementById('windows');
-        if (windows.childElementCount <= 1)
+        if (!windows.childElementCount)
           return;
-
-        var loadScreen = document.getElementById('loadAnimationScreen');
-        loadScreen.style.display = 'block';
-        loadScreen.classList.toggle('animateClosing');
 
         // TODO when existing window will be checked, this should be
         // point to the real window
         var topWindow = windows.lastElementChild;
-        windows.removeChild(topWindow);
+        topWindow.classList.toggle('animateClosing');
 
         window.addEventListener(
           'animationend',
           function listener() {
-            loadScreen.className = '';
-            loadScreen.style.display = 'none';
             window.removeEventListener('animationend', listener, false);
-
+            windows.removeChild(topWindow);
             if (windows.childElementCount <= 1)
               windows.setAttribute('hidden', 'true');
           },
@@ -430,24 +433,20 @@ function openApplication(url) {
 
   var newWindow = document.createElement('iframe');
   newWindow.className = 'appWindow';
-  newWindow.style.display = 'none';
   // XXX need to decide whether to try to load this during animation
   newWindow.src = url;
+
+  // animate the window opening
+  newWindow.classList.toggle('animateOpening');
 
   var windows = document.getElementById('windows');
   windows.removeAttribute('hidden');
   windows.appendChild(newWindow);
 
-  var loadScreen = document.getElementById('loadAnimationScreen');
-  loadScreen.classList.toggle('animateOpening');
-  loadScreen.style.display = 'block';
-
   window.addEventListener(
     'animationend',
     function listener() {
-      loadScreen.classList.toggle('animateOpening');
-      loadScreen.style.display = 'none';
-      newWindow.style.display = 'block';
+      newWindow.classList.toggle('animateOpening');
       window.removeEventListener('animationend', listener, false);
     },
     false);
