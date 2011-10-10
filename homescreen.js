@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
-const kAutoUnlock = false;
+const kAutoUnlock = true;
 
 // Change the display state (off, locked, default)
 var displayState;
@@ -377,6 +377,8 @@ function startup() {
   }, 1000);
 
   WindowManager.start();
+
+  openApplication('sms/sms.html');
 }
 
 var WindowManager = {
