@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      html, body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        background-color: white;
+        -moz-user-select: none;
+        font-family: sans-serif;
+        overflow: hidden;
+        font-size: 20px;
+      }
+
+      #conversation {
+        color: black;
+      }
+
+      input, textarea {
+        -moz-appearance: none;
+        -moz-box-sizing: border-box;
+        border-width: 2px;
+        border-style: solid;
+        border-color: lightgrey;
+        font-size: 24px;
+        margin: 1mozmm 0.4mozmm 1mozmm 0.4mozmm;
+        padding-left: 1mozmm;
+        padding-right: 1mozmm;
+        border-radius: 0.5mozmm;
+      }
+
+      input,
+      textarea {
+        height: 64px;
+      }
+
+      textarea {
+        padding-top: 16px;
+        resize: none;
+      }
+
+      input:focus,
+      textarea:focus {
+        border-color: orange;
+      }
+
+      #contact {
+        width: -moz-calc(100% - 0.8mozmm);
+      }
+
+      #message-content {
+        width: -moz-calc(100% - 0.8mozmm);
+        position: absolute;
+        bottom: 0px;
+      }
+
+      #message-content * {
+        vertical-align: top;
+      }
+
+      #message {
+        width: -moz-calc(100% - 100px);
+        max-height: 400px;
+        min-height: 64px;
+        overflow: hidden;
+      }
+
+      #message-send {
+        float: right;
+      }
+
+      #throbber {
+        position: absolute;
+        height: 100%;
+        width: 100%;
+        background-color: rgba(0,0,0,0.3);
+        z-index: 1;
+      }
+
+      #throbber img {
+        margin-top: -moz-calc(50% - 16px);
+        margin-left: -moz-calc(50% - 16px);
+      }
+    </style>
+    <script>
+      function onKeyPress(evt) {
+        var target = evt.originalTarget;
+        setTimeout(function() {
+          target.style.height = '';
+          target.style.height = '-moz-calc(' + target.scrollHeight + 'px + 32px)';
+        }, 0);
+      }
+
+      function send() {
+        function close() {
+          contact.value = msg.value = '';
+          msg.style.height = '';
+          throbber.setAttribute('hidden', 'true');
+
+          var event = document.createEvent("UIEvents");
+          event.initUIEvent("appclose", true, true, window, 1);
+          window.top.dispatchEvent(event);
+        }
+
+        var throbber = document.getElementById('throbber');
+        throbber.removeAttribute('hidden');
+
+        var contact = document.getElementById('contact');
+        var msg = document.getElementById('message');
+        if (contact.value == '')
+          return;
+
+        if ('mozSms' in navigator) {
+          var rv = navigator.mozSms.send(num.value, msg.value);
+          rv.onSuccess = close;
+          rv.onError = close;
+        } else {
+          setTimeout(function() {
+            var windows = window.top.document.getElementById('windows');
+            parentWindow = windows.lastChild.previousSibling.contentWindow;
+
+            var event = document.createEvent("CustomEvent");
+            var message = {
+              sender: null,
+              receiver: contact.value,
+              body: msg.value,
+              datetime: Date.now()
+            }
+            event.initCustomEvent("smssent", true, false, message);
+            parentWindow.dispatchEvent(event);
+            close();
+          }, 1000);
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id='throbber' hidden='true'>
+      <img src='../images/throbber.png' width='32' height='32'></img>
+    </div>
+
+    <div id='conversation'>
+      <form onsubmit='send(); return false;'>
+        <input id='contact' type='tel' required='true' placeholder='To:' list='contacts'></input>
+        <datalist id='contacts'>
+          <option value='Andreas Gal'></option>
+          <option value='Chris Jones'></option>
+          <option value='Mom Zilla'></option>
+          <option value='Mounir Lamouri'></option>
+          <option value='Trace Monkey'></option>
+          <option value='Jaeger Monkey'></option>
+          <option value='Ion Monkey'></option>
+        </datalist>
+
+        <div id='message-content'>
+          <textarea id='message' type='textbox' placeholder='Type your message' onkeypress='onKeyPress(event);'></textarea>
+          <input id='message-send' type='submit' value='Send'></input>
+        </div>
+    </div>
+  </body>
+</html>

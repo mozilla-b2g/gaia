@@ -200,10 +200,9 @@ IconGrid.prototype = {
         if (evt.keyCode != evt.DOM_VK_ESCAPE)
           break;
 
-        var windows = document.getElementById('windows');
         var event = document.createEvent("UIEvents");
         event.initUIEvent("appclose", true, true, window, 1);
-        windows.dispatchEvent(event);
+        window.top.dispatchEvent(event);
         break;
       case 'MozBeforePaint':
         var container = this.grid;
@@ -392,8 +391,7 @@ function startup() {
 
 var WindowManager = {
   start: function wm_start() {
-    var windows = document.getElementById('windows');
-    windows.addEventListener('appclose', this, true);
+    window.addEventListener('appclose', this, true);
   },
   stop: function wm_stop() {},
   handleEvent: function wm_handleEvent(evt) {
@@ -413,7 +411,7 @@ var WindowManager = {
           function listener() {
             window.removeEventListener('animationend', listener, false);
             windows.removeChild(topWindow);
-            if (windows.childElementCount <= 1)
+            if (!windows.childElementCount)
               windows.setAttribute('hidden', 'true');
           },
           false);
@@ -451,6 +449,10 @@ function openApplication(url) {
     },
     false);
 }
+
+function closeApplication(url) {
+}
+
 
 // Update the clock and schedule a new update if appropriate
 function updateClock() {
