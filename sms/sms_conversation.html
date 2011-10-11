@@ -50,6 +50,12 @@
         width: -moz-calc(100% - 0.8mozmm);
       }
 
+      #contact.known {
+        padding-top: 0px;
+        visibility: hidden;
+        height: 0;
+      }
+
       #message-content {
         width: -moz-calc(100% - 0.8mozmm);
         position: absolute;
@@ -83,8 +89,157 @@
         margin-top: -moz-calc(50% - 16px);
         margin-left: -moz-calc(50% - 16px);
       }
+
+      .message {
+        padding: 0 10px;
+        border-bottom: 1px solid lightgrey;
+      }
+
+      .message * {
+        pointer-events: none;
+      }
+
+      .message.receive {
+        background-color: lightyellow;
+      }
+
+      .message.new {
+        font-weight: bold;
+      }
+
+      .sms {
+        display: inline-block;
+        height: 64px;
+        width: 100%;
+      }
+
+      .content {
+        line-height: 48px;
+        height: 40px;
+        margin: 0px;
+        padding: 0px;
+        font-size: 1.5em;
+      }
+
+      .text {
+        display: inline-block;
+        width: 100%;
+        vertical-align: middle;
+      }
+
+      .infos {
+        display: block;
+        width: 100%;
+        font-size: 14px;
+        line-height: 14px;
+        font-weight: bold;
+        text-align: right;
+        color: grey;
+      }
     </style>
     <script>
+      // Based on Resig's pretty date
+      function prettyDate(time) {
+        var diff = (Date.now() - time) / 1000;
+        var day_diff = Math.floor(diff / 86400);
+      
+        if (isNaN(day_diff) || day_diff < 0 || day_diff >= 31)
+          return;
+      
+        return day_diff == 0 && (
+                diff < 60 && "just now" ||
+                diff < 120 && "1 minute ago" ||
+                diff < 3600 && Math.floor( diff / 60 ) + " minutes ago" ||
+                diff < 7200 && "1 hour ago" ||
+                diff < 86400 && Math.floor( diff / 3600 ) + " hours ago") ||
+                day_diff == 1 && "Yesterday" ||
+                day_diff < 7 && day_diff + " days ago" ||
+                day_diff < 31 && Math.ceil( day_diff / 7 ) + " weeks ago";
+      };
+
+      function startup() {
+        var num = document.location.toString().split('?')[1];
+        if (!num)
+          return;
+
+        var contact = document.getElementById('contact');
+        contact.classList.toggle('known');
+        contact.value = num;
+
+        window.addEventListener('smssent', retrieveAndShow, true);
+        window.addEventListener('smsreceived', retrieveAndShow, true);
+
+        retrieveAndShow();
+      }
+
+      function retrieveAndShow() {
+        var num = document.location.toString().split('?')[1];
+        var view = document.getElementById('conversation');
+        while (view.childNodes.length > 2)
+          view.removeChild(view.lastChild);
+
+        var messages = [];
+        if (('mozSms' in navigator) && num) {
+          var filter = new SmsFilter();
+          filter.number = num;
+          var request = navigator.mozSms.getMessages(filter ,true);
+          request.onsuccess = function() {
+            var result = request.result;
+            if (!result) {
+              showMessages(messages);
+              return;
+            }
+            
+            var message = result.message;
+            messages.push(message);
+            result.next();
+          };
+
+          request.onerror = function() {
+            alert('Something wrong has happened while reading the database. Error code: ' + request.errorCode);
+          }
+        } else {
+          showMessages(messages);
+        }
+      }
+
+      function showMessages(messages) {
+        var view = document.getElementById('conversation');
+        for (var i = 0; i < messages.length; i++) {
+          var message = messages[i];
+          var container = document.createElement('div');
+          container.className = 'message';
+
+          var content = document.createElement('div');
+          content.className = 'sms';
+
+          var contact = document.createElement('div');
+          var num = message.sender;
+          if (!num) {
+            num = message.receiver;
+            container.className = 'message receive';
+          }
+          container.setAttribute('num', num);
+
+          var sms = document.createElement('div');
+          sms.className = 'content';
+
+          var text = document.createElement('span');
+          text.appendChild(document.createTextNode(message.body));
+          text.className = 'text';
+          sms.appendChild(text);
+
+          var infos = document.createElement('span');
+          infos.appendChild(document.createTextNode(prettyDate(message.timestamp)));
+          infos.className = 'infos';
+          sms.appendChild(infos);
+          content.appendChild(sms);
+
+          container.appendChild(content);
+          view.appendChild(container);
+        }
+      }
+    
       function onKeyPress(evt) {
         var target = evt.originalTarget;
         setTimeout(function() {
@@ -99,9 +254,12 @@
           msg.style.height = '';
           document.getElementById('throbber').setAttribute('hidden', 'true');
 
-          var event = document.createEvent("UIEvents");
-          event.initUIEvent("appclose", true, true, window, 1);
-          window.top.dispatchEvent(event);
+          var num = document.location.toString().split('?')[1];
+          if (!num) {
+            var event = document.createEvent("UIEvents");
+            event.initUIEvent("appclose", true, true, window, 1);
+            window.top.dispatchEvent(event);
+          }
         }
 
         var throbber = document.getElementById('throbber');
@@ -136,13 +294,13 @@
       }
     </script>
   </head>
-  <body>
+  <body onload='startup()'>
     <div id='throbber' hidden='true'>
       <img src='../images/throbber.png' width='32' height='32'></img>
     </div>
 
-    <div id='conversation'>
-      <form onsubmit='send(); return false;'>
+    <form onsubmit='send(); return false;'>
+      <div id='conversation'>
         <input id='contact' type='tel' required='true' placeholder='To:' list='contacts'></input>
         <datalist id='contacts'>
           <option value='Andreas Gal'></option>
@@ -153,11 +311,12 @@
           <option value='Jaeger Monkey'></option>
           <option value='Ion Monkey'></option>
         </datalist>
+      </div>
 
-        <div id='message-content'>
-          <textarea id='message' type='textbox' placeholder='Type your message' onkeypress='onKeyPress(event);'></textarea>
-          <input id='message-send' type='submit' value='Send'></input>
-        </div>
-    </div>
+      <div id='message-content'>
+        <textarea id='message' type='textbox' placeholder='Type your message' onkeypress='onKeyPress(event);'></textarea>
+        <input id='message-send' type='submit' value='Send'></input>
+      </div>
+    </form>
   </body>
 </html>

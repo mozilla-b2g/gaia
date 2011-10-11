@@ -39,8 +39,16 @@
         border-bottom: 1px solid lightgrey;
       }
 
+      .message * {
+        pointer-events: none;
+      }
+
       .message.receive {
         background-color: lightyellow;
+      }
+
+      .message.new {
+        font-weight: bold;
       }
 
       .sms {
@@ -217,6 +225,12 @@
             num = message.receiver;
             container.className = 'message receive';
           }
+          container.setAttribute('num', num);
+
+          container.onclick = function (evt) {
+            MessageView.showConversation(evt.target.getAttribute('num'));
+          };
+
           var title = num + ' (' + message.count + ')';
           contact.appendChild(document.createTextNode(title));
           contact.className = 'title';
@@ -307,8 +321,11 @@
           }
         },
 
-        showConversation: function showConversation() {
-          window.top.openApplication('sms/sms_conversation.html');
+        showConversation: function showConversation(num) {
+          var url = 'sms/sms_conversation.html';
+          if (num)
+            url += '?' + num;
+          window.top.openApplication(url);
         }
       };
     </script>
