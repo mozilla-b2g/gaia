@@ -316,7 +316,10 @@
             case 'smssent':
             case 'smsreceived':
               this.messages.unshift(evt.message || evt.detail);
-              this.showConversations();
+              var self = this;
+              setTimeout(function() {
+                self.showConversations();
+              }, 800);
               break;
           }
         },
