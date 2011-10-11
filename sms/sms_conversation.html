@@ -97,7 +97,7 @@
         function close() {
           contact.value = msg.value = '';
           msg.style.height = '';
-          throbber.setAttribute('hidden', 'true');
+          document.getElementById('throbber').setAttribute('hidden', 'true');
 
           var event = document.createEvent("UIEvents");
           event.initUIEvent("appclose", true, true, window, 1);
@@ -113,9 +113,9 @@
           return;
 
         if ('mozSms' in navigator) {
-          var rv = navigator.mozSms.send(num.value, msg.value);
-          rv.onSuccess = close;
-          rv.onError = close;
+          var result = navigator.mozSms.send(contact.value, msg.value);
+          result.onsuccess = close;
+          result.onerror = close;
         } else {
           setTimeout(function() {
             var windows = window.top.document.getElementById('windows');
@@ -126,7 +126,7 @@
               sender: null,
               receiver: contact.value,
               body: msg.value,
-              datetime: Date.now()
+              timestamp: Date.now()
             }
             event.initCustomEvent("smssent", true, false, message);
             parentWindow.dispatchEvent(event);
