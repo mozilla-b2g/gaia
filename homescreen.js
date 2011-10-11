@@ -385,8 +385,6 @@ function startup() {
   }, 1000);
 
   WindowManager.start();
-
-  openApplication('sms/sms.html');
 }
 
 var WindowManager = {
