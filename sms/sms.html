@@ -2,6 +2,7 @@
 <html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en'>
   <head>
 	  <meta name='viewport' content='width=device-width, initial-scale=1.0, min-scale=1.0, max-scale=1.0, user-scalable=no'/>
+    <script type="text/javascript" src="sms.js"></script>
     <style>
       html, body {
         width: 100%;
@@ -95,29 +96,19 @@
     </style>
 
     <script>
-      // Based on Resig's pretty date
-      function prettyDate(time) {
-        var diff = (Date.now() - time) / 1000;
-        var day_diff = Math.floor(diff / 86400);
-      
-        if (isNaN(day_diff) || day_diff < 0 || day_diff >= 31)
-          return;
-      
-        return day_diff == 0 && (
-                diff < 60 && "just now" ||
-                diff < 120 && "1 minute ago" ||
-                diff < 3600 && Math.floor( diff / 60 ) + " minutes ago" ||
-                diff < 7200 && "1 hour ago" ||
-                diff < 86400 && Math.floor( diff / 3600 ) + " hours ago") ||
-                day_diff == 1 && "Yesterday" ||
-                day_diff < 7 && day_diff + " days ago" ||
-                day_diff < 31 && Math.ceil( day_diff / 7 ) + " weeks ago";
-      };
-
       var MessageView = {
-        get view() {
-          delete this.view;
-          return this.view = document.getElementById('messages');
+        init: function init() {
+          this.showConversations();
+
+          var view = this.view;
+          view.addEventListener('touchstart', this, true);
+          view.addEventListener('mousedown', this, true);
+          window.addEventListener('touchmove', this, true);
+          window.addEventListener('mousemove', this, true);
+          window.addEventListener('touchend', this, true);
+          window.addEventListener('mouseup', this, true);
+          window.addEventListener('smsreceived', this, true);
+          window.addEventListener('smssent', this, true);
         },
 
         get conversationView() {
@@ -125,67 +116,21 @@
           return this.conversationView = document.getElementById('conversation');
         },
 
-        _retrieveMessages: function _retrieveMessages(callback) {
-          var messages = this.messages = [];
-          if ('mozSms' in navigator) {
-            var request = navigator.mozSms.getMessages(null ,true);
-            request.onsuccess = function() {
-              var result = request.result;
-              if (!result) {
-                this.messages = messages;
-                callback(messages);
-                return;
-              }
-              
-              var message = result.message;
-              messages.push(message);
-              result.next();
-            };
+        openConversationView: function openConversationView(num) {
+          var url = 'sms/sms_conversation.html';
+          if (num)
+            url += '?' + num;
+          window.top.openApplication(url);
+        },
 
-            request.onerror = function() {
-              alert('Something wrong has happened while reading the database. Error code: ' + request.errorCode);
-            }
-            return;
-          }
-
-          var messages = [
-            {
-              sender: null,
-              receiver: 'Mounir Lamouri',
-              body: 'fine fine',
-              timestamp: Date.now() - 44000000,
-              attachment: null
-            },
-            {
-              sender: 'Mounir Lamouri',
-              body: 'that\'s cheap to ask!',
-              timestamp: Date.now() - 45000000,
-              attachment: null
-            },
-            {
-              sender: 'Mounir Lamouri',
-              body: 'Hey! how are you?',
-              timestamp: Date.now() - 50000000,
-              attachment: null
-            }
-          ];
-
-          for (var i = 0; i < 40; i++) {
-            messages.push({
-              sender: '+33664346460',
-              body: 'Hello world!',
-              timestamp: Date.now() - 60000000,
-              attachment: null
-            });
-          }
-
-          this.messages = messages;
-          callback(messages);
+        get view() {
+          delete this.view;
+          return this.view = document.getElementById('messages');
         },
 
         showConversations: function showConversations() {
           var self = this;
-          this._retrieveMessages(function(messages) {
+          MessageManager.getMessages(function(messages) {
             var conversations = {};
             for (var i = 0; i < messages.length; i++) {
               var message = messages[i];
@@ -207,12 +152,16 @@
             while (self.view.childNodes.length > 2)
               self.view.removeChild(self.view.lastChild);
 
-            for (var conversation in conversations)
-              self.onNewMessage(conversations[conversation]);
-          });
+            var fragment = document.createDocumentFragment();
+            for (var conversation in conversations) {
+              var msg = self.createNewMessage(conversations[conversation]);
+              fragment.appendChild(msg);
+            }
+            self.view.appendChild(fragment);
+          }, null);
         },
 
-        onNewMessage: function onNewMessage(message) {
+        createNewMessage: function createNewMessage(message) {
           var container = document.createElement('div');
           container.className = 'message';
 
@@ -228,7 +177,7 @@
           container.setAttribute('num', num);
 
           container.onclick = function (evt) {
-            MessageView.showConversation(evt.target.getAttribute('num'));
+            MessageView.openConversationView(evt.target.getAttribute('num'));
           };
 
           var title = num + ' (' + message.count + ')';
@@ -251,22 +200,7 @@
           content.appendChild(sms);
 
           container.appendChild(content);
-          this.view.appendChild(container);
-        },
-
-        init: function init() {
-          this.showConversations();
-
-          var view = this.view;
-          view.addEventListener('touchstart', this, true);
-          view.addEventListener('mousedown', this, true);
-          window.addEventListener('touchmove', this, true);
-          window.addEventListener('mousemove', this, true);
-          window.addEventListener('touchend', this, true);
-          window.addEventListener('mouseup', this, true);
-          window.addEventListener('resize', this, true);
-          window.addEventListener('smsreceived', this, true);
-          window.addEventListener('smssent', this, true);
+          return container;
         },
 
         onTouchStart: function onTouchStart(evt) {
@@ -311,24 +245,13 @@
             case 'mouseup':
               this.onTouchEnd(evt.touches ? evt.touches[0] : evt);
               break;
-            case 'resize':
-              break;
             case 'smssent':
             case 'smsreceived':
-              this.messages.unshift(evt.message || evt.detail);
-              var self = this;
-              setTimeout(function() {
+              setTimeout(function(self) {
                 self.showConversations();
-              }, 800);
+              }, 800, this);
               break;
           }
-        },
-
-        showConversation: function showConversation(num) {
-          var url = 'sms/sms_conversation.html';
-          if (num)
-            url += '?' + num;
-          window.top.openApplication(url);
         }
       };
     </script>
@@ -337,7 +260,7 @@
   <body onload='MessageView.init();'>
     <div id='header'>SMS</div>
     <div id='messages'>
-      <div class='message' onclick='MessageView.showConversation();'>
+      <div class='message' onclick='MessageView.openConversationView();'>
         <div class='title'>New Message</div>
         <div class='content'>Write a message</div>
       </div>
