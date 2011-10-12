@@ -19,8 +19,8 @@ function prettyDate(time) {
 };
 
 var MessageManager = {
-  getMessages: function mm_getMessages(callback, filter) {
-    var request = navigator.mozSms.getMessages(filter ,true);
+  getMessages: function mm_getMessages(callback, filter, invert) {
+    var request = navigator.mozSms.getMessages(filter, !invert);
 
     var messages = [];
     request.onsuccess = function() {

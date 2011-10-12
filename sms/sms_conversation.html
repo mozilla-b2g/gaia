@@ -2,6 +2,7 @@
 <html>
   <head>
     <script type="text/javascript" src="sms.js"></script>
+    <link href='sms.css' rel='stylesheet' type='text/css'></link>
     <style>
       html, body {
         width: 100%;
@@ -47,15 +48,15 @@
       #contact {
         width: -moz-calc(100% - 0.8mozmm);
       }
-
+  
       #contact.filtered {
         display: none;
       }
 
       #conversation {
         color: black;
-        height: -moz-calc(800px - 128px);
         overflow: hidden;
+        height: -moz-calc(800px - 128px);
       }
 
       @media all and (orientation: landscape) {
@@ -65,45 +66,30 @@
       }
 
       .message {
-        padding: 0 10px;
-        border-bottom: 1px solid lightgrey;
+        display: block;
+        width: -moz-fit-content;
+        margin: 10px;
+        padding: 10px 10px 4px 10px;
+        border-radius: 8px;
+        box-shadow: 0px 0px 4px #000;
+        font-size: 1.2em;
+        clear: both;
+        background: -moz-linear-gradient(bottom, rgba(234,238,246,0.3), rgba(234,238,246,0.3));
+        float: right;
+        text-align: right;
       }
 
-      .message * {
-        pointer-events: none;
-      }
-
-      .message.receive {
-        background-color: lightyellow;
-      }
-
-      .sms {
-        display: inline-block;
-        height: 64px;
-        width: 100%;
-      }
-
-      .content {
-        line-height: 48px;
-        height: 40px;
-        margin: 0px;
-        padding: 0px;
-        font-size: 1.5em;
-      }
-
-      .text {
-        display: inline-block;
-        width: 100%;
-        vertical-align: middle;
+      .message.sender {
+        background: -moz-linear-gradient(bottom, rgba(154,228,232,0.3), rgba(234,238,246,0.3));
+        float: left;
+        text-align: left;
       }
 
       .infos {
         display: block;
-        width: 100%;
         font-size: 14px;
         line-height: 14px;
         font-weight: bold;
-        text-align: right;
         color: grey;
       }
 
@@ -111,6 +97,7 @@
         width: -moz-calc(100% - 0.8mozmm);
         position: absolute;
         bottom: 0px;
+        background: -moz-linear-gradient(bottom, rgb(255,255,255) 95%, rgba(255,255,255,0.5) 98%, rgba(255,255,255,0.3));
       }
 
       #text-container * {
@@ -182,38 +169,32 @@
             for (var i = 0; i < messages.length; i++) {
               var message = messages[i];
               var container = document.createElement('div');
-              container.className = 'message';
-
-              var content = document.createElement('div');
-              content.className = 'sms';
+              container.className = 'message sender';
 
               var contact = document.createElement('div');
               var num = message.sender;
               if (!num) {
                 num = message.receiver;
-                container.className = 'message receive';
+                container.className = 'message receiver';
               }
               container.setAttribute('num', num);
-
-              var sms = document.createElement('div');
-              sms.className = 'content';
 
               var text = document.createElement('span');
               text.appendChild(document.createTextNode(message.body));
               text.className = 'text';
-              sms.appendChild(text);
+              container.appendChild(text);
 
               var infos = document.createElement('span');
               infos.appendChild(document.createTextNode(prettyDate(message.timestamp)));
               infos.className = 'infos';
-              sms.appendChild(infos);
-              content.appendChild(sms);
-
-              container.appendChild(content);
+              container.appendChild(infos);
               fragment.appendChild(container);
             }
             view.appendChild(fragment);
-          }, filter);
+            setTimeout(function() {
+              view.scrollTop = view.scrollHeight;
+            }, 100);
+          }, filter, true);
         },
 
         onTouchStart: function onTouchStart(evt) {

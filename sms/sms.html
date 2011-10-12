@@ -2,20 +2,9 @@
 <html xmlns='http://www.w3.org/1999/xhtml' xml:lang='en'>
   <head>
 	  <meta name='viewport' content='width=device-width, initial-scale=1.0, min-scale=1.0, max-scale=1.0, user-scalable=no'/>
+    <link href='sms.css' rel='stylesheet' type='text/css'></link>
     <script type="text/javascript" src="sms.js"></script>
     <style>
-      html, body {
-        width: 100%;
-        height: 100%;
-        margin: 0;
-        padding: 0;
-        background-color: white;
-        -moz-user-select: none;
-        font-family: sans-serif;
-        overflow: hidden;
-        font-size: 20px;
-      }
-
       #header {
         background: -moz-linear-gradient(top, #c0c0c0, #a0a0a0);
         color: white;
@@ -33,15 +22,6 @@
       #messages[panning] {
         image-rendering: optimizeSpeed;
         text-rendering: optimizeSpeed;
-      }
-
-      .message {
-        padding: 0 10px;
-        border-bottom: 1px solid lightgrey;
-      }
-
-      .message * {
-        pointer-events: none;
       }
 
       .message.receive {
@@ -163,7 +143,7 @@
 
         createNewMessage: function createNewMessage(message) {
           var container = document.createElement('div');
-          container.className = 'message';
+          container.className = 'message sender';
 
           var content = document.createElement('div');
           content.className = 'sms';
@@ -172,7 +152,7 @@
           var num = message.sender;
           if (!num) {
             num = message.receiver;
-            container.className = 'message receive';
+            container.className = 'message receiver';
           }
           container.setAttribute('num', num);
 
