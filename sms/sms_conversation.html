@@ -195,6 +195,12 @@
               var message = messages[i];
               var container = document.createElement('div');
               container.className = 'message sender';
+              container.setAttribute('data-id', message.uuid);
+              container.onclick = function(evt) {
+                var id = evt.target.getAttribute('data-id');
+                MessageManager.delete(id);
+                ConversationView.showConversation();
+              }
 
               var arrow = document.createElement('div');
               arrow.className = 'arrow-left';

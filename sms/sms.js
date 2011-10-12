@@ -44,6 +44,10 @@ var MessageManager = {
     var result = navigator.mozSms.send(number, text);
     result.onsuccess = callback;
     result.onerror = callback;
+  },
+
+  delete: function mm_delete(id) {
+    navigator.mozSms.delete(id);
   }
 };
 
