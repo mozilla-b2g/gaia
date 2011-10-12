@@ -13,13 +13,13 @@ html, body {
 .message {
   padding: 0 10px;
   border-bottom: 1px solid lightgrey;
-  background: -moz-linear-gradient(bottom, rgba(154,228,232,0.3), rgba(234,238,246,0.3));
+  background: mintcream;
 }
 
 .message * {
   pointer-events: none;
 }
 
-.receiver {
-  background: -moz-linear-gradient(bottom, rgba(234,238,246,0.5), rgba(234,238,246,0.3));
+.message.sender {
+  background-color: lightcyan;
 }

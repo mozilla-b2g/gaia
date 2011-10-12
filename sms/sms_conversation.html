@@ -68,7 +68,6 @@
         clear: both;
         float: right;
         text-align: right;
-        background: mintcream;
       }
 
       @media all and (orientation: landscape) {
@@ -79,7 +78,6 @@
 
       .message.sender {
         box-shadow: 1px 1px 3px #000;
-        background-color: lightcyan;
         float: left;
         text-align: left;
         left: 10px;
@@ -228,7 +226,7 @@
             view.appendChild(fragment);
             setTimeout(function() {
               view.scrollTop = view.scrollHeight;
-            }, 100);
+            }, 0);
           }, filter, true);
         },
 
@@ -303,8 +301,6 @@
         }
 
         contact.value = filter;
-
-        document.getElementById('text').focus();
       }
   
       function sendText() {
