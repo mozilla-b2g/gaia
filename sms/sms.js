@@ -50,7 +50,7 @@ var MessageManager = {
 if (!('mozSms' in navigator)) {
   MessageManager.messages = [];
 
-  MessageManager.getMessages = function mm_getMessages(callback, filter) {
+  MessageManager.getMessages = function mm_getMessages(callback, filter, invert) {
     function applyFilter(msgs) {
       if (!filter)
         return msgs;
@@ -66,7 +66,10 @@ if (!('mozSms' in navigator)) {
     }
 
     if (this.messages.length) {
-      callback(applyFilter(this.messages.slice()));
+      var msg = this.messages.slice();
+      if (invert)
+        msg.reverse();
+      callback(applyFilter(msg));
       return;
     }
 
@@ -97,7 +100,11 @@ if (!('mozSms' in navigator)) {
       });
 
     this.messages = messages;
-    callback(applyFilter(this.messages.slice()));
+
+    var msg = this.messages.slice();
+    if (invert)
+      msg.reverse();
+    callback(applyFilter(msg));
   }
 
   MessageManager.send = function mm_send(number, text, callback) {

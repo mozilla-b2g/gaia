@@ -4,18 +4,6 @@
     <script type="text/javascript" src="sms.js"></script>
     <link href='sms.css' rel='stylesheet' type='text/css'></link>
     <style>
-      html, body {
-        width: 100%;
-        height: 100%;
-        margin: 0;
-        padding: 0;
-        background-color: white;
-        -moz-user-select: none;
-        font-family: sans-serif;
-        overflow: hidden;
-        font-size: 20px;
-      }
-
       input, textarea {
         -moz-appearance: none;
         -moz-box-sizing: border-box;
@@ -55,34 +43,63 @@
 
       #conversation {
         color: black;
+        height: -moz-calc(800px - 120px);
         overflow: hidden;
-        height: -moz-calc(800px - 128px);
+        background-color: rgba(0,0,0,0.03);
       }
 
       @media all and (orientation: landscape) {
         #conversation {
-          height: -moz-calc(480px - 128px);
+          height: -moz-calc(480px - 120px);
         }
       }
 
       .message {
         display: block;
         width: -moz-fit-content;
-        margin: 10px;
+        max-width: 400px;
+        margin: 5px;
+        position: relative;
+        left: -10px;
         padding: 10px 10px 4px 10px;
         border-radius: 8px;
-        box-shadow: 0px 0px 4px #000;
+        box-shadow: -1px 1px 3px #000;
         font-size: 1.2em;
         clear: both;
-        background: -moz-linear-gradient(bottom, rgba(234,238,246,0.3), rgba(234,238,246,0.3));
         float: right;
         text-align: right;
+        background: mintcream;
+      }
+
+      @media all and (orientation: landscape) {
+        .message {
+          max-width: 750px;
+        }
       }
 
       .message.sender {
-        background: -moz-linear-gradient(bottom, rgba(154,228,232,0.3), rgba(234,238,246,0.3));
+        box-shadow: 1px 1px 3px #000;
+        background-color: lightcyan;
         float: left;
         text-align: left;
+        left: 10px;
+      }
+
+      .arrow-left {
+        width: 0;
+        height: 0;
+        position: absolute;
+        border-top: 10px solid transparent;
+        border-bottom: 10px solid transparent; 
+        border-left: 10px solid mintcream; 
+        right: -10px;
+      }
+
+      .message.sender .arrow-left {
+        border-left: 10px solid transparent;
+        border-right: 10px solid lightcyan;
+        float: none;
+        left: -20px;
       }
 
       .infos {
@@ -97,7 +114,11 @@
         width: -moz-calc(100% - 0.8mozmm);
         position: absolute;
         bottom: 0px;
-        background: -moz-linear-gradient(bottom, rgb(255,255,255) 95%, rgba(255,255,255,0.5) 98%, rgba(255,255,255,0.3));
+        background: grey;
+        padding: 0 10px;
+        box-sizing: padding-box;
+        border-top: 1px solid darkgrey;
+        box-shadow: 0px -2px 5px #000;
       }
 
       #text-container * {
@@ -105,14 +126,13 @@
       }
 
       #text {
-        width: -moz-calc(100% - 100px);
+        width: -moz-calc(100% - 110px);
         max-height: 400px;
         min-height: 64px;
         overflow: hidden;
       }
 
       #send {
-        float: right;
       }
 
       #throbber {
@@ -126,6 +146,16 @@
       #throbber img {
         margin-top: -moz-calc(50% - 16px);
         margin-left: -moz-calc(50% - 16px);
+      }
+
+      #picture-container {
+        display: none;
+        position: absolute;
+        left: 0px;
+        top: 0px;
+        -moz-border-radius-bottomright: 8px;
+        box-shadow: 0px 0px 5px #000;
+        background-color: grey;
       }
     </style>
     <script>
@@ -158,9 +188,6 @@
             return;
 
           var view = this.view;
-          while (view.childNodes.length > 2)
-            view.removeChild(view.lastChild);
-
           var filter = ('SmsFilter' in window) ? new SmsFilter() : {};
           filter.number = this.filter;
 
@@ -170,6 +197,10 @@
               var message = messages[i];
               var container = document.createElement('div');
               container.className = 'message sender';
+
+              var arrow = document.createElement('div');
+              arrow.className = 'arrow-left';
+              container.appendChild(arrow);
 
               var contact = document.createElement('div');
               var num = message.sender;
@@ -190,6 +221,10 @@
               container.appendChild(infos);
               fragment.appendChild(container);
             }
+          
+            while (view.childNodes.length > 2)
+              view.removeChild(view.lastChild);
+
             view.appendChild(fragment);
             setTimeout(function() {
               view.scrollTop = view.scrollHeight;
@@ -252,7 +287,6 @@
       function onKeyPress(evt) {
         var target = evt.originalTarget;
         setTimeout(function() {
-          document.getElementById('send').disabled = !target.value.length;
           target.style.height = '';
           target.style.height = '-moz-calc(' + target.scrollHeight + 'px + 32px)';
         }, 0);
@@ -269,6 +303,8 @@
         }
 
         contact.value = filter;
+
+        document.getElementById('text').focus();
       }
   
       function sendText() {
@@ -283,7 +319,6 @@
         MessageManager.send(contact.value, text.value, function() {
           throbber.setAttribute('hidden', 'true');
           text.value = text.style.height = '';
-          document.getElementById('send').disabled = true;
 
           if (ConversationView.filter)
             return;
@@ -321,5 +356,9 @@
         <input id='send' type='submit' value='Send'></input>
       </div>
     </form>
+
+    <div id='picture-container'>
+      <img src='missing.png' id='picture'></img>
+    </div>
   </body>
 </html>
