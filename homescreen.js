@@ -199,6 +199,7 @@ IconGrid.prototype = {
       case 'keypress':
         if (evt.keyCode != evt.DOM_VK_ESCAPE)
           break;
+        evt.preventDefault();
 
         var event = document.createEvent("UIEvents");
         event.initUIEvent("appclose", true, true, window, 1);
