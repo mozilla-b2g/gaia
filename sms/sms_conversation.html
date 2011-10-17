@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script type="text/javascript" src="sms.js"></script>
+    <link href='sms.css' rel='stylesheet' type='text/css'></link>
+    <style>
+      input, textarea {
+        -moz-appearance: none;
+        -moz-box-sizing: border-box;
+        border-width: 2px;
+        border-style: solid;
+        border-color: lightgrey;
+        font-size: 24px;
+        margin: 1mozmm 0.4mozmm 1mozmm 0.4mozmm;
+        padding-left: 1mozmm;
+        padding-right: 1mozmm;
+        border-radius: 0.5mozmm;
+      }
+
+      input,
+      textarea {
+        height: 64px;
+      }
+
+      textarea {
+        padding-top: 16px;
+        padding-bottom: 16px;
+        resize: none;
+      }
+
+      input:focus,
+      textarea:focus {
+        border-color: orange;
+      }
+
+      #contact {
+        width: -moz-calc(100% - 0.8mozmm);
+      }
+  
+      #contact.filtered {
+        display: none;
+      }
+
+      #conversation {
+        color: black;
+        height: -moz-calc(800px - 120px);
+        overflow: hidden;
+        background-color: rgba(0,0,0,0.03);
+      }
+
+      @media all and (orientation: landscape) {
+        #conversation {
+          height: -moz-calc(480px - 120px);
+        }
+      }
+
+      .message {
+        display: block;
+        width: -moz-fit-content;
+        max-width: 400px;
+        margin: 5px;
+        position: relative;
+        left: -10px;
+        padding: 10px 10px 4px 10px;
+        border-radius: 8px;
+        box-shadow: -1px 1px 3px #000;
+        font-size: 1.2em;
+        clear: both;
+        float: right;
+        text-align: right;
+      }
+
+      @media all and (orientation: landscape) {
+        .message {
+          max-width: 750px;
+        }
+      }
+
+      .message.sender {
+        box-shadow: 1px 1px 3px #000;
+        float: left;
+        text-align: left;
+        left: 10px;
+      }
+
+      .arrow-left {
+        width: 0;
+        height: 0;
+        position: absolute;
+        border-top: 10px solid transparent;
+        border-bottom: 10px solid transparent; 
+        border-left: 10px solid mintcream; 
+        right: -10px;
+      }
+
+      .message.sender .arrow-left {
+        border-left: 10px solid transparent;
+        border-right: 10px solid lightcyan;
+        float: none;
+        left: -20px;
+      }
+
+      .infos {
+        display: block;
+        font-size: 14px;
+        line-height: 14px;
+        font-weight: bold;
+        color: grey;
+      }
+
+      #text-container {
+        width: -moz-calc(100% - 0.8mozmm);
+        position: absolute;
+        bottom: 0px;
+        background: grey;
+        padding: 0 10px;
+        box-sizing: padding-box;
+        border-top: 1px solid darkgrey;
+        box-shadow: 0px -2px 5px #000;
+      }
+
+      #text-container * {
+        vertical-align: top;
+      }
+
+      #text {
+        width: -moz-calc(100% - 110px);
+        max-height: 400px;
+        min-height: 64px;
+        overflow: hidden;
+      }
+
+      #send {
+      }
+
+      #throbber {
+        position: absolute;
+        height: 100%;
+        width: 100%;
+        background-color: rgba(0,0,0,0.3);
+        z-index: 1;
+      }
+
+      #throbber img {
+        margin-top: -moz-calc(50% - 16px);
+        margin-left: -moz-calc(50% - 16px);
+      }
+
+      #picture-container {
+        display: none;
+        position: absolute;
+        left: 0px;
+        top: 0px;
+        -moz-border-radius-bottomright: 8px;
+        box-shadow: 0px 0px 5px #000;
+        background-color: grey;
+      }
+    </style>
+    <script>
+      var ConversationView = {
+        get view() {
+          delete this.view;
+          return this.view = document.getElementById('conversation');
+        },
+
+        get filter() {
+          delete this.filter;
+          return this.filter = document.location.toString().split('?')[1] || null;
+        },
+
+        init: function cv_init() {
+          window.addEventListener('smssent', this, true);
+          window.addEventListener('smsreceived', this, true);
+          this.view.addEventListener('touchstart', this, true);
+          this.view.addEventListener('mousedown', this, true);
+          window.addEventListener('touchmove', this, true);
+          window.addEventListener('mousemove', this, true);
+          window.addEventListener('touchend', this, true);
+          window.addEventListener('mouseup', this, true);
+
+          this.showConversation();
+        },
+
+        showConversation: function cv_showConversation() {
+          if (!this.filter)
+            return;
+
+          var view = this.view;
+          var filter = ('SmsFilter' in window) ? new SmsFilter() : {};
+          filter.number = this.filter;
+
+          MessageManager.getMessages(function (messages) {
+            var fragment = document.createDocumentFragment();
+            for (var i = 0; i < messages.length; i++) {
+              var message = messages[i];
+              var container = document.createElement('div');
+              container.className = 'message sender';
+              container.setAttribute('data-id', message.uuid);
+              container.onclick = function(evt) {
+                var id = evt.target.getAttribute('data-id');
+                MessageManager.delete(id);
+                ConversationView.showConversation();
+              }
+
+              var arrow = document.createElement('div');
+              arrow.className = 'arrow-left';
+              container.appendChild(arrow);
+
+              var contact = document.createElement('div');
+              var num = message.sender;
+              if (!num) {
+                num = message.receiver;
+                container.className = 'message receiver';
+              }
+              container.setAttribute('num', num);
+
+              var text = document.createElement('span');
+              text.appendChild(document.createTextNode(message.body));
+              text.className = 'text';
+              container.appendChild(text);
+
+              var infos = document.createElement('span');
+              infos.appendChild(document.createTextNode(prettyDate(message.timestamp)));
+              infos.className = 'infos';
+              container.appendChild(infos);
+              fragment.appendChild(container);
+            }
+          
+            while (view.childNodes.length > 2)
+              view.removeChild(view.lastChild);
+
+            view.appendChild(fragment);
+            setTimeout(function() {
+              view.scrollTop = view.scrollHeight;
+            }, 0);
+          }, filter, true);
+        },
+
+        onTouchStart: function onTouchStart(evt) {
+          this.start = evt.pageY;
+          this.panning = true;
+          this.view.setAttribute('panning', 'true');
+        },
+
+        onTouchMove: function onTouchMove(evt) {
+          if (!this.panning)
+            return;
+
+          var offset = evt.pageY - this.start;
+          this.start = evt.pageY;
+          this.view.scrollTop -= offset;
+        },
+
+        onTouchEnd: function onTouchEnd(evt) {
+          if (!this.panning)
+            return;
+
+          var offset = evt.pageY - this.start;
+          this.view.scrollTop -= offset;
+          this.panning = false;
+          this.view.removeAttribute('panning');
+        },
+
+        handleEvent: function handleEvent(evt) {
+          switch (evt.type) {
+            case 'touchstart':
+              event.preventDefault();
+            case 'mousedown':
+              this.onTouchStart(evt.touches ? evt.touches[0] : evt);
+              break;
+            case 'touchmove':
+              event.preventDefault();
+            case 'mousemove':
+              this.onTouchMove(evt.touches ? evt.touches[0] : evt);
+              break;
+            case 'touchend':
+              event.preventDefault();
+            case 'mouseup':
+              this.onTouchEnd(evt.touches ? evt.touches[0] : evt);
+              break;
+            case 'smssent':
+            case 'smsreceived':
+              setTimeout(function(self) {
+                self.showConversation();
+              }, 800, this);
+              break;
+          }
+        }
+      }
+
+      function onKeyPress(evt) {
+        var target = evt.originalTarget;
+        setTimeout(function() {
+          target.style.height = '';
+          target.style.height = '-moz-calc(' + target.scrollHeight + 'px + 32px)';
+        }, 0);
+      }
+
+      function initializeContact() {
+        ConversationView.init();
+
+        var contact = document.getElementById('contact');
+        var filter = ConversationView.filter;
+        if (!filter) {
+          contact.classList.toggle('filtered');
+          return;
+        }
+
+        contact.value = filter;
+      }
+  
+      function sendText() {
+        var contact = document.getElementById('contact');
+        if (contact.value == '')
+          return;
+
+        var throbber = document.getElementById('throbber');
+        throbber.removeAttribute('hidden');
+
+        var text = document.getElementById('text');
+        MessageManager.send(contact.value, text.value, function() {
+          throbber.setAttribute('hidden', 'true');
+          text.value = text.style.height = '';
+
+          if (ConversationView.filter)
+            return;
+
+          var event = document.createEvent("UIEvents");
+          event.initUIEvent("appclose", true, true, window, 1);
+          window.top.dispatchEvent(event);
+        });
+      }
+
+      window.addEventListener('load', initializeContact, true);
+    </script>
+  </head>
+  <body>
+    <div id='throbber' hidden='true'>
+      <img src='../images/throbber.png' width='32' height='32'></img>
+    </div>
+
+    <form onsubmit='sendText(); return false;'>
+      <div id='conversation'>
+        <input id='contact' class='filtered' type='tel' required='true' placeholder='To:' list='contacts'></input>
+        <datalist id='contacts'>
+          <option value='Andreas Gal'></option>
+          <option value='Chris Jones'></option>
+          <option value='Mom Zilla'></option>
+          <option value='Mounir Lamouri'></option>
+          <option value='Trace Monkey'></option>
+          <option value='Jaeger Monkey'></option>
+          <option value='Ion Monkey'></option>
+        </datalist>
+      </div>
+
+      <div id='text-container'>
+        <textarea id='text' type='textbox' placeholder='Type your message' onkeypress='onKeyPress(event);'></textarea>
+        <input id='send' type='submit' value='Send'></input>
+      </div>
+    </form>
+
+    <div id='picture-container'>
+      <img src='missing.png' id='picture'></img>
+    </div>
+  </body>
+</html>
