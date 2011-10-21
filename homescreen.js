@@ -259,6 +259,18 @@ IconGrid.prototype = {
   }
 }
 
+function _MakeSureWebGL() {
+  if(kUseGL) {
+    try {
+      this.gl = canvas.getContext('experimental-webgl');
+    } catch(e) {
+      // Fall back to 2D.
+      kUseGL = 0;
+      kSnapToWholePixels = 1;
+    }
+  }
+}
+
 function OnLoad() {
   var fruits = [
     { label: 'Phone', src: 'images/Phone.png',
@@ -291,6 +303,8 @@ function OnLoad() {
     for (var n = 0; n < fruits.length; ++n)
       icons.push(fruits[n]);
 
+  _MakeSureWebGL();
+  
   var iconGrid = new IconGrid(document.getElementById("homeCanvas"),
                               "images/background.png",
                               120, 120, 0.2);
