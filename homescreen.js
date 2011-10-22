@@ -259,7 +259,7 @@ IconGrid.prototype = {
   }
 }
 
-function _MakeSureWebGL() {
+function _MakeSureWebGL(canvas) {
   if(kUseGL) {
     try {
       this.gl = canvas.getContext('experimental-webgl');
@@ -303,9 +303,10 @@ function OnLoad() {
     for (var n = 0; n < fruits.length; ++n)
       icons.push(fruits[n]);
 
-  _MakeSureWebGL();
+  var canvas = document.getElementById("homeCanvas")
+  _MakeSureWebGL(canvas);
   
-  var iconGrid = new IconGrid(document.getElementById("homeCanvas"),
+  var iconGrid = new IconGrid(canvas,
                               "images/background.png",
                               120, 120, 0.2);
   for (var n = 0; n < icons.length; ++n)
