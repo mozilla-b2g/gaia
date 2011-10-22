@@ -249,24 +249,10 @@ IconGrid.prototype = {
       var width = canvas.width = window.innerWidth;
       // TODO Substract the height of the statusbar
       var height = canvas.height = window.innerHeight - 24;
-      if (kUseGL) {
-        this.sceneGraph.blitter.viewportWidth = width;
-        this.sceneGraph.blitter.viewportHeight = height;
-      }
+      this.sceneGraph.viewportWidth = width;
+      this.sceneGraph.viewportHeight = height;
       this.reflow(width, height, 0);
       break;
-    }
-  }
-}
-
-function _MakeSureWebGL(canvas) {
-  if(kUseGL) {
-    try {
-      this.gl = canvas.getContext('experimental-webgl');
-    } catch(e) {
-      // Fall back to 2D.
-      kUseGL = 0;
-      kSnapToWholePixels = 1;
     }
   }
 }
@@ -303,10 +289,7 @@ function OnLoad() {
     for (var n = 0; n < fruits.length; ++n)
       icons.push(fruits[n]);
 
-  var canvas = document.getElementById("homeCanvas")
-  _MakeSureWebGL(canvas);
-  
-  var iconGrid = new IconGrid(canvas,
+  var iconGrid = new IconGrid(document.getElementById("homeCanvas"),
                               "images/background.png",
                               120, 120, 0.2);
   for (var n = 0; n < icons.length; ++n)

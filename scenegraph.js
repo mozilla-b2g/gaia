@@ -3,6 +3,7 @@
 
 'use strict';
 
+var _WebGLChecked = false;
 /*const*/var kUseGL = 1;
 /*const*/var kSnapToWholePixels = !kUseGL;
 
@@ -108,6 +109,17 @@ Sprite.prototype = {
 }
 
 function SceneGraph(canvas) {
+  if(!_WebGLChecked && kUseGL) {
+    try {
+      this.gl = canvas.getContext('experimental-webgl');
+    } catch(e) {
+      // Fall back to 2D.
+      kUseGL = 0;
+      kSnapToWholePixels = 1;
+    }
+    _WebGLChecked = true;
+  }
+
   this.blitter =
     kUseGL ? new SpriteBlitterGL(canvas) : new SpriteBlitter2D(canvas);
   this.canvas = canvas;
@@ -127,6 +139,16 @@ function SceneGraph(canvas) {
 }
 
 SceneGraph.prototype = {
+  set viewportWidth(w) {
+    if(this.blitter instanceof SpriteBlitterGL) {
+      this.blitter.viewportWidth = w;
+    }
+  },
+  set viewportHeight(h) {
+    if(this.blitter instanceof SpriteBlitterGL) {
+      this.blitter.viewportHeight = h;
+    }
+  },
   // add a sprite to the scene graph
   add: function(sprite) {
     this.blitter.spriteAdded(sprite);
