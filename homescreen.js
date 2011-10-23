@@ -130,7 +130,7 @@ Icon.prototype = {
     ctx.drawImage(img, iconWidth * border, iconHeight * border,
                   iconWidth * (1 - border * 2),
                   iconHeight * (1 - border * 2));
-    ctx.font = Math.floor(iconHeight * border * 0.6) + "pt Arial, sans-serif";
+    ctx.font = Math.floor(iconHeight * border * 0.6) + "pt Roboto, sans-serif";
     ctx.textAlign = "center";
     ctx.fillStyle = "white";
     ctx.textBaseline = "top";
