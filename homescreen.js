@@ -375,7 +375,7 @@ function OnLoad() {
     { label: 'Phone', src: 'images/Phone.png',
       url: 'dialer/dialer.html' },
     { label: 'Messages', src: 'images/Messages.png',
-      url: 'data:text/html,<font color="blue">Hello' },
+      url: 'sms/sms.html' },
     { label: 'Calendar', src: 'images/Calendar.png',
       url: 'data:text/html,<font color="blue">Hello' },
     { label: 'Gallery', src: 'images/Gallery.png',
