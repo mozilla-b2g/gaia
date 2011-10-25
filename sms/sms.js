@@ -135,17 +135,10 @@ if (!('mozSms' in navigator)) {
 
 var MessageView = {
   init: function init() {
-    this.showConversations();
-
-    var view = this.view;
-    view.addEventListener('touchstart', this, true);
-    view.addEventListener('mousedown', this, true);
-    window.addEventListener('touchmove', this, true);
-    window.addEventListener('mousemove', this, true);
-    window.addEventListener('touchend', this, true);
-    window.addEventListener('mouseup', this, true);
     window.addEventListener('smsreceived', this, true);
     window.addEventListener('smssent', this, true);
+
+    this.showConversations();
   },
 
   get conversationView() {
@@ -240,48 +233,8 @@ var MessageView = {
     return container;
   },
 
-  onTouchStart: function onTouchStart(evt) {
-    this.start = evt.pageY;
-    this.panning = true;
-    this.view.setAttribute('panning', 'true');
-  },
-
-  onTouchMove: function onTouchMove(evt) {
-    if (!this.panning)
-      return;
-
-    var offset = evt.pageY - this.start;
-    this.start = evt.pageY;
-    this.view.scrollTop -= offset;
-  },
-
-  onTouchEnd: function onTouchEnd(evt) {
-    if (!this.panning)
-      return;
-
-    var offset = evt.pageY - this.start;
-    this.view.scrollTop -= offset;
-    this.panning = false;
-    this.view.removeAttribute('panning');
-  },
-
   handleEvent: function handleEvent(evt) {
     switch (evt.type) {
-      case 'touchstart':
-        event.preventDefault();
-      case 'mousedown':
-        this.onTouchStart(evt.touches ? evt.touches[0] : evt);
-        break;
-      case 'touchmove':
-        event.preventDefault();
-      case 'mousemove':
-        this.onTouchMove(evt.touches ? evt.touches[0] : evt);
-        break;
-      case 'touchend':
-        event.preventDefault();
-      case 'mouseup':
-        this.onTouchEnd(evt.touches ? evt.touches[0] : evt);
-        break;
       case 'smssent':
       case 'smsreceived':
         setTimeout(function(self) {
@@ -306,13 +259,6 @@ var ConversationView = {
   init: function cv_init() {
     window.addEventListener('smssent', this, true);
     window.addEventListener('smsreceived', this, true);
-    this.view.addEventListener('touchstart', this, true);
-    this.view.addEventListener('mousedown', this, true);
-    window.addEventListener('touchmove', this, true);
-    window.addEventListener('mousemove', this, true);
-    window.addEventListener('touchend', this, true);
-    window.addEventListener('mouseup', this, true);
-
     this.showConversation();
   },
 
@@ -371,48 +317,8 @@ var ConversationView = {
     }, filter, true);
   },
 
-  onTouchStart: function onTouchStart(evt) {
-    this.start = evt.pageY;
-    this.panning = true;
-    this.view.setAttribute('panning', 'true');
-  },
-
-  onTouchMove: function onTouchMove(evt) {
-    if (!this.panning)
-      return;
-
-    var offset = evt.pageY - this.start;
-    this.start = evt.pageY;
-    this.view.scrollTop -= offset;
-  },
-
-  onTouchEnd: function onTouchEnd(evt) {
-    if (!this.panning)
-      return;
-
-    var offset = evt.pageY - this.start;
-    this.view.scrollTop -= offset;
-    this.panning = false;
-    this.view.removeAttribute('panning');
-  },
-
   handleEvent: function handleEvent(evt) {
     switch (evt.type) {
-      case 'touchstart':
-        event.preventDefault();
-      case 'mousedown':
-        this.onTouchStart(evt.touches ? evt.touches[0] : evt);
-        break;
-      case 'touchmove':
-        event.preventDefault();
-      case 'mousemove':
-        this.onTouchMove(evt.touches ? evt.touches[0] : evt);
-        break;
-      case 'touchend':
-        event.preventDefault();
-      case 'mouseup':
-        this.onTouchEnd(evt.touches ? evt.touches[0] : evt);
-        break;
       case 'smssent':
       case 'smsreceived':
         setTimeout(function(self) {
