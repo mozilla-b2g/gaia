@@ -1,0 +1,135 @@
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+  -moz-user-select: none;
+  -moz-box-orient: vertical;
+  font-size: 16px;
+  color: white;
+}
+
+body {
+  background-image: -moz-linear-gradient(bottom, rgb(66,66,66) 24%, rgb(33,33,33) 44%, rgb(17,17,17) 64%);
+}
+
+body, body * {
+  display: -moz-box;
+  -moz-box-flex: 1;
+}
+
+#phoneNumberViewContainer {
+  overflow: hidden;
+  width: 100%;
+}
+
+#phoneNumberView {
+  -moz-box-align: center;
+  min-height: 150px;
+  max-height: 240px;
+  font-size: 4em;
+}
+
+#fakePhoneNumberView {
+  position: absolute;
+  top: -9999px;
+  left: -9999px;
+}
+
+#keyboard {
+  display: -moz-box;
+  -moz-box-orient: vertical;
+  -moz-box-flex: 1;
+}
+
+#mainKeyset {
+  -moz-box-orient: vertical;
+}
+
+.keyboard-row {
+  display: -moz-box;
+  -moz-box-orient: horizontal;
+  -moz-box-flex: 1;
+}
+
+.keyboard-key {
+  display: -moz-box;
+  -moz-appearance: none;
+  -moz-box-orient: horizontal;
+  -moz-box-flex: 1;
+  margin: 5px;
+  background: -moz-linear-gradient(top, #353535, #252525 50%, #111111 51%);
+  border-radius: 10px;
+  border: 1px solid #151515;
+  border-top: 1px solid #c3d6df;
+  box-shadow: 0 1px 3px black;
+}
+
+.keyboard-key:hover:active {
+  background: -moz-linear-gradient(top, #484848, #404040 50%, #222222 51%);
+}
+
+.keyboard-key > span {
+  display: -moz-box;
+  pointer-events: none;
+  -moz-box-flex: 1;
+  -moz-box-pack: center;
+  -moz-box-align: center;
+}
+
+.keyboard-key > span:first-child {
+  text-shadow: 1px 1px 0px #000;
+  margin-left: 8px;
+  font-size: 4em;
+  min-width: 40px;
+}
+
+.keyboard-key > span + span:last-child {
+  font-size: 1.5em;
+  color: #555;
+  text-transform: uppercase;
+  text-shadow: 1px 1px 0px rgb(105,105,105);
+  min-width: 100px;
+}
+
+.keyboard-key.call {
+  -moz-box-flex: 3;
+  background: -moz-linear-gradient(top, #45c545, #35b535 50%, #21a121 51%);
+  border-radius: 10px;
+  border: 1px solid #454545;
+  border-top: 1px solid #c3d6df;
+  box-shadow: 0 1px 3px black;
+}
+
+.keyboard-key.call:hover:active {
+  background: -moz-linear-gradient(top, #55d555, #45c545 50%, #31b131 51%);
+}
+
+.keyboard-key.call > span:last-child,
+.keyboard-key.delete > span:last-child {
+  color: white;
+  font-size: 3em;
+}
+
+@media all and (max-height: 699px) {
+  #phoneNumberView {
+    min-height: 100px;
+  }
+
+  #keyboard {
+    -moz-box-orient: horizontal;
+  }
+
+  #additionalKeyset > div {
+    -moz-box-orient: vertical;
+    -moz-box-direction: reverse;
+  }
+
+  #additionalKeyset .call {
+    -moz-box-flex: 1;
+  }
+
+  #additionalKeyset .delete {
+    -moz-box-flex: 2;
+  }
+}
