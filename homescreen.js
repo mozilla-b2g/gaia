@@ -426,7 +426,7 @@ var WindowManager = {
     switch (evt.type) {
       case "appclose":
         var windows = document.getElementById('windows');
-        if (windows.childElementCount <= 1)
+        if (windows.childElementCount < 1)
           return;
 
         // TODO when existing window will be checked, this should be
@@ -439,8 +439,13 @@ var WindowManager = {
           function listener() {
             window.removeEventListener('animationend', listener, false);
             windows.removeChild(topWindow);
-            if (windows.childElementCount <= 1)
+            if (windows.childElementCount < 1)
               windows.setAttribute("hidden", "true");
+
+            setTimeout(function () {
+              var previousWindow = windows.lastElementChild || window;
+              previousWindow.focus();
+            }, 0);
           },
           false);
         break;
@@ -472,8 +477,9 @@ function openApplication(url) {
   window.addEventListener(
     'animationend',
     function listener() {
-      newWindow.classList.toggle('animateOpening');
       window.removeEventListener('animationend', listener, false);
+      newWindow.classList.toggle('animateOpening');
+      newWindow.focus();
     },
     false);
 }
