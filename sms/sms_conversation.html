@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <script type="text/javascript" src="sms.js"></script>
+    <script type='text/javascript' src='sms.js'></script>
     <link href='sms.css' rel='stylesheet' type='text/css'></link>
     <script>
       function onKeyPress(evt) {
@@ -41,8 +41,8 @@
           if (ConversationView.filter)
             return;
 
-          var event = document.createEvent("UIEvents");
-          event.initUIEvent("appclose", true, true, window, 1);
+          var event = document.createEvent('UIEvents');
+          event.initUIEvent('appclose', true, true, window, 1);
           window.top.dispatchEvent(event);
         });
       }
