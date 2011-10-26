@@ -12,14 +12,10 @@ var lockScreen;
 function changeDisplayState(state) {
   displayState = state;
 
-  // update clock and battery status (if needed)
+  // update calendar, clock and battery status (if needed)
+  updateCalendar();
   updateClock();
   updateBattery();
-  try {
-    updateCalendar();
-  } catch(e) {
-    alert(e);
-  }
 
   // Make sure the source viewer is not visible.
   if (state == "locked")
