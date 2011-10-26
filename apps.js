@@ -94,9 +94,9 @@ var TouchHandler = {
           var pan = this.isPan(evt.pageX, evt.pageY, this.startX, this.startY);
           if (pan) {
             this.panning = true;
+            this.target.setAttribute('panning', true);
             this.startX = this.lastX = touchEvent.pageX;
             this.startY = this.lastY = touchEvent.pageY;
-            this.target.setAttribute('panning', true);
           }
         }
         this.onTouchMove(touchEvent);
@@ -144,12 +144,14 @@ var TouchEventHandler = {
         type = 'touchend';
         break;
       case 'mouseout':
-        this.target = null;
-        type = 'touchcancel';
+        if (!evt.relatedTarget) {
+          this.target = null;
+          type = 'touchcancel';
+        }
         break;
     }
 
-    if (this.target)
+    if (type && this.target)
       this.sendTouchEvent(evt, this.target, type);
   },
   uuid: 0,
