@@ -50,7 +50,7 @@ html, body {
   display: inline-block;
   padding-left: 96px;
   height: 96px;
-  width: 100%;
+  width: -moz-calc(100% - 96px);
   white-space: nowrap;
 }
 
@@ -193,7 +193,7 @@ textarea:focus {
   color: grey;
 }
 
-#conversation #text-container {
+#text-container {
   width: -moz-calc(100% - 0.8mozmm);
   position: absolute;
   bottom: 0px;
@@ -204,18 +204,18 @@ textarea:focus {
   box-shadow: 0px -2px 5px #000;
 }
 
-#conversation #text-container * {
+#text-container * {
   vertical-align: top;
 }
 
-#conversation #text {
+#text-container #text {
   width: -moz-calc(100% - 110px);
   max-height: 400px;
   min-height: 64px;
   overflow: hidden;
 }
 
-#conversation #throbber {
+#throbber {
   position: absolute;
   height: 100%;
   width: 100%;
@@ -223,7 +223,7 @@ textarea:focus {
   z-index: 1;
 }
 
-#conversation #throbber img {
+#throbber img {
   margin-top: -moz-calc(50% - 16px);
   margin-left: -moz-calc(50% - 16px);
 }

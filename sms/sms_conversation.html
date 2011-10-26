@@ -57,7 +57,6 @@
     </div>
 
     <form onsubmit='sendText(); return false;'>
-      <div id='conversation'>
         <input id='contact' class='filtered' type='tel' required='true' placeholder='To:' list='contacts'></input>
         <datalist id='contacts'>
           <option value='Andreas Gal'></option>
@@ -68,7 +67,7 @@
           <option value='Jaeger Monkey'></option>
           <option value='Ion Monkey'></option>
         </datalist>
-      </div>
+        <div id='conversation' onclick='ConversationView.deleteMessage(event);'></div>
 
       <div id='text-container'>
         <textarea id='text' type='textbox' placeholder='Type your message' onkeypress='onKeyPress(event);'></textarea>
