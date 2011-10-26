@@ -42,8 +42,8 @@
           if (ConversationView.filter)
             return;
 
-          var event = document.createEvent("UIEvents");
-          event.initUIEvent("appclose", true, true, window, 1);
+          var event = document.createEvent('UIEvents');
+          event.initUIEvent('appclose', true, true, window, 1);
           window.top.dispatchEvent(event);
         });
       }

@@ -176,7 +176,7 @@ iframe.appWindow {
   background-image: -moz-linear-gradient(top, lightgreen 10%, green 80%, darkgreen);
   background-repeat: no-repeat;
   margin-left: 1px;
-  margin-top: 1x;
+  margin-top: 1px;
 }
 
 .battery > #fuel.low {

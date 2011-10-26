@@ -199,7 +199,7 @@ textarea:focus {
   bottom: 0px;
   background: grey;
   padding: 0 10px;
-  box-sizing: padding-box;
+  -moz-box-sizing: padding-box;
   border-top: 1px solid darkgrey;
   box-shadow: 0px -2px 5px #000;
 }
