@@ -25,6 +25,7 @@ var Apps = {
       window.addEventListener(evt, this, true);
     }).bind(this));
 
+    TouchEventHandler.start();
     TouchHandler.start();
   },
 
@@ -33,21 +34,21 @@ var Apps = {
       window.removeEventListener(evt, this, true);
     }).bind(this));
 
+    TouchEventHandler.stop();
     TouchHandler.stop();
   }
 };
 
 var TouchHandler = {
-  events: ['touchstart', 'touchmove', 'touchend',
-           'mousedown', 'mousemove', 'mouseup'],
+  events: ['touchstart', 'touchmove', 'touchend'],
   start: function th_start() {
     this.events.forEach((function(evt) {
-      window.addEventListener(evt, this, true);
+      window.addEventListener(evt, this, false);
     }).bind(this));
   },
   stop: function th_stop() {
     this.events.forEach((function(evt) {
-      window.removeEventListener(evt, this, true);
+      window.removeEventListener(evt, this, false);
     }).bind(this));
   },
   onTouchStart: function th_touchStart(evt) {
@@ -80,33 +81,30 @@ var TouchHandler = {
     switch (evt.type) {
       case 'touchstart':
         evt.preventDefault();
-      case 'mousedown':
         this.target = evt.originalTarget;
         this.onTouchStart(evt.touches ? evt.touches[0] : evt);
         break;
       case 'touchmove':
-        evt.preventDefault();
-      case 'mousemove':
         if (!this.target)
           break;
+        evt.preventDefault();
 
-        var touchEvent =evt.touches ? evt.touches[0] : evt;
+        var touchEvent = evt.touches ? evt.touches[0] : evt;
         if (!this.panning) {
           var pan = this.isPan(evt.pageX, evt.pageY, this.startX, this.startY);
           if (pan) {
             this.panning = true;
+            this.target.setAttribute('panning', true);
             this.startX = this.lastX = touchEvent.pageX;
             this.startY = this.lastY = touchEvent.pageY;
-            this.target.setAttribute('panning', true);
           }
         }
         this.onTouchMove(touchEvent);
         break;
       case 'touchend':
-        evt.preventDefault();
-      case 'mouseup':
         if (!this.target)
           return;
+        evt.preventDefault();
 
         if (this.panning) {
           this.target.removeAttribute('panning');
@@ -116,6 +114,61 @@ var TouchHandler = {
         this.target = null;
       break;
     }
+  }
+};
+
+var TouchEventHandler = {
+  events: ['mousedown', 'mousemove', 'mouseup', 'mouseout'],
+  start: function teh_start() {
+    this.events.forEach((function(evt) {
+      window.addEventListener(evt, this, true);
+    }).bind(this));
+  },
+  stop: function teh_stop() {
+    this.events.forEach((function(evt) {
+      window.removeEventListener(evt, this, true);
+    }).bind(this));
+  },
+  handleEvent: function teh_handleEvent(evt) {
+    var type = '';
+    switch (evt.type) {
+      case 'mousedown':
+        this.target = evt.target;
+        type = 'touchstart';
+        break;
+      case 'mousemove':
+        type = 'touchmove';
+        break;
+      case 'mouseup':
+        this.target = null;
+        type = 'touchend';
+        break;
+      case 'mouseout':
+        if (!evt.relatedTarget) {
+          this.target = null;
+          type = 'touchcancel';
+        }
+        break;
+    }
+
+    if (type && this.target)
+      this.sendTouchEvent(evt, this.target, type);
+  },
+  uuid: 0,
+  sendTouchEvent: function teh_sendTouchEvent(evt, target, name) {
+    var touchEvent = document.createEvent("touchevent");
+    var point = document.createTouch(window, target, this.uuid++,
+                                     evt.pageX, evt.pageY,
+                                     evt.screenX, evt.screenY,
+                                     evt.clientX, evt.clientY,
+                                     1, 1, 0, 0);
+    var touches = document.createTouchList(point);
+    var targetTouches = touches;
+    var changedTouches = touches;
+    touchEvent.initTouchEvent(name, true, true, window, 0,
+                              false, false, false, false,
+                              touches, targetTouches, changedTouches);
+    return target.dispatchEvent(touchEvent);
   }
 };
 
