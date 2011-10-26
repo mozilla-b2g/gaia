@@ -17,7 +17,7 @@ function changeDisplayState(state) {
   updateBattery();
 
   // Make sure the source viewer is not visible.
-  if (state == "locked")
+  if (state == 'locked')
     hideSourceViewer();
 }
 
@@ -77,9 +77,9 @@ DefaultPhysics.prototype = {
       var doc = e.target.ownerDocument || window.document;
       var url = doc.URL;
 
-      var viewsource = document.getElementById("viewsource");
-      viewsource.style.visibility = "visible";
-      viewsource.src = "view-source: " + url;
+      var viewsource = document.getElementById('viewsource');
+      viewsource.style.visibility = 'visible';
+      viewsource.src = 'view-source: ' + url;
       return;
     }
 
@@ -100,7 +100,7 @@ DefaultPhysics.prototype = {
 };
 
 function hideSourceViewer() {
-  document.getElementById("viewsource").style.visibility = "hidden";
+  document.getElementById('viewsource').style.visibility = 'hidden';
 }
 
 function Icon(iconGrid, index) {
@@ -130,10 +130,10 @@ Icon.prototype = {
     ctx.drawImage(img, iconWidth * border, iconHeight * border,
                   iconWidth * (1 - border * 2),
                   iconHeight * (1 - border * 2));
-    ctx.font = Math.floor(iconHeight * border * 0.6) + "pt Roboto, sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillStyle = "white";
-    ctx.textBaseline = "top";
+    ctx.font = Math.floor(iconHeight * border * 0.6) + 'pt Roboto, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'white';
+    ctx.textBaseline = 'top';
     ctx.fillText(label, iconWidth/2, iconHeight - iconHeight*border, iconWidth*0.9);
     if (createSprite)
       sceneGraph.add(sprite);
@@ -180,14 +180,14 @@ function IconGrid(canvas, iconWidth, iconHeight, border) {
   this.reflow(canvas.width, canvas.height, 0);
 
   // install event handlers
-  canvas.addEventListener("touchstart", this, true);
-  canvas.addEventListener("mousedown", this, true);
-  canvas.addEventListener("touchmove", this, true);
-  canvas.addEventListener("mousemove", this, true);
-  canvas.addEventListener("touchend", this, true);
-  canvas.addEventListener("mouseup", this, true);
-  canvas.addEventListener("mouseout", this, true);
-  window.addEventListener("resize", this, true);
+  canvas.addEventListener('touchstart', this, true);
+  canvas.addEventListener('mousedown', this, true);
+  canvas.addEventListener('touchmove', this, true);
+  canvas.addEventListener('mousemove', this, true);
+  canvas.addEventListener('touchend', this, true);
+  canvas.addEventListener('mouseup', this, true);
+  canvas.addEventListener('mouseout', this, true);
+  window.addEventListener('resize', this, true);
 }
 
 IconGrid.prototype = {
@@ -275,7 +275,7 @@ IconGrid.prototype = {
     case 'mouseout':
       physics.onTouchEnd(e.touches ? e.touches[0] : e);
       break;
-    case "resize":
+    case 'resize':
       var canvas = this.canvas;
       var width = canvas.width = window.innerWidth;
       // TODO Substract the height of the statusbar
@@ -295,13 +295,13 @@ IconGrid.prototype = {
 
 function LockScreen(overlay) {
   this.overlay = overlay;
-  overlay.addEventListener("touchstart", this, true);
-  overlay.addEventListener("mousedown", this, true);
-  overlay.addEventListener("touchmove", this, true);
-  overlay.addEventListener("mousemove", this, true);
-  overlay.addEventListener("touchend", this, true);
-  overlay.addEventListener("mouseup", this, true);
-  overlay.addEventListener("mouseout", this, true);
+  overlay.addEventListener('touchstart', this, true);
+  overlay.addEventListener('mousedown', this, true);
+  overlay.addEventListener('touchmove', this, true);
+  overlay.addEventListener('mousemove', this, true);
+  overlay.addEventListener('touchend', this, true);
+  overlay.addEventListener('mouseup', this, true);
+  overlay.addEventListener('mouseout', this, true);
 }
 
 LockScreen.prototype = {
@@ -314,8 +314,8 @@ LockScreen.prototype = {
     if (this.moving) {
       var dy = -(this.startY - e.pageY);
       var style = this.overlay.style;
-      style.MozTransition = "";
-      style.MozTransform = "translateY(" + dy + "px)";
+      style.MozTransition = '';
+      style.MozTransform = 'translateY(' + dy + 'px)';
     }
   },
   onTouchEnd: function(e) {
@@ -329,19 +329,19 @@ LockScreen.prototype = {
     }
   },
   unlock: function(direction) {
-    var offset = "100%";
+    var offset = '100%';
     if (direction < 0)
-      offset = "-" + offset;
+      offset = '-' + offset;
     var style = this.overlay.style;
-    style.MozTransition = "-moz-transform 0.2s linear";
-    style.MozTransform = "translateY(" + offset + ")";
-    changeDisplayState("unlocked");
+    style.MozTransition = '-moz-transform 0.2s linear';
+    style.MozTransform = 'translateY(' + offset + ')';
+    changeDisplayState('unlocked');
   },
   lock: function() {
     var style = this.overlay.style;
-    style.MozTransition = "-moz-transform 0.2s linear";
-    style.MozTransform = "translateY(0)";
-    changeDisplayState("locked");
+    style.MozTransition = '-moz-transform 0.2s linear';
+    style.MozTransform = 'translateY(0)';
+    changeDisplayState('locked');
   },
   handleEvent: function(e) {
     hideSourceViewer();
@@ -368,7 +368,7 @@ LockScreen.prototype = {
 }
 
 function OnLoad() {
-  lockScreen = new LockScreen(document.getElementById("lockscreen"));
+  lockScreen = new LockScreen(document.getElementById('lockscreen'));
   kAutoUnlock ? lockScreen.unlock(-1) : lockScreen.lock();
 
   var fruits = [
@@ -419,12 +419,12 @@ function OnLoad() {
 
 var WindowManager = {
   start: function wm_start() {
-    window.addEventListener("appclose", this, true);
+    window.addEventListener('appclose', this, true);
   },
   stop: function wm_stop() {},
   handleEvent: function wm_handleEvent(evt) {
     switch (evt.type) {
-      case "appclose":
+      case 'appclose':
         var windows = document.getElementById('windows');
         if (windows.childElementCount < 1)
           return;
@@ -440,7 +440,7 @@ var WindowManager = {
             window.removeEventListener('animationend', listener, false);
             windows.removeChild(topWindow);
             if (windows.childElementCount < 1)
-              windows.setAttribute("hidden", "true");
+              windows.setAttribute('hidden', 'true');
 
             setTimeout(function () {
               var previousWindow = windows.lastElementChild || window;
@@ -450,7 +450,7 @@ var WindowManager = {
           false);
         break;
       default:
-        throw new Error("Unhandled event in WindowManager");
+        throw new Error('Unhandled event in WindowManager');
         break;
     }
   }
@@ -471,7 +471,7 @@ function openApplication(url) {
   newWindow.classList.toggle('animateOpening');
 
   var windows = document.getElementById('windows');
-  windows.removeAttribute("hidden");
+  windows.removeAttribute('hidden');
   windows.appendChild(newWindow);
 
   window.addEventListener(
@@ -487,7 +487,7 @@ function openApplication(url) {
 // Update the clock and schedule a new update if appropriate
 function updateClock() {
   // If the display is off, there is nothing to do here
-  if (displayState == "off")
+  if (displayState == 'off')
     return;
 
   var now = new Date();
@@ -509,14 +509,14 @@ function updateBattery() {
     return;
 
   // If the display is off, there is nothing to do here
-  if (displayState == "off") {
-    battery.removeEventListener("chargingchange", updateBattery);
-    battery.removeEventListener("levelchange", updateBattery);
-    battery.removeEventListener("statuschange", updateBattery);
+  if (displayState == 'off') {
+    battery.removeEventListener('chargingchange', updateBattery);
+    battery.removeEventListener('levelchange', updateBattery);
+    battery.removeEventListener('statuschange', updateBattery);
     return;
   }
 
-  var elements = document.getElementsByClassName("battery");
+  var elements = document.getElementsByClassName('battery');
   for (var n = 0; n < elements.length; ++n) {
     var element = elements[n];
     var fuel = element.children[0];
@@ -528,16 +528,16 @@ function updateBattery() {
       var level = battery.level;
       fuel.style.width = (level / 4) + 'px';
       if (level <= 5)
-        fuel.className = "critical";
+        fuel.className = 'critical';
       else if (level <= 15)
-        fuel.className = "low";
+        fuel.className = 'low';
       else
-        fuel.className = "";
+        fuel.className = '';
     }
   }
 
   // Make sure we will be called for any changes to the battery status
-  battery.addEventListener("chargingchange", updateBattery);
-  battery.addEventListener("levelchange", updateBattery);
-  battery.addEventListener("statuschange", updateBattery);
+  battery.addEventListener('chargingchange', updateBattery);
+  battery.addEventListener('levelchange', updateBattery);
+  battery.addEventListener('statuschange', updateBattery);
 }

@@ -11,21 +11,21 @@ var gTones = {
 var KeyHandler = {
   get phoneNumber() {
     delete this.phoneNumber;
-    return this.phoneNumber = document.getElementById("phoneNumber");
+    return this.phoneNumber = document.getElementById('phoneNumber');
   },
 
   get fakePhoneNumberView() {
     delete this.fakePhoneNumberView;
-    return this.fakePhoneNumberView = document.getElementById("fakePhoneNumberView");
+    return this.fakePhoneNumberView = document.getElementById('fakePhoneNumberView');
   },
 
   get phoneNumberView() {
     delete this.phoneNumberView;
-    return this.phoneNumberView = document.getElementById("phoneNumberView");
+    return this.phoneNumberView = document.getElementById('phoneNumberView');
   },
 
   init: function() {
-    this.phoneNumber.value = "";
+    this.phoneNumber.value = '';
       for (var tone in gTones)
           gTones[tone] = document.getElementById('tone' + tone);
   },
@@ -44,7 +44,7 @@ var KeyHandler = {
     var self = this;
     function getNextFontSize(fontSize, text) {
       var div = self.fakePhoneNumberView;
-      div.style.fontSize = fontSize + "px";
+      div.style.fontSize = fontSize + 'px';
       div.innerHTML = text;
 
       var windowWidth = document.body.clientWidth;
@@ -52,7 +52,7 @@ var KeyHandler = {
       if (rect.width > windowWidth) {
         fontSize = Math.max(fontSize - kFontStep, kMinFontSize);
       } else if (fontSize < kDefaultFontSize) {
-        div.style.fontSize = (fontSize + kFontStep) + "px";
+        div.style.fontSize = (fontSize + kFontStep) + 'px';
         rect = div.getBoundingClientRect();
         if (rect.width <= windowWidth)
           fontSize += kFontStep;
@@ -63,7 +63,7 @@ var KeyHandler = {
 
     var view = this.phoneNumberView;
     var computedStyle = window.getComputedStyle(view, null);
-    var fontSize = computedStyle.getPropertyValue("font-size");
+    var fontSize = computedStyle.getPropertyValue('font-size');
 
     var text = this.formatPhoneNumber(this.phoneNumber.value);
     view.innerHTML = text;
@@ -71,21 +71,21 @@ var KeyHandler = {
     var newFontSize = text ? getNextFontSize(parseInt(fontSize), text)
                            : kDefaultFontSize;
     if (newFontSize != fontSize)
-    view.style.fontSize = newFontSize + "px";
+    view.style.fontSize = newFontSize + 'px';
   },
 
   keyDown: function(event) {
-    var key = event.target.getAttribute("value"); 
+    var key = event.target.getAttribute('value'); 
     if (!key)
       return;
 
     var callback = function(self) {
       switch (key) {
-        case "0":
-          self.phoneNumber.value = self.phoneNumber.value.slice(0, -1) + "+";
+        case '0':
+          self.phoneNumber.value = self.phoneNumber.value.slice(0, -1) + '+';
           break;
-        case "del":
-          self.phoneNumber.value = "";
+        case 'del':
+          self.phoneNumber.value = '';
           break;
         default:
           if (self.isContactShortcut(key))
@@ -95,14 +95,14 @@ var KeyHandler = {
       self.updateFontSize();
     };
 
-    if (key == "del") {
+    if (key == 'del') {
       this.phoneNumber.value = KeyHandler.phoneNumber.value.slice(0, -1);
       this.updateFontSize();
-    } else if (key == "call") {
+    } else if (key == 'call') {
       try {
         window.navigator.mozPhone.call(this.phoneNumber.value);
       } catch (e) {
-        console.log("Error while trying to call number: " + e);
+        console.log('Error while trying to call number: ' + e);
       }
     } else {
       this.phoneNumber.value += key;

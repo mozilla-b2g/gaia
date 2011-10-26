@@ -116,7 +116,7 @@ function SceneGraph(canvas) {
   this.y = 0;
 
   var self = this;
-  window.addEventListener("MozBeforePaint", function(event) {
+  window.addEventListener('MozBeforePaint', function(event) {
       var now = GetAnimationClockTime();
       // continue painting until we are run out of animations
       if (self.animate(now))
@@ -243,7 +243,7 @@ var kVertexShader = [
   '  vec4 transformedPos = vec4(aPosAndTexCoord.x, aPosAndTexCoord.y, 0.0, 1.0);',
   '  gl_Position = uProjection * transformedPos;',
   '}'
-].join("\n");
+].join('\n');
 
 var kFragmentShader = [
   '#ifdef GL_ES',
@@ -258,7 +258,7 @@ var kFragmentShader = [
   '  texColor = texture2D(uTexture, vTexCoord);',
   '  gl_FragColor = texColor;',
   '}'
-].join("\n");
+].join('\n');
 
 var kMaxTextureSize = 0;
 
@@ -359,12 +359,12 @@ SpriteBlitterGL.prototype = {
       var sprite = sprites[n];
       var canvas = sprite.canvas;
       var scale = sprite.scale;
-      var x = sprite.x - translateX;
-      var y = sprite.y - translateY;
+      var left = sprite.x - translateX;
+      var top = sprite.y - translateY;
       var width = canvas.width * scale;
       var height = canvas.height * scale;
 
-      drawTexturedQuad(sprite.texture, x, y, width, height);
+      drawTexturedQuad(sprite.texture, left, top, width, height);
     }
 
     gl.bindTexture(gl.TEXTURE_2D, null);
@@ -376,7 +376,7 @@ SpriteBlitterGL.prototype = {
     var canvas = sprite.canvas;
     assert(canvas.width <= this.maxTextureSize
            && canvas.height <= this.maxTextureSize,
-           "Sprite canvas must be smaller than max texture dimension");
+           'Sprite canvas must be smaller than max texture dimension');
     var gl = this.gl;
     var texture = sprite.texture = gl.createTexture();
 
@@ -402,7 +402,7 @@ function compileGLProgram(gl, vxShader, pixShader) {
     gl.shaderSource(shader, source);
     gl.compileShader(shader);
     assert(gl.getShaderParameter(shader, gl.COMPILE_STATUS),
-           "Compile error for "+ type +": "+ gl.getShaderInfoLog(shader));
+           'Compile error for ' + type + ': ' + gl.getShaderInfoLog(shader));
     return shader;
   }
 
@@ -415,7 +415,7 @@ function compileGLProgram(gl, vxShader, pixShader) {
 
   if (!gl.getProgramParameter(p, gl.LINK_STATUS))
     // FIXME fall back on 2d
-    abort("Failed to compile shaders.");
+    abort('Failed to compile shaders.');
 
   return p;
 }
