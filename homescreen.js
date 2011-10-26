@@ -15,6 +15,11 @@ function changeDisplayState(state) {
   // update clock and battery status (if needed)
   updateClock();
   updateBattery();
+  try {
+    updateCalendar();
+  } catch(e) {
+    alert(e);
+  }
 
   // Make sure the source viewer is not visible.
   if (state == "locked")
@@ -482,6 +487,49 @@ function openApplication(url) {
       newWindow.focus();
     },
     false);
+}
+
+// Update the calendar
+function updateCalendar() {
+  if (displayState == "off")
+    return;
+
+  var now = new Date();
+  var today = now.getDate();
+  var mon = now.getMonth() + 1; // getMonth() return 0-11
+  var year = now.getFullYear();
+  var days = get_days_of_month(year, mon);
+  var weekday = get_day_of_week(year, mon, 1);
+  var d = 1;
+  var tb = document.getElementById("cal-table");
+  var child;
+  var tr, td, txt;
+
+  // Clear the calendar
+  while(tb.firstChild)
+    tb.removeChild(tb.firstChild);
+
+  while(d <= days) {
+    tr = document.createElement("tr");
+    if(weekday > 0) {
+      td = document.createElement("td");
+      td.setAttribute("colspan", weekday);
+      tr.appendChild(td);
+    }
+  
+    for(; weekday < 7 && d <= days; weekday++, d++) {
+      td = document.createElement("td");
+      td.setAttribute("align", "right");
+      txt = document.createTextNode(d);
+      if(d == today)
+        td.setAttribute("class", "today");
+      td.appendChild(txt);
+      tr.appendChild(td);
+    }
+    weekday = 0;
+    
+    tb.appendChild(tr);
+  }
 }
 
 // Update the clock and schedule a new update if appropriate
