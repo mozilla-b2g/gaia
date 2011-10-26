@@ -147,8 +147,11 @@ var MessageView = {
   },
 
   openConversationView: function openConversationView(num) {
+    if (!num)
+      return;
+
     var url = 'sms/sms_conversation.html';
-    if (num)
+    if (num && num != '*')
       url += '?' + num;
     window.top.openApplication(url);
   },
@@ -179,64 +182,42 @@ var MessageView = {
         }
       }
 
-      while (self.view.childNodes.length > 2)
-        self.view.removeChild(self.view.lastChild);
-
-      var fragment = document.createDocumentFragment();
+      var fragment = '<div class="message" data-num="*">' +
+                     '  <div class="title">New Message</div>' +
+                     '  <div class="content">Write a message</div>' +
+                     '</div>';
       for (var conversation in conversations) {
         var msg = self.createNewMessage(conversations[conversation]);
-        fragment.appendChild(msg);
+        fragment += msg;
       }
-      self.view.appendChild(fragment);
+      self.view.innerHTML = fragment;
     }, null);
   },
 
-  createNewMessage: function createNewMessage(message) {
-    var container = document.createElement('div');
-    container.className = 'message sender';
+  createNewMessage: function createNewMessage(msg) {
+    var className = 'class="message ' +
+                    (msg.sender ? 'sender' : 'receiver') + '"';
 
-    var content = document.createElement('div');
-    content.className = 'sms';
+    var num = (msg.sender || msg.receiver);
+    var dataNum = 'data-num="' + num + '"';
+    var title = num + ' (' + msg.count + ')';
 
-    var contact = document.createElement('div');
-    var num = message.sender;
-    if (!num) {
-      num = message.receiver;
-      container.className = 'message receiver';
-    }
-    container.setAttribute('num', num);
-
-    container.onclick = function (evt) {
-      MessageView.openConversationView(evt.target.getAttribute('num'));
-    };
-
-    var title = num + ' (' + message.count + ')';
-    contact.appendChild(document.createTextNode(title));
-    contact.className = 'title';
-    content.appendChild(contact);
-        
-    var sms = document.createElement('div');
-    sms.className = 'content';
-
-    var text = document.createElement('span');
-    text.appendChild(document.createTextNode(message.body));
-    text.className = 'text';
-    sms.appendChild(text);
-
-    var infos = document.createElement('span');
-    infos.appendChild(document.createTextNode(message.timestamp));
-    infos.className = 'infos';
-    sms.appendChild(infos);
-    content.appendChild(sms);
-
-    container.appendChild(content);
-    return container;
+    return '<div ' + className + ' ' + dataNum + '>' +
+           '  <div class="sms">' +
+           '    <div class="title">' + title + '</div>' +
+           '    <div class="content">' + 
+           '      <span class="text">' + msg.body + '</span>' +
+           '      <span class="infos">' + msg.timestamp + '</span>' +
+           '    </div>' +
+           '  </div>' +
+           '</div>';
   },
 
   handleEvent: function handleEvent(evt) {
     switch (evt.type) {
       case 'smssent':
       case 'smsreceived':
+        // TODO Remove the delay once the native SMS application is disabled
         setTimeout(function(self) {
           self.showConversations();
         }, 800, this);
@@ -271,57 +252,47 @@ var ConversationView = {
     filter.number = this.filter;
 
     MessageManager.getMessages(function (messages) {
-      var fragment = document.createDocumentFragment();
+      var fragment = '';
       for (var i = 0; i < messages.length; i++) {
-        var message = messages[i];
-        var container = document.createElement('div');
-        container.className = 'message sender';
-        var uuid = message.hasOwnProperty('uuid') ? message.uuid : '';
-        container.setAttribute('data-id', uuid);
-        container.onclick = function(evt) {
-          var id = evt.target.getAttribute('data-id');
-          MessageManager.delete(id);
-          ConversationView.showConversation();
-        }
+        var msg = messages[i];
+        var uuid = msg.hasOwnProperty('uuid') ? msg.uuid : '';
+        var dataId = 'data-id="' + uuid +'"';
 
-        var arrow = document.createElement('div');
-        arrow.className = 'arrow-left';
-        container.appendChild(arrow);
+        var dataNum = 'data-num="' + (msg.sender || msg.receiver) + '"';
 
-        var contact = document.createElement('div');
-        var num = message.sender;
-        if (!num) {
-          num = message.receiver;
-          container.className = 'message receiver';
-        }
-        container.setAttribute('num', num);
+        var className = 'class="message ' +
+                        (msg.sender ? 'sender' : 'receiver') + '"';
 
-        var text = document.createElement('span');
-        text.appendChild(document.createTextNode(message.body));
-        text.className = 'text';
-        container.appendChild(text);
-
-        var infos = document.createElement('span');
-        infos.appendChild(document.createTextNode(prettyDate(message.timestamp)));
-        infos.className = 'infos';
-        container.appendChild(infos);
-        fragment.appendChild(container);
+        var time = prettyDate(msg.timestamp);
+        fragment += '<div ' + className + ' ' + dataNum + ' ' + dataId + '>' +
+                    '  <div class="arrow-left"></div>' +
+                    '  <div>' +
+                    '    <span class="text">' + msg.body + '</span>' +
+                    '    <span class="infos">' + time + '</span>' +
+                    '  </div>' +
+                    '</div>';
       }
-          
-      while (view.childNodes.length > 2)
-        view.removeChild(view.lastChild);
 
-      view.appendChild(fragment);
+      view.innerHTML = fragment;
       setTimeout(function() {
         view.scrollTop = view.scrollHeight;
       }, 0);
     }, filter, true);
   },
 
+  deleteMessage: function deleteMessage(evt) {
+    var uuid = evt.target.getAttribute('data-id');
+    if (!uuid)
+      return;
+    MessageManager.delete(uuid);
+    this.showConversation();
+  },
+
   handleEvent: function handleEvent(evt) {
     switch (evt.type) {
       case 'smssent':
       case 'smsreceived':
+        // TODO Remove the delay once the native SMS application is disabled
         setTimeout(function(self) {
           self.showConversation();
         }, 800, this);
