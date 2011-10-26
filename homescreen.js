@@ -499,10 +499,9 @@ function updateCalendar() {
   var mon = now.getMonth() + 1; // getMonth() return 0-11
   var year = now.getFullYear();
   var days = get_days_of_month(year, mon);
-  var weekday = get_day_of_week(year, mon, 1);
+  var weekday = get_day_of_week(year, mon, 1); // 0-6 (Sun-Sat)
   var d = 1;
   var tb = document.getElementById("cal-table");
-  var child;
   var tr, td, txt;
 
   // Clear the calendar
