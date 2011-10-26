@@ -9,11 +9,7 @@
 
   <body onload='MessageView.init();'>
     <div id='header'>SMS</div>
-    <div id='messages'>
-      <div class='message' onclick='MessageView.openConversationView();'>
-        <div class='title'>New Message</div>
-        <div class='content'>Write a message</div>
-      </div>
+    <div id='messages' onclick='MessageView.openConversationView(event.target.getAttribute("data-num"))'>
     </div>
   </body>
 </html>
