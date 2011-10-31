@@ -26,6 +26,7 @@ var Apps = {
     }).bind(this));
 
     TouchHandler.start();
+    ContactsAPI.start();
   },
 
   uninit: function apps_uninit() {
@@ -34,6 +35,7 @@ var Apps = {
     }).bind(this));
 
     TouchHandler.stop();
+    ContactsAPI.stop();
   }
 };
 
@@ -116,6 +118,65 @@ var TouchHandler = {
         this.target = null;
       break;
     }
+  }
+};
+
+
+var ContactsManager = {
+  contacts: []
+};
+
+var Contact = function (name, familyName, tel) {
+  this.name = name;
+  this.honorificPrefix = "";
+  this.givenName = "";
+  this.additionalName = "";
+  this.familyName = familyName; 
+  this.honorificSuffix = "";
+  this.nickname = "";
+  this.email = "";
+  this.photo = "";
+  this.url = "";
+  this.category = "";
+  this.adr = new ContactAddress();
+  this.streetAddress = "";
+  this.locality = "";
+  this.region = "";
+  this.postalCode = "";
+  this.countryName = "";
+  this.tel = tel;
+  this.org = "";
+  this.bday = new Date();
+  this.note = "";
+  this.impp = ""; /* per RFC 4770, included in vCard4 */
+  this.anniversary = new Date();
+};
+
+var ContactAddress  = function() {
+  this.streetAddress = "";
+  this.locality = "";
+  this.region = "";
+  this.postalCode = "";
+  this.countryName = "";
+}; 
+
+var ContactsAPI = {
+  _contacts: [
+    { name: 'Andreas', tel: '+0110101010101' },
+    { name: 'Chris', tel: '+01202020202' },
+    { name: 'Mounir', tel: '+33601010101' },
+    { name: 'Vivien', tel: '+33602020202' }
+  ],
+  start: function contact_init() {
+    window.navigator.mozContacts = ContactsManager;
+
+    var contacts = ContactsManager.contacts;
+    this._contacts.forEach((function(contact) {
+      contacts.push(new Contact(contact.name, '', contact.tel));
+    }).bind(this));
+  },
+  stop: function contact_uninit() {
+    window.navigator.mozContacts = null;
   }
 };
 

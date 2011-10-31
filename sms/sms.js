@@ -80,12 +80,12 @@ if (!('mozSms' in navigator)) {
     var messages = [
       {
         sender: null,
-        receiver: 'Mounir',
+        receiver: '+33601010101',
         body: 'Nothing :)',
         timestamp: Date.now() - 44000000,
       },
       {
-        sender: 'Mounir',
+        sender: '+33601010101',
         body: 'Hey! What\s up?',
         timestamp: Date.now() - 50000000,
       }
@@ -93,7 +93,7 @@ if (!('mozSms' in navigator)) {
 
     for (var i = 0; i < 40; i++)
       messages.push({
-        sender: 'Vivien',
+        sender: '+33602020202',
         body: 'Hello world!',
         timestamp: Date.now() - 60000000,
       });
@@ -200,6 +200,12 @@ var MessageView = {
 
     var num = (msg.sender || msg.receiver);
     var dataNum = 'data-num="' + num + '"';
+
+    var contacts = window.navigator.mozContacts.contacts;
+    contacts.forEach(function(contact) {
+      if (contact.tel == num)
+        num = contact.name;
+    });
     var title = num + ' (' + msg.count + ')';
 
     return '<div ' + className + ' ' + dataNum + '>' +
