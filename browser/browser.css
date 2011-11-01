@@ -1,0 +1,60 @@
+#browser-html, #browser-body {
+	height: 100%;
+	padding: 0;
+	margin: 0;
+}
+
+#browser-body {
+  margin: 0;
+  display: -moz-box;
+  -moz-box-orient: vertical;
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+}
+
+#browser-tab {
+  -moz-box-flex: 1;
+  display: -moz-box;
+  -moz-box-orient: vertical;
+}
+
+#browser-toolbar {
+  background-color: #666;
+  display: -moz-box;
+  -moz-box-orient: horizontal;
+  width: 100%;
+  height: 30px;
+  margin: 0;
+}
+
+#browser-address {
+  background-color: #333;
+  border-radius: 5px;
+  -moz-box-flex: 1;
+  display: -moz-box;
+  -moz-box-orient: horizontal;
+  height: 20px;
+  margin: 5px;
+  padding: 0;
+}
+
+#browser-url {
+  -moz-box-flex: 1;
+  border: none;
+  border-radius: 5px;
+  height: 16px;
+  padding: 2px 5px;
+}
+
+.browser-button {
+  display: block;
+  padding: 0 4px;
+}
+
+#browser-iframe {
+  -moz-box-flex: 1;
+  width: 100%;
+  border: none;
+  background-color: white;
+}
