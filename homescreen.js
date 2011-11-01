@@ -249,8 +249,8 @@ IconGrid.prototype = {
       var width = canvas.width = window.innerWidth;
       // TODO Substract the height of the statusbar
       var height = canvas.height = window.innerHeight - 24;
-      this.sceneGraph.viewportWidth = width;
-      this.sceneGraph.viewportHeight = height;
+      this.sceneGraph.blitter.viewportWidth = width;
+      this.sceneGraph.blitter.viewportHeight = height;
       this.reflow(width, height, 0);
       break;
     }
@@ -310,7 +310,7 @@ function OnLoad() {
   }
 
   document.getElementById('statusPadding').innerHTML =
-    kUseGL ? '(WebGL)' : '(2D canvas)';
+    gUseGL ? '(WebGL)' : '(2D canvas)';
 
   WindowManager.start();
 }

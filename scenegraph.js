@@ -3,8 +3,8 @@
 
 'use strict';
 
-/*const*/var kUseGL = 1;
-/*const*/var kSnapToWholePixels = !kUseGL;
+/*const*/var gUseGL = 1;
+/*const*/var gSnapToWholePixels = !gUseGL;
 
 function abort(why) { alert(why); throw why; }
 function assert(cond, msg) { if (!cond) abort(msg); }
@@ -51,7 +51,7 @@ Sprite.prototype = {
     // coordinates before uploading, unlike <img>s :/.  So hack
     // here.  Need to figure out if that's a FF bug or actually
     // spec'd like that.
-    if (kUseGL) {
+    if (gUseGL) {
       ctx.translate(0, this.height);
       ctx.scale(1, -1);
     }
@@ -108,19 +108,18 @@ Sprite.prototype = {
 }
 
 function SceneGraph(canvas) {
-  if(kUseGL && !this.constructor.prototype._WebGLChecked) {
+  if(gUseGL) {
     try {
       this.gl = canvas.getContext('experimental-webgl');
     } catch(e) {
       // Fall back to 2D.
-      kUseGL = 0;
-      kSnapToWholePixels = 1;
+      gUseGL = 0;
+      gSnapToWholePixels = 1;
     }
-    this.constructor.prototype._WebGLChecked = true;
   }
 
   this.blitter =
-    kUseGL ? new SpriteBlitterGL(canvas) : new SpriteBlitter2D(canvas);
+    gUseGL ? new SpriteBlitterGL(canvas) : new SpriteBlitter2D(canvas);
   this.canvas = canvas;
   this.sprites = [];
   this.background = null;
@@ -138,20 +137,6 @@ function SceneGraph(canvas) {
 }
 
 SceneGraph.prototype = {
-  // Have we checked supporting of WebGL?
-  _WebGLChecked: false,
-  // Change size of viewport
-  set viewportWidth(w) {
-    if(this.blitter instanceof SpriteBlitterGL) {
-      this.blitter.viewportWidth = w;
-    }
-  },
-  // Change size of viewport
-  set viewportHeight(h) {
-    if(this.blitter instanceof SpriteBlitterGL) {
-      this.blitter.viewportHeight = h;
-    }
-  },
   // add a sprite to the scene graph
   add: function(sprite) {
     this.blitter.spriteAdded(sprite);
@@ -189,7 +174,7 @@ SceneGraph.prototype = {
   },
   draw: function() {
     var x = this.x, y = this.y;
-    if (kSnapToWholePixels) {
+    if (gSnapToWholePixels) {
       x |= 0;
       y |= 0;
     }
