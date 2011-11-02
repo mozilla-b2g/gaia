@@ -9,8 +9,7 @@
 
   <body>
     <div id="choices" onclick="choiceChanged(event.target)">
-      <button id="keyboard" class="choice" data-active="true">Tel.</button>
-      <button id="contacts" class="choice">Contacts</button>
+      <button id="keyboard" class="choice" data-active="true">Tel.</button><button id="contacts" class="choice">Contacts</button>
     </div>
     <div id="views">
       <div id="contacts-view" class="view" hidden="true"></div>
@@ -22,7 +21,7 @@
           <div id="phoneNumberView"></div>
         </div>
 
-        <div id="keyboard" onmousedown="KeyHandler.keyDown(event)" onmouseup="KeyHandler.keyUp(event)">
+        <div id="keyboard-container" onmousedown="KeyHandler.keyDown(event)" onmouseup="KeyHandler.keyUp(event)">
           <div id="mainKeyset"></div>
           <div id="additionalKeyset">
             <div class="keyboard-row">
