@@ -18,6 +18,7 @@ body {
 
 #choices {
   width: 100%;
+  border-bottom: 3px solid rgb(137, 137, 137);
 }
 
 #choices > .choice {
@@ -28,8 +29,28 @@ body {
   width: 50%;
   color: white;
   height: 48px;
+  font-size: 0.9em;
+  font-weight: 600;
   line-height: 48px;
-  background-image: -moz-linear-gradient(bottom, rgb(66,66,66) 24%, rgb(33,33,33) 44%, rgb(17,17,17) 64%);
+  background-image: -moz-linear-gradient(top, rgb(33,33,33) 24%, rgb(22,22,22) 44%, rgb(11,11,11) 64%);
+  border-right: 1px solid #aaa;
+  border-left: 1px solid #bbb;
+}
+
+#choices > button::-moz-focus-inner {
+  border-width :0;
+}
+
+#choices > .choice:first-child {
+  border-left: 0;
+}
+
+#choices > .choice:last-child {
+  border-right: 0;
+}
+
+#choices > .choice[data-active] {
+  background-image: -moz-linear-gradient(top, rgb(166,166,166) 24%, rgb(155,155,155) 44%, rgb(137,137,137) 64%);
 }
 
 /* === Phone Keyboard === */

@@ -17,11 +17,17 @@ function choiceChanged(evt) {
   if (!view)
     return;
 
-  var views = document.getElementById('views');
-  var viewsCount = views.childElementCount;
-  for (var i = 0; i < viewsCount; i++)
-    views.children[i].setAttribute('hidden', 'true');
+  var choices = document.getElementById('choices');
+  var choicesCount = choices.childElementCount;
+  for (var i = 0; i < choicesCount; i++) {
+    var choice = choices.children[i];
+    choice.removeAttribute('data-active');
 
+    var choiceView = document.getElementById(choice.id + '-view');
+    choiceView.setAttribute('hidden', 'true');
+  }
+
+  target.setAttribute('data-active', 'true');
   view.removeAttribute('hidden');
 };
 
@@ -173,7 +179,7 @@ var KeyHandler = {
   }
 };
 
-Contacts = {
+var Contacts = {
   get contactsView() {
     delete this.contactsView;
     return this.contacts = document.getElementById('contacts-view');
