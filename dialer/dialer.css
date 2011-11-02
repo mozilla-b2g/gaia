@@ -25,15 +25,11 @@ body {
   border: 0;
   margin: 0;
   padding: 0;
-  width: 33%;
+  width: 50%;
   color: white;
   height: 48px;
   line-height: 48px;
   background-image: -moz-linear-gradient(bottom, rgb(66,66,66) 24%, rgb(33,33,33) 44%, rgb(17,17,17) 64%);
-}
-
-#choices > .choice:first-child {
-  width: 34%;
 }
 
 /* === Phone Keyboard === */
