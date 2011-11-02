@@ -8,8 +8,7 @@ var gTones = {
   '*': null, '#': null
 };
 
-function choiceChanged(evt) {
-  var target = evt.target;
+function choiceChanged(target) {
   if (!target.classList.contains('choice'))
     return;
 
@@ -47,7 +46,7 @@ var KeyHandler = {
     return this.phoneNumberView = document.getElementById('phoneNumberView');
   },
 
-  init: function() {
+  init: function kh_init() {
     this.phoneNumber.value = '';
     for (var tone in gTones)
         gTones[tone] = document.getElementById('tone' + tone);
@@ -91,17 +90,25 @@ var KeyHandler = {
     });
   },
 
-  isContactShortcut: function (key) {
+  isContactShortcut: function kh_isContactShortcut(key) {
     // TODO implement key shortcuts
     return false;
   },
 
-  formatPhoneNumber: function(phoneNumber) {
+  formatPhoneNumber: function kh_formatPhoneNumber(phoneNumber) {
     // TODO implement formatting depending on locale
     return phoneNumber;
   },
 
-  updateFontSize: function() {
+  call: function kh_call(number) {
+    try {
+      window.navigator.mozPhone.call(this.phoneNumber.value);
+    } catch (e) {
+      console.log('Error while trying to call number: ' + e);
+    }
+  },
+
+  updateFontSize: function kh_updateFontSize() {
     var self = this;
     function getNextFontSize(fontSize, text) {
       var div = self.fakePhoneNumberView;
@@ -135,7 +142,7 @@ var KeyHandler = {
     view.style.fontSize = newFontSize + 'px';
   },
 
-  keyDown: function(event) {
+  keyDown: function kh_keyDown(event) {
     var key = event.target.getAttribute('data-value'); 
     if (!key)
       return;
@@ -160,11 +167,7 @@ var KeyHandler = {
       this.phoneNumber.value = KeyHandler.phoneNumber.value.slice(0, -1);
       this.updateFontSize();
     } else if (key == 'call') {
-      try {
-        window.navigator.mozPhone.call(this.phoneNumber.value);
-      } catch (e) {
-        console.log('Error while trying to call number: ' + e);
-      }
+      this.call(this.phoneNumber.value);
     } else {
       this.phoneNumber.value += key;
       this.updateFontSize();
@@ -174,7 +177,7 @@ var KeyHandler = {
     this._timeout = window.setTimeout(callback, 400, this);
   },
 
-  keyUp: function(event) {
+  keyUp: function kh_keyUp(event) {
     clearTimeout(this._timeout);
   }
 };
@@ -193,11 +196,20 @@ var Contacts = {
     for (var i = 0; i < count; i++) {
       var contact = contacts[i];
       var title = (contact.name || contact.tel);
-      fragment += '<div class="contact">' +
+      fragment += '<div class="contact" value="' + contact.tel + '">' +
                   '  <span class="contact-name">' + title + '</span>' +
                   '</div>';
     }
-    this.contactsView.innerHTML = fragment;
+
+    var view = this.contactsView;
+    view.innerHTML = fragment;
+    view.addEventListener('click', function contactClick(evt) {
+      var contact = evt.target.getAttribute('value');
+      choiceChanged(document.getElementById('keyboard'));
+      KeyHandler.phoneNumber.value = contact;
+      KeyHandler.updateFontSize();
+      window.navigator.mozPhone.call(contact);
+    });
   }
 };
 
