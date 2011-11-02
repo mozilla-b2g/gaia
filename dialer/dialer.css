@@ -189,8 +189,7 @@ body {
   }
 
   #additionalKeyset .keyboard-row {
-    direction: normal;
-    margin-left: 6px;
+    direction: ltr;
   }
 
   #additionalKeyset .keyboard-key {
