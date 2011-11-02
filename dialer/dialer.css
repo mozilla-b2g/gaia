@@ -16,7 +16,28 @@ body {
   display: none !important;
 }
 
-#views, #keyboard-view {
+#choices {
+  width: 100%;
+}
+
+#choices > .choice {
+  -moz-appearance: none;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  width: 33%;
+  color: white;
+  height: 48px;
+  line-height: 48px;
+  background-image: -moz-linear-gradient(bottom, rgb(66,66,66) 24%, rgb(33,33,33) 44%, rgb(17,17,17) 64%);
+}
+
+#choices > .choice:first-child {
+  width: 34%;
+}
+
+/* === Phone Keyboard === */
+#views, #views > .view {
   width: 100%;
   height: 100%;
 }

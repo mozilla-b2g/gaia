@@ -8,6 +8,23 @@ var gTones = {
   '*': null, '#': null
 };
 
+function choiceChanged(evt) {
+  var target = evt.target;
+  if (!target.classList.contains('choice'))
+    return;
+
+  var view = document.getElementById(target.id + '-view');
+  if (!view)
+    return;
+
+  var views = document.getElementById('views');
+  var viewsCount = views.childElementCount;
+  for (var i = 0; i < viewsCount; i++)
+    views.children[i].setAttribute('hidden', 'true');
+
+  view.removeAttribute('hidden');
+};
+
 var KeyHandler = {
   get phoneNumber() {
     delete this.phoneNumber;

@@ -8,11 +8,14 @@
   </head>
 
   <body>
+    <div id="choices" onclick="choiceChanged(event)">
+      <button id="keyboard" class="choice">Tel.</button><button id="history" class="choice">Calls</button><button id="contacts" class="choice">Contacts</button>
+    </div>
     <div id="views">
-      <div id="contacts-view" hidden="true">
+      <div id="contacts-view" class="view" hidden="true">
       </div>
 
-      <div id="keyboard-view">
+      <div id="keyboard-view" class="view">
         <input type="hidden" id="phoneNumber"></input>
         <div id="fakePhoneNumberView"></div>
         <div id="phoneNumberViewContainer">
