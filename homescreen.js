@@ -391,7 +391,7 @@ function OnLoad() {
     { label: 'Books', src: 'images/Books.png',
       url: 'data:text/html,<font color="blue">Hello' },
     { label: 'Browser', src: 'images/Browser.png',
-      url: 'data:text/html,<font color="blue">Hello' },
+      url: 'browser/browser.html' },
     { label: 'Music', src: 'images/Music.png',
       url: 'data:text/html,<font color="blue">Hello' }
   ];

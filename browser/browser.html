@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html id="browser-html">
+
+  <head>
+    <meta charset="utf-8">
+    <title>Browser</title>
+    <link rel="stylesheet" href="browser.css" type="text/css" />
+    <script type="text/javascript" src="../apps.js"></script>
+    <script type="text/javascript" src="browser.js"></script>
+  </head>
+
+  <body id="browser-body">
+    <div id="browser-tab">
+      <div id="browser-toolbar">
+        <form id="browser-address">
+          <input type="text" id="browser-url" value="https://wiki.mozilla.org/B2G">
+          <input type="image" src="images/go.png" id="browser-go-button" class="browser-button" alt="Go">
+        </form>
+      </div>
+      <iframe id="browser-iframe" src="https://wiki.mozilla.org/B2G">
+      </iframe>
+    </div>
+  </body>
+
+</html>
