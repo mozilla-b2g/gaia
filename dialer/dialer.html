@@ -8,21 +8,25 @@
   </head>
 
   <body>
-    <input type="hidden" id="phoneNumber"></input>
-    <div id="fakePhoneNumberView"></div>
-    <div id="phoneNumberViewContainer">
-      <div id="phoneNumberView"></div>
-    </div>
+    <div id="views">
+      <div id="keyboard-view">
+        <input type="hidden" id="phoneNumber"></input>
+        <div id="fakePhoneNumberView"></div>
+        <div id="phoneNumberViewContainer">
+          <div id="phoneNumberView"></div>
+        </div>
 
-    <div id="keyboard" onmousedown="KeyHandler.keyDown(event)" onmouseup="KeyHandler.keyUp(event)">
-      <div id="mainKeyset"></div>
-      <div id="additionalKeyset">
-        <div class="keyboard-row">
-          <div class="keyboard-key call" value="call">
-            <span>&#9742;</span>
-          </div>
-          <div class="keyboard-key delete" value="del">
-            <span>&#8653;</span>
+        <div id="keyboard" onmousedown="KeyHandler.keyDown(event)" onmouseup="KeyHandler.keyUp(event)">
+          <div id="mainKeyset"></div>
+          <div id="additionalKeyset">
+            <div class="keyboard-row">
+              <div class="keyboard-key call" value="call">
+                <span>&#9742;</span>
+              </div>
+              <div class="keyboard-key delete" value="del">
+                <span>&#8653;</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

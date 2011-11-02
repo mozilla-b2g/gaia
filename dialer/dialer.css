@@ -4,7 +4,6 @@ html, body {
   overflow: hidden;
   margin: 0;
   -moz-user-select: none;
-  -moz-box-orient: vertical;
   font-size: 16px;
   color: white;
 }
@@ -13,7 +12,16 @@ body {
   background-image: -moz-linear-gradient(bottom, rgb(66,66,66) 24%, rgb(33,33,33) 44%, rgb(17,17,17) 64%);
 }
 
-body, body * {
+#views, #keyboard-view {
+  width: 100%;
+  height: 100%;
+}
+
+#keyboard-view {
+  -moz-box-orient: vertical;
+}
+
+#keyboard-view, #keyboard-view * {
   display: -moz-box;
   -moz-box-flex: 1;
 }
@@ -40,6 +48,7 @@ body, body * {
   display: -moz-box;
   -moz-box-orient: vertical;
   -moz-box-flex: 1;
+  max-height: 
 }
 
 #mainKeyset {
