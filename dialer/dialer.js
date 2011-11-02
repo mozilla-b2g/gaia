@@ -156,7 +156,30 @@ var KeyHandler = {
   }
 };
 
+Contacts = {
+  get contactsView() {
+    delete this.contactsView;
+    return this.contacts = document.getElementById('contacts-view');
+  },
+
+  init: function contacts_init() {
+    var contacts = window.navigator.mozContacts.contacts;
+    var count = contacts.length;
+
+    var fragment = '';
+    for (var i = 0; i < count; i++) {
+      var contact = contacts[i];
+      var title = (contact.name || contact.tel);
+      fragment += '<div class="contact">' +
+                  '  <span class="contact-name">' + title + '</span>' +
+                  '</div>';
+    }
+    this.contactsView.innerHTML = fragment;
+  }
+};
+
 window.addEventListener('load', function keyboardInit(evt) {
   window.removeEventListener('load', keyboardInit);
   KeyHandler.init();
+  Contacts.init();
 });

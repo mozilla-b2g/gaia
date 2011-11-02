@@ -12,6 +12,10 @@ body {
   background-image: -moz-linear-gradient(bottom, rgb(66,66,66) 24%, rgb(33,33,33) 44%, rgb(17,17,17) 64%);
 }
 
+[hidden] {
+  display: none !important;
+}
+
 #views, #keyboard-view {
   width: 100%;
   height: 100%;
@@ -140,4 +144,21 @@ body {
   #additionalKeyset .delete {
     -moz-box-flex: 2;
   }
+}
+
+/* === Contacts === */
+.contact {
+  height: 64px;
+  line-height: 64px;
+  background-color: black;
+  border-bottom: 0.1mozmm solid lightgrey;
+  background: url(missing.png) no-repeat 0 0;
+  background-size: 64px 64px;
+  background-position: -5px;
+  padding-left: 64px;
+}
+
+.contact-name {
+  font-size: 1.5em;
+  font-weight: bold;
 }
