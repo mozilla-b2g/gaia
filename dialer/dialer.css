@@ -28,10 +28,10 @@ body {
   padding: 0;
   width: 50%;
   color: white;
-  height: 48px;
+  height: 45px;
   font-size: 0.9em;
   font-weight: 600;
-  line-height: 48px;
+  line-height: 45px;
   background-image: -moz-linear-gradient(top, rgb(33,33,33) 24%, rgb(22,22,22) 44%, rgb(11,11,11) 64%);
   border-right: 1px solid #aaa;
   border-left: 1px solid #bbb;
@@ -54,8 +54,12 @@ body {
 }
 
 /* === Phone Keyboard === */
-#views, #views > .view {
+#views {
+  height: -moz-calc(100% - 48px);
   width: 100%;
+}
+
+#views > .view {
   height: 100%;
 }
 
