@@ -91,6 +91,10 @@ body {
   width: 100%;
 }
 
+#additionalKeyset .keyboard-row {
+  direction: rtl;
+}
+
 .keyboard-key {
   font-size: 4em;
   display: inline-table;
@@ -182,6 +186,11 @@ body {
     vertical-align: bottom;
     display: inline-table;
     max-width: -moz-calc(20% - 20px);
+  }
+
+  #additionalKeyset .keyboard-row {
+    direction: normal;
+    margin-left: 6px;
   }
 
   #additionalKeyset .keyboard-key {
