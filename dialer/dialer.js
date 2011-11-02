@@ -26,8 +26,46 @@ var KeyHandler = {
 
   init: function() {
     this.phoneNumber.value = '';
-      for (var tone in gTones)
-          gTones[tone] = document.getElementById('tone' + tone);
+    for (var tone in gTones)
+        gTones[tone] = document.getElementById('tone' + tone);
+
+    var mainKeys = [
+      { title: '1', details: '' },
+      { title: '2', details: 'abc' },
+      { title: '3', details: 'def' },
+      { title: '4', details: 'ghi' },
+      { title: '5', details: 'jkl' },
+      { title: '6', details: 'mno' },
+      { title: '7', details: 'pqrs' },
+      { title: '8', details: 'tuv' },
+      { title: '9', details: 'wxyz' },
+      { title: '\u2217', value: '*', details: '' },
+      { title: '0', details: '+' },
+      { title: '#', details: '' }
+    ];
+
+    var mainKey = document.getElementById('mainKeyset');
+    var row = null;
+    mainKeys.forEach(function(key, index) {
+      if (index % 3 == 0) {
+        row = document.createElement('div');
+        row.className = 'keyboard-row';
+        mainKey.appendChild(row);
+      }
+      
+      var container = document.createElement('div');
+      container.className = 'keyboard-key';
+      container.setAttribute('data-value', 'value' in key ? key.value : key.title);
+
+      var title = document.createElement('span');
+      title.appendChild(document.createTextNode(key.title));
+      container.appendChild(title);
+
+      var details = document.createElement('span');
+      details.appendChild(document.createTextNode(key.details));
+      container.appendChild(details);
+      row.appendChild(container);
+    });
   },
 
   isContactShortcut: function (key) {
@@ -75,7 +113,7 @@ var KeyHandler = {
   },
 
   keyDown: function(event) {
-    var key = event.target.getAttribute('value'); 
+    var key = event.target.getAttribute('data-value'); 
     if (!key)
       return;
 
@@ -118,3 +156,7 @@ var KeyHandler = {
   }
 };
 
+window.addEventListener('load', function keyboardInit(evt) {
+  window.removeEventListener('load', keyboardInit);
+  KeyHandler.init();
+});

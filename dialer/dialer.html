@@ -7,7 +7,7 @@
     <script type="application/javascript" src="dialer.js"></script>
   </head>
 
-  <body onload="KeyHandler.init();">
+  <body>
     <input type="hidden" id="phoneNumber"></input>
     <div id="fakePhoneNumberView"></div>
     <div id="phoneNumberViewContainer">
@@ -15,64 +15,7 @@
     </div>
 
     <div id="keyboard" onmousedown="KeyHandler.keyDown(event)" onmouseup="KeyHandler.keyUp(event)">
-      <div id="mainKeyset">
-        <div class="keyboard-row">
-          <div class="keyboard-key" value="1">
-            <span>1</span>
-            <span></span>
-          </div>
-          <div class="keyboard-key" value="2">
-            <span>2</span>
-            <span>abc</span>
-          </div>
-          <div class="keyboard-key" value="3">
-            <span>3</span>
-            <span>def</span>
-          </div>
-        </div>
-        <div class="keyboard-row">
-          <div class="keyboard-key" value="4">
-            <span>4</span>
-            <span>ghi</span>
-          </div>
-          <div class="keyboard-key" value="5">
-            <span>5</span>
-            <span>jkl</span>
-          </div>
-          <div class="keyboard-key" value="6">
-            <span>6</span>
-            <span>mno</span>
-          </div>
-        </div>
-        <div class="keyboard-row">
-          <div class="keyboard-key" value="7">
-            <span>7</span>
-            <span>pqrs</span>
-          </div>
-          <div class="keyboard-key" value="8">
-            <span>8</span>
-            <span>tuv</span>
-          </div>
-          <div class="keyboard-key" value="9">
-            <span>9</span>
-            <span>wxyz</span>
-          </div>
-        </div>
-        <div class="keyboard-row">
-          <div class="keyboard-key" value="*">
-            <span>&#8727;</span>
-            <span></span>
-          </div>
-          <div class="keyboard-key" value="0">
-            <span>0</span>
-            <span>+</span>
-          </div>
-          <div class="keyboard-key" value="#">
-            <span>#</span>
-            <span></span>
-          </div>
-        </div>
-      </div>
+      <div id="mainKeyset"></div>
       <div id="additionalKeyset">
         <div class="keyboard-row">
           <div class="keyboard-key call" value="call">
