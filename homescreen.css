@@ -69,6 +69,20 @@ html, body {
   -moz-box-flex: 1;
 }
 
+#lockscreen > #cal {
+  position: absolute;
+  top: -moz-calc(10%);
+}
+
+#cal-table {
+  color: white;
+  font-size: 15px;
+}
+
+#cal-table .today {
+  color: red;
+}
+
 #lockscreen > #clock {
   position: absolute;
   top: -moz-calc(50%);
