@@ -7,79 +7,31 @@
     <script type="application/javascript" src="dialer.js"></script>
   </head>
 
-  <body onload="KeyHandler.init();">
-    <input type="hidden" id="phoneNumber"></input>
-    <div id="fakePhoneNumberView"></div>
-    <div id="phoneNumberViewContainer">
-      <div id="phoneNumberView"></div>
+  <body>
+    <div id="choices" onclick="choiceChanged(event.target)">
+      <button id="keyboard" class="choice" data-active="true">Tel.</button><button id="contacts" class="choice">Contacts</button>
     </div>
+    <div id="views">
+      <div id="contacts-view" class="view" hidden="true"></div>
 
-    <div id="keyboard" onmousedown="KeyHandler.keyDown(event)" onmouseup="KeyHandler.keyUp(event)">
-      <div id="mainKeyset">
-        <div class="keyboard-row">
-          <div class="keyboard-key" value="1">
-            <span>1</span>
-            <span></span>
-          </div>
-          <div class="keyboard-key" value="2">
-            <span>2</span>
-            <span>abc</span>
-          </div>
-          <div class="keyboard-key" value="3">
-            <span>3</span>
-            <span>def</span>
-          </div>
+      <div id="keyboard-view" class="view">
+        <input type="hidden" id="phoneNumber"></input>
+        <div id="fakePhoneNumberView"></div>
+        <div id="phoneNumberViewContainer">
+          <div id="phoneNumberView"></div>
         </div>
-        <div class="keyboard-row">
-          <div class="keyboard-key" value="4">
-            <span>4</span>
-            <span>ghi</span>
-          </div>
-          <div class="keyboard-key" value="5">
-            <span>5</span>
-            <span>jkl</span>
-          </div>
-          <div class="keyboard-key" value="6">
-            <span>6</span>
-            <span>mno</span>
-          </div>
-        </div>
-        <div class="keyboard-row">
-          <div class="keyboard-key" value="7">
-            <span>7</span>
-            <span>pqrs</span>
-          </div>
-          <div class="keyboard-key" value="8">
-            <span>8</span>
-            <span>tuv</span>
-          </div>
-          <div class="keyboard-key" value="9">
-            <span>9</span>
-            <span>wxyz</span>
-          </div>
-        </div>
-        <div class="keyboard-row">
-          <div class="keyboard-key" value="*">
-            <span>&#8727;</span>
-            <span></span>
-          </div>
-          <div class="keyboard-key" value="0">
-            <span>0</span>
-            <span>+</span>
-          </div>
-          <div class="keyboard-key" value="#">
-            <span>#</span>
-            <span></span>
-          </div>
-        </div>
-      </div>
-      <div id="additionalKeyset">
-        <div class="keyboard-row">
-          <div class="keyboard-key call" value="call">
-            <span>&#9742;</span>
-          </div>
-          <div class="keyboard-key delete" value="del">
-            <span>&#8653;</span>
+
+        <div id="keyboard-container" onmousedown="KeyHandler.keyDown(event)" onmouseup="KeyHandler.keyUp(event)">
+          <div id="mainKeyset"></div>
+          <div id="additionalKeyset">
+            <div class="keyboard-row">
+              <div class="keyboard-key delete" data-value="del">
+                <span>&#8653;</span>
+              </div>
+              <div class="keyboard-key call" data-value="call">
+                <span>&#9742;</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
