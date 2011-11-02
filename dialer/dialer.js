@@ -205,6 +205,9 @@ var Contacts = {
     view.innerHTML = fragment;
     view.addEventListener('click', function contactClick(evt) {
       var contact = evt.target.getAttribute('value');
+      if (!contact)
+        return;
+
       choiceChanged(document.getElementById('keyboard'));
       KeyHandler.phoneNumber.value = contact;
       KeyHandler.updateFontSize();

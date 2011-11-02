@@ -28,10 +28,10 @@ body {
   padding: 0;
   width: 50%;
   color: white;
-  height: 45px;
+  height: 61px;
+  line-height: 61px;
   font-size: 0.9em;
   font-weight: 600;
-  line-height: 45px;
   background-image: -moz-linear-gradient(top, rgb(33,33,33) 24%, rgb(22,22,22) 44%, rgb(11,11,11) 64%);
   border-right: 1px solid #aaa;
   border-left: 1px solid #bbb;
@@ -55,12 +55,13 @@ body {
 
 /* === Phone Keyboard === */
 #views {
-  height: -moz-calc(100% - 48px);
+  height: -moz-calc(100% - 64px);
   width: 100%;
 }
 
 #views > .view {
   height: 100%;
+  width: 100%;
 }
 
 #keyboard-view {
@@ -81,7 +82,7 @@ body {
   -moz-box-align: center;
   min-height: 150px;
   max-height: 240px;
-  font-size: 4em;
+  font-size: 3.5em;
 }
 
 #fakePhoneNumberView {
@@ -97,6 +98,7 @@ body {
 }
 
 #mainKeyset {
+  display: -moz-box;
   -moz-box-orient: vertical;
 }
 
@@ -147,7 +149,7 @@ body {
 }
 
 .keyboard-key.call {
-  -moz-box-flex: 3;
+  -moz-box-flex: 3 !important;
   background: -moz-linear-gradient(top, #45c545, #35b535 50%, #21a121 51%);
   border-radius: 10px;
   border: 1px solid #454545;
@@ -166,6 +168,10 @@ body {
 }
 
 @media all and (max-height: 699px) {
+  body {
+    font-size: 13px;
+  }
+
   #phoneNumberView {
     min-height: 100px;
   }
@@ -180,7 +186,7 @@ body {
   }
 
   #additionalKeyset .call {
-    -moz-box-flex: 1;
+    -moz-box-flex: 1 !important;
   }
 
   #additionalKeyset .delete {
