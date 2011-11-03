@@ -2,25 +2,11 @@
 var _ = (function() {
   'use strict';
 
-  var gLocales = {};
-  var scripts = document.getElementsByTagName('script');
-  for (var i = 0; i < scripts.length; i++) {
-    var script = scripts[i];
-    if (!script.hasAttribute('data-type') ||
-        script.getAttribute('data-type') != 'locale')
-      continue;
-
-    var src = script.getAttribute('src');
-    var lang = src.split('.')[0];
-    gLocales[lang] = window.navigator[lang];
-    delete window.navigator[lang];
-  }
-
   function translateString(key) {
-    var lang = window.navigator.language;
-    if (!gLocales[lang] || !gLocales[lang][key]) 
+    var lang = navigator.language;
+    if (!navigator[lang] || !navigator[lang][key]) 
       return key;
-    return gLocales[lang][key];
+    return navigator[lang][key];
   };
 
   window.addEventListener('load', function translate(evt) {
@@ -33,7 +19,8 @@ var _ = (function() {
       if (!element.hasAttribute('data-string'))
         continue;
 
-      var str = translateString(element.getAttribute('data-string'));
+      var key = element.getAttribute('data-string');
+      var str = translateString(key);
       if (str == key || str == element.innerHTML)
         return;
 
