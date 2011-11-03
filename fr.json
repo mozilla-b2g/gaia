@@ -1,0 +1,16 @@
+
+window.navigator['fr'] = {
+  'Phone': 'Téléphone',
+  'Messages': 'SMS/MMS',
+  'Calendar': 'Calendrier',
+  'Gallery': 'Galerie',
+  'Camera': 'Appareil Photo',
+  'Books': 'Livres',
+  'Browser': 'Navigateur',
+  'Calculator': 'Calculatrice',
+  'Music': 'Musique',
+  'phone': 'Appels:',
+  'sms': 'SMS:',
+  'email': 'Mails:',
+};
+

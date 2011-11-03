@@ -1,9 +1,12 @@
 <html>
   <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <link href='system.css' rel='stylesheet' type='text/css'></link>
     <link href='homescreen.css' rel='stylesheet' type='text/css'></link>
     <script type="text/javascript" src="scenegraph.js"></script>
     <script type="text/javascript" src="homescreen.js"></script> 
+    <script type="text/javascript" src="fr.json" data-type='locale'></script> 
+    <script type="text/javascript" src="locale.js"></script> 
   </head>
   <body onload="OnLoad();">
     <div id="screen">
@@ -33,9 +36,9 @@
 	  <div class="time" data-format="%d %b"></div>
 	</div>
 	<div id="notifications">
-	  Phone: <div id="phone">0</div>
-	  SMS: <div id="sms">0</div>
-	  Email: <div id="email">0</div>
+	  <span data-string="phone">Phone:</span><div id="phone">0</div>
+	  <span data-string="sms">SMS:</span><div id="sms">0</div>
+	  <span data-string="email">Email:</span><div id="email">0</div>
 	</div>
       </div>
       <iframe id="viewsource"></iframe>

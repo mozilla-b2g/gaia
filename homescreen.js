@@ -412,7 +412,7 @@ function OnLoad() {
 
   var iconGrid = new IconGrid(canvas, 120, 120, 0.2);
   for (var n = 0; n < icons.length; ++n)
-    iconGrid.add(icons[n].src, icons[n].label, icons[n].url);
+    iconGrid.add(icons[n].src, _(icons[n].label), icons[n].url);
 
   WindowManager.start();
 }
