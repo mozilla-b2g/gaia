@@ -42,6 +42,7 @@ html, body {
 
 #lockscreen {
   position: absolute;
+  z-index: 10000;
   top: 0px;
   width: -moz-calc(100%);
   height: -moz-calc(100%);
@@ -86,6 +87,14 @@ html, body {
 
 #lockscreen > #notifications > * {
   display: inline-block;
+}
+
+#notificationsScreen {
+  position: absolute;
+  top: -moz-calc(-100% + 48px);
+  width: -moz-calc(100%);
+  height: -moz-calc(100% - 24px);
+  background-color: #444;
 }
 
 #home {
@@ -152,10 +161,13 @@ iframe.appWindow {
   background-color: #444;
   color: #fff;
   overflow: hidden;
+  position: relative;
+  z-index: 9999;
 }
 
 #statusbar > * {
   -moz-box-flex: 0;
+  pointer-events: none;
 }
 
 #statusbar > #padding {

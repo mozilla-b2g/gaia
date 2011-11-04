@@ -6,7 +6,6 @@
 const kAutoUnlock = false;
 
 var displayState;
-var lockScreen;
 
 // Change the display state (off, locked, default)
 function changeDisplayState(state) {
@@ -180,13 +179,13 @@ function IconGrid(canvas, iconWidth, iconHeight, border) {
   this.reflow(canvas.width, canvas.height, 0);
 
   // install event handlers
-  canvas.addEventListener('touchstart', this, true);
-  canvas.addEventListener('mousedown', this, true);
-  canvas.addEventListener('touchmove', this, true);
-  canvas.addEventListener('mousemove', this, true);
-  canvas.addEventListener('touchend', this, true);
-  canvas.addEventListener('mouseup', this, true);
-  canvas.addEventListener('mouseout', this, true);
+  var events = [
+    'touchstart', 'touchmove', 'touchend',
+    'mousedown', 'mousemove', 'mouseup'
+  ];
+  events.forEach((function(evt) {
+    canvas.addEventListener(evt, this, true);
+  }).bind(this));
   window.addEventListener('resize', this, true);
 }
 
@@ -293,15 +292,104 @@ IconGrid.prototype = {
   }
 }
 
+function NotificationScreen(screen, touchables) {
+  this.screen = screen;
+  this.touchables = touchables;
+
+  var events = [
+    'touchstart', 'touchmove', 'touchend',
+    'mousedown', 'mousemove', 'mouseup'
+  ];
+  events.forEach((function(evt) {
+    screen.addEventListener(evt, this, true);
+  }).bind(this));
+};
+
+NotificationScreen.prototype = {
+  get touchable() {
+    return this.touchables[this.locked ? 0 : 1];
+  },
+  get screenHeight() {
+    return this._screenHeight ||
+           (this._screenHeight = this.touchables[0].getBoundingClientRect().height);
+  },
+  onTouchStart: function(e) {
+    this.startX = e.pageX;
+    this.startY = e.pageY;
+  },
+  onTouchMove: function(e) {
+    var dy = -(this.startY - e.pageY);
+    if (this.locked)
+      dy = Math.min(this.screenHeight, dy + this.screenHeight);
+
+    var style = this.touchables[0].style;
+    style.MozTransition = '';
+    style.MozTransform = 'translateY(' + dy + 'px)';
+  },
+  onTouchEnd: function(e) {
+    var dy = -(this.startY - e.pageY);
+    var offset = this.locked ? this.screenHeight + dy
+                             : dy;
+    if (Math.abs(offset) > this.screenHeight/4)
+      this.lock();
+    else
+      this.unlock();
+  },
+  unlock: function() {
+    var style = this.touchables[0].style;
+    style.MozTransition = '-moz-transform 0.2s linear';
+    style.MozTransform = 'translateY(0)';
+    this.locked = false;
+  },
+  lock: function(dy) {
+    var style = this.touchables[0].style;
+    style.MozTransition = '-moz-transform 0.2s linear';
+    style.MozTransform = 'translateY(100%)';
+    this.locked = true;
+  },
+  handleEvent: function(evt) {
+    var target = evt.target;
+    switch (evt.type) {
+    case 'touchstart':
+    case 'mousedown':
+      if (target != this.touchable)
+        return;
+      this.active = true;
+      this.onTouchStart(evt.touches ? evt.touches[0] : evt);
+      break;
+    case 'touchmove':
+    case 'mousemove':
+      if (!this.active)
+        return;
+
+      this.onTouchMove(evt.touches ? evt.touches[0] : evt);
+      break;
+    case 'touchend':
+    case 'mouseup':
+    case 'mouseout':
+      if (!this.active)
+        return;
+      this.onTouchEnd(evt.touches ? evt.touches[0] : evt);
+      this.active = false;
+      break;
+    default:
+      return;
+    }
+
+    evt.preventDefault();
+    hideSourceViewer();
+  }
+};
+
 function LockScreen(overlay) {
   this.overlay = overlay;
-  overlay.addEventListener('touchstart', this, true);
-  overlay.addEventListener('mousedown', this, true);
-  overlay.addEventListener('touchmove', this, true);
-  overlay.addEventListener('mousemove', this, true);
-  overlay.addEventListener('touchend', this, true);
-  overlay.addEventListener('mouseup', this, true);
-  overlay.addEventListener('mouseout', this, true);
+  var events = [
+    'touchstart', 'touchmove', 'touchend',
+    'mousedown', 'mousemove', 'mouseup'
+  ];
+  events.forEach((function(evt) {
+    overlay.addEventListener(evt, this, true);
+  }).bind(this));
 }
 
 LockScreen.prototype = {
@@ -368,8 +456,14 @@ LockScreen.prototype = {
 }
 
 function OnLoad() {
-  lockScreen = new LockScreen(document.getElementById('lockscreen'));
+  var lockScreen = new LockScreen(document.getElementById('lockscreen'));
   kAutoUnlock ? lockScreen.unlock(-1) : lockScreen.lock();
+
+  var touchables = [
+    document.getElementById('notificationsScreen'),
+    document.getElementById('statusbar')
+  ];
+  new NotificationScreen(document.getElementById('screen'), touchables);
 
   var fruits = [
     { label: 'Phone', src: 'images/Phone.png',
