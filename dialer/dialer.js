@@ -119,7 +119,6 @@ var KeyHandler = {
       var rect = div.getBoundingClientRect();
       if (rect.width > windowWidth) {
         fontSize = Math.max(fontSize - kFontStep, kMinFontSize);
-        console.log(fontSize);
       } else if (fontSize < kDefaultFontSize) {
         div.style.fontSize = (fontSize + kFontStep) + 'px';
         rect = div.getBoundingClientRect();
