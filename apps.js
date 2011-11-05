@@ -44,12 +44,12 @@ var TouchHandler = {
            'mousedown', 'mousemove', 'mouseup'],
   start: function th_start() {
     this.events.forEach((function(evt) {
-      window.addEventListener(evt, this, true);
+      window.addEventListener(evt, this);
     }).bind(this));
   },
   stop: function th_stop() {
     this.events.forEach((function(evt) {
-      window.removeEventListener(evt, this, true);
+      window.removeEventListener(evt, this);
     }).bind(this));
   },
   onTouchStart: function th_touchStart(evt) {
