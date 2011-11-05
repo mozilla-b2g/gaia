@@ -194,7 +194,7 @@ textarea:focus {
 }
 
 #text-container {
-  width: -moz-calc(100% - 0.8mozmm);
+  width: 100%;
   position: absolute;
   bottom: 0px;
   background: grey;
