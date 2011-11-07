@@ -50,12 +50,13 @@
 
 .browser-button {
   display: block;
-  padding: 0 8px;
+  margin: 10px 0;
+  width: 40px;
+  height: 40px;
 }
 
 #browser-go-button {
-  width: 56px;
-  height: 40px;
+  margin: 0 4px;
 }
 
 #browser-iframe {
