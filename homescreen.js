@@ -294,17 +294,9 @@ IconGrid.prototype = {
   }
 }
 
-function NotificationScreen(screen, touchables) {
-  this.screen = screen;
+function NotificationScreen(touchables) {
   this.touchables = touchables;
-
-  var events = [
-    'touchstart', 'touchmove', 'touchend',
-    'mousedown', 'mousemove', 'mouseup'
-  ];
-  events.forEach((function(evt) {
-    screen.addEventListener(evt, this, true);
-  }).bind(this));
+  this.attachEvents(this.touchable);
 };
 
 NotificationScreen.prototype = {
@@ -349,6 +341,20 @@ NotificationScreen.prototype = {
     style.MozTransform = 'translateY(100%)';
     this.locked = true;
   },
+  events: [
+    'touchstart', 'touchmove', 'touchend',
+    'mousedown', 'mousemove', 'mouseup'
+  ],
+  attachEvents: function ns_attachEvents(view) {
+    this.events.forEach((function(evt) {
+      window.addEventListener(evt, this, true);
+    }).bind(this));
+  },
+  detachEvents: function ns_detachEvents() {
+    this.events.forEach((function(evt) {
+      window.removeEventListener(evt, this, true);
+    }).bind(this));
+  },
   handleEvent: function(evt) {
     var target = evt.target;
     switch (evt.type) {
@@ -357,6 +363,8 @@ NotificationScreen.prototype = {
       if (target != this.touchable)
         return;
       this.active = true;
+      
+      target.setCapture(this);
       this.onTouchStart(evt.touches ? evt.touches[0] : evt);
       break;
     case 'touchmove':
@@ -371,8 +379,10 @@ NotificationScreen.prototype = {
     case 'mouseout':
       if (!this.active)
         return;
-      this.onTouchEnd(evt.touches ? evt.touches[0] : evt);
       this.active = false;
+
+      document.releaseCapture();
+      this.onTouchEnd(evt.touches ? evt.touches[0] : evt);
       break;
     default:
       return;
@@ -465,7 +475,7 @@ function OnLoad() {
     document.getElementById('notificationsScreen'),
     document.getElementById('statusbar')
   ];
-  new NotificationScreen(document.getElementById('screen'), touchables);
+  new NotificationScreen(touchables);
 
   var fruits = [
     { label: 'Phone', src: 'images/Phone.png',
