@@ -525,7 +525,7 @@ function updateBattery() {
       fuel.className = 'charging';
       charging.visible = true;
     } else {
-      var level = battery.level;
+      var level = battery.level * 100;
       fuel.style.width = (level / 4) + 'px';
       if (level <= 5)
         fuel.className = 'critical';
