@@ -256,7 +256,9 @@ IconGrid.prototype = {
   tap: function(x, y) {
     this.sceneGraph.forHit(
       x, y,
-      function(sprite) { openApplication(sprite.icon.url); });
+      function(sprite) {
+        WindowManager.open(sprite.icon.url);
+      });
   },
   handleEvent: function(e) {
     var physics = this.physics;
@@ -512,6 +514,14 @@ function OnLoad() {
 }
 
 var WindowManager = {
+  get currentView() {
+    var currentFrame = this.windows.lastElementChild;
+    return currentFrame ? currentFrame.contentWindow : window;
+  },
+  get windows() {
+    delete this.windows;
+    return this.windows = document.getElementById('windows');
+  },
   start: function wm_start() {
     window.addEventListener('appclose', this, true);
   },
@@ -519,7 +529,7 @@ var WindowManager = {
   handleEvent: function wm_handleEvent(evt) {
     switch (evt.type) {
       case 'appclose':
-        var windows = document.getElementById('windows');
+        var windows = this.windows;
         if (windows.childElementCount < 1)
           return;
 
@@ -547,36 +557,36 @@ var WindowManager = {
         throw new Error('Unhandled event in WindowManager');
         break;
     }
-  }
-};
+  },
 
-// open the application referred to by |url| into a new window, or
-// bring its window to front if already open.
-function openApplication(url) {
-  // TODO
-  //var existingWindow = document.querySelector('#windows > ...');
+  // open the application referred to by |url| into a new window, or
+  // bring its window to front if already open.
+  open: function wm_open(url) {
+    // TODO
+    //var existingWindow = document.querySelector('#windows > ...');
 
-  var newWindow = document.createElement('iframe');
-  newWindow.className = 'appWindow';
-  // XXX need to decide whether to try to load this during animation
-  newWindow.src = url;
+    var newWindow = document.createElement('iframe');
+    newWindow.className = 'appWindow';
 
-  // animate the window opening
-  newWindow.classList.toggle('animateOpening');
+    // animate the window opening
+    newWindow.classList.toggle('animateOpening');
 
-  var windows = document.getElementById('windows');
-  windows.removeAttribute('hidden');
-  windows.appendChild(newWindow);
+    var windows = this.windows;
+    windows.removeAttribute('hidden');
+    windows.appendChild(newWindow);
 
-  window.addEventListener(
-    'animationend',
-    function listener() {
+    window.addEventListener('animationend', function listener() {
       window.removeEventListener('animationend', listener, false);
       newWindow.classList.toggle('animateOpening');
+      newWindow.src = url;
       newWindow.focus();
-    },
-    false);
-}
+
+      var event = document.createEvent('UIEvents');
+      event.initUIEvent('appopen', true, true, newWindow.contentWindow, 0);
+      window.dispatchEvent(event);
+    }, false);
+  }
+};
 
 // Update the clock and schedule a new update if appropriate
 function updateClock() {
