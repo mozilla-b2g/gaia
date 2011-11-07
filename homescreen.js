@@ -314,7 +314,8 @@ NotificationScreen.prototype = {
   onTouchMove: function(e) {
     var dy = -(this.startY - e.pageY);
     if (this.locked)
-      dy = Math.min(this.screenHeight, dy + this.screenHeight);
+      dy += this.screenHeight;
+    dy = Math.min(this.screenHeight, dy);
 
     var style = this.touchables[0].style;
     style.MozTransition = '';
