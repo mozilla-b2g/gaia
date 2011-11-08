@@ -256,7 +256,9 @@ IconGrid.prototype = {
   tap: function(x, y) {
     this.sceneGraph.forHit(
       x, y,
-      function(sprite) { openApplication(sprite.icon.url); });
+      function(sprite) {
+        WindowManager.open(sprite.icon.url);
+      });
   },
   handleEvent: function(e) {
     var physics = this.physics;
@@ -292,17 +294,9 @@ IconGrid.prototype = {
   }
 }
 
-function NotificationScreen(screen, touchables) {
-  this.screen = screen;
+function NotificationScreen(touchables) {
   this.touchables = touchables;
-
-  var events = [
-    'touchstart', 'touchmove', 'touchend',
-    'mousedown', 'mousemove', 'mouseup'
-  ];
-  events.forEach((function(evt) {
-    screen.addEventListener(evt, this, true);
-  }).bind(this));
+  this.attachEvents(this.touchable);
 };
 
 NotificationScreen.prototype = {
@@ -320,7 +314,8 @@ NotificationScreen.prototype = {
   onTouchMove: function(e) {
     var dy = -(this.startY - e.pageY);
     if (this.locked)
-      dy = Math.min(this.screenHeight, dy + this.screenHeight);
+      dy += this.screenHeight;
+    dy = Math.min(this.screenHeight, dy);
 
     var style = this.touchables[0].style;
     style.MozTransition = '';
@@ -347,6 +342,20 @@ NotificationScreen.prototype = {
     style.MozTransform = 'translateY(100%)';
     this.locked = true;
   },
+  events: [
+    'touchstart', 'touchmove', 'touchend',
+    'mousedown', 'mousemove', 'mouseup'
+  ],
+  attachEvents: function ns_attachEvents(view) {
+    this.events.forEach((function(evt) {
+      window.addEventListener(evt, this, true);
+    }).bind(this));
+  },
+  detachEvents: function ns_detachEvents() {
+    this.events.forEach((function(evt) {
+      window.removeEventListener(evt, this, true);
+    }).bind(this));
+  },
   handleEvent: function(evt) {
     var target = evt.target;
     switch (evt.type) {
@@ -355,6 +364,8 @@ NotificationScreen.prototype = {
       if (target != this.touchable)
         return;
       this.active = true;
+      
+      target.setCapture(this);
       this.onTouchStart(evt.touches ? evt.touches[0] : evt);
       break;
     case 'touchmove':
@@ -369,8 +380,10 @@ NotificationScreen.prototype = {
     case 'mouseout':
       if (!this.active)
         return;
-      this.onTouchEnd(evt.touches ? evt.touches[0] : evt);
       this.active = false;
+
+      document.releaseCapture();
+      this.onTouchEnd(evt.touches ? evt.touches[0] : evt);
       break;
     default:
       return;
@@ -463,7 +476,7 @@ function OnLoad() {
     document.getElementById('notificationsScreen'),
     document.getElementById('statusbar')
   ];
-  new NotificationScreen(document.getElementById('screen'), touchables);
+  new NotificationScreen(touchables);
 
   var fruits = [
     { label: 'Phone', src: 'images/Phone.png',
@@ -512,6 +525,14 @@ function OnLoad() {
 }
 
 var WindowManager = {
+  get currentView() {
+    var currentFrame = this.windows.lastElementChild;
+    return currentFrame ? currentFrame.contentWindow : window;
+  },
+  get windows() {
+    delete this.windows;
+    return this.windows = document.getElementById('windows');
+  },
   start: function wm_start() {
     window.addEventListener('appclose', this, true);
   },
@@ -519,7 +540,7 @@ var WindowManager = {
   handleEvent: function wm_handleEvent(evt) {
     switch (evt.type) {
       case 'appclose':
-        var windows = document.getElementById('windows');
+        var windows = this.windows;
         if (windows.childElementCount < 1)
           return;
 
@@ -547,36 +568,36 @@ var WindowManager = {
         throw new Error('Unhandled event in WindowManager');
         break;
     }
-  }
-};
+  },
 
-// open the application referred to by |url| into a new window, or
-// bring its window to front if already open.
-function openApplication(url) {
-  // TODO
-  //var existingWindow = document.querySelector('#windows > ...');
+  // open the application referred to by |url| into a new window, or
+  // bring its window to front if already open.
+  open: function wm_open(url) {
+    // TODO
+    //var existingWindow = document.querySelector('#windows > ...');
 
-  var newWindow = document.createElement('iframe');
-  newWindow.className = 'appWindow';
-  // XXX need to decide whether to try to load this during animation
-  newWindow.src = url;
+    var newWindow = document.createElement('iframe');
+    newWindow.className = 'appWindow';
 
-  // animate the window opening
-  newWindow.classList.toggle('animateOpening');
+    // animate the window opening
+    newWindow.classList.toggle('animateOpening');
 
-  var windows = document.getElementById('windows');
-  windows.removeAttribute('hidden');
-  windows.appendChild(newWindow);
+    var windows = this.windows;
+    windows.removeAttribute('hidden');
+    windows.appendChild(newWindow);
 
-  window.addEventListener(
-    'animationend',
-    function listener() {
+    window.addEventListener('animationend', function listener() {
       window.removeEventListener('animationend', listener, false);
       newWindow.classList.toggle('animateOpening');
+      newWindow.src = url;
       newWindow.focus();
-    },
-    false);
-}
+
+      var event = document.createEvent('UIEvents');
+      event.initUIEvent('appopen', true, true, newWindow.contentWindow, 0);
+      window.dispatchEvent(event);
+    }, false);
+  }
+};
 
 // Update the clock and schedule a new update if appropriate
 function updateClock() {
