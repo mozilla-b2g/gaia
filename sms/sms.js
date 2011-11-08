@@ -153,7 +153,7 @@ var MessageView = {
     var url = 'sms/sms_conversation.html';
     if (num && num != '*')
       url += '?' + num;
-    window.top.openApplication(url);
+    window.parent.WindowManager.open(url);
   },
 
   get view() {
