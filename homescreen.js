@@ -265,6 +265,7 @@ IconGrid.prototype = {
     switch (e.type) {
     case 'touchstart':
     case 'mousedown':
+      this.canvas.setCapture(false);
       physics.onTouchStart(e.touches ? e.touches[0] : e);
       break;
     case 'touchmove':
@@ -273,7 +274,7 @@ IconGrid.prototype = {
       break;
     case 'touchend':
     case 'mouseup':
-    case 'mouseout':
+      document.releaseCapture();
       physics.onTouchEnd(e.touches ? e.touches[0] : e);
       break;
     case 'resize':
@@ -377,7 +378,6 @@ NotificationScreen.prototype = {
       break;
     case 'touchend':
     case 'mouseup':
-    case 'mouseout':
       if (!this.active)
         return;
       this.active = false;
@@ -451,6 +451,7 @@ LockScreen.prototype = {
     case 'touchstart':
     case 'mousedown':
       this.onTouchStart(e.touches ? e.touches[0] : e);
+      this.overlay.setCapture(false);
       break;
     case 'touchmove':
     case 'mousemove':
@@ -458,8 +459,8 @@ LockScreen.prototype = {
       break;
     case 'touchend':
     case 'mouseup':
-    case 'mouseout':
       this.onTouchEnd(e.touches ? e.touches[0] : e);
+      document.releaseCapture();
       break;
     default:
       return;
