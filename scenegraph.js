@@ -3,8 +3,8 @@
 
 'use strict';
 
-/*const*/var kUseGL = 1;
-/*const*/var kSnapToWholePixels = !kUseGL;
+const kUseGL = true;
+const kSnapToWholePixels = !kUseGL;
 
 function abort(why) { alert(why); throw why; }
 function assert(cond, msg) { if (!cond) abort(msg); }
@@ -112,12 +112,11 @@ function SceneGraph(canvas) {
     kUseGL ? new SpriteBlitterGL(canvas) : new SpriteBlitter2D(canvas);
   this.canvas = canvas;
   this.sprites = [];
-  this.background = null;
   this.x = 0;
   this.y = 0;
 
   var self = this;
-  window.addEventListener("MozBeforePaint", function(event) {
+  window.addEventListener('MozBeforePaint', function(event) {
       var now = GetAnimationClockTime();
       // continue painting until we are run out of animations
       if (self.animate(now))
@@ -187,17 +186,6 @@ SceneGraph.prototype = {
       }
     }
   },
-  setBackground: function(imageUrl) {
-    var bgImg = document.createElement('img');
-    bgImg.src = imageUrl;
-    bgImg.sceneGraph = this;
-    bgImg.onload = function() {
-      var sceneGraph = this.sceneGraph;
-      sceneGraph.background = this;
-      sceneGraph.blitter.backgroundChanged(this);
-      RequestAnimationFrame();
-    };
-  },
   setViewportTopLeft: function(targetX, targetY, duration, fn) {
     RequestAnimationFrame();
     if (duration && (this.x != targetX || this.y != targetY)) {
@@ -218,18 +206,16 @@ SceneGraph.prototype = {
 
 // fallback 2D canvas backend
 function SpriteBlitter2D(canvas) {
-  this.background = 'black';
   this.canvas = canvas;
   this.ctx = canvas.getContext('2d');
 }
 SpriteBlitter2D.prototype = {
-draw: function(x, y, sprites, background) {
+draw: function(x, y, sprites) {
     var canvas = this.canvas;
     var ctx = this.ctx;
     var width = canvas.width;
     var height = canvas.height;
-    ctx.fillStyle = this.background;
-    ctx.fillRect(0, 0, width, height);
+    ctx.clearRect(0, 0, width, height);
     for (var n = 0; n < sprites.length; ++n) {
       var sprite = sprites[n];
       var canvas = sprite.canvas;
@@ -238,9 +224,6 @@ draw: function(x, y, sprites, background) {
         ctx.drawImage(canvas, sprite.x - x, sprite.y - y, canvas.width * scale, canvas.height * scale);
       }
     }    
-  },
-  backgroundChanged: function(background) {
-    this.background = this.ctx.createPattern(background, 'repeat');
   },
   // nothing to do here
   spriteAdded: function(sprite) {},
@@ -260,7 +243,7 @@ var kVertexShader = [
   '  vec4 transformedPos = vec4(aPosAndTexCoord.x, aPosAndTexCoord.y, 0.0, 1.0);',
   '  gl_Position = uProjection * transformedPos;',
   '}'
-].join("\n");
+].join('\n');
 
 var kFragmentShader = [
   '#ifdef GL_ES',
@@ -275,7 +258,7 @@ var kFragmentShader = [
   '  texColor = texture2D(uTexture, vTexCoord);',
   '  gl_FragColor = texColor;',
   '}'
-].join("\n");
+].join('\n');
 
 var kMaxTextureSize = 0;
 
@@ -307,7 +290,7 @@ function SpriteBlitterGL(canvas) {
   program.uProjection = gl.getUniformLocation(program, 'uProjection');
   program.uTexture = gl.getUniformLocation(program, 'uTexture');
 
-  gl.clearColor(0.0, 0.0, 0.0, 1.0);
+  gl.clearColor(0.0, 0.0, 0.0, 0.0);
 }
 SpriteBlitterGL.prototype = {
   draw: function(x, y, sprites) {
@@ -334,14 +317,10 @@ SpriteBlitterGL.prototype = {
     var translateX = x;
     var translateY = y;
 
-    for (var n = 0; n < sprites.length; ++n) {
-      var sprite = sprites[n];
-      var canvas = sprite.canvas;
-      var scale = sprite.scale;
-      var x = (sprite.x - translateX) / viewportWidth;
-      var y = (sprite.y - translateY) / viewportHeight;
-      var width = canvas.width * scale;
-      var height = canvas.height * scale;
+    // Draw a quad at <x, y, width, height> textured by |texture|.
+    function drawTexturedQuad(texture, x, y, width, height) {
+      x /= viewportWidth;
+      y /= viewportHeight;
       var xmost = x + width / viewportWidth;
       var ymost = y + height / viewportHeight;
 
@@ -368,7 +347,7 @@ SpriteBlitterGL.prototype = {
       posAndTexCoordArray[i++] = 1;
 
       gl.activeTexture(gl.TEXTURE0);
-      gl.bindTexture(gl.TEXTURE_2D, sprite.texture);
+      gl.bindTexture(gl.TEXTURE_2D, texture);
 
       gl.bindBuffer(gl.ARRAY_BUFFER, posAndTexCoordBuffer);
       gl.bufferData(gl.ARRAY_BUFFER, posAndTexCoordArray, gl.STREAM_DRAW);
@@ -376,10 +355,19 @@ SpriteBlitterGL.prototype = {
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
     }
 
+    for (var n = 0; n < sprites.length; ++n) {
+      var sprite = sprites[n];
+      var canvas = sprite.canvas;
+      var scale = sprite.scale;
+      var left = sprite.x - translateX;
+      var top = sprite.y - translateY;
+      var width = canvas.width * scale;
+      var height = canvas.height * scale;
+
+      drawTexturedQuad(sprite.texture, left, top, width, height);
+    }
+
     gl.bindTexture(gl.TEXTURE_2D, null);
-  },
-  backgroundChanged: function(background) {
-    // TODO
   },
   spriteAdded: function(sprite) {
     if (('texture' in sprite) && sprite.texture !== null)
@@ -388,7 +376,7 @@ SpriteBlitterGL.prototype = {
     var canvas = sprite.canvas;
     assert(canvas.width <= this.maxTextureSize
            && canvas.height <= this.maxTextureSize,
-           "Sprite canvas must be smaller than max texture dimension");
+           'Sprite canvas must be smaller than max texture dimension');
     var gl = this.gl;
     var texture = sprite.texture = gl.createTexture();
 
@@ -414,7 +402,7 @@ function compileGLProgram(gl, vxShader, pixShader) {
     gl.shaderSource(shader, source);
     gl.compileShader(shader);
     assert(gl.getShaderParameter(shader, gl.COMPILE_STATUS),
-           "Compile error for "+ type +": "+ gl.getShaderInfoLog(shader));
+           'Compile error for ' + type + ': ' + gl.getShaderInfoLog(shader));
     return shader;
   }
 
@@ -427,7 +415,7 @@ function compileGLProgram(gl, vxShader, pixShader) {
 
   if (!gl.getProgramParameter(p, gl.LINK_STATUS))
     // FIXME fall back on 2d
-    abort("Failed to compile shaders.");
+    abort('Failed to compile shaders.');
 
   return p;
 }
