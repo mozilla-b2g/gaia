@@ -115,7 +115,7 @@ if (!('mozSms' in navigator)) {
     } 
     var event = document.createEvent('CustomEvent');
     event.initCustomEvent('smssent', true, false, message);
-    var windows = window.top.document.getElementById('windows');
+    var windows = window.parent.document.getElementById('windows');
     parentWindow = windows.lastChild.previousSibling.contentWindow;
     setTimeout(function(evt) {
       parentWindow.dispatchEvent(event);
