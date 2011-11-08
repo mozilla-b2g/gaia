@@ -4,8 +4,14 @@ html, body {
   overflow: hidden;
   margin: 0;
   -moz-user-select: none;
-  font-size: 18px;
+  font-size: 2.5mozmm;
   color: white;
+}
+
+@media all and (min-resolution: 200dpi) {
+  html, body {
+    font-size: 2mozmm;
+  }
 }
 
 body {
@@ -83,7 +89,7 @@ body {
 
 #keyboard-container {
   position: absolute;
-  bottom: 0px;
+  bottom: 0;
 }
 
 .keyboard-row {
@@ -167,9 +173,9 @@ body {
   line-height: 2em;
 }
 
-@media all and (max-height: 699px) {
+@media screen and (min-width: 481px) and (orientation: landscape) {
   body {
-    font-size: 14px;
+    font-size: 1.5mozmm;
   }
 
   #phoneNumberView {

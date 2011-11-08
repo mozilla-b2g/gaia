@@ -12,7 +12,7 @@ var Apps = {
 
         var event = document.createEvent('UIEvents');
         event.initUIEvent('appclose', true, true, window, 0);
-        window.top.dispatchEvent(event);
+        window.parent.dispatchEvent(event);
         break;
       case 'unload':
         this.uninit();
@@ -41,7 +41,7 @@ var Apps = {
 
 var TouchHandler = {
   events: ['touchstart', 'touchmove', 'touchend',
-           'mousedown', 'mousemove', 'mouseup'],
+           'mousedown', 'mousemove', 'mouseup', 'mouseout'],
   start: function th_start() {
     this.events.forEach((function(evt) {
       window.addEventListener(evt, this);
@@ -92,7 +92,7 @@ var TouchHandler = {
         if (!this.target)
           break;
 
-        var touchEvent =evt.touches ? evt.touches[0] : evt;
+        var touchEvent = evt.touches ? evt.touches[0] : evt;
         if (!this.panning) {
           var pan = this.isPan(evt.pageX, evt.pageY, this.startX, this.startY);
           if (pan) {
@@ -100,6 +100,7 @@ var TouchHandler = {
             this.startX = this.lastX = touchEvent.pageX;
             this.startY = this.lastY = touchEvent.pageY;
             this.target.setAttribute('panning', true);
+            this.target.setCapture(false);
           }
         }
         this.onTouchMove(touchEvent);
@@ -111,6 +112,7 @@ var TouchHandler = {
           return;
 
         if (this.panning) {
+          document.releaseCapture();
           this.target.removeAttribute('panning');
           this.panning = null;
           this.onTouchEnd(evt.touches ? evt.touches[0] : evt);
