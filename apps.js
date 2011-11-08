@@ -41,7 +41,7 @@ var Apps = {
 
 var TouchHandler = {
   events: ['touchstart', 'touchmove', 'touchend',
-           'mousedown', 'mousemove', 'mouseup', 'mouseout'],
+           'mousedown', 'mousemove', 'mouseup'],
   start: function th_start() {
     this.events.forEach((function(evt) {
       window.addEventListener(evt, this);
