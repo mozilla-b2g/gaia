@@ -3,6 +3,23 @@
 
 'use strict';
 
+const kAutoUnlock = false;
+
+var displayState;
+
+// Change the display state (off, locked, default)
+function changeDisplayState(state) {
+  displayState = state;
+
+  // update clock and battery status (if needed)
+  updateClock();
+  updateBattery();
+
+  // Make sure the source viewer is not visible.
+  if (state == 'locked')
+    hideSourceViewer();
+}
+
 function createPhysicsFor(iconGrid) {
   return new DefaultPhysics(iconGrid);
 }
@@ -15,6 +32,8 @@ function DefaultPhysics(iconGrid) {
 
 DefaultPhysics.prototype = {
   onTouchStart: function(e) {
+    hideSourceViewer();
+
     var touchState = this.touchState;
     this.moved = false;
     touchState.active = true;
@@ -46,11 +65,22 @@ DefaultPhysics.prototype = {
     var dir = (diffX > 0) ? -1 : 1;
 
     var quick = (e.timeStamp - touchState.startTime < 200);
+    var long = (e.timeStamp - touchState.startTime > 2000);
     var small = Math.abs(diffX) < 10;
 
     var flick = quick && !small;
     var tap = !this.moved && small;
     var drag = !quick;
+
+    if (!this.moved && long) {
+      var doc = e.target.ownerDocument || window.document;
+      var url = doc.URL;
+
+      var viewsource = document.getElementById('viewsource');
+      viewsource.style.visibility = 'visible';
+      viewsource.src = 'view-source: ' + url;
+      return;
+    }
 
     var iconGrid = this.iconGrid;
     var currentPage = iconGrid.currentPage
@@ -67,6 +97,10 @@ DefaultPhysics.prototype = {
     }
   }
 };
+
+function hideSourceViewer() {
+  document.getElementById('viewsource').style.visibility = 'hidden';
+}
 
 function Icon(iconGrid, index) {
   this.iconGrid = iconGrid;
@@ -95,10 +129,10 @@ Icon.prototype = {
     ctx.drawImage(img, iconWidth * border, iconHeight * border,
                   iconWidth * (1 - border * 2),
                   iconHeight * (1 - border * 2));
-    ctx.font = Math.floor(iconHeight * border * 0.6) + "pt Arial, sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillStyle = "white";
-    ctx.textBaseline = "top";
+    ctx.font = Math.floor(iconHeight * border * 0.6) + 'pt Roboto, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'white';
+    ctx.textBaseline = 'top';
     ctx.fillText(label, iconWidth/2, iconHeight - iconHeight*border, iconWidth*0.9);
     if (createSprite)
       sceneGraph.add(sprite);
@@ -130,9 +164,8 @@ Icon.prototype = {
   }
 }
 
-function IconGrid(canvas, background, iconWidth, iconHeight, border) {
+function IconGrid(canvas, iconWidth, iconHeight, border) {
   this.canvas = canvas;
-  canvas.mozOpaque = true;
 
   this.iconWidth = iconWidth;
   this.iconHeight = iconHeight;
@@ -142,21 +175,18 @@ function IconGrid(canvas, background, iconWidth, iconHeight, border) {
   this.currentPage = 0;
   this.physics = createPhysicsFor(this);
 
-  // add the background image
-  this.sceneGraph.setBackground(background);
-
   // update the layout state
   this.reflow(canvas.width, canvas.height, 0);
 
   // install event handlers
-  canvas.addEventListener("touchstart", this, true);
-  canvas.addEventListener("mousedown", this, true);
-  canvas.addEventListener("touchmove", this, true);
-  canvas.addEventListener("mousemove", this, true);
-  canvas.addEventListener("touchend", this, true);
-  canvas.addEventListener("mouseup", this, true);
-  canvas.addEventListener("mouseout", this, true);
-  window.addEventListener("resize", this, true);
+  var events = [
+    'touchstart', 'touchmove', 'touchend',
+    'mousedown', 'mousemove', 'mouseup'
+  ];
+  events.forEach((function(evt) {
+    canvas.addEventListener(evt, this, true);
+  }).bind(this));
+  window.addEventListener('resize', this, true);
 }
 
 IconGrid.prototype = {
@@ -226,7 +256,9 @@ IconGrid.prototype = {
   tap: function(x, y) {
     this.sceneGraph.forHit(
       x, y,
-      function(sprite) { openApplication(sprite.icon.url); });
+      function(sprite) {
+        WindowManager.open(sprite.icon.url);
+      });
   },
   handleEvent: function(e) {
     var physics = this.physics;
@@ -244,7 +276,7 @@ IconGrid.prototype = {
     case 'mouseout':
       physics.onTouchEnd(e.touches ? e.touches[0] : e);
       break;
-    case "resize":
+    case 'resize':
       var canvas = this.canvas;
       var width = canvas.width = window.innerWidth;
       // TODO Substract the height of the statusbar
@@ -255,16 +287,202 @@ IconGrid.prototype = {
       }
       this.reflow(width, height, 0);
       break;
+    default:
+      return;
     }
+    e.preventDefault();
+  }
+}
+
+function NotificationScreen(touchables) {
+  this.touchables = touchables;
+  this.attachEvents(this.touchable);
+};
+
+NotificationScreen.prototype = {
+  get touchable() {
+    return this.touchables[this.locked ? 0 : 1];
+  },
+  get screenHeight() {
+    return this._screenHeight ||
+           (this._screenHeight = this.touchables[0].getBoundingClientRect().height);
+  },
+  onTouchStart: function(e) {
+    this.startX = e.pageX;
+    this.startY = e.pageY;
+  },
+  onTouchMove: function(e) {
+    var dy = -(this.startY - e.pageY);
+    if (this.locked)
+      dy += this.screenHeight;
+    dy = Math.min(this.screenHeight, dy);
+
+    var style = this.touchables[0].style;
+    style.MozTransition = '';
+    style.MozTransform = 'translateY(' + dy + 'px)';
+  },
+  onTouchEnd: function(e) {
+    var dy = -(this.startY - e.pageY);
+    var offset = this.locked ? this.screenHeight + dy
+                             : dy;
+    if (Math.abs(offset) > this.screenHeight/4)
+      this.lock();
+    else
+      this.unlock();
+  },
+  unlock: function() {
+    var style = this.touchables[0].style;
+    style.MozTransition = '-moz-transform 0.2s linear';
+    style.MozTransform = 'translateY(0)';
+    this.locked = false;
+  },
+  lock: function(dy) {
+    var style = this.touchables[0].style;
+    style.MozTransition = '-moz-transform 0.2s linear';
+    style.MozTransform = 'translateY(100%)';
+    this.locked = true;
+  },
+  events: [
+    'touchstart', 'touchmove', 'touchend',
+    'mousedown', 'mousemove', 'mouseup'
+  ],
+  attachEvents: function ns_attachEvents(view) {
+    this.events.forEach((function(evt) {
+      window.addEventListener(evt, this, true);
+    }).bind(this));
+  },
+  detachEvents: function ns_detachEvents() {
+    this.events.forEach((function(evt) {
+      window.removeEventListener(evt, this, true);
+    }).bind(this));
+  },
+  handleEvent: function(evt) {
+    var target = evt.target;
+    switch (evt.type) {
+    case 'touchstart':
+    case 'mousedown':
+      if (target != this.touchable)
+        return;
+      this.active = true;
+      
+      target.setCapture(this);
+      this.onTouchStart(evt.touches ? evt.touches[0] : evt);
+      break;
+    case 'touchmove':
+    case 'mousemove':
+      if (!this.active)
+        return;
+
+      this.onTouchMove(evt.touches ? evt.touches[0] : evt);
+      break;
+    case 'touchend':
+    case 'mouseup':
+    case 'mouseout':
+      if (!this.active)
+        return;
+      this.active = false;
+
+      document.releaseCapture();
+      this.onTouchEnd(evt.touches ? evt.touches[0] : evt);
+      break;
+    default:
+      return;
+    }
+
+    evt.preventDefault();
+    hideSourceViewer();
+  }
+};
+
+function LockScreen(overlay) {
+  this.overlay = overlay;
+  var events = [
+    'touchstart', 'touchmove', 'touchend',
+    'mousedown', 'mousemove', 'mouseup'
+  ];
+  events.forEach((function(evt) {
+    overlay.addEventListener(evt, this, true);
+  }).bind(this));
+}
+
+LockScreen.prototype = {
+  onTouchStart: function(e) {
+    this.startX = e.pageX;
+    this.startY = e.pageY;
+    this.moving = true;
+  },
+  onTouchMove: function(e) {
+    if (this.moving) {
+      var dy = -(this.startY - e.pageY);
+      var style = this.overlay.style;
+      style.MozTransition = '';
+      style.MozTransform = 'translateY(' + dy + 'px)';
+    }
+  },
+  onTouchEnd: function(e) {
+    if (this.moving) {
+      this.moving = false;
+      var dy = -(this.startY - e.pageY);
+      if (Math.abs(dy) < window.innerHeight/4)
+        this.lock();
+      else
+        this.unlock(dy);
+    }
+  },
+  unlock: function(direction) {
+    var offset = '100%';
+    if (direction < 0)
+      offset = '-' + offset;
+    var style = this.overlay.style;
+    style.MozTransition = '-moz-transform 0.2s linear';
+    style.MozTransform = 'translateY(' + offset + ')';
+    changeDisplayState('unlocked');
+  },
+  lock: function() {
+    var style = this.overlay.style;
+    style.MozTransition = '-moz-transform 0.2s linear';
+    style.MozTransform = 'translateY(0)';
+    changeDisplayState('locked');
+  },
+  handleEvent: function(e) {
+    hideSourceViewer();
+
+    switch (e.type) {
+    case 'touchstart':
+    case 'mousedown':
+      this.onTouchStart(e.touches ? e.touches[0] : e);
+      break;
+    case 'touchmove':
+    case 'mousemove':
+      this.onTouchMove(e.touches ? e.touches[0] : e);
+      break;
+    case 'touchend':
+    case 'mouseup':
+    case 'mouseout':
+      this.onTouchEnd(e.touches ? e.touches[0] : e);
+      break;
+    default:
+      return;
+    }
+    e.preventDefault();
   }
 }
 
 function OnLoad() {
+  var lockScreen = new LockScreen(document.getElementById('lockscreen'));
+  kAutoUnlock ? lockScreen.unlock(-1) : lockScreen.lock();
+
+  var touchables = [
+    document.getElementById('notificationsScreen'),
+    document.getElementById('statusbar')
+  ];
+  new NotificationScreen(touchables);
+
   var fruits = [
     { label: 'Phone', src: 'images/Phone.png',
       url: 'dialer/dialer.html' },
     { label: 'Messages', src: 'images/Messages.png',
-      url: 'data:text/html,<font color="blue">Hello' },
+      url: 'sms/sms.html' },
     { label: 'Calendar', src: 'images/Calendar.png',
       url: 'data:text/html,<font color="blue">Hello' },
     { label: 'Gallery', src: 'images/Gallery.png',
@@ -280,7 +498,7 @@ function OnLoad() {
     { label: 'Books', src: 'images/Books.png',
       url: 'data:text/html,<font color="blue">Hello' },
     { label: 'Browser', src: 'images/Browser.png',
-      url: 'data:text/html,<font color="blue">Hello' },
+      url: 'browser/browser.html' },
     { label: 'Music', src: 'images/Music.png',
       url: 'data:text/html,<font color="blue">Hello' }
   ];
@@ -291,100 +509,150 @@ function OnLoad() {
     for (var n = 0; n < fruits.length; ++n)
       icons.push(fruits[n]);
 
-  var iconGrid = new IconGrid(document.getElementById("homeCanvas"),
-                              "images/background.png",
-                              120, 120, 0.2);
+  var screen = document.getElementById('screen');
+  var screenRect = screen.getBoundingClientRect();
+  var screenWidth = screenRect.right - screenRect.left;
+  var screenHeight = screenRect.bottom - screenRect.top;
+  var canvas = document.getElementById('homeCanvas');
+  var width = canvas.width = screenWidth;
+  var height = canvas.height = screenHeight - 24;
+
+  var iconGrid = new IconGrid(canvas, 120, 120, 0.2);
   for (var n = 0; n < icons.length; ++n)
     iconGrid.add(icons[n].src, icons[n].label, icons[n].url);
-
-  // XXX In the long term this is probably bad for battery
-  window.setInterval(updateClock, 60000);
-  updateClock();
-
-  document.getElementById('statusPadding').innerHTML =
-    kUseGL ? '(WebGL)' : '(2D canvas)';
 
   WindowManager.start();
 }
 
 var WindowManager = {
+  get currentView() {
+    var currentFrame = this.windows.lastElementChild;
+    return currentFrame ? currentFrame.contentWindow : window;
+  },
+  get windows() {
+    delete this.windows;
+    return this.windows = document.getElementById('windows');
+  },
   start: function wm_start() {
-    window.addEventListener("appclose", this, true);
+    window.addEventListener('appclose', this, true);
   },
   stop: function wm_stop() {},
   handleEvent: function wm_handleEvent(evt) {
     switch (evt.type) {
-      case "appclose":
-        var windows = document.getElementById('windows');
-        if (windows.childElementCount <= 1)
+      case 'appclose':
+        var windows = this.windows;
+        if (windows.childElementCount < 1)
           return;
-
-        var loadScreen = document.getElementById('loadAnimationScreen');
-        loadScreen.style.display = 'block';
-        loadScreen.classList.toggle('animateClosing');
 
         // TODO when existing window will be checked, this should be
         // point to the real window
         var topWindow = windows.lastElementChild;
-        windows.removeChild(topWindow);
+        topWindow.classList.toggle('animateClosing');
 
         window.addEventListener(
           'animationend',
           function listener() {
-            loadScreen.className = '';
-            loadScreen.style.display = 'none';
             window.removeEventListener('animationend', listener, false);
+            windows.removeChild(topWindow);
+            if (windows.childElementCount < 1)
+              windows.setAttribute('hidden', 'true');
 
-            if (windows.childElementCount <= 1)
-              windows.setAttribute("hidden", "true");
+            setTimeout(function () {
+              var previousWindow = windows.lastElementChild || window;
+              previousWindow.focus();
+            }, 0);
           },
           false);
         break;
       default:
-        throw new Error("Unhandled event in WindowManager");
+        throw new Error('Unhandled event in WindowManager');
         break;
     }
+  },
+
+  // open the application referred to by |url| into a new window, or
+  // bring its window to front if already open.
+  open: function wm_open(url) {
+    // TODO
+    //var existingWindow = document.querySelector('#windows > ...');
+
+    var newWindow = document.createElement('iframe');
+    newWindow.className = 'appWindow';
+
+    // animate the window opening
+    newWindow.classList.toggle('animateOpening');
+
+    var windows = this.windows;
+    windows.removeAttribute('hidden');
+    windows.appendChild(newWindow);
+
+    window.addEventListener('animationend', function listener() {
+      window.removeEventListener('animationend', listener, false);
+      newWindow.classList.toggle('animateOpening');
+      newWindow.src = url;
+      newWindow.focus();
+
+      var event = document.createEvent('UIEvents');
+      event.initUIEvent('appopen', true, true, newWindow.contentWindow, 0);
+      window.dispatchEvent(event);
+    }, false);
   }
 };
 
-// open the application referred to by |url| into a new window, or
-// bring its window to front if already open.
-function openApplication(url) {
-  // TODO
-  //var existingWindow = document.querySelector('#windows > ...');
+// Update the clock and schedule a new update if appropriate
+function updateClock() {
+  // If the display is off, there is nothing to do here
+  if (displayState == 'off')
+    return;
 
-  var newWindow = document.createElement('iframe');
-  newWindow.className = 'appWindow';
-  newWindow.style.display = 'none';
-  // XXX need to decide whether to try to load this during animation
-  newWindow.src = url;
+  var now = new Date();
+  var match = document.getElementsByClassName('time');
+  for (var n = 0; n < match.length; ++n) {
+    var element = match[n];
+    element.textContent = now.toLocaleFormat(element.dataset.format);
+  }
 
-  var windows = document.getElementById('windows');
-  windows.removeAttribute("hidden");
-  windows.appendChild(newWindow);
-
-  var loadScreen = document.getElementById('loadAnimationScreen');
-  loadScreen.classList.toggle('animateOpening');
-  loadScreen.style.display = 'block';
-
-  window.addEventListener(
-    'animationend',
-    function listener() {
-      loadScreen.classList.toggle('animateOpening');
-      loadScreen.style.display = 'none';
-      newWindow.style.display = 'block';
-      window.removeEventListener('animationend', listener, false);
-    },
-    false);
+  // Schedule another clock update when a new minute rolls around
+  var now = new Date();
+  var sec = now.getSeconds();
+  setTimeout(updateClock, (59 - sec) * 1000);
 }
 
-function updateClock() {
-  var now = new Date();
-  var str = now.getHours();
-  str += ':';
-  var mins = now.getMinutes();
-  if (mins < 10)
-    str += "0";
-  str += mins;
-  document.getElementById('statusClock').innerHTML = str;
+function updateBattery() {
+  var battery = window.navigator.mozBattery;
+  if (!battery)
+    return;
+
+  // If the display is off, there is nothing to do here
+  if (displayState == 'off') {
+    battery.removeEventListener('chargingchange', updateBattery);
+    battery.removeEventListener('levelchange', updateBattery);
+    battery.removeEventListener('statuschange', updateBattery);
+    return;
+  }
+
+  var elements = document.getElementsByClassName('battery');
+  for (var n = 0; n < elements.length; ++n) {
+    var element = elements[n];
+    var fuel = element.children[0];
+    var charging = element.children[1];
+    if (battery.charging) {
+      fuel.className = 'charging';
+      charging.visible = true;
+    } else {
+      var level = battery.level * 100;
+      fuel.style.width = (level / 4) + 'px';
+      if (level <= 5)
+        fuel.className = 'critical';
+      else if (level <= 15)
+        fuel.className = 'low';
+      else
+        fuel.className = '';
+    }
+  }
+
+  // Make sure we will be called for any changes to the battery status
+  battery.addEventListener('chargingchange', updateBattery);
+  battery.addEventListener('levelchange', updateBattery);
+  battery.addEventListener('statuschange', updateBattery);
 }

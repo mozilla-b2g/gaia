@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script type="text/javascript" src="sms.js"></script>
+    <script type="text/javascript" src="../apps.js"></script>
+    <link href='sms.css' rel='stylesheet' type='text/css'></link>
+    <script>
+      function onKeyPress(evt) {
+        var target = evt.originalTarget;
+        setTimeout(function() {
+          target.style.height = '';
+          target.style.height = '-moz-calc(' + target.scrollHeight + 'px + 32px)';
+        }, 0);
+      }
+
+      function initializeContact() {
+        ConversationView.init();
+
+        var contact = document.getElementById('contact');
+        var filter = ConversationView.filter;
+        if (!filter) {
+          contact.classList.toggle('filtered');
+          return;
+        }
+
+        contact.value = filter;
+      }
+  
+      function sendText() {
+        var contact = document.getElementById('contact');
+        if (contact.value == '')
+          return;
+
+        var throbber = document.getElementById('throbber');
+        throbber.removeAttribute('hidden');
+
+        var text = document.getElementById('text');
+        MessageManager.send(contact.value, text.value, function() {
+          throbber.setAttribute('hidden', 'true');
+          text.value = text.style.height = '';
+
+          if (ConversationView.filter)
+            return;
+
+          var event = document.createEvent('UIEvents');
+          event.initUIEvent('appclose', true, true, window, 1);
+          window.top.dispatchEvent(event);
+        });
+      }
+
+      window.addEventListener('load', initializeContact, true);
+    </script>
+  </head>
+  <body>
+    <div id='throbber' hidden='true'>
+      <img src='../images/throbber.png' width='32' height='32'></img>
+    </div>
+
+    <form onsubmit='sendText(); return false;'>
+        <input id='contact' class='filtered' type='tel' required='true' placeholder='To:' list='contacts'></input>
+        <datalist id='contacts'>
+          <option value='Andreas Gal'></option>
+          <option value='Chris Jones'></option>
+          <option value='Mom Zilla'></option>
+          <option value='Mounir Lamouri'></option>
+          <option value='Trace Monkey'></option>
+          <option value='Jaeger Monkey'></option>
+          <option value='Ion Monkey'></option>
+        </datalist>
+        <div id='conversation' onclick='ConversationView.deleteMessage(event);'></div>
+
+      <div id='text-container'>
+        <textarea id='text' type='textbox' placeholder='Type your message' onkeypress='onKeyPress(event);'></textarea>
+        <input id='send' type='submit' value='Send'></input>
+      </div>
+    </form>
+  </body>
+</html>
