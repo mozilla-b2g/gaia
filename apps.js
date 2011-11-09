@@ -69,7 +69,7 @@ var TouchHandler = {
     touchState.active = false; 
 
     var long = (evt.timeStamp - touchState.startTime > 2000);
-    if(long) {
+    if (long) {
       var doc = evt.target.ownerDocument || window.document;
       showSourceViewer(doc.URL);
       return;
@@ -141,16 +141,24 @@ var TouchHandler = {
 
 function showSourceViewer(url) {
   var viewsource = document.getElementById('appViewsource');
-  if(!viewsource) { 
-    var fileref=document.createElement("link");
-    fileref.setAttribute("rel", "stylesheet");
-    fileref.setAttribute("type", "text/css");
-    fileref.setAttribute("href", "../apps.css");
-    document.getElementsByTagName("head")[0].appendChild(fileref);
+  if (!viewsource) { 
+    document.styleSheets[0].insertRule('#appViewsource { \
+      position: absolute;\
+      top: -moz-calc(10%);\
+      left: -moz-calc(10%);\
+      width: -moz-calc(80% - 2 * 15px);\
+      height: -moz-calc(80% - 2 * 15px);\
+      visibility: hidden;\
+      box-shadow: 10px 10px 5px #888;\
+      margin: 15px;\
+      background-color: white;\
+      opacity: 0.92;\
+      color: black;\
+      }', 0);
 
-     viewsource = document.createElement('iframe');
-     viewsource.id = 'appViewsource';
-     document.body.appendChild(viewsource);
+    viewsource = document.createElement('iframe');
+    viewsource.id = 'appViewsource';
+    document.body.appendChild(viewsource);
   }
   viewsource.style.visibility = 'visible';
   viewsource.src = 'view-source: ' + url;
