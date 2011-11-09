@@ -40,6 +40,7 @@ var Apps = {
 };
 
 var TouchHandler = {
+  touchState : { active: false, startX: 0, startY: 0 },
   events: ['touchstart', 'touchmove', 'touchend',
            'mousedown', 'mousemove', 'mouseup'],
   start: function th_start() {
@@ -53,10 +54,27 @@ var TouchHandler = {
     }).bind(this));
   },
   onTouchStart: function th_touchStart(evt) {
+    hideSourceViewer();
+    var touchState = this.touchState;
+    touchState.active = true;
+    touchState.startTime = evt.timeStamp;
+
     this.startX = this.lastX = evt.pageX;
     this.startY = this.lastY = evt.pageY;
   },
   onTouchEnd: function th_touchEnd(evt) {
+    var touchState = this.touchState;
+    if (!touchState.active)
+      return;
+    touchState.active = false; 
+
+    var long = (evt.timeStamp - touchState.startTime > 2000);
+    if(long) {
+      var doc = evt.target.ownerDocument || window.document;
+      showSourceViewer(doc.URL);
+      return;
+    }  
+ 
     this.startX = this.startY = 0;
     this.lastX = this.lastY = 0;
   },
@@ -113,14 +131,38 @@ var TouchHandler = {
         if (this.panning) {
           this.target.removeAttribute('panning');
           this.panning = null;
-          this.onTouchEnd(evt.touches ? evt.touches[0] : evt);
-        }
+        } 
+        this.onTouchEnd(evt.touches ? evt.touches[0] : evt);
         this.target = null;
       break;
     }
   }
 };
 
+function showSourceViewer(url) {
+  var viewsource = document.getElementById('appViewsource');
+  if(!viewsource) { 
+    var fileref=document.createElement("link");
+    fileref.setAttribute("rel", "stylesheet");
+    fileref.setAttribute("type", "text/css");
+    fileref.setAttribute("href", "../apps.css");
+    document.getElementsByTagName("head")[0].appendChild(fileref);
+
+     viewsource = document.createElement('iframe');
+     viewsource.id = 'appViewsource';
+     document.body.appendChild(viewsource);
+  }
+  viewsource.style.visibility = 'visible';
+  viewsource.src = 'view-source: ' + url;
+   
+}
+
+function hideSourceViewer() {
+  var viewsource = document.getElementById('appViewsource');
+  if(viewsource) {
+    viewsource.style.visibility = 'hidden';
+  }
+}
 
 var ContactsManager = {
   contacts: []
