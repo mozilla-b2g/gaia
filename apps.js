@@ -167,7 +167,7 @@ function showSourceViewer(url) {
 
 function hideSourceViewer() {
   var viewsource = document.getElementById('appViewsource');
-  if(viewsource) {
+  if (viewsource) {
     viewsource.style.visibility = 'hidden';
   }
 }
