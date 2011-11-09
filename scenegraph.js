@@ -3,8 +3,8 @@
 
 'use strict';
 
-const kUseGL = true;
-const kSnapToWholePixels = !kUseGL;
+var gUseGL = 1;
+var gSnapToWholePixels = !gUseGL;
 
 function abort(why) { alert(why); throw why; }
 function assert(cond, msg) { if (!cond) abort(msg); }
@@ -51,7 +51,7 @@ Sprite.prototype = {
     // coordinates before uploading, unlike <img>s :/.  So hack
     // here.  Need to figure out if that's a FF bug or actually
     // spec'd like that.
-    if (kUseGL) {
+    if (gUseGL) {
       ctx.translate(0, this.height);
       ctx.scale(1, -1);
     }
@@ -108,8 +108,18 @@ Sprite.prototype = {
 }
 
 function SceneGraph(canvas) {
+  if(gUseGL) {
+    try {
+      this.gl = canvas.getContext('experimental-webgl');
+    } catch(e) {
+      // Fall back to 2D.
+      gUseGL = 0;
+      gSnapToWholePixels = 1;
+    }
+  }
+
   this.blitter =
-    kUseGL ? new SpriteBlitterGL(canvas) : new SpriteBlitter2D(canvas);
+    gUseGL ? new SpriteBlitterGL(canvas) : new SpriteBlitter2D(canvas);
   this.canvas = canvas;
   this.sprites = [];
   this.x = 0;
@@ -163,7 +173,7 @@ SceneGraph.prototype = {
   },
   draw: function() {
     var x = this.x, y = this.y;
-    if (kSnapToWholePixels) {
+    if (gSnapToWholePixels) {
       x |= 0;
       y |= 0;
     }
