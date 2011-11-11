@@ -485,7 +485,7 @@ function OnLoad() {
     { label: 'Calendar', src: 'images/Calendar.png',
       url: 'data:text/html,<font color="blue">Hello' },
     { label: 'Gallery', src: 'images/Gallery.png',
-      url: 'data:text/html,<font color="blue">Hello' },
+      url: 'gallery/gallery.html' },
     { label: 'Camera', src: 'images/Camera.png',
       url: 'data:text/html,<font color="blue">Hello' },
     { label: 'Maps', src: 'images/Maps.png',
