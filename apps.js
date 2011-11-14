@@ -40,6 +40,7 @@ var Apps = {
 };
 
 var TouchHandler = {
+  touchState : { active: false, startX: 0, startY: 0 },
   events: ['touchstart', 'touchmove', 'touchend',
            'mousedown', 'mousemove', 'mouseup'],
   start: function th_start() {
@@ -53,10 +54,27 @@ var TouchHandler = {
     }).bind(this));
   },
   onTouchStart: function th_touchStart(evt) {
+    hideSourceViewer();
+    var touchState = this.touchState;
+    touchState.active = true;
+    touchState.startTime = evt.timeStamp;
+
     this.startX = this.lastX = evt.pageX;
     this.startY = this.lastY = evt.pageY;
   },
   onTouchEnd: function th_touchEnd(evt) {
+    var touchState = this.touchState;
+    if (!touchState.active)
+      return;
+    touchState.active = false; 
+
+    var long = (evt.timeStamp - touchState.startTime > 2000);
+    if (long) {
+      var doc = evt.target.ownerDocument || window.document;
+      showSourceViewer(doc.URL);
+      return;
+    }  
+ 
     this.startX = this.startY = 0;
     this.lastX = this.lastY = 0;
   },
@@ -115,14 +133,46 @@ var TouchHandler = {
           document.releaseCapture();
           this.target.removeAttribute('panning');
           this.panning = null;
-          this.onTouchEnd(evt.touches ? evt.touches[0] : evt);
-        }
+        } 
+        this.onTouchEnd(evt.touches ? evt.touches[0] : evt);
         this.target = null;
       break;
     }
   }
 };
 
+function showSourceViewer(url) {
+  var viewsource = document.getElementById('appViewsource');
+  if (!viewsource) { 
+    document.styleSheets[0].insertRule('#appViewsource { \
+      position: absolute;\
+      top: -moz-calc(10%);\
+      left: -moz-calc(10%);\
+      width: -moz-calc(80% - 2 * 15px);\
+      height: -moz-calc(80% - 2 * 15px);\
+      visibility: hidden;\
+      box-shadow: 10px 10px 5px #888;\
+      margin: 15px;\
+      background-color: white;\
+      opacity: 0.92;\
+      color: black;\
+      }', 0);
+
+    viewsource = document.createElement('iframe');
+    viewsource.id = 'appViewsource';
+    document.body.appendChild(viewsource);
+  }
+  viewsource.style.visibility = 'visible';
+  viewsource.src = 'view-source: ' + url;
+   
+}
+
+function hideSourceViewer() {
+  var viewsource = document.getElementById('appViewsource');
+  if (viewsource) {
+    viewsource.style.visibility = 'hidden';
+  }
+}
 
 var ContactsManager = {
   contacts: []
