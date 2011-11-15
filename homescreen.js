@@ -477,36 +477,13 @@ function OnLoad() {
   ];
   new NotificationScreen(touchables);
 
-  var fruits = [
-    { label: 'Phone', src: 'images/Phone.png',
-      url: 'dialer/dialer.html' },
-    { label: 'Messages', src: 'images/Messages.png',
-      url: 'sms/sms.html' },
-    { label: 'Calendar', src: 'images/Calendar.png',
-      url: 'data:text/html,<font color="blue">Hello' },
-    { label: 'Gallery', src: 'images/Gallery.png',
-      url: 'data:text/html,<font color="blue">Hello' },
-    { label: 'Camera', src: 'images/Camera.png',
-      url: 'data:text/html,<font color="blue">Hello' },
-    { label: 'Maps', src: 'images/Maps.png',
-      url: 'data:text/html,<font color="blue">Hello' },
-    { label: 'YouTube', src: 'images/YouTube.png',
-      url: 'data:text/html,<font color="blue">Hello' },
-    { label: 'Calculator', src: 'images/Calculator.png',
-      url: 'data:text/html,<font color="blue">Hello' },
-    { label: 'Books', src: 'images/Books.png',
-      url: 'data:text/html,<font color="blue">Hello' },
-    { label: 'Browser', src: 'images/Browser.png',
-      url: 'browser/browser.html' },
-    { label: 'Music', src: 'images/Music.png',
-      url: 'data:text/html,<font color="blue">Hello' }
-  ];
+  var apps = Gaia.AppManager.getInstalledApps();
 
   var icons = [];
   // XXX this add 5 times the same set of icons
   for (var i = 0; i < 5; i++)
-    for (var n = 0; n < fruits.length; ++n)
-      icons.push(fruits[n]);
+    for (var n = 0; n < apps.length; ++n)
+      icons.push(apps[n]);
 
   var screen = document.getElementById('screen');
   var screenRect = screen.getBoundingClientRect();
@@ -518,12 +495,12 @@ function OnLoad() {
 
   var iconGrid = new IconGrid(canvas, 120, 120, 0.2);
   for (var n = 0; n < icons.length; ++n)
-    iconGrid.add(icons[n].src, icons[n].label, icons[n].url);
+    iconGrid.add(icons[n].icons.size_128, icons[n].name, icons[n].url);
 
   WindowManager.start();
 }
 
-var WindowManager = {
+/*var WindowManager = {
   get currentView() {
     var currentFrame = this.windows.lastElementChild;
     return currentFrame ? currentFrame.contentWindow : window;
@@ -572,29 +549,57 @@ var WindowManager = {
   // open the application referred to by |url| into a new window, or
   // bring its window to front if already open.
   open: function wm_open(url) {
-    // TODO
-    //var existingWindow = document.querySelector('#windows > ...');
+    Gaia.AppManager.launch(url);
+  }
+};*/
+var WindowManager = {
+  get currentView() {
+    var currentFrame = this.windows.lastElementChild;
+    return currentFrame ? currentFrame.contentWindow : window;
+  },
+  get windows() {
+    delete this.windows;
+    return this.windows = document.getElementById('windows');
+  },
+  activeWindow: null,
+  start: function wm_start() {
+    window.addEventListener('appclose', this, true);
+  },
+  stop: function wm_stop() {},
+  handleEvent: function wm_handleEvent(evt) {
+    switch (evt.type) {
+      case 'appclose':
+        WindowManager.close();
+        break;
+      default:
+        throw new Error('Unhandled event in WindowManager');
+        break;
+    }
+  },
 
-    var newWindow = document.createElement('iframe');
-    newWindow.className = 'appWindow';
-
-    // animate the window opening
-    newWindow.classList.toggle('animateOpening');
-
+  // open the application referred to by |url| into a new window, or
+  // bring its window to front if already open.
+  open: function wm_open(url) {
+    WindowManager.activeWindow = Gaia.AppManager.launch(url);
+  },
+  
+  close: function wm_close() {
     var windows = this.windows;
-    windows.removeAttribute('hidden');
-    windows.appendChild(newWindow);
-
-    window.addEventListener('animationend', function listener() {
-      window.removeEventListener('animationend', listener, false);
-      newWindow.classList.toggle('animateOpening');
-      newWindow.src = url;
-      newWindow.focus();
-
-      var event = document.createEvent('UIEvents');
-      event.initUIEvent('appopen', true, true, newWindow.contentWindow, 0);
-      window.dispatchEvent(event);
-    }, false);
+    var activeWindow = WindowManager.activeWindow;
+    
+    if (!activeWindow) return;
+    
+    var animationCompleteHandler = function() {
+      window.removeEventListener('animationend', animationCompleteHandler, false);
+      activeWindow.classList.remove('animateClosing');
+      activeWindow.setAttribute('hidden', true);
+      windows.setAttribute('hidden', true);
+      window.focus();
+    };
+    
+    window.addEventListener('animationend', animationCompleteHandler, false);
+    
+    activeWindow.classList.add('animateClosing');
   }
 };
 
