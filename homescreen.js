@@ -72,16 +72,6 @@ DefaultPhysics.prototype = {
     var tap = !this.moved && small;
     var drag = !quick;
 
-    if (!this.moved && long) {
-      var doc = e.target.ownerDocument || window.document;
-      var url = doc.URL;
-
-      var viewsource = document.getElementById('viewsource');
-      viewsource.style.visibility = 'visible';
-      viewsource.src = 'view-source: ' + url;
-      return;
-    }
-
     var iconGrid = this.iconGrid;
     var currentPage = iconGrid.currentPage
     if (tap) {
@@ -97,10 +87,6 @@ DefaultPhysics.prototype = {
     }
   }
 };
-
-function hideSourceViewer() {
-  document.getElementById('viewsource').style.visibility = 'hidden';
-}
 
 function Icon(iconGrid, index) {
   this.iconGrid = iconGrid;
@@ -181,7 +167,8 @@ function IconGrid(canvas, iconWidth, iconHeight, border) {
   // install event handlers
   var events = [
     'touchstart', 'touchmove', 'touchend',
-    'mousedown', 'mousemove', 'mouseup'
+    'mousedown', 'mousemove', 'mouseup',
+    'contextmenu'
   ];
   events.forEach((function(evt) {
     canvas.addEventListener(evt, this, true);
@@ -272,6 +259,12 @@ IconGrid.prototype = {
     case 'mousemove':
       physics.onTouchMove(e.touches ? e.touches[0] : e);
       break;
+    case 'contextmenu':
+      document.releaseCapture();
+      physics.touchState.active = false;
+      var sourceURL = window.document.URL;
+      showSourceViewer(sourceURL);
+      break;
     case 'touchend':
     case 'mouseup':
       document.releaseCapture();
@@ -356,6 +349,8 @@ NotificationScreen.prototype = {
     }).bind(this));
   },
   handleEvent: function(evt) {
+    hideSourceViewer();
+
     var target = evt.target;
     switch (evt.type) {
     case 'touchstart':
@@ -388,7 +383,6 @@ NotificationScreen.prototype = {
     }
 
     evt.preventDefault();
-    hideSourceViewer();
   }
 };
 
