@@ -482,7 +482,9 @@ function OnLoad() {
       url: 'dialer/dialer.html' },
     { label: 'Messages', src: 'images/Messages.png',
       url: 'sms/sms.html' },
-    { label: 'Calendar', src: 'images/Calendar.png',
+    { label: 'Contacts', src: 'images/Contacts.png',
+      url: 'data:text/html,<font color="blue">Hello' },
+    { label: 'Video', src: 'images/Video.png',
       url: 'data:text/html,<font color="blue">Hello' },
     { label: 'Gallery', src: 'images/Gallery.png',
       url: 'data:text/html,<font color="blue">Hello' },
@@ -490,15 +492,21 @@ function OnLoad() {
       url: 'data:text/html,<font color="blue">Hello' },
     { label: 'Maps', src: 'images/Maps.png',
       url: 'data:text/html,<font color="blue">Hello' },
-    { label: 'YouTube', src: 'images/YouTube.png',
-      url: 'data:text/html,<font color="blue">Hello' },
     { label: 'Calculator', src: 'images/Calculator.png',
       url: 'data:text/html,<font color="blue">Hello' },
-    { label: 'Books', src: 'images/Books.png',
+    { label: 'Clock', src: 'images/Clock.png',
       url: 'data:text/html,<font color="blue">Hello' },
     { label: 'Browser', src: 'images/Browser.png',
       url: 'browser/browser.html' },
     { label: 'Music', src: 'images/Music.png',
+      url: 'data:text/html,<font color="blue">Hello' },
+    { label: 'Weather', src: 'images/Weather.png',
+      url: 'data:text/html,<font color="blue">Hello' },
+    { label: 'Settings', src: 'images/Settings.png',
+      url: 'data:text/html,<font color="blue">Hello' },
+    { label: 'Stocks', src: 'images/Stocks.png',
+      url: 'data:text/html,<font color="blue">Hello' },
+    { label: 'Market', src: 'images/Market.png',
       url: 'data:text/html,<font color="blue">Hello' }
   ];
 
@@ -517,8 +525,10 @@ function OnLoad() {
   var height = canvas.height = screenHeight - 24;
 
   var iconGrid = new IconGrid(canvas, 120, 120, 0.2);
-  for (var n = 0; n < icons.length; ++n)
-    iconGrid.add(icons[n].src, icons[n].label, icons[n].url);
+  for (var n = 0; n < icons.length; ++n) {
+    var icon = icons[n];
+    iconGrid.add(icon.src, icon.label, icon.url);
+  }
 
   WindowManager.start();
 }
