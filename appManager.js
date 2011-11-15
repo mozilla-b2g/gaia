@@ -3,7 +3,8 @@
 
 'use strict';
 
-if (!Gaia) { var Gaia = {}; }
+if (!window['Gaia'])
+  var Gaia = {};
 
 (function() {
   var runningApps = [];
@@ -81,20 +82,21 @@ if (!Gaia) { var Gaia = {}; }
       }];
     },
   
-    getRunningApps: function() { return runningApps; },
+    getRunningApps: function() {
+      return runningApps;
+    },
     
     getAppInstance: function(url) {
       for (var i = 0; i < runningApps.length; i++) {
-        if (runningApps[i].url === url) {
+        if (runningApps[i].url === url)
           return runningApps[i];
-        }
       }
       
       return null;
     },
   
     launch: function(url) {
-      var appInstance = Gaia.AppManager.getAppInstance(url);
+      var appInstance = this.getAppInstance(url);
       var appWindow;
       
       // App is already running, set focus to the existing instance.

@@ -494,9 +494,11 @@ function OnLoad() {
   var height = canvas.height = screenHeight - 24;
 
   var iconGrid = new IconGrid(canvas, 120, 120, 0.2);
-  for (var n = 0; n < icons.length; ++n)
-    iconGrid.add(icons[n].icons.size_128, icons[n].name, icons[n].url);
-
+  for (var n = 0; n < icons.length; ++n) {
+    var icon = icons[n];
+    iconGrid.add(icon.icons.size_128, icon.name, icon.url);
+  }
+  
   WindowManager.start();
 }
 
@@ -535,7 +537,8 @@ var WindowManager = {
     var windows = this.windows;
     var activeWindow = WindowManager.activeWindow;
     
-    if (!activeWindow) return;
+    if (!activeWindow)
+      return;
     
     var animationCompleteHandler = function() {
       window.removeEventListener('animationend', animationCompleteHandler, false);
