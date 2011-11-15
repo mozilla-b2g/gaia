@@ -500,58 +500,6 @@ function OnLoad() {
   WindowManager.start();
 }
 
-/*var WindowManager = {
-  get currentView() {
-    var currentFrame = this.windows.lastElementChild;
-    return currentFrame ? currentFrame.contentWindow : window;
-  },
-  get windows() {
-    delete this.windows;
-    return this.windows = document.getElementById('windows');
-  },
-  start: function wm_start() {
-    window.addEventListener('appclose', this, true);
-  },
-  stop: function wm_stop() {},
-  handleEvent: function wm_handleEvent(evt) {
-    switch (evt.type) {
-      case 'appclose':
-        var windows = this.windows;
-        if (windows.childElementCount < 1)
-          return;
-
-        // TODO when existing window will be checked, this should be
-        // point to the real window
-        var topWindow = windows.lastElementChild;
-        topWindow.classList.toggle('animateClosing');
-
-        window.addEventListener(
-          'animationend',
-          function listener() {
-            window.removeEventListener('animationend', listener, false);
-            windows.removeChild(topWindow);
-            if (windows.childElementCount < 1)
-              windows.setAttribute('hidden', 'true');
-
-            setTimeout(function () {
-              var previousWindow = windows.lastElementChild || window;
-              previousWindow.focus();
-            }, 0);
-          },
-          false);
-        break;
-      default:
-        throw new Error('Unhandled event in WindowManager');
-        break;
-    }
-  },
-
-  // open the application referred to by |url| into a new window, or
-  // bring its window to front if already open.
-  open: function wm_open(url) {
-    Gaia.AppManager.launch(url);
-  }
-};*/
 var WindowManager = {
   get currentView() {
     var currentFrame = this.windows.lastElementChild;
