@@ -8,9 +8,27 @@ if (!window['Gaia'])
 
 (function() {
   var runningApps = [];
-  var foregroundWindow;
 
   Gaia.AppManager = {
+    _foregroundWindows: [],
+    set foregroundWindow(win) {
+      this._foregroundWindows.push(win);
+    },
+
+    get foregroundWindow() {
+      var foregroundWindows = this._foregroundWindows;
+      var count = foregroundWindows.length;
+      for (var i = count; i > 0; i--) {
+        if (foregroundWindows[i - 1].hasAttribute('hidden'))
+          foregroundWindows.pop();
+      }
+
+      count = foregroundWindows.length;
+      if (!count)
+        return;
+      return foregroundWindows[count - 1];
+    },
+
     get screen() {
       delete this.screen;
       return this.screen = document.getElementById('screen');
@@ -24,13 +42,6 @@ if (!window['Gaia'])
     init: function() {
       window.addEventListener('keypress', this);
       window.addEventListener('appclose', this);
-
-      // UGLY HACK: Create a dummy text input to be able to set focus back
-      // to the main window.
-      this.textInput = document.createElement('input');
-      this.textInput.id = 'homescreenFocus';
-      this.textInput.type = 'text';
-      document.body.appendChild(this.textInput);
     },
 
     handleEvent: function(evt) {
@@ -168,14 +179,15 @@ if (!window['Gaia'])
 
       // App is already running, set focus to the existing instance.
       if (appInstance) {
-        foregroundWindow = appInstance.window;
+        var foregroundWindow = this.foregroundWindow = appInstance.window;
         foregroundWindow.removeAttribute('hidden');
         foregroundWindow.contentWindow.Apps.init();
       }
 
       // App is not yet running, create a new instance.
       else {
-        foregroundWindow = document.createElement('iframe');
+        var newWindow = document.createElement('iframe');
+        var foregroundWindow = this.foregroundWindow = newWindow;
         foregroundWindow.className = 'appWindow';
         foregroundWindow.src = url;
 
@@ -199,34 +211,32 @@ if (!window['Gaia'])
                                  foregroundWindow.contentWindow, 0);
         window.dispatchEvent(appOpenEvent);
       };
-
       window.addEventListener('animationend', animationCompleteHandler);
 
       foregroundWindow.classList.add('animateOpening');
-
       this.windowsContainer.removeAttribute('hidden');
 
       return foregroundWindow;
     },
 
     close: function() {
+      var foregroundWindow = this.foregroundWindow;
       if (!foregroundWindow)
         return;
 
-      var windowsContainer = this.windowsContainer;
-      var textInput = this.textInput;
-
-      var animationCompleteHandler = function() {
+      var animationCompleteHandler = (function() {
         window.removeEventListener('animationend', animationCompleteHandler);
 
         foregroundWindow.classList.remove('animateClosing');
-        textInput.focus();
-
+        foregroundWindow.blur();
         foregroundWindow.setAttribute('hidden', true);
-        windowsContainer.setAttribute('hidden', true);
 
-        foregroundWindow = null;
-      };
+        var newForegroundWindow = this.foregroundWindow;
+        if (newForegroundWindow)
+          newForegroundWindow.focus();
+        else
+          this.windowsContainer.setAttribute('hidden', true);
+      }).bind(this);
 
       window.addEventListener('animationend', animationCompleteHandler);
       foregroundWindow.contentWindow.Apps.uninit();
