@@ -9,8 +9,159 @@ if (!window['Gaia'])
 (function() {
   var runningApps = [];
 
+  var TaskTray = function(canvas, iconWidth, iconHeight, border) {
+    this.canvas = canvas;
+    this.iconWidth = iconWidth;
+    this.iconHeight = iconHeight;
+    this.sceneGraph = new SceneGraph(canvas);
+    this.border = border || 0.1;
+    this.icons = [];
+    this.currentPage = 0;
+    this.physics = createPhysicsFor(this);
+    this.reflow(canvas.width, canvas.height, 0);
+
+    // Set up event handlers.
+    var events = [
+      'touchstart', 'touchmove', 'touchend',
+      'mousedown', 'mousemove', 'mouseup',
+      'contextmenu'
+    ];
+
+    events.forEach((function(evt) {
+      canvas.addEventListener(evt, this, true);
+    }).bind(this));
+
+    window.addEventListener('resize', this, true);
+  }
+
+  TaskTray.prototype = {
+    add: function(src, label, url) {
+
+      // Create the icon in the tray.
+      var icons = this.icons;
+      var icon = new Icon(this, icons.length);
+
+      icons.push(icon);
+
+      // Load the image, sprite will be created when image load is complete.
+      var img = new Image();
+      img.src = src;
+      img.label = label;
+      img.url = url;
+      img.icon = icon;
+      img.onload = function() {
+        // Update the icon (this will trigger a reflow and a repaint).
+        var icon = this.icon;
+        icon.update(this, this.label, this.url);
+      }
+
+      return icon;
+    },
+
+    remove: function(icon) {
+      this.icons.splice(icon.index);
+
+      if (icon.sprite)
+        sceneGraph.remove(icon.sprite);
+    },
+
+    reflow: function(width, height, duration) {
+      // Recalculate all the layout information.
+      this.containerWidth = width;
+      this.containerHeight = height;
+      this.panelWidth = this.containerWidth;
+      this.pageIndicatorWidth = this.containerWidth;
+      this.pageIndicatorHeight = Math.min(Math.max(this.containerHeight * 0.7, 14), 20);
+      this.panelHeight = this.containerHeight - this.pageIndicatorHeight;
+      this.columns = Math.floor(this.panelWidth / this.iconWidth);
+      this.rows = Math.floor(this.panelHeight / this.iconHeight);
+      this.itemsPerPage = this.rows * this.columns;
+      this.itemBoxWidth = Math.floor(this.panelWidth / this.columns);
+      this.itemBoxHeight = Math.floor(this.panelHeight / this.rows);
+
+      // Switch to the right page.
+      this.setPage(this.currentPage, duration);
+
+      // Reflow all the icons.
+      var icons = this.icons;
+      for (var n = 0; n < icons.length; ++n)
+        icons[n].reflow(duration);
+    },
+
+    getLastPage: function() {
+      var itemsPerPage = this.itemsPerPage;
+      var lastPage = Math.floor((this.icons.length + (itemsPerPage - 1)) / itemsPerPage);
+
+      if (lastPage > 0)
+        --lastPage;
+
+      return lastPage;
+    },
+
+    setPage: function(page, duration) {
+      page = Math.max(0, page);
+      page = Math.min(page, this.getLastPage());
+      this.sceneGraph.setViewportTopLeft(this.containerWidth * page, 0, duration);
+      this.currentPage = page;
+    },
+
+    tap: function(x, y) {
+      var screen = document.getElementById('screen');
+      var rect = screen.getBoundingClientRect();
+      var height = rect.bottom - rect.top - 140;
+      
+      this.sceneGraph.forHit(
+        x, y - height,
+        function(sprite) {
+          Gaia.AppManager.closeTaskManager();
+          Gaia.AppManager.launch(sprite.icon.url);
+        });
+    },
+
+    handleEvent: function(e) {
+      var physics = this.physics;
+
+      switch (e.type) {
+        case 'touchstart':
+        case 'mousedown':
+          this.canvas.setCapture(false);
+          physics.onTouchStart(e.touches ? e.touches[0] : e);
+          break;
+        case 'touchmove':
+        case 'mousemove':
+          physics.onTouchMove(e.touches ? e.touches[0] : e);
+          break;
+        case 'contextmenu':
+          var sourceURL = window.document.URL;
+          showSourceViewer(sourceURL);
+          document.releaseCapture();
+          physics.touchState.active = false;
+          break;
+        case 'touchend':
+        case 'mouseup':
+          document.releaseCapture();
+          physics.onTouchEnd(e.touches ? e.touches[0] : e);
+          break;
+        case 'resize':
+          var canvas = this.canvas;
+          var width = canvas.width = window.innerWidth;
+          var height = canvas.height = 140;
+          this.sceneGraph.blitter.viewportWidth = width;
+          this.sceneGraph.blitter.viewportHeight = height;
+          this.reflow(width, height, 0);
+          break;
+        default:
+          return;
+      }
+
+      e.preventDefault();
+    }
+  };
+
   Gaia.AppManager = {
     _foregroundWindows: [],
+    _taskTray: null,
+    
     set foregroundWindow(win) {
       this._foregroundWindows.push(win);
     },
@@ -29,6 +180,10 @@ if (!window['Gaia'])
       return foregroundWindows[count - 1];
     },
 
+    get isTaskManagerOpen() {
+      return this.screen.classList.contains('animateTaskManagerOpen');
+    },
+
     get screen() {
       delete this.screen;
       return this.screen = document.getElementById('screen');
@@ -42,6 +197,17 @@ if (!window['Gaia'])
     init: function() {
       window.addEventListener('keypress', this);
       window.addEventListener('appclose', this);
+
+      var taskManagerContainer = document.getElementById('taskManager');
+      var taskManagerRect = taskManagerContainer.getBoundingClientRect();
+      var taskManagerWidth = taskManagerRect.right - taskManagerRect.left;
+      var taskManagerHeight = 140;
+      var taskTrayCanvas = document.getElementById('taskTrayCanvas');
+      
+      taskTrayCanvas.width = taskManagerWidth;
+      taskTrayCanvas.height = taskManagerHeight;
+
+      this._taskTray = new TaskTray(taskTrayCanvas, 120, 120, 0.2);
     },
 
     handleEvent: function(evt) {
@@ -49,12 +215,10 @@ if (!window['Gaia'])
         case 'keypress':
           if (evt.keyCode == evt.DOM_VK_ESCAPE) {
             // Open/Close TaskManager
-            if (this.screen.classList.contains('animateTaskManagerOpen')) {
-              this.screen.classList.remove('animateTaskManagerOpen');
-              this.screen.classList.add('animateTaskManagerClose');
+            if (this.isTaskManagerOpen) {
+              this.closeTaskManager();
             } else {
-              this.screen.classList.remove('animateTaskManagerClose');
-              this.screen.classList.add('animateTaskManagerOpen');
+              this.openTaskManager();
             }
           }
           break;
@@ -65,6 +229,16 @@ if (!window['Gaia'])
           throw new Error('Unhandled event in AppManager');
           break;
       }
+    },
+
+    openTaskManager: function() {
+      this.screen.classList.remove('animateTaskManagerClose');
+      this.screen.classList.add('animateTaskManagerOpen');
+    },
+    
+    closeTaskManager: function() {
+      this.screen.classList.remove('animateTaskManagerOpen');
+      this.screen.classList.add('animateTaskManagerClose');
     },
 
     getInstalledApps: function() {
@@ -165,7 +339,18 @@ if (!window['Gaia'])
     getRunningApps: function() {
       return runningApps;
     },
-
+    
+    getInstalledAppForURL: function(url) {
+      var installedApps = this.getInstalledApps();
+      
+      for (var i = 0; i < installedApps.length; i++) {
+        if (installedApps[i].url === url)
+          return installedApps[i];
+      }
+      
+      return null;
+    },
+    
     getAppInstance: function(url) {
       for (var i = 0; i < runningApps.length; i++) {
         if (runningApps[i].url === url)
@@ -186,6 +371,7 @@ if (!window['Gaia'])
 
       // App is not yet running, create a new instance.
       else {
+        var app = this.getInstalledAppForURL(url);
         var newWindow = document.createElement('iframe');
         var foregroundWindow = this.foregroundWindow = newWindow;
         foregroundWindow.className = 'appWindow';
@@ -197,6 +383,10 @@ if (!window['Gaia'])
           url: url,
           window: foregroundWindow
         });
+        
+        if (app) {
+          this._taskTray.add(app.icons.size_128, app.name, app.url);
+        }
       }
 
       var animationCompleteHandler = function() {
