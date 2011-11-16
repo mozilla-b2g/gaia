@@ -74,7 +74,7 @@ var TouchHandler = {
       showSourceViewer(doc.URL);
       return;
     } 
-
+ 
     this.startX = this.startY = 0;
     this.lastX = this.lastY = 0;
   },
