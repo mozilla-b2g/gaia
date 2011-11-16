@@ -3,20 +3,20 @@
 function prettyDate(time) {
   var diff = (Date.now() - time) / 1000;
   var day_diff = Math.floor(diff / 86400);
-      
+
   if (isNaN(day_diff) || day_diff < 0 || day_diff >= 31)
     return '';
-      
+
   return day_diff == 0 && (
           diff < 60 && 'just now' ||
           diff < 120 && '1 minute ago' ||
-          diff < 3600 && Math.floor( diff / 60 ) + ' minutes ago' ||
+          diff < 3600 && Math.floor(diff / 60) + ' minutes ago' ||
           diff < 7200 && '1 hour ago' ||
-          diff < 86400 && Math.floor( diff / 3600 ) + ' hours ago') ||
+          diff < 86400 && Math.floor(diff / 3600) + ' hours ago') ||
           day_diff == 1 && 'Yesterday' ||
           day_diff < 7 && day_diff + ' days ago' ||
-          day_diff < 31 && Math.ceil( day_diff / 7 ) + ' weeks ago';
-};
+          day_diff < 31 && Math.ceil(day_diff / 7) + ' weeks ago';
+}
 
 var MessageManager = {
   getMessages: function mm_getMessages(callback, filter, invert) {
@@ -29,14 +29,14 @@ var MessageManager = {
         callback(messages);
         return;
       }
-              
+
       var message = result.message;
       messages.push(message);
       result.next();
     };
 
     request.onerror = function() {
-      alert('Something wrong has happened while reading the database. Error code: ' + request.errorCode);
+      alert('Error reading the database. Error code: ' + request.errorCode);
     }
   },
 
@@ -54,7 +54,8 @@ var MessageManager = {
 if (!('mozSms' in navigator)) {
   MessageManager.messages = [];
 
-  MessageManager.getMessages = function mm_getMessages(callback, filter, invert) {
+  MessageManager.getMessages =
+    function mm_getMessages(callback, filter, invert) {
     function applyFilter(msgs) {
       if (!filter)
         return msgs;
@@ -82,12 +83,12 @@ if (!('mozSms' in navigator)) {
         sender: null,
         receiver: '+33601010101',
         body: 'Nothing :)',
-        timestamp: Date.now() - 44000000,
+        timestamp: Date.now() - 44000000
       },
       {
         sender: '+33601010101',
         body: 'Hey! What\s up?',
-        timestamp: Date.now() - 50000000,
+        timestamp: Date.now() - 50000000
       }
     ];
 
@@ -95,7 +96,7 @@ if (!('mozSms' in navigator)) {
       messages.push({
         sender: '+33602020202',
         body: 'Hello world!',
-        timestamp: Date.now() - 60000000,
+        timestamp: Date.now() - 60000000
       });
 
     this.messages = messages;
@@ -104,7 +105,7 @@ if (!('mozSms' in navigator)) {
     if (invert)
       msg.reverse();
     callback(applyFilter(msg));
-  }
+  };
 
   MessageManager.send = function mm_send(number, text, callback) {
     var message = {
@@ -112,7 +113,7 @@ if (!('mozSms' in navigator)) {
       receiver: number,
       body: text,
       timestamp: Date.now()
-    } 
+    };
     var event = document.createEvent('CustomEvent');
     event.initCustomEvent('smssent', true, false, message);
     var windows = window.parent.document.getElementById('windows');
@@ -122,15 +123,15 @@ if (!('mozSms' in navigator)) {
       window.dispatchEvent(event);
       callback();
     }, 1000);
-  }
+  };
 
   MessageManager.handleEvent = function handleEvent(evt) {
     this.messages.unshift(evt.detail);
-  }
+  };
 
   window.addEventListener('smssent', MessageManager, true);
   window.addEventListener('smsreceived', MessageManager, true);
-};
+}
 
 
 var MessageView = {
@@ -179,7 +180,7 @@ var MessageView = {
           body: message.body,
           timestamp: prettyDate(message.timestamp),
           count: 1
-        }
+        };
       }
 
       var fragment = '<div class="message" data-num="*">' +
@@ -211,7 +212,7 @@ var MessageView = {
     return '<div ' + className + ' ' + dataNum + '>' +
            '  <div class="sms">' +
            '    <div class="title">' + title + '</div>' +
-           '    <div class="content">' + 
+           '    <div class="content">' +
            '      <span class="text">' + msg.body + '</span>' +
            '      <span class="infos">' + msg.timestamp + '</span>' +
            '    </div>' +
@@ -257,12 +258,12 @@ var ConversationView = {
     var filter = ('SmsFilter' in window) ? new SmsFilter() : {};
     filter.number = this.filter;
 
-    MessageManager.getMessages(function (messages) {
+    MessageManager.getMessages(function mm_getMessages(messages) {
       var fragment = '';
       for (var i = 0; i < messages.length; i++) {
         var msg = messages[i];
         var uuid = msg.hasOwnProperty('uuid') ? msg.uuid : '';
-        var dataId = 'data-id="' + uuid +'"';
+        var dataId = 'data-id="' + uuid + '"';
 
         var dataNum = 'data-num="' + (msg.sender || msg.receiver) + '"';
 
