@@ -11,7 +11,12 @@ if (!window['Gaia'])
   var foregroundWindow;
   
   Gaia.AppManager = {
-
+    
+    get screen() {
+      delete this.screen;
+      return this.screen = document.getElementById('screen');
+    },
+    
     get windowsContainer() {
       delete this.windowsContainer;
       return this.windowsContainer = document.getElementById('windows');
@@ -32,7 +37,15 @@ if (!window['Gaia'])
       switch (evt.type) {
         case 'keypress':
           if (evt.keyCode == evt.DOM_VK_ESCAPE) {
-            // TODO: Open TaskManager
+            
+            // Open/Close TaskManager
+            if (this.screen.classList.contains('animateTaskManagerOpen')) {
+              this.screen.classList.remove('animateTaskManagerOpen');
+              this.screen.classList.add('animateTaskManagerClose');
+            } else {
+              this.screen.classList.remove('animateTaskManagerClose');
+              this.screen.classList.add('animateTaskManagerOpen');
+            }
           }
           break;
         case 'appclose':

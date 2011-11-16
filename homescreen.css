@@ -3,6 +3,7 @@ html, body {
   height: 100%;
   margin: 0px;
   padding: 0px;
+  background: #222;
 }
 
 #screen {
@@ -12,6 +13,34 @@ html, body {
   height: 100%; 
   background-image: url('images/background.jpg');
   background-size: cover;
+}
+
+#screen.animateTaskManagerOpen {
+  top: -140px;
+  -moz-animation-duration: 250ms;
+  -moz-animation-name: animateTaskManagerOpen;
+}
+@-moz-keyframes animateTaskManagerOpen {
+  from {
+    top: 0;
+  }
+  to {
+    top: -140px;
+  }
+}
+
+#screen.animateTaskManagerClose {
+  top: 0;
+  -moz-animation-duration: 250ms;
+  -moz-animation-name: animateTaskManagerClose;
+}
+@-moz-keyframes animateTaskManagerClose {
+  from {
+    top: -140px;
+  }
+  to {
+    top: 0;
+  }
 }
 
 /*
