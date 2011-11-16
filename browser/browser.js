@@ -4,32 +4,32 @@ var Browser = {
   get backButton() {
     delete this.backButton;
     return this.backButton =
-      document.getElementById("browser-back-button");
+      document.getElementById('browser-back-button');
   },
 
   get goButton() {
     delete this.goButton;
     return this.goButton =
-      document.getElementById("browser-go-button");
+      document.getElementById('browser-go-button');
   },
 
   get content() {
     delete this.content;
-    return this.content = document.getElementById("browser-iframe");
+    return this.content = document.getElementById('browser-iframe');
   },
 
   get urlbar() {
     delete this.urlbar;
     return this.urlbar =
-      document.getElementById("browser-url");
+      document.getElementById('browser-url');
   },
   init: function() {
-    this.goButton.addEventListener("click", (function goHandler(evt) {
+    this.goButton.addEventListener('click', (function goHandler(evt) {
       this.navigate(this.urlbar.value);
       evt.preventDefault();
     }).bind(this));
 
-    this.backButton.addEventListener("click", (function backHandler(evt) {
+    this.backButton.addEventListener('click', (function backHandler(evt) {
       this.back();
     }).bind(this));
 
@@ -38,7 +38,7 @@ var Browser = {
 
   navigate: function(url, ignoreHistory) {
     this.urlbar.value = url;
-    this.content.setAttribute("src", url);
+    this.content.setAttribute('src', url);
 
     if (ignoreHistory)
       return;
