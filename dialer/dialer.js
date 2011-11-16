@@ -28,7 +28,7 @@ function choiceChanged(target) {
 
   target.setAttribute('data-active', 'true');
   view.removeAttribute('hidden');
-};
+}
 
 var KeyHandler = {
   get phoneNumber() {
@@ -38,7 +38,8 @@ var KeyHandler = {
 
   get fakePhoneNumberView() {
     delete this.fakePhoneNumberView;
-    return this.fakePhoneNumberView = document.getElementById('fakePhoneNumberView');
+    return this.fakePhoneNumberView =
+      document.getElementById('fakePhoneNumberView');
   },
 
   get phoneNumberView() {
@@ -74,10 +75,11 @@ var KeyHandler = {
         row.className = 'keyboard-row';
         mainKey.appendChild(row);
       }
-      
+
       var container = document.createElement('div');
       container.className = 'keyboard-key';
-      container.setAttribute('data-value', 'value' in key ? key.value : key.title);
+      var value = 'value' in key ? key.value : key.title;
+      container.setAttribute('data-value', value);
 
       var title = document.createElement('span');
       title.appendChild(document.createTextNode(key.title));
@@ -136,14 +138,14 @@ var KeyHandler = {
     var text = this.formatPhoneNumber(this.phoneNumber.value);
     view.innerHTML = text;
 
-    var newFontSize = text ? getNextFontSize(parseInt(fontSize), text)
-                           : kDefaultFontSize;
+    var newFontSize =
+      text ? getNextFontSize(parseInt(fontSize), text) : kDefaultFontSize;
     if (newFontSize != fontSize)
     view.style.fontSize = newFontSize + 'px';
   },
 
   keyDown: function kh_keyDown(event) {
-    var key = event.target.getAttribute('data-value'); 
+    var key = event.target.getAttribute('data-value');
     if (!key)
       return;
 
