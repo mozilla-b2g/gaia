@@ -42,7 +42,8 @@ var Apps = {
 var TouchHandler = {
   touchState : { active: false, startX: 0, startY: 0 },
   events: ['touchstart', 'touchmove', 'touchend',
-           'mousedown', 'mousemove', 'mouseup'],
+           'mousedown', 'mousemove', 'mouseup',
+           'contextmenu'],
   start: function th_start() {
     this.events.forEach((function(evt) {
       window.addEventListener(evt, this);
@@ -68,13 +69,6 @@ var TouchHandler = {
       return;
     touchState.active = false; 
 
-    var long = (evt.timeStamp - touchState.startTime > 2000);
-    if (long) {
-      var doc = evt.target.ownerDocument || window.document;
-      showSourceViewer(doc.URL);
-      return;
-    }  
- 
     this.startX = this.startY = 0;
     this.lastX = this.lastY = 0;
   },
@@ -123,6 +117,9 @@ var TouchHandler = {
         }
         this.onTouchMove(touchEvent);
         break;
+      case 'contextmenu':
+        var sourceURL = (evt.target.ownerDocument || window.document).URL;
+        showSourceViewer(sourceURL);
       case 'touchend':
         evt.preventDefault();
       case 'mouseup':
@@ -156,6 +153,7 @@ function showSourceViewer(url) {
       background-color: white;\
       opacity: 0.92;\
       color: black;\
+      z-index: 9999;\
       }', 0);
 
     viewsource = document.createElement('iframe');
