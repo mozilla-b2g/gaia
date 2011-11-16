@@ -9,7 +9,7 @@ if (!window['Gaia'])
 (function() {
   var runningApps = [];
 
-  var TaskTray = function(canvas, iconWidth, iconHeight, border) {
+  var TaskTray = function TaskTray(canvas, iconWidth, iconHeight, border) {
     this.canvas = canvas;
     this.iconWidth = iconWidth;
     this.iconHeight = iconHeight;
@@ -23,7 +23,7 @@ if (!window['Gaia'])
     // Set up event handlers.
     var events = [
       'touchstart', 'touchmove', 'touchend',
-      'mousedown', 'mousemove', 'mouseup',
+      'mousedown', 'mousemove', 'mouseup'
     ];
 
     events.forEach((function(evt) {
@@ -34,7 +34,7 @@ if (!window['Gaia'])
   }
 
   TaskTray.prototype = {
-    add: function(src, label, url) {
+    add: function taskTrayAdd(src, label, url) {
 
       // Create the icon in the tray.
       var icons = this.icons;
@@ -57,20 +57,21 @@ if (!window['Gaia'])
       return icon;
     },
 
-    remove: function(icon) {
+    remove: function taskTrayRemove(icon) {
       this.icons.splice(icon.index);
 
       if (icon.sprite)
         sceneGraph.remove(icon.sprite);
     },
 
-    reflow: function(width, height, duration) {
+    reflow: function taskTrayReflow(width, height, duration) {
       // Recalculate all the layout information.
       this.containerWidth = width;
       this.containerHeight = height;
       this.panelWidth = this.containerWidth;
       this.pageIndicatorWidth = this.containerWidth;
-      this.pageIndicatorHeight = Math.min(Math.max(this.containerHeight * 0.7, 14), 20);
+      this.pageIndicatorHeight =
+        Math.min(Math.max(this.containerHeight * 0.7, 14), 20);
       this.panelHeight = this.containerHeight - this.pageIndicatorHeight;
       this.columns = Math.floor(this.panelWidth / this.iconWidth);
       this.rows = Math.floor(this.panelHeight / this.iconHeight);
@@ -87,9 +88,10 @@ if (!window['Gaia'])
         icons[n].reflow(duration);
     },
 
-    getLastPage: function() {
+    getLastPage: function taskTrayGetLastPage() {
       var itemsPerPage = this.itemsPerPage;
-      var lastPage = Math.floor((this.icons.length + (itemsPerPage - 1)) / itemsPerPage);
+      var lastPage =
+        Math.floor((this.icons.length + (itemsPerPage - 1)) / itemsPerPage);
 
       if (lastPage > 0)
         --lastPage;
@@ -97,18 +99,19 @@ if (!window['Gaia'])
       return lastPage;
     },
 
-    setPage: function(page, duration) {
+    setPage: function taskTraySetPage(page, duration) {
       page = Math.max(0, page);
       page = Math.min(page, this.getLastPage());
-      this.sceneGraph.setViewportTopLeft(this.containerWidth * page, 0, duration);
+      this.sceneGraph.setViewportTopLeft(this.containerWidth * page,
+                                         0, duration);
       this.currentPage = page;
     },
 
-    tap: function(x, y) {
+    tap: function taskTrayTap(x, y) {
       var screen = document.getElementById('screen');
       var rect = screen.getBoundingClientRect();
       var height = rect.bottom - rect.top - 140;
-      
+
       this.sceneGraph.forHit(
         x, y - height,
         function(sprite) {
@@ -117,7 +120,7 @@ if (!window['Gaia'])
         });
     },
 
-    handleEvent: function(e) {
+    handleEvent: function taskTrayHandleEvent(e) {
       var physics = this.physics;
 
       switch (e.type) {
@@ -153,7 +156,7 @@ if (!window['Gaia'])
 
   Gaia.AppManager = {
     _foregroundWindows: [],
-    
+
     set foregroundWindow(win) {
       this._foregroundWindows.push(win);
     },
@@ -180,17 +183,17 @@ if (!window['Gaia'])
       delete this.screen;
       return this.screen = document.getElementById('screen');
     },
-    
+
     get taskTray() {
       delete this.taskTray;
-      
+
       var taskManagerContainer = document.getElementById('taskManager');
       var taskManagerRect = taskManagerContainer.getBoundingClientRect();
       var taskTrayCanvas = document.getElementById('taskTrayCanvas');
-      
+
       taskTrayCanvas.width = taskManagerRect.width;
       taskTrayCanvas.height = taskManagerRect.height;
-      
+
       return this.taskTray = new TaskTray(taskTrayCanvas, 120, 120, 0.2);
     },
 
@@ -230,7 +233,7 @@ if (!window['Gaia'])
       screenClassList.remove('animateTaskManagerClose');
       screenClassList.add('animateTaskManagerOpen');
     },
-    
+
     closeTaskManager: function() {
       var screenClassList = this.screen.classList;
       screenClassList.remove('animateTaskManagerOpen');
@@ -335,18 +338,18 @@ if (!window['Gaia'])
     getRunningApps: function() {
       return runningApps;
     },
-    
+
     getInstalledAppForURL: function(url) {
       var installedApps = this.getInstalledApps();
-      
+
       for (var i = 0; i < installedApps.length; i++) {
         if (installedApps[i].url === url)
           return installedApps[i];
       }
-      
+
       return null;
     },
-    
+
     getAppInstance: function(url) {
       for (var i = 0; i < runningApps.length; i++) {
         if (runningApps[i].url === url)
@@ -379,10 +382,9 @@ if (!window['Gaia'])
           url: url,
           window: foregroundWindow
         });
-        
-        if (app) {
+
+        if (app)
           this.taskTray.add(app.icons.size_128, app.name, app.url);
-        }
       }
 
       var animationCompleteHandler = function() {
@@ -425,7 +427,6 @@ if (!window['Gaia'])
       }).bind(this);
 
       window.addEventListener('animationend', animationCompleteHandler);
-      foregroundWindow.contentWindow.Apps.uninit();
       foregroundWindow.classList.add('animateClosing');
     },
 
