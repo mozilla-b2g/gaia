@@ -243,9 +243,3 @@ iframe.appWindow {
   top: 4px;
 }
 
-#homescreenFocus {
-  width: 0;
-  height: 0;
-  padding: 0;
-  border: 0;
-}
