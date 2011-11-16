@@ -82,20 +82,49 @@ gallery.indexedDB.getAllPhotos = function() {
     if(!!result == false) {
       return;
     }
-    gallery.renderPhoto(result.value);
+    gallery.renderThumbnail(result.value);
     result.continue();
   };
   cursorRequest.onerror = function(e) {
     console.log("Error getting all photos");
   };
+  thumbnails.addEventListener("click", function(e){
+    if(e.target && e.target.classList.contains("thumbnail")) {
+      gallery.renderPhoto(e.target);
+      e.preventDefault();
+    }
+  }, false);
 };
 
 /**
- *  Render Photo
+ *  Render Thumbnail
  */
-gallery.renderPhoto = function(photo) {
+gallery.renderThumbnail = function(photo) {
   var thumbnails = document.getElementById("thumbnails");
-  thumbnails.innerHTML += '<li><a href="#" class="thumbnail_link"><img class="thumbnail" src="data:image/jpeg;base64,' + photo.data + '"></a></li>'
+  thumbnails.innerHTML += '<li>' +
+                          '  <a id="photo_' + photo.id + '" href="#" class="thumbnail_link">' +
+                          '    <img class="thumbnail" src="data:image/jpeg;base64,' + photo.data + '">' +
+                          '  </a>' +
+                          '</li>';
+  var thumbnail_link = document.getElementById("photo_" + photo.id);
+};
+
+/**
+ * Render Photo
+ */
+gallery.renderPhoto = function(thumbnail) {
+  var photo = thumbnail.cloneNode(false);
+  photo.classList.remove("thumbnail");
+  photo.classList.add("photo");
+  var thumbnails = document.getElementById("thumbnails");
+  thumbnails.classList.add("hidden");
+  var header = document.getElementById("galleryHeader");
+  header.classList.add("hidden");
+  var frame = document.getElementById("photoFrame");
+  var border = document.getElementById("photoBorder");
+  border.appendChild(photo);
+  frame.classList.remove("hidden");
+  border.classList.remove("hidden");
 };
 
 
