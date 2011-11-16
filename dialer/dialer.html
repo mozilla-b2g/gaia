@@ -21,7 +21,8 @@
           <div id="phoneNumberView"></div>
         </div>
 
-        <div id="keyboard-container" onmousedown="KeyHandler.keyDown(event)" onmouseup="KeyHandler.keyUp(event)">
+        <div id="keyboard-container" onmousedown="KeyHandler.keyDown(event)" onmouseup="KeyHandler.keyUp(event)"
+                                     ontouchstart="KeyHandler.keyDown(event)" ontouchend="KeyHandler.keyUp(event)">
           <div id="mainKeyset"></div>
           <div id="additionalKeyset">
             <div class="keyboard-row">

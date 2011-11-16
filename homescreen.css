@@ -26,20 +26,6 @@ html, body {
   }
 }
 
-#viewsource {
-  position: absolute;
-  top: -moz-calc(10%);
-  left: -moz-calc(10%);
-  width: -moz-calc(80% - 2 * 15px);
-  height: -moz-calc(80% - 2 * 15px);
-  visibility: hidden;
-  box-shadow: 10px 10px 5px #888;
-  margin: 15px;
-  background-color: white;
-  opacity: 0.92;
-  color: black;
-}
-
 #lockscreen {
   position: absolute;
   z-index: 10000;

@@ -12,6 +12,7 @@ html, body {
 
 .message {
   padding: 0 10px;
+  border: 1px solid transparent;
   border-bottom: 1px solid lightgrey;
   background: mintcream;
 }
@@ -81,7 +82,7 @@ html, body {
 
 #messages .infos {
   display: block;
-  width: -moz-calc(100% - 96px);
+  width: 100%;
   font-size: 14px;
   line-height: 14px;
   font-weight: bold;

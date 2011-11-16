@@ -40,9 +40,10 @@ var Apps = {
 };
 
 var TouchHandler = {
-  touchState : { active: false, startX: 0, startY: 0 },
+  touchState: { active: false, startX: 0, startY: 0 },
   events: ['touchstart', 'touchmove', 'touchend',
-           'mousedown', 'mousemove', 'mouseup'],
+           'mousedown', 'mousemove', 'mouseup',
+           'contextmenu'],
   start: function th_start() {
     this.events.forEach((function(evt) {
       window.addEventListener(evt, this);
@@ -66,15 +67,8 @@ var TouchHandler = {
     var touchState = this.touchState;
     if (!touchState.active)
       return;
-    touchState.active = false; 
+    touchState.active = false;
 
-    var long = (evt.timeStamp - touchState.startTime > 2000);
-    if (long) {
-      var doc = evt.target.ownerDocument || window.document;
-      showSourceViewer(doc.URL);
-      return;
-    }  
- 
     this.startX = this.startY = 0;
     this.lastX = this.lastY = 0;
   },
@@ -123,6 +117,10 @@ var TouchHandler = {
         }
         this.onTouchMove(touchEvent);
         break;
+      case 'contextmenu':
+        var sourceURL = (evt.target.ownerDocument || window.document).URL;
+        showSourceViewer(sourceURL);
+        evt.preventDefault();
       case 'touchend':
         evt.preventDefault();
       case 'mouseup':
@@ -133,7 +131,7 @@ var TouchHandler = {
           document.releaseCapture();
           this.target.removeAttribute('panning');
           this.panning = null;
-        } 
+        }
         this.onTouchEnd(evt.touches ? evt.touches[0] : evt);
         this.target = null;
       break;
@@ -143,20 +141,22 @@ var TouchHandler = {
 
 function showSourceViewer(url) {
   var viewsource = document.getElementById('appViewsource');
-  if (!viewsource) { 
-    document.styleSheets[0].insertRule('#appViewsource { \
-      position: absolute;\
-      top: -moz-calc(10%);\
-      left: -moz-calc(10%);\
-      width: -moz-calc(80% - 2 * 15px);\
-      height: -moz-calc(80% - 2 * 15px);\
-      visibility: hidden;\
-      box-shadow: 10px 10px 5px #888;\
-      margin: 15px;\
-      background-color: white;\
-      opacity: 0.92;\
-      color: black;\
-      }', 0);
+  if (!viewsource) {
+    var style = '#appViewsource { ' +
+                '  position: absolute;' +
+                '  top: -moz-calc(10%);' +
+                '  left: -moz-calc(10%);' +
+                '  width: -moz-calc(80% - 2 * 15px);' +
+                '  height: -moz-calc(80% - 2 * 15px);' +
+                '  visibility: hidden;' +
+                '  box-shadow: 10px 10px 5px #888;' +
+                '  margin: 15px;' +
+                '  background-color: white;' +
+                '  opacity: 0.92;' +
+                '  color: black;' +
+                '  z-index: 9999;' +
+                '}';
+    document.styleSheets[0].insertRule(style, 0);
 
     viewsource = document.createElement('iframe');
     viewsource.id = 'appViewsource';
@@ -164,7 +164,6 @@ function showSourceViewer(url) {
   }
   viewsource.style.visibility = 'visible';
   viewsource.src = 'view-source: ' + url;
-   
 }
 
 function hideSourceViewer() {
@@ -178,39 +177,39 @@ var ContactsManager = {
   contacts: []
 };
 
-var Contact = function (name, familyName, tel) {
+var Contact = function Contact(name, familyName, tel) {
   this.name = name;
-  this.honorificPrefix = "";
-  this.givenName = "";
-  this.additionalName = "";
-  this.familyName = familyName; 
-  this.honorificSuffix = "";
-  this.nickname = "";
-  this.email = "";
-  this.photo = "";
-  this.url = "";
-  this.category = "";
+  this.honorificPrefix = '';
+  this.givenName = '';
+  this.additionalName = '';
+  this.familyName = familyName;
+  this.honorificSuffix = '';
+  this.nickname = '';
+  this.email = '';
+  this.photo = '';
+  this.url = '';
+  this.category = '';
   this.adr = new ContactAddress();
-  this.streetAddress = "";
-  this.locality = "";
-  this.region = "";
-  this.postalCode = "";
-  this.countryName = "";
+  this.streetAddress = '';
+  this.locality = '';
+  this.region = '';
+  this.postalCode = '';
+  this.countryName = '';
   this.tel = tel;
-  this.org = "";
+  this.org = '';
   this.bday = new Date();
-  this.note = "";
-  this.impp = ""; /* per RFC 4770, included in vCard4 */
+  this.note = '';
+  this.impp = ''; /* per RFC 4770, included in vCard4 */
   this.anniversary = new Date();
 };
 
-var ContactAddress  = function() {
-  this.streetAddress = "";
-  this.locality = "";
-  this.region = "";
-  this.postalCode = "";
-  this.countryName = "";
-}; 
+var ContactAddress = function ContactAddress() {
+  this.streetAddress = '';
+  this.locality = '';
+  this.region = '';
+  this.postalCode = '';
+  this.countryName = '';
+};
 
 var ContactsAPI = {
   _contacts: [

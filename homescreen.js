@@ -72,35 +72,21 @@ DefaultPhysics.prototype = {
     var tap = !this.moved && small;
     var drag = !quick;
 
-    if (!this.moved && long) {
-      var doc = e.target.ownerDocument || window.document;
-      var url = doc.URL;
-
-      var viewsource = document.getElementById('viewsource');
-      viewsource.style.visibility = 'visible';
-      viewsource.src = 'view-source: ' + url;
-      return;
-    }
-
     var iconGrid = this.iconGrid;
-    var currentPage = iconGrid.currentPage
+    var currentPage = iconGrid.currentPage;
     if (tap) {
       iconGrid.tap(currentPage * iconGrid.containerWidth + startX,
                    touchState.startY);
     } else if (flick) {
       iconGrid.setPage(currentPage + dir, 200);
     } else {
-      if (Math.abs(diffX) < this.containerWidth/2)
+      if (Math.abs(diffX) < this.containerWidth / 2)
         iconGrid.setPage(currentPage, 200);
       else
         iconGrid.setPage(currentPage + dir, 200);
     }
   }
 };
-
-function hideSourceViewer() {
-  document.getElementById('viewsource').style.visibility = 'hidden';
-}
 
 function Icon(iconGrid, index) {
   this.iconGrid = iconGrid;
@@ -133,7 +119,8 @@ Icon.prototype = {
     ctx.textAlign = 'center';
     ctx.fillStyle = 'white';
     ctx.textBaseline = 'top';
-    ctx.fillText(label, iconWidth/2, iconHeight - iconHeight*border, iconWidth*0.9);
+    ctx.fillText(label, iconWidth / 2, iconHeight - iconHeight * border,
+                 iconWidth * 0.9);
     if (createSprite)
       sceneGraph.add(sprite);
     this.reflow();
@@ -162,7 +149,7 @@ Icon.prototype = {
                        duration);
     sprite.setScale(1, duration);
   }
-}
+};
 
 function IconGrid(canvas, iconWidth, iconHeight, border) {
   this.canvas = canvas;
@@ -181,7 +168,8 @@ function IconGrid(canvas, iconWidth, iconHeight, border) {
   // install event handlers
   var events = [
     'touchstart', 'touchmove', 'touchend',
-    'mousedown', 'mousemove', 'mouseup'
+    'mousedown', 'mousemove', 'mouseup',
+    'contextmenu'
   ];
   events.forEach((function(evt) {
     canvas.addEventListener(evt, this, true);
@@ -221,7 +209,8 @@ IconGrid.prototype = {
     this.containerHeight = height;
     this.panelWidth = this.containerWidth;
     this.pageIndicatorWidth = this.containerWidth;
-    this.pageIndicatorHeight = Math.min(Math.max(this.containerHeight * 0.7, 14), 20);
+    this.pageIndicatorHeight =
+      Math.min(Math.max(this.containerHeight * 0.7, 14), 20);
     this.panelHeight = this.containerHeight - this.pageIndicatorHeight;
     this.columns = Math.floor(this.panelWidth / this.iconWidth);
     this.rows = Math.floor(this.panelHeight / this.iconHeight);
@@ -240,7 +229,8 @@ IconGrid.prototype = {
   // get last page with an icon
   getLastPage: function() {
     var itemsPerPage = this.itemsPerPage;
-    var lastPage = Math.floor((this.icons.length + (itemsPerPage - 1)) / itemsPerPage);
+    var lastPage =
+      Math.floor((this.icons.length + (itemsPerPage - 1)) / itemsPerPage);
     if (lastPage > 0)
       --lastPage;
     return lastPage;
@@ -272,6 +262,12 @@ IconGrid.prototype = {
     case 'mousemove':
       physics.onTouchMove(e.touches ? e.touches[0] : e);
       break;
+    case 'contextmenu':
+      var sourceURL = window.document.URL;
+      showSourceViewer(sourceURL);
+      document.releaseCapture();
+      physics.touchState.active = false;
+      break;
     case 'touchend':
     case 'mouseup':
       document.releaseCapture();
@@ -291,20 +287,22 @@ IconGrid.prototype = {
     }
     e.preventDefault();
   }
-}
+};
 
 function NotificationScreen(touchables) {
   this.touchables = touchables;
   this.attachEvents(this.touchable);
-};
+}
 
 NotificationScreen.prototype = {
   get touchable() {
     return this.touchables[this.locked ? 0 : 1];
   },
   get screenHeight() {
-    return this._screenHeight ||
-           (this._screenHeight = this.touchables[0].getBoundingClientRect().height);
+    var screenHeight = this._screenHeight;
+    if (!screenHeight)
+      this._screenHeight = this.touchables[0].getBoundingClientRect().height;
+    return screenHeight;
   },
   onTouchStart: function(e) {
     this.startX = e.pageX;
@@ -322,9 +320,8 @@ NotificationScreen.prototype = {
   },
   onTouchEnd: function(e) {
     var dy = -(this.startY - e.pageY);
-    var offset = this.locked ? this.screenHeight + dy
-                             : dy;
-    if (Math.abs(offset) > this.screenHeight/4)
+    var offset = this.locked ? this.screenHeight + dy : dy;
+    if (Math.abs(offset) > this.screenHeight / 4)
       this.lock();
     else
       this.unlock();
@@ -362,8 +359,9 @@ NotificationScreen.prototype = {
     case 'mousedown':
       if (target != this.touchable)
         return;
+      hideSourceViewer();
       this.active = true;
-      
+
       target.setCapture(this);
       this.onTouchStart(evt.touches ? evt.touches[0] : evt);
       break;
@@ -388,7 +386,6 @@ NotificationScreen.prototype = {
     }
 
     evt.preventDefault();
-    hideSourceViewer();
   }
 };
 
@@ -421,7 +418,7 @@ LockScreen.prototype = {
     if (this.moving) {
       this.moving = false;
       var dy = -(this.startY - e.pageY);
-      if (Math.abs(dy) < window.innerHeight/4)
+      if (Math.abs(dy) < window.innerHeight / 4)
         this.lock();
       else
         this.unlock(dy);
@@ -465,7 +462,7 @@ LockScreen.prototype = {
     }
     e.preventDefault();
   }
-}
+};
 
 function OnLoad() {
   var lockScreen = new LockScreen(document.getElementById('lockscreen'));
@@ -477,13 +474,44 @@ function OnLoad() {
   ];
   new NotificationScreen(touchables);
 
-  var apps = Gaia.AppManager.getInstalledApps();
+  var fruits = [
+    { label: 'Phone', src: 'images/Phone.png',
+      url: 'dialer/dialer.html' },
+    { label: 'Messages', src: 'images/Messages.png',
+      url: 'sms/sms.html' },
+    { label: 'Contacts', src: 'images/Contacts.png',
+      url: 'data:text/html,<font color="blue">Hello' },
+    { label: 'Video', src: 'images/Video.png',
+      url: 'data:text/html,<font color="blue">Hello' },
+    { label: 'Gallery', src: 'images/Gallery.png',
+      url: 'gallery/gallery.html' },
+    { label: 'Camera', src: 'images/Camera.png',
+      url: 'data:text/html,<font color="blue">Hello' },
+    { label: 'Maps', src: 'images/Maps.png',
+      url: 'data:text/html,<font color="blue">Hello' },
+    { label: 'Calculator', src: 'images/Calculator.png',
+      url: 'data:text/html,<font color="blue">Hello' },
+    { label: 'Clock', src: 'images/Clock.png',
+      url: 'data:text/html,<font color="blue">Hello' },
+    { label: 'Browser', src: 'images/Browser.png',
+      url: 'browser/browser.html' },
+    { label: 'Music', src: 'images/Music.png',
+      url: 'data:text/html,<font color="blue">Hello' },
+    { label: 'Weather', src: 'images/Weather.png',
+      url: 'data:text/html,<font color="blue">Hello' },
+    { label: 'Settings', src: 'images/Settings.png',
+      url: 'data:text/html,<font color="blue">Hello' },
+    { label: 'Stocks', src: 'images/Stocks.png',
+      url: 'data:text/html,<font color="blue">Hello' },
+    { label: 'Market', src: 'images/Market.png',
+      url: 'data:text/html,<font color="blue">Hello' }
+  ];
 
   var icons = [];
   // XXX this add 5 times the same set of icons
   for (var i = 0; i < 5; i++)
-    for (var n = 0; n < apps.length; ++n)
-      icons.push(apps[n]);
+    for (var n = 0; n < fruits.length; ++n)
+      icons.push(fruits[n]);
 
   var screen = document.getElementById('screen');
   var screenRect = screen.getBoundingClientRect();
@@ -496,9 +524,9 @@ function OnLoad() {
   var iconGrid = new IconGrid(canvas, 120, 120, 0.2);
   for (var n = 0; n < icons.length; ++n) {
     var icon = icons[n];
-    iconGrid.add(icon.icons.size_128, icon.name, icon.url);
+    iconGrid.add(icon.src, icon.label, icon.url);
   }
-  
+
   WindowManager.start();
 }
 
@@ -511,7 +539,6 @@ var WindowManager = {
     delete this.windows;
     return this.windows = document.getElementById('windows');
   },
-  activeWindow: null,
   start: function wm_start() {
     window.addEventListener('appclose', this, true);
   },
@@ -519,7 +546,29 @@ var WindowManager = {
   handleEvent: function wm_handleEvent(evt) {
     switch (evt.type) {
       case 'appclose':
-        WindowManager.close();
+        var windows = this.windows;
+        if (windows.childElementCount < 1)
+          return;
+
+        // TODO when existing window will be checked, this should be
+        // point to the real window
+        var topWindow = windows.lastElementChild;
+        topWindow.classList.toggle('animateClosing');
+
+        window.addEventListener(
+          'animationend',
+          function listener() {
+            window.removeEventListener('animationend', listener, false);
+            windows.removeChild(topWindow);
+            if (windows.childElementCount < 1)
+              windows.setAttribute('hidden', 'true');
+
+            window.setTimeout(function focusPreviousWindow() {
+              var previousWindow = windows.lastElementChild || window;
+              previousWindow.focus();
+            }, 0);
+          },
+          false);
         break;
       default:
         throw new Error('Unhandled event in WindowManager');
@@ -530,27 +579,29 @@ var WindowManager = {
   // open the application referred to by |url| into a new window, or
   // bring its window to front if already open.
   open: function wm_open(url) {
-    WindowManager.activeWindow = Gaia.AppManager.launch(url);
-  },
-  
-  close: function wm_close() {
+    // TODO
+    //var existingWindow = document.querySelector('#windows > ...');
+
+    var newWindow = document.createElement('iframe');
+    newWindow.className = 'appWindow';
+
+    // animate the window opening
+    newWindow.classList.toggle('animateOpening');
+
     var windows = this.windows;
-    var activeWindow = WindowManager.activeWindow;
-    
-    if (!activeWindow)
-      return;
-    
-    var animationCompleteHandler = function() {
-      window.removeEventListener('animationend', animationCompleteHandler, false);
-      activeWindow.classList.remove('animateClosing');
-      activeWindow.setAttribute('hidden', true);
-      windows.setAttribute('hidden', true);
-      window.focus();
-    };
-    
-    window.addEventListener('animationend', animationCompleteHandler, false);
-    
-    activeWindow.classList.add('animateClosing');
+    windows.removeAttribute('hidden');
+    windows.appendChild(newWindow);
+
+    window.addEventListener('animationend', function listener() {
+      window.removeEventListener('animationend', listener, false);
+      newWindow.classList.toggle('animateOpening');
+      newWindow.src = url;
+      newWindow.focus();
+
+      var event = document.createEvent('UIEvents');
+      event.initUIEvent('appopen', true, true, newWindow.contentWindow, 0);
+      window.dispatchEvent(event);
+    }, false);
   }
 };
 
