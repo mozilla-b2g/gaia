@@ -98,7 +98,7 @@ if (!window['Gaia'])
         icons: {
           size_128: 'images/Gallery.png'
         },
-        url: 'data:text/html,<font color="blue">Hello</font>'
+        url: 'gallery/gallery.html'
       }, {
         name: 'Camera',
         icons: {
