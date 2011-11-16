@@ -247,7 +247,7 @@ IconGrid.prototype = {
     this.sceneGraph.forHit(
       x, y,
       function(sprite) {
-        WindowManager.open(sprite.icon.url);
+        Gaia.AppManager.launch(sprite.icon.url);
       });
   },
   handleEvent: function(e) {
@@ -474,44 +474,15 @@ function OnLoad() {
   ];
   new NotificationScreen(touchables);
 
-  var fruits = [
-    { label: 'Phone', src: 'images/Phone.png',
-      url: 'dialer/dialer.html' },
-    { label: 'Messages', src: 'images/Messages.png',
-      url: 'sms/sms.html' },
-    { label: 'Contacts', src: 'images/Contacts.png',
-      url: 'data:text/html,<font color="blue">Hello' },
-    { label: 'Video', src: 'images/Video.png',
-      url: 'data:text/html,<font color="blue">Hello' },
-    { label: 'Gallery', src: 'images/Gallery.png',
-      url: 'gallery/gallery.html' },
-    { label: 'Camera', src: 'images/Camera.png',
-      url: 'data:text/html,<font color="blue">Hello' },
-    { label: 'Maps', src: 'images/Maps.png',
-      url: 'data:text/html,<font color="blue">Hello' },
-    { label: 'Calculator', src: 'images/Calculator.png',
-      url: 'data:text/html,<font color="blue">Hello' },
-    { label: 'Clock', src: 'images/Clock.png',
-      url: 'data:text/html,<font color="blue">Hello' },
-    { label: 'Browser', src: 'images/Browser.png',
-      url: 'browser/browser.html' },
-    { label: 'Music', src: 'images/Music.png',
-      url: 'data:text/html,<font color="blue">Hello' },
-    { label: 'Weather', src: 'images/Weather.png',
-      url: 'data:text/html,<font color="blue">Hello' },
-    { label: 'Settings', src: 'images/Settings.png',
-      url: 'data:text/html,<font color="blue">Hello' },
-    { label: 'Stocks', src: 'images/Stocks.png',
-      url: 'data:text/html,<font color="blue">Hello' },
-    { label: 'Market', src: 'images/Market.png',
-      url: 'data:text/html,<font color="blue">Hello' }
-  ];
+  Gaia.AppManager.init();
+
+  var apps = Gaia.AppManager.getInstalledApps();
 
   var icons = [];
   // XXX this add 5 times the same set of icons
   for (var i = 0; i < 5; i++)
-    for (var n = 0; n < fruits.length; ++n)
-      icons.push(fruits[n]);
+    for (var n = 0; n < apps.length; ++n)
+      icons.push(apps[n]);
 
   var screen = document.getElementById('screen');
   var screenRect = screen.getBoundingClientRect();
@@ -524,86 +495,10 @@ function OnLoad() {
   var iconGrid = new IconGrid(canvas, 120, 120, 0.2);
   for (var n = 0; n < icons.length; ++n) {
     var icon = icons[n];
-    iconGrid.add(icon.src, icon.label, icon.url);
-  }
 
-  WindowManager.start();
+    iconGrid.add(icon.icons.size_128, icon.name, icon.url);
+  }
 }
-
-var WindowManager = {
-  get currentView() {
-    var currentFrame = this.windows.lastElementChild;
-    return currentFrame ? currentFrame.contentWindow : window;
-  },
-  get windows() {
-    delete this.windows;
-    return this.windows = document.getElementById('windows');
-  },
-  start: function wm_start() {
-    window.addEventListener('appclose', this, true);
-  },
-  stop: function wm_stop() {},
-  handleEvent: function wm_handleEvent(evt) {
-    switch (evt.type) {
-      case 'appclose':
-        var windows = this.windows;
-        if (windows.childElementCount < 1)
-          return;
-
-        // TODO when existing window will be checked, this should be
-        // point to the real window
-        var topWindow = windows.lastElementChild;
-        topWindow.classList.toggle('animateClosing');
-
-        window.addEventListener(
-          'animationend',
-          function listener() {
-            window.removeEventListener('animationend', listener, false);
-            windows.removeChild(topWindow);
-            if (windows.childElementCount < 1)
-              windows.setAttribute('hidden', 'true');
-
-            window.setTimeout(function focusPreviousWindow() {
-              var previousWindow = windows.lastElementChild || window;
-              previousWindow.focus();
-            }, 0);
-          },
-          false);
-        break;
-      default:
-        throw new Error('Unhandled event in WindowManager');
-        break;
-    }
-  },
-
-  // open the application referred to by |url| into a new window, or
-  // bring its window to front if already open.
-  open: function wm_open(url) {
-    // TODO
-    //var existingWindow = document.querySelector('#windows > ...');
-
-    var newWindow = document.createElement('iframe');
-    newWindow.className = 'appWindow';
-
-    // animate the window opening
-    newWindow.classList.toggle('animateOpening');
-
-    var windows = this.windows;
-    windows.removeAttribute('hidden');
-    windows.appendChild(newWindow);
-
-    window.addEventListener('animationend', function listener() {
-      window.removeEventListener('animationend', listener, false);
-      newWindow.classList.toggle('animateOpening');
-      newWindow.src = url;
-      newWindow.focus();
-
-      var event = document.createEvent('UIEvents');
-      event.initUIEvent('appopen', true, true, newWindow.contentWindow, 0);
-      window.dispatchEvent(event);
-    }, false);
-  }
-};
 
 // Update the clock and schedule a new update if appropriate
 function updateClock() {

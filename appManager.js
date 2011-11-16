@@ -8,9 +8,42 @@ if (!window['Gaia'])
 
 (function() {
   var runningApps = [];
+  var foregroundWindow;
   
   Gaia.AppManager = {
-  
+
+    get windowsContainer() {
+      delete this.windowsContainer;
+      return this.windowsContainer = document.getElementById('windows');
+    },
+
+    init: function() {
+      window.addEventListener('keypress', this);
+      window.addEventListener('appclose', this);
+      
+      // UGLY HACK: Create a dummy text input to be able to set focus back to the main window.
+      this.textInput = document.createElement('input');
+      this.textInput.id = 'homescreenFocus';
+      this.textInput.type = 'text';
+      document.body.appendChild(this.textInput);
+    },
+
+    handleEvent: function(evt) {
+      switch (evt.type) {
+        case 'keypress':
+          if (evt.keyCode == evt.DOM_VK_ESCAPE) {
+            // TODO: Open TaskManager
+          }
+          break;
+        case 'appclose':
+          this.close();
+          break;
+        default:
+          throw new Error('Unhandled event in AppManager');
+          break;
+      }
+    },
+    
     getInstalledApps: function() {
       // TODO: Query navigator.mozApps for installed app list.
       return [{
@@ -26,9 +59,15 @@ if (!window['Gaia'])
         },
         url: 'sms/sms.html'
       }, {
-        name: 'Calendar',
+        name: 'Contacts',
         icons: {
-          size_128: 'images/Calendar.png'
+          size_128: 'images/Contacts.png'
+        },
+        url: 'data:text/html,<font color="blue">Hello</font>'
+      }, {
+        name: 'Video',
+        icons: {
+          size_128: 'images/Video.png'
         },
         url: 'data:text/html,<font color="blue">Hello</font>'
       }, {
@@ -50,21 +89,15 @@ if (!window['Gaia'])
         },
         url: 'data:text/html,<font color="blue">Hello</font>'
       }, {
-        name: 'YouTube',
-        icons: {
-          size_128: 'images/YouTube.png'
-        },
-        url: 'data:text/html,<font color="blue">Hello</font>'
-      }, {
         name: 'Calculator',
         icons: {
           size_128: 'images/Calculator.png'
         },
         url: 'data:text/html,<font color="blue">Hello</font>'
       }, {
-        name: 'Books',
+        name: 'Clock',
         icons: {
-          size_128: 'images/Books.png'
+          size_128: 'images/Clock.png'
         },
         url: 'data:text/html,<font color="blue">Hello</font>'
       }, {
@@ -77,6 +110,30 @@ if (!window['Gaia'])
         name: 'Music',
         icons: {
           size_128: 'images/Music.png'
+        },
+        url: 'data:text/html,<font color="blue">Hello</font>'
+      }, {
+        name: 'Weather',
+        icons: {
+          size_128: 'images/Weather.png'
+        },
+        url: 'data:text/html,<font color="blue">Hello</font>'
+      }, {
+        name: 'Settings',
+        icons: {
+          size_128: 'images/Settings.png'
+        },
+        url: 'data:text/html,<font color="blue">Hello</font>'
+      }, {
+        name: 'Stocks',
+        icons: {
+          size_128: 'images/Stocks.png'
+        },
+        url: 'data:text/html,<font color="blue">Hello</font>'
+      }, {
+        name: 'Market',
+        icons: {
+          size_128: 'images/Market.png'
         },
         url: 'data:text/html,<font color="blue">Hello</font>'
       }];
@@ -94,56 +151,81 @@ if (!window['Gaia'])
       
       return null;
     },
-  
+    
     launch: function(url) {
       var appInstance = this.getAppInstance(url);
-      var appWindow;
       
       // App is already running, set focus to the existing instance.
       if (appInstance) {
-        appWindow = appInstance.window;
-        appWindow.removeAttribute('hidden');
+        foregroundWindow = appInstance.window;
+        foregroundWindow.removeAttribute('hidden');
+        foregroundWindow.contentWindow.Apps.init();
       }
       
       // App is not yet running, create a new instance.
       else {
-        appWindow = document.createElement('iframe');
-        appWindow.className = 'appWindow';
-        appWindow.src = url;
+        foregroundWindow = document.createElement('iframe');
+        foregroundWindow.className = 'appWindow';
+        foregroundWindow.src = url;
         
-        WindowManager.windows.appendChild(appWindow);
+        this.windowsContainer.appendChild(foregroundWindow);
         
         runningApps.push({
           url: url,
-          window: appWindow
+          window: foregroundWindow
         });
       }
       
       var animationCompleteHandler = function() {
         window.removeEventListener('animationend', animationCompleteHandler, false);
         
-        appWindow.classList.remove('animateOpening');
-        appWindow.focus();
+        foregroundWindow.classList.remove('animateOpening');
+        foregroundWindow.focus();
 
         var appOpenEvent = document.createEvent('UIEvents');
         
-        appOpenEvent.initUIEvent('appopen', true, true, appWindow.contentWindow, 0);
+        appOpenEvent.initUIEvent('appopen', true, true, foregroundWindow.contentWindow, 0);
         window.dispatchEvent(appOpenEvent);
       };
       
       window.addEventListener('animationend', animationCompleteHandler, false);
       
-      appWindow.classList.add('animateOpening');
+      foregroundWindow.classList.add('animateOpening');
       
-      WindowManager.windows.removeAttribute('hidden');
+      this.windowsContainer.removeAttribute('hidden');
       
-      return appWindow;
+      return foregroundWindow;
+    },
+    
+    close: function() {
+      if (!foregroundWindow)
+        return;
+      
+      var windowsContainer = this.windowsContainer;
+      var textInput = this.textInput;
+      
+      var animationCompleteHandler = function() {
+        window.removeEventListener('animationend', animationCompleteHandler, false);
+        
+        foregroundWindow.classList.remove('animateClosing');
+        textInput.focus();
+        
+        foregroundWindow.setAttribute('hidden', true);
+        windowsContainer.setAttribute('hidden', true);
+        
+        foregroundWindow = null;
+      };
+
+      window.addEventListener('animationend', animationCompleteHandler, false);
+      foregroundWindow.contentWindow.Apps.uninit();
+      
+      foregroundWindow.classList.add('animateClosing');
     },
   
     kill: function(url) {
       for (var i = 0; i < runningApps.length; i++) {
         if (runningApps[i].url === url) {
-          WindowManager.windows.removeChild(runningApps[i].window);
+          this.windowsContainer.removeChild(runningApps[i].window);
           runningApps.splice(i, 1);
           break;
         }
