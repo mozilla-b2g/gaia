@@ -83,14 +83,14 @@ DefaultPhysics.prototype = {
     }
 
     var iconGrid = this.iconGrid;
-    var currentPage = iconGrid.currentPage
+    var currentPage = iconGrid.currentPage;
     if (tap) {
       iconGrid.tap(currentPage * iconGrid.containerWidth + startX,
                    touchState.startY);
     } else if (flick) {
       iconGrid.setPage(currentPage + dir, 200);
     } else {
-      if (Math.abs(diffX) < this.containerWidth/2)
+      if (Math.abs(diffX) < this.containerWidth / 2)
         iconGrid.setPage(currentPage, 200);
       else
         iconGrid.setPage(currentPage + dir, 200);
@@ -133,7 +133,8 @@ Icon.prototype = {
     ctx.textAlign = 'center';
     ctx.fillStyle = 'white';
     ctx.textBaseline = 'top';
-    ctx.fillText(label, iconWidth/2, iconHeight - iconHeight*border, iconWidth*0.9);
+    ctx.fillText(label, iconWidth / 2, iconHeight - iconHeight * border,
+                 iconWidth * 0.9);
     if (createSprite)
       sceneGraph.add(sprite);
     this.reflow();
@@ -162,7 +163,7 @@ Icon.prototype = {
                        duration);
     sprite.setScale(1, duration);
   }
-}
+};
 
 function IconGrid(canvas, iconWidth, iconHeight, border) {
   this.canvas = canvas;
@@ -221,7 +222,8 @@ IconGrid.prototype = {
     this.containerHeight = height;
     this.panelWidth = this.containerWidth;
     this.pageIndicatorWidth = this.containerWidth;
-    this.pageIndicatorHeight = Math.min(Math.max(this.containerHeight * 0.7, 14), 20);
+    this.pageIndicatorHeight =
+      Math.min(Math.max(this.containerHeight * 0.7, 14), 20);
     this.panelHeight = this.containerHeight - this.pageIndicatorHeight;
     this.columns = Math.floor(this.panelWidth / this.iconWidth);
     this.rows = Math.floor(this.panelHeight / this.iconHeight);
@@ -240,7 +242,8 @@ IconGrid.prototype = {
   // get last page with an icon
   getLastPage: function() {
     var itemsPerPage = this.itemsPerPage;
-    var lastPage = Math.floor((this.icons.length + (itemsPerPage - 1)) / itemsPerPage);
+    var lastPage =
+      Math.floor((this.icons.length + (itemsPerPage - 1)) / itemsPerPage);
     if (lastPage > 0)
       --lastPage;
     return lastPage;
@@ -291,20 +294,22 @@ IconGrid.prototype = {
     }
     e.preventDefault();
   }
-}
+};
 
 function NotificationScreen(touchables) {
   this.touchables = touchables;
   this.attachEvents(this.touchable);
-};
+}
 
 NotificationScreen.prototype = {
   get touchable() {
     return this.touchables[this.locked ? 0 : 1];
   },
   get screenHeight() {
-    return this._screenHeight ||
-           (this._screenHeight = this.touchables[0].getBoundingClientRect().height);
+    var screenHeight = this._screenHeight;
+    if (!screenHeight)
+      this._screenHeight = this.touchables[0].getBoundingClientRect().height;
+    return screenHeight;
   },
   onTouchStart: function(e) {
     this.startX = e.pageX;
@@ -322,9 +327,8 @@ NotificationScreen.prototype = {
   },
   onTouchEnd: function(e) {
     var dy = -(this.startY - e.pageY);
-    var offset = this.locked ? this.screenHeight + dy
-                             : dy;
-    if (Math.abs(offset) > this.screenHeight/4)
+    var offset = this.locked ? this.screenHeight + dy : dy;
+    if (Math.abs(offset) > this.screenHeight / 4)
       this.lock();
     else
       this.unlock();
@@ -363,7 +367,7 @@ NotificationScreen.prototype = {
       if (target != this.touchable)
         return;
       this.active = true;
-      
+
       target.setCapture(this);
       this.onTouchStart(evt.touches ? evt.touches[0] : evt);
       break;
@@ -421,7 +425,7 @@ LockScreen.prototype = {
     if (this.moving) {
       this.moving = false;
       var dy = -(this.startY - e.pageY);
-      if (Math.abs(dy) < window.innerHeight/4)
+      if (Math.abs(dy) < window.innerHeight / 4)
         this.lock();
       else
         this.unlock(dy);
@@ -465,7 +469,7 @@ LockScreen.prototype = {
     }
     e.preventDefault();
   }
-}
+};
 
 function OnLoad() {
   var lockScreen = new LockScreen(document.getElementById('lockscreen'));
@@ -556,7 +560,7 @@ var WindowManager = {
             if (windows.childElementCount < 1)
               windows.setAttribute('hidden', 'true');
 
-            setTimeout(function () {
+            window.setTimeout(function focusPreviousWindow() {
               var previousWindow = windows.lastElementChild || window;
               previousWindow.focus();
             }, 0);
