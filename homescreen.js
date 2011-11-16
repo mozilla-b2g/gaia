@@ -72,35 +72,21 @@ DefaultPhysics.prototype = {
     var tap = !this.moved && small;
     var drag = !quick;
 
-    if (!this.moved && long) {
-      var doc = e.target.ownerDocument || window.document;
-      var url = doc.URL;
-
-      var viewsource = document.getElementById('viewsource');
-      viewsource.style.visibility = 'visible';
-      viewsource.src = 'view-source: ' + url;
-      return;
-    }
-
     var iconGrid = this.iconGrid;
-    var currentPage = iconGrid.currentPage
+    var currentPage = iconGrid.currentPage;
     if (tap) {
       iconGrid.tap(currentPage * iconGrid.containerWidth + startX,
                    touchState.startY);
     } else if (flick) {
       iconGrid.setPage(currentPage + dir, 200);
     } else {
-      if (Math.abs(diffX) < this.containerWidth/2)
+      if (Math.abs(diffX) < this.containerWidth / 2)
         iconGrid.setPage(currentPage, 200);
       else
         iconGrid.setPage(currentPage + dir, 200);
     }
   }
 };
-
-function hideSourceViewer() {
-  document.getElementById('viewsource').style.visibility = 'hidden';
-}
 
 function Icon(iconGrid, index) {
   this.iconGrid = iconGrid;
@@ -133,7 +119,8 @@ Icon.prototype = {
     ctx.textAlign = 'center';
     ctx.fillStyle = 'white';
     ctx.textBaseline = 'top';
-    ctx.fillText(label, iconWidth/2, iconHeight - iconHeight*border, iconWidth*0.9);
+    ctx.fillText(label, iconWidth / 2, iconHeight - iconHeight * border,
+                 iconWidth * 0.9);
     if (createSprite)
       sceneGraph.add(sprite);
     this.reflow();
@@ -162,7 +149,7 @@ Icon.prototype = {
                        duration);
     sprite.setScale(1, duration);
   }
-}
+};
 
 function IconGrid(canvas, iconWidth, iconHeight, border) {
   this.canvas = canvas;
@@ -181,7 +168,8 @@ function IconGrid(canvas, iconWidth, iconHeight, border) {
   // install event handlers
   var events = [
     'touchstart', 'touchmove', 'touchend',
-    'mousedown', 'mousemove', 'mouseup'
+    'mousedown', 'mousemove', 'mouseup',
+    'contextmenu'
   ];
   events.forEach((function(evt) {
     canvas.addEventListener(evt, this, true);
@@ -221,7 +209,8 @@ IconGrid.prototype = {
     this.containerHeight = height;
     this.panelWidth = this.containerWidth;
     this.pageIndicatorWidth = this.containerWidth;
-    this.pageIndicatorHeight = Math.min(Math.max(this.containerHeight * 0.7, 14), 20);
+    this.pageIndicatorHeight =
+      Math.min(Math.max(this.containerHeight * 0.7, 14), 20);
     this.panelHeight = this.containerHeight - this.pageIndicatorHeight;
     this.columns = Math.floor(this.panelWidth / this.iconWidth);
     this.rows = Math.floor(this.panelHeight / this.iconHeight);
@@ -240,7 +229,8 @@ IconGrid.prototype = {
   // get last page with an icon
   getLastPage: function() {
     var itemsPerPage = this.itemsPerPage;
-    var lastPage = Math.floor((this.icons.length + (itemsPerPage - 1)) / itemsPerPage);
+    var lastPage =
+      Math.floor((this.icons.length + (itemsPerPage - 1)) / itemsPerPage);
     if (lastPage > 0)
       --lastPage;
     return lastPage;
@@ -272,6 +262,12 @@ IconGrid.prototype = {
     case 'mousemove':
       physics.onTouchMove(e.touches ? e.touches[0] : e);
       break;
+    case 'contextmenu':
+      var sourceURL = window.document.URL;
+      showSourceViewer(sourceURL);
+      document.releaseCapture();
+      physics.touchState.active = false;
+      break;
     case 'touchend':
     case 'mouseup':
       document.releaseCapture();
@@ -282,10 +278,8 @@ IconGrid.prototype = {
       var width = canvas.width = window.innerWidth;
       // TODO Substract the height of the statusbar
       var height = canvas.height = window.innerHeight - 24;
-      if (kUseGL) {
-        this.sceneGraph.blitter.viewportWidth = width;
-        this.sceneGraph.blitter.viewportHeight = height;
-      }
+      this.sceneGraph.blitter.viewportWidth = width;
+      this.sceneGraph.blitter.viewportHeight = height;
       this.reflow(width, height, 0);
       break;
     default:
@@ -293,20 +287,22 @@ IconGrid.prototype = {
     }
     e.preventDefault();
   }
-}
+};
 
 function NotificationScreen(touchables) {
   this.touchables = touchables;
   this.attachEvents(this.touchable);
-};
+}
 
 NotificationScreen.prototype = {
   get touchable() {
     return this.touchables[this.locked ? 0 : 1];
   },
   get screenHeight() {
-    return this._screenHeight ||
-           (this._screenHeight = this.touchables[0].getBoundingClientRect().height);
+    var screenHeight = this._screenHeight;
+    if (!screenHeight)
+      this._screenHeight = this.touchables[0].getBoundingClientRect().height;
+    return screenHeight;
   },
   onTouchStart: function(e) {
     this.startX = e.pageX;
@@ -324,9 +320,8 @@ NotificationScreen.prototype = {
   },
   onTouchEnd: function(e) {
     var dy = -(this.startY - e.pageY);
-    var offset = this.locked ? this.screenHeight + dy
-                             : dy;
-    if (Math.abs(offset) > this.screenHeight/4)
+    var offset = this.locked ? this.screenHeight + dy : dy;
+    if (Math.abs(offset) > this.screenHeight / 4)
       this.lock();
     else
       this.unlock();
@@ -364,8 +359,9 @@ NotificationScreen.prototype = {
     case 'mousedown':
       if (target != this.touchable)
         return;
+      hideSourceViewer();
       this.active = true;
-      
+
       target.setCapture(this);
       this.onTouchStart(evt.touches ? evt.touches[0] : evt);
       break;
@@ -390,7 +386,6 @@ NotificationScreen.prototype = {
     }
 
     evt.preventDefault();
-    hideSourceViewer();
   }
 };
 
@@ -423,7 +418,7 @@ LockScreen.prototype = {
     if (this.moving) {
       this.moving = false;
       var dy = -(this.startY - e.pageY);
-      if (Math.abs(dy) < window.innerHeight/4)
+      if (Math.abs(dy) < window.innerHeight / 4)
         this.lock();
       else
         this.unlock(dy);
@@ -467,7 +462,7 @@ LockScreen.prototype = {
     }
     e.preventDefault();
   }
-}
+};
 
 function OnLoad() {
   var lockScreen = new LockScreen(document.getElementById('lockscreen'));
@@ -484,23 +479,31 @@ function OnLoad() {
       url: 'dialer/dialer.html' },
     { label: 'Messages', src: 'images/Messages.png',
       url: 'sms/sms.html' },
-    { label: 'Calendar', src: 'images/Calendar.png',
+    { label: 'Contacts', src: 'images/Contacts.png',
+      url: 'data:text/html,<font color="blue">Hello' },
+    { label: 'Video', src: 'images/Video.png',
       url: 'data:text/html,<font color="blue">Hello' },
     { label: 'Gallery', src: 'images/Gallery.png',
-      url: 'data:text/html,<font color="blue">Hello' },
+      url: 'gallery/gallery.html' },
     { label: 'Camera', src: 'images/Camera.png',
       url: 'data:text/html,<font color="blue">Hello' },
     { label: 'Maps', src: 'images/Maps.png',
       url: 'data:text/html,<font color="blue">Hello' },
-    { label: 'YouTube', src: 'images/YouTube.png',
-      url: 'data:text/html,<font color="blue">Hello' },
     { label: 'Calculator', src: 'images/Calculator.png',
       url: 'data:text/html,<font color="blue">Hello' },
-    { label: 'Books', src: 'images/Books.png',
+    { label: 'Clock', src: 'images/Clock.png',
       url: 'data:text/html,<font color="blue">Hello' },
     { label: 'Browser', src: 'images/Browser.png',
       url: 'browser/browser.html' },
     { label: 'Music', src: 'images/Music.png',
+      url: 'data:text/html,<font color="blue">Hello' },
+    { label: 'Weather', src: 'images/Weather.png',
+      url: 'data:text/html,<font color="blue">Hello' },
+    { label: 'Settings', src: 'images/Settings.png',
+      url: 'data:text/html,<font color="blue">Hello' },
+    { label: 'Stocks', src: 'images/Stocks.png',
+      url: 'data:text/html,<font color="blue">Hello' },
+    { label: 'Market', src: 'images/Market.png',
       url: 'data:text/html,<font color="blue">Hello' }
   ];
 
@@ -519,8 +522,10 @@ function OnLoad() {
   var height = canvas.height = screenHeight - 24;
 
   var iconGrid = new IconGrid(canvas, 120, 120, 0.2);
-  for (var n = 0; n < icons.length; ++n)
-    iconGrid.add(icons[n].src, icons[n].label, icons[n].url);
+  for (var n = 0; n < icons.length; ++n) {
+    var icon = icons[n];
+    iconGrid.add(icon.src, icon.label, icon.url);
+  }
 
   WindowManager.start();
 }
@@ -558,7 +563,7 @@ var WindowManager = {
             if (windows.childElementCount < 1)
               windows.setAttribute('hidden', 'true');
 
-            setTimeout(function () {
+            window.setTimeout(function focusPreviousWindow() {
               var previousWindow = windows.lastElementChild || window;
               previousWindow.focus();
             }, 0);

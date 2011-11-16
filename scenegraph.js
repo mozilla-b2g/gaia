@@ -3,8 +3,8 @@
 
 'use strict';
 
-const kUseGL = true;
-const kSnapToWholePixels = !kUseGL;
+var gUseGL = 1;
+var gSnapToWholePixels = !gUseGL;
 
 function abort(why) { alert(why); throw why; }
 function assert(cond, msg) { if (!cond) abort(msg); }
@@ -33,7 +33,7 @@ var Physics = {
   Spring: function(elapsed, start, current, target) {
     return current + (target - current) * elapsed;
   }
-}
+};
 
 function Sprite(width, height) {
   var canvas = document.createElement('canvas');
@@ -51,7 +51,7 @@ Sprite.prototype = {
     // coordinates before uploading, unlike <img>s :/.  So hack
     // here.  Need to figure out if that's a FF bug or actually
     // spec'd like that.
-    if (kUseGL) {
+    if (gUseGL) {
       ctx.translate(0, this.height);
       ctx.scale(1, -1);
     }
@@ -99,17 +99,28 @@ Sprite.prototype = {
     }
     if (this.scaleFunction) {
       var elapsed = GetElapsed(this.scaleStart, this.scaleStop, now);
-      this.scale = this.scaleFunction(elapsed, this.startScale, this.scale, this.targetScale);
+      this.scale = this.scaleFunction(elapsed, this.startScale,
+                                      this.scale, this.targetScale);
       if (elapsed == 1)
         this.scaleFunction = null;
     }
     return this.moveFunction || this.scaleFunction;
   }
-}
+};
 
 function SceneGraph(canvas) {
+  if (gUseGL) {
+    try {
+      this.gl = canvas.getContext('experimental-webgl');
+    } catch (e) {
+      // Fall back to 2D.
+      gUseGL = 0;
+      gSnapToWholePixels = 1;
+    }
+  }
+
   this.blitter =
-    kUseGL ? new SpriteBlitterGL(canvas) : new SpriteBlitter2D(canvas);
+    gUseGL ? new SpriteBlitterGL(canvas) : new SpriteBlitter2D(canvas);
   this.canvas = canvas;
   this.sprites = [];
   this.x = 0;
@@ -163,7 +174,7 @@ SceneGraph.prototype = {
   },
   draw: function() {
     var x = this.x, y = this.y;
-    if (kSnapToWholePixels) {
+    if (gSnapToWholePixels) {
       x |= 0;
       y |= 0;
     }
@@ -202,7 +213,7 @@ SceneGraph.prototype = {
     this.y = targetY;
     this.scrollFuncton = null;
   }
-}
+};
 
 // fallback 2D canvas backend
 function SpriteBlitter2D(canvas) {
@@ -221,9 +232,11 @@ draw: function(x, y, sprites) {
       var canvas = sprite.canvas;
       if (canvas) {
         var scale = sprite.scale;
-        ctx.drawImage(canvas, sprite.x - x, sprite.y - y, canvas.width * scale, canvas.height * scale);
+        ctx.drawImage(canvas,
+                      sprite.x - x, sprite.y - y,
+                      canvas.width * scale, canvas.height * scale);
       }
-    }    
+    }
   },
   // nothing to do here
   spriteAdded: function(sprite) {},
@@ -240,7 +253,8 @@ var kVertexShader = [
   '',
   'void main(void) {',
   '  vTexCoord = aPosAndTexCoord.zw;',
-  '  vec4 transformedPos = vec4(aPosAndTexCoord.x, aPosAndTexCoord.y, 0.0, 1.0);',
+  '  vec4 transformedPos = vec4(aPosAndTexCoord.x, ',
+  '                             aPosAndTexCoord.y, 0.0, 1.0);',
   '  gl_Position = uProjection * transformedPos;',
   '}'
 ].join('\n');
@@ -270,15 +284,16 @@ function SpriteBlitterGL(canvas) {
   var gl =
     this.gl = canvas.getContext('experimental-webgl');
   this.maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
-  this.posAndTexCoordArray = new Float32Array(4/*vertices*/ * 4/*elements per vertex*/);
+  this.posAndTexCoordArray = new Float32Array(4 /*vertices*/ *
+                                              4 /*elements per vertex*/);
   this.posAndTexCoordBuffer = gl.createBuffer();
   var program =
     this.program = compileGLProgram(gl, kVertexShader, kFragmentShader);
   this.projectionMatrix = new Float32Array(
-    [ 2.0,     0.0,   0.0,   0.0,
-      0.0,    -2.0,   0.0,   0.0,
-      0.0,     0.0,   1.0,   0.0,
-     -1.0,     1.0,   0.0,   1.0 ]);
+    [2.0, 0.0, 0.0, 0.0,
+     0.0, -2.0, 0.0, 0.0,
+     0.0, 0.0, 1.0, 0.0,
+     -1.0, 1.0, 0.0, 1.0]);
   this.viewportWidth = canvas.width;
   this.viewportHeight = canvas.height;
 
@@ -298,7 +313,8 @@ SpriteBlitterGL.prototype = {
     var posAndTexCoordArray = this.posAndTexCoordArray;
     var posAndTexCoordBuffer = this.posAndTexCoordBuffer;
     var program = this.program;
-    var viewportWidth = this.viewportWidth, viewportHeight = this.viewportHeight;
+    var viewportWidth = this.viewportWidth;
+    var viewportHeight = this.viewportHeight;
 
     gl.viewport(0, 0, viewportWidth, viewportHeight);
 
@@ -374,8 +390,8 @@ SpriteBlitterGL.prototype = {
       return;
 
     var canvas = sprite.canvas;
-    assert(canvas.width <= this.maxTextureSize
-           && canvas.height <= this.maxTextureSize,
+    assert(canvas.width <= this.maxTextureSize &&
+           canvas.height <= this.maxTextureSize,
            'Sprite canvas must be smaller than max texture dimension');
     var gl = this.gl;
     var texture = sprite.texture = gl.createTexture();
@@ -409,8 +425,10 @@ function compileGLProgram(gl, vxShader, pixShader) {
   var p = gl.createProgram();
   var vs = compileShader(gl.VERTEX_SHADER, vxShader);
   var fs = compileShader(gl.FRAGMENT_SHADER, pixShader);
-  gl.attachShader(p, vs);  gl.deleteShader(vs);
-  gl.attachShader(p, fs);  gl.deleteShader(fs);
+  gl.attachShader(p, vs);
+  gl.deleteShader(vs);
+  gl.attachShader(p, fs);
+  gl.deleteShader(fs);
   gl.linkProgram(p);
 
   if (!gl.getProgramParameter(p, gl.LINK_STATUS))
