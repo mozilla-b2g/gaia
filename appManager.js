@@ -24,7 +24,6 @@ if (!window['Gaia'])
     var events = [
       'touchstart', 'touchmove', 'touchend',
       'mousedown', 'mousemove', 'mouseup',
-      'contextmenu'
     ];
 
     events.forEach((function(evt) {
@@ -131,12 +130,6 @@ if (!window['Gaia'])
         case 'mousemove':
           physics.onTouchMove(e.touches ? e.touches[0] : e);
           break;
-        case 'contextmenu':
-          var sourceURL = window.document.URL;
-          showSourceViewer(sourceURL);
-          document.releaseCapture();
-          physics.touchState.active = false;
-          break;
         case 'touchend':
         case 'mouseup':
           document.releaseCapture();
@@ -160,7 +153,6 @@ if (!window['Gaia'])
 
   Gaia.AppManager = {
     _foregroundWindows: [],
-    _taskTray: null,
     
     set foregroundWindow(win) {
       this._foregroundWindows.push(win);
@@ -188,6 +180,19 @@ if (!window['Gaia'])
       delete this.screen;
       return this.screen = document.getElementById('screen');
     },
+    
+    get taskTray() {
+      delete this.taskTray;
+      
+      var taskManagerContainer = document.getElementById('taskManager');
+      var taskManagerRect = taskManagerContainer.getBoundingClientRect();
+      var taskTrayCanvas = document.getElementById('taskTrayCanvas');
+      
+      taskTrayCanvas.width = taskManagerRect.width;
+      taskTrayCanvas.height = taskManagerRect.height;
+      
+      return this.taskTray = new TaskTray(taskTrayCanvas, 120, 120, 0.2);
+    },
 
     get windowsContainer() {
       delete this.windowsContainer;
@@ -197,17 +202,6 @@ if (!window['Gaia'])
     init: function() {
       window.addEventListener('keypress', this);
       window.addEventListener('appclose', this);
-
-      var taskManagerContainer = document.getElementById('taskManager');
-      var taskManagerRect = taskManagerContainer.getBoundingClientRect();
-      var taskManagerWidth = taskManagerRect.right - taskManagerRect.left;
-      var taskManagerHeight = 140;
-      var taskTrayCanvas = document.getElementById('taskTrayCanvas');
-      
-      taskTrayCanvas.width = taskManagerWidth;
-      taskTrayCanvas.height = taskManagerHeight;
-
-      this._taskTray = new TaskTray(taskTrayCanvas, 120, 120, 0.2);
     },
 
     handleEvent: function(evt) {
@@ -232,13 +226,15 @@ if (!window['Gaia'])
     },
 
     openTaskManager: function() {
-      this.screen.classList.remove('animateTaskManagerClose');
-      this.screen.classList.add('animateTaskManagerOpen');
+      var screenClassList = this.screen.classList;
+      screenClassList.remove('animateTaskManagerClose');
+      screenClassList.add('animateTaskManagerOpen');
     },
     
     closeTaskManager: function() {
-      this.screen.classList.remove('animateTaskManagerOpen');
-      this.screen.classList.add('animateTaskManagerClose');
+      var screenClassList = this.screen.classList;
+      screenClassList.remove('animateTaskManagerOpen');
+      screenClassList.add('animateTaskManagerClose');
     },
 
     getInstalledApps: function() {
@@ -385,7 +381,7 @@ if (!window['Gaia'])
         });
         
         if (app) {
-          this._taskTray.add(app.icons.size_128, app.name, app.url);
+          this.taskTray.add(app.icons.size_128, app.name, app.url);
         }
       }
 
