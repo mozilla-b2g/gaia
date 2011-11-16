@@ -120,6 +120,7 @@ var TouchHandler = {
       case 'contextmenu':
         var sourceURL = (evt.target.ownerDocument || window.document).URL;
         showSourceViewer(sourceURL);
+        evt.preventDefault();
       case 'touchend':
         evt.preventDefault();
       case 'mouseup':
