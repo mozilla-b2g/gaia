@@ -72,16 +72,6 @@ DefaultPhysics.prototype = {
     var tap = !this.moved && small;
     var drag = !quick;
 
-    if (!this.moved && long) {
-      var doc = e.target.ownerDocument || window.document;
-      var url = doc.URL;
-
-      var viewsource = document.getElementById('viewsource');
-      viewsource.style.visibility = 'visible';
-      viewsource.src = 'view-source: ' + url;
-      return;
-    }
-
     var iconGrid = this.iconGrid;
     var currentPage = iconGrid.currentPage;
     if (tap) {
@@ -97,10 +87,6 @@ DefaultPhysics.prototype = {
     }
   }
 };
-
-function hideSourceViewer() {
-  document.getElementById('viewsource').style.visibility = 'hidden';
-}
 
 function Icon(iconGrid, index) {
   this.iconGrid = iconGrid;
@@ -182,7 +168,8 @@ function IconGrid(canvas, iconWidth, iconHeight, border) {
   // install event handlers
   var events = [
     'touchstart', 'touchmove', 'touchend',
-    'mousedown', 'mousemove', 'mouseup'
+    'mousedown', 'mousemove', 'mouseup',
+    'contextmenu'
   ];
   events.forEach((function(evt) {
     canvas.addEventListener(evt, this, true);
@@ -275,6 +262,12 @@ IconGrid.prototype = {
     case 'mousemove':
       physics.onTouchMove(e.touches ? e.touches[0] : e);
       break;
+    case 'contextmenu':
+      var sourceURL = window.document.URL;
+      showSourceViewer(sourceURL);
+      document.releaseCapture();
+      physics.touchState.active = false;
+      break;
     case 'touchend':
     case 'mouseup':
       document.releaseCapture();
@@ -366,6 +359,7 @@ NotificationScreen.prototype = {
     case 'mousedown':
       if (target != this.touchable)
         return;
+      hideSourceViewer();
       this.active = true;
 
       target.setCapture(this);
@@ -392,7 +386,6 @@ NotificationScreen.prototype = {
     }
 
     evt.preventDefault();
-    hideSourceViewer();
   }
 };
 
@@ -486,23 +479,31 @@ function OnLoad() {
       url: 'dialer/dialer.html' },
     { label: 'Messages', src: 'images/Messages.png',
       url: 'sms/sms.html' },
-    { label: 'Calendar', src: 'images/Calendar.png',
+    { label: 'Contacts', src: 'images/Contacts.png',
+      url: 'data:text/html,<font color="blue">Hello' },
+    { label: 'Video', src: 'images/Video.png',
       url: 'data:text/html,<font color="blue">Hello' },
     { label: 'Gallery', src: 'images/Gallery.png',
-      url: 'data:text/html,<font color="blue">Hello' },
+      url: 'gallery/gallery.html' },
     { label: 'Camera', src: 'images/Camera.png',
       url: 'data:text/html,<font color="blue">Hello' },
     { label: 'Maps', src: 'images/Maps.png',
       url: 'data:text/html,<font color="blue">Hello' },
-    { label: 'YouTube', src: 'images/YouTube.png',
-      url: 'data:text/html,<font color="blue">Hello' },
     { label: 'Calculator', src: 'images/Calculator.png',
       url: 'data:text/html,<font color="blue">Hello' },
-    { label: 'Books', src: 'images/Books.png',
+    { label: 'Clock', src: 'images/Clock.png',
       url: 'data:text/html,<font color="blue">Hello' },
     { label: 'Browser', src: 'images/Browser.png',
       url: 'browser/browser.html' },
     { label: 'Music', src: 'images/Music.png',
+      url: 'data:text/html,<font color="blue">Hello' },
+    { label: 'Weather', src: 'images/Weather.png',
+      url: 'data:text/html,<font color="blue">Hello' },
+    { label: 'Settings', src: 'images/Settings.png',
+      url: 'data:text/html,<font color="blue">Hello' },
+    { label: 'Stocks', src: 'images/Stocks.png',
+      url: 'data:text/html,<font color="blue">Hello' },
+    { label: 'Market', src: 'images/Market.png',
       url: 'data:text/html,<font color="blue">Hello' }
   ];
 
@@ -521,8 +522,10 @@ function OnLoad() {
   var height = canvas.height = screenHeight - 24;
 
   var iconGrid = new IconGrid(canvas, 120, 120, 0.2);
-  for (var n = 0; n < icons.length; ++n)
-    iconGrid.add(icons[n].src, icons[n].label, icons[n].url);
+  for (var n = 0; n < icons.length; ++n) {
+    var icon = icons[n];
+    iconGrid.add(icon.src, icon.label, icon.url);
+  }
 
   WindowManager.start();
 }
