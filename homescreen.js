@@ -260,10 +260,10 @@ IconGrid.prototype = {
       physics.onTouchMove(e.touches ? e.touches[0] : e);
       break;
     case 'contextmenu':
-      document.releaseCapture();
-      physics.touchState.active = false;
       var sourceURL = window.document.URL;
       showSourceViewer(sourceURL);
+      document.releaseCapture();
+      physics.touchState.active = false;
       break;
     case 'touchend':
     case 'mouseup':
@@ -349,14 +349,13 @@ NotificationScreen.prototype = {
     }).bind(this));
   },
   handleEvent: function(evt) {
-    hideSourceViewer();
-
     var target = evt.target;
     switch (evt.type) {
     case 'touchstart':
     case 'mousedown':
       if (target != this.touchable)
         return;
+      hideSourceViewer();
       this.active = true;
       
       target.setCapture(this);
