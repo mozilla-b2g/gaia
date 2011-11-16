@@ -3,6 +3,7 @@ html, body {
   height: 100%;
   margin: 0px;
   padding: 0px;
+  background: #222;
 }
 
 #screen {
@@ -12,6 +13,35 @@ html, body {
   height: 100%; 
   background-image: url('images/background.jpg');
   background-size: cover;
+  box-shadow: 0 0px 8px #000;
+}
+
+#screen.animateTaskManagerOpen {
+  top: -140px;
+  -moz-animation-duration: 250ms;
+  -moz-animation-name: animateTaskManagerOpen;
+}
+@-moz-keyframes animateTaskManagerOpen {
+  from {
+    top: 0;
+  }
+  to {
+    top: -140px;
+  }
+}
+
+#screen.animateTaskManagerClose {
+  top: 0;
+  -moz-animation-duration: 250ms;
+  -moz-animation-name: animateTaskManagerClose;
+}
+@-moz-keyframes animateTaskManagerClose {
+  from {
+    top: -140px;
+  }
+  to {
+    top: 0;
+  }
 }
 
 /*
@@ -113,12 +143,12 @@ iframe.appWindow {
 }
 
 .animateOpening {
-  -moz-animation-duration: 200ms;
+  -moz-animation-duration: 250ms;
   -moz-animation-name: openingAnimation;
 }
 @-moz-keyframes openingAnimation {
   from {
-    -moz-transform: scale(0);
+    -moz-transform: scale(0.1);
   }
   to {
     -moz-transform: scale(1);
@@ -126,7 +156,7 @@ iframe.appWindow {
 }
 
 .animateClosing {
-  -moz-animation-duration: 100ms;
+  -moz-animation-duration: 250ms;
   -moz-animation-name: closingAnimation;
 }
 @-moz-keyframes closingAnimation {
@@ -134,7 +164,7 @@ iframe.appWindow {
     -moz-transform: scale(1);
   }
   to {
-    -moz-transform: scale(0);
+    -moz-transform: scale(0.1);
   }
 }
 
@@ -212,3 +242,11 @@ iframe.appWindow {
   margin-left: 10px;
   top: 4px;
 }
+
+#taskManager {
+  position: absolute;
+  bottom: 0;
+  width: -moz-calc(100%);
+}
+
+
