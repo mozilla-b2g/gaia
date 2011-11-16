@@ -394,6 +394,14 @@ NotificationScreen.prototype = {
 
 function LockScreen(overlay) {
   this.overlay = overlay;
+  var overlayRect = overlay.getBoundingClientRect();
+  var canvasHeight = overlayRect.height;
+  var canvasWidth = overlayRect.width;
+  overlay.height = canvasHeight; 
+  overlay.width = canvasWidth;
+  overlay.style.height = canvasHeight + "px";
+  overlay.style.width = canvasWidth = "px";
+
   var events = [
     'touchstart', 'touchmove', 'touchend',
     'mousedown', 'mousemove', 'mouseup'
@@ -404,6 +412,7 @@ function LockScreen(overlay) {
 }
 
 LockScreen.prototype = {
+  date:{time:"", day:"", date:""},
   onTouchStart: function(e) {
     this.startX = e.pageX;
     this.startY = e.pageY;
@@ -464,11 +473,73 @@ LockScreen.prototype = {
       return;
     }
     e.preventDefault();
+  },
+  updateClock:function() {
+    var now = new Date();
+    var sec = now.getSeconds();
+    
+    //relaunching the next update before the treatements in order not to reallocate a new Date after
+    setTimeout(this.updateClock.bind(this), (59 - sec) * 1000);
+   
+    var date = this.date;
+    date.time = now.toLocaleFormat("%H:%M %p");
+    date.day = now.toLocaleFormat("%A");
+    date.date = now.toLocaleFormat("%d %b");
+    this.draw();
+  },
+  draw:function() {
+    var date = this.date;
+    var overlay = this.overlay;
+    var canvasRect = overlay.getBoundingClientRect();
+    var context = overlay.getContext("2d");
+
+    //TODO: draw status bar 
+
+    context.clearRect(0, 0, canvasRect.width, canvasRect.height);
+    context.save();
+    context.fillStyle = "white";
+    context.textBaseline = "top";
+    var timePanelStartX = parseInt(canvasRect.height / 2); 
+    var dateLineHeight = 0;
+    var dateMarginLeft = 10;
+
+    var timeFontSize = 58;
+    var dayFontSize = 58;
+    var dateFontSize = 100;
+
+    //DATE 
+    context.font = timeFontSize + "px Roboto";
+    context.fillText(date.time, dateMarginLeft, timePanelStartX);
+
+    timePanelStartX += timeFontSize + dateLineHeight;
+
+    context.font = dayFontSize + "px Roboto";
+    context.fillText(date.day, dateMarginLeft, timePanelStartX);
+    
+    timePanelStartX += dayFontSize + dateLineHeight;
+
+    context.font = dateFontSize + "px Roboto";
+    context.fillText(date.date, dateMarginLeft, timePanelStartX);
+
+
+    //PHONE NOTIFICATIONS
+    var notificationsFontSize = 16;
+    var notificationsMarginLeft = dateMarginLeft;
+    var notificationsMarginBottom = 10;
+    var notificationsStartX = canvasRect.height - notificationsFontSize - notificationsMarginBottom;
+
+    context.font = notificationsFontSize+"px Roboto";
+    context.textBaseline = "bottom";
+    context.fillText("Phone:0 SMS:0 Email:0", notificationsMarginLeft, notificationsStartX);
+
+    context.restore();
+
   }
 }
 
 function OnLoad() {
   var lockScreen = new LockScreen(document.getElementById('lockscreen'));
+  lockScreen.updateClock();
   kAutoUnlock ? lockScreen.unlock(-1) : lockScreen.lock();
 
   var touchables = [
@@ -613,7 +684,7 @@ function updateClock() {
   // If the display is off, there is nothing to do here
   if (displayState == 'off')
     return;
-
+  
   var now = new Date();
   var match = document.getElementsByClassName('time');
   for (var n = 0; n < match.length; ++n) {
