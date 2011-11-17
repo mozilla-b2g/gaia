@@ -113,18 +113,27 @@ gallery.renderThumbnail = function(photo) {
  * Render Photo
  */
 gallery.renderPhoto = function(thumbnail) {
+  // Turn thumbnail into photo
   var photo = thumbnail.cloneNode(false);
   photo.classList.remove("thumbnail");
-  photo.classList.add("photo");
+  // Hide thumbnails and header and show photo
   var thumbnails = document.getElementById("thumbnails");
   thumbnails.classList.add("hidden");
   var header = document.getElementById("galleryHeader");
   header.classList.add("hidden");
+  // Make photo full screen (taking into account screen orientation)
+  if(window.innerWidth <= window.innerHeight) {
+    photo.style.width = '100%';
+    photo.style.height = 'auto';
+  } else if(window.innerWidth > window.innerHeight) {
+    photo.style.width = 'auto';
+    photo.style.height = '100%';
+  }
+  // Insert photo into DOM and make it visible
   var frame = document.getElementById("photoFrame");
   var border = document.getElementById("photoBorder");
   border.appendChild(photo);
   frame.classList.remove("hidden");
-  border.classList.remove("hidden");
 };
 
 
