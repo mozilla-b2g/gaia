@@ -6,7 +6,8 @@ var Apps = {
   handleEvent: function apps_handleEvent(evt) {
     switch (evt.type) {
       case 'keypress':
-        if (evt.keyCode != evt.DOM_VK_ESCAPE)
+        if (window.top == window ||
+            evt.keyCode != evt.DOM_VK_ESCAPE)
           break;
         evt.preventDefault();
 
