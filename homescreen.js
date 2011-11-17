@@ -395,15 +395,28 @@ NotificationScreen.prototype = {
 };
 
 function LockScreen(overlay) {
-  this.overlay = overlay;
-  var overlayRect = overlay.getBoundingClientRect();
-  var canvasHeight = overlayRect.height;
-  var canvasWidth = overlayRect.width;
-  overlay.height = canvasHeight; 
-  overlay.width = canvasWidth;
-  overlay.style.height = canvasHeight + "px";
-  overlay.style.width = canvasWidth = "px";
+  if (kUseCanvasLockscreen) {
+    var parentNode = overlay.parentNode;
+    var canvas = document.createElement("canvas"); //the canvas that will replace the div lockscreen
 
+    var overlayRect = overlay.getBoundingClientRect();
+    var canvasHeight = overlayRect.height;
+    var canvasWidth = overlayRect.width;
+    canvas.id = "lockscreen";
+    canvas.height = canvasHeight; 
+    canvas.width = canvasWidth;
+    canvas.style.height = canvasHeight + "px";
+    canvas.style.width = canvasWidth = "px";
+    
+    //removing the div based lockscreen
+    parentNode.insertBefore(canvas, overlay);
+    parentNode.removeChild(overlay);
+    overlay = canvas;
+    this.overlay = canvas;
+    this.updateClock();
+  }
+  this.overlay = overlay;
+  
   var events = [
     'touchstart', 'touchmove', 'touchend',
     'mousedown', 'mousemove', 'mouseup'
@@ -540,7 +553,6 @@ LockScreen.prototype = {
 
 function OnLoad() {
   var lockScreen = new LockScreen(document.getElementById('lockscreen'));
-  lockScreen.updateClock();
   kAutoUnlock ? lockScreen.unlock(-1) : lockScreen.lock();
 
   var touchables = [

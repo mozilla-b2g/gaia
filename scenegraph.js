@@ -5,6 +5,7 @@
 
 const kUseGL = true;
 const kSnapToWholePixels = !kUseGL;
+const kUseCanvasLockscreen = false;
 
 function abort(why) { alert(why); throw why; }
 function assert(cond, msg) { if (!cond) abort(msg); }
