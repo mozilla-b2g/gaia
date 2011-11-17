@@ -146,7 +146,12 @@ SceneGraph.prototype = {
   },
   // remove a sprite from the scene graph
   remove: function(sprite) {
-    this.sprites.splice(sprite.index, 1);
+    var sprites = this.sprites;
+    sprites.splice(sprite.index, 1);
+    
+    for (var i = 0; i < sprites.length; i++)
+      sprites[i].index = i;
+    
     this.blitter.spriteRemoved(sprite);
   },
   // animate the scene graph, returning false if the animation is done
@@ -188,7 +193,7 @@ SceneGraph.prototype = {
   },
   forHit: function(x, y, callback) {
     var sprites = this.sprites;
-    for (var n = 0; n < sprites.length; ++n) {
+    for (var n = sprites.length - 1; n >= 0; --n) {
       var sprite = sprites[n];
       if (x >= sprite.x && x < sprite.x + sprite.width &&
           y >= sprite.y && y < sprite.y + sprite.height) {
@@ -407,7 +412,7 @@ SpriteBlitterGL.prototype = {
     gl.bindTexture(gl.TEXTURE_2D, null);
   },
   spriteRemoved: function(sprite) {
-    gl.deleteTexture(sprite.texture);
+    this.gl.deleteTexture(sprite.texture);
     sprite.texture = null;
   }
 };
