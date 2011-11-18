@@ -223,3 +223,4 @@ window.addEventListener('load', function keyboardInit(evt) {
   KeyHandler.init();
   Contacts.init();
 });
+
