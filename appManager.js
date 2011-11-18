@@ -9,7 +9,96 @@ if (!window['Gaia'])
 (function() {
   var runningApps = [];
 
-  var TaskTray = function TaskTray(canvas, iconWidth, iconHeight, border) {
+  var TaskIcon = function(taskTray, index) {
+    this.taskTray = taskTray;
+    this.index = index;
+    this.label = '';
+    this.url = '';
+  };
+
+  TaskIcon.prototype = {
+    update: function(img, label, url) {
+      this.label = label;
+      this.url = url;
+      var taskTray = this.taskTray;
+      var iconWidth = taskTray.iconWidth;
+      var iconHeight = taskTray.iconHeight;
+      var border = taskTray.border;
+      var sceneGraph = taskTray.sceneGraph;
+
+      // Draw the icon sprite.
+      var sprite = this.sprite;
+      var createSprite = !sprite;
+      if (createSprite) {
+        sprite = new Sprite(iconWidth, iconHeight);
+        sprite.icon = this;
+        this.sprite = sprite;
+      }
+      var ctx = sprite.getContext2D();
+      ctx.drawImage(img, iconWidth * border, iconHeight * border,
+                    iconWidth * (1 - border * 2),
+                    iconHeight * (1 - border * 2));
+      var fontSize = Math.floor(iconHeight * border * 0.6);
+      ctx.font = fontSize + 'pt Roboto, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'white';
+      ctx.textBaseline = 'top';
+      ctx.fillText(label, iconWidth / 2, iconHeight - iconHeight * border,
+                   iconWidth * 0.9);
+      if (createSprite)
+        sceneGraph.add(sprite);
+
+      // Draw the close button sprite.
+      var closeButtonImage = Gaia.AppManager._closeButtonImage;
+      var closeButtonSprite = this.closeButtonSprite;
+      var createCloseButtonSprite = !closeButtonSprite;
+      if (createCloseButtonSprite) {
+        closeButtonSprite = new Sprite(32, 32);
+        closeButtonSprite.icon = this;
+        closeButtonSprite.isCloseButton = true;
+        this.closeButtonSprite = closeButtonSprite;
+      }
+      var closeButtonCTX = closeButtonSprite.getContext2D();
+      closeButtonCTX.drawImage(closeButtonImage, 0, 0, 32, 32);
+      if (createCloseButtonSprite)
+        sceneGraph.add(closeButtonSprite);
+
+      this.reflow();
+    },
+    // return the X coordinate of the top left corner of a slot
+    slotLeft: function() {
+      var taskTray = this.taskTray;
+      return taskTray.itemBoxWidth * (this.index % taskTray.columns);
+    },
+    reflow: function(duration) {
+      // Position the icon sprites.
+      var sprite = this.sprite;
+      if (!sprite)
+        return;
+
+      var taskTray = this.taskTray;
+      var border = taskTray.border;
+      var index = this.index;
+      var itemsPerPage = taskTray.itemsPerPage;
+      var page = Math.floor(index / taskTray.itemsPerPage);
+      var x = page * taskTray.containerWidth + this.slotLeft();
+      var y = 0;
+      sprite.setPosition(x, y, duration);
+      sprite.setScale(1, duration);
+
+      // Position the close button sprites.
+      var closeButtonSprite = this.closeButtonSprite;
+      if (!closeButtonSprite)
+        return;
+
+      x += sprite.width * (1 - border * 2);
+      y += 20;
+      closeButtonSprite.setPosition(x, y, duration);
+      closeButtonSprite.setScale(1, duration);
+    }
+  };
+
+  var TaskTray = function(canvas, iconWidth, iconHeight, border) {
     this.canvas = canvas;
     this.iconWidth = iconWidth;
     this.iconHeight = iconHeight;
@@ -31,14 +120,26 @@ if (!window['Gaia'])
     }).bind(this));
 
     window.addEventListener('resize', this, true);
-  }
+  };
 
   TaskTray.prototype = {
+    getTrayIconForAppURL: function taskTrayGetTrayIconForAppURL(url) {
+      var icons = this.icons;
+
+      for (var i = 0; i < icons.length; i++) {
+        var icon = icons[i];
+        if (icon.url === url)
+          return icon;
+      }
+
+      return null;
+    },
+
     add: function taskTrayAdd(src, label, url) {
 
       // Create the icon in the tray.
       var icons = this.icons;
-      var icon = new Icon(this, icons.length);
+      var icon = new TaskIcon(this, icons.length);
 
       icons.push(icon);
 
@@ -58,10 +159,22 @@ if (!window['Gaia'])
     },
 
     remove: function taskTrayRemove(icon) {
-      this.icons.splice(icon.index);
+      var icons = this.icons;
 
+      icons.splice(icon.index, 1);
+
+      for (var i = 0; i < icons.length; i++)
+        icons[i].index = i;
+
+      var sceneGraph = this.sceneGraph;
       if (icon.sprite)
         sceneGraph.remove(icon.sprite);
+
+      if (icon.closeButtonSprite)
+        sceneGraph.remove(icon.closeButtonSprite);
+
+      var canvas = this.canvas;
+      this.reflow(canvas.width, canvas.height, 0);
     },
 
     reflow: function taskTrayReflow(width, height, duration) {
@@ -69,15 +182,11 @@ if (!window['Gaia'])
       this.containerWidth = width;
       this.containerHeight = height;
       this.panelWidth = this.containerWidth;
-      this.pageIndicatorWidth = this.containerWidth;
-      this.pageIndicatorHeight =
-        Math.min(Math.max(this.containerHeight * 0.7, 14), 20);
-      this.panelHeight = this.containerHeight - this.pageIndicatorHeight;
+      this.panelHeight = this.containerHeight;
       this.columns = Math.floor(this.panelWidth / this.iconWidth);
-      this.rows = Math.floor(this.panelHeight / this.iconHeight);
-      this.itemsPerPage = this.rows * this.columns;
+      this.itemsPerPage = this.columns;
       this.itemBoxWidth = Math.floor(this.panelWidth / this.columns);
-      this.itemBoxHeight = Math.floor(this.panelHeight / this.rows);
+      this.itemBoxHeight = this.panelHeight;
 
       // Switch to the right page.
       this.setPage(this.currentPage, duration);
@@ -115,8 +224,16 @@ if (!window['Gaia'])
       this.sceneGraph.forHit(
         x, y - height,
         function(sprite) {
-          Gaia.AppManager.closeTaskManager();
-          Gaia.AppManager.launch(sprite.icon.url);
+          // Close button tapped; kill app.
+          if (sprite.isCloseButton) {
+            Gaia.AppManager.kill(sprite.icon.url);
+          }
+
+          // Icon tapped; launch app.
+          else {
+            Gaia.AppManager.closeTaskManager();
+            Gaia.AppManager.launch(sprite.icon.url);
+          }
         });
     },
 
@@ -205,6 +322,9 @@ if (!window['Gaia'])
     init: function() {
       window.addEventListener('keypress', this);
       window.addEventListener('appclose', this);
+
+      this._closeButtonImage = new Image();
+      this._closeButtonImage.src = 'images/close.png';
     },
 
     handleEvent: function(evt) {
@@ -259,13 +379,13 @@ if (!window['Gaia'])
         icons: {
           size_128: 'images/Contacts.png'
         },
-        url: 'data:text/html,<font color="blue">Hello</font>'
+        url: 'blank.html'
       }, {
         name: 'Video',
         icons: {
           size_128: 'images/Video.png'
         },
-        url: 'data:text/html,<font color="blue">Hello</font>'
+        url: 'blank.html'
       }, {
         name: 'Gallery',
         icons: {
@@ -277,25 +397,25 @@ if (!window['Gaia'])
         icons: {
           size_128: 'images/Camera.png'
         },
-        url: 'data:text/html,<font color="blue">Hello</font>'
+        url: 'blank.html'
       }, {
         name: 'Maps',
         icons: {
           size_128: 'images/Maps.png'
         },
-        url: 'data:text/html,<font color="blue">Hello</font>'
+        url: 'blank.html'
       }, {
         name: 'Calculator',
         icons: {
           size_128: 'images/Calculator.png'
         },
-        url: 'data:text/html,<font color="blue">Hello</font>'
+        url: 'blank.html'
       }, {
         name: 'Clock',
         icons: {
           size_128: 'images/Clock.png'
         },
-        url: 'data:text/html,<font color="blue">Hello</font>'
+        url: 'blank.html'
       }, {
         name: 'Browser',
         icons: {
@@ -307,31 +427,31 @@ if (!window['Gaia'])
         icons: {
           size_128: 'images/Music.png'
         },
-        url: 'data:text/html,<font color="blue">Hello</font>'
+        url: 'blank.html'
       }, {
         name: 'Weather',
         icons: {
           size_128: 'images/Weather.png'
         },
-        url: 'data:text/html,<font color="blue">Hello</font>'
+        url: 'blank.html'
       }, {
         name: 'Settings',
         icons: {
           size_128: 'images/Settings.png'
         },
-        url: 'data:text/html,<font color="blue">Hello</font>'
+        url: 'blank.html'
       }, {
         name: 'Stocks',
         icons: {
           size_128: 'images/Stocks.png'
         },
-        url: 'data:text/html,<font color="blue">Hello</font>'
+        url: 'blank.html'
       }, {
         name: 'Market',
         icons: {
           size_128: 'images/Market.png'
         },
-        url: 'data:text/html,<font color="blue">Hello</font>'
+        url: 'blank.html'
       }];
     },
 
@@ -365,7 +485,6 @@ if (!window['Gaia'])
       if (appInstance) {
         var foregroundWindow = this.foregroundWindow = appInstance.window;
         foregroundWindow.removeAttribute('hidden');
-        foregroundWindow.contentWindow.Apps.init();
       }
 
       // App is not yet running, create a new instance.
@@ -435,6 +554,13 @@ if (!window['Gaia'])
         if (runningApps[i].url === url) {
           this.windowsContainer.removeChild(runningApps[i].window);
           runningApps.splice(i, 1);
+
+          var taskTray = this.taskTray;
+          var icon = taskTray.getTrayIconForAppURL(url);
+
+          if (icon)
+            taskTray.remove(icon);
+
           break;
         }
       }
