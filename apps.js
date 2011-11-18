@@ -56,7 +56,6 @@ var TouchHandler = {
     }).bind(this));
   },
   onTouchStart: function th_touchStart(evt) {
-    hideSourceViewer();
     var touchState = this.touchState;
     touchState.active = true;
     touchState.startTime = evt.timeStamp;
@@ -88,19 +87,27 @@ var TouchHandler = {
     var kRadius = 10;
     return Math.abs(x1 - x2) > kRadius || Math.abs(y1 - y2) > kRadius;
   },
+  isPannable: function isPannable(target) {
+    // TODO Check if the target is pannable
+    return true;
+  },
   handleEvent: function th_handleEvent(evt) {
     if (evt.getPreventDefault())
       return;
 
     switch (evt.type) {
       case 'touchstart':
-        evt.preventDefault();
       case 'mousedown':
+        if (!this.isPannable(evt.target)
+          return;
+
+        evt.preventDefault();
+        hideSourceViewer();
         this.target = evt.originalTarget;
         this.onTouchStart(evt.touches ? evt.touches[0] : evt);
         break;
+
       case 'touchmove':
-        evt.preventDefault();
       case 'mousemove':
         if (!this.target)
           break;
@@ -123,7 +130,6 @@ var TouchHandler = {
         showSourceViewer(sourceURL);
         evt.preventDefault();
       case 'touchend':
-        evt.preventDefault();
       case 'mouseup':
         if (!this.target)
           return;
