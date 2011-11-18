@@ -25,7 +25,7 @@ if (!window['Gaia'])
       var iconHeight = taskTray.iconHeight;
       var border = taskTray.border;
       var sceneGraph = taskTray.sceneGraph;
-      
+
       // Draw the icon sprite.
       var sprite = this.sprite;
       var createSprite = !sprite;
@@ -38,7 +38,8 @@ if (!window['Gaia'])
       ctx.drawImage(img, iconWidth * border, iconHeight * border,
                     iconWidth * (1 - border * 2),
                     iconHeight * (1 - border * 2));
-      ctx.font = Math.floor(iconHeight * border * 0.6) + 'pt Roboto, sans-serif';
+      var fontSize = Math.floor(iconHeight * border * 0.6);
+      ctx.font = fontSize + 'pt Roboto, sans-serif';
       ctx.textAlign = 'center';
       ctx.fillStyle = 'white';
       ctx.textBaseline = 'top';
@@ -46,7 +47,7 @@ if (!window['Gaia'])
                    iconWidth * 0.9);
       if (createSprite)
         sceneGraph.add(sprite);
-      
+
       // Draw the close button sprite.
       var closeButtonImage = Gaia.AppManager._closeButtonImage;
       var closeButtonSprite = this.closeButtonSprite;
@@ -61,7 +62,7 @@ if (!window['Gaia'])
       closeButtonCTX.drawImage(closeButtonImage, 0, 0, 32, 32);
       if (createCloseButtonSprite)
         sceneGraph.add(closeButtonSprite);
-      
+
       this.reflow();
     },
     // return the X coordinate of the top left corner of a slot
@@ -74,23 +75,29 @@ if (!window['Gaia'])
       var sprite = this.sprite;
       if (!sprite)
         return;
+
       var taskTray = this.taskTray;
       var border = taskTray.border;
       var index = this.index;
       var itemsPerPage = taskTray.itemsPerPage;
       var page = Math.floor(index / taskTray.itemsPerPage);
-      sprite.setPosition(page * taskTray.containerWidth + this.slotLeft(), 0, duration);
+      var x = page * taskTray.containerWidth + this.slotLeft();
+      var y = 0;
+      sprite.setPosition(x, y, duration);
       sprite.setScale(1, duration);
-      
+
       // Position the close button sprites.
       var closeButtonSprite = this.closeButtonSprite;
       if (!closeButtonSprite)
         return;
-      closeButtonSprite.setPosition(page * taskTray.containerWidth + this.slotLeft() + sprite.width * (1 - border * 2), 20, duration);
+
+      x += sprite.width * (1 - border * 2);
+      y += 20;
+      closeButtonSprite.setPosition(x, y, duration);
       closeButtonSprite.setScale(1, duration);
     }
   };
-  
+
   var TaskTray = function(canvas, iconWidth, iconHeight, border) {
     this.canvas = canvas;
     this.iconWidth = iconWidth;
@@ -121,14 +128,13 @@ if (!window['Gaia'])
 
       for (var i = 0; i < icons.length; i++) {
         var icon = icons[i];
-        
         if (icon.url === url)
           return icon;
       }
 
       return null;
     },
-    
+
     add: function taskTrayAdd(src, label, url) {
 
       // Create the icon in the tray.
@@ -154,20 +160,19 @@ if (!window['Gaia'])
 
     remove: function taskTrayRemove(icon) {
       var icons = this.icons;
-      
+
       icons.splice(icon.index, 1);
-      
+
       for (var i = 0; i < icons.length; i++)
         icons[i].index = i;
-      
+
       var sceneGraph = this.sceneGraph;
-      
       if (icon.sprite)
         sceneGraph.remove(icon.sprite);
-      
+
       if (icon.closeButtonSprite)
         sceneGraph.remove(icon.closeButtonSprite);
-      
+
       var canvas = this.canvas;
       this.reflow(canvas.width, canvas.height, 0);
     },
@@ -223,7 +228,7 @@ if (!window['Gaia'])
           if (sprite.isCloseButton) {
             Gaia.AppManager.kill(sprite.icon.url);
           }
-          
+
           // Icon tapped; launch app.
           else {
             Gaia.AppManager.closeTaskManager();
@@ -317,7 +322,7 @@ if (!window['Gaia'])
     init: function() {
       window.addEventListener('keypress', this);
       window.addEventListener('appclose', this);
-      
+
       this._closeButtonImage = new Image();
       this._closeButtonImage.src = 'images/close.png';
     },
@@ -480,7 +485,6 @@ if (!window['Gaia'])
       if (appInstance) {
         var foregroundWindow = this.foregroundWindow = appInstance.window;
         foregroundWindow.removeAttribute('hidden');
-        foregroundWindow.contentWindow.Apps.init();
       }
 
       // App is not yet running, create a new instance.
@@ -550,13 +554,13 @@ if (!window['Gaia'])
         if (runningApps[i].url === url) {
           this.windowsContainer.removeChild(runningApps[i].window);
           runningApps.splice(i, 1);
-          
+
           var taskTray = this.taskTray;
           var icon = taskTray.getTrayIconForAppURL(url);
-          
+
           if (icon)
             taskTray.remove(icon);
-          
+
           break;
         }
       }
