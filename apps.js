@@ -98,7 +98,7 @@ var TouchHandler = {
     switch (evt.type) {
       case 'touchstart':
       case 'mousedown':
-        if (!this.isPannable(evt.target)
+        if (!this.isPannable(evt.target))
           return;
 
         evt.preventDefault();

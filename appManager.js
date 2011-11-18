@@ -379,13 +379,13 @@ if (!window['Gaia'])
         icons: {
           size_128: 'images/Contacts.png'
         },
-        url: 'data:text/html,<font color="blue">Hello</font>'
+        url: 'blank.html'
       }, {
         name: 'Video',
         icons: {
           size_128: 'images/Video.png'
         },
-        url: 'data:text/html,<font color="blue">Hello</font>'
+        url: 'blank.html'
       }, {
         name: 'Gallery',
         icons: {
@@ -397,25 +397,25 @@ if (!window['Gaia'])
         icons: {
           size_128: 'images/Camera.png'
         },
-        url: 'data:text/html,<font color="blue">Hello</font>'
+        url: 'blank.html'
       }, {
         name: 'Maps',
         icons: {
           size_128: 'images/Maps.png'
         },
-        url: 'data:text/html,<font color="blue">Hello</font>'
+        url: 'blank.html'
       }, {
         name: 'Calculator',
         icons: {
           size_128: 'images/Calculator.png'
         },
-        url: 'data:text/html,<font color="blue">Hello</font>'
+        url: 'blank.html'
       }, {
         name: 'Clock',
         icons: {
           size_128: 'images/Clock.png'
         },
-        url: 'data:text/html,<font color="blue">Hello</font>'
+        url: 'blank.html'
       }, {
         name: 'Browser',
         icons: {
@@ -427,31 +427,31 @@ if (!window['Gaia'])
         icons: {
           size_128: 'images/Music.png'
         },
-        url: 'data:text/html,<font color="blue">Hello</font>'
+        url: 'blank.html'
       }, {
         name: 'Weather',
         icons: {
           size_128: 'images/Weather.png'
         },
-        url: 'data:text/html,<font color="blue">Hello</font>'
+        url: 'blank.html'
       }, {
         name: 'Settings',
         icons: {
           size_128: 'images/Settings.png'
         },
-        url: 'data:text/html,<font color="blue">Hello</font>'
+        url: 'blank.html'
       }, {
         name: 'Stocks',
         icons: {
           size_128: 'images/Stocks.png'
         },
-        url: 'data:text/html,<font color="blue">Hello</font>'
+        url: 'blank.html'
       }, {
         name: 'Market',
         icons: {
           size_128: 'images/Market.png'
         },
-        url: 'data:text/html,<font color="blue">Hello</font>'
+        url: 'blank.html'
       }];
     },
 
