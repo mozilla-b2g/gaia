@@ -3,6 +3,7 @@ var indexedDB = window.mozIndexedDB;
 
 gallery.indexedDB = {};
 gallery.indexedDB.db = null;
+gallery.indexedDB.upgraded = false;
 
 /**
  * Database Error
@@ -12,35 +13,61 @@ gallery.indexedDB.onerror = function(e) {
 }
 
 /**
+ * Create IndexedDB Stores
+ */
+gallery.indexedDB.createStores = function() {
+    var db = gallery.indexedDB.db;
+
+    if(db.objectStoreNames.contains("thumbnails")) {
+      db.deleteObjectStore("thumbnails");
+    }
+    var store = db.createObjectStore("thumbnails", {keyPath: "id"});
+    if(db.objectStoreNames.contains("photos")) {
+      db.deleteObjectStore("photos");
+    }
+    var store = db.createObjectStore("photos", {keyPath: "id"});
+}
+
+/**
  * Open Database
  */
 gallery.indexedDB.open = function() {
-  var request = indexedDB.open("gallery");
-  
-  request.onsuccess = function(e) {
-    var version = "1.1";
+  var request = indexedDB.open("gallery", 18);
+
+  // For latest version of IndexedDB API
+  request.onupgradeneeded = function(e) {
     gallery.indexedDB.db = e.target.result;
+    gallery.indexedDB.createStores();
+    gallery.indexedDB.upgraded = true;
+  }
+
+  request.onsuccess = function(e) {
+    gallery.indexedDB.db = e.target.result;
+    
+    // For older version of IndexedDB API
     var db = gallery.indexedDB.db;
-
-    // Create/replace object store if database version is old
-    if(version != db.version) {
-      var setVrequest = db.setVersion(version);
-      setVrequest.onerror = gallery.indexedDB.onerror;
-
-      setVrequest.onsuccess = function(e) {
-        if(db.objectStoreNames.contains("thumbnails")) {
-          db.deleteObjectStore("thumbnails");
-        }
-        var store = db.createObjectStore("thumbnails", {keyPath: "id"});
-        if(db.objectStoreNames.contains("photos")) {
-          db.deleteObjectStore("photos");
-        }
-        var store = db.createObjectStore("photos", {keyPath: "id"});
-        gallery.indexedDB.populateSampleData();
-      };
+    if(typeof db.setVersion == 'function') {
+      var version = "18";
+      var db = gallery.indexedDB.db;
+      if(version != db.version) {
+        var setVrequest = db.setVersion(version);
+        setVrequest.onerror = gallery.indexedDB.onerror;
+  
+        setVrequest.onsuccess = function(e) {
+          gallery.indexedDB.createStores();
+          gallery.indexedDB.populateSampleData();
+        };
+      }
     }
-    gallery.indexedDB.getAllPhotos();
-  };
+
+    // Populate sample data if upgrade has taken place
+    if (gallery.indexedDB.upgraded) {
+      gallery.indexedDB.populateSampleData();
+      gallery.indexedDB.upgraded = false;
+    } else {
+      gallery.indexedDB.getAllPhotos();
+    }
+  }
 
   request.onerror = gallery.indexedDB.onerror;
 };
@@ -148,7 +175,6 @@ gallery.renderThumbnail = function(photo) {
  * Render Photo
  */
 gallery.renderPhoto = function(photo) {
-  // Add photo into DOM
   var border = document.getElementById("photoBorder");
   border.innerHTML += '<img id="photo" src="data:image/jpeg;base64,' + photo.data + '">';
 
