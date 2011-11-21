@@ -538,14 +538,16 @@ function updateBattery() {
     var fuel = element.children[0];
     var charging = element.children[1];
     if (battery.charging) {
+      charging.hidden = false;
       fuel.className = 'charging';
-      charging.visible = true;
     } else {
+      charging.hidden = true;
+
       var level = battery.level * 100;
-      fuel.style.width = (level / 4) + 'px';
-      if (level <= 5)
+      fuel.style.width = (level / 5.25) + 'px';
+      if (level <= 10)
         fuel.className = 'critical';
-      else if (level <= 15)
+      else if (level <= 30)
         fuel.className = 'low';
       else
         fuel.className = '';
