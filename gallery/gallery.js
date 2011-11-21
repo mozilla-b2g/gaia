@@ -32,7 +32,7 @@ gallery.indexedDB.createStores = function() {
  * Open Database
  */
 gallery.indexedDB.open = function() {
-  var request = indexedDB.open("gallery", 18);
+  var request = indexedDB.open("gallery", 2);
 
   // For latest version of IndexedDB API
   request.onupgradeneeded = function(e) {
@@ -47,7 +47,7 @@ gallery.indexedDB.open = function() {
     // For older version of IndexedDB API
     var db = gallery.indexedDB.db;
     if(typeof db.setVersion == 'function') {
-      var version = "18";
+      var version = "2";
       var db = gallery.indexedDB.db;
       if(version != db.version) {
         var setVrequest = db.setVersion(version);
