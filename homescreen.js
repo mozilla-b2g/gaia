@@ -300,13 +300,16 @@ NotificationScreen.prototype = {
   },
   get screenHeight() {
     var screenHeight = this._screenHeight;
-    if (!screenHeight)
-      this._screenHeight = this.touchables[0].getBoundingClientRect().height;
+    if (!screenHeight) {
+      screenHeight = this.touchables[0].getBoundingClientRect().height;
+      this._screenHeight = screenHeight;
+    }
     return screenHeight;
   },
   onTouchStart: function(e) {
     this.startX = e.pageX;
     this.startY = e.pageY;
+    this.onTouchMove({ pageY: e.pageY + 20 });
   },
   onTouchMove: function(e) {
     var dy = -(this.startY - e.pageY);
@@ -320,8 +323,9 @@ NotificationScreen.prototype = {
   },
   onTouchEnd: function(e) {
     var dy = -(this.startY - e.pageY);
-    var offset = this.locked ? this.screenHeight + dy : dy;
-    if (Math.abs(offset) > this.screenHeight / 4)
+    var offset = Math.abs(dy);
+    if ((!this.locked && offset > this.screenHeight / 4) ||
+        (this.locked && offset < 10))
       this.lock();
     else
       this.unlock();
