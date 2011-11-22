@@ -451,7 +451,7 @@ if (!window['Gaia'])
         icons: {
           size_128: 'images/Market.png'
         },
-        url: 'app.html#market'
+        url: 'market/market.html'
       }];
     },
 

@@ -1,5 +1,64 @@
-body {
-  overflow-x: hidden;
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+a.button {
+  background-image: -moz-linear-gradient(#666, #333);
+  border: 1px outset #555;
+  border-radius: 7px;
+  -moz-border-radius: 7px;
+  box-shadow: 0px 1px 2px rgba(0, 0, 0, 1);
+  -moz-box-shadow: 0px 1px 2px rgba(0, 0, 0, 1);
+  display: inline-block;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 1);
+  text-decoration: none;
+  color: #fff;
+  font-size: 14px;
+  margin: 3px 0px 3px 10px;
+  padding: 8px;
+  z-index: 1;
+}
+
+a.button:active {
+  background-image: -moz-linear-gradient(#555, #222);
+  border: 1px inset #000;
+  box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 1);
+  -moz-box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 1);
+  padding: 9px 8px 7px;
+}
+
+a.button.hide {
+  display: none;
+  -moz-animation-duration: 250ms;
+  -moz-animation-name: animateButtonHide;
+}
+@-moz-keyframes animateButtonHide {
+  from {
+    opacity: 1;
+    display: inline-block;
+  }
+  to {
+    opacity: 0;
+    display: none;
+  }
+}
+
+a.button.show {
+  display: inline-block;
+  -moz-animation-duration: 250ms;
+  -moz-animation-name: animateButtonShow;
+}
+@-moz-keyframes animateButtonShow {
+  from {
+    opacity: 0;
+    display: none;
+  }
+  to {
+    opacity: 1;
+    display: inline-block;
+  }
 }
 
 a.toggleSwitch {
@@ -47,6 +106,8 @@ a.toggleSwitch > span.lever {
   line-height: 32px;
   width: 32px;
   height: 32px;
+  margin: 0;
+  padding: 0;
   z-index: 2;
 }
 
@@ -123,60 +184,7 @@ div.navigationBar > .right {
 }
 
 div.navigationBar > a.button {
-  background-image: -moz-linear-gradient(#666, #333);
-  border: 1px outset #555;
-  border-radius: 7px;
-  -moz-border-radius: 7px;
-  box-shadow: 0px 1px 2px rgba(0, 0, 0, 1);
-  -moz-box-shadow: 0px 1px 2px rgba(0, 0, 0, 1);
-  display: inline-block;
-  text-shadow: 0 -1px 0 rgba(0, 0, 0, 1);
-  text-decoration: none;
-  color: #fff;
-  font-size: 14px;
   margin: 3px;
-  padding: 8px;
-  z-index: 1;
-}
-
-div.navigationBar > a.button:active {
-  background-image: -moz-linear-gradient(#555, #222);
-  border: 1px inset #000;
-  box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 1);
-  -moz-box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 1);
-  padding: 9px 8px 7px;
-}
-
-div.navigationBar > a.button.hide {
-  display: none;
-  -moz-animation-duration: 250ms;
-  -moz-animation-name: animateButtonHide;
-}
-@-moz-keyframes animateButtonHide {
-  from {
-    opacity: 1;
-    display: inline-block;
-  }
-  to {
-    opacity: 0;
-    display: none;
-  }
-}
-
-div.navigationBar > a.button.show {
-  display: inline-block;
-  -moz-animation-duration: 250ms;
-  -moz-animation-name: animateButtonShow;
-}
-@-moz-keyframes animateButtonShow {
-  from {
-    opacity: 0;
-    display: none;
-  }
-  to {
-    opacity: 1;
-    display: inline-block;
-  }
 }
 
 div.navigationBar > h1 {
@@ -195,9 +203,12 @@ div.view {
   display: none;
   position: absolute;
   width: 100%;
+  height: -moz-calc(100% - 44px);
   margin-top: 44px;
   user-select: none;
   -moz-user-select: -moz-none;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 div.view.active {
@@ -267,13 +278,14 @@ h1 {
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
-span.arrowRight {
-  border-color: transparent transparent transparent #666;
-  border-style: solid;
-  border-width: 8px;
-  display: block;
-  width: 0;
-  height: 0;
+span.badge, ul.tableView > li span.badge {
+  background-color: #888;
+  border-radius: 5px;
+  -moz-border-radius: 5px;
+  color: #fff;
+  font-size: 14px;
+  padding: 2px 4px;
+  margin: 10px;
 }
 
 ul.tableView {
@@ -291,7 +303,8 @@ ul.tableView {
 
 ul.tableView > li {
   border-bottom: 1px solid #ccc;
-  height: 46px;
+  min-height: 46px;
+  position: relative;
 }
 
 ul.tableView > li:last-child {
@@ -305,17 +318,38 @@ ul.tableView > li > a.drillDownCell, ul.tableView > li > a.selectionCell {
   text-decoration: none;
 }
 
-ul.tableView > li > a.drillDownCell > span.arrowRight {
-  float: right;
-  margin: 4px -10px 0px 0px;
-}
-
 ul.tableView > li > a.toggleSwitch {
   float: right;
   margin: 5px 10px 0 0;
 }
 
-ul.tableView > li > span {
+ul.tableView > li h1 {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+ul.tableView > li img {
+  margin: 10px;
+  vertical-align: middle;
+  max-width: 64px;
+  max-height: 64px;
+}
+
+ul.tableView > li span {
   display: inline-block;
   padding: 12px;
+  vertical-align: middle;
+}
+
+ul.tableView > li span.arrowRight {
+  border-color: transparent transparent transparent #888;
+  border-style: solid;
+  border-width: 8px;
+  width: 0;
+  height: 0;
+  margin-top: -4px;
+  padding: 0;
+  position: absolute;
+  right: 4px;
+  top: 50%;
 }

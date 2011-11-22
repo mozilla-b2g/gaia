@@ -7,6 +7,7 @@
   <link rel="stylesheet" type="text/css" media="screen" href="ui.css"/>
   <link rel="stylesheet" type="text/css" media="screen" href="market.css"/>
   <script type="text/javascript" src="../apps.js"></script>
+  <script type="text/javascript" src="../appManager.js"></script>
   <script type="text/javascript" src="ui.js"></script>
   <script type="text/javascript" src="market.js"></script>
 </head>
@@ -20,8 +21,12 @@
     </ul>
   </div>
   <div id="detailView" class="view">
-    <img id="detailIcon"/>
-    <h1 id="detailName"></h1>
+    <div>
+      <img id="detailIcon"/>
+      <h1 id="detailName"></h1>
+    </div>
+    <a id="installButton" class="button" href="#">Install App</a>
+    <a id="uninstallButton" class="button" href="#">Uninstall App</a>
     <p id="detailDescription"></p>
   </div>
 </body>

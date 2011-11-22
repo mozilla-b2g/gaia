@@ -181,6 +181,15 @@ if (!window['Gaia'])
         
         break;
       default:
+        target = target.parentNode;
+        targetNodeName = target.nodeName.toLowerCase();
+        classList = target.classList;
+        
+        if (targetNodeName === 'a' && classList.contains('drillDownCell')) {
+          target.click();
+          evt.preventDefault();
+        }
+      
         break;
     }
   });
