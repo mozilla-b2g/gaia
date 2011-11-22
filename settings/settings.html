@@ -4,10 +4,10 @@
   <meta charset="utf-8"/>
   <title>Settings</title>
   <link rel="stylesheet" type="text/css" media="screen" href="../system.css"/>
-  <link rel="stylesheet" type="text/css" media="screen" href="../ui.css"/>
+  <link rel="stylesheet" type="text/css" media="screen" href="ui.css"/>
   <link rel="stylesheet" type="text/css" media="screen" href="settings.css"/>
   <script type="text/javascript" src="../apps.js"></script>
-  <script type="text/javascript" src="../ui.js"></script>
+  <script type="text/javascript" src="ui.js"></script>
   <script type="text/javascript" src="settings.js"></script>
 </head>
 <body>
@@ -53,6 +53,7 @@
     <ul class="tableView">
       <li>
         <span>Wi-Fi</span>
+        <input type="checkbox" class="toggleSwitch" id="isWiFiEnabled" name="isWiFiEnabled" value="1" checked="checked"/>
       </li>
     </ul>
     <h1>Choose a Network...</h1>
@@ -76,6 +77,7 @@
     <ul class="tableView">
       <li>
         <span>Ask to Join Networks</span>
+        <input type="checkbox" class="toggleSwitch" id="askToJoinNetworks" name="askToJoinNetworks" value="1"/>
       </li>
     </ul>
   </div>
