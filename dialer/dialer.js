@@ -197,8 +197,8 @@ var Contacts = {
     var fragment = '';
     for (var i = 0; i < count; i++) {
       var contact = contacts[i];
-      var title = (contact.name || contact.tel);
-      fragment += '<div class="contact" value="' + contact.tel + '">' +
+      var title = (contact.displayName || contact.phones[0]);
+      fragment += '<div class="contact" value="' + contact.phones[0] + '">' +
                   '  <span class="contact-name">' + title + '</span>' +
                   '</div>';
     }
@@ -220,6 +220,12 @@ var Contacts = {
 
 window.addEventListener('load', function keyboardInit(evt) {
   window.removeEventListener('load', keyboardInit);
+
+  // TODO This should be done as soon as the app is made visible
+  var location = document.location.toString();
+  if (location.indexOf('contact') != -1)
+    choiceChanged(document.getElementById('contacts'));
+
   KeyHandler.init();
   Contacts.init();
 });
