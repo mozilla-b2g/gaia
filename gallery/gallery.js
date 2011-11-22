@@ -18,14 +18,15 @@ gallery.indexedDB.onerror = function(e) {
 gallery.indexedDB.createStores = function() {
     var db = gallery.indexedDB.db;
 
-    if(db.objectStoreNames.contains("thumbnails")) {
+    if(db.objectStoreNames.contains("thumbnails"))
       db.deleteObjectStore("thumbnails");
-    }
-    var store = db.createObjectStore("thumbnails", {keyPath: "id"});
-    if(db.objectStoreNames.contains("photos")) {
+
+    db.createObjectStore("thumbnails", {keyPath: "id"});
+
+    if(db.objectStoreNames.contains("photos"))
       db.deleteObjectStore("photos");
-    }
-    var store = db.createObjectStore("photos", {keyPath: "id"});
+
+    db.createObjectStore("photos", {keyPath: "id"});
 }
 
 /**
@@ -34,7 +35,7 @@ gallery.indexedDB.createStores = function() {
 gallery.indexedDB.open = function() {
   var request = indexedDB.open("gallery", 2);
 
-  // For latest version of IndexedDB API
+  // For Firefox 11 (Nightly)
   request.onupgradeneeded = function(e) {
     gallery.indexedDB.db = e.target.result;
     gallery.indexedDB.createStores();
@@ -44,23 +45,22 @@ gallery.indexedDB.open = function() {
   request.onsuccess = function(e) {
     gallery.indexedDB.db = e.target.result;
     
-    // For older version of IndexedDB API
+    // For Firefox 8
     var db = gallery.indexedDB.db;
     if(typeof db.setVersion == 'function') {
       var version = "2";
       var db = gallery.indexedDB.db;
       if(version != db.version) {
-        var setVrequest = db.setVersion(version);
-        setVrequest.onerror = gallery.indexedDB.onerror;
+        var setVersionRequest = db.setVersion(version);
+        setVersionRequest.onerror = gallery.indexedDB.onerror;
   
-        setVrequest.onsuccess = function(e) {
+        setVersionRequest.onsuccess = function(e) {
           gallery.indexedDB.createStores();
           gallery.indexedDB.populateSampleData();
         };
       }
     }
 
-    // Populate sample data if upgrade has taken place
     if (gallery.indexedDB.upgraded) {
       gallery.indexedDB.populateSampleData();
       gallery.indexedDB.upgraded = false;
