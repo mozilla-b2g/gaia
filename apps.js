@@ -1,3 +1,7 @@
+// DISCLAIMER: This code is a band aid and will slowly be remove when
+//             the functionalities provided here will land in the Mozilla
+//             platform itself.
+
 
 'use strict';
 
