@@ -26,7 +26,7 @@ var Contacts = {
       var displayName = contact.displayName;
       var phoneNumber = contact.phones[0];
 
-      var name = contact.name.familyName[0]; 
+      var name = contact.name.familyName[0];
       if (currentLetter != name[0]) {
         currentLetter = name[0].toUpperCase();
 
@@ -98,7 +98,7 @@ var Contacts = {
       var targetId = shortcut.name;
       var header = document.getElementById(targetId);
 
-      var disabled =  (enabledLetters.indexOf(targetId) == -1);
+      var disabled = (enabledLetters.indexOf(targetId) == -1);
       if (header && disabled) {
         shortcut.setAttribute('data-disabled', 'true');
         header.hidden = true;

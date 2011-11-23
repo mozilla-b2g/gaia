@@ -12,7 +12,7 @@ var gTones = {
 // Bug 690056 implement a visibility API, and it's likely that
 // we want this event to be fire when an app come back to life
 // or is minimized (it does not now).
-window.addEventListener("visibilitychange", function visibleApp(evt) {
+window.addEventListener('visibilitychange', function visibleApp(evt) {
   if (!evt.detail.hidden)
     visibilityChanged(evt.detail.url);
 });
