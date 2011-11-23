@@ -3,7 +3,7 @@ html, body {
   height: 100%;
   margin: 0;
   padding: 0;
-  background-color: #f6f6f6;
+  background-color: #161616;
   overflow: hidden;
 }
 
@@ -15,7 +15,6 @@ html, body {
 #search-container {
   padding: 4px;
   text-align: center;
-  background-color: #f6f6f6;
 }
 
 #search {
@@ -23,7 +22,7 @@ html, body {
   margin: 0px;
   -moz-appearance: none;
   border-radius: 24px;
-  border: 1px solid #c0c0c0;
+  border: 1px solid #303030;
   height: 48px;
   line-height: 48px;
   padding-left: 6px;
@@ -34,11 +33,10 @@ html, body {
 }
 
 .contact-header {
-  background-image: -moz-linear-gradient(top, #d6d6d6, #f6f6f6);
-  border-bottom: 1px solid #c0c0c0;
-  border-bottom: 1px solid #c0c0c0;
+  background-image: -moz-linear-gradient(bottom, #161616, #060606);
+  border-bottom: 1px solid #202020;
   padding: 4px;
-  color: #404040;
+  color: #b0b0b0;
   font-weight: bold;
   pointer-events: none;
 }
@@ -47,7 +45,7 @@ html, body {
   padding: 4px;
   height: 56px;
   line-height: 28px;
-  border-bottom: 1px solid #c0c0c0;
+  border-bottom: 1px solid #202020;
   font-size: 20px;
   background-image: url(missing.png);
   background-repeat: no-repeat;
@@ -61,6 +59,7 @@ html, body {
 .displayName {
   display: block;
   margin-left: 72px;
+  color: #c0c0c0;
   pointer-events: none;
 }
 
@@ -83,7 +82,7 @@ html, body {
   display: block;
   font-size: 10px;
   text-decoration: none;
-  color: #909090;
+  color: #404040;
   font-weight: bold;
   height: -moz-calc(100% / 27);
 }
@@ -96,6 +95,6 @@ html, body {
 }
 
 #shortcuts > a:not([name="search-container"])[data-disabled] {
-  color: #d0d0d0;
+  color: #252525;
 }
 
