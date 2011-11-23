@@ -8,6 +8,23 @@ var gTones = {
   '*': null, '#': null
 };
 
+
+// Bug 690056 implement a visibility API, and it's likely that
+// we want this event to be fire when an app come back to life
+// or is minimized (it does not now).
+window.addEventListener('visibilitychange', function visibleApp(evt) {
+  if (!evt.detail.hidden)
+    visibilityChanged(evt.detail.url);
+});
+
+function visibilityChanged(url) {
+  // TODO do something better here
+  var contacts = document.getElementById('contacts');
+  if (url.indexOf('?choice=contact') != -1 ||
+      contacts.hasAttribute('data-active'))
+    choiceChanged(contacts);
+}
+
 function choiceChanged(target) {
   if (!target.classList.contains('choice'))
     return;
@@ -24,10 +41,16 @@ function choiceChanged(target) {
 
     var choiceView = document.getElementById(choice.id + '-view');
     choiceView.setAttribute('hidden', 'true');
+
+    if (choiceView.contentWindow && choiceView.contentWindow.Contacts)
+      choiceView.contentWindow.Contacts.hideSearch();
   }
 
   target.setAttribute('data-active', 'true');
   view.removeAttribute('hidden');
+
+  if (view.contentWindow && view.contentWindow.Contacts)
+    view.contentWindow.Contacts.showSearch();
 }
 
 var KeyHandler = {
@@ -184,43 +207,12 @@ var KeyHandler = {
   }
 };
 
-var Contacts = {
-  get contactsView() {
-    delete this.contactsView;
-    return this.contacts = document.getElementById('contacts-view');
-  },
-
-  init: function contacts_init() {
-    var contacts = window.navigator.mozContacts.contacts;
-    var count = contacts.length;
-
-    var fragment = '';
-    for (var i = 0; i < count; i++) {
-      var contact = contacts[i];
-      var title = (contact.name || contact.tel);
-      fragment += '<div class="contact" value="' + contact.tel + '">' +
-                  '  <span class="contact-name">' + title + '</span>' +
-                  '</div>';
-    }
-
-    var view = this.contactsView;
-    view.innerHTML = fragment;
-    view.addEventListener('click', function contactClick(evt) {
-      var contact = evt.target.getAttribute('value');
-      if (!contact)
-        return;
-
-      choiceChanged(document.getElementById('keyboard'));
-      KeyHandler.phoneNumber.value = contact;
-      KeyHandler.updateFontSize();
-      window.navigator.mozPhone.call(contact);
-    });
-  }
-};
-
 window.addEventListener('load', function keyboardInit(evt) {
   window.removeEventListener('load', keyboardInit);
+  visibilityChanged(document.location.toString());
+
+
+
   KeyHandler.init();
-  Contacts.init();
 });
 
