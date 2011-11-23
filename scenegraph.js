@@ -148,10 +148,10 @@ SceneGraph.prototype = {
   remove: function(sprite) {
     var sprites = this.sprites;
     sprites.splice(sprite.index, 1);
-    
+
     for (var i = 0; i < sprites.length; i++)
       sprites[i].index = i;
-    
+
     this.blitter.spriteRemoved(sprite);
   },
   // animate the scene graph, returning false if the animation is done
