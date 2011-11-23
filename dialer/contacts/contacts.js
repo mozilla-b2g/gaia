@@ -114,8 +114,21 @@ var Contacts = {
     scrollable.scrollTop = top + scrollable.scrollTop;
   },
   showDetails: function contactsShowDetails(evt) {
-    var target = evt.target;
-    // TODO Create a view for details here
+    var infos = evt.target.children;
+    var displayName = infos[0].textContent;
+    var phoneNumber = infos[1].textContent;
+
+    var parentWindow = window.parent;
+    if (parentWindow.choiceChanged) {
+      var keyView = parentWindow.document.getElementById('keyboard');
+      parentWindow.choiceChanged(keyView);
+
+      var keyHandler = parentWindow.KeyHandler;
+      keyHandler.phoneNumber.value = displayName;
+      keyHandler.updateFontSize();
+
+      window.navigator.mozPhone.call(phoneNumber);
+    }
   }
 };
 

@@ -8,6 +8,19 @@ var gTones = {
   '*': null, '#': null
 };
 
+
+// Bug 690056 implement a visibility API, and it's likely that
+// we want this event to be fire when an app come back to life
+// or is minimized (it does not now).
+window.addEventListener("visibilitychange", function visibleApp(evt) {
+  visibilityChanged(evt.detail);
+});
+
+function visibilityChanged(url) {
+  if (url.indexOf('?choice=contact') != -1)
+    choiceChanged(document.getElementById('contacts'));
+}
+
 function choiceChanged(target) {
   if (!target.classList.contains('choice'))
     return;
@@ -184,49 +197,12 @@ var KeyHandler = {
   }
 };
 
-var Contacts = {
-  get contactsView() {
-    delete this.contactsView;
-    return this.contacts = document.getElementById('contacts-view');
-  },
-
-  init: function contacts_init() {
-    var contacts = window.navigator.mozContacts.contacts;
-    var count = contacts.length;
-
-    var fragment = '';
-    for (var i = 0; i < count; i++) {
-      var contact = contacts[i];
-      var title = (contact.displayName || contact.phones[0]);
-      fragment += '<div class="contact" value="' + contact.phones[0] + '">' +
-                  '  <span class="contact-name">' + title + '</span>' +
-                  '</div>';
-    }
-
-    var view = this.contactsView;
-    view.innerHTML = fragment;
-    view.addEventListener('click', function contactClick(evt) {
-      var contact = evt.target.getAttribute('value');
-      if (!contact)
-        return;
-
-      choiceChanged(document.getElementById('keyboard'));
-      KeyHandler.phoneNumber.value = contact;
-      KeyHandler.updateFontSize();
-      window.navigator.mozPhone.call(contact);
-    });
-  }
-};
-
 window.addEventListener('load', function keyboardInit(evt) {
   window.removeEventListener('load', keyboardInit);
+  visibilityChanged(document.location.toString());
 
-  // TODO This should be done as soon as the app is made visible
-  var location = document.location.toString();
-  if (location.indexOf('contact') != -1)
-    choiceChanged(document.getElementById('contacts'));
+
 
   KeyHandler.init();
-  Contacts.init();
 });
 

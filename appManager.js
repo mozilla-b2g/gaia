@@ -471,24 +471,29 @@ if (!window['Gaia'])
     },
 
     getAppInstance: function(url) {
+      // Compare URLs but ignore the query portion of the url (the part after
+      // the ?)
+      var query = new RegExp(/\?.*/);
+      var currentURL = url.replace(query, '');
       for (var i = 0; i < runningApps.length; i++) {
-        if (runningApps[i].url === url)
-          return runningApps[i];
+        var runningApp = runningApps[i];
+        if (runningApp.url.replace(query, '') != currentURL)
+          continue;
+
+        runningApp.url;
+        return runningApp;
       }
       return null;
     },
 
     launch: function(url) {
-      var appInstance = this.getAppInstance(url);
+      var instance = this.getAppInstance(url);
 
       // App is already running, set focus to the existing instance.
-      if (appInstance) {
-        var foregroundWindow = this.foregroundWindow = appInstance.window;
+      if (instance) {
+        var foregroundWindow = this.foregroundWindow = instance.window;
         foregroundWindow.removeAttribute('hidden');
-      }
-
-      // App is not yet running, create a new instance.
-      else {
+      } else {
         var app = this.getInstalledAppForURL(url);
         var newWindow = document.createElement('iframe');
         var foregroundWindow = this.foregroundWindow = newWindow;
@@ -505,6 +510,10 @@ if (!window['Gaia'])
         if (app)
           this.taskTray.add(app.icons.size_128, app.name, app.url);
       }
+
+      var event = document.createEvent('CustomEvent');
+      event.initCustomEvent('visibilitychange', true, true, url);
+      foregroundWindow.contentWindow.dispatchEvent(event);
 
       var animationCompleteHandler = function() {
         window.removeEventListener('animationend', animationCompleteHandler);
@@ -538,11 +547,14 @@ if (!window['Gaia'])
         foregroundWindow.blur();
         foregroundWindow.setAttribute('hidden', true);
 
+
         var newForegroundWindow = this.foregroundWindow;
         if (newForegroundWindow)
           newForegroundWindow.focus();
-        else
+        else {
           this.windowsContainer.setAttribute('hidden', true);
+          window.focus();
+        }
       }).bind(this);
 
       window.addEventListener('animationend', animationCompleteHandler);
