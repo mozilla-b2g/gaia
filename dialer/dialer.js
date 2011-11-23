@@ -19,8 +19,10 @@ window.addEventListener("visibilitychange", function visibleApp(evt) {
 
 function visibilityChanged(url) {
   // TODO do something better here
-  if (url.indexOf('?choice=contact') != -1)
-    choiceChanged(document.getElementById('contacts'));
+  var contacts = document.getElementById('contacts');
+  if (url.indexOf('?choice=contact') != -1 ||
+      contacts.hasAttribute('data-active'))
+    choiceChanged(contacts);
 }
 
 function choiceChanged(target) {
