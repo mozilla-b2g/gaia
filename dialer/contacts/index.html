@@ -11,7 +11,7 @@
         <input id="search" type="search" onmousedown="this.focus();" oninput="Contacts.filter(event.target.value);"></input>
       </div>
       <div id="contacts-container">
-        <div id="shortcuts" onmousedown="Contacts.anchor(event);">
+        <div id="shortcuts" onmousedown="Contacts.anchor(event.target.name);">
           <a name="search-container"></a>
           <a name="A">A</a>
           <a name="B">B</a>

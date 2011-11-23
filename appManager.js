@@ -331,12 +331,10 @@ if (!window['Gaia'])
       switch (evt.type) {
         case 'keypress':
           if (evt.keyCode == evt.DOM_VK_ESCAPE) {
-            // Open/Close TaskManager
-            if (this.isTaskManagerOpen) {
+            if (this.isTaskManagerOpen)
               this.closeTaskManager();
-            } else {
+            else
               this.openTaskManager();
-            }
           }
           break;
         case 'appclose':
@@ -486,6 +484,16 @@ if (!window['Gaia'])
       return null;
     },
 
+    getAppInstanceForWindow: function amGetAppInstanceForWindow(window) {
+      var length = runningApps.length;
+      for (var i = 0; i < runningApps.length; i++) {
+        var runningApp = runningApps[i];
+        if (runningApp.window == window)
+          return runningApp;
+      }
+      return null;
+    },
+
     launch: function(url) {
       var instance = this.getAppInstance(url);
 
@@ -511,21 +519,27 @@ if (!window['Gaia'])
           this.taskTray.add(app.icons.size_128, app.name, app.url);
       }
 
-      var event = document.createEvent('CustomEvent');
-      event.initCustomEvent('visibilitychange', true, true, url);
-      foregroundWindow.contentWindow.dispatchEvent(event);
-
       var animationCompleteHandler = function() {
         window.removeEventListener('animationend', animationCompleteHandler);
 
-        foregroundWindow.classList.remove('animateOpening');
         foregroundWindow.focus();
 
-        var appOpenEvent = document.createEvent('UIEvents');
 
-        appOpenEvent.initUIEvent('appopen', true, true,
+        var state = {
+          url: url,
+          hidden: false
+        };
+        var event = document.createEvent('CustomEvent');
+        event.initCustomEvent('visibilitychange', true, true, state);
+        foregroundWindow.contentWindow.dispatchEvent(event);
+
+        foregroundWindow.classList.remove('animateOpening');
+
+        var openEvent = document.createEvent('UIEvents');
+
+        openEvent.initUIEvent('appopen', true, true,
                                  foregroundWindow.contentWindow, 0);
-        window.dispatchEvent(appOpenEvent);
+        window.dispatchEvent(openEvent);
       };
       window.addEventListener('animationend', animationCompleteHandler);
 
@@ -547,6 +561,14 @@ if (!window['Gaia'])
         foregroundWindow.blur();
         foregroundWindow.setAttribute('hidden', true);
 
+        var instance = this.getAppInstanceForWindow(foregroundWindow);
+        var state = {
+          url: instance.url,
+          hidden: true
+        };
+        var event = document.createEvent('CustomEvent');
+        event.initCustomEvent('visibilitychange', true, true, state);
+        foregroundWindow.contentWindow.dispatchEvent(event);
 
         var newForegroundWindow = this.foregroundWindow;
         if (newForegroundWindow)

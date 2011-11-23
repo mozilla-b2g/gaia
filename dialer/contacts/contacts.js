@@ -44,14 +44,21 @@ var Contacts = {
     contactsContainer.innerHTML = content;
     this.filter();
 
-    // Hide the search field by default
-    setTimeout(function () {
-      var searchContainer = document.getElementById('search-container');
-      searchContainer.hidden = false;
+    // Scroll bottom to hide the search field by default
+    setTimeout(function hideSearch(self) {
+      self.showSearch();
+    }, 400, this);
+  },
+  hideSearch: function contactsHideSearch() {
+    var searchContainer = document.getElementById('search-container');
+    searchContainer.hidden = true;
+  },
+  showSearch: function contactsHideSearch() {
+    var searchContainer = document.getElementById('search-container');
+    searchContainer.hidden = false;
 
-      var mainContainer = document.getElementById('main-container');
-      mainContainer.scrollTop = searchContainer.getBoundingClientRect().height;
-    }, 400);
+    var mainContainer = document.getElementById('main-container');
+    mainContainer.scrollTop = searchContainer.getBoundingClientRect().height;
   },
   filter: function contactsFilter(value) {
     var contacts = document.getElementById('contacts').children;
@@ -103,9 +110,7 @@ var Contacts = {
       }
     }
   },
-  anchor: function contactsAnchor(evt) {
-    var target = evt.target;
-    var targetId = evt.target.name;
+  anchor: function contactsAnchor(targetId) {
     var target = document.getElementById(targetId);
     if (!target)
       return;

@@ -13,10 +13,12 @@ var gTones = {
 // we want this event to be fire when an app come back to life
 // or is minimized (it does not now).
 window.addEventListener("visibilitychange", function visibleApp(evt) {
-  visibilityChanged(evt.detail);
+  if (!evt.detail.hidden)
+    visibilityChanged(evt.detail.url);
 });
 
 function visibilityChanged(url) {
+  // TODO do something better here
   if (url.indexOf('?choice=contact') != -1)
     choiceChanged(document.getElementById('contacts'));
 }
@@ -37,10 +39,16 @@ function choiceChanged(target) {
 
     var choiceView = document.getElementById(choice.id + '-view');
     choiceView.setAttribute('hidden', 'true');
+
+    if (choiceView.contentWindow && choiceView.contentWindow.Contacts)
+      choiceView.contentWindow.Contacts.hideSearch();
   }
 
   target.setAttribute('data-active', 'true');
   view.removeAttribute('hidden');
+
+  if (view.contentWindow && view.contentWindow.Contacts)
+    view.contentWindow.Contacts.showSearch();
 }
 
 var KeyHandler = {
