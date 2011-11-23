@@ -210,6 +210,10 @@ body {
 }
 
 /* === Contacts === */
+#contacts-view {
+  border: 0;
+}
+
 .contact {
   height: 64px;
   line-height: 64px;

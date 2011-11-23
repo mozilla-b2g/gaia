@@ -300,13 +300,16 @@ NotificationScreen.prototype = {
   },
   get screenHeight() {
     var screenHeight = this._screenHeight;
-    if (!screenHeight)
-      this._screenHeight = this.touchables[0].getBoundingClientRect().height;
+    if (!screenHeight) {
+      screenHeight = this.touchables[0].getBoundingClientRect().height;
+      this._screenHeight = screenHeight;
+    }
     return screenHeight;
   },
   onTouchStart: function(e) {
     this.startX = e.pageX;
     this.startY = e.pageY;
+    this.onTouchMove({ pageY: e.pageY + 20 });
   },
   onTouchMove: function(e) {
     var dy = -(this.startY - e.pageY);
@@ -320,8 +323,9 @@ NotificationScreen.prototype = {
   },
   onTouchEnd: function(e) {
     var dy = -(this.startY - e.pageY);
-    var offset = this.locked ? this.screenHeight + dy : dy;
-    if (Math.abs(offset) > this.screenHeight / 4)
+    var offset = Math.abs(dy);
+    if ((!this.locked && offset > this.screenHeight / 4) ||
+        (this.locked && offset < 10))
       this.lock();
     else
       this.unlock();
@@ -538,14 +542,16 @@ function updateBattery() {
     var fuel = element.children[0];
     var charging = element.children[1];
     if (battery.charging) {
+      charging.hidden = false;
       fuel.className = 'charging';
-      charging.visible = true;
     } else {
+      charging.hidden = true;
+
       var level = battery.level * 100;
-      fuel.style.width = (level / 4) + 'px';
-      if (level <= 5)
+      fuel.style.width = (level / 5.25) + 'px';
+      if (level <= 10)
         fuel.className = 'critical';
-      else if (level <= 15)
+      else if (level <= 30)
         fuel.className = 'low';
       else
         fuel.className = '';
