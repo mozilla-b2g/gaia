@@ -331,12 +331,10 @@ if (!window['Gaia'])
       switch (evt.type) {
         case 'keypress':
           if (evt.keyCode == evt.DOM_VK_ESCAPE) {
-            // Open/Close TaskManager
-            if (this.isTaskManagerOpen) {
+            if (this.isTaskManagerOpen)
               this.closeTaskManager();
-            } else {
+            else
               this.openTaskManager();
-            }
           }
           break;
         case 'appclose':
@@ -379,7 +377,7 @@ if (!window['Gaia'])
         icons: {
           size_128: 'images/Contacts.png'
         },
-        url: 'blank.html'
+        url: 'dialer/dialer.html?choice=contact'
       }, {
         name: 'Video',
         icons: {
@@ -471,24 +469,39 @@ if (!window['Gaia'])
     },
 
     getAppInstance: function(url) {
+      // Compare URLs but ignore the query portion of the url (the part after
+      // the ?)
+      var query = new RegExp(/\?.*/);
+      var currentURL = url.replace(query, '');
       for (var i = 0; i < runningApps.length; i++) {
-        if (runningApps[i].url === url)
-          return runningApps[i];
+        var runningApp = runningApps[i];
+        if (runningApp.url.replace(query, '') != currentURL)
+          continue;
+
+        runningApp.url;
+        return runningApp;
+      }
+      return null;
+    },
+
+    getAppInstanceForWindow: function amGetAppInstanceForWindow(window) {
+      var length = runningApps.length;
+      for (var i = 0; i < runningApps.length; i++) {
+        var runningApp = runningApps[i];
+        if (runningApp.window == window)
+          return runningApp;
       }
       return null;
     },
 
     launch: function(url) {
-      var appInstance = this.getAppInstance(url);
+      var instance = this.getAppInstance(url);
 
       // App is already running, set focus to the existing instance.
-      if (appInstance) {
-        var foregroundWindow = this.foregroundWindow = appInstance.window;
+      if (instance) {
+        var foregroundWindow = this.foregroundWindow = instance.window;
         foregroundWindow.removeAttribute('hidden');
-      }
-
-      // App is not yet running, create a new instance.
-      else {
+      } else {
         var app = this.getInstalledAppForURL(url);
         var newWindow = document.createElement('iframe');
         var foregroundWindow = this.foregroundWindow = newWindow;
@@ -509,14 +522,24 @@ if (!window['Gaia'])
       var animationCompleteHandler = function() {
         window.removeEventListener('animationend', animationCompleteHandler);
 
-        foregroundWindow.classList.remove('animateOpening');
         foregroundWindow.focus();
 
-        var appOpenEvent = document.createEvent('UIEvents');
 
-        appOpenEvent.initUIEvent('appopen', true, true,
+        var state = {
+          url: url,
+          hidden: false
+        };
+        var event = document.createEvent('CustomEvent');
+        event.initCustomEvent('visibilitychange', true, true, state);
+        foregroundWindow.contentWindow.dispatchEvent(event);
+
+        foregroundWindow.classList.remove('animateOpening');
+
+        var openEvent = document.createEvent('UIEvents');
+
+        openEvent.initUIEvent('appopen', true, true,
                                  foregroundWindow.contentWindow, 0);
-        window.dispatchEvent(appOpenEvent);
+        window.dispatchEvent(openEvent);
       };
       window.addEventListener('animationend', animationCompleteHandler);
 
@@ -538,11 +561,22 @@ if (!window['Gaia'])
         foregroundWindow.blur();
         foregroundWindow.setAttribute('hidden', true);
 
+        var instance = this.getAppInstanceForWindow(foregroundWindow);
+        var state = {
+          url: instance.url,
+          hidden: true
+        };
+        var event = document.createEvent('CustomEvent');
+        event.initCustomEvent('visibilitychange', true, true, state);
+        foregroundWindow.contentWindow.dispatchEvent(event);
+
         var newForegroundWindow = this.foregroundWindow;
         if (newForegroundWindow)
           newForegroundWindow.focus();
-        else
+        else {
           this.windowsContainer.setAttribute('hidden', true);
+          window.focus();
+        }
       }).bind(this);
 
       window.addEventListener('animationend', animationCompleteHandler);
