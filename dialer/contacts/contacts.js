@@ -7,7 +7,8 @@ var Contacts = {
   },
   find: function contactsFind(fields, callback) {
     // Ideally I would like to choose the ordering
-    // It also misses simple constaints like the one you can pass to the webSMS API
+    // It also misses simple constaints like the one you can pass to the
+    // webSMS API
     window.navigator.mozContacts.find(fields, function findCallback(contacts) {
       contacts.sort(function contactsSort(a, b) {
         return a.name.familyName[0] > b.name.familyName[0];
@@ -115,7 +116,6 @@ var Contacts = {
   },
   showDetails: function contactsShowDetails(evt) {
     var infos = evt.target.children;
-    var displayName = infos[0].textContent;
     var phoneNumber = infos[1].textContent;
 
     var parentWindow = window.parent;
@@ -124,7 +124,7 @@ var Contacts = {
       parentWindow.choiceChanged(keyView);
 
       var keyHandler = parentWindow.KeyHandler;
-      keyHandler.phoneNumber.value = displayName;
+      keyHandler.phoneNumber.value = phoneNumber;
       keyHandler.updateFontSize();
 
       window.navigator.mozPhone.call(phoneNumber);
