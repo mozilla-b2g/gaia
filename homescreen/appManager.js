@@ -324,7 +324,7 @@ if (!window['Gaia'])
       window.addEventListener('appclose', this);
 
       this._closeButtonImage = new Image();
-      this._closeButtonImage.src = '../images/close.png';
+      this._closeButtonImage.src = 'images/close.png';
     },
 
     handleEvent: function(evt) {
@@ -363,91 +363,91 @@ if (!window['Gaia'])
       return [{
         name: 'Phone',
         icons: {
-          size_128: '../images/Phone.png'
+          size_128: 'images/Phone.png'
         },
         url: '../dialer/dialer.html'
       }, {
         name: 'Messages',
         icons: {
-          size_128: '../images/Messages.png'
+          size_128: 'images/Messages.png'
         },
         url: '../sms/sms.html'
       }, {
         name: 'Contacts',
         icons: {
-          size_128: '../images/Contacts.png'
+          size_128: 'images/Contacts.png'
         },
         url: '../dialer/dialer.html?choice=contact'
       }, {
         name: 'Video',
         icons: {
-          size_128: '../images/Video.png'
+          size_128: 'images/Video.png'
         },
         url: 'blank.html'
       }, {
         name: 'Gallery',
         icons: {
-          size_128: '../images/Gallery.png'
+          size_128: 'images/Gallery.png'
         },
         url: '../gallery/gallery.html'
       }, {
         name: 'Camera',
         icons: {
-          size_128: '../images/Camera.png'
+          size_128: 'images/Camera.png'
         },
         url: 'blank.html'
       }, {
         name: 'Maps',
         icons: {
-          size_128: '../images/Maps.png'
+          size_128: 'images/Maps.png'
         },
         url: 'blank.html'
       }, {
         name: 'Calculator',
         icons: {
-          size_128: '../images/Calculator.png'
+          size_128: 'images/Calculator.png'
         },
         url: 'blank.html'
       }, {
         name: 'Clock',
         icons: {
-          size_128: '../images/Clock.png'
+          size_128: 'images/Clock.png'
         },
         url: 'blank.html'
       }, {
         name: 'Browser',
         icons: {
-          size_128: '../images/Browser.png'
+          size_128: 'images/Browser.png'
         },
         url: '../browser/browser.html'
       }, {
         name: 'Music',
         icons: {
-          size_128: '../images/Music.png'
+          size_128: 'images/Music.png'
         },
         url: 'blank.html'
       }, {
         name: 'Weather',
         icons: {
-          size_128: '../images/Weather.png'
+          size_128: 'images/Weather.png'
         },
         url: 'blank.html'
       }, {
         name: 'Settings',
         icons: {
-          size_128: '../images/Settings.png'
+          size_128: 'images/Settings.png'
         },
         url: 'blank.html'
       }, {
         name: 'Stocks',
         icons: {
-          size_128: '../images/Stocks.png'
+          size_128: 'images/Stocks.png'
         },
         url: 'blank.html'
       }, {
         name: 'Market',
         icons: {
-          size_128: '../images/Market.png'
+          size_128: 'images/Market.png'
         },
         url: 'blank.html'
       }];
