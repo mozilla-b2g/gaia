@@ -51,6 +51,7 @@ header h1 {
   height: 145px;
   margin: 0;
   padding: 0;
+  pointer-events: none;
 }
 
 .thumbnail {
@@ -58,6 +59,7 @@ header h1 {
   max-height: 130px;
   margin: 0 auto;
   border: solid 5px #fff;
+  pointer-events: none;
 }
 
 #photoFrame {
@@ -75,7 +77,6 @@ header h1 {
 }
 
 .hidden, #photoFrame.hidden {
-  visibility: hidden;
   display: none;
 }
 
@@ -85,3 +86,4 @@ header h1 {
   -moz-transition: width 0.5s ease;
   transition: width 0.5s ease;
 }
+
