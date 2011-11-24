@@ -11,9 +11,7 @@ var Gallery = {
         return;
 
       db.getPhoto(target.id, function showPhoto(photo) {
-        setTimeout(function() {
-          self.showPhoto(photo);
-        }, 100);
+        self.showPhoto(photo);
       });
     });
   },
