@@ -11,7 +11,9 @@ var Gallery = {
         return;
 
       db.getPhoto(target.id, function showPhoto(photo) {
-        self.showPhoto(photo);
+        setTimeout(function() {
+          self.showPhoto(photo);
+        }, 100);
       });
     });
   },
@@ -30,11 +32,6 @@ var Gallery = {
   },
 
   showPhoto: function galleryShowPhoto(photo) {
-    var img = 'data:image/jpeg;base64,' + photo.data;
-
-    var border = document.getElementById('photoBorder');
-    border.innerHTML += '<img id="photo" src="' + img + '">';
-
     ['thumbnails', 'galleryHeader'].forEach(function hideElement(id) {
       document.getElementById(id).classList.add('hidden');
     });
@@ -43,7 +40,13 @@ var Gallery = {
       document.getElementById(id).classList.remove('hidden');
     });
 
-    document.getElementById('photo').style.width = '100%';
+    var border = document.getElementById('photoBorder');
+    var img = 'data:image/jpeg;base64,' + photo.data;
+    border.innerHTML = '<img id="photo" src="' + img + '">';
+
+    setTimeout(function() {
+      document.getElementById('photo').setAttribute('data-visible', 'true');
+    }, 10);
   }
 };
 
