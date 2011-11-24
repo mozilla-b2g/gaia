@@ -151,7 +151,7 @@ var MessageView = {
     if (!num)
       return;
 
-    var url = 'sms/sms_conversation.html';
+    var url = '../sms/sms_conversation.html';
     if (num && num != '*')
       url += '?' + num;
     window.parent.Gaia.AppManager.launch(url);
