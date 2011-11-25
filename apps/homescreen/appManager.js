@@ -383,7 +383,7 @@ if (!window['Gaia'])
         icons: {
           size_128: 'images/Video.png'
         },
-        url: 'app.html#video'
+        url: 'blank.html#video'
       }, {
         name: 'Gallery',
         icons: {
@@ -401,19 +401,19 @@ if (!window['Gaia'])
         icons: {
           size_128: 'images/Maps.png'
         },
-        url: 'app.html#maps'
+        url: 'blank.html#maps'
       }, {
         name: 'Calculator',
         icons: {
           size_128: 'images/Calculator.png'
         },
-        url: 'app.html#calculator'
+        url: 'blank.html#calculator'
       }, {
         name: 'Clock',
         icons: {
           size_128: 'images/Clock.png'
         },
-        url: 'app.html#clock'
+        url: 'blank.html#clock'
       }, {
         name: 'Browser',
         icons: {
@@ -425,31 +425,31 @@ if (!window['Gaia'])
         icons: {
           size_128: 'images/Music.png'
         },
-        url: 'app.html#music'
+        url: 'blank.html#music'
       }, {
         name: 'Weather',
         icons: {
           size_128: 'images/Weather.png'
         },
-        url: 'app.html#weather'
+        url: 'blank.html#weather'
       }, {
         name: 'Settings',
         icons: {
           size_128: 'images/Settings.png'
         },
-        url: 'settings/settings.html'
+        url: '../settings/settings.html'
       }, {
         name: 'Stocks',
         icons: {
           size_128: 'images/Stocks.png'
         },
-        url: 'app.html#stocks'
+        url: 'blank.html#stocks'
       }, {
         name: 'Market',
         icons: {
           size_128: 'images/Market.png'
         },
-        url: 'market/market.html'
+        url: 'blank.html#market'
       }];
     },
 
