@@ -365,19 +365,19 @@ if (!window['Gaia'])
         icons: {
           size_128: 'images/Phone.png'
         },
-        url: 'dialer/dialer.html'
+        url: '../dialer/dialer.html'
       }, {
         name: 'Messages',
         icons: {
           size_128: 'images/Messages.png'
         },
-        url: 'sms/sms.html'
+        url: '../sms/sms.html'
       }, {
         name: 'Contacts',
         icons: {
           size_128: 'images/Contacts.png'
         },
-        url: 'dialer/dialer.html?choice=contact'
+        url: '../dialer/dialer.html?choice=contact'
       }, {
         name: 'Video',
         icons: {
@@ -389,7 +389,7 @@ if (!window['Gaia'])
         icons: {
           size_128: 'images/Gallery.png'
         },
-        url: 'gallery/gallery.html'
+        url: '../gallery/gallery.html'
       }, {
         name: 'Camera',
         icons: {
@@ -419,7 +419,7 @@ if (!window['Gaia'])
         icons: {
           size_128: 'images/Browser.png'
         },
-        url: 'browser/browser.html'
+        url: '../browser/browser.html'
       }, {
         name: 'Music',
         icons: {
