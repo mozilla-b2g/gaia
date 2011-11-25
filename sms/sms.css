@@ -25,7 +25,7 @@ html, body {
   background-color: lightcyan;
 }
 
-#header {
+header {
   background: -moz-linear-gradient(top, #c0c0c0, #a0a0a0);
   color: white;
   font-weight: bold;
