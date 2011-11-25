@@ -34,7 +34,7 @@ var Browser = {
     this.navigate(this.urlbar.value);
   },
 
-  navigate: function(url, ignoreHistory) {
+  navigate: function(url) {
     this.urlbar.value = url;
     this.content.setAttribute('src', url);
   },
