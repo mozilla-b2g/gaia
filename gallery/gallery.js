@@ -1,210 +1,151 @@
-var gallery = {};
-var indexedDB = window.mozIndexedDB;
+var Gallery = {
+  init: function galleryInit() {
+    var db = this.db;
+    db.open(this.showThumbnails);
 
-gallery.indexedDB = {};
-gallery.indexedDB.db = null;
-gallery.indexedDB.upgraded = false;
+    var self = this;
+    var thumbnails = document.getElementById('thumbnails');
+    thumbnails.addEventListener('click', function thumbnailsClick(evt) {
+      var target = evt.target;
+      if (!target)
+        return;
 
-/**
- * Database Error
- */
-gallery.indexedDB.onerror = function onerror(e) {
-  console.log('Database error: ', e);
-}
+      db.getPhoto(target.id, function showPhoto(photo) {
+        self.showPhoto(photo);
+      });
+    });
+  },
 
-/**
- * Create IndexedDB Stores
- */
-gallery.indexedDB.createStores = function createStores() {
-    var db = gallery.indexedDB.db;
+  showThumbnails: function galleryShowThumbnail(thumbnails) {
+    var content = '';
+    thumbnails.forEach(function showThumbnail(thumbnail) {
+      var img = 'data:image/jpeg;base64,' + thumbnail.data;
+      content += '<li id="' + thumbnail.id + '">' +
+                 '  <a href="#">' +
+                 '    <img class="thumbnail" src="' + img + '">' +
+                 '  </a>' +
+                 '</li>';
+    });
+    document.getElementById('thumbnails').innerHTML = content;
+  },
 
-    if (db.objectStoreNames.contains('thumbnails'))
-      db.deleteObjectStore('thumbnails');
+  showPhoto: function galleryShowPhoto(photo) {
+    ['thumbnails', 'galleryHeader'].forEach(function hideElement(id) {
+      document.getElementById(id).classList.add('hidden');
+    });
 
-    db.createObjectStore('thumbnails', {keyPath: 'id'});
+    ['photoFrame'].forEach(function showElement(id) {
+      document.getElementById(id).classList.remove('hidden');
+    });
 
-    if (db.objectStoreNames.contains('photos'))
-      db.deleteObjectStore('photos');
+    var border = document.getElementById('photoBorder');
+    var img = 'data:image/jpeg;base64,' + photo.data;
+    border.innerHTML = '<img id="photo" src="' + img + '">';
 
-    db.createObjectStore('photos', {keyPath: 'id'});
-}
-
-/**
- * Open Database
- */
-gallery.indexedDB.open = function open() {
-  var request = indexedDB.open('gallery', 2);
-
-  // For Firefox 11 (Nightly)
-  request.onupgradeneeded = function onupgradeneeded(e) {
-    gallery.indexedDB.db = e.target.result;
-    gallery.indexedDB.createStores();
-    gallery.indexedDB.upgraded = true;
+    setTimeout(function() {
+      document.getElementById('photo').setAttribute('data-visible', 'true');
+    }, 10);
   }
+};
 
-  request.onsuccess = function onsuccess(e) {
-    gallery.indexedDB.db = e.target.result;
-    
-    // For Firefox 8
-    var db = gallery.indexedDB.db;
-    if (typeof db.setVersion == 'function') {
-      var version = '2';
-      var db = gallery.indexedDB.db;
-      if (version != db.version) {
-        var setVersionRequest = db.setVersion(version);
-        setVersionRequest.onerror = gallery.indexedDB.onerror;
-  
-        setVersionRequest.onsuccess = function onsucess(e) {
-          gallery.indexedDB.createStores();
-          gallery.indexedDB.populateSampleData();
-        };
+
+Gallery.db = {
+  _db: null,
+  open: function dbOpen(callback) {
+    const DB_NAME = 'gallery';
+    var request = window.mozIndexedDB.open(DB_NAME, 2);
+
+    var empty = false;
+    request.onupgradeneeded = (function onUpgradeNeeded(evt) {
+      this._db = evt.target.result;
+      this._initializeDB();
+      empty = true;
+    }).bind(this);
+
+    request.onsuccess = (function onSuccess(evt) {
+      this._db = evt.target.result;
+      if (empty)
+        this._fillDB();
+
+      this.getPhotos(callback);
+    }).bind(this);
+
+    request.onerror = (function onDatabaseError(error) {
+      console.log('Database error: ', error);
+    }).bind(this);
+  },
+
+  _initializeDB: function dbInitializeDB() {
+    var db = this._db;
+    var stores = ['thumbnails', 'photos'];
+    stores.forEach(function createStore(store) {
+      if (db.objectStoreNames.contains(store))
+        db.deleteObjectStore(store);
+      db.createObjectStore(store, { keyPath: 'id' });
+    });
+  },
+
+  _fillDB: function dbFillDB() {
+    var stores = ['thumbnails', 'photos'];
+    var transaction = this._db.transaction(stores, IDBTransaction.READ_WRITE);
+
+    var samples = [sample_thumbnails, sample_photos];
+    stores.forEach(function populateStore(store, index) {
+      var objectStore = transaction.objectStore(store);
+
+      var sample = samples[index];
+      for (var element in sample) {
+        var request = objectStore.put(sample[element]);
+
+        request.onsuccess = function onsuccess(e) {
+          console.log('Add a new element to ' + store);
+        }
+
+        request.onerror = function onerror(e) {
+          console.log('Error while adding an element to: ' + store);
+        }
       }
-    }
+    });
+  },
 
-    if (gallery.indexedDB.upgraded) {
-      gallery.indexedDB.populateSampleData();
-      gallery.indexedDB.upgraded = false;
-    } else {
-      gallery.indexedDB.getAllPhotos();
-    }
-  }
+  getPhotos: function dbGetPhotos(callback) {
+    var transaction = this._db.transaction(['thumbnails'],
+                                           IDBTransaction.READ_ONLY);
+    var store = transaction.objectStore('thumbnails');
+    var cursorRequest = store.openCursor(IDBKeyRange.lowerBound(0));
 
-  request.onerror = gallery.indexedDB.onerror;
-};
+    var thumbnails = [];
+    cursorRequest.onsuccess = function onsuccess(e) {
+      var result = e.target.result;
+      if (!result) {
+        callback(thumbnails);
+        return;
+      }
 
-/**
- * Populate Sample Data
- */
-gallery.indexedDB.populateSampleData = function populateSampleData() {
-  // Set up the transaction
-  var db = gallery.indexedDB.db;
-  var trans = db.transaction(['thumbnails', 'photos'], IDBTransaction.READ_WRITE);
- 
-  // Store thumbnails
-  var thumbnail_store = trans.objectStore('thumbnails');  
-  for (photoID in sample_thumbnails) {
-    var request = thumbnail_store.put(sample_thumbnails[photoID]);
+      thumbnails.push(result.value);
+      result.continue();
+    };
+
+    cursorRequest.onerror = function onerror(e) {
+      console.log('Error getting all photos');
+    };
+  },
+
+  getPhoto: function dbGetPhoto(id, callback) {
+    var transaction = this._db.transaction(['photos'],
+                                           IDBTransaction.READ_ONLY);
+    var request = transaction.objectStore('photos').get(id);
     request.onsuccess = function onsuccess(e) {
-      console.log('added thumbnail');
-     }
+      callback(e.target.result);
+    };
+
     request.onerror = function onerror(e) {
-      console.log('error adding thumbnail');
-    }
-  }
-  
-  // Store photos
-  photo_store = trans.objectStore('photos');
-  for (photoID in sample_photos) {
-    var request = photo_store.put(sample_photos[photoID]);
-    request.onsuccess = function onsuccess(e) {
-      console.log('added photo');
-     }
-    request.onerror = function onerror(e) {
-      console.log('error adding photo');
-    }
-  }
-
-  // Display all thumbnails
-  gallery.indexedDB.getAllPhotos();
-  
-};
-
-/**
- * Get All Photos
- */
-gallery.indexedDB.getAllPhotos = function getAllPhotos() {
-  var thumbnails = document.getElementById('thumbnails');
-  thumbnails.innerHTML = '';
-
-  var db = gallery.indexedDB.db;
-  var trans = db.transaction(['thumbnails'], IDBTransaction.READ_ONLY);
-  var store = trans.objectStore('thumbnails');
-
-  var keyRange = IDBKeyRange.lowerBound(0);
-  var cursorRequest = store.openCursor(keyRange);
-
-  cursorRequest.onsuccess = function onsuccess(e) {
-    var result = e.target.result;
-    if (!!result == false) {
-      return;
-    }
-    gallery.renderThumbnail(result.value);
-    result.continue();
-  };
-  cursorRequest.onerror = function onerror(e) {
-    console.log('Error getting all photos');
-  };
-  thumbnails.addEventListener('click', function clickListener(e){
-    if (e.target && e.target.classList.contains('thumbnail')) {
-      gallery.indexedDB.getPhoto(e.target.parentNode.id);
-      e.preventDefault();
-    }
-  }, false);
-};
-
-/**
- * Get Photo
- */
-gallery.indexedDB.getPhoto = function getPhoto(photoID) {
-  var db = gallery.indexedDB.db;
-  var trans = db.transaction(['photos'], IDBTransaction.READ_ONLY);
-  var store = trans.objectStore('photos');
-  var request = store.get(photoID);
-  request.onerror = function onerror(e) {
-    console.log('Error getting photo');
-  };
-  request.onsuccess = function onsuccess(e) {
-    gallery.renderPhoto(request.result);
+      console.log('Error retrieving photo: ' + e);
+    };
   }
 };
 
-/**
- *  Render Thumbnail
- */
-gallery.renderThumbnail = function renderThumbnail(photo) {
-  var thumbnails = document.getElementById('thumbnails');
-  thumbnails.innerHTML += '<li>' +
-                          '  <a id="'+ photo.id + '" href="#" class="thumbnail_link">' +
-                          '    <img class="thumbnail" src="data:image/jpeg;base64,' + photo.data + '">' +
-                          '  </a>' +
-                          '</li>';
-  var thumbnail_link = document.getElementById(photo.id);
-};
+window.addEventListener('DOMContentLoaded', function GalleryInit() {
+  Gallery.init();
+});
 
-/**
- * Render Photo
- */
-gallery.renderPhoto = function renderPhoto(photo) {
-  var border = document.getElementById('photoBorder');
-  border.innerHTML += '<img id="photo" src="data:image/jpeg;base64,' + photo.data + '">';
-
-  // Hide thumbnails and header and show photo
-  var thumbnails = document.getElementById('thumbnails');
-  thumbnails.classList.add('hidden');
-  var header = document.getElementById('galleryHeader');
-  header.classList.add('hidden');
-
-  // Make photo visible
-  var frame = document.getElementById('photoFrame');
-  frame.classList.remove('hidden');
-  setTimeout('gallery.zoomIn()',100);
-};
-
-
-/**
- * Zoom in to Photo
- */
-gallery.zoomIn = function zoomIn() {
-  var photo = document.getElementById('photo');
-  photo.style.width = '100%';
-};
-
-
-/**
- * Initialise Gallery App
- */
-gallery.init = function init() {
-  gallery.indexedDB.open();
-};
-
-window.addEventListener('DOMContentLoaded', gallery.init, false);

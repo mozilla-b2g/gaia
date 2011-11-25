@@ -3,7 +3,7 @@ html, body {
   height: 100%;
   margin: 0;
   padding: 0;
-  background-color: #161616;
+  background-color: #212121;
   overflow: hidden;
 }
 
@@ -22,7 +22,7 @@ html, body {
   margin: 0px;
   -moz-appearance: none;
   border-radius: 24px;
-  border: 1px solid #303030;
+  border: 1px solid #404040;
   height: 48px;
   line-height: 48px;
   padding-left: 6px;
@@ -33,7 +33,7 @@ html, body {
 }
 
 .contact-header {
-  background-image: -moz-linear-gradient(bottom, #161616, #060606);
+  background-image: -moz-linear-gradient(top, #202020, #101010);
   border-bottom: 1px solid #202020;
   padding: 4px;
   color: #b0b0b0;
@@ -45,7 +45,7 @@ html, body {
   padding: 4px;
   height: 56px;
   line-height: 28px;
-  border-bottom: 1px solid #202020;
+  border: 1px solid #404040;
   font-size: 20px;
   background-image: url(missing.png);
   background-repeat: no-repeat;
@@ -66,7 +66,7 @@ html, body {
 .phoneNumber {
   display: block;
   margin-left: 72px;
-  color: #404040;
+  color: #707070;
   pointer-events: none;
 }
 
@@ -82,7 +82,7 @@ html, body {
   display: block;
   font-size: 10px;
   text-decoration: none;
-  color: #404040;
+  color: #707070;
   font-weight: bold;
   height: -moz-calc(100% / 27);
 }
@@ -95,6 +95,6 @@ html, body {
 }
 
 #shortcuts > a:not([name="search-container"])[data-disabled] {
-  color: #252525;
+  color: #454545;
 }
 
