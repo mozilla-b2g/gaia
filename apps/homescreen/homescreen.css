@@ -214,8 +214,8 @@ iframe.appWindow {
 }
 
 .battery > #fuel.charging {
-	background-image: -moz-linear-gradient(top, #8fc400, #b9fd00);
-  -moz-animation-duration: 4s;
+	background-image: -moz-linear-gradient(top, #b9fd00, #8fc400);
+  -moz-animation-duration: 3s;
   -moz-animation-name: batteryCharging;
   -moz-animation-iteration-count: infinite;
   -moz-animation-timing-function: linear;
