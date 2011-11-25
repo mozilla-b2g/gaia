@@ -11,9 +11,11 @@ var Apps = {
     switch (evt.type) {
       case 'keypress':
         if (window.top == window ||
+            evt.getPreventDefault() ||
             evt.keyCode != evt.DOM_VK_ESCAPE)
           break;
         evt.preventDefault();
+        evt.stopPropagation();
 
         var event = document.createEvent('UIEvents');
         event.initUIEvent('appclose', true, true, window, 0);

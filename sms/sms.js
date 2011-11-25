@@ -116,10 +116,7 @@ if (!('mozSms' in navigator)) {
     };
     var event = document.createEvent('CustomEvent');
     event.initCustomEvent('smssent', true, false, message);
-    var windows = window.parent.document.getElementById('windows');
-    parentWindow = windows.lastChild.previousSibling.contentWindow;
     setTimeout(function(evt) {
-      parentWindow.dispatchEvent(event);
       window.dispatchEvent(event);
       callback();
     }, 1000);
@@ -151,10 +148,15 @@ var MessageView = {
     if (!num)
       return;
 
-    var url = 'sms/sms_conversation.html';
-    if (num && num != '*')
-      url += '?' + num;
-    window.parent.Gaia.AppManager.launch(url);
+    ConversationView.showConversation(num == '*' ? '' : num);
+
+    var conversationView = document.getElementById('conversationView');
+    conversationView.hidden = false;
+
+    window.setTimeout(function conversationSlideIn() {
+      conversationView.classList.remove('slideOut');
+      conversationView.classList.add('slideIn');
+    }, 100);
   },
 
   get view() {
@@ -204,7 +206,7 @@ var MessageView = {
 
     var contacts = window.navigator.mozContacts.contacts;
     contacts.forEach(function(contact) {
-      if (contact.tel == num)
+      if (contact.phones[0] == num)
         num = contact.name;
     });
     var title = num + ' (' + msg.count + ')';
@@ -233,31 +235,36 @@ var MessageView = {
   }
 };
 
+
 var ConversationView = {
   get view() {
     delete this.view;
     return this.view = document.getElementById('conversation');
   },
 
-  get filter() {
-    delete this.filter;
-    return this.filter = document.location.toString().split('?')[1] || null;
-  },
-
   init: function cv_init() {
+    window.addEventListener('keypress', this, true);
     window.addEventListener('smssent', this, true);
     window.addEventListener('smsreceived', this, true);
-    this.showConversation();
   },
 
-  showConversation: function cv_showConversation() {
-    if (!this.filter)
+  showConversation: function cv_showConversation(num) {
+    var contact = document.getElementById('contact');
+    contact.value = num;
+
+    this.filter = num;
+    if (!this.filter) {
+      contact.classList.remove('filtered');
+      this.view.innerHTML = '';
       return;
+    }
+    contact.classList.add('filtered');
 
     var view = this.view;
     var filter = ('SmsFilter' in window) ? new SmsFilter() : {};
     filter.number = this.filter;
 
+    view.innerHTML = '';
     MessageManager.getMessages(function mm_getMessages(messages) {
       var fragment = '';
       for (var i = 0; i < messages.length; i++) {
@@ -291,20 +298,70 @@ var ConversationView = {
     var uuid = evt.target.getAttribute('data-id');
     if (!uuid)
       return;
+
     MessageManager.delete(uuid);
-    this.showConversation();
+    this.showConversation(this.filter);
   },
 
   handleEvent: function handleEvent(evt) {
     switch (evt.type) {
+      case 'keypress':
+        if (evt.keyCode != evt.DOM_VK_ESCAPE)
+          return;
+
+        if (this.close())
+          evt.preventDefault();
       case 'smssent':
       case 'smsreceived':
         // TODO Remove the delay once the native SMS application is disabled
         setTimeout(function(self) {
-          self.showConversation();
+          self.showConversation(self.filter);
         }, 800, this);
         break;
     }
+  },
+  close: function cv_close() {
+    var view = document.getElementById('conversationView');
+    if (view.hidden)
+      return false;
+
+    view.classList.remove('slideIn');
+    view.classList.add('slideOut');
+
+    view.addEventListener('transitionend', function slideOut(evt) {
+      view.removeEventListener('transitionend', slideOut);
+      view.hidden = true;
+    });
+    return true;
+  },
+  sendMessage: function cv_sendMessage() {
+    var contact = document.getElementById('contact');
+    if (contact.value == '')
+      return;
+
+    var throbber = document.getElementById('throbber');
+    throbber.removeAttribute('hidden');
+
+    var text = document.getElementById('text');
+    MessageManager.send(contact.value, text.value, function() {
+      throbber.setAttribute('hidden', 'true');
+      text.value = text.style.height = '';
+
+      if (ConversationView.filter)
+        return;
+
+      ConversationView.close();
+    });
   }
 };
+
+ConversationView.init();
+
+function onKeyPress(evt) {
+  var target = evt.originalTarget;
+  setTimeout(function() {
+    target.style.height = '';
+    target.style.height = '-moz-calc(' + target.scrollHeight + 'px + 32px)';
+  }, 0);
+}
 
