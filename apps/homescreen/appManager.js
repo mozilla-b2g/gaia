@@ -383,7 +383,7 @@ if (!window['Gaia'])
         icons: {
           size_128: 'images/Video.png'
         },
-        url: 'blank.html'
+        url: 'blank.html#video'
       }, {
         name: 'Gallery',
         icons: {
@@ -401,19 +401,19 @@ if (!window['Gaia'])
         icons: {
           size_128: 'images/Maps.png'
         },
-        url: 'blank.html'
+        url: 'blank.html#maps'
       }, {
         name: 'Calculator',
         icons: {
           size_128: 'images/Calculator.png'
         },
-        url: 'blank.html'
+        url: 'blank.html#calculator'
       }, {
         name: 'Clock',
         icons: {
           size_128: 'images/Clock.png'
         },
-        url: 'blank.html'
+        url: 'blank.html#clock'
       }, {
         name: 'Browser',
         icons: {
@@ -425,31 +425,31 @@ if (!window['Gaia'])
         icons: {
           size_128: 'images/Music.png'
         },
-        url: 'blank.html'
+        url: 'blank.html#music'
       }, {
         name: 'Weather',
         icons: {
           size_128: 'images/Weather.png'
         },
-        url: 'blank.html'
+        url: 'blank.html#weather'
       }, {
         name: 'Settings',
         icons: {
           size_128: 'images/Settings.png'
         },
-        url: 'blank.html'
+        url: '../settings/settings.html'
       }, {
         name: 'Stocks',
         icons: {
           size_128: 'images/Stocks.png'
         },
-        url: 'blank.html'
+        url: 'blank.html#stocks'
       }, {
         name: 'Market',
         icons: {
           size_128: 'images/Market.png'
         },
-        url: 'blank.html'
+        url: 'blank.html#market'
       }];
     },
 
