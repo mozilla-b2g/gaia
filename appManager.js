@@ -395,7 +395,7 @@ if (!window['Gaia'])
         icons: {
           size_128: 'images/Camera.png'
         },
-        url: 'blank.html'
+        url: 'camera/camera.html'
       }, {
         name: 'Maps',
         icons: {
