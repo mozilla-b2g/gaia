@@ -1,6 +1,4 @@
 var Browser = {
-  urlHistory: [],
-  currentURL: -1,
   get backButton() {
     delete this.backButton;
     return this.backButton =
@@ -39,21 +37,10 @@ var Browser = {
   navigate: function(url, ignoreHistory) {
     this.urlbar.value = url;
     this.content.setAttribute('src', url);
-
-    if (ignoreHistory)
-      return;
-
-    this.urlHistory.push(url);
-    this.currentURL++;
   },
 
   back: function() {
-    if (!this.currentURL)
-      return;
-    this.currentURL--;
-
-    var url = this.urlHistory[this.currentURL];
-    this.navigate(url, true);
+    this.content.contentWindow.history.back();
   }
 };
 
@@ -61,4 +48,3 @@ window.addEventListener('load', function browserOnLoad(evt) {
   window.removeEventListener('load', browserOnLoad);
   Browser.init();
 });
-
