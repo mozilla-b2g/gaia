@@ -330,12 +330,14 @@ if (!window['Gaia'])
     handleEvent: function(evt) {
       switch (evt.type) {
         case 'keypress':
-          if (evt.keyCode == evt.DOM_VK_ESCAPE) {
-            if (this.isTaskManagerOpen)
-              this.closeTaskManager();
-            else
-              this.openTaskManager();
-          }
+          if (evt.keyCode != evt.DOM_VK_ESCAPE)
+            return;
+
+          if (this.isTaskManagerOpen)
+            this.closeTaskManager();
+          else
+            this.openTaskManager();
+          evt.preventDefault();
           break;
         case 'appclose':
           this.close();
