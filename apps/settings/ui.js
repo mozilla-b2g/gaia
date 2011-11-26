@@ -96,9 +96,6 @@ if (!window['Gaia'])
       view.classList.remove('popTop');
       view.classList.add('pushTop');
       
-      this.backButton.classList.remove('hide');
-      this.backButton.classList.add('show');
-      
       views.push(view);
       
       this.titleBar.innerHTML = view.getAttribute('data-title');
@@ -107,30 +104,33 @@ if (!window['Gaia'])
       var views = this.views;
       var topView = this.topView;
       
-      // On animation complete, remove 'active' from topView.
-      var animationCompleteHandler = function() {
-        this.removeEventListener('animationend', animationCompleteHandler);
-        this.classList.remove('active');
-      };
+      // Make sure there is always at least one view on the stack.
+      if (views.length > 1) {
+        
+        // On animation complete, remove 'active' from topView.
+        var animationCompleteHandler = function() {
+          this.removeEventListener('animationend', animationCompleteHandler);
+          this.classList.remove('active');
+        };
       
-      topView.addEventListener('animationend', animationCompleteHandler);
+        topView.addEventListener('animationend', animationCompleteHandler);
       
-      topView.classList.remove('pushTop');
-      topView.classList.add('popTop');
+        topView.classList.remove('pushTop');
+        topView.classList.add('popTop');
       
-      views.pop();
+        views.pop();
       
-      var newTopView = this.topView;
+        var newTopView = this.topView;
       
-      newTopView.classList.remove('push');
-      newTopView.classList.add('pop');
+        newTopView.classList.remove('push');
+        newTopView.classList.add('pop');
       
-      if (newTopView === this.rootView) {
-        this.backButton.classList.add('hide');
-        this.backButton.classList.remove('show');
+        this.titleBar.innerHTML = newTopView.getAttribute('data-title');
+        
+        return topView;
       }
       
-      this.titleBar.innerHTML = newTopView.getAttribute('data-title');
+      return null;
     }
   };
   
@@ -223,5 +223,15 @@ if (!window['Gaia'])
       new Gaia.UI.ToggleSwitch(checkbox);
     }
   });
+  
+  window.addEventListener('keypress', function(evt) {
+    if (evt.keyCode === evt.DOM_VK_ESCAPE) {
+      var navController = window['navController'];
+    
+      if (navController && navController.popView()) {
+        evt.preventDefault();
+      }
+    }
+  }, true);
   
 })();
