@@ -139,6 +139,9 @@ if (!window['Gaia'])
       return this._isOn;
     },
     set isOn(value) {
+      if (this._isOn === value)
+        return;
+        
       var isOn = this._isOn = value;
       var element = this.element;
       var hiddenInput = this.hiddenInput;
@@ -154,6 +157,10 @@ if (!window['Gaia'])
         classList.add('off');
         hiddenInput.value = '';
       }
+      
+      var evt = document.createEvent('UIEvents');
+      evt.initUIEvent('change', true, true, window, isOn ? checkedValue : '');
+      element.dispatchEvent(evt);
     }
   };
   
