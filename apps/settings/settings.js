@@ -8,49 +8,49 @@ if (!window['Gaia'])
 
 (function() {
   
-  var _settings = [];
-  
   Gaia.SettingTypes = {
     TOGGLE_SWITCH: 'toggleSwtich',
     NUMERIC: 'numeric',
     STRING: 'string'
   };
   
+  var _settings = [];
+  var _defaultSettings = [{
+    id: 'isAirplaneMode',
+    view: {
+      id: 'rootView',
+      title: 'Settings',
+      tableViewId: 'networkAndLocationSettings' 
+    },
+    label: 'Airplane Mode',
+    value: 1,
+    type: Gaia.SettingTypes.TOGGLE_SWITCH,
+    isOn: false
+  }, {
+    id: 'isWiFiEnabled',
+    view: {
+      id: 'rootView',
+      title: 'Settings',
+      tableViewId: 'networkAndLocationSettings' 
+    },
+    label: 'Wi-Fi',
+    value: 1,
+    type: Gaia.SettingTypes.TOGGLE_SWITCH,
+    isOn: true
+  }, {
+    id: 'isLocationEnabled',
+    view: {
+      id: 'rootView',
+      title: 'Settings',
+      tableViewId: 'networkAndLocationSettings' 
+    },
+    label: 'Location Services',
+    value: 1,
+    type: Gaia.SettingTypes.TOGGLE_SWITCH,
+    isOn: true
+  }];
+  
   Gaia.Settings = {
-    _defaultSettings: [{
-      id: 'isAirplaneMode',
-      view: {
-        id: 'rootView',
-        title: 'Settings',
-        tableViewId: 'networkAndLocationSettings' 
-      },
-      label: 'Airplane Mode',
-      value: 1,
-      type: Gaia.SettingTypes.TOGGLE_SWITCH,
-      isOn: false
-    }, {
-      id: 'isWiFiEnabled',
-      view: {
-        id: 'rootView',
-        title: 'Settings',
-        tableViewId: 'networkAndLocationSettings' 
-      },
-      label: 'Wi-Fi',
-      value: 1,
-      type: Gaia.SettingTypes.TOGGLE_SWITCH,
-      isOn: true
-    }, {
-      id: 'isLocationEnabled',
-      view: {
-        id: 'rootView',
-        title: 'Settings',
-        tableViewId: 'networkAndLocationSettings' 
-      },
-      label: 'Location Services',
-      value: 1,
-      type: Gaia.SettingTypes.TOGGLE_SWITCH,
-      isOn: true
-    }],
     get settings() {
       return _settings;
     },
@@ -102,6 +102,7 @@ if (!window['Gaia'])
                 input.setAttribute('checked', true);
                 
               tableCell.appendChild(input);
+              
               setting.widget = new Gaia.UI.ToggleSwitch(input);
               
               setting.widget.element.addEventListener('change', function(evt) {
@@ -132,11 +133,13 @@ if (!window['Gaia'])
       
       var widget = setting.widget;
       
+      // If the setting is bound to a widget, temporarily remove it to store the setting.
       if (widget)
         delete setting.widget;
       
       this.db.updateSetting(setting);
 
+      // If the setting was bound to a widget, reassign it after the setting is stored.
       if (widget)
         setting.widget = widget;
 
@@ -144,9 +147,11 @@ if (!window['Gaia'])
     },
     db: {
       _db: null,
+      _dbName: 'settings',
+      _objectStoreName: 'settings',
       _createDB: function() {
         var db = this._db;
-        var store = 'settings';
+        var store = this._objectStoreName;
 
         if (db.objectStoreNames.contains(store))
           db.deleteObjectStore(store);
@@ -154,14 +159,11 @@ if (!window['Gaia'])
         db.createObjectStore(store, { keyPath: 'id' });
       },
       _fillDB: function() {
-        var _this = this;
-
-        Gaia.Settings._defaultSettings.forEach(function(defaultSetting) {
-          _this.updateSetting(defaultSetting);
-        });
+        for (var i = 0; i < _defaultSettings.length; i++)
+          this.updateSetting(_defaultSettings[i]);
       },
       open: function(callback) {
-        var request = window.mozIndexedDB.open('settings');
+        var request = window.mozIndexedDB.open(this._dbName);
         var isEmpty = false;
         
         request.onupgradeneeded = (function(evt) {
@@ -186,7 +188,7 @@ if (!window['Gaia'])
       },
       updateSetting: function(element, callback) {
         var db = this._db;
-        var store = 'settings';
+        var store = this._objectStoreName;
         var transaction = db.transaction(store, IDBTransaction.READ_WRITE);
         var objectStore = transaction.objectStore(store);
         var request = objectStore.put(element);
@@ -204,7 +206,7 @@ if (!window['Gaia'])
       },
       getAllSettings: function(callback) {
         var db = this._db;
-        var store = 'settings';
+        var store = this._objectStoreName;
         var transaction = db.transaction(store, IDBTransaction.READ_ONLY);
         var objectStore = transaction.objectStore(store);
         var request = objectStore.openCursor(IDBKeyRange.lowerBound(0));
@@ -228,7 +230,7 @@ if (!window['Gaia'])
       },
       getSetting: function(id, callback) {
         var db = this._db;
-        var store = 'settings';
+        var store = this._objectStoreName;
         var transaction = db.transaction(store, IDBTransaction.READ_ONLY);
         var objectStore = transaction.objectStore(store);
         var request = objectStore.get(id);
