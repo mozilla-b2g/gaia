@@ -66,8 +66,7 @@ const IMEManager = {
           return;
         }
 
-        var contentWindow = activeWindow.contentWindow;
-        window.navigator.mozKeyboard.sendKey(contentWindow, keyCode);
+        window.navigator.mozKeyboard.sendKey(keyCode);
         break;
       case 'unload':
         this.uninit();
