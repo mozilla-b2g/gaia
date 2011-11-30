@@ -105,6 +105,7 @@ html, body {
 
 #notificationsScreen {
   position: absolute;
+  z-index: 9998;
   top: -moz-calc(-100% + 48px);
   width: -moz-calc(100%);
   height: -moz-calc(100% - 24px);
@@ -246,4 +247,44 @@ iframe.appWindow {
   width: -moz-calc(100%);
 }
 
+#keyboard {
+  position: absolute;
+  z-index: 9997;
+  bottom: -200px;
+  background-color: #36373b;
+  width: -moz-calc(100%);
+  min-height: 200px;
+  -moz-transition: bottom 0.2s ease;
+}
+
+#keyboard:not([data-hidden]) {
+  bottom: 0;
+}
+
+#keyboard:not([data-hidden]) + #windows {
+  background-color: black;
+}
+
+.keyboard-key {
+  display: inline-table;
+  text-align: center;
+  color: white;
+  font-size: 32px;
+  height: 64px;
+  line-height: 64px;
+  min-width: 0 !important;
+  margin-bottom: 2px;
+  margin-top: 2px;
+  margin-left: 1px;
+  margin-right: 1px;
+  padding: 0;
+  border: 1px solid black;
+  border-radius: 5px;
+  background: -moz-linear-gradient(top, rgb(94,97,102) 10%, rgb(64,64,72) 90%);
+}
+
+.keyboard-key[data-active] {
+  color: #ccc;
+  background: -moz-linear-gradient(bottom, rgb(94,97,102) 10%, rgb(64,64,72) 90%);
+}
 

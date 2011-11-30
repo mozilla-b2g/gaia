@@ -19,7 +19,7 @@ var Apps = {
 
         var event = document.createEvent('UIEvents');
         event.initUIEvent('appclose', true, true, window, 0);
-        window.parent.dispatchEvent(event);
+        window.top.dispatchEvent(event);
         break;
       case 'unload':
         this.uninit();
@@ -49,7 +49,6 @@ var Apps = {
 var TouchHandler = {
   touchState: { active: false, startX: 0, startY: 0 },
   events: ['touchstart', 'touchmove', 'touchend',
-           'mousedown', 'mousemove', 'mouseup',
            'contextmenu'],
   start: function th_start() {
     this.events.forEach((function(evt) {
@@ -120,7 +119,6 @@ var TouchHandler = {
 
     switch (evt.type) {
       case 'touchstart':
-      case 'mousedown':
         var pannableTarget = this.getPannableTarget(evt.originalTarget);
         if (!pannableTarget)
           return;
@@ -132,7 +130,6 @@ var TouchHandler = {
         break;
 
       case 'touchmove':
-      case 'mousemove':
         if (!this.target)
           break;
 
@@ -154,7 +151,6 @@ var TouchHandler = {
         showSourceViewer(sourceURL);
         evt.preventDefault();
       case 'touchend':
-      case 'mouseup':
         if (!this.target)
           return;
 
@@ -1434,7 +1430,5 @@ Apps.init();
     }
   };
 
-  if (!window.matchMedia('(-moz-touch-enabled)'))
-    TouchEventHandler.start();
 })();
 
