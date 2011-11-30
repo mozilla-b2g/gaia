@@ -3,7 +3,7 @@
 
 'use strict';
 
-const kAutoUnlock = true;
+const kAutoUnlock = false;
 
 var displayState;
 

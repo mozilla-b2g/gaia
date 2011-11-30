@@ -250,19 +250,15 @@ iframe.appWindow {
 #keyboard {
   position: absolute;
   z-index: 9997;
-  bottom: -200px;
+  bottom: 0;
   background-color: #36373b;
   width: -moz-calc(100%);
   min-height: 200px;
   -moz-transition: bottom 0.2s ease;
 }
 
-#keyboard:not([data-hidden]) {
-  bottom: 0;
-}
-
-#keyboard:not([data-hidden]) + #windows {
-  background-color: black;
+#keyboard[data-hidden] {
+  bottom: -200px;
 }
 
 .keyboard-key {

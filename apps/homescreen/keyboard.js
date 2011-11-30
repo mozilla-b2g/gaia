@@ -101,11 +101,14 @@ const IMEManager = {
 
     var ime = this.ime;
     ime.innerHTML = this.getLayout(window.innerWidth);
-    delete ime.dataset.hidden;
 
-    var newHeight = targetWindow.getBoundingClientRect().height -
-                    ime.getBoundingClientRect().height;
-    targetWindow.style.height = newHeight + 'px';
+    delete ime.dataset.hidden;
+    ime.addEventListener('transitionend', function imeShow(evt) {
+      ime.removeEventListener('transitionend', imeShow);
+      var newHeight = targetWindow.getBoundingClientRect().height -
+                      ime.getBoundingClientRect().height;
+      targetWindow.style.height = newHeight + 'px';
+    });
   },
   hideIME: function km_hideIME(targetWindow) {
     targetWindow.style.height = targetWindow.dataset.height;
