@@ -4,6 +4,7 @@
 
 
 'use strict';
+var emulateRun = (window.navigator.userAgent.indexOf('B2G') == -1);
 
 var Apps = {
   events: ['keypress', 'unload'],
@@ -11,6 +12,7 @@ var Apps = {
     switch (evt.type) {
       case 'keypress':
         if (window.top == window ||
+            !emulateRun ||
             evt.getPreventDefault() ||
             evt.keyCode != evt.DOM_VK_ESCAPE)
           break;
@@ -1429,5 +1431,8 @@ Apps.init();
       return touchEvent;
     }
   };
+
+  if (emulateRun)
+    TouchEventHandler.start();
 })();
 
