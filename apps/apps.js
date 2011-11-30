@@ -1311,7 +1311,7 @@ Apps.init();
           if (!eventTarget)
             return;
 
-          // On device a mousemove event if fired right after the mousedown
+          // On device a mousemove event is fired right after the mousedown
           // because of the size of the finger, so var's ignore what happens
           // below 5ms
           if (evt.timeStamp - this.timestamp < 30)
@@ -1429,6 +1429,5 @@ Apps.init();
       return touchEvent;
     }
   };
-
 })();
 

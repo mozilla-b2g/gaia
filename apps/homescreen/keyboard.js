@@ -1,21 +1,21 @@
 
-const KeyboardManager = {
+const IMEManager = {
   BASIC_LAYOUT: -1,
   ALTERNATE_LAYOUT: -2,
 
-  get keyboard() {
-    delete this.keyboard;
-    return this.keyboard = document.getElementById('keyboard');
+  get ime() {
+    delete this.ime;
+    return this.ime = document.getElementById('keyboard');
   },
-  events: ['showkeyboard', 'hidekeyboard', 'unload', 'appclose'],
+  events: ['showime', 'hideime', 'unload', 'appclose'],
   init: function km_init() {
     this.events.forEach((function attachEvents(type) {
       window.addEventListener(type, this);
     }).bind(this));
 
-    this.keyboard.addEventListener('mousedown', this);
-    this.keyboard.addEventListener('mouseup', this);
-    this.keyboard.addEventListener('click', this);
+    this.ime.addEventListener('touchstart', this);
+    this.ime.addEventListener('touchend', this);
+    this.ime.addEventListener('click', this);
 
     this.layout = KeyboardAndroid.basicLayout;
   }, 
@@ -24,28 +24,28 @@ const KeyboardManager = {
       window.removeEventListener(type, this);
     }).bind(this));
 
-    this.keyboard.removeEventListener('mousedown', this);
-    this.keyboard.removeEventListener('mouseup', this);
-    this.keyboard.removeEventListener('click', this);
+    this.ime.removeEventListener('touchstart', this);
+    this.ime.removeEventListener('touchend', this);
+    this.ime.removeEventListener('click', this);
   }, 
   handleEvent: function km_handleEvent(evt) {
     var activeWindow = Gaia.AppManager.foregroundWindow;
 
     switch (evt.type) {
-      case 'showkeyboard':
-        this.showKeyboard(activeWindow);
+      case 'showime':
+        this.showIME(activeWindow, evt.detail.type);
         break;
-      case 'hidekeyboard':
+      case 'hideime':
       case 'appclose':
-        this.hideKeyboard(activeWindow);
+        this.hideIME(activeWindow);
         break;
-      case 'mousedown':
+      case 'touchstart':
         var keyCode = parseInt(evt.target.getAttribute('data-keycode'));
         if (!keyCode)
           return;
         evt.target.dataset.active = 'true';
         break;
-      case 'mouseup':
+      case 'touchend':
         var keyCode = parseInt(evt.target.getAttribute('data-keycode'));
         if (!keyCode)
           return;
@@ -56,13 +56,13 @@ const KeyboardManager = {
         if (!keyCode)
           return;
 
-        if (keyCode == KeyboardManager.BASIC_LAYOUT) {
+        if (keyCode == IMEManager.BASIC_LAYOUT) {
           this.layout = KeyboardAndroid.basicLayout;
-          this.keyboard.innerHTML = this.getLayout(window.innerWidth);
+          this.ime.innerHTML = this.getLayout(window.innerWidth);
           return;
-        } else if (keyCode == KeyboardManager.ALTERNATE_LAYOUT) {
+        } else if (keyCode == IMEManager.ALTERNATE_LAYOUT) {
           this.layout = KeyboardAndroid.alternateLayout;
-          this.keyboard.innerHTML = this.getLayout(window.innerWidth);
+          this.ime.innerHTML = this.getLayout(window.innerWidth);
           return;
         }
 
@@ -95,30 +95,30 @@ const KeyboardManager = {
 
     return content;
   },
-  showKeyboard: function km_showKeyboard(targetWindow) {
+  showIME: function km_showIME(targetWindow, type) {
     var oldHeight = targetWindow.style.height;
     targetWindow.dataset.height = oldHeight;
 
-    var keyboard = this.keyboard;
-    keyboard.innerHTML = this.getLayout(window.innerWidth);
-    delete keyboard.dataset.hidden;
+    var ime = this.ime;
+    ime.innerHTML = this.getLayout(window.innerWidth);
+    delete ime.dataset.hidden;
 
     var newHeight = targetWindow.getBoundingClientRect().height -
-                    keyboard.getBoundingClientRect().height;
+                    ime.getBoundingClientRect().height;
     targetWindow.style.height = newHeight + 'px';
   },
-  hideKeyboard: function km_hideKeyboard(targetWindow) {
+  hideIME: function km_hideIME(targetWindow) {
     targetWindow.style.height = targetWindow.dataset.height;
     delete targetWindow.dataset.height;
 
-    var keyboard = this.keyboard;
-    keyboard.dataset.hidden = 'true';
-    keyboard.innerHTML = '';
+    var ime = this.ime;
+    ime.dataset.hidden = 'true';
+    ime.innerHTML = '';
   }
 };
 
-window.addEventListener('load', function initKeyboardManager(evt) {
-  window.removeEventListener('load', initKeyboardManager);
-  KeyboardManager.init();
+window.addEventListener('load', function initIMEManager(evt) {
+  window.removeEventListener('load', initIMEManager);
+  IMEManager.init();
 });
 

@@ -210,9 +210,6 @@ var KeyHandler = {
 window.addEventListener('load', function keyboardInit(evt) {
   window.removeEventListener('load', keyboardInit);
   visibilityChanged(document.location.toString());
-
-
-
   KeyHandler.init();
 });
 
