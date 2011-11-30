@@ -103,10 +103,16 @@ const IMEManager = {
     ime.innerHTML = this.getLayout(window.innerWidth);
 
     delete ime.dataset.hidden;
+    var newHeight = targetWindow.getBoundingClientRect().height -
+                    ime.getBoundingClientRect().height;
+
+    if (ime.getBoundingClientRect().top < window.innerHeight) {
+      targetWindow.style.height = newHeight + 'px';
+      return;
+    }
+
     ime.addEventListener('transitionend', function imeShow(evt) {
       ime.removeEventListener('transitionend', imeShow);
-      var newHeight = targetWindow.getBoundingClientRect().height -
-                      ime.getBoundingClientRect().height;
       targetWindow.style.height = newHeight + 'px';
     });
   },

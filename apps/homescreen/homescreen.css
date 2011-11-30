@@ -258,7 +258,7 @@ iframe.appWindow {
 }
 
 #keyboard[data-hidden] {
-  bottom: -200px;
+  bottom: -800px;
 }
 
 .keyboard-key {
