@@ -46,7 +46,7 @@ if (!window['Gaia'])
       
       element.toggleSwitch = this;
       
-      element.className = (_isOn) ? 'toggleSwitch on' : 'toggleSwitch';
+      element.className = (_isOn) ? 'toggleSwitch on' : 'toggleSwitch off';
       onElement.className = 'on';
       leverElement.className = 'lever';
       offElement.className = 'off';
@@ -72,7 +72,9 @@ if (!window['Gaia'])
       
       element.addEventListener('click', function(evt) {
         var toggleSwitch = this.toggleSwitch;
-        toggleSwitch.isOn = !toggleSwitch.isOn;
+        
+        if (!toggleSwitch._isAnimating)
+          toggleSwitch.isOn = !toggleSwitch.isOn;
         
         evt.preventDefault();
       });
@@ -106,14 +108,14 @@ if (!window['Gaia'])
       
       // Make sure there is always at least one view on the stack.
       if (views.length > 1) {
-        
-        // On animation complete, remove 'active' from topView.
-        var animationCompleteHandler = function() {
-          this.removeEventListener('animationend', animationCompleteHandler);
+
+        var topViewAnimationHandler = function() {
+          this.removeEventListener('animationend', topViewAnimationHandler);
           this.classList.remove('active');
+          this.classList.remove('popTop');
         };
       
-        topView.addEventListener('animationend', animationCompleteHandler);
+        topView.addEventListener('animationend', topViewAnimationHandler);
       
         topView.classList.remove('pushTop');
         topView.classList.add('popTop');
@@ -121,7 +123,14 @@ if (!window['Gaia'])
         views.pop();
       
         var newTopView = this.topView;
+        
+        var newTopViewAnimationHandler = function() {
+          this.removeEventListener('animationend', newTopViewAnimationHandler);
+          this.classList.remove('pop');
+        };
       
+        newTopView.addEventListener('animationend', newTopViewAnimationHandler);
+        
         newTopView.classList.remove('push');
         newTopView.classList.add('pop');
       
@@ -135,6 +144,7 @@ if (!window['Gaia'])
   };
   
   Gaia.UI.ToggleSwitch.prototype = {
+    _isAnimating: false,
     get isOn() {
       return this._isOn;
     },
@@ -147,16 +157,39 @@ if (!window['Gaia'])
       var hiddenInput = this.hiddenInput;
       var checkedValue = this.checkedValue;
       var classList = element.classList;
+      var toggleAnimationHandler;
 
       if (isOn) {
+        toggleAnimationHandler = function() {
+          var classList = this.classList;
+          this.removeEventListener('animationend', toggleAnimationHandler);
+          classList.remove('animateOn');
+          classList.add('on');
+          this.toggleSwitch._isAnimating = false;
+        };
+        
+        element.addEventListener('animationend', toggleAnimationHandler);
+        
         classList.remove('off');
-        classList.add('on');
+        classList.add('animateOn');
         hiddenInput.value = checkedValue;
       } else {
+        toggleAnimationHandler = function() {
+          var classList = this.classList;
+          this.removeEventListener('animationend', toggleAnimationHandler);
+          classList.remove('animateOff');
+          classList.add('off');
+          this.toggleSwitch._isAnimating = false;
+        };
+        
+        element.addEventListener('animationend', toggleAnimationHandler);
+        
         classList.remove('on');
-        classList.add('off');
+        classList.add('animateOff');
         hiddenInput.value = '';
       }
+      
+      this._isAnimating = true;
       
       var evt = document.createEvent('UIEvents');
       evt.initUIEvent('change', true, true, window, isOn ? checkedValue : '');
