@@ -6,30 +6,17 @@
   <link rel="stylesheet" type="text/css" media="screen" href="../../resources/system.css"/>
   <link rel="stylesheet" type="text/css" media="screen" href="ui.css"/>
   <link rel="stylesheet" type="text/css" media="screen" href="settings.css"/>
-  <script type="text/javascript" src="../apps.js"></script>
   <script type="text/javascript" src="ui.js"></script>
   <script type="text/javascript" src="settings.js"></script>
+  <script type="text/javascript" src="../apps.js"></script>
 </head>
 <body>
   <div id="navBar" class="navigationBar">
     <h1></h1>
   </div>
   <div id="rootView" class="view" data-title="Settings">
-    <ul class="tableView">
-      <li>
-        <span>Airplane Mode</span>
-        <input type="checkbox" class="toggleSwitch" id="isAirplaneMode" name="isAirplaneMode" value="1" checked="checked"/>
-      </li>
-      <li>
-        <a class="drillDownCell" href="#viewWiFi">
-          <span>Wi-Fi</span>
-          <span id="wifiValue"></span>
-        </a>
-      </li>
-      <li>
-        <span>Location Services</span>
-        <input type="checkbox" class="toggleSwitch" id="isLocationEnabled" name="isLocationEnabled" value="1"/>
-      </li>
+    <ul id="networkAndLocationSettings" class="tableView">
+      
     </ul>
     <ul class="tableView">
       <li>
