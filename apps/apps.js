@@ -1343,9 +1343,12 @@ Apps.init();
 
         case 'unload':
           window.clearTimeout(contextMenuTimeout);
-          eventTarget.ownerDocument.releaseCapture();
-          this.target = null;
           TouchEventHandler.stop();
+
+          if (eventTarget) {
+            eventTarget.ownerDocument.releaseCapture();
+            this.target = null;
+          }
           return;
 
         case 'click':
