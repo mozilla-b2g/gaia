@@ -109,7 +109,7 @@ html, body {
   width: -moz-calc(100%);
   height: -moz-calc(100% - 24px);
   background-color: #444;
-	background: #323f4d url(images/notificationsbar-bg.png) no-repeat 0 100%;
+  background: #323f4d url(images/notificationsbar-bg.png) no-repeat 0 100%;
 }
 
 #home {
@@ -208,7 +208,7 @@ iframe.appWindow.thumbnail {
 #statusbar {
   display: -moz-box;
   -moz-box-orient: horizontal;
-	background: url(images/statusbar-bg.png) repeat-x;
+  background: url(images/statusbar-bg.png) repeat-x;
   width: -moz-calc(100% - 4px);
   height: 20px;
   padding: 2px;
@@ -229,10 +229,10 @@ iframe.appWindow.thumbnail {
 }
 
 .battery {
-	float:right;
-	margin: 1px 3px;
-	padding: 4px 6px 4px 4px;
-	width: 29px;
+  float:right;
+  margin: 1px 3px;
+  padding: 4px 6px 4px 4px;
+  width: 29px;
   background: url(images/battery-main.png);
   background-repeat: no-repeat;
   background-size: 29px 16px;
@@ -252,7 +252,7 @@ iframe.appWindow.thumbnail {
 }
 
 .battery > #fuel.charging {
-	background-image: -moz-linear-gradient(top, #b9fd00, #8fc400);
+  background-image: -moz-linear-gradient(top, #b9fd00, #8fc400);
   -moz-animation-duration: 3s;
   -moz-animation-name: batteryCharging;
   -moz-animation-iteration-count: infinite;
