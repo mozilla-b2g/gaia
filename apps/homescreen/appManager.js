@@ -111,8 +111,7 @@ if (!window['Gaia'])
 
     // Set up event handlers.
     var events = [
-      'touchstart', 'touchmove', 'touchend',
-      'mousedown', 'mousemove', 'mouseup'
+      'touchstart', 'touchmove', 'touchend'
     ];
 
     events.forEach((function(evt) {
@@ -242,16 +241,13 @@ if (!window['Gaia'])
 
       switch (e.type) {
         case 'touchstart':
-        case 'mousedown':
           this.canvas.setCapture(false);
           physics.onTouchStart(e.touches ? e.touches[0] : e);
           break;
         case 'touchmove':
-        case 'mousemove':
           physics.onTouchMove(e.touches ? e.touches[0] : e);
           break;
         case 'touchend':
-        case 'mouseup':
           document.releaseCapture();
           physics.onTouchEnd(e.touches ? e.touches[0] : e);
           break;
