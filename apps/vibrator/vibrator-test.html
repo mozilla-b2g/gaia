@@ -1,0 +1,138 @@
+<!DOCTYPE HTML>
+<html>
+<body>
+
+<!-- This is a manual testcase for the device's vibrator. -->
+
+<style>
+body { background: white }
+</style>
+
+<script>
+
+function test1() {
+  navigator.mozVibrate(1000);
+}
+
+function test2() {
+  navigator.mozVibrate(['400', '300', '400', '100']);
+}
+
+function test3() {
+  // Buzz four times.
+  navigator.mozVibrate([400.1, 300.1, 400.1, 300.1, 400.1, 300.1, 400.1]);
+
+  // Now overwrite that and buzz twice.
+  navigator.mozVibrate([400.1, 300.1, 400.1]);
+}
+
+function test4a() {
+  navigator.mozVibrate([400, 200, 3000]);
+  setTimeout(function() {
+    navigator.mozVibrate([]);
+  }, 400);
+}
+
+function test4b() {
+  navigator.mozVibrate([400, 200, 3000]);
+  setTimeout(function() {
+    navigator.mozVibrate(0);
+  }, 400);
+}
+
+function test5() {
+  document.getElementById('test-4-status').innerHTML = 'Vibrator on';
+  navigator.mozVibrate(5000);
+  setTimeout(function() {
+    document.getElementById('test-4-status').innerHTML = '';
+    navigator.mozVibrate([0]);
+  }, 2000);
+}
+
+var test6_state = 0;
+var test6_interval_id;
+function test6() {
+  var btn = document.getElementById('test6_button');
+  switch(test6_state) {
+    case 0:
+      btn.innerHTML = 'Go on to step 2';
+      navigator.mozVibrate(10000);
+      test6_interval_id = setInterval(function() { navigator.mozVibrate(10000) }, 9900);
+      test6_state = 1;
+      break;
+    case 1:
+      btn.innerHTML = 'Go on to step 3';
+      window.open('http://mozilla.org');
+      test6_state = 2;
+      break;
+    case 2:
+      btn.innerHTML = "Let's go!";
+      navigator.mozVibrate(0);
+      clearInterval(test6_interval_id);
+      test6_state = 0;
+      break;
+  }
+}
+
+function test7() {
+  // Start vibrating in iframe 1.  Then come along in iframe 2 and overwrite
+  // iframe1's vibration.  Then navigate iframe1.  This shouldn't cancel
+  // iframe2's vibration.
+
+  var iframe1 = document.createElement('iframe');
+  var iframe2;
+  iframe1.src = 'data:text/html,<body onload="navigator.mozVibrate([1000, 1000]);">iframe1</body>';
+  document.body.appendChild(iframe1);
+
+  setTimeout(function() {
+    iframe2 = document.createElement('iframe');
+    iframe2.src = 'data:text/html,<body onload="navigator.mozVibrate([490, 500, 500]);">iframe2</body>';
+    document.body.appendChild(iframe2);
+  }, 10);
+
+  setTimeout(function() {
+    iframe1.src = 'about:blank';
+  }, 200);
+
+  setTimeout(function() {
+    document.body.removeChild(iframe1);
+    document.body.removeChild(iframe2);
+  }, 2500);
+}
+
+</script>
+
+<h1>Test 1: Does the vibrator work?</h1>
+<p>Click the button below.  The device should buzz once for about a second.</p>
+<button onclick='test1()'>Let's go!</button>
+
+<h1>Test 2: Two buzzes</h1>
+<p>Click the button below.  The device should buzz twice in quick succession.</p>
+<button onclick='test2()'>Let's go!</button>
+
+<h1>Test 3: Two buzzes, again</h1>
+<p>Click the button below.  The device should buzz two times.  No more, no
+less!</p>
+<button onclick='test3()'>Let's go!</button>
+
+<h1>Test 4a: Just one buzz</h1>
+<p>Click the button below.  The vibrator should pulse only once.</p>
+<button onclick='test4a()'>Let's go!</button>
+
+<h1>Test 4b: One buzz, again</h1>
+<p>Click the button below.  Again, just one pulse.</p>
+<button onclick='test4b()'>Let's go!</button>
+
+<h1>Test 5: Timing the vibrator</h1>
+<p>Click the button below.  The vibrator should turn on immediately, and text
+will appear below saying "vibrator on".  The vibrator should turn off when the
+text disappears.</p>
+<button onclick='test5()'>Let's go!</button> <span id='test-4-status'></span>
+
+<h1>Test 6: Two iframes, two pulses</h1>
+<p>Click the button below.  The vibrator should pulse twice. (It's ok if
+there's a slight hiccup in the first pulse.)</p>
+<button onclick='test7()'>Let's go!</button>
+
+</body>
+</html>

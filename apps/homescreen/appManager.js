@@ -452,6 +452,12 @@ if (!window['Gaia'])
           size_128: 'images/Market.png'
         },
         url: 'blank.html#market'
+      }, {
+        name: 'Vibrator',
+        icons: {
+          size_128: 'images/Vibrator.png'
+        },
+        url: '../vibrator/vibrator-test.html'
       }];
     },
 
