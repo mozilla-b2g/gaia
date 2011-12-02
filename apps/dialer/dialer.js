@@ -127,7 +127,7 @@ var KeyHandler = {
 
   call: function kh_call(number) {
     try {
-      window.navigator.mozPhone.call(this.phoneNumber.value);
+      window.navigator.mozTelephony.dial(this.phoneNumber.value);
     } catch (e) {
       console.log('Error while trying to call number: ' + e);
     }
