@@ -168,7 +168,6 @@ function IconGrid(canvas, iconWidth, iconHeight, border) {
   // install event handlers
   var events = [
     'touchstart', 'touchmove', 'touchend',
-    'mousedown', 'mousemove', 'mouseup',
     'contextmenu'
   ];
   events.forEach((function(evt) {
@@ -254,12 +253,10 @@ IconGrid.prototype = {
     var physics = this.physics;
     switch (e.type) {
     case 'touchstart':
-    case 'mousedown':
       this.canvas.setCapture(false);
       physics.onTouchStart(e.touches ? e.touches[0] : e);
       break;
     case 'touchmove':
-    case 'mousemove':
       physics.onTouchMove(e.touches ? e.touches[0] : e);
       break;
     case 'contextmenu':
@@ -269,7 +266,6 @@ IconGrid.prototype = {
       physics.touchState.active = false;
       break;
     case 'touchend':
-    case 'mouseup':
       document.releaseCapture();
       physics.onTouchEnd(e.touches ? e.touches[0] : e);
       break;
@@ -344,7 +340,6 @@ NotificationScreen.prototype = {
   },
   events: [
     'touchstart', 'touchmove', 'touchend',
-    'mousedown', 'mousemove', 'mouseup'
   ],
   attachEvents: function ns_attachEvents(view) {
     this.events.forEach((function(evt) {
@@ -360,7 +355,6 @@ NotificationScreen.prototype = {
     var target = evt.target;
     switch (evt.type) {
     case 'touchstart':
-    case 'mousedown':
       if (target != this.touchable)
         return;
       hideSourceViewer();
@@ -370,14 +364,12 @@ NotificationScreen.prototype = {
       this.onTouchStart(evt.touches ? evt.touches[0] : evt);
       break;
     case 'touchmove':
-    case 'mousemove':
       if (!this.active)
         return;
 
       this.onTouchMove(evt.touches ? evt.touches[0] : evt);
       break;
     case 'touchend':
-    case 'mouseup':
       if (!this.active)
         return;
       this.active = false;
@@ -397,7 +389,6 @@ function LockScreen(overlay) {
   this.overlay = overlay;
   var events = [
     'touchstart', 'touchmove', 'touchend',
-    'mousedown', 'mousemove', 'mouseup'
   ];
   events.forEach((function(evt) {
     overlay.addEventListener(evt, this, true);
@@ -448,16 +439,13 @@ LockScreen.prototype = {
 
     switch (e.type) {
     case 'touchstart':
-    case 'mousedown':
       this.onTouchStart(e.touches ? e.touches[0] : e);
       this.overlay.setCapture(false);
       break;
     case 'touchmove':
-    case 'mousemove':
       this.onTouchMove(e.touches ? e.touches[0] : e);
       break;
     case 'touchend':
-    case 'mouseup':
       this.onTouchEnd(e.touches ? e.touches[0] : e);
       document.releaseCapture();
       break;

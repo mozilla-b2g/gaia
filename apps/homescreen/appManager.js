@@ -111,8 +111,7 @@ if (!window['Gaia'])
 
     // Set up event handlers.
     var events = [
-      'touchstart', 'touchmove', 'touchend',
-      'mousedown', 'mousemove', 'mouseup'
+      'touchstart', 'touchmove', 'touchend'
     ];
 
     events.forEach((function(evt) {
@@ -242,16 +241,13 @@ if (!window['Gaia'])
 
       switch (e.type) {
         case 'touchstart':
-        case 'mousedown':
           this.canvas.setCapture(false);
           physics.onTouchStart(e.touches ? e.touches[0] : e);
           break;
         case 'touchmove':
-        case 'mousemove':
           physics.onTouchMove(e.touches ? e.touches[0] : e);
           break;
         case 'touchend':
-        case 'mouseup':
           document.releaseCapture();
           physics.onTouchEnd(e.touches ? e.touches[0] : e);
           break;
@@ -499,10 +495,18 @@ if (!window['Gaia'])
     launch: function(url) {
       var instance = this.getAppInstance(url);
 
+      var state = {
+        url: url,
+        hidden: false
+      };
+      var event = document.createEvent('CustomEvent');
+      event.initCustomEvent('visibilitychange', true, true, state);
+
       // App is already running, set focus to the existing instance.
       if (instance) {
         var foregroundWindow = this.foregroundWindow = instance.window;
         foregroundWindow.removeAttribute('hidden');
+        foregroundWindow.contentWindow.dispatchEvent(event);
       } else {
         var app = this.getInstalledAppForURL(url);
         var newWindow = document.createElement('iframe');
@@ -511,6 +515,14 @@ if (!window['Gaia'])
         foregroundWindow.src = url;
 
         this.windowsContainer.appendChild(foregroundWindow);
+
+        var contentWindow = foregroundWindow.contentWindow;
+        contentWindow.addEventListener('load', function appload(evt) {
+          contentWindow.removeEventListener('load', appload, true);
+          setTimeout(function () {
+            contentWindow.dispatchEvent(event);
+          }, 0);
+        }, true);
 
         runningApps.push({
           url: url,
@@ -525,15 +537,6 @@ if (!window['Gaia'])
         window.removeEventListener('animationend', animationCompleteHandler);
 
         foregroundWindow.focus();
-
-
-        var state = {
-          url: url,
-          hidden: false
-        };
-        var event = document.createEvent('CustomEvent');
-        event.initCustomEvent('visibilitychange', true, true, state);
-        foregroundWindow.contentWindow.dispatchEvent(event);
 
         foregroundWindow.classList.remove('animateOpening');
 
