@@ -33,6 +33,9 @@ function choiceChanged(target) {
   if (!view)
     return;
 
+  // XXX this should not live here
+  Contacts.hideSearch();
+
   var choices = document.getElementById('choices');
   var choicesCount = choices.childElementCount;
   for (var i = 0; i < choicesCount; i++) {
@@ -41,16 +44,10 @@ function choiceChanged(target) {
 
     var choiceView = document.getElementById(choice.id + '-view');
     choiceView.setAttribute('hidden', 'true');
-
-    if (choiceView.contentWindow && choiceView.contentWindow.Contacts)
-      choiceView.contentWindow.Contacts.hideSearch();
   }
 
   target.setAttribute('data-active', 'true');
   view.removeAttribute('hidden');
-
-  if (view.contentWindow && view.contentWindow.Contacts)
-    view.contentWindow.Contacts.showSearch();
 }
 
 var KeyHandler = {
@@ -209,7 +206,6 @@ var KeyHandler = {
 
 window.addEventListener('load', function keyboardInit(evt) {
   window.removeEventListener('load', keyboardInit);
-  visibilityChanged(document.location.toString());
   KeyHandler.init();
 });
 
