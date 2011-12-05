@@ -186,7 +186,7 @@ var KeyHandler = {
       this.updateFontSize();
     } else if (key == 'call') {
       // TODO: update the call button style to show his availability
-      if (this.phoneNumber.value != "") {
+      if (this.phoneNumber.value != '') {
         this.call(this.phoneNumber.value);
       }
     } else {
@@ -207,14 +207,16 @@ var CallHandler = {
   // callbacks
   call: function ch_call(number) {
     this.numberView.innerHTML = number;
-    this.statusView.innerHTML = "Calling...";
-    this.actionsView.className = "";
-    this.mainAction = "end";
-    this.showCallScreen();
+    this.statusView.innerHTML = 'Calling...';
+    this.actionsView.classList.remove('connected');
+    var button = this.mainActionButton;
+    button.dataset.action = 'end';
+    button.classList.add('end');
+    this.toggleCallScreen();
 
     // TODO: simulating the call for now
     var self = this;
-    setTimeout(function() {
+    setTimeout(function ch_fakeConnection() {
       self.connected();
     }, 1200);
 
@@ -226,15 +228,19 @@ var CallHandler = {
   },
   incoming: function ch_incoming(number) {
     this.numberView.innerHTML = number;
-    this.statusView.innerHTML = "Incoming call...";
-    this.actionsView.className = "";
-    this.mainAction = "answer";
-    this.showCallScreen();
+    this.statusView.innerHTML = 'Incoming call...';
+    this.actionsView.classList.remove('connected');
+    var button = this.mainActionButton;
+    button.dataset.action = 'answer';
+    button.classList.remove('end');
+    this.toggleCallScreen();
   },
   connected: function ch_connected() {
-    this.statusView.innerHTML = "00:00";
-    this.actionsView.className = "connected";
-    this.mainAction = "end";
+    this.statusView.innerHTML = '00:00';
+    this.actionsView.classList.add('connected');
+    var button = this.mainActionButton;
+    button.dataset.action = 'end';
+    button.classList.add('end');
 
     // starting the call timer
     this.callStartDate = Date.now();
@@ -244,46 +250,42 @@ var CallHandler = {
     this.connected();
   },
   end: function ch_end() {
-    this.hideCallScreen();
-    this.actionsView.className = "";
+    this.toggleCallScreen();
+    this.actionsView.classList.remove('connected');
   },
 
   // properties / methods
   get numberView() {
     delete this.numberView;
-    return this.numberView = document.getElementById("callNumberView");
+    return this.numberView = document.getElementById('callNumberView');
   },
   get statusView() {
     delete this.statusView;
-    return this.statusView = document.getElementById("callStatusView");
+    return this.statusView = document.getElementById('callStatusView');
   },
   get actionsView() {
     delete this.actionsView;
-    return this.actionsView = document.getElementById("callActions-container");
+    return this.actionsView = document.getElementById('callActions-container');
   },
-  set mainAction(action) {
-    var button = document.getElementById("mainActionButton");
-    button.innerHTML = action;
-    button.className = "keyboard-key " + action;
-    button.setAttribute("data-action", action);
+  get mainActionButton() {
+    delete this.mainActionButton;
+    return this.mainActionButton = document.getElementById('mainActionButton');
   },
-  callMainAction: function ch_callMainAction() {
-    var action = document.getElementById("mainActionButton").getAttribute("data-action");
+  execute: function ch_execute(action) {
     switch (action) {
-      case "answer":
+      case 'answer':
         this.answer();
         break;
       default:
         this.end();
         break;
-    };
+    }
   },
 
-  showCallScreen: function ch_show() {
-    document.body.className = "oncall";
-  },
-  hideCallScreen: function ch_hide() {
-    document.body.className = "";
+  toggleCallScreen: function ch_toggleScreen() {
+    document.getElementById('choices').classList.toggle('oncall');
+    document.getElementById('views').classList.toggle('oncall');
+    document.getElementById('call-screen').classList.toggle('oncall');
   }
 };
 

@@ -84,7 +84,9 @@
       <div id="callActions-container">
       </div>
       <div id="callMainAction">
-        <div id="mainActionButton" class="keyboard-key" onclick="CallHandler.callMainAction();">
+        <div id="mainActionButton" onclick="CallHandler.execute(this.dataset.action);">
+          <span>Answer</span>
+          <span class="end">End</span>
         </div>
       </div>
     </div>

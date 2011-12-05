@@ -159,16 +159,12 @@ body {
   text-shadow: 1px 1px 0px rgb(105,105,105);
 }
 
-.keyboard-key.call, .keyboard-key.answer {
+.keyboard-key.call {
   background: -moz-linear-gradient(top, #45c545, #35b535 50%, #21a121 51%);
   border-radius: 10px;
   border-top: 1px solid #c3d6df;
   box-shadow: 0 1px 3px black;
   max-width: -moz-calc(66% - 12px);
-}
-
-.keyboard-key.end {
-  background: -moz-linear-gradient(top, #FF4844, #FF1813 50%, #C70E0C 51%);
 }
 
 .keyboard-key.delete {
@@ -320,14 +316,13 @@ body {
 
 /* === Call Screen === */
 
-body.oncall #choices {
+#choices.oncall {
   margin-top: -64px;
 }
-body.oncall #views {
+#views.oncall {
   opacity: 0;
 }
-body.oncall #call-screen
-{
+#call-screen.oncall {
   opacity: 1;
   visibility: visible;
 }
@@ -336,10 +331,10 @@ body.oncall #call-screen
   position: absolute;
   top: 0;
   left: 0;
-
-  border: 0;
-  height: 100%;
   width: 100%;
+  height: 100%;
+  border: 0;
+
   opacity: 0;
   visibility: hidden;
 
@@ -347,27 +342,25 @@ body.oncall #call-screen
   -moz-transition-duration: 0.3s;
 }
 
-#callNumberView
-{
-  font-size: 4em;
+#callNumberView {
   padding: 12px 0px;
-  text-align: center;
-  font-weight: bold;
-
   background: -moz-linear-gradient(top, #33ADF9, #0098F8 50%, #008AE0 51%);
   text-shadow: 1px 1px 0px #000;
+
+  font-size: 4em;
+  text-align: center;
+  font-weight: bold;
 }
 
-#callStatusView
-{
-  line-height: 64px;
+#callStatusView {
   height: 64px;
+  line-height: 64px;
+
   font-size: 1.5em;
   text-align: center;
 }
 
-#callActions-container
-{
+#callActions-container {
   position: absolute;
   width: 72%;
   height: 300px;
@@ -382,24 +375,44 @@ body.oncall #call-screen
   -moz-transition-property: opacity;
   -moz-transition-duration: 0.3s;
 }
-#callActions-container.connected
-{
+
+#callActions-container.connected {
   opacity: 1;
 }
 
-#callMainAction
-{
+#callMainAction {
   position: absolute;
   bottom: 0;
   width: 100%;
+
   text-align: center;
 }
-#callMainAction .keyboard-key
-{
-  text-transform: capitalize;
-  max-width: -moz-calc(100% - 16px);
-  width: 100%;
-  font-size: 4em;
+
+#mainActionButton {
   padding: 12px 0px;
+  max-width: -moz-calc(100% - 16px);
+  margin: 5px 8px;
+  width: 100%;
+
+  background: -moz-linear-gradient(top, #45c545, #35b535 50%, #21a121 51%);
+  border-radius: 10px;
+  border: 1px solid #151515;
+  border-top: 1px solid #c3d6df;
+  box-shadow: 0 1px 3px black;
+
+  font-size: 4em;
   text-shadow: 1px 1px 0px #000;
 }
+#mainActionButton.end {
+  background: -moz-linear-gradient(top, #FF4844, #FF1813 50%, #C70E0C 51%);
+}
+
+#mainActionButton span.end,
+#mainActionButton.end span:first-child {
+  display: none;
+}
+#mainActionButton.end span.end,
+#mainActionButton span:first-child {
+  display: inline;
+}
+
