@@ -126,11 +126,7 @@ var KeyHandler = {
   },
 
   call: function kh_call(number) {
-    try {
-      window.navigator.mozTelephony.dial(this.phoneNumber.value);
-    } catch (e) {
-      console.log('Error while trying to call number: ' + e);
-    }
+    CallHandler.call(number);
   },
 
   updateFontSize: function kh_updateFontSize() {
@@ -192,7 +188,10 @@ var KeyHandler = {
       this.phoneNumber.value = KeyHandler.phoneNumber.value.slice(0, -1);
       this.updateFontSize();
     } else if (key == 'call') {
-      this.call(this.phoneNumber.value);
+      // TODO: update the call button style to show his availability
+      if (this.phoneNumber.value != "") {
+        this.call(this.phoneNumber.value);
+      }
     } else {
       this.phoneNumber.value += key;
       this.updateFontSize();
@@ -204,6 +203,90 @@ var KeyHandler = {
 
   keyUp: function kh_keyUp(event) {
     clearTimeout(this._timeout);
+  }
+};
+
+var CallHandler = {
+  // callbacks
+  call: function ch_call(number) {
+    this.numberView.innerHTML = number;
+    this.statusView.innerHTML = "Calling...";
+    this.actionsView.className = "";
+    this.mainAction = "end";
+    this.showCallScreen();
+
+    // TODO: simulating the call for now
+    var self = this;
+    setTimeout(function() {
+      self.connected();
+    }, 1200);
+
+    try {
+      window.navigator.mozTelephony.dial(this.phoneNumber.value);
+    } catch (e) {
+      console.log('Error while trying to call number: ' + e);
+    }
+  },
+  incoming: function ch_incoming(number) {
+    this.numberView.innerHTML = number;
+    this.statusView.innerHTML = "Incoming call...";
+    this.actionsView.className = "";
+    this.mainAction = "answer";
+    this.showCallScreen();
+  },
+  connected: function ch_connected() {
+    this.statusView.innerHTML = "00:00";
+    this.actionsView.className = "connected";
+    this.mainAction = "end";
+
+    // starting the call timer
+    this.callStartDate = Date.now();
+  },
+  answer: function ch_answer() {
+    // TODO: faking the connection for now
+    this.connected();
+  },
+  end: function ch_end() {
+    this.hideCallScreen();
+    this.actionsView.className = "";
+  },
+
+  // properties / methods
+  get numberView() {
+    delete this.numberView;
+    return this.numberView = document.getElementById("callNumberView");
+  },
+  get statusView() {
+    delete this.statusView;
+    return this.statusView = document.getElementById("callStatusView");
+  },
+  get actionsView() {
+    delete this.actionsView;
+    return this.actionsView = document.getElementById("callActions-container");
+  },
+  set mainAction(action) {
+    var button = document.getElementById("mainActionButton");
+    button.innerHTML = action;
+    button.className = "keyboard-key " + action;
+    button.setAttribute("data-action", action);
+  },
+  callMainAction: function ch_callMainAction() {
+    var action = document.getElementById("mainActionButton").getAttribute("data-action");
+    switch (action) {
+      case "answer":
+        this.answer();
+        break;
+      default:
+        this.end();
+        break;
+    };
+  },
+
+  showCallScreen: function ch_show() {
+    document.body.className = "oncall";
+  },
+  hideCallScreen: function ch_hide() {
+    document.body.className = "";
   }
 };
 

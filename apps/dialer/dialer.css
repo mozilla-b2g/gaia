@@ -22,6 +22,9 @@ body {
 #choices {
   width: 100%;
   border-bottom: 3px solid rgb(137, 137, 137);
+
+  -moz-transition-property: margin-top;
+  -moz-transition-duration: 0.3s;
 }
 
 #choices > .choice {
@@ -60,6 +63,9 @@ body {
 #views {
   height: -moz-calc(100% - 64px);
   width: 100%;
+
+  -moz-transition-property: opacity;
+  -moz-transition-duration: 0.3s;
 }
 
 #views > .view {
@@ -150,12 +156,16 @@ body {
   text-shadow: 1px 1px 0px rgb(105,105,105);
 }
 
-.keyboard-key.call {
+.keyboard-key.call, .keyboard-key.answer {
   background: -moz-linear-gradient(top, #45c545, #35b535 50%, #21a121 51%);
   border-radius: 10px;
   border-top: 1px solid #c3d6df;
   box-shadow: 0 1px 3px black;
   max-width: -moz-calc(66% - 12px);
+}
+
+.keyboard-key.end {
+  background: -moz-linear-gradient(top, #FF4844, #FF1813 50%, #C70E0C 51%);
 }
 
 .keyboard-key.delete {
@@ -229,4 +239,90 @@ body {
 .contact-name {
   font-size: 1.5em;
   font-weight: bold;
+}
+
+/* === Call Screen === */
+
+body.oncall #choices {
+  margin-top: -64px;
+}
+body.oncall #views {
+  opacity: 0;
+}
+body.oncall #call-screen
+{
+  opacity: 1;
+  visibility: visible;
+}
+
+#call-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  border: 0;
+  height: 100%;
+  width: 100%;
+  opacity: 0;
+  visibility: hidden;
+
+  -moz-transition-property: opacity;
+  -moz-transition-duration: 0.3s;
+}
+
+#callNumberView
+{
+  font-size: 4em;
+  padding: 12px 0px;
+  text-align: center;
+  font-weight: bold;
+
+  background: -moz-linear-gradient(top, #33ADF9, #0098F8 50%, #008AE0 51%);
+  text-shadow: 1px 1px 0px #000;
+}
+
+#callStatusView
+{
+  line-height: 64px;
+  height: 64px;
+  font-size: 1.5em;
+  text-align: center;
+}
+
+#callActions-container
+{
+  position: absolute;
+  width: 72%;
+  height: 300px;
+  top: -moz-calc(50% - 150px);
+  left: 14%;
+
+  background-image: -moz-linear-gradient(top, rgb(88,88,88), rgb(44,44,44));
+  border-radius: 10px;
+  border: 2px #EBEBEB solid;
+
+  opacity: 0;
+  -moz-transition-property: opacity;
+  -moz-transition-duration: 0.3s;
+}
+#callActions-container.connected
+{
+  opacity: 1;
+}
+
+#callMainAction
+{
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  text-align: center;
+}
+#callMainAction .keyboard-key
+{
+  text-transform: capitalize;
+  max-width: -moz-calc(100% - 16px);
+  width: 100%;
+  font-size: 4em;
+  padding: 12px 0px;
+  text-shadow: 1px 1px 0px #000;
 }
