@@ -6,6 +6,7 @@ html, body {
   -moz-user-select: none;
   font-size: 2.5mozmm;
   color: white;
+  font-family: helvetica, sans-serif;
 }
 
 @media all and (min-resolution: 200dpi) {
