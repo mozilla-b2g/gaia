@@ -232,16 +232,20 @@ var CallHandler = {
     this.toggleCallScreen();
   },
   connected: function ch_connected() {
+    // hardening against rapid ending
+    if (!document.getElementById('call-screen').classList.contains('oncall')) {
+      return;
+    }
+
     this.statusView.innerHTML = '00:00';
     this.actionsView.classList.add('connected');
     this.mainActionButton.dataset.action = 'end';
 
     // starting the call timer
-    this.callStartDate = Date.now();
-
+    var callStartDate = Date.now();
     var self = this;
-    this.callTicker = setInterval(function ch_updateTimer() {
-      var delta = new Date(Date.now() - self.callStartDate);
+    this._ticker = setInterval(function ch_updateTimer() {
+      var delta = new Date(Date.now() - callStartDate);
       self.statusView.innerHTML = delta.toLocaleFormat('%M:%S');
     }, 1000);
   },
@@ -253,8 +257,7 @@ var CallHandler = {
     this.toggleCallScreen();
     this.actionsView.classList.remove('connected');
 
-    clearInterval(this.callTicker);
-    delete this.callStartDate;
+    clearInterval(this._ticker);
   },
 
   // properties / methods
