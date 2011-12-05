@@ -3,10 +3,14 @@ html, body {
   height: 100%;
   overflow: hidden;
   margin: 0;
+}
+
+body {
   -moz-user-select: none;
   font-size: 2.5mozmm;
   color: white;
   font-family: helvetica, sans-serif;
+  background-image: -moz-linear-gradient(bottom, rgb(66,66,66) 24%, rgb(33,33,33) 44%, rgb(17,17,17) 64%);
 }
 
 @media all and (min-resolution: 200dpi) {
@@ -15,10 +19,7 @@ html, body {
   }
 }
 
-body {
-  background-image: -moz-linear-gradient(bottom, rgb(66,66,66) 24%, rgb(33,33,33) 44%, rgb(17,17,17) 64%);
-}
-
+/* === Application Header === */
 #choices {
   width: 100%;
   border-bottom: 3px solid rgb(137, 137, 137);
@@ -60,6 +61,8 @@ body {
   background-image: -moz-linear-gradient(top, rgb(166,166,166) 24%, rgb(155,155,155) 44%, rgb(137,137,137) 64%);
 }
 
+
+/* === Application Views === */
 #views {
   height: -moz-calc(100% - 64px);
   width: 100%;
@@ -73,7 +76,7 @@ body {
   width: 100%;
 }
 
-/* === Phone Keyboard === */
+/* === Keyboard View === */
 #keyboard-view, #keyboard-view * {
   width: 100%;
 }
@@ -220,25 +223,99 @@ body {
   }
 }
 
-/* === Contacts === */
+/* === Contacts View === */
 #contacts-view {
-  border: 0;
+  height: -moz-calc(800px - 20px);
+  background-color: #212121;
+  overflow: hidden;
+}
+
+#contacts-search-container {
+  padding: 4px;
+  text-align: center;
+}
+
+#contacts-search {
+  width: 98%;
+  margin: 0px;
+  -moz-appearance: none;
+  border-radius: 24px;
+  border: 1px solid #404040;
+  height: 48px;
+  line-height: 48px;
+  padding-left: 6px;
+}
+
+#contacts-container {
+  font-family: helvetica;
+}
+
+.contact-header {
+  background-image: -moz-linear-gradient(top, #202020, #101010);
+  border-bottom: 1px solid #202020;
+  padding: 4px;
+  color: #b0b0b0;
+  font-weight: bold;
+  pointer-events: none;
 }
 
 .contact {
-  height: 64px;
-  line-height: 64px;
-  background-color: black;
-  border-bottom: 0.1mozmm solid lightgrey;
-  background: url(missing.png) no-repeat 0 0;
+  padding: 4px;
+  height: 56px;
+  line-height: 28px;
+  border: 1px solid #404040;
+  font-size: 20px;
+  background-image: url(missing.png);
+  background-repeat: no-repeat;
   background-size: 64px 64px;
-  background-position: -5px;
-  padding-left: 64px;
 }
 
-.contact-name {
-  font-size: 1.5em;
+.contact * {
+  pointer-events: none;
+}
+
+.displayName {
+  display: block;
+  margin-left: 72px;
+  color: #c0c0c0;
+  pointer-events: none;
+}
+
+.phoneNumber {
+  display: block;
+  margin-left: 72px;
+  color: #707070;
+  pointer-events: none;
+}
+
+#contacts-shortcuts {
+  position: fixed;
+  right: 10px;
+  top: 140px;
+  height: -moz-calc(100% - 160px);
+  text-align: right;
+  width: 48px;
+}
+
+#contacts-shortcuts > a {
+  display: block;
+  font-size: 10px;
+  text-decoration: none;
+  color: #707070;
   font-weight: bold;
+  height: -moz-calc(100% / 27);
+}
+
+#contacts-shortcuts > a[name="contacts-search-container"] {
+  width: 13px;
+  height: 13px;
+  margin-bottom: 10px;
+  margin-left: 18px;
+  background-image: url(lens.png);
+}
+
+#contacts-shortcuts > a:not([name="contacts-search-container"])[data-disabled] {
+  color: #454545;
 }
 
 /* === Call Screen === */
