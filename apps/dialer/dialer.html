@@ -76,6 +76,21 @@
       </div>
     </div>
 
+    <div id="call-screen">
+      <div id="callNumberView">
+      </div>
+      <div id="callStatusView">
+      </div>
+      <div id="callActions-container">
+      </div>
+      <div id="callMainAction">
+        <div id="mainActionButton" onclick="CallHandler.execute(this.dataset.action);">
+          <span>Answer</span>
+          <span class="end">End</span>
+        </div>
+      </div>
+    </div>
+
     <div style="display:none">
       <audio id="tone0" preload="auto"
              src="data:audio/x-wav;base64,
