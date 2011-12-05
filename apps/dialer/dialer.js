@@ -238,6 +238,12 @@ var CallHandler = {
 
     // starting the call timer
     this.callStartDate = Date.now();
+
+    var self = this;
+    this.callTicker = setInterval(function ch_updateTimer() {
+      var delta = new Date(Date.now() - self.callStartDate);
+      self.statusView.innerHTML = delta.toLocaleFormat('%M:%S');
+    }, 1000);
   },
   answer: function ch_answer() {
     // TODO: faking the connection for now
@@ -246,6 +252,9 @@ var CallHandler = {
   end: function ch_end() {
     this.toggleCallScreen();
     this.actionsView.classList.remove('connected');
+
+    clearInterval(this.callTicker);
+    delete this.callStartDate;
   },
 
   // properties / methods
