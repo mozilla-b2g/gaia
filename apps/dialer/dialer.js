@@ -209,9 +209,7 @@ var CallHandler = {
     this.numberView.innerHTML = number;
     this.statusView.innerHTML = 'Calling...';
     this.actionsView.classList.remove('connected');
-    var button = this.mainActionButton;
-    button.dataset.action = 'end';
-    button.classList.add('end');
+    this.mainActionButton.dataset.action = 'end';
     this.toggleCallScreen();
 
     // TODO: simulating the call for now
@@ -230,17 +228,13 @@ var CallHandler = {
     this.numberView.innerHTML = number;
     this.statusView.innerHTML = 'Incoming call...';
     this.actionsView.classList.remove('connected');
-    var button = this.mainActionButton;
-    button.dataset.action = 'answer';
-    button.classList.remove('end');
+    this.mainActionButton.dataset.action = 'answer';
     this.toggleCallScreen();
   },
   connected: function ch_connected() {
     this.statusView.innerHTML = '00:00';
     this.actionsView.classList.add('connected');
-    var button = this.mainActionButton;
-    button.dataset.action = 'end';
-    button.classList.add('end');
+    this.mainActionButton.dataset.action = 'end';
 
     // starting the call timer
     this.callStartDate = Date.now();
