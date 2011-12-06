@@ -74,6 +74,12 @@
           </div>
         </div>
       </div>
+
+      <div class="mainButton-container">
+        <div id="closePopoverButton" data-action="closePopover" onclick="CallHandler.execute(this.dataset.action);">
+          <span>Close</span>
+        </div>
+      </div>
     </div>
 
     <div id="call-screen">
@@ -82,11 +88,21 @@
       <div id="callStatusView">
       </div>
       <div id="callActions-container">
+        <div id="keypadButton" class="top" data-action="keypad" onclick="CallHandler.execute(this.dataset.action);">
+          Keypad
+        </div>
+        <div id="contactsButton" class="top" data-action="contacts" onclick="CallHandler.execute(this.dataset.action);">
+          Contacts
+        </div>
+        <div id="muteButton" class="mainButton" data-action="toggleMute" onclick="CallHandler.execute(this.dataset.action);">
+          <span>Mute</span>
+          <span>Unmute</span>
+        </div>
       </div>
-      <div id="callMainAction">
-        <div id="mainActionButton" onclick="CallHandler.execute(this.dataset.action);">
-          <span>Answer</span>
-          <span>End</span>
+      <div class="mainButton-container">
+        <div id="callButton" onclick="CallHandler.execute(this.dataset.action);">
+          <span>Answer call</span>
+          <span>End call</span>
         </div>
       </div>
     </div>

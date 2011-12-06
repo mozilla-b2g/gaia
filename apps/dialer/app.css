@@ -66,7 +66,7 @@ body {
   height: -moz-calc(100% - 64px);
   width: 100%;
 
-  -moz-transition-property: opacity;
+  -moz-transition-property: top, opacity;
   -moz-transition-duration: 0.3s;
 }
 
@@ -313,18 +313,62 @@ body {
   color: #454545;
 }
 
-/* === Call Screen === */
+/* === Oncall transitions === */
 
 #choices.oncall {
   margin-top: -64px;
 }
+
 #views.oncall {
+  position: absolute;
+  top: 100%;
   opacity: 0;
 }
+
 #call-screen.oncall {
   opacity: 1;
   visibility: visible;
 }
+
+/* === Popover transitions === */
+
+#views.popover {
+  position: absolute;
+  top: 64px;
+  opacity: 1;
+
+  z-index: 10;
+  background-image: -moz-linear-gradient(bottom, rgb(66,66,66) 24%, rgb(33,33,33) 44%, rgb(17,17,17) 64%);
+}
+#views.popover.hidden {
+  top: 100%;
+  opacity: 0;
+}
+
+#views .mainButton-container {
+  display: none;
+}
+#views.popover .mainButton-container {
+  display: block;
+}
+
+#views.popover #additionalKeyset {
+  display: none;
+}
+
+/* accounting for the mainButton-container below */
+#views.popover #keyboard-container {
+  bottom: -moz-calc(3em + 64px);
+}
+#views.popover #contacts-view {
+  height: -moz-calc(100% - 3em - 54px);
+}
+#views.popover #contacts-shortcuts {
+  height: -moz-calc(100% - 160px - 3em - 64px);
+}
+
+
+/* === Call Screen === */
 
 #call-screen {
   position: absolute;
@@ -342,7 +386,7 @@ body {
 }
 
 #callNumberView {
-  padding: 12px 0px;
+  padding: 6px 0px;
   background: -moz-linear-gradient(top, #33ADF9, #0098F8 50%, #008AE0 51%);
   text-shadow: 1px 1px 0px #000;
 
@@ -362,58 +406,105 @@ body {
 #callActions-container {
   position: absolute;
   width: 72%;
-  height: 300px;
-  top: -moz-calc(50% - 150px);
+  height: 200px;
+  top: -moz-calc(50% - 100px);
   left: 14%;
+  overflow: hidden;
 
   background-image: -moz-linear-gradient(top, rgb(88,88,88), rgb(44,44,44));
   border-radius: 10px;
   border: 2px #EBEBEB solid;
+
+  font-size: 2.2em;
+  text-shadow: 1px 1px 0px #000;
 
   opacity: 0;
   -moz-transition-property: opacity;
   -moz-transition-duration: 0.3s;
 }
 
-#callActions-container.connected {
-  opacity: 1;
+#callActions-container .top {
+  float: left;
+  width: -moz-calc(50% - 1px);
+  height: -moz-calc(50% - 1px);
+
+  text-align: center;
+  line-height: 99px;
 }
 
-#callMainAction {
+#keypadButton {
+  border-right: 2px #EBEBEB solid;
+}
+
+#muteButton {
   position: absolute;
   bottom: 0;
   width: 100%;
+  height: -moz-calc(50% - 1px);
+
+  border-top: 2px #EBEBEB solid;
+
+  text-align: center;
+}
+#muteButton.mute {
+  background-color: rgba(49, 147, 255, 0.7);
+}
+#muteButton span {
+  line-height: 99px;
+}
+#muteButton span:last-child,
+#muteButton.mute span:first-child {
+  display: none;
+}
+
+#muteButton.mute span:last-child,
+#muteButton span:first-child {
+  display: inline;
+}
+
+#callActions-container.displayed {
+  opacity: 1;
+}
+
+.mainButton-container {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  padding: 10px 0;
+
+  border-top: 1px #EBEBEB solid;
+  background: -moz-linear-gradient(top, #868686, #7C7C7C 50%, #707070 51%);
 
   text-align: center;
 }
 
-#mainActionButton {
+.mainButton-container > div:first-child {
   padding: 12px 0px;
-  max-width: -moz-calc(100% - 16px);
-  margin: 5px 8px;
+  max-width: -moz-calc(100% - 22px);
+  margin: 5px 10px;
   width: 100%;
 
-  background: -moz-linear-gradient(top, #45c545, #35b535 50%, #21a121 51%);
+  background: -moz-linear-gradient(top, #353535, #252525 50%, #111111 51%);
   border-radius: 10px;
   border: 1px solid #151515;
   border-top: 1px solid #c3d6df;
   box-shadow: 0 1px 3px black;
 
-  font-size: 4em;
+  font-size: 3em;
   text-shadow: 1px 1px 0px #000;
 }
 
-#mainActionButton[data-action='end'] {
+#callButton {
+  background: -moz-linear-gradient(top, #45c545, #35b535 50%, #21a121 51%);
+}
+#callButton[data-action='end'] {
   background: -moz-linear-gradient(top, #FF4844, #FF1813 50%, #C70E0C 51%);
 }
-
-#mainActionButton span:last-child,
-#mainActionButton[data-action='end'] span:first-child {
+#callButton span:last-child,
+#callButton[data-action='end'] span:first-child {
   display: none;
 }
-
-#mainActionButton[data-action='end'] span:last-child,
-#mainActionButton span:first-child {
+#callButton[data-action='end'] span:last-child,
+#callButton span:first-child {
   display: inline;
 }
-
