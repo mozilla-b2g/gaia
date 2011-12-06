@@ -317,6 +317,7 @@ if (!window['Gaia'])
 
     init: function() {
       window.addEventListener('keypress', this);
+      window.addEventListener('home', this);
       window.addEventListener('appclose', this);
 
       this._closeButtonImage = new Image();
@@ -336,6 +337,9 @@ if (!window['Gaia'])
           evt.preventDefault();
           break;
         case 'appclose':
+          this.close();
+          break;
+        case 'home':
           this.close();
           break;
         default:
