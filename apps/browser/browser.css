@@ -44,8 +44,15 @@
   border: none;
   border-radius: 10px;
   height: 32px;
-  padding: 4px 10px;
+  padding: 4px 10px 4px 42px;
   font-size: 24px;
+  background-image: url('images/favicon.png');
+  background-repeat: no-repeat;
+  background-position: 4px 4px;
+}
+
+#browser-url.loading {
+  background-image: url('images/loading.gif');
 }
 
 .browser-button {
