@@ -52,7 +52,7 @@ var MessageManager = {
   }
 };
 
-if (!('mozSms' in navigator)) {
+if (!('mozSms' in navigator) || !navigator.mozSms) {
   MessageManager.messages = [];
 
   MessageManager.getMessages =
