@@ -452,13 +452,16 @@ if (!window['Gaia'])
           size_128: 'images/Market.png'
         },
         url: 'blank.html#market'
-      }, {
+      },
+
+      /* Vibrator test app is disabled by default. */
+      /*{
         name: 'Vibrator',
         icons: {
           size_128: 'images/Vibrator.png'
         },
         url: '../vibrator/vibrator-test.html'
-      }];
+      }*/];
     },
 
     getRunningApps: function() {
