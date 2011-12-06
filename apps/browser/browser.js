@@ -16,27 +16,38 @@ var Browser = {
     return this.content = document.getElementById('browser-iframe');
   },
 
-  get urlbar() {
-    delete this.urlbar;
-    return this.urlbar =
+  get urlBar() {
+    delete this.urlBar;
+    return this.urlBar =
       document.getElementById('browser-url');
   },
+
+  get iframe() {
+    delete this.iframe;
+    return document.getElementById('browser-iframe');
+  },
+
   init: function() {
     this.goButton.addEventListener('click', (function goHandler(evt) {
-      this.navigate(this.urlbar.value);
+      this.navigate(this.urlBar.value);
       evt.preventDefault();
+    }).bind(this));
+
+    this.iframe.addEventListener('load', (function loadedHandler(evt) {
+      this.urlBar.classList.remove('loading');
     }).bind(this));
 
     this.backButton.addEventListener('click', (function backHandler(evt) {
       this.back();
     }).bind(this));
 
-    this.navigate(this.urlbar.value);
+    this.navigate(this.urlBar.value);
   },
 
   navigate: function(url) {
-    this.urlbar.value = url;
+    this.urlBar.value = url;
     this.content.setAttribute('src', url);
+    this.urlBar.classList.add('loading');
   },
 
   back: function() {
