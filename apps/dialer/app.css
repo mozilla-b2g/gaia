@@ -88,6 +88,7 @@ body {
   line-height: 180px;
   height: 180px;
   font-size: 3.5em;
+  padding: 0px 5px;
 }
 
 #fakePhoneNumberView {
