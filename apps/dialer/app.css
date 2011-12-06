@@ -403,15 +403,17 @@ body {
   font-size: 4em;
   text-shadow: 1px 1px 0px #000;
 }
+
 #mainActionButton[data-action='end'] {
   background: -moz-linear-gradient(top, #FF4844, #FF1813 50%, #C70E0C 51%);
 }
 
-#mainActionButton span.end,
+#mainActionButton span:last-child,
 #mainActionButton[data-action='end'] span:first-child {
   display: none;
 }
-#mainActionButton[data-action='end'] span.end,
+
+#mainActionButton[data-action='end'] span:last-child,
 #mainActionButton span:first-child {
   display: inline;
 }
