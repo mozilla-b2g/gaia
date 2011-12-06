@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <link rel="stylesheet" type="text/css" href="sms.css"></link>
+    <link rel="stylesheet" type="text/css" href="sms.css">
     <script type="text/javascript" src="sms.js"></script>
     <script type="text/javascript" src="../apps.js"></script>
   </head>
@@ -16,7 +16,7 @@
         <img src="../images/throbber.png" width="32" height="32"></img>
       </div>
 
-      <form onsubmit="ConversationView.sendMessage(); return false;">
+      <form id="conversationForm" onsubmit="return ConversationView.sendMessage(); return false;">
         <input id="contact" class="filtered" type="tel" required="true" placeholder="To:" list="contacts"></input>
         <datalist id="contacts"></datalist>
         <div id="conversation" onclick="ConversationView.deleteMessage(event);"></div>

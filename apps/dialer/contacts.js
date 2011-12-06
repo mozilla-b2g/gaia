@@ -1,9 +1,17 @@
 
 var Contacts = {
+  get view () {
+    delete this.view;
+    return this.view = document.getElementById('contacts-view');
+  },
   init: function contactsInit() {
     // Could be much easier to have am argument named 'parameters' pass as
     // a second argument that I can omit
     this.find(['id', 'displayName'], this.show.bind(this));
+    
+    this.view.addEventListener('touchstart', function showSearch(evt) {
+      Contacts.showSearch();
+    });
   },
   find: function contactsFind(fields, callback) {
     // Ideally I would like to choose the ordering
@@ -40,28 +48,28 @@ var Contacts = {
                  '  <span class="phoneNumber">' + phoneNumber + '</span>' +
                  '</div>';
     }
-    var contactsContainer = document.getElementById('contacts');
+    var contactsContainer = document.getElementById('contacts-container');
     contactsContainer.innerHTML = content;
     this.filter();
-
-    // Scroll bottom to hide the search field by default
-    setTimeout(function hideSearch(self) {
-      self.showSearch();
-    }, 400, this);
   },
   hideSearch: function contactsHideSearch() {
-    var searchContainer = document.getElementById('search-container');
+    var searchContainer = document.getElementById('contacts-search-container');
     searchContainer.hidden = true;
+    this.view.scrollTop = 0;
   },
   showSearch: function contactsHideSearch() {
-    var searchContainer = document.getElementById('search-container');
-    searchContainer.hidden = false;
+    var oldScrollTop = this.view.scrollTop;
 
-    var mainContainer = document.getElementById('main-container');
-    mainContainer.scrollTop = searchContainer.getBoundingClientRect().height;
+    var search = document.getElementById('contacts-search-container');
+    if (!search.hidden)
+      return;
+
+    search.hidden = false;
+    var searchHeight = search.getBoundingClientRect().height;
+    this.view.scrollTop = oldScrollTop + searchHeight;
   },
   filter: function contactsFilter(value) {
-    var contacts = document.getElementById('contacts').children;
+    var contacts = document.getElementById('contacts-container').children;
 
     var count = contacts.length;
     for (var i = 0; i < count; i++) {
@@ -92,7 +100,7 @@ var Contacts = {
     }
 
     // Reflect the change in the shortcut letter
-    var shortcuts = document.getElementById('shortcuts').children;
+    var shortcuts = document.getElementById('contacts-shortcuts').children;
     for (var j = 1; j < shortcuts.length; j++) {
       var shortcut = shortcuts[j];
       var targetId = shortcut.name;
@@ -116,24 +124,26 @@ var Contacts = {
       return;
 
     var top = target.getBoundingClientRect().top;
-    var scrollable = document.getElementById('main-container');
-    scrollable.scrollTop = top + scrollable.scrollTop;
+    var scrollable = document.getElementById('contacts-view');
+    scrollableTop = scrollable.getBoundingClientRect().top;
+    scrollable.scrollTop = (top - scrollableTop) + scrollable.scrollTop;
   },
   showDetails: function contactsShowDetails(evt) {
     var infos = evt.target.children;
     var phoneNumber = infos[1].textContent;
 
-    var parentWindow = window.parent;
-    if (parentWindow.choiceChanged) {
-      var keyView = parentWindow.document.getElementById('keyboard');
-      parentWindow.choiceChanged(keyView);
+    var keyView = document.getElementById('keyboard');
+    choiceChanged(keyView);
 
-      var keyHandler = parentWindow.KeyHandler;
-      keyHandler.phoneNumber.value = phoneNumber;
-      keyHandler.updateFontSize();
+    KeyHandler.phoneNumber.value = phoneNumber;
+    KeyHandler.updateFontSize();
 
-      window.navigator.mozPhone.call(phoneNumber);
-    }
+    window.navigator.mozTelephony.dial(phoneNumber);
   }
 };
+
+window.addEventListener('load', function contactsLoad(evt) {
+  window.removeEventListener('load', contactsLoad, true);
+  Contacts.init();
+}, true);
 

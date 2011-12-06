@@ -1,49 +1,9 @@
+<!doctype>
 <html>
   <head>
-    <link href='system.css' rel='stylesheet' type='text/css'></link>
-    <link href='homescreen.css' rel='stylesheet' type='text/css'></link>
-	  <script type="text/javascript" src="appManager.js"></script>
-    <script type="text/javascript" src="scenegraph.js"></script>
-    <script type="text/javascript" src="homescreen.js"></script> 
-    <script type="text/javascript" src="apps.js"></script> 
+    <script>
+      document.location = 'apps/homescreen/homescreen.html';
+    </script>
   </head>
-  <body onload="OnLoad();">
-    <div id="taskManager">
-      <canvas id="taskTrayCanvas"></canvas>
-    </div>
-    <div id="screen">
-      <div id="statusbar">
-        <div id="padding"></div>
-        <div class="battery">
-          <div id="fuel"></div>
-          <div id="charging" hidden="true"></div>
-        </div>
-        <div class="time" data-format="%H:%M"></div>
-      </div>
-      <div id="home">
-        <canvas id="homeCanvas"></canvas>
-      </div>
-      <div id="windows" hidden="true">
-        <!-- application windows are added here -->
-      </div>
-      <div id="notificationsScreen"></div>
-      <div id="lockscreen">
-	      <div id="status">
-	        <div id="signal"></div>
-	        <div id="network"></div>
-	        <div id="padding"></div>
-	      </div>
-	      <div id="clock">
-	        <div class="time" data-format="%H:%M %p"></div>
-	        <div class="time" data-format="%A"></div>
-	        <div class="time" data-format="%d %b"></div>
-	      </div>
-	      <div id="notifications">
-	        Phone: <div id="phone">0</div>
-	        SMS: <div id="sms">0</div>
-	        Email: <div id="email">0</div>
-	      </div>
-      </div>
-    </div>
-  </body>
+  <body></body>
 </html>

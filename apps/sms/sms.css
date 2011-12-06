@@ -127,9 +127,13 @@ textarea:focus {
   display: none;
 }
 
+#conversationForm {
+  height: 100%;
+}
+
 #conversation {
   color: black;
-  height: -moz-calc(800px - 120px);
+  height: -moz-calc(100% - 80px);
   overflow: hidden;
   background-color: rgba(0,0,0,0.03);
 }

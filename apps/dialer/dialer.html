@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, min-scale=1.0, max-scale=1.0, user-scalable=no"/>
-    <link rel="stylesheet" type="text/css" href="dialer.css" />
+    <link rel="stylesheet" type="text/css" href="app.css" />
     <script type="application/javascript" src="../apps.js"></script>
+    <script type="application/javascript" src="contacts.js"></script>
     <script type="application/javascript" src="dialer.js"></script>
   </head>
 
@@ -11,8 +11,47 @@
     <div id="choices" onclick="choiceChanged(event.target)">
       <button id="keyboard" class="choice" data-active="true">Tel.</button><button id="contacts" class="choice">Contacts</button>
     </div>
+
     <div id="views">
-      <iframe src="contacts/index.html" id="contacts-view" class="view" hidden="true"></iframe>
+      <div id="contacts-view" class="view" hidden="true">
+        <div id="contacts-search-container" hidden="true">
+          <input id="contacts-search" type="search" onmousedown="this.focus();" oninput="Contacts.filter(event.target.value);"></input>
+        </div>
+
+        <div id="contacts-wrapper">
+          <div id="contacts-shortcuts" onmousedown="Contacts.anchor(event.target.name);">
+            <a name="contacts-search-container"></a>
+            <a name="A">A</a>
+            <a name="B">B</a>
+            <a name="C">C</a>
+            <a name="D">D</a>
+            <a name="E">E</a>
+            <a name="F">F</a>
+            <a name="G">G</a>
+            <a name="H">H</a>
+            <a name="I">I</a>
+            <a name="J">J</a>
+            <a name="K">K</a>
+            <a name="L">L</a>
+            <a name="M">M</a>
+            <a name="N">N</a>
+            <a name="O">O</a>
+            <a name="P">P</a>
+            <a name="Q">Q</a>
+            <a name="R">R</a>
+            <a name="S">S</a>
+            <a name="T">T</a>
+            <a name="U">U</a>
+            <a name="V">V</a>
+            <a name="W">W</a>
+            <a name="X">X</a>
+            <a name="Y">Y</a>
+            <a name="Z">Z</a>
+          </div>
+
+          <div id="contacts-container" onclick="Contacts.showDetails(event)"></div>
+      </div>
+    </div>
 
       <div id="keyboard-view" class="view">
         <input type="hidden" id="phoneNumber"></input>
@@ -33,6 +72,21 @@
               </div>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="call-screen">
+      <div id="callNumberView">
+      </div>
+      <div id="callStatusView">
+      </div>
+      <div id="callActions-container">
+      </div>
+      <div id="callMainAction">
+        <div id="mainActionButton" onclick="CallHandler.execute(this.dataset.action);">
+          <span>Answer</span>
+          <span class="end">End</span>
         </div>
       </div>
     </div>

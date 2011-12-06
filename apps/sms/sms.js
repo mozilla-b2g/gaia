@@ -18,6 +18,7 @@ function prettyDate(time) {
           day_diff < 31 && Math.ceil(day_diff / 7) + ' weeks ago';
 }
 
+
 var MessageManager = {
   getMessages: function mm_getMessages(callback, filter, invert) {
     var request = navigator.mozSms.getMessages(filter, !invert);
@@ -81,12 +82,12 @@ if (!('mozSms' in navigator)) {
     var messages = [
       {
         sender: null,
-        receiver: '+33601010101',
+        receiver: '1-977-743-6797',
         body: 'Nothing :)',
         timestamp: Date.now() - 44000000
       },
       {
-        sender: '+33601010101',
+        sender: '1-977-743-6797',
         body: 'Hey! What\s up?',
         timestamp: Date.now() - 50000000
       }
@@ -94,7 +95,7 @@ if (!('mozSms' in navigator)) {
 
     for (var i = 0; i < 40; i++)
       messages.push({
-        sender: '+33602020202',
+        sender: '1-488-678-3487',
         body: 'Hello world!',
         timestamp: Date.now() - 60000000
       });
@@ -207,7 +208,7 @@ var MessageView = {
     var contacts = window.navigator.mozContacts.contacts;
     contacts.forEach(function(contact) {
       if (contact.phones[0] == num)
-        num = contact.name;
+        num = contact.displayName;
     });
     var title = num + ' (' + msg.count + ')';
 
@@ -330,19 +331,22 @@ var ConversationView = {
 
     view.addEventListener('transitionend', function slideOut(evt) {
       view.removeEventListener('transitionend', slideOut);
+      var text = document.getElementById('text');
+      text.value = text.style.height = '';
+
       view.hidden = true;
     });
     return true;
   },
   sendMessage: function cv_sendMessage() {
     var contact = document.getElementById('contact');
-    if (contact.value == '')
+    var text = document.getElementById('text');
+    if (contact.value == '' || text.value == '')
       return;
 
     var throbber = document.getElementById('throbber');
     throbber.removeAttribute('hidden');
 
-    var text = document.getElementById('text');
     MessageManager.send(contact.value, text.value, function() {
       throbber.setAttribute('hidden', 'true');
       text.value = text.style.height = '';
@@ -352,6 +356,7 @@ var ConversationView = {
 
       ConversationView.close();
     });
+    return;
   }
 };
 

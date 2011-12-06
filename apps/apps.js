@@ -4,6 +4,7 @@
 
 
 'use strict';
+var emulateRun = (window.navigator.userAgent.indexOf('B2G') == -1);
 
 var Apps = {
   events: ['keypress', 'unload'],
@@ -11,6 +12,7 @@ var Apps = {
     switch (evt.type) {
       case 'keypress':
         if (window.top == window ||
+            !emulateRun ||
             evt.getPreventDefault() ||
             evt.keyCode != evt.DOM_VK_ESCAPE)
           break;
@@ -19,7 +21,7 @@ var Apps = {
 
         var event = document.createEvent('UIEvents');
         event.initUIEvent('appclose', true, true, window, 0);
-        window.parent.dispatchEvent(event);
+        window.top.dispatchEvent(event);
         break;
       case 'unload':
         this.uninit();
@@ -49,7 +51,6 @@ var Apps = {
 var TouchHandler = {
   touchState: { active: false, startX: 0, startY: 0 },
   events: ['touchstart', 'touchmove', 'touchend',
-           'mousedown', 'mousemove', 'mouseup',
            'contextmenu'],
   start: function th_start() {
     this.events.forEach((function(evt) {
@@ -120,7 +121,6 @@ var TouchHandler = {
 
     switch (evt.type) {
       case 'touchstart':
-      case 'mousedown':
         var pannableTarget = this.getPannableTarget(evt.originalTarget);
         if (!pannableTarget)
           return;
@@ -132,7 +132,6 @@ var TouchHandler = {
         break;
 
       case 'touchmove':
-      case 'mousemove':
         if (!this.target)
           break;
 
@@ -154,7 +153,6 @@ var TouchHandler = {
         showSourceViewer(sourceURL);
         evt.preventDefault();
       case 'touchend':
-      case 'mouseup':
         if (!this.target)
           return;
 
@@ -1315,7 +1313,7 @@ Apps.init();
           if (!eventTarget)
             return;
 
-          // On device a mousemove event if fired right after the mousedown
+          // On device a mousemove event is fired right after the mousedown
           // because of the size of the finger, so var's ignore what happens
           // below 5ms
           if (evt.timeStamp - this.timestamp < 30)
@@ -1345,9 +1343,12 @@ Apps.init();
 
         case 'unload':
           window.clearTimeout(contextMenuTimeout);
-          eventTarget.ownerDocument.releaseCapture();
-          this.target = null;
           TouchEventHandler.stop();
+
+          if (eventTarget) {
+            eventTarget.ownerDocument.releaseCapture();
+            this.target = null;
+          }
           return;
 
         case 'click':
@@ -1434,7 +1435,7 @@ Apps.init();
     }
   };
 
-  if (!window.matchMedia('(-moz-touch-enabled)'))
+  if (emulateRun)
     TouchEventHandler.start();
 })();
 

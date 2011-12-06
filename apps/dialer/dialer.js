@@ -33,6 +33,9 @@ function choiceChanged(target) {
   if (!view)
     return;
 
+  // XXX this should not live here
+  Contacts.hideSearch();
+
   var choices = document.getElementById('choices');
   var choicesCount = choices.childElementCount;
   for (var i = 0; i < choicesCount; i++) {
@@ -41,16 +44,10 @@ function choiceChanged(target) {
 
     var choiceView = document.getElementById(choice.id + '-view');
     choiceView.setAttribute('hidden', 'true');
-
-    if (choiceView.contentWindow && choiceView.contentWindow.Contacts)
-      choiceView.contentWindow.Contacts.hideSearch();
   }
 
   target.setAttribute('data-active', 'true');
   view.removeAttribute('hidden');
-
-  if (view.contentWindow && view.contentWindow.Contacts)
-    view.contentWindow.Contacts.showSearch();
 }
 
 var KeyHandler = {
@@ -126,11 +123,7 @@ var KeyHandler = {
   },
 
   call: function kh_call(number) {
-    try {
-      window.navigator.mozPhone.call(this.phoneNumber.value);
-    } catch (e) {
-      console.log('Error while trying to call number: ' + e);
-    }
+    CallHandler.call(number);
   },
 
   updateFontSize: function kh_updateFontSize() {
@@ -192,7 +185,10 @@ var KeyHandler = {
       this.phoneNumber.value = KeyHandler.phoneNumber.value.slice(0, -1);
       this.updateFontSize();
     } else if (key == 'call') {
-      this.call(this.phoneNumber.value);
+      // TODO: update the call button style to show his availability
+      if (this.phoneNumber.value != '') {
+        this.call(this.phoneNumber.value);
+      }
     } else {
       this.phoneNumber.value += key;
       this.updateFontSize();
@@ -207,12 +203,100 @@ var KeyHandler = {
   }
 };
 
+var CallHandler = {
+  // callbacks
+  call: function ch_call(number) {
+    this.numberView.innerHTML = number;
+    this.statusView.innerHTML = 'Calling...';
+    this.actionsView.classList.remove('connected');
+    this.mainActionButton.dataset.action = 'end';
+    this.toggleCallScreen();
+
+    // TODO: simulating the call for now
+    var self = this;
+    setTimeout(function ch_fakeConnection() {
+      self.connected();
+    }, 1200);
+
+    try {
+      window.navigator.mozTelephony.dial(this.phoneNumber.value);
+    } catch (e) {
+      console.log('Error while trying to call number: ' + e);
+    }
+  },
+  incoming: function ch_incoming(number) {
+    this.numberView.innerHTML = number;
+    this.statusView.innerHTML = 'Incoming call...';
+    this.actionsView.classList.remove('connected');
+    this.mainActionButton.dataset.action = 'answer';
+    this.toggleCallScreen();
+  },
+  connected: function ch_connected() {
+    // hardening against rapid ending
+    if (!document.getElementById('call-screen').classList.contains('oncall')) {
+      return;
+    }
+
+    this.statusView.innerHTML = '00:00';
+    this.actionsView.classList.add('connected');
+    this.mainActionButton.dataset.action = 'end';
+
+    // starting the call timer
+    var callStartDate = Date.now();
+    var self = this;
+    this._ticker = setInterval(function ch_updateTimer() {
+      var delta = new Date(Date.now() - callStartDate);
+      self.statusView.innerHTML = delta.toLocaleFormat('%M:%S');
+    }, 1000);
+  },
+  answer: function ch_answer() {
+    // TODO: faking the connection for now
+    this.connected();
+  },
+  end: function ch_end() {
+    this.toggleCallScreen();
+    this.actionsView.classList.remove('connected');
+
+    clearInterval(this._ticker);
+  },
+
+  // properties / methods
+  get numberView() {
+    delete this.numberView;
+    return this.numberView = document.getElementById('callNumberView');
+  },
+  get statusView() {
+    delete this.statusView;
+    return this.statusView = document.getElementById('callStatusView');
+  },
+  get actionsView() {
+    delete this.actionsView;
+    return this.actionsView = document.getElementById('callActions-container');
+  },
+  get mainActionButton() {
+    delete this.mainActionButton;
+    return this.mainActionButton = document.getElementById('mainActionButton');
+  },
+  execute: function ch_execute(action) {
+    switch (action) {
+      case 'answer':
+        this.answer();
+        break;
+      default:
+        this.end();
+        break;
+    }
+  },
+
+  toggleCallScreen: function ch_toggleScreen() {
+    document.getElementById('choices').classList.toggle('oncall');
+    document.getElementById('views').classList.toggle('oncall');
+    document.getElementById('call-screen').classList.toggle('oncall');
+  }
+};
+
 window.addEventListener('load', function keyboardInit(evt) {
   window.removeEventListener('load', keyboardInit);
-  visibilityChanged(document.location.toString());
-
-
-
   KeyHandler.init();
 });
 

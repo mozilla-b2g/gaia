@@ -17,13 +17,13 @@ function GetAnimationClockTime() {
          window.animationStartTime;
 }
 
-function RequestAnimationFrame() {
+function RequestAnimationFrame(callback) {
   if (window.mozRequestAnimationFrame)
-    window.mozRequestAnimationFrame();
+    window.mozRequestAnimationFrame(callback);
   else if (window.webkitRequestAnimationFrame)
-    window.webkitRequestAnimationFrame();
+    window.webkitRequestAnimationFrame(callback);
   else if (window.requestAnimationFrame)
-    window.requestAnimationFrame();
+    window.requestAnimationFrame(callback);
 }
 
 var Physics = {
@@ -126,14 +126,14 @@ function SceneGraph(canvas) {
   this.x = 0;
   this.y = 0;
 
-  var self = this;
-  window.addEventListener('MozBeforePaint', function(event) {
-      var now = GetAnimationClockTime();
-      // continue painting until we are run out of animations
-      if (self.animate(now))
-        RequestAnimationFrame();
-      self.draw();
-    }, false);
+  var callback = (function repaint() {
+    var now = GetAnimationClockTime();
+    // continue painting until we are run out of animations
+    if (this.animate(now))
+      RequestAnimationFrame();
+    this.draw();
+  }).bind(this);
+  RequestAnimationFrame = RequestAnimationFrame.bind(this, callback);
 }
 
 SceneGraph.prototype = {

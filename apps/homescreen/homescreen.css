@@ -105,11 +105,12 @@ html, body {
 
 #notificationsScreen {
   position: absolute;
+  z-index: 9998;
   top: -moz-calc(-100% + 48px);
   width: -moz-calc(100%);
   height: -moz-calc(100% - 24px);
   background-color: #444;
-	background: #323f4d url(images/notificationsbar-bg.png) no-repeat 0 100%;
+  background: #323f4d url(images/notificationsbar-bg.png) no-repeat 0 100%;
 }
 
 #home {
@@ -170,7 +171,7 @@ iframe.appWindow {
 #statusbar {
   display: -moz-box;
   -moz-box-orient: horizontal;
-	background: url(images/statusbar-bg.png) repeat-x;
+  background: url(images/statusbar-bg.png) repeat-x;
   width: -moz-calc(100% - 4px);
   height: 20px;
   padding: 2px;
@@ -191,10 +192,10 @@ iframe.appWindow {
 }
 
 .battery {
-	float:right;
-	margin: 1px 3px;
-	padding: 4px 6px 4px 4px;
-	width: 29px;
+  float:right;
+  margin: 1px 3px;
+  padding: 4px 6px 4px 4px;
+  width: 29px;
   background: url(images/battery-main.png);
   background-repeat: no-repeat;
   background-size: 29px 16px;
@@ -214,8 +215,8 @@ iframe.appWindow {
 }
 
 .battery > #fuel.charging {
-	background-image: url(images/charging.png), -moz-linear-gradient(top, #8fc400, #b9fd00);
-  -moz-animation-duration: 4s;
+  background-image: -moz-linear-gradient(top, #b9fd00, #8fc400);
+  -moz-animation-duration: 3s;
   -moz-animation-name: batteryCharging;
   -moz-animation-iteration-count: infinite;
   -moz-animation-timing-function: linear;
@@ -246,4 +247,40 @@ iframe.appWindow {
   width: -moz-calc(100%);
 }
 
+#keyboard {
+  position: absolute;
+  z-index: 9997;
+  bottom: 0;
+  background-color: #36373b;
+  width: -moz-calc(100%);
+  min-height: 200px;
+  -moz-transition: bottom 0.2s ease;
+}
+
+#keyboard[data-hidden] {
+  bottom: -800px;
+}
+
+.keyboard-key {
+  display: inline-table;
+  text-align: center;
+  color: white;
+  font-size: 32px;
+  height: 64px;
+  line-height: 64px;
+  min-width: 0 !important;
+  margin-bottom: 2px;
+  margin-top: 2px;
+  margin-left: 1px;
+  margin-right: 1px;
+  padding: 0;
+  border: 1px solid black;
+  border-radius: 5px;
+  background: -moz-linear-gradient(top, rgb(94,97,102) 10%, rgb(64,64,72) 90%);
+}
+
+.keyboard-key[data-active] {
+  color: #ccc;
+  background: -moz-linear-gradient(bottom, rgb(94,97,102) 10%, rgb(64,64,72) 90%);
+}
 

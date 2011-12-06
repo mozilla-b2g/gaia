@@ -111,8 +111,7 @@ if (!window['Gaia'])
 
     // Set up event handlers.
     var events = [
-      'touchstart', 'touchmove', 'touchend',
-      'mousedown', 'mousemove', 'mouseup'
+      'touchstart', 'touchmove', 'touchend'
     ];
 
     events.forEach((function(evt) {
@@ -242,16 +241,13 @@ if (!window['Gaia'])
 
       switch (e.type) {
         case 'touchstart':
-        case 'mousedown':
           this.canvas.setCapture(false);
           physics.onTouchStart(e.touches ? e.touches[0] : e);
           break;
         case 'touchmove':
-        case 'mousemove':
           physics.onTouchMove(e.touches ? e.touches[0] : e);
           break;
         case 'touchend':
-        case 'mouseup':
           document.releaseCapture();
           physics.onTouchEnd(e.touches ? e.touches[0] : e);
           break;
@@ -330,12 +326,14 @@ if (!window['Gaia'])
     handleEvent: function(evt) {
       switch (evt.type) {
         case 'keypress':
-          if (evt.keyCode == evt.DOM_VK_ESCAPE) {
-            if (this.isTaskManagerOpen)
-              this.closeTaskManager();
-            else
-              this.openTaskManager();
-          }
+          if (evt.keyCode != evt.DOM_VK_ESCAPE)
+            return;
+
+          if (this.isTaskManagerOpen)
+            this.closeTaskManager();
+          else
+            this.openTaskManager();
+          evt.preventDefault();
           break;
         case 'appclose':
           this.close();
@@ -365,91 +363,91 @@ if (!window['Gaia'])
         icons: {
           size_128: 'images/Phone.png'
         },
-        url: 'dialer/dialer.html'
+        url: '../dialer/dialer.html'
       }, {
         name: 'Messages',
         icons: {
           size_128: 'images/Messages.png'
         },
-        url: 'sms/sms.html'
+        url: '../sms/sms.html'
       }, {
         name: 'Contacts',
         icons: {
           size_128: 'images/Contacts.png'
         },
-        url: 'dialer/dialer.html?choice=contact'
+        url: '../dialer/dialer.html?choice=contact'
       }, {
         name: 'Video',
         icons: {
           size_128: 'images/Video.png'
         },
-        url: 'blank.html'
+        url: 'blank.html#video'
       }, {
         name: 'Gallery',
         icons: {
           size_128: 'images/Gallery.png'
         },
-        url: 'gallery/gallery.html'
+        url: '../gallery/gallery.html'
       }, {
         name: 'Camera',
         icons: {
           size_128: 'images/Camera.png'
         },
-        url: 'blank.html'
+        url: '../camera/camera.html'
       }, {
         name: 'Maps',
         icons: {
           size_128: 'images/Maps.png'
         },
-        url: 'blank.html'
+        url: 'blank.html#maps'
       }, {
         name: 'Calculator',
         icons: {
           size_128: 'images/Calculator.png'
         },
-        url: 'blank.html'
+        url: 'blank.html#calculator'
       }, {
         name: 'Clock',
         icons: {
           size_128: 'images/Clock.png'
         },
-        url: 'blank.html'
+        url: 'blank.html#clock'
       }, {
         name: 'Browser',
         icons: {
           size_128: 'images/Browser.png'
         },
-        url: 'browser/browser.html'
+        url: '../browser/browser.html'
       }, {
         name: 'Music',
         icons: {
           size_128: 'images/Music.png'
         },
-        url: 'blank.html'
+        url: 'blank.html#music'
       }, {
         name: 'Weather',
         icons: {
           size_128: 'images/Weather.png'
         },
-        url: 'blank.html'
+        url: 'blank.html#weather'
       }, {
         name: 'Settings',
         icons: {
           size_128: 'images/Settings.png'
         },
-        url: 'blank.html'
+        url: '../settings/settings.html'
       }, {
         name: 'Stocks',
         icons: {
           size_128: 'images/Stocks.png'
         },
-        url: 'blank.html'
+        url: 'blank.html#stocks'
       }, {
         name: 'Market',
         icons: {
           size_128: 'images/Market.png'
         },
-        url: 'blank.html'
+        url: 'blank.html#market'
       }];
     },
 
@@ -497,10 +495,18 @@ if (!window['Gaia'])
     launch: function(url) {
       var instance = this.getAppInstance(url);
 
+      var state = {
+        url: url,
+        hidden: false
+      };
+      var event = document.createEvent('CustomEvent');
+      event.initCustomEvent('visibilitychange', true, true, state);
+
       // App is already running, set focus to the existing instance.
       if (instance) {
         var foregroundWindow = this.foregroundWindow = instance.window;
         foregroundWindow.removeAttribute('hidden');
+        foregroundWindow.contentWindow.dispatchEvent(event);
       } else {
         var app = this.getInstalledAppForURL(url);
         var newWindow = document.createElement('iframe');
@@ -509,6 +515,14 @@ if (!window['Gaia'])
         foregroundWindow.src = url;
 
         this.windowsContainer.appendChild(foregroundWindow);
+
+        var contentWindow = foregroundWindow.contentWindow;
+        contentWindow.addEventListener('load', function appload(evt) {
+          contentWindow.removeEventListener('load', appload, true);
+          setTimeout(function () {
+            contentWindow.dispatchEvent(event);
+          }, 0);
+        }, true);
 
         runningApps.push({
           url: url,
@@ -523,15 +537,6 @@ if (!window['Gaia'])
         window.removeEventListener('animationend', animationCompleteHandler);
 
         foregroundWindow.focus();
-
-
-        var state = {
-          url: url,
-          hidden: false
-        };
-        var event = document.createEvent('CustomEvent');
-        event.initCustomEvent('visibilitychange', true, true, state);
-        foregroundWindow.contentWindow.dispatchEvent(event);
 
         foregroundWindow.classList.remove('animateOpening');
 
