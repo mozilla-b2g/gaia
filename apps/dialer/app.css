@@ -6,7 +6,6 @@ html, body {
 }
 
 body {
-  -moz-user-select: none;
   font-size: 2.5mozmm;
   color: white;
   font-family: helvetica, sans-serif;
@@ -303,11 +302,10 @@ body {
 }
 
 #contacts-shortcuts > a[name="contacts-search-container"] {
-  width: 13px;
-  height: 13px;
-  margin-bottom: 10px;
-  margin-left: 18px;
-  background-image: url(lens.png);
+  width: 100%;
+  margin-left: 4px;
+  background: url(lens.png) right top;
+  background-repeat: no-repeat;
 }
 
 #contacts-shortcuts > a:not([name="contacts-search-container"])[data-disabled] {
@@ -403,15 +401,17 @@ body {
   font-size: 4em;
   text-shadow: 1px 1px 0px #000;
 }
+
 #mainActionButton[data-action='end'] {
   background: -moz-linear-gradient(top, #FF4844, #FF1813 50%, #C70E0C 51%);
 }
 
-#mainActionButton span.end,
+#mainActionButton span:last-child,
 #mainActionButton[data-action='end'] span:first-child {
   display: none;
 }
-#mainActionButton[data-action='end'] span.end,
+
+#mainActionButton[data-action='end'] span:last-child,
 #mainActionButton span:first-child {
   display: inline;
 }

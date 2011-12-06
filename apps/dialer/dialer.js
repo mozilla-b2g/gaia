@@ -213,10 +213,9 @@ var CallHandler = {
     this.toggleCallScreen();
 
     // TODO: simulating the call for now
-    var self = this;
-    setTimeout(function ch_fakeConnection() {
+    this._timeout = setTimeout(function ch_fakeConnection(self) {
       self.connected();
-    }, 1200);
+    }, 1200, this);
 
     try {
       window.navigator.mozTelephony.dial(this.phoneNumber.value);
@@ -233,21 +232,17 @@ var CallHandler = {
   },
   connected: function ch_connected() {
     // hardening against rapid ending
-    if (!document.getElementById('call-screen').classList.contains('oncall')) {
+    if (!document.getElementById('call-screen').classList.contains('oncall'))
       return;
-    }
 
     this.statusView.innerHTML = '00:00';
     this.actionsView.classList.add('connected');
     this.mainActionButton.dataset.action = 'end';
 
-    // starting the call timer
-    var callStartDate = Date.now();
-    var self = this;
-    this._ticker = setInterval(function ch_updateTimer() {
-      var delta = new Date(Date.now() - callStartDate);
-      self.statusView.innerHTML = delta.toLocaleFormat('%M:%S');
-    }, 1000);
+    this._ticker = setInterval(function ch_updateTimer(self, startTime) {
+      var elapsed = new Date(Date.now() - startTime);
+      self.statusView.innerHTML = elapsed.toLocaleFormat('%M:%S');
+    }, 1000, this, Date.now());
   },
   answer: function ch_answer() {
     // TODO: faking the connection for now
@@ -258,6 +253,7 @@ var CallHandler = {
     this.actionsView.classList.remove('connected');
 
     clearInterval(this._ticker);
+    clearTimeout(this._timeout);
   },
 
   // properties / methods
