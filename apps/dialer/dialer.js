@@ -59,12 +59,12 @@ var KeyHandler = {
   get fakePhoneNumberView() {
     delete this.fakePhoneNumberView;
     return this.fakePhoneNumberView =
-      document.getElementById('fakePhoneNumberView');
+      document.getElementById('fakePhoneNumber-view');
   },
 
   get phoneNumberView() {
     delete this.phoneNumberView;
-    return this.phoneNumberView = document.getElementById('phoneNumberView');
+    return this.phoneNumberView = document.getElementById('phoneNumber-view');
   },
 
   init: function kh_init() {
@@ -263,11 +263,11 @@ var CallHandler = {
   // properties / methods
   get numberView() {
     delete this.numberView;
-    return this.numberView = document.getElementById('callNumberView');
+    return this.numberView = document.getElementById('callNumber-view');
   },
   get statusView() {
     delete this.statusView;
-    return this.statusView = document.getElementById('callStatusView');
+    return this.statusView = document.getElementById('callStatus-view');
   },
   get actionsView() {
     delete this.actionsView;
@@ -275,11 +275,11 @@ var CallHandler = {
   },
   get muteButton() {
     delete this.muteButton;
-    return this.muteButton = document.getElementById('muteButton');
+    return this.muteButton = document.getElementById('mute-button');
   },
   get callButton() {
     delete this.callButton;
-    return this.callButton = document.getElementById('callButton');
+    return this.callButton = document.getElementById('call-button');
   },
   execute: function ch_execute(action) {
     switch (action) {

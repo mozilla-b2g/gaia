@@ -55,9 +55,9 @@
 
       <div id="keyboard-view" class="view">
         <input type="hidden" id="phoneNumber"></input>
-        <div id="fakePhoneNumberView"></div>
-        <div id="phoneNumberViewContainer">
-          <div id="phoneNumberView"></div>
+        <div id="fakePhoneNumber-view"></div>
+        <div id="phoneNumber-view-container">
+          <div id="phoneNumber-view"></div>
         </div>
 
         <div id="keyboard-container" onmousedown="KeyHandler.keyDown(event);" onmouseup="KeyHandler.keyUp(event);">
@@ -75,32 +75,32 @@
         </div>
       </div>
 
-      <div class="mainButton-container">
-        <div id="closePopoverButton" data-action="closePopover" onclick="CallHandler.execute(this.dataset.action);">
+      <div class="main-button-container">
+        <div id="closePopover-button" data-action="closePopover" onclick="CallHandler.execute(this.dataset.action);">
           <span>Close</span>
         </div>
       </div>
     </div>
 
     <div id="call-screen">
-      <div id="callNumberView">
+      <div id="callNumber-view">
       </div>
-      <div id="callStatusView">
+      <div id="callStatus-view">
       </div>
       <div id="callActions-container">
-        <div id="keypadButton" class="top" data-action="keypad" onclick="CallHandler.execute(this.dataset.action);">
+        <div id="keypad-button" class="top" data-action="keypad" onclick="CallHandler.execute(this.dataset.action);">
           Keypad
         </div>
-        <div id="contactsButton" class="top" data-action="contacts" onclick="CallHandler.execute(this.dataset.action);">
+        <div id="contacts-button" class="top" data-action="contacts" onclick="CallHandler.execute(this.dataset.action);">
           Contacts
         </div>
-        <div id="muteButton" class="mainButton" data-action="toggleMute" onclick="CallHandler.execute(this.dataset.action);">
+        <div id="mute-button" data-action="toggleMute" onclick="CallHandler.execute(this.dataset.action);">
           <span>Mute</span>
           <span>Unmute</span>
         </div>
       </div>
-      <div class="mainButton-container">
-        <div id="callButton" onclick="CallHandler.execute(this.dataset.action);">
+      <div class="main-button-container">
+        <div id="call-button" onclick="CallHandler.execute(this.dataset.action);">
           <span>Answer call</span>
           <span>End call</span>
         </div>
