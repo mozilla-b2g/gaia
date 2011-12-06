@@ -1,4 +1,5 @@
 var Browser = {
+
   get backButton() {
     delete this.backButton;
     return this.backButton =
@@ -29,7 +30,9 @@ var Browser = {
 
   init: function() {
     this.goButton.addEventListener('click', (function goHandler(evt) {
-      this.navigate(this.urlBar.value);
+      var url = this.urlBar.value;
+      MockHistory.pushState(null, '', url);
+      this.navigate(url);
       evt.preventDefault();
     }).bind(this));
 
@@ -38,20 +41,18 @@ var Browser = {
     }).bind(this));
 
     this.backButton.addEventListener('click', (function backHandler(evt) {
-      this.back();
+      MockHistory.back();
     }).bind(this));
 
-    this.navigate(this.urlBar.value);
+    var url = this.urlBar.value;
+    MockHistory.pushState(null, '', url);
+    this.navigate(url);
   },
 
   navigate: function(url) {
     this.urlBar.value = url;
     this.content.setAttribute('src', url);
     this.urlBar.classList.add('loading');
-  },
-
-  back: function() {
-    this.content.contentWindow.history.back();
   }
 };
 
@@ -59,3 +60,30 @@ window.addEventListener('load', function browserOnLoad(evt) {
   window.removeEventListener('load', browserOnLoad);
   Browser.init();
 });
+
+var MockHistory = {
+  history: [],
+  historyIndex: -1,
+
+  back: function() {
+    if(this.backLength() < 1) {;
+      return null;
+    }
+    Browser.navigate(this.history[--this.historyIndex]);
+  },
+
+  historyLength: function() {
+    return this.history.length;
+  },
+
+  backLength: function() {
+   if(this.history.length < 2)
+     return 0;
+   return this.historyIndex;
+  },
+  
+  pushState: function(stateObj, title, url) {
+    this.historyIndex = this.history.push(url) -1;
+  }
+}
+
