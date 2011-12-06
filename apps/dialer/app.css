@@ -66,7 +66,7 @@ body {
   height: -moz-calc(100% - 64px);
   width: 100%;
 
-  -moz-transition-property: opacity;
+  -moz-transition-property: top, opacity;
   -moz-transition-duration: 0.3s;
 }
 
@@ -80,17 +80,18 @@ body {
   width: 100%;
 }
 
-#phoneNumberViewContainer {
+#phoneNumber-view-container {
   overflow: hidden;
 }
 
-#phoneNumberView {
+#phoneNumber-view {
   line-height: 180px;
   height: 180px;
   font-size: 3.5em;
+  padding: 0px 5px;
 }
 
-#fakePhoneNumberView {
+#fakePhoneNumber-view {
   line-height: 0;
   display: inline;
   visibility: hidden;
@@ -187,7 +188,7 @@ body {
     font-size: 1.5mozmm;
   }
 
-  #phoneNumberView {
+  #phoneNumber-view {
     height: 80px;
     line-height: 80px;
   }
@@ -312,18 +313,62 @@ body {
   color: #454545;
 }
 
-/* === Call Screen === */
+/* === Oncall transitions === */
 
 #choices.oncall {
   margin-top: -64px;
 }
+
 #views.oncall {
+  position: absolute;
+  top: 100%;
   opacity: 0;
 }
+
 #call-screen.oncall {
   opacity: 1;
   visibility: visible;
 }
+
+/* === Popover transitions === */
+
+#views.popover {
+  position: absolute;
+  top: 64px;
+  opacity: 1;
+
+  z-index: 10;
+  background-image: -moz-linear-gradient(bottom, rgb(66,66,66) 24%, rgb(33,33,33) 44%, rgb(17,17,17) 64%);
+}
+#views.popover.hidden {
+  top: 100%;
+  opacity: 0;
+}
+
+#views .main-button-container {
+  display: none;
+}
+#views.popover .main-button-container {
+  display: block;
+}
+
+#views.popover #additionalKeyset {
+  display: none;
+}
+
+/* accounting for the main-button-container below */
+#views.popover #keyboard-container {
+  bottom: -moz-calc(3em + 64px);
+}
+#views.popover #contacts-view {
+  height: -moz-calc(100% - 3em - 54px);
+}
+#views.popover #contacts-shortcuts {
+  height: -moz-calc(100% - 160px - 3em - 64px);
+}
+
+
+/* === Call Screen === */
 
 #call-screen {
   position: absolute;
@@ -340,8 +385,8 @@ body {
   -moz-transition-duration: 0.3s;
 }
 
-#callNumberView {
-  padding: 12px 0px;
+#callNumber-view {
+  padding: 6px 0px;
   background: -moz-linear-gradient(top, #33ADF9, #0098F8 50%, #008AE0 51%);
   text-shadow: 1px 1px 0px #000;
 
@@ -350,7 +395,7 @@ body {
   font-weight: bold;
 }
 
-#callStatusView {
+#callStatus-view {
   height: 64px;
   line-height: 64px;
 
@@ -361,58 +406,105 @@ body {
 #callActions-container {
   position: absolute;
   width: 72%;
-  height: 300px;
-  top: -moz-calc(50% - 150px);
+  height: 200px;
+  top: -moz-calc(50% - 100px);
   left: 14%;
+  overflow: hidden;
 
   background-image: -moz-linear-gradient(top, rgb(88,88,88), rgb(44,44,44));
   border-radius: 10px;
   border: 2px #EBEBEB solid;
+
+  font-size: 2.2em;
+  text-shadow: 1px 1px 0px #000;
 
   opacity: 0;
   -moz-transition-property: opacity;
   -moz-transition-duration: 0.3s;
 }
 
-#callActions-container.connected {
-  opacity: 1;
+#callActions-container .top {
+  float: left;
+  width: -moz-calc(50% - 1px);
+  height: -moz-calc(50% - 1px);
+
+  text-align: center;
+  line-height: 99px;
 }
 
-#callMainAction {
+#keypad-button {
+  border-right: 2px #EBEBEB solid;
+}
+
+#mute-button {
   position: absolute;
   bottom: 0;
   width: 100%;
+  height: -moz-calc(50% - 1px);
+
+  border-top: 2px #EBEBEB solid;
+
+  text-align: center;
+}
+#mute-button.mute {
+  background-color: rgba(49, 147, 255, 0.7);
+}
+#mute-button span {
+  line-height: 99px;
+}
+#mute-button span:last-child,
+#mute-button.mute span:first-child {
+  display: none;
+}
+
+#mute-button.mute span:last-child,
+#mute-button span:first-child {
+  display: inline;
+}
+
+#callActions-container.displayed {
+  opacity: 1;
+}
+
+.main-button-container {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  padding: 10px 0;
+
+  border-top: 1px #EBEBEB solid;
+  background: -moz-linear-gradient(top, #868686, #7C7C7C 50%, #707070 51%);
 
   text-align: center;
 }
 
-#mainActionButton {
+.main-button-container > div:first-child {
   padding: 12px 0px;
-  max-width: -moz-calc(100% - 16px);
-  margin: 5px 8px;
+  max-width: -moz-calc(100% - 22px);
+  margin: 5px 10px;
   width: 100%;
 
-  background: -moz-linear-gradient(top, #45c545, #35b535 50%, #21a121 51%);
+  background: -moz-linear-gradient(top, #353535, #252525 50%, #111111 51%);
   border-radius: 10px;
   border: 1px solid #151515;
   border-top: 1px solid #c3d6df;
   box-shadow: 0 1px 3px black;
 
-  font-size: 4em;
+  font-size: 3em;
   text-shadow: 1px 1px 0px #000;
 }
 
-#mainActionButton[data-action='end'] {
+#call-button {
+  background: -moz-linear-gradient(top, #45c545, #35b535 50%, #21a121 51%);
+}
+#call-button[data-action='end'] {
   background: -moz-linear-gradient(top, #FF4844, #FF1813 50%, #C70E0C 51%);
 }
-
-#mainActionButton span:last-child,
-#mainActionButton[data-action='end'] span:first-child {
+#call-button span:last-child,
+#call-button[data-action='end'] span:first-child {
   display: none;
 }
-
-#mainActionButton[data-action='end'] span:last-child,
-#mainActionButton span:first-child {
+#call-button[data-action='end'] span:last-child,
+#call-button span:first-child {
   display: inline;
 }
-
