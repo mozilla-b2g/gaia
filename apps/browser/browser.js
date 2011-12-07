@@ -53,6 +53,11 @@ var Browser = {
     this.urlBar.value = url;
     this.content.setAttribute('src', url);
     this.urlBar.classList.add('loading');
+    if (MockHistory.backLength()) {
+      this.backButton.src = "images/back.png";
+    } else {
+      this.backButton.src = "images/back-disabled.png";
+    }
   }
 };
 
@@ -66,8 +71,8 @@ var MockHistory = {
   historyIndex: -1,
 
   back: function() {
-    if(this.backLength() < 1) {;
-      return null;
+    if(this.backLength() < 1) {
+      return;
     }
     Browser.navigate(this.history[--this.historyIndex]);
   },
@@ -81,9 +86,20 @@ var MockHistory = {
      return 0;
    return this.historyIndex;
   },
+
+  forwardLength: function() {
+    return this.history.length - this.historyIndex - 1;
+  },
   
   pushState: function(stateObj, title, url) {
-    this.historyIndex = this.history.push(url) -1;
+    // If history contains forward entries, replace them with the new location
+    if (this.forwardLength()) {
+      this.history.splice((this.historyIndex + 1), this.forwardLength(), url);
+      this.historyIndex++;
+    } else {
+    // Otherwise just append the new location to the end of the array
+      this.historyIndex = this.history.push(url) -1;
+    }
   }
 }
 
