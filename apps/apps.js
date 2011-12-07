@@ -48,6 +48,36 @@ var Apps = {
   }
 };
 
+function makeCall(number) {
+  var timeout = 0;
+  return {
+    number: number,
+    addEventListener: function (name, callback) {
+      timeout = setTimeout(function ch_fakeConnection() {
+        callback.handleEvent({});
+      }, 1200);
+    },
+    removeEventListener: function () {
+      clearTimeout(timeout);
+      timeout = 0;
+    },
+    answer: function() {
+    },
+    disconnect: function () {
+    }
+  }
+}
+
+if (!('mozTelephony' in window.navigator) ||
+    !window.navigator.mozTelephony) {
+  window.navigator.mozTelephony = {
+    call: function (number) {
+      return makeCall(number);
+    },
+    liveCalls: [makeCall('1-234-567-890')]
+  };
+}
+
 var TouchHandler = {
   touchState: { active: false, startX: 0, startY: 0 },
   events: ['touchstart', 'touchmove', 'touchend',
