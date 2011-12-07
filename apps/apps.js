@@ -151,12 +151,13 @@ var TouchHandler = {
 
     switch (evt.type) {
       case 'touchstart':
+        hideSourceViewer();
+
         var pannableTarget = this.getPannableTarget(evt.originalTarget);
         if (!pannableTarget)
           return;
 
         evt.preventDefault();
-        hideSourceViewer();
         this.target = pannableTarget;
         this.onTouchStart(evt.touches ? evt.touches[0] : evt);
         break;
