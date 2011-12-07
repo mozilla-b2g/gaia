@@ -313,10 +313,11 @@ var CallHandler = {
     // during the transition
     var views = document.getElementById('views');
     views.classList.add('hidden');
-    setTimeout(function ch_closePopoverFinish() {
+    views.addEventListener('transitionend', function ch_closePopoverFinish() {
+      views.removeEventListener('transitionend', ch_closePopoverFinish);
       views.classList.remove('popover');
       views.classList.remove('hidden');
-    }, 300);
+    });
   }
 };
 
