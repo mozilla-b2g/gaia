@@ -1,6 +1,6 @@
 
 var Contacts = {
-  get view () {
+  get view() {
     delete this.view;
     return this.view = document.getElementById('contacts-view');
   },
@@ -148,13 +148,13 @@ var Contacts = {
 var ShortcutsHandler = {
   setup: function sh_setup() {
     ['touchstart', 'touchmove', 'touchend'].forEach((function(evt) {
-      this.contactsShortcuts.addEventListener(evt, this, true);
+      this.shortcutsBar.addEventListener(evt, this, true);
     }).bind(this));
   },
 
-  get contactsShortcuts() {
-    delete this.contactsShortcuts;
-    return this.contactsShortcuts = document.getElementById('contacts-shortcuts');
+  get shortcutsBar() {
+    delete this.shortcutsBar;
+    return this.shortcutsBar = document.getElementById('contacts-shortcuts');
   },
 
   handleEvent: function sh_handleEvent(evt) {
@@ -175,23 +175,23 @@ var ShortcutsHandler = {
   },
 
   startTracking: function sh_startTracking() {
-    this.contactsShortcuts.classList.add('tracking');
+    this.shortcutsBar.classList.add('tracking');
 
     // we keep a reference to the horizontal center of the zone
     // it allows us to keep anchoring correctly if the user gets
     // out of the zone while swiping
-    var rect = this.contactsShortcuts.getBoundingClientRect();
-    this._centerX = rect.left +  (rect.width/2);
+    var rect = this.shortcutsBar.getBoundingClientRect();
+    this._centerX = rect.left + (rect.width / 2);
   },
   stopTracking: function sh_stopTracking() {
-    this.contactsShortcuts.classList.remove('tracking');
+    this.shortcutsBar.classList.remove('tracking');
     delete this._centerX;
   },
   anchorForPosition: function sh_anchorForPosition(positionY) {
     // only inspecting the vertical point of the touch
     var target = document.elementFromPoint(this._centerX, positionY).name;
     Contacts.anchor(target);
-  },
+  }
 };
 
 window.addEventListener('load', function contactsLoad(evt) {
