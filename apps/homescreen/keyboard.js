@@ -56,17 +56,31 @@ const IMEManager = {
         if (!keyCode)
           return;
 
-        if (keyCode == IMEManager.BASIC_LAYOUT) {
-          this.layout = KeyboardAndroid.basicLayout;
-          this.ime.innerHTML = this.getLayout(window.innerWidth);
-          return;
-        } else if (keyCode == IMEManager.ALTERNATE_LAYOUT) {
-          this.layout = KeyboardAndroid.alternateLayout;
-          this.ime.innerHTML = this.getLayout(window.innerWidth);
-          return;
-        }
-
-        window.navigator.mozKeyboard.sendKey(keyCode);
+		switch (keyCode) {
+			case IMEManager.BASIC_LAYOUT:
+				this.layout = KeyboardAndroid.basicLayout;
+				this.ime.innerHTML = this.getLayout(window.innerWidth);
+			break;
+			case IMEManager.ALTERNATE_LAYOUT:
+				this.layout = KeyboardAndroid.alternateLayout;
+				this.ime.innerHTML = this.getLayout(window.innerWidth);
+			break;
+			case KeyEvent.DOM_VK_CAPS_LOCK:
+				if (this.layout === KeyboardAndroid.basicLayout) {
+					this.layout = KeyboardAndroid.basicUpperCapsLayout;
+				} else {
+					this.layout = KeyboardAndroid.basicLayout;
+				}
+				this.ime.innerHTML = this.getLayout(window.innerWidth);
+			break;
+			default:
+		        window.navigator.mozKeyboard.sendKey(keyCode);
+		        if (this.layout = KeyboardAndroid.basicUpperCapsLayout) {
+		        	this.layout = KeyboardAndroid.basicLayout;
+		        	this.ime.innerHTML = this.getLayout(window.innerWidth);
+		        }
+			break;
+		}
         break;
       case 'unload':
         this.uninit();
