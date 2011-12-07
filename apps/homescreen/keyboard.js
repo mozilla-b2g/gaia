@@ -4,7 +4,7 @@ const IMEManager = {
   ALTERNATE_LAYOUT: -2,
   SWITCH_KEYBOARD: -3,
   // TBD: allow user to select desired keyboards in settings
-  keyboards: ['qwertyLayout', 'frenchLayout', 'dvorakLayout'],
+  keyboards: ['qwertyLayout', 'azertyLayout', 'dvorakLayout'],
 
   get ime() {
     delete this.ime;
@@ -61,39 +61,40 @@ const IMEManager = {
         if (!keyCode)
           return;
 
-		switch (keyCode) {
-			case IMEManager.BASIC_LAYOUT:
-				this.layout = KeyboardAndroid[IMEManager.keyboards[this.currentKeyboard]];
-				this.ime.innerHTML = this.getLayout(window.innerWidth);
-			break;
-			case IMEManager.ALTERNATE_LAYOUT:
-				this.layout = KeyboardAndroid.alternateLayout;
-				this.ime.innerHTML = this.getLayout(window.innerWidth);
-			break;
-			case IMEManager.SWITCH_KEYBOARD:
-				this.currentKeyboard++;
-				if (this.currentKeyboard === IMEManager.keyboards.length) this.currentKeyboard = 0;
-				this.layout = KeyboardAndroid[IMEManager.keyboards[this.currentKeyboard]];
-				this.ime.innerHTML = this.getLayout(window.innerWidth);
-			break;
-			case KeyEvent.DOM_VK_CAPS_LOCK:
-				if (this.isUpperCase) {
-					this.layout = KeyboardAndroid[IMEManager.keyboards[this.currentKeyboard]];
-				} else {
-					this.layout = KeyboardAndroid[IMEManager.keyboards[this.currentKeyboard] + 'UpperCaps'];
-				}
-				this.isUpperCase = !this.isUpperCase;
-				this.ime.innerHTML = this.getLayout(window.innerWidth);
-			break;
-			default:
-		        window.navigator.mozKeyboard.sendKey(keyCode);
-		        if (this.isUpperCase) {
-		        	this.isUpperCase = !this.isUpperCase;
-					this.layout = KeyboardAndroid[IMEManager.keyboards[this.currentKeyboard]];
-		        	this.ime.innerHTML = this.getLayout(window.innerWidth);
-		        }
-			break;
-		}
+        switch (keyCode) {
+          case IMEManager.BASIC_LAYOUT:
+            this.layout = KeyboardAndroid[IMEManager.keyboards[this.currentKeyboard]];
+            this.ime.innerHTML = this.getLayout(window.innerWidth);
+          break;
+          case IMEManager.ALTERNATE_LAYOUT:
+            this.layout = KeyboardAndroid.alternateLayout;
+            this.ime.innerHTML = this.getLayout(window.innerWidth);
+          break;
+          case IMEManager.SWITCH_KEYBOARD:
+            this.currentKeyboard++;
+            if (this.currentKeyboard === IMEManager.keyboards.length)
+              this.currentKeyboard = 0;
+            this.layout = KeyboardAndroid[IMEManager.keyboards[this.currentKeyboard]];
+            this.ime.innerHTML = this.getLayout(window.innerWidth);
+          break;
+          case KeyEvent.DOM_VK_CAPS_LOCK:
+            if (this.isUpperCase) {
+              this.layout = KeyboardAndroid[IMEManager.keyboards[this.currentKeyboard]];
+            } else {
+              this.layout = KeyboardAndroid[IMEManager.keyboards[this.currentKeyboard] + 'UpperCaps'];
+            }
+            this.isUpperCase = !this.isUpperCase;
+            this.ime.innerHTML = this.getLayout(window.innerWidth);
+          break;
+          default:
+            window.navigator.mozKeyboard.sendKey(keyCode);
+            if (this.isUpperCase) {
+              this.isUpperCase = !this.isUpperCase;
+              this.layout = KeyboardAndroid[IMEManager.keyboards[this.currentKeyboard]];
+              this.ime.innerHTML = this.getLayout(window.innerWidth);
+            }
+          break;
+        }
         break;
       case 'unload':
         this.uninit();
