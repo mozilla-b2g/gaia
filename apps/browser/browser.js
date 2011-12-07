@@ -6,15 +6,14 @@ var Browser = {
       document.getElementById('browser-back-button');
   },
 
-  get goButton() {
-    delete this.goButton;
-    return this.goButton =
-      document.getElementById('browser-go-button');
-  },
-
   get content() {
     delete this.content;
     return this.content = document.getElementById('browser-iframe');
+  },
+
+  get address() {
+    delete this.address;
+    return this.address = document.getElementById('browser-address');
   },
 
   get urlBar() {
@@ -29,7 +28,8 @@ var Browser = {
   },
 
   init: function() {
-    this.goButton.addEventListener('click', (function goHandler(evt) {
+
+    this.address.addEventListener('submit', (function submitHandler(evt) {
       var url = this.urlBar.value;
       MockHistory.pushState(null, '', url);
       this.navigate(url);
@@ -43,6 +43,13 @@ var Browser = {
     this.backButton.addEventListener('click', (function backHandler(evt) {
       MockHistory.back();
     }).bind(this));
+
+    window.addEventListener('keypress', function keyPressHandler(evt) {
+      if (MockHistory.backLength() && evt.keyCode == evt.DOM_VK_ESCAPE) {
+        MockHistory.back();
+        evt.preventDefault();
+      }
+    });
 
     var url = this.urlBar.value;
     MockHistory.pushState(null, '', url);
