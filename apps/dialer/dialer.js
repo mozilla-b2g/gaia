@@ -255,7 +255,7 @@ var CallHandler = {
     if (this.muteButton.classList.contains('mute')) {
       this.toggleMute();
     }
-    this.closePopover();
+    this.closeModal();
     clearInterval(this._ticker);
     clearTimeout(this._timeout);
   },
@@ -281,27 +281,14 @@ var CallHandler = {
     delete this.callButton;
     return this.callButton = document.getElementById('call-button');
   },
+
   execute: function ch_execute(action) {
-    switch (action) {
-      case 'answer':
-        this.answer();
-        break;
-      case 'toggleMute':
-        this.toggleMute();
-        break;
-      case 'keypad':
-        this.keypad();
-        break;
-      case 'contacts':
-        this.contacts();
-        break;
-      case 'closePopover':
-        this.closePopover();
-        break;
-      default:
-        this.end();
-        break;
+    if (!this[action]) {
+      this.end();
+      return;
     }
+
+    this[action]();
   },
 
   toggleCallScreen: function ch_toggleScreen() {
@@ -315,21 +302,22 @@ var CallHandler = {
   },
   keypad: function ch_keypad() {
     choiceChanged(document.getElementById('keyboard'));
-    document.getElementById('views').classList.add('popover');
+    document.getElementById('views').classList.add('modal');
   },
   contacts: function ch_contacts() {
     choiceChanged(document.getElementById('contacts'));
-    document.getElementById('views').classList.add('popover');
+    document.getElementById('views').classList.add('modal');
   },
-  closePopover: function ch_closePopover() {
-    // 2 steps closing to avoid showing the view in its non-popover state
+  closeModal: function ch_closeModal() {
+    // 2 steps closing to avoid showing the view in its non-modal state
     // during the transition
     var views = document.getElementById('views');
     views.classList.add('hidden');
-    setTimeout(function ch_closePopoverFinish() {
-      views.classList.remove('popover');
+    views.addEventListener('transitionend', function ch_closeModalFinish() {
+      views.removeEventListener('transitionend', ch_closeModalFinish);
+      views.classList.remove('modal');
       views.classList.remove('hidden');
-    }, 300);
+    });
   }
 };
 
