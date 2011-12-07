@@ -289,8 +289,15 @@ body {
   right: 10px;
   top: 140px;
   height: -moz-calc(100% - 160px);
-  text-align: right;
-  width: 48px;
+  width: 24px;
+  padding: 5px;
+
+  border-radius: 17px;
+
+  text-align: center;
+}
+#contacts-shortcuts.tracking {
+  background-color: rgba(11,11,11,0.6);
 }
 
 #contacts-shortcuts > a {
@@ -304,8 +311,7 @@ body {
 
 #contacts-shortcuts > a[name="contacts-search-container"] {
   width: 100%;
-  margin-left: 4px;
-  background: url(lens.png) right top;
+  background: url(lens.png) center top;
   background-repeat: no-repeat;
 }
 
