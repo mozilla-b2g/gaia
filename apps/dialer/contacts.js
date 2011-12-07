@@ -53,6 +53,9 @@ var Contacts = {
     this.filter();
   },
   hideSearch: function contactsHideSearch() {
+    document.getElementById('contacts-search').value = '';
+    this.filter();
+
     var searchContainer = document.getElementById('contacts-search-container');
     searchContainer.hidden = true;
     this.view.scrollTop = 0;
