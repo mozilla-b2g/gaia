@@ -23,7 +23,7 @@ function visibilityChanged(url) {
   if (url.indexOf('?choice=contact') != -1 ||
       contacts.hasAttribute('data-active')) {
     choiceChanged(contacts);  
-  } else if (url.indexOf('?choice=incoming')) {
+  } else if (url.indexOf('?choice=incoming') != -1) {
     var call = window.navigator.mozTelephony.liveCalls[0];
     CallHandler.incoming(call);
   }
