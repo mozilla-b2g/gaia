@@ -53,11 +53,10 @@ var Browser = {
     this.urlBar.value = url;
     this.content.setAttribute('src', url);
     this.urlBar.classList.add('loading');
-    if (MockHistory.backLength()) {
+    if (MockHistory.backLength())
       this.backButton.src = "images/back.png";
-    } else {
+    else
       this.backButton.src = "images/back-disabled.png";
-    }
   }
 };
 
@@ -71,7 +70,7 @@ var MockHistory = {
   historyIndex: -1,
 
   back: function() {
-    if(this.backLength() < 1) {
+    if (this.backLength() < 1) {
       return;
     }
     Browser.navigate(this.history[--this.historyIndex]);
@@ -82,7 +81,7 @@ var MockHistory = {
   },
 
   backLength: function() {
-   if(this.history.length < 2)
+   if (this.history.length < 2)
      return 0;
    return this.historyIndex;
   },
