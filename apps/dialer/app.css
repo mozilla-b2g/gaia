@@ -330,9 +330,9 @@ body {
   visibility: visible;
 }
 
-/* === Popover transitions === */
+/* === Modal transitions === */
 
-#views.popover {
+#views.modal {
   position: absolute;
   top: 64px;
   opacity: 1;
@@ -340,7 +340,7 @@ body {
   z-index: 10;
   background-image: -moz-linear-gradient(bottom, rgb(66,66,66) 24%, rgb(33,33,33) 44%, rgb(17,17,17) 64%);
 }
-#views.popover.hidden {
+#views.modal.hidden {
   top: 100%;
   opacity: 0;
 }
@@ -348,22 +348,22 @@ body {
 #views .main-button-container {
   display: none;
 }
-#views.popover .main-button-container {
+#views.modal .main-button-container {
   display: block;
 }
 
-#views.popover #additionalKeyset {
+#views.modal #additionalKeyset {
   display: none;
 }
 
 /* accounting for the main-button-container below */
-#views.popover #keyboard-container {
+#views.modal #keyboard-container {
   bottom: -moz-calc(3em + 64px);
 }
-#views.popover #contacts-view {
+#views.modal #contacts-view {
   height: -moz-calc(100% - 3em - 54px);
 }
-#views.popover #contacts-shortcuts {
+#views.modal #contacts-shortcuts {
   height: -moz-calc(100% - 160px - 3em - 64px);
 }
 
