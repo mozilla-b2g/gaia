@@ -281,27 +281,14 @@ var CallHandler = {
     delete this.callButton;
     return this.callButton = document.getElementById('call-button');
   },
+
   execute: function ch_execute(action) {
-    switch (action) {
-      case 'answer':
-        this.answer();
-        break;
-      case 'toggleMute':
-        this.toggleMute();
-        break;
-      case 'keypad':
-        this.keypad();
-        break;
-      case 'contacts':
-        this.contacts();
-        break;
-      case 'closePopover':
-        this.closePopover();
-        break;
-      default:
-        this.end();
-        break;
+    if (!this[action]) {
+      this.end();
+      return;
     }
+
+    this[action]();
   },
 
   toggleCallScreen: function ch_toggleScreen() {
