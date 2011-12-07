@@ -59,12 +59,12 @@ var KeyHandler = {
   get fakePhoneNumberView() {
     delete this.fakePhoneNumberView;
     return this.fakePhoneNumberView =
-      document.getElementById('fakePhoneNumberView');
+      document.getElementById('fakePhoneNumber-view');
   },
 
   get phoneNumberView() {
     delete this.phoneNumberView;
-    return this.phoneNumberView = document.getElementById('phoneNumberView');
+    return this.phoneNumberView = document.getElementById('phoneNumber-view');
   },
 
   init: function kh_init() {
@@ -208,8 +208,8 @@ var CallHandler = {
   call: function ch_call(number) {
     this.numberView.innerHTML = number;
     this.statusView.innerHTML = 'Calling...';
-    this.actionsView.classList.remove('connected');
-    this.mainActionButton.dataset.action = 'end';
+    this.actionsView.classList.remove('displayed');
+    this.callButton.dataset.action = 'end';
     this.toggleCallScreen();
 
     // TODO: simulating the call for now
@@ -226,8 +226,8 @@ var CallHandler = {
   incoming: function ch_incoming(number) {
     this.numberView.innerHTML = number;
     this.statusView.innerHTML = 'Incoming call...';
-    this.actionsView.classList.remove('connected');
-    this.mainActionButton.dataset.action = 'answer';
+    this.actionsView.classList.remove('displayed');
+    this.callButton.dataset.action = 'answer';
     this.toggleCallScreen();
   },
   connected: function ch_connected() {
@@ -236,8 +236,8 @@ var CallHandler = {
       return;
 
     this.statusView.innerHTML = '00:00';
-    this.actionsView.classList.add('connected');
-    this.mainActionButton.dataset.action = 'end';
+    this.actionsView.classList.add('displayed');
+    this.callButton.dataset.action = 'end';
 
     this._ticker = setInterval(function ch_updateTimer(self, startTime) {
       var elapsed = new Date(Date.now() - startTime);
@@ -250,8 +250,12 @@ var CallHandler = {
   },
   end: function ch_end() {
     this.toggleCallScreen();
-    this.actionsView.classList.remove('connected');
+    this.actionsView.classList.remove('displayed');
 
+    if (this.muteButton.classList.contains('mute')) {
+      this.toggleMute();
+    }
+    this.closePopover();
     clearInterval(this._ticker);
     clearTimeout(this._timeout);
   },
@@ -259,24 +263,40 @@ var CallHandler = {
   // properties / methods
   get numberView() {
     delete this.numberView;
-    return this.numberView = document.getElementById('callNumberView');
+    return this.numberView = document.getElementById('callNumber-view');
   },
   get statusView() {
     delete this.statusView;
-    return this.statusView = document.getElementById('callStatusView');
+    return this.statusView = document.getElementById('callStatus-view');
   },
   get actionsView() {
     delete this.actionsView;
     return this.actionsView = document.getElementById('callActions-container');
   },
-  get mainActionButton() {
-    delete this.mainActionButton;
-    return this.mainActionButton = document.getElementById('mainActionButton');
+  get muteButton() {
+    delete this.muteButton;
+    return this.muteButton = document.getElementById('mute-button');
+  },
+  get callButton() {
+    delete this.callButton;
+    return this.callButton = document.getElementById('call-button');
   },
   execute: function ch_execute(action) {
     switch (action) {
       case 'answer':
         this.answer();
+        break;
+      case 'toggleMute':
+        this.toggleMute();
+        break;
+      case 'keypad':
+        this.keypad();
+        break;
+      case 'contacts':
+        this.contacts();
+        break;
+      case 'closePopover':
+        this.closePopover();
         break;
       default:
         this.end();
@@ -288,6 +308,28 @@ var CallHandler = {
     document.getElementById('choices').classList.toggle('oncall');
     document.getElementById('views').classList.toggle('oncall');
     document.getElementById('call-screen').classList.toggle('oncall');
+  },
+  toggleMute: function ch_toggleMute() {
+    this.muteButton.classList.toggle('mute');
+    // TODO: make the actual mute call on the telephony API
+  },
+  keypad: function ch_keypad() {
+    choiceChanged(document.getElementById('keyboard'));
+    document.getElementById('views').classList.add('popover');
+  },
+  contacts: function ch_contacts() {
+    choiceChanged(document.getElementById('contacts'));
+    document.getElementById('views').classList.add('popover');
+  },
+  closePopover: function ch_closePopover() {
+    // 2 steps closing to avoid showing the view in its non-popover state
+    // during the transition
+    var views = document.getElementById('views');
+    views.classList.add('hidden');
+    setTimeout(function ch_closePopoverFinish() {
+      views.classList.remove('popover');
+      views.classList.remove('hidden');
+    }, 300);
   }
 };
 
