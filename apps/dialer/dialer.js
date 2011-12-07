@@ -21,8 +21,12 @@ function visibilityChanged(url) {
   // TODO do something better here
   var contacts = document.getElementById('contacts');
   if (url.indexOf('?choice=contact') != -1 ||
-      contacts.hasAttribute('data-active'))
-    choiceChanged(contacts);
+      contacts.hasAttribute('data-active')) {
+    choiceChanged(contacts);  
+  } else if (url.indexOf('?choice=incoming') != -1) {
+    var call = window.navigator.mozTelephony.liveCalls[0];
+    CallHandler.incoming(call);
+  }
 }
 
 function choiceChanged(target) {
@@ -122,10 +126,6 @@ var KeyHandler = {
     return phoneNumber;
   },
 
-  call: function kh_call(number) {
-    CallHandler.call(number);
-  },
-
   updateFontSize: function kh_updateFontSize() {
     var self = this;
     function getNextFontSize(fontSize, text) {
@@ -187,7 +187,7 @@ var KeyHandler = {
     } else if (key == 'call') {
       // TODO: update the call button style to show his availability
       if (this.phoneNumber.value != '') {
-        this.call(this.phoneNumber.value);
+        CallHandler.call(this.phoneNumber.value);
       }
     } else {
       this.phoneNumber.value += key;
@@ -212,19 +212,14 @@ var CallHandler = {
     this.callButton.dataset.action = 'end';
     this.toggleCallScreen();
 
-    // TODO: simulating the call for now
-    this._timeout = setTimeout(function ch_fakeConnection(self) {
-      self.connected();
-    }, 1200, this);
-
-    try {
-      window.navigator.mozTelephony.dial(this.phoneNumber.value);
-    } catch (e) {
-      console.log('Error while trying to call number: ' + e);
-    }
+    var call = window.navigator.mozTelephony.call(number);
+    call.addEventListener('readystatechange', this);
+    this.currentCall = call;
   },
-  incoming: function ch_incoming(number) {
-    this.numberView.innerHTML = number;
+  incoming: function ch_incoming(call) {
+    this.currentCall = call;
+
+    this.numberView.innerHTML = call.number;
     this.statusView.innerHTML = 'Incoming call...';
     this.actionsView.classList.remove('displayed');
     this.callButton.dataset.action = 'answer';
@@ -245,19 +240,24 @@ var CallHandler = {
     }, 1000, this, Date.now());
   },
   answer: function ch_answer() {
-    // TODO: faking the connection for now
+    this.currentCall.answer();
     this.connected();
   },
   end: function ch_end() {
     this.toggleCallScreen();
-    this.actionsView.classList.remove('displayed');
+    this.currentCall.disconnect();
+    this.currentCall.removeEventListener('readystatechange', this);
 
-    if (this.muteButton.classList.contains('mute')) {
+    this.actionsView.classList.remove('displayed');
+    if (this.muteButton.classList.contains('mute'))
       this.toggleMute();
-    }
-    this.closePopover();
+
+    this.closeModal();
     clearInterval(this._ticker);
-    clearTimeout(this._timeout);
+  },
+
+  handleEvent: function fm_handleEvent(evt) {
+    this.connected();
   },
 
   // properties / methods
@@ -281,27 +281,14 @@ var CallHandler = {
     delete this.callButton;
     return this.callButton = document.getElementById('call-button');
   },
+
   execute: function ch_execute(action) {
-    switch (action) {
-      case 'answer':
-        this.answer();
-        break;
-      case 'toggleMute':
-        this.toggleMute();
-        break;
-      case 'keypad':
-        this.keypad();
-        break;
-      case 'contacts':
-        this.contacts();
-        break;
-      case 'closePopover':
-        this.closePopover();
-        break;
-      default:
-        this.end();
-        break;
+    if (!this[action]) {
+      this.end();
+      return;
     }
+
+    this[action]();
   },
 
   toggleCallScreen: function ch_toggleScreen() {
@@ -315,21 +302,22 @@ var CallHandler = {
   },
   keypad: function ch_keypad() {
     choiceChanged(document.getElementById('keyboard'));
-    document.getElementById('views').classList.add('popover');
+    document.getElementById('views').classList.add('modal');
   },
   contacts: function ch_contacts() {
     choiceChanged(document.getElementById('contacts'));
-    document.getElementById('views').classList.add('popover');
+    document.getElementById('views').classList.add('modal');
   },
-  closePopover: function ch_closePopover() {
-    // 2 steps closing to avoid showing the view in its non-popover state
+  closeModal: function ch_closeModal() {
+    // 2 steps closing to avoid showing the view in its non-modal state
     // during the transition
     var views = document.getElementById('views');
     views.classList.add('hidden');
-    setTimeout(function ch_closePopoverFinish() {
-      views.classList.remove('popover');
+    views.addEventListener('transitionend', function ch_closeModalFinish() {
+      views.removeEventListener('transitionend', ch_closeModalFinish);
+      views.classList.remove('modal');
       views.classList.remove('hidden');
-    }, 300);
+    });
   }
 };
 

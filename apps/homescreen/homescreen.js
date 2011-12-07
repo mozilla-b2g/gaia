@@ -288,6 +288,13 @@ IconGrid.prototype = {
 function NotificationScreen(touchables) {
   this.touchables = touchables;
   this.attachEvents(this.touchable);
+
+  if (!('mozTelephony' in window.navigator) ||
+      window.navigator.mozTelephony)
+    return;
+
+  var telephony = window.navigator.mozTelephony;
+  telephony.addEventListener('incoming', this);
 }
 
 NotificationScreen.prototype = {
@@ -354,6 +361,9 @@ NotificationScreen.prototype = {
   handleEvent: function(evt) {
     var target = evt.target;
     switch (evt.type) {
+    case 'incoming':
+      Gaia.AppManager.launch('../dialer/dialer.html?choice=incoming');
+      break;
     case 'touchstart':
       if (target != this.touchable)
         return;
