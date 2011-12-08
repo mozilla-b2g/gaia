@@ -130,8 +130,7 @@ const IMEManager = {
   },
   getLayout: function km_getLayout(width) {
     var content = '';
-
-    this.layout.forEach(function buildKeyboardRow(row) {
+    this.layout.keys.forEach(function buildKeyboardRow(row) {
       content += '<div class="keyboard-row">';
 
       row.forEach(function buildKeyboardColumns(key) {
