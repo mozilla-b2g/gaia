@@ -156,6 +156,10 @@ var ShortcutsHandler = {
     delete this.shortcutsBar;
     return this.shortcutsBar = document.getElementById('contacts-shortcuts');
   },
+  get shortcutsBackground() {
+    delete this.shortcutsBackground;
+    return this.shortcutsBackground = document.getElementById('contacts-shortcuts-background');
+  },
 
   handleEvent: function sh_handleEvent(evt) {
     // preventing the events from bubbling to the contacts list
@@ -175,21 +179,21 @@ var ShortcutsHandler = {
   },
 
   startTracking: function sh_startTracking() {
-    this.shortcutsBar.classList.add('tracking');
+    this.shortcutsBackground.classList.add('tracking');
 
     // we keep a reference to the horizontal center of the zone
     // it allows us to keep anchoring correctly if the user gets
     // out of the zone while swiping
     var rect = this.shortcutsBar.getBoundingClientRect();
-    this._centerX = rect.left + (rect.width / 2);
+    this._positionX = rect.left + (rect.width / 2);
   },
   stopTracking: function sh_stopTracking() {
-    this.shortcutsBar.classList.remove('tracking');
-    delete this._centerX;
+    this.shortcutsBackground.classList.remove('tracking');
+    delete this._positionX;
   },
   anchorForPosition: function sh_anchorForPosition(positionY) {
     // only inspecting the vertical point of the touch
-    var target = document.elementFromPoint(this._centerX, positionY).name;
+    var target = document.elementFromPoint(this._positionX, positionY).name;
     Contacts.anchor(target);
   }
 };
