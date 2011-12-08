@@ -360,108 +360,22 @@ if (!window['Gaia'])
       screenClassList.add('animateTaskManagerClose');
     },
 
-    getInstalledApps: function() {
-      // TODO: Query navigator.mozApps for installed app list.
-      return [{
-        name: 'Phone',
-        icons: {
-          size_128: 'images/Phone.png'
-        },
-        url: '../dialer/dialer.html'
-      }, {
-        name: 'Messages',
-        icons: {
-          size_128: 'images/Messages.png'
-        },
-        url: '../sms/sms.html'
-      }, {
-        name: 'Contacts',
-        icons: {
-          size_128: 'images/Contacts.png'
-        },
-        url: '../dialer/dialer.html?choice=contact'
-      }, {
-        name: 'Video',
-        icons: {
-          size_128: 'images/Video.png'
-        },
-        url: 'blank.html#video'
-      }, {
-        name: 'Gallery',
-        icons: {
-          size_128: 'images/Gallery.png'
-        },
-        url: '../gallery/gallery.html'
-      }, {
-        name: 'Camera',
-        icons: {
-          size_128: 'images/Camera.png'
-        },
-        url: '../camera/camera.html'
-      }, {
-        name: 'Maps',
-        icons: {
-          size_128: 'images/Maps.png'
-        },
-        url: 'blank.html#maps'
-      }, {
-        name: 'Calculator',
-        icons: {
-          size_128: 'images/Calculator.png'
-        },
-        url: 'blank.html#calculator'
-      }, {
-        name: 'Clock',
-        icons: {
-          size_128: 'images/Clock.png'
-        },
-        url: 'blank.html#clock'
-      }, {
-        name: 'Browser',
-        icons: {
-          size_128: 'images/Browser.png'
-        },
-        url: '../browser/browser.html'
-      }, {
-        name: 'Music',
-        icons: {
-          size_128: 'images/Music.png'
-        },
-        url: 'blank.html#music'
-      }, {
-        name: 'Weather',
-        icons: {
-          size_128: 'images/Weather.png'
-        },
-        url: 'blank.html#weather'
-      }, {
-        name: 'Settings',
-        icons: {
-          size_128: 'images/Settings.png'
-        },
-        url: '../settings/settings.html'
-      }, {
-        name: 'Stocks',
-        icons: {
-          size_128: 'images/Stocks.png'
-        },
-        url: 'blank.html#stocks'
-      }, {
-        name: 'Market',
-        icons: {
-          size_128: 'images/Market.png'
-        },
-        url: 'blank.html#market'
-      },
+    getInstalledApps: function(callback) {
+      var self = this;
+      window.navigator.mozApps.enumerate(function enumerateApps(apps) {
+        var cache = [];
+        apps.forEach(function(app) {
+          var manifest = app.manifest;
+          cache.push({
+            name: manifest.name,
+            url: manifest.launch_path,
+            icon: manifest.iconURLForSize(128)
+          });
+        });
 
-      /* Vibrator test app is disabled by default. */
-      /*{
-        name: 'Vibrator',
-        icons: {
-          size_128: 'images/Vibrator.png'
-        },
-        url: '../vibrator/vibrator-test.html'
-      }*/];
+        self.installedApps = cache;
+        callback(cache);
+      });
     },
 
     getRunningApps: function() {
@@ -469,10 +383,10 @@ if (!window['Gaia'])
     },
 
     getInstalledAppForURL: function(url) {
-      var installedApps = this.getInstalledApps();
+      var installedApps = this.installedApps;
 
       for (var i = 0; i < installedApps.length; i++) {
-        if (installedApps[i].url === url)
+        if (installedApps[i].url == url)
           return installedApps[i];
       }
 
@@ -543,7 +457,7 @@ if (!window['Gaia'])
         });
 
         if (app)
-          this.taskTray.add(app.icons.size_128, app.name, app.url);
+          this.taskTray.add(app.icon, app.name, app.url);
       }
 
       var animationCompleteHandler = function() {
