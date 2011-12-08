@@ -1,22 +1,22 @@
 @font-face {
 	   font-family: Roboto;
-	   src: url('fonts/Roboto-Regular.ttf');
+	   src: url('http://gaia.org:8888/resources/fonts/Roboto-Regular.ttf');
 }
 @font-face {
 	   font-family: Roboto;
 	   font-weight: bold;
-	   src: url('fonts/Roboto-Bold.ttf');
+	   src: url('http://gaia.org:8888/resources/fonts/Roboto-Bold.ttf');
 }
 @font-face {
 	   font-family: Roboto;
 	   font-style: italic;
-	   src: url('fonts/Roboto-Italic.ttf');
+	   src: url('http://gaia.org:8888/resources/fonts/Roboto-Italic.ttf');
 }
 @font-face {
 	   font-family: Roboto;
 	   font-weight: bold;
 	   font-style: italic;
-	   src: url('fonts/Roboto-BoldItalic.ttf');
+	   src: url('http://gaia.org:8888/resources/fonts/Roboto-BoldItalic.ttf');
 }
 
 html, body {

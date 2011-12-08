@@ -143,7 +143,8 @@ if (!window['Gaia'])
       icons.push(icon);
 
       // Load the image, sprite will be created when image load is complete.
-      var img = new Image();
+      var img = document.createElement('img');
+      img.setAttribute('crossOrigin', 'anonymous');
       img.src = src;
       img.label = label;
       img.url = url;
@@ -366,10 +367,14 @@ if (!window['Gaia'])
         var cache = [];
         apps.forEach(function(app) {
           var manifest = app.manifest;
+          if (app.origin == 'http://homescreen.gaia.org:8888')
+            return;
+
+          var url = app.origin + manifest.launch_path;
           cache.push({
             name: manifest.name,
-            url: manifest.launch_path,
-            icon: manifest.iconURLForSize(128)
+            url: url,
+            icon: manifest.icons ? app.origin + manifest.icons['120'] : ''
           });
         });
 
@@ -423,17 +428,16 @@ if (!window['Gaia'])
       var instance = this.getAppInstance(url);
 
       var state = {
+        message: 'visibilitychange',
         url: url,
         hidden: false
       };
-      var event = document.createEvent('CustomEvent');
-      event.initCustomEvent('visibilitychange', true, true, state);
 
       // App is already running, set focus to the existing instance.
       if (instance) {
         var foregroundWindow = this.foregroundWindow = instance.window;
         foregroundWindow.removeAttribute('hidden');
-        foregroundWindow.contentWindow.dispatchEvent(event);
+        foregroundWindow.contentWindow.postMessage(state, '*');
       } else {
         var app = this.getInstalledAppForURL(url);
         var newWindow = document.createElement('iframe');
@@ -469,8 +473,7 @@ if (!window['Gaia'])
 
         var openEvent = document.createEvent('UIEvents');
 
-        openEvent.initUIEvent('appopen', true, true,
-                                 foregroundWindow.contentWindow, 0);
+        openEvent.initUIEvent('appopen', true, true, window, 0);
         window.dispatchEvent(openEvent);
       };
       window.addEventListener('animationend', animationCompleteHandler);
@@ -495,12 +498,11 @@ if (!window['Gaia'])
 
         var instance = this.getAppInstanceForWindow(foregroundWindow);
         var state = {
+          message: 'visibilitychange',
           url: instance.url,
           hidden: true
         };
-        var event = document.createEvent('CustomEvent');
-        event.initCustomEvent('visibilitychange', true, true, state);
-        foregroundWindow.contentWindow.dispatchEvent(event);
+        foregroundWindow.contentWindow.postMessage(state, '*');
 
         var newForegroundWindow = this.foregroundWindow;
         if (newForegroundWindow)

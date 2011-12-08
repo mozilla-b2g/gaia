@@ -184,7 +184,8 @@ IconGrid.prototype = {
     icon.index = icons.length;
     icons.push(icon);
     // Load the image, sprite will be created when image load is complete
-    var img = new Image();
+    var img = document.createElement('img');
+    img.setAttribute('crossOrigin', 'anonymous');
     img.src = src;
     img.label = label;
     img.url = url;
