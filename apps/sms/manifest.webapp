@@ -1,0 +1,13 @@
+{
+  "name": "Messages",
+  "description": "Gaia Messages",
+  "launch_path": "/sms.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "icons": {
+    "120": "/icons/Messages.png"
+  }
+}
+
