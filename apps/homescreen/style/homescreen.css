@@ -35,7 +35,7 @@ html, body {
   position: absolute;
   overflow: hidden;
   width: 100%;
-  height: 100%; 
+  height: 100%;
 	background: #142e51 url(images/noise.png);
 }
 
@@ -227,7 +227,7 @@ iframe.appWindow {
 }
 
 .battery > #fuel {
-  height: 8px;	 
+  height: 8px;
 	background-image: -moz-linear-gradient(top, #b9fd00, #8fc400);
 }
 
@@ -280,6 +280,22 @@ iframe.appWindow {
   width: -moz-calc(100%);
   min-height: 200px;
   -moz-transition: bottom 0.2s ease;
+}
+
+#keyboard-selections {
+  height: 64px; overflow: hidden;
+  color: white;
+  background: -moz-linear-gradient(top, rgb(34,37,42) 10%, rgb(4,4,12) 90%);
+  display: none;
+}
+#keyboard-selections span {
+  border-right: 1px solid #909090;
+  font-size: 32px;
+  line-height: 64px;
+  display: block; float: left; height: 64px;
+  padding: 0 5px;
+  min-width: 1em;
+  text-align: center;
 }
 
 #keyboard[data-hidden] {

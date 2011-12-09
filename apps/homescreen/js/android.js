@@ -67,7 +67,26 @@ const KeyboardAndroid = {
   },
   zhuyingGeneralLayout: {
     type: 'ime',
-    init: function init () {
+    selector: true,
+    init: function zhuying_init(sendChoices, sendKey, sendString) {
+    },
+    click: function zhuying_click(keyCode, sendChoices, sendKey, sendString) {
+      switch (keyCode) {
+        case 13:
+          sendChoices([]);
+        break;
+        default:
+          sendChoices(
+            [['選項一', 'some-data'], ['選項二', 'some-data'], [String.fromCharCode(keyCode), '']]
+          );
+        break;
+      }
+    },
+    select: function (selection, selectionData, sendChoices, sendKey, sendString) {
+      sendString(selection);
+      sendChoices([]);
+    },
+    empty: function (sendChoices, sendKey, sendString) {
     },
     keys: [
       [ { value: "ㄅ"},{ value: "ㄉ"},{ value: "ˇ"},{ value: "ˋ"},{ value: "ㄓ"},{ value: "ˊ"},{ value: "˙"},{ value: "ㄚ"},{ value: "ㄞ"},{ value: "ㄢ"} ],
