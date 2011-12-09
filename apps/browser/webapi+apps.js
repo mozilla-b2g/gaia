@@ -6,6 +6,124 @@
 'use strict';
 var emulateRun = (window.navigator.userAgent.indexOf('B2G') == -1);
 
+if (emulateRun) {
+  window.navigator.mozApps = {
+    enumerate: function mozAppsEnumerate(callback) {
+      var webapps = [
+        { // browser
+          installOrigin: 'http://gaia.org:8888',
+          origin: 'http://browser.gaia.org:8888',
+          receipt: null,
+          installTime: 1323339869000,
+          manifest: {
+            'name': 'Browser',
+            'description': 'Gaia Web Browser',
+            'launch_path': '/browser.html',
+            'developer': {
+              'name': 'The Gaia Team',
+              'url': 'https://github.com/andreasgal/gaia'
+            },
+            'icons': {
+              '120': '/icons/Browser.png'
+            }
+          }
+        },
+        { // camera
+          'installOrigin': 'http://gaia.org:8888',
+          'origin': 'http://camera.gaia.org:8888',
+          'receipt': null,
+          'installTime': 1323339869000,
+          manifest: {
+            'name': 'Camera',
+            'description': 'Gaia Camera',
+            'launch_path': '/camera.html',
+            'developer': {
+              'name': 'The Gaia Team',
+              'url': 'https://github.com/andreasgal/gaia'
+            },
+            'icons': {
+              '120': '/icons/Camera.png'
+            }
+          }
+        },
+        { // dialer
+          'installOrigin': 'http://gaia.org:8888',
+          'origin': 'http://dialer.gaia.org:8888',
+          'receipt': null,
+          'installTime': 1323339869000,
+          manifest: {
+            'name': 'Dialer',
+            'description': 'Gaia Dialer',
+            'launch_path': '/dialer.html',
+            'developer': {
+              'name': 'The Gaia Team',
+              'url': 'https://github.com/andreasgal/gaia'
+            },
+            'icons': {
+              '120': '/icons/Phone.png'
+            }
+          }
+        },
+        { // gallery
+          'installOrigin': 'http://gaia.org:8888',
+          'origin': 'http://gallery.gaia.org:8888',
+          'receipt': null,
+          'installTime': 1323339869000,
+          manifest: {
+            'name': 'Gallery',
+            'description': 'Gaia Gallery',
+            'launch_path': '/gallery.html',
+            'developer': {
+              'name': 'The Gaia Team',
+              'url': 'https://github.com/andreasgal/gaia'
+            },
+            'icons': {
+              '120': '/icons/Gallery.png'
+            }
+          }
+        },
+        { // settings
+          'installOrigin': 'http://gaia.org:8888',
+          'origin': 'http://settings.gaia.org:8888',
+          'receipt': null,
+          'installTime': 1323339869000,
+          manifest: {
+            'name': 'Settings',
+            'description': 'Gaia Settings',
+            'launch_path': '/settings.html',
+            'developer': {
+              'name': 'The Gaia Team',
+              'url': 'https://github.com/andreasgal/gaia'
+            },
+            'icons': {
+              '120': '/icons/Settings.png'
+            }
+          }
+        },
+        { // sms
+          'installOrigin': 'http://gaia.org:8888',
+          'origin': 'http://sms.gaia.org:8888',
+          'receipt': null,
+          'installTime': 1323339869000,
+          manifest: {
+            'name': 'Messages',
+            'description': 'Gaia Messages',
+            'launch_path': '/sms.html',
+            'developer': {
+              'name': 'The Gaia Team',
+              'url': 'https://github.com/andreasgal/gaia'
+            },
+            'icons': {
+              '120': '/icons/Messages.png'
+           }
+        }
+      }];
+
+      callback(webapps);
+    }
+  };
+}
+
 var Apps = {
   events: ['keypress', 'unload'],
   handleEvent: function apps_handleEvent(evt) {
@@ -19,9 +137,7 @@ var Apps = {
         evt.preventDefault();
         evt.stopPropagation();
 
-        var event = document.createEvent('UIEvents');
-        event.initUIEvent('appclose', true, true, window, 0);
-        window.top.dispatchEvent(event);
+        window.parent.postMessage('appclose', '*');
         break;
       case 'unload':
         this.uninit();
@@ -52,26 +168,26 @@ function makeCall(number) {
   var timeout = 0;
   return {
     number: number,
-    addEventListener: function (name, callback) {
+    addEventListener: function(name, callback) {
       timeout = setTimeout(function ch_fakeConnection() {
         callback.handleEvent({});
       }, 1200);
     },
-    removeEventListener: function () {
+    removeEventListener: function() {
       clearTimeout(timeout);
       timeout = 0;
     },
     answer: function() {
     },
-    disconnect: function () {
+    disconnect: function() {
     }
-  }
+  };
 }
 
 if (!('mozTelephony' in window.navigator) ||
     !window.navigator.mozTelephony) {
   window.navigator.mozTelephony = {
-    call: function (number) {
+    call: function(number) {
       return makeCall(number);
     },
     liveCalls: [makeCall('1-234-567-890')]
