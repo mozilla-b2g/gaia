@@ -261,7 +261,7 @@ body {
   line-height: 28px;
   border: 1px solid #404040;
   font-size: 20px;
-  background-image: url(missing.png);
+  background-image: url(images/missing.png);
   background-repeat: no-repeat;
   background-size: 64px 64px;
 }
@@ -319,7 +319,7 @@ body {
 
 #contacts-shortcuts > a[name="contacts-search-container"] {
   width: 100%;
-  background: url(lens.png) 33px top;
+  background: url(images/lens.png) 33px top;
   background-repeat: no-repeat;
 }
 
