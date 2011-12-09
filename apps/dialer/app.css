@@ -284,13 +284,28 @@ body {
   pointer-events: none;
 }
 
+#contacts-shortcuts-background {
+  position: fixed;
+  right: 13px;
+  top: 135px;
+  height: -moz-calc(100% - 150px);
+  width : 30px;
+
+  border-radius: 17px;
+}
+#contacts-shortcuts-background.tracking {
+  background-color: rgba(11,11,11,0.6);
+}
+
 #contacts-shortcuts {
   position: fixed;
   right: 10px;
   top: 140px;
   height: -moz-calc(100% - 160px);
+  width: 44px;
+  padding: 5px 15px 5px 5px;
+
   text-align: right;
-  width: 48px;
 }
 
 #contacts-shortcuts > a {
@@ -304,8 +319,7 @@ body {
 
 #contacts-shortcuts > a[name="contacts-search-container"] {
   width: 100%;
-  margin-left: 4px;
-  background: url(lens.png) right top;
+  background: url(lens.png) 33px top;
   background-repeat: no-repeat;
 }
 
@@ -365,6 +379,9 @@ body {
 }
 #views.modal #contacts-shortcuts {
   height: -moz-calc(100% - 160px - 3em - 64px);
+}
+#views.modal #contacts-shortcuts-background {
+  height: -moz-calc(100% - 150px - 3em - 64px);
 }
 
 
