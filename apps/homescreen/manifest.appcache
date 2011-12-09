@@ -35,8 +35,8 @@ style/icons/Messages.png
 style/icons/Phone.png
 style/icons/Settings.png
 
-# external
-http://gaia.org:8888/apps/apps.js
+# tmp files
+webapi+apps.js
 
 NETWORK:
 

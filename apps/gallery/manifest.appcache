@@ -15,8 +15,8 @@ js/sample_data.js
 # style/
 style/gallery.css
 
-# external
-http://gaia.org:8888/apps/apps.js
+# tmp files
+webapi+apps.js
 
 NETWORK:
 

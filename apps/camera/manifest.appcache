@@ -14,8 +14,8 @@ js/camera.js
 # style/
 style/camera.css
 
-# external
-http://gaia.org:8888/apps/apps.js
+# tmp files
+webapi+apps.js
 
 NETWORK:
 

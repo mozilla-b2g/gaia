@@ -285,7 +285,8 @@ if (!window['Gaia'])
 
       count = foregroundWindows.length;
       if (!count)
-        return;
+        return null;
+
       return foregroundWindows[count - 1];
     },
 
@@ -319,7 +320,7 @@ if (!window['Gaia'])
     init: function() {
       window.addEventListener('keypress', this);
       window.addEventListener('home', this);
-      window.addEventListener('appclose', this);
+      window.addEventListener('message', this);
 
       this._closeButtonImage = new Image();
       this._closeButtonImage.src = 'style/images/close.png';
@@ -337,7 +338,7 @@ if (!window['Gaia'])
             this.openTaskManager();
           evt.preventDefault();
           break;
-        case 'appclose':
+        case 'message':
           this.close();
           break;
         case 'home':
@@ -362,7 +363,8 @@ if (!window['Gaia'])
     },
 
     getInstalledApps: function(callback) {
-      var homescreenOrigin = 'http://homescreen.gaia.org:8888';
+      var homescreenOrigin = document.location.protocol + '//' +
+                             document.location.host;
       var self = this;
       window.navigator.mozApps.enumerate(function enumerateApps(apps) {
         var cache = [];

@@ -17,8 +17,8 @@ style/dialer.css
 style/images/missing.png
 style/images/lens.png
 
-# external
-http://gaia.org:8888/apps/apps.js
+# tmp files
+webapi+apps.js
 
 NETWORK:
 

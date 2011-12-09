@@ -20,8 +20,8 @@ style/fonts/Roboto-Bold.ttf
 style/fonts/Roboto-Italic.ttf
 style/fonts/Roboto-Regular.ttf
 
-# external
-http://gaia.org:8888/apps/apps.js
+# tmp files
+webapi+apps.js
 
 NETWORK:
 

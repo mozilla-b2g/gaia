@@ -19,8 +19,8 @@ style/images/favicon.png
 style/images/go.png
 style/images/loading.gif
 
-# external
-http://gaia.org:8888/apps/apps.js
+# tmp files
+webapi+apps.js
 
 NETWORK:
 
