@@ -44,7 +44,7 @@ header {
 }
 
 #messages .sms {
-  background: url(missing.png) no-repeat 0 0;
+  background: url(images/missing.png) no-repeat 0 0;
   background-size: 96px 96px;
   background-position: -10px;
   display: inline-block;

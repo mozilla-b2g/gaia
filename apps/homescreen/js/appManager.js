@@ -143,7 +143,8 @@ if (!window['Gaia'])
       icons.push(icon);
 
       // Load the image, sprite will be created when image load is complete.
-      var img = new Image();
+      var img = document.createElement('img');
+      img.setAttribute('crossOrigin', 'anonymous');
       img.src = src;
       img.label = label;
       img.url = url;
@@ -284,7 +285,8 @@ if (!window['Gaia'])
 
       count = foregroundWindows.length;
       if (!count)
-        return;
+        return null;
+
       return foregroundWindows[count - 1];
     },
 
@@ -318,10 +320,10 @@ if (!window['Gaia'])
     init: function() {
       window.addEventListener('keypress', this);
       window.addEventListener('home', this);
-      window.addEventListener('appclose', this);
+      window.addEventListener('message', this);
 
       this._closeButtonImage = new Image();
-      this._closeButtonImage.src = 'images/close.png';
+      this._closeButtonImage.src = 'style/images/close.png';
     },
 
     handleEvent: function(evt) {
@@ -336,7 +338,7 @@ if (!window['Gaia'])
             this.openTaskManager();
           evt.preventDefault();
           break;
-        case 'appclose':
+        case 'message':
           this.close();
           break;
         case 'home':
@@ -360,108 +362,42 @@ if (!window['Gaia'])
       screenClassList.add('animateTaskManagerClose');
     },
 
-    getInstalledApps: function() {
-      // TODO: Query navigator.mozApps for installed app list.
-      return [{
-        name: 'Phone',
-        icons: {
-          size_128: 'images/Phone.png'
-        },
-        url: '../dialer/dialer.html'
-      }, {
-        name: 'Messages',
-        icons: {
-          size_128: 'images/Messages.png'
-        },
-        url: '../sms/sms.html'
-      }, {
-        name: 'Contacts',
-        icons: {
-          size_128: 'images/Contacts.png'
-        },
-        url: '../dialer/dialer.html?choice=contact'
-      }, {
-        name: 'Video',
-        icons: {
-          size_128: 'images/Video.png'
-        },
-        url: 'blank.html#video'
-      }, {
-        name: 'Gallery',
-        icons: {
-          size_128: 'images/Gallery.png'
-        },
-        url: '../gallery/gallery.html'
-      }, {
-        name: 'Camera',
-        icons: {
-          size_128: 'images/Camera.png'
-        },
-        url: '../camera/camera.html'
-      }, {
-        name: 'Maps',
-        icons: {
-          size_128: 'images/Maps.png'
-        },
-        url: 'blank.html#maps'
-      }, {
-        name: 'Calculator',
-        icons: {
-          size_128: 'images/Calculator.png'
-        },
-        url: 'blank.html#calculator'
-      }, {
-        name: 'Clock',
-        icons: {
-          size_128: 'images/Clock.png'
-        },
-        url: 'blank.html#clock'
-      }, {
-        name: 'Browser',
-        icons: {
-          size_128: 'images/Browser.png'
-        },
-        url: '../browser/browser.html'
-      }, {
-        name: 'Music',
-        icons: {
-          size_128: 'images/Music.png'
-        },
-        url: 'blank.html#music'
-      }, {
-        name: 'Weather',
-        icons: {
-          size_128: 'images/Weather.png'
-        },
-        url: 'blank.html#weather'
-      }, {
-        name: 'Settings',
-        icons: {
-          size_128: 'images/Settings.png'
-        },
-        url: '../settings/settings.html'
-      }, {
-        name: 'Stocks',
-        icons: {
-          size_128: 'images/Stocks.png'
-        },
-        url: 'blank.html#stocks'
-      }, {
-        name: 'Market',
-        icons: {
-          size_128: 'images/Market.png'
-        },
-        url: 'blank.html#market'
-      },
+    getInstalledApps: function(callback) {
+      var homescreenOrigin = document.location.protocol + '//' +
+                             document.location.host;
+      var self = this;
+      window.navigator.mozApps.enumerate(function enumerateApps(apps) {
+        var cache = [];
+        apps.forEach(function(app) {
+          var manifest = app.manifest;
+          if (app.origin == homescreenOrigin)
+            return;
 
-      /* Vibrator test app is disabled by default. */
-      /*{
-        name: 'Vibrator',
-        icons: {
-          size_128: 'images/Vibrator.png'
-        },
-        url: '../vibrator/vibrator-test.html'
-      }*/];
+          var icon = manifest.icons ? app.origin + manifest.icons['120'] : '';
+          // Even if the icon is stored by the offline cache, trying to load it
+          // will fail because the cache is used only when the application is
+          // opened.
+          // So when an application is installed it's icon is inserted into
+          // the offline storage database - and retrieved later when the
+          // homescreen is used offline. (TODO)
+          // So we try to look inside the database for the icon and if it's
+          // empty an icon is loaded by the homescreen - this is the case
+          // of pre-installed apps that does not have any icons defined
+          // in offline storage.
+          if (icon && !window.localStorage.getItem(icon))
+            icon = homescreenOrigin + '/style' + manifest.icons['120'];
+
+          var url = app.origin + manifest.launch_path;
+          cache.push({
+            name: manifest.name,
+            url: url,
+            icon: icon
+          });
+        });
+
+        self.installedApps = cache;
+        callback(cache);
+      });
     },
 
     getRunningApps: function() {
@@ -469,10 +405,10 @@ if (!window['Gaia'])
     },
 
     getInstalledAppForURL: function(url) {
-      var installedApps = this.getInstalledApps();
+      var installedApps = this.installedApps;
 
       for (var i = 0; i < installedApps.length; i++) {
-        if (installedApps[i].url === url)
+        if (installedApps[i].url == url)
           return installedApps[i];
       }
 
@@ -509,17 +445,16 @@ if (!window['Gaia'])
       var instance = this.getAppInstance(url);
 
       var state = {
+        message: 'visibilitychange',
         url: url,
         hidden: false
       };
-      var event = document.createEvent('CustomEvent');
-      event.initCustomEvent('visibilitychange', true, true, state);
 
       // App is already running, set focus to the existing instance.
       if (instance) {
         var foregroundWindow = this.foregroundWindow = instance.window;
         foregroundWindow.removeAttribute('hidden');
-        foregroundWindow.contentWindow.dispatchEvent(event);
+        foregroundWindow.contentWindow.postMessage(state, '*');
       } else {
         var app = this.getInstalledAppForURL(url);
         var newWindow = document.createElement('iframe');
@@ -543,7 +478,7 @@ if (!window['Gaia'])
         });
 
         if (app)
-          this.taskTray.add(app.icons.size_128, app.name, app.url);
+          this.taskTray.add(app.icon, app.name, app.url);
       }
 
       var animationCompleteHandler = function() {
@@ -555,8 +490,7 @@ if (!window['Gaia'])
 
         var openEvent = document.createEvent('UIEvents');
 
-        openEvent.initUIEvent('appopen', true, true,
-                                 foregroundWindow.contentWindow, 0);
+        openEvent.initUIEvent('appopen', true, true, window, 0);
         window.dispatchEvent(openEvent);
       };
       window.addEventListener('animationend', animationCompleteHandler);
@@ -581,12 +515,11 @@ if (!window['Gaia'])
 
         var instance = this.getAppInstanceForWindow(foregroundWindow);
         var state = {
+          message: 'visibilitychange',
           url: instance.url,
           hidden: true
         };
-        var event = document.createEvent('CustomEvent');
-        event.initCustomEvent('visibilitychange', true, true, state);
-        foregroundWindow.contentWindow.dispatchEvent(event);
+        foregroundWindow.contentWindow.postMessage(state, '*');
 
         var newForegroundWindow = this.foregroundWindow;
         if (newForegroundWindow)
