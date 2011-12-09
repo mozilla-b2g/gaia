@@ -213,7 +213,7 @@ var CallHandler = {
     this.callButton.dataset.action = 'end';
     this.toggleCallScreen();
 
-    var call = window.navigator.mozTelephony.call(number);
+    var call = window.navigator.mozTelephony.dial(number);
     call.addEventListener('readystatechange', this);
     this.currentCall = call;
   },

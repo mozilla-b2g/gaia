@@ -1,6 +1,6 @@
 
 var Contacts = {
-  get view () {
+  get view() {
     delete this.view;
     return this.view = document.getElementById('contacts-view');
   },
@@ -8,7 +8,7 @@ var Contacts = {
     // Could be much easier to have am argument named 'parameters' pass as
     // a second argument that I can omit
     this.find(['id', 'displayName'], this.show.bind(this));
-    
+
     this.view.addEventListener('touchstart', function showSearch(evt) {
       Contacts.showSearch();
     });
@@ -145,8 +145,65 @@ var Contacts = {
   }
 };
 
+var ShortcutsHandler = {
+  setup: function sh_setup() {
+    ['touchstart', 'touchmove', 'touchend'].forEach((function(evt) {
+      this.shortcutsBar.addEventListener(evt, this, true);
+    }).bind(this));
+  },
+
+  get shortcutsBar() {
+    delete this.shortcutsBar;
+    return this.shortcutsBar = document.getElementById('contacts-shortcuts');
+  },
+  get shortcutsBackground() {
+    delete this.shortcutsBackground;
+    return this.shortcutsBackground = document.getElementById('contacts-shortcuts-background');
+  },
+
+  handleEvent: function sh_handleEvent(evt) {
+    // preventing the events from bubbling to the contacts list
+    evt.preventDefault();
+
+    switch (evt.type) {
+      case 'touchstart':
+        this.startTracking();
+      case 'touchmove': // fall through
+        this.anchorForPosition(evt.targetTouches[0].clientY);
+        break;
+
+      case 'touchend':
+        this.stopTracking();
+        break;
+    }
+  },
+
+  startTracking: function sh_startTracking() {
+    this.shortcutsBackground.classList.add('tracking');
+
+    // we keep a reference to the horizontal center of the zone
+    // it allows us to keep anchoring correctly if the user gets
+    // out of the zone while swiping
+    var rect = this.shortcutsBar.getBoundingClientRect();
+    this._positionX = rect.left + (rect.width / 2);
+  },
+  stopTracking: function sh_stopTracking() {
+    this.shortcutsBackground.classList.remove('tracking');
+    delete this._positionX;
+  },
+  anchorForPosition: function sh_anchorForPosition(positionY) {
+    // only inspecting the vertical point of the touch
+    var target = document.elementFromPoint(this._positionX, positionY).name;
+    Contacts.anchor(target);
+  }
+};
+
 window.addEventListener('load', function contactsLoad(evt) {
   window.removeEventListener('load', contactsLoad, true);
   Contacts.init();
 }, true);
 
+window.addEventListener('load', function shortcutsSetup(evt) {
+  window.removeEventListener('load', shortcutsSetup);
+  ShortcutsHandler.setup();
+});
