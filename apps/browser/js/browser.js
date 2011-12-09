@@ -98,6 +98,9 @@ var MockHistory = {
   },
   
   pushState: function(stateObj, title, url) {
+    if (url == this.history[this.historyIndex])
+      return;
+
     // If history contains forward entries, replace them with the new location
     if (this.forwardLength()) {
       this.history.splice((this.historyIndex + 1), this.forwardLength(), url);
