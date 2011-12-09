@@ -381,11 +381,11 @@ if (!window['Gaia'])
         },
         url: '../dialer/dialer.html?choice=contact'
       }, {
-        name: 'Browser',
+        name: 'Video',
         icons: {
-          size_128: 'images/Browser.png'
+          size_128: 'images/Video.png'
         },
-        url: '../browser/browser.html'
+        url: 'blank.html#video'
       }, {
         name: 'Gallery',
         icons: {
@@ -398,18 +398,6 @@ if (!window['Gaia'])
           size_128: 'images/Camera.png'
         },
         url: '../camera/camera.html'
-      }, {
-        name: 'Settings',
-        icons: {
-          size_128: 'images/Settings.png'
-        },
-        url: '../settings/settings.html'
-      }, {
-        name: 'Video',
-        icons: {
-          size_128: 'images/Video.png'
-        },
-        url: 'blank.html#video'
       }, {
         name: 'Maps',
         icons: {
@@ -429,6 +417,12 @@ if (!window['Gaia'])
         },
         url: 'blank.html#clock'
       }, {
+        name: 'Browser',
+        icons: {
+          size_128: 'images/Browser.png'
+        },
+        url: '../browser/browser.html'
+      }, {
         name: 'Music',
         icons: {
           size_128: 'images/Music.png'
@@ -440,6 +434,12 @@ if (!window['Gaia'])
           size_128: 'images/Weather.png'
         },
         url: 'blank.html#weather'
+      }, {
+        name: 'Settings',
+        icons: {
+          size_128: 'images/Settings.png'
+        },
+        url: '../settings/settings.html'
       }, {
         name: 'Stocks',
         icons: {
