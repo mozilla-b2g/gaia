@@ -1,7 +1,9 @@
 var Gallery = {
+  photoSelected: false,
+
   init: function galleryInit() {
     var db = this.db;
-    db.open(this.showThumbnails);
+    db.open(this.buildThumbnails);
 
     var self = this;
     var thumbnails = document.getElementById('thumbnails');
@@ -14,9 +16,18 @@ var Gallery = {
         self.showPhoto(photo);
       });
     });
+
+    window.addEventListener('keypress', function keyPressHandler(evt) {
+      if (Gallery.photoSelected && evt.keyCode == evt.DOM_VK_ESCAPE) {
+        Gallery.showThumbnails();
+        evt.preventDefault();
+      }
+    });
+
+    Gallery.showThumbnails();
   },
 
-  showThumbnails: function galleryShowThumbnail(thumbnails) {
+  buildThumbnails: function galleryBuildThumbnails(thumbnails) {
     var content = '';
     thumbnails.forEach(function showThumbnail(thumbnail) {
       var img = 'data:image/jpeg;base64,' + thumbnail.data;
@@ -27,6 +38,18 @@ var Gallery = {
                  '</li>';
     });
     document.getElementById('thumbnails').innerHTML = content;
+    
+  },
+
+  showThumbnails: function galleryShowThumbnails(thumbnails) {
+    ['thumbnails', 'galleryHeader'].forEach(function hideElement(id) {
+      document.getElementById(id).classList.remove('hidden');
+    });
+
+    ['photoFrame'].forEach(function showElement(id) {
+      document.getElementById(id).classList.add('hidden');
+    });
+    Gallery.photoSelected = false;
   },
 
   showPhoto: function galleryShowPhoto(photo) {
@@ -45,6 +68,8 @@ var Gallery = {
     setTimeout(function() {
       document.getElementById('photo').setAttribute('data-visible', 'true');
     }, 10);
+
+    Gallery.photoSelected = true;
   }
 };
 
