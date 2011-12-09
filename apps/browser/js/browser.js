@@ -61,9 +61,9 @@ var Browser = {
     this.content.setAttribute('src', url);
     this.urlBar.classList.add('loading');
     if (MockHistory.backLength())
-      this.backButton.src = "images/back.png";
+      this.backButton.src = 'style/images/back.png';
     else
-      this.backButton.src = "images/back-disabled.png";
+      this.backButton.src = 'style/images/back-disabled.png';
   }
 };
 

@@ -1,3 +1,9 @@
+html, body {
+  font-family: "Roboto", sans-serif;
+  font-size: 16px;
+  background-color: #ddd;
+}
+
 @font-face {
 	   font-family: Roboto;
 	   src: url('fonts/Roboto-Regular.ttf');
@@ -19,7 +25,3 @@
 	   src: url('fonts/Roboto-BoldItalic.ttf');
 }
 
-html, body {
-  font-family: "Roboto", sans-serif;
-  font-size: 16px;
-}
