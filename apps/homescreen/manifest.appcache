@@ -1,0 +1,42 @@
+CACHE MANIFEST
+# v1 2011-09-12
+
+# /
+homescreen.html
+blank.html
+manifest.webapp
+
+# js/
+js/homescreen.js
+js/scenegraph.js
+js/appManager.js
+js/keyboard.js
+js/android.js
+
+# style/
+style/homescreen.css
+style/images/battery-charging.png
+style/images/battery-main.png
+style/images/close.png
+style/images/lockscreen.jpg
+style/images/noise.png
+style/images/notificationsbar-bg.png
+style/images/statusbar-bg.png
+style/fonts/Roboto-BoldItalic.ttf
+style/fonts/Roboto-Bold.ttf
+style/fonts/Roboto-Italic.ttf
+style/fonts/Roboto-Regular.ttf
+
+# icons set for pre-installed apps
+style/icons/Browser.png
+style/icons/Camera.png
+style/icons/Gallery.png
+style/icons/Messages.png
+style/icons/Phone.png
+style/icons/Settings.png
+
+# external
+http://gaia.org:8888/apps/apps.js
+
+NETWORK:
+

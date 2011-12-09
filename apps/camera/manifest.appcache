@@ -1,0 +1,21 @@
+CACHE MANIFEST
+# v1 2011-09-12
+
+# /
+camera.html
+manifest.webapp
+
+# icons/
+icons/Camera.png
+
+# js/
+js/camera.js
+
+# style/
+style/camera.css
+
+# external
+http://gaia.org:8888/apps/apps.js
+
+NETWORK:
+

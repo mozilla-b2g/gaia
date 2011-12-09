@@ -1,0 +1,26 @@
+CACHE MANIFEST
+# v1 2011-09-12
+
+# /
+browser.html
+manifest.webapp
+
+# icons/
+icons/Browser.png
+
+# js/
+js/browser.js
+
+# style/
+style/browser.css
+style/images/back-disabled.png
+style/images/back.png
+style/images/favicon.png
+style/images/go.png
+style/images/loading.gif
+
+# external
+http://gaia.org:8888/apps/apps.js
+
+NETWORK:
+

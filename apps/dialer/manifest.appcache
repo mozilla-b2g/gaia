@@ -1,0 +1,24 @@
+CACHE MANIFEST
+# v1 2011-09-12
+
+# /
+dialer.html
+manifest.webapp
+
+# icons/
+icons/Phone.png
+
+# js/
+js/dialer.js
+js/contacts.js
+
+# style/
+style/dialer.css
+style/images/missing.png
+style/images/lens.png
+
+# external
+http://gaia.org:8888/apps/apps.js
+
+NETWORK:
+

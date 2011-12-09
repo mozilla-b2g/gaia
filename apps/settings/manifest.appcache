@@ -1,0 +1,27 @@
+CACHE MANIFEST
+# v1 2011-09-12
+
+# /
+settings.html
+manifest.webapp
+
+# icons/
+icons/Settings.png
+
+# js/
+js/settings.js
+js/ui.js
+
+# style/
+style/settings.css
+style/ui.css
+style/fonts/Roboto-BoldItalic.ttf
+style/fonts/Roboto-Bold.ttf
+style/fonts/Roboto-Italic.ttf
+style/fonts/Roboto-Regular.ttf
+
+# external
+http://gaia.org:8888/apps/apps.js
+
+NETWORK:
+

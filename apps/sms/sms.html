@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html manifest="manifest.appcache">
   <head>
     <meta charset="utf-8"> 
     <script type="text/javascript" src="http://gaia.org:8888/apps/apps.js"></script>
 
-    <link rel="stylesheet" type="text/css" href="sms.css">
-    <script type="text/javascript" src="sms.js"></script>
+    <link rel="stylesheet" type="text/css" href="style/sms.css">
+    <script type="text/javascript" src="js/sms.js"></script>
   </head>
 
   <body onload="MessageView.init();">
@@ -15,7 +15,7 @@
 
     <div id="conversationView" hidden="true">
       <div id="throbber" hidden="true">
-        <img src="../images/throbber.png" width="32" height="32"></img>
+        <img src="style/images/throbber.png" width="32" height="32"></img>
       </div>
 
       <form id="conversationForm" onsubmit="return ConversationView.sendMessage(); return false;">

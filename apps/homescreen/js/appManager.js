@@ -322,7 +322,7 @@ if (!window['Gaia'])
       window.addEventListener('appclose', this);
 
       this._closeButtonImage = new Image();
-      this._closeButtonImage.src = 'images/close.png';
+      this._closeButtonImage.src = 'style/images/close.png';
     },
 
     handleEvent: function(evt) {
@@ -362,19 +362,34 @@ if (!window['Gaia'])
     },
 
     getInstalledApps: function(callback) {
+      var homescreenOrigin = 'http://homescreen.gaia.org:8888';
       var self = this;
       window.navigator.mozApps.enumerate(function enumerateApps(apps) {
         var cache = [];
         apps.forEach(function(app) {
           var manifest = app.manifest;
-          if (app.origin == 'http://homescreen.gaia.org:8888')
+          if (app.origin == homescreenOrigin)
             return;
+
+          var icon = manifest.icons ? app.origin + manifest.icons['120'] : '';
+          // Even if the icon is stored by the offline cache, trying to load it
+          // will fail because the cache is used only when the application is
+          // opened.
+          // So when an application is installed it's icon is inserted into
+          // the offline storage database - and retrieved later when the
+          // homescreen is used offline. (TODO)
+          // So we try to look inside the database for the icon and if it's
+          // empty an icon is loaded by the homescreen - this is the case
+          // of pre-installed apps that does not have any icons defined
+          // in offline storage.
+          if (icon && !window.localStorage.getItem(icon))
+            icon = homescreenOrigin + '/style' + manifest.icons['120'];
 
           var url = app.origin + manifest.launch_path;
           cache.push({
             name: manifest.name,
             url: url,
-            icon: manifest.icons ? app.origin + manifest.icons['120'] : ''
+            icon: icon
           });
         });
 
