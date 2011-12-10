@@ -6,6 +6,15 @@
 'use strict';
 var emulateRun = (window.navigator.userAgent.indexOf('B2G') == -1);
 
+var cache = window.applicationCache;
+cache.update();
+cache.addEventListener('updateready', function updateReady(evt) {
+  // XXX add a nice UI when an update is ready asking if the user
+  // want to reload the application now.
+  cache.swapCache();
+  document.location = document.location;
+});
+
 if (emulateRun) {
   window.navigator.mozApps = {
     enumerate: function mozAppsEnumerate(callback) {
