@@ -12,7 +12,7 @@ cache.addEventListener('updateready', function updateReady(evt) {
   // XXX add a nice UI when an update is ready asking if the user
   // want to reload the application now.
   cache.swapCache();
-  document.location = document.location;
+  document.location.reload();
 });
 
 if (emulateRun) {
