@@ -69,22 +69,36 @@ const KeyboardAndroid = {
     type: 'ime',
     selector: true,
     init: function zhuying_init(sendChoices, sendKey, sendString) {
-    },
-    click: function zhuying_click(keyCode, sendChoices, sendKey, sendString) {
-      switch (keyCode) {
-        case 13:
-          sendChoices([]);
-        break;
-        default:
-          sendChoices(
-            [['選項一', 'some-data'], ['選項二', 'some-data'], [String.fromCharCode(keyCode), '']]
+      var script = document.createElement('script');
+      script.addEventListener(
+        'load',
+        function () {
+          window.zhuying = JSZhuYing.Mobi(
+            {
+              sendChoices: sendChoices,
+              sendKey: sendKey,
+              sendString: sendString,
+              dbOptions: {
+                //disableIndexedDB: true, // For now
+                progress: function (msg) {
+                  dump(msg + '\n');
+                },
+                ready: function () {
+                  dump('JSZhuYing: ready.');
+                }
+              }
+            }
           );
-        break;
-      }
+        }
+      );
+      script.src = './jszhuying+mobi.js';
+      document.body.appendChild(script);
     },
-    select: function (selection, selectionData, sendChoices, sendKey, sendString) {
-      sendString(selection);
-      sendChoices([]);
+    click: function zhuying_click(keyCode) {
+      window.zhuying.keypress(keyCode);
+    },
+    select: function (selection, selectionData) {
+      window.zhuying.select(selection);
     },
     empty: function (sendChoices, sendKey, sendString) {
     },
