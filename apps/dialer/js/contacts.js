@@ -4,6 +4,10 @@ var Contacts = {
     delete this.view;
     return this.view = document.getElementById('contacts-view');
   },
+  get detailsView() {
+    delete this.detailsView;
+    return this.detailsView = document.getElementById('contactDetails-view');
+  },
   init: function contactsInit() {
     // Could be much easier to have am argument named 'parameters' pass as
     // a second argument that I can omit
@@ -12,6 +16,19 @@ var Contacts = {
     this.view.addEventListener('touchstart', function showSearch(evt) {
       Contacts.showSearch();
     });
+
+    window.addEventListener('keypress', this, true);
+  },
+  handleEvent: function contactsHandleEvent(evt) {
+    if (evt.type !== 'keypress') {
+      return;
+    }
+
+    if (evt.keyCode != evt.DOM_VK_ESCAPE)
+      return;
+
+    if (this.hideDetails())
+      evt.preventDefault();
   },
   find: function contactsFind(fields, callback) {
     // Ideally I would like to choose the ordering
@@ -132,16 +149,51 @@ var Contacts = {
     scrollable.scrollTop = (top - scrollableTop) + scrollable.scrollTop;
   },
   showDetails: function contactsShowDetails(evt) {
-    var infos = evt.target.children;
-    var phoneNumber = infos[1].textContent;
+    // I'm under the impression that there will be a better way to do this
+    // with the final API (ie. getting a contact from an id)
+    var contactId = evt.target.id;
+    var contact;
+    this.find(['id'], function showDetailCallback(contacts) {
+      var results = contacts.filter(function finById(contact) {
+        return (contact.id == contactId);
+      });
+      contact = results[0];
+    });
 
-    var keyView = document.getElementById('keyboard');
-    choiceChanged(keyView);
+    this.renderDetails(contact);
+    this.detailsView.classList.add('displayed');
+  },
+  renderDetails: function renderDetails(contact) {
+    var names = '<div>' + contact.name.familyName + '</div>' +
+                        '<div>' + contact.name.givenName + '</div>';
+    document.getElementById('contact-name').innerHTML = names;
 
-    KeyHandler.phoneNumber.value = phoneNumber;
-    KeyHandler.updateFontSize();
+    var phones = '';
+    contact.phones.forEach(function phoneIterator(phone) {
+      phones = '<div data-number=\"' + phone + '\">' + phone + '</div>';
+    }, this);
+    document.getElementById('contact-phones').innerHTML = phones;
 
-    window.navigator.mozTelephony.dial(phoneNumber);
+    var emails = '';
+    contact.emails.forEach(function emailIterator(email) {
+      emails = '<div>' + email + '</div>';
+    }, this);
+    document.getElementById('contact-emails').innerHTML = emails;
+  },
+  callNumber: function contactsCallNumber(evt) {
+    this.hideDetails();
+    var number = evt.target.dataset.number;
+    if (number) {
+      CallHandler.call(number);
+    }
+  },
+  hideDetails: function contactsHideDetails(evt) {
+    if (!this.detailsView.classList.contains('displayed')) {
+      return false;
+    }
+
+    this.detailsView.classList.remove('displayed');
+    return true;
   }
 };
 

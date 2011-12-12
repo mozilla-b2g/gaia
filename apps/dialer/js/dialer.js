@@ -40,6 +40,7 @@ function choiceChanged(target) {
 
   // XXX this should not live here
   Contacts.hideSearch();
+  Contacts.hideDetails();
 
   var choices = document.getElementById('choices');
   var choicesCount = choices.childElementCount;

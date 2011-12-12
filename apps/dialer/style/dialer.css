@@ -42,8 +42,7 @@ html, body {
   width: 100%;
   border-bottom: 3px solid rgb(137, 137, 137);
 
-  -moz-transition-property: margin-top;
-  -moz-transition-duration: 0.3s;
+  -moz-transition: margin-top 0.3s ease;
 }
 
 #choices > .choice {
@@ -87,6 +86,7 @@ html, body {
 
   -moz-transition-property: top, opacity;
   -moz-transition-duration: 0.3s;
+  -moz-transition-timing-function: ease;
 }
 
 #views > .view {
@@ -240,6 +240,7 @@ html, body {
 
 /* === Contacts View === */
 #contacts-view {
+  position:absolute;
   height: -moz-calc(800px - 20px);
   background-color: #212121;
   overflow: hidden;
@@ -259,10 +260,6 @@ html, body {
   height: 48px;
   line-height: 48px;
   padding-left: 6px;
-}
-
-#contacts-container {
-  font-family: helvetica;
 }
 
 .contact-header {
@@ -346,6 +343,60 @@ html, body {
   color: #454545;
 }
 
+/* === Contact detail View === */
+#contactDetails-view {
+  position: fixed;
+  top: 64px;
+  left: -moz-calc(100% + 5px);
+  width: 100%;
+  height: -moz-calc(100% - 64px);
+
+  box-shadow: -2px 0 3px 0 rgb(66,66,66);
+  background-image: -moz-linear-gradient(top, rgb(66,66,66) 24%, rgb(33,33,33) 44%, rgb(17,17,17) 64%);
+
+  -moz-transition: left 0.3s ease;
+}
+#contactDetails-view.displayed {
+  left: 0;
+}
+#contact-photo {
+  float: left;
+  padding: 5%;
+}
+#contact-name {
+  padding: 5%;
+  font-size: 2.5em;
+}
+#contact-name > div {
+  padding: 2px;
+}
+#contactDetails-view > .group {
+  width: -moz-calc(90% - 4px);
+  margin: 50px auto;
+  clear: both;
+
+  border-radius: 10px;
+  border: 2px #EBEBEB solid;
+  overflow: hidden;
+
+  font-size: 2em;
+  text-align: center;
+}
+#contactDetails-view > .group > div {
+  padding: 12px;
+
+  border-top: 2px #EBEBEB solid;
+
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+#contactDetails-view > .group > div:first-child {
+  border-top: 0px;
+}
+#contactDetails-view > .group > div:hover:active {
+  background-color: rgba(49, 147, 255, 0.7);
+}
+
 /* === Oncall transitions === */
 
 #choices.oncall {
@@ -417,12 +468,11 @@ html, body {
   opacity: 0;
   visibility: hidden;
 
-  -moz-transition-property: opacity;
-  -moz-transition-duration: 0.3s;
+  -moz-transition: opacity 0.3s ease;
 }
 
 #callNumber-view {
-  padding: 6px 0px;
+  height: 64px;
   background: -moz-linear-gradient(top, #33ADF9, #0098F8 50%, #008AE0 51%);
   text-shadow: 1px 1px 0px #000;
 
@@ -455,8 +505,7 @@ html, body {
   text-shadow: 1px 1px 0px #000;
 
   opacity: 0;
-  -moz-transition-property: opacity;
-  -moz-transition-duration: 0.3s;
+  -moz-transition: opacity 0.3s ease;
 }
 
 #callActions-container .top {
