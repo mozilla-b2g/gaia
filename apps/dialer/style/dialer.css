@@ -1,0 +1,527 @@
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+}
+
+body {
+  font-size: 2.5mozmm;
+  color: white;
+  font-family: helvetica, sans-serif;
+  background-image: -moz-linear-gradient(bottom, rgb(66,66,66) 24%, rgb(33,33,33) 44%, rgb(17,17,17) 64%);
+}
+
+@media all and (min-resolution: 200dpi) {
+  html, body {
+    font-size: 2mozmm;
+  }
+}
+
+/* === Application Header === */
+#choices {
+  width: 100%;
+  border-bottom: 3px solid rgb(137, 137, 137);
+
+  -moz-transition-property: margin-top;
+  -moz-transition-duration: 0.3s;
+}
+
+#choices > .choice {
+  -moz-appearance: none;
+  display: inline;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  width: 50%;
+  color: white;
+  height: 61px;
+  line-height: 61px;
+  font-size: 0.9em;
+  font-weight: 600;
+  background-image: -moz-linear-gradient(top, rgb(33,33,33) 24%, rgb(22,22,22) 44%, rgb(11,11,11) 64%);
+  border-right: 1px solid #aaa;
+  border-left: 1px solid #bbb;
+}
+
+#choices > button::-moz-focus-inner {
+  border-width :0;
+}
+
+#choices > .choice:first-child {
+  border-left: 0;
+}
+
+#choices > .choice:last-child {
+  border-right: 0;
+}
+
+#choices > .choice[data-active] {
+  background-image: -moz-linear-gradient(top, rgb(166,166,166) 24%, rgb(155,155,155) 44%, rgb(137,137,137) 64%);
+}
+
+
+/* === Application Views === */
+#views {
+  height: -moz-calc(100% - 64px);
+  width: 100%;
+
+  -moz-transition-property: top, opacity;
+  -moz-transition-duration: 0.3s;
+}
+
+#views > .view {
+  height: 100%;
+  width: 100%;
+}
+
+/* === Keyboard View === */
+#keyboard-view, #keyboard-view * {
+  width: 100%;
+}
+
+#phoneNumber-view-container {
+  overflow: hidden;
+}
+
+#phoneNumber-view {
+  line-height: 180px;
+  height: 180px;
+  font-size: 3.5em;
+  padding: 0px 5px;
+}
+
+#fakePhoneNumber-view {
+  line-height: 0;
+  display: inline;
+  visibility: hidden;
+}
+
+#keyboard-container {
+  position: absolute;
+  bottom: 0;
+}
+
+.keyboard-row {
+  display: inline-block;
+  width: 100%;
+}
+
+#additionalKeyset .keyboard-row {
+  direction: rtl;
+}
+
+.keyboard-key {
+  font-size: 4em;
+  display: inline-table;
+  max-width: -moz-calc(33% - 12px);
+  background: -moz-linear-gradient(top, #353535, #252525 50%, #111111 51%);
+  margin: 5px;
+  border-radius: 10px;
+  border: 1px solid #151515;
+  border-top: 1px solid #c3d6df;
+  box-shadow: 0 1px 3px black;
+}
+
+.keyboard-key:nth-child(2) {
+  max-width: -moz-calc(34% - 12px);
+}
+
+.keyboard-key:hover:active {
+  background: -moz-linear-gradient(top, #484848, #404040 50%, #222222 51%);
+}
+
+.keyboard-key > span {
+  line-height: 1em;
+  pointer-events: none;
+}
+
+.keyboard-key > span:first-child {
+  float: left;
+  text-shadow: 1px 1px 0px #000;
+  margin-left: 8px;
+}
+
+#mainKeyset .keyboard-key > span:first-child {
+  max-width: 40px;
+}
+
+.keyboard-key > span + span:last-child {
+  float: right;
+  text-align: center;
+  vertical-align: middle;
+  font-size: 0.4em;
+  line-height: 2.5em;
+  max-width: -moz-calc(100% - 48px);
+  text-shadow: 1px 1px 0px #000;
+  color: #555;
+  text-transform: uppercase;
+  text-shadow: 1px 1px 0px rgb(105,105,105);
+}
+
+.keyboard-key.call {
+  background: -moz-linear-gradient(top, #45c545, #35b535 50%, #21a121 51%);
+  border-radius: 10px;
+  border-top: 1px solid #c3d6df;
+  box-shadow: 0 1px 3px black;
+  max-width: -moz-calc(66% - 12px);
+}
+
+.keyboard-key.delete {
+  max-width: -moz-calc(34% - 18px);
+}
+
+.keyboard-key.call:hover:active {
+  background: -moz-linear-gradient(top, #55d555, #45c545 50%, #31b131 51%);
+}
+
+.keyboard-key.call > span:last-child,
+.keyboard-key.delete > span:last-child {
+  text-align: center;
+  color: white;
+  font-size: 1em;
+  line-height: 2em;
+}
+
+@media screen and (min-width: 481px) and (orientation: landscape) {
+  body {
+    font-size: 1.5mozmm;
+  }
+
+  #phoneNumber-view {
+    height: 80px;
+    line-height: 80px;
+  }
+
+  #mainKeyset {
+    display: inline-table;
+    max-width: 80%;
+  }
+
+  #additionalKeyset {
+    vertical-align: bottom;
+    display: inline-table;
+    max-width: -moz-calc(20% - 20px);
+  }
+
+  #additionalKeyset .keyboard-row {
+    direction: ltr;
+  }
+
+  #additionalKeyset .keyboard-key {
+    height: -moz-calc(2em + 12px) !important;
+    max-width: 100%;
+  }
+
+  #additionalKeyset .keyboard-key * {
+    margin-left: 0;
+    margin-top: 6px;
+  }
+}
+
+/* === Contacts View === */
+#contacts-view {
+  height: -moz-calc(800px - 20px);
+  background-color: #212121;
+  overflow: hidden;
+}
+
+#contacts-search-container {
+  padding: 4px;
+  text-align: center;
+}
+
+#contacts-search {
+  width: 98%;
+  margin: 0px;
+  -moz-appearance: none;
+  border-radius: 24px;
+  border: 1px solid #404040;
+  height: 48px;
+  line-height: 48px;
+  padding-left: 6px;
+}
+
+#contacts-container {
+  font-family: helvetica;
+}
+
+.contact-header {
+  background-image: -moz-linear-gradient(top, #202020, #101010);
+  border-bottom: 1px solid #202020;
+  padding: 4px;
+  color: #b0b0b0;
+  font-weight: bold;
+  pointer-events: none;
+}
+
+.contact {
+  padding: 4px;
+  height: 56px;
+  line-height: 28px;
+  border: 1px solid #404040;
+  font-size: 20px;
+  background-image: url(images/missing.png);
+  background-repeat: no-repeat;
+  background-size: 64px 64px;
+}
+
+.contact * {
+  pointer-events: none;
+}
+
+.displayName {
+  display: block;
+  margin-left: 72px;
+  color: #c0c0c0;
+  pointer-events: none;
+}
+
+.phoneNumber {
+  display: block;
+  margin-left: 72px;
+  color: #707070;
+  pointer-events: none;
+}
+
+#contacts-shortcuts-background {
+  position: fixed;
+  right: 13px;
+  top: 135px;
+  height: -moz-calc(100% - 150px);
+  width : 30px;
+
+  border-radius: 17px;
+}
+#contacts-shortcuts-background.tracking {
+  background-color: rgba(11,11,11,0.6);
+}
+
+#contacts-shortcuts {
+  position: fixed;
+  right: 10px;
+  top: 140px;
+  height: -moz-calc(100% - 160px);
+  width: 44px;
+  padding: 5px 15px 5px 5px;
+
+  text-align: right;
+}
+
+#contacts-shortcuts > a {
+  display: block;
+  font-size: 10px;
+  text-decoration: none;
+  color: #707070;
+  font-weight: bold;
+  height: -moz-calc(100% / 27);
+}
+
+#contacts-shortcuts > a[name="contacts-search-container"] {
+  width: 100%;
+  background: url(images/lens.png) 33px top;
+  background-repeat: no-repeat;
+}
+
+#contacts-shortcuts > a:not([name="contacts-search-container"])[data-disabled] {
+  color: #454545;
+}
+
+/* === Oncall transitions === */
+
+#choices.oncall {
+  margin-top: -64px;
+}
+
+#views.oncall {
+  position: absolute;
+  top: 100%;
+  opacity: 0;
+}
+
+#call-screen.oncall {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* === Modal transitions === */
+
+#views.modal {
+  position: absolute;
+  top: 64px;
+  opacity: 1;
+
+  z-index: 10;
+  background-image: -moz-linear-gradient(bottom, rgb(66,66,66) 24%, rgb(33,33,33) 44%, rgb(17,17,17) 64%);
+}
+#views.modal.hidden {
+  top: 100%;
+  opacity: 0;
+}
+
+#views .main-button-container {
+  display: none;
+}
+#views.modal .main-button-container {
+  display: block;
+}
+
+#views.modal #additionalKeyset {
+  display: none;
+}
+
+/* accounting for the main-button-container below */
+#views.modal #keyboard-container {
+  bottom: -moz-calc(3em + 64px);
+}
+#views.modal #contacts-view {
+  height: -moz-calc(100% - 3em - 54px);
+}
+#views.modal #contacts-shortcuts {
+  height: -moz-calc(100% - 160px - 3em - 64px);
+}
+#views.modal #contacts-shortcuts-background {
+  height: -moz-calc(100% - 150px - 3em - 64px);
+}
+
+
+/* === Call Screen === */
+
+#call-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+
+  opacity: 0;
+  visibility: hidden;
+
+  -moz-transition-property: opacity;
+  -moz-transition-duration: 0.3s;
+}
+
+#callNumber-view {
+  padding: 6px 0px;
+  background: -moz-linear-gradient(top, #33ADF9, #0098F8 50%, #008AE0 51%);
+  text-shadow: 1px 1px 0px #000;
+
+  font-size: 4em;
+  text-align: center;
+  font-weight: bold;
+}
+
+#callStatus-view {
+  height: 64px;
+  line-height: 64px;
+
+  font-size: 1.5em;
+  text-align: center;
+}
+
+#callActions-container {
+  position: absolute;
+  width: 72%;
+  height: 200px;
+  top: -moz-calc(50% - 100px);
+  left: 14%;
+  overflow: hidden;
+
+  background-image: -moz-linear-gradient(top, rgb(88,88,88), rgb(44,44,44));
+  border-radius: 10px;
+  border: 2px #EBEBEB solid;
+
+  font-size: 2.2em;
+  text-shadow: 1px 1px 0px #000;
+
+  opacity: 0;
+  -moz-transition-property: opacity;
+  -moz-transition-duration: 0.3s;
+}
+
+#callActions-container .top {
+  float: left;
+  width: -moz-calc(50% - 1px);
+  height: -moz-calc(50% - 1px);
+
+  text-align: center;
+  line-height: 99px;
+}
+
+#keypad-button {
+  border-right: 2px #EBEBEB solid;
+}
+
+#mute-button {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: -moz-calc(50% - 1px);
+
+  border-top: 2px #EBEBEB solid;
+
+  text-align: center;
+}
+#mute-button.mute {
+  background-color: rgba(49, 147, 255, 0.7);
+}
+#mute-button span {
+  line-height: 99px;
+}
+#mute-button span:last-child,
+#mute-button.mute span:first-child {
+  display: none;
+}
+
+#mute-button.mute span:last-child,
+#mute-button span:first-child {
+  display: inline;
+}
+
+#callActions-container.displayed {
+  opacity: 1;
+}
+
+.main-button-container {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  padding: 10px 0;
+
+  border-top: 1px #EBEBEB solid;
+  background: -moz-linear-gradient(top, #868686, #7C7C7C 50%, #707070 51%);
+
+  text-align: center;
+}
+
+.main-button-container > div:first-child {
+  padding: 12px 0px;
+  max-width: -moz-calc(100% - 22px);
+  margin: 5px 10px;
+  width: 100%;
+
+  background: -moz-linear-gradient(top, #353535, #252525 50%, #111111 51%);
+  border-radius: 10px;
+  border: 1px solid #151515;
+  border-top: 1px solid #c3d6df;
+  box-shadow: 0 1px 3px black;
+
+  font-size: 3em;
+  text-shadow: 1px 1px 0px #000;
+}
+
+#call-button {
+  background: -moz-linear-gradient(top, #45c545, #35b535 50%, #21a121 51%);
+}
+#call-button[data-action='end'] {
+  background: -moz-linear-gradient(top, #FF4844, #FF1813 50%, #C70E0C 51%);
+}
+#call-button span:last-child,
+#call-button[data-action='end'] span:first-child {
+  display: none;
+}
+#call-button[data-action='end'] span:last-child,
+#call-button span:first-child {
+  display: inline;
+}

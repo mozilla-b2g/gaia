@@ -1,10 +1,13 @@
 <!DOCTYPE html>
-<html>
+<html manifest="manifest.appcache">
   <head>
-    <link rel="stylesheet" type="text/css" href="app.css" />
-    <script type="application/javascript" src="../apps.js"></script>
-    <script type="application/javascript" src="contacts.js"></script>
-    <script type="application/javascript" src="dialer.js"></script>
+    <meta charset="utf-8"> 
+    <meta http-equiv="pragma" content="no-cache">
+    <script type="text/javascript" src="webapi+apps.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="style/dialer.css" />
+    <script type="application/javascript" src="js/contacts.js"></script>
+    <script type="application/javascript" src="js/dialer.js"></script>
   </head>
 
   <body>
@@ -19,7 +22,8 @@
         </div>
 
         <div id="contacts-wrapper">
-          <div id="contacts-shortcuts" onmousedown="Contacts.anchor(event.target.name);">
+          <div id="contacts-shortcuts-background"></div>
+          <div id="contacts-shortcuts" onclick="Contacts.anchor(event.target.name);">
             <a name="contacts-search-container"></a>
             <a name="A">A</a>
             <a name="B">B</a>
@@ -55,9 +59,9 @@
 
       <div id="keyboard-view" class="view">
         <input type="hidden" id="phoneNumber"></input>
-        <div id="fakePhoneNumberView"></div>
-        <div id="phoneNumberViewContainer">
-          <div id="phoneNumberView"></div>
+        <div id="fakePhoneNumber-view"></div>
+        <div id="phoneNumber-view-container">
+          <div id="phoneNumber-view"></div>
         </div>
 
         <div id="keyboard-container" onmousedown="KeyHandler.keyDown(event);" onmouseup="KeyHandler.keyUp(event);">
@@ -72,6 +76,37 @@
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div class="main-button-container">
+        <div id="closeModal-button" data-action="closeModal" onclick="CallHandler.execute(this.dataset.action);">
+          <span>Close</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="call-screen">
+      <div id="callNumber-view">
+      </div>
+      <div id="callStatus-view">
+      </div>
+      <div id="callActions-container">
+        <div id="keypad-button" class="top" data-action="keypad" onclick="CallHandler.execute(this.dataset.action);">
+          Keypad
+        </div>
+        <div id="contacts-button" class="top" data-action="contacts" onclick="CallHandler.execute(this.dataset.action);">
+          Contacts
+        </div>
+        <div id="mute-button" data-action="toggleMute" onclick="CallHandler.execute(this.dataset.action);">
+          <span>Mute</span>
+          <span>Unmute</span>
+        </div>
+      </div>
+      <div class="main-button-container">
+        <div id="call-button" onclick="CallHandler.execute(this.dataset.action);">
+          <span>Answer call</span>
+          <span>End call</span>
         </div>
       </div>
     </div>

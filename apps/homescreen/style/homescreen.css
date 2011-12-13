@@ -1,0 +1,348 @@
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0px;
+  padding: 0px;
+  background: #222;
+  font-family: "Roboto", sans-serif;
+  font-size: 16px;
+}
+
+
+
+@font-face {
+	   font-family: Roboto;
+	   src: url('fonts/Roboto-Regular.ttf');
+}
+@font-face {
+	   font-family: Roboto;
+	   font-weight: bold;
+	   src: url('fonts/Roboto-Bold.ttf');
+}
+@font-face {
+	   font-family: Roboto;
+	   font-style: italic;
+	   src: url('fonts/Roboto-Italic.ttf');
+}
+@font-face {
+	   font-family: Roboto;
+	   font-weight: bold;
+	   font-style: italic;
+	   src: url('fonts/Roboto-BoldItalic.ttf');
+}
+
+#screen {
+  position: absolute;
+  overflow: hidden;
+  width: 100%;
+  height: 100%; 
+	background: #142e51 url(images/noise.png);
+}
+
+#screen.animateTaskManagerOpen {
+  top: -140px;
+  -moz-animation-duration: 250ms;
+  -moz-animation-name: animateTaskManagerOpen;
+}
+@-moz-keyframes animateTaskManagerOpen {
+  from {
+    top: 0;
+  }
+  to {
+    top: -140px;
+  }
+}
+
+#screen.animateTaskManagerClose {
+  top: 0;
+  -moz-animation-duration: 250ms;
+  -moz-animation-name: animateTaskManagerClose;
+}
+@-moz-keyframes animateTaskManagerClose {
+  from {
+    top: -140px;
+  }
+  to {
+    top: 0;
+  }
+}
+
+/*
+ * Simulate a common device-screen size on large monitors, for testing
+ * on desktops/laptops.  1300px is just wider than the widest tablet
+ * screen on the market today.
+ */
+@media all and (min-width: 1300px) {
+  #screen {
+    max-width: 480px;
+    max-height: 800px;
+  }
+}
+
+#lockscreen {
+  position: absolute;
+  z-index: 10000;
+  top: 0px;
+  width: -moz-calc(100%);
+  height: -moz-calc(100%);
+  color: white;
+  overflow: hidden;
+  padding-left: 5%;
+  background-color: black;
+  background-image: url('images/lockscreen.jpg');
+  background-size: cover;
+}
+
+#lockscreen > * {
+  pointer-events: none;
+}
+
+#lockscreen > #status {
+  display: -moz-box;
+  -moz-box-orient: horizontal;
+  width: -moz-calc(100% - 4px);
+  height: 20px;
+  padding: 2px;
+}
+
+#lockscreen > #status > #padding {
+  -moz-box-flex: 1;
+}
+
+#lockscreen > #clock {
+  position: absolute;
+  top: -moz-calc(50%);
+  font-size: 58px;
+}
+
+#lockscreen > #clock > *[data-format*="%b"] {
+  font-size: 100px;
+}
+
+#lockscreen > #notifications {
+  position: absolute;
+  bottom: 2%;
+}
+
+#lockscreen > #notifications > * {
+  display: inline-block;
+}
+
+#notificationsScreen {
+  position: absolute;
+  z-index: 9998;
+  top: -moz-calc(-100% + 48px);
+  width: -moz-calc(100%);
+  height: -moz-calc(100% - 24px);
+  background-color: #444;
+  background: #323f4d url(images/notificationsbar-bg.png) no-repeat 0 100%;
+}
+
+#home {
+  position: absolute;
+  top: 24px;
+  width: -moz-calc(100%);
+  height: -moz-calc(100% - 24px);
+}
+
+#windows {
+  position: absolute;
+  left: 0px;
+  top: 24px;
+  width: -moz-calc(100%);
+  height: -moz-calc(100% - 24px);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+#windows.show {
+  background-color: rgba(0, 0, 0, 0.8);
+  -moz-animation-duration: 300ms;
+  -moz-animation-name: animateTaskManagerShow;
+}
+@-moz-keyframes animateTaskManagerShow {
+  from {
+    background-color: rgba(0, 0, 0, 0);
+  }
+  to {
+    background-color: rgba(0, 0, 0, 0.8);
+  }
+}
+
+#windows.hide {
+  background-color: rgba(0, 0, 0, 0);
+  -moz-animation-duration: 300ms;
+  -moz-animation-name: animateTaskManagerHide;
+}
+@-moz-keyframes animateTaskManagerHide {
+  from {
+    background-color: rgba(0, 0, 0, 0.8);
+  }
+  to {
+    background-color: rgba(0, 0, 0, 0);
+  }
+}
+
+iframe.appWindow {
+  position: absolute;
+  background-color: black;
+  border: 0px;
+  margin: 0px;
+  padding: 0px;
+  overflow: auto;
+  left: 0px;
+  top: 0px;
+  width: -moz-calc(100%);
+  height: -moz-calc(100%);
+  -moz-transform-origin: center bottom;
+}
+
+.animateOpening {
+  -moz-animation-duration: 250ms;
+  -moz-animation-name: openingAnimation;
+}
+@-moz-keyframes openingAnimation {
+  from {
+    -moz-transform: scale(0.1);
+  }
+  to {
+    -moz-transform: scale(1);
+  }
+}
+
+.animateClosing {
+  -moz-animation-duration: 250ms;
+  -moz-animation-name: closingAnimation;
+}
+@-moz-keyframes closingAnimation {
+  from {
+    -moz-transform: scale(1);
+  }
+  to {
+    -moz-transform: scale(0.1);
+  }
+}
+
+iframe.appWindow.thumbnail {
+  display: inline-block;
+  margin-left: -50%;
+  position: relative;
+  -moz-transform-origin: center center;
+  -moz-transform: scale(0.4);
+}
+
+#statusbar {
+  display: -moz-box;
+  -moz-box-orient: horizontal;
+  background: url(images/statusbar-bg.png) repeat-x;
+  width: -moz-calc(100% - 4px);
+  height: 20px;
+  padding: 2px;
+  background-color: #444;
+  color: #fff;
+  overflow: hidden;
+  position: relative;
+  z-index: 9999;
+}
+
+#statusbar > * {
+  -moz-box-flex: 0;
+  pointer-events: none;
+}
+
+#statusbar > #padding {
+  -moz-box-flex: 1;
+}
+
+.battery {
+  float:right;
+  margin: 1px 3px;
+  padding: 4px 6px 4px 4px;
+  width: 29px;
+  background: url(images/battery-main.png);
+  background-repeat: no-repeat;
+  background-size: 29px 16px;
+}
+
+.battery > #fuel {
+  height: 8px;	 
+	background-image: -moz-linear-gradient(top, #b9fd00, #8fc400);
+}
+
+.battery > #fuel.low {
+  background-image: -moz-linear-gradient(top, lightyellow 10%, yellow 80%, gold);
+}
+
+.battery > #fuel.critical {
+  background-image: -moz-linear-gradient(top, lightcoral 10%, red 80%, darkred);
+}
+
+.battery > #fuel.charging {
+  background-image: -moz-linear-gradient(top, #b9fd00, #8fc400);
+  -moz-animation-duration: 3s;
+  -moz-animation-name: batteryCharging;
+  -moz-animation-iteration-count: infinite;
+  -moz-animation-timing-function: linear;
+}
+
+@-moz-keyframes batteryCharging {
+  from {
+    width: 0;
+  }
+  to {
+    width: 19px;
+  }
+}
+.battery > #charging {
+  height: 8px;
+  width: 18px;
+  background-image: url(images/battery-charging.png);
+  background-repeat: no-repeat;
+  background-size: 18px 8px;
+  position: absolute;
+  margin-left: 2px;
+  top: 7px;
+}
+
+#taskManager {
+  position: absolute;
+  bottom: 0;
+  width: -moz-calc(100%);
+}
+
+#keyboard {
+  position: absolute;
+  z-index: 9997;
+  bottom: 0;
+  background-color: #36373b;
+  width: -moz-calc(100%);
+  min-height: 200px;
+  -moz-transition: bottom 0.2s ease;
+}
+
+#keyboard[data-hidden] {
+  bottom: -800px;
+}
+
+.keyboard-key {
+  display: inline-table;
+  text-align: center;
+  color: white;
+  font-size: 32px;
+  height: 64px;
+  line-height: 64px;
+  min-width: 0 !important;
+  margin-bottom: 2px;
+  margin-top: 2px;
+  margin-left: 1px;
+  margin-right: 1px;
+  padding: 0;
+  border: 1px solid black;
+  border-radius: 5px;
+  background: -moz-linear-gradient(top, rgb(94,97,102) 10%, rgb(64,64,72) 90%);
+}
+
+.keyboard-key[data-active] {
+  color: #ccc;
+  background: -moz-linear-gradient(bottom, rgb(94,97,102) 10%, rgb(64,64,72) 90%);
+}
