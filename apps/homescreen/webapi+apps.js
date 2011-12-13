@@ -6,7 +6,7 @@
 'use strict';
 var emulateRun = (window.navigator.userAgent.indexOf('B2G') == -1);
 
-if (emulateRun) {
+if (true) {
   window.navigator.mozApps = {
     enumerate: function mozAppsEnumerate(callback) {
       var webapps = [
