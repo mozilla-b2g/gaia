@@ -427,7 +427,7 @@ JSZhuYing.Mobi = function (settings) {
   empty = function () {
     syllablesInBuffer = [''];
     pendingSyllable = ['','','',''];
-    forstChoice = '';
+    firstChoice = '';
   },
   queue = function (code) {
     keypressQueue.push(code);
@@ -629,7 +629,7 @@ JSZhuYing.Mobi = function (settings) {
 
   var syllablesInBuffer = [''],
   pendingSyllable = ['','','',''],
-  forstChoice = '',
+  firstChoice = '',
   keypressQueue = [],
   isWorking = false,
   jszhuying = JSZhuYing(settings.dbOptions);
