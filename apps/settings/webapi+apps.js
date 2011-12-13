@@ -273,7 +273,9 @@ var TouchHandler = {
         if (!pannableTarget)
           return;
 
-        evt.preventDefault();
+        // This breaks the Toggle Switches
+        //evt.preventDefault();
+        
         this.target = pannableTarget;
         this.onTouchStart(evt.touches ? evt.touches[0] : evt);
         break;
