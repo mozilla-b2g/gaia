@@ -5,6 +5,9 @@ const IMEManager = {
   SWITCH_KEYBOARD: -3,
   // TBD: allow user to select desired keyboards in settings
   keyboards: ['qwertyLayout', 'azertyLayout', 'dvorakLayout'],
+  // backspace repeat delay and repeat rate
+  kRepeatDelay: 700,
+  kRepeatRate: 100,
 
   get ime() {
     delete this.ime;
@@ -23,7 +26,7 @@ const IMEManager = {
     this.layout = KeyboardAndroid[IMEManager.keyboards[0]];
     this.currentKeyboard = 0;
     this.isUpperCase = false;
-  }, 
+  },
   uninit: function km_uninit() {
     this.events.forEach((function attachEvents(type) {
       window.removeEventListener(type, this);
@@ -32,7 +35,7 @@ const IMEManager = {
     this.ime.removeEventListener('touchstart', this);
     this.ime.removeEventListener('touchend', this);
     this.ime.removeEventListener('click', this);
-  }, 
+  },
   handleEvent: function km_handleEvent(evt) {
     var activeWindow = Gaia.AppManager.foregroundWindow;
 
@@ -49,16 +52,35 @@ const IMEManager = {
         if (!keyCode)
           return;
         evt.target.dataset.active = 'true';
+        if (keyCode === KeyEvent.DOM_VK_BACK_SPACE) {
+          window.navigator.mozKeyboard.sendKey(keyCode);
+          var that = this;
+          this.kTimer = setTimeout(
+            function () {
+              window.navigator.mozKeyboard.sendKey(keyCode);
+              that.kTimer = setInterval(
+                function () {
+                  window.navigator.mozKeyboard.sendKey(keyCode);
+                },
+                IMEManager.kRepeatRate
+              );
+            },
+            IMEManager.kRepeatDelay
+          );
+        }
         break;
       case 'touchend':
         var keyCode = parseInt(evt.target.getAttribute('data-keycode'));
         if (!keyCode)
           return;
         delete evt.target.dataset.active;
+        clearTimeout(this.kTimer);
+        clearInterval(this.kTimer);
+        delete this.kTimer;
         break;
       case 'click':
         var keyCode = parseInt(evt.target.getAttribute('data-keycode'));
-        if (!keyCode)
+        if (!keyCode && keyCode === KeyEvent.DOM_VK_BACK_SPACE)
           return;
 
         switch (keyCode) {
