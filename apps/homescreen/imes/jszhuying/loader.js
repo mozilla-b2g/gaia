@@ -37,8 +37,40 @@
 
 'use stricts';
 
-var JSZhuYing = function (settings) {
+IMEManager.IMEngines.jszhuying = {
+  dbName: 'JSZhuYing',
+  dbVersion: 4,
+  init: function (path, sendChoices, sendKey, sendString) {
+    this.mobi = JSZhuYing.Mobi(
+      {
+        sendChoices: sendChoices,
+        sendKey: sendKey,
+        sendString: sendString,
+        dbOptions: {
+          //disableIndexedDB: true, // For now
+          data: path + '/data.json',
+          progress: function (msg) {
+            dump(msg + '\n');
+          },
+          ready: function () {
+            dump('JSZhuYing: ready.');
+          }
+        }
+      }
+    );
+  },
+  click: function (keyCode) {
+    this.mobi.keypress(keyCode);
+  },
+  select: function (selection, selectionData) {
+    this.mobi.select(selection, selectionData);
+  },
+  empty: function () {
+    this.mobi.empty();
+  }
+};
 
+var JSZhuYing = function (settings) {
   settings = settings || {};
   if (typeof settings.progress !== 'function') settings.progress = function () {};
   if (typeof settings.ready !== 'function') settings.ready = function () {};
@@ -123,7 +155,7 @@ var JSZhuYing = function (settings) {
   populateDBFromJSON = function (callback) {
     var transaction = db.transaction('terms', IDBTransaction.READ_WRITE),
     store = transaction.objectStore('terms');
-    dump(transaction);
+
     transaction.oncomplete = function () {
       callback();
     };
@@ -392,6 +424,11 @@ JSZhuYing.Mobi = function (settings) {
       break;
     }
   },
+  empty = function () {
+    syllablesInBuffer = [''];
+    pendingSyllable = ['','','',''];
+    forstChoice = '';
+  },
   queue = function (code) {
     keypressQueue.push(code);
     if (!isWorking) {
@@ -606,8 +643,8 @@ JSZhuYing.Mobi = function (settings) {
 
   return {
     keypress: queue,
-    select: select
+    select: select,
+    empty: empty
   }
 
 };
-

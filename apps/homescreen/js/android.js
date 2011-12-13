@@ -68,40 +68,7 @@ const KeyboardAndroid = {
   zhuyingGeneralLayout: {
     type: 'ime',
     selector: true,
-    init: function zhuying_init(sendChoices, sendKey, sendString) {
-      var script = document.createElement('script');
-      script.addEventListener(
-        'load',
-        function () {
-          window.zhuying = JSZhuYing.Mobi(
-            {
-              sendChoices: sendChoices,
-              sendKey: sendKey,
-              sendString: sendString,
-              dbOptions: {
-                //disableIndexedDB: true, // For now
-                progress: function (msg) {
-                  dump(msg + '\n');
-                },
-                ready: function () {
-                  dump('JSZhuYing: ready.');
-                }
-              }
-            }
-          );
-        }
-      );
-      script.src = './jszhuying+mobi.js';
-      document.body.appendChild(script);
-    },
-    click: function zhuying_click(keyCode) {
-      window.zhuying.keypress(keyCode);
-    },
-    select: function (selection, selectionData) {
-      window.zhuying.select(selection);
-    },
-    empty: function (sendChoices, sendKey, sendString) {
-    },
+    imEngine: 'jszhuying',
     keys: [
       [ { value: "ㄅ"},{ value: "ㄉ"},{ value: "ˇ"},{ value: "ˋ"},{ value: "ㄓ"},{ value: "ˊ"},{ value: "˙"},{ value: "ㄚ"},{ value: "ㄞ"},{ value: "ㄢ"} ],
       [ { value: "ㄆ"},{ value: "ㄊ"},{ value: "ㄍ"},{ value: "ㄐ"},{ value: "ㄔ"},{ value: "ㄗ"},{ value: "ㄧ"},{ value: "ㄛ"},{ value: "ㄟ"},{ value: "ㄣ"} ],

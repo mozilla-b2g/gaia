@@ -5,6 +5,7 @@ const IMEManager = {
   SWITCH_KEYBOARD: -3,
   // TBD: allow user to select desired keyboards in settings
   keyboards: ['qwertyLayout', 'azertyLayout', 'dvorakLayout','zhuyingGeneralLayout'],
+  IMEngines: {},
   // backspace repeat delay and repeat rate
   kRepeatDelay: 700,
   kRepeatRate: 100,
@@ -33,20 +34,31 @@ const IMEManager = {
     var that = this;
 
     IMEManager.keyboards.forEach(
-      function (keyboard) {
-        if (typeof KeyboardAndroid[keyboard].init === 'function') {
-          KeyboardAndroid[keyboard].init(
-            function () {
-              that.showSelections.apply(that, arguments);
-            },
-            window.navigator.mozKeyboard.sendKey,
-            function sendString(str) {
-              for (var i = 0; i < str.length; i++) {
-                window.navigator.mozKeyboard.sendKey(str.charCodeAt(i));
+      function loadIMEngines(keyboard) {
+        if (KeyboardAndroid[keyboard].type !== 'ime')
+          return;
+        var script = document.createElement('script'),
+        imEngine = KeyboardAndroid[keyboard].imEngine;
+
+        script.addEventListener(
+          'load',
+          function IMEnginesLoaded() {
+            IMEManager.IMEngines[imEngine].init(
+              './imes/' + imEngine,
+              function sendChoices() {
+                that.showSelections.apply(that, arguments);
+              },
+              window.navigator.mozKeyboard.sendKey,
+              function sendString(str) {
+                for (var i = 0; i < str.length; i++) {
+                  window.navigator.mozKeyboard.sendKey(str.charCodeAt(i));
+                }
               }
-            }
-          );
-        }
+            );
+          }
+        );
+        script.src = './imes/' + imEngine + '/loader.js';
+        document.body.appendChild(script);
       }
     );
   },
@@ -78,20 +90,20 @@ const IMEManager = {
         evt.target.dataset.active = 'true';
         if (keyCode === KeyEvent.DOM_VK_BACK_SPACE) {
           if (this.layout.type === 'ime')
-            this.layout.click(keyCode);
+            this.IMEngines[this.layout.imEngine].click(keyCode);
           else
             window.navigator.mozKeyboard.sendKey(keyCode);
           var self = this;
           this._timer = setTimeout(
             function km_backspaceDelay() {
               if (self.layout.type === 'ime')
-                self.layout.click(keyCode);
+                self.IMEngines[self.layout.imEngine].click(keyCode);
               else
                 window.navigator.mozKeyboard.sendKey(keyCode);
               self._timer = setInterval(
                 function km_backspaceRepeat() {
                   if (self.layout.type === 'ime')
-                    self.layout.click(keyCode);
+                    self.IMEngines[self.layout.imEngine].click(keyCode);
                   else
                     window.navigator.mozKeyboard.sendKey(keyCode);
                 },
@@ -113,7 +125,7 @@ const IMEManager = {
         break;
       case 'click':
         if (evt.target.dataset.selection) {
-          this.layout.select(
+          this.IMEngines[this.layout.imEngine].select(
             evt.target.textContent,
             evt.target.dataset.data
           );
@@ -159,9 +171,7 @@ const IMEManager = {
           break;
           default:
             if (this.layout.type === 'ime') {
-              this.layout.click(
-                keyCode
-              );
+              this.IMEngines[this.layout.imEngine].click(keyCode);
               this.updateKeyboardHeight();
               break;
             }
@@ -210,17 +220,7 @@ const IMEManager = {
         this.selectionEl.removeChild(this.selectionEl.firstChild);
       }
       this.selectionEl.style.display = 'none';
-      this.layout.empty(
-        function () {
-          that.showSelections.apply(that, arguments);
-        },
-        window.navigator.mozKeyboard.sendKey,
-        function sendString(str) {
-          for (var i = 0; i < str.length; i++) {
-            window.navigator.mozKeyboard.sendKey(str.charCodeAt(i));
-          }
-        }
-      );
+      this.IMEngines[this.layout.imEngine].empty();
     }
   },
   updateKeyboardHeight: function km_updateKeyboardHeight() {
