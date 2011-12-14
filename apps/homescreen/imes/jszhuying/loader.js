@@ -108,6 +108,7 @@ var JSZhuYing = function (settings) {
         req.onsuccess = function (ev) {
           if (req.result !== 0) {
             settings.ready.call(that);
+            return;
           }
           settings.progress.call(that, 'IndexedDB is supported but empty or need upgrade; Downloading JSON ...');
           getTermsJSON(
