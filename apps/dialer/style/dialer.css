@@ -348,31 +348,75 @@ html, body {
 }
 
 /* === Contact detail View === */
-#contactDetails-view {
+#contactDetails-container {
   position: fixed;
   top: 64px;
   left: -moz-calc(100% + 5px);
   width: 100%;
   height: -moz-calc(100% - 64px);
+  overflow: hidden;
 
   box-shadow: -2px 0 3px 0 rgb(66,66,66);
   background-image: -moz-linear-gradient(top, rgb(66,66,66) 24%, rgb(33,33,33) 44%, rgb(17,17,17) 64%);
 
   -moz-transition: left 0.3s ease;
 }
-#contactDetails-view.displayed {
+#contactDetails-container.displayed {
   left: 0;
+}
+#contactDetails-view {
+  -moz-transition: opacity 0.15s ease;
+}
+#contactEdit-button {
+  position: absolute;
+  top: 20px;
+  right: 5%;
+  width: 60px;
+  padding: 5px;
+
+  border-radius: 10px;
+  border: 2px #EBEBEB solid;
+
+  font-size: 1.7em;
+  text-align: center;
+}
+#contactEdit-button[data-action='save'] {
+  background-color: rgba(49, 147, 255, 0.7);
+}
+#contactEdit-button span:first-child,
+#contactEdit-button[data-action='save'] span:last-child {
+  display: inline;
+}
+#contactEdit-button span:last-child,
+#contactEdit-button[data-action='save'] span:first-child {
+  display: none;
+}
+#contactDetails-view input {
+  width: 100%;
+  color: white;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+
+  font-size: 0.8em;
+  text-align: center;
 }
 #contact-photo {
   float: left;
-  padding: 5%;
+  padding: 20px 5%;
 }
 #contact-name {
-  padding: 5%;
-  font-size: 2.5em;
+  float: left;
+  width: -moz-calc(85% - 96px - 74px);
+  margin: 20px 0;
+  font-size: 2.0em;
+}
+#contact-name input {
+  text-align: left;
 }
 #contact-name > div {
-  padding: 2px;
+  padding: 2px 10px;
 }
 #contactDetails-view > .group {
   width: -moz-calc(90% - 4px);
@@ -394,11 +438,32 @@ html, body {
   text-overflow: ellipsis;
   overflow: hidden;
 }
+#contactDetails-view > .group > div[data-action='add'] {
+  display: none;
+}
 #contactDetails-view > .group > div:first-child {
   border-top: 0px;
 }
 #contactDetails-view > .group > div:hover:active {
   background-color: rgba(49, 147, 255, 0.7);
+}
+/* === Contact Edit transitions === */
+#contactDetails-view.hidden {
+  opacity: 0;
+}
+#contactDetails-view.editing > .group > div[data-action='add'] {
+  display: block;
+}
+#contactDetails-view.editing #contact-name {
+  border-radius: 10px;
+  border: 2px #EBEBEB solid;
+}
+#contactDetails-view.editing #contact-name > div {
+  border-top: 2px #EBEBEB solid;
+  padding: 0px 8px;
+}
+#contactDetails-view.editing #contact-name > div:first-child {
+  border-top: 0;
 }
 
 /* === Oncall transitions === */
