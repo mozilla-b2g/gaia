@@ -54,12 +54,12 @@ const IMEManager = {
         evt.target.dataset.active = 'true';
         if (keyCode === KeyEvent.DOM_VK_BACK_SPACE) {
           window.navigator.mozKeyboard.sendKey(keyCode);
-          var that = this;
-          this.kTimer = setTimeout(
-            function () {
+          var self = this;
+          this._timer = setTimeout(
+            function km_backspaceDelay() {
               window.navigator.mozKeyboard.sendKey(keyCode);
-              that.kTimer = setInterval(
-                function () {
+              self._timer = setInterval(
+                function km_backspaceRepeat() {
                   window.navigator.mozKeyboard.sendKey(keyCode);
                 },
                 IMEManager.kRepeatRate
@@ -74,9 +74,9 @@ const IMEManager = {
         if (!keyCode)
           return;
         delete evt.target.dataset.active;
-        clearTimeout(this.kTimer);
-        clearInterval(this.kTimer);
-        delete this.kTimer;
+        clearTimeout(this._timer);
+        clearInterval(this._timer);
+        delete this._timer;
         break;
       case 'click':
         var keyCode = parseInt(evt.target.getAttribute('data-keycode'));
