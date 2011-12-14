@@ -23,7 +23,7 @@ function visibilityChanged(url) {
   var contacts = document.getElementById('contacts');
   if (url.indexOf('?choice=contact') != -1 ||
       contacts.hasAttribute('data-active')) {
-    choiceChanged(contacts);  
+    choiceChanged(contacts);
   } else if (url.indexOf('?choice=incoming') != -1) {
     var call = window.navigator.mozTelephony.liveCalls[0];
     CallHandler.incoming(call);
@@ -40,6 +40,7 @@ function choiceChanged(target) {
 
   // XXX this should not live here
   Contacts.hideSearch();
+  ContactDetails.hide();
 
   var choices = document.getElementById('choices');
   var choicesCount = choices.childElementCount;
@@ -264,15 +265,15 @@ var CallHandler = {
   // properties / methods
   get numberView() {
     delete this.numberView;
-    return this.numberView = document.getElementById('callNumber-view');
+    return this.numberView = document.getElementById('call-number-view');
   },
   get statusView() {
     delete this.statusView;
-    return this.statusView = document.getElementById('callStatus-view');
+    return this.statusView = document.getElementById('call-status-view');
   },
   get actionsView() {
     delete this.actionsView;
-    return this.actionsView = document.getElementById('callActions-container');
+    return this.actionsView = document.getElementById('call-actions-container');
   },
   get muteButton() {
     delete this.muteButton;
