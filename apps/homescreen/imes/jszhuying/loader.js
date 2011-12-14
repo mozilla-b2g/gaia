@@ -50,10 +50,10 @@ IMEManager.IMEngines.jszhuying = {
           //disableIndexedDB: true, // For now
           data: path + '/data.json',
           progress: function (msg) {
-            dump(msg + '\n');
+            dump('JSZhuYing: ' + msg + '\n');
           },
           ready: function () {
-            dump('JSZhuYing: ready.');
+            dump('JSZhuYing: Ready.\n');
           }
         }
       }
@@ -92,6 +92,7 @@ var JSZhuYing = function (settings) {
       );
       return;
     }
+    settings.progress.call(that, 'Probing IndexedDB ...');
     getTermsInDB(
       function () {
         if (!db) {
@@ -114,10 +115,11 @@ var JSZhuYing = function (settings) {
           getTermsJSON(
             function () {
               if (!jsonData) return;
-              settings.progress.call(that, 'JSON downloaded, inserting data into db ...');
+              settings.ready.call(that);
+              settings.progress.call(that, 'JSON downloaded, IME is ready to use while inserting data into db ...');
               populateDBFromJSON(
                 function () {
-                  settings.ready.call(that);
+                  settings.progress.call(that, 'indexedDB ready and switched to indexedDB backend.');
                 }
               );
             }
@@ -158,6 +160,8 @@ var JSZhuYing = function (settings) {
     store = transaction.objectStore('terms');
 
     transaction.oncomplete = function () {
+      jsonData = null;
+      delete jsonData;
       callback();
     };
 
@@ -169,8 +173,6 @@ var JSZhuYing = function (settings) {
         }
       );
     }
-    jsonData = null;
-    delete jsonData;
   },
   getTermsJSON = function (callback) {
     // Get data.json.js
@@ -302,21 +304,21 @@ var JSZhuYing = function (settings) {
       dump('JSZhuYing: database not ready.');
       return callback(false);
     }
-    if (db) {
-      if (typeof cache[syllables.join('')] !== 'undefined') return callback(cache[syllables.join('')]);
-      var req = db.transaction('terms'/*, IDBTransaction.READ_ONLY */).objectStore('terms').get(syllables.join(''));
-      return req.onsuccess = function (ev) {
-        cleanCache();
-        if (ev.target.result) {
-          cache[syllables.join('')] = ev.target.result.terms;
-          return callback(ev.target.result.terms);
-        } else {
-          cache[syllables.join('')] = false;
-          return callback(false);
-        }
-      };
-    }
-    return callback(jsonData[syllables.join('')] || false);
+    if (jsonData)
+      return callback(jsonData[syllables.join('')] || false);
+    if (typeof cache[syllables.join('')] !== 'undefined')
+      return callback(cache[syllables.join('')]);
+    var req = db.transaction('terms'/*, IDBTransaction.READ_ONLY */).objectStore('terms').get(syllables.join(''));
+    return req.onsuccess = function (ev) {
+      cleanCache();
+      if (ev.target.result) {
+        cache[syllables.join('')] = ev.target.result.terms;
+        return callback(ev.target.result.terms);
+      } else {
+        cache[syllables.join('')] = false;
+        return callback(false);
+      }
+    };
   },
   /*
   * Return the term with the highest score
