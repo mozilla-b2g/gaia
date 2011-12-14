@@ -39,7 +39,7 @@ if (!window['Gaia'])
       // Add event listeners for push/pop links.
       document.addEventListener('click', this);
       
-      window.addEventListener('keypress', this);
+      window.addEventListener('keypress', this, true);
     },
     handleEvent: function(evt) {
       switch (evt.type) {
@@ -83,15 +83,20 @@ if (!window['Gaia'])
           evt.preventDefault();
           break;
         case 'keypress':
+          if (Gaia.UI.views.length === 1)
+            return;
+          
           if (_isTransitionActive) {
-            //evt.getPreventDefault();
             evt.preventDefault();
             evt.stopPropagation();
             return;
           }
           
-          if (evt.keyCode === evt.DOM_VK_ESCAPE)
+          if (evt.keyCode === evt.DOM_VK_ESCAPE) {
+            evt.preventDefault();
+            evt.stopPropagation();
             this.pop('slideHorizontal');
+          }
           break;
         case 'transitionend':
           var activeViewElement = document.querySelector('.view.active');
