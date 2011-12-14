@@ -113,7 +113,7 @@ if (true) {
         },
         { // sms
           'installOrigin': 'http://gaiamobile.org:8888',
-          'origin': '../../sms',
+          'origin': '../sms',
           'receipt': null,
           'installTime': 1323339869000,
           manifest: {
