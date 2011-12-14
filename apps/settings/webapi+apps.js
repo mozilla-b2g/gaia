@@ -6,13 +6,24 @@
 'use strict';
 var emulateRun = (window.navigator.userAgent.indexOf('B2G') == -1);
 
-if (emulateRun) {
+try {
+  var cache = window.applicationCache;
+  cache.update();
+  cache.addEventListener('updateready', function updateReady(evt) {
+    // XXX add a nice UI when an update is ready asking if the user
+    // want to reload the application now.
+    cache.swapCache();
+    document.location.reload();
+  });
+} catch (e) {}
+
+if (true) {
   window.navigator.mozApps = {
     enumerate: function mozAppsEnumerate(callback) {
       var webapps = [
         { // browser
-          installOrigin: 'http://gaia.org:8888',
-          origin: 'http://browser.gaia.org:8888',
+          installOrigin: 'http://gaiamobile.org:8888',
+          origin: '../browser',
           receipt: null,
           installTime: 1323339869000,
           manifest: {
@@ -29,8 +40,8 @@ if (emulateRun) {
           }
         },
         { // camera
-          'installOrigin': 'http://gaia.org:8888',
-          'origin': 'http://camera.gaia.org:8888',
+          'installOrigin': 'http://gaiamobile.org:8888',
+          'origin': '../camera',
           'receipt': null,
           'installTime': 1323339869000,
           manifest: {
@@ -47,8 +58,8 @@ if (emulateRun) {
           }
         },
         { // dialer
-          'installOrigin': 'http://gaia.org:8888',
-          'origin': 'http://dialer.gaia.org:8888',
+          'installOrigin': 'http://gaiamobile.org:8888',
+          'origin': '../dialer',
           'receipt': null,
           'installTime': 1323339869000,
           manifest: {
@@ -65,8 +76,8 @@ if (emulateRun) {
           }
         },
         { // gallery
-          'installOrigin': 'http://gaia.org:8888',
-          'origin': 'http://gallery.gaia.org:8888',
+          'installOrigin': 'http://gaiamobile.org:8888',
+          'origin': '../gallery',
           'receipt': null,
           'installTime': 1323339869000,
           manifest: {
@@ -83,8 +94,8 @@ if (emulateRun) {
           }
         },
         { // settings
-          'installOrigin': 'http://gaia.org:8888',
-          'origin': 'http://settings.gaia.org:8888',
+          'installOrigin': 'http://gaiamobile.org:8888',
+          'origin': '../settings',
           'receipt': null,
           'installTime': 1323339869000,
           manifest: {
@@ -101,8 +112,8 @@ if (emulateRun) {
           }
         },
         { // sms
-          'installOrigin': 'http://gaia.org:8888',
-          'origin': 'http://sms.gaia.org:8888',
+          'installOrigin': 'http://gaiamobile.org:8888',
+          'origin': '../sms',
           'receipt': null,
           'installTime': 1323339869000,
           manifest: {

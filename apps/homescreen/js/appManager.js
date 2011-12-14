@@ -398,7 +398,11 @@ if (!window['Gaia'])
 
     getInstalledApps: function(callback) {
       var homescreenOrigin = document.location.protocol + '//' +
-                             document.location.host;
+                             document.location.host +
+                             document.location.pathname;
+      homescreenOrigin = homescreenOrigin.replace(/[a-zA-Z.0-9]+$/, '');
+
+
       var self = this;
       window.navigator.mozApps.enumerate(function enumerateApps(apps) {
         var cache = [];
@@ -501,9 +505,7 @@ if (!window['Gaia'])
         var contentWindow = foregroundWindow.contentWindow;
         contentWindow.addEventListener('load', function appload(evt) {
           contentWindow.removeEventListener('load', appload, true);
-          setTimeout(function () {
-            contentWindow.dispatchEvent(event);
-          }, 0);
+          contentWindow.postMessage(state, '*');
         }, true);
 
         runningApps.push({
