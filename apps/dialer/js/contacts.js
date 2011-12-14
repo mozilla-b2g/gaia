@@ -211,15 +211,15 @@ var ContactDetails = {
   },
   get container() {
     delete this.container;
-    return this.container = document.getElementById('contactDetails-container');
+    return this.container = document.getElementById('contact-details-container');
   },
   get view() {
     delete this.view;
-    return this.view = document.getElementById('contactDetails-view');
+    return this.view = document.getElementById('contact-details-view');
   },
   get editButton() {
     delete this.editButton;
-    return this.editButton = document.getElementById('contactEdit-button');
+    return this.editButton = document.getElementById('contact-edit-button');
   },
   set contact(contact) {
     delete this._contact;

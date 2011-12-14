@@ -265,15 +265,15 @@ var CallHandler = {
   // properties / methods
   get numberView() {
     delete this.numberView;
-    return this.numberView = document.getElementById('callNumber-view');
+    return this.numberView = document.getElementById('call-number-view');
   },
   get statusView() {
     delete this.statusView;
-    return this.statusView = document.getElementById('callStatus-view');
+    return this.statusView = document.getElementById('call-status-view');
   },
   get actionsView() {
     delete this.actionsView;
-    return this.actionsView = document.getElementById('callActions-container');
+    return this.actionsView = document.getElementById('call-actions-container');
   },
   get muteButton() {
     delete this.muteButton;

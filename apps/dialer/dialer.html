@@ -55,9 +55,9 @@
 
           <div id="contacts-container" onclick="Contacts.showDetails(event)"></div>
 
-          <div id="contactDetails-container">
-            <div id="contactDetails-view">
-              <div id="contactEdit-button" data-action="edit" onclick="ContactDetails.execute(event)">
+          <div id="contact-details-container">
+            <div id="contact-details-view">
+              <div id="contact-edit-button" data-action="edit" onclick="ContactDetails.execute(event)">
                 <span>Edit</span>
                 <span>Save</span>
               </div>
@@ -105,11 +105,11 @@
     </div>
 
     <div id="call-screen">
-      <div id="callNumber-view">
+      <div id="call-number-view">
       </div>
-      <div id="callStatus-view">
+      <div id="call-status-view">
       </div>
-      <div id="callActions-container">
+      <div id="call-actions-container">
         <div id="keypad-button" class="top" data-action="keypad" onclick="CallHandler.execute(this.dataset.action);">
           Keypad
         </div>
