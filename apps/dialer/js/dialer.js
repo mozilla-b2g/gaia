@@ -23,7 +23,7 @@ function visibilityChanged(url) {
   var contacts = document.getElementById('contacts');
   if (url.indexOf('?choice=contact') != -1 ||
       contacts.hasAttribute('data-active')) {
-    choiceChanged(contacts);  
+    choiceChanged(contacts);
   } else if (url.indexOf('?choice=incoming') != -1) {
     var call = window.navigator.mozTelephony.liveCalls[0];
     CallHandler.incoming(call);
@@ -40,7 +40,7 @@ function choiceChanged(target) {
 
   // XXX this should not live here
   Contacts.hideSearch();
-  Contacts.hideDetails();
+  ContactDetails.hide();
 
   var choices = document.getElementById('choices');
   var choicesCount = choices.childElementCount;
