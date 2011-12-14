@@ -135,18 +135,15 @@ var Contacts = {
     // I'm under the impression that there will be a better way to do this
     // with the final API (ie. getting a contact from an id)
     var contactId = evt.target.id;
-    var contact;
     this.find(['id'], function showDetailCallback(contacts) {
       var results = contacts.filter(function finById(contact) {
         return (contact.id == contactId);
       });
-      contact = results[0];
+      var contact = results[0];
+      if (contact) {
+        ContactDetails.show(contact);
+      }
     });
-
-    if (contact) {
-      ContactDetails.contact = contact;
-      ContactDetails.show();
-    }
   }
 };
 
@@ -205,9 +202,9 @@ var ShortcutsHandler = {
 };
 
 var ContactDetails = {
-  init: function cd_init() {
+  _editing: false,
+  setup: function cd_setup() {
     window.addEventListener('keypress', this, true);
-    this._editing = false;
   },
   get container() {
     delete this.container;
@@ -226,7 +223,6 @@ var ContactDetails = {
     this._contact = contact;
     this.render();
   },
-
   execute: function cd_execute(evt) {
     var action = evt.currentTarget.dataset.action;
     if (!this[action]) {
@@ -236,7 +232,10 @@ var ContactDetails = {
 
     this[action](evt);
   },
-  show: function cd_show() {
+  show: function cd_show(contact) {
+    if (typeof contact != 'undefined') {
+      this.contact = contact;
+    }
     this.container.classList.add('displayed');
   },
   hide: function cd_hide() {
@@ -277,16 +276,16 @@ var ContactDetails = {
     }
     this._editing = true;
 
-    this.smoothTransition(function cd_editTransition(self) {
-      self.editButton.dataset.action = 'save';
-      self.view.classList.add('editing');
+    this.smoothTransition((function cd_editTransition() {
+      this.editButton.dataset.action = 'save';
+      this.view.classList.add('editing');
       // making the fields editable
-      inputs = self.view.getElementsByTagName('input');
+      var inputs = this.view.getElementsByTagName('input');
       for (var i = 0; i < inputs.length; i++) {
         var input = inputs[i];
         input.disabled = false;
       }
-    });
+    }).bind(this));
   },
   save: function cd_save() {
     // TODO: actually save the contact
@@ -299,20 +298,20 @@ var ContactDetails = {
     }
     this._editing = false;
 
-    this.smoothTransition(function cd_endEditingTransition(self) {
-      self.editButton.dataset.action = 'edit';
-      self.view.classList.remove('editing');
+    this.smoothTransition((function cd_endEditingTransition() {
+      this.editButton.dataset.action = 'edit';
+      this.view.classList.remove('editing');
       // disabling the fields and cleaning up
-      inputs = self.view.getElementsByTagName('input');
+      var inputs = this.view.getElementsByTagName('input');
       for (var i = 0; i < inputs.length; i++) {
         var input = inputs[i];
         input.disabled = true;
 
         if (input.value.length == 0) {
-          self.remove(input.parentNode);
+          this.remove(input.parentNode);
         }
       }
-    });
+    }).bind(this));
     return true;
   },
   // scrolling to the right position when one of the fields
@@ -321,30 +320,27 @@ var ContactDetails = {
     var element = event.currentTarget;
     var self = this;
 
-    var moveAction = function cd_autoscrollMove() {
+    var scrollInPlace = function cd_autoscrollMove() {
       var bounds = element.getBoundingClientRect();
-      var bottomPosition = bounds.top + bounds.height;
-      var yDelta = bottomPosition - self.container.getBoundingClientRect().height;
+      var bottom = bounds.top + bounds.height;
+      var yDelta = bottom - self.container.getBoundingClientRect().height;
       if (yDelta > 0) {
         self.container.scrollTop += yDelta;
       }
     };
-    moveAction();
+    scrollInPlace();
 
     //also listening to the next resize for keyboard handling
     window.addEventListener('resize', function cd_afterResize() {
       window.removeEventListener('resize', cd_afterResize);
 
-      moveAction();
+      scrollInPlace();
     });
   },
 
   // back button handling
   handleEvent: function cd_handleEvent(evt) {
-    if (evt.type !== 'keypress') {
-      return;
-    }
-    if (evt.keyCode != evt.DOM_VK_ESCAPE) {
+    if (evt.type !== 'keypress' || evt.keyCode != evt.DOM_VK_ESCAPE) {
       return;
     }
 
@@ -353,7 +349,6 @@ var ContactDetails = {
     }
   },
 
-  // rendering
   render: function cd_render() {
     var names = '';
     for (var key in this._contact.name) {
@@ -387,14 +382,13 @@ var ContactDetails = {
            (disabled ? 'disabled="disabled"' : '') +
            'onfocus="ContactDetails.execute(event)" />';
   },
-  smoothTransition: function cd_smoothTransition(func) {
-    var self = this;
+  smoothTransition: function cd_smoothTransition(callback) {
     var detailsView = this.view;
     detailsView.classList.add('hidden');
     detailsView.addEventListener('transitionend', function cd_smoothFinish() {
       detailsView.removeEventListener('transitionend', cd_smoothFinish);
 
-      func(self);
+      callback();
 
       detailsView.classList.remove('hidden');
     });
@@ -410,5 +404,5 @@ window.addEventListener('load', function contactsLoad(evt) {
 window.addEventListener('load', function contactSetup(evt) {
   window.removeEventListener('load', contactSetup);
   ShortcutsHandler.setup();
-  ContactDetails.init();
+  ContactDetails.setup();
 });
