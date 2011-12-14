@@ -354,46 +354,12 @@ if (!window['Gaia'])
       var screenClassList = this.screen.classList;
       screenClassList.remove('animateTaskManagerClose');
       screenClassList.add('animateTaskManagerOpen');
-      
-      //////// NEW
-      /*var windowsContainer = this.windowsContainer;
-      var animationHandler = function() {
-        this.removeEventListener('animationend', animationHandler);
-      };
-      
-      windowsContainer.removeAttribute('hidden');
-      windowsContainer.addEventListener('animationend', animationHandler);
-      windowsContainer.classList.remove('hide');
-      windowsContainer.classList.add('show');
-
-      for (var i = 0; i < runningApps.length; i++) {
-        var runningApp = runningApps[i];
-        runningApp.window.removeAttribute('hidden');
-        runningApp.window.classList.add('thumbnail');
-      }*/
     },
 
     closeTaskManager: function() {
       var screenClassList = this.screen.classList;
       screenClassList.remove('animateTaskManagerOpen');
       screenClassList.add('animateTaskManagerClose');
-      
-      //////// NEW
-      /*var windowsContainer = this.windowsContainer;
-      var animationHandler = function() {
-        this.removeEventListener('animationend', animationHandler);
-        windowsContainer.setAttribute('hidden', true);
-      };
-      
-      windowsContainer.addEventListener('animationend', animationHandler);
-      windowsContainer.classList.remove('show');
-      windowsContainer.classList.add('hide');
-      
-      for (var i = 0; i < runningApps.length; i++) {
-        var runningApp = runningApps[i];
-        runningApp.window.setAttribute('hidden', true);
-        runningApp.window.classList.remove('thumbnail');
-      }*/
     },
 
     getInstalledApps: function(callback) {
