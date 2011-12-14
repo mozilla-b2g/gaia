@@ -93,6 +93,24 @@ if (true) {
             }
           }
         },
+        { // music
+          'installOrigin': 'http://gaiamobile.org:8888',
+          'origin': '../music',
+          'receipt': null,
+          'installTime': 1323339869000,
+          manifest: {
+            'name': 'Music',
+            'description': 'Gaia Music',
+            'launch_path': '/music.html',
+            'developer': {
+              'name': 'The Gaia Team',
+              'url': 'https://github.com/andreasgal/gaia'
+            },
+            'icons': {
+              '120': '/icons/Music.png'
+            }
+          }
+        },
         { // settings
           'installOrigin': 'http://gaiamobile.org:8888',
           'origin': '../settings',
