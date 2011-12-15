@@ -313,7 +313,11 @@ a.button.show {
 
 /* Navigation Bar */
 div.navigationBar {
-  background-image: -moz-linear-gradient(#444, #111);
+  background-color: #555;
+  background-image: -moz-linear-gradient(#666, #333);
+  background-image: linear-gradient(#666, #333);
+  text-align: center;
+  margin: 0;
   width: 100%;
   height: 2.75em;
   position: fixed;
