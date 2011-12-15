@@ -5,15 +5,16 @@ CACHE MANIFEST
 music.html
 manifest.webapp
 
-# icons/
-icons/Music.png
-
 # js/
 js/music.js
 js/sample_data.js
 
 # style/
 style/music.css
+
+# icons used in the web application manifest.
+# Do not use icons/ directly since it is often used as an alias by Apache.
+style/icons/Music.png
 
 # tmp files
 webapi+apps.js
