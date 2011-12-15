@@ -7,239 +7,320 @@ if (!window['Gaia'])
   var Gaia = {};
 
 (function() {
-
+  var _isTransitionActive = false;
+  
   Gaia.UI = {
-    NavController: function(navBar, rootView) {
-      this.navBar = navBar;
-      this.titleBar = navBar.getElementsByTagName('h1')[0];
-      this.rootView = rootView;
-      this.views = [rootView];
-
-      var backButton = document.createElement('a');
-      backButton.className = 'button left hide';
-      backButton.href = '#';
-      backButton.innerHTML = 'Back';
-      backButton.navController = this;
-      backButton.addEventListener('click', function(evt) {
-        this.navController.popView();
-      });
-
-      navBar.appendChild(backButton);
-
-      this.backButton = backButton;
-
-      rootView.classList.add('active');
-
-      this.titleBar.innerHTML = rootView.getAttribute('data-title');
-    },
-    ToggleSwitch: function(checkbox) {
-      var element = this.element = document.createElement('a');
-      var onElement = this.onElement = document.createElement('span');
-      var leverElement = this.leverElement = document.createElement('span');
-      var offElement = this.offElement = document.createElement('span');
-      var hiddenInput = this.hiddenInput = document.createElement('input');
-      var checkedValue = this.checkedValue = checkbox.value || 1;
-
-      var _isOn = this._isOn = checkbox.hasAttribute('checked');
-
-      var parent = checkbox.parentNode;
-
-      element.toggleSwitch = this;
-
-      element.className = (_isOn) ? 'toggleSwitch on' : 'toggleSwitch';
-      onElement.className = 'on';
-      leverElement.className = 'lever';
-      offElement.className = 'off';
-
-      onElement.innerHTML = 'On';
-      leverElement.innerHTML = '&nbsp;';
-      offElement.innerHTML = 'Off';
-
-      element.appendChild(onElement);
-      element.appendChild(leverElement);
-      element.appendChild(offElement);
-
-      parent.removeChild(checkbox);
-      parent.appendChild(element);
-
-      hiddenInput.type = 'hidden';
-      hiddenInput.id = checkbox.id;
-      hiddenInput.name = checkbox.name;
-      hiddenInput.value = (_isOn) ? checkedValue : '';
-      hiddenInput.toggleSwitchElement = element;
-
-      element.appendChild(hiddenInput);
-
-      element.addEventListener('click', function(evt) {
-        var toggleSwitch = this.toggleSwitch;
-        toggleSwitch.isOn = !toggleSwitch.isOn;
-
-        evt.preventDefault();
-      });
-    }
-  };
-
-  Gaia.UI.NavController.prototype = {
-    get topView() {
+    views: [],
+    navigationBar: null,
+    get activeView() {
       var views = this.views;
       return views[views.length - 1];
     },
-    views: [],
-    pushView: function(view) {
-      var views = this.views;
-      var topView = this.topView;
-
-      topView.classList.remove('pop');
-      topView.classList.add('push');
-
-      view.classList.add('active');
-      view.classList.remove('popTop');
-      view.classList.add('pushTop');
-
-      views.push(view);
-
-      this.titleBar.innerHTML = view.getAttribute('data-title');
+    get isTransitionActive() {
+      return _isTransitionActive;
     },
-    popView: function() {
+    init: function() {
+      
+      // Initialize Navigation Bars.
+      var navigationBars = document.getElementsByClassName('navigationBar');
+
+      if (navigationBars.length > 0) {
+        this.navigationBar = new Gaia.UI.NavigationBar(navigationBars[0]);
+      }
+
+      // Initialize Views.
+      var views = document.getElementsByClassName('view');
+
+      if (views.length > 0) {
+        views[0].classList.add('active');
+        this.push(new Gaia.UI.View(views[0]));
+      }
+
+      // Add event listeners for push/pop links.
+      document.addEventListener('click', this);
+      
+      window.addEventListener('keypress', this, true);
+    },
+    handleEvent: function(evt) {
+      switch (evt.type) {
+        case 'click':
+          var target = evt.originalTarget;
+
+          if (target.tagName !== 'A')
+            return;
+
+          var href = target.getAttribute('href');
+          var classList = target.classList;
+          var isPop = classList.contains('pop');
+
+          if (!isPop && !classList.contains('push'))
+            return;
+
+          var transition;
+
+          if (classList.contains('slideHorizontal'))
+            transition = 'slideHorizontal';
+
+          if (!transition)
+            return;
+
+          if (isPop && href === '#') {
+            this.pop(transition);
+          }
+
+          else {
+            var view = this.getView(href) || new Gaia.UI.View(href);
+
+            if (isPop) {
+              this.pop(view, transition);
+            }
+
+            else {
+              this.push(view, transition);
+            }
+          }
+
+          evt.preventDefault();
+          break;
+        case 'keypress':
+          if (Gaia.UI.views.length === 1)
+            return;
+          
+          if (_isTransitionActive) {
+            evt.preventDefault();
+            evt.stopPropagation();
+            return;
+          }
+          
+          if (evt.keyCode === evt.DOM_VK_ESCAPE) {
+            evt.preventDefault();
+            evt.stopPropagation();
+            this.pop('slideHorizontal');
+          }
+          break;
+        case 'transitionend':
+          var activeViewElement = document.querySelector('.view.active');
+          var newActiveViewElement = Gaia.UI.activeView.element;
+          var activeViewClassList = activeViewElement.classList;
+          var newActiveViewClassList = newActiveViewElement.classList;
+          
+          activeViewClassList.remove('active');
+          activeViewClassList.remove('push');
+          activeViewClassList.remove('pop');
+          activeViewClassList.remove('transition');
+          activeViewClassList.remove('slideHorizontal');
+          
+          newActiveViewClassList.add('active');
+          newActiveViewClassList.remove('push');
+          newActiveViewClassList.remove('pop');
+          newActiveViewClassList.remove('transition');
+          newActiveViewClassList.remove('slideHorizontal');
+          
+          newActiveViewElement.removeEventListener('transitionend', this);
+          _isTransitionActive = false;
+          break;
+        default:
+          break;
+      }
+    },
+    getView: function(viewOrHref) {
       var views = this.views;
-      var topView = this.topView;
+      var view, i;
 
-      // Make sure there is always at least one view on the stack.
-      if (views.length > 1) {
+      if (typeof viewOrHref === 'string') {
+        for (i = 0; i < views.length; i++) {
+          view = views[i];
 
-        // On animation complete, remove 'active' from topView.
-        var animationCompleteHandler = function() {
-          this.removeEventListener('animationend', animationCompleteHandler);
-          this.classList.remove('active');
-        };
+          if (view.href === viewOrHref) {
+            return view;
+          }
+        }
+      } else {
+        for (i = 0; i < views.length; i++) {
+          view = views[i];
 
-        topView.addEventListener('animationend', animationCompleteHandler);
-
-        topView.classList.remove('pushTop');
-        topView.classList.add('popTop');
-
-        views.pop();
-
-        var newTopView = this.topView;
-
-        newTopView.classList.remove('push');
-        newTopView.classList.add('pop');
-
-        this.titleBar.innerHTML = newTopView.getAttribute('data-title');
-
-        return topView;
+          if (view === viewOrHref) {
+            return view;
+          }
+        }
       }
 
       return null;
-    }
-  };
-
-  Gaia.UI.ToggleSwitch.prototype = {
-    get isOn() {
-      return this._isOn;
     },
-    set isOn(value) {
-      if (this._isOn === value)
-        return;
+    push: function(view, transition) {
+      var views = this.views;
+      var navigationBar = this.navigationBar;
+      var activeView, newActiveView;
 
-      var isOn = this._isOn = value;
-      var element = this.element;
-      var hiddenInput = this.hiddenInput;
-      var checkedValue = this.checkedValue;
-      var classList = element.classList;
+      view.isRoot = views.length === 0;
 
-      if (isOn) {
-        classList.remove('off');
-        classList.add('on');
-        hiddenInput.value = checkedValue;
-      } else {
-        classList.remove('on');
-        classList.add('off');
-        hiddenInput.value = '';
+      if (!view.isRoot) {
+        activeView = this.activeView;
+        newActiveView = view;
       }
 
-      var evt = document.createEvent('UIEvents');
-      evt.initUIEvent('change', true, true, window, isOn ? checkedValue : '');
-      element.dispatchEvent(evt);
-    }
-  };
+      views.push(view);
 
-  window.addEventListener('click', function(evt) {
-    var target = evt.target;
-    var targetNodeName = target.nodeName.toLowerCase();
-    var classList = target.classList;
+      if (!view.isRoot) {
+        var activeViewElement = activeView.element;
+        var newActiveViewElement = newActiveView.element;
+        var activeViewClassList = activeViewElement.classList;
+        var newActiveViewClassList = newActiveViewElement.classList;
 
-    switch (targetNodeName) {
-      case 'a':
+        _isTransitionActive = true;
 
-        // Handle drill down cells.
-        if (classList.contains('drillDownCell')) {
-          if (window['navController']) {
-            var targetHash = target.hash;
-            if (targetHash) {
-              var targetView = document.getElementById(targetHash.substr(1));
-              if (targetView) {
-                window.navController.pushView(targetView);
-                evt.preventDefault();
-              }
+        activeViewClassList.add(transition);
+        activeViewClassList.add('push');
+        newActiveViewClassList.add(transition);
+        newActiveViewClassList.add('push');
+
+        newActiveViewElement.addEventListener('transitionend', this);
+
+        setTimeout(function() {
+          activeViewClassList.add('transition');
+          newActiveViewClassList.add('transition');
+        }, 100);
+      }
+      
+      if (navigationBar) {
+        navigationBar.title = view.title;
+      }
+    },
+    pop: function(viewOrTransition, transition) {
+      var views = this.views;
+      var navigationBar = this.navigationBar;
+      var activeView, newActiveView;
+
+      if (views.length > 1) {
+        activeView = this.activeView;
+
+        if (typeof viewOrTransition === 'string') {
+          transition = viewOrTransition;
+        } else {
+          newActiveView = viewOrTransition;
+        }
+
+        if (newActiveView) {
+          var isOnStack = this.getView(newActiveView) !== null;
+
+          if (isOnStack) {
+            while (this.activeView !== newActiveView) {
+              views.pop();
             }
           }
         }
 
-        break;
-      default:
-        target = target.parentNode;
-        targetNodeName = target.nodeName.toLowerCase();
-        classList = target.classList;
-
-        if (targetNodeName === 'a' && classList.contains('drillDownCell')) {
-          target.click();
-          evt.preventDefault();
+        else {
+          views.pop();
+          newActiveView = this.activeView;
         }
 
-        break;
-    }
-  });
+        var activeViewElement = activeView.element;
+        var newActiveViewElement = newActiveView.element;
+        var activeViewClassList = activeViewElement.classList;
+        var newActiveViewClassList = newActiveViewElement.classList;
 
+        _isTransitionActive = true;
+
+        activeViewClassList.add(transition);
+        activeViewClassList.add('pop');
+        newActiveViewClassList.add(transition);
+        newActiveViewClassList.add('pop');
+        
+        newActiveViewElement.addEventListener('transitionend', this);
+
+        setTimeout(function() {
+          activeViewClassList.add('transition');
+          newActiveViewClassList.add('transition');
+        }, 100);
+        
+        if (navigationBar)
+          navigationBar.title = newActiveView.title;
+      }
+    }
+  };
+  
+  Gaia.UI.View = function(elementOrHref) {
+    var element;
+
+    if (typeof elementOrHref === 'string') {
+      var isHash = elementOrHref.charAt(0) === '#';
+
+      // Target view is a <div/>.
+      if (isHash) {
+        element = document.querySelector(elementOrHref);
+      }
+
+      // Target view is a new <iframe/>.
+      else {
+        element = document.createElement('iframe');
+        element.className = 'view';
+        element.src = elementOrHref;
+        
+        document.body.appendChild(element);
+      }
+
+      this.href = elementOrHref;
+    }
+
+    else if (elementOrHref.classList.contains('view')) {
+      element = elementOrHref;
+
+      // Target view is a <div/>.
+      if (element.tagName === 'DIV') {
+        this.href = '#' + element.id;
+      }
+
+      // Target view is a new <iframe/>.
+      else {
+        this.href = element.getAttribute('src');
+      }
+    }
+
+    if (element) {
+      element.view = this;
+      this.element = element;
+      this.title = element.getAttribute('data-title') || '';
+    }
+  };
+  
+  Gaia.UI.View.prototype = {
+    element: null,
+    isRoot: false,
+    href: '',
+    title: ''
+  };
+  
+  Gaia.UI.NavigationBar = function(element) {
+    if (element) {
+      this.element = element;
+    
+      var headers = element.getElementsByTagName('h1');
+      var header;
+    
+      if (headers.length > 0) {
+        header = headers[0];
+      }
+    
+      else {
+        header = document.createElement('h1');
+        element.appendChild(header);
+      }
+      
+      this.header = header;
+    }
+  };
+  
+  Gaia.UI.NavigationBar.prototype = {
+    element: null,
+    header: null,
+    set title(value) {
+      this.header.innerHTML = value;
+    }
+  };
+  
   window.addEventListener('load', function() {
-    var i, j;
-
-    // Initialize table views.
-    var tableViews = document.getElementsByClassName('tableView');
-
-    for (i = 0; i < tableViews.length; i++) {
-      var tableView = tableViews[i];
-      var drillDownCells = tableView.getElementsByClassName('drillDownCell');
-
-      for (j = 0; j < drillDownCells.length; j++) {
-        var drillDownCell = drillDownCells[j];
-
-        if (drillDownCell.hash) {
-          var arrow = document.createElement('span');
-          arrow.className = 'arrowRight';
-          drillDownCell.appendChild(arrow);
-        }
-      }
-    }
-
-    // Initialize toggle switches.
-    var toggleSwitchCheckboxes =
-        document.getElementsByClassName('toggleSwitch');
-
-    for (i = 0; i < toggleSwitchCheckboxes.length; i++) {
-      var checkbox = toggleSwitchCheckboxes[i];
-      new Gaia.UI.ToggleSwitch(checkbox);
-    }
+    Gaia.UI.init();
   });
-
-  window.addEventListener('keypress', function(evt) {
-    if (evt.keyCode === evt.DOM_VK_ESCAPE) {
-      var navController = window['navController'];
-
-      if (navController && navController.popView()) {
-        evt.preventDefault();
-      }
-    }
-  }, true);
 
 })();
