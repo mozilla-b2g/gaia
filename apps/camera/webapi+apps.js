@@ -35,7 +35,7 @@ if (true) {
               'url': 'https://github.com/andreasgal/gaia'
             },
             'icons': {
-              '120': '/icons/Browser.png'
+              '120': '/style/icons/Browser.png'
             }
           }
         },
@@ -53,7 +53,7 @@ if (true) {
               'url': 'https://github.com/andreasgal/gaia'
             },
             'icons': {
-              '120': '/icons/Camera.png'
+              '120': '/style/icons/Camera.png'
             }
           }
         },
@@ -71,7 +71,7 @@ if (true) {
               'url': 'https://github.com/andreasgal/gaia'
             },
             'icons': {
-              '120': '/icons/Phone.png'
+              '120': '/style/icons/Phone.png'
             }
           }
         },
@@ -89,7 +89,7 @@ if (true) {
               'url': 'https://github.com/andreasgal/gaia'
             },
             'icons': {
-              '120': '/icons/Gallery.png'
+              '120': '/style/icons/Gallery.png'
             }
           }
         },
@@ -107,7 +107,7 @@ if (true) {
               'url': 'https://github.com/andreasgal/gaia'
             },
             'icons': {
-              '120': '/icons/Music.png'
+              '120': '/style/icons/Music.png'
             }
           }
         },
@@ -125,7 +125,7 @@ if (true) {
               'url': 'https://github.com/andreasgal/gaia'
             },
             'icons': {
-              '120': '/icons/Settings.png'
+              '120': '/style/icons/Settings.png'
             }
           }
         },
@@ -143,7 +143,7 @@ if (true) {
               'url': 'https://github.com/andreasgal/gaia'
             },
             'icons': {
-              '120': '/icons/Messages.png'
+              '120': '/style/icons/Messages.png'
            }
         }
       }];

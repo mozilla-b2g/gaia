@@ -1,0 +1,13 @@
+{
+  "name": "Camera",
+  "description": "Gaia Camera",
+  "launch_path": "/camera.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "icons": {
+    "120": "/style/icons/Camera.png"
+  }
+}
+
