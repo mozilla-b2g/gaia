@@ -305,7 +305,7 @@ var TouchHandler = {
         var touchTarget = evt.originalTarget;
         if (touchTarget.className.indexOf('toggleswitch') === -1)
           evt.preventDefault();
-        
+
         this.target = pannableTarget;
         this.onTouchStart(evt.touches ? evt.touches[0] : evt);
         break;

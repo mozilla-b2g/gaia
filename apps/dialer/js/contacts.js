@@ -208,7 +208,8 @@ var ContactDetails = {
   },
   get container() {
     delete this.container;
-    return this.container = document.getElementById('contact-details-container');
+    return this.container =
+      document.getElementById('contact-details-container');
   },
   get view() {
     delete this.view;

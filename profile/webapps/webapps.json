@@ -1,43 +1,49 @@
 {
   "browser": {
-    "installOrigin":"http://gaia.org:8888",
-      "origin":"http://browser.gaia.org:8888",
+    "installOrigin":"http://gaiamobile.org:8888",
+      "origin":"http://browser.gaiamobile.org:8888",
       "receipt":null,
       "installTime":1323339869000
   },
   "camera": {
-    "installOrigin":"http://gaia.org:8888",
-    "origin":"http://camera.gaia.org:8888",
+    "installOrigin":"http://gaiamobile.org:8888",
+    "origin":"http://camera.gaiamobile.org:8888",
     "receipt":null,
     "installTime":1323339869000
   },
   "dialer": {
-    "installOrigin":"http://gaia.org:8888",
-    "origin":"http://dialer.gaia.org:8888",
+    "installOrigin":"http://gaiamobile.org:8888",
+    "origin":"http://dialer.gaiamobile.org:8888",
     "receipt":null,
     "installTime":1323339869000
   },
   "gallery": {
-    "installOrigin":"http://gaia.org:8888",
-    "origin":"http://gallery.gaia.org:8888",
+    "installOrigin":"http://gaiamobile.org:8888",
+    "origin":"http://gallery.gaiamobile.org:8888",
     "receipt":null,
     "installTime":1323339869000
   },
   "homescreen": {
-    "installOrigin":"http://gaia.org:8888",
-    "origin":"http://homescreen.gaia.org:8888",
+    "installOrigin":"http://gaiamobile.org:8888",
+    "origin":"http://homescreen.gaiamobile.org:8888",
     "receipt":null,
     "installTime":1323339869000
   },
   "settings": {
-    "installOrigin":"http://gaia.org:8888",
-    "origin":"http://settings.gaia.org:8888",
+    "installOrigin":"http://gaiamobile.org:8888",
+    "origin":"http://settings.gaiamobile.org:8888",
     "receipt":null,
     "installTime":1323339869000
   },
   "sms": {
-    "installOrigin":"http://gaia.org:8888",
-    "origin":"http://sms.gaia.org:8888",
+    "installOrigin":"http://gaiamobile.org:8888",
+    "origin":"http://sms.gaiamobile.org:8888",
+    "receipt":null,
+    "installTime":1323339869000
+  },
+  "music": {
+    "installOrigin":"http://gaiamobile.org:8888",
+    "origin":"http://sms.gaiamobile.org:8888",
     "receipt":null,
     "installTime":1323339869000
   }
