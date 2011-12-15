@@ -8,7 +8,7 @@ if (!window['Gaia'])
 
 (function() {
   var _isTransitionActive = false;
-  
+
   Gaia.UI = {
     views: [],
     navigationBar: null,
@@ -20,7 +20,7 @@ if (!window['Gaia'])
       return _isTransitionActive;
     },
     init: function() {
-      
+
       // Initialize Navigation Bars.
       var navigationBars = document.getElementsByClassName('navigationBar');
 
@@ -38,7 +38,7 @@ if (!window['Gaia'])
 
       // Add event listeners for push/pop links.
       document.addEventListener('click', this);
-      
+
       window.addEventListener('keypress', this, true);
     },
     handleEvent: function(evt) {
@@ -85,13 +85,13 @@ if (!window['Gaia'])
         case 'keypress':
           if (Gaia.UI.views.length === 1)
             return;
-          
+
           if (_isTransitionActive) {
             evt.preventDefault();
             evt.stopPropagation();
             return;
           }
-          
+
           if (evt.keyCode === evt.DOM_VK_ESCAPE) {
             evt.preventDefault();
             evt.stopPropagation();
@@ -103,19 +103,19 @@ if (!window['Gaia'])
           var newActiveViewElement = Gaia.UI.activeView.element;
           var activeViewClassList = activeViewElement.classList;
           var newActiveViewClassList = newActiveViewElement.classList;
-          
+
           activeViewClassList.remove('active');
           activeViewClassList.remove('push');
           activeViewClassList.remove('pop');
           activeViewClassList.remove('transition');
           activeViewClassList.remove('slideHorizontal');
-          
+
           newActiveViewClassList.add('active');
           newActiveViewClassList.remove('push');
           newActiveViewClassList.remove('pop');
           newActiveViewClassList.remove('transition');
           newActiveViewClassList.remove('slideHorizontal');
-          
+
           newActiveViewElement.removeEventListener('transitionend', this);
           _isTransitionActive = false;
           break;
@@ -181,7 +181,7 @@ if (!window['Gaia'])
           newActiveViewClassList.add('transition');
         }, 100);
       }
-      
+
       if (navigationBar) {
         navigationBar.title = view.title;
       }
@@ -226,20 +226,20 @@ if (!window['Gaia'])
         activeViewClassList.add('pop');
         newActiveViewClassList.add(transition);
         newActiveViewClassList.add('pop');
-        
+
         newActiveViewElement.addEventListener('transitionend', this);
 
         setTimeout(function() {
           activeViewClassList.add('transition');
           newActiveViewClassList.add('transition');
         }, 100);
-        
+
         if (navigationBar)
           navigationBar.title = newActiveView.title;
       }
     }
   };
-  
+
   Gaia.UI.View = function(elementOrHref) {
     var element;
 
@@ -256,7 +256,7 @@ if (!window['Gaia'])
         element = document.createElement('iframe');
         element.className = 'view';
         element.src = elementOrHref;
-        
+
         document.body.appendChild(element);
       }
 
@@ -283,34 +283,32 @@ if (!window['Gaia'])
       this.title = element.getAttribute('data-title') || '';
     }
   };
-  
+
   Gaia.UI.View.prototype = {
     element: null,
     isRoot: false,
     href: '',
     title: ''
   };
-  
+
   Gaia.UI.NavigationBar = function(element) {
     if (element) {
       this.element = element;
-    
+
       var headers = element.getElementsByTagName('h1');
       var header;
-    
+
       if (headers.length > 0) {
         header = headers[0];
-      }
-    
-      else {
+      } else {
         header = document.createElement('h1');
         element.appendChild(header);
       }
-      
+
       this.header = header;
     }
   };
-  
+
   Gaia.UI.NavigationBar.prototype = {
     element: null,
     header: null,
@@ -318,7 +316,7 @@ if (!window['Gaia'])
       this.header.innerHTML = value;
     }
   };
-  
+
   window.addEventListener('load', function() {
     Gaia.UI.init();
   });

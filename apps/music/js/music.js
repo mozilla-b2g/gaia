@@ -11,7 +11,7 @@ var Music = {
       var target = evt.target;
       if (!target)
         return;
-      
+
       db.getSong(target.id, function playSong(song) {
         self.playSong(song);
       });
@@ -19,20 +19,23 @@ var Music = {
 
     window.addEventListener('keypress', function keyPressHandler(evt) {
       if (Music.playingSong && evt.keyCode == evt.DOM_VK_ESCAPE) {
-        console.log("escape pressed");
-        Music.stopSong();
-        Music.showSongList();
+        self.stopSong();
+        self.showSongList();
         evt.preventDefault();
       }
     });
 
-    Music.showSongList();
+    self.showSongList();
   },
 
-  buildSongList: function musicBuildSongList (songs) {
+  buildSongList: function musicBuildSongList(songs) {
     var content = '';
     songs.forEach(function showMetadata(song) {
-      content += '<li class="song"><a id="' + song.id + '" href="#">' + song.title + ' - ' + song.artist + '</a></li>';
+      content += '<li class="song">' +
+                 '  <a id="' + song.id + '" href="#">' +
+                 '    ' + song.title + ' - ' + song.artist +
+                 '  </a>' +
+                 '</li>';
     });
     document.getElementById('songs').innerHTML = content;
   },
@@ -46,8 +49,7 @@ var Music = {
       document.getElementById(id).classList.add('hidden');
     });
 
-   Music.playingSong = false;
-    
+   this.playingSong = false;
   },
 
   playSong: function musicPlaySong(song) {
@@ -61,7 +63,7 @@ var Music = {
 
     var playerAudio = document.getElementById('playerAudio');
     var src = 'data:audio/ogg;base64,' + song.data;
-    playerAudio.setAttribute("src", src);
+    playerAudio.setAttribute('src', src);
 
     Music.playingSong = true;
   },
@@ -90,7 +92,7 @@ Music.db = {
       this._db = evt.target.result;
       if (empty)
         this._fillDB();
-      
+
       this.getSongList(callback);
     }).bind(this);
 
@@ -133,7 +135,8 @@ Music.db = {
   },
 
   getSongList: function dbGetSongList(callback) {
-    var transaction = this._db.transaction(['metadata'], IDBTransaction.READ_ONLY);
+    var transaction = this._db.transaction(['metadata'],
+                                           IDBTransaction.READ_ONLY);
     var store = transaction.objectStore('metadata');
     var cursorRequest = store.openCursor(IDBKeyRange.lowerBound(0));
 
