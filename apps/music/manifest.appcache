@@ -1,0 +1,22 @@
+CACHE MANIFEST
+# v1 2011-09-12
+
+# /
+music.html
+manifest.webapp
+
+# icons/
+icons/Music.png
+
+# js/
+js/music.js
+js/sample_data.js
+
+# style/
+style/music.css
+
+# tmp files
+webapi+apps.js
+
+NETWORK:
+

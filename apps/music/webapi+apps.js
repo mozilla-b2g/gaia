@@ -176,7 +176,7 @@ var Apps = {
 
   init: function apps_init() {
     this.events.forEach((function(evt) {
-      window.addEventListener(evt, this);
+      window.addEventListener(evt, this, true);
     }).bind(this));
 
     TouchHandler.start();
@@ -185,7 +185,7 @@ var Apps = {
 
   uninit: function apps_uninit() {
     this.events.forEach((function(evt) {
-      window.removeEventListener(evt, this);
+      window.removeEventListener(evt, this, true);
     }).bind(this));
 
     TouchHandler.stop();
@@ -302,10 +302,7 @@ var TouchHandler = {
         if (!pannableTarget)
           return;
 
-        var touchTarget = evt.originalTarget;
-        if (touchTarget.className.indexOf('toggleswitch') === -1)
-          evt.preventDefault();
-        
+        evt.preventDefault();
         this.target = pannableTarget;
         this.onTouchStart(evt.touches ? evt.touches[0] : evt);
         break;
