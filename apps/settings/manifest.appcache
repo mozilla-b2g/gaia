@@ -6,7 +6,6 @@ settings.html
 manifest.webapp
 
 # js/
-js/settings.js
 js/ui.js
 
 # style/
