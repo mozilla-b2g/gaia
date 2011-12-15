@@ -285,8 +285,7 @@ var TouchHandler = {
           return;
 
         var touchTarget = evt.originalTarget;
-        if (touchTarget.className.indexOf('toggleswitch') === -1 &&
-            touchTarget.tagName !== 'A')
+        if (touchTarget.className.indexOf('toggleswitch') === -1)
           evt.preventDefault();
         
         this.target = pannableTarget;
