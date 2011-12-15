@@ -151,36 +151,6 @@ html, body {
   top: 24px;
   width: -moz-calc(100%);
   height: -moz-calc(100% - 24px);
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-#windows.show {
-  background-color: rgba(0, 0, 0, 0.8);
-  -moz-animation-duration: 300ms;
-  -moz-animation-name: animateTaskManagerShow;
-}
-@-moz-keyframes animateTaskManagerShow {
-  from {
-    background-color: rgba(0, 0, 0, 0);
-  }
-  to {
-    background-color: rgba(0, 0, 0, 0.8);
-  }
-}
-
-#windows.hide {
-  background-color: rgba(0, 0, 0, 0);
-  -moz-animation-duration: 300ms;
-  -moz-animation-name: animateTaskManagerHide;
-}
-@-moz-keyframes animateTaskManagerHide {
-  from {
-    background-color: rgba(0, 0, 0, 0.8);
-  }
-  to {
-    background-color: rgba(0, 0, 0, 0);
-  }
 }
 
 iframe.appWindow {
@@ -221,14 +191,6 @@ iframe.appWindow {
   to {
     -moz-transform: scale(0.1);
   }
-}
-
-iframe.appWindow.thumbnail {
-  display: inline-block;
-  margin-left: -50%;
-  position: relative;
-  -moz-transform-origin: center center;
-  -moz-transform: scale(0.4);
 }
 
 #statusbar {
