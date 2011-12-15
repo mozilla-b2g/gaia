@@ -347,7 +347,7 @@ NotificationScreen.prototype = {
     this.locked = true;
   },
   events: [
-    'touchstart', 'touchmove', 'touchend',
+    'touchstart', 'touchmove', 'touchend'
   ],
   attachEvents: function ns_attachEvents(view) {
     this.events.forEach((function(evt) {
@@ -399,7 +399,7 @@ NotificationScreen.prototype = {
 function LockScreen(overlay) {
   this.overlay = overlay;
   var events = [
-    'touchstart', 'touchmove', 'touchend',
+    'touchstart', 'touchmove', 'touchend'
   ];
   events.forEach((function(evt) {
     overlay.addEventListener(evt, this, true);
