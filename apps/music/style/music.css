@@ -44,13 +44,14 @@ li.song {
 }
 
 li.song a {
+  font-size: 1.5em;
   display: block;
   width: 100%;
   color: #fff;
   text-decoration: none;
   border-bottom: solid 1px #666;
   margin: 0;
-  padding: 1em;
+  padding: 1.5em;
 }
 
 div#player {
