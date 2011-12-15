@@ -1,12 +1,9 @@
 CACHE MANIFEST
-# v1 2011-09-12
+# v1 2011-10-12
 
 # /
 gallery.html
 manifest.webapp
-
-# icons/
-icons/Gallery.png
 
 # js/
 js/gallery.js
@@ -14,6 +11,10 @@ js/sample_data.js
 
 # style/
 style/gallery.css
+
+# icons used in the web application manifest.
+# Do not use icons/ directly since it is often used as an alias by Apache.
+style/icons/Gallery.png
 
 # tmp files
 webapi+apps.js

@@ -96,7 +96,7 @@ var MockHistory = {
   forwardLength: function() {
     return this.history.length - this.historyIndex - 1;
   },
-  
+
   pushState: function(stateObj, title, url) {
     if (url == this.history[this.historyIndex])
       return;
@@ -106,9 +106,9 @@ var MockHistory = {
       this.history.splice((this.historyIndex + 1), this.forwardLength(), url);
       this.historyIndex++;
     } else {
-    // Otherwise just append the new location to the end of the array
-      this.historyIndex = this.history.push(url) -1;
+      // Otherwise just append the new location to the end of the array
+      this.historyIndex = this.history.push(url) - 1;
     }
   }
-}
+};
 

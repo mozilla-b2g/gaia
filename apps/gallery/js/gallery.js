@@ -38,7 +38,6 @@ var Gallery = {
                  '</li>';
     });
     document.getElementById('thumbnails').innerHTML = content;
-    
   },
 
   showThumbnails: function galleryShowThumbnails(thumbnails) {

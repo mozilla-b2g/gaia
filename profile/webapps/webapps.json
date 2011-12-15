@@ -1,0 +1,50 @@
+{
+  "browser": {
+    "installOrigin":"http://gaiamobile.org:8888",
+      "origin":"http://browser.gaiamobile.org:8888",
+      "receipt":null,
+      "installTime":1323339869000
+  },
+  "camera": {
+    "installOrigin":"http://gaiamobile.org:8888",
+    "origin":"http://camera.gaiamobile.org:8888",
+    "receipt":null,
+    "installTime":1323339869000
+  },
+  "dialer": {
+    "installOrigin":"http://gaiamobile.org:8888",
+    "origin":"http://dialer.gaiamobile.org:8888",
+    "receipt":null,
+    "installTime":1323339869000
+  },
+  "gallery": {
+    "installOrigin":"http://gaiamobile.org:8888",
+    "origin":"http://gallery.gaiamobile.org:8888",
+    "receipt":null,
+    "installTime":1323339869000
+  },
+  "homescreen": {
+    "installOrigin":"http://gaiamobile.org:8888",
+    "origin":"http://homescreen.gaiamobile.org:8888",
+    "receipt":null,
+    "installTime":1323339869000
+  },
+  "settings": {
+    "installOrigin":"http://gaiamobile.org:8888",
+    "origin":"http://settings.gaiamobile.org:8888",
+    "receipt":null,
+    "installTime":1323339869000
+  },
+  "sms": {
+    "installOrigin":"http://gaiamobile.org:8888",
+    "origin":"http://sms.gaiamobile.org:8888",
+    "receipt":null,
+    "installTime":1323339869000
+  },
+  "music": {
+    "installOrigin":"http://gaiamobile.org:8888",
+    "origin":"http://sms.gaiamobile.org:8888",
+    "receipt":null,
+    "installTime":1323339869000
+  }
+}

@@ -5,9 +5,6 @@ CACHE MANIFEST
 sms.html
 manifest.webapp
 
-# icons/
-icons/Messages.png
-
 # js/
 js/sms.js
 
@@ -15,6 +12,10 @@ js/sms.js
 style/sms.css
 style/images/missing.png
 style/images/throbber.png
+
+# icons used in the web application manifest.
+# Do not use icons/ directly since it is often used as an alias by Apache.
+style/icons/Messages.png
 
 # tmp files
 webapi+apps.js

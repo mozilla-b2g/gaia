@@ -1,0 +1,13 @@
+{
+  "name": "Gallery",
+  "description": "Gaia Gallery",
+  "launch_path": "/gallery.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "icons": {
+    "120": "/style/icons/Gallery.png"
+  }
+}
+

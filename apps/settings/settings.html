@@ -9,67 +9,88 @@
     <link rel="stylesheet" type="text/css" media="screen" href="style/ui.css"/>
     <link rel="stylesheet" type="text/css" media="screen" href="style/settings.css"/>
     <script type="text/javascript" src="js/ui.js"></script>
-    <script type="text/javascript" src="js/settings.js"></script>
   </head>
   <body>
-    <div id="navBar" class="navigationBar">
-      <h1></h1>
-    </div>
-    <div id="rootView" class="view" data-title="Settings">
-      <ul id="networkAndLocationSettings" class="tableView"></ul>
+    <div class="navigationBar"></div>
+    <div id="root" class="view" data-title="Settings">
       <ul class="tableView">
         <li>
-          <a class="drillDownCell" href="#viewSounds">
+          <span>Airplane Mode</span>
+          <label class="toggleswitch">
+            <input type="checkbox"/>
+            <span class="toggleswitch-inner">
+              <span class="toggleswitch-on">On</span>
+              <span class="toggleswitch-off">Off</span>
+              <span class="toggleswitch-handle"></span>
+            </span>
+          </label>
+        </li>
+        <li>
+          <span>Location Services</span>
+          <label class="toggleswitch">
+            <input type="checkbox"/>
+            <span class="toggleswitch-inner">
+              <span class="toggleswitch-on">On</span>
+              <span class="toggleswitch-off">Off</span>
+              <span class="toggleswitch-handle"></span>
+            </span>
+          </label>
+        </li>
+        <li>
+          <span>Wi-Fi</span>
+          <label class="toggleswitch">
+            <input type="checkbox"/>
+            <span class="toggleswitch-inner">
+              <span class="toggleswitch-on">On</span>
+              <span class="toggleswitch-off">Off</span>
+              <span class="toggleswitch-handle"></span>
+            </span>
+          </label>
+        </li>
+        <li>
+          <span>Do Not Track</span>
+          <label class="toggleswitch">
+            <input type="checkbox"/>
+            <span class="toggleswitch-inner">
+              <span class="toggleswitch-on">On</span>
+              <span class="toggleswitch-off">Off</span>
+              <span class="toggleswitch-handle"></span>
+            </span>
+          </label>
+        </li>
+      </ul>
+      <ul class="tableView">
+        <li>
+          <a class="push slideHorizontal" href="#sounds">
             <span>Sounds</span>
           </a>
         </li>
         <li>
-          <a class="drillDownCell" href="#viewBrightness">
+          <a class="push slideHorizontal" href="#brightness">
             <span>Brightness</span>
           </a>
         </li>
         <li>
-          <a class="drillDownCell" href="#viewWallpaper">
+          <a class="push slideHorizontal" href="#wallpaper">
             <span>Wallpaper</span>
           </a>
         </li>
       </ul>
     </div>
-    <div id="viewWiFi" class="view" data-title="Wi-Fi Networks">
-      <ul class="tableView">
-        <li>
-          <span>Wi-Fi</span>
-          <input type="checkbox" class="toggleSwitch" id="isWiFiEnabled" name="isWiFiEnabled" value="1" checked="checked"/>
-        </li>
-      </ul>
-      <h1>Choose a Network...</h1>
-      <ul class="tableView">
-        <li>
-          <a class="selectionCell" href="#">
-            <span>Network 1</span>
-          </a>
-        </li>
-        <li>
-          <a class="selectionCell" href="#">
-            <span>Network 2</span>
-          </a>
-        </li>
-        <li>
-          <a class="selectionCell" href="#">
-            <span>Network 3</span>
-          </a>
-        </li>
-      </ul>
-      <ul class="tableView">
-        <li>
-          <span>Ask to Join Networks</span>
-          <input type="checkbox" class="toggleSwitch" id="askToJoinNetworks" name="askToJoinNetworks" value="1"/>
-        </li>
-      </ul>
-    </div>
 
-    <div id="viewSounds" class="view" data-title="Sounds"></div>
-    <div id="viewBrightness" class="view" data-title="Brightness"></div>
-    <div id="viewWallpaper" class="view" data-title="Wallpaper"></div>
+    <!-- Sounds -->
+    <div id="sounds" class="view" data-title="Sounds">
+      
+    </div>
+    
+    <!-- Brightness -->
+    <div id="brightness" class="view" data-title="Brightness">
+      
+    </div>
+    
+    <!-- Wallpaper -->
+    <div id="wallpaper" class="view" data-title="Wallpaper">
+      
+    </div>
   </body>
 </html>
