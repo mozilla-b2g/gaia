@@ -216,10 +216,7 @@ const IMEManager = {
         this.selectionEl,
         this.ime.firstChild
       );
-      while (this.selectionEl.firstChild) {
-        this.selectionEl.removeChild(this.selectionEl.firstChild);
-      }
-      this.selectionEl.style.display = 'none';
+      this.showSelections([]);
       this.IMEngines[this.layout.imEngine].empty();
     }
   },
@@ -266,10 +263,10 @@ const IMEManager = {
       this.selectionEl.removeChild(this.selectionEl.firstChild);
     }
     if (!selections.length) {
-      this.selectionEl.style.display = 'none';
+      this.selectionEl.className = '';
       return;
     } else {
-      this.selectionEl.style.display = 'block';
+      this.selectionEl.className = 'show';
       selections.forEach(
         function buildSelection(selection) {
           var span = document.createElement('span');
