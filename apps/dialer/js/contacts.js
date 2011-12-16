@@ -132,16 +132,18 @@ var Contacts = {
     scrollable.scrollTop = (top - scrollableTop) + scrollable.scrollTop;
   },
   showDetails: function contactsShowDetails(evt) {
-    var infos = evt.target.children;
-    var phoneNumber = infos[1].textContent;
-
-    var keyView = document.getElementById('keyboard');
-    choiceChanged(keyView);
-
-    KeyHandler.phoneNumber.value = phoneNumber;
-    KeyHandler.updateFontSize();
-
-    window.navigator.mozTelephony.dial(phoneNumber);
+    // I'm under the impression that there will be a better way to do this
+    // with the final API (ie. getting a contact from an id)
+    var contactId = evt.target.id;
+    this.find(['id'], function showDetailCallback(contacts) {
+      var results = contacts.filter(function finById(contact) {
+        return (contact.id == contactId);
+      });
+      var contact = results[0];
+      if (contact) {
+        ContactDetails.show(contact);
+      }
+    });
   }
 };
 
@@ -158,7 +160,8 @@ var ShortcutsHandler = {
   },
   get shortcutsBackground() {
     delete this.shortcutsBackground;
-    return this.shortcutsBackground = document.getElementById('contacts-shortcuts-background');
+    var id = 'contacts-shortcuts-background';
+    return this.shortcutsBackground = document.getElementById(id);
   },
 
   handleEvent: function sh_handleEvent(evt) {
@@ -198,12 +201,209 @@ var ShortcutsHandler = {
   }
 };
 
+var ContactDetails = {
+  _editing: false,
+  setup: function cd_setup() {
+    window.addEventListener('keypress', this, true);
+  },
+  get container() {
+    delete this.container;
+    return this.container =
+      document.getElementById('contact-details-container');
+  },
+  get view() {
+    delete this.view;
+    return this.view = document.getElementById('contact-details-view');
+  },
+  get editButton() {
+    delete this.editButton;
+    return this.editButton = document.getElementById('contact-edit-button');
+  },
+  set contact(contact) {
+    delete this._contact;
+    this._contact = contact;
+    this.render();
+  },
+  execute: function cd_execute(evt) {
+    var action = evt.currentTarget.dataset.action;
+    if (!this[action]) {
+      this.hide();
+      return;
+    }
+
+    this[action](evt);
+  },
+  show: function cd_show(contact) {
+    if (typeof contact != 'undefined') {
+      this.contact = contact;
+    }
+    this.container.classList.add('displayed');
+  },
+  hide: function cd_hide() {
+    if (!this.container.classList.contains('displayed')) {
+      return false;
+    }
+
+    this.container.classList.remove('displayed');
+    this.endEditing();
+    return true;
+  },
+  add: function cd_add(evt) {
+    var parent = evt.currentTarget.parentNode;
+    var type = '';
+    switch (parent.id) {
+      case 'contact-phones':
+        type = 'tel';
+        break;
+      case 'contact-emails':
+        type = 'email';
+        break;
+      default:
+        break;
+    }
+
+    var newElement = document.createElement('div');
+    newElement.innerHTML = this.inputFragment(type, '', false);
+    parent.insertBefore(newElement, evt.currentTarget);
+
+    newElement.children[0].focus();
+  },
+  remove: function cd_remove(element) {
+    element.parentNode.removeChild(element);
+  },
+  edit: function cd_edit() {
+    if (this._editing) {
+      return;
+    }
+    this._editing = true;
+
+    this.smoothTransition((function cd_editTransition() {
+      this.editButton.dataset.action = 'save';
+      this.view.classList.add('editing');
+      // making the fields editable
+      var inputs = this.view.getElementsByTagName('input');
+      for (var i = 0; i < inputs.length; i++) {
+        var input = inputs[i];
+        input.disabled = false;
+      }
+    }).bind(this));
+  },
+  save: function cd_save() {
+    // TODO: actually save the contact
+
+    this.endEditing();
+  },
+  endEditing: function cd_endEditing() {
+    if (!this._editing) {
+      return false;
+    }
+    this._editing = false;
+
+    this.smoothTransition((function cd_endEditingTransition() {
+      this.editButton.dataset.action = 'edit';
+      this.view.classList.remove('editing');
+      // disabling the fields and cleaning up
+      var inputs = this.view.getElementsByTagName('input');
+      for (var i = 0; i < inputs.length; i++) {
+        var input = inputs[i];
+        input.disabled = true;
+
+        if (input.value.length == 0) {
+          this.remove(input.parentNode);
+        }
+      }
+    }).bind(this));
+    return true;
+  },
+  // scrolling to the right position when one of the fields
+  // takes focus
+  autoscroll: function cd_autoscroll(event) {
+    var element = event.currentTarget;
+    var self = this;
+
+    var scrollInPlace = function cd_autoscrollMove() {
+      var bounds = element.getBoundingClientRect();
+      var bottom = bounds.top + bounds.height;
+      var yDelta = bottom - self.container.getBoundingClientRect().height;
+      if (yDelta > 0) {
+        self.container.scrollTop += yDelta;
+      }
+    };
+    scrollInPlace();
+
+    //also listening to the next resize for keyboard handling
+    window.addEventListener('resize', function cd_afterResize() {
+      window.removeEventListener('resize', cd_afterResize);
+
+      scrollInPlace();
+    });
+  },
+
+  // back button handling
+  handleEvent: function cd_handleEvent(evt) {
+    if (evt.type !== 'keypress' || evt.keyCode != evt.DOM_VK_ESCAPE) {
+      return;
+    }
+
+    if (this.endEditing() || this.hide()) {
+      evt.preventDefault();
+    }
+  },
+
+  render: function cd_render() {
+    var names = '';
+    for (var key in this._contact.name) {
+      names += '<div>' +
+               this.inputFragment('text', this._contact.name[key]) + '</div>';
+    }
+    document.getElementById('contact-name').innerHTML = names;
+
+    var phones = '';
+    this._contact.phones.forEach(function phoneIterator(phone) {
+      phones += '<div data-number="' + phone + '">' +
+                this.inputFragment('tel', phone) + '</div>';
+    }, this);
+    phones += '<div data-action="add"' +
+              'onclick="ContactDetails.execute(event)">Add phone</div>';
+    document.getElementById('contact-phones').innerHTML = phones;
+
+    var emails = '';
+    this._contact.emails.forEach(function emailIterator(email) {
+      emails += '<div>' + this.inputFragment('email', email) + '</div>';
+    }, this);
+    emails += '<div data-action="add"' +
+              'onclick="ContactDetails.execute(event)">Add email</div>';
+    document.getElementById('contact-emails').innerHTML = emails;
+  },
+  inputFragment: function cd_inputFragment(type, value, disabled) {
+    disabled = (typeof disabled == 'undefined') ? true : disabled;
+
+    return '<input type="' + type + '" value="' + value +
+           '" data-action="autoscroll"' +
+           (disabled ? 'disabled="disabled"' : '') +
+           'onfocus="ContactDetails.execute(event)" />';
+  },
+  smoothTransition: function cd_smoothTransition(callback) {
+    var detailsView = this.view;
+    detailsView.classList.add('hidden');
+    detailsView.addEventListener('transitionend', function cd_smoothFinish() {
+      detailsView.removeEventListener('transitionend', cd_smoothFinish);
+
+      callback();
+
+      detailsView.classList.remove('hidden');
+    });
+  }
+
+};
+
 window.addEventListener('load', function contactsLoad(evt) {
   window.removeEventListener('load', contactsLoad, true);
   Contacts.init();
 }, true);
 
-window.addEventListener('load', function shortcutsSetup(evt) {
-  window.removeEventListener('load', shortcutsSetup);
+window.addEventListener('load', function contactSetup(evt) {
+  window.removeEventListener('load', contactSetup);
   ShortcutsHandler.setup();
+  ContactDetails.setup();
 });

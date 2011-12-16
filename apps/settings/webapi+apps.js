@@ -35,7 +35,7 @@ if (true) {
               'url': 'https://github.com/andreasgal/gaia'
             },
             'icons': {
-              '120': '/icons/Browser.png'
+              '120': '/style/icons/Browser.png'
             }
           }
         },
@@ -53,7 +53,7 @@ if (true) {
               'url': 'https://github.com/andreasgal/gaia'
             },
             'icons': {
-              '120': '/icons/Camera.png'
+              '120': '/style/icons/Camera.png'
             }
           }
         },
@@ -71,7 +71,7 @@ if (true) {
               'url': 'https://github.com/andreasgal/gaia'
             },
             'icons': {
-              '120': '/icons/Phone.png'
+              '120': '/style/icons/Phone.png'
             }
           }
         },
@@ -89,7 +89,25 @@ if (true) {
               'url': 'https://github.com/andreasgal/gaia'
             },
             'icons': {
-              '120': '/icons/Gallery.png'
+              '120': '/style/icons/Gallery.png'
+            }
+          }
+        },
+        { // music
+          'installOrigin': 'http://gaiamobile.org:8888',
+          'origin': '../music',
+          'receipt': null,
+          'installTime': 1323339869000,
+          manifest: {
+            'name': 'Music',
+            'description': 'Gaia Music',
+            'launch_path': '/music.html',
+            'developer': {
+              'name': 'The Gaia Team',
+              'url': 'https://github.com/andreasgal/gaia'
+            },
+            'icons': {
+              '120': '/style/icons/Music.png'
             }
           }
         },
@@ -107,7 +125,7 @@ if (true) {
               'url': 'https://github.com/andreasgal/gaia'
             },
             'icons': {
-              '120': '/icons/Settings.png'
+              '120': '/style/icons/Settings.png'
             }
           }
         },
@@ -125,7 +143,7 @@ if (true) {
               'url': 'https://github.com/andreasgal/gaia'
             },
             'icons': {
-              '120': '/icons/Messages.png'
+              '120': '/style/icons/Messages.png'
            }
         }
       }];
@@ -158,7 +176,7 @@ var Apps = {
 
   init: function apps_init() {
     this.events.forEach((function(evt) {
-      window.addEventListener(evt, this, true);
+      window.addEventListener(evt, this);
     }).bind(this));
 
     TouchHandler.start();
@@ -167,7 +185,7 @@ var Apps = {
 
   uninit: function apps_uninit() {
     this.events.forEach((function(evt) {
-      window.removeEventListener(evt, this, true);
+      window.removeEventListener(evt, this);
     }).bind(this));
 
     TouchHandler.stop();
@@ -284,7 +302,10 @@ var TouchHandler = {
         if (!pannableTarget)
           return;
 
-        evt.preventDefault();
+        var touchTarget = evt.originalTarget;
+        if (touchTarget.className.indexOf('toggleswitch') === -1)
+          evt.preventDefault();
+
         this.target = pannableTarget;
         this.onTouchStart(evt.touches ? evt.touches[0] : evt);
         break;

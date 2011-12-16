@@ -1,0 +1,13 @@
+{
+  "name": "Dialer",
+  "description": "Gaia Dialer",
+  "launch_path": "/dialer.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "icons": {
+    "120": "/style/icons/Phone.png"
+  }
+}
+

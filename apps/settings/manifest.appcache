@@ -5,11 +5,7 @@ CACHE MANIFEST
 settings.html
 manifest.webapp
 
-# icons/
-icons/Settings.png
-
 # js/
-js/settings.js
 js/ui.js
 
 # style/
@@ -19,6 +15,10 @@ style/fonts/Roboto-BoldItalic.ttf
 style/fonts/Roboto-Bold.ttf
 style/fonts/Roboto-Italic.ttf
 style/fonts/Roboto-Regular.ttf
+
+# icons used in the web application manifest.
+# Do not use icons/ directly since it is often used as an alias by Apache.
+style/icons/Settings.png
 
 # tmp files
 webapi+apps.js

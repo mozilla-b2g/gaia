@@ -389,7 +389,7 @@ if (!window['Gaia'])
           // of pre-installed apps that does not have any icons defined
           // in offline storage.
           if (icon && !window.localStorage.getItem(icon))
-            icon = homescreenOrigin + '/style' + manifest.icons['120'];
+            icon = homescreenOrigin + manifest.icons['120'];
 
           var url = app.origin + manifest.launch_path;
           cache.push({

@@ -85,7 +85,8 @@ const IMEManager = {
 
         switch (keyCode) {
           case IMEManager.BASIC_LAYOUT:
-            this.layout = KeyboardAndroid[IMEManager.keyboards[this.currentKeyboard]];
+            var keyboard = IMEManager.keyboards[this.currentKeyboard];
+            this.layout = KeyboardAndroid[keyboard];
             this.ime.innerHTML = this.getLayout(window.innerWidth);
           break;
           case IMEManager.ALTERNATE_LAYOUT:
@@ -96,14 +97,17 @@ const IMEManager = {
             this.currentKeyboard++;
             if (this.currentKeyboard === IMEManager.keyboards.length)
               this.currentKeyboard = 0;
-            this.layout = KeyboardAndroid[IMEManager.keyboards[this.currentKeyboard]];
+
+            var keyboard = IMEManager.keyboards[this.currentKeyboard];
+            this.layout = KeyboardAndroid[keyboard];
             this.ime.innerHTML = this.getLayout(window.innerWidth);
           break;
           case KeyEvent.DOM_VK_CAPS_LOCK:
+            var keyboard = IMEManager.keyboards[this.currentKeyboard];
             if (this.isUpperCase) {
-              this.layout = KeyboardAndroid[IMEManager.keyboards[this.currentKeyboard]];
+              this.layout = KeyboardAndroid[keyboard];
             } else {
-              this.layout = KeyboardAndroid[IMEManager.keyboards[this.currentKeyboard] + 'UpperCaps'];
+              this.layout = KeyboardAndroid[keyboard + 'UpperCaps'];
             }
             this.isUpperCase = !this.isUpperCase;
             this.ime.innerHTML = this.getLayout(window.innerWidth);
@@ -112,7 +116,8 @@ const IMEManager = {
             window.navigator.mozKeyboard.sendKey(keyCode);
             if (this.isUpperCase) {
               this.isUpperCase = !this.isUpperCase;
-              this.layout = KeyboardAndroid[IMEManager.keyboards[this.currentKeyboard]];
+              var keyboard = IMEManager.keyboards[this.currentKeyboard];
+              this.layout = KeyboardAndroid[keyboard];
               this.ime.innerHTML = this.getLayout(window.innerWidth);
             }
           break;
@@ -126,10 +131,10 @@ const IMEManager = {
   getLayout: function km_getLayout(width) {
     var content = '';
 
-    this.layout.forEach(function (row) {
+    this.layout.forEach(function buildKeyboardRow(row) {
       content += '<div class="keyboard-row">';
 
-      row.forEach(function (key) {
+      row.forEach(function buildKeyboardColumns(key) {
         var code = key.keyCode || key.value.charCodeAt(0);
         var size = ((width - (row.length * 2)) / 10) * (key.ratio || 1) - 2;
         content += '<span class="keyboard-key"' +
