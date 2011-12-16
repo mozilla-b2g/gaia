@@ -25,12 +25,19 @@ html, body {
 }
 
 header {
-  background: -moz-linear-gradient(top, #c0c0c0, #a0a0a0);
-  color: white;
-  font-weight: bold;
-  padding-left: 1mozmm;
-  height: 26px;
-  line-height: 26px;
+  background-color: #555;
+  background-image: -moz-linear-gradient(#666, #333);
+  background-image: linear-gradient(#666, #333);
+  text-align: center;
+  margin: 0;
+}
+
+header h1 {
+  color: #fff;
+  margin: 0;
+  margin-bottom: 5px;
+  font-size: 1.5em;
+  padding: 0.25em;
 }
 
 #messages {
