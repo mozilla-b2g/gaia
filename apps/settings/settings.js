@@ -8,6 +8,33 @@ if (!window['Gaia'])
 
 (function() {
 
+  function _doPDP(evt) {
+    dump("doPDP evt.detail = " + evt.detail);
+    if(evt.detail) {
+      var cdma = 1;
+      var apn = "internet";
+      var user = "";
+      var passwd = "";
+      var chappap = 0;
+      var pdptype = "IP";
+      
+      window.navigator.mozTelephony.connect(cdma, apn, user, passwd,
+					    chappap, pdptype);
+    } else {
+      var cid = "00001";
+      var reason = "0";		// no specific reason
+      // window.navigator.mozTelephony.deactivate(cid, reason);
+    }
+  }
+
+  function doPDP(evt) {
+    try {
+      _doPDP(evt);
+    } catch(e) {
+      dump("doPDP exception: " + e);
+    }
+  }
+
   Gaia.SettingTypes = {
     TOGGLE_SWITCH: 'toggleSwtich',
     NUMERIC: 'numeric',
@@ -34,6 +61,17 @@ if (!window['Gaia'])
       tableViewId: 'networkAndLocationSettings'
     },
     label: 'Wi-Fi',
+    value: 1,
+    type: Gaia.SettingTypes.TOGGLE_SWITCH,
+    isOn: true
+  }, {
+    id: 'isPDPEnabled',
+    view: {
+      id: 'rootView',
+      title: 'Settings',
+      tableViewId: 'networkAndLocationSettings'
+    },
+    label: '3G Data',
     value: 1,
     type: Gaia.SettingTypes.TOGGLE_SWITCH,
     isOn: true
@@ -110,6 +148,11 @@ if (!window['Gaia'])
                 Gaia.Settings.setPropertyForSetting(setting.id, 'isOn', isOn);
               });
             }
+
+	    if(setting.id == 'isPDPEnabled') {
+	      setting.widget.element.addEventListener('change',
+						      doPDP);
+	    }
 
             tableView.appendChild(tableCell);
           });
