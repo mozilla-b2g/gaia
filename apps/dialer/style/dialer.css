@@ -447,6 +447,24 @@ html, body {
 #contact-details-view > .group > div:hover:active {
   background-color: rgba(49, 147, 255, 0.7);
 }
+#contact-destroy-button {
+  width: -moz-calc(90% - 2px);
+  margin: 50px auto 10px auto;
+  clear: both;
+
+  box-shadow: 0 1px 3px black;
+  background: -moz-linear-gradient(top, #FF4844, #FF1813 50%, #C70E0C 51%);
+
+  border-radius: 10px;
+  border: 1px solid #151515;
+  border-top: 1px solid #c3d6df;
+
+  line-height: 44px;
+  font-size: 2em;
+  text-align: center;
+
+  display: none;
+}
 /* === Contact Edit transitions === */
 #contact-details-view.hidden {
   opacity: 0;
@@ -464,6 +482,9 @@ html, body {
 }
 #contact-details-view.editing #contact-name > div:first-child {
   border-top: 0;
+}
+#contact-details-view.editing #contact-destroy-button {
+  display: block;
 }
 
 /* === Oncall transitions === */

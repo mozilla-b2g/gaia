@@ -293,6 +293,11 @@ var ContactDetails = {
 
     this.endEditing();
   },
+  destroy: function cd_destroy() {
+    // TODO: delete the contact
+    this.hide();
+  },
+
   endEditing: function cd_endEditing() {
     if (!this._editing) {
       return false;
