@@ -413,7 +413,7 @@ var ContactDetails = {
                 '</div>';
     }, this);
     phones += '<div ' + addAttr + '>' +
-                'Add phone' +
+              '  Add phone' +
               '</div>';
     document.getElementById('contact-phones').innerHTML = phones;
 
@@ -422,7 +422,7 @@ var ContactDetails = {
       emails += '<div>' + this.inputFragment('email', email) + '</div>';
     }, this);
     emails += '<div ' + addAttr + '>' +
-                'Add email' +
+              '  Add email' +
               '</div>';
     document.getElementById('contact-emails').innerHTML = emails;
   },
@@ -430,12 +430,12 @@ var ContactDetails = {
     disabled = (typeof disabled == 'undefined') ? true : disabled;
 
     return '<div class="delete-button"' +
-             'onclick="ContactDetails.remove(this.parentNode)">' +
+           '  onclick="ContactDetails.remove(this.parentNode)">' +
            '</div>' +
            '<input type="' + type + '" value="' + value +
-             '" data-action="autoscroll"' +
-             (disabled ? 'disabled="disabled"' : '') +
-             'onfocus="ContactDetails.execute(event)" />';
+           '  " data-action="autoscroll"' +
+              (disabled ? 'disabled="disabled"' : '') +
+           '  onfocus="ContactDetails.execute(event)" />';
   },
   smoothTransition: function cd_smoothTransition(callback) {
     var detailsView = this.view;
