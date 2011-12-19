@@ -298,7 +298,7 @@ var ContactDetails = {
     newElement.innerHTML = this.inputFragment(type, '', false);
     parent.insertBefore(newElement, evt.currentTarget);
 
-    newElement.children[1].focus();
+    newElement.querySelector('input').focus();
   },
   remove: function cd_remove(element) {
     element.parentNode.removeChild(element);
