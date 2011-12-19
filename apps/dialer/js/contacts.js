@@ -48,6 +48,10 @@ var Contacts = {
                  '  <span class="phoneNumber">' + phoneNumber + '</span>' +
                  '</div>';
     }
+    content += '<div class="contact" id="contact-create">' +
+               '  <span>Create this contact</span>' +
+               '</div>';
+
     var contactsContainer = document.getElementById('contacts-container');
     contactsContainer.innerHTML = content;
     this.filter();
@@ -120,6 +124,12 @@ var Contacts = {
         header.hidden = false;
       }
     }
+
+    // Adding a create button when displaying <= 3 contacts
+    var displayedCount = document.getElementById('contacts-container').querySelectorAll('div.contact:not([hidden])').length;
+    if (displayedCount <= 3) {
+      document.getElementById('contact-create').hidden = false;
+    }
   },
   anchor: function contactsAnchor(targetId) {
     var target = document.getElementById(targetId);
@@ -135,6 +145,21 @@ var Contacts = {
     // I'm under the impression that there will be a better way to do this
     // with the final API (ie. getting a contact from an id)
     var contactId = evt.target.id;
+
+    // creating a fresh contact with a pre-filled name
+    if (contactId == 'contact-create') {
+      var contact = {
+        name: {
+          familyName: [document.getElementById('contacts-search').value],
+          givenName: []
+        },
+        phones: [],
+        emails: []
+      };
+      ContactDetails.show(contact);
+      return;
+    }
+
     this.find(['id'], function showDetailCallback(contacts) {
       var results = contacts.filter(function finById(contact) {
         return (contact.id == contactId);
@@ -238,6 +263,11 @@ var ContactDetails = {
       this.contact = contact;
     }
     this.container.classList.add('displayed');
+
+    // directly entering the edit mode if this is a new contact
+    if (!this._contact.id) {
+      this.edit();
+    }
   },
   hide: function cd_hide() {
     if (!this.container.classList.contains('displayed')) {
@@ -366,7 +396,8 @@ var ContactDetails = {
     var phones = '';
     this._contact.phones.forEach(function phoneIterator(phone) {
       phones += '<div data-number="' + phone + '">' +
-                this.inputFragment('tel', phone) + '</div>';
+                   this.inputFragment('tel', phone) +
+                '</div>';
     }, this);
     phones += '<div data-action="add"' +
               'onclick="ContactDetails.execute(event)">Add phone</div>';

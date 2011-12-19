@@ -281,6 +281,16 @@ html, body {
   background-repeat: no-repeat;
   background-size: 64px 64px;
 }
+#contact-create {
+  background-color: #171717;
+  background-image: url(images/create.png);
+
+  font-size: 25px;
+}
+#contact-create span {
+  margin-left: 72px;
+  line-height: 56px;
+}
 
 .contact * {
   pointer-events: none;
