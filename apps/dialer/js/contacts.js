@@ -329,6 +329,16 @@ var ContactDetails = {
     // TODO: destroy the contact
     this.hide();
   },
+  call: function cd_call(evt) {
+    if (this._editing) {
+      return;
+    }
+
+    var number = evt.target.dataset.number;
+    if (number) {
+      CallHandler.call(number);
+    }
+  },
 
   endEditing: function cd_endEditing() {
     if (!this._editing) {

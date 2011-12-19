@@ -449,6 +449,9 @@ html, body {
   text-overflow: ellipsis;
   overflow: hidden;
 }
+#contact-details-view:not(.editing) > .group > div * {
+  pointer-events: none;
+}
 #contact-details-view > .group > div[data-action='add'] {
   display: none;
 }
