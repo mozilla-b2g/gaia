@@ -37,6 +37,8 @@
 
 'use stricts';
 
+// Code for IMEngines to register itself
+
 IMEManager.IMEngines.jszhuying = {
   dbName: 'JSZhuYing',
   dbVersion: 4,
@@ -63,6 +65,9 @@ IMEManager.IMEngines.jszhuying = {
     this.mobi.empty();
   }
 };
+
+// XXX: Should _not_ pollute global scope of homescreen.html
+// IMEs should be a isolated keyboard application someday.
 
 var JSZhuYing = function (settings) {
   settings = settings || {};
