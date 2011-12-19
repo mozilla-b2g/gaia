@@ -392,7 +392,7 @@ html, body {
   display: none;
 }
 #contact-details-view input {
-  width: 100%;
+  width: -moz-calc(100% - 88px);
   color: white;
   background: none;
   border: none;
@@ -431,6 +431,7 @@ html, body {
   text-align: center;
 }
 #contact-details-view > .group > div {
+  position: relative;
   padding: 12px;
 
   border-top: 2px #EBEBEB solid;
@@ -446,6 +447,21 @@ html, body {
 }
 #contact-details-view > .group > div:hover:active {
   background-color: rgba(49, 147, 255, 0.7);
+}
+#contact-details-view .delete-button {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 44px;
+  height: 56px;
+  margin: 0;
+
+  background-image: url(images/delete.png);
+  background-repeat: no-repeat;
+  background-size: 24px 24px;
+  background-position: center center;
+
+  display: none;
 }
 #contact-destroy-button {
   width: -moz-calc(90% - 2px);
@@ -485,6 +501,12 @@ html, body {
 }
 #contact-details-view.editing #contact-destroy-button {
   display: block;
+}
+#contact-details-view.editing .delete-button {
+  display: block;
+}
+#contact-details-view.editing #contact-name .delete-button {
+  display: none;
 }
 
 /* === Oncall transitions === */

@@ -266,7 +266,7 @@ var ContactDetails = {
     newElement.innerHTML = this.inputFragment(type, '', false);
     parent.insertBefore(newElement, evt.currentTarget);
 
-    newElement.children[0].focus();
+    newElement.children[1].focus();
   },
   remove: function cd_remove(element) {
     element.parentNode.removeChild(element);
@@ -383,7 +383,8 @@ var ContactDetails = {
   inputFragment: function cd_inputFragment(type, value, disabled) {
     disabled = (typeof disabled == 'undefined') ? true : disabled;
 
-    return '<input type="' + type + '" value="' + value +
+    return '<div class="delete-button" onclick="ContactDetails.remove(this.parentNode)"></div>' +
+           '<input type="' + type + '" value="' + value +
            '" data-action="autoscroll"' +
            (disabled ? 'disabled="disabled"' : '') +
            'onfocus="ContactDetails.execute(event)" />';
