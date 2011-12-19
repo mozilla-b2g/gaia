@@ -126,10 +126,9 @@ var Contacts = {
       }
     }
 
-    // Adding a create button when displaying less than 3 contacts
-    var displayedSelector = 'div.contact:not([hidden])';
-    var displayedCount = container.querySelectorAll(displayedSelector).length;
-    if (displayedCount <= 3) {
+    // Adding a create button when there is room for it without scrolling
+    var available = this.view.getBoundingClientRect().height - container.getBoundingClientRect().height;
+    if (available >= 56) {
       document.getElementById('contact-create').hidden = false;
     }
   },
