@@ -31,7 +31,7 @@ const IMEManager = {
     this.selectionEl = document.createElement('div');
     this.selectionEl.id = 'keyboard-selections';
 
-    var that = this;
+    var self = this;
 
     IMEManager.keyboards.forEach(
       function loadIMEngines(keyboard) {
@@ -46,7 +46,7 @@ const IMEManager = {
             IMEManager.IMEngines[imEngine].init(
               './imes/' + imEngine,
               function sendChoices() {
-                that.showSelections.apply(that, arguments);
+                self.showSelections.apply(self, arguments);
               },
               window.navigator.mozKeyboard.sendKey,
               function sendString(str) {
@@ -73,7 +73,7 @@ const IMEManager = {
   },
   handleEvent: function km_handleEvent(evt) {
     var activeWindow = Gaia.AppManager.foregroundWindow,
-    that = this;
+    self = this;
 
     switch (evt.type) {
       case 'showime':
@@ -192,7 +192,7 @@ const IMEManager = {
     }
   },
   updateLayout: function km_updateLayout() {
-    var content = '', width = window.innerWidth, that = this;
+    var content = '', width = window.innerWidth, self = this;
     this.layout.keys.forEach(function buildKeyboardRow(row) {
       content += '<div class="keyboard-row">';
 
@@ -258,7 +258,7 @@ const IMEManager = {
   },
   showSelections: function km_showSelections(selections) {
     // TBD: selection panel should be allow toggled to fullscreen
-    var that = this;
+    var self = this;
     while (this.selectionEl.firstChild) {
       this.selectionEl.removeChild(this.selectionEl.firstChild);
     }
@@ -273,7 +273,7 @@ const IMEManager = {
           span.dataset.data = selection[1];
           span.dataset.selection = true;
           span.textContent = selection[0];
-          that.selectionEl.appendChild(span);
+          self.selectionEl.appendChild(span);
         }
       );
     }
