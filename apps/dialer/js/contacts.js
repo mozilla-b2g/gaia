@@ -76,7 +76,8 @@ var Contacts = {
     this.view.scrollTop = oldScrollTop + searchHeight;
   },
   filter: function contactsFilter(value) {
-    var contacts = document.getElementById('contacts-container').children;
+    var container = document.getElementById('contacts-container');
+    var contacts = container.children;
 
     var count = contacts.length;
     for (var i = 0; i < count; i++) {
@@ -125,8 +126,9 @@ var Contacts = {
       }
     }
 
-    // Adding a create button when displaying <= 3 contacts
-    var displayedCount = document.getElementById('contacts-container').querySelectorAll('div.contact:not([hidden])').length;
+    // Adding a create button when displaying less than 3 contacts
+    var displayedSelector = 'div.contact:not([hidden])';
+    var displayedCount = container.querySelectorAll(displayedSelector).length;
     if (displayedCount <= 3) {
       document.getElementById('contact-create').hidden = false;
     }
@@ -324,7 +326,7 @@ var ContactDetails = {
     this.endEditing();
   },
   destroy: function cd_destroy() {
-    // TODO: delete the contact
+    // TODO: destroy the contact
     this.hide();
   },
 
@@ -389,36 +391,42 @@ var ContactDetails = {
     var names = '';
     for (var key in this._contact.name) {
       names += '<div>' +
-               this.inputFragment('text', this._contact.name[key]) + '</div>';
+                  this.inputFragment('text', this._contact.name[key]) +
+               '</div>';
     }
     document.getElementById('contact-name').innerHTML = names;
 
+    var addAttr = 'data-action="add" onclick="ContactDetails.execute(event)"';
     var phones = '';
     this._contact.phones.forEach(function phoneIterator(phone) {
       phones += '<div data-number="' + phone + '">' +
                    this.inputFragment('tel', phone) +
                 '</div>';
     }, this);
-    phones += '<div data-action="add"' +
-              'onclick="ContactDetails.execute(event)">Add phone</div>';
+    phones += '<div ' + addAttr + '>' +
+                'Add phone' +
+              '</div>';
     document.getElementById('contact-phones').innerHTML = phones;
 
     var emails = '';
     this._contact.emails.forEach(function emailIterator(email) {
       emails += '<div>' + this.inputFragment('email', email) + '</div>';
     }, this);
-    emails += '<div data-action="add"' +
-              'onclick="ContactDetails.execute(event)">Add email</div>';
+    emails += '<div ' + addAttr + '>' +
+                'Add email' +
+              '</div>';
     document.getElementById('contact-emails').innerHTML = emails;
   },
   inputFragment: function cd_inputFragment(type, value, disabled) {
     disabled = (typeof disabled == 'undefined') ? true : disabled;
 
-    return '<div class="delete-button" onclick="ContactDetails.remove(this.parentNode)"></div>' +
+    return '<div class="delete-button"' +
+             'onclick="ContactDetails.remove(this.parentNode)">' +
+           '</div>' +
            '<input type="' + type + '" value="' + value +
-           '" data-action="autoscroll"' +
-           (disabled ? 'disabled="disabled"' : '') +
-           'onfocus="ContactDetails.execute(event)" />';
+             '" data-action="autoscroll"' +
+             (disabled ? 'disabled="disabled"' : '') +
+             'onfocus="ContactDetails.execute(event)" />';
   },
   smoothTransition: function cd_smoothTransition(callback) {
     var detailsView = this.view;
