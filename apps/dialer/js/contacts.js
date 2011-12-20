@@ -127,7 +127,9 @@ var Contacts = {
     }
 
     // Adding a create button when there is room for it without scrolling
-    var available = this.view.getBoundingClientRect().height - container.getBoundingClientRect().height;
+    var viewHeight = this.view.getBoundingClientRect().height;
+    var contentHeight = container.getBoundingClientRect().height;
+    var available = viewHeight - contentHeight;
     if (available >= 56) {
       document.getElementById('contact-create').hidden = false;
     }
