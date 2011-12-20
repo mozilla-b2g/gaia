@@ -126,10 +126,11 @@ var Contacts = {
       }
     }
 
-    // Adding a create button when displaying less than 3 contacts
-    var displayedSelector = 'div.contact:not([hidden])';
-    var displayedCount = container.querySelectorAll(displayedSelector).length;
-    if (displayedCount <= 3) {
+    // Adding a create button when there is room for it without scrolling
+    var viewHeight = this.view.getBoundingClientRect().height;
+    var contentHeight = container.getBoundingClientRect().height;
+    var available = viewHeight - contentHeight;
+    if (available >= 56) {
       document.getElementById('contact-create').hidden = false;
     }
   },
@@ -401,7 +402,7 @@ var ContactDetails = {
     var names = '';
     for (var key in this._contact.name) {
       names += '<div>' +
-                  this.inputFragment('text', this._contact.name[key]) +
+               '  ' + this.inputFragment('text', this._contact.name[key]) +
                '</div>';
     }
     document.getElementById('contact-name').innerHTML = names;
@@ -410,11 +411,11 @@ var ContactDetails = {
     var phones = '';
     this._contact.phones.forEach(function phoneIterator(phone) {
       phones += '<div data-number="' + phone + '">' +
-                   this.inputFragment('tel', phone) +
+                '  ' + this.inputFragment('tel', phone) +
                 '</div>';
     }, this);
     phones += '<div ' + addAttr + '>' +
-                'Add phone' +
+              '  Add phone' +
               '</div>';
     document.getElementById('contact-phones').innerHTML = phones;
 
@@ -423,7 +424,7 @@ var ContactDetails = {
       emails += '<div>' + this.inputFragment('email', email) + '</div>';
     }, this);
     emails += '<div ' + addAttr + '>' +
-                'Add email' +
+              '  Add email' +
               '</div>';
     document.getElementById('contact-emails').innerHTML = emails;
   },
@@ -431,12 +432,12 @@ var ContactDetails = {
     disabled = (typeof disabled == 'undefined') ? true : disabled;
 
     return '<div class="delete-button"' +
-             'onclick="ContactDetails.remove(this.parentNode)">' +
+           '  onclick="ContactDetails.remove(this.parentNode)">' +
            '</div>' +
            '<input type="' + type + '" value="' + value +
-             '" data-action="autoscroll"' +
-             (disabled ? 'disabled="disabled"' : '') +
-             'onfocus="ContactDetails.execute(event)" />';
+           '  " data-action="autoscroll"' +
+           '  ' + (disabled ? 'disabled="disabled"' : '') +
+           '  onfocus="ContactDetails.execute(event)" />';
   },
   smoothTransition: function cd_smoothTransition(callback) {
     var detailsView = this.view;
