@@ -402,7 +402,7 @@ var ContactDetails = {
     var names = '';
     for (var key in this._contact.name) {
       names += '<div>' +
-                  this.inputFragment('text', this._contact.name[key]) +
+               '  ' + this.inputFragment('text', this._contact.name[key]) +
                '</div>';
     }
     document.getElementById('contact-name').innerHTML = names;
@@ -411,7 +411,7 @@ var ContactDetails = {
     var phones = '';
     this._contact.phones.forEach(function phoneIterator(phone) {
       phones += '<div data-number="' + phone + '">' +
-                   this.inputFragment('tel', phone) +
+                '  ' + this.inputFragment('tel', phone) +
                 '</div>';
     }, this);
     phones += '<div ' + addAttr + '>' +
@@ -436,7 +436,7 @@ var ContactDetails = {
            '</div>' +
            '<input type="' + type + '" value="' + value +
            '  " data-action="autoscroll"' +
-              (disabled ? 'disabled="disabled"' : '') +
+           '  ' + (disabled ? 'disabled="disabled"' : '') +
            '  onfocus="ContactDetails.execute(event)" />';
   },
   smoothTransition: function cd_smoothTransition(callback) {
