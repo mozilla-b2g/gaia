@@ -239,7 +239,7 @@ iframe.appWindow.active {
   -moz-transform: scale(1);
 }
 
-#taskManager > ul {
+#taskManager ul {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -249,7 +249,7 @@ iframe.appWindow.active {
   white-space: nowrap;
 }
 
-#taskManager > ul > li {
+#taskManager li {
   background-color: #00f;
   display: inline-block;
   width: 100%;
@@ -258,7 +258,7 @@ iframe.appWindow.active {
   -moz-transform: scale(0.5);
 }
 
-#taskManager > ul > li:last-child {
+#taskManager li:last-child {
   margin-right: 0;
 }
 

@@ -8,11 +8,12 @@ if (!window['Gaia'])
 
 (function() {
   var runningApps = [];
+  var lastDragPosition = -1;
 
   Gaia.AppManager = {
-    _foregroundWindows: [],
-    _isTaskManagerOpen: false,
     _appIdCounter: 0,
+    
+    _foregroundWindows: [],
 
     set foregroundWindow(win) {
       this._foregroundWindows.push(win);
@@ -37,31 +38,56 @@ if (!window['Gaia'])
       delete this.screen;
       return this.screen = document.getElementById('screen');
     },
-
+    
+    _isTaskManagerOpen: false,
+    
     get isTaskManagerOpen() {
       return this._isTaskManagerOpen;
     },
 
     get taskManager() {
       delete this.taskManager;
+      
       var element = document.getElementById('taskManager');
       var list = element.getElementsByTagName('ul')[0];
-      element.add = function(id) {
-        var item = document.createElement('li');
-        item.id = 'task_' + id;
-        item.setAttribute('style', 'background: -moz-element(#app_' + id + ') no-repeat');
-        list.appendChild(item);
-        return item;
+      var taskManager = {
+        element: element,
+        _isActive: false,
+        get isActive() {
+          return this._isActive;
+        },
+        set isActive(value) {
+          this._isActive = value;
+          
+          if (value) {
+            this.element.classList.add('active');
+            for (var i = 0; i < runningApps.length; i++)
+              runningApps[i].window.classList.add('active');
+          } else {
+            this.element.classList.remove('active');
+            for (var i = 0; i < runningApps.length; i++)
+              runningApps[i].window.classList.remove('active');
+          }
+        },
+        add: function(id) {
+          var item = document.createElement('li');
+          item.id = 'task_' + id;
+          item.setAttribute('style', 'background: -moz-element(#app_' + id + ') no-repeat');
+          list.appendChild(item);
+          return item;
+        },
+        remove: function(id) {
+          var item = list.getElementById('task_' + id);
+          list.removeChild(item);
+        }
       };
-      element.remove = function(id) {
-        var item = list.getElementById('task_' + id);
-        list.removeChild(item);
-      };
-      return this.taskManager = element;
+      
+      return this.taskManager = taskManager;
     },
 
     get windowsContainer() {
       delete this.windowsContainer;
+      
       var element = document.getElementById('windows');
       element.show = function() {
         element.classList.add('active');
@@ -92,6 +118,13 @@ if (!window['Gaia'])
 
       this._closeButtonImage = new Image();
       this._closeButtonImage.src = 'style/images/close.png';
+      
+      var element = document.getElementById('taskManager');
+      var list = element.getElementsByTagName('ul')[0];
+      
+      list.addEventListener('touchstart', this);
+      list.addEventListener('touchmove', this);
+      list.addEventListener('touchend', this);
     },
 
     handleEvent: function(evt) {
@@ -100,10 +133,8 @@ if (!window['Gaia'])
           if (evt.keyCode != evt.DOM_VK_ESCAPE)
             return;
 
-          if (this.isTaskManagerOpen)
-            this.closeTaskManager();
-          else
-            this.openTaskManager();
+          var taskManager = this.taskManager;
+          taskManager.isActive = !taskManager.isActive;
             
           evt.preventDefault();
           break;
@@ -113,26 +144,38 @@ if (!window['Gaia'])
         case 'home':
           this.close();
           break;
+        case 'touchstart':
+          var touches = evt.changedTouches;
+          
+          if (touches.length !== 1)
+            return;
+            
+          var touch = touches[0];
+          
+          lastDragPosition = touch.pageX;
+          break;
+        case 'touchmove':
+          if (lastDragPosition !== -1) {
+            var touches = evt.changedTouches;
+            
+            if (touches.length !== 1)
+              return;
+            
+            var element = document.getElementById('taskManager');
+            var list = element.getElementsByTagName('ul')[0];
+            var touch = touches[0];
+            
+            list.scrollLeft -= touch.pageX - lastDragPosition;
+            lastDragPosition = touch.pageX;
+          }
+          break;
+        case 'touchend':
+          lastDragPosition = -1;
+          break;
         default:
           throw new Error('Unhandled event in AppManager');
           break;
       }
-    },
-
-    openTaskManager: function() {
-      this._isTaskManagerOpen = true;
-      this.taskManager.classList.add('active');
-      
-      for (var i = 0; i < runningApps.length; i++)
-        runningApps[i].window.classList.add('active');
-    },
-
-    closeTaskManager: function() {
-      this._isTaskManagerOpen = false;
-      this.taskManager.classList.remove('active');
-      
-      for (var i = 0; i < runningApps.length; i++)
-        runningApps[i].window.classList.remove('active');
     },
 
     getInstalledApps: function(callback) {
@@ -244,11 +287,10 @@ if (!window['Gaia'])
         }, true);
         var task = foregroundWindow.task;
         task.addEventListener('click', (function(evt) {
-          var _this = this;
-          this.closeTaskManager();
-          setTimeout(function() {
-            _this.launch(url);
-          }, 50);
+          this.taskManager.isActive = false;
+          window.setTimeout(function launchApp(self) {
+            self.launch(url);
+          }, 50, this);
         }).bind(this));
 
         runningApps.push({
@@ -267,7 +309,7 @@ if (!window['Gaia'])
       };
       
       foregroundWindow.addEventListener('transitionend', transitionHandler);
-      setTimeout(function() {
+      window.setTimeout(function showWindow() {
         foregroundWindow.classList.add('active');
       }, 50);
 
