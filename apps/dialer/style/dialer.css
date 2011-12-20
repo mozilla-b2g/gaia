@@ -10,6 +10,10 @@ html, body {
   background-image: -moz-linear-gradient(bottom, rgb(66,66,66) 24%, rgb(33,33,33) 44%, rgb(17,17,17) 64%);
 }
 
+html * {
+  overflow: hidden;
+}
+
 @font-face {
   font-family: Roboto;
   src: url('fonts/Roboto-Regular.ttf');
@@ -240,10 +244,9 @@ html, body {
 
 /* === Contacts View === */
 #contacts-view {
-  position:absolute;
-  height: -moz-calc(800px - 20px);
   background-color: #212121;
-  overflow: hidden;
+  overflow: scroll;
+  height: -moz-calc(100% - 64px);
 }
 
 #contacts-search-container {
@@ -269,6 +272,7 @@ html, body {
   color: #b0b0b0;
   font-weight: bold;
   pointer-events: none;
+  width: -moz-calc(100% - 2px);
 }
 
 .contact {
@@ -280,6 +284,7 @@ html, body {
   background-image: url(images/missing.png);
   background-repeat: no-repeat;
   background-size: 64px 64px;
+  width: -moz-calc(100% - 2px);
 }
 #contact-create {
   background-color: #171717;
@@ -411,6 +416,10 @@ html, body {
 
   font-size: 0.8em;
   text-align: center;
+}
+#contact-details-view input:invalid {
+  border: 0;
+  color: #D86C72;
 }
 #contact-photo {
   float: left;

@@ -10,6 +10,7 @@ html, body {
 }
 
 .message {
+  width: -moz-calc(100% - 2px);
   padding: 0 10px;
   border: 1px solid transparent;
   border-bottom: 1px solid lightgrey;
@@ -42,7 +43,7 @@ header h1 {
 
 #messages {
   height: -moz-calc(100% - 26px);
-  overflow: hidden;
+  overflow: scroll;
 }
 
 #messages[panning] {
@@ -140,7 +141,7 @@ textarea:focus {
 #conversation {
   color: black;
   height: -moz-calc(100% - 80px);
-  overflow: hidden;
+  overflow: scroll;
   background-color: rgba(0,0,0,0.03);
 }
 

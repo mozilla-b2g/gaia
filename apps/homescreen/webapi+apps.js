@@ -275,10 +275,8 @@ var TouchHandler = {
     try {
       while (targetNode) {
         var computedStyle = window.getComputedStyle(targetNode, null);
-        // TODO use 'scroll' instead of hidden once the scrollbar will float
-        // above the content
         if (computedStyle &&
-            computedStyle.getPropertyValue('overflow') == 'hidden') {
+            computedStyle.getPropertyValue('overflow') == 'scroll') {
 
           var targetHeight = targetNode.getBoundingClientRect().height;
           if (targetNode.scrollHeight > targetHeight)
