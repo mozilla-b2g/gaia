@@ -11,10 +11,6 @@
   </head>
 
   <body>
-    <div id="choices" onclick="choiceChanged(event.target)">
-      <button id="keyboard" class="choice" data-active="true">Tel.</button><button id="contacts" class="choice">Contacts</button>
-    </div>
-
     <div id="views">
       <div id="contacts-view" class="view" hidden="true">
         <div id="contacts-search-container" hidden="true">
@@ -79,22 +75,22 @@
     </div>
 
       <div id="keyboard-view" class="view">
-        <input type="hidden" id="phoneNumber"></input>
-        <div id="fakePhoneNumber-view"></div>
-        <div id="phoneNumber-view-container">
-          <div id="phoneNumber-view"></div>
+        <input type="hidden" id="phone-number"></input>
+        <div id="fake-phone-number-view"></div>
+        <div id="phone-number-view-container">
+          <div onmousedown="KeyHandler.keyDown(event);" onmouseup="KeyHandler.keyUp(event);">
+            <div id="phone-number-view"></div>
+            <div class="keyboard-key" data-value="del"></div>
+          </div>
         </div>
 
         <div id="keyboard-container" onmousedown="KeyHandler.keyDown(event);" onmouseup="KeyHandler.keyUp(event);">
-          <div id="mainKeyset"></div>
+          <div id="mainKeyset-container">
+            <div id="mainKeyset"></div>
+          </div>
           <div id="additionalKeyset">
-            <div class="keyboard-row">
-              <div class="keyboard-key delete" data-value="del">
-                <span>&#8653;</span>
-              </div>
-              <div class="keyboard-key call" data-value="call">
-                <span>&#9742;</span>
-              </div>
+            <div class="keyboard-key" data-value="call">
+              <span></span>
             </div>
           </div>
         </div>
@@ -129,6 +125,17 @@
           <span>Answer call</span>
           <span>End call</span>
         </div>
+      </div>
+    </div>
+
+    <div id="tabs-container">
+      <div id="tabs" onclick="choiceChanged(event.target)">
+        <ul>
+          <li data-choice="keyboard" data-active="true"></li>
+          <li data-choice="contacts"></li>
+          <!-- Should be favorites once we implement this screen-->
+          <li data-choice="contacts"></li>
+        </ul>
       </div>
     </div>
 

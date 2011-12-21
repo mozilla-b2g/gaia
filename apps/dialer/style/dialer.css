@@ -7,7 +7,8 @@ html, body {
   font-size: 2.5mozmm;
   color: white;
   font-family: "Roboto", sans-serif;
-  background-image: -moz-linear-gradient(bottom, rgb(66,66,66) 24%, rgb(33,33,33) 44%, rgb(17,17,17) 64%);
+
+  background: url(images/home-texture.png) repeat scroll 0 0 #292B2F;
 }
 
 html * {
@@ -42,50 +43,81 @@ html * {
 }
 
 /* === Application Header === */
-#choices {
+#tabs-container {
+  position: absolute;
   width: 100%;
-  border-bottom: 3px solid rgb(137, 137, 137);
+  bottom: 0px;
+  padding: 20px 0px;
 
-  -moz-transition: margin-top 0.3s ease;
+  -moz-transition: bottom 0.3s ease;
 }
 
-#choices > .choice {
-  -moz-appearance: none;
-  display: inline;
-  border: 0;
-  margin: 0;
+#tabs {
+	width: -moz-calc(100% - 30px);
+  padding: 5px 5px 3px 5px;
+  margin: auto;
+
+  background-color: rgba(0,0,0,.3);
+  border-radius: 3px;
+}
+
+#tabs ul {
+  list-style: none;
+	width: -moz-calc(100% - 2px);
+	height: 66px;
   padding: 0;
-  width: 50%;
-  color: white;
-  height: 61px;
-  line-height: 61px;
-  font-size: 0.9em;
-  font-weight: 600;
-  background-image: -moz-linear-gradient(top, rgb(33,33,33) 24%, rgb(22,22,22) 44%, rgb(11,11,11) 64%);
-  border-right: 1px solid #aaa;
-  border-left: 1px solid #bbb;
+  margin: 0;
+
+	display: -moz-box;
+	-moz-box-orient: horizontal;
+
+	border: 1px solid rgb(28,28,28);
+	border-radius: 2px;
+
+  background: -moz-linear-gradient(top, rgb(136,138,136) 1px, rgb(114,115,114) 2px, rgb(56,56,56) 100%);
 }
 
-#choices > button::-moz-focus-inner {
-  border-width :0;
+#tabs li {
+  -moz-box-flex: 1;
+  box-flex: 1;
+
+	border-right: 1px solid rgb(29,29,29);
+	border-left: 1px solid rgb(123,123,123);
+
+  background-position: 50% 50%;
+  background-repeat: no-repeat;
 }
 
-#choices > .choice:first-child {
-  border-left: 0;
+#tabs li:first-child {
+  border-left-color: transparent;
+}
+#tabs li:last-child {
+  border-right-color: transparent;
 }
 
-#choices > .choice:last-child {
-  border-right: 0;
+#tabs li[data-choice="keyboard"] {
+  background-image: url(images/numpad-icon.png);
 }
-
-#choices > .choice[data-active] {
-  background-image: -moz-linear-gradient(top, rgb(166,166,166) 24%, rgb(155,155,155) 44%, rgb(137,137,137) 64%);
+#tabs li[data-choice="keyboard"][data-active] {
+  background: url(images/numpad-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(56,56,56) 0, rgb(114,115,114) 100%);
 }
-
+#tabs li[data-choice="contacts"] {
+  background-image: url(images/contacts-icon.png);
+}
+#tabs li[data-choice="contacts"][data-active] {
+  background: url(images/contacts-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(56,56,56) 0, rgb(114,115,114) 100%);
+}
+#tabs li[data-choice="favorites"] {
+  background-image: url(images/favorite-icon.png);
+}
+#tabs li[data-choice="favorites"][data-active] {
+  background: url(images/favorite-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(56,56,56) 0, rgb(114,115,114) 100%);
+}
 
 /* === Application Views === */
 #views {
-  height: -moz-calc(100% - 64px);
+  position: absolute;
+  height: -moz-calc(100% - 118px);
   width: 100%;
 
   -moz-transition-property: top, opacity;
@@ -99,59 +131,120 @@ html * {
 }
 
 /* === Keyboard View === */
-#keyboard-view, #keyboard-view * {
+#keyboard-view {
   width: 100%;
 }
 
-#phoneNumber-view-container {
+#phone-number-view-container {
   overflow: hidden;
+  height: 100px;
+  padding: 20px 0px;
 }
 
-#phoneNumber-view {
-  line-height: 180px;
-  height: 180px;
+#phone-number-view-container > div {
+  display: block;
+  position: relative;
+  width: -moz-calc(100% - 40px);
+  height: 80px;
+  margin: auto;
+  padding: 5px;
+  overflow: hidden;
+
+  border:5px rgba(0,0,0,.3) solid;
+  border-radius: 3px;
+
+  text-align: center;
   font-size: 3.5em;
-  padding: 0px 5px;
+  line-height: 80px;
+  text-overflow: ellipsis;
+	text-shadow:0 0 3px rgba(0,0,0,.5);
+	white-space: nowrap;
+
+	background:rgba(0,0,0,0.15);
 }
 
-#fakePhoneNumber-view {
+#phone-number-view-container::before, #phoneNumber-view-container::after {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 21px;
+	width: 100%;
+	height: 1px;
+
+	background: -moz-linear-gradient(left, rgba(255,255,255,0) 0%, rgba(255,255,255,.20) 50%, rgba(255,255,255,0) 100%);
+}
+#phone-number-view-container::after {
+	top: 118px;
+}
+
+#phone-number-view {
+  display: inline-block;
+  width: -moz-calc(100% - 120px);
+}
+
+.keyboard-key[data-value="del"] {
+	position: absolute;
+	display: block;
+	right: 15px;
+	top: 30px;
+	width: 30px;
+	height: 30px;
+
+	border: 1px solid rgb(28,28,28);
+	border-radius: 2px;
+	background: url(images/remove.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(136,138,136) 1px, rgb(114,115,114) 2px, rgb(56,56,56) 100%);
+}
+.keyboard-key[data-value="del"]:active {
+	background: url(images/remove.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(56,56,56) 0, rgb(114,115,114) 100%);
+}
+
+#fake-phone-number-view {
+  position: absolute;
   line-height: 0;
   display: inline;
+
   visibility: hidden;
 }
 
 #keyboard-container {
-  position: absolute;
-  bottom: 0;
+  height: -moz-calc(100% - 140px);
+}
+
+#mainKeyset-container {
+  width: -moz-calc(100% - 30px);
+  height: -moz-calc(100% - 160px);
+  padding: 5px;
+  margin: auto auto 20px auto;
+
+  border-radius: 3px;
+  background-color: rgba(0,0,0,0.3);
+}
+
+#mainKeyset {
+  height: 100%;
+  padding: 0;
+
+  border-radius: 2px;
+	background: -moz-linear-gradient(top, rgb(136,138,136) 1px, rgb(114,115,114) 2px, rgb(56,56,56) 100%);
 }
 
 .keyboard-row {
-  display: inline-block;
+  margin: 0;
+  padding: 0;
+  height: -moz-calc(100% / 4 - 2px);
   width: 100%;
+
+	border: 1px solid transparent;
+	border-top-color: rgb(123,123,123);
+	border-bottom-color: rgb(0,0,0);
 }
 
-#additionalKeyset .keyboard-row {
-  direction: rtl;
+.keyboard-row:first-child {
+  border-top-color: transparent;
 }
 
-.keyboard-key {
-  font-size: 4em;
-  display: inline-table;
-  max-width: -moz-calc(33% - 12px);
-  background: -moz-linear-gradient(top, #353535, #252525 50%, #111111 51%);
-  margin: 5px;
-  border-radius: 10px;
-  border: 1px solid #151515;
-  border-top: 1px solid #c3d6df;
-  box-shadow: 0 1px 3px black;
-}
-
-.keyboard-key:nth-child(2) {
-  max-width: -moz-calc(34% - 12px);
-}
-
-.keyboard-key:hover:active {
-  background: -moz-linear-gradient(top, #484848, #404040 50%, #222222 51%);
+.keyboard-row:last-child {
+  border-bottom-color: transparent;
 }
 
 .keyboard-key > span {
@@ -159,88 +252,70 @@ html * {
   pointer-events: none;
 }
 
-.keyboard-key > span:first-child {
-  float: left;
-  text-shadow: 1px 1px 0px #000;
-  margin-left: 8px;
-}
+.keyboard-key {
+  display: inline-block;
+  width: -moz-calc(100% / 3 - 2px);
+  height: 100%;
 
-#mainKeyset .keyboard-key > span:first-child {
-  max-width: 40px;
-}
+	border: 1px solid transparent;
+	border-right-color: rgb(0,0,0);
+	border-left-color: rgb(123,123,123);
 
-.keyboard-key > span + span:last-child {
-  float: right;
   text-align: center;
-  vertical-align: middle;
-  font-size: 0.4em;
-  line-height: 2.5em;
-  max-width: -moz-calc(100% - 48px);
-  text-shadow: 1px 1px 0px #000;
-  color: #555;
-  text-transform: uppercase;
-  text-shadow: 1px 1px 0px rgb(105,105,105);
+}
+.keyboard-key:first-child {
+  border-left-color: transparent;
+}
+.keyboard-key:last-child {
+  border-right-color: transparent;
+}
+.keyboard-key:active {
+	background: -moz-linear-gradient(top, rgb(56,56,56) 0%, rgb(114,115,114) 100%);
+}
+.keyboard-key span {
+	display: block;
+	padding: 7px 0 0 0;
+
+	color: #fff;
+	font-size: 34px;
+	text-shadow: 0 0 3px rgba(0,0,0,.5);
 }
 
-.keyboard-key.call {
-  background: -moz-linear-gradient(top, #45c545, #35b535 50%, #21a121 51%);
-  border-radius: 10px;
-  border-top: 1px solid #c3d6df;
-  box-shadow: 0 1px 3px black;
-  max-width: -moz-calc(66% - 12px);
+.keyboard-key span:last-child {
+	font-size: 20px;
 }
 
-.keyboard-key.delete {
-  max-width: -moz-calc(34% - 18px);
-}
-
-.keyboard-key.call:hover:active {
-  background: -moz-linear-gradient(top, #55d555, #45c545 50%, #31b131 51%);
-}
-
-.keyboard-key.call > span:last-child,
-.keyboard-key.delete > span:last-child {
-  text-align: center;
-  color: white;
-  font-size: 1em;
-  line-height: 2em;
-}
-
-@media screen and (min-width: 481px) and (orientation: landscape) {
-  body {
-    font-size: 1.5mozmm;
-  }
-
-  #phoneNumber-view {
-    height: 80px;
-    line-height: 80px;
-  }
-
-  #mainKeyset {
-    display: inline-table;
-    max-width: 80%;
-  }
-
-  #additionalKeyset {
-    vertical-align: bottom;
-    display: inline-table;
-    max-width: -moz-calc(20% - 20px);
-  }
-
-  #additionalKeyset .keyboard-row {
-    direction: ltr;
-  }
-
-  #additionalKeyset .keyboard-key {
-    height: -moz-calc(2em + 12px) !important;
-    max-width: 100%;
-  }
-
-  #additionalKeyset .keyboard-key * {
-    margin-left: 0;
-    margin-top: 6px;
+@media screen and (max-height: 712px) {
+  .keyboard-key span:last-child {
+    display: none;
   }
 }
+
+#additionalKeyset {
+  width: -moz-calc(100% - 30px);
+  padding: 5px 5px 2px 5px;
+  margin: auto;
+
+  border-radius: 3px;
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.keyboard-key[data-value="call"] {
+  width: 100%;
+}
+
+.keyboard-key[data-value="call"] span {
+	position: relative;
+	display: block;
+	height: 105px;
+
+	border-radius: 3px;
+	background: url(images/call-icon.png) no-repeat 50% 50%,-moz-linear-gradient(top, rgb(177,214,0) 1px, rgb(143,195,0) 2px, rgb(82,107,23) 100%);
+}
+.keyboard-key[data-value="call"]:active span {
+	background: url(images/call-icon.png) no-repeat 50% 50%,-moz-linear-gradient(top, rgb(82,107,23) 0, rgb(143,195,0) 100%);
+}
+
 
 /* === Contacts View === */
 #contacts-view {
@@ -312,7 +387,7 @@ html * {
   pointer-events: none;
 }
 
-.phoneNumber {
+.phone-number {
   display: block;
   margin-left: 72px;
   color: #707070;
@@ -379,9 +454,11 @@ html * {
 #contact-details-container.displayed {
   left: 0;
 }
+
 #contact-details-view {
   -moz-transition: opacity 0.15s ease;
 }
+
 #contact-edit-button {
   position: absolute;
   top: 20px;
@@ -406,6 +483,7 @@ html * {
 #contact-edit-button[data-action='save'] span:first-child {
   display: none;
 }
+
 #contact-details-view input {
   width: -moz-calc(100% - 88px);
   color: white;
@@ -417,22 +495,27 @@ html * {
   font-size: 0.8em;
   text-align: center;
 }
+
 #contact-photo {
   float: left;
   padding: 20px 5%;
 }
+
 #contact-name {
   float: left;
   width: -moz-calc(85% - 96px - 74px);
   margin: 20px 0;
   font-size: 2.0em;
 }
+
 #contact-name input {
   text-align: left;
 }
+
 #contact-name > div {
   padding: 2px 10px;
 }
+
 #contact-details-view > .group {
   width: -moz-calc(90% - 4px);
   margin: 50px auto;
@@ -445,6 +528,7 @@ html * {
   font-size: 2em;
   text-align: center;
 }
+
 #contact-details-view > .group > div {
   position: relative;
   padding: 12px;
@@ -454,18 +538,23 @@ html * {
   text-overflow: ellipsis;
   overflow: hidden;
 }
+
 #contact-details-view:not(.editing) > .group > div * {
   pointer-events: none;
 }
+
 #contact-details-view > .group > div[data-action='add'] {
   display: none;
 }
+
 #contact-details-view > .group > div:first-child {
   border-top: 0px;
 }
+
 #contact-details-view > .group > div:hover:active {
   background-color: rgba(49, 147, 255, 0.7);
 }
+
 #contact-details-view .delete-button {
   position: absolute;
   top: 0;
@@ -481,6 +570,7 @@ html * {
 
   display: none;
 }
+
 #contact-destroy-button {
   width: -moz-calc(90% - 2px);
   margin: 50px auto 10px auto;
@@ -499,38 +589,47 @@ html * {
 
   display: none;
 }
+
 /* === Contact Edit transitions === */
+
 #contact-details-view.hidden {
   opacity: 0;
 }
+
 #contact-details-view.editing > .group > div[data-action='add'] {
   display: block;
 }
+
 #contact-details-view.editing #contact-name {
   border-radius: 10px;
   border: 2px #EBEBEB solid;
 }
+
 #contact-details-view.editing #contact-name > div {
   border-top: 2px #EBEBEB solid;
   padding: 0px 8px;
 }
+
 #contact-details-view.editing #contact-name > div:first-child {
   border-top: 0;
 }
+
 #contact-details-view.editing #contact-destroy-button {
   display: block;
 }
+
 #contact-details-view.editing .delete-button {
   display: block;
 }
+
 #contact-details-view.editing #contact-name .delete-button {
   display: none;
 }
 
 /* === Oncall transitions === */
 
-#choices.oncall {
-  margin-top: -64px;
+#tabs-container.oncall {
+  bottom: -138px;
 }
 
 #views.oncall {
@@ -562,6 +661,7 @@ html * {
 #views .main-button-container {
   display: none;
 }
+
 #views.modal .main-button-container {
   display: block;
 }
@@ -574,12 +674,15 @@ html * {
 #views.modal #keyboard-container {
   bottom: -moz-calc(3em + 64px);
 }
+
 #views.modal #contacts-view {
   height: -moz-calc(100% - 3em - 54px);
 }
+
 #views.modal #contacts-shortcuts {
   height: -moz-calc(100% - 160px - 3em - 64px);
 }
+
 #views.modal #contacts-shortcuts-background {
   height: -moz-calc(100% - 150px - 3em - 64px);
 }
@@ -646,7 +749,7 @@ html * {
   text-align: center;
   line-height: 99px;
 }
-#call-actions-container .top:hover:active {
+#call-actions-container .top:active {
   background-color: rgba(49, 147, 255, 0.7);
 }
 
@@ -667,6 +770,7 @@ html * {
 #mute-button.mute {
   background-color: rgba(49, 147, 255, 0.7);
 }
+
 #mute-button span {
   line-height: 99px;
 }
@@ -711,13 +815,14 @@ html * {
   font-size: 3em;
   text-shadow: 1px 1px 0px #000;
 }
-.main-button-container > div:first-child:hover:active {
+.main-button-container > div:first-child:active {
   background: -moz-linear-gradient(bottom, #353535, #252525 50%, #111111 51%);
 }
 
 #call-button {
   background: -moz-linear-gradient(top, #45c545, #35b535 50%, #21a121 51%);
 }
+
 #call-button[data-action='end'] {
   background: -moz-linear-gradient(top, #FF4844, #FF1813 50%, #C70E0C 51%);
 }
@@ -729,9 +834,11 @@ html * {
 #call-button span:first-child {
   display: inline;
 }
-#call-button:hover:active {
+
+#call-button:active {
   background: -moz-linear-gradient(bottom, #45c545, #35b535 50%, #21a121 51%);
 }
-#call-button[data-action='end']:hover:active {
+
+#call-button[data-action='end']:active {
   background: -moz-linear-gradient(bottom, #FF4844, #FF1813 50%, #C70E0C 51%);
 }
