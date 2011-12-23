@@ -10,6 +10,29 @@ if (!window['Gaia'])
   
   var lastDragPosition = -1;
   var isKeyDown = false;
+  var checkKeyPressTimeout = null;
+  var animateScrollInterval = null;
+  
+  var animationLoop = function(renderCallback) {
+    var isRunning = true;
+    var lastFrame = +new Date();
+    var requestAnimationFrame = function(animFrameCallback) {
+      if (window.mozRequestAnimationFrame)
+        window.mozRequestAnimationFrame(animFrameCallback);
+      else if (window.webkitRequestAnimationFrame)
+        window.webkitRequestAnimationFrame(animFrameCallback);
+      else if (window.requestAnimationFrame)
+        window.requestAnimationFrame(animFrameCallback);
+    };
+    
+    (function loop(currentFrame) {
+      if (isRunning !== false) {
+        requestAnimationFrame(loop);
+        isRunning = renderCallback(currentFrame - lastFrame);
+        lastFrame = currentFrame;
+      }
+    })(lastFrame);
+  };
   
   Gaia.TaskManager = {
     
@@ -69,12 +92,19 @@ if (!window['Gaia'])
           if (evt.keyCode !== evt.DOM_VK_ESCAPE || isKeyDown)
             return;
           
+          if (checkKeyPressTimeout) {
+            clearTimeout(checkKeyPressTimeout);
+            checkKeyPressTimeout = null;
+          }
+          
           isKeyDown = true;
           
           if (this.isActive)
             this.isActive = false;
           else {
-            setTimeout(function(self) {
+            checkKeyPressTimeout = setTimeout(function checkKeyPress(self) {
+              checkKeyPressTimeout = null;
+              
               if (isKeyDown)
                 self.isActive = true;
             }, 1000, this);
@@ -83,6 +113,11 @@ if (!window['Gaia'])
         case 'keyup':
           if (evt.keyCode !== evt.DOM_VK_ESCAPE)
             return;
+          
+          if (checkKeyPressTimeout) {
+            clearTimeout(checkKeyPressTimeout);
+            checkKeyPressTimeout = null;
+          }
           
           isKeyDown = false;
           break;
@@ -109,6 +144,33 @@ if (!window['Gaia'])
           lastDragPosition = touch.pageX;
           break;
         case 'touchend':
+          var listElement = this.listElement;
+          var listItemWidth = window.innerWidth * 0.6;
+          var listIndex = Math.round(this.listElement.scrollLeft / listItemWidth);
+          var currentScrollLeft = listElement.scrollLeft;
+          var targetScrollLeft = listIndex * listItemWidth;
+          var willAnimateToTheLeft = (currentScrollLeft < targetScrollLeft);
+          
+         if (currentScrollLeft !== targetScrollLeft) {
+            animationLoop(function(deltaTime) {
+              if (willAnimateToTheLeft) {
+                listElement.scrollLeft = currentScrollLeft += 10 * deltaTime / 16;
+                
+                if (currentScrollLeft >= targetScrollLeft) {
+                  listElement.scrollLeft = currentScrollLeft = targetScrollLeft;
+                  return false;
+                }
+              } else {
+                listElement.scrollLeft = currentScrollLeft -= 10 * deltaTime / 16;
+                
+                if (currentScrollLeft <= targetScrollLeft) {
+                  listElement.scrollLeft = currentScrollLeft = targetScrollLeft;
+                  return false;
+                }
+              }
+            });
+          }
+          
           lastDragPosition = -1;
           break;
         default:
