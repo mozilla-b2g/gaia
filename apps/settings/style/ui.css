@@ -166,6 +166,15 @@ ul.tableView > li span.arrowRight {
   top: 50%;
 }
 
+.tableView .comment {
+  font-size: 0.5em !important;
+  color: grey !important;
+}
+
+.tableView label+* {
+  float: right;
+}
+
 /* Toggle Switch */
 .toggleswitch {
   border: 0.1em solid #444;
