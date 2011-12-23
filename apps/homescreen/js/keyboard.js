@@ -4,7 +4,7 @@ const IMEManager = {
   ALTERNATE_LAYOUT: -2,
   SWITCH_KEYBOARD: -3,
   // TBD: allow user to select desired keyboards in settings
-  keyboards: ['qwertyLayout', 'azertyLayout', 'dvorakLayout'],
+  keyboards: ['qwertyLayout', 'azertyLayout', 'qwertzLayout', 'hebrewLayout', 'dvorakLayout'],
   // backspace repeat delay and repeat rate
   kRepeatDelay: 700,
   kRepeatRate: 100,
