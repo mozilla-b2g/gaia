@@ -4,27 +4,32 @@
 'use strict';
 
 const IMEManager = {
-  isUpperCase: false,
-  currentKeyboard: 0,
-
   BASIC_LAYOUT: -1,
   ALTERNATE_LAYOUT: -2,
   SWITCH_KEYBOARD: -3,
 
-  // IME Engines are self registering to this object
+  // IME Engines are self registering here.
   IMEngines: {},
   get currentEngine() {
-    return this.IMEngines[this.layout.imEngine];
+    return this.IMEngines[Keyboards[this.currentKeyboard].imEngine];
   },
 
+  // TODO: allow user to select desired keyboards in settings
+  // see bug 712778
+  currentKeyboard: 'qwertyLayout',
   keyboards: [
     'qwertyLayout', 'azertyLayout', 'qwertzLayout', 'hebrewLayout',
     'jcukenLayout', 'serbianCyrillicLayout', 'dvorakLayout',
     'zhuyingGeneralLayout'
   ],
+
+  get isUpperCase() {
+    return this.currentKeyboard.indexOf('UpperCaps') > 0;
+  },
+
   
   // backspace repeat delay and repeat rate
-  kRepeatDelay: 700,
+  kRepeatTimeout: 700,
   kRepeatRate: 100,
 
   get ime() {
@@ -51,10 +56,6 @@ const IMEManager = {
       this.ime.addEventListener(type, this);
     }).bind(this));
 
-    // TODO: allow user to select desired keyboards in settings
-    // see bug 712778
-    this.layout = Keyboards[this.keyboards[0]];
-
     this.keyboards.forEach((function loadIMEngines(name) {
       var keyboard = Keyboards[name];
       if (keyboard.type !== 'ime')
@@ -65,23 +66,23 @@ const IMEManager = {
 
       var script = document.createElement('script');
       script.src = sourceDir + imEngine + '/loader.js';
-      script.addEventListener('load', (function IMEnginesLoaded() {
-        var self = this;
-        function sendChoices() {
-          self.showCompositions.apply(self, arguments);
-        }
 
-        function sendKey(key) {
-          window.navigator.mozKeyboard.sendKey(key);
-        }
-
-        function sendString(str) {
+      var self = this;
+      var glue = {
+        dbOptions: {
+          path: sourceDir + imEngine + '/data.json'
+        },
+        sendChoices: self.showCompositions,
+        sendKey: window.navigator.mozKeyboard.sendKey,
+        sendString: function(str) {
           for (var i = 0; i < str.length; i++)
-            window.navigator.mozKeyboard.sendKey(str.charCodeAt(i));
+            this.sendKey(str.charCodeAt(i));
         }
+      };
 
+      script.addEventListener('load', (function IMEnginesLoaded() {
         var engine = this.IMEngines[imEngine];
-        engine.init(sourceDir + imEngine, sendChoices, sendKey, sendString);
+        engine.init(glue);
       }).bind(this));
 
       document.body.appendChild(script);
@@ -120,20 +121,21 @@ const IMEManager = {
         if (keyCode != KeyEvent.DOM_VK_BACK_SPACE)
           return;
 
-        var sendKey = (function sendKey(key) {
-          if (this.layout.type == 'ime')
+        var sendDelete = (function sendDelete() {
+          if (Keyboards[this.currentKeyboard].type == 'ime') {
             this.currentEngine.click(keyCode);
-          else
-            window.navigator.mozKeyboard.sendKey(keyCode);
+            return;
+          }
+          window.navigator.mozKeyboard.sendKey(keyCode);
         }).bind(this);
 
-        this._timeout = setTimeout((function km_deleteDelay() {
-          sendKey(keyCode);
+        this._timeout = setTimeout((function deleteTimeout() {
+          sendDelete();
 
-          this._interval = setInterval(function km_deleteRepeat() {
-            sendKey(keyCode);
+          this._interval = setInterval(function deleteInterval() {
+            sendDelete();
           }, this.kRepeatRate);
-        }).bind(this), this.kRepeatDelay);
+        }).bind(this), this.kRepeatTimeout);
         break;
 
       case 'touchend':
@@ -154,42 +156,40 @@ const IMEManager = {
         }
 
         var keyCode = parseInt(target.getAttribute('data-keycode'));
-        if (!keyCode || keyCode == KeyEvent.DOM_VK_BACK_SPACE)
+        if (!keyCode)
           return;
 
         switch (keyCode) {
           case this.BASIC_LAYOUT:
-            var keyboard = this.keyboards[this.currentKeyboard];
-            this.updateLayout(Keyboards[keyboard]);
+            this.updateLayout(this.currentKeyboard);
           break;
 
           case this.ALTERNATE_LAYOUT:
-            this.updateLayout(Keyboards.alternateLayout);
+            this.updateLayout('alternateLayout');
           break;
 
           case this.SWITCH_KEYBOARD:
             // If this is the last keyboard in the stack, start
             // back from the beginning.
-            this.currentKeyboard++;
-            if (this.currentKeyboard == this.keyboards.length)
-              this.currentKeyboard = 0;
+            var keyboards = this.keyboards;
+            var index = keyboards.indexOf(this.currentKeyboard);
+            if (index >= keyboards.length - 1)
+              this.currentKeyboard = keyboards[0];
+            else
+              this.currentKeyboard = keyboards[++index];
 
-            var keyboard = this.keyboards[this.currentKeyboard];
-            this.updateLayout(Keyboards[keyboard]);
+            this.updateLayout(this.currentKeyboard);
           break;
 
           case KeyEvent.DOM_VK_CAPS_LOCK:
-            var keyboard = this.keyboards[this.currentKeyboard];
-            var uppercase = this.isUpperCase;
-            this.isUpperCase = !this.isUpperCase;
-
-            var layout = uppercase ? Keyboards[keyboard]
-                                   : Keyboards[keyboard + 'UpperCaps'];
-            this.updateLayout(layout);
+            var keyboard = this.currentKeyboard;
+            if (this.UpperCase)
+              keyboard += 'UpperCaps';
+            this.updateLayout(keyboard);
           break;
 
           default:
-            if (this.layout.type === 'ime') {
+            if (Keyboards[this.currentKeyboard].type == 'ime') {
               this.currentEngine.click(keyCode);
               this.updateKeyboardHeight();
               break;
@@ -197,11 +197,8 @@ const IMEManager = {
 
             window.navigator.mozKeyboard.sendKey(keyCode);
 
-            if (this.isUpperCase) {
-              this.isUpperCase = !this.isUpperCase;
-              var keyboard = this.keyboards[this.currentKeyboard];
-              this.updateLayout(Keyboards[keyboard]);
-            }
+            if (this.isUpperCase)
+              this.updateLayout(this.currentKeyboard);
           break;
         }
         break;
@@ -212,16 +209,18 @@ const IMEManager = {
     }
   },
 
-  updateLayout: function km_updateLayout(layout) {
-    this.layout = layout;
+  updateLayout: function km_updateLayout(keyboard) {
+    this.currentKeyboard = keyboard;
+    var layout = Keyboards[keyboard];
 
-    var content = '', width = window.innerWidth, self = this;
+    var content = '';
+    var width = window.innerWidth;
     layout.keys.forEach(function buildKeyboardRow(row) {
       content += '<div class="keyboard-row">';
 
       row.forEach(function buildKeyboardColumns(key) {
         var code = key.keyCode || key.value.charCodeAt(0);
-        var size = ((width - (row.length * 2)) / (self.layout.width || 10));
+        var size = ((width - (row.length * 2)) / (layout.width || 10));
         size = size * (key.ratio || 1) - 2;
         content += '<span class="keyboard-key"' +
                           'data-keycode="' + code + '"' +
@@ -268,7 +267,7 @@ const IMEManager = {
     targetWindow.dataset.rectHeight =
       targetWindow.getBoundingClientRect().height;
 
-    this.updateLayout(this.layout);
+    this.updateLayout(this.currentKeyboard);
     delete this.ime.dataset.hidden;
   },
 
@@ -285,7 +284,7 @@ const IMEManager = {
 
   showCompositions: function km_showCompositions(compositions) {
     // TODO: converter panel should be allow toggled to fullscreen
-    var converter = this.converter;
+    var converter = document.getElementById('keyboard-selections');
     converter.innerHTML = '';
     converter.className = '';
 

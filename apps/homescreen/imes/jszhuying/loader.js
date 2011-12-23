@@ -5,19 +5,8 @@
 
 // Code for IMEngines to register itself
 IMEManager.IMEngines.jszhuying = {
-  dbName: 'JSZhuYing',
-  dbVersion: 4,
-
-  init: function jszhuying_init(path, sendChoices, sendKey, sendString) {
-    this.mobi = JSZhuYing.Mobi({
-        sendChoices: sendChoices,
-        sendKey: sendKey,
-        sendString: sendString,
-        dbOptions: {
-          //disableIndexedDB: true, // For now
-          data: path + '/data.json'
-        }
-    });
+  init: function jszhuying_init(glue) {
+    this.mobi = JSZhuYing.Mobi(glue);
   },
 
   click: function jszhuying_init(keyCode) {
