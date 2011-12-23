@@ -1,5 +1,5 @@
 
-const KeyboardAndroid = {
+const Keyboards = {
   alternateLayout: {
     type: 'keyboard',
     keys: [

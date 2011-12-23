@@ -4,18 +4,25 @@
 'use strict';
 
 const IMEManager = {
+  isUpperCase: false,
+  currentKeyboard: 0,
+
   BASIC_LAYOUT: -1,
   ALTERNATE_LAYOUT: -2,
   SWITCH_KEYBOARD: -3,
 
-  // TBD: allow user to select desired keyboards in settings
+  // IME Engines are self registering to this object
+  IMEngines: {},
+  get currentEngine() {
+    return this.IMEngines[this.layout.imEngine];
+  },
+
   keyboards: [
     'qwertyLayout', 'azertyLayout', 'qwertzLayout', 'hebrewLayout',
     'jcukenLayout', 'serbianCyrillicLayout', 'dvorakLayout',
     'zhuyingGeneralLayout'
   ],
-  IMEngines: {},
-
+  
   // backspace repeat delay and repeat rate
   kRepeatDelay: 700,
   kRepeatRate: 100,
@@ -25,36 +32,43 @@ const IMEManager = {
     return this.ime = document.getElementById('keyboard');
   },
 
+  get converter() {
+    delete this.converter;
+    var converter = document.createElement('div');
+    converter.id = 'keyboard-selections';
+    return this.converter = converter;
+  },
+
+
   events: ['showime', 'hideime', 'unload', 'appclose'],
+  imeEvents: ['touchstart', 'touchend', 'click'],
   init: function km_init() {
     this.events.forEach((function attachEvents(type) {
       window.addEventListener(type, this);
     }).bind(this));
 
-    this.ime.addEventListener('touchstart', this);
-    this.ime.addEventListener('touchend', this);
-    this.ime.addEventListener('click', this);
+    this.imeEvents.forEach((function imeEvents(type) {
+      this.ime.addEventListener(type, this);
+    }).bind(this));
 
-    this.layout = KeyboardAndroid[IMEManager.keyboards[0]];
-    this.currentKeyboard = 0;
-    this.isUpperCase = false;
+    // TODO: allow user to select desired keyboards in settings
+    // see bug 712778
+    this.layout = Keyboards[this.keyboards[0]];
 
-    this.selectionEl = document.createElement('div');
-    this.selectionEl.id = 'keyboard-selections';
-
-    var self = this;
-    IMEManager.keyboards.forEach(function loadIMEngines(keyboard) {
-      if (KeyboardAndroid[keyboard].type !== 'ime')
+    this.keyboards.forEach((function loadIMEngines(name) {
+      var keyboard = Keyboards[name];
+      if (keyboard.type !== 'ime')
         return;
 
-      var imEngine = KeyboardAndroid[keyboard].imEngine;
-      var imPath = './imes/' + imEngine;
+      var sourceDir = './imes/';
+      var imEngine = keyboard.imEngine;
 
       var script = document.createElement('script');
-      script.addEventListener('load',function IMEnginesLoaded() {
-        var engine = IMEManager.IMEngines[imEngine];
+      script.src = sourceDir + imEngine + '/loader.js';
+      script.addEventListener('load', (function IMEnginesLoaded() {
+        var self = this;
         function sendChoices() {
-          self.showSelections.apply(self, arguments);
+          self.showCompositions.apply(self, arguments);
         }
 
         function sendKey(key) {
@@ -65,11 +79,13 @@ const IMEManager = {
           for (var i = 0; i < str.length; i++)
             window.navigator.mozKeyboard.sendKey(str.charCodeAt(i));
         }
-        engine.init(imPath, sendChoices, sendKey, sendString);
-      });
-      script.src = imPath + '/loader.js';
+
+        var engine = this.IMEngines[imEngine];
+        engine.init(sourceDir + imEngine, sendChoices, sendKey, sendString);
+      }).bind(this));
+
       document.body.appendChild(script);
-    });
+    }).bind(this));
   },
 
   uninit: function km_uninit() {
@@ -77,133 +93,130 @@ const IMEManager = {
       window.removeEventListener(type, this);
     }).bind(this));
 
-    this.ime.removeEventListener('touchstart', this);
-    this.ime.removeEventListener('touchend', this);
-    this.ime.removeEventListener('click', this);
+    this.imeEvents.forEach((function imeEvents(type) {
+      this.ime.removeEventListener(type, this);
+    }).bind(this));
   },
-  handleEvent: function km_handleEvent(evt) {
-    var activeWindow = Gaia.AppManager.foregroundWindow,
-    self = this;
 
+  handleEvent: function km_handleEvent(evt) {
+    var activeWindow = Gaia.AppManager.foregroundWindow;
+    var target = evt.target;
     switch (evt.type) {
       case 'showime':
         this.showIME(activeWindow, evt.detail.type);
         break;
+
       case 'hideime':
       case 'appclose':
         this.hideIME(activeWindow);
         break;
+
       case 'touchstart':
-        var keyCode = parseInt(evt.target.getAttribute('data-keycode'));
+        var keyCode = parseInt(target.getAttribute('data-keycode'));
         if (!keyCode)
           return;
-        evt.target.dataset.active = 'true';
-        if (keyCode === KeyEvent.DOM_VK_BACK_SPACE) {
-          if (this.layout.type === 'ime')
-            this.IMEngines[this.layout.imEngine].click(keyCode);
+        target.dataset.active = 'true';
+
+        if (keyCode != KeyEvent.DOM_VK_BACK_SPACE)
+          return;
+
+        var sendKey = (function sendKey(key) {
+          if (this.layout.type == 'ime')
+            this.currentEngine.click(keyCode);
           else
             window.navigator.mozKeyboard.sendKey(keyCode);
-          var self = this;
-          this._timer = setTimeout(
-            function km_backspaceDelay() {
-              if (self.layout.type === 'ime')
-                self.IMEngines[self.layout.imEngine].click(keyCode);
-              else
-                window.navigator.mozKeyboard.sendKey(keyCode);
-              self._timer = setInterval(
-                function km_backspaceRepeat() {
-                  if (self.layout.type === 'ime')
-                    self.IMEngines[self.layout.imEngine].click(keyCode);
-                  else
-                    window.navigator.mozKeyboard.sendKey(keyCode);
-                },
-                IMEManager.kRepeatRate
-              );
-            },
-            IMEManager.kRepeatDelay
-          );
-        }
+        }).bind(this);
+
+        this._timeout = setTimeout((function km_deleteDelay() {
+          sendKey(keyCode);
+
+          this._interval = setInterval(function km_deleteRepeat() {
+            sendKey(keyCode);
+          }, this.kRepeatRate);
+        }).bind(this), this.kRepeatDelay);
         break;
+
       case 'touchend':
-        var keyCode = parseInt(evt.target.getAttribute('data-keycode'));
+        var keyCode = parseInt(target.getAttribute('data-keycode'));
         if (!keyCode)
           return;
-        delete evt.target.dataset.active;
-        clearTimeout(this._timer);
-        clearInterval(this._timer);
-        delete this._timer;
+        delete target.dataset.active;
+
+        clearTimeout(this._timeout);
+        clearInterval(this._interval);
         break;
+
       case 'click':
-        if (evt.target.dataset.selection) {
-          this.IMEngines[this.layout.imEngine].select(
-            evt.target.textContent,
-            evt.target.dataset.data
-          );
+        if (target.dataset.selection) {
+          this.currentEngine.select(target.textContent, target.dataset.data);
           this.updateKeyboardHeight();
           return;
         }
 
-        var keyCode = parseInt(evt.target.getAttribute('data-keycode'));
-        if (!keyCode && keyCode === KeyEvent.DOM_VK_BACK_SPACE)
+        var keyCode = parseInt(target.getAttribute('data-keycode'));
+        if (!keyCode || keyCode == KeyEvent.DOM_VK_BACK_SPACE)
           return;
 
         switch (keyCode) {
-          case IMEManager.BASIC_LAYOUT:
-            var keyboard = IMEManager.keyboards[this.currentKeyboard];
-            this.layout = KeyboardAndroid[keyboard];
-            this.updateLayout();
-            this.updateKeyboardHeight();
+          case this.BASIC_LAYOUT:
+            var keyboard = this.keyboards[this.currentKeyboard];
+            this.updateLayout(Keyboards[keyboard]);
           break;
-          case IMEManager.ALTERNATE_LAYOUT:
-            this.layout = KeyboardAndroid.alternateLayout;
-            this.updateLayout();
-            this.updateKeyboardHeight();
+
+          case this.ALTERNATE_LAYOUT:
+            this.updateLayout(Keyboards.alternateLayout);
           break;
-          case IMEManager.SWITCH_KEYBOARD:
+
+          case this.SWITCH_KEYBOARD:
+            // If this is the last keyboard in the stack, start
+            // back from the beginning.
             this.currentKeyboard++;
-            if (this.currentKeyboard === IMEManager.keyboards.length)
+            if (this.currentKeyboard == this.keyboards.length)
               this.currentKeyboard = 0;
-            var keyboard = IMEManager.keyboards[this.currentKeyboard];
-            this.layout = KeyboardAndroid[keyboard];
-            this.updateLayout();
-            this.updateKeyboardHeight();
+
+            var keyboard = this.keyboards[this.currentKeyboard];
+            this.updateLayout(Keyboards[keyboard]);
           break;
+
           case KeyEvent.DOM_VK_CAPS_LOCK:
-            var keyboard = IMEManager.keyboards[this.currentKeyboard];
-            if (this.isUpperCase) {
-              this.layout = KeyboardAndroid[keyboard];
-            } else {
-              this.layout = KeyboardAndroid[keyboard + 'UpperCaps'];
-            }
+            var keyboard = this.keyboards[this.currentKeyboard];
+            var uppercase = this.isUpperCase;
             this.isUpperCase = !this.isUpperCase;
-            this.updateLayout();
-            //this.updateKeyboardHeight();
+
+            var layout = uppercase ? Keyboards[keyboard]
+                                   : Keyboards[keyboard + 'UpperCaps'];
+            this.updateLayout(layout);
           break;
+
           default:
             if (this.layout.type === 'ime') {
-              this.IMEngines[this.layout.imEngine].click(keyCode);
+              this.currentEngine.click(keyCode);
               this.updateKeyboardHeight();
               break;
             }
+
             window.navigator.mozKeyboard.sendKey(keyCode);
+
             if (this.isUpperCase) {
               this.isUpperCase = !this.isUpperCase;
-              var keyboard = IMEManager.keyboards[this.currentKeyboard];
-              this.layout = KeyboardAndroid[keyboard];
-              this.updateLayout();
-              //this.updateKeyboardHeight();
+              var keyboard = this.keyboards[this.currentKeyboard];
+              this.updateLayout(Keyboards[keyboard]);
             }
           break;
         }
         break;
+
       case 'unload':
         this.uninit();
         break;
     }
   },
-  updateLayout: function km_updateLayout() {
+
+  updateLayout: function km_updateLayout(layout) {
+    this.layout = layout;
+
     var content = '', width = window.innerWidth, self = this;
-    this.layout.keys.forEach(function buildKeyboardRow(row) {
+    layout.keys.forEach(function buildKeyboardRow(row) {
       content += '<div class="keyboard-row">';
 
       row.forEach(function buildKeyboardColumns(key) {
@@ -222,21 +235,23 @@ const IMEManager = {
 
     this.ime.innerHTML = content;
 
-    if (this.layout.selector) {
-      this.ime.insertBefore(
-        this.selectionEl,
-        this.ime.firstChild
-      );
-      this.showSelections([]);
-      this.IMEngines[this.layout.imEngine].empty();
+    if (layout.selector) {
+      this.ime.insertBefore(this.converter, this.ime.firstChild);
+      this.showCompositions([]);
+      this.currentEngine.empty();
     }
+
+    this.updateKeyboardHeight();
   },
+
   updateKeyboardHeight: function km_updateKeyboardHeight() {
-    var newHeight = this.targetWindow.dataset.rectHeight -
-                    this.ime.getBoundingClientRect().height;
-    var ime = this.ime, targetWindow = this.targetWindow;
+    var ime = this.ime;
+    var targetWindow = this.targetWindow;
+
+    var newHeight = targetWindow.dataset.rectHeight -
+                    ime.getBoundingClientRect().height;
     if (ime.getBoundingClientRect().top < window.innerHeight) {
-      this.targetWindow.style.height = newHeight + 'px';
+      targetWindow.style.height = newHeight + 'px';
       return;
     }
 
@@ -245,19 +260,18 @@ const IMEManager = {
       targetWindow.style.height = newHeight + 'px';
     });
   },
+
   showIME: function km_showIME(targetWindow, type) {
+    this.targetWindow = targetWindow;
     var oldHeight = targetWindow.style.height;
     targetWindow.dataset.cssHeight = oldHeight;
     targetWindow.dataset.rectHeight =
       targetWindow.getBoundingClientRect().height;
 
-    var ime = this.ime;
-    this.updateLayout();
-    this.targetWindow = targetWindow;
-    this.updateKeyboardHeight();
-
-    delete ime.dataset.hidden;
+    this.updateLayout(this.layout);
+    delete this.ime.dataset.hidden;
   },
+
   hideIME: function km_hideIME(targetWindow) {
     targetWindow.style.height = targetWindow.dataset.cssHeight;
     delete targetWindow.dataset.cssHeight;
@@ -268,27 +282,24 @@ const IMEManager = {
     ime.dataset.hidden = 'true';
     ime.innerHTML = '';
   },
-  showSelections: function km_showSelections(selections) {
-    // TBD: selection panel should be allow toggled to fullscreen
-    var self = this;
-    while (this.selectionEl.firstChild) {
-      this.selectionEl.removeChild(this.selectionEl.firstChild);
-    }
-    if (!selections.length) {
-      this.selectionEl.className = '';
+
+  showCompositions: function km_showCompositions(compositions) {
+    // TODO: converter panel should be allow toggled to fullscreen
+    var converter = this.converter;
+    converter.innerHTML = '';
+    converter.className = '';
+
+    if (!compositions.length)
       return;
-    } else {
-      this.selectionEl.className = 'show';
-      selections.forEach(
-        function buildSelection(selection) {
-          var span = document.createElement('span');
-          span.dataset.data = selection[1];
-          span.dataset.selection = true;
-          span.textContent = selection[0];
-          self.selectionEl.appendChild(span);
-        }
-      );
-    }
+
+    converter.className = 'show';
+    compositions.forEach(function buildComposition(composition) {
+      var span = document.createElement('span');
+      span.dataset.data = composition[1];
+      span.dataset.selection = true;
+      span.textContent = composition[0];
+      converter.appendChild(span);
+    });
   }
 };
 
