@@ -149,6 +149,10 @@ iframe.appWindow.active {
   -moz-transform: scale(1);
 }
 
+iframe.appWindow.noTransition {
+  -moz-transition: none;
+}
+
 #statusbar {
   display: -moz-box;
   -moz-box-orient: horizontal;
