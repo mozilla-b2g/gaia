@@ -28,16 +28,20 @@ var Browser = {
   },
 
   init: function() {
-
     this.address.addEventListener('submit', (function submitHandler(evt) {
       var url = this.urlBar.value;
-      MockHistory.pushState(null, '', url);
       this.navigate(url);
       evt.preventDefault();
     }).bind(this));
 
-    this.iframe.addEventListener('load', (function loadedHandler(evt) {
-      this.urlBar.classList.remove('loading');
+    iframe = this.iframe;
+
+    iframe.mozAddContentStateListener('load', (function loadHandler(evt) {
+      this.loadStateChange(evt);
+    }).bind(this));
+
+    iframe.mozAddContentStateListener('location', (function locationHandler(evt) {
+      this.locationChange(evt);
     }).bind(this));
 
     this.backButton.addEventListener('click', (function backHandler(evt) {
@@ -52,18 +56,32 @@ var Browser = {
     });
 
     var url = this.urlBar.value;
-    MockHistory.pushState(null, '', url);
     this.navigate(url);
+    this.updateHistory(url);
   },
 
   navigate: function(url) {
-    this.urlBar.value = url;
     this.content.setAttribute('src', url);
-    this.urlBar.classList.add('loading');
+  },
+
+  updateHistory: function(url) {
+    MockHistory.pushState(null, '', url);
     if (MockHistory.backLength())
       this.backButton.src = 'style/images/back.png';
     else
       this.backButton.src = 'style/images/back-disabled.png';
+  },
+
+  loadStateChange: function(state) {
+    if (state == 'start')
+      this.urlBar.classList.add('loading'); 
+    else if (state == 'stop')
+      this.urlBar.classList.remove('loading');
+  },
+ 
+  locationChange: function(url) {
+    this.urlBar.value = url;
+    this.updateHistory(url);
   }
 };
 
