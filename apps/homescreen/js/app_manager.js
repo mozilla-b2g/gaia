@@ -182,11 +182,11 @@ if (!window['Gaia'])
         hidden: false
       };
       
-      
       // App is already running, set focus to the existing instance.
       if (instance) {
         var foregroundWindow = this.foregroundWindow = instance.window;
         foregroundWindow.contentWindow.postMessage(state, '*');
+        Gaia.TaskManager.sendToFront(instance.id);
       } else {
         var app = this.getInstalledAppForURL(url);
         var newWindow = windowsContainer.createWindow(url);
@@ -205,6 +205,7 @@ if (!window['Gaia'])
         }).bind(this));
 
         this._runningApps.push({
+          id: this._appIdCounter - 1,
           url: url,
           window: foregroundWindow
         });

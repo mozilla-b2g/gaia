@@ -48,6 +48,7 @@ if (!window['Gaia'])
       var runningApps = Gaia.AppManager.runningApps;
       
       if (value) {
+        this.listElement.scrollLeft = 0;
         this.element.classList.add('active');
         for (var i = 0; i < runningApps.length; i++) {
           var classList = runningApps[i].window.classList;
@@ -180,17 +181,35 @@ if (!window['Gaia'])
     },
     
     add: function(id) {
+      var listElement = this.listElement;
       var item = document.createElement('li');
       item.id = 'task_' + id;
       item.setAttribute('style', 'background: -moz-element(#app_' + id + ') no-repeat');
-      this.listElement.appendChild(item);
+      
+      if (listElement.hasChildNodes())
+        listElement.insertBefore(item, listElement.firstChild);
+      else
+        listElement.appendChild(item);
+      
       return item;
     },
     
     remove: function(id) {
       var listElement = this.listElement;
-      var item = listElement.getElementById('task_' + id);
+      var item = document.getElementById('task_' + id);
       listElement.removeChild(item);
+    },
+    
+    sendToFront: function(id) {
+      var listElement = this.listElement;
+      var item = document.getElementById('task_' + id);
+      var firstItem = listElement.firstChild;
+      
+      if (item === firstItem)
+        return;
+      
+      listElement.removeChild(item);
+      listElement.insertBefore(item, firstItem);
     }
     
   };
