@@ -2,7 +2,6 @@
 const KeyboardAndroid = {
   alternateLayout: {
     type: 'keyboard',
-    // label: // no label for alternateLayout
     keys: [
       [ { value: "1" }, { value: "2" }, { value: "3" } , { value: "4" }, { value: "5" } , { value: "6" }, { value: "7" } , { value: "8" }, { value: "9" }, { value: "0" } ],
       [ { value: "@" }, { value: "#" }, { value: "$" }, { value: "%" }, { value: "&" } , { value: "*" }, { value: "-" }, { value: "+" }, { value: "(" }, { value: ")" } ],
@@ -39,7 +38,6 @@ const KeyboardAndroid = {
   },
   azertyLayoutUpperCaps: {
     type: 'keyboard',
-    label: 'Fr',
     keys: [
       [ { value: "A" }, { value: "Z" }, { value: "E" } , { value: "R" }, { value: "T" } , { value: "Y" }, { value: "U" } , { value: "I" }, { value: "O" }, { value: "P" } ],
       [ { value: "Q" }, { value: "S" }, { value: "D" }, { value: "F" }, { value: "G" } , { value: "H" }, { value: "J" }, { value: "K" }, { value: "L" }, { value: "M" } ],
@@ -71,7 +69,7 @@ const KeyboardAndroid = {
       [ { value: "ק" }, { value: "ר" }, { value: "א" }, { value: "ט" }, { value: "ו" }, { value: "ו" }, { value: "ם" }, { value: "פ" }, { value: "⌫", ratio: 2, keyCode: KeyEvent.DOM_VK_BACK_SPACE } ],
       [ { value: "ש" }, { value: "ד" }, { value: "ג" }, { value: "כ" }, { value: "ע" }, { value: "י" }, { value: "ח" }, { value: "ל" }, { value: "ך" }, { value: "ף" }],
       [ { value: "ז" }, { value: "ס" }, { value: "ב" }, { value: "ה" }, { value: "נ" }, { value: "מ" }, { value: "צ" }, { value: "ת" }, { value: "ץ" }, { value: '?' }],
-      [ { value: "Iw", keyCode: -3 }, { value: "?123", ratio: 2, keyCode: -2 }, { value: ",", keyCode: 44 }, { value: "⎵", ratio: 3, keyCode: 32 }, { value: ".", keyCode: 46 }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
+      [ { value: "He", keyCode: -3 }, { value: "?123", ratio: 2, keyCode: -2 }, { value: ",", keyCode: 44 }, { value: "⎵", ratio: 3, keyCode: 32 }, { value: ".", keyCode: 46 }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ]
   },
   jcukenLayout: {
