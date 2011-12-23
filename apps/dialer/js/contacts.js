@@ -48,6 +48,10 @@ var Contacts = {
                  '  <span class="phoneNumber">' + phoneNumber + '</span>' +
                  '</div>';
     }
+    content += '<div class="contact" id="contact-create">' +
+               '  <span>Create this contact</span>' +
+               '</div>';
+
     var contactsContainer = document.getElementById('contacts-container');
     contactsContainer.innerHTML = content;
     this.filter();
@@ -72,7 +76,8 @@ var Contacts = {
     this.view.scrollTop = oldScrollTop + searchHeight;
   },
   filter: function contactsFilter(value) {
-    var contacts = document.getElementById('contacts-container').children;
+    var container = document.getElementById('contacts-container');
+    var contacts = container.children;
 
     var count = contacts.length;
     for (var i = 0; i < count; i++) {
@@ -120,6 +125,14 @@ var Contacts = {
         header.hidden = false;
       }
     }
+
+    // Adding a create button when there is room for it without scrolling
+    var viewHeight = this.view.getBoundingClientRect().height;
+    var contentHeight = container.getBoundingClientRect().height;
+    var available = viewHeight - contentHeight;
+    if (available >= 56) {
+      document.getElementById('contact-create').hidden = false;
+    }
   },
   anchor: function contactsAnchor(targetId) {
     var target = document.getElementById(targetId);
@@ -135,6 +148,21 @@ var Contacts = {
     // I'm under the impression that there will be a better way to do this
     // with the final API (ie. getting a contact from an id)
     var contactId = evt.target.id;
+
+    // creating a fresh contact with a pre-filled name
+    if (contactId == 'contact-create') {
+      var contact = {
+        name: {
+          familyName: [document.getElementById('contacts-search').value],
+          givenName: []
+        },
+        phones: [],
+        emails: []
+      };
+      ContactDetails.show(contact);
+      return;
+    }
+
     this.find(['id'], function showDetailCallback(contacts) {
       var results = contacts.filter(function finById(contact) {
         return (contact.id == contactId);
@@ -238,6 +266,11 @@ var ContactDetails = {
       this.contact = contact;
     }
     this.container.classList.add('displayed');
+
+    // directly entering the edit mode if this is a new contact
+    if (!this._contact.id) {
+      this.edit();
+    }
   },
   hide: function cd_hide() {
     if (!this.container.classList.contains('displayed')) {
@@ -266,7 +299,7 @@ var ContactDetails = {
     newElement.innerHTML = this.inputFragment(type, '', false);
     parent.insertBefore(newElement, evt.currentTarget);
 
-    newElement.children[0].focus();
+    newElement.querySelector('input').focus();
   },
   remove: function cd_remove(element) {
     element.parentNode.removeChild(element);
@@ -293,6 +326,21 @@ var ContactDetails = {
 
     this.endEditing();
   },
+  destroy: function cd_destroy() {
+    // TODO: destroy the contact
+    this.hide();
+  },
+  call: function cd_call(evt) {
+    if (this._editing) {
+      return;
+    }
+
+    var number = evt.target.dataset.number;
+    if (number) {
+      CallHandler.call(number);
+    }
+  },
+
   endEditing: function cd_endEditing() {
     if (!this._editing) {
       return false;
@@ -354,34 +402,42 @@ var ContactDetails = {
     var names = '';
     for (var key in this._contact.name) {
       names += '<div>' +
-               this.inputFragment('text', this._contact.name[key]) + '</div>';
+               '  ' + this.inputFragment('text', this._contact.name[key]) +
+               '</div>';
     }
     document.getElementById('contact-name').innerHTML = names;
 
+    var addAttr = 'data-action="add" onclick="ContactDetails.execute(event)"';
     var phones = '';
     this._contact.phones.forEach(function phoneIterator(phone) {
       phones += '<div data-number="' + phone + '">' +
-                this.inputFragment('tel', phone) + '</div>';
+                '  ' + this.inputFragment('tel', phone) +
+                '</div>';
     }, this);
-    phones += '<div data-action="add"' +
-              'onclick="ContactDetails.execute(event)">Add phone</div>';
+    phones += '<div ' + addAttr + '>' +
+              '  Add phone' +
+              '</div>';
     document.getElementById('contact-phones').innerHTML = phones;
 
     var emails = '';
     this._contact.emails.forEach(function emailIterator(email) {
       emails += '<div>' + this.inputFragment('email', email) + '</div>';
     }, this);
-    emails += '<div data-action="add"' +
-              'onclick="ContactDetails.execute(event)">Add email</div>';
+    emails += '<div ' + addAttr + '>' +
+              '  Add email' +
+              '</div>';
     document.getElementById('contact-emails').innerHTML = emails;
   },
   inputFragment: function cd_inputFragment(type, value, disabled) {
     disabled = (typeof disabled == 'undefined') ? true : disabled;
 
-    return '<input type="' + type + '" value="' + value +
-           '" data-action="autoscroll"' +
-           (disabled ? 'disabled="disabled"' : '') +
-           'onfocus="ContactDetails.execute(event)" />';
+    return '<div class="delete-button"' +
+           '  onclick="ContactDetails.remove(this.parentNode)">' +
+           '</div>' +
+           '<input type="' + type + '" value="' + value +
+           '  " data-action="autoscroll"' +
+           '  ' + (disabled ? 'disabled="disabled"' : '') +
+           '  onfocus="ContactDetails.execute(event)" />';
   },
   smoothTransition: function cd_smoothTransition(callback) {
     var detailsView = this.view;

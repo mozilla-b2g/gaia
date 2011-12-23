@@ -4,7 +4,7 @@ const IMEManager = {
   ALTERNATE_LAYOUT: -2,
   SWITCH_KEYBOARD: -3,
   // TBD: allow user to select desired keyboards in settings
-  keyboards: ['qwertyLayout', 'azertyLayout', 'dvorakLayout','zhuyingGeneralLayout'],
+  keyboards: ['qwertyLayout', 'azertyLayout', 'qwertzLayout', 'hebrewLayout', 'jcukenLayout', 'serbianCyrillicLayout', 'dvorakLayout', 'zhuyingGeneralLayout'],
   IMEngines: {},
   // backspace repeat delay and repeat rate
   kRepeatDelay: 700,
@@ -198,7 +198,7 @@ const IMEManager = {
 
       row.forEach(function buildKeyboardColumns(key) {
         var code = key.keyCode || key.value.charCodeAt(0);
-        var size = ((width - (row.length * 2)) / 10) * (key.ratio || 1) - 2;
+        var size = ((width - (row.length * 2)) / (self.layout.width || 10)) * (key.ratio || 1) - 2;
         content += '<span class="keyboard-key"' +
                           'data-keycode="' + code + '"' +
                           'style="width:' + size + 'px"' +

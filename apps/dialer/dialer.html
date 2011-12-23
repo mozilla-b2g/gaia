@@ -66,9 +66,12 @@
               </div>
               <div id="contact-name">
               </div>
-              <div id="contact-phones" class="group">
+              <div id="contact-phones" class="group" data-action="call" onclick="ContactDetails.execute(event)">
               </div>
               <div id="contact-emails" class="group">
+              </div>
+              <div id="contact-destroy-button" data-action="destroy" onclick="ContactDetails.execute(event)">
+                Destroy this contact
               </div>
             </div>
           </div>
