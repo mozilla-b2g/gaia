@@ -86,13 +86,6 @@ if (!window['Gaia'])
           
           isKeyDown = false;
           break;
-        case 'keypress':
-          // if (evt.keyCode !== evt.DOM_VK_ESCAPE)
-          //             return;
-          // 
-          //           this.isActive = !this.isActive;
-          //           evt.preventDefault();
-          break;
         case 'touchstart':
           var touches = evt.changedTouches;
           
