@@ -54,7 +54,6 @@ if (!window['Gaia'])
     },
     
     init: function() {
-      window.addEventListener('keypress', this);
       window.addEventListener('keydown', this);
       window.addEventListener('keyup', this);
       
@@ -86,6 +85,13 @@ if (!window['Gaia'])
             return;
           
           isKeyDown = false;
+          break;
+        case 'keypress':
+          // if (evt.keyCode !== evt.DOM_VK_ESCAPE)
+          //             return;
+          // 
+          //           this.isActive = !this.isActive;
+          //           evt.preventDefault();
           break;
         case 'touchstart':
           var touches = evt.changedTouches;
