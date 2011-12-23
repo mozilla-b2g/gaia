@@ -1,11 +1,21 @@
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
+'use strict';
 
 const IMEManager = {
   BASIC_LAYOUT: -1,
   ALTERNATE_LAYOUT: -2,
   SWITCH_KEYBOARD: -3,
+
   // TBD: allow user to select desired keyboards in settings
-  keyboards: ['qwertyLayout', 'azertyLayout', 'qwertzLayout', 'hebrewLayout', 'jcukenLayout', 'serbianCyrillicLayout', 'dvorakLayout', 'zhuyingGeneralLayout'],
+  keyboards: [
+    'qwertyLayout', 'azertyLayout', 'qwertzLayout', 'hebrewLayout',
+    'jcukenLayout', 'serbianCyrillicLayout', 'dvorakLayout',
+    'zhuyingGeneralLayout'
+  ],
   IMEngines: {},
+
   // backspace repeat delay and repeat rate
   kRepeatDelay: 700,
   kRepeatRate: 100,
@@ -14,6 +24,7 @@ const IMEManager = {
     delete this.ime;
     return this.ime = document.getElementById('keyboard');
   },
+
   events: ['showime', 'hideime', 'unload', 'appclose'],
   init: function km_init() {
     this.events.forEach((function attachEvents(type) {
@@ -32,36 +43,35 @@ const IMEManager = {
     this.selectionEl.id = 'keyboard-selections';
 
     var self = this;
+    IMEManager.keyboards.forEach(function loadIMEngines(keyboard) {
+      if (KeyboardAndroid[keyboard].type !== 'ime')
+        return;
 
-    IMEManager.keyboards.forEach(
-      function loadIMEngines(keyboard) {
-        if (KeyboardAndroid[keyboard].type !== 'ime')
-          return;
-        var script = document.createElement('script'),
-        imEngine = KeyboardAndroid[keyboard].imEngine;
+      var imEngine = KeyboardAndroid[keyboard].imEngine;
+      var imPath = './imes/' + imEngine;
 
-        script.addEventListener(
-          'load',
-          function IMEnginesLoaded() {
-            IMEManager.IMEngines[imEngine].init(
-              './imes/' + imEngine,
-              function sendChoices() {
-                self.showSelections.apply(self, arguments);
-              },
-              window.navigator.mozKeyboard.sendKey,
-              function sendString(str) {
-                for (var i = 0; i < str.length; i++) {
-                  window.navigator.mozKeyboard.sendKey(str.charCodeAt(i));
-                }
-              }
-            );
-          }
-        );
-        script.src = './imes/' + imEngine + '/loader.js';
-        document.body.appendChild(script);
-      }
-    );
+      var script = document.createElement('script');
+      script.addEventListener('load',function IMEnginesLoaded() {
+        var engine = IMEManager.IMEngines[imEngine];
+        function sendChoices() {
+          self.showSelections.apply(self, arguments);
+        }
+
+        function sendKey(key) {
+          window.navigator.mozKeyboard.sendKey(key);
+        }
+
+        function sendString(str) {
+          for (var i = 0; i < str.length; i++)
+            window.navigator.mozKeyboard.sendKey(str.charCodeAt(i));
+        }
+        engine.init(imPath, sendChoices, sendKey, sendString);
+      });
+      script.src = imPath + '/loader.js';
+      document.body.appendChild(script);
+    });
   },
+
   uninit: function km_uninit() {
     this.events.forEach((function attachEvents(type) {
       window.removeEventListener(type, this);
@@ -198,7 +208,8 @@ const IMEManager = {
 
       row.forEach(function buildKeyboardColumns(key) {
         var code = key.keyCode || key.value.charCodeAt(0);
-        var size = ((width - (row.length * 2)) / (self.layout.width || 10)) * (key.ratio || 1) - 2;
+        var size = ((width - (row.length * 2)) / (self.layout.width || 10));
+        size = size * (key.ratio || 1) - 2;
         content += '<span class="keyboard-key"' +
                           'data-keycode="' + code + '"' +
                           'style="width:' + size + 'px"' +
@@ -237,7 +248,8 @@ const IMEManager = {
   showIME: function km_showIME(targetWindow, type) {
     var oldHeight = targetWindow.style.height;
     targetWindow.dataset.cssHeight = oldHeight;
-    targetWindow.dataset.rectHeight = targetWindow.getBoundingClientRect().height;
+    targetWindow.dataset.rectHeight =
+      targetWindow.getBoundingClientRect().height;
 
     var ime = this.ime;
     this.updateLayout();
