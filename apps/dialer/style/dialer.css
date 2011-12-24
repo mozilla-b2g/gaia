@@ -10,6 +10,10 @@ html, body {
   background-image: -moz-linear-gradient(bottom, rgb(66,66,66) 24%, rgb(33,33,33) 44%, rgb(17,17,17) 64%);
 }
 
+html * {
+  overflow: hidden;
+}
+
 @font-face {
   font-family: Roboto;
   src: url('fonts/Roboto-Regular.ttf');
@@ -240,10 +244,9 @@ html, body {
 
 /* === Contacts View === */
 #contacts-view {
-  position:absolute;
-  height: -moz-calc(800px - 20px);
   background-color: #212121;
-  overflow: hidden;
+  overflow: scroll;
+  height: -moz-calc(100% - 64px);
 }
 
 #contacts-search-container {
@@ -269,6 +272,7 @@ html, body {
   color: #b0b0b0;
   font-weight: bold;
   pointer-events: none;
+  width: -moz-calc(100% - 2px);
 }
 
 .contact {
@@ -280,6 +284,17 @@ html, body {
   background-image: url(images/missing.png);
   background-repeat: no-repeat;
   background-size: 64px 64px;
+  width: -moz-calc(100% - 2px);
+}
+#contact-create {
+  background-color: #171717;
+  background-image: url(images/create.png);
+
+  font-size: 25px;
+}
+#contact-create span {
+  margin-left: 72px;
+  line-height: 56px;
 }
 
 .contact * {
@@ -392,7 +407,7 @@ html, body {
   display: none;
 }
 #contact-details-view input {
-  width: 100%;
+  width: -moz-calc(100% - 88px);
   color: white;
   background: none;
   border: none;
@@ -401,6 +416,10 @@ html, body {
 
   font-size: 0.8em;
   text-align: center;
+}
+#contact-details-view input:invalid {
+  border: 0;
+  color: #D86C72;
 }
 #contact-photo {
   float: left;
@@ -431,12 +450,16 @@ html, body {
   text-align: center;
 }
 #contact-details-view > .group > div {
+  position: relative;
   padding: 12px;
 
   border-top: 2px #EBEBEB solid;
 
   text-overflow: ellipsis;
   overflow: hidden;
+}
+#contact-details-view:not(.editing) > .group > div * {
+  pointer-events: none;
 }
 #contact-details-view > .group > div[data-action='add'] {
   display: none;
@@ -446,6 +469,39 @@ html, body {
 }
 #contact-details-view > .group > div:hover:active {
   background-color: rgba(49, 147, 255, 0.7);
+}
+#contact-details-view .delete-button {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 44px;
+  height: 56px;
+  margin: 0;
+
+  background-image: url(images/delete.png);
+  background-repeat: no-repeat;
+  background-size: 24px 24px;
+  background-position: center center;
+
+  display: none;
+}
+#contact-destroy-button {
+  width: -moz-calc(90% - 2px);
+  margin: 50px auto 10px auto;
+  clear: both;
+
+  box-shadow: 0 1px 3px black;
+  background: -moz-linear-gradient(top, #FF4844, #FF1813 50%, #C70E0C 51%);
+
+  border-radius: 10px;
+  border: 1px solid #151515;
+  border-top: 1px solid #c3d6df;
+
+  line-height: 44px;
+  font-size: 2em;
+  text-align: center;
+
+  display: none;
 }
 /* === Contact Edit transitions === */
 #contact-details-view.hidden {
@@ -464,6 +520,15 @@ html, body {
 }
 #contact-details-view.editing #contact-name > div:first-child {
   border-top: 0;
+}
+#contact-details-view.editing #contact-destroy-button {
+  display: block;
+}
+#contact-details-view.editing .delete-button {
+  display: block;
+}
+#contact-details-view.editing #contact-name .delete-button {
+  display: none;
 }
 
 /* === Oncall transitions === */
