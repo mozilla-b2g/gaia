@@ -141,6 +141,7 @@ var JSZhuYing = function JSZhuYing(settings) {
       callback();
     };
 
+    var syllables;
     for (syllables in jsonData) {
       store.add(
         {
@@ -161,7 +162,7 @@ var JSZhuYing = function JSZhuYing(settings) {
     var xhr = new XMLHttpRequest();
     xhr.open(
       'GET',
-      settings.data || './data.json.js',
+      settings.data || './data.json',
       true
     );
     xhr.onreadystatechange = function(ev) {
@@ -172,7 +173,7 @@ var JSZhuYing = function JSZhuYing(settings) {
       if (!jsonData) {
         debug('JSZhuYing: JSON data failed to load.');
       }
-      xhr.responseText = null;
+      xhr = null;
 
       callback();
     };

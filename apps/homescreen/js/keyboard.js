@@ -70,7 +70,7 @@ const IMEManager = {
       var self = this;
       var glue = {
         dbOptions: {
-          path: sourceDir + imEngine + '/data.json'
+          data: sourceDir + imEngine + '/data.json'
         },
         sendChoices: self.showCompositions,
         sendKey: window.navigator.mozKeyboard.sendKey,
