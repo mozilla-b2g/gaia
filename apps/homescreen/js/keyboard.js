@@ -129,6 +129,7 @@ const IMEManager = {
           window.navigator.mozKeyboard.sendKey(keyCode);
         }).bind(this);
 
+        sendDelete();
         this._timeout = setTimeout((function deleteTimeout() {
           sendDelete();
 
@@ -157,6 +158,9 @@ const IMEManager = {
 
         var keyCode = parseInt(target.getAttribute('data-keycode'));
         if (!keyCode)
+          return;
+
+        if (keyCode == KeyEvent.DOM_VK_BACK_SPACE)
           return;
 
         switch (keyCode) {
