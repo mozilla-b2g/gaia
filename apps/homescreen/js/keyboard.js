@@ -27,7 +27,7 @@ const IMEManager = {
     return this.currentKeyboard.indexOf('UpperCaps') > 0;
   },
 
-  
+
   // backspace repeat delay and repeat rate
   kRepeatTimeout: 700,
   kRepeatRate: 100,

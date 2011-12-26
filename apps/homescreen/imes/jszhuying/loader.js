@@ -41,6 +41,7 @@ var JSZhuYing = function JSZhuYing(settings) {
 
   var version = '0.1';
   var dbName = 'JSZhuYing';
+  var dbVersion = 4;
   var jsonData;
   var cache = {};
   var cacheTimer;
@@ -84,7 +85,8 @@ var JSZhuYing = function JSZhuYing(settings) {
           debug('JSZhuYing: IndexedDB is supported but empty; Downloading JSON ...');
           getTermsJSON(
             function() {
-              if (!jsonData) return;
+              if (!jsonData)
+                return;
               settings.ready.call(self);
               settings.progress.call(self, 'JSON downloaded, IME is ready to use while inserting data into db ...');
               debug('JSZhuYing: JSON downloaded, IME is ready to use while inserting data into db ...');
@@ -106,7 +108,7 @@ var JSZhuYing = function JSZhuYing(settings) {
       callback();
       return;
     }
-    var req = mozIndexedDB.open(dbName, 4, 'JSZhuYing db');
+    var req = mozIndexedDB.open(dbName, dbVersion, 'JSZhuYing db');
     req.onerror = function() {
       debug('JSZhuYing: Problem while opening indexedDB.');
       callback();
@@ -181,7 +183,7 @@ var JSZhuYing = function JSZhuYing(settings) {
   };
 
   /*
-  * Math function that return all possibile compositions of a given natural number
+  * Math function that return all possible compositions of a given natural number
   * callback will be called 2^(n-1) times.
   *
   * ref: http://en.wikipedia.org/wiki/Composition_(number_theory)#Examples

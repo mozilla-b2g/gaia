@@ -285,7 +285,9 @@ iframe.appWindow.active {
   border-right: 1px solid #909090;
   font-size: 32px;
   line-height: 64px;
-  display: block; float: left; height: 64px;
+  display: block;
+  float: left;
+  height: 64px;
   padding: 0 5px;
   min-width: 1em;
   text-align: center;
