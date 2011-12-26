@@ -136,14 +136,14 @@ var KeyHandler = {
       div.style.fontSize = fontSize + 'px';
       div.innerHTML = text;
 
-      var windowWidth = document.body.clientWidth;
+      var viewWidth = self.phoneNumberView.getBoundingClientRect().width;
       var rect = div.getBoundingClientRect();
-      if (rect.width > windowWidth) {
+      if (rect.width > viewWidth) {
         fontSize = Math.max(fontSize - kFontStep, kMinFontSize);
       } else if (fontSize < kDefaultFontSize) {
         div.style.fontSize = (fontSize + kFontStep) + 'px';
         rect = div.getBoundingClientRect();
-        if (rect.width <= windowWidth)
+        if (rect.width <= viewWidth)
           fontSize += kFontStep;
       }
 
