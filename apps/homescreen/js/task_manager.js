@@ -166,14 +166,14 @@ if (!window['Gaia'])
           if (currentScrollLeft !== targetScrollLeft) {
             animationLoop(function(deltaTime) {
               if (willAnimateToTheLeft) {
-                listElement.scrollLeft = currentScrollLeft += 10 * deltaTime / 16;
+                listElement.scrollLeft = currentScrollLeft += 20 * deltaTime / 16;
                 
                 if (currentScrollLeft >= targetScrollLeft) {
                   listElement.scrollLeft = currentScrollLeft = targetScrollLeft;
                   return false;
                 }
               } else {
-                listElement.scrollLeft = currentScrollLeft -= 10 * deltaTime / 16;
+                listElement.scrollLeft = currentScrollLeft -= 20 * deltaTime / 16;
                 
                 if (currentScrollLeft <= targetScrollLeft) {
                   listElement.scrollLeft = currentScrollLeft = targetScrollLeft;
@@ -191,11 +191,24 @@ if (!window['Gaia'])
       }
     },
     
-    add: function(id) {
+    add: function(app, id) {
       var listElement = this.listElement;
       var item = document.createElement('li');
       item.id = 'task_' + id;
       item.setAttribute('style', 'background: -moz-element(#app_' + id + ') no-repeat');
+      
+      var close = document.createElement('a');
+      close.href = '#';
+      close.addEventListener('click', (function(evt) {
+        evt.stopPropagation();
+        evt.preventDefault();
+        this.remove(app, id);
+      }).bind(this), true);
+      
+      var title = document.createElement('h1');
+      title.innerHTML = app.name;
+      item.appendChild(close);
+      item.appendChild(title);
       
       if (listElement.hasChildNodes())
         listElement.insertBefore(item, listElement.firstChild);
@@ -205,10 +218,11 @@ if (!window['Gaia'])
       return item;
     },
     
-    remove: function(id) {
+    remove: function(app, id) {
       var listElement = this.listElement;
       var item = document.getElementById('task_' + id);
       listElement.removeChild(item);
+      Gaia.AppManager.kill(app.url);
     },
     
     sendToFront: function(id) {

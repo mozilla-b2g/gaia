@@ -53,16 +53,17 @@ if (!window['Gaia'])
       element.hide = function() {
         element.classList.remove('active');
       };
-      element.createWindow = (function(url) {
+      element.createWindow = (function(app) {
         var documentElement = document.documentElement;
         var iframe = document.createElement('iframe');
         var id = this._appIdCounter++;
+        var url = app.url;
         iframe.className = 'appWindow';
         iframe.src = url;
         iframe.id = 'app_' + id;
         iframe.style.width = documentElement.clientWidth + 'px';
         iframe.style.height = documentElement.clientHeight - 24 + 'px';
-        iframe.taskElement = Gaia.TaskManager.add(id);
+        iframe.taskElement = Gaia.TaskManager.add(app, id);
         element.appendChild(iframe);
         return iframe;
       }).bind(this);
@@ -189,7 +190,7 @@ if (!window['Gaia'])
         Gaia.TaskManager.sendToFront(instance.id);
       } else {
         var app = this.getInstalledAppForURL(url);
-        var newWindow = windowsContainer.createWindow(url);
+        var newWindow = windowsContainer.createWindow(app);
         var foregroundWindow = this.foregroundWindow = newWindow;
         
         foregroundWindow.contentWindow.addEventListener('load', function appload(evt) {
