@@ -79,7 +79,6 @@ html * {
 
 #tabs li {
   -moz-box-flex: 1;
-  box-flex: 1;
 
 	border-right: 1px solid rgb(29,29,29);
 	border-left: 1px solid rgb(123,123,123);
@@ -704,21 +703,17 @@ html * {
 }
 
 #views.modal #contacts-view {
-  height: -moz-calc(100% - 3em - 54px);
+  height: -moz-calc(100% - 3em - 116px);
 }
 
 #views.modal #contacts-shortcuts-background {
   top: 135px;
+  height: -moz-calc(100% - 150px - 3em - 116px);
 }
 #views.modal #contacts-shortcuts {
   top: 140px;
-  height: -moz-calc(100% - 160px - 3em - 64px);
+  height: -moz-calc(100% - 160px - 3em - 116px);
 }
-
-#views.modal #contacts-shortcuts-background {
-  height: -moz-calc(100% - 150px - 3em - 64px);
-}
-
 
 /* === Call Screen === */
 
