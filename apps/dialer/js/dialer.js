@@ -31,10 +31,10 @@ function visibilityChanged(url) {
 }
 
 function choiceChanged(target) {
-  if (!target.classList.contains('choice'))
+  if (!target.dataset.choice)
     return;
 
-  var view = document.getElementById(target.id + '-view');
+  var view = document.getElementById(target.dataset.choice + '-view');
   if (!view)
     return;
 
@@ -42,14 +42,15 @@ function choiceChanged(target) {
   Contacts.hideSearch();
   ContactDetails.hide();
 
-  var choices = document.getElementById('choices');
+  var choices = document.getElementById('tabs').querySelector('ul');
   var choicesCount = choices.childElementCount;
   for (var i = 0; i < choicesCount; i++) {
     var choice = choices.children[i];
     choice.removeAttribute('data-active');
 
-    var choiceView = document.getElementById(choice.id + '-view');
-    choiceView.setAttribute('hidden', 'true');
+    var choiceView = document.getElementById(choice.dataset.choice + '-view');
+    if (choiceView)
+      choiceView.setAttribute('hidden', 'true');
   }
 
   target.setAttribute('data-active', 'true');
@@ -59,18 +60,18 @@ function choiceChanged(target) {
 var KeyHandler = {
   get phoneNumber() {
     delete this.phoneNumber;
-    return this.phoneNumber = document.getElementById('phoneNumber');
+    return this.phoneNumber = document.getElementById('phone-number');
   },
 
   get fakePhoneNumberView() {
     delete this.fakePhoneNumberView;
     return this.fakePhoneNumberView =
-      document.getElementById('fakePhoneNumber-view');
+      document.getElementById('fake-phone-number-view');
   },
 
   get phoneNumberView() {
     delete this.phoneNumberView;
-    return this.phoneNumberView = document.getElementById('phoneNumber-view');
+    return this.phoneNumberView = document.getElementById('phone-number-view');
   },
 
   init: function kh_init() {
@@ -135,14 +136,14 @@ var KeyHandler = {
       div.style.fontSize = fontSize + 'px';
       div.innerHTML = text;
 
-      var windowWidth = document.body.clientWidth;
+      var viewWidth = self.phoneNumberView.getBoundingClientRect().width;
       var rect = div.getBoundingClientRect();
-      if (rect.width > windowWidth) {
+      if (rect.width > viewWidth) {
         fontSize = Math.max(fontSize - kFontStep, kMinFontSize);
       } else if (fontSize < kDefaultFontSize) {
         div.style.fontSize = (fontSize + kFontStep) + 'px';
         rect = div.getBoundingClientRect();
-        if (rect.width <= windowWidth)
+        if (rect.width <= viewWidth)
           fontSize += kFontStep;
       }
 
@@ -294,7 +295,7 @@ var CallHandler = {
   },
 
   toggleCallScreen: function ch_toggleScreen() {
-    document.getElementById('choices').classList.toggle('oncall');
+    document.getElementById('tabs-container').classList.toggle('oncall');
     document.getElementById('views').classList.toggle('oncall');
     document.getElementById('call-screen').classList.toggle('oncall');
   },
