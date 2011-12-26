@@ -42,13 +42,17 @@ if (!window['Gaia'])
       return this._isActive;
     },
     
-    set isActive(value) {
+    setActive: function(value) {
+      if (this._isActive && value)
+        return;
+      
       this._isActive = value;
       
       var runningApps = Gaia.AppManager.runningApps;
+      var listItemWidth = window.innerWidth * 0.6;
       
       if (value) {
-        this.listElement.scrollLeft = 0;
+        this.listElement.scrollLeft = listItemWidth;
         this.element.classList.add('active');
         for (var i = 0; i < runningApps.length; i++) {
           var classList = runningApps[i].window.classList;
@@ -101,13 +105,13 @@ if (!window['Gaia'])
           isKeyDown = true;
           
           if (this.isActive)
-            this.isActive = false;
+            this.setActive(false);
           else {
             checkKeyPressTimeout = setTimeout(function checkKeyPress(self) {
               checkKeyPressTimeout = null;
               
               if (isKeyDown)
-                self.isActive = true;
+                self.setActive(true);
             }, 1000, this);
           }
           break;
@@ -146,13 +150,20 @@ if (!window['Gaia'])
           break;
         case 'touchend':
           var listElement = this.listElement;
+          var runningAppCount = Gaia.AppManager.runningApps.length;
           var listItemWidth = window.innerWidth * 0.6;
           var listIndex = Math.round(this.listElement.scrollLeft / listItemWidth);
+          
+          if (listIndex === 0)
+            listIndex = 1;
+          else if (listIndex > runningAppCount)
+            listIndex = runningAppCount;
+          
           var currentScrollLeft = listElement.scrollLeft;
           var targetScrollLeft = listIndex * listItemWidth;
           var willAnimateToTheLeft = (currentScrollLeft < targetScrollLeft);
           
-         if (currentScrollLeft !== targetScrollLeft) {
+          if (currentScrollLeft !== targetScrollLeft) {
             animationLoop(function(deltaTime) {
               if (willAnimateToTheLeft) {
                 listElement.scrollLeft = currentScrollLeft += 10 * deltaTime / 16;

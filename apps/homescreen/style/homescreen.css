@@ -258,12 +258,16 @@ iframe.appWindow.noTransition {
   display: inline-block;
   width: 100%;
   height: 100%;
-  margin-right: -40%;
+  margin: 0 -20%;
   -moz-transform: scale(0.5);
 }
 
+#taskManager li:first-child {
+  margin-left: 60%;
+}
+
 #taskManager li:last-child {
-  margin-right: 0;
+  margin-right: 60%;
 }
 
 #keyboard {

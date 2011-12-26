@@ -197,8 +197,8 @@ if (!window['Gaia'])
           this.postMessage(state, '*');
         }, true);
         
-        foregroundWindow.taskElement.addEventListener('click', (function(evt) {
-          Gaia.TaskManager.isActive = false;
+        foregroundWindow.taskElement.addEventListener('click', (function taskClickHandler(evt) {
+          Gaia.TaskManager.setActive(false);
           window.setTimeout(function launchApp(self) {
             self.launch(url);
           }, 50, this);
