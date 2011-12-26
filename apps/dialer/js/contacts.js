@@ -130,11 +130,12 @@ var Contacts = {
     // Adding a create button when there is room for it without scrolling
     var createButton = document.getElementById('contact-create');
     createButton.hidden = false;
+    var createHeight = createButton.getBoundingClientRect().height;
     var viewHeight = this.view.getBoundingClientRect().height;
     var contentHeight = container.getBoundingClientRect().height;
     var available = viewHeight - contentHeight;
     createButton.hidden = !((viewHeight > 0) &&
-                           (available >= createButton.getBoundingClientRect().height));
+                           (available >= createHeight));
   },
   anchor: function contactsAnchor(targetId) {
     var target = document.getElementById(targetId);
