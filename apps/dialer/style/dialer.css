@@ -162,7 +162,7 @@ html * {
 	background:rgba(0,0,0,0.15);
 }
 
-#phone-number-view-container::before, #phoneNumber-view-container::after {
+#phone-number-view-container::before, #phone-number-view-container::after {
 	content: "";
 	display: block;
 	position: absolute;
