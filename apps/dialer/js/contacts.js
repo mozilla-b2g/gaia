@@ -86,7 +86,7 @@ var Contacts = {
       if (contact.className == 'contact-header')
         continue;
 
-      var name = contact.firstElementChild.textContent;
+      var name = contact.querySelector('span').textContent;
       var rule = new RegExp(value, 'gi');
       contact.hidden = (name.search(rule) == -1);
     }
