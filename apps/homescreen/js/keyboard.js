@@ -80,7 +80,9 @@ const IMEManager = {
         break;
       case 'click':
         var keyCode = parseInt(evt.target.getAttribute('data-keycode'));
-        if (!keyCode && keyCode === KeyEvent.DOM_VK_BACK_SPACE)
+        if (!keyCode)
+          return;
+        if (keyCode === KeyEvent.DOM_VK_BACK_SPACE)
           return;
 
         switch (keyCode) {
