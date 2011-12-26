@@ -95,22 +95,22 @@ html * {
   border-right-color: transparent;
 }
 
-#tabs li[data-choice="keyboard"] {
+#keyboard {
   background-image: url(images/numpad-icon.png);
 }
-#tabs li[data-choice="keyboard"][data-active] {
+#keyboard[data-active] {
   background: url(images/numpad-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(56,56,56) 0, rgb(114,115,114) 100%);
 }
-#tabs li[data-choice="contacts"] {
+#contacts {
   background-image: url(images/contacts-icon.png);
 }
-#tabs li[data-choice="contacts"][data-active] {
+#contacts[data-active] {
   background: url(images/contacts-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(56,56,56) 0, rgb(114,115,114) 100%);
 }
-#tabs li[data-choice="favorites"] {
+#favorites {
   background-image: url(images/favorite-icon.png);
 }
-#tabs li[data-choice="favorites"][data-active] {
+#favorites[data-active] {
   background: url(images/favorite-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(56,56,56) 0, rgb(114,115,114) 100%);
 }
 
@@ -308,6 +308,7 @@ html * {
 	position: relative;
 	display: block;
 	height: 105px;
+  width: -moz-calc(100% - 2px);
 
 	border-radius: 3px;
 	background: url(images/call-icon.png) no-repeat 50% 50%,-moz-linear-gradient(top, rgb(177,214,0) 1px, rgb(143,195,0) 2px, rgb(82,107,23) 100%);
@@ -318,10 +319,18 @@ html * {
 
 
 /* === Contacts View === */
-#contacts-view {
-  background-color: #212121;
+#contacts-view.view {
+  height: -moz-calc(100% - 20px);
+  width: -moz-calc(100% - 30px);
+  margin: 10px auto auto auto;
+
+  border-radius: 3px;
+  border:5px rgba(0, 0, 0, 0.3) solid;
+}
+#contacts-view-scrollable {
+  width: 100%;
+  height: 100%;
   overflow: scroll;
-  height: -moz-calc(100% - 64px);
 }
 
 #contacts-search-container {
@@ -353,17 +362,24 @@ html * {
 .contact {
   padding: 4px;
   height: 56px;
-  line-height: 28px;
-  border: 1px solid #404040;
-  font-size: 20px;
-  background-image: url(images/missing.png);
-  background-repeat: no-repeat;
-  background-size: 64px 64px;
   width: -moz-calc(100% - 2px);
+
+	border: 1px solid transparent;
+	border-top-color: rgb(123,123,123);
+	border-bottom-color: rgb(0,0,0);
+
+  line-height: 28px;
+  font-size: 20px;
+
+  background-color: #444444;
+}
+.contact:nth-of-type(even) {
+  background-color: #393939;
 }
 #contact-create {
   background-color: #171717;
   background-image: url(images/create.png);
+  background-repeat: no-repeat;
 
   font-size: 25px;
 }
@@ -380,25 +396,32 @@ html * {
   background-size: 100% 100%;
 }
 
-.displayName {
+.contact > img {
+  float: left;
+  width: 55px;
+  height: 55px;
+  margin-right: 5px;
+
+  border: 0;
+}
+
+.display-name {
   display: block;
-  margin-left: 72px;
   color: #c0c0c0;
   pointer-events: none;
 }
 
 .phone-number {
   display: block;
-  margin-left: 72px;
   color: #707070;
   pointer-events: none;
 }
 
 #contacts-shortcuts-background {
   position: fixed;
-  right: 13px;
-  top: 135px;
-  height: -moz-calc(100% - 150px);
+  right: 18px;
+  top: 71px;
+  height: -moz-calc(100% - 202px);
   width : 30px;
 
   border-radius: 17px;
@@ -409,9 +432,9 @@ html * {
 
 #contacts-shortcuts {
   position: fixed;
-  right: 10px;
-  top: 140px;
-  height: -moz-calc(100% - 160px);
+  right: 15px;
+  top: 76px;
+  height: -moz-calc(100% - 210px);
   width: 44px;
   padding: 5px 15px 5px 5px;
 
@@ -440,10 +463,10 @@ html * {
 /* === Contact detail View === */
 #contact-details-container {
   position: fixed;
-  top: 64px;
+  top: 0;
   left: -moz-calc(100% + 5px);
   width: 100%;
-  height: -moz-calc(100% - 64px);
+  height: -moz-calc(100% - 116px);
   overflow: hidden;
 
   box-shadow: -2px 0 3px 0 rgb(66,66,66);
@@ -652,11 +675,11 @@ html * {
 
 #views.modal {
   position: absolute;
-  top: 64px;
+  top: 116px;
   opacity: 1;
 
   z-index: 10;
-  background-image: -moz-linear-gradient(bottom, rgb(66,66,66) 24%, rgb(33,33,33) 44%, rgb(17,17,17) 64%);
+  background: url(images/home-texture.png) repeat scroll 0 0 #292B2F;
 }
 #views.modal.hidden {
   top: 100%;
@@ -684,7 +707,11 @@ html * {
   height: -moz-calc(100% - 3em - 54px);
 }
 
+#views.modal #contacts-shortcuts-background {
+  top: 135px;
+}
 #views.modal #contacts-shortcuts {
+  top: 140px;
   height: -moz-calc(100% - 160px - 3em - 64px);
 }
 

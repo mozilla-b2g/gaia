@@ -44,8 +44,9 @@ var Contacts = {
       }
 
       content += '<div class="contact" id="' + contact.id + '">' +
-                 '  <span class="displayName">' + displayName + '</span>' +
-                 '  <span class="phoneNumber">' + phoneNumber + '</span>' +
+                 '  <img src="style/images/missing.png" alt="missing" />' +
+                 '  <span class="display-name">' + displayName + '</span>' +
+                 '  <span class="phone-number">' + phoneNumber + '</span>' +
                  '</div>';
     }
     content += '<div class="contact" id="contact-create">' +
@@ -127,12 +128,13 @@ var Contacts = {
     }
 
     // Adding a create button when there is room for it without scrolling
+    var createButton = document.getElementById('contact-create');
+    createButton.hidden = false;
     var viewHeight = this.view.getBoundingClientRect().height;
     var contentHeight = container.getBoundingClientRect().height;
     var available = viewHeight - contentHeight;
-    if (available >= 56) {
-      document.getElementById('contact-create').hidden = false;
-    }
+    createButton.hidden = !((viewHeight > 0) &&
+                           (available >= createButton.getBoundingClientRect().height));
   },
   anchor: function contactsAnchor(targetId) {
     var target = document.getElementById(targetId);
@@ -140,7 +142,7 @@ var Contacts = {
       return;
 
     var top = target.getBoundingClientRect().top;
-    var scrollable = document.getElementById('contacts-view');
+    var scrollable = document.getElementById('contacts-view-scrollable');
     scrollableTop = scrollable.getBoundingClientRect().top;
     scrollable.scrollTop = (top - scrollableTop) + scrollable.scrollTop;
   },
