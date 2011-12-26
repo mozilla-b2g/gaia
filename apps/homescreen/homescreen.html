@@ -7,15 +7,12 @@
 
     <link rel="stylesheet" type="text/css" href="style/homescreen.css">
 	  <script type="text/javascript" src="js/appManager.js"></script>
-    <script type="text/javascript" src="js/android.js"></script> 
-    <script type="text/javascript" src="js/keyboard.js"></script> 
+    <script type="text/javascript" src="js/keyboardLayout.js"></script>
+    <script type="text/javascript" src="js/keyboard.js"></script>
     <script type="text/javascript" src="js/scenegraph.js"></script>
     <script type="text/javascript" src="js/homescreen.js"></script> 
   </head>
   <body onload="OnLoad();">
-    <div id="taskManager">
-      <canvas id="taskTrayCanvas"></canvas>
-    </div>
     <div id="screen">
       <div id="keyboard" data-hidden="true" onmousedown="return false;"></div>
       <div id="statusbar">
@@ -29,7 +26,7 @@
       <div id="home">
         <canvas id="homeCanvas"></canvas>
       </div>
-      <div id="windows" hidden="true">
+      <div id="windows">
         <!-- application windows are added here -->
       </div>
       <div id="notificationsScreen"></div>
@@ -50,6 +47,11 @@
 	        Email: <div id="email">0</div>
 	      </div>
       </div>
+    </div>
+    <div id="taskManager">
+      <ul>
+        
+      </ul>
     </div>
   </body>
 </html>

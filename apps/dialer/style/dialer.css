@@ -496,6 +496,11 @@ html * {
   text-align: center;
 }
 
+#contact-details-view input:invalid {
+  border: 0;
+  color: #D86C72;
+}
+
 #contact-photo {
   float: left;
   padding: 20px 5%;
