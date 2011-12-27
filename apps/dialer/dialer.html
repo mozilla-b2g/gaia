@@ -86,11 +86,11 @@
           </div>
         </div>
 
-        <div id="keyboard-container" onmousedown="KeyHandler.keyDown(event);" onmouseup="KeyHandler.keyUp(event);">
-          <div id="mainKeyset-container">
+        <div id="keyboard-container">
+          <div id="mainKeyset-container" onmousedown="KeyHandler.keyDown(event);" onmouseup="KeyHandler.keyUp(event);">
             <div id="mainKeyset"></div>
           </div>
-          <div id="additionalKeyset">
+          <div id="additionalKeyset" onclick="KeyHandler.keyDown(event)">
             <div class="keyboard-key" data-value="call">
               <span></span>
             </div>
