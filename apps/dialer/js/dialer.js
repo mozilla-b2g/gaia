@@ -302,11 +302,11 @@ var CallHandler = {
     // TODO: make the actual mute call on the telephony API
   },
   keypad: function ch_keypad() {
-    choiceChanged(document.getElementById('keyboard'));
+    choiceChanged(document.getElementById('keyboard-label'));
     document.getElementById('views').classList.add('modal');
   },
   contacts: function ch_contacts() {
-    choiceChanged(document.getElementById('contacts'));
+    choiceChanged(document.getElementById('contacts-label'));
     document.getElementById('views').classList.add('modal');
   },
   closeModal: function ch_closeModal() {
