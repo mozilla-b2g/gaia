@@ -316,6 +316,9 @@ html * {
 	border-radius: 3px;
 	background: url(images/call-icon.png) no-repeat 50% 50%,-moz-linear-gradient(top, rgb(177,214,0) 1px, rgb(143,195,0) 2px, rgb(82,107,23) 100%);
 }
+.keyboard-key[data-value="call"]:active {
+  background: none;
+}
 .keyboard-key[data-value="call"]:active span {
 	background: url(images/call-icon.png) no-repeat 50% 50%,-moz-linear-gradient(top, rgb(82,107,23) 0, rgb(143,195,0) 100%);
 }

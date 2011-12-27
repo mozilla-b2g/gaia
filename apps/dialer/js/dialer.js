@@ -1,3 +1,4 @@
+'use strict';
 
 var kFontStep = 8;
 var kMinFontSize = 24;
@@ -37,10 +38,6 @@ function choiceChanged(target) {
   var view = document.getElementById(target.dataset.choice + '-view');
   if (!view)
     return;
-
-  // XXX this should not live here
-  Contacts.hideSearch();
-  ContactDetails.hide();
 
   var choices = document.getElementById('tabs').querySelector('ul');
   var choicesCount = choices.childElementCount;

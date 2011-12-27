@@ -1,17 +1,41 @@
+// 'use strict';
+// XXX: Contacts.anchor doesn't work in strict mode
 
 var Contacts = {
+  _loaded: false,
   get view() {
     delete this.view;
     return this.view = document.getElementById('contacts-view');
   },
-  init: function contactsInit() {
-    // Could be much easier to have am argument named 'parameters' pass as
-    // a second argument that I can omit
-    this.find(['id', 'displayName'], this.show.bind(this));
-
+  setup: function contactsSetup() {
     this.view.addEventListener('touchstart', function showSearch(evt) {
       Contacts.showSearch();
     });
+
+    this.view.addEventListener('DOMAttrModified', (function contactAttrModified(evt) {
+      if (evt.attrName != 'hidden') {
+        return;
+      }
+
+      if (evt.prevValue == "true" && evt.newValue == "") {
+        // loading contacts the first time the view appears
+        this.load();
+
+        this.hideSearch();
+        ContactDetails.hide();
+      }
+    }).bind(this));
+  },
+  load: function contactsLoad() {
+    if (this._loaded) {
+      return;
+    } else {
+      this._loaded = true;
+    }
+
+    // Could be much easier to have an argument named 'parameters' pass as
+    // a second argument that I can omit
+    this.find(['id', 'displayName'], this.show.bind(this));
   },
   find: function contactsFind(fields, callback) {
     // Ideally I would like to choose the ordering
@@ -129,13 +153,15 @@ var Contacts = {
 
     // Adding a create button when there is room for it without scrolling
     var createButton = document.getElementById('contact-create');
-    createButton.hidden = false;
-    var createHeight = createButton.getBoundingClientRect().height;
-    var viewHeight = this.view.getBoundingClientRect().height;
-    var contentHeight = container.getBoundingClientRect().height;
-    var available = viewHeight - contentHeight;
-    createButton.hidden = !((viewHeight > 0) &&
-                           (available >= createHeight));
+    if (createButton) {
+      createButton.hidden = false;
+      var createHeight = createButton.getBoundingClientRect().height;
+      var viewHeight = this.view.getBoundingClientRect().height;
+      var contentHeight = container.getBoundingClientRect().height;
+      var available = viewHeight - contentHeight;
+      createButton.hidden = !((viewHeight > 0) &&
+                             (available >= createHeight));
+    }
   },
   anchor: function contactsAnchor(targetId) {
     var target = document.getElementById(targetId);
@@ -456,13 +482,9 @@ var ContactDetails = {
 
 };
 
-window.addEventListener('load', function contactsLoad(evt) {
-  window.removeEventListener('load', contactsLoad, true);
-  Contacts.init();
-}, true);
-
 window.addEventListener('load', function contactSetup(evt) {
   window.removeEventListener('load', contactSetup);
+  Contacts.setup();
   ShortcutsHandler.setup();
   ContactDetails.setup();
 });
