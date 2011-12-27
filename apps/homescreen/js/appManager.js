@@ -139,7 +139,7 @@ if (!window['Gaia'])
           evt.preventDefault();
           break;
         case 'message':
-          if (event.data != 'appclose')
+          if (evt.data != 'appclose')
             return;
           this.close();
           break;
