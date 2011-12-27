@@ -81,6 +81,8 @@ if (!window['Gaia'])
     handleEvent: function(evt) {
       switch (evt.type) {
         case 'message':
+          if (evt.data != 'appclose')
+            return;
           this.close();
           break;
         case 'home':
