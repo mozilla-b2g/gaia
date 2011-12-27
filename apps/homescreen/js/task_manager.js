@@ -15,7 +15,7 @@ if (!window['Gaia'])
   
   var animationLoop = function(renderCallback) {
     var isRunning = true;
-    var lastFrame = +new Date();
+    var lastFrame = Date.now();
     var requestAnimationFrame = function(animFrameCallback) {
       if (window.mozRequestAnimationFrame)
         window.mozRequestAnimationFrame(animFrameCallback);
@@ -152,7 +152,7 @@ if (!window['Gaia'])
           var listElement = this.listElement;
           var runningAppCount = Gaia.AppManager.runningApps.length;
           var listItemWidth = window.innerWidth * 0.6;
-          var listIndex = Math.round(this.listElement.scrollLeft / listItemWidth);
+          var listIndex = Math.round(listElement.scrollLeft / listItemWidth);
           
           if (listIndex === 0)
             listIndex = 1;
