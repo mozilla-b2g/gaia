@@ -18,7 +18,7 @@ const Keyboards = {
       [ { value: "En", keyCode: -3 }, { value: "?123", ratio: 2, keyCode: -2 }, { value: ",", keyCode: 44 }, { value: "⎵", ratio: 3, keyCode: 32 }, { value: ".", keyCode: 46 }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ],
   },
-  qwertyLayoutUpperCaps: {
+  qwertyLayoutUpperCase: {
     type: 'keyboard',
     keys: [
       [ { value: "Q" }, { value: "W" }, { value: "E" } , { value: "R" }, { value: "T" } , { value: "Y" }, { value: "U" } , { value: "I" }, { value: "O" }, { value: "P" } ],
@@ -36,7 +36,7 @@ const Keyboards = {
       [ { value: "Fr", keyCode: -3 }, { value: "?123", ratio: 2, keyCode: -2 }, { value: ",", keyCode: 44 }, { value: "⎵", ratio: 3, keyCode: 32 }, { value: ".", keyCode: 46 }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ]
   },
-  azertyLayoutUpperCaps: {
+  azertyLayoutUpperCase: {
     type: 'keyboard',
     keys: [
       [ { value: "A" }, { value: "Z" }, { value: "E" } , { value: "R" }, { value: "T" } , { value: "Y" }, { value: "U" } , { value: "I" }, { value: "O" }, { value: "P" } ],
@@ -54,7 +54,7 @@ const Keyboards = {
       [ { value: "De", keyCode: -3 }, { value: "?123", ratio: 2, keyCode: -2 }, { value: ",", keyCode: 44 }, { value: "⎵", ratio: 3, keyCode: 32 }, { value: ".", keyCode: 46 }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ]
   },
-  qwertzLayoutUpperCaps: {
+  qwertzLayoutUpperCase: {
     type: 'keyboard',
     keys: [
       [ { value: "Q" }, { value: "W" }, { value: "E" } , { value: "R" }, { value: "T" } , { value: "z" }, { value: "U" } , { value: "I" }, { value: "O" }, { value: "P" } ],
@@ -82,7 +82,7 @@ const Keyboards = {
         [ { value: "Ru", keyCode: -3 }, { value: "?123", ratio: 2, keyCode: -2 }, { value: ",", keyCode: 44 }, { value: "⎵", ratio: 4, keyCode: 32 }, { value: ".", keyCode: 46 }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ]
   },
-  jcukenLayoutUpperCaps: {
+  jcukenLayoutUpperCase: {
     type: 'keyboard',
     width: 11,
     keys: [
@@ -102,7 +102,7 @@ const Keyboards = {
         [ { value: "Sr", keyCode: -3 }, { value: "?123", ratio: 2, keyCode: -2 }, { value: ",", keyCode: 44 }, { value: "⎵", ratio: 4, keyCode: 32 }, { value: ".", keyCode: 46 }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ]
   },
-  serbianCyrillicLayoutUpperCaps: {
+  serbianCyrillicLayoutUpperCase: {
     type: 'keyboard',
     width: 11,
     keys: [
@@ -121,7 +121,7 @@ const Keyboards = {
       [ { value: "Dv", keyCode: -3 }, { value: "?123", ratio: 2, keyCode: -2 }, { value: "'" }, { value: "⎵", ratio: 4, keyCode: 32 }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ]
   },
-  dvorakLayoutUpperCaps: {
+  dvorakLayoutUpperCase: {
     type: 'keyboard',
     keys: [
       [ { value: "," }, { value: "." } , { value: "P" }, { value: "Y" } , { value: "F" }, { value: "G" } , { value: "C" }, { value: "R" }, { value: "L" }, { value: "⌫", keyCode: KeyEvent.DOM_VK_BACK_SPACE } ],

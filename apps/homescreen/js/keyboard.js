@@ -17,6 +17,7 @@ const IMEManager = {
   // TODO: allow user to select desired keyboards in settings
   // see bug 712778
   currentKeyboard: 'qwertyLayout',
+  currentKeyboardMode: '',
   keyboards: [
     'qwertyLayout', 'azertyLayout', 'qwertzLayout', 'hebrewLayout',
     'jcukenLayout', 'serbianCyrillicLayout', 'dvorakLayout',
@@ -24,9 +25,33 @@ const IMEManager = {
   ],
 
   get isUpperCase() {
-    return this.currentKeyboard.indexOf('UpperCaps') > 0;
+    return (this.currentKeyboardMode == 'UpperCase');
   },
 
+  set isUpperCase(isUpperCase) {
+    var keyboard = this.currentKeyboard;
+    if (isUpperCase) {
+      keyboard += 'UpperCase';
+      this.currentKeyboardMode = 'UpperCase';
+    } else {
+      this.currentKeyboardMode = '';
+    }
+    this.updateLayout(keyboard);
+  },
+
+  get isAlternateLayout() {
+    return (this.currentKeyboardMode == 'Alternate');
+  },
+
+  set isAlternateLayout(isAlternateLayout) {
+    if (isAlternateLayout) {
+      this.currentKeyboardMode = 'Alternate';
+      this.updateLayout('alternateLayout');
+    } else {
+      this.currentKeyboardMode = '';
+      this.updateLayout(this.currentKeyboard);
+    }
+  },
 
   // backspace repeat delay and repeat rate
   kRepeatTimeout: 700,
@@ -176,11 +201,11 @@ const IMEManager = {
 
         switch (keyCode) {
           case this.BASIC_LAYOUT:
-            this.updateLayout(this.currentKeyboard);
+            this.isAlternateLayout = false;
           break;
 
           case this.ALTERNATE_LAYOUT:
-            this.updateLayout('alternateLayout');
+            this.isAlternateLayout = true;
           break;
 
           case this.SWITCH_KEYBOARD:
@@ -197,10 +222,7 @@ const IMEManager = {
           break;
 
           case KeyEvent.DOM_VK_CAPS_LOCK:
-            var keyboard = this.currentKeyboard;
-            if (this.UpperCase)
-              keyboard += 'UpperCaps';
-            this.updateLayout(keyboard);
+            this.isUpperCase = !this.isUpperCase;
           break;
 
           case KeyEvent.DOM_VK_RETURN:
@@ -223,7 +245,7 @@ const IMEManager = {
             window.navigator.mozKeyboard.sendKey(0, keyCode);
 
             if (this.isUpperCase)
-              this.updateLayout(this.currentKeyboard);
+              this.isUpperCase = false;
           break;
         }
         break;
@@ -235,7 +257,6 @@ const IMEManager = {
   },
 
   updateLayout: function km_updateLayout(keyboard) {
-    this.currentKeyboard = keyboard;
     var layout = Keyboards[keyboard];
 
     var content = '';
