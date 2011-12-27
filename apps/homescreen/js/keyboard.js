@@ -53,14 +53,14 @@ const IMEManager = {
           return;
         evt.target.dataset.active = 'true';
         if (keyCode === KeyEvent.DOM_VK_BACK_SPACE) {
-          window.navigator.mozKeyboard.sendKey(keyCode);
+          window.navigator.mozKeyboard.sendKey(keyCode, keyCode);
           var self = this;
           this._timer = setTimeout(
             function km_backspaceDelay() {
-              window.navigator.mozKeyboard.sendKey(keyCode);
+              window.navigator.mozKeyboard.sendKey(keyCode, keyCode);
               self._timer = setInterval(
                 function km_backspaceRepeat() {
-                  window.navigator.mozKeyboard.sendKey(keyCode);
+                  window.navigator.mozKeyboard.sendKey(keyCode, keyCode);
                 },
                 IMEManager.kRepeatRate
               );
@@ -114,8 +114,11 @@ const IMEManager = {
             this.isUpperCase = !this.isUpperCase;
             this.ime.innerHTML = this.getLayout(window.innerWidth);
           break;
+          case KeyEvent.DOM_VK_RETURN:
+            window.navigator.mozKeyboard.sendKey(keyCode, keyCode);
+          break;
           default:
-            window.navigator.mozKeyboard.sendKey(keyCode);
+            window.navigator.mozKeyboard.sendKey(0, keyCode);
             if (this.isUpperCase) {
               this.isUpperCase = !this.isUpperCase;
               var keyboard = IMEManager.keyboards[this.currentKeyboard];
