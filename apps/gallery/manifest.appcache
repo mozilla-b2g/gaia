@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# v1 2011-10-12
+# v1 2011-26-12
 
 # /
 gallery.html
@@ -7,7 +7,7 @@ manifest.webapp
 
 # js/
 js/gallery.js
-js/sample_data.js
+js/photos.json
 
 # style/
 style/gallery.css

@@ -88,10 +88,21 @@ Gallery.db = {
 
     request.onsuccess = (function onSuccess(evt) {
       this._db = evt.target.result;
-      if (empty)
-        this._fillDB();
+      if (!empty) {
+        this.getPhotos(callback);
+        return;
+      }
 
-      this.getPhotos(callback);
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', 'js/photos.json', true);
+      xhr.onreadystatechange = (function() {
+        if (xhr.readyState == 4) {
+          var json = JSON.parse(xhr.responseText);
+          this._fillDB(json);
+          this.getPhotos(callback);
+        }
+      }).bind(this);
+      xhr.send(null);
     }).bind(this);
 
     request.onerror = (function onDatabaseError(error) {
@@ -109,17 +120,20 @@ Gallery.db = {
     });
   },
 
-  _fillDB: function dbFillDB() {
+  _fillDB: function dbFillDB(json, callback) {
     var stores = ['thumbnails', 'photos'];
     var transaction = this._db.transaction(stores, IDBTransaction.READ_WRITE);
 
-    var samples = [sample_thumbnails, sample_photos];
+    var samples = [json['thumbnails'], json['photos']];
     stores.forEach(function populateStore(store, index) {
       var objectStore = transaction.objectStore(store);
 
       var sample = samples[index];
-      for (var element in sample) {
-        var request = objectStore.put(sample[element]);
+      for (var id in sample) {
+        var request = objectStore.put({
+          id: id,
+          data: sample[id]
+        });
 
         request.onsuccess = function onsuccess(e) {
           console.log('Add a new element to ' + store);
