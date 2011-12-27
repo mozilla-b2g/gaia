@@ -44,15 +44,15 @@ function choiceChanged(target) {
   var tabsCount = tabs.childElementCount;
   for (var i = 0; i < tabsCount; i++) {
     var tab = tabs.children[i];
-    tab.removeAttribute('data-active');
+    delete tab.dataset.active;
 
     var tabView = document.getElementById(tab.dataset.choice + '-view');
     if (tabView)
-      tabView.setAttribute('hidden', 'true');
+      tabView.hidden = true;
   }
 
-  target.setAttribute('data-active', 'true');
-  view.removeAttribute('hidden');
+  target.dataset.active = true;
+  view.hidden = false;
 }
 
 var KeyHandler = {
