@@ -44,8 +44,9 @@ var Contacts = {
       }
 
       content += '<div class="contact" id="' + contact.id + '">' +
-                 '  <span class="displayName">' + displayName + '</span>' +
-                 '  <span class="phoneNumber">' + phoneNumber + '</span>' +
+                 '  <img src="style/images/missing.png" alt="missing" />' +
+                 '  <span class="display-name">' + displayName + '</span>' +
+                 '  <span class="phone-number">' + phoneNumber + '</span>' +
                  '</div>';
     }
     content += '<div class="contact" id="contact-create">' +
@@ -85,7 +86,7 @@ var Contacts = {
       if (contact.className == 'contact-header')
         continue;
 
-      var name = contact.firstElementChild.textContent;
+      var name = contact.querySelector('span').textContent;
       var rule = new RegExp(value, 'gi');
       contact.hidden = (name.search(rule) == -1);
     }
@@ -127,12 +128,14 @@ var Contacts = {
     }
 
     // Adding a create button when there is room for it without scrolling
+    var createButton = document.getElementById('contact-create');
+    createButton.hidden = false;
+    var createHeight = createButton.getBoundingClientRect().height;
     var viewHeight = this.view.getBoundingClientRect().height;
     var contentHeight = container.getBoundingClientRect().height;
     var available = viewHeight - contentHeight;
-    if (available >= 56) {
-      document.getElementById('contact-create').hidden = false;
-    }
+    createButton.hidden = !((viewHeight > 0) &&
+                           (available >= createHeight));
   },
   anchor: function contactsAnchor(targetId) {
     var target = document.getElementById(targetId);
@@ -140,7 +143,7 @@ var Contacts = {
       return;
 
     var top = target.getBoundingClientRect().top;
-    var scrollable = document.getElementById('contacts-view');
+    var scrollable = document.getElementById('contacts-view-scrollable');
     scrollableTop = scrollable.getBoundingClientRect().top;
     scrollable.scrollTop = (top - scrollableTop) + scrollable.scrollTop;
   },
