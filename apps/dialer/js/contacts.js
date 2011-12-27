@@ -1,3 +1,4 @@
+'use strict';
 
 var Contacts = {
   _loaded: false,
@@ -164,7 +165,7 @@ var Contacts = {
 
     var top = target.getBoundingClientRect().top;
     var scrollable = document.getElementById('contacts-view-scrollable');
-    scrollableTop = scrollable.getBoundingClientRect().top;
+    var scrollableTop = scrollable.getBoundingClientRect().top;
     scrollable.scrollTop = (top - scrollableTop) + scrollable.scrollTop;
   },
   showDetails: function contactsShowDetails(evt) {
