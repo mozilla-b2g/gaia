@@ -17,16 +17,19 @@ try {
   });
 } catch (e) {}
 
+
 // mozSettings - Bug 678695
 function Settings() {
-  this._settings = {
-    lockscreen: 'disabled'
-  };
   window.addEventListener('message', this);
 
   this._isTopWindow = (window.top == window);
   this._parentWindow = this._isTopWindow ? window : window.parent;
+
+  this._db = null;
+  this._initSettings();
 }
+
+
 
 Settings.prototype = {
   ERROR_SETTING_UNKNOWN: 0x0001,
@@ -44,30 +47,32 @@ Settings.prototype = {
         if (!this._isTopWindow)
           return;
 
-        var value = this._settings[key];
-        if (!value) {
-          var msg = 'settings:error:' + id + ':' + key;
-          src.postMessage(msg, event.origin);
-          return;
-        }
+        this._getSetting(key, function getSetting(value) {
+          if (!value) {
+            var msg = 'settings:error:' + id + ':' + key;
+            src.postMessage(msg, event.origin);
+            return;
+          }
 
-        var msg = 'settings:success:' + id + ':' + key + ':' + value;
-        src.postMessage(msg, event.origin);
+          var msg = 'settings:success:' + id + ':' + key + ':' + value;
+          src.postMessage(msg, event.origin);
+        });
         break;
 
       case 'set':
         if (!this._isTopWindow)
           return;
 
-        if (!this._settings[key]) {
-          var msg = 'settings:error:' + id + ':' + key;
-          src.postMessage(msg, event.origin);
-          return;
-        }
+        this._setSetting(key, value, function setSetting(value) {
+          if (!value) {
+            var msg = 'settings:error:' + id + ':' + key;
+            src.postMessage(msg, event.origin);
+            return;
+          }
 
-        this._settings[key] = value;
-        var msg = 'settings:success:' + id + ':' + key + ':' + value;
-        src.postMessage(msg, event.origin);
+          var msg = 'settings:success:' + id + ':' + key + ':' + value;
+          src.postMessage(msg, event.origin);
+        });
         break;
 
       case 'error':
@@ -108,6 +113,91 @@ Settings.prototype = {
     var event = window.document.createEvent('CustomEvent');
     event.initCustomEvent(type, true, false, null);
     target.dispatchEvent(event);
+  },
+
+  _initSettings: function settings_initSettings() {
+    if (!this._isTopWindow)
+      return;
+
+    const DB_NAME = 'settings';
+    const stores = ['settings'];
+    var request = window.mozIndexedDB.open(DB_NAME, 2);
+
+    var empty = false;
+    request.onupgradeneeded = (function onUpgradeNeeded(evt) {
+      empty = true;
+
+      var db = this._db = evt.target.result;
+      stores.forEach(function createStore(store) {
+        if (db.objectStoreNames.contains(store))
+          db.deleteObjectStore(store);
+        db.createObjectStore(store, { keyPath: 'id' });
+      });
+    }).bind(this);
+
+    request.onsuccess = (function onDatabaseSuccess(evt) {
+      var db = this._db = evt.target.result;
+
+      if (!empty)
+        return;
+
+      stores.forEach(function createStore(store) {
+        var transaction = db.transaction(stores, IDBTransaction.READ_WRITE);
+        var objectStore = transaction.objectStore(store);
+
+        var settings = [
+          {
+            id: 'lockscreen',
+            value: 'disabled'
+          }
+        ];
+
+        for (var setting in settings) {
+          var request = objectStore.put(settings[setting]);
+
+          request.onsuccess = function onsuccess(e) {
+            console.log('Success to add a setting to: ' + store);
+          }
+
+          request.onerror = function onerror(e) {
+            console.log('Failed to add a setting to: ' + store);
+          }
+        };
+      });
+    }).bind(this);
+
+    request.onerror = function onDatabaseError(error) {
+      console.log('Failed when creating the database: ' + error);
+    };
+  },
+
+  _getSetting: function settings_getSetting(name, callback) {
+    var transaction = this._db.transaction(['settings'],
+                                           IDBTransaction.READ_ONLY);
+    var request = transaction.objectStore('settings').get(name);
+    request.onsuccess = function onsuccess(e) {
+      callback(e.target.result.value);
+    };
+
+    request.onerror = function onerror(e) {
+      callback(null);
+    };
+  },
+
+  _setSetting: function settings_setSetting(name, value, callback) {
+    var transaction = this._db.transaction(['settings'],
+                                           IDBTransaction.READ_WRITE);
+    var request = transaction.objectStore('settings').put({
+      id: name,
+      value: value
+    });
+    request.onsuccess = function onsuccess(e) {
+      callback(e.target.result.value);
+    };
+
+    request.onerror = function onerror(e) {
+      callback(null);
+    };
   }
 };
 
