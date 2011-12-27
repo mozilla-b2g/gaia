@@ -97,10 +97,10 @@ const IMEManager = {
         dbOptions: {
           data: sourceDir + imEngine + '/data.json'
         },
-        sendChoices: function (candidates) {
+        sendChoices: function(candidates) {
           self.showCandidates(candidates);
         },
-        sendKey: function (keyCode) {
+        sendKey: function(keyCode) {
           switch (keyCode) {
             case KeyEvent.DOM_VK_BACK_SPACE:
             case KeyEvent.DOM_VK_RETURN:
