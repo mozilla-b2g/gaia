@@ -44,15 +44,15 @@ function choiceChanged(target) {
   var tabsCount = tabs.childElementCount;
   for (var i = 0; i < tabsCount; i++) {
     var tab = tabs.children[i];
-    tab.removeAttribute('data-active');
+    delete tab.dataset.active;
 
     var tabView = document.getElementById(tab.dataset.choice + '-view');
     if (tabView)
-      tabView.setAttribute('hidden', 'true');
+      tabView.hidden = true;
   }
 
-  target.setAttribute('data-active', 'true');
-  view.removeAttribute('hidden');
+  target.dataset.active = true;
+  view.hidden = false;
 }
 
 var KeyHandler = {
@@ -302,11 +302,11 @@ var CallHandler = {
     // TODO: make the actual mute call on the telephony API
   },
   keypad: function ch_keypad() {
-    choiceChanged(document.getElementById('keyboard'));
+    choiceChanged(document.getElementById('keyboard-label'));
     document.getElementById('views').classList.add('modal');
   },
   contacts: function ch_contacts() {
-    choiceChanged(document.getElementById('contacts'));
+    choiceChanged(document.getElementById('contacts-label'));
     document.getElementById('views').classList.add('modal');
   },
   closeModal: function ch_closeModal() {
