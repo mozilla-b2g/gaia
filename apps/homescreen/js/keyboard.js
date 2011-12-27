@@ -73,7 +73,18 @@ const IMEManager = {
           data: sourceDir + imEngine + '/data.json'
         },
         sendChoices: self.showCompositions,
-        sendKey: window.navigator.mozKeyboard.sendKey,
+        sendKey: function (keyCode) {
+          switch (keyCode) {
+            case KeyEvent.DOM_VK_BACK_SPACE:
+            case KeyEvent.DOM_VK_RETURN:
+              window.navigator.mozKeyboard.sendKey(keyCode, keyCode);
+            break;
+
+            default:
+              window.navigator.mozKeyboard.sendKey(0, keyCode);
+            break;
+          }
+        },
         sendString: function(str) {
           for (var i = 0; i < str.length; i++)
             this.sendKey(str.charCodeAt(i));
@@ -126,7 +137,7 @@ const IMEManager = {
             this.currentEngine.click(keyCode);
             return;
           }
-          window.navigator.mozKeyboard.sendKey(keyCode);
+          window.navigator.mozKeyboard.sendKey(keyCode, keyCode);
         }).bind(this);
 
         sendDelete();
@@ -192,6 +203,16 @@ const IMEManager = {
             this.updateLayout(keyboard);
           break;
 
+          case KeyEvent.DOM_VK_RETURN:
+            if (Keyboards[this.currentKeyboard].type == 'ime') {
+              this.currentEngine.click(keyCode);
+              this.updateKeyboardHeight();
+              break;
+            }
+
+            window.navigator.mozKeyboard.sendKey(keyCode, keyCode);
+          break;
+
           default:
             if (Keyboards[this.currentKeyboard].type == 'ime') {
               this.currentEngine.click(keyCode);
@@ -199,7 +220,7 @@ const IMEManager = {
               break;
             }
 
-            window.navigator.mozKeyboard.sendKey(keyCode);
+            window.navigator.mozKeyboard.sendKey(0, keyCode);
 
             if (this.isUpperCase)
               this.updateLayout(this.currentKeyboard);
