@@ -12,19 +12,20 @@ var Contacts = {
       Contacts.showSearch();
     });
 
-    this.view.addEventListener('DOMAttrModified', (function contactAttrModified(evt) {
-      if (evt.attrName != 'hidden') {
-        return;
-      }
+    this.view.addEventListener('DOMAttrModified',
+      (function contactAttrModified(evt) {
+        if (evt.attrName != 'hidden') {
+          return;
+        }
 
-      if (evt.prevValue == "true" && evt.newValue == "") {
-        // loading contacts the first time the view appears
-        this.load();
+        if (evt.prevValue == 'true' && evt.newValue == '') {
+          // loading contacts the first time the view appears
+          this.load();
 
-        this.hideSearch();
-        ContactDetails.hide();
-      }
-    }).bind(this));
+          this.hideSearch();
+          ContactDetails.hide();
+        }
+      }).bind(this));
   },
   load: function contactsLoad() {
     if (this._loaded) {
