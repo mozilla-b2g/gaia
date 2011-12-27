@@ -119,6 +119,8 @@ Settings.prototype = {
     if (!this._isTopWindow)
       return;
 
+    this._starting = true;
+
     const DB_NAME = 'settings';
     const stores = ['settings'];
     var request = window.mozIndexedDB.open(DB_NAME, 2);
@@ -138,8 +140,11 @@ Settings.prototype = {
     request.onsuccess = (function onDatabaseSuccess(evt) {
       var db = this._db = evt.target.result;
 
-      if (!empty)
+      if (!empty) {
+        this._starting = false;
+        this._runCallbacks();
         return;
+      }
 
       stores.forEach(function createStore(store) {
         var transaction = db.transaction(stores, IDBTransaction.READ_WRITE);
@@ -148,7 +153,7 @@ Settings.prototype = {
         var settings = [
           {
             id: 'lockscreen',
-            value: 'disabled'
+            value: 'enabled'
           }
         ];
 
@@ -162,16 +167,29 @@ Settings.prototype = {
           request.onerror = function onerror(e) {
             console.log('Failed to add a setting to: ' + store);
           }
-        };
+        }
       });
+      this._starting = false;
+      this._runCallbacks();
     }).bind(this);
 
-    request.onerror = function onDatabaseError(error) {
+    request.onerror = (function onDatabaseError(error) {
       console.log('Failed when creating the database: ' + error);
-    };
+      this._starting = false;
+      this._runCallbacks();
+    }).bind(this);
   },
 
   _getSetting: function settings_getSetting(name, callback) {
+    if (this._starting) {
+      this._startCallbacks.push({
+        type: 'get',
+        name: name,
+        callback: callback
+      });
+      return;
+    }
+
     var transaction = this._db.transaction(['settings'],
                                            IDBTransaction.READ_ONLY);
     var request = transaction.objectStore('settings').get(name);
@@ -185,6 +203,16 @@ Settings.prototype = {
   },
 
   _setSetting: function settings_setSetting(name, value, callback) {
+    if (this._starting) {
+      this._startCallbacks.push({
+        type: 'set',
+        name: name,
+        value: value,
+        callback: callback
+      });
+      return;
+    }
+
     var transaction = this._db.transaction(['settings'],
                                            IDBTransaction.READ_WRITE);
     var request = transaction.objectStore('settings').put({
@@ -198,6 +226,17 @@ Settings.prototype = {
     request.onerror = function onerror(e) {
       callback(null);
     };
+  },
+
+  _startCallbacks: [],
+  _runCallbacks: function settings_runCallbacks() {
+    this._startCallbacks.forEach((function startCallbacks(cb) {
+      if (cb.type == 'get') {
+        this._getSetting(cb.name, cb.callback);
+      } else {
+        this._setSetting(cb.name, cb.value, cb.callback);
+      }
+    }).bind(this));
   }
 };
 
@@ -272,7 +311,7 @@ SettingsRequest.prototype = {
 };
 
 try {
-window.navigator.mozSettings = new Settings();
+  window.navigator.mozSettings = new Settings();
 } catch (e) {
   alert(e);
 }

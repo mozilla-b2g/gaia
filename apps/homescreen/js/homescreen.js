@@ -473,7 +473,8 @@ function OnLoad() {
       lockScreen.unlock(-1);
     else
       lockScreen.lock();
-});
+  });
+
   request.addEventListener('error', function (evt) {
     lockScreen.lock();
   });
