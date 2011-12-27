@@ -184,17 +184,19 @@ html * {
 .keyboard-key[data-value="del"] {
 	position: absolute;
 	display: block;
-	right: 15px;
-	top: 30px;
-	width: 30px;
-	height: 30px;
+	right: 0px;
+	top: 0;
+	width: 60px;
+	height: 90px;
 
-	border: 1px solid rgb(28,28,28);
+  border: 0;
 	border-radius: 2px;
-	background: url(images/remove.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(136,138,136) 1px, rgb(114,115,114) 2px, rgb(56,56,56) 100%);
+	background: url(images/remove.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(136,138,136) 1px, rgb(114,115,114) 2px, rgb(56,56,56) 100%) no-repeat 50% 50%;
+  background-size: auto, 30px 30px;
 }
 .keyboard-key[data-value="del"]:active {
-	background: url(images/remove.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(56,56,56) 0, rgb(114,115,114) 100%);
+	background: url(images/remove.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(56,56,56) 0, rgb(114,115,114) 100%) no-repeat 50% 50%;
+  background-size: auto, 30px 30px;
 }
 
 #fake-phone-number-view {
