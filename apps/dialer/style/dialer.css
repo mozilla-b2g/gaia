@@ -61,7 +61,7 @@ html * {
   border-radius: 3px;
 }
 
-#tabs ul {
+#tabs fieldset {
   list-style: none;
 	width: -moz-calc(100% - 2px);
 	height: 66px;
@@ -77,8 +77,13 @@ html * {
   background: -moz-linear-gradient(top, rgb(136,138,136) 1px, rgb(114,115,114) 2px, rgb(56,56,56) 100%);
 }
 
-#tabs li {
-  -moz-box-flex: 1;
+#tabs label {
+  float: left;
+  display: block;
+  width: -moz-calc(100% / 3 - 2px);
+  height: 100%;
+  padding: 0;
+  margin: 0;
 
 	border-right: 1px solid rgb(29,29,29);
 	border-left: 1px solid rgb(123,123,123);
@@ -86,30 +91,33 @@ html * {
   background-position: 50% 50%;
   background-repeat: no-repeat;
 }
+#tabs input[type="radio"] {
+  display: none;
+}
 
-#tabs li:first-child {
+#tabs label:first-child {
   border-left-color: transparent;
 }
-#tabs li:last-child {
+#tabs label:last-child {
   border-right-color: transparent;
 }
 
-#keyboard {
+#keyboard-label {
   background-image: url(images/numpad-icon.png);
 }
-#keyboard[data-active] {
+#keyboard-label[data-active] {
   background: url(images/numpad-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(56,56,56) 0, rgb(114,115,114) 100%);
 }
-#contacts {
+#contacts-label {
   background-image: url(images/contacts-icon.png);
 }
-#contacts[data-active] {
+#contacts-label[data-active]{
   background: url(images/contacts-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(56,56,56) 0, rgb(114,115,114) 100%);
 }
-#favorites {
+#favorites-label {
   background-image: url(images/favorite-icon.png);
 }
-#favorites[data-active] {
+#favorites-label[data-active] {
   background: url(images/favorite-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(56,56,56) 0, rgb(114,115,114) 100%);
 }
 
@@ -162,7 +170,7 @@ html * {
 	background:rgba(0,0,0,0.15);
 }
 
-#phone-number-view-container::before, #phoneNumber-view-container::after {
+#phone-number-view-container::before, #phone-number-view-container::after {
 	content: "";
 	display: block;
 	position: absolute;
@@ -184,17 +192,19 @@ html * {
 .keyboard-key[data-value="del"] {
 	position: absolute;
 	display: block;
-	right: 15px;
-	top: 30px;
-	width: 30px;
-	height: 30px;
+	right: 0px;
+	top: 0;
+	width: 60px;
+	height: 90px;
 
-	border: 1px solid rgb(28,28,28);
+  border: 0;
 	border-radius: 2px;
-	background: url(images/remove.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(136,138,136) 1px, rgb(114,115,114) 2px, rgb(56,56,56) 100%);
+	background: url(images/remove.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(136,138,136) 1px, rgb(114,115,114) 2px, rgb(56,56,56) 100%) no-repeat 50% 50%;
+  background-size: auto, 30px 30px;
 }
 .keyboard-key[data-value="del"]:active {
-	background: url(images/remove.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(56,56,56) 0, rgb(114,115,114) 100%);
+	background: url(images/remove.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(56,56,56) 0, rgb(114,115,114) 100%) no-repeat 50% 50%;
+  background-size: auto, 30px 30px;
 }
 
 #fake-phone-number-view {
@@ -211,7 +221,8 @@ html * {
 
 #mainKeyset-container {
   width: -moz-calc(100% - 30px);
-  height: -moz-calc(100% - 160px);
+  height: -moz-calc(80% - 40px);
+  min-height: 200px;
   padding: 5px;
   margin: auto auto 20px auto;
 
@@ -292,6 +303,7 @@ html * {
 
 #additionalKeyset {
   width: -moz-calc(100% - 30px);
+  height: 20%;
   padding: 5px 5px 2px 5px;
   margin: auto;
 
@@ -304,13 +316,16 @@ html * {
 }
 
 .keyboard-key[data-value="call"] span {
-	position: relative;
 	display: block;
-	height: 105px;
   width: -moz-calc(100% - 2px);
+  height: -moz-calc(100% - 12px);
+  min-height: 50px;
 
 	border-radius: 3px;
 	background: url(images/call-icon.png) no-repeat 50% 50%,-moz-linear-gradient(top, rgb(177,214,0) 1px, rgb(143,195,0) 2px, rgb(82,107,23) 100%);
+}
+.keyboard-key[data-value="call"]:active {
+  background: none;
 }
 .keyboard-key[data-value="call"]:active span {
 	background: url(images/call-icon.png) no-repeat 50% 50%,-moz-linear-gradient(top, rgb(82,107,23) 0, rgb(143,195,0) 100%);
@@ -363,18 +378,18 @@ html * {
   height: 56px;
   width: -moz-calc(100% - 2px);
 
-	border: 1px solid transparent;
-	border-top-color: rgb(123,123,123);
-	border-bottom-color: rgb(0,0,0);
+  border-top:1px solid #515151;
+  border-bottom:1px solid #1c1c1c;
 
   line-height: 28px;
-  font-size: 20px;
+  font-size:14px;
 
-  background-color: #444444;
+  background: #393939;
 }
 .contact:nth-of-type(even) {
-  background-color: #393939;
+  background: #444;
 }
+
 #contact-create {
   background-color: #171717;
   background-image: url(images/create.png);
