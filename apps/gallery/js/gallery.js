@@ -101,7 +101,7 @@ Gallery.db = {
           this._fillDB(json);
           this.getPhotos(callback);
         }
-      }).bind(this)
+      }).bind(this);
       xhr.send(null);
     }).bind(this);
 
