@@ -1,11 +1,11 @@
 
-const KeyboardAndroid = {
+const Keyboards = {
   alternateLayout: {
     type: 'keyboard',
     keys: [
       [ { value: "1" }, { value: "2" }, { value: "3" } , { value: "4" }, { value: "5" } , { value: "6" }, { value: "7" } , { value: "8" }, { value: "9" }, { value: "0" } ],
       [ { value: "@" }, { value: "#" }, { value: "$" }, { value: "%" }, { value: "&" } , { value: "*" }, { value: "-" }, { value: "+" }, { value: "(" }, { value: ")" } ],
-      [ { value: "ALT", ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT }, { value: "!" }, { value: "\"" }, { value: "'" }, { value: ":" }, { value: ";" }, { value:"/" }, { value: "?", keyCode: 39 }, { value: "⌫", ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE } ],
+      [ { value: "ALT", ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT }, { value: "!" }, { value: "\"" }, { value: "'" }, { value: ":" }, { value: ";" }, { value:"/" }, { value: "?" }, { value: "⌫", ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE } ],
       [ { value: "ABC", ratio: 3, keyCode: -1 }, { value: ",", keyCode: 44 }, { value: "⎵", ratio: 3, keyCode: 32 }, { value: ".", keyCode: 46 }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ]
   },
@@ -18,7 +18,7 @@ const KeyboardAndroid = {
       [ { value: "En", keyCode: -3 }, { value: "?123", ratio: 2, keyCode: -2 }, { value: ",", keyCode: 44 }, { value: "⎵", ratio: 3, keyCode: 32 }, { value: ".", keyCode: 46 }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ],
   },
-  qwertyLayoutUpperCaps: {
+  qwertyLayoutUpperCase: {
     type: 'keyboard',
     keys: [
       [ { value: "Q" }, { value: "W" }, { value: "E" } , { value: "R" }, { value: "T" } , { value: "Y" }, { value: "U" } , { value: "I" }, { value: "O" }, { value: "P" } ],
@@ -36,7 +36,7 @@ const KeyboardAndroid = {
       [ { value: "Fr", keyCode: -3 }, { value: "?123", ratio: 2, keyCode: -2 }, { value: ",", keyCode: 44 }, { value: "⎵", ratio: 3, keyCode: 32 }, { value: ".", keyCode: 46 }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ]
   },
-  azertyLayoutUpperCaps: {
+  azertyLayoutUpperCase: {
     type: 'keyboard',
     keys: [
       [ { value: "A" }, { value: "Z" }, { value: "E" } , { value: "R" }, { value: "T" } , { value: "Y" }, { value: "U" } , { value: "I" }, { value: "O" }, { value: "P" } ],
@@ -54,7 +54,7 @@ const KeyboardAndroid = {
       [ { value: "De", keyCode: -3 }, { value: "?123", ratio: 2, keyCode: -2 }, { value: ",", keyCode: 44 }, { value: "⎵", ratio: 3, keyCode: 32 }, { value: ".", keyCode: 46 }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ]
   },
-  qwertzLayoutUpperCaps: {
+  qwertzLayoutUpperCase: {
     type: 'keyboard',
     keys: [
       [ { value: "Q" }, { value: "W" }, { value: "E" } , { value: "R" }, { value: "T" } , { value: "z" }, { value: "U" } , { value: "I" }, { value: "O" }, { value: "P" } ],
@@ -82,7 +82,7 @@ const KeyboardAndroid = {
         [ { value: "Ru", keyCode: -3 }, { value: "?123", ratio: 2, keyCode: -2 }, { value: ",", keyCode: 44 }, { value: "⎵", ratio: 4, keyCode: 32 }, { value: ".", keyCode: 46 }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ]
   },
-  jcukenLayoutUpperCaps: {
+  jcukenLayoutUpperCase: {
     type: 'keyboard',
     width: 11,
     keys: [
@@ -102,7 +102,7 @@ const KeyboardAndroid = {
         [ { value: "Sr", keyCode: -3 }, { value: "?123", ratio: 2, keyCode: -2 }, { value: ",", keyCode: 44 }, { value: "⎵", ratio: 4, keyCode: 32 }, { value: ".", keyCode: 46 }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ]
   },
-  serbianCyrillicLayoutUpperCaps: {
+  serbianCyrillicLayoutUpperCase: {
     type: 'keyboard',
     width: 11,
     keys: [
@@ -121,13 +121,25 @@ const KeyboardAndroid = {
       [ { value: "Dv", keyCode: -3 }, { value: "?123", ratio: 2, keyCode: -2 }, { value: "'" }, { value: "⎵", ratio: 4, keyCode: 32 }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ]
   },
-  dvorakLayoutUpperCaps: {
+  dvorakLayoutUpperCase: {
     type: 'keyboard',
     keys: [
       [ { value: "," }, { value: "." } , { value: "P" }, { value: "Y" } , { value: "F" }, { value: "G" } , { value: "C" }, { value: "R" }, { value: "L" }, { value: "⌫", keyCode: KeyEvent.DOM_VK_BACK_SPACE } ],
       [ { value: "A" }, { value: "O" }, { value: "E" }, { value: "U" }, { value: "I" } , { value: "D" }, { value: "H" }, { value: "T" }, { value: "N" }, { value: "S" } ],
       [ { value: "⇪", ratio: 1, keyCode: KeyEvent.DOM_VK_CAPS_LOCK }, { value: "Q" }, { value: "J" }, { value: "K" }, { value: "X" }, { value: "B" }, { value:"M" }, { value:"W" }, { value:"V" }, { value:"Z" } ],
       [ { value: "Dv", keyCode: -3 }, { value: "?123", ratio: 2, keyCode: -2 }, { value: "\"" }, { value: "⎵", ratio: 4, keyCode: 32 }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
+    ]
+  },
+  zhuyingGeneralLayout: {
+    type: 'ime',
+    needsCandidatePanel: true,
+    imEngine: 'jszhuying',
+    keys: [
+      [ { value: "ㄅ"},{ value: "ㄉ"},{ value: "ˇ"},{ value: "ˋ"},{ value: "ㄓ"},{ value: "ˊ"},{ value: "˙"},{ value: "ㄚ"},{ value: "ㄞ"},{ value: "ㄢ"} ],
+      [ { value: "ㄆ"},{ value: "ㄊ"},{ value: "ㄍ"},{ value: "ㄐ"},{ value: "ㄔ"},{ value: "ㄗ"},{ value: "ㄧ"},{ value: "ㄛ"},{ value: "ㄟ"},{ value: "ㄣ"} ],
+      [ { value: "ㄇ"},{ value: "ㄋ"},{ value: "ㄎ"},{ value: "ㄑ"},{ value: "ㄕ"},{ value: "ㄘ"},{ value: "ㄨ"},{ value: "ㄜ"},{ value: "ㄠ"},{ value: "ㄤ"} ],
+      [ { value: "ㄈ"},{ value: "ㄌ"},{ value: "ㄏ"},{ value: "ㄒ"},{ value: "ㄖ"},{ value: "ㄙ"},{ value: "ㄩ"},{ value: "ㄝ"},{ value: "ㄡ"},{ value: "ㄥ"} ],
+      [ { value: "注", keyCode: -3 }, { value: "?123", ratio: 2, keyCode: -2 }, { value: "⎵", ratio: 2.5, keyCode: 32 }, { value: "ㄦ"}, { value: "⌫", ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ]
   }
 };
