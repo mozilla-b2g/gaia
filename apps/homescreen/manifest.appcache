@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# v1 2011-09-12
+# v1 2011-23-12
 
 # /
 homescreen.html
@@ -11,7 +11,11 @@ js/homescreen.js
 js/scenegraph.js
 js/appManager.js
 js/keyboard.js
-js/android.js
+js/keyboardLayout.js
+
+# imes/
+imes/jszhuying/loader.js
+imes/jszhuying/data.json
 
 # style/
 style/homescreen.css
