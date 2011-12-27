@@ -10,19 +10,13 @@ var Contacts = {
       Contacts.showSearch();
     });
 
-    this.view.addEventListener('DOMAttrModified',
-      (function contactAttrModified(evt) {
-        if (evt.attrName != 'hidden') {
-          return;
-        }
+    document.getElementById('contacts').addEventListener('change',
+      (function contactTabChanged(evt) {
+        // loading contacts the first time the view appears
+        this.load();
 
-        if (evt.prevValue == 'true' && evt.newValue == '') {
-          // loading contacts the first time the view appears
-          this.load();
-
-          this.hideSearch();
-          ContactDetails.hide();
-        }
+        this.hideSearch();
+        ContactDetails.hide();
       }).bind(this));
   },
   load: function contactsLoad() {

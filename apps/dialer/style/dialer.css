@@ -61,7 +61,7 @@ html * {
   border-radius: 3px;
 }
 
-#tabs ul {
+#tabs fieldset {
   list-style: none;
 	width: -moz-calc(100% - 2px);
 	height: 66px;
@@ -77,8 +77,13 @@ html * {
   background: -moz-linear-gradient(top, rgb(136,138,136) 1px, rgb(114,115,114) 2px, rgb(56,56,56) 100%);
 }
 
-#tabs li {
-  -moz-box-flex: 1;
+#tabs label {
+  float: left;
+  display: block;
+  width: -moz-calc(100% / 3 - 2px);
+  height: 100%;
+  padding: 0;
+  margin: 0;
 
 	border-right: 1px solid rgb(29,29,29);
 	border-left: 1px solid rgb(123,123,123);
@@ -86,30 +91,33 @@ html * {
   background-position: 50% 50%;
   background-repeat: no-repeat;
 }
+#tabs input[type="radio"] {
+  display: none;
+}
 
-#tabs li:first-child {
+#tabs label:first-child {
   border-left-color: transparent;
 }
-#tabs li:last-child {
+#tabs label:last-child {
   border-right-color: transparent;
 }
 
-#keyboard {
+#keyboard-label {
   background-image: url(images/numpad-icon.png);
 }
-#keyboard[data-active] {
+#keyboard-label[data-active] {
   background: url(images/numpad-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(56,56,56) 0, rgb(114,115,114) 100%);
 }
-#contacts {
+#contacts-label {
   background-image: url(images/contacts-icon.png);
 }
-#contacts[data-active] {
+#contacts-label[data-active]{
   background: url(images/contacts-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(56,56,56) 0, rgb(114,115,114) 100%);
 }
-#favorites {
+#favorites-label {
   background-image: url(images/favorite-icon.png);
 }
-#favorites[data-active] {
+#favorites-label[data-active] {
   background: url(images/favorite-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(56,56,56) 0, rgb(114,115,114) 100%);
 }
 

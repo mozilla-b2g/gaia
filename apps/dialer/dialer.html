@@ -132,12 +132,12 @@
 
     <div id="tabs-container">
       <div id="tabs" onclick="choiceChanged(event.target)">
-        <ul>
-          <li id="keyboard" data-choice="keyboard" data-active="true"></li>
-          <li id="contacts" data-choice="contacts"></li>
+        <fieldset>
+          <label id="keyboard-label" for="keyboard" data-choice="keyboard" data-active="true"><input id="keyboard" type="radio" name="tabs" checked="checked" /></label>
+          <label id="contacts-label" for="contacts" data-choice="contacts"><input id="contacts" type="radio" name="tabs" checked="" /></label>
           <!-- Should be favorites once we implement this screen-->
-          <li id="favorites" data-choice="contacts"></li>
-        </ul>
+          <label id="favorites-label" for="favorites" data-choice="contacts"><input id="favorites" type="radio" name="tabs" checked="" /></label>
+        </fieldset>
       </div>
     </div>
 

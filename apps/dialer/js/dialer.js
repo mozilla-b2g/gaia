@@ -32,22 +32,23 @@ function visibilityChanged(url) {
 }
 
 function choiceChanged(target) {
-  if (!target.dataset.choice)
+  var choice = target.dataset.choice;
+  if (!choice)
     return;
 
-  var view = document.getElementById(target.dataset.choice + '-view');
+  var view = document.getElementById(choice + '-view');
   if (!view)
     return;
 
-  var choices = document.getElementById('tabs').querySelector('ul');
-  var choicesCount = choices.childElementCount;
-  for (var i = 0; i < choicesCount; i++) {
-    var choice = choices.children[i];
-    choice.removeAttribute('data-active');
+  var tabs = document.getElementById('tabs').querySelector('fieldset');
+  var tabsCount = tabs.childElementCount;
+  for (var i = 0; i < tabsCount; i++) {
+    var tab = tabs.children[i];
+    tab.removeAttribute('data-active');
 
-    var choiceView = document.getElementById(choice.dataset.choice + '-view');
-    if (choiceView)
-      choiceView.setAttribute('hidden', 'true');
+    var tabView = document.getElementById(tab.dataset.choice + '-view');
+    if (tabView)
+      tabView.setAttribute('hidden', 'true');
   }
 
   target.setAttribute('data-active', 'true');
