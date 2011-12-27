@@ -17,6 +17,184 @@ try {
   });
 } catch (e) {}
 
+// mozSettings - Bug 678695
+function Settings() {
+  this._settings = {
+    lockscreen: 'disabled'
+  };
+  window.addEventListener('message', this);
+
+  this._isTopWindow = (window.top == window);
+  this._parentWindow = this._isTopWindow ? window : window.parent;
+}
+
+Settings.prototype = {
+  ERROR_SETTING_UNKNOWN: 0x0001,
+
+  _requests: [],
+  handleEvent: function settings_handleEvent(event) {
+    var data = event.data.split(':');
+    if (data.length < 4 || data[0] != 'settings')
+      return;
+
+    var src = event.source;
+    var method = data[1], id = data[2], key = data[3], value = data[4];
+    switch (method) {
+      case 'get':
+        if (!this._isTopWindow)
+          return;
+
+        var value = this._settings[key];
+        if (!value) {
+          var msg = 'settings:error:' + id + ':' + key;
+          src.postMessage(msg, event.origin);
+          return;
+        }
+
+        var msg = 'settings:success:' + id + ':' + key + ':' + value;
+        src.postMessage(msg, event.origin);
+        break;
+
+      case 'set':
+        if (!this._isTopWindow)
+          return;
+
+        if (!this._settings[key]) {
+          var msg = 'settings:error:' + id + ':' + key;
+          src.postMessage(msg, event.origin);
+          return;
+        }
+
+        this._settings[key] = value;
+        var msg = 'settings:success:' + id + ':' + key + ':' + value;
+        src.postMessage(msg, event.origin);
+        break;
+
+      case 'error':
+        var request = this._requests[id];
+        request.error = this.ERROR_SETTING_UNKNOWN;
+        this._dispatchEvent(request, request.TYPE_ERROR);
+        break;
+
+      case 'success':
+        var request = this._requests[id];
+        request.result = new SettingsMessage(key, value);
+        this._dispatchEvent(request, request.TYPE_SUCCESS);
+        break;
+    }
+  },
+
+  get: function settings_get(key) {
+    var request = new SettingsRequest();
+    var id = this._requests.length;
+    this._requests.push(request);
+
+    var msg = 'settings:get:' + id + ':' + key;
+    this._parentWindow.postMessage(msg, '*');
+    return request;
+  },
+
+  set: function settings_set(key, value) {
+    var request = new SettingsRequest();
+    var id = this._requests.length;
+    this._requests.push(request);
+
+    var msg = 'settings:set:' + id + ':' + key + ':' + value;
+    this._parentWindow.postMessage(msg, '*');
+    return request;
+  },
+
+  _dispatchEvent: function(target, type) {
+    var event = window.document.createEvent('CustomEvent');
+    event.initCustomEvent(type, true, false, null);
+    target.dispatchEvent(event);
+  }
+};
+
+
+/* ========== nsIDOMMozSettingsRequest ========== */
+function SettingsRequest() {
+  this.readyState = this.STATE_PROCESSING;
+
+  this.error = null;
+  this.onerror = null;
+  // XXX should be an array
+  this._errorCallback = null;
+
+  this.result = null;
+  this.onsuccess = null;
+  // XXX should be an array
+  this._successCallback = null;
+}
+
+
+SettingsRequest.prototype = {
+  // States of the request
+  STATE_PROCESSING: 'processing',
+  STATE_DONE: 'done',
+
+  // Types of events
+  TYPE_SUCCESS: 'success',
+  TYPE_ERROR: 'error',
+
+  addEventListener: function sr_addEventListener(type, callback) {
+    switch (type) {
+      case this.TYPE_SUCCESS:
+        this._successCallback = callback;
+        break;
+      case this.TYPE_ERROR:
+        this._errorCallback = callback;
+        break;
+    }
+  },
+
+  removeEventListener: function sr_removeEventListener(type, callback) {
+    switch (type) {
+      case this.TYPE_SUCCESS:
+        this._successCallback = null;
+        break;
+      case this.TYPE_ERROR:
+        this._errorCallback = null;
+        break;
+    }
+  },
+
+  dispatchEvent: function sr_dispatchEvent(event) {
+    this.readyState = this.STATE_DONE;
+
+    switch (event.type) {
+      case this.TYPE_SUCCESS:
+        if (this._successCallback)
+          this._successCallback(event);
+
+        if (this.onsuccess)
+          this.onsuccess(event);
+        break;
+      case this.TYPE_ERROR:
+        if (this._errorCallback)
+          this._errorCallback(event);
+
+        if (this.onerror)
+          this.onerror(event);
+        break;
+    }
+  }
+};
+
+try {
+window.navigator.mozSettings = new Settings();
+} catch (e) {
+  alert(e);
+}
+
+
+/* ========== nsIDOMMozSettingsMessage ========== */
+function SettingsMessage(name, value) {
+  this.name = name;
+  this.value = value;
+}
+
+// Bug 709015
 if (true) {
   window.navigator.mozApps = {
     enumerate: function mozAppsEnumerate(callback) {
