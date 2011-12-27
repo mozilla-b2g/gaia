@@ -1,3 +1,4 @@
+'use strict';
 
 var kFontStep = 8;
 var kMinFontSize = 24;
@@ -31,30 +32,27 @@ function visibilityChanged(url) {
 }
 
 function choiceChanged(target) {
-  if (!target.dataset.choice)
+  var choice = target.dataset.choice;
+  if (!choice)
     return;
 
-  var view = document.getElementById(target.dataset.choice + '-view');
+  var view = document.getElementById(choice + '-view');
   if (!view)
     return;
 
-  // XXX this should not live here
-  Contacts.hideSearch();
-  ContactDetails.hide();
+  var tabs = document.getElementById('tabs').querySelector('fieldset');
+  var tabsCount = tabs.childElementCount;
+  for (var i = 0; i < tabsCount; i++) {
+    var tab = tabs.children[i];
+    delete tab.dataset.active;
 
-  var choices = document.getElementById('tabs').querySelector('ul');
-  var choicesCount = choices.childElementCount;
-  for (var i = 0; i < choicesCount; i++) {
-    var choice = choices.children[i];
-    choice.removeAttribute('data-active');
-
-    var choiceView = document.getElementById(choice.dataset.choice + '-view');
-    if (choiceView)
-      choiceView.setAttribute('hidden', 'true');
+    var tabView = document.getElementById(tab.dataset.choice + '-view');
+    if (tabView)
+      tabView.hidden = true;
   }
 
-  target.setAttribute('data-active', 'true');
-  view.removeAttribute('hidden');
+  target.dataset.active = true;
+  view.hidden = false;
 }
 
 var KeyHandler = {
@@ -304,11 +302,11 @@ var CallHandler = {
     // TODO: make the actual mute call on the telephony API
   },
   keypad: function ch_keypad() {
-    choiceChanged(document.getElementById('keyboard'));
+    choiceChanged(document.getElementById('keyboard-label'));
     document.getElementById('views').classList.add('modal');
   },
   contacts: function ch_contacts() {
-    choiceChanged(document.getElementById('contacts'));
+    choiceChanged(document.getElementById('contacts-label'));
     document.getElementById('views').classList.add('modal');
   },
   closeModal: function ch_closeModal() {
