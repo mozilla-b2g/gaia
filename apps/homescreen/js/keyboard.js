@@ -97,7 +97,9 @@ const IMEManager = {
         dbOptions: {
           data: sourceDir + imEngine + '/data.json'
         },
-        sendChoices: self.showCompositions,
+        sendChoices: function (compositions) {
+          self.showCompositions(compositions);
+        },
         sendKey: function (keyCode) {
           switch (keyCode) {
             case KeyEvent.DOM_VK_BACK_SPACE:
@@ -188,7 +190,6 @@ const IMEManager = {
       case 'click':
         if (target.dataset.selection) {
           this.currentEngine.select(target.textContent, target.dataset.data);
-          this.updateKeyboardHeight();
           return;
         }
 
@@ -228,7 +229,6 @@ const IMEManager = {
           case KeyEvent.DOM_VK_RETURN:
             if (Keyboards[this.currentKeyboard].type == 'ime') {
               this.currentEngine.click(keyCode);
-              this.updateKeyboardHeight();
               break;
             }
 
@@ -238,7 +238,6 @@ const IMEManager = {
           default:
             if (Keyboards[this.currentKeyboard].type == 'ime') {
               this.currentEngine.click(keyCode);
-              this.updateKeyboardHeight();
               break;
             }
 
@@ -334,8 +333,10 @@ const IMEManager = {
     converter.innerHTML = '';
     converter.className = '';
 
-    if (!compositions.length)
+    if (!compositions.length) {
+      this.updateKeyboardHeight();
       return;
+    }
 
     converter.className = 'show';
     compositions.forEach(function buildComposition(composition) {
@@ -345,6 +346,8 @@ const IMEManager = {
       span.textContent = composition[0];
       converter.appendChild(span);
     });
+
+    this.updateKeyboardHeight();
   }
 };
 
