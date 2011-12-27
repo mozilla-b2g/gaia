@@ -149,6 +149,10 @@ iframe.appWindow.active {
   -moz-transform: scale(1);
 }
 
+iframe.appWindow.noTransition {
+  -moz-transition: none;
+}
+
 #statusbar {
   display: -moz-box;
   -moz-box-orient: horizontal;
@@ -232,6 +236,8 @@ iframe.appWindow.active {
   opacity: 0;
   -moz-transform: scale(0);
   -moz-transition: all 0.3s ease;
+  -moz-user-select: none;
+  user-select: none;
 }
 
 #taskManager.active {
@@ -254,12 +260,38 @@ iframe.appWindow.active {
   display: inline-block;
   width: 100%;
   height: 100%;
-  margin-right: -40%;
+  margin: 0 -20%;
+  position: relative;
   -moz-transform: scale(0.5);
 }
 
+#taskManager li:first-child {
+  margin-left: 60%;
+}
+
 #taskManager li:last-child {
-  margin-right: 0;
+  margin-right: 60%;
+}
+
+#taskManager li > a {
+  background: url('images/close.png') no-repeat;
+  display: block;
+  width: 32px;
+  height: 32px;
+  position: absolute;
+  top: -16px;
+  right: -16px;
+  -moz-transform: scale(2);
+}
+
+#taskManager li > h1 {
+  position: absolute;
+  top: 100%;
+  width: 100%;
+  text-align: center;
+  color: #fff;
+  font-size: 2em;
+  text-shadow: #000 0 2px 1px;
 }
 
 #keyboard {
