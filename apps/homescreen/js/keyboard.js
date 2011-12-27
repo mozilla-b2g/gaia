@@ -62,11 +62,11 @@ const IMEManager = {
     return this.ime = document.getElementById('keyboard');
   },
 
-  get converter() {
-    delete this.converter;
-    var converter = document.createElement('div');
-    converter.id = 'keyboard-selections';
-    return this.converter = converter;
+  get candidatePanel() {
+    delete this.candidatePanel;
+    var candidatePanel = document.createElement('div');
+    candidatePanel.id = 'keyboard-candidate-panel';
+    return this.candidatePanel = candidatePanel;
   },
 
 
@@ -97,8 +97,8 @@ const IMEManager = {
         dbOptions: {
           data: sourceDir + imEngine + '/data.json'
         },
-        sendChoices: function (compositions) {
-          self.showCompositions(compositions);
+        sendChoices: function (candidates) {
+          self.showCandidates(candidates);
         },
         sendKey: function (keyCode) {
           switch (keyCode) {
@@ -279,9 +279,9 @@ const IMEManager = {
 
     this.ime.innerHTML = content;
 
-    if (layout.selector) {
-      this.ime.insertBefore(this.converter, this.ime.firstChild);
-      this.showCompositions([]);
+    if (layout.needsCandidatePanel) {
+      this.ime.insertBefore(this.candidatePanel, this.ime.firstChild);
+      this.showCandidates([]);
       this.currentEngine.empty();
     }
 
@@ -327,24 +327,24 @@ const IMEManager = {
     ime.innerHTML = '';
   },
 
-  showCompositions: function km_showCompositions(compositions) {
-    // TODO: converter panel should be allow toggled to fullscreen
-    var converter = document.getElementById('keyboard-selections');
-    converter.innerHTML = '';
-    converter.className = '';
+  showCandidates: function km_showCandidates(candidates) {
+    // TODO: candidate panel should be allow toggled to fullscreen
+    var candidatePanel = document.getElementById('keyboard-candidate-panel');
+    candidatePanel.innerHTML = '';
+    candidatePanel.className = '';
 
-    if (!compositions.length) {
+    if (!candidates.length) {
       this.updateKeyboardHeight();
       return;
     }
 
-    converter.className = 'show';
-    compositions.forEach(function buildComposition(composition) {
+    candidatePanel.className = 'show';
+    candidates.forEach(function buildCandidateEntry(candidate) {
       var span = document.createElement('span');
-      span.dataset.data = composition[1];
+      span.dataset.data = candidate[1];
       span.dataset.selection = true;
-      span.textContent = composition[0];
-      converter.appendChild(span);
+      span.textContent = candidate[0];
+      candidatePanel.appendChild(span);
     });
 
     this.updateKeyboardHeight();

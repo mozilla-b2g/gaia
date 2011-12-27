@@ -272,16 +272,16 @@ iframe.appWindow.active {
   -moz-transition: bottom 0.2s ease;
 }
 
-#keyboard-selections {
+#keyboard-candidate-panel {
   height: 64px; overflow: hidden;
   color: white;
   background: -moz-linear-gradient(top, rgb(34,37,42) 10%, rgb(4,4,12) 90%);
   display: none;
 }
-#keyboard-selections.show {
+#keyboard-candidate-panel.show {
   display: block;
 }
-#keyboard-selections span {
+#keyboard-candidate-panel span {
   border-right: 1px solid #909090;
   font-size: 32px;
   line-height: 64px;

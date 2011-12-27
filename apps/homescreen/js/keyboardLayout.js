@@ -132,7 +132,7 @@ const Keyboards = {
   },
   zhuyingGeneralLayout: {
     type: 'ime',
-    selector: true,
+    needsCandidatePanel: true,
     imEngine: 'jszhuying',
     keys: [
       [ { value: "ㄅ"},{ value: "ㄉ"},{ value: "ˇ"},{ value: "ˋ"},{ value: "ㄓ"},{ value: "ˊ"},{ value: "˙"},{ value: "ㄚ"},{ value: "ㄞ"},{ value: "ㄢ"} ],
