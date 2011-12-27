@@ -477,8 +477,6 @@ function OnLoad() {
   ];
   new NotificationScreen(touchables);
 
-  Gaia.AppManager.init();
-
   var apps = Gaia.AppManager.getInstalledApps(function(apps) {
     // XXX this add 5 times the same set of icons
     var icons = [];
