@@ -213,7 +213,8 @@ html * {
 
 #mainKeyset-container {
   width: -moz-calc(100% - 30px);
-  height: -moz-calc(100% - 160px);
+  height: -moz-calc(80% - 40px);
+  min-height: 200px;
   padding: 5px;
   margin: auto auto 20px auto;
 
@@ -294,6 +295,7 @@ html * {
 
 #additionalKeyset {
   width: -moz-calc(100% - 30px);
+  height: 20%;
   padding: 5px 5px 2px 5px;
   margin: auto;
 
@@ -306,10 +308,10 @@ html * {
 }
 
 .keyboard-key[data-value="call"] span {
-	position: relative;
 	display: block;
-	height: 105px;
   width: -moz-calc(100% - 2px);
+  height: -moz-calc(100% - 12px);
+  min-height: 50px;
 
 	border-radius: 3px;
 	background: url(images/call-icon.png) no-repeat 50% 50%,-moz-linear-gradient(top, rgb(177,214,0) 1px, rgb(143,195,0) 2px, rgb(82,107,23) 100%);
