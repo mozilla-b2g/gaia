@@ -370,18 +370,18 @@ html * {
   height: 56px;
   width: -moz-calc(100% - 2px);
 
-	border: 1px solid transparent;
-	border-top-color: rgb(123,123,123);
-	border-bottom-color: rgb(0,0,0);
+  border-top:1px solid #515151;
+  border-bottom:1px solid #1c1c1c;
 
   line-height: 28px;
-  font-size: 20px;
+  font-size:14px;
 
-  background-color: #444444;
+  background: #393939;
 }
 .contact:nth-of-type(even) {
-  background-color: #393939;
+  background: #444;
 }
+
 #contact-create {
   background-color: #171717;
   background-image: url(images/create.png);
