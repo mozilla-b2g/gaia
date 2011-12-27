@@ -1,5 +1,3 @@
-// 'use strict';
-// XXX: Contacts.anchor doesn't work in strict mode
 
 var Contacts = {
   _loaded: false,
@@ -30,9 +28,8 @@ var Contacts = {
   load: function contactsLoad() {
     if (this._loaded) {
       return;
-    } else {
-      this._loaded = true;
     }
+    this._loaded = true;
 
     // Could be much easier to have an argument named 'parameters' pass as
     // a second argument that I can omit
@@ -154,15 +151,17 @@ var Contacts = {
 
     // Adding a create button when there is room for it without scrolling
     var createButton = document.getElementById('contact-create');
-    if (createButton) {
-      createButton.hidden = false;
-      var createHeight = createButton.getBoundingClientRect().height;
-      var viewHeight = this.view.getBoundingClientRect().height;
-      var contentHeight = container.getBoundingClientRect().height;
-      var available = viewHeight - contentHeight;
-      createButton.hidden = !((viewHeight > 0) &&
-                             (available >= createHeight));
+    if (!createButton) {
+      return;
     }
+
+    createButton.hidden = false;
+    var createHeight = createButton.getBoundingClientRect().height;
+    var viewHeight = this.view.getBoundingClientRect().height;
+    var contentHeight = container.getBoundingClientRect().height;
+    var available = viewHeight - contentHeight;
+    createButton.hidden = !((viewHeight > 0) &&
+                           (available >= createHeight));
   },
   anchor: function contactsAnchor(targetId) {
     var target = document.getElementById(targetId);
