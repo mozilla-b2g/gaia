@@ -3,10 +3,11 @@
 var kFontStep = 8;
 var kMinFontSize = 24;
 var kDefaultFontSize = 64;
-var gTones = {
-  '0': null, '1': null, '2': null, '3': null, '4': null,
-  '5': null, '6': null, '7': null, '8': null, '9': null,
-  '*': null, '#': null
+var gTonesFrequencies = {
+  '1': [697, 1209], '2': [697, 1336], '3': [697, 1477],
+  '4': [770, 1209], '5': [770, 1336], '6': [770, 1477],
+  '7': [852, 1209], '8': [852, 1336], '9': [852, 1477],
+  '*': [941, 1209], '0': [941, 1336], '#': [941, 1477]
 };
 
 
@@ -55,6 +56,34 @@ function choiceChanged(target) {
   view.hidden = false;
 }
 
+var TonePlayer = {
+  _sampleRate: 4000,
+
+  init: function tp_init() {
+   this._audio = new Audio();
+   this._audio.mozSetup(2, this._sampleRate);
+  },
+
+  generateFrames: function tp_generateFrames(soundData, freq_row, freq_col) {
+    var currentSoundSample = 0;
+    var kr = 2 * Math.PI * freq_row / this._sampleRate;
+    var kc = 2 * Math.PI * freq_col / this._sampleRate;
+    for (var i = 0; i < soundData.length; i += 2) {
+      soundData[i] = Math.sin(kr * currentSoundSample);
+      soundData[i + 1] = Math.sin(kc * currentSoundSample);
+
+      currentSoundSample++;
+    }
+  },
+
+  play: function tp_play(frequencies) {
+    var soundDataSize = this._sampleRate / 4;
+    var soundData = new Float32Array(soundDataSize);
+    this.generateFrames(soundData, frequencies[0], frequencies[1]);
+    this._audio.mozWriteAudio(soundData);
+  }
+};
+
 var KeyHandler = {
   get phoneNumber() {
     delete this.phoneNumber;
@@ -74,8 +103,6 @@ var KeyHandler = {
 
   init: function kh_init() {
     this.phoneNumber.value = '';
-    for (var tone in gTones)
-        gTones[tone] = document.getElementById('tone' + tone);
 
     var mainKeys = [
       { title: '1', details: '' },
@@ -115,6 +142,8 @@ var KeyHandler = {
       container.appendChild(details);
       row.appendChild(container);
     });
+
+    TonePlayer.init();
   },
 
   isContactShortcut: function kh_isContactShortcut(key) {
@@ -193,7 +222,7 @@ var KeyHandler = {
     } else {
       this.phoneNumber.value += key;
       this.updateFontSize();
-      gTones[key].play();
+      TonePlayer.play(gTonesFrequencies[key]);
     }
 
     this._timeout = window.setTimeout(callback, 400, this);
