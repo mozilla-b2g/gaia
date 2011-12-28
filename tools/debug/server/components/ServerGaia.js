@@ -18,6 +18,7 @@ const BinaryInputStream = CC('@mozilla.org/binaryinputstream;1',
 
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 Cu.import('resource://gre/modules/Services.jsm');
+Cu.import("resource:///modules/HUDService.jsm");
 
 const SERVER_CONTRACTID = '@mozilla.org/server/gaia;1';
 const SERVER_CID = CID('{cff21d8a-3140-11e1-9a20-af1d63323c56}');
@@ -32,7 +33,7 @@ const ServerFactory = {
 };
 
 
-var debug = false;
+let debug = false;
 function log(str) {
   if (!debug)
     return;
@@ -155,6 +156,86 @@ function SocksClient(server, input, output) {
 }
 
 SocksClient.prototype = {
+  onInputStreamReady: function sc_onInputStreamReady(input) {
+    let len = input.available();
+    if (len == 0) {
+      log('client closed');
+      return;
+    }
+
+    let binaryOutputStream = new BinaryInputStream(input);
+    let bytes = binaryOutputStream.readByteArray(len);
+
+    switch (this.state) {
+      case STATE_CONNECTING:
+        try {
+          let data = String.fromCharCode.apply(null, bytes);
+          let headers = this._parseHTTPHeaders(data);
+
+          let securityKey = headers['Sec-WebSocket-Key'];
+          this._acceptConnection(securityKey);
+
+          this.state = STATE_CONNECTED;
+        } catch (e) {
+          dump('Error during client connection: ' + e + '\n');
+        }
+        break;
+
+      case STATE_CONNECTED:
+        try {
+          let command = JSON.parse(this._parseFrame(bytes));
+          this._executeCommand(command);
+        } catch (e) {
+          dump('Error while parsing frame: ' + e + '\n');
+        }
+        break;
+    }
+
+    this.waitRead();
+  },
+
+  onOutputStreamReady: function sc_onOutputStreamReady(output) {
+    let buffer = this._outputBuffer;
+    this._outputBuffer = '';
+
+    let len = output.write(buffer, buffer.length);
+    if (len == buffer.length) {
+      return;
+    }
+
+    this._outputBuffer = buffer.substring(len);
+    this.waitWrite();
+  },
+
+  close: function sc_close() {
+    this._input.close();
+    this._output.close();
+  },
+
+  waitRead: function sc_waitRead() {
+    this._input.asyncWait(this, 0, 0, currentThread);
+  },
+
+  _outputBuffer: '',
+  write: function(str) {
+    // If the socket is connected, the server needs to reply to the client
+    // using the websocket framing protocol.
+    // The following add a the minimum required.
+    if (this.state == STATE_CONNECTED) {
+      str = String.fromCharCode(kFinalFragBit | kText) +
+            String.fromCharCode(str.length) +
+            str;
+    }
+
+    log('sending: ' + str);
+    this._outputBuffer += str;
+    this.waitWrite();
+  },
+
+  waitWrite: function sc_waitWrite() {
+    this._output.asyncWait(this, 0, 0, currentThread);
+  },
+
   _parseHTTPHeaders: function sc_parseHTTPHeaders(str) {
     let headers = {};
     let fields = str.split('\r\n');
@@ -171,7 +252,7 @@ SocksClient.prototype = {
     let sha1 = stringToSha1(reply);
 
     let str = '';
-    for (var i = 0; i < sha1.length; i += 2)
+    for (let i = 0; i < sha1.length; i += 2)
       str += String.fromCharCode(parseInt(sha1.substr(i, 2), 16));
 
     log('server: key:  ' + securityKey + '\n' +
@@ -224,86 +305,43 @@ SocksClient.prototype = {
         decoded[j] = String.fromCharCode(bytes[i] ^ masks[j % 4]);
 
       log('server: text: ' + decoded + '(' + length + ')\n');
+      return decoded.join('');
     }
   },
 
-  onInputStreamReady: function sc_onInputStreamReady(input) {
-    let len = input.available();
-    if (len == 0) {
-      log('client closed');
-      return;
+  _executeCommand: function sc_executeCommand(json) {
+    let wm = Cc["@mozilla.org/appshell/window-mediator;1"]  
+               .getService(Ci.nsIWindowMediator);  
+    let win = wm.getMostRecentWindow('navigator:browser');  
+    let contentWindow = win.getBrowser().contentWindow;
+    let console = contentWindow.console;
+
+    let processedArguments = [];
+    for (let arg in json.arguments) {
+      processedArguments.push(json.arguments[arg]);
     }
 
-    let binaryOutputStream = new BinaryInputStream(input);
-    let bytes = binaryOutputStream.readByteArray(len);
-
-    switch (this.state) {
-      case STATE_CONNECTING:
-        try {
-          let data = String.fromCharCode.apply(null, bytes);
-          let headers = this._parseHTTPHeaders(data);
-
-          let securityKey = headers['Sec-WebSocket-Key'];
-          this._acceptConnection(securityKey);
-
-          this.state = STATE_CONNECTED;
-        } catch (e) {
-          dump('Error during client connection: ' + e + '\n');
-        }
+    switch (json.type) {
+      case 'log':
+      case 'debug':
+      case 'info':
+      case 'warn':
+      case 'error':
+      case 'group':
+      case 'groupCollapsed':
+      case 'groupEnd':
+      case 'time':
+      case 'timeEnd':
+        console[json.type].apply(null, processedArguments);
         break;
-
-      case STATE_CONNECTED:
-        try {
-          this._parseFrame(bytes);
-        } catch (e) {
-          dump('Error while parsing frame: ' + e + '\n');
-        }
+      case 'dir':
+      case 'trace':
+        Cu.reportError('Unsupported command: ' + json.type);
+        break;
+      default:
+        Cu.reportError('Unknow command: ' + json.type);
         break;
     }
-
-    this.waitRead();
-  },
-
-  onOutputStreamReady: function sc_onOutputStreamReady(output) {
-    let buffer = this._outputBuffer;
-    this._outputBuffer = '';
-
-    let len = output.write(buffer, buffer.length);
-    if (len == buffer.length) {
-      return;
-    }
-
-    this._outputBuffer = buffer.substring(len);
-    this.waitWrite();
-  },
-
-  close: function sc_close() {
-    this._input.close();
-    this._output.close();
-  },
-
-  waitRead: function sc_waitRead() {
-    this._input.asyncWait(this, 0, 0, currentThread);
-  },
-
-  _outputBuffer: '',
-  write: function(str) {
-    // If the socket is connected, the server needs to reply to the client
-    // using the websocket framing protocol.
-    // The following add a the minimum required.
-    if (this.state == STATE_CONNECTED) {
-      str = String.fromCharCode(kFinalFragBit | kText) +
-            String.fromCharCode(str.length) +
-            str;
-    }
-
-    log('sending: ' + str);
-    this._outputBuffer += str;
-    this.waitWrite();
-  },
-
-  waitWrite: function sc_waitWrite() {
-    this._output.asyncWait(this, 0, 0, currentThread);
   }
 };
 
