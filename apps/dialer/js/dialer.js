@@ -3,6 +3,7 @@
 var kFontStep = 8;
 var kMinFontSize = 24;
 var kDefaultFontSize = 64;
+// Frequencies comming from http://en.wikipedia.org/wiki/Telephone_keypad
 var gTonesFrequencies = {
   '1': [697, 1209], '2': [697, 1336], '3': [697, 1477],
   '4': [770, 1209], '5': [770, 1336], '6': [770, 1477],
@@ -64,10 +65,10 @@ var TonePlayer = {
    this._audio.mozSetup(2, this._sampleRate);
   },
 
-  generateFrames: function tp_generateFrames(soundData, freq_row, freq_col) {
+  generateFrames: function tp_generateFrames(soundData, freqRow, freqCol) {
     var currentSoundSample = 0;
-    var kr = 2 * Math.PI * freq_row / this._sampleRate;
-    var kc = 2 * Math.PI * freq_col / this._sampleRate;
+    var kr = 2 * Math.PI * freqRow / this._sampleRate;
+    var kc = 2 * Math.PI * freqCol / this._sampleRate;
     for (var i = 0; i < soundData.length; i += 2) {
       soundData[i] = Math.sin(kr * currentSoundSample);
       soundData[i + 1] = Math.sin(kc * currentSoundSample);
