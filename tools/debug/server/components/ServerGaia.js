@@ -310,11 +310,16 @@ SocksClient.prototype = {
   },
 
   _executeCommand: function sc_executeCommand(json) {
-    let wm = Cc["@mozilla.org/appshell/window-mediator;1"]  
-               .getService(Ci.nsIWindowMediator);  
-    let win = wm.getMostRecentWindow('navigator:browser');  
-    let contentWindow = win.getBrowser().contentWindow;
-    let console = contentWindow.console;
+    let consoleWindow = null;
+    let enumerator = Services.wm.getEnumerator('');
+    while (enumerator.hasMoreElements()) {
+      let win = enumerator.getNext().getBrowser().contentWindow;
+      if (win.location == 'chrome://gaia/content/console.xul') {
+        consoleWindow = win;
+        break;
+      }
+    }
+    let console = consoleWindow.console;
 
     let processedArguments = [];
     for (let arg in json.arguments) {

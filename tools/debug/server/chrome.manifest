@@ -1,4 +1,6 @@
-content gaia components/
+content gaia content/
+overlay  chrome://browser/content/browser.xul  chrome://gaia/content/gaiaOverlay.xul
+
 
 component {cff21d8a-3140-11e1-9a20-af1d63323c56} components/ServerGaia.js
 contract @mozilla.org/server/gaia;1 {cff21d8a-3140-11e1-9a20-af1d63323c56}
