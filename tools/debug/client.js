@@ -1,15 +1,49 @@
 
 (function() {
+  try {
+    var server = getServer();
+    if (!server) {
+      dump('Please use <script type="application/x-javascript" ' +
+           'data-server="ws://myserver.org:port" src="client.js">');
+      return;
+    }
+
+    var socket = createWebSocket(server);
+
+    remoteMethods(socket);
+
+  } catch (e) {
+    dump(e + '\n');
+  }
+
+
   var debug = false;
   function log(str) {
     if (!debug)
       return;
+
     dump('Console Gaia: ' + str + '\n');
   };
 
-  try {
-    var server = "ws://localhost:6789/";
+
+  function getServer() {
+    var scripts = document.scripts;
+    for (var i = 0; i < scripts.length; i++) {
+      var script = scripts[i];
+      var server = script.dataset.server;
+      if (script.getAttribute('src') != 'client.js' || !server)
+        continue;
+    
+      return server;
+    };
+
+    return null;
+  }
+
+
+  function createWebSocket(server) {
     var ws = new WebSocket(server)
+
     ws.onopen = function ws_open() {
       log('websocket opened');
     };
@@ -19,14 +53,18 @@
     };
 
     ws.onerror = function ws_error(evt) {
-      log('websocket error: ' + evt.data);
+      log('websocket error');
     };
 
     ws.onmessage = function ws_message(msg) {
       log('websocket message: ' + evt.data);
     };
 
-    // Override the 'console' methods
+    return ws;
+  }
+
+
+  function remoteMethods(socket) {
     var methods = ['log', 'debug', 'info', 'warn', 'error',
                    'time', 'timeEnd',
                    'group', 'groupCollapsed', 'groupEnd'];
@@ -37,7 +75,7 @@
           "arguments": arguments
         };
 
-        ws.send(JSON.stringify(json));
+        socket.send(JSON.stringify(json));
       };
     });
 
@@ -59,8 +97,6 @@
     console['dir'] = function() {
       console.warn('console.dir is not implemented');
     };
-  } catch (e) {
-    dump(e + '\n');
   }
 })()
 
