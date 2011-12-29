@@ -13,27 +13,6 @@ if (!window['Gaia'])
   var checkKeyPressTimeout = null;
   var animateScrollInterval = null;
   
-  var animationLoop = function(renderCallback) {
-    var isRunning = true;
-    var lastFrame = Date.now();
-    var requestAnimationFrame = function(animFrameCallback) {
-      if (window.mozRequestAnimationFrame)
-        window.mozRequestAnimationFrame(animFrameCallback);
-      else if (window.webkitRequestAnimationFrame)
-        window.webkitRequestAnimationFrame(animFrameCallback);
-      else if (window.requestAnimationFrame)
-        window.requestAnimationFrame(animFrameCallback);
-    };
-    
-    (function loop(currentFrame) {
-      if (isRunning !== false) {
-        requestAnimationFrame(loop);
-        isRunning = renderCallback(currentFrame - lastFrame);
-        lastFrame = currentFrame;
-      }
-    })(lastFrame);
-  };
-  
   Gaia.TaskManager = {
     
     _isActive: false,
@@ -164,7 +143,7 @@ if (!window['Gaia'])
           var willAnimateToTheLeft = (currentScrollLeft < targetScrollLeft);
           
           if (currentScrollLeft !== targetScrollLeft) {
-            animationLoop(function(deltaTime) {
+            Gaia.AnimationLoop(function(deltaTime) {
               if (willAnimateToTheLeft) {
                 listElement.scrollLeft = currentScrollLeft += 20 * deltaTime / 16;
                 
