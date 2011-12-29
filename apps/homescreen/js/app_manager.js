@@ -10,7 +10,7 @@ if (!window['Gaia'])
 
   Gaia.AppManager = {
     _appIdCounter: 0,
-    
+
     _foregroundWindows: [],
 
     set foregroundWindow(win) {
@@ -33,7 +33,7 @@ if (!window['Gaia'])
     },
 
     _runningApps: [],
-    
+
     get runningApps() {
       return this._runningApps;
     },
@@ -45,7 +45,7 @@ if (!window['Gaia'])
 
     get windowsContainer() {
       delete this.windowsContainer;
-      
+
       var element = document.getElementById('windows');
       element.show = function() {
         element.classList.add('active');
@@ -81,6 +81,8 @@ if (!window['Gaia'])
     handleEvent: function(evt) {
       switch (evt.type) {
         case 'message':
+          if (evt.data != 'appclose')
+            return;
           this.close();
           break;
         case 'home':
@@ -175,14 +177,14 @@ if (!window['Gaia'])
     launch: function(url) {
       var windowsContainer = this.windowsContainer;
       windowsContainer.show();
-      
+
       var instance = this.getAppInstance(url);
       var state = {
         message: 'visibilitychange',
         url: url,
         hidden: false
       };
-      
+
       // App is already running, set focus to the existing instance.
       if (instance) {
         var foregroundWindow = this.foregroundWindow = instance.window;
@@ -192,13 +194,15 @@ if (!window['Gaia'])
         var app = this.getInstalledAppForURL(url);
         var newWindow = windowsContainer.createWindow(app);
         var foregroundWindow = this.foregroundWindow = newWindow;
-        
-        foregroundWindow.contentWindow.addEventListener('load', function appload(evt) {
+
+        var contentWindow = foregroundWindow.contentWindow;
+        contentWindow.addEventListener('load', function appload(evt) {
           this.removeEventListener('load', appload, true);
           this.postMessage(state, '*');
         }, true);
-        
-        foregroundWindow.taskElement.addEventListener('click', (function taskClickHandler(evt) {
+
+        var taskElement = foregroundWindow.taskElement;
+        taskElement.addEventListener('click', (function taskClickHandler(evt) {
           Gaia.TaskManager.setActive(false);
           window.setTimeout(function launchApp(self) {
             self.launch(url);
@@ -213,14 +217,15 @@ if (!window['Gaia'])
       }
 
       var transitionHandler = function() {
-        foregroundWindow.removeEventListener('transitionend', transitionHandler);
+        foregroundWindow.removeEventListener('transitionend',
+                                             transitionHandler);
         foregroundWindow.focus();
 
         var openEvent = document.createEvent('UIEvents');
         openEvent.initUIEvent('appopen', true, true, window, 0);
         window.dispatchEvent(openEvent);
       };
-      
+
       foregroundWindow.addEventListener('transitionend', transitionHandler);
       window.setTimeout(function showWindow() {
         foregroundWindow.classList.add('active');
@@ -231,12 +236,12 @@ if (!window['Gaia'])
 
     close: function() {
       var foregroundWindow = this.foregroundWindow;
-      
+
       if (!foregroundWindow)
         return;
-      
+
       var windowsContainer = this.windowsContainer;
-      
+
       var instance = this.getAppInstanceForWindow(foregroundWindow);
       var state = {
         message: 'visibilitychange',
@@ -245,7 +250,8 @@ if (!window['Gaia'])
       };
 
       var transitionHandler = function() {
-        foregroundWindow.removeEventListener('transitionend', transitionHandler);
+        foregroundWindow.removeEventListener('transitionend',
+                                             transitionHandler);
         foregroundWindow.blur();
         foregroundWindow.contentWindow.postMessage(state, '*');
         windowsContainer.hide();
@@ -267,10 +273,10 @@ if (!window['Gaia'])
       }
     }
   };
-  
+
   window.addEventListener('load', function(evt) {
     Gaia.AppManager.init();
   });
-  
+
 })();
 

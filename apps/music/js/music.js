@@ -90,10 +90,21 @@ Music.db = {
 
     request.onsuccess = (function onSuccess(evt) {
       this._db = evt.target.result;
-      if (empty)
-        this._fillDB();
+      if (!empty) {
+        this.getSongList(callback);
+        return;
+      }
 
-      this.getSongList(callback);
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', 'js/samples.json', true);
+      xhr.onreadystatechange = (function() {
+        if (xhr.readyState == 4) {
+          var json = JSON.parse(xhr.responseText);
+          this._fillDB(json);
+          this.getSongList(callback);
+        }
+      }).bind(this);
+      xhr.send(null);
     }).bind(this);
 
     request.onerror = (function onDatabaseError(error) {
@@ -111,25 +122,23 @@ Music.db = {
     });
   },
 
-  _fillDB: function dbFillDB() {
+  _fillDB: function dbFillDB(json) {
     var stores = ['metadata', 'audio'];
     var transaction = this._db.transaction(stores, IDBTransaction.READ_WRITE);
 
-    var samples = [sample_metadata, sample_audio];
+    var samples = [json['metadata'], json['audio']];
     stores.forEach(function populateStore(store, index) {
       var objectStore = transaction.objectStore(store);
 
       var sample = samples[index];
-      for (var song in sample) {
-        var request = objectStore.put(sample[song]);
+      var request = objectStore.put(sample);
 
-        request.onsuccess = function onsuccess(e) {
-          console.log('Added a new song to ' + store);
-        }
+      request.onsuccess = function onsuccess(e) {
+        console.log('Added a new song to ' + store);
+      }
 
-        request.onerror = function onerror(e) {
-          console.log('Error while adding an element to: ' + store);
-        }
+      request.onerror = function onerror(e) {
+        console.log('Error while adding an element to: ' + store);
       }
     });
   },

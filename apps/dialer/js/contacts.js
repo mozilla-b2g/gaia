@@ -1,17 +1,34 @@
+'use strict';
 
 var Contacts = {
+  _loaded: false,
   get view() {
     delete this.view;
     return this.view = document.getElementById('contacts-view');
   },
-  init: function contactsInit() {
-    // Could be much easier to have am argument named 'parameters' pass as
-    // a second argument that I can omit
-    this.find(['id', 'displayName'], this.show.bind(this));
-
+  setup: function contactsSetup() {
     this.view.addEventListener('touchstart', function showSearch(evt) {
       Contacts.showSearch();
     });
+
+    document.getElementById('contacts').addEventListener('change',
+      (function contactTabChanged(evt) {
+        // loading contacts the first time the view appears
+        this.load();
+
+        this.hideSearch();
+        ContactDetails.hide();
+      }).bind(this));
+  },
+  load: function contactsLoad() {
+    if (this._loaded) {
+      return;
+    }
+    this._loaded = true;
+
+    // Could be much easier to have an argument named 'parameters' pass as
+    // a second argument that I can omit
+    this.find(['id', 'displayName'], this.show.bind(this));
   },
   find: function contactsFind(fields, callback) {
     // Ideally I would like to choose the ordering
@@ -129,6 +146,10 @@ var Contacts = {
 
     // Adding a create button when there is room for it without scrolling
     var createButton = document.getElementById('contact-create');
+    if (!createButton) {
+      return;
+    }
+
     createButton.hidden = false;
     var createHeight = createButton.getBoundingClientRect().height;
     var viewHeight = this.view.getBoundingClientRect().height;
@@ -144,7 +165,7 @@ var Contacts = {
 
     var top = target.getBoundingClientRect().top;
     var scrollable = document.getElementById('contacts-view-scrollable');
-    scrollableTop = scrollable.getBoundingClientRect().top;
+    var scrollableTop = scrollable.getBoundingClientRect().top;
     scrollable.scrollTop = (top - scrollableTop) + scrollable.scrollTop;
   },
   showDetails: function contactsShowDetails(evt) {
@@ -456,13 +477,9 @@ var ContactDetails = {
 
 };
 
-window.addEventListener('load', function contactsLoad(evt) {
-  window.removeEventListener('load', contactsLoad, true);
-  Contacts.init();
-}, true);
-
 window.addEventListener('load', function contactSetup(evt) {
   window.removeEventListener('load', contactSetup);
+  Contacts.setup();
   ShortcutsHandler.setup();
   ContactDetails.setup();
 });

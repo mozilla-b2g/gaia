@@ -3,8 +3,6 @@
 
 'use strict';
 
-const kAutoUnlock = false;
-
 var displayState;
 
 // Change the display state (off, locked, default)
@@ -469,7 +467,17 @@ LockScreen.prototype = {
 
 function OnLoad() {
   var lockScreen = new LockScreen(document.getElementById('lockscreen'));
-  kAutoUnlock ? lockScreen.unlock(-1) : lockScreen.lock();
+  var request = window.navigator.mozSettings.get('lockscreen');
+  request.addEventListener('success', function (evt) {
+    if (request.result.value == 'disabled')
+      lockScreen.unlock(-1);
+    else
+      lockScreen.lock();
+  });
+
+  request.addEventListener('error', function (evt) {
+    lockScreen.lock();
+  });
 
   var touchables = [
     document.getElementById('notificationsScreen'),

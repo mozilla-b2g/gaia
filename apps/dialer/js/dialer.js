@@ -1,11 +1,14 @@
+'use strict';
 
 var kFontStep = 8;
 var kMinFontSize = 24;
 var kDefaultFontSize = 64;
-var gTones = {
-  '0': null, '1': null, '2': null, '3': null, '4': null,
-  '5': null, '6': null, '7': null, '8': null, '9': null,
-  '*': null, '#': null
+// Frequencies comming from http://en.wikipedia.org/wiki/Telephone_keypad
+var gTonesFrequencies = {
+  '1': [697, 1209], '2': [697, 1336], '3': [697, 1477],
+  '4': [770, 1209], '5': [770, 1336], '6': [770, 1477],
+  '7': [852, 1209], '8': [852, 1336], '9': [852, 1477],
+  '*': [941, 1209], '0': [941, 1336], '#': [941, 1477]
 };
 
 
@@ -31,31 +34,56 @@ function visibilityChanged(url) {
 }
 
 function choiceChanged(target) {
-  if (!target.dataset.choice)
+  var choice = target.dataset.choice;
+  if (!choice)
     return;
 
-  var view = document.getElementById(target.dataset.choice + '-view');
+  var view = document.getElementById(choice + '-view');
   if (!view)
     return;
 
-  // XXX this should not live here
-  Contacts.hideSearch();
-  ContactDetails.hide();
+  var tabs = document.getElementById('tabs').querySelector('fieldset');
+  var tabsCount = tabs.childElementCount;
+  for (var i = 0; i < tabsCount; i++) {
+    var tab = tabs.children[i];
+    delete tab.dataset.active;
 
-  var choices = document.getElementById('tabs').querySelector('ul');
-  var choicesCount = choices.childElementCount;
-  for (var i = 0; i < choicesCount; i++) {
-    var choice = choices.children[i];
-    choice.removeAttribute('data-active');
-
-    var choiceView = document.getElementById(choice.dataset.choice + '-view');
-    if (choiceView)
-      choiceView.setAttribute('hidden', 'true');
+    var tabView = document.getElementById(tab.dataset.choice + '-view');
+    if (tabView)
+      tabView.hidden = true;
   }
 
-  target.setAttribute('data-active', 'true');
-  view.removeAttribute('hidden');
+  target.dataset.active = true;
+  view.hidden = false;
 }
+
+var TonePlayer = {
+  _sampleRate: 4000,
+
+  init: function tp_init() {
+   this._audio = new Audio();
+   this._audio.mozSetup(2, this._sampleRate);
+  },
+
+  generateFrames: function tp_generateFrames(soundData, freqRow, freqCol) {
+    var currentSoundSample = 0;
+    var kr = 2 * Math.PI * freqRow / this._sampleRate;
+    var kc = 2 * Math.PI * freqCol / this._sampleRate;
+    for (var i = 0; i < soundData.length; i += 2) {
+      soundData[i] = Math.sin(kr * currentSoundSample);
+      soundData[i + 1] = Math.sin(kc * currentSoundSample);
+
+      currentSoundSample++;
+    }
+  },
+
+  play: function tp_play(frequencies) {
+    var soundDataSize = this._sampleRate / 4;
+    var soundData = new Float32Array(soundDataSize);
+    this.generateFrames(soundData, frequencies[0], frequencies[1]);
+    this._audio.mozWriteAudio(soundData);
+  }
+};
 
 var KeyHandler = {
   get phoneNumber() {
@@ -76,8 +104,6 @@ var KeyHandler = {
 
   init: function kh_init() {
     this.phoneNumber.value = '';
-    for (var tone in gTones)
-        gTones[tone] = document.getElementById('tone' + tone);
 
     var mainKeys = [
       { title: '1', details: '' },
@@ -117,6 +143,8 @@ var KeyHandler = {
       container.appendChild(details);
       row.appendChild(container);
     });
+
+    TonePlayer.init();
   },
 
   isContactShortcut: function kh_isContactShortcut(key) {
@@ -195,7 +223,7 @@ var KeyHandler = {
     } else {
       this.phoneNumber.value += key;
       this.updateFontSize();
-      gTones[key].play();
+      TonePlayer.play(gTonesFrequencies[key]);
     }
 
     this._timeout = window.setTimeout(callback, 400, this);
@@ -304,11 +332,11 @@ var CallHandler = {
     // TODO: make the actual mute call on the telephony API
   },
   keypad: function ch_keypad() {
-    choiceChanged(document.getElementById('keyboard'));
+    choiceChanged(document.getElementById('keyboard-label'));
     document.getElementById('views').classList.add('modal');
   },
   contacts: function ch_contacts() {
-    choiceChanged(document.getElementById('contacts'));
+    choiceChanged(document.getElementById('contacts-label'));
     document.getElementById('views').classList.add('modal');
   },
   closeModal: function ch_closeModal() {

@@ -7,7 +7,7 @@ manifest.webapp
 
 # js/
 js/music.js
-js/sample_data.js
+js/samples.json
 
 # style/
 style/music.css

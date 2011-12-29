@@ -9,6 +9,7 @@
     <link rel="stylesheet" type="text/css" media="screen" href="style/ui.css"/>
     <link rel="stylesheet" type="text/css" media="screen" href="style/settings.css"/>
     <script type="text/javascript" src="js/ui.js"></script>
+    <script type="text/javascript" src="js/settings.js"></script>
   </head>
   <body>
     <div class="navigationBar"></div>
@@ -66,8 +67,8 @@
           </a>
         </li>
         <li>
-          <a class="push slideHorizontal" href="#brightness">
-            <span>Brightness</span>
+          <a class="push slideHorizontal" href="#display">
+            <span>Display</span>
           </a>
         </li>
         <li>
@@ -83,9 +84,33 @@
       
     </div>
     
-    <!-- Brightness -->
-    <div id="brightness" class="view" data-title="Brightness">
-      
+    <!-- Display -->
+    <div id="display" class="view" data-title="Display">
+      <ul class="tableView">
+      <li id="brightness">
+        <label>Brigthness level</label>
+        <progress id="brightness-input" value="1" max="1"></progress>
+        <br/ >
+        <span class="comment">Waiting for <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=707626">bug 707626</a></span>
+      </li>
+      <li id="lockscreen">
+        <label for="lockscreen-checkbox">Disable lockscreen</label>
+        <input id="lockscreen-checkbox" type="checkbox" data-key='lockscreen' onchange="Settings.toggle(this.dataset.key)"></input>
+      </li>
+      <li id="screentimeout">
+        <label for="screentimeout-input">Screen Timeout</label>
+        <select>
+          <option value="0">Never</option>
+          <option value="15">15 seconds</option>
+          <option value="30">30 seconds</option>
+          <option value="60">1 minute</option>
+          <option value="120">2 minutes</option>
+          <option value="600">10 minutes</option>
+        </select>
+        <br/ >
+        <span class="comment">Waiting for <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=707626">bug 707626</a></span>
+      </li>
+      </ul>
     </div>
     
     <!-- Wallpaper -->
