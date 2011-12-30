@@ -19,7 +19,7 @@ const BinaryInputStream = CC('@mozilla.org/binaryinputstream;1',
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 Cu.import('resource://gre/modules/Services.jsm');
 
-let debug = true;
+let debug = false;
 function log(str) {
   if (!debug)
     return;
@@ -298,11 +298,18 @@ SocksClient.prototype = {
       let length = bytes[1] & ~kMaskBit;
       if (length < 126) {
         headerSize = 6;
-      } else if (lenght == 126) {
-        log('!!frame length = 126. Length calculation need to be implemented');
+      } else if (length == 126) {
+        length = bytes[2] << 8 | bytes[3];
         headerSize = 8;
       } else if (length == 127) {
-        log('!!frame length = 127. Length calculation need to be implemented');
+        length = bytes[2] << (1 << 7) |
+                 bytes[3] << (1 << 6) |
+                 bytes[4] << (1 << 5) |
+                 bytes[5] << (1 << 4) |
+                 bytes[6] << (1 << 3) |
+                 bytes[7] << (1 << 2) |
+                 bytes[8] << (1 << 1) |
+                 bytes[9] << (1 << 0);
         headerSize = 14;
       }
 

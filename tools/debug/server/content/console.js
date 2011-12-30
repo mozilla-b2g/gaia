@@ -66,10 +66,24 @@ const RemoteConsole = {
       new HUDHooks({
         'jsterm': {
           'propertyProvider': function autocomplete(scope, inputValue) {
-            // XXX remote this call
+  
+            server.send('JSPropertyProvider("' + inputValue + '")');
+
+            // XXX this should be enhance with a frame id to know when
+            // the real reply has arrived instead of randomly use the
+            // reply from the remote side.
+            let currentThread = Cc["@mozilla.org/thread-manager;1"]
+                                  .getService(Ci.nsIThreadManager)
+                                  .currentThread;
+
+            self.waitForResponse = true;
+            while (self.waitForResponse)
+              currentThread.processNextEvent(true);
+
+            let response = self.response.split(',');
             return {
-              matchProp: inputValue,
-              matches: []
+              matchProp: response.pop(),
+              matches: response
             };
           },
           'evalInSandbox': function eval(str) {
