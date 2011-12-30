@@ -69,6 +69,9 @@ const IMEManager = {
     return this.candidatePanel = candidatePanel;
   },
 
+  get keyHighlight () {
+    return document.getElementById('keyboard-key-highlight');
+  },
 
   events: ['showime', 'hideime', 'unload', 'appclose'],
   imeEvents: ['touchstart', 'touchend', 'click'],
@@ -159,6 +162,18 @@ const IMEManager = {
           return;
         target.dataset.active = 'true';
 
+        this.keyHighlight.innerHTML = target.innerHTML;
+        this.keyHighlight.className = 'show';
+        this.keyHighlight.style.top = target.offsetTop.toString(10) + 'px';
+
+        var keyHightlightWidth = this.keyHighlight.offsetWidth;
+        var keyHightlightLeft = target.offsetLeft + target.offsetWidth / 2 - keyHightlightWidth / 2;
+        keyHightlightLeft = Math.max(keyHightlightLeft, 5);
+        keyHightlightLeft = Math.min(keyHightlightLeft, window.innerWidth - keyHightlightWidth - 5);
+
+        this.keyHighlight.style.left = keyHightlightLeft.toString(10) + 'px';
+
+
         if (keyCode != KeyEvent.DOM_VK_BACK_SPACE)
           return;
 
@@ -185,6 +200,8 @@ const IMEManager = {
         if (!keyCode)
           return;
         delete target.dataset.active;
+
+        this.keyHighlight.className = '';
 
         clearTimeout(this._timeout);
         clearInterval(this._interval);
@@ -282,6 +299,8 @@ const IMEManager = {
       });
       content += '</div>';
     });
+
+    content += '<span id="keyboard-key-highlight"></span>';
 
     this.ime.innerHTML = content;
 
