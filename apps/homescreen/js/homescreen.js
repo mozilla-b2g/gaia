@@ -289,7 +289,7 @@ function NotificationScreen(touchables) {
   this.attachEvents(this.touchable);
 
   if (!('mozTelephony' in window.navigator) ||
-      window.navigator.mozTelephony)
+      !window.navigator.mozTelephony)
     return;
 
   var telephony = window.navigator.mozTelephony;
