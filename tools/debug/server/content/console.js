@@ -1,56 +1,40 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-const Cu = Components.utils;
-
 const RemoteConsole = {
+  _server: null,
   init: function rc_init() {
     try {
-      Cu.import('resource:///modules/HUDService.jsm');
-      HUDService.wakeup();
+      // Start the WebSocketServer
+      let server = this._server = new WebSocketServer();
+      server.start();
 
-      // XXX should use a properties
-      let topWindow = HUDService.currentContext();
-      topWindow.document.title = 'Remote Console';
+      // Configure the hooks to the HUDService
+      new HUDHooks({
+        'jsterm': {
+          'propertyProvider': function autocomplete(scope, inputValue) {
+            return {
+              matchProp: inputValue,
+              matches: ['argh']
+            };
+          },
+          'evalInSandbox': function eval(str) {
+            if (str.trim() === 'help' || str.trim() === '?')
+              str = 'help()';
 
-      let browser = topWindow.gBrowser.selectedBrowser;
-      let notificationBoxId = browser.parentNode.parentNode.id;
-      HUDService.registerActiveContext(notificationBoxId);
-      HUDService.windowInitializer(window);
-
-      let hudId = 'hud_' + notificationBoxId;
-      HUDService.disableAnimation(hudId);
-
-      // Ensure the hud takes all the window available height
-      let hud = browser.ownerDocument.getElementById(hudId);
-      topWindow.addEventListener('resize', function hudResizeHandler() {
-        hud.style.height = topWindow.innerHeight + 'px';
+            let result = 'urgh!';
+            return result;
+          }
+        }
       });
-
-      let hudRef = HUDService.getHudReferenceById(hudId);
-      let jsterm = hudRef.jsterm;
-
-      // XXX implement the communication over websocket
-      // rewire the input autocompletion
-      jsterm.propertyProvider = function(scope, inputValue) {
-        return {
-          matchProp: inputValue,
-          matches: ['argh']
-        };
-      };
-
-      // XXX implement the communication over websocket
-      // rewire the output evaluation
-      jsterm.evalInSandbox = function(str) {
-        if (str.trim() === 'help' || str.trim() === '?')
-          str = 'help()';
-      
-        let result = 'urgh!';
-        return result;
-      };
     } catch (e) {
       dump(e);
     }
+  },
+
+  uninit: function rc_uninit() {
+    this._server.stop();
+    delete this._server;
   }
 };
 
@@ -84,7 +68,7 @@ function handlerMaker(obj) {
             });
             return val;
           }
-        }
+        };
       }
       return Object.getOwnPropertyDescriptor(Object.prototype, name);
     },

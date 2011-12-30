@@ -18,48 +18,38 @@ const BinaryInputStream = CC('@mozilla.org/binaryinputstream;1',
 
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 Cu.import('resource://gre/modules/Services.jsm');
-Cu.import("resource:///modules/HUDService.jsm");
 
-const SERVER_CONTRACTID = '@mozilla.org/server/gaia;1';
-const SERVER_CID = CID('{cff21d8a-3140-11e1-9a20-af1d63323c56}');
-
-const ServerFactory = {
-  _instance: null,
-  createInstance: function sf_createInstance(outer, iid) {
-    if (outer != null)
-      throw Cr.NS_ERROR_NO_AGGREGATION;
-    return this._instance || (this._instance = new ServerGaia());
-  }
-};
-
-
-let debug = false;
+let debug = true;
 function log(str) {
   if (!debug)
     return;
 
-  dump('ServerGaia: ' + str + '\n');
+  dump('WebSocketServer: ' + str + '\n');
 }
 
-// ServerGaia Impl
+// WebSocketServer Impl
 const SOCKET_PORT = 6789;
 
-function ServerGaia() {
+function WebSocketServer() {
   log('new server');
 }
 
-ServerGaia.prototype = {
+WebSocketServer.prototype = {
   start: function sg_start() {
+    log('starting socket...');
     let socket = this._socket = new ServerSocket(SOCKET_PORT, false, -1);
     socket.asyncListen(this);
+    log('started');
   },
 
   stop: function sg_stop() {
+    log('stopping server...');
     this._connections.forEach(function(client) {
       client.close();
     });
 
     this._socket.close();
+    log('stopped');
   },
 
   // nsIServerSocketListener impl
@@ -74,35 +64,7 @@ ServerGaia.prototype = {
   },
 
   onStopListening: function sg_onStopListening(sock, status) {
-  },
-
-  // nsIObserver impl
-  observe: function sg_observe(subject, topic, data) {
-    switch (topic) {
-      case 'profile-after-change':
-        log('starting socket...');
-        this.start();
-        log('started');
-
-        Services.obs.addObserver(this, 'quit-application', false);
-        break;
-      case 'quit-application':
-        log('stopping server...');
-        this.stop();
-        log('stopped');
-
-        Services.obs.removeObserver(this, 'quit-application');
-        break;
-      default:
-        throw Components.Exception('Unknown topic: ' + topic);
-    }
-  },
-
-  classID: SERVER_CID,
-  _xpcom_factory: ServerFactory,
-  QueryInterface: XPCOMUtils.generateQI([
-    Ci.nsIObserver, Ci.nsIServerSocketListener
-  ])
+  }
 };
 
 
@@ -349,7 +311,4 @@ SocksClient.prototype = {
     }
   }
 };
-
-
-NSGetFactory = XPCOMUtils.generateNSGetFactory([ServerGaia]);
 
