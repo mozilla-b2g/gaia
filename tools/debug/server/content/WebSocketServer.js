@@ -35,6 +35,26 @@ function WebSocketServer() {
 }
 
 WebSocketServer.prototype = {
+  _listeners: [],
+  addListener: function sg_addListener(listener) {
+    this._listeners.push(listener);
+  },
+
+  removeListener: function sg_removeListener(listener) {
+    let listeners = this._listeners;
+    let index = listeners.indexOf(listener);
+    if (index == -1)
+      return;
+    listeners.splice(index, 1);
+  },
+
+  dispatchMessage: function sg_dispatchMessage(msg) {
+    let listeners = this._listeners;
+    let count = listeners.length;
+    for (let i = 0; i < count; i++)
+      listeners[i](msg);
+  },
+
   start: function sg_start() {
     log('starting socket...');
     let socket = this._socket = new ServerSocket(SOCKET_PORT, false, -1);
@@ -45,22 +65,41 @@ WebSocketServer.prototype = {
   stop: function sg_stop() {
     log('stopping server...');
     this._connections.forEach(function(client) {
-      client.close();
+      client.socks.close();
     });
+    this._connections = [];
 
     this._socket.close();
     log('stopped');
   },
 
+  send: function sg_send(message) {
+    this._connections.forEach(function(client) {
+      client.socks.write(message);
+    });
+  },
+
   // nsIServerSocketListener impl
   _connections: [],
   onSocketAccepted: function sg_onSocketAccepted(sock, transport) {
-    log('new client connection');
+    let host = transport.host;
+    let port = transport.port;
+    log('new client connection: ' + host + ':' + port);
 
     let input = transport.openInputStream(0, 0, 0);
     let output = transport.openOutputStream(0, 0, 0);
     let client = new SocksClient(this, input, output);
-    this._connections.push(client);
+    this._connections.push({
+      socks: client,
+      host: host,
+      port: port
+    });
+
+    this.dispatchMessage({
+      'type': 'connect',
+      'host': host,
+      'port': port
+    });
   },
 
   onStopListening: function sg_onStopListening(sock, status) {
@@ -112,6 +151,7 @@ const currentThread = Cc['@mozilla.org/thread-manager;1']
 function SocksClient(server, input, output) {
   this._input = input;
   this._output = output;
+  this._server = server;
   this.state = STATE_CONNECTING;
 
   this.waitRead();
@@ -121,7 +161,7 @@ SocksClient.prototype = {
   onInputStreamReady: function sc_onInputStreamReady(input) {
     let len = input.available();
     if (len == 0) {
-      log('client closed');
+      this.close();
       return;
     }
 
@@ -145,8 +185,13 @@ SocksClient.prototype = {
 
       case STATE_CONNECTED:
         try {
-          let command = JSON.parse(this._parseFrame(bytes));
-          this._executeCommand(command);
+          let [frame, nextFrame] = [bytes, null];
+          while (frame.length) {
+            [frame, nextFrame] = this._parseFrame(frame);
+            this._server.dispatchMessage(frame);
+
+            frame = nextFrame;
+          }
         } catch (e) {
           dump('Error while parsing frame: ' + e + '\n');
         }
@@ -162,6 +207,7 @@ SocksClient.prototype = {
 
     let len = output.write(buffer, buffer.length);
     if (len == buffer.length) {
+      this._outputBuffer = '';
       return;
     }
 
@@ -170,6 +216,7 @@ SocksClient.prototype = {
   },
 
   close: function sc_close() {
+    log('client closed');
     this._input.close();
     this._output.close();
   },
@@ -234,15 +281,15 @@ SocksClient.prototype = {
 
     if (type & kControlFrameMask) {
       log('receive a control frame. Aborting.');
-      return;
+      return [null, null];
     }
 
     if (type & kBinary) {
       log('receive a binary frame. Aborting.');
-      return;
+      return [null, null];
     } else if (type & kContinuation) {
       log('receive a continuation frame. Aborting.');
-      return;
+      return [null, null];
     }
 
     if (type & kText) {
@@ -263,51 +310,15 @@ SocksClient.prototype = {
       log('masks: ' + masks);
 
       let decoded = [];
-      for (let i = headerSize, j = 0; i < bytes.length; i++, j++)
+      let frameLength = length + headerSize;
+      for (let i = headerSize, j = 0; i < frameLength; i++, j++)
         decoded[j] = String.fromCharCode(bytes[i] ^ masks[j % 4]);
 
-      log('server: text: ' + decoded + '(' + length + ')\n');
-      return decoded.join('');
-    }
-  },
+      log('server: text: ' + decoded + '(' + length + ')');
 
-  _executeCommand: function sc_executeCommand(json) {
-    let consoleWindow = null;
-    let enumerator = Services.wm.getEnumerator('');
-    while (enumerator.hasMoreElements()) {
-      let win = enumerator.getNext().getBrowser().contentWindow;
-      if (win.location == 'chrome://gaia/content/console.xul') {
-        consoleWindow = win;
-        break;
-      }
-    }
-    let console = consoleWindow.console;
-
-    let processedArguments = [];
-    for (let arg in json.arguments) {
-      processedArguments.push(json.arguments[arg]);
-    }
-
-    switch (json.type) {
-      case 'log':
-      case 'debug':
-      case 'info':
-      case 'warn':
-      case 'error':
-      case 'group':
-      case 'groupCollapsed':
-      case 'groupEnd':
-      case 'time':
-      case 'timeEnd':
-        console[json.type].apply(null, processedArguments);
-        break;
-      case 'dir':
-      case 'trace':
-        Cu.reportError('Unsupported command: ' + json.type);
-        break;
-      default:
-        Cu.reportError('Unknow command: ' + json.type);
-        break;
+      let frame = decoded.join('');
+      let nextFrame = bytes.slice(frameLength, bytes.length);
+      return [frame, nextFrame];
     }
   }
 };

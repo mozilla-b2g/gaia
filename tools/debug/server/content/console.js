@@ -2,28 +2,93 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 const RemoteConsole = {
+  get localConsole() {
+    delete this.localConsole;
+    let context = HUDService.currentContext();
+    let console = context.gBrowser.selectedBrowser.contentWindow.console;
+    return this.localConsole = console;
+  },
+
+  interpret: function rc_interpret(msg) {
+    let json = msg;
+    try {
+      json = JSON.parse(json);
+    } catch(e) {}
+
+    let console = this.localConsole;
+    switch (json.type) {
+      case 'connect':
+        console.info('Connection from ' + json.host);
+        break;
+      case 'connect':
+        // XXX handle disconnect
+        break;
+      case 'reply':
+        this.response = json.rv;
+        this.waitForResponse = false;
+        break;
+      case 'log':
+      case 'debug':
+      case 'info':
+      case 'warn':
+      case 'error':
+      case 'group':
+      case 'groupCollapsed':
+      case 'groupEnd':
+      case 'time':
+      case 'timeEnd':
+        let processedArguments = [];
+        for (let arg in json.arguments)
+          processedArguments.push(json.arguments[arg]);
+
+        console[json.type].apply(null, processedArguments);
+        break;
+      case 'dir':
+      case 'trace':
+        Cu.reportError('Unsupported command: ' + json.type);
+        break;
+      default:
+        Cu.reportError('Unknow command: ' + json.type);
+        break;
+    }
+  },
+
   _server: null,
   init: function rc_init() {
     try {
       // Start the WebSocketServer
       let server = this._server = new WebSocketServer();
+      server.addListener(this.interpret.bind(this));
       server.start();
 
       // Configure the hooks to the HUDService
+      let self = this;
       new HUDHooks({
         'jsterm': {
           'propertyProvider': function autocomplete(scope, inputValue) {
+            // XXX remote this call
             return {
               matchProp: inputValue,
-              matches: ['argh']
+              matches: []
             };
           },
           'evalInSandbox': function eval(str) {
             if (str.trim() === 'help' || str.trim() === '?')
               str = 'help()';
 
-            let result = 'urgh!';
-            return result;
+            server.send(str);
+        
+            // XXX this should be enhance with a frame id to know when
+            // the real reply has arrived instead of randomly use the
+            // reply from the remote side.
+            let currentThread = Cc["@mozilla.org/thread-manager;1"]
+                                  .getService(Ci.nsIThreadManager)
+                                  .currentThread;
+
+            self.waitForResponse = true;
+            while (self.waitForResponse)
+              currentThread.processNextEvent(true);
+            return self.response;
           }
         }
       });
@@ -37,121 +102,4 @@ const RemoteConsole = {
     delete this._server;
   }
 };
-
-function handlerMaker(obj) {
-  return {
-    // Fundamental traps
-    getOwnPropertyDescriptor: function(name) {
-      dump('getOwnPropertyDescriptor: ' + name + '\n');
-
-      let desc = Object.getOwnPropertyDescriptor(obj, name);
-
-      // a trapping proxy's properties must always be configurable
-      if (desc !== undefined)
-        desc.configurable = true;
-      return desc;
-    },
-
-    getPropertyDescriptor: function(name) {
-      dump('getPropertyDescriptor: ' + name + '\n');
-
-      let index = ~~name;
-      if (index == name && index > 1) {
-        return {
-          get: function() {
-            let val = this[index - 1] + this[index - 2];
-            Object.defineProperty(this, index, {
-              value: val,
-              enumerable: true,
-              writable: true,
-              configurable: true
-            });
-            return val;
-          }
-        };
-      }
-      return Object.getOwnPropertyDescriptor(Object.prototype, name);
-    },
-
-    getOwnPropertyNames: function() {
-      dump('getOwnPropertyNames\n');
-
-      return Object.getOwnPropertyNames(obj);
-    },
-
-    getPropertyNames: function() {
-      dump('getPropertyNames\n');
-
-      return Object.getPropertyNames(obj); // not in ES5
-    },
-
-    defineProperty: function(name, desc) {
-      dump('defineProperty: ' + name + ' = ' + desc + '\n');
-
-      Object.defineProperty(obj, name, desc);
-    },
-
-    delete: function(name) {
-      dump('delete ' + name + '\n');
-
-      return delete obj[name];
-    },
-
-    fix: function() {
-      dump('fix\n');
-
-      if (Object.isFrozen(obj)) {
-        return Object.getOwnPropertyNames(obj).map(function(name) {
-          return Object.getOwnPropertyDescriptor(obj, name);
-        });
-      }
-
-      // As long as obj is not frozen, the proxy won't allow itself to be fixed
-      return undefined; // will cause a TypeError to be thrown
-    },
-
-    // derived traps
-    has: function(name) {
-      dump('has: ' + name + '\n');
-      return name in obj;
-    },
-
-    hasOwn: function(name) {
-      dump('hasOwn: ' + name + '\n');
-
-      return Object.prototype.hasOwnProperty.call(obj, name);
-    },
-
-    get: function(receiver, name) {
-      dump('get: ' + name + '\n');
-
-      let object = obj[name];
-      if (object)
-        return Proxy.create(handlerMaker(object));
-      return object;
-    },
-
-    set: function(receiver, name, val) {
-      dump('set: ' + name + ' = ' + val + '\n');
-
-      obj[name] = val;
-      return true;
-    }, // bad behavior when set fails in non-strict mode
-
-    enumerate: function() {
-      dump('enumerate\n');
-
-      let result = [];
-      for (name in obj)
-        result.push(name);
-      return result;
-    },
-
-    keys: function() {
-      dump('keys\n');
-
-      return Object.keys(obj);
-    }
-  };
-}
 

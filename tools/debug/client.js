@@ -17,7 +17,7 @@
   }
 
 
-  var debug = false;
+  var debug = true;
   function log(str) {
     if (!debug)
       return;
@@ -57,7 +57,17 @@
     };
 
     ws.onmessage = function ws_message(msg) {
-      log('websocket message: ' + evt.data);
+      log('websocket message: ' + msg.data);
+      var json = {
+        'type': 'reply',
+        'rv': ''
+      };
+      try {
+        json.rv = new String(eval(msg.data));
+      } catch(e) {
+        json.rv = new String(e);
+      }
+      ws.send(JSON.stringify(json));
     };
 
     return ws;
