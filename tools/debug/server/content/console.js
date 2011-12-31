@@ -24,8 +24,15 @@ const RemoteConsole = {
         // XXX handle disconnect
         break;
       case 'reply':
-        this.response = json.rv;
-        this.waitForResponse = false;
+        let replyId = json.replyTo;
+        for (let i = 0; i < this._replies.length; i++) {
+          let reply = this._replies[i];
+          if (reply.id == replyId) {
+            reply.data = json.rv;
+            reply.state = 'replied';
+            break;
+          }
+        }
         break;
       case 'log':
       case 'debug':
@@ -53,6 +60,7 @@ const RemoteConsole = {
     }
   },
 
+  _msgId: 0,
   _server: null,
   init: function rc_init() {
     try {
@@ -61,48 +69,63 @@ const RemoteConsole = {
       server.addListener(this.interpret.bind(this));
       server.start();
 
-      // Configure the hooks to the HUDService
       let self = this;
+      this._replies = [];
+      let waitForMessageReply = function waitForMessageReply(id) {
+        let msg = {
+          'id': id,
+          'state': 'waiting',
+          'data': null
+        };
+
+        let replies = self._replies;
+        let index = replies.length;
+        replies.push(msg);
+
+        let currentThread = Cc["@mozilla.org/thread-manager;1"]
+                              .getService(Ci.nsIThreadManager)
+                              .currentThread;
+
+        // XXX add a timeout and ensure the server is alive
+        while (msg.state == 'waiting')
+          currentThread.processNextEvent(true);
+
+        replies.splice(index, 1);
+        return msg.data;
+      };
+
+      // Configure the hooks to the HUDService
       new HUDHooks({
         'jsterm': {
           'propertyProvider': function autocomplete(scope, inputValue) {
-  
-            server.send('JSPropertyProvider("' + inputValue + '")');
+            let id = self._msgId++;
+            let data = 'JSPropertyProvider(\'' + inputValue + '\')';
+            let json = {
+              'id': id,
+              'data': data
+            };
 
-            // XXX this should be enhance with a frame id to know when
-            // the real reply has arrived instead of randomly use the
-            // reply from the remote side.
-            let currentThread = Cc["@mozilla.org/thread-manager;1"]
-                                  .getService(Ci.nsIThreadManager)
-                                  .currentThread;
+            server.send(JSON.stringify(json));
+            let reply = waitForMessageReply(id);
 
-            self.waitForResponse = true;
-            while (self.waitForResponse)
-              currentThread.processNextEvent(true);
-
-            let response = self.response.split(',');
+            let data = reply.split(',');
             return {
-              matchProp: response.pop(),
-              matches: response
+              'matchProp': data.pop(),
+              'matches': data 
             };
           },
           'evalInSandbox': function eval(str) {
             if (str.trim() === 'help' || str.trim() === '?')
               str = 'help()';
 
-            server.send(str);
-        
-            // XXX this should be enhance with a frame id to know when
-            // the real reply has arrived instead of randomly use the
-            // reply from the remote side.
-            let currentThread = Cc["@mozilla.org/thread-manager;1"]
-                                  .getService(Ci.nsIThreadManager)
-                                  .currentThread;
+            let id = self._msgId++;
+            let json = {
+              'id': id,
+              'data': str
+            };
 
-            self.waitForResponse = true;
-            while (self.waitForResponse)
-              currentThread.processNextEvent(true);
-            return self.response;
+            server.send(JSON.stringify(json));
+            return waitForMessageReply(id);
           }
         }
       });

@@ -9,9 +9,7 @@
     }
 
     var socket = createWebSocket(server);
-
     remoteMethods(socket);
-
   } catch (e) {
     dump(e + '\n');
   }
@@ -58,16 +56,21 @@
 
     ws.onmessage = function ws_message(msg) {
       log('websocket message: ' + msg.data);
-      var json = {
-        'type': 'reply',
-        'rv': ''
-      };
       try {
-        json.rv = new String(eval(msg.data));
+        var json = JSON.parse(msg.data);
+
+        var reply = {
+          'id': json.id + 1,
+          'replyTo': json.id,
+          'type': 'reply',
+          'rv': ''
+        };
+
+        reply.rv = new String(eval(json.data));
       } catch(e) {
-        json.rv = new String(e);
+        reply.rv = new String(e);
       }
-      ws.send(JSON.stringify(json));
+      ws.send(JSON.stringify(reply));
     };
 
     return ws;
