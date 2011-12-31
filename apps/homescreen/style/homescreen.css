@@ -305,23 +305,26 @@ iframe.appWindow.noTransition {
 }
 
 #keyboard-candidate-panel {
-  height: 64px; overflow: hidden;
-  color: white;
-  background: -moz-linear-gradient(top, rgb(34,37,42) 10%, rgb(4,4,12) 90%);
+  height: 64px;
+  overflow: hidden;
+  color: black;
+  background: -moz-linear-gradient(top, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
+  border-top: 1px solid #e8e8ff;
+  border-bottom: 1px solid #808098;
   display: none;
 }
 #keyboard-candidate-panel.show {
   display: block;
 }
 #keyboard-candidate-panel span {
-  border-right: 1px solid #909090;
+  border-left: 1px solid #e8e8ff;
+  border-right: 1px solid #808098;
   font-size: 32px;
-  line-height: 64px;
-  display: block;
-  float: left;
+  line-height: 60px;
+  min-width: 60px;
+  display: inline-block;
   height: 64px;
   padding: 0 5px;
-  min-width: 1em;
   text-align: center;
 }
 
