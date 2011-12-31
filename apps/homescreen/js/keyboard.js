@@ -273,7 +273,17 @@ const IMEManager = {
         var code = key.keyCode || key.value.charCodeAt(0);
         var size = ((width - (row.length * 2)) / (layout.width || 10));
         size = size * (key.ratio || 1) - 2;
-        content += '<span class="keyboard-key"' +
+        var className = 'keyboard-key';
+        if (
+          code < 0
+          || code == KeyEvent.DOM_VK_BACK_SPACE
+          || code == KeyEvent.DOM_VK_CAPS_LOCK
+          || code == KeyEvent.DOM_VK_RETURN
+          || code == KeyEvent.DOM_VK_ALT
+        ) {
+          className += ' keyboard-key-special';
+        }
+        content += '<span class="' + className + '"' +
                           'data-keycode="' + code + '"' +
                           'style="width:' + size + 'px"' +
                    '>' +

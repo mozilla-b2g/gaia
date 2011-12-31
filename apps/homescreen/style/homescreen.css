@@ -351,3 +351,11 @@ iframe.appWindow.noTransition {
   color: #ccc;
   background: -moz-linear-gradient(bottom, rgb(94,97,102) 10%, rgb(64,64,72) 90%);
 }
+
+.keyboard-key-special {
+  background: -moz-linear-gradient(top, #464766 10%, #363748 90%);
+}
+
+.keyboard-key-special[data-active] {
+  background: -moz-linear-gradient(bottom, #464766 10%, #363748 90%);
+}
