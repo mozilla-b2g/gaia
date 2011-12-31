@@ -7,6 +7,7 @@ const IMEManager = {
   BASIC_LAYOUT: -1,
   ALTERNATE_LAYOUT: -2,
   SWITCH_KEYBOARD: -3,
+  TOGGLE_CANDIDATE_PANEL: -4,
 
   // IME Engines are self registering here.
   IMEngines: {},
@@ -155,9 +156,10 @@ const IMEManager = {
 
       case 'touchstart':
         var keyCode = parseInt(target.getAttribute('data-keycode'));
+        target.dataset.active = 'true';
+
         if (!keyCode)
           return;
-        target.dataset.active = 'true';
 
         if (keyCode != KeyEvent.DOM_VK_BACK_SPACE)
           return;
@@ -182,9 +184,10 @@ const IMEManager = {
 
       case 'touchend':
         var keyCode = parseInt(target.getAttribute('data-keycode'));
+        delete target.dataset.active;
+
         if (!keyCode)
           return;
-        delete target.dataset.active;
 
         clearTimeout(this._timeout);
         clearInterval(this._interval);
@@ -223,6 +226,16 @@ const IMEManager = {
               this.currentKeyboard = keyboards[++index];
 
             this.updateLayout(this.currentKeyboard);
+          break;
+
+          case this.TOGGLE_CANDIDATE_PANEL:
+            if (this.candidatePanel.className == 'full') {
+              this.candidatePanel.className = 'show';
+              target.className = 'show';
+            } else {
+              this.candidatePanel.className = 'full';
+              target.className = 'full';
+            }
           break;
 
           case KeyEvent.DOM_VK_CAPS_LOCK:
@@ -296,6 +309,12 @@ const IMEManager = {
     this.ime.innerHTML = content;
 
     if (layout.needsCandidatePanel) {
+      var toggleButton = document.createElement('span');
+      toggleButton.innerHTML = '⇪';
+      toggleButton.id = 'keyboard-candidate-panel-toggle-button';
+      toggleButton.dataset.keycode = this.TOGGLE_CANDIDATE_PANEL;
+      this.ime.insertBefore(toggleButton, this.ime.firstChild);
+
       this.ime.insertBefore(this.candidatePanel, this.ime.firstChild);
       this.showCandidates([]);
       this.currentEngine.empty();
@@ -346,14 +365,18 @@ const IMEManager = {
   showCandidates: function km_showCandidates(candidates) {
     // TODO: candidate panel should be allow toggled to fullscreen
     var candidatePanel = document.getElementById('keyboard-candidate-panel');
+    var toggleButton = document.getElementById('keyboard-candidate-panel-toggle-button');
+
     candidatePanel.innerHTML = '';
     candidatePanel.className = '';
+    toggleButton.className = '';
 
     if (!candidates.length) {
       this.updateKeyboardHeight();
       return;
     }
 
+    toggleButton.className = 'show';
     candidatePanel.className = 'show';
     candidates.forEach(function buildCandidateEntry(candidate) {
       var span = document.createElement('span');

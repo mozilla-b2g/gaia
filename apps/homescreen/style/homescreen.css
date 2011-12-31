@@ -306,9 +306,10 @@ iframe.appWindow.noTransition {
 
 #keyboard-candidate-panel {
   height: 64px;
-  overflow: hidden;
+  overflow: auto;
+  white-space: nowrap;
   color: black;
-  background: -moz-linear-gradient(top, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
+  background: -moz-repeating-linear-gradient(top, rgb(191,191,183) 0, rgb(191,191,183) 6.4px, rgb(161,158,153) 57.6px, rgb(161,158,153) 66px);
   border-top: 1px solid #e8e8ff;
   border-bottom: 1px solid #808098;
   display: none;
@@ -316,6 +317,20 @@ iframe.appWindow.noTransition {
 #keyboard-candidate-panel.show {
   display: block;
 }
+#keyboard-candidate-panel.full {
+  display: block;
+  position: absolute;
+  white-space: normal;
+  bottom: 0;
+  height: -moz-calc(100% + 66px);
+  width: 100%;
+  border: none;
+}
+#keyboard-candidate-panel.full span {
+  border-top: 1px solid #e8e8ff;
+  border-bottom: 1px solid #808098;
+}
+
 #keyboard-candidate-panel span {
   border-left: 1px solid #e8e8ff;
   border-right: 1px solid #808098;
@@ -324,8 +339,42 @@ iframe.appWindow.noTransition {
   min-width: 60px;
   display: inline-block;
   height: 64px;
-  padding: 0 5px;
+  padding: 0 10px;
   text-align: center;
+}
+#keyboard-candidate-panel span[data-active] {
+  background: -moz-linear-gradient(bottom, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
+}
+
+#keyboard-candidate-panel-toggle-button {
+  border-left: 1px solid #e8e8ff;
+  border-right: 1px solid #808098;
+  position: absolute;
+  font-size: 32px;
+  line-height: 60px;
+  right: 0;
+  top: 1px;
+  text-align: center;
+  box-shadow: -4px 0 5px -5px black;
+  width: 60px;
+  height: 64px;
+  color: black;
+  background: -moz-linear-gradient(top, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
+  display: none;
+}
+#keyboard-candidate-panel-toggle-button[data-active] {
+  background: -moz-linear-gradient(bottom, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
+}
+
+#keyboard-candidate-panel-toggle-button.full {
+  display: block;
+  border-top: 1px solid #e8e8ff;
+  border-bottom: 1px solid #808098;
+  top: -66px;
+}
+
+#keyboard-candidate-panel-toggle-button.show {
+  display: block;
 }
 
 #keyboard[data-hidden] {
