@@ -61,6 +61,34 @@ const RemoteConsole = {
   },
 
   _msgId: 0,
+  generateMessageId: function rc_generateMessageId() {
+    return this._msgId++;
+  },
+
+  _replies: [],
+  waitForMessageReply: function rc_waitForMessageReply(id) {
+    let msg = {
+      'id': id,
+      'state': 'waiting',
+      'data': null
+    };
+
+    let replies = this._replies;
+    let index = replies.length;
+    replies.push(msg);
+
+    let currentThread = Cc["@mozilla.org/thread-manager;1"]
+                          .getService(Ci.nsIThreadManager)
+                          .currentThread;
+
+    // XXX add a timeout and ensure the server is alive
+    while (msg.state == 'waiting')
+      currentThread.processNextEvent(true);
+
+    replies.splice(index, 1);
+    return msg.data;
+  },
+
   _server: null,
   init: function rc_init() {
     try {
@@ -69,36 +97,13 @@ const RemoteConsole = {
       server.addListener(this.interpret.bind(this));
       server.start();
 
-      let self = this;
-      this._replies = [];
-      let waitForMessageReply = function waitForMessageReply(id) {
-        let msg = {
-          'id': id,
-          'state': 'waiting',
-          'data': null
-        };
-
-        let replies = self._replies;
-        let index = replies.length;
-        replies.push(msg);
-
-        let currentThread = Cc["@mozilla.org/thread-manager;1"]
-                              .getService(Ci.nsIThreadManager)
-                              .currentThread;
-
-        // XXX add a timeout and ensure the server is alive
-        while (msg.state == 'waiting')
-          currentThread.processNextEvent(true);
-
-        replies.splice(index, 1);
-        return msg.data;
-      };
-
       // Configure the hooks to the HUDService
+      let waitForMessageReply = this.waitForMessageReply.bind(this);
+      let generateMessageId = this.generateMessageId.bind(this);
       new HUDHooks({
         'jsterm': {
           'propertyProvider': function autocomplete(scope, inputValue) {
-            let id = self._msgId++;
+            let id = generateMessageId();
             let data = 'JSPropertyProvider(\'' + inputValue + '\')';
             let json = {
               'id': id,
@@ -118,7 +123,7 @@ const RemoteConsole = {
             if (str.trim() === 'help' || str.trim() === '?')
               str = 'help()';
 
-            let id = self._msgId++;
+            let id = generateMessageId();
             let json = {
               'id': id,
               'data': str
