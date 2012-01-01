@@ -1,0 +1,12 @@
+#viewGroup.remote-console {
+  display: -moz-box;
+}
+
+#viewGroup.remote-console spacer + toolbarbutton,
+#viewGroup.remote-console [category="net"],
+#viewGroup.remote-console [category="js"],
+#viewGroup.remote-console [category="css"],
+#viewGroup.remote-console .webconsole-close-button {
+  display: none;
+  display: none;
+}

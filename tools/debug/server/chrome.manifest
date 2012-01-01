@@ -1,3 +1,4 @@
-content gaia content/
+content gaia chrome/content/
+skin gaia classic/1.0 chrome/skin/
 overlay  chrome://browser/content/browser.xul  chrome://gaia/content/gaiaOverlay.xul
 

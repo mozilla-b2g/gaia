@@ -26,6 +26,9 @@ HUDHooks.prototype = {
     }
 
     // Ensure the hud takes all the window available height
+    let toolbar = context.document.getElementById('viewGroup');
+    toolbar.classList.add('remote-console');
+
     let hud = browser.ownerDocument.getElementById(hudId);
     context.addEventListener('resize', function resizeHandler() {
       hud.style.height = context.innerHeight + 'px';
