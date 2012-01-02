@@ -36,7 +36,11 @@ Settings.prototype = {
 
   _requests: [],
   handleEvent: function settings_handleEvent(event) {
-    var data = event.data.split(':');
+    var data = event.data;
+    if (typeof data !== 'string')
+      return;
+    
+    data = event.data.split(':');
     if (data.length < 4 || data[0] != 'settings')
       return;
 
@@ -152,8 +156,8 @@ Settings.prototype = {
 
         var settings = [
           {
-            id: 'lockscreen',
-            value: 'enabled'
+            id: 'lockscreen.enabled',
+            value: true
           }
         ];
 
@@ -194,7 +198,8 @@ Settings.prototype = {
                                            IDBTransaction.READ_ONLY);
     var request = transaction.objectStore('settings').get(name);
     request.onsuccess = function onsuccess(e) {
-      callback(e.target.result.value);
+      var result = e.target.result;
+      callback(result ? result.value : null);
     };
 
     request.onerror = function onerror(e) {
