@@ -41,7 +41,10 @@ const IMEManager = {
   },
 
   get isAlternateLayout() {
-    return (this.currentKeyboardMode == 'Alternate');
+    return (
+      this.currentKeyboardMode == 'Alternate'
+      || this.currentKeyboardMode == 'Symbol'
+    );
   },
 
   set isAlternateLayout(isAlternateLayout) {
@@ -51,6 +54,20 @@ const IMEManager = {
     } else {
       this.currentKeyboardMode = '';
       this.updateLayout(this.currentKeyboard);
+    }
+  },
+
+  get isSymbolLayout() {
+    return (this.currentKeyboardMode == 'Symbol');
+  },
+
+  set isSymbolLayout(isSymbolLayout) {
+    if (isSymbolLayout) {
+      this.currentKeyboardMode = 'Symbol';
+      this.updateLayout('symbolLayout');
+    } else {
+      this.currentKeyboardMode = '';
+      this.updateLayout('alternateLayout');
     }
   },
 
@@ -240,6 +257,10 @@ const IMEManager = {
               this.candidatePanel.className = 'full';
               target.className = 'full';
             }
+          break;
+
+          case KeyEvent.DOM_VK_ALT:
+            this.isSymbolLayout = !this.isSymbolLayout;
           break;
 
           case KeyEvent.DOM_VK_CAPS_LOCK:
