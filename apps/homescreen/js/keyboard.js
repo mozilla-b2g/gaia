@@ -58,6 +58,10 @@ const IMEManager = {
   kRepeatTimeout: 700,
   kRepeatRate: 100,
 
+  // Taps the shift key twice within kCapsLockTimeout to lock the keyboard at upper case state.
+  kCapsLockTimeout: 450,
+  isUpperCaseLocked: false,
+
   get ime() {
     delete this.ime;
     return this.ime = document.getElementById('keyboard');
@@ -239,6 +243,29 @@ const IMEManager = {
           break;
 
           case KeyEvent.DOM_VK_CAPS_LOCK:
+            if (this.isWaitingForSecondTap) {
+              this.isUpperCaseLocked = true;
+              if (!this.isUpperCase) {
+                this.isUpperCase = true;
+
+                // XXX: keyboard updated; target is lost.
+                target =
+                  document.querySelector('span[data-keycode="' + KeyEvent.DOM_VK_CAPS_LOCK + '"]');
+              }
+              target.dataset.enabled = 'true';
+              delete this.isWaitingForSecondTap;
+              break;
+            }
+            this.isWaitingForSecondTap = true;
+
+            setTimeout(
+              (function removeCapsLockTimeout() {
+                delete this.isWaitingForSecondTap;
+              }).bind(this),
+              this.kCapsLockTimeout
+            );
+
+            this.isUpperCaseLocked = false;
             this.isUpperCase = !this.isUpperCase;
           break;
 
@@ -262,7 +289,7 @@ const IMEManager = {
             //window.navigator.mozKeyboard.sendKey(0, keyCode);
             window.navigator.mozKeyboard.sendKey(keyCode, keyCode);
 
-            if (this.isUpperCase)
+            if (this.isUpperCase && !this.isUpperCaseLocked)
               this.isUpperCase = false;
           break;
         }
@@ -295,6 +322,9 @@ const IMEManager = {
           || code == KeyEvent.DOM_VK_ALT
         ) {
           className += ' keyboard-key-special';
+        }
+        if (code == KeyEvent.DOM_VK_CAPS_LOCK) {
+          className += ' toggle';
         }
         content += '<span class="' + className + '"' +
                           'data-keycode="' + code + '"' +

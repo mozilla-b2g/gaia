@@ -412,3 +412,26 @@ iframe.appWindow.noTransition {
 .keyboard-key-special[data-active] {
   background: -moz-linear-gradient(bottom, #464766 10%, #363748 90%);
 }
+
+.keyboard-key-special.toggle {
+  position: relative;
+}
+.keyboard-key-special.toggle::before {
+  content: '';
+  display: block;
+  position: absolute;
+  left 0;
+  top: 0;
+  margin: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  background-color: #333;
+}
+.keyboard-key-special[data-enabled] {
+  text-shadow: 0 0 5px #fff;
+}
+.keyboard-key-special[data-enabled]::before {
+  background-color: #0c0;
+  box-shadow: 0 0 5px #fff;
+}
