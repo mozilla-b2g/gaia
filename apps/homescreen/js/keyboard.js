@@ -397,6 +397,16 @@ const IMEManager = {
     var ime = this.ime;
     var targetWindow = this.targetWindow;
 
+    if (ime.offsetHeight !== 0) {
+      targetWindow.className += ' noTransition';
+      setTimeout(
+        function removeNoTransition() {
+          targetWindow.className = targetWindow.className.replace(/ noTransition/g, '');
+        },
+        0
+      );
+    }
+
     // Need these to correctly measure scrollHeight
     ime.style.height = null;
     ime.style.overflowY = 'hidden';
@@ -416,11 +426,6 @@ const IMEManager = {
     targetWindow.dataset.rectHeight =
       targetWindow.getBoundingClientRect().height;
 
-    targetWindow.addEventListener('transitionend', function imeShow() {
-      targetWindow.removeEventListener('transitionend', imeShow);
-      targetWindow.className += ' noTransition';
-    });
-
     this.updateLayout(this.currentKeyboard);
     delete ime.dataset.hidden;
   },
@@ -435,7 +440,6 @@ const IMEManager = {
     }).bind(this);
 
     targetWindow.addEventListener('transitionend', imeHide);
-    targetWindow.className = targetWindow.className.replace(/ noTransition/, '');
     targetWindow.style.height = targetWindow.dataset.cssHeight;
     delete targetWindow.dataset.cssHeight;
     delete targetWindow.dataset.rectHeight;
