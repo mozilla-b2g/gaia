@@ -51,8 +51,9 @@ WebSocketServer.prototype = {
   dispatchMessage: function sg_dispatchMessage(msg) {
     let listeners = this._listeners;
     let count = listeners.length;
-    for (let i = 0; i < count; i++)
-      listeners[i](msg);
+    listeners.forEach(function(listener) {
+      listener(msg);
+    });
   },
 
   start: function sg_start() {

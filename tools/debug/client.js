@@ -15,7 +15,7 @@
   }
 
 
-  var debug = true;
+  var debug = false;
   function log(str) {
     if (!debug)
       return;
