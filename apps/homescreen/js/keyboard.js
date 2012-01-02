@@ -42,8 +42,8 @@ const IMEManager = {
 
   get isAlternateLayout() {
     return (
-      this.currentKeyboardMode == 'Alternate'
-      || this.currentKeyboardMode == 'Symbol'
+      this.currentKeyboardMode == 'Alternate' ||
+      this.currentKeyboardMode == 'Symbol'
     );
   },
 
@@ -58,7 +58,7 @@ const IMEManager = {
   },
 
   get isSymbolLayout() {
-    return (this.currentKeyboardMode == 'Symbol');
+    return this.currentKeyboardMode == 'Symbol';
   },
 
   set isSymbolLayout(isSymbolLayout) {
@@ -75,7 +75,8 @@ const IMEManager = {
   kRepeatTimeout: 700,
   kRepeatRate: 100,
 
-  // Taps the shift key twice within kCapsLockTimeout to lock the keyboard at upper case state.
+  // Taps the shift key twice within kCapsLockTimeout
+  // to lock the keyboard at upper case state.
   kCapsLockTimeout: 450,
   isUpperCaseLocked: false,
 
@@ -91,7 +92,7 @@ const IMEManager = {
     return this.candidatePanel = candidatePanel;
   },
 
-  get keyHighlight () {
+  get keyHighlight() {
     return document.getElementById('keyboard-key-highlight');
   },
 
@@ -190,9 +191,14 @@ const IMEManager = {
         this.keyHighlight.style.top = target.offsetTop.toString(10) + 'px';
 
         var keyHightlightWidth = this.keyHighlight.offsetWidth;
-        var keyHightlightLeft = target.offsetLeft + target.offsetWidth / 2 - keyHightlightWidth / 2;
+        var keyHightlightLeft =
+          target.offsetLeft + target.offsetWidth / 2 - keyHightlightWidth / 2;
         keyHightlightLeft = Math.max(keyHightlightLeft, 5);
-        keyHightlightLeft = Math.min(keyHightlightLeft, window.innerWidth - keyHightlightWidth - 5);
+        keyHightlightLeft =
+          Math.min(
+            keyHightlightLeft,
+            window.innerWidth - keyHightlightWidth - 5
+          );
 
         this.keyHighlight.style.left = keyHightlightLeft.toString(10) + 'px';
 
@@ -288,7 +294,9 @@ const IMEManager = {
 
                 // XXX: keyboard updated; target is lost.
                 target =
-                  document.querySelector('span[data-keycode="' + KeyEvent.DOM_VK_CAPS_LOCK + '"]');
+                  document.querySelector(
+                    'span[data-keycode="' + KeyEvent.DOM_VK_CAPS_LOCK + '"]'
+                  );
               }
               target.dataset.enabled = 'true';
               delete this.isWaitingForSecondTap;
@@ -353,17 +361,17 @@ const IMEManager = {
         size = size * (key.ratio || 1) - 2;
         var className = 'keyboard-key';
         if (
-          code < 0
-          || code == KeyEvent.DOM_VK_BACK_SPACE
-          || code == KeyEvent.DOM_VK_CAPS_LOCK
-          || code == KeyEvent.DOM_VK_RETURN
-          || code == KeyEvent.DOM_VK_ALT
+          code < 0 ||
+          code == KeyEvent.DOM_VK_BACK_SPACE ||
+          code == KeyEvent.DOM_VK_CAPS_LOCK ||
+          code == KeyEvent.DOM_VK_RETURN ||
+          code == KeyEvent.DOM_VK_ALT
         ) {
           className += ' keyboard-key-special';
         }
-        if (code == KeyEvent.DOM_VK_CAPS_LOCK) {
+        if (code == KeyEvent.DOM_VK_CAPS_LOCK)
           className += ' toggle';
-        }
+
         content += '<span class="' + className + '"' +
                           'data-keycode="' + code + '"' +
                           'style="width:' + size + 'px"' +
@@ -401,7 +409,8 @@ const IMEManager = {
       targetWindow.className += ' noTransition';
       setTimeout(
         function removeNoTransition() {
-          targetWindow.className = targetWindow.className.replace(/ noTransition/g, '');
+          targetWindow.className =
+            targetWindow.className.replace(/ noTransition/g, '');
         },
         0
       );
@@ -432,7 +441,7 @@ const IMEManager = {
 
   hideIME: function km_hideIME(targetWindow) {
     var ime = this.ime;
-    var imeHide = (function (evt) {
+    var imeHide = (function(evt) {
       targetWindow.removeEventListener('transitionend', imeHide);
       delete this.targetWindow;
 
@@ -451,7 +460,8 @@ const IMEManager = {
   showCandidates: function km_showCandidates(candidates) {
     // TODO: candidate panel should be allow toggled to fullscreen
     var candidatePanel = document.getElementById('keyboard-candidate-panel');
-    var toggleButton = document.getElementById('keyboard-candidate-panel-toggle-button');
+    var toggleButton =
+      document.getElementById('keyboard-candidate-panel-toggle-button');
 
     candidatePanel.innerHTML = '';
 
