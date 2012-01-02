@@ -8,7 +8,7 @@ html, body {
   color: white;
   font-family: "Roboto", sans-serif;
 
-  background: url(images/home-texture.png) repeat scroll 0 0 #292B2F;
+  background: url(images/home-texture.png) repeat scroll 2% 50% #666666;
 }
 
 html * {
@@ -47,18 +47,18 @@ html * {
   position: absolute;
   width: 100%;
   bottom: 0px;
-  padding: 20px 0px;
+  padding: 20px 0px 15px 0px;
 
   -moz-transition: bottom 0.3s ease;
 }
 
 #tabs {
-	width: -moz-calc(100% - 30px);
-  padding: 5px 5px 3px 5px;
+	width: -moz-calc(100% - 38px);
+  padding: 9px 9px 7px 9px;
   margin: auto;
 
   background-color: rgba(0,0,0,.3);
-  border-radius: 3px;
+  border-radius: 5px;
 }
 
 #tabs fieldset {
@@ -71,10 +71,9 @@ html * {
 	display: -moz-box;
 	-moz-box-orient: horizontal;
 
-	border: 1px solid rgb(28,28,28);
-	border-radius: 2px;
-
-  background: -moz-linear-gradient(top, rgb(136,138,136) 1px, rgb(114,115,114) 2px, rgb(56,56,56) 100%);
+	border: 1px solid #333333;
+  border-radius: 3px;
+  background:-moz-linear-gradient(top, hsl(0,0%,65%) 0, hsl(0,0%,56%) 1px, hsl(0,0%,37%) 100%);
 }
 
 #tabs label {
@@ -97,28 +96,30 @@ html * {
 
 #tabs label:first-child {
   border-left-color: transparent;
+  border-radius: 3px 0 0 3px;
 }
 #tabs label:last-child {
   border-right-color: transparent;
+  border-radius: 0 3px 3px 0;
 }
 
 #keyboard-label {
   background-image: url(images/numpad-icon.png);
 }
 #keyboard-label[data-active] {
-  background: url(images/numpad-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(56,56,56) 0, rgb(114,115,114) 100%);
+  background: url(images/numpad-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 1px, hsl(0,0%,56%) 100%);
 }
 #contacts-label {
   background-image: url(images/contacts-icon.png);
 }
 #contacts-label[data-active]{
-  background: url(images/contacts-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(56,56,56) 0, rgb(114,115,114) 100%);
+  background: url(images/contacts-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 1px, hsl(0,0%,56%) 100%);
 }
 #favorites-label {
   background-image: url(images/favorite-icon.png);
 }
 #favorites-label[data-active] {
-  background: url(images/favorite-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(56,56,56) 0, rgb(114,115,114) 100%);
+  background: url(images/favorite-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 1px, hsl(0,0%,56%) 100%);
 }
 
 /* === Application Views === */
@@ -144,21 +145,23 @@ html * {
 
 #phone-number-view-container {
   overflow: hidden;
-  height: 100px;
-  padding: 20px 0px;
+  width: -moz-calc(100% - 38px);
+  margin: 20px auto;
+  padding: 9px;
+
+  border-radius: 5px;
+	background:rgba(0,0,0,0.3);
 }
 
 #phone-number-view-container > div {
   display: block;
   position: relative;
-  width: -moz-calc(100% - 40px);
   height: 80px;
   margin: auto;
-  padding: 5px;
-  overflow: hidden;
 
-  border:5px rgba(0,0,0,.3) solid;
-  border-radius: 3px;
+  border: medium none;
+  border-radius: 5px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.3) inset;
 
   text-align: center;
   font-size: 3.5em;
@@ -166,22 +169,6 @@ html * {
   text-overflow: ellipsis;
 	text-shadow:0 0 3px rgba(0,0,0,.5);
 	white-space: nowrap;
-
-	background:rgba(0,0,0,0.15);
-}
-
-#phone-number-view-container::before, #phone-number-view-container::after {
-	content: "";
-	display: block;
-	position: absolute;
-	top: 21px;
-	width: 100%;
-	height: 1px;
-
-	background: -moz-linear-gradient(left, rgba(255,255,255,0) 0%, rgba(255,255,255,.20) 50%, rgba(255,255,255,0) 100%);
-}
-#phone-number-view-container::after {
-	top: 118px;
 }
 
 #phone-number-view {
@@ -192,19 +179,17 @@ html * {
 .keyboard-key[data-value="del"] {
 	position: absolute;
 	display: block;
-	right: 0px;
+	right: 5px;
 	top: 0;
 	width: 60px;
-	height: 90px;
+	height: 80px;
 
   border: 0;
 	border-radius: 2px;
-	background: url(images/remove.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(136,138,136) 1px, rgb(114,115,114) 2px, rgb(56,56,56) 100%) no-repeat 50% 50%;
-  background-size: auto, 30px 30px;
+  background: url(images/backspace.png) 50% 50% no-repeat;
 }
 .keyboard-key[data-value="del"]:active {
-	background: url(images/remove.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(56,56,56) 0, rgb(114,115,114) 100%) no-repeat 50% 50%;
-  background-size: auto, 30px 30px;
+  background: url(images/backspace-active.png) 50% 50% no-repeat;
 }
 
 #fake-phone-number-view {
@@ -220,13 +205,13 @@ html * {
 }
 
 #mainKeyset-container {
-  width: -moz-calc(100% - 30px);
-  height: -moz-calc(80% - 40px);
+  width: -moz-calc(100% - 38px);
+  height: -moz-calc(80% - 48px);
   min-height: 200px;
-  padding: 5px;
+  padding: 9px 9px 11px 9px;
   margin: auto auto 20px auto;
 
-  border-radius: 3px;
+  border-radius: 5px;
   background-color: rgba(0,0,0,0.3);
 }
 
@@ -234,7 +219,8 @@ html * {
   height: 100%;
   padding: 0;
 
-  border-radius: 2px;
+  border-radius: 5px;
+  border: 1px #333333 solid;
 	background: -moz-linear-gradient(top, rgb(136,138,136) 1px, rgb(114,115,114) 2px, rgb(56,56,56) 100%);
 }
 
@@ -282,6 +268,9 @@ html * {
 .keyboard-key:active {
 	background: -moz-linear-gradient(top, rgb(56,56,56) 0%, rgb(114,115,114) 100%);
 }
+.keyboard-key:active > span:first-child {
+  color: hsl(76,85%,47%);
+}
 .keyboard-key span {
 	display: block;
 	padding: 7px 0 0 0;
@@ -302,12 +291,12 @@ html * {
 }
 
 #additionalKeyset {
-  width: -moz-calc(100% - 30px);
-  height: 20%;
-  padding: 5px 5px 2px 5px;
+  width: -moz-calc(100% - 38px);
+  height: -moz-calc(20% - 9px);
+  padding: 9px 9px 6px 9px;
   margin: auto;
 
-  border-radius: 3px;
+  border-radius: 5px;
   background-color: rgba(0, 0, 0, 0.3);
 }
 
@@ -319,7 +308,7 @@ html * {
 	display: block;
   width: -moz-calc(100% - 2px);
   height: -moz-calc(100% - 12px);
-  min-height: 50px;
+  min-height: 58px;
 
 	border-radius: 3px;
 	background: url(images/call-icon.png) no-repeat 50% 50%,-moz-linear-gradient(top, rgb(177,214,0) 1px, rgb(143,195,0) 2px, rgb(82,107,23) 100%);
