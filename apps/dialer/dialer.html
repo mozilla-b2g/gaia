@@ -97,35 +97,27 @@
           </div>
         </div>
       </div>
-
-      <div class="main-button-container">
-        <div id="closeModal-button" data-action="closeModal" onclick="CallHandler.execute(this.dataset.action);">
-          <span>Close</span>
-        </div>
-      </div>
     </div>
 
     <div id="call-screen">
-      <div id="call-number-view">
-      </div>
       <div id="call-status-view">
       </div>
+      <div id="call-number-view">
+      </div>
       <div id="call-actions-container">
-        <div id="keypad-button" class="top" data-action="keypad" onclick="CallHandler.execute(this.dataset.action);">
-          Keypad
-        </div>
-        <div id="contacts-button" class="top" data-action="contacts" onclick="CallHandler.execute(this.dataset.action);">
-          Contacts
-        </div>
-        <div id="mute-button" data-action="toggleMute" onclick="CallHandler.execute(this.dataset.action);">
-          <span>Mute</span>
-          <span>Unmute</span>
+        <div id="call-actions">
+          <div id="keypad-button" data-action="keypad" onclick="CallHandler.execute(this.dataset.action);">
+          </div>
+          <div id="contacts-button" data-action="contacts" onclick="CallHandler.execute(this.dataset.action);">
+          </div>
+          <div id="mute-button" data-action="toggleMute" onclick="CallHandler.execute(this.dataset.action);">
+          </div>
         </div>
       </div>
       <div class="main-button-container">
         <div id="call-button" onclick="CallHandler.execute(this.dataset.action);">
-          <span>Answer call</span>
-          <span>End call</span>
+          <span></span>
+          <span></span>
         </div>
       </div>
     </div>

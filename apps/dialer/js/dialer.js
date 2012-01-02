@@ -276,8 +276,10 @@ var CallHandler = {
   },
   end: function ch_end() {
     this.toggleCallScreen();
-    this.currentCall.disconnect();
-    this.currentCall.removeEventListener('readystatechange', this);
+    try {
+      this.currentCall.disconnect();
+      this.currentCall.removeEventListener('readystatechange', this);
+    } catch (e) {}
 
     this.actionsView.classList.remove('displayed');
     if (this.muteButton.classList.contains('mute'))
@@ -333,15 +335,24 @@ var CallHandler = {
   },
   keypad: function ch_keypad() {
     choiceChanged(document.getElementById('keyboard-label'));
-    document.getElementById('views').classList.add('modal');
+    this.toggleModal();
   },
   contacts: function ch_contacts() {
+    Contacts.load();
     choiceChanged(document.getElementById('contacts-label'));
-    document.getElementById('views').classList.add('modal');
+    this.toggleModal();
   },
-  closeModal: function ch_closeModal() {
+  toggleModal: function ch_toggleModal() {
     // 2 steps closing to avoid showing the view in its non-modal state
     // during the transition
+    var views = document.getElementById('views');
+    if (views.classList.contains('modal')) {
+      this.closeModal();
+    } else {
+      views.classList.add('modal');
+    }
+  },
+  closeModal: function ch_closeModal() {
     var views = document.getElementById('views');
     views.classList.add('hidden');
     views.addEventListener('transitionend', function ch_closeModalFinish() {
