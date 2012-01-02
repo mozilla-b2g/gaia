@@ -91,6 +91,9 @@ const IMEManager = {
     return this.candidatePanel = candidatePanel;
   },
 
+  get keyHighlight () {
+    return document.getElementById('keyboard-key-highlight');
+  },
 
   events: ['showime', 'hideime', 'unload', 'appclose'],
   imeEvents: ['touchstart', 'touchend', 'click'],
@@ -179,8 +182,20 @@ const IMEManager = {
         var keyCode = parseInt(target.getAttribute('data-keycode'));
         target.dataset.active = 'true';
 
-        if (!keyCode)
+        if (!keyCode && !target.dataset.selection)
           return;
+
+        this.keyHighlight.innerHTML = target.innerHTML;
+        this.keyHighlight.className = 'show';
+        this.keyHighlight.style.top = target.offsetTop.toString(10) + 'px';
+
+        var keyHightlightWidth = this.keyHighlight.offsetWidth;
+        var keyHightlightLeft = target.offsetLeft + target.offsetWidth / 2 - keyHightlightWidth / 2;
+        keyHightlightLeft = Math.max(keyHightlightLeft, 5);
+        keyHightlightLeft = Math.min(keyHightlightLeft, window.innerWidth - keyHightlightWidth - 5);
+
+        this.keyHighlight.style.left = keyHightlightLeft.toString(10) + 'px';
+
 
         if (keyCode != KeyEvent.DOM_VK_BACK_SPACE)
           return;
@@ -207,8 +222,10 @@ const IMEManager = {
         var keyCode = parseInt(target.getAttribute('data-keycode'));
         delete target.dataset.active;
 
-        if (!keyCode)
+        if (!keyCode && !target.dataset.selection)
           return;
+
+        this.keyHighlight.className = '';
 
         clearTimeout(this._timeout);
         clearInterval(this._interval);
@@ -356,6 +373,8 @@ const IMEManager = {
       });
       content += '</div>';
     });
+
+    content += '<span id="keyboard-key-highlight"></span>';
 
     this.ime.innerHTML = content;
 
