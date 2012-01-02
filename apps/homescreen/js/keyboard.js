@@ -380,16 +380,20 @@ const IMEManager = {
     var toggleButton = document.getElementById('keyboard-candidate-panel-toggle-button');
 
     candidatePanel.innerHTML = '';
-    candidatePanel.className = '';
-    toggleButton.className = '';
 
     if (!candidates.length) {
+      toggleButton.className = '';
+      candidatePanel.className = '';
       this.updateKeyboardHeight();
       return;
     }
 
-    toggleButton.className = 'show';
-    candidatePanel.className = 'show';
+    toggleButton.className = toggleButton.className || 'show';
+    candidatePanel.className = candidatePanel.className || 'show';
+
+    if (toggleButton.className == 'show')
+      this.updateKeyboardHeight();
+
     candidates.forEach(function buildCandidateEntry(candidate) {
       var span = document.createElement('span');
       span.dataset.data = candidate[1];
@@ -397,8 +401,6 @@ const IMEManager = {
       span.textContent = candidate[0];
       candidatePanel.appendChild(span);
     });
-
-    this.updateKeyboardHeight();
   }
 };
 
