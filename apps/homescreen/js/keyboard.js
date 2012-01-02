@@ -327,39 +327,51 @@ const IMEManager = {
     var ime = this.ime;
     var targetWindow = this.targetWindow;
 
-    var newHeight = targetWindow.dataset.rectHeight -
-                    ime.getBoundingClientRect().height;
-    if (ime.getBoundingClientRect().top < window.innerHeight) {
-      targetWindow.style.height = newHeight + 'px';
-      return;
-    }
+    // Need these to correctly measure scrollHeight
+    ime.style.height = null;
+    ime.style.overflowY = 'hidden';
+    var scrollHeight = ime.scrollHeight;
+    ime.style.overflowY = null;
 
-    ime.addEventListener('transitionend', function imeShow(evt) {
-      ime.removeEventListener('transitionend', imeShow);
-      targetWindow.style.height = newHeight + 'px';
-    });
+    targetWindow.style.height =
+      (targetWindow.dataset.rectHeight - scrollHeight) + 'px';
+    ime.style.height = scrollHeight + 'px';
   },
 
   showIME: function km_showIME(targetWindow, type) {
     this.targetWindow = targetWindow;
+    var ime = this.ime;
     var oldHeight = targetWindow.style.height;
     targetWindow.dataset.cssHeight = oldHeight;
     targetWindow.dataset.rectHeight =
       targetWindow.getBoundingClientRect().height;
 
+    targetWindow.addEventListener('transitionend', function imeShow() {
+      targetWindow.removeEventListener('transitionend', imeShow);
+      targetWindow.className += ' noTransition';
+    });
+
     this.updateLayout(this.currentKeyboard);
-    delete this.ime.dataset.hidden;
+    delete ime.dataset.hidden;
   },
 
   hideIME: function km_hideIME(targetWindow) {
+    var ime = this.ime;
+    var imeHide = (function (evt) {
+      targetWindow.removeEventListener('transitionend', imeHide);
+      delete this.targetWindow;
+
+      ime.innerHTML = '';
+    }).bind(this);
+
+    targetWindow.addEventListener('transitionend', imeHide);
+    targetWindow.className = targetWindow.className.replace(/ noTransition/, '');
     targetWindow.style.height = targetWindow.dataset.cssHeight;
     delete targetWindow.dataset.cssHeight;
     delete targetWindow.dataset.rectHeight;
-    delete this.targetWindow;
 
-    var ime = this.ime;
+    ime.style.height = null;
     ime.dataset.hidden = 'true';
-    ime.innerHTML = '';
   },
 
   showCandidates: function km_showCandidates(candidates) {

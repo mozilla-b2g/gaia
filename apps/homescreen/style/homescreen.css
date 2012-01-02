@@ -142,7 +142,7 @@ iframe.appWindow {
   height: 100%;
   -moz-transform-origin: center bottom;
   -moz-transform: scale(0);
-  -moz-transition: all 0.3s ease;
+  -moz-transition: all 0.2s ease;
 }
 
 iframe.appWindow.active {
@@ -298,10 +298,15 @@ iframe.appWindow.noTransition {
   position: absolute;
   z-index: 9997;
   bottom: 0;
+  height: auto;
+  overflow: visible;
   background-color: #36373b;
   width: -moz-calc(100%);
-  min-height: 200px;
-  -moz-transition: bottom 0.2s ease;
+  -moz-transition: height 0.2s ease;
+}
+
+#keyboard[data-hidden] {
+  height: 0;
 }
 
 #keyboard-candidate-panel {
@@ -309,7 +314,7 @@ iframe.appWindow.noTransition {
   overflow: auto;
   white-space: nowrap;
   color: black;
-  background: -moz-repeating-linear-gradient(top, rgb(191,191,183) 0, rgb(191,191,183) 6.4px, rgb(161,158,153) 57.6px, rgb(161,158,153) 66px);
+  background: rgb(176, 174, 168);
   border-top: 1px solid #e8e8ff;
   border-bottom: 1px solid #808098;
   display: none;
@@ -322,7 +327,7 @@ iframe.appWindow.noTransition {
   position: absolute;
   white-space: normal;
   bottom: 0;
-  height: -moz-calc(100% + 66px);
+  height: -moz-calc(100%);
   width: 100%;
   border: none;
 }
@@ -341,9 +346,7 @@ iframe.appWindow.noTransition {
   height: 64px;
   padding: 0 10px;
   text-align: center;
-}
-#keyboard-candidate-panel span[data-active] {
-  background: -moz-linear-gradient(bottom, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
+  background: -moz-linear-gradient(top, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
 }
 
 #keyboard-candidate-panel-toggle-button {
@@ -362,23 +365,21 @@ iframe.appWindow.noTransition {
   background: -moz-linear-gradient(top, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
   display: none;
 }
-#keyboard-candidate-panel-toggle-button[data-active] {
-  background: -moz-linear-gradient(bottom, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
-}
 
 #keyboard-candidate-panel-toggle-button.full {
   display: block;
   border-top: 1px solid #e8e8ff;
   border-bottom: 1px solid #808098;
-  top: -66px;
+  top: 0;
 }
 
 #keyboard-candidate-panel-toggle-button.show {
   display: block;
 }
 
-#keyboard[data-hidden] {
-  bottom: -800px;
+#keyboard-candidate-panel span[data-active],
+#keyboard-candidate-panel-toggle-button[data-active] {
+  background: -moz-linear-gradient(bottom, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
 }
 
 .keyboard-key {
