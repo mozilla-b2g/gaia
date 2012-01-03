@@ -1,0 +1,32 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <title>Dialer intent tests</title>
+    <script type="text/javascript" src="../framework/MochiKiti-1.4.2/MochiKit/MochiKit.js"></script>
+    <script type="text/javascript" src="../framework/SimpleTest/SimpleTest.js"></script>
+    <link rel="stylesheet" type="text/css" href="../framework/SimpleTest/test.css" />
+  </head>
+  <body>
+    <p id="display"></p>
+    <div id="content" style="display: none">
+      <iframe src="/apps/dialer/dialer.html?choice=contact"></iframe>
+    </div>
+    <pre id="test">
+    <script class="testbody" type="text/javascript">
+      var dialerFrame = document.getElementsByTagName('iframe')[0];
+
+      dialerFrame.addEventListener('load', function runWhenLoaded(evt) {
+        dialerFrame.removeEventListener('load', runWhenLoaded);
+
+        var dialerWindow = dialerFrame.contentWindow;
+        // TODO: trigger a real visibility change event
+        dialerWindow.visibilityChanged(dialerWindow.location.href);
+
+        ok(!dialerWindow.document.getElementById('contacts-view').hidden, "Contact view displayed");
+        ok(dialerWindow.Contacts._loaded, "Contacts loaded");
+      });
+    </script>
+    </pre>
+  </body>
+</html>
+
