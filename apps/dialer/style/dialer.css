@@ -8,7 +8,7 @@ html, body {
   color: white;
   font-family: "Roboto", sans-serif;
 
-  background: url(images/home-texture.png) repeat scroll 0 0 #292B2F;
+  background: url(images/home-texture.png) repeat scroll 2% 50% #666666;
 }
 
 html * {
@@ -47,18 +47,18 @@ html * {
   position: absolute;
   width: 100%;
   bottom: 0px;
-  padding: 20px 0px;
+  padding: 20px 0px 15px 0px;
 
   -moz-transition: bottom 0.3s ease;
 }
 
 #tabs {
-	width: -moz-calc(100% - 30px);
-  padding: 5px 5px 3px 5px;
+	width: -moz-calc(100% - 38px);
+  padding: 9px 9px 7px 9px;
   margin: auto;
 
   background-color: rgba(0,0,0,.3);
-  border-radius: 3px;
+  border-radius: 5px;
 }
 
 #tabs fieldset {
@@ -71,10 +71,9 @@ html * {
 	display: -moz-box;
 	-moz-box-orient: horizontal;
 
-	border: 1px solid rgb(28,28,28);
-	border-radius: 2px;
-
-  background: -moz-linear-gradient(top, rgb(136,138,136) 1px, rgb(114,115,114) 2px, rgb(56,56,56) 100%);
+	border: 1px solid #333333;
+  border-radius: 3px;
+  background:-moz-linear-gradient(top, hsl(0,0%,65%) 0, hsl(0,0%,56%) 1px, hsl(0,0%,37%) 100%);
 }
 
 #tabs label {
@@ -97,28 +96,30 @@ html * {
 
 #tabs label:first-child {
   border-left-color: transparent;
+  border-radius: 3px 0 0 3px;
 }
 #tabs label:last-child {
   border-right-color: transparent;
+  border-radius: 0 3px 3px 0;
 }
 
 #keyboard-label {
   background-image: url(images/numpad-icon.png);
 }
 #keyboard-label[data-active] {
-  background: url(images/numpad-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(56,56,56) 0, rgb(114,115,114) 100%);
+  background: url(images/numpad-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 1px, hsl(0,0%,56%) 100%);
 }
 #contacts-label {
   background-image: url(images/contacts-icon.png);
 }
 #contacts-label[data-active]{
-  background: url(images/contacts-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(56,56,56) 0, rgb(114,115,114) 100%);
+  background: url(images/contacts-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 1px, hsl(0,0%,56%) 100%);
 }
 #favorites-label {
   background-image: url(images/favorite-icon.png);
 }
 #favorites-label[data-active] {
-  background: url(images/favorite-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(56,56,56) 0, rgb(114,115,114) 100%);
+  background: url(images/favorite-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 1px, hsl(0,0%,56%) 100%);
 }
 
 /* === Application Views === */
@@ -144,21 +145,23 @@ html * {
 
 #phone-number-view-container {
   overflow: hidden;
-  height: 100px;
-  padding: 20px 0px;
+  width: -moz-calc(100% - 38px);
+  margin: 20px auto;
+  padding: 9px;
+
+  border-radius: 5px;
+	background:rgba(0,0,0,0.3);
 }
 
 #phone-number-view-container > div {
   display: block;
   position: relative;
-  width: -moz-calc(100% - 40px);
   height: 80px;
   margin: auto;
-  padding: 5px;
-  overflow: hidden;
 
-  border:5px rgba(0,0,0,.3) solid;
-  border-radius: 3px;
+  border: medium none;
+  border-radius: 5px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.3) inset;
 
   text-align: center;
   font-size: 3.5em;
@@ -166,22 +169,6 @@ html * {
   text-overflow: ellipsis;
 	text-shadow:0 0 3px rgba(0,0,0,.5);
 	white-space: nowrap;
-
-	background:rgba(0,0,0,0.15);
-}
-
-#phone-number-view-container::before, #phone-number-view-container::after {
-	content: "";
-	display: block;
-	position: absolute;
-	top: 21px;
-	width: 100%;
-	height: 1px;
-
-	background: -moz-linear-gradient(left, rgba(255,255,255,0) 0%, rgba(255,255,255,.20) 50%, rgba(255,255,255,0) 100%);
-}
-#phone-number-view-container::after {
-	top: 118px;
 }
 
 #phone-number-view {
@@ -192,19 +179,17 @@ html * {
 .keyboard-key[data-value="del"] {
 	position: absolute;
 	display: block;
-	right: 0px;
+	right: 5px;
 	top: 0;
 	width: 60px;
-	height: 90px;
+	height: 80px;
 
   border: 0;
 	border-radius: 2px;
-	background: url(images/remove.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(136,138,136) 1px, rgb(114,115,114) 2px, rgb(56,56,56) 100%) no-repeat 50% 50%;
-  background-size: auto, 30px 30px;
+  background: url(images/backspace.png) 50% 50% no-repeat;
 }
 .keyboard-key[data-value="del"]:active {
-	background: url(images/remove.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(56,56,56) 0, rgb(114,115,114) 100%) no-repeat 50% 50%;
-  background-size: auto, 30px 30px;
+  background: url(images/backspace-active.png) 50% 50% no-repeat;
 }
 
 #fake-phone-number-view {
@@ -220,13 +205,13 @@ html * {
 }
 
 #mainKeyset-container {
-  width: -moz-calc(100% - 30px);
-  height: -moz-calc(80% - 40px);
-  min-height: 200px;
-  padding: 5px;
+  width: -moz-calc(100% - 38px);
+  height: -moz-calc(80% - 48px);
+  min-height: 265px;
+  padding: 9px 9px 11px 9px;
   margin: auto auto 20px auto;
 
-  border-radius: 3px;
+  border-radius: 5px;
   background-color: rgba(0,0,0,0.3);
 }
 
@@ -234,7 +219,8 @@ html * {
   height: 100%;
   padding: 0;
 
-  border-radius: 2px;
+  border-radius: 5px;
+  border: 1px #333333 solid;
 	background: -moz-linear-gradient(top, rgb(136,138,136) 1px, rgb(114,115,114) 2px, rgb(56,56,56) 100%);
 }
 
@@ -282,6 +268,9 @@ html * {
 .keyboard-key:active {
 	background: -moz-linear-gradient(top, rgb(56,56,56) 0%, rgb(114,115,114) 100%);
 }
+.keyboard-key:active > span:first-child {
+  color: hsl(76,85%,47%);
+}
 .keyboard-key span {
 	display: block;
 	padding: 7px 0 0 0;
@@ -302,12 +291,12 @@ html * {
 }
 
 #additionalKeyset {
-  width: -moz-calc(100% - 30px);
-  height: 20%;
-  padding: 5px 5px 2px 5px;
+  width: -moz-calc(100% - 38px);
+  height: -moz-calc(20% - 9px);
+  padding: 9px 9px 6px 9px;
   margin: auto;
 
-  border-radius: 3px;
+  border-radius: 5px;
   background-color: rgba(0, 0, 0, 0.3);
 }
 
@@ -319,31 +308,34 @@ html * {
 	display: block;
   width: -moz-calc(100% - 2px);
   height: -moz-calc(100% - 12px);
-  min-height: 50px;
+  min-height: 58px;
 
 	border-radius: 3px;
-	background: url(images/call-icon.png) no-repeat 50% 50%,-moz-linear-gradient(top, rgb(177,214,0) 1px, rgb(143,195,0) 2px, rgb(82,107,23) 100%);
+	background: url(images/call-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(177,214,0) 1px, rgb(143,195,0) 2px, rgb(82,107,23) 100%);
 }
 .keyboard-key[data-value="call"]:active {
   background: none;
 }
 .keyboard-key[data-value="call"]:active span {
-	background: url(images/call-icon.png) no-repeat 50% 50%,-moz-linear-gradient(top, rgb(82,107,23) 0, rgb(143,195,0) 100%);
+	background: url(images/call-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(82,107,23) 0, rgb(143,195,0) 100%);
 }
 
 
 /* === Contacts View === */
 #contacts-view.view {
-  height: -moz-calc(100% - 20px);
-  width: -moz-calc(100% - 30px);
+  height: -moz-calc(100% - 28px);
+  width: -moz-calc(100% - 38px);
   margin: 10px auto auto auto;
 
-  border-radius: 3px;
-  border:5px rgba(0, 0, 0, 0.3) solid;
+  border-radius: 5px;
+  border:9px rgba(0, 0, 0, 0.3) solid;
 }
 #contacts-view-scrollable {
   width: 100%;
   height: 100%;
+
+  border: 1px solid #333333;
+  border-radius: 5px;
   overflow: scroll;
 }
 
@@ -375,19 +367,18 @@ html * {
 
 .contact {
   padding: 4px;
-  height: 56px;
+  height: 10mozmm;
   width: -moz-calc(100% - 2px);
 
-  border-top:1px solid #515151;
-  border-bottom:1px solid #1c1c1c;
+	background: hsl(0,0%,33%);
+	border-top:1px solid hsl(0,0%,48%);
+	border-bottom:1px solid hsl(0,0%,0%);
 
-  line-height: 28px;
-  font-size:14px;
-
-  background: #393939;
+  line-height: 10mozmm;
+  font-size: 4mozmm;
 }
-.contact:nth-of-type(even) {
-  background: #444;
+.contact:nth-of-type(odd) {
+  background: hsl(0,0%,37%);
 }
 
 #contact-create {
@@ -412,28 +403,23 @@ html * {
 
 .contact > img {
   float: left;
-  width: 55px;
-  height: 55px;
-  margin-right: 5px;
+  width: 8mozmm;
+  height: 8mozmm;
+  margin: 1mozmm 2mozmm;
 
   border: 0;
 }
 
 .display-name {
   display: block;
-  color: #c0c0c0;
-  pointer-events: none;
-}
-
-.phone-number {
-  display: block;
-  color: #707070;
+  color: #FFFFFF;
+  text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
   pointer-events: none;
 }
 
 #contacts-shortcuts-background {
   position: fixed;
-  right: 18px;
+  right: 22px;
   top: 71px;
   height: -moz-calc(100% - 202px);
   width : 30px;
@@ -446,7 +432,7 @@ html * {
 
 #contacts-shortcuts {
   position: fixed;
-  right: 15px;
+  right: 19px;
   top: 76px;
   height: -moz-calc(100% - 210px);
   width: 44px;
@@ -689,45 +675,42 @@ html * {
 
 #views.modal {
   position: absolute;
-  top: 116px;
+  top: 60px;
+  height: -moz-calc(100% - 290px);
   opacity: 1;
 
   z-index: 10;
-  background: url(images/home-texture.png) repeat scroll 0 0 #292B2F;
 }
 #views.modal.hidden {
   top: 100%;
   opacity: 0;
 }
 
-#views .main-button-container {
-  display: none;
-}
-
-#views.modal .main-button-container {
-  display: block;
-}
-
+#views.modal #phone-number-view-container,
 #views.modal #additionalKeyset {
   display: none;
 }
 
-/* accounting for the main-button-container below */
 #views.modal #keyboard-container {
-  bottom: -moz-calc(3em + 64px);
+  margin-top: 20px;
+  height: -moz-calc(100% - 20px);
+}
+#views.modal #mainKeyset-container {
+  height: -moz-calc(100% - 20px);
 }
 
 #views.modal #contacts-view {
-  height: -moz-calc(100% - 3em - 116px);
+  margin-top: 20px;
+  height: -moz-calc(100% - 20px);
 }
 
 #views.modal #contacts-shortcuts-background {
-  top: 135px;
-  height: -moz-calc(100% - 150px - 3em - 116px);
+  top: 95px;
+  height: -moz-calc(100% - 340px);
 }
 #views.modal #contacts-shortcuts {
-  top: 140px;
-  height: -moz-calc(100% - 160px - 3em - 116px);
+  top: 100px;
+  height: -moz-calc(100% - 350px);
 }
 
 /* === Call Screen === */
@@ -747,83 +730,95 @@ html * {
 }
 
 #call-number-view {
-  height: 64px;
-  background: -moz-linear-gradient(top, #33ADF9, #0098F8 50%, #008AE0 51%);
-  text-shadow: 1px 1px 0px #000;
+	height: 60px;
+	margin-top: 20px;
+	text-shadow:0 0 3px hsla(0,0%,0%,.5);
+	overflow:hidden;
 
-  font-size: 4em;
-  text-align: center;
-  font-weight: bold;
+	color: hsl(0,0%,100%);
+	font-size:50px;
+	line-height:60px;
+	text-align:center;
 }
 
 #call-status-view {
-  height: 64px;
+	height:58px;
   line-height: 64px;
 
   font-size: 1.5em;
   text-align: center;
+
+	border-top: 1px solid hsl(210, 2%, 48%);
+	border-bottom: 1px solid hsl(210, 2%, 20%);
+	background: url(images/texture.png), -moz-linear-gradient(top, hsl(0,0%,40%) 0%, hsl(0,0%,36%) 50%, hsl(0,0%,28%) 100%);
 }
 
 #call-actions-container {
   position: absolute;
-  width: 72%;
-  height: 200px;
-  top: -moz-calc(50% - 100px);
-  left: 14%;
+  left: 10px;
+  bottom: 128px;
+  width: -moz-calc(100% - 38px);
   overflow: hidden;
+  padding: 9px;
 
-  background-image: -moz-linear-gradient(top, rgb(88,88,88), rgb(44,44,44));
-  border-radius: 10px;
-  border: 2px #EBEBEB solid;
-
-  font-size: 2.2em;
-  text-shadow: 1px 1px 0px #000;
+  background-color: rgba(0,0,0,.3);
+  border-radius: 5px;
 
   opacity: 0;
   -moz-transition: opacity 0.3s ease;
 }
 
-#call-actions-container .top {
-  float: left;
-  width: -moz-calc(50% - 1px);
-  height: -moz-calc(50% - 1px);
-
-  text-align: center;
-  line-height: 99px;
+#call-actions
+{
+  border-radius: 3px;
+  background:-moz-linear-gradient(top, hsl(0,0%,65%) 0, hsl(0,0%,56%) 1px, hsl(0,0%,37%) 100%);
 }
-#call-actions-container .top:active {
-  background-color: rgba(49, 147, 255, 0.7);
+
+#call-actions > div
+{
+  float: left;
+  display: block;
+  width: -moz-calc(100% / 3 - 2px);
+	height: 66px;
+  padding: 0;
+  margin: 0;
+
+	border-right: 1px solid rgb(29,29,29);
+	border-left: 1px solid rgb(123,123,123);
+
+  background-position: 50% 50%;
+  background-repeat: no-repeat;
+}
+#call-actions > div:first-child
+{
+  border-left-color: transparent;
+}
+#call-actions > div:last-child
+{
+  border-right-color: transparent;
 }
 
 #keypad-button {
-  border-right: 2px #EBEBEB solid;
+  border-radius : 3px 0 0 3px;
+  background-image: url(images/numpad-icon.png);
+}
+#keypad-button:active {
+  background: url(images/numpad-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 1px, hsl(0,0%,56%) 100%);
+}
+
+#contacts-button {
+  background-image: url(images/contacts-icon.png);
+}
+#contacts-button:active {
+  background: url(images/contacts-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 1px, hsl(0,0%,56%) 100%);
 }
 
 #mute-button {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  height: -moz-calc(50% - 1px);
-
-  border-top: 2px #EBEBEB solid;
-
-  text-align: center;
+  border-radius : 0 3px 3px 0;
+  background-image: url(images/favorite-icon.png);
 }
 #mute-button.mute {
-  background-color: rgba(49, 147, 255, 0.7);
-}
-
-#mute-button span {
-  line-height: 99px;
-}
-#mute-button span:last-child,
-#mute-button.mute span:first-child {
-  display: none;
-}
-
-#mute-button.mute span:last-child,
-#mute-button span:first-child {
-  display: inline;
+  background: url(images/favorite-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 1px, hsl(0,0%,56%) 100%);
 }
 
 #call-actions-container.displayed {
@@ -832,55 +827,45 @@ html * {
 
 .main-button-container {
   position: absolute;
-  bottom: 0;
-  width: 100%;
-  padding: 10px 0;
+  bottom: 10px;
+  left: 10px;
+  width: -moz-calc(100% - 38px);
+  padding: 9px;
 
-  border-top: 1px #EBEBEB solid;
-  background: -moz-linear-gradient(top, #868686, #7C7C7C 50%, #707070 51%);
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 5px 5px 5px 5px;
 
   text-align: center;
 }
 
-.main-button-container > div:first-child {
-  padding: 12px 0px;
-  max-width: -moz-calc(100% - 22px);
-  margin: 5px 10px;
-  width: 100%;
+#call-button span {
+	display: block;
+  width: -moz-calc(100% - 2px);
+  height: 80px;
 
-  background: -moz-linear-gradient(top, #353535, #252525 50%, #111111 51%);
-  border-radius: 10px;
-  border: 1px solid #151515;
-  border-top: 1px solid #c3d6df;
-  box-shadow: 0 1px 3px black;
-
-  font-size: 3em;
-  text-shadow: 1px 1px 0px #000;
-}
-.main-button-container > div:first-child:active {
-  background: -moz-linear-gradient(bottom, #353535, #252525 50%, #111111 51%);
+	border-radius: 3px;
 }
 
-#call-button {
-  background: -moz-linear-gradient(top, #45c545, #35b535 50%, #21a121 51%);
+#accept-call {
+	background: url(images/call-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(177,214,0) 1px, rgb(143,195,0) 2px, rgb(82,107,23) 100%);
+}
+#end-call {
+	background: url(images/call-end-icon.png) no-repeat 50% 50%,  -moz-linear-gradient(top, hsl(355,93%,42%) 0, hsl(356,94%,37%) 1px, hsl(353,100%,22%) 100%);
 }
 
-#call-button[data-action='end'] {
-  background: -moz-linear-gradient(top, #FF4844, #FF1813 50%, #C70E0C 51%);
-}
-#call-button span:last-child,
-#call-button[data-action='end'] span:first-child {
+#end-call,
+#call-button[data-action='end'] #accept-call {
   display: none;
 }
-#call-button[data-action='end'] span:last-child,
-#call-button span:first-child {
-  display: inline;
+#call-button[data-action='end'] #end-call,
+#call-button #accept-call {
+  display: block;
 }
 
-#call-button:active {
-  background: -moz-linear-gradient(bottom, #45c545, #35b535 50%, #21a121 51%);
+#call-button:active span:first-child {
+	background: url(images/call-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(82,107,23) 0, rgb(143,195,0) 100%);
 }
 
-#call-button[data-action='end']:active {
-  background: -moz-linear-gradient(bottom, #FF4844, #FF1813 50%, #C70E0C 51%);
+#call-button:active span:last-child {
+	background: url(images/call-end-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(353,100%,22%) 0, hsl(356,94%,37%) 100%);
 }
