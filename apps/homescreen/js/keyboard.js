@@ -41,10 +41,8 @@ const IMEManager = {
   },
 
   get isAlternateLayout() {
-    return (
-      this.currentKeyboardMode == 'Alternate' ||
-      this.currentKeyboardMode == 'Symbol'
-    );
+    var alternateLayouts = ['Alternate', 'Symbol'];
+    return alternateLayouts.indexOf(this.currentKeyboardMode) > -1;
   },
 
   set isAlternateLayout(isAlternateLayout) {
@@ -273,13 +271,9 @@ const IMEManager = {
           break;
 
           case this.TOGGLE_CANDIDATE_PANEL:
-            if (this.candidatePanel.className == 'full') {
-              this.candidatePanel.className = 'show';
-              target.className = 'show';
-            } else {
-              this.candidatePanel.className = 'full';
-              target.className = 'full';
-            }
+            var panel = this.candidatePanel;
+            var className = (panel.className == 'full') ? 'full' : 'show';
+            panel.className = target.className = className;
           break;
 
           case KeyEvent.DOM_VK_ALT:
@@ -293,10 +287,9 @@ const IMEManager = {
                 this.isUpperCase = true;
 
                 // XXX: keyboard updated; target is lost.
-                target =
-                  document.querySelector(
-                    'span[data-keycode="' + KeyEvent.DOM_VK_CAPS_LOCK + '"]'
-                  );
+                var selector =
+                  'span[data-keycode="' + KeyEvent.DOM_VK_CAPS_LOCK + '"]';
+                target = document.querySelector(selector);
               }
               target.dataset.enabled = 'true';
               delete this.isWaitingForSecondTap;
@@ -360,15 +353,16 @@ const IMEManager = {
         var size = ((width - (row.length * 2)) / (layout.width || 10));
         size = size * (key.ratio || 1) - 2;
         var className = 'keyboard-key';
-        if (
-          code < 0 ||
-          code == KeyEvent.DOM_VK_BACK_SPACE ||
-          code == KeyEvent.DOM_VK_CAPS_LOCK ||
-          code == KeyEvent.DOM_VK_RETURN ||
-          code == KeyEvent.DOM_VK_ALT
-        ) {
+
+        var specialCodes = [
+          KeyEvent.DOM_VK_BACK_SPACE,
+          KeyEvent.DOM_VK_CAPS_LOCK,
+          KeyEvent.DOM_VK_RETURN,
+          KeyEvent.DOM_VK_ALT
+        ];
+        if (code < 0 || specialCodes.indexOf(code) > -1)
           className += ' keyboard-key-special';
-        }
+
         if (code == KeyEvent.DOM_VK_CAPS_LOCK)
           className += ' toggle';
 
@@ -406,14 +400,10 @@ const IMEManager = {
     var targetWindow = this.targetWindow;
 
     if (ime.offsetHeight !== 0) {
-      targetWindow.className += ' noTransition';
-      setTimeout(
-        function removeNoTransition() {
-          targetWindow.className =
-            targetWindow.className.replace(/ noTransition/g, '');
-        },
-        0
-      );
+      targetWindow.classList.add('noTransition');
+      setTimeout(function remoteNoTransition() {
+        targetWindow.classList.remove('noTransition');
+      }, 0);
     }
 
     // Need these to correctly measure scrollHeight
@@ -429,14 +419,13 @@ const IMEManager = {
 
   showIME: function km_showIME(targetWindow, type) {
     this.targetWindow = targetWindow;
-    var ime = this.ime;
     var oldHeight = targetWindow.style.height;
     targetWindow.dataset.cssHeight = oldHeight;
     targetWindow.dataset.rectHeight =
       targetWindow.getBoundingClientRect().height;
 
     this.updateLayout(this.currentKeyboard);
-    delete ime.dataset.hidden;
+    delete this.ime.dataset.hidden;
   },
 
   hideIME: function km_hideIME(targetWindow) {
