@@ -1,6 +1,11 @@
 
 function HUDHooks(hooks) {
   Cu.import('resource:///modules/HUDService.jsm');
+  Cu.import("resource:///modules/PropertyPanel.jsm");
+      PropertyPanel.getChildItems = function(aItem, aRootElement) {
+        dump('rejrker');
+      };
+
   this._init(HUDService.currentContext(), hooks);
 }
 
@@ -22,7 +27,7 @@ HUDHooks.prototype = {
     for (let prop in hooks) {
       let root = hudRef[prop];
       for (let method in hooks[prop])
-        root[method] = hooks[prop][method];
+        root[method] = hooks[prop][method].bind(root);
     }
 
     // Ensure the hud takes all the window available height
@@ -35,3 +40,4 @@ HUDHooks.prototype = {
     });
   }
 };
+

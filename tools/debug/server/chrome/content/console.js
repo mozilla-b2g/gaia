@@ -28,7 +28,7 @@ const RemoteConsole = {
         for (let i = 0; i < this._replies.length; i++) {
           let reply = this._replies[i];
           if (reply.id == replyId) {
-            reply.data = json.rv;
+            reply.result = json.result;
             reply.state = 'replied';
             break;
           }
@@ -44,15 +44,14 @@ const RemoteConsole = {
       case 'groupEnd':
       case 'time':
       case 'timeEnd':
+      case 'dir':
+      case 'trace':
         let processedArguments = [];
         for (let arg in json.arguments)
           processedArguments.push(json.arguments[arg]);
 
         console[json.type].apply(null, processedArguments);
         break;
-      case 'dir':
-      case 'trace':
-        Cu.reportError('Unsupported command: ' + json.type);
         break;
       default:
         Cu.reportError('Unknow command: ' + json.type);
@@ -81,12 +80,11 @@ const RemoteConsole = {
                           .getService(Ci.nsIThreadManager)
                           .currentThread;
 
-    // XXX add a timeout and ensure the server is alive
-    while (msg.state == 'waiting')
+    while (msg.state == 'waiting' && !this.zombie)
       currentThread.processNextEvent(true);
 
     replies.splice(index, 1);
-    return msg.data;
+    return msg.result;
   },
 
   _server: null,
@@ -97,6 +95,11 @@ const RemoteConsole = {
       server.addListener(this.interpret.bind(this));
       server.start();
 
+      this.zombie = false;
+      window.addEventListener('unload', (function() {
+        this.zombie = true;
+      }).bind(this)); 
+
       // Configure the hooks to the HUDService
       let waitForMessageReply = this.waitForMessageReply.bind(this);
       let generateMessageId = this.generateMessageId.bind(this);
@@ -104,16 +107,16 @@ const RemoteConsole = {
         'jsterm': {
           'propertyProvider': function autocomplete(scope, inputValue) {
             let id = generateMessageId();
-            let data = 'JSPropertyProvider(\'' + inputValue + '\')';
             let json = {
               'id': id,
-              'data': data
+              'type': 'autocomplete',
+              'data': inputValue
             };
 
             server.send(JSON.stringify(json));
-            let reply = waitForMessageReply(id);
+            let result = waitForMessageReply(id);
 
-            let data = reply.split(',');
+            let data = result.data.split(',');
             return {
               'matchProp': data.pop(),
               'matches': data 
@@ -130,10 +133,134 @@ const RemoteConsole = {
             };
 
             server.send(JSON.stringify(json));
-            return waitForMessageReply(id);
+            let result = waitForMessageReply(id);
+            switch (result.type) {
+              case 'error':
+              case 'syntaxerror':
+              case 'evalerror':
+              case 'rangeerror':
+              case 'referenceerror':
+              case 'typeerror':
+              case 'urierror':
+                return new Error(result.data);
+              case 'function':
+              case 'object':
+                let obj = {
+                  toSource: function() {
+                    return result.data;
+                  }
+                }
+
+                // XXX this is another hack to prevent the object to be
+                // inspectable if there is nothing to inspect...
+                if (!result.enumerable) {
+                  obj.__iterator__ = function() {};
+                }
+                return Object.create(obj);
+              case 'boolean':
+                return new Boolean(result.data);
+              case 'date':
+                return new Date(result.data);
+              case 'number':
+                return new Number(result.data);
+              case 'regexp':
+                return new RegExp(result.data);
+              case 'null':
+                return null;
+              case 'undefined':
+                return undefined;
+              case 'string':
+                return result.data;
+                break;
+              default:
+                return result.data;
+            }
+          },
+          'openPropertyPanel': function(evalStr, outputObj, anchor) {
+            let propPanel;
+            let buttons = [];
+         
+            let self = this;
+            if (evalStr !== null) {
+              let button = {
+                label: HUDService.getStr("update.button"),
+                accesskey: HUDService.getStr("update.accesskey"),
+                oncommand: function () {
+                  try {
+                    let result = self.evalInSandbox(evalStr);
+                    if (result !== undefined)
+                      propPanel.treeView.data = result;
+                  }
+                  catch (ex) {
+                    self.console.error(ex);
+                  }
+                }
+              };
+              buttons.push(button);
+            }
+
+            let doc = this.parentNode.ownerDocument;
+            let parent = doc.getElementById("mainPopupSet");
+            let title = !evalStr ? HUDService.getStr("jsPropertyTitle")
+                                 : HUDService.getFormatStr(
+                                     "jsPropertyInspectTitle",
+                                     [evalStr]);
+         
+            propPanel = new PropertyPanel(parent, doc, title, outputObj, buttons);
+            propPanel.linkNode = anchor;
+
+            // XXX
+            propPanel.treeView.getChildItems = function(aItem, aRootElement) {
+              let newPairLevel;
+          
+              if (!aRootElement) {
+                newPairLevel = aItem.level + 1;
+                aItem = aItem.value;
+              }
+              else {
+                newPairLevel = 0;
+              }
+          
+              let input = (typeof aItem == 'string') ? aItem : evalStr;
+              let id = generateMessageId();
+              let json = {
+                'id': id,
+                'type': 'inspect',
+                'data': input
+              };
+
+              server.send(JSON.stringify(json));
+              let result = waitForMessageReply(id);
+              let json = JSON.parse(result.data);
+          
+              let pairs = [];
+              for (var prop in json) {
+                let pair = {};
+                pair.name = prop;
+                pair.display = json[prop].display;
+                pair.type = json[prop].type;
+                pair.value = json[prop].value;
+
+                pair.level = newPairLevel;
+                pair.isOpened = false;
+                pair.children = pair.type == 0 || //TYPE_OBJECT
+                                pair.type == 1 || // TYPE_FUNCTION
+                                pair.type == 2; // TYPE_ARRAY
+                pairs.push(pair)
+              }
+          
+              return pairs;
+            };
+            propPanel.treeView.data = outputObj;
+         
+            let panel = propPanel.panel;
+            panel.openPopup(anchor, "after_pointer", 0, 0, false, false);
+            panel.sizeTo(350, 450);
+            return propPanel;
           }
         }
       });
+
     } catch (e) {
       dump(e);
     }
