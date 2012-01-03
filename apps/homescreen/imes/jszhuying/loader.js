@@ -569,17 +569,13 @@ JSZhuYing.Mobi = function(settings) {
 
   var keypressed = function(code, callback) {
     if (code === 13) { // enter
-      if (
-        syllablesInBuffer.length === 1
-        && syllablesInBuffer[0] === ''
-      ) {
+      if (firstChoice) {
+        settings.sendString(firstChoice);
+        settings.sendChoices([]);
+        empty();
+      } else {
         settings.sendKey(13); // default action
-        return callback();
       }
-      settings.sendString(firstChoice);
-      settings.sendChoices([]);
-      syllablesInBuffer = [''];
-      pendingSyllable = ['', '', '', ''];
       return callback();
     }
 
@@ -604,7 +600,15 @@ JSZhuYing.Mobi = function(settings) {
     }
 
     var symbol = String.fromCharCode(code);
-    if (!symbolType[symbol]) return callback();
+    if (!symbolType[symbol]) {
+      if (firstChoice) {
+        settings.sendString(firstChoice);
+        settings.sendChoices([]);
+        empty();
+      }
+      settings.sendKey(code);
+      return callback();
+    }
 
     pendingSyllable[symbolPlace[symbolType[symbol]]] = symbol;
 

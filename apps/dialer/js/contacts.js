@@ -49,7 +49,6 @@ var Contacts = {
     for (var i = 0; i < count; i++) {
       var contact = contacts[i];
       var displayName = contact.displayName;
-      var phoneNumber = contact.phones[0];
 
       var name = contact.name.familyName[0];
       if (currentLetter != name[0]) {
@@ -63,7 +62,6 @@ var Contacts = {
       content += '<div class="contact" id="' + contact.id + '">' +
                  '  <img src="style/images/missing.png" alt="missing" />' +
                  '  <span class="display-name">' + displayName + '</span>' +
-                 '  <span class="phone-number">' + phoneNumber + '</span>' +
                  '</div>';
     }
     content += '<div class="contact" id="contact-create">' +
