@@ -8,10 +8,9 @@ if (!window['Gaia'])
 
 Gaia.SettingsApp = {
   init: function settings_init() {
-    var i;
     var checkboxes = document.querySelectorAll('input[type="checkbox"]');
     
-    for (i = 0; i < checkboxes.length; i++) {
+    for (var i = 0; i < checkboxes.length; i++) {
       (function(checkbox) {
         var key = checkbox.name;
         

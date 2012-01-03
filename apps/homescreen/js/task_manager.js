@@ -143,7 +143,7 @@ if (!window['Gaia'])
           var willAnimateToTheLeft = (currentScrollLeft < targetScrollLeft);
 
           if (currentScrollLeft !== targetScrollLeft) {
-            Gaia.AnimationLoop(function(deltaTime) {
+            Gaia.UI.AnimationLoop(function(deltaTime) {
               if (willAnimateToTheLeft) {
                 currentScrollLeft += 20 * deltaTime / 16;
                 listElement.scrollLeft = currentScrollLeft;
