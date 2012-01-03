@@ -142,7 +142,7 @@ iframe.appWindow {
   height: 100%;
   -moz-transform-origin: center bottom;
   -moz-transform: scale(0);
-  -moz-transition: all 0.3s ease;
+  -moz-transition: all 0.2s ease;
 }
 
 iframe.appWindow.active {
@@ -298,35 +298,88 @@ iframe.appWindow.noTransition {
   position: absolute;
   z-index: 9997;
   bottom: 0;
+  height: auto;
+  overflow: visible;
   background-color: #36373b;
   width: -moz-calc(100%);
-  min-height: 200px;
-  -moz-transition: bottom 0.2s ease;
+  -moz-transition: height 0.2s ease;
+}
+
+#keyboard[data-hidden] {
+  height: 0;
 }
 
 #keyboard-candidate-panel {
-  height: 64px; overflow: hidden;
-  color: white;
-  background: -moz-linear-gradient(top, rgb(34,37,42) 10%, rgb(4,4,12) 90%);
+  height: 64px;
+  overflow: auto;
+  white-space: nowrap;
+  color: black;
+  background: rgb(176, 174, 168);
+  border-top: 1px solid #e8e8ff;
+  border-bottom: 1px solid #808098;
   display: none;
 }
 #keyboard-candidate-panel.show {
   display: block;
 }
-#keyboard-candidate-panel span {
-  border-right: 1px solid #909090;
-  font-size: 32px;
-  line-height: 64px;
+#keyboard-candidate-panel.full {
   display: block;
-  float: left;
-  height: 64px;
-  padding: 0 5px;
-  min-width: 1em;
-  text-align: center;
+  position: absolute;
+  white-space: normal;
+  bottom: 0;
+  height: -moz-calc(100%);
+  width: 100%;
+  border: none;
+}
+#keyboard-candidate-panel.full span {
+  border-top: 1px solid #e8e8ff;
+  border-bottom: 1px solid #808098;
 }
 
-#keyboard[data-hidden] {
-  bottom: -800px;
+#keyboard-candidate-panel span {
+  border-left: 1px solid #e8e8ff;
+  border-right: 1px solid #808098;
+  font-size: 32px;
+  line-height: 60px;
+  min-width: 60px;
+  display: inline-block;
+  height: 64px;
+  padding: 0 10px;
+  text-align: center;
+  background: -moz-linear-gradient(top, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
+}
+
+#keyboard-candidate-panel-toggle-button {
+  border-left: 1px solid #e8e8ff;
+  border-right: 1px solid #808098;
+  position: absolute;
+  font-size: 32px;
+  line-height: 60px;
+  right: 0;
+  top: 1px;
+  text-align: center;
+  box-shadow: -4px 0 5px -5px black;
+  width: 60px;
+  height: 64px;
+  color: black;
+  background: -moz-linear-gradient(top, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
+  display: none;
+}
+
+#keyboard-candidate-panel-toggle-button.full {
+  display: block;
+  border-top: 1px solid #e8e8ff;
+  border-bottom: 1px solid #808098;
+  top: 0;
+}
+
+#keyboard-candidate-panel-toggle-button.show {
+  display: block;
+}
+
+#keyboard-candidate-panel span[data-active],
+#keyboard-candidate-panel-toggle-button[data-active] {
+  background: -moz-linear-gradient(bottom, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
 }
 
 .keyboard-key {
@@ -350,4 +403,56 @@ iframe.appWindow.noTransition {
 .keyboard-key[data-active] {
   color: #ccc;
   background: -moz-linear-gradient(bottom, rgb(94,97,102) 10%, rgb(64,64,72) 90%);
+}
+
+.keyboard-key-special {
+  background: -moz-linear-gradient(top, #464766 10%, #363748 90%);
+}
+
+.keyboard-key-special[data-active] {
+  background: -moz-linear-gradient(bottom, #464766 10%, #363748 90%);
+}
+
+.keyboard-key-special.toggle {
+  position: relative;
+}
+.keyboard-key-special.toggle::before {
+  content: '';
+  display: block;
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  background-color: #333;
+}
+.keyboard-key-special[data-enabled] {
+  text-shadow: 0 0 5px #fff;
+}
+.keyboard-key-special[data-enabled]::before {
+  background-color: #0c0;
+  box-shadow: 0 0 5px #fff;
+}
+
+#keyboard-key-highlight {
+  position: absolute;
+  top: 0; left: 0;
+  color: #333;
+  background: -moz-linear-gradient(top, rgba(194,197,202,0.9) 10%, rgba(164,164,172,0.9) 90%);
+  font-size: 50px;
+  line-height: 100px;
+  min-width: 70px;
+  padding: 0 5px;
+  height: 100px;
+  margin-top: -110px;
+  text-align: center;
+  border: 1px solid #fff;
+  box-shadow: 0 0 2px #ccc;
+  border-radius: 5px;
+  display: none;
+}
+
+#keyboard-key-highlight.show {
+  display: block;
 }

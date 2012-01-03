@@ -7,6 +7,7 @@ const IMEManager = {
   BASIC_LAYOUT: -1,
   ALTERNATE_LAYOUT: -2,
   SWITCH_KEYBOARD: -3,
+  TOGGLE_CANDIDATE_PANEL: -4,
 
   // IME Engines are self registering here.
   IMEngines: {},
@@ -40,7 +41,8 @@ const IMEManager = {
   },
 
   get isAlternateLayout() {
-    return (this.currentKeyboardMode == 'Alternate');
+    var alternateLayouts = ['Alternate', 'Symbol'];
+    return alternateLayouts.indexOf(this.currentKeyboardMode) > -1;
   },
 
   set isAlternateLayout(isAlternateLayout) {
@@ -53,9 +55,28 @@ const IMEManager = {
     }
   },
 
+  get isSymbolLayout() {
+    return this.currentKeyboardMode == 'Symbol';
+  },
+
+  set isSymbolLayout(isSymbolLayout) {
+    if (isSymbolLayout) {
+      this.currentKeyboardMode = 'Symbol';
+      this.updateLayout('symbolLayout');
+    } else {
+      this.currentKeyboardMode = '';
+      this.updateLayout('alternateLayout');
+    }
+  },
+
   // backspace repeat delay and repeat rate
   kRepeatTimeout: 700,
   kRepeatRate: 100,
+
+  // Taps the shift key twice within kCapsLockTimeout
+  // to lock the keyboard at upper case state.
+  kCapsLockTimeout: 450,
+  isUpperCaseLocked: false,
 
   get ime() {
     delete this.ime;
@@ -69,6 +90,9 @@ const IMEManager = {
     return this.candidatePanel = candidatePanel;
   },
 
+  get keyHighlight() {
+    return document.getElementById('keyboard-key-highlight');
+  },
 
   events: ['showime', 'hideime', 'unload', 'appclose'],
   imeEvents: ['touchstart', 'touchend', 'click'],
@@ -155,9 +179,27 @@ const IMEManager = {
 
       case 'touchstart':
         var keyCode = parseInt(target.getAttribute('data-keycode'));
-        if (!keyCode)
-          return;
         target.dataset.active = 'true';
+
+        if (!keyCode && !target.dataset.selection)
+          return;
+
+        this.keyHighlight.innerHTML = target.innerHTML;
+        this.keyHighlight.className = 'show';
+        this.keyHighlight.style.top = target.offsetTop.toString(10) + 'px';
+
+        var keyHightlightWidth = this.keyHighlight.offsetWidth;
+        var keyHightlightLeft =
+          target.offsetLeft + target.offsetWidth / 2 - keyHightlightWidth / 2;
+        keyHightlightLeft = Math.max(keyHightlightLeft, 5);
+        keyHightlightLeft =
+          Math.min(
+            keyHightlightLeft,
+            window.innerWidth - keyHightlightWidth - 5
+          );
+
+        this.keyHighlight.style.left = keyHightlightLeft.toString(10) + 'px';
+
 
         if (keyCode != KeyEvent.DOM_VK_BACK_SPACE)
           return;
@@ -182,9 +224,12 @@ const IMEManager = {
 
       case 'touchend':
         var keyCode = parseInt(target.getAttribute('data-keycode'));
-        if (!keyCode)
-          return;
         delete target.dataset.active;
+
+        if (!keyCode && !target.dataset.selection)
+          return;
+
+        this.keyHighlight.className = '';
 
         clearTimeout(this._timeout);
         clearInterval(this._interval);
@@ -225,7 +270,41 @@ const IMEManager = {
             this.updateLayout(this.currentKeyboard);
           break;
 
+          case this.TOGGLE_CANDIDATE_PANEL:
+            var panel = this.candidatePanel;
+            var className = (panel.className == 'full') ? 'full' : 'show';
+            panel.className = target.className = className;
+          break;
+
+          case KeyEvent.DOM_VK_ALT:
+            this.isSymbolLayout = !this.isSymbolLayout;
+          break;
+
           case KeyEvent.DOM_VK_CAPS_LOCK:
+            if (this.isWaitingForSecondTap) {
+              this.isUpperCaseLocked = true;
+              if (!this.isUpperCase) {
+                this.isUpperCase = true;
+
+                // XXX: keyboard updated; target is lost.
+                var selector =
+                  'span[data-keycode="' + KeyEvent.DOM_VK_CAPS_LOCK + '"]';
+                target = document.querySelector(selector);
+              }
+              target.dataset.enabled = 'true';
+              delete this.isWaitingForSecondTap;
+              break;
+            }
+            this.isWaitingForSecondTap = true;
+
+            setTimeout(
+              (function removeCapsLockTimeout() {
+                delete this.isWaitingForSecondTap;
+              }).bind(this),
+              this.kCapsLockTimeout
+            );
+
+            this.isUpperCaseLocked = false;
             this.isUpperCase = !this.isUpperCase;
           break;
 
@@ -249,7 +328,7 @@ const IMEManager = {
             //window.navigator.mozKeyboard.sendKey(0, keyCode);
             window.navigator.mozKeyboard.sendKey(keyCode, keyCode);
 
-            if (this.isUpperCase)
+            if (this.isUpperCase && !this.isUpperCaseLocked)
               this.isUpperCase = false;
           break;
         }
@@ -273,7 +352,21 @@ const IMEManager = {
         var code = key.keyCode || key.value.charCodeAt(0);
         var size = ((width - (row.length * 2)) / (layout.width || 10));
         size = size * (key.ratio || 1) - 2;
-        content += '<span class="keyboard-key"' +
+        var className = 'keyboard-key';
+
+        var specialCodes = [
+          KeyEvent.DOM_VK_BACK_SPACE,
+          KeyEvent.DOM_VK_CAPS_LOCK,
+          KeyEvent.DOM_VK_RETURN,
+          KeyEvent.DOM_VK_ALT
+        ];
+        if (code < 0 || specialCodes.indexOf(code) > -1)
+          className += ' keyboard-key-special';
+
+        if (code == KeyEvent.DOM_VK_CAPS_LOCK)
+          className += ' toggle';
+
+        content += '<span class="' + className + '"' +
                           'data-keycode="' + code + '"' +
                           'style="width:' + size + 'px"' +
                    '>' +
@@ -283,9 +376,17 @@ const IMEManager = {
       content += '</div>';
     });
 
+    content += '<span id="keyboard-key-highlight"></span>';
+
     this.ime.innerHTML = content;
 
     if (layout.needsCandidatePanel) {
+      var toggleButton = document.createElement('span');
+      toggleButton.innerHTML = '⇪';
+      toggleButton.id = 'keyboard-candidate-panel-toggle-button';
+      toggleButton.dataset.keycode = this.TOGGLE_CANDIDATE_PANEL;
+      this.ime.insertBefore(toggleButton, this.ime.firstChild);
+
       this.ime.insertBefore(this.candidatePanel, this.ime.firstChild);
       this.showCandidates([]);
       this.currentEngine.empty();
@@ -298,17 +399,22 @@ const IMEManager = {
     var ime = this.ime;
     var targetWindow = this.targetWindow;
 
-    var newHeight = targetWindow.dataset.rectHeight -
-                    ime.getBoundingClientRect().height;
-    if (ime.getBoundingClientRect().top < window.innerHeight) {
-      targetWindow.style.height = newHeight + 'px';
-      return;
+    if (ime.offsetHeight !== 0) {
+      targetWindow.classList.add('noTransition');
+      setTimeout(function remoteNoTransition() {
+        targetWindow.classList.remove('noTransition');
+      }, 0);
     }
 
-    ime.addEventListener('transitionend', function imeShow(evt) {
-      ime.removeEventListener('transitionend', imeShow);
-      targetWindow.style.height = newHeight + 'px';
-    });
+    // Need these to correctly measure scrollHeight
+    ime.style.height = null;
+    ime.style.overflowY = 'hidden';
+    var scrollHeight = ime.scrollHeight;
+    ime.style.overflowY = null;
+
+    targetWindow.style.height =
+      (targetWindow.dataset.rectHeight - scrollHeight) + 'px';
+    ime.style.height = scrollHeight + 'px';
   },
 
   showIME: function km_showIME(targetWindow, type) {
@@ -323,28 +429,44 @@ const IMEManager = {
   },
 
   hideIME: function km_hideIME(targetWindow) {
+    var ime = this.ime;
+    var imeHide = (function(evt) {
+      targetWindow.removeEventListener('transitionend', imeHide);
+      delete this.targetWindow;
+
+      ime.innerHTML = '';
+    }).bind(this);
+
+    targetWindow.addEventListener('transitionend', imeHide);
     targetWindow.style.height = targetWindow.dataset.cssHeight;
     delete targetWindow.dataset.cssHeight;
     delete targetWindow.dataset.rectHeight;
-    delete this.targetWindow;
 
-    var ime = this.ime;
+    ime.style.height = null;
     ime.dataset.hidden = 'true';
-    ime.innerHTML = '';
   },
 
   showCandidates: function km_showCandidates(candidates) {
     // TODO: candidate panel should be allow toggled to fullscreen
     var candidatePanel = document.getElementById('keyboard-candidate-panel');
+    var toggleButton =
+      document.getElementById('keyboard-candidate-panel-toggle-button');
+
     candidatePanel.innerHTML = '';
-    candidatePanel.className = '';
 
     if (!candidates.length) {
+      toggleButton.className = '';
+      candidatePanel.className = '';
       this.updateKeyboardHeight();
       return;
     }
 
-    candidatePanel.className = 'show';
+    toggleButton.className = toggleButton.className || 'show';
+    candidatePanel.className = candidatePanel.className || 'show';
+
+    if (toggleButton.className == 'show')
+      this.updateKeyboardHeight();
+
     candidates.forEach(function buildCandidateEntry(candidate) {
       var span = document.createElement('span');
       span.dataset.data = candidate[1];
@@ -352,8 +474,6 @@ const IMEManager = {
       span.textContent = candidate[0];
       candidatePanel.appendChild(span);
     });
-
-    this.updateKeyboardHeight();
   }
 };
 
