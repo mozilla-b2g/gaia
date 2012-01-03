@@ -348,9 +348,10 @@ var CallHandler = {
     var views = document.getElementById('views');
     if (views.classList.contains('modal')) {
       this.closeModal();
-    } else {
-      views.classList.add('modal');
+      return;
     }
+
+    views.classList.add('modal');
   },
   closeModal: function ch_closeModal() {
     var views = document.getElementById('views');
