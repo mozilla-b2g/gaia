@@ -302,16 +302,16 @@ function SandboxHelper(sandbox)
   {
     if (aObject === null || aObject === undefined ||
         aObject === true || aObject === false) {
-      // XXX get the string from a .properties
-      //HUDService.getStr("helperFuncUnsupportedTypeError");
-      console.error('Unsupported Type');
+      let bundleURL = 'chrome://global/locale/headsUpDisplay.properties';
+      let bundle = Services.strings.createBundle(bundleURL);
+      console.error(bundle.getStringFromName('helperFuncUnsupportedTypeError'));
       return;
     }
     else if (typeof aObject === 'function') {
       sendAsyncMessage('console', {
         'type': 'command',
         'command': 'pprint',
-        'data': aObject.toString()
+        'data': aObject.toSource()
       });
       return;
     }
