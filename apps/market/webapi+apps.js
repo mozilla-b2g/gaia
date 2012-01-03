@@ -433,24 +433,6 @@ if (true) {
             }
           }
         },
-        { // market
-          'installOrigin': 'http://gaiamobile.org:8888',
-          'origin': '../market',
-          'receipt': null,
-          'installTime': 1323339869000,
-          manifest: {
-            'name': 'Market',
-            'description': 'Market for downloading and installing apps',
-            'launch_path': '/market.html',
-            'developer': {
-              'name': 'The Gaia Team',
-              'url': 'https://github.com/andreasgal/gaia'
-            },
-            'icons': {
-              '120': '/style/icons/Market.png'
-            }
-          }
-        },
         { // settings
           'installOrigin': 'http://gaiamobile.org:8888',
           'origin': '../settings',
@@ -484,10 +466,9 @@ if (true) {
             },
             'icons': {
               '120': '/style/icons/Messages.png'
-            }
-          }
+           }
         }
-      ];
+      }];
 
       callback(webapps);
     }
