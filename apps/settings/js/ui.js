@@ -316,6 +316,27 @@ if (!window['Gaia'])
       this.header.innerHTML = value;
     }
   };
+  
+  Gaia.UI.AnimationLoop = function(renderCallback) {
+    var isRunning = true;
+    var lastFrame = Date.now();
+    var requestAnimationFrame = function(animFrameCallback) {
+      if (window.mozRequestAnimationFrame)
+        window.mozRequestAnimationFrame(animFrameCallback);
+      else if (window.webkitRequestAnimationFrame)
+        window.webkitRequestAnimationFrame(animFrameCallback);
+      else if (window.requestAnimationFrame)
+        window.requestAnimationFrame(animFrameCallback);
+    };
+
+    (function loop(currentFrame) {
+      if (isRunning !== false) {
+        requestAnimationFrame(loop);
+        isRunning = renderCallback(currentFrame - lastFrame);
+        lastFrame = currentFrame;
+      }
+    })(lastFrame);
+  };
 
   window.addEventListener('load', function() {
     Gaia.UI.init();
