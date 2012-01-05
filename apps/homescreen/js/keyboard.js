@@ -132,10 +132,7 @@ const IMEManager = {
             break;
 
             default:
-              // XXX until bug 713498 lands in git m-c, always send a keyCode
-              // that is not 0
-              //window.navigator.mozKeyboard.sendKey(0, keyCode);
-              window.navigator.mozKeyboard.sendKey(keyCode, keyCode);
+              window.navigator.mozKeyboard.sendKey(0, keyCode);
             break;
           }
         },
@@ -323,10 +320,7 @@ const IMEManager = {
               break;
             }
 
-            // XXX until bug 713498 lands in git m-c, always send a keyCode
-            // that is not 0
-            //window.navigator.mozKeyboard.sendKey(0, keyCode);
-            window.navigator.mozKeyboard.sendKey(keyCode, keyCode);
+            window.navigator.mozKeyboard.sendKey(0, keyCode);
 
             if (this.isUpperCase && !this.isUpperCaseLocked)
               this.isUpperCase = false;
