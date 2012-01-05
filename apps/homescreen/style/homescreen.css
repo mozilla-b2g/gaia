@@ -383,7 +383,9 @@ iframe.appWindow.noTransition {
 }
 
 .keyboard-key {
-  display: inline-table;
+  display: inline-block;
+  vertical-align: middle;
+  overflow: hidden;
   text-align: center;
   color: white;
   font-size: 32px;
