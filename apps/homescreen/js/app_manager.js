@@ -9,23 +9,25 @@ if (!window['Gaia'])
 (function() {
 
   Gaia.AppManager = {
+    _makeUrlObject: function GAM_makeUrlObject(u) {
+      var a = document.createElement('a');
+      a.href = u;
+      return a;
+    },
+
     // Return true iff the strings u1 and u2 are equal up the first
     // occurrence of '?', which is assumed to be the start of a URL
     // query string and ignored.
     _urlsEqualToQueryString: function GAM_urlsEqualToQueryString(u1, u2) {
-      var lastCharIndex = Math.min(u1.length, u2.length) - 1;
-      if (0 > lastCharIndex)
-        return u1 === u2 || u1 === '?' || u2 === '?';
-      
-      var i = 0;
-      for (; i < lastCharIndex
-             && u1.charCodeAt(i) !== '?' && u2.charCodeAt(i) !== '?';
-           ++i)
-        if (u1.charCodeAt(i) !== u2.charCodeAt(i))
-          return false;
-      // Here, i == lastCharIndex or i is the first index of '?' in
-      // either u1 or u2.  Either way, the characters must be the same.
-      return u1.charCodeAt(i) === u2.charCodeAt(i);
+      var uo1 = this._makeUrlObject(u1);
+      var uo2 = this._makeUrlObject(u2);
+      return (uo1.protocol === uo2.protocol
+              && uo1.host === uo2.host
+              && uo1.hostname === uo2.hostname
+              && uo1.port === uo2.port
+              && uo1.pathname === uo2.pathname
+              /* ignore .search.  Should we also ignore .hash? */
+              && uo1.hash === uo2.hash);
     },
 
     _appIdCounter: 0,
