@@ -9,6 +9,25 @@ if (!window['Gaia'])
 (function() {
 
   Gaia.AppManager = {
+    // Return true iff the strings u1 and u2 are equal up the first
+    // occurrence of '?', which is assumed to be the start of a URL
+    // query string and ignored.
+    _urlsEqualToQueryString: function GAM_urlsEqualToQueryString(u1, u2) {
+      var lastCharIndex = Math.min(u1.length, u2.length) - 1;
+      if (0 > lastCharIndex)
+        return u1 === u2 || u1 === '?' || u2 === '?';
+      
+      var i = 0;
+      for (; i < lastCharIndex
+             && u1.charCodeAt(i) !== '?' && u2.charCodeAt(i) !== '?';
+           ++i)
+        if (u1.charCodeAt(i) !== u2.charCodeAt(i))
+          return false;
+      // Here, i == lastCharIndex or i is the first index of '?' in
+      // either u1 or u2.  Either way, the characters must be the same.
+      return u1.charCodeAt(i) === u2.charCodeAt(i);
+    },
+
     _appIdCounter: 0,
 
     _foregroundWindows: [],
@@ -138,28 +157,21 @@ if (!window['Gaia'])
 
     getInstalledAppForURL: function(url) {
       var installedApps = this.installedApps;
-
       for (var i = 0; i < installedApps.length; i++) {
-        if (installedApps[i].url == url)
-          return installedApps[i];
+        var installedApp = installedApps[i];
+        if (this._urlsEqualToQueryString(installedApp.url, url))
+          return installedApp;
       }
 
       return null;
     },
 
     getAppInstance: function(url) {
-      // Compare URLs but ignore the query portion of the url (the part after
-      // the ?)
-      var query = new RegExp(/\?.*/);
-      var currentURL = url.replace(query, '');
       var runningApps = this._runningApps;
       for (var i = 0; i < runningApps.length; i++) {
         var runningApp = runningApps[i];
-        if (runningApp.url.replace(query, '') != currentURL)
-          continue;
-
-        runningApp.url;
-        return runningApp;
+        if (this._urlsEqualToQueryString(runningApp.url, url))
+          return runningApp;
       }
       return null;
     },

@@ -18,7 +18,7 @@
         <li>
           <span>Airplane Mode</span>
           <label class="toggleswitch">
-            <input type="checkbox"/>
+            <input type="checkbox" name="airplanemode.enabled"/>
             <span class="toggleswitch-inner">
               <span class="toggleswitch-on">On</span>
               <span class="toggleswitch-off">Off</span>
@@ -29,7 +29,7 @@
         <li>
           <span>Location Services</span>
           <label class="toggleswitch">
-            <input type="checkbox"/>
+            <input type="checkbox" name="locationservices.enabled"/>
             <span class="toggleswitch-inner">
               <span class="toggleswitch-on">On</span>
               <span class="toggleswitch-off">Off</span>
@@ -40,7 +40,7 @@
         <li>
           <span>Wi-Fi</span>
           <label class="toggleswitch">
-            <input type="checkbox"/>
+            <input type="checkbox" name="wifi.enabled"/>
             <span class="toggleswitch-inner">
               <span class="toggleswitch-on">On</span>
               <span class="toggleswitch-off">Off</span>
@@ -51,7 +51,7 @@
         <li>
           <span>Do Not Track</span>
           <label class="toggleswitch">
-            <input type="checkbox"/>
+            <input type="checkbox" name="dnt.enabled"/>
             <span class="toggleswitch-inner">
               <span class="toggleswitch-on">On</span>
               <span class="toggleswitch-off">Off</span>
@@ -62,8 +62,8 @@
       </ul>
       <ul class="tableView">
         <li>
-          <a class="push slideHorizontal" href="#sounds">
-            <span>Sounds</span>
+          <a class="push slideHorizontal" href="#wallpaper">
+            <span>Wallpaper</span>
           </a>
         </li>
         <li>
@@ -72,8 +72,8 @@
           </a>
         </li>
         <li>
-          <a class="push slideHorizontal" href="#wallpaper">
-            <span>Wallpaper</span>
+          <a class="push slideHorizontal" href="#sounds">
+            <span>Sounds</span>
           </a>
         </li>
       </ul>
@@ -93,9 +93,16 @@
         <br/ >
         <span class="comment">Waiting for <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=707626">bug 707626</a></span>
       </li>
-      <li id="lockscreen">
-        <label for="lockscreen-checkbox">Disable lockscreen</label>
-        <input id="lockscreen-checkbox" type="checkbox" data-key='lockscreen' onchange="Settings.toggle(this.dataset.key)"></input>
+      <li>
+        <span>Lock Screen</span>
+        <label class="toggleswitch">
+          <input type="checkbox" name="lockscreen.enabled"/>
+          <span class="toggleswitch-inner">
+            <span class="toggleswitch-on">On</span>
+            <span class="toggleswitch-off">Off</span>
+            <span class="toggleswitch-handle"></span>
+          </span>
+        </label>
       </li>
       <li id="screentimeout">
         <label for="screentimeout-input">Screen Timeout</label>
