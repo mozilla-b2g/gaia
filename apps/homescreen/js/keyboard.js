@@ -90,12 +90,34 @@ const IMEManager = {
     return this.candidatePanel = candidatePanel;
   },
 
-  get keyHighlight() {
-    return document.getElementById('keyboard-key-highlight');
+  updateKeyHighlight: function km_updateKeyHighlight() {
+    var keyHighlight = document.getElementById('keyboard-key-highlight');
+    var target = this.currentKey;
+
+    if (!target) {
+      keyHighlight.className = '';
+      return;
+    }
+
+    keyHighlight.innerHTML = target.innerHTML;
+    keyHighlight.className = 'show';
+    keyHighlight.style.top = target.offsetTop.toString(10) + 'px';
+
+    var keyHightlightWidth = keyHighlight.offsetWidth;
+    var keyHightlightLeft =
+      target.offsetLeft + target.offsetWidth / 2 - keyHightlightWidth / 2;
+    keyHightlightLeft = Math.max(keyHightlightLeft, 5);
+    keyHightlightLeft =
+      Math.min(
+        keyHightlightLeft,
+        window.innerWidth - keyHightlightWidth - 5
+      );
+
+    keyHighlight.style.left = keyHightlightLeft.toString(10) + 'px';
   },
 
-  events: ['showime', 'hideime', 'unload', 'appclose'],
-  imeEvents: ['touchstart', 'touchend', 'click'],
+  events: ['mouseup', 'showime', 'hideime', 'unload', 'appclose'],
+  imeEvents: ['mousedown', 'mousemove', 'mouseleave'],
   init: function km_init() {
     this.events.forEach((function attachEvents(type) {
       window.addEventListener(type, this);
@@ -164,6 +186,7 @@ const IMEManager = {
   handleEvent: function km_handleEvent(evt) {
     var activeWindow = Gaia.AppManager.foregroundWindow;
     var target = evt.target;
+
     switch (evt.type) {
       case 'showime':
         this.showIME(activeWindow, evt.detail.type);
@@ -174,29 +197,16 @@ const IMEManager = {
         this.hideIME(activeWindow);
         break;
 
-      case 'touchstart':
+      case 'mousedown':
         var keyCode = parseInt(target.getAttribute('data-keycode'));
         target.dataset.active = 'true';
+        this.currentKey = target;
+        this.isPressing = true;
 
         if (!keyCode && !target.dataset.selection)
           return;
 
-        this.keyHighlight.innerHTML = target.innerHTML;
-        this.keyHighlight.className = 'show';
-        this.keyHighlight.style.top = target.offsetTop.toString(10) + 'px';
-
-        var keyHightlightWidth = this.keyHighlight.offsetWidth;
-        var keyHightlightLeft =
-          target.offsetLeft + target.offsetWidth / 2 - keyHightlightWidth / 2;
-        keyHightlightLeft = Math.max(keyHightlightLeft, 5);
-        keyHightlightLeft =
-          Math.min(
-            keyHightlightLeft,
-            window.innerWidth - keyHightlightWidth - 5
-          );
-
-        this.keyHighlight.style.left = keyHightlightLeft.toString(10) + 'px';
-
+        this.updateKeyHighlight();
 
         if (keyCode != KeyEvent.DOM_VK_BACK_SPACE)
           return;
@@ -219,28 +229,79 @@ const IMEManager = {
         }).bind(this), this.kRepeatTimeout);
         break;
 
-      case 'touchend':
+      case 'mousemove':
+        if (!this.isPressing)
+          return;
+
+        if (this.currentKey == target)
+          return;
+
         var keyCode = parseInt(target.getAttribute('data-keycode'));
-        delete target.dataset.active;
 
         if (!keyCode && !target.dataset.selection)
           return;
 
-        this.keyHighlight.className = '';
+        if (this.currentKey)
+          delete this.currentKey.dataset.active;
 
-        clearTimeout(this._timeout);
-        clearInterval(this._interval);
-        break;
-
-      case 'click':
-        if (target.dataset.selection) {
-          this.currentEngine.select(target.textContent, target.dataset.data);
+        if (keyCode == KeyEvent.DOM_VK_BACK_SPACE) {
+          delete this.currentKey;
+          this.updateKeyHighlight();
           return;
         }
 
-        var keyCode = parseInt(target.getAttribute('data-keycode'));
-        if (!keyCode)
+        target.dataset.active = 'true';
+
+        this.currentKey = target;
+        this.updateKeyHighlight();
+
+        clearTimeout(this._timeout);
+        clearInterval(this._interval);
+
+        break;
+
+      case 'mouseleave':
+        if (!this.isPressing)
           return;
+
+        if (this.currentKey) {
+          delete this.currentKey.dataset.active;
+          delete this.currentKey;
+          this.updateKeyHighlight();
+        }
+
+        break;
+
+      case 'mouseup':
+        this.isPressing = false;
+
+        if (!this.currentKey)
+          return;
+
+        var keyCode = parseInt(this.currentKey.getAttribute('data-keycode'));
+
+        clearTimeout(this._timeout);
+        clearInterval(this._interval);
+
+        if (!keyCode && !this.currentKey.dataset.selection)
+          return;
+
+        if (this.currentKey.dataset.selection) {
+          this.currentEngine.select(
+            this.currentKey.textContent,
+            this.currentKey.dataset.data
+          );
+          delete this.currentKey.dataset.active;
+          delete this.currentKey;
+
+          this.updateKeyHighlight();
+          return;
+        }
+
+        delete this.currentKey.dataset.active;
+        delete this.currentKey;
+
+        this.updateKeyHighlight();
 
         if (keyCode == KeyEvent.DOM_VK_BACK_SPACE)
           return;

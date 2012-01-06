@@ -439,6 +439,7 @@ iframe.appWindow.noTransition {
 
 #keyboard-key-highlight {
   position: absolute;
+  pointer-events: none;
   top: 0; left: 0;
   color: #333;
   background: -moz-linear-gradient(top, rgba(194,197,202,0.9) 10%, rgba(164,164,172,0.9) 90%);
@@ -457,4 +458,8 @@ iframe.appWindow.noTransition {
 
 #keyboard-key-highlight.show {
   display: block;
+}
+
+#keyboard[data-hidden] #keyboard-key-highlight.show {
+  display: none;
 }
