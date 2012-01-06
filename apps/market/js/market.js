@@ -35,11 +35,13 @@
     var installButton = document.getElementById('installButton');
     var uninstallButton = document.getElementById('uninstallButton');
     
+    // TODO: Wire up to navigator.mozApps API
     installButton.addEventListener('click', function(evt) {
       var app = this.app;
       evt.preventDefault();
     });
     
+    // TODO: Wire up to navigator.mozApps API
     uninstallButton.addEventListener('click', function(evt) {
       var app = this.app;
       evt.preventDefault();
@@ -47,34 +49,27 @@
     
     appsTableView.addEventListener('click', function(evt) {
       var target = evt.target;
-      var targetNodeName = target.nodeName.toLowerCase();
-      var app;
       
-      if (targetNodeName === 'a') {
-        app = target.app;
-      } else {
+      if (!(target instanceof HTMLAnchorElement))
         target = target.parentNode;
-        targetNodeName = target.nodeName.toLowerCase();
-        
-        if (targetNodeName === 'a') {
-          app = target.app;
-        } else {
-          return;
-        }
-      }
       
-      detailView.setAttribute('data-title', app.manifest.name);
-      detailIcon.setAttribute('src', app.origin + app.manifest.icons['128']);
+      if (!('app' in target))
+        return;
+      
+      var app = target.app;
+      
+      detailView.dataset.title = app.manifest.name;
+      detailView.src = app.origin + app.manifest.icons['128'];
       detailName.innerHTML = app.manifest.name;
       detailDescription.innerHTML = app.manifest.description;
       
       if (Gaia.AppManager.getInstalledAppForURL(app.src_url)) {
-        installButton.style.display = 'none';
-        uninstallButton.style.display = 'inline-block';
+        installButton.classList.add('hide');
+        uninstallButton.classList.remove('hide');
         uninstallButton.app = app;
       } else {
-        installButton.style.display = 'inline-block';
-        uninstallButton.style.display = 'none';
+        installButton.classList.remove('hide');
+        uninstallButton.classList.add('hide');
         installButton.app = app;
       }
       
@@ -82,21 +77,23 @@
     });
     
     appsData.forEach(function(app) {
-      var cell = document.createElement('li');
       var drillDownCell = document.createElement('a');
-      var icon = document.createElement('img');
-      var title = document.createElement('h1');
-      var arrow = document.createElement('span');
-      
       drillDownCell.className = 'push slideHorizontal';
       drillDownCell.href = '#detailView';
       drillDownCell.app = app;
       
+      var icon = document.createElement('img');
       icon.src = app.origin + app.manifest.icons['128'];
+      
+      var title = document.createElement('h1');
       title.innerHTML = app.manifest.name;
+      
+      var arrow = document.createElement('span');
       arrow.className = 'arrowRight';
       
+      var cell = document.createElement('li');
       cell.appendChild(drillDownCell);
+      
       drillDownCell.appendChild(icon);
       drillDownCell.appendChild(title);
       drillDownCell.appendChild(arrow);
