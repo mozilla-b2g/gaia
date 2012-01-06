@@ -22,23 +22,10 @@ const IMEManager = {
   keyboards: [
     'qwertyLayout', 'azertyLayout', 'qwertzLayout', 'hebrewLayout',
     'jcukenLayout', 'serbianCyrillicLayout', 'dvorakLayout',
-    'zhuyingGeneralLayout'
+    'turkishQLayout', 'zhuyingGeneralLayout'
   ],
 
-  get isUpperCase() {
-    return (this.currentKeyboardMode == 'UpperCase');
-  },
-
-  set isUpperCase(isUpperCase) {
-    var keyboard = this.currentKeyboard;
-    if (isUpperCase) {
-      keyboard += 'UpperCase';
-      this.currentKeyboardMode = 'UpperCase';
-    } else {
-      this.currentKeyboardMode = '';
-    }
-    this.updateLayout(keyboard);
-  },
+  isUpperCase: false,
 
   get isAlternateLayout() {
     var alternateLayouts = ['Alternate', 'Symbol'];
@@ -325,6 +312,7 @@ const IMEManager = {
             else
               this.currentKeyboard = keyboards[++index];
 
+            this.isUpperCase = false;
             this.updateLayout(this.currentKeyboard);
           break;
 
@@ -343,6 +331,7 @@ const IMEManager = {
               this.isUpperCaseLocked = true;
               if (!this.isUpperCase) {
                 this.isUpperCase = true;
+                this.updateLayout(this.currentKeyboard);
 
                 // XXX: keyboard updated; target is lost.
                 var selector =
@@ -364,6 +353,7 @@ const IMEManager = {
 
             this.isUpperCaseLocked = false;
             this.isUpperCase = !this.isUpperCase;
+            this.updateLayout(this.currentKeyboard);
           break;
 
           case KeyEvent.DOM_VK_RETURN:
@@ -383,8 +373,10 @@ const IMEManager = {
 
             window.navigator.mozKeyboard.sendKey(0, keyCode);
 
-            if (this.isUpperCase && !this.isUpperCaseLocked)
+            if (this.isUpperCase && !this.isUpperCaseLocked) {
               this.isUpperCase = false;
+              this.updateLayout(this.currentKeyboard);
+            }
           break;
         }
         break;
@@ -400,21 +392,35 @@ const IMEManager = {
 
     var content = '';
     var width = window.innerWidth;
-    layout.keys.forEach(function buildKeyboardRow(row) {
+
+    if (!layout.upperCase)
+      layout.upperCase = {};
+
+    layout.keys.forEach((function buildKeyboardRow(row) {
       content += '<div class="keyboard-row">';
 
-      row.forEach(function buildKeyboardColumns(key) {
-        var code = key.keyCode || key.value.charCodeAt(0);
-        var size = ((width - (row.length * 2)) / (layout.width || 10));
-        size = size * (key.ratio || 1) - 2;
-        var className = 'keyboard-key';
-
+      row.forEach((function buildKeyboardColumns(key) {
         var specialCodes = [
           KeyEvent.DOM_VK_BACK_SPACE,
           KeyEvent.DOM_VK_CAPS_LOCK,
           KeyEvent.DOM_VK_RETURN,
           KeyEvent.DOM_VK_ALT
         ];
+        var keyChar = key.value;
+
+        // This gives layout author the ability to rewrite toUpperCase()
+        // for languages that use special mapping, e.g. Turkish.
+        if (
+          !(key.keyCode < 0 || specialCodes.indexOf(key.keyCode) > -1) &&
+          this.isUpperCase
+        )
+          keyChar = layout.upperCase[keyChar] || keyChar.toUpperCase();
+
+        var code = key.keyCode || keyChar.charCodeAt(0);
+        var size = ((width - (row.length * 2)) / (layout.width || 10));
+        size = size * (key.ratio || 1) - 2;
+        var className = 'keyboard-key';
+
         if (code < 0 || specialCodes.indexOf(code) > -1)
           className += ' keyboard-key-special';
 
@@ -425,11 +431,11 @@ const IMEManager = {
                           'data-keycode="' + code + '"' +
                           'style="width:' + size + 'px"' +
                    '>' +
-                   key.value +
+                   keyChar +
                    '</span>';
-      });
+      }).bind(this));
       content += '</div>';
-    });
+    }).bind(this));
 
     content += '<span id="keyboard-key-highlight"></span>';
 
