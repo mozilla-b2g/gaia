@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Market</title>
+  <script type="text/javascript" src="webapi+apps.js"></script>
+
+  <link rel="stylesheet" type="text/css" media="screen" href="style/ui.css"/>
+  <link rel="stylesheet" type="text/css" media="screen" href="style/market.css"/>
+  <script type="text/javascript" src="js/app_manager.js"></script>
+  <script type="text/javascript" src="js/ui.js"></script>
+  <script type="text/javascript" src="js/market.js"></script>
+</head>
+<body>
+  <div id="navBar" class="navigationBar">
+
+  </div>
+  <div id="rootView" class="view" data-title="Market">
+    <ul id="appsTableView" class="tableView">
+      
+    </ul>
+  </div>
+  <div id="detailView" class="view">
+    <div>
+      <img id="detailIcon"/>
+      <h1 id="detailName"></h1>
+    </div>
+    <a id="installButton" class="button" href="#">Install App</a>
+    <a id="uninstallButton" class="button" href="#">Uninstall App</a>
+    <p id="detailDescription"></p>
+  </div>
+</body>
+</html>
