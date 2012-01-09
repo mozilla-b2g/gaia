@@ -4,7 +4,7 @@ var Contacts = {
   _loaded: false,
   get view() {
     delete this.view;
-    return this.view = document.getElementById('contacts-view');
+    return this.view = document.getElementById('contacts-view-scrollable');
   },
   setup: function contactsSetup() {
     this.view.addEventListener('touchstart', function showSearch(evt) {
@@ -60,13 +60,9 @@ var Contacts = {
       }
 
       content += '<div class="contact" id="' + contact.id + '">' +
-                 '  <img src="style/images/missing.png" alt="missing" />' +
                  '  <span class="display-name">' + displayName + '</span>' +
                  '</div>';
     }
-    content += '<div class="contact" id="contact-create">' +
-               '  <span>Create this contact</span>' +
-               '</div>';
 
     var contactsContainer = document.getElementById('contacts-container');
     contactsContainer.innerHTML = content;
@@ -141,20 +137,6 @@ var Contacts = {
         header.hidden = false;
       }
     }
-
-    // Adding a create button when there is room for it without scrolling
-    var createButton = document.getElementById('contact-create');
-    if (!createButton) {
-      return;
-    }
-
-    createButton.hidden = false;
-    var createHeight = createButton.getBoundingClientRect().height;
-    var viewHeight = this.view.getBoundingClientRect().height;
-    var contentHeight = container.getBoundingClientRect().height;
-    var available = viewHeight - contentHeight;
-    createButton.hidden = !((viewHeight > 0) &&
-                           (available >= createHeight));
   },
   anchor: function contactsAnchor(targetId) {
     var target = document.getElementById(targetId);
@@ -171,20 +153,6 @@ var Contacts = {
     // with the final API (ie. getting a contact from an id)
     var contactId = evt.target.id;
 
-    // creating a fresh contact with a pre-filled name
-    if (contactId == 'contact-create') {
-      var contact = {
-        name: {
-          familyName: [document.getElementById('contacts-search').value],
-          givenName: []
-        },
-        phones: [],
-        emails: []
-      };
-      ContactDetails.show(contact);
-      return;
-    }
-
     this.find(['id'], function showDetailCallback(contacts) {
       var results = contacts.filter(function finById(contact) {
         return (contact.id == contactId);
@@ -194,6 +162,18 @@ var Contacts = {
         ContactDetails.show(contact);
       }
     });
+  },
+  create: function contactsCreate() {
+    // creating a fresh contact with a pre-filled name
+    var contact = {
+      name: {
+        familyName: [],
+        givenName: []
+      },
+      phones: [],
+      emails: []
+    };
+    ContactDetails.show(contact);
   }
 };
 
@@ -207,11 +187,6 @@ var ShortcutsHandler = {
   get shortcutsBar() {
     delete this.shortcutsBar;
     return this.shortcutsBar = document.getElementById('contacts-shortcuts');
-  },
-  get shortcutsBackground() {
-    delete this.shortcutsBackground;
-    var id = 'contacts-shortcuts-background';
-    return this.shortcutsBackground = document.getElementById(id);
   },
 
   handleEvent: function sh_handleEvent(evt) {
@@ -232,7 +207,7 @@ var ShortcutsHandler = {
   },
 
   startTracking: function sh_startTracking() {
-    this.shortcutsBackground.classList.add('tracking');
+    this.shortcutsBar.classList.add('tracking');
 
     // we keep a reference to the horizontal center of the zone
     // it allows us to keep anchoring correctly if the user gets
@@ -241,7 +216,7 @@ var ShortcutsHandler = {
     this._positionX = rect.left + (rect.width / 2);
   },
   stopTracking: function sh_stopTracking() {
-    this.shortcutsBackground.classList.remove('tracking');
+    this.shortcutsBar.classList.remove('tracking');
     delete this._positionX;
   },
   anchorForPosition: function sh_anchorForPosition(positionY) {
