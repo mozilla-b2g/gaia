@@ -80,6 +80,35 @@ const Keyboards = {
       [ { value: "He", keyCode: -3 }, { value: "?123", ratio: 2, keyCode: -2 }, { value: ",", keyCode: 44 }, { value: "⎵", ratio: 3, keyCode: 32 }, { value: ".", keyCode: 46 }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ]
   },
+  nb: {
+    type: 'keyboard',
+    label: 'Norwegian Bokmal',
+    menuLabel: 'Norsk',
+    alt: {
+      a: "äáàâąã",
+      e: "éèêëę€",
+      i: "íìîï",
+      o: "öóòôõ",
+      u: "üúùûū",
+      s: "śšşß",
+      n: "ńñň",
+      c: "çćč",
+      d: "ðď",
+      r: "ř",
+      t: "ťþ",
+      z: "źžż",
+      l: "ł",
+      v: "w",
+      "æ": "œ",
+    },
+    width: 11,
+    keys: [
+        [{ value: "q" },{ value: "w" },{ value: "e" },{ value: "r" },{ value: "t" },{ value: "y" },{ value: "u" },{ value: "i" },{ value: "o" },{ value: "p" },{ value: "å" }],
+        [{ value: "a" },{ value: "s" },{ value: "d" },{ value: "f" },{ value: "g" },{ value: "h" },{ value: "j" },{ value: "k" },{ value: "l" },{ value: "ø" },{ value: "æ" }],
+        [{ value: "⇪", ratio: 2, keyCode: KeyEvent.DOM_VK_CAPS_LOCK }, { value: "z" },{ value: "x" },{ value: "c" },{ value: "v" },{ value: "b" },{ value: "n" },{ value: "m" }, { value: "⌫", ratio: 2, keyCode: KeyEvent.DOM_VK_BACK_SPACE }],
+        [{ value: "Nb", keyCode: -3 }, { value: "?123", ratio: 2, keyCode: -2 }, { value: ",", keyCode: 44 }, { value: "⎵", ratio: 4, keyCode: 32 }, { value: ".", keyCode: 46 }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
+    ]
+  },
   ru: {
     type: 'keyboard',
     label: 'Russian',
@@ -109,6 +138,31 @@ const Keyboards = {
         [ { value: "⇪", keyCode: KeyEvent.DOM_VK_CAPS_LOCK }, { value: "s" }, { value: "џ" }, { value: "ц" }, { value: "в" }, { value: "б" }, { value: "н" }, { value: "м" }, { value: "ђ" }, { value: "ж" }, { value: "⌫", keyCode: KeyEvent.DOM_VK_BACK_SPACE }],
         [ { value: "Sr", keyCode: -3 }, { value: "?123", ratio: 2, keyCode: -2 }, { value: ",", keyCode: 44 }, { value: "⎵", ratio: 4, keyCode: 32 }, { value: ".", keyCode: 46 }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ]
+  },
+  sk: {
+    type: 'keyboard',
+    label: 'Slovak',
+    menuLabel: 'Slovenčina',
+    alt: {
+      a: "áàâąãäæ",
+      e: "éèêëę€",
+      o: "óòôõöøœ",
+      s: "śšşß",
+      n: "ńñň",
+      c: "çćč",
+      y: "ýÿü",
+      d: "ðď",
+      r: "ř",
+      t: "ťþ",
+      z: "źžż",
+      l: "ł"
+    },
+    keys: [
+      [ { value: "q" }, { value: "w" }, { value: "e" } , { value: "r" }, { value: "t" } , { value: "y" }, { value: "u" } , { value: "i" }, { value: "o" }, { value: "p" } ],
+      [ { value: "a" }, { value: "s" }, { value: "d" }, { value: "f" }, { value: "g" } , { value: "h" }, { value: "j" }, { value: "k" }, { value: "l" }, { value: "'", keyCode: 39 } ],
+      [ { value: "⇪", ratio: 1.5, keyCode: KeyEvent.DOM_VK_CAPS_LOCK }, { value: "z" }, { value: "x" }, { value: "c" }, { value: "v" }, { value: "b" }, { value:"n" }, { value: "m" }, { value: "⌫", ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE } ],
+      [ { value: "Sk", keyCode: -3 }, { value: "?123", ratio: 2, keyCode: -2 }, { value: ",", keyCode: 44 }, { value: "⎵", ratio: 3, keyCode: 32 }, { value: ".", keyCode: 46 }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
+    ],
   },
   tr: {
     type: 'keyboard',

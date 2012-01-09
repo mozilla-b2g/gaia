@@ -20,8 +20,8 @@ const IMEManager = {
   currentKeyboard: 'en',
   currentKeyboardMode: '',
   keyboards: [
-    'en', 'fr', 'de', 'he',
-    'ru', 'sr-Cyrl', 'en-Dvorak',
+    'en', 'fr', 'de', 'he', 'nb',
+    'ru', 'sr-Cyrl', 'sk', 'en-Dvorak',
     'tr', 'zh-Hant_Zhuying'
   ],
 
