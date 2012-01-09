@@ -17,12 +17,12 @@ const IMEManager = {
 
   // TODO: allow user to select desired keyboards in settings
   // see bug 712778
-  currentKeyboard: 'qwertyLayout',
+  currentKeyboard: 'en',
   currentKeyboardMode: '',
   keyboards: [
-    'qwertyLayout', 'azertyLayout', 'qwertzLayout', 'hebrewLayout',
-    'jcukenLayout', 'serbianCyrillicLayout', 'dvorakLayout',
-    'turkishQLayout', 'zhuyingGeneralLayout'
+    'en', 'fr', 'de', 'he',
+    'ru', 'sr-Cyrl', 'en-Dvorak',
+    'tr', 'zh-Hant_Zhuying'
   ],
 
   isUpperCase: false,
@@ -65,6 +65,14 @@ const IMEManager = {
   kCapsLockTimeout: 450,
   isUpperCaseLocked: false,
 
+  // show accent char menu (if there is one) after kAccentCharMenuTimeout
+  kAccentCharMenuTimeout: 700,
+
+  // if user leave the original key and did not move to
+  // a key within the accent character menu,
+  // after kHideAccentCharMenuTimeout the menu will be removed.
+  kHideAccentCharMenuTimeout: 500,
+
   get ime() {
     delete this.ime;
     return this.ime = document.getElementById('keyboard');
@@ -88,19 +96,81 @@ const IMEManager = {
 
     keyHighlight.innerHTML = target.innerHTML;
     keyHighlight.className = 'show';
-    keyHighlight.style.top = target.offsetTop.toString(10) + 'px';
 
-    var keyHightlightWidth = keyHighlight.offsetWidth;
-    var keyHightlightLeft =
-      target.offsetLeft + target.offsetWidth / 2 - keyHightlightWidth / 2;
-    keyHightlightLeft = Math.max(keyHightlightLeft, 5);
-    keyHightlightLeft =
+    var keyHighlightTop = target.offsetTop;
+    var keyHighlightWidth = keyHighlight.offsetWidth;
+    var keyHighlightLeft =
+      target.offsetLeft + target.offsetWidth / 2 - keyHighlightWidth / 2;
+
+    if (target.classList.contains('on-menu')) {
+      var menu = document.getElementById('keyboard-accent-char-menu');
+      keyHighlightTop += menu.offsetTop;
+      keyHighlightLeft += menu.offsetLeft;
+    }
+
+    keyHighlightLeft = Math.max(keyHighlightLeft, 5);
+    keyHighlightLeft =
       Math.min(
-        keyHightlightLeft,
-        window.innerWidth - keyHightlightWidth - 5
+        keyHighlightLeft,
+        window.innerWidth - keyHighlightWidth - 5
       );
 
-    keyHighlight.style.left = keyHightlightLeft.toString(10) + 'px';
+    keyHighlight.style.top = keyHighlightTop.toString(10) + 'px';
+    keyHighlight.style.left = keyHighlightLeft.toString(10) + 'px';
+  },
+
+  showAccentCharMenu: function km_showAccentCharMenu() {
+    var target = this.currentKey;
+    var menu = document.getElementById('keyboard-accent-char-menu');
+    var content = '';
+
+    if (!target || !target.dataset.alt)
+      return;
+
+    clearTimeout(this._hideMenuTimeout);
+
+    var cssWidth = target.style.width;
+
+    menu.className = 'show';
+
+    content += '<span class="keyboard-key on-menu" ' +
+      'data-keycode="' + target.dataset.keycode + '" ' +
+      'style="width:' + cssWidth + '"' +
+      '>' +
+      target.innerHTML +
+      '</span>';
+
+    for (var i in target.dataset.alt) {
+      content += '<span class="keyboard-key on-menu" ' +
+        'data-keycode="' + target.dataset.alt.charCodeAt(i) + '"' +
+        'style="width:' + cssWidth + '"' +
+        '>' +
+        target.dataset.alt.charAt(i) +
+        '</span>';
+    }
+
+    menu.innerHTML = content;
+
+    menu.style.top = target.offsetTop.toString(10) + 'px';
+
+    var menuWidth = menu.offsetWidth;
+    var menuLeft =
+      target.offsetLeft + target.offsetWidth / 2 - menuWidth / 2;
+    menuLeft = Math.max(menuLeft, 5);
+    menuLeft =
+      Math.min(
+        menuLeft,
+        window.innerWidth - menuWidth - 5
+      );
+
+    menu.style.left = menuLeft.toString(10) + 'px';
+
+    document.getElementById('keyboard-key-highlight').className = 'upper';
+  },
+  hideAccentCharMenu: function km_hideAccentCharMenu() {
+    var menu = document.getElementById('keyboard-accent-char-menu');
+    menu.innerHTML = '';
+    menu.className = '';
   },
 
   events: ['mouseup', 'showime', 'hideime', 'unload', 'appclose'],
@@ -195,6 +265,13 @@ const IMEManager = {
 
         this.updateKeyHighlight();
 
+        this._menuTimeout = setTimeout(
+          (function menuTimeout() {
+            this.showAccentCharMenu();
+          }).bind(this),
+          this.kAccentCharMenuTimeout
+        );
+
         if (keyCode != KeyEvent.DOM_VK_BACK_SPACE)
           return;
 
@@ -207,10 +284,10 @@ const IMEManager = {
         }).bind(this);
 
         sendDelete();
-        this._timeout = setTimeout((function deleteTimeout() {
+        this._deleteTimeout = setTimeout((function deleteTimeout() {
           sendDelete();
 
-          this._interval = setInterval(function deleteInterval() {
+          this._deleteInterval = setInterval(function deleteInterval() {
             sendDelete();
           }, this.kRepeatRate);
         }).bind(this), this.kRepeatTimeout);
@@ -242,8 +319,26 @@ const IMEManager = {
         this.currentKey = target;
         this.updateKeyHighlight();
 
-        clearTimeout(this._timeout);
-        clearInterval(this._interval);
+        clearTimeout(this._deleteTimeout);
+        clearInterval(this._deleteInterval);
+        clearTimeout(this._menuTimeout);
+
+        if (target.classList.contains('on-menu')) {
+          clearTimeout(this._hideMenuTimeout);
+        } else {
+          this._hideMenuTimeout = setTimeout(
+            (function hideMenuTimeout() {
+              this.hideAccentCharMenu();
+            }).bind(this),
+            this.kHideAccentCharMenuTimeout
+          );
+          this._menuTimeout = setTimeout(
+            (function menuTimeout() {
+              this.showAccentCharMenu();
+            }).bind(this),
+            this.kAccentCharMenuTimeout
+          );
+        }
 
         break;
 
@@ -255,6 +350,12 @@ const IMEManager = {
           delete this.currentKey.dataset.active;
           delete this.currentKey;
           this.updateKeyHighlight();
+          this._hideMenuTimeout = setTimeout(
+            (function hideMenuTimeout() {
+              this.hideAccentCharMenu();
+            }).bind(this),
+            this.kHideAccentCharMenuTimeout
+          );
         }
 
         break;
@@ -267,8 +368,11 @@ const IMEManager = {
 
         var keyCode = parseInt(this.currentKey.getAttribute('data-keycode'));
 
-        clearTimeout(this._timeout);
-        clearInterval(this._interval);
+        clearTimeout(this._deleteTimeout);
+        clearInterval(this._deleteInterval);
+        clearTimeout(this._menuTimeout);
+
+        this.hideAccentCharMenu();
 
         if (!keyCode && !this.currentKey.dataset.selection)
           return;
@@ -395,6 +499,8 @@ const IMEManager = {
 
     if (!layout.upperCase)
       layout.upperCase = {};
+    if (!layout.alt)
+      layout.alt = {};
 
     layout.keys.forEach((function buildKeyboardRow(row) {
       content += '<div class="keyboard-row">';
@@ -427,15 +533,25 @@ const IMEManager = {
         if (code == KeyEvent.DOM_VK_CAPS_LOCK)
           className += ' toggle';
 
+        var alt = '';
+        if (layout.alt[keyChar])
+          alt = ' data-alt="' + layout.alt[keyChar] + '"';
+        else if (layout.alt[key.value] && this.isUpperCase) {
+          alt = ' data-alt="' + layout.alt[key.value].toUpperCase() + '"';
+        }
+
         content += '<span class="' + className + '"' +
                           'data-keycode="' + code + '"' +
                           'style="width:' + size + 'px"' +
+                          alt +
                    '>' +
                    keyChar +
                    '</span>';
       }).bind(this));
       content += '</div>';
     }).bind(this));
+
+    content += '<span id="keyboard-accent-char-menu"></span>';
 
     content += '<span id="keyboard-key-highlight"></span>';
 

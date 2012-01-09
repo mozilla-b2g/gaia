@@ -18,8 +18,16 @@ const Keyboards = {
       [ { value: "?#", keyCode: -3 }, { value: "ABC", ratio: 2, keyCode: -1 }, { value: ",", keyCode: 44 }, { value: "⎵", ratio: 3, keyCode: 32 }, { value: ".", keyCode: 46 }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ]
   },
-  qwertyLayout: {
+  en: {
     type: 'keyboard',
+    label: 'English',
+    alt: {
+      a: "àáâãäåāæ",
+      e: "èéêëē",
+      i: "ìíîïī",
+      o: "òóôõöōœø",
+      u: "ùúûüū"
+    },
     keys: [
       [ { value: "q" }, { value: "w" }, { value: "e" } , { value: "r" }, { value: "t" } , { value: "y" }, { value: "u" } , { value: "i" }, { value: "o" }, { value: "p" } ],
       [ { value: "a" }, { value: "s" }, { value: "d" }, { value: "f" }, { value: "g" } , { value: "h" }, { value: "j" }, { value: "k" }, { value: "l" }, { value: "'", keyCode: 39 } ],
@@ -27,8 +35,15 @@ const Keyboards = {
       [ { value: "En", keyCode: -3 }, { value: "?123", ratio: 2, keyCode: -2 }, { value: ",", keyCode: 44 }, { value: "⎵", ratio: 3, keyCode: 32 }, { value: ".", keyCode: 46 }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ],
   },
-  azertyLayout: {
+  fr: {
     type: 'keyboard',
+    label: 'French',
+    menuLabel: 'français',
+    alt: {
+      a: "àáâãäåæ",
+      e: "èéêë€",
+      o: "òóôõöœø"
+    },
     keys: [
       [ { value: "a" }, { value: "z" }, { value: "e" } , { value: "r" }, { value: "t" } , { value: "y" }, { value: "u" } , { value: "i" }, { value: "o" }, { value: "p" } ],
       [ { value: "q" }, { value: "s" }, { value: "d" }, { value: "f" }, { value: "g" } , { value: "h" }, { value: "j" }, { value: "k" }, { value: "l" }, { value: "m" } ],
@@ -36,8 +51,14 @@ const Keyboards = {
       [ { value: "Fr", keyCode: -3 }, { value: "?123", ratio: 2, keyCode: -2 }, { value: ",", keyCode: 44 }, { value: "⎵", ratio: 3, keyCode: 32 }, { value: ".", keyCode: 46 }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ]
   },
-  qwertzLayout: {
+  de: {
     type: 'keyboard',
+    label: 'German',
+    menuLabel: 'Deutsch',
+    alt: {
+      a: "ä",
+      o: "ö"
+    },
     keys: [
       [ { value: "q" }, { value: "w" }, { value: "e" } , { value: "r" }, { value: "t" } , { value: "z" }, { value: "u" } , { value: "i" }, { value: "o" }, { value: "p" } ],
       [ { value: "a" }, { value: "s" }, { value: "d" }, { value: "f" }, { value: "g" } , { value: "h" }, { value: "j" }, { value: "k" }, { value: "l" }, { value: "'", keyCode: 39 } ],
@@ -45,8 +66,13 @@ const Keyboards = {
       [ { value: "De", keyCode: -3 }, { value: "?123", ratio: 2, keyCode: -2 }, { value: ",", keyCode: 44 }, { value: "⎵", ratio: 3, keyCode: 32 }, { value: ".", keyCode: 46 }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ]
   },
-  hebrewLayout: {
+  he: {
     type: 'keyboard',
+    label: 'Hebrew',
+    menuLabel: 'עִבְרִית',
+    alt: {
+      // incomplete
+    },
     keys: [
       [ { value: "ק" }, { value: "ר" }, { value: "א" }, { value: "ט" }, { value: "ו" }, { value: "ו" }, { value: "ם" }, { value: "פ" }, { value: "⌫", ratio: 2, keyCode: KeyEvent.DOM_VK_BACK_SPACE } ],
       [ { value: "ש" }, { value: "ד" }, { value: "ג" }, { value: "כ" }, { value: "ע" }, { value: "י" }, { value: "ח" }, { value: "ל" }, { value: "ך" }, { value: "ף" }],
@@ -54,8 +80,13 @@ const Keyboards = {
       [ { value: "He", keyCode: -3 }, { value: "?123", ratio: 2, keyCode: -2 }, { value: ",", keyCode: 44 }, { value: "⎵", ratio: 3, keyCode: 32 }, { value: ".", keyCode: 46 }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ]
   },
-  jcukenLayout: {
+  ru: {
     type: 'keyboard',
+    label: 'Russian',
+    menuLabel: 'русский',
+    alt: {
+      // incomplete
+    },
     width: 11,
     keys: [
         [ { value: "й" }, { value: "ц" }, { value: "у" }, { value: "к" }, { value: "е" }, { value: "н" }, { value: "г" }, { value: "ш" }, { value: "щ" }, { value: "з" }, { value: "х" }],
@@ -64,8 +95,13 @@ const Keyboards = {
         [ { value: "Ru", keyCode: -3 }, { value: "?123", ratio: 2, keyCode: -2 }, { value: ",", keyCode: 44 }, { value: "⎵", ratio: 4, keyCode: 32 }, { value: ".", keyCode: 46 }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ]
   },
-  serbianCyrillicLayout: {
+  "sr-Cyrl": {
     type: 'keyboard',
+    label: 'Serbian (Cyrillic)',
+    menuLabel: 'српска ћирилица',
+    alt: {
+      // incomplete
+    },
     width: 11,
     keys: [
         [ { value: "љ" }, { value: "њ" }, { value: "е" }, { value: "р" }, { value: "т" }, { value: "з" }, { value: "у" }, { value: "и" }, { value: "о" }, { value: "п" }, { value: "ш" }],
@@ -74,10 +110,23 @@ const Keyboards = {
         [ { value: "Sr", keyCode: -3 }, { value: "?123", ratio: 2, keyCode: -2 }, { value: ",", keyCode: 44 }, { value: "⎵", ratio: 4, keyCode: 32 }, { value: ".", keyCode: 46 }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ]
   },
-  turkishQLayout: {
+  tr: {
     type: 'keyboard',
+    label: 'Turkish',
+    menuLabel: 'Türkçe',
     upperCase: {
       'i':'İ'
+    },
+    alt: {
+      a: "â",
+      c: "çćč",
+      g: "ğ",
+      i: "īįıìíîï",
+      "İ": "ĪĮIÌÍÎÏ",
+      s: "śšşß",
+      S: "ŚŠŞ",
+      o: "òóôõöōœø",
+      u: "ùúûüū"
     },
     keys: [
       [ { value: "q" }, { value: "w" }, { value: "e" } , { value: "r" }, { value: "t" } , { value: "y" }, { value: "u" } , { value: "i" }, { value: "o" }, { value: "p" } ],
@@ -86,8 +135,17 @@ const Keyboards = {
       [ { value: "Tr", keyCode: -3 }, { value: "?123", ratio: 2, keyCode: -2 }, { value: ",", keyCode: 44 }, { value: "⎵", ratio: 3, keyCode: 32 }, { value: ".", keyCode: 46 }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ],
   },
-  dvorakLayout: {
+  'en-Dvorak': {
     type: 'keyboard',
+    label: 'English - Dvorak',
+    menuLabel: 'Dvorak',
+    alt: {
+      a: "àáâãäåāæ",
+      e: "èéêëē",
+      i: "ìíîïī",
+      o: "òóôõöōœø",
+      u: "ùúûüū"
+    },
     keys: [
       [ { value: "," }, { value: "." } , { value: "p" }, { value: "y" } , { value: "f" }, { value: "g" } , { value: "c" }, { value: "r" }, { value: "l" }, { value: "⌫", keyCode: KeyEvent.DOM_VK_BACK_SPACE } ],
       [ { value: "a" }, { value: "o" }, { value: "e" }, { value: "u" }, { value: "i" } , { value: "d" }, { value: "h" }, { value: "t" }, { value: "n" }, { value: "s" } ],
@@ -95,8 +153,10 @@ const Keyboards = {
       [ { value: "Dv", keyCode: -3 }, { value: "?123", ratio: 2, keyCode: -2 }, { value: "'" }, { value: "⎵", ratio: 4, keyCode: 32 }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ]
   },
-  zhuyingGeneralLayout: {
+  'zh-Hant_Zhuying': {
     type: 'ime',
+    label: 'Chinese - Traditional - ZhuYing',
+    menuLabel: '繁體注音輸入',
     needsCandidatePanel: true,
     imEngine: 'jszhuying',
     width: 11,
