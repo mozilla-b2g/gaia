@@ -132,26 +132,54 @@ var JSZhuYing = function JSZhuYing(settings) {
   };
 
   var populateDBFromJSON = function(callback) {
-    var transaction = db.transaction('terms', IDBTransaction.READ_WRITE),
-    store = transaction.objectStore('terms');
+    var chunks = [];
+    var chunk = [];
+    var i = 0;
 
-    transaction.onerror = function() {
-      debug('JSZhuYing: Problem while populating DB with JSON data.');
-    };
-    transaction.oncomplete = function() {
-      jsonData = null;
-      callback();
-    };
-
-    var syllables;
-    for (syllables in jsonData) {
-      store.add(
-        {
-          syllables: syllables,
-          terms: jsonData[syllables]
-        }
-      );
+    for (var syllables in jsonData) {
+      chunk.push(syllables);
+      i++;
+      if (i > 256) {
+        chunks.push(chunk);
+        chunk = [];
+        i = 0;
+      }
     }
+    chunks.push(chunk);
+
+    var loadChunk = function () {
+      debug('JSZhuYing: Loading a chunk of data into IndexedDB, ' + (chunks.length -1) + ' chunks remaining.');
+      var transaction = db.transaction('terms', IDBTransaction.READ_WRITE),
+      store = transaction.objectStore('terms');
+
+      transaction.onerror = function() {
+        debug('JSZhuYing: Problem while populating DB with JSON data.');
+      };
+      transaction.oncomplete = function() {
+        if (chunks.length) {
+          setTimeout(loadChunk, 0);
+        } else {
+          jsonData = null;
+          setTimeout(callback, 0);
+        }
+
+      };
+
+      var syllables;
+      var chunk = chunks.shift();
+      for (i in chunk) {
+        var syllables = chunk[i];
+        store.add(
+          {
+            syllables: syllables,
+            terms: jsonData[syllables]
+          }
+        );
+      }
+    };
+
+    setTimeout(loadChunk, 0);
+
   };
 
   var getTermsJSON = function(callback) {
