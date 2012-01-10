@@ -94,6 +94,11 @@ const IMEManager = {
       return;
     }
 
+    if (target.dataset.keyboard) {
+      keyHighlight.className = '';
+      return;
+    }
+
     keyHighlight.innerHTML = target.innerHTML;
     keyHighlight.className = 'show';
 
@@ -121,18 +126,53 @@ const IMEManager = {
 
   showAccentCharMenu: function km_showAccentCharMenu() {
     var target = this.currentKey;
+
+    if (!target)
+      return;
+
+    var keyCode = parseInt(this.currentKey.getAttribute('data-keycode'));
     var menu = document.getElementById('keyboard-accent-char-menu');
     var content = '';
 
-    if (!target || !target.dataset.alt)
+    if (!target.dataset.alt && keyCode !== this.SWITCH_KEYBOARD)
       return;
 
     clearTimeout(this._hideMenuTimeout);
 
     var cssWidth = target.style.width;
 
-    menu.className = 'show';
+    if (keyCode == this.SWITCH_KEYBOARD) {
 
+      document.getElementById('keyboard-key-highlight').className = '';
+
+      menu.className = 'show menu';
+
+      for (var i in this.keyboards) {
+        var keyboard = this.keyboards[i];
+        var className = 'keyboard-key keyboard-key-special on-menu';
+
+        if (this.currentKeyboard == keyboard)
+          className += ' current-keyboard';
+
+        content += '<span class="' + className + '" ' +
+          'data-keyboard="' + keyboard + '" ' +
+          'data-keycode="' + this.SWITCH_KEYBOARD + '" ' +
+          '>' +
+          Keyboards[keyboard].menuLabel +
+          '</span>';
+      }
+
+      menu.innerHTML = content;
+
+      menu.style.top =
+        (target.offsetTop - menu.offsetHeight).toString(10) + 'px';
+
+      menu.style.left = '10px';
+
+      return;
+    }
+
+    menu.className = 'show';
     content += '<span class="keyboard-key on-menu" ' +
       'data-keycode="' + target.dataset.keycode + '" ' +
       'style="width:' + cssWidth + '"' +
@@ -366,7 +406,8 @@ const IMEManager = {
         if (!this.currentKey)
           return;
 
-        var keyCode = parseInt(this.currentKey.getAttribute('data-keycode'));
+        var target = this.currentKey;
+        var keyCode = parseInt(target.getAttribute('data-keycode'));
 
         clearTimeout(this._deleteTimeout);
         clearInterval(this._deleteInterval);
@@ -374,13 +415,13 @@ const IMEManager = {
 
         this.hideAccentCharMenu();
 
-        if (!keyCode && !this.currentKey.dataset.selection)
+        if (!keyCode && !target.dataset.selection)
           return;
 
-        if (this.currentKey.dataset.selection) {
+        if (target.dataset.selection) {
           this.currentEngine.select(
-            this.currentKey.textContent,
-            this.currentKey.dataset.data
+            target.textContent,
+            target.dataset.data
           );
           delete this.currentKey.dataset.active;
           delete this.currentKey;
@@ -407,11 +448,27 @@ const IMEManager = {
           break;
 
           case this.SWITCH_KEYBOARD:
+
+            // If the user has specify a keyboard in the menu,
+            // switch to that keyboard.
+            if (target.dataset.keyboard) {
+
+              if (this.keyboards.indexOf(target.dataset.keyboard) === -1)
+                this.currentKeyboard = this.keyboards[0];
+              else
+                this.currentKeyboard = target.dataset.keyboard;
+
+              this.isUpperCase = false;
+              this.updateLayout(this.currentKeyboard);
+
+              break;
+            }
+
             // If this is the last keyboard in the stack, start
             // back from the beginning.
             var keyboards = this.keyboards;
             var index = keyboards.indexOf(this.currentKeyboard);
-            if (index >= keyboards.length - 1)
+            if (index >= keyboards.length - 1 || index < 0)
               this.currentKeyboard = keyboards[0];
             else
               this.currentKeyboard = keyboards[++index];

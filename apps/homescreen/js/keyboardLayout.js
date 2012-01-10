@@ -21,6 +21,7 @@ const Keyboards = {
   en: {
     type: 'keyboard',
     label: 'English',
+    menuLabel: 'English',
     alt: {
       a: "àáâãäåāæ",
       e: "èéêëē",
