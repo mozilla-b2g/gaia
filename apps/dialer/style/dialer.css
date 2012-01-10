@@ -138,6 +138,38 @@ html * {
   width: 100%;
 }
 
+.top-bar {
+	height: 12mozmm;
+  line-height: 12mozmm;
+
+  font-size: 5mozmm;
+  text-align: center;
+
+	border-top: 1px solid hsl(210, 2%, 48%);
+	border-bottom: 1px solid hsl(210, 2%, 20%);
+	background: url(images/texture.png), -moz-linear-gradient(top, hsl(0,0%,40%) 0%, hsl(0,0%,36%) 50%, hsl(0,0%,28%) 100%);
+}
+
+.top-bar span {
+  text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+}
+
+.top-bar a.add {
+  position: absolute;
+  display: block;
+  width: 7mozmm;
+  height: 7mozmm;
+  top: 2.5mozmm;
+  right:2.5mozmm;
+
+  border: 1px solid #333333;
+  border-radius: 5px 5px 5px 5px;
+  background: url(images/title-bar-plus.png) no-repeat 100% 0, -moz-linear-gradient(top, hsl(0,0%,65%) 0, hsl(0,0%,53%) 1px, hsl(0,0%,33%) 100%);
+}
+.top-bar a.add:active {
+  background: url(images/title-bar-plus.png) no-repeat 100% 100%, -moz-linear-gradient(top, hsl(0,0%,65%) 0, hsl(0,0%,53%) 1px, hsl(0,0%,33%) 100%);
+}
+
 /* === Keyboard View === */
 #keyboard-view {
   width: 100%;
@@ -322,75 +354,82 @@ html * {
 
 
 /* === Contacts View === */
-#contacts-view.view {
-  height: -moz-calc(100% - 28px);
-  width: -moz-calc(100% - 38px);
-  margin: 10px auto auto auto;
+#contacts-wrapper {
+  width: -moz-calc(100% - 38px - 22px);
+  height: -moz-calc(100% - 12mozmm - 40px);
+  margin: 20px 0 0 10px;
+  padding: 9px;
 
+  background: none repeat scroll 0 0 rgba(17, 17, 17, 0.4);
   border-radius: 5px;
-  border:9px rgba(0, 0, 0, 0.3) solid;
 }
+
 #contacts-view-scrollable {
-  width: 100%;
   height: 100%;
 
-  border: 1px solid #333333;
+  border: 1px #333333 solid;
   border-radius: 5px;
   overflow: scroll;
 }
 
+#contacts-container {
+  /* XXX adding 8px to fill the void left by the scrollbar */
+  width: -moz-calc(100% + 8px);
+}
+
 #contacts-search-container {
-  padding: 4px;
-  text-align: center;
+  /* XXX adding 8px to fill the void left by the scrollbar */
+  width: -moz-calc(100% + 8px);
+
+	border-radius: 5px 5px 0 0;
+	background: url(images/texture.png), -moz-linear-gradient(top, hsl(0,0%,40%) 0%, hsl(0,0%,36%) 50%, hsl(0,0%,28%) 100%);
 }
 
 #contacts-search {
-  width: 98%;
-  margin: 0px;
-  -moz-appearance: none;
-  border-radius: 24px;
-  border: 1px solid #404040;
-  height: 48px;
-  line-height: 48px;
-  padding-left: 6px;
+	width: 100%;
+	height: 12mozmm;
+
+	background: none;
+	border: none;
+
+  line-height: 12mozmm;
+  font-size: 4mozmm;
+	padding: 0 10px;
+	color: hsl(0,0%,100%);
+	text-shadow:0 0 3px hsla(0,0%,0%,.5);
 }
 
 .contact-header {
-  background-image: -moz-linear-gradient(top, #202020, #101010);
-  border-bottom: 1px solid #202020;
-  padding: 4px;
-  color: #b0b0b0;
-  font-weight: bold;
+  height: 6mozmm;
+  padding: 0 14px 0 20px;
+
+  background: -moz-linear-gradient(center top , #878787 0pt, #545454 100%) repeat scroll 0 0 transparent;
+
+  font-size: 4mozmm;
+  font-weight: 700;
+  line-height: 6mozmm;
+  color: #FFFFFF;
+
+  border-bottom: 1px solid #000000;
+  border-top: 1px solid #7A7A7A;
+
   pointer-events: none;
-  width: -moz-calc(100% - 2px);
 }
 
 .contact {
-  padding: 4px;
-  height: 10mozmm;
+  padding: 0 14px 0 20px;
+  height: 12mozmm;
   width: -moz-calc(100% - 2px);
 
 	background: hsl(0,0%,33%);
 	border-top:1px solid hsl(0,0%,48%);
 	border-bottom:1px solid hsl(0,0%,0%);
 
-  line-height: 10mozmm;
+  line-height: 12mozmm;
   font-size: 4mozmm;
 }
 .contact:nth-of-type(odd) {
   background: hsl(0,0%,37%);
-}
-
-#contact-create {
-  background-color: #171717;
-  background-image: url(images/create.png);
-  background-repeat: no-repeat;
-
-  font-size: 25px;
-}
-#contact-create span {
-  margin-left: 72px;
-  line-height: 56px;
 }
 
 .contact * {
@@ -417,47 +456,35 @@ html * {
   pointer-events: none;
 }
 
-#contacts-shortcuts-background {
-  position: fixed;
-  right: 22px;
-  top: 71px;
-  height: -moz-calc(100% - 202px);
-  width : 30px;
-
-  border-radius: 17px;
-}
-#contacts-shortcuts-background.tracking {
-  background-color: rgba(11,11,11,0.6);
-}
-
 #contacts-shortcuts {
   position: fixed;
-  right: 19px;
-  top: 76px;
-  height: -moz-calc(100% - 210px);
+  right: 10px;
+  top: 90px;
   width: 44px;
-  padding: 5px 15px 5px 5px;
-
-  text-align: right;
+  height: -moz-calc(100% - 142px);
 }
 
 #contacts-shortcuts > a {
   display: block;
-  font-size: 10px;
-  text-decoration: none;
-  color: #707070;
-  font-weight: bold;
-  height: -moz-calc(100% / 27);
+  width: 22px;
+  height: -moz-calc(100% / 27 - 4px);
+  margin: 2px 0;
+  padding-left: 22px;
+
+  background: -moz-linear-gradient(left center , #191919 0pt, rgba(17, 17, 17, 0.4) 30%) no-repeat scroll 0 0 transparent;
+  background-size: 22px auto;
+  background-position: right;
+  border-radius: 0 5px 5px 0;
+
+  color: #FFFFFF;
+  font-size: 12px;
+  text-align: center;
 }
 
-#contacts-shortcuts > a[name="contacts-search-container"] {
-  width: 100%;
-  background: url(images/lens.png) 33px top;
-  background-repeat: no-repeat;
-}
-
-#contacts-shortcuts > a:not([name="contacts-search-container"])[data-disabled] {
-  color: #454545;
+#contacts-shortcuts.tracking > a {
+  background: -moz-linear-gradient(left center , #191919 0pt, rgba(17, 17, 17, 0.8) 30%) no-repeat scroll 0 0 transparent;
+  background-size: 22px auto;
+  background-position: right;
 }
 
 /* === Contact detail View === */
@@ -699,20 +726,6 @@ html * {
   height: -moz-calc(100% - 20px);
 }
 
-#views.modal #contacts-view {
-  margin-top: 20px;
-  height: -moz-calc(100% - 20px);
-}
-
-#views.modal #contacts-shortcuts-background {
-  top: 95px;
-  height: -moz-calc(100% - 340px);
-}
-#views.modal #contacts-shortcuts {
-  top: 100px;
-  height: -moz-calc(100% - 350px);
-}
-
 /* === Call Screen === */
 
 #call-screen {
@@ -739,18 +752,6 @@ html * {
 	font-size:50px;
 	line-height:60px;
 	text-align:center;
-}
-
-#call-status-view {
-	height:58px;
-  line-height: 64px;
-
-  font-size: 1.5em;
-  text-align: center;
-
-	border-top: 1px solid hsl(210, 2%, 48%);
-	border-bottom: 1px solid hsl(210, 2%, 20%);
-	background: url(images/texture.png), -moz-linear-gradient(top, hsl(0,0%,40%) 0%, hsl(0,0%,36%) 50%, hsl(0,0%,28%) 100%);
 }
 
 #call-actions-container {
@@ -806,19 +807,19 @@ html * {
   background: url(images/numpad-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 1px, hsl(0,0%,56%) 100%);
 }
 
-#contacts-button {
-  background-image: url(images/contacts-icon.png);
+#speaker-button {
+  background-image: url(images/speaker.png);
 }
-#contacts-button:active {
-  background: url(images/contacts-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 1px, hsl(0,0%,56%) 100%);
+#speaker-button.speak {
+  background: url(images/speaker.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 1px, hsl(0,0%,56%) 100%);
 }
 
 #mute-button {
   border-radius : 0 3px 3px 0;
-  background-image: url(images/favorite-icon.png);
+  background-image: url(images/microphone-off.png);
 }
 #mute-button.mute {
-  background: url(images/favorite-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 1px, hsl(0,0%,56%) 100%);
+  background: url(images/microphone-off.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 1px, hsl(0,0%,56%) 100%);
 }
 
 #call-actions-container.displayed {

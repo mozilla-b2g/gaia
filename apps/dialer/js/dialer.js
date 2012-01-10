@@ -284,6 +284,8 @@ var CallHandler = {
     this.actionsView.classList.remove('displayed');
     if (this.muteButton.classList.contains('mute'))
       this.toggleMute();
+    if (this.speakerButton.classList.contains('speak'))
+      this.toggleSpeaker();
 
     this.closeModal();
     clearInterval(this._ticker);
@@ -310,6 +312,10 @@ var CallHandler = {
     delete this.muteButton;
     return this.muteButton = document.getElementById('mute-button');
   },
+  get speakerButton() {
+    delete this.speakerButton;
+    return this.speakerButton = document.getElementById('speaker-button');
+  },
   get callButton() {
     delete this.callButton;
     return this.callButton = document.getElementById('call-button');
@@ -332,6 +338,10 @@ var CallHandler = {
   toggleMute: function ch_toggleMute() {
     this.muteButton.classList.toggle('mute');
     // TODO: make the actual mute call on the telephony API
+  },
+  toggleSpeaker: function ch_toggleSpeaker() {
+    this.speakerButton.classList.toggle('speak');
+    // TODO: make the actual speaker call
   },
   keypad: function ch_keypad() {
     choiceChanged(document.getElementById('keyboard-label'));
