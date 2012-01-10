@@ -164,7 +164,7 @@ var Contacts = {
     });
   },
   create: function contactsCreate() {
-    // creating a fresh contact with a pre-filled name
+    // creating an empty contact
     var contact = {
       name: {
         familyName: [],
