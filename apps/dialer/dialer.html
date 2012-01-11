@@ -11,725 +11,130 @@
   </head>
 
   <body>
-    <div id="choices" onclick="choiceChanged(event.target)">
-      <button id="keyboard" class="choice" data-active="true">Tel.</button><button id="contacts" class="choice">Contacts</button>
-    </div>
-
     <div id="views">
       <div id="contacts-view" class="view" hidden="true">
-        <div id="contacts-search-container" hidden="true">
-          <input id="contacts-search" type="search" onmousedown="this.focus();" oninput="Contacts.filter(event.target.value);"></input>
+        <div class="top-bar">
+          <span>Contacts</span>
+          <a class="add" href="#" onclick="Contacts.create()"></a>
         </div>
 
         <div id="contacts-wrapper">
-          <div id="contacts-shortcuts-background"></div>
-          <div id="contacts-shortcuts" onclick="Contacts.anchor(event.target.name);">
-            <a name="contacts-search-container"></a>
-            <a name="A">A</a>
-            <a name="B">B</a>
-            <a name="C">C</a>
-            <a name="D">D</a>
-            <a name="E">E</a>
-            <a name="F">F</a>
-            <a name="G">G</a>
-            <a name="H">H</a>
-            <a name="I">I</a>
-            <a name="J">J</a>
-            <a name="K">K</a>
-            <a name="L">L</a>
-            <a name="M">M</a>
-            <a name="N">N</a>
-            <a name="O">O</a>
-            <a name="P">P</a>
-            <a name="Q">Q</a>
-            <a name="R">R</a>
-            <a name="S">S</a>
-            <a name="T">T</a>
-            <a name="U">U</a>
-            <a name="V">V</a>
-            <a name="W">W</a>
-            <a name="X">X</a>
-            <a name="Y">Y</a>
-            <a name="Z">Z</a>
+          <div id="contacts-view-scrollable">
+            <div id="contacts-search-container" hidden="true">
+              <input id="contacts-search" type="search" onmousedown="this.focus();"
+              oninput="Contacts.filter(event.target.value);" placeholder="Search&#8230;"></input>
+            </div>
+            <div id="contacts-container" onclick="Contacts.showDetails(event)"></div>
           </div>
+        </div>
 
-          <div id="contacts-container" onclick="Contacts.showDetails(event)"></div>
+        <div id="contacts-shortcuts" onclick="Contacts.anchor(event.target.name);">
+          <a name="A">A</a>
+          <a name="B">B</a>
+          <a name="C">C</a>
+          <a name="D">D</a>
+          <a name="E">E</a>
+          <a name="F">F</a>
+          <a name="G">G</a>
+          <a name="H">H</a>
+          <a name="I">I</a>
+          <a name="J">J</a>
+          <a name="K">K</a>
+          <a name="L">L</a>
+          <a name="M">M</a>
+          <a name="N">N</a>
+          <a name="O">O</a>
+          <a name="P">P</a>
+          <a name="Q">Q</a>
+          <a name="R">R</a>
+          <a name="S">S</a>
+          <a name="T">T</a>
+          <a name="U">U</a>
+          <a name="V">V</a>
+          <a name="W">W</a>
+          <a name="X">X</a>
+          <a name="Y">Y</a>
+          <a name="Z">Z</a>
+        </div>
 
-          <div id="contact-details-container">
-            <div id="contact-details-view">
-              <div id="contact-edit-button" data-action="edit" onclick="ContactDetails.execute(event)">
-                <span>Edit</span>
-                <span>Save</span>
-              </div>
-              <div id="contact-photo">
-                <img src="style/images/missing.png" alt="missing" />
-              </div>
-              <div id="contact-name">
-              </div>
-              <div id="contact-phones" class="group">
-              </div>
-              <div id="contact-emails" class="group">
-              </div>
+        <div id="contact-details-container">
+          <div id="contact-details-view">
+            <div id="contact-edit-button" data-action="edit" onclick="ContactDetails.execute(event)">
+              <span>Edit</span>
+              <span>Save</span>
+            </div>
+            <div id="contact-photo">
+              <img src="style/images/missing.png" alt="missing" />
+            </div>
+            <div id="contact-name">
+            </div>
+            <div id="contact-phones" class="group" data-action="call" onclick="ContactDetails.execute(event)">
+            </div>
+            <div id="contact-emails" class="group">
+            </div>
+            <div id="contact-destroy-button" data-action="destroy" onclick="ContactDetails.execute(event)">
+              Destroy this contact
             </div>
           </div>
+        </div>
       </div>
-    </div>
 
       <div id="keyboard-view" class="view">
-        <input type="hidden" id="phoneNumber"></input>
-        <div id="fakePhoneNumber-view"></div>
-        <div id="phoneNumber-view-container">
-          <div id="phoneNumber-view"></div>
-        </div>
-
-        <div id="keyboard-container" onmousedown="KeyHandler.keyDown(event);" onmouseup="KeyHandler.keyUp(event);">
-          <div id="mainKeyset"></div>
-          <div id="additionalKeyset">
-            <div class="keyboard-row">
-              <div class="keyboard-key delete" data-value="del">
-                <span>&#8653;</span>
-              </div>
-              <div class="keyboard-key call" data-value="call">
-                <span>&#9742;</span>
-              </div>
-            </div>
+        <input type="hidden" id="phone-number"></input>
+        <div id="fake-phone-number-view"></div>
+        <div id="phone-number-view-container">
+          <div onmousedown="KeyHandler.keyDown(event);" onmouseup="KeyHandler.keyUp(event);">
+            <div id="phone-number-view"></div>
+            <div class="keyboard-key" data-value="del"></div>
           </div>
         </div>
-      </div>
 
-      <div class="main-button-container">
-        <div id="closeModal-button" data-action="closeModal" onclick="CallHandler.execute(this.dataset.action);">
-          <span>Close</span>
+        <div id="keyboard-container">
+          <div id="mainKeyset-container" onmousedown="KeyHandler.keyDown(event);" onmouseup="KeyHandler.keyUp(event);">
+            <div id="mainKeyset"></div>
+          </div>
+          <div id="additionalKeyset" onclick="KeyHandler.keyDown(event)">
+            <div class="keyboard-key" data-value="call">
+              <span></span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
     <div id="call-screen">
+      <div id="call-status-view" class="top-bar">
+      </div>
       <div id="call-number-view">
       </div>
-      <div id="call-status-view">
-      </div>
       <div id="call-actions-container">
-        <div id="keypad-button" class="top" data-action="keypad" onclick="CallHandler.execute(this.dataset.action);">
-          Keypad
-        </div>
-        <div id="contacts-button" class="top" data-action="contacts" onclick="CallHandler.execute(this.dataset.action);">
-          Contacts
-        </div>
-        <div id="mute-button" data-action="toggleMute" onclick="CallHandler.execute(this.dataset.action);">
-          <span>Mute</span>
-          <span>Unmute</span>
+        <div id="call-actions">
+          <div id="keypad-button" data-action="keypad" onclick="CallHandler.execute(this.dataset.action);">
+          </div>
+          <div id="speaker-button" data-action="toggleSpeaker" onclick="CallHandler.execute(this.dataset.action);">
+          </div>
+          <div id="mute-button" data-action="toggleMute" onclick="CallHandler.execute(this.dataset.action);">
+          </div>
         </div>
       </div>
       <div class="main-button-container">
         <div id="call-button" onclick="CallHandler.execute(this.dataset.action);">
-          <span>Answer call</span>
-          <span>End call</span>
+          <span id="accept-call"></span>
+          <span id="end-call"></span>
         </div>
       </div>
     </div>
 
-    <div style="display:none">
-      <audio id="tone0" preload="auto"
-             src="data:audio/x-wav;base64,
-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
-+//gAtj94AP1/gYBEAAL//8="></audio>
-      <audio id="tone1" preload="auto"
-             src="data:audio/x-wav;base64,
-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
-J/wOBff75gTk/uw="></audio>
-      <audio id="tone2" preload="auto"
-             src="data:audio/x-wav;base64,
-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
-B/32A/T9/QIMABE="></audio>
-      <audio id="tone3" preload="auto"
-             src="data:audio/x-wav;base64,
-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
-JP4HAvH/6wD3AAc="></audio>
-      <audio id="tone4" preload="auto"
-             src="data:audio/x-wav;base64,
-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
-C/4AAfgA9wAAAA8="></audio>
-      <audio id="tone5" preload="auto"
-             src="data:audio/x-wav;base64,
-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
-6v3nAvX/DQAnADM="></audio>
-      <audio id="tone6" preload="auto"
-             src="data:audio/x-wav;base64,
-UklGRnoKAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YVYKAAD//v8gAjL+KQIR/vcB
-7QD1/wMCC/4BAesA1v/RAuX/BwApADUAKf8LAvL+5gLv/v4CCP7/AesA2QDYAO4AEQAvADcAJgAG
-/+kC4P7pAvv9BQT/++wG3vrfBff8FwMz/jUCIf79AeIB2v3lBfr7BQMBAPH+4wPn/f0CHgA0/jID
-Gf31Atr/0wDjAfr/BwAFAPYA6gDuAQX+IAIz/i0CEf7rAtP+zwLj/vwCDP4JAfwB8P7zAQkBI/4v
-Aif/B//iA839zgLl/wAAEgEQ/wAA9QD4AQv+IQIs/x4A/wHc/8cAzwHpAAf/FwIW/QUE+fz5BAv8
-HgMl/xX/9QLV/sUB0QHv/g4BIAEb/QgE+/35AQkAGgAe/w0C7v7QAccA1gD3/xcCJ/0eBAv8+QT4
-/AQEFfwWAwb/5wDPAMkA3QAAASD+LAIi/goB+AH1/f8ED/wQAwD+5AHPAM4A5f8IAij9MAQj/QcB
-8wDv//oBCQEL/fsE4/3QANQD7vwSAy//MwAhAAQA7QDpAPUBBP4GAvr94wTV/toA9wEb/TMENP4c
-Af3/5QDjAfH/AAEGAPr/5QHbAOT+/wQi+zUFMvwWAvX/3gDdAe3+/gMG/PsF6/vgBOv9BgIm/zYB
-Lv8PAO0A1wHY/+oBAP8HAAAB8ADo//ICDf4oADUCKP4GAuT+0AHVAOsAAwEM/QQE9v3tAvgAEf4p
-AjH+HwP9/doCy//T/+0CB/4RAgr/+gDzAP0AEwAoASv/FgD0ANQAyADVAfP+DQIY/g8BAAD3AP8A
-Ev8jAiT9DgPs/s4AxwLZ/fgDFf0eAxX9AgP5/f0DEP4eAR3/BQHl/8oByP/eAAEBHf8kABkABAD4
-Afz/CwAZABUA/wDfAcr+ywPm/AkEJf0pAhv/AwH2/vcDB/0SAg//+ADcAcv+0ALu/xIALAEu/hoC
-Af/wAfP+AAMN/QgC9f/aAc7/2AH4/hsCMv8vARgA/P7qAu3/+wEI/wQA8wDdAdP/4AABAST+NQIv
-/xMA9QHkAOf+9gMF/QIC8wDg/9kC6f0JAyr+NwEsAA3/7AHdAOL/8wEDAAT/9AHlAOH/8QIR/S0D
-N/8m/wQC5f3VA97+8gEEAAb/+AHqAOj/+AIW/S8DNP4fAvz+3AHRANz/8gIH/QkE//zvBO79/gEa
-AC8ALwEY//IB1f7LAtsA9v4LAxD9AwL2APT+AQIb/ysBKf8OAer+zQLK/9wA+wES/xUACgH6/vYC
-BP8ZASj/IAEF/+EAygHK/+EBAgAZ/hsDDv39AvkABP4WAiL/GAH9/toCx/7MAegBCv4gAiL+EAL/
-/vcCAv8SABwBEf/1Adf/xgHR/+8BE/8nASb/EgL+/fQD/v0MAxX+CQHwANX/yALY/fgDHP4tASkA
-Ev/6AvH+9wIH/g4CBf7rAdUAzgDfAAIAJAAzACr/DgL2/eoF8/oBBQr8AAPr/9b/0wHo/woBKwA2
-ACgACv/uAeUA7QD+AQf+/gLs/toC2/7wAhT/L/82AyT8AwTo/d0C6P76AgX//wDvAOAA4gD5ABoA
-MwA1AB4A+//eAtj+5AL6/gUBAv/yAub+6QEB/x4BNP8wARcA8v7XA9P94gP7/QgDBv33AuwB8PwF
-BSL8MgErAQ7/6ADRAdD/4//9Aw78CwT+/fEB9gEK/iICL/8jAAUB4f/KAc4A5v8CARQAEgADAPf/
-+AIL/iACKv4bAPwC2f3GBM/76gUK/BoCGP8GAfoA+/8KAR3/IgIT/fID0/3FA9P+8QES/yEBHQAK
-//oB+gAI/xcCHP4KAewA0ADHANgA+gAaASn9HwUL+vkG9/sDBBP9FAIE/uYCzv/JAN8BA/8iAC4B
-Iv4JAvYA8//+AA0BD/7+A+T9zgLQ/+cADAAqADIBIv8GAfH+7AL5/gYDCv36AuP/0QDWAfH+FAMw
-/TMDIP0BAuv/5gL0/QICB//5AOQB1/7dA/r9HAM1/DMEG/76AeQA4f/uAQAABf/5Auj+3ALm/gEC
-I/42AjH/FAHy/9sB2//rAv/9BQT9/OsD5P7tAQn/JwE3/ysBDf/pANUB1/7qAwH9CAIB//EA6gD1
-AQ//KQE0/iQCBP/gAc8A1f/rAAQBDv8FAfgA8P/5ARL/KAEv/xwC+v3YA8r90wPv/ggAFAEM/vwD
-9f38ARMBJ/4oAxT98ALS/8YB1v/0ARD/GQES/wAB+P7+AxL8IgQi/QsB6QHN/sYB2wD8ARj9IAUW
-+gMF+f79/w4CHf4ZAgP+4gLK/cgD4f4DASAAJ/8ZAAQB9//6Agr9FgMT/fsD3v7JAc4A6QAN/ycD
-LPwaBAP98wH3AQX/EAEN/vYC3P7LAtT+8QIW/y3/LgMa+/4G7/vwBP/9CgII/vMC3P/PANsB+/4e
-AjT+LwEXAPoA6QDr//kCB/0DA/P+3QHV/+MCBP0lAzf+LQES//IB4v/lAvb+AwED//MB4QDcAOz/
-CwIr/jcCK/0KA+v+2gLh/vIBA/8DAfcA5gDj//MCE/0uAzf+JAECAOL/0wLd/fIDBf0GA/v+6wDq
-Avv9FwMw/zL+HAT5+9kGz/raBfT9BwAMAgD+8QLw////GQIu/SwEFf3vAdMBy/3bBPj8DQMS/gUC
-+P70AQMAG/8qAib+CwHn/8wBygDfAP0AFP8XAQsA/P/3AgT9GAMm/h4BAwDg/8gCy/3jBAX7GwYe
-+g4G/vr4BAP/Ff8fAhb/+f7ZBMf8zQPq/gwBI/8iAhL+/gH3AAD/EAEZAA//8wLW/ccD0/7yABYC
-Kv0mAxP9/AL0//sACwET/wcB7//TAMsA2gH8/x4BMP8oARL/+AHv//YBBv8MAQP/6wHV/88B4gAF
-/yUANQIp/Q0E9PzoAvEBAP0IBAD76gXY/NUD6/4NAC0CN/0mAwj97APi/eoC/P8FAf//7ALc/NwE
-9P4VATEAN/8iAQH+5ATc++YF+vsEBAD+7wHi/+QB/P8bAjT+MwEc//gC3f3VBOT8+QIH/wMB9P/n
-Auz9AgIh/zMAMAIU/e4D1f3RAuMA/P8JAQj/+QDuAvL+BwAjATL+KAML/uUAzwHP/+MB//8PAQ7/
-/gL0/fYDC/0hAy3+IAECAN7/yQHOAOgABf8VAhT9BAP4//n+CgMg/icAGQL5/tYAxwLQ/ewCDAAd
-/xgBCQD6//oBCgAc/yADEfzwBNL8xQPU/vMBFQEk/h0BC//6APkCB/0WAxr9CALqAM//xwHa//wB
-HQAr/yACC/34BPb8AQMR/hIBAgHm/c0EzPvhBQb9JAEwACP/CAH1APEA/f8KAQ3//ALj/s8B0v/q
-ARAALf8yAiL9BAPv/uoB9/8FAQj/+QHj/9MB2f/zARgAMv8zAh/+/gHpAOUA8gACAAYA+v/kAtn+
-4AH9AB//NQEzABkA+ADhAN//7QEAAAUA+wDpAN//6AIF/iQBNwAvABL/7gLa/dkE7Pz+Awf9/QPu
-/uUB8AAL/ygBNgAq/wkC5/3SBNb86gMB/QoDA/7zAewA9/8PASr/MgEjAAH/3QLN/dMC7QAG/g8E
-CPv4BPL++gATASk="></audio>
-      <audio id="tone7" preload="auto"
-             src="data:audio/x-wav;base64,
-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
-9ALl/9v/4ALz/Q4="></audio>
-      <audio id="tone8" preload="auto"
-             src="data:audio/x-wav;base64,
-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
-1f/LAdkA+AAbADM="></audio>
-      <audio id="tone9" preload="auto"
-             src="data:audio/x-wav;base64,
-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
-8/7cAtb/5AAGACg="></audio>
-      <audio id="tone*" preload="auto"
-             src="data:audio/x-wav;base64,
-UklGRnoKAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YVYKAAAB//0fBTT7MwMgAAH+
-4gLR/9EA4wD9ART/HwEd/g8B/wDyAe//8wD+AAX/BAL+/vQC7/7xAv7+DgId/x//EwL+/uMD0v3Q
-AuL///8eAzT8MwQh/f8C3//JAMoA3QD8ABsALQEt/hoCAv7pAd4B4P3tBP/8CwQQ/AoDAf75Avn/
-/v8IAg7+CwIA/u8B4gDf/+gBAP8YASsALf8cAf//3wHL/8gB3f/8AR//MwE1ACL+AQPk/dAD0f7h
-Afz+EgMg/R4EEfz/AvL/7QDzAvz+AwEF//4A9gLw/fED/f4MABsCH/0UA//+5QHUANH/4AL+/R0E
-M/w0AyL+AQHgAcr9yAPc/foDGv4sAS7+HAMD/eoC3v/eAOwB/v4LAhH/CwACAPr/+AL+/wb/DAEM
-/wAC8f7iAd//6AH+ABf/KQEtAB3/AAHh/8sByf/aAfv/HAEz/zQAIwEE/+QB0f/PAeD/+QET/yAB
-IAAT/wAB8v/sAfH/+gED/wUBAAD4/vAD8v37Awz/Gf8eARUAAP/mAtX+0AHgAP0AHP8xATX/IgED
-AOL/ygHI/9kB+QAZ/ywBLwAf/wQC7P3cA97+6gH9/wsBEf8MAQT/+gD4Af3/BQAMAQz/AQHz/+QA
-4ALo/fwDFv0oAi0AHv8BAOMBzf/IAdr/+QEc/zIBNv8kAQb/5QHR/84B3//4ARL/IAAhART/AQHz
-/+sB8P75AwP9BQIC//gB8v/xAfv/CgAZAR7/FQACAen/1QDSAd/++gIa/zAANQAlAAUA4wHM/scC
-2f72Ahf+LAMv/R8CBv/r/9wD3f3oA/z9CgIS/w4BBQD8//cB/P8DAgv+CwED//MB5gDgAOj/+wEU
-ACf/KwIf/gMB5ADO/8gB2QD4/xkBMgA2/yUCB/3mA9L+zQHdAPcAEQAhACL/FQEDAPMA7ADvAPj/
-AQIG/QIE+vvyBfL8+gMJ/hYBHf8VAQMA6wDXANIA3gD5ABkBMP40Aib/BgDlAcz/xgDXAfb/FQEs
-/y8BIv8HAe3/3AHb/+cB+v8KABMBEP4FAvwA+P76AwP8CQMLAAT+9ALn/+D/5wL6/hIBJgEs/R8D
-Bf3lBM/9yAHYAPb/GAIx/zb/JgMJ/OgE0v3MAdwB9v8PACEBI/8WAQT/8gDrAe7/9gIB/QUDBP37
-AvQA8//5Agj9FQIc/xUBBADs/9cB0v/dAfgAF/8uAjX9JgMJ/eUDzf7GAdb+8wMV/CsFMfwiAgn/
-7QDdAdr/5QH5/wkAEwER/wcB/f/3APoBAv8IAQv/AwD3Aen/4QHo//gAEQEl/ioDIf4GAOgB0P7I
-A9f99AMX/TACN/8oAQv/6QLS/MwF2vvzBQ/8IAMk/RgEBvrzCOv46wb2/P8DBv4EAv399APz/vgB
-BwAUABz/FQIF/e0D2v7SAd0A9v8UAi79NAMo/gkB6P/NAcf/1ADyAhP8KgQy/SQCC//uAd3/2ADl
-Afj+CQIU/xEBCf79A/j8+AQA/QcCC/8EAfj/6QDjAOgB+P8OAST+KgIh/wcA6QDRAMkA1gDzABUA
-MP83Air9DATr/NIDzP7YAfIADv8gAiX+GQIH/fME6vzqBPT8/gIGAAUA/wD3//MB+f4EBBP8GgMW
-/gUA7wHb/9IB3QD1/xMALQE1/ygBDP/oAM8AxgHT/u8DEvwqBDL8JQUM+u8G3fvXA+P/9QAJABQA
-FP8KAv/+9wL4/v4BBwAK/wQB+QDs/+MB6P/2AQ7/IQEq/yEBCv/qAtL+yAHV//ABFP8uAzj7KgUO
-/OwD0/7LAdcA8QANASH+JQEcAAgA9QHq/+kA8wH+/gUCBv7/A/j98wL4/gMBEgEa/hUCB//w/9wC
-1P3bBPT9EQIr/jQBKgAO/+oB0ADGANIA7/8PACoCM/4mAg7+8QHdANgA4gD1AAkAFAAVAAwAAAD4
-Aff+/AEGAQr+BQP6/ewB5QHo//UBDP8gASr+IQQL++wF0/zIAtQA8P4RBC78NwIsABD+7QTU+8oF
-1vzuAgz/IAEn/xwBCv/1AOoB6f/wAP0BBv4GAgH/+AD1APj/AgIQ/xgAFgAI//EB3gDVAdz+8QIQ
-/ikBNAAqAA8A7QHR/sUB0QDtAA8AKgAzACn/DwPz/NwD1/7fAfQACAAUABYADf8AAvj+9gH8AQT+
-CAIG//sA7wDmAOgA9QEL/x4AKQAiAAwA7gHV/skD0/ztBBD8LAQ4/S0CEv7vAtX+ygLV/uwCC/8g
-ACgBH/0KBPf96APo/O8E/PsFBgj7AgP6/vQC+P0BBA/8FwQW/AgD9P7eAdUB2/7wAg/+KAE0ACsA
-EQDvANL/xQLQ/uoBDf8oATQAKv8QAfT/3QHW/94C8v0GAxX9FgIPAAIA+QD2//oBA/8HAwb8/ATw
-/eYC6P/0AAkAHgEo/yIADgDwANYAygDSAOz/DgMs/TcCL/4TAfEB1f/JAdP+6wIJ/h8CKP8fAA0B
-9/7oAuf+7QL7/wQBCP4DAvz/9QD4AgH8DAQW/RUDCv30A+H91QLb/+8ADQEn/zMBLP4RA/D90gLG
-AM/+6QQM+ycENP4qABMB9f/dAdX/3ALx/QUCFf8XARD/AwL5/fQD+v0BAgj/BgL+/vAB6P/nAfQA
-CAAc/yYCI/4OAfIA1wDLANIA6wAN/ykCOP8vABUA8wDW/8kD0v3pAQgBIP4oAiH+DQL4/+gB5v7s
-Avr+BAMJ/gQA/QH3//YBAAAM/xQCFv4JAvf+4QHXAdv+7gML/CUEM/0rAhT/8QDUAcb/zQHo/gkD
-J/0zAi3/FAD3AN4B1f7bAu//BP8UAhn/EQAFAfn99AT4/f8CB/8G//4D8/zoBOn98gIH/xoAJgEj
-/g8C8/7YA8v90ALq/goCKf83ADEBF/70Atf/yf/QAuj+BgEfACr/IgEQAPkA6f/kAuz++AIE/wj/
-BQL+/vcD9/z+Awr/E/8UAgv+9wDkA9j92gLu/gkBJAAyAS3/FAH0/dUDx//MAOYBCP4lATQBLv4V
-Avj+3gLU/toD7vwDBBX9GQETAAYA+gD0APcA//8FAgf+/wH0AOr/6ALz/gQCGf0lAyP9EAT1/NkD
-zP7QAOgCCf4nATcBMf0YA/b+1wHKANAA5wAF/x4CKv0jBBH9+QHpAeT+6QL3/wMBCv8GAQD++AP3
-/f0DCf0SAhX+CwL5/+QB2f/aAO0ACAAjAjL8LAUX+/QE1/3GAsz/5AEH/iQDNP0uAxj9+QLg/9MA
-2QLs/AIEFf4aABQBB//5APQC9v39AgX/BgABAvb+6wHp//EABAEYACQAIwAS//YB3P/MAtD+5gEI
-ACYANwAy/xkC+P7YAsr/zv/kAgT+HQIq/iQCE/77AekA4//oAvb+AgEK/wgBAf/5Avf9/AMI/RED
-FP4LAPsB5/7ZA9v96wIH/yD/MAMu/BcF9/rXBcf9ygLjAAX+IwI0/y8AGgH7/98A0wHY/ukDAv0T
-Ahv/FQAJAfv+8wP1/vsABAEH/gAD9/7sAOoB8v8CABYBI/4iAhP+9wHdAM0A0P/kAgb9JAM2/jIC
-HP75Atr+yQHNAOM="></audio>
-      <audio id="tone#" preload="auto"
-             src="data:audio/x-wav;base64,
-UklGRnQKAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YVAKAAAB//4jAjX+KQENAO4B
-3/7jAvb9BAMG//oA7wDvAAD/GQMr/CUDCv7kAcoAyQDj/wgBJv8rARv/AAHv/+0B+f8EAQX/9gHm
-/98B7v8LASn/MwAlAQH/2wDJAdL/7wAPAR//GgAJAvr89gQC/g0BD//+AOYA1AHYAPP/FwEz/zQB
-HAD3/9gB0gDiAPsADwAR/wUB+gD5AAYAFwAe/xAB9ADW/8kC2P37AyH+NAEt/w8B8P/dAeL/8gAE
-Agf9/ALx/+4A/gEX/ygAJgEN/+cBzP/HAOABBv8kAS3/HQAEAfD/6wD3AgP9BAP6/ecC4QDs/wgC
-J/0zAyb+AwDeAsn9zwPt/gwBIP8cAgz9+gP2/f4DDP4NAQH/6ADWAdf+7wMV/TECNv8e//gC2v/P
-AN8B+f4NAhP/CAD7Afj/AgEU/xwAEgH3/9gCyv3WA/n9HgI1AC/+EgPy/d0C4P/wAAIACAEA/vIC
-8P77AhT/Jv8mAg/96gPN/8f/3QED/yIBLgAh/wUB8P/pAfQAAv8FAvz96gPi/uoBBgAk/zIBKAAH
-/98BygDO/+kCC/4fASABD/37BPX9/AIJ/w0AAgDsAdj/1gHu/xEAMAE3/iED/P3aAs/+2wL3/g0C
-FP8KAP0A+AAB/xECG/4SAvn92gPL/tQB9gEc/TMEMfwVBPT+3QDdAe7+AAMJ/gIA9gHw/voDEf4k
-ASf/EAHu/84Cx/3aBAD8IQMv/iIBCQDxAOn/8AEAAAb//QLu/uIB6gAD/yACMv4pAgr+4gLK/ssC
-5/4IAiD+IQESAf7+9AH6AAf/DAIE/+3/2QHXAOwAD/8tAzf7Iwb/+twFzvzYBPT8DAMW/g0BAAD4
-//4BD/8ZART/+wHeAMz/0wHz/xkBMwAz/xgB9gDe/9oB6//+AQr/BAH4//AB+f8NASL/JQET//AB
-0f/GAdn//AEgADD/JQEL//EA6ALv/PwFBvz/A/H95APq/QAEHvswBSv8DALmAMv/ygHkAAb/HwAk
-ART//wH0//cABAEM/gQC8f/cANgB6v8LACwBN/8mAQL/3gHO/9YB8f8KARf/EAEC//gB/f8LARj/
-EwD+AuH9zQPT/e8CFwAyADT+GwP5/d0D2f/n/vwDCv0GAvv/8gH4/wsBIP4lAhX/8wHT/8YB1v/5
-AR7/LwEo/w0B8//lAez++gMF/QEC8//mAOkB/v8bAC8ALAAPAen/ywDJAOEABAEf/yQAFwACAPQA
-9gACAQv+BQP0/N4D2P/nAQn/KAA3ASn+BQPh/cwC1P/tAAoBGP8SAQT/+AD8AQn/FQIV/QAC5P/O
-AdIA7f8TATH/NAEfAPv/3gHY/+QB+/8JAQkA/v7zA/f9CAMd/iQBF//2Adb/xgHUAPf/GwEx/yoB
-EQD1AOb/6AH4AAT/AgP2/OgD6f77Ahn+LQIs/RED6//M/8cB3v8AAB4BJ/8ZAAQB9P7zAv//CAAH
-APYA4gHZ/uUCBv4mAjf+KgMJ++IGzfvRBOv9BwEZARb+BgL6//n/BgIU/xP/AgPn/dAC0f/q/xAD
-MP01AyL9/QPg/dUC4wD5/wkCC/7/APYC9/4FAhv+IwEYAPr/1wLI/tEB9P8ZATEALQAU//UA5QLn
-/vUBAwAE/vgD6/7pAPoCFv0rAy39FAPv/c4Ex/zaA/7+HAEoAB0BBv7zAvL9+wQI/AYE+fzkA9r+
-5AID/iMBNv8rAgz+5ALO/c8D6P4GARkAGP8JAfsA+QAEABIAFP8EAeoB0/7QAuj9DQMu/zYAJAAB
-/+AC1f7fAvf/CAANAAMA9wD2AAQBGP4iAhn++wLb/scC0f/wABgAMAEv/xYA+AHl/+QA8wIC/AQF
-+/ztA+r99wIT/ykBLQAX//EB0f7GAtj/+gEc/ygAIAAJAPUB8P/4AAYACAD7AOcB3P7jAgD/IQA1
-AS7+DgLo/80AzgHl/gMCGf4ZAgz+/AL4/gABDwATAAYA7QDVANEA5gALACwBOP4mAwT94gLU/9wA
-9AAJAg/9BQL5//UAAgEV/yAAGgH//90Byf/OAe7/FAEw/zABGv/6AOUC4/zvBQH7BQT+/e8D6/32
-AxD9JgMt/hgB9QDT/8UB1gD4/xkCKv0hAwv99QTv/PYCBAAI/vwD6v7cAeQA/v8eADQCL/4RAeoA
-z//LAuL/Af8YARwADwD+APj//gENABMACADv/9cB0f/jAgj+KQI4/igBB//jAdMA2wDyAAj/DwIJ
-/fsD9v7/ARIBIP0aAwL+4AHLAc7+6gIS/S4EMvwcBP395AHhAe7+/gIH/v8B8wHs/vUCDf0kAyz+
-GgL4/dQDxv3TBPX8GAMr/iQBDgH3/e0D9P4AAQcA///sAd//4gH7/xsAMwEw/xQB7f7PAsv/3wEA
-/xgAHgASAQD/9gL9/AkEEf0IA/L+2QHS/+EABQIo/DcFLPsJBOb+0gHY/+4BBv4QBAv8/QP3/f0C
-EP8dAhv9AwPk/MsFzfvnBQ/7LQU0/B8C///lAd//6gL9/QYDAv70Ae3/8wEK/yEBLAAd/voD1/3F
-A9H98QMX/ioBJ/8QAfgA7f/xAf//BgEBAPAA4f7iA/n9GAMx/jABF//vAdEAyv/cAf0AGP8fAhX+
-AQH3APsABwAQAAoA9QHd/tIC4P8BACUBOP4tAw385wXT+9UD7P8EABIBDv7/Avj+/AIN/xv/GgIG
-/uYCzv7MAuX+CwIs/jQCI/4BAub/3ADoAfv+BgIE/vcC7//z/wcCIP4qAR4B/v7ZAccAzwDvABUA
-KwAp/xMB+gDs/+4B/AAG/gED8v3iAuMA9/8VAS//MQAaAfMA0v/IAdr++QMX/iABFwAE//YB+QAF
-AA8ACwH3/t8C1P/eAP8BI/82AS/+DwLr/tIC1P/o/wICEv0PAwP/+P/6Agr+GQEbAQj96QXQ+ssG
-4/sIAyv+NQElAAUA5wDc/+QB+QAHAAYA+wDw//ICBf4cAir+HwIB/twCx/7NAuz+EQErACsBFv77
-Auv+7AH6AgX9AgH1Aeb+4gP1/RICLf4xAhz+9QLU/8cA1wH4/hUCI/8ZAQf/9wH3/wEBDQAL//kC
-4v3UAt4B/P4fAjb+MAETAO0A0wDSAOYAAQATABIABgD6APoACAAXABoACgDtANL/ywHhAAb/KAI2
-/ScCCP/oANsC4/31Awb9BwL+//EB8wAD/xkBKP8gAAMB3//HAcz+6AIQ/ioCLf8YAP4B6/7qAvf/
-AwAEAvj95wLkAPP/DwIr/TEDH/74AdYAyADV//QBFf8iAB0CCf33A/X9/gIL/goD/P3kAtf/3AD5
-AB0BNf0xBBb87wTU/c8B4wD/ABMAFAAIAPsA+QAFABX/GQMM++4G1PrLBd79AgEn/zYBKv8KAer/
-2QHg//MABQEK/v8D9P7yAAEBF/8mASH/BQHi/8kCy/3lAw39KQIvABz+/wPr/egC9P8BAQX++QTr
-++QF8fsMBCj+MQEhAPz+1wPH/dED8v4SACQBH/8LAfn/8wD8AQn/CgH+/+cA2AHcAPf/GQE0/zMA
-GQLz/dQ="></audio>
+    <div id="tabs-container">
+      <div id="tabs" onclick="choiceChanged(event.target)">
+        <fieldset>
+          <label id="keyboard-label" for="keyboard" data-choice="keyboard" data-active="true"><input id="keyboard" type="radio" name="tabs" checked="checked" /></label>
+          <label id="contacts-label" for="contacts" data-choice="contacts"><input id="contacts" type="radio" name="tabs" checked="" /></label>
+          <!-- Should be favorites once we implement this screen-->
+          <label id="favorites-label" for="favorites" data-choice="contacts"><input id="favorites" type="radio" name="tabs" checked="" /></label>
+        </fieldset>
+      </div>
     </div>
+
   </body>
 </html>

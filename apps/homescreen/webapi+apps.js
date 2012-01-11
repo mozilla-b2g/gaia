@@ -17,6 +17,328 @@ try {
   });
 } catch (e) {}
 
+
+// mozSettings - Bug 678695
+function Settings() {
+  window.addEventListener('message', this);
+
+  this._isTopWindow = (window.top == window);
+  this._parentWindow = this._isTopWindow ? window : window.parent;
+
+  this._db = null;
+  this._initSettings();
+}
+
+
+
+Settings.prototype = {
+  ERROR_SETTING_UNKNOWN: 0x0001,
+
+  _requests: [],
+  handleEvent: function settings_handleEvent(event) {
+    var data = event.data;
+    if (typeof data !== 'string')
+      return;
+    
+    data = event.data.split(':');
+    if (data.length < 4 || data[0] != 'settings')
+      return;
+
+    var src = event.source;
+    var method = data[1], id = data[2], key = data[3], value = data[4];
+    switch (method) {
+      case 'get':
+        if (!this._isTopWindow)
+          return;
+
+        this._getSetting(key, function getSetting(value) {
+          if (!value) {
+            var msg = 'settings:error:' + id + ':' + key;
+            src.postMessage(msg, event.origin);
+            return;
+          }
+
+          var msg = 'settings:success:' + id + ':' + key + ':' + value;
+          src.postMessage(msg, event.origin);
+        });
+        break;
+
+      case 'set':
+        if (!this._isTopWindow)
+          return;
+
+        this._setSetting(key, value, function setSetting(value) {
+          if (!value) {
+            var msg = 'settings:error:' + id + ':' + key;
+            src.postMessage(msg, event.origin);
+            return;
+          }
+
+          var msg = 'settings:success:' + id + ':' + key + ':' + value;
+          src.postMessage(msg, event.origin);
+        });
+        break;
+
+      case 'error':
+        var request = this._requests[id];
+        request.error = this.ERROR_SETTING_UNKNOWN;
+        this._dispatchEvent(request, request.TYPE_ERROR);
+        break;
+
+      case 'success':
+        var request = this._requests[id];
+        request.result = new SettingsMessage(key, value);
+        this._dispatchEvent(request, request.TYPE_SUCCESS);
+        break;
+    }
+  },
+
+  get: function settings_get(key) {
+    var request = new SettingsRequest();
+    var id = this._requests.length;
+    this._requests.push(request);
+
+    var msg = 'settings:get:' + id + ':' + key;
+    this._parentWindow.postMessage(msg, '*');
+    return request;
+  },
+
+  set: function settings_set(key, value) {
+    var request = new SettingsRequest();
+    var id = this._requests.length;
+    this._requests.push(request);
+
+    var msg = 'settings:set:' + id + ':' + key + ':' + value;
+    this._parentWindow.postMessage(msg, '*');
+    return request;
+  },
+
+  _dispatchEvent: function(target, type) {
+    var event = window.document.createEvent('CustomEvent');
+    event.initCustomEvent(type, true, false, null);
+    target.dispatchEvent(event);
+  },
+
+  _initSettings: function settings_initSettings() {
+    if (!this._isTopWindow)
+      return;
+
+    this._starting = true;
+
+    const DB_NAME = 'settings';
+    const stores = ['settings'];
+    var request = window.mozIndexedDB.open(DB_NAME, 2);
+
+    var empty = false;
+    request.onupgradeneeded = (function onUpgradeNeeded(evt) {
+      empty = true;
+
+      var db = this._db = evt.target.result;
+      stores.forEach(function createStore(store) {
+        if (db.objectStoreNames.contains(store))
+          db.deleteObjectStore(store);
+        db.createObjectStore(store, { keyPath: 'id' });
+      });
+    }).bind(this);
+
+    request.onsuccess = (function onDatabaseSuccess(evt) {
+      var db = this._db = evt.target.result;
+
+      if (!empty) {
+        this._starting = false;
+        this._runCallbacks();
+        return;
+      }
+
+      stores.forEach(function createStore(store) {
+        var transaction = db.transaction(stores, IDBTransaction.READ_WRITE);
+        var objectStore = transaction.objectStore(store);
+
+        var settings = [{
+          id: 'lockscreen.enabled',
+          value: true
+        }, {
+          id: 'airplanemode.enabled',
+          value: false
+        }, {
+          id: 'locationservices.enabled',
+          value: true
+        }, {
+          id: 'wifi.enabled',
+          value: true
+        }, {
+          id: 'dnt.enabled',
+          value: true
+        }];
+
+        for (var setting in settings) {
+          var request = objectStore.put(settings[setting]);
+
+          request.onsuccess = function onsuccess(e) {
+            console.log('Success to add a setting to: ' + store);
+          }
+
+          request.onerror = function onerror(e) {
+            console.log('Failed to add a setting to: ' + store);
+          }
+        }
+      });
+      this._starting = false;
+      this._runCallbacks();
+    }).bind(this);
+
+    request.onerror = (function onDatabaseError(error) {
+      console.log('Failed when creating the database: ' + error);
+      this._starting = false;
+      this._runCallbacks();
+    }).bind(this);
+  },
+
+  _getSetting: function settings_getSetting(name, callback) {
+    if (this._starting || !this._db) {
+      this._startCallbacks.push({
+        type: 'get',
+        name: name,
+        callback: callback
+      });
+      return;
+    }
+
+    var transaction = this._db.transaction(['settings'],
+                                           IDBTransaction.READ_ONLY);
+    var request = transaction.objectStore('settings').get(name);
+    request.onsuccess = function onsuccess(e) {
+      var result = e.target.result;
+      callback(result ? result.value : null);
+    };
+
+    request.onerror = function onerror(e) {
+      callback(null);
+    };
+  },
+
+  _setSetting: function settings_setSetting(name, value, callback) {
+    if (this._starting || !this._db) {
+      this._startCallbacks.push({
+        type: 'set',
+        name: name,
+        value: value,
+        callback: callback
+      });
+      return;
+    }
+
+    var transaction = this._db.transaction(['settings'],
+                                           IDBTransaction.READ_WRITE);
+    var request = transaction.objectStore('settings').put({
+      id: name,
+      value: value
+    });
+    request.onsuccess = function onsuccess(e) {
+      callback(e.target.result.value);
+    };
+
+    request.onerror = function onerror(e) {
+      callback(null);
+    };
+  },
+
+  _startCallbacks: [],
+  _runCallbacks: function settings_runCallbacks() {
+    this._startCallbacks.forEach((function startCallbacks(cb) {
+      if (cb.type == 'get') {
+        this._getSetting(cb.name, cb.callback);
+      } else {
+        this._setSetting(cb.name, cb.value, cb.callback);
+      }
+    }).bind(this));
+  }
+};
+
+
+/* ========== nsIDOMMozSettingsRequest ========== */
+function SettingsRequest() {
+  this.readyState = this.STATE_PROCESSING;
+
+  this.error = null;
+  this.onerror = null;
+  // XXX should be an array
+  this._errorCallback = null;
+
+  this.result = null;
+  this.onsuccess = null;
+  // XXX should be an array
+  this._successCallback = null;
+}
+
+
+SettingsRequest.prototype = {
+  // States of the request
+  STATE_PROCESSING: 'processing',
+  STATE_DONE: 'done',
+
+  // Types of events
+  TYPE_SUCCESS: 'success',
+  TYPE_ERROR: 'error',
+
+  addEventListener: function sr_addEventListener(type, callback) {
+    switch (type) {
+      case this.TYPE_SUCCESS:
+        this._successCallback = callback;
+        break;
+      case this.TYPE_ERROR:
+        this._errorCallback = callback;
+        break;
+    }
+  },
+
+  removeEventListener: function sr_removeEventListener(type, callback) {
+    switch (type) {
+      case this.TYPE_SUCCESS:
+        this._successCallback = null;
+        break;
+      case this.TYPE_ERROR:
+        this._errorCallback = null;
+        break;
+    }
+  },
+
+  dispatchEvent: function sr_dispatchEvent(event) {
+    this.readyState = this.STATE_DONE;
+
+    switch (event.type) {
+      case this.TYPE_SUCCESS:
+        if (this._successCallback)
+          this._successCallback(event);
+
+        if (this.onsuccess)
+          this.onsuccess(event);
+        break;
+      case this.TYPE_ERROR:
+        if (this._errorCallback)
+          this._errorCallback(event);
+
+        if (this.onerror)
+          this.onerror(event);
+        break;
+    }
+  }
+};
+
+try {
+  window.navigator.mozSettings = new Settings();
+} catch (e) {
+  alert(e);
+}
+
+
+/* ========== nsIDOMMozSettingsMessage ========== */
+function SettingsMessage(name, value) {
+  this.name = name;
+  this.value = value;
+}
+
+// Bug 709015
 if (true) {
   window.navigator.mozApps = {
     enumerate: function mozAppsEnumerate(callback) {
@@ -111,6 +433,24 @@ if (true) {
             }
           }
         },
+        { // market
+          'installOrigin': 'http://gaiamobile.org:8888',
+          'origin': '../market',
+          'receipt': null,
+          'installTime': 1323339869000,
+          manifest: {
+            'name': 'Market',
+            'description': 'Market for downloading and installing apps',
+            'launch_path': '/market.html',
+            'developer': {
+              'name': 'The Gaia Team',
+              'url': 'https://github.com/andreasgal/gaia'
+            },
+            'icons': {
+              '120': '/style/icons/Market.png'
+            }
+          }
+        },
         { // settings
           'installOrigin': 'http://gaiamobile.org:8888',
           'origin': '../settings',
@@ -144,9 +484,10 @@ if (true) {
             },
             'icons': {
               '120': '/style/icons/Messages.png'
-           }
+            }
+          }
         }
-      }];
+      ];
 
       callback(webapps);
     }
@@ -275,10 +616,8 @@ var TouchHandler = {
     try {
       while (targetNode) {
         var computedStyle = window.getComputedStyle(targetNode, null);
-        // TODO use 'scroll' instead of hidden once the scrollbar will float
-        // above the content
         if (computedStyle &&
-            computedStyle.getPropertyValue('overflow') == 'hidden') {
+            computedStyle.getPropertyValue('overflow') == 'scroll') {
 
           var targetHeight = targetNode.getBoundingClientRect().height;
           if (targetNode.scrollHeight > targetHeight)

@@ -2,7 +2,6 @@ html, body {
   font-size: 1.8mozmm;
   margin: 0;
   padding: 0;
-  overflow: hidden;
 }
 
 h1 {
@@ -164,6 +163,15 @@ ul.tableView > li span.arrowRight {
   position: absolute;
   right: 0.25em;
   top: 50%;
+}
+
+.tableView .comment {
+  font-size: 0.5em !important;
+  color: grey !important;
+}
+
+.tableView label+* {
+  float: right;
 }
 
 /* Toggle Switch */

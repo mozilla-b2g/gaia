@@ -1,143 +1,366 @@
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
+'use strict';
 
 const IMEManager = {
   BASIC_LAYOUT: -1,
   ALTERNATE_LAYOUT: -2,
   SWITCH_KEYBOARD: -3,
-  // TBD: allow user to select desired keyboards in settings
-  keyboards: ['qwertyLayout', 'azertyLayout', 'dvorakLayout'],
+  TOGGLE_CANDIDATE_PANEL: -4,
+
+  // IME Engines are self registering here.
+  IMEngines: {},
+  get currentEngine() {
+    return this.IMEngines[Keyboards[this.currentKeyboard].imEngine];
+  },
+
+  // TODO: allow user to select desired keyboards in settings
+  // see bug 712778
+  currentKeyboard: 'qwertyLayout',
+  currentKeyboardMode: '',
+  keyboards: [
+    'qwertyLayout', 'azertyLayout', 'qwertzLayout', 'hebrewLayout',
+    'jcukenLayout', 'serbianCyrillicLayout', 'dvorakLayout',
+    'zhuyingGeneralLayout'
+  ],
+
+  get isUpperCase() {
+    return (this.currentKeyboardMode == 'UpperCase');
+  },
+
+  set isUpperCase(isUpperCase) {
+    var keyboard = this.currentKeyboard;
+    if (isUpperCase) {
+      keyboard += 'UpperCase';
+      this.currentKeyboardMode = 'UpperCase';
+    } else {
+      this.currentKeyboardMode = '';
+    }
+    this.updateLayout(keyboard);
+  },
+
+  get isAlternateLayout() {
+    var alternateLayouts = ['Alternate', 'Symbol'];
+    return alternateLayouts.indexOf(this.currentKeyboardMode) > -1;
+  },
+
+  set isAlternateLayout(isAlternateLayout) {
+    if (isAlternateLayout) {
+      this.currentKeyboardMode = 'Alternate';
+      this.updateLayout('alternateLayout');
+    } else {
+      this.currentKeyboardMode = '';
+      this.updateLayout(this.currentKeyboard);
+    }
+  },
+
+  get isSymbolLayout() {
+    return this.currentKeyboardMode == 'Symbol';
+  },
+
+  set isSymbolLayout(isSymbolLayout) {
+    if (isSymbolLayout) {
+      this.currentKeyboardMode = 'Symbol';
+      this.updateLayout('symbolLayout');
+    } else {
+      this.currentKeyboardMode = '';
+      this.updateLayout('alternateLayout');
+    }
+  },
+
   // backspace repeat delay and repeat rate
-  kRepeatDelay: 700,
+  kRepeatTimeout: 700,
   kRepeatRate: 100,
+
+  // Taps the shift key twice within kCapsLockTimeout
+  // to lock the keyboard at upper case state.
+  kCapsLockTimeout: 450,
+  isUpperCaseLocked: false,
 
   get ime() {
     delete this.ime;
     return this.ime = document.getElementById('keyboard');
   },
+
+  get candidatePanel() {
+    delete this.candidatePanel;
+    var candidatePanel = document.createElement('div');
+    candidatePanel.id = 'keyboard-candidate-panel';
+    return this.candidatePanel = candidatePanel;
+  },
+
+  get keyHighlight() {
+    return document.getElementById('keyboard-key-highlight');
+  },
+
   events: ['showime', 'hideime', 'unload', 'appclose'],
+  imeEvents: ['touchstart', 'touchend', 'click'],
   init: function km_init() {
     this.events.forEach((function attachEvents(type) {
       window.addEventListener(type, this);
     }).bind(this));
 
-    this.ime.addEventListener('touchstart', this);
-    this.ime.addEventListener('touchend', this);
-    this.ime.addEventListener('click', this);
+    this.imeEvents.forEach((function imeEvents(type) {
+      this.ime.addEventListener(type, this);
+    }).bind(this));
 
-    this.layout = KeyboardAndroid[IMEManager.keyboards[0]];
-    this.currentKeyboard = 0;
-    this.isUpperCase = false;
+    this.keyboards.forEach((function loadIMEngines(name) {
+      var keyboard = Keyboards[name];
+      if (keyboard.type !== 'ime')
+        return;
+
+      var sourceDir = './imes/';
+      var imEngine = keyboard.imEngine;
+
+      var script = document.createElement('script');
+      script.src = sourceDir + imEngine + '/loader.js';
+
+      var self = this;
+      var glue = {
+        dbOptions: {
+          data: sourceDir + imEngine + '/data.json'
+        },
+        sendChoices: function(candidates) {
+          self.showCandidates(candidates);
+        },
+        sendKey: function(keyCode) {
+          switch (keyCode) {
+            case KeyEvent.DOM_VK_BACK_SPACE:
+            case KeyEvent.DOM_VK_RETURN:
+              window.navigator.mozKeyboard.sendKey(keyCode, keyCode);
+            break;
+
+            default:
+              window.navigator.mozKeyboard.sendKey(0, keyCode);
+            break;
+          }
+        },
+        sendString: function(str) {
+          for (var i = 0; i < str.length; i++)
+            this.sendKey(str.charCodeAt(i));
+        }
+      };
+
+      script.addEventListener('load', (function IMEnginesLoaded() {
+        var engine = this.IMEngines[imEngine];
+        engine.init(glue);
+      }).bind(this));
+
+      document.body.appendChild(script);
+    }).bind(this));
   },
+
   uninit: function km_uninit() {
     this.events.forEach((function attachEvents(type) {
       window.removeEventListener(type, this);
     }).bind(this));
 
-    this.ime.removeEventListener('touchstart', this);
-    this.ime.removeEventListener('touchend', this);
-    this.ime.removeEventListener('click', this);
+    this.imeEvents.forEach((function imeEvents(type) {
+      this.ime.removeEventListener(type, this);
+    }).bind(this));
   },
+
   handleEvent: function km_handleEvent(evt) {
     var activeWindow = Gaia.AppManager.foregroundWindow;
-
+    var target = evt.target;
     switch (evt.type) {
       case 'showime':
         this.showIME(activeWindow, evt.detail.type);
         break;
+
       case 'hideime':
       case 'appclose':
         this.hideIME(activeWindow);
         break;
+
       case 'touchstart':
-        var keyCode = parseInt(evt.target.getAttribute('data-keycode'));
-        if (!keyCode)
+        var keyCode = parseInt(target.getAttribute('data-keycode'));
+        target.dataset.active = 'true';
+
+        if (!keyCode && !target.dataset.selection)
           return;
-        evt.target.dataset.active = 'true';
-        if (keyCode === KeyEvent.DOM_VK_BACK_SPACE) {
-          window.navigator.mozKeyboard.sendKey(keyCode);
-          var self = this;
-          this._timer = setTimeout(
-            function km_backspaceDelay() {
-              window.navigator.mozKeyboard.sendKey(keyCode);
-              self._timer = setInterval(
-                function km_backspaceRepeat() {
-                  window.navigator.mozKeyboard.sendKey(keyCode);
-                },
-                IMEManager.kRepeatRate
-              );
-            },
-            IMEManager.kRepeatDelay
+
+        this.keyHighlight.innerHTML = target.innerHTML;
+        this.keyHighlight.className = 'show';
+        this.keyHighlight.style.top = target.offsetTop.toString(10) + 'px';
+
+        var keyHightlightWidth = this.keyHighlight.offsetWidth;
+        var keyHightlightLeft =
+          target.offsetLeft + target.offsetWidth / 2 - keyHightlightWidth / 2;
+        keyHightlightLeft = Math.max(keyHightlightLeft, 5);
+        keyHightlightLeft =
+          Math.min(
+            keyHightlightLeft,
+            window.innerWidth - keyHightlightWidth - 5
           );
-        }
+
+        this.keyHighlight.style.left = keyHightlightLeft.toString(10) + 'px';
+
+
+        if (keyCode != KeyEvent.DOM_VK_BACK_SPACE)
+          return;
+
+        var sendDelete = (function sendDelete() {
+          if (Keyboards[this.currentKeyboard].type == 'ime') {
+            this.currentEngine.click(keyCode);
+            return;
+          }
+          window.navigator.mozKeyboard.sendKey(keyCode, keyCode);
+        }).bind(this);
+
+        sendDelete();
+        this._timeout = setTimeout((function deleteTimeout() {
+          sendDelete();
+
+          this._interval = setInterval(function deleteInterval() {
+            sendDelete();
+          }, this.kRepeatRate);
+        }).bind(this), this.kRepeatTimeout);
         break;
+
       case 'touchend':
-        var keyCode = parseInt(evt.target.getAttribute('data-keycode'));
+        var keyCode = parseInt(target.getAttribute('data-keycode'));
+        delete target.dataset.active;
+
+        if (!keyCode && !target.dataset.selection)
+          return;
+
+        this.keyHighlight.className = '';
+
+        clearTimeout(this._timeout);
+        clearInterval(this._interval);
+        break;
+
+      case 'click':
+        if (target.dataset.selection) {
+          this.currentEngine.select(target.textContent, target.dataset.data);
+          return;
+        }
+
+        var keyCode = parseInt(target.getAttribute('data-keycode'));
         if (!keyCode)
           return;
-        delete evt.target.dataset.active;
-        clearTimeout(this._timer);
-        clearInterval(this._timer);
-        delete this._timer;
-        break;
-      case 'click':
-        var keyCode = parseInt(evt.target.getAttribute('data-keycode'));
-        if (!keyCode && keyCode === KeyEvent.DOM_VK_BACK_SPACE)
+
+        if (keyCode == KeyEvent.DOM_VK_BACK_SPACE)
           return;
 
         switch (keyCode) {
-          case IMEManager.BASIC_LAYOUT:
-            var keyboard = IMEManager.keyboards[this.currentKeyboard];
-            this.layout = KeyboardAndroid[keyboard];
-            this.ime.innerHTML = this.getLayout(window.innerWidth);
+          case this.BASIC_LAYOUT:
+            this.isAlternateLayout = false;
           break;
-          case IMEManager.ALTERNATE_LAYOUT:
-            this.layout = KeyboardAndroid.alternateLayout;
-            this.ime.innerHTML = this.getLayout(window.innerWidth);
-          break;
-          case IMEManager.SWITCH_KEYBOARD:
-            this.currentKeyboard++;
-            if (this.currentKeyboard === IMEManager.keyboards.length)
-              this.currentKeyboard = 0;
 
-            var keyboard = IMEManager.keyboards[this.currentKeyboard];
-            this.layout = KeyboardAndroid[keyboard];
-            this.ime.innerHTML = this.getLayout(window.innerWidth);
+          case this.ALTERNATE_LAYOUT:
+            this.isAlternateLayout = true;
           break;
+
+          case this.SWITCH_KEYBOARD:
+            // If this is the last keyboard in the stack, start
+            // back from the beginning.
+            var keyboards = this.keyboards;
+            var index = keyboards.indexOf(this.currentKeyboard);
+            if (index >= keyboards.length - 1)
+              this.currentKeyboard = keyboards[0];
+            else
+              this.currentKeyboard = keyboards[++index];
+
+            this.updateLayout(this.currentKeyboard);
+          break;
+
+          case this.TOGGLE_CANDIDATE_PANEL:
+            var panel = this.candidatePanel;
+            var className = (panel.className == 'full') ? 'show' : 'full';
+            panel.className = target.className = className;
+          break;
+
+          case KeyEvent.DOM_VK_ALT:
+            this.isSymbolLayout = !this.isSymbolLayout;
+          break;
+
           case KeyEvent.DOM_VK_CAPS_LOCK:
-            var keyboard = IMEManager.keyboards[this.currentKeyboard];
-            if (this.isUpperCase) {
-              this.layout = KeyboardAndroid[keyboard];
-            } else {
-              this.layout = KeyboardAndroid[keyboard + 'UpperCaps'];
+            if (this.isWaitingForSecondTap) {
+              this.isUpperCaseLocked = true;
+              if (!this.isUpperCase) {
+                this.isUpperCase = true;
+
+                // XXX: keyboard updated; target is lost.
+                var selector =
+                  'span[data-keycode="' + KeyEvent.DOM_VK_CAPS_LOCK + '"]';
+                target = document.querySelector(selector);
+              }
+              target.dataset.enabled = 'true';
+              delete this.isWaitingForSecondTap;
+              break;
             }
+            this.isWaitingForSecondTap = true;
+
+            setTimeout(
+              (function removeCapsLockTimeout() {
+                delete this.isWaitingForSecondTap;
+              }).bind(this),
+              this.kCapsLockTimeout
+            );
+
+            this.isUpperCaseLocked = false;
             this.isUpperCase = !this.isUpperCase;
-            this.ime.innerHTML = this.getLayout(window.innerWidth);
           break;
-          default:
-            window.navigator.mozKeyboard.sendKey(keyCode);
-            if (this.isUpperCase) {
-              this.isUpperCase = !this.isUpperCase;
-              var keyboard = IMEManager.keyboards[this.currentKeyboard];
-              this.layout = KeyboardAndroid[keyboard];
-              this.ime.innerHTML = this.getLayout(window.innerWidth);
+
+          case KeyEvent.DOM_VK_RETURN:
+            if (Keyboards[this.currentKeyboard].type == 'ime') {
+              this.currentEngine.click(keyCode);
+              break;
             }
+
+            window.navigator.mozKeyboard.sendKey(keyCode, keyCode);
+          break;
+
+          default:
+            if (Keyboards[this.currentKeyboard].type == 'ime') {
+              this.currentEngine.click(keyCode);
+              break;
+            }
+
+            window.navigator.mozKeyboard.sendKey(0, keyCode);
+
+            if (this.isUpperCase && !this.isUpperCaseLocked)
+              this.isUpperCase = false;
           break;
         }
         break;
+
       case 'unload':
         this.uninit();
         break;
     }
   },
-  getLayout: function km_getLayout(width) {
-    var content = '';
 
-    this.layout.forEach(function buildKeyboardRow(row) {
+  updateLayout: function km_updateLayout(keyboard) {
+    var layout = Keyboards[keyboard];
+
+    var content = '';
+    var width = window.innerWidth;
+    layout.keys.forEach(function buildKeyboardRow(row) {
       content += '<div class="keyboard-row">';
 
       row.forEach(function buildKeyboardColumns(key) {
         var code = key.keyCode || key.value.charCodeAt(0);
-        var size = ((width - (row.length * 2)) / 10) * (key.ratio || 1) - 2;
-        content += '<span class="keyboard-key"' +
+        var size = ((width - (row.length * 2)) / (layout.width || 10));
+        size = size * (key.ratio || 1) - 2;
+        var className = 'keyboard-key';
+
+        var specialCodes = [
+          KeyEvent.DOM_VK_BACK_SPACE,
+          KeyEvent.DOM_VK_CAPS_LOCK,
+          KeyEvent.DOM_VK_RETURN,
+          KeyEvent.DOM_VK_ALT
+        ];
+        if (code < 0 || specialCodes.indexOf(code) > -1)
+          className += ' keyboard-key-special';
+
+        if (code == KeyEvent.DOM_VK_CAPS_LOCK)
+          className += ' toggle';
+
+        content += '<span class="' + className + '"' +
                           'data-keycode="' + code + '"' +
                           'style="width:' + size + 'px"' +
                    '>' +
@@ -147,36 +370,104 @@ const IMEManager = {
       content += '</div>';
     });
 
-    return content;
+    content += '<span id="keyboard-key-highlight"></span>';
+
+    this.ime.innerHTML = content;
+
+    if (layout.needsCandidatePanel) {
+      var toggleButton = document.createElement('span');
+      toggleButton.innerHTML = '⇪';
+      toggleButton.id = 'keyboard-candidate-panel-toggle-button';
+      toggleButton.dataset.keycode = this.TOGGLE_CANDIDATE_PANEL;
+      this.ime.insertBefore(toggleButton, this.ime.firstChild);
+
+      this.ime.insertBefore(this.candidatePanel, this.ime.firstChild);
+      this.showCandidates([]);
+      this.currentEngine.empty();
+    }
+
+    this.updateKeyboardHeight();
   },
-  showIME: function km_showIME(targetWindow, type) {
-    var oldHeight = targetWindow.style.height;
-    targetWindow.dataset.height = oldHeight;
 
+  updateKeyboardHeight: function km_updateKeyboardHeight() {
     var ime = this.ime;
-    ime.innerHTML = this.getLayout(window.innerWidth);
+    var targetWindow = this.targetWindow;
 
-    delete ime.dataset.hidden;
-    var newHeight = targetWindow.getBoundingClientRect().height -
-                    ime.getBoundingClientRect().height;
+    if (ime.offsetHeight !== 0) {
+      targetWindow.classList.add('noTransition');
+      setTimeout(function remoteNoTransition() {
+        targetWindow.classList.remove('noTransition');
+      }, 0);
+    }
 
-    if (ime.getBoundingClientRect().top < window.innerHeight) {
-      targetWindow.style.height = newHeight + 'px';
+    // Need these to correctly measure scrollHeight
+    ime.style.height = null;
+    ime.style.overflowY = 'hidden';
+    var scrollHeight = ime.scrollHeight;
+    ime.style.overflowY = null;
+
+    targetWindow.style.height =
+      (targetWindow.dataset.rectHeight - scrollHeight) + 'px';
+    ime.style.height = scrollHeight + 'px';
+  },
+
+  showIME: function km_showIME(targetWindow, type) {
+    this.targetWindow = targetWindow;
+    var oldHeight = targetWindow.style.height;
+    targetWindow.dataset.cssHeight = oldHeight;
+    targetWindow.dataset.rectHeight =
+      targetWindow.getBoundingClientRect().height;
+
+    this.updateLayout(this.currentKeyboard);
+    delete this.ime.dataset.hidden;
+  },
+
+  hideIME: function km_hideIME(targetWindow) {
+    var ime = this.ime;
+    var imeHide = (function(evt) {
+      targetWindow.removeEventListener('transitionend', imeHide);
+      delete this.targetWindow;
+
+      ime.innerHTML = '';
+    }).bind(this);
+
+    targetWindow.addEventListener('transitionend', imeHide);
+    targetWindow.style.height = targetWindow.dataset.cssHeight;
+    delete targetWindow.dataset.cssHeight;
+    delete targetWindow.dataset.rectHeight;
+
+    ime.style.height = null;
+    ime.dataset.hidden = 'true';
+  },
+
+  showCandidates: function km_showCandidates(candidates) {
+    // TODO: candidate panel should be allow toggled to fullscreen
+    var candidatePanel = document.getElementById('keyboard-candidate-panel');
+    var toggleButton =
+      document.getElementById('keyboard-candidate-panel-toggle-button');
+
+    candidatePanel.innerHTML = '';
+
+    if (!candidates.length) {
+      toggleButton.className = '';
+      candidatePanel.className = '';
+      this.updateKeyboardHeight();
       return;
     }
 
-    ime.addEventListener('transitionend', function imeShow(evt) {
-      ime.removeEventListener('transitionend', imeShow);
-      targetWindow.style.height = newHeight + 'px';
-    });
-  },
-  hideIME: function km_hideIME(targetWindow) {
-    targetWindow.style.height = targetWindow.dataset.height;
-    delete targetWindow.dataset.height;
+    toggleButton.className = toggleButton.className || 'show';
+    candidatePanel.className = candidatePanel.className || 'show';
 
-    var ime = this.ime;
-    ime.dataset.hidden = 'true';
-    ime.innerHTML = '';
+    if (toggleButton.className == 'show')
+      this.updateKeyboardHeight();
+
+    candidates.forEach(function buildCandidateEntry(candidate) {
+      var span = document.createElement('span');
+      span.dataset.data = candidate[1];
+      span.dataset.selection = true;
+      span.textContent = candidate[0];
+      candidatePanel.appendChild(span);
+    });
   }
 };
 

@@ -8,8 +8,6 @@ html, body {
   font-size: 16px;
 }
 
-
-
 @font-face {
 	   font-family: Roboto;
 	   src: url('fonts/Roboto-Regular.ttf');
@@ -35,36 +33,8 @@ html, body {
   position: absolute;
   overflow: hidden;
   width: 100%;
-  height: 100%; 
+  height: 100%;
 	background: #142e51 url(images/noise.png);
-}
-
-#screen.animateTaskManagerOpen {
-  top: -140px;
-  -moz-animation-duration: 250ms;
-  -moz-animation-name: animateTaskManagerOpen;
-}
-@-moz-keyframes animateTaskManagerOpen {
-  from {
-    top: 0;
-  }
-  to {
-    top: -140px;
-  }
-}
-
-#screen.animateTaskManagerClose {
-  top: 0;
-  -moz-animation-duration: 250ms;
-  -moz-animation-name: animateTaskManagerClose;
-}
-@-moz-keyframes animateTaskManagerClose {
-  from {
-    top: -140px;
-  }
-  to {
-    top: 0;
-  }
 }
 
 /*
@@ -149,48 +119,38 @@ html, body {
   position: absolute;
   left: 0px;
   top: 24px;
-  width: -moz-calc(100%);
+  width: 100%;
+  height: 0;
+  overflow: hidden;
+}
+
+#windows.active {
   height: -moz-calc(100% - 24px);
+  overflow: visible;
 }
 
 iframe.appWindow {
   position: absolute;
-  background-color: black;
-  border: 0px;
-  margin: 0px;
-  padding: 0px;
+  background-color: #000;
+  border: 0;
+  margin: 0;
+  padding: 0;
   overflow: auto;
-  left: 0px;
-  top: 0px;
-  width: -moz-calc(100%);
-  height: -moz-calc(100%);
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
   -moz-transform-origin: center bottom;
+  -moz-transform: scale(0);
+  -moz-transition: all 0.2s ease;
 }
 
-.animateOpening {
-  -moz-animation-duration: 250ms;
-  -moz-animation-name: openingAnimation;
-}
-@-moz-keyframes openingAnimation {
-  from {
-    -moz-transform: scale(0.1);
-  }
-  to {
-    -moz-transform: scale(1);
-  }
+iframe.appWindow.active {
+  -moz-transform: scale(1);
 }
 
-.animateClosing {
-  -moz-animation-duration: 250ms;
-  -moz-animation-name: closingAnimation;
-}
-@-moz-keyframes closingAnimation {
-  from {
-    -moz-transform: scale(1);
-  }
-  to {
-    -moz-transform: scale(0.1);
-  }
+iframe.appWindow.noTransition {
+  -moz-transition: none;
 }
 
 #statusbar {
@@ -227,7 +187,7 @@ iframe.appWindow {
 }
 
 .battery > #fuel {
-  height: 8px;	 
+  height: 8px;
 	background-image: -moz-linear-gradient(top, #b9fd00, #8fc400);
 }
 
@@ -267,27 +227,172 @@ iframe.appWindow {
 }
 
 #taskManager {
+ /*
+  * Temporarily work around
+  * https://bugzilla.mozilla.org/show_bug.cgi?id=715232 which is
+  * triggered by the rules below (on Gonk).
+  *
+  background-color: rgba(0, 0, 0, 0.8);
+  opacity: 0;
+  */
+  background-color: #323f4d;
   position: absolute;
-  bottom: 0;
-  width: -moz-calc(100%);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  -moz-transform: scale(0);
+  -moz-transition: all 0.3s ease;
+  -moz-user-select: none;
+  user-select: none;
+}
+
+#taskManager.active {
+  opacity: 1;
+  -moz-transform: scale(1);
+}
+
+#taskManager ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+#taskManager li {
+  background-color: #00f;
+  display: inline-block;
+  width: 100%;
+  height: 100%;
+  margin: 0 -20%;
+  position: relative;
+  -moz-transform: scale(0.5);
+}
+
+#taskManager li:first-child {
+  margin-left: 60%;
+}
+
+#taskManager li:last-child {
+  margin-right: 60%;
+}
+
+#taskManager li > a {
+  background: url('images/close.png') no-repeat;
+  display: block;
+  width: 32px;
+  height: 32px;
+  position: absolute;
+  top: -16px;
+  right: -16px;
+  -moz-transform: scale(2);
+}
+
+#taskManager li > h1 {
+  position: absolute;
+  top: 100%;
+  width: 100%;
+  text-align: center;
+  color: #fff;
+  font-size: 2em;
+  text-shadow: #000 0 2px 1px;
 }
 
 #keyboard {
   position: absolute;
   z-index: 9997;
   bottom: 0;
+  height: auto;
+  overflow: visible;
   background-color: #36373b;
   width: -moz-calc(100%);
-  min-height: 200px;
-  -moz-transition: bottom 0.2s ease;
+  -moz-transition: height 0.2s ease;
 }
 
 #keyboard[data-hidden] {
-  bottom: -800px;
+  height: 0;
+}
+
+#keyboard-candidate-panel {
+  height: 64px;
+  overflow: auto;
+  white-space: nowrap;
+  color: black;
+  background: rgb(176, 174, 168);
+  border-top: 1px solid #e8e8ff;
+  border-bottom: 1px solid #808098;
+  display: none;
+}
+#keyboard-candidate-panel.show {
+  display: block;
+}
+#keyboard-candidate-panel.full {
+  display: block;
+  position: absolute;
+  white-space: normal;
+  bottom: 0;
+  height: -moz-calc(100%);
+  width: 100%;
+  border: none;
+}
+#keyboard-candidate-panel.full span {
+  border-top: 1px solid #e8e8ff;
+  border-bottom: 1px solid #808098;
+}
+
+#keyboard-candidate-panel span {
+  border-left: 1px solid #e8e8ff;
+  border-right: 1px solid #808098;
+  font-size: 32px;
+  line-height: 60px;
+  min-width: 60px;
+  display: inline-block;
+  height: 64px;
+  padding: 0 10px;
+  text-align: center;
+  background: -moz-linear-gradient(top, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
+}
+
+#keyboard-candidate-panel-toggle-button {
+  border-left: 1px solid #e8e8ff;
+  border-right: 1px solid #808098;
+  position: absolute;
+  font-size: 32px;
+  line-height: 60px;
+  right: 0;
+  top: 1px;
+  text-align: center;
+  box-shadow: -4px 0 5px -5px black;
+  width: 60px;
+  height: 64px;
+  color: black;
+  background: -moz-linear-gradient(top, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
+  display: none;
+}
+
+#keyboard-candidate-panel-toggle-button.full {
+  display: block;
+  border-top: 1px solid #e8e8ff;
+  border-bottom: 1px solid #808098;
+  top: 0;
+}
+
+#keyboard-candidate-panel-toggle-button.show {
+  display: block;
+}
+
+#keyboard-candidate-panel span[data-active],
+#keyboard-candidate-panel-toggle-button[data-active] {
+  background: -moz-linear-gradient(bottom, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
 }
 
 .keyboard-key {
-  display: inline-table;
+  display: inline-block;
+  vertical-align: middle;
+  overflow: hidden;
   text-align: center;
   color: white;
   font-size: 32px;
@@ -307,4 +412,56 @@ iframe.appWindow {
 .keyboard-key[data-active] {
   color: #ccc;
   background: -moz-linear-gradient(bottom, rgb(94,97,102) 10%, rgb(64,64,72) 90%);
+}
+
+.keyboard-key-special {
+  background: -moz-linear-gradient(top, #464766 10%, #363748 90%);
+}
+
+.keyboard-key-special[data-active] {
+  background: -moz-linear-gradient(bottom, #464766 10%, #363748 90%);
+}
+
+.keyboard-key-special.toggle {
+  position: relative;
+}
+.keyboard-key-special.toggle::before {
+  content: '';
+  display: block;
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  background-color: #333;
+}
+.keyboard-key-special[data-enabled] {
+  text-shadow: 0 0 5px #fff;
+}
+.keyboard-key-special[data-enabled]::before {
+  background-color: #0c0;
+  box-shadow: 0 0 5px #fff;
+}
+
+#keyboard-key-highlight {
+  position: absolute;
+  top: 0; left: 0;
+  color: #333;
+  background: -moz-linear-gradient(top, rgba(194,197,202,0.9) 10%, rgba(164,164,172,0.9) 90%);
+  font-size: 50px;
+  line-height: 100px;
+  min-width: 70px;
+  padding: 0 5px;
+  height: 100px;
+  margin-top: -110px;
+  text-align: center;
+  border: 1px solid #fff;
+  box-shadow: 0 0 2px #ccc;
+  border-radius: 5px;
+  display: none;
+}
+
+#keyboard-key-highlight.show {
+  display: block;
 }
