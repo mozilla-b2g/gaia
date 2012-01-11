@@ -277,7 +277,7 @@ var CallHandler = {
   },
   end: function ch_end() {
     this.toggleCallScreen();
-    this.currentCall.disconnect();
+    this.currentCall.hangUp();
   },
   disconnected: function ch_disconnected() {
     this.currentCall.removeEventListener('statechange', this);
