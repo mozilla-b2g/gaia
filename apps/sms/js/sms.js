@@ -52,7 +52,9 @@ var MessageManager = {
   }
 };
 
-if (!('mozSms' in navigator) || !navigator.mozSms) {
+if (true || // HACK to enable the fallback in all cases for now, until
+            // navigator.mozSms is complete.
+    !('mozSms' in navigator) || !navigator.mozSms) {
   MessageManager.messages = [];
 
   MessageManager.getMessages =
@@ -109,6 +111,7 @@ if (!('mozSms' in navigator) || !navigator.mozSms) {
   };
 
   MessageManager.send = function mm_send(number, text, callback) {
+    navigator.mozSms.send(number, text);
     var message = {
       sender: null,
       receiver: number,

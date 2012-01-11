@@ -9,27 +9,6 @@ if (!window['Gaia'])
 (function() {
 
   Gaia.AppManager = {
-    _makeUrlObject: function GAM_makeUrlObject(u) {
-      var a = document.createElement('a');
-      a.href = u;
-      return a;
-    },
-
-    // Return true iff the strings u1 and u2 are equal up the first
-    // occurrence of '?', which is assumed to be the start of a URL
-    // query string and ignored.
-    _urlsEqualToQueryString: function GAM_urlsEqualToQueryString(u1, u2) {
-      var uo1 = this._makeUrlObject(u1);
-      var uo2 = this._makeUrlObject(u2);
-      return (uo1.protocol === uo2.protocol
-              && uo1.host === uo2.host
-              && uo1.hostname === uo2.hostname
-              && uo1.port === uo2.port
-              && uo1.pathname === uo2.pathname
-              /* ignore .search.  Should we also ignore .hash? */
-              && uo1.hash === uo2.hash);
-    },
-
     _appIdCounter: 0,
 
     _foregroundWindows: [],
@@ -161,21 +140,28 @@ if (!window['Gaia'])
 
     getInstalledAppForURL: function(url) {
       var installedApps = this.installedApps;
+
       for (var i = 0; i < installedApps.length; i++) {
-        var installedApp = installedApps[i];
-        if (this._urlsEqualToQueryString(installedApp.url, url))
-          return installedApp;
+        if (installedApps[i].url == url)
+          return installedApps[i];
       }
 
       return null;
     },
 
     getAppInstance: function(url) {
+      // Compare URLs but ignore the query portion of the url (the part after
+      // the ?)
+      var query = new RegExp(/\?.*/);
+      var currentURL = url.replace(query, '');
       var runningApps = this._runningApps;
       for (var i = 0; i < runningApps.length; i++) {
         var runningApp = runningApps[i];
-        if (this._urlsEqualToQueryString(runningApp.url, url))
-          return runningApp;
+        if (runningApp.url.replace(query, '') != currentURL)
+          continue;
+
+        runningApp.url;
+        return runningApp;
       }
       return null;
     },

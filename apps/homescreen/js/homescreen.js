@@ -288,12 +288,10 @@ function NotificationScreen(touchables) {
   this.touchables = touchables;
   this.attachEvents(this.touchable);
 
-  if (!('mozTelephony' in window.navigator) ||
-      !window.navigator.mozTelephony)
-    return;
-
-  var telephony = window.navigator.mozTelephony;
-  telephony.addEventListener('incoming', this);
+  try {
+    var telephony = window.navigator.mozTelephony;
+    telephony.addEventListener('incoming', this);
+  } catch(e) {}
 }
 
 NotificationScreen.prototype = {
