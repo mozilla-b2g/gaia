@@ -276,12 +276,10 @@ var CallHandler = {
     this.currentCall.answer();
   },
   end: function ch_end() {
-    this.toggleCallScreen();
     this.currentCall.hangUp();
   },
   disconnected: function ch_disconnected() {
-    this.currentCall.removeEventListener('statechange', this);
-    this.currentCall = null;
+    this.toggleCallScreen();
 
     this.actionsView.classList.remove('displayed');
     if (this.muteButton.classList.contains('mute'))
@@ -291,6 +289,9 @@ var CallHandler = {
 
     this.closeModal();
     clearInterval(this._ticker);
+
+    this.currentCall.removeEventListener('statechange', this);
+    this.currentCall = null;
   },
 
   handleEvent: function fm_handleEvent(evt) {
