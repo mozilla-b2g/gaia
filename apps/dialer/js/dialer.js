@@ -27,13 +27,6 @@ function visibilityChanged(url) {
   if (url.indexOf('?choice=contact') != -1 ||
       contacts.hasAttribute('data-active')) {
     choiceChanged(contacts);
-  } else if (url.indexOf('?choice=incoming') != -1) {
-    // TODO this is too simple (the incoming call isn't necessarily the 0th
-    // element). But in any case, incoming calls won't be dealt with in this
-    // way in the future since only the dialer will be able to work with
-    // navigator.mozTelephony.
-    var call = window.navigator.mozTelephony.calls[0];
-    CallHandler.incoming(call);
   }
 }
 
@@ -301,6 +294,7 @@ var CallHandler = {
   },
 
   handleEvent: function fm_handleEvent(evt) {
+    console.log('Call changed state: ' + evt.call.state);
     switch (evt.call.state) {
       case 'incoming':
         console.log("incoming call from " + evt.call.number);
@@ -313,7 +307,6 @@ var CallHandler = {
         this.disconnected();
         break;
       default:
-        console.log('Call changed state: ' + evt.call.state);
         break;
     }
   },
