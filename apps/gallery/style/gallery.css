@@ -85,7 +85,7 @@ header h1 {
 }
 
 #photo {
-  width: 1%;
+  width: 0%;
   height: auto;
   -moz-transition: width 0.5s ease;
 }

@@ -3,11 +3,11 @@ var Gallery = {
 
   init: function galleryInit() {
     var db = this.db;
-    db.open(this.buildThumbnails);
-
+    db.open(this.addThumbnail);
     var self = this;
-    var thumbnails = document.getElementById('thumbnails');
-    thumbnails.addEventListener('click', function thumbnailsClick(evt) {
+
+    document.getElementById('thumbnails').addEventListener(
+      'click', function thumbnailsClick(evt) {
       var target = evt.target;
       if (!target)
         return;
@@ -23,21 +23,59 @@ var Gallery = {
         evt.preventDefault();
       }
     });
-
-    Gallery.showThumbnails();
   },
 
-  buildThumbnails: function galleryBuildThumbnails(thumbnails) {
-    var content = '';
-    thumbnails.forEach(function showThumbnail(thumbnail) {
-      var img = 'data:image/jpeg;base64,' + thumbnail.data;
-      content += '<li id="' + thumbnail.id + '">' +
-                 '  <a href="#">' +
-                 '    <img class="thumbnail" src="' + img + '">' +
-                 '  </a>' +
-                 '</li>';
-    });
-    document.getElementById('thumbnails').innerHTML = content;
+  getSamplePhotos: function galleryGetSamplePhotos() {
+    for (var i in SAMPLE_FILENAMES) {
+      var getSamplePhoto = function(i) {
+        var thumbnailRequest = new XMLHttpRequest();
+        thumbnailRequest.open('GET', SAMPLE_THUMBNAILS_DIR +
+          SAMPLE_FILENAMES[i], true);
+        thumbnailRequest.responseType = 'blob';
+        thumbnailRequest.onload = function thumbnailRequestLoaded(e) {
+          if (this.status != 200)
+            return;
+          var blob = this.response;
+          var photoEntry = {
+            filename: SAMPLE_FILENAMES[i],
+            data: blob
+          };
+          Gallery.db.savePhoto(photoEntry, 'thumbnails', Gallery.addThumbnail);
+        };
+
+        var photoRequest = new XMLHttpRequest();
+        photoRequest.open('GET', SAMPLE_PHOTOS_DIR + SAMPLE_FILENAMES[i], true);
+        photoRequest.responseType = 'blob';
+        photoRequest.onload = function photoRequestLoaded(e) {
+          if (this.status != 200)
+            return;
+          var blob = this.response;
+          var photoEntry = {
+            filename: SAMPLE_FILENAMES[i],
+            data: blob
+          };
+          Gallery.db.savePhoto(photoEntry, 'photos');
+        };
+
+        thumbnailRequest.send();
+        photoRequest.send();
+      };
+      getSamplePhoto(i);
+    }
+  },
+
+  addThumbnail: function galleryAddThumbnail(thumbnail) {
+    var thumbnails = this.thumbnails;
+    var li = document.createElement('li');
+    li.id = thumbnail.filename;
+    var a = document.createElement('a');
+    a.href = '#';
+    var img = document.createElement('img');
+    img.src = window.URL.createObjectURL(thumbnail.data);
+    img.classList.add('thumbnail');
+    a.appendChild(img);
+    li.appendChild(a);
+    document.getElementById('thumbnails').appendChild(li);
   },
 
   showThumbnails: function galleryShowThumbnails(thumbnails) {
@@ -60,13 +98,13 @@ var Gallery = {
       document.getElementById(id).classList.remove('hidden');
     });
 
-    var border = document.getElementById('photoBorder');
-    var img = 'data:image/jpeg;base64,' + photo.data;
-    border.innerHTML = '<img id="photo" src="' + img + '">';
+    var imgURL = window.URL.createObjectURL(photo.data);
+    document.getElementById('photoBorder').innerHTML =
+      '<img id="photo" src="' + imgURL + '">';
 
     setTimeout(function() {
       document.getElementById('photo').setAttribute('data-visible', 'true');
-    }, 10);
+    }, 100);
 
     Gallery.photoSelected = true;
   }
@@ -76,10 +114,11 @@ var Gallery = {
 Gallery.db = {
   _db: null,
   open: function dbOpen(callback) {
+    const DB_VERSION = 3;
     const DB_NAME = 'gallery';
-    var request = window.mozIndexedDB.open(DB_NAME, 2);
-
+    var request = window.mozIndexedDB.open(DB_NAME, DB_VERSION);
     var empty = false;
+
     request.onupgradeneeded = (function onUpgradeNeeded(evt) {
       this._db = evt.target.result;
       this._initializeDB();
@@ -88,21 +127,10 @@ Gallery.db = {
 
     request.onsuccess = (function onSuccess(evt) {
       this._db = evt.target.result;
-      if (!empty) {
-        this.getPhotos(callback);
-        return;
-      }
-
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', 'js/photos.json', true);
-      xhr.onreadystatechange = (function() {
-        if (xhr.readyState == 4) {
-          var json = JSON.parse(xhr.responseText);
-          this._fillDB(json);
-          this.getPhotos(callback);
-        }
-      }).bind(this);
-      xhr.send(null);
+      if (empty)
+        Gallery.getSamplePhotos();
+      else
+        this.getThumbnails(callback);
     }).bind(this);
 
     request.onerror = (function onDatabaseError(error) {
@@ -116,37 +144,28 @@ Gallery.db = {
     stores.forEach(function createStore(store) {
       if (db.objectStoreNames.contains(store))
         db.deleteObjectStore(store);
-      db.createObjectStore(store, { keyPath: 'id' });
+      db.createObjectStore(store, { keyPath: 'filename' });
     });
   },
 
-  _fillDB: function dbFillDB(json, callback) {
-    var stores = ['thumbnails', 'photos'];
-    var transaction = this._db.transaction(stores, IDBTransaction.READ_WRITE);
+  savePhoto: function dbSavePhoto(photoEntry, store, callback) {
+    var transaction = this._db.transaction(store, IDBTransaction.READ_WRITE);
+    var objectStore = transaction.objectStore(store);
+    var request = objectStore.put(photoEntry);
 
-    var samples = [json['thumbnails'], json['photos']];
-    stores.forEach(function populateStore(store, index) {
-      var objectStore = transaction.objectStore(store);
+    request.onsuccess = (function onsuccess(e) {
+      console.log('Added the photo ' + photoEntry.filename + ' to the ' +
+        store + ' store');
+      if (callback)
+        callback(photoEntry);
+    }).bind(this);
 
-      var sample = samples[index];
-      for (var id in sample) {
-        var request = objectStore.put({
-          id: id,
-          data: sample[id]
-        });
-
-        request.onsuccess = function onsuccess(e) {
-          console.log('Add a new element to ' + store);
-        }
-
-        request.onerror = function onerror(e) {
-          console.log('Error while adding an element to: ' + store);
-        }
-      }
-    });
+    request.onerror = function onerror(e) {
+      console.log('Error while adding a photo to the store');
+    };
   },
 
-  getPhotos: function dbGetPhotos(callback) {
+  getThumbnails: function dbGetThumbnails(callback) {
     var transaction = this._db.transaction(['thumbnails'],
                                            IDBTransaction.READ_ONLY);
     var store = transaction.objectStore('thumbnails');
@@ -156,11 +175,9 @@ Gallery.db = {
     cursorRequest.onsuccess = function onsuccess(e) {
       var result = e.target.result;
       if (!result) {
-        callback(thumbnails);
         return;
       }
-
-      thumbnails.push(result.value);
+      callback(result.value);
       result.continue();
     };
 
@@ -169,10 +186,10 @@ Gallery.db = {
     };
   },
 
-  getPhoto: function dbGetPhoto(id, callback) {
+  getPhoto: function dbGetPhoto(filename, callback) {
     var transaction = this._db.transaction(['photos'],
                                            IDBTransaction.READ_ONLY);
-    var request = transaction.objectStore('photos').get(id);
+    var request = transaction.objectStore('photos').get(filename);
     request.onsuccess = function onsuccess(e) {
       callback(e.target.result);
     };
@@ -186,4 +203,3 @@ Gallery.db = {
 window.addEventListener('DOMContentLoaded', function GalleryInit() {
   Gallery.init();
 });
-
