@@ -94,7 +94,7 @@ Gaia.AnimationLoop = function(renderCallback) {
     handleEvent: function(evt) {
       switch (evt.type) {
         case 'keydown':
-          if (evt.keyCode !== evt.DOM_VK_ESCAPE || isKeyDown)
+          if (evt.keyCode !== evt.DOM_VK_HOME || isKeyDown)
             return;
 
           if (checkKeyPressTimeout) {
@@ -116,7 +116,7 @@ Gaia.AnimationLoop = function(renderCallback) {
           }
           break;
         case 'keyup':
-          if (evt.keyCode !== evt.DOM_VK_ESCAPE)
+          if (evt.keyCode !== evt.DOM_VK_HOME)
             return;
 
           if (checkKeyPressTimeout) {
