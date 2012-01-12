@@ -139,6 +139,7 @@ const IMEManager = {
 
     var keyCode = parseInt(this.currentKey.getAttribute('data-keycode'));
     var menu = document.getElementById('keyboard-accent-char-menu');
+    var shadowMenu = document.getElementById('keyboard-accent-char-shadow-menu');
     var content = '';
 
     if (!target.dataset.alt && keyCode !== this.SWITCH_KEYBOARD)
@@ -179,13 +180,17 @@ const IMEManager = {
       return;
     }
 
-    menu.className = 'show';
-    content += '<span class="keyboard-key on-menu" ' +
-      'data-keycode="' + target.dataset.keycode + '" ' +
-      'style="width:' + cssWidth + '"' +
-      '>' +
-      target.innerHTML +
-      '</span>';
+    var before = (window.innerWidth/2 > target.offsetLeft);
+
+    if (before) {
+      content += '<span class="keyboard-key on-menu" ' +
+        'data-keycode="' + target.dataset.keycode + '" ' +
+        'data-active="true"' +
+        'style="width:' + cssWidth + '"' +
+        '>' +
+        target.innerHTML +
+        '</span>';
+    }
 
     for (var i in target.dataset.alt) {
       content += '<span class="keyboard-key on-menu" ' +
@@ -196,28 +201,45 @@ const IMEManager = {
         '</span>';
     }
 
-    menu.innerHTML = content;
+    if (!before) {
+      content += '<span class="keyboard-key on-menu" ' +
+        'data-keycode="' + target.dataset.keycode + '" ' +
+        'data-active="true"' +
+        'style="width:' + cssWidth + '"' +
+        '>' +
+        target.innerHTML +
+        '</span>';
+    }
 
-    menu.style.top = target.offsetTop.toString(10) + 'px';
+    menu.innerHTML = shadowMenu.innerHTML = content;
+    menu.className = shadowMenu.className = 'show';
 
-    var menuWidth = menu.offsetWidth;
-    var menuLeft =
-      target.offsetLeft + target.offsetWidth / 2 - menuWidth / 2;
-    menuLeft = Math.max(menuLeft, 5);
-    menuLeft =
-      Math.min(
-        menuLeft,
-        window.innerWidth - menuWidth - 5
-      );
+    menu.style.top =
+      shadowMenu.style.top =
+      target.offsetTop.toString(10) + 'px';
 
-    menu.style.left = menuLeft.toString(10) + 'px';
+    if (before) {
+      menu.style.left =
+        shadowMenu.style.left =
+        target.offsetLeft.toString(10) + 'px';
+    } else {
+      menu.style.left =
+        shadowMenu.style.left =
+        (
+          target.offsetLeft
+          + 2
+          - shadowMenu.offsetWidth
+          + target.offsetWidth
+        ).toString(10) + 'px';
+    }
 
     document.getElementById('keyboard-key-highlight').className = 'upper';
   },
   hideAccentCharMenu: function km_hideAccentCharMenu() {
     var menu = document.getElementById('keyboard-accent-char-menu');
-    menu.innerHTML = '';
-    menu.className = '';
+    var shadowMenu = document.getElementById('keyboard-accent-char-shadow-menu');
+    menu.className = shadowMenu.className = '';
+    menu.innerHTML = shadowMenu.innerHTML = '';
   },
 
   events: ['mouseup', 'showime', 'hideime', 'unload', 'appclose'],
@@ -361,9 +383,21 @@ const IMEManager = {
           return;
         }
 
+        if (target.parentNode.id == 'keyboard-accent-char-shadow-menu') {
+          // Redirect target to the real button
+          var index = 0;
+          while((target = target.previousSibling) != null)
+            index++;
+
+          target =
+            document.getElementById('keyboard-accent-char-menu')
+            .childNodes.item(index);
+        }
+
         target.dataset.active = 'true';
 
         this.currentKey = target;
+
         this.updateKeyHighlight();
 
         clearTimeout(this._deleteTimeout);
@@ -616,6 +650,7 @@ const IMEManager = {
     }).bind(this));
 
     content += '<span id="keyboard-accent-char-menu"></span>';
+    content += '<span id="keyboard-accent-char-shadow-menu"></span>';
 
     content += '<span id="keyboard-key-highlight"></span>';
 
