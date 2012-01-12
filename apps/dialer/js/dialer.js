@@ -27,9 +27,6 @@ function visibilityChanged(url) {
   if (url.indexOf('?choice=contact') != -1 ||
       contacts.hasAttribute('data-active')) {
     choiceChanged(contacts);
-  } else if (url.indexOf('?choice=incoming') != -1) {
-    var call = window.navigator.mozTelephony.liveCalls[0];
-    CallHandler.incoming(call);
   }
 }
 
@@ -237,6 +234,8 @@ var KeyHandler = {
 };
 
 var CallHandler = {
+  currentCall: null,
+
   // callbacks
   call: function ch_call(number) {
     this.numberView.innerHTML = number;
@@ -246,11 +245,12 @@ var CallHandler = {
     this.toggleCallScreen();
 
     var call = window.navigator.mozTelephony.dial(number);
-    call.addEventListener('readystatechange', this);
+    call.addEventListener('statechange', this);
     this.currentCall = call;
   },
   incoming: function ch_incoming(call) {
     this.currentCall = call;
+    call.addEventListener('statechange', this);
 
     this.numberView.innerHTML = call.number;
     this.statusView.innerHTML = 'Incoming call...';
@@ -274,14 +274,12 @@ var CallHandler = {
   },
   answer: function ch_answer() {
     this.currentCall.answer();
-    this.connected();
   },
   end: function ch_end() {
+    this.currentCall.hangUp();
+  },
+  disconnected: function ch_disconnected() {
     this.toggleCallScreen();
-    try {
-      this.currentCall.disconnect();
-      this.currentCall.removeEventListener('readystatechange', this);
-    } catch (e) {}
 
     this.actionsView.classList.remove('displayed');
     if (this.muteButton.classList.contains('mute'))
@@ -291,10 +289,27 @@ var CallHandler = {
 
     this.closeModal();
     clearInterval(this._ticker);
+
+    this.currentCall.removeEventListener('statechange', this);
+    this.currentCall = null;
   },
 
   handleEvent: function fm_handleEvent(evt) {
-    this.connected();
+    console.log('Call changed state: ' + evt.call.state);
+    switch (evt.call.state) {
+      case 'incoming':
+        console.log("incoming call from " + evt.call.number);
+        this.incoming(evt.call);
+        break;
+      case 'connected':
+        this.connected();
+        break;
+      case 'disconnected':
+        this.disconnected();
+        break;
+      default:
+        break;
+    }
   },
 
   // properties / methods
@@ -379,5 +394,6 @@ var CallHandler = {
 window.addEventListener('load', function keyboardInit(evt) {
   window.removeEventListener('load', keyboardInit);
   KeyHandler.init();
+  navigator.mozTelephony.addEventListener("incoming", CallHandler);
 });
 
