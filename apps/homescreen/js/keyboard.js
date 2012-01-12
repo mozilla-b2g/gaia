@@ -86,7 +86,7 @@ const IMEManager = {
   },
 
   updateKeyHighlight: function km_updateKeyHighlight() {
-    var keyHighlight = document.getElementById('keyboard-key-highlight');
+    var keyHighlight = this.keyHighlight;
     var target = this.currentKey;
 
     keyHighlight.className = '';
@@ -113,7 +113,7 @@ const IMEManager = {
       target.offsetLeft + target.offsetWidth / 2 - keyHighlightWidth / 2;
 
     if (target.classList.contains('on-menu')) {
-      var menu = document.getElementById('keyboard-accent-char-menu');
+      var menu = this.menu;
       keyHighlightTop += menu.offsetTop;
       keyHighlightLeft += menu.offsetLeft;
     }
@@ -138,7 +138,7 @@ const IMEManager = {
       return;
 
     var keyCode = parseInt(this.currentKey.getAttribute('data-keycode'));
-    var menu = document.getElementById('keyboard-accent-char-menu');
+    var menu = this.menu;
     var content = '';
 
     if (!target.dataset.alt && keyCode !== this.SWITCH_KEYBOARD)
@@ -150,7 +150,7 @@ const IMEManager = {
 
     if (keyCode == this.SWITCH_KEYBOARD) {
 
-      document.getElementById('keyboard-key-highlight').className = '';
+      this.keyHighlight.className = '';
 
       menu.className = 'show menu';
 
@@ -260,7 +260,7 @@ const IMEManager = {
     if (!this._currentMenuKey)
       return;
 
-    var menu = document.getElementById('keyboard-accent-char-menu');
+    var menu = this.menu;
     menu.className = '';
     menu.innerHTML = '';
 
@@ -416,9 +416,7 @@ const IMEManager = {
 
         if (target.dataset.redirectToMenu !== undefined) {
           // Redirect target to the real button on menu
-          target =
-            document.getElementById('keyboard-accent-char-menu')
-            .childNodes.item(target.dataset.redirectToMenu);
+          target = this.menu.childNodes.item(parseInt(target.dataset.redirectToMenu));
         }
 
         target.dataset.active = 'true';
@@ -682,6 +680,8 @@ const IMEManager = {
     content += '<span id="keyboard-key-highlight"></span>';
 
     this.ime.innerHTML = content;
+    this.menu = document.getElementById('keyboard-accent-char-menu');
+    this.keyHighlight = document.getElementById('keyboard-key-highlight');
 
     if (layout.needsCandidatePanel) {
       var toggleButton = document.createElement('span');
