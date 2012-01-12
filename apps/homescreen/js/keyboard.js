@@ -233,7 +233,13 @@ const IMEManager = {
         ).toString(10) + 'px';
     }
 
-    document.getElementById('keyboard-key-highlight').className = 'upper';
+    delete target.dataset.active;
+
+    this.currentKey = (before)?
+      menu.firstChild : menu.lastChild;
+
+    this.updateKeyHighlight();
+
   },
   hideAccentCharMenu: function km_hideAccentCharMenu() {
     var menu = document.getElementById('keyboard-accent-char-menu');
