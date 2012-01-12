@@ -139,7 +139,8 @@ const IMEManager = {
 
     var keyCode = parseInt(this.currentKey.getAttribute('data-keycode'));
     var menu = document.getElementById('keyboard-accent-char-menu');
-    var shadowMenu = document.getElementById('keyboard-accent-char-shadow-menu');
+    var shadowMenu =
+      document.getElementById('keyboard-accent-char-shadow-menu');
     var content = '';
 
     if (!target.dataset.alt && keyCode !== this.SWITCH_KEYBOARD)
@@ -180,7 +181,7 @@ const IMEManager = {
       return;
     }
 
-    var before = (window.innerWidth/2 > target.offsetLeft);
+    var before = (window.innerWidth / 2 > target.offsetLeft);
 
     if (before) {
       content += '<span class="keyboard-key on-menu" ' +
@@ -226,16 +227,13 @@ const IMEManager = {
       menu.style.left =
         shadowMenu.style.left =
         (
-          target.offsetLeft
-          + 2
-          - shadowMenu.offsetWidth
-          + target.offsetWidth
+          target.offsetLeft + 2 - shadowMenu.offsetWidth + target.offsetWidth
         ).toString(10) + 'px';
     }
 
     delete target.dataset.active;
 
-    this.currentKey = (before)?
+    this.currentKey = (before) ?
       menu.firstChild : menu.lastChild;
 
     this.updateKeyHighlight();
@@ -243,7 +241,8 @@ const IMEManager = {
   },
   hideAccentCharMenu: function km_hideAccentCharMenu() {
     var menu = document.getElementById('keyboard-accent-char-menu');
-    var shadowMenu = document.getElementById('keyboard-accent-char-shadow-menu');
+    var shadowMenu =
+      document.getElementById('keyboard-accent-char-shadow-menu');
     menu.className = shadowMenu.className = '';
     menu.innerHTML = shadowMenu.innerHTML = '';
   },
@@ -392,7 +391,7 @@ const IMEManager = {
         if (target.parentNode.id == 'keyboard-accent-char-shadow-menu') {
           // Redirect target to the real button
           var index = 0;
-          while((target = target.previousSibling) != null)
+          while ((target = target.previousSibling) != null)
             index++;
 
           target =
