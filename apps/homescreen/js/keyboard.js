@@ -412,32 +412,43 @@ const IMEManager = {
   },
 
   showIME: function km_showIME(targetWindow, type) {
-    this.targetWindow = targetWindow;
-    var oldHeight = targetWindow.style.height;
-    targetWindow.dataset.cssHeight = oldHeight;
-    targetWindow.dataset.rectHeight =
-      targetWindow.getBoundingClientRect().height;
+    if (this.ime.dataset.hidden) {
+      this.targetWindow = targetWindow;
+      var oldHeight = targetWindow.style.height;
+      targetWindow.dataset.cssHeight = oldHeight;
+      targetWindow.dataset.rectHeight =
+        targetWindow.getBoundingClientRect().height;
+    }
 
     this.updateLayout(this.currentKeyboard);
     delete this.ime.dataset.hidden;
+
   },
 
   hideIME: function km_hideIME(targetWindow) {
     var ime = this.ime;
     var imeHide = (function(evt) {
       targetWindow.removeEventListener('transitionend', imeHide);
+
+      // hideIME is canceled by the showIME that fires after
+      if (ime.style.height !== '0px')
+        return;
+
       delete this.targetWindow;
 
+      delete targetWindow.dataset.cssHeight;
+      delete targetWindow.dataset.rectHeight;
+      ime.dataset.hidden = 'true';
+      delete ime.style.height;
+
       ime.innerHTML = '';
+
     }).bind(this);
 
     targetWindow.addEventListener('transitionend', imeHide);
-    targetWindow.style.height = targetWindow.dataset.cssHeight;
-    delete targetWindow.dataset.cssHeight;
-    delete targetWindow.dataset.rectHeight;
 
-    ime.style.height = null;
-    ime.dataset.hidden = 'true';
+    targetWindow.style.height = targetWindow.dataset.cssHeight;
+    ime.style.height = '0px';
   },
 
   showCandidates: function km_showCandidates(candidates) {
