@@ -228,12 +228,26 @@ const IMEManager = {
 
     delete target.dataset.active;
 
+    var redirectMouseMove = function redirectMouseMove(target) {
+      this.redirect = function km_menuRedirection(ev) {
+        ev.stopPropagation();
+
+        var event = document.createEvent('MouseEvent');
+        event.initMouseEvent(
+          'mousemove', true, true, window,
+          0, 0, 0, 0, 0, false, false, false, false, 0, null
+        );
+        target.dispatchEvent(event);
+      };
+      this.addEventListener('mousemove', this.redirect);
+    };
+
     if (before) {
       var index = 0;
       var sibling = target;
 
       while (menu.childNodes.item(index)) {
-        sibling.keyOnMenu = menu.childNodes.item(index);
+        redirectMouseMove.call(sibling, menu.childNodes.item(index));
         sibling = sibling.nextSibling;
         index++;
       }
@@ -242,7 +256,7 @@ const IMEManager = {
       var sibling = target;
 
       while (menu.childNodes.item(index)) {
-        sibling.keyOnMenu = menu.childNodes.item(index);
+        redirectMouseMove.call(sibling, menu.childNodes.item(index));
         sibling = sibling.previousSibling;
         index--;
       }
@@ -267,7 +281,7 @@ const IMEManager = {
     var siblings = this._currentMenuKey.parentNode.childNodes;
 
     for (var key in siblings) {
-      delete siblings[key].keyOnMenu;
+      siblings[key].removeEventListener('mousemove', siblings[key].redirect);
     }
 
     delete this._currentMenuKey;
@@ -413,10 +427,6 @@ const IMEManager = {
           this.updateKeyHighlight();
           return;
         }
-
-        // Redirect target to the real button on menu
-        if (target.keyOnMenu)
-          target = target.keyOnMenu;
 
         target.dataset.active = 'true';
 
