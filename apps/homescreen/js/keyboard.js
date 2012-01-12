@@ -105,7 +105,7 @@ const IMEManager = {
       keyHighlight.className = 'show';
       keyHighlightWidth = keyHighlight.offsetWidth;
     } else {
-      keyHighlightWidth = 70;
+      keyHighlightWidth = 82;
     }
 
     var keyHighlightTop = target.offsetTop;
