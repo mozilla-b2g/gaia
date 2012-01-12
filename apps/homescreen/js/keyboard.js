@@ -139,8 +139,6 @@ const IMEManager = {
 
     var keyCode = parseInt(this.currentKey.getAttribute('data-keycode'));
     var menu = document.getElementById('keyboard-accent-char-menu');
-    var shadowMenu =
-      document.getElementById('keyboard-accent-char-shadow-menu');
     var content = '';
 
     if (!target.dataset.alt && keyCode !== this.SWITCH_KEYBOARD)
@@ -212,26 +210,45 @@ const IMEManager = {
         '</span>';
     }
 
-    menu.innerHTML = shadowMenu.innerHTML = content;
-    menu.className = shadowMenu.className = 'show';
+    menu.innerHTML = content;
+    menu.className = 'show';
 
     menu.style.top =
-      shadowMenu.style.top =
       target.offsetTop.toString(10) + 'px';
 
     if (before) {
       menu.style.left =
-        shadowMenu.style.left =
-        target.offsetLeft.toString(10) + 'px';
+        (target.offsetLeft - 6).toString(10) + 'px';
     } else {
       menu.style.left =
-        shadowMenu.style.left =
         (
-          target.offsetLeft + 2 - shadowMenu.offsetWidth + target.offsetWidth
+          target.offsetLeft + 6 - menu.offsetWidth + target.offsetWidth
         ).toString(10) + 'px';
     }
 
     delete target.dataset.active;
+
+    if (before) {
+      var index = 0;
+      var sibling = target;
+
+      while (menu.childNodes.item(index)) {
+        sibling.dataset.redirectToMenu = index;
+        sibling = sibling.nextSibling;
+        index++;
+      }
+    } else {
+      var index = menu.childNodes.length - 1;
+      var sibling = target;
+
+      while (menu.childNodes.item(index)) {
+        sibling.dataset.redirectToMenu = index;
+        sibling = sibling.previousSibling;
+        index--;
+      }
+    }
+
+    this._currentMenuKey = target;
 
     this.currentKey = (before) ?
       menu.firstChild : menu.lastChild;
@@ -240,11 +257,20 @@ const IMEManager = {
 
   },
   hideAccentCharMenu: function km_hideAccentCharMenu() {
+    if (!this._currentMenuKey)
+      return;
+
     var menu = document.getElementById('keyboard-accent-char-menu');
-    var shadowMenu =
-      document.getElementById('keyboard-accent-char-shadow-menu');
-    menu.className = shadowMenu.className = '';
-    menu.innerHTML = shadowMenu.innerHTML = '';
+    menu.className = '';
+    menu.innerHTML = '';
+
+    var siblings = this._currentMenuKey.parentNode.childNodes;
+
+    for (var key in siblings) {
+      delete siblings[key].dataset.redirectToMenu;
+    }
+
+    delete this._currentMenuKey;
   },
 
   events: ['mouseup', 'showime', 'hideime', 'unload', 'appclose'],
@@ -388,15 +414,11 @@ const IMEManager = {
           return;
         }
 
-        if (target.parentNode.id == 'keyboard-accent-char-shadow-menu') {
-          // Redirect target to the real button
-          var index = 0;
-          while ((target = target.previousSibling) != null)
-            index++;
-
+        if (target.dataset.redirectToMenu !== undefined) {
+          // Redirect target to the real button on menu
           target =
             document.getElementById('keyboard-accent-char-menu')
-            .childNodes.item(index);
+            .childNodes.item(target.dataset.redirectToMenu);
         }
 
         target.dataset.active = 'true';

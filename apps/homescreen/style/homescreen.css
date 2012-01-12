@@ -494,19 +494,6 @@ iframe.appWindow.noTransition {
   margin-top: -5px;
 }
 
-#keyboard-accent-char-shadow-menu {
-  position: absolute;
-  margin-top: -2px;
-  margin-left: -1px;
-  white-space: nowrap;
-  opacity: 0;
-}
-
-#keyboard-accent-char-shadow-menu.show {
-  display: block;
-}
-
-
 #keyboard-accent-char-menu.menu > .keyboard-key {
   width: auto;
   display: block;
