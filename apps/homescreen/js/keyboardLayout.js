@@ -59,7 +59,9 @@ const Keyboards = {
     alt: {
       a: "ä",
       o: "ö",
-      u: "ü"
+      u: "ü",
+      s: "ß",
+      S: ""
     },
     keys: [
       [ { value: "q" }, { value: "w" }, { value: "e" } , { value: "r" }, { value: "t" } , { value: "z" }, { value: "u" } , { value: "i" }, { value: "o" }, { value: "p" } ],

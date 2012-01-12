@@ -598,9 +598,9 @@ const IMEManager = {
           className += ' toggle';
 
         var alt = '';
-        if (layout.alt[keyChar])
+        if (layout.alt[keyChar] != undefined)
           alt = ' data-alt="' + layout.alt[keyChar] + '"';
-        else if (layout.alt[key.value] && this.isUpperCase) {
+        else if (layout.alt[key.value] != undefined && this.isUpperCase) {
           alt = ' data-alt="' + layout.alt[key.value].toUpperCase() + '"';
         }
 
