@@ -112,7 +112,7 @@ const IMEManager = {
     var keyHighlightLeft =
       target.offsetLeft + target.offsetWidth / 2 - keyHighlightWidth / 2;
 
-    if (target.classList.contains('on-menu')) {
+    if (target.parentNode === this.menu) {
       var menu = this.menu;
       keyHighlightTop += menu.offsetTop;
       keyHighlightLeft += menu.offsetLeft;
@@ -156,7 +156,7 @@ const IMEManager = {
 
       for (var i in this.keyboards) {
         var keyboard = this.keyboards[i];
-        var className = 'keyboard-key keyboard-key-special on-menu';
+        var className = 'keyboard-key keyboard-key-special';
 
         if (this.currentKeyboard == keyboard)
           className += ' current-keyboard';
@@ -182,7 +182,7 @@ const IMEManager = {
     var before = (window.innerWidth / 2 > target.offsetLeft);
 
     if (before) {
-      content += '<span class="keyboard-key on-menu" ' +
+      content += '<span class="keyboard-key" ' +
         'data-keycode="' + target.dataset.keycode + '" ' +
         'data-active="true"' +
         'style="width:' + cssWidth + '"' +
@@ -192,7 +192,7 @@ const IMEManager = {
     }
 
     for (var i in target.dataset.alt) {
-      content += '<span class="keyboard-key on-menu" ' +
+      content += '<span class="keyboard-key" ' +
         'data-keycode="' + target.dataset.alt.charCodeAt(i) + '"' +
         'style="width:' + cssWidth + '"' +
         '>' +
@@ -201,7 +201,7 @@ const IMEManager = {
     }
 
     if (!before) {
-      content += '<span class="keyboard-key on-menu" ' +
+      content += '<span class="keyboard-key" ' +
         'data-keycode="' + target.dataset.keycode + '" ' +
         'data-active="true"' +
         'style="width:' + cssWidth + '"' +
@@ -233,7 +233,7 @@ const IMEManager = {
       var sibling = target;
 
       while (menu.childNodes.item(index)) {
-        sibling.dataset.redirectToMenu = index;
+        sibling.keyOnMenu = menu.childNodes.item(index);
         sibling = sibling.nextSibling;
         index++;
       }
@@ -242,7 +242,7 @@ const IMEManager = {
       var sibling = target;
 
       while (menu.childNodes.item(index)) {
-        sibling.dataset.redirectToMenu = index;
+        sibling.keyOnMenu = menu.childNodes.item(index);
         sibling = sibling.previousSibling;
         index--;
       }
@@ -267,7 +267,7 @@ const IMEManager = {
     var siblings = this._currentMenuKey.parentNode.childNodes;
 
     for (var key in siblings) {
-      delete siblings[key].dataset.redirectToMenu;
+      delete siblings[key].keyOnMenu;
     }
 
     delete this._currentMenuKey;
@@ -414,10 +414,9 @@ const IMEManager = {
           return;
         }
 
-        if (target.dataset.redirectToMenu !== undefined) {
-          // Redirect target to the real button on menu
-          target = this.menu.childNodes.item(parseInt(target.dataset.redirectToMenu));
-        }
+        // Redirect target to the real button on menu
+        if (target.keyOnMenu)
+          target = target.keyOnMenu;
 
         target.dataset.active = 'true';
 
@@ -429,21 +428,29 @@ const IMEManager = {
         clearInterval(this._deleteInterval);
         clearTimeout(this._menuTimeout);
 
-        if (target.classList.contains('on-menu')) {
+        if (target.parentNode === this.menu) {
           clearTimeout(this._hideMenuTimeout);
         } else {
-          this._hideMenuTimeout = setTimeout(
-            (function hideMenuTimeout() {
-              this.hideAccentCharMenu();
-            }).bind(this),
-            this.kHideAccentCharMenuTimeout
-          );
-          this._menuTimeout = setTimeout(
-            (function menuTimeout() {
-              this.showAccentCharMenu();
-            }).bind(this),
-            this.kAccentCharMenuTimeout
-          );
+          if (this.menu.className) {
+            this._hideMenuTimeout = setTimeout(
+              (function hideMenuTimeout() {
+                this.hideAccentCharMenu();
+              }).bind(this),
+              this.kHideAccentCharMenuTimeout
+            );
+          }
+
+          if (
+            target.dataset.alt ||
+            keyCode === this.SWITCH_KEYBOARD
+          ) {
+            this._menuTimeout = setTimeout(
+              (function menuTimeout() {
+                this.showAccentCharMenu();
+              }).bind(this),
+              this.kAccentCharMenuTimeout
+            );
+          }
         }
 
         break;
