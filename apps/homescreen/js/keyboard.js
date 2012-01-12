@@ -89,21 +89,26 @@ const IMEManager = {
     var keyHighlight = document.getElementById('keyboard-key-highlight');
     var target = this.currentKey;
 
-    if (!target) {
-      keyHighlight.className = '';
-      return;
-    }
+    keyHighlight.className = '';
 
-    if (target.dataset.keyboard) {
-      keyHighlight.className = '';
+    if (!target)
       return;
-    }
 
-    keyHighlight.innerHTML = target.innerHTML;
-    keyHighlight.className = 'show';
+    if (target.dataset.keyboard)
+      return;
+
+    keyHighlight.textContent = target.textContent;
+
+    var keyHighlightWidth;
+
+    if (target.textContent.length != 1) {
+      keyHighlight.className = 'show';
+      keyHighlightWidth = keyHighlight.offsetWidth;
+    } else {
+      keyHighlightWidth = 70;
+    }
 
     var keyHighlightTop = target.offsetTop;
-    var keyHighlightWidth = keyHighlight.offsetWidth;
     var keyHighlightLeft =
       target.offsetLeft + target.offsetWidth / 2 - keyHighlightWidth / 2;
 
@@ -122,6 +127,8 @@ const IMEManager = {
 
     keyHighlight.style.top = keyHighlightTop.toString(10) + 'px';
     keyHighlight.style.left = keyHighlightLeft.toString(10) + 'px';
+
+    keyHighlight.className = 'show';
   },
 
   showAccentCharMenu: function km_showAccentCharMenu() {
