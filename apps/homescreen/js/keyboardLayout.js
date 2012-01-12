@@ -58,7 +58,8 @@ const Keyboards = {
     menuLabel: 'Deutsch',
     alt: {
       a: "ä",
-      o: "ö"
+      o: "ö",
+      u: "ü"
     },
     keys: [
       [ { value: "q" }, { value: "w" }, { value: "e" } , { value: "r" }, { value: "t" } , { value: "z" }, { value: "u" } , { value: "i" }, { value: "o" }, { value: "p" } ],
