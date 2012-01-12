@@ -234,8 +234,9 @@ const IMEManager = {
 
         var event = document.createEvent('MouseEvent');
         event.initMouseEvent(
-          'mousemove', true, true, window,
-          0, 0, 0, 0, 0, false, false, false, false, 0, null
+          'mousemove', true, true, window, 0,
+          ev.screenX, ev.screenY, ev.clientX, ev.clientY,
+          false, false, false, false, 0, null
         );
         target.dispatchEvent(event);
       };
