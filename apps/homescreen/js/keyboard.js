@@ -218,11 +218,11 @@ const IMEManager = {
 
     if (before) {
       menu.style.left =
-        (target.offsetLeft - 6).toString(10) + 'px';
+        (target.offsetLeft - 7).toString(10) + 'px';
     } else {
       menu.style.left =
         (
-          target.offsetLeft + 6 - menu.offsetWidth + target.offsetWidth
+          target.offsetLeft + 7 - menu.offsetWidth + target.offsetWidth
         ).toString(10) + 'px';
     }
 
