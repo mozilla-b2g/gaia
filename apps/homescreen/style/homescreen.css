@@ -500,4 +500,18 @@ iframe.appWindow.noTransition {
   line-height: 48px;
   height: 48px;
   padding: 0 5px;
+  position: relative;
+}
+
+#keyboard-accent-char-menu.menu > .current-keyboard::before {
+  content: '';
+  display: block;
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  background-color: #0c0;
+  box-shadow: 0 0 5px #fff;
 }
