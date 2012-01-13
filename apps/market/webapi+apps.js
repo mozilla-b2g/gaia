@@ -195,7 +195,7 @@ Settings.prototype = {
   },
 
   _getSetting: function settings_getSetting(name, callback) {
-    if (this._starting) {
+    if (this._starting || !this._db) {
       this._startCallbacks.push({
         type: 'get',
         name: name,
@@ -218,7 +218,7 @@ Settings.prototype = {
   },
 
   _setSetting: function settings_setSetting(name, value, callback) {
-    if (this._starting) {
+    if (this._starting || !this._db) {
       this._startCallbacks.push({
         type: 'set',
         name: name,
@@ -551,16 +551,6 @@ function makeCall(number) {
     },
     disconnect: function() {
     }
-  };
-}
-
-if (!('mozTelephony' in window.navigator) ||
-    !window.navigator.mozTelephony) {
-  window.navigator.mozTelephony = {
-    call: function(number) {
-      return makeCall(number);
-    },
-    liveCalls: [makeCall('1-234-567-890')]
   };
 }
 

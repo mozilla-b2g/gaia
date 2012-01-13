@@ -146,7 +146,7 @@ var KeyHandler = {
 
     // Do not use Audio, until https://github.com/andreasgal/B2G/issues/123
     // is fixed.
-    //TonePlayer.init();
+    TonePlayer.init();
   },
 
   isContactShortcut: function kh_isContactShortcut(key) {
