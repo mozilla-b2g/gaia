@@ -34,7 +34,7 @@ html, body {
   overflow: hidden;
   width: 100%;
   height: 100%;
-	background: #142e51 url(images/noise.png);
+  background: hsl(0,0%,40%) url(images/noise.png) 2%;
 }
 
 /*
@@ -108,18 +108,48 @@ html, body {
   background: #323f4d url(images/notificationsbar-bg.png) no-repeat 0 100%;
 }
 
-#notificationsScreen .time {
-  text-shadow: 0 0 3px hsla(0,0%,0%,.5);
-  line-height: 31px;
-  font-size: 18px;
-  margin: 0 4px;
-}
-
 #home {
   position: absolute;
   top: 37px;
   width: -moz-calc(100%);
   height: -moz-calc(100% - 37px);
+  border-top: 1px solid hsla(0,0%,60%,0.8);
+}
+
+#home-shortcuts {
+  height: 144px;
+
+  box-shadow: inset 0 -1px 4px black;
+  background: hsl(0,0%,30%) url(images/noise.png) 2%;
+}
+
+#home-pages {
+  position: relative;
+  text-align: center;
+  top: -13px;
+  height: 30px;
+  width: 100%;
+}
+
+.home-page-image:first-child {
+  display: none;
+}
+
+.home-page-image:last-child {
+  display: inline-block;
+}
+
+.home-page[data-active] .home-page-image:first-child {
+  display: inline-block;
+}
+
+.home-page[data-active] .home-page-image:last-child {
+  display: none;
+}
+
+.home-page-image {
+  width: 30px;
+  height: 30px;
 }
 
 #windows {
@@ -184,6 +214,13 @@ iframe.appWindow.noTransition {
 
 #statusbar > #padding {
   -moz-box-flex: 1;
+}
+
+#statusbar .time {
+  text-shadow: 0 0 3px hsla(0,0%,0%,.5);
+  line-height: 31px;
+  font-size: 18px;
+  margin: 0 4px;
 }
 
 .battery {
