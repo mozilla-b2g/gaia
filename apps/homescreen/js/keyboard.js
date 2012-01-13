@@ -137,7 +137,7 @@ const IMEManager = {
     if (!target)
       return;
 
-    var keyCode = parseInt(this.currentKey.getAttribute('data-keycode'));
+    var keyCode = parseInt(this.currentKey.dataset.keycode);
     var menu = this.menu;
     var content = '';
 
@@ -370,7 +370,7 @@ const IMEManager = {
         break;
 
       case 'mousedown':
-        var keyCode = parseInt(target.getAttribute('data-keycode'));
+        var keyCode = parseInt(target.dataset.keycode);
         target.dataset.active = 'true';
         this.currentKey = target;
         this.isPressing = true;
@@ -415,7 +415,7 @@ const IMEManager = {
         if (this.currentKey == target)
           return;
 
-        var keyCode = parseInt(target.getAttribute('data-keycode'));
+        var keyCode = parseInt(target.dataset.keycode);
 
         if (!keyCode && !target.dataset.selection)
           return;
@@ -491,7 +491,7 @@ const IMEManager = {
           return;
 
         var target = this.currentKey;
-        var keyCode = parseInt(target.getAttribute('data-keycode'));
+        var keyCode = parseInt(target.dataset.keycode);
 
         clearTimeout(this._deleteTimeout);
         clearInterval(this._deleteInterval);
