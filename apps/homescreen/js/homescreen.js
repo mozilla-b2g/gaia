@@ -532,6 +532,15 @@ function OnLoad() {
     pagesContainer.innerHTML = pagesIcons;
     pagesContainer.firstChild.dataset.active = 'true';
   });
+
+  var titlebar = document.getElementById('titlebar');
+  window.addEventListener('appopen', function(evt) {
+    titlebar.innerHTML = evt.detail;
+  });
+
+  window.addEventListener('appclose', function(evt) {
+    titlebar.innerHTML = '';
+  });
 }
 
 // Update the clock and schedule a new update if appropriate

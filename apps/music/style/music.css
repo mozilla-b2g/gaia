@@ -14,22 +14,6 @@ body {
   font-size: 1.8mozmm;
 }
 
-header {
-  display: block;
-  background-color: #555;
-  background-image: -moz-linear-gradient(#666, #333);
-  background-image: linear-gradient(#666, #333);
-  text-align: center;
-  margin: 0;
-}
-
-header h1 {
-  margin: 0;
-  margin-bottom: 0;
-  font-size: 1.5em;
-  padding: 0.25em;
-}
-
 .hidden {
   display: none;
 }

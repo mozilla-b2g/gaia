@@ -216,6 +216,13 @@ iframe.appWindow.noTransition {
   -moz-box-flex: 1;
 }
 
+#statusbar > #titlebar {
+  text-shadow: 0 0 3px hsla(0,0%,0%,.5);
+  line-height: 31px;
+  font-size: 18px;
+  margin: 0 4px;
+}
+
 #statusbar .time {
   text-shadow: 0 0 3px hsla(0,0%,0%,.5);
   line-height: 31px;

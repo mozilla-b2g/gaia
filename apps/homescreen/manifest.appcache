@@ -25,6 +25,8 @@ style/images/battery-main.png
 style/images/close.png
 style/images/lockscreen.jpg
 style/images/noise.png
+style/images/page-active.png
+style/images/page-inactive.png
 style/images/notificationsbar-bg.png
 style/fonts/Roboto-BoldItalic.ttf
 style/fonts/Roboto-Bold.ttf

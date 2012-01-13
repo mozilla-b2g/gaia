@@ -226,6 +226,7 @@ if (!window['Gaia'])
         }).bind(this));
 
         this._runningApps.push({
+          name: app.name,
           id: this._appIdCounter - 1,
           url: url,
           window: foregroundWindow
@@ -237,8 +238,9 @@ if (!window['Gaia'])
                                              transitionHandler);
         foregroundWindow.focus();
 
-        var openEvent = document.createEvent('UIEvents');
-        openEvent.initUIEvent('appopen', true, true, window, 0);
+        var name = instance ? instance.name : app.name;
+        var openEvent = document.createEvent('CustomEvent');
+        openEvent.initCustomEvent('appopen', true, true, name);
         window.dispatchEvent(openEvent);
       };
 
@@ -272,6 +274,10 @@ if (!window['Gaia'])
         foregroundWindow.contentWindow.postMessage(state, '*');
         windowsContainer.hide();
         window.focus();
+
+        var closeEvent = document.createEvent('CustomEvent');
+        closeEvent.initCustomEvent('appclose', true, true, instance.name);
+        window.dispatchEvent(closeEvent);
       };
 
       foregroundWindow.addEventListener('transitionend', transitionHandler);
