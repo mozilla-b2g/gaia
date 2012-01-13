@@ -228,19 +228,19 @@ const IMEManager = {
 
     delete target.dataset.active;
 
-    var redirectMouseMove = function redirectMouseMove(target) {
+    var redirectMouseOver = function redirectMouseOver(target) {
       this.redirect = function km_menuRedirection(ev) {
         ev.stopPropagation();
 
         var event = document.createEvent('MouseEvent');
         event.initMouseEvent(
-          'mousemove', true, true, window, 0,
+          'mouseover', true, true, window, 0,
           ev.screenX, ev.screenY, ev.clientX, ev.clientY,
           false, false, false, false, 0, null
         );
         target.dispatchEvent(event);
       };
-      this.addEventListener('mousemove', this.redirect);
+      this.addEventListener('mouseover', this.redirect);
     };
 
     if (before) {
@@ -248,7 +248,7 @@ const IMEManager = {
       var sibling = target;
 
       while (menu.childNodes.item(index)) {
-        redirectMouseMove.call(sibling, menu.childNodes.item(index));
+        redirectMouseOver.call(sibling, menu.childNodes.item(index));
         sibling = sibling.nextSibling;
         index++;
       }
@@ -257,7 +257,7 @@ const IMEManager = {
       var sibling = target;
 
       while (menu.childNodes.item(index)) {
-        redirectMouseMove.call(sibling, menu.childNodes.item(index));
+        redirectMouseOver.call(sibling, menu.childNodes.item(index));
         sibling = sibling.previousSibling;
         index--;
       }
@@ -282,14 +282,14 @@ const IMEManager = {
     var siblings = this._currentMenuKey.parentNode.childNodes;
 
     for (var key in siblings) {
-      siblings[key].removeEventListener('mousemove', siblings[key].redirect);
+      siblings[key].removeEventListener('mouseover', siblings[key].redirect);
     }
 
     delete this._currentMenuKey;
   },
 
   events: ['mouseup', 'showime', 'hideime', 'unload', 'appclose'],
-  imeEvents: ['mousedown', 'mousemove', 'mouseleave'],
+  imeEvents: ['mousedown', 'mouseover', 'mouseleave'],
   init: function km_init() {
     this.events.forEach((function attachEvents(type) {
       window.addEventListener(type, this);
@@ -408,7 +408,7 @@ const IMEManager = {
         }).bind(this), this.kRepeatTimeout);
         break;
 
-      case 'mousemove':
+      case 'mouseover':
         if (!this.isPressing)
           return;
 
