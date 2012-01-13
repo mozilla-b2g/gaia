@@ -139,10 +139,10 @@ html * {
 }
 
 .top-bar {
-	height: 12mozmm;
-  line-height: 12mozmm;
+	height: 8mozmm;
+  line-height: 8mozmm;
 
-  font-size: 5mozmm;
+  font-size: 3.5mozmm;
   text-align: center;
 
 	border-top: 1px solid hsl(210, 2%, 48%);
@@ -157,17 +157,25 @@ html * {
 .top-bar a.add {
   position: absolute;
   display: block;
-  width: 7mozmm;
-  height: 7mozmm;
-  top: 2.5mozmm;
-  right:2.5mozmm;
+  width: -moz-calc(6mozmm - 2px);
+  height: 6mozmm;
+  top: 1mozmm;
+  right:1.5mozmm;
+  padding-left: 2px;
+
+	color: #333333;
+  text-align: center;
+  line-height: 6mozmm;
+  text-decoration: none;
+  text-shadow: #929292 0 1px;
+  font-size: 1.1em;
 
   border: 1px solid #333333;
   border-radius: 5px 5px 5px 5px;
-  background: url(images/title-bar-plus.png) no-repeat 100% 0, -moz-linear-gradient(top, hsl(0,0%,65%) 0, hsl(0,0%,53%) 1px, hsl(0,0%,33%) 100%);
+  background: -moz-linear-gradient(top, hsl(0,0%,65%) 0, hsl(0,0%,53%) 1px, hsl(0,0%,33%) 100%);
 }
 .top-bar a.add:active {
-  background: url(images/title-bar-plus.png) no-repeat 100% 100%, -moz-linear-gradient(top, hsl(0,0%,65%) 0, hsl(0,0%,53%) 1px, hsl(0,0%,33%) 100%);
+  color: hsl(76,85%,47%);
 }
 
 /* === Keyboard View === */
@@ -356,7 +364,7 @@ html * {
 /* === Contacts View === */
 #contacts-wrapper {
   width: -moz-calc(100% - 38px - 22px);
-  height: -moz-calc(100% - 12mozmm - 40px);
+  height: -moz-calc(100% - 8mozmm - 40px);
   margin: 20px 0 0 10px;
   padding: 9px;
 
@@ -400,14 +408,14 @@ html * {
 }
 
 .contact-header {
-  height: 6mozmm;
+  height: 4.5mozmm;
   padding: 0 14px 0 20px;
 
   background: -moz-linear-gradient(center top , #878787 0pt, #545454 100%) repeat scroll 0 0 transparent;
 
-  font-size: 4mozmm;
+  font-size: 3mozmm;
   font-weight: 700;
-  line-height: 6mozmm;
+  line-height: 4.5mozmm;
   color: #FFFFFF;
 
   border-bottom: 1px solid #000000;
@@ -418,15 +426,15 @@ html * {
 
 .contact {
   padding: 0 14px 0 20px;
-  height: 12mozmm;
+  height: 8mozmm;
   width: -moz-calc(100% - 2px);
 
 	background: hsl(0,0%,33%);
 	border-top:1px solid hsl(0,0%,48%);
 	border-bottom:1px solid hsl(0,0%,0%);
 
-  line-height: 12mozmm;
-  font-size: 4mozmm;
+  line-height: 8mozmm;
+  font-size: 3mozmm;
 }
 .contact:nth-of-type(odd) {
   background: hsl(0,0%,37%);
@@ -459,9 +467,9 @@ html * {
 #contacts-shortcuts {
   position: fixed;
   right: 10px;
-  top: 90px;
+  top: -moz-calc(8mozmm + 27px);
   width: 44px;
-  height: -moz-calc(100% - 142px);
+  height: -moz-calc(100% - 8mozmm - 76px);
 }
 
 #contacts-shortcuts > a {
