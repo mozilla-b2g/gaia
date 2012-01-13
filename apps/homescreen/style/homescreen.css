@@ -101,31 +101,38 @@ html, body {
 #notificationsScreen {
   position: absolute;
   z-index: 9998;
-  top: -moz-calc(-100% + 48px);
+  top: -moz-calc(-100% + 74px);
   width: -moz-calc(100%);
-  height: -moz-calc(100% - 24px);
+  height: -moz-calc(100% - 37px);
   background-color: #444;
   background: #323f4d url(images/notificationsbar-bg.png) no-repeat 0 100%;
 }
 
+#notificationsScreen .time {
+  text-shadow: 0 0 3px hsla(0,0%,0%,.5);
+  line-height: 31px;
+  font-size: 18px;
+  margin: 0 4px;
+}
+
 #home {
   position: absolute;
-  top: 24px;
+  top: 37px;
   width: -moz-calc(100%);
-  height: -moz-calc(100% - 24px);
+  height: -moz-calc(100% - 37px);
 }
 
 #windows {
   position: absolute;
   left: 0px;
-  top: 24px;
+  top: 37px;
   width: 100%;
   height: 0;
   overflow: hidden;
 }
 
 #windows.active {
-  height: -moz-calc(100% - 24px);
+  height: -moz-calc(100% - 37px);
   overflow: visible;
 }
 
@@ -155,16 +162,19 @@ iframe.appWindow.noTransition {
 
 #statusbar {
   display: -moz-box;
-  -moz-box-orient: horizontal;
-  background: url(images/statusbar-bg.png) repeat-x;
-  width: -moz-calc(100% - 4px);
-  height: 20px;
-  padding: 2px;
-  background-color: #444;
-  color: #fff;
   overflow: hidden;
   position: relative;
   z-index: 9999;
+  -moz-box-orient: horizontal;
+
+  width: -moz-calc(100% - 4px);
+  height: 31px;
+  border-top: 1px solid hsl(210, 2%, 56%);
+  border-bottom: 1px solid hsl(210, 2%, 20%);
+  padding: 2px;
+
+  color: #fff;
+  background: -moz-linear-gradient(top, hsl(0, 0%, 53%) 1%, hsl(0, 0%, 33%) 100%);
 }
 
 #statusbar > * {
@@ -178,7 +188,7 @@ iframe.appWindow.noTransition {
 
 .battery {
   float:right;
-  margin: 1px 3px;
+  margin: 8px 3px;
   padding: 4px 6px 4px 4px;
   width: 29px;
   background: url(images/battery-main.png);
@@ -222,7 +232,7 @@ iframe.appWindow.noTransition {
   background-repeat: no-repeat;
   background-size: 18px 8px;
   position: absolute;
-  margin-left: 2px;
+  margin: 8px 3px;
   top: 7px;
 }
 
@@ -267,7 +277,7 @@ iframe.appWindow.noTransition {
   display: inline-block;
   width: 100%;
   height: 100%;
-  margin: 0 -20%;
+  margin: 0 - 20%;
   position: relative;
   -moz-transform: scale(0.5);
 }

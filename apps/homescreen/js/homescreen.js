@@ -497,6 +497,7 @@ function OnLoad() {
       iconGrid.add(icon.icon, icon.name, icon.url);
     }
   });
+  Gaia.AppManager.init();
 }
 
 // Update the clock and schedule a new update if appropriate

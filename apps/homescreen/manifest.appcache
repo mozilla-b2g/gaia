@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# v1 2011-23-12
+# v1 2012-13-01
 
 # /
 homescreen.html
@@ -26,7 +26,6 @@ style/images/close.png
 style/images/lockscreen.jpg
 style/images/noise.png
 style/images/notificationsbar-bg.png
-style/images/statusbar-bg.png
 style/fonts/Roboto-BoldItalic.ttf
 style/fonts/Roboto-Bold.ttf
 style/fonts/Roboto-Italic.ttf
