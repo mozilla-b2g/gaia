@@ -503,9 +503,35 @@ function OnLoad() {
     var iconGrid = new IconGrid(canvas, 120, 120, 0.2);
     for (var n = 0; n < icons.length; ++n) {
       var icon = icons[n];
-
       iconGrid.add(icon.icon, icon.name, icon.url);
     }
+
+    // Create the main shortcuts
+    var reload = {
+      action: 'document.location.reload()',
+      icon: 'style/images/reload.png'
+    };
+    var currentShortcuts = ['Dialer', 'Messages', 'Market', reload];
+    for (var n = 0; n < icons.length; ++n) {
+      var icon = icons[n];
+      var index = currentShortcuts.indexOf(icon.name);
+      if (index < 0)
+        continue;
+
+      icon.action = 'Gaia.AppManager.launch(\'' + icon.url + '\')';
+      currentShortcuts.splice(index, 1, icon);
+    }
+
+    var shortcuts = '';
+    for (var n = 0; n < currentShortcuts.length; ++n) {
+      var shortcut = currentShortcuts[n];
+      var src = shortcut.icon;
+      var action = shortcut.action;
+      shortcuts += '<span class="shortcut" onclick="' + action + '">' +
+                   '  <img class="shorcut-image" src="' + src + '"></img>' +
+                   '</span>';
+    };
+    document.getElementById('home-shortcuts').innerHTML = shortcuts;
   });
   Gaia.AppManager.init();
 

@@ -9,24 +9,24 @@ html, body {
 }
 
 @font-face {
-	   font-family: Roboto;
-	   src: url('fonts/Roboto-Regular.ttf');
+  font-family: Roboto;
+  src: url('fonts/Roboto-Regular.ttf');
 }
 @font-face {
-	   font-family: Roboto;
-	   font-weight: bold;
-	   src: url('fonts/Roboto-Bold.ttf');
+  font-family: Roboto;
+  font-weight: bold;
+  src: url('fonts/Roboto-Bold.ttf');
 }
 @font-face {
-	   font-family: Roboto;
-	   font-style: italic;
-	   src: url('fonts/Roboto-Italic.ttf');
+  font-family: Roboto;
+  font-style: italic;
+  src: url('fonts/Roboto-Italic.ttf');
 }
 @font-face {
-	   font-family: Roboto;
-	   font-weight: bold;
-	   font-style: italic;
-	   src: url('fonts/Roboto-BoldItalic.ttf');
+  font-family: Roboto;
+  font-weight: bold;
+  font-style: italic;
+  src: url('fonts/Roboto-BoldItalic.ttf');
 }
 
 #screen {
@@ -116,7 +116,7 @@ html, body {
   border-top: 1px solid hsla(0,0%,60%,0.6);
 }
 
-#home-shortcuts {
+#home-menu {
   height: 144px;
 
   box-shadow: inset 0 -1px 4px black;
@@ -150,6 +150,19 @@ html, body {
 .home-page-image {
   width: 30px;
   height: 30px;
+}
+
+#home-shortcuts {
+  text-align: center;
+}
+
+.shortcut {
+}
+
+.shortcut > img {
+  width: 110px;
+  height: 110px;
+  margin-top: -15px;
 }
 
 #windows {
@@ -289,7 +302,7 @@ iframe.appWindow.noTransition {
   background-color: rgba(0, 0, 0, 0.8);
   opacity: 0;
   */
-  background-color: #323f4d;
+  background: hsl(0,0%,40%) url(images/noise.png) 2%;
   position: absolute;
   top: 0;
   left: 0;
