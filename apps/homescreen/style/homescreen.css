@@ -113,7 +113,7 @@ html, body {
   top: 37px;
   width: -moz-calc(100%);
   height: -moz-calc(100% - 37px);
-  border-top: 1px solid hsla(0,0%,60%,0.8);
+  border-top: 1px solid hsla(0,0%,60%,0.6);
 }
 
 #home-shortcuts {
