@@ -22,7 +22,7 @@
         <img src="style/images/throbber.png" width="32" height="32"></img>
       </div>
 
-      <form id="conversationForm" onsubmit="return ConversationView.sendMessage(); return false;">
+      <form id="conversationForm" onsubmit="ConversationView.sendMessage(); return false;">
         <input id="contact" class="filtered" type="tel" required="true" placeholder="To:" list="contacts"></input>
         <datalist id="contacts"></datalist>
         <div id="conversation" onclick="ConversationView.deleteMessage(event);"></div>

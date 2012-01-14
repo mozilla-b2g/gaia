@@ -141,9 +141,7 @@ var KeyHandler = {
       row.appendChild(container);
     });
 
-    // Do not use Audio, until https://github.com/andreasgal/B2G/issues/123
-    // is fixed.
-    //TonePlayer.init();
+    TonePlayer.init();
   },
 
   isContactShortcut: function kh_isContactShortcut(key) {
@@ -298,7 +296,7 @@ var CallHandler = {
     console.log('Call changed state: ' + evt.call.state);
     switch (evt.call.state) {
       case 'incoming':
-        console.log("incoming call from " + evt.call.number);
+        console.log('incoming call from ' + evt.call.number);
         this.incoming(evt.call);
         break;
       case 'connected':
@@ -393,7 +391,8 @@ var CallHandler = {
 
 window.addEventListener('load', function keyboardInit(evt) {
   window.removeEventListener('load', keyboardInit);
+
   KeyHandler.init();
-  navigator.mozTelephony.addEventListener("incoming", CallHandler);
+  navigator.mozTelephony.addEventListener('incoming', CallHandler);
 });
 
