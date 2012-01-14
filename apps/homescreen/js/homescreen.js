@@ -149,9 +149,9 @@ Icon.prototype = {
                        duration);
     sprite.setScale(1, duration);
 
-    var event = document.createEvent('CustomEvent');
-    event.initCustomEvent('pagereflow', true, false, iconGrid.getLastPage() + 1);
-    document.dispatchEvent(event);
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent('pagereflow', true, false, iconGrid.getLastPage() + 1);
+    document.dispatchEvent(evt);
   }
 };
 
@@ -282,7 +282,7 @@ IconGrid.prototype = {
       var canvas = this.canvas;
       var width = canvas.width = window.innerWidth;
       // TODO Substract the height of the statusbar
-      var height = canvas.height = window.innerHeight - 37 - SHOTCUTS_HEIGHT;
+      var height = canvas.height = window.innerHeight - 37 - SHORTCUTS_HEIGHT;
       this.sceneGraph.blitter.viewportWidth = width;
       this.sceneGraph.blitter.viewportHeight = height;
       this.reflow(width, height, 0);
@@ -468,14 +468,14 @@ LockScreen.prototype = {
 function OnLoad() {
   var lockScreen = new LockScreen(document.getElementById('lockscreen'));
   var request = window.navigator.mozSettings.get('lockscreen.enabled');
-  request.addEventListener('success', function (evt) {
+  request.addEventListener('success', function onsuccess(evt) {
     if (request.result.value === 'true')
       lockScreen.lock();
     else
       lockScreen.unlock(-1);
   });
 
-  request.addEventListener('error', function (evt) {
+  request.addEventListener('error', function onerror(evt) {
     lockScreen.lock();
   });
 
@@ -530,7 +530,7 @@ function OnLoad() {
       shortcuts += '<span class="shortcut" onclick="' + action + '">' +
                    '  <img class="shorcut-image" src="' + src + '"></img>' +
                    '</span>';
-    };
+    }
     document.getElementById('home-shortcuts').innerHTML = shortcuts;
   });
   Gaia.AppManager.init();
@@ -544,18 +544,18 @@ function OnLoad() {
   });
 
   document.addEventListener('pagereflow', function(evt) {
-    var pagesIcons = '';
     var active = 'style/images/page-active.png';
     var inactive = 'style/images/page-inactive.png';
 
+    var pages = '';
     var pagesCount = evt.detail;
     for (var n = 0; n < pagesCount; n++) {
-      pagesIcons += '<span class="home-page">' +
-                    '  <img class="home-page-image" src="' + active + '"></img>' +
-                    '  <img class="home-page-image" src="' + inactive + '"></img>' +
-                    '</span>';
+      pages += '<span class="home-page">' +
+               '  <img class="home-page-image" src="' + active + '"></img>' +
+               '  <img class="home-page-image" src="' + inactive + '"></img>' +
+               '</span>';
     }
-    pagesContainer.innerHTML = pagesIcons;
+    pagesContainer.innerHTML = pages;
     pagesContainer.firstChild.dataset.active = 'true';
   });
 
