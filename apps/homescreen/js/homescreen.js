@@ -544,15 +544,11 @@ function OnLoad() {
   });
 
   document.addEventListener('pagereflow', function(evt) {
-    var active = 'style/images/page-active.png';
-    var inactive = 'style/images/page-inactive.png';
-
     var pages = '';
     var pagesCount = evt.detail;
     for (var n = 0; n < pagesCount; n++) {
       pages += '<span class="home-page">' +
-               '  <img class="home-page-image" src="' + active + '"></img>' +
-               '  <img class="home-page-image" src="' + inactive + '"></img>' +
+               '  <div></div>' +
                '</span>';
     }
     pagesContainer.innerHTML = pages;
