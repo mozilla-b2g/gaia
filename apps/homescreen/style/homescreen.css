@@ -303,7 +303,6 @@ iframe.appWindow.noTransition {
   -moz-transform: scale(0);
   -moz-transition: all 0.3s ease;
   -moz-user-select: none;
-  user-select: none;
 }
 
 #taskManager.active {
@@ -326,7 +325,7 @@ iframe.appWindow.noTransition {
   display: inline-block;
   width: 100%;
   height: 100%;
-  margin: 0 - 20%;
+  margin: 0;
   position: relative;
   -moz-transform: scale(0.5);
 }
