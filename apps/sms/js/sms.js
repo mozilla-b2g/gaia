@@ -136,11 +136,11 @@ var sendMessageHack = function(number, text, callback) {
   }, 1000);
 };
 
-
-if (!('mozSms' in navigator) || navigator.mozSms == null) {
+if (!navigator.mozSms) {
   MessageManager.getMessages = GetMessagesHack;
   MessageManager.send = sendMessageHack;
 }
+
 
 ['sent', 'received'].forEach(function(type) {
   window.addEventListener(type, function handleEvent(evt) {
