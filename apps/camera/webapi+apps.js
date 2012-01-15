@@ -554,16 +554,6 @@ function makeCall(number) {
   };
 }
 
-if (!('mozTelephony' in window.navigator) ||
-    !window.navigator.mozTelephony) {
-  window.navigator.mozTelephony = {
-    call: function(number) {
-      return makeCall(number);
-    },
-    liveCalls: [makeCall('1-234-567-890')]
-  };
-}
-
 var TouchHandler = {
   touchState: { active: false, startX: 0, startY: 0 },
   events: ['touchstart', 'touchmove', 'touchend',
