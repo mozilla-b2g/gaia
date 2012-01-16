@@ -211,7 +211,7 @@ const Keyboards = {
       [ { value: "Dv", keyCode: -3 }, { value: "?123", ratio: 2, keyCode: -2 }, { value: "'" }, { value: "⎵", ratio: 4, keyCode: 32 }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ]
   },
-  'zh-Hant_Zhuying': {
+  'zh-Hant-Zhuying': {
     type: 'ime',
     label: 'Chinese - Traditional - ZhuYing',
     menuLabel: '繁體注音輸入',
