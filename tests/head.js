@@ -14,23 +14,3 @@ function waitFor(callback, test, timeout) {
     throw 'waitFor timeout';
   setTimeout(waitFor, 50, callback, test, timeout);
 }
-
-function test() {
-  waitForExplicitFinish();
-
-  function testDialerAndFinish() {
-    let contentWindow = shell.home.contentWindow.wrappedJSObject;
-    var AppManager = contentWindow.Gaia.AppManager;
-
-    // TODO Do a test here!
-    todo(false);
-    finish();
-  }
-
-  waitFor(testDialerAndFinish, function() {
-    let contentWindow = shell.home.contentWindow.wrappedJSObject;
-    return 'Gaia' in contentWindow;
-  });
-}
-
-test();
