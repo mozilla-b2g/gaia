@@ -26,8 +26,8 @@ html, body {
 }
 
 #messages {
-  height: -moz-calc(100% - 26px);
-  overflow: scroll;
+  height: -moz-calc(100% - 13px);
+  overflow: hidden;
 }
 
 #messages[panning] {
@@ -42,7 +42,7 @@ html, body {
   display: inline-block;
   padding-left: 96px;
   height: 96px;
-  width: -moz-calc(100% - 96px);
+  width: -moz-calc(100% - 106px);
   white-space: nowrap;
 }
 
@@ -73,7 +73,7 @@ html, body {
 
 #messages .infos {
   display: block;
-  width: 100%;
+  width: 98%;
   font-size: 14px;
   line-height: 14px;
   font-weight: bold;
@@ -124,14 +124,14 @@ textarea:focus {
 
 #conversation {
   color: black;
-  height: -moz-calc(100% - 80px);
+  height: -moz-calc(100% - 90px);
   overflow: scroll;
   background-color: rgba(0,0,0,0.03);
 }
 
 @media all and (orientation: landscape) {
   #conversation {
-    height: -moz-calc(480px - 120px);
+    height: -moz-calc(480px - 130px);
   }
 }
 
@@ -192,7 +192,7 @@ textarea:focus {
 #text-container {
   width: 100%;
   position: absolute;
-  bottom: 0px;
+  bottom: 13px;
   background: grey;
   padding: 0 10px;
   -moz-box-sizing: padding-box;

@@ -504,6 +504,7 @@ iframe.appWindow.noTransition {
 
 #keyboard-key-highlight {
   position: absolute;
+  pointer-events: none;
   top: 0; left: 0;
   color: #333;
   background: -moz-linear-gradient(top, rgba(194,197,202,0.9) 10%, rgba(164,164,172,0.9) 90%);
@@ -522,4 +523,53 @@ iframe.appWindow.noTransition {
 
 #keyboard-key-highlight.show {
   display: block;
+}
+
+#keyboard[data-hidden] #keyboard-key-highlight.show {
+  display: none;
+}
+
+#keyboard-accent-char-menu {
+  position: absolute;
+  display: none;
+  background-color: #cac9c5;
+  height: 68px;
+  padding: 5px;
+  margin-top: -84px;
+  border-radius: 5px;
+  border: 1px solid #fff;
+  box-shadow: 0 0 2px #ccc;
+  white-space: nowrap;
+}
+
+#keyboard-accent-char-menu.show {
+  display: block;
+}
+
+#keyboard-accent-char-menu.menu {
+  height: auto;
+  margin-top: -5px;
+}
+
+#keyboard-accent-char-menu.menu > .keyboard-key {
+  width: auto;
+  display: block;
+  font-size: 24px;
+  line-height: 48px;
+  height: 48px;
+  padding: 0 5px;
+  position: relative;
+}
+
+#keyboard-accent-char-menu.menu > .current-keyboard::before {
+  content: '';
+  display: block;
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  background-color: #0c0;
+  box-shadow: 0 0 5px #fff;
 }
