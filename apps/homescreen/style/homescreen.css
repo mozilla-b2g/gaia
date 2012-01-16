@@ -58,13 +58,16 @@ html, body {
   color: white;
   overflow: hidden;
   padding-left: 5%;
-  background-color: black;
-  background-image: url('images/lockscreen.jpg');
-  background-size: cover;
+  background-color: #222;
+  background-image: url(images/b2g_logo.png), url(images/logo.png), url('images/noise.png');
+  background-repeat: no-repeat, no-repeat, repeat;
+  background-position: 50% 35%, 50% 10%, 0 0;
 }
 
 #lockscreen > * {
   pointer-events: none;
+  color: #aaa;
+  text-shadow: 0 0 3px hsla(0,0%,0%,.5);
 }
 
 #lockscreen > #status {
@@ -81,7 +84,7 @@ html, body {
 
 #lockscreen > #clock {
   position: absolute;
-  top: -moz-calc(50%);
+  bottom: -moz-calc(5%);
   font-size: 58px;
 }
 
