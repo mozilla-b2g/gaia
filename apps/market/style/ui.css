@@ -156,13 +156,11 @@ ul.tableView > li span.arrowRight {
   border-color: transparent transparent transparent #888;
   border-style: solid;
   border-width: 0.5em;
+  display: inline-block;
   width: 0;
   height: 0;
-  margin-top: -0.4em;
-  padding: 0;
-  position: absolute;
-  right: 0.25em;
-  top: 50%;
+  float: right;
+  margin-top: 1.75em;
 }
 
 .tableView .comment {

@@ -28,9 +28,6 @@ function visibilityChanged(url) {
       contacts.hasAttribute('data-active')) {
     Contacts.load();
     choiceChanged(contacts);
-  } else if (url.indexOf('?choice=incoming') != -1) {
-    var call = window.navigator.mozTelephony.liveCalls[0];
-    CallHandler.incoming(call);
   }
 }
 
@@ -236,6 +233,8 @@ var KeyHandler = {
 };
 
 var CallHandler = {
+  currentCall: null,
+
   // callbacks
   call: function ch_call(number) {
     this.numberView.innerHTML = number;
@@ -245,11 +244,12 @@ var CallHandler = {
     this.toggleCallScreen();
 
     var call = window.navigator.mozTelephony.dial(number);
-    call.addEventListener('readystatechange', this);
+    call.addEventListener('statechange', this);
     this.currentCall = call;
   },
   incoming: function ch_incoming(call) {
     this.currentCall = call;
+    call.addEventListener('statechange', this);
 
     this.numberView.innerHTML = call.number;
     this.statusView.innerHTML = 'Incoming call...';
@@ -273,25 +273,42 @@ var CallHandler = {
   },
   answer: function ch_answer() {
     this.currentCall.answer();
-    this.connected();
   },
   end: function ch_end() {
+    this.currentCall.hangUp();
+  },
+  disconnected: function ch_disconnected() {
     this.toggleCallScreen();
-    try {
-      this.currentCall.disconnect();
-      this.currentCall.removeEventListener('readystatechange', this);
-    } catch (e) {}
 
     this.actionsView.classList.remove('displayed');
     if (this.muteButton.classList.contains('mute'))
       this.toggleMute();
+    if (this.speakerButton.classList.contains('speak'))
+      this.toggleSpeaker();
 
     this.closeModal();
     clearInterval(this._ticker);
+
+    this.currentCall.removeEventListener('statechange', this);
+    this.currentCall = null;
   },
 
   handleEvent: function fm_handleEvent(evt) {
-    this.connected();
+    console.log('Call changed state: ' + evt.call.state);
+    switch (evt.call.state) {
+      case 'incoming':
+        console.log('incoming call from ' + evt.call.number);
+        this.incoming(evt.call);
+        break;
+      case 'connected':
+        this.connected();
+        break;
+      case 'disconnected':
+        this.disconnected();
+        break;
+      default:
+        break;
+    }
   },
 
   // properties / methods
@@ -310,6 +327,10 @@ var CallHandler = {
   get muteButton() {
     delete this.muteButton;
     return this.muteButton = document.getElementById('mute-button');
+  },
+  get speakerButton() {
+    delete this.speakerButton;
+    return this.speakerButton = document.getElementById('speaker-button');
   },
   get callButton() {
     delete this.callButton;
@@ -333,6 +354,10 @@ var CallHandler = {
   toggleMute: function ch_toggleMute() {
     this.muteButton.classList.toggle('mute');
     // TODO: make the actual mute call on the telephony API
+  },
+  toggleSpeaker: function ch_toggleSpeaker() {
+    this.speakerButton.classList.toggle('speak');
+    // TODO: make the actual speaker call
   },
   keypad: function ch_keypad() {
     choiceChanged(document.getElementById('keyboard-label'));
@@ -367,6 +392,8 @@ var CallHandler = {
 
 window.addEventListener('load', function keyboardInit(evt) {
   window.removeEventListener('load', keyboardInit);
+
   KeyHandler.init();
+  navigator.mozTelephony.addEventListener('incoming', CallHandler);
 });
 

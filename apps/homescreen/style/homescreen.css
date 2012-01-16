@@ -227,13 +227,20 @@ iframe.appWindow.noTransition {
 }
 
 #taskManager {
+ /*
+  * Temporarily work around
+  * https://bugzilla.mozilla.org/show_bug.cgi?id=715232 which is
+  * triggered by the rules below (on Gonk).
+  *
   background-color: rgba(0, 0, 0, 0.8);
+  opacity: 0;
+  */
+  background-color: #323f4d;
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  opacity: 0;
   -moz-transform: scale(0);
   -moz-transition: all 0.3s ease;
   -moz-user-select: none;
@@ -383,7 +390,9 @@ iframe.appWindow.noTransition {
 }
 
 .keyboard-key {
-  display: inline-table;
+  display: inline-block;
+  vertical-align: middle;
+  overflow: hidden;
   text-align: center;
   color: white;
   font-size: 32px;

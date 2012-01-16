@@ -287,13 +287,6 @@ IconGrid.prototype = {
 function NotificationScreen(touchables) {
   this.touchables = touchables;
   this.attachEvents(this.touchable);
-
-  if (!('mozTelephony' in window.navigator) ||
-      window.navigator.mozTelephony)
-    return;
-
-  var telephony = window.navigator.mozTelephony;
-  telephony.addEventListener('incoming', this);
 }
 
 NotificationScreen.prototype = {
@@ -360,9 +353,6 @@ NotificationScreen.prototype = {
   handleEvent: function(evt) {
     var target = evt.target;
     switch (evt.type) {
-    case 'incoming':
-      Gaia.AppManager.launch('../dialer/dialer.html?choice=incoming');
-      break;
     case 'touchstart':
       if (target != this.touchable)
         return;
@@ -467,12 +457,12 @@ LockScreen.prototype = {
 
 function OnLoad() {
   var lockScreen = new LockScreen(document.getElementById('lockscreen'));
-  var request = window.navigator.mozSettings.get('lockscreen');
+  var request = window.navigator.mozSettings.get('lockscreen.enabled');
   request.addEventListener('success', function (evt) {
-    if (request.result.value == 'disabled')
-      lockScreen.unlock(-1);
-    else
+    if (request.result.value === 'true')
       lockScreen.lock();
+    else
+      lockScreen.unlock(-1);
   });
 
   request.addEventListener('error', function (evt) {

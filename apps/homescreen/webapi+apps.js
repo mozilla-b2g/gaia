@@ -36,7 +36,11 @@ Settings.prototype = {
 
   _requests: [],
   handleEvent: function settings_handleEvent(event) {
-    var data = event.data.split(':');
+    var data = event.data;
+    if (typeof data !== 'string')
+      return;
+    
+    data = event.data.split(':');
     if (data.length < 4 || data[0] != 'settings')
       return;
 
@@ -150,12 +154,22 @@ Settings.prototype = {
         var transaction = db.transaction(stores, IDBTransaction.READ_WRITE);
         var objectStore = transaction.objectStore(store);
 
-        var settings = [
-          {
-            id: 'lockscreen',
-            value: 'enabled'
-          }
-        ];
+        var settings = [{
+          id: 'lockscreen.enabled',
+          value: true
+        }, {
+          id: 'airplanemode.enabled',
+          value: false
+        }, {
+          id: 'locationservices.enabled',
+          value: true
+        }, {
+          id: 'wifi.enabled',
+          value: true
+        }, {
+          id: 'dnt.enabled',
+          value: true
+        }];
 
         for (var setting in settings) {
           var request = objectStore.put(settings[setting]);
@@ -181,7 +195,7 @@ Settings.prototype = {
   },
 
   _getSetting: function settings_getSetting(name, callback) {
-    if (this._starting) {
+    if (this._starting || !this._db) {
       this._startCallbacks.push({
         type: 'get',
         name: name,
@@ -194,7 +208,8 @@ Settings.prototype = {
                                            IDBTransaction.READ_ONLY);
     var request = transaction.objectStore('settings').get(name);
     request.onsuccess = function onsuccess(e) {
-      callback(e.target.result.value);
+      var result = e.target.result;
+      callback(result ? result.value : null);
     };
 
     request.onerror = function onerror(e) {
@@ -203,7 +218,7 @@ Settings.prototype = {
   },
 
   _setSetting: function settings_setSetting(name, value, callback) {
-    if (this._starting) {
+    if (this._starting || !this._db) {
       this._startCallbacks.push({
         type: 'set',
         name: name,
@@ -418,6 +433,24 @@ if (true) {
             }
           }
         },
+        { // market
+          'installOrigin': 'http://gaiamobile.org:8888',
+          'origin': '../market',
+          'receipt': null,
+          'installTime': 1323339869000,
+          manifest: {
+            'name': 'Market',
+            'description': 'Market for downloading and installing apps',
+            'launch_path': '/market.html',
+            'developer': {
+              'name': 'The Gaia Team',
+              'url': 'https://github.com/andreasgal/gaia'
+            },
+            'icons': {
+              '120': '/style/icons/Market.png'
+            }
+          }
+        },
         { // settings
           'installOrigin': 'http://gaiamobile.org:8888',
           'origin': '../settings',
@@ -451,9 +484,10 @@ if (true) {
             },
             'icons': {
               '120': '/style/icons/Messages.png'
-           }
+            }
+          }
         }
-      }];
+      ];
 
       callback(webapps);
     }
@@ -517,16 +551,6 @@ function makeCall(number) {
     },
     disconnect: function() {
     }
-  };
-}
-
-if (!('mozTelephony' in window.navigator) ||
-    !window.navigator.mozTelephony) {
-  window.navigator.mozTelephony = {
-    call: function(number) {
-      return makeCall(number);
-    },
-    liveCalls: [makeCall('1-234-567-890')]
   };
 }
 
