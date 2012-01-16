@@ -1,13 +1,21 @@
+const SAMPLE_PHOTOS_DIR = 'sample_photos/';
+const SAMPLE_THUMBNAILS_DIR = 'sample_photos/thumbnails/';
+const SAMPLE_FILENAMES = ['bigcat.jpg', 'bison.jpg', 'butterfly.jpg',
+    'cat.jpg', 'catterpillar.jpg', 'cow.jpg', 'duck.jpg', 'elephant.jpg',
+    'fly.jpg', 'giraffe.jpg', 'grasshopper.jpg', 'hippo.jpg', 'hoverfly.jpg',
+    'kangaroo.jpg', 'lizard.jpg', 'mantis.jpg', 'ostrich.jpg', 'peacock.jpg',
+    'rabbit.jpg', 'sheep.jpg', 'snail.jpg', 'tortoise.jpg', 'wolf.jpg',
+    'zebra.jpg'];
+
 var Gallery = {
   photoSelected: false,
-
   init: function galleryInit() {
     var db = this.db;
     db.open(this.addThumbnail);
     var self = this;
+    var thumbnails = document.getElementById('thumbnails');
 
-    document.getElementById('thumbnails').addEventListener(
-      'click', function thumbnailsClick(evt) {
+    thumbnails.addEventListener('click', function thumbnailsClick(evt) {
       var target = evt.target;
       if (!target)
         return;
@@ -26,37 +34,13 @@ var Gallery = {
   },
 
   getSamplePhotos: function galleryGetSamplePhotos() {
+    // create separate callback function for each XHR to prevent overwriting
     for (var i in SAMPLE_FILENAMES) {
       var getSamplePhoto = function(i) {
-        var thumbnailRequest = new XMLHttpRequest();
-        thumbnailRequest.open('GET', SAMPLE_THUMBNAILS_DIR +
-          SAMPLE_FILENAMES[i], true);
-        thumbnailRequest.responseType = 'blob';
-        thumbnailRequest.onload = function thumbnailRequestLoaded(e) {
-          if (this.status != 200)
-            return;
-          var blob = this.response;
-          var photoEntry = {
-            filename: SAMPLE_FILENAMES[i],
-            data: blob
-          };
-          Gallery.db.savePhoto(photoEntry, 'thumbnails', Gallery.addThumbnail);
-        };
-
-        var photoRequest = new XMLHttpRequest();
-        photoRequest.open('GET', SAMPLE_PHOTOS_DIR + SAMPLE_FILENAMES[i], true);
-        photoRequest.responseType = 'blob';
-        photoRequest.onload = function photoRequestLoaded(e) {
-          if (this.status != 200)
-            return;
-          var blob = this.response;
-          var photoEntry = {
-            filename: SAMPLE_FILENAMES[i],
-            data: blob
-          };
-          Gallery.db.savePhoto(photoEntry, 'photos');
-        };
-
+        var thumbnailRequest = Gallery.createPhotoRequest(SAMPLE_FILENAMES[i],
+          SAMPLE_THUMBNAILS_DIR);
+        var photoRequest = Gallery.createPhotoRequest(SAMPLE_FILENAMES[i],
+          SAMPLE_PHOTOS_DIR);
         thumbnailRequest.send();
         photoRequest.send();
       };
@@ -64,17 +48,42 @@ var Gallery = {
     }
   },
 
+  createPhotoRequest: function galleryCreatePhotoRequest(filename, directory) {
+    var photoRequest = new XMLHttpRequest();
+    var photoURL = directory + filename;
+    photoRequest.open('GET', photoURL, true);
+    photoRequest.responseType = 'blob';
+    photoRequest.onload = function photoRequestLoaded(e) {
+      if (this.status != 200)
+        return;
+
+      var blob = this.response;
+      var photoEntry = {
+        filename: filename,
+        data: blob
+      };
+      if (directory == SAMPLE_THUMBNAILS_DIR)
+        Gallery.db.savePhoto(photoEntry, 'thumbnails', Gallery.addThumbnail);
+      else
+        Gallery.db.savePhoto(photoEntry, 'photos');
+    };
+    return photoRequest;
+  },
+
   addThumbnail: function galleryAddThumbnail(thumbnail) {
     var thumbnails = this.thumbnails;
     var li = document.createElement('li');
     li.id = thumbnail.filename;
+
     var a = document.createElement('a');
     a.href = '#';
+
     var img = document.createElement('img');
     img.src = window.URL.createObjectURL(thumbnail.data);
     img.classList.add('thumbnail');
     a.appendChild(img);
     li.appendChild(a);
+
     document.getElementById('thumbnails').appendChild(li);
   },
 
@@ -148,16 +157,16 @@ Gallery.db = {
     });
   },
 
-  savePhoto: function dbSavePhoto(photoEntry, store, callback) {
+  savePhoto: function dbSavePhoto(entry, store, callback) {
     var transaction = this._db.transaction(store, IDBTransaction.READ_WRITE);
     var objectStore = transaction.objectStore(store);
-    var request = objectStore.put(photoEntry);
+    var request = objectStore.put(entry);
 
     request.onsuccess = (function onsuccess(e) {
-      console.log('Added the photo ' + photoEntry.filename + ' to the ' +
+      console.log('Added the photo ' + entry.filename + ' to the ' +
         store + ' store');
       if (callback)
-        callback(photoEntry);
+        callback(entry);
     }).bind(this);
 
     request.onerror = function onerror(e) {
