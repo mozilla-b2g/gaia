@@ -3,6 +3,8 @@
 
 'use strict';
 
+const SHORTCUTS_HEIGHT = 144;
+
 var displayState;
 
 // Change the display state (off, locked, default)
@@ -146,6 +148,10 @@ Icon.prototype = {
                        this.slotTop(),
                        duration);
     sprite.setScale(1, duration);
+
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent('pagereflow', true, false, iconGrid.getLastPage() + 1);
+    document.dispatchEvent(evt);
   }
 };
 
@@ -239,6 +245,10 @@ IconGrid.prototype = {
     page = Math.min(page, this.getLastPage());
     this.sceneGraph.setViewportTopLeft(this.containerWidth * page, 0, duration);
     this.currentPage = page;
+
+    var event = document.createEvent('CustomEvent');
+    event.initCustomEvent('pagechange', true, false, page + 1);
+    document.dispatchEvent(event);
   },
   // process a computed tap at the given scene-graph coordinates
   tap: function(x, y) {
@@ -272,7 +282,7 @@ IconGrid.prototype = {
       var canvas = this.canvas;
       var width = canvas.width = window.innerWidth;
       // TODO Substract the height of the statusbar
-      var height = canvas.height = window.innerHeight - 24;
+      var height = canvas.height = window.innerHeight - 37 - SHORTCUTS_HEIGHT;
       this.sceneGraph.blitter.viewportWidth = width;
       this.sceneGraph.blitter.viewportHeight = height;
       this.reflow(width, height, 0);
@@ -458,14 +468,14 @@ LockScreen.prototype = {
 function OnLoad() {
   var lockScreen = new LockScreen(document.getElementById('lockscreen'));
   var request = window.navigator.mozSettings.get('lockscreen.enabled');
-  request.addEventListener('success', function (evt) {
+  request.addEventListener('success', function onsuccess(evt) {
     if (request.result.value === 'true')
       lockScreen.lock();
     else
       lockScreen.unlock(-1);
   });
 
-  request.addEventListener('error', function (evt) {
+  request.addEventListener('error', function onerror(evt) {
     lockScreen.lock();
   });
 
@@ -488,14 +498,70 @@ function OnLoad() {
     var screenHeight = screenRect.bottom - screenRect.top;
     var canvas = document.getElementById('homeCanvas');
     var width = canvas.width = screenWidth;
-    var height = canvas.height = screenHeight - 24;
+    var height = canvas.height = screenHeight - 37 - SHORTCUTS_HEIGHT;
 
     var iconGrid = new IconGrid(canvas, 120, 120, 0.2);
     for (var n = 0; n < icons.length; ++n) {
       var icon = icons[n];
-
       iconGrid.add(icon.icon, icon.name, icon.url);
     }
+
+    // Create the main shortcuts
+    var reload = {
+      action: 'document.location.reload()',
+      icon: 'style/images/reload.png'
+    };
+    var currentShortcuts = ['Dialer', 'Messages', 'Market', reload];
+    for (var n = 0; n < icons.length; ++n) {
+      var icon = icons[n];
+      var index = currentShortcuts.indexOf(icon.name);
+      if (index < 0)
+        continue;
+
+      icon.action = 'Gaia.AppManager.launch(\'' + icon.url + '\')';
+      currentShortcuts.splice(index, 1, icon);
+    }
+
+    var shortcuts = '';
+    for (var n = 0; n < currentShortcuts.length; ++n) {
+      var shortcut = currentShortcuts[n];
+      var src = shortcut.icon;
+      var action = shortcut.action;
+      shortcuts += '<span class="shortcut" onclick="' + action + '">' +
+                   '  <img class="shorcut-image" src="' + src + '"></img>' +
+                   '</span>';
+    }
+    document.getElementById('home-shortcuts').innerHTML = shortcuts;
+  });
+  Gaia.AppManager.init();
+
+  var pagesContainer = document.getElementById('home-pages');
+  document.addEventListener('pagechange', function(evt) {
+    var pages = pagesContainer.childNodes;
+    for (var n = 0; n < pages.length; n++)
+      delete pages[n].dataset.active;
+    pages[evt.detail - 1].dataset.active = 'true';
+  });
+
+  document.addEventListener('pagereflow', function(evt) {
+    var pages = '';
+    var pagesCount = evt.detail;
+    for (var n = 0; n < pagesCount; n++) {
+      pages += '<span class="home-page">' +
+               '  <div></div>' +
+               '</span>';
+    }
+    pagesContainer.innerHTML = pages;
+    pagesContainer.firstChild.dataset.active = 'true';
+  });
+
+  var titlebar = document.getElementById('titlebar');
+  window.addEventListener('appopen', function(evt) {
+    titlebar.innerHTML = evt.detail;
+  });
+
+  window.addEventListener('appclose', function(evt) {
+    titlebar.innerHTML = '';
   });
 }
 
