@@ -9,16 +9,17 @@ function test() {
     setTimeout(function() {
       var dialerFrame = AppManager.launch('../dialer/dialer.html');
       waitFor(function() {
-        let dialerWindow = dialerFrame.contentWindow;
+        let document = dialerFrame.contentWindow.document;
 
-        var key1 = dialerWindow.document.querySelector(".keyboard-key[data-value='1']");
-        var key3 = dialerWindow.document.querySelector(".keyboard-key[data-value='3']");
+        var key1 = document.querySelector(".keyboard-key[data-value='1']");
+        var key3 = document.querySelector(".keyboard-key[data-value='3']");
 
         EventUtils.sendMouseEvent({type: 'mousedown'}, key1);
         EventUtils.sendMouseEvent({type: 'mousedown'}, key3);
         EventUtils.sendMouseEvent({type: 'mousedown'}, key1);
 
-        ok(dialerWindow.document.getElementById('phone-number-view').textContent == '131', 'Phone number view updated');
+        ok(document.getElementById('phone-number-view').textContent == '131',
+           'Phone number view updated');
 
         finish();
       }, function() {
