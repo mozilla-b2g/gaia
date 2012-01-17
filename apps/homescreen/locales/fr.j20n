@@ -1,0 +1,29 @@
+this.Phone = "Téléphone";
+
+this.Messages = "SMS/MMS";
+
+this.Calendar = "Calendrier";
+
+this.Gallery = "Galerie";
+
+this.Camera = "Appareil Photo";
+
+this.Books = "Livres";
+
+this.Browser = "Navigateur";
+
+this.Calculator = "Calculatrice";
+
+this.Dialer = "Dialer";
+
+this.Music = "Musique";
+
+this.Market = "Marché";
+
+this.Settings = "Réglages";
+
+this.phone = "Appels:";
+
+this.sms = "SMS:";
+
+this.email = "Mails:";
