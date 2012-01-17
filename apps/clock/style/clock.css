@@ -1,0 +1,104 @@
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+
+  font-size: 2.5mozmm;
+  color: white;
+  font-family: "Roboto", sans-serif;
+
+  background: url(images/home-texture.png) repeat scroll 2% 50% #666666;
+}
+
+html * {
+  overflow: hidden;
+}
+
+@font-face {
+  font-family: Roboto;
+  src: url('fonts/Roboto-Regular.ttf');
+}
+@font-face {
+  font-family: Roboto;
+  font-weight: bold;
+  src: url('fonts/Roboto-Bold.ttf');
+}
+@font-face {
+  font-family: Roboto;
+  font-style: italic;
+  src: url('fonts/Roboto-Italic.ttf');
+}
+@font-face {
+  font-family: Roboto;
+  font-weight: bold;
+  font-style: italic;
+  src: url('fonts/Roboto-BoldItalic.ttf');
+}
+
+@media all and (min-resolution: 200dpi) {
+  html, body {
+    font-size: 2mozmm;
+  }
+}
+
+/* === Application Header === */
+#tabs-container {
+  position: absolute;
+  width: 100%;
+  bottom: 10px;
+  padding: 20px 0px 15px 0px;
+
+  -moz-transition: bottom 0.3s ease;
+}
+
+#tabs {
+	width: -moz-calc(100% - 38px);
+  padding: 9px 9px 7px 9px;
+  margin: auto;
+
+  background-color: rgba(0,0,0,.3);
+  border-radius: 5px;
+}
+
+#tabs fieldset {
+  list-style: none;
+	width: -moz-calc(100% - 2px);
+	height: 66px;
+  padding: 0;
+  margin: 0;
+
+	display: -moz-box;
+	-moz-box-orient: horizontal;
+
+	border: 1px solid #333333;
+  border-radius: 3px;
+  background:-moz-linear-gradient(top, hsl(0,0%,65%) 0, hsl(0,0%,56%) 1px, hsl(0,0%,37%) 100%);
+}
+
+#tabs label {
+  float: left;
+  display: block;
+  width: -moz-calc(100% / 3 - 2px);
+  height: 100%;
+  padding: 0;
+  margin: 0;
+
+	border-right: 1px solid rgb(29,29,29);
+	border-left: 1px solid rgb(123,123,123);
+
+  background-position: 50% 50%;
+  background-repeat: no-repeat;
+}
+#tabs input[type="radio"] {
+  display: none;
+}
+
+#tabs label:first-child {
+  border-left-color: transparent;
+  border-radius: 3px 0 0 3px;
+}
+#tabs label:last-child {
+  border-right-color: transparent;
+  border-radius: 0 3px 3px 0;
+}

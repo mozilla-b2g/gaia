@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html manifest="manifest.appcache">
+  <head>
+    <meta charset="utf-8"> 
+    <meta http-equiv="pragma" content="no-cache">
+    <script type="text/javascript" src="webapi+apps.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="style/clock.css" />
+    <script type="application/javascript" src="js/clock.js"></script>
+  </head>
+
+  <body>
+    <div id="views">
+    </div>
+    <div id="tabs-container">
+      <div id="tabs" onclick="choiceChanged(event.target)">
+        <fieldset>
+          <label id="alarm-label" for="alarm-choice" data-choice="alarm" data-active="true"><input id="alarm-choice" type="radio" name="tabs" checked="checked" /></label>
+          <label id="stopwatch-label" for="stopwatch-choice" data-choice="stopwatch"><input id="stopwatch-choice" type="radio" name="tabs" checked="" /></label>
+          <label id="timer-label" for="timer-choice" data-choice="timer"><input id="timer-choice" type="radio" name="tabs" checked="" /></label>
+        </fieldset>
+      </div>
+    </div>
+
+  </body>
+</html>
