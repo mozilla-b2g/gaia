@@ -97,7 +97,7 @@ h1 {
 
 /* Table View */
 ul.tableView {
-  background-color: #fff;
+  background: #444 url('images/noise.png');
   font-family: "Roboto", sans-serif;
   font-size: 1.2em;
   list-style: none;
@@ -111,7 +111,9 @@ ul.tableView {
 }
 
 ul.tableView > li {
-  border-bottom: 0.1em solid #ccc;
+  border-bottom: 0.1em solid #555;
+  color: #ccc;
+  text-shadow: #000 0 1px 0;
   padding: 0.6em;
 }
 
@@ -120,7 +122,7 @@ ul.tableView > li:last-child {
 }
 
 ul.tableView > li > a {
-  color: #000;
+  color: #ccc;
   display: block;
   margin: -0.6em;
   padding: 0.6em;
@@ -130,12 +132,13 @@ ul.tableView > li > a {
 }
 
 ul.tableView > li > a:active {
-  background: -moz-linear-gradient(top, rgb(109, 179, 242) 0%, rgb(84, 163, 238) 50%, rgb(54, 144, 240) 51%, rgb(30, 105, 222) 100%);
-  background: linear-gradient(top, rgb(109, 179, 242) 0%, rgb(84, 163, 238) 50%, rgb(54, 144, 240) 51%, rgb(30, 105, 222) 100%);
-  color: #fff;
+  background: -moz-linear-gradient(top, rgba(191, 210, 85, 0.7) 0%, rgba(142, 185, 42, 0.7) 50%, rgba(114, 170, 0, 0.7) 51%, rgba(158, 203, 45, 0.7) 100%);
+  background: linear-gradient(top, rgba(191, 210, 85, 0.7) 0%, rgba(142, 185, 42, 0.7) 50%, rgba(114, 170, 0, 0.7) 51%,rgba(158, 203, 45, 0.7) 100%);
+  color: #222;
+  text-shadow: #999 0 -1px 0;
 }
 
-ul.tableView > li > .toggleswitch {
+ul.tableView > li > .checkbox {
   float: right;
   margin: -0.35em -0.35em 0 0;
 }
@@ -174,92 +177,53 @@ ul.tableView > li span.arrowRight {
   float: right;
 }
 
-/* Toggle Switch */
-.toggleswitch {
-  border: 0.1em solid #444;
+/* Checkboxes */
+.checkbox {
   display: inline-block;
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: 16px;
-  width: 5em;
+  width: 2em;
   height: 2em;
-  overflow: hidden;
-  cursor: pointer;
-  -moz-border-radius: 1.1em;
-  border-radius: 1.1em;
-  -moz-user-select: none;
-  user-select: none;
 }
 
-.toggleswitch > input {
+.checkbox > input[type="checkbox"] {
   display: none;
 }
 
-.toggleswitch > input + .toggleswitch-inner {
-  margin-left: -3em;
-  -moz-transition: margin-left 0.2s ease;
-  transition: margin-left 0.2s ease;
-}
-
-.toggleswitch > input:checked + .toggleswitch-inner {
-  margin-left: 0;
-}
-
-.toggleswitch > .toggleswitch-inner {
+.checkbox > input[type="checkbox"] + span.checkbox-inner {
   display: block;
-  width: 8em;
+  position: relative;
+  width: 2em;
   height: 2em;
-  color: #fff;
-  overflow: hidden;
-  text-shadow: 0 -0.1em 0 rgba(0, 0, 0, 0.8);
+  background-color: rgba(0, 0, 0, 0.1);
+  -webkit-border-radius: 1em;
   -moz-border-radius: 1em;
   border-radius: 1em;
+  -webkit-box-shadow: inset 0 0.2em 0.1em 0 rgba(0, 0, 0, 0.5);
+  -moz-box-shadow: inset 0 0.2em 0.1em 0 rgba(0, 0, 0, 0.5);
+  box-shadow: inset 0 0.2em 0.1em 0 rgba(0, 0, 0, 0.5);
 }
 
-.toggleswitch-inner > * {
+.checkbox > input[type="checkbox"] + span.checkbox-inner:after {
+  content: '';
   display: block;
-  float: left;
-  height: 2em;
-  line-height: 2em;
-  -moz-box-shadow: inset 0 0.2em 0.4em rgba(0, 0, 0, 0.75);
-  box-shadow: inset 0 0.2em 0.4em rgba(0, 0, 0, 0.75);
+  position: absolute;
+  width: 1em;
+  height: 1em;
+  top: 0.5em;
+  left: 0.5em;
+  background-color: #333;
+  -webkit-border-radius: 0.5em;
+  -moz-border-radius: 0.5em;
+  border-radius: 0.5em;
+  -webkit-box-shadow: inset 0 0 0.1em 0.1em rgba(0, 0, 0, 0.5), 0 0.05em 0.1em 0 rgba(0, 0, 0, 0.5);
+  -moz-box-shadow: inset 0 0 0.1em 0.1em rgba(0, 0, 0, 0.5), 0 0.05em 0.1em 0 rgba(0, 0, 0, 0.5);
+  box-shadow: inset 0 0 0.1em 0.1em rgba(0, 0, 0, 0.5), 0 0.05em 0.1em 0 rgba(0, 0, 0, 0.5);
+  -webkit-transition: background-color 0.2s ease;
+  -moz-transition: background-color 0.2s ease;
+  transition: background-color 0.2s ease;
 }
 
-.toggleswitch-inner > .toggleswitch-on {
-  background: #0b0;
-  width: 3em;
-  padding-left: 1em;
-  -moz-border-radius-topleft: 0.8em;
-  -moz-border-radius-topright: 0;
-  -moz-border-radius-bottomright: 0;
-  -moz-border-radius-bottomleft: 0.8em;
-  border-radius: 0.8em 0 0 0.8em;
-}
-
-.toggleswitch-inner > .toggleswitch-off {
-  background: #b00;
-  width: 3em;
-  padding-right: 1em;
-  text-align: right;
-  -moz-border-radius-topleft: 0;
-  -moz-border-radius-topright: 0.8em;
-  -moz-border-radius-bottomright: 0.8em;
-  -moz-border-radius-bottomleft: 0;
-  border-radius: 0 0.8em 0.8em 0;
-}
-
-.toggleswitch-inner > .toggleswitch-handle {
-  background: #eee;
-  background: -moz-linear-gradient(top, #eee 0%, #aaa 100%);
-  background: linear-gradient(top, #eee 0%, #aaa 100%);
-  width: 2em;
-  margin-left: -5em;
-  -moz-box-shadow: 0 0.15em 0.4em #000;
-  box-shadow: 0 0.15em 0.4em #000;
-  border: 0.1em solid #999;
-  -moz-border-radius: 0.99em;
-  border-radius: 0.99em;
-  -moz-box-sizing: border-box;
-  box-sizing: border-box;
+.checkbox > input[type="checkbox"]:checked + span.checkbox-inner:after {
+  background-color: #9ec549;
 }
 
 /* Button */
