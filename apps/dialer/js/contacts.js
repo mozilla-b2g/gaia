@@ -189,6 +189,12 @@ var ShortcutsHandler = {
     return this.shortcutsBar = document.getElementById('contacts-shortcuts');
   },
 
+  get shortcutsBackground() {
+    delete this.shortcutsBackground;
+    var id = 'contacts-shortcuts-background';
+    return this.shortcutsBackground = document.getElementById(id);
+  },
+
   handleEvent: function sh_handleEvent(evt) {
     // preventing the events from bubbling to the contacts list
     evt.preventDefault();
@@ -207,7 +213,7 @@ var ShortcutsHandler = {
   },
 
   startTracking: function sh_startTracking() {
-    this.shortcutsBar.classList.add('tracking');
+    this.shortcutsBackground.classList.add('tracking');
 
     // we keep a reference to the horizontal center of the zone
     // it allows us to keep anchoring correctly if the user gets
@@ -216,7 +222,7 @@ var ShortcutsHandler = {
     this._positionX = rect.left + (rect.width / 2);
   },
   stopTracking: function sh_stopTracking() {
-    this.shortcutsBar.classList.remove('tracking');
+    this.shortcutsBackground.classList.remove('tracking');
     delete this._positionX;
   },
   anchorForPosition: function sh_anchorForPosition(positionY) {
