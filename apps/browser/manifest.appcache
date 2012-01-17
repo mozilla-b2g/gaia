@@ -1,0 +1,27 @@
+CACHE MANIFEST
+# v1 2011-09-12
+
+# /
+browser.html
+manifest.webapp
+
+# js/
+js/browser.js
+
+# style/
+style/browser.css
+style/images/back-disabled.png
+style/images/back.png
+style/images/favicon.png
+style/images/go.png
+style/images/loading.gif
+
+# icons used in the web application manifest.
+# Do not use icons/ directly since it is often used as an alias by Apache.
+style/icons/Browser.png
+
+# tmp files
+webapi+apps.js
+
+NETWORK:
+

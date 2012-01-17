@@ -1,0 +1,23 @@
+CACHE MANIFEST
+# v1 2011-09-12
+
+# /
+music.html
+manifest.webapp
+
+# js/
+js/music.js
+js/samples.json
+
+# style/
+style/music.css
+
+# icons used in the web application manifest.
+# Do not use icons/ directly since it is often used as an alias by Apache.
+style/icons/Music.png
+
+# tmp files
+webapi+apps.js
+
+NETWORK:
+

@@ -1,0 +1,248 @@
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: white;
+  font-family: sans-serif;
+  font-size: 20px;
+  overflow: hidden;
+}
+
+.message {
+  width: -moz-calc(100% - 2px);
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-bottom: 1px solid lightgrey;
+  background: mintcream;
+}
+
+.message * {
+  pointer-events: none;
+}
+
+.message.sender {
+  background-color: lightcyan;
+}
+
+#messages {
+  height: -moz-calc(100% - 13px);
+  overflow: hidden;
+}
+
+#messages[panning] {
+  image-rendering: optimizeSpeed;
+  text-rendering: optimizeSpeed;
+}
+
+#messages .sms {
+  background: url(images/missing.png) no-repeat 0 0;
+  background-size: 96px 96px;
+  background-position: -10px;
+  display: inline-block;
+  padding-left: 96px;
+  height: 96px;
+  width: -moz-calc(100% - 106px);
+  white-space: nowrap;
+}
+
+#messages .title,
+#messages .content {
+  margin: 0px;
+  padding: 0px;
+}
+
+#messages .content {
+  margin-bottom: 20px;
+}
+
+#messages .title {
+  font-size: 1.5em;
+  line-height: 48px;
+  margin-top: 10px;
+}
+
+#messages .text {
+  display: inline-block;
+  width: 336px;
+  width: -moz-calc(100% - 96px);
+  text-overflow: ellipsis;
+  overflow: hidden;
+  vertical-align: middle;
+}
+
+#messages .infos {
+  display: block;
+  width: 98%;
+  font-size: 14px;
+  line-height: 14px;
+  font-weight: bold;
+  text-align: right;
+  color: grey;
+}
+
+input, textarea {
+  -moz-appearance: none;
+  -moz-box-sizing: border-box;
+  border-width: 2px;
+  border-style: solid;
+  border-color: lightgrey;
+  font-size: 24px;
+  margin: 1mozmm 0.4mozmm 1mozmm 0.4mozmm;
+  padding-left: 1mozmm;
+  padding-right: 1mozmm;
+  border-radius: 0.5mozmm;
+}
+
+input,
+textarea {
+  height: 64px;
+}
+
+textarea {
+  padding-top: 16px;
+  padding-bottom: 16px;
+  resize: none;
+}
+
+input:focus,
+textarea:focus {
+  border-color: orange;
+}
+
+#contact {
+  width: -moz-calc(100% - 0.8mozmm);
+}
+  
+#contact.filtered {
+  display: none;
+}
+
+#conversationForm {
+  height: 100%;
+}
+
+#conversation {
+  color: black;
+  height: -moz-calc(100% - 90px);
+  overflow: scroll;
+  background-color: rgba(0,0,0,0.03);
+}
+
+@media all and (orientation: landscape) {
+  #conversation {
+    height: -moz-calc(480px - 130px);
+  }
+}
+
+#conversation .message {
+  display: block;
+  width: -moz-fit-content;
+  max-width: 400px;
+  margin: 5px;
+  position: relative;
+  left: -10px;
+  padding: 10px 10px 4px 10px;
+  border-radius: 8px;
+  box-shadow: -1px 1px 3px #000;
+  font-size: 1.2em;
+  clear: both;
+  float: right;
+  text-align: right;
+}
+
+@media all and (orientation: landscape) {
+  #conversation .message {
+    max-width: 750px;
+  }
+}
+
+#conversation .message.sender {
+  box-shadow: 1px 1px 3px #000;
+  float: left;
+  text-align: left;
+  left: 10px;
+}
+
+#conversation .arrow-left {
+  width: 0;
+  height: 0;
+  position: absolute;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent; 
+  border-left: 10px solid mintcream; 
+  right: -10px;
+}
+
+#conversation .message.sender .arrow-left {
+  border-left: 10px solid transparent;
+  border-right: 10px solid lightcyan;
+  float: none;
+  left: -20px;
+}
+
+#conversation .infos {
+  display: block;
+  font-size: 14px;
+  line-height: 14px;
+  font-weight: bold;
+  color: grey;
+}
+
+#text-container {
+  width: 100%;
+  position: absolute;
+  bottom: 13px;
+  background: grey;
+  padding: 0 10px;
+  -moz-box-sizing: padding-box;
+  border-top: 1px solid darkgrey;
+  box-shadow: 0px -2px 5px #000;
+}
+
+#text-container * {
+  vertical-align: top;
+}
+
+#text-container #text {
+  width: -moz-calc(100% - 110px);
+  max-height: 400px;
+  min-height: 64px;
+  overflow: hidden;
+}
+
+#throbber {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  background-color: rgba(0,0,0,0.3);
+  z-index: 1;
+}
+
+#throbber img {
+  margin-top: -moz-calc(50% - 16px);
+  margin-left: -moz-calc(50% - 16px);
+}
+
+
+/* === Conversation view === */
+#conversationView {
+  -moz-transition: left 0.5s ease;
+  background-color: white;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 100%;
+  top: 0;
+  border: 0;
+  box-shadow: 0px 0px 20px black;
+}
+
+#conversationView.slideIn {
+  left: 0;
+}
+
+#conversationView.slideOut {
+  left: 100%;
+}
+
