@@ -6,12 +6,15 @@
     <script type="text/javascript" src="webapi+apps.js"></script>
 
     <link rel="stylesheet" type="text/css" href="style/homescreen.css">
+    <link href="./locales/fr.j20n" type="intl/l20n">
 	  <script type="text/javascript" src="js/app_manager.js"></script>
 	  <script type="text/javascript" src="js/task_manager.js"></script>
     <script type="text/javascript" src="js/keyboardLayout.js"></script>
     <script type="text/javascript" src="js/keyboard.js"></script>
     <script type="text/javascript" src="js/scenegraph.js"></script>
     <script type="text/javascript" src="js/homescreen.js"></script>
+    <script type="text/javascript" src="js/l20n/l20n.js"></script>
+    <script type="text/javascript" src="js/l20n/l20n-xml.js"></script>
   </head>
   <body onload="OnLoad();">
     <div id="screen">
@@ -47,10 +50,10 @@
 	        <div class="time" data-format="%A"></div>
 	        <div class="time" data-format="%d %b"></div>
 	      </div>
-	      <div id="notifications">
-	        Phone: <div id="phone">0</div>
-	        SMS: <div id="sms">0</div>
-	        Email: <div id="email">0</div>
+          <div id="notifications">
+              <span l10n-id="phone"></span><div id="phone">0</div>
+              <span l10n-id="sms"></span><div id="sms">0</div>
+              <span l10n-id="email"></span><div id="email">0</div>
 	      </div>
       </div>
     </div>
