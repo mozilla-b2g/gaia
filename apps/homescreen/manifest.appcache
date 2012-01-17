@@ -1,0 +1,48 @@
+CACHE MANIFEST
+# v1 2012-13-01
+
+# /
+homescreen.html
+blank.html
+manifest.webapp
+
+# js/
+js/homescreen.js
+js/scenegraph.js
+js/app_manager.js
+js/task_manager.js
+js/keyboard.js
+js/keyboardLayout.js
+
+# imes/
+imes/jszhuying/loader.js
+imes/jszhuying/data.json
+
+# style/
+style/homescreen.css
+style/images/battery-charging.png
+style/images/battery-main.png
+style/images/close.png
+style/images/lockscreen.jpg
+style/images/noise.png
+style/images/paging.png
+style/images/notificationsbar-bg.png
+style/images/reload.png
+style/fonts/Roboto-BoldItalic.ttf
+style/fonts/Roboto-Bold.ttf
+style/fonts/Roboto-Italic.ttf
+style/fonts/Roboto-Regular.ttf
+
+# icons set for pre-installed apps
+style/icons/Browser.png
+style/icons/Camera.png
+style/icons/Gallery.png
+style/icons/Messages.png
+style/icons/Phone.png
+style/icons/Settings.png
+
+# tmp files
+webapi+apps.js
+
+NETWORK:
+
