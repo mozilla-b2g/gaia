@@ -1,0 +1,80 @@
+html {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  background-color: #000;
+  color: #fff;
+  font-family: Arial, Helvetica, Sans-serif;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  font-size: 1.8mozmm;
+}
+
+.thumbnails {
+  overflow: hidden;
+  padding: 5px;
+  margin: 0;
+  display: table;
+}
+
+.thumbnails li {
+  display: table;
+  text-align: center;
+  width: 140px;
+  height: 145px;  
+  float: left;
+  margin: 5px;
+  list-style-type: none;
+  padding: 0;
+}
+
+.thumbnails li a {
+  display: table-cell;
+  vertical-align: middle;
+  width: 140px;
+  height: 145px;
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
+}
+
+.thumbnail {
+  max-width: 130px;
+  max-height: 130px;
+  margin: 0 auto;
+  border: solid 5px #fff;
+  pointer-events: none;
+}
+
+#photoFrame {
+  display: table;
+  width: 100%;
+  height: 100%;
+}
+
+#photoBorder {
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
+  width: 100%;
+  height: 100%;
+}
+
+.hidden, #photoFrame.hidden {
+  display: none;
+}
+
+#photo {
+  width: 0%;
+  height: auto;
+  -moz-transition: width 0.5s ease;
+}
+
+#photo[data-visible] {
+  width: 100%;
+}
+

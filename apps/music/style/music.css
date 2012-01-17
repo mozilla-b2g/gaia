@@ -1,0 +1,44 @@
+html {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  background-color: #000;
+  color: #fff;
+  font-family: Arial, Helvetica, Sans-serif;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  font-size: 1.8mozmm;
+}
+
+.hidden {
+  display: none;
+}
+
+ul#songs {
+  padding: 0;
+  margin: 0;
+}
+
+li.song {
+  list-style-type: none;
+}
+
+li.song a {
+  font-size: 1.5em;
+  display: block;
+  width: 100%;
+  color: #fff;
+  text-decoration: none;
+  border-bottom: solid 1px #666;
+  margin: 0;
+  padding: 1.5em;
+}
+
+div#player {
+  padding: 300px 0;
+  text-align: center;
+}
