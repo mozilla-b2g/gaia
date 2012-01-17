@@ -464,35 +464,39 @@ html * {
   pointer-events: none;
 }
 
+#contacts-shortcuts-background {
+  position: fixed;
+  right: 10px;
+  top: -moz-calc(8mozmm + 27px);
+  width: 22px;
+  height: -moz-calc(100% - 8mozmm - 150px);
+
+  background: -moz-linear-gradient(left center , rgba(25, 25, 25, 0.8) 0pt, rgba(17, 17, 17, 0.1) 30%) repeat scroll 0 0 transparent;
+  border-radius: 0 5px 5px 0;
+}
+
+#contacts-shortcuts-background.tracking {
+  background: -moz-linear-gradient(left center , #191919 0pt, rgba(17, 17, 17, 0.4) 30%) repeat scroll 0 0 transparent;
+}
+
 #contacts-shortcuts {
   position: fixed;
   right: 10px;
   top: -moz-calc(8mozmm + 27px);
   width: 44px;
-  height: -moz-calc(100% - 8mozmm - 76px);
+  height: -moz-calc(100% - 8mozmm - 150px);
 }
 
 #contacts-shortcuts > a {
   display: block;
   width: 22px;
-  height: -moz-calc(100% / 27 - 4px);
+  height: -moz-calc(100% / 26 - 2px);
   margin: 2px 0;
   padding-left: 22px;
-
-  background: -moz-linear-gradient(left center , #191919 0pt, rgba(17, 17, 17, 0.4) 30%) no-repeat scroll 0 0 transparent;
-  background-size: 22px auto;
-  background-position: right;
-  border-radius: 0 5px 5px 0;
 
   color: #FFFFFF;
   font-size: 12px;
   text-align: center;
-}
-
-#contacts-shortcuts.tracking > a {
-  background: -moz-linear-gradient(left center , #191919 0pt, rgba(17, 17, 17, 0.8) 30%) no-repeat scroll 0 0 transparent;
-  background-size: 22px auto;
-  background-position: right;
 }
 
 /* === Contact detail View === */
