@@ -7,6 +7,8 @@ const SHORTCUTS_HEIGHT = 144;
 
 var displayState;
 
+var ctx;
+
 // Change the display state (off, locked, default)
 function changeDisplayState(state) {
   displayState = state;
@@ -466,6 +468,15 @@ LockScreen.prototype = {
 };
 
 function OnLoad() {
+  ctx = L20n.getContext();
+  ctx.onReady = function() {
+    OnLoad2();
+  }
+  ctx.addResource("./locales/fr.j20n");
+  ctx.freeze();
+}
+
+function OnLoad2() {
   var lockScreen = new LockScreen(document.getElementById('lockscreen'));
   var request = window.navigator.mozSettings.get('lockscreen.enabled');
   request.addEventListener('success', function onsuccess(evt) {
@@ -503,7 +514,7 @@ function OnLoad() {
     var iconGrid = new IconGrid(canvas, 120, 120, 0.2);
     for (var n = 0; n < icons.length; ++n) {
       var icon = icons[n];
-      iconGrid.add(icon.icon, icon.name, icon.url);
+      iconGrid.add(icon.icon, ctx.get(icon.name), icon.url);
     }
 
     // Create the main shortcuts
