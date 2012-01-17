@@ -396,15 +396,34 @@ NotificationScreen.prototype = {
 
 function LockScreen(overlay) {
   this.overlay = overlay;
+
   var events = [
     'touchstart', 'touchmove', 'touchend'
   ];
   events.forEach((function(evt) {
     overlay.addEventListener(evt, this, true);
   }).bind(this));
+
+  window.addEventListener('sleep', this);
+  this.update();
 }
 
 LockScreen.prototype = {
+  update: function lockscreen_update() {
+    var request = window.navigator.mozSettings.get('lockscreen.enabled');
+    request.addEventListener('success', (function onsuccess(evt) {
+      if (request.result.value === 'true') {
+        this.lock(true);
+        return;
+      }
+
+      this.unlock(-1, true);
+    }).bind(this));
+
+    request.addEventListener('error', (function onerror(evt) {
+      this.lock(true);
+    }).bind(this));
+  },
   onTouchStart: function(e) {
     this.startX = e.pageX;
     this.startY = e.pageY;
@@ -428,19 +447,24 @@ LockScreen.prototype = {
         this.unlock(dy);
     }
   },
-  unlock: function(direction) {
+  unlock: function(direction, instant) {
     var offset = '100%';
     if (direction < 0)
       offset = '-' + offset;
+
     var style = this.overlay.style;
-    style.MozTransition = '-moz-transform 0.2s linear';
+    style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
     style.MozTransform = 'translateY(' + offset + ')';
     changeDisplayState('unlocked');
   },
-  lock: function() {
+  lock: function(instant) {
     var style = this.overlay.style;
-    style.MozTransition = '-moz-transform 0.2s linear';
-    style.MozTransform = 'translateY(0)';
+    if (instant) {
+      style.MozTransition = style.MozTransform = '';
+    } else {
+      style.MozTransition = '-moz-transform 0.2s linear';
+      style.MozTransform = 'translateY(0)';
+    }
     changeDisplayState('locked');
   },
   handleEvent: function(e) {
@@ -458,6 +482,11 @@ LockScreen.prototype = {
       this.onTouchEnd(e.touches ? e.touches[0] : e);
       document.releaseCapture();
       break;
+    case 'sleep':
+      if (!e.detail.enabled)
+        return;
+      this.update();
+      break;
     default:
       return;
     }
@@ -467,17 +496,6 @@ LockScreen.prototype = {
 
 function OnLoad() {
   var lockScreen = new LockScreen(document.getElementById('lockscreen'));
-  var request = window.navigator.mozSettings.get('lockscreen.enabled');
-  request.addEventListener('success', function onsuccess(evt) {
-    if (request.result.value === 'true')
-      lockScreen.lock();
-    else
-      lockScreen.unlock(-1);
-  });
-
-  request.addEventListener('error', function onerror(evt) {
-    lockScreen.lock();
-  });
 
   var touchables = [
     document.getElementById('notificationsScreen'),
