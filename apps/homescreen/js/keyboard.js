@@ -22,7 +22,8 @@ const IMEManager = {
   keyboards: [
     'en', 'fr', 'de', 'he', 'nb',
     'ru', 'sr-Cyrl', 'sk', 'en-Dvorak',
-    'tr', 'zh-Hant-Zhuying'
+    'tr', 'zh-Hant-Zhuying',
+    'zh-Hans-Pinying', 'zh-Hans-9keys', 'zh-Hans-14keys'
   ],
 
   isUpperCase: false,
