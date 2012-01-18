@@ -88,7 +88,7 @@ var Gallery = {
   },
 
   showThumbnails: function galleryShowThumbnails(thumbnails) {
-    ['thumbnails', 'galleryHeader'].forEach(function hideElement(id) {
+    ['thumbnails'].forEach(function hideElement(id) {
       document.getElementById(id).classList.remove('hidden');
     });
 
@@ -99,7 +99,7 @@ var Gallery = {
   },
 
   showPhoto: function galleryShowPhoto(photo) {
-    ['thumbnails', 'galleryHeader'].forEach(function hideElement(id) {
+    ['thumbnails'].forEach(function hideElement(id) {
       document.getElementById(id).classList.add('hidden');
     });
 
