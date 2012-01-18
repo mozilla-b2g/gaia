@@ -192,7 +192,7 @@ textarea:focus {
 #text-container {
   width: 100%;
   position: absolute;
-  bottom: 13px;
+  bottom: 0;
   background: grey;
   padding: 0 10px;
   -moz-box-sizing: padding-box;
