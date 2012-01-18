@@ -46,7 +46,7 @@ html * {
 #tabs-container {
   position: absolute;
   width: 100%;
-  bottom: 10px;
+  bottom: 0;
   padding: 20px 0px 15px 0px;
 
   -moz-transition: bottom 0.3s ease;
@@ -101,4 +101,159 @@ html * {
 #tabs label:last-child {
   border-right-color: transparent;
   border-radius: 0 3px 3px 0;
+}
+
+#tabs label[data-active] {
+  background: -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 1px, hsl(0,0%,56%) 100%);
+}
+
+#views {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: -moz-calc(100% - 120px);
+}
+
+.view {
+  width: 100%;
+  height: 100%;
+}
+
+/* === Stop watch === */
+
+#chrono-view-container {
+  width: -moz-calc(100% - 38px);
+  height: -moz-calc(100% - 20px - 30mozmm - 94px);
+  margin: 20px auto;
+  padding: 9px;
+
+  border-radius: 5px;
+	background:rgba(0,0,0,0.3);
+}
+
+#chrono-view {
+  position: relative;
+  display: block;
+  height: -moz-calc(100% - 20px);
+  margin: auto;
+
+  border: medium none;
+  border-radius: 5px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.3) inset;
+
+  text-align: center;
+  font-size: 4em;
+  text-overflow: ellipsis;
+	text-shadow:0 0 3px rgba(0,0,0,.5);
+	white-space: nowrap;
+}
+
+#chrono-view > div {
+  position: absolute;
+  top: -moz-calc(50% - 2em);
+  width: 100%;
+  height: 4em;
+  line-height: 4em;
+}
+
+#ticker-view {
+  height: 10px;
+  margin-top: 10px;
+
+  background: #A7DD11;
+
+  border-radius: 5px;
+  box-shadow: 0 0 3px 3px rgba(167, 221, 17, 0.3);
+
+  visibility: hidden;
+}
+
+#ticker-view.running {
+  visibility: visible;
+
+  -moz-animation-duration: 2s;
+  -moz-animation-name: running;
+  -moz-animation-iteration-count: infinite;
+  -moz-animation-timing-function: linear;
+}
+
+@-moz-keyframes running {
+  from {
+    margin-left: 0%;
+    width: 0%;
+  }
+
+  50% {
+    margin-left: 0%;
+    width: 100%;
+  }
+
+  to {
+    margin-left: 100%;
+    width: 0%;
+  }
+}
+
+.button-container {
+  position: absolute;
+  left: 10px;
+  width: -moz-calc(100% - 38px);
+  padding: 9px;
+
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 5px;
+
+  text-align: center;
+}
+
+.button-container > div > span {
+	display: block;
+  width: -moz-calc(100% - 2px);
+  height: 15mozmm;
+
+	border-radius: 3px;
+
+  background: -moz-linear-gradient(center top , #A5A5A5 0pt, #878787 1px, #545454 100%) repeat scroll 0 0 transparent;
+
+  line-height: 15mozmm;
+  font-size: 2em;
+  font-weight: bold;
+  text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+}
+
+.button-container:active > div > span {
+  background: -moz-linear-gradient(center bottom , #A5A5A5 0pt, #878787 1px, #545454 100%) repeat scroll 0 0 transparent;
+}
+
+#reset-button {
+  bottom: -moz-calc(15mozmm + 38px);
+}
+
+#start-stop-button {
+  bottom: 0;
+}
+
+#start-stop-button > div > span {
+	background: -moz-linear-gradient(top, rgb(177,214,0) 1px, rgb(143,195,0) 2px, rgb(82,107,23) 100%);
+}
+#start-stop-button > div > span:last-child {
+	background: -moz-linear-gradient(top, hsl(355,93%,42%) 0, hsl(356,94%,37%) 1px, hsl(353,100%,22%) 100%);
+}
+
+#start-stop-button:active span:first-child {
+	background: -moz-linear-gradient(top, rgb(82,107,23) 0, rgb(143,195,0) 100%);
+}
+#start-stop-button:active span:last-child {
+	background: -moz-linear-gradient(top, hsl(353,100%,22%) 0, hsl(356,94%,37%) 100%);
+}
+
+
+#start-stop-button[data-action='start'] > div > span:last-child,
+#start-stop-button[data-action='stop'] > div > span:first-child {
+  display: none;
+}
+#start-stop-button[data-action='stop'] > div > span:last-child,
+#start-stop-button[data-action='start'] > div > span:first-child {
+  display: block;
 }

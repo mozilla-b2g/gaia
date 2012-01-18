@@ -7,10 +7,37 @@
 
     <link rel="stylesheet" type="text/css" href="style/clock.css" />
     <script type="application/javascript" src="js/clock.js"></script>
+    <script type="application/javascript" src="js/stopwatch.js"></script>
   </head>
 
   <body>
     <div id="views">
+      <div id="alarm-view" class="view">
+      </div>
+      <div id="stopwatch-view" class="view" hidden="true">
+        <div id="chrono-view-container">
+          <div id="chrono-view">
+            <div>00:00</div>
+          </div>
+          <div id="ticker-view">
+          </div>
+        </div>
+
+        <div id="reset-button" class="button-container" data-action="reset" onclick="StopWatch.execute(this.dataset.action)">
+          <div>
+            <span>Reset</span>
+          </div>
+        </div>
+
+        <div id="start-stop-button" class="button-container" data-action="start" onclick="StopWatch.execute(this.dataset.action)">
+          <div>
+            <span>Start</span>
+            <span>Stop</span>
+          </div>
+        </div>
+      </div>
+      <div id="timer-view" class="view" hidden="true">
+      </div>
     </div>
     <div id="tabs-container">
       <div id="tabs" onclick="choiceChanged(event.target)">
