@@ -41,7 +41,7 @@ var Music = {
   },
 
   showSongList: function musicShowSongList(songs) {
-    ['songs', 'musicHeader'].forEach(function hideElement(id) {
+    ['songs'].forEach(function hideElement(id) {
       document.getElementById(id).classList.remove('hidden');
     });
 
@@ -53,7 +53,7 @@ var Music = {
   },
 
   playSong: function musicPlaySong(song) {
-    ['songs', 'musicHeader'].forEach(function hideElement(id) {
+    ['songs'].forEach(function hideElement(id) {
       document.getElementById(id).classList.add('hidden');
     });
 
