@@ -83,7 +83,7 @@ if (!window['Gaia'])
         iframe.src = url;
         iframe.id = 'app_' + id;
         iframe.style.width = documentElement.clientWidth + 'px';
-        iframe.style.height = documentElement.clientHeight - 24 + 'px';
+        iframe.style.height = documentElement.clientHeight - 37 + 'px';
         iframe.taskElement = Gaia.TaskManager.add(app, id);
         element.appendChild(iframe);
         return iframe;
