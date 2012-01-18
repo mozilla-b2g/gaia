@@ -273,7 +273,8 @@ var ConversationView = {
         this.handleEvent({ 'type': type });
       }).bind(this), true);
 
-      window.navigator.mozSms.addEventListener('sent', this, true);
+      if (window.navigator.mozSms)
+        window.navigator.mozSms.addEventListener('sent', this, true);
     }).bind(this));
 
   },
