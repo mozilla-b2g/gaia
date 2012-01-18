@@ -41,9 +41,12 @@ const Keyboards = {
     label: 'French',
     menuLabel: 'français',
     alt: {
-      a: "àáâãäåæ",
-      e: "èéêë€",
-      o: "òóôõöœø"
+      a: 'àâæ',
+      c: 'ç',
+      e: 'éèêë€',
+      i: 'ïî',
+      o: 'œô',
+      u: 'üûù'
     },
     keys: [
       [ { value: "a" }, { value: "z" }, { value: "e" } , { value: "r" }, { value: "t" } , { value: "y" }, { value: "u" } , { value: "i" }, { value: "o" }, { value: "p" } ],
