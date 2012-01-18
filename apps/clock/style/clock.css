@@ -132,7 +132,7 @@ html * {
 	background:rgba(0,0,0,0.3);
 }
 
-#chrono-view {
+#chrono-view-container > div:first-child {
   position: relative;
   display: block;
   height: -moz-calc(100% - 20px);
@@ -149,7 +149,7 @@ html * {
 	white-space: nowrap;
 }
 
-#chrono-view > div {
+#chrono-view {
   position: absolute;
   top: -moz-calc(50% - 2em);
   width: 100%;

@@ -52,6 +52,6 @@ var StopWatch = {
   },
 
   updateChrono: function sw_updateChrono(elapsed) {
-    this.chronoView.children[0].innerHTML = new Date(elapsed).toLocaleFormat('%M:%S');
+    this.chronoView.innerHTML = new Date(elapsed).toLocaleFormat('%M:%S');
   }
-}
+};
