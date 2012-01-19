@@ -48,7 +48,7 @@ DefaultPhysics.prototype = {
       var dx = touchState.startX - e.pageX;
       if (dx !== 0) {
         iconGrid.sceneGraph.setViewportTopLeft(
-          iconGrid.currentPage * iconGrid.containerWidth + dx, 0, 0);
+          iconGrid.pageLeft(iconGrid.currentPage) + dx, 0, 0);
         this.moved = true;
       }
     }
@@ -75,7 +75,7 @@ DefaultPhysics.prototype = {
     var iconGrid = this.iconGrid;
     var currentPage = iconGrid.currentPage;
     if (tap) {
-      iconGrid.tap(currentPage * iconGrid.containerWidth + startX,
+      iconGrid.tap(iconGrid.pageLeft(currentPage) + startX,
                    touchState.startY);
     } else if (flick) {
       iconGrid.setPage(currentPage + dir, 200);
@@ -144,7 +144,7 @@ Icon.prototype = {
     var index = this.index;
     var itemsPerPage = iconGrid.itemsPerPage;
     var page = Math.floor(index / iconGrid.itemsPerPage);
-    sprite.setPosition(page * iconGrid.containerWidth + this.slotLeft(),
+    sprite.setPosition(iconGrid.pageLeft(page) + this.slotLeft(),
                        this.slotTop(),
                        duration);
     sprite.setScale(1, duration);
@@ -221,6 +221,7 @@ IconGrid.prototype = {
     this.itemsPerPage = this.rows * this.columns;
     this.itemBoxWidth = Math.floor(this.panelWidth / this.columns);
     this.itemBoxHeight = Math.floor(this.panelHeight / this.rows);
+    this.pageGap = this.itemBoxWidth / 2;
 
     // switch to the right page
     this.setPage(this.currentPage, duration);
@@ -229,6 +230,10 @@ IconGrid.prototype = {
     var icons = this.icons;
     for (var n = 0; n < icons.length; ++n)
       icons[n].reflow(duration);
+  },
+  // return the X coordinate of the top left corner of page
+  pageLeft: function(page) {
+    return page * (this.containerWidth + this.pageGap);
   },
   // get last page with an icon
   getLastPage: function() {
@@ -243,7 +248,7 @@ IconGrid.prototype = {
   setPage: function(page, duration) {
     page = Math.max(0, page);
     page = Math.min(page, this.getLastPage());
-    this.sceneGraph.setViewportTopLeft(this.containerWidth * page, 0, duration);
+    this.sceneGraph.setViewportTopLeft(this.pageLeft(page), 0, duration);
     this.currentPage = page;
 
     var event = document.createEvent('CustomEvent');
