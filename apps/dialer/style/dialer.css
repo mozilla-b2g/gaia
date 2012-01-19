@@ -731,8 +731,7 @@ html * {
 }
 
 #views.modal #keyboard-container {
-  margin-top: 20px;
-  height: -moz-calc(100% - 20px);
+  height: 100%;
 }
 #views.modal #mainKeyset-container {
   height: -moz-calc(100% - 20px);

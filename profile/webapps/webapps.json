@@ -41,6 +41,12 @@
     "receipt":null,
     "installTime":1323339869000
   },
+  "clock": {
+    "installOrigin":"http://gaiamobile.org:8888",
+    "origin":"http://clock.gaiamobile.org:8888",
+    "receipt":null,
+    "installTime":1323339869000
+  },
   "music": {
     "installOrigin":"http://gaiamobile.org:8888",
     "origin":"http://sms.gaiamobile.org:8888",
