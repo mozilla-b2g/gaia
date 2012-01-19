@@ -21,11 +21,9 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   ctx.onReady = function() {
-    var nodes = document.body.getElementsByTagName('*');
+    var nodes = document.querySelectorAll('[l10n-id]');
     for (var i = 0, node; node = nodes[i]; i++) {
-      if (node.hasAttribute('l10n-id')) {
-        localizeNode(ctx, node);
-      }
+      localizeNode(ctx, node);
     }
   }
 
@@ -83,9 +81,6 @@ function getElementByPath(path, context) {
 
 function localizeNode(ctx, node) {
   var l10nId = node.getAttribute('l10n-id');
-  if (!l10nId)
-    return;
-
   var args;
 
   // node.nodeData must not be exposed
@@ -112,18 +107,17 @@ function localizeNode(ctx, node) {
 
   // overlay the attributes of descendant nodes
   var children = node.getElementsByTagName('*');
-  for (var j = 0, child; child = children[j]; j++) {
+  for (var i = 0, child; child = children[i]; i++) {
     // Match the child node with the equivalent node in origNode.
     // The tricky part is that the node in origNode might have been 
     // translated before; if so and if it had been reordered via 
     // `l10n-path`, it's likely that even though the path points to it, it 
     // actually _isn't_ the right node.
-    var origChild;
     var path = child.getAttribute('l10n-path');
     if (!path) {
       path = getPathTo(child, node);
     }
-    origChild = getElementByPath(path, origNode);
+    var origChild = getElementByPath(path, origNode);
     // If the origChild already has `l10n-path`, it's likely that it has
     // already been translated once.  Follow its `l10n-path` again to find 
     // the true source equivalent in origNode.
