@@ -57,14 +57,14 @@ html, body {
   height: -moz-calc(100%);
   color: white;
   overflow: hidden;
-  padding-left: 5%;
   background-color: #222;
-  background-image: url(images/b2g_logo.png), url(images/logo.png), url('images/noise.png');
-  background-repeat: no-repeat, no-repeat, repeat;
-  background-position: 50% 35%, 50% 10%, 0 0;
+  background-image: url(images/logo.png), url('images/noise.png');
+  background-repeat: no-repeat, repeat;
+  background-position: 50% 15%, 0 0;
 }
 
 #lockscreen > * {
+  padding-left: 5%;
   pointer-events: none;
   color: #aaa;
   text-shadow: 0 0 3px hsla(0,0%,0%,.5);
