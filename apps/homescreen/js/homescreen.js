@@ -7,8 +7,6 @@ const SHORTCUTS_HEIGHT = 144;
 
 var displayState;
 
-var ctx;
-
 // Change the display state (off, locked, default)
 function changeDisplayState(state) {
   displayState = state;
@@ -468,13 +466,6 @@ LockScreen.prototype = {
 };
 
 function OnLoad() {
-  ctx = document.l10nCtx;
-  ctx.onReady = function() {
-    OnLoad2();
-  }
-}
-
-function OnLoad2() {
   var lockScreen = new LockScreen(document.getElementById('lockscreen'));
   var request = window.navigator.mozSettings.get('lockscreen.enabled');
   request.addEventListener('success', function onsuccess(evt) {
@@ -510,6 +501,7 @@ function OnLoad2() {
     var height = canvas.height = screenHeight - 37 - SHORTCUTS_HEIGHT;
 
     var iconGrid = new IconGrid(canvas, 120, 120, 0.2);
+    var ctx = document.l10nCtx;
     for (var n = 0; n < icons.length; ++n) {
       var icon = icons[n];
       iconGrid.add(icon.icon, ctx.get(icon.name), icon.url);
