@@ -23,9 +23,10 @@ window.addEventListener('message', function visibleApp(evt) {
 
 function visibilityChanged(url) {
   // TODO do something better here
-  var contacts = document.getElementById('contacts');
+  var contacts = document.getElementById('contacts-label');
   if (url.indexOf('?choice=contact') != -1 ||
       contacts.hasAttribute('data-active')) {
+    Contacts.load();
     choiceChanged(contacts);
   }
 }
@@ -67,8 +68,9 @@ var TonePlayer = {
     var kr = 2 * Math.PI * freqRow / this._sampleRate;
     var kc = 2 * Math.PI * freqCol / this._sampleRate;
     for (var i = 0; i < soundData.length; i += 2) {
-      soundData[i] = Math.sin(kr * currentSoundSample);
-      soundData[i + 1] = Math.sin(kc * currentSoundSample);
+      var smoother = 1 - (i/soundData.length);
+      soundData[i] = Math.sin(kr * currentSoundSample) * smoother;
+      soundData[i + 1] = Math.sin(kc * currentSoundSample) * smoother;
 
       currentSoundSample++;
     }
