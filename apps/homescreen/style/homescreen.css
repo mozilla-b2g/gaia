@@ -9,32 +9,32 @@ html, body {
 }
 
 @font-face {
-	   font-family: Roboto;
-	   src: url('fonts/Roboto-Regular.ttf');
+  font-family: Roboto;
+  src: url('fonts/Roboto-Regular.ttf');
 }
 @font-face {
-	   font-family: Roboto;
-	   font-weight: bold;
-	   src: url('fonts/Roboto-Bold.ttf');
+  font-family: Roboto;
+  font-weight: bold;
+  src: url('fonts/Roboto-Bold.ttf');
 }
 @font-face {
-	   font-family: Roboto;
-	   font-style: italic;
-	   src: url('fonts/Roboto-Italic.ttf');
+  font-family: Roboto;
+  font-style: italic;
+  src: url('fonts/Roboto-Italic.ttf');
 }
 @font-face {
-	   font-family: Roboto;
-	   font-weight: bold;
-	   font-style: italic;
-	   src: url('fonts/Roboto-BoldItalic.ttf');
+  font-family: Roboto;
+  font-weight: bold;
+  font-style: italic;
+  src: url('fonts/Roboto-BoldItalic.ttf');
 }
 
 #screen {
   position: absolute;
   overflow: hidden;
   width: 100%;
-  height: 100%; 
-	background: #142e51 url(images/noise.png);
+  height: 100%;
+  background: hsl(0,0%,40%) url(images/noise.png) 2%;
 }
 
 /*
@@ -57,14 +57,17 @@ html, body {
   height: -moz-calc(100%);
   color: white;
   overflow: hidden;
-  padding-left: 5%;
-  background-color: black;
-  background-image: url('images/lockscreen.jpg');
-  background-size: cover;
+  background-color: #222;
+  background-image: url(images/logo.png), url('images/noise.png');
+  background-repeat: no-repeat, repeat;
+  background-position: 50% 15%, 0 0;
 }
 
 #lockscreen > * {
+  padding-left: 5%;
   pointer-events: none;
+  color: #aaa;
+  text-shadow: 0 0 3px hsla(0,0%,0%,.5);
 }
 
 #lockscreen > #status {
@@ -81,7 +84,7 @@ html, body {
 
 #lockscreen > #clock {
   position: absolute;
-  top: -moz-calc(50%);
+  bottom: -moz-calc(5%);
   font-size: 58px;
 }
 
@@ -101,31 +104,73 @@ html, body {
 #notificationsScreen {
   position: absolute;
   z-index: 9998;
-  top: -moz-calc(-100% + 48px);
+  top: -moz-calc(-100% + 74px);
   width: -moz-calc(100%);
-  height: -moz-calc(100% - 24px);
+  height: -moz-calc(100% - 37px);
   background-color: #444;
   background: #323f4d url(images/notificationsbar-bg.png) no-repeat 0 100%;
 }
 
 #home {
   position: absolute;
-  top: 24px;
+  top: 37px;
   width: -moz-calc(100%);
-  height: -moz-calc(100% - 24px);
+  height: -moz-calc(100% - 37px);
+  border-top: 1px solid hsla(0,0%,60%,0.6);
+}
+
+#home-menu {
+  height: 140px;
+
+  box-shadow: inset 0 0 4px black;
+  background: hsla(0,0%,5%,0.3) url(images/noise.png) 2%;
+}
+
+#home-pages {
+  position: relative;
+  top: -10px;
+  width: 100%;
+  text-align: center;
+}
+
+.home-page {
+  position: relative;
+  top: -10px;
+  background-image: url(images/paging.png);
+}
+
+.home-page[data-active] {
+  background-position: 30px 0;
+}
+
+.home-page > div {
+  display: inline-block;
+  width: 30px;
+  height: 26px;
+  visibility: hidden;
+}
+
+#home-shortcuts {
+  text-align: center;
+}
+
+.shortcut > img {
+  width: 110px;
+  height: 110px;
+  margin-top: -15px;
 }
 
 #windows {
   position: absolute;
   left: 0px;
-  top: 24px;
+  top: 37px;
   width: 100%;
   height: 0;
   overflow: hidden;
 }
 
 #windows.active {
-  height: -moz-calc(100% - 24px);
+  height: -moz-calc(100% - 37px);
   overflow: visible;
 }
 
@@ -142,25 +187,32 @@ iframe.appWindow {
   height: 100%;
   -moz-transform-origin: center bottom;
   -moz-transform: scale(0);
-  -moz-transition: all 0.3s ease;
+  -moz-transition: all 0.2s ease;
 }
 
 iframe.appWindow.active {
   -moz-transform: scale(1);
 }
 
+iframe.appWindow.noTransition {
+  -moz-transition: none;
+}
+
 #statusbar {
   display: -moz-box;
-  -moz-box-orient: horizontal;
-  background: url(images/statusbar-bg.png) repeat-x;
-  width: -moz-calc(100% - 4px);
-  height: 20px;
-  padding: 2px;
-  background-color: #444;
-  color: #fff;
   overflow: hidden;
   position: relative;
   z-index: 9999;
+  -moz-box-orient: horizontal;
+
+  width: -moz-calc(100% - 4px);
+  height: 31px;
+  border-top: 1px solid hsl(210, 2%, 56%);
+  border-bottom: 1px solid hsl(210, 2%, 20%);
+  padding: 2px;
+
+  color: #fff;
+  background: -moz-linear-gradient(top, hsl(0, 0%, 53%) 1%, hsl(0, 0%, 33%) 100%);
 }
 
 #statusbar > * {
@@ -172,9 +224,23 @@ iframe.appWindow.active {
   -moz-box-flex: 1;
 }
 
+#statusbar > #titlebar {
+  text-shadow: 0 0 3px hsla(0,0%,0%,.5);
+  line-height: 31px;
+  font-size: 18px;
+  margin: 0 4px;
+}
+
+#statusbar .time {
+  text-shadow: 0 0 3px hsla(0,0%,0%,.5);
+  line-height: 31px;
+  font-size: 18px;
+  margin: 0 4px;
+}
+
 .battery {
   float:right;
-  margin: 1px 3px;
+  margin: 8px 3px;
   padding: 4px 6px 4px 4px;
   width: 29px;
   background: url(images/battery-main.png);
@@ -183,7 +249,7 @@ iframe.appWindow.active {
 }
 
 .battery > #fuel {
-  height: 8px;	 
+  height: 8px;
 	background-image: -moz-linear-gradient(top, #b9fd00, #8fc400);
 }
 
@@ -218,20 +284,28 @@ iframe.appWindow.active {
   background-repeat: no-repeat;
   background-size: 18px 8px;
   position: absolute;
-  margin-left: 2px;
+  margin: 8px 3px;
   top: 7px;
 }
 
 #taskManager {
+ /*
+  * Temporarily work around
+  * https://bugzilla.mozilla.org/show_bug.cgi?id=715232 which is
+  * triggered by the rules below (on Gonk).
+  *
   background-color: rgba(0, 0, 0, 0.8);
+  opacity: 0;
+  */
+  background: hsl(0,0%,40%) url(images/noise.png) 2%;
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  opacity: 0;
   -moz-transform: scale(0);
   -moz-transition: all 0.3s ease;
+  -moz-user-select: none;
 }
 
 #taskManager.active {
@@ -254,30 +328,132 @@ iframe.appWindow.active {
   display: inline-block;
   width: 100%;
   height: 100%;
-  margin-right: -40%;
+  margin: 0;
+  position: relative;
   -moz-transform: scale(0.5);
 }
 
+#taskManager li:first-child {
+  margin-left: 60%;
+}
+
 #taskManager li:last-child {
-  margin-right: 0;
+  margin-right: 60%;
+}
+
+#taskManager li > a {
+  background: url('images/close.png') no-repeat;
+  display: block;
+  width: 32px;
+  height: 32px;
+  position: absolute;
+  top: -16px;
+  right: -16px;
+  -moz-transform: scale(2);
+}
+
+#taskManager li > h1 {
+  position: absolute;
+  top: 100%;
+  width: 100%;
+  text-align: center;
+  color: #fff;
+  font-size: 2em;
+  text-shadow: #000 0 2px 1px;
 }
 
 #keyboard {
   position: absolute;
   z-index: 9997;
   bottom: 0;
+  height: auto;
+  overflow: visible;
   background-color: #36373b;
   width: -moz-calc(100%);
-  min-height: 200px;
-  -moz-transition: bottom 0.2s ease;
+  -moz-transition: height 0.2s ease;
 }
 
 #keyboard[data-hidden] {
-  bottom: -800px;
+  height: 0;
+}
+
+#keyboard-candidate-panel {
+  height: 64px;
+  overflow: auto;
+  white-space: nowrap;
+  color: black;
+  background: rgb(176, 174, 168);
+  border-top: 1px solid #e8e8ff;
+  border-bottom: 1px solid #808098;
+  display: none;
+}
+#keyboard-candidate-panel.show {
+  display: block;
+}
+#keyboard-candidate-panel.full {
+  display: block;
+  position: absolute;
+  white-space: normal;
+  bottom: 0;
+  height: -moz-calc(100%);
+  width: 100%;
+  border: none;
+}
+#keyboard-candidate-panel.full span {
+  border-top: 1px solid #e8e8ff;
+  border-bottom: 1px solid #808098;
+}
+
+#keyboard-candidate-panel span {
+  border-left: 1px solid #e8e8ff;
+  border-right: 1px solid #808098;
+  font-size: 32px;
+  line-height: 60px;
+  min-width: 60px;
+  display: inline-block;
+  height: 64px;
+  padding: 0 10px;
+  text-align: center;
+  background: -moz-linear-gradient(top, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
+}
+
+#keyboard-candidate-panel-toggle-button {
+  border-left: 1px solid #e8e8ff;
+  border-right: 1px solid #808098;
+  position: absolute;
+  font-size: 32px;
+  line-height: 60px;
+  right: 0;
+  top: 1px;
+  text-align: center;
+  box-shadow: -4px 0 5px -5px black;
+  width: 60px;
+  height: 64px;
+  color: black;
+  background: -moz-linear-gradient(top, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
+  display: none;
+}
+
+#keyboard-candidate-panel-toggle-button.full {
+  display: block;
+  border-top: 1px solid #e8e8ff;
+  border-bottom: 1px solid #808098;
+  top: 0;
+}
+
+#keyboard-candidate-panel-toggle-button.show {
+  display: block;
+}
+
+#keyboard-candidate-panel span[data-active],
+#keyboard-candidate-panel-toggle-button[data-active] {
+  background: -moz-linear-gradient(bottom, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
 }
 
 .keyboard-key {
-  display: inline-table;
+  display: inline-block;
+  vertical-align: middle;
+  overflow: hidden;
   text-align: center;
   color: white;
   font-size: 32px;
@@ -297,4 +473,106 @@ iframe.appWindow.active {
 .keyboard-key[data-active] {
   color: #ccc;
   background: -moz-linear-gradient(bottom, rgb(94,97,102) 10%, rgb(64,64,72) 90%);
+}
+
+.keyboard-key-special {
+  background: -moz-linear-gradient(top, #464766 10%, #363748 90%);
+}
+
+.keyboard-key-special[data-active] {
+  background: -moz-linear-gradient(bottom, #464766 10%, #363748 90%);
+}
+
+.keyboard-key-special.toggle {
+  position: relative;
+}
+.keyboard-key-special.toggle::before {
+  content: '';
+  display: block;
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  background-color: #333;
+}
+.keyboard-key-special[data-enabled] {
+  text-shadow: 0 0 5px #fff;
+}
+.keyboard-key-special[data-enabled]::before {
+  background-color: #0c0;
+  box-shadow: 0 0 5px #fff;
+}
+
+#keyboard-key-highlight {
+  position: absolute;
+  pointer-events: none;
+  top: 0; left: 0;
+  color: #333;
+  background: -moz-linear-gradient(top, rgba(194,197,202,0.9) 10%, rgba(164,164,172,0.9) 90%);
+  font-size: 50px;
+  line-height: 100px;
+  min-width: 70px;
+  padding: 0 5px;
+  height: 100px;
+  margin-top: -110px;
+  text-align: center;
+  border: 1px solid #fff;
+  box-shadow: 0 0 2px #ccc;
+  border-radius: 5px;
+  display: none;
+}
+
+#keyboard-key-highlight.show {
+  display: block;
+}
+
+#keyboard[data-hidden] #keyboard-key-highlight.show {
+  display: none;
+}
+
+#keyboard-accent-char-menu {
+  position: absolute;
+  display: none;
+  background-color: #cac9c5;
+  height: 68px;
+  padding: 5px;
+  margin-top: -84px;
+  border-radius: 5px;
+  border: 1px solid #fff;
+  box-shadow: 0 0 2px #ccc;
+  white-space: nowrap;
+}
+
+#keyboard-accent-char-menu.show {
+  display: block;
+}
+
+#keyboard-accent-char-menu.menu {
+  height: auto;
+  margin-top: -5px;
+}
+
+#keyboard-accent-char-menu.menu > .keyboard-key {
+  width: auto;
+  display: block;
+  font-size: 24px;
+  line-height: 48px;
+  height: 48px;
+  padding: 0 5px;
+  position: relative;
+}
+
+#keyboard-accent-char-menu.menu > .current-keyboard::before {
+  content: '';
+  display: block;
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  background-color: #0c0;
+  box-shadow: 0 0 5px #fff;
 }

@@ -1,17 +1,34 @@
+'use strict';
 
 var Contacts = {
+  _loaded: false,
   get view() {
     delete this.view;
-    return this.view = document.getElementById('contacts-view');
+    return this.view = document.getElementById('contacts-view-scrollable');
   },
-  init: function contactsInit() {
-    // Could be much easier to have am argument named 'parameters' pass as
-    // a second argument that I can omit
-    this.find(['id', 'displayName'], this.show.bind(this));
-
+  setup: function contactsSetup() {
     this.view.addEventListener('touchstart', function showSearch(evt) {
       Contacts.showSearch();
     });
+
+    document.getElementById('contacts').addEventListener('change',
+      (function contactTabChanged(evt) {
+        // loading contacts the first time the view appears
+        this.load();
+
+        this.hideSearch();
+        ContactDetails.hide();
+      }).bind(this));
+  },
+  load: function contactsLoad() {
+    if (this._loaded) {
+      return;
+    }
+    this._loaded = true;
+
+    // Could be much easier to have an argument named 'parameters' pass as
+    // a second argument that I can omit
+    this.find(['id', 'displayName'], this.show.bind(this));
   },
   find: function contactsFind(fields, callback) {
     // Ideally I would like to choose the ordering
@@ -32,7 +49,6 @@ var Contacts = {
     for (var i = 0; i < count; i++) {
       var contact = contacts[i];
       var displayName = contact.displayName;
-      var phoneNumber = contact.phones[0];
 
       var name = contact.name.familyName[0];
       if (currentLetter != name[0]) {
@@ -44,13 +60,9 @@ var Contacts = {
       }
 
       content += '<div class="contact" id="' + contact.id + '">' +
-                 '  <span class="displayName">' + displayName + '</span>' +
-                 '  <span class="phoneNumber">' + phoneNumber + '</span>' +
+                 '  <span class="display-name">' + displayName + '</span>' +
                  '</div>';
     }
-    content += '<div class="contact" id="contact-create">' +
-               '  <span>Create this contact</span>' +
-               '</div>';
 
     var contactsContainer = document.getElementById('contacts-container');
     contactsContainer.innerHTML = content;
@@ -85,7 +97,7 @@ var Contacts = {
       if (contact.className == 'contact-header')
         continue;
 
-      var name = contact.firstElementChild.textContent;
+      var name = contact.querySelector('span').textContent;
       var rule = new RegExp(value, 'gi');
       contact.hidden = (name.search(rule) == -1);
     }
@@ -125,14 +137,6 @@ var Contacts = {
         header.hidden = false;
       }
     }
-
-    // Adding a create button when there is room for it without scrolling
-    var viewHeight = this.view.getBoundingClientRect().height;
-    var contentHeight = container.getBoundingClientRect().height;
-    var available = viewHeight - contentHeight;
-    if (available >= 56) {
-      document.getElementById('contact-create').hidden = false;
-    }
   },
   anchor: function contactsAnchor(targetId) {
     var target = document.getElementById(targetId);
@@ -140,28 +144,14 @@ var Contacts = {
       return;
 
     var top = target.getBoundingClientRect().top;
-    var scrollable = document.getElementById('contacts-view');
-    scrollableTop = scrollable.getBoundingClientRect().top;
+    var scrollable = document.getElementById('contacts-view-scrollable');
+    var scrollableTop = scrollable.getBoundingClientRect().top;
     scrollable.scrollTop = (top - scrollableTop) + scrollable.scrollTop;
   },
   showDetails: function contactsShowDetails(evt) {
     // I'm under the impression that there will be a better way to do this
     // with the final API (ie. getting a contact from an id)
     var contactId = evt.target.id;
-
-    // creating a fresh contact with a pre-filled name
-    if (contactId == 'contact-create') {
-      var contact = {
-        name: {
-          familyName: [document.getElementById('contacts-search').value],
-          givenName: []
-        },
-        phones: [],
-        emails: []
-      };
-      ContactDetails.show(contact);
-      return;
-    }
 
     this.find(['id'], function showDetailCallback(contacts) {
       var results = contacts.filter(function finById(contact) {
@@ -172,6 +162,18 @@ var Contacts = {
         ContactDetails.show(contact);
       }
     });
+  },
+  create: function contactsCreate() {
+    // creating an empty contact
+    var contact = {
+      name: {
+        familyName: [],
+        givenName: []
+      },
+      phones: [],
+      emails: []
+    };
+    ContactDetails.show(contact);
   }
 };
 
@@ -186,6 +188,7 @@ var ShortcutsHandler = {
     delete this.shortcutsBar;
     return this.shortcutsBar = document.getElementById('contacts-shortcuts');
   },
+
   get shortcutsBackground() {
     delete this.shortcutsBackground;
     var id = 'contacts-shortcuts-background';
@@ -453,13 +456,9 @@ var ContactDetails = {
 
 };
 
-window.addEventListener('load', function contactsLoad(evt) {
-  window.removeEventListener('load', contactsLoad, true);
-  Contacts.init();
-}, true);
-
 window.addEventListener('load', function contactSetup(evt) {
   window.removeEventListener('load', contactSetup);
+  Contacts.setup();
   ShortcutsHandler.setup();
   ContactDetails.setup();
 });

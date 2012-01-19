@@ -11,7 +11,6 @@ if (!window['Gaia'])
 
   Gaia.UI = {
     views: [],
-    navigationBar: null,
     get activeView() {
       var views = this.views;
       return views[views.length - 1];
@@ -20,14 +19,6 @@ if (!window['Gaia'])
       return _isTransitionActive;
     },
     init: function() {
-
-      // Initialize Navigation Bars.
-      var navigationBars = document.getElementsByClassName('navigationBar');
-
-      if (navigationBars.length > 0) {
-        this.navigationBar = new Gaia.UI.NavigationBar(navigationBars[0]);
-      }
-
       // Initialize Views.
       var views = document.getElementsByClassName('view');
 
@@ -149,7 +140,6 @@ if (!window['Gaia'])
     },
     push: function(view, transition) {
       var views = this.views;
-      var navigationBar = this.navigationBar;
       var activeView, newActiveView;
 
       view.isRoot = views.length === 0;
@@ -181,14 +171,9 @@ if (!window['Gaia'])
           newActiveViewClassList.add('transition');
         }, 100);
       }
-
-      if (navigationBar) {
-        navigationBar.title = view.title;
-      }
     },
     pop: function(viewOrTransition, transition) {
       var views = this.views;
-      var navigationBar = this.navigationBar;
       var activeView, newActiveView;
 
       if (views.length > 1) {
@@ -233,9 +218,6 @@ if (!window['Gaia'])
           activeViewClassList.add('transition');
           newActiveViewClassList.add('transition');
         }, 100);
-
-        if (navigationBar)
-          navigationBar.title = newActiveView.title;
       }
     }
   };
@@ -315,6 +297,27 @@ if (!window['Gaia'])
     set title(value) {
       this.header.innerHTML = value;
     }
+  };
+  
+  Gaia.UI.AnimationLoop = function(renderCallback) {
+    var isRunning = true;
+    var lastFrame = Date.now();
+    var requestAnimationFrame = function(animFrameCallback) {
+      if (window.mozRequestAnimationFrame)
+        window.mozRequestAnimationFrame(animFrameCallback);
+      else if (window.webkitRequestAnimationFrame)
+        window.webkitRequestAnimationFrame(animFrameCallback);
+      else if (window.requestAnimationFrame)
+        window.requestAnimationFrame(animFrameCallback);
+    };
+
+    (function loop(currentFrame) {
+      if (isRunning !== false) {
+        requestAnimationFrame(loop);
+        isRunning = renderCallback(currentFrame - lastFrame);
+        lastFrame = currentFrame;
+      }
+    })(lastFrame);
   };
 
   window.addEventListener('load', function() {

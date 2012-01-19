@@ -21,6 +21,11 @@ function prettyDate(time) {
 
 var MessageManager = {
   getMessages: function mm_getMessages(callback, filter, invert) {
+    if (!('getMessages' in navigator.mozSms)) {
+      GetMessagesHack(callback, filter, invert);
+      return;
+    }
+
     var request = navigator.mozSms.getMessages(filter, !invert);
 
     var messages = [];
@@ -43,6 +48,11 @@ var MessageManager = {
 
   send: function mm_send(number, text, callback) {
     var result = navigator.mozSms.send(number, text);
+    if (!result) {
+      sendMessageHack(number, text, callback);
+      return;
+    }
+
     result.onsuccess = callback;
     result.onerror = callback;
   },
@@ -52,90 +62,102 @@ var MessageManager = {
   }
 };
 
-if (!('mozSms' in navigator) || !navigator.mozSms) {
-  MessageManager.messages = [];
 
-  MessageManager.getMessages =
-    function mm_getMessages(callback, filter, invert) {
-    function applyFilter(msgs) {
-      if (!filter)
-        return msgs;
-
-      if (filter.number) {
-        msgs = msgs.filter(function(element, index, array) {
-            return (filter.number && (filter.number == element.sender ||
-                    filter.number == element.receiver));
-        });
-      }
-
+// Until there is a database to store messages on the device, return
+// a fake list of messages.
+var messagesHack = [];
+var GetMessagesHack = function(callback, filter, invert) {
+  function applyFilter(msgs) {
+    if (!filter)
       return msgs;
-    }
 
-    if (this.messages.length) {
-      var msg = this.messages.slice();
-      if (invert)
-        msg.reverse();
-      callback(applyFilter(msg));
-      return;
-    }
-
-    var messages = [
-      {
-        sender: null,
-        receiver: '1-977-743-6797',
-        body: 'Nothing :)',
-        timestamp: Date.now() - 44000000
-      },
-      {
-        sender: '1-977-743-6797',
-        body: 'Hey! What\s up?',
-        timestamp: Date.now() - 50000000
-      }
-    ];
-
-    for (var i = 0; i < 40; i++)
-      messages.push({
-        sender: '1-488-678-3487',
-        body: 'Hello world!',
-        timestamp: Date.now() - 60000000
+    if (filter.number) {
+      msgs = msgs.filter(function(element, index, array) {
+          return (filter.number && (filter.number == element.sender ||
+                  filter.number == element.receiver));
       });
+    }
 
-    this.messages = messages;
+    return msgs;
+  }
 
-    var msg = this.messages.slice();
+  if (messagesHack.length) {
+    var msg = messagesHack.slice();
     if (invert)
       msg.reverse();
     callback(applyFilter(msg));
-  };
+    return;
+  }
 
-  MessageManager.send = function mm_send(number, text, callback) {
-    var message = {
+  var messages = [
+    {
       sender: null,
-      receiver: number,
-      body: text,
-      timestamp: Date.now()
-    };
-    var event = document.createEvent('CustomEvent');
-    event.initCustomEvent('smssent', true, false, message);
-    setTimeout(function(evt) {
-      window.dispatchEvent(event);
+      receiver: '1-977-743-6797',
+      body: 'Nothing :)',
+      timestamp: Date.now() - 44000000
+    },
+    {
+      sender: '1-977-743-6797',
+      body: 'Hey! What\s up?',
+      timestamp: Date.now() - 50000000
+    }
+  ];
+
+  for (var i = 0; i < 40; i++) {
+    messages.push({
+      sender: '1-488-678-3487',
+      body: 'Hello world!',
+      timestamp: Date.now() - 60000000
+    });
+  }
+
+  messagesHack = messages;
+
+  var msg = messagesHack.slice();
+  if (invert)
+    msg.reverse();
+  callback(applyFilter(msg));
+};
+
+var sendMessageHack = function(number, text, callback) {
+  var message = {
+    sender: null,
+    receiver: number,
+    body: text,
+    timestamp: Date.now()
+  };
+
+  var event = document.createEvent('CustomEvent');
+  event.initCustomEvent('sent', true, false, message);
+  window.setTimeout(function(evt) {
+    window.dispatchEvent(event);
+    if (callback)
       callback();
-    }, 1000);
-  };
+  }, 1000);
+};
 
-  MessageManager.handleEvent = function handleEvent(evt) {
-    this.messages.unshift(evt.detail);
-  };
-
-  window.addEventListener('smssent', MessageManager, true);
-  window.addEventListener('smsreceived', MessageManager, true);
+if (!navigator.mozSms) {
+  MessageManager.getMessages = GetMessagesHack;
+  MessageManager.send = sendMessageHack;
 }
 
 
+['sent', 'received'].forEach(function(type) {
+  window.addEventListener(type, function handleEvent(evt) {
+    messagesHack.unshift(evt.detail);
+  }, true);
+});
+
 var MessageView = {
   init: function init() {
-    window.addEventListener('smsreceived', this, true);
-    window.addEventListener('smssent', this, true);
+    ['sent', 'received'].forEach((function(type) {
+      window.addEventListener(type, (function handleEvent(evt) {
+        this.handleEvent({'type': type });
+      }).bind(this), true);
+
+      if (window.navigator.mozSms)
+        window.navigator.mozSms.addEventListener(type, this);
+    }).bind(this));
 
     this.showConversations();
   },
@@ -225,10 +247,10 @@ var MessageView = {
 
   handleEvent: function handleEvent(evt) {
     switch (evt.type) {
-      case 'smssent':
-      case 'smsreceived':
+      case 'sent':
+      case 'received':
         // TODO Remove the delay once the native SMS application is disabled
-        setTimeout(function(self) {
+        window.setTimeout(function(self) {
           self.showConversations();
         }, 800, this);
         break;
@@ -245,8 +267,16 @@ var ConversationView = {
 
   init: function cv_init() {
     window.addEventListener('keypress', this, true);
-    window.addEventListener('smssent', this, true);
-    window.addEventListener('smsreceived', this, true);
+
+    ['sent', 'received'].forEach((function(type) {
+      window.addEventListener(type, (function handleEvent(evt) {
+        this.handleEvent({ 'type': type });
+      }).bind(this), true);
+
+      if (window.navigator.mozSms)
+        window.navigator.mozSms.addEventListener('sent', this, true);
+    }).bind(this));
+
   },
 
   showConversation: function cv_showConversation(num) {
@@ -312,8 +342,8 @@ var ConversationView = {
 
         if (this.close())
           evt.preventDefault();
-      case 'smssent':
-      case 'smsreceived':
+      case 'sent':
+      case 'received':
         // TODO Remove the delay once the native SMS application is disabled
         setTimeout(function(self) {
           self.showConversation(self.filter);

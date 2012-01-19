@@ -9,70 +9,54 @@
     <link rel="stylesheet" type="text/css" media="screen" href="style/ui.css"/>
     <link rel="stylesheet" type="text/css" media="screen" href="style/settings.css"/>
     <script type="text/javascript" src="js/ui.js"></script>
+    <script type="text/javascript" src="js/settings.js"></script>
   </head>
   <body>
-    <div class="navigationBar"></div>
     <div id="root" class="view" data-title="Settings">
       <ul class="tableView">
         <li>
           <span>Airplane Mode</span>
-          <label class="toggleswitch">
-            <input type="checkbox"/>
-            <span class="toggleswitch-inner">
-              <span class="toggleswitch-on">On</span>
-              <span class="toggleswitch-off">Off</span>
-              <span class="toggleswitch-handle"></span>
-            </span>
+          <label class="checkbox">
+            <input type="checkbox" name="airplanemode.enabled"/>
+            <span class="checkbox-inner"></span>
           </label>
         </li>
         <li>
           <span>Location Services</span>
-          <label class="toggleswitch">
-            <input type="checkbox"/>
-            <span class="toggleswitch-inner">
-              <span class="toggleswitch-on">On</span>
-              <span class="toggleswitch-off">Off</span>
-              <span class="toggleswitch-handle"></span>
-            </span>
+          <label class="checkbox">
+            <input type="checkbox" name="locationservices.enabled"/>
+            <span class="checkbox-inner"></span>
           </label>
         </li>
         <li>
           <span>Wi-Fi</span>
-          <label class="toggleswitch">
-            <input type="checkbox"/>
-            <span class="toggleswitch-inner">
-              <span class="toggleswitch-on">On</span>
-              <span class="toggleswitch-off">Off</span>
-              <span class="toggleswitch-handle"></span>
-            </span>
+          <label class="checkbox">
+            <input type="checkbox" name="wifi.enabled"/>
+            <span class="checkbox-inner"></span>
           </label>
         </li>
         <li>
           <span>Do Not Track</span>
-          <label class="toggleswitch">
-            <input type="checkbox"/>
-            <span class="toggleswitch-inner">
-              <span class="toggleswitch-on">On</span>
-              <span class="toggleswitch-off">Off</span>
-              <span class="toggleswitch-handle"></span>
-            </span>
+          <label class="checkbox">
+            <input type="checkbox" name="dnt.enabled"/>
+            <span class="checkbox-inner"></span>
           </label>
         </li>
       </ul>
       <ul class="tableView">
         <li>
-          <a class="push slideHorizontal" href="#sounds">
-            <span>Sounds</span>
-          </a>
-        </li>
-        <li>
-          <a class="push slideHorizontal" href="#brightness">
-            <span>Brightness</span>
-          </a>
-        </li>
-        <li>
           <a class="push slideHorizontal" href="#wallpaper">
             <span>Wallpaper</span>
+          </a>
+        </li>
+        <li>
+          <a class="push slideHorizontal" href="#display">
+            <span>Display</span>
+          </a>
+        </li>
+        <li>
+          <a class="push slideHorizontal" href="#sounds">
+            <span>Sounds</span>
           </a>
         </li>
       </ul>
@@ -83,9 +67,36 @@
       
     </div>
     
-    <!-- Brightness -->
-    <div id="brightness" class="view" data-title="Brightness">
-      
+    <!-- Display -->
+    <div id="display" class="view" data-title="Display">
+      <ul class="tableView">
+      <li id="brightness">
+        <label>Brigthness level</label>
+        <progress id="brightness-input" value="1" max="1"></progress>
+        <br/ >
+        <span class="comment">Waiting for <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=707626">bug 707626</a></span>
+      </li>
+      <li>
+        <span>Lock Screen</span>
+        <label class="checkbox">
+          <input type="checkbox" name="lockscreen.enabled"/>
+          <span class="checkbox-inner"></span>
+        </label>
+      </li>
+      <li id="screentimeout">
+        <label for="screentimeout-input">Screen Timeout</label>
+        <select>
+          <option value="0">Never</option>
+          <option value="15">15 seconds</option>
+          <option value="30">30 seconds</option>
+          <option value="60">1 minute</option>
+          <option value="120">2 minutes</option>
+          <option value="600">10 minutes</option>
+        </select>
+        <br/ >
+        <span class="comment">Waiting for <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=707626">bug 707626</a></span>
+      </li>
+      </ul>
     </div>
     
     <!-- Wallpaper -->
