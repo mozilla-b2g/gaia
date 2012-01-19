@@ -331,6 +331,11 @@ const IMEManager = {
     switch (evt.type) {
       case 'showime':
         this.showIME(activeWindow, evt.detail.type);
+
+        var request = navigator.mozSettings.get('keyboard.vibration');
+        request.addEventListener('success', (function onsuccess(evt) {
+          this.vibrate = (request.result.value === 'true');
+        }).bind(this));
         break;
 
       case 'hideime':
@@ -348,6 +353,10 @@ const IMEManager = {
           return;
 
         this.updateKeyHighlight();
+        try {
+          if (this.vibrate)
+            navigator.mozVibrate(50);
+        } catch(e) {}
 
         this._menuTimeout = setTimeout((function menuTimeout() {
             this.showAccentCharMenu();
