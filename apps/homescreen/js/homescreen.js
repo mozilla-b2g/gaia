@@ -468,12 +468,10 @@ LockScreen.prototype = {
 };
 
 function OnLoad() {
-  ctx = L20n.getContext();
+  ctx = document.l10nCtx;
   ctx.onReady = function() {
     OnLoad2();
   }
-  ctx.addResource("./locales/fr.j20n");
-  ctx.freeze();
 }
 
 function OnLoad2() {
