@@ -78,7 +78,6 @@ function getElementByPath(path, context) {
   return xpe.singleNodeValue;
 }
 
-
 function localizeNode(ctx, node) {
   var l10nId = node.getAttribute('l10n-id');
   var args;
@@ -92,9 +91,15 @@ function localizeNode(ctx, node) {
   }
   // get attributes from the LO
   var attrs = ctx.getAttributes(l10nId, args);
+  var l10nAttrs;
+  if (node.hasAttribute('l10n-attrs'))
+    l10nAttrs = node.getAttribute('l10n-attrs').split(" ");
+  else
+    l10nAttrs = null;
   if (attrs) {
     for (var j in attrs) {
-      node.setAttribute(j, attrs[j]);
+      if (!l10nAttrs || l10nAttrs.indexOf(j) !== -1)
+        node.setAttribute(j, attrs[j]);
     }
   }
   var valueFromCtx = ctx.get(l10nId, args);
