@@ -158,6 +158,9 @@ Settings.prototype = {
           id: 'lockscreen.enabled',
           value: true
         }, {
+          id: 'keyboard.vibration',
+          value: true
+        }, {
           id: 'airplanemode.enabled',
           value: false
         }, {
