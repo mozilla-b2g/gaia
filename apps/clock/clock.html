@@ -8,16 +8,17 @@
     <link rel="stylesheet" type="text/css" href="style/clock.css" />
     <script type="application/javascript" src="js/clock.js"></script>
     <script type="application/javascript" src="js/stopwatch.js"></script>
+    <script type="application/javascript" src="js/timer.js"></script>
   </head>
 
   <body>
     <div id="views">
       <div id="stopwatch-view" class="view">
-        <div id="chrono-view-container">
+        <div class="chrono-view-container">
           <div>
-            <div id="chrono-view">00:00</div>
+            <div class="chrono-view" id="stopwatch-chrono-view">00:00</div>
           </div>
-          <div id="ticker-view">
+          <div class="ticker-view" id="stopwatch-ticker-view">
           </div>
         </div>
 
@@ -35,18 +36,38 @@
         </div>
       </div>
 
-      <div id="alarm-view" class="view" hidden="true">
+      <div id="timer-view" class="view" hidden="true">
+        <div class="chrono-view-container">
+          <div>
+            <div class="chrono-view" id="timer-chrono-view">00:00</div>
+          </div>
+          <div class="ticker-view" id="timer-ticker-view">
+          </div>
+        </div>
+
+        <div class="button-container">
+          <div>
+            <input id="timer-field" type="text" value="00:05" />
+          </div>
+        </div>
+
+        <div id="start-cancel-button" class="button-container" data-action="start" onclick="Timer.execute(this.dataset.action)">
+          <div>
+            <span>Start</span>
+            <span>Cancel</span>
+          </div>
+        </div>
       </div>
 
-      <div id="timer-view" class="view" hidden="true">
+      <div id="alarm-view" class="view" hidden="true">
       </div>
     </div>
     <div id="tabs-container">
       <div id="tabs" onclick="choiceChanged(event.target)">
         <fieldset>
           <label id="stopwatch-label" for="stopwatch-choice" data-choice="stopwatch" data-active="true"><input id="stopwatch-choice" type="radio" name="tabs" checked="checked" /></label>
-          <label id="alarm-label" for="alarm-choice" data-choice="alarm"><input id="alarm-choice" type="radio" name="tabs" checked="" /></label>
           <label id="timer-label" for="timer-choice" data-choice="timer"><input id="timer-choice" type="radio" name="tabs" checked="" /></label>
+          <label id="alarm-label" for="alarm-choice" data-choice="alarm"><input id="alarm-choice" type="radio" name="tabs" checked="" /></label>
         </fieldset>
       </div>
     </div>

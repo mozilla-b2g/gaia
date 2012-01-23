@@ -8,12 +8,12 @@ var StopWatch = {
 
   get tickerView() {
     delete this.tickerView;
-    return this.tickerView = document.getElementById('ticker-view');
+    return this.tickerView = document.getElementById('stopwatch-ticker-view');
   },
 
   get chronoView() {
     delete this.chronoView;
-    return this.chronoView = document.getElementById('chrono-view');
+    return this.chronoView = document.getElementById('stopwatch-chrono-view');
   },
 
   execute: function sw_execute(action) {
