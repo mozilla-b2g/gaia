@@ -43,6 +43,8 @@ var StopWatch = {
 
     this._elapsed += Date.now() - this._startTime;
     clearInterval(this._ticker);
+    delete this._ticker;
+    delete this._startTime;
   },
 
   reset: function sw_reset() {
