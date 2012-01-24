@@ -66,7 +66,7 @@ var Timer = {
   end: function ti_end() {
     //TODO: ring too
     try {
-      navigator.mozVibrate([100, 100, 100]);
+      navigator.mozVibrate([200, 200, 200, 200, 200]);
     } catch (e) {}
 
     this.cancel();
