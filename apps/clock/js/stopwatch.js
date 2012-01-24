@@ -3,7 +3,8 @@ var StopWatch = {
 
   get actionButton() {
     delete this.actionButton;
-    return this.actionButton = document.getElementById('stopwatch-action-button');
+    var id = 'stopwatch-action-button';
+    return this.actionButton = document.getElementById(id);
   },
 
   get tickerView() {
