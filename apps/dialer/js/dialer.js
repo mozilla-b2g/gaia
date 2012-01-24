@@ -17,17 +17,42 @@ var gTonesFrequencies = {
 // or is minimized (it does not now).
 window.addEventListener('message', function visibleApp(evt) {
   var data = evt.data;
-  if (!data.hidden)
-    visibilityChanged(data.url);
+  if (evt.data.message == 'visibilitychange' && !data.hidden)
+    visibilityChanged(data.url, evt.source);
+  else if (evt.data == 'connected') {
+    CallHandler.connected();
+  } else if (evt.data == 'disconnected') {
+    CallHandler.disconnected();
+  }
 });
 
-function visibilityChanged(url) {
-  // TODO do something better here
+function visibilityChanged(url, source) {
+  var params = (function makeURL() {
+    var a = document.createElement('a');
+    a.href = url;
+
+    var search = a.search;
+    if (!search)
+      return '';
+    search = search.substring(1, search.length);
+
+    var rv = {};
+    var params = search.split('&');
+    for (var i = 0; i < params.length; i++) {
+      var data = params[i].split('=');
+      rv[data[0]] = data[1];
+    }
+    return rv;
+  })();
+
+  var choice = params['choice'];
   var contacts = document.getElementById('contacts-label');
-  if (url.indexOf('?choice=contact') != -1 ||
-      contacts.hasAttribute('data-active')) {
+  if (choice == 'contact' || contacts.hasAttribute('data-active')) {
     Contacts.load();
     choiceChanged(contacts);
+  } else if (choice == 'incoming') {
+    var number = params['number'];
+    CallHandler.incoming(source, number);
   }
 }
 
@@ -248,11 +273,21 @@ var CallHandler = {
     call.addEventListener('statechange', this);
     this.currentCall = call;
   },
-  incoming: function ch_incoming(call) {
-    this.currentCall = call;
-    call.addEventListener('statechange', this);
 
-    this.numberView.innerHTML = call.number;
+  incoming: function ch_incoming(source, number) {
+    var call = this.currentCall = {
+      'number': number,
+      'answer': function call_answer() {
+        source.postMessage('answer', '*');
+      },
+      'hangUp': function call_hangUp() {
+        source.postMessage('hangup', '*');
+      },
+      'addEventListener': function call_addEventListener() {},
+      'removeEventListener': function call_removeEventListener() {}
+    };
+
+    this.numberView.innerHTML = number;
     this.statusView.innerHTML = 'Incoming call...';
     this.actionsView.classList.remove('displayed');
     this.callButton.dataset.action = 'answer';
@@ -297,10 +332,6 @@ var CallHandler = {
   handleEvent: function fm_handleEvent(evt) {
     console.log('Call changed state: ' + evt.call.state);
     switch (evt.call.state) {
-      case 'incoming':
-        console.log('incoming call from ' + evt.call.number);
-        this.incoming(evt.call);
-        break;
       case 'connected':
         this.connected();
         break;

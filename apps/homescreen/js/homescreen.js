@@ -485,6 +485,32 @@ function OnLoad() {
   ];
   new NotificationScreen(touchables);
 
+  try {
+    navigator.mozTelephony.addEventListener('incoming', function(evt) {
+      var call = evt.call;
+      console.log('incoming call from ' + call.number);
+
+      var url = '../dialer/dialer.html?choice=incoming&number=';
+      var app = Gaia.AppManager.launch(url + call.number);
+
+      call.addEventListener('statechange', function callState() {
+        app.contentWindow.postMessage(call.state, '*');
+      });
+
+      window.addEventListener('message', function handleCall(evt) {
+        switch (evt.data) {
+          case 'answer':
+            call.answer();
+            break;
+          case 'hangup':
+            window.removeEventListener('message', handleCall);
+            call.hangUp();
+            break;
+        }
+      });
+    });
+  } catch (e) {}
+
   var apps = Gaia.AppManager.getInstalledApps(function(apps) {
     // XXX this add 5 times the same set of icons
     var icons = [];
