@@ -234,61 +234,61 @@ html * {
   bottom: -moz-calc(15mozmm + 38px);
 }
 
-#start-stop-button {
+#stopwatch-action-button {
   bottom: 0;
 }
 
-#start-stop-button > div > span {
+#stopwatch-action-button > div > span {
 	background: -moz-linear-gradient(top, rgb(177,214,0) 1px, rgb(143,195,0) 2px, rgb(82,107,23) 100%);
 }
-#start-stop-button > div > span:last-child {
+#stopwatch-action-button > div > span:last-child {
 	background: -moz-linear-gradient(top, hsl(355,93%,42%) 0, hsl(356,94%,37%) 1px, hsl(353,100%,22%) 100%);
 }
 
-#start-stop-button:active span:first-child {
+#stopwatch-action-button:active span:first-child {
 	background: -moz-linear-gradient(top, rgb(82,107,23) 0, rgb(143,195,0) 100%);
 }
-#start-stop-button:active span:last-child {
+#stopwatch-action-button:active span:last-child {
 	background: -moz-linear-gradient(top, hsl(353,100%,22%) 0, hsl(356,94%,37%) 100%);
 }
 
 
-#start-stop-button[data-action='start'] > div > span:last-child,
-#start-stop-button[data-action='stop'] > div > span:first-child {
+#stopwatch-action-button[data-action='start'] > div > span:last-child,
+#stopwatch-action-button[data-action='stop'] > div > span:first-child {
   display: none;
 }
-#start-stop-button[data-action='stop'] > div > span:last-child,
-#start-stop-button[data-action='start'] > div > span:first-child {
+#stopwatch-action-button[data-action='stop'] > div > span:last-child,
+#stopwatch-action-button[data-action='start'] > div > span:first-child {
   display: block;
 }
 
 /* === Timer === */
 
-#start-cancel-button {
+#timer-action-button {
   bottom: 0;
 }
 
-#start-cancel-button > div > span {
+#timer-action-button > div > span {
 	background: -moz-linear-gradient(top, rgb(177,214,0) 1px, rgb(143,195,0) 2px, rgb(82,107,23) 100%);
 }
-#start-cancel-button > div > span:last-child {
+#timer-action-button > div > span:last-child {
 	background: -moz-linear-gradient(top, hsl(355,93%,42%) 0, hsl(356,94%,37%) 1px, hsl(353,100%,22%) 100%);
 }
 
-#start-cancel-button:active span:first-child {
+#timer-action-button:active span:first-child {
 	background: -moz-linear-gradient(top, rgb(82,107,23) 0, rgb(143,195,0) 100%);
 }
-#start-cancel-button:active span:last-child {
+#timer-action-button:active span:last-child {
 	background: -moz-linear-gradient(top, hsl(353,100%,22%) 0, hsl(356,94%,37%) 100%);
 }
 
 
-#start-cancel-button[data-action='start'] > div > span:last-child,
-#start-cancel-button[data-action='cancel'] > div > span:first-child {
+#timer-action-button[data-action='start'] > div > span:last-child,
+#timer-action-button[data-action='cancel'] > div > span:first-child {
   display: none;
 }
-#start-cancel-button[data-action='cancel'] > div > span:last-child,
-#start-cancel-button[data-action='start'] > div > span:first-child {
+#timer-action-button[data-action='cancel'] > div > span:last-child,
+#timer-action-button[data-action='start'] > div > span:first-child {
   display: block;
 }
 
@@ -296,7 +296,7 @@ html * {
   -moz-animation-direction: alternate;
 }
 
-#timer-field {
+#duration-field {
   height: 15mozmm;
   border: none;
   background: none;

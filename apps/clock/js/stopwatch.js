@@ -1,9 +1,9 @@
 var StopWatch = {
   _elapsed: 0,
 
-  get startStopButton() {
-    delete this.startStopButton;
-    return this.startStopButton = document.getElementById('start-stop-button');
+  get actionButton() {
+    delete this.actionButton;
+    return this.actionButton = document.getElementById('stopwatch-action-button');
   },
 
   get tickerView() {
@@ -25,7 +25,7 @@ var StopWatch = {
   },
 
   start: function sw_start() {
-    this.startStopButton.dataset.action = 'stop';
+    this.actionButton.dataset.action = 'stop';
 
     this.updateChrono(this._elapsed);
     this.tickerView.classList.add('running');
@@ -38,7 +38,7 @@ var StopWatch = {
   },
 
   stop: function sw_stop() {
-    this.startStopButton.dataset.action = 'start';
+    this.actionButton.dataset.action = 'start';
     this.tickerView.classList.remove('running');
 
     this._elapsed += Date.now() - this._startTime;

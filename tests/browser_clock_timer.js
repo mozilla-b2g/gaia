@@ -11,7 +11,7 @@ function test() {
 
       waitFor(function() {
         var document = clockFrame.contentWindow.document;
-        var startCancelButton = document.getElementById('start-cancel-button');
+        var startCancelButton = document.getElementById('timer-action-button');
         var timer = clockFrame.contentWindow.Timer;
 
         // starting the timer

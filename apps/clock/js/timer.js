@@ -1,7 +1,7 @@
 var Timer = {
   get actionButton() {
     delete this.actionButton;
-    return this.actionButton = document.getElementById('start-cancel-button');
+    return this.actionButton = document.getElementById('timer-action-button');
   },
 
   get tickerView() {
@@ -14,9 +14,9 @@ var Timer = {
     return this.chronoView = document.getElementById('timer-chrono-view');
   },
 
-  get timerField() {
-    delete this.timerField;
-    return this.timerField = document.getElementById('timer-field');
+  get durationField() {
+    delete this.durationField;
+    return this.durationField = document.getElementById('duration-field');
   },
 
   execute: function ti_execute(action) {
@@ -31,10 +31,10 @@ var Timer = {
     this.actionButton.dataset.action = 'cancel';
     this.chronoView.parentNode.classList.remove('ended');
     this.tickerView.classList.add('running');
-    this.timerField.disabled = true;
+    this.durationField.disabled = true;
 
     // simple duration parsing
-    var durationComponents = this.timerField.value.split(':');
+    var durationComponents = this.durationField.value.split(':');
     var duration = 0;
     for (var i = 0; i < durationComponents.length; i++) {
       var unitHandler = (durationComponents.length - 1) * 60 - (i * 60);
@@ -63,7 +63,7 @@ var Timer = {
   cancel: function ti_cancel() {
     this.actionButton.dataset.action = 'start';
     this.tickerView.classList.remove('running');
-    this.timerField.disabled = false;
+    this.durationField.disabled = false;
 
     clearInterval(this._ticker);
     delete this._ticker;

@@ -11,21 +11,21 @@ function test() {
 
       waitFor(function() {
         var document = clockFrame.contentWindow.document;
-        var startStopButton = document.getElementById('start-stop-button');
+        var actionButton = document.getElementById('stopwatch-action-button');
         var stopWatch = clockFrame.contentWindow.StopWatch;
 
         // starting the timer
-        EventUtils.sendMouseEvent({type: 'click'}, startStopButton);
+        EventUtils.sendMouseEvent({type: 'click'}, actionButton);
 
-        ok(startStopButton.dataset.action == 'stop', 'Stop button present');
+        ok(actionButton.dataset.action == 'stop', 'Stop button present');
         ok(document.getElementById('stopwatch-ticker-view').classList.contains('running'), 'Stopwatch animation running');
         isnot(stopWatch._startTime, undefined, 'Start time set');
         isnot(stopWatch._ticker, undefined, 'Ticker running');
 
         // stop the timer
-        EventUtils.sendMouseEvent({type: 'click'}, startStopButton);
+        EventUtils.sendMouseEvent({type: 'click'}, actionButton);
 
-        ok(startStopButton.dataset.action == 'start', 'Start button present');
+        ok(actionButton.dataset.action == 'start', 'Start button present');
         ok(!document.getElementById('stopwatch-ticker-view').classList.contains('running'), 'Stopwatch animation stoped');
         isnot(stopWatch._elasped, 0, 'Elapsed time kept');
         is(stopWatch._ticker, undefined, 'Ticker cleared');
