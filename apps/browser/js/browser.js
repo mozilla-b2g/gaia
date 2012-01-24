@@ -36,12 +36,16 @@ var Browser = {
 
     iframe = this.iframe;
 
-    iframe.mozAddContentStateListener('load', (function loadHandler(evt) {
-      this.loadStateChange(evt);
+    iframe.addEventListener('mozbrowserloadstart', (function loadStartHandler(evt) {
+      this.urlBar.classList.add('loading');
     }).bind(this));
 
-    iframe.mozAddContentStateListener('location', (function locationHandler(evt) {
-      this.locationChange(evt);
+    iframe.addEventListener('mozbrowserloadend', (function loadEndHandler(evt) {
+      this.urlBar.classList.remove('loading');
+    }).bind(this));
+
+    iframe.addEventListener('mozbrowserlocationchange', (function locationHandler(evt) {
+      this.locationChange(evt.detail);
     }).bind(this));
 
     this.backButton.addEventListener('click', (function backHandler(evt) {
@@ -70,13 +74,6 @@ var Browser = {
       this.backButton.src = 'style/images/back.png';
     else
       this.backButton.src = 'style/images/back-disabled.png';
-  },
-
-  loadStateChange: function(state) {
-    if (state == 'start')
-      this.urlBar.classList.add('loading'); 
-    else if (state == 'stop')
-      this.urlBar.classList.remove('loading');
   },
  
   locationChange: function(url) {
