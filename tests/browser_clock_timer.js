@@ -29,6 +29,26 @@ function test() {
         ok(!document.getElementById('timer-ticker-view').classList.contains('running'), 'Timer animation stoped');
         is(timer._ticker, undefined, 'Ticker cleared');
         is(timer._endTime, undefined, 'End time deleted');
+        ok(!durationField.disabled, 'Duration is editable');
+
+        // timer duration parsing
+        ok(timer.duration('4') == 4000, 'Seconds are parsed correctly');
+        ok(timer.duration('01:02') == 62000, 'Minutes are parsed correctly');
+        ok(timer.duration('01:01:02') == 3662000, 'Hours are parsed correctly');
+
+        // timer duration validation
+        durationField.value = 'af02';
+        ok(!durationField.validity.valid, 'Duration pattern invalid');
+        durationField.value = '04:04';
+        ok(durationField.validity.valid, 'Duration pattern valid');
+        durationField.value = '01:04:04';
+        ok(durationField.validity.valid, 'Duration pattern with hours valid');
+
+        // timer end
+        EventUtils.sendMouseEvent({type: 'click'}, actionButton);
+        timer.end();
+        ok(chronoView.parentNode.classList.contains('ended'),
+           'Ended style on chrono view');
 
         finish();
       }, function() {

@@ -28,23 +28,16 @@ var Timer = {
   },
 
   start: function ti_start() {
+    if (!this.durationField.validity.valid) {
+      return;
+    }
+
     this.actionButton.dataset.action = 'cancel';
     this.chronoView.parentNode.classList.remove('ended');
     this.tickerView.classList.add('running');
     this.durationField.disabled = true;
 
-    // simple duration parsing
-    var durationComponents = this.durationField.value.split(':');
-    var duration = 0;
-    for (var i = 0; i < durationComponents.length; i++) {
-      var unitHandler = (durationComponents.length - 1) * 60 - (i * 60);
-      if (unitHandler == 0) {
-        unitHandler = 1;
-      }
-
-      duration += unitHandler * 1000 * durationComponents[i];
-    }
-
+    var duration = this.duration(this.durationField.value);
     this._endTime = Date.now() + duration;
     this.updateChrono(duration);
 
@@ -81,5 +74,16 @@ var Timer = {
 
   updateChrono: function sw_updateChrono(remaining) {
     this.chronoView.innerHTML = new Date(remaining).toLocaleFormat('%M:%S');
+  },
+
+  duration: function ti_duration(value) {
+    var durationComponents = value.split(':');
+    var duration = 0;
+    for (var i = 0; i < durationComponents.length; i++) {
+      var unitHandler = Math.pow(60, durationComponents.length - 1 - i);
+      duration += unitHandler * 1000 * durationComponents[i];
+    }
+
+    return duration;
   }
 };

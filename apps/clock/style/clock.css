@@ -307,3 +307,8 @@ html * {
   font-weight: bold;
   text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
 }
+
+#duration-field:invalid {
+  box-shadow: none;
+  color: red;
+}
