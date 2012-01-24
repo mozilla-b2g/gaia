@@ -11,22 +11,26 @@ function test() {
 
       waitFor(function() {
         var document = clockFrame.contentWindow.document;
-        var startCancelButton = document.getElementById('timer-action-button');
+        var actionButton = document.getElementById('timer-action-button');
         var timer = clockFrame.contentWindow.Timer;
+        var durationField = document.getElementById('duration-field');
+        var tickerView = document.getElementById('timer-ticker-view');
+        var chronoView = document.getElementById('timer-chrono-view');
 
-        // starting the timer
-        EventUtils.sendMouseEvent({type: 'click'}, startCancelButton);
+        // start the timer
+        EventUtils.sendMouseEvent({type: 'click'}, actionButton);
 
-        ok(startCancelButton.dataset.action == 'cancel', 'Cancel button present');
-        ok(document.getElementById('timer-ticker-view').classList.contains('running'), 'Timer animation running');
+        ok(actionButton.dataset.action == 'cancel', 'Cancel button present');
+        ok(tickerView.classList.contains('running'), 'Timer animation running');
         isnot(timer._endTime, undefined, 'End time set');
         isnot(timer._ticker, undefined, 'Ticker running');
+        ok(durationField.disabled, 'Duration is not editable');
 
-        // stop the timer
-        EventUtils.sendMouseEvent({type: 'click'}, startCancelButton);
+        // cancel the timer
+        EventUtils.sendMouseEvent({type: 'click'}, actionButton);
 
-        ok(startCancelButton.dataset.action == 'start', 'Start button present');
-        ok(!document.getElementById('timer-ticker-view').classList.contains('running'), 'Timer animation stoped');
+        ok(actionButton.dataset.action == 'start', 'Start button present');
+        ok(!tickerView.classList.contains('running'), 'Timer animation stoped');
         is(timer._ticker, undefined, 'Ticker cleared');
         is(timer._endTime, undefined, 'End time deleted');
         ok(!durationField.disabled, 'Duration is editable');

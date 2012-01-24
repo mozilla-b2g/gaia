@@ -66,13 +66,14 @@ var Timer = {
   end: function ti_end() {
     //TODO: ring too
     try {
-      navigator.mozVibrate(100, 100, 100);
+      navigator.mozVibrate([100, 100, 100]);
     } catch (e) {}
+
     this.cancel();
     this.chronoView.parentNode.classList.add('ended');
   },
 
-  updateChrono: function sw_updateChrono(remaining) {
+  updateChrono: function ti_updateChrono(remaining) {
     this.chronoView.innerHTML = new Date(remaining).toLocaleFormat('%M:%S');
   },
 
