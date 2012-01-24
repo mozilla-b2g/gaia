@@ -34,7 +34,7 @@ var Browser = {
       evt.preventDefault();
     }).bind(this));
 
-    iframe = this.iframe;
+    var iframe = this.iframe;
 
     iframe.addEventListener('mozbrowserloadstart', (function loadStartHandler(evt) {
       this.urlBar.classList.add('loading');
