@@ -276,7 +276,7 @@ IconGrid.prototype = {
       break;
     case 'touchend':
       document.releaseCapture();
-      physics.onTouchEnd(e.touches ? e.touches[0] : e);
+      physics.onTouchEnd(e.changedTouches ? e.changedTouches[0] : e);
       break;
     case 'resize':
       var canvas = this.canvas;
@@ -384,7 +384,7 @@ NotificationScreen.prototype = {
       this.active = false;
 
       document.releaseCapture();
-      this.onTouchEnd(evt.touches ? evt.touches[0] : evt);
+      this.onTouchEnd(evt.changedTouches ? evt.changedTouches[0] : evt);
       break;
     default:
       return;
@@ -455,7 +455,7 @@ LockScreen.prototype = {
       this.onTouchMove(e.touches ? e.touches[0] : e);
       break;
     case 'touchend':
-      this.onTouchEnd(e.touches ? e.touches[0] : e);
+      this.onTouchEnd(e.changedTouches ? e.changedTouches[0] : e);
       document.releaseCapture();
       break;
     default:
