@@ -2,6 +2,7 @@ var Camera = {
   init: function cameraInit() {
     chooser = document.getElementById('chooser');
     chooser.addEventListener('change', this.showPreview);
+    chooser.click();
   },
 
   showPreview: function cameraShowPreview() {
