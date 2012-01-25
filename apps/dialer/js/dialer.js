@@ -17,27 +17,22 @@ var gTonesFrequencies = {
 // or is minimized (it does not now).
 window.addEventListener('message', function visibleApp(evt) {
   var data = evt.data;
-  if (evt.data.message == 'visibilitychange' && !data.hidden)
-    visibilityChanged(data.url, evt.source);
-  else if (evt.data == 'connected') {
+  if (evt.data.message == 'visibilitychange' && !data.hidden) {
+    visibilityChanged(data.url, evt);
+  } else if (evt.data == 'connected') {
     CallHandler.connected();
   } else if (evt.data == 'disconnected') {
     CallHandler.disconnected();
   }
 });
 
-function visibilityChanged(url, source) {
+function visibilityChanged(url, evt) {
   var params = (function makeURL() {
     var a = document.createElement('a');
     a.href = url;
 
-    var search = a.search;
-    if (!search)
-      return '';
-    search = search.substring(1, search.length);
-
     var rv = {};
-    var params = search.split('&');
+    var params = a.search.substring(1, a.search.length).split('&');
     for (var i = 0; i < params.length; i++) {
       var data = params[i].split('=');
       rv[data[0]] = data[1];
@@ -52,7 +47,7 @@ function visibilityChanged(url, source) {
     choiceChanged(contacts);
   } else if (choice == 'incoming') {
     var number = params['number'];
-    CallHandler.incoming(source, number);
+    CallHandler.incoming(evt, number);
   }
 }
 
@@ -274,14 +269,14 @@ var CallHandler = {
     this.currentCall = call;
   },
 
-  incoming: function ch_incoming(source, number) {
+  incoming: function ch_incoming(evt, number) {
     var call = this.currentCall = {
       'number': number,
       'answer': function call_answer() {
-        source.postMessage('answer', '*');
+        evt.source.postMessage('moztelephony:answer', evt);
       },
       'hangUp': function call_hangUp() {
-        source.postMessage('hangup', '*');
+        evt.source.postMessage('moztelephony:hangup', evt);
       },
       'addEventListener': function call_addEventListener() {},
       'removeEventListener': function call_removeEventListener() {}
@@ -330,7 +325,6 @@ var CallHandler = {
   },
 
   handleEvent: function fm_handleEvent(evt) {
-    console.log('Call changed state: ' + evt.call.state);
     switch (evt.call.state) {
       case 'connected':
         this.connected();

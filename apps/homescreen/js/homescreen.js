@@ -488,21 +488,20 @@ function OnLoad() {
   try {
     navigator.mozTelephony.addEventListener('incoming', function(evt) {
       var call = evt.call;
-      console.log('incoming call from ' + call.number);
 
       var url = '../dialer/dialer.html?choice=incoming&number=';
       var app = Gaia.AppManager.launch(url + call.number);
 
       call.addEventListener('statechange', function callState() {
-        app.contentWindow.postMessage(call.state, '*');
+        app.contentWindow.postMessage(call.state, url);
       });
 
       window.addEventListener('message', function handleCall(evt) {
         switch (evt.data) {
-          case 'answer':
+          case 'moztelephony:answer':
             call.answer();
             break;
-          case 'hangup':
+          case 'moztelephony:hangup':
             window.removeEventListener('message', handleCall);
             call.hangUp();
             break;
