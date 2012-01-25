@@ -328,17 +328,17 @@ iframe.appWindow.noTransition {
   display: inline-block;
   width: 100%;
   height: 100%;
-  margin: 0;
+  margin: 0 -25%;
   position: relative;
-  -moz-transform: scale(0.5);
+  -moz-transform: scale(0.4);
 }
 
 #taskManager li:first-child {
-  margin-left: 60%;
+  margin-left: 50%;
 }
 
 #taskManager li:last-child {
-  margin-right: 60%;
+  margin-right: 50%;
 }
 
 #taskManager li > a {
@@ -349,7 +349,7 @@ iframe.appWindow.noTransition {
   position: absolute;
   top: -16px;
   right: -16px;
-  -moz-transform: scale(2);
+  -moz-transform: scale(2.5);
 }
 
 #taskManager li > h1 {
