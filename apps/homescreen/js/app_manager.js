@@ -217,6 +217,10 @@ if (!window['Gaia'])
           this.postMessage(state, '*');
         }, true);
 
+        var openEvent = document.createEvent('CustomEvent');
+        openEvent.initCustomEvent('appwillopen', true, true, app.name);
+        window.dispatchEvent(openEvent);
+
         var taskElement = foregroundWindow.taskElement;
         taskElement.addEventListener('click', (function taskClickHandler(evt) {
           Gaia.TaskManager.setActive(false);

@@ -3,6 +3,8 @@
 
 'use strict';
 
+var emulateRun = (window.navigator.userAgent.indexOf('B2G') == -1);
+
 if (!window['Gaia'])
   var Gaia = {};
 

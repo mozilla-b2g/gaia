@@ -7,6 +7,42 @@ const SHORTCUTS_HEIGHT = 144;
 
 var displayState;
 
+function showSourceViewer(url) {
+  var document = content.document;
+  var viewsource = document.getElementById('appViewsource');
+  if (!viewsource) {
+    var style = '#appViewsource { ' +
+                '  position: absolute;' +
+                '  top: -moz-calc(10%);' +
+                '  left: -moz-calc(10%);' +
+                '  width: -moz-calc(80% - 2 * 15px);' +
+                '  height: -moz-calc(80% - 2 * 15px);' +
+                '  visibility: hidden;' +
+                '  box-shadow: 10px 10px 5px #888;' +
+                '  margin: 15px;' +
+                '  background-color: white;' +
+                '  opacity: 0.92;' +
+                '  color: black;' +
+                '  z-index: 9999;' +
+                '}';
+    document.styleSheets[0].insertRule(style, 0);
+
+    viewsource = document.createElement('iframe');
+    viewsource.id = 'appViewsource';
+    document.body.appendChild(viewsource);
+  }
+  viewsource.style.visibility = 'visible';
+  viewsource.src = 'view-source: ' + url;
+}
+
+function hideSourceViewer() {
+  var viewsource = content.document.getElementById('appViewsource');
+  if (!viewsource)
+    return;
+  viewsource.style.visibility = 'hidden';
+}
+
+
 // Change the display state (off, locked, default)
 function changeDisplayState(state) {
   displayState = state;
