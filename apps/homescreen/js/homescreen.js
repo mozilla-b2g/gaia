@@ -485,7 +485,7 @@ function OnLoad() {
   ];
   new NotificationScreen(touchables);
 
-  try {
+  if (navigator.mozTelephony) {
     navigator.mozTelephony.addEventListener('incoming', function(evt) {
       var call = evt.call;
 
@@ -508,7 +508,7 @@ function OnLoad() {
         }
       });
     });
-  } catch (e) {}
+  }
 
   var apps = Gaia.AppManager.getInstalledApps(function(apps) {
     // XXX this add 5 times the same set of icons
