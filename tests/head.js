@@ -14,3 +14,25 @@ function waitFor(callback, test, timeout) {
     throw 'waitFor timeout';
   setTimeout(waitFor, 50, callback, test, timeout);
 }
+
+function appTest(callback) {
+  waitForExplicitFinish();
+
+  waitFor(function() {
+    setTimeout(function() {
+      let contentWindow = shell.home.contentWindow.wrappedJSObject;
+      contentWindow.Gaia.lockScreen.unlock();
+      var AppManager = contentWindow.Gaia.AppManager;
+
+      callback(AppManager);
+
+      AppManager.runningApps.forEach(function(app) {
+        AppManager.close(app.url);
+      });
+    }, 300);
+
+  }, function() {
+    let contentWindow = shell.home.contentWindow.wrappedJSObject;
+    return 'Gaia' in contentWindow;
+  });
+}

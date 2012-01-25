@@ -495,7 +495,7 @@ LockScreen.prototype = {
 };
 
 function OnLoad() {
-  var lockScreen = new LockScreen(document.getElementById('lockscreen'));
+  Gaia.lockScreen = new LockScreen(document.getElementById('lockscreen'));
 
   var touchables = [
     document.getElementById('notificationsScreen'),
