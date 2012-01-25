@@ -38,11 +38,11 @@ var Timer = {
     this.durationField.disabled = true;
 
     var duration = this.duration(this.durationField.value);
-    this._endTime = Date.now() + duration;
+    var endTime = Date.now() + duration;
     this.updateChrono(duration);
 
     this._ticker = setInterval(function ti_updateChrono(self) {
-      var remaining = self._endTime - Date.now();
+      var remaining = endTime - Date.now();
       if (remaining <= 0) {
         self.updateChrono(0);
         self.end();
@@ -58,9 +58,10 @@ var Timer = {
     this.tickerView.classList.remove('running');
     this.durationField.disabled = false;
 
+    this.updateChrono(0);
+
     clearInterval(this._ticker);
     delete this._ticker;
-    delete this._endTime;
   },
 
   end: function ti_end() {

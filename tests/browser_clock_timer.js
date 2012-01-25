@@ -22,7 +22,7 @@ function test() {
 
         ok(actionButton.dataset.action == 'cancel', 'Cancel button present');
         ok(tickerView.classList.contains('running'), 'Timer animation running');
-        isnot(timer._endTime, undefined, 'End time set');
+        ok(chronoView.innerHTML != '00:00', 'End time set');
         isnot(timer._ticker, undefined, 'Ticker running');
         ok(durationField.disabled, 'Duration is not editable');
 
@@ -32,7 +32,7 @@ function test() {
         ok(actionButton.dataset.action == 'start', 'Start button present');
         ok(!tickerView.classList.contains('running'), 'Timer animation stoped');
         is(timer._ticker, undefined, 'Ticker cleared');
-        is(timer._endTime, undefined, 'End time deleted');
+        ok(chronoView.innerHTML == '00:00', 'End time not displayed');
         ok(!durationField.disabled, 'Duration is editable');
 
         // timer duration parsing
