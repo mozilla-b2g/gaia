@@ -546,7 +546,7 @@ function OnLoad() {
       var src = shortcut.icon;
       var action = shortcut.action;
       shortcuts += '<span class="shortcut" onclick="' + action + '">' +
-                   '  <img class="shorcut-image" src="' + src + '"></img>' +
+                   '  <img class="shortcut-image" src="' + src + '"></img>' +
                    '</span>';
     }
     document.getElementById('home-shortcuts').innerHTML = shortcuts;
