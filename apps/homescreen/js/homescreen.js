@@ -66,7 +66,7 @@ DefaultPhysics.prototype = {
 
     var quick = (e.timeStamp - touchState.startTime < 200);
     var long = (e.timeStamp - touchState.startTime > 2000);
-    var small = Math.abs(diffX) < 10;
+    var small = Math.abs(diffX) < 20;
 
     var flick = quick && !small;
     var tap = !this.moved && small;
