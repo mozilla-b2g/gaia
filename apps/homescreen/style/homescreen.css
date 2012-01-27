@@ -289,15 +289,8 @@ iframe.appWindow.noTransition {
 }
 
 #taskManager {
- /*
-  * Temporarily work around
-  * https://bugzilla.mozilla.org/show_bug.cgi?id=715232 which is
-  * triggered by the rules below (on Gonk).
-  *
   background-color: rgba(0, 0, 0, 0.8);
   opacity: 0;
-  */
-  background: hsl(0,0%,40%) url(images/noise.png) 2%;
   position: absolute;
   top: 0;
   left: 0;
