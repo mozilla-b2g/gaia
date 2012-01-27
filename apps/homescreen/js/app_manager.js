@@ -30,65 +30,10 @@ if (!window['Gaia'])
               && uo1.hash === uo2.hash);
     },
 
-    _appIdCounter: 0,
-
-    _foregroundWindows: [],
-
-    set foregroundWindow(win) {
-      this._foregroundWindows.push(win);
-    },
-
-    get foregroundWindow() {
-      var foregroundWindows = this._foregroundWindows;
-      var count = foregroundWindows.length;
-      for (var i = count; i > 0; i--) {
-        if (foregroundWindows[i - 1].hasAttribute('hidden'))
-          foregroundWindows.pop();
-      }
-
-      count = foregroundWindows.length;
-      if (!count)
-        return null;
-
-      return foregroundWindows[count - 1];
-    },
-
     _runningApps: [],
 
     get runningApps() {
       return this._runningApps;
-    },
-
-    get screen() {
-      delete this.screen;
-      return this.screen = document.getElementById('screen');
-    },
-
-    get windowsContainer() {
-      delete this.windowsContainer;
-
-      var element = document.getElementById('windows');
-      element.show = function() {
-        element.classList.add('active');
-      };
-      element.hide = function() {
-        element.classList.remove('active');
-      };
-      element.createWindow = (function(app) {
-        var documentElement = document.documentElement;
-        var iframe = document.createElement('iframe');
-        var id = this._appIdCounter++;
-        var url = app.url;
-        iframe.className = 'appWindow';
-        iframe.src = url;
-        iframe.id = 'app_' + id;
-        iframe.style.width = documentElement.clientWidth + 'px';
-        iframe.style.height = documentElement.clientHeight - 37 + 'px';
-        iframe.taskElement = Gaia.TaskManager.add(app, id);
-        element.appendChild(iframe);
-        return iframe;
-      }).bind(this);
-      return this.windowsContainer = element;
     },
 
     init: function() {
@@ -180,117 +125,60 @@ if (!window['Gaia'])
       return null;
     },
 
-    getAppInstanceForWindow: function amGetAppInstanceForWindow(window) {
-      var runningApps = this._runningApps;
-      for (var i = 0; i < runningApps.length; i++) {
-        var runningApp = runningApps[i];
-        if (runningApp.window == window)
-          return runningApp;
-      }
-      return null;
-    },
-
     launch: function(url) {
-      var windowsContainer = this.windowsContainer;
-      windowsContainer.show();
-
-      var instance = this.getAppInstance(url);
-      var state = {
-        message: 'visibilitychange',
-        url: url,
-        hidden: false
-      };
+      var app = this.getInstalledAppForURL(url);
+      var gaiaWindow = Gaia.WindowManager.getWindowByApp(app);
 
       // App is already running, set focus to the existing instance.
-      if (instance) {
-        var foregroundWindow = this.foregroundWindow = instance.window;
-        foregroundWindow.contentWindow.postMessage(state, '*');
-        Gaia.TaskManager.sendToFront(instance.id);
+      if (gaiaWindow) {
+        Gaia.WindowManager.setForegroundWindow(gaiaWindow);
+        Gaia.TaskManager.sendToFront(gaiaWindow.id);
       } else {
-        var app = this.getInstalledAppForURL(url);
-        var newWindow = windowsContainer.createWindow(app);
-        var foregroundWindow = this.foregroundWindow = newWindow;
-
-        var contentWindow = foregroundWindow.contentWindow;
-        contentWindow.addEventListener('load', function appload(evt) {
-          this.removeEventListener('load', appload, true);
-          this.postMessage(state, '*');
-        }, true);
-
-        var taskElement = foregroundWindow.taskElement;
-        taskElement.addEventListener('click', (function taskClickHandler(evt) {
-          Gaia.TaskManager.setActive(false);
-          window.setTimeout(function launchApp(self) {
-            self.launch(url);
-          }, 50, this);
-        }).bind(this));
+        gaiaWindow = new Gaia.Window(app);
+        Gaia.WindowManager.setForegroundWindow(gaiaWindow, function() {
+          var appopenEvent = document.createEvent('CustomEvent');
+          appopenEvent.initCustomEvent('appopen', true, true, app.name);
+          window.dispatchEvent(appopenEvent);
+        });
 
         this._runningApps.push({
           name: app.name,
-          id: this._appIdCounter - 1,
+          id: gaiaWindow.id,
           url: url,
-          window: foregroundWindow
+          window: gaiaWindow
         });
       }
 
-      var transitionHandler = function() {
-        foregroundWindow.removeEventListener('transitionend',
-                                             transitionHandler);
-        foregroundWindow.focus();
-
-        var name = instance ? instance.name : app.name;
-        var openEvent = document.createEvent('CustomEvent');
-        openEvent.initCustomEvent('appopen', true, true, name);
-        window.dispatchEvent(openEvent);
-      };
-
-      foregroundWindow.addEventListener('transitionend', transitionHandler);
-      window.setTimeout(function showWindow() {
-        foregroundWindow.classList.add('active');
-      }, 50);
-
-      return foregroundWindow;
+      return gaiaWindow;
     },
 
     close: function() {
-      var foregroundWindow = this.foregroundWindow;
+      var gaiaWindow = Gaia.WindowManager.getForegroundWindow();
+      var app = gaiaWindow.app;
 
-      if (!foregroundWindow)
+      if (!gaiaWindow || !app)
         return;
-
-      var windowsContainer = this.windowsContainer;
-
-      var instance = this.getAppInstanceForWindow(foregroundWindow);
-      var state = {
-        message: 'visibilitychange',
-        url: instance.url,
-        hidden: true
-      };
-
-      var transitionHandler = function() {
-        foregroundWindow.removeEventListener('transitionend',
-                                             transitionHandler);
-        foregroundWindow.blur();
-        foregroundWindow.contentWindow.postMessage(state, '*');
-        windowsContainer.hide();
-        window.focus();
-
-        var closeEvent = document.createEvent('CustomEvent');
-        closeEvent.initCustomEvent('appclose', true, true, instance.name);
-        window.dispatchEvent(closeEvent);
-      };
-
-      foregroundWindow.addEventListener('transitionend', transitionHandler);
-      foregroundWindow.classList.remove('active');
+      
+      Gaia.WindowManager.setForegroundWindow(null, function() {
+        var appcloseEvent = document.createEvent('CustomEvent');
+        appcloseEvent.initCustomEvent('appclose', true, true, app.name);
+        window.dispatchEvent(appcloseEvent);
+      });
     },
 
     kill: function(url) {
+      var app = this.getInstalledAppForURL(url);
+      var gaiaWindow = Gaia.WindowManager.getWindowByApp(app);
+      
+      if (gaiaWindow) {
+        Gaia.WindowManager.remove(gaiaWindow);
+      }
+      
       var runningApps = this._runningApps;
-      for (var i = 0; i < runningApps.length; i++) {
+      for (var i = 0, length = runningApps.length; i < length; i++) {
         if (runningApps[i].url === url) {
-          this.windowsContainer.removeChild(runningApps[i].window);
           runningApps.splice(i, 1);
-          break;
+          return;
         }
       }
     }

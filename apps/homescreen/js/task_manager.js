@@ -48,24 +48,22 @@ Gaia.AnimationLoop = function(renderCallback) {
 
       this._isActive = value;
 
-      var runningApps = Gaia.AppManager.runningApps;
+      Gaia.WindowManager.setActive(false);
+      
+      var windows = Gaia.WindowManager.windows;
       var listItemWidth = window.innerWidth * 0.5;
 
       if (value) {
+        for (var i = 0, length = windows.length; i < length; i++)
+          windows[i].setActive(true);
+        
         this.listElement.scrollLeft = listItemWidth;
         this.element.classList.add('active');
-        for (var i = 0; i < runningApps.length; i++) {
-          var classList = runningApps[i].window.classList;
-          classList.add('active');
-          classList.add('noTransition');
-        }
       } else {
+        for (var i = 0, length = windows.length; i < length; i++)
+          windows[i].setActive(false);
+        
         this.element.classList.remove('active');
-        for (var i = 0; i < runningApps.length; i++) {
-          var classList = runningApps[i].window.classList;
-          classList.remove('active');
-          classList.remove('noTransition');
-        }
       }
     },
 
@@ -107,7 +105,7 @@ Gaia.AnimationLoop = function(renderCallback) {
           if (this.isActive)
             this.setActive(false);
           else {
-            checkKeyPressTimeout = setTimeout(function checkKeyPress(self) {
+            checkKeyPressTimeout = window.setTimeout(function checkKeyPress(self) {
               checkKeyPressTimeout = null;
 
               if (isKeyDown)
@@ -198,9 +196,9 @@ Gaia.AnimationLoop = function(renderCallback) {
       var item = document.createElement('li');
       item.id = 'task_' + id;
 
-      var mozElement = 'background: -moz-element(#app_' + id + ') no-repeat';
+      var mozElement = 'background: -moz-element(#window_' + id + ') no-repeat';
       item.setAttribute('style', mozElement);
-
+      
       var close = document.createElement('a');
       close.href = '#';
       close.addEventListener('click', (function(evt) {
@@ -218,6 +216,15 @@ Gaia.AnimationLoop = function(renderCallback) {
         listElement.insertBefore(item, listElement.firstChild);
       else
         listElement.appendChild(item);
+      
+      var self = this;
+      
+      item.addEventListener('click', function taskClickHandler(evt) {
+        self.setActive(false);
+        window.setTimeout(function launchApp() {
+          Gaia.AppManager.launch(app.url);
+        }, 400);
+      });
 
       return item;
     },
