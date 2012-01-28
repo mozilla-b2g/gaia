@@ -267,51 +267,6 @@ const IMEManager = {
     this.imeEvents.forEach((function imeEvents(type) {
       this.ime.addEventListener(type, this);
     }).bind(this));
-
-    this.keyboards.forEach((function loadIMEngines(name) {
-      var keyboard = Keyboards[name];
-      if (keyboard.type !== 'ime')
-        return;
-
-      var sourceDir = './imes/';
-      var imEngine = keyboard.imEngine;
-
-      var script = document.createElement('script');
-      script.src = sourceDir + imEngine + '/loader.js';
-
-      var self = this;
-      var glue = {
-        dbOptions: {
-          data: sourceDir + imEngine + '/data.json'
-        },
-        sendChoices: function(candidates) {
-          self.showCandidates(candidates);
-        },
-        sendKey: function(keyCode) {
-          switch (keyCode) {
-            case KeyEvent.DOM_VK_BACK_SPACE:
-            case KeyEvent.DOM_VK_RETURN:
-              window.navigator.mozKeyboard.sendKey(keyCode, keyCode);
-            break;
-
-            default:
-              window.navigator.mozKeyboard.sendKey(0, keyCode);
-            break;
-          }
-        },
-        sendString: function(str) {
-          for (var i = 0; i < str.length; i++)
-            this.sendKey(str.charCodeAt(i));
-        }
-      };
-
-      script.addEventListener('load', (function IMEnginesLoaded() {
-        var engine = this.IMEngines[imEngine];
-        engine.init(glue);
-      }).bind(this));
-
-      document.body.appendChild(script);
-    }).bind(this));
   },
 
   uninit: function km_uninit() {
@@ -322,6 +277,54 @@ const IMEManager = {
     this.imeEvents.forEach((function imeEvents(type) {
       this.ime.removeEventListener(type, this);
     }).bind(this));
+  },
+
+  loadKeyboard: function km_loadKeyboard(name) {
+    var keyboard = Keyboards[name];
+    if (keyboard.type !== 'ime' || keyboard.imeLoaded)
+      return;
+
+    // Only try to load the IME engine once.
+    keyboard.imeLoaded = true;
+
+    var sourceDir = './imes/';
+    var imEngine = keyboard.imEngine;
+
+    var script = document.createElement('script');
+    script.src = sourceDir + imEngine + '/loader.js';
+
+    var self = this;
+    var glue = {
+      dbOptions: {
+        data: sourceDir + imEngine + '/data.json'
+      },
+      sendChoices: function(candidates) {
+        self.showCandidates(candidates);
+      },
+      sendKey: function(keyCode) {
+        switch (keyCode) {
+          case KeyEvent.DOM_VK_BACK_SPACE:
+          case KeyEvent.DOM_VK_RETURN:
+            window.navigator.mozKeyboard.sendKey(keyCode, keyCode);
+            break;
+
+          default:
+            window.navigator.mozKeyboard.sendKey(0, keyCode);
+            break;
+        }
+      },
+      sendString: function(str) {
+        for (var i = 0; i < str.length; i++)
+          this.sendKey(str.charCodeAt(i));
+      }
+    };
+
+    script.addEventListener('load', (function IMEnginesLoaded() {
+      var engine = this.IMEngines[imEngine];
+      engine.init(glue);
+    }).bind(this));
+
+    document.body.appendChild(script);
   },
 
   handleEvent: function km_handleEvent(evt) {
@@ -703,6 +706,8 @@ const IMEManager = {
   },
 
   showIME: function km_showIME(targetWindow, type) {
+    this.loadKeyboard(this.currentKeyboard);
+
     if (this.ime.dataset.hidden) {
       this.targetWindow = targetWindow;
       var oldHeight = targetWindow.style.height;
