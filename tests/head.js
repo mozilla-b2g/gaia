@@ -15,24 +15,33 @@ function waitFor(callback, test, timeout) {
   setTimeout(waitFor, 50, callback, test, timeout);
 }
 
+// XXX the tests are initially started a little too early
+// contrary to classic browser chrome tests we need to load Gaia first
+// while waiting for a better readiness test at least this is isolated
+// (and we're only waiting once)
+var gaiaReady = false;
+setTimeout(function() {
+  gaiaReady = true;
+}, 500);
+
 function appTest(callback) {
-  waitForExplicitFinish();
-
   waitFor(function() {
-    setTimeout(function() {
-      let contentWindow = shell.home.contentWindow.wrappedJSObject;
-      contentWindow.Gaia.lockScreen.unlock();
-      var AppManager = contentWindow.Gaia.AppManager;
-
-      callback(AppManager);
-
-      AppManager.runningApps.forEach(function(app) {
-        AppManager.close(app.url);
-      });
-    }, 300);
-
-  }, function() {
     let contentWindow = shell.home.contentWindow.wrappedJSObject;
-    return 'Gaia' in contentWindow;
+    contentWindow.Gaia.lockScreen.unlock(-1, true);
+
+    var AppManager = contentWindow.Gaia.AppManager;
+    callback(AppManager);
+  }, function() {
+    return gaiaReady;
   });
 }
+
+registerCleanupFunction(function() {
+  let contentWindow = shell.home.contentWindow.wrappedJSObject;
+  contentWindow.Gaia.lockScreen.unlock(-1, true);
+
+  let AppManager = contentWindow.Gaia.AppManager;
+  AppManager.runningApps.forEach(function(app) {
+    AppManager.close(app.url);
+  });
+});
