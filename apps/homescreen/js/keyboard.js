@@ -267,6 +267,11 @@ const IMEManager = {
     this.imeEvents.forEach((function imeEvents(type) {
       this.ime.addEventListener(type, this);
     }).bind(this));
+
+    // XXX: only load user-desired keyboards from settings
+    this.keyboards.forEach((function loadIMEngines(name) {
+      this.loadKeyboard(name);
+    }).bind(this));
   },
 
   uninit: function km_uninit() {
