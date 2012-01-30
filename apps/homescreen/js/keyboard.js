@@ -297,12 +297,9 @@ const IMEManager = {
 
     var script = document.createElement('script');
     script.src = sourceDir + imEngine + '/loader.js';
-
     var self = this;
     var glue = {
-      dbOptions: {
-        data: sourceDir + imEngine + '/data.json'
-      },
+      path: sourceDir + imEngine,
       sendChoices: function(candidates) {
         self.showCandidates(candidates);
       },
