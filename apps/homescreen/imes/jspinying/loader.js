@@ -16,6 +16,14 @@ IMEManager.IMEngines.jspinying = {
     //   empty candidate panel to close the panel
     // glue.sendKey(keyCode)
     //   output a key, include control keys such as return and backspace
+    // one property is available:
+    // glue.path
+    //   path to ime dir for getting data using xhr
+
+    // NOTE: Do not attempted to load database in this function,
+    // you will slow down start up.
+    // Instead, add checks in click() and empty() and start loading
+    // database after the keyboard is being requested.
 
     this.glue = glue;
   },
