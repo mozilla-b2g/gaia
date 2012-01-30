@@ -23,9 +23,10 @@ window.addEventListener('message', function visibleApp(evt) {
 
 function visibilityChanged(url) {
   // TODO do something better here
-  var contacts = document.getElementById('contacts');
+  var contacts = document.getElementById('contacts-label');
   if (url.indexOf('?choice=contact') != -1 ||
       contacts.hasAttribute('data-active')) {
+    Contacts.load();
     choiceChanged(contacts);
   }
 }

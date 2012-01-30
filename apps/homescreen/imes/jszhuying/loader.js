@@ -30,6 +30,8 @@ var JSZhuYing = function JSZhuYing(settings) {
   // XXX This is dirty.
   if (!settings.progress) {
     settings.progress = function settingsProgress() {};
+  }
+  if (!settings.ready) {
     settings.ready = function settingsReady() {};
   }
 
@@ -55,6 +57,7 @@ var JSZhuYing = function JSZhuYing(settings) {
       getTermsJSON(
         function() {
           settings.ready.call(self);
+          debug('JSZhuYing: Ready.');
         }
       );
       return;
@@ -182,26 +185,56 @@ var JSZhuYing = function JSZhuYing(settings) {
 
   };
 
-  var getTermsJSON = function(callback) {
-    // Get data.json.js
+  var getTermsJSON = function (callback) {
+
     // this is the database we need to get terms against.
     // the JSON is converted from tsi.src and phone.cin in Chewing source code.
     // https://github.com/chewing/libchewing/blob/master/data/tsi.src
     // https://github.com/chewing/libchewing/blob/master/data/phone.cin
 
-    var xhr = new XMLHttpRequest();
-    xhr.open(
-      'GET',
-      settings.data || './data.json',
-      true
+    // XXX: tricky code path (for now)
+    getWordsJSON(
+      function () {
+        getPhrasesJSON(callback);
+      }
     );
+  };
+
+  var getWordsJSON = function (callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', settings.wordsJSON || './words.json', true);
+    xhr.responseType = 'json';
+    xhr.overrideMimeType("application/json; charset=utf-8");
     xhr.onreadystatechange = function(ev) {
       if (xhr.readyState !== 4) return;
-      try {
-        jsonData = JSON.parse(xhr.responseText);
-      } catch (e) {}
-      if (!jsonData) {
-        debug('JSZhuYing: JSON data failed to load.');
+      if (typeof xhr.response !== 'object') {
+        debug('JSZhuYing: Failed to load words.json.');
+        return;
+      }
+      jsonData = {};
+      for (var s in xhr.response) {
+        jsonData[s] = xhr.response[s];
+      }
+      xhr = null;
+
+      callback();
+    };
+    xhr.send(null);
+  };
+
+  var getPhrasesJSON = function (callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', settings.phrasesJSON || './phrases.json', true);
+    xhr.responseType = 'json';
+    xhr.overrideMimeType("application/json; charset=utf-8");
+    xhr.onreadystatechange = function (ev) {
+      if (xhr.readyState !== 4) return;
+      if (typeof xhr.response !== 'object') {
+        debug('JSZhuYing: Failed to load phrases.json.');
+        return;
+      }
+      for (var s in xhr.response) {
+        jsonData[s] = xhr.response[s];
       }
       xhr = null;
 
@@ -486,6 +519,10 @@ JSZhuYing.Mobi = function(settings) {
     syllablesInBuffer = [''];
     pendingSyllable = ['', '', '', ''];
     firstChoice = '';
+    if (!jszhuying) {
+      jszhuying = JSZhuYing(jszhuyingSettings);
+      return;
+    }
   };
 
   var queue = function(code) {
@@ -510,6 +547,11 @@ JSZhuYing.Mobi = function(settings) {
   };
 
   var next = function() {
+    if (!jszhuying) {
+      jszhuyingSettings.ready = next;
+      jszhuying = JSZhuYing(jszhuyingSettings);
+      return;
+    }
     if (!keypressQueue.length) {
       isWorking = false;
       return;
@@ -699,7 +741,11 @@ JSZhuYing.Mobi = function(settings) {
   var firstChoice = '';
   var keypressQueue = [];
   var isWorking = false;
-  var jszhuying = JSZhuYing(settings.dbOptions);
+  var jszhuyingSettings = {
+    wordsJSON: settings.path + '/words.json',
+    phrasesJSON: settings.path + '/phrases.json'
+  };
+  var jszhuying;
 
   if (!settings)
     settings = {};
