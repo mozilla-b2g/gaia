@@ -161,8 +161,25 @@ Gaia.WindowSprite.prototype = {
 };
 
 Gaia.WindowManager = {
+  init: function() {
+    window.addEventListener('home', this);
+    window.addEventListener('message', this);
+  },
+  handleEvent: function(evt) {
+    switch (evt.type) {
+      case 'message':
+        if (evt.data === 'appclose')
+          this.closeForegroundWindow();
+        break;
+      case 'home':
+        this.closeForegroundWindow();
+        break;
+      default:
+        break;
+    }
+  },
   _isActive: false,
-  
+
   // Sets the WindowManager active/inactive. The WindowManager must be active
   // for the foreground Window to be visible. When inactive, the Windows can
   // still be used to get images used for the TaskManager and the minimize and
@@ -170,19 +187,19 @@ Gaia.WindowManager = {
   setActive: function _Gaia_WindowManager_setActive(isActive) {
     if (isActive === this._isActive)
       return;
-    
+  
     this._isActive = isActive;
-    
+  
     // Set all windows to be inactive.
     var windows = this.windows;
     for (var i = 0, length = windows.length; i < length; i++)
       if (windows[i] !== this._foregroundWindow)
         windows[i].setActive(false);
-    
-    
+  
+  
     var container = this.container;
     var classList = container.classList;
-    
+  
     if (isActive)
       classList.add('active');
     else
@@ -198,7 +215,7 @@ Gaia.WindowManager = {
     for (var i = 0, length = windows.length; i < length; i++)
       if (windows[i].app === app)
         return windows[i];
-    
+  
     return null;
   },
   add: function _Gaia_WindowManager_add(gaiaWindow) {
@@ -223,9 +240,9 @@ Gaia.WindowManager = {
     // If the specified Window is already the foreground Window, do nothing.
     if (this._foregroundWindow === gaiaWindow)
       return;
-    
+  
     var self = this;
-    
+  
     // If a valid Window has been specified, set the WindowManager to be
     // active and focus the new foreground Window.
     if (gaiaWindow) {
@@ -234,7 +251,7 @@ Gaia.WindowManager = {
           onCompleteCallback();
       });
     }
-    
+  
     // If no Window was specified, blur the previous foreground Window and set
     // the WindowManager to be inactive once the blurring is complete.
     else {
@@ -243,8 +260,55 @@ Gaia.WindowManager = {
           onCompleteCallback();
       });
     }
-    
+  
     this._foregroundWindow = gaiaWindow;
   },
+  closeForegroundWindow: function _Gaia_WindowManager_closeForegroundWindow() {
+    var foregroundWindow = this._foregroundWindow;
+    var app = foregroundWindow.app;
+
+    if (!foregroundWindow || !app)
+      return;
   
+    this.setForegroundWindow(null, function() {
+      var appcloseEvent = document.createEvent('CustomEvent');
+      appcloseEvent.initCustomEvent('appclose', true, true, app.name);
+      window.dispatchEvent(appcloseEvent);
+    });
+  },
+  launch: function _Gaia_WindowManager_launch(url) {
+    var app = Gaia.AppManager.getInstalledAppForURL(url);
+    var gaiaWindow = this.getWindowByApp(app);
+
+    // App is already running, set focus to the existing instance.
+    if (gaiaWindow) {
+      this.setForegroundWindow(gaiaWindow);
+      Gaia.TaskManager.sendToFront(gaiaWindow.id);
+    } else {
+      gaiaWindow = new Gaia.Window(app);
+      this.setForegroundWindow(gaiaWindow, function() {
+        var appopenEvent = document.createEvent('CustomEvent');
+        appopenEvent.initCustomEvent('appopen', true, true, app.name);
+        window.dispatchEvent(appopenEvent);
+      });
+    }
+
+    return gaiaWindow;
+  },
+  kill: function _Gaia_WindowManager_kill(url) {
+    var app = Gaia.AppManager.getInstalledAppForURL(url);
+    var gaiaWindow = this.getWindowByApp(app);
+  
+    if (gaiaWindow)
+      Gaia.WindowManager.remove(gaiaWindow);
+  }
 };
+
+(function() {
+  var onLoadHandler = function(evt) {
+    window.removeEventListener('load', onLoadHandler);
+    Gaia.WindowManager.init();
+  };
+  
+  window.addEventListener('load', onLoadHandler);
+})();

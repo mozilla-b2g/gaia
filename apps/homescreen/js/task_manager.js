@@ -148,14 +148,11 @@ Gaia.AnimationLoop = function(renderCallback) {
           break;
         case 'touchend':
           var listElement = this.listElement;
-          var runningAppCount = Gaia.AppManager.runningApps.length;
+          var windowCount = Gaia.WindowManager.windows.length;
           var listItemWidth = window.innerWidth * 0.5;
           var listIndex = Math.round(listElement.scrollLeft / listItemWidth);
-
-          if (listIndex === 0)
-            listIndex = 1;
-          else if (listIndex > runningAppCount)
-            listIndex = runningAppCount;
+          
+          listIndex = (listIndex === 0) ? 1 : (listIndex > windowCount) ? windowCount : listIndex;
 
           var currentScrollLeft = listElement.scrollLeft;
           var targetScrollLeft = listIndex * listItemWidth;
@@ -222,7 +219,7 @@ Gaia.AnimationLoop = function(renderCallback) {
       item.addEventListener('click', function taskClickHandler(evt) {
         self.setActive(false);
         window.setTimeout(function launchApp() {
-          Gaia.AppManager.launch(app.url);
+          Gaia.WindowManager.launch(app.url);
         }, 400);
       });
 
@@ -233,7 +230,7 @@ Gaia.AnimationLoop = function(renderCallback) {
       var listElement = this.listElement;
       var item = document.getElementById('task_' + id);
       listElement.removeChild(item);
-      Gaia.AppManager.kill(app.url);
+      Gaia.WindowManager.kill(app.url);
     },
 
     sendToFront: function(id) {

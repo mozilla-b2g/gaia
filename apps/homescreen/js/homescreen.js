@@ -255,7 +255,7 @@ IconGrid.prototype = {
     this.sceneGraph.forHit(
       x, y,
       function(sprite) {
-        Gaia.AppManager.launch(sprite.icon.url);
+        Gaia.WindowManager.launch(sprite.icon.url);
       });
   },
   handleEvent: function(e) {
@@ -502,8 +502,8 @@ function OnLoad() {
     document.getElementById('statusbar')
   ];
   new NotificationScreen(touchables);
-
-  var apps = Gaia.AppManager.getInstalledApps(function(apps) {
+  
+  var apps = Gaia.AppManager.loadInstalledApps(function(apps) {
     // XXX this add 5 times the same set of icons
     var icons = [];
     for (var i = 0; i < 5; i++)
@@ -536,7 +536,7 @@ function OnLoad() {
       if (index < 0)
         continue;
 
-      icon.action = 'Gaia.AppManager.launch(\'' + icon.url + '\')';
+      icon.action = 'Gaia.WindowManager.launch(\'' + icon.url + '\')';
       currentShortcuts.splice(index, 1, icon);
     }
 
@@ -551,7 +551,6 @@ function OnLoad() {
     }
     document.getElementById('home-shortcuts').innerHTML = shortcuts;
   });
-  Gaia.AppManager.init();
 
   var pagesContainer = document.getElementById('home-pages');
   document.addEventListener('pagechange', function(evt) {
