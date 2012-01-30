@@ -364,7 +364,7 @@ const IMEManager = {
         try {
           if (this.vibrate)
             navigator.mozVibrate(50);
-        } catch(e) {}
+        } catch (e) {}
 
         this._menuTimeout = setTimeout((function menuTimeout() {
             this.showAccentCharMenu();
