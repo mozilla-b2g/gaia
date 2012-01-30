@@ -1,5 +1,7 @@
 
 function test() {
+  waitForExplicitFinish();
+
   appTest(function(appManager) {
     appManager.launch('../settings/settings.html');
     var galleryFrame = appManager.launch('../gallery/gallery.html');

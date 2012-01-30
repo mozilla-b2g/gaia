@@ -1,5 +1,7 @@
 
 function test() {
+  waitForExplicitFinish();
+
   appTest(function(appManager) {
     var dialerFrame = appManager.launch('../dialer/dialer.html');
     waitFor(function() {

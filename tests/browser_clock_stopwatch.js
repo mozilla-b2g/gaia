@@ -1,5 +1,7 @@
 
 function test() {
+  waitForExplicitFinish();
+
   appTest(function(appManager) {
     var clockFrame = appManager.launch('../clock/clock.html');
 
