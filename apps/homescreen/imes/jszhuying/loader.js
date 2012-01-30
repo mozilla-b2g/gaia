@@ -30,6 +30,8 @@ var JSZhuYing = function JSZhuYing(settings) {
   // XXX This is dirty.
   if (!settings.progress) {
     settings.progress = function settingsProgress() {};
+  }
+  if (!settings.ready) {
     settings.ready = function settingsReady() {};
   }
 
@@ -517,6 +519,10 @@ JSZhuYing.Mobi = function(settings) {
     syllablesInBuffer = [''];
     pendingSyllable = ['', '', '', ''];
     firstChoice = '';
+    if (!jszhuying) {
+      jszhuying = JSZhuYing(jszhuyingSettings);
+      return;
+    }
   };
 
   var queue = function(code) {
@@ -541,6 +547,11 @@ JSZhuYing.Mobi = function(settings) {
   };
 
   var next = function() {
+    if (!jszhuying) {
+      jszhuyingSettings.ready = next;
+      jszhuying = JSZhuYing(jszhuyingSettings);
+      return;
+    }
     if (!keypressQueue.length) {
       isWorking = false;
       return;
@@ -730,12 +741,11 @@ JSZhuYing.Mobi = function(settings) {
   var firstChoice = '';
   var keypressQueue = [];
   var isWorking = false;
-  var jszhuying = JSZhuYing(
-    {
-      wordsJSON: settings.path + '/words.json',
-      phrasesJSON: settings.path + '/phrases.json'
-    }
-  );
+  var jszhuyingSettings = {
+    wordsJSON: settings.path + '/words.json',
+    phrasesJSON: settings.path + '/phrases.json'
+  };
+  var jszhuying;
 
   if (!settings)
     settings = {};
