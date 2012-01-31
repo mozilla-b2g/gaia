@@ -1,9 +1,8 @@
 
 function test() {
-  waitForExplicitFinish();
+  SimpleTest.__appTestFinished = false;
 
-  appTest(function(appManager) {
-    var smsFrame = appManager.launch('../sms/sms.html');
+  appTest('../sms/sms.html', function(smsFrame) {
     waitFor(function() {
       let document = smsFrame.contentWindow.document;
 
@@ -34,7 +33,7 @@ function test() {
             ok(throbber.hidden, 'Throbber hidden');
             ok(conversationView.hidden, 'Conversation hidden');
 
-            finish();
+            SimpleTest.__appTestFinished = true;
           }, function() {
             return (document.getElementById('messages').children.length ==
                     (convCount + 1));

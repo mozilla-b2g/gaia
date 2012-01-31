@@ -1,9 +1,8 @@
 
 function test() {
-  waitForExplicitFinish();
+  SimpleTest.__appTestFinished = false;
 
-  appTest(function(appManager) {
-    var dialerFrame = appManager.launch('../dialer/dialer.html');
+  appTest('../dialer/dialer.html', function(dialerFrame) {
     waitFor(function() {
       let document = dialerFrame.contentWindow.document;
 
@@ -17,7 +16,7 @@ function test() {
       ok(document.getElementById('phone-number-view').textContent == '131',
          'Phone number view updated');
 
-      finish();
+      SimpleTest.__appTestFinished = true;
     }, function() {
       let dialerWindow = dialerFrame.contentWindow;
       return 'KeyHandler' in dialerWindow;

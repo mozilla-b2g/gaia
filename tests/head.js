@@ -1,4 +1,3 @@
-
 const kDefaultWait = 2000;
 // Wait for a condition and call a supplied callback if condition is met within
 // alloted time. If condition is not met, cause a hard failure,
@@ -15,37 +14,58 @@ function waitFor(callback, test, timeout) {
   setTimeout(waitFor, 50, callback, test, timeout);
 }
 
-// XXX the tests are initially started a little too early
-// contrary to classic browser chrome tests we need to load Gaia first
-// while waiting for a better readiness test at least this is isolated
-// (and we're only waiting once)
-var gaiaReady = false;
-setTimeout(function() {
-  gaiaReady = true;
-}, 500);
+// XXX: Currently we're waiting for the lockscreen to be auto-locked
+// then we're unlocking it and waiting for the custom event to declare
+// the tests ready to run.
+// There should be a better way...
+if (typeof readyAndUnlocked === 'undefined') {
+  readyAndUnlocked = false;
 
-function appTest(callback) {
   waitFor(function() {
-    let contentWindow = shell.home.contentWindow.wrappedJSObject;
-    contentWindow.Gaia.lockScreen.unlock(-1, true);
+    var contentWindow = shell.home.contentWindow.wrappedJSObject;
+    contentWindow.addEventListener('unlocked', function waitUnlocked() {
+      contentWindow.removeEventListener('unlocked', waitUnlocked);
+      readyAndUnlocked = true;
+    });
 
-    var AppManager = contentWindow.Gaia.AppManager;
-    callback(AppManager);
+    contentWindow.addEventListener('locked', function waitLocked() {
+      contentWindow.removeEventListener('locked', waitLocked);
+      contentWindow.Gaia.lockScreen.unlock(-1, true);
+    });
   }, function() {
-    return gaiaReady;
+    let contentWindow = shell.home.contentWindow.wrappedJSObject;
+    return ('Gaia' in contentWindow) && ('lockScreen' in contentWindow.Gaia);
   });
 }
 
-registerCleanupFunction(function() {
-  let contentWindow = shell.home.contentWindow.wrappedJSObject;
-  contentWindow.Gaia.lockScreen.unlock(-1, true);
+function appTest(url, callback) {
+  waitForExplicitFinish();
 
-  let AppManager = contentWindow.Gaia.AppManager;
-  AppManager.close();
-  contentWindow.addEventListener('appclose', function closeWait() {
-    contentWindow.removeEventListener('appclose', closeWait);
-    AppManager.runningApps.forEach(function(app) {
-      AppManager.kill(app.url);
+  waitFor(function() {
+    var contentWindow = shell.home.contentWindow.wrappedJSObject;
+    var AppManager = contentWindow.Gaia.AppManager;
+    AppManager.launch(url);
+
+    contentWindow.addEventListener('appopen', function launchWait() {
+      contentWindow.removeEventListener('appopen', launchWait);
+
+      callback(AppManager.foregroundWindow);
+
+      // cleaning up
+      waitFor(function() {
+        AppManager.close();
+        contentWindow.addEventListener('appclose', function closeWait() {
+          contentWindow.removeEventListener('appclose', closeWait);
+          AppManager.kill(url);
+
+          finish();
+        });
+      }, function() {
+        return SimpleTest.__appTestFinished;
+      }, (Date.now() + 5000));
     });
+  }, function() {
+    return readyAndUnlocked;
   });
-});
+}
+

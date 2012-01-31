@@ -1,9 +1,8 @@
 
 function test() {
-  waitForExplicitFinish();
+  SimpleTest.__appTestFinished = false;
 
-  appTest(function(appManager) {
-    var dialerFrame = appManager.launch('../dialer/dialer.html');
+  appTest('../dialer/dialer.html', function(dialerFrame) {
     waitFor(function() {
       let dialerWindow = dialerFrame.contentWindow;
       dialerWindow.visibilityChanged('../dialer/dialer.html?choice=contact');
@@ -11,7 +10,8 @@ function test() {
       ok(!dialerWindow.document.getElementById('contacts-view').hidden,
          'Contact view displayed');
       ok(dialerWindow.Contacts._loaded, 'Contacts loaded');
-      finish();
+
+      SimpleTest.__appTestFinished = true;
     }, function() {
       let dialerWindow = dialerFrame.contentWindow;
       return 'KeyHandler' in dialerWindow;
