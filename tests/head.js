@@ -41,7 +41,11 @@ registerCleanupFunction(function() {
   contentWindow.Gaia.lockScreen.unlock(-1, true);
 
   let AppManager = contentWindow.Gaia.AppManager;
-  AppManager.runningApps.forEach(function(app) {
-    AppManager.close(app.url);
+  AppManager.close();
+  contentWindow.addEventListener('appclose', function closeWait() {
+    contentWindow.removeEventListener('appclose', closeWait);
+    AppManager.runningApps.forEach(function(app) {
+      AppManager.kill(app.url);
+    });
   });
 });

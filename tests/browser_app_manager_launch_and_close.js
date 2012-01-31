@@ -17,6 +17,8 @@ function test() {
       appManager.kill('../gallery/gallery.html');
       ok(appManager.runningApps.length == 1, 'Only 1 running app left');
 
+      appManager.launch('../settings/settings.html');
+
       finish();
     }, function() {
       let galleryWindow = galleryFrame.contentWindow;
