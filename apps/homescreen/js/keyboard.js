@@ -664,7 +664,7 @@ const IMEManager = {
         var code = key.keyCode || keyChar.charCodeAt(0);
 
 
-        if (code == 32) {
+        if (code == KeyboardEvent.DOM_VK_SPACE) {
           // space key: replace/append with control and type keys
 
           var ratio = key.ratio || 1;
@@ -707,7 +707,7 @@ const IMEManager = {
             break;
             case 'email':
               ratio -= 2;
-              content += buildKey(32, '⎵', '', ratio);
+              content += buildKey(KeyboardEvent.DOM_VK_SPACE, '⎵', '', ratio);
               content += buildKey(64, '@', '', 1);
               content += buildKey(46, '.', '', 1);
             break;
@@ -728,7 +728,7 @@ const IMEManager = {
                 content += buildKey(44, ',', '', 1);
               }
 
-              content += buildKey(32, '⎵', '', ratio);
+              content += buildKey(KeyboardEvent.DOM_VK_SPACE, '⎵', '', ratio);
 
               if (layout.textLayoutOverwrite['.']) {
                 content += buildKey(
