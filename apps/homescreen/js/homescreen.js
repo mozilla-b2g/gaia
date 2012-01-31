@@ -456,6 +456,10 @@ LockScreen.prototype = {
     style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
     style.MozTransform = 'translateY(' + offset + ')';
     changeDisplayState('unlocked');
+
+    var unlockEvent = document.createEvent('CustomEvent');
+    unlockEvent.initCustomEvent('unlocked', true, true, null);
+    window.dispatchEvent(unlockEvent);
   },
   lock: function(instant) {
     var style = this.overlay.style;
@@ -466,6 +470,10 @@ LockScreen.prototype = {
       style.MozTransform = 'translateY(0)';
     }
     changeDisplayState('locked');
+
+    var lockEvent = document.createEvent('CustomEvent');
+    lockEvent.initCustomEvent('locked', true, true, null);
+    window.dispatchEvent(lockEvent);
   },
   handleEvent: function(e) {
     hideSourceViewer();
