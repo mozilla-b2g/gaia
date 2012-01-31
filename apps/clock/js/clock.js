@@ -1,3 +1,4 @@
+'use strict';
 
 function choiceChanged(target) {
   var choice = target.dataset.choice;
