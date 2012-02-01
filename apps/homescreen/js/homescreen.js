@@ -519,10 +519,9 @@ function OnLoad() {
     var height = canvas.height = screenHeight - 37 - SHORTCUTS_HEIGHT;
 
     var iconGrid = new IconGrid(canvas, 120, 120, 0.2);
-    var ctx = document.l10nCtx;
     for (var n = 0; n < icons.length; ++n) {
       var icon = icons[n];
-      iconGrid.add(icon.icon, ctx.get(icon.name), icon.url);
+      iconGrid.add(icon.icon, icon.name, icon.url);
     }
 
     // Create the main shortcuts
