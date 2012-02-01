@@ -14,10 +14,10 @@ function waitFor(callback, test, timeout) {
   setTimeout(waitFor, 50, callback, test, timeout);
 }
 
-// XXX: Currently we're waiting for the lockscreen to be auto-locked
+// Currently we're waiting for the lockscreen to be auto-locked
 // then we're unlocking it and waiting for the custom event to declare
 // the tests ready to run.
-// There should be a better way...
+// see https://github.com/andreasgal/gaia/issues/333
 if (typeof readyAndUnlocked === 'undefined') {
   readyAndUnlocked = false;
 
