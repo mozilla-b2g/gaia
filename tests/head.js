@@ -38,34 +38,30 @@ if (typeof readyAndUnlocked === 'undefined') {
   });
 }
 
-function appTest(url, callback) {
-  waitForExplicitFinish();
-
+function getApplicationManager(callback) {
   waitFor(function() {
-    var contentWindow = content.wrappedJSObject;
-    var AppManager = contentWindow.Gaia.AppManager;
-    AppManager.launch(url);
-
-    contentWindow.addEventListener('appopen', function launchWait() {
-      contentWindow.removeEventListener('appopen', launchWait);
-
-      callback(AppManager.foregroundWindow);
-
-      // cleaning up
-      waitFor(function() {
-        AppManager.close();
-        contentWindow.addEventListener('appclose', function closeWait() {
-          contentWindow.removeEventListener('appclose', closeWait);
-          AppManager.kill(url);
-
-          finish();
-        });
-      }, function() {
-        return SimpleTest.__appTestFinished;
-      }, (Date.now() + 5000));
-    });
+    let contentWindow = content.wrappedJSObject;
+    let launcher = contentWindow.Gaia.AppManager;
+    callback(launcher);
   }, function() {
     return readyAndUnlocked;
   });
 }
 
+function ApplicationObserver(application, readyCallback, closeCallback) {
+  waitFor(function() {
+    let applicationWindow = application.contentWindow;
+
+    applicationWindow.addEventListener('appready', function waitForReady(evt) {
+      applicationWindow.removeEventListener('appready', waitForReady);
+      readyCallback(application);
+    });
+
+    applicationWindow.addEventListener('appclose', function waitForClose(evt) {
+      applicationWindow.removeEventListener('appclose', waitForClose);
+      closeCallback();
+    });
+  }, function() {
+    return 'contentWindow' in application;
+  });
+}

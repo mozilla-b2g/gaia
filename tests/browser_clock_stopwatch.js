@@ -1,10 +1,10 @@
 
 function test() {
-  SimpleTest.__appTestFinished = false;
+  waitForExplicitFinish();
+  let url = '../clock/clock.html';
 
-  appTest('../clock/clock.html', function(clockFrame) {
-
-    waitFor(function() {
+  getApplicationManager(function(launcher) {
+    function onReady(clockFrame) {
       var document = clockFrame.contentWindow.document;
       var actionButton = document.getElementById('stopwatch-action-button');
       var stopWatch = clockFrame.contentWindow.StopWatch;
@@ -32,10 +32,15 @@ function test() {
                                 document.getElementById('reset-button'));
       is(stopWatch._elapsed, 0, 'Elapsed time reset');
 
-      SimpleTest.__appTestFinished = true;
-    }, function() {
-      let contentWindow = clockFrame.contentWindow;
-      return 'StopWatch' in contentWindow;
-    });
+      launcher.close();
+    }
+
+    function onClose() {
+      launcher.kill(url);
+      finish();
+    }
+
+    let application = launcher.launch(url);
+    ApplicationObserver(application, onReady, onClose);
   });
 }

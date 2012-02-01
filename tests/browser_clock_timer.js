@@ -1,9 +1,10 @@
 
 function test() {
-  SimpleTest.__appTestFinished = false;
+  waitForExplicitFinish();
+  let url = '../clock/clock.html';
 
-  appTest('../clock/clock.html', function(clockFrame) {
-    waitFor(function() {
+  getApplicationManager(function(launcher) {
+    function onReady(clockFrame) {
       var document = clockFrame.contentWindow.document;
       var timer = clockFrame.contentWindow.Timer;
       var actionButton = document.getElementById('timer-action-button');
@@ -48,10 +49,15 @@ function test() {
       ok(chronoView.parentNode.classList.contains('ended'),
          'Ended style on chrono view');
 
-      SimpleTest.__appTestFinished = true;
-    }, function() {
-      let contentWindow = clockFrame.contentWindow;
-      return 'Timer' in contentWindow;
-    });
+      launcher.close();
+    }
+
+    function onClose() {
+      launcher.kill(url);
+      finish();
+    }
+
+    let application = launcher.launch(url);
+    ApplicationObserver(application, onReady, onClose);
   });
 }
