@@ -28,7 +28,9 @@ const Keyboards = {
       e: "èéêëē€",
       i: "ìíîïī",
       o: "òóôõöōœø",
-      u: "ùúûüū"
+      u: "ùúûüū",
+      s: "ß",
+      S: ""
     },
     keys: [
       [ { value: "q" }, { value: "w" }, { value: "e" } , { value: "r" }, { value: "t" } , { value: "y" }, { value: "u" } , { value: "i" }, { value: "o" }, { value: "p" } ],
@@ -47,7 +49,9 @@ const Keyboards = {
       e: "éèêë€ē",
       i: "îïìíī",
       o: "ôœòóõöōø",
-      u: "ùûüúū"
+      u: "ùûüúū",
+      s: "ß",
+      S: ""
     },
     keys: [
       [ { value: "a" }, { value: "z" }, { value: "e" } , { value: "r" }, { value: "t" } , { value: "y" }, { value: "u" } , { value: "i" }, { value: "o" }, { value: "p" } ],
@@ -61,9 +65,12 @@ const Keyboards = {
     label: 'German',
     menuLabel: 'Deutsch',
     alt: {
-      a: "ä",
-      o: "ö",
-      u: "ü",
+      a: "äàáâãåāæ",
+      c: "ç",
+      e: "èéêëē€",
+      i: "ìíîïī",
+      o: "öòóôõōœø",
+      u: "üùúûū",
       s: "ß",
       S: ""
     },
