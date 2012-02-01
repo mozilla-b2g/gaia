@@ -24,7 +24,8 @@ const Keyboards = {
     menuLabel: 'English',
     alt: {
       a: "àáâãäåāæ",
-      e: "èéêëē",
+      c: "ç",
+      e: "èéêëē€",
       i: "ìíîïī",
       o: "òóôõöōœø",
       u: "ùúûüū"
@@ -41,12 +42,12 @@ const Keyboards = {
     label: 'French',
     menuLabel: 'français',
     alt: {
-      a: 'àâæ',
-      c: 'ç',
-      e: 'éèêë€',
-      i: 'îï',
-      o: 'ôœ',
-      u: 'ùûü'
+      a: "àâæáãäåā",
+      c: "ç",
+      e: "éèêë€ē",
+      i: "îïìíī",
+      o: "ôœòóõöōø",
+      u: "ùûüúū"
     },
     keys: [
       [ { value: "a" }, { value: "z" }, { value: "e" } , { value: "r" }, { value: "t" } , { value: "y" }, { value: "u" } , { value: "i" }, { value: "o" }, { value: "p" } ],
