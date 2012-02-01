@@ -466,6 +466,7 @@ div.windowSprite.active {
   margin-top: 2px;
   margin-left: 1px;
   margin-right: 1px;
+  -moz-box-sizing: border-box;
   padding: 0;
   border: 1px solid black;
   border-radius: 5px;
