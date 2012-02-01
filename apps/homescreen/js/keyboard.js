@@ -374,20 +374,26 @@ const IMEManager = {
         if (keyCode != KeyEvent.DOM_VK_BACK_SPACE)
           return;
 
-        var sendDelete = (function sendDelete() {
+        var sendDelete = (function sendDelete(vibrate) {
           if (Keyboards[this.currentKeyboard].type == 'ime') {
             this.currentEngine.click(keyCode);
             return;
           }
+          if (vibrate) {
+            try {
+              if (this.vibrate)
+                navigator.mozVibrate(50);
+            } catch (e) {}
+          }
           window.navigator.mozKeyboard.sendKey(keyCode, keyCode);
         }).bind(this);
 
-        sendDelete();
+        sendDelete(false);
         this._deleteTimeout = setTimeout((function deleteTimeout() {
-          sendDelete();
+          sendDelete(true);
 
           this._deleteInterval = setInterval(function deleteInterval() {
-            sendDelete();
+            sendDelete(true);
           }, this.kRepeatRate);
         }).bind(this), this.kRepeatTimeout);
         break;
