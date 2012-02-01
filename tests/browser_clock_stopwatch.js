@@ -40,7 +40,7 @@ function test() {
         finish();
       }, function() {
         let clockWindow = clockFrame.contentWindow;
-        return 'StopWatch' in clockWindow;
+        return 'StopWatch' in clockWindow && clockWindow.document.getElementById('stopwatch-action-button') != null;
       });
     }, 300);
   }
