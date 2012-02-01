@@ -22,7 +22,7 @@ if (typeof readyAndUnlocked === 'undefined') {
   readyAndUnlocked = false;
 
   waitFor(function() {
-    var contentWindow = shell.home.contentWindow.wrappedJSObject;
+    var contentWindow = content.wrappedJSObject;
     contentWindow.addEventListener('unlocked', function waitUnlocked() {
       contentWindow.removeEventListener('unlocked', waitUnlocked);
       readyAndUnlocked = true;
@@ -33,7 +33,7 @@ if (typeof readyAndUnlocked === 'undefined') {
       contentWindow.Gaia.lockScreen.unlock(-1, true);
     });
   }, function() {
-    let contentWindow = shell.home.contentWindow.wrappedJSObject;
+    let contentWindow = content.wrappedJSObject;
     return ('Gaia' in contentWindow) && ('lockScreen' in contentWindow.Gaia);
   });
 }
@@ -42,7 +42,7 @@ function appTest(url, callback) {
   waitForExplicitFinish();
 
   waitFor(function() {
-    var contentWindow = shell.home.contentWindow.wrappedJSObject;
+    var contentWindow = content.wrappedJSObject;
     var AppManager = contentWindow.Gaia.AppManager;
     AppManager.launch(url);
 
