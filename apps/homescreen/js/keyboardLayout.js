@@ -24,10 +24,14 @@ const Keyboards = {
     menuLabel: 'English',
     alt: {
       a: "àáâãäåāæ",
-      e: "èéêëē",
+      c: "çćč",
+      e: "èéêëē€",
       i: "ìíîïī",
       o: "òóôõöōœø",
-      u: "ùúûüū"
+      u: "ùúûüū",
+      s: "śšşß",
+      S: "ŚŠŞ",
+      n: "ńñň"
     },
     keys: [
       [ { value: "q" }, { value: "w" }, { value: "e" } , { value: "r" }, { value: "t" } , { value: "y" }, { value: "u" } , { value: "i" }, { value: "o" }, { value: "p" } ],
@@ -41,9 +45,15 @@ const Keyboards = {
     label: 'French',
     menuLabel: 'français',
     alt: {
-      a: "àáâãäåæ",
-      e: "èéêë€",
-      o: "òóôõöœø"
+      a: "àâæáãäåā",
+      c: "çćč",
+      e: "éèêë€ē",
+      i: "îïìíī",
+      o: "ôœòóõöōø",
+      u: "ùûüúū",
+      s: "śšşß",
+      S: "ŚŠŞ",
+      n: "ńñň"
     },
     keys: [
       [ { value: "a" }, { value: "z" }, { value: "e" } , { value: "r" }, { value: "t" } , { value: "y" }, { value: "u" } , { value: "i" }, { value: "o" }, { value: "p" } ],
@@ -57,11 +67,15 @@ const Keyboards = {
     label: 'German',
     menuLabel: 'Deutsch',
     alt: {
-      a: "ä",
-      o: "ö",
-      u: "ü",
-      s: "ß",
-      S: ""
+      a: "äàáâãåāæ",
+      c: "çćč",
+      e: "èéêëē€",
+      i: "ìíîïī",
+      o: "öòóôõōœø",
+      u: "üùúûū",
+      s: "śšşß",
+      S: "ŚŠŞ",
+      n: "ńñň"
     },
     keys: [
       [ { value: "q" }, { value: "w" }, { value: "e" } , { value: "r" }, { value: "t" } , { value: "z" }, { value: "u" } , { value: "i" }, { value: "o" }, { value: "p" } ],
@@ -95,6 +109,7 @@ const Keyboards = {
       o: "öóòôõ",
       u: "üúùûū",
       s: "śšşß",
+      S: "ŚŠŞ",
       n: "ńñň",
       c: "çćč",
       d: "ðď",
@@ -152,6 +167,7 @@ const Keyboards = {
       e: "éèêëę€",
       o: "óòôõöøœ",
       s: "śšşß",
+      S: "ŚŠŞ",
       n: "ńñň",
       c: "çćč",
       y: "ýÿü",
@@ -199,10 +215,14 @@ const Keyboards = {
     menuLabel: 'Dvorak',
     alt: {
       a: "àáâãäåāæ",
-      e: "èéêëē",
+      c: "çćč",
+      e: "èéêëē€",
       i: "ìíîïī",
       o: "òóôõöōœø",
-      u: "ùúûüū"
+      u: "ùúûüū",
+      s: "śšşß",
+      S: "ŚŠŞ",
+      n: "ńñň"
     },
     keys: [
       [ { value: "," }, { value: "." } , { value: "p" }, { value: "y" } , { value: "f" }, { value: "g" } , { value: "c" }, { value: "r" }, { value: "l" }, { value: "⌫", keyCode: KeyEvent.DOM_VK_BACK_SPACE } ],

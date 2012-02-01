@@ -49,7 +49,7 @@ Gaia.AnimationLoop = function(renderCallback) {
       this._isActive = value;
 
       var runningApps = Gaia.AppManager.runningApps;
-      var listItemWidth = window.innerWidth * 0.6;
+      var listItemWidth = window.innerWidth * 0.5;
 
       if (value) {
         this.listElement.scrollLeft = listItemWidth;
@@ -94,7 +94,7 @@ Gaia.AnimationLoop = function(renderCallback) {
     handleEvent: function(evt) {
       switch (evt.type) {
         case 'keydown':
-          if (evt.keyCode !== evt.DOM_VK_HOME || isKeyDown)
+          if (evt.keyCode !== (emulateRun ? evt.DOM_VK_ESCAPE : evt.DOM_VK_HOME) || isKeyDown)
             return;
 
           if (checkKeyPressTimeout) {
@@ -116,7 +116,7 @@ Gaia.AnimationLoop = function(renderCallback) {
           }
           break;
         case 'keyup':
-          if (evt.keyCode !== evt.DOM_VK_HOME)
+          if (evt.keyCode !== (emulateRun ? evt.DOM_VK_ESCAPE : evt.DOM_VK_HOME))
             return;
 
           if (checkKeyPressTimeout) {
@@ -151,7 +151,7 @@ Gaia.AnimationLoop = function(renderCallback) {
         case 'touchend':
           var listElement = this.listElement;
           var runningAppCount = Gaia.AppManager.runningApps.length;
-          var listItemWidth = window.innerWidth * 0.6;
+          var listItemWidth = window.innerWidth * 0.5;
           var listIndex = Math.round(listElement.scrollLeft / listItemWidth);
 
           if (listIndex === 0)

@@ -170,14 +170,18 @@ const IMEManager = {
         '</span>';
     }
 
-    for (var i in target.dataset.alt) {
+    var altChars = target.dataset.alt.split('');
+    if (!before)
+      altChars = altChars.reverse();
+
+    altChars.forEach(function(keyChar) {
       content += '<span class="keyboard-key" ' +
-        'data-keycode="' + dataset.alt.charCodeAt(i) + '"' +
+        'data-keycode="' + keyChar.charCodeAt(0) + '"' +
         'style="width:' + cssWidth + '"' +
         '>' +
-        dataset.alt.charAt(i) +
+        keyChar +
         '</span>';
-    }
+    });
 
     if (!before) {
       content += '<span class="keyboard-key" ' +
@@ -268,49 +272,9 @@ const IMEManager = {
       this.ime.addEventListener(type, this);
     }).bind(this));
 
+    // XXX: only load user-desired keyboards from settings
     this.keyboards.forEach((function loadIMEngines(name) {
-      var keyboard = Keyboards[name];
-      if (keyboard.type !== 'ime')
-        return;
-
-      var sourceDir = './imes/';
-      var imEngine = keyboard.imEngine;
-
-      var script = document.createElement('script');
-      script.src = sourceDir + imEngine + '/loader.js';
-
-      var self = this;
-      var glue = {
-        dbOptions: {
-          data: sourceDir + imEngine + '/data.json'
-        },
-        sendChoices: function(candidates) {
-          self.showCandidates(candidates);
-        },
-        sendKey: function(keyCode) {
-          switch (keyCode) {
-            case KeyEvent.DOM_VK_BACK_SPACE:
-            case KeyEvent.DOM_VK_RETURN:
-              window.navigator.mozKeyboard.sendKey(keyCode, keyCode);
-            break;
-
-            default:
-              window.navigator.mozKeyboard.sendKey(0, keyCode);
-            break;
-          }
-        },
-        sendString: function(str) {
-          for (var i = 0; i < str.length; i++)
-            this.sendKey(str.charCodeAt(i));
-        }
-      };
-
-      script.addEventListener('load', (function IMEnginesLoaded() {
-        var engine = this.IMEngines[imEngine];
-        engine.init(glue);
-      }).bind(this));
-
-      document.body.appendChild(script);
+      this.loadKeyboard(name);
     }).bind(this));
   },
 
@@ -324,6 +288,51 @@ const IMEManager = {
     }).bind(this));
   },
 
+  loadKeyboard: function km_loadKeyboard(name) {
+    var keyboard = Keyboards[name];
+    if (keyboard.type !== 'ime' || keyboard.imeLoaded)
+      return;
+
+    // Only try to load the IME engine once.
+    keyboard.imeLoaded = true;
+
+    var sourceDir = './imes/';
+    var imEngine = keyboard.imEngine;
+
+    var script = document.createElement('script');
+    script.src = sourceDir + imEngine + '/loader.js';
+    var self = this;
+    var glue = {
+      path: sourceDir + imEngine,
+      sendChoices: function(candidates) {
+        self.showCandidates(candidates);
+      },
+      sendKey: function(keyCode) {
+        switch (keyCode) {
+          case KeyEvent.DOM_VK_BACK_SPACE:
+          case KeyEvent.DOM_VK_RETURN:
+            window.navigator.mozKeyboard.sendKey(keyCode, keyCode);
+            break;
+
+          default:
+            window.navigator.mozKeyboard.sendKey(0, keyCode);
+            break;
+        }
+      },
+      sendString: function(str) {
+        for (var i = 0; i < str.length; i++)
+          this.sendKey(str.charCodeAt(i));
+      }
+    };
+
+    script.addEventListener('load', (function IMEnginesLoaded() {
+      var engine = this.IMEngines[imEngine];
+      engine.init(glue);
+    }).bind(this));
+
+    document.body.appendChild(script);
+  },
+
   handleEvent: function km_handleEvent(evt) {
     var activeWindow = Gaia.AppManager.foregroundWindow;
     var target = evt.target;
@@ -331,6 +340,11 @@ const IMEManager = {
     switch (evt.type) {
       case 'showime':
         this.showIME(activeWindow, evt.detail.type);
+
+        var request = navigator.mozSettings.get('keyboard.vibration');
+        request.addEventListener('success', (function onsuccess(evt) {
+          this.vibrate = (request.result.value === 'true');
+        }).bind(this));
         break;
 
       case 'hideime':
@@ -348,6 +362,10 @@ const IMEManager = {
           return;
 
         this.updateKeyHighlight();
+        try {
+          if (this.vibrate)
+            navigator.mozVibrate(50);
+        } catch (e) {}
 
         this._menuTimeout = setTimeout((function menuTimeout() {
             this.showAccentCharMenu();
@@ -694,6 +712,8 @@ const IMEManager = {
   },
 
   showIME: function km_showIME(targetWindow, type) {
+    this.loadKeyboard(this.currentKeyboard);
+
     if (this.ime.dataset.hidden) {
       this.targetWindow = targetWindow;
       var oldHeight = targetWindow.style.height;

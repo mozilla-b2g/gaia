@@ -66,7 +66,7 @@ DefaultPhysics.prototype = {
 
     var quick = (e.timeStamp - touchState.startTime < 200);
     var long = (e.timeStamp - touchState.startTime > 2000);
-    var small = Math.abs(diffX) < 10;
+    var small = Math.abs(diffX) < 20;
 
     var flick = quick && !small;
     var tap = !this.moved && small;
@@ -276,7 +276,7 @@ IconGrid.prototype = {
       break;
     case 'touchend':
       document.releaseCapture();
-      physics.onTouchEnd(e.touches ? e.touches[0] : e);
+      physics.onTouchEnd(e.changedTouches ? e.changedTouches[0] : e);
       break;
     case 'resize':
       var canvas = this.canvas;
@@ -384,7 +384,7 @@ NotificationScreen.prototype = {
       this.active = false;
 
       document.releaseCapture();
-      this.onTouchEnd(evt.touches ? evt.touches[0] : evt);
+      this.onTouchEnd(evt.changedTouches ? evt.changedTouches[0] : evt);
       break;
     default:
       return;
@@ -396,15 +396,34 @@ NotificationScreen.prototype = {
 
 function LockScreen(overlay) {
   this.overlay = overlay;
+
   var events = [
     'touchstart', 'touchmove', 'touchend'
   ];
   events.forEach((function(evt) {
     overlay.addEventListener(evt, this, true);
   }).bind(this));
+
+  window.addEventListener('sleep', this);
+  this.update();
 }
 
 LockScreen.prototype = {
+  update: function lockscreen_update() {
+    var request = window.navigator.mozSettings.get('lockscreen.enabled');
+    request.addEventListener('success', (function onsuccess(evt) {
+      if (request.result.value === 'true') {
+        this.lock(true);
+        return;
+      }
+
+      this.unlock(-1, true);
+    }).bind(this));
+
+    request.addEventListener('error', (function onerror(evt) {
+      this.lock(true);
+    }).bind(this));
+  },
   onTouchStart: function(e) {
     this.startX = e.pageX;
     this.startY = e.pageY;
@@ -428,19 +447,24 @@ LockScreen.prototype = {
         this.unlock(dy);
     }
   },
-  unlock: function(direction) {
+  unlock: function(direction, instant) {
     var offset = '100%';
     if (direction < 0)
       offset = '-' + offset;
+
     var style = this.overlay.style;
-    style.MozTransition = '-moz-transform 0.2s linear';
+    style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
     style.MozTransform = 'translateY(' + offset + ')';
     changeDisplayState('unlocked');
   },
-  lock: function() {
+  lock: function(instant) {
     var style = this.overlay.style;
-    style.MozTransition = '-moz-transform 0.2s linear';
-    style.MozTransform = 'translateY(0)';
+    if (instant) {
+      style.MozTransition = style.MozTransform = '';
+    } else {
+      style.MozTransition = '-moz-transform 0.2s linear';
+      style.MozTransform = 'translateY(0)';
+    }
     changeDisplayState('locked');
   },
   handleEvent: function(e) {
@@ -455,8 +479,13 @@ LockScreen.prototype = {
       this.onTouchMove(e.touches ? e.touches[0] : e);
       break;
     case 'touchend':
-      this.onTouchEnd(e.touches ? e.touches[0] : e);
+      this.onTouchEnd(e.changedTouches ? e.changedTouches[0] : e);
       document.releaseCapture();
+      break;
+    case 'sleep':
+      if (!e.detail.enabled)
+        return;
+      this.update();
       break;
     default:
       return;
@@ -467,17 +496,6 @@ LockScreen.prototype = {
 
 function OnLoad() {
   var lockScreen = new LockScreen(document.getElementById('lockscreen'));
-  var request = window.navigator.mozSettings.get('lockscreen.enabled');
-  request.addEventListener('success', function onsuccess(evt) {
-    if (request.result.value === 'true')
-      lockScreen.lock();
-    else
-      lockScreen.unlock(-1);
-  });
-
-  request.addEventListener('error', function onerror(evt) {
-    lockScreen.lock();
-  });
 
   var touchables = [
     document.getElementById('notificationsScreen'),
@@ -529,7 +547,7 @@ function OnLoad() {
       var src = shortcut.icon;
       var action = shortcut.action;
       shortcuts += '<span class="shortcut" onclick="' + action + '">' +
-                   '  <img class="shorcut-image" src="' + src + '"></img>' +
+                   '  <img class="shortcut-image" src="' + src + '"></img>' +
                    '</span>';
     }
     document.getElementById('home-shortcuts').innerHTML = shortcuts;

@@ -158,6 +158,9 @@ Settings.prototype = {
           id: 'lockscreen.enabled',
           value: true
         }, {
+          id: 'keyboard.vibration',
+          value: true
+        }, {
           id: 'airplanemode.enabled',
           value: false
         }, {
@@ -484,6 +487,24 @@ if (true) {
             },
             'icons': {
               '120': '/style/icons/Messages.png'
+            }
+          }
+        },
+        { // clock
+          'installOrigin': 'http://gaiamobile.org:8888',
+          'origin': '../clock',
+          'receipt': null,
+          'installTime': 1323339869000,
+          manifest: {
+            'name': 'Clock',
+            'description': 'Gaia Clock',
+            'launch_path': '/clock.html',
+            'developer': {
+              'name': 'The Gaia Team',
+              'url': 'https://github.com/andreasgal/gaia'
+            },
+            'icons': {
+              '120': '/style/icons/Clock.png'
             }
           }
         }

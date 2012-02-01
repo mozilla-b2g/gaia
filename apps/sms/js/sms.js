@@ -21,7 +21,9 @@ function prettyDate(time) {
 
 var MessageManager = {
   getMessages: function mm_getMessages(callback, filter, invert) {
-    if (!('getMessages' in navigator.mozSms)) {
+    // XXX Bug 712809
+    // Until there is a database for mozSms, use a fake GetMessages
+    if (true) {
       GetMessagesHack(callback, filter, invert);
       return;
     }
@@ -136,11 +138,10 @@ var sendMessageHack = function(number, text, callback) {
   }, 1000);
 };
 
+// Use a fake send if mozSms is not present
 if (!navigator.mozSms) {
-  MessageManager.getMessages = GetMessagesHack;
   MessageManager.send = sendMessageHack;
 }
-
 
 ['sent', 'received'].forEach(function(type) {
   window.addEventListener(type, function handleEvent(evt) {
@@ -155,7 +156,8 @@ var MessageView = {
         this.handleEvent({'type': type });
       }).bind(this), true);
 
-      window.navigator.mozSms.addEventListener(type, this);
+      if (window.navigator.mozSms)
+        window.navigator.mozSms.addEventListener(type, this);
     }).bind(this));
 
     this.showConversations();
@@ -272,7 +274,8 @@ var ConversationView = {
         this.handleEvent({ 'type': type });
       }).bind(this), true);
 
-      window.navigator.mozSms.addEventListener('sent', this, true);
+      if (window.navigator.mozSms)
+        window.navigator.mozSms.addEventListener('sent', this, true);
     }).bind(this));
 
   },
