@@ -170,14 +170,18 @@ const IMEManager = {
         '</span>';
     }
 
-    for (var i in target.dataset.alt) {
+    var altChars = target.dataset.alt.split('');
+    if (!before)
+      altChars = altChars.reverse();
+
+    altChars.forEach(function(keyChar) {
       content += '<span class="keyboard-key" ' +
-        'data-keycode="' + dataset.alt.charCodeAt(i) + '"' +
+        'data-keycode="' + keyChar.charCodeAt(0) + '"' +
         'style="width:' + cssWidth + '"' +
         '>' +
-        dataset.alt.charAt(i) +
+        keyChar +
         '</span>';
-    }
+    });
 
     if (!before) {
       content += '<span class="keyboard-key" ' +
@@ -361,7 +365,7 @@ const IMEManager = {
         try {
           if (this.vibrate)
             navigator.mozVibrate(50);
-        } catch(e) {}
+        } catch (e) {}
 
         this._menuTimeout = setTimeout((function menuTimeout() {
             this.showAccentCharMenu();
