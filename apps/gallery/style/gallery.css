@@ -12,13 +12,14 @@ body {
   height: 100%;
   width: 100%;
   font-size: 1.8mozmm;
+  overflow: hidden;
 }
 
 .thumbnails {
-  overflow: hidden;
+  overflow: scroll;
   padding: 5px;
   margin: 0;
-  display: table;
+  height: 100%;
 }
 
 .thumbnails li {
@@ -30,6 +31,8 @@ body {
   margin: 5px;
   list-style-type: none;
   padding: 0;
+  -moz-user-select: none;
+  user-select: none;
 }
 
 .thumbnails li a {
