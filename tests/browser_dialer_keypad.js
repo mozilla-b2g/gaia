@@ -24,7 +24,7 @@ function test() {
         finish();
       }, function() {
         let dialerWindow = dialerFrame.contentWindow;
-        return 'KeyHandler' in dialerWindow;
+        return 'KeyHandler' in dialerWindow && dialerWindow.document.querySelector(".keyboard-key[data-value='3']") != null;
       });
     }, 300);
   }
