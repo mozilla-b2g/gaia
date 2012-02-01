@@ -261,6 +261,15 @@ const IMEManager = {
     delete this._currentMenuKey;
   },
 
+  triggerFeedback: function() {
+    if (this.vibrate) {
+      try {
+        if (this.vibrate)
+          navigator.mozVibrate(50);
+      } catch (e) {}
+    }
+  },
+
   events: ['mouseup', 'showime', 'hideime', 'unload', 'appclose'],
   imeEvents: ['mousedown', 'mouseover', 'mouseleave'],
   init: function km_init() {
@@ -362,10 +371,7 @@ const IMEManager = {
           return;
 
         this.updateKeyHighlight();
-        try {
-          if (this.vibrate)
-            navigator.mozVibrate(50);
-        } catch (e) {}
+        this.triggerFeedback();
 
         this._menuTimeout = setTimeout((function menuTimeout() {
             this.showAccentCharMenu();
@@ -374,20 +380,22 @@ const IMEManager = {
         if (keyCode != KeyEvent.DOM_VK_BACK_SPACE)
           return;
 
-        var sendDelete = (function sendDelete() {
+        var sendDelete = (function sendDelete(feedback) {
           if (Keyboards[this.currentKeyboard].type == 'ime') {
             this.currentEngine.click(keyCode);
             return;
           }
+          if (feedback)
+            this.triggerFeedback();
           window.navigator.mozKeyboard.sendKey(keyCode, keyCode);
         }).bind(this);
 
-        sendDelete();
+        sendDelete(false);
         this._deleteTimeout = setTimeout((function deleteTimeout() {
-          sendDelete();
+          sendDelete(true);
 
           this._deleteInterval = setInterval(function deleteInterval() {
-            sendDelete();
+            sendDelete(true);
           }, this.kRepeatRate);
         }).bind(this), this.kRepeatTimeout);
         break;
