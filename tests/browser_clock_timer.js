@@ -57,7 +57,7 @@ function test() {
         finish();
       }, function() {
         let clockWindow = clockFrame.contentWindow;
-        return 'Timer' in clockWindow;
+        return 'Timer' in clockWindow && clockWindow.document.getElementById('timer-action-button') != null;
       });
     }, 300);
   }
