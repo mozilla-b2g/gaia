@@ -19,7 +19,7 @@ function test() {
         finish();
       }, function() {
         let dialerWindow = dialerFrame.contentWindow;
-        return 'KeyHandler' in dialerWindow;
+        return 'KeyHandler' in dialerWindow && dialerWindow.document.getElementById('contacts-view') != null;
       });
     }, 300);
   }
