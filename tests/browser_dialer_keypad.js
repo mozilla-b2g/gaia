@@ -4,10 +4,10 @@ function test() {
 
   function testDialerKeypadAndFinish() {
     let contentWindow = shell.home.contentWindow.wrappedJSObject;
-    var AppManager = contentWindow.Gaia.AppManager;
+    var WindowManager = contentWindow.Gaia.WindowManager;
 
     setTimeout(function() {
-      var dialerFrame = AppManager.launch('../dialer/dialer.html');
+      var dialerFrame = WindowManager.launch('../dialer/dialer.html').element;
       waitFor(function() {
         let document = dialerFrame.contentWindow.document;
 
@@ -31,6 +31,6 @@ function test() {
 
   waitFor(testDialerKeypadAndFinish, function() {
     let contentWindow = shell.home.contentWindow.wrappedJSObject;
-    return 'Gaia' in contentWindow;
+    return 'Gaia' in contentWindow && 'WindowManager' in contentWindow.Gaia;
   });
 }

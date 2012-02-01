@@ -4,10 +4,10 @@ function test() {
 
   function testClockStopWatch() {
     let contentWindow = shell.home.contentWindow.wrappedJSObject;
-    var AppManager = contentWindow.Gaia.AppManager;
+    var WindowManager = contentWindow.Gaia.WindowManager;
 
     setTimeout(function() {
-      var clockFrame = AppManager.launch('../clock/clock.html');
+      var clockFrame = WindowManager.launch('../clock/clock.html').element;
 
       waitFor(function() {
         var document = clockFrame.contentWindow.document;
@@ -47,6 +47,6 @@ function test() {
 
   waitFor(testClockStopWatch, function() {
     let contentWindow = shell.home.contentWindow.wrappedJSObject;
-    return 'Gaia' in contentWindow;
+    return 'Gaia' in contentWindow && 'WindowManager' in contentWindow.Gaia;
   });
 }

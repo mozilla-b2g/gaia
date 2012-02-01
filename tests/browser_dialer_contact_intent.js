@@ -4,11 +4,11 @@ function test() {
 
   function testDialerContactIntentAndFinish() {
     let contentWindow = shell.home.contentWindow.wrappedJSObject;
-    var AppManager = contentWindow.Gaia.AppManager;
+    var WindowManager = contentWindow.Gaia.WindowManager;
 
     // XXX: can't get this to work with waitFor, setTimouting for now
     setTimeout(function() {
-      var dialerFrame = AppManager.launch('../dialer/dialer.html');
+      var dialerFrame = WindowManager.launch('../dialer/dialer.html').element;
       waitFor(function() {
         let dialerWindow = dialerFrame.contentWindow;
         dialerWindow.visibilityChanged('../dialer/dialer.html?choice=contact');
@@ -26,6 +26,6 @@ function test() {
 
   waitFor(testDialerContactIntentAndFinish, function() {
     let contentWindow = shell.home.contentWindow.wrappedJSObject;
-    return 'Gaia' in contentWindow;
+    return 'Gaia' in contentWindow && 'WindowManager' in contentWindow.Gaia;
   });
 }

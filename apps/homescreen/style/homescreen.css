@@ -195,7 +195,7 @@ iframe.appWindow.active {
 
 div.windowSprite {
   position: absolute;
-  top: 40px;
+  top: 37px;
   left: 0;
   z-index: 999999;
   -moz-transform-origin: center bottom;

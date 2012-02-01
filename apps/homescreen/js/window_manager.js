@@ -8,16 +8,20 @@ if (!window['Gaia'])
 
 (function() {
   var _lastWindowId = 0;
+  var _statusBarHeight = null;
   
   Gaia.Window = function(app) {
     var documentElement = document.documentElement;
     var id = this._id = ++_lastWindowId;
     
+    if (_statusBarHeight === null)
+      _statusBarHeight = document.getElementById('statusbar').offsetHeight;
+    
     var element = this.element = document.createElement('iframe');
     element.id = 'window_' + id;
     element.className = 'appWindow';
     element.style.width = documentElement.clientWidth + 'px';
-    element.style.height = documentElement.clientHeight - 37 + 'px';
+    element.style.height = documentElement.clientHeight - _statusBarHeight + 'px';
     
     this.app = app;
     
@@ -28,7 +32,7 @@ if (!window['Gaia'])
 
   Gaia.Window.prototype = {
     _isActive: false,
-    setActive: function _Gaia_Window__setActive(isActive) {
+    setActive: function _Gaia_Window_setActive(isActive) {
       if (isActive === this._isActive)
         return;
       
@@ -42,7 +46,7 @@ if (!window['Gaia'])
       else
         classList.remove('active');
     },
-    focus: function _Gaia_Window__focus(onCompleteCallback) {
+    focus: function _Gaia_Window_focus(onCompleteCallback) {
       if (this._isActive)
         return;
       
@@ -73,7 +77,7 @@ if (!window['Gaia'])
       document.body.offsetHeight;
       windowSprite.setActive(true);
     },
-    blur: function _Gaia_Window__blur(onCompleteCallback) {
+    blur: function _Gaia_Window_blur(onCompleteCallback) {
       if (!this._isActive)
         return;
       
@@ -124,19 +128,19 @@ if (!window['Gaia'])
   };
 })();
 
-Gaia.WindowSprite = function(gaiaWindow) {
-  this.gaiaWindow = gaiaWindow;
+Gaia.WindowSprite = function(win) {
+  this.win = win;
   
   var element = this.element = document.createElement('div');
   element.className = 'windowSprite';
-  element.style.width = gaiaWindow.element.style.width;
-  element.style.height = gaiaWindow.element.style.height;
-  element.style.background = '-moz-element(#window_' + gaiaWindow.id + ') no-repeat';
+  element.style.width = win.element.style.width;
+  element.style.height = win.element.style.height;
+  element.style.background = '-moz-element(#window_' + win.id + ') no-repeat';
 };
 
 Gaia.WindowSprite.prototype = {
   element: null,
-  gaiaWindow: null,
+  win: null,
   _isActive: false,
   setActive: function _Gaia_WindowSprite_setActive(isActive) {
     if (isActive === this._isActive)
@@ -218,15 +222,15 @@ Gaia.WindowManager = {
   
     return null;
   },
-  add: function _Gaia_WindowManager_add(gaiaWindow) {
-    this.windows.push(gaiaWindow);
-    this.container.appendChild(gaiaWindow.element);
+  add: function _Gaia_WindowManager_add(win) {
+    this.windows.push(win);
+    this.container.appendChild(win.element);
   },
-  remove: function _Gaia_WindowManager_remove(gaiaWindow) {
+  remove: function _Gaia_WindowManager_remove(win) {
     var windows = this.windows;
     for (var i = 0, length = windows.length; i < length; i++) {
-      if (windows[i] === gaiaWindow) {
-        this.container.removeChild(gaiaWindow.element);
+      if (windows[i] === win) {
+        this.container.removeChild(win.element);
         windows.splice(i, 1);
         return;
       }
@@ -236,17 +240,17 @@ Gaia.WindowManager = {
   getForegroundWindow: function _Gaia_WindowManager_getForegroundWindow() {
     return this._foregroundWindow;
   },
-  setForegroundWindow: function _Gaia_WindowManager_setForegroundWindow(gaiaWindow, onCompleteCallback) {
+  setForegroundWindow: function _Gaia_WindowManager_setForegroundWindow(win, onCompleteCallback) {
     // If the specified Window is already the foreground Window, do nothing.
-    if (this._foregroundWindow === gaiaWindow)
+    if (this._foregroundWindow === win)
       return;
   
     var self = this;
   
     // If a valid Window has been specified, set the WindowManager to be
     // active and focus the new foreground Window.
-    if (gaiaWindow) {
-      gaiaWindow.focus(function _focus_callback() {
+    if (win) {
+      win.focus(function _focus_callback() {
         if (onCompleteCallback)
           onCompleteCallback();
       });
@@ -261,9 +265,9 @@ Gaia.WindowManager = {
       });
     }
   
-    this._foregroundWindow = gaiaWindow;
+    this._foregroundWindow = win;
   },
-  closeForegroundWindow: function _Gaia_WindowManager_closeForegroundWindow() {
+  closeForegroundWindow: function _Gaia_WindowManager_closeForegroundWindow(onCompleteCallback) {
     var foregroundWindow = this._foregroundWindow;
     var app = foregroundWindow.app;
 
@@ -274,33 +278,36 @@ Gaia.WindowManager = {
       var appcloseEvent = document.createEvent('CustomEvent');
       appcloseEvent.initCustomEvent('appclose', true, true, app.name);
       window.dispatchEvent(appcloseEvent);
+      
+      if (onCompleteCallback)
+        onCompleteCallback();
     });
   },
   launch: function _Gaia_WindowManager_launch(url) {
     var app = Gaia.AppManager.getInstalledAppForURL(url);
-    var gaiaWindow = this.getWindowByApp(app);
+    var win = this.getWindowByApp(app);
 
     // App is already running, set focus to the existing instance.
-    if (gaiaWindow) {
-      this.setForegroundWindow(gaiaWindow);
-      Gaia.TaskManager.sendToFront(gaiaWindow.id);
+    if (win) {
+      this.setForegroundWindow(win);
+      Gaia.TaskManager.sendToFront(win.id);
     } else {
-      gaiaWindow = new Gaia.Window(app);
-      this.setForegroundWindow(gaiaWindow, function() {
+      win = new Gaia.Window(app);
+      this.setForegroundWindow(win, function() {
         var appopenEvent = document.createEvent('CustomEvent');
         appopenEvent.initCustomEvent('appopen', true, true, app.name);
         window.dispatchEvent(appopenEvent);
       });
     }
 
-    return gaiaWindow;
+    return win;
   },
   kill: function _Gaia_WindowManager_kill(url) {
     var app = Gaia.AppManager.getInstalledAppForURL(url);
-    var gaiaWindow = this.getWindowByApp(app);
+    var win = this.getWindowByApp(app);
   
-    if (gaiaWindow)
-      Gaia.WindowManager.remove(gaiaWindow);
+    if (win)
+      Gaia.WindowManager.remove(win);
   }
 };
 

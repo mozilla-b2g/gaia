@@ -152,7 +152,9 @@ Gaia.AnimationLoop = function(renderCallback) {
           var listItemWidth = window.innerWidth * 0.5;
           var listIndex = Math.round(listElement.scrollLeft / listItemWidth);
           
-          listIndex = (listIndex === 0) ? 1 : (listIndex > windowCount) ? windowCount : listIndex;
+          listIndex = (listIndex === 0) ?
+            1 : (listIndex > windowCount) ?
+              windowCount : listIndex;
 
           var currentScrollLeft = listElement.scrollLeft;
           var targetScrollLeft = listIndex * listItemWidth;
