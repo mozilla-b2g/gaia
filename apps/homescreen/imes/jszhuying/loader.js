@@ -43,7 +43,7 @@ var JSZhuYing = function JSZhuYing(settings) {
 
   var version = '0.1';
   var dbName = 'JSZhuYing';
-  var dbVersion = 4;
+  var dbVersion = 5;
   var jsonData;
   var cache = {};
   var cacheTimer;
@@ -279,7 +279,7 @@ var JSZhuYing = function JSZhuYing(settings) {
       syllables.length,
       /* This callback will be called 2^(n-1) times */
       function(composition) {
-        var str = [], score = 0, start = 0, i = 0,
+        var str = [], start = 0, i = 0,
         next = function() {
           var numOfWord = composition[i];
           if (composition.length === i) return finish();
@@ -299,40 +299,32 @@ var JSZhuYing = function JSZhuYing(settings) {
           n++;
           if (n === (1 << (syllables.length - 1))) {
             cleanCache();
+
+            sentences = sentences.sort(
+              function (a, b) {
+                var scoreA = 0;
+
+                a.forEach(
+                  function(term) {
+                    scoreA += term[1];
+                  }
+                );
+
+                var scoreB = 0;
+                b.forEach(
+                  function(term) {
+                    scoreB += term[1];
+                  }
+                );
+
+                return (scoreB - scoreA);
+              }
+            );
+
             callback(sentences);
           }
         };
         next();
-      }
-    );
-  };
-
-  /*
-  * With series of syllables, return the sentence with highest score
-  *
-  */
-  var getSentenceWithHighestScore = function(syllables, callback) {
-    var theSentence, theScore = -1;
-    return getSentences(
-      syllables,
-      function(sentences) {
-        if (!sentences) return callback(false);
-        sentences.forEach(
-          function(sentence) {
-            var score = 0;
-            sentence.forEach(
-              function(term) {
-                if (term[0].length === 1) score += term[1] / 512; // magic number from rule_largest_freqsum() in libchewing/src/tree.c
-                else score += term[1];
-              }
-            );
-            if (score >= theScore) {
-              theSentence = sentence;
-              theScore = score;
-            }
-          }
-        );
-        return callback(theSentence);
       }
     );
   };
@@ -346,10 +338,13 @@ var JSZhuYing = function JSZhuYing(settings) {
       debug('JSZhuYing: database not ready.');
       return callback(false);
     }
+
+    var syllablesStr = syllables.join('-').replace(/ /g , '');
+
     if (jsonData)
-      return callback(jsonData[syllables.join('')] || false);
-    if (typeof cache[syllables.join('')] !== 'undefined')
-      return callback(cache[syllables.join('')]);
+      return callback(jsonData[syllablesStr] || false);
+    if (typeof cache[syllablesStr] !== 'undefined')
+      return callback(cache[syllablesStr]);
     var req = db.transaction('terms'/*, IDBTransaction.READ_ONLY */).objectStore('terms').get(syllables.join(''));
     req.onerror = function() {
       debug('JSZhuYing: database read error.');
@@ -358,10 +353,10 @@ var JSZhuYing = function JSZhuYing(settings) {
     return req.onsuccess = function(ev) {
       cleanCache();
       if (ev.target.result) {
-        cache[syllables.join('')] = ev.target.result.terms;
+        cache[syllablesStr] = ev.target.result.terms;
         return callback(ev.target.result.terms);
       } else {
-        cache[syllables.join('')] = false;
+        cache[syllablesStr] = false;
         return callback(false);
       }
     };
@@ -375,17 +370,8 @@ var JSZhuYing = function JSZhuYing(settings) {
     return getTerms(
       syllables,
       function(terms) {
-        var theTerm = ['', -1];
         if (!terms) return callback(false);
-        terms.forEach(
-          function(term) {
-            if (term[1] > theTerm[1]) {
-              theTerm = term;
-            }
-          }
-        );
-        if (theTerm[1] !== -1) return callback(theTerm);
-        else return callback(false);
+        return callback(terms[0]);
       }
     );
   };
@@ -405,7 +391,6 @@ var JSZhuYing = function JSZhuYing(settings) {
   return {
     version: version,
     getSentences: getSentences,
-    getSentenceWithHighestScore: getSentenceWithHighestScore,
     getTerms: getTerms,
     getTermWithHighestScore: getTermWithHighestScore
   };
