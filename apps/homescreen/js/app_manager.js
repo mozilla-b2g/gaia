@@ -277,7 +277,7 @@ if (!window['Gaia'])
 
         var closeEvent = document.createEvent('CustomEvent');
         closeEvent.initCustomEvent('appclose', true, true, instance.name);
-        window.dispatchEvent(closeEvent);
+        foregroundWindow.contentWindow.dispatchEvent(closeEvent);
       };
 
       foregroundWindow.addEventListener('transitionend', transitionHandler);
