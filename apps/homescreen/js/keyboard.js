@@ -384,12 +384,12 @@ const IMEManager = {
           return;
 
         var sendDelete = (function sendDelete(feedback) {
+          if (feedback)
+            this.triggerFeedback();
           if (Keyboards[this.currentKeyboard].type == 'ime') {
             this.currentEngine.click(keyCode);
             return;
           }
-          if (feedback)
-            this.triggerFeedback();
           window.navigator.mozKeyboard.sendKey(keyCode, keyCode);
         }).bind(this);
 
