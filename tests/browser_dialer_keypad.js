@@ -1,10 +1,10 @@
 
 function test() {
   waitForExplicitFinish();
+  let url = '../dialer/dialer.html';
 
-  appTest(function(appManager) {
-    var dialerFrame = appManager.launch('../dialer/dialer.html');
-    waitFor(function() {
+  getApplicationManager(function(launcher) {
+    function onReady(dialerFrame) {
       let document = dialerFrame.contentWindow.document;
 
       var key1 = document.querySelector(".keyboard-key[data-value='1']");
@@ -17,10 +17,15 @@ function test() {
       ok(document.getElementById('phone-number-view').textContent == '131',
          'Phone number view updated');
 
+      launcher.close();
+    }
+
+    function onClose() {
+      launcher.kill(url);
       finish();
-    }, function() {
-      let dialerWindow = dialerFrame.contentWindow;
-      return 'KeyHandler' in dialerWindow;
-    });
+    }
+
+    let application = launcher.launch(url);
+    ApplicationObserver(application, onReady, onClose);
   });
 }

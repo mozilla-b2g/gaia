@@ -1,40 +1,40 @@
 
 function test() {
   waitForExplicitFinish();
+  let url = '../sms/sms.html';
 
-  appTest(function(appManager) {
-    var smsFrame = appManager.launch('../sms/sms.html');
-    waitFor(function() {
+  getApplicationManager(function(launcher) {
+    function onReady(smsFrame) {
       let document = smsFrame.contentWindow.document;
 
-      waitFor(function() {
-        var conversationView = document.getElementById('conversationView');
-        var contactField = document.getElementById('contact');
+      var conversationView = document.getElementById('conversationView');
+      var contactField = document.getElementById('contact');
 
-        var aConv = document.querySelector(".message:not([data-num='*'])");
-        EventUtils.sendMouseEvent({type: 'click'}, aConv);
+      var aConv = document.querySelector(".message:not([data-num='*'])");
+      EventUtils.sendMouseEvent({type: 'click'}, aConv);
 
+      conversationView.addEventListener('transitionend', function trWait() {
+        conversationView.removeEventListener('transitionend', trWait);
+        ok(!conversationView.hidden, 'Conversation displayed');
+        ok(contactField.value.length != 0, 'To: field filled');
+
+        // closing the conversation view
+        EventUtils.sendKey('ESCAPE', smsFrame.contentWindow);
         conversationView.addEventListener('transitionend', function trWait() {
           conversationView.removeEventListener('transitionend', trWait);
-          ok(!conversationView.hidden, 'Conversation displayed');
-          ok(contactField.value.length != 0, 'To: field filled');
+          ok(conversationView.hidden, 'Conversation hidden');
 
-          // closing the conversation view
-          EventUtils.sendKey('ESCAPE', smsFrame.contentWindow);
-          conversationView.addEventListener('transitionend', function trWait() {
-            conversationView.removeEventListener('transitionend', trWait);
-            ok(conversationView.hidden, 'Conversation hidden');
-
-            finish();
-          });
+          launcher.close();
         });
-      }, function() {
-        let aConv = document.querySelector(".message:not([data-num='*'])");
-        return (aConv != null);
       });
-    }, function() {
-      let smsWindow = smsFrame.contentWindow;
-      return 'MessageView' in smsWindow;
-    });
+    }
+
+    function onClose() {
+      launcher.kill(url);
+      finish();
+    }
+
+    let application = launcher.launch(url);
+    ApplicationObserver(application, onReady, onClose);
   });
 }

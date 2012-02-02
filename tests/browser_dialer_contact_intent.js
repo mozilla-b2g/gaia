@@ -1,20 +1,26 @@
 
 function test() {
   waitForExplicitFinish();
+  let url = '../dialer/dialer.html';
 
-  appTest(function(appManager) {
-    var dialerFrame = appManager.launch('../dialer/dialer.html');
-    waitFor(function() {
+  getApplicationManager(function(launcher) {
+    function onReady(dialerFrame) {
       let dialerWindow = dialerFrame.contentWindow;
       dialerWindow.visibilityChanged('../dialer/dialer.html?choice=contact');
 
       ok(!dialerWindow.document.getElementById('contacts-view').hidden,
          'Contact view displayed');
       ok(dialerWindow.Contacts._loaded, 'Contacts loaded');
+
+      launcher.close();
+    }
+
+    function onClose() {
+      launcher.kill(url);
       finish();
-    }, function() {
-      let dialerWindow = dialerFrame.contentWindow;
-      return 'KeyHandler' in dialerWindow;
-    });
+    }
+
+    let application = launcher.launch(url);
+    ApplicationObserver(application, onReady, onClose);
   });
 }
