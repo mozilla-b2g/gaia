@@ -114,45 +114,23 @@ var GetMessagesHack = function(callback, filter, invert) {
   callback(applyFilter(msg));
 };
 
-var sendMessageHack = function(number, text, callback) {
-  var message = {
-    sender: null,
-    receiver: number,
-    body: text,
-    timestamp: Date.now()
-  };
-
-  var event = document.createEvent('CustomEvent');
-  event.initCustomEvent('sent', true, false, message);
-  window.setTimeout(function(evt) {
-    window.dispatchEvent(event);
-    if (callback)
-      callback();
-  }, 1000);
-};
-
 // Use a fake send if mozSms is not present
 if (!navigator.mozSms) {
-  MessageManager.send = sendMessageHack;
+  MessageManager.send = function(number, text, callback) {
+    var message = {
+      sender: null,
+      receiver: number,
+      body: text,
+      timestamp: Date.now()
+    };
+    window.setTimeout(function() { callback(message); }, 0);
+  };
 }
-
-['sent', 'received'].forEach(function(type) {
-  window.addEventListener(type, function handleEvent(evt) {
-    messagesHack.unshift(evt.detail);
-  }, true);
-});
 
 var MessageView = {
   init: function init() {
-    ['sent', 'received'].forEach((function(type) {
-      window.addEventListener(type, (function handleEvent(evt) {
-        this.handleEvent({'type': type });
-      }).bind(this), true);
-
-      if (window.navigator.mozSms)
-        window.navigator.mozSms.addEventListener(type, this);
-    }).bind(this));
-
+    if (navigator.mozSms)
+      navigator.mozSms.addEventListener('received', this);
     this.showConversations();
 
     var readyEvent = document.createEvent('CustomEvent');
@@ -245,12 +223,8 @@ var MessageView = {
 
   handleEvent: function handleEvent(evt) {
     switch (evt.type) {
-      case 'sent':
       case 'received':
-        // TODO Remove the delay once the native SMS application is disabled
-        window.setTimeout(function(self) {
-          self.showConversations();
-        }, 800, this);
+        window.setTimeout(function() { MessageView.showConversations(); }, 0);
         break;
     }
   }
@@ -265,16 +239,8 @@ var ConversationView = {
 
   init: function cv_init() {
     window.addEventListener('keypress', this, true);
-
-    ['sent', 'received'].forEach((function(type) {
-      window.addEventListener(type, (function handleEvent(evt) {
-        this.handleEvent({ 'type': type });
-      }).bind(this), true);
-
-      if (window.navigator.mozSms)
-        window.navigator.mozSms.addEventListener('sent', this, true);
-    }).bind(this));
-
+    if (navigator.mozSms)
+      navigator.mozSms.addEventListener('received', this);
   },
 
   showConversation: function cv_showConversation(num) {
@@ -340,12 +306,14 @@ var ConversationView = {
 
         if (this.close())
           evt.preventDefault();
-      case 'sent':
       case 'received':
-        // TODO Remove the delay once the native SMS application is disabled
-        setTimeout(function(self) {
-          self.showConversation(self.filter);
-        }, 800, this);
+        var message = evt.message;
+        console.log('Received message from ' + message.sender + ': ' +
+                    message.body);
+        messagesHack.push(message);
+        window.setTimeout(function () {
+          ConversationView.showConversation(ConversationView.filter);
+        }, 0);
         break;
     }
   },
