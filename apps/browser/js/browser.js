@@ -1,83 +1,97 @@
-var Browser = {
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+var Browser = {
   get backButton() {
     delete this.backButton;
     return this.backButton =
       document.getElementById('browser-back-button');
   },
 
+  get urlbar() {
+    delete this.urlbar;
+    return this.urlbar = document.getElementById('browser-url');
+  },
+
+  /* Browser content */
   get content() {
     delete this.content;
-    return this.content = document.getElementById('browser-iframe');
+    return this.content = document.getElementById('browser-content');
   },
 
-  get address() {
-    delete this.address;
-    return this.address = document.getElementById('browser-address');
-  },
+  init: function browser_init() {
+    this.backButton.addEventListener('click', this);
+    window.addEventListener('submit', this);
+    window.addEventListener('keypress', this, true);
 
-  get urlBar() {
-    delete this.urlBar;
-    return this.urlBar =
-      document.getElementById('browser-url');
-  },
-
-  get iframe() {
-    delete this.iframe;
-    return document.getElementById('browser-iframe');
-  },
-
-  init: function() {
-    this.address.addEventListener('submit', (function submitHandler(evt) {
-      var url = this.urlBar.value;
-      this.navigate(url);
-      evt.preventDefault();
+    var browserEvents = ['loadstart', 'loadend', 'locationchange'];
+    browserEvents.forEach((function attachBrowserEvent(type) {
+      this.content.addEventListener('mozbrowser' + type, this);
     }).bind(this));
 
-    var iframe = this.iframe;
-
-    iframe.addEventListener('mozbrowserloadstart', (function loadStartHandler(evt) {
-      this.urlBar.classList.add('loading');
-    }).bind(this));
-
-    iframe.addEventListener('mozbrowserloadend', (function loadEndHandler(evt) {
-      this.urlBar.classList.remove('loading');
-    }).bind(this));
-
-    iframe.addEventListener('mozbrowserlocationchange', (function locationHandler(evt) {
-      this.locationChange(evt.detail);
-    }).bind(this));
-
-    this.backButton.addEventListener('click', (function backHandler(evt) {
-      MockHistory.back();
-    }).bind(this));
-
-    window.addEventListener('keypress', function keyPressHandler(evt) {
-      if (MockHistory.backLength() && evt.keyCode == evt.DOM_VK_ESCAPE) {
-        MockHistory.back();
-        evt.preventDefault();
-      }
-    });
-
-    var url = this.urlBar.value;
+    var url = this.urlbar.value;
     this.navigate(url);
     this.updateHistory(url);
   },
 
-  navigate: function(url) {
+  handleEvent: function browser_handleEvent(evt) {
+    var urlbar = this.urlbar;
+
+    switch (evt.type) {
+      case 'submit':
+        var url = urlbar.value.trim();
+        var protocolRegexp = /^([a-z]+:\/\/)/i;
+        var protocol = protocolRegexp.exec(url);
+        if (!protocol)
+          url = 'http://' + url;
+
+        this.navigate(url);
+        urlbar.value = url;
+        evt.preventDefault();
+        break;
+
+      case 'click':
+        this.goBack();
+        break;
+
+      case 'keypress':
+        if (!MockHistory.backLength() || evt.keyCode != evt.DOM_VK_ESCAPE)
+          break;
+
+        this.goBack();
+        evt.preventDefault();
+        break;
+
+      case 'mozbrowserloadstart':
+        urlbar.classList.add('loading');
+        break;
+
+      case 'mozbrowserloadend':
+        urlbar.classList.remove('loading');
+        break;
+
+      case 'mozbrowserlocationchange':
+        this.locationChange(evt.detail);
+        break;
+    }
+  },
+
+  navigate: function browser_navigate(url) {
     this.content.setAttribute('src', url);
   },
 
-  updateHistory: function(url) {
+  goBack: function browser_goBack() {
+    MockHistory.back();
+    this.backButton.disabled = !MockHistory.backLength();
+  },
+
+  updateHistory: function browser_updateHistory(url) {
     MockHistory.pushState(null, '', url);
-    if (MockHistory.backLength())
-      this.backButton.src = 'style/images/back.png';
-    else
-      this.backButton.src = 'style/images/back-disabled.png';
+    this.backButton.disabled = !MockHistory.backLength();
   },
  
   locationChange: function(url) {
-    this.urlBar.value = url;
+    this.urlbar.value = url;
     this.updateHistory(url);
   }
 };
@@ -92,9 +106,8 @@ var MockHistory = {
   historyIndex: -1,
 
   back: function() {
-    if (this.backLength() < 1) {
+    if (this.backLength() < 1)
       return;
-    }
     Browser.navigate(this.history[--this.historyIndex]);
   },
 
@@ -113,16 +126,18 @@ var MockHistory = {
   },
 
   pushState: function(stateObj, title, url) {
-    if (url == this.history[this.historyIndex])
+    var history = this.history;
+    var index = this.historyIndex;
+    if (url == history[index])
       return;
 
     // If history contains forward entries, replace them with the new location
     if (this.forwardLength()) {
-      this.history.splice((this.historyIndex + 1), this.forwardLength(), url);
+      history.splice(index + 1, this.forwardLength(), url);
       this.historyIndex++;
     } else {
       // Otherwise just append the new location to the end of the array
-      this.historyIndex = this.history.push(url) - 1;
+      this.historyIndex = history.push(url) - 1;
     }
   }
 };
