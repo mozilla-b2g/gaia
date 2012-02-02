@@ -68,29 +68,7 @@ var MessageManager = {
 // Until there is a database to store messages on the device, return
 // a fake list of messages.
 var messagesHack = [];
-var GetMessagesHack = function(callback, filter, invert) {
-  function applyFilter(msgs) {
-    if (!filter)
-      return msgs;
-
-    if (filter.number) {
-      msgs = msgs.filter(function(element, index, array) {
-          return (filter.number && (filter.number == element.sender ||
-                  filter.number == element.receiver));
-      });
-    }
-
-    return msgs;
-  }
-
-  if (messagesHack.length) {
-    var msg = messagesHack.slice();
-    if (invert)
-      msg.reverse();
-    callback(applyFilter(msg));
-    return;
-  }
-
+(function() {
   var messages = [
     {
       sender: null,
@@ -114,6 +92,21 @@ var GetMessagesHack = function(callback, filter, invert) {
   }
 
   messagesHack = messages;
+})();
+var GetMessagesHack = function(callback, filter, invert) {
+  function applyFilter(msgs) {
+    if (!filter)
+      return msgs;
+
+    if (filter.number) {
+      msgs = msgs.filter(function(element, index, array) {
+          return (filter.number && (filter.number == element.sender ||
+                  filter.number == element.receiver));
+      });
+    }
+
+    return msgs;
+  }
 
   var msg = messagesHack.slice();
   if (invert)
