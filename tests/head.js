@@ -41,8 +41,7 @@ if (typeof readyAndUnlocked === 'undefined') {
 function getApplicationManager(callback) {
   waitFor(function() {
     let contentWindow = content.wrappedJSObject;
-    let launcher = contentWindow.Gaia.AppManager;
-    callback(launcher);
+    callback(contentWindow.getApplicationManager());
   }, function() {
     return readyAndUnlocked;
   });
