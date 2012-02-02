@@ -1,3 +1,5 @@
+'use strict';
+
 var StopWatch = {
   _elapsed: 0,
 
