@@ -211,19 +211,6 @@ textarea:focus {
   overflow: hidden;
 }
 
-#throbber {
-  position: absolute;
-  height: 100%;
-  width: 100%;
-  background-color: rgba(0,0,0,0.3);
-  z-index: 1;
-}
-
-#throbber img {
-  margin-top: -moz-calc(50% - 16px);
-  margin-left: -moz-calc(50% - 16px);
-}
-
 
 /* === Conversation view === */
 #conversationView {
