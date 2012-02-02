@@ -6,6 +6,10 @@
 if (!window['Gaia'])
   var Gaia = {};
 
+function getApplicationManager() {
+  return Gaia.AppManager;
+}
+
 (function() {
 
   Gaia.AppManager = {
