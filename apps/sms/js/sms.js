@@ -50,8 +50,10 @@ var MessageManager = {
 
   send: function mm_send(number, text, callback) {
     var result = navigator.mozSms.send(number, text);
-    result.onsuccess = function (event) { callback(event.message); };
-    result.onerror = function (event) {
+    result.onsuccess = function onsuccess(event) {
+      callback(event.message);
+    };
+    result.onerror = function onerror(event) {
       console.log("Error sending SMS!");
       callback(null);
     };
@@ -114,14 +116,16 @@ var GetMessagesHack = function(callback, filter, invert) {
 
 // Use a fake send if mozSms is not present
 if (!navigator.mozSms) {
-  MessageManager.send = function(number, text, callback) {
+  MessageManager.send = function mm_send(number, text, callback) {
     var message = {
       sender: null,
       receiver: number,
       body: text,
       timestamp: Date.now()
     };
-    window.setTimeout(function() { callback(message); }, 0);
+    window.setTimeout(function() {
+      callback(message);
+    }, 0);
   };
 }
 
@@ -222,7 +226,9 @@ var MessageView = {
   handleEvent: function handleEvent(evt) {
     switch (evt.type) {
       case 'received':
-        window.setTimeout(function() { MessageView.showConversations(); }, 0);
+        window.setTimeout(function() {
+          MessageView.showConversations();
+        }, 0);
         break;
     }
   }
@@ -338,7 +344,7 @@ var ConversationView = {
     if (contact.value == '' || text.value == '')
       return;
 
-    MessageManager.send(contact.value, text.value, function(msg) {
+    MessageManager.send(contact.value, text.value, function onsent(msg) {
       // There was an error. We should really do some error handling here.
       // or in send() or wherever.
       if (!msg)
