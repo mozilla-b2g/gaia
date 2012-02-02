@@ -50,13 +50,11 @@ var MessageManager = {
 
   send: function mm_send(number, text, callback) {
     var result = navigator.mozSms.send(number, text);
-    if (!result) {
-      sendMessageHack(number, text, callback);
-      return;
-    }
-
-    result.onsuccess = callback;
-    result.onerror = callback;
+    result.onsuccess = function (event) { callback(event.message); };
+    result.onerror = function (event) {
+      console.log("Error sending SMS!");
+      callback(null);
+    };
   },
 
   delete: function mm_delete(id) {
@@ -340,19 +338,36 @@ var ConversationView = {
     if (contact.value == '' || text.value == '')
       return;
 
-    var throbber = document.getElementById('throbber');
-    throbber.removeAttribute('hidden');
-
-    MessageManager.send(contact.value, text.value, function() {
-      throbber.setAttribute('hidden', 'true');
-      text.value = text.style.height = '';
-
-      if (ConversationView.filter)
+    MessageManager.send(contact.value, text.value, function(msg) {
+      // There was an error. We should really do some error handling here.
+      // or in send() or wherever.
+      if (!msg)
         return;
 
-      ConversationView.close();
+      // Copy all the information from the actual message object to the
+      // preliminary message object. Then update the view.
+      for (var key in msg)
+        message[msg] = msg[key];
+
+      if (ConversationView.filter)
+        ConversationView.showConversation(ConversationView.filter);
     });
-    return;
+
+    // Create a preliminary message object and update the view right away.
+    var message = {
+      sender: null,
+      receiver: contact.value,
+      body: text.value
+    };
+    messagesHack.push(message);
+
+    text.value = "";
+    if (ConversationView.filter) {
+      ConversationView.showConversation(ConversationView.filter);
+      return;
+    }
+    ConversationView.close();
+    MessageView.showConversations();
   }
 };
 
@@ -365,4 +380,3 @@ function onKeyPress(evt) {
     target.style.height = '-moz-calc(' + target.scrollHeight + 'px + 32px)';
   }, 0);
 }
-
