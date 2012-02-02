@@ -40,7 +40,7 @@ var Browser = {
     switch (evt.type) {
       case 'submit':
         var url = urlbar.value.trim();
-        var protocolRegexp = /^([a-z]+:\/\/)/i;
+        var protocolRegexp = /^([a-z]+:)(\/\/)?/i;
         var protocol = protocolRegexp.exec(url);
         if (!protocol)
           url = 'http://' + url;
