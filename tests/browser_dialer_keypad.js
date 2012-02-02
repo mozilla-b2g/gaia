@@ -1,36 +1,31 @@
 
 function test() {
   waitForExplicitFinish();
+  let url = '../dialer/dialer.html';
 
-  function testDialerKeypadAndFinish() {
-    let contentWindow = shell.home.contentWindow.wrappedJSObject;
-    var AppManager = contentWindow.Gaia.AppManager;
+  getApplicationManager(function(launcher) {
+    function onReady(dialerFrame) {
+      let document = dialerFrame.contentWindow.document;
 
-    setTimeout(function() {
-      var dialerFrame = AppManager.launch('../dialer/dialer.html');
-      waitFor(function() {
-        let document = dialerFrame.contentWindow.document;
+      var key1 = document.querySelector(".keyboard-key[data-value='1']");
+      var key3 = document.querySelector(".keyboard-key[data-value='3']");
 
-        var key1 = document.querySelector(".keyboard-key[data-value='1']");
-        var key3 = document.querySelector(".keyboard-key[data-value='3']");
+      EventUtils.sendMouseEvent({type: 'mousedown'}, key1);
+      EventUtils.sendMouseEvent({type: 'mousedown'}, key3);
+      EventUtils.sendMouseEvent({type: 'mousedown'}, key1);
 
-        EventUtils.sendMouseEvent({type: 'mousedown'}, key1);
-        EventUtils.sendMouseEvent({type: 'mousedown'}, key3);
-        EventUtils.sendMouseEvent({type: 'mousedown'}, key1);
+      ok(document.getElementById('phone-number-view').textContent == '131',
+         'Phone number view updated');
 
-        ok(document.getElementById('phone-number-view').textContent == '131',
-           'Phone number view updated');
+      launcher.close();
+    }
 
-        finish();
-      }, function() {
-        let dialerWindow = dialerFrame.contentWindow;
-        return 'KeyHandler' in dialerWindow;
-      });
-    }, 300);
-  }
+    function onClose() {
+      launcher.kill(url);
+      finish();
+    }
 
-  waitFor(testDialerKeypadAndFinish, function() {
-    let contentWindow = shell.home.contentWindow.wrappedJSObject;
-    return 'Gaia' in contentWindow;
+    let application = launcher.launch(url);
+    ApplicationObserver(application, onReady, onClose);
   });
 }

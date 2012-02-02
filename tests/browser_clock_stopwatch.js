@@ -1,52 +1,46 @@
 
 function test() {
   waitForExplicitFinish();
+  let url = '../clock/clock.html';
 
-  function testClockStopWatch() {
-    let contentWindow = shell.home.contentWindow.wrappedJSObject;
-    var AppManager = contentWindow.Gaia.AppManager;
+  getApplicationManager(function(launcher) {
+    function onReady(clockFrame) {
+      var document = clockFrame.contentWindow.document;
+      var actionButton = document.getElementById('stopwatch-action-button');
+      var stopWatch = clockFrame.contentWindow.StopWatch;
+      var tickerView = document.getElementById('stopwatch-ticker-view');
 
-    setTimeout(function() {
-      var clockFrame = AppManager.launch('../clock/clock.html');
+      // start the stopwatch
+      EventUtils.sendMouseEvent({type: 'click'}, actionButton);
 
-      waitFor(function() {
-        var document = clockFrame.contentWindow.document;
-        var actionButton = document.getElementById('stopwatch-action-button');
-        var stopWatch = clockFrame.contentWindow.StopWatch;
-        var tickerView = document.getElementById('stopwatch-ticker-view');
+      ok(actionButton.dataset.action == 'stop', 'Stop button present');
+      ok(tickerView.classList.contains('running'), 'Animation running');
+      isnot(stopWatch._startTime, undefined, 'Start time set');
+      isnot(stopWatch._ticker, undefined, 'Ticker running');
 
-        // start the stopwatch
-        EventUtils.sendMouseEvent({type: 'click'}, actionButton);
+      // stop the stopwatch
+      EventUtils.sendMouseEvent({type: 'click'}, actionButton);
 
-        ok(actionButton.dataset.action == 'stop', 'Stop button present');
-        ok(tickerView.classList.contains('running'), 'Animation running');
-        isnot(stopWatch._startTime, undefined, 'Start time set');
-        isnot(stopWatch._ticker, undefined, 'Ticker running');
+      ok(actionButton.dataset.action == 'start', 'Start button present');
+      ok(!tickerView.classList.contains('running'), 'Animation stoped');
+      isnot(stopWatch._elasped, 0, 'Elapsed time kept');
+      is(stopWatch._ticker, undefined, 'Ticker cleared');
+      is(stopWatch._startTime, undefined, 'Start time deleted');
 
-        // stop the stopwatch
-        EventUtils.sendMouseEvent({type: 'click'}, actionButton);
+      // reset the stopwatch
+      EventUtils.sendMouseEvent({type: 'click'},
+                                document.getElementById('reset-button'));
+      is(stopWatch._elapsed, 0, 'Elapsed time reset');
 
-        ok(actionButton.dataset.action == 'start', 'Start button present');
-        ok(!tickerView.classList.contains('running'), 'Animation stoped');
-        isnot(stopWatch._elasped, 0, 'Elapsed time kept');
-        is(stopWatch._ticker, undefined, 'Ticker cleared');
-        is(stopWatch._startTime, undefined, 'Start time deleted');
+      launcher.close();
+    }
 
-        // reset the stopwatch
-        EventUtils.sendMouseEvent({type: 'click'},
-                                  document.getElementById('reset-button'));
-        is(stopWatch._elapsed, 0, 'Elapsed time reset');
+    function onClose() {
+      launcher.kill(url);
+      finish();
+    }
 
-        finish();
-      }, function() {
-        let clockWindow = clockFrame.contentWindow;
-        return 'StopWatch' in clockWindow;
-      });
-    }, 300);
-  }
-
-  waitFor(testClockStopWatch, function() {
-    let contentWindow = shell.home.contentWindow.wrappedJSObject;
-    return 'Gaia' in contentWindow;
+    let application = launcher.launch(url);
+    ApplicationObserver(application, onReady, onClose);
   });
 }

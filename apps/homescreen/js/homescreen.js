@@ -102,7 +102,7 @@ DefaultPhysics.prototype = {
 
     var quick = (e.timeStamp - touchState.startTime < 200);
     var long = (e.timeStamp - touchState.startTime > 2000);
-    var small = Math.abs(diffX) < 10;
+    var small = Math.abs(diffX) < 20;
 
     var flick = quick && !small;
     var tap = !this.moved && small;
@@ -492,6 +492,10 @@ LockScreen.prototype = {
     style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
     style.MozTransform = 'translateY(' + offset + ')';
     changeDisplayState('unlocked');
+
+    var unlockEvent = document.createEvent('CustomEvent');
+    unlockEvent.initCustomEvent('unlocked', true, true, null);
+    window.dispatchEvent(unlockEvent);
   },
   lock: function(instant) {
     var style = this.overlay.style;
@@ -502,6 +506,10 @@ LockScreen.prototype = {
       style.MozTransform = 'translateY(0)';
     }
     changeDisplayState('locked');
+
+    var lockEvent = document.createEvent('CustomEvent');
+    lockEvent.initCustomEvent('locked', true, true, null);
+    window.dispatchEvent(lockEvent);
   },
   handleEvent: function(e) {
     hideSourceViewer();
@@ -531,7 +539,7 @@ LockScreen.prototype = {
 };
 
 function OnLoad() {
-  var lockScreen = new LockScreen(document.getElementById('lockscreen'));
+  Gaia.lockScreen = new LockScreen(document.getElementById('lockscreen'));
 
   var touchables = [
     document.getElementById('notificationsScreen'),
@@ -582,7 +590,7 @@ function OnLoad() {
       var src = shortcut.icon;
       var action = shortcut.action;
       shortcuts += '<span class="shortcut" onclick="' + action + '">' +
-                   '  <img class="shorcut-image" src="' + src + '"></img>' +
+                   '  <img class="shortcut-image" src="' + src + '"></img>' +
                    '</span>';
     }
     document.getElementById('home-shortcuts').innerHTML = shortcuts;
