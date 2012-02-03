@@ -103,8 +103,25 @@ html * {
   border-radius: 0 3px 3px 0;
 }
 
-#tabs label[data-active] {
-  background: -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 1px, hsl(0,0%,56%) 100%);
+#stopwatch-label {
+  background-image: url(images/stopwatch.png);
+}
+#stopwatch-label[data-active] {
+  background: url(images/stopwatch.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 1px, hsl(0,0%,56%) 100%);
+}
+
+#timer-label {
+  background-image: url(images/timer.png);
+}
+#timer-label[data-active] {
+  background: url(images/timer.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 1px, hsl(0,0%,56%) 100%);
+}
+
+#alarm-label {
+  background-image: url(images/alarm.png);
+}
+#timer-label[data-active] {
+  background: url(images/alarm.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 1px, hsl(0,0%,56%) 100%);
 }
 
 #views {
