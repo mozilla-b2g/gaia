@@ -223,7 +223,7 @@ function getApplicationManager() {
 
         var openEvent = document.createEvent('CustomEvent');
         openEvent.initCustomEvent('appwillopen', true, true, app.name);
-        window.dispatchEvent(openEvent);
+        foregroundWindow.dispatchEvent(openEvent);
 
         var taskElement = foregroundWindow.taskElement;
         taskElement.addEventListener('click', (function taskClickHandler(evt) {
@@ -249,7 +249,7 @@ function getApplicationManager() {
         var name = instance ? instance.name : app.name;
         var openEvent = document.createEvent('CustomEvent');
         openEvent.initCustomEvent('appopen', true, true, name);
-        window.dispatchEvent(openEvent);
+        foregroundWindow.dispatchEvent(openEvent);
       };
 
       foregroundWindow.addEventListener('transitionend', transitionHandler);
@@ -285,7 +285,7 @@ function getApplicationManager() {
 
         var closeEvent = document.createEvent('CustomEvent');
         closeEvent.initCustomEvent('appclose', true, true, instance.name);
-        foregroundWindow.contentWindow.dispatchEvent(closeEvent);
+        foregroundWindow.dispatchEvent(closeEvent);
       };
 
       foregroundWindow.addEventListener('transitionend', transitionHandler);
