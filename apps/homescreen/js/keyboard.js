@@ -277,7 +277,7 @@ const IMEManager = {
   },
 
   get clicksound() {
-    return this._audio;
+    return !!this._audio;
   },
 
   triggerFeedback: function() {
@@ -289,7 +289,7 @@ const IMEManager = {
     }
 
     if (this.clicksound) {
-      this.clicksound.play();
+      this._audio.cloneNode(false).play();
     }
   },
 
