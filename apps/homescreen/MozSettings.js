@@ -105,7 +105,7 @@
             value: 'true'
           }, {
             id: 'keyboard.clicksound',
-            value: true
+            value: 'true'
           }, {
             id: 'airplanemode.enabled',
             value: 'false'
