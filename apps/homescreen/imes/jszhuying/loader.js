@@ -345,7 +345,7 @@ var JSZhuYing = function JSZhuYing(settings) {
       return callback(jsonData[syllablesStr] || false);
     if (typeof cache[syllablesStr] !== 'undefined')
       return callback(cache[syllablesStr]);
-    var req = db.transaction('terms'/*, IDBTransaction.READ_ONLY */).objectStore('terms').get(syllables.join(''));
+    var req = db.transaction('terms'/*, IDBTransaction.READ_ONLY */).objectStore('terms').get(syllablesStr);
     req.onerror = function() {
       debug('JSZhuYing: database read error.');
       return callback(false);
