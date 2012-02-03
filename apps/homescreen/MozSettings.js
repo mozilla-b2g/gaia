@@ -10,7 +10,7 @@
       var data = event.data;
       if (typeof data !== 'string')
         return;
-    
+
       data = data.split(':');
       if (data.length < 4 || data[0] != 'settings')
         return;
@@ -84,6 +84,9 @@
             value: true
           }, {
             id: 'keyboard.vibration',
+            value: true
+          }, {
+            id: 'keyboard.clicksound',
             value: true
           }, {
             id: 'airplanemode.enabled',
