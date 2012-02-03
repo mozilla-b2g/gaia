@@ -23,7 +23,7 @@ const IMEManager = {
 
   // layouts to turn on correspond to keyboard.layouts.* setting
   // TODO: gaia issue 347, better setting UI and setting data store
-  keyboardsSettingGroups: {
+  keyboardSettingGroups: {
     'english': ['en'],
     'dvorak': ['en-Dvorak'],
     'otherlatins': ['fr', 'de', 'nb', 'sk', 'tr'],
@@ -45,9 +45,9 @@ const IMEManager = {
     }).bind(this);
 
     this.keyboards = [];
-    var keyboardsSettingGroupsKeys = [];
-    for (var key in this.keyboardsSettingGroups) {
-      keyboardsSettingGroupsKeys.push(key);
+    var keyboardSettingGroupKeys = [];
+    for (var key in this.keyboardSettingGroups) {
+      keyboardSettingGroupKeys.push(key);
     }
     // XXX: shift() & length is neater than this
     var i = 0;
@@ -56,26 +56,26 @@ const IMEManager = {
       var request = navigator.mozSettings.get('keyboard.layouts.' + key);
       request.onsuccess = (function onsuccess(evt) {
         // XXX: workaround with gaia issue 342
-        if (keyboardsSettingGroupsKeys.indexOf(key) !== i)
+        if (keyboardSettingGroupKeys.indexOf(key) !== i)
           return;
 
         if (request.result.value === 'true') {
           this.keyboards = this.keyboards.concat(
-            this.keyboardsSettingGroups[key]
+            this.keyboardSettingGroups[key]
           );
         }
 
         i++;
-        if (i === keyboardsSettingGroupsKeys.length) {
+        if (i === keyboardSettingGroupKeys.length) {
           completeSettingRequests();
         } else {
-          keyboardSettingRequest.call(this, keyboardsSettingGroupsKeys[i]);
+          keyboardSettingRequest.call(this, keyboardSettingGroupKeys[i]);
         }
 
       }).bind(this);
     };
 
-    keyboardSettingRequest.call(this, keyboardsSettingGroupsKeys[i]);
+    keyboardSettingRequest.call(this, keyboardSettingGroupKeys[i]);
   },
 
   currentType: 'text',
