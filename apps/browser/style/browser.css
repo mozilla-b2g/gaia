@@ -62,13 +62,25 @@
   height: 40px;
 }
 
+#browser-back-button {
+  -moz-apperance: none;
+  border: none;
+  background-color: transparent;
+  background-image: url("images/back.png");
+}
+
+#browser-back-button[disabled] {
+  background-image: url("images/back-disabled.png");
+}
+
 #browser-go-button {
   margin: 0 4px;
 }
 
-#browser-iframe {
+#browser-content {
   -moz-box-flex: 1;
   width: 100%;
   border: none;
   background-color: white;
 }
+
