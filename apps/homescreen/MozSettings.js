@@ -104,6 +104,9 @@
             id: 'keyboard.vibration',
             value: 'true'
           }, {
+            id: 'keyboard.clicksound',
+            value: true
+          }, {
             id: 'airplanemode.enabled',
             value: 'false'
           }, {
