@@ -77,13 +77,64 @@
           </label>
         </li>
       </ul>
+      <!-- XXX: need better UI and menu organization -->
+      <ul class="tableView">
+        <li>
+          <span>English</span>
+          <label class="checkbox">
+            <input type="checkbox" name="keyboard.layouts.english"/>
+            <span class="checkbox-inner"></span>
+          </label>
+        </li>
+        <li>
+          <span>English (Dvorak)</span>
+          <label class="checkbox">
+            <input type="checkbox" name="keyboard.layouts.dvorak"/>
+            <span class="checkbox-inner"></span>
+          </label>
+        </li>
+        <li>
+          <!-- French, German, Norwegian Bokmal, Slovak, Turkish -->
+          <span>Other Latin scripts</span>
+          <br/ >
+          <span class="comment">French, German, Norwegian Bokmal, Slovak, Turkish</span>
+          <label class="checkbox">
+            <input type="checkbox" name="keyboard.layouts.alllatin"/>
+            <span class="checkbox-inner"></span>
+          </label>
+        </li>
+        <li>
+          <!-- Russian, Serbian (Cyrillic) -->
+          <span>Cyrillic scripts</span>
+          <br/ >
+          <span class="comment">Russian, Serbian (Cyrillic)</span>
+          <label class="checkbox">
+            <input type="checkbox" name="keyboard.layouts.cyrillic"/>
+            <span class="checkbox-inner"></span>
+          </label>
+        </li>
+        <li>
+          <span>Hebrew</span>
+          <label class="checkbox">
+            <input type="checkbox" name="keyboard.layouts.hebrew"/>
+            <span class="checkbox-inner"></span>
+          </label>
+        </li>
+        <li>
+          <span>Traditional Chinese (ZhuYing)</span>
+          <label class="checkbox">
+            <input type="checkbox" name="keyboard.layouts.zhuying"/>
+            <span class="checkbox-inner"></span>
+          </label>
+        </li>
+      </ul>
     </div>
 
     <!-- Sounds -->
     <div id="sounds" class="view" data-title="Sounds">
-      
+
     </div>
-    
+
     <!-- Display -->
     <div id="display" class="view" data-title="Display">
       <ul class="tableView">
@@ -115,10 +166,10 @@
       </li>
       </ul>
     </div>
-    
+
     <!-- Wallpaper -->
     <div id="wallpaper" class="view" data-title="Wallpaper">
-      
+
     </div>
   </body>
 </html>
