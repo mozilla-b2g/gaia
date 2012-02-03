@@ -81,25 +81,43 @@
 
           var settings = [{
             id: 'lockscreen.enabled',
-            value: true
+            value: 'true'
+          }, {
+            id: 'keyboard.layouts.english',
+            value: 'true'
+          }, {
+            id: 'keyboard.layouts.dvorak',
+            value: 'false'
+          }, {
+            id: 'keyboard.layouts.otherlatins',
+            value: 'false'
+          }, {
+            id: 'keyboard.layouts.cyrillic',
+            value: 'false'
+          }, {
+            id: 'keyboard.layouts.hebrew',
+            value: 'false'
+          }, {
+            id: 'keyboard.layouts.zhuying',
+            value: 'false'
           }, {
             id: 'keyboard.vibration',
-            value: true
+            value: 'true'
           }, {
             id: 'keyboard.clicksound',
-            value: true
+            value: 'true'
           }, {
             id: 'airplanemode.enabled',
-            value: false
+            value: 'false'
           }, {
             id: 'locationservices.enabled',
-            value: true
+            value: 'true'
           }, {
             id: 'wifi.enabled',
-            value: true
+            value: 'true'
           }, {
             id: 'dnt.enabled',
-            value: true
+            value: 'true'
           }];
 
           for (var setting in settings) {
