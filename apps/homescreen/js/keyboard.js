@@ -378,12 +378,10 @@ const IMEManager = {
           this.vibrate = (request.result.value === 'true');
         }).bind(this));
 
-/*        var request = navigator.mozSettings.get('keyboard.clicksound');
+        var request = navigator.mozSettings.get('keyboard.clicksound');
         request.addEventListener('success', (function onsuccess(evt) {
           this.clicksound = (request.result.value === 'true');
         }).bind(this));
-*/
-        this.clicksound = true;
 
         break;
 
