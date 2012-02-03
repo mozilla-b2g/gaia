@@ -89,7 +89,7 @@
             id: 'keyboard.layouts.dvorak',
             value: 'false'
           }, {
-            id: 'keyboard.layouts.alllatin',
+            id: 'keyboard.layouts.otherlatins',
             value: 'false'
           }, {
             id: 'keyboard.layouts.cyrillic',

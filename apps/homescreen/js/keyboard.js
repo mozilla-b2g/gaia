@@ -22,10 +22,11 @@ const IMEManager = {
   keyboards: [],
 
   // layouts to turn on correspond to keyboard.layouts.* setting
+  // TODO: gaia issue 347, better setting UI and setting data store
   keyboardsSettingGroups: {
     'english': ['en'],
     'dvorak': ['en-Dvorak'],
-    'alllatin': ['fr', 'de', 'nb', 'sk', 'tr'],
+    'otherlatins': ['fr', 'de', 'nb', 'sk', 'tr'],
     'cyrillic': ['ru', 'sr-Cyrl'],
     'hebrew': ['he'],
     'zhuying': ['zh-Hant-Zhuying']
@@ -35,6 +36,7 @@ const IMEManager = {
     var completeSettingRequests = (function completeSettingRequests() {
       if (this.keyboards.indexOf(this.currentKeyboard) === -1)
         this.currentKeyboard = this.keyboards[0];
+
       this.keyboards.forEach((function loadIMEngines(name) {
         this.loadKeyboard(name);
       }).bind(this));
@@ -400,7 +402,8 @@ const IMEManager = {
 
     switch (evt.type) {
       case 'showime':
-        // XXX: instead of reading the latest setting every time
+        // TODO: gaia issue 346
+        // Instead of reading the latest setting every time
         // when showime and relay on the callback,
         // allow attachment of a read-only event listener
         // to add/remove keyboard as setting changes
