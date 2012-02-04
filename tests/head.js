@@ -2,16 +2,22 @@ const kDefaultWait = 2000;
 // Wait for a condition and call a supplied callback if condition is met within
 // alloted time. If condition is not met, cause a hard failure,
 // stopping the test.
-function waitFor(callback, test, timeout) {
+function waitFor(callback, test, timeout, nothrow) {
   if (test()) {
     callback();
     return;
   }
 
   timeout = timeout || Date.now();
-  if (Date.now() - timeout > kDefaultWait)
-    throw 'waitFor timeout';
-  setTimeout(waitFor, 50, callback, test, timeout);
+  if (Date.now() - timeout > kDefaultWait) {
+    if (nothrow === true) {
+      callback();
+      return;
+    } else {
+      throw 'waitFor timeout ' + test.toString();
+    }
+  }
+  setTimeout(waitFor, 50, callback, test, timeout, nothrow);
 }
 
 // Currently we're waiting for the lockscreen to be auto-locked
@@ -19,19 +25,27 @@ function waitFor(callback, test, timeout) {
 // the tests ready to run.
 // see https://github.com/andreasgal/gaia/issues/333
 if (typeof readyAndUnlocked === 'undefined') {
-  readyAndUnlocked = false;
+  var readyAndUnlocked = false;
+  var locked = false;
 
   waitFor(function() {
     var contentWindow = content.wrappedJSObject;
-    contentWindow.addEventListener('unlocked', function waitUnlocked() {
-      contentWindow.removeEventListener('unlocked', waitUnlocked);
-      readyAndUnlocked = true;
-    });
+    function waitLocked() {
+      locked = true;
+    }
 
-    contentWindow.addEventListener('locked', function waitLocked() {
+    contentWindow.addEventListener('locked', waitLocked);
+    waitFor(function() {
+      locked = true;
       contentWindow.removeEventListener('locked', waitLocked);
+      contentWindow.addEventListener('unlocked', function waitUnlocked() {
+        contentWindow.removeEventListener('unlocked', waitUnlocked);
+        readyAndUnlocked = true;
+      });
       contentWindow.Gaia.lockScreen.unlock(-1, true);
-    });
+    }, function() {
+      return locked;
+    }, 2000, true);
   }, function() {
     let contentWindow = content.wrappedJSObject;
     return ('Gaia' in contentWindow) && ('lockScreen' in contentWindow.Gaia);
