@@ -3,7 +3,7 @@ function test() {
   waitForExplicitFinish();
   let url = '../sms/sms.html';
 
-  getApplicationManager(function(launcher) {
+  getWindowManager(function(windowManager) {
     function onReady(smsFrame) {
       let document = smsFrame.contentWindow.document;
 
@@ -19,22 +19,26 @@ function test() {
         ok(contactField.value.length != 0, 'To: field filled');
 
         // closing the conversation view
-        EventUtils.sendKey('ESCAPE', smsFrame.contentWindow);
-        conversationView.addEventListener('transitionend', function trWait() {
-          conversationView.removeEventListener('transitionend', trWait);
-          ok(conversationView.hidden, 'Conversation hidden');
+        setTimeout(function() {
+          EventUtils.sendKey('ESCAPE', smsFrame.contentWindow);
+          conversationView.addEventListener('transitionend', function trWait() {
+            conversationView.removeEventListener('transitionend', trWait);
+            ok(conversationView.hidden, 'Conversation hidden');
 
-          launcher.close();
-        });
+            setTimeout(function() {
+              windowManager.closeForegroundWindow();
+            }, 0);
+          });
+        }, 0);
       });
     }
 
     function onClose() {
-      launcher.kill(url);
+      windowManager.kill(url);
       finish();
     }
 
-    let application = launcher.launch(url);
-    ApplicationObserver(application, onReady, onClose);
+    let appFrame = windowManager.launch(url).element;
+    ApplicationObserver(appFrame, onReady, onClose);
   });
 }

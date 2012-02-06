@@ -18,33 +18,33 @@ function waitFor(callback, test, timeout) {
   setTimeout(waitFor, 50, callback, test, timeout);
 }
 
-// Currently we're waiting for the lockscreen to be auto-locked
-// then we're unlocking it and waiting for the custom event to declare
-// the tests ready to run.
-// see https://github.com/andreasgal/gaia/issues/333
 if (typeof content.ready === 'undefined') {
-  content.ready = false;
+  try {
+    content.ready = !!content.wrappedJSObject.Gaia.lockScreen;
+    if (content.ready)
+      content.wrappedJSObject.Gaia.lockScreen.unlock(-1);
+  } catch (e) {
+    content.ready = false;
+  }
 
   content.addEventListener('message', function waitForReady(evt) {
-    if (!evt || evt.data != 'appready')
+    if (!evt || evt.data != 'homescreenready')
       return;
 
     content.removeEventListener('message', waitForReady);
 
     content.wrappedJSObject.Gaia.lockScreen.unlock(-1);
-    setTimeout(function() {
-      content.ready = true;
-    }, 0);
+    content.ready = true;
   });
 }
 
-// TODO Get rid of this helper.
-function getApplicationManager(callback) {
+function getWindowManager(callback) {
   waitFor(function() {
     let contentWindow = content.wrappedJSObject;
-    callback(contentWindow.getApplicationManager());
+    setTimeout(function() {
+      callback(contentWindow.getApplicationManager());
+    }, 0);
   }, function() {
-    dump('&&&&&&&&&&&&&&&&&&&&&&&&&& here!\n');
     return content.ready;
   }, Date.now() + 5000);
 }
@@ -55,11 +55,18 @@ function ApplicationObserver(application, readyCallback, closeCallback) {
       return;
 
     content.removeEventListener('message', waitForReady);
-    readyCallback(application);
+
+    setTimeout(function() {
+      readyCallback(application);
+    }, 0);
   });
 
   application.addEventListener('appclose', function waitForClose(evt) {
     application.removeEventListener('appclose', waitForClose);
-    closeCallback();
+
+    setTimeout(function() {
+      closeCallback();
+    }, 0);
   });
 }
+

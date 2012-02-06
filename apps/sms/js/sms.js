@@ -134,8 +134,6 @@ var MessageView = {
     if (navigator.mozSms)
       navigator.mozSms.addEventListener('received', this);
     this.showConversations();
-
-    window.parent.postMessage('appready', '*');
   },
 
   get conversationView() {
@@ -193,6 +191,8 @@ var MessageView = {
         fragment += msg;
       }
       self.view.innerHTML = fragment;
+
+      window.parent.postMessage('appready', '*');
     }, null);
   },
 
