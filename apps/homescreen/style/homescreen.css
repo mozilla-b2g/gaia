@@ -114,14 +114,12 @@ html, body {
 #notificationsScreen > #knob {
   position: absolute;
   bottom: 0;
-  padding: 2px;
   width: -moz-calc(100% - 2px);
   height: 30px;
 
   border-bottom: 1px solid hsl(210, 2%, 30%);
   border-top: 1px solid hsl(210, 2%, 30%);
 
-  color: #fff;
   background: url(images/knob.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0, 0%, 53%) 1%, hsl(0, 0%, 33%) 100%);
 }
 
