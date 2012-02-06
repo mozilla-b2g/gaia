@@ -350,7 +350,7 @@ NotificationScreen.prototype = {
   onTouchStart: function(e) {
     this.startX = e.pageX;
     this.startY = e.pageY;
-    this.onTouchMove({ pageY: e.pageY + 20 });
+    this.onTouchMove({ pageY: e.pageY + 32 });
   },
   onTouchMove: function(e) {
     var dy = -(this.startY - e.pageY);
