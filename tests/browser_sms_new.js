@@ -15,9 +15,6 @@ function test() {
       var sendButton = document.getElementById('send');
       var newButton = document.querySelector(".message[data-num='*']");
 
-
-      conversationView.getBoundingClientRect();
-
       // TODO For some reasons this test timed out, so let's ignore it for now
       /*
       EventUtils.sendMouseEvent({type: 'click'}, newButton);

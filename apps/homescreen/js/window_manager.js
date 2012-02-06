@@ -277,20 +277,18 @@ Gaia.WindowManager = {
       return;
 
     var win = this.getWindowByApp(app);
-  
-    this.setForegroundWindow(null, (function() {
+    this.setForegroundWindow(null, function() {
       var appcloseEvent = document.createEvent('CustomEvent');
       appcloseEvent.initCustomEvent('appclose', true, true, app.name);
       win.element.dispatchEvent(appcloseEvent);
       
       if (onCompleteCallback)
         onCompleteCallback();
-    }).bind(this));
+    });
   },
   launch: function _Gaia_WindowManager_launch(url) {
     var app = Gaia.AppManager.getInstalledAppForURL(url);
     var win = this.getWindowByApp(app);
-
 
     // App is already running, set focus to the existing instance.
     if (win) {
@@ -299,7 +297,10 @@ Gaia.WindowManager = {
     } else {
       win = new Gaia.Window(app);
 
+      // To be compatible with the upstream webapi.js file, foregroundWindow
+      // should be set.
       this.foregroundWindow = win.element;
+
       var appWillOpenEvent = document.createEvent('CustomEvent');
       appWillOpenEvent.initCustomEvent('appwillopen', true, true, app.name);
       win.element.dispatchEvent(appWillOpenEvent);

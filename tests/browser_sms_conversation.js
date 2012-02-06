@@ -19,17 +19,15 @@ function test() {
         ok(contactField.value.length != 0, 'To: field filled');
 
         // closing the conversation view
-        setTimeout(function() {
-          EventUtils.sendKey('ESCAPE', smsFrame.contentWindow);
-          conversationView.addEventListener('transitionend', function trWait() {
-            conversationView.removeEventListener('transitionend', trWait);
-            ok(conversationView.hidden, 'Conversation hidden');
+        EventUtils.sendKey('ESCAPE', smsFrame.contentWindow);
+        conversationView.addEventListener('transitionend', function trWait() {
+          conversationView.removeEventListener('transitionend', trWait);
+          ok(conversationView.hidden, 'Conversation hidden');
 
-            setTimeout(function() {
-              windowManager.closeForegroundWindow();
-            }, 0);
-          });
-        }, 0);
+          setTimeout(function() {
+            windowManager.closeForegroundWindow();
+          }, 0);
+        });
       });
     }
 

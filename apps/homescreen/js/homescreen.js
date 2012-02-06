@@ -441,7 +441,7 @@ function LockScreen(overlay) {
   }).bind(this));
 
   window.addEventListener('sleep', this);
-  this.update(function() {
+  this.update(function fireHomescreenReady() {
     window.parent.postMessage('homescreenready', '*');
   });
 }
@@ -450,11 +450,7 @@ LockScreen.prototype = {
   update: function lockscreen_update(callback) {
     var request = window.navigator.mozSettings.get('lockscreen.enabled');
     request.addEventListener('success', (function onsuccess(evt) {
-      if (request.result.value === 'true') {
-        this.lock(true);
-      } else {
-        this.unlock(-1, true);
-      }
+      request.result.value === 'true' ? this.lock(true) : this.unlock(-1, true);
 
       if (callback)
         setTimeout(callback, 0);
