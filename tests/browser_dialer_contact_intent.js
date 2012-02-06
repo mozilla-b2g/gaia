@@ -3,7 +3,7 @@ function test() {
   waitForExplicitFinish();
   let url = '../dialer/dialer.html';
 
-  getApplicationManager(function(launcher) {
+  getWindowManager(function(windowManager) {
     function onReady(dialerFrame) {
       let dialerWindow = dialerFrame.contentWindow;
       dialerWindow.visibilityChanged('../dialer/dialer.html?choice=contact');
@@ -12,15 +12,15 @@ function test() {
          'Contact view displayed');
       ok(dialerWindow.Contacts._loaded, 'Contacts loaded');
 
-      launcher.close();
+      windowManager.closeForegroundWindow();
     }
 
     function onClose() {
-      launcher.kill(url);
+      windowManager.kill(url);
       finish();
     }
 
-    let application = launcher.launch(url);
-    ApplicationObserver(application, onReady, onClose);
+    let appFrame = windowManager.launch(url).element;
+    ApplicationObserver(appFrame, onReady, onClose);
   });
 }

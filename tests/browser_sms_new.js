@@ -3,7 +3,7 @@ function test() {
   waitForExplicitFinish();
   let url = '../sms/sms.html';
 
-  getApplicationManager(function(launcher) {
+  getWindowManager(function(windowManager) {
     function onReady(smsFrame) {
       let document = smsFrame.contentWindow.document;
 
@@ -32,7 +32,7 @@ function test() {
           ok(throbber.hidden, 'Throbber hidden');
           ok(conversationView.hidden, 'Conversation hidden');
 
-          launcher.close();
+          windowManager.closeForegroundWindow();
         }, function() {
           return (document.getElementById('messages').children.length ==
                   (convCount + 1));
@@ -41,11 +41,11 @@ function test() {
     }
 
     function onClose() {
-      launcher.kill(url);
+      windowManager.kill(url);
       finish();
     }
 
-    let application = launcher.launch(url);
-    ApplicationObserver(application, onReady, onClose);
+    let appFrame = windowManager.launch(url).element;
+    ApplicationObserver(appFrame, onReady, onClose);
   });
 }
