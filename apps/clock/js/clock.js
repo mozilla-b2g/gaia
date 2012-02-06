@@ -27,7 +27,5 @@ function choiceChanged(target) {
 window.addEventListener('load', function clockLoad(evt) {
   window.removeEventListener('load', clockLoad);
 
-  var readyEvent = document.createEvent('CustomEvent');
-  readyEvent.initCustomEvent('appready', true, true, null);
-  window.dispatchEvent(readyEvent);
+  window.parent.postMessage('appready', '*');
 });

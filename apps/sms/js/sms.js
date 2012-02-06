@@ -135,9 +135,7 @@ var MessageView = {
       navigator.mozSms.addEventListener('received', this);
     this.showConversations();
 
-    var readyEvent = document.createEvent('CustomEvent');
-    readyEvent.initCustomEvent('appready', true, true, null);
-    window.dispatchEvent(readyEvent);
+    window.parent.postMessage('appready', '*');
   },
 
   get conversationView() {

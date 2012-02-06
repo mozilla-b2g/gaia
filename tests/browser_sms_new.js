@@ -25,18 +25,7 @@ function test() {
         textField.value = 'Hello world.';
         EventUtils.sendMouseEvent({type: 'click'}, sendButton);
 
-        var throbber = document.getElementById('throbber');
-        ok(!throbber.hidden, 'Throbber displayed');
-
-        waitFor(function() {
-          ok(throbber.hidden, 'Throbber hidden');
-          ok(conversationView.hidden, 'Conversation hidden');
-
-          launcher.close();
-        }, function() {
-          return (document.getElementById('messages').children.length ==
-                  (convCount + 1));
-        });
+        launcher.close();
       });
     }
 

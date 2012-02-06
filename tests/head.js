@@ -22,30 +22,20 @@ function waitFor(callback, test, timeout) {
 // then we're unlocking it and waiting for the custom event to declare
 // the tests ready to run.
 // see https://github.com/andreasgal/gaia/issues/333
-let readyAndUnlocked = true;
-if (typeof readyAndUnlocked === 'undefined') {
-  readyAndUnlocked = false;
+if (typeof content.ready === 'undefined') {
+  content.ready = false;
 
-  function isReady() {
-    let contentWindow = content.wrappedJSObject;
-    return ('Gaia' in contentWindow) && ('lockScreen' in contentWindow.Gaia);
-  }
+  content.addEventListener('message', function waitForReady(evt) {
+    if (!evt || evt.data != 'appready')
+      return;
 
-  function unlock() {
-    let contentWindow = content.wrappedJSObject;
+    content.removeEventListener('message', waitForReady);
 
-    contentWindow.addEventListener('unlocked', function waitUnlocked() {
-      contentWindow.removeEventListener('unlocked', waitUnlocked);
-      readyAndUnlocked = true;
-    });
-
-    contentWindow.addEventListener('locked', function waitLocked() {
-      contentWindow.removeEventListener('locked', waitLocked);
-      contentWindow.Gaia.lockScreen.unlock(-1, true);
-    });
-  }
-
-  waitFor(unlock, isReady);
+    content.wrappedJSObject.Gaia.lockScreen.unlock(-1);
+    setTimeout(function() {
+      content.ready = true;
+    }, 0);
+  });
 }
 
 // TODO Get rid of this helper.
@@ -54,28 +44,22 @@ function getApplicationManager(callback) {
     let contentWindow = content.wrappedJSObject;
     callback(contentWindow.getApplicationManager());
   }, function() {
-    return readyAndUnlocked;
-  });
+    dump('&&&&&&&&&&&&&&&&&&&&&&&&&& here!\n');
+    return content.ready;
+  }, Date.now() + 5000);
 }
 
 function ApplicationObserver(application, readyCallback, closeCallback) {
-  function attachEventsListener() {
-    let applicationWindow = application.contentWindow;
+  content.addEventListener('message', function waitForReady(evt) {
+    if (evt.data != 'appready')
+      return;
 
-    applicationWindow.addEventListener('appready', function waitForReady(evt) {
-      applicationWindow.removeEventListener('appready', waitForReady);
-      readyCallback(application);
-    });
+    content.removeEventListener('message', waitForReady);
+    readyCallback(application);
+  });
 
-    applicationWindow.addEventListener('appclose', function waitForClose(evt) {
-      applicationWindow.removeEventListener('appclose', waitForClose);
-      closeCallback();
-    });
-  }
-
-  function hasContentWindow() {
-    return 'contentWindow' in application;
-  }
-
-  waitFor(attachEventsListener, hasContentWindow);
+  application.addEventListener('appclose', function waitForClose(evt) {
+    application.removeEventListener('appclose', waitForClose);
+    closeCallback();
+  });
 }
