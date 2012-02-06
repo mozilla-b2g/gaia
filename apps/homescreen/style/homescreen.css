@@ -114,7 +114,7 @@ html, body {
 #notificationsScreen > #knob {
   position: absolute;
   bottom: 0;
-  width: -moz-calc(100% - 2px);
+  width: 100%;
   height: 30px;
 
   border-bottom: 1px solid hsl(210, 2%, 30%);
