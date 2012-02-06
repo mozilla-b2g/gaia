@@ -3,7 +3,7 @@ function test() {
   waitForExplicitFinish();
   let url = '../dialer/dialer.html';
 
-  getApplicationManager(function(launcher) {
+  getWindowManager(function(windowManager) {
     function onReady(dialerFrame) {
       let document = dialerFrame.contentWindow.document;
 
@@ -17,15 +17,15 @@ function test() {
       ok(document.getElementById('phone-number-view').textContent == '131',
          'Phone number view updated');
 
-      launcher.close();
+      windowManager.closeForegroundWindow();
     }
 
     function onClose() {
-      launcher.kill(url);
+      windowManager.kill(url);
       finish();
     }
 
-    let application = launcher.launch(url);
-    ApplicationObserver(application, onReady, onClose);
+    let appFrame = windowManager.launch(url).element;
+    ApplicationObserver(appFrame, onReady, onClose);
   });
 }

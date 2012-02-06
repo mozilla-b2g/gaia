@@ -34,26 +34,28 @@ if (typeof readyAndUnlocked === 'undefined') {
     });
   }, function() {
     let contentWindow = content.wrappedJSObject;
-    return ('Gaia' in contentWindow) && ('lockScreen' in contentWindow.Gaia);
+    return ('Gaia' in contentWindow) &&
+      ('WindowManager' in contentWindow.Gaia) &&
+      ('lockScreen' in contentWindow.Gaia);
   });
 }
 
-function getApplicationManager(callback) {
+function getWindowManager(callback) {
   waitFor(function() {
     let contentWindow = content.wrappedJSObject;
-    callback(contentWindow.getApplicationManager());
+    callback(contentWindow.getWindowManager());
   }, function() {
     return readyAndUnlocked;
   });
 }
 
-function ApplicationObserver(application, readyCallback, closeCallback) {
+function ApplicationObserver(appFrame, readyCallback, closeCallback) {
   waitFor(function() {
-    let applicationWindow = application.contentWindow;
+    let applicationWindow = appFrame.contentWindow;
 
     applicationWindow.addEventListener('appready', function waitForReady(evt) {
       applicationWindow.removeEventListener('appready', waitForReady);
-      readyCallback(application);
+      readyCallback(appFrame);
     });
 
     applicationWindow.addEventListener('appclose', function waitForClose(evt) {
@@ -61,6 +63,6 @@ function ApplicationObserver(application, readyCallback, closeCallback) {
       closeCallback();
     });
   }, function() {
-    return 'contentWindow' in application;
+    return 'contentWindow' in appFrame;
   });
 }

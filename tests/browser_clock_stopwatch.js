@@ -1,9 +1,10 @@
 
 function test() {
   waitForExplicitFinish();
+
   let url = '../clock/clock.html';
 
-  getApplicationManager(function(launcher) {
+  getWindowManager(function(windowManager) {
     function onReady(clockFrame) {
       var document = clockFrame.contentWindow.document;
       var actionButton = document.getElementById('stopwatch-action-button');
@@ -32,15 +33,15 @@ function test() {
                                 document.getElementById('reset-button'));
       is(stopWatch._elapsed, 0, 'Elapsed time reset');
 
-      launcher.close();
+      windowManager.closeForegroundWindow();
     }
 
     function onClose() {
-      launcher.kill(url);
+      windowManager.kill(url);
       finish();
     }
 
-    let application = launcher.launch(url);
-    ApplicationObserver(application, onReady, onClose);
+    let appFrame = windowManager.launch(url).element;
+    ApplicationObserver(appFrame, onReady, onClose);
   });
 }
