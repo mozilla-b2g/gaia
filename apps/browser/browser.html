@@ -12,13 +12,13 @@
   <body id="browser-body">
     <div id="browser-tab">
       <div id="browser-toolbar">
-        <input type="image" src="style/images/back-disabled.png" id="browser-back-button" class="browser-button" alt="Back">
+        <input type="submit" value="" id="browser-back-button" class="browser-button" alt="Back" title="" disabled="true"></input>
         <form id="browser-address">
-          <input type="text" id="browser-url" value="http://duckduckgo.com">
-          <input type="image" src="style/images/go.png" id="browser-go-button" class="browser-button" alt="Go">
+          <input type="url" id="browser-url" value="http://duckduckgo.com"></input>
+          <input type="image" src="style/images/go.png" id="browser-go-button" class="browser-button" alt="Go"></input>
         </form>
       </div>
-      <iframe id="browser-iframe" mozbrowser>
+      <iframe id="browser-content" mozbrowser>
       </iframe>
     </div>
   </body>
