@@ -16,15 +16,67 @@ const IMEManager = {
     return this.IMEngines[Keyboards[this.currentKeyboard].imEngine];
   },
 
-  // TODO: allow user to select desired keyboards in settings
-  // see bug 712778
-  currentKeyboard: 'en',
+  currentKeyboard: '',
   currentKeyboardMode: '',
-  keyboards: [
-    'en', 'fr', 'de', 'he', 'nb',
-    'ru', 'sr-Cyrl', 'sk', 'en-Dvorak',
-    'tr', 'zh-Hant-Zhuying'
-  ],
+  // keyboard layouts selected by the user from settings
+  keyboards: [],
+
+  // layouts to turn on correspond to keyboard.layouts.* setting
+  // TODO: gaia issue 347, better setting UI and setting data store
+  keyboardSettingGroups: {
+    'english': ['en'],
+    'dvorak': ['en-Dvorak'],
+    'otherlatins': ['fr', 'de', 'nb', 'sk', 'tr'],
+    'cyrillic': ['ru', 'sr-Cyrl'],
+    'hebrew': ['he'],
+    'zhuying': ['zh-Hant-Zhuying']
+  },
+
+  loadKeyboardSettings: function loadKeyboardSettings(callback) {
+    var completeSettingRequests = (function completeSettingRequests() {
+      if (this.keyboards.indexOf(this.currentKeyboard) === -1)
+        this.currentKeyboard = this.keyboards[0];
+
+      this.keyboards.forEach((function loadIMEngines(name) {
+        this.loadKeyboard(name);
+      }).bind(this));
+
+      callback();
+    }).bind(this);
+
+    this.keyboards = [];
+    var keyboardSettingGroupKeys = [];
+    for (var key in this.keyboardSettingGroups) {
+      keyboardSettingGroupKeys.push(key);
+    }
+    // XXX: shift() & length is neater than this
+    var i = 0;
+
+    var keyboardSettingRequest = function keyboardSettingRequest(key) {
+      var request = navigator.mozSettings.get('keyboard.layouts.' + key);
+      request.onsuccess = (function onsuccess(evt) {
+        // XXX: workaround with gaia issue 342
+        if (keyboardSettingGroupKeys.indexOf(key) !== i)
+          return;
+
+        if (request.result.value === 'true') {
+          this.keyboards = this.keyboards.concat(
+            this.keyboardSettingGroups[key]
+          );
+        }
+
+        i++;
+        if (i === keyboardSettingGroupKeys.length) {
+          completeSettingRequests();
+        } else {
+          keyboardSettingRequest.call(this, keyboardSettingGroupKeys[i]);
+        }
+
+      }).bind(this);
+    };
+
+    keyboardSettingRequest.call(this, keyboardSettingGroupKeys[i]);
+  },
 
   currentType: 'text',
 
@@ -303,11 +355,6 @@ const IMEManager = {
     this.imeEvents.forEach((function imeEvents(type) {
       this.ime.addEventListener(type, this);
     }).bind(this));
-
-    // XXX: only load user-desired keyboards from settings
-    this.keyboards.forEach((function loadIMEngines(name) {
-      this.loadKeyboard(name);
-    }).bind(this));
   },
 
   uninit: function km_uninit() {
@@ -322,14 +369,18 @@ const IMEManager = {
 
   loadKeyboard: function km_loadKeyboard(name) {
     var keyboard = Keyboards[name];
-    if (keyboard.type !== 'ime' || keyboard.imeLoaded)
+    if (keyboard.type !== 'ime')
       return;
-
-    // Only try to load the IME engine once.
-    keyboard.imeLoaded = true;
 
     var sourceDir = './imes/';
     var imEngine = keyboard.imEngine;
+
+    // Same IME Engine could be load by multiple keyboard layouts
+    // keep track of it by adding a placeholder to the registration point
+    if (this.IMEngines[imEngine])
+      return;
+
+    this.IMEngines[imEngine] = {};
 
     var script = document.createElement('script');
     script.src = sourceDir + imEngine + '/loader.js';
@@ -371,7 +422,17 @@ const IMEManager = {
 
     switch (evt.type) {
       case 'showime':
-        this.showIME(activeWindow, evt.detail.type);
+        // TODO: gaia issue 346
+        // Instead of reading the latest setting every time
+        // when showime and relay on the callback,
+        // allow attachment of a read-only event listener
+        // to add/remove keyboard as setting changes
+        // see bug 712778
+        this.loadKeyboardSettings(
+          (function showIMEAfterSettingLoaded() {
+            this.showIME(activeWindow, evt.detail.type);
+          }).bind(this)
+        );
 
         var request = navigator.mozSettings.get('keyboard.vibration');
         request.addEventListener('success', (function onsuccess(evt) {
