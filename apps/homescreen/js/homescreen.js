@@ -7,6 +7,42 @@ const SHORTCUTS_HEIGHT = 144;
 
 var displayState;
 
+function showSourceViewer(url) {
+  var document = content.document;
+  var viewsource = document.getElementById('appViewsource');
+  if (!viewsource) {
+    var style = '#appViewsource { ' +
+                '  position: absolute;' +
+                '  top: -moz-calc(10%);' +
+                '  left: -moz-calc(10%);' +
+                '  width: -moz-calc(80% - 2 * 15px);' +
+                '  height: -moz-calc(80% - 2 * 15px);' +
+                '  visibility: hidden;' +
+                '  box-shadow: 10px 10px 5px #888;' +
+                '  margin: 15px;' +
+                '  background-color: white;' +
+                '  opacity: 0.92;' +
+                '  color: black;' +
+                '  z-index: 9999;' +
+                '}';
+    document.styleSheets[0].insertRule(style, 0);
+
+    viewsource = document.createElement('iframe');
+    viewsource.id = 'appViewsource';
+    document.body.appendChild(viewsource);
+  }
+  viewsource.style.visibility = 'visible';
+  viewsource.src = 'view-source: ' + url;
+}
+
+function hideSourceViewer() {
+  var viewsource = content.document.getElementById('appViewsource');
+  if (!viewsource)
+    return;
+  viewsource.style.visibility = 'hidden';
+}
+
+
 // Change the display state (off, locked, default)
 function changeDisplayState(state) {
   displayState = state;
@@ -456,6 +492,10 @@ LockScreen.prototype = {
     style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
     style.MozTransform = 'translateY(' + offset + ')';
     changeDisplayState('unlocked');
+
+    var unlockEvent = document.createEvent('CustomEvent');
+    unlockEvent.initCustomEvent('unlocked', true, true, null);
+    window.dispatchEvent(unlockEvent);
   },
   lock: function(instant) {
     var style = this.overlay.style;
@@ -466,6 +506,10 @@ LockScreen.prototype = {
       style.MozTransform = 'translateY(0)';
     }
     changeDisplayState('locked');
+
+    var lockEvent = document.createEvent('CustomEvent');
+    lockEvent.initCustomEvent('locked', true, true, null);
+    window.dispatchEvent(lockEvent);
   },
   handleEvent: function(e) {
     hideSourceViewer();
@@ -495,7 +539,7 @@ LockScreen.prototype = {
 };
 
 function OnLoad() {
-  var lockScreen = new LockScreen(document.getElementById('lockscreen'));
+  Gaia.lockScreen = new LockScreen(document.getElementById('lockscreen'));
 
   var touchables = [
     document.getElementById('notificationsScreen'),

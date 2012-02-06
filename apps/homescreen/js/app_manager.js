@@ -6,6 +6,10 @@
 if (!window['Gaia'])
   var Gaia = {};
 
+function getApplicationManager() {
+  return Gaia.AppManager;
+}
+
 (function() {
 
   Gaia.AppManager = {
@@ -217,6 +221,10 @@ if (!window['Gaia'])
           this.postMessage(state, '*');
         }, true);
 
+        var openEvent = document.createEvent('CustomEvent');
+        openEvent.initCustomEvent('appwillopen', true, true, app.name);
+        foregroundWindow.dispatchEvent(openEvent);
+
         var taskElement = foregroundWindow.taskElement;
         taskElement.addEventListener('click', (function taskClickHandler(evt) {
           Gaia.TaskManager.setActive(false);
@@ -241,7 +249,7 @@ if (!window['Gaia'])
         var name = instance ? instance.name : app.name;
         var openEvent = document.createEvent('CustomEvent');
         openEvent.initCustomEvent('appopen', true, true, name);
-        window.dispatchEvent(openEvent);
+        foregroundWindow.dispatchEvent(openEvent);
       };
 
       foregroundWindow.addEventListener('transitionend', transitionHandler);
@@ -277,7 +285,7 @@ if (!window['Gaia'])
 
         var closeEvent = document.createEvent('CustomEvent');
         closeEvent.initCustomEvent('appclose', true, true, instance.name);
-        window.dispatchEvent(closeEvent);
+        foregroundWindow.dispatchEvent(closeEvent);
       };
 
       foregroundWindow.addEventListener('transitionend', transitionHandler);

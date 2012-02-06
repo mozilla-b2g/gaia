@@ -1,31 +1,26 @@
 
 function test() {
   waitForExplicitFinish();
+  let url = '../dialer/dialer.html';
 
-  function testDialerContactIntentAndFinish() {
-    let contentWindow = shell.home.contentWindow.wrappedJSObject;
-    var AppManager = contentWindow.Gaia.AppManager;
+  getApplicationManager(function(launcher) {
+    function onReady(dialerFrame) {
+      let dialerWindow = dialerFrame.contentWindow;
+      dialerWindow.visibilityChanged('../dialer/dialer.html?choice=contact');
 
-    // XXX: can't get this to work with waitFor, setTimouting for now
-    setTimeout(function() {
-      var dialerFrame = AppManager.launch('../dialer/dialer.html');
-      waitFor(function() {
-        let dialerWindow = dialerFrame.contentWindow;
-        dialerWindow.visibilityChanged('../dialer/dialer.html?choice=contact');
+      ok(!dialerWindow.document.getElementById('contacts-view').hidden,
+         'Contact view displayed');
+      ok(dialerWindow.Contacts._loaded, 'Contacts loaded');
 
-        ok(!dialerWindow.document.getElementById('contacts-view').hidden,
-           'Contact view displayed');
-        ok(dialerWindow.Contacts._loaded, 'Contacts loaded');
-        finish();
-      }, function() {
-        let dialerWindow = dialerFrame.contentWindow;
-        return 'KeyHandler' in dialerWindow && dialerWindow.document.getElementById('contacts-view') != null;
-      });
-    }, 300);
-  }
+      launcher.close();
+    }
 
-  waitFor(testDialerContactIntentAndFinish, function() {
-    let contentWindow = shell.home.contentWindow.wrappedJSObject;
-    return 'Gaia' in contentWindow;
+    function onClose() {
+      launcher.kill(url);
+      finish();
+    }
+
+    let application = launcher.launch(url);
+    ApplicationObserver(application, onReady, onClose);
   });
 }
