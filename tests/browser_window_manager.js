@@ -1,6 +1,7 @@
 
 function test() {
   waitForExplicitFinish();
+  var url = '../gallery/gallery.html';
 
   function testWindowManagerAndFinish() {
     let contentWindow = content.wrappedJSObject;
@@ -10,18 +11,18 @@ function test() {
     setTimeout(function() {
       var existingWindows = [];
       var i;
-      
+
       for (i = 0; i < windows.length; i++) {
         existingWindows.push(windows[i]);
       }
-      
+
       for (i = 0; i < existingWindows.length; i++) {
         WindowManager.kill(existingWindows[i].app.url);
       }
-      
+
       ok(WindowManager.windows.length === 0, 'No apps running');
-      
-      var galleryFrame = WindowManager.launch('../gallery/gallery.html').element;
+
+      var galleryFrame = WindowManager.launch(url).element;
 
       waitFor(function() {
 
@@ -29,18 +30,18 @@ function test() {
         ok(galleryFrame.classList.contains('active'), 'Gallery on top');
 
         var isCloseComplete = false;
-        
+
         WindowManager.closeForegroundWindow(function() {
           isCloseComplete = true;
         });
-        
+
         waitFor(function() {
           ok(!galleryFrame.classList.contains('active'), 'Gallery closed');
         }, function() {
           return isCloseComplete;
         });
 
-        WindowManager.kill('../gallery/gallery.html');
+        WindowManager.kill(url);
         ok(WindowManager.windows.length === 0, 'No apps running');
 
         finish();
