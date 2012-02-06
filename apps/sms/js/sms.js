@@ -161,6 +161,10 @@ var MessageView = {
     }).bind(this));
 
     this.showConversations();
+
+    var readyEvent = document.createEvent('CustomEvent');
+    readyEvent.initCustomEvent('appready', true, true, null);
+    window.dispatchEvent(readyEvent);
   },
 
   get conversationView() {

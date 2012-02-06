@@ -1,36 +1,31 @@
 
 function test() {
   waitForExplicitFinish();
+  let url = '../dialer/dialer.html';
 
-  function testDialerKeypadAndFinish() {
-    let contentWindow = shell.home.contentWindow.wrappedJSObject;
-    var WindowManager = contentWindow.Gaia.WindowManager;
+  getWindowManager(function(windowManager) {
+    function onReady(dialerFrame) {
+      let document = dialerFrame.contentWindow.document;
 
-    setTimeout(function() {
-      var dialerFrame = WindowManager.launch('../dialer/dialer.html').element;
-      waitFor(function() {
-        let document = dialerFrame.contentWindow.document;
+      var key1 = document.querySelector(".keyboard-key[data-value='1']");
+      var key3 = document.querySelector(".keyboard-key[data-value='3']");
 
-        var key1 = document.querySelector(".keyboard-key[data-value='1']");
-        var key3 = document.querySelector(".keyboard-key[data-value='3']");
+      EventUtils.sendMouseEvent({type: 'mousedown'}, key1);
+      EventUtils.sendMouseEvent({type: 'mousedown'}, key3);
+      EventUtils.sendMouseEvent({type: 'mousedown'}, key1);
 
-        EventUtils.sendMouseEvent({type: 'mousedown'}, key1);
-        EventUtils.sendMouseEvent({type: 'mousedown'}, key3);
-        EventUtils.sendMouseEvent({type: 'mousedown'}, key1);
+      ok(document.getElementById('phone-number-view').textContent == '131',
+         'Phone number view updated');
 
-        ok(document.getElementById('phone-number-view').textContent == '131',
-           'Phone number view updated');
+      windowManager.closeForegroundWindow();
+    }
 
-        finish();
-      }, function() {
-        let dialerWindow = dialerFrame.contentWindow;
-        return 'KeyHandler' in dialerWindow && dialerWindow.document.querySelector(".keyboard-key[data-value='3']") != null;
-      });
-    }, 300);
-  }
+    function onClose() {
+      windowManager.kill(url);
+      finish();
+    }
 
-  waitFor(testDialerKeypadAndFinish, function() {
-    let contentWindow = shell.home.contentWindow.wrappedJSObject;
-    return 'Gaia' in contentWindow && 'WindowManager' in contentWindow.Gaia;
+    let appFrame = windowManager.launch(url).element;
+    ApplicationObserver(appFrame, onReady, onClose);
   });
 }
