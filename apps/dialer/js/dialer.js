@@ -396,5 +396,7 @@ window.addEventListener('load', function keyboardInit(evt) {
 
   KeyHandler.init();
   navigator.mozTelephony.addEventListener('incoming', CallHandler);
+
+  window.parent.postMessage('appready', '*');
 });
 

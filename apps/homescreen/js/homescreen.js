@@ -7,6 +7,42 @@ const SHORTCUTS_HEIGHT = 144;
 
 var displayState;
 
+function showSourceViewer(url) {
+  var document = content.document;
+  var viewsource = document.getElementById('appViewsource');
+  if (!viewsource) {
+    var style = '#appViewsource { ' +
+                '  position: absolute;' +
+                '  top: -moz-calc(10%);' +
+                '  left: -moz-calc(10%);' +
+                '  width: -moz-calc(80% - 2 * 15px);' +
+                '  height: -moz-calc(80% - 2 * 15px);' +
+                '  visibility: hidden;' +
+                '  box-shadow: 10px 10px 5px #888;' +
+                '  margin: 15px;' +
+                '  background-color: white;' +
+                '  opacity: 0.92;' +
+                '  color: black;' +
+                '  z-index: 9999;' +
+                '}';
+    document.styleSheets[0].insertRule(style, 0);
+
+    viewsource = document.createElement('iframe');
+    viewsource.id = 'appViewsource';
+    document.body.appendChild(viewsource);
+  }
+  viewsource.style.visibility = 'visible';
+  viewsource.src = 'view-source: ' + url;
+}
+
+function hideSourceViewer() {
+  var viewsource = content.document.getElementById('appViewsource');
+  if (!viewsource)
+    return;
+  viewsource.style.visibility = 'hidden';
+}
+
+
 // Change the display state (off, locked, default)
 function changeDisplayState(state) {
   displayState = state;
@@ -255,7 +291,7 @@ IconGrid.prototype = {
     this.sceneGraph.forHit(
       x, y,
       function(sprite) {
-        Gaia.AppManager.launch(sprite.icon.url);
+        Gaia.WindowManager.launch(sprite.icon.url);
       });
   },
   handleEvent: function(e) {
@@ -314,7 +350,7 @@ NotificationScreen.prototype = {
   onTouchStart: function(e) {
     this.startX = e.pageX;
     this.startY = e.pageY;
-    this.onTouchMove({ pageY: e.pageY + 20 });
+    this.onTouchMove({ pageY: e.pageY + 32 });
   },
   onTouchMove: function(e) {
     var dy = -(this.startY - e.pageY);
@@ -405,23 +441,25 @@ function LockScreen(overlay) {
   }).bind(this));
 
   window.addEventListener('sleep', this);
-  this.update();
+  this.update(function fireHomescreenReady() {
+    window.parent.postMessage('homescreenready', '*');
+  });
 }
 
 LockScreen.prototype = {
-  update: function lockscreen_update() {
+  update: function lockscreen_update(callback) {
     var request = window.navigator.mozSettings.get('lockscreen.enabled');
     request.addEventListener('success', (function onsuccess(evt) {
-      if (request.result.value === 'true') {
-        this.lock(true);
-        return;
-      }
+      request.result.value === 'true' ? this.lock(true) : this.unlock(-1, true);
 
-      this.unlock(-1, true);
+      if (callback)
+        setTimeout(callback, 0);
     }).bind(this));
 
     request.addEventListener('error', (function onerror(evt) {
       this.lock(true);
+      if (callback)
+        setTimeout(callback, 0);
     }).bind(this));
   },
   onTouchStart: function(e) {
@@ -456,6 +494,10 @@ LockScreen.prototype = {
     style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
     style.MozTransform = 'translateY(' + offset + ')';
     changeDisplayState('unlocked');
+
+    var unlockEvent = document.createEvent('CustomEvent');
+    unlockEvent.initCustomEvent('unlocked', true, true, null);
+    window.dispatchEvent(unlockEvent);
   },
   lock: function(instant) {
     var style = this.overlay.style;
@@ -466,6 +508,10 @@ LockScreen.prototype = {
       style.MozTransform = 'translateY(0)';
     }
     changeDisplayState('locked');
+
+    var lockEvent = document.createEvent('CustomEvent');
+    lockEvent.initCustomEvent('locked', true, true, null);
+    window.dispatchEvent(lockEvent);
   },
   handleEvent: function(e) {
     hideSourceViewer();
@@ -495,15 +541,15 @@ LockScreen.prototype = {
 };
 
 function OnLoad() {
-  var lockScreen = new LockScreen(document.getElementById('lockscreen'));
+  Gaia.lockScreen = new LockScreen(document.getElementById('lockscreen'));
 
   var touchables = [
     document.getElementById('notificationsScreen'),
     document.getElementById('statusbar')
   ];
   new NotificationScreen(touchables);
-
-  var apps = Gaia.AppManager.getInstalledApps(function(apps) {
+  
+  var apps = Gaia.AppManager.loadInstalledApps(function(apps) {
     // XXX this add 5 times the same set of icons
     var icons = [];
     for (var i = 0; i < 5; i++)
@@ -536,7 +582,7 @@ function OnLoad() {
       if (index < 0)
         continue;
 
-      icon.action = 'Gaia.AppManager.launch(\'' + icon.url + '\')';
+      icon.action = 'Gaia.WindowManager.launch(\'' + icon.url + '\')';
       currentShortcuts.splice(index, 1, icon);
     }
 
@@ -551,7 +597,6 @@ function OnLoad() {
     }
     document.getElementById('home-shortcuts').innerHTML = shortcuts;
   });
-  Gaia.AppManager.init();
 
   var pagesContainer = document.getElementById('home-pages');
   document.addEventListener('pagechange', function(evt) {

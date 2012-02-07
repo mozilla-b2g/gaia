@@ -1,3 +1,5 @@
+'use strict';
+
 var Timer = {
   get actionButton() {
     delete this.actionButton;

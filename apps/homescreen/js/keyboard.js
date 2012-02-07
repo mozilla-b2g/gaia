@@ -8,6 +8,7 @@ const IMEManager = {
   ALTERNATE_LAYOUT: -2,
   SWITCH_KEYBOARD: -3,
   TOGGLE_CANDIDATE_PANEL: -4,
+  DOT_COM: -5,
 
   // IME Engines are self registering here.
   IMEngines: {},
@@ -15,15 +16,69 @@ const IMEManager = {
     return this.IMEngines[Keyboards[this.currentKeyboard].imEngine];
   },
 
-  // TODO: allow user to select desired keyboards in settings
-  // see bug 712778
-  currentKeyboard: 'en',
+  currentKeyboard: '',
   currentKeyboardMode: '',
-  keyboards: [
-    'en', 'fr', 'de', 'he', 'nb',
-    'ru', 'sr-Cyrl', 'sk', 'en-Dvorak',
-    'tr', 'zh-Hant-Zhuying'
-  ],
+  // keyboard layouts selected by the user from settings
+  keyboards: [],
+
+  // layouts to turn on correspond to keyboard.layouts.* setting
+  // TODO: gaia issue 347, better setting UI and setting data store
+  keyboardSettingGroups: {
+    'english': ['en'],
+    'dvorak': ['en-Dvorak'],
+    'otherlatins': ['fr', 'de', 'nb', 'sk', 'tr'],
+    'cyrillic': ['ru', 'sr-Cyrl'],
+    'hebrew': ['he'],
+    'zhuying': ['zh-Hant-Zhuying']
+  },
+
+  loadKeyboardSettings: function loadKeyboardSettings(callback) {
+    var completeSettingRequests = (function completeSettingRequests() {
+      if (this.keyboards.indexOf(this.currentKeyboard) === -1)
+        this.currentKeyboard = this.keyboards[0];
+
+      this.keyboards.forEach((function loadIMEngines(name) {
+        this.loadKeyboard(name);
+      }).bind(this));
+
+      callback();
+    }).bind(this);
+
+    this.keyboards = [];
+    var keyboardSettingGroupKeys = [];
+    for (var key in this.keyboardSettingGroups) {
+      keyboardSettingGroupKeys.push(key);
+    }
+    // XXX: shift() & length is neater than this
+    var i = 0;
+
+    var keyboardSettingRequest = function keyboardSettingRequest(key) {
+      var request = navigator.mozSettings.get('keyboard.layouts.' + key);
+      request.onsuccess = (function onsuccess(evt) {
+        // XXX: workaround with gaia issue 342
+        if (keyboardSettingGroupKeys.indexOf(key) !== i)
+          return;
+
+        if (request.result.value === 'true') {
+          this.keyboards = this.keyboards.concat(
+            this.keyboardSettingGroups[key]
+          );
+        }
+
+        i++;
+        if (i === keyboardSettingGroupKeys.length) {
+          completeSettingRequests();
+        } else {
+          keyboardSettingRequest.call(this, keyboardSettingGroupKeys[i]);
+        }
+
+      }).bind(this);
+    };
+
+    keyboardSettingRequest.call(this, keyboardSettingGroupKeys[i]);
+  },
+
+  currentType: 'text',
 
   isUpperCase: false,
 
@@ -38,7 +93,7 @@ const IMEManager = {
       this.updateLayout('alternateLayout');
     } else {
       this.currentKeyboardMode = '';
-      this.updateLayout(this.currentKeyboard);
+      this.updateLayout();
     }
   },
 
@@ -51,7 +106,7 @@ const IMEManager = {
       this.currentKeyboardMode = 'Symbol';
       this.updateLayout('symbolLayout');
     } else {
-      this.currentKeyboardMode = '';
+      this.currentKeyboardMode = 'Alternate';
       this.updateLayout('alternateLayout');
     }
   },
@@ -170,14 +225,18 @@ const IMEManager = {
         '</span>';
     }
 
-    for (var i in target.dataset.alt) {
+    var altChars = target.dataset.alt.split('');
+    if (!before)
+      altChars = altChars.reverse();
+
+    altChars.forEach(function(keyChar) {
       content += '<span class="keyboard-key" ' +
-        'data-keycode="' + dataset.alt.charCodeAt(i) + '"' +
+        'data-keycode="' + keyChar.charCodeAt(0) + '"' +
         'style="width:' + cssWidth + '"' +
         '>' +
-        dataset.alt.charAt(i) +
+        keyChar +
         '</span>';
-    }
+    });
 
     if (!before) {
       content += '<span class="keyboard-key" ' +
@@ -257,6 +316,35 @@ const IMEManager = {
     delete this._currentMenuKey;
   },
 
+  // data URL for keyboard click sound
+  kAudio: 'data:audio/x-wav;base64,UklGRiADAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YfwCAAAW/Fzsqe9OAONWB0Pt3Mf1hsS38mJcc0mq9mzpwsIwsChOBxay/ikHV6Tr8ioJNQa0ErvFzbXrw97j5C2LQII7aBg77Tr+I+wH0QWp/7xowHegIf0yD1UkhzRRIbUGoeOgJptCHVB+WZg5ehgsEcofKwKaAb7+cuzd9doICAx0FZEm+gEq+z//D/yJDtEJx/O73MHkifPK/BoLXwwuBt3p5eBq2h3YT/OR+MH/5xDGB7sHowyp9rrrL++06mnt/PpcALcI7RDSCz4GwwWaAXYNVhLwD20VYQsvCWUPxApJCVUH3P0jA54EIP0RBUYHVgtlD68KtQWI/9MB4f8Q/Fr4UvLz7nPqyOzV9AvzKfEB7azl/+ee6jbrSOw16mjpPepD7d3yT/hL/RIDBAXQAHcDIAZ1BVsPIhAZCT4Ntwc2CJsQnhV+GlYcJR67GF0WaRK5CewGSQdSBboCfgWGBaQACP0e+8f3O/Y4+Yn14e8l9Mf3lvns/eT75fbx9t359/lw+6L+XP+5AdsFSgZECK8LvQlVCWYJ1wetBD8AGALlAJUAVAbPBEkDpALfADn/Cv4c/+7+OP/jAAb/7vie+Xr7GvYa9g30rPBc9OL1wveo+3D+8/xG+Zn5tPsi/vX/xv4I/Oj5DPaL8mbxmfMM+80AXQbiCisNvhC8Dt4LGwwyDJkNlAxRCWYGswcHCn0KyA5cDsQKYgrZB+cFlATlAh4A3P5kAOsAOwLbA+ED8gLAAM/+h/vq+Lb5qPgY+GH5i/nE+SX6V/s9+gv69vl89nv33fhc+Zb6nvse/lEA4wMjBrQEugPc/4/8pvux+//9Kf9tAGcBXAFxAtgCuwMeBFQE6AQdA4gCGAJiADsAuwC7/53+a/4J/tv88fte+R74dPhd+HD5LPmf+If5VPsp/noASALRAbsB+wJ+Ak0CuQPiBAsFpwYTB5wFtgZ/DE4P8AuHB4kD3QKPBcAHhgaHBDAEngO6BBcFbwJ2/qD7rPtG/voBwQGU/pn9Lv3T/g==',
+
+  set clicksound(enable) {
+    if (!enable && this._audio)
+      delete this._audio;
+
+    if (enable && !this._audio) {
+      this._audio = new Audio(this.kAudio);
+    }
+  },
+
+  get clicksound() {
+    return !!this._audio;
+  },
+
+  triggerFeedback: function() {
+    if (this.vibrate) {
+      try {
+        if (this.vibrate)
+          navigator.mozVibrate(50);
+      } catch (e) {}
+    }
+
+    if (this.clicksound) {
+      this._audio.cloneNode(false).play();
+    }
+  },
+
   events: ['mouseup', 'showime', 'hideime', 'unload', 'appclose'],
   imeEvents: ['mousedown', 'mouseover', 'mouseleave'],
   init: function km_init() {
@@ -266,11 +354,6 @@ const IMEManager = {
 
     this.imeEvents.forEach((function imeEvents(type) {
       this.ime.addEventListener(type, this);
-    }).bind(this));
-
-    // XXX: only load user-desired keyboards from settings
-    this.keyboards.forEach((function loadIMEngines(name) {
-      this.loadKeyboard(name);
     }).bind(this));
   },
 
@@ -286,14 +369,18 @@ const IMEManager = {
 
   loadKeyboard: function km_loadKeyboard(name) {
     var keyboard = Keyboards[name];
-    if (keyboard.type !== 'ime' || keyboard.imeLoaded)
+    if (keyboard.type !== 'ime')
       return;
-
-    // Only try to load the IME engine once.
-    keyboard.imeLoaded = true;
 
     var sourceDir = './imes/';
     var imEngine = keyboard.imEngine;
+
+    // Same IME Engine could be load by multiple keyboard layouts
+    // keep track of it by adding a placeholder to the registration point
+    if (this.IMEngines[imEngine])
+      return;
+
+    this.IMEngines[imEngine] = {};
 
     var script = document.createElement('script');
     script.src = sourceDir + imEngine + '/loader.js';
@@ -335,12 +422,28 @@ const IMEManager = {
 
     switch (evt.type) {
       case 'showime':
-        this.showIME(activeWindow, evt.detail.type);
+        // TODO: gaia issue 346
+        // Instead of reading the latest setting every time
+        // when showime and relay on the callback,
+        // allow attachment of a read-only event listener
+        // to add/remove keyboard as setting changes
+        // see bug 712778
+        this.loadKeyboardSettings(
+          (function showIMEAfterSettingLoaded() {
+            this.showIME(activeWindow, evt.detail.type);
+          }).bind(this)
+        );
 
         var request = navigator.mozSettings.get('keyboard.vibration');
         request.addEventListener('success', (function onsuccess(evt) {
           this.vibrate = (request.result.value === 'true');
         }).bind(this));
+
+        var request = navigator.mozSettings.get('keyboard.clicksound');
+        request.addEventListener('success', (function onsuccess(evt) {
+          this.clicksound = (request.result.value === 'true');
+        }).bind(this));
+
         break;
 
       case 'hideime':
@@ -358,10 +461,7 @@ const IMEManager = {
           return;
 
         this.updateKeyHighlight();
-        try {
-          if (this.vibrate)
-            navigator.mozVibrate(50);
-        } catch(e) {}
+        this.triggerFeedback();
 
         this._menuTimeout = setTimeout((function menuTimeout() {
             this.showAccentCharMenu();
@@ -370,7 +470,9 @@ const IMEManager = {
         if (keyCode != KeyEvent.DOM_VK_BACK_SPACE)
           return;
 
-        var sendDelete = (function sendDelete() {
+        var sendDelete = (function sendDelete(feedback) {
+          if (feedback)
+            this.triggerFeedback();
           if (Keyboards[this.currentKeyboard].type == 'ime') {
             this.currentEngine.click(keyCode);
             return;
@@ -378,12 +480,12 @@ const IMEManager = {
           window.navigator.mozKeyboard.sendKey(keyCode, keyCode);
         }).bind(this);
 
-        sendDelete();
+        sendDelete(false);
         this._deleteTimeout = setTimeout((function deleteTimeout() {
-          sendDelete();
+          sendDelete(true);
 
           this._deleteInterval = setInterval(function deleteInterval() {
-            sendDelete();
+            sendDelete(true);
           }, this.kRepeatRate);
         }).bind(this), this.kRepeatTimeout);
         break;
@@ -508,7 +610,7 @@ const IMEManager = {
                 this.currentKeyboard = target.dataset.keyboard;
 
               this.isUpperCase = false;
-              this.updateLayout(this.currentKeyboard);
+              this.updateLayout();
 
               break;
             }
@@ -523,13 +625,19 @@ const IMEManager = {
               this.currentKeyboard = keyboards[++index];
 
             this.isUpperCase = false;
-            this.updateLayout(this.currentKeyboard);
+            this.updateLayout();
           break;
 
           case this.TOGGLE_CANDIDATE_PANEL:
             var panel = this.candidatePanel;
             var className = (panel.className == 'full') ? 'show' : 'full';
             panel.className = target.className = className;
+          break;
+
+          case this.DOT_COM:
+            ('.com').split('').forEach((function sendDotCom(key) {
+              window.navigator.mozKeyboard.sendKey(0, key.charCodeAt(0));
+            }).bind(this));
           break;
 
           case KeyEvent.DOM_VK_ALT:
@@ -541,7 +649,7 @@ const IMEManager = {
               this.isUpperCaseLocked = true;
               if (!this.isUpperCase) {
                 this.isUpperCase = true;
-                this.updateLayout(this.currentKeyboard);
+                this.updateLayout();
 
                 // XXX: keyboard updated; target is lost.
                 var selector =
@@ -563,7 +671,7 @@ const IMEManager = {
 
             this.isUpperCaseLocked = false;
             this.isUpperCase = !this.isUpperCase;
-            this.updateLayout(this.currentKeyboard);
+            this.updateLayout();
           break;
 
           case KeyEvent.DOM_VK_RETURN:
@@ -585,7 +693,7 @@ const IMEManager = {
 
             if (this.isUpperCase && !this.isUpperCaseLocked) {
               this.isUpperCase = false;
-              this.updateLayout(this.currentKeyboard);
+              this.updateLayout();
             }
           break;
         }
@@ -598,7 +706,19 @@ const IMEManager = {
   },
 
   updateLayout: function km_updateLayout(keyboard) {
-    var layout = Keyboards[keyboard];
+    var layout;
+
+    switch (this.currentType) {
+      case 'number':
+        layout = Keyboards['numberLayout'];
+      break;
+      case 'tel':
+        layout = Keyboards['telLayout'];
+      break;
+      default:
+        layout = Keyboards[keyboard] || Keyboards[this.currentKeyboard];
+      break;
+    }
 
     var content = '';
     var width = window.innerWidth;
@@ -607,8 +727,20 @@ const IMEManager = {
       layout.upperCase = {};
     if (!layout.alt)
       layout.alt = {};
+    if (!layout.textLayoutOverwrite)
+      layout.textLayoutOverwrite = {};
 
     // Append each row of the keyboard into content HTML
+
+    var size = (width / (layout.width || 10));
+
+    var buildKey = function buildKey(code, label, className, ratio, alt) {
+      return '<span class="keyboard-key ' + className + '"' +
+        ' data-keycode="' + code + '"' +
+        ' style="width:' + (size * ratio - 2) + 'px"' +
+        ((alt) ? ' data-alt=' + alt : '') +
+      '>' + label + '</span>';
+    };
 
     layout.keys.forEach((function buildKeyboardRow(row) {
       content += '<div class="keyboard-row">';
@@ -629,9 +761,91 @@ const IMEManager = {
           keyChar = layout.upperCase[keyChar] || keyChar.toUpperCase();
 
         var code = key.keyCode || keyChar.charCodeAt(0);
-        var size = ((width - (row.length * 2)) / (layout.width || 10));
-        size = size * (key.ratio || 1) - 2;
-        var className = 'keyboard-key';
+
+
+        if (code == KeyboardEvent.DOM_VK_SPACE) {
+          // space key: replace/append with control and type keys
+
+          var ratio = key.ratio || 1;
+
+          if (this.keyboards.length > 1) {
+            // Switch keyboard key
+            ratio -= 1;
+            content += buildKey(
+              this.SWITCH_KEYBOARD,
+              '⌨',
+              'keyboard-key-special',
+              1
+            );
+          }
+
+          // Alternate layout key
+          ratio -= 2;
+          if (this.currentKeyboardMode == '') {
+            content += buildKey(
+              this.ALTERNATE_LAYOUT,
+              '?123',
+              'keyboard-key-special',
+              2
+            );
+          } else {
+            content += buildKey(
+              this.BASIC_LAYOUT,
+              'ABC',
+              'keyboard-key-special',
+              2
+            );
+          }
+
+          switch (this.currentType) {
+            case 'url':
+              ratio -= 2;
+              content += buildKey(46, '.', '', 1);
+              content += buildKey(47, '/', '', 1);
+              content += buildKey(this.DOT_COM, '.com', '', ratio);
+            break;
+            case 'email':
+              ratio -= 2;
+              content += buildKey(KeyboardEvent.DOM_VK_SPACE, '⎵', '', ratio);
+              content += buildKey(64, '@', '', 1);
+              content += buildKey(46, '.', '', 1);
+            break;
+            case 'text':
+              if (layout.textLayoutOverwrite['.'] !== false)
+                ratio -= 1;
+              if (layout.textLayoutOverwrite[','] !== false)
+                ratio -= 1;
+
+              if (layout.textLayoutOverwrite[',']) {
+                content += buildKey(
+                  layout.textLayoutOverwrite[','].charCodeAt(0),
+                  layout.textLayoutOverwrite[','],
+                  '',
+                  1
+                );
+              } else if (layout.textLayoutOverwrite[','] !== false) {
+                content += buildKey(44, ',', '', 1);
+              }
+
+              content += buildKey(KeyboardEvent.DOM_VK_SPACE, '⎵', '', ratio);
+
+              if (layout.textLayoutOverwrite['.']) {
+                content += buildKey(
+                  layout.textLayoutOverwrite['.'].charCodeAt(0),
+                  layout.textLayoutOverwrite['.'],
+                  '',
+                  1
+                );
+              } else if (layout.textLayoutOverwrite['.'] !== false) {
+                content += buildKey(46, '.', '', 1);
+              }
+            break;
+          }
+
+          return;
+        }
+
+        var className = '';
 
         if (code < 0 || specialCodes.indexOf(code) > -1)
           className += ' keyboard-key-special';
@@ -641,18 +855,13 @@ const IMEManager = {
 
         var alt = '';
         if (layout.alt[keyChar] != undefined) {
-          alt = ' data-alt="' + layout.alt[keyChar] + '"';
+          alt = layout.alt[keyChar];
         } else if (layout.alt[key.value] != undefined && this.isUpperCase) {
-          alt = ' data-alt="' + layout.alt[key.value].toUpperCase() + '"';
+          alt = layout.alt[key.value].toUpperCase();
         }
 
-        content += '<span class="' + className + '"' +
-                          'data-keycode="' + code + '"' +
-                          'style="width:' + size + 'px"' +
-                          alt +
-                   '>' +
-                   keyChar +
-                   '</span>';
+        content += buildKey(code, keyChar, className, key.ratio || 1, alt);
+
       }).bind(this));
       content += '</div>';
     }).bind(this));
@@ -708,7 +917,27 @@ const IMEManager = {
   },
 
   showIME: function km_showIME(targetWindow, type) {
-    this.loadKeyboard(this.currentKeyboard);
+    switch (type) {
+      // basic types
+      case 'url':
+      case 'tel':
+      case 'email':
+      case 'number':
+      case 'text':
+        this.currentType = type;
+      break;
+
+      // default fallback and textual types
+      case 'password':
+      case 'search':
+      default:
+        this.currentType = 'text';
+      break;
+
+      case 'range': // XXX: should be different from number
+        this.currentType = 'number';
+      break;
+    }
 
     if (this.ime.dataset.hidden) {
       this.targetWindow = targetWindow;
@@ -718,7 +947,7 @@ const IMEManager = {
         targetWindow.getBoundingClientRect().height;
     }
 
-    this.updateLayout(this.currentKeyboard);
+    this.updateLayout();
     delete this.ime.dataset.hidden;
 
   },

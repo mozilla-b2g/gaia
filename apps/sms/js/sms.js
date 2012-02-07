@@ -50,13 +50,13 @@ var MessageManager = {
 
   send: function mm_send(number, text, callback) {
     var result = navigator.mozSms.send(number, text);
-    if (!result) {
-      sendMessageHack(number, text, callback);
-      return;
-    }
-
-    result.onsuccess = callback;
-    result.onerror = callback;
+    result.onsuccess = function onsuccess(event) {
+      callback(event.message);
+    };
+    result.onerror = function onerror(event) {
+      console.log("Error sending SMS!");
+      callback(null);
+    };
   },
 
   delete: function mm_delete(id) {
@@ -68,29 +68,7 @@ var MessageManager = {
 // Until there is a database to store messages on the device, return
 // a fake list of messages.
 var messagesHack = [];
-var GetMessagesHack = function(callback, filter, invert) {
-  function applyFilter(msgs) {
-    if (!filter)
-      return msgs;
-
-    if (filter.number) {
-      msgs = msgs.filter(function(element, index, array) {
-          return (filter.number && (filter.number == element.sender ||
-                  filter.number == element.receiver));
-      });
-    }
-
-    return msgs;
-  }
-
-  if (messagesHack.length) {
-    var msg = messagesHack.slice();
-    if (invert)
-      msg.reverse();
-    callback(applyFilter(msg));
-    return;
-  }
-
+(function() {
   var messages = [
     {
       sender: null,
@@ -114,6 +92,21 @@ var GetMessagesHack = function(callback, filter, invert) {
   }
 
   messagesHack = messages;
+})();
+var GetMessagesHack = function(callback, filter, invert) {
+  function applyFilter(msgs) {
+    if (!filter)
+      return msgs;
+
+    if (filter.number) {
+      msgs = msgs.filter(function(element, index, array) {
+          return (filter.number && (filter.number == element.sender ||
+                  filter.number == element.receiver));
+      });
+    }
+
+    return msgs;
+  }
 
   var msg = messagesHack.slice();
   if (invert)
@@ -121,45 +114,25 @@ var GetMessagesHack = function(callback, filter, invert) {
   callback(applyFilter(msg));
 };
 
-var sendMessageHack = function(number, text, callback) {
-  var message = {
-    sender: null,
-    receiver: number,
-    body: text,
-    timestamp: Date.now()
-  };
-
-  var event = document.createEvent('CustomEvent');
-  event.initCustomEvent('sent', true, false, message);
-  window.setTimeout(function(evt) {
-    window.dispatchEvent(event);
-    if (callback)
-      callback();
-  }, 1000);
-};
-
 // Use a fake send if mozSms is not present
 if (!navigator.mozSms) {
-  MessageManager.send = sendMessageHack;
+  MessageManager.send = function mm_send(number, text, callback) {
+    var message = {
+      sender: null,
+      receiver: number,
+      body: text,
+      timestamp: Date.now()
+    };
+    window.setTimeout(function() {
+      callback(message);
+    }, 0);
+  };
 }
-
-['sent', 'received'].forEach(function(type) {
-  window.addEventListener(type, function handleEvent(evt) {
-    messagesHack.unshift(evt.detail);
-  }, true);
-});
 
 var MessageView = {
   init: function init() {
-    ['sent', 'received'].forEach((function(type) {
-      window.addEventListener(type, (function handleEvent(evt) {
-        this.handleEvent({'type': type });
-      }).bind(this), true);
-
-      if (window.navigator.mozSms)
-        window.navigator.mozSms.addEventListener(type, this);
-    }).bind(this));
-
+    if (navigator.mozSms)
+      navigator.mozSms.addEventListener('received', this);
     this.showConversations();
   },
 
@@ -218,6 +191,8 @@ var MessageView = {
         fragment += msg;
       }
       self.view.innerHTML = fragment;
+
+      window.parent.postMessage('appready', '*');
     }, null);
   },
 
@@ -248,12 +223,10 @@ var MessageView = {
 
   handleEvent: function handleEvent(evt) {
     switch (evt.type) {
-      case 'sent':
       case 'received':
-        // TODO Remove the delay once the native SMS application is disabled
-        window.setTimeout(function(self) {
-          self.showConversations();
-        }, 800, this);
+        window.setTimeout(function() {
+          MessageView.showConversations();
+        }, 0);
         break;
     }
   }
@@ -268,16 +241,8 @@ var ConversationView = {
 
   init: function cv_init() {
     window.addEventListener('keypress', this, true);
-
-    ['sent', 'received'].forEach((function(type) {
-      window.addEventListener(type, (function handleEvent(evt) {
-        this.handleEvent({ 'type': type });
-      }).bind(this), true);
-
-      if (window.navigator.mozSms)
-        window.navigator.mozSms.addEventListener('sent', this, true);
-    }).bind(this));
-
+    if (navigator.mozSms)
+      navigator.mozSms.addEventListener('received', this);
   },
 
   showConversation: function cv_showConversation(num) {
@@ -343,12 +308,14 @@ var ConversationView = {
 
         if (this.close())
           evt.preventDefault();
-      case 'sent':
       case 'received':
-        // TODO Remove the delay once the native SMS application is disabled
-        setTimeout(function(self) {
-          self.showConversation(self.filter);
-        }, 800, this);
+        var message = evt.message;
+        console.log('Received message from ' + message.sender + ': ' +
+                    message.body);
+        messagesHack.push(message);
+        window.setTimeout(function () {
+          ConversationView.showConversation(ConversationView.filter);
+        }, 0);
         break;
     }
   },
@@ -375,19 +342,36 @@ var ConversationView = {
     if (contact.value == '' || text.value == '')
       return;
 
-    var throbber = document.getElementById('throbber');
-    throbber.removeAttribute('hidden');
-
-    MessageManager.send(contact.value, text.value, function() {
-      throbber.setAttribute('hidden', 'true');
-      text.value = text.style.height = '';
-
-      if (ConversationView.filter)
+    MessageManager.send(contact.value, text.value, function onsent(msg) {
+      // There was an error. We should really do some error handling here.
+      // or in send() or wherever.
+      if (!msg)
         return;
 
-      ConversationView.close();
+      // Copy all the information from the actual message object to the
+      // preliminary message object. Then update the view.
+      for (var key in msg)
+        message[msg] = msg[key];
+
+      if (ConversationView.filter)
+        ConversationView.showConversation(ConversationView.filter);
     });
-    return;
+
+    // Create a preliminary message object and update the view right away.
+    var message = {
+      sender: null,
+      receiver: contact.value,
+      body: text.value
+    };
+    messagesHack.push(message);
+
+    text.value = "";
+    if (ConversationView.filter) {
+      ConversationView.showConversation(ConversationView.filter);
+      return;
+    }
+    ConversationView.close();
+    MessageView.showConversations();
   }
 };
 
@@ -400,4 +384,3 @@ function onKeyPress(evt) {
     target.style.height = '-moz-calc(' + target.scrollHeight + 'px + 32px)';
   }, 0);
 }
-
