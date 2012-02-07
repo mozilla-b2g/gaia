@@ -1,4 +1,8 @@
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
 const kDefaultWait = 2000;
+
 // Wait for a condition and call a supplied callback if condition is met within
 // alloted time. If condition is not met, cause a hard failure,
 // stopping the test.
@@ -14,55 +18,59 @@ function waitFor(callback, test, timeout) {
   setTimeout(waitFor, 50, callback, test, timeout);
 }
 
-// Currently we're waiting for the lockscreen to be auto-locked
-// then we're unlocking it and waiting for the custom event to declare
-// the tests ready to run.
-// see https://github.com/andreasgal/gaia/issues/333
-if (typeof readyAndUnlocked === 'undefined') {
-  readyAndUnlocked = false;
+if (typeof content.ready === 'undefined') {
+  try {
+    content.ready = !!content.wrappedJSObject.Gaia.lockScreen;
+    if (content.ready)
+      content.wrappedJSObject.Gaia.lockScreen.unlock(-1);
+  } catch (e) {
+    content.ready = false;
+  }
 
-  waitFor(function() {
-    var contentWindow = content.wrappedJSObject;
-    contentWindow.addEventListener('unlocked', function waitUnlocked() {
-      contentWindow.removeEventListener('unlocked', waitUnlocked);
-      readyAndUnlocked = true;
-    });
+  window.addEventListener('ContentStart', function waitForContentStart(evt) {
+    content.removeEventListener('ContentStart', waitForContentStart);
 
-    contentWindow.addEventListener('locked', function waitLocked() {
-      contentWindow.removeEventListener('locked', waitLocked);
-      contentWindow.Gaia.lockScreen.unlock(-1, true);
+    content.addEventListener('message', function waitForReady(evt){
+       if (evt.data != 'homescreenready')
+          return;
+
+      content.removeEventListener('message', waitForReady);
+
+      content.wrappedJSObject.Gaia.lockScreen.unlock(-1);
+      content.ready = true;
     });
-  }, function() {
-    let contentWindow = content.wrappedJSObject;
-    return ('Gaia' in contentWindow) &&
-      ('WindowManager' in contentWindow.Gaia) &&
-      ('lockScreen' in contentWindow.Gaia);
   });
 }
 
 function getWindowManager(callback) {
   waitFor(function() {
     let contentWindow = content.wrappedJSObject;
-    callback(contentWindow.getWindowManager());
+    setTimeout(function() {
+      callback(contentWindow.getApplicationManager());
+    }, 0);
   }, function() {
-    return readyAndUnlocked;
-  });
+    return content.ready;
+  }, Date.now() + 5000);
 }
 
-function ApplicationObserver(appFrame, readyCallback, closeCallback) {
-  waitFor(function() {
-    let applicationWindow = appFrame.contentWindow;
+function ApplicationObserver(application, readyCallback, closeCallback) {
+  content.addEventListener('message', function waitForReady(evt) {
+    if (evt.data != 'appready')
+      return;
 
-    applicationWindow.addEventListener('appready', function waitForReady(evt) {
-      applicationWindow.removeEventListener('appready', waitForReady);
-      readyCallback(appFrame);
-    });
+    content.removeEventListener('message', waitForReady);
 
-    applicationWindow.addEventListener('appclose', function waitForClose(evt) {
-      applicationWindow.removeEventListener('appclose', waitForClose);
+    setTimeout(function() {
+      readyCallback(application);
+    }, 0);
+  });
+
+  application.addEventListener('appclose', function waitForClose(evt) {
+    application.removeEventListener('appclose', waitForClose);
+
+    setTimeout(function() {
       closeCallback();
-    });
-  }, function() {
-    return 'contentWindow' in appFrame;
+    }, 0);
   });
 }
+
