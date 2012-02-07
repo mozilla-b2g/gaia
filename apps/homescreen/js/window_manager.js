@@ -13,24 +13,24 @@ function getApplicationManager() {
 (function() {
   var _lastWindowId = 0;
   var _statusBarHeight = null;
-  
+
   Gaia.Window = function(app) {
     var documentElement = document.documentElement;
     var id = this._id = ++_lastWindowId;
-    
+
     if (_statusBarHeight === null)
       _statusBarHeight = document.getElementById('statusbar').offsetHeight;
-    
+
     var element = this.element = document.createElement('iframe');
     element.id = 'window_' + id;
     element.className = 'appWindow';
     element.style.width = documentElement.clientWidth + 'px';
     element.style.height = documentElement.clientHeight - _statusBarHeight + 'px';
-    
+
     this.app = app;
-    
+
     Gaia.WindowManager.add(this);
-    
+
     var taskElement = this.taskElement = Gaia.TaskManager.add(app, id);
   };
 
@@ -298,8 +298,8 @@ Gaia.WindowManager = {
       win = new Gaia.Window(app);
 
       // To be compatible with the upstream webapi.js file, foregroundWindow
-      // should be set.
-      this.foregroundWindow = win.element;
+      // should be set on the AppManager...
+      Gaia.AppManager.foregroundWindow = win.element;
 
       var appWillOpenEvent = document.createEvent('CustomEvent');
       appWillOpenEvent.initCustomEvent('appwillopen', true, true, app.name);
