@@ -5,7 +5,7 @@ function test() {
 
   function testWindowManagerAndFinish() {
     let contentWindow = content.wrappedJSObject;
-    var WindowManager = contentWindow.Gaia.WindowManager;
+    var WindowManager = contentWindow.WindowManager;
     var windows = WindowManager.windows;
 
     setTimeout(function() {

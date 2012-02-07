@@ -3,8 +3,6 @@
 
 'use strict';
 
-var emulateRun = (window.navigator.userAgent.indexOf('B2G') == -1);
-
 if (!window['Gaia'])
   var Gaia = {};
 
@@ -50,9 +48,9 @@ Gaia.AnimationLoop = function(renderCallback) {
 
       this._isActive = value;
 
-      Gaia.WindowManager.setActive(false);
+      WindowManager.setActive(false);
       
-      var windows = Gaia.WindowManager.windows;
+      var windows = WindowManager.windows;
       var listItemWidth = window.innerWidth * 0.5;
 
       if (value) {
@@ -94,7 +92,7 @@ Gaia.AnimationLoop = function(renderCallback) {
     handleEvent: function(evt) {
       switch (evt.type) {
         case 'keydown':
-          if (evt.keyCode !== (emulateRun ? evt.DOM_VK_ESCAPE : evt.DOM_VK_HOME) || isKeyDown)
+          if (evt.keyCode !== evt.DOM_VK_HOME || isKeyDown)
             return;
 
           if (checkKeyPressTimeout) {
@@ -104,9 +102,9 @@ Gaia.AnimationLoop = function(renderCallback) {
 
           isKeyDown = true;
 
-          if (this.isActive)
+          if (this.isActive) {
             this.setActive(false);
-          else {
+          } else {
             checkKeyPressTimeout = window.setTimeout(function checkKeyPress(self) {
               checkKeyPressTimeout = null;
 
@@ -116,7 +114,7 @@ Gaia.AnimationLoop = function(renderCallback) {
           }
           break;
         case 'keyup':
-          if (evt.keyCode !== (emulateRun ? evt.DOM_VK_ESCAPE : evt.DOM_VK_HOME))
+          if (evt.keyCode !== evt.DOM_VK_HOME)
             return;
 
           if (checkKeyPressTimeout) {
@@ -150,7 +148,7 @@ Gaia.AnimationLoop = function(renderCallback) {
           break;
         case 'touchend':
           var listElement = this.listElement;
-          var windowCount = Gaia.WindowManager.windows.length;
+          var windowCount = WindowManager.windows.length;
           var listItemWidth = window.innerWidth * 0.5;
           var listIndex = Math.round(listElement.scrollLeft / listItemWidth);
           
@@ -223,7 +221,7 @@ Gaia.AnimationLoop = function(renderCallback) {
       item.addEventListener('click', function taskClickHandler(evt) {
         self.setActive(false);
         window.setTimeout(function launchApp() {
-          Gaia.WindowManager.launch(app.url);
+          WindowManager.launch(app.url);
         }, 400);
       });
 
@@ -234,7 +232,7 @@ Gaia.AnimationLoop = function(renderCallback) {
       var listElement = this.listElement;
       var item = document.getElementById('task_' + id);
       listElement.removeChild(item);
-      Gaia.WindowManager.kill(app.url);
+      WindowManager.kill(app.url);
     },
 
     sendToFront: function(id) {
