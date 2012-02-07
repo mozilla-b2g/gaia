@@ -24,7 +24,9 @@ function test() {
           conversationView.removeEventListener('transitionend', trWait);
           ok(conversationView.hidden, 'Conversation hidden');
 
-          windowManager.closeForegroundWindow();
+          setTimeout(function() {
+            windowManager.closeForegroundWindow();
+          }, 0);
         });
       });
     }

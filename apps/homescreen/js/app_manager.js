@@ -6,10 +6,6 @@
 if (!window['Gaia'])
   var Gaia = {};
 
-function getApplicationManager() {
-  return Gaia.AppManager;
-}
-
 Gaia.AppManager = {
   _makeUrlObject: function GAM_makeUrlObject(u) {
     var a = document.createElement('a');

@@ -441,23 +441,25 @@ function LockScreen(overlay) {
   }).bind(this));
 
   window.addEventListener('sleep', this);
-  this.update();
+  this.update(function fireHomescreenReady() {
+    window.parent.postMessage('homescreenready', '*');
+  });
 }
 
 LockScreen.prototype = {
-  update: function lockscreen_update() {
+  update: function lockscreen_update(callback) {
     var request = window.navigator.mozSettings.get('lockscreen.enabled');
     request.addEventListener('success', (function onsuccess(evt) {
-      if (request.result.value === 'true') {
-        this.lock(true);
-        return;
-      }
+      request.result.value === 'true' ? this.lock(true) : this.unlock(-1, true);
 
-      this.unlock(-1, true);
+      if (callback)
+        setTimeout(callback, 0);
     }).bind(this));
 
     request.addEventListener('error', (function onerror(evt) {
       this.lock(true);
+      if (callback)
+        setTimeout(callback, 0);
     }).bind(this));
   },
   onTouchStart: function(e) {

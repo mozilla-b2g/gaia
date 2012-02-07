@@ -6,27 +6,31 @@
 if (!window['Gaia'])
   var Gaia = {};
 
+function getApplicationManager() {
+  return Gaia.WindowManager;
+}
+
 (function() {
   var _lastWindowId = 0;
   var _statusBarHeight = null;
-  
+
   Gaia.Window = function(app) {
     var documentElement = document.documentElement;
     var id = this._id = ++_lastWindowId;
-    
+
     if (_statusBarHeight === null)
       _statusBarHeight = document.getElementById('statusbar').offsetHeight;
-    
+
     var element = this.element = document.createElement('iframe');
     element.id = 'window_' + id;
     element.className = 'appWindow';
     element.style.width = documentElement.clientWidth + 'px';
     element.style.height = documentElement.clientHeight - _statusBarHeight + 'px';
-    
+
     this.app = app;
-    
+
     Gaia.WindowManager.add(this);
-    
+
     var taskElement = this.taskElement = Gaia.TaskManager.add(app, id);
   };
 
@@ -245,8 +249,6 @@ Gaia.WindowManager = {
     if (this._foregroundWindow === win)
       return;
   
-    var self = this;
-  
     // If a valid Window has been specified, set the WindowManager to be
     // active and focus the new foreground Window.
     if (win) {
@@ -273,11 +275,12 @@ Gaia.WindowManager = {
 
     if (!foregroundWindow || !app)
       return;
-  
+
+    var win = this.getWindowByApp(app);
     this.setForegroundWindow(null, function() {
       var appcloseEvent = document.createEvent('CustomEvent');
       appcloseEvent.initCustomEvent('appclose', true, true, app.name);
-      window.dispatchEvent(appcloseEvent);
+      win.element.dispatchEvent(appcloseEvent);
       
       if (onCompleteCallback)
         onCompleteCallback();
@@ -293,6 +296,15 @@ Gaia.WindowManager = {
       Gaia.TaskManager.sendToFront(win.id);
     } else {
       win = new Gaia.Window(app);
+
+      // To be compatible with the upstream webapi.js file, foregroundWindow
+      // should be set on the AppManager...
+      Gaia.AppManager.foregroundWindow = win.element;
+
+      var appWillOpenEvent = document.createEvent('CustomEvent');
+      appWillOpenEvent.initCustomEvent('appwillopen', true, true, app.name);
+      win.element.dispatchEvent(appWillOpenEvent);
+
       this.setForegroundWindow(win, function() {
         var appopenEvent = document.createEvent('CustomEvent');
         appopenEvent.initCustomEvent('appopen', true, true, app.name);
