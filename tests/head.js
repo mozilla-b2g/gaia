@@ -27,14 +27,18 @@ if (typeof content.ready === 'undefined') {
     content.ready = false;
   }
 
-  content.addEventListener('message', function waitForReady(evt) {
-    if (!evt || evt.data != 'homescreenready')
-      return;
+  window.addEventListener('ContentStart', function waitForContentStart(evt) {
+    content.removeEventListener('ContentStart', waitForContentStart);
 
-    content.removeEventListener('message', waitForReady);
+    content.addEventListener('message', function waitForReady(evt){
+       if (evt.data != 'homescreenready')
+          return;
 
-    content.wrappedJSObject.Gaia.lockScreen.unlock(-1);
-    content.ready = true;
+      content.removeEventListener('message', waitForReady);
+
+      content.wrappedJSObject.Gaia.lockScreen.unlock(-1);
+      content.ready = true;
+    });
   });
 }
 
