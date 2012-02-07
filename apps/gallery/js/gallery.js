@@ -8,22 +8,39 @@ const SAMPLE_FILENAMES = ['bigcat.jpg', 'bison.jpg', 'butterfly.jpg',
     'zebra.jpg'];
 
 var Gallery = {
+
   photoSelected: false,
+  photoNumber: null,
+  
+  get thumbnails() {
+    delete this.thumbnails;
+    return this.thumbnails = document.getElementById('thumbnails');
+  },
+
+  get photos() {
+    delete this.photos;
+    return this.photos =  document.getElementById('photos');
+  },
+
   init: function galleryInit() {
     var db = this.db;
     db.open(this.addThumbnail);
     var self = this;
-    var thumbnails = document.getElementById('thumbnails');
 
-    thumbnails.addEventListener('click', function thumbnailsClick(evt) {
+    this.thumbnails.addEventListener('click', function thumbnailsClick(evt) {
       var target = evt.target;
       if (!target)
         return;
 
-      db.getPhoto(target.id, function showPhoto(photo) {
-        self.showPhoto(photo);
+      db.getPhoto(target.id, function showPhotos(photo) {
+        self.showPhotos(photo);
       });
     });
+
+    this.photos.addEventListener('click', function() {
+      Gallery.photos.style.left = '-' + (++Gallery.photoNumber * 480) + 'px';
+    });
+
 
     window.addEventListener('keypress', function keyPressHandler(evt) {
       if (Gallery.photoSelected && evt.keyCode == evt.DOM_VK_ESCAPE) {
@@ -71,51 +88,52 @@ var Gallery = {
   },
 
   addThumbnail: function galleryAddThumbnail(thumbnail) {
-    var thumbnails = this.thumbnails;
     var li = document.createElement('li');
     li.id = thumbnail.filename;
-
-    var a = document.createElement('a');
-    a.href = '#';
 
     var img = document.createElement('img');
     img.src = window.URL.createObjectURL(thumbnail.data);
     img.classList.add('thumbnail');
-    a.appendChild(img);
-    li.appendChild(a);
+    li.appendChild(img);
 
-    document.getElementById('thumbnails').appendChild(li);
+    Gallery.thumbnails.appendChild(li);
+  },
+
+  addPhoto: function galleryAddPhoto(photo) {
+    var photos = this.photos;
+    var li = document.createElement('li');
+    li.classList.add('photoBorder');
+
+    var img = document.createElement('img');
+    img.src = window.URL.createObjectURL(photo.data);
+    img.classList.add('photo');
+    //img.addEventListener('click', Gallery.nextPhoto());
+    li.appendChild(img);
+
+    Gallery.photos.appendChild(li);
   },
 
   showThumbnails: function galleryShowThumbnails(thumbnails) {
-    ['thumbnails'].forEach(function hideElement(id) {
-      document.getElementById(id).classList.remove('hidden');
-    });
-
-    ['photoFrame'].forEach(function showElement(id) {
-      document.getElementById(id).classList.add('hidden');
-    });
+    this.thumbnails.classList.remove('hidden');
+    document.getElementById('photos').classList.add('hidden');
     Gallery.photoSelected = false;
+    photos = this.photos
+    while(photos.hasChildNodes())
+      photos.removeChild(photos.firstChild);
   },
 
-  showPhoto: function galleryShowPhoto(photo) {
-    ['thumbnails'].forEach(function hideElement(id) {
-      document.getElementById(id).classList.add('hidden');
-    });
-
-    ['photoFrame'].forEach(function showElement(id) {
-      document.getElementById(id).classList.remove('hidden');
-    });
-
-    var imgURL = window.URL.createObjectURL(photo.data);
-    document.getElementById('photoBorder').innerHTML =
-      '<img id="photo" src="' + imgURL + '">';
-
-    setTimeout(function() {
-      document.getElementById('photo').setAttribute('data-visible', 'true');
-    }, 100);
-
+  showPhotos: function galleryShowPhotos(photo) {
     Gallery.photoSelected = true;
+
+    this.thumbnails.classList.add('hidden');
+    this.photos.classList.remove('hidden');
+
+    this.addPhoto(photo);
+    this.photoNumber = 0;
+
+    var thumbnail = document.getElementById(photo.filename);
+    while(thumbnail = thumbnail.nextSibling)
+      Gallery.db.getPhoto(thumbnail.id, Gallery.addPhoto);
   }
 };
 
@@ -123,7 +141,7 @@ var Gallery = {
 Gallery.db = {
   _db: null,
   open: function dbOpen(callback) {
-    const DB_VERSION = 3;
+    const DB_VERSION = 4;
     const DB_NAME = 'gallery';
     var request = window.mozIndexedDB.open(DB_NAME, DB_VERSION);
     var empty = false;

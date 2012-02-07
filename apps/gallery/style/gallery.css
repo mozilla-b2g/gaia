@@ -1,6 +1,8 @@
 html {
   height: 100%;
   width: 100%;
+  padding: 0;
+  margin: 0;
 }
 
 body {
@@ -16,68 +18,55 @@ body {
 }
 
 .thumbnails {
-  overflow: scroll;
-  padding: 5px;
+  padding: 0;
   margin: 0;
-  height: 100%;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  width: 480px;
 }
 
 .thumbnails li {
-  display: table;
-  text-align: center;
-  width: 140px;
-  height: 145px;  
+  width: 160px;
+  height: 140px;
   float: left;
-  margin: 5px;
+  margin: 0;
   list-style-type: none;
   padding: 0;
   -moz-user-select: none;
   user-select: none;
 }
 
-.thumbnails li a {
-  display: table-cell;
-  vertical-align: middle;
-  width: 140px;
-  height: 145px;
+.thumbnail {
+  width: 160px;
+  height: 140px;
   margin: 0;
   padding: 0;
+  border: none;
   pointer-events: none;
 }
 
-.thumbnail {
-  max-width: 130px;
-  max-height: 130px;
-  margin: 0 auto;
-  border: solid 5px #fff;
-  pointer-events: none;
-}
-
-#photoFrame {
+#photos {
   display: table;
-  width: 100%;
-  height: 100%;
+  width: 480px;
+  height: 800px;
+  padding: 0;
+  margin: 0;
+  position: absolute;
+  top: 0px;
+  left: 0px;
 }
 
-#photoBorder {
+.photoBorder {
   display: table-cell;
-  vertical-align: middle;
-  text-align: center;
-  width: 100%;
-  height: 100%;
+  width: 480px;
+  height: 800px;
 }
 
-.hidden, #photoFrame.hidden {
+.hidden, #photos.hidden {
   display: none;
 }
 
-#photo {
-  width: 0%;
-  height: auto;
-  -moz-transition: width 0.5s ease;
+.photo {
+  width: 480px;
+  height: 800px;
 }
-
-#photo[data-visible] {
-  width: 100%;
-}
-
