@@ -211,13 +211,11 @@ div.windowSprite {
   left: 0;
   z-index: 999999;
   -moz-transform-origin: center bottom;
-  -moz-transform: scale(0.3);
-  opacity: 0.8;
-  -moz-transition: -moz-transform 0.8s linear, opacity 0.1s linear;
+  -moz-transform: scale(0);
+  -moz-transition: all 0.5s ease;
 }
 
 div.windowSprite.active {
-  opacity: 1;
   -moz-transform: scale(1);
 }
 

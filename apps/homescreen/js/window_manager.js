@@ -9,11 +9,9 @@ function WindowSprite(win) {
   element.style.width = win.element.style.width;
   element.style.height = win.element.style.height;
   element.style.background = '-moz-element(#window_' + win.id + ') no-repeat';
-};
+}
 
 WindowSprite.prototype = {
-  element: null,
-
   setActive: function ws_setActive(active) {
     var classes = this.element.classList;
     if (classes.contains('active') === active)
@@ -46,7 +44,7 @@ function Window(application, id) {
 
   this.application = application;
   this.id = id;
-};
+}
 
 Window.prototype = {
   element: null,
@@ -64,14 +62,14 @@ Window.prototype = {
   focus: function window_focus(callback) {
     if (this._active)
       return;
-      
+
     var sprite = new WindowSprite(this);
     sprite.add();
     this.setActive(true);
-      
+
     var focus = function(evt) {
       sprite.remove();
-        
+
       var element = this.element;
       element.focus();
       element.contentWindow.postMessage({
@@ -79,7 +77,7 @@ Window.prototype = {
         url: this.application.url,
         hidden: false
       }, '*');
-        
+
       if (callback)
         callback();
     };
@@ -92,15 +90,15 @@ Window.prototype = {
   blur: function window_blur(callback) {
     if (!this._active)
       return;
-      
+
     var sprite = new WindowSprite(this);
     sprite.setActive(true);
     sprite.add();
-      
+
     var blur = function(evt) {
       this.setActive(false);
       sprite.remove();
-        
+
       var element = this.element;
       element.blur();
       element.contentWindow.postMessage({
@@ -108,14 +106,14 @@ Window.prototype = {
         url: this.application.url,
         hidden: true
       }, '*');
-        
+
       window.top.focus();
-        
+
       if (callback)
         callback();
     };
     sprite.element.addEventListener('transitionend', blur.bind(this));
-      
+
     document.body.offsetHeight;
     sprite.setActive(false);
   }
@@ -167,7 +165,7 @@ var WindowManager = {
       if (windows[i].application === app)
         return windows[i];
     }
-  
+
     return null;
   },
 
@@ -198,12 +196,12 @@ var WindowManager = {
     if (oldWindow === newWindow)
       return;
     this._foregroundWindow = newWindow;
-  
+
     if (newWindow) {
       newWindow.focus(function() {
         WindowManager.setActive(true);
         if (callback)
-          callback()
+          callback();
       });
       return;
     }
@@ -254,11 +252,11 @@ var WindowManager = {
   kill: function wm_kill(url) {
     var application = Gaia.AppManager.getInstalledAppForURL(url);
     var applicationWindow = this.getWindowByApp(application);
-  
+
     if (applicationWindow)
       this.remove(applicationWindow);
   },
-  
+
   _fireEvent: function wm_fireEvent(target, type, details) {
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent(type, true, true, details || null);

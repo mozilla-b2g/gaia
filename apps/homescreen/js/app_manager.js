@@ -19,13 +19,13 @@ Gaia.AppManager = {
   _urlsEqualToQueryString: function GAM_urlsEqualToQueryString(u1, u2) {
     var uo1 = this._makeUrlObject(u1);
     var uo2 = this._makeUrlObject(u2);
-    return (uo1.protocol === uo2.protocol
-            && uo1.host === uo2.host
-            && uo1.hostname === uo2.hostname
-            && uo1.port === uo2.port
-            && uo1.pathname === uo2.pathname
+    return (uo1.protocol === uo2.protocol &&
+            uo1.host === uo2.host &&
+            uo1.hostname === uo2.hostname &&
+            uo1.port === uo2.port &&
+            uo1.pathname === uo2.pathname &&
             /* ignore .search.  Should we also ignore .hash? */
-            && uo1.hash === uo2.hash);
+            uo1.hash === uo2.hash);
   },
 
   installedApps: null,
@@ -35,14 +35,14 @@ Gaia.AppManager = {
       callback(this.installedApps);
       return;
     }
-    
+
     this.installedApps = [];
-    
+
     var homescreenOrigin = document.location.protocol + '//' +
                            document.location.host +
                            document.location.pathname;
     homescreenOrigin = homescreenOrigin.replace(/[a-zA-Z.0-9]+$/, '');
-    
+
     var self = this;
     window.navigator.mozApps.enumerate(function enumerateApps(apps) {
       var cache = [];
