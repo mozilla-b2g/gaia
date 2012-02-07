@@ -10,8 +10,12 @@ const SAMPLE_FILENAMES = ['bigcat.jpg', 'bison.jpg', 'butterfly.jpg',
 var Gallery = {
 
   photoSelected: false,
-  photoNumber: null,
   
+  get header() {
+    delete this.headers;
+    return this.header = document.getElementById('header');
+  },
+
   get thumbnails() {
     delete this.thumbnails;
     return this.thumbnails = document.getElementById('thumbnails');
@@ -29,18 +33,13 @@ var Gallery = {
 
     this.thumbnails.addEventListener('click', function thumbnailsClick(evt) {
       var target = evt.target;
-      if (!target)
+      if (!target || !target.classList.contains('thumbnailHolder'))
         return;
 
       db.getPhoto(target.id, function showPhotos(photo) {
         self.showPhotos(photo);
       });
     });
-
-    this.photos.addEventListener('click', function() {
-      Gallery.photos.style.left = '-' + (++Gallery.photoNumber * 480) + 'px';
-    });
-
 
     window.addEventListener('keypress', function keyPressHandler(evt) {
       if (Gallery.photoSelected && evt.keyCode == evt.DOM_VK_ESCAPE) {
@@ -90,6 +89,7 @@ var Gallery = {
   addThumbnail: function galleryAddThumbnail(thumbnail) {
     var li = document.createElement('li');
     li.id = thumbnail.filename;
+    li.classList.add('thumbnailHolder');
 
     var img = document.createElement('img');
     img.src = window.URL.createObjectURL(thumbnail.data);
@@ -102,7 +102,6 @@ var Gallery = {
   addPhoto: function galleryAddPhoto(photo) {
     var photos = this.photos;
     var li = document.createElement('li');
-    li.classList.add('photoBorder');
 
     var img = document.createElement('img');
     img.src = window.URL.createObjectURL(photo.data);
@@ -115,7 +114,8 @@ var Gallery = {
 
   showThumbnails: function galleryShowThumbnails(thumbnails) {
     this.thumbnails.classList.remove('hidden');
-    document.getElementById('photos').classList.add('hidden');
+    this.photos.classList.add('hidden');
+    this.header.classList.remove('hidden');
     Gallery.photoSelected = false;
     photos = this.photos
     while(photos.hasChildNodes())
@@ -126,10 +126,10 @@ var Gallery = {
     Gallery.photoSelected = true;
 
     this.thumbnails.classList.add('hidden');
+    this.header.classList.add('hidden');
     this.photos.classList.remove('hidden');
 
     this.addPhoto(photo);
-    this.photoNumber = 0;
 
     var thumbnail = document.getElementById(photo.filename);
     while(thumbnail = thumbnail.nextSibling)

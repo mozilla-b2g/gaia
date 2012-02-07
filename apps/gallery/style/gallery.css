@@ -17,15 +17,35 @@ body {
   overflow: hidden;
 }
 
-.thumbnails {
+header {
+  height: 20px;
+  background-color: #fff;
+  background-image: -moz-linear-gradient(#fff, #eaeae4);
+  margin: 0;
+  padding: 25px;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+header h1 {
+  margin: 0;
+  padding: 0;
+  font-size: 20px;
+  color: #333;
+  text-align: center;
+  width: 100%;
+}
+
+#thumbnails {
   padding: 0;
   margin: 0;
   overflow-y: scroll;
-  overflow-x: hidden;
+  overflow-x: visible;
   width: 480px;
+  height: 710px;
 }
 
-.thumbnails li {
+#thumbnails li {
   width: 160px;
   height: 140px;
   float: left;
@@ -56,7 +76,7 @@ body {
   left: 0px;
 }
 
-.photoBorder {
+#photos li {
   display: table-cell;
   width: 480px;
   height: 800px;
