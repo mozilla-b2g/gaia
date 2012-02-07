@@ -43,7 +43,7 @@ var JSZhuYing = function JSZhuYing(settings) {
 
   var version = '0.1';
   var dbName = 'JSZhuYing';
-  var dbVersion = 5;
+  var dbVersion = 6;
   var jsonData;
   var cache = {};
   var cacheTimer;
@@ -78,9 +78,9 @@ var JSZhuYing = function JSZhuYing(settings) {
           return;
         }
         var transaction = db.transaction('terms'),
-        req = transaction.objectStore('terms').count();
+        req = transaction.objectStore('terms').get('_last_entry_');
         req.onsuccess = function(ev) {
-          if (req.result !== 0) {
+          if (ev.target.result !== undefined) {
             settings.ready.call(self);
             return;
           }
@@ -149,6 +149,8 @@ var JSZhuYing = function JSZhuYing(settings) {
       }
     }
     chunks.push(chunk);
+    chunks.push(['_last_entry_']);
+    jsonData['_last_entry_'] = true;
 
     var loadChunk = function () {
       debug('JSZhuYing: Loading a chunk of data into IndexedDB, ' + (chunks.length -1) + ' chunks remaining.');
