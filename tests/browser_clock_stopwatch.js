@@ -1,7 +1,6 @@
 
 function test() {
   waitForExplicitFinish();
-
   let url = '../clock/clock.html';
 
   getWindowManager(function(windowManager) {
@@ -45,3 +44,4 @@ function test() {
     ApplicationObserver(appFrame, onReady, onClose);
   });
 }
+

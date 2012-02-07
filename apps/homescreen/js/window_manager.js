@@ -256,7 +256,7 @@ var WindowManager = {
     var applicationWindow = this.getWindowByApp(application);
   
     if (applicationWindow)
-      this.remove(win);
+      this.remove(applicationWindow);
   },
   
   _fireEvent: function wm_fireEvent(target, type, details) {
