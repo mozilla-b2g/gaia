@@ -30,7 +30,7 @@ if (typeof content.ready === 'undefined') {
   window.addEventListener('ContentStart', function waitForContentStart(evt) {
     content.removeEventListener('ContentStart', waitForContentStart);
 
-    content.addEventListener('message', function waitForReady(evt){
+    content.addEventListener('message', function waitForReady(evt) {
        if (evt.data != 'homescreenready')
           return;
 
