@@ -592,7 +592,7 @@
         var chunk = chunks.shift();
         for (i in chunk) {
           var syllables = chunk[i];
-          store.add(
+          store.put(
             {
               syllables: syllables,
               terms: jsonData[syllables]
