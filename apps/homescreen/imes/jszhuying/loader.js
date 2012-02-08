@@ -1,3 +1,6 @@
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
 'use strict';
 
 (function() {
@@ -6,6 +9,7 @@
   var debug = function(str) {
     if (!debugging)
       return;
+
     if (window.dump)
       window.dump('JSZhuYing: ' + str + '\n');
     if (console && console.log) {
@@ -26,16 +30,31 @@
   var IMEngine = function() {
     var settings;
 
+    var kBufferLenLimit = 8;
+    var kDBTermMaxLength = 8;
+
+    /* ==== init functions ==== */
+
     var db;
+
+    var initDB = function ime_initDB(readyCallback) {
+      var dbSettings = {
+        wordsJSON: settings.path + '/words.json',
+        phrasesJSON: settings.path + '/phrases.json'
+      };
+
+      if (readyCallback)
+        dbSettings.ready = readyCallback;
+
+      db = new IMEngineDatabase();
+      db.init(dbSettings);
+    }
+
+    /* ==== helper functions ==== */
 
     var syllablesInBuffer = [''];
     var pendingSymbols = ['', '', '', ''];
     var firstCandidate = '';
-    var keypressQueue = [];
-    var isWorking = false;
-
-    var kBufferLenLimit = 8;
-    var kDBTermMaxLength = 8;
 
     var SymbolType = {
       CONSTANT: 0,
@@ -43,23 +62,6 @@
       VOWEL2: 2,
       TONE: 3
     };
-
-    /* ==== init functions ==== */
-
-    var initDB = function ime_initDB(ready_callback) {
-      var dbSettings = {
-        wordsJSON: settings.path + '/words.json',
-        phrasesJSON: settings.path + '/phrases.json'
-      };
-
-      if (ready_callback)
-        dbSettings.ready = ready_callback;
-
-      db = new IMEngineDatabase();
-      db.init(dbSettings);
-    }
-
-    /* ==== helper functions ==== */
 
     var typeOfSymbol = function ime_typeOfSymbol(code) {
 
@@ -75,9 +77,9 @@
       if (code >= 0x311A && code <= 0x3126)
         return SymbolType.VOWEL2;
       /*  ˙ˊˇˋ */
-      if (tones.indexOf(String.fromCharCode(code)) !== -1) {
+      if (tones.indexOf(String.fromCharCode(code)) !== -1)
         return SymbolType.TONE;
-      }
+
       return false;
     };
 
@@ -94,47 +96,35 @@
     var lookup = function ime_lookup(syllables, type, callback) {
       switch (type) {
         case 'sentence':
-          db.getSentences(
-            syllables,
-            function getSentences_callback(dbResults) {
-              if (!dbResults) {
-                callback([]);
-                return;
-              }
-              var results = [];
-              dbResults.forEach(
-                function dbResults_forEach(sentence) {
-                  var str = '';
-                  sentence.forEach(
-                    function sentence_forEach(term) {
-                      str += term[0];
-                    }
-                  );
-                  if (results.indexOf(str) === -1)
-                    results.push(str);
-                }
-              );
-              callback(results);
+          db.getSentences(syllables, function getSentencesCallback(dbResults) {
+            if (!dbResults) {
+              callback([]);
+              return;
             }
-          );
+            var results = [];
+            dbResults.forEach(function readSentence(sentence) {
+              var str = '';
+              sentence.forEach(function readTerm(term) {
+                str += term[0];
+              });
+              if (results.indexOf(str) === -1)
+                results.push(str);
+            });
+            callback(results);
+          });
         break;
         case 'term':
-          db.getTerms(
-            syllables,
-            function getTerms_callback(dbResults) {
-              if (!dbResults) {
-                callback([]);
-                return;
-              }
-              var results = [];
-              dbResults.forEach(
-                function dbResults_forEach(term) {
-                  results.push(term[0]);
-                }
-              );
-              callback(results);
+          db.getTerms(syllables, function getTermsCallback(dbResults) {
+            if (!dbResults) {
+              callback([]);
+              return;
             }
-          );
+            var results = [];
+            dbResults.forEach(function readTerm(term) {
+              results.push(term[0]);
+            });
+            callback(results);
+          });
         break;
         default:
           debug('Error: no such lookup() type.');
@@ -155,10 +145,8 @@
       var candidates = [];
       var syllablesForQuery = [].concat(syllablesInBuffer);
 
-      if (
-        pendingSymbols[SymbolType.TONE] === '' &&
-        syllablesForQuery[syllablesForQuery.length - 1]
-      ) {
+      if (pendingSymbols[SymbolType.TONE] === '' &&
+          syllablesForQuery[syllablesForQuery.length - 1]) {
         debug('Last syllable incomplete, add default tone.');
         // the last syllable is incomplete, add a default tone
         syllablesForQuery[syllablesForQuery.length - 1] =
@@ -166,105 +154,88 @@
       }
 
       debug('Get term candidates for the entire buffer.');
-      lookup(
-        syllablesForQuery,
-        'term',
-        function lookup_callback(results) {
-          results.forEach(
-            function results_forEach(result) {
-              candidates.push([result, 'whole']);
-            }
-          );
+      lookup(syllablesForQuery, 'term', function lookupCallback(terms) {
+        terms.forEach(function readTerm(term) {
+          candidates.push([term, 'whole']);
+        });
 
-          if (syllablesInBuffer.length === 1) {
-            debug('Only one syllable; skip other lookups.');
+        if (syllablesInBuffer.length === 1) {
+          debug('Only one syllable; skip other lookups.');
 
-            if (!candidates.length) {
-              // candidates unavailable; output symbols
-              candidates.push([syllablesInBuffer.join(''), 'whole']);
-            }
-
-            settings.sendCandidates(candidates);
-            firstCandidate = candidates[0][0];
-            callback();
-            return;
+          if (!candidates.length) {
+            // candidates unavailable; output symbols
+            candidates.push([syllablesInBuffer.join(''), 'whole']);
           }
 
-          debug('Lookup for sentences that make up from the entire buffer');
-          lookup(
-            syllablesForQuery,
-            'sentence',
-            function lookup_callback(results) {
-              results.forEach(
-                function results_forEach(result) {
-                  // look for candidate that is already in the list
-                  var exists = candidates.some(
-                    function candidates_some(candidate) {
-                      return (candidate[0] === result);
-                    }
-                  );
+          settings.sendCandidates(candidates);
+          firstCandidate = candidates[0][0];
+          callback();
+          return;
+        }
 
-                  if (exists)
-                    return;
+        debug('Lookup for sentences that make up from the entire buffer');
+        var syllables = syllablesForQuery;
+        lookup(syllables, 'sentence', function lookupCallback(sentences) {
+          sentences.forEach(function readSentence(sentence) {
+            // look for candidate that is already in the list
+            var exists = candidates.some(function sentenceExists(candidate) {
+              return (candidate[0] === result);
+            });
 
-                  candidates.push([result, 'whole']);
-                }
-              );
+            if (exists)
+              return;
 
-              if (!candidates.length) {
-                // no sentences nor terms for the entire buffer
-                debug('Insert all symbols as the first candidate.');
-                candidates.push([syllablesInBuffer.join(''), 'whole']);
+            candidates.push([sentence, 'whole']);
+          });
+
+          if (!candidates.length) {
+            // no sentences nor terms for the entire buffer
+            debug('Insert all symbols as the first candidate.');
+            candidates.push([syllablesInBuffer.join(''), 'whole']);
+          }
+          firstCandidate = candidates[0][0];
+
+          // The remaining candidates doesn't match the entire buffer
+          // these candidates helps user find the exact character/term
+          // s/he wants
+          // The remaining unmatched syllables will go through lookup
+          // over and over until the buffer is emptied.
+
+          var i = Math.min(kDBTermMaxLength, syllablesInBuffer.length - 1);
+
+          var findTerms = function lookupFindTerms() {
+            debug('Lookup for terms that matches first ' + i + ' syllables.');
+
+            var syllables = syllablesForQuery.slice(0, i);
+
+            lookup(syllables, 'term', function lookupCallback(terms) {
+              terms.forEach(function readTerm(term) {
+                candidates.push([result, 'term']);
+              });
+
+              if (!--i) {
+                debug('Done Looking.');
+                settings.sendCandidates(candidates);
+                callback();
+                return;
               }
-              firstCandidate = candidates[0][0];
-
-              // The remaining candidates doesn't match the entire buffer
-              // these candidates helps user find the exact character/term
-              // s/he wants
-              // The remaining unmatched syllables will go through lookup
-              // over and over until the buffer is emptied.
-
-              var i = Math.min(kDBTermMaxLength, syllablesInBuffer.length - 1);
-
-              var findTerms = function lookup_findTerms() {
-                debug(
-                  'Lookup for terms that matches first ' + i + ' syllables.'
-                );
-                lookup(
-                  syllablesForQuery.slice(0, i),
-                  'term',
-                  function lookup_callback(results) {
-                    results.forEach(
-                      function(result) {
-                        candidates.push([result, 'term']);
-                      }
-                    );
-
-                    if (!--i) {
-                      debug('Done Looking.');
-                      settings.sendCandidates(candidates);
-                      callback();
-                      return;
-                    }
-
-                    findTerms();
-                    return;
-                  }
-                );
-              };
 
               findTerms();
-            }
-          );
+              return;
+            });
+          };
 
-
-        }
-      );
+          findTerms();
+        });
+      });
 
 
     };
 
     /* ==== the keyQueue loop === */
+
+    var keypressQueue = [];
+    var isWorking = false;
 
     var next = function ime_next() {
       debug('Processing keypress');
@@ -284,7 +255,6 @@
       debug('key code: ' + code);
 
       if (code === KeyEvent.DOM_VK_RETURN) {
-        // User pressed Return key
         debug('Return Key');
         if (!firstCandidate) {
           debug('Default action.');
@@ -304,7 +274,6 @@
       }
 
       if (code === KeyEvent.DOM_VK_BACK_SPACE) {
-        // User pressed backspace key
         debug('Backspace key');
         if (
           syllablesInBuffer.length === 1 &&
@@ -384,59 +353,51 @@
         var findTerms = function ime_findTerms() {
           debug('Find term for first ' + i + ' syllables.');
 
-          lookup(
-            syllablesInBuffer.slice(0, i),
-            'term',
-            function lookup_callback(candidates) {
-              if (i !== 1 && !candidates[0]) {
-                // not found, keep looking
-                i--;
-                findTerms();
-                return;
-              }
-
-              debug('Found.');
-
-              // sendString
-              settings.sendString(
-                candidates[0] ||
-                syllablesInBuffer.slice(0, i).join('')
-              );
-
-              // remove syllables from buffer
-              while (i--) {
-                syllablesInBuffer.shift();
-              }
-
-              updateCandidateList(
-                function updateCandidateList_callback() {
-                  // bump the buffer to the next character
-                  syllablesInBuffer.push('');
-                  pendingSymbols = ['', '', '', ''];
-
-                  next();
-                }
-              );
+          var syllables = syllablesInBuffer.slice(0, i);
+          lookup(syllables, 'term', function lookupCallback(candidates) {
+            if (i !== 1 && !candidates[0]) {
+              // not found, keep looking
+              i--;
+              findTerms();
+              return;
             }
-          );
+
+            debug('Found.');
+
+            // sendString
+            settings.sendString(
+              candidates[0] ||
+              syllablesInBuffer.slice(0, i).join('')
+            );
+
+            // remove syllables from buffer
+            while (i--) {
+              syllablesInBuffer.shift();
+            }
+
+            updateCandidateList(function updateCandidateListCallback() {
+              // bump the buffer to the next character
+              syllablesInBuffer.push('');
+              pendingSymbols = ['', '', '', ''];
+
+              next();
+            });
+          });
         };
 
         findTerms();
         return;
       }
 
-      updateCandidateList(
-        function updateCandidateList_callback() {
-          if (typeOfSymbol(code) === SymbolType.TONE) {
-            // bump the buffer to the next character
-            syllablesInBuffer.push('');
-            pendingSymbols = ['', '', '', ''];
-          }
-
-          next();
+      updateCandidateList(function updateCandidateListCallback() {
+        if (typeOfSymbol(code) === SymbolType.TONE) {
+          // bump the buffer to the next character
+          syllablesInBuffer.push('');
+          pendingSymbols = ['', '', '', ''];
         }
-      );
 
+        next();
+      });
     };
 
     /* ==== init ==== */
@@ -458,11 +419,13 @@
     this.click = function ime_click(code) {
       debug('Click keyCode: ' + code);
       keypressQueue.push(code);
-      if (!isWorking) {
-        isWorking = true;
-        debug('Start keyQueue loop.');
-        next();
-      }
+
+      if (isWorking)
+        return;
+
+      isWorking = true;
+      debug('Start keyQueue loop.');
+      next();
     };
 
 
@@ -518,22 +481,21 @@
     /* ==== init functions ==== */
 
     var getTermsInDB = function imedb_getTermsInDB(callback) {
-      if (
-        !indexedDB || // No IndexedDB API implementation
-        IDBDatabase.prototype.setVersion || // old version of IndexedDB API
-        window.location.protocol === 'file:' // bug 643318
-      ) {
+      if (!indexedDB || // No IndexedDB API implementation
+          IDBDatabase.prototype.setVersion || // old version of IndexedDB API
+          window.location.protocol === 'file:') {  // bug 643318
         debug('IndexedDB is not available on this platform.');
         callback();
         return;
       }
 
       var req = indexedDB.open(kDBName, kDBVersion);
-      req.onerror = function dbopen_onerror(ev) {
+      req.onerror = function dbopenError(ev) {
         debug('Encounter error while opening IndexedDB.');
         callback();
       };
-      req.onupgradeneeded = function dbopen_onupgradeneeded(ev) {
+
+      req.onupgradeneeded = function dbopenUpgradeneeded(ev) {
         debug('IndexedDB upgradeneeded.');
         iDB = ev.target.result;
 
@@ -542,26 +504,21 @@
           iDB.deleteObjectStore('terms');
 
         // create ObjectStore
-        iDB.createObjectStore(
-          'terms',
-          {
-            keyPath: 'syllables'
-          }
-        );
+        iDB.createObjectStore('terms', { keyPath: 'syllables' });
 
         // no callback() here
         // onupgradeneeded will follow by onsuccess event
         return;
       };
 
-      req.onsuccess = function dbopen_onsuccess(ev) {
+      req.onsuccess = function dbopenSuccess(ev) {
         debug('IndexedDB opened.');
         iDB = ev.target.result;
         callback();
       };
     };
 
-    var populateDBFromJSON = function imedb_populateDBFromJSON(callback) {
+    var populateDBFromJSON = function imedbPopulateDBFromJSON(callback) {
       var chunks = [];
       var chunk = [];
       var i = 0;
@@ -579,20 +536,18 @@
       chunks.push(['_last_entry_']);
       jsonData['_last_entry_'] = true;
 
-      var addChunk = function imedb_addChunk() {
-        debug(
-          'Loading data chunk into IndexedDB, ' +
-          (chunks.length - 1) + ' chunks remaining.'
-        );
+      var addChunk = function imedbAddChunk() {
+        debug('Loading data chunk into IndexedDB, ' +
+            (chunks.length - 1) + ' chunks remaining.');
 
         var transaction = iDB.transaction('terms', IDBTransaction.READ_WRITE);
         var store = transaction.objectStore('terms');
 
-        transaction.onerror = function req_onerror(ev) {
+        transaction.onerror = function putError(ev) {
           debug('Problem while populating DB with JSON data.');
         };
 
-        transaction.oncomplete = function req_oncomplete() {
+        transaction.oncomplete = function putComplete() {
           if (chunks.length) {
             setTimeout(addChunk, 0);
           } else {
@@ -605,12 +560,10 @@
         var chunk = chunks.shift();
         for (i in chunk) {
           var syllables = chunk[i];
-          store.put(
-            {
-              syllables: syllables,
-              terms: jsonData[syllables]
-            }
-          );
+          store.put({
+            syllables: syllables,
+            terms: jsonData[syllables]
+          });
         }
       };
 
@@ -618,23 +571,17 @@
     };
 
     var getTermsJSON = function imedb_getTermsJSON(callback) {
-      getWordsJSON(
-        function getWordsJSON_callback() {
-          getPhrasesJSON(callback);
-        }
-      );
+      getWordsJSON(function getWordsJSONCallback() {
+        getPhrasesJSON(callback);
+      });
     };
 
     var getWordsJSON = function imedb_getWordsJSON(callback) {
       var xhr = new XMLHttpRequest();
-      xhr.open(
-        'GET',
-        (settings.wordsJSON || './words.json'),
-        true
-      );
+      xhr.open('GET', (settings.wordsJSON || './words.json'), true);
       xhr.responseType = 'json';
       xhr.overrideMimeType('application/json; charset=utf-8');
-      xhr.onreadystatechange = function xhr_onreadystatechange(ev) {
+      xhr.onreadystatechange = function xhrReadystatechange(ev) {
         if (xhr.readyState !== 4)
           return;
 
@@ -659,14 +606,10 @@
 
     var getPhrasesJSON = function getPhrasesJSON(callback) {
       var xhr = new XMLHttpRequest();
-      xhr.open(
-        'GET',
-        (settings.phrasesJSON || './phrases.json'),
-        true
-      );
+      xhr.open('GET', (settings.phrasesJSON || './phrases.json'), true);
       xhr.responseType = 'json';
       xhr.overrideMimeType('application/json; charset=utf-8');
-      xhr.onreadystatechange = function xhr_onreadystatechange(ev) {
+      xhr.onreadystatechange = function xhrReadystatechange(ev) {
         if (xhr.readyState !== 4)
           return;
 
@@ -723,13 +666,10 @@
     var cacheSetTimeout = function imedb_cacheSetTimeout() {
       debug('Set iDBCache timeout.');
       clearTimeout(cacheTimer);
-      cacheTimer = setTimeout(
-        function imedb_cacheTimeout() {
-          debug('Empty iDBCache.');
-          iDBCache = {};
-        },
-        kCacheTimeout
-      );
+      cacheTimer = setTimeout(function imedb_cacheTimeout() {
+        debug('Empty iDBCache.');
+        iDBCache = {};
+      }, kCacheTimeout);
     };
 
     /* ==== init ==== */
@@ -750,46 +690,40 @@
       }
 
       debug('Probing IndexedDB ...');
-      getTermsInDB(
-        function getTermsInDB_callback() {
-          if (!iDB) {
-            debug('IndexedDB not available; Downloading JSON ...');
-            getTermsJSON(ready);
+      getTermsInDB(function getTermsInDBCallback() {
+        if (!iDB) {
+          debug('IndexedDB not available; Downloading JSON ...');
+          getTermsJSON(ready);
+          return;
+        }
+
+        var transaction = iDB.transaction('terms');
+
+        var req = transaction.objectStore('terms').get('_last_entry_');
+        req.onsuccess = function getdbSuccess(ev) {
+          if (ev.target.result !== undefined) {
+            ready();
             return;
           }
 
-          var transaction = iDB.transaction('terms');
-
-          var req = transaction.objectStore('terms').get('_last_entry_');
-          req.onsuccess = function req_onsuccess(ev) {
-            if (ev.target.result !== undefined) {
-              ready();
+          debug('IndexedDB is supported but empty; Downloading JSON ...');
+          getTermsJSON(function getTermsInDBCallback() {
+            if (!jsonData) {
+              debug('JSON failed to download.');
               return;
             }
 
-            debug('IndexedDB is supported but empty; Downloading JSON ...');
-            getTermsJSON(
-              function getTermsInDB_callback() {
-                if (!jsonData) {
-                  debug('JSON failed to download.');
-                  return;
-                }
-
-                debug(
-                  'JSON loaded,' +
-                  'IME is ready to use while inserting data into db ...'
-                );
-                ready();
-                populateDBFromJSON(
-                  function getTermsInDB_callback() {
-                    debug('IndexedDB ready and switched to indexedDB backend.');
-                  }
-                );
-              }
+            debug(
+              'JSON loaded,' +
+              'IME is ready to use while inserting data into db ...'
             );
-          };
-        }
-      );
+            ready();
+            populateDBFromJSON(function getTermsInDBCallback() {
+              debug('IndexedDB ready and switched to indexedDB backend.');
+            });
+          });
+        };
+      });
     };
 
     /* ==== uninit ==== */
@@ -826,17 +760,16 @@
       }
 
       debug('Lookup in IndexedDB.');
-      var req =
-        iDB.transaction('terms', IDBTransaction.READ_ONLY)
-        .objectStore('terms')
-        .get(syllablesStr);
+      var req = iDB.transaction('terms', IDBTransaction.READ_ONLY)
+          .objectStore('terms')
+          .get(syllablesStr);
 
-      req.onerror = function req_onerror(ev) {
+      req.onerror = function getdbError(ev) {
         debug('Database read error.');
         callback(false);
       };
 
-      req.onsuccess = function req_onsuccess(ev) {
+      req.onsuccess = function getdbSuccess(ev) {
         cacheSetTimeout();
 
         if (!ev.target.result) {
@@ -852,16 +785,13 @@
 
     this.getTermWithHighestScore =
     function imedb_getTermWithHighestScore(syllables, callback) {
-      self.getTerms(
-        syllables,
-        function getTerms_callback(terms) {
-          if (!terms) {
-            callback(false);
-            return;
-          }
-          callback(terms[0]);
+      self.getTerms(syllables, function getTermsCallback(terms) {
+        if (!terms) {
+          callback(false);
+          return;
         }
-      );
+        callback(terms[0]);
+      });
     }
 
     this.getSentences = function imedb_getSentences(syllables, callback) {
@@ -872,7 +802,7 @@
         this,
         syllables.length,
         /* This callback will be called 2^(n-1) times */
-        function compositionsOf_callback(composition) {
+        function compositionsOfCallback(composition) {
           var str = [];
           var start = 0;
           var i = 0;
@@ -884,9 +814,10 @@
             i++;
             self.getTermWithHighestScore(
               syllables.slice(start, start + numOfWord),
-              function getTermWithHighestScore_callback(term) {
+              function getTermWithHighestScoreCallback(term) {
                 if (!term)
                   return finish();
+
                 str.push(term);
                 start += numOfWord;
                 next();
@@ -894,7 +825,7 @@
             );
           };
 
-          var finish = function composition_finish() {
+          var finish = function compositionFinish() {
             // complete; this composition does made up a sentence
             if (start === syllables.length)
               sentences.push(str);
@@ -902,26 +833,20 @@
             if (++n === (1 << (syllables.length - 1))) {
               cacheSetTimeout();
 
-              sentences = sentences.sort(
-                function sentences_sort(a, b) {
-                  var scoreA = 0;
+              sentences = sentences.sort(function sortsentences(a, b) {
+                var scoreA = 0;
 
-                  a.forEach(
-                    function sentences_a_forEach(term) {
-                      scoreA += term[1];
-                    }
-                  );
+                a.forEach(function countScoreA(term) {
+                  scoreA += term[1];
+                });
 
-                  var scoreB = 0;
-                  b.forEach(
-                    function sentences_b_forEach(term) {
-                      scoreB += term[1];
-                    }
-                  );
+                var scoreB = 0;
+                b.forEach(function countScoreB(term) {
+                  scoreB += term[1];
+                });
 
-                  return (scoreB - scoreA);
-                }
-              );
+                return (scoreB - scoreA);
+              });
 
               callback(sentences);
             }
