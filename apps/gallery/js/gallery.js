@@ -106,7 +106,6 @@ var Gallery = {
     var img = document.createElement('img');
     img.src = window.URL.createObjectURL(photo.data);
     img.classList.add('photo');
-    //img.addEventListener('click', Gallery.nextPhoto());
     li.appendChild(img);
 
     Gallery.photos.appendChild(li);
@@ -123,7 +122,7 @@ var Gallery = {
   },
 
   showPhotos: function galleryShowPhotos(photo) {
-    Gallery.photoSelected = true;
+    this.photoSelected = true;
 
     this.thumbnails.classList.add('hidden');
     this.header.classList.add('hidden');
@@ -133,7 +132,7 @@ var Gallery = {
 
     var thumbnail = document.getElementById(photo.filename);
     while(thumbnail = thumbnail.nextSibling)
-      Gallery.db.getPhoto(thumbnail.id, Gallery.addPhoto);
+      this.db.getPhoto(thumbnail.id, Gallery.addPhoto);
   }
 };
 
