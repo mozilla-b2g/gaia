@@ -4,14 +4,15 @@
 IMEManager.IMEngines.jspinying = {
 
   // init is called when the engine us being loaded.
-  // currently it is called during start-up;
-  // do not do heavy ops, e.g. populate database.
+  // currently it is called when the keyboard is shown.
+  // if there is a really heavy ops like populate database,
+  // please split it into chunks so it will not block user action.
 
   init: function jspinying_init(glue) {
     // glue contains three functions:
     // glue.sendString(string)
     //   output string to app
-    // glue.sendChoices([[selection, selectionData], ...])
+    // glue.sendCandidates([[selection, selectionData], ...])
     //   update candidate panel
     //   empty candidate panel to close the panel
     // glue.sendKey(keyCode)
