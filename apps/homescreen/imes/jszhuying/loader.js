@@ -27,7 +27,7 @@
     };
   }
 
-  var IMEngine = function() {
+  var IMEngine = function ime() {
     var settings;
 
     var kBufferLenLimit = 8;
@@ -147,8 +147,7 @@
 
       if (pendingSymbols[SymbolType.TONE] === '' &&
           syllablesForQuery[syllablesForQuery.length - 1]) {
-        debug('Last syllable incomplete, add default tone.');
-        // the last syllable is incomplete, add a default tone
+        debug('The last syllable is incomplete, add default tone.');
         syllablesForQuery[syllablesForQuery.length - 1] =
           pendingSymbols.join('') + ' ';
       }
@@ -309,7 +308,6 @@
       var type = typeOfSymbol(code);
 
       if (type === false) {
-        // non Bopomofo code
         debug('Non-bopomofo code');
 
         if (firstCandidate) {
@@ -449,7 +447,7 @@
     this.empty = empty;
   };
 
-  var IMEngineDatabase = function() {
+  var IMEngineDatabase = function imedb() {
     var settings;
 
     /* name and version of IndexedDB */
@@ -677,7 +675,7 @@
     this.init = function imedb_init(options) {
       settings = options;
 
-      var ready = function ready() {
+      var ready = function imedbReady() {
         debug('Ready.');
         if (settings.ready)
           settings.ready();
@@ -833,7 +831,7 @@
             if (++n === (1 << (syllables.length - 1))) {
               cacheSetTimeout();
 
-              sentences = sentences.sort(function sortsentences(a, b) {
+              sentences = sentences.sort(function sortSentences(a, b) {
                 var scoreA = 0;
 
                 a.forEach(function countScoreA(term) {
