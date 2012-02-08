@@ -856,7 +856,14 @@
     };
   };
 
-  // Expose to IMEManager
-  IMEManager.IMEngines.jszhuying = new IMEngine();
+  var jszhuying = new IMEngine();
+
+  // Expose JSZhuYing as an AMD module
+  if (typeof define === 'function' && define.amd)
+    define('jszhuying', [], function() { return jszhuying; });
+
+  // Expose to IMEManager if we are in Gaia homescreen
+  if (IMEManager && IMEManager.IMEngines)
+    IMEManager.IMEngines.jszhuying = new IMEngine();
 
 })();
