@@ -140,6 +140,7 @@ Gallery.db = {
         Gallery.getSamplePhotos();
       else
         this.getThumbnails(callback);
+      window.parent.postMessage('appready', '*');
     }).bind(this);
 
     request.onerror = (function onDatabaseError(error) {
