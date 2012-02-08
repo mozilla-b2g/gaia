@@ -291,7 +291,7 @@ IconGrid.prototype = {
     this.sceneGraph.forHit(
       x, y,
       function(sprite) {
-        Gaia.AppManager.launch(sprite.icon.url);
+        Gaia.WindowManager.launch(sprite.icon.url);
       });
   },
   handleEvent: function(e) {
@@ -350,7 +350,7 @@ NotificationScreen.prototype = {
   onTouchStart: function(e) {
     this.startX = e.pageX;
     this.startY = e.pageY;
-    this.onTouchMove({ pageY: e.pageY + 20 });
+    this.onTouchMove({ pageY: e.pageY + 32 });
   },
   onTouchMove: function(e) {
     var dy = -(this.startY - e.pageY);
@@ -441,23 +441,25 @@ function LockScreen(overlay) {
   }).bind(this));
 
   window.addEventListener('sleep', this);
-  this.update();
+  this.update(function fireHomescreenReady() {
+    window.parent.postMessage('homescreenready', '*');
+  });
 }
 
 LockScreen.prototype = {
-  update: function lockscreen_update() {
+  update: function lockscreen_update(callback) {
     var request = window.navigator.mozSettings.get('lockscreen.enabled');
     request.addEventListener('success', (function onsuccess(evt) {
-      if (request.result.value === 'true') {
-        this.lock(true);
-        return;
-      }
+      request.result.value === 'true' ? this.lock(true) : this.unlock(-1, true);
 
-      this.unlock(-1, true);
+      if (callback)
+        setTimeout(callback, 0);
     }).bind(this));
 
     request.addEventListener('error', (function onerror(evt) {
       this.lock(true);
+      if (callback)
+        setTimeout(callback, 0);
     }).bind(this));
   },
   onTouchStart: function(e) {
@@ -546,8 +548,8 @@ function OnLoad() {
     document.getElementById('statusbar')
   ];
   new NotificationScreen(touchables);
-
-  var apps = Gaia.AppManager.getInstalledApps(function(apps) {
+  
+  var apps = Gaia.AppManager.loadInstalledApps(function(apps) {
     // XXX this add 5 times the same set of icons
     var icons = [];
     for (var i = 0; i < 5; i++)
@@ -580,7 +582,7 @@ function OnLoad() {
       if (index < 0)
         continue;
 
-      icon.action = 'Gaia.AppManager.launch(\'' + icon.url + '\')';
+      icon.action = 'Gaia.WindowManager.launch(\'' + icon.url + '\')';
       currentShortcuts.splice(index, 1, icon);
     }
 
@@ -595,7 +597,6 @@ function OnLoad() {
     }
     document.getElementById('home-shortcuts').innerHTML = shortcuts;
   });
-  Gaia.AppManager.init();
 
   var pagesContainer = document.getElementById('home-pages');
   document.addEventListener('pagechange', function(evt) {
