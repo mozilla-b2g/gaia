@@ -237,6 +237,10 @@ var ContactDetails = {
   setup: function cd_setup() {
     window.addEventListener('keypress', this, true);
   },
+  get overlay() {
+    delete this.overlay;
+    return this.overlay = document.getElementById('contacts-overlay');
+  },
   get container() {
     delete this.container;
     return this.container =
@@ -268,7 +272,14 @@ var ContactDetails = {
     if (typeof contact != 'undefined') {
       this.contact = contact;
     }
-    this.container.classList.add('displayed');
+
+    var overlay = this.overlay;
+    overlay.classList.add('displayed');
+    overlay.addEventListener('transitionend', function appearWait() {
+      overlay.removeEventListener('transitionend', appearWait);
+
+      overlay.style.background = '-moz-element(#contacts-overlay-background) left top no-repeat';
+    });
 
     // directly entering the edit mode if this is a new contact
     if (!this._contact.id) {
@@ -276,11 +287,20 @@ var ContactDetails = {
     }
   },
   hide: function cd_hide() {
-    if (!this.container.classList.contains('displayed')) {
+    if (!this.overlay.classList.contains('displayed')) {
       return false;
     }
 
-    this.container.classList.remove('displayed');
+    var overlay = this.overlay;
+    overlay.classList.add('hidden');
+    overlay.addEventListener('transitionend', function fadeWait() {
+      overlay.removeEventListener('transitionend', fadeWait);
+
+      overlay.classList.remove('hidden');
+      overlay.classList.remove('displayed');
+      overlay.style.background = 'rgba(0, 0, 0, 0.6)';
+    });
+
     this.endEditing();
     return true;
   },
@@ -338,6 +358,7 @@ var ContactDetails = {
       return;
     }
 
+    this.hide();
     var number = evt.target.dataset.number;
     if (number) {
       CallHandler.call(number);

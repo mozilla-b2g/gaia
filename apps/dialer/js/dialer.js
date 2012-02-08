@@ -394,6 +394,9 @@ var CallHandler = {
 window.addEventListener('load', function keyboardInit(evt) {
   window.removeEventListener('load', keyboardInit);
 
+  var background = document.getElementById('contacts-overlay-background');
+  background.style.filter = "url(#gauss)";
+
   KeyHandler.init();
   navigator.mozTelephony.addEventListener('incoming', CallHandler);
 

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html manifest="manifest.appcache">
   <head>
-    <meta charset="utf-8"> 
+    <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
 
     <link rel="stylesheet" type="text/css" href="style/dialer.css" />
@@ -56,27 +56,6 @@
           <a name="Y">Y</a>
           <a name="Z">Z</a>
         </div>
-
-        <div id="contact-details-container">
-          <div id="contact-details-view">
-            <div id="contact-edit-button" data-action="edit" onclick="ContactDetails.execute(event)">
-              <span>Edit</span>
-              <span>Save</span>
-            </div>
-            <div id="contact-photo">
-              <img src="style/images/missing.png" alt="missing" />
-            </div>
-            <div id="contact-name">
-            </div>
-            <div id="contact-phones" class="group" data-action="call" onclick="ContactDetails.execute(event)">
-            </div>
-            <div id="contact-emails" class="group">
-            </div>
-            <div id="contact-destroy-button" data-action="destroy" onclick="ContactDetails.execute(event)">
-              Destroy this contact
-            </div>
-          </div>
-        </div>
       </div>
 
       <div id="keyboard-view" class="view">
@@ -97,6 +76,44 @@
             <div class="keyboard-key" data-value="call">
               <span></span>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tabs-container">
+      <div id="tabs" onclick="choiceChanged(event.target)">
+        <fieldset>
+          <label id="keyboard-label" for="keyboard" data-choice="keyboard" data-active="true"><input id="keyboard" type="radio" name="tabs" checked="checked" /></label>
+          <label id="contacts-label" for="contacts" data-choice="contacts"><input id="contacts" type="radio" name="tabs" checked="" /></label>
+          <!-- Should be favorites once we implement this screen-->
+          <label id="favorites-label" for="favorites" data-choice="contacts"><input id="favorites" type="radio" name="tabs" checked="" /></label>
+        </fieldset>
+      </div>
+    </div>
+
+    <div id="contacts-overlay-background">
+      <div></div>
+    </div>
+
+    <div id="contacts-overlay">
+      <div id="contact-details-container">
+        <div id="contact-details-view">
+          <div id="contact-edit-button" data-action="edit" onclick="ContactDetails.execute(event)">
+            <span>Edit</span>
+            <span>Save</span>
+          </div>
+          <div id="contact-photo">
+            <img src="style/images/missing.png" alt="missing" />
+          </div>
+          <div id="contact-name">
+          </div>
+          <div id="contact-phones" class="group" data-action="call" onclick="ContactDetails.execute(event)">
+          </div>
+          <div id="contact-emails" class="group">
+          </div>
+          <div id="contact-destroy-button" data-action="destroy" onclick="ContactDetails.execute(event)">
+            Destroy this contact
           </div>
         </div>
       </div>
@@ -125,16 +142,12 @@
       </div>
     </div>
 
-    <div id="tabs-container">
-      <div id="tabs" onclick="choiceChanged(event.target)">
-        <fieldset>
-          <label id="keyboard-label" for="keyboard" data-choice="keyboard" data-active="true"><input id="keyboard" type="radio" name="tabs" checked="checked" /></label>
-          <label id="contacts-label" for="contacts" data-choice="contacts"><input id="contacts" type="radio" name="tabs" checked="" /></label>
-          <!-- Should be favorites once we implement this screen-->
-          <label id="favorites-label" for="favorites" data-choice="contacts"><input id="favorites" type="radio" name="tabs" checked="" /></label>
-        </fieldset>
-      </div>
-    </div>
-
+    <svg height=0>
+      <defs>
+        <filter id=gauss>
+          <feGaussianBlur in=SourceGraphic stdDeviation=2 />
+        </filter>
+      </defs>
+    </svg>
   </body>
 </html>
