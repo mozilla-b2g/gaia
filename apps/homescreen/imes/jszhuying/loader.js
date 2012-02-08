@@ -179,7 +179,7 @@
           sentences.forEach(function readSentence(sentence) {
             // look for candidate that is already in the list
             var exists = candidates.some(function sentenceExists(candidate) {
-              return (candidate[0] === result);
+              return (candidate[0] === sentence);
             });
 
             if (exists)
@@ -210,7 +210,7 @@
 
             lookup(syllables, 'term', function lookupCallback(terms) {
               terms.forEach(function readTerm(term) {
-                candidates.push([result, 'term']);
+                candidates.push([term, 'term']);
               });
 
               if (!--i) {
