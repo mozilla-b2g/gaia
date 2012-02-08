@@ -101,6 +101,9 @@
             id: 'keyboard.layouts.zhuying',
             value: 'false'
           }, {
+            id: 'keyboard.layouts.pinying',
+            value: 'false'
+          }, {
             id: 'keyboard.vibration',
             value: 'true'
           }, {
