@@ -502,11 +502,24 @@
 
     var self = this;
 
+    var indexedDB = window.indexedDB ||
+      window.webkitIndexedDB ||
+      window.mozIndexedDB ||
+      window.msIndexedDB;
+
+    var IDBDatabase = window.IDBDatabase ||
+      window.webkitIDBDatabase ||
+      window.msIDBDatabase;
+
+    var IDBTransaction = window.IDBTransaction ||
+      window.webkitIDBTransaction ||
+      window.msIDBTransaction;
+
     /* ==== init functions ==== */
 
     var getTermsInDB = function imedb_getTermsInDB(callback) {
       if (
-        !window.mozIndexedDB || // No mozIndexedDB API implementation
+        !indexedDB || // No IndexedDB API implementation
         IDBDatabase.prototype.setVersion || // old version of IndexedDB API
         window.location.protocol === 'file:' // bug 643318
       ) {
@@ -515,7 +528,7 @@
         return;
       }
 
-      var req = mozIndexedDB.open(kDBName, kDBVersion);
+      var req = indexedDB.open(kDBName, kDBVersion);
       req.onerror = function dbopen_onerror(ev) {
         debug('Encounter error while opening IndexedDB.');
         callback();
