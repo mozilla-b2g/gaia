@@ -1,3 +1,8 @@
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
+'use strict';
+
 const SAMPLE_PHOTOS_DIR = 'sample_photos/';
 const SAMPLE_THUMBNAILS_DIR = 'sample_photos/thumbnails/';
 const SAMPLE_FILENAMES = ['bigcat.jpg', 'bison.jpg', 'butterfly.jpg',
@@ -12,7 +17,7 @@ var Gallery = {
   photoSelected: false,
   
   get header() {
-    delete this.headers;
+    delete this.header;
     return this.header = document.getElementById('header');
   },
 
@@ -23,39 +28,39 @@ var Gallery = {
 
   get photos() {
     delete this.photos;
-    return this.photos =  document.getElementById('photos');
+    return this.photos = document.getElementById('photos');
   },
 
   init: function galleryInit() {
     var db = this.db;
-    db.open(this.addThumbnail);
-    var self = this;
+    db.open(this.addThumbnail.bind(this), this.getSamplePhotos.bind(this));
 
-    this.thumbnails.addEventListener('click', function thumbnailsClick(evt) {
+    this.thumbnails.addEventListener('click', (function thumbnailsClick(evt) {
       var target = evt.target;
       if (!target || !target.classList.contains('thumbnailHolder'))
         return;
 
-      db.getPhoto(target.id, function showPhotos(photo) {
-        self.showPhotos(photo);
-      });
-    });
+      db.getPhoto(target.id, (function showPhotos(photo) {
+        this.showPhotos(photo);
+      }).bind(this));
+    }).bind(this));
 
-    window.addEventListener('keypress', function keyPressHandler(evt) {
-      if (Gallery.photoSelected && evt.keyCode == evt.DOM_VK_ESCAPE) {
-        Gallery.showThumbnails();
+    window.addEventListener('keypress', (function keyPressHandler(evt) {
+      if (this.photoSelected && evt.keyCode == evt.DOM_VK_ESCAPE) {
+        this.showThumbnails();
         evt.preventDefault();
       }
-    });
+    }).bind(this), true);
   },
 
   getSamplePhotos: function galleryGetSamplePhotos() {
+    var self = this;
     // create separate callback function for each XHR to prevent overwriting
     for (var i in SAMPLE_FILENAMES) {
       var getSamplePhoto = function(i) {
-        var thumbnailRequest = Gallery.createPhotoRequest(SAMPLE_FILENAMES[i],
+        var thumbnailRequest = self.createPhotoRequest(SAMPLE_FILENAMES[i],
           SAMPLE_THUMBNAILS_DIR);
-        var photoRequest = Gallery.createPhotoRequest(SAMPLE_FILENAMES[i],
+        var photoRequest = self.createPhotoRequest(SAMPLE_FILENAMES[i],
           SAMPLE_PHOTOS_DIR);
         thumbnailRequest.send();
         photoRequest.send();
@@ -69,6 +74,9 @@ var Gallery = {
     var photoURL = directory + filename;
     photoRequest.open('GET', photoURL, true);
     photoRequest.responseType = 'blob';
+
+    var db = this.db;
+    var self = this;
     photoRequest.onload = function photoRequestLoaded(e) {
       if (this.status != 200)
         return;
@@ -78,10 +86,11 @@ var Gallery = {
         filename: filename,
         data: blob
       };
+
       if (directory == SAMPLE_THUMBNAILS_DIR)
-        Gallery.db.savePhoto(photoEntry, 'thumbnails', Gallery.addThumbnail);
+        db.savePhoto(photoEntry, 'thumbnails', self.addThumbnail.bind(self));
       else
-        Gallery.db.savePhoto(photoEntry, 'photos');
+        db.savePhoto(photoEntry, 'photos');
     };
     return photoRequest;
   },
@@ -96,7 +105,7 @@ var Gallery = {
     img.classList.add('thumbnail');
     li.appendChild(img);
 
-    Gallery.thumbnails.appendChild(li);
+    this.thumbnails.appendChild(li);
   },
 
   addPhoto: function galleryAddPhoto(photo) {
@@ -106,24 +115,24 @@ var Gallery = {
     var img = document.createElement('img');
     img.src = window.URL.createObjectURL(photo.data);
     img.classList.add('photo');
-    //img.addEventListener('click', Gallery.nextPhoto());
     li.appendChild(img);
 
-    Gallery.photos.appendChild(li);
+    this.photos.appendChild(li);
   },
 
   showThumbnails: function galleryShowThumbnails(thumbnails) {
     this.thumbnails.classList.remove('hidden');
     this.photos.classList.add('hidden');
     this.header.classList.remove('hidden');
-    Gallery.photoSelected = false;
-    photos = this.photos
+    this.photoSelected = false;
+
+    var photos = this.photos
     while(photos.hasChildNodes())
       photos.removeChild(photos.firstChild);
   },
 
   showPhotos: function galleryShowPhotos(photo) {
-    Gallery.photoSelected = true;
+    this.photoSelected = true;
 
     this.thumbnails.classList.add('hidden');
     this.header.classList.add('hidden');
@@ -133,14 +142,14 @@ var Gallery = {
 
     var thumbnail = document.getElementById(photo.filename);
     while(thumbnail = thumbnail.nextSibling)
-      Gallery.db.getPhoto(thumbnail.id, Gallery.addPhoto);
+      this.db.getPhoto(thumbnail.id, this.addPhoto);
   }
 };
 
 
 Gallery.db = {
   _db: null,
-  open: function dbOpen(callback) {
+  open: function dbOpen(thumbCallback, photosCallback) {
     const DB_VERSION = 4;
     const DB_NAME = 'gallery';
     var request = window.mozIndexedDB.open(DB_NAME, DB_VERSION);
@@ -154,10 +163,7 @@ Gallery.db = {
 
     request.onsuccess = (function onSuccess(evt) {
       this._db = evt.target.result;
-      if (empty)
-        Gallery.getSamplePhotos();
-      else
-        this.getThumbnails(callback);
+      empty ? photosCallback() : this.getThumbnails(thumbCallback);
     }).bind(this);
 
     request.onerror = (function onDatabaseError(error) {
