@@ -387,7 +387,7 @@ const IMEManager = {
     var self = this;
     var glue = {
       path: sourceDir + imEngine,
-      sendChoices: function(candidates) {
+      sendCandidates: function(candidates) {
         self.showCandidates(candidates);
       },
       sendKey: function(keyCode) {

@@ -147,7 +147,7 @@
 
       if (!syllablesInBuffer.join('').length) {
         debug('Buffer is empty; send empty candidate list.');
-        settings.sendChoices([]);
+        settings.sendCandidates([]);
         callback();
         return;
       }
@@ -184,7 +184,7 @@
               candidates.push([syllablesInBuffer.join(''), 'whole']);
             }
 
-            settings.sendChoices(candidates);
+            settings.sendCandidates(candidates);
             firstCandidate = candidates[0][0];
             callback();
             return;
@@ -242,7 +242,7 @@
 
                     if (!--i) {
                       debug('Done Looking.');
-                      settings.sendChoices(candidates);
+                      settings.sendCandidates(candidates);
                       callback();
                       return;
                     }
@@ -297,7 +297,7 @@
         // candidate list exists; output the first candidate
         debug('Sending first candidate.');
         settings.sendString(firstCandidate);
-        settings.sendChoices([]);
+        settings.sendCandidates([]);
         empty();
         next();
         return;
@@ -347,7 +347,7 @@
           // candidate list exists; output the first candidate
           debug('Sending first candidate.');
           settings.sendString(firstCandidate);
-          settings.sendChoices([]);
+          settings.sendCandidates([]);
           empty();
 
           // no return here
