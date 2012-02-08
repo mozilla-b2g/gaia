@@ -500,21 +500,62 @@ html * {
 }
 
 /* === Contact detail View === */
-#contact-details-container {
-  position: fixed;
-  top: 0;
-  left: -moz-calc(100% + 5px);
+#contacts-overlay {
+  position: absolute;
+  top: -100%;
   width: 100%;
-  height: -moz-calc(100% - 116px);
+  height: 100%;
   overflow: hidden;
 
-  box-shadow: -2px 0 3px 0 rgb(66,66,66);
-  background-image: -moz-linear-gradient(top, rgb(66,66,66) 24%, rgb(33,33,33) 44%, rgb(17,17,17) 64%);
+  background-color: rgba(0, 0, 0, 0.6);
 
-  -moz-transition: left 0.3s ease;
+  -moz-transition-property: opacity;
+  -moz-transition-duration: 0.30s;
+  -moz-transition-timing-function: linear;
+
+  opacity: 0;
 }
-#contact-details-container.displayed {
-  left: 0;
+#contacts-overlay.displayed {
+  top: 0;
+  opacity: 1;
+}
+
+#contacts-overlay.hidden {
+  opacity: 0;
+}
+
+#contacts-overlay-background {
+  position: absolute;
+  top: -100%;
+  width: 100%;
+  height: 100%;
+
+  background-image: -moz-element(#views), -moz-element(#tabs-container);
+  background-position: top, bottom;
+  background-repeat: no-repeat;
+}
+
+#contacts-overlay-background > div {
+  width: 100%;
+  height: 100%;
+
+  background: rgba(0, 0, 0, 0.6);
+}
+
+#contacts-overlay-preview {
+}
+
+#contact-details-container {
+  position: absolute;
+  top: 10%;
+  left: 5%;
+  width: 90%;
+  height: 80%;
+
+  border-radius: 10px;
+  overflow: hidden;
+
+  background-image: -moz-linear-gradient(top, rgb(66,66,66) 24%, rgb(33,33,33) 44%, rgb(17,17,17) 64%);
 }
 
 #contact-details-view {
