@@ -3,6 +3,7 @@ html {
   width: 100%;
   padding: 0;
   margin: 0;
+  overflow: hidden;
 }
 
 body {
@@ -40,9 +41,9 @@ header h1 {
   padding: 0;
   margin: 0;
   overflow-y: scroll;
-  overflow-x: visible;
-  width: 480px;
-  height: 710px;
+  overflow-x: hidden;
+  width: -moz-calc(100% + 8px);
+  height: -moz-calc(100% - 70px);
 }
 
 #thumbnails li {
@@ -67,8 +68,8 @@ header h1 {
 
 #photos {
   display: table;
-  width: 480px;
-  height: 800px;
+  width: 100%;
+  height: 100%;
   padding: 0;
   margin: 0;
   position: absolute;
@@ -78,8 +79,8 @@ header h1 {
 
 #photos li {
   display: table-cell;
-  width: 480px;
-  height: 800px;
+  width: 100%;
+  height: 100%;
 }
 
 .hidden, #photos.hidden {
@@ -87,6 +88,6 @@ header h1 {
 }
 
 .photo {
-  width: 480px;
-  height: 800px;
+  width: 100%;
+  height: 100%;
 }
