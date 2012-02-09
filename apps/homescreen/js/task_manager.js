@@ -3,8 +3,6 @@
 
 'use strict';
 
-var emulateRun = (window.navigator.userAgent.indexOf('B2G') == -1);
-
 if (!window['Gaia'])
   var Gaia = {};
 
@@ -50,21 +48,21 @@ Gaia.AnimationLoop = function(renderCallback) {
 
       this._isActive = value;
 
-      Gaia.WindowManager.setActive(false);
-      
-      var windows = Gaia.WindowManager.windows;
+      WindowManager.setActive(false);
+
+      var windows = WindowManager.windows;
       var listItemWidth = window.innerWidth * 0.5;
 
       if (value) {
         for (var i = 0, length = windows.length; i < length; i++)
           windows[i].setActive(true);
-        
+
         this.listElement.scrollLeft = listItemWidth;
         this.element.classList.add('active');
       } else {
         for (var i = 0, length = windows.length; i < length; i++)
           windows[i].setActive(false);
-        
+
         this.element.classList.remove('active');
       }
     },
@@ -94,7 +92,7 @@ Gaia.AnimationLoop = function(renderCallback) {
     handleEvent: function(evt) {
       switch (evt.type) {
         case 'keydown':
-          if (evt.keyCode !== (emulateRun ? evt.DOM_VK_ESCAPE : evt.DOM_VK_HOME) || isKeyDown)
+          if (evt.keyCode !== evt.DOM_VK_HOME || isKeyDown)
             return;
 
           if (checkKeyPressTimeout) {
@@ -104,10 +102,10 @@ Gaia.AnimationLoop = function(renderCallback) {
 
           isKeyDown = true;
 
-          if (this.isActive)
+          if (this.isActive) {
             this.setActive(false);
-          else {
-            checkKeyPressTimeout = window.setTimeout(function checkKeyPress(self) {
+          } else {
+            checkKeyPressTimeout = setTimeout(function checkKeyPress(self) {
               checkKeyPressTimeout = null;
 
               if (isKeyDown)
@@ -116,7 +114,7 @@ Gaia.AnimationLoop = function(renderCallback) {
           }
           break;
         case 'keyup':
-          if (evt.keyCode !== (emulateRun ? evt.DOM_VK_ESCAPE : evt.DOM_VK_HOME))
+          if (evt.keyCode !== evt.DOM_VK_HOME)
             return;
 
           if (checkKeyPressTimeout) {
@@ -150,10 +148,10 @@ Gaia.AnimationLoop = function(renderCallback) {
           break;
         case 'touchend':
           var listElement = this.listElement;
-          var windowCount = Gaia.WindowManager.windows.length;
+          var windowCount = WindowManager.windows.length;
           var listItemWidth = window.innerWidth * 0.5;
           var listIndex = Math.round(listElement.scrollLeft / listItemWidth);
-          
+
           listIndex = (listIndex === 0) ?
             1 : (listIndex > windowCount) ?
               windowCount : listIndex;
@@ -199,7 +197,7 @@ Gaia.AnimationLoop = function(renderCallback) {
 
       var mozElement = 'background: -moz-element(#window_' + id + ') no-repeat';
       item.setAttribute('style', mozElement);
-      
+
       var close = document.createElement('a');
       close.href = '#';
       close.addEventListener('click', (function(evt) {
@@ -217,13 +215,13 @@ Gaia.AnimationLoop = function(renderCallback) {
         listElement.insertBefore(item, listElement.firstChild);
       else
         listElement.appendChild(item);
-      
+
       var self = this;
-      
+
       item.addEventListener('click', function taskClickHandler(evt) {
         self.setActive(false);
         window.setTimeout(function launchApp() {
-          Gaia.WindowManager.launch(app.url);
+          WindowManager.launch(app.url);
         }, 400);
       });
 
@@ -234,7 +232,7 @@ Gaia.AnimationLoop = function(renderCallback) {
       var listElement = this.listElement;
       var item = document.getElementById('task_' + id);
       listElement.removeChild(item);
-      Gaia.WindowManager.kill(app.url);
+      WindowManager.kill(app.url);
     },
 
     sendToFront: function(id) {

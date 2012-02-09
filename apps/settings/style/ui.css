@@ -11,6 +11,10 @@ h1 {
   text-shadow: 0 0.1em 0 rgba(255, 255, 255, 0.9);
 }
 
+a {
+  outline: 0;
+}
+
 /* View */
 .view {
   border: 0;

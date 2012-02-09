@@ -291,7 +291,7 @@ IconGrid.prototype = {
     this.sceneGraph.forHit(
       x, y,
       function(sprite) {
-        Gaia.WindowManager.launch(sprite.icon.url);
+        WindowManager.launch(sprite.icon.url);
       });
   },
   handleEvent: function(e) {
@@ -582,7 +582,7 @@ function OnLoad() {
       if (index < 0)
         continue;
 
-      icon.action = 'Gaia.WindowManager.launch(\'' + icon.url + '\')';
+      icon.action = 'WindowManager.launch(\'' + icon.url + '\')';
       currentShortcuts.splice(index, 1, icon);
     }
 

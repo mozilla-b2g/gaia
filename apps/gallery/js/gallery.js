@@ -160,6 +160,7 @@ Gallery.db = {
     request.onsuccess = (function onSuccess(evt) {
       this._db = evt.target.result;
       empty ? samplePhotosCallback() : this.getThumbnails(thumbnailCallback);
+      window.parent.postMessage('appready', '*');
     }).bind(this);
 
     request.onerror = (function onDatabaseError(error) {

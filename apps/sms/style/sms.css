@@ -214,7 +214,7 @@ textarea:focus {
 
 /* === Conversation view === */
 #conversationView {
-  -moz-transition: left 0.5s ease;
+  -moz-transition: -moz-transform 0.5s ease;
   background-color: white;
   position: absolute;
   width: 100%;
@@ -226,10 +226,10 @@ textarea:focus {
 }
 
 #conversationView.slideIn {
-  left: 0;
+  -moz-transform: translateX(-100%);
 }
 
 #conversationView.slideOut {
-  left: 100%;
+  -moz-transform: translateX(0px);
 }
 
