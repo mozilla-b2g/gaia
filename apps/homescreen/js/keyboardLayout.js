@@ -6,7 +6,7 @@ const Keyboards = {
       [ { value: "1" }, { value: "2" }, { value: "3" } , { value: "4" }, { value: "5" } , { value: "6" }, { value: "7" } , { value: "8" }, { value: "9" }, { value: "0" } ],
       [ { value: "@" }, { value: "#" }, { value: "$" }, { value: "%" }, { value: "&" } , { value: "*" }, { value: "-" }, { value: "+" }, { value: "(" }, { value: ")" } ],
       [ { value: "ALT", ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT }, { value: "!" }, { value: "\"" }, { value: "'" }, { value: ":" }, { value: ";" }, { value:"/" }, { value: "?" }, { value: "⌫", ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE } ],
-      [ { value: "⎵", ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
+      [ { value: "space", ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE }, { value: "return", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ]
   },
   symbolLayout: {
@@ -15,7 +15,7 @@ const Keyboards = {
       [ { value: "`" }, { value: "~" }, { value: "_" }, { value: "^" }, { value: "∙" } , { value: "|" }, { value: "[" }, { value: "]" }, { value: "{" }, { value: "}" } ],
       [ { value: "℃" }, { value: "℉" }, { value: "№" } , { value: "℠" }, { value: "™" } , { value: "℗" }, { value: "©" } , { value: "®" }, { value: "(" }, { value: ")" } ],
       [ { value: "ALT", ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT }, { value: "¥" }, { value: "€" }, { value: "£" }, { value: "$" }, { value: "¢" }, { value:"\\" }, { value: "=" }, { value: "⌫", ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE } ],
-      [ { value: "⎵", ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
+      [ { value: "space", ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE }, { value: "return", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ]
   },
   numberLayout: {
@@ -58,7 +58,7 @@ const Keyboards = {
       [ { value: "q" }, { value: "w" }, { value: "e" } , { value: "r" }, { value: "t" } , { value: "y" }, { value: "u" } , { value: "i" }, { value: "o" }, { value: "p" } ],
       [ { value: "a" }, { value: "s" }, { value: "d" }, { value: "f" }, { value: "g" } , { value: "h" }, { value: "j" }, { value: "k" }, { value: "l" }, { value: "'", keyCode: 39 } ],
       [ { value: "⇪", ratio: 1.5, keyCode: KeyEvent.DOM_VK_CAPS_LOCK }, { value: "z" }, { value: "x" }, { value: "c" }, { value: "v" }, { value: "b" }, { value:"n" }, { value: "m" }, { value: "⌫", ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE } ],
-      [ { value: "⎵", ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
+      [ { value: "space", ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE }, { value: "return", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ],
   },
   fr: {
@@ -80,7 +80,7 @@ const Keyboards = {
       [ { value: "a" }, { value: "z" }, { value: "e" } , { value: "r" }, { value: "t" } , { value: "y" }, { value: "u" } , { value: "i" }, { value: "o" }, { value: "p" } ],
       [ { value: "q" }, { value: "s" }, { value: "d" }, { value: "f" }, { value: "g" } , { value: "h" }, { value: "j" }, { value: "k" }, { value: "l" }, { value: "m" } ],
       [ { value: "⇪", ratio: 1.5, keyCode: KeyEvent.DOM_VK_CAPS_LOCK }, { value: "w" }, { value: "x" }, { value: "c" }, { value: "v" }, { value: "b" }, { value:"n" }, { value: "'", keyCode: 39 }, { value: "⌫", ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE } ],
-      [ { value: "⎵", ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
+      [ { value: "space", ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE }, { value: "return", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ]
   },
   de: {
@@ -102,7 +102,7 @@ const Keyboards = {
       [ { value: "q" }, { value: "w" }, { value: "e" } , { value: "r" }, { value: "t" } , { value: "z" }, { value: "u" } , { value: "i" }, { value: "o" }, { value: "p" } ],
       [ { value: "a" }, { value: "s" }, { value: "d" }, { value: "f" }, { value: "g" } , { value: "h" }, { value: "j" }, { value: "k" }, { value: "l" }, { value: "'", keyCode: 39 } ],
       [ { value: "⇪", ratio: 1.5, keyCode: KeyEvent.DOM_VK_CAPS_LOCK }, { value: "y" }, { value: "x" }, { value: "c" }, { value: "v" }, { value: "b" }, { value:"n" }, { value: "m" }, { value: "⌫", ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE } ],
-      [ { value: "⎵", ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
+      [ { value: "space", ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE }, { value: "return", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ]
   },
   he: {
@@ -116,7 +116,7 @@ const Keyboards = {
       [ { value: "ק" }, { value: "ר" }, { value: "א" }, { value: "ט" }, { value: "ו" }, { value: "ו" }, { value: "ם" }, { value: "פ" }, { value: "⌫", ratio: 2, keyCode: KeyEvent.DOM_VK_BACK_SPACE } ],
       [ { value: "ש" }, { value: "ד" }, { value: "ג" }, { value: "כ" }, { value: "ע" }, { value: "י" }, { value: "ח" }, { value: "ל" }, { value: "ך" }, { value: "ף" }],
       [ { value: "ז" }, { value: "ס" }, { value: "ב" }, { value: "ה" }, { value: "נ" }, { value: "מ" }, { value: "צ" }, { value: "ת" }, { value: "ץ" }, { value: '?' }],
-      [ { value: "⎵", ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
+      [ { value: "space", ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE }, { value: "return", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ]
   },
   nb: {
@@ -146,7 +146,7 @@ const Keyboards = {
         [{ value: "q" },{ value: "w" },{ value: "e" },{ value: "r" },{ value: "t" },{ value: "y" },{ value: "u" },{ value: "i" },{ value: "o" },{ value: "p" },{ value: "å" }],
         [{ value: "a" },{ value: "s" },{ value: "d" },{ value: "f" },{ value: "g" },{ value: "h" },{ value: "j" },{ value: "k" },{ value: "l" },{ value: "ø" },{ value: "æ" }],
         [{ value: "⇪", ratio: 2, keyCode: KeyEvent.DOM_VK_CAPS_LOCK }, { value: "z" },{ value: "x" },{ value: "c" },{ value: "v" },{ value: "b" },{ value: "n" },{ value: "m" }, { value: "⌫", ratio: 2, keyCode: KeyEvent.DOM_VK_BACK_SPACE }],
-        [ { value: "⎵", ratio: 9, keyCode: KeyboardEvent.DOM_VK_SPACE }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
+        [ { value: "space", ratio: 9, keyCode: KeyboardEvent.DOM_VK_SPACE }, { value: "return", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ]
   },
   ru: {
@@ -161,7 +161,7 @@ const Keyboards = {
         [ { value: "й" }, { value: "ц" }, { value: "у" }, { value: "к" }, { value: "е" }, { value: "н" }, { value: "г" }, { value: "ш" }, { value: "щ" }, { value: "з" }, { value: "х" }],
         [ { value: "ф" }, { value: "ы" }, { value: "в" }, { value: "а" }, { value: "п" }, { value: "р" }, { value: "о" }, { value: "л" }, { value: "д" }, { value: "ж" }, { value: "э" }],
         [ { value: "⇪", keyCode: KeyEvent.DOM_VK_CAPS_LOCK }, { value: "я" }, { value: "ч" }, { value: "с" }, { value: "м" }, { value: "и" }, { value: "т" }, { value: "ь" }, { value: "б" }, { value: "ю" }, { value: "⌫", keyCode: KeyEvent.DOM_VK_BACK_SPACE }],
-        [ { value: "⎵", ratio: 9, keyCode: KeyboardEvent.DOM_VK_SPACE }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
+        [ { value: "space", ratio: 9, keyCode: KeyboardEvent.DOM_VK_SPACE }, { value: "return", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ]
   },
   "sr-Cyrl": {
@@ -176,7 +176,7 @@ const Keyboards = {
         [ { value: "љ" }, { value: "њ" }, { value: "е" }, { value: "р" }, { value: "т" }, { value: "з" }, { value: "у" }, { value: "и" }, { value: "о" }, { value: "п" }, { value: "ш" }],
         [ { value: "а" }, { value: "с" }, { value: "д" }, { value: "ф" }, { value: "г" }, { value: "х" }, { value: "ј" }, { value: "к" }, { value: "л" }, { value: "ч" }, { value: "ћ" }],
         [ { value: "⇪", keyCode: KeyEvent.DOM_VK_CAPS_LOCK }, { value: "s" }, { value: "џ" }, { value: "ц" }, { value: "в" }, { value: "б" }, { value: "н" }, { value: "м" }, { value: "ђ" }, { value: "ж" }, { value: "⌫", keyCode: KeyEvent.DOM_VK_BACK_SPACE }],
-        [ { value: "⎵", ratio: 9, keyCode: KeyboardEvent.DOM_VK_SPACE }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
+        [ { value: "space", ratio: 9, keyCode: KeyboardEvent.DOM_VK_SPACE }, { value: "return", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ]
   },
   sk: {
@@ -202,7 +202,7 @@ const Keyboards = {
       [ { value: "q" }, { value: "w" }, { value: "e" } , { value: "r" }, { value: "t" } , { value: "y" }, { value: "u" } , { value: "i" }, { value: "o" }, { value: "p" } ],
       [ { value: "a" }, { value: "s" }, { value: "d" }, { value: "f" }, { value: "g" } , { value: "h" }, { value: "j" }, { value: "k" }, { value: "l" }, { value: "'", keyCode: 39 } ],
       [ { value: "⇪", ratio: 1.5, keyCode: KeyEvent.DOM_VK_CAPS_LOCK }, { value: "z" }, { value: "x" }, { value: "c" }, { value: "v" }, { value: "b" }, { value:"n" }, { value: "m" }, { value: "⌫", ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE } ],
-      [ { value: "⎵", ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
+      [ { value: "space", ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE }, { value: "return", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ],
   },
   tr: {
@@ -227,7 +227,7 @@ const Keyboards = {
       [ { value: "q" }, { value: "w" }, { value: "e" } , { value: "r" }, { value: "t" } , { value: "y" }, { value: "u" } , { value: "i" }, { value: "o" }, { value: "p" } ],
       [ { value: "a" }, { value: "s" }, { value: "d" }, { value: "f" }, { value: "g" } , { value: "h" }, { value: "j" }, { value: "k" }, { value: "l" }, { value: "'", keyCode: 39 } ],
       [ { value: "⇪", ratio: 1.5, keyCode: KeyEvent.DOM_VK_CAPS_LOCK }, { value: "z" }, { value: "x" }, { value: "c" }, { value: "v" }, { value: "b" }, { value:"n" }, { value: "m" }, { value: "⌫", ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE } ],
-      [ { value: "⎵", ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
+      [ { value: "space", ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE }, { value: "return", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ],
   },
   'en-Dvorak': {
@@ -253,7 +253,7 @@ const Keyboards = {
       [ { value: "," }, { value: "." } , { value: "p" }, { value: "y" } , { value: "f" }, { value: "g" } , { value: "c" }, { value: "r" }, { value: "l" }, { value: "⌫", keyCode: KeyEvent.DOM_VK_BACK_SPACE } ],
       [ { value: "a" }, { value: "o" }, { value: "e" }, { value: "u" }, { value: "i" } , { value: "d" }, { value: "h" }, { value: "t" }, { value: "n" }, { value: "s" } ],
       [ { value: "⇪", ratio: 1, keyCode: KeyEvent.DOM_VK_CAPS_LOCK }, { value: "q" }, { value: "j" }, { value: "k" }, { value: "x" }, { value: "b" }, { value:"m" }, { value:"w" }, { value:"v" }, { value:"z" } ],
-      [ { value: "⎵", ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
+      [ { value: "space", ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE }, { value: "return", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ]
   },
   'zh-Hant-Zhuying': {
@@ -272,7 +272,7 @@ const Keyboards = {
       [ { value: "ㄆ"},{ value: "ㄊ"},{ value: "ㄍ"},{ value: "ㄐ"},{ value: "ㄔ"},{ value: "ㄗ"},{ value: "ㄧ"},{ value: "ㄛ"},{ value: "ㄟ"},{ value: "ㄣ"}, { value: "？"} ],
       [ { value: "ㄇ"},{ value: "ㄋ"},{ value: "ㄎ"},{ value: "ㄑ"},{ value: "ㄕ"},{ value: "ㄘ"},{ value: "ㄨ"},{ value: "ㄜ"},{ value: "ㄠ"},{ value: "ㄤ"}, { value: "…"} ],
       [ { value: "ㄈ"},{ value: "ㄌ"},{ value: "ㄏ"},{ value: "ㄒ"},{ value: "ㄖ"},{ value: "ㄙ"},{ value: "ㄩ"},{ value: "ㄝ"},{ value: "ㄡ"},{ value: "ㄥ"}, { value: "⌫", keyCode: KeyEvent.DOM_VK_BACK_SPACE } ],
-      [ { value: "⎵", ratio: 9, keyCode: KeyboardEvent.DOM_VK_SPACE }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
+      [ { value: "空格", ratio: 9, keyCode: KeyboardEvent.DOM_VK_SPACE }, { value: "換行", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ]
   }
 };
