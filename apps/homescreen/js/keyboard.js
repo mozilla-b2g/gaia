@@ -799,9 +799,10 @@ const IMEManager = {
 
           switch (this.currentType) {
             case 'url':
-              ratio -= 2;
-              content += buildKey(46, '.', '', 1);
-              content += buildKey(47, '/', '', 1);
+              var size = Math.floor(ratio/3);
+              ratio -= size * 2;
+              content += buildKey(46, '.', '', size);
+              content += buildKey(47, '/', '', size);
               content += buildKey(this.DOT_COM, '.com', '', ratio);
             break;
             case 'email':
