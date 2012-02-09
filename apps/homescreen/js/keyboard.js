@@ -737,7 +737,7 @@ const IMEManager = {
     var buildKey = function buildKey(code, label, className, ratio, alt) {
       return '<span class="keyboard-key ' + className + '"' +
         ' data-keycode="' + code + '"' +
-        ' style="width:' + (size * ratio - 2) + 'px"' +
+        ' style="width:' + (size * ratio - 4) + 'px"' +
         ((alt) ? ' data-alt=' + alt : '') +
       '>' + label + '</span>';
     };
@@ -799,14 +799,15 @@ const IMEManager = {
 
           switch (this.currentType) {
             case 'url':
-              ratio -= 2;
-              content += buildKey(46, '.', '', 1);
-              content += buildKey(47, '/', '', 1);
+              var size = Math.floor(ratio/3);
+              ratio -= size * 2;
+              content += buildKey(46, '.', '', size);
+              content += buildKey(47, '/', '', size);
               content += buildKey(this.DOT_COM, '.com', '', ratio);
             break;
             case 'email':
               ratio -= 2;
-              content += buildKey(KeyboardEvent.DOM_VK_SPACE, '⎵', '', ratio);
+              content += buildKey(KeyboardEvent.DOM_VK_SPACE, key.value, 'spacekey', ratio);
               content += buildKey(64, '@', '', 1);
               content += buildKey(46, '.', '', 1);
             break;
@@ -827,7 +828,7 @@ const IMEManager = {
                 content += buildKey(44, ',', '', 1);
               }
 
-              content += buildKey(KeyboardEvent.DOM_VK_SPACE, '⎵', '', ratio);
+              content += buildKey(KeyboardEvent.DOM_VK_SPACE, key.value, 'spacekey', ratio);
 
               if (layout.textLayoutOverwrite['.']) {
                 content += buildKey(
