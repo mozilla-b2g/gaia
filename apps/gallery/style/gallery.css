@@ -1,6 +1,9 @@
 html {
   height: 100%;
   width: 100%;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
 }
 
 body {
@@ -15,69 +18,76 @@ body {
   overflow: hidden;
 }
 
-.thumbnails {
-  overflow: scroll;
-  padding: 5px;
+header {
+  height: 20px;
+  background-color: #fff;
+  background-image: -moz-linear-gradient(#fff, #eaeae4);
   margin: 0;
-  height: 100%;
+  padding: 25px;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
 }
 
-.thumbnails li {
-  display: table;
+header h1 {
+  margin: 0;
+  padding: 0;
+  font-size: 20px;
+  color: #333;
   text-align: center;
-  width: 140px;
-  height: 145px;  
+  width: 100%;
+}
+
+#thumbnails {
+  padding: 0;
+  margin: 0;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  width: -moz-calc(100% + 8px);
+  height: -moz-calc(100% - 70px);
+}
+
+#thumbnails li {
+  width: 160px;
+  height: 140px;
   float: left;
-  margin: 5px;
+  margin: 0;
   list-style-type: none;
   padding: 0;
   -moz-user-select: none;
   user-select: none;
 }
 
-.thumbnails li a {
-  display: table-cell;
-  vertical-align: middle;
-  width: 140px;
-  height: 145px;
+.thumbnail {
+  width: 160px;
+  height: 140px;
   margin: 0;
   padding: 0;
+  border: none;
   pointer-events: none;
 }
 
-.thumbnail {
-  max-width: 130px;
-  max-height: 130px;
-  margin: 0 auto;
-  border: solid 5px #fff;
-  pointer-events: none;
-}
-
-#photoFrame {
+#photos {
   display: table;
   width: 100%;
   height: 100%;
+  padding: 0;
+  margin: 0;
+  position: absolute;
+  top: 0px;
+  left: 0px;
 }
 
-#photoBorder {
+#photos li {
   display: table-cell;
-  vertical-align: middle;
-  text-align: center;
   width: 100%;
   height: 100%;
 }
 
-.hidden, #photoFrame.hidden {
+.hidden, #photos.hidden {
   display: none;
 }
 
-#photo {
-  width: 0%;
-  height: auto;
-  -moz-transition: width 0.5s ease;
-}
-
-#photo[data-visible] {
+.photo {
   width: 100%;
+  height: 100%;
 }
-
