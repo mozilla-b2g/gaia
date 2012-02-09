@@ -65,8 +65,21 @@ const IMEManager = {
           );
         }
 
-        i++;
-        if (i === keyboardSettingGroupKeys.length) {
+        if (++i === keyboardSettingGroupKeys.length) {
+          completeSettingRequests();
+        } else {
+          keyboardSettingRequest.call(this, keyboardSettingGroupKeys[i]);
+        }
+      }).bind(this);
+
+      request.onerror = (function onerror(evt) {
+        // XXX: workaround with gaia issue 342
+        if (keyboardSettingGroupKeys.indexOf(key) !== i)
+          return;
+
+        dump('Having trouble getting setting for keyboard setting group: ' + key);
+
+        if (++i === keyboardSettingGroupKeys.length) {
           completeSettingRequests();
         } else {
           keyboardSettingRequest.call(this, keyboardSettingGroupKeys[i]);
