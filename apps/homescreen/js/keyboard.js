@@ -65,8 +65,21 @@ const IMEManager = {
           );
         }
 
-        i++;
-        if (i === keyboardSettingGroupKeys.length) {
+        if (++i === keyboardSettingGroupKeys.length) {
+          completeSettingRequests();
+        } else {
+          keyboardSettingRequest.call(this, keyboardSettingGroupKeys[i]);
+        }
+      }).bind(this);
+
+      request.onerror = (function onerror(evt) {
+        // XXX: workaround with gaia issue 342
+        if (keyboardSettingGroupKeys.indexOf(key) !== i)
+          return;
+
+        dump('Having trouble getting setting for keyboard setting group: ' + key);
+
+        if (++i === keyboardSettingGroupKeys.length) {
           completeSettingRequests();
         } else {
           keyboardSettingRequest.call(this, keyboardSettingGroupKeys[i]);
@@ -434,15 +447,21 @@ const IMEManager = {
           }).bind(this)
         );
 
-        var request = navigator.mozSettings.get('keyboard.vibration');
-        request.addEventListener('success', (function onsuccess(evt) {
-          this.vibrate = (request.result.value === 'true');
-        }).bind(this));
+        // TODO: workaround gaia issue 374
+        setTimeout((function keyboardVibrateSettingRequest() {
+          var request = navigator.mozSettings.get('keyboard.vibration');
+          request.addEventListener('success', (function onsuccess(evt) {
+            this.vibrate = (request.result.value === 'true');
+          }).bind(this));
 
-        var request = navigator.mozSettings.get('keyboard.clicksound');
-        request.addEventListener('success', (function onsuccess(evt) {
-          this.clicksound = (request.result.value === 'true');
-        }).bind(this));
+          setTimeout((function keyboardClickSoundSettingRequest() {
+            var request = navigator.mozSettings.get('keyboard.clicksound');
+            request.addEventListener('success', (function onsuccess(evt) {
+              this.clicksound = (request.result.value === 'true');
+            }).bind(this));
+          }).bind(this), 0);
+
+        }).bind(this), 0);
 
         break;
 
