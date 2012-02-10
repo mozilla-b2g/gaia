@@ -979,7 +979,7 @@ const IMEManager = {
   hideIME: function km_hideIME(targetWindow) {
     var ime = this.ime;
     var imeHide = (function(evt) {
-      targetWindow.removeEventListener('transitionend', imeHide);
+      ime.removeEventListener('transitionend', imeHide);
 
       // hideIME is canceled by the showIME that fires after
       if (ime.style.height !== '0px')
@@ -996,7 +996,7 @@ const IMEManager = {
 
     }).bind(this);
 
-    targetWindow.addEventListener('transitionend', imeHide);
+    ime.addEventListener('transitionend', imeHide);
 
     targetWindow.style.height = targetWindow.dataset.cssHeight;
     ime.style.height = '0px';
