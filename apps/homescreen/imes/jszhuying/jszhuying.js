@@ -138,6 +138,7 @@
       if (!syllablesInBuffer.join('').length) {
         debug('Buffer is empty; send empty candidate list.');
         settings.sendCandidates([]);
+        firstCandidate = '';
         callback();
         return;
       }
