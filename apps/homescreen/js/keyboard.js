@@ -473,7 +473,8 @@ const IMEManager = {
         var sendDelete = (function sendDelete(feedback) {
           if (feedback)
             this.triggerFeedback();
-          if (Keyboards[this.currentKeyboard].type == 'ime') {
+          if (Keyboards[this.currentKeyboard].type == 'ime' &&
+              !this.currentKeyboardMode) {
             this.currentEngine.click(keyCode);
             return;
           }
@@ -677,7 +678,8 @@ const IMEManager = {
           break;
 
           case KeyEvent.DOM_VK_RETURN:
-            if (Keyboards[this.currentKeyboard].type == 'ime') {
+            if (Keyboards[this.currentKeyboard].type == 'ime' &&
+                !this.currentKeyboardMode) {
               this.currentEngine.click(keyCode);
               break;
             }
@@ -686,7 +688,8 @@ const IMEManager = {
           break;
 
           default:
-            if (Keyboards[this.currentKeyboard].type == 'ime') {
+            if (Keyboards[this.currentKeyboard].type == 'ime' &&
+                !this.currentKeyboardMode) {
               this.currentEngine.click(keyCode);
               break;
             }
