@@ -438,6 +438,9 @@ const IMEManager = {
 
     switch (evt.type) {
       case 'showime':
+        // cancel hideIME that imminently happen before showIME
+        clearTimeout(this.hideIMETimer);
+
         // TODO: gaia issue 346
         // Instead of reading the latest setting every time
         // when showime and relay on the callback,
@@ -464,7 +467,10 @@ const IMEManager = {
 
       case 'hideime':
       case 'appclose':
-        this.hideIME(activeWindow);
+        this.hideIMETimer = setTimeout((function execHideIME() {
+          this.hideIME(activeWindow);
+        }).bind(this), 0);
+
         break;
 
       case 'mousedown':
@@ -922,11 +928,13 @@ const IMEManager = {
     var ime = this.ime;
     var targetWindow = this.targetWindow;
 
-    if (ime.offsetHeight !== 0) {
-      targetWindow.classList.add('noTransition');
-      setTimeout(function remoteNoTransition() {
-        targetWindow.classList.remove('noTransition');
-      }, 0);
+    if (ime.dataset.hidden) {
+      targetWindow.classList.add('keyboardTransition');
+      var showIMEafterTransition = function showIMEtransitionend(evt) {
+        targetWindow.classList.remove('keyboardTransition');
+        targetWindow.removeEventListener('transitionend', showIMEafterTransition);
+      };
+      targetWindow.addEventListener('transitionend', showIMEafterTransition);
     }
 
     // Need these to correctly measure scrollHeight
@@ -941,6 +949,17 @@ const IMEManager = {
   },
 
   showIME: function km_showIME(targetWindow, type) {
+
+    if (targetWindow.classList.contains('keyboardTransition')) {
+      // keyboard is transitioning, run showIME after transition
+      var deferShowIMEafterTransition = (function deferShowIME(evt) {
+        targetWindow.removeEventListener('transitionend', deferShowIMEafterTransition);
+        this.showIME(targetWindow, type);
+      }).bind(this);
+      targetWindow.addEventListener('transitionend', deferShowIMEafterTransition);
+      return;
+    }
+
     switch (type) {
       // basic types
       case 'url':
@@ -964,6 +983,7 @@ const IMEManager = {
     }
 
     if (this.ime.dataset.hidden) {
+      // keyboard is in the quiet hidden state
       this.targetWindow = targetWindow;
       var oldHeight = targetWindow.style.height;
       targetWindow.dataset.cssHeight = oldHeight;
@@ -978,8 +998,9 @@ const IMEManager = {
 
   hideIME: function km_hideIME(targetWindow) {
     var ime = this.ime;
-    var imeHide = (function(evt) {
-      ime.removeEventListener('transitionend', imeHide);
+    var hideIMEafterTransition = (function hideIMEtransitionend(evt) {
+      targetWindow.classList.remove('keyboardTransition');
+      targetWindow.removeEventListener('transitionend', hideIMEafterTransition);
 
       // hideIME is canceled by the showIME that fires after
       if (ime.style.height !== '0px')
@@ -996,10 +1017,11 @@ const IMEManager = {
 
     }).bind(this);
 
-    ime.addEventListener('transitionend', imeHide);
-
+    targetWindow.addEventListener('transitionend', hideIMEafterTransition);
+    targetWindow.classList.add('keyboardTransition');
     targetWindow.style.height = targetWindow.dataset.cssHeight;
     ime.style.height = '0px';
+
   },
 
   showCandidates: function km_showCandidates(candidates) {
