@@ -447,15 +447,21 @@ const IMEManager = {
           }).bind(this)
         );
 
-        var request = navigator.mozSettings.get('keyboard.vibration');
-        request.addEventListener('success', (function onsuccess(evt) {
-          this.vibrate = (request.result.value === 'true');
-        }).bind(this));
+        // TODO: workaround gaia issue 374
+        setTimeout((function keyboardVibrateSettingRequest() {
+          var request = navigator.mozSettings.get('keyboard.vibration');
+          request.addEventListener('success', (function onsuccess(evt) {
+            this.vibrate = (request.result.value === 'true');
+          }).bind(this));
 
-        var request = navigator.mozSettings.get('keyboard.clicksound');
-        request.addEventListener('success', (function onsuccess(evt) {
-          this.clicksound = (request.result.value === 'true');
-        }).bind(this));
+          setTimeout((function keyboardClickSoundSettingRequest() {
+            var request = navigator.mozSettings.get('keyboard.clicksound');
+            request.addEventListener('success', (function onsuccess(evt) {
+              this.clicksound = (request.result.value === 'true');
+            }).bind(this));
+          }).bind(this), 0);
+
+        }).bind(this), 0);
 
         break;
 
