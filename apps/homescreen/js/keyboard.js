@@ -609,6 +609,7 @@ const IMEManager = {
               else
                 this.currentKeyboard = target.dataset.keyboard;
 
+              this.currentKeyboardMode = '';
               this.isUpperCase = false;
               this.updateLayout();
 
@@ -624,6 +625,7 @@ const IMEManager = {
             else
               this.currentKeyboard = keyboards[++index];
 
+            this.currentKeyboardMode = '';
             this.isUpperCase = false;
             this.updateLayout();
           break;
