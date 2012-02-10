@@ -288,19 +288,6 @@ div.windowSprite.active {
 
 .battery > #fuel.charging {
   background-image: -moz-linear-gradient(top, #b9fd00, #8fc400);
-  -moz-animation-duration: 3s;
-  -moz-animation-name: batteryCharging;
-  -moz-animation-iteration-count: infinite;
-  -moz-animation-timing-function: linear;
-}
-
-@-moz-keyframes batteryCharging {
-  from {
-    width: 0;
-  }
-  to {
-    width: 19px;
-  }
 }
 .battery > #charging {
   height: 8px;
