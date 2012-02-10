@@ -229,6 +229,7 @@ var WindowManager = {
 
     var applicationWindow = this.getWindowByApp(application);
     if (applicationWindow) {
+      Gaia.AppManager.foregroundWindow = applicationWindow.element;
       Gaia.TaskManager.sendToFront(applicationWindow.id);
     } else {
       applicationWindow = new Window(application, ++this._lastWindowId);
