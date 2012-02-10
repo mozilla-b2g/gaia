@@ -951,9 +951,9 @@ const IMEManager = {
       targetWindow.classList.add('keyboardTransition');
       var showIMEafterTransition = function showIMEtransitionend(evt) {
         targetWindow.classList.remove('keyboardTransition');
-        targetWindow.removeEventListener('transitionend', showIMEafterTransition);
+        ime.removeEventListener('transitionend', showIMEafterTransition);
       };
-      targetWindow.addEventListener('transitionend', showIMEafterTransition);
+      ime.addEventListener('transitionend', showIMEafterTransition);
     }
 
     // Need these to correctly measure scrollHeight
@@ -1016,10 +1016,14 @@ const IMEManager = {
   },
 
   hideIME: function km_hideIME(targetWindow) {
+
+    if (this.ime.dataset.hidden)
+      return;
+
     var ime = this.ime;
     var hideIMEafterTransition = (function hideIMEtransitionend(evt) {
       targetWindow.classList.remove('keyboardTransition');
-      targetWindow.removeEventListener('transitionend', hideIMEafterTransition);
+      ime.removeEventListener('transitionend', hideIMEafterTransition);
 
       // hideIME is canceled by the showIME that fires after
       if (ime.style.height !== '0px')
@@ -1036,7 +1040,7 @@ const IMEManager = {
 
     }).bind(this);
 
-    targetWindow.addEventListener('transitionend', hideIMEafterTransition);
+    ime.addEventListener('transitionend', hideIMEafterTransition);
     targetWindow.classList.add('keyboardTransition');
     targetWindow.style.height = targetWindow.dataset.cssHeight;
     ime.style.height = '0px';
