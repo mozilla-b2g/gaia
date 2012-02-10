@@ -201,6 +201,10 @@ iframe.appWindow {
   display: none;
 }
 
+iframe.appWindow.keyboardTransition {
+  -moz-transition: height 0.2s ease;
+}
+
 iframe.appWindow.active {
   display: block;
 }
@@ -392,6 +396,7 @@ div.windowSprite.active {
 
 #keyboard[data-hidden] {
   height: 0;
+  bottom: -2px;
 }
 
 #keyboard-candidate-panel {
