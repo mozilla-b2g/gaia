@@ -383,7 +383,7 @@ const IMEManager = {
     this.IMEngines[imEngine] = {};
 
     var script = document.createElement('script');
-    script.src = sourceDir + imEngine + '/loader.js';
+    script.src = sourceDir + imEngine + '/' + imEngine + '.js';
     var self = this;
     var glue = {
       path: sourceDir + imEngine,
