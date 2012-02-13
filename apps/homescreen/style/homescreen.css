@@ -385,6 +385,7 @@ div.windowSprite.active {
 #keyboard {
   position: absolute;
   font-family: 'Open Sans', sans-serif;
+  font-weight: 600;
   z-index: 9997;
   bottom: 0;
   height: auto;
@@ -504,6 +505,7 @@ div.windowSprite.active {
 
 @font-face {
   font-family: 'Keyboard Symbols';
+  font-weight: 600;
   src: url('fonts/Keyboard-Symbols.woff');
 }
 
