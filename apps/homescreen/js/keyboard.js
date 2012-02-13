@@ -66,8 +66,21 @@ const IMEManager = {
           );
         }
 
-        i++;
-        if (i === keyboardSettingGroupKeys.length) {
+        if (++i === keyboardSettingGroupKeys.length) {
+          completeSettingRequests();
+        } else {
+          keyboardSettingRequest.call(this, keyboardSettingGroupKeys[i]);
+        }
+      }).bind(this);
+
+      request.onerror = (function onerror(evt) {
+        // XXX: workaround with gaia issue 342
+        if (keyboardSettingGroupKeys.indexOf(key) !== i)
+          return;
+
+        dump('Having trouble getting setting for keyboard setting group: ' + key);
+
+        if (++i === keyboardSettingGroupKeys.length) {
           completeSettingRequests();
         } else {
           keyboardSettingRequest.call(this, keyboardSettingGroupKeys[i]);
@@ -318,7 +331,23 @@ const IMEManager = {
   },
 
   // data URL for keyboard click sound
-  kAudio: 'data:audio/x-wav;base64,UklGRiADAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YfwCAAAW/Fzsqe9OAONWB0Pt3Mf1hsS38mJcc0mq9mzpwsIwsChOBxay/ikHV6Tr8ioJNQa0ErvFzbXrw97j5C2LQII7aBg77Tr+I+wH0QWp/7xowHegIf0yD1UkhzRRIbUGoeOgJptCHVB+WZg5ehgsEcofKwKaAb7+cuzd9doICAx0FZEm+gEq+z//D/yJDtEJx/O73MHkifPK/BoLXwwuBt3p5eBq2h3YT/OR+MH/5xDGB7sHowyp9rrrL++06mnt/PpcALcI7RDSCz4GwwWaAXYNVhLwD20VYQsvCWUPxApJCVUH3P0jA54EIP0RBUYHVgtlD68KtQWI/9MB4f8Q/Fr4UvLz7nPqyOzV9AvzKfEB7azl/+ee6jbrSOw16mjpPepD7d3yT/hL/RIDBAXQAHcDIAZ1BVsPIhAZCT4Ntwc2CJsQnhV+GlYcJR67GF0WaRK5CewGSQdSBboCfgWGBaQACP0e+8f3O/Y4+Yn14e8l9Mf3lvns/eT75fbx9t359/lw+6L+XP+5AdsFSgZECK8LvQlVCWYJ1wetBD8AGALlAJUAVAbPBEkDpALfADn/Cv4c/+7+OP/jAAb/7vie+Xr7GvYa9g30rPBc9OL1wveo+3D+8/xG+Zn5tPsi/vX/xv4I/Oj5DPaL8mbxmfMM+80AXQbiCisNvhC8Dt4LGwwyDJkNlAxRCWYGswcHCn0KyA5cDsQKYgrZB+cFlATlAh4A3P5kAOsAOwLbA+ED8gLAAM/+h/vq+Lb5qPgY+GH5i/nE+SX6V/s9+gv69vl89nv33fhc+Zb6nvse/lEA4wMjBrQEugPc/4/8pvux+//9Kf9tAGcBXAFxAtgCuwMeBFQE6AQdA4gCGAJiADsAuwC7/53+a/4J/tv88fte+R74dPhd+HD5LPmf+If5VPsp/noASALRAbsB+wJ+Ak0CuQPiBAsFpwYTB5wFtgZ/DE4P8AuHB4kD3QKPBcAHhgaHBDAEngO6BBcFbwJ2/qD7rPtG/voBwQGU/pn9Lv3T/g==',
+  kAudio: 'data:audio/x-wav;base64,' +
+  'UklGRiADAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YfwCAAAW/Fzsqe9O' +
+  'AONWB0Pt3Mf1hsS38mJcc0mq9mzpwsIwsChOBxay/ikHV6Tr8ioJNQa0ErvFzbXrw97j' +
+  '5C2LQII7aBg77Tr+I+wH0QWp/7xowHegIf0yD1UkhzRRIbUGoeOgJptCHVB+WZg5ehgs' +
+  'EcofKwKaAb7+cuzd9doICAx0FZEm+gEq+z//D/yJDtEJx/O73MHkifPK/BoLXwwuBt3p' +
+  '5eBq2h3YT/OR+MH/5xDGB7sHowyp9rrrL++06mnt/PpcALcI7RDSCz4GwwWaAXYNVhLw' +
+  'D20VYQsvCWUPxApJCVUH3P0jA54EIP0RBUYHVgtlD68KtQWI/9MB4f8Q/Fr4UvLz7nPq' +
+  'yOzV9AvzKfEB7azl/+ee6jbrSOw16mjpPepD7d3yT/hL/RIDBAXQAHcDIAZ1BVsPIhAZ' +
+  'CT4Ntwc2CJsQnhV+GlYcJR67GF0WaRK5CewGSQdSBboCfgWGBaQACP0e+8f3O/Y4+Yn1' +
+  '4e8l9Mf3lvns/eT75fbx9t359/lw+6L+XP+5AdsFSgZECK8LvQlVCWYJ1wetBD8AGALl' +
+  'AJUAVAbPBEkDpALfADn/Cv4c/+7+OP/jAAb/7vie+Xr7GvYa9g30rPBc9OL1wveo+3D+' +
+  '8/xG+Zn5tPsi/vX/xv4I/Oj5DPaL8mbxmfMM+80AXQbiCisNvhC8Dt4LGwwyDJkNlAxR' +
+  'CWYGswcHCn0KyA5cDsQKYgrZB+cFlATlAh4A3P5kAOsAOwLbA+ED8gLAAM/+h/vq+Lb5' +
+  'qPgY+GH5i/nE+SX6V/s9+gv69vl89nv33fhc+Zb6nvse/lEA4wMjBrQEugPc/4/8pvux' +
+  '+//9Kf9tAGcBXAFxAtgCuwMeBFQE6AQdA4gCGAJiADsAuwC7/53+a/4J/tv88fte+R74' +
+  'dPhd+HD5LPmf+If5VPsp/noASALRAbsB+wJ+Ak0CuQPiBAsFpwYTB5wFtgZ/DE4P8AuH' +
+  'B4kD3QKPBcAHhgaHBDAEngO6BBcFbwJ2/qD7rPtG/voBwQGU/pn9Lv3T/g==',
 
   set clicksound(enable) {
     if (!enable && this._audio)
@@ -384,7 +413,7 @@ const IMEManager = {
     this.IMEngines[imEngine] = {};
 
     var script = document.createElement('script');
-    script.src = sourceDir + imEngine + '/loader.js';
+    script.src = sourceDir + imEngine + '/' + imEngine + '.js';
     var self = this;
     var glue = {
       path: sourceDir + imEngine,
@@ -423,6 +452,9 @@ const IMEManager = {
 
     switch (evt.type) {
       case 'showime':
+        // cancel hideIME that imminently happen before showIME
+        clearTimeout(this.hideIMETimer);
+
         // TODO: gaia issue 346
         // Instead of reading the latest setting every time
         // when showime and relay on the callback,
@@ -435,21 +467,30 @@ const IMEManager = {
           }).bind(this)
         );
 
-        var request = navigator.mozSettings.get('keyboard.vibration');
-        request.addEventListener('success', (function onsuccess(evt) {
-          this.vibrate = (request.result.value === 'true');
-        }).bind(this));
+        // TODO: workaround gaia issue 374
+        setTimeout((function keyboardVibrateSettingRequest() {
+          var request = navigator.mozSettings.get('keyboard.vibration');
+          request.addEventListener('success', (function onsuccess(evt) {
+            this.vibrate = (request.result.value === 'true');
+          }).bind(this));
 
-        var request = navigator.mozSettings.get('keyboard.clicksound');
-        request.addEventListener('success', (function onsuccess(evt) {
-          this.clicksound = (request.result.value === 'true');
-        }).bind(this));
+          setTimeout((function keyboardClickSoundSettingRequest() {
+            var request = navigator.mozSettings.get('keyboard.clicksound');
+            request.addEventListener('success', (function onsuccess(evt) {
+              this.clicksound = (request.result.value === 'true');
+            }).bind(this));
+          }).bind(this), 0);
+
+        }).bind(this), 0);
 
         break;
 
       case 'hideime':
       case 'appclose':
-        this.hideIME(activeWindow);
+        this.hideIMETimer = setTimeout((function execHideIME() {
+          this.hideIME(activeWindow);
+        }).bind(this), 0);
+
         break;
 
       case 'mousedown':
@@ -474,7 +515,8 @@ const IMEManager = {
         var sendDelete = (function sendDelete(feedback) {
           if (feedback)
             this.triggerFeedback();
-          if (Keyboards[this.currentKeyboard].type == 'ime') {
+          if (Keyboards[this.currentKeyboard].type == 'ime' &&
+              !this.currentKeyboardMode) {
             this.currentEngine.click(keyCode);
             return;
           }
@@ -610,6 +652,7 @@ const IMEManager = {
               else
                 this.currentKeyboard = target.dataset.keyboard;
 
+              this.currentKeyboardMode = '';
               this.isUpperCase = false;
               this.updateLayout();
 
@@ -625,6 +668,7 @@ const IMEManager = {
             else
               this.currentKeyboard = keyboards[++index];
 
+            this.currentKeyboardMode = '';
             this.isUpperCase = false;
             this.updateLayout();
           break;
@@ -676,7 +720,8 @@ const IMEManager = {
           break;
 
           case KeyEvent.DOM_VK_RETURN:
-            if (Keyboards[this.currentKeyboard].type == 'ime') {
+            if (Keyboards[this.currentKeyboard].type == 'ime' &&
+                !this.currentKeyboardMode) {
               this.currentEngine.click(keyCode);
               break;
             }
@@ -685,7 +730,8 @@ const IMEManager = {
           break;
 
           default:
-            if (Keyboards[this.currentKeyboard].type == 'ime') {
+            if (Keyboards[this.currentKeyboard].type == 'ime' &&
+                !this.currentKeyboardMode) {
               this.currentEngine.click(keyCode);
               break;
             }
@@ -738,7 +784,7 @@ const IMEManager = {
     var buildKey = function buildKey(code, label, className, ratio, alt) {
       return '<span class="keyboard-key ' + className + '"' +
         ' data-keycode="' + code + '"' +
-        ' style="width:' + (size * ratio - 2) + 'px"' +
+        ' style="width:' + (size * ratio - 4) + 'px"' +
         ((alt) ? ' data-alt=' + alt : '') +
       '>' + label + '</span>';
     };
@@ -800,14 +846,16 @@ const IMEManager = {
 
           switch (this.currentType) {
             case 'url':
-              ratio -= 2;
-              content += buildKey(46, '.', '', 1);
-              content += buildKey(47, '/', '', 1);
+              var size = Math.floor(ratio / 3);
+              ratio -= size * 2;
+              content += buildKey(46, '.', '', size);
+              content += buildKey(47, '/', '', size);
               content += buildKey(this.DOT_COM, '.com', '', ratio);
             break;
             case 'email':
               ratio -= 2;
-              content += buildKey(KeyboardEvent.DOM_VK_SPACE, '⎵', '', ratio);
+              content += buildKey(
+                KeyboardEvent.DOM_VK_SPACE, key.value, 'spacekey', ratio);
               content += buildKey(64, '@', '', 1);
               content += buildKey(46, '.', '', 1);
             break;
@@ -828,7 +876,8 @@ const IMEManager = {
                 content += buildKey(44, ',', '', 1);
               }
 
-              content += buildKey(KeyboardEvent.DOM_VK_SPACE, '⎵', '', ratio);
+              content += buildKey(
+                KeyboardEvent.DOM_VK_SPACE, key.value, 'spacekey', ratio);
 
               if (layout.textLayoutOverwrite['.']) {
                 content += buildKey(
@@ -899,11 +948,13 @@ const IMEManager = {
     var ime = this.ime;
     var targetWindow = this.targetWindow;
 
-    if (ime.offsetHeight !== 0) {
-      targetWindow.classList.add('noTransition');
-      setTimeout(function remoteNoTransition() {
-        targetWindow.classList.remove('noTransition');
-      }, 0);
+    if (ime.dataset.hidden) {
+      targetWindow.classList.add('keyboardTransition');
+      var showIMEafterTransition = function showIMEtransitionend(evt) {
+        targetWindow.classList.remove('keyboardTransition');
+        ime.removeEventListener('transitionend', showIMEafterTransition);
+      };
+      ime.addEventListener('transitionend', showIMEafterTransition);
     }
 
     // Need these to correctly measure scrollHeight
@@ -918,6 +969,17 @@ const IMEManager = {
   },
 
   showIME: function km_showIME(targetWindow, type) {
+
+    if (targetWindow.classList.contains('keyboardTransition')) {
+      // keyboard is transitioning, run showIME after transition
+      var deferShowIMEafterTransition = (function deferShowIME(evt) {
+        targetWindow.removeEventListener('transitionend', deferShowIMEafterTransition);
+        this.showIME(targetWindow, type);
+      }).bind(this);
+      targetWindow.addEventListener('transitionend', deferShowIMEafterTransition);
+      return;
+    }
+
     switch (type) {
       // basic types
       case 'url':
@@ -941,6 +1003,7 @@ const IMEManager = {
     }
 
     if (this.ime.dataset.hidden) {
+      // keyboard is in the quiet hidden state
       this.targetWindow = targetWindow;
       var oldHeight = targetWindow.style.height;
       targetWindow.dataset.cssHeight = oldHeight;
@@ -954,9 +1017,14 @@ const IMEManager = {
   },
 
   hideIME: function km_hideIME(targetWindow) {
+
+    if (this.ime.dataset.hidden)
+      return;
+
     var ime = this.ime;
-    var imeHide = (function(evt) {
-      targetWindow.removeEventListener('transitionend', imeHide);
+    var hideIMEafterTransition = (function hideIMEtransitionend(evt) {
+      targetWindow.classList.remove('keyboardTransition');
+      ime.removeEventListener('transitionend', hideIMEafterTransition);
 
       // hideIME is canceled by the showIME that fires after
       if (ime.style.height !== '0px')
@@ -973,10 +1041,11 @@ const IMEManager = {
 
     }).bind(this);
 
-    targetWindow.addEventListener('transitionend', imeHide);
-
+    ime.addEventListener('transitionend', hideIMEafterTransition);
+    targetWindow.classList.add('keyboardTransition');
     targetWindow.style.height = targetWindow.dataset.cssHeight;
     ime.style.height = '0px';
+
   },
 
   showCandidates: function km_showCandidates(candidates) {

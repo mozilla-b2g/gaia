@@ -201,6 +201,10 @@ iframe.appWindow {
   display: none;
 }
 
+iframe.appWindow.keyboardTransition {
+  -moz-transition: height 0.2s ease;
+}
+
 iframe.appWindow.active {
   display: block;
 }
@@ -284,19 +288,6 @@ div.windowSprite.active {
 
 .battery > #fuel.charging {
   background-image: -moz-linear-gradient(top, #b9fd00, #8fc400);
-  -moz-animation-duration: 3s;
-  -moz-animation-name: batteryCharging;
-  -moz-animation-iteration-count: infinite;
-  -moz-animation-timing-function: linear;
-}
-
-@-moz-keyframes batteryCharging {
-  from {
-    width: 0;
-  }
-  to {
-    width: 19px;
-  }
 }
 .battery > #charging {
   height: 8px;
@@ -378,17 +369,21 @@ div.windowSprite.active {
 
 #keyboard {
   position: absolute;
+  font-family: 'Open Sans', sans-serif;
   z-index: 9997;
   bottom: 0;
   height: auto;
   overflow: visible;
-  background-color: #36373b;
+  background-color: #f0f1f2;
   width: -moz-calc(100%);
   -moz-transition: height 0.2s ease;
+  border-top: 2px solid #a3a3a3;
+  -moz-box-shadow: inset 0 0 0 1px #fff;
 }
 
 #keyboard[data-hidden] {
   height: 0;
+  bottom: -2px;
 }
 
 #keyboard-candidate-panel {
@@ -464,38 +459,63 @@ div.windowSprite.active {
   background: -moz-linear-gradient(bottom, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
 }
 
+.keyboard-row {
+  margin: 10px 0;
+}
+
 .keyboard-key {
   display: inline-block;
   vertical-align: middle;
   overflow: hidden;
   text-align: center;
-  color: white;
-  font-size: 32px;
+  color: #666;
+  font-size: 26px;
   height: 64px;
-  line-height: 64px;
+  line-height: 60px;
   min-width: 0 !important;
-  margin-bottom: 2px;
-  margin-top: 2px;
-  margin-left: 1px;
-  margin-right: 1px;
+  margin: 0 2px;
   -moz-box-sizing: border-box;
   padding: 0;
-  border: 1px solid black;
+  border: 1px solid #d5d5d5;
+  -moz-box-shadow: inset 0 0 2px 2px #fff;
   border-radius: 5px;
-  background: -moz-linear-gradient(top, rgb(94,97,102) 10%, rgb(64,64,72) 90%);
+  background: -moz-linear-gradient(top, #fff 10%, #fff 70%, #f6f6f6 100%);
+}
+
+.keyboard-key.spacekey {
+  color: #9b9b9b;
+  font-size: 18px;
+}
+
+@font-face {
+  font-family: 'Keyboard Symbols';
+  src: url('fonts/Keyboard-Symbols.woff');
+}
+
+.keyboard-key[data-keycode="-3"], /* IMEManager.SWITCH_KEYBOARD */
+.keyboard-key[data-keycode="8"], /* KeyEvent.DOM_VK_BACK_SPACE */
+.keyboard-key[data-keycode="20"] { /* KeyEvent.DOM_VK_CAPS_LOCK */
+  font-family: 'Keyboard Symbols', sans-serif;
+  font-size: 28px;
 }
 
 .keyboard-key[data-active] {
-  color: #ccc;
-  background: -moz-linear-gradient(bottom, rgb(94,97,102) 10%, rgb(64,64,72) 90%);
+  color: #000;
+  background: -moz-linear-gradient(top, #f6f6f6 10%, #f6f6f6 70%, #fff 100%);
 }
 
 .keyboard-key-special {
-  background: -moz-linear-gradient(top, #464766 10%, #363748 90%);
+  color: #fff;
+  font-size: 18px;
+  text-shadow: 0 -1px #848d96, 0 1px #bac2cb;
+  background: -moz-linear-gradient(top, #a3aeb9 10%, #a3aeb9 70%, #929ca6 100%);
+  -moz-box-shadow: none;
+  border: 1px solid #8a949d;
 }
 
 .keyboard-key-special[data-active] {
-  background: -moz-linear-gradient(bottom, #464766 10%, #363748 90%);
+  color: #ccc;
+  background: -moz-linear-gradient(top, #929ca6 10%, #929ca6 70%, #a3aeb9 100%);
 }
 
 .keyboard-key-special.toggle {
@@ -510,18 +530,18 @@ div.windowSprite.active {
   width: 8px;
   height: 8px;
   border-radius: 4px;
-  background-color: #333;
+  background-color: #999;
 }
 .keyboard-key-special[data-enabled] {
   text-shadow: 0 0 5px #fff;
 }
 .keyboard-key-special[data-enabled]::before {
   background-color: #0c0;
-  box-shadow: 0 0 5px #fff;
 }
 
 #keyboard-key-highlight {
   position: absolute;
+  font-family: 'Keyboard Symbols', 'Open Sans', sans-serif;
   pointer-events: none;
   top: 0; left: 0;
   color: #333;

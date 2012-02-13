@@ -20,35 +20,37 @@
 }
 
 #browser-toolbar {
-  background-color: #666;
   display: -moz-box;
   -moz-box-orient: horizontal;
-  width: 100%;
-  height: 60px;
+  height: 70px;
+  background-color: #fff;
+  background-image: -moz-linear-gradient(#fff, #eaeae4);
   margin: 0;
+  padding: 0;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  border-bottom: solid 3px #9b9b9b;
 }
 
 #browser-address {
-  background-color: #333;
-  border-radius: 10px;
   -moz-box-flex: 1;
   display: -moz-box;
   -moz-box-orient: horizontal;
-  height: 40px;
-  margin: 10px;
   padding: 0;
+  margin: 0;
 }
 
 #browser-url {
   -moz-box-flex: 1;
-  border: none;
-  border-radius: 10px;
-  height: 32px;
-  padding: 4px 10px 4px 42px;
-  font-size: 24px;
+  border: solid 3px #7d8389;
+  border-radius: 22px;
+  height: 44px;
+  margin: 13px 2px;
+  padding: 0 0 0 40px;
+  font-size: 20px;
   background-image: url('images/favicon.png');
   background-repeat: no-repeat;
-  background-position: 4px 4px;
+  background-position: 14px 12px;
 }
 
 #browser-url.loading {
@@ -56,17 +58,37 @@
 }
 
 .browser-button {
+  background-color: transparent;
+  -moz-apperance: none;
+  border: none;
   display: block;
-  margin: 10px 0;
-  width: 40px;
-  height: 40px;
+  margin: 13px 0;
+  width: 44px;
+  height: 44px;
 }
 
 #browser-back-button {
-  -moz-apperance: none;
-  border: none;
-  background-color: transparent;
   background-image: url("images/back.png");
+}
+
+#browser-menu-button {
+  background-image: url("images/menu.png");
+  margin: 13px 4px;
+}
+
+#browser-tab-button {
+  display: block;
+  height: 44px;
+  width: 44px;
+  padding: 0;
+  border-radius: 22px;
+  border: solid 3px #c9cfd5;
+  margin: 13px 2px 13px 10px;
+  font-weight: bold;
+  font-size: 29px;
+  text-align: center;
+  font-family: Helvetica, Sans-serif;
+  color: #555;
 }
 
 #browser-back-button[disabled] {
@@ -74,7 +96,7 @@
 }
 
 #browser-go-button {
-  margin: 0 4px;
+  margin: 0 2px;
 }
 
 #browser-content {

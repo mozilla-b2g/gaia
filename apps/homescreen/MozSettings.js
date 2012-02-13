@@ -126,12 +126,12 @@
           for (var setting in settings) {
             var request = objectStore.put(settings[setting]);
 
-            request.onsuccess = function onsuccess(e) {
-              console.log('Success to add a setting to: ' + store);
+            request.onsuccess = function onsuccess(ev) {
+              console.log('Success to add setting ' + ev.target.result + ' to: ' + store);
             }
 
-            request.onerror = function onerror(e) {
-              console.log('Failed to add a setting to: ' + store);
+            request.onerror = function onerror(ev) {
+              console.log('Failed to add setting  ' + ev.target.result + ' to: ' + store);
             }
           }
         });

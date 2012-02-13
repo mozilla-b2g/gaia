@@ -3,331 +3,270 @@
 
 'use strict';
 
-if (!window['Gaia'])
-  var Gaia = {};
-
-function getApplicationManager() {
-  return Gaia.WindowManager;
-}
-
-(function() {
-  var _lastWindowId = 0;
-  var _statusBarHeight = null;
-
-  Gaia.Window = function(app) {
-    var documentElement = document.documentElement;
-    var id = this._id = ++_lastWindowId;
-
-    if (_statusBarHeight === null)
-      _statusBarHeight = document.getElementById('statusbar').offsetHeight;
-
-    var element = this.element = document.createElement('iframe');
-    element.id = 'window_' + id;
-    element.className = 'appWindow';
-    element.style.width = documentElement.clientWidth + 'px';
-    element.style.height = documentElement.clientHeight - _statusBarHeight + 'px';
-
-    this.app = app;
-
-    Gaia.WindowManager.add(this);
-
-    var taskElement = this.taskElement = Gaia.TaskManager.add(app, id);
-  };
-
-  Gaia.Window.prototype = {
-    _isActive: false,
-    setActive: function _Gaia_Window_setActive(isActive) {
-      if (isActive === this._isActive)
-        return;
-      
-      this._isActive = isActive;
-      
-      var element = this.element;
-      var classList = element.classList;
-      
-      if (isActive)
-        classList.add('active');
-      else
-        classList.remove('active');
-    },
-    focus: function _Gaia_Window_focus(onCompleteCallback) {
-      if (this._isActive)
-        return;
-      
-      var self = this;
-      var element = this.element;
-      var classList = element.classList;
-      var windowSprite = new Gaia.WindowSprite(this);
-      
-      windowSprite.add();
-      self.setActive(true);
-      
-      windowSprite.element.addEventListener('transitionend', function _focus_transitionend_handler(evt) {
-        windowSprite.remove();
-        
-        element.focus();
-        element.contentWindow.postMessage({
-          message: 'visibilitychange',
-          url: self.app.url,
-          hidden: false
-        }, '*');
-        
-        Gaia.WindowManager.setActive(true);
-        
-        if (onCompleteCallback)
-          onCompleteCallback();
-      });
-      
-      document.body.offsetHeight;
-      windowSprite.setActive(true);
-    },
-    blur: function _Gaia_Window_blur(onCompleteCallback) {
-      if (!this._isActive)
-        return;
-      
-      var self = this;
-      var element = this.element;
-      var classList = element.classList;
-      var windowSprite = new Gaia.WindowSprite(this);
-      
-      windowSprite.setActive(true);
-      windowSprite.add();
-      
-      Gaia.WindowManager.setActive(false);
-      
-      windowSprite.element.addEventListener('transitionend', function _blur_transitionend_handler(evt) {
-        self.setActive(false);
-        windowSprite.remove();
-        
-        element.blur();
-        element.contentWindow.postMessage({
-          message: 'visibilitychange',
-          url: self.app.url,
-          hidden: true
-        }, '*');
-        
-        window.top.focus();
-        
-        if (onCompleteCallback)
-          onCompleteCallback();
-      });
-      
-      document.body.offsetHeight;
-      windowSprite.setActive(false);
-    },
-    _id: 0,
-    get id() {
-      return this._id;
-    },
-    _app: null,
-    get app() {
-      return this._app;
-    },
-    set app(value) {
-      this._app = value;
-      this.element.src = value.url;
-    },
-    element: null,
-    taskElement: null
-  };
-})();
-
-Gaia.WindowSprite = function(win) {
-  this.win = win;
-  
+function WindowSprite(win) {
   var element = this.element = document.createElement('div');
   element.className = 'windowSprite';
   element.style.width = win.element.style.width;
   element.style.height = win.element.style.height;
   element.style.background = '-moz-element(#window_' + win.id + ') no-repeat';
-};
+}
 
-Gaia.WindowSprite.prototype = {
-  element: null,
-  win: null,
-  _isActive: false,
-  setActive: function _Gaia_WindowSprite_setActive(isActive) {
-    if (isActive === this._isActive)
+WindowSprite.prototype = {
+  setActive: function ws_setActive(active) {
+    var classes = this.element.classList;
+    if (classes.contains('active') === active)
       return;
-    
-    this._isActive = isActive;
-    
-    var element = this.element;
-    var classList = element.classList;
-    
-    if (isActive)
-      classList.add('active');
-    else
-      classList.remove('active');
+
+    classes.toggle('active');
   },
-  add: function _Gaia_WindowSprite_add() {
+
+  add: function ws_add() {
     document.body.appendChild(this.element);
   },
-  remove: function _Gaia_WindowSprite_remove() {
+
+  remove: function ws_remove() {
     document.body.removeChild(this.element);
   }
 };
 
-Gaia.WindowManager = {
-  init: function() {
+var _statusBarHeight = null;
+
+function Window(application, id) {
+  var element = this.element = document.createElement('iframe');
+  element.id = 'window_' + id;
+  element.className = 'appWindow';
+
+  var offsetHeight = document.getElementById('statusbar').offsetHeight;
+  var documentElement = document.documentElement;
+  element.style.width = documentElement.clientWidth + 'px';
+  element.style.height = documentElement.clientHeight - offsetHeight + 'px';
+  element.src = application.url;
+
+  this.application = application;
+  this.id = id;
+}
+
+Window.prototype = {
+  element: null,
+
+  _active: false,
+  setActive: function window_setActive(active) {
+    var classes = this.element.classList;
+    if (this._active === active)
+      return;
+
+    classes.toggle('active');
+    this._active = active;
+  },
+
+  focus: function window_focus(callback) {
+    if (this._active)
+      return;
+
+    var sprite = new WindowSprite(this);
+    sprite.add();
+    this.setActive(true);
+
+    var focus = function(evt) {
+      sprite.remove();
+
+      var element = this.element;
+      element.focus();
+      element.contentWindow.postMessage({
+        message: 'visibilitychange',
+        url: this.application.url,
+        hidden: false
+      }, '*');
+
+      if (callback)
+        callback();
+    };
+    sprite.element.addEventListener('transitionend', focus.bind(this));
+
+    document.body.offsetHeight;
+    sprite.setActive(true);
+  },
+
+  blur: function window_blur(callback) {
+    if (!this._active)
+      return;
+
+    var sprite = new WindowSprite(this);
+    sprite.setActive(true);
+    sprite.add();
+
+    var blur = function(evt) {
+      this.setActive(false);
+      sprite.remove();
+
+      var element = this.element;
+      element.blur();
+      element.contentWindow.postMessage({
+        message: 'visibilitychange',
+        url: this.application.url,
+        hidden: true
+      }, '*');
+
+      window.top.focus();
+
+      if (callback)
+        callback();
+    };
+    sprite.element.addEventListener('transitionend', blur.bind(this));
+
+    document.body.offsetHeight;
+    sprite.setActive(false);
+  }
+};
+
+function getApplicationManager() {
+  return WindowManager;
+}
+
+var WindowManager = {
+  init: function wm_init() {
     window.addEventListener('home', this);
     window.addEventListener('message', this);
   },
-  handleEvent: function(evt) {
+
+  handleEvent: function wm_handleEvent(evt) {
     switch (evt.type) {
       case 'message':
-        if (evt.data === 'appclose')
+        if (evt.data == 'appclose')
           this.closeForegroundWindow();
         break;
       case 'home':
         this.closeForegroundWindow();
         break;
-      default:
-        break;
     }
   },
-  _isActive: false,
+
 
   // Sets the WindowManager active/inactive. The WindowManager must be active
   // for the foreground Window to be visible. When inactive, the Windows can
   // still be used to get images used for the TaskManager and the minimize and
   // maximize animations.
-  setActive: function _Gaia_WindowManager_setActive(isActive) {
-    if (isActive === this._isActive)
+  setActive: function wm_setActive(active) {
+    var classes = this.container.classList;
+    if (classes.contains('active') === active)
       return;
-  
-    this._isActive = isActive;
-  
-    // Set all windows to be inactive.
-    var windows = this.windows;
-    for (var i = 0, length = windows.length; i < length; i++)
-      if (windows[i] !== this._foregroundWindow)
-        windows[i].setActive(false);
-  
-  
-    var container = this.container;
-    var classList = container.classList;
-  
-    if (isActive)
-      classList.add('active');
-    else
-      classList.remove('active');
+    classes.toggle('active');
   },
+
   get container() {
     delete this.container;
     return this.container = document.getElementById('windows');
   },
+
   windows: [],
-  getWindowByApp: function _Gaia_WindowManager_getWindowByApp(app) {
+  getWindowByApp: function wm_getWindowByApp(app) {
     var windows = this.windows;
-    for (var i = 0, length = windows.length; i < length; i++)
-      if (windows[i].app === app)
+    for (var i = 0, length = windows.length; i < length; i++) {
+      if (windows[i].application === app)
         return windows[i];
-  
+    }
+
     return null;
   },
-  add: function _Gaia_WindowManager_add(win) {
+
+  add: function wm_add(win) {
     this.windows.push(win);
     this.container.appendChild(win.element);
   },
-  remove: function _Gaia_WindowManager_remove(win) {
+
+  remove: function wm_remove(win) {
     var windows = this.windows;
     for (var i = 0, length = windows.length; i < length; i++) {
-      if (windows[i] === win) {
-        this.container.removeChild(win.element);
-        windows.splice(i, 1);
-        return;
-      }
+      if (windows[i] != win)
+        continue;
+
+      this.container.removeChild(win.element);
+      windows.splice(i, 1);
+      return;
     }
   },
+
   _foregroundWindow: null,
-  getForegroundWindow: function _Gaia_WindowManager_getForegroundWindow() {
+  getForegroundWindow: function wm_getForegroundWindow() {
     return this._foregroundWindow;
   },
-  setForegroundWindow: function _Gaia_WindowManager_setForegroundWindow(win, onCompleteCallback) {
-    // If the specified Window is already the foreground Window, do nothing.
-    if (this._foregroundWindow === win)
+
+  setForegroundWindow: function wm_setForegroundWindow(newWindow, callback) {
+    var oldWindow = this._foregroundWindow;
+    if (oldWindow === newWindow)
       return;
-  
-    // If a valid Window has been specified, set the WindowManager to be
-    // active and focus the new foreground Window.
-    if (win) {
-      win.focus(function _focus_callback() {
-        if (onCompleteCallback)
-          onCompleteCallback();
+    this._foregroundWindow = newWindow;
+
+    if (newWindow) {
+      newWindow.focus(function() {
+        WindowManager.setActive(true);
+        if (callback)
+          callback();
       });
+      return;
     }
-  
-    // If no Window was specified, blur the previous foreground Window and set
-    // the WindowManager to be inactive once the blurring is complete.
-    else {
-      this._foregroundWindow.blur(function _blur_callback() {
-        if (onCompleteCallback)
-          onCompleteCallback();
-      });
-    }
-  
-    this._foregroundWindow = win;
+
+    this.setActive(false);
+    oldWindow.blur(callback);
   },
-  closeForegroundWindow: function _Gaia_WindowManager_closeForegroundWindow(onCompleteCallback) {
+
+  closeForegroundWindow: function wm_closeForegroundWindow(callback) {
     var foregroundWindow = this._foregroundWindow;
-    var app = foregroundWindow.app;
-
-    if (!foregroundWindow || !app)
+    if (!foregroundWindow)
       return;
 
-    var win = this.getWindowByApp(app);
-    this.setForegroundWindow(null, function() {
-      var appcloseEvent = document.createEvent('CustomEvent');
-      appcloseEvent.initCustomEvent('appclose', true, true, app.name);
-      win.element.dispatchEvent(appcloseEvent);
-      
-      if (onCompleteCallback)
-        onCompleteCallback();
-    });
+    this.setForegroundWindow(null, (function() {
+      this._fireEvent(foregroundWindow.element, 'appclose');
+      if (callback)
+        callback();
+    }).bind(this));
   },
-  launch: function _Gaia_WindowManager_launch(url) {
-    var app = Gaia.AppManager.getInstalledAppForURL(url);
-    var win = this.getWindowByApp(app);
 
-    // App is already running, set focus to the existing instance.
-    if (win) {
-      this.setForegroundWindow(win);
-      Gaia.TaskManager.sendToFront(win.id);
+  _lastWindowId: 0,
+  launch: function wm_launch(url) {
+    var application = Gaia.AppManager.getInstalledAppForURL(url);
+    var name = application.name;
+
+    var applicationWindow = this.getWindowByApp(application);
+    if (applicationWindow) {
+      Gaia.AppManager.foregroundWindow = applicationWindow.element;
+      Gaia.TaskManager.sendToFront(applicationWindow.id);
     } else {
-      win = new Gaia.Window(app);
+      applicationWindow = new Window(application, ++this._lastWindowId);
+      this.add(applicationWindow);
 
-      // To be compatible with the upstream webapi.js file, foregroundWindow
-      // should be set on the AppManager...
-      Gaia.AppManager.foregroundWindow = win.element;
+      // To be compatible with the upstream webapi.js file,
+      // foregroundWindow should be set on the AppManager...
+      Gaia.AppManager.foregroundWindow = applicationWindow.element;
 
-      var appWillOpenEvent = document.createEvent('CustomEvent');
-      appWillOpenEvent.initCustomEvent('appwillopen', true, true, app.name);
-      win.element.dispatchEvent(appWillOpenEvent);
-
-      this.setForegroundWindow(win, function() {
-        var appopenEvent = document.createEvent('CustomEvent');
-        appopenEvent.initCustomEvent('appopen', true, true, app.name);
-        window.dispatchEvent(appopenEvent);
-      });
+      this._fireEvent(applicationWindow.element, 'appwillopen', name);
+      Gaia.TaskManager.add(application, applicationWindow.id);
     }
 
-    return win;
+    this.setForegroundWindow(applicationWindow, (function() {
+      this._fireEvent(applicationWindow.element, 'appopen', name);
+    }).bind(this));
+
+    return applicationWindow;
   },
-  kill: function _Gaia_WindowManager_kill(url) {
-    var app = Gaia.AppManager.getInstalledAppForURL(url);
-    var win = this.getWindowByApp(app);
-  
-    if (win)
-      Gaia.WindowManager.remove(win);
+
+  kill: function wm_kill(url) {
+    var application = Gaia.AppManager.getInstalledAppForURL(url);
+    var applicationWindow = this.getWindowByApp(application);
+
+    if (applicationWindow)
+      this.remove(applicationWindow);
+  },
+
+  _fireEvent: function wm_fireEvent(target, type, details) {
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent(type, true, true, details || null);
+    target.dispatchEvent(evt);
   }
 };
 
-(function() {
-  var onLoadHandler = function(evt) {
-    window.removeEventListener('load', onLoadHandler);
-    Gaia.WindowManager.init();
-  };
-  
-  window.addEventListener('load', onLoadHandler);
-})();
+window.addEventListener('load', function wm_loadHandler(evt) {
+  window.removeEventListener('load', wm_loadHandler);
+  WindowManager.init();
+});
+
