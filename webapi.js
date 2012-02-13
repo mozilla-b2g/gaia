@@ -1347,6 +1347,7 @@
           continue;
         newListeners.push(listeners[n]);
       }
+      listeners = newListeners;
     }
     originalRemoveEventListener.call(this, type, listener);
   }
