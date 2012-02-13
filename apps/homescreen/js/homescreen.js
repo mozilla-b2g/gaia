@@ -191,6 +191,57 @@ Icon.prototype = {
   }
 };
 
+var Mouse2Touch = {
+  'mousedown': 'touchstart',
+  'mousemove': 'touchmove',
+  'mouseup': 'touchend'
+};
+
+var Touch2Mouse = {
+  'touchstart': 'mousedown',
+  'touchmove': 'mousemove',
+  'touchend': 'mouseup'
+};
+
+var ForceOnWindow = {
+  'touchmove': true,
+  'touchend': true,
+  'sleep': true
+}
+
+function AddEventHandlers(target, listener, eventNames) {
+  for (var n = 0; n < eventNames.length; ++n) {
+    var name = eventNames[n];
+    target = ForceOnWindow[name] ? window : target;
+    name = Touch2Mouse[name] || name;
+    target.addEventListener(name, {
+      handleEvent: function(e) {
+        if (Mouse2Touch[e.type]) {
+          var original = e;
+          e = {
+            type: Mouse2Touch[e.type],
+            touches: [original],
+            preventDefault: function() {
+              original.preventDefault();
+            }
+          };
+          e.changedTouches = e.touches;
+        }
+        return listener.handleEvent(e);
+      }
+    }, true);
+  }
+}
+
+function RemoveEventHandlers(target, listener, eventNames) {
+  for (var n = 0; n < eventNames.length; ++n) {
+    var name = eventNames[n];
+    target = ForceOnWindow[name] ? window : target;
+    name = Touch2Mouse[name] || name;
+    target.removeEventListener(name, listener);
+  }
+}
+
 function IconGrid(canvas, iconWidth, iconHeight, border) {
   this.canvas = canvas;
 
@@ -206,14 +257,8 @@ function IconGrid(canvas, iconWidth, iconHeight, border) {
   this.reflow(canvas.width, canvas.height, 0);
 
   // install event handlers
-  var events = [
-    'touchstart', 'touchmove', 'touchend',
-    'contextmenu'
-  ];
-  events.forEach((function(evt) {
-    canvas.addEventListener(evt, this, true);
-  }).bind(this));
-  window.addEventListener('resize', this, true);
+  AddEventHandlers(canvas, this, ['touchstart', 'touchmove', 'touchend', 'contextmenu']);
+  AddEventHandlers(window, this, ['resize']);
 }
 
 IconGrid.prototype = {
@@ -299,10 +344,10 @@ IconGrid.prototype = {
     switch (e.type) {
     case 'touchstart':
       this.canvas.setCapture(false);
-      physics.onTouchStart(e.touches ? e.touches[0] : e);
+      physics.onTouchStart(e.touches[0]);
       break;
     case 'touchmove':
-      physics.onTouchMove(e.touches ? e.touches[0] : e);
+      physics.onTouchMove(e.touches[0]);
       break;
     case 'contextmenu':
       var sourceURL = window.document.URL;
@@ -312,7 +357,7 @@ IconGrid.prototype = {
       break;
     case 'touchend':
       document.releaseCapture();
-      physics.onTouchEnd(e.changedTouches ? e.changedTouches[0] : e);
+      physics.onTouchEnd(e.changedTouches[0]);
       break;
     case 'resize':
       var canvas = this.canvas;
@@ -383,18 +428,11 @@ NotificationScreen.prototype = {
     style.MozTransform = 'translateY(100%)';
     this.locked = true;
   },
-  events: [
-    'touchstart', 'touchmove', 'touchend'
-  ],
   attachEvents: function ns_attachEvents(view) {
-    this.events.forEach((function(evt) {
-      window.addEventListener(evt, this, true);
-    }).bind(this));
+    AddEventHandlers(window, this, ['touchstart', 'touchmove', 'touchend']);
   },
   detachEvents: function ns_detachEvents() {
-    this.events.forEach((function(evt) {
-      window.removeEventListener(evt, this, true);
-    }).bind(this));
+    RemoveEventHandlers(window, this, ['touchstart', 'touchmove', 'touchend']);
   },
   handleEvent: function(evt) {
     var target = evt.target;
@@ -406,13 +444,13 @@ NotificationScreen.prototype = {
       this.active = true;
 
       target.setCapture(this);
-      this.onTouchStart(evt.touches ? evt.touches[0] : evt);
+      this.onTouchStart(evt.touches[0]);
       break;
     case 'touchmove':
       if (!this.active)
         return;
 
-      this.onTouchMove(evt.touches ? evt.touches[0] : evt);
+      this.onTouchMove(evt.touches[0]);
       break;
     case 'touchend':
       if (!this.active)
@@ -420,7 +458,7 @@ NotificationScreen.prototype = {
       this.active = false;
 
       document.releaseCapture();
-      this.onTouchEnd(evt.changedTouches ? evt.changedTouches[0] : evt);
+      this.onTouchEnd(evt.changedTouches[0]);
       break;
     default:
       return;
@@ -433,14 +471,8 @@ NotificationScreen.prototype = {
 function LockScreen(overlay) {
   this.overlay = overlay;
 
-  var events = [
-    'touchstart', 'touchmove', 'touchend'
-  ];
-  events.forEach((function(evt) {
-    overlay.addEventListener(evt, this, true);
-  }).bind(this));
+  AddEventHandlers(overlay, this, ['touchstart', 'touchmove', 'touchend', 'sleep']);
 
-  window.addEventListener('sleep', this);
   this.update(function fireHomescreenReady() {
     window.parent.postMessage('homescreenready', '*');
   });
@@ -521,14 +553,14 @@ LockScreen.prototype = {
 
     switch (e.type) {
     case 'touchstart':
-      this.onTouchStart(e.touches ? e.touches[0] : e);
+      this.onTouchStart(e.touches[0]);
       this.overlay.setCapture(false);
       break;
     case 'touchmove':
-      this.onTouchMove(e.touches ? e.touches[0] : e);
+      this.onTouchMove(e.touches[0]);
       break;
     case 'touchend':
-      this.onTouchEnd(e.changedTouches ? e.changedTouches[0] : e);
+      this.onTouchEnd(e.changedTouches[0]);
       document.releaseCapture();
       break;
     case 'sleep':
