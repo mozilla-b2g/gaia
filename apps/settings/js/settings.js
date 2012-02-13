@@ -9,7 +9,10 @@ if (!window['Gaia'])
 Gaia.SettingsApp = {
   init: function settings_init() {
     var checkboxes = document.querySelectorAll('input[type="checkbox"]');
-    
+
+    var settings = navigator.mozSettings;
+    if (!settings)
+      return;
     for (var i = 0; i < checkboxes.length; i++) {
       (function(checkbox) {
         var key = checkbox.name;
@@ -33,24 +36,23 @@ Gaia.SettingsApp = {
   },
   handleEvent: function(evt) {
     switch(evt.type) {
-      case 'change':
-        var input = evt.target;
-        if (!input)
-          return;
+    case 'change':
+      var input = evt.target;
+      if (!input)
+        return;
         
-        var key = input.name;
-        if (!key)
-          return;
+      var key = input.name;
+      if (!key)
+        return;
         
-        var value;
-        
-        if (input.type === 'checkbox')
-          value = input.checked;
-        
-        navigator.mozSettings.set(key, value);
-        break;
-      default:
-        break;
+      var value;
+      if (input.type === 'checkbox')
+        value = input.checked;
+
+      var settings = navigator.mozSettings;
+      if (settings)
+        settings.set(key, value);
+      break;
     }
   }
 };
