@@ -473,6 +473,9 @@ function LockScreen(overlay) {
 
   AddEventHandlers(overlay, this, ['touchstart', 'touchmove', 'touchend', 'sleep']);
 
+  var background = document.getElementById('lockscreenContainerBackground');
+  background.style.filter = "url(#gauss)";
+
   this.update(function fireHomescreenReady() {
     window.parent.postMessage('homescreenready', '*');
   });
@@ -725,4 +728,3 @@ function updateBattery() {
   battery.addEventListener('levelchange', updateBattery);
   battery.addEventListener('statuschange', updateBattery);
 }
-
