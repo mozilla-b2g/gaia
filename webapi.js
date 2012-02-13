@@ -182,3 +182,60 @@
     }
   };
 })(this);
+
+// mozSettings (bug 678695)
+(function (window) {
+  var navigator = window.navigator;
+  if (window.mozSettings)
+    return;
+
+  var prefix = "settings:";
+
+  var immediates = [];
+  var magic = "moz-immediate";
+
+  window.addEventListener("message", function(event) {
+    if (event.source === window && event.data === magic) {
+      event.stopPropagation();
+      while (immediates.length > 0) {
+        var fn = immediates.shift();
+        fn();
+      }
+    }
+  }, true);
+
+  function setImmediate(fn) {
+    if (immediates.length === 0)
+      window.postMessage(magic, "*");
+    immediates.push(fn);
+  }
+
+  navigator.mozSettings = {
+    get: function(key) {
+      var onsuccess = [];
+      var request = {
+        addEventListener: function(name, fn) {
+          if (name === "success")
+            onsuccess.push(fn);
+        },
+        set onsuccess(fn) {
+          onsuccess.push(fn);
+        },
+      };
+      setImmediate(function() {
+        request.result = {
+          key: key,
+          value: localStorage.getItem(prefix + key)
+        };
+        while (onsuccess.length > 0) {
+          var fn = onsuccess.shift();
+          fn();
+        }
+      });
+      return request;
+    },
+    set: function(key, value) {
+      localStorage.setItem(prefix + key, value);
+    }
+  };
+})(this);

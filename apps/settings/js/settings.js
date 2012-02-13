@@ -10,9 +10,7 @@ Gaia.SettingsApp = {
   init: function settings_init() {
     var checkboxes = document.querySelectorAll('input[type="checkbox"]');
 
-    var settings = navigator.mozSettings;
-    if (!settings)
-      return;
+    var settings = window.navigator.mozSettings;
     for (var i = 0; i < checkboxes.length; i++) {
       (function(checkbox) {
         var key = checkbox.name;
@@ -20,12 +18,11 @@ Gaia.SettingsApp = {
         if (!key)
           return;
 
-        var request = navigator.mozSettings.get(key);
+        var request = settings.get(key);
         request.onsuccess = function() {
           var result = request.result;
-          
           if (!result) {
-            navigator.mozSettings.set(key, false);
+            settings.set(key, false);
             return;
           }
           
@@ -49,9 +46,7 @@ Gaia.SettingsApp = {
       if (input.type === 'checkbox')
         value = input.checked;
 
-      var settings = navigator.mozSettings;
-      if (settings)
-        settings.set(key, value);
+      window.navigator.mozSettings.set(key, value);
       break;
     }
   }
