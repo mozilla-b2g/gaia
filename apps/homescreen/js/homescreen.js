@@ -293,11 +293,11 @@ IconGrid.prototype = {
         iconDiv = document.createElement('div');
         iconDiv.id = n;
         iconDiv.className = 'icon';
-        iconDiv.onclick = onclick;
         var style = iconDiv.style;
         style.width = iconWidth + '%';
         style.height = iconHeight + '%';
         var img = new Image();
+        img.onclick = onclick;
         var centerDiv = document.createElement('div');
         centerDiv.className = 'img';
         centerDiv.appendChild(img);
@@ -316,10 +316,9 @@ IconGrid.prototype = {
           pageDivs[pageOfIcon].appendChild(iconDiv);
         }
       }
-      // make sure icon has the right action associated
-      iconDiv.action = icon.action;
       // make sure icon has right image and label
       var img = iconDiv.childNodes[0].childNodes[0];
+      img.action = icon.action;
       var iconUrl = icon.iconUrl;
       if (img.src != iconUrl)
         img.src = iconUrl;
