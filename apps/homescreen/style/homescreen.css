@@ -30,6 +30,21 @@ html, body {
   src: url('fonts/Roboto-BoldItalic.ttf');
 }
 
+@font-face {
+  font-family: 'Open Sans';
+  src: url('fonts/Open-Sans.woff');
+}
+@font-face {
+  font-family: 'Open Sans';
+  font-weight: bold;
+  src: url('fonts/Open-Sans-Bold.woff');
+}
+@font-face {
+  font-family: Roboto;
+  font-weight: 600;
+  src: url('fonts/Open-Sans-Semibold.woff');
+}
+
 #screen {
   position: absolute;
   overflow: hidden;
@@ -370,6 +385,7 @@ div.windowSprite.active {
 #keyboard {
   position: absolute;
   font-family: 'Open Sans', sans-serif;
+  font-weight: 600;
   z-index: 9997;
   bottom: 0;
   height: auto;
@@ -489,6 +505,7 @@ div.windowSprite.active {
 
 @font-face {
   font-family: 'Keyboard Symbols';
+  font-weight: 600;
   src: url('fonts/Keyboard-Symbols.woff');
 }
 
