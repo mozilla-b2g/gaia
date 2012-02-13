@@ -10,6 +10,42 @@
     return;
 
   var webapps = [
+                 { // dialer
+                   'installOrigin': 'http://gaiamobile.org:8888',
+                   'origin': '../dialer',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'Dialer',
+                     'description': 'Gaia Dialer',
+                     'launch_path': '/dialer.html',
+                     'developer': {
+                       'name': 'The Gaia Team',
+                       'url': 'https://github.com/andreasgal/gaia'
+                     },
+                     'icons': {
+                       '120': '/style/icons/Phone.png'
+                     }
+                   }
+                 },
+                 { // sms
+                   'installOrigin': 'http://gaiamobile.org:8888',
+                   'origin': '../sms',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'Messages',
+                     'description': 'Gaia Messages',
+                     'launch_path': '/sms.html',
+                     'developer': {
+                       'name': 'The Gaia Team',
+                       'url': 'https://github.com/andreasgal/gaia'
+                     },
+                     'icons': {
+                       '120': '/style/icons/Messages.png'
+                     }
+                   }
+                 },
                  { // clock 
                    installOrigin: 'http://gaiamobile.org:8888',
                    origin: '../clock',
@@ -61,24 +97,6 @@
                      },
                      'icons': {
                        '120': '/style/icons/Camera.png'
-                     }
-                   }
-                 },
-                 { // dialer
-                   'installOrigin': 'http://gaiamobile.org:8888',
-                   'origin': '../dialer',
-                   'receipt': null,
-                   'installTime': 1323339869000,
-                   manifest: {
-                     'name': 'Dialer',
-                     'description': 'Gaia Dialer',
-                     'launch_path': '/dialer.html',
-                     'developer': {
-                       'name': 'The Gaia Team',
-                       'url': 'https://github.com/andreasgal/gaia'
-                     },
-                     'icons': {
-                       '120': '/style/icons/Phone.png'
                      }
                    }
                  },
@@ -169,24 +187,6 @@
                      },
                      'icons': {
                        '120': '/style/icons/Settings.png'
-                     }
-                   }
-                 },
-                 { // sms
-                   'installOrigin': 'http://gaiamobile.org:8888',
-                   'origin': '../sms',
-                   'receipt': null,
-                   'installTime': 1323339869000,
-                   manifest: {
-                     'name': 'Messages',
-                     'description': 'Gaia Messages',
-                     'launch_path': '/sms.html',
-                     'developer': {
-                       'name': 'The Gaia Team',
-                       'url': 'https://github.com/andreasgal/gaia'
-                     },
-                     'icons': {
-                       '120': '/style/icons/Messages.png'
                      }
                    }
                  }
