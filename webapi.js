@@ -1287,3 +1287,21 @@
     }
   };
 })(this);
+
+// Register a handler to automatically update apps when the app cache
+// changes.
+(function (window) {
+  var cache = window.applicationCache;
+  if (!cache)
+    return;
+
+  // We can force an update every time by uncommenting the next line:
+  // cache.update();
+
+  cache.addEventListener('updateready', function updateReady(evt) {
+    // XXX Add a nice UI when an update is ready asking if the user
+    // want to reload the application now.
+    cache.swapCache();
+    window.document.location.reload();
+  });
+})(this);
