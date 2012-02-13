@@ -483,9 +483,9 @@ LockScreen.prototype = {
     var settings = window.navigator.mozSettings;
     if (!settings)
       return;
-    var request = settings.get('lockscreen.enabled');
+    var request = settings.get('lockscreen.disabled');
     request.addEventListener('success', (function onsuccess(evt) {
-      request.result.value === 'true' ? this.lock(true) : this.unlock(-1, true);
+      request.result.value !== 'true' ? this.lock(true) : this.unlock(-1, true);
 
       if (callback)
         setTimeout(callback, 0);
