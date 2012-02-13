@@ -668,56 +668,6 @@ function OnLoad() {
     }
     favsGrid.add(slot++, 'style/images/reload.png', '', 'document.location.reload()');
     favsGrid.update();
-
-    /*
-    // Create the main shortcuts
-    var reload = {
-      action: 'document.location.reload()',
-      icon: 'style/images/reload.png'
-    };
-    var currentShortcuts = ['Dialer', 'Messages', 'Market', reload];
-    for (var n = 0; n < icons.length; ++n) {
-      var icon = icons[n];
-      var index = currentShortcuts.indexOf(icon.name);
-      if (index < 0)
-        continue;
-
-      icon.action = 'WindowManager.launch(\'' + icon.url + '\')';
-      currentShortcuts.splice(index, 1, icon);
-    }
-
-    var shortcuts = '';
-    for (var n = 0; n < currentShortcuts.length; ++n) {
-      var shortcut = currentShortcuts[n];
-      var src = shortcut.icon;
-      var action = shortcut.action;
-      shortcuts += '<span class="shortcut" onclick="' + action + '">' +
-                   '  <img class="shortcut-image" src="' + src + '"></img>' +
-                   '</span>';
-    }
-    document.getElementById('home-shortcuts').innerHTML = shortcuts;
-    */
-  });
-
-  /*
-  var pagesContainer = document.getElementById('home-pages');
-  document.addEventListener('pagechange', function(evt) {
-    var pages = pagesContainer.childNodes;
-    for (var n = 0; n < pages.length; n++)
-      delete pages[n].dataset.active;
-    pages[evt.detail - 1].dataset.active = 'true';
-  });
-
-  document.addEventListener('pagereflow', function(evt) {
-    var pages = '';
-    var pagesCount = evt.detail;
-    for (var n = 0; n < pagesCount; n++) {
-      pages += '<span class="home-page">' +
-               '  <div></div>' +
-               '</span>';
-    }
-    pagesContainer.innerHTML = pages;
-    pagesContainer.firstChild.dataset.active = 'true';
   });
 
   var titlebar = document.getElementById('titlebar');
@@ -728,7 +678,6 @@ function OnLoad() {
   window.addEventListener('appclose', function(evt) {
     titlebar.innerHTML = '';
   });
-  */
 }
 
 // Update the clock and schedule a new update if appropriate
