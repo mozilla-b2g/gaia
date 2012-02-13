@@ -448,7 +448,10 @@ function LockScreen(overlay) {
 
 LockScreen.prototype = {
   update: function lockscreen_update(callback) {
-    var request = window.navigator.mozSettings.get('lockscreen.enabled');
+    var settings = window.navigator.mozSettings;
+    if (!settings)
+      return;
+    var request = settings.get('lockscreen.enabled');
     request.addEventListener('success', (function onsuccess(evt) {
       request.result.value === 'true' ? this.lock(true) : this.unlock(-1, true);
 
