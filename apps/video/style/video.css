@@ -1,0 +1,85 @@
+html {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  background-color: #000;
+  color: #fff;
+  font-family: Arial, Helvetica, Sans-serif;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  font-size: 1.8mozmm;
+  overflow: hidden;
+}
+
+.thumbnails {
+  overflow: scroll;
+  padding: 5px;
+  margin: 0;
+  height: 100%;
+}
+
+.thumbnails li {
+  display: table;
+  text-align: center;
+  width: 140px;
+  height: 145px;  
+  float: left;
+  margin: 5px;
+  list-style-type: none;
+  padding: 0;
+  -moz-user-select: none;
+  user-select: none;
+}
+
+.thumbnails li a {
+  display: table-cell;
+  vertical-align: middle;
+  width: 140px;
+  height: 145px;
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
+}
+
+.thumbnail {
+  max-width: 130px;
+  max-height: 130px;
+  margin: 0 auto;
+  border: solid 5px #fff;
+  pointer-events: none;
+}
+
+#videoFrame {
+  display: table;
+  width: 100%;
+  height: 100%;
+  -moz-transform: rotate(90deg); /* XXX Hack: play videos in landscape mode */
+}
+
+#videoBorder {
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
+  width: 100%;
+  height: 100%;
+  
+}
+
+.hidden, #videoFrame.hidden {
+  display: none;
+}
+
+#player {
+  width: 0%;
+  height: auto;
+  -moz-transition: width 0.5s ease;
+}
+
+#player[data-visible] {
+  width: 100%;
+}
+
