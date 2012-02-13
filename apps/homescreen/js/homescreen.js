@@ -665,6 +665,8 @@ function OnLoad() {
   window.addEventListener('appclose', function(evt) {
     titlebar.innerHTML = '';
   });
+
+  changeDisplayState();
 }
 
 // Update the clock and schedule a new update if appropriate
