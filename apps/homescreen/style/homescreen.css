@@ -30,6 +30,21 @@ html, body {
   src: url('fonts/Roboto-BoldItalic.ttf');
 }
 
+@font-face {
+  font-family: 'Open Sans';
+  src: url('fonts/Open-Sans.woff');
+}
+@font-face {
+  font-family: 'Open Sans';
+  font-weight: bold;
+  src: url('fonts/Open-Sans-Bold.woff');
+}
+@font-face {
+  font-family: Roboto;
+  font-weight: 600;
+  src: url('fonts/Open-Sans-Semibold.woff');
+}
+
 #screen {
   position: absolute;
   overflow: hidden;
