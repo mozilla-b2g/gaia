@@ -564,7 +564,8 @@ LockScreen.prototype = {
       document.releaseCapture();
       break;
     case 'sleep':
-      if (!e.detail.enabled)
+      // Lock the screen when it is turn off, instead when it wakes
+      if (e.detail.enabled)
         return;
       this.update();
       break;
@@ -583,7 +584,7 @@ function OnLoad() {
     document.getElementById('statusbar')
   ];
   new NotificationScreen(touchables);
-  
+
   var apps = Gaia.AppManager.loadInstalledApps(function(apps) {
     // XXX this add 5 times the same set of icons
     var icons = [];
