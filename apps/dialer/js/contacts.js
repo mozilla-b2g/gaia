@@ -19,7 +19,6 @@ var Contacts = {
     if (this._loaded) {
       return;
     }
-    this._loaded = true;
 
     // Could be much easier to have an argument named 'parameters' pass as
     // a second argument that I can omit
@@ -49,7 +48,8 @@ var Contacts = {
       if (currentLetter != name[0]) {
         currentLetter = name[0].toUpperCase();
 
-        content += '<div id="' + currentLetter + '" class="contact-header"><span>' +
+        content += '<div id="' + currentLetter + '" class="contact-header">' +
+                   '<span>' +
                       currentLetter +
                    '</span></div>';
       }
@@ -62,6 +62,8 @@ var Contacts = {
     var contactsContainer = document.getElementById('contacts-container');
     contactsContainer.innerHTML = content;
     this.filter();
+
+    this._loaded = true;
   },
   filter: function contactsFilter(value) {
     var container = document.getElementById('contacts-container');
