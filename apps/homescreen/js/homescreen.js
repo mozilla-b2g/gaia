@@ -4,7 +4,6 @@
 'use strict';
 
 const SHORTCUTS_HEIGHT = 144;
-const ICON_SIZE = 60;
 
 var displayState;
 
@@ -42,7 +41,6 @@ function hideSourceViewer() {
     return;
   viewsource.style.visibility = 'hidden';
 }
-
 
 // Change the display state (off, locked, default)
 function changeDisplayState(state) {
@@ -112,6 +110,7 @@ DefaultPhysics.prototype = {
     var iconGrid = this.iconGrid;
     var currentPage = iconGrid.currentPage;
     if (tap) {
+      iconGrid.tap();
       return;
     } else if (flick) {
       iconGrid.setPage(currentPage + dir, 0.2);
@@ -153,7 +152,8 @@ function AddEventHandlers(target, listener, eventNames) {
         if (Mouse2Touch[e.type]) {
           var original = e;
           e = {
-            type: Mouse2Touch[e.type],
+            type: Mouse2Touch[original.type],
+            target: original.target,
             touches: [original],
             preventDefault: function() {
               original.preventDefault();
@@ -204,6 +204,7 @@ IconGrid.prototype = {
   },
   // reflow the icon grid
   update: function() {
+    var instance = this;
     var containerId = this.containerId;
     var container = this.container;
     var icons = this.icons;
@@ -234,10 +235,12 @@ IconGrid.prototype = {
       div.style.MozTransform = 'translate(' + x + ',' + y + ')';
     }
 
-    // onclick handler for icons
-    function onclick() {
-      eval(this.action);
-    }
+    // touch handler for icons
+    var TouchHandler = {
+      handleEvent: function(e) {
+        instance.lastAction = (e.type === 'touchstart') ? e.target.action : null;
+      }
+    };
 
     // get page divs
     var elementList = container.childNodes;
@@ -297,7 +300,7 @@ IconGrid.prototype = {
         style.width = iconWidth + '%';
         style.height = iconHeight + '%';
         var img = new Image();
-        img.onclick = onclick;
+        AddEventHandlers(img, TouchHandler, ['touchstart', 'touchend']);
         var centerDiv = document.createElement('div');
         centerDiv.className = 'img';
         centerDiv.appendChild(img);
@@ -370,6 +373,10 @@ IconGrid.prototype = {
     var dots = this.dots;
     if (dots)
       dots.update(number);
+  },
+  tap: function() {
+    if (this.lastAction)
+      eval(this.lastAction);
   },
   handleEvent: function(e) {
     var physics = this.physics;
