@@ -1284,8 +1284,6 @@
   }
   ];
 
-  Object.freeze(contacts);
-
   navigator.mozContacts = {
     contacts: contacts,
     find: function contactsManager(fields, successCallback, errorCallback) {
