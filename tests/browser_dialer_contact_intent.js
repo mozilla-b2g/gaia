@@ -10,9 +10,15 @@ function test() {
 
       ok(!dialerWindow.document.getElementById('contacts-view').hidden,
          'Contact view displayed');
-      ok(dialerWindow.Contacts._loaded, 'Contacts loaded');
 
-      windowManager.closeForegroundWindow();
+      waitFor(function() {
+        var containerId = 'contacts-container';
+        var container = dialerWindow.document.getElementById(containerId);
+        ok(container.children.length > 0, 'Contacts displayed');
+        windowManager.closeForegroundWindow();
+      }, function() {
+        return (('Contacts' in dialerWindow) && dialerWindow.Contacts._loaded);
+      });
     }
 
     function onClose() {

@@ -14,18 +14,15 @@
     <div id="views">
       <div id="contacts-view" class="view" hidden="true">
         <div class="top-bar">
-          <span>Contacts</span>
+            <div id="contacts-search-container">
+              <input id="contacts-search" type="search" onmousedown="this.focus();"
+              oninput="Contacts.filter(event.target.value);" />
+            </div>
           <a class="add" href="#" onclick="Contacts.create()">+</a>
         </div>
 
-        <div id="contacts-wrapper">
-          <div id="contacts-view-scrollable">
-            <div id="contacts-search-container" hidden="true">
-              <input id="contacts-search" type="search" onmousedown="this.focus();"
-              oninput="Contacts.filter(event.target.value);" placeholder="Search&#8230;"></input>
-            </div>
-            <div id="contacts-container" onclick="Contacts.showDetails(event)"></div>
-          </div>
+        <div id="contacts-view-scrollable">
+          <div id="contacts-container" onclick="Contacts.showDetails(event)"></div>
         </div>
 
         <div id="contacts-shortcuts-background"></div>
@@ -70,44 +67,34 @@
         </div>
 
         <div id="keyboard-container">
-          <div id="mainKeyset-container" onmousedown="KeyHandler.keyDown(event);" onmouseup="KeyHandler.keyUp(event);">
-            <div id="mainKeyset"></div>
-          </div>
+          <div id="mainKeyset" onmousedown="KeyHandler.keyDown(event);" onmouseup="KeyHandler.keyUp(event);"></div>
           <div id="additionalKeyset" onclick="KeyHandler.keyDown(event)">
             <div class="keyboard-key" data-value="call">
-              <span></span>
+              <span>Call</span>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <div id="tabs-container">
-      <div id="tabs" onclick="choiceChanged(event.target)">
-        <fieldset>
-          <label id="keyboard-label" for="keyboard" data-choice="keyboard" data-active="true"><input id="keyboard" type="radio" name="tabs" checked="checked" /></label>
-          <label id="contacts-label" for="contacts" data-choice="contacts"><input id="contacts" type="radio" name="tabs" checked="" /></label>
-          <!-- Should be favorites once we implement this screen-->
-          <label id="favorites-label" for="favorites" data-choice="contacts"><input id="favorites" type="radio" name="tabs" checked="" /></label>
-        </fieldset>
-      </div>
-    </div>
-
-    <div id="contacts-overlay-background">
-      <div></div>
+    <div id="tabs" onclick="choiceChanged(event.target)">
+      <fieldset>
+        <label id="keyboard-label" for="keyboard" data-choice="keyboard" data-active="true"><input id="keyboard" type="radio" name="tabs" checked="checked" /></label>
+        <!-- Should be favorites once we implement this screen-->
+        <label id="favorites-label" for="favorites" data-choice="contacts"><input id="favorites" type="radio" name="tabs" checked="" /></label>
+        <label id="contacts-label" for="contacts" data-choice="contacts"><input id="contacts" type="radio" name="tabs" checked="" /></label>
+      </fieldset>
     </div>
 
     <div id="contacts-overlay">
       <div id="contact-details-container">
         <div id="contact-details-view">
-          <div id="contact-edit-button" data-action="edit" onclick="ContactDetails.execute(event)">
-            <span>Edit</span>
-            <span>Save</span>
-          </div>
-          <div id="contact-photo">
-            <img src="style/images/missing.png" alt="missing" />
-          </div>
-          <div id="contact-name">
+          <div id="contact-details-top">
+            <div id="contact-photo">
+              <img src="style/fake/photo.png" alt="missing" />
+            </div>
+            <div id="contact-name">
+            </div>
           </div>
           <div id="contact-phones" class="group" data-action="call" onclick="ContactDetails.execute(event)">
           </div>
@@ -115,6 +102,12 @@
           </div>
           <div id="contact-destroy-button" data-action="destroy" onclick="ContactDetails.execute(event)">
             Destroy this contact
+          </div>
+          <div id="contact-edit-button" data-action="edit" onclick="ContactDetails.execute(event)">
+            <span>Edit</span>
+            <span>Save</span>
+          </div>
+          <div id="contact-details-line">
           </div>
         </div>
       </div>
@@ -142,13 +135,5 @@
         </div>
       </div>
     </div>
-
-    <svg height=0>
-      <defs>
-        <filter id=gauss>
-          <feGaussianBlur in=SourceGraphic stdDeviation=2 />
-        </filter>
-      </defs>
-    </svg>
   </body>
 </html>

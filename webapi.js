@@ -6,8 +6,6 @@
 // MozApps - Bug 709015
 (function (window) {
   var navigator = window.navigator;
-  if (navigator.mozApps)
-    return;
 
   var webapps = [
                  { // browser
