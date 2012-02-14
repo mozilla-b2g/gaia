@@ -70,27 +70,23 @@
         </div>
 
         <div id="keyboard-container">
-          <div id="mainKeyset-container" onmousedown="KeyHandler.keyDown(event);" onmouseup="KeyHandler.keyUp(event);">
-            <div id="mainKeyset"></div>
-          </div>
+          <div id="mainKeyset" onmousedown="KeyHandler.keyDown(event);" onmouseup="KeyHandler.keyUp(event);"></div>
           <div id="additionalKeyset" onclick="KeyHandler.keyDown(event)">
             <div class="keyboard-key" data-value="call">
-              <span></span>
+              <span>Call</span>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <div id="tabs-container">
-      <div id="tabs" onclick="choiceChanged(event.target)">
-        <fieldset>
-          <label id="keyboard-label" for="keyboard" data-choice="keyboard" data-active="true"><input id="keyboard" type="radio" name="tabs" checked="checked" /></label>
-          <label id="contacts-label" for="contacts" data-choice="contacts"><input id="contacts" type="radio" name="tabs" checked="" /></label>
-          <!-- Should be favorites once we implement this screen-->
-          <label id="favorites-label" for="favorites" data-choice="contacts"><input id="favorites" type="radio" name="tabs" checked="" /></label>
-        </fieldset>
-      </div>
+    <div id="tabs" onclick="choiceChanged(event.target)">
+      <fieldset>
+        <label id="keyboard-label" for="keyboard" data-choice="keyboard" data-active="true"><input id="keyboard" type="radio" name="tabs" checked="checked" /></label>
+        <!-- Should be favorites once we implement this screen-->
+        <label id="favorites-label" for="favorites" data-choice="contacts"><input id="favorites" type="radio" name="tabs" checked="" /></label>
+        <label id="contacts-label" for="contacts" data-choice="contacts"><input id="contacts" type="radio" name="tabs" checked="" /></label>
+      </fieldset>
     </div>
 
     <div id="contacts-overlay-background">

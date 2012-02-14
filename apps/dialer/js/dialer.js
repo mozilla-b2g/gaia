@@ -2,7 +2,7 @@
 
 var kFontStep = 8;
 var kMinFontSize = 24;
-var kDefaultFontSize = 64;
+var kDefaultFontSize = 30;
 // Frequencies comming from http://en.wikipedia.org/wiki/Telephone_keypad
 var gTonesFrequencies = {
   '1': [697, 1209], '2': [697, 1336], '3': [697, 1477],
@@ -348,7 +348,7 @@ var CallHandler = {
   },
 
   toggleCallScreen: function ch_toggleScreen() {
-    document.getElementById('tabs-container').classList.toggle('oncall');
+    document.getElementById('tabs').classList.toggle('oncall');
     document.getElementById('views').classList.toggle('oncall');
     document.getElementById('call-screen').classList.toggle('oncall');
   },
