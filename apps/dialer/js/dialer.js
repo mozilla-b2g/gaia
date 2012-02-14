@@ -276,7 +276,10 @@ var CallHandler = {
     this.currentCall.answer();
   },
   end: function ch_end() {
-    this.currentCall.hangUp();
+    if (this.currentCall)
+      this.currentCall.hangUp();
+    else
+      this.disconnected();
   },
   disconnected: function ch_disconnected() {
     this.toggleCallScreen();
