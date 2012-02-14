@@ -196,6 +196,7 @@ html, body {
 .icon > .label {
   padding-top: 0%;
   color: white;
+  font-size: 5mm;
 }
 
 .dot {
