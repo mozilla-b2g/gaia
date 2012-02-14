@@ -30,3 +30,9 @@ install-gaia:
 	@for i in $$(ls); do $(ADB) push $$i /data/local/$$i; done
 	echo 'Rebooting phone now'
 	$(ADB) reboot
+
+# Erase all the indexedDB databases on the phone, so 
+# apps have to rebuild them.
+.PHONY: delete-databases
+delete-databases:
+	$(ADB) shell rm -r /data/b2g/mozilla/*.default/indexedDB/*
