@@ -1,259 +1,213 @@
 'use strict';
 
-const SAMPLE_PHOTOS_DIR = 'sample_photos/';
-const SAMPLE_THUMBNAILS_DIR = 'sample_photos/thumbnails/';
-const SAMPLE_FILENAMES = ['bigcat.jpg', 'bison.jpg', 'butterfly.jpg',
-    'cat.jpg', 'catterpillar.jpg', 'cow.jpg', 'duck.jpg', 'elephant.jpg',
-    'fly.jpg', 'giraffe.jpg', 'grasshopper.jpg', 'hippo.jpg', 'hoverfly.jpg',
-    'kangaroo.jpg', 'lizard.jpg', 'mantis.jpg', 'ostrich.jpg', 'peacock.jpg',
-    'rabbit.jpg', 'sheep.jpg', 'snail.jpg', 'tortoise.jpg', 'wolf.jpg',
-    'zebra.jpg'];
-
-var Gallery = {
-
-  photoSelected: false,
-
-  get header() {
-    delete this.header;
-    return this.header = document.getElementById('header');
-  },
-
-  get thumbnails() {
-    delete this.thumbnails;
-    return this.thumbnails = document.getElementById('thumbnails');
-  },
-
-  get photos() {
-    delete this.photos;
-    return this.photos = document.getElementById('photos');
-  },
-
-  get playerControls() {
-    delete this.playerControls;
-    return this.playerControls = document.getElementById('player-controls');
-  },
-
-  get backButton() {
-    delete this.backButton;
-    return this.backButton = document.getElementById('back-button');
-  },
-
-  init: function galleryInit() {
-    var db = this.db;
-    db.open(this.addThumbnail.bind(this), this.getSamplePhotos.bind(this));
-
-    this.thumbnails.addEventListener('click', (function thumbnailsClick(evt) {
-      var target = evt.target;
-      if (!target || !target.classList.contains('thumbnailHolder'))
-        return;
-
-      db.getPhoto(target.id, (function showPhotos(photo) {
-        this.showPhotos(photo);
-      }).bind(this));
-    }).bind(this));
-
-    this.photos.addEventListener('click', (function photosClick(evt) {
-      this.toggleControls();
-    }).bind(this));
-
-    this.backButton.addEventListener('click', (function backButtonClick(evt) {
-      this.showThumbnails();
-    }).bind(this));
-
-    window.addEventListener('keypress', (function keyPressHandler(evt) {
-      if (this.photoSelected && evt.keyCode == evt.DOM_VK_ESCAPE) {
-        this.showThumbnails();
-        evt.preventDefault();
+window.addEventListener('DOMContentLoaded', function() {
+  var dbschema = {
+    version: 6,
+    name: 'gallery',
+    storename: 'photos',
+    keyprop: 'key',
+    blobprops: ['photo', 'thumbnail'],
+    objects: [
+      {
+        key: 1,
+        photo: 'sample_photos/bigcat.jpg',
+        thumbnail: 'sample_photos/thumbnails/bigcat.jpg'
+      },
+      {
+        key: 2,
+        photo: 'sample_photos/bison.jpg',
+        thumbnail: 'sample_photos/thumbnails/bison.jpg'
+      },
+      {
+        key: 3,
+        photo: 'sample_photos/butterfly.jpg',
+        thumbnail: 'sample_photos/thumbnails/butterfly.jpg'
+      },
+      {
+        key: 4,
+        photo: 'sample_photos/cat.jpg',
+        thumbnail: 'sample_photos/thumbnails/cat.jpg'
+      },
+      {
+        key: 5,
+        photo: 'sample_photos/caterpillar.jpg',
+        thumbnail: 'sample_photos/thumbnails/caterpillar.jpg'
+      },
+      {
+        key: 6,
+        photo: 'sample_photos/cow.jpg',
+        thumbnail: 'sample_photos/thumbnails/cow.jpg'
+      },
+      {
+        key: 7,
+        photo: 'sample_photos/duck.jpg',
+        thumbnail: 'sample_photos/thumbnails/duck.jpg'
+      },
+      {
+        key: 8,
+        photo: 'sample_photos/elephant.jpg',
+        thumbnail: 'sample_photos/thumbnails/elephant.jpg'
+      },
+      {
+        key: 9,
+        photo: 'sample_photos/fly.jpg',
+        thumbnail: 'sample_photos/thumbnails/fly.jpg'
+      },
+      {
+        key: 10,
+        photo: 'sample_photos/giraffe.jpg',
+        thumbnail: 'sample_photos/thumbnails/giraffe.jpg'
+      },
+      {
+        key: 11,
+        photo: 'sample_photos/grasshopper.jpg',
+        thumbnail: 'sample_photos/thumbnails/grasshopper.jpg'
+      },
+      {
+        key: 12,
+        photo: 'sample_photos/hippo.jpg',
+        thumbnail: 'sample_photos/thumbnails/hippo.jpg'
+      },
+      {
+        key: 13,
+        photo: 'sample_photos/hoverfly.jpg',
+        thumbnail: 'sample_photos/thumbnails/hoverfly.jpg'
+      },
+      {
+        key: 14,
+        photo: 'sample_photos/kangaroo.jpg',
+        thumbnail: 'sample_photos/thumbnails/kangaroo.jpg'
+      },
+      {
+        key: 15,
+        photo: 'sample_photos/lizard.jpg',
+        thumbnail: 'sample_photos/thumbnails/lizard.jpg'
+      },
+      {
+        key: 16,
+        photo: 'sample_photos/mantis.jpg',
+        thumbnail: 'sample_photos/thumbnails/mantis.jpg'
+      },
+      {
+        key: 17,
+        photo: 'sample_photos/ostrich.jpg',
+        thumbnail: 'sample_photos/thumbnails/ostrich.jpg'
+      },
+      {
+        key: 18,
+        photo: 'sample_photos/peacock.jpg',
+        thumbnail: 'sample_photos/thumbnails/peacock.jpg'
+      },
+      {
+        key: 19,
+        photo: 'sample_photos/rabbit.jpg',
+        thumbnail: 'sample_photos/thumbnails/rabbit.jpg'
+      },
+      {
+        key: 20,
+        photo: 'sample_photos/sheep.jpg',
+        thumbnail: 'sample_photos/thumbnails/sheep.jpg'
+      },
+      {
+        key: 21,
+        photo: 'sample_photos/snail.jpg',
+        thumbnail: 'sample_photos/thumbnails/snail.jpg'
+      },
+      {
+        key: 22,
+        photo: 'sample_photos/tortoise.jpg',
+        thumbnail: 'sample_photos/thumbnails/tortoise.jpg'
+      },
+      {
+        key: 23,
+        photo: 'sample_photos/wolf.jpg',
+        thumbnail: 'sample_photos/thumbnails/wolf.jpg'
+      },
+      {
+        key: 24,
+        photo: 'sample_photos/zebra.jpg',
+        thumbnail: 'sample_photos/thumbnails/zebra.jpg'
       }
-    }).bind(this), true);
-  },
+    ]
+  };
 
-  getSamplePhotos: function galleryGetSamplePhotos() {
-    var self = this;
-    // create separate callback function for each XHR to prevent overwriting
-    for (var i in SAMPLE_FILENAMES) {
-      var getSamplePhoto = function(i) {
-        var thumbnailRequest = self.createPhotoRequest(SAMPLE_FILENAMES[i],
-          SAMPLE_THUMBNAILS_DIR);
-        var photoRequest = self.createPhotoRequest(SAMPLE_FILENAMES[i],
-          SAMPLE_PHOTOS_DIR);
-        thumbnailRequest.send();
-        photoRequest.send();
-      };
-      getSamplePhoto(i);
-    }
-  },
+  // Find the UI elements we care about
+  var header = $('header');
+  var thumbnails = $('thumbnails');
+  var photos = $('photos');
+  var playerControls = $('player-controls');
+  var backButton = $('back-button');
 
-  createPhotoRequest: function galleryCreatePhotoRequest(filename, directory) {
-    var photoRequest = new XMLHttpRequest();
-    var photoURL = directory + filename;
-    photoRequest.open('GET', photoURL, true);
-    photoRequest.responseType = 'blob';
+  // Start off in the thumbnail display
+  showThumbnails();
 
-    var db = this.db;
-    var self = this;
-    photoRequest.onload = function photoRequestLoaded(e) {
-      if (this.status != 200)
-        return;
+  // Set up the database of sample photos
+  var db = new SimpleDB(dbschema);
 
-      var blob = this.response;
-      var photoEntry = {
-        filename: filename,
-        data: blob
-      };
+  // Loop through sample photos in the database and create thumbnails for each
+  db.eachObject(function(record) {
+    var key = record.key;
+    var thumbnailURL = URL.createObjectURL(record.thumbnail);
+    var thumbnail = elt('li',
+                        {'class': 'thumbnailHolder' },
+                        elt('img',
+                            { src: thumbnailURL, 'class': 'thumbnail'}));
 
-      if (directory == SAMPLE_THUMBNAILS_DIR)
-        db.savePhoto(photoEntry, 'thumbnails', self.addThumbnail.bind(self));
-      else
-        db.savePhoto(photoEntry, 'photos');
-    };
-    return photoRequest;
-  },
-
-  addThumbnail: function galleryAddThumbnail(thumbnail) {
-    var li = document.createElement('li');
-    li.id = thumbnail.filename;
-    li.classList.add('thumbnailHolder');
-
-    var img = document.createElement('img');
-    img.src = window.URL.createObjectURL(thumbnail.data);
-    img.classList.add('thumbnail');
-    li.appendChild(img);
-
-    this.thumbnails.appendChild(li);
-  },
-
-  addPhoto: function galleryAddPhoto(photo) {
-    var photos = this.photos;
-    var li = document.createElement('li');
-
-    var img = document.createElement('img');
-    img.src = window.URL.createObjectURL(photo.data);
-    img.classList.add('photo');
-    li.appendChild(img);
-
-    this.photos.appendChild(li);
-  },
-
-  showThumbnails: function galleryShowThumbnails(thumbnails) {
-    this.thumbnails.classList.remove('hidden');
-    this.photos.classList.add('hidden');
-    this.playerControls.classList.add('hidden');
-    this.header.classList.remove('hidden');
-    this.photoSelected = false;
-    var photos = this.photos;
-    while (photos.hasChildNodes())
-      photos.removeChild(photos.firstChild);
-  },
-
-  showPhotos: function galleryShowPhotos(photo) {
-    this.photoSelected = true;
-
-    this.thumbnails.classList.add('hidden');
-    this.header.classList.add('hidden');
-    this.photos.classList.remove('hidden');
-    this.playerControls.classList.remove('hidden');
-
-    this.addPhoto(photo);
-
-    var thumbnail = document.getElementById(photo.filename);
-    while (thumbnail = thumbnail.nextSibling)
-      this.db.getPhoto(thumbnail.id, this.addPhoto.bind(this));
-  },
-
-  toggleControls: function galleryToggleControls() {
-    this.playerControls.classList.toggle('hidden');
-  }
-};
-
-
-Gallery.db = {
-  _db: null,
-  open: function dbOpen(thumbnailCallback, samplePhotosCallback) {
-    const DB_VERSION = 4;
-    const DB_NAME = 'gallery';
-    var request = window.mozIndexedDB.open(DB_NAME, DB_VERSION);
-    var empty = false;
-
-    request.onupgradeneeded = (function onUpgradeNeeded(evt) {
-      this._db = evt.target.result;
-      this._initializeDB();
-      empty = true;
-    }).bind(this);
-
-    request.onsuccess = (function onSuccess(evt) {
-      this._db = evt.target.result;
-      empty ? samplePhotosCallback() : this.getThumbnails(thumbnailCallback);
-      window.parent.postMessage('appready', '*');
-    }).bind(this);
-
-    request.onerror = (function onDatabaseError(error) {
-      console.log('Database error: ', error);
-    }).bind(this);
-  },
-
-  _initializeDB: function dbInitializeDB() {
-    var db = this._db;
-    var stores = ['thumbnails', 'photos'];
-    stores.forEach(function createStore(store) {
-      if (db.objectStoreNames.contains(store))
-        db.deleteObjectStore(store);
-      db.createObjectStore(store, { keyPath: 'filename' });
+    thumbnail.addEventListener('click', function() {
+      showPhoto(key);
     });
-  },
 
-  savePhoto: function dbSavePhoto(entry, store, callback) {
-    var transaction = this._db.transaction(store, IDBTransaction.READ_WRITE);
-    var objectStore = transaction.objectStore(store);
-    var request = objectStore.put(entry);
+    thumbnails.appendChild(thumbnail);
+  });
 
-    request.onsuccess = (function onsuccess(e) {
-      console.log('Added the photo ' + entry.filename + ' to the ' +
-        store + ' store');
-      if (callback)
-        callback(entry);
-    }).bind(this);
+  // Handle the phone's back button to take us back to thumbnail view
+  window.addEventListener('keypress', function(evt) {
+    // If it is the back button and the thumbnails are hidden
+    if (evt.keyCode == evt.DOM_VK_ESCAPE &&
+        thumbnails.classList.contains('hidden')) {
+      showThumbnails();
+      evt.preventDefault();
+    }
+  });
 
-    request.onerror = function onerror(e) {
-      console.log('Error while adding a photo to the store');
-    };
-  },
+  // The app also has a back button to go back to thumbnail view
+  backButton.addEventListener('click', function() {
+    showThumbnails();
+  });
 
-  getThumbnails: function dbGetThumbnails(callback) {
-    var transaction = this._db.transaction(['thumbnails'],
-                                           IDBTransaction.READ_ONLY);
-    var store = transaction.objectStore('thumbnails');
-    var cursorRequest = store.openCursor(IDBKeyRange.lowerBound(0));
+  // Handle clicks on the photos by showing or hiding the player controls
+  photos.addEventListener('click', function() {
+    playerControls.classList.toggle('hidden');
+  });
 
-    var thumbnails = [];
-    cursorRequest.onsuccess = function onsuccess(e) {
-      var result = e.target.result;
-      if (!result) {
-        return;
-      }
-      callback(result.value);
-      result.continue();
-    };
-
-    cursorRequest.onerror = function onerror(e) {
-      console.log('Error getting all photos');
-    };
-  },
-
-  getPhoto: function dbGetPhoto(filename, callback) {
-    var transaction = this._db.transaction(['photos'],
-                                           IDBTransaction.READ_ONLY);
-    var request = transaction.objectStore('photos').get(filename);
-    request.onsuccess = function onsuccess(e) {
-      callback(e.target.result);
-    };
-
-    request.onerror = function onerror(e) {
-      console.log('Error retrieving photo: ' + e);
-    };
+  function showThumbnails() {
+    // Show the header and thumbnails container.
+    header.classList.remove('hidden');
+    thumbnails.classList.remove('hidden');
+    // Hide the photo container and controls
+    photos.classList.add('hidden');
+    playerControls.classList.add('hidden');
+    // Remove any content in the photos container
+    photos.textContent = '';
   }
-};
 
-window.addEventListener('DOMContentLoaded', function GalleryInit() {
-  Gallery.init();
+  function showPhoto(key) {
+    // Hide header and thumbnails container
+    header.classList.add('hidden');
+    thumbnails.classList.add('hidden');
+
+    // Show photo container and controls
+    photos.classList.remove('hidden');
+    playerControls.classList.remove('hidden');
+
+    // Now look up the photo associated with the key and display it
+    db.getObject(key, function(record) {
+      var photoURL = URL.createObjectURL(record.photo);
+      photos.appendChild(elt('li', {},
+                             elt('img', {
+                               src: photoURL,
+                               'class': 'photo'
+                             })));
+    });
+  }
 });
