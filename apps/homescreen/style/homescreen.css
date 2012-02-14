@@ -502,7 +502,8 @@ div.windowSprite.active {
 
 .keyboard-key[data-keycode="-3"], /* IMEManager.SWITCH_KEYBOARD */
 .keyboard-key[data-keycode="8"], /* KeyEvent.DOM_VK_BACK_SPACE */
-.keyboard-key[data-keycode="20"] { /* KeyEvent.DOM_VK_CAPS_LOCK */
+.keyboard-key[data-keycode="20"], /* KeyEvent.DOM_VK_CAPS_LOCK */
+.keyboard-key[data-keycode="13"] { /* KeyEvent.DOM_VK_RETURN */
   font-family: 'Keyboard Symbols', sans-serif;
   font-size: 28px;
 }
