@@ -293,8 +293,10 @@ var CallHandler = {
     this.closeModal();
     clearInterval(this._ticker);
 
-    this.currentCall.removeEventListener('statechange', this);
-    this.currentCall = null;
+    if (this.currentCall) {
+      this.currentCall.removeEventListener('statechange', this);
+      this.currentCall = null;
+    }
   },
 
   handleEvent: function fm_handleEvent(evt) {
