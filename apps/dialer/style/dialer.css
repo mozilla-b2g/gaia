@@ -52,10 +52,10 @@ html * {
   bottom: 0;
 
 	background: url(images/app-texture.png) 50% 50%,
-			-moz-linear-gradient(top, hsla(0,0%,0%,.3) 0%, hsla(0,0%,20%,0) 8%, hsla(0,0%,0%,0.1) 80%, hsla(0,0%,0%,.2) 100%),
-			-moz-radial-gradient(center top, hsla(0,100%,0%,0) 0%, hsla(0,0%,0%,0) 70%, hsla(0,0%,10%,.1) 100%),
-			-moz-radial-gradient(center bottom, hsla(0,100%,0%,0) 0%, hsla(0,0%,0%,0) 70%, hsla(0,0%,10%,.2) 100%),
-			hsla(212,8%,39%,1);
+              -moz-linear-gradient(top, hsla(0,0%,0%,.3) 0%, hsla(0,0%,20%,0) 8%, hsla(0,0%,0%,0.1) 80%, hsla(0,0%,0%,.2) 100%),
+              -moz-radial-gradient(center top, hsla(0,100%,0%,0) 0%, hsla(0,0%,0%,0) 70%, hsla(0,0%,10%,.1) 100%),
+              -moz-radial-gradient(center bottom, hsla(0,100%,0%,0) 0%, hsla(0,0%,0%,0) 70%, hsla(0,0%,10%,.2) 100%),
+              hsla(212,8%,39%,1);
 
   -moz-transition: bottom 0.3s ease;
 }
