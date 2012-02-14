@@ -1,0 +1,13 @@
+{
+  "name": "Maps",
+  "description": "Google Maps",
+  "launch_path": "/maps.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "icons": {
+    "120": "/icons/Maps.png"
+  }
+}
+
