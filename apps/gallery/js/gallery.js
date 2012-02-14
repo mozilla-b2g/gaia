@@ -28,6 +28,16 @@ var Gallery = {
     return this.photos = document.getElementById('photos');
   },
 
+  get playerControls() {
+    delete this.playerControls;
+    return this.playerControls = document.getElementById('player-controls');
+  },
+
+  get backButton() {
+    delete this.backButton;
+    return this.backButton = document.getElementById('back-button');
+  },
+
   init: function galleryInit() {
     var db = this.db;
     db.open(this.addThumbnail.bind(this), this.getSamplePhotos.bind(this));
@@ -42,9 +52,17 @@ var Gallery = {
       }).bind(this));
     }).bind(this));
 
+    this.photos.addEventListener('click', (function photosClick(evt) {
+      this.toggleControls();
+    }).bind(this));
+
+    this.backButton.addEventListener('click', (function backButtonClick(evt) {
+      this.showThumbnails();
+    }).bind(this));
+
     window.addEventListener('keypress', (function keyPressHandler(evt) {
       if (this.photoSelected && evt.keyCode == evt.DOM_VK_ESCAPE) {
-        Gallery.showThumbnails();
+        this.showThumbnails();
         evt.preventDefault();
       }
     }).bind(this), true);
@@ -120,6 +138,7 @@ var Gallery = {
   showThumbnails: function galleryShowThumbnails(thumbnails) {
     this.thumbnails.classList.remove('hidden');
     this.photos.classList.add('hidden');
+    this.playerControls.classList.add('hidden');
     this.header.classList.remove('hidden');
     this.photoSelected = false;
     var photos = this.photos;
@@ -133,12 +152,17 @@ var Gallery = {
     this.thumbnails.classList.add('hidden');
     this.header.classList.add('hidden');
     this.photos.classList.remove('hidden');
+    this.playerControls.classList.remove('hidden');
 
     this.addPhoto(photo);
 
     var thumbnail = document.getElementById(photo.filename);
     while (thumbnail = thumbnail.nextSibling)
       this.db.getPhoto(thumbnail.id, this.addPhoto.bind(this));
+  },
+
+  toggleControls: function galleryToggleControls() {
+    this.playerControls.classList.toggle('hidden');
   }
 };
 

@@ -7,12 +7,20 @@
 
     <link rel="stylesheet" type="text/css" media="screen" href="style/ui.css"/>
     <link rel="stylesheet" type="text/css" media="screen" href="style/settings.css"/>
+    <script type="text/javascript" src="../../webapi.js"></script>
     <script type="text/javascript" src="js/ui.js"></script>
     <script type="text/javascript" src="js/settings.js"></script>
   </head>
   <body>
     <div id="root" class="view" data-title="Settings">
       <ul class="tableView">
+        <li>
+          <span>Lockscreen Disabled</span>
+          <label class="checkbox">
+            <input type="checkbox" name="lockscreen.disabled"/>
+            <span class="checkbox-inner"></span>
+          </label>
+        </li>
         <li>
           <span>Airplane Mode</span>
           <label class="checkbox">
