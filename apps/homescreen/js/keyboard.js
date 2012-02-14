@@ -30,7 +30,7 @@ const IMEManager = {
     'cyrillic': ['ru', 'sr-Cyrl'],
     'hebrew': ['he'],
     'zhuying': ['zh-Hant-Zhuying'],
-    'pinying': ['zh-Hans-Pinying', 'zh-Hans-9keys', 'zh-Hans-14keys']
+    'pinyin': ['zh-Hans-Pinying']
   },
 
   kMozSettingsTimeout: 800,
@@ -47,7 +47,8 @@ const IMEManager = {
         this.keyboards =
           [].concat(
             this.keyboardSettingGroups['english'],
-            this.keyboardSettingGroups['zhuying']
+            this.keyboardSettingGroups['zhuying'],
+            this.keyboardSettingGroups['pinyin']
           );
 
       if (this.keyboards.indexOf(this.currentKeyboard) === -1)

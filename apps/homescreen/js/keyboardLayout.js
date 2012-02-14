@@ -280,52 +280,16 @@ const Keyboards = {
     label: 'Chinese - Simplified - Pinying',
     menuLabel: '简体拼音输入',
     needsCandidatePanel: true,
-    imEngine: 'jspinying',
+    imEngine: 'jspinyin',
     width: 10,
     textLayoutOverwrite: {
-      ',': "'",
-      '.': false
+      ',': "，",
+      '.': "。"
     },
     keys: [
       [ { value: "q" }, { value: "w" }, { value: "e" } , { value: "r" }, { value: "t" } , { value: "y" }, { value: "u" } , { value: "i" }, { value: "o" }, { value: "p" } ],
-      [ { value: "a" }, { value: "s" }, { value: "d" }, { value: "f" }, { value: "g" } , { value: "h" }, { value: "j" }, { value: "k" }, { value: "l" }, { value: ":" } ],
+      [ { value: "a" }, { value: "s" }, { value: "d" }, { value: "f" }, { value: "g" } , { value: "h" }, { value: "j" }, { value: "k" }, { value: "l" }, { value: "'" } ],
       [ { value: "⇪", ratio: 1.5, keyCode: KeyEvent.DOM_VK_CAPS_LOCK }, { value: "z" }, { value: "x" }, { value: "c" }, { value: "v" }, { value: "b" }, { value:"n" }, { value: "m" }, { value: "⌫", ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE } ],
-      [ { value: "⎵", ratio: 8, keyCode: 32 }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
-    ]
-  },
-  'zh-Hans-9keys' : {
-    type: 'ime',
-    label: 'Chinese - Simplified - Nine Keys',
-    menuLabel: '简体九键输入',
-    needsCandidatePanel: true,
-    imEngine: 'jspinying',
-    width: 10,
-    textLayoutOverwrite: {
-      ',': false,
-      '.': false
-    },
-    keys: [
-      [ { value: "'", ratio: 3},{ value: "ABC", ratio: 3},{ value: "DEF", ratio: 3}, { value: "，"} ],
-      [ { value: "GHI", ratio: 3},{ value: "JKL", ratio: 3},{ value: "MNO", ratio: 3}, { value: "。"}],
-      [ { value: "PQRS", ratio: 3},{ value: "TUV", ratio: 3},{ value: "WXYZ", ratio: 3}, { value: "⌫", keyCode: KeyEvent.DOM_VK_BACK_SPACE }],
-      [ { value: "⎵", ratio: 8, keyCode: 32 }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
-    ]
-  },
-  'zh-Hans-14keys': {
-    type: 'ime',
-    label: 'Chinese - Simplified - 14 Keys',
-    menuLabel: '简体十四键输入',
-    needsCandidatePanel: true,
-    imEngine: 'jspinying',
-    width: 10,
-    textLayoutOverwrite: {
-      ',': "'",
-      '.': false
-    },
-    keys: [
-      [ { value: "QW", ratio: 2 }, { value: "ER", ratio: 2 }, { value: "TY", ratio: 2 }, { value: "UI", ratio: 2 }, { value: "OP", ratio: 2 } ],
-      [ { value: "AS", ratio: 2 }, { value: "DF", ratio: 2 }, { value: "GH", ratio: 2 }, { value: "JK", ratio: 2 }, { value: "L", ratio: 2 } ],
-      [ { value: "ZX", ratio: 2 }, { value: "CV", ratio: 2 }, { value: "BN", ratio: 2 }, { value: "M", ratio: 2 }, { value: "⌫", ratio: 2, keyCode: KeyEvent.DOM_VK_BACK_SPACE } ],
       [ { value: "⎵", ratio: 8, keyCode: 32 }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ]
   }
