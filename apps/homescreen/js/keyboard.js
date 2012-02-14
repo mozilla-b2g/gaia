@@ -33,8 +33,23 @@ const IMEManager = {
     'pinying': ['zh-Hans-Pinying', 'zh-Hans-9keys', 'zh-Hans-14keys']
   },
 
+  kMozSettingsTimeout: 800,
   loadKeyboardSettings: function loadKeyboardSettings(callback) {
+    var completed = false;
     var completeSettingRequests = (function completeSettingRequests() {
+
+      if (completed)
+        return;
+
+      clearTimeout(settingTimer);
+
+      if (!this.keyboards.length)
+        this.keyboards =
+          [].concat(
+            this.keyboardSettingGroups['english'],
+            this.keyboardSettingGroups['zhuying']
+          );
+
       if (this.keyboards.indexOf(this.currentKeyboard) === -1)
         this.currentKeyboard = this.keyboards[0];
 
@@ -42,8 +57,16 @@ const IMEManager = {
         this.loadKeyboard(name);
       }).bind(this));
 
+      completed = true;
       callback();
     }).bind(this);
+
+    // XXX: Fallback if MozSettings timed out
+    var settingTimer = setTimeout(function () {
+      dump('Keyboard: MozSettings timed out. Skip user settings.');
+      completeSettingRequests();
+
+    }, this.kMozSettingsTimeout);
 
     this.keyboards = [];
     var keyboardSettingGroupKeys = [];

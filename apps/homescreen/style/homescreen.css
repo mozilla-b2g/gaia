@@ -185,15 +185,18 @@ html, body {
 
 .icon > div {
   display: inline-block;
-  padding-top: 10%;
+  width: 100%;
 }
 
-.icon > div > .img {
-  width: 60%;
+.icon > div > img {
+  padding-top: 10%;
+  width: 70%;
 }
 
 .icon > .label {
+  padding-top: 0%;
   color: white;
+  font-size: 5mm;
 }
 
 .dot {
