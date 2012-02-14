@@ -1,3 +1,5 @@
+'use strict';
+
 function $(id) { return document.getElementById(id); }
 
 function elt(tag, attrs, kids) {

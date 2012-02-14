@@ -1,3 +1,4 @@
+'use strict';
 
 /*
   Pass a schema like this one to the SimpleDB constructor
@@ -52,15 +53,16 @@ function SimpleDB(schema) {
   };
 
   function createObjectStore() {
-    if (db.objectStoreNames.contains(schema.storename))
+    if (db.objectStoreNames.contains(schema.storename)) {
       db.deleteObjectStore(schema.storename);
+    }
 
     db.createObjectStore(schema.storename, { keyPath: schema.keyprop });
 
     // If the objects to store include blobs, fetch them first.
     // Otherwise just store the objects.  fetchBlobs() will call
     // storeObjects when it is done.
-    if (schema.blobs && schema.blobs.length > 0)
+    if (schema.blobprops && schema.blobprops.length > 0)
       fetchBlobs();
     else
       storeObjects();
@@ -162,9 +164,9 @@ SimpleDB.prototype = {
     }
 
     // Otherwise, use the db now
-    var transaction = this.db.transaction(this.schema.keyprop,
+    var transaction = this.db.transaction(this.schema.storename,
                                           IDBTransaction.READ_ONLY);
-    var request = transaction.objectStore(this.schema.keyprop).get(key);
+    var request = transaction.objectStore(this.schema.storename).get(key);
     request.onsuccess = function onsuccess(e) {
       callback(request.result);
     };
