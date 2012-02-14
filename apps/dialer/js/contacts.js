@@ -7,16 +7,11 @@ var Contacts = {
     return this.view = document.getElementById('contacts-view-scrollable');
   },
   setup: function contactsSetup() {
-    this.view.addEventListener('touchstart', function showSearch(evt) {
-      Contacts.showSearch();
-    });
-
     document.getElementById('contacts').addEventListener('change',
       (function contactTabChanged(evt) {
         // loading contacts the first time the view appears
         this.load();
 
-        this.hideSearch();
         ContactDetails.hide();
       }).bind(this));
   },
@@ -54,9 +49,9 @@ var Contacts = {
       if (currentLetter != name[0]) {
         currentLetter = name[0].toUpperCase();
 
-        content += '<div id="' + currentLetter + '" class="contact-header">' +
+        content += '<div id="' + currentLetter + '" class="contact-header"><span>' +
                       currentLetter +
-                   '</div>';
+                   '</span></div>';
       }
 
       content += '<div class="contact" id="' + contact.id + '">' +
@@ -67,25 +62,6 @@ var Contacts = {
     var contactsContainer = document.getElementById('contacts-container');
     contactsContainer.innerHTML = content;
     this.filter();
-  },
-  hideSearch: function contactsHideSearch() {
-    document.getElementById('contacts-search').value = '';
-    this.filter();
-
-    var searchContainer = document.getElementById('contacts-search-container');
-    searchContainer.hidden = true;
-    this.view.scrollTop = 0;
-  },
-  showSearch: function contactsHideSearch() {
-    var oldScrollTop = this.view.scrollTop;
-
-    var search = document.getElementById('contacts-search-container');
-    if (!search.hidden)
-      return;
-
-    search.hidden = false;
-    var searchHeight = search.getBoundingClientRect().height;
-    this.view.scrollTop = oldScrollTop + searchHeight;
   },
   filter: function contactsFilter(value) {
     var container = document.getElementById('contacts-container');

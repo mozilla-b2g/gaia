@@ -9,7 +9,7 @@ html, body {
   font-family: "Roboto", sans-serif;
 
 
-  background: url(images/app-texture.png) 50% 50%, #F5F5F5;
+  background: #000;
 }
 
 html * {
@@ -115,6 +115,9 @@ html * {
   -moz-transition-property: top, opacity;
   -moz-transition-duration: 0.3s;
   -moz-transition-timing-function: ease;
+
+  background: url(images/app-texture.png) 50% 50%, #F5F5F5;
+  border-radius: 8px 8px 0 0;
 }
 
 #views > .view {
@@ -123,43 +126,37 @@ html * {
 }
 
 .top-bar {
-	height: 8mozmm;
-  line-height: 8mozmm;
+	height: 10mozmm;
+  line-height: 10mozmm;
 
   font-size: 3.5mozmm;
   text-align: center;
 
-	border-top: 1px solid hsl(210, 2%, 48%);
-	border-bottom: 1px solid hsl(210, 2%, 20%);
-	background: url(images/app-texture.png), -moz-linear-gradient(top, hsl(0,0%,40%) 0%, hsl(0,0%,36%) 50%, hsl(0,0%,28%) 100%);
-}
-
-.top-bar span {
-  text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+  border-bottom: 2px solid #7F7F7F;
+  background: url(images/app-texture.png) 50% 50%, -moz-linear-gradient(top, hsla(0,0%,96%,1), hsla(0,0%,92%,1) );
 }
 
 .top-bar a.add {
   position: absolute;
   display: block;
-  width: -moz-calc(6mozmm - 2px);
-  height: 6mozmm;
-  top: 1mozmm;
-  right:1.5mozmm;
+  width: 8mozmm;
+  height: 7mozmm;
+  top: 1.5mozmm;
+  right: 2mozmm;
   padding-left: 2px;
 
-	color: #333333;
+	color: #7D8389;
   text-align: center;
-  line-height: 6mozmm;
+  line-height: 7mozmm;
   text-decoration: none;
   text-shadow: #929292 0 1px;
-  font-size: 1.1em;
+  font-size: 2em;
+  font-weight: bold;
 
-  border: 1px solid #333333;
   border-radius: 5px 5px 5px 5px;
-  background: -moz-linear-gradient(top, hsl(0,0%,65%) 0, hsl(0,0%,53%) 1px, hsl(0,0%,33%) 100%);
 }
 .top-bar a.add:active {
-  color: hsl(76,85%,47%);
+  color: #FF6600;
 }
 
 /* === Keyboard View === */
@@ -336,21 +333,9 @@ html * {
 }
 
 /* === Contacts View === */
-#contacts-wrapper {
-  width: -moz-calc(100% - 38px - 22px);
-  height: -moz-calc(100% - 8mozmm - 40px);
-  margin: 20px 0 0 10px;
-  padding: 9px;
-
-  background: none repeat scroll 0 0 rgba(17, 17, 17, 0.4);
-  border-radius: 5px;
-}
 
 #contacts-view-scrollable {
-  height: 100%;
-
-  border: 1px #333333 solid;
-  border-radius: 5px;
+  height: -moz-calc(100% - 10mozmm);
   overflow: scroll;
 }
 
@@ -360,105 +345,114 @@ html * {
 }
 
 #contacts-search-container {
-  /* XXX adding 8px to fill the void left by the scrollbar */
-  width: -moz-calc(100% + 8px);
+  position: relative;
+  margin-top: 1.5mozmm;
+  margin-left: 2mozmm;
+  width: -moz-calc(100% - 14mozmm);
+  height: -moz-calc(7mozmm - 6px);
 
-	border-radius: 5px 5px 0 0;
-	background: url(images/app-texture.png), -moz-linear-gradient(top, hsl(0,0%,40%) 0%, hsl(0,0%,36%) 50%, hsl(0,0%,28%) 100%);
+  border: 3px solid #7B8288;
+  border-radius: 50px 50px 50px 50px;
+
+  background: #fff;
 }
 
 #contacts-search {
-	width: 100%;
-	height: 12mozmm;
+  position: absolute;
+  top: 2px;
+  left: 0;
+  margin: 0;
+  padding: 0 20px 0 30px;
+  width: -moz-calc(100% - 54px);
+  height: -moz-calc(100% - 4px);
 
-	background: none;
-	border: none;
+  border: 0;
+  background: url("images/input-icon-search.png") no-repeat scroll 8px 50%, -moz-linear-gradient(center top , rgba(0, 0, 0, 0.2) 0px, rgba(255, 255, 255, 0) 20px, #FFFFFF 100%) repeat scroll 0 0 #FFFFFF;
 
-  line-height: 12mozmm;
-  font-size: 4mozmm;
-	padding: 0 10px;
-	color: hsl(0,0%,100%);
-	text-shadow:0 0 3px hsla(0,0%,0%,.5);
+  font-size: 1.1em;
 }
 
 .contact-header {
-  height: 4.5mozmm;
+  position: relative;
+  height: 5mozmm;
   padding: 0 14px 0 20px;
+  overflow: visible;
 
-  background: -moz-linear-gradient(center top , #878787 0pt, #545454 100%) repeat scroll 0 0 transparent;
+  background: url(images/diagonal-pattern.png) 0 0, hsla(60,13%,94%,1);
 
-  font-size: 3mozmm;
+  font-size: 1.4;
   font-weight: 700;
-  line-height: 4.5mozmm;
+  line-height: 5mozmm;
   color: #FFFFFF;
 
-  border-bottom: 1px solid #000000;
-  border-top: 1px solid #7A7A7A;
+  border-top: 1px solid hsla(0,0%,100%,1);
+  border-bottom: 1px solid hsla(0,0%,80%,1);
 
   pointer-events: none;
 }
 
+.contact-header span {
+  position: absolute;
+  top: -1mozmm;
+  left: 2mozmm;
+  width: 7mozmm;
+  height: 7mozmm;
+
+  line-height: 7mozmm;
+  color: hsla(0,0%,100%,1);
+  text-align: center;
+  font-size: 1.2em;
+  text-transform: uppercase;
+
+  background: url(images/contacts-orange-circle.png);
+  background-size: 7mozmm 7mozmm;
+}
+
 .contact {
-  padding: 0 14px 0 20px;
+  padding: 0 14px 0 4mozmm;
   height: 8mozmm;
   width: -moz-calc(100% - 2px);
 
-	background: hsl(0,0%,33%);
-	border-top:1px solid hsl(0,0%,48%);
-	border-bottom:1px solid hsl(0,0%,0%);
+  border-bottom: 1px solid #CCCCCC;
+  border-top: 1px solid #FFFFFF;
+  color: hsla(0,0%,20%,1);
+	background: none;
 
   line-height: 8mozmm;
   font-size: 3mozmm;
-}
-.contact:nth-of-type(odd) {
-  background: hsl(0,0%,37%);
 }
 
 .contact * {
   pointer-events: none;
 }
-.contact:hover:active {
-  background-image: -moz-linear-gradient(top, rgb(88,88,88), rgb(44,44,44));
-  background-size: 100% 100%;
-}
-
-.contact > img {
-  float: left;
-  width: 8mozmm;
-  height: 8mozmm;
-  margin: 1mozmm 2mozmm;
-
-  border: 0;
-}
 
 .display-name {
   display: block;
-  color: #FFFFFF;
-  text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+  color:hsla(0,0%,20%,1);
   pointer-events: none;
 }
 
 #contacts-shortcuts-background {
   position: fixed;
   right: 10px;
-  top: -moz-calc(8mozmm + 27px);
+  top: 12mozmm;
   width: 22px;
-  height: -moz-calc(100% - 8mozmm - 150px);
+  height: -moz-calc(100% - 14mozmm - 100px);
 
-  background: -moz-linear-gradient(left center , rgba(25, 25, 25, 0.8) 0pt, rgba(17, 17, 17, 0.1) 30%) repeat scroll 0 0 transparent;
-  border-radius: 0 5px 5px 0;
+  background: none;
+  border-radius: 4px;
 }
 
 #contacts-shortcuts-background.tracking {
-  background: -moz-linear-gradient(left center , #191919 0pt, rgba(17, 17, 17, 0.4) 30%) repeat scroll 0 0 transparent;
+  background: rgba(0, 0, 0, 0.1);
 }
 
 #contacts-shortcuts {
   position: fixed;
   right: 10px;
-  top: -moz-calc(8mozmm + 27px);
+  top: 14mozmm;
   width: 44px;
-  height: -moz-calc(100% - 8mozmm - 150px);
+  height: -moz-calc(100% - 18mozmm - 100px);
 }
 
 #contacts-shortcuts > a {
@@ -468,7 +462,7 @@ html * {
   margin: 2px 0;
   padding-left: 22px;
 
-  color: #FFFFFF;
+  color: #999999;
   font-size: 12px;
   text-align: center;
 }

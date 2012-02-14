@@ -14,18 +14,15 @@
     <div id="views">
       <div id="contacts-view" class="view" hidden="true">
         <div class="top-bar">
-          <span>Contacts</span>
+            <div id="contacts-search-container">
+              <input id="contacts-search" type="search" onmousedown="this.focus();"
+              oninput="Contacts.filter(event.target.value);" placeholder="search&#8230;" />
+            </div>
           <a class="add" href="#" onclick="Contacts.create()">+</a>
         </div>
 
-        <div id="contacts-wrapper">
-          <div id="contacts-view-scrollable">
-            <div id="contacts-search-container" hidden="true">
-              <input id="contacts-search" type="search" onmousedown="this.focus();"
-              oninput="Contacts.filter(event.target.value);" placeholder="Search&#8230;"></input>
-            </div>
-            <div id="contacts-container" onclick="Contacts.showDetails(event)"></div>
-          </div>
+        <div id="contacts-view-scrollable">
+          <div id="contacts-container" onclick="Contacts.showDetails(event)"></div>
         </div>
 
         <div id="contacts-shortcuts-background"></div>
