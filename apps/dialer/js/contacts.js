@@ -251,11 +251,6 @@ var ContactDetails = {
 
     var overlay = this.overlay;
     overlay.classList.add('displayed');
-    overlay.addEventListener('transitionend', function appearWait() {
-      overlay.removeEventListener('transitionend', appearWait);
-
-      overlay.style.background = '-moz-element(#contacts-overlay-background) left top no-repeat';
-    });
 
     // directly entering the edit mode if this is a new contact
     if (!this._contact.id) {
@@ -274,7 +269,6 @@ var ContactDetails = {
 
       overlay.classList.remove('hidden');
       overlay.classList.remove('displayed');
-      overlay.style.background = 'rgba(0, 0, 0, 0.6)';
     });
 
     this.endEditing();

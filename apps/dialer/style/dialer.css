@@ -492,27 +492,6 @@ html * {
   opacity: 0;
 }
 
-#contacts-overlay-background {
-  position: absolute;
-  top: -100%;
-  width: 100%;
-  height: 100%;
-
-  background-image: -moz-element(#views), -moz-element(#tabs);
-  background-position: top, bottom;
-  background-repeat: no-repeat;
-}
-
-#contacts-overlay-background > div {
-  width: 100%;
-  height: 100%;
-
-  background: rgba(0, 0, 0, 0.6);
-}
-
-#contacts-overlay-preview {
-}
-
 #contact-details-container {
   position: absolute;
   top: 10%;
@@ -520,28 +499,43 @@ html * {
   width: 90%;
   height: 80%;
 
-  border-radius: 10px;
-  overflow: hidden;
+  overflow: visible;
+  box-shadow: 0 3px 5px black;
 
-  background-image: -moz-linear-gradient(top, rgb(66,66,66) 24%, rgb(33,33,33) 44%, rgb(17,17,17) 64%);
+  border-radius:5px;
+  background: url(images/details-texture.png) no-repeat,
+              url(images/app-texture.png) 50% 50%,
+              -moz-linear-gradient(bottom, hsla(0,0%,60%,1) 0,
+              hsla(0,0%,0%,.1) 1px, hsla(0,0%,0%,0) 30%, hsla(0,0%,0%,0) 100%), hsla(0,0%,96%,1);
 }
 
 #contact-details-view {
+  padding: 20px;
   -moz-transition: opacity 0.15s ease;
 }
 
 #contact-edit-button {
   position: absolute;
-  top: 20px;
-  right: 5%;
-  width: 60px;
-  padding: 5px;
+  bottom: 20px;
+  right: 20px;
+  width: 8mozmm;
+  height: 6mozmm;
+  padding: 0 8px;
 
   border-radius: 10px;
   border: 2px #EBEBEB solid;
 
-  font-size: 1.7em;
+  line-height: 6mozmm;
+  font-size: 1.3em;
   text-align: center;
+  text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.5);
+
+  background: -moz-linear-gradient(center top , #F7F7F7 0pt, #EDEBEE 1px, #DDDDDD 100%) repeat scroll 0 0 transparent;
+
+  border: 1px solid #A0A09C;
+  border-radius: 5px;
+
+  color: #666666;
 }
 #contact-edit-button[data-action='save'] {
   background-color: rgba(49, 147, 255, 0.7);
@@ -557,7 +551,7 @@ html * {
 
 #contact-details-view input {
   width: -moz-calc(100% - 88px);
-  color: white;
+  color: #000;
   background: none;
   border: none;
   padding: 0;
@@ -574,12 +568,20 @@ html * {
 
 #contact-photo {
   float: left;
-  padding: 20px 5%;
+  width: 140px;
+  height: 140px;
+
+  border: 1px solid #999999;
+  border-radius: 5px 5px 5px 5px;
+}
+
+#contact-details-top {
+  clear: both;
 }
 
 #contact-name {
   float: left;
-  width: -moz-calc(85% - 96px - 74px);
+  width: -moz-calc(100% - 140px - 20px);
   margin: 20px 0;
   font-size: 2.0em;
 }
@@ -593,8 +595,8 @@ html * {
 }
 
 #contact-details-view > .group {
-  width: -moz-calc(90% - 4px);
-  margin: 50px auto;
+  width: -moz-calc(100% - 4px);
+  margin: 30px auto;
   clear: both;
 
   border-radius: 10px;
@@ -666,6 +668,16 @@ html * {
   display: none;
 }
 
+#contact-details-line {
+  position: absolute;
+  right: 10px;
+  bottom: -10px;
+  left: 10px;
+  height: 10px;
+
+  border-radius: 0 0 5px 5px;
+  background: -moz-linear-gradient(bottom, hsla(25,100%,35%,1) 0%, hsla(25,100%,42%,1) 1px, hsla(25,100%,26%,1) 100%);
+}
 /* === Contact Edit transitions === */
 
 #contact-details-view.hidden {

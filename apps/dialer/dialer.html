@@ -16,7 +16,7 @@
         <div class="top-bar">
             <div id="contacts-search-container">
               <input id="contacts-search" type="search" onmousedown="this.focus();"
-              oninput="Contacts.filter(event.target.value);" placeholder="search&#8230;" />
+              oninput="Contacts.filter(event.target.value);" />
             </div>
           <a class="add" href="#" onclick="Contacts.create()">+</a>
         </div>
@@ -86,21 +86,15 @@
       </fieldset>
     </div>
 
-    <div id="contacts-overlay-background">
-      <div></div>
-    </div>
-
     <div id="contacts-overlay">
       <div id="contact-details-container">
         <div id="contact-details-view">
-          <div id="contact-edit-button" data-action="edit" onclick="ContactDetails.execute(event)">
-            <span>Edit</span>
-            <span>Save</span>
-          </div>
-          <div id="contact-photo">
-            <img src="style/images/missing.png" alt="missing" />
-          </div>
-          <div id="contact-name">
+          <div id="contact-details-top">
+            <div id="contact-photo">
+              <img src="style/fake/photo.png" alt="missing" />
+            </div>
+            <div id="contact-name">
+            </div>
           </div>
           <div id="contact-phones" class="group" data-action="call" onclick="ContactDetails.execute(event)">
           </div>
@@ -108,6 +102,12 @@
           </div>
           <div id="contact-destroy-button" data-action="destroy" onclick="ContactDetails.execute(event)">
             Destroy this contact
+          </div>
+          <div id="contact-edit-button" data-action="edit" onclick="ContactDetails.execute(event)">
+            <span>Edit</span>
+            <span>Save</span>
+          </div>
+          <div id="contact-details-line">
           </div>
         </div>
       </div>
@@ -135,13 +135,5 @@
         </div>
       </div>
     </div>
-
-    <svg height=0>
-      <defs>
-        <filter id=gauss>
-          <feGaussianBlur in=SourceGraphic stdDeviation=2 />
-        </filter>
-      </defs>
-    </svg>
   </body>
 </html>
