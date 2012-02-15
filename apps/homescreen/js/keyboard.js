@@ -61,7 +61,7 @@ const IMEManager = {
     }).bind(this);
 
     // XXX: Fallback if MozSettings timed out
-    var settingTimer = setTimeout(function () {
+    var settingTimer = setTimeout(function settingTimer() {
       dump('Keyboard: MozSettings timed out. Skip user settings.');
       completeSettingRequests();
 
@@ -100,7 +100,8 @@ const IMEManager = {
         if (keyboardSettingGroupKeys.indexOf(key) !== i)
           return;
 
-        dump('Having trouble getting setting for keyboard setting group: ' + key);
+        dump(
+          'Having trouble getting setting for keyboard setting group: ' + key);
 
         if (++i === keyboardSettingGroupKeys.length) {
           completeSettingRequests();
@@ -1014,7 +1015,7 @@ const IMEManager = {
       return;
     }
 
-    var adjustTargetWindowHeight = (function () {
+    var adjustTargetWindowHeight = (function adjustTargetWindowHeight() {
       this.ime.removeEventListener(
         'transitionend', adjustTargetWindowHeight);
       this.updateTargetWindowHeight();
