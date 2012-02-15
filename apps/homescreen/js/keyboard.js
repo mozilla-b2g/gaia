@@ -401,7 +401,7 @@ const IMEManager = {
   },
 
   events: ['mouseup', 'showime', 'hideime', 'unload', 'appclose'],
-  imeEvents: ['mousedown', 'mouseover', 'mouseleave'],
+  imeEvents: ['mousedown', 'mouseover', 'mouseleave', 'transitionend'],
   init: function km_init() {
     this.events.forEach((function attachEvents(type) {
       window.addEventListener(type, this);
@@ -516,6 +516,19 @@ const IMEManager = {
           this.hideIME(activeWindow);
         }).bind(this), 0);
 
+        break;
+
+      case 'transitionend':
+        if (!this.ime.dataset.hidden) { // showIME transitionend
+          this.updateTargetWindowHeight();
+        } else { // hideIME transitionend
+
+          delete this.targetWindow.dataset.cssHeight;
+          delete this.targetWindow.dataset.rectHeight;
+          delete this.targetWindow;
+
+          this.ime.innerHTML = '';
+        }
         break;
 
       case 'mousedown':
@@ -999,15 +1012,6 @@ const IMEManager = {
       break;
     }
 
-    if (this.ime.dataset.hidden) {
-      // keyboard is in the quiet hidden state
-      this.targetWindow = targetWindow;
-      targetWindow.dataset.cssHeight =
-        targetWindow.style.height;
-      targetWindow.dataset.rectHeight =
-        targetWindow.getBoundingClientRect().height;
-    }
-
     this.updateLayout();
 
     if (!this.ime.dataset.hidden) {
@@ -1015,20 +1019,13 @@ const IMEManager = {
       return;
     }
 
-    var adjustTargetWindowHeight = (function showIMETransitionend() {
-      this.ime.removeEventListener(
-        'transitionend', adjustTargetWindowHeight);
-      this.updateTargetWindowHeight();
-    }).bind(this);
+    this.targetWindow = targetWindow;
+    targetWindow.dataset.cssHeight =
+      targetWindow.style.height;
+    targetWindow.dataset.rectHeight =
+      targetWindow.getBoundingClientRect().height;
 
-    this.ime.addEventListener(
-      'transitionend', adjustTargetWindowHeight);
-
-    // Start transition after the layout HTML is parsed
-    setTimeout((function startShowIME() {
-      delete this.ime.dataset.hidden;
-    }).bind(this), 0);
-
+    delete this.ime.dataset.hidden;
   },
 
   hideIME: function km_hideIME(targetWindow) {
@@ -1036,21 +1033,7 @@ const IMEManager = {
     if (this.ime.dataset.hidden)
       return;
 
-    var ime = this.ime;
-    var hideIMEafterTransition = (function hideIMEtransitionend(evt) {
-      ime.removeEventListener('transitionend', hideIMEafterTransition);
-
-      delete this.targetWindow;
-
-      delete targetWindow.dataset.cssHeight;
-      delete targetWindow.dataset.rectHeight;
-
-      ime.innerHTML = '';
-
-    }).bind(this);
-
-    ime.addEventListener('transitionend', hideIMEafterTransition);
-    ime.dataset.hidden = 'true';
+    this.ime.dataset.hidden = 'true';
     targetWindow.style.height = targetWindow.dataset.cssHeight;
 
   },
