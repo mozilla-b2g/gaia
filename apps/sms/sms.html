@@ -1,30 +1,52 @@
 <!DOCTYPE html>
 <html manifest="manifest.appcache">
   <head>
-    <meta charset="utf-8"> 
+    <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
 
     <link rel="stylesheet" type="text/css" href="style/sms.css">
     <script type="text/javascript" src="../../webapi.js"></script>
     <script type="text/javascript" src="js/sms.js"></script>
-    <title>SMS</title>
+    <title>Messages</title>
   </head>
 
-  <body onload="MessageView.init();">
-    <div id="messages" onclick="MessageView.openConversationView(event.target.getAttribute('data-num'))">
-    </div>
-
-    <div id="conversationView" hidden="true">
-      <form id="conversationForm" onsubmit="ConversationView.sendMessage(); return false;">
-        <input id="contact" class="filtered" type="tel" required="true" placeholder="To:" list="contacts"></input>
-        <datalist id="contacts"></datalist>
-        <div id="conversation" onclick="ConversationView.deleteMessage(event);"></div>
-
-        <div id="text-container">
-          <textarea id="text" type="textbox" placeholder="Type your message" onkeypress="onKeyPress(event);"></textarea>
-          <input id="send" type="submit" value="Send"></input>
+  <body>
+    <div id="msg-conversations" class="panel panel-0">
+      <div id="msg-toolbar" class="toolbar toolbar-top">
+        <div id="msg-search-container">
+          <input id="msg-search" type="search" />
         </div>
-      </form>
+      </div>
+      <div id="msg-conversation-list" class="list">
+      </div>
+      <div id="msg-bottom-toolbar" class="toolbar toolbar-bottom">
+        <div id="msg-new-message-container">
+          <button id="msg-new-message" class="button">New Message</button>
+        </div>
+      </div>
+    </div>
+    <div id="msg-conversation-view" class="panel panel-1">
+      <div id="msg-conversation-view-toolbar" class="toolbar toolbar-top">
+        <div id="msg-conversation-view-back">Messages</div>
+        <h2 id="msg-conversation-view-name">
+
+        </h2>
+        <input type="tel" id="msg-conversation-view-num" />
+        <div id="msg-conversation-view-edit-container">
+          <div id="msg-conversation-view-edit">Edit</div>
+        </div>
+      </div>
+      <div id="msg-conversation-view-msgs" class="list">
+      </div>
+      <div id="msg-conversation-view-bottom-toolbar" class="toolbar toolbar-bottom">
+        <div id="msg-conversation-view-msg-text-container">
+          <!-- XXX: should be textarea -->
+          <input type="text" id="msg-conversation-view-msg-text"></input>
+        </div>
+        <div id="msg-conversation-view-msg-send-container">
+          <button id="msg-conversation-view-msg-send" class="button">Send</button>
+        </div>
+      </div>
     </div>
   </body>
 </html>
