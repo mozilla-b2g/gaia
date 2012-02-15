@@ -61,7 +61,7 @@ const IMEManager = {
     }).bind(this);
 
     // XXX: Fallback if MozSettings timed out
-    var settingTimer = setTimeout(function () {
+    var settingTimer = setTimeout(function settingTimer() {
       dump('Keyboard: MozSettings timed out. Skip user settings.');
       completeSettingRequests();
 
@@ -100,7 +100,8 @@ const IMEManager = {
         if (keyboardSettingGroupKeys.indexOf(key) !== i)
           return;
 
-        dump('Having trouble getting setting for keyboard setting group: ' + key);
+        dump(
+          'Having trouble getting setting for keyboard setting group: ' + key);
 
         if (++i === keyboardSettingGroupKeys.length) {
           completeSettingRequests();
@@ -131,6 +132,7 @@ const IMEManager = {
       this.currentKeyboardMode = '';
       this.updateLayout();
     }
+    this.updateTargetWindowHeight();
   },
 
   get isSymbolLayout() {
@@ -145,6 +147,7 @@ const IMEManager = {
       this.currentKeyboardMode = 'Alternate';
       this.updateLayout('alternateLayout');
     }
+    this.updateTargetWindowHeight();
   },
 
   // backspace repeat delay and repeat rate
@@ -398,7 +401,7 @@ const IMEManager = {
   },
 
   events: ['mouseup', 'showime', 'hideime', 'unload', 'appclose'],
-  imeEvents: ['mousedown', 'mouseover', 'mouseleave'],
+  imeEvents: ['mousedown', 'mouseover', 'mouseleave', 'transitionend'],
   init: function km_init() {
     this.events.forEach((function attachEvents(type) {
       window.addEventListener(type, this);
@@ -513,6 +516,19 @@ const IMEManager = {
           this.hideIME(activeWindow);
         }).bind(this), 0);
 
+        break;
+
+      case 'transitionend':
+        if (!this.ime.dataset.hidden) { // showIME transitionend
+          this.updateTargetWindowHeight();
+        } else { // hideIME transitionend
+
+          delete this.targetWindow.dataset.cssHeight;
+          delete this.targetWindow.dataset.rectHeight;
+          delete this.targetWindow;
+
+          this.ime.innerHTML = '';
+        }
         break;
 
       case 'mousedown':
@@ -677,6 +693,7 @@ const IMEManager = {
               this.currentKeyboardMode = '';
               this.isUpperCase = false;
               this.updateLayout();
+              this.updateTargetWindowHeight();
 
               break;
             }
@@ -693,6 +710,8 @@ const IMEManager = {
             this.currentKeyboardMode = '';
             this.isUpperCase = false;
             this.updateLayout();
+            this.updateTargetWindowHeight();
+
           break;
 
           case this.TOGGLE_CANDIDATE_PANEL:
@@ -962,45 +981,14 @@ const IMEManager = {
       this.showCandidates([]);
       this.currentEngine.empty();
     }
-
-    this.updateKeyboardHeight();
   },
 
-  updateKeyboardHeight: function km_updateKeyboardHeight() {
-    var ime = this.ime;
-    var targetWindow = this.targetWindow;
-
-    if (ime.dataset.hidden) {
-      targetWindow.classList.add('keyboardTransition');
-      var showIMEafterTransition = function showIMEtransitionend(evt) {
-        targetWindow.classList.remove('keyboardTransition');
-        ime.removeEventListener('transitionend', showIMEafterTransition);
-      };
-      ime.addEventListener('transitionend', showIMEafterTransition);
-    }
-
-    // Need these to correctly measure scrollHeight
-    ime.style.height = null;
-    ime.style.overflowY = 'hidden';
-    var scrollHeight = ime.scrollHeight;
-    ime.style.overflowY = null;
-
-    targetWindow.style.height =
-      (targetWindow.dataset.rectHeight - scrollHeight) + 'px';
-    ime.style.height = scrollHeight + 'px';
+  updateTargetWindowHeight: function km_updateTargetWindowHeight() {
+    this.targetWindow.style.height =
+      (this.targetWindow.dataset.rectHeight - this.ime.scrollHeight) + 'px';
   },
 
   showIME: function km_showIME(targetWindow, type) {
-
-    if (targetWindow.classList.contains('keyboardTransition')) {
-      // keyboard is transitioning, run showIME after transition
-      var deferShowIMEafterTransition = (function deferShowIME(evt) {
-        targetWindow.removeEventListener('transitionend', deferShowIMEafterTransition);
-        this.showIME(targetWindow, type);
-      }).bind(this);
-      targetWindow.addEventListener('transitionend', deferShowIMEafterTransition);
-      return;
-    }
 
     switch (type) {
       // basic types
@@ -1024,18 +1012,20 @@ const IMEManager = {
       break;
     }
 
-    if (this.ime.dataset.hidden) {
-      // keyboard is in the quiet hidden state
-      this.targetWindow = targetWindow;
-      var oldHeight = targetWindow.style.height;
-      targetWindow.dataset.cssHeight = oldHeight;
-      targetWindow.dataset.rectHeight =
-        targetWindow.getBoundingClientRect().height;
+    this.updateLayout();
+
+    if (!this.ime.dataset.hidden) {
+      this.updateTargetWindowHeight();
+      return;
     }
 
-    this.updateLayout();
-    delete this.ime.dataset.hidden;
+    this.targetWindow = targetWindow;
+    targetWindow.dataset.cssHeight =
+      targetWindow.style.height;
+    targetWindow.dataset.rectHeight =
+      targetWindow.getBoundingClientRect().height;
 
+    delete this.ime.dataset.hidden;
   },
 
   hideIME: function km_hideIME(targetWindow) {
@@ -1043,30 +1033,8 @@ const IMEManager = {
     if (this.ime.dataset.hidden)
       return;
 
-    var ime = this.ime;
-    var hideIMEafterTransition = (function hideIMEtransitionend(evt) {
-      targetWindow.classList.remove('keyboardTransition');
-      ime.removeEventListener('transitionend', hideIMEafterTransition);
-
-      // hideIME is canceled by the showIME that fires after
-      if (ime.style.height !== '0px')
-        return;
-
-      delete this.targetWindow;
-
-      delete targetWindow.dataset.cssHeight;
-      delete targetWindow.dataset.rectHeight;
-      ime.dataset.hidden = 'true';
-      delete ime.style.height;
-
-      ime.innerHTML = '';
-
-    }).bind(this);
-
-    ime.addEventListener('transitionend', hideIMEafterTransition);
-    targetWindow.classList.add('keyboardTransition');
+    this.ime.dataset.hidden = 'true';
     targetWindow.style.height = targetWindow.dataset.cssHeight;
-    ime.style.height = '0px';
 
   },
 
@@ -1081,7 +1049,7 @@ const IMEManager = {
     if (!candidates.length) {
       toggleButton.className = '';
       candidatePanel.className = '';
-      this.updateKeyboardHeight();
+      this.updateTargetWindowHeight();
       return;
     }
 
@@ -1089,7 +1057,7 @@ const IMEManager = {
     candidatePanel.className = candidatePanel.className || 'show';
 
     if (toggleButton.className == 'show')
-      this.updateKeyboardHeight();
+      this.updateTargetWindowHeight();
 
     candidates.forEach(function buildCandidateEntry(candidate) {
       var span = document.createElement('span');
