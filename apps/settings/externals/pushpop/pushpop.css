@@ -1,0 +1,840 @@
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+}
+
+body {
+  background: #333 url('background.png');
+}
+
+/* NOTE: Use of .topbar has been removed in Bootstrap 2.x. */
+.navbar .container > .btn, .topbar .container > .btn {
+  background-color: #333;
+  background-repeat: no-repeat;
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#111), color-stop(25%, #111), to(#333));
+  background-image: -webkit-linear-gradient(#111, #111 25%, #333);
+  background-image: -moz-linear-gradient(top, #111, #111 25%, #333);
+  background-image: -ms-linear-gradient(#111, #111 25%, #333);
+  background-image: -o-linear-gradient(#111, #111 25%, #333);
+  background-image: linear-gradient(#111, #111 25%, #333);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#111', endColorstr='#333', GradientType=0);
+  border: 1px solid #111;
+  color: #fff;
+  text-shadow: 0 -1px 1px rgba(0, 0, 0, 1);
+  margin: 5px 32px 0 5px;
+  opacity: 1;
+  outline: none;
+  -webkit-transition: opacity 0.2s ease;
+  -moz-transition: opacity 0.2s ease;
+  -o-transition: opacity 0.2s ease;
+  transition: opacity 0.2s ease;
+}
+
+/* NOTE: Use of .topbar has been removed in Bootstrap 2.x. */
+.navbar .container > .btn:hover, .topbar .container > .btn:hover {
+  background-position: 0 -15px;
+  color: #eee;
+}
+
+/* NOTE: Use of .topbar has been removed in Bootstrap 2.x. */
+.navbar .container > .btn.disabled, .topbar .container > .btn.disabled {
+  opacity: 0;
+}
+
+.pp-view {
+  background-color: #fff;
+  display: none;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  -webkit-text-size-adjust: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -webkit-backface-visibility: hidden;
+  -moz-backface-visibility: hidden;
+  -o-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.pp-view.active, .pp-view.push, .pp-view.pop {
+  display: block;
+}
+
+.pp-view-stack {
+  position: absolute;
+  width: 100%;
+  top: 0;
+  bottom: 0;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  -webkit-perspective: 2000px;
+  -moz-perspective: 2000px;
+  -o-perspective: 2000px;
+  perspective: 2000px;
+}
+
+.pp-split-view-container {
+  position: absolute;
+  width: 100%;
+  top: 0;
+  bottom: 0;
+}
+
+.pp-split-view-container > .pp-split-view-master {
+  border-right: 1px solid #000;
+  position: absolute;
+  width: 300px;
+  height: 100%;
+  left: 0;
+}
+
+.pp-split-view-container > .pp-split-view-detail {
+  position: absolute;
+  height: 100%;
+  left: 301px;
+  right: 0;
+}
+
+/* NOTE: Use of .topbar has been removed in Bootstrap 2.x. */
+.navbar ~ .pp-view-stack, .topbar ~ .pp-view-stack,
+.navbar ~ .pp-split-view-container, .topbar ~ .pp-split-view-container {
+  top: 40px;
+}
+
+/* Transition: slide-horizontal (2D), flip-horizontal (2D), card-swap(2D) */
+.pp-view.slide-horizontal,
+.pp-view.flip-horizontal,
+.pp-view.card-swap {
+  -webkit-transition: -webkit-transform 0.5s ease;
+  -moz-transition: -moz-transform 0.5s ease;
+  -ms-transition: -ms-transform 0.5s ease;
+  -o-transition: -o-transform 0.5s ease;
+  transition: transform 0.5s ease;
+}
+
+.pp-view.push.slide-horizontal,
+.pp-view.push.flip-horizontal,
+.pp-view.push.card-swap {
+  -webkit-transform: translate(100%, 0);
+  -moz-transform: translate(100%, 0);
+  -ms-transform: translate(100%, 0);
+  -o-transform: translate(100%, 0);
+  transform: translate(100%, 0);
+}
+
+.pp-view.push.slide-horizontal.transition,
+.pp-view.push.flip-horizontal.transition,
+.pp-view.push.card-swap.transition {
+  -webkit-transform: translate(0, 0);
+  -moz-transform: translate(0, 0);
+  -ms-transform: translate(0, 0);
+  -o-transform: translate(0, 0);
+  transform: translate(0, 0);
+}
+
+.pp-view.push.slide-horizontal.active,
+.pp-view.push.flip-horizontal.active,
+.pp-view.push.card-swap.active {
+  -webkit-transform: translate(0, 0);
+  -moz-transform: translate(0, 0);
+  -ms-transform: translate(0, 0);
+  -o-transform: translate(0, 0);
+  transform: translate(0, 0);
+}
+
+.pp-view.push.slide-horizontal.active.transition,
+.pp-view.push.flip-horizontal.active.transition,
+.pp-view.push.card-swap.active.transition {
+  -webkit-transform: translate(-100%, 0);
+  -moz-transform: translate(-100%, 0);
+  -ms-transform: translate(-100%, 0);
+  -o-transform: translate(-100%, 0);
+  transform: translate(-100%, 0);
+}
+
+.pp-view.pop.slide-horizontal,
+.pp-view.pop.flip-horizontal,
+.pp-view.pop.card-swap {
+  -webkit-transform: translate(-100%, 0);
+  -moz-transform: translate(-100%, 0);
+  -ms-transform: translate(-100%, 0);
+  -o-transform: translate(-100%, 0);
+  transform: translate(-100%, 0);
+}
+
+.pp-view.pop.slide-horizontal.transition,
+.pp-view.pop.flip-horizontal.transition,
+.pp-view.pop.card-swap.transition {
+  -webkit-transform: translate(0, 0);
+  -moz-transform: translate(0, 0);
+  -ms-transform: translate(0, 0);
+  -o-transform: translate(0, 0);
+  transform: translate(0, 0);
+}
+
+.pp-view.pop.slide-horizontal.active,
+.pp-view.pop.flip-horizontal.active,
+.pp-view.pop.card-swap.active {
+  -webkit-transform: translate(0, 0);
+  -moz-transform: translate(0, 0);
+  -ms-transform: translate(0, 0);
+  -o-transform: translate(0, 0);
+  transform: translate(0, 0);
+}
+
+.pp-view.pop.slide-horizontal.active.transition,
+.pp-view.pop.flip-horizontal.active.transition,
+.pp-view.pop.card-swap.active.transition {
+  -webkit-transform: translate(100%, 0);
+  -moz-transform: translate(100%, 0);
+  -ms-transform: translate(100%, 0);
+  -o-transform: translate(100%, 0);
+  transform: translate(100%, 0);
+}
+
+/* Transition: slide-horizontal (3D) */
+.csstransforms3d .pp-view.slide-horizontal {
+  -webkit-transition: -webkit-transform 0.5s ease;
+  -moz-transition: -moz-transform 0.5s ease;
+  -ms-transition: -ms-transform 0.5s ease;
+  -o-transition: -o-transform 0.5s ease;
+  transition: transform 0.5s ease;
+}
+.csstransforms3d .pp-view.push.slide-horizontal {
+  -webkit-transform: translate3d(100%, 0, 0);
+  -moz-transform: translate3d(100%, 0, 0);
+  -ms-transform: translate3d(100%, 0, 0);
+  -o-transform: translate3d(100%, 0, 0);
+  transform: translate3d(100%, 0, 0);
+}
+.csstransforms3d .pp-view.push.slide-horizontal.transition {
+  -webkit-transform: translate3d(0, 0, 0);
+  -moz-transform: translate3d(0, 0, 0);
+  -ms-transform: translate3d(0, 0, 0);
+  -o-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+}
+.csstransforms3d .pp-view.push.slide-horizontal.active {
+  -webkit-transform: translate3d(0, 0, 0);
+  -moz-transform: translate3d(0, 0, 0);
+  -ms-transform: translate3d(0, 0, 0);
+  -o-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+}
+.csstransforms3d .pp-view.push.slide-horizontal.active.transition {
+  -webkit-transform: translate3d(-100%, 0, 0);
+  -moz-transform: translate3d(-100%, 0, 0);
+  -ms-transform: translate3d(-100%, 0, 0);
+  -o-transform: translate3d(-100%, 0, 0);
+  transform: translate3d(-100%, 0, 0);
+}
+.csstransforms3d .pp-view.pop.slide-horizontal {
+  -webkit-transform: translate3d(-100%, 0, 0);
+  -moz-transform: translate3d(-100%, 0, 0);
+  -ms-transform: translate3d(-100%, 0, 0);
+  -o-transform: translate3d(-100%, 0, 0);
+  transform: translate3d(-100%, 0, 0);
+}
+.csstransforms3d .pp-view.pop.slide-horizontal.transition {
+  -webkit-transform: translate3d(0, 0, 0);
+  -moz-transform: translate3d(0, 0, 0);
+  -ms-transform: translate3d(0, 0, 0);
+  -o-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+}
+.csstransforms3d .pp-view.pop.slide-horizontal.active {
+  -webkit-transform: translate3d(0, 0, 0);
+  -moz-transform: translate3d(0, 0, 0);
+  -ms-transform: translate3d(0, 0, 0);
+  -o-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+}
+.csstransforms3d .pp-view.pop.slide-horizontal.active.transition {
+  -webkit-transform: translate3d(100%, 0, 0);
+  -moz-transform: translate3d(100%, 0, 0);
+  -ms-transform: translate3d(100%, 0, 0);
+  -o-transform: translate3d(100%, 0, 0);
+  transform: translate3d(100%, 0, 0);
+}
+
+/* Transition: slide-vertical (2D), flip-vertical (2D) */
+.pp-view.slide-vertical,
+.pp-view.flip-vertical {
+  -webkit-box-shadow: 0 -2px 16px 6px rgba(0, 0, 0, 0.6); /* NOTE: Possible performance implications on some devices/browsers. */
+  -moz-box-shadow: 0 -2px 16px 6px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 -2px 16px 6px rgba(0, 0, 0, 0.6);
+  -webkit-transition: -webkit-transform 0.5s ease;
+  -moz-transition: -moz-transform 0.5s ease;
+  -ms-transition: -ms-transform 0.5s ease;
+  -o-transition: -o-transform 0.5s ease;
+  transition: transform 0.5s ease;
+}
+
+.pp-view.push.slide-vertical,
+.pp-view.push.flip-vertical {
+  z-index: 1;
+  -webkit-transform: translate(0, -100%);
+  -moz-transform: translate(0, -100%);
+  -ms-transform: translate(0, -100%);
+  -o-transform: translate(0, -100%);
+  transform: translate(0, -100%);
+}
+
+.pp-view.push.slide-vertical.transition,
+.pp-view.push.flip-vertical.transition {
+  -webkit-transform: translate(0, 0);
+  -moz-transform: translate(0, 0);
+  -ms-transform: translate(0, 0);
+  -o-transform: translate(0, 0);
+  transform: translate(0, 0);
+}
+
+.pp-view.push.slide-vertical.active,
+.pp-view.push.flip-vertical.active {
+  z-index: 0;
+  -webkit-transform: translate(0, 0);
+  -moz-transform: translate(0, 0);
+  -ms-transform: translate(0, 0);
+  -o-transform: translate(0, 0);
+  transform: translate(0, 0);
+}
+
+.pp-view.push.slide-vertical.active.transition,
+.pp-view.push.flip-vertical.active.transition {
+  -webkit-transform: translate(0, 1%);
+  -moz-transform: translate(0, 1%);
+  -ms-transform: translate(0, 1%);
+  -o-transform: translate(0, 1%);
+  transform: translate(0, 1%);
+}
+
+.pp-view.pop.slide-vertical,
+.pp-view.pop.flip-vertical {
+  z-index: 0;
+  -webkit-transform: translate(0, 1%);
+  -moz-transform: translate(0, 1%);
+  -ms-transform: translate(0, 1%);
+  -o-transform: translate(0, 1%);
+  transform: translate(0, 1%);
+}
+
+.pp-view.pop.slide-vertical.transition,
+.pp-view.pop.flip-vertical.transition {
+  -webkit-transform: translate(0, 0);
+  -moz-transform: translate(0, 0);
+  -ms-transform: translate(0, 0);
+  -o-transform: translate(0, 0);
+  transform: translate(0, 0);
+}
+
+.pp-view.pop.slide-vertical.active,
+.pp-view.pop.flip-vertical.active {
+  z-index: 1;
+  -webkit-transform: translate(0, 0);
+  -moz-transform: translate(0, 0);
+  -ms-transform: translate(0, 0);
+  -o-transform: translate(0, 0);
+  transform: translate(0, 0);
+}
+
+.pp-view.pop.slide-vertical.active.transition,
+.pp-view.pop.flip-vertical.active.transition {
+  -webkit-transform: translate(0, -100%);
+  -moz-transform: translate(0, -100%);
+  -ms-transform: translate(0, -100%);
+  -o-transform: translate(0, -100%);
+  transform: translate(0, -100%);
+}
+
+/* Transition: slide-vertical (3D) */
+.csstransforms3d .pp-view.slide-vertical {
+  -webkit-box-shadow: 0 -2px 16px 6px rgba(0, 0, 0, 0.6); /* NOTE: Possible performance implications on some devices/browsers. */
+  -moz-box-shadow: 0 -2px 16px 6px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 -2px 16px 6px rgba(0, 0, 0, 0.6);
+  -webkit-transition: -webkit-transform 0.5s ease;
+  -moz-transition: -moz-transform 0.5s ease;
+  -ms-transition: -ms-transform 0.5s ease;
+  -o-transition: -o-transform 0.5s ease;
+  transition: transform 0.5s ease;
+}
+.csstransforms3d .pp-view.push.slide-vertical {
+  z-index: 1;
+  -webkit-transform: translate3d(0, -100%, 0);
+  -moz-transform: translate3d(0, -100%, 0);
+  -ms-transform: translate3d(0, -100%, 0);
+  -o-transform: translate3d(0, -100%, 0);
+  transform: translate3d(0, -100%, 0);
+}
+.csstransforms3d .pp-view.push.slide-vertical.transition {
+  -webkit-transform: translate3d(0, 0, 0);
+  -moz-transform: translate3d(0, 0, 0);
+  -ms-transform: translate3d(0, 0, 0);
+  -o-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+}
+.csstransforms3d .pp-view.push.slide-vertical.active {
+  z-index: 0;
+  -webkit-transform: translate3d(0, 0, 0);
+  -moz-transform: translate3d(0, 0, 0);
+  -ms-transform: translate3d(0, 0, 0);
+  -o-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+}
+.csstransforms3d .pp-view.push.slide-vertical.active.transition {
+  -webkit-transform: translate3d(0, 1%, 0);
+  -moz-transform: translate3d(0, 1%, 0);
+  -ms-transform: translate3d(0, 1%, 0);
+  -o-transform: translate3d(0, 1%, 0);
+  transform: translate3d(0, 1%, 0);
+}
+.csstransforms3d .pp-view.pop.slide-vertical {
+  z-index: 0;
+  -webkit-transform: translate3d(0, 1%, 0);
+  -moz-transform: translate3d(0, 1%, 0);
+  -ms-transform: translate3d(0, 1%, 0);
+  -o-transform: translate3d(0, 1%, 0);
+  transform: translate3d(0, 1%, 0);
+}
+.csstransforms3d .pp-view.pop.slide-vertical.transition {
+  -webkit-transform: translate3d(0, 0, 0);
+  -moz-transform: translate3d(0, 0, 0);
+  -ms-transform: translate3d(0, 0, 0);
+  -o-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+}
+.csstransforms3d .pp-view.pop.slide-vertical.active {
+  z-index: 1;
+  -webkit-transform: translate3d(0, 0, 0);
+  -moz-transform: translate3d(0, 0, 0);
+  -ms-transform: translate3d(0, 0, 0);
+  -o-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+}
+.csstransforms3d .pp-view.pop.slide-vertical.active.transition {
+  -webkit-transform: translate3d(0, -100%, 0);
+  -moz-transform: translate3d(0, -100%, 0);
+  -ms-transform: translate3d(0, -100%, 0);
+  -o-transform: translate3d(0, -100%, 0);
+  transform: translate3d(0, -100%, 0);
+}
+
+/* Transition: flip-horizontal (3D) */
+.csstransforms3d .pp-view.flip-horizontal {
+  -webkit-box-shadow: 0 -2px 16px 6px rgba(0, 0, 0, 0.6); /* NOTE: Possible performance implications on some devices/browsers. */
+  -moz-box-shadow: 0 -2px 16px 6px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 -2px 16px 6px rgba(0, 0, 0, 0.6);
+  -webkit-transition: -webkit-transform 1s ease;
+  -moz-transition: -moz-transform 1s ease;
+  -ms-transition: -ms-transform 1s ease;
+  -o-transition: -o-transform 1s ease;
+  transition: transform 1s ease;
+}
+.csstransforms3d .pp-view.push.flip-horizontal {
+  -webkit-transform: rotate3d(0, 1, 0, 180deg);
+  -moz-transform: rotate3d(0, 1, 0, 180deg);
+  -ms-transform: rotate3d(0, 1, 0, 180deg);
+  -o-transform: rotate3d(0, 1, 0, 180deg);
+  transform: rotate3d(0, 1, 0, 180deg);
+}
+.csstransforms3d .pp-view.push.flip-horizontal.transition {
+  -webkit-transform: rotate3d(0, 1, 0, 0deg);
+  -moz-transform: rotate3d(0, 1, 0, 0deg);
+  -ms-transform: rotate3d(0, 1, 0, 0deg);
+  -o-transform: rotate3d(0, 1, 0, 0deg);
+  transform: rotate3d(0, 1, 0, 0deg);
+}
+.csstransforms3d .pp-view.push.flip-horizontal.active {
+  -webkit-transform: rotate3d(0, 1, 0, 0deg);
+  -moz-transform: rotate3d(0, 1, 0, 0deg);
+  -ms-transform: rotate3d(0, 1, 0, 0deg);
+  -o-transform: rotate3d(0, 1, 0, 0deg);
+  transform: rotate3d(0, 1, 0, 0deg);
+}
+.csstransforms3d .pp-view.push.flip-horizontal.active.transition {
+  -webkit-transform: rotate3d(0, 1, 0, -180deg);
+  -moz-transform: rotate3d(0, 1, 0, -180deg);
+  -ms-transform: rotate3d(0, 1, 0, -180deg);
+  -o-transform: rotate3d(0, 1, 0, -180deg);
+  transform: rotate3d(0, 1, 0, -180deg);
+}
+.csstransforms3d .pp-view.pop.flip-horizontal {
+  -webkit-transform: rotate3d(0, 1, 0, -180deg);
+  -moz-transform: rotate3d(0, 1, 0, -180deg);
+  -ms-transform: rotate3d(0, 1, 0, -180deg);
+  -o-transform: rotate3d(0, 1, 0, -180deg);
+  transform: rotate3d(0, 1, 0, -180deg);
+}
+.csstransforms3d .pp-view.pop.flip-horizontal.transition {
+  -webkit-transform: rotate3d(0, 1, 0, 0deg);
+  -moz-transform: rotate3d(0, 1, 0, 0deg);
+  -ms-transform: rotate3d(0, 1, 0, 0deg);
+  -o-transform: rotate3d(0, 1, 0, 0deg);
+  transform: rotate3d(0, 1, 0, 0deg);
+}
+.csstransforms3d .pp-view.pop.flip-horizontal.active {
+  -webkit-transform: rotate3d(0, 1, 0, 0deg);
+  -moz-transform: rotate3d(0, 1, 0, 0deg);
+  -ms-transform: rotate3d(0, 1, 0, 0deg);
+  -o-transform: rotate3d(0, 1, 0, 0deg);
+  transform: rotate3d(0, 1, 0, 0deg);
+}
+.csstransforms3d .pp-view.pop.flip-horizontal.active.transition {
+  -webkit-transform: rotate3d(0, 1, 0, 180deg);
+  -moz-transform: rotate3d(0, 1, 0, 180deg);
+  -ms-transform: rotate3d(0, 1, 0, 180deg);
+  -o-transform: rotate3d(0, 1, 0, 180deg);
+  transform: rotate3d(0, 1, 0, 180deg);
+}
+
+/* Transition: flip-vertical (3D) */
+.csstransforms3d .pp-view.flip-vertical {
+  -webkit-box-shadow: 0 -2px 16px 6px rgba(0, 0, 0, 0.6); /* NOTE: Possible performance implications on some devices/browsers. */
+  -moz-box-shadow: 0 -2px 16px 6px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 -2px 16px 6px rgba(0, 0, 0, 0.6);
+  -webkit-transition: -webkit-transform 1s ease;
+  -moz-transition: -moz-transform 1s ease;
+  -ms-transition: -ms-transform 1s ease;
+  -o-transition: -o-transform 1s ease;
+  transition: transform 1s ease;
+}
+.csstransforms3d .pp-view.push.flip-vertical {
+  -webkit-transform: rotate3d(1, 0, 0, -180deg);
+  -moz-transform: rotate3d(1, 0, 0, -180deg);
+  -ms-transform: rotate3d(1, 0, 0, -180deg);
+  -o-transform: rotate3d(1, 0, 0, -180deg);
+  transform: rotate3d(1, 0, 0, -180deg);
+}
+.csstransforms3d .pp-view.push.flip-vertical.transition {
+  -webkit-transform: rotate3d(1, 0, 0, 0deg);
+  -moz-transform: rotate3d(1, 0, 0, 0deg);
+  -ms-transform: rotate3d(1, 0, 0, 0deg);
+  -o-transform: rotate3d(1, 0, 0, 0deg);
+  transform: rotate3d(1, 0, 0, 0deg);
+}
+.csstransforms3d .pp-view.push.flip-vertical.active {
+  -webkit-transform: rotate3d(1, 0, 0, 0deg);
+  -moz-transform: rotate3d(1, 0, 0, 0deg);
+  -ms-transform: rotate3d(1, 0, 0, 0deg);
+  -o-transform: rotate3d(1, 0, 0, 0deg);
+  transform: rotate3d(1, 0, 0, 0deg);
+}
+.csstransforms3d .pp-view.push.flip-vertical.active.transition {
+  -webkit-transform: rotate3d(1, 0, 0, 180deg);
+  -moz-transform: rotate3d(1, 0, 0, 180deg);
+  -ms-transform: rotate3d(1, 0, 0, 180deg);
+  -o-transform: rotate3d(1, 0, 0, 180deg);
+  transform: rotate3d(1, 0, 0, 180deg);
+}
+.csstransforms3d .pp-view.pop.flip-vertical {
+  -webkit-transform: rotate3d(1, 0, 0, 180deg);
+  -moz-transform: rotate3d(1, 0, 0, 180deg);
+  -ms-transform: rotate3d(1, 0, 0, 180deg);
+  -o-transform: rotate3d(1, 0, 0, 180deg);
+  transform: rotate3d(1, 0, 0, 180deg);
+}
+.csstransforms3d .pp-view.pop.flip-vertical.transition {
+  -webkit-transform: rotate3d(1, 0, 0, 0deg);
+  -moz-transform: rotate3d(1, 0, 0, 0deg);
+  -ms-transform: rotate3d(1, 0, 0, 0deg);
+  -o-transform: rotate3d(1, 0, 0, 0deg);
+  transform: rotate3d(1, 0, 0, 0deg);
+}
+.csstransforms3d .pp-view.pop.flip-vertical.active {
+  -webkit-transform: rotate3d(1, 0, 0, 0deg);
+  -moz-transform: rotate3d(1, 0, 0, 0deg);
+  -ms-transform: rotate3d(1, 0, 0, 0deg);
+  -o-transform: rotate3d(1, 0, 0, 0deg);
+  transform: rotate3d(1, 0, 0, 0deg);
+}
+.csstransforms3d .pp-view.pop.flip-vertical.active.transition {
+  -webkit-transform: rotate3d(1, 0, 0, -180deg);
+  -moz-transform: rotate3d(1, 0, 0, -180deg);
+  -ms-transform: rotate3d(1, 0, 0, -180deg);
+  -o-transform: rotate3d(1, 0, 0, -180deg);
+  transform: rotate3d(1, 0, 0, -180deg);
+}
+
+/* Transition: card-swap (3D) */
+.csstransforms3d .pp-view.card-swap {
+  -webkit-box-shadow: 0 -2px 16px 6px rgba(0, 0, 0, 0.6); /* NOTE: Possible performance implications on some devices/browsers. */
+  -moz-box-shadow: 0 -2px 16px 6px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 -2px 16px 6px rgba(0, 0, 0, 0.6);
+  -webkit-transition: -webkit-transform 0.75s cubic-bezier(0.25, 1, 0.5, 0.25);
+  -moz-transition: -moz-transform 0.75s cubic-bezier(0.25, 1, 0.5, 0.25);
+  -ms-transition: -ms-transform 0.75s cubic-bezier(0.25, 1, 0.5, 0.25);
+  -o-transition: -o-transform 0.75s cubic-bezier(0.25, 1, 0.5, 0.25);
+  transition: transform 0.75s cubic-bezier(0.25, 1, 0.5, 0.25);
+}
+.csstransforms3d .pp-view.push.card-swap {
+  -webkit-transform: rotate3d(0, 1, 0, -30deg) translate3d(100%, 0, -2000px);
+  -moz-transform: rotate3d(0, 1, 0, -30deg) translate3d(100%, 0, -2000px);
+  -ms-transform: rotate3d(0, 1, 0, -30deg) translate3d(100%, 0, -2000px);
+  -o-transform: rotate3d(0, 1, 0, -30deg) translate3d(100%, 0, -2000px);
+  transform: rotate3d(0, 1, 0, -30deg) translate3d(100%, 0, -2000px);
+}
+.csstransforms3d .pp-view.push.card-swap.transition {
+  -webkit-transform: rotate3d(0, 1, 0, 0deg) translate3d(0, 0, 0);
+  -moz-transform: rotate3d(0, 1, 0, 0deg) translate3d(0, 0, 0);
+  -ms-transform: rotate3d(0, 1, 0, 0deg) translate3d(0, 0, 0);
+  -o-transform: rotate3d(0, 1, 0, 0deg) translate3d(0, 0, 0);
+  transform: rotate3d(0, 1, 0, 0deg) translate3d(0, 0, 0);
+}
+.csstransforms3d .pp-view.push.card-swap.active {
+  -webkit-transform: rotate3d(0, 1, 0, 0deg) translate3d(0, 0, 0);
+  -moz-transform: rotate3d(0, 1, 0, 0deg) translate3d(0, 0, 0);
+  -ms-transform: rotate3d(0, 1, 0, 0deg) translate3d(0, 0, 0);
+  -o-transform: rotate3d(0, 1, 0, 0deg) translate3d(0, 0, 0);
+  transform: rotate3d(0, 1, 0, 0deg) translate3d(0, 0, 0);
+}
+.csstransforms3d .pp-view.push.card-swap.active.transition {
+  -webkit-transform: rotate3d(0, 1, 0, 50deg) translate3d(0, 0, -1500px);
+  -moz-transform: rotate3d(0, 1, 0, 50deg) translate3d(0, 0, -1500px);
+  -ms-transform: rotate3d(0, 1, 0, 50deg) translate3d(0, 0, -1500px);
+  -o-transform: rotate3d(0, 1, 0, 50deg) translate3d(0, 0, -1500px);
+  transform: rotate3d(0, 1, 0, 50deg) translate3d(0, 0, -1500px);
+}
+.csstransforms3d .pp-view.pop.card-swap {
+  -webkit-transform: rotate3d(0, 1, 0, 30deg) translate3d(-100%, 0, -2000px);
+  -moz-transform: rotate3d(0, 1, 0, 30deg) translate3d(-100%, 0, -2000px);
+  -ms-transform: rotate3d(0, 1, 0, 30deg) translate3d(-100%, 0, -2000px);
+  -o-transform: rotate3d(0, 1, 0, 30deg) translate3d(-100%, 0, -2000px);
+  transform: rotate3d(0, 1, 0, 30deg) translate3d(-100%, 0, -2000px);
+}
+.csstransforms3d .pp-view.pop.card-swap.transition {
+  -webkit-transform: rotate3d(0, 1, 0, 0deg) translate3d(0, 0, 0);
+  -moz-transform: rotate3d(0, 1, 0, 0deg) translate3d(0, 0, 0);
+  -ms-transform: rotate3d(0, 1, 0, 0deg) translate3d(0, 0, 0);
+  -o-transform: rotate3d(0, 1, 0, 0deg) translate3d(0, 0, 0);
+  transform: rotate3d(0, 1, 0, 0deg) translate3d(0, 0, 0);
+}
+.csstransforms3d .pp-view.pop.card-swap.active {
+  -webkit-transform: rotate3d(0, 1, 0, 0deg) translate3d(0, 0, 0);
+  -moz-transform: rotate3d(0, 1, 0, 0deg) translate3d(0, 0, 0);
+  -ms-transform: rotate3d(0, 1, 0, 0deg) translate3d(0, 0, 0);
+  -o-transform: rotate3d(0, 1, 0, 0deg) translate3d(0, 0, 0);
+  transform: rotate3d(0, 1, 0, 0deg) translate3d(0, 0, 0);
+}
+.csstransforms3d .pp-view.pop.card-swap.active.transition {
+  -webkit-transform: rotate3d(0, 1, 0, -50deg) translate3d(0, 0, -1500px);
+  -moz-transform: rotate3d(0, 1, 0, -50deg) translate3d(0, 0, -1500px);
+  -ms-transform: rotate3d(0, 1, 0, -50deg) translate3d(0, 0, -1500px);
+  -o-transform: rotate3d(0, 1, 0, -50deg) translate3d(0, 0, -1500px);
+  transform: rotate3d(0, 1, 0, -50deg) translate3d(0, 0, -1500px);
+}
+
+/* Transition: zoom (2D) */
+.pp-view.zoom {
+  -webkit-transition-property: -webkit-transform, opacity;
+  -webkit-transition-duration: 0.5s, 0.5s;
+  -webkit-transition-timing-function: ease, ease;
+  -moz-transition-property: -moz-transform, opacity;
+  -moz-transition-duration: 0.5s, 0.5s;
+  -moz-transition-timing-function: ease, ease;
+  -ms-transition-property: -ms-transform, opacity;
+  -ms-transition-duration: 0.5s, 0.5s;
+  -ms-transition-timing-function: ease, ease;
+  -o-transition-property: -o-transform, opacity;
+  -o-transition-duration: 0.5s, 0.5s;
+  -o-transition-timing-function: ease, ease;
+  transition-property: transform, opacity;
+  transition-duration: 0.5s, 0.5s;
+  transition-timing-function: ease, ease;
+}
+.pp-view.push.zoom {
+  z-index: 1;
+  opacity: 0.75;
+  -webkit-transform: scale(0.75, 0.75);
+  -moz-transform: scale(0.75, 0.75);
+  -ms-transform: scale(0.75, 0.75);
+  -o-transform: scale(0.75, 0.75);
+  transform: scale(0.75, 0.75);
+}
+.pp-view.push.zoom.transition {
+  opacity: 1;
+  -webkit-transform: scale(1, 1);
+  -moz-transform: scale(1, 1);
+  -ms-transform: scale(1, 1);
+  -o-transform: scale(1, 1);
+  transform: scale(1, 1);
+}
+.pp-view.push.zoom.active {
+  z-index: 2;
+  opacity: 1;
+  -webkit-transform: scale(1, 1);
+  -moz-transform: scale(1, 1);
+  -ms-transform: scale(1, 1);
+  -o-transform: scale(1, 1);
+  transform: scale(1, 1);
+}
+.pp-view.push.zoom.active.transition {
+  opacity: 0;
+  -webkit-transform: scale(1.5, 1.5);
+  -moz-transform: scale(1.5, 1.5);
+  -ms-transform: scale(1.5, 1.5);
+  -o-transform: scale(1.5, 1.5);
+  transform: scale(1.5, 1.5);
+}
+.pp-view.pop.zoom {
+  z-index: 2;
+  opacity: 0;
+  -webkit-transform: scale(1.5, 1.5);
+  -moz-transform: scale(1.5, 1.5);
+  -ms-transform: scale(1.5, 1.5);
+  -o-transform: scale(1.5, 1.5);
+  transform: scale(1.5, 1.5);
+}
+.pp-view.pop.zoom.transition {
+  opacity: 1;
+  -webkit-transform: scale(1, 1);
+  -moz-transform: scale(1, 1);
+  -ms-transform: scale(1, 1);
+  -o-transform: scale(1, 1);
+  transform: scale(1, 1);
+}
+.pp-view.pop.zoom.active {
+  z-index: 1;
+  opacity: 1;
+  -webkit-transform: scale(1, 1);
+  -moz-transform: scale(1, 1);
+  -ms-transform: scale(1, 1);
+  -o-transform: scale(1, 1);
+  transform: scale(1, 1);
+}
+.pp-view.pop.zoom.active.transition {
+  opacity: 0.75;
+  -webkit-transform: scale(0.75, 0.75);
+  -moz-transform: scale(0.75, 0.75);
+  -ms-transform: scale(0.75, 0.75);
+  -o-transform: scale(0.75, 0.75);
+  transform: scale(0.75, 0.75);
+}
+
+/* Transition: zoom (3D) */
+.csstransforms3d .pp-view.zoom {
+  -webkit-transition-property: -webkit-transform, opacity;
+  -webkit-transition-duration: 0.5s, 0.5s;
+  -webkit-transition-timing-function: ease, ease;
+  -moz-transition-property: -moz-transform, opacity;
+  -moz-transition-duration: 0.5s, 0.5s;
+  -moz-transition-timing-function: ease, ease;
+  -ms-transition-property: -ms-transform, opacity;
+  -ms-transition-duration: 0.5s, 0.5s;
+  -ms-transition-timing-function: ease, ease;
+  -o-transition-property: -o-transform, opacity;
+  -o-transition-duration: 0.5s, 0.5s;
+  -o-transition-timing-function: ease, ease;
+  transition-property: transform, opacity;
+  transition-duration: 0.5s, 0.5s;
+  transition-timing-function: ease, ease;
+}
+.csstransforms3d .pp-view.push.zoom {
+  z-index: 1;
+  opacity: 0.75;
+  -webkit-transform: scale3d(0.75, 0.75, 1);
+  -moz-transform: scale3d(0.75, 0.75, 1);
+  -ms-transform: scale3d(0.75, 0.75, 1);
+  -o-transform: scale3d(0.75, 0.75, 1);
+  transform: scale3d(0.75, 0.75, 1);
+}
+.csstransforms3d .pp-view.push.zoom.transition {
+  opacity: 1;
+  -webkit-transform: scale3d(1, 1, 1);
+  -moz-transform: scale3d(1, 1, 1);
+  -ms-transform: scale3d(1, 1, 1);
+  -o-transform: scale3d(1, 1, 1);
+  transform: scale3d(1, 1, 1);
+}
+.csstransforms3d .pp-view.push.zoom.active {
+  z-index: 2;
+  opacity: 1;
+  -webkit-transform: scale3d(1, 1, 1);
+  -moz-transform: scale3d(1, 1, 1);
+  -ms-transform: scale3d(1, 1, 1);
+  -o-transform: scale3d(1, 1, 1);
+  transform: scale3d(1, 1, 1);
+}
+.csstransforms3d .pp-view.push.zoom.active.transition {
+  opacity: 0;
+  -webkit-transform: scale3d(1.5, 1.5, 1);
+  -moz-transform: scale3d(1.5, 1.5, 1);
+  -ms-transform: scale3d(1.5, 1.5, 1);
+  -o-transform: scale3d(1.5, 1.5, 1);
+  transform: scale3d(1.5, 1.5, 1);
+}
+.csstransforms3d .pp-view.pop.zoom {
+  z-index: 2;
+  opacity: 0;
+  -webkit-transform: scale3d(1.5, 1.5, 1);
+  -moz-transform: scale3d(1.5, 1.5, 1);
+  -ms-transform: scale3d(1.5, 1.5, 1);
+  -o-transform: scale3d(1.5, 1.5, 1);
+  transform: scale3d(1.5, 1.5, 1);
+}
+.csstransforms3d .pp-view.pop.zoom.transition {
+  opacity: 1;
+  -webkit-transform: scale3d(1, 1, 1);
+  -moz-transform: scale3d(1, 1, 1);
+  -ms-transform: scale3d(1, 1, 1);
+  -o-transform: scale3d(1, 1, 1);
+  transform: scale3d(1, 1, 1);
+}
+.csstransforms3d .pp-view.pop.zoom.active {
+  z-index: 1;
+  opacity: 1;
+  -webkit-transform: scale3d(1, 1, 1);
+  -moz-transform: scale3d(1, 1, 1);
+  -ms-transform: scale3d(1, 1, 1);
+  -o-transform: scale3d(1, 1, 1);
+  transform: scale3d(1, 1, 1);
+}
+.csstransforms3d .pp-view.pop.zoom.active.transition {
+  opacity: 0.75;
+  -webkit-transform: scale3d(0.75, 0.75, 1);
+  -moz-transform: scale3d(0.75, 0.75, 1);
+  -ms-transform: scale3d(0.75, 0.75, 1);
+  -o-transform: scale3d(0.75, 0.75, 1);
+  transform: scale3d(0.75, 0.75, 1);
+}
+
+/* Transition: cross-fade */
+.pp-view.cross-fade {
+  -webkit-transition: opacity 0.5s ease;
+  -moz-transition: opacity 0.5s ease;
+  -ms-transition: opacity 0.5s ease;
+  -o-transition: opacity 0.5s ease;
+  transition: opacity 0.5s ease;
+}
+.pp-view.push.cross-fade {
+  z-index: 1;
+  opacity: 0.75;
+}
+.pp-view.push.cross-fade.transition {
+  opacity: 1;
+}
+.pp-view.push.cross-fade.active {
+  z-index: 2;
+  opacity: 1;
+}
+.pp-view.push.cross-fade.active.transition {
+  opacity: 0;
+}
+.pp-view.pop.cross-fade {
+  z-index: 2;
+  opacity: 0;
+}
+.pp-view.pop.cross-fade.transition {
+  opacity: 1;
+}
+.pp-view.pop.cross-fade.active {
+  z-index: 1;
+  opacity: 1;
+}
+.pp-view.pop.cross-fade.active.transition {
+  opacity: 0.75;
+}
