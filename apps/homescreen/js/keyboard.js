@@ -30,7 +30,7 @@ const IMEManager = {
     'cyrillic': ['ru', 'sr-Cyrl'],
     'hebrew': ['he'],
     'zhuying': ['zh-Hant-Zhuying'],
-    'pinyin': ['zh-Hans-Pinying']
+    'pinyin': ['zh-Hans-Pinyin']
   },
 
   kMozSettingsTimeout: 800,

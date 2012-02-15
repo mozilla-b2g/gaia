@@ -275,9 +275,9 @@ const Keyboards = {
       [ { value: "空格", ratio: 9, keyCode: KeyboardEvent.DOM_VK_SPACE }, { value: "換行", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ]
   },
-  'zh-Hans-Pinying': {
+  'zh-Hans-Pinyin': {
     type: 'ime',
-    label: 'Chinese - Simplified - Pinying',
+    label: 'Chinese - Simplified - Pinyin',
     menuLabel: '简体拼音输入',
     needsCandidatePanel: true,
     imEngine: 'jspinyin',
