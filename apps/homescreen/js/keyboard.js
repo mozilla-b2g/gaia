@@ -969,9 +969,6 @@ const IMEManager = {
     }
   },
 
-  updateKeyboardHeight: function km_updateKeyboardHeight() {
-  },
-
   updateTargetWindowHeight: function km_updateTargetWindowHeight() {
     this.targetWindow.style.height =
       (this.targetWindow.dataset.rectHeight - this.ime.scrollHeight) + 'px';
