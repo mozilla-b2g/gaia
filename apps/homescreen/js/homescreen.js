@@ -104,7 +104,7 @@ DefaultPhysics.prototype = {
     var small = Math.abs(diffX) < 20;
 
     var flick = quick && !small;
-    var tap = !this.moved && small;
+    var tap = small;
     var drag = !quick;
 
     var iconGrid = this.iconGrid;
