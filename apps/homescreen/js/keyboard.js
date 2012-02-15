@@ -1015,7 +1015,7 @@ const IMEManager = {
       return;
     }
 
-    var adjustTargetWindowHeight = (function adjustTargetWindowHeight() {
+    var adjustTargetWindowHeight = (function showIMETransitionend() {
       this.ime.removeEventListener(
         'transitionend', adjustTargetWindowHeight);
       this.updateTargetWindowHeight();
@@ -1039,10 +1039,6 @@ const IMEManager = {
     var ime = this.ime;
     var hideIMEafterTransition = (function hideIMEtransitionend(evt) {
       ime.removeEventListener('transitionend', hideIMEafterTransition);
-
-      // hideIME is canceled by the showIME that fires after
-      //if (ime.style.height !== '0px')
-      //  return;
 
       delete this.targetWindow;
 
