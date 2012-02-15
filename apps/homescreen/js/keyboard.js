@@ -844,7 +844,7 @@ const IMEManager = {
             ratio -= 1;
             content += buildKey(
               this.SWITCH_KEYBOARD,
-              '⌨',
+              '&#x1f310;',
               'keyboard-key-special',
               1
             );
