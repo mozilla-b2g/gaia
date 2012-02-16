@@ -1,0 +1,148 @@
+body {
+	font-family: Georgia, serif;
+	background-color: #ffffff;
+	margin: 0px;
+}
+
+h2 {
+	font-weight: normal;
+	color: #555;
+	padding-right: 20%;
+	line-height: 23px;
+}
+
+h3 {
+	font-weight: normal;
+	color: #555;
+	padding-right: 20%;
+}
+
+h4 {
+	font-weight: normal;
+	color: #555;
+	padding-right: 20%;
+	line-height: 20px;
+}
+
+p {
+	font-weight: normal;
+	font-size: 14px;
+	color: #555;
+	line-height: 20px;
+}
+
+.mini {
+	position: relative;
+	font-size: 8pt;
+	line-height: 11pt;
+	padding-top: 17px;
+}
+
+#content {
+	position: absolute;
+	top: 10px; left: 10px;
+	color: #dddddd;
+	padding: 4px;
+	font-size: 13px;
+	text-align: left;
+	z-index: 0;
+}
+
+#nowebgl 
+{
+	font-size: 110px;
+}
+
+#header  
+{
+     color: #ffffff;
+     background-color: #000000;
+     text-align: left;
+     position: absolute;
+     top: 0px;
+     left: 0px;
+	 padding: 4 8 4 4;
+	 z-index: 1;
+}
+
+#share  
+{
+     background-color: #dddddd;
+	 text-align: right;
+     position: absolute;
+     top: 0px;
+     right: 0px;
+	 padding: 6 0 6 12;
+	 margin: 0 0 0 0;
+	 z-index: 1;
+}
+
+#madewith  
+{
+     color: #ffffff;
+     background-color: #000000;
+     : left;
+	 font-size: 13px;
+	 line-height: 26px;
+     position: absolute;
+     top: 0px;
+     right: 0px;
+	 padding: 4 4 10 8;
+	 z-index: 1;
+}
+
+#details
+{
+     color: #ffffff;
+	 font-size: 12px;
+     background-color: #000000;
+     text-align: left;
+     position: absolute;
+	 padding: 4 4 4 4;
+     top: 28px;
+     left: 0px;
+	 z-index: 1;
+}
+
+
+.thumb
+{
+	 float: left;
+	 padding: 8 16 8 0;
+}
+
+.thumbdesc, .thumbdesc.a {
+    font-size: 12px;
+    text-align: left;
+	background-color: #000000;
+	padding: 5 5 5 5;
+	margin-top: 1;
+}
+
+a.sotd:link, a.sotd:visited {
+	color: #000000;
+	background-color: #ffd200;
+}
+
+a.sotm:link, a.sotm:visited {
+	color: #ffffff;
+	background-color: #b00000;
+}
+
+a.blue:link, a.blue:visited {
+	color: #005e8f;
+}
+
+a:link, a:visited {
+	color: #ffffff;
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+#booked {
+	color: #ffffff;
+	background-color: #b00000;
+}
