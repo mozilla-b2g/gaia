@@ -987,9 +987,8 @@ const IMEManager = {
       break;
     }
 
-    this.updateLayout();
-
     if (!this.ime.dataset.hidden) {
+      this.updateLayout();
       this.updateTargetWindowHeight();
       return;
     }
@@ -999,6 +998,8 @@ const IMEManager = {
       targetWindow.style.height;
     targetWindow.dataset.rectHeight =
       targetWindow.getBoundingClientRect().height;
+
+    this.updateLayout();
 
     delete this.ime.dataset.hidden;
   },
