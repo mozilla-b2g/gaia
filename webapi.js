@@ -152,6 +152,24 @@
                      }
                    }
                  },
+                 { // facebook
+                   'installOrigin': 'https://www.facebook.com',
+                   'origin': 'https://m.facebook.com',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'Facebook',
+                     'description': 'Facebook Mobile Application',
+                     'launch_path': '',
+                     'developer': {
+                       'name': 'Facebook',
+                       'url': 'http://www.facebook.com/'
+                     },
+                     'icons': {
+                       '120': '/style/icons/Facebook.png'
+                     }
+                   }
+                 },
                  { // market
                    'installOrigin': 'http://gaiamobile.org:8888',
                    'origin': '../market',

@@ -1,0 +1,12 @@
+{
+  "name": "Maps",
+  "description": "Google Maps",
+  "launch_path": "http://m.facebook.com/",
+  "developer": {
+    "name": "Facebook"
+    "url": "http://www.facebook.com/"
+  },
+  "icons": {
+    "120": "/icons/Facebook.png"
+  }
+}
