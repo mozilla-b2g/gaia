@@ -129,8 +129,7 @@ body {
   width: -moz-calc(100%);
   height: -moz-calc(100% - 37px);
   border-radius: 8px;
-  background-image: url(images/noise.png);
-  background-color: rgb(91, 98, 107);
+  background: url("images/noise.png") repeat scroll 50% 50%, url(images/background.bmp) 50% 50% transparent;
 }
 
 #home > div {
