@@ -1,33 +1,18 @@
-html, body {
+body {
   width: 100%;
   height: 100%;
   margin: 0px;
   padding: 0px;
   background: #222;
-  font-family: "Roboto", sans-serif;
-  font-size: 16px;
+  font-family: 'Open Sans', sans-serif;
   overflow: hidden;
+  font-size: 16px;
 }
 
-@font-face {
-  font-family: Roboto;
-  src: url('fonts/Roboto-Regular.ttf');
-}
-@font-face {
-  font-family: Roboto;
-  font-weight: bold;
-  src: url('fonts/Roboto-Bold.ttf');
-}
-@font-face {
-  font-family: Roboto;
-  font-style: italic;
-  src: url('fonts/Roboto-Italic.ttf');
-}
-@font-face {
-  font-family: Roboto;
-  font-weight: bold;
-  font-style: italic;
-  src: url('fonts/Roboto-BoldItalic.ttf');
+@media screen and (max-width: 479px) {
+  body {
+    font-size: 10px;
+  }
 }
 
 @font-face {
@@ -40,7 +25,7 @@ html, body {
   src: url('fonts/Open-Sans-Bold.woff');
 }
 @font-face {
-  font-family: Roboto;
+  font-family: 'Open Sans';
   font-weight: 600;
   src: url('fonts/Open-Sans-Semibold.woff');
 }
@@ -159,8 +144,8 @@ html, body {
 }
 
 #home > #dots {
-  top: 75%;
-  height: -moz-calc(5%);
+  top: 77.5%;
+  height: -moz-calc(2.5%);
   text-align: center;
 }
 
@@ -196,7 +181,7 @@ html, body {
 .icon > .label {
   padding-top: 0%;
   color: white;
-  font-size: 5mm;
+  font-size: 180%;
 }
 
 .dot {
@@ -514,10 +499,10 @@ div.windowSprite.active {
   vertical-align: middle;
   overflow: hidden;
   text-align: center;
-  color: #666;
-  font-size: 26px;
+  color: rgb(36, 36, 36);
+  font-size: 32px;
   height: 64px;
-  line-height: 60px;
+  line-height: 62px;
   min-width: 0 !important;
   margin: 0 2px;
   -moz-box-sizing: border-box;
@@ -541,14 +526,17 @@ div.windowSprite.active {
 
 .keyboard-key[data-keycode="-3"], /* IMEManager.SWITCH_KEYBOARD */
 .keyboard-key[data-keycode="8"], /* KeyEvent.DOM_VK_BACK_SPACE */
-.keyboard-key[data-keycode="20"] { /* KeyEvent.DOM_VK_CAPS_LOCK */
+.keyboard-key[data-keycode="20"], /* KeyEvent.DOM_VK_CAPS_LOCK */
+.keyboard-key[data-keycode="13"] { /* KeyEvent.DOM_VK_RETURN */
   font-family: 'Keyboard Symbols', sans-serif;
   font-size: 28px;
 }
 
 .keyboard-key[data-active] {
-  color: #000;
-  background: -moz-linear-gradient(top, #f6f6f6 10%, #f6f6f6 70%, #fff 100%);
+  color: #fff;
+  -moz-box-shadow: inset 0 0 2px 2px #6f6f6f;
+  text-shadow: 0 -1px #909090, 0 1px #9b9b9b;
+  background: rgb(118, 118, 118);
 }
 
 .keyboard-key-special {
@@ -558,11 +546,6 @@ div.windowSprite.active {
   background: -moz-linear-gradient(top, #a3aeb9 10%, #a3aeb9 70%, #929ca6 100%);
   -moz-box-shadow: none;
   border: 1px solid #8a949d;
-}
-
-.keyboard-key-special[data-active] {
-  color: #ccc;
-  background: -moz-linear-gradient(top, #929ca6 10%, #929ca6 70%, #a3aeb9 100%);
 }
 
 .keyboard-key-special.toggle {

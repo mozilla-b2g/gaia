@@ -8,7 +8,8 @@ html, body {
   color: white;
   font-family: "Roboto", sans-serif;
 
-  background: url(images/home-texture.png) repeat scroll 2% 50% #666666;
+
+  background: #000;
 }
 
 html * {
@@ -43,94 +44,80 @@ html * {
 }
 
 /* === Application Header === */
-#tabs-container {
+
+#tabs {
   position: absolute;
   width: 100%;
+  height: 100px;
   bottom: 0;
-  padding: 20px 0px 15px 0px;
+
+	background: url(images/app-texture.png) 50% 50%,
+			-moz-linear-gradient(top, hsla(0,0%,0%,.3) 0%, hsla(0,0%,20%,0) 8%, hsla(0,0%,0%,0.1) 80%, hsla(0,0%,0%,.2) 100%),
+			-moz-radial-gradient(center top, hsla(0,100%,0%,0) 0%, hsla(0,0%,0%,0) 70%, hsla(0,0%,10%,.1) 100%),
+			-moz-radial-gradient(center bottom, hsla(0,100%,0%,0) 0%, hsla(0,0%,0%,0) 70%, hsla(0,0%,10%,.2) 100%),
+			hsla(212,8%,39%,1);
 
   -moz-transition: bottom 0.3s ease;
 }
 
-#tabs {
-	width: -moz-calc(100% - 38px);
-  padding: 9px 9px 7px 9px;
-  margin: auto;
-
-  background-color: rgba(0,0,0,.3);
-  border-radius: 5px;
-}
-
 #tabs fieldset {
   list-style: none;
-	width: -moz-calc(100% - 2px);
-	height: 66px;
+	width: -moz-calc(100% - 30px);
+	height: 100px;
   padding: 0;
-  margin: 0;
+  margin: 0 auto;
 
-	display: -moz-box;
-	-moz-box-orient: horizontal;
-
-	border: 1px solid #333333;
-  border-radius: 3px;
-  background:-moz-linear-gradient(top, hsl(0,0%,65%) 0, hsl(0,0%,56%) 1px, hsl(0,0%,37%) 100%);
+  border: 0;
 }
 
 #tabs label {
   float: left;
   display: block;
-  width: -moz-calc(100% / 3 - 2px);
+  width: -moz-calc(100% / 3);
   height: 100%;
+
   padding: 0;
   margin: 0;
 
-	border-right: 1px solid rgb(29,29,29);
-	border-left: 1px solid rgb(123,123,123);
-
-  background-position: 50% 50%;
+  background-position: center center;
   background-repeat: no-repeat;
 }
+
 #tabs input[type="radio"] {
   display: none;
 }
 
-#tabs label:first-child {
-  border-left-color: transparent;
-  border-radius: 3px 0 0 3px;
-}
-#tabs label:last-child {
-  border-right-color: transparent;
-  border-radius: 0 3px 3px 0;
-}
-
 #keyboard-label {
-  background-image: url(images/numpad-icon.png);
+  background: url(images/numpad-icon.png);
 }
 #keyboard-label[data-active] {
-  background: url(images/numpad-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 1px, hsl(0,0%,56%) 100%);
+  background:url(images/current-tab.png) top center no-repeat, url(images/numpad-icon-active.png) center center no-repeat;
 }
 #contacts-label {
-  background-image: url(images/contacts-icon.png);
+  background: url(images/contacts-icon.png);
 }
 #contacts-label[data-active]{
-  background: url(images/contacts-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 1px, hsl(0,0%,56%) 100%);
+  background:url(images/current-tab.png) top center no-repeat, url(images/contacts-icon-active.png) center center no-repeat;
 }
 #favorites-label {
-  background-image: url(images/favorite-icon.png);
+  background: url(images/favorite-icon.png);
 }
 #favorites-label[data-active] {
-  background: url(images/favorite-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 1px, hsl(0,0%,56%) 100%);
+  background:url(images/current-tab.png) top center no-repeat, url(images/favorite-icon-active.png) center center no-repeat;
 }
 
 /* === Application Views === */
 #views {
   position: absolute;
-  height: -moz-calc(100% - 118px);
+  height: -moz-calc(100% - 100px);
   width: 100%;
 
   -moz-transition-property: top, opacity;
   -moz-transition-duration: 0.3s;
   -moz-transition-timing-function: ease;
+
+  background: url(images/app-texture.png) 50% 50%, #F5F5F5;
+  border-radius: 8px 8px 0 0;
 }
 
 #views > .view {
@@ -139,43 +126,37 @@ html * {
 }
 
 .top-bar {
-	height: 8mozmm;
-  line-height: 8mozmm;
+	height: 10mozmm;
+  line-height: 10mozmm;
 
   font-size: 3.5mozmm;
   text-align: center;
 
-	border-top: 1px solid hsl(210, 2%, 48%);
-	border-bottom: 1px solid hsl(210, 2%, 20%);
-	background: url(images/texture.png), -moz-linear-gradient(top, hsl(0,0%,40%) 0%, hsl(0,0%,36%) 50%, hsl(0,0%,28%) 100%);
-}
-
-.top-bar span {
-  text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+  border-bottom: 2px solid #7F7F7F;
+  background: url(images/app-texture.png) 50% 50%, -moz-linear-gradient(top, hsla(0,0%,96%,1), hsla(0,0%,92%,1) );
 }
 
 .top-bar a.add {
   position: absolute;
   display: block;
-  width: -moz-calc(6mozmm - 2px);
-  height: 6mozmm;
-  top: 1mozmm;
-  right:1.5mozmm;
+  width: 8mozmm;
+  height: 7mozmm;
+  top: 1.5mozmm;
+  right: 2mozmm;
   padding-left: 2px;
 
-	color: #333333;
+	color: #7D8389;
   text-align: center;
-  line-height: 6mozmm;
+  line-height: 7mozmm;
   text-decoration: none;
   text-shadow: #929292 0 1px;
-  font-size: 1.1em;
+  font-size: 2em;
+  font-weight: bold;
 
-  border: 1px solid #333333;
   border-radius: 5px 5px 5px 5px;
-  background: -moz-linear-gradient(top, hsl(0,0%,65%) 0, hsl(0,0%,53%) 1px, hsl(0,0%,33%) 100%);
 }
 .top-bar a.add:active {
-  color: hsl(76,85%,47%);
+  color: #FF6600;
 }
 
 /* === Keyboard View === */
@@ -185,30 +166,28 @@ html * {
 
 #phone-number-view-container {
   overflow: hidden;
-  width: -moz-calc(100% - 38px);
+  width: -moz-calc(100% - 66px);
   margin: 20px auto;
-  padding: 9px;
+  padding: 0px;
 
-  border-radius: 5px;
-	background:rgba(0,0,0,0.3);
+  border: 3px solid #FF9400;
+  border-radius: 50px;
 }
 
 #phone-number-view-container > div {
   display: block;
   position: relative;
-  height: 80px;
+  height: 62px;
   margin: auto;
 
-  border: medium none;
-  border-radius: 5px;
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.3) inset;
-
+  background: -moz-linear-gradient(center top , rgba(0, 0, 0, 0.2) 0px, rgba(255, 255, 255, 0) 20px, #FFFFFF 100%) repeat scroll 0 0 #FFFFFF;
+  border: 2px solid #FFFFFF;
+  border-radius: 50px;
+  color: #000000;
+  font-size: 30px;
+  line-height: 62px;
   text-align: center;
-  font-size: 3.5em;
-  line-height: 80px;
-  text-overflow: ellipsis;
-	text-shadow:0 0 3px rgba(0,0,0,.5);
-	white-space: nowrap;
+  white-space: nowrap;
 }
 
 #phone-number-view {
@@ -222,10 +201,9 @@ html * {
 	right: 5px;
 	top: 0;
 	width: 60px;
-	height: 80px;
+	height: 62px;
 
   border: 0;
-	border-radius: 2px;
   background: url(images/backspace.png) 50% 50% no-repeat;
 }
 .keyboard-key[data-value="del"]:active {
@@ -235,52 +213,45 @@ html * {
 #fake-phone-number-view {
   position: absolute;
   line-height: 0;
-  display: inline;
 
   visibility: hidden;
 }
 
 #keyboard-container {
-  height: -moz-calc(100% - 140px);
-}
-
-#mainKeyset-container {
-  width: -moz-calc(100% - 38px);
-  height: -moz-calc(80% - 48px);
-  min-height: 265px;
-  padding: 9px 9px 11px 9px;
-  margin: auto auto 20px auto;
-
-  border-radius: 5px;
-  background-color: rgba(0,0,0,0.3);
+  height: -moz-calc(100% - 110px);
 }
 
 #mainKeyset {
-  height: 100%;
+  width: -moz-calc(100% - 63px);
+  height: -moz-calc(100% - 48px - 60px);
+  min-height: 265px;
   padding: 0;
+  margin: auto auto 20px auto;
 
-  border-radius: 5px;
-  border: 1px #333333 solid;
-	background: -moz-linear-gradient(top, rgb(136,138,136) 1px, rgb(114,115,114) 2px, rgb(56,56,56) 100%);
+  border-radius: 18px;
 }
 
 .keyboard-row {
   margin: 0;
   padding: 0;
-  height: -moz-calc(100% / 4 - 2px);
+  height: -moz-calc(100% / 4);
   width: 100%;
-
-	border: 1px solid transparent;
-	border-top-color: rgb(123,123,123);
-	border-bottom-color: rgb(0,0,0);
 }
 
-.keyboard-row:first-child {
-  border-top-color: transparent;
+.keyboard-row:first-child .keyboard-key:first-child {
+  border-top-left-radius: 18px;
 }
 
-.keyboard-row:last-child {
-  border-bottom-color: transparent;
+.keyboard-row:first-child .keyboard-key:last-child {
+  border-top-right-radius: 18px;
+}
+
+.keyboard-row:last-child .keyboard-key:first-child {
+  border-bottom-left-radius: 18px;
+}
+
+.keyboard-row:last-child .keyboard-key:last-child {
+  border-bottom-right-radius: 18px;
 }
 
 .keyboard-key > span {
@@ -290,38 +261,45 @@ html * {
 
 .keyboard-key {
   display: inline-block;
-  width: -moz-calc(100% / 3 - 2px);
-  height: 100%;
+  width: -moz-calc(100% / 3 - 6px);
+  height: -moz-calc(100% - 6px);
 
-	border: 1px solid transparent;
-	border-right-color: rgb(0,0,0);
-	border-left-color: rgb(123,123,123);
+  border: solid 3px;
+  -moz-border-top-colors: #ccc #fff transparent;
+  -moz-border-bottom-colors: transparent transparent transparent;
+  -moz-border-right-colors: #fff transparent transparent;
+  -moz-border-left-colors: #ccc #fff transparent;
 
   text-align: center;
 }
-.keyboard-key:first-child {
-  border-left-color: transparent;
+
+.keyboard-row:last-child .keyboard-key {
+  -moz-border-bottom-colors: #ccc #fff transparent;
 }
-.keyboard-key:last-child {
-  border-right-color: transparent;
+
+.keyboard-key:nth-child(3n) {
+  -moz-border-right-colors: #ccc #fff transparent;
 }
+
 .keyboard-key:active {
-	background: -moz-linear-gradient(top, rgb(56,56,56) 0%, rgb(114,115,114) 100%);
+  background: hsla(35,100%,50%,.2);50
 }
 .keyboard-key:active > span:first-child {
-  color: hsl(76,85%,47%);
+  color: hsla(35,100%,50%,);
 }
 .keyboard-key span {
-	display: block;
-	padding: 7px 0 0 0;
+  display: block;
 
-	color: #fff;
-	font-size: 34px;
-	text-shadow: 0 0 3px rgba(0,0,0,.5);
+  color: hsla(0,0%,20%,1);
+  font-size: 34px;
+  line-height:54px;
 }
 
 .keyboard-key span:last-child {
-	font-size: 20px;
+  color: hsl(0,0%,60%);
+  text-transform: uppercase;
+  font-size: 18px;
+  line-height:24px;
 }
 
 @media screen and (max-height: 712px) {
@@ -331,52 +309,33 @@ html * {
 }
 
 #additionalKeyset {
-  width: -moz-calc(100% - 38px);
-  height: -moz-calc(20% - 9px);
-  padding: 9px 9px 6px 9px;
+  width: -moz-calc(100% - 60px);
+  padding: 0;
   margin: auto;
-
-  border-radius: 5px;
-  background-color: rgba(0, 0, 0, 0.3);
 }
 
 .keyboard-key[data-value="call"] {
+  border: 0;
+  border-radius: 20px;
   width: 100%;
+  background:  -moz-linear-gradient(top, hsl(39,100%,73%) 0, hsla(35,100%,80%,0.2) 2px, hsla(35,100%,50%,.4) 20%, hsl(32,100%,38%) 98%, hsl(32,100%,38%) 99%, hsl(31,100%,50%) 100%),
+							 -moz-linear-gradient(top, hsl(39,100%,73%) 0, hsla(35,100%,50%,1) 2px, hsl(32,100%,38%) 98%, hsl(32,100%,38%) 99%, hsl(31,100%,50%) 100%);
 }
 
 .keyboard-key[data-value="call"] span {
 	display: block;
-  width: -moz-calc(100% - 2px);
-  height: -moz-calc(100% - 12px);
-  min-height: 58px;
-
-	border-radius: 3px;
-	background: url(images/call-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(177,214,0) 1px, rgb(143,195,0) 2px, rgb(82,107,23) 100%);
+  color: white;
+  font-size: 34px;
+  line-height: 60px;
+  text-align: center;
+  text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5);
+  text-transform: none;
 }
-.keyboard-key[data-value="call"]:active {
-  background: none;
-}
-.keyboard-key[data-value="call"]:active span {
-	background: url(images/call-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(82,107,23) 0, rgb(143,195,0) 100%);
-}
-
 
 /* === Contacts View === */
-#contacts-wrapper {
-  width: -moz-calc(100% - 38px - 22px);
-  height: -moz-calc(100% - 8mozmm - 40px);
-  margin: 20px 0 0 10px;
-  padding: 9px;
-
-  background: none repeat scroll 0 0 rgba(17, 17, 17, 0.4);
-  border-radius: 5px;
-}
 
 #contacts-view-scrollable {
-  height: 100%;
-
-  border: 1px #333333 solid;
-  border-radius: 5px;
+  height: -moz-calc(100% - 10mozmm);
   overflow: scroll;
 }
 
@@ -386,105 +345,114 @@ html * {
 }
 
 #contacts-search-container {
-  /* XXX adding 8px to fill the void left by the scrollbar */
-  width: -moz-calc(100% + 8px);
+  position: relative;
+  margin-top: 1.5mozmm;
+  margin-left: 2mozmm;
+  width: -moz-calc(100% - 14mozmm);
+  height: -moz-calc(7mozmm - 6px);
 
-	border-radius: 5px 5px 0 0;
-	background: url(images/texture.png), -moz-linear-gradient(top, hsl(0,0%,40%) 0%, hsl(0,0%,36%) 50%, hsl(0,0%,28%) 100%);
+  border: 3px solid #7B8288;
+  border-radius: 50px 50px 50px 50px;
+
+  background: #fff;
 }
 
 #contacts-search {
-	width: 100%;
-	height: 12mozmm;
+  position: absolute;
+  top: 2px;
+  left: 0;
+  margin: 0;
+  padding: 0 20px 0 30px;
+  width: -moz-calc(100% - 54px);
+  height: -moz-calc(100% - 4px);
 
-	background: none;
-	border: none;
+  border: 0;
+  background: url("images/input-icon-search.png") no-repeat scroll 8px 50%, -moz-linear-gradient(center top , rgba(0, 0, 0, 0.2) 0px, rgba(255, 255, 255, 0) 20px, #FFFFFF 100%) repeat scroll 0 0 #FFFFFF;
 
-  line-height: 12mozmm;
-  font-size: 4mozmm;
-	padding: 0 10px;
-	color: hsl(0,0%,100%);
-	text-shadow:0 0 3px hsla(0,0%,0%,.5);
+  font-size: 1.1em;
 }
 
 .contact-header {
-  height: 4.5mozmm;
+  position: relative;
+  height: 5mozmm;
   padding: 0 14px 0 20px;
+  overflow: visible;
 
-  background: -moz-linear-gradient(center top , #878787 0pt, #545454 100%) repeat scroll 0 0 transparent;
+  background: url(images/diagonal-pattern.png) 0 0, hsla(60,13%,94%,1);
 
-  font-size: 3mozmm;
+  font-size: 1.4;
   font-weight: 700;
-  line-height: 4.5mozmm;
+  line-height: 5mozmm;
   color: #FFFFFF;
 
-  border-bottom: 1px solid #000000;
-  border-top: 1px solid #7A7A7A;
+  border-top: 1px solid hsla(0,0%,100%,1);
+  border-bottom: 1px solid hsla(0,0%,80%,1);
 
   pointer-events: none;
 }
 
+.contact-header span {
+  position: absolute;
+  top: -1mozmm;
+  left: 2mozmm;
+  width: 7mozmm;
+  height: 7mozmm;
+
+  line-height: 7mozmm;
+  color: hsla(0,0%,100%,1);
+  text-align: center;
+  font-size: 1.2em;
+  text-transform: uppercase;
+
+  background: url(images/contacts-orange-circle.png);
+  background-size: 7mozmm 7mozmm;
+}
+
 .contact {
-  padding: 0 14px 0 20px;
+  padding: 0 14px 0 4mozmm;
   height: 8mozmm;
   width: -moz-calc(100% - 2px);
 
-	background: hsl(0,0%,33%);
-	border-top:1px solid hsl(0,0%,48%);
-	border-bottom:1px solid hsl(0,0%,0%);
+  border-bottom: 1px solid #CCCCCC;
+  border-top: 1px solid #FFFFFF;
+  color: hsla(0,0%,20%,1);
+	background: none;
 
   line-height: 8mozmm;
   font-size: 3mozmm;
-}
-.contact:nth-of-type(odd) {
-  background: hsl(0,0%,37%);
 }
 
 .contact * {
   pointer-events: none;
 }
-.contact:hover:active {
-  background-image: -moz-linear-gradient(top, rgb(88,88,88), rgb(44,44,44));
-  background-size: 100% 100%;
-}
-
-.contact > img {
-  float: left;
-  width: 8mozmm;
-  height: 8mozmm;
-  margin: 1mozmm 2mozmm;
-
-  border: 0;
-}
 
 .display-name {
   display: block;
-  color: #FFFFFF;
-  text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+  color:hsla(0,0%,20%,1);
   pointer-events: none;
 }
 
 #contacts-shortcuts-background {
   position: fixed;
   right: 10px;
-  top: -moz-calc(8mozmm + 27px);
+  top: 12mozmm;
   width: 22px;
-  height: -moz-calc(100% - 8mozmm - 150px);
+  height: -moz-calc(100% - 14mozmm - 100px);
 
-  background: -moz-linear-gradient(left center , rgba(25, 25, 25, 0.8) 0pt, rgba(17, 17, 17, 0.1) 30%) repeat scroll 0 0 transparent;
-  border-radius: 0 5px 5px 0;
+  background: none;
+  border-radius: 4px;
 }
 
 #contacts-shortcuts-background.tracking {
-  background: -moz-linear-gradient(left center , #191919 0pt, rgba(17, 17, 17, 0.4) 30%) repeat scroll 0 0 transparent;
+  background: rgba(0, 0, 0, 0.1);
 }
 
 #contacts-shortcuts {
   position: fixed;
   right: 10px;
-  top: -moz-calc(8mozmm + 27px);
+  top: 14mozmm;
   width: 44px;
-  height: -moz-calc(100% - 8mozmm - 150px);
+  height: -moz-calc(100% - 18mozmm - 100px);
 }
 
 #contacts-shortcuts > a {
@@ -494,7 +462,7 @@ html * {
   margin: 2px 0;
   padding-left: 22px;
 
-  color: #FFFFFF;
+  color: #999999;
   font-size: 12px;
   text-align: center;
 }
@@ -524,27 +492,6 @@ html * {
   opacity: 0;
 }
 
-#contacts-overlay-background {
-  position: absolute;
-  top: -100%;
-  width: 100%;
-  height: 100%;
-
-  background-image: -moz-element(#views), -moz-element(#tabs-container);
-  background-position: top, bottom;
-  background-repeat: no-repeat;
-}
-
-#contacts-overlay-background > div {
-  width: 100%;
-  height: 100%;
-
-  background: rgba(0, 0, 0, 0.6);
-}
-
-#contacts-overlay-preview {
-}
-
 #contact-details-container {
   position: absolute;
   top: 10%;
@@ -552,28 +499,43 @@ html * {
   width: 90%;
   height: 80%;
 
-  border-radius: 10px;
-  overflow: hidden;
+  overflow: visible;
+  box-shadow: 0 3px 5px black;
 
-  background-image: -moz-linear-gradient(top, rgb(66,66,66) 24%, rgb(33,33,33) 44%, rgb(17,17,17) 64%);
+  border-radius:5px;
+  background: url(images/details-texture.png) no-repeat,
+              url(images/app-texture.png) 50% 50%,
+              -moz-linear-gradient(bottom, hsla(0,0%,60%,1) 0,
+              hsla(0,0%,0%,.1) 1px, hsla(0,0%,0%,0) 30%, hsla(0,0%,0%,0) 100%), hsla(0,0%,96%,1);
 }
 
 #contact-details-view {
+  padding: 20px;
   -moz-transition: opacity 0.15s ease;
 }
 
 #contact-edit-button {
   position: absolute;
-  top: 20px;
-  right: 5%;
-  width: 60px;
-  padding: 5px;
+  bottom: 20px;
+  right: 20px;
+  width: 8mozmm;
+  height: 6mozmm;
+  padding: 0 8px;
 
   border-radius: 10px;
   border: 2px #EBEBEB solid;
 
-  font-size: 1.7em;
+  line-height: 6mozmm;
+  font-size: 1.3em;
   text-align: center;
+  text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.5);
+
+  background: -moz-linear-gradient(center top , #F7F7F7 0pt, #EDEBEE 1px, #DDDDDD 100%) repeat scroll 0 0 transparent;
+
+  border: 1px solid #A0A09C;
+  border-radius: 5px;
+
+  color: #666666;
 }
 #contact-edit-button[data-action='save'] {
   background-color: rgba(49, 147, 255, 0.7);
@@ -589,7 +551,7 @@ html * {
 
 #contact-details-view input {
   width: -moz-calc(100% - 88px);
-  color: white;
+  color: #000;
   background: none;
   border: none;
   padding: 0;
@@ -606,12 +568,20 @@ html * {
 
 #contact-photo {
   float: left;
-  padding: 20px 5%;
+  width: 140px;
+  height: 140px;
+
+  border: 1px solid #999999;
+  border-radius: 5px 5px 5px 5px;
+}
+
+#contact-details-top {
+  clear: both;
 }
 
 #contact-name {
   float: left;
-  width: -moz-calc(85% - 96px - 74px);
+  width: -moz-calc(100% - 140px - 20px);
   margin: 20px 0;
   font-size: 2.0em;
 }
@@ -625,8 +595,8 @@ html * {
 }
 
 #contact-details-view > .group {
-  width: -moz-calc(90% - 4px);
-  margin: 50px auto;
+  width: -moz-calc(100% - 4px);
+  margin: 30px auto;
   clear: both;
 
   border-radius: 10px;
@@ -698,6 +668,16 @@ html * {
   display: none;
 }
 
+#contact-details-line {
+  position: absolute;
+  right: 10px;
+  bottom: -10px;
+  left: 10px;
+  height: 10px;
+
+  border-radius: 0 0 5px 5px;
+  background: -moz-linear-gradient(bottom, hsla(25,100%,35%,1) 0%, hsla(25,100%,42%,1) 1px, hsla(25,100%,26%,1) 100%);
+}
 /* === Contact Edit transitions === */
 
 #contact-details-view.hidden {
@@ -736,7 +716,7 @@ html * {
 
 /* === Oncall transitions === */
 
-#tabs-container.oncall {
+#tabs.oncall {
   bottom: -138px;
 }
 
@@ -774,7 +754,7 @@ html * {
 #views.modal #keyboard-container {
   height: 100%;
 }
-#views.modal #mainKeyset-container {
+#views.modal #mainKeyset {
   height: -moz-calc(100% - 20px);
 }
 

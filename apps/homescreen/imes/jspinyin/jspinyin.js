@@ -206,6 +206,7 @@ var PinyinImEngine = function(dictionary, splitter) {
           solutionPattern = '';
           break;
         }
+
         if (segment != "'") {
           if (j > 0) {
             solutionPattern += "'";
@@ -318,7 +319,7 @@ var PinyinImEngine = function(dictionary, splitter) {
     spell = '';
     startPosition = 0;
   }
-};
+}
 
 var engine = new PinyinImEngine(splitter, dictionary);
 

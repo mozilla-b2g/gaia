@@ -30,7 +30,7 @@ const IMEManager = {
     'cyrillic': ['ru', 'sr-Cyrl'],
     'hebrew': ['he'],
     'zhuying': ['zh-Hant-Zhuying'],
-    'pinyin': ['zh-Hans-Pinying']
+    'pinyin': ['zh-Hans-Pinyin']
   },
 
   kMozSettingsTimeout: 800,
@@ -844,7 +844,7 @@ const IMEManager = {
             ratio -= 1;
             content += buildKey(
               this.SWITCH_KEYBOARD,
-              '⌨',
+              '&#x1f310;',
               'keyboard-key-special',
               1
             );
