@@ -226,10 +226,6 @@ iframe.appWindow {
   display: none;
 }
 
-iframe.appWindow.keyboardTransition {
-  -moz-transition: height 0.2s ease;
-}
-
 iframe.appWindow.active {
   display: block;
 }
@@ -398,18 +394,17 @@ div.windowSprite.active {
   font-weight: 600;
   z-index: 9997;
   bottom: 0;
-  height: auto;
   overflow: visible;
   background-color: #f0f1f2;
   width: -moz-calc(100%);
-  -moz-transition: height 0.2s ease;
+  -moz-transition: -moz-transform 0.3s ease;
   border-top: 2px solid #a3a3a3;
   -moz-box-shadow: inset 0 0 0 1px #fff;
 }
 
 #keyboard[data-hidden] {
-  height: 0;
   bottom: -2px;
+  -moz-transform: translateY(100%);
 }
 
 #keyboard-candidate-panel {
@@ -429,10 +424,12 @@ div.windowSprite.active {
   display: block;
   position: absolute;
   white-space: normal;
+  top: -68px;
   bottom: 0;
-  height: -moz-calc(100%);
+  height: -moz-calc(100% + 68px);
   width: 100%;
   border: none;
+  border-top: 2px solid #a3a3a3;
 }
 #keyboard-candidate-panel.full span {
   border-top: 1px solid #e8e8ff;
@@ -473,7 +470,7 @@ div.windowSprite.active {
   display: block;
   border-top: 1px solid #e8e8ff;
   border-bottom: 1px solid #808098;
-  top: 0;
+  top: -66px;
 }
 
 #keyboard-candidate-panel-toggle-button.show {
