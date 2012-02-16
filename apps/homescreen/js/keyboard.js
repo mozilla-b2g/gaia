@@ -34,6 +34,10 @@ const IMEManager = {
 
   loadKeyboardSettings: function loadKeyboardSettings(callback) {
     var completeSettingRequests = (function completeSettingRequests() {
+      if (!this.keyboards.length)
+        this.keyboards = [].concat(this.keyboardSettingGroups['english'],
+          this.keyboardSettingGroups['zhuying']);
+
       if (this.keyboards.indexOf(this.currentKeyboard) === -1)
         this.currentKeyboard = this.keyboards[0];
 
