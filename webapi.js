@@ -154,7 +154,7 @@
                  },
                  { // facebook
                    'installOrigin': 'https://www.facebook.com',
-                   'origin': 'https://m.facebook.com',
+                   'origin': 'https://touch.facebook.com',
                    'receipt': null,
                    'installTime': 1323339869000,
                    manifest: {
