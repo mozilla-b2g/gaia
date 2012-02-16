@@ -52,7 +52,7 @@ var Timer = {
       }
 
       self.updateChrono(remaining);
-    }, 1000, this);
+    }, 10, this);
   },
 
   cancel: function ti_cancel() {
@@ -77,7 +77,11 @@ var Timer = {
   },
 
   updateChrono: function ti_updateChrono(remaining) {
-    this.chronoView.innerHTML = new Date(remaining).toLocaleFormat('%M:%S');
+    var remainingDate = new Date(remaining);
+    var ms = remainingDate.getMilliseconds();
+    ms = ((ms < 10) ? '00' : (ms < 100) ? '0' : '') + ms;
+    
+    this.chronoView.innerHTML = remainingDate.toLocaleFormat('%M:%S') + '.' + ms;
   },
 
   duration: function ti_duration(value) {

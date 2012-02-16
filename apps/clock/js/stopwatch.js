@@ -37,7 +37,7 @@ var StopWatch = {
     this._ticker = setInterval(function sw_updateChrono(self) {
       var elapsed = Date.now() - self._startTime + self._elapsed;
       self.updateChrono(elapsed);
-    }, 1000, this);
+    }, 10, this);
   },
 
   stop: function sw_stop() {
@@ -57,6 +57,10 @@ var StopWatch = {
   },
 
   updateChrono: function sw_updateChrono(elapsed) {
-    this.chronoView.innerHTML = new Date(elapsed).toLocaleFormat('%M:%S');
+    var elapsedDate = new Date(elapsed);
+    var ms = elapsedDate.getMilliseconds();
+    ms = ((ms < 10) ? '00' : (ms < 100) ? '0' : '') + ms;
+    
+    this.chronoView.innerHTML = elapsedDate.toLocaleFormat('%M:%S') + '.' + ms;
   }
 };
