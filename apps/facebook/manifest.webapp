@@ -1,7 +1,7 @@
 {
   "name": "Maps",
-  "description": "Google Maps",
-  "launch_path": "http://m.facebook.com/",
+  "description": "Facebook",
+  "launch_path": "http://touch.facebook.com/",
   "developer": {
     "name": "Facebook"
     "url": "http://www.facebook.com/"
