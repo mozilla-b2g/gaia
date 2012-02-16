@@ -4,30 +4,30 @@
   Pass a schema like this one to the SimpleDB constructor
 
   var dbschema = {
-  version: 1,                     // IndexedDB database version #
-  name: 'videos',                 // IndexedDB name
-  storename: 'videos',            // Object store name. Only 1 allowed
-  keyprop: 'key',                 // Which property is the key
-  blobprops: ['video', 'poster'], // Which properties are blobs to fetch
-  objects: [                      // An array of objects for the db
-  {
-  key: 1,                          // This is the key property
-  title: 'Mozilla Manifesto',      // Some other property
-  video: 'samples/manifesto.ogv',  // These two blob properties
-  poster: 'samples/manifesto.png', // are URLs to fetch.
-  },
-  {
-  key: 2,
-  title: 'Meet The Cubs',
-  video: 'samples/meetthecubs.webm',
-  poster: 'samples/meetthecubs.png',
-  }
-  ]
+    version: 1,                     // IndexedDB database version #
+    name: 'videos',                 // IndexedDB name
+    storename: 'videos',            // Object store name. Only 1 allowed
+    keyprop: 'key',                 // Which property is the key
+    blobprops: ['video', 'poster'], // Which properties are blobs to fetch
+    objects: [                      // An array of objects for the db
+      {
+        key: 1,                          // This is the key property
+        title: 'Mozilla Manifesto',      // Some other property
+        video: 'samples/manifesto.ogv',  // These two blob properties
+        poster: 'samples/manifesto.png', // are URLs to fetch.
+      },
+      {
+        key: 2,
+        title: 'Meet The Cubs',
+        video: 'samples/meetthecubs.webm',
+        poster: 'samples/meetthecubs.png',
+      }
+    ]
   };
 */
 
 function SimpleDB(schema) {
-  var DB = this; // for use in nested functions
+  var self = this; // for use in nested functions
   this.schema = schema;
   this.callbacks = [];
   var db;  // holds the database before it is completly initialized
@@ -36,19 +36,19 @@ function SimpleDB(schema) {
   var initialized = true; // Assume db is already initialized
 
   // This is called if the db doesn't exist or has a lower version number
-  request.onupgradeneeded = function(e) {
+  request.onupgradeneeded = function f1(e) {
     initialized = false; // DB is not initialized yet, ignore onsuccess
     db = request.result;
     createObjectStore();
   };
 
-  request.onsuccess = function(e) {
+  request.onsuccess = function f2(e) {
     db = request.result;
     if (initialized)   // If the db is initialized
       done();
   };
 
-  request.onerror = function(e) {
+  request.onerror = function f3(e) {
     console.log("Can't open database", e);
   };
 
@@ -76,15 +76,15 @@ function SimpleDB(schema) {
     var numBlobs = 0, blobsFetched = 0;
 
     // Find all the blobs we need to fetch
-    schema.objects.forEach(function(o) {
-      schema.blobprops.forEach(function(p) {
+    schema.objects.forEach(function f4(o) {
+      schema.blobprops.forEach(function f5(p) {
         if (typeof o[p] === 'string') {
           numBlobs++;
           var xhr = new XMLHttpRequest();
           xhr.open('GET', o[p]);
           xhr.responseType = 'blob';
           xhr.send();
-          xhr.onload = function() {
+          xhr.onload = function f6() {
             if (xhr.status === 200) {
               o[p] = xhr.response;
               if (++blobsFetched === numBlobs) {
@@ -99,7 +99,7 @@ function SimpleDB(schema) {
                           ' for ' + url);
             }
           }
-          xhr.onerror = xhr.onabort = xhr.ontimeout = function(e) {
+          xhr.onerror = xhr.onabort = xhr.ontimeout = function f7(e) {
             console.log(e.type + ' while fetching ' + url);
           }
         }
@@ -115,15 +115,15 @@ function SimpleDB(schema) {
                                      IDBTransaction.READ_WRITE);
     var store = transaction.objectStore(schema.storename);
     var numStored = 0;
-    schema.objects.forEach(function(o) {
+    schema.objects.forEach(function f8(o) {
       var request = store.put(o);
-      request.onsuccess = function() {
+      request.onsuccess = function f9() {
         if (++numStored == schema.objects.length) {
           // If all objects have been stored
           done();
         }
       };
-      request.onerror = function(e) {
+      request.onerror = function f10(e) {
         console.log('Error storing record while initializing database',
                     e);
       };
@@ -134,11 +134,11 @@ function SimpleDB(schema) {
   function done() {
     // The database is ready. Wrap it in a SimpleDB wrapper
     // and pass it to any callbacks that have been registered.
-    DB.db = db;
-    DB.callbacks.forEach(function(f) {
-      f.call(DB, DB);
+    self.db = db;
+    self.callbacks.forEach(function f11(f) {
+      f.call(self, self);
     });
-    DB.callbacks.length = 0;
+    self.callbacks.length = 0;
   }
 }
 
@@ -148,7 +148,7 @@ SimpleDB.prototype = {
   // Register a callback to be invoked when the db is ready for use.
   // Note that the other methods use this one, so clients generally
   // don't have to use this.
-  whenReady: function(callback) {
+  whenReady: function f12(callback) {
     if (this.db)
       callback.call(this, this);
     else
@@ -156,10 +156,10 @@ SimpleDB.prototype = {
   },
 
   // Get the object with the specified key and pass it to the callback
-  getObject: function(key, callback) {
+  getObject: function f13(key, callback) {
     // If the db is not ready yet, defer this call:
     if (!this.db) {
-      this.whenReady(function(sdb) { sdb.getObject(key, callback); });
+      this.whenReady(function f14(sdb) { sdb.getObject(key, callback); });
       return;
     }
 
@@ -167,21 +167,21 @@ SimpleDB.prototype = {
     var transaction = this.db.transaction(this.schema.storename,
                                           IDBTransaction.READ_ONLY);
     var request = transaction.objectStore(this.schema.storename).get(key);
-    request.onsuccess = function onsuccess(e) {
+    request.onsuccess = function f15(e) {
       callback(request.result);
     };
 
-    request.onerror = function onerror(e) {
+    request.onerror = function f16(e) {
       console.log('Database error retrieving object for key ' + key +
                   ': ' + e);
     };
   },
 
   // Get all objects from the database and pass, one at a time, to callback()
-  eachObject: function(callback) {
+  eachObject: function f17(callback) {
     // If the db is not ready yet, defer this call:
     if (!this.db) {
-      this.whenReady(function() { this.eachObject(callback); });
+      this.whenReady(function f18() { this.eachObject(callback); });
       return;
     }
 
@@ -189,7 +189,7 @@ SimpleDB.prototype = {
                                           IDBTransaction.READ_ONLY);
     var store = transaction.objectStore(this.schema.storename);
     var cursor = store.openCursor(IDBKeyRange.lowerBound(0));
-    cursor.onsuccess = function() {
+    cursor.onsuccess = function f19() {
       if (!cursor.result) {
         // no more values, so return without calling continue
         return;
@@ -202,7 +202,7 @@ SimpleDB.prototype = {
       }
     };
 
-    cursor.onerror = function(e) {
+    cursor.onerror = function f20(e) {
       console.log('Database error enumerating objects: ', e);
     };
   }

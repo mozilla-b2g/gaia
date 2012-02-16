@@ -1,6 +1,8 @@
 'use strict';
 
-function $(id) { return document.getElementById(id); }
+function $(id) {
+  return document.getElementById(id);
+}
 
 function elt(tag, attrs, kids) {
   var e = document.createElement(tag);

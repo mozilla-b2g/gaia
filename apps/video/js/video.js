@@ -1,4 +1,4 @@
-window.addEventListener('DOMContentLoaded', function() {
+window.addEventListener('DOMContentLoaded', function f1() {
   var dbschema = {
     version: 1,                     // IndexedDB database version #
     name: 'videos',                 // IndexedDB name
@@ -10,7 +10,7 @@ window.addEventListener('DOMContentLoaded', function() {
         key: 1,                          // This is the key property
         title: 'Mozilla Manifesto',      // Some other property
         video: 'samples/manifesto.ogv',  // These two blob properties
-        poster: 'samples/manifesto.png' // are URLs to fetch.
+        poster: 'samples/manifesto.png'  // are URLs to fetch.
       },
       {
         key: 2,
@@ -22,7 +22,7 @@ window.addEventListener('DOMContentLoaded', function() {
   };
 
   var db = new SimpleDB(dbschema);
-  db.eachObject(function(o) {
+  db.eachObject(function f2(o) {
     insertPoster(o.title, o.poster, o.video);
   });
 
@@ -37,7 +37,7 @@ window.addEventListener('DOMContentLoaded', function() {
                            'class': 'thumbnail'
                          })));
 
-    poster.addEventListener('click', function(e) {
+    poster.addEventListener('click', function f3(e) {
       showPlayer(videourl);
     });
 
@@ -73,12 +73,12 @@ window.addEventListener('DOMContentLoaded', function() {
     });
     $('videoBorder').appendChild(player);
 
-    setTimeout(function() {
-      player.setAttribute('data-visible', 'true');
+    setTimeout(function f4() {
+      player.dataset.visible = 'true';
     }, 100);
   }
 
-  window.addEventListener('keypress', function(evt) {
+  window.addEventListener('keypress', function f5(evt) {
     if (playerShowing && evt.keyCode == evt.DOM_VK_ESCAPE) {
       showGallery();
       evt.preventDefault();
