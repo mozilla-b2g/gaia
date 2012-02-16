@@ -1,113 +1,114 @@
-<html><head>
-<title>004 | Glass / Refraction, reflection, fresnel, chromatic dispersion | J3D</title> 
+<!doctype html5>
+<html>
+  <head>
+    <meta charset="utf-8"> 
+    <meta http-equiv="pragma" content="no-cache">
+    <title>Glass / Refraction, reflection, fresnel, chromatic dispersion | J3D</title> 
 
-<meta http-equiv="content-type" content="text/html; charset=UTF-8"> 
+    <link type="text/css" rel="stylesheet" href="style/common.css">
+    <script type="text/javascript" src="dat.js"></script>
+    <script type="text/javascript" src="j3d.js"></script>
 
-<link rel="stylesheet" href="common.css">
-<script src="ga.js" async="" type="text/javascript"></script><script type="text/javascript" src="common.js"></script>
-<script type="text/javascript" src="dat.js"></script>
-<script type="text/javascript" src="j3d.js"></script>
+    <script>
+	    var engine, scene;
+	    var root, model, shader;
+	    var mx = 0, my = 0;
 
-<script>
-	var engine, scene;
-	var root, model, camera, shader;
-	var mx = 0, my = 0;
+      var properties = {
+        dispersionRed: 0.90,
+		    dispersionGreen: 0.97,
+		    dispersionBlue: 1.04,
+		    bias: 0.9,
+		    scale: 0.7,
+		    power: 1.1
+	    };
 
-	var Properties = function() {
-		this.dispersionRed = 0.90;
-		this.dispersionGreen = 0.97;
-		this.dispersionBlue = 1.04;
-		this.bias = 0.9
-		this.scale = 0.7;
-		this.power = 1.1;	
-	}
+	    window.onload = function(){
 	
-	window.onload = function(){
-		if(!checkWebGL()) return;
+		    var gui = new DAT.GUI();
+		    gui.domElement.style.position = 'absolute';
+	    	gui.domElement.style.top = '107px';
+		    gui.domElement.style.left = '0px';
+		    gui.domElement.style.zIndex = 200;
+		    document.body.appendChild(gui.domElement);
 		
-		properties = new Properties();	
+		    gui.add(properties, 'dispersionRed').min(0.7).max(1.1);
+		    gui.add(properties, 'dispersionGreen').min(0.7).max(1.1);
+		    gui.add(properties, 'dispersionBlue').min(0.7).max(1.1);
+		    gui.add(properties, 'bias').min(0).max(1);
+		    gui.add(properties, 'scale').min(-5).max(5);
+		    gui.add(properties, 'power').min(0).max(20);
 		
-		gui = new DAT.GUI();
-		gui.domElement.style.position = 'absolute';
-		gui.domElement.style.top = '107px';
-		gui.domElement.style.left = '0px';
-		gui.domElement.style.zIndex = 200;
-		document.body.appendChild( gui.domElement );
+		    engine = new J3D.Engine();
 		
-		gui.add(properties, 'dispersionRed').min(0.7).max(1.1);
-		gui.add(properties, 'dispersionGreen').min(0.7).max(1.1);
-		gui.add(properties, 'dispersionBlue').min(0.7).max(1.1);
-		gui.add(properties, 'bias').min(0).max(1);
-		gui.add(properties, 'scale').min(-5).max(5);
-		gui.add(properties, 'power').min(0).max(20);
-		
-		engine = new J3D.Engine();
-		
-		J3D.Loader.loadGLSL("shaders/Glass.glsl", function(s) {
-			shader = s;
-			setup();
-		});
-	}
+		    J3D.Loader.loadGLSL("shaders/Glass.glsl", function(s) {
+			    shader = s;
+			  setup();
+		    });
+	    }
 	
-	function setup(){
-		camera = new J3D.Transform();
-		camera.camera = new J3D.Camera({far: 100});
-		camera.position.z = 5;	
-		engine.camera = camera;	
+	    function setup(){
+		    var camera = new J3D.Transform();
+		    camera.camera = new J3D.Camera({far: 100});
+		    camera.position.z = 5;	
+		    engine.camera = camera;	
 		
-		root = new J3D.Transform();
-		root.add(camera);
-		engine.scene.add(root);
+		    root = new J3D.Transform();
+		    root.add(camera);
+		    engine.scene.add(root);
 
-		cubemap = new J3D.Cubemap({
-			left: "models/textures/skybox/left.jpg",
-			right: "models/textures/skybox/right.jpg",
-			up: "models/textures/skybox/up.jpg",
-			down: "models/textures/skybox/down.jpg",
-			back: "models/textures/skybox/back.jpg",
-			front: "models/textures/skybox/front.jpg",
-		});
+		    var cubemap = new J3D.Cubemap({
+			    left: "models/textures/skybox/left.jpg",
+			    right: "models/textures/skybox/right.jpg",
+			    up: "models/textures/skybox/up.jpg",
+			    down: "models/textures/skybox/down.jpg",
+			    back: "models/textures/skybox/back.jpg",
+			    front: "models/textures/skybox/front.jpg",
+		    });
 
-		engine.scene.addSkybox(cubemap);
+		    engine.scene.addSkybox(cubemap);
 
+		    shader.uCubemap = cubemap;
 		
-		shader.uCubemap = cubemap;
-		
-		model = new J3D.Transform();
-		model.rotation.x = 0.2;	
-		model.renderer = shader;
-		J3D.Loader.loadJSON("models/skull.js", function(j) { model.geometry = new J3D.Mesh(j); } );
-		engine.scene.add(model);
+		    var model = new J3D.Transform();
+		    model.rotation.x = 0.2;	
+		    model.renderer = shader;
+		    J3D.Loader.loadJSON("models/skull.js", function(j) {
+          model.geometry = new J3D.Mesh(j);
+        });
+		    engine.scene.add(model);
 
-		document.onmousemove = onMouseMove;
+		    document.onmousemove = onMouseMove;
 		
-		draw();
-	}
+		    draw();
+	    }
 	
-	function onMouseMove(e) {
-		mx = ( e.clientX / window.innerWidth  ) * 2 - 1;
-		my = ( e.clientY / window.innerHeight ) * 2 - 1;
-		if(isNaN(mx)) mx = 0;
-		if(isNaN(my)) my = 0;
-	}
+	    function onMouseMove(e) {
+		    mx = (e.clientX / window.innerWidth) * 2 - 1;
+		    my = (e.clientY / window.innerHeight) * 2 - 1;
+		    if(isNaN(mx)) mx = 0;
+		    if(isNaN(my)) my = 0;
+	    }
 	
-	function draw() {
-		requestAnimationFrame(draw);
+	    function draw() {
+		    requestAnimationFrame(draw);
 
-		shader.chromaticDispertion = [properties.dispersionRed, properties.dispersionGreen, properties.dispersionBlue];	
-		shader.bias = properties.bias;	
-		shader.scale = properties.scale;	
-		shader.power = properties.power;	
+		    shader.chromaticDispertion = [
+          properties.dispersionRed,
+          properties.dispersionGreen,
+          properties.dispersionBlue
+        ];	
+		    shader.bias = properties.bias;	
+		    shader.scale = properties.scale;	
+		    shader.power = properties.power;	
 
-		root.rotation.x += (my - root.rotation.x) / 20;
-		root.rotation.y += mx * J3D.Time.deltaTime / 2000;
+		    root.rotation.x += (my - root.rotation.x) / 20;
+		    root.rotation.y += mx * J3D.Time.deltaTime / 2000;
 
-		engine.render();
-	}
-	
-</script>
-
-</head> 
-
-<body data-rendering="true">
-</body></html>
+		    engine.render();
+	    }
+    </script>
+  </head>
+  <body data-rendering="true">
+  </body>
+</html>
