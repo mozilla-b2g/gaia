@@ -59,9 +59,6 @@ const IMEManager = {
     var keyboardSettingRequest = function keyboardSettingRequest(key) {
       var request = navigator.mozSettings.get('keyboard.layouts.' + key);
       request.onsuccess = (function onsuccess(evt) {
-        // XXX: workaround with gaia issue 342
-        if (keyboardSettingGroupKeys.indexOf(key) !== i)
-          return;
 
         if (request.result.value === 'true') {
           this.keyboards = this.keyboards.concat(
@@ -77,9 +74,6 @@ const IMEManager = {
       }).bind(this);
 
       request.onerror = (function onerror(evt) {
-        // XXX: workaround with gaia issue 342
-        if (keyboardSettingGroupKeys.indexOf(key) !== i)
-          return;
 
         dump('Having trouble getting setting for keyboard setting group: ' + key);
 
