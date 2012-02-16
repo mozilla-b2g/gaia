@@ -1,4 +1,0 @@
-);
-var splitter = new SyllableSplitter();
-var engine = new PinyinImEngine(dictionary, splitter);
-

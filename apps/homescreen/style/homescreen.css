@@ -491,6 +491,11 @@ div.windowSprite.active {
   top: 0;
 }
 
+/* XXX: A Hack to make the candidate panel above the Caps Lock key. */
+#keyboard-candidate-panel.full, #keyboard-candidate-panel-toggle-button.full {
+  z-index:1;
+}
+
 #keyboard-candidate-panel-toggle-button.show {
   display: block;
 }
