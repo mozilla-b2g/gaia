@@ -32,22 +32,11 @@ const IMEManager = {
     'zhuying': ['zh-Hant-Zhuying']
   },
 
-  kMozSettingsTimeout: 800,
   loadKeyboardSettings: function loadKeyboardSettings(callback) {
-    var completed = false;
     var completeSettingRequests = (function completeSettingRequests() {
-
-      if (completed)
-        return;
-
-      clearTimeout(settingTimer);
-
       if (!this.keyboards.length)
-        this.keyboards =
-          [].concat(
-            this.keyboardSettingGroups['english'],
-            this.keyboardSettingGroups['zhuying']
-          );
+        this.keyboards = [].concat(this.keyboardSettingGroups['english'],
+          this.keyboardSettingGroups['zhuying']);
 
       if (this.keyboards.indexOf(this.currentKeyboard) === -1)
         this.currentKeyboard = this.keyboards[0];
@@ -56,16 +45,8 @@ const IMEManager = {
         this.loadKeyboard(name);
       }).bind(this));
 
-      completed = true;
       callback();
     }).bind(this);
-
-    // XXX: Fallback if MozSettings timed out
-    var settingTimer = setTimeout(function settingTimer() {
-      dump('Keyboard: MozSettings timed out. Skip user settings.');
-      completeSettingRequests();
-
-    }, this.kMozSettingsTimeout);
 
     this.keyboards = [];
     var keyboardSettingGroupKeys = [];
@@ -78,9 +59,6 @@ const IMEManager = {
     var keyboardSettingRequest = function keyboardSettingRequest(key) {
       var request = navigator.mozSettings.get('keyboard.layouts.' + key);
       request.onsuccess = (function onsuccess(evt) {
-        // XXX: workaround with gaia issue 342
-        if (keyboardSettingGroupKeys.indexOf(key) !== i)
-          return;
 
         if (request.result.value === 'true') {
           this.keyboards = this.keyboards.concat(
@@ -96,12 +74,9 @@ const IMEManager = {
       }).bind(this);
 
       request.onerror = (function onerror(evt) {
-        // XXX: workaround with gaia issue 342
-        if (keyboardSettingGroupKeys.indexOf(key) !== i)
-          return;
 
-        dump(
-          'Having trouble getting setting for keyboard setting group: ' + key);
+        var msg = 'Having trouble getting setting for keyboard setting group: ';
+        dump(msg + key);
 
         if (++i === keyboardSettingGroupKeys.length) {
           completeSettingRequests();
