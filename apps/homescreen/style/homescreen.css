@@ -75,8 +75,7 @@ body {
 }
 
 #lockscreenContainer {
-  background-color: rgb(86, 93, 101);
-  background-image: -moz-element(#lockscreenContainerBackground);
+  background: url("images/noise.png") repeat scroll 50% 50%, url(images/background.bmp) 50% 50% transparent;
 }
 
 #lockscreenContainer::before {
@@ -86,20 +85,6 @@ body {
   width: 100%;
   height: 100%;
   background-color: rgba(0,0,0,0.6);
-}
-
-#lockscreenContainer::after {
-  content: '';
-  display: block;
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background: transparent url('images/ball.png') center bottom no-repeat;
-}
-
-#lockscreenContainerBackground {
-  top: -500%;
-  background-image: -moz-element(#home);
 }
 
 #lockscreen #clock {
