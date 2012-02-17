@@ -6,28 +6,8 @@
 // MozApps - Bug 709015
 (function (window) {
   var navigator = window.navigator;
-  if (navigator.mozApps)
-    return;
 
   var webapps = [
-                 { // clock 
-                   installOrigin: 'http://gaiamobile.org:8888',
-                   origin: '../clock',
-                   receipt: null,
-                   installTime: 1323339869000,
-                   manifest: {
-                     'name': 'Clock',
-                     'description': 'Gaia Clock',
-                     'launch_path': '/clock.html',
-                     'developer': {
-                       'name': 'The Gaia Team',
-                       'url': 'https://github.com/andreasgal/gaia'
-                     },
-                     'icons': {
-                       '120': '/style/icons/Clock.png'
-                     }
-                   }
-                 },
                  { // browser
                    installOrigin: 'http://gaiamobile.org:8888',
                    origin: '../browser',
@@ -46,6 +26,60 @@
                      }
                    }
                  },
+                 { // settings
+                   'installOrigin': 'http://gaiamobile.org:8888',
+                   'origin': '../settings',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'Settings',
+                     'description': 'Gaia Settings',
+                     'launch_path': '/settings.html',
+                     'developer': {
+                       'name': 'The Gaia Team',
+                       'url': 'https://github.com/andreasgal/gaia'
+                     },
+                     'icons': {
+                       '120': '/style/icons/Settings.png'
+                     }
+                   }
+                 },
+                 { // maps
+                   installOrigin: 'http://gaiamobile.org:8888',
+                   origin: '../maps',
+                   receipt: null,
+                   installTime: 1323339869000,
+                   manifest: {
+                     'name': 'Maps',
+                     'description': 'Google Maps',
+                     'launch_path': '/maps.html',
+                     'developer': {
+                       'name': 'The Gaia Team',
+                       'url': 'https://github.com/andreasgal/gaia'
+                     },
+                     'icons': {
+                       '120': '/style/icons/Maps.png'
+                     }
+                   }
+                 },
+                 { // clock
+                   installOrigin: 'http://gaiamobile.org:8888',
+                   origin: '../clock',
+                   receipt: null,
+                   installTime: 1323339869000,
+                   manifest: {
+                     'name': 'Clock',
+                     'description': 'Gaia Clock',
+                     'launch_path': '/clock.html',
+                     'developer': {
+                       'name': 'The Gaia Team',
+                       'url': 'https://github.com/andreasgal/gaia'
+                     },
+                     'icons': {
+                       '120': '/style/icons/Clock.png'
+                     }
+                   }
+                 },
                  { // camera
                    'installOrigin': 'http://gaiamobile.org:8888',
                    'origin': '../camera',
@@ -61,24 +95,6 @@
                      },
                      'icons': {
                        '120': '/style/icons/Camera.png'
-                     }
-                   }
-                 },
-                 { // dialer
-                   'installOrigin': 'http://gaiamobile.org:8888',
-                   'origin': '../dialer',
-                   'receipt': null,
-                   'installTime': 1323339869000,
-                   manifest: {
-                     'name': 'Dialer',
-                     'description': 'Gaia Dialer',
-                     'launch_path': '/dialer.html',
-                     'developer': {
-                       'name': 'The Gaia Team',
-                       'url': 'https://github.com/andreasgal/gaia'
-                     },
-                     'icons': {
-                       '120': '/style/icons/Phone.png'
                      }
                    }
                  },
@@ -136,6 +152,24 @@
                      }
                    }
                  },
+                 { // facebook
+                   'installOrigin': 'https://www.facebook.com',
+                   'origin': 'https://touch.facebook.com',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'Facebook',
+                     'description': 'Facebook Mobile Application',
+                     'launch_path': '',
+                     'developer': {
+                       'name': 'Facebook',
+                       'url': 'http://www.facebook.com/'
+                     },
+                     'icons': {
+                       '120': '/style/icons/Facebook.png'
+                     }
+                   }
+                 },
                  { // market
                    'installOrigin': 'http://gaiamobile.org:8888',
                    'origin': '../market',
@@ -154,21 +188,21 @@
                      }
                    }
                  },
-                 { // settings
+                 { // dialer
                    'installOrigin': 'http://gaiamobile.org:8888',
-                   'origin': '../settings',
+                   'origin': '../dialer',
                    'receipt': null,
                    'installTime': 1323339869000,
                    manifest: {
-                     'name': 'Settings',
-                     'description': 'Gaia Settings',
-                     'launch_path': '/settings.html',
+                     'name': 'Dialer',
+                     'description': 'Gaia Dialer',
+                     'launch_path': '/dialer.html',
                      'developer': {
                        'name': 'The Gaia Team',
                        'url': 'https://github.com/andreasgal/gaia'
                      },
                      'icons': {
-                       '120': '/style/icons/Settings.png'
+                       '120': '/style/icons/Phone.png'
                      }
                    }
                  },
@@ -231,20 +265,34 @@
   navigator.mozSettings = {
     get: function(key) {
       var onsuccess = [];
+      var onerror = [];
       var request = {
         addEventListener: function(name, fn) {
-          if (name === "success")
+          if (name === 'success')
             onsuccess.push(fn);
+          if (name === 'error')
+            onerror.push(fn);
         },
         set onsuccess(fn) {
           onsuccess.push(fn);
         },
+        set onerror(fn) {
+          onerror.push(fn);
+        }
       };
       setImmediate(function() {
-        request.result = {
-          key: key,
-          value: localStorage.getItem(prefix + key)
-        };
+        try {
+          request.result = {
+            key: key,
+            value: localStorage.getItem(prefix + key)
+          };
+        } catch (e) {
+          while (onerror.length > 0) {
+            var fn = onerror.shift();
+            fn();
+          }
+          return;
+        }
         while (onsuccess.length > 0) {
           var fn = onsuccess.shift();
           fn();
@@ -1266,8 +1314,6 @@
   }
   ];
 
-  Object.freeze(contacts);
-
   navigator.mozContacts = {
     contacts: contacts,
     find: function contactsManager(fields, successCallback, errorCallback) {
@@ -1347,6 +1393,7 @@
           continue;
         newListeners.push(listeners[n]);
       }
+      listeners = newListeners;
     }
     originalRemoveEventListener.call(this, type, listener);
   }

@@ -42,7 +42,6 @@ function hideSourceViewer() {
   viewsource.style.visibility = 'hidden';
 }
 
-
 // Change the display state (off, locked, default)
 function changeDisplayState(state) {
   displayState = state;
@@ -83,10 +82,10 @@ DefaultPhysics.prototype = {
     if (touchState.active) {
       var dx = touchState.startX - e.pageX;
       if (dx !== 0) {
-        iconGrid.sceneGraph.setViewportTopLeft(
-          iconGrid.currentPage * iconGrid.containerWidth + dx, 0, 0);
+        iconGrid.pan(-dx);
         this.moved = true;
       }
+      e.stopPropagation();
     }
   },
   onTouchEnd: function(e) {
@@ -105,89 +104,23 @@ DefaultPhysics.prototype = {
     var small = Math.abs(diffX) < 20;
 
     var flick = quick && !small;
-    var tap = !this.moved && small;
+    var tap = small;
     var drag = !quick;
 
     var iconGrid = this.iconGrid;
     var currentPage = iconGrid.currentPage;
     if (tap) {
-      iconGrid.tap(currentPage * iconGrid.containerWidth + startX,
-                   touchState.startY);
+      iconGrid.tap();
+      return;
     } else if (flick) {
-      iconGrid.setPage(currentPage + dir, 200);
+      iconGrid.setPage(currentPage + dir, 0.2);
     } else {
       if (Math.abs(diffX) < this.containerWidth / 2)
-        iconGrid.setPage(currentPage, 200);
+        iconGrid.setPage(currentPage, 0.2);
       else
-        iconGrid.setPage(currentPage + dir, 200);
+        iconGrid.setPage(currentPage + dir, 0.2);
     }
-  }
-};
-
-function Icon(iconGrid, index) {
-  this.iconGrid = iconGrid;
-  this.index = index;
-  this.label = '';
-  this.url = '';
-}
-
-Icon.prototype = {
-  update: function(img, label, url) {
-    this.label = label;
-    this.url = url;
-    var iconGrid = this.iconGrid;
-    var iconWidth = iconGrid.iconWidth;
-    var iconHeight = iconGrid.iconHeight;
-    var border = iconGrid.border;
-    var sprite = this.sprite;
-    var createSprite = !sprite;
-    if (createSprite) {
-      var sceneGraph = iconGrid.sceneGraph;
-      sprite = new Sprite(iconWidth, iconHeight);
-      sprite.icon = this;
-      this.sprite = sprite;
-    }
-    var ctx = sprite.getContext2D();
-    ctx.drawImage(img, iconWidth * border, iconHeight * border,
-                  iconWidth * (1 - border * 2),
-                  iconHeight * (1 - border * 2));
-    ctx.font = Math.floor(iconHeight * border * 0.6) + 'pt Roboto, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillStyle = 'white';
-    ctx.textBaseline = 'top';
-    ctx.fillText(label, iconWidth / 2, iconHeight - iconHeight * border,
-                 iconWidth * 0.9);
-    if (createSprite)
-      sceneGraph.add(sprite);
-    this.reflow();
-  },
-  // return the X coordinate of the top left corner of a slot
-  slotLeft: function() {
-    var iconGrid = this.iconGrid;
-    return iconGrid.itemBoxWidth * (this.index % iconGrid.columns);
-  },
-  // return the Y coordinate of the top left corner of a slot
-  slotTop: function() {
-    var iconGrid = this.iconGrid;
-    var slot = this.index % iconGrid.itemsPerPage;
-    return Math.floor(slot / iconGrid.columns) * iconGrid.itemBoxHeight;
-  },
-  reflow: function(duration) {
-    var sprite = this.sprite;
-    if (!sprite)
-      return;
-    var iconGrid = this.iconGrid;
-    var index = this.index;
-    var itemsPerPage = iconGrid.itemsPerPage;
-    var page = Math.floor(index / iconGrid.itemsPerPage);
-    sprite.setPosition(page * iconGrid.containerWidth + this.slotLeft(),
-                       this.slotTop(),
-                       duration);
-    sprite.setScale(1, duration);
-
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('pagereflow', true, false, iconGrid.getLastPage() + 1);
-    document.dispatchEvent(evt);
+    e.stopPropagation();
   }
 };
 
@@ -219,7 +152,8 @@ function AddEventHandlers(target, listener, eventNames) {
         if (Mouse2Touch[e.type]) {
           var original = e;
           e = {
-            type: Mouse2Touch[e.type],
+            type: Mouse2Touch[original.type],
+            target: original.target,
             touches: [original],
             preventDefault: function() {
               original.preventDefault();
@@ -242,108 +176,212 @@ function RemoveEventHandlers(target, listener, eventNames) {
   }
 }
 
-function IconGrid(canvas, iconWidth, iconHeight, border) {
-  this.canvas = canvas;
-
-  this.iconWidth = iconWidth;
-  this.iconHeight = iconHeight;
-  this.sceneGraph = new SceneGraph(canvas);
-  this.border = border || 0.1;
+function IconGrid(containerId, columns, rows, minPages, showLabels) {
+  this.containerId = containerId;
+  this.container = document.getElementById(containerId);
+  this.columns = columns || 4;
+  this.rows = rows || 3;
+  this.minPages = minPages;
+  this.showLabels = showLabels;
   this.icons = [];
   this.currentPage = 0;
   this.physics = createPhysicsFor(this);
 
-  // update the layout state
-  this.reflow(canvas.width, canvas.height, 0);
-
   // install event handlers
-  AddEventHandlers(canvas, this, ['touchstart', 'touchmove', 'touchend', 'contextmenu']);
+  AddEventHandlers(this.container, this, ['touchstart', 'touchmove', 'touchend', 'contextmenu']);
   AddEventHandlers(window, this, ['resize']);
 }
 
 IconGrid.prototype = {
-  add: function(src, label, url) {
-    // Create the icon in the icon grid
+  add: function(slot, iconUrl, label, action) {
     var icons = this.icons;
-    var icon = new Icon(this, this.icons.length);
+    var icon = { slot: slot, iconUrl: iconUrl, label: label, action: action };
     icon.index = icons.length;
     icons.push(icon);
-    // Load the image, sprite will be created when image load is complete
-    var img = document.createElement('img');
-    img.setAttribute('crossorigin', 'anonymous');
-    img.src = src;
-    img.label = label;
-    img.url = url;
-    img.icon = icon;
-    img.onload = function() {
-      // Update the icon (this will trigger a reflow and a repaint)
-      var icon = this.icon;
-      icon.update(this, this.label, this.url);
-    }
-    return icon;
   },
   remove: function(icon) {
     this.icons.splice(icon.index);
-    if (icon.sprite)
-      sceneGraph.remove(icon.sprite);
   },
   // reflow the icon grid
-  reflow: function(width, height, duration) {
-    // first recalculate all the layout information
-    this.containerWidth = width;
-    this.containerHeight = height;
-    this.panelWidth = this.containerWidth;
-    this.pageIndicatorWidth = this.containerWidth;
-    this.pageIndicatorHeight =
-      Math.min(Math.max(this.containerHeight * 0.7, 14), 20);
-    this.panelHeight = this.containerHeight - this.pageIndicatorHeight;
-    this.columns = Math.floor(this.panelWidth / this.iconWidth);
-    this.rows = Math.floor(this.panelHeight / this.iconHeight);
-    this.itemsPerPage = this.rows * this.columns;
-    this.itemBoxWidth = Math.floor(this.panelWidth / this.columns);
-    this.itemBoxHeight = Math.floor(this.panelHeight / this.rows);
-
-    // switch to the right page
-    this.setPage(this.currentPage, duration);
-
-    // now reflow all the icons
+  update: function() {
+    var instance = this;
+    var containerId = this.containerId;
+    var container = this.container;
     var icons = this.icons;
-    for (var n = 0; n < icons.length; ++n)
-      icons[n].reflow(duration);
-  },
-  // get last page with an icon
-  getLastPage: function() {
-    var itemsPerPage = this.itemsPerPage;
-    var lastPage =
-      Math.floor((this.icons.length + (itemsPerPage - 1)) / itemsPerPage);
-    if (lastPage > 0)
-      --lastPage;
-    return lastPage;
-  },
-  // switch to a different page
-  setPage: function(page, duration) {
-    page = Math.max(0, page);
-    page = Math.min(page, this.getLastPage());
-    this.sceneGraph.setViewportTopLeft(this.containerWidth * page, 0, duration);
-    this.currentPage = page;
+    var columns = this.columns;
+    var rows = this.rows;
+    var currentPage = this.currentPage;
+    var itemsPerPage = rows * columns;
+    var iconWidth = Math.floor(100/columns);
+    var iconHeight = Math.floor(100/rows);
 
-    var event = document.createEvent('CustomEvent');
-    event.initCustomEvent('pagechange', true, false, page + 1);
-    document.dispatchEvent(event);
+    // get the page of an icon
+    function getIconPage(icon) {
+      return Math.floor(icon.slot / itemsPerPage);
+    }
+
+    // get the column of an icon
+    function getIconColumn(icon) {
+      return (icon.slot % itemsPerPage) % columns;
+    }
+
+    // get the row of an icon
+    function getIconRow(icon) {
+      return Math.floor((icon.slot % itemsPerPage) / columns);
+    }
+
+    // position a div using transform
+    function setPosition(div, x, y) {
+      div.style.MozTransform = 'translate(' + x + ',' + y + ')';
+    }
+
+    // touch handler for icons
+    var TouchHandler = {
+      handleEvent: function(e) {
+        instance.lastAction = (e.type === 'touchstart') ? e.target.action : null;
+      }
+    };
+
+    // get page divs
+    var elementList = container.childNodes;
+    var pageDivs = [];
+    for (var n = 0; n < elementList; ++n) {
+      var element = elementList[n];
+      pageDivs[element.id] = element;
+    }
+
+    // get icon divs
+    var elementList = document.querySelectorAll('#' + containerId + '> .page > .icon');
+    var iconDivs = [];
+    for (var n = 0; n < elementList; ++n) {
+      var element = elementList[n];
+      iconDivs[element.id] = element;
+    }
+
+    // calculate the new number of pages we need
+    var pageCount = 0;
+    for (var n = 0; n < icons.length; ++n) {
+      var icon = icons[n];
+      pageCount = Math.max(getIconPage(icon), pageCount);
+    }
+    pageCount = Math.max(this.minPages, pageCount);
+
+    // adjust existing pages and create new ones as needed
+    for (var n = 0; n < pageCount; ++n) {
+      var pageDiv = pageDivs[n];
+      if (!pageDiv) { // missing page
+        pageDiv = document.createElement('div');
+        pageDiv.id = n;
+        pageDiv.className = 'page';
+        container.appendChild(pageDiv);
+        pageDivs[n] = pageDiv;
+      }
+      setPosition(pageDiv, (n - currentPage) + '00%', 0);
+    }
+
+    // remove pages we don't need
+    for (var key in pageDivs) {
+      if (key >= pageCount) {
+        container.removeChild(pageDivs[key]);
+        pageDivs[key] = null;
+      }
+    }
+
+    // adjust existing icons and create new ones as needed
+    for (var n = 0; n < icons.length; ++n) {
+      var icon = icons[n];
+      var pageOfIcon = getIconPage(icon);
+      var iconDiv = iconDivs[n];
+      if (!iconDiv) { // missing icon
+        iconDiv = document.createElement('div');
+        iconDiv.id = n;
+        iconDiv.className = 'icon';
+        var style = iconDiv.style;
+        style.width = iconWidth + '%';
+        style.height = iconHeight + '%';
+        var img = new Image();
+        AddEventHandlers(img, TouchHandler, ['touchstart', 'touchend']);
+        var centerDiv = document.createElement('div');
+        centerDiv.className = 'img';
+        centerDiv.appendChild(img);
+        iconDiv.appendChild(centerDiv);
+        if (this.showLabels) {
+          var labelDiv = document.createElement('div');
+          labelDiv.className = 'label';
+          iconDiv.appendChild(labelDiv);
+        }
+        pageDivs[pageOfIcon].appendChild(iconDiv);
+        iconDivs[n] = iconDiv;
+      } else {
+        // if icon is on the wrong page, move it
+        if (iconDiv.parentNode != pageDivs[pageOfIcon]) {
+          iconDiv.parentNode.removeChild(iconDiv);
+          pageDivs[pageOfIcon].appendChild(iconDiv);
+        }
+      }
+      // make sure icon has right image and label
+      var img = iconDiv.childNodes[0].childNodes[0];
+      img.action = icon.action;
+      var iconUrl = icon.iconUrl;
+      if (img.src != iconUrl)
+        img.src = iconUrl;
+      if (this.showLabels) {
+        var label = iconDiv.childNodes[1];
+        if (label.textContent != icon.label)
+          label.textContent = icon.label;
+      }
+      // update position
+      setPosition(iconDiv, getIconColumn(icon) + '00%', getIconRow(icon) + '00%');
+    }
+
+    // remove icons we don't need
+    for (var key in iconDivs) {
+      if (key > icons.length) {
+        iconDivs[key].parentNode.removeChild(iconDivs[key]);
+        iconDivs[key] = null;
+      }
+    }
+
+    // update paginator, if we have one
+    var dots = this.dots;
+    if (dots)
+      dots.update(currentPage);
   },
-  // process a computed tap at the given scene-graph coordinates
-  tap: function(x, y) {
-    this.sceneGraph.forHit(
-      x, y,
-      function(sprite) {
-        WindowManager.launch(sprite.icon.url);
-      });
+  pan: function(x, duration) {
+    var pages = this.container.childNodes;
+    var currentPage = this.currentPage;
+    for (var n = 0; n < pages.length; ++n) {
+      var page = pages[n];
+      var style = page.style;
+      style.MozTransform = 'translateX(-moz-calc(' + (n - currentPage) + '00% + ' + x + 'px))';
+      style.MozTransition = duration ? ('all ' + duration + 's ease;') : "";
+    }
+  },
+  setPage: function(number, duration) {
+    var pages = this.container.childNodes;
+    if (number < 0)
+      number = 0;
+    if (number >= pages.length)
+      number = pages.length - 1;
+    this.currentPage = number;
+    for (var n = 0; n < pages.length; ++n) {
+      var page = pages[n];
+      var style = page.style;
+      style.MozTransform = 'translateX(' + (n - number) + '00%)';
+      style.MozTransition = duration ? ('all ' + duration + 's ease') : "";
+    }
+    var dots = this.dots;
+    if (dots)
+      dots.update(number);
+  },
+  tap: function() {
+    if (this.lastAction)
+      eval(this.lastAction);
   },
   handleEvent: function(e) {
     var physics = this.physics;
     switch (e.type) {
     case 'touchstart':
-      this.canvas.setCapture(false);
       physics.onTouchStart(e.touches[0]);
       break;
     case 'touchmove':
@@ -360,13 +398,7 @@ IconGrid.prototype = {
       physics.onTouchEnd(e.changedTouches[0]);
       break;
     case 'resize':
-      var canvas = this.canvas;
-      var width = canvas.width = window.innerWidth;
-      // TODO Substract the height of the statusbar
-      var height = canvas.height = window.innerHeight - 37 - SHORTCUTS_HEIGHT;
-      this.sceneGraph.blitter.viewportWidth = width;
-      this.sceneGraph.blitter.viewportHeight = height;
-      this.reflow(width, height, 0);
+      this.update();
       break;
     default:
       return;
@@ -374,6 +406,44 @@ IconGrid.prototype = {
     e.preventDefault();
   }
 };
+
+function Dots(containerId, gridId) {
+  this.containerId = containerId;
+  this.gridId = gridId;
+  this.container = document.getElementById(containerId);
+  this.grid = document.getElementById(gridId);
+}
+
+Dots.prototype = {
+  update: function(current) {
+    var container = this.container;
+    var grid = this.grid;
+
+    var numPages = grid.childNodes.length;
+
+    // Add additional dots if needed.
+    while (container.childNodes.length < numPages) {
+      var dot = document.createElement('div');
+      dot.className = "dot";
+      container.appendChild(dot);
+    }
+
+    // Remove excess dots.
+    while (container.childNodes.length > numPages)
+      container.removeChild(container.childNodes[0]);
+
+    // Set active/inactive state.
+    var childNodes = container.childNodes;
+    for (var n = 0; n < numPages; ++n) {
+      var dot = childNodes[n];
+      if (n == current) {
+        dot.classList.add("active");
+      } else {
+        dot.classList.remove("active");
+      }
+    }
+  }
+}
 
 function NotificationScreen(touchables) {
   this.touchables = touchables;
@@ -589,72 +659,25 @@ function OnLoad() {
   new NotificationScreen(touchables);
 
   var apps = Gaia.AppManager.loadInstalledApps(function(apps) {
-    // XXX this add 5 times the same set of icons
-    var icons = [];
-    for (var i = 0; i < 5; i++)
-      for (var n = 0; n < apps.length; ++n)
-        icons.push(apps[n]);
-
-    var screen = document.getElementById('screen');
-    var screenRect = screen.getBoundingClientRect();
-    var screenWidth = screenRect.right - screenRect.left;
-    var screenHeight = screenRect.bottom - screenRect.top;
-    var canvas = document.getElementById('homeCanvas');
-    var width = canvas.width = screenWidth;
-    var height = canvas.height = screenHeight - 37 - SHORTCUTS_HEIGHT;
-
-    var iconGrid = new IconGrid(canvas, 120, 120, 0.2);
-    for (var n = 0; n < icons.length; ++n) {
-      var icon = icons[n];
-      iconGrid.add(icon.icon, icon.name, icon.url);
+    var appsGrid = new IconGrid('apps', 3, 3, 2, true);
+    for (var n = 0; n < apps.length; ++n) {
+      var app = apps[n];
+      appsGrid.add(n, app.icon, app.name, 'WindowManager.launch("' + app.url + '")');
     }
+    appsGrid.dots = new Dots('dots', 'apps');
+    appsGrid.update();
 
-    // Create the main shortcuts
-    var reload = {
-      action: 'document.location.reload()',
-      icon: 'style/images/reload.png'
-    };
-    var currentShortcuts = ['Dialer', 'Messages', 'Market', reload];
-    for (var n = 0; n < icons.length; ++n) {
-      var icon = icons[n];
-      var index = currentShortcuts.indexOf(icon.name);
-      if (index < 0)
-        continue;
-
-      icon.action = 'WindowManager.launch(\'' + icon.url + '\')';
-      currentShortcuts.splice(index, 1, icon);
+    var favsGrid = new IconGrid('favs', 3, 1, 1, false);
+    var slot = 0;
+    for (var n = 0; n < apps.length; ++n) {
+      if (apps[n].name == 'Dialer' ||
+          apps[n].name == 'Messages') {
+        var app = apps[n];
+        favsGrid.add(slot++, app.icon, app.name, 'WindowManager.launch("' + app.url + '")');
+      }
     }
-
-    var shortcuts = '';
-    for (var n = 0; n < currentShortcuts.length; ++n) {
-      var shortcut = currentShortcuts[n];
-      var src = shortcut.icon;
-      var action = shortcut.action;
-      shortcuts += '<span class="shortcut" onclick="' + action + '">' +
-                   '  <img class="shortcut-image" src="' + src + '"></img>' +
-                   '</span>';
-    }
-    document.getElementById('home-shortcuts').innerHTML = shortcuts;
-  });
-
-  var pagesContainer = document.getElementById('home-pages');
-  document.addEventListener('pagechange', function(evt) {
-    var pages = pagesContainer.childNodes;
-    for (var n = 0; n < pages.length; n++)
-      delete pages[n].dataset.active;
-    pages[evt.detail - 1].dataset.active = 'true';
-  });
-
-  document.addEventListener('pagereflow', function(evt) {
-    var pages = '';
-    var pagesCount = evt.detail;
-    for (var n = 0; n < pagesCount; n++) {
-      pages += '<span class="home-page">' +
-               '  <div></div>' +
-               '</span>';
-    }
-    pagesContainer.innerHTML = pages;
-    pagesContainer.firstChild.dataset.active = 'true';
+    favsGrid.add(slot++, 'style/images/reload.png', '', 'document.location.reload()');
+    favsGrid.update();
   });
 
   var titlebar = document.getElementById('titlebar');

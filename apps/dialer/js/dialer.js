@@ -2,7 +2,7 @@
 
 var kFontStep = 8;
 var kMinFontSize = 24;
-var kDefaultFontSize = 64;
+var kDefaultFontSize = 30;
 // Frequencies comming from http://en.wikipedia.org/wiki/Telephone_keypad
 var gTonesFrequencies = {
   '1': [697, 1209], '2': [697, 1336], '3': [697, 1477],
@@ -24,7 +24,7 @@ window.addEventListener('message', function visibleApp(evt) {
 function visibilityChanged(url) {
   // TODO do something better here
   var contacts = document.getElementById('contacts-label');
-  if (url.indexOf('?choice=contact') != -1 ||
+  if ((url && url.indexOf('?choice=contact') != -1) ||
       contacts.hasAttribute('data-active')) {
     Contacts.load();
     choiceChanged(contacts);
@@ -68,7 +68,7 @@ var TonePlayer = {
     var kr = 2 * Math.PI * freqRow / this._sampleRate;
     var kc = 2 * Math.PI * freqCol / this._sampleRate;
     for (var i = 0; i < soundData.length; i += 2) {
-      var smoother = 1 - (i/soundData.length);
+      var smoother = 1 - (i / soundData.length);
       soundData[i] = Math.sin(kr * currentSoundSample) * smoother;
       soundData[i + 1] = Math.sin(kc * currentSoundSample) * smoother;
 
@@ -103,45 +103,6 @@ var KeyHandler = {
 
   init: function kh_init() {
     this.phoneNumber.value = '';
-
-    var mainKeys = [
-      { title: '1', details: '' },
-      { title: '2', details: 'abc' },
-      { title: '3', details: 'def' },
-      { title: '4', details: 'ghi' },
-      { title: '5', details: 'jkl' },
-      { title: '6', details: 'mno' },
-      { title: '7', details: 'pqrs' },
-      { title: '8', details: 'tuv' },
-      { title: '9', details: 'wxyz' },
-      { title: '\u2217', value: '*', details: '' },
-      { title: '0', details: '+' },
-      { title: '#', details: '' }
-    ];
-
-    var mainKey = document.getElementById('mainKeyset');
-    var row = null;
-    mainKeys.forEach(function(key, index) {
-      if (index % 3 == 0) {
-        row = document.createElement('div');
-        row.className = 'keyboard-row';
-        mainKey.appendChild(row);
-      }
-
-      var container = document.createElement('div');
-      container.className = 'keyboard-key';
-      var value = 'value' in key ? key.value : key.title;
-      container.setAttribute('data-value', value);
-
-      var title = document.createElement('span');
-      title.appendChild(document.createTextNode(key.title));
-      container.appendChild(title);
-
-      var details = document.createElement('span');
-      details.appendChild(document.createTextNode(key.details));
-      container.appendChild(details);
-      row.appendChild(container);
-    });
 
     TonePlayer.init();
   },
@@ -276,7 +237,11 @@ var CallHandler = {
     this.currentCall.answer();
   },
   end: function ch_end() {
-    this.currentCall.hangUp();
+    if (this.currentCall) {
+      this.currentCall.hangUp();
+    } else {
+      this.disconnected();
+    }
   },
   disconnected: function ch_disconnected() {
     this.toggleCallScreen();
@@ -290,8 +255,10 @@ var CallHandler = {
     this.closeModal();
     clearInterval(this._ticker);
 
-    this.currentCall.removeEventListener('statechange', this);
-    this.currentCall = null;
+    if (this.currentCall) {
+      this.currentCall.removeEventListener('statechange', this);
+      this.currentCall = null;
+    }
   },
 
   handleEvent: function fm_handleEvent(evt) {
@@ -348,7 +315,7 @@ var CallHandler = {
   },
 
   toggleCallScreen: function ch_toggleScreen() {
-    document.getElementById('tabs-container').classList.toggle('oncall');
+    document.getElementById('tabs').classList.toggle('oncall');
     document.getElementById('views').classList.toggle('oncall');
     document.getElementById('call-screen').classList.toggle('oncall');
   },
@@ -393,9 +360,6 @@ var CallHandler = {
 
 window.addEventListener('load', function keyboardInit(evt) {
   window.removeEventListener('load', keyboardInit);
-
-  var background = document.getElementById('contacts-overlay-background');
-  background.style.filter = "url(#gauss)";
 
   KeyHandler.init();
   navigator.mozTelephony.addEventListener('incoming', CallHandler);
