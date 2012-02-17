@@ -1,18 +1,12 @@
 var Camera = {
   _filter: '',
   _camera: 0,
+
+  get video() {
+    return document.getElementById('video');
+  },
+
   init: function cameraInit() {
-    var video = this.video;
-    if (video)
-      video.parentNode.removeChild(video);
-
-    video = this.video = document.createElement('video');
-    video.setAttribute('autoplay', 'true');
-    video.id = 'video';
-
-    var container = document.getElementById("video-container");
-    container.appendChild(video);
-
     var width, height;
     if (window.innerWidth > window.innerHeight) {
       width = window.innerWidth;
@@ -25,6 +19,8 @@ var Camera = {
       var transform = 'rotate(90deg)';
       if (this._camera == 1)
         transform += ' scale(-1, 1)';
+
+      var container = document.getElementById('video-container');
       container.style.MozTransform = transform;
     }
 
@@ -33,15 +29,19 @@ var Camera = {
       height: height,
       camera: this._camera
     }
-    video.style.width = width + "px";
-    video.style.height = height + "px";
+
+    var video = this.video;
+    video.style.width = width + 'px';
+    video.style.height = height + 'px';
     video.style.filter = this._filter;
 
     video.src = navigator.mozCamera.getCameraURI(config);
+    video.src = 'meetthecubs.webm';
   },
   
   toggleCamera: function toggleCamera() {
     this._camera = 1 - this._camera;
+    this.video.src = '';
     this.init();
   },
   
@@ -59,7 +59,7 @@ var Camera = {
       filter = 'url(#' + target.dataset.filter + ')';
     }
 
-    this._filter = this.video.style.filter = '';
+    this._filter = this.video.style.filter = filter;
     target.classList.toggle('selected');
   }
 };
