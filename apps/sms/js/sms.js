@@ -51,6 +51,22 @@ var MessageManager = {
   },
 
   send: function mm_send(number, text, callback) {
+    // Use a fake send if mozSms is not present
+    if (!navigator.mozSms) {
+      var message = {
+        sender: null,
+        receiver: number,
+        body: text,
+        timestamp: Date.now()
+      };
+
+      window.setTimeout(function() {
+        callback(message);
+      }, 0);
+
+      return;
+    }
+
     var result = navigator.mozSms.send(number, text);
     result.onsuccess = function onsuccess(event) {
       callback(event.message);
@@ -115,21 +131,6 @@ var GetMessagesHack = function gmhack(callback, filter, invert) {
     msg.reverse();
   callback(applyFilter(msg));
 };
-
-// Use a fake send if mozSms is not present
-if (!navigator.mozSms) {
-  MessageManager.send = function mm_send(number, text, callback) {
-    var message = {
-      sender: null,
-      receiver: number,
-      body: text,
-      timestamp: Date.now()
-    };
-    window.setTimeout(function() {
-      callback(message);
-    }, 0);
-  };
-}
 
 var MessageView = {
   init: function init() {
