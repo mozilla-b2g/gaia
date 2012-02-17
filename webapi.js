@@ -223,6 +223,24 @@
                        '120': '/style/icons/Messages.png'
                      }
                    }
+                 },
+                 { // webgl demo
+                   'installOrigin': 'http://www.everyday3d.com/j3d/demo',
+                   'origin': '../crystalskull',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'Crystal Skull',
+                     'description': 'Demo of WebGL',
+                     'launch_path': '/crystalskull.html',
+                     'developer': {
+                       'name': 'Unknown',
+                       'url': 'http://www.everyday3d.com/j3d/demo/004_Glass.html'
+                     },
+                     'icons': {
+                       '120': '/style/icons/CrystalSkull.png'
+                     }
+                   }
                  }
   ];
 
