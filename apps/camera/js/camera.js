@@ -1,21 +1,57 @@
 var Camera = {
-  init: function cameraInit() {
-    chooser = document.getElementById('chooser');
-    chooser.addEventListener('change', this.showPreview);
-  },
+  _camera: 0,
+  _filter: 'none',
 
-  showPreview: function cameraShowPreview() {
-    var file = document.getElementById('chooser').files.item(0);
-    var image = document.getElementById('preview');
-    image.file = file;
-    var reader = new FileReader();
-    reader.onload = (function readerOnload(loadedFile) {
-      return function fileHandler(evt) {
-        loadedFile.src = evt.target.result;
-        loadedFile.classList.remove('hidden');
-      };
-    })(image);
-    reader.readAsDataURL(file);
+  init: function cameraInit() {
+    var container = document.getElementById("video-container");
+    var video = document.createElement("video");
+    video.setAttribute("autoplay", true);
+    video.setAttribute("id", "video");
+    container.appendChild(video);
+    var width, height;
+    if (window.innerWidth > window.innerHeight) {
+      width = window.innerWidth;
+      height = window.innerHeight;
+    } else {
+      width = window.innerHeight;
+      height = window.innerWidth;
+      var deltaX = (width - height) / 2;
+      var transform = "rotate(90deg)";
+      if (this._camera == 1)
+        transform += " scale(-1, 1)";
+      container.style.MozTransform = transform;
+    }
+    var config = {
+      width: width,
+      height: height,
+      camera: this._camera
+    }
+    video.style.width = width + "px";
+    video.style.height = height + "px";
+    if (this._filter != 'none')
+      video.style.filter = this._filter;
+    video.src = navigator.mozCamera.getCameraURI(config);
+  },
+  
+  switchCamera: function switchCamera() {
+    this._camera = 1 - this._camera;
+    var video = document.getElementById("video");
+    video.src = "";
+    video.parentNode.removeChild(video);
+    this.init();
+  },
+  
+  switchFilter: function switchFilter(aFilter) {
+    var current = document.getElementById("t" + this._filter);
+    current.classList.remove("selected");
+    var video = document.getElementById("video");
+    if (aFilter != 'none')
+      video.style.filter = "url('" + window.location.href + "#" + aFilter + "')";
+    else
+      video.style.filter = "";
+    this._filter = aFilter;
+    current = document.getElementById("t" + this._filter);
+    current.classList.add("selected");
   }
 };
 
