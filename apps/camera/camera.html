@@ -9,7 +9,26 @@
     <script type="text/javascript" src="js/camera.js"></script>
   </head>
   <body>
-    <input id="chooser" type="file" accept="image/*">
-    <img id="preview" class="hidden"/>
+    <div id="video-container"> </div>
+
+    <div id="video-controls">
+      <span id="switch-button" class="button" onclick="Camera.switchCamera()">switch</span>
+      <span id="capture-button" class="button">capture</span>
+    </div>
+
+    <div id="filter-controls">
+      <span id="tnone" class="button2 selected" onclick="Camera.switchFilter('none')">none</span>
+      <span id="tfGB" class="button2" onclick="Camera.switchFilter('fGB')">blur</span>
+      <span id="tfCMS" class="button2" onclick="Camera.switchFilter('fCMS')">saturate</span>
+    </div>
+
+    <svg>
+      <filter id="fCMS" color-interpolation-filters="sRGB">
+        <feColorMatrix id="fCMSPrim" type="saturate" values="0.4"/>
+      </filter>
+      <filter id="fGB" color-interpolation-filters="sRGB">
+        <feGaussianBlur id="fGBPrim" stdDeviation="3"/>
+      </filter>
+    </svg>
   </body>
 </html>

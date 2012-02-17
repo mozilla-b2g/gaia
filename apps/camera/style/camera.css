@@ -1,7 +1,63 @@
+html {
+  height: 100%;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
 body {
   background-color: #000;
 }
 
 .hidden {
   display: none;
+}
+
+#video-controls {
+  position: absolute;
+  top: 0;
+  margin: 0;
+  width: 100%;
+}
+
+#filter-controls {
+  position: absolute;
+  bottom: 10px;
+  margin: 0;
+  width: 100%;
+}
+
+.button {
+  border-radius: 6px;
+  display: block;
+  background-color: rgba(5, 5, 5, 0.5);
+  position: fixed;
+  padding: 1mozmm;
+  height: 7mozmm;
+  color: white;
+  font-weight: bold;
+}
+
+.button2 {
+  border-radius: 6px;
+  background-color: rgba(5, 5, 5, 0.5);
+  padding: 1mozmm;
+  height: 7mozmm;
+  color: white;
+  font-weight: bold;
+}
+
+.selected {
+  background-color: orange;
+  color: black;
+}
+
+#switch-button {
+  top: 15px;
+  left: 15px;
+}
+
+#capture-button {
+  top: 15px;
+  right: 15px;
 }
