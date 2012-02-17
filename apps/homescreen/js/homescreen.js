@@ -634,9 +634,14 @@ LockScreen.prototype = {
       document.releaseCapture();
       break;
     case 'sleep':
-      // Lock the screen when it is turn off, instead when it wakes
-      if (e.detail.enabled)
-        return;
+      // Lock the screen when screen is turn off can stop
+      // homescreen from showing up briefly when it's turn back on
+      // But we still do update() when it's turned back on
+      // coz the screen could be turned off by the timer
+      // instead of sleep button
+
+      //if (!e.detail.enabled)
+      //  return;
       this.update();
       break;
     default:
