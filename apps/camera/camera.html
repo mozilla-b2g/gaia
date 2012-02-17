@@ -5,7 +5,7 @@
     <meta http-equiv="pragma" content="no-cache">
     <title>Camera</title> 
 
-    <link rel="stylesheet" href="style/camera.css" type="text/css" />
+    <link type="text/css" rel="stylesheet" href="style/camera.css"/>
     <script type="text/javascript" src="js/camera.js"></script>
   </head>
   <body>
@@ -14,14 +14,13 @@
     </div>
 
     <div id="video-controls">
-      <span id="switch-button" class="button" onclick="Camera.switchCamera()">switch</span>
-      <span id="capture-button" class="button">capture</span>
+      <span class="button" onclick="Camera.toggleCamera()">switch</span>
+      <span class="button">capture</span>
     </div>
 
     <div id="filter-controls">
-      <span id="tnone" class="button2 selected" onclick="Camera.switchFilter('none')">none</span>
-      <span id="tfGB" class="button2" onclick="Camera.switchFilter('fGB')">blur</span>
-      <span id="tfCMS" class="button2" onclick="Camera.switchFilter('fCMS')">saturate</span>
+      <span class="button" onclick="Camera.toggleFilter(this)" data-filter="fGB">blur</span>
+      <span class="button" onclick="Camera.toggleFilter(this)" data-filter="fCMS">saturate</span>
     </div>
 
     <svg>

@@ -1,10 +1,12 @@
 var Camera = {
+  _filter: '',
   _camera: 0,
-  _filter: 'none',
+
+  get video() {
+    return document.getElementById('video');
+  },
 
   init: function cameraInit() {
-    var container = document.getElementById("video-container");
-    var video = document.getElementById("video");
     var width, height;
     if (window.innerWidth > window.innerHeight) {
       width = window.innerWidth;
@@ -12,45 +14,57 @@ var Camera = {
     } else {
       width = window.innerHeight;
       height = window.innerWidth;
+
       var deltaX = (width - height) / 2;
-      var transform = "rotate(90deg)";
+      var transform = 'rotate(90deg)';
       if (this._camera == 1)
-        transform += " scale(-1, 1)";
+        transform += ' scale(-1, 1)';
+
+      var container = document.getElementById('video-container');
       container.style.MozTransform = transform;
     }
+
     var config = {
       width: width,
       height: height,
       camera: this._camera
     }
-    video.style.width = width + "px";
-    video.style.height = height + "px";
-    if (this._filter != 'none')
-      video.style.filter = this._filter;
+
+    var video = this.video;
+    video.style.width = width + 'px';
+    video.style.height = height + 'px';
+    video.style.filter = this._filter;
+
     video.src = navigator.mozCamera.getCameraURI(config);
+    video.src = 'meetthecubs.webm';
   },
   
-  switchCamera: function switchCamera() {
+  toggleCamera: function toggleCamera() {
     this._camera = 1 - this._camera;
-    var video = document.getElementById("video");
-    video.src = "";
+    this.video.src = '';
     this.init();
   },
   
-  switchFilter: function switchFilter(aFilter) {
-    var current = document.getElementById("t" + this._filter);
-    current.classList.remove("selected");
-    var video = document.getElementById("video");
-    if (aFilter != 'none')
-      video.style.filter = "url('" + window.location.href + "#" + aFilter + "')";
-    else
-      video.style.filter = "";
-    this._filter = aFilter;
-    current = document.getElementById("t" + this._filter);
-    current.classList.add("selected");
+  toggleFilter: function toggleFilter(target) {
+    var filter = '';
+
+    if (!target.classList.contains('selected')) {
+      var childs = target.parentNode.childNodes;
+      for (var i = 0; i < childs.length; i++) {
+        var child = childs[i];
+        if (child.classList)
+          child.classList.remove('selected');
+      }
+
+      filter = 'url(#' + target.dataset.filter + ')';
+    }
+
+    this._filter = this.video.style.filter = filter;
+    target.classList.toggle('selected');
   }
 };
 
 window.addEventListener('DOMContentLoaded', function CameraInit() {
   Camera.init();
 });
+
