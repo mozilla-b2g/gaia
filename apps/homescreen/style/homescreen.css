@@ -232,6 +232,11 @@ iframe.appWindow.active {
   display: block;
 }
 
+iframe.appWindow.keyboardOn {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
 div.windowSprite {
   position: absolute;
   top: 37px;
