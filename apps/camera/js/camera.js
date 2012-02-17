@@ -4,10 +4,7 @@ var Camera = {
 
   init: function cameraInit() {
     var container = document.getElementById("video-container");
-    var video = document.createElement("video");
-    video.setAttribute("autoplay", true);
-    video.setAttribute("id", "video");
-    container.appendChild(video);
+    var video = document.getElementById("video");
     var width, height;
     if (window.innerWidth > window.innerHeight) {
       width = window.innerWidth;
@@ -37,7 +34,6 @@ var Camera = {
     this._camera = 1 - this._camera;
     var video = document.getElementById("video");
     video.src = "";
-    video.parentNode.removeChild(video);
     this.init();
   },
   
