@@ -223,6 +223,42 @@
                        '120': '/style/icons/Messages.png'
                      }
                    }
+                 },
+                 { // PenguinPop
+                   'installOrigin': 'http://goosypets.com/html5games/whac/',
+                   'origin': 'http://goosypets.com/html5games/whac/',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'Penguin Pop',
+                     'description': 'Penguin Pop by TweenSoft.com',
+                     'launch_path': '',
+                     'developer': {
+                       'name': 'TweenSoft.com',
+                       'url': 'http://goosypets.com/html5games/whac/'
+                     },
+                     'icons': {
+                       '120': '/style/icons/PenguinPop.png'
+                     }
+                   }
+                 },
+                 { // TowerJelly
+                   'installOrigin': 'http://goosypets.com/html5games/tower/',
+                   'origin': 'http://goosypets.com/html5games/tower/',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'Tower Jelly',
+                     'description': 'Tower Jelly by TweenSoft.com',
+                     'launch_path': '',
+                     'developer': {
+                       'name': 'TweenSoft.com',
+                       'url': 'http://goosypets.com/html5games/tower/'
+                     },
+                     'icons': {
+                       '120': '/style/icons/TowerJelly.png'
+                     }
+                   }
                  }
   ];
 
