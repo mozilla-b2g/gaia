@@ -492,7 +492,9 @@ var ConversationView = {
     };
     messagesHack.unshift(message);
 
-    document.getElementById('msg-conversation-view-msg-text').value = '';
+    var input = document.getElementById('msg-conversation-view-msg-text');
+    input.value = '';
+    input.focus();
 
     ConversationListView.updateConversationList();
     if (this.filter) {
