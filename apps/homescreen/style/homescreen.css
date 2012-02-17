@@ -79,7 +79,8 @@ body {
 }
 
 #lockscreen #clock {
-  padding-top: 200px;
+  position: absolute;
+  top: 200px;
   width: 100%;
   text-align: center;
   font-family: "Open Sans", sans-serif;
