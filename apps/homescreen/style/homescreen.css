@@ -226,7 +226,13 @@ iframe.appWindow {
   width: 100%;
   height: 100%;
   display: none;
+/*
+ * Disable this for now because it forces an expensive fallback path in
+ * Gecko.  The performance issue should be fixed by
+ * https://bugzilla.mozilla.org/show_bug.cgi?id=697645 or a related bug.
+ *
   border-radius: 8px;
+ */
 }
 
 iframe.appWindow.active {
