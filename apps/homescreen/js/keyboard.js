@@ -998,7 +998,7 @@ const IMEManager = {
       targetWindow.style.height;
     targetWindow.dataset.rectHeight =
       targetWindow.getBoundingClientRect().height;
-
+    targetWindow.classList.add('keyboardOn');
     this.updateLayout();
 
     delete this.ime.dataset.hidden;
@@ -1011,7 +1011,7 @@ const IMEManager = {
 
     this.ime.dataset.hidden = 'true';
     targetWindow.style.height = targetWindow.dataset.cssHeight;
-
+    targetWindow.classList.remove('keyboardOn');
   },
 
   showCandidates: function km_showCandidates(candidates) {

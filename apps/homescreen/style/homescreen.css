@@ -242,6 +242,11 @@ iframe.appWindow.active {
   display: block;
 }
 
+iframe.appWindow.keyboardOn {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
 div.windowSprite {
   position: absolute;
   top: 37px;
@@ -449,6 +454,8 @@ div.windowSprite.active {
   -moz-transition: -moz-transform 0.3s ease;
   border-top: 2px solid #a3a3a3;
   -moz-box-shadow: inset 0 0 0 1px #fff;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
 }
 
 #keyboard[data-hidden] {
