@@ -47,8 +47,7 @@ const IMEManager = {
         this.keyboards =
           [].concat(
             this.keyboardSettingGroups['english'],
-            this.keyboardSettingGroups['zhuying'],
-            this.keyboardSettingGroups['pinyin']
+            this.keyboardSettingGroups['zhuying']
           );
 
       if (this.keyboards.indexOf(this.currentKeyboard) === -1)
