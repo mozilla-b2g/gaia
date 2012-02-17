@@ -66,7 +66,6 @@ body {
 #lockscreen > #lockscreenContainer {
   width: 100%;
   height: -moz-calc(100% - 37px);
-  background: #222 url(images/background.bmp);
   background: url(images/noise.png), url(images/background.bmp);
 }
 
@@ -367,7 +366,6 @@ div.windowSprite.active {
 }
 
 #taskManager {
-  background-color: rgba(0, 0, 0, 0.8);
   opacity: 0;
   position: absolute;
   top: 0;
@@ -377,6 +375,8 @@ div.windowSprite.active {
   -moz-transform: scale(0);
   -moz-transition: all 0.4s ease;
   -moz-user-select: none;
+  overflow: scroll;
+  background-color: rgba(0, 0, 0, 0.8);
 }
 
 #taskManager.active {
@@ -390,8 +390,8 @@ div.windowSprite.active {
   padding: 0;
   width: 100%;
   height: 100%;
-  overflow: hidden;
   white-space: nowrap;
+  text-align: center;
 }
 
 #taskManager li {
@@ -402,14 +402,6 @@ div.windowSprite.active {
   margin: 0 -25%;
   position: relative;
   -moz-transform: scale(0.4);
-}
-
-#taskManager li:first-child {
-  margin-left: 50%;
-}
-
-#taskManager li:last-child {
-  margin-right: 50%;
 }
 
 #taskManager li > a {
