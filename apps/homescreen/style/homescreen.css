@@ -433,6 +433,7 @@ div.windowSprite.active {
   height: -moz-calc(100%);
   width: 100%;
   border: none;
+  z-index: 1;
 }
 #keyboard-candidate-panel.full span {
   border-top: 1px solid #e8e8ff;
@@ -474,11 +475,7 @@ div.windowSprite.active {
   border-top: 1px solid #e8e8ff;
   border-bottom: 1px solid #808098;
   top: 0;
-}
-
-/* XXX: A Hack to make the candidate panel above the Caps Lock key. */
-#keyboard-candidate-panel.full, #keyboard-candidate-panel-toggle-button.full {
-  z-index:1;
+  z-index: 1;
 }
 
 #keyboard-candidate-panel-toggle-button.show {
