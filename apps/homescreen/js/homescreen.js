@@ -202,6 +202,7 @@ IconGrid.prototype = {
   remove: function(icon) {
     this.icons.splice(icon.index);
   },
+
   // reflow the icon grid
   update: function() {
     var instance = this;
@@ -245,7 +246,7 @@ IconGrid.prototype = {
     // get page divs
     var elementList = container.childNodes;
     var pageDivs = [];
-    for (var n = 0; n < elementList; ++n) {
+    for (var n = 0; n < elementList.length; ++n) {
       var element = elementList[n];
       pageDivs[element.id] = element;
     }
@@ -253,7 +254,7 @@ IconGrid.prototype = {
     // get icon divs
     var elementList = document.querySelectorAll('#' + containerId + '> .page > .icon');
     var iconDivs = [];
-    for (var n = 0; n < elementList; ++n) {
+    for (var n = 0; n < elementList.length; ++n) {
       var element = elementList[n];
       iconDivs[element.id] = element;
     }
@@ -296,20 +297,25 @@ IconGrid.prototype = {
         iconDiv = document.createElement('div');
         iconDiv.id = n;
         iconDiv.className = 'icon';
+
         var style = iconDiv.style;
         style.width = iconWidth + '%';
         style.height = iconHeight + '%';
+
         var img = new Image();
         AddEventHandlers(img, TouchHandler, ['touchstart', 'touchend']);
+
         var centerDiv = document.createElement('div');
         centerDiv.className = 'img';
         centerDiv.appendChild(img);
         iconDiv.appendChild(centerDiv);
+
         if (this.showLabels) {
           var labelDiv = document.createElement('div');
           labelDiv.className = 'label';
           iconDiv.appendChild(labelDiv);
         }
+
         pageDivs[pageOfIcon].appendChild(iconDiv);
         iconDivs[n] = iconDiv;
       } else {
@@ -319,17 +325,21 @@ IconGrid.prototype = {
           pageDivs[pageOfIcon].appendChild(iconDiv);
         }
       }
+
       // make sure icon has right image and label
       var img = iconDiv.childNodes[0].childNodes[0];
       img.action = icon.action;
+
       var iconUrl = icon.iconUrl;
       if (img.src != iconUrl)
         img.src = iconUrl;
+
       if (this.showLabels) {
         var label = iconDiv.childNodes[1];
         if (label.textContent != icon.label)
           label.textContent = icon.label;
       }
+
       // update position
       setPosition(iconDiv, getIconColumn(icon) + '00%', getIconRow(icon) + '00%');
     }
