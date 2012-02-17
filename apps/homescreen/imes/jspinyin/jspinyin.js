@@ -319,7 +319,7 @@ var PinyinImEngine = function(dictionary, splitter) {
     spell = '';
     startPosition = 0;
   }
-}
+};
 
 var engine = new PinyinImEngine(splitter, dictionary);
 
