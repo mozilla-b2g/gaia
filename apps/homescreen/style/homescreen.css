@@ -59,23 +59,15 @@ body {
 }
 
 #lockscreen > #status {
-  position: absolute;
-  top: 0;
   height: 37px;
   width: 100%;
 }
 
-#lockscreen > #lockscreenContainer,
-#lockscreen > #lockscreenContainerBackground {
-  position: absolute;
-  top: 37px;
-  bottom: 0;
+#lockscreen > #lockscreenContainer {
   width: 100%;
-  overflow: hidden;
-}
-
-#lockscreenContainer {
-  background: url("images/noise.png") repeat scroll 50% 50%, url(images/background.bmp) 50% 50% transparent;
+  height: -moz-calc(100% - 37px);
+  background: #222 url(images/background.bmp);
+  background: url(images/noise.png), url(images/background.bmp);
 }
 
 #lockscreenContainer::before {
@@ -88,8 +80,7 @@ body {
 }
 
 #lockscreen #clock {
-  position: absolute;
-  top: 200px;
+  padding-top: 200px;
   width: 100%;
   text-align: center;
   font-family: "Open Sans", sans-serif;
