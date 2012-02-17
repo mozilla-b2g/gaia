@@ -152,6 +152,24 @@
                      }
                    }
                  },
+                 { // facebook
+                   'installOrigin': 'https://www.facebook.com',
+                   'origin': 'https://touch.facebook.com',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'Facebook',
+                     'description': 'Facebook Mobile Application',
+                     'launch_path': '',
+                     'developer': {
+                       'name': 'Facebook',
+                       'url': 'http://www.facebook.com/'
+                     },
+                     'icons': {
+                       '120': '/style/icons/Facebook.png'
+                     }
+                   }
+                 },
                  { // market
                    'installOrigin': 'http://gaiamobile.org:8888',
                    'origin': '../market',
@@ -247,20 +265,34 @@
   navigator.mozSettings = {
     get: function(key) {
       var onsuccess = [];
+      var onerror = [];
       var request = {
         addEventListener: function(name, fn) {
-          if (name === "success")
+          if (name === 'success')
             onsuccess.push(fn);
+          if (name === 'error')
+            onerror.push(fn);
         },
         set onsuccess(fn) {
           onsuccess.push(fn);
         },
+        set onerror(fn) {
+          onerror.push(fn);
+        }
       };
       setImmediate(function() {
-        request.result = {
-          key: key,
-          value: localStorage.getItem(prefix + key)
-        };
+        try {
+          request.result = {
+            key: key,
+            value: localStorage.getItem(prefix + key)
+          };
+        } catch (e) {
+          while (onerror.length > 0) {
+            var fn = onerror.shift();
+            fn();
+          }
+          return;
+        }
         while (onsuccess.length > 0) {
           var fn = onsuccess.shift();
           fn();

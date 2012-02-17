@@ -104,7 +104,7 @@ DefaultPhysics.prototype = {
     var small = Math.abs(diffX) < 20;
 
     var flick = quick && !small;
-    var tap = !this.moved && small;
+    var tap = small;
     var drag = !quick;
 
     var iconGrid = this.iconGrid;
@@ -655,7 +655,7 @@ function OnLoad() {
   new NotificationScreen(touchables);
   
   var apps = Gaia.AppManager.loadInstalledApps(function(apps) {
-    var appsGrid = new IconGrid('apps', 3, 3, 3, true);
+    var appsGrid = new IconGrid('apps', 3, 3, 2, true);
     for (var n = 0; n < apps.length; ++n) {
       var app = apps[n];
       appsGrid.add(n, app.icon, app.name, 'WindowManager.launch("' + app.url + '")');
