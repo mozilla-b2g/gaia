@@ -1,63 +1,39 @@
-html {
+html, body {
   height: 100%;
   width: 100%;
   padding: 0;
-  margin: 0;
-}
-
-body {
-  background-color: #000;
-}
-
-.hidden {
-  display: none;
+  margin:0;
+  overflow: hidden;
+  background-color: grey;
 }
 
 #video-controls {
   position: absolute;
-  top: 0;
-  margin: 0;
-  width: 100%;
+  bottom: 20px;
+  right: 1mozmm;
 }
 
 #filter-controls {
   position: absolute;
-  bottom: 10px;
-  margin: 0;
-  width: 100%;
+  bottom: 20px;
+  left: 1mozmm;
 }
 
 .button {
   border-radius: 6px;
-  display: block;
-  background-color: rgba(5, 5, 5, 0.5);
-  position: fixed;
-  padding: 1mozmm;
-  height: 7mozmm;
-  color: white;
-  font-weight: bold;
-}
+  border: 2px solid rgba(5,5,5, 0.4);
+  background-color: rgba(5,5,5,0.5);
 
-.button2 {
-  border-radius: 6px;
-  background-color: rgba(5, 5, 5, 0.5);
-  padding: 1mozmm;
+  padding: 3mozmm 1mozmm;
   height: 7mozmm;
+  line-height: 7mozmm;
+
   color: white;
   font-weight: bold;
 }
 
 .selected {
-  background-color: orange;
+  background-color: rgba(150,130,5,0.5);
   color: black;
 }
 
-#switch-button {
-  top: 15px;
-  left: 15px;
-}
-
-#capture-button {
-  top: 15px;
-  right: 15px;
-}
