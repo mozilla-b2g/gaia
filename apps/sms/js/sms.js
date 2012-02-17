@@ -69,6 +69,7 @@ var MessageManager = {
 
     var result = navigator.mozSms.send(number, text);
     result.onsuccess = function onsuccess(event) {
+      console.log('SMS sent.');
       callback(event.message);
     };
     result.onerror = function onerror(event) {
@@ -346,8 +347,9 @@ var ConversationView = {
     document.getElementById('msg-conversation-view-back').addEventListener(
       'click', (this.close).bind(this));
 
+    // click event does not trigger when keyboard is hiding
     document.getElementById('msg-conversation-view-msg-send').addEventListener(
-      'click', (this.sendMessage).bind(this));
+      'mousedown', (this.sendMessage).bind(this));
 
     var windowEvents = ['keypress', 'transitionend'];
     windowEvents.forEach((function(eventName) {
@@ -492,9 +494,12 @@ var ConversationView = {
     };
     messagesHack.unshift(message);
 
-    var input = document.getElementById('msg-conversation-view-msg-text');
-    input.value = '';
-    input.focus();
+    // cancel keyboard hiding
+    setTimeout(function keepKeyboardFocus() {
+      var input = document.getElementById('msg-conversation-view-msg-text');
+      input.value = '';
+      input.focus();
+    }, 0);
 
     ConversationListView.updateConversationList();
     if (this.filter) {
