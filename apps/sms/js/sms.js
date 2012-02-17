@@ -132,21 +132,31 @@ var GetMessagesHack = function gmhack(callback, filter, invert) {
   callback(applyFilter(msg));
 };
 
-var MessageView = {
+var ConversationListView = {
+  get view() {
+    delete this.view;
+    return this.view = document.getElementById('msg-conversations-list');
+  },
+
+  get searchInput() {
+    delete this.searchInput;
+    return this.searchInput = document.getElementById('msg-search');
+  },
+
   init: function init() {
     if (navigator.mozSms)
       navigator.mozSms.addEventListener('received', this);
 
-    var conversationViewEvents =
+    var events =
       ['mousedown', 'mouseover', 'mouseup', 'mouseleave'];
-    conversationViewEvents.forEach((function(eventName) {
-      this.conversationView.addEventListener(eventName, this);
+    events.forEach((function(eventName) {
+      this.view.addEventListener(eventName, this);
     }).bind(this));
 
     this.searchInput.addEventListener(
-      'keypress', (MessageView.searchMessageView).bind(this));
+      'keypress', (this.searchConversations).bind(this));
     this.searchInput.addEventListener(
-      'keyup', (MessageView.searchMessageView).bind(this));
+      'keyup', (this.searchConversations).bind(this));
 
     document.getElementById('msg-new-message').addEventListener(
       'click', function newMessage() {
@@ -155,35 +165,14 @@ var MessageView = {
 
     window.addEventListener('transitionend', this);
 
-    this.showConversations(
+    this.updateConversationList(
       function appready() {
         window.parent.postMessage('appready', '*');
       }
     );
   },
 
-  get searchInput() {
-    delete this.searchInput;
-    return this.searchInput = document.getElementById('msg-search');
-  },
-
-  get conversationView() {
-    delete this.conversationView;
-    return this.conversationView = document.getElementById('msg-conversations');
-  },
-
-  openConversationView: function openConversationView() {
-    var num = this.currentConversation.dataset.num;
-
-    ConversationView.showConversation(num == '*' ? '' : num);
-  },
-
-  get view() {
-    delete this.view;
-    return this.view = document.getElementById('msg-conversation-list');
-  },
-
-  showConversations: function showConversations(callback) {
+  updateConversationList: function updateConversationList(callback) {
     var self = this;
     MessageManager.getMessages(function getMessagesCallback(messages) {
       var conversations = {};
@@ -192,7 +181,6 @@ var MessageView = {
         var sender = message.sender || message.receiver;
         if (conversations[sender])
           continue;
-
 
         conversations[sender] = {
           sender: message.sender,
@@ -234,7 +222,7 @@ var MessageView = {
            '</div>';
   },
 
-  searchMessageView: function searchMessageView() {
+  searchConversations: function searchConversations() {
     var str = this.searchInput.value;
     var conversations = this.view.childNodes;
     if (!str) {
@@ -256,11 +244,27 @@ var MessageView = {
     }
   },
 
+  openConversationView: function openConversationView() {
+    var num = this.currentConversation.dataset.num;
+
+    ConversationView.showConversation(num == '*' ? '' : num);
+  },
+
+  getSelectionFromEvent: function getSelectionFromEvent(evt) {
+    var target = evt.target;
+    while (target !== evt.currentTarget) {
+      if (target.dataset.num)
+        return target;
+      target = target.parentNode;
+    }
+    return false;
+  },
+
   handleEvent: function handleEvent(evt) {
     switch (evt.type) {
       case 'received':
         window.setTimeout(function() {
-          MessageView.showConversations();
+          ConversationListView.updateConversationList();
         }, 0);
         break;
       case 'mousedown':
@@ -316,24 +320,13 @@ var MessageView = {
           this.currentConversation.classList.remove('selected');
         delete this.currentConversation;
     }
-  },
-
-  getSelectionFromEvent: function getSelectionFromEvent(evt) {
-    var target = evt.target;
-    while (target !== evt.currentTarget) {
-      if (target.dataset.num)
-        return target;
-      target = target.parentNode;
-    }
-    return false;
   }
 };
-
 
 var ConversationView = {
   get view() {
     delete this.view;
-    return this.view = document.getElementById('msg-conversation-view-msgs');
+    return this.view = document.getElementById('msg-conversation-view-list');
   },
 
   get num() {
@@ -501,7 +494,7 @@ var ConversationView = {
 
     document.getElementById('msg-conversation-view-msg-text').value = '';
 
-    MessageView.showConversations();
+    ConversationListView.updateConversationList();
     if (this.filter) {
       this.showConversation(this.filter);
       return;
@@ -510,6 +503,8 @@ var ConversationView = {
   }
 };
 
-window.addEventListener('load', (ConversationView.init).bind(ConversationView));
-window.addEventListener('load', (MessageView.init).bind(MessageView));
+window.addEventListener('load',
+  (ConversationView.init).bind(ConversationView));
+window.addEventListener('load',
+  (ConversationListView.init).bind(ConversationListView));
 

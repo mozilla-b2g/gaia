@@ -121,11 +121,11 @@ input, textarea {
   width: -moz-calc(100% - 15px - 15px - 6px - 40px);
 }
 
-#msg-conversation-list {
+#msg-conversations-list {
   background: url("images/app-texture.png") repeat scroll 50% 50%, -moz-linear-gradient(center top , rgba(0, 0, 0, 0.1) 0pt, transparent 10px, transparent 100%) repeat scroll 0% 0%, -moz-linear-gradient(center bottom , rgba(0, 0, 0, 0.1) 0pt, transparent 10px, transparent 100%) repeat scroll 0% 0%, none repeat scroll 0% 0% rgb(224, 229, 234);
 }
 
-#msg-conversation-list > div {
+#msg-conversations-list > div {
 	height:56px;
 	position:relative;
 	padding:10px 80px 0 80px;
@@ -133,40 +133,40 @@ input, textarea {
 	border-bottom:1px solid hsla(223,7%,81%,1);
 }
 
-body.going-back #msg-conversation-list > div {
+body.going-back #msg-conversations-list > div {
    -moz-transition: background-color 0.3s ease-out;
    background-color: transparent;
 }
 
-#msg-conversation-list > div.selected {
+#msg-conversations-list > div.selected {
   /* XXX: Due to transition above, no complex background can be used */
   background-color: rgb(67, 155, 244);
 }
 
-#msg-conversation-list > div.hide {
+#msg-conversations-list > div.hide {
   display: none;
 }
 
-#msg-conversation-list > div:first-child {
+#msg-conversations-list > div:first-child {
 	border-top-color:transparent;
 }
 
-#msg-conversation-list .photo {
+#msg-conversations-list .photo {
 	position:absolute;
 	top:-1px;left:0;
 	width:67px;height:67px;
 	overflow:hidden;
   background-color: #ccc;
 }
-#msg-conversation-list .photo img {
+#msg-conversations-list .photo img {
 	width:70px;
 }
-#msg-conversation-list .name {
+#msg-conversations-list .name {
 	color: hsla(0,0%,40%,1);
 	font-size:14px;
 }
 
-#msg-conversation-list .msg {
+#msg-conversations-list .msg {
 	color: hsla(0,0%,8%,1);
 	font-size:18px;
 	height:24px;
@@ -175,7 +175,7 @@ body.going-back #msg-conversation-list > div {
 	text-overflow:ellipsis;
 }
 
-#msg-conversation-list .time {
+#msg-conversations-list .time {
 	position:absolute;
 	top:10px;
 	right:10px;
@@ -269,12 +269,12 @@ body.conversation-new-msg #msg-conversation-view-num {
 	background: -moz-linear-gradient(top, hsla(0,0%,97%,1) 0, hsla(0,0%,87%,1) 1px, hsla(280,8%,93%,1) 100%);
 }
 
-#msg-conversation-view-msgs {
+#msg-conversation-view-list {
   /* XXX: assets missing */
   background-color: rgb(79, 87, 95);
 }
 
-#msg-conversation-view-msgs > div {
+#msg-conversation-view-list > div {
   /* XXX: assets missing */
   background-color: rgb(191, 204, 215);
   margin: 10px;
@@ -286,16 +286,16 @@ body.conversation-new-msg #msg-conversation-view-num {
   -moz-box-sizing: border-box;
 }
 
-#msg-conversation-view-msgs > div.sender {
+#msg-conversation-view-list > div.sender {
   padding-left: 90px;
 }
 
-#msg-conversation-view-msgs > div.receiver {
+#msg-conversation-view-list > div.receiver {
   padding-right: 90px;
   text-align: right;
 }
 
-#msg-conversation-view-msgs .photo {
+#msg-conversation-view-list .photo {
 	position: absolute;
 	top: 0;
 	width:67px;
@@ -308,33 +308,33 @@ body.conversation-new-msg #msg-conversation-view-num {
   z-index: 2;
 }
 
-#msg-conversation-view-msgs > div.sender .photo {
+#msg-conversation-view-list > div.sender .photo {
   left: 0;
 }
 
-#msg-conversation-view-msgs > div.receiver .photo {
+#msg-conversation-view-list > div.receiver .photo {
   right: 0;
 }
 
-#msg-conversation-view-msgs .photo img {
+#msg-conversation-view-list .photo img {
 	width:70px;
 }
 
-#msg-conversation-view-msgs > div .text {
+#msg-conversation-view-list > div .text {
   font-size: 24px;
   color: rgb(18, 47, 64);
   text-shadow: 0 1px 0 #ddd;
   line-height: 32px;
 }
 
-#msg-conversation-view-msgs > div .time {
+#msg-conversation-view-list > div .time {
   font-size: 16px;
   line-height: 23px;
   color: rgb(62, 86, 106);
   text-shadow: 0 1px 0 #ddd;
 }
 
-#msg-conversation-view-msgs > div::before {
+#msg-conversation-view-list > div::before {
   content: '';
   display: block;
   width: 14px; height: 14px;
@@ -345,18 +345,18 @@ body.conversation-new-msg #msg-conversation-view-num {
   box-shadow: inset 0 1px 0 rgb(230, 233, 238), 0 4px 4px #222;
 }
 
-#msg-conversation-view-msgs > div.sender::before {
+#msg-conversation-view-list > div.sender::before {
   left: -7px;
   -moz-transform: rotate(-45deg);
 }
 
-#msg-conversation-view-msgs > div.receiver::before {
+#msg-conversation-view-list > div.receiver::before {
   right: -7px;
   -moz-transform: rotate(45deg);
 }
 
 
-#msg-conversation-view-msgs > div::after {
+#msg-conversation-view-list > div::after {
   /* XXX: assets missing */
   background-color: rgb(191, 204, 215);
   content: '';
@@ -366,11 +366,11 @@ body.conversation-new-msg #msg-conversation-view-num {
   top: 10px;
 }
 
-#msg-conversation-view-msgs > div.sender::after {
+#msg-conversation-view-list > div.sender::after {
   left: 0;
 }
 
-#msg-conversation-view-msgs > div.receiver::after {
+#msg-conversation-view-list > div.receiver::after {
   right: 0;
 }
 
