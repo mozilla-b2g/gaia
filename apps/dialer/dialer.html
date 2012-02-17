@@ -21,6 +21,7 @@
           <a class="add" href="#" onclick="Contacts.create()">+</a>
         </div>
 
+        <div id="contacts-container-top"></div>
         <div id="contacts-view-scrollable">
           <div id="contacts-container" onclick="Contacts.showDetails(event)"></div>
         </div>
@@ -67,7 +68,64 @@
         </div>
 
         <div id="keyboard-container">
-          <div id="mainKeyset" onmousedown="KeyHandler.keyDown(event);" onmouseup="KeyHandler.keyUp(event);"></div>
+          <div id="mainKeyset" onmousedown="KeyHandler.keyDown(event);" onmouseup="KeyHandler.keyUp(event);">
+            <div class="keyboard-row">
+              <div class="keyboard-key" data-value="1">
+                <span>1</span>
+                <span />
+              </div>
+              <div class="keyboard-key" data-value="2">
+                <span>2</span>
+                <span>abc</span>
+              </div>
+              <div class="keyboard-key" data-value="3">
+                <span>3</span>
+                <span>def</span>
+              </div>
+            </div>
+            <div class="keyboard-row">
+              <div class="keyboard-key" data-value="4">
+                <span>4</span>
+                <span>ghi</span>
+              </div>
+              <div class="keyboard-key" data-value="5">
+                <span>5</span>
+                <span>jkl</span>
+              </div>
+              <div class="keyboard-key" data-value="6">
+                <span>6</span>
+                <span>mno</span>
+              </div>
+            </div>
+            <div class="keyboard-row">
+              <div class="keyboard-key" data-value="7">
+                <span>7</span>
+                <span>pqrs</span>
+              </div>
+              <div class="keyboard-key" data-value="8">
+                <span>8</span>
+                <span>tuv</span>
+              </div>
+              <div class="keyboard-key" data-value="9">
+                <span>9</span>
+                <span>wxyz</span>
+              </div>
+            </div>
+            <div class="keyboard-row">
+              <div class="keyboard-key" data-value="*">
+                <span>&#x2217;</span>
+                <span/>
+              </div>
+              <div class="keyboard-key" data-value="0">
+                <span>0</span>
+                <span>+</span>
+              </div>
+              <div class="keyboard-key" data-value="#">
+                <span>#</span>
+                <span/>
+              </div>
+            </div>
+          </div>
           <div id="additionalKeyset" onclick="KeyHandler.keyDown(event)">
             <div class="keyboard-key" data-value="call">
               <span>Call</span>
@@ -75,13 +133,15 @@
           </div>
         </div>
       </div>
+
+      <div id="recents-view" class="view">
+      </div>
     </div>
 
     <div id="tabs" onclick="choiceChanged(event.target)">
       <fieldset>
         <label id="keyboard-label" for="keyboard" data-choice="keyboard" data-active="true"><input id="keyboard" type="radio" name="tabs" checked="checked" /></label>
-        <!-- Should be favorites once we implement this screen-->
-        <label id="favorites-label" for="favorites" data-choice="contacts"><input id="favorites" type="radio" name="tabs" checked="" /></label>
+        <label id="recents-label" for="recents" data-choice="recents"><input id="recents" type="radio" name="tabs" checked="" /></label>
         <label id="contacts-label" for="contacts" data-choice="contacts"><input id="contacts" type="radio" name="tabs" checked="" /></label>
       </fieldset>
     </div>

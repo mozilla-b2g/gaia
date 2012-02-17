@@ -634,8 +634,14 @@ LockScreen.prototype = {
       document.releaseCapture();
       break;
     case 'sleep':
-      if (!e.detail.enabled)
-        return;
+      // Lock the screen when screen is turn off can stop
+      // homescreen from showing up briefly when it's turn back on
+      // But we still do update() when it's turned back on
+      // coz the screen could be turned off by the timer
+      // instead of sleep button
+
+      //if (!e.detail.enabled)
+      //  return;
       this.update();
       break;
     default:
@@ -653,9 +659,9 @@ function OnLoad() {
     document.getElementById('statusbar')
   ];
   new NotificationScreen(touchables);
-  
+
   var apps = Gaia.AppManager.loadInstalledApps(function(apps) {
-    var appsGrid = new IconGrid('apps', 3, 3, 3, true);
+    var appsGrid = new IconGrid('apps', 3, 3, 2, true);
     for (var n = 0; n < apps.length; ++n) {
       var app = apps[n];
       appsGrid.add(n, app.icon, app.name, 'WindowManager.launch("' + app.url + '")');
@@ -684,6 +690,8 @@ function OnLoad() {
   window.addEventListener('appclose', function(evt) {
     titlebar.innerHTML = '';
   });
+
+  changeDisplayState();
 }
 
 // Update the clock and schedule a new update if appropriate
@@ -747,4 +755,3 @@ function updateBattery() {
   battery.addEventListener('levelchange', updateBattery);
   battery.addEventListener('statuschange', updateBattery);
 }
-

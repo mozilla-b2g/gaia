@@ -3,7 +3,7 @@ body {
   height: 100%;
   margin: 0px;
   padding: 0px;
-  background: #222;
+  background: black;
   font-family: 'Open Sans', sans-serif;
   overflow: hidden;
   font-size: 16px;
@@ -35,7 +35,6 @@ body {
   overflow: hidden;
   width: 100%;
   height: 100%;
-  background: hsl(0,0%,40%) url(images/noise.png) 2%;
 }
 
 /*
@@ -56,50 +55,51 @@ body {
   top: 0px;
   width: -moz-calc(100%);
   height: -moz-calc(100%);
-  color: white;
   overflow: hidden;
-  background-color: #222;
-  background-image: url(images/logo.png), url('images/noise.png');
-  background-repeat: no-repeat, repeat;
-  background-position: 50% 15%, 0 0;
-}
-
-#lockscreen > * {
-  padding-left: 5%;
-  pointer-events: none;
-  color: #aaa;
-  text-shadow: 0 0 3px hsla(0,0%,0%,.5);
 }
 
 #lockscreen > #status {
-  display: -moz-box;
-  -moz-box-orient: horizontal;
-  width: -moz-calc(100% - 4px);
-  height: 20px;
-  padding: 2px;
+  height: 37px;
+  width: 100%;
 }
 
-#lockscreen > #status > #padding {
-  -moz-box-flex: 1;
+#lockscreen > #lockscreenContainer {
+  width: 100%;
+  height: -moz-calc(100% - 37px);
+  background: url(images/noise.png), url(images/background.bmp);
 }
 
-#lockscreen > #clock {
+#lockscreenContainer::before {
+  content: '';
+  display: block;
   position: absolute;
-  bottom: -moz-calc(5%);
-  font-size: 58px;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.6);
 }
 
-#lockscreen > #clock > *[data-format*="%b"] {
+#lockscreen #clock {
+  position: absolute;
+  top: 200px;
+  width: 100%;
+  text-align: center;
+  font-family: "Open Sans", sans-serif;
+}
+
+#lockscreen #clock > #hourMin {
+  color: #fff;
   font-size: 100px;
+  font-weight: 600;
+  text-shadow: 0 3px 2px rgba(86, 93, 101, 0.8);
 }
 
-#lockscreen > #notifications {
-  position: absolute;
-  bottom: 2%;
+#lockscreen #clock > #date {
+  color: #a2a5a8;
+  font-size: 24px;
 }
 
-#lockscreen > #notifications > * {
-  display: inline-block;
+#lockscreen #clock > *[data-format*="%b"] {
+  font-size: 100px;
 }
 
 #notificationsScreen {
@@ -108,20 +108,20 @@ body {
   top: -moz-calc(-100% + 74px);
   width: -moz-calc(100%);
   height: -moz-calc(100% - 37px);
-  background-color: #444;
-  background: hsl(0, 0%, 53%);
+  background-color: #222;
 }
 
 #notificationsScreen > #grippy {
+  pointer-events: none;
   position: absolute;
   bottom: 0;
   width: 100%;
   height: 30px;
 
-  border-bottom: 1px solid hsl(210, 2%, 30%);
-  border-top: 1px solid hsl(210, 2%, 30%);
+  border-bottom: 1px solid #111;
+  border-top: 1px solid #111;
 
-  background: url(images/grippy.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0, 0%, 53%) 1%, hsl(0, 0%, 33%) 100%);
+  background: #111 url(images/grippy.png) no-repeat 50% 50%;
 }
 
 #home {
@@ -129,6 +129,8 @@ body {
   top: 37px;
   width: -moz-calc(100%);
   height: -moz-calc(100% - 37px);
+  border-radius: 8px;
+  background: url("images/noise.png") repeat scroll 50% 50%, url(images/background.bmp) 50% 50% transparent;
 }
 
 #home > div {
@@ -181,7 +183,7 @@ body {
 .icon > .label {
   padding-top: 0%;
   color: white;
-  font-size: 180%;
+  font-size: 140%;
 }
 
 .dot {
@@ -224,10 +226,16 @@ iframe.appWindow {
   width: 100%;
   height: 100%;
   display: none;
+  border-radius: 8px;
 }
 
 iframe.appWindow.active {
   display: block;
+}
+
+iframe.appWindow.keyboardOn {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 div.windowSprite {
@@ -253,12 +261,12 @@ div.windowSprite.active {
 
   width: -moz-calc(100% - 4px);
   height: 31px;
-  border-top: 1px solid hsl(210, 2%, 56%);
-  border-bottom: 1px solid hsl(210, 2%, 20%);
+  border-top: 1px solid transparent;
+  border-bottom: 1px solid transparent;
   padding: 2px;
 
-  color: #fff;
-  background: -moz-linear-gradient(top, hsl(0, 0%, 53%) 1%, hsl(0, 0%, 33%) 100%);
+  color: #999;
+  background-color: #000;
 }
 
 #statusbar > * {
@@ -277,10 +285,47 @@ div.windowSprite.active {
   margin: 0 4px;
 }
 
+#signal {
+  width: 20px;
+  margin-top: 2px;
+}
+
+#signal span {
+  float: left;
+  width: 3px;
+  margin: 1px;
+
+  background: #999;
+}
+
+#signal span:nth-child(1) {
+  margin-top: 17px;
+  height: 3px;
+}
+
+#signal span:nth-child(2) {
+  margin-top: 13px;
+  height: 7px;
+}
+
+#signal span:nth-child(3) {
+  margin-top: 10px;
+  height: 10px;
+}
+
+#signal span:nth-child(4) {
+  margin-top: 6px;
+  height: 14px;
+}
+
+#wifi {
+  width: 30px;
+  background: url(images/wifi.png) 50% 8px no-repeat;
+}
+
 #statusbar .time {
   text-shadow: 0 0 3px hsla(0,0%,0%,.5);
   line-height: 31px;
-  font-size: 18px;
   margin: 0 4px;
 }
 
@@ -322,7 +367,6 @@ div.windowSprite.active {
 }
 
 #taskManager {
-  background-color: rgba(0, 0, 0, 0.8);
   opacity: 0;
   position: absolute;
   top: 0;
@@ -332,6 +376,8 @@ div.windowSprite.active {
   -moz-transform: scale(0);
   -moz-transition: all 0.4s ease;
   -moz-user-select: none;
+  overflow: scroll;
+  background-color: rgba(0, 0, 0, 0.8);
 }
 
 #taskManager.active {
@@ -345,8 +391,8 @@ div.windowSprite.active {
   padding: 0;
   width: 100%;
   height: 100%;
-  overflow: hidden;
   white-space: nowrap;
+  text-align: center;
 }
 
 #taskManager li {
@@ -357,14 +403,6 @@ div.windowSprite.active {
   margin: 0 -25%;
   position: relative;
   -moz-transform: scale(0.4);
-}
-
-#taskManager li:first-child {
-  margin-left: 50%;
-}
-
-#taskManager li:last-child {
-  margin-right: 50%;
 }
 
 #taskManager li > a {
@@ -400,6 +438,8 @@ div.windowSprite.active {
   -moz-transition: -moz-transform 0.3s ease;
   border-top: 2px solid #a3a3a3;
   -moz-box-shadow: inset 0 0 0 1px #fff;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
 }
 
 #keyboard[data-hidden] {
