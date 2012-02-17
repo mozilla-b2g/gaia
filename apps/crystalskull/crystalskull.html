@@ -6,7 +6,7 @@
     <title>Glass / Refraction, reflection, fresnel, chromatic dispersion | J3D</title> 
 
     <link type="text/css" rel="stylesheet" href="style/common.css">
-    <script type="text/javascript" src="dat.js"></script>
+<!--    <script type="text/javascript" src="dat.js"></script>-->
     <script type="text/javascript" src="j3d.js"></script>
 
     <script>
@@ -24,21 +24,6 @@
 	    };
 
 	    window.onload = function(){
-	
-		    var gui = new DAT.GUI();
-		    gui.domElement.style.position = 'absolute';
-	    	gui.domElement.style.top = '107px';
-		    gui.domElement.style.left = '0px';
-		    gui.domElement.style.zIndex = 200;
-		    document.body.appendChild(gui.domElement);
-		
-		    gui.add(properties, 'dispersionRed').min(0.7).max(1.1);
-		    gui.add(properties, 'dispersionGreen').min(0.7).max(1.1);
-		    gui.add(properties, 'dispersionBlue').min(0.7).max(1.1);
-		    gui.add(properties, 'bias').min(0).max(1);
-		    gui.add(properties, 'scale').min(-5).max(5);
-		    gui.add(properties, 'power').min(0).max(20);
-		
 		    engine = new J3D.Engine();
 		
 		    J3D.Loader.loadGLSL("shaders/Glass.glsl", function(s) {
