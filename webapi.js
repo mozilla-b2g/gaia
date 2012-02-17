@@ -277,7 +277,26 @@
                        '120': '/style/icons/TowerJelly.png'
                      }
                    }
+                 },
+                 { // cut the rope
+                   'installOrigin': 'http://cuttherope.ie/',
+                   'origin': 'http://cuttherope.ie/',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'Cut The Rope',
+                     'description': 'http://cuttherope.ie',
+                     'launch_path': '',
+                     'developer': {
+                       'name': 'The Gaia Team',
+                       'url': 'https://github.com/andreasgal/gaia'
+                     },
+                     'icons': {
+                       '120': '/style/icons/CutTheRope.png'
+                     }
+                   }
                  }
+
   ];
 
   Object.freeze(webapps);
