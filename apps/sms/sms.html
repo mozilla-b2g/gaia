@@ -11,20 +11,6 @@
   </head>
 
   <body>
-    <div id="msg-conversations" class="panel panel-0">
-      <div id="msg-toolbar" class="toolbar toolbar-top">
-        <div id="msg-search-container">
-          <input id="msg-search" type="search" />
-        </div>
-      </div>
-      <div id="msg-conversations-list" class="list">
-      </div>
-      <div id="msg-bottom-toolbar" class="toolbar toolbar-bottom">
-        <div id="msg-new-message-container">
-          <button id="msg-new-message" class="button">New Message</button>
-        </div>
-      </div>
-    </div>
     <div id="msg-conversation-view" class="panel panel-1">
       <div id="msg-conversation-view-toolbar" class="toolbar toolbar-top">
         <div id="msg-conversation-view-back">Messages</div>
@@ -45,6 +31,20 @@
         </div>
         <div id="msg-conversation-view-msg-send-container">
           <button id="msg-conversation-view-msg-send" class="button">Send</button>
+        </div>
+      </div>
+    </div>
+    <div id="msg-conversations" class="panel panel-0">
+      <div id="msg-toolbar" class="toolbar toolbar-top">
+        <div id="msg-search-container">
+          <input id="msg-search" type="search" />
+        </div>
+      </div>
+      <div id="msg-conversations-list" class="list">
+      </div>
+      <div id="msg-bottom-toolbar" class="toolbar toolbar-bottom">
+        <div id="msg-new-message-container">
+          <button id="msg-new-message" class="button" onclick="ConversationView.showConversation();">New Message</button>
         </div>
       </div>
     </div>

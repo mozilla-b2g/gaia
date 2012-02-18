@@ -24,7 +24,6 @@ var MessageManager = {
   getMessages: function mm_getMessages(callback, filter, invert) {
     // XXX Bug 712809
     // Until there is a database for mozSms, use a fake GetMessages
-
     if (true) {
       GetMessagesHack(callback, filter, invert);
       return;
@@ -33,7 +32,7 @@ var MessageManager = {
     var request = navigator.mozSms.getMessages(filter, !invert);
 
     var messages = [];
-    request.onsuccess = function() {
+    request.onsuccess = function onsuccess() {
       var result = request.result;
       if (!result) {
         callback(messages);
@@ -45,7 +44,7 @@ var MessageManager = {
       result.next();
     };
 
-    request.onerror = function() {
+    request.onerror = function onerror() {
       alert('Error reading the database. Error code: ' + request.errorCode);
     }
   },
@@ -72,6 +71,7 @@ var MessageManager = {
       console.log('SMS sent.');
       callback(event.message);
     };
+
     result.onerror = function onerror(event) {
       console.log('Error sending SMS!');
       callback(null);
@@ -119,8 +119,8 @@ var GetMessagesHack = function gmhack(callback, filter, invert) {
 
     if (filter.number) {
       msgs = msgs.filter(function(element, index, array) {
-          return (filter.number && (filter.number == element.sender ||
-                  filter.number == element.receiver));
+        var num = filter.number;
+        return (num && (num == element.sender || num == element.receiver));
       });
     }
 
@@ -148,29 +148,13 @@ var ConversationListView = {
     if (navigator.mozSms)
       navigator.mozSms.addEventListener('received', this);
 
-    var events =
-      ['mousedown', 'mouseover', 'mouseup', 'mouseleave'];
-    events.forEach((function(eventName) {
-      this.view.addEventListener(eventName, this);
-    }).bind(this));
-
-    this.searchInput.addEventListener(
-      'keypress', (this.searchConversations).bind(this));
-    this.searchInput.addEventListener(
-      'keyup', (this.searchConversations).bind(this));
-
-    document.getElementById('msg-new-message').addEventListener(
-      'click', function newMessage() {
-        ConversationView.showConversation();
-      });
-
     window.addEventListener('transitionend', this);
+    this.searchInput.addEventListener('keyup', this);
+    this.view.addEventListener('click', this);
 
-    this.updateConversationList(
-      function appready() {
-        window.parent.postMessage('appready', '*');
-      }
-    );
+    this.updateConversationList(function fireAppReady() {
+      window.parent.postMessage('appready', '*');
+    });
   },
 
   updateConversationList: function updateConversationList(callback) {
@@ -214,12 +198,12 @@ var ConversationListView = {
     });
 
     return '<div data-num="' + num + '" data-name="' + name + '">' +
-            '<div class="photo">' +
-              '<img alt="" src="" />' +
-            '</div>' +
-            '<div class="name">' + name + '</div>' +
-            '<div class="msg">' + msg.body + '</div>' +
-            '<div class="time">' + msg.timestamp + '</div>' +
+           '  <div class="photo">' +
+           '    <img alt="" src="" />' +
+           '  </div>' +
+           '  <div class="name">' + name + '</div>' +
+           '  <div class="msg">' + msg.body + '</div>' +
+           '  <div class="time">' + msg.timestamp + '</div>' +
            '</div>';
   },
 
@@ -245,81 +229,36 @@ var ConversationListView = {
     }
   },
 
-  openConversationView: function openConversationView() {
-    var num = this.currentConversation.dataset.num;
+  openConversationView: function openConversationView(num) {
+    if (!num)
+      return;
 
     ConversationView.showConversation(num == '*' ? '' : num);
-  },
-
-  getSelectionFromEvent: function getSelectionFromEvent(evt) {
-    var target = evt.target;
-    while (target !== evt.currentTarget) {
-      if (target.dataset.num)
-        return target;
-      target = target.parentNode;
-    }
-    return false;
   },
 
   handleEvent: function handleEvent(evt) {
     switch (evt.type) {
       case 'received':
-        window.setTimeout(function() {
+        window.setTimeout(function updadeConversationList() {
           ConversationListView.updateConversationList();
         }, 0);
         break;
-      case 'mousedown':
-        this.touched = true;
-        var selection = this.getSelectionFromEvent(evt);
 
-        if (!selection)
-          return;
-
-        selection.classList.add('selected');
-        this.currentConversation = selection;
-
+      case 'click':
+        this.openConversationView(evt.target.dataset.num);
         break;
-      case 'mouseover':
-        if (!this.touched)
-          return;
-
-        var selection = this.getSelectionFromEvent(evt);
-
-        if (this.currentConversation === selection)
-          return;
-
-        if (this.currentConversation)
-          this.currentConversation.classList.remove('selected');
-
-        if (selection)
-          selection.classList.add('selected');
-
-        this.currentConversation = selection;
-
-        break;
-      case 'mouseup':
-        delete this.touched;
-
-        if (this.currentConversation)
-          this.openConversationView();
-        break;
-
-      case 'mouseleave':
-        if (!this.touched)
-          return;
-        delete this.touched;
-
-        this.currentConversation.classList.remove('selected');
-        delete this.currentConversation;
 
       case 'transitionend':
         if (!document.body.classList.contains('going-back'))
           return;
 
         document.body.classList.remove('going-back');
-        if (this.currentConversation)
-          this.currentConversation.classList.remove('selected');
-        delete this.currentConversation;
+        break;
+
+      case 'keypress':
+      case 'keyup':
+        this.searchConversations();
+        break;
     }
   }
 };
@@ -439,15 +378,19 @@ var ConversationView = {
 
         if (this.close())
           evt.preventDefault();
+        break;
+
       case 'received':
-        var message = evt.message;
-        console.log('Received message from ' + message.sender + ': ' +
-                    message.body);
-        messagesHack.unshift(message);
+        var msg = evt.message;
+        messagesHack.unshift(msg);
+
+        console.log('Received message from ' + msg.sender + ': ' + msg.body);
+
         window.setTimeout(function() {
           ConversationView.showConversation(ConversationView.filter);
         }, 0);
         break;
+
       case 'transitionend':
         if (document.body.classList.contains('conversation'))
           return;
@@ -494,11 +437,9 @@ var ConversationView = {
     };
     messagesHack.unshift(message);
 
-    // cancel keyboard hiding
     setTimeout(function keepKeyboardFocus() {
       var input = document.getElementById('msg-conversation-view-msg-text');
       input.value = '';
-      input.focus();
     }, 0);
 
     ConversationListView.updateConversationList();
