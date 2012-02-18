@@ -36,7 +36,6 @@ var Camera = {
     video.style.filter = this._filter;
 
     video.src = navigator.mozCamera.getCameraURI(config);
-    video.src = 'meetthecubs.webm';
   },
   
   toggleCamera: function toggleCamera() {
