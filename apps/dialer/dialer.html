@@ -189,9 +189,9 @@
         </div>
       </div>
       <div class="main-button-container">
-        <div id="call-button" onclick="CallHandler.execute(this.dataset.action);">
-          <span id="accept-call"></span>
-          <span id="end-call"></span>
+        <div id="call-button" onclick="CallHandler.execute(event.target.dataset.action);">
+          <span id="accept-call" data-action="answer"></span>
+          <span id="end-call" data-action="end"></span>
         </div>
       </div>
     </div>
