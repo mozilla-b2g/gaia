@@ -19,13 +19,16 @@ body {
 }
 
 header {
-  height: 20px;
-  background-color: #fff;
-  background-image: -moz-linear-gradient(#fff, #eaeae4);
   margin: 0;
-  padding: 25px;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
+
+	height: 10mozmm;
+  line-height: 10mozmm;
+
+  font-size: 3.5mozmm;
+  text-align: center;
+
+  border-bottom: 2px solid #7F7F7F;
+  background: url(images/app-texture.png) 50% 50%, -moz-linear-gradient(top, hsla(0,0%,96%,1), hsla(0,0%,92%,1) );
 }
 
 header h1 {

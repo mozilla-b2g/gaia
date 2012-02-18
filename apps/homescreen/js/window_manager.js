@@ -33,6 +33,8 @@ var _statusBarHeight = null;
 
 function Window(application, id) {
   var element = this.element = document.createElement('iframe');
+  element.setAttribute('mozallowfullscreen', 'true');
+  element.setAttribute('mozbrowser', 'true');
   element.id = 'window_' + id;
   element.className = 'appWindow';
 
@@ -254,8 +256,12 @@ var WindowManager = {
     var application = Gaia.AppManager.getInstalledAppForURL(url);
     var applicationWindow = this.getWindowByApp(application);
 
-    if (applicationWindow)
-      this.remove(applicationWindow);
+    if (!applicationWindow)
+      return;
+
+    var name = application.name;
+    this._fireEvent(applicationWindow.element, 'appkill', name);
+    this.remove(applicationWindow);
   },
 
   _fireEvent: function wm_fireEvent(target, type, details) {
