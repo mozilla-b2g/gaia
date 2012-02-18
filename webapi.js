@@ -1397,7 +1397,6 @@
   if ('mozTelephony' in navigator)
     return;
 
-  alert(navigator.mozTelephony);
   navigator.mozTelephony = {
     dial: function(number) {
       console.log("dialing");
