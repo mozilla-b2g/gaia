@@ -311,7 +311,7 @@
 // mozSettings (bug 678695)
 (function (window) {
   var navigator = window.navigator;
-  if (window.mozSettings)
+  if ('mozSettings' in navigator)
     return;
 
   var prefix = "settings:";
@@ -381,7 +381,7 @@
 
 (function (window) {
   var navigator = window.navigator;
-  if (navigator.mozContacts)
+  if ('mozContacts' in navigator)
     return;
 
   var contacts = [
@@ -1413,7 +1413,7 @@
 
 (function (window) {
   var navigator = window.navigator;
-  if (navigator.mozTelephony)
+  if ('mozTelephony' in navigator)
     return;
 
   navigator.mozTelephony = {

@@ -885,11 +885,13 @@ html * {
   height: 80px;
 
 	border-radius: 3px;
+  margin: 5px 0;
 }
 
 #accept-call {
 	background: url(images/call-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(177,214,0) 1px, rgb(143,195,0) 2px, rgb(82,107,23) 100%);
 }
+
 #end-call {
 	background: url(images/call-end-icon.png) no-repeat 50% 50%,  -moz-linear-gradient(top, hsl(355,93%,42%) 0, hsl(356,94%,37%) 1px, hsl(353,100%,22%) 100%);
 }

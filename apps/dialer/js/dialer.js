@@ -26,7 +26,6 @@ function visibilityChanged(url) {
   var contacts = document.getElementById('contacts-label');
   if ((url && url.indexOf('?choice=contact') != -1) ||
       contacts.hasAttribute('data-active')) {
-    Contacts.load();
     choiceChanged(contacts);
   }
 }
@@ -35,6 +34,10 @@ function choiceChanged(target) {
   var choice = target.dataset.choice;
   if (!choice)
     return;
+
+  if (choice == 'contacts') {
+    Contacts.load();
+  }
 
   var view = document.getElementById(choice + '-view');
   if (!view)
@@ -332,7 +335,6 @@ var CallHandler = {
     this.toggleModal();
   },
   contacts: function ch_contacts() {
-    Contacts.load();
     choiceChanged(document.getElementById('contacts-label'));
     this.toggleModal();
   },
