@@ -148,8 +148,8 @@ var ConversationListView = {
     if (navigator.mozSms)
       navigator.mozSms.addEventListener('received', this);
 
-    var events =
-      ['mousedown', 'mouseover', 'mouseup', 'mouseleave'];
+    var events = ['mousedown', 'mouseover', 'mouseup',
+      'mouseleave'];
     events.forEach((function(eventName) {
       this.view.addEventListener(eventName, this);
     }).bind(this));
@@ -236,11 +236,12 @@ var ConversationListView = {
     var reg = new RegExp(str, 'i');
 
     for (var i in conversations) {
-      if (!reg.test(conversations[i].dataset.num) &&
-          !reg.test(conversations[i].dataset.name)) {
-        conversations[i].classList.add('hide');
+      var conversation = conversations[i];
+      if (!reg.test(conversation.dataset.num) &&
+          !reg.test(conversation.dataset.name)) {
+        conversation.classList.add('hide');
       } else {
-        conversations[i].classList.remove('hide');
+        conversation.classList.remove('hide');
       }
     }
   },
@@ -258,7 +259,7 @@ var ConversationListView = {
         return target;
       target = target.parentNode;
     }
-    return false;
+    return null;
   },
 
   handleEvent: function handleEvent(evt) {
@@ -271,7 +272,6 @@ var ConversationListView = {
       case 'mousedown':
         this.touched = true;
         var selection = this.getSelectionFromEvent(evt);
-
         if (!selection)
           return;
 
@@ -284,7 +284,6 @@ var ConversationListView = {
           return;
 
         var selection = this.getSelectionFromEvent(evt);
-
         if (this.currentConversation === selection)
           return;
 
@@ -313,10 +312,10 @@ var ConversationListView = {
         delete this.currentConversation;
 
       case 'transitionend':
-        if (!document.body.classList.contains('going-back'))
+        if (!document.body.classList.contains('transition-back'))
           return;
 
-        document.body.classList.remove('going-back');
+        document.body.classList.remove('transition-back');
         if (this.currentConversation)
           this.currentConversation.classList.remove('selected');
         delete this.currentConversation;
@@ -359,6 +358,7 @@ var ConversationView = {
 
   showConversation: function cv_showConversation(num) {
     var view = this.view;
+    var bodyclassList = document.body.classList;
     var filter = ('SmsFilter' in window) ? new SmsFilter() : {};
     filter.number = this.filter = num;
 
@@ -369,12 +369,12 @@ var ConversationView = {
       */
       this.num.value = '';
       this.view.innerHTML = '';
-      document.body.classList.add('conversation-new-msg');
-      document.body.classList.add('conversation');
+      bodyclassList.add('conversation-new-msg');
+      bodyclassList.add('conversation');
       return;
     }
 
-    document.body.classList.remove('conversation-new-msg');
+    bodyclassList.remove('conversation-new-msg');
 
     var name = num;
 
@@ -418,7 +418,7 @@ var ConversationView = {
       if (view.lastChild)
         view.lastChild.scrollIntoView(false);
 
-      document.body.classList.add('conversation');
+      bodyclassList.add('conversation');
     }, filter, true);
   },
 
@@ -460,7 +460,7 @@ var ConversationView = {
     if (!document.body.classList.contains('conversation'))
       return false;
     document.body.classList.remove('conversation');
-    document.body.classList.add('going-back');
+    document.body.classList.add('transition-back');
     return true;
   },
   sendMessage: function cv_sendMessage() {
@@ -510,8 +510,7 @@ var ConversationView = {
   }
 };
 
-window.addEventListener('load',
-  (ConversationView.init).bind(ConversationView));
-window.addEventListener('load',
-  (ConversationListView.init).bind(ConversationListView));
-
+window.addEventListener('load', function loadMessageApp() {
+  ConversationView.init();
+  ConversationListView.init();
+});

@@ -63,15 +63,11 @@ body.conversation .panel {
 
 .toolbar-top {
   top: 0;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
   border-bottom: solid 3px #9b9b9b;
 }
 
 .toolbar-bottom {
   bottom: 0;
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
   border-top: solid 3px #9b9b9b;
 }
 
@@ -133,7 +129,7 @@ input, textarea {
 	border-bottom:1px solid hsla(223,7%,81%,1);
 }
 
-body.going-back #msg-conversations-list > div {
+body.transition-back #msg-conversations-list > div {
    -moz-transition: background-color 0.3s ease-out;
    background-color: transparent;
 }
