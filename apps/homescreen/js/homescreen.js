@@ -7,9 +7,31 @@ const SHORTCUTS_HEIGHT = 144;
 
 var displayState;
 
+function foregroundAppURL() {
+  var win = WindowManager.getForegroundWindow();
+  return (win !== null) ? win.application.url : window.document.URL;
+}
+
+function toggleSourceViewer(url) {
+  if (isSourceViewerActive()) {
+    hideSourceViewer(url);
+  } else {
+    showSourceViewer(url);
+  }
+}
+
+function getSourceViewerElement() {
+  return content.document.getElementById('appViewsource');
+}
+
+function isSourceViewerActive() {
+  var viewsource = getSourceViewerElement();
+  return viewsource !== null && viewsource.style.visibility != 'hidden';
+}
+
 function showSourceViewer(url) {
   var document = content.document;
-  var viewsource = document.getElementById('appViewsource');
+  var viewsource = getSourceViewerElement();
   if (!viewsource) {
     var style = '#appViewsource { ' +
                 '  position: absolute;' +
@@ -36,10 +58,10 @@ function showSourceViewer(url) {
 }
 
 function hideSourceViewer() {
-  var viewsource = content.document.getElementById('appViewsource');
-  if (!viewsource)
-    return;
-  viewsource.style.visibility = 'hidden';
+  var viewsource = getSourceViewerElement();
+  if (viewsource !== null) {
+    viewsource.style.visibility = 'hidden';
+  }
 }
 
 // Change the display state (off, locked, default)
@@ -188,7 +210,7 @@ function IconGrid(containerId, columns, rows, minPages, showLabels) {
   this.physics = createPhysicsFor(this);
 
   // install event handlers
-  AddEventHandlers(this.container, this, ['touchstart', 'touchmove', 'touchend', 'contextmenu']);
+  AddEventHandlers(this.container, this, ['touchstart', 'touchmove', 'touchend', 'menu']);
   AddEventHandlers(window, this, ['resize']);
 }
 
@@ -397,11 +419,13 @@ IconGrid.prototype = {
     case 'touchmove':
       physics.onTouchMove(e.touches[0]);
       break;
-    case 'contextmenu':
-      var sourceURL = window.document.URL;
-      showSourceViewer(sourceURL);
-      document.releaseCapture();
-      physics.touchState.active = false;
+    case 'menu':
+      // XXX: we're seeing these "special" events come by twice.
+      // Stopping propagation doesn't fix that.  So hack for now.
+      if (e._gaiaProcessed)
+        return;
+      e._gaiaProcessed = true;
+      toggleSourceViewer(foregroundAppURL());
       break;
     case 'touchend':
       document.releaseCapture();
