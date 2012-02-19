@@ -271,7 +271,7 @@ html * {
   background: hsla(35,100%,50%,.2);
 }
 .keyboard-key:active > span:first-child {
-  color: hsla(35,100%,50%,);
+  color: hsla(35,100%,50%,1);
 }
 .keyboard-key span {
   display: block;
@@ -290,7 +290,7 @@ html * {
 
 #additionalKeyset {
   width: 100%;
-  height: 16mozmm
+  height: 16mozmm;
   padding: 0;
   margin: 0;
 }
@@ -387,7 +387,7 @@ html * {
 
   background: url(images/diagonal-pattern.png) 0 0, hsla(60,13%,94%,1);
 
-  font-size: 1.4;
+  font-size: 1.4em;
   font-weight: 700;
   line-height: 5mozmm;
   color: #FFFFFF;
