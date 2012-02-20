@@ -125,7 +125,7 @@ Window.prototype = {
     sprite.element.addEventListener('transitionend', blur.bind(this));
 
     if (this.application.fullscreen) {
-      this.element.mozCancelFullScreen();
+      document.mozCancelFullScreen();
     }
 
     document.body.offsetHeight;
