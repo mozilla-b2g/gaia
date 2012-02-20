@@ -341,7 +341,6 @@ body.conversation-new-msg #msg-conversation-view-num {
   top: 20px;
   /* XXX: assets missing */
   background-color: rgb(191, 204, 215);
-  box-shadow: inset 0 1px 0 rgb(230, 233, 238), 0 4px 4px #222;
 }
 
 #msg-conversation-view-list > div.sender::before {
