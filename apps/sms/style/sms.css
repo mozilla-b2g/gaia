@@ -269,13 +269,11 @@ body.conversation-new-msg #msg-conversation-view-num {
 }
 
 #msg-conversation-view-list {
-  /* XXX: assets missing */
-  background-color: rgb(79, 87, 95);
+  background: url('images/conversation-view-list-bg.png');
 }
 
 #msg-conversation-view-list > div {
-  /* XXX: assets missing */
-  background-color: rgb(191, 204, 215);
+  background: url("images/app-texture.png") repeat scroll 50% 50%, rgb(191, 204, 215);
   margin: 10px;
   min-height: 50px;
   border-radius: 5px;
@@ -339,8 +337,7 @@ body.conversation-new-msg #msg-conversation-view-num {
   height: 14px;
   position: absolute;
   top: 20px;
-  /* XXX: assets missing */
-  background-color: rgb(191, 204, 215);
+  background: url("images/app-texture.png") repeat scroll 50% 50%, rgb(191, 204, 215);
 }
 
 #msg-conversation-view-list > div.sender::before {
@@ -355,8 +352,7 @@ body.conversation-new-msg #msg-conversation-view-num {
 
 
 #msg-conversation-view-list > div::after {
-  /* XXX: assets missing */
-  background-color: rgb(191, 204, 215);
+  background: url("images/app-texture.png") repeat scroll 50% 50%, rgb(191, 204, 215);
   content: '';
   display: block;
   width: 10px; height: 35px;
@@ -370,6 +366,11 @@ body.conversation-new-msg #msg-conversation-view-num {
 
 #msg-conversation-view-list > div.receiver::after {
   right: 0;
+}
+
+#msg-conversation-view-bottom-toolbar {
+  background: url('images/diagonal-gray-pattern.png'),
+  -moz-linear-gradient(center top , rgb(244, 244, 244), rgb(234, 234, 234)) repeat scroll 0% 0% transparent;
 }
 
 #msg-conversation-view-msg-text-container {
