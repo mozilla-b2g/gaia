@@ -1,7 +1,7 @@
 'use strict';
 
 var kFontStep = 8;
-var kMinFontSize = 11;
+var kMinFontSize = 12;
 // Frequencies comming from http://en.wikipedia.org/wiki/Telephone_keypad
 var gTonesFrequencies = {
   '1': [697, 1209], '2': [697, 1336], '3': [697, 1477],
