@@ -85,6 +85,10 @@ Window.prototype = {
     };
     sprite.element.addEventListener('transitionend', focus.bind(this));
 
+    if (this.application.fullscreen) {
+      this.element.mozRequestFullScreen();
+    }
+
     document.body.offsetHeight;
     sprite.setActive(true);
   },
@@ -115,6 +119,10 @@ Window.prototype = {
         callback();
     };
     sprite.element.addEventListener('transitionend', blur.bind(this));
+
+    if (this.application.fullscreen) {
+      this.element.mozCancelFullScreen();
+    }
 
     document.body.offsetHeight;
     sprite.setActive(false);
