@@ -69,7 +69,8 @@ Gaia.AppManager = {
         cache.push({
           name: manifest.name,
           url: url,
-          icon: icon
+          icon: icon,
+          fullscreen: manifest.fullscreen || false
         });
       });
 
