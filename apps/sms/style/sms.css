@@ -215,7 +215,8 @@ input, textarea {
 }
 
 #msg-new-message {
-  margin: 14px 32px;
+  margin-top: 14px;
+  margin-left: 32px;
   height: 48px;
   line-height: 48px;
   font-size: 24px;
@@ -411,7 +412,7 @@ body.conversation-new-msg #msg-conversation-view-num {
   width: -moz-calc(100% - 16px);
   display: block;
   height: 48px;
-  margin: 16px;
+  margin: 14px 0 0 16px;
 }
 
 #msg-conversation-view-msg-send-container {
@@ -423,7 +424,7 @@ body.conversation-new-msg #msg-conversation-view-num {
   display: block;
   width: 96px;
   height: 48px;
-  margin: 16px;
+  margin: 14px 0 0 16px;
   font-size: 18px;
   line-height: 42px;
 }
