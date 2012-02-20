@@ -122,13 +122,14 @@ input, textarea {
 }
 
 #msg-conversations-list {
-  background: url("images/app-texture.png") repeat scroll 50% 50%, -moz-linear-gradient(center top , rgba(0, 0, 0, 0.1) 0pt, transparent 10px, transparent 100%) repeat scroll 0% 0%, -moz-linear-gradient(center bottom , rgba(0, 0, 0, 0.1) 0pt, transparent 10px, transparent 100%) repeat scroll 0% 0%, none repeat scroll 0% 0% rgb(224, 229, 234);
+  background: url("images/app-texture.png") repeat scroll 50% 50%, rgb(243, 243, 243);
 }
 
 #msg-conversations-list > div {
-	height: 56px;
+	-moz-box-sizing: border-box;
+	height: 96px;
 	position: relative;
-	padding: 10px 80px 0 80px;
+	padding: 10px 106px 0 106px;
 	border-top: 1px solid hsla(207,22%,92%,1);
 	border-bottom: 1px solid hsla(223,7%,81%,1);
 }
@@ -153,10 +154,11 @@ input, textarea {
 	position: absolute;
 	top: -1px;
   left: 0;
-	width: 67px;
-  height: 67px;
+	width: 95px;
+  height: 95px;
 	overflow: hidden;
   background-color: #ccc;
+  box-shadow: inset 0 1px 0 #ddd;
 }
 
 #msg-conversations-list .photo img {
@@ -164,14 +166,18 @@ input, textarea {
 }
 
 #msg-conversations-list .name {
-	color: hsla(0,0%,40%,1);
-	font-size: 14px;
+  font-size: 26px;
+  color: rgb(18, 47, 64);
+	font-size: 26px;
+	line-height: 32px;
+	font-weight: 600;
 }
 
 #msg-conversations-list .msg {
-	color: hsla(0,0%,8%,1);
-	font-size: 18px;
-	height: 24px;
+  color: #666;
+  text-shadow: 0 1px 0 #ddd;
+	font-size: 20px;
+	height: 26px;
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
@@ -183,7 +189,7 @@ input, textarea {
 	right: 10px;
 	text-align: right;
 	color: hsla(0,0%,0%,.5);
-	font-size: 14px;
+	font-size: 16px;
 }
 
 #msg-new-message-container {
@@ -203,8 +209,9 @@ input, textarea {
 	padding-left: 38px;
 	background: url(./images/top-navibar-left-arrow.png) no-repeat 14px 50%;
 	line-height: 60px;
-	font-size: 16px;
-	color: hsl(0,0%,40%);
+	font-size: 18px;
+	font-weight: 600;
+	color: #828282;
 
   position: absolute;
   top: 3px; left: 0;
@@ -213,7 +220,7 @@ input, textarea {
 }
 
 #msg-conversation-view-name {
-  font-size: 20px;
+  font-size: 32px;
   margin: 0 100px;
   padding: 0;
   line-height: 68px;
@@ -250,16 +257,18 @@ body.conversation-new-msg #msg-conversation-view-num {
 
 #msg-conversation-view-edit {
 	position: absolute;
-	top: 18px;
+	top: 14px;
 	right: 14px;
-	height: 32px;
+	height: 40px;
+	line-height: 40px;
 	width: 50px;
 	padding: 0 8px;
 	border-radius: 5px;
 	border: 1px solid hsl(60,2%,62%);
 	text-align: center;
-	line-height: 32px;
-	color: hsl(0,0%,40%);
+	font-size: 22px;
+	font-weight: 600;
+	color: #666;
 	text-shadow: 1px 1px 1px hsla(0,0%,100%,.5);
 	background: -moz-linear-gradient(top, hsla(0,0%,97%,1) 0, hsla(280,8%,93%,1) 1px, hsla(0,0%,87%,1) 100%);
 }
@@ -275,7 +284,7 @@ body.conversation-new-msg #msg-conversation-view-num {
 #msg-conversation-view-list > div {
   background: url("images/app-texture.png") repeat scroll 50% 50%, rgb(191, 204, 215);
   margin: 10px;
-  min-height: 50px;
+  min-height: 60px;
   border-radius: 5px;
   position: relative;
   padding: 20px;
@@ -283,19 +292,19 @@ body.conversation-new-msg #msg-conversation-view-num {
 }
 
 #msg-conversation-view-list > div.sender {
-  padding-left: 90px;
+  padding-left: 100px;
 }
 
 #msg-conversation-view-list > div.receiver {
-  padding-right: 90px;
+  padding-right: 100px;
   text-align: right;
 }
 
 #msg-conversation-view-list .photo {
 	position: absolute;
 	top: 0;
-	width: 67px;
-	height: 67px;
+	width: 80px;
+	height: 80px;
 	margin: 10px;
   border-radius: 5px;
   box-shadow: inset 0 1px 0 #ddd, 0 1px 0 #999;
@@ -317,7 +326,7 @@ body.conversation-new-msg #msg-conversation-view-num {
 }
 
 #msg-conversation-view-list > div .text {
-  font-size: 24px;
+  font-size: 26px;
   color: rgb(18, 47, 64);
   text-shadow: 0 1px 0 #ddd;
   line-height: 32px;
