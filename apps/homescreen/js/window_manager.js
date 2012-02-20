@@ -68,6 +68,16 @@ Window.prototype = {
     if (this._active)
       return;
 
+    // NOTE: for the moment, orientation only works when fullscreen because of a
+    // too dirty hack...
+    if (this.application.fullscreen && this.application.orientation) {
+      var width = this.element.style.width;
+      this.element.style.width = this.element.style.height;
+      this.element.style.height = width;
+
+      this.element.classList.add(this.application.orientation);
+    }
+
     var sprite = new WindowSprite(this);
     sprite.add();
     this.setActive(true);
@@ -94,15 +104,6 @@ Window.prototype = {
 
     if (this.application.fullscreen) {
       document.getElementById('screen').classList.add('fullscreen');
-    }
-
-    // NOTE: for the moment, orientation only works when fullscreen because of a
-    // too dirty hack...
-    if (this.application.fullscreen && this.application.orientation) {
-      var foo = this.element.style.width;
-      this.element.style.width = this.element.style.height;
-      this.element.style.height = foo;
-      this.element.classList.add(this.application.orientation);
     }
 
     document.body.offsetHeight;
@@ -138,6 +139,14 @@ Window.prototype = {
 
     if (this.application.fullscreen) {
       document.getElementById('screen').classList.remove('fullscreen');
+    }
+
+    // NOTE: for the moment, orientation only works when fullscreen because of a
+    // too dirty hack...
+    if (this.application.fullscreen && this.application.orientation) {
+      var width = this.element.style.width;
+      this.element.style.width = this.element.style.height;
+      this.element.style.height = width;
     }
 
     document.body.offsetHeight;
