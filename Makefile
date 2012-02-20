@@ -18,7 +18,7 @@ ADB=adb
 # you should use the install-gaia target of the B2G Makefile. But if you're
 # working on just gaia itself, and you already have B2G firmware on your
 # phone, and you have adb in your path, then you can use this target to
-# update the gaia files and reboot your phone
+# update the gaia files and reboot b2g
 
 PROFILE := $$($(ADB) shell ls -d /data/b2g/mozilla/*.default | tr -d '\r')
 PROFILE_DATA := profile
@@ -27,8 +27,8 @@ install-gaia:
 	$(ADB) start-server
 	$(ADB) shell rm -r /data/local/*
 	@for i in $$(ls); do $(ADB) push $$i /data/local/$$i; done
-	@echo 'Rebooting phone now'
-	$(ADB) reboot
+	@echo 'Rebooting b2g now'
+	$(ADB) shell killall b2g
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 .PHONY: delete-databases
