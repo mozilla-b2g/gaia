@@ -203,8 +203,7 @@ var CallHandler = {
   // callbacks
   call: function ch_call(number) {
     this.numberView.innerHTML = number;
-    this.statusView.innerHTML = 'Calling...';
-    this.actionsView.classList.remove('displayed');
+    this.statusView.innerHTML = 'Dialing...';
     this.callButton.dataset.action = 'end';
     this.toggleCallScreen();
 
@@ -218,7 +217,6 @@ var CallHandler = {
 
     this.numberView.innerHTML = call.number;
     this.statusView.innerHTML = 'Incoming call...';
-    this.actionsView.classList.remove('displayed');
     this.callButton.dataset.action = 'answer';
     this.toggleCallScreen();
   },
@@ -228,7 +226,6 @@ var CallHandler = {
       return;
 
     this.statusView.innerHTML = '00:00';
-    this.actionsView.classList.add('displayed');
     this.callButton.dataset.action = 'end';
 
     this._ticker = setInterval(function ch_updateTimer(self, startTime) {
@@ -249,7 +246,6 @@ var CallHandler = {
   disconnected: function ch_disconnected() {
     this.toggleCallScreen();
 
-    this.actionsView.classList.remove('displayed');
     if (this.muteButton.classList.contains('mute'))
       this.toggleMute();
     if (this.speakerButton.classList.contains('speak'))
@@ -274,7 +270,7 @@ var CallHandler = {
       case 'connected':
         this.connected();
         break;
-      case 'disconnected':
+      case 'disconnecting':
         this.disconnected();
         break;
       default:
@@ -303,6 +299,10 @@ var CallHandler = {
     delete this.speakerButton;
     return this.speakerButton = document.getElementById('speaker-button');
   },
+  get holdButton() {
+    delete this.holdButton;
+    return this.holdButton = document.getElementById('hold-button');
+  },
   get callButton() {
     delete this.callButton;
     return this.callButton = document.getElementById('call-button');
@@ -329,6 +329,10 @@ var CallHandler = {
   toggleSpeaker: function ch_toggleSpeaker() {
     this.speakerButton.classList.toggle('speak');
     // TODO: make the actual speaker call
+  },
+  toggleHold: function ch_toggleHold() {
+    this.holdButton.classList.toggle('hold');
+    // TODO: make the actual hold call
   },
   keypad: function ch_keypad() {
     choiceChanged(document.getElementById('keyboard-label'));
