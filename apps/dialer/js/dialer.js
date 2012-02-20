@@ -1,8 +1,7 @@
 'use strict';
 
 var kFontStep = 8;
-var kMinFontSize = 24;
-var kDefaultFontSize = 30;
+var kMinFontSize = 11;
 // Frequencies comming from http://en.wikipedia.org/wiki/Telephone_keypad
 var gTonesFrequencies = {
   '1': [697, 1209], '2': [697, 1336], '3': [697, 1477],
@@ -131,7 +130,7 @@ var KeyHandler = {
       var rect = div.getBoundingClientRect();
       if (rect.width > viewWidth) {
         fontSize = Math.max(fontSize - kFontStep, kMinFontSize);
-      } else if (fontSize < kDefaultFontSize) {
+      } else if (fontSize < self._initialFontSize) {
         div.style.fontSize = (fontSize + kFontStep) + 'px';
         rect = div.getBoundingClientRect();
         if (rect.width <= viewWidth)
@@ -144,12 +143,15 @@ var KeyHandler = {
     var view = this.phoneNumberView;
     var computedStyle = window.getComputedStyle(view, null);
     var fontSize = computedStyle.getPropertyValue('font-size');
+    if (!this._initialFontSize) {
+      this._initialFontSize = parseInt(fontSize);
+    }
 
     var text = this.formatPhoneNumber(this.phoneNumber.value);
     view.innerHTML = text;
 
     var newFontSize =
-      text ? getNextFontSize(parseInt(fontSize), text) : kDefaultFontSize;
+      text ? getNextFontSize(parseInt(fontSize), text) : this._initialFontSize;
     if (newFontSize != fontSize)
     view.style.fontSize = newFontSize + 'px';
   },

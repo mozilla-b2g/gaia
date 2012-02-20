@@ -194,7 +194,7 @@ html * {
 
 #phone-number-view {
   display: inline-block;
-  width: -moz-calc(100% - 120px);
+  width: -moz-calc(100% - 24mozmm);
 }
 
 .keyboard-key[data-value="del"] {
