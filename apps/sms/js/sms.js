@@ -304,10 +304,10 @@ var ConversationView = {
     filter.number = this.filter = num;
 
     if (!num) {
-      /*
-        XXX: UX did not define New Message screen.
-             let's invent one.
+      /* XXX: gaia issue #483 (New Message dialog design)
+              gaia issue #108 (contact picker)
       */
+
       this.num.value = '';
       this.view.innerHTML = '';
       bodyclassList.add('conversation-new-msg');
