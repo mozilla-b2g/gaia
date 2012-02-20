@@ -327,6 +327,38 @@ html * {
   text-transform: none;
 }
 
+@media all and (max-height: 500px) {
+  #mainKeyset {
+    min-height: 165px;
+    height: -moz-calc(100% - 12mozmm);
+  }
+
+  .keyboard-key span {
+    font-size: 1.3em;
+    line-height: 1.8em;
+  }
+
+  .keyboard-key span:last-child {
+    display: none;
+  }
+
+  #additionalKeyset {
+    width: 100%;
+    height: 12mozmm;
+  }
+
+  .keyboard-key[data-value="call"] {
+    margin: 2mozmm 30px;
+    height: 8mozmm;
+    font-size: 3mozmm;
+    line-height: 8mozmm;
+  }
+
+  .keyboard-key[data-value="call"] span {
+    display: block;
+  }
+}
+
 /* === Contacts View === */
 
 #contacts-view-scrollable {
