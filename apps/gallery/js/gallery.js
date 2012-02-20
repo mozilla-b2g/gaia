@@ -326,7 +326,8 @@ var Gallery = {
   },
 
   tap: function() {
-
+    // This is part of the Physics client interface, but isn't used
+    // for the Gallery.  We use a click listener instead.
   },
 
   handleEvent: function(e) {
