@@ -91,9 +91,16 @@ var Touch2Mouse = {
   'touchend': 'mouseup'
 };
 
+var ForceOnWindow = {
+  'touchmove': true,
+  'touchend': true,
+  'sleep': true
+}
+
 function AddEventHandlers(target, listener, eventNames) {
   for (var n = 0; n < eventNames.length; ++n) {
     var name = eventNames[n];
+    target = ForceOnWindow[name] ? window : target;
     name = Touch2Mouse[name] || name;
     target.addEventListener(name, {
       handleEvent: function(e) {
@@ -128,7 +135,7 @@ function RemoveEventHandlers(target, listener, eventNames) {
 
 var Gallery = {
 
-  focusedPhoto: null,           // focused full-res photo element
+  currentPage: 0,
   photoTranslation: 0,          // pixels
 
   physics: null,
@@ -167,7 +174,7 @@ var Gallery = {
       if (!target || !target.classList.contains('thumbnailHolder'))
         return;
 
-      this.showPhotos(target.dataset.filename);
+      this.showPhotos(target.dataset);
 /*
       db.getPhoto(target.id, (function showPhotos(photo) {
         this.showPhotos(photo);
@@ -238,6 +245,7 @@ var Gallery = {
 
     var li = document.createElement('li');
     li.dataset.filename = filename;
+    li.dataset.index = this.thumbnails.childNodes.length;
     li.classList.add('thumbnailHolder');
 
     var img = document.createElement('img');
@@ -273,20 +281,48 @@ var Gallery = {
     this.photoTransform = '';
   },
 
-  showPhotos: function galleryShowPhotos(selectedFilename) {
+  showPhotos: function galleryShowPhotos(focusedPhoto) {
     this.thumbnails.classList.add('hidden');
     this.header.classList.add('hidden');
     this.photos.classList.remove('hidden');
     this.playerControls.classList.remove('hidden');
 
-    this.focusedPhoto = document.getElementById(selectedFilename);
-    this.photoTransform = '';   // no extra transform initially
+    this.currentPage = parseInt(focusedPhoto.index);
 
     this.pan(0);
   },
 
   toggleControls: function galleryToggleControls() {
     this.playerControls.classList.toggle('hidden');
+  },
+
+  // Touch handling
+  pan: function galleryPan(x, duration) {
+    var pages = this.photos.childNodes;
+    var currentPage = this.currentPage;
+    for (var p = 0; p < pages.length; ++p) {
+      var page = pages[p];
+      var style = page.style;
+      // -1 because the pages are positioned offscreen to the right,
+      // by the width of a page right
+      var pageOffset = (p - currentPage) - 1;
+      style.MozTransform = 'translate(-moz-calc('+ pageOffset +'00% + '+ x +'px))';
+      style.MozTransition = duration ? ('all '+ duration + 's ease') : '';
+    }
+  },
+
+  setPage: function(number, duration) {
+    var pages = this.photos.childNodes;
+    if (number < 0)
+      number = 0;
+    else if (number >= pages.length)
+      number = pages.length - 1;
+    this.currentPage = number;
+    this.pan(0, duration);
+  },
+
+  tap: function() {
+
   },
 
   handleEvent: function(e) {
@@ -306,18 +342,6 @@ var Gallery = {
       return;
     }
     e.preventDefault();
-  },
-
-  pan: function galleryPan(x, duration) {
-    var photos = this.photos.childNodes;
-    var currentPhoto = 0 | (photos.length / 2);
-    for (var p = 0; p < photos.length; ++p) {
-      var photo = photos[p];
-      var style = photo.style;
-      var pageOffset = (p - currentPhoto);
-      style.MozTransform = 'translate(-moz-calc('+ pageOffset +'00% + '+ x +'px))';
-      style.MozTransition = duration ? ('all '+ duration + 's ease;') : '';
-    }
   },
 };
 
