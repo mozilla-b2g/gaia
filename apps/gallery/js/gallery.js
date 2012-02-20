@@ -9,10 +9,129 @@ const SAMPLE_FILENAMES = ['bigcat.jpg', 'bison.jpg', 'butterfly.jpg',
     'rabbit.jpg', 'sheep.jpg', 'snail.jpg', 'tortoise.jpg', 'wolf.jpg',
     'zebra.jpg'];
 
+//-----------------------------------------------------------------------------
+// XXX: share this with homescreen.  Paginated panning is a gap.
+//
+function createPhysicsFor(iconGrid) {
+  return new DefaultPhysics(iconGrid);
+}
+
+function DefaultPhysics(iconGrid) {
+  this.iconGrid = iconGrid;
+  this.moved = false;
+  this.touchState = { active: false, startX: 0, startY: 0 };
+}
+
+DefaultPhysics.prototype = {
+  onTouchStart: function(e) {
+    var touchState = this.touchState;
+    this.moved = false;
+    touchState.active = true;
+    touchState.startX = e.pageX;
+    touchState.startY = e.pageY;
+    touchState.startTime = e.timeStamp;
+  },
+  onTouchMove: function(e) {
+    var iconGrid = this.iconGrid;
+    var touchState = this.touchState;
+    if (touchState.active) {
+      var dx = touchState.startX - e.pageX;
+      if (dx !== 0) {
+        iconGrid.pan(-dx);
+        this.moved = true;
+      }
+      e.stopPropagation();
+    }
+  },
+  onTouchEnd: function(e) {
+    var touchState = this.touchState;
+    if (!touchState.active)
+      return;
+    touchState.active = false;
+
+    var startX = touchState.startX;
+    var endX = e.pageX;
+    var diffX = endX - startX;
+    var dir = (diffX > 0) ? -1 : 1;
+
+    var quick = (e.timeStamp - touchState.startTime < 200);
+
+    var small = Math.abs(diffX) < 20;
+
+    var flick = quick && !small;
+    var tap = small;
+    var drag = !quick;
+
+    var iconGrid = this.iconGrid;
+    var currentPage = iconGrid.currentPage;
+    if (tap) {
+      iconGrid.tap();
+      return;
+    } else if (flick) {
+      iconGrid.setPage(currentPage + dir, 0.2);
+    } else {
+      if (Math.abs(diffX) < this.containerWidth / 2)
+        iconGrid.setPage(currentPage, 0.2);
+      else
+        iconGrid.setPage(currentPage + dir, 0.2);
+    }
+    e.stopPropagation();
+  }
+};
+
+var Mouse2Touch = {
+  'mousedown': 'touchstart',
+  'mousemove': 'touchmove',
+  'mouseup': 'touchend'
+};
+
+var Touch2Mouse = {
+  'touchstart': 'mousedown',
+  'touchmove': 'mousemove',
+  'touchend': 'mouseup'
+};
+
+function AddEventHandlers(target, listener, eventNames) {
+  for (var n = 0; n < eventNames.length; ++n) {
+    var name = eventNames[n];
+    name = Touch2Mouse[name] || name;
+    target.addEventListener(name, {
+      handleEvent: function(e) {
+        if (Mouse2Touch[e.type]) {
+          var original = e;
+          e = {
+            type: Mouse2Touch[original.type],
+            target: original.target,
+            touches: [original],
+            preventDefault: function() {
+              original.preventDefault();
+            }
+          };
+          e.changedTouches = e.touches;
+        }
+        return listener.handleEvent(e);
+      }
+    }, true);
+  }
+}
+
+function RemoveEventHandlers(target, listener, eventNames) {
+  for (var n = 0; n < eventNames.length; ++n) {
+    var name = eventNames[n];
+    target = ForceOnWindow[name] ? window : target;
+    name = Touch2Mouse[name] || name;
+    target.removeEventListener(name, listener);
+  }
+}
+
+//-----------------------------------------------------------------------------
+
 var Gallery = {
 
   focusedPhoto: null,           // focused full-res photo element
   photoTranslation: 0,          // pixels
+
+  physics: null,
 
   get header() {
     delete this.header;
@@ -56,9 +175,8 @@ var Gallery = {
 */
     }).bind(this));
 
-    this.photos.addEventListener('click', (function photosClick(evt) {
-      this.toggleControls();
-    }).bind(this));
+    this.physics = createPhysicsFor(this);
+    AddEventHandlers(this.photos, this, ['touchstart', 'touchmove', 'touchend']);
 
     this.backButton.addEventListener('click', (function backButtonClick(evt) {
       this.showThumbnails();
@@ -164,22 +282,41 @@ var Gallery = {
     this.focusedPhoto = document.getElementById(selectedFilename);
     this.photoTransform = '';   // no extra transform initially
 
-    this.updatePhotosView();
+    this.pan(0);
   },
 
   toggleControls: function galleryToggleControls() {
     this.playerControls.classList.toggle('hidden');
   },
 
-  updatePhotosView: function galleryUpdatePhotosView() {
-    var fp = this.focusedPhoto;
-    var dp, elt;
-    for (dp = -2, elt = fp.prevSibling; elt; --dp, elt = elt.prevSibling) {
-      elt.style.MozTransform = 'translate('+ dp +'00%);';
+  handleEvent: function(e) {
+    var physics = this.physics;
+    switch (e.type) {
+    case 'touchstart':
+      physics.onTouchStart(e.touches[0]);
+      break;
+    case 'touchmove':
+      physics.onTouchMove(e.touches[0]);
+      break;
+    case 'touchend':
+      document.releaseCapture();
+      physics.onTouchEnd(e.changedTouches[0]);
+      break;
+    default:
+      return;
     }
-    fp.style.MozTransform = 'translate(-100%)';
-    for (dp =  0, elt = fp.nextSibling; elt; ++dp, elt = elt.nextSibling) {
-      elt.style.MozTransform = 'translate('+ dp +'00%);';
+    e.preventDefault();
+  },
+
+  pan: function galleryPan(x, duration) {
+    var photos = this.photos.childNodes;
+    var currentPhoto = 0 | (photos.length / 2);
+    for (var p = 0; p < photos.length; ++p) {
+      var photo = photos[p];
+      var style = photo.style;
+      var pageOffset = (p - currentPhoto);
+      style.MozTransform = 'translate(-moz-calc('+ pageOffset +'00% + '+ x +'px))';
+      style.MozTransition = duration ? ('all '+ duration + 's ease;') : '';
     }
   },
 };
