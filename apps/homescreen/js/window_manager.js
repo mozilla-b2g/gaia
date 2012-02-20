@@ -162,6 +162,8 @@ var WindowManager = {
   init: function wm_init() {
     window.addEventListener('home', this);
     window.addEventListener('message', this);
+    window.addEventListener('locked', this);
+    window.addEventListener('unlocked', this);
   },
 
   handleEvent: function wm_handleEvent(evt) {
@@ -172,6 +174,16 @@ var WindowManager = {
         break;
       case 'home':
         this.closeForegroundWindow();
+        break;
+      case 'locked':
+        if (this._foregroundWindow.application.fullscreen) {
+          document.getElementById('screen').classList.remove('fullscreen');
+        }
+        break;
+      case 'unlocked':
+        if (this._foregroundWindow.application.fullscreen) {
+          document.getElementById('screen').classList.add('fullscreen');
+        }
         break;
     }
   },
