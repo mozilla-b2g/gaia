@@ -93,6 +93,15 @@ Window.prototype = {
       this.element.mozRequestFullScreen();
     }
 
+    // NOTE: for the moment, orientation only works when fullscreen because of a
+    // too dirty hack...
+    if (this.application.fullscreen && this.application.orientation) {
+      var foo = this.element.style.width;
+      this.element.style.width = this.element.style.height;
+      this.element.style.height = foo;
+      this.element.classList.add(this.application.orientation);
+    }
+
     document.body.offsetHeight;
     sprite.setActive(true);
   },
