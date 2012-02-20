@@ -149,7 +149,8 @@
                      },
                      'icons': {
                        '120': '/style/icons/Video.png'
-                     }
+                     },
+                     'fullscreen': true
                    }
                  },
                  { // facebook
@@ -239,7 +240,8 @@
                      },
                      'icons': {
                        '120': '/style/icons/CrystalSkull.png'
-                     }
+                     },
+                     'fullscreen': true
                    }
                  },
                  { // PenguinPop

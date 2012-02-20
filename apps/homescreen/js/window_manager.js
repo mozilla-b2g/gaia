@@ -42,7 +42,6 @@ function Window(application, id) {
   var documentElement = document.documentElement;
   element.style.width = documentElement.clientWidth + 'px';
   element.style.height = documentElement.clientHeight - offsetHeight + 'px';
-  element.src = application.url;
 
   this.application = application;
   this.id = id;
@@ -52,11 +51,12 @@ Window.prototype = {
   element: null,
 
   _active: false,
+  _loaded: false,
   setActive: function window_setActive(active) {
-    var classes = this.element.classList;
     if (this._active === active)
       return;
 
+    var classes = this.element.classList;
     classes.toggle('active');
     this._active = active;
   },
@@ -73,6 +73,10 @@ Window.prototype = {
       sprite.remove();
 
       var element = this.element;
+      if (!this._loaded) {
+        element.src = this.application.url;
+        this._loaded = true;
+      }
       element.focus();
       element.contentWindow.postMessage({
         message: 'visibilitychange',
@@ -84,6 +88,10 @@ Window.prototype = {
         callback();
     };
     sprite.element.addEventListener('transitionend', focus.bind(this));
+
+    if (this.application.fullscreen) {
+      this.element.mozRequestFullScreen();
+    }
 
     document.body.offsetHeight;
     sprite.setActive(true);
@@ -115,6 +123,10 @@ Window.prototype = {
         callback();
     };
     sprite.element.addEventListener('transitionend', blur.bind(this));
+
+    if (this.application.fullscreen) {
+      document.mozCancelFullScreen();
+    }
 
     document.body.offsetHeight;
     sprite.setActive(false);
