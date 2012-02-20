@@ -175,11 +175,6 @@ var Gallery = {
         return;
 
       this.showPhotos(target.dataset);
-/*
-      db.getPhoto(target.id, (function showPhotos(photo) {
-        this.showPhotos(photo);
-      }).bind(this));
-*/
     }).bind(this));
 
     this.physics = createPhysicsFor(this);
@@ -268,6 +263,12 @@ var Gallery = {
     img.classList.add('photo');
     div.appendChild(img);
 
+    // Load the high-resolution version of the photo into the viewer.
+    this.db.getPhoto(filename,
+                     function (result) {
+                       img.src = window.URL.createObjectURL(result.data); 
+                     });
+
     this.photos.appendChild(div);
   },
 
@@ -298,7 +299,10 @@ var Gallery = {
 
   // Touch handling
   pan: function galleryPan(x, duration) {
+    var db = this.db;
+
     var pages = this.photos.childNodes;
+    var thumbnails = this.thumbnails.childNodes;
     var currentPage = this.currentPage;
     for (var p = 0; p < pages.length; ++p) {
       var page = pages[p];
