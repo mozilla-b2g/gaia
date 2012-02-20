@@ -244,7 +244,7 @@ var WindowManager = {
     var applicationWindow = this.getWindowByApp(application);
     if (applicationWindow) {
       Gaia.AppManager.foregroundWindow = applicationWindow.element;
-      Gaia.TaskManager.sendToFront(applicationWindow.id);
+      TaskManager.sendToFront(applicationWindow.id);
     } else {
       applicationWindow = new Window(application, ++this._lastWindowId);
       this.add(applicationWindow);
@@ -254,7 +254,7 @@ var WindowManager = {
       Gaia.AppManager.foregroundWindow = applicationWindow.element;
 
       this._fireEvent(applicationWindow.element, 'appwillopen', name);
-      Gaia.TaskManager.add(application, applicationWindow.id);
+      TaskManager.add(application, applicationWindow.id);
     }
 
     this.setForegroundWindow(applicationWindow, (function() {
