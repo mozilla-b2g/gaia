@@ -150,7 +150,8 @@
                      'icons': {
                        '120': '/style/icons/Video.png'
                      },
-                     'fullscreen': true
+                     'fullscreen': true,
+                     'orientation': 'landscape-primary'
                    }
                  },
                  { // facebook
