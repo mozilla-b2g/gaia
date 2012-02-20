@@ -220,11 +220,12 @@ var ConversationListView = {
     var reg = new RegExp(str, 'i');
 
     for (var i in conversations) {
-      if (!reg.test(conversations[i].dataset.num) &&
-          !reg.test(conversations[i].dataset.name)) {
-        conversations[i].classList.add('hide');
+      var conversation = conversations[i];
+      if (!reg.test(conversation.dataset.num) &&
+          !reg.test(conversation.dataset.name)) {
+        conversation.classList.add('hide');
       } else {
-        conversations[i].classList.remove('hide');
+        conversation.classList.remove('hide');
       }
     }
   },
@@ -249,10 +250,10 @@ var ConversationListView = {
         break;
 
       case 'transitionend':
-        if (!document.body.classList.contains('going-back'))
+        if (!document.body.classList.contains('transition-back'))
           return;
 
-        document.body.classList.remove('going-back');
+        document.body.classList.remove('transition-back');
         break;
 
       case 'keypress':
@@ -298,6 +299,7 @@ var ConversationView = {
 
   showConversation: function cv_showConversation(num) {
     var view = this.view;
+    var bodyclassList = document.body.classList;
     var filter = ('SmsFilter' in window) ? new SmsFilter() : {};
     filter.number = this.filter = num;
 
@@ -308,12 +310,12 @@ var ConversationView = {
       */
       this.num.value = '';
       this.view.innerHTML = '';
-      document.body.classList.add('conversation-new-msg');
-      document.body.classList.add('conversation');
+      bodyclassList.add('conversation-new-msg');
+      bodyclassList.add('conversation');
       return;
     }
 
-    document.body.classList.remove('conversation-new-msg');
+    bodyclassList.remove('conversation-new-msg');
 
     var name = num;
 
@@ -353,11 +355,10 @@ var ConversationView = {
 
       view.innerHTML = fragment;
 
-      /* XXX: scrollIntoView does not reveal bottom margin */
       if (view.lastChild)
-        view.lastChild.scrollIntoView(false);
+        view.scrollTop = view.lastChild.offsetTop + 10000;
 
-      document.body.classList.add('conversation');
+      bodyclassList.add('conversation');
     }, filter, true);
   },
 
@@ -403,7 +404,7 @@ var ConversationView = {
     if (!document.body.classList.contains('conversation'))
       return false;
     document.body.classList.remove('conversation');
-    document.body.classList.add('going-back');
+    document.body.classList.add('transition-back');
     return true;
   },
   sendMessage: function cv_sendMessage() {
@@ -451,8 +452,7 @@ var ConversationView = {
   }
 };
 
-window.addEventListener('load',
-  (ConversationView.init).bind(ConversationView));
-window.addEventListener('load',
-  (ConversationListView.init).bind(ConversationListView));
-
+window.addEventListener('load', function loadMessageApp() {
+  ConversationView.init();
+  ConversationListView.init();
+});
