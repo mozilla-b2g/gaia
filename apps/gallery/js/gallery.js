@@ -11,7 +11,8 @@ const SAMPLE_FILENAMES = ['bigcat.jpg', 'bison.jpg', 'butterfly.jpg',
 
 var Gallery = {
 
-  photoSelected: false,
+  focusedPhoto: null,           // focused full-res photo element
+  photoTranslation: 0,          // pixels
 
   get header() {
     delete this.header;
@@ -47,9 +48,12 @@ var Gallery = {
       if (!target || !target.classList.contains('thumbnailHolder'))
         return;
 
+      this.showPhotos(target.dataset.filename);
+/*
       db.getPhoto(target.id, (function showPhotos(photo) {
         this.showPhotos(photo);
       }).bind(this));
+*/
     }).bind(this));
 
     this.photos.addEventListener('click', (function photosClick(evt) {
@@ -61,7 +65,7 @@ var Gallery = {
     }).bind(this));
 
     window.addEventListener('keypress', (function keyPressHandler(evt) {
-      if (this.photoSelected && evt.keyCode == evt.DOM_VK_ESCAPE) {
+      if (this.focusedPhoto && evt.keyCode == evt.DOM_VK_ESCAPE) {
         this.showThumbnails();
         evt.preventDefault();
       }
@@ -111,59 +115,73 @@ var Gallery = {
   },
 
   addThumbnail: function galleryAddThumbnail(thumbnail) {
+    var blob = window.URL.createObjectURL(thumbnail.data);
+    var filename = thumbnail.filename;
+
     var li = document.createElement('li');
-    li.id = thumbnail.filename;
+    li.dataset.filename = filename;
     li.classList.add('thumbnailHolder');
 
     var img = document.createElement('img');
-    img.src = window.URL.createObjectURL(thumbnail.data);
+    img.src = blob;
     img.classList.add('thumbnail');
     li.appendChild(img);
 
     this.thumbnails.appendChild(li);
+
+    this.addPhoto(blob, filename);
   },
 
-  addPhoto: function galleryAddPhoto(photo) {
+  addPhoto: function galleryAddPhoto(thumbnailBlob, filename) {
     var photos = this.photos;
-    var li = document.createElement('li');
+    var div = document.createElement('div');
+    div.id = filename;
 
     var img = document.createElement('img');
-    img.src = window.URL.createObjectURL(photo.data);
+    img.src = thumbnailBlob;
     img.classList.add('photo');
-    li.appendChild(img);
+    div.appendChild(img);
 
-    this.photos.appendChild(li);
+    this.photos.appendChild(div);
   },
 
-  showThumbnails: function galleryShowThumbnails(thumbnails) {
+  showThumbnails: function galleryShowThumbnails() {
     this.thumbnails.classList.remove('hidden');
     this.photos.classList.add('hidden');
     this.playerControls.classList.add('hidden');
     this.header.classList.remove('hidden');
-    this.photoSelected = false;
-    var photos = this.photos;
-    while (photos.hasChildNodes())
-      photos.removeChild(photos.firstChild);
+
+    this.focusedPhoto = null;
+    this.photoTransform = '';
   },
 
-  showPhotos: function galleryShowPhotos(photo) {
-    this.photoSelected = true;
-
+  showPhotos: function galleryShowPhotos(selectedFilename) {
     this.thumbnails.classList.add('hidden');
     this.header.classList.add('hidden');
     this.photos.classList.remove('hidden');
     this.playerControls.classList.remove('hidden');
 
-    this.addPhoto(photo);
+    this.focusedPhoto = document.getElementById(selectedFilename);
+    this.photoTransform = '';   // no extra transform initially
 
-    var thumbnail = document.getElementById(photo.filename);
-    while (thumbnail = thumbnail.nextSibling)
-      this.db.getPhoto(thumbnail.id, this.addPhoto.bind(this));
+    this.updatePhotosView();
   },
 
   toggleControls: function galleryToggleControls() {
     this.playerControls.classList.toggle('hidden');
-  }
+  },
+
+  updatePhotosView: function galleryUpdatePhotosView() {
+    var fp = this.focusedPhoto;
+    var dp, elt;
+    for (dp = -2, elt = fp.prevSibling; elt; --dp, elt = elt.prevSibling) {
+      elt.style.MozTransform = 'translate('+ dp +'00%);';
+    }
+    fp.style.MozTransform = 'translate(-100%)';
+    for (dp =  0, elt = fp.nextSibling; elt; ++dp, elt = elt.nextSibling) {
+      elt.style.MozTransform = 'translate('+ dp +'00%);';
+    }
+  },
 };
 
 
