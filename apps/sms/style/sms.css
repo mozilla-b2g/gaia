@@ -68,7 +68,19 @@ body.transition-back #msg-conversation-view {
 
 .toolbar-bottom {
   bottom: 0;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
   border-top: solid 3px #9b9b9b;
+}
+
+/* media queries for removing rounded border when keyboard is shown */
+@media screen and (max-height: 700px) {
+  .toolbar-bottom {
+    bottom: 0;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-top: solid 3px #9b9b9b;
+  }
 }
 
 .list {
