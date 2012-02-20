@@ -297,6 +297,14 @@ iframe.landscape-secondary {
   pointer-events: none;
 }
 
+#screen.fullscreen > :-moz-any(#statusbar,#notificationsScreen) {
+  display: none;
+}
+
+#screen.fullscreen > #windows {
+  top: 0px;
+}
+
 #statusbar > #padding {
   -moz-box-flex: 1;
 }
