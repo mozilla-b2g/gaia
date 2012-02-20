@@ -1,24 +1,69 @@
 var Camera = {
-  init: function cameraInit() {
-    chooser = document.getElementById('chooser');
-    chooser.addEventListener('change', this.showPreview);
+  _filter: '',
+  _camera: 0,
+
+  get video() {
+    return document.getElementById('video');
   },
 
-  showPreview: function cameraShowPreview() {
-    var file = document.getElementById('chooser').files.item(0);
-    var image = document.getElementById('preview');
-    image.file = file;
-    var reader = new FileReader();
-    reader.onload = (function readerOnload(loadedFile) {
-      return function fileHandler(evt) {
-        loadedFile.src = evt.target.result;
-        loadedFile.classList.remove('hidden');
-      };
-    })(image);
-    reader.readAsDataURL(file);
+  init: function cameraInit() {
+    var width, height;
+    if (window.innerWidth > window.innerHeight) {
+      width = window.innerWidth;
+      height = window.innerHeight;
+    } else {
+      width = window.innerHeight;
+      height = window.innerWidth;
+
+      var deltaX = (width - height) / 2;
+      var transform = 'rotate(90deg)';
+      if (this._camera == 1)
+        transform += ' scale(-1, 1)';
+
+      var container = document.getElementById('video-container');
+      container.style.MozTransform = transform;
+    }
+
+    var config = {
+      width: width,
+      height: height,
+      camera: this._camera
+    }
+
+    var video = this.video;
+    video.style.width = width + 'px';
+    video.style.height = height + 'px';
+    video.style.filter = this._filter;
+
+    video.src = navigator.mozCamera.getCameraURI(config);
+  },
+  
+  toggleCamera: function toggleCamera() {
+    this._camera = 1 - this._camera;
+    this.video.src = '';
+    this.init();
+  },
+  
+  toggleFilter: function toggleFilter(target) {
+    var filter = '';
+
+    if (!target.classList.contains('selected')) {
+      var childs = target.parentNode.childNodes;
+      for (var i = 0; i < childs.length; i++) {
+        var child = childs[i];
+        if (child.classList)
+          child.classList.remove('selected');
+      }
+
+      filter = 'url(#' + target.dataset.filter + ')';
+    }
+
+    this._filter = this.video.style.filter = filter;
+    target.classList.toggle('selected');
   }
 };
 
 window.addEventListener('DOMContentLoaded', function CameraInit() {
   Camera.init();
 });
+

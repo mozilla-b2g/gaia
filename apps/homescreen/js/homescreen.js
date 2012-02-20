@@ -104,7 +104,7 @@ DefaultPhysics.prototype = {
     var small = Math.abs(diffX) < 20;
 
     var flick = quick && !small;
-    var tap = !this.moved && small;
+    var tap = small;
     var drag = !quick;
 
     var iconGrid = this.iconGrid;
@@ -202,6 +202,7 @@ IconGrid.prototype = {
   remove: function(icon) {
     this.icons.splice(icon.index);
   },
+
   // reflow the icon grid
   update: function() {
     var instance = this;
@@ -245,7 +246,7 @@ IconGrid.prototype = {
     // get page divs
     var elementList = container.childNodes;
     var pageDivs = [];
-    for (var n = 0; n < elementList; ++n) {
+    for (var n = 0; n < elementList.length; ++n) {
       var element = elementList[n];
       pageDivs[element.id] = element;
     }
@@ -253,7 +254,7 @@ IconGrid.prototype = {
     // get icon divs
     var elementList = document.querySelectorAll('#' + containerId + '> .page > .icon');
     var iconDivs = [];
-    for (var n = 0; n < elementList; ++n) {
+    for (var n = 0; n < elementList.length; ++n) {
       var element = elementList[n];
       iconDivs[element.id] = element;
     }
@@ -296,20 +297,25 @@ IconGrid.prototype = {
         iconDiv = document.createElement('div');
         iconDiv.id = n;
         iconDiv.className = 'icon';
+
         var style = iconDiv.style;
         style.width = iconWidth + '%';
         style.height = iconHeight + '%';
+
         var img = new Image();
         AddEventHandlers(img, TouchHandler, ['touchstart', 'touchend']);
+
         var centerDiv = document.createElement('div');
         centerDiv.className = 'img';
         centerDiv.appendChild(img);
         iconDiv.appendChild(centerDiv);
+
         if (this.showLabels) {
           var labelDiv = document.createElement('div');
           labelDiv.className = 'label';
           iconDiv.appendChild(labelDiv);
         }
+
         pageDivs[pageOfIcon].appendChild(iconDiv);
         iconDivs[n] = iconDiv;
       } else {
@@ -319,17 +325,21 @@ IconGrid.prototype = {
           pageDivs[pageOfIcon].appendChild(iconDiv);
         }
       }
+
       // make sure icon has right image and label
       var img = iconDiv.childNodes[0].childNodes[0];
       img.action = icon.action;
+
       var iconUrl = icon.iconUrl;
       if (img.src != iconUrl)
         img.src = iconUrl;
+
       if (this.showLabels) {
         var label = iconDiv.childNodes[1];
         if (label.textContent != icon.label)
           label.textContent = icon.label;
       }
+
       // update position
       setPosition(iconDiv, getIconColumn(icon) + '00%', getIconRow(icon) + '00%');
     }
@@ -634,8 +644,14 @@ LockScreen.prototype = {
       document.releaseCapture();
       break;
     case 'sleep':
-      if (!e.detail.enabled)
-        return;
+      // Lock the screen when screen is turn off can stop
+      // homescreen from showing up briefly when it's turn back on
+      // But we still do update() when it's turned back on
+      // coz the screen could be turned off by the timer
+      // instead of sleep button
+
+      //if (!e.detail.enabled)
+      //  return;
       this.update();
       break;
     default:
@@ -653,9 +669,9 @@ function OnLoad() {
     document.getElementById('statusbar')
   ];
   new NotificationScreen(touchables);
-  
+
   var apps = Gaia.AppManager.loadInstalledApps(function(apps) {
-    var appsGrid = new IconGrid('apps', 3, 3, 3, true);
+    var appsGrid = new IconGrid('apps', 3, 3, 2, true);
     for (var n = 0; n < apps.length; ++n) {
       var app = apps[n];
       appsGrid.add(n, app.icon, app.name, 'WindowManager.launch("' + app.url + '")');
@@ -684,6 +700,8 @@ function OnLoad() {
   window.addEventListener('appclose', function(evt) {
     titlebar.innerHTML = '';
   });
+
+  changeDisplayState();
 }
 
 // Update the clock and schedule a new update if appropriate
@@ -747,4 +765,3 @@ function updateBattery() {
   battery.addEventListener('levelchange', updateBattery);
   battery.addEventListener('statuschange', updateBattery);
 }
-

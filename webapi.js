@@ -152,6 +152,24 @@
                      }
                    }
                  },
+                 { // facebook
+                   'installOrigin': 'https://www.facebook.com',
+                   'origin': 'https://touch.facebook.com',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'Facebook',
+                     'description': 'Facebook Mobile Application',
+                     'launch_path': '',
+                     'developer': {
+                       'name': 'Facebook',
+                       'url': 'http://www.facebook.com/'
+                     },
+                     'icons': {
+                       '120': '/style/icons/Facebook.png'
+                     }
+                   }
+                 },
                  { // market
                    'installOrigin': 'http://gaiamobile.org:8888',
                    'origin': '../market',
@@ -205,7 +223,80 @@
                        '120': '/style/icons/Messages.png'
                      }
                    }
+                 },
+                 { // webgl demo
+                   'installOrigin': 'http://www.everyday3d.com/j3d/demo',
+                   'origin': '../crystalskull',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'Crystal Skull',
+                     'description': 'Demo of WebGL',
+                     'launch_path': '/crystalskull.html',
+                     'developer': {
+                       'name': 'Unknown',
+                       'url': 'http://www.everyday3d.com/j3d/demo/004_Glass.html'
+                     },
+                     'icons': {
+                       '120': '/style/icons/CrystalSkull.png'
+                     }
+                   }
+                 },
+                 { // PenguinPop
+                   'installOrigin': 'http://goosypets.com/',
+                   'origin': 'http://goosypets.com/',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'Penguin Pop',
+                     'description': 'Penguin Pop by TweenSoft.com',
+                     'launch_path': 'html5games/whac/',
+                     'developer': {
+                       'name': 'TweenSoft.com',
+                       'url': 'http://goosypets.com/html5games/whac/'
+                     },
+                     'icons': {
+                       '120': '/style/icons/PenguinPop.png'
+                     }
+                   }
+                 },
+                 { // TowerJelly
+                   'installOrigin': 'http://goosypets.com/',
+                   'origin': 'http://goosypets.com/',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'Tower Jelly',
+                     'description': 'Tower Jelly by TweenSoft.com',
+                     'launch_path': 'html5games/tower/',
+                     'developer': {
+                       'name': 'TweenSoft.com',
+                       'url': 'http://goosypets.com/html5games/tower/'
+                     },
+                     'icons': {
+                       '120': '/style/icons/TowerJelly.png'
+                     }
+                   }
+                 },
+                 { // cut the rope
+                   'installOrigin': 'http://cuttherope.ie/',
+                   'origin': 'http://cuttherope.ie/',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'Cut The Rope',
+                     'description': 'http://cuttherope.ie',
+                     'launch_path': '',
+                     'developer': {
+                       'name': 'The Gaia Team',
+                       'url': 'https://github.com/andreasgal/gaia'
+                     },
+                     'icons': {
+                       '120': '/style/icons/CutTheRope.png'
+                     }
+                   }
                  }
+
   ];
 
   Object.freeze(webapps);
@@ -220,7 +311,7 @@
 // mozSettings (bug 678695)
 (function (window) {
   var navigator = window.navigator;
-  if (window.mozSettings)
+  if ('mozSettings' in navigator)
     return;
 
   var prefix = "settings:";
@@ -247,20 +338,34 @@
   navigator.mozSettings = {
     get: function(key) {
       var onsuccess = [];
+      var onerror = [];
       var request = {
         addEventListener: function(name, fn) {
-          if (name === "success")
+          if (name === 'success')
             onsuccess.push(fn);
+          if (name === 'error')
+            onerror.push(fn);
         },
         set onsuccess(fn) {
           onsuccess.push(fn);
         },
+        set onerror(fn) {
+          onerror.push(fn);
+        }
       };
       setImmediate(function() {
-        request.result = {
-          key: key,
-          value: localStorage.getItem(prefix + key)
-        };
+        try {
+          request.result = {
+            key: key,
+            value: localStorage.getItem(prefix + key)
+          };
+        } catch (e) {
+          while (onerror.length > 0) {
+            var fn = onerror.shift();
+            fn();
+          }
+          return;
+        }
         while (onsuccess.length > 0) {
           var fn = onsuccess.shift();
           fn();
@@ -276,7 +381,7 @@
 
 (function (window) {
   var navigator = window.navigator;
-  if (navigator.mozContacts)
+  if ('mozContacts' in navigator)
     return;
 
   var contacts = [
@@ -1308,7 +1413,7 @@
 
 (function (window) {
   var navigator = window.navigator;
-  if (navigator.mozTelephony)
+  if ('mozTelephony' in navigator)
     return;
 
   navigator.mozTelephony = {

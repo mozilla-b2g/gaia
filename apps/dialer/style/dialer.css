@@ -52,10 +52,10 @@ html * {
   bottom: 0;
 
 	background: url(images/app-texture.png) 50% 50%,
-			-moz-linear-gradient(top, hsla(0,0%,0%,.3) 0%, hsla(0,0%,20%,0) 8%, hsla(0,0%,0%,0.1) 80%, hsla(0,0%,0%,.2) 100%),
-			-moz-radial-gradient(center top, hsla(0,100%,0%,0) 0%, hsla(0,0%,0%,0) 70%, hsla(0,0%,10%,.1) 100%),
-			-moz-radial-gradient(center bottom, hsla(0,100%,0%,0) 0%, hsla(0,0%,0%,0) 70%, hsla(0,0%,10%,.2) 100%),
-			hsla(212,8%,39%,1);
+              -moz-linear-gradient(top, hsla(0,0%,0%,.3) 0%, hsla(0,0%,20%,0) 8%, hsla(0,0%,0%,0.1) 80%, hsla(0,0%,0%,.2) 100%),
+              -moz-radial-gradient(center top, hsla(0,100%,0%,0) 0%, hsla(0,0%,0%,0) 70%, hsla(0,0%,10%,.1) 100%),
+              -moz-radial-gradient(center bottom, hsla(0,100%,0%,0) 0%, hsla(0,0%,0%,0) 70%, hsla(0,0%,10%,.2) 100%),
+              hsla(212,8%,39%,1);
 
   -moz-transition: bottom 0.3s ease;
 }
@@ -99,11 +99,11 @@ html * {
 #contacts-label[data-active]{
   background:url(images/current-tab.png) top center no-repeat, url(images/contacts-icon-active.png) center center no-repeat;
 }
-#favorites-label {
-  background: url(images/favorite-icon.png);
+#recents-label {
+  background: url(images/recents-icon.png);
 }
-#favorites-label[data-active] {
-  background:url(images/current-tab.png) top center no-repeat, url(images/favorite-icon-active.png) center center no-repeat;
+#recents-label[data-active] {
+  background:url(images/current-tab.png) top center no-repeat, url(images/recents-icon-active.png) center center no-repeat;
 }
 
 /* === Application Views === */
@@ -166,28 +166,29 @@ html * {
 
 #phone-number-view-container {
   overflow: hidden;
-  width: -moz-calc(100% - 66px);
-  margin: 20px auto;
+  width: 100%;
+  margin: 0;
   padding: 0px;
 
-  border: 3px solid #FF9400;
-  border-radius: 50px;
+  border-top: 2px solid rgba(255, 255, 255, 0.1);
+  background: url("images/dialing-pattern.png") repeat-x scroll 0 0pt,
+              -moz-linear-gradient(center top , rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.2) 100%) repeat scroll 0 0%,
+              -moz-linear-gradient(bottom, hsla(0,0%,0%,.3) 0%, hsla(0,0%,20%,0) 12%, hsla(0,0%,0%,0.1) 80%, hsla(0,0%,0%,.2) 100%),
+              none repeat scroll 0 0 #565D65;
 }
 
 #phone-number-view-container > div {
   display: block;
   position: relative;
-  height: 62px;
+  height: 12mozmm;
   margin: auto;
 
-  background: -moz-linear-gradient(center top , rgba(0, 0, 0, 0.2) 0px, rgba(255, 255, 255, 0) 20px, #FFFFFF 100%) repeat scroll 0 0 #FFFFFF;
-  border: 2px solid #FFFFFF;
-  border-radius: 50px;
-  color: #000000;
-  font-size: 30px;
-  line-height: 62px;
+  color: #FFFFFF;
+  font-size: 8mozmm;
+  line-height: 12mozmm;
   text-align: center;
   white-space: nowrap;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
 }
 
 #phone-number-view {
@@ -198,16 +199,18 @@ html * {
 .keyboard-key[data-value="del"] {
 	position: absolute;
 	display: block;
-	right: 5px;
+	right: 0;
 	top: 0;
-	width: 60px;
-	height: 62px;
+	width: 12mozmm;
+	height: 12mozmm;
 
   border: 0;
   background: url(images/backspace.png) 50% 50% no-repeat;
+  background-size: 10mozmm 10mozmm;
 }
 .keyboard-key[data-value="del"]:active {
   background: url(images/backspace-active.png) 50% 50% no-repeat;
+  background-size: 10mozmm 10mozmm;
 }
 
 #fake-phone-number-view {
@@ -218,17 +221,17 @@ html * {
 }
 
 #keyboard-container {
-  height: -moz-calc(100% - 110px);
+  height: -moz-calc(100% - 12mozmm);
 }
 
 #mainKeyset {
-  width: -moz-calc(100% - 63px);
-  height: -moz-calc(100% - 48px - 60px);
+  width: 100%;
+  height: -moz-calc(100% - 16mozmm);
   min-height: 265px;
   padding: 0;
-  margin: auto auto 20px auto;
+  margin: 0;
 
-  border-radius: 18px;
+  font-size: 3mozmm;
 }
 
 .keyboard-row {
@@ -238,20 +241,15 @@ html * {
   width: 100%;
 }
 
-.keyboard-row:first-child .keyboard-key:first-child {
-  border-top-left-radius: 18px;
-}
+.keyboard-key {
+  float: left;
+  width: -moz-calc(100% / 3 - 2px);
+  height: -moz-calc(100% - 2px);
+  padding: 0;
 
-.keyboard-row:first-child .keyboard-key:last-child {
-  border-top-right-radius: 18px;
-}
+  border: 1px solid #ccc;
 
-.keyboard-row:last-child .keyboard-key:first-child {
-  border-bottom-left-radius: 18px;
-}
-
-.keyboard-row:last-child .keyboard-key:last-child {
-  border-bottom-right-radius: 18px;
+  text-align: center;
 }
 
 .keyboard-key > span {
@@ -259,74 +257,71 @@ html * {
   pointer-events: none;
 }
 
-.keyboard-key {
-  display: inline-block;
-  width: -moz-calc(100% / 3 - 6px);
-  height: -moz-calc(100% - 6px);
-
-  border: solid 3px;
-  -moz-border-top-colors: #ccc #fff transparent;
-  -moz-border-bottom-colors: transparent transparent transparent;
-  -moz-border-right-colors: #fff transparent transparent;
-  -moz-border-left-colors: #ccc #fff transparent;
-
-  text-align: center;
+.keyboard-row:first-child .keyboard-key {
+  border-top: 0;
+  height: -moz-calc(100% - 1px);
 }
 
 .keyboard-row:last-child .keyboard-key {
-  -moz-border-bottom-colors: #ccc #fff transparent;
-}
-
-.keyboard-key:nth-child(3n) {
-  -moz-border-right-colors: #ccc #fff transparent;
+  border-bottom: 2px solid #ccc;
+  height: -moz-calc(100% - 3px);
 }
 
 .keyboard-key:active {
-  background: hsla(35,100%,50%,.2);50
+  background: hsla(35,100%,50%,.2);
 }
 .keyboard-key:active > span:first-child {
-  color: hsla(35,100%,50%,);
+  color: hsla(35,100%,50%,1);
 }
 .keyboard-key span {
   display: block;
 
   color: hsla(0,0%,20%,1);
-  font-size: 34px;
-  line-height:54px;
+  font-size: 1.6em;
+  line-height: 1.8em;
 }
 
 .keyboard-key span:last-child {
   color: hsl(0,0%,60%);
   text-transform: uppercase;
-  font-size: 18px;
-  line-height:24px;
-}
-
-@media screen and (max-height: 712px) {
-  .keyboard-key span:last-child {
-    display: none;
-  }
+  font-size: 0.6em;
+  line-height:0.8em;
 }
 
 #additionalKeyset {
-  width: -moz-calc(100% - 60px);
+  width: 100%;
+  height: 16mozmm;
   padding: 0;
-  margin: auto;
+  margin: 0;
 }
 
 .keyboard-key[data-value="call"] {
+  width: -moz-calc(100% - 60px);
+  height: 8mozmm;
+  margin: 4mozmm 30px;
+
   border: 0;
   border-radius: 20px;
-  width: 100%;
-  background:  -moz-linear-gradient(top, hsl(39,100%,73%) 0, hsla(35,100%,80%,0.2) 2px, hsla(35,100%,50%,.4) 20%, hsl(32,100%,38%) 98%, hsl(32,100%,38%) 99%, hsl(31,100%,50%) 100%),
-							 -moz-linear-gradient(top, hsl(39,100%,73%) 0, hsla(35,100%,50%,1) 2px, hsl(32,100%,38%) 98%, hsl(32,100%,38%) 99%, hsl(31,100%,50%) 100%);
+
+  background: -moz-linear-gradient(top, hsl(39,100%,73%) 0, hsla(35,100%,80%,0.2) 2px, hsla(35,100%,50%,.4) 20%,
+                hsl(32,100%,38%) 98%, hsl(32,100%,38%) 99%, hsl(31,100%,50%) 100%),
+              -moz-linear-gradient(top, hsl(39,100%,73%) 0, hsla(35,100%,50%,1) 2px, hsl(32,100%,38%) 98%,
+                hsl(32,100%,38%) 99%, hsl(31,100%,50%) 100%);
+}
+
+.keyboard-key[data-value="call"]:active {
+  background: -moz-linear-gradient(bottom, hsl(39,100%,73%) 0, hsla(35,100%,80%,0.2) 2px, hsla(35,100%,50%,.4) 20%,
+                hsl(32,100%,38%) 98%, hsl(32,100%,38%) 99%, hsl(31,100%,50%) 100%),
+              -moz-linear-gradient(bottom, hsl(39,100%,73%) 0, hsla(35,100%,50%,1) 2px, hsl(32,100%,38%) 98%,
+                hsl(32,100%,38%) 99%, hsl(31,100%,50%) 100%);
 }
 
 .keyboard-key[data-value="call"] span {
 	display: block;
+
   color: white;
-  font-size: 34px;
-  line-height: 60px;
+  font-size: 4mozmm;
+  line-height: 8mozmm;
   text-align: center;
   text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5);
   text-transform: none;
@@ -342,6 +337,18 @@ html * {
 #contacts-container {
   /* XXX adding 8px to fill the void left by the scrollbar */
   width: -moz-calc(100% + 8px);
+}
+
+#contacts-container-top {
+  position: absolute;
+  top: 10mozmm;
+  width: 100%;
+  height: 10px;
+
+  border: 0;
+  background: -moz-linear-gradient(top, hsla(0,0%,0%,.3) 0%, hsla(0,0%,20%,0) 90%, hsla(0,0%,0%,.0) 100%);
+
+  z-index: 10;
 }
 
 #contacts-search-container {
@@ -380,7 +387,7 @@ html * {
 
   background: url(images/diagonal-pattern.png) 0 0, hsla(60,13%,94%,1);
 
-  font-size: 1.4;
+  font-size: 1.4em;
   font-weight: 700;
   line-height: 5mozmm;
   color: #FFFFFF;
@@ -404,7 +411,7 @@ html * {
   font-size: 1.2em;
   text-transform: uppercase;
 
-  background: url(images/contacts-orange-circle.png);
+  background: url(images/contacts-circle.png);
   background-size: 7mozmm 7mozmm;
 }
 
@@ -482,6 +489,7 @@ html * {
   -moz-transition-timing-function: linear;
 
   opacity: 0;
+  z-index: 20;
 }
 #contacts-overlay.displayed {
   top: 0;
@@ -877,11 +885,13 @@ html * {
   height: 80px;
 
 	border-radius: 3px;
+  margin: 5px 0;
 }
 
 #accept-call {
 	background: url(images/call-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(177,214,0) 1px, rgb(143,195,0) 2px, rgb(82,107,23) 100%);
 }
+
 #end-call {
 	background: url(images/call-end-icon.png) no-repeat 50% 50%,  -moz-linear-gradient(top, hsl(355,93%,42%) 0, hsl(356,94%,37%) 1px, hsl(353,100%,22%) 100%);
 }
