@@ -355,9 +355,8 @@ var ConversationView = {
 
       view.innerHTML = fragment;
 
-      /* XXX: scrollIntoView does not reveal bottom margin */
       if (view.lastChild)
-        view.lastChild.scrollIntoView(false);
+        view.scrollTop = view.lastChild.offsetTop + 10000;
 
       bodyclassList.add('conversation');
     }, filter, true);
