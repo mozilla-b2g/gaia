@@ -61,6 +61,8 @@ body.transition-back #msg-conversation-view {
 
 .toolbar-top {
   top: 0;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
   border-bottom: solid 3px #9b9b9b;
 }
 
