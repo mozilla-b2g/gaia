@@ -333,8 +333,7 @@ var ContactDetails = {
     this.hide();
     var number = evt.target.dataset.number;
     if (number) {
-      var sanitizedNumber = number.replace(/-/g, '');
-      CallHandler.call(sanitizedNumber);
+      CallHandler.call(number);
     }
   },
 

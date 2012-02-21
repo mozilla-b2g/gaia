@@ -209,7 +209,8 @@ var CallHandler = {
     this.callButton.dataset.source = 'outgoing';
     this.toggleCallScreen();
 
-    var call = window.navigator.mozTelephony.dial(number);
+    var sanitizedNumber = number.replace(/-/g, '');
+    var call = window.navigator.mozTelephony.dial(sanitizedNumber);
     call.addEventListener('statechange', this);
     this.currentCall = call;
   },
