@@ -239,7 +239,8 @@ input, textarea {
 }
 
 #msg-conversation-view-name {
-  font-size: 28px;
+  font-size: 26px;
+  font-weight: bold;
   margin: 0 100px;
   padding: 0;
   line-height: 64px;
@@ -287,7 +288,7 @@ body.conversation-new-msg #msg-conversation-view-num {
 	border: 1px solid hsl(60,2%,62%);
 	text-align: center;
 	font-size: 18px;
-	font-weight: 600;
+	font-weight: bold;
 	color: #666;
 	text-shadow: 1px 1px 1px hsla(0,0%,100%,.5);
 	background: -moz-linear-gradient(top, hsla(0,0%,97%,1) 0, hsla(280,8%,93%,1) 1px, hsla(0,0%,87%,1) 100%);
@@ -346,14 +347,15 @@ body.conversation-new-msg #msg-conversation-view-num {
 }
 
 #msg-conversation-view-list > div .text {
-  font-size: 26px;
+  font-size: 24px;
   color: rgb(18, 47, 64);
   text-shadow: 0 1px 0 #ddd;
   line-height: 32px;
 }
 
 #msg-conversation-view-list > div .time {
-  font-size: 16px;
+  font-size: 18px;
+  font-weight: bold;
   line-height: 23px;
   color: rgb(62, 86, 106);
   text-shadow: 0 1px 0 #ddd;
@@ -393,6 +395,8 @@ body.conversation-new-msg #msg-conversation-view-num {
   width: -moz-calc(100% - 16px);
   display: block;
   height: 48px;
+  font-size: 24px;
+  font-weight: bold;
   margin: 14px 0 0 16px;
 }
 
@@ -406,7 +410,8 @@ body.conversation-new-msg #msg-conversation-view-num {
   width: 96px;
   height: 48px;
   margin: 14px 0 0 16px;
-  font-size: 18px;
+  font-size: 24px;
+  font-weight: bold;
   line-height: 42px;
 }
 
