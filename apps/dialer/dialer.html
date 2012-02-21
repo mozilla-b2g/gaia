@@ -174,24 +174,32 @@
     </div>
 
     <div id="call-screen">
-      <div id="call-status-view" class="top-bar">
+      <div id="call-status-view">
       </div>
       <div id="call-number-view">
       </div>
       <div id="call-actions-container">
         <div id="call-actions">
-          <div id="keypad-button" data-action="keypad" onclick="CallHandler.execute(this.dataset.action);">
+          <div data-action="toggleMute" onclick="CallHandler.execute(this.dataset.action);">
+            <div id="mute-button"></div>
+            <span>Mute</span>
           </div>
-          <div id="speaker-button" data-action="toggleSpeaker" onclick="CallHandler.execute(this.dataset.action);">
+          <div data-action="keypad" onclick="CallHandler.execute(this.dataset.action);">
+            <div id="keypad-button"></div>
+            <span>Keypad</span>
           </div>
-          <div id="mute-button" data-action="toggleMute" onclick="CallHandler.execute(this.dataset.action);">
+          <div data-action="toggleSpeaker" onclick="CallHandler.execute(this.dataset.action);">
+            <div id="speaker-button"></div>
+            <span>Speaker</span>
+          </div>
+          <div data-action="toggleHold" onclick="CallHandler.execute(this.dataset.action);">
+            <div id="hold-button"></div>
+            <span>Hold</span>
           </div>
         </div>
-      </div>
-      <div class="main-button-container">
         <div id="call-button" onclick="CallHandler.execute(event.target.dataset.action);">
-          <span id="accept-call" data-action="answer"></span>
-          <span id="end-call" data-action="end"></span>
+          <span id="accept-call" data-action="answer">Answer</span>
+          <span id="end-call" data-action="end">End call</span>
         </div>
       </div>
     </div>
