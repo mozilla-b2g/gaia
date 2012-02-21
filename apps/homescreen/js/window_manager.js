@@ -38,10 +38,13 @@ function Window(application, id) {
   element.id = 'window_' + id;
   element.className = 'appWindow';
 
-  var offsetHeight = document.getElementById('statusbar').offsetHeight;
   var documentElement = document.documentElement;
   element.style.width = documentElement.clientWidth + 'px';
-  element.style.height = documentElement.clientHeight - offsetHeight + 'px';
+  element.style.height = documentElement.clientHeight + 'px';
+
+  if (!application.fullscreen) {
+    element.style.height -= document.getElementById('statusbar').offsetHeight + 'px';
+  }
 
   this.application = application;
   this.id = id;
@@ -64,6 +67,16 @@ Window.prototype = {
   focus: function window_focus(callback) {
     if (this._active)
       return;
+
+    // NOTE: for the moment, orientation only works when fullscreen because of a
+    // too dirty hack...
+    if (this.application.fullscreen && this.application.orientation) {
+      var width = this.element.style.width;
+      this.element.style.width = this.element.style.height;
+      this.element.style.height = width;
+
+      this.element.classList.add(this.application.orientation);
+    }
 
     var sprite = new WindowSprite(this);
     sprite.add();
@@ -90,7 +103,7 @@ Window.prototype = {
     sprite.element.addEventListener('transitionend', focus.bind(this));
 
     if (this.application.fullscreen) {
-      this.element.mozRequestFullScreen();
+      document.getElementById('screen').classList.add('fullscreen');
     }
 
     // NOTE: for the moment, orientation only works when fullscreen because of a
@@ -134,7 +147,15 @@ Window.prototype = {
     sprite.element.addEventListener('transitionend', blur.bind(this));
 
     if (this.application.fullscreen) {
-      document.mozCancelFullScreen();
+      document.getElementById('screen').classList.remove('fullscreen');
+    }
+
+    // NOTE: for the moment, orientation only works when fullscreen because of a
+    // too dirty hack...
+    if (this.application.fullscreen && this.application.orientation) {
+      var width = this.element.style.width;
+      this.element.style.width = this.element.style.height;
+      this.element.style.height = width;
     }
 
     document.body.offsetHeight;
@@ -150,6 +171,8 @@ var WindowManager = {
   init: function wm_init() {
     window.addEventListener('home', this);
     window.addEventListener('message', this);
+    window.addEventListener('locked', this);
+    window.addEventListener('unlocked', this);
   },
 
   handleEvent: function wm_handleEvent(evt) {
@@ -160,6 +183,16 @@ var WindowManager = {
         break;
       case 'home':
         this.closeForegroundWindow();
+        break;
+      case 'locked':
+        if (this._foregroundWindow.application.fullscreen) {
+          document.getElementById('screen').classList.remove('fullscreen');
+        }
+        break;
+      case 'unlocked':
+        if (this._foregroundWindow.application.fullscreen) {
+          document.getElementById('screen').classList.add('fullscreen');
+        }
         break;
     }
   },
