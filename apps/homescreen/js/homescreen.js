@@ -210,7 +210,7 @@ function IconGrid(containerId, columns, rows, minPages, showLabels) {
   this.physics = createPhysicsFor(this);
 
   // install event handlers
-  AddEventHandlers(this.container, this, ['touchstart', 'touchmove', 'touchend', 'menu']);
+  AddEventHandlers(this.container, this, ['touchstart', 'touchmove', 'touchend']);
   AddEventHandlers(window, this, ['resize']);
 }
 
@@ -411,6 +411,7 @@ IconGrid.prototype = {
       eval(this.lastAction);
   },
   handleEvent: function(e) {
+    dump('&&&&&&&&&&&&&&&&&77: ' + e.type + '\n');
     var physics = this.physics;
     switch (e.type) {
     case 'touchstart':
@@ -418,14 +419,6 @@ IconGrid.prototype = {
       break;
     case 'touchmove':
       physics.onTouchMove(e.touches[0]);
-      break;
-    case 'menu':
-      // XXX: we're seeing these "special" events come by twice.
-      // Stopping propagation doesn't fix that.  So hack for now.
-      if (e._gaiaProcessed)
-        return;
-      e._gaiaProcessed = true;
-      toggleSourceViewer(foregroundAppURL());
       break;
     case 'touchend':
       document.releaseCapture();
@@ -723,6 +716,10 @@ function OnLoad() {
 
   window.addEventListener('appclose', function(evt) {
     titlebar.innerHTML = '';
+  });
+
+  window.addEventListener('menu', function(evt) {
+    toggleSourceViewer(foregroundAppURL());
   });
 
   changeDisplayState();
