@@ -48,9 +48,9 @@ body.transition-back #msg-conversation-view {
 }
 
 .toolbar {
+  -moz-box-sizing: border-box;
   position: absolute;
   display: block;
-  height: 70px;
   left: 0;
   right: 0;
   background-color: #fff;
@@ -63,18 +63,32 @@ body.transition-back #msg-conversation-view {
   top: 0;
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
+  height: 64px;
   border-bottom: solid 3px #9b9b9b;
 }
 
 .toolbar-bottom {
   bottom: 0;
+  height: 80px;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
   border-top: solid 3px #9b9b9b;
+}
+
+/* media queries for removing rounded border when keyboard is shown */
+@media screen and (max-height: 700px) {
+  .toolbar-bottom {
+    bottom: 0;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-top: solid 3px #9b9b9b;
+  }
 }
 
 .list {
   position: absolute;
-  top: 73px;
-  bottom: 73px;
+  top: 64px;
+  bottom: 80px;
   left: 0;
   right: 0;
   overflow-y: auto;
@@ -82,9 +96,10 @@ body.transition-back #msg-conversation-view {
 }
 
 input, textarea {
+  -moz-box-sizing: border-box;
   border: solid 3px #7d8389;
-  border-radius: 22px;
-  height: 44px;
+  border-radius: 20px;
+  height: 40px;
   margin: 10px 15px;
   font-size: 20px;
   line-height: 25px;
@@ -94,6 +109,7 @@ input, textarea {
 }
 
 .button {
+  -moz-box-sizing: border-box;
   text-align: center;
   border-radius: 20px;
   color: #fff;
@@ -118,9 +134,9 @@ input, textarea {
 }
 
 #msg-search {
-  padding: 0 0 0 40px;
+  padding: 0 0 0 32px;
   background: url("images/input-icon-search.png") no-repeat scroll 8px 50%, -moz-linear-gradient(center top , rgba(0, 0, 0, 0.2) 0px, rgba(255, 255, 255, 0) 20px, #FFFFFF 100%) repeat scroll 0 0 #FFFFFF;
-  width: -moz-calc(100% - 15px - 15px - 6px - 40px);
+  width: -moz-calc(100% - 15px - 15px);
 }
 
 #msg-conversations-list {
@@ -131,7 +147,7 @@ input, textarea {
 	-moz-box-sizing: border-box;
 	height: 96px;
 	position: relative;
-	padding: 10px 106px 0 106px;
+	padding: 13px 16px 0 112px;
 	border-top: 1px solid hsla(207,22%,92%,1);
 	border-bottom: 1px solid hsla(223,7%,81%,1);
 }
@@ -170,7 +186,6 @@ input, textarea {
 #msg-conversations-list .name {
   font-size: 26px;
   color: rgb(18, 47, 64);
-	font-size: 26px;
 	line-height: 32px;
 	font-weight: 600;
 }
@@ -178,8 +193,8 @@ input, textarea {
 #msg-conversations-list .msg {
   color: #666;
   text-shadow: 0 1px 0 #ddd;
-	font-size: 20px;
-	height: 26px;
+	font-size: 22px;
+	height: 32px;
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
@@ -187,11 +202,11 @@ input, textarea {
 
 #msg-conversations-list .time {
 	position: absolute;
-	top: 10px;
-	right: 10px;
+	top: 9px;
+	right: 16px;
 	text-align: right;
 	color: hsla(0,0%,0%,.5);
-	font-size: 16px;
+	font-size: 18px;
 }
 
 #msg-new-message-container {
@@ -200,16 +215,18 @@ input, textarea {
 }
 
 #msg-new-message {
-  margin: 9px 30px;
-  height: 52px;
-  line-height: 52px;
-  font-size: 20px;
-  width: -moz-calc(100% - 30px - 30px);
+  margin-top: 14px;
+  margin-left: 32px;
+  height: 48px;
+  line-height: 48px;
+  font-size: 24px;
+  font-weight: bold;
+  width: -moz-calc(100% - 32px - 32px);
 }
 
 #msg-conversation-view-back {
-	padding-left: 38px;
-	background: url(./images/top-navibar-left-arrow.png) no-repeat 14px 50%;
+	padding-left: 40px;
+	background: url(./images/top-navibar-left-arrow.png) no-repeat 16px 50%;
 	line-height: 60px;
 	font-size: 18px;
 	font-weight: 600;
@@ -222,10 +239,10 @@ input, textarea {
 }
 
 #msg-conversation-view-name {
-  font-size: 32px;
+  font-size: 28px;
   margin: 0 100px;
   padding: 0;
-  line-height: 68px;
+  line-height: 64px;
   text-align: center;
   color: rgb(51, 51, 51);
   text-overflow: ellipsis;
@@ -259,16 +276,17 @@ body.conversation-new-msg #msg-conversation-view-num {
 
 #msg-conversation-view-edit {
 	position: absolute;
-	top: 14px;
-	right: 14px;
-	height: 40px;
-	line-height: 40px;
-	width: 50px;
+	-moz-box-sizing: border-box;
+	top: 16px;
+	right: 16px;
+	height: 32px;
+	line-height: 32px;
+	width: 64px;
 	padding: 0 8px;
 	border-radius: 5px;
 	border: 1px solid hsl(60,2%,62%);
 	text-align: center;
-	font-size: 22px;
+	font-size: 18px;
 	font-weight: 600;
 	color: #666;
 	text-shadow: 1px 1px 1px hsla(0,0%,100%,.5);
@@ -285,20 +303,20 @@ body.conversation-new-msg #msg-conversation-view-num {
 
 #msg-conversation-view-list > div {
   background: url("images/app-texture.png") repeat scroll 50% 50%, rgb(191, 204, 215);
-  margin: 10px;
-  min-height: 60px;
-  border-radius: 5px;
+  margin: 8px;
+  min-height: 64px;
+  border-radius: 8px;
   position: relative;
-  padding: 20px;
+  padding: 16px;
   -moz-box-sizing: border-box;
 }
 
 #msg-conversation-view-list > div.sender {
-  padding-left: 100px;
+  padding-left: 96px;
 }
 
 #msg-conversation-view-list > div.receiver {
-  padding-right: 100px;
+  padding-right: 96px;
   text-align: right;
 }
 
@@ -307,7 +325,7 @@ body.conversation-new-msg #msg-conversation-view-num {
 	top: 0;
 	width: 80px;
 	height: 80px;
-	margin: 10px;
+	margin: 8px;
   border-radius: 5px;
   box-shadow: inset 0 1px 0 #ddd, 0 1px 0 #999;
   overflow: hidden;
@@ -344,39 +362,20 @@ body.conversation-new-msg #msg-conversation-view-num {
 #msg-conversation-view-list > div::before {
   content: '';
   display: block;
-  width: 14px;
-  height: 14px;
+  width: 11.2px; /* 8px * sqrt(2) */
+  height: 11.2px;
   position: absolute;
   top: 20px;
   background: url("images/app-texture.png") repeat scroll 50% 50%, rgb(191, 204, 215);
-}
-
-#msg-conversation-view-list > div.sender::before {
-  left: -7px;
-  -moz-transform: rotate(-45deg);
-}
-
-#msg-conversation-view-list > div.receiver::before {
-  right: -7px;
   -moz-transform: rotate(45deg);
 }
 
-
-#msg-conversation-view-list > div::after {
-  background: url("images/app-texture.png") repeat scroll 50% 50%, rgb(191, 204, 215);
-  content: '';
-  display: block;
-  width: 10px; height: 35px;
-  position: absolute;
-  top: 10px;
+#msg-conversation-view-list > div.sender::before {
+  left: -5.6px;
 }
 
-#msg-conversation-view-list > div.sender::after {
-  left: 0;
-}
-
-#msg-conversation-view-list > div.receiver::after {
-  right: 0;
+#msg-conversation-view-list > div.receiver::before {
+  right: -5.6px;
 }
 
 #msg-conversation-view-bottom-toolbar {
@@ -386,25 +385,27 @@ body.conversation-new-msg #msg-conversation-view-num {
 
 #msg-conversation-view-msg-text-container {
   float: left;
-  width: -moz-calc(100% - 130px);
+  width: -moz-calc(100% - 128px);
 }
 
 #msg-conversation-view-msg-text {
   padding: 0 20px;
-  width: -moz-calc(100% - 15px - 15px);
+  width: -moz-calc(100% - 16px);
   display: block;
-  -moz-box-sizing: border-box;
+  height: 48px;
+  margin: 14px 0 0 16px;
 }
 
 #msg-conversation-view-msg-send-container {
   float: left;
-  width: 130px;
+  width: 118px;
 }
 
 #msg-conversation-view-msg-send {
   display: block;
-  width: 90px;
-  margin: 10px auto;
+  width: 96px;
+  height: 48px;
+  margin: 14px 0 0 16px;
   font-size: 18px;
   line-height: 42px;
 }
