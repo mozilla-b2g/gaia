@@ -411,7 +411,6 @@ IconGrid.prototype = {
       eval(this.lastAction);
   },
   handleEvent: function(e) {
-    dump('&&&&&&&&&&&&&&&&&77: ' + e.type + '\n');
     var physics = this.physics;
     switch (e.type) {
     case 'touchstart':
@@ -721,7 +720,7 @@ function OnLoad() {
   window.addEventListener('keypress', function(evt) {
     if (evt.keyCode == evt.DOM_VK_F5)
       document.location.reload();
-  });  
+  });
 
   window.addEventListener('menu', function(evt) {
     toggleSourceViewer(foregroundAppURL());
