@@ -30,6 +30,7 @@ Gaia.SettingsApp = {
         };
       })(checkboxes[i]);
     }
+    window.parent.postMessage('appready', '*');
   },
   handleEvent: function(evt) {
     switch(evt.type) {
