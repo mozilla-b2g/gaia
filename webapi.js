@@ -283,16 +283,16 @@
                  },
                  { // cut the rope
                    'installOrigin': 'http://cuttherope.ie/',
-                   'origin': 'http://cuttherope.ie/',
+                   'origin': '../cuttherope',
                    'receipt': null,
                    'installTime': 1323339869000,
                    manifest: {
                      'name': 'Cut The Rope',
                      'description': 'http://cuttherope.ie',
-                     'launch_path': '',
+                     'launch_path': '/cuttherope.html',
                      'developer': {
-                       'name': 'The Gaia Team',
-                       'url': 'https://github.com/andreasgal/gaia'
+                       'name': 'ZeptoLab',
+                       'url': 'http://cuttherope.ie'
                      },
                      'icons': {
                        '120': '/style/icons/CutTheRope.png'
