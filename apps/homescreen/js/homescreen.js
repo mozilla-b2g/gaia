@@ -700,12 +700,12 @@ function OnLoad() {
     var slot = 0;
     for (var n = 0; n < apps.length; ++n) {
       if (apps[n].name == 'Dialer' ||
-          apps[n].name == 'Messages') {
+          apps[n].name == 'Messages' ||
+          apps[n].name == 'Market') {
         var app = apps[n];
         favsGrid.add(slot++, app.icon, app.name, 'WindowManager.launch("' + app.url + '")');
       }
     }
-    favsGrid.add(slot++, 'style/images/reload.png', '', 'document.location.reload()');
     favsGrid.update();
   });
 
@@ -717,6 +717,11 @@ function OnLoad() {
   window.addEventListener('appclose', function(evt) {
     titlebar.innerHTML = '';
   });
+
+  window.addEventListener('keypress', function(evt) {
+    if (evt.keyCode == evt.DOM_VK_F5)
+      document.location.reload();
+  });  
 
   window.addEventListener('menu', function(evt) {
     toggleSourceViewer(foregroundAppURL());
