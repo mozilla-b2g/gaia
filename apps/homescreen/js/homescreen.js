@@ -613,7 +613,6 @@ LockScreen.prototype = {
     var unlockEvent = document.createEvent('CustomEvent');
     unlockEvent.initCustomEvent('unlocked', true, true, null);
     window.dispatchEvent(unlockEvent);
-    WindowManager.dispatchEvent(unlockEvent);
   },
   lock: function(instant) {
     var style = this.overlay.style;
@@ -628,7 +627,6 @@ LockScreen.prototype = {
     var lockEvent = document.createEvent('CustomEvent');
     lockEvent.initCustomEvent('locked', true, true, null);
     window.dispatchEvent(lockEvent);
-    WindowManager.dispatchEvent(lockEvent);
   },
   handleEvent: function(e) {
     hideSourceViewer();
