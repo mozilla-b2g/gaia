@@ -155,14 +155,14 @@
                    }
                  },
                  { // facebook
-                   'installOrigin': 'https://www.facebook.com',
-                   'origin': 'https://touch.facebook.com',
+                   'installOrigin': 'http://www.facebook.com',
+                   'origin': 'http://touch.facebook.com',
                    'receipt': null,
                    'installTime': 1323339869000,
                    manifest: {
                      'name': 'Facebook',
                      'description': 'Facebook Mobile Application',
-                     'launch_path': '',
+                     'launch_path': '/',
                      'developer': {
                        'name': 'Facebook',
                        'url': 'http://www.facebook.com/'
