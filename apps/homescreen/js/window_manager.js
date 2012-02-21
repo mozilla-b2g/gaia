@@ -40,11 +40,12 @@ function Window(application, id) {
 
   var documentElement = document.documentElement;
   element.style.width = documentElement.clientWidth + 'px';
-  element.style.height = documentElement.clientHeight + 'px';
 
+  var height = documentElement.clientHeight;
   if (!application.fullscreen) {
-    element.style.height -= document.getElementById('statusbar').offsetHeight + 'px';
+    height -= document.getElementById('statusbar').offsetHeight;
   }
+  element.style.height = height + 'px';
 
   this.application = application;
   this.id = id;
