@@ -19,8 +19,30 @@ var Browser = {
     return this.content = document.getElementById('browser-content');
   },
 
+  get menu() {
+    delete this.menu;
+    return this.menu = document.getElementById('browser-menu');
+  },
+
+  get shade() {
+    delete this.shade;
+    return this.shade = document.getElementById('browser-shade');
+  },
+
+  get menuButton() {
+    delete this.menuButton;
+    return this.menuButton = document.getElementById('browser-menu-button');
+  },
+
+  get refreshButton() {
+    delete this.refreshButton;
+    return this.refreshButton = document.getElementById('menu-refresh');
+  },
+
   init: function browser_init() {
-    this.backButton.addEventListener('click', this);
+    this.backButton.addEventListener('click', this.goBack.bind(this));
+    this.menuButton.addEventListener('click', this.toggleMenu.bind(this));
+    this.refreshButton.addEventListener('click', this.refresh.bind(this));
     window.addEventListener('submit', this);
     window.addEventListener('keypress', this, true);
 
@@ -48,10 +70,6 @@ var Browser = {
         this.navigate(url);
         urlbar.value = url;
         evt.preventDefault();
-        break;
-
-      case 'click':
-        this.goBack();
         break;
 
       case 'keypress':
@@ -90,9 +108,20 @@ var Browser = {
     this.backButton.disabled = !MockHistory.backLength();
   },
  
-  locationChange: function(url) {
+  locationChange: function browser_locationChange(url) {
     this.urlbar.value = url;
     this.updateHistory(url);
+  },
+
+  refresh: function browser_refresh() {
+    var url = this.urlbar.value;
+    this.content.setAttribute('src', url);
+    this.toggleMenu();
+  },
+
+  toggleMenu: function browser_toggleMenu() {
+    this.menu.classList.toggle('hidden');
+    this.shade.classList.toggle('hidden');
   }
 };
 
