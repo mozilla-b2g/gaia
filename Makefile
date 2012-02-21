@@ -11,7 +11,7 @@ mochitest:
 # The targets below all require adb
 # It should be in your path somewhere, or you can edit this line
 # to specify its location.
-ADB=adb
+ADB?=adb
 
 
 # If your gaia/ directory is a sub-directory of the B2G directory, then

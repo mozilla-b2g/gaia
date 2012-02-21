@@ -1,8 +1,7 @@
 'use strict';
 
 var kFontStep = 8;
-var kMinFontSize = 24;
-var kDefaultFontSize = 30;
+var kMinFontSize = 12;
 // Frequencies comming from http://en.wikipedia.org/wiki/Telephone_keypad
 var gTonesFrequencies = {
   '1': [697, 1209], '2': [697, 1336], '3': [697, 1477],
@@ -131,7 +130,7 @@ var KeyHandler = {
       var rect = div.getBoundingClientRect();
       if (rect.width > viewWidth) {
         fontSize = Math.max(fontSize - kFontStep, kMinFontSize);
-      } else if (fontSize < kDefaultFontSize) {
+      } else if (fontSize < self._initialFontSize) {
         div.style.fontSize = (fontSize + kFontStep) + 'px';
         rect = div.getBoundingClientRect();
         if (rect.width <= viewWidth)
@@ -144,12 +143,15 @@ var KeyHandler = {
     var view = this.phoneNumberView;
     var computedStyle = window.getComputedStyle(view, null);
     var fontSize = computedStyle.getPropertyValue('font-size');
+    if (!this._initialFontSize) {
+      this._initialFontSize = parseInt(fontSize);
+    }
 
     var text = this.formatPhoneNumber(this.phoneNumber.value);
     view.innerHTML = text;
 
     var newFontSize =
-      text ? getNextFontSize(parseInt(fontSize), text) : kDefaultFontSize;
+      text ? getNextFontSize(parseInt(fontSize), text) : this._initialFontSize;
     if (newFontSize != fontSize)
     view.style.fontSize = newFontSize + 'px';
   },
@@ -203,9 +205,8 @@ var CallHandler = {
   // callbacks
   call: function ch_call(number) {
     this.numberView.innerHTML = number;
-    this.statusView.innerHTML = 'Calling...';
-    this.actionsView.classList.remove('displayed');
-    this.callButton.dataset.action = 'end';
+    this.statusView.innerHTML = 'Dialing...';
+    this.callButton.dataset.source = 'outgoing';
     this.toggleCallScreen();
 
     var call = window.navigator.mozTelephony.dial(number);
@@ -218,8 +219,7 @@ var CallHandler = {
 
     this.numberView.innerHTML = call.number;
     this.statusView.innerHTML = 'Incoming call...';
-    this.actionsView.classList.remove('displayed');
-    this.callButton.dataset.action = 'answer';
+    this.callButton.dataset.source = 'incoming';
     this.toggleCallScreen();
   },
   connected: function ch_connected() {
@@ -228,8 +228,6 @@ var CallHandler = {
       return;
 
     this.statusView.innerHTML = '00:00';
-    this.actionsView.classList.add('displayed');
-    this.callButton.dataset.action = 'end';
 
     this._ticker = setInterval(function ch_updateTimer(self, startTime) {
       var elapsed = new Date(Date.now() - startTime);
@@ -247,9 +245,11 @@ var CallHandler = {
     }
   },
   disconnected: function ch_disconnected() {
-    this.toggleCallScreen();
+    if (this.currentCall) {
+      this.currentCall.removeEventListener('statechange', this);
+      this.currentCall = null;
+    }
 
-    this.actionsView.classList.remove('displayed');
     if (this.muteButton.classList.contains('mute'))
       this.toggleMute();
     if (this.speakerButton.classList.contains('speak'))
@@ -258,10 +258,7 @@ var CallHandler = {
     this.closeModal();
     clearInterval(this._ticker);
 
-    if (this.currentCall) {
-      this.currentCall.removeEventListener('statechange', this);
-      this.currentCall = null;
-    }
+    this.toggleCallScreen();
   },
 
   handleEvent: function fm_handleEvent(evt) {
@@ -303,6 +300,10 @@ var CallHandler = {
     delete this.speakerButton;
     return this.speakerButton = document.getElementById('speaker-button');
   },
+  get holdButton() {
+    delete this.holdButton;
+    return this.holdButton = document.getElementById('hold-button');
+  },
   get callButton() {
     delete this.callButton;
     return this.callButton = document.getElementById('call-button');
@@ -329,6 +330,10 @@ var CallHandler = {
   toggleSpeaker: function ch_toggleSpeaker() {
     this.speakerButton.classList.toggle('speak');
     // TODO: make the actual speaker call
+  },
+  toggleHold: function ch_toggleHold() {
+    this.holdButton.classList.toggle('hold');
+    // TODO: make the actual hold call
   },
   keypad: function ch_keypad() {
     choiceChanged(document.getElementById('keyboard-label'));

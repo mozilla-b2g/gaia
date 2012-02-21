@@ -1,4 +1,5 @@
 html, body {
+  position: relative;
   width: 100%;
   height: 100%;
   overflow: hidden;
@@ -109,10 +110,11 @@ html * {
 /* === Application Views === */
 #views {
   position: absolute;
+  top: 0;
   height: -moz-calc(100% - 100px);
   width: 100%;
 
-  -moz-transition-property: top, opacity;
+  -moz-transition-property: top;
   -moz-transition-duration: 0.3s;
   -moz-transition-timing-function: ease;
 
@@ -193,7 +195,7 @@ html * {
 
 #phone-number-view {
   display: inline-block;
-  width: -moz-calc(100% - 120px);
+  width: -moz-calc(100% - 24mozmm);
 }
 
 .keyboard-key[data-value="del"] {
@@ -325,6 +327,38 @@ html * {
   text-align: center;
   text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5);
   text-transform: none;
+}
+
+@media all and (max-height: 500px) {
+  #mainKeyset {
+    min-height: 165px;
+    height: -moz-calc(100% - 12mozmm);
+  }
+
+  .keyboard-key span {
+    font-size: 1.3em;
+    line-height: 1.8em;
+  }
+
+  .keyboard-key span:last-child {
+    display: none;
+  }
+
+  #additionalKeyset {
+    width: 100%;
+    height: 12mozmm;
+  }
+
+  .keyboard-key[data-value="call"] {
+    margin: 2mozmm 30px;
+    height: 8mozmm;
+    font-size: 3mozmm;
+    line-height: 8mozmm;
+  }
+
+  .keyboard-key[data-value="call"] span {
+    display: block;
+  }
 }
 
 /* === Contacts View === */
@@ -725,27 +759,29 @@ html * {
 /* === Oncall transitions === */
 
 #tabs.oncall {
-  bottom: -138px;
+  bottom: -100%;
 }
 
 #views.oncall {
-  position: absolute;
   top: 100%;
-  opacity: 0;
 }
 
 #call-screen.oncall {
-  opacity: 1;
-  visibility: visible;
+  top: 0;
 }
 
 /* === Modal transitions === */
 
 #views.modal {
   position: absolute;
-  top: 60px;
+  top: 0;
   height: -moz-calc(100% - 290px);
   opacity: 1;
+
+	background: url(images/app-texture.png) repeat 50% 50%,
+							url(images/dialing-pattern.png) repeat-x 0 0,
+							-moz-linear-gradient(top, hsla(0,0%,0%,.2) 0%, hsla(0,0%,0%,.2) 100%),
+							hsl(212,8%,37%);
 
   z-index: 10;
 }
@@ -770,145 +806,157 @@ html * {
 
 #call-screen {
   position: absolute;
-  top: 0;
+  top: -100%;
   left: 0;
   width: 100%;
   height: 100%;
   border: 0;
 
-  opacity: 0;
-  visibility: hidden;
+  border-radius: 8px 8px 0 0;
+	background: url(images/app-texture.png) repeat 50% 50%,
+							url(images/dialing-pattern.png) repeat-x 0 0,
+							-moz-linear-gradient(top, hsla(0,0%,0%,.2) 0%, hsla(0,0%,0%,.2) 100%),
+							hsl(212,8%,37%);
 
-  -moz-transition: opacity 0.3s ease;
+  font-size: 7mozmm;
+
+  -moz-transition: top 0.3s ease;
+}
+
+#call-status-view {
+  padding: 7mozmm;
+  font-size: 1.4em;
 }
 
 #call-number-view {
-	height: 60px;
-	margin-top: 20px;
-	text-shadow:0 0 3px hsla(0,0%,0%,.5);
+  padding: 7mozmm;
 	overflow:hidden;
 
-	color: hsl(0,0%,100%);
-	font-size:50px;
-	line-height:60px;
+  color: #929CA4;
 	text-align:center;
+	text-shadow:0 0 3px hsla(0,0%,0%,.5);
 }
 
 #call-actions-container {
   position: absolute;
-  left: 10px;
-  bottom: 128px;
-  width: -moz-calc(100% - 38px);
-  overflow: hidden;
-  padding: 9px;
+  bottom: 0;
+  width: 100%;
+  height: 40%;
 
-  background-color: rgba(0,0,0,.3);
-  border-radius: 5px;
-
-  opacity: 0;
-  -moz-transition: opacity 0.3s ease;
+  border-top: 1px solid rgba(98, 104, 110, 0.6);
+	background: url(images/app-texture.png) 50% 50%,
+			-moz-linear-gradient(top, hsla(0,0%,0%,.2) 0%, hsla(0,0%,20%,0) 8%, hsla(0,0%,0%,0.1) 80%, hsla(0,0%,0%,.2) 100%),
+			-moz-radial-gradient(center top, hsla(0,100%,0%,0) 0%, hsla(0,0%,0%,0) 50%, hsla(0,0%,10%,.1) 100%),
+			hsla(212,8%,39%,1);
 }
 
-#call-actions
-{
-  border-radius: 3px;
-  background:-moz-linear-gradient(top, hsl(0,0%,65%) 0, hsl(0,0%,56%) 1px, hsl(0,0%,37%) 100%);
+#call-actions {
+  width: -moz-calc(100% - 60px);
+  height: -moz-calc(70% - 8mozmm);
+  margin: 4mozmm auto;
 }
 
-#call-actions > div
-{
+#call-actions > div {
   float: left;
   display: block;
-  width: -moz-calc(100% / 3 - 2px);
-	height: 66px;
+  width: -moz-calc(100% / 4);
   padding: 0;
   margin: 0;
-
-	border-right: 1px solid rgb(29,29,29);
-	border-left: 1px solid rgb(123,123,123);
-
-  background-position: 50% 50%;
-  background-repeat: no-repeat;
-}
-#call-actions > div:first-child
-{
-  border-left-color: transparent;
-}
-#call-actions > div:last-child
-{
-  border-right-color: transparent;
-}
-
-#keypad-button {
-  border-radius : 3px 0 0 3px;
-  background-image: url(images/numpad-icon.png);
-}
-#keypad-button:active {
-  background: url(images/numpad-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 1px, hsl(0,0%,56%) 100%);
-}
-
-#speaker-button {
-  background-image: url(images/speaker.png);
-}
-#speaker-button.speak {
-  background: url(images/speaker.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 1px, hsl(0,0%,56%) 100%);
-}
-
-#mute-button {
-  border-radius : 0 3px 3px 0;
-  background-image: url(images/microphone-off.png);
-}
-#mute-button.mute {
-  background: url(images/microphone-off.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 1px, hsl(0,0%,56%) 100%);
-}
-
-#call-actions-container.displayed {
-  opacity: 1;
-}
-
-.main-button-container {
-  position: absolute;
-  bottom: 10px;
-  left: 10px;
-  width: -moz-calc(100% - 38px);
-  padding: 9px;
-
-  background-color: rgba(0, 0, 0, 0.3);
-  border-radius: 5px 5px 5px 5px;
 
   text-align: center;
 }
 
-#call-button span {
-	display: block;
-  width: -moz-calc(100% - 2px);
-  height: 80px;
+#call-actions > div > span {
+	color: hsla(208,9%,61%,1);
+  font-size: 0.4em;
+}
 
-	border-radius: 3px;
-  margin: 5px 0;
+#call-actions > div > div {
+  margin: auto;
+  width: 10mozmm;
+  height: 10mozmm;
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+}
+
+#call-actions > div:first-child {
+  border-left-color: transparent;
+}
+
+#call-actions > div:last-child {
+  border-right-color: transparent;
+}
+
+#keypad-button {
+  background: url(images/numpad-icon.png) no-repeat 50% 50%, rgba(0, 0, 0, 0.1);
+  background-size: 10mozmm 10mozmm;
+}
+#keypad-button:active {
+  background: url(images/numpad-icon-active.png) no-repeat 50% 50%, rgba(0, 0, 0, 0.1);
+  background-size: 10mozmm 10mozmm;
+}
+
+#speaker-button {
+  background: url(images/speaker-icon.png) no-repeat 50% 50%, rgba(0, 0, 0, 0.1);
+  background-size: 10mozmm 10mozmm;
+}
+#speaker-button.speak {
+  background: url(images/speaker-icon-active.png) no-repeat 50% 50%, rgba(0, 0, 0, 0.1);
+  background-size: 10mozmm 10mozmm;
+}
+
+#mute-button {
+  background: url(images/mute-icon.png) no-repeat 50% 50%, rgba(0, 0, 0, 0.1);
+  background-size: 10mozmm 10mozmm;
+}
+#mute-button.mute {
+  background: url(images/mute-icon-active.png) no-repeat 50% 50%, rgba(0, 0, 0, 0.1);
+  background-size: 10mozmm 10mozmm;
+}
+
+#hold-button {
+  background: url(images/hold-icon.png) no-repeat 50% 50%, rgba(0, 0, 0, 0.1);
+  background-size: 10mozmm 10mozmm;
+}
+#hold-button.hold {
+  background: url(images/hold-icon-active.png) no-repeat 50% 50%, rgba(0, 0, 0, 0.1);
+  background-size: 10mozmm 10mozmm;
+}
+
+#call-button {
+  width: 100%;
+  height: 30%;
+}
+
+#call-button span {
+	display: inline-block;
+  width: -moz-calc(100% / 2 - 47px);
+  height: 1.4em;
+
+	border-radius: 0.7em;
+  font-size: 0.7em;
+  line-height: 1.4em;
+  text-align: center;
+  text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5);
+}
+#call-button span:first-child {
+  margin: 0 30px;
 }
 
 #accept-call {
-	background: url(images/call-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(177,214,0) 1px, rgb(143,195,0) 2px, rgb(82,107,23) 100%);
+	background: -moz-linear-gradient(top, rgb(177,214,0) 1px, rgb(143,195,0) 2px, rgb(82,107,23) 100%);
 }
 
 #end-call {
-	background: url(images/call-end-icon.png) no-repeat 50% 50%,  -moz-linear-gradient(top, hsl(355,93%,42%) 0, hsl(356,94%,37%) 1px, hsl(353,100%,22%) 100%);
+	background: -moz-linear-gradient(top, hsl(4,56%,65%) 0, hsl(4,98%,66%) 2px, hsla(4,79%,47%,.2) 20%, hsl(0,100%,44%) 98%, hsl(32,100%,38%) 99%, hsl(359,84%,34%) 100%),
+						  url(images/app-texture.png) 50% 50%,
+						  -moz-linear-gradient(top, hsl(4,56%,65%) 0, hsl(4,98%,66%) 2px, hsla(4,79%,47%,1) 98%, hsl(32,100%,38%) 99%, hsl(359,84%,34%) 100%);
 }
 
-#end-call,
-#call-button[data-action='end'] #accept-call {
+#call-button[data-source='outgoing'] #end-call {
+  width: -moz-calc(100% - 62px);
+  margin-left: 30px;
+}
+#call-button[data-source='outgoing'] #accept-call {
   display: none;
-}
-#call-button[data-action='end'] #end-call,
-#call-button #accept-call {
-  display: block;
-}
-
-#call-button:active span:first-child {
-	background: url(images/call-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, rgb(82,107,23) 0, rgb(143,195,0) 100%);
-}
-
-#call-button:active span:last-child {
-	background: url(images/call-end-icon.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(353,100%,22%) 0, hsl(356,94%,37%) 100%);
 }

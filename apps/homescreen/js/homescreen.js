@@ -7,9 +7,31 @@ const SHORTCUTS_HEIGHT = 144;
 
 var displayState;
 
+function foregroundAppURL() {
+  var win = WindowManager.getForegroundWindow();
+  return (win !== null) ? win.application.url : window.document.URL;
+}
+
+function toggleSourceViewer(url) {
+  if (isSourceViewerActive()) {
+    hideSourceViewer(url);
+  } else {
+    showSourceViewer(url);
+  }
+}
+
+function getSourceViewerElement() {
+  return content.document.getElementById('appViewsource');
+}
+
+function isSourceViewerActive() {
+  var viewsource = getSourceViewerElement();
+  return viewsource !== null && viewsource.style.visibility != 'hidden';
+}
+
 function showSourceViewer(url) {
   var document = content.document;
-  var viewsource = document.getElementById('appViewsource');
+  var viewsource = getSourceViewerElement();
   if (!viewsource) {
     var style = '#appViewsource { ' +
                 '  position: absolute;' +
@@ -36,10 +58,10 @@ function showSourceViewer(url) {
 }
 
 function hideSourceViewer() {
-  var viewsource = content.document.getElementById('appViewsource');
-  if (!viewsource)
-    return;
-  viewsource.style.visibility = 'hidden';
+  var viewsource = getSourceViewerElement();
+  if (viewsource !== null) {
+    viewsource.style.visibility = 'hidden';
+  }
 }
 
 // Change the display state (off, locked, default)
@@ -188,7 +210,7 @@ function IconGrid(containerId, columns, rows, minPages, showLabels) {
   this.physics = createPhysicsFor(this);
 
   // install event handlers
-  AddEventHandlers(this.container, this, ['touchstart', 'touchmove', 'touchend', 'contextmenu']);
+  AddEventHandlers(this.container, this, ['touchstart', 'touchmove', 'touchend']);
   AddEventHandlers(window, this, ['resize']);
 }
 
@@ -389,6 +411,7 @@ IconGrid.prototype = {
       eval(this.lastAction);
   },
   handleEvent: function(e) {
+    dump('&&&&&&&&&&&&&&&&&77: ' + e.type + '\n');
     var physics = this.physics;
     switch (e.type) {
     case 'touchstart':
@@ -396,12 +419,6 @@ IconGrid.prototype = {
       break;
     case 'touchmove':
       physics.onTouchMove(e.touches[0]);
-      break;
-    case 'contextmenu':
-      var sourceURL = window.document.URL;
-      showSourceViewer(sourceURL);
-      document.releaseCapture();
-      physics.touchState.active = false;
       break;
     case 'touchend':
       document.releaseCapture();
@@ -683,12 +700,12 @@ function OnLoad() {
     var slot = 0;
     for (var n = 0; n < apps.length; ++n) {
       if (apps[n].name == 'Dialer' ||
-          apps[n].name == 'Messages') {
+          apps[n].name == 'Messages' ||
+          apps[n].name == 'Market') {
         var app = apps[n];
         favsGrid.add(slot++, app.icon, app.name, 'WindowManager.launch("' + app.url + '")');
       }
     }
-    favsGrid.add(slot++, 'style/images/reload.png', '', 'document.location.reload()');
     favsGrid.update();
   });
 
@@ -699,6 +716,15 @@ function OnLoad() {
 
   window.addEventListener('appclose', function(evt) {
     titlebar.innerHTML = '';
+  });
+
+  window.addEventListener('keypress', function(evt) {
+    if (evt.keyCode == evt.DOM_VK_F5)
+      document.location.reload();
+  });  
+
+  window.addEventListener('menu', function(evt) {
+    toggleSourceViewer(foregroundAppURL());
   });
 
   changeDisplayState();
