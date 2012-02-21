@@ -235,13 +235,13 @@ input, textarea {
   position: absolute;
   top: 3px; left: 0;
   height: 60px;
-  width: 100px;
+  width: 96px;
 }
 
 #msg-conversation-view-name {
   font-size: 26px;
   font-weight: bold;
-  margin: 0 100px;
+  margin: 0 96px;
   padding: 0;
   line-height: 64px;
   text-align: center;
@@ -257,11 +257,10 @@ body.conversation-new-msg #msg-conversation-view-name {
 
 #msg-conversation-view-num {
   display: block;
-  margin-left: 140px;
-  margin-right: 140px;
+  margin: 10px 144px;
   padding: 0 20px;
   -moz-box-sizing: border-box;
-  width: -moz-calc(100% - 280px);
+  width: -moz-calc(100% - 288px);
 }
 
 body.conversation-new-msg #msg-conversation-view-num {
@@ -272,7 +271,7 @@ body.conversation-new-msg #msg-conversation-view-num {
   position: absolute;
   top: 0; right: 0;
   height: 60px;
-  width: 100px;
+  width: 96px;
 }
 
 #msg-conversation-view-edit {
