@@ -283,13 +283,15 @@
                  },
                  { // cut the rope
                    'installOrigin': 'http://cuttherope.ie/',
-                   'origin': '../cuttherope',
+                   'origin': 'http://cuttherope.ie/',
                    'receipt': null,
                    'installTime': 1323339869000,
                    manifest: {
                      'name': 'Cut The Rope',
                      'description': 'http://cuttherope.ie',
-                     'launch_path': '/cuttherope.html',
+                     'launch_path': '',
+                     'orientation': 'landscape-primary',
+                     'fullscreen': true,
                      'developer': {
                        'name': 'ZeptoLab',
                        'url': 'http://cuttherope.ie'
