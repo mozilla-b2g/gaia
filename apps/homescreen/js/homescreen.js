@@ -666,6 +666,9 @@ LockScreen.prototype = {
       // coz the screen could be turned off by the timer
       // instead of sleep button
 
+      // XXX: the above statement does not really works all the time
+      // gaia issue #513
+
       //if (!e.detail.enabled)
       //  return;
       this.update();
