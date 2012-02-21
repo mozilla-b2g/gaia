@@ -59,13 +59,13 @@ body {
 }
 
 #lockscreen > #status {
-  height: 37px;
+  height: 32px;
   width: 100%;
 }
 
 #lockscreen > #lockscreenContainer {
   width: 100%;
-  height: -moz-calc(100% - 37px);
+  height: -moz-calc(100% - 32px);
   background: url(images/noise.png), url(images/background.bmp);
 }
 
@@ -105,9 +105,9 @@ body {
 #notificationsScreen {
   position: absolute;
   z-index: 9998;
-  top: -moz-calc(-100% + 74px);
+  top: -moz-calc(-100% + 64px);
   width: -moz-calc(100%);
-  height: -moz-calc(100% - 37px);
+  height: -moz-calc(100% - 32px);
   background-color: #222;
 }
 
@@ -126,9 +126,9 @@ body {
 
 #home {
   position: absolute;
-  top: 37px;
+  top: 32px;
   width: -moz-calc(100%);
-  height: -moz-calc(100% - 37px);
+  height: -moz-calc(100% - 32px);
   border-radius: 8px;
   background: url("images/noise.png") repeat scroll 50% 50%, url(images/background.bmp) 50% 50% transparent;
 }
@@ -203,14 +203,14 @@ body {
 #windows {
   position: absolute;
   left: 0px;
-  top: 37px;
+  top: 32px;
   width: 100%;
   height: 0;
   overflow: hidden;
 }
 
 #windows.active {
-  height: -moz-calc(100% - 37px);
+  height: -moz-calc(100% - 32px);
   overflow: visible;
 }
 
@@ -246,7 +246,7 @@ iframe.appWindow.keyboardOn {
 
 div.windowSprite {
   position: absolute;
-  top: 37px;
+  top: 32px;
   left: 0;
   z-index: 999999;
   -moz-transform-origin: center bottom;
@@ -282,10 +282,9 @@ iframe.landscape-secondary {
   z-index: 9999;
   -moz-box-orient: horizontal;
 
-  width: -moz-calc(100% - 4px);
-  height: 31px;
-  border-top: 1px solid transparent;
-  border-bottom: 1px solid transparent;
+  width: 100%;
+  -moz-box-sizing: border-box;
+  height: 32px;
   padding: 2px;
 
   color: #999;
@@ -360,6 +359,7 @@ iframe.landscape-secondary {
   background: url(images/battery-main.png);
   background-repeat: no-repeat;
   background-size: 29px 16px;
+  position: relative;
 }
 
 .battery > #fuel {
@@ -381,12 +381,9 @@ iframe.landscape-secondary {
 .battery > #charging {
   height: 8px;
   width: 18px;
-  background-image: url(images/battery-charging.png);
-  background-repeat: no-repeat;
-  background-size: 18px 8px;
+  background: transparent url(images/battery-charging.png) center center no-repeat;
   position: absolute;
-  margin: 8px 3px;
-  top: 7px;
+  top: 4px; left: 5px;
 }
 
 #taskManager {
