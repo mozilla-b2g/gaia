@@ -76,6 +76,10 @@ body {
   margin: 10px 4px;
 }
 
+input::-moz-focus-inner {
+  border: 0;
+}
+
 #browser-tab-button {
   display: block;
   height: 44px;
