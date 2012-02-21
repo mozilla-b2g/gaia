@@ -110,10 +110,11 @@ html * {
 /* === Application Views === */
 #views {
   position: absolute;
+  top: 0;
   height: -moz-calc(100% - 100px);
   width: 100%;
 
-  -moz-transition-property: top, opacity;
+  -moz-transition-property: top;
   -moz-transition-duration: 0.3s;
   -moz-transition-timing-function: ease;
 
@@ -758,18 +759,15 @@ html * {
 /* === Oncall transitions === */
 
 #tabs.oncall {
-  bottom: -138px;
+  bottom: -100%;
 }
 
 #views.oncall {
-  position: absolute;
   top: 100%;
-  opacity: 0;
 }
 
 #call-screen.oncall {
-  opacity: 1;
-  visibility: visible;
+  top: 0;
 }
 
 /* === Modal transitions === */
@@ -808,14 +806,11 @@ html * {
 
 #call-screen {
   position: absolute;
-  top: 0;
+  top: -100%;
   left: 0;
   width: 100%;
   height: 100%;
   border: 0;
-
-  opacity: 0;
-  visibility: hidden;
 
   border-radius: 8px 8px 0 0;
 	background: url(images/app-texture.png) repeat 50% 50%,
@@ -825,7 +820,7 @@ html * {
 
   font-size: 7mozmm;
 
-  -moz-transition: opacity 0.3s ease;
+  -moz-transition: top 0.3s ease;
 }
 
 #call-status-view {
@@ -934,16 +929,18 @@ html * {
 }
 
 #call-button span {
-	display: block;
-  width: -moz-calc(100% - 60px);
+	display: inline-block;
+  width: -moz-calc(100% / 2 - 47px);
   height: 1.4em;
 
 	border-radius: 0.7em;
-  margin: auto;
   font-size: 0.7em;
   line-height: 1.4em;
   text-align: center;
   text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5);
+}
+#call-button span:first-child {
+  margin: 0 30px;
 }
 
 #accept-call {
@@ -956,12 +953,10 @@ html * {
 						  -moz-linear-gradient(top, hsl(4,56%,65%) 0, hsl(4,98%,66%) 2px, hsla(4,79%,47%,1) 98%, hsl(32,100%,38%) 99%, hsl(359,84%,34%) 100%);
 }
 
-#call-button[data-action='answer'] #end-call,
-#call-button[data-action='end'] #accept-call {
-  display: none;
+#call-button[data-source='outgoing'] #end-call {
+  width: -moz-calc(100% - 62px);
+  margin-left: 30px;
 }
-
-#call-button[data-action='end'] #end-call,
-#call-button[data-action='answser'] #accept-call {
-  display: block;
+#call-button[data-source='outgoing'] #accept-call {
+  display: none;
 }

@@ -206,7 +206,7 @@ var CallHandler = {
   call: function ch_call(number) {
     this.numberView.innerHTML = number;
     this.statusView.innerHTML = 'Dialing...';
-    this.callButton.dataset.action = 'end';
+    this.callButton.dataset.source = 'outgoing';
     this.toggleCallScreen();
 
     var call = window.navigator.mozTelephony.dial(number);
@@ -219,7 +219,7 @@ var CallHandler = {
 
     this.numberView.innerHTML = call.number;
     this.statusView.innerHTML = 'Incoming call...';
-    this.callButton.dataset.action = 'answer';
+    this.callButton.dataset.source = 'incoming';
     this.toggleCallScreen();
   },
   connected: function ch_connected() {
@@ -228,7 +228,6 @@ var CallHandler = {
       return;
 
     this.statusView.innerHTML = '00:00';
-    this.callButton.dataset.action = 'end';
 
     this._ticker = setInterval(function ch_updateTimer(self, startTime) {
       var elapsed = new Date(Date.now() - startTime);
@@ -246,7 +245,10 @@ var CallHandler = {
     }
   },
   disconnected: function ch_disconnected() {
-    this.toggleCallScreen();
+    if (this.currentCall) {
+      this.currentCall.removeEventListener('statechange', this);
+      this.currentCall = null;
+    }
 
     if (this.muteButton.classList.contains('mute'))
       this.toggleMute();
@@ -256,10 +258,7 @@ var CallHandler = {
     this.closeModal();
     clearInterval(this._ticker);
 
-    if (this.currentCall) {
-      this.currentCall.removeEventListener('statechange', this);
-      this.currentCall = null;
-    }
+    this.toggleCallScreen();
   },
 
   handleEvent: function fm_handleEvent(evt) {
@@ -272,7 +271,7 @@ var CallHandler = {
       case 'connected':
         this.connected();
         break;
-      case 'disconnecting':
+      case 'disconnected':
         this.disconnected();
         break;
       default:

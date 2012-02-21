@@ -197,9 +197,9 @@
             <span>Hold</span>
           </div>
         </div>
-        <div id="call-button" onclick="CallHandler.execute(this.dataset.action);">
-          <span id="accept-call">Answer</span>
-          <span id="end-call">End call</span>
+        <div id="call-button" onclick="CallHandler.execute(event.target.dataset.action);">
+          <span id="accept-call" data-action="answer">Answer</span>
+          <span id="end-call" data-action="end">End call</span>
         </div>
       </div>
     </div>
