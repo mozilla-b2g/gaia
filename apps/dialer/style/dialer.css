@@ -7,7 +7,7 @@ html, body {
 
   font-size: 2.5mozmm;
   color: white;
-  font-family: "Roboto", sans-serif;
+  font-family: sans-serif;
 
 
   background: #000;
@@ -15,27 +15,6 @@ html, body {
 
 html * {
   overflow: hidden;
-}
-
-@font-face {
-  font-family: Roboto;
-  src: url('fonts/Roboto-Regular.ttf');
-}
-@font-face {
-  font-family: Roboto;
-  font-weight: bold;
-  src: url('fonts/Roboto-Bold.ttf');
-}
-@font-face {
-  font-family: Roboto;
-  font-style: italic;
-  src: url('fonts/Roboto-Italic.ttf');
-}
-@font-face {
-  font-family: Roboto;
-  font-weight: bold;
-  font-style: italic;
-  src: url('fonts/Roboto-BoldItalic.ttf');
 }
 
 @media all and (min-resolution: 200dpi) {
