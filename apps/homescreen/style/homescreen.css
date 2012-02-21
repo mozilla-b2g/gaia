@@ -15,6 +15,39 @@ body {
   }
 }
 
+@media screen and (max-height: 550px) {
+  body {
+    font-size: 10px;
+  }
+
+  #dots {
+    display:none;
+  }
+}
+
+@media screen and (max-height: 500px) {
+  .icon > .label {
+    display:none;
+  }
+}
+
+@media screen and (max-height: 450px) {
+  #home > #favs {
+    height: 80px!important;
+    min-height:80px;
+  }
+
+  .icon > div {
+    max-width: 130px;
+  }
+}
+
+@media screen and (max-width: 400px) {
+  .icon {
+    margin-left: -10px;
+  }
+}
+
 @font-face {
   font-family: 'Open Sans';
   src: url('fonts/Open-Sans.woff');
@@ -66,7 +99,7 @@ body {
 #lockscreen > #lockscreenContainer {
   width: 100%;
   height: -moz-calc(100% - 32px);
-  background: url(images/noise.png), url(images/background.bmp);
+  background: url(images/noise.png) #575E66;
 }
 
 #lockscreenContainer::before {
@@ -130,7 +163,7 @@ body {
   width: -moz-calc(100%);
   height: -moz-calc(100% - 32px);
   border-radius: 8px;
-  background: url("images/noise.png") repeat scroll 50% 50%, url(images/background.bmp) 50% 50% transparent;
+  background: url("images/noise.png") repeat scroll 50% 50%, #575E66;
 }
 
 #home > div {
@@ -143,17 +176,20 @@ body {
 #home > #apps {
   top: 0;
   height: -moz-calc(75%);
+  overflow:visible;
 }
 
 #home > #dots {
-  top: 77.5%;
-  height: -moz-calc(2.5%);
+  bottom: 120px;
+  height: 20px;
   text-align: center;
 }
 
 #home > #favs {
-  top: 80%;
-  height: -moz-calc(20%);
+  bottom:5px;
+  height: 120px;
+  max-height: 120px;
+  min-height: 80px;
 }
 
 .page {
@@ -168,6 +204,8 @@ body {
   position: absolute;
   width: 100%;
   text-align: center;
+  min-height: 80px;
+
 }
 
 .icon > div {
@@ -176,12 +214,14 @@ body {
 }
 
 .icon > div > img {
-  padding-top: 10%;
   width: 70%;
+  max-width: 120px;
+  max-height: 120px;
 }
 
 .icon > .label {
   padding-top: 0%;
+  margin-top: -5px;
   color: white;
   font-size: 140%;
 }

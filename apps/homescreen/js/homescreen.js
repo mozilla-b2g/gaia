@@ -688,9 +688,11 @@ function OnLoad() {
     document.getElementById('statusbar')
   ];
   new NotificationScreen(touchables);
+  
+  var numCol = (window.innerWidth / 250) > 4 ? Math.floor(window.innerWidth /250) : 3;
 
   var apps = Gaia.AppManager.loadInstalledApps(function(apps) {
-    var appsGrid = new IconGrid('apps', 3, 3, 2, true);
+    var appsGrid = new IconGrid('apps', numCol, 3, 2, true);
     for (var n = 0; n < apps.length; ++n) {
       var app = apps[n];
       appsGrid.add(n, app.icon, app.name, 'WindowManager.launch("' + app.url + '")');
