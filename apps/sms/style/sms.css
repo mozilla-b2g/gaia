@@ -348,6 +348,7 @@ body.conversation-new-msg #msg-conversation-view-num {
 
 #msg-conversation-view-list > div .text {
   font-size: 24px;
+  font-weight: 600;
   color: rgb(18, 47, 64);
   text-shadow: 0 1px 0 #ddd;
   line-height: 32px;
@@ -355,7 +356,6 @@ body.conversation-new-msg #msg-conversation-view-num {
 
 #msg-conversation-view-list > div .time {
   font-size: 18px;
-  font-weight: bold;
   line-height: 23px;
   color: rgb(62, 86, 106);
   text-shadow: 0 1px 0 #ddd;
