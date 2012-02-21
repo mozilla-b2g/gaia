@@ -258,6 +258,23 @@ div.windowSprite.active {
   -moz-transform: scale(1);
 }
 
+iframe.portrait-primary {
+}
+
+iframe.portrait-secondary {
+  -moz-transform: translate(rotate(180deg);
+}
+
+iframe.landscape-primary {
+  -moz-transform-origin: left top;
+  -moz-transform: rotate(90deg) translate(0px, -480px);
+}
+
+iframe.landscape-secondary {
+  -moz-transform-origin: left top;
+  -moz-transform: rotate(-90deg) translate(-800px, 0px);
+}
+
 #statusbar {
   display: -moz-box;
   overflow: hidden;
