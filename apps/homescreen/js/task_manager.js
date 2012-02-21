@@ -4,17 +4,16 @@
 'use strict';
 
 var TaskManager = {
-  _active: false,
-  get isActive() {
-    return this._active;
+  isActive: function tm_isActive() {
+    return this.container.classList.contains('active');
   },
 
-  setActive: function tm_setActive(value) {
-    if (this._active && value)
-      return;
-    this._active = value;
+  show: function tm_show() {
+    this.container.classList.add('active');
+  },
 
-    this.container.classList.toggle('active');
+  hide: function tm_hide() {
+    this.container.classList.remove('active');
   },
 
   get container() {
@@ -37,21 +36,21 @@ var TaskManager = {
   handleEvent: function tm_handleEvent(evt) {
     switch (evt.type) {
       case 'keydown':
-        if (evt.keyCode !== evt.DOM_VK_A || this._timeout)
+        if (evt.keyCode !== evt.DOM_VK_HOME || this._timeout)
           return;
 
-        if (this.isActive) {
-          this.setActive(false);
+        if (this.isActive()) {
+          this.hide();
           return;
         }
 
         this._timeout = window.setTimeout(function checkKeyPress(self) {
-          self.setActive(true);
+          self.show();
         }, 1000, this);
         break;
 
       case 'keyup':
-        if (evt.keyCode !== evt.DOM_VK_A)
+        if (evt.keyCode !== evt.DOM_VK_HOME)
           return;
 
         window.clearTimeout(this._timeout);
@@ -78,10 +77,8 @@ var TaskManager = {
 
     var self = this;
     item.addEventListener('click', function taskClickHandler(evt) {
-      window.setTimeout(function launchApp() {
-        WindowManager.launch(app.url);
-      }, 400);
-      self.setActive(false);
+      self.hide();
+      WindowManager.launch(app.url);
     });
 
     close.addEventListener('click', function(evt) {
@@ -97,6 +94,7 @@ var TaskManager = {
   remove: function tm_remove(app, id) {
     var item = document.getElementById('task_' + id);
     this.items.removeChild(item);
+
     WindowManager.kill(app.url);
   },
 
