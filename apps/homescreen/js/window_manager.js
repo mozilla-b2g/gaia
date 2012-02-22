@@ -8,7 +8,6 @@ function WindowSprite(win) {
   element.className = 'windowSprite';
   element.style.width = win.element.style.width;
   element.style.height = win.element.style.height;
-  element.style.background = '-moz-element(#window_' + win.id + ') no-repeat';
 }
 
 WindowSprite.prototype = {
@@ -85,7 +84,7 @@ Window.prototype = {
       if (callback)
         callback();
     };
-    sprite.element.addEventListener('transitionend', focus.bind(this));
+    sprite.element.addEventListener('animationiteration', focus.bind(this));
 
     if (this.application.fullscreen) {
       document.getElementById('screen').classList.add('fullscreen');
