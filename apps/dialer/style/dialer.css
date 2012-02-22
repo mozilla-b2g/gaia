@@ -36,8 +36,6 @@ html * {
               -moz-radial-gradient(center top, hsla(0,100%,0%,0) 0%, hsla(0,0%,0%,0) 70%, hsla(0,0%,10%,.1) 100%),
               -moz-radial-gradient(center bottom, hsla(0,100%,0%,0) 0%, hsla(0,0%,0%,0) 70%, hsla(0,0%,10%,.2) 100%),
               hsla(212,8%,39%,1);
-
-  -moz-transition: bottom 0.3s ease;
 }
 
 #tabs fieldset {
@@ -92,10 +90,6 @@ html * {
   top: 0;
   height: -moz-calc(100% - 100px);
   width: 100%;
-
-  -moz-transition-property: top;
-  -moz-transition-duration: 0.3s;
-  -moz-transition-timing-function: ease;
 
   background: url(images/app-texture.png) 50% 50%, #F5F5F5;
   border-radius: 10px 10px 0 0;
@@ -744,14 +738,6 @@ html * {
 }
 
 /* === Oncall transitions === */
-
-#tabs.oncall {
-  bottom: -100%;
-}
-
-#views.oncall {
-  top: 100%;
-}
 
 #call-screen.oncall {
   top: 0;
