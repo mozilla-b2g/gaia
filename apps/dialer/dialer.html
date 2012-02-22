@@ -174,9 +174,14 @@
     </div>
 
     <div id="call-screen">
-      <div id="call-status-view">
-      </div>
-      <div id="call-number-view">
+      <div id="call-screen-top">
+        <div id="call-status-view">
+        </div>
+        <div id="call-picture">
+          <img src="style/fake/photo.png" alt="picture" />
+        </div>
+        <div id="call-number-view">
+        </div>
       </div>
       <div id="call-actions-container">
         <div id="call-actions">
@@ -197,9 +202,9 @@
             <span>Hold</span>
           </div>
         </div>
-        <div id="call-button" onclick="CallHandler.execute(event.target.dataset.action);">
-          <span id="accept-call" data-action="answer">Answer</span>
-          <span id="end-call" data-action="end">End call</span>
+        <div id="call-button">
+          <div id="accept-call" onclick="CallHandler.execute('answer');"><span>Answer</span></div>
+          <div id="end-call" onclick="CallHandler.execute('end');"><span>End</span></div>
         </div>
       </div>
     </div>
