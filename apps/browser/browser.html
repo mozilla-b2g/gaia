@@ -1,27 +1,35 @@
 <!DOCTYPE html>
-<html manifest="manifest.appcache" id="browser-html">
+<html manifest="manifest.appcache">
   <head>
     <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
     <title>Browser</title>
-    <script type="text/javascript" src="webapi+apps.js"></script>
 
     <link rel="stylesheet" href="style/browser.css" type="text/css" />
     <script type="text/javascript" src="js/browser.js"></script>
   </head>
 
-  <body id="browser-body">
+  <body>
     <div id="browser-tab">
       <div id="browser-toolbar">
-        <input type="image" src="style/images/back-disabled.png" id="browser-back-button" class="browser-button" alt="Back">
+        <input type="button" value="" id="browser-back-button" class="browser-button" alt="Back" title="" disabled="true"></input>
         <form id="browser-address">
-          <input type="text" id="browser-url" value="https://wiki.mozilla.org/B2G">
-          <input type="image" src="style/images/go.png" id="browser-go-button" class="browser-button" alt="Go">
+          <input type="url" id="browser-url" value="http://www.google.com/m"></input>
         </form>
+        <span id="browser-tab-button">3</span>
+        <input type="button" value="" id="browser-menu-button" class="browser-button" alt="Menu" title=""></input>
       </div>
-      <iframe id="browser-iframe">
+      <iframe id="browser-content" mozbrowser>
       </iframe>
     </div>
+    <div id="browser-shade" class="hidden"></div>
+    <ul id="browser-menu" class="hidden">
+      <li id="menu-refresh"><a href="#">Reload</a></li>
+      <li id="menu-forward"><a href="#">Forward</a></li>
+      <li id="menu-bookmark"><a href="#">Bookmark</a></li>
+      <li id="menu-settings"><a href="#">Settings</a></li>
+      <li id="menu-downloads"><a href="#">Downloads</a></li>
+    </ul>
   </body>
 
 </html>

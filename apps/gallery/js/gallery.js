@@ -1,3 +1,5 @@
+'use strict';
+
 const SAMPLE_PHOTOS_DIR = 'sample_photos/';
 const SAMPLE_THUMBNAILS_DIR = 'sample_photos/thumbnails/';
 const SAMPLE_FILENAMES = ['bigcat.jpg', 'bison.jpg', 'butterfly.jpg',
@@ -7,39 +9,197 @@ const SAMPLE_FILENAMES = ['bigcat.jpg', 'bison.jpg', 'butterfly.jpg',
     'rabbit.jpg', 'sheep.jpg', 'snail.jpg', 'tortoise.jpg', 'wolf.jpg',
     'zebra.jpg'];
 
+//-----------------------------------------------------------------------------
+// XXX: share this with homescreen.  Paginated panning is a gap.
+//
+function createPhysicsFor(iconGrid) {
+  return new DefaultPhysics(iconGrid);
+}
+
+function DefaultPhysics(iconGrid) {
+  this.iconGrid = iconGrid;
+  this.moved = false;
+  this.touchState = { active: false, startX: 0, startY: 0 };
+}
+
+DefaultPhysics.prototype = {
+  onTouchStart: function(e) {
+    var touchState = this.touchState;
+    this.moved = false;
+    touchState.active = true;
+    touchState.startX = e.pageX;
+    touchState.startY = e.pageY;
+    touchState.startTime = e.timeStamp;
+  },
+  onTouchMove: function(e) {
+    var iconGrid = this.iconGrid;
+    var touchState = this.touchState;
+    if (touchState.active) {
+      var dx = touchState.startX - e.pageX;
+      if (dx !== 0) {
+        iconGrid.pan(-dx);
+        this.moved = true;
+      }
+      e.stopPropagation();
+    }
+  },
+  onTouchEnd: function(e) {
+    var touchState = this.touchState;
+    if (!touchState.active)
+      return;
+    touchState.active = false;
+
+    var startX = touchState.startX;
+    var endX = e.pageX;
+    var diffX = endX - startX;
+    var dir = (diffX > 0) ? -1 : 1;
+
+    var quick = (e.timeStamp - touchState.startTime < 200);
+
+    var small = Math.abs(diffX) < 20;
+
+    var flick = quick && !small;
+    var tap = small;
+    var drag = !quick;
+
+    var iconGrid = this.iconGrid;
+    var currentPage = iconGrid.currentPage;
+    if (tap) {
+      iconGrid.tap();
+      return;
+    } else if (flick) {
+      iconGrid.setPage(currentPage + dir, 0.2);
+    } else {
+      if (Math.abs(diffX) < this.containerWidth / 2)
+        iconGrid.setPage(currentPage, 0.2);
+      else
+        iconGrid.setPage(currentPage + dir, 0.2);
+    }
+    e.stopPropagation();
+  }
+};
+
+var Mouse2Touch = {
+  'mousedown': 'touchstart',
+  'mousemove': 'touchmove',
+  'mouseup': 'touchend'
+};
+
+var Touch2Mouse = {
+  'touchstart': 'mousedown',
+  'touchmove': 'mousemove',
+  'touchend': 'mouseup'
+};
+
+var ForceOnWindow = {
+  'touchmove': true,
+  'touchend': true,
+  'sleep': true
+}
+
+function AddEventHandlers(target, listener, eventNames) {
+  for (var n = 0; n < eventNames.length; ++n) {
+    var name = eventNames[n];
+    target = ForceOnWindow[name] ? window : target;
+    name = Touch2Mouse[name] || name;
+    target.addEventListener(name, {
+      handleEvent: function(e) {
+        if (Mouse2Touch[e.type]) {
+          var original = e;
+          e = {
+            type: Mouse2Touch[original.type],
+            target: original.target,
+            touches: [original],
+            preventDefault: function() {
+              original.preventDefault();
+            }
+          };
+          e.changedTouches = e.touches;
+        }
+        return listener.handleEvent(e);
+      }
+    }, true);
+  }
+}
+
+function RemoveEventHandlers(target, listener, eventNames) {
+  for (var n = 0; n < eventNames.length; ++n) {
+    var name = eventNames[n];
+    target = ForceOnWindow[name] ? window : target;
+    name = Touch2Mouse[name] || name;
+    target.removeEventListener(name, listener);
+  }
+}
+
+//-----------------------------------------------------------------------------
+
 var Gallery = {
-  photoSelected: false,
+
+  currentPage: 0,
+  photoTranslation: 0,          // pixels
+
+  physics: null,
+
+  get header() {
+    delete this.header;
+    return this.header = document.getElementById('header');
+  },
+
+  get thumbnails() {
+    delete this.thumbnails;
+    return this.thumbnails = document.getElementById('thumbnails');
+  },
+
+  get photos() {
+    delete this.photos;
+    return this.photos = document.getElementById('photos');
+  },
+
+  get playerControls() {
+    delete this.playerControls;
+    return this.playerControls = document.getElementById('player-controls');
+  },
+
+  get backButton() {
+    delete this.backButton;
+    return this.backButton = document.getElementById('back-button');
+  },
+
   init: function galleryInit() {
     var db = this.db;
-    db.open(this.addThumbnail);
-    var self = this;
-    var thumbnails = document.getElementById('thumbnails');
+    db.open(this.addThumbnail.bind(this), this.getSamplePhotos.bind(this));
 
-    thumbnails.addEventListener('click', function thumbnailsClick(evt) {
+    this.thumbnails.addEventListener('click', (function thumbnailsClick(evt) {
       var target = evt.target;
-      if (!target)
+      if (!target || !target.classList.contains('thumbnailHolder'))
         return;
 
-      db.getPhoto(target.id, function showPhoto(photo) {
-        self.showPhoto(photo);
-      });
-    });
+      this.showPhotos(target.dataset);
+    }).bind(this));
 
-    window.addEventListener('keypress', function keyPressHandler(evt) {
-      if (Gallery.photoSelected && evt.keyCode == evt.DOM_VK_ESCAPE) {
-        Gallery.showThumbnails();
+    this.physics = createPhysicsFor(this);
+    AddEventHandlers(this.photos, this, ['touchstart', 'touchmove', 'touchend']);
+
+    this.backButton.addEventListener('click', (function backButtonClick(evt) {
+      this.showThumbnails();
+    }).bind(this));
+
+    window.addEventListener('keypress', (function keyPressHandler(evt) {
+      if (this.focusedPhoto && evt.keyCode == evt.DOM_VK_ESCAPE) {
+        this.showThumbnails();
         evt.preventDefault();
       }
-    });
+    }).bind(this), true);
   },
 
   getSamplePhotos: function galleryGetSamplePhotos() {
+    var self = this;
     // create separate callback function for each XHR to prevent overwriting
     for (var i in SAMPLE_FILENAMES) {
       var getSamplePhoto = function(i) {
-        var thumbnailRequest = Gallery.createPhotoRequest(SAMPLE_FILENAMES[i],
+        var thumbnailRequest = self.createPhotoRequest(SAMPLE_FILENAMES[i],
           SAMPLE_THUMBNAILS_DIR);
-        var photoRequest = Gallery.createPhotoRequest(SAMPLE_FILENAMES[i],
+        var photoRequest = self.createPhotoRequest(SAMPLE_FILENAMES[i],
           SAMPLE_PHOTOS_DIR);
         thumbnailRequest.send();
         photoRequest.send();
@@ -53,6 +213,9 @@ var Gallery = {
     var photoURL = directory + filename;
     photoRequest.open('GET', photoURL, true);
     photoRequest.responseType = 'blob';
+
+    var db = this.db;
+    var self = this;
     photoRequest.onload = function photoRequestLoaded(e) {
       if (this.status != 200)
         return;
@@ -62,68 +225,136 @@ var Gallery = {
         filename: filename,
         data: blob
       };
+
       if (directory == SAMPLE_THUMBNAILS_DIR)
-        Gallery.db.savePhoto(photoEntry, 'thumbnails', Gallery.addThumbnail);
+        db.savePhoto(photoEntry, 'thumbnails', self.addThumbnail.bind(self));
       else
-        Gallery.db.savePhoto(photoEntry, 'photos');
+        db.savePhoto(photoEntry, 'photos');
     };
     return photoRequest;
   },
 
   addThumbnail: function galleryAddThumbnail(thumbnail) {
-    var thumbnails = this.thumbnails;
-    var li = document.createElement('li');
-    li.id = thumbnail.filename;
+    var blob = window.URL.createObjectURL(thumbnail.data);
+    var filename = thumbnail.filename;
 
-    var a = document.createElement('a');
-    a.href = '#';
+    var li = document.createElement('li');
+    li.dataset.filename = filename;
+    li.dataset.index = this.thumbnails.childNodes.length;
+    li.classList.add('thumbnailHolder');
 
     var img = document.createElement('img');
-    img.src = window.URL.createObjectURL(thumbnail.data);
+    img.src = blob;
     img.classList.add('thumbnail');
-    a.appendChild(img);
-    li.appendChild(a);
+    li.appendChild(img);
 
-    document.getElementById('thumbnails').appendChild(li);
+    this.thumbnails.appendChild(li);
+
+    this.addPhoto(blob, filename);
   },
 
-  showThumbnails: function galleryShowThumbnails(thumbnails) {
-    ['thumbnails'].forEach(function hideElement(id) {
-      document.getElementById(id).classList.remove('hidden');
-    });
+  addPhoto: function galleryAddPhoto(thumbnailBlob, filename) {
+    var photos = this.photos;
+    var div = document.createElement('div');
+    div.id = filename;
 
-    ['photoFrame'].forEach(function showElement(id) {
-      document.getElementById(id).classList.add('hidden');
-    });
-    Gallery.photoSelected = false;
+    var img = document.createElement('img');
+    img.src = thumbnailBlob;
+    img.classList.add('photo');
+    div.appendChild(img);
+
+    // Load the high-resolution version of the photo into the viewer.
+    this.db.getPhoto(filename,
+                     function (result) {
+                       img.src = window.URL.createObjectURL(result.data); 
+                     });
+
+    this.photos.appendChild(div);
   },
 
-  showPhoto: function galleryShowPhoto(photo) {
-    ['thumbnails'].forEach(function hideElement(id) {
-      document.getElementById(id).classList.add('hidden');
-    });
+  showThumbnails: function galleryShowThumbnails() {
+    this.thumbnails.classList.remove('hidden');
+    this.photos.classList.add('hidden');
+    this.playerControls.classList.add('hidden');
+    this.header.classList.remove('hidden');
 
-    ['photoFrame'].forEach(function showElement(id) {
-      document.getElementById(id).classList.remove('hidden');
-    });
+    this.focusedPhoto = null;
+    this.photoTransform = '';
+  },
 
-    var imgURL = window.URL.createObjectURL(photo.data);
-    document.getElementById('photoBorder').innerHTML =
-      '<img id="photo" src="' + imgURL + '">';
+  showPhotos: function galleryShowPhotos(focusedPhoto) {
+    this.thumbnails.classList.add('hidden');
+    this.header.classList.add('hidden');
+    this.photos.classList.remove('hidden');
+    this.playerControls.classList.remove('hidden');
 
-    setTimeout(function() {
-      document.getElementById('photo').setAttribute('data-visible', 'true');
-    }, 100);
+    this.currentPage = parseInt(focusedPhoto.index);
 
-    Gallery.photoSelected = true;
-  }
+    this.pan(0);
+  },
+
+  toggleControls: function galleryToggleControls() {
+    this.playerControls.classList.toggle('hidden');
+  },
+
+  // Touch handling
+  pan: function galleryPan(x, duration) {
+    var db = this.db;
+
+    var pages = this.photos.childNodes;
+    var thumbnails = this.thumbnails.childNodes;
+    var currentPage = this.currentPage;
+    for (var p = 0; p < pages.length; ++p) {
+      var page = pages[p];
+      var style = page.style;
+      // -1 because the pages are positioned offscreen to the right,
+      // by the width of a page right
+      var pageOffset = (p - currentPage) - 1;
+      style.MozTransform = 'translate(-moz-calc('+ pageOffset +'00% + '+ x +'px))';
+      style.MozTransition = duration ? ('all '+ duration + 's ease') : '';
+    }
+  },
+
+  setPage: function(number, duration) {
+    var pages = this.photos.childNodes;
+    if (number < 0)
+      number = 0;
+    else if (number >= pages.length)
+      number = pages.length - 1;
+    this.currentPage = number;
+    this.pan(0, duration);
+  },
+
+  tap: function() {
+    // This is part of the Physics client interface, but isn't used
+    // for the Gallery.  We use a click listener instead.
+  },
+
+  handleEvent: function(e) {
+    var physics = this.physics;
+    switch (e.type) {
+    case 'touchstart':
+      physics.onTouchStart(e.touches[0]);
+      break;
+    case 'touchmove':
+      physics.onTouchMove(e.touches[0]);
+      break;
+    case 'touchend':
+      document.releaseCapture();
+      physics.onTouchEnd(e.changedTouches[0]);
+      break;
+    default:
+      return;
+    }
+    e.preventDefault();
+  },
 };
 
 
 Gallery.db = {
   _db: null,
-  open: function dbOpen(callback) {
-    const DB_VERSION = 3;
+  open: function dbOpen(thumbnailCallback, samplePhotosCallback) {
+    const DB_VERSION = 4;
     const DB_NAME = 'gallery';
     var request = window.mozIndexedDB.open(DB_NAME, DB_VERSION);
     var empty = false;
@@ -136,10 +367,8 @@ Gallery.db = {
 
     request.onsuccess = (function onSuccess(evt) {
       this._db = evt.target.result;
-      if (empty)
-        Gallery.getSamplePhotos();
-      else
-        this.getThumbnails(callback);
+      empty ? samplePhotosCallback() : this.getThumbnails(thumbnailCallback);
+      window.parent.postMessage('appready', '*');
     }).bind(this);
 
     request.onerror = (function onDatabaseError(error) {

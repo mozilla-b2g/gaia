@@ -1,32 +1,33 @@
-html, body {
+body {
   width: 100%;
   height: 100%;
   margin: 0px;
   padding: 0px;
-  background: #222;
-  font-family: "Roboto", sans-serif;
+  background: black;
+  font-family: 'Open Sans', sans-serif;
+  overflow: hidden;
   font-size: 16px;
 }
 
+@media screen and (max-width: 479px) {
+  body {
+    font-size: 10px;
+  }
+}
+
 @font-face {
-  font-family: Roboto;
-  src: url('fonts/Roboto-Regular.ttf');
+  font-family: 'Open Sans';
+  src: url('fonts/Open-Sans.woff');
 }
 @font-face {
-  font-family: Roboto;
+  font-family: 'Open Sans';
   font-weight: bold;
-  src: url('fonts/Roboto-Bold.ttf');
+  src: url('fonts/Open-Sans-Bold.woff');
 }
 @font-face {
-  font-family: Roboto;
-  font-style: italic;
-  src: url('fonts/Roboto-Italic.ttf');
-}
-@font-face {
-  font-family: Roboto;
-  font-weight: bold;
-  font-style: italic;
-  src: url('fonts/Roboto-BoldItalic.ttf');
+  font-family: 'Open Sans';
+  font-weight: 600;
+  src: url('fonts/Open-Sans-Semibold.woff');
 }
 
 #screen {
@@ -34,7 +35,6 @@ html, body {
   overflow: hidden;
   width: 100%;
   height: 100%;
-  background: hsl(0,0%,40%) url(images/noise.png) 2%;
 }
 
 /*
@@ -55,122 +55,162 @@ html, body {
   top: 0px;
   width: -moz-calc(100%);
   height: -moz-calc(100%);
-  color: white;
   overflow: hidden;
-  background-color: #222;
-  background-image: url(images/logo.png), url('images/noise.png');
-  background-repeat: no-repeat, repeat;
-  background-position: 50% 15%, 0 0;
-}
-
-#lockscreen > * {
-  padding-left: 5%;
-  pointer-events: none;
-  color: #aaa;
-  text-shadow: 0 0 3px hsla(0,0%,0%,.5);
 }
 
 #lockscreen > #status {
-  display: -moz-box;
-  -moz-box-orient: horizontal;
-  width: -moz-calc(100% - 4px);
-  height: 20px;
-  padding: 2px;
+  height: 32px;
+  width: 100%;
 }
 
-#lockscreen > #status > #padding {
-  -moz-box-flex: 1;
+#lockscreen > #lockscreenContainer {
+  width: 100%;
+  height: -moz-calc(100% - 32px);
+  background: url(images/noise.png), url(images/background.bmp);
 }
 
-#lockscreen > #clock {
+#lockscreenContainer::before {
+  content: '';
+  display: block;
   position: absolute;
-  bottom: -moz-calc(5%);
-  font-size: 58px;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.6);
 }
 
-#lockscreen > #clock > *[data-format*="%b"] {
+#lockscreen #clock {
+  position: absolute;
+  top: 200px;
+  width: 100%;
+  text-align: center;
+  font-family: "Open Sans", sans-serif;
+}
+
+#lockscreen #clock > #hourMin {
+  color: #fff;
   font-size: 100px;
+  font-weight: 600;
+  text-shadow: 0 3px 2px rgba(86, 93, 101, 0.8);
 }
 
-#lockscreen > #notifications {
-  position: absolute;
-  bottom: 2%;
+#lockscreen #clock > #date {
+  color: #a2a5a8;
+  font-size: 24px;
 }
 
-#lockscreen > #notifications > * {
-  display: inline-block;
+#lockscreen #clock > *[data-format*="%b"] {
+  font-size: 100px;
 }
 
 #notificationsScreen {
   position: absolute;
   z-index: 9998;
-  top: -moz-calc(-100% + 74px);
+  top: -moz-calc(-100% + 64px);
   width: -moz-calc(100%);
-  height: -moz-calc(100% - 37px);
-  background-color: #444;
-  background: #323f4d url(images/notificationsbar-bg.png) no-repeat 0 100%;
+  height: -moz-calc(100% - 32px);
+  background-color: #222;
+}
+
+#notificationsScreen > #grippy {
+  pointer-events: none;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 30px;
+
+  border-bottom: 1px solid #111;
+  border-top: 1px solid #111;
+
+  background: #111 url(images/grippy.png) no-repeat 50% 50%;
 }
 
 #home {
   position: absolute;
-  top: 37px;
+  top: 32px;
   width: -moz-calc(100%);
-  height: -moz-calc(100% - 37px);
-  border-top: 1px solid hsla(0,0%,60%,0.6);
+  height: -moz-calc(100% - 32px);
+  border-radius: 8px;
+  background: url("images/noise.png") repeat scroll 50% 50%, url(images/background.bmp) 50% 50% transparent;
 }
 
-#home-menu {
-  height: 140px;
-
-  box-shadow: inset 0 0 4px black;
-  background: hsla(0,0%,5%,0.3) url(images/noise.png) 2%;
+#home > div {
+  position: absolute;
+  overflow: hidden;
+  width: -moz-calc(100%);
+  left: 0;
 }
 
-#home-pages {
-  position: relative;
-  top: -10px;
+#home > #apps {
+  top: 0;
+  height: -moz-calc(75%);
+}
+
+#home > #dots {
+  top: 77.5%;
+  height: -moz-calc(2.5%);
+  text-align: center;
+}
+
+#home > #favs {
+  top: 80%;
+  height: -moz-calc(20%);
+}
+
+.page {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  width: 100%;
+  height: 100%;
+}
+
+.icon {
+  position: absolute;
   width: 100%;
   text-align: center;
 }
 
-.home-page {
-  position: relative;
-  top: -10px;
-  background-image: url(images/paging.png);
-}
-
-.home-page[data-active] {
-  background-position: 30px 0;
-}
-
-.home-page > div {
+.icon > div {
   display: inline-block;
-  width: 30px;
-  height: 26px;
-  visibility: hidden;
+  width: 100%;
 }
 
-#home-shortcuts {
-  text-align: center;
+.icon > div > img {
+  padding-top: 10%;
+  width: 70%;
 }
 
-.shortcut > img {
-  width: 110px;
-  height: 110px;
-  margin-top: -15px;
+.icon > .label {
+  padding-top: 0%;
+  color: white;
+  font-size: 140%;
+}
+
+.dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  background-color: darkgray;
+  margin-left: 5px;
+  margin-right: 5px;
+  border-radius: 5px;
+}
+
+.dot.active {
+  background-color: white;
 }
 
 #windows {
   position: absolute;
   left: 0px;
-  top: 37px;
+  top: 32px;
   width: 100%;
   height: 0;
   overflow: hidden;
 }
 
 #windows.active {
-  height: -moz-calc(100% - 37px);
+  height: -moz-calc(100% - 32px);
   overflow: visible;
 }
 
@@ -185,17 +225,54 @@ iframe.appWindow {
   top: 0;
   width: 100%;
   height: 100%;
-  -moz-transform-origin: center bottom;
-  -moz-transform: scale(0);
-  -moz-transition: all 0.2s ease;
+  display: none;
+/*
+ * Disable this for now because it forces an expensive fallback path in
+ * Gecko.  The performance issue should be fixed by
+ * https://bugzilla.mozilla.org/show_bug.cgi?id=697645 or a related bug.
+ *
+  border-radius: 8px;
+ */
 }
 
 iframe.appWindow.active {
+  display: block;
+}
+
+iframe.appWindow.keyboardOn {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+div.windowSprite {
+  position: absolute;
+  top: 32px;
+  left: 0;
+  z-index: 999999;
+  -moz-transform-origin: center bottom;
+  -moz-transform: scale(0);
+  -moz-transition: all 0.5s ease;
+}
+
+div.windowSprite.active {
   -moz-transform: scale(1);
 }
 
-iframe.appWindow.noTransition {
-  -moz-transition: none;
+iframe.portrait-primary {
+}
+
+iframe.portrait-secondary {
+  -moz-transform: translate(rotate(180deg);
+}
+
+iframe.landscape-primary {
+  -moz-transform-origin: left top;
+  -moz-transform: rotate(90deg) translate(0px, -480px);
+}
+
+iframe.landscape-secondary {
+  -moz-transform-origin: left top;
+  -moz-transform: rotate(-90deg) translate(-800px, 0px);
 }
 
 #statusbar {
@@ -205,19 +282,26 @@ iframe.appWindow.noTransition {
   z-index: 9999;
   -moz-box-orient: horizontal;
 
-  width: -moz-calc(100% - 4px);
-  height: 31px;
-  border-top: 1px solid hsl(210, 2%, 56%);
-  border-bottom: 1px solid hsl(210, 2%, 20%);
+  width: 100%;
+  -moz-box-sizing: border-box;
+  height: 32px;
   padding: 2px;
 
-  color: #fff;
-  background: -moz-linear-gradient(top, hsl(0, 0%, 53%) 1%, hsl(0, 0%, 33%) 100%);
+  color: #999;
+  background-color: #000;
 }
 
 #statusbar > * {
   -moz-box-flex: 0;
   pointer-events: none;
+}
+
+#screen.fullscreen > :-moz-any(#statusbar,#notificationsScreen) {
+  display: none;
+}
+
+#screen.fullscreen > #windows {
+  top: 0px;
 }
 
 #statusbar > #padding {
@@ -231,10 +315,47 @@ iframe.appWindow.noTransition {
   margin: 0 4px;
 }
 
+#signal {
+  width: 20px;
+  margin-top: 2px;
+}
+
+#signal span {
+  float: left;
+  width: 3px;
+  margin: 1px;
+
+  background: #999;
+}
+
+#signal span:nth-child(1) {
+  margin-top: 17px;
+  height: 3px;
+}
+
+#signal span:nth-child(2) {
+  margin-top: 13px;
+  height: 7px;
+}
+
+#signal span:nth-child(3) {
+  margin-top: 10px;
+  height: 10px;
+}
+
+#signal span:nth-child(4) {
+  margin-top: 6px;
+  height: 14px;
+}
+
+#wifi {
+  width: 30px;
+  background: url(images/wifi.png) 50% 8px no-repeat;
+}
+
 #statusbar .time {
   text-shadow: 0 0 3px hsla(0,0%,0%,.5);
   line-height: 31px;
-  font-size: 18px;
   margin: 0 4px;
 }
 
@@ -246,6 +367,7 @@ iframe.appWindow.noTransition {
   background: url(images/battery-main.png);
   background-repeat: no-repeat;
   background-size: 29px 16px;
+  position: relative;
 }
 
 .battery > #fuel {
@@ -263,49 +385,27 @@ iframe.appWindow.noTransition {
 
 .battery > #fuel.charging {
   background-image: -moz-linear-gradient(top, #b9fd00, #8fc400);
-  -moz-animation-duration: 3s;
-  -moz-animation-name: batteryCharging;
-  -moz-animation-iteration-count: infinite;
-  -moz-animation-timing-function: linear;
-}
-
-@-moz-keyframes batteryCharging {
-  from {
-    width: 0;
-  }
-  to {
-    width: 19px;
-  }
 }
 .battery > #charging {
   height: 8px;
   width: 18px;
-  background-image: url(images/battery-charging.png);
-  background-repeat: no-repeat;
-  background-size: 18px 8px;
+  background: transparent url(images/battery-charging.png) center center no-repeat;
   position: absolute;
-  margin: 8px 3px;
-  top: 7px;
+  top: 4px; left: 5px;
 }
 
 #taskManager {
- /*
-  * Temporarily work around
-  * https://bugzilla.mozilla.org/show_bug.cgi?id=715232 which is
-  * triggered by the rules below (on Gonk).
-  *
-  background-color: rgba(0, 0, 0, 0.8);
   opacity: 0;
-  */
-  background: hsl(0,0%,40%) url(images/noise.png) 2%;
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   -moz-transform: scale(0);
-  -moz-transition: all 0.3s ease;
+  -moz-transition: all 0.4s ease;
   -moz-user-select: none;
+  overflow: scroll;
+  background-color: rgba(0, 0, 0, 0.8);
 }
 
 #taskManager.active {
@@ -319,8 +419,8 @@ iframe.appWindow.noTransition {
   padding: 0;
   width: 100%;
   height: 100%;
-  overflow: hidden;
   white-space: nowrap;
+  text-align: center;
 }
 
 #taskManager li {
@@ -328,17 +428,9 @@ iframe.appWindow.noTransition {
   display: inline-block;
   width: 100%;
   height: 100%;
-  margin: 0;
+  margin: 0 -25%;
   position: relative;
-  -moz-transform: scale(0.5);
-}
-
-#taskManager li:first-child {
-  margin-left: 60%;
-}
-
-#taskManager li:last-child {
-  margin-right: 60%;
+  -moz-transform: scale(0.4);
 }
 
 #taskManager li > a {
@@ -349,7 +441,7 @@ iframe.appWindow.noTransition {
   position: absolute;
   top: -16px;
   right: -16px;
-  -moz-transform: scale(2);
+  -moz-transform: scale(2.5);
 }
 
 #taskManager li > h1 {
@@ -364,17 +456,23 @@ iframe.appWindow.noTransition {
 
 #keyboard {
   position: absolute;
+  font-family: 'Open Sans', sans-serif;
+  font-weight: bold;
   z-index: 9997;
   bottom: 0;
-  height: auto;
   overflow: visible;
-  background-color: #36373b;
+  background-color: #f0f1f2;
   width: -moz-calc(100%);
-  -moz-transition: height 0.2s ease;
+  -moz-transition: -moz-transform 0.3s ease;
+  border-top: 2px solid #a3a3a3;
+  -moz-box-shadow: inset 0 0 0 1px #fff;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
 }
 
 #keyboard[data-hidden] {
-  height: 0;
+  bottom: -2px;
+  -moz-transform: translateY(100%);
 }
 
 #keyboard-candidate-panel {
@@ -394,10 +492,12 @@ iframe.appWindow.noTransition {
   display: block;
   position: absolute;
   white-space: normal;
+  top: -68px;
   bottom: 0;
-  height: -moz-calc(100%);
+  height: -moz-calc(100% + 68px);
   width: 100%;
   border: none;
+  border-top: 2px solid #a3a3a3;
 }
 #keyboard-candidate-panel.full span {
   border-top: 1px solid #e8e8ff;
@@ -438,7 +538,7 @@ iframe.appWindow.noTransition {
   display: block;
   border-top: 1px solid #e8e8ff;
   border-bottom: 1px solid #808098;
-  top: 0;
+  top: -66px;
 }
 
 #keyboard-candidate-panel-toggle-button.show {
@@ -450,37 +550,62 @@ iframe.appWindow.noTransition {
   background: -moz-linear-gradient(bottom, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
 }
 
+.keyboard-row {
+  margin: 10px 0;
+}
+
 .keyboard-key {
   display: inline-block;
   vertical-align: middle;
   overflow: hidden;
   text-align: center;
-  color: white;
-  font-size: 32px;
-  height: 64px;
-  line-height: 64px;
+  color: rgb(36, 36, 36);
+  font-size: 33px;
+  height: 58px;
+  line-height: 54px;
   min-width: 0 !important;
-  margin-bottom: 2px;
-  margin-top: 2px;
-  margin-left: 1px;
-  margin-right: 1px;
+  margin: 0 2px;
+  -moz-box-sizing: border-box;
   padding: 0;
-  border: 1px solid black;
+  border: 1px solid #d5d5d5;
+  -moz-box-shadow: inset 0 0 2px 2px #fff;
   border-radius: 5px;
-  background: -moz-linear-gradient(top, rgb(94,97,102) 10%, rgb(64,64,72) 90%);
+  background: -moz-linear-gradient(top, #fff 10%, #fff 70%, #f6f6f6 100%);
+}
+
+.keyboard-key.spacekey {
+  color: #9b9b9b;
+  font-size: 18px;
+}
+
+@font-face {
+  font-family: 'Keyboard Symbols';
+  font-weight: 600;
+  src: url('fonts/Keyboard-Symbols.woff');
+}
+
+.keyboard-key[data-keycode="-3"], /* IMEManager.SWITCH_KEYBOARD */
+.keyboard-key[data-keycode="8"], /* KeyEvent.DOM_VK_BACK_SPACE */
+.keyboard-key[data-keycode="20"], /* KeyEvent.DOM_VK_CAPS_LOCK */
+.keyboard-key[data-keycode="13"] { /* KeyEvent.DOM_VK_RETURN */
+  font-family: 'Keyboard Symbols', sans-serif;
+  font-size: 28px;
 }
 
 .keyboard-key[data-active] {
-  color: #ccc;
-  background: -moz-linear-gradient(bottom, rgb(94,97,102) 10%, rgb(64,64,72) 90%);
+  color: #fff;
+  -moz-box-shadow: inset 0 0 2px 2px #6f6f6f;
+  text-shadow: 0 -1px #909090, 0 1px #9b9b9b;
+  background: rgb(118, 118, 118);
 }
 
 .keyboard-key-special {
-  background: -moz-linear-gradient(top, #464766 10%, #363748 90%);
-}
-
-.keyboard-key-special[data-active] {
-  background: -moz-linear-gradient(bottom, #464766 10%, #363748 90%);
+  color: #fff;
+  font-size: 18px;
+  text-shadow: 0 -1px #848d96, 0 1px #bac2cb;
+  background: -moz-linear-gradient(top, #a3aeb9 10%, #a3aeb9 70%, #929ca6 100%);
+  -moz-box-shadow: none;
+  border: 1px solid #8a949d;
 }
 
 .keyboard-key-special.toggle {
@@ -495,18 +620,18 @@ iframe.appWindow.noTransition {
   width: 8px;
   height: 8px;
   border-radius: 4px;
-  background-color: #333;
+  background-color: #999;
 }
 .keyboard-key-special[data-enabled] {
   text-shadow: 0 0 5px #fff;
 }
 .keyboard-key-special[data-enabled]::before {
   background-color: #0c0;
-  box-shadow: 0 0 5px #fff;
 }
 
 #keyboard-key-highlight {
   position: absolute;
+  font-family: 'Keyboard Symbols', 'Open Sans', sans-serif;
   pointer-events: none;
   top: 0; left: 0;
   color: #333;

@@ -1,8 +1,7 @@
 'use strict';
 
 var kFontStep = 8;
-var kMinFontSize = 24;
-var kDefaultFontSize = 64;
+var kMinFontSize = 12;
 // Frequencies comming from http://en.wikipedia.org/wiki/Telephone_keypad
 var gTonesFrequencies = {
   '1': [697, 1209], '2': [697, 1336], '3': [697, 1477],
@@ -56,6 +55,10 @@ function choiceChanged(target) {
   if (!choice)
     return;
 
+  if (choice == 'contacts') {
+    Contacts.load();
+  }
+
   var view = document.getElementById(choice + '-view');
   if (!view)
     return;
@@ -88,7 +91,8 @@ var TonePlayer = {
     var kr = 2 * Math.PI * freqRow / this._sampleRate;
     var kc = 2 * Math.PI * freqCol / this._sampleRate;
     for (var i = 0; i < soundData.length; i += 2) {
-      var smoother = 1 - (i/soundData.length);
+      var smoother = 0.5 + (Math.sin((i * Math.PI) / soundData.length)) / 2;
+
       soundData[i] = Math.sin(kr * currentSoundSample) * smoother;
       soundData[i + 1] = Math.sin(kc * currentSoundSample) * smoother;
 
@@ -124,45 +128,6 @@ var KeyHandler = {
   init: function kh_init() {
     this.phoneNumber.value = '';
 
-    var mainKeys = [
-      { title: '1', details: '' },
-      { title: '2', details: 'abc' },
-      { title: '3', details: 'def' },
-      { title: '4', details: 'ghi' },
-      { title: '5', details: 'jkl' },
-      { title: '6', details: 'mno' },
-      { title: '7', details: 'pqrs' },
-      { title: '8', details: 'tuv' },
-      { title: '9', details: 'wxyz' },
-      { title: '\u2217', value: '*', details: '' },
-      { title: '0', details: '+' },
-      { title: '#', details: '' }
-    ];
-
-    var mainKey = document.getElementById('mainKeyset');
-    var row = null;
-    mainKeys.forEach(function(key, index) {
-      if (index % 3 == 0) {
-        row = document.createElement('div');
-        row.className = 'keyboard-row';
-        mainKey.appendChild(row);
-      }
-
-      var container = document.createElement('div');
-      container.className = 'keyboard-key';
-      var value = 'value' in key ? key.value : key.title;
-      container.setAttribute('data-value', value);
-
-      var title = document.createElement('span');
-      title.appendChild(document.createTextNode(key.title));
-      container.appendChild(title);
-
-      var details = document.createElement('span');
-      details.appendChild(document.createTextNode(key.details));
-      container.appendChild(details);
-      row.appendChild(container);
-    });
-
     TonePlayer.init();
   },
 
@@ -187,7 +152,7 @@ var KeyHandler = {
       var rect = div.getBoundingClientRect();
       if (rect.width > viewWidth) {
         fontSize = Math.max(fontSize - kFontStep, kMinFontSize);
-      } else if (fontSize < kDefaultFontSize) {
+      } else if (fontSize < self._initialFontSize) {
         div.style.fontSize = (fontSize + kFontStep) + 'px';
         rect = div.getBoundingClientRect();
         if (rect.width <= viewWidth)
@@ -200,12 +165,15 @@ var KeyHandler = {
     var view = this.phoneNumberView;
     var computedStyle = window.getComputedStyle(view, null);
     var fontSize = computedStyle.getPropertyValue('font-size');
+    if (!this._initialFontSize) {
+      this._initialFontSize = parseInt(fontSize);
+    }
 
     var text = this.formatPhoneNumber(this.phoneNumber.value);
     view.innerHTML = text;
 
     var newFontSize =
-      text ? getNextFontSize(parseInt(fontSize), text) : kDefaultFontSize;
+      text ? getNextFontSize(parseInt(fontSize), text) : this._initialFontSize;
     if (newFontSize != fontSize)
     view.style.fontSize = newFontSize + 'px';
   },
@@ -258,44 +226,50 @@ var CallHandler = {
 
   // callbacks
   call: function ch_call(number) {
+    this.callScreen.classList.remove('incoming');
+    this.callScreen.classList.add('calling');
     this.numberView.innerHTML = number;
-    this.statusView.innerHTML = 'Calling...';
-    this.actionsView.classList.remove('displayed');
-    this.callButton.dataset.action = 'end';
+    this.statusView.innerHTML = 'Dialing...';
     this.toggleCallScreen();
 
-    var call = window.navigator.mozTelephony.dial(number);
+    var sanitizedNumber = number.replace(/-/g, '');
+    var call = window.navigator.mozTelephony.dial(sanitizedNumber);
     call.addEventListener('statechange', this);
     this.currentCall = call;
   },
-
   incoming: function ch_incoming(evt, number) {
+    var self = this;
+
     var call = this.currentCall = {
       'number': number,
       'answer': function call_answer() {
-        evt.source.postMessage('moztelephony:answer', evt);
+        evt.source.postMessage('moztelephony:answer', '*');
       },
       'hangUp': function call_hangUp() {
-        evt.source.postMessage('moztelephony:hangup', evt);
+        evt.source.postMessage('moztelephony:hangup', '*');
+        self.end();
       },
       'addEventListener': function call_addEventListener() {},
       'removeEventListener': function call_removeEventListener() {}
     };
 
-    this.numberView.innerHTML = number;
-    this.statusView.innerHTML = 'Incoming call...';
-    this.actionsView.classList.remove('displayed');
-    this.callButton.dataset.action = 'answer';
+    this.callScreen.classList.remove('calling');
+    this.callScreen.classList.add('incoming');
+    this.currentCall = call;
+    call.addEventListener('statechange', this);
+
+    this.numberView.innerHTML = call.number;
+    this.statusView.innerHTML = 'Call from...';
     this.toggleCallScreen();
   },
   connected: function ch_connected() {
+    this.callScreen.classList.remove('incoming');
+    this.callScreen.classList.add('calling');
     // hardening against rapid ending
     if (!document.getElementById('call-screen').classList.contains('oncall'))
       return;
 
     this.statusView.innerHTML = '00:00';
-    this.actionsView.classList.add('displayed');
-    this.callButton.dataset.action = 'end';
 
     this._ticker = setInterval(function ch_updateTimer(self, startTime) {
       var elapsed = new Date(Date.now() - startTime);
@@ -306,12 +280,19 @@ var CallHandler = {
     this.currentCall.answer();
   },
   end: function ch_end() {
-    this.currentCall.hangUp();
+    // XXX: workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=729503
+    if (this.currentCall && (this.currentCall.state != 'dialing')) {
+      this.currentCall.hangUp();
+    } else {
+      this.disconnected();
+    }
   },
   disconnected: function ch_disconnected() {
-    this.toggleCallScreen();
+    if (this.currentCall) {
+      this.currentCall.removeEventListener('statechange', this);
+      this.currentCall = null;
+    }
 
-    this.actionsView.classList.remove('displayed');
     if (this.muteButton.classList.contains('mute'))
       this.toggleMute();
     if (this.speakerButton.classList.contains('speak'))
@@ -320,8 +301,7 @@ var CallHandler = {
     this.closeModal();
     clearInterval(this._ticker);
 
-    this.currentCall.removeEventListener('statechange', this);
-    this.currentCall = null;
+    this.toggleCallScreen();
   },
 
   handleEvent: function fm_handleEvent(evt) {
@@ -338,6 +318,10 @@ var CallHandler = {
   },
 
   // properties / methods
+  get callScreen() {
+    delete this.callScreen;
+    return this.callScreen = document.getElementById('call-screen');
+  },
   get numberView() {
     delete this.numberView;
     return this.numberView = document.getElementById('call-number-view');
@@ -358,9 +342,9 @@ var CallHandler = {
     delete this.speakerButton;
     return this.speakerButton = document.getElementById('speaker-button');
   },
-  get callButton() {
-    delete this.callButton;
-    return this.callButton = document.getElementById('call-button');
+  get holdButton() {
+    delete this.holdButton;
+    return this.holdButton = document.getElementById('hold-button');
   },
 
   execute: function ch_execute(action) {
@@ -373,24 +357,28 @@ var CallHandler = {
   },
 
   toggleCallScreen: function ch_toggleScreen() {
-    document.getElementById('tabs-container').classList.toggle('oncall');
+    document.getElementById('tabs').classList.toggle('oncall');
     document.getElementById('views').classList.toggle('oncall');
     document.getElementById('call-screen').classList.toggle('oncall');
   },
   toggleMute: function ch_toggleMute() {
     this.muteButton.classList.toggle('mute');
-    // TODO: make the actual mute call on the telephony API
+    navigator.mozTelephony.muted = !navigator.mozTelephony.muted;
   },
   toggleSpeaker: function ch_toggleSpeaker() {
     this.speakerButton.classList.toggle('speak');
-    // TODO: make the actual speaker call
+    navigator.mozTelephony.speakerEnabled =
+      !navigator.mozTelephony.speakerEnabled;
+  },
+  toggleHold: function ch_toggleHold() {
+    this.holdButton.classList.toggle('hold');
+    // TODO: make the actual hold call
   },
   keypad: function ch_keypad() {
     choiceChanged(document.getElementById('keyboard-label'));
     this.toggleModal();
   },
   contacts: function ch_contacts() {
-    Contacts.load();
     choiceChanged(document.getElementById('contacts-label'));
     this.toggleModal();
   },
@@ -421,5 +409,7 @@ window.addEventListener('load', function keyboardInit(evt) {
 
   KeyHandler.init();
   navigator.mozTelephony.addEventListener('incoming', CallHandler);
+
+  window.parent.postMessage('appready', '*');
 });
 

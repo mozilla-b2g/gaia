@@ -1,27 +1,35 @@
+'use strict';
 
 // Based on Resig's pretty date
 function prettyDate(time) {
   var diff = (Date.now() - time) / 1000;
   var day_diff = Math.floor(diff / 86400);
 
-  if (isNaN(day_diff) || day_diff < 0 || day_diff >= 31)
-    return '';
+  if (isNaN(day_diff))
+    return '(incorrect date)';
+
+  if (day_diff < 0 || diff < 0) {
+    // future time
+    return (new Date(time)).toLocaleFormat('%x %R');
+  }
 
   return day_diff == 0 && (
-          diff < 60 && 'just now' ||
-          diff < 120 && '1 minute ago' ||
-          diff < 3600 && Math.floor(diff / 60) + ' minutes ago' ||
-          diff < 7200 && '1 hour ago' ||
-          diff < 86400 && Math.floor(diff / 3600) + ' hours ago') ||
-          day_diff == 1 && 'Yesterday' ||
-          day_diff < 7 && day_diff + ' days ago' ||
-          day_diff < 31 && Math.ceil(day_diff / 7) + ' weeks ago';
+    diff < 60 && 'Just Now' ||
+    diff < 120 && '1 Minute Ago' ||
+    diff < 3600 && Math.floor(diff / 60) + ' Minutes Ago' ||
+    diff < 7200 && '1 Hour Ago' ||
+    diff < 86400 && Math.floor(diff / 3600) + ' Hours Ago') ||
+    day_diff == 1 && 'Yesterday' ||
+    day_diff < 7 && (new Date(time)).toLocaleFormat('%A') ||
+    (new Date(time)).toLocaleFormat('%x');
 }
 
 
 var MessageManager = {
   getMessages: function mm_getMessages(callback, filter, invert) {
-    if (!('getMessages' in navigator.mozSms)) {
+    // XXX Bug 712809
+    // Until there is a database for mozSms, use a fake GetMessages
+    if (true) {
       GetMessagesHack(callback, filter, invert);
       return;
     }
@@ -29,7 +37,7 @@ var MessageManager = {
     var request = navigator.mozSms.getMessages(filter, !invert);
 
     var messages = [];
-    request.onsuccess = function() {
+    request.onsuccess = function onsuccess() {
       var result = request.result;
       if (!result) {
         callback(messages);
@@ -41,20 +49,38 @@ var MessageManager = {
       result.next();
     };
 
-    request.onerror = function() {
+    request.onerror = function onerror() {
       alert('Error reading the database. Error code: ' + request.errorCode);
     }
   },
 
   send: function mm_send(number, text, callback) {
-    var result = navigator.mozSms.send(number, text);
-    if (!result) {
-      sendMessageHack(number, text, callback);
+    // Use a fake send if mozSms is not present
+    if (!navigator.mozSms) {
+      var message = {
+        sender: null,
+        receiver: number,
+        body: text,
+        timestamp: Date.now()
+      };
+
+      window.setTimeout(function() {
+        callback(message);
+      }, 0);
+
       return;
     }
 
-    result.onsuccess = callback;
-    result.onerror = callback;
+    var result = navigator.mozSms.send(number, text);
+    result.onsuccess = function onsuccess(event) {
+      console.log('SMS sent.');
+      callback(event.message);
+    };
+
+    result.onerror = function onerror(event) {
+      console.log('Error sending SMS!');
+      callback(null);
+    };
   },
 
   delete: function mm_delete(id) {
@@ -62,33 +88,10 @@ var MessageManager = {
   }
 };
 
-
 // Until there is a database to store messages on the device, return
 // a fake list of messages.
 var messagesHack = [];
-var GetMessagesHack = function(callback, filter, invert) {
-  function applyFilter(msgs) {
-    if (!filter)
-      return msgs;
-
-    if (filter.number) {
-      msgs = msgs.filter(function(element, index, array) {
-          return (filter.number && (filter.number == element.sender ||
-                  filter.number == element.receiver));
-      });
-    }
-
-    return msgs;
-  }
-
-  if (messagesHack.length) {
-    var msg = messagesHack.slice();
-    if (invert)
-      msg.reverse();
-    callback(applyFilter(msg));
-    return;
-  }
-
+(function() {
   var messages = [
     {
       sender: null,
@@ -112,6 +115,22 @@ var GetMessagesHack = function(callback, filter, invert) {
   }
 
   messagesHack = messages;
+})();
+
+var GetMessagesHack = function gmhack(callback, filter, invert) {
+  function applyFilter(msgs) {
+    if (!filter)
+      return msgs;
+
+    if (filter.number) {
+      msgs = msgs.filter(function(element, index, array) {
+        var num = filter.number;
+        return (num && (num == element.sender || num == element.receiver));
+      });
+    }
+
+    return msgs;
+  }
 
   var msg = messagesHack.slice();
   if (invert)
@@ -119,52 +138,101 @@ var GetMessagesHack = function(callback, filter, invert) {
   callback(applyFilter(msg));
 };
 
-var sendMessageHack = function(number, text, callback) {
-  var message = {
-    sender: null,
-    receiver: number,
-    body: text,
-    timestamp: Date.now()
-  };
-
-  var event = document.createEvent('CustomEvent');
-  event.initCustomEvent('sent', true, false, message);
-  window.setTimeout(function(evt) {
-    window.dispatchEvent(event);
-    if (callback)
-      callback();
-  }, 1000);
-};
-
-if (!navigator.mozSms) {
-  MessageManager.getMessages = GetMessagesHack;
-  MessageManager.send = sendMessageHack;
-}
-
-
-['sent', 'received'].forEach(function(type) {
-  window.addEventListener(type, function handleEvent(evt) {
-    messagesHack.unshift(evt.detail);
-  }, true);
-});
-
-var MessageView = {
-  init: function init() {
-    ['sent', 'received'].forEach((function(type) {
-      window.addEventListener(type, (function handleEvent(evt) {
-        this.handleEvent({'type': type });
-      }).bind(this), true);
-
-      if (window.navigator.mozSms)
-        window.navigator.mozSms.addEventListener(type, this);
-    }).bind(this));
-
-    this.showConversations();
+var ConversationListView = {
+  get view() {
+    delete this.view;
+    return this.view = document.getElementById('msg-conversations-list');
   },
 
-  get conversationView() {
-    delete this.conversationView;
-    return this.conversationView = document.getElementById('conversation');
+  get searchInput() {
+    delete this.searchInput;
+    return this.searchInput = document.getElementById('msg-search');
+  },
+
+  init: function init() {
+    if (navigator.mozSms)
+      navigator.mozSms.addEventListener('received', this);
+
+    window.addEventListener('transitionend', this);
+    this.searchInput.addEventListener('keyup', this);
+    this.view.addEventListener('click', this);
+
+    this.updateConversationList(function fireAppReady() {
+      window.parent.postMessage('appready', '*');
+    });
+  },
+
+  updateConversationList: function updateConversationList(callback) {
+    var self = this;
+    MessageManager.getMessages(function getMessagesCallback(messages) {
+      var conversations = {};
+      for (var i = 0; i < messages.length; i++) {
+        var message = messages[i];
+        var sender = message.sender || message.receiver;
+        if (conversations[sender])
+          continue;
+
+        conversations[sender] = {
+          sender: message.sender,
+          receiver: message.receiver,
+          body: message.body,
+          timestamp: prettyDate(message.timestamp)
+        };
+      }
+
+      var fragment = '';
+      for (var sender in conversations) {
+        var msg = self.createNewConversation(conversations[sender]);
+        fragment += msg;
+      }
+      self.view.innerHTML = fragment;
+
+      if (typeof callback === 'function')
+        callback.call(self);
+    }, null);
+  },
+
+  createNewConversation: function createNewConversation(msg) {
+    var num = (msg.sender || msg.receiver);
+    var name = num;
+
+    var contacts = window.navigator.mozContacts.contacts;
+    contacts.forEach(function(contact) {
+      if (contact.phones[0] == num)
+        name = contact.displayName;
+    });
+
+    return '<div data-num="' + num + '" data-name="' + name + '">' +
+           '  <div class="photo">' +
+           '    <img alt="" src="" />' +
+           '  </div>' +
+           '  <div class="name">' + name + '</div>' +
+           '  <div class="msg">' + msg.body + '</div>' +
+           '  <div class="time">' + msg.timestamp + '</div>' +
+           '</div>';
+  },
+
+  searchConversations: function searchConversations() {
+    var str = this.searchInput.value;
+    var conversations = this.view.childNodes;
+    if (!str) {
+      for (var i in conversations) {
+        conversations[i].classList.remove('hide');
+      }
+      return;
+    }
+
+    var reg = new RegExp(str, 'i');
+
+    for (var i in conversations) {
+      var conversation = conversations[i];
+      if (!reg.test(conversation.dataset.num) &&
+          !reg.test(conversation.dataset.name)) {
+        conversation.classList.add('hide');
+      } else {
+        conversation.classList.remove('hide');
+      }
+    }
   },
 
   openConversationView: function openConversationView(num) {
@@ -172,132 +240,104 @@ var MessageView = {
       return;
 
     ConversationView.showConversation(num == '*' ? '' : num);
-
-    var conversationView = document.getElementById('conversationView');
-    conversationView.hidden = false;
-
-    window.setTimeout(function conversationSlideIn() {
-      conversationView.classList.remove('slideOut');
-      conversationView.classList.add('slideIn');
-    }, 100);
-  },
-
-  get view() {
-    delete this.view;
-    return this.view = document.getElementById('messages');
-  },
-
-  showConversations: function showConversations() {
-    var self = this;
-    MessageManager.getMessages(function(messages) {
-      var conversations = {};
-      for (var i = 0; i < messages.length; i++) {
-        var message = messages[i];
-        var sender = message.sender || message.receiver;
-        if (conversations[sender]) {
-          conversations[sender].count++;
-          continue;
-        }
-
-        conversations[sender] = {
-          sender: message.sender,
-          receiver: message.receiver,
-          body: message.body,
-          timestamp: prettyDate(message.timestamp),
-          count: 1
-        };
-      }
-
-      var fragment = '<div class="message" data-num="*">' +
-                     '  <div class="title">New Message</div>' +
-                     '  <div class="content">Write a message</div>' +
-                     '</div>';
-      for (var conversation in conversations) {
-        var msg = self.createNewMessage(conversations[conversation]);
-        fragment += msg;
-      }
-      self.view.innerHTML = fragment;
-    }, null);
-  },
-
-  createNewMessage: function createNewMessage(msg) {
-    var className = 'class="message ' +
-                    (msg.sender ? 'sender' : 'receiver') + '"';
-
-    var num = (msg.sender || msg.receiver);
-    var dataNum = 'data-num="' + num + '"';
-
-    var contacts = window.navigator.mozContacts.contacts;
-    contacts.forEach(function(contact) {
-      if (contact.phones[0] == num)
-        num = contact.displayName;
-    });
-    var title = num + ' (' + msg.count + ')';
-
-    return '<div ' + className + ' ' + dataNum + '>' +
-           '  <div class="sms">' +
-           '    <div class="title">' + title + '</div>' +
-           '    <div class="content">' +
-           '      <span class="text">' + msg.body + '</span>' +
-           '      <span class="infos">' + msg.timestamp + '</span>' +
-           '    </div>' +
-           '  </div>' +
-           '</div>';
   },
 
   handleEvent: function handleEvent(evt) {
     switch (evt.type) {
-      case 'sent':
       case 'received':
-        // TODO Remove the delay once the native SMS application is disabled
-        window.setTimeout(function(self) {
-          self.showConversations();
-        }, 800, this);
+        window.setTimeout(function updadeConversationList() {
+          ConversationListView.updateConversationList();
+        }, 0);
+        break;
+
+      case 'click':
+        this.openConversationView(evt.target.dataset.num);
+        break;
+
+      case 'transitionend':
+        if (!document.body.classList.contains('transition-back'))
+          return;
+
+        document.body.classList.remove('transition-back');
+        break;
+
+      case 'keypress':
+      case 'keyup':
+        this.searchConversations();
         break;
     }
   }
 };
 
-
 var ConversationView = {
   get view() {
     delete this.view;
-    return this.view = document.getElementById('conversation');
+    return this.view = document.getElementById('msg-conversation-view-list');
+  },
+
+  get num() {
+    delete this.number;
+    return this.number = document.getElementById('msg-conversation-view-num');
+  },
+
+  get title() {
+    delete this.title;
+    return this.title = document.getElementById('msg-conversation-view-name');
   },
 
   init: function cv_init() {
-    window.addEventListener('keypress', this, true);
+    if (navigator.mozSms)
+      navigator.mozSms.addEventListener('received', this);
 
-    ['sent', 'received'].forEach((function(type) {
-      window.addEventListener(type, (function handleEvent(evt) {
-        this.handleEvent({ 'type': type });
-      }).bind(this), true);
+    document.getElementById('msg-conversation-view-back').addEventListener(
+      'click', (this.close).bind(this));
 
-      if (window.navigator.mozSms)
-        window.navigator.mozSms.addEventListener('sent', this, true);
+    // click event does not trigger when keyboard is hiding
+    document.getElementById('msg-conversation-view-msg-send').addEventListener(
+      'mousedown', (this.sendMessage).bind(this));
+
+    var windowEvents = ['keypress', 'transitionend'];
+    windowEvents.forEach((function(eventName) {
+      window.addEventListener(eventName, this);
     }).bind(this));
-
   },
 
   showConversation: function cv_showConversation(num) {
-    var contact = document.getElementById('contact');
-    contact.value = num;
+    var view = this.view;
+    var bodyclassList = document.body.classList;
+    var filter = ('SmsFilter' in window) ? new SmsFilter() : {};
+    filter.number = this.filter = num;
 
-    this.filter = num;
-    if (!this.filter) {
-      contact.classList.remove('filtered');
+    if (!num) {
+      /* XXX: gaia issue #483 (New Message dialog design)
+              gaia issue #108 (contact picker)
+      */
+
+      this.num.value = '';
       this.view.innerHTML = '';
+      bodyclassList.add('conversation-new-msg');
+      bodyclassList.add('conversation');
       return;
     }
-    contact.classList.add('filtered');
 
-    var view = this.view;
-    var filter = ('SmsFilter' in window) ? new SmsFilter() : {};
-    filter.number = this.filter;
+    bodyclassList.remove('conversation-new-msg');
 
-    view.innerHTML = '';
+    var name = num;
+
+    var contacts = window.navigator.mozContacts.contacts;
+    contacts.forEach(function(contact) {
+      if (contact.phones[0] == num)
+        name = contact.displayName;
+    });
+
+    this.num.value = num;
+
+    this.title.textContent = name;
+    this.title.num = num;
+
     MessageManager.getMessages(function mm_getMessages(messages) {
       var fragment = '';
+
       for (var i = 0; i < messages.length; i++) {
         var msg = messages[i];
         var uuid = msg.hasOwnProperty('uuid') ? msg.uuid : '';
@@ -305,23 +345,25 @@ var ConversationView = {
 
         var dataNum = 'data-num="' + (msg.sender || msg.receiver) + '"';
 
-        var className = 'class="message ' +
+        var className = 'class="' +
                         (msg.sender ? 'sender' : 'receiver') + '"';
 
         var time = prettyDate(msg.timestamp);
         fragment += '<div ' + className + ' ' + dataNum + ' ' + dataId + '>' +
-                    '  <div class="arrow-left"></div>' +
-                    '  <div>' +
-                    '    <span class="text">' + msg.body + '</span>' +
-                    '    <span class="infos">' + time + '</span>' +
-                    '  </div>' +
+                      '<div class="photo">' +
+                        '<img alt="" src="" />' +
+                      '</div>' +
+                      '<div class="text">' + msg.body + '</div>' +
+                      '<div class="time">' + time + '</div>' +
                     '</div>';
       }
 
       view.innerHTML = fragment;
-      setTimeout(function() {
-        view.scrollTop = view.scrollHeight;
-      }, 0);
+
+      if (view.lastChild)
+        view.scrollTop = view.lastChild.offsetTop + 10000;
+
+      bodyclassList.add('conversation');
     }, filter, true);
   },
 
@@ -342,61 +384,80 @@ var ConversationView = {
 
         if (this.close())
           evt.preventDefault();
-      case 'sent':
+        break;
+
       case 'received':
-        // TODO Remove the delay once the native SMS application is disabled
-        setTimeout(function(self) {
-          self.showConversation(self.filter);
-        }, 800, this);
+        var msg = evt.message;
+        messagesHack.unshift(msg);
+
+        console.log('Received message from ' + msg.sender + ': ' + msg.body);
+
+        window.setTimeout(function() {
+          ConversationView.showConversation(ConversationView.filter);
+        }, 0);
+        break;
+
+      case 'transitionend':
+        if (document.body.classList.contains('conversation'))
+          return;
+
+        this.view.innerHTML = '';
         break;
     }
   },
   close: function cv_close() {
-    var view = document.getElementById('conversationView');
-    if (view.hidden)
+    if (!document.body.classList.contains('conversation'))
       return false;
-
-    view.classList.remove('slideIn');
-    view.classList.add('slideOut');
-
-    view.addEventListener('transitionend', function slideOut(evt) {
-      view.removeEventListener('transitionend', slideOut);
-      var text = document.getElementById('text');
-      text.value = text.style.height = '';
-
-      view.hidden = true;
-    });
+    document.body.classList.remove('conversation');
+    document.body.classList.add('transition-back');
     return true;
   },
   sendMessage: function cv_sendMessage() {
-    var contact = document.getElementById('contact');
-    var text = document.getElementById('text');
-    if (contact.value == '' || text.value == '')
+    var num = this.num.value;
+    var text = document.getElementById('msg-conversation-view-msg-text').value;
+
+    if (num === '' || text === '')
       return;
 
-    var throbber = document.getElementById('throbber');
-    throbber.removeAttribute('hidden');
-
-    MessageManager.send(contact.value, text.value, function() {
-      throbber.setAttribute('hidden', 'true');
-      text.value = text.style.height = '';
-
-      if (ConversationView.filter)
+    MessageManager.send(num, text, function onsent(msg) {
+      // There was an error. We should really do some error handling here.
+      // or in send() or wherever.
+      if (!msg)
         return;
 
-      ConversationView.close();
+      // Copy all the information from the actual message object to the
+      // preliminary message object. Then update the view.
+      for (var key in msg)
+        message[msg] = msg[key];
+
+      if (ConversationView.filter)
+        ConversationView.showConversation(ConversationView.filter);
     });
-    return;
+
+    // Create a preliminary message object and update the view right away.
+    var message = {
+      sender: null,
+      receiver: num,
+      body: text,
+      timestamp: Date.now()
+    };
+    messagesHack.unshift(message);
+
+    setTimeout(function keepKeyboardFocus() {
+      var input = document.getElementById('msg-conversation-view-msg-text');
+      input.value = '';
+    }, 0);
+
+    ConversationListView.updateConversationList();
+    if (this.filter) {
+      this.showConversation(this.filter);
+      return;
+    }
+    this.showConversation(num);
   }
 };
 
-ConversationView.init();
-
-function onKeyPress(evt) {
-  var target = evt.originalTarget;
-  setTimeout(function() {
-    target.style.height = '';
-    target.style.height = '-moz-calc(' + target.scrollHeight + 'px + 32px)';
-  }, 0);
-}
-
+window.addEventListener('load', function loadMessageApp() {
+  ConversationView.init();
+  ConversationListView.init();
+});

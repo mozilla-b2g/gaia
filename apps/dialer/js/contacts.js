@@ -7,16 +7,11 @@ var Contacts = {
     return this.view = document.getElementById('contacts-view-scrollable');
   },
   setup: function contactsSetup() {
-    this.view.addEventListener('touchstart', function showSearch(evt) {
-      Contacts.showSearch();
-    });
-
     document.getElementById('contacts').addEventListener('change',
       (function contactTabChanged(evt) {
         // loading contacts the first time the view appears
         this.load();
 
-        this.hideSearch();
         ContactDetails.hide();
       }).bind(this));
   },
@@ -24,7 +19,6 @@ var Contacts = {
     if (this._loaded) {
       return;
     }
-    this._loaded = true;
 
     // Could be much easier to have an argument named 'parameters' pass as
     // a second argument that I can omit
@@ -55,8 +49,9 @@ var Contacts = {
         currentLetter = name[0].toUpperCase();
 
         content += '<div id="' + currentLetter + '" class="contact-header">' +
+                   '<span>' +
                       currentLetter +
-                   '</div>';
+                   '</span></div>';
       }
 
       content += '<div class="contact" id="' + contact.id + '">' +
@@ -67,25 +62,8 @@ var Contacts = {
     var contactsContainer = document.getElementById('contacts-container');
     contactsContainer.innerHTML = content;
     this.filter();
-  },
-  hideSearch: function contactsHideSearch() {
-    document.getElementById('contacts-search').value = '';
-    this.filter();
 
-    var searchContainer = document.getElementById('contacts-search-container');
-    searchContainer.hidden = true;
-    this.view.scrollTop = 0;
-  },
-  showSearch: function contactsHideSearch() {
-    var oldScrollTop = this.view.scrollTop;
-
-    var search = document.getElementById('contacts-search-container');
-    if (!search.hidden)
-      return;
-
-    search.hidden = false;
-    var searchHeight = search.getBoundingClientRect().height;
-    this.view.scrollTop = oldScrollTop + searchHeight;
+    this._loaded = true;
   },
   filter: function contactsFilter(value) {
     var container = document.getElementById('contacts-container');
@@ -237,6 +215,10 @@ var ContactDetails = {
   setup: function cd_setup() {
     window.addEventListener('keypress', this, true);
   },
+  get overlay() {
+    delete this.overlay;
+    return this.overlay = document.getElementById('contacts-overlay');
+  },
   get container() {
     delete this.container;
     return this.container =
@@ -268,7 +250,9 @@ var ContactDetails = {
     if (typeof contact != 'undefined') {
       this.contact = contact;
     }
-    this.container.classList.add('displayed');
+
+    var overlay = this.overlay;
+    overlay.classList.add('displayed');
 
     // directly entering the edit mode if this is a new contact
     if (!this._contact.id) {
@@ -276,11 +260,19 @@ var ContactDetails = {
     }
   },
   hide: function cd_hide() {
-    if (!this.container.classList.contains('displayed')) {
+    if (!this.overlay.classList.contains('displayed')) {
       return false;
     }
 
-    this.container.classList.remove('displayed');
+    var overlay = this.overlay;
+    overlay.classList.add('hidden');
+    overlay.addEventListener('transitionend', function fadeWait() {
+      overlay.removeEventListener('transitionend', fadeWait);
+
+      overlay.classList.remove('hidden');
+      overlay.classList.remove('displayed');
+    });
+
     this.endEditing();
     return true;
   },
@@ -338,6 +330,7 @@ var ContactDetails = {
       return;
     }
 
+    this.hide();
     var number = evt.target.dataset.number;
     if (number) {
       CallHandler.call(number);

@@ -6,239 +6,131 @@
 if (!window['Gaia'])
   var Gaia = {};
 
-Gaia.AnimationLoop = function(renderCallback) {
-  var isRunning = true;
-  var lastFrame = Date.now();
-  var requestAnimationFrame = function(animFrameCallback) {
-    if (window.mozRequestAnimationFrame)
-      window.mozRequestAnimationFrame(animFrameCallback);
-    else if (window.webkitRequestAnimationFrame)
-      window.webkitRequestAnimationFrame(animFrameCallback);
-    else if (window.requestAnimationFrame)
-      window.requestAnimationFrame(animFrameCallback);
-  };
-
-  (function loop(currentFrame) {
-    if (isRunning !== false) {
-      requestAnimationFrame(loop);
-      isRunning = renderCallback(currentFrame - lastFrame);
-      lastFrame = currentFrame;
-    }
-  })(lastFrame);
-};
-
 (function() {
-
-  var lastDragPosition = -1;
-  var isKeyDown = false;
-  var checkKeyPressTimeout = null;
-  var animateScrollInterval = null;
+  var timeout = 0;
 
   Gaia.TaskManager = {
-
-    _isActive: false,
-
+    _active: false,
     get isActive() {
-      return this._isActive;
+      return this._active;
     },
 
     setActive: function(value) {
-      if (this._isActive && value)
+      if (this._active && value)
         return;
+      this._active = value;
 
-      this._isActive = value;
+      WindowManager.setActive(false);
 
-      var runningApps = Gaia.AppManager.runningApps;
-      var listItemWidth = window.innerWidth * 0.6;
+      WindowManager.windows.forEach(function(win) {
+        win.setActive(value);
+      });
 
-      if (value) {
-        this.listElement.scrollLeft = listItemWidth;
-        this.element.classList.add('active');
-        for (var i = 0; i < runningApps.length; i++) {
-          var classList = runningApps[i].window.classList;
-          classList.add('active');
-          classList.add('noTransition');
-        }
-      } else {
-        this.element.classList.remove('active');
-        for (var i = 0; i < runningApps.length; i++) {
-          var classList = runningApps[i].window.classList;
-          classList.remove('active');
-          classList.remove('noTransition');
-        }
-      }
+      this.container.classList.toggle('active');
     },
 
-    get element() {
-      delete this.element;
-
-      return this.element = document.getElementById('taskManager');
+    get container() {
+      delete this.container;
+      return this.container = document.getElementById('taskManager');
     },
 
-    get listElement() {
-      delete this.listElement;
-
-      return this.listElement = this.element.getElementsByTagName('ul')[0];
+    get items() {
+      delete this.items;
+      return this.items = this.container.getElementsByTagName('ul')[0];
     },
+
+    enabled: true,
 
     init: function() {
       window.addEventListener('keydown', this);
       window.addEventListener('keyup', this);
-
-      var listElement = this.listElement;
-      listElement.addEventListener('touchstart', this);
-      listElement.addEventListener('touchmove', this);
-      listElement.addEventListener('touchend', this);
+      window.addEventListener('locked', this);
+      window.addEventListener('unlocked', this);
     },
 
     handleEvent: function(evt) {
       switch (evt.type) {
         case 'keydown':
-          if (evt.keyCode !== (emulateRun ? evt.DOM_VK_ESCAPE : evt.DOM_VK_HOME) || isKeyDown)
+          if (!this.enabled || evt.keyCode !== evt.DOM_VK_HOME || timeout)
             return;
 
-          if (checkKeyPressTimeout) {
-            clearTimeout(checkKeyPressTimeout);
-            checkKeyPressTimeout = null;
-          }
-
-          isKeyDown = true;
-
-          if (this.isActive)
+          if (this.isActive) {
             this.setActive(false);
-          else {
-            checkKeyPressTimeout = setTimeout(function checkKeyPress(self) {
-              checkKeyPressTimeout = null;
-
-              if (isKeyDown)
-                self.setActive(true);
-            }, 1000, this);
+            return;
           }
+
+          timeout = window.setTimeout(function checkKeyPress(self) {
+            self.setActive(true);
+          }, 1000, this);
           break;
+
         case 'keyup':
-          if (evt.keyCode !== (emulateRun ? evt.DOM_VK_ESCAPE : evt.DOM_VK_HOME))
+          if (evt.keyCode !== evt.DOM_VK_HOME)
             return;
 
-          if (checkKeyPressTimeout) {
-            clearTimeout(checkKeyPressTimeout);
-            checkKeyPressTimeout = null;
-          }
-
-          isKeyDown = false;
+          window.clearTimeout(timeout);
+          timeout = 0;
           break;
-        case 'touchstart':
-          var touches = evt.changedTouches;
 
-          if (touches.length !== 1)
-            return;
-
-          var touch = touches[0];
-          lastDragPosition = touch.pageX;
+        case 'locked':
+          this.enabled = false;
           break;
-        case 'touchmove':
-          if (lastDragPosition === -1)
-            return;
-
-          var touches = evt.changedTouches;
-
-          if (touches.length !== 1)
-            return;
-
-          var touch = touches[0];
-          this.listElement.scrollLeft -= touch.pageX - lastDragPosition;
-          lastDragPosition = touch.pageX;
-          break;
-        case 'touchend':
-          var listElement = this.listElement;
-          var runningAppCount = Gaia.AppManager.runningApps.length;
-          var listItemWidth = window.innerWidth * 0.6;
-          var listIndex = Math.round(listElement.scrollLeft / listItemWidth);
-
-          if (listIndex === 0)
-            listIndex = 1;
-          else if (listIndex > runningAppCount)
-            listIndex = runningAppCount;
-
-          var currentScrollLeft = listElement.scrollLeft;
-          var targetScrollLeft = listIndex * listItemWidth;
-          var willAnimateToTheLeft = (currentScrollLeft < targetScrollLeft);
-
-          if (currentScrollLeft !== targetScrollLeft) {
-            Gaia.AnimationLoop(function(deltaTime) {
-              if (willAnimateToTheLeft) {
-                currentScrollLeft += 20 * deltaTime / 16;
-                listElement.scrollLeft = currentScrollLeft;
-
-                if (currentScrollLeft >= targetScrollLeft) {
-                  listElement.scrollLeft = currentScrollLeft = targetScrollLeft;
-                  return false;
-                }
-              } else {
-                currentScrollLeft -= 20 * deltaTime / 16;
-                listElement.scrollLeft = currentScrollLeft;
-
-                if (currentScrollLeft <= targetScrollLeft) {
-                  listElement.scrollLeft = currentScrollLeft = targetScrollLeft;
-                  return false;
-                }
-              }
-            });
-          }
-
-          lastDragPosition = -1;
-          break;
-        default:
-          throw new Error('Unhandled event in TaskManager');
+        case 'unlocked':
+          this.enabled = true;
           break;
       }
     },
 
     add: function(app, id) {
-      var listElement = this.listElement;
       var item = document.createElement('li');
       item.id = 'task_' + id;
 
-      var mozElement = 'background: -moz-element(#app_' + id + ') no-repeat';
-      item.setAttribute('style', mozElement);
+      var style = 'background: -moz-element(#window_' + id + ') no-repeat';
+      item.setAttribute('style', style);
 
       var close = document.createElement('a');
-      close.href = '#';
-      close.addEventListener('click', (function(evt) {
-        evt.stopPropagation();
-        evt.preventDefault();
-        this.remove(app, id);
-      }).bind(this), true);
+      item.appendChild(close);
 
       var title = document.createElement('h1');
       title.innerHTML = app.name;
-      item.appendChild(close);
       item.appendChild(title);
 
-      if (listElement.hasChildNodes())
-        listElement.insertBefore(item, listElement.firstChild);
-      else
-        listElement.appendChild(item);
+      this.items.appendChild(item);
+
+      var self = this;
+      item.addEventListener('click', function taskClickHandler(evt) {
+        window.setTimeout(function launchApp() {
+          WindowManager.launch(app.url);
+        }, 400);
+        self.setActive(false);
+      });
+
+      close.addEventListener('click', function(evt) {
+        evt.stopPropagation();
+        evt.preventDefault();
+        self.remove(app, id);
+        return false;
+      }, true);
 
       return item;
     },
 
     remove: function(app, id) {
-      var listElement = this.listElement;
       var item = document.getElementById('task_' + id);
-      listElement.removeChild(item);
-      Gaia.AppManager.kill(app.url);
+      this.items.removeChild(item);
+      WindowManager.kill(app.url);
     },
 
     sendToFront: function(id) {
-      var listElement = this.listElement;
-      var item = document.getElementById('task_' + id);
-      var firstItem = listElement.firstChild;
+      var items = this.items;
+      var firstItem = items.firstChild;
 
+      var item = document.getElementById('task_' + id);
       if (item === firstItem)
         return;
 
-      listElement.removeChild(item);
-      listElement.insertBefore(item, firstItem);
+      items.removeChild(item);
+      items.insertBefore(item, firstItem);
     }
 
   };
