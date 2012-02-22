@@ -290,9 +290,11 @@
                      'name': 'Cut The Rope',
                      'description': 'http://cuttherope.ie',
                      'launch_path': '',
+                     'orientation': 'landscape-primary',
+                     'fullscreen': true,
                      'developer': {
-                       'name': 'The Gaia Team',
-                       'url': 'https://github.com/andreasgal/gaia'
+                       'name': 'ZeptoLab',
+                       'url': 'http://cuttherope.ie'
                      },
                      'icons': {
                        '120': '/style/icons/CutTheRope.png'
