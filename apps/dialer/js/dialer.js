@@ -205,9 +205,10 @@ var CallHandler = {
 
   // callbacks
   call: function ch_call(number) {
+    this.callScreen.classList.remove('incoming');
+    this.callScreen.classList.add('calling');
     this.numberView.innerHTML = number;
     this.statusView.innerHTML = 'Dialing...';
-    this.callButton.dataset.source = 'outgoing';
     this.toggleCallScreen();
 
     var sanitizedNumber = number.replace(/-/g, '');
@@ -216,15 +217,18 @@ var CallHandler = {
     this.currentCall = call;
   },
   incoming: function ch_incoming(call) {
+    this.callScreen.classList.remove('calling');
+    this.callScreen.classList.add('incoming');
     this.currentCall = call;
     call.addEventListener('statechange', this);
 
     this.numberView.innerHTML = call.number;
-    this.statusView.innerHTML = 'Incoming call...';
-    this.callButton.dataset.source = 'incoming';
+    this.statusView.innerHTML = 'Call from...';
     this.toggleCallScreen();
   },
   connected: function ch_connected() {
+    this.callScreen.classList.remove('incoming');
+    this.callScreen.classList.add('calling');
     // hardening against rapid ending
     if (!document.getElementById('call-screen').classList.contains('oncall'))
       return;
@@ -240,7 +244,8 @@ var CallHandler = {
     this.currentCall.answer();
   },
   end: function ch_end() {
-    if (this.currentCall) {
+    // XXX: workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=729503
+    if (this.currentCall && (this.currentCall.state != 'dialing')) {
       this.currentCall.hangUp();
     } else {
       this.disconnected();
@@ -282,6 +287,10 @@ var CallHandler = {
   },
 
   // properties / methods
+  get callScreen() {
+    delete this.callScreen;
+    return this.callScreen = document.getElementById('call-screen');
+  },
   get numberView() {
     delete this.numberView;
     return this.numberView = document.getElementById('call-number-view');
@@ -306,10 +315,6 @@ var CallHandler = {
     delete this.holdButton;
     return this.holdButton = document.getElementById('hold-button');
   },
-  get callButton() {
-    delete this.callButton;
-    return this.callButton = document.getElementById('call-button');
-  },
 
   execute: function ch_execute(action) {
     if (!this[action]) {
@@ -331,7 +336,8 @@ var CallHandler = {
   },
   toggleSpeaker: function ch_toggleSpeaker() {
     this.speakerButton.classList.toggle('speak');
-    navigator.mozTelephony.speakerEnabled = !navigator.mozTelephony.speakerEnabled;
+    navigator.mozTelephony.speakerEnabled =
+      !navigator.mozTelephony.speakerEnabled;
   },
   toggleHold: function ch_toggleHold() {
     this.holdButton.classList.toggle('hold');
