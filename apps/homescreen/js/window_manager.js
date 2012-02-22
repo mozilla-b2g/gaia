@@ -8,7 +8,6 @@ function WindowSprite(win) {
   element.className = 'windowSprite';
   element.style.width = win.element.style.width;
   element.style.height = win.element.style.height;
-  element.style.background = '-moz-element(#window_' + win.id + ') no-repeat';
 }
 
 WindowSprite.prototype = {
@@ -25,7 +24,16 @@ WindowSprite.prototype = {
   },
 
   remove: function ws_remove() {
-    document.body.removeChild(this.element);
+    if (this.element)
+      document.body.removeChild(this.element);
+  },
+
+  crossFade: function ws_crossFade() {
+    var afterCrossFade = (this.remove).bind(this);
+    setTimeout((function () {
+      this.element.addEventListener('transitionend', afterCrossFade);
+      this.element.classList.add('crossFade');
+    }).bind(this), 0);
   }
 };
 
@@ -67,8 +75,10 @@ Window.prototype = {
     sprite.add();
     this.setActive(true);
 
-    var focus = function(evt) {
-      sprite.remove();
+    var focus = (function(evt) {
+      sprite.element.removeEventListener('transitionend', focus);
+
+      sprite.crossFade();
 
       var element = this.element;
       if (!this._loaded) {
@@ -84,8 +94,8 @@ Window.prototype = {
 
       if (callback)
         callback();
-    };
-    sprite.element.addEventListener('transitionend', focus.bind(this));
+    }).bind(this);
+    sprite.element.addEventListener('transitionend', focus);
 
     if (this.application.fullscreen) {
       document.getElementById('screen').classList.add('fullscreen');
