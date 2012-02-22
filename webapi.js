@@ -318,6 +318,20 @@
 // of localStorage to make it persist better in the face of unexpected
 // shutdowns and reboots
 (function() {
+  var DEFAULTS = {
+    'lockscreen.enabled': 'true',
+    'wifi.enabled': 'true',
+    'dnt.enabled': 'false',
+    'keyboard.vibration': 'false',
+    'keyboard.clicksound': 'true',
+    'keyboard.layouts.english': 'true',
+    'keyboard.layouts.dvorak': 'false',
+    'keyboard.layouts.otherlatins': 'false',
+    'keyboard.layouts.cyrillic': 'false',
+    'keyboard.layouts.hebrew': 'false',
+    'keyboard.layouts.zhuying': 'true'
+  };
+
   var DBNAME = 'mozSettings';     // Strings used by IndexedDB
   var STORENAME = 'mozSettings';
 
@@ -420,7 +434,10 @@
           var store = txn.objectStore(STORENAME);
           var dbreq = store.get(key);
           dbreq.onsuccess = function() {
-            settingsRequest.result = dbreq.result;
+            var result = dbreq.result || {
+              value: DEFAULTS[key]
+            };
+            settingsRequest.result = result;
             onsuccess.forEach(function(cb) { cb(); });
           };
           dbreq.onerror = function() {
