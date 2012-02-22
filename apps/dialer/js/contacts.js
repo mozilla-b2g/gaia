@@ -397,9 +397,7 @@ var ContactDetails = {
   render: function cd_render() {
     var names = '';
     for (var key in this._contact.name) {
-      names += '<div>' +
-               '  ' + this.inputFragment('text', this._contact.name[key]) +
-               '</div>';
+      names += '  ' +  this._contact.name[key];
     }
     document.getElementById('contact-name').innerHTML = names;
 

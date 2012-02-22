@@ -107,28 +107,28 @@ html * {
 }
 
 .top-bar {
-	height: 10mozmm;
-  line-height: 10mozmm;
+	height: 8mozmm;
+  line-height: 8mozmm;
 
-  font-size: 3.5mozmm;
+  font-size: 3.2mozmm;
   text-align: center;
 
-  border-bottom: 2px solid #7F7F7F;
+  border-bottom: 2px solid #A3A3A3;
   background: url(images/app-texture.png) 50% 50%, -moz-linear-gradient(top, hsla(0,0%,96%,1), hsla(0,0%,92%,1) );
 }
 
 .top-bar a.add {
   position: absolute;
   display: block;
-  width: 8mozmm;
-  height: 7mozmm;
-  top: 1.5mozmm;
-  right: 2mozmm;
+  width: 6mozmm;
+  height: 6mozmm;
+  top: 1mozmm;
+  right: 1mozmm;
   padding-left: 2px;
 
 	color: #7D8389;
   text-align: center;
-  line-height: 7mozmm;
+  line-height: 6mozmm;
   text-decoration: none;
   text-shadow: #929292 0 1px;
   font-size: 2em;
@@ -354,7 +354,7 @@ html * {
 
 #contacts-container-top {
   position: absolute;
-  top: 10mozmm;
+  top: 8mozmm;
   width: 100%;
   height: 10px;
 
@@ -368,8 +368,9 @@ html * {
   position: relative;
   margin-top: 1.5mozmm;
   margin-left: 2mozmm;
-  width: -moz-calc(100% - 14mozmm);
-  height: -moz-calc(7mozmm - 6px);
+  padding: 0;
+  width: -moz-calc(100% - 10mozmm);
+  height: -moz-calc(5mozmm - 6px);
 
   border: 3px solid #7B8288;
   border-radius: 50px 50px 50px 50px;
@@ -379,22 +380,21 @@ html * {
 
 #contacts-search {
   position: absolute;
-  top: 2px;
+  top: 0;
   left: 0;
   margin: 0;
-  padding: 0 20px 0 30px;
-  width: -moz-calc(100% - 54px);
-  height: -moz-calc(100% - 4px);
+  padding: 0 0 0 32px;
+  width: -moz-calc(100% - 15px - 15px);
+  height: 100%;
 
-  border: 0;
   background: url("images/input-icon-search.png") no-repeat scroll 8px 50%, -moz-linear-gradient(center top , rgba(0, 0, 0, 0.2) 0px, rgba(255, 255, 255, 0) 20px, #FFFFFF 100%) repeat scroll 0 0 #FFFFFF;
 
-  font-size: 1.1em;
+  border: 0;
 }
 
 .contact-header {
   position: relative;
-  height: 5mozmm;
+  height: 3mozmm;
   padding: 0 14px 0 20px;
   overflow: visible;
 
@@ -402,7 +402,7 @@ html * {
 
   font-size: 1.4em;
   font-weight: 700;
-  line-height: 5mozmm;
+  line-height: 3mozmm;
   color: #FFFFFF;
 
   border-top: 1px solid hsla(0,0%,100%,1);
@@ -415,22 +415,22 @@ html * {
   position: absolute;
   top: -1mozmm;
   left: 2mozmm;
-  width: 7mozmm;
-  height: 7mozmm;
+  width: 5mozmm;
+  height: 5mozmm;
 
-  line-height: 7mozmm;
+  line-height: 5mozmm;
   color: hsla(0,0%,100%,1);
   text-align: center;
-  font-size: 1.2em;
+  font-size: 0.8em;
   text-transform: uppercase;
 
   background: url(images/contacts-circle.png);
-  background-size: 7mozmm 7mozmm;
+  background-size: 100% 100%;
 }
 
 .contact {
   padding: 0 14px 0 4mozmm;
-  height: 8mozmm;
+  height: 7mozmm;
   width: -moz-calc(100% - 2px);
 
   border-bottom: 1px solid #CCCCCC;
@@ -438,7 +438,7 @@ html * {
   color: hsla(0,0%,20%,1);
 	background: none;
 
-  line-height: 8mozmm;
+  line-height: 7mozmm;
   font-size: 3mozmm;
 }
 
@@ -515,27 +515,29 @@ html * {
 
 #contact-details-container {
   position: absolute;
-  top: 10%;
-  left: 5%;
-  width: 90%;
-  height: 80%;
+  top: 15%;
+  left: 7%;
+  width: 86%;
+  height: 70%;
 
   overflow: visible;
   box-shadow: 0 3px 5px black;
 
   border-radius:5px;
-  background: url(images/details-texture.png) no-repeat,
-              url(images/app-texture.png) 50% 50%,
+  background: url(images/app-texture.png) 50% 50%,
               -moz-linear-gradient(bottom, hsla(0,0%,60%,1) 0,
               hsla(0,0%,0%,.1) 1px, hsla(0,0%,0%,0) 30%, hsla(0,0%,0%,0) 100%), hsla(0,0%,96%,1);
 }
 
 #contact-details-view {
-  padding: 20px;
+  padding: 24px;
   -moz-transition: opacity 0.15s ease;
 }
 
 #contact-edit-button {
+  /* TODO: re-activate when we have an edit feature */
+  display: none;
+
   position: absolute;
   bottom: 20px;
   right: 20px;
@@ -571,7 +573,7 @@ html * {
 }
 
 #contact-details-view input {
-  width: -moz-calc(100% - 88px);
+  width: -moz-calc(100% - 4px);
   color: #000;
   background: none;
   border: none;
@@ -602,9 +604,14 @@ html * {
 
 #contact-name {
   float: left;
-  width: -moz-calc(100% - 140px - 20px);
-  margin: 20px 0;
-  font-size: 2.0em;
+  margin: 50px 10px;
+  width: -moz-calc(100% - 140px - 25px);
+  height: 40px;
+
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #000000;
+  text-overflow: ellipsis;
 }
 
 #contact-name input {
@@ -616,16 +623,17 @@ html * {
 }
 
 #contact-details-view > .group {
-  width: -moz-calc(100% - 4px);
+  width: 100%;
   margin: 30px auto;
   clear: both;
 
-  border-radius: 10px;
-  border: 2px #EBEBEB solid;
   overflow: hidden;
 
   font-size: 2em;
   text-align: center;
+
+  background: url(images/contact-input-bg.png) 50% 50% no-repeat;
+  background-size: contain;
 }
 
 #contact-details-view > .group > div {
@@ -792,7 +800,7 @@ html * {
   border: 0;
 
   border-radius: 10px;
-	background: url(images/call-screen-bg.png) 0 0 no-repeat;
+  background: url(images/call-screen-bg.png) 0 0 no-repeat;
   background-size: 100% 100%;
 
   font-size: 7mozmm;
