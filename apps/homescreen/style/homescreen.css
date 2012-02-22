@@ -276,7 +276,7 @@ iframe.portrait-primary {
 }
 
 iframe.portrait-secondary {
-  -moz-transform: translate(rotate(180deg);
+  -moz-transform: rotate(180deg);
 }
 
 iframe.landscape-primary {
