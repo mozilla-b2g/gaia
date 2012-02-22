@@ -21,11 +21,6 @@ Gaia.SettingsApp = {
         var request = settings.get(key);
         request.onsuccess = function() {
           var result = request.result;
-          if (!result) {
-            settings.set(key, false);
-            return;
-          }
-          
           checkbox.checked = result.value === 'true' ? true : false;
         };
       })(checkboxes[i]);
