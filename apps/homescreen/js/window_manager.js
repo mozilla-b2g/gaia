@@ -174,24 +174,32 @@ var WindowManager = {
     window.addEventListener('resize', this);
   },
 
+  enabled: true,
+
   handleEvent: function wm_handleEvent(evt) {
     switch (evt.type) {
       case 'message':
+        if (!this.enabled)
+          return;
         if (evt.data == 'appclose')
           this.closeForegroundWindow();
         break;
       case 'home':
+        if (!this.enabled)
+          return;
         this.closeForegroundWindow();
         break;
       case 'locked':
         if (this._foregroundWindow.application.fullscreen) {
           document.getElementById('screen').classList.remove('fullscreen');
         }
+        this.enabled = false;
         break;
       case 'unlocked':
         if (this._foregroundWindow.application.fullscreen) {
           document.getElementById('screen').classList.add('fullscreen');
         }
+        this.enabled = true;
         break;
       case 'resize':
         this._foregroundWindow.resize();
