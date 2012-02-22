@@ -8,13 +8,12 @@ if (!window['Gaia'])
 
 Gaia.SettingsApp = {
   init: function settings_init() {
-    var checkboxes = document.querySelectorAll('input[type="checkbox"]');
-
     var settings = window.navigator.mozSettings;
+
+    var checkboxes = document.querySelectorAll('input[type="checkbox"]');
     for (var i = 0; i < checkboxes.length; i++) {
       (function(checkbox) {
         var key = checkbox.name;
-        
         if (!key)
           return;
 
@@ -30,6 +29,22 @@ Gaia.SettingsApp = {
         };
       })(checkboxes[i]);
     }
+
+    var progresses = document.querySelectorAll('progress');
+    for (var i = 0; i < progresses.length; i++) {
+      (function(progress) {
+        var key = progress.name;
+        if (!key)
+          return;
+
+        var request = settings.get(key);
+        request.onsuccess = function() {
+          var result = request.result;
+          progress.value = result.value || progress.max;
+        };
+      })(progresses[i]);
+    }
+
     window.parent.postMessage('appready', '*');
   },
   handleEvent: function(evt) {
