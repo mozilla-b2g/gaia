@@ -43,6 +43,7 @@ Gaia.SettingsApp = {
         value = input.checked;
 
       window.navigator.mozSettings.set(key, value);
+      window.parent.postMessage(key, '*');
       break;
     }
   }
