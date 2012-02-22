@@ -1,12 +1,9 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
 
 (function() {
-
-/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 function PhraseDictionary() {
   var phraseList = [];
@@ -17,12 +14,10 @@ function PhraseDictionary() {
     for (var i = 0; i < phraseList.length; i++) {
       for (var j = 0; j < regExpList.length; j++) {
         if (regExpList[j].test(phraseList[i].pronunciation)) {
-          result.push(
-            {
+          result.push({
               phrase: phraseList[i].phrase,
               prefix: queryList[j].prefix
-            }
-          );
+          });
           break;
         }
       }
@@ -35,9 +30,6 @@ function PhraseDictionary() {
     }
   };
 }
-
-/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 function SyllableSplitter() {
   var syllables = [
@@ -121,6 +113,7 @@ function SyllableSplitter() {
   var startsWith = function(text, prefix) {
     return text.indexOf(prefix) == 0;
   };
+
   var endsWith = function(text, suffix) {
     return text.lastIndexOf(suffix) == text.length - 1;
   }
@@ -134,6 +127,7 @@ function SyllableSplitter() {
     if (ensure(input, startsWith, "'")) {
       possibleAnswers.push("'");
     }
+
     if (possibleAnswers.length == 0) {
       for (var i = 0; i < syllables.length; i++) {
         var answer = syllables[i];
@@ -148,6 +142,7 @@ function SyllableSplitter() {
         }
       }
     }
+
     if (possibleAnswers.length == 0) {
       for (var i = 0; i < initials.length; i++) {
         if (input.indexOf(initials[i]) == 0) {
@@ -183,13 +178,9 @@ function SyllableSplitter() {
     var solutions = [];
     var tail = null;
     split(input);
-    //console.log(solutions);
     return solutions;
   }
 }
-
-/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 var PinyinImEngine = function(dictionary, splitter) {
   function buildQueryList(solutions, stopPosition) {
@@ -223,15 +214,12 @@ var PinyinImEngine = function(dictionary, splitter) {
         }
       }
       if (solutionPattern != '') {
-        queryList.push(
-          {
+        queryList.push({
             prefix: solutionPrefix,
             pattern: '^' + solutionPattern + '$'
-          }
-        );
+        });
       }
     }
-    //console.log(queryList);
     return queryList;
   }
 
@@ -268,7 +256,7 @@ var PinyinImEngine = function(dictionary, splitter) {
       unsortedStopPositionList.push(pos);
     }
     var stopPositionList = unsortedStopPositionList.sort();
-    //
+
     var candidates = [];
     for (var i = stopPositionList.length - 1; i >= 0; i--) {
       var queryList = buildQueryList(solutions, stopPositionList[i]);
@@ -323,8 +311,6 @@ var PinyinImEngine = function(dictionary, splitter) {
 
 var engine = new PinyinImEngine(splitter, dictionary);
 
-/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 var dictionary = new PhraseDictionary();
 var loader = new XMLHttpRequest();
 loader.open('GET', './imes/jspinyin/db.json');
