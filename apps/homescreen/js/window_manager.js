@@ -38,17 +38,9 @@ function Window(application, id) {
   element.id = 'window_' + id;
   element.className = 'appWindow';
 
-  var documentElement = document.documentElement;
-  element.style.width = documentElement.clientWidth + 'px';
-
-  var height = documentElement.clientHeight;
-  if (!application.fullscreen) {
-    height -= document.getElementById('statusbar').offsetHeight;
-  }
-  element.style.height = height + 'px';
-
   this.application = application;
   this.id = id;
+  this.resize();
 }
 
 Window.prototype = {
@@ -69,15 +61,7 @@ Window.prototype = {
     if (this._active)
       return;
 
-    // NOTE: for the moment, orientation only works when fullscreen because of a
-    // too dirty hack...
-    if (this.application.fullscreen && this.application.orientation) {
-      var width = this.element.style.width;
-      this.element.style.width = this.element.style.height;
-      this.element.style.height = width;
-
-      this.element.classList.add(this.application.orientation);
-    }
+    this.resize();
 
     var sprite = new WindowSprite(this);
     sprite.add();
@@ -152,6 +136,28 @@ Window.prototype = {
 
     document.body.offsetHeight;
     sprite.setActive(false);
+  },
+
+  resize: function window_resize() {
+    var element = this.element;
+    // NOTE: for the moment, orientation only works when fullscreen because of a
+    // too dirty hack...
+    if (this.application.fullscreen && this.application.orientation) {
+      var width = this.element.style.width;
+      element.style.width = this.element.style.height;
+      element.style.height = width;
+
+      element.classList.add(this.application.orientation);
+    } else {
+      var documentElement = document.documentElement;
+      element.style.width = documentElement.clientWidth + 'px';
+
+      var height = documentElement.clientHeight;
+      if (!this.application.fullscreen) {
+        height -= document.getElementById('statusbar').offsetHeight;
+      }
+      element.style.height = height + 'px';
+    }
   }
 };
 
@@ -165,6 +171,7 @@ var WindowManager = {
     window.addEventListener('message', this);
     window.addEventListener('locked', this);
     window.addEventListener('unlocked', this);
+    window.addEventListener('resize', this);
   },
 
   handleEvent: function wm_handleEvent(evt) {
@@ -185,6 +192,9 @@ var WindowManager = {
         if (this._foregroundWindow.application.fullscreen) {
           document.getElementById('screen').classList.add('fullscreen');
         }
+        break;
+      case 'resize':
+        this._foregroundWindow.resize();
         break;
     }
   },
