@@ -327,7 +327,7 @@ var CallHandler = {
   },
   toggleMute: function ch_toggleMute() {
     this.muteButton.classList.toggle('mute');
-    // TODO: make the actual mute call on the telephony API
+    navigator.mozTelephony.muted = !navigator.mozTelephony.muted;
   },
   toggleSpeaker: function ch_toggleSpeaker() {
     this.speakerButton.classList.toggle('speak');
