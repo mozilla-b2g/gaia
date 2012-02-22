@@ -240,7 +240,8 @@ var CallHandler = {
     this.currentCall.answer();
   },
   end: function ch_end() {
-    if (this.currentCall) {
+    // XXX: workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=729503
+    if (this.currentCall && (this.currentCall.state != 'dialing')) {
       this.currentCall.hangUp();
     } else {
       this.disconnected();
