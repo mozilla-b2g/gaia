@@ -8,23 +8,20 @@ function prettyDate(time) {
   if (isNaN(day_diff))
     return '(incorrect date)';
 
-  if (day_diff < 0 || diff < 0 || day_diff >= 31) {
-    var d = new Date(time);
-    var month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return d.getHours() + ':' + d.getMinutes() + ', '
-      + month[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+  if (day_diff < 0 || diff < 0) {
+    // future time
+    return (new Date(time)).toLocaleFormat('%x %R');
   }
 
   return day_diff == 0 && (
-    diff < 60 && 'just now' ||
-    diff < 120 && '1 minute ago' ||
-    diff < 3600 && Math.floor(diff / 60) + ' minutes ago' ||
-    diff < 7200 && '1 hour ago' ||
-    diff < 86400 && Math.floor(diff / 3600) + ' hours ago') ||
+    diff < 60 && 'Just Now' ||
+    diff < 120 && '1 Minute Ago' ||
+    diff < 3600 && Math.floor(diff / 60) + ' Minutes Ago' ||
+    diff < 7200 && '1 Hour Ago' ||
+    diff < 86400 && Math.floor(diff / 3600) + ' Hours Ago') ||
     day_diff == 1 && 'Yesterday' ||
-    day_diff < 7 && day_diff + ' days ago' ||
-    Math.ceil(day_diff / 7) + ' weeks ago';
+    day_diff < 7 && (new Date(time)).toLocaleFormat('%A') ||
+    (new Date(time)).toLocaleFormat('%x');
 }
 
 
