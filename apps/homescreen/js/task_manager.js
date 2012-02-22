@@ -39,15 +39,19 @@ if (!window['Gaia'])
       return this.items = this.container.getElementsByTagName('ul')[0];
     },
 
+    enabled: true,
+
     init: function() {
       window.addEventListener('keydown', this);
       window.addEventListener('keyup', this);
+      window.addEventListener('locked', this);
+      window.addEventListener('unlocked', this);
     },
 
     handleEvent: function(evt) {
       switch (evt.type) {
         case 'keydown':
-          if (evt.keyCode !== evt.DOM_VK_HOME || timeout)
+          if (!this.enabled || evt.keyCode !== evt.DOM_VK_HOME || timeout)
             return;
 
           if (this.isActive) {
@@ -66,6 +70,13 @@ if (!window['Gaia'])
 
           window.clearTimeout(timeout);
           timeout = 0;
+          break;
+
+        case 'locked':
+          this.enabled = false;
+          break;
+        case 'unlocked':
+          this.enabled = true;
           break;
       }
     },
