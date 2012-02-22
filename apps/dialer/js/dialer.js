@@ -331,7 +331,7 @@ var CallHandler = {
   },
   toggleSpeaker: function ch_toggleSpeaker() {
     this.speakerButton.classList.toggle('speak');
-    // TODO: make the actual speaker call
+    navigator.mozTelephony.speakerEnabled = !navigator.mozTelephony.speakerEnabled;
   },
   toggleHold: function ch_toggleHold() {
     this.holdButton.classList.toggle('hold');
