@@ -5,9 +5,13 @@
 
 function WindowSprite(win) {
   var element = this.element = document.createElement('div');
-  element.className = 'windowSprite';
-  element.style.width = win.element.style.width;
-  element.style.height = win.element.style.height;
+  if (win.application.fullscreen) {
+    element.className = 'windowSprite fullscreen';
+  } else {
+    element.className = 'windowSprite';
+    element.style.width = win.element.style.width;
+    element.style.height = win.element.style.height;
+  }
 }
 
 WindowSprite.prototype = {
