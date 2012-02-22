@@ -1,48 +1,36 @@
-window.addEventListener('DOMContentLoaded', function f1() {
-  var dbschema = {
-    version: 1,                     // IndexedDB database version #
-    name: 'videos',                 // IndexedDB name
-    storename: 'videos',            // Object store name. Only 1 allowed
-    keyprop: 'key',                 // Which property is the key
-    blobprops: ['video', 'poster'], // Which properties are blobs to fetch
-    objects: [                      // An array of objects for the db
-      {
-        key: 1,                          // This is the key property
-        title: 'Mozilla Manifesto',      // Some other property
-        video: 'samples/manifesto.ogv',  // These two blob properties
-        poster: 'samples/manifesto.png'  // are URLs to fetch.
-      },
-      {
-        key: 2,
-        title: 'Meet The Cubs',
-        video: 'samples/meetthecubs.webm',
-        poster: 'samples/meetthecubs.png'
-      }
-    ]
-  };
+window.addEventListener('DOMContentLoaded', function() {
 
-  var db = new SimpleDB(dbschema);
-  db.eachObject(function f2(o) {
-    insertPoster(o.title, o.poster, o.video);
-  });
+  // This is the list of sample videos built in to the app
+  var samples = [
+    {
+      title: 'Mozilla Manifesto',
+      video: 'samples/manifesto.ogv',
+      poster: 'samples/manifesto.png'
 
-  function insertPoster(title, posterblob, videoblob) {
-    var posterurl = window.URL.createObjectURL(posterblob);
-    var videourl = window.URL.createObjectURL(videoblob);
+    },
+    {
+      title: 'Meet The Cubs',
+      video: 'samples/meetthecubs.webm',
+      poster: 'samples/meetthecubs.png'
+    }
+  ];
 
-    var poster = elt('li', { title: title },
-                     elt('a', { href: '#'},
-                         elt('img', {
-                           src: posterurl,
-                           'class': 'thumbnail'
-                         })));
+  // Build the thumbnails screen from the list of videos
+  samples.forEach(function(sample) {
+    var thumbnail = elt('li', { title: sample.title },  // <li> tag
+                        elt('a', { href: '#'},          // containing an <a>
+                            elt('img', {                // containing an <img>
+                              src: sample.poster,
+                              alt: sample.title,
+                              'class': 'thumbnail'
+                            })));
 
-    poster.addEventListener('click', function f3(e) {
-      showPlayer(videourl);
+    thumbnail.addEventListener('click', function(e) {
+      showPlayer(sample.video);
     });
 
-    $('thumbnails').appendChild(poster);
-  }
+    $('thumbnails').appendChild(thumbnail);
+  });
 
   // if this is true then the video tag is showing
   // if false, then the gallery is showing
@@ -73,12 +61,12 @@ window.addEventListener('DOMContentLoaded', function f1() {
     });
     $('videoBorder').appendChild(player);
 
-    setTimeout(function f4() {
+    setTimeout(function() {
       player.dataset.visible = 'true';
     }, 100);
   }
 
-  window.addEventListener('keypress', function f5(evt) {
+  window.addEventListener('keypress', function(evt) {
     if (playerShowing && evt.keyCode == evt.DOM_VK_ESCAPE) {
       showGallery();
       evt.preventDefault();
