@@ -5,8 +5,16 @@ function prettyDate(time) {
   var diff = (Date.now() - time) / 1000;
   var day_diff = Math.floor(diff / 86400);
 
-  if (isNaN(day_diff) || day_diff < 0 || day_diff >= 31)
-    return '';
+  if (isNaN(day_diff))
+    return '(incorrect date)';
+
+  if (day_diff < 0 || diff < 0 || day_diff >= 31) {
+    var d = new Date(time);
+    var month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return d.getHours() + ':' + d.getMinutes() + ', '
+      + month[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+  }
 
   return day_diff == 0 && (
     diff < 60 && 'just now' ||
@@ -16,7 +24,7 @@ function prettyDate(time) {
     diff < 86400 && Math.floor(diff / 3600) + ' hours ago') ||
     day_diff == 1 && 'Yesterday' ||
     day_diff < 7 && day_diff + ' days ago' ||
-    day_diff < 31 && Math.ceil(day_diff / 7) + ' weeks ago';
+    Math.ceil(day_diff / 7) + ' weeks ago';
 }
 
 
