@@ -3,23 +3,20 @@
   <head>
     <meta charset="utf-8"> 
     <meta http-equiv="pragma" content="no-cache">
-    <title>Videos</title> 
-    <link rel="stylesheet" href="style/video.css" type="text/css" />
+    <title>Videos</title>
     <script type="text/javascript" src="js/domutils.js"></script>
     <script type="text/javascript" src="js/video.js"></script>
-  </head>
-
+    <link rel="stylesheet" type="text/css" href="style/video.css" />
   <body>
-    <ul id="thumbnails" class="thumbnails">
+    <header>
+      <button id="menu"></button>
+      <h1>Videos</h1>
+    </header>
+    <ul id="thumbnails">
       <!-- Thumbnails inserted here -->
     </ul>
-
-    <div id="videoFrame" class="hidden">
-      <div id="videoBorder">
-        <!-- video element inserted here -->
-      </div>
+    <div id="videoFrame">
+      <video src="about:blank" id="player"></video>
     </div>
-
   </body>
 </html>
-
