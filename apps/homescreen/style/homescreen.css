@@ -216,7 +216,7 @@ body {
 
 iframe.appWindow {
   position: absolute;
-  background-color: #000;
+  background: url("images/noise.png") repeat scroll 50% 50%, #373a3d;
   border: 0;
   margin: 0;
   padding: 0;
@@ -250,14 +250,19 @@ div.windowSprite {
   left: 0;
   z-index: 999999;
   -moz-transform: scale(0.5);
-  -moz-transition: all 0.5s ease;
+  -moz-transition: -moz-transform 0.5s ease, opacity 0.5s ease;
   opacity: 0;
   background: url("images/noise.png") repeat scroll 50% 50%, #373a3d;
+  border-radius: 8px;
 }
 
 div.windowSprite.active {
   opacity: 1;
   -moz-transform: scale(1);
+}
+
+div.windowSprite.crossFade {
+  opacity: 0;
 }
 
 iframe.portrait-primary {
