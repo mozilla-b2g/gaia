@@ -84,7 +84,7 @@ Window.prototype = {
       if (callback)
         callback();
     };
-    sprite.element.addEventListener('animationiteration', focus.bind(this));
+    sprite.element.addEventListener('transitionend', focus.bind(this));
 
     if (this.application.fullscreen) {
       document.getElementById('screen').classList.add('fullscreen');
