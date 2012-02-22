@@ -715,3 +715,17 @@ iframe.landscape-secondary {
   background-color: #0c0;
   box-shadow: 0 0 5px #fff;
 }
+
+#debug-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: none;
+  width: 480px;
+  height: 800px;
+  background: url(images/grid.png);
+  z-index: 999999;
+  opacity: 0.2;
+  pointer-events: none;
+}
+
