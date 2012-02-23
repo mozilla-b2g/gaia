@@ -9,8 +9,6 @@ function WindowSprite(win) {
     element.className = 'windowSprite fullscreen';
   } else {
     element.className = 'windowSprite';
-    element.style.width = win.element.style.width;
-    element.style.height = win.element.style.height;
   }
 }
 
@@ -299,6 +297,7 @@ var WindowManager = {
     if (!foregroundWindow)
       return;
 
+    this._fireEvent(foregroundWindow.element, 'appwillclose');
     this.setForegroundWindow(null, (function() {
       this._fireEvent(foregroundWindow.element, 'appclose');
       if (callback)
