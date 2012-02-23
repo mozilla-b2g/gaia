@@ -170,9 +170,6 @@ var Gallery = {
   },
 
   init: function galleryInit() {
-    var db = this.db;
-    db.open(this.addThumbnail.bind(this), this.getSamplePhotos.bind(this));
-
     this.thumbnails.addEventListener('click', (function thumbnailsClick(evt) {
       var target = evt.target;
       if (!target || !target.classList.contains('thumbnailHolder'))
@@ -194,86 +191,36 @@ var Gallery = {
         evt.preventDefault();
       }
     }).bind(this), true);
-  },
 
-  getSamplePhotos: function galleryGetSamplePhotos() {
+
+    // Create the <img> elements for sample thumbnails and photos
     var self = this;
-    // create separate callback function for each XHR to prevent overwriting
-    for (var i in SAMPLE_FILENAMES) {
-      var getSamplePhoto = function(i) {
-        var thumbnailRequest = self.createPhotoRequest(SAMPLE_FILENAMES[i],
-          SAMPLE_THUMBNAILS_DIR);
-        var photoRequest = self.createPhotoRequest(SAMPLE_FILENAMES[i],
-          SAMPLE_PHOTOS_DIR);
-        thumbnailRequest.send();
-        photoRequest.send();
-      };
-      getSamplePhoto(i);
-    }
-  },
+    SAMPLE_FILENAMES.forEach(function(filename) {
+      var thumbnailURL = SAMPLE_THUMBNAILS_DIR + filename;
+      var photoURL = SAMPLE_PHOTOS_DIR + filename;
 
-  createPhotoRequest: function galleryCreatePhotoRequest(filename, directory) {
-    var photoRequest = new XMLHttpRequest();
-    var photoURL = directory + filename;
-    photoRequest.open('GET', photoURL, true);
-    photoRequest.responseType = 'blob';
+      var li = document.createElement('li');
+      li.dataset.filename = photoURL;
+      li.dataset.index = self.thumbnails.childNodes.length;
+      li.classList.add('thumbnailHolder');
 
-    var db = this.db;
-    var self = this;
-    photoRequest.onload = function photoRequestLoaded(e) {
-      if (this.status != 200)
-        return;
+      var img = document.createElement('img');
+      img.src = thumbnailURL;
+      img.classList.add('thumbnail');
+      li.appendChild(img);
 
-      var blob = this.response;
-      var photoEntry = {
-        filename: filename,
-        data: blob
-      };
+      self.thumbnails.appendChild(li);
 
-      if (directory == SAMPLE_THUMBNAILS_DIR)
-        db.savePhoto(photoEntry, 'thumbnails', self.addThumbnail.bind(self));
-      else
-        db.savePhoto(photoEntry, 'photos');
-    };
-    return photoRequest;
-  },
+      var div = document.createElement('div');
+      div.id = filename;
 
-  addThumbnail: function galleryAddThumbnail(thumbnail) {
-    var blob = window.URL.createObjectURL(thumbnail.data);
-    var filename = thumbnail.filename;
+      var img = document.createElement('img');
+      img.src = photoURL;
+      img.classList.add('photo');
+      div.appendChild(img);
 
-    var li = document.createElement('li');
-    li.dataset.filename = filename;
-    li.dataset.index = this.thumbnails.childNodes.length;
-    li.classList.add('thumbnailHolder');
-
-    var img = document.createElement('img');
-    img.src = blob;
-    img.classList.add('thumbnail');
-    li.appendChild(img);
-
-    this.thumbnails.appendChild(li);
-
-    this.addPhoto(blob, filename);
-  },
-
-  addPhoto: function galleryAddPhoto(thumbnailBlob, filename) {
-    var photos = this.photos;
-    var div = document.createElement('div');
-    div.id = filename;
-
-    var img = document.createElement('img');
-    img.src = thumbnailBlob;
-    img.classList.add('photo');
-    div.appendChild(img);
-
-    // Load the high-resolution version of the photo into the viewer.
-    this.db.getPhoto(filename,
-                     function (result) {
-                       img.src = window.URL.createObjectURL(result.data); 
-                     });
-
-    this.photos.appendChild(div);
+      self.photos.appendChild(div);
+    });
   },
 
   showThumbnails: function galleryShowThumbnails() {
@@ -352,94 +299,6 @@ var Gallery = {
     }
     e.preventDefault();
   },
-};
-
-
-Gallery.db = {
-  _db: null,
-  open: function dbOpen(thumbnailCallback, samplePhotosCallback) {
-    const DB_VERSION = 5;
-    const DB_NAME = 'gallery';
-    var request = window.mozIndexedDB.open(DB_NAME, DB_VERSION);
-    var empty = false;
-
-    request.onupgradeneeded = (function onUpgradeNeeded(evt) {
-      this._db = evt.target.result;
-      this._initializeDB();
-      empty = true;
-    }).bind(this);
-
-    request.onsuccess = (function onSuccess(evt) {
-      this._db = evt.target.result;
-      empty ? samplePhotosCallback() : this.getThumbnails(thumbnailCallback);
-      window.parent.postMessage('appready', '*');
-    }).bind(this);
-
-    request.onerror = (function onDatabaseError(error) {
-      console.log('Database error: ', error);
-    }).bind(this);
-  },
-
-  _initializeDB: function dbInitializeDB() {
-    var db = this._db;
-    var stores = ['thumbnails', 'photos'];
-    stores.forEach(function createStore(store) {
-      if (db.objectStoreNames.contains(store))
-        db.deleteObjectStore(store);
-      db.createObjectStore(store, { keyPath: 'filename' });
-    });
-  },
-
-  savePhoto: function dbSavePhoto(entry, store, callback) {
-    var transaction = this._db.transaction(store, IDBTransaction.READ_WRITE);
-    var objectStore = transaction.objectStore(store);
-    var request = objectStore.put(entry);
-
-    request.onsuccess = (function onsuccess(e) {
-      console.log('Added the photo ' + entry.filename + ' to the ' +
-        store + ' store');
-      if (callback)
-        callback(entry);
-    }).bind(this);
-
-    request.onerror = function onerror(e) {
-      console.log('Error while adding a photo to the store');
-    };
-  },
-
-  getThumbnails: function dbGetThumbnails(callback) {
-    var transaction = this._db.transaction(['thumbnails'],
-                                           IDBTransaction.READ_ONLY);
-    var store = transaction.objectStore('thumbnails');
-    var cursorRequest = store.openCursor(IDBKeyRange.lowerBound(0));
-
-    var thumbnails = [];
-    cursorRequest.onsuccess = function onsuccess(e) {
-      var result = e.target.result;
-      if (!result) {
-        return;
-      }
-      callback(result.value);
-      result.continue();
-    };
-
-    cursorRequest.onerror = function onerror(e) {
-      console.log('Error getting all photos');
-    };
-  },
-
-  getPhoto: function dbGetPhoto(filename, callback) {
-    var transaction = this._db.transaction(['photos'],
-                                           IDBTransaction.READ_ONLY);
-    var request = transaction.objectStore('photos').get(filename);
-    request.onsuccess = function onsuccess(e) {
-      callback(e.target.result);
-    };
-
-    request.onerror = function onerror(e) {
-      console.log('Error retrieving photo: ' + e);
-    };
-  }
 };
 
 window.addEventListener('DOMContentLoaded', function GalleryInit() {
