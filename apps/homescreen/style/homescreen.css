@@ -576,7 +576,6 @@ iframe.landscape-secondary {
   color: rgb(36, 36, 36);
   font-size: 33px;
   height: 58px;
-  line-height: 54px;
   min-width: 0 !important;
   margin: 0 2px;
   -moz-box-sizing: border-box;
@@ -586,11 +585,13 @@ iframe.landscape-secondary {
  * generated.  Painting with the raw style is currently too slow, so
  * we fall back on bitmaps.
  *
+  line-height: 55px;
   border: 1px solid #d5d5d5;
   -moz-box-shadow: inset 0 0 2px 2px #fff;
   border-radius: 5px;
   background: -moz-linear-gradient(top, #fff 10%, #fff 70%, #f6f6f6 100%);
 */
+  line-height: 56px;
   background: url(images/left.png) left top no-repeat,
               url(images/right.png) right top no-repeat,
               url(images/middle.png) left top repeat-x;
@@ -622,17 +623,27 @@ iframe.landscape-secondary {
  *
   -moz-box-shadow: inset 0 0 2px 2px #6f6f6f;
   text-shadow: 0 -1px #909090, 0 1px #9b9b9b;
-*/
   background: rgb(118, 118, 118);
+*/
+  background: url(images/left-active.png) left top no-repeat,
+              url(images/right-active.png) right top no-repeat,
+              rgb(118, 118, 118);
 }
 
 .keyboard-key-special {
   color: #fff;
   font-size: 18px;
   text-shadow: 0 -1px #848d96, 0 1px #bac2cb;
+/*
+ * Disable this for now because it's too slow to repaint.
+ *
   background: -moz-linear-gradient(top, #a3aeb9 10%, #a3aeb9 70%, #929ca6 100%);
   -moz-box-shadow: none;
   border: 1px solid #8a949d;
+*/
+  background: url(images/left-special.png) left top no-repeat,
+              url(images/right-special.png) right top no-repeat,
+              url(images/middle-special.png) left top repeat-x;
 }
 
 .keyboard-key-special.toggle {
@@ -692,7 +703,7 @@ iframe.landscape-secondary {
   position: absolute;
   display: none;
   background-color: #cac9c5;
-  height: 68px;
+  height: 58px;
   padding: 5px;
   margin-top: -84px;
   border-radius: 5px;
@@ -722,10 +733,11 @@ iframe.landscape-secondary {
  *
   -moz-box-shadow: inset 0 0 2px 2px #6f6f6f;
   text-shadow: 0 -1px #909090, 0 1px #9b9b9b;
-*/
   background: rgb(118, 118, 118);
-}
-
+*/
+  background: url(images/left-active-accent.png) left top no-repeat,
+              url(images/right-active-accent.png) right top no-repeat,
+              rgb(118, 118, 118);
 }
 
 #keyboard-accent-char-menu.menu > .current-keyboard::before {
