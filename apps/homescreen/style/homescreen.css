@@ -156,7 +156,9 @@ body {
 #home > #notifications {
   bottom: 0px;
   height: 80px;
-  background-color: lightgreen;
+  background-image: url(images/notifications.png);
+  background-repeat: none;
+  background-size: 100% 100%;
 }
 
 .page {
