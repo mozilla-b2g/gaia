@@ -107,7 +107,6 @@ button#playHead {
   height: 64px;
   background-image: url("images/btn_playhead_off.png");
   background-position: center center;
-  display: none;
 }
 button#playHead:active {
   background-image: url("images/btn_playhead_press.png");
