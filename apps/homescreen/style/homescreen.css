@@ -248,6 +248,8 @@ div.windowSprite {
   position: absolute;
   top: 32px;
   left: 0;
+  width: 100%;
+  height: -moz-calc(100% - 32px);
   z-index: 999999;
   -moz-transform: scale(0.5);
   -moz-transition: -moz-transform 0.5s ease, opacity 0.5s ease;
@@ -259,7 +261,6 @@ div.windowSprite {
 div.windowSprite.fullscreen {
   border-radius: 0;
   top: 0;
-  width: 100%;
   height: 100%;
 }
 
