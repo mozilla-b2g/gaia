@@ -7,10 +7,24 @@ html, body {
 
   font-size: 2.5mozmm;
   color: white;
-  font-family: sans-serif;
-
+  font-family: 'Open Sans', sans-serif;
 
   background: #000;
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  src: url('fonts/Open-Sans.woff');
+}
+@font-face {
+  font-family: 'Open Sans';
+  font-weight: bold;
+  src: url('fonts/Open-Sans-Bold.woff');
+}
+@font-face {
+  font-family: 'Open Sans';
+  font-weight: 600;
+  src: url('fonts/Open-Sans-Semibold.woff');
 }
 
 html * {
@@ -28,7 +42,7 @@ html * {
 #tabs {
   position: absolute;
   width: 100%;
-  height: 100px;
+  height: 96px;
   bottom: 0;
 
 	background: url(images/app-texture.png) 50% 50%,
@@ -41,7 +55,7 @@ html * {
 #tabs fieldset {
   list-style: none;
 	width: -moz-calc(100% - 30px);
-	height: 100px;
+	height: 96px;
   padding: 0;
   margin: 0 auto;
 
@@ -88,7 +102,7 @@ html * {
 #views {
   position: absolute;
   top: 0;
-  height: -moz-calc(100% - 100px);
+  height: -moz-calc(100% - 96px);
   width: 100%;
 
   background: url(images/app-texture.png) 50% 50%, #F5F5F5;
@@ -101,8 +115,8 @@ html * {
 }
 
 .top-bar {
-	height: 8mozmm;
-  line-height: 8mozmm;
+	height: 7.5mozmm;
+  line-height: 7.5mozmm;
 
   font-size: 3.2mozmm;
   text-align: center;
@@ -116,9 +130,8 @@ html * {
   display: block;
   width: 6mozmm;
   height: 6mozmm;
-  top: 1mozmm;
-  right: 1mozmm;
-  padding-left: 2px;
+  top: 0.75mozmm;
+  right: 0.75mozmm;
 
 	color: #7D8389;
   text-align: center;
@@ -155,12 +168,12 @@ html * {
 #phone-number-view-container > div {
   display: block;
   position: relative;
-  height: 12mozmm;
+  height: 11mozmm;
   margin: auto;
 
   color: #FFFFFF;
-  font-size: 8mozmm;
-  line-height: 12mozmm;
+  font-size: 5mozmm;
+  line-height: 11mozmm;
   text-align: center;
   white-space: nowrap;
   text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
@@ -176,8 +189,8 @@ html * {
 	display: block;
 	right: 0;
 	top: 0;
-	width: 12mozmm;
-	height: 12mozmm;
+	width: 11mozmm;
+	height: 11mozmm;
 
   border: 0;
   background: url(images/backspace.png) 50% 50% no-repeat;
@@ -196,12 +209,12 @@ html * {
 }
 
 #keyboard-container {
-  height: -moz-calc(100% - 12mozmm);
+  height: -moz-calc(100% - 11mozmm);
 }
 
 #mainKeyset {
   width: 100%;
-  height: -moz-calc(100% - 16mozmm);
+  height: -moz-calc(100% - 15mozmm);
   min-height: 265px;
   padding: 0;
   margin: 0;
@@ -216,21 +229,35 @@ html * {
   width: 100%;
 }
 
-.keyboard-key {
+.keyboard-row .keyboard-key {
   float: left;
   width: -moz-calc(100% / 3 - 2px);
-  height: -moz-calc(100% - 2px);
-  padding: 0;
+  height: -moz-calc(100% - 40px);
+  padding: 38px 0 0 0;
 
   border: 1px solid #ccc;
 
+  font-size: 16.5px;
+  font-weight: 600;
   text-align: center;
 }
 
 .keyboard-key > span {
-  line-height: 1em;
+  display: block;
+
   pointer-events: none;
+
+  color: hsla(0,0%,20%,1);
+  font-size: 3em;
+  line-height: 0.9em;
 }
+
+.keyboard-key > span:last-child {
+  color: hsl(0,0%,60%);
+  text-transform: uppercase;
+  font-size: 1em;
+}
+
 
 .keyboard-row:first-child .keyboard-key {
   border-top: 0;
@@ -239,7 +266,7 @@ html * {
 
 .keyboard-row:last-child .keyboard-key {
   border-bottom: 2px solid #ccc;
-  height: -moz-calc(100% - 3px);
+  height: -moz-calc(100% - 41px);
 }
 
 .keyboard-key:active {
@@ -248,55 +275,42 @@ html * {
 .keyboard-key:active > span:first-child {
   color: hsla(35,100%,50%,1);
 }
-.keyboard-key span {
-  display: block;
-
-  color: hsla(0,0%,20%,1);
-  font-size: 1.6em;
-  line-height: 1.8em;
-}
-
-.keyboard-key span:last-child {
-  color: hsl(0,0%,60%);
-  text-transform: uppercase;
-  font-size: 0.6em;
-  line-height:0.8em;
-}
 
 #additionalKeyset {
   width: 100%;
-  height: 16mozmm;
+  height: 15mozmm;
   padding: 0;
   margin: 0;
 }
 
 .keyboard-key[data-value="call"] {
-  width: -moz-calc(100% - 60px);
-  height: 8mozmm;
-  margin: 4mozmm 30px;
+  width: 100%;
+  height: 100%;
+  margin: 0;
 
   border: 0;
-  border-radius: 20px;
 
-  background: -moz-linear-gradient(top, hsl(39,100%,73%) 0, hsla(35,100%,80%,0.2) 2px, hsla(35,100%,50%,.4) 20%,
-                hsl(32,100%,38%) 98%, hsl(32,100%,38%) 99%, hsl(31,100%,50%) 100%),
-              -moz-linear-gradient(top, hsl(39,100%,73%) 0, hsla(35,100%,50%,1) 2px, hsl(32,100%,38%) 98%,
-                hsl(32,100%,38%) 99%, hsl(31,100%,50%) 100%);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-position: 0 0;
+  background-image: url(images/call-button-bg.png);
 }
 
 .keyboard-key[data-value="call"]:active {
-  background: -moz-linear-gradient(bottom, hsl(39,100%,73%) 0, hsla(35,100%,80%,0.2) 2px, hsla(35,100%,50%,.4) 20%,
-                hsl(32,100%,38%) 98%, hsl(32,100%,38%) 99%, hsl(31,100%,50%) 100%),
-              -moz-linear-gradient(bottom, hsl(39,100%,73%) 0, hsla(35,100%,50%,1) 2px, hsl(32,100%,38%) 98%,
-                hsl(32,100%,38%) 99%, hsl(31,100%,50%) 100%);
+  background-image: url(images/call-button-bg-active.png);
+  background-color: transparent;
+}
+.keyboard-key[data-value="call"]:active span {
+  color: white;
 }
 
 .keyboard-key[data-value="call"] span {
 	display: block;
 
   color: white;
-  font-size: 4mozmm;
-  line-height: 8mozmm;
+  line-height: 15mozmm;
+  font-size: 37px;
+  font-weight: bold;
   text-align: center;
   text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5);
   text-transform: none;
@@ -305,7 +319,7 @@ html * {
 @media all and (max-height: 500px) {
   #mainKeyset {
     min-height: 165px;
-    height: -moz-calc(100% - 12mozmm);
+    height: -moz-calc(100% - 11mozmm);
   }
 
   .keyboard-key span {
@@ -332,12 +346,20 @@ html * {
   .keyboard-key[data-value="call"] span {
     display: block;
   }
+
+  #contacts-shortcuts-background {
+    display: none;
+  }
+
+  #contacts-shortcuts {
+    display: none;
+  }
 }
 
 /* === Contacts View === */
 
 #contacts-view-scrollable {
-  height: -moz-calc(100% - 10mozmm);
+  height: -moz-calc(100% - 7.5mozmm);
   overflow: scroll;
 }
 
@@ -348,7 +370,7 @@ html * {
 
 #contacts-container-top {
   position: absolute;
-  top: 8mozmm;
+  top: 7.5mozmm;
   width: 100%;
   height: 10px;
 
@@ -360,7 +382,7 @@ html * {
 
 #contacts-search-container {
   position: relative;
-  margin-top: 1.5mozmm;
+  margin-top: 1.25mozmm;
   margin-left: 2mozmm;
   padding: 0;
   width: -moz-calc(100% - 10mozmm);
@@ -388,15 +410,13 @@ html * {
 
 .contact-header {
   position: relative;
-  height: 3mozmm;
+  height: 3.5mozmm;
   padding: 0 14px 0 20px;
   overflow: visible;
 
   background: url(images/diagonal-pattern.png) 0 0, hsla(60,13%,94%,1);
 
-  font-size: 1.4em;
   font-weight: 700;
-  line-height: 3mozmm;
   color: #FFFFFF;
 
   border-top: 1px solid hsla(0,0%,100%,1);
@@ -409,13 +429,14 @@ html * {
   position: absolute;
   top: -1mozmm;
   left: 2mozmm;
-  width: 5mozmm;
-  height: 5mozmm;
+  width: 5.5mozmm;
+  height: 5.5mozmm;
 
-  line-height: 5mozmm;
+  line-height: 5.5mozmm;
   color: hsla(0,0%,100%,1);
   text-align: center;
-  font-size: 0.8em;
+  font-size: 24px;
+  font-weight: bold;
   text-transform: uppercase;
 
   background: url(images/contacts-circle.png);
@@ -424,7 +445,7 @@ html * {
 
 .contact {
   padding: 0 14px 0 4mozmm;
-  height: 7mozmm;
+  height: 7.2mozmm;
   width: -moz-calc(100% - 2px);
 
   border-bottom: 1px solid #CCCCCC;
@@ -432,8 +453,12 @@ html * {
   color: hsla(0,0%,20%,1);
 	background: none;
 
-  line-height: 7mozmm;
-  font-size: 3mozmm;
+  line-height: 7.2mozmm;
+  font-size: 26px;
+}
+
+.contact > span:last-child {
+  font-weight: bold;
 }
 
 .contact * {
@@ -448,10 +473,10 @@ html * {
 
 #contacts-shortcuts-background {
   position: fixed;
-  right: 10px;
-  top: 12mozmm;
-  width: 22px;
-  height: -moz-calc(100% - 14mozmm - 100px);
+  right: 0;
+  top: 11.1mozmm;
+  width: 32px;
+  height: -moz-calc(100% - 14.5mozmm - 96px);
 
   background: none;
   border-radius: 4px;
@@ -463,21 +488,21 @@ html * {
 
 #contacts-shortcuts {
   position: fixed;
-  right: 10px;
-  top: 14mozmm;
-  width: 44px;
-  height: -moz-calc(100% - 18mozmm - 100px);
+  right: 0;
+  top: 12.6mozmm;
+  width: 32px;
+  height: -moz-calc(100% - 17.5mozmm - 96px);
 }
 
 #contacts-shortcuts > a {
   display: block;
-  width: 22px;
-  height: -moz-calc(100% / 26 - 2px);
-  margin: 2px 0;
-  padding-left: 22px;
+  width: 32px;
+  height: -moz-calc(100% / 26);
+  margin: 0;
 
   color: #999999;
-  font-size: 12px;
+  font-weight: 600;
+  font-size: 14px;
   text-align: center;
 }
 

@@ -54,9 +54,11 @@ var Contacts = {
                    '</span></div>';
       }
 
-      content += '<div class="contact" id="' + contact.id + '">' +
-                 '  <span class="display-name">' + displayName + '</span>' +
-                 '</div>';
+      content += '<div class="contact" id="' + contact.id + '">';
+      for (var key in contact.name) {
+        content += '<span>' +  contact.name[key] + '</span> ';
+      }
+      content += '</div>';
     }
 
     var contactsContainer = document.getElementById('contacts-container');
