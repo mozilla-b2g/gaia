@@ -130,7 +130,7 @@ body {
   width: -moz-calc(100%);
   height: -moz-calc(100% - 32px);
   border-radius: 8px;
-  background: url("images/noise.png") repeat scroll 50% 50%, url(images/background.bmp) 50% 50% transparent;
+  background: url(backgrounds/default.png);
 }
 
 #home > div {
@@ -142,18 +142,21 @@ body {
 
 #home > #apps {
   top: 0;
-  height: -moz-calc(75%);
+  height: 480px;
+  margin-top: 32px;
 }
 
 #home > #dots {
-  top: 77.5%;
-  height: -moz-calc(2.5%);
+  top: 512px;
+  height: 64px;
+  line-height: 64px;
   text-align: center;
 }
 
 #home > #favs {
-  top: 80%;
-  height: -moz-calc(20%);
+  top: 576px;
+  height: 160px;
+  margin-bottom: 32px;
 }
 
 .page {
@@ -166,24 +169,32 @@ body {
 
 .icon {
   position: absolute;
-  width: 100%;
+  width: 160px;
+  height: 160px;
   text-align: center;
+  overflow: hidden;
+}
+
+.icon > * {
+  pointer-events: none;
 }
 
 .icon > div {
   display: inline-block;
-  width: 100%;
+  width: 120px;
+  height: 120px;
 }
 
 .icon > div > img {
-  padding-top: 10%;
-  width: 70%;
+  margin-top: 20px;
 }
 
 .icon > .label {
+  position: relative;
+  top: -16px;
   padding-top: 0%;
   color: white;
-  font-size: 140%;
+  font-size: 120%;
 }
 
 .dot {
