@@ -10,7 +10,6 @@ window.addEventListener('DOMContentLoaded', function() {
       width: '640',
       height: '360',
       duration: '2:05'
-
     },
     {
       title: 'Meet The Cubs',
@@ -68,6 +67,12 @@ window.addEventListener('DOMContentLoaded', function() {
     }
   }
 
+  // show|hide controls over the player
+  $('videoControls').addEventListener('click', function(event) {
+    if (event.target == this)
+      this.classList.toggle('hidden');
+  }, false);
+
   // show|hide video player
   function showPlayer(sample) {
     // switch to the video player view
@@ -102,7 +107,7 @@ window.addEventListener('DOMContentLoaded', function() {
   $('close').addEventListener('click', hidePlayer, false);
   player.addEventListener('ended', hidePlayer, false);
   window.addEventListener('keypress', function(event) {
-    if (event.keyCode == event.DOM_VK_ESCAPE) {
+    if (playerShowing && event.keyCode == event.DOM_VK_ESCAPE) {
       hidePlayer();
       event.preventDefault();
     }
@@ -111,13 +116,9 @@ window.addEventListener('DOMContentLoaded', function() {
     }
   }, false);
 
-  // show|hide controls over the player
-  $('videoControls').addEventListener('click', function() {
-    $('videoControls').classList.toggle('hidden');
-  }, false);
-
   // media events: play|pause, rwd|fwd, timeupdate
   playHead = $('playHead');
+  elapsedTime = $('elapsedTime');
   $('play').addEventListener('click', function() {
     if (player.paused) {
       $('videoBar').classList.remove('paused');
@@ -134,7 +135,12 @@ window.addEventListener('DOMContentLoaded', function() {
     player.currentTime += 15;
   }, false);
   player.addEventListener('timeupdate', function() {
-    var pos = (player.currentTime / player.duration) * 100;
-    playHead.style.top = pos + '%';
+    var pos = (player.currentTime / player.duration) * 100 + '%';
+    playHead.style.top = pos;
+    elapsedTime.style.height = pos;
+  }, false);
+
+  // handle clicks on the time slider
+  $('timeSlider').addEventListener('click', function() {
   }, false);
 });
