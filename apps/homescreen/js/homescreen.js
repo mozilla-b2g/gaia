@@ -182,7 +182,7 @@ DefaultPhysics.prototype = {
     var iconGrid = this.iconGrid;
     var currentPage = iconGrid.currentPage;
     if (tap) {
-      iconGrid.tap();
+      iconGrid.tap(e.target);
       return;
     } else if (flick) {
       iconGrid.setPage(currentPage + dir, 0.2);
@@ -308,13 +308,6 @@ IconGrid.prototype = {
       div.style.MozTransform = 'translate(' + x + ',' + y + ')';
     }
 
-    // touch handler for icons
-    var TouchHandler = {
-      handleEvent: function(e) {
-        instance.lastAction = (e.type === 'touchstart') ? e.target.action : null;
-      }
-    };
-
     // get page divs
     var elementList = container.childNodes;
     var pageDivs = [];
@@ -369,16 +362,11 @@ IconGrid.prototype = {
         iconDiv = document.createElement('div');
         iconDiv.id = n;
         iconDiv.className = 'icon';
-
-        var style = iconDiv.style;
-        style.width = iconWidth + '%';
-        style.height = iconHeight + '%';
-
-        var img = new Image();
-        AddEventHandlers(img, TouchHandler, ['touchstart', 'touchend']);
+        iconDiv.dataset.url = icon.action;
 
         var centerDiv = document.createElement('div');
         centerDiv.className = 'img';
+        var img = new Image();
         centerDiv.appendChild(img);
         iconDiv.appendChild(centerDiv);
 
@@ -456,9 +444,8 @@ IconGrid.prototype = {
     if (dots)
       dots.update(number);
   },
-  tap: function() {
-    if (this.lastAction)
-      eval(this.lastAction);
+  tap: function(target) {
+    WindowManager.launch(target.dataset.url);
   },
   handleEvent: function(e) {
     var physics = this.physics;
@@ -740,26 +727,44 @@ function OnLoad() {
   ];
   new NotificationScreen(touchables);
 
+  var favorites = ['Dialer', 'Messages', 'Market'];
   var apps = Gaia.AppManager.loadInstalledApps(function(apps) {
     var appsGrid = new IconGrid('apps', 3, 3, 2, true);
+    var appsGridCount = 0;
     for (var n = 0; n < apps.length; ++n) {
       var app = apps[n];
-      appsGrid.add(n, app.icon, app.name, 'WindowManager.launch("' + app.url + '")');
+      if (favorites.indexOf(app.name) == -1) {
+        appsGrid.add(appsGridCount, app.icon, app.name, app.url);
+        appsGridCount++;
+      }
     }
     appsGrid.dots = new Dots('dots', 'apps');
     appsGrid.update();
 
-    var favsGrid = new IconGrid('favs', 3, 1, 1, false);
-    var slot = 0;
+    var favs = document.getElementById('favs');
     for (var n = 0; n < apps.length; ++n) {
-      if (apps[n].name == 'Dialer' ||
-          apps[n].name == 'Messages' ||
-          apps[n].name == 'Market') {
-        var app = apps[n];
-        favsGrid.add(slot++, app.icon, app.name, 'WindowManager.launch("' + app.url + '")');
+      var app = apps[n];
+      if (favorites.indexOf(app.name) != -1) {
+        var iconDiv = document.createElement('div');
+        iconDiv.id = n;
+        iconDiv.className = 'icon';
+        iconDiv.dataset.url = app.url;
+        iconDiv.addEventListener('click', function(evt) {
+          WindowManager.launch(evt.target.dataset.url);
+        });
+        iconDiv.style.left = (favs.childNodes.length  * 160) + 'px';
+
+        var img = new Image();
+        img.src = app.icon;
+
+        var centerDiv = document.createElement('div');
+        centerDiv.className = 'img';
+        centerDiv.appendChild(img);
+        iconDiv.appendChild(centerDiv);
+
+        favs.appendChild(iconDiv);
       }
     }
-    favsGrid.update();
   });
 
   var titlebar = document.getElementById('titlebar');
