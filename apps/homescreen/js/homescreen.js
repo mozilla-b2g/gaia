@@ -366,8 +366,6 @@ IconGrid.prototype = {
 
         var centerDiv = document.createElement('div');
         centerDiv.className = 'img';
-        var img = new Image();
-        centerDiv.appendChild(img);
         iconDiv.appendChild(centerDiv);
 
         if (this.showLabels) {
@@ -386,13 +384,7 @@ IconGrid.prototype = {
         }
       }
 
-      // make sure icon has right image and label
-      var img = iconDiv.childNodes[0].childNodes[0];
-      img.action = icon.action;
-
-      var iconUrl = icon.iconUrl;
-      if (img.src != iconUrl)
-        img.src = iconUrl;
+      iconDiv.style.backgroundImage = 'url(' + icon.iconUrl + ')';
 
       if (this.showLabels) {
         var label = iconDiv.childNodes[1];
@@ -401,7 +393,7 @@ IconGrid.prototype = {
       }
 
       // update position
-      setPosition(iconDiv, getIconColumn(icon) + '00%', getIconRow(icon) + '00%');
+      setPosition(iconDiv, getIconColumn(icon) * 132 + 'px', getIconRow(icon) * 196 + 'px');
     }
 
     // remove icons we don't need
@@ -727,44 +719,15 @@ function OnLoad() {
   ];
   new NotificationScreen(touchables);
 
-  var favorites = ['Dialer', 'Messages', 'Market'];
   var apps = Gaia.AppManager.loadInstalledApps(function(apps) {
     var appsGrid = new IconGrid('apps', 3, 3, 2, true);
     var appsGridCount = 0;
     for (var n = 0; n < apps.length; ++n) {
       var app = apps[n];
-      if (favorites.indexOf(app.name) == -1) {
-        appsGrid.add(appsGridCount, app.icon, app.name, app.url);
-        appsGridCount++;
-      }
+      appsGrid.add(n, app.icon, app.name, app.url);
     }
     appsGrid.dots = new Dots('dots', 'apps');
     appsGrid.update();
-
-    var favs = document.getElementById('favs');
-    for (var n = 0; n < apps.length; ++n) {
-      var app = apps[n];
-      if (favorites.indexOf(app.name) != -1) {
-        var iconDiv = document.createElement('div');
-        iconDiv.id = n;
-        iconDiv.className = 'icon';
-        iconDiv.dataset.url = app.url;
-        iconDiv.addEventListener('click', function(evt) {
-          WindowManager.launch(evt.target.dataset.url);
-        });
-        iconDiv.style.left = (favs.childNodes.length  * 160) + 'px';
-
-        var img = new Image();
-        img.src = app.icon;
-
-        var centerDiv = document.createElement('div');
-        centerDiv.className = 'img';
-        centerDiv.appendChild(img);
-        iconDiv.appendChild(centerDiv);
-
-        favs.appendChild(iconDiv);
-      }
-    }
   });
 
   var titlebar = document.getElementById('titlebar');
