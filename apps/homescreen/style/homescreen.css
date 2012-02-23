@@ -523,6 +523,7 @@ iframe.landscape-secondary {
   width: 100%;
   border: none;
   border-top: 2px solid #a3a3a3;
+  z-index: 1;
 }
 #keyboard-candidate-panel.full span {
   border-top: 1px solid #e8e8ff;
@@ -564,6 +565,7 @@ iframe.landscape-secondary {
   border-top: 1px solid #e8e8ff;
   border-bottom: 1px solid #808098;
   top: -66px;
+  z-index: 1;
 }
 
 #keyboard-candidate-panel-toggle-button.show {

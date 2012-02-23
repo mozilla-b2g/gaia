@@ -29,7 +29,8 @@ const IMEManager = {
     'otherlatins': ['fr', 'de', 'nb', 'sk', 'tr'],
     'cyrillic': ['ru', 'sr-Cyrl'],
     'hebrew': ['he'],
-    'zhuying': ['zh-Hant-Zhuying']
+    'zhuying': ['zh-Hant-Zhuying'],
+    'pinyin': ['zh-Hans-Pinyin']
   },
 
   loadKeyboardSettings: function loadKeyboardSettings(callback) {
