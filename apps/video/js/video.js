@@ -73,7 +73,7 @@ window.addEventListener('DOMContentLoaded', function() {
   // show|hide video player
   function showPlayer(sample) {
     // switch to the video player view
-    hideControls();
+    $('videoControls').classList.add('hidden');
     document.body.classList.add('fullscreen');
     $('videoBar').classList.remove('paused');
 
@@ -87,8 +87,11 @@ window.addEventListener('DOMContentLoaded', function() {
     playerShowing = true;
   }
   function hidePlayer() {
+    if (!playerShowing)
+      return;
+
     // switch to the video gallery view
-    hideControls();
+    $('videoControls').classList.add('hidden');
     document.cancelFullScreen();
     document.body.classList.remove('fullscreen');
     $('videoBar').classList.remove('paused');
@@ -101,26 +104,20 @@ window.addEventListener('DOMContentLoaded', function() {
   }
   $('close').addEventListener('click', hidePlayer, false);
   player.addEventListener('ended', hidePlayer, false);
-  window.addEventListener('keypress', function(evt) {
-    if (playerShowing && evt.keyCode == evt.DOM_VK_ESCAPE) {
+  window.addEventListener('keypress', function(event) {
+    if (event.keyCode == event.DOM_VK_ESCAPE) {
       hidePlayer();
-      evt.preventDefault();
+      event.preventDefault();
     }
-  });
+    if (event.keyCode == event.DOM_VK_HOME) {
+      hidePlayer();
+    }
+  }, false);
 
   // show|hide controls over the player
-  function showControls() {
-    if (!playerShowing)
-      return;
-    $('videoControls').classList.remove('hidden');
-  }
-  function hideControls(event) {
-    if (event && event.target != $('videoControls'))
-      return;
-    $('videoControls').classList.add('hidden');
-  }
-  player.addEventListener('click', showControls, false);
-  $('videoControls').addEventListener('click', hideControls, false);
+  $('videoControls').addEventListener('click', function() {
+    $('videoControls').classList.toggle('hidden');
+  }, false);
 
   // media events: play|pause, rwd|fwd, timeupdate
   playHead = $('playHead');
