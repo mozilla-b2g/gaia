@@ -322,7 +322,7 @@ html * {
     height: -moz-calc(100% - 11mozmm);
   }
 
-  .keyboard-key span {
+  .keyboard-row .keyboard-key span {
     font-size: 1.3em;
     line-height: 1.8em;
   }
@@ -336,14 +336,9 @@ html * {
     height: 12mozmm;
   }
 
-  .keyboard-key[data-value="call"] {
-    margin: 2mozmm 30px;
-    height: 8mozmm;
-    font-size: 3mozmm;
-    line-height: 8mozmm;
-  }
-
   .keyboard-key[data-value="call"] span {
+    font-size: 3mozmm;
+    line-height: 12mozmm;
     display: block;
   }
 
@@ -840,7 +835,6 @@ html * {
 	background-image: url(images/call-screen-bg-top.png);
   background-position: 0 0;
   background-repeat: no-repeat;
-  background-size: 100% 100%;
 }
 
 #call-screen.incoming #call-screen-top {
