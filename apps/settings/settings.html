@@ -31,8 +31,8 @@
       </ul>
       <ul class="tableView">
         <li>
-          <a class="push slideHorizontal" href="#wallpaper">
-            <span>Wallpaper</span>
+          <a class="push slideHorizontal" href="#wallpapers">
+            <span>Wallpapers</span>
           </a>
         </li>
         <li>
@@ -136,6 +136,13 @@
             <span class="checkbox-inner"></span>
           </label>
         </li>
+        <li>
+          <span>Simplified Chinese (Pinyin)</span>
+          <label class="checkbox">
+            <input type="checkbox" name="keyboard.layouts.pinyin"/>
+            <span class="checkbox-inner"></span>
+          </label>
+        </li>
       </ul>
     </div>
 
@@ -176,9 +183,32 @@
       </ul>
     </div>
 
-    <!-- Wallpaper -->
-    <div id="wallpaper" class="view" data-title="Wallpaper">
-
+    <!-- Wallpapers -->
+    <div id="wallpapers" class="view" data-title="Wallpapers">
+      <ul class="tableView">
+        <li id="wallpaper-default">
+          <span>Default</span>
+          <label class="checkbox">
+            <input type="radio" name="homescreen.wallpaper" value="default.png"/>
+            <span class="checkbox-inner"></span>
+          </label>
+        </li>
+        <li id="wallpaper-water">
+          <span>Water</span>
+          <label class="checkbox">
+            <input type="radio" name="homescreen.wallpaper" value="water.png"/>
+            <span class="checkbox-inner"></span>
+          </label>
+        </li>
+        <li id="wallpaper-leaves">
+          <span>Leaves</span>
+          <label class="checkbox">
+            <input type="radio" name="homescreen.wallpaper" value="leaves.png"/>
+            <span class="checkbox-inner"></span>
+          </label>
+        </li>
+      </ul>
     </div>
   </body>
 </html>
+
