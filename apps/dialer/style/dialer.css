@@ -322,6 +322,21 @@ html * {
     height: -moz-calc(100% - 11mozmm);
   }
 
+  .keyboard-row .keyboard-key {
+    height: -moz-calc(100% - 12px);
+    padding: 10px 0 0;
+  }
+
+  .keyboard-row:first-child .keyboard-key {
+    border-top: 0;
+    height: -moz-calc(100% - 11px);
+  }
+
+  .keyboard-row:last-child .keyboard-key {
+    border-bottom: 2px solid rgba(192, 192, 192, 0.800);
+    height: -moz-calc(100% - 13px);
+  }
+
   .keyboard-row .keyboard-key span {
     font-size: 1.3em;
     line-height: 1.8em;
