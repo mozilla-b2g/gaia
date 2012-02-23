@@ -330,7 +330,8 @@
     'keyboard.layouts.hebrew': 'false',
     'keyboard.layouts.zhuying': 'true',
     'debug.grid.enabled' : 'false',
-    'homescreen.wallpaper': 'default.png'
+    'homescreen.wallpaper': 'default.png',
+    'language.current': 'en-US'
   };
 
   var DBNAME = 'mozSettings';     // Strings used by IndexedDB

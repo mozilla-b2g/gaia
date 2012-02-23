@@ -114,6 +114,27 @@ var messagesHack = [];
     });
   }
 
+  messages.push({
+    sender: '0664236460',
+    body: 'Hello world!',
+    timestamp: Date.now() - 60000000
+  });
+  messages.push({
+    sender: '+33664236460',
+    body: 'Hello world!',
+    timestamp: Date.now() - 60000000
+  });
+  messages.push({
+    sender: '0664236460',
+    body: 'Hello world!',
+    timestamp: Date.now() - 60000000
+  });
+  messages.push({
+    sender: '+10664236460',
+    body: 'Hello world!',
+    timestamp: Date.now() - 60000000
+  });
+
   messagesHack = messages;
 })();
 
@@ -197,10 +218,34 @@ var ConversationListView = {
     var name = num;
 
     var contacts = window.navigator.mozContacts.contacts;
-    contacts.forEach(function(contact) {
-      if (contact.phones[0] == num)
-        name = contact.displayName;
+    var matches = contacts.filter(function(contact) {
+      return contact.phones[0] == num;
     });
+
+    if (matches.length) {
+      name = matches[0].displayName;
+    } else {
+      if (num[0] === '+') {
+        name = num;
+      } else {
+      try {
+        var format = kFormatting[selectedLocale].default;
+          
+        var rv = '';
+        var formatIndex = 0;
+        for (var i = 0; i < num.length; i++) {
+          if (format[formatIndex] != 'x') {
+            rv += format[formatIndex++];
+          }
+          rv += num[i];
+          formatIndex++;
+        }
+        num = rv;
+    } catch (e) {
+      alert(e);
+    }
+      }
+    }
 
     return '<div data-num="' + num + '" data-name="' + name + '">' +
            '  <div class="photo">' +
@@ -457,7 +502,27 @@ var ConversationView = {
   }
 };
 
+var kFormatting = {
+  'en-US': {
+    'default': 'xxx-xxx-xxxx'
+  },
+  'fr-FR': {
+    'default': 'xx xx xx xx xx'
+  }
+};
+
+var selectedLocale = 'en-US';
+
 window.addEventListener('load', function loadMessageApp() {
-  ConversationView.init();
-  ConversationListView.init();
+  if (window.navigator.mozSettings) {
+    var request = window.navigator.mozSettings.get('language.current');
+    request.onsuccess = function() {
+      selectedLocale = request.result.value;
+      ConversationView.init();
+      ConversationListView.init();
+    }
+  } else {
+    ConversationView.init();
+    ConversationListView.init();
+  }
 });
