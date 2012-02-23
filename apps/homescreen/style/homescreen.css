@@ -256,6 +256,13 @@ div.windowSprite {
   border-radius: 8px;
 }
 
+div.windowSprite.fullscreen {
+  border-radius: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+
 div.windowSprite.active {
   opacity: 1;
   -moz-transform: scale(1);
@@ -269,7 +276,7 @@ iframe.portrait-primary {
 }
 
 iframe.portrait-secondary {
-  -moz-transform: translate(rotate(180deg);
+  -moz-transform: rotate(180deg);
 }
 
 iframe.landscape-primary {
@@ -446,9 +453,9 @@ iframe.landscape-secondary {
   width: 32px;
   height: 32px;
   position: absolute;
-  top: -16px;
-  right: -16px;
-  -moz-transform: scale(2.5);
+  top: 10px;
+  right: 10px;
+  -moz-transform: scale(5);
 }
 
 #taskManager li > h1 {
@@ -574,10 +581,19 @@ iframe.landscape-secondary {
   margin: 0 2px;
   -moz-box-sizing: border-box;
   padding: 0;
+/*
+ * Below are the rules from which the following bitmaps were
+ * generated.  Painting with the raw style is currently too slow, so
+ * we fall back on bitmaps.
+ *
   border: 1px solid #d5d5d5;
   -moz-box-shadow: inset 0 0 2px 2px #fff;
   border-radius: 5px;
   background: -moz-linear-gradient(top, #fff 10%, #fff 70%, #f6f6f6 100%);
+*/
+  background: url(images/left.png) left top no-repeat,
+              url(images/right.png) right top no-repeat,
+              url(images/middle.png) left top repeat-x;
 }
 
 .keyboard-key.spacekey {
@@ -601,8 +617,12 @@ iframe.landscape-secondary {
 
 .keyboard-key[data-active] {
   color: #fff;
+/*
+ * Disable this for now because it's too slow to repaint.
+ *
   -moz-box-shadow: inset 0 0 2px 2px #6f6f6f;
   text-shadow: 0 -1px #909090, 0 1px #9b9b9b;
+*/
   background: rgb(118, 118, 118);
 }
 
@@ -651,8 +671,12 @@ iframe.landscape-secondary {
   margin-top: -110px;
   text-align: center;
   border: 1px solid #fff;
+/*
+ * Disabled for now ... too slow :(.
+ *
   box-shadow: 0 0 2px #ccc;
   border-radius: 5px;
+*/
   display: none;
 }
 
@@ -686,14 +710,22 @@ iframe.landscape-secondary {
   margin-top: -5px;
 }
 
-#keyboard-accent-char-menu.menu > .keyboard-key {
-  width: auto;
-  display: block;
-  font-size: 24px;
-  line-height: 48px;
-  height: 48px;
-  padding: 0 5px;
-  position: relative;
+#keyboard-accent-char-menu > .keyboard-key {
+  background: url(images/left-accent.png) left top no-repeat,
+              url(images/right-accent.png) right top no-repeat,
+              url(images/middle.png) left top repeat-x;
+}
+#keyboard-accent-char-menu > .keyboard-key[data-active] {
+  color: #fff;
+/*
+ * Disable this for now because it's too slow to repaint.
+ *
+  -moz-box-shadow: inset 0 0 2px 2px #6f6f6f;
+  text-shadow: 0 -1px #909090, 0 1px #9b9b9b;
+*/
+  background: rgb(118, 118, 118);
+}
+
 }
 
 #keyboard-accent-char-menu.menu > .current-keyboard::before {
@@ -708,3 +740,17 @@ iframe.landscape-secondary {
   background-color: #0c0;
   box-shadow: 0 0 5px #fff;
 }
+
+#debug-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: none;
+  width: 480px;
+  height: 800px;
+  background: url(images/grid.png);
+  z-index: 999999;
+  opacity: 0.2;
+  pointer-events: none;
+}
+
