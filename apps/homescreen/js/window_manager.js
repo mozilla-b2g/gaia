@@ -28,8 +28,10 @@ WindowSprite.prototype = {
   },
 
   remove: function ws_remove() {
-    if (this.element)
-      document.body.removeChild(this.element);
+    if (!this.element.parentNode)
+      return;
+
+    document.body.removeChild(this.element);
   },
 
   crossFade: function ws_crossFade() {
