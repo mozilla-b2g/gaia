@@ -1,7 +1,22 @@
 html, body {
-  font-family: "OpenSans", sans-serif;
+  font-family: "Open Sans", sans-serif;
   height: 100%;
   margin: 0 auto;
+}
+
+@font-face {
+  font-family: "Open Sans";
+  src: url("fonts/Open-Sans.woff");
+}
+@font-face {
+  font-family: "Open Sans";
+  font-weight: bold;
+  src: url("fonts/Open-Sans-Bold.woff");
+}
+@font-face {
+  font-family: "Open Sans";
+  font-weight: 600;
+  src: url("fonts/Open-Sans-Semibold.woff");
 }
 
 /* title bar */
@@ -18,8 +33,9 @@ header h1 {
   padding: 0;
   line-height: 66px;
   text-align: center;
-  font-weight: normal;
-  font-size: 20px;
+  font-family: "Open Sans", sans-serif;
+  font-weight: bold;
+  font-size: 26px;
 }
 header button {
   display: none; /* disabled atm */
@@ -50,7 +66,8 @@ ul li:first-child {
 li {
   margin: 0;
   padding: 0 20px 0 150px;
-  height: 72px;
+  /*height: 72px;*/
+  height: 98px;
   border-bottom: 1px solid #cbcdd1;
   border-top: 1px solid #e6ebef;
   position: relative;
@@ -61,7 +78,9 @@ li:active, li.active {
   background: -moz-linear-gradient(center top , #FFCE75 0pt, rgba(255, 212, 153, 0.2) 2px, rgba(255, 148, 0, 0.4) 20%, #C16700 98%, #C16700 99%, #FF8300 100%) repeat scroll 0 0%, -moz-linear-gradient(center top , #FFCE75 0pt, #FF9400 2px, #C16700 98%, #C16700 99%, #FF8300 100%) repeat scroll 0 0 transparent;
 }
 li img {
-  width: 130px;
+  width: 128px;
+  height: 98px;
+  overflow: hidden;
   position: absolute;
   left: 0;
   margin: 0;
@@ -75,14 +94,16 @@ li p {
   white-space: nowrap;
 }
 p.name {
-  color: #141414;
-  font-size: 18px;
-  height: 24px;
+  height: 30px;
   margin-top: 12px;
+  color: #333;
+	font-weight: 600;
+  font-size: 26px;
 }
 p.time {
-  color: rgba(0, 0, 0, 0.5);
-  font-size: 14px;
+  font-size: 22px;
+  color: #666;
+  text-shadow: 0 1px 0 #ddd;
 }
 
 /* fullscreen video player */
