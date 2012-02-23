@@ -188,10 +188,12 @@ ul.tableView > li span.arrowRight {
   height: 2em;
 }
 
+.checkbox > input[type="radio"],
 .checkbox > input[type="checkbox"] {
   display: none;
 }
 
+.checkbox > input[type="radio"] + span.checkbox-inner,
 .checkbox > input[type="checkbox"] + span.checkbox-inner {
   display: block;
   position: relative;
@@ -206,6 +208,7 @@ ul.tableView > li span.arrowRight {
   box-shadow: inset 0 0.2em 0.1em 0 rgba(0, 0, 0, 0.5);
 }
 
+.checkbox > input[type="radio"] + span.checkbox-inner:after,
 .checkbox > input[type="checkbox"] + span.checkbox-inner:after {
   content: '';
   display: block;
@@ -226,6 +229,7 @@ ul.tableView > li span.arrowRight {
   transition: background-color 0.2s ease;
 }
 
+.checkbox > input[type="radio"]:checked + span.checkbox-inner:after,
 .checkbox > input[type="checkbox"]:checked + span.checkbox-inner:after {
   background-color: #9ec549;
 }
