@@ -1,3 +1,7 @@
+body {
+    background-color: #000;
+}
+
 #splash {
     position: fixed;
     top: 10px;
