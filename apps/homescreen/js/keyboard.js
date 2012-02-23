@@ -29,7 +29,8 @@ const IMEManager = {
     'otherlatins': ['fr', 'de', 'nb', 'sk', 'tr'],
     'cyrillic': ['ru', 'sr-Cyrl'],
     'hebrew': ['he'],
-    'zhuying': ['zh-Hant-Zhuying']
+    'zhuying': ['zh-Hant-Zhuying'],
+    'pinyin': ['zh-Hans-Pinyin']
   },
 
   loadKeyboardSettings: function loadKeyboardSettings(callback) {
@@ -375,7 +376,7 @@ const IMEManager = {
     }
   },
 
-  events: ['mouseup', 'showime', 'hideime', 'unload', 'appclose'],
+  events: ['mouseup', 'showime', 'hideime', 'unload', 'appwillclose', 'resize'],
   imeEvents: ['mousedown', 'mouseover', 'mouseleave', 'transitionend'],
   init: function km_init() {
     this.events.forEach((function attachEvents(type) {
@@ -486,11 +487,26 @@ const IMEManager = {
         break;
 
       case 'hideime':
-      case 'appclose':
         this.hideIMETimer = setTimeout((function execHideIME() {
           this.hideIME(activeWindow);
         }).bind(this), 0);
 
+        break;
+
+      case 'appwillclose':
+        this.hideIME(activeWindow, true);
+
+        break;
+
+      case 'resize':
+        if (this.ime.dataset.hidden)
+          return;
+
+        // we presume that the targetWindow has been restored by
+        // window manager to full size by now.
+        this.getTargetWindowMetrics();
+        this.updateLayout();
+        this.updateTargetWindowHeight();
         break;
 
       case 'transitionend':
@@ -958,6 +974,14 @@ const IMEManager = {
     }
   },
 
+  getTargetWindowMetrics: function km_getTargetWindowMetrics() {
+    var targetWindow = this.targetWindow;
+    targetWindow.dataset.cssHeight =
+      targetWindow.style.height;
+    targetWindow.dataset.rectHeight =
+      targetWindow.getBoundingClientRect().height;
+  },
+
   updateTargetWindowHeight: function km_updateTargetWindowHeight() {
     this.targetWindow.style.height =
       (this.targetWindow.dataset.rectHeight - this.ime.scrollHeight) + 'px';
@@ -994,17 +1018,14 @@ const IMEManager = {
     }
 
     this.targetWindow = targetWindow;
-    targetWindow.dataset.cssHeight =
-      targetWindow.style.height;
-    targetWindow.dataset.rectHeight =
-      targetWindow.getBoundingClientRect().height;
-    targetWindow.classList.add('keyboardOn');
+    this.getTargetWindowMetrics();
     this.updateLayout();
 
+    targetWindow.classList.add('keyboardOn');
     delete this.ime.dataset.hidden;
   },
 
-  hideIME: function km_hideIME(targetWindow) {
+  hideIME: function km_hideIME(targetWindow, imminent) {
 
     if (this.ime.dataset.hidden)
       return;
@@ -1012,6 +1033,20 @@ const IMEManager = {
     this.ime.dataset.hidden = 'true';
     targetWindow.style.height = targetWindow.dataset.cssHeight;
     targetWindow.classList.remove('keyboardOn');
+
+    if (imminent) {
+      var ime = this.ime;
+      ime.classList.add('imminent');
+      setTimeout(function () {
+        ime.classList.remove('imminent');
+      }, 0);
+
+      delete this.targetWindow.dataset.cssHeight;
+      delete this.targetWindow.dataset.rectHeight;
+      delete this.targetWindow;
+
+      ime.innerHTML = '';
+    }
   },
 
   showCandidates: function km_showCandidates(candidates) {

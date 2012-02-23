@@ -9,8 +9,6 @@ function WindowSprite(win) {
     element.className = 'windowSprite fullscreen';
   } else {
     element.className = 'windowSprite';
-    element.style.width = win.element.style.width;
-    element.style.height = win.element.style.height;
   }
 }
 
@@ -28,8 +26,10 @@ WindowSprite.prototype = {
   },
 
   remove: function ws_remove() {
-    if (this.element)
-      document.body.removeChild(this.element);
+    if (!this.element.parentNode)
+      return;
+
+    document.body.removeChild(this.element);
   },
 
   crossFade: function ws_crossFade() {
@@ -216,6 +216,8 @@ var WindowManager = {
         this.enabled = true;
         break;
       case 'resize':
+        if (!this._foregroundWindow)
+          return;
         this._foregroundWindow.resize();
         break;
     }
@@ -295,6 +297,7 @@ var WindowManager = {
     if (!foregroundWindow)
       return;
 
+    this._fireEvent(foregroundWindow.element, 'appwillclose');
     this.setForegroundWindow(null, (function() {
       this._fireEvent(foregroundWindow.element, 'appclose');
       if (callback)
