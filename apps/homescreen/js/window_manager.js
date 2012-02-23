@@ -218,6 +218,8 @@ var WindowManager = {
         this.enabled = true;
         break;
       case 'resize':
+        if (!this._foregroundWindow)
+          return;
         this._foregroundWindow.resize();
         break;
     }
