@@ -244,9 +244,17 @@ var CallHandler = {
     this.currentCall.answer();
   },
   end: function ch_end() {
-    // XXX: workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=729503
-    if (this.currentCall && (this.currentCall.state != 'dialing')) {
+    if (this.currentCall) {
+      // XXX: workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=729503
+      var toDisconnect = false;
+      if (this.currentCall.state == 'dialing')
+        toDisconnect = true;
+
       this.currentCall.hangUp();
+
+      if (toDisconnect) {
+        this.disconnected();
+      }
     } else {
       this.disconnected();
     }
