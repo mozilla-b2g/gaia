@@ -83,19 +83,19 @@ html * {
   background: url(images/numpad-icon.png);
 }
 #keyboard-label[data-active] {
-  background:url(images/current-tab.png) top center no-repeat, url(images/numpad-icon-active.png) center center no-repeat;
+  background:url(images/current-tab.png) center -2px no-repeat, url(images/numpad-icon-active.png) center center no-repeat;
 }
 #contacts-label {
   background: url(images/contacts-icon.png);
 }
 #contacts-label[data-active]{
-  background:url(images/current-tab.png) top center no-repeat, url(images/contacts-icon-active.png) center center no-repeat;
+  background:url(images/current-tab.png) center -2px no-repeat, url(images/contacts-icon-active.png) center center no-repeat;
 }
 #recents-label {
   background: url(images/recents-icon.png);
 }
 #recents-label[data-active] {
-  background:url(images/current-tab.png) top center no-repeat, url(images/recents-icon-active.png) center center no-repeat;
+  background:url(images/current-tab.png) center -2px no-repeat, url(images/recents-icon-active.png) center center no-repeat;
 }
 
 /* === Application Views === */
@@ -105,8 +105,10 @@ html * {
   height: -moz-calc(100% - 96px);
   width: 100%;
 
-  background: url(images/app-texture.png) 50% 50%, #F5F5F5;
   border-radius: 10px 10px 0 0;
+
+  background: url(images/keypad-bg.png) 0 0 no-repeat #F6F6F6;
+  background-size: 100% 100%;
 }
 
 #views > .view {
@@ -232,10 +234,10 @@ html * {
 .keyboard-row .keyboard-key {
   float: left;
   width: -moz-calc(100% / 3 - 2px);
-  height: -moz-calc(100% - 40px);
-  padding: 38px 0 0 0;
+  height: -moz-calc(100% - 36px);
+  padding: 34px 0 0 0;
 
-  border: 1px solid #ccc;
+  border: 1px solid rgba(192, 192, 192, 0.800);
 
   font-size: 16.5px;
   font-weight: 600;
@@ -258,15 +260,14 @@ html * {
   font-size: 1em;
 }
 
-
 .keyboard-row:first-child .keyboard-key {
   border-top: 0;
-  height: -moz-calc(100% - 1px);
+  height: -moz-calc(100% - 35px);
 }
 
 .keyboard-row:last-child .keyboard-key {
-  border-bottom: 2px solid #ccc;
-  height: -moz-calc(100% - 41px);
+  border-bottom: 2px solid rgba(192, 192, 192, 0.800);
+  height: -moz-calc(100% - 37px);
 }
 
 .keyboard-key:active {
@@ -534,10 +535,10 @@ html * {
 
 #contact-details-container {
   position: absolute;
-  top: 15%;
+  top: 12.5%;
   left: 7%;
   width: 86%;
-  height: 70%;
+  height: 71%;
 
   overflow: visible;
   box-shadow: 0 3px 5px black;
@@ -591,16 +592,34 @@ html * {
   display: none;
 }
 
+#contact-details-view span {
+  display: block;
+  float: left;
+  width: 20%;
+  margin-right: 5%;
+
+  color: #EE6700;
+  text-align: right;
+  text-transform: uppercase;
+  font-size: 18px;
+  font-weight: bold;
+  line-height: 32px;
+}
+
 #contact-details-view input {
-  width: -moz-calc(100% - 4px);
+  display: block;
+  float: left;
+  width: 75%;
   color: #000;
   background: none;
   border: none;
   padding: 0;
   margin: 0;
 
-  font-size: 0.8em;
-  text-align: center;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 32px;
+  text-align: left;
 }
 
 #contact-details-view input:invalid {
@@ -623,11 +642,11 @@ html * {
 
 #contact-name {
   float: left;
-  margin: 50px 10px;
+  margin: 32px 10px;
   width: -moz-calc(100% - 140px - 25px);
   height: 40px;
 
-  font-size: 1.5em;
+  font-size: 26px;
   font-weight: bold;
   color: #000000;
   text-overflow: ellipsis;
@@ -648,7 +667,6 @@ html * {
 
   overflow: hidden;
 
-  font-size: 2em;
   text-align: center;
 
   background: url(images/contact-input-bg.png) 50% 50% no-repeat;
@@ -675,10 +693,6 @@ html * {
 
 #contact-details-view > .group > div:first-child {
   border-top: 0px;
-}
-
-#contact-details-view > .group > div:hover:active {
-  background-color: rgba(49, 147, 255, 0.7);
 }
 
 #contact-details-view .delete-button {
@@ -719,9 +733,9 @@ html * {
 #contact-details-line {
   position: absolute;
   right: 10px;
-  bottom: -10px;
   left: 10px;
-  height: 10px;
+  bottom: -8px;
+  height: 8px;
 
   border-radius: 0 0 5px 5px;
   background: -moz-linear-gradient(bottom, hsla(25,100%,35%,1) 0%, hsla(25,100%,42%,1) 1px, hsla(25,100%,26%,1) 100%);
@@ -817,6 +831,7 @@ html * {
   font-size: 7mozmm;
 
   -moz-transition: top 0.3s ease;
+  z-index: 100;
 }
 
 #call-screen-top {
@@ -842,7 +857,7 @@ html * {
 #call-picture {
   width: 140px;
   height: 140px;
-  margin: 44px 0;
+  margin: 32px 0;
 
   border-radius: 5px;
   box-shadow: 0 3px 5px rgba(0, 0, 0, .5);

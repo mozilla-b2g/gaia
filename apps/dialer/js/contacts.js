@@ -407,6 +407,7 @@ var ContactDetails = {
     var phones = '';
     this._contact.phones.forEach(function phoneIterator(phone) {
       phones += '<div data-number="' + phone + '">' +
+                '<span>phone</span>' +
                 '  ' + this.inputFragment('tel', phone) +
                 '</div>';
     }, this);
@@ -417,7 +418,7 @@ var ContactDetails = {
 
     var emails = '';
     this._contact.emails.forEach(function emailIterator(email) {
-      emails += '<div>' + this.inputFragment('email', email) + '</div>';
+      emails += '<div><span>email</span>' + this.inputFragment('email', email) + '</div>';
     }, this);
     emails += '<div ' + addAttr + '>' +
               '  Add email' +
@@ -427,10 +428,7 @@ var ContactDetails = {
   inputFragment: function cd_inputFragment(type, value, disabled) {
     disabled = (typeof disabled == 'undefined') ? true : disabled;
 
-    return '<div class="delete-button"' +
-           '  onclick="ContactDetails.remove(this.parentNode)">' +
-           '</div>' +
-           '<input type="' + type + '" value="' + value +
+    return '<input type="' + type + '" value="' + value +
            '  " data-action="autoscroll"' +
            '  ' + (disabled ? 'disabled="disabled"' : '') +
            '  onfocus="ContactDetails.execute(event)" />';
