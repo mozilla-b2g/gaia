@@ -233,7 +233,6 @@ iframe.appWindow {
   overflow: auto;
   left: 0;
   width: 100%;
-  height: -moz-calc(100% - 32px);
   top: 100%;
 /*
  * Disable this for now because it forces an expensive fallback path in
@@ -246,6 +245,10 @@ iframe.appWindow {
 
 iframe.appWindow.active {
   top: 32px;
+}
+
+#screen.fullscreen iframe.appWindow.active {
+  top: 0;
 }
 
 iframe.appWindow.keyboardOn {
@@ -322,10 +325,6 @@ iframe.landscape-secondary {
 
 #screen.fullscreen > :-moz-any(#statusbar,#notificationsScreen) {
   display: none;
-}
-
-#screen.fullscreen > #windows {
-  top: 0px;
 }
 
 #statusbar > #padding {
