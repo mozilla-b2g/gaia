@@ -326,8 +326,6 @@ var CallHandler = {
   },
 
   toggleCallScreen: function ch_toggleScreen() {
-    document.getElementById('tabs').classList.toggle('oncall');
-    document.getElementById('views').classList.toggle('oncall');
     document.getElementById('call-screen').classList.toggle('oncall');
   },
   toggleMute: function ch_toggleMute() {
