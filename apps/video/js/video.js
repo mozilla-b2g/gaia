@@ -153,16 +153,23 @@ window.addEventListener('DOMContentLoaded', function() {
     elapsedTime.style.height = pos;
   }, false);
 
-  // handle clicks on the time slider
+  // handle drags/clicks on the time slider
   var timeSlider = $('timeSlider');
-  function setCurrentTime(clientY) {
+  function setCurrentTime(event) {
     var rect = timeSlider.getBoundingClientRect();
-    var progress = (clientY - rect.top) / rect.height;
+    var progress = (event.clientY - rect.top) / rect.height;
     player.currentTime = progress * player.duration;
   }
   timeSlider.addEventListener('click', function(event) {
-    if (!controlShowing)
-      return;
-    setCurrentTime(event.clientY);
+    if (controlShowing)
+      setCurrentTime(event);
+  }, false);
+  playHead.addEventListener('mousedown', function() {
+    if (controlShowing)
+      playHead.addEventListener('mousemove', setCurrentTime, false);
+  }, false);
+  playHead.addEventListener('mouseup', function() {
+    if (controlShowing)
+      playHead.removeEventListener('mousemove', setCurrentTime, false);
   }, false);
 });
