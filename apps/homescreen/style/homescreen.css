@@ -4,9 +4,9 @@ body {
   margin: 0px;
   padding: 0px;
   background: black;
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'Open Sans Semibold', sans-serif;
   overflow: hidden;
-  font-size: 16px;
+  font-size: 15px;
 }
 
 @media screen and (max-width: 479px) {
@@ -20,12 +20,12 @@ body {
   src: url('fonts/Open-Sans.woff');
 }
 @font-face {
-  font-family: 'Open Sans';
+  font-family: 'Open Sans Bold';
   font-weight: bold;
   src: url('fonts/Open-Sans-Bold.woff');
 }
 @font-face {
-  font-family: 'Open Sans';
+  font-family: 'Open Sans Semibold';
   font-weight: 600;
   src: url('fonts/Open-Sans-Semibold.woff');
 }
@@ -143,26 +143,28 @@ body {
 
 #home > #apps {
   top: 0;
-  height: 480px;
-  margin-top: 32px;
+  height: 584px;
+  margin-top: 40px;
 }
 
 #home > #dots {
-  top: 512px;
-  height: 64px;
-  line-height: 64px;
+  top: 650px;
+  height: 14px;
+  line-height: 14px;
   text-align: center;
 }
 
-#home > #favs {
-  top: 576px;
-  height: 160px;
-  margin-bottom: 32px;
+#home > #notifications {
+  bottom: 0px;
+  height: 80px;
+  background-image: url(images/notifications.png);
+  background-repeat: none;
+  background-size: 100% 100%;
 }
 
 .page {
   position: absolute;
-  left: 0px;
+  left: 40px;
   top: 0px;
   width: 100%;
   height: 100%;
@@ -170,10 +172,18 @@ body {
 
 .icon {
   position: absolute;
-  width: 160px;
-  height: 160px;
-  text-align: center;
+  width: 128px;
+  height: 192px;
   overflow: hidden;
+  background: url(images/thumb.png) 8px 8px no-repeat #222;
+  background-color: #222;
+  background-image: url(images/thumb.png);
+  background-position: 8px 8px;
+  background-repeat: no-repeat;
+  background-color: #222;
+  border-radius: 4px;
+  margin-right: 4px;
+  margin-bottom: 4px;
 }
 
 .icon > * {
@@ -186,16 +196,10 @@ body {
   height: 120px;
 }
 
-.icon > div > img {
-  margin-top: 20px;
-}
-
 .icon > .label {
-  position: relative;
-  top: -16px;
-  padding-top: 0%;
+  padding-top: 40px;
+  padding-left: 8px;
   color: white;
-  font-size: 120%;
 }
 
 .dot {
@@ -210,6 +214,29 @@ body {
 
 .dot.active {
   background-color: white;
+}
+
+@media all and (max-height: 480px) {
+  #home > #apps {
+    height: 400px;
+    margin-top: 10px;
+  }
+
+  #home > #notifications {
+    height: 50px;
+  }
+
+  #home > #dots {
+    top: 380px;
+  }
+
+  .page {
+    left: 30px;
+  }
+
+  .icon {
+    height: 180px;
+  }
 }
 
 #windows {
