@@ -1034,3 +1034,54 @@ html * {
 #call-screen.calling #accept-call {
   display: none;
 }
+
+/* === Recents === */
+#recents-view {
+  overflow: scroll;
+}
+
+.recent {
+  position: relative;
+  padding: 0;
+  height: 96px;
+  width: -moz-calc(100% + 8px);
+
+  border-bottom: 1px solid #CCCCCC;
+  border-top: 1px solid #FFFFFF;
+  color: hsla(0,0%,20%,1);
+	background: none;
+
+  line-height: 7.2mozmm;
+  font-size: 26px;
+}
+
+.recent img {
+  float: left;
+  width: 96px;
+  height: 100%;
+}
+
+.recent .name {
+  margin-left: 112px;
+  font-weight: bold;
+}
+
+.recent .number {
+  position: absolute;
+  bottom: 8px;
+  left: 112px;
+
+  color: #666666;
+
+  font-size: 0.8em;
+}
+
+.recent .timestamp {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+
+  color: #999999;
+  font-size: 16px;
+  line-height: 1.4em;
+}
