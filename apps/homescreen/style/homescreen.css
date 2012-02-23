@@ -485,6 +485,10 @@ iframe.landscape-secondary {
   border-bottom-right-radius: 8px;
 }
 
+#keyboard.imminent {
+  -moz-transition: none;
+}
+
 #keyboard[data-hidden] {
   bottom: -2px;
   -moz-transform: translateY(100%);
