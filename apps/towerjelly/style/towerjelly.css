@@ -1,3 +1,12 @@
+#splash {
+    position: fixed;
+    top: 10px;
+    left: 180px;
+    opacity: 1;  /* This will fade out to avoid blackscreen */
+
+    -moz-transition: top .5s linear, opacity 2s ease, -moz-transform 2s linear
+}
+
 #gameframe {
     position: fixed;
     top: 0px;
@@ -5,6 +14,10 @@
     margin: 0px;
     padding: 0px;
     border-width: 0px;
+    opacity: 0;
+    z-index: 2; /* cover the splash when opaque */
+    -moz-transition-property: opacity;
+    -moz-transition-duration: .5s;
 }
 
 @media (min-width: 480px) and (min-height:720px) {
