@@ -53,7 +53,8 @@ header button:active {
 
 /* thumbnail list */
 ul {
-  width: 100%;
+  /*width: 100%;*/
+  width: -moz-calc(100% + 8px);
   margin: 0 auto;
   padding: 0;
   height: -moz-calc(100% - 70px);
