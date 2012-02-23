@@ -375,7 +375,7 @@ const IMEManager = {
     }
   },
 
-  events: ['mouseup', 'showime', 'hideime', 'unload', 'appclose'],
+  events: ['mouseup', 'showime', 'hideime', 'unload', 'appclose', 'resize'],
   imeEvents: ['mousedown', 'mouseover', 'mouseleave', 'transitionend'],
   init: function km_init() {
     this.events.forEach((function attachEvents(type) {
@@ -491,6 +491,17 @@ const IMEManager = {
           this.hideIME(activeWindow);
         }).bind(this), 0);
 
+        break;
+
+      case 'resize':
+        if (this.ime.dataset.hidden)
+          return;
+
+        // we presume that the targetWindow has been restored by
+        // window manager to full size by now.
+        this.getTargetWindowMetrics();
+        this.updateLayout();
+        this.updateTargetWindowHeight();
         break;
 
       case 'transitionend':
@@ -958,6 +969,14 @@ const IMEManager = {
     }
   },
 
+  getTargetWindowMetrics: function km_getTargetWindowMetrics() {
+    var targetWindow = this.targetWindow;
+    targetWindow.dataset.cssHeight =
+      targetWindow.style.height;
+    targetWindow.dataset.rectHeight =
+      targetWindow.getBoundingClientRect().height;
+  },
+
   updateTargetWindowHeight: function km_updateTargetWindowHeight() {
     this.targetWindow.style.height =
       (this.targetWindow.dataset.rectHeight - this.ime.scrollHeight) + 'px';
@@ -994,13 +1013,10 @@ const IMEManager = {
     }
 
     this.targetWindow = targetWindow;
-    targetWindow.dataset.cssHeight =
-      targetWindow.style.height;
-    targetWindow.dataset.rectHeight =
-      targetWindow.getBoundingClientRect().height;
-    targetWindow.classList.add('keyboardOn');
+    this.getTargetWindowMetrics();
     this.updateLayout();
 
+    targetWindow.classList.add('keyboardOn');
     delete this.ime.dataset.hidden;
   },
 

@@ -329,7 +329,8 @@
     'keyboard.layouts.cyrillic': 'false',
     'keyboard.layouts.hebrew': 'false',
     'keyboard.layouts.zhuying': 'true',
-    'debug.grid.enabled' : 'false'
+    'debug.grid.enabled' : 'false',
+    'homescreen.wallpaper': 'default.png'
   };
 
   var DBNAME = 'mozSettings';     // Strings used by IndexedDB

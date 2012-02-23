@@ -37,7 +37,7 @@ var TaskManager = {
   handleEvent: function tm_handleEvent(evt) {
     switch (evt.type) {
       case 'keydown':
-        if (!this.enabled || evt.keyCode !== evt.DOM_VK_A || this._timeout)
+        if (!this.enabled || evt.keyCode !== evt.DOM_VK_HOME || this._timeout)
           return;
 
         if (this.isActive()) {
@@ -51,7 +51,7 @@ var TaskManager = {
         break;
 
       case 'keyup':
-        if (evt.keyCode !== evt.DOM_VK_A)
+        if (evt.keyCode !== evt.DOM_VK_HOME)
           return;
 
         window.clearTimeout(this._timeout);
@@ -105,6 +105,9 @@ var TaskManager = {
     this.items.removeChild(item);
 
     WindowManager.kill(app.url);
+
+    if (this.items.children.length === 0) 
+      this.hide();
   },
 
   sendToFront: function tm_sendToFront(id) {
