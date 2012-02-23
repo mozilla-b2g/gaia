@@ -31,7 +31,7 @@ header {
 header h1 {
   margin: 0;
   padding: 0;
-  line-height: 66px;
+  line-height: 64px;
   text-align: center;
   font-family: "Open Sans", sans-serif;
   font-weight: bold;
@@ -43,8 +43,8 @@ header button {
   position: absolute;
   right: 0;
   top: 0;
-  width: 68px;
-  height: 68px;
+  width: 64px;
+  height: 64px;
   border: none;
 }
 header button:active {

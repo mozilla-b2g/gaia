@@ -30,9 +30,7 @@ window.addEventListener('DOMContentLoaded', function() {
                       elt('p', { class: 'time' }, sample.duration)
                     ]);
 
-    // for some reason, the 'click' event doesn't always work on the device
-    // and the 'mousedown' event can take up to three seconds to get fired.
-    thumbnail.addEventListener('mousedown', function(e) {
+    thumbnail.addEventListener('click', function(e) {
       showPlayer(sample);
     });
 
@@ -91,7 +89,6 @@ window.addEventListener('DOMContentLoaded', function() {
       return;
 
     // switch to the video gallery view
-    $('videoControls').classList.add('hidden');
     document.cancelFullScreen();
     document.body.classList.remove('fullscreen');
     $('videoBar').classList.remove('paused');
