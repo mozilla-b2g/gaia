@@ -76,6 +76,7 @@ var Browser = {
 
         this.navigate(url);
         urlbar.value = url;
+        urlbar.blur();
         evt.preventDefault();
         break;
 
