@@ -119,6 +119,9 @@ if (!window['Gaia'])
       var item = document.getElementById('task_' + id);
       this.items.removeChild(item);
       WindowManager.kill(app.url);
+
+      if (this.items.children.length === 0) 
+        this.setActive(false);
     },
 
     sendToFront: function(id) {
