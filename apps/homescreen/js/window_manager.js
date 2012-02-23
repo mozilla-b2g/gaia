@@ -58,26 +58,25 @@ function Window(application, id) {
 Window.prototype = {
   element: null,
 
-  _active: false,
   _loaded: false,
-  setActive: function window_setActive(active) {
-    if (this._active === active)
-      return;
 
-    var classes = this.element.classList;
-    classes.toggle('active');
-    this._active = active;
+  show: function window_show() {
+    this.element.classList.add('active');
+  },
+
+  hide: function window_hide() {
+    this.element.classList.remove('active');
   },
 
   focus: function window_focus(callback) {
-    if (this._active)
+    if (this.element.classList.contains('active'))
       return;
 
     this.resize();
 
     var sprite = new WindowSprite(this);
     sprite.add();
-    this.setActive(true);
+    this.show();
 
     var focus = (function(evt) {
       sprite.element.removeEventListener('transitionend', focus);
@@ -110,7 +109,7 @@ Window.prototype = {
   },
 
   blur: function window_blur(callback) {
-    if (!this._active)
+    if (!this.element.classList.contains('active'))
       return;
 
     var sprite = new WindowSprite(this);
@@ -118,7 +117,7 @@ Window.prototype = {
     sprite.add();
 
     var blur = function(evt) {
-      this.setActive(false);
+      this.hide();
       sprite.remove();
 
       var element = this.element;
@@ -183,12 +182,19 @@ var WindowManager = {
   init: function wm_init() {
     window.addEventListener('home', this);
     window.addEventListener('message', this);
+    window.addEventListener('appopen', this);
+    window.addEventListener('appwillclose', this);
     window.addEventListener('locked', this);
     window.addEventListener('unlocked', this);
     window.addEventListener('resize', this);
   },
 
   enabled: true,
+
+  get container() {
+    delete this.container;
+    return this.container = document.getElementById('windows');
+  },
 
   handleEvent: function wm_handleEvent(evt) {
     switch (evt.type) {
@@ -202,6 +208,12 @@ var WindowManager = {
         if (!this.enabled)
           return;
         this.closeForegroundWindow();
+        break;
+      case 'appopen':
+        this.container.classList.add('active');
+        break;
+      case 'appwillclose':
+        this.container.classList.remove('active');
         break;
       case 'locked':
         if (this._foregroundWindow.application.fullscreen) {
@@ -221,23 +233,6 @@ var WindowManager = {
         this._foregroundWindow.resize();
         break;
     }
-  },
-
-
-  // Sets the WindowManager active/inactive. The WindowManager must be active
-  // for the foreground Window to be visible. When inactive, the Windows can
-  // still be used to get images used for the TaskManager and the minimize and
-  // maximize animations.
-  setActive: function wm_setActive(active) {
-    var classes = this.container.classList;
-    if (classes.contains('active') === active)
-      return;
-    classes.toggle('active');
-  },
-
-  get container() {
-    delete this.container;
-    return this.container = document.getElementById('windows');
   },
 
   windows: [],
@@ -273,35 +268,29 @@ var WindowManager = {
     return this._foregroundWindow;
   },
 
-  setForegroundWindow: function wm_setForegroundWindow(newWindow, callback) {
+  setForegroundWindow: function wm_setForegroundWindow(newWindow) {
     var oldWindow = this._foregroundWindow;
     if (oldWindow === newWindow)
       return;
     this._foregroundWindow = newWindow;
 
-    if (newWindow) {
-      newWindow.focus(function() {
-        WindowManager.setActive(true);
-        if (callback)
-          callback();
-      });
-      return;
-    }
-
-    this.setActive(false);
-    oldWindow.blur(callback);
+    newWindow.focus((function focusCallback() {
+      this._fireEvent(newWindow.element, 'appopen', newWindow.name);
+    }).bind(this));
   },
 
-  closeForegroundWindow: function wm_closeForegroundWindow(callback) {
+  closeForegroundWindow: function wm_closeForegroundWindow() {
     var foregroundWindow = this._foregroundWindow;
     if (!foregroundWindow)
       return;
 
-    this._fireEvent(foregroundWindow.element, 'appwillclose');
-    this.setForegroundWindow(null, (function() {
+    this._fireEvent(foregroundWindow.element, 'appwillclose', name);
+
+    var oldWindow = this._foregroundWindow;
+    this._foregroundWindow = null;
+
+    oldWindow.blur((function blurCallback() {
       this._fireEvent(foregroundWindow.element, 'appclose');
-      if (callback)
-        callback();
     }).bind(this));
   },
 
@@ -313,7 +302,7 @@ var WindowManager = {
     var applicationWindow = this.getWindowByApp(application);
     if (applicationWindow) {
       Gaia.AppManager.foregroundWindow = applicationWindow.element;
-      Gaia.TaskManager.sendToFront(applicationWindow.id);
+      TaskManager.sendToFront(applicationWindow.id);
     } else {
       applicationWindow = new Window(application, ++this._lastWindowId);
       this.add(applicationWindow);
@@ -323,13 +312,10 @@ var WindowManager = {
       Gaia.AppManager.foregroundWindow = applicationWindow.element;
 
       this._fireEvent(applicationWindow.element, 'appwillopen', name);
-      Gaia.TaskManager.add(application, applicationWindow.id);
+      TaskManager.add(application, applicationWindow.id);
     }
 
-    this.setForegroundWindow(applicationWindow, (function() {
-      this._fireEvent(applicationWindow.element, 'appopen', name);
-    }).bind(this));
-
+    this.setForegroundWindow(applicationWindow);
     return applicationWindow;
   },
 
@@ -347,7 +333,7 @@ var WindowManager = {
 
   _fireEvent: function wm_fireEvent(target, type, details) {
     var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent(type, true, true, details || null);
+    evt.initCustomEvent(type, true, false, details || null);
     target.dispatchEvent(evt);
   }
 };
