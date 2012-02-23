@@ -3,7 +3,6 @@
  */
 #videoControls {
   position: absolute;
-  /*display: block;*/
   top: 0;
   left: 0;
   width: 100%;
@@ -18,14 +17,13 @@
   border: none;
 }
 #videoControls.hidden {
-  /*display: none;*/
   opacity: 0;
 }
 
 /* close button */
 #close {
-  top: 10px;
-  right: 10px;
+  top: 16px;
+  right: 16px;
   width: 80px;
   height: 80px;
   background-image: url("images/btn_close_off.png");
@@ -37,11 +35,12 @@
 
 /* main control bar: play|pause, timeupdate, rwd|fwd */
 #videoBar {
+  position: relative;
+  left: 16px;
   width: 112px;
   height: 800px;
   margin: 0;
   padding: 0;
-  position: relative;
   background-image: url("images/controls.png");
 }
 #videoBar button {
@@ -86,17 +85,29 @@
 /* time slider */
 #timeSlider {
   position: relative;
-  top: 135px;
-  left: 31px;
+  top: 166px;
+  left: 32px;
   width: 64px;
-  height: 375px;
+  height: 378px;
+}
+#elapsedTime {
+  position: absolute;
+  top: 0;
+  left: 30px;
+  width: 6px;
+  height: 0; /* updated by script (ontimeupdate) */
+  background-color: #fff;
+  border-radius: 6px;
 }
 button#playHead {
+  top: 0; /* updated by script (ontimeupdate) */
   left: 0;
+  margin-top: -31px;
   width: 64px;
   height: 64px;
   background-image: url("images/btn_playhead_off.png");
   background-position: center center;
+  display: none;
 }
 button#playHead:active {
   background-image: url("images/btn_playhead_press.png");
