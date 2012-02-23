@@ -3,7 +3,6 @@
     top: 10px;
     left: 180px;
     opacity: 1;  /* This will fade out to avoid blackscreen */
-
     -moz-transition: top .5s linear, opacity 2s ease, -moz-transform 2s linear
 }
 
