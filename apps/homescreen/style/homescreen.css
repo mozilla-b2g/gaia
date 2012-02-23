@@ -213,6 +213,29 @@ body {
   background-color: white;
 }
 
+@media all and (max-height: 480px) {
+  #home > #apps {
+    height: 400px;
+    margin-top: 10px;
+  }
+
+  #home > #notifications {
+    height: 50px;
+  }
+
+  #home > #dots {
+    top: 380px;
+  }
+
+  .page {
+    left: 30px;
+  }
+
+  .icon {
+    height: 180px;
+  }
+}
+
 #windows {
   position: absolute;
   left: 0px;

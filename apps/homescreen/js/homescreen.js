@@ -393,7 +393,13 @@ IconGrid.prototype = {
       }
 
       // update position
-      setPosition(iconDiv, getIconColumn(icon) * 132 + 'px', getIconRow(icon) * 196 + 'px');
+      var deltaX = 132;
+      var deltaY = 196;
+      if (window.innerHeight <= 480) {
+        deltaY = 184;
+      }
+
+      setPosition(iconDiv, getIconColumn(icon) * 132 + 'px', getIconRow(icon) * deltaY + 'px');
     }
 
     // remove icons we don't need
@@ -720,7 +726,17 @@ function OnLoad() {
   new NotificationScreen(touchables);
 
   var apps = Gaia.AppManager.loadInstalledApps(function(apps) {
-    var appsGrid = new IconGrid('apps', 3, 3, 2, true);
+    var rows = 3;
+    var columns = 3;
+    var pages = 2;
+
+    if (window.innerHeight <= 480) {
+      pages = 3;
+      rows = 2;
+      columns = 2;
+    }
+
+    var appsGrid = new IconGrid('apps', columns, rows, pages, true);
     var appsGridCount = 0;
     for (var n = 0; n < apps.length; ++n) {
       var app = apps[n];
