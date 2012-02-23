@@ -107,8 +107,7 @@ html * {
 
   border-radius: 10px 10px 0 0;
 
-  background: url(images/keypad-bg.png) 0 0 no-repeat #F6F6F6;
-  background-size: 100% 100%;
+  background: url(images/keypad-bg.png) center bottom no-repeat #F6F6F6;
 }
 
 #views > .view {
