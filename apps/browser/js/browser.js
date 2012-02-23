@@ -39,10 +39,17 @@ var Browser = {
     return this.refreshButton = document.getElementById('menu-refresh');
   },
 
+  get forwardButton() {
+    delete this.forwardButton;
+    return this.forwardButton = document.getElementById('menu-forward');
+  },
+
   init: function browser_init() {
     this.backButton.addEventListener('click', this.goBack.bind(this));
     this.menuButton.addEventListener('click', this.toggleMenu.bind(this));
     this.refreshButton.addEventListener('click', this.refresh.bind(this));
+    this.forwardButton.addEventListener('click', this.goForward.bind(this));
+    this.shade.addEventListener('click', this.toggleMenu.bind(this));
     window.addEventListener('submit', this);
     window.addEventListener('keypress', this, true);
 
@@ -103,6 +110,11 @@ var Browser = {
     this.backButton.disabled = !MockHistory.backLength();
   },
 
+  goForward: function browser_goForward() {
+    MockHistory.forward();
+    this.toggleMenu();
+  },
+
   updateHistory: function browser_updateHistory(url) {
     MockHistory.pushState(null, '', url);
     this.backButton.disabled = !MockHistory.backLength();
@@ -138,6 +150,12 @@ var MockHistory = {
     if (this.backLength() < 1)
       return;
     Browser.navigate(this.history[--this.historyIndex]);
+  },
+
+  forward: function() {
+    if(this.forwardLength() < 1)
+      return;
+    Browser.navigate(this.history[++this.historyIndex]);
   },
 
   historyLength: function() {

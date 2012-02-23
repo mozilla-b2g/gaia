@@ -21,15 +21,11 @@ Gaia.SettingsApp = {
         var request = settings.get(key);
         request.onsuccess = function() {
           var result = request.result;
-          if (!result) {
-            settings.set(key, false);
-            return;
-          }
-          
           checkbox.checked = result.value === 'true' ? true : false;
         };
       })(checkboxes[i]);
     }
+    window.parent.postMessage('appready', '*');
   },
   handleEvent: function(evt) {
     switch(evt.type) {
@@ -47,6 +43,7 @@ Gaia.SettingsApp = {
         value = input.checked;
 
       window.navigator.mozSettings.set(key, value);
+      window.parent.postMessage(key, '*');
       break;
     }
   }

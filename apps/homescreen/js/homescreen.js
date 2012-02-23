@@ -64,6 +64,38 @@ function hideSourceViewer() {
   }
 }
 
+function hideGrid() {
+  document.getElementById('debug-grid').style.display = 'none';
+}
+
+function showGrid() {
+  document.getElementById('debug-grid').style.display = 'block';
+}
+
+function toggleGrid() {
+  var visibility = document.getElementById('debug-grid').style.display;
+  visibility == 'block' ? hideGrid() : showGrid();
+}
+
+if (window.navigator.mozSettings) {
+  var settings = window.navigator.mozSettings;
+  var updateGrid = function() {
+    var request = settings.get('debug.grid.enabled');
+    request.addEventListener('success', function onsuccess(evt) {
+      if (request.result.value === 'true')
+        showGrid();
+    });
+  }
+
+  window.addEventListener('message', function listenGridChanges(evt) {
+    if (evt.data == 'debug.grid.enabled') {
+      toggleGrid();
+    }
+  });
+
+  updateGrid();
+}
+
 // Change the display state (off, locked, default)
 function changeDisplayState(state) {
   displayState = state;
@@ -411,7 +443,6 @@ IconGrid.prototype = {
       eval(this.lastAction);
   },
   handleEvent: function(e) {
-    dump('&&&&&&&&&&&&&&&&&77: ' + e.type + '\n');
     var physics = this.physics;
     switch (e.type) {
     case 'touchstart':
@@ -580,9 +611,10 @@ LockScreen.prototype = {
     var settings = window.navigator.mozSettings;
     if (!settings)
       return;
-    var request = settings.get('lockscreen.disabled');
+
+    var request = settings.get('lockscreen.enabled');
     request.addEventListener('success', (function onsuccess(evt) {
-      request.result.value !== 'true' ? this.lock(true) : this.unlock(-1, true);
+      request.result.value !== 'false' ? this.lock(true) : this.unlock(-1, true);
 
       if (callback)
         setTimeout(callback, 0);
@@ -667,6 +699,9 @@ LockScreen.prototype = {
       // coz the screen could be turned off by the timer
       // instead of sleep button
 
+      // XXX: the above statement does not really works all the time
+      // gaia issue #513
+
       //if (!e.detail.enabled)
       //  return;
       this.update();
@@ -721,7 +756,7 @@ function OnLoad() {
   window.addEventListener('keypress', function(evt) {
     if (evt.keyCode == evt.DOM_VK_F5)
       document.location.reload();
-  });  
+  });
 
   window.addEventListener('menu', function(evt) {
     toggleSourceViewer(foregroundAppURL());

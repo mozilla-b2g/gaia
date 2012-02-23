@@ -4,7 +4,7 @@
 'use strict';
 
 // MozApps - Bug 709015
-(function (window) {
+(function(window) {
   var navigator = window.navigator;
 
   var webapps = [
@@ -151,18 +151,17 @@
                        '120': '/style/icons/Video.png'
                      },
                      'fullscreen': true,
-                     'orientation': 'landscape-primary'
                    }
                  },
                  { // facebook
-                   'installOrigin': 'https://www.facebook.com',
-                   'origin': 'https://touch.facebook.com',
+                   'installOrigin': 'http://www.facebook.com',
+                   'origin': 'http://touch.facebook.com',
                    'receipt': null,
                    'installTime': 1323339869000,
                    manifest: {
                      'name': 'Facebook',
                      'description': 'Facebook Mobile Application',
-                     'launch_path': '',
+                     'launch_path': '/',
                      'developer': {
                        'name': 'Facebook',
                        'url': 'http://www.facebook.com/'
@@ -290,9 +289,11 @@
                      'name': 'Cut The Rope',
                      'description': 'http://cuttherope.ie',
                      'launch_path': '',
+                     'orientation': 'landscape-primary',
+                     'fullscreen': true,
                      'developer': {
-                       'name': 'The Gaia Team',
-                       'url': 'https://github.com/andreasgal/gaia'
+                       'name': 'ZeptoLab',
+                       'url': 'http://cuttherope.ie'
                      },
                      'icons': {
                        '120': '/style/icons/CutTheRope.png'
@@ -311,76 +312,152 @@
   };
 })(this);
 
-// mozSettings (bug 678695)
-(function (window) {
-  var navigator = window.navigator;
-  if ('mozSettings' in navigator)
-    return;
 
-  var prefix = "settings:";
+// A hacked mozSettings implementation based on indexedDB instead
+// of localStorage to make it persist better in the face of unexpected
+// shutdowns and reboots
+(function() {
+  var DEFAULTS = {
+    'lockscreen.enabled': 'true',
+    'wifi.enabled': 'true',
+    'dnt.enabled': 'false',
+    'keyboard.vibration': 'false',
+    'keyboard.clicksound': 'true',
+    'keyboard.layouts.english': 'true',
+    'keyboard.layouts.dvorak': 'false',
+    'keyboard.layouts.otherlatins': 'false',
+    'keyboard.layouts.cyrillic': 'false',
+    'keyboard.layouts.hebrew': 'false',
+    'keyboard.layouts.zhuying': 'true',
+    'debug.grid.enabled' : 'false'
+  };
 
-  var immediates = [];
-  var magic = "moz-immediate";
+  var DBNAME = 'mozSettings';     // Strings used by IndexedDB
+  var STORENAME = 'mozSettings';
 
-  window.addEventListener("message", function(event) {
-    if (event.source === window && event.data === magic) {
-      event.stopPropagation();
-      while (immediates.length > 0) {
-        var fn = immediates.shift();
-        fn();
-      }
+  var mozSettings;  // settings object created when needed
+
+  // We always overwrite any existing mozSettings implementation.
+  // This is to prevent surprises.  If you implement this in Gecko,
+  // come here and remove this code
+  Object.defineProperty(navigator, 'mozSettings', {
+    get: function() {
+      // This is a lazy getter. Don't set up the settings stuff
+      // unless an app actually asks for it.
+      if (!mozSettings)
+        mozSettings = MozSettings();
+      return mozSettings;
+    },
+    enumerable: true,
+    configurable: true
+  });
+
+  // Return object that will be the value of navigator.mozSettings
+  function MozSettings() {
+    // Open the IndexedDB database
+    var settingsDB;
+    var openreq = mozIndexedDB.open(DBNAME, 1);
+
+    openreq.onsuccess = function() {
+      settingsDB = openreq.result;
     }
-  }, true);
 
-  function setImmediate(fn) {
-    if (immediates.length === 0)
-      window.postMessage(magic, "*");
-    immediates.push(fn);
-  }
+    openreq.onerror = function(e) {
+      console.log("Can't open mozSettings database!", e);
+    };
 
-  navigator.mozSettings = {
-    get: function(key) {
-      var onsuccess = [];
-      var onerror = [];
-      var request = {
-        addEventListener: function(name, fn) {
-          if (name === 'success')
-            onsuccess.push(fn);
-          if (name === 'error')
-            onerror.push(fn);
-        },
-        set onsuccess(fn) {
-          onsuccess.push(fn);
-        },
-        set onerror(fn) {
-          onerror.push(fn);
-        }
-      };
-      setImmediate(function() {
-        try {
-          request.result = {
-            key: key,
-            value: localStorage.getItem(prefix + key)
-          };
-        } catch (e) {
-          while (onerror.length > 0) {
-            var fn = onerror.shift();
-            fn();
-          }
+    // The first time after the phone is flashed, or the profile
+    // is deleted, this callback gets called to initialize the database
+    openreq.onupgradeneeded = function() {
+      var db = openreq.result;
+      if (db.objectStoreNames.contains(STORENAME))
+        db.deleteObjectStore(STORENAME);
+      db.createObjectStore(STORENAME, { keyPath: 'key' });
+    };
+
+    // our hacked navigator.mozSettings has 2 methods: get and set
+    return {
+      // The set function is kind of easy becase we're leaving out the
+      // part where it is supposed to return a request object and fire
+      // error and success events.
+      set: function(key, value) {
+        // If the db isn't open yet, trigger the set when we
+        // get the onsuccess
+        var mozSettings = this;
+        if (!settingsDB) {
+          openreq.addEventListener('success', function() {
+            mozSettings.set(key, value);
+          });
           return;
         }
-        while (onsuccess.length > 0) {
-          var fn = onsuccess.shift();
-          fn();
+
+        var txn = settingsDB.transaction(STORENAME, IDBTransaction.READ_WRITE);
+        var store = txn.objectStore(STORENAME);
+        // Note that we convert the value to a string because
+        // that is what the current clients of this hacked API seem to expect.
+        // Probably not the correct behavior, though.
+        var setreq = store.put({key: key, value: String(value)});
+
+        setreq.onerror = function(e) {
+          console.log('mozSettings failure', key, value, e);
+        };
+      },
+
+      // The get function returns a request object that allows callback
+      // registration.
+      get: function(key) {
+        // This event handling code copied from the localStorage version
+        // of this api.  There are a lot of things it does not do right.
+        // But good enough for the demo. Do not emulate this code.
+        var onsuccess = [];
+        var onerror = [];
+        var settingsRequest = { // not the same as the db request below
+          result: undefined,  // No result yet
+          addEventListener: function(name, fn) {
+            if (name === 'success')
+              onsuccess.push(fn);
+            if (name === 'error')
+              onerror.push(fn);
+          },
+          set onsuccess(fn) {
+            onsuccess.push(fn);
+          },
+          set onerror(fn) {
+            onerror.push(fn);
+          }
+        };
+
+        // This function queries the database and triggers
+        // the appropriate callbacks of the request object
+        function query() {
+          var txn = settingsDB.transaction(STORENAME, IDBTransaction.READ_ONLY);
+          var store = txn.objectStore(STORENAME);
+          var dbreq = store.get(key);
+          dbreq.onsuccess = function() {
+            var result = dbreq.result || {
+              value: DEFAULTS[key]
+            };
+            settingsRequest.result = result;
+            onsuccess.forEach(function(cb) { cb(); });
+          };
+          dbreq.onerror = function() {
+            console.log('mozSettings error querying setting', key, e);
+            onerror.forEach(function(cb) { cb(); });
+          };
         }
-      });
-      return request;
-    },
-    set: function(key, value) {
-      localStorage.setItem(prefix + key, value);
-    }
-  };
-})(this);
+
+        // If the database is already open, query it now.
+        // Otherwise, wait for it before querying
+        if (settingsDB)
+          query();
+        else
+          openreq.addEventListener('success', query);
+
+        return settingsRequest;
+      }
+    };
+  }
+}());
 
 (function (window) {
   var navigator = window.navigator;

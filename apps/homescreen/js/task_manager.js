@@ -26,8 +26,9 @@ var TaskManager = {
     return this.items = this.container.getElementsByTagName('ul')[0];
   },
 
+  enabled: true,
   init: function tm_init() {
-    ['keydown', 'keyup'].forEach((function attachKey(type) {
+    ['keydown', 'keyup', 'locked', 'unlocked'].forEach((function attachKey(type) {
       window.addEventListener(type, this);
     }).bind(this));
   },
@@ -36,7 +37,7 @@ var TaskManager = {
   handleEvent: function tm_handleEvent(evt) {
     switch (evt.type) {
       case 'keydown':
-        if (evt.keyCode !== evt.DOM_VK_HOME || this._timeout)
+        if (!this.enabled || evt.keyCode !== evt.DOM_VK_A || this._timeout)
           return;
 
         if (this.isActive()) {
@@ -50,11 +51,19 @@ var TaskManager = {
         break;
 
       case 'keyup':
-        if (evt.keyCode !== evt.DOM_VK_HOME)
+        if (evt.keyCode !== evt.DOM_VK_A)
           return;
 
         window.clearTimeout(this._timeout);
         this._timeout = 0;
+        break;
+
+
+      case 'locked':
+        this.enabled = false;
+        break;
+      case 'unlocked':
+        this.enabled = true;
         break;
     }
   },

@@ -5,10 +5,13 @@
 
 function WindowSprite(win) {
   var element = this.element = document.createElement('div');
-  element.className = 'windowSprite';
-  element.style.width = win.element.style.width;
-  element.style.height = win.element.style.height;
-  element.style.background = '-moz-element(#window_' + win.id + ') no-repeat';
+  if (win.application.fullscreen) {
+    element.className = 'windowSprite fullscreen';
+  } else {
+    element.className = 'windowSprite';
+    element.style.width = win.element.style.width;
+    element.style.height = win.element.style.height;
+  }
 }
 
 WindowSprite.prototype = {
@@ -25,7 +28,16 @@ WindowSprite.prototype = {
   },
 
   remove: function ws_remove() {
-    document.body.removeChild(this.element);
+    if (this.element)
+      document.body.removeChild(this.element);
+  },
+
+  crossFade: function ws_crossFade() {
+    var afterCrossFade = (this.remove).bind(this);
+    setTimeout((function () {
+      this.element.addEventListener('transitionend', afterCrossFade);
+      this.element.classList.add('crossFade');
+    }).bind(this), 0);
   }
 };
 
@@ -38,16 +50,9 @@ function Window(application, id) {
   element.id = 'window_' + id;
   element.className = 'appWindow';
 
-  var documentElement = document.documentElement;
-  element.style.width = documentElement.clientWidth + 'px';
-  element.style.height = documentElement.clientHeight + 'px';
-
-  if (!application.fullscreen) {
-    element.style.height -= document.getElementById('statusbar').offsetHeight + 'px';
-  }
-
   this.application = application;
   this.id = id;
+  this.resize();
 }
 
 Window.prototype = {
@@ -67,22 +72,16 @@ Window.prototype = {
     if (this.element.classList.contains('active'))
       return;
 
-    // NOTE: for the moment, orientation only works when fullscreen because of a
-    // too dirty hack...
-    if (this.application.fullscreen && this.application.orientation) {
-      var width = this.element.style.width;
-      this.element.style.width = this.element.style.height;
-      this.element.style.height = width;
-
-      this.element.classList.add(this.application.orientation);
-    }
+    this.resize();
 
     var sprite = new WindowSprite(this);
     sprite.add();
     this.show();
 
-    var focus = function(evt) {
-      sprite.remove();
+    var focus = (function(evt) {
+      sprite.element.removeEventListener('transitionend', focus);
+
+      sprite.crossFade();
 
       var element = this.element;
       if (!this._loaded) {
@@ -98,20 +97,11 @@ Window.prototype = {
 
       if (callback)
         callback();
-    };
-    sprite.element.addEventListener('transitionend', focus.bind(this));
+    }).bind(this);
+    sprite.element.addEventListener('transitionend', focus);
 
     if (this.application.fullscreen) {
       document.getElementById('screen').classList.add('fullscreen');
-    }
-
-    // NOTE: for the moment, orientation only works when fullscreen because of a
-    // too dirty hack...
-    if (this.application.fullscreen && this.application.orientation) {
-      var foo = this.element.style.width;
-      this.element.style.width = this.element.style.height;
-      this.element.style.height = foo;
-      this.element.classList.add(this.application.orientation);
     }
 
     document.body.offsetHeight;
@@ -159,6 +149,28 @@ Window.prototype = {
 
     document.body.offsetHeight;
     sprite.setActive(false);
+  },
+
+  resize: function window_resize() {
+    var element = this.element;
+    // NOTE: for the moment, orientation only works when fullscreen because of a
+    // too dirty hack...
+    if (this.application.fullscreen && this.application.orientation) {
+      var width = this.element.style.width;
+      element.style.width = this.element.style.height;
+      element.style.height = width;
+
+      element.classList.add(this.application.orientation);
+    } else {
+      var documentElement = document.documentElement;
+      element.style.width = documentElement.clientWidth + 'px';
+
+      var height = documentElement.clientHeight;
+      if (!this.application.fullscreen) {
+        height -= document.getElementById('statusbar').offsetHeight;
+      }
+      element.style.height = height + 'px';
+    }
   }
 };
 
@@ -174,7 +186,10 @@ var WindowManager = {
     window.addEventListener('appwillclose', this);
     window.addEventListener('locked', this);
     window.addEventListener('unlocked', this);
+    window.addEventListener('resize', this);
   },
+
+  enabled: true,
 
   get container() {
     delete this.container;
@@ -184,10 +199,14 @@ var WindowManager = {
   handleEvent: function wm_handleEvent(evt) {
     switch (evt.type) {
       case 'message':
+        if (!this.enabled)
+          return;
         if (evt.data == 'appclose')
           this.closeForegroundWindow();
         break;
       case 'home':
+        if (!this.enabled)
+          return;
         this.closeForegroundWindow();
         break;
       case 'appopen':
@@ -195,15 +214,21 @@ var WindowManager = {
         break;
       case 'appwillclose':
         this.container.classList.remove('active');
+        break;
       case 'locked':
         if (this._foregroundWindow.application.fullscreen) {
           document.getElementById('screen').classList.remove('fullscreen');
         }
+        this.enabled = false;
         break;
       case 'unlocked':
         if (this._foregroundWindow.application.fullscreen) {
           document.getElementById('screen').classList.add('fullscreen');
         }
+        this.enabled = true;
+        break;
+      case 'resize':
+        this._foregroundWindow.resize();
         break;
     }
   },
