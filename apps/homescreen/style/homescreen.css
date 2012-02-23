@@ -233,7 +233,7 @@ iframe.appWindow {
   overflow: auto;
   left: 0;
   width: 100%;
-  height: -moz-calc(100% - 37px);
+  height: -moz-calc(100% - 32px);
   top: 100%;
 /*
  * Disable this for now because it forces an expensive fallback path in
@@ -245,7 +245,7 @@ iframe.appWindow {
 }
 
 iframe.appWindow.active {
-  top: 37px;
+  top: 32px;
 }
 
 iframe.appWindow.keyboardOn {
