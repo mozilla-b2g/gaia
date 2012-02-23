@@ -130,7 +130,7 @@ body {
   width: -moz-calc(100%);
   height: -moz-calc(100% - 32px);
   border-radius: 8px;
-  background: url("images/noise.png") repeat scroll 50% 50%, url(images/background.bmp) 50% 50% transparent;
+  background: url(backgrounds/default.png);
 }
 
 #home > div {
@@ -142,18 +142,21 @@ body {
 
 #home > #apps {
   top: 0;
-  height: -moz-calc(75%);
+  height: 480px;
+  margin-top: 32px;
 }
 
 #home > #dots {
-  top: 77.5%;
-  height: -moz-calc(2.5%);
+  top: 512px;
+  height: 64px;
+  line-height: 64px;
   text-align: center;
 }
 
 #home > #favs {
-  top: 80%;
-  height: -moz-calc(20%);
+  top: 576px;
+  height: 160px;
+  margin-bottom: 32px;
 }
 
 .page {
@@ -166,24 +169,32 @@ body {
 
 .icon {
   position: absolute;
-  width: 100%;
+  width: 160px;
+  height: 160px;
   text-align: center;
+  overflow: hidden;
+}
+
+.icon > * {
+  pointer-events: none;
 }
 
 .icon > div {
   display: inline-block;
-  width: 100%;
+  width: 120px;
+  height: 120px;
 }
 
 .icon > div > img {
-  padding-top: 10%;
-  width: 70%;
+  margin-top: 20px;
 }
 
 .icon > .label {
+  position: relative;
+  top: -16px;
   padding-top: 0%;
   color: white;
-  font-size: 140%;
+  font-size: 120%;
 }
 
 .dot {
@@ -276,7 +287,7 @@ iframe.portrait-primary {
 }
 
 iframe.portrait-secondary {
-  -moz-transform: translate(rotate(180deg);
+  -moz-transform: rotate(180deg);
 }
 
 iframe.landscape-primary {
@@ -453,9 +464,9 @@ iframe.landscape-secondary {
   width: 32px;
   height: 32px;
   position: absolute;
-  top: -16px;
-  right: -16px;
-  -moz-transform: scale(2.5);
+  top: 10px;
+  right: 10px;
+  -moz-transform: scale(5);
 }
 
 #taskManager li > h1 {
@@ -476,7 +487,7 @@ iframe.landscape-secondary {
   bottom: 0;
   overflow: visible;
   background-color: #f0f1f2;
-  width: -moz-calc(100%);
+  width: -moz-calc(100% + 2px);
   -moz-transition: -moz-transform 0.3s ease;
   border-top: 2px solid #a3a3a3;
   -moz-box-shadow: inset 0 0 0 1px #fff;
@@ -576,15 +587,25 @@ iframe.landscape-secondary {
   color: rgb(36, 36, 36);
   font-size: 33px;
   height: 58px;
-  line-height: 54px;
   min-width: 0 !important;
   margin: 0 2px;
   -moz-box-sizing: border-box;
   padding: 0;
+/*
+ * Below are the rules from which the following bitmaps were
+ * generated.  Painting with the raw style is currently too slow, so
+ * we fall back on bitmaps.
+ *
+  line-height: 55px;
   border: 1px solid #d5d5d5;
   -moz-box-shadow: inset 0 0 2px 2px #fff;
   border-radius: 5px;
   background: -moz-linear-gradient(top, #fff 10%, #fff 70%, #f6f6f6 100%);
+*/
+  line-height: 56px;
+  background: url(images/left.png) left top no-repeat,
+              url(images/right.png) right top no-repeat,
+              url(images/middle.png) left top repeat-x;
 }
 
 .keyboard-key.spacekey {
@@ -608,18 +629,32 @@ iframe.landscape-secondary {
 
 .keyboard-key[data-active] {
   color: #fff;
+/*
+ * Disable this for now because it's too slow to repaint.
+ *
   -moz-box-shadow: inset 0 0 2px 2px #6f6f6f;
   text-shadow: 0 -1px #909090, 0 1px #9b9b9b;
   background: rgb(118, 118, 118);
+*/
+  background: url(images/left-active.png) left top no-repeat,
+              url(images/right-active.png) right top no-repeat,
+              rgb(118, 118, 118);
 }
 
 .keyboard-key-special {
   color: #fff;
   font-size: 18px;
   text-shadow: 0 -1px #848d96, 0 1px #bac2cb;
+/*
+ * Disable this for now because it's too slow to repaint.
+ *
   background: -moz-linear-gradient(top, #a3aeb9 10%, #a3aeb9 70%, #929ca6 100%);
   -moz-box-shadow: none;
   border: 1px solid #8a949d;
+*/
+  background: url(images/left-special.png) left top no-repeat,
+              url(images/right-special.png) right top no-repeat,
+              url(images/middle-special.png) left top repeat-x;
 }
 
 .keyboard-key-special.toggle {
@@ -658,8 +693,12 @@ iframe.landscape-secondary {
   margin-top: -110px;
   text-align: center;
   border: 1px solid #fff;
+/*
+ * Disabled for now ... too slow :(.
+ *
   box-shadow: 0 0 2px #ccc;
   border-radius: 5px;
+*/
   display: none;
 }
 
@@ -675,7 +714,7 @@ iframe.landscape-secondary {
   position: absolute;
   display: none;
   background-color: #cac9c5;
-  height: 68px;
+  height: 58px;
   padding: 5px;
   margin-top: -84px;
   border-radius: 5px;
@@ -693,14 +732,23 @@ iframe.landscape-secondary {
   margin-top: -5px;
 }
 
-#keyboard-accent-char-menu.menu > .keyboard-key {
-  width: auto;
-  display: block;
-  font-size: 24px;
-  line-height: 48px;
-  height: 48px;
-  padding: 0 5px;
-  position: relative;
+#keyboard-accent-char-menu > .keyboard-key {
+  background: url(images/left-accent.png) left top no-repeat,
+              url(images/right-accent.png) right top no-repeat,
+              url(images/middle.png) left top repeat-x;
+}
+#keyboard-accent-char-menu > .keyboard-key[data-active] {
+  color: #fff;
+/*
+ * Disable this for now because it's too slow to repaint.
+ *
+  -moz-box-shadow: inset 0 0 2px 2px #6f6f6f;
+  text-shadow: 0 -1px #909090, 0 1px #9b9b9b;
+  background: rgb(118, 118, 118);
+*/
+  background: url(images/left-active-accent.png) left top no-repeat,
+              url(images/right-active-accent.png) right top no-repeat,
+              rgb(118, 118, 118);
 }
 
 #keyboard-accent-char-menu.menu > .current-keyboard::before {
