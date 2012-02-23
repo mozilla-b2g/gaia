@@ -68,21 +68,12 @@ window.addEventListener('DOMContentLoaded', function() {
     }
   }
 
-  // Switch to the video gallery view
-  function showGallery() {
-    document.body.classList.remove('fullscreen');
-    document.cancelFullScreen();
-
-    // stop player
-    player.pause();
-    player.currentTime = 0;
-
-    playerShowing = false;
-  }
-
-  // Switch to the video player view and play the video!
+  // show|hide video player
   function showPlayer(sample) {
+    // switch to the video player view
+    $('videoControls').classList.add('hidden');
     document.body.classList.add('fullscreen');
+    $('videoBar').classList.remove('paused');
 
     // start player
     player.src = sample.video;
@@ -93,14 +84,57 @@ window.addEventListener('DOMContentLoaded', function() {
 
     playerShowing = true;
   }
+  function hidePlayer() {
+    if (!playerShowing)
+      return;
 
-  // XXX temp hack until we get proper fullscreen controls
-  player.addEventListener('click', showGallery, false);
+    // switch to the video gallery view
+    document.cancelFullScreen();
+    document.body.classList.remove('fullscreen');
+    $('videoBar').classList.remove('paused');
 
-  window.addEventListener('keypress', function(evt) {
-    if (playerShowing && evt.keyCode == evt.DOM_VK_ESCAPE) {
-      showGallery();
-      evt.preventDefault();
+    // stop player
+    player.pause();
+    player.currentTime = 0;
+
+    playerShowing = false;
+  }
+  $('close').addEventListener('click', hidePlayer, false);
+  player.addEventListener('ended', hidePlayer, false);
+  window.addEventListener('keypress', function(event) {
+    if (event.keyCode == event.DOM_VK_ESCAPE) {
+      hidePlayer();
+      event.preventDefault();
     }
-  });
+    if (event.keyCode == event.DOM_VK_HOME) {
+      hidePlayer();
+    }
+  }, false);
+
+  // show|hide controls over the player
+  $('videoControls').addEventListener('click', function() {
+    $('videoControls').classList.toggle('hidden');
+  }, false);
+
+  // media events: play|pause, rwd|fwd, timeupdate
+  playHead = $('playHead');
+  $('play').addEventListener('click', function() {
+    if (player.paused) {
+      $('videoBar').classList.remove('paused');
+      player.play();
+    } else {
+      $('videoBar').classList.add('paused');
+      player.pause();
+    }
+  }, false);
+  $('rwd').addEventListener('click', function() {
+    player.currentTime -= 15;
+  }, false);
+  $('fwd').addEventListener('click', function() {
+    player.currentTime += 15;
+  }, false);
+  player.addEventListener('timeupdate', function() {
+    var pos = (player.currentTime / player.duration) * 100;
+    playHead.style.top = pos + '%';
+  }, false);
 });
