@@ -238,7 +238,7 @@ var Gallery = {
     this.header.classList.add('hidden');
     this.photos.classList.remove('hidden');
     this.playerControls.classList.remove('hidden');
-
+    this.focusedPhoto = true;
     this.currentPage = parseInt(focusedPhoto.index);
 
     this.pan(0);
