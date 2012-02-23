@@ -270,26 +270,30 @@ var WindowManager = {
 
   setForegroundWindow: function wm_setForegroundWindow(newWindow) {
     var oldWindow = this._foregroundWindow;
-    if (oldWindow === newWindow)
+    if (oldWindow === newWindow || this._isInTransition)
       return;
     this._foregroundWindow = newWindow;
+    this._isInTransition = true;
 
     newWindow.focus((function focusCallback() {
+      this._isInTransition = false;
       this._fireEvent(newWindow.element, 'appopen', newWindow.name);
     }).bind(this));
   },
 
   closeForegroundWindow: function wm_closeForegroundWindow() {
     var foregroundWindow = this._foregroundWindow;
-    if (!foregroundWindow)
+    if (!foregroundWindow || this._isInTransition)
       return;
 
     this._fireEvent(foregroundWindow.element, 'appwillclose', name);
 
     var oldWindow = this._foregroundWindow;
     this._foregroundWindow = null;
+    this._isInTransition = true;
 
     oldWindow.blur((function blurCallback() {
+      this._isInTransition = false;
       this._fireEvent(foregroundWindow.element, 'appclose');
     }).bind(this));
   },
