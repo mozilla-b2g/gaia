@@ -96,6 +96,24 @@ if (window.navigator.mozSettings) {
   updateGrid();
 }
 
+if (window.navigator.mozSettings) {
+  var settings = window.navigator.mozSettings;
+  var updateWallpaper = function() {
+    var request = settings.get('homescreen.wallpaper');
+    request.addEventListener('success', function onsuccess(evt) {
+      var home = document.getElementById('home');
+      home.style.background = 'url(style/backgrounds/' + request.result.value + ')';
+    });
+  }
+
+  window.addEventListener('message', function listenGridChanges(evt) {
+    if (evt.data == 'homescreen.wallpaper')
+      updateWallpaper();
+  });
+
+  updateWallpaper();
+}
+
 // Change the display state (off, locked, default)
 function changeDisplayState(state) {
   displayState = state;
