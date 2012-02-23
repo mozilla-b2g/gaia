@@ -1,3 +1,18 @@
+@font-face {
+  font-family: 'Open Sans';
+  src: url('fonts/Open-Sans.woff');
+}
+@font-face {
+  font-family: 'Open Sans';
+  font-weight: bold;
+  src: url('fonts/Open-Sans-Bold.woff');
+}
+@font-face {
+  font-family: 'Open Sans';
+  font-weight: 600;
+  src: url('fonts/Open-Sans-Semibold.woff');
+}
+
 html, body {
   height: 100%;
   padding: 0;
@@ -11,6 +26,7 @@ body {
   width: 100%;
   height: 100%;
   background-color: #000;
+  font-family: 'Open Sans';
 }
 
 #browser-tab {
@@ -41,16 +57,18 @@ body {
 }
 
 #browser-url {
+  font-family: 'Open Sans';
   -moz-box-flex: 1;
   border: solid 3px #9ca1a6;
   border-radius: 22px;
   height: 44px;
   margin: 10px 2px;
   padding: 0 0 0 40px;
-  font-size: 20px;
+  font-size: 18px;
   background-image: url('images/favicon.png');
   background-repeat: no-repeat;
   background-position: 14px 12px;
+  font-weight: 600;
 }
 
 #browser-url.loading {
@@ -62,18 +80,22 @@ body {
   -moz-apperance: none;
   border: none;
   display: block;
-  margin: 10px 0;
-  width: 44px;
-  height: 44px;
+  margin: 0;
+  padding: 0;
+  width: 56px;
+  height: 64px;
 }
 
 #browser-back-button {
   background-image: url("images/back.png");
 }
 
+#browser-back-button:active {
+  background-image: url("images/back-pressed.png");
+}
+
 #browser-menu-button {
   background-image: url("images/menu.png");
-  margin: 10px 4px;
 }
 
 input::-moz-focus-inner {
@@ -82,17 +104,25 @@ input::-moz-focus-inner {
 
 #browser-tab-button {
   display: block;
-  height: 44px;
-  width: 44px;
-  padding: 0;
-  border-radius: 22px;
-  border: solid 3px #c9cfd5;
-  margin: 10px 2px 10px 10px;
+  height: 64px;
+  width: 54px;
+  margin: 0;
   font-weight: bold;
-  font-size: 29px;
+  font-size: 24px;
   text-align: center;
-  font-family: Helvetica, Sans-serif;
   color: #555;
+  padding: 16px 0;
+}
+
+#browser-tab-button::after {
+  display: block;
+  width: 1px;
+  content: ' ';
+  height: 44px;
+  background-color: rgba(0, 0, 0, 0.1);
+  position: absolute;
+  top: 22px;
+  right: 56px;
 }
 
 #browser-back-button[disabled] {
@@ -169,14 +199,14 @@ input::-moz-focus-inner {
 
 #browser-menu li a {
   display: block;
-  font-family: Helvetica, Sans-serif;
-  font-size: 20px;
-  padding: 20px 20px 20px 44px;
+  font-size: 22px;
+  padding: 19px 19px 19px 44px;
   border-bottom: solid 1px #d0cecf;
   text-decoration: none;
   color: #4f5357;
   background-repeat: no-repeat;
-  background-position: -15px 0;
+  background-position: 5px 20px;
+  font-weight: 600;
 }
 
 #menu-refresh a {
