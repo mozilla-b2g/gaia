@@ -104,7 +104,7 @@ body {
 
 #notificationsScreen {
   position: absolute;
-  z-index: 9998;
+  z-index: 9996;
   top: -moz-calc(-100% + 64px);
   width: -moz-calc(100%);
   height: -moz-calc(100% - 32px);
@@ -131,6 +131,7 @@ body {
   height: -moz-calc(100% - 32px);
   border-radius: 8px;
   background: url(backgrounds/default.png);
+  z-index: 9994;
 }
 
 #home > div {
@@ -233,7 +234,8 @@ iframe.appWindow {
   overflow: auto;
   left: 0;
   width: 100%;
-  top: 100%;
+  top: 32px;
+  z-index: 1;
 /*
  * Disable this for now because it forces an expensive fallback path in
  * Gecko.  The performance issue should be fixed by
@@ -244,11 +246,15 @@ iframe.appWindow {
 }
 
 iframe.appWindow.active {
-  top: 32px;
+  z-index: 9995;
+}
+
+#screen.fullscreen iframe.appWindow {
+  top: 0;
 }
 
 #screen.fullscreen iframe.appWindow.active {
-  top: 0;
+  z-index: 9998;
 }
 
 iframe.appWindow.keyboardOn {
@@ -306,7 +312,7 @@ iframe.landscape-secondary {
   display: -moz-box;
   overflow: hidden;
   position: relative;
-  z-index: 9999;
+  z-index: 9997;
   -moz-box-orient: horizontal;
 
   width: 100%;
@@ -481,7 +487,7 @@ iframe.landscape-secondary {
   position: absolute;
   font-family: 'Open Sans', sans-serif;
   font-weight: bold;
-  z-index: 9997;
+  z-index: 9999;
   bottom: 0;
   overflow: visible;
   background-color: #f0f1f2;
