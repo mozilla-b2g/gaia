@@ -130,7 +130,7 @@ body {
   width: -moz-calc(100%);
   height: -moz-calc(100% - 32px);
   border-radius: 8px;
-  background: url("images/noise.png") repeat scroll 50% 50%, url(images/background.bmp) 50% 50% transparent;
+  background: url(backgrounds/default.png);
 }
 
 #home > div {
