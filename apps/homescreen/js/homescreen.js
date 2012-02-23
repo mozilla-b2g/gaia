@@ -64,6 +64,38 @@ function hideSourceViewer() {
   }
 }
 
+function hideGrid() {
+  document.getElementById('debug-grid').style.display = 'none';
+}
+
+function showGrid() {
+  document.getElementById('debug-grid').style.display = 'block';
+}
+
+function toggleGrid() {
+  var visibility = document.getElementById('debug-grid').style.display;
+  visibility == 'block' ? hideGrid() : showGrid();
+}
+
+if (window.navigator.mozSettings) {
+  var settings = window.navigator.mozSettings;
+  var updateGrid = function() {
+    var request = settings.get('debug.grid.enabled');
+    request.addEventListener('success', function onsuccess(evt) {
+      if (request.result.value === 'true')
+        showGrid();
+    });
+  }
+
+  window.addEventListener('message', function listenGridChanges(evt) {
+    if (evt.data == 'debug.grid.enabled') {
+      toggleGrid();
+    }
+  });
+
+  updateGrid();
+}
+
 // Change the display state (off, locked, default)
 function changeDisplayState(state) {
   displayState = state;
@@ -579,6 +611,7 @@ LockScreen.prototype = {
     var settings = window.navigator.mozSettings;
     if (!settings)
       return;
+
     var request = settings.get('lockscreen.enabled');
     request.addEventListener('success', (function onsuccess(evt) {
       request.result.value !== 'false' ? this.lock(true) : this.unlock(-1, true);
