@@ -214,15 +214,14 @@ body {
 #windows {
   position: absolute;
   left: 0px;
-  top: 32px;
+  top: 100%;
   width: 100%;
-  height: 0;
-  overflow: hidden;
+  height: 100%;
+  overflow: visible;
 }
 
 #windows.active {
-  height: -moz-calc(100% - 32px);
-  overflow: visible;
+  top: 0;
 }
 
 iframe.appWindow {
@@ -233,10 +232,9 @@ iframe.appWindow {
   padding: 0;
   overflow: auto;
   left: 0;
-  top: 0;
   width: 100%;
-  height: 100%;
-  display: none;
+  height: -moz-calc(100% - 37px);
+  top: 100%;
 /*
  * Disable this for now because it forces an expensive fallback path in
  * Gecko.  The performance issue should be fixed by
@@ -247,7 +245,7 @@ iframe.appWindow {
 }
 
 iframe.appWindow.active {
-  display: block;
+  top: 37px;
 }
 
 iframe.appWindow.keyboardOn {
