@@ -254,15 +254,21 @@ body {
 
 iframe.appWindow {
   position: absolute;
-  background: url("images/noise.png") repeat scroll 50% 50%, #373a3d;
+  background-color: #373a3d;
+  -moz-transition: background-color 1s ease;
   border: 0;
   margin: 0;
   padding: 0;
   overflow: auto;
   left: 0;
-  width: 100%;
   top: 32px;
   z-index: 1;
+/*
+ * Do not specify height/width here! They should go to
+ * Window.prototype.resize() in window_manager.js
+ *
+ */
+
 /*
  * Disable this for now because it forces an expensive fallback path in
  * Gecko.  The performance issue should be fixed by
@@ -274,10 +280,16 @@ iframe.appWindow {
 
 iframe.appWindow.active {
   z-index: 9995;
+  background-color: #000;
 }
 
 #screen.fullscreen iframe.appWindow {
   top: 0;
+/*
+ * Do not specify height/width here! They should go to
+ * Window.prototype.resize() in window_manager.js
+ *
+ */
 }
 
 #screen.fullscreen iframe.appWindow.active {
