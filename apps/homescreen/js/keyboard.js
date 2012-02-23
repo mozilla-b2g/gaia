@@ -29,7 +29,8 @@ const IMEManager = {
     'otherlatins': ['fr', 'de', 'nb', 'sk', 'tr'],
     'cyrillic': ['ru', 'sr-Cyrl'],
     'hebrew': ['he'],
-    'zhuying': ['zh-Hant-Zhuying']
+    'zhuying': ['zh-Hant-Zhuying'],
+    'pinyin': ['zh-Hans-Pinyin']
   },
 
   loadKeyboardSettings: function loadKeyboardSettings(callback) {
@@ -375,7 +376,7 @@ const IMEManager = {
     }
   },
 
-  events: ['mouseup', 'showime', 'hideime', 'unload', 'appclose', 'resize'],
+  events: ['mouseup', 'showime', 'hideime', 'unload', 'appwillclose', 'resize'],
   imeEvents: ['mousedown', 'mouseover', 'mouseleave', 'transitionend'],
   init: function km_init() {
     this.events.forEach((function attachEvents(type) {
@@ -486,10 +487,14 @@ const IMEManager = {
         break;
 
       case 'hideime':
-      case 'appclose':
         this.hideIMETimer = setTimeout((function execHideIME() {
           this.hideIME(activeWindow);
         }).bind(this), 0);
+
+        break;
+
+      case 'appwillclose':
+        this.hideIME(activeWindow, true);
 
         break;
 
@@ -1020,7 +1025,7 @@ const IMEManager = {
     delete this.ime.dataset.hidden;
   },
 
-  hideIME: function km_hideIME(targetWindow) {
+  hideIME: function km_hideIME(targetWindow, imminent) {
 
     if (this.ime.dataset.hidden)
       return;
@@ -1028,6 +1033,20 @@ const IMEManager = {
     this.ime.dataset.hidden = 'true';
     targetWindow.style.height = targetWindow.dataset.cssHeight;
     targetWindow.classList.remove('keyboardOn');
+
+    if (imminent) {
+      var ime = this.ime;
+      ime.classList.add('imminent');
+      setTimeout(function () {
+        ime.classList.remove('imminent');
+      }, 0);
+
+      delete this.targetWindow.dataset.cssHeight;
+      delete this.targetWindow.dataset.rectHeight;
+      delete this.targetWindow;
+
+      ime.innerHTML = '';
+    }
   },
 
   showCandidates: function km_showCandidates(candidates) {

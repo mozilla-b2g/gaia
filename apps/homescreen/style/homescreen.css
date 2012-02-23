@@ -257,6 +257,8 @@ div.windowSprite {
   position: absolute;
   top: 32px;
   left: 0;
+  width: 100%;
+  height: -moz-calc(100% - 32px);
   z-index: 999999;
   -moz-transform: scale(0.5);
   -moz-transition: -moz-transform 0.5s ease, opacity 0.5s ease;
@@ -268,7 +270,6 @@ div.windowSprite {
 div.windowSprite.fullscreen {
   border-radius: 0;
   top: 0;
-  width: 100%;
   height: 100%;
 }
 
@@ -485,12 +486,16 @@ iframe.landscape-secondary {
   bottom: 0;
   overflow: visible;
   background-color: #f0f1f2;
-  width: -moz-calc(100% + 2px);
+  width: 100%;
   -moz-transition: -moz-transform 0.3s ease;
   border-top: 2px solid #a3a3a3;
   -moz-box-shadow: inset 0 0 0 1px #fff;
   border-bottom-left-radius: 8px;
   border-bottom-right-radius: 8px;
+}
+
+#keyboard.imminent {
+  -moz-transition: none;
 }
 
 #keyboard[data-hidden] {
@@ -521,6 +526,7 @@ iframe.landscape-secondary {
   width: 100%;
   border: none;
   border-top: 2px solid #a3a3a3;
+  z-index: 1;
 }
 #keyboard-candidate-panel.full span {
   border-top: 1px solid #e8e8ff;
@@ -562,6 +568,7 @@ iframe.landscape-secondary {
   border-top: 1px solid #e8e8ff;
   border-bottom: 1px solid #808098;
   top: -66px;
+  z-index: 1;
 }
 
 #keyboard-candidate-panel-toggle-button.show {
@@ -575,6 +582,9 @@ iframe.landscape-secondary {
 
 .keyboard-row {
   margin: 10px 0;
+  /* XXX: 11 key-row layouts add up to 802px when width=800px,
+  need detail fix on key width calculation */
+  white-space: nowrap;
 }
 
 .keyboard-key {

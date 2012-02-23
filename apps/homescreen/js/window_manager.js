@@ -9,8 +9,6 @@ function WindowSprite(win) {
     element.className = 'windowSprite fullscreen';
   } else {
     element.className = 'windowSprite';
-    element.style.width = win.element.style.width;
-    element.style.height = win.element.style.height;
   }
 }
 
