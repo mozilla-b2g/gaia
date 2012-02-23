@@ -51,7 +51,7 @@ body {
 
 #lockscreen {
   position: absolute;
-  z-index: 10000;
+  z-index: 20000;
   top: 0px;
   width: -moz-calc(100%);
   height: -moz-calc(100%);
@@ -435,6 +435,7 @@ iframe.landscape-secondary {
   -moz-user-select: none;
   overflow: scroll;
   background-color: rgba(0, 0, 0, 0.8);
+  z-index: 10001;
 }
 
 #taskManager.active {
