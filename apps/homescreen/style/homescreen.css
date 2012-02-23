@@ -234,7 +234,8 @@ iframe.appWindow {
   left: 0;
   width: 100%;
   height: -moz-calc(100% - 32px);
-  top: 100%;
+  top: 32px;
+  -moz-transform: translateX(100%);
 /*
  * Disable this for now because it forces an expensive fallback path in
  * Gecko.  The performance issue should be fixed by
@@ -245,7 +246,7 @@ iframe.appWindow {
 }
 
 iframe.appWindow.active {
-  top: 32px;
+  -moz-transform: none;
 }
 
 iframe.appWindow.keyboardOn {
