@@ -153,16 +153,16 @@ Window.prototype = {
 
   resize: function window_resize() {
     var element = this.element;
+    var documentElement = document.documentElement;
     // NOTE: for the moment, orientation only works when fullscreen because of a
     // too dirty hack...
     if (this.application.fullscreen && this.application.orientation) {
       var width = this.element.style.width;
-      element.style.width = this.element.style.height;
-      element.style.height = width;
+      element.style.width = documentElement.clientHeight + 'px';
+      element.style.height = documentElement.clientWidth + 'px';
 
       element.classList.add(this.application.orientation);
     } else {
-      var documentElement = document.documentElement;
       element.style.width = documentElement.clientWidth + 'px';
 
       var height = documentElement.clientHeight;
