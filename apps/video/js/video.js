@@ -40,6 +40,9 @@ window.addEventListener('DOMContentLoaded', function() {
   // if false, then the gallery is showing
   var playerShowing = false;
 
+  // same thing for the controls
+  var controlShowing = false;
+
   // fullscreen doesn't work properly yet -- here's an ugly shim
   var realFullscreen = false;
   if (realFullscreen) {
@@ -69,8 +72,13 @@ window.addEventListener('DOMContentLoaded', function() {
 
   // show|hide controls over the player
   $('videoControls').addEventListener('click', function(event) {
-    if (event.target == this)
-      this.classList.toggle('hidden');
+    if (!controlShowing) {
+      this.classList.remove('hidden');
+      controlShowing = true;
+    } else if (this == event.target) {
+      this.classList.add('hidden');
+      controlShowing = false;
+    }
   }, false);
 
   // show|hide video player
@@ -88,6 +96,7 @@ window.addEventListener('DOMContentLoaded', function() {
     player.requestFullScreen();
 
     playerShowing = true;
+    controlShowing = false;
   }
   function hidePlayer() {
     if (!playerShowing)
@@ -120,6 +129,8 @@ window.addEventListener('DOMContentLoaded', function() {
   playHead = $('playHead');
   elapsedTime = $('elapsedTime');
   $('play').addEventListener('click', function() {
+    if (!controlShowing)
+      return;
     if (player.paused) {
       $('videoBar').classList.remove('paused');
       player.play();
@@ -129,10 +140,12 @@ window.addEventListener('DOMContentLoaded', function() {
     }
   }, false);
   $('rwd').addEventListener('click', function() {
-    player.currentTime -= 15;
+    if (controlShowing)
+      player.currentTime -= 15;
   }, false);
   $('fwd').addEventListener('click', function() {
-    player.currentTime += 15;
+    if (controlShowing)
+      player.currentTime += 15;
   }, false);
   player.addEventListener('timeupdate', function() {
     var pos = (player.currentTime / player.duration) * 100 + '%';
@@ -141,6 +154,15 @@ window.addEventListener('DOMContentLoaded', function() {
   }, false);
 
   // handle clicks on the time slider
-  $('timeSlider').addEventListener('click', function() {
+  var timeSlider = $('timeSlider');
+  function setCurrentTime(clientY) {
+    var rect = timeSlider.getBoundingClientRect();
+    var progress = (clientY - rect.top) / rect.height;
+    player.currentTime = progress * player.duration;
+  }
+  timeSlider.addEventListener('click', function(event) {
+    if (!controlShowing)
+      return;
+    setCurrentTime(event.clientY);
   }, false);
 });
