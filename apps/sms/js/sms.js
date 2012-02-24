@@ -24,6 +24,12 @@ function prettyDate(time) {
     (new Date(time)).toLocaleFormat('%x');
 }
 
+function profilePictureForId(id) {
+  // pic #9 is used as the phone holder
+  // id is the index # of the contact in Contacts array,
+  // or parseInt(phone number) if not in the list
+  return '../contacts/contact' + (id % 9) + '.png';
+}
 
 var MessageManager = {
   getMessages: function mm_getMessages(callback, filter, invert) {
@@ -168,14 +174,15 @@ var ConversationListView = {
 
     // XXX: put all contacts in DOM tree then hide them in non-search view
     var contacts = window.navigator.mozContacts.contacts;
-    contacts.forEach(function(contact) {
+    contacts.forEach(function(contact, i) {
       var num = contact.phones[0];
       conversations[num] = {
         hidden: true,
         name: contact.displayName,
         num: num,
         body: '',
-        timestamp: ''
+        timestamp: '',
+        id: i
       };
     });
 
@@ -189,7 +196,9 @@ var ConversationListView = {
           conversations[num] = {
             hidden: false,
             num: (message.sender || message.receiver),
-            name: num
+            name: num,
+            // XXX: hack for contact pic
+            id: parseInt(num)
           };
         }
 
@@ -223,7 +232,7 @@ var ConversationListView = {
            ' data-notempty="' + (conversation.timestamp ? 'true':'') + '"' +
            ' class="' + (conversation.hidden?'hide':'') + '">' +
            '  <div class="photo">' +
-           '    <img alt="" src="" />' +
+           '    <img src="' + profilePictureForId(conversation.id) + '" />' +
            '  </div>' +
            '  <div class="name">' + conversation.name + '</div>' +
            '  <div class="msg">' + conversation.body + '</div>' +
@@ -348,11 +357,13 @@ var ConversationView = {
     bodyclassList.remove('conversation-new-msg');
 
     var name = num;
+    var receiverId = parseInt(num);
 
     var contacts = window.navigator.mozContacts.contacts;
-    contacts.some(function(contact) {
+    contacts.some(function(contact, i) {
       if (contact.phones[0] == num) {
         name = contact.displayName;
+        receiverId = i;
         return true;
       }
       return false;
@@ -376,10 +387,17 @@ var ConversationView = {
         var className = 'class="' +
                         (msg.sender ? 'sender' : 'receiver') + '"';
 
+        var pic;
+        if (msg.sender) {
+          pic = profilePictureForId(receiverId);
+        } else {
+          pic = '../contacts/contact9.png';
+        }
+
         var time = prettyDate(msg.timestamp);
         fragment += '<div ' + className + ' ' + dataNum + ' ' + dataId + '>' +
                       '<div class="photo">' +
-                        '<img alt="" src="" />' +
+                      '  <img src="' + pic + '" />' +
                       '</div>' +
                       '<div class="text">' + msg.body + '</div>' +
                       '<div class="time">' + time + '</div>' +
