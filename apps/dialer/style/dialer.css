@@ -428,7 +428,7 @@ html * {
 
   background: url(images/diagonal-pattern.png) 0 0, hsla(60,13%,94%,1);
 
-  font-weight: 700;
+  font-weight: 600;
   color: #FFFFFF;
 
   border-top: 1px solid hsla(0,0%,100%,1);
@@ -617,7 +617,7 @@ html * {
   line-height: 32px;
 }
 
-#contact-details-view input {
+#contact-details-view .input {
   display: block;
   float: left;
   width: 75%;
@@ -628,9 +628,11 @@ html * {
   margin: 0;
 
   font-size: 24px;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 32px;
   text-align: left;
+
+  -moz-appearance: none;
 }
 
 #contact-details-view input:invalid {
@@ -1042,6 +1044,11 @@ html * {
 
   line-height: 7.2mozmm;
   font-size: 26px;
+}
+
+.recent:first-child {
+  border-top: 0;
+  height: -moz-calc(96px - 1px);
 }
 
 .recent img {
