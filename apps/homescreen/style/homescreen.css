@@ -88,10 +88,10 @@ body {
 }
 
 #lockscreen #clock > #date {
-  color: #ffae00;
+  color: #ffdfaa;
   font-size: 34px;
 	padding-left: 20px;
-	text-shadow: 0 2px 2px rgba(0, 0, 0, .15);
+	text-shadow: 0 1px 1px rgba(0, 0, 0, .25);
 }
 
 #lockscreen #clock > *[data-format*="%b"] {
