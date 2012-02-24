@@ -209,12 +209,20 @@ var CallHandler = {
     this.callScreen.classList.add('calling');
     this.numberView.innerHTML = number;
     this.statusView.innerHTML = 'Dialing...';
-    this.toggleCallScreen();
 
     var sanitizedNumber = number.replace(/-/g, '');
     var call = window.navigator.mozTelephony.dial(sanitizedNumber);
     call.addEventListener('statechange', this);
     this.currentCall = call;
+
+    // XXX: remove the fake contact when the contact API lands
+    this.pictureView.innerHTML = '';
+    var self = this;
+    Contacts.findByNumber(number, function showPicture(contact) {
+      self.pictureView.innerHTML = profilePictureForNumber(contact.id);
+    });
+
+    this.toggleCallScreen();
   },
   incoming: function ch_incoming(call) {
     this.callScreen.classList.remove('calling');
@@ -224,6 +232,11 @@ var CallHandler = {
 
     this.numberView.innerHTML = call.number;
     this.statusView.innerHTML = 'Call from...';
+    this.pictureView.innerHTML = ''
+
+    // XXX: remove the fake contact when the contact API lands
+    this.pictureView.innerHTML = profilePictureForNumber(call.numer);
+
     this.toggleCallScreen();
   },
   connected: function ch_connected() {
@@ -306,6 +319,10 @@ var CallHandler = {
   get statusView() {
     delete this.statusView;
     return this.statusView = document.getElementById('call-status-view');
+  },
+  get pictureView() {
+    delete this.pictureView;
+    return this.pictureView = document.getElementById('call-picture');
   },
   get actionsView() {
     delete this.actionsView;

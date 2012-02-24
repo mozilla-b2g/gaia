@@ -24,6 +24,7 @@ var Contacts = {
     // a second argument that I can omit
     this.find(['id', 'displayName'], this.show.bind(this));
   },
+
   find: function contactsFind(fields, callback) {
     // Ideally I would like to choose the ordering
     // It also misses simple constaints like the one you can pass to the
@@ -33,6 +34,18 @@ var Contacts = {
         return a.name.familyName[0] > b.name.familyName[0];
       });
       callback(contacts);
+    });
+  },
+
+  findByNumber: function findByNumber(number, callback) {
+    this.find(['id', 'phones'], function findByNumberCallback(contacts) {
+      var results = contacts.filter(function findNumber(contact) {
+        return (contact.phones.indexOf(number) !== -1);
+      });
+      var contact = results[0];
+      if (contact) {
+        callback(contact);
+      }
     });
   },
   show: function contactsShow(contacts) {
@@ -402,6 +415,8 @@ var ContactDetails = {
       names += '  ' +  this._contact.name[key];
     }
     document.getElementById('contact-name').innerHTML = names;
+
+    document.getElementById('contact-photo').innerHTML = profilePictureForNumber(this._contact.id);
 
     var addAttr = 'data-action="add" onclick="ContactDetails.execute(event)"';
     var phones = '';
