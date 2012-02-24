@@ -645,6 +645,11 @@ html * {
   border-radius: 5px 5px 5px 5px;
 }
 
+#contact-photo img {
+  width: 140px;
+  height: 140px;
+}
+
 #contact-details-top {
   clear: both;
 }
@@ -878,8 +883,6 @@ html * {
   height: 320px;
 }
 
-
-
 #call-number-view {
   color: #929CA4;
   font-size: 0.6em;
@@ -1039,7 +1042,7 @@ html * {
 .recent {
   position: relative;
   padding: 0;
-  height: 96px;
+  height: -moz-calc(96px - 2px);
   width: -moz-calc(100% + 8px);
 
   border-bottom: 1px solid #CCCCCC;
