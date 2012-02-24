@@ -342,7 +342,7 @@ var CallHandler = {
 
     window.addEventListener('MozAfterPaint', function ch_triggerTransition() {
       window.removeEventListener('MozAfterPaint', ch_triggerTransition);
-        callScreen.style.MozTransition = '-moz-transform 0.3s ease';
+        callScreen.style.MozTransition = '-moz-transform 0.5s ease';
         callScreen.style.MozTransform = onCall ? 'translateY(-100%)' : 'translateY(0)';
         callScreen.classList.toggle('oncall');
     });

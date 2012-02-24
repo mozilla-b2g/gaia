@@ -297,11 +297,11 @@ html * {
 }
 
 .keyboard-key[data-value="call"]:active {
-  background-image: url(images/call-button-bg-active.png);
   background-color: transparent;
 }
 .keyboard-key[data-value="call"]:active span {
   color: white;
+  color: #A9A9A9;
 }
 
 .keyboard-key[data-value="call"] span {
@@ -861,7 +861,6 @@ html * {
   margin: 32px 0;
 
   border-radius: 5px;
-  box-shadow: 0 3px 5px rgba(0, 0, 0, .5);
 }
 
 #call-picture img {
@@ -880,7 +879,6 @@ html * {
 #call-number-view {
   color: #929CA4;
   font-size: 0.6em;
-	text-shadow:0 0 1px hsla(0,0%,0%,.5);
 }
 
 #call-actions-container {
@@ -930,9 +928,6 @@ html * {
   background-color: rgba(0, 0, 0, 0.1);
   background-repeat: no-repeat;
   background-position: 50% 50%;
-  background-size: cover;
-
-  box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.2);
 }
 
 #keypad-button {
@@ -989,7 +984,6 @@ html * {
 
   background-position: 50% 50%;
   background-repeat: no-repeat;
-  background-size: contain;
 }
 
 #call-button > div > span {
@@ -1003,16 +997,14 @@ html * {
   -moz-border-right-colors: #838B8D #494E56;
 }
 #accept-call:active {
-	background-image: url(images/accept-call-bg-active.png);
-  background-size: contain;
+  color: #A9A9A9;
 }
 
 #end-call {
 	background-image: url(images/end-call-bg.png);
 }
 #end-call:active {
-	background-image: url(images/end-call-bg-active.png);
-  background-size: contain;
+  color: #A9A9A9;
 }
 
 #call-screen.calling #end-call {
@@ -1020,8 +1012,7 @@ html * {
 	background-image: url(images/end-call-bg-large.png);
 }
 #call-screen.calling #end-call:active {
-  width: 100%;
-	background-image: url(images/end-call-bg-large-active.png);
+  color: #A9A9A9;
 }
 
 #call-screen.calling #accept-call {
