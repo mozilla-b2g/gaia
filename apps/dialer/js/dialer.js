@@ -264,11 +264,22 @@ var CallHandler = {
     // XXX: remove the fake contact when the contact API lands
     this.pictureView.innerHTML = profilePictureForNumber(parseInt(number));
 
-    this._vibration = setInterval(function ch_vibrate() {
-      try {
-        navigator.mozVibrate([200]);
-      } catch (e) {}
-    }, 600);
+
+    var self = this;
+    if (window.navigator.mozSettings) {
+      var settings = window.navigator.mozSettings;
+      var request = settings.get('phone.vibrator.incoming');
+      request.addEventListener('success', function onsuccess(evt) {
+        if (request.result.value !== 'true')
+          return;
+
+        self._vibration = setInterval(function ch_vibrate() {
+          try {
+            navigator.mozVibrate([200]);
+          } catch (e) {}
+        }, 600);
+      });
+    }
 
 
     this.toggleCallScreen();

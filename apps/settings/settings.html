@@ -56,6 +56,11 @@
           </a>
         </li>
         <li>
+          <a class="push slideHorizontal" href="#phone">
+            <span>Phone</span>
+          </a>
+        </li>
+        <li>
           <a class="push slideHorizontal" href="#debug">
             <span>Debug</span>
           </a>
@@ -73,6 +78,19 @@
           <span>Restart</span>
           <label class="checkbox">
             <input type="checkbox" name="" onclick="navigator.mozPower.reboot(); return false;" />
+            <span class="checkbox-inner"></span>
+          </label>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Languages -->
+    <div id="phone" class="view" data-title="Phone">
+      <ul class="tableView">
+        <li id="vibrator">
+          <span>Vibrate</span>
+          <label class="checkbox">
+            <input type="checkbox" name="phone.vibrator.incoming"/>
             <span class="checkbox-inner"></span>
           </label>
         </li>
