@@ -442,10 +442,10 @@ var ContactDetails = {
   inputFragment: function cd_inputFragment(type, value, disabled) {
     disabled = (typeof disabled == 'undefined') ? true : disabled;
 
-    return '<input type="' + type + '" value="' + value +
-           '  " data-action="autoscroll"' +
+    return '<div class="input" type="' + type + '"' +
+           '  data-action="autoscroll"' +
            '  ' + (disabled ? 'disabled="disabled"' : '') +
-           '  onfocus="ContactDetails.execute(event)" />';
+           '  onfocus="ContactDetails.execute(event)" >' + value + '</div>';
   },
   smoothTransition: function cd_smoothTransition(callback) {
     var detailsView = this.view;
