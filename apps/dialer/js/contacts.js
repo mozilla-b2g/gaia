@@ -35,6 +35,17 @@ var Contacts = {
       callback(contacts);
     });
   },
+  findByNumber: function findByNumber(number, callback) {
+    this.find(['id', 'phones'], function findByNumberCallback(contacts) {
+      var results = contacts.filter(function findNumber(contact) {
+        return (contact.phones.indexOf(number) !== -1);
+      });
+      var contact = results[0];
+      if (contact) {
+        callback(contact);
+      }
+    });
+  },
   show: function contactsShow(contacts) {
     var content = '';
     var currentLetter = '';
@@ -402,6 +413,10 @@ var ContactDetails = {
       names += '  ' +  this._contact.name[key];
     }
     document.getElementById('contact-name').innerHTML = names;
+
+    document.getElementById('contact-photo').innerHTML = '<img src="../contacts/contact' +
+      (this._contact.id % 10) +
+      '.png" alt="contact picture" />';
 
     var addAttr = 'data-action="add" onclick="ContactDetails.execute(event)"';
     var phones = '';

@@ -442,7 +442,7 @@
             settingsRequest.result = result;
             onsuccess.forEach(function(cb) { cb(); });
           };
-          dbreq.onerror = function() {
+          dbreq.onerror = function(e) {
             console.log('mozSettings error querying setting', key, e);
             onerror.forEach(function(cb) { cb(); });
           };
@@ -467,6 +467,16 @@
     return;
 
   var contacts = [
+  {
+    id: '0',
+    displayName: 'Andreas Gal',
+    name: {
+      familyName: ['Andreas'],
+      givenName: ['Gal']
+    },
+    phones: ['123-4242-4242'],
+    emails: ['gal@mozilla.com']
+  },
   {
     id: '3',
     displayName: 'Coby Newman',
