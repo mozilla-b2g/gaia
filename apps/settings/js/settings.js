@@ -47,7 +47,7 @@ Gaia.SettingsApp = {
       screen.mozBrightness = position / 10;
       brightness.value = position;
     });
-    brightness.value = screen.mozBrigthness * 10;
+    brightness.value = screen.mozBrightness * 10;
 
     window.parent.postMessage('appready', '*');
   },
