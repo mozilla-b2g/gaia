@@ -90,8 +90,8 @@ window.addEventListener('DOMContentLoaded', function() {
 
     // start player
     player.src = sample.video;
-    player.srcWidth = sample.width;
-    player.srcHeight = sample.height;
+    player.srcWidth = sample.width;   // XXX use player.videoWidth instead
+    player.srcHeight = sample.height; // XXX use player.videoHeight instead
     player.play();
     player.requestFullScreen();
 
@@ -114,7 +114,10 @@ window.addEventListener('DOMContentLoaded', function() {
     playerShowing = false;
   }
   $('close').addEventListener('click', hidePlayer, false);
-  player.addEventListener('ended', hidePlayer, false);
+  player.addEventListener('ended', function() {
+    if (!controlShowing)
+      hidePlayer();
+  }, false);
   window.addEventListener('keypress', function(event) {
     if (playerShowing && event.keyCode == event.DOM_VK_ESCAPE) {
       hidePlayer();
@@ -155,8 +158,10 @@ window.addEventListener('DOMContentLoaded', function() {
 
   // handle drags/clicks on the time slider
   var timeSlider = $('timeSlider');
+  var rect = null;
   function setCurrentTime(event) {
-    var rect = timeSlider.getBoundingClientRect();
+    if (!rect)
+      rect = timeSlider.getBoundingClientRect();
     var progress = (event.clientY - rect.top) / rect.height;
     player.currentTime = progress * player.duration;
   }
