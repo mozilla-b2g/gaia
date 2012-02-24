@@ -80,7 +80,8 @@ Gaia.AppManager = {
           url: url,
           icon: icon,
           fullscreen: manifest.fullscreen || false,
-          orientation: orientation
+          orientation: orientation,
+          hackKillMe: manifest.hackKillMe || false
         });
       });
 

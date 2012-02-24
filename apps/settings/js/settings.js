@@ -40,6 +40,15 @@ Gaia.SettingsApp = {
       })(radios[i]);
     }
 
+    var brightness = document.getElementById('brightness-level');
+    brightness.addEventListener('click', function clickBrightness(evt) {
+      var rect = brightness.getBoundingClientRect();
+      var position = Math.ceil((evt.clientX - rect.left) / (rect.width / 10));
+      screen.mozBrightness = position / 10;
+      brightness.value = position;
+    });
+    brightness.value = screen.mozBrightness * 10;
+
     window.parent.postMessage('appready', '*');
   },
   handleEvent: function(evt) {

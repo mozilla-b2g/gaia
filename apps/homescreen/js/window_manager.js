@@ -34,10 +34,12 @@ WindowSprite.prototype = {
 
   crossFade: function ws_crossFade() {
     var afterCrossFade = (this.remove).bind(this);
+    // XXX: wait for 50ms for iframe to be painted.
+    // setTimeout(0) is used to escape the current event firing.
     setTimeout((function () {
       this.element.addEventListener('transitionend', afterCrossFade);
       this.element.classList.add('crossFade');
-    }).bind(this), 0);
+    }).bind(this), 50);
   }
 };
 
@@ -83,17 +85,31 @@ Window.prototype = {
 
       sprite.crossFade();
 
+      var url = this.application.url;
       var element = this.element;
       if (!this._loaded) {
-        element.src = this.application.url;
+        element.src = url;
         this._loaded = true;
+
+        window.addEventListener('message', function waitForAppReady(evt) {
+          if (evt.data !== 'appready')
+            return;
+
+          window.removeEventListener('message', waitForAppReady);
+          element.contentWindow.postMessage({
+            message: 'visibilitychange',
+            url: element.src,
+            hidden: false
+          }, '*');
+        });
+      } else {
+        element.contentWindow.postMessage({
+          message: 'visibilitychange',
+          url: url,
+          hidden: false
+        }, '*');
       }
       element.focus();
-      element.contentWindow.postMessage({
-        message: 'visibilitychange',
-        url: this.application.url,
-        hidden: false
-      }, '*');
 
       if (callback)
         callback();
@@ -116,7 +132,8 @@ Window.prototype = {
     sprite.setActive(true);
     sprite.add();
 
-    var blur = function(evt) {
+    var blur = (function(evt) {
+      sprite.element.removeEventListener('transitionend', blur);
       this.hide();
       sprite.remove();
 
@@ -132,8 +149,8 @@ Window.prototype = {
 
       if (callback)
         callback();
-    };
-    sprite.element.addEventListener('transitionend', blur.bind(this));
+    }).bind(this);
+    sprite.element.addEventListener('transitionend', blur);
 
     if (this.application.fullscreen) {
       document.getElementById('screen').classList.remove('fullscreen');
@@ -295,13 +312,23 @@ var WindowManager = {
     oldWindow.blur((function blurCallback() {
       this._isInTransition = false;
       this._fireEvent(foregroundWindow.element, 'appclose');
+      if (oldWindow.application.hackKillMe) {
+        TaskManager.remove(oldWindow.application, oldWindow.id);
+      }
     }).bind(this));
   },
 
   _lastWindowId: 0,
   launch: function wm_launch(url) {
     var application = Gaia.AppManager.getInstalledAppForURL(url);
+    if (!application)
+      return;
+
     var name = application.name;
+
+    // getInstalledAppForURL will return an object with the URL stripped
+    // so let's set it back to default
+    application.url = url;
 
     var applicationWindow = this.getWindowByApp(application);
     if (applicationWindow) {

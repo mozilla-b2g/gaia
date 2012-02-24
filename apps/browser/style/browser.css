@@ -26,7 +26,7 @@ body {
   width: 100%;
   height: 100%;
   background-color: #000;
-  font-family: 'Open Sans';
+  font-family: 'Open Sans', sans-serif;
 }
 
 #browser-tab {
@@ -38,14 +38,14 @@ body {
 #browser-toolbar {
   display: -moz-box;
   -moz-box-orient: horizontal;
-  height: 64px;
+  height: 62px;
   background-color: #fff;
   background-image: -moz-linear-gradient(#fff, #eaeae4);
   margin: 0;
   padding: 0;
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
-  border-bottom: solid 3px #a3a3a3;
+  border-bottom: solid 2px #a3a3a3;
 }
 
 #browser-address {
@@ -59,10 +59,10 @@ body {
 #browser-url {
   font-family: 'Open Sans';
   -moz-box-flex: 1;
-  border: solid 3px #9ca1a6;
+  border: solid 2px #9ca1a6;
   border-radius: 22px;
   height: 44px;
-  margin: 10px 2px;
+  margin: 9px 2px;
   padding: 0 0 0 40px;
   font-size: 18px;
   background-image: url('images/favicon.png');
@@ -77,13 +77,13 @@ body {
 
 .browser-button {
   background-color: transparent;
-  -moz-apperance: none;
+  -moz-appearance: none;
   border: none;
   display: block;
   margin: 0;
   padding: 0;
   width: 56px;
-  height: 64px;
+  height: 62px;
 }
 
 #browser-back-button {
@@ -104,21 +104,21 @@ input::-moz-focus-inner {
 
 #browser-tab-button {
   display: block;
-  height: 64px;
+  height: 62px;
+  line-height: 62px;
   width: 54px;
   margin: 0;
   font-weight: bold;
   font-size: 24px;
   text-align: center;
   color: #555;
-  padding: 16px 0;
 }
 
 #browser-tab-button::after {
   display: block;
   width: 1px;
   content: ' ';
-  height: 44px;
+  height: 42px;
   background-color: rgba(0, 0, 0, 0.1);
   position: absolute;
   top: 22px;
@@ -142,10 +142,10 @@ input::-moz-focus-inner {
 
 #browser-shade {
   position: absolute;
-  top: 64px;
+  top: 62px;
   left: 0;
   width: 100%;
-  height: -moz-calc(100% - 64px);
+  height: -moz-calc(100% - 62px);
   background-color: rgba(5, 5, 5, 0.5);
 }
 

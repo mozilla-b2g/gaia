@@ -180,7 +180,7 @@ input, textarea {
 }
 
 #msg-conversations-list .photo img {
-	width: 70px;
+	width: 100%;
 }
 
 #msg-conversations-list .name {
@@ -342,7 +342,7 @@ body.conversation-new-msg #msg-conversation-view-num {
 }
 
 #msg-conversation-view-list .photo img {
-	width: 70px;
+	width: 100%;
 }
 
 #msg-conversation-view-list > div .text {

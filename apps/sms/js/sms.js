@@ -24,6 +24,12 @@ function prettyDate(time) {
     (new Date(time)).toLocaleFormat('%x');
 }
 
+function profilePictureForId(id) {
+  // pic #9 is used as the phone holder
+  // id is the index # of the contact in Contacts array,
+  // or parseInt(phone number) if not in the list
+  return '../contacts/contact' + (id % 9) + '.png';
+}
 
 var MessageManager = {
   getMessages: function mm_getMessages(callback, filter, invert) {
@@ -164,25 +170,52 @@ var ConversationListView = {
 
   updateConversationList: function updateConversationList(callback) {
     var self = this;
+    var conversations = {};
+
+    // XXX: put all contacts in DOM tree then hide them in non-search view
+    var contacts = window.navigator.mozContacts.contacts;
+    contacts.forEach(function(contact, i) {
+      var num = contact.phones[0];
+      conversations[num] = {
+        hidden: true,
+        name: contact.displayName,
+        num: num,
+        body: '',
+        timestamp: '',
+        id: i
+      };
+    });
+
     MessageManager.getMessages(function getMessagesCallback(messages) {
-      var conversations = {};
       for (var i = 0; i < messages.length; i++) {
         var message = messages[i];
-        var sender = message.sender || message.receiver;
-        if (conversations[sender])
+        var num = message.sender || message.receiver;
+        if (conversations[num] && !conversations[num].hidden)
           continue;
+        if (!conversations[num]) {
+          conversations[num] = {
+            hidden: false,
+            num: (message.sender || message.receiver),
+            name: num,
+            // XXX: hack for contact pic
+            id: parseInt(num)
+          };
+        }
 
-        conversations[sender] = {
-          sender: message.sender,
-          receiver: message.receiver,
+        var data = {
+          hidden: false,
           body: message.body,
           timestamp: prettyDate(message.timestamp)
         };
+
+        for (var key in data) {
+          conversations[num][key] = data[key];
+        }
       }
 
       var fragment = '';
-      for (var sender in conversations) {
-        var msg = self.createNewConversation(conversations[sender]);
+      for (var num in conversations) {
+        var msg = self.createNewConversation(conversations[num]);
         fragment += msg;
       }
       self.view.innerHTML = fragment;
@@ -192,28 +225,18 @@ var ConversationListView = {
     }, null);
   },
 
-  createNewConversation: function createNewConversation(msg) {
-    var num = (msg.sender || msg.receiver);
-    var name = num;
+  createNewConversation: function createNewConversation(conversation) {
 
-    var contacts = window.navigator.mozContacts.contacts;
-    var matches = contacts.filter(function(contact) {
-      return contact.phones[0] == num;
-    });
-
-    if (matches.length) {
-      name = matches[0].displayName;
-    } else {
-      name = formatNumber(num);
-    }
-
-    return '<div data-num="' + num + '" data-name="' + name + '">' +
+    return '<div data-num="' + conversation.num + '"' +
+           ' data-name="' + conversation.name + '"' +
+           ' data-notempty="' + (conversation.timestamp ? 'true':'') + '"' +
+           ' class="' + (conversation.hidden?'hide':'') + '">' +
            '  <div class="photo">' +
-           '    <img alt="" src="" />' +
+           '    <img src="' + profilePictureForId(conversation.id) + '" />' +
            '  </div>' +
-           '  <div class="name">' + name + '</div>' +
-           '  <div class="msg">' + msg.body + '</div>' +
-           '  <div class="time">' + msg.timestamp + '</div>' +
+           '  <div class="name">' + conversation.name + '</div>' +
+           '  <div class="msg">' + conversation.body + '</div>' +
+           '  <div class="time">' + conversation.timestamp + '</div>' +
            '</div>';
   },
 
@@ -221,8 +244,14 @@ var ConversationListView = {
     var str = this.searchInput.value;
     var conversations = this.view.childNodes;
     if (!str) {
+      // leaving search view
       for (var i in conversations) {
-        conversations[i].classList.remove('hide');
+        var conversation = conversations[i];
+        if (conversation.dataset.notempty === 'true') {
+          conversations[i].classList.remove('hide');
+        } else {
+          conversations[i].classList.add('hide');
+        }
       }
       return;
     }
@@ -328,11 +357,16 @@ var ConversationView = {
     bodyclassList.remove('conversation-new-msg');
 
     var name = num;
+    var receiverId = parseInt(num);
 
     var contacts = window.navigator.mozContacts.contacts;
-    contacts.forEach(function(contact) {
-      if (contact.phones[0] == num)
+    contacts.some(function(contact, i) {
+      if (contact.phones[0] == num) {
         name = contact.displayName;
+        receiverId = i;
+        return true;
+      }
+      return false;
     });
 
     this.num.value = num;
@@ -353,10 +387,17 @@ var ConversationView = {
         var className = 'class="' +
                         (msg.sender ? 'sender' : 'receiver') + '"';
 
+        var pic;
+        if (msg.sender) {
+          pic = profilePictureForId(receiverId);
+        } else {
+          pic = '../contacts/contact9.png';
+        }
+
         var time = prettyDate(msg.timestamp);
         fragment += '<div ' + className + ' ' + dataNum + ' ' + dataId + '>' +
                       '<div class="photo">' +
-                        '<img alt="" src="" />' +
+                      '  <img src="' + pic + '" />' +
                       '</div>' +
                       '<div class="text">' + msg.body + '</div>' +
                       '<div class="time">' + time + '</div>' +
@@ -505,7 +546,7 @@ function formatNumber(number) {
             format = 'xxx ' + kLocaleFormatting['es-ES'];
             break;
             break;
-          case '5': 
+          case '5':
             break;
           case '6': // Hungary
             break;

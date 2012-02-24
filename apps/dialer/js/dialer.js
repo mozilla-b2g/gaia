@@ -16,16 +16,42 @@ var gTonesFrequencies = {
 // or is minimized (it does not now).
 window.addEventListener('message', function visibleApp(evt) {
   var data = evt.data;
-  if (!data.hidden)
-    visibilityChanged(data.url);
+  if (evt.data.message == 'visibilitychange' && !data.hidden) {
+    visibilityChanged(data.url, evt);
+  } else if (evt.data == 'connected') {
+    CallHandler.connected();
+  } else if (evt.data == 'disconnected') {
+    CallHandler.disconnected();
+  }
 });
 
-function visibilityChanged(url) {
-  // TODO do something better here
+function visibilityChanged(url, evt) {
+  var params = (function makeURL() {
+    var a = document.createElement('a');
+    a.href = url;
+
+    var rv = {};
+    var params = a.search.substring(1, a.search.length).split('&');
+    for (var i = 0; i < params.length; i++) {
+      var data = params[i].split('=');
+      rv[data[0]] = data[1];
+    }
+    return rv;
+  })();
+
+  var choice = params['choice'];
   var contacts = document.getElementById('contacts-label');
-  if ((url && url.indexOf('?choice=contact') != -1) ||
-      contacts.hasAttribute('data-active')) {
+  if (choice == 'contact' || contacts.hasAttribute('data-active')) {
+    Contacts.load();
     choiceChanged(contacts);
+  } else if (choice == 'incoming') {
+    var telephony = window.navigator.mozTelephony;
+    telephony.oncallschanged = function cc(evt) {
+      telephony.calls.forEach(function(call) {
+        if (call.state == 'incoming')
+          CallHandler.incoming(call, call.number);
+      });
+    };
   }
 }
 
@@ -208,22 +234,36 @@ var CallHandler = {
     this.callScreen.classList.remove('incoming');
     this.callScreen.classList.add('calling');
     this.numberView.innerHTML = number;
-    this.statusView.innerHTML = 'Dialing...';
-    this.toggleCallScreen();
+    this.statusView.innerHTML = 'Calling...';
 
     var sanitizedNumber = number.replace(/-/g, '');
     var call = window.navigator.mozTelephony.dial(sanitizedNumber);
     call.addEventListener('statechange', this);
     this.currentCall = call;
+
+    // XXX: remove the fake contact when the contact API lands
+    this.pictureView.innerHTML = '';
+    var self = this;
+    Contacts.findByNumber(number, function showPicture(contact) {
+      self.pictureView.innerHTML = profilePictureForNumber(contact.id);
+    });
+
+    this.toggleCallScreen();
   },
-  incoming: function ch_incoming(call) {
+  incoming: function ch_incoming(call, number) {
     this.callScreen.classList.remove('calling');
     this.callScreen.classList.add('incoming');
+
     this.currentCall = call;
     call.addEventListener('statechange', this);
 
     this.numberView.innerHTML = call.number;
     this.statusView.innerHTML = 'Call from...';
+    this.pictureView.innerHTML = ''
+
+    // XXX: remove the fake contact when the contact API lands
+    this.pictureView.innerHTML = profilePictureForNumber(call.numer);
+
     this.toggleCallScreen();
   },
   connected: function ch_connected() {
@@ -277,12 +317,7 @@ var CallHandler = {
   },
 
   handleEvent: function fm_handleEvent(evt) {
-    console.log('Call changed state: ' + evt.call.state);
     switch (evt.call.state) {
-      case 'incoming':
-        console.log('incoming call from ' + evt.call.number);
-        this.incoming(evt.call);
-        break;
       case 'connected':
         this.connected();
         break;
@@ -306,6 +341,10 @@ var CallHandler = {
   get statusView() {
     delete this.statusView;
     return this.statusView = document.getElementById('call-status-view');
+  },
+  get pictureView() {
+    delete this.pictureView;
+    return this.pictureView = document.getElementById('call-picture');
   },
   get actionsView() {
     delete this.actionsView;
@@ -334,7 +373,27 @@ var CallHandler = {
   },
 
   toggleCallScreen: function ch_toggleScreen() {
-    document.getElementById('call-screen').classList.toggle('oncall');
+    var callScreen = document.getElementById('call-screen');
+    callScreen.style.MozTransition = '';
+
+    var onCall = callScreen.classList.contains('oncall');
+    callScreen.style.MozTransform = onCall ? 'translateY(-1px)' : 'translateY(-moz-calc(-100% + 1px))';
+
+    // hardening against the unavailability of MozAfterPaint
+    var finishTransition = function cs_finishTransition() {
+      callScreen.style.MozTransition = '-moz-transform 0.5s ease';
+      callScreen.style.MozTransform = onCall ? 'translateY(-100%)' : 'translateY(0)';
+      callScreen.classList.toggle('oncall');
+    };
+
+    var securityTimeout = setTimeout(finishTransition, 100);
+
+    window.addEventListener('MozAfterPaint', function ch_triggerTransition() {
+      window.removeEventListener('MozAfterPaint', ch_triggerTransition);
+
+      clearTimeout(securityTimeout);
+      finishTransition();
+    });
   },
   toggleMute: function ch_toggleMute() {
     this.muteButton.classList.toggle('mute');
@@ -370,12 +429,7 @@ var CallHandler = {
   },
   closeModal: function ch_closeModal() {
     var views = document.getElementById('views');
-    views.classList.add('hidden');
-    views.addEventListener('transitionend', function ch_closeModalFinish() {
-      views.removeEventListener('transitionend', ch_closeModalFinish);
-      views.classList.remove('modal');
-      views.classList.remove('hidden');
-    });
+    views.classList.remove('modal');
   }
 };
 
@@ -383,7 +437,6 @@ window.addEventListener('load', function keyboardInit(evt) {
   window.removeEventListener('load', keyboardInit);
 
   KeyHandler.init();
-  navigator.mozTelephony.addEventListener('incoming', CallHandler);
 
   window.parent.postMessage('appready', '*');
 });
