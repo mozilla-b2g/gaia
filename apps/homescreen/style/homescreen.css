@@ -446,23 +446,13 @@ iframe.landscape-secondary {
 	background-color: #999999;
 }
 
-.battery > #fuel.low {
-  background-image: -moz-linear-gradient(top, lightyellow 10%, yellow 80%, gold);
-}
-
-.battery > #fuel.critical {
-  background-image: -moz-linear-gradient(top, lightcoral 10%, red 80%, darkred);
-}
-
-.battery > #fuel.charging {
-  background-image: -moz-linear-gradient(top, #b9fd00, #8fc400);
-}
 .battery > #charging {
   height: 8px;
   width: 18px;
   background: transparent url(images/battery-charging.png) center center no-repeat;
   position: absolute;
-  top: 4px; left: 5px;
+  top: 4px;
+  left: 5px;
 }
 
 #taskManager {
