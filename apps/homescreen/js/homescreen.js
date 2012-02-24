@@ -188,7 +188,7 @@ DefaultPhysics.prototype = {
     } else if (flick) {
       iconGrid.setPage(currentPage + dir, 0.2);
     } else {
-      if (Math.abs(diffX) < this.containerWidth / 2)
+      if (Math.abs(diffX) < window.innerWidth / 2)
         iconGrid.setPage(currentPage, 0.2);
       else
         iconGrid.setPage(currentPage + dir, 0.2);

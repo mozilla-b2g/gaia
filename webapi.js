@@ -346,9 +346,13 @@
     get: function() {
       // This is a lazy getter. Don't set up the settings stuff
       // unless an app actually asks for it.
-      if (!mozSettings)
-        mozSettings = MozSettings();
-      return mozSettings;
+      try {
+        if (!mozSettings)
+          mozSettings = MozSettings();
+        return mozSettings;
+      } catch (e) {
+        return null;
+      }
     },
     enumerable: true,
     configurable: true

@@ -24,8 +24,7 @@ header {
   background: url("images/app-texture.png") repeat scroll 50% 50%, -moz-linear-gradient(center top , #F4F4F4, #EAEAEA) repeat scroll 0 0 transparent;
   border-bottom: 2px solid #7F7F7F;
   border-radius: 6px 6px 0 0;
-  height: 66px;
-  padding-top: 2px;
+  height: 64px;
   position: relative;
 }
 header h1 {
@@ -67,7 +66,7 @@ ul li:first-child {
 li {
   margin: 0;
   padding: 0 20px 0 150px;
-  height: 98px;
+  height: 94px;
   border-bottom: 1px solid #cbcdd1;
   border-top: 1px solid #e6ebef;
   position: relative;
@@ -79,7 +78,7 @@ li:active, li.active {
 }
 li img {
   width: 128px;
-  height: 98px;
+  height: 94px;
   overflow: hidden;
   position: absolute;
   left: 0;
