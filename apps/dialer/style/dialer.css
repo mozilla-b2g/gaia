@@ -270,10 +270,10 @@ html * {
 }
 
 .keyboard-key:active {
-  background: hsla(35,100%,50%,.2);
+  background: rgba(0, 0, 0, .07);
 }
 .keyboard-key:active > span:first-child {
-  color: hsla(35,100%,50%,1);
+  color: #000;
 }
 
 #additionalKeyset {
