@@ -42,6 +42,32 @@ html * {
   }
 }
 
+#clock-view {
+    position: absolute;
+    left: 40px;
+    top: 100px;
+}
+
+/* These CSS styles all apply to the SVG clock elements */
+#clock {                          /* styles for everything in the clock */
+   stroke: black;                 /* black lines */
+   stroke-linecap: round;         /* with rounded ends */
+   fill: #eef;                    /* on a light blue gray background */
+}
+#face { stroke-width: 3px;}       /* clock face outline */
+#ticks { stroke-width: 2; }       /* lines that mark each hour */
+#hourhand {stroke-width: 5px;}    /* wide hour hand */
+#minutehand {stroke-width: 3px;}  /* narrow minute hand */
+#numbers {                        /* how to draw the numbers */
+    font-family: Roboto;
+    font-size: 7pt;
+    font-weight: bold; 
+    text-anchor: middle;
+    stroke: none;
+    fill: black;
+}
+
+
 /* === Application Header === */
 #tabs-container {
   position: absolute;
@@ -103,6 +129,13 @@ html * {
   border-radius: 0 3px 3px 0;
 }
 
+#clock-label {
+  background-image: url(images/timer.png);
+}
+#clock-label[data-active] {
+  background: url(images/timer.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 1px, hsl(0,0%,56%) 100%);
+}
+
 #stopwatch-label {
   background-image: url(images/stopwatch.png);
 }
@@ -111,16 +144,9 @@ html * {
 }
 
 #timer-label {
-  background-image: url(images/timer.png);
-}
-#timer-label[data-active] {
-  background: url(images/timer.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 1px, hsl(0,0%,56%) 100%);
-}
-
-#alarm-label {
   background-image: url(images/alarm.png);
 }
-#alarm-label[data-active] {
+#timer-label[data-active] {
   background: url(images/alarm.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 1px, hsl(0,0%,56%) 100%);
 }
 
