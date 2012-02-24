@@ -89,6 +89,7 @@
                      'name': 'Camera',
                      'description': 'Gaia Camera',
                      'launch_path': '/camera.html',
+                     'hackKillMe': true,
                      'developer': {
                        'name': 'The Gaia Team',
                        'url': 'https://github.com/andreasgal/gaia'
@@ -291,6 +292,7 @@
                      'launch_path': '',
                      'orientation': 'landscape-primary',
                      'fullscreen': true,
+                     'hackKillMe': true,
                      'developer': {
                        'name': 'ZeptoLab',
                        'url': 'http://cuttherope.ie'
