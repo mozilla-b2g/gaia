@@ -127,6 +127,10 @@ header h1 {
 
 }
 
+.button:active, .button:focus {
+  outline: none;
+}
+
 #back-button {
   top: 15px;
   left: 15px;
