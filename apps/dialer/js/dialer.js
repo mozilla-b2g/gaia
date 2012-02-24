@@ -334,7 +334,18 @@ var CallHandler = {
   },
 
   toggleCallScreen: function ch_toggleScreen() {
-    document.getElementById('call-screen').classList.toggle('oncall');
+    var callScreen = document.getElementById('call-screen');
+    callScreen.style.MozTransition = '';
+
+    var onCall = callScreen.classList.contains('oncall');
+    callScreen.style.MozTransform = onCall ? 'translateY(-1px)' : 'translateY(-moz-calc(-100% + 1px))';
+
+    window.addEventListener('MozAfterPaint', function ch_triggerTransition() {
+      window.removeEventListener('MozAfterPaint', ch_triggerTransition);
+        callScreen.style.MozTransition = '-moz-transform 0.3s ease';
+        callScreen.style.MozTransform = onCall ? 'translateY(-100%)' : 'translateY(0)';
+        callScreen.classList.toggle('oncall');
+    });
   },
   toggleMute: function ch_toggleMute() {
     this.muteButton.classList.toggle('mute');
