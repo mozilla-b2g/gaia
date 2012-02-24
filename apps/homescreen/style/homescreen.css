@@ -92,12 +92,13 @@ body {
 	font-weight: 600;
 	letter-spacing: -2px;
 	line-height: 1.2em;
-	text-shadow: 0 0 20px rgba(255, 255, 255, .4), 0 0 5px rgba(255, 255, 255, .5);
+	text-shadow: 0 0 10px rgba(255, 255, 255, .4), 0 0 3px rgba(255, 255, 255, .3);
 }
 
 #lockscreen #clock > #date {
   color: #a2a5a8;
   font-size: 36px;
+	text-shadow: 0 2px 2px rgba(0, 0, 0, .15);
 }
 
 #lockscreen #clock > *[data-format*="%b"] {
