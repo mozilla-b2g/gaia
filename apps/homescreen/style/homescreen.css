@@ -72,14 +72,15 @@ body {
 #lockscreen #clock {
   position: absolute;
   top: 160px;
+	left: 30px;
   width: 100%;
-  text-align: center;
+  text-align: left;
   font-family: "Open Sans", sans-serif;
 }
 
 #lockscreen #clock > #hourMin {
   color: #fff;
-  font-size: 140px;
+  font-size: 120px;
 	font-weight: 600;
 	letter-spacing: -2px;
 	line-height: 1.2em;
@@ -87,8 +88,9 @@ body {
 }
 
 #lockscreen #clock > #date {
-  color: #a2a5a8;
-  font-size: 36px;
+  color: #ffae00;
+  font-size: 34px;
+	padding-left: 20px;
 	text-shadow: 0 2px 2px rgba(0, 0, 0, .15);
 }
 
