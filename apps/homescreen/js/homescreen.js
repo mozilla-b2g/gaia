@@ -729,14 +729,13 @@ function OnLoad() {
   var apps = Gaia.AppManager.loadInstalledApps(function(apps) {
     var rows = 3;
     var columns = 3;
-    var pages = 2;
 
     if (window.innerHeight <= 480) {
-      pages = 3;
       rows = 2;
       columns = 2;
     }
 
+    var pages = apps.length / (rows * columns);
     var appsGrid = new IconGrid('apps', columns, rows, pages, true);
     var appsGridCount = 0;
     for (var n = 0; n < apps.length; ++n) {

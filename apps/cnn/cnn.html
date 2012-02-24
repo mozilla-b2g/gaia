@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"> 
+  <meta http-equiv="pragma" content="no-cache">
+  <title>CNN</title> 
+  <style type="text/css">
+    html, body, iframe {
+      overflow: hidden;
+      background-color: #000;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      border: none;
+    }
+    img {
+      position: fixed;
+      /* expecting a 256x256px image here */
+      top: -moz-calc(50% - 128px);
+      left: -moz-calc(50% - 128px);
+      -moz-transition: opacity .5s;
+    }
+    iframe {
+      position: fixed;
+      overflow: auto;
+      opacity: 0;
+      -moz-transition: opacity .5s;
+    }
+  </style>
+  <script type="text/javascript">
+    function browse(url) {
+      var frame = document.querySelector('iframe');
+      var splash = document.querySelector('img');
+      // load the page
+      frame.src = url;
+      frame.onload = function() {
+        // make it opaque when loaded, hiding the splash icon
+        frame.style.backgroundColor = '#fff';
+        frame.style.opacity = 1;
+        splash.style.opacity = 0;
+        splash.addEventListener("transitionend", function() {
+          // when the transition is done, remove the splash image completely
+          splash.parentNode.removeChild(splash);
+        });
+      };
+    }
+  </script>
+</head>
+<body onload="browse('http://m.cnn.com/');">
+  <img src="cnn.png" />
+  <iframe></iframe>
+</body>
+</html>
