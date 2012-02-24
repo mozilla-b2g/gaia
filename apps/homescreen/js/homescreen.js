@@ -121,6 +121,7 @@ function changeDisplayState(state) {
   // update clock and battery status (if needed)
   updateClock();
   updateBattery();
+  updateConnection();
 
   // Make sure the source viewer is not visible.
   if (state == 'locked')
@@ -187,7 +188,7 @@ DefaultPhysics.prototype = {
     } else if (flick) {
       iconGrid.setPage(currentPage + dir, 0.2);
     } else {
-      if (Math.abs(diffX) < this.containerWidth / 2)
+      if (Math.abs(diffX) < window.innerWidth / 2)
         iconGrid.setPage(currentPage, 0.2);
       else
         iconGrid.setPage(currentPage + dir, 0.2);
@@ -777,7 +778,12 @@ function OnLoad() {
   });
 
   window.addEventListener('appclose', function(evt) {
-    titlebar.innerHTML = '';
+    var title = '';
+    var conn = window.navigator.mozConnection;
+    if (conn && conn.operator) {
+      title = conn.operator;
+    }
+    titlebar.innerHTML = title;
   });
 
   window.addEventListener('keypress', function(evt) {
@@ -852,4 +858,48 @@ function updateBattery() {
   battery.addEventListener('chargingchange', updateBattery);
   battery.addEventListener('levelchange', updateBattery);
   battery.addEventListener('statuschange', updateBattery);
+}
+
+
+function updateConnection() {
+  var conn = window.navigator.mozMobileConnection;
+  if (!conn) {
+    console.log("There's no window.navigator.mozMobileConnection!");
+    return;
+  }
+
+  if (displayState == 'off') {
+    conn.removeEventListener("cardstatechange", updateConnection);
+    conn.removeEventListener("connectionchange", updateConnection);
+    return;
+  }
+
+  // Update the operator name / SIM status.
+  var title = "";
+  if (conn.cardState == "absent") {
+    title = "No SIM card";
+  } else if (!conn.connected) {
+    title = "Connecting...";
+  } else {
+    title = conn.operator || "";
+    if (conn.roaming) {
+      title += " (roaming)";
+    }
+  }
+  document.getElementById("titlebar").textContent = title;
+
+  // Update the signal strength bars.
+  var signalElements = document.querySelectorAll('#signal > span');
+  for (var i = 0; i < 4; i++) {
+    var haveSignal = (i < conn.bars);
+    var el = signalElements[i];
+    if (haveSignal) {
+      el.classList.add('haveSignal');
+    } else {
+      el.classList.remove('haveSignal');
+    }
+  }
+
+  conn.addEventListener("cardstatechange", updateConnection);
+  conn.addEventListener("connectionchange", updateConnection);
 }

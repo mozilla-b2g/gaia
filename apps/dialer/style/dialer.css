@@ -645,6 +645,11 @@ html * {
   border-radius: 5px 5px 5px 5px;
 }
 
+#contact-photo img {
+  width: 140px;
+  height: 140px;
+}
+
 #contact-details-top {
   clear: both;
 }
@@ -806,10 +811,6 @@ html * {
 
   z-index: 10;
 }
-#views.modal.hidden {
-  top: 100%;
-  opacity: 0;
-}
 
 #views.modal #phone-number-view-container,
 #views.modal #additionalKeyset {
@@ -881,8 +882,6 @@ html * {
   width: 320px;
   height: 320px;
 }
-
-
 
 #call-number-view {
   color: #929CA4;
@@ -1043,7 +1042,7 @@ html * {
 .recent {
   position: relative;
   padding: 0;
-  height: 96px;
+  height: -moz-calc(96px - 2px);
   width: -moz-calc(100% + 8px);
 
   border-bottom: 1px solid #CCCCCC;

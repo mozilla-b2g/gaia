@@ -230,12 +230,20 @@ var CallHandler = {
     this.callScreen.classList.add('calling');
     this.numberView.innerHTML = number;
     this.statusView.innerHTML = 'Dialing...';
-    this.toggleCallScreen();
 
     var sanitizedNumber = number.replace(/-/g, '');
     var call = window.navigator.mozTelephony.dial(sanitizedNumber);
     call.addEventListener('statechange', this);
     this.currentCall = call;
+
+    // XXX: remove the fake contact when the contact API lands
+    this.pictureView.innerHTML = '';
+    var self = this;
+    Contacts.findByNumber(number, function showPicture(contact) {
+      self.pictureView.innerHTML = profilePictureForNumber(contact.id);
+    });
+
+    this.toggleCallScreen();
   },
   incoming: function ch_incoming(evt, number) {
     var self = this;
@@ -260,6 +268,11 @@ var CallHandler = {
 
     this.numberView.innerHTML = call.number;
     this.statusView.innerHTML = 'Call from...';
+    this.pictureView.innerHTML = ''
+
+    // XXX: remove the fake contact when the contact API lands
+    this.pictureView.innerHTML = profilePictureForNumber(call.numer);
+
     this.toggleCallScreen();
   },
   connected: function ch_connected() {
@@ -338,6 +351,10 @@ var CallHandler = {
     delete this.statusView;
     return this.statusView = document.getElementById('call-status-view');
   },
+  get pictureView() {
+    delete this.pictureView;
+    return this.pictureView = document.getElementById('call-picture');
+  },
   get actionsView() {
     delete this.actionsView;
     return this.actionsView = document.getElementById('call-actions-container');
@@ -401,12 +418,7 @@ var CallHandler = {
   },
   closeModal: function ch_closeModal() {
     var views = document.getElementById('views');
-    views.classList.add('hidden');
-    views.addEventListener('transitionend', function ch_closeModalFinish() {
-      views.removeEventListener('transitionend', ch_closeModalFinish);
-      views.classList.remove('modal');
-      views.classList.remove('hidden');
-    });
+    views.classList.remove('modal');
   }
 };
 
