@@ -83,7 +83,7 @@ body {
   font-size: 120px;
 	font-weight: 600;
 	letter-spacing: -2px;
-	line-height: 1.2em;
+	line-height: 1.1em;
 	text-shadow: 0 0 10px rgba(255, 255, 255, .4), 0 0 3px rgba(255, 255, 255, .3);
 }
 
@@ -97,6 +97,21 @@ body {
 #lockscreen #clock > *[data-format*="%b"] {
   font-size: 100px;
 }
+
+@media all and (max-height: 480px) {
+  #lockscreen #clock > #hourMin {
+    font-size: 100px;
+  }
+
+  #lockscreen #clock > *[data-format*="%b"] {
+    font-size: 90px;
+  }
+
+  #lockscreen #clock > #date {
+    font-size: 24px;
+  }
+}
+
 
 #notificationsScreen {
   position: absolute;
