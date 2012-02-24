@@ -746,20 +746,6 @@ function OnLoad() {
     appsGrid.update();
   });
 
-  var titlebar = document.getElementById('titlebar');
-  window.addEventListener('appopen', function(evt) {
-    titlebar.innerHTML = evt.detail;
-  });
-
-  window.addEventListener('appclose', function(evt) {
-    var title = '';
-    var conn = window.navigator.mozConnection;
-    if (conn && conn.operator) {
-      title = conn.operator;
-    }
-    titlebar.innerHTML = title;
-  });
-
   window.addEventListener('keypress', function(evt) {
     if (evt.keyCode == evt.DOM_VK_F5)
       document.location.reload();
