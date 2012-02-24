@@ -394,13 +394,13 @@ IconGrid.prototype = {
       }
 
       // update position
-      var deltaX = 132;
-      var deltaY = 196;
+      var deltaX = 136;
+      var deltaY = 200;
       if (window.innerHeight <= 480) {
         deltaY = 184;
       }
 
-      setPosition(iconDiv, getIconColumn(icon) * 132 + 'px', getIconRow(icon) * deltaY + 'px');
+      setPosition(iconDiv, getIconColumn(icon) * 136 + 'px', getIconRow(icon) * deltaY + 'px');
     }
 
     // remove icons we don't need
