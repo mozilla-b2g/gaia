@@ -376,7 +376,8 @@ const IMEManager = {
     }
   },
 
-  events: ['mouseup', 'showime', 'hideime', 'unload', 'appwillclose', 'resize'],
+  events: ['mouseup', 'showime', 'hideime', 'unload', 'appclose',
+           'appwillclose', 'resize'],
   imeEvents: ['mousedown', 'mouseover', 'mouseleave', 'transitionend'],
   init: function km_init() {
     this.events.forEach((function attachEvents(type) {
@@ -449,8 +450,10 @@ const IMEManager = {
 
   handleEvent: function km_handleEvent(evt) {
     var activeWindow = Gaia.AppManager.foregroundWindow;
-    var target = evt.target;
+    if (!activeWindow || activeWindow == this._closingWindow)
+      return;
 
+    var target = evt.target;
     switch (evt.type) {
       case 'showime':
         // cancel hideIME that imminently happen before showIME
@@ -495,7 +498,12 @@ const IMEManager = {
 
       case 'appwillclose':
         this.hideIME(activeWindow, true);
+        this._closingWindow = activeWindow;
 
+        break;
+
+      case 'appclose':
+        this._closingWindow = null;
         break;
 
       case 'resize':
