@@ -299,8 +299,79 @@
                        '120': '/style/icons/CutTheRope.png'
                      }
                    }
+                 },
+                 { // wikipedia
+                   'installOrigin': 'http://www.wikipedia.org/',
+                   'origin': 'http://en.m.wikipedia.org/',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'Wikipedia',
+                     'description': 'Wikipedia Mobile Application',
+                     'launch_path': '/',
+                     'developer': {
+                       'name': 'Wikipedia',
+                       'url': 'http://www.wikipedia.org/'
+                     },
+                     'icons': {
+                       '120': '/style/icons/Wikipedia.png'
+                     }
+                   }
+                 },
+                 { // CNN
+                   'installOrigin': 'http://m.cnn.com/',
+                   'origin': '../cnn',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'CNN',
+                     'description': 'CNN Mobile Application',
+                     'launch_path': '/cnn.html',
+                     'developer': {
+                       'name': 'CNN',
+                       'url': 'http://www.cnn.com/'
+                     },
+                     'icons': {
+                       '120': 'cnn.png'
+                     }
+                   }
+                 },
+                 { // BBC
+                   'installOrigin': 'http://m.bbc.co.uk/',
+                   'origin': '../bbc',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'BBC',
+                     'description': 'BBC Mobile Application',
+                     'launch_path': '/bbc.html',
+                     'developer': {
+                       'name': 'BBC',
+                       'url': 'http://www.bbc.co.uk/'
+                     },
+                     'icons': {
+                       '120': 'bbc.png'
+                     }
+                   }
+                 },
+                 { // NY Times
+                   'installOrigin': 'http://www.nytimes.com/',
+                   'origin': 'http://m.nytimes.com/',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'NY Times',
+                     'description': 'NY Times Mobile Application',
+                     'launch_path': 'http://m.nytimes.com/',
+                     'developer': {
+                       'name': 'NY Times',
+                       'url': 'http://www.nytimes.com/'
+                     },
+                     'icons': {
+                       '120': '/style/icons/NYTimes.png'
+                     }
+                   }
                  }
-
   ];
 
   Object.freeze(webapps);
