@@ -472,6 +472,16 @@
 
   var contacts = [
   {
+    id: '0',
+    displayName: 'Andreas Gal',
+    name: {
+      familyName: ['Andreas'],
+      givenName: ['Gal']
+    },
+    phones: ['123-4242-4242'],
+    emails: ['gal@mozilla.com']
+  },
+  {
     id: '3',
     displayName: 'Coby Newman',
     name: {

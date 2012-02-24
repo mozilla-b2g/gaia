@@ -9,22 +9,23 @@ var Recents = {
   setup: function re_setup() {
     content = '';
 
-    this.last.forEach(function recentIterator(recent) {
-      content += '<div class="recent" data-number="' + recent.number + '"' +
-                 'onclick="CallHandler.call(this.dataset.number)">' +
-                 '<img src="style/fake/photo.png" alt="fake" />' +
+    for (var i = 0 ; i < this.last.length ; i++) {
+      var recent = this.last[i];
+
+      content += '<div class="recent" data-number="' + recent.number + '">' +
+                 profilePictureForNumber(i) +
                  '<div class="name">' + recent.name + '</div>' +
                  '<div class="number">' + recent.number + '</div>' +
                  '<div class="timestamp">' + recent.timestamp + '</div>' +
                  '</div>';
-    });
+    };
 
     this.view.innerHTML = content;
   },
 
   // XXX: fake content for the demo
   last: [
-    {name: 'Rebecca Mendes', number: '1-555-765-655', timestamp: '2 hours ago'},
+    {name: 'Andreas Gal', number: '1-555-765-655', timestamp: '2 hours ago'},
     {name: 'Herman Meyer', number: '1-543-323-325', timestamp: '4 hours ago'},
     {name: 'Jordan Campbell', number: '1-555-765-655', timestamp: '1 day ago'},
     {name: 'Simon Hall', number: '1-555-765-655', timestamp: '1 day ago'},
