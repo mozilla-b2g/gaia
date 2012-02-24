@@ -813,11 +813,11 @@ function updateBattery() {
     if (battery.charging) {
       charging.hidden = false;
       fuel.className = 'charging';
-      fuel.style.minWidth = (level / 5.25) + 'px';
+      fuel.style.minWidth = (level / 5.88) + 'px';
     } else {
       charging.hidden = true;
 
-      fuel.style.minWidth = fuel.style.width = (level / 5.25) + 'px';
+      fuel.style.minWidth = fuel.style.width = (level / 5.88) + 'px';
       if (level <= 10)
         fuel.className = 'critical';
       else if (level <= 30)
