@@ -456,12 +456,6 @@ const IMEManager = {
     var target = evt.target;
     switch (evt.type) {
       case 'showime':
-        // Let's make sure the window is opened when it got the showime event
-        if (!activeWindow) {
-          alert('rekrler');
-          return;
-        }
-
         // cancel hideIME that imminently happen before showIME
         clearTimeout(this.hideIMETimer);
 
