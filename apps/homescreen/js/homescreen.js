@@ -282,8 +282,12 @@ IconGrid.prototype = {
     var containerId = this.containerId;
     var container = this.container;
     var icons = this.icons;
-    var columns = this.columns;
-    var rows = this.rows;
+
+    var rows = Math.ceil((window.innerHeight - 200) / 200);
+    var columns = Math.ceil((window.innerWidth - 100) / 150);
+
+    var columns = columns;
+    var rows = rows;
     var currentPage = this.currentPage;
     var itemsPerPage = rows * columns;
     var iconWidth = Math.floor(100/columns);
@@ -727,15 +731,10 @@ function OnLoad() {
   new NotificationScreen(touchables);
 
   var apps = Gaia.AppManager.loadInstalledApps(function(apps) {
-    var rows = 3;
-    var columns = 3;
+    var rows = Math.ceil((window.innerHeight - 200) / 200);
+    var columns = Math.ceil((window.innerWidth - 100) / 150);
+    var pages = Math.floor(apps.length / (rows * columns)) + 1;
 
-    if (window.innerHeight <= 480) {
-      rows = 2;
-      columns = 2;
-    }
-
-    var pages = apps.length / (rows * columns);
     var appsGrid = new IconGrid('apps', columns, rows, pages, true);
     var appsGridCount = 0;
     for (var n = 0; n < apps.length; ++n) {
@@ -744,6 +743,10 @@ function OnLoad() {
     }
     appsGrid.dots = new Dots('dots', 'apps');
     appsGrid.update();
+
+    window.addEventListener('resize', function() {
+      appsGrid.update();
+    });
   });
 
   var titlebar = document.getElementById('titlebar');
