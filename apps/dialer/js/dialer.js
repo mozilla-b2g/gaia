@@ -234,7 +234,7 @@ var CallHandler = {
     this.callScreen.classList.remove('incoming');
     this.callScreen.classList.add('calling');
     this.numberView.innerHTML = number;
-    this.statusView.innerHTML = 'Dialing...';
+    this.statusView.innerHTML = 'Calling...';
 
     var sanitizedNumber = number.replace(/-/g, '');
     var call = window.navigator.mozTelephony.dial(sanitizedNumber);
