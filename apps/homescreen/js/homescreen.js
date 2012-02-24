@@ -726,29 +726,13 @@ function OnLoad() {
   ];
   new NotificationScreen(touchables);
 
-  if (navigator.mozTelephony) {
-    navigator.mozTelephony.addEventListener('incoming', function(evt) {
-      var call = evt.call;
-
+  var telephony = navigator.mozTelephony;
+  if (telephony) {
+    telephony.addEventListener('incoming', function incoming(evt) {
       var url = '../dialer/dialer.html?choice=incoming&number=';
-      var app = WindowManager.launch(url + call.number);
-
-      call.addEventListener('statechange', function callState() {
-        app.contentWindow.postMessage(call.state, url);
-      });
-
-      window.addEventListener('message', function handleCall(evt) {
-        switch (evt.data) {
-          case 'moztelephony:answer':
-            call.answer();
-            break;
-          case 'moztelephony:hangup':
-            window.removeEventListener('message', handleCall);
-            call.hangUp();
-            break;
-        }
-      });
+      var app = WindowManager.launch(url + evt.call.number);
     });
+
   }
 
   var apps = Gaia.AppManager.loadInstalledApps(function(apps) {

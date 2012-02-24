@@ -85,9 +85,10 @@ Window.prototype = {
 
       sprite.crossFade();
 
+      var url = this.application.url;
       var element = this.element;
       if (!this._loaded) {
-        element.src = this.application.url;
+        element.src = url;
         this._loaded = true;
 
         window.addEventListener('message', function waitForAppReady(evt) {

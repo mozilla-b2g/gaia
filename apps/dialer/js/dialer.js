@@ -45,8 +45,13 @@ function visibilityChanged(url, evt) {
     Contacts.load();
     choiceChanged(contacts);
   } else if (choice == 'incoming') {
-    var number = params['number'];
-    CallHandler.incoming(evt, number);
+    var telephony = window.navigator.mozTelephony;
+    telephony.oncallschanged = function cc(evt) {
+      telephony.calls.forEach(function(call) {
+        if (call.state == 'incoming')
+          CallHandler.incoming(call, call.number);
+      });
+    };
   }
 }
 
@@ -245,24 +250,10 @@ var CallHandler = {
 
     this.toggleCallScreen();
   },
-  incoming: function ch_incoming(evt, number) {
-    var self = this;
-
-    var call = this.currentCall = {
-      'number': number,
-      'answer': function call_answer() {
-        evt.source.postMessage('moztelephony:answer', '*');
-      },
-      'hangUp': function call_hangUp() {
-        evt.source.postMessage('moztelephony:hangup', '*');
-        self.end();
-      },
-      'addEventListener': function call_addEventListener() {},
-      'removeEventListener': function call_removeEventListener() {}
-    };
-
+  incoming: function ch_incoming(call, number) {
     this.callScreen.classList.remove('calling');
     this.callScreen.classList.add('incoming');
+
     this.currentCall = call;
     call.addEventListener('statechange', this);
 
@@ -426,7 +417,6 @@ window.addEventListener('load', function keyboardInit(evt) {
   window.removeEventListener('load', keyboardInit);
 
   KeyHandler.init();
-  navigator.mozTelephony.addEventListener('incoming', CallHandler);
 
   window.parent.postMessage('appready', '*');
 });
