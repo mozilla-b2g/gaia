@@ -415,6 +415,8 @@ html * {
 
   background: url("images/input-icon-search.png") no-repeat scroll 8px 50%, -moz-linear-gradient(center top , rgba(0, 0, 0, 0.2) 0px, rgba(255, 255, 255, 0) 20px, #FFFFFF 100%) repeat scroll 0 0 #FFFFFF;
 
+  font-size: 20px;
+
   border: 0;
 }
 
