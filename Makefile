@@ -39,7 +39,15 @@ delete-databases:
 .PHONY: screenshot
 screenshot:
 	mkdir screenshotdata
-	adb pull /dev/graphics/fb0 screenshotdata/fb0 
+	$(ADB) pull /dev/graphics/fb0 screenshotdata/fb0 
 	dd bs=1920 count=800 if=screenshotdata/fb0 of=screenshotdata/fb0b
 	ffmpeg -vframes 1 -vcodec rawvideo -f rawvideo -pix_fmt rgb32 -s 480x800 -i screenshotdata/fb0b -f image2 -vcodec png screenshot.png
 	rm -rf screenshotdata
+
+# Port forwarding to use the RIL daemon from the device
+.PHONY: forward
+forward:
+	$(ADB) shell touch /data/local/rilproxyd
+	$(ADB) shell killall rilproxy
+	$(ADB) forward tcp:6200 localreserved:rilproxyd
+
