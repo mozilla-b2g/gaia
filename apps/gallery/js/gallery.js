@@ -189,6 +189,7 @@ var Gallery = {
     AddEventHandlers(this.photos, this, ['touchstart', 'touchmove', 'touchend']);
 
     this.backButton.addEventListener('click', (function backButtonClick(evt) {
+      this.stopSlideshow();
       this.showThumbnails();
     }).bind(this));
 
@@ -201,6 +202,7 @@ var Gallery = {
 
     window.addEventListener('keypress', (function keyPressHandler(evt) {
       if (this.focusedPhoto && evt.keyCode == evt.DOM_VK_ESCAPE) {
+        this.stopSlideshow();
         this.showThumbnails();
         evt.preventDefault();
       }
