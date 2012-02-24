@@ -37,13 +37,17 @@ var Camera = {
 
     video.src = navigator.mozCamera.getCameraURI(config);
   },
-  
+
+  pause: function pause() {
+    this.video.pause();
+  },
+
   toggleCamera: function toggleCamera() {
     this._camera = 1 - this._camera;
     this.video.src = '';
     this.init();
   },
-  
+
   toggleFilter: function toggleFilter(target) {
     var filter = '';
 
@@ -67,3 +71,13 @@ window.addEventListener('DOMContentLoaded', function CameraInit() {
   Camera.init();
 });
 
+// Bug 690056 implement a visibility API, and it's likely that
+// we want this event to be fire when an app come back to life
+// or is minimized (it does not now).
+window.addEventListener('message', function CameraPause(evt) {
+  if (evt.data.hidden) {
+    Camera.pause();
+  } else {
+    Camera.init();
+  }
+});
