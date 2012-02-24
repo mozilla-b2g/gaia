@@ -526,20 +526,20 @@ html * {
 
   background-color: rgba(0, 0, 0, 0.6);
 
-  -moz-transition-property: opacity;
+  -moz-transition-property: -moz-transform;
   -moz-transition-duration: 0.30s;
   -moz-transition-timing-function: linear;
 
-  opacity: 0;
+  -moz-transform: scale(0);
   z-index: 20;
 }
 #contacts-overlay.displayed {
   top: 0;
-  opacity: 1;
+  -moz-transform: scale(1);
 }
 
 #contacts-overlay.hidden {
-  opacity: 0;
+  -moz-transform: scale(0);
 }
 
 #contact-details-container {

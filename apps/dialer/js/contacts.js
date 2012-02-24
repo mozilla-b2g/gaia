@@ -343,7 +343,6 @@ var ContactDetails = {
       return;
     }
 
-    this.hide();
     var number = evt.target.dataset.number;
     if (number) {
       CallHandler.call(number);
