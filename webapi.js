@@ -294,6 +294,7 @@
                      'launch_path': '',
                      'orientation': 'landscape-primary',
                      'fullscreen': true,
+                     'hackKillMe': true,
                      'developer': {
                        'name': 'ZeptoLab',
                        'url': 'http://cuttherope.ie'
