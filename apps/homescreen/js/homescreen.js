@@ -184,6 +184,7 @@ DefaultPhysics.prototype = {
     var currentPage = iconGrid.currentPage;
     if (tap) {
       iconGrid.tap(e.target);
+      iconGrid.setPage(currentPage, 0);
       return;
     } else if (flick) {
       iconGrid.setPage(currentPage + dir, 0.2);
