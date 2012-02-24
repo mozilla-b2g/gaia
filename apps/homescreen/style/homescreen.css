@@ -98,6 +98,21 @@ body {
   font-size: 100px;
 }
 
+@media all and (max-height: 480px) {
+  #lockscreen #clock > #hourMin {
+    font-size: 100px;
+  }
+
+  #lockscreen #clock > *[data-format*="%b"] {
+    font-size: 90px;
+  }
+
+  #lockscreen #clock > #date {
+    font-size: 24px;
+  }
+}
+
+
 #notificationsScreen {
   position: absolute;
   z-index: 9996;
