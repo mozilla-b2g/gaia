@@ -77,7 +77,7 @@ window.addEventListener('DOMContentLoaded', function CameraInit() {
 window.addEventListener('message', function CameraPause(evt) {
   if (evt.data.hidden) {
     Camera.pause();
-  } else {
+  } else if (evt.data.hidden === false) {
     Camera.init();
   }
 });
