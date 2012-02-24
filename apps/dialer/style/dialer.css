@@ -415,6 +415,8 @@ html * {
 
   background: url("images/input-icon-search.png") no-repeat scroll 8px 50%, -moz-linear-gradient(center top , rgba(0, 0, 0, 0.2) 0px, rgba(255, 255, 255, 0) 20px, #FFFFFF 100%) repeat scroll 0 0 #FFFFFF;
 
+  font-size: 20px;
+
   border: 0;
 }
 
@@ -643,6 +645,11 @@ html * {
 
   border: 1px solid #999999;
   border-radius: 5px 5px 5px 5px;
+}
+
+#contact-photo img {
+  width: 140px;
+  height: 140px;
 }
 
 #contact-details-top {
@@ -878,8 +885,6 @@ html * {
   height: 320px;
 }
 
-
-
 #call-number-view {
   color: #929CA4;
   font-size: 0.6em;
@@ -1039,7 +1044,7 @@ html * {
 .recent {
   position: relative;
   padding: 0;
-  height: 96px;
+  height: -moz-calc(96px - 2px);
   width: -moz-calc(100% + 8px);
 
   border-bottom: 1px solid #CCCCCC;

@@ -417,9 +417,13 @@
     get: function() {
       // This is a lazy getter. Don't set up the settings stuff
       // unless an app actually asks for it.
-      if (!mozSettings)
-        mozSettings = MozSettings();
-      return mozSettings;
+      try {
+        if (!mozSettings)
+          mozSettings = MozSettings();
+        return mozSettings;
+      } catch (e) {
+        return null;
+      }
     },
     enumerable: true,
     configurable: true
@@ -538,6 +542,16 @@
     return;
 
   var contacts = [
+  {
+    id: '0',
+    displayName: 'Andreas Gal',
+    name: {
+      familyName: ['Andreas'],
+      givenName: ['Gal']
+    },
+    phones: ['123-4242-4242'],
+    emails: ['gal@mozilla.com']
+  },
   {
     id: '3',
     displayName: 'Coby Newman',

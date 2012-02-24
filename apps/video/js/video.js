@@ -1,4 +1,5 @@
 window.addEventListener('DOMContentLoaded', function() {
+  'use strict';
   var player = $('player');
 
   // This is the list of sample videos built in to the app
@@ -90,8 +91,8 @@ window.addEventListener('DOMContentLoaded', function() {
 
     // start player
     player.src = sample.video;
-    player.srcWidth = sample.width;
-    player.srcHeight = sample.height;
+    player.srcWidth = sample.width;   // XXX use player.videoWidth instead
+    player.srcHeight = sample.height; // XXX use player.videoHeight instead
     player.play();
     player.requestFullScreen();
 
@@ -114,7 +115,10 @@ window.addEventListener('DOMContentLoaded', function() {
     playerShowing = false;
   }
   $('close').addEventListener('click', hidePlayer, false);
-  player.addEventListener('ended', hidePlayer, false);
+  player.addEventListener('ended', function() {
+    if (!controlShowing)
+      hidePlayer();
+  }, false);
   window.addEventListener('keypress', function(event) {
     if (playerShowing && event.keyCode == event.DOM_VK_ESCAPE) {
       hidePlayer();
@@ -125,9 +129,7 @@ window.addEventListener('DOMContentLoaded', function() {
     }
   }, false);
 
-  // media events: play|pause, rwd|fwd, timeupdate
-  playHead = $('playHead');
-  elapsedTime = $('elapsedTime');
+  // control buttons: play|pause, rwd|fwd
   $('play').addEventListener('click', function() {
     if (!controlShowing)
       return;
@@ -147,29 +149,39 @@ window.addEventListener('DOMContentLoaded', function() {
     if (controlShowing)
       player.currentTime += 15;
   }, false);
-  player.addEventListener('timeupdate', function() {
-    var pos = (player.currentTime / player.duration) * 100 + '%';
-    playHead.style.top = pos;
-    elapsedTime.style.height = pos;
-  }, false);
 
   // handle drags/clicks on the time slider
+  var isDragging = false;
+  var playHead = $('playHead');
   var timeSlider = $('timeSlider');
-  function setCurrentTime(event) {
-    var rect = timeSlider.getBoundingClientRect();
-    var progress = (event.clientY - rect.top) / rect.height;
-    player.currentTime = progress * player.duration;
+  var elapsedTime = $('elapsedTime');
+  var rect = null;
+  function getTimePos(event) {
+    if (!rect)
+      rect = timeSlider.getBoundingClientRect();
+    return (event.clientY - rect.top) / rect.height;
   }
-  timeSlider.addEventListener('click', function(event) {
+  function setProgress(event) {
+    var progress = isDragging ?
+      getTimePos(event) : player.currentTime / player.duration;
+    var pos = progress * 100 + '%';
+    playHead.style.top = pos;
+    elapsedTime.style.height = pos;
+  }
+  function setCurrentTime(event) {
+    isDragging = false;
     if (controlShowing)
-      setCurrentTime(event);
-  }, false);
+      player.currentTime = getTimePos(event) * player.duration;
+  }
+  player.addEventListener('timeupdate', setProgress, false);
+  playHead.addEventListener('mousemove', setProgress, false);
   playHead.addEventListener('mousedown', function() {
     if (controlShowing)
-      playHead.addEventListener('mousemove', setCurrentTime, false);
+      isDragging = true;
   }, false);
-  playHead.addEventListener('mouseup', function() {
-    if (controlShowing)
-      playHead.removeEventListener('mousemove', setCurrentTime, false);
+  timeSlider.addEventListener('mouseup', setCurrentTime, false);
+  timeSlider.addEventListener('mouseout', function(event) {
+    if (isDragging)
+      setCurrentTime(event);
   }, false);
 });
