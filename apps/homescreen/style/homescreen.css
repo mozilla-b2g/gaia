@@ -66,16 +66,7 @@ body {
 #lockscreen > #lockscreenContainer {
   width: 100%;
   height: -moz-calc(100% - 32px);
-  background: url(images/noise.png), url(images/background_lock.jpg);
-}
-
-#lockscreenContainer::before {
-  content: '';
-  display: block;
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  /*background-color: rgba(0,0,0,0.6);*/
+  background: #000 url(images/background_lock.jpg);
 }
 
 #lockscreen #clock {
