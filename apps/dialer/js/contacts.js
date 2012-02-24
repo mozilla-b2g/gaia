@@ -101,7 +101,7 @@ var Contacts = {
 
     // Reflect the change in the shortcut letter
     var shortcuts = document.getElementById('contacts-shortcuts').children;
-    for (var j = 1; j < shortcuts.length; j++) {
+    for (var j = 0; j < shortcuts.length; j++) {
       var shortcut = shortcuts[j];
       var targetId = shortcut.name;
       var header = document.getElementById(targetId);
