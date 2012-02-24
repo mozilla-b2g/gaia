@@ -332,7 +332,7 @@
                        'url': 'http://www.cnn.com/'
                      },
                      'icons': {
-                       '120': 'cnn.png'
+                       '120': '/style/icons/CNN.png'
                      }
                    }
                  },
@@ -350,7 +350,7 @@
                        'url': 'http://www.bbc.co.uk/'
                      },
                      'icons': {
-                       '120': 'bbc.png'
+                       '120': '/style/icons/BBC.png'
                      }
                    }
                  },
@@ -368,7 +368,7 @@
                        'url': 'http://www.nytimes.com/'
                      },
                      'icons': {
-                       '120': '/style/icons/NYTimes.png'
+                       '120': '/style/icons/NYT.png'
                      }
                    }
                  }
