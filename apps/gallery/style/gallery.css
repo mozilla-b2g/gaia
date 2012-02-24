@@ -137,5 +137,9 @@ header h1 {
   top: 15px;
   right: 15px;
   background-image: url('images/play.png');
-  display: none; /* temporary until the button does something */
 }
+
+#play-button.playing {
+  background-image: url('images/pause.png');
+}
+
