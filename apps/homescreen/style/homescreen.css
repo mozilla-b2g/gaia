@@ -431,7 +431,7 @@ iframe.landscape-secondary {
 .battery {
   float:right;
   margin: 8px 3px;
-  padding: 4px 6px 4px 4px;
+  padding: 5px 7px 5px 5px;
   width: 29px;
   background: url(images/battery-main.png);
   background-repeat: no-repeat;
@@ -440,8 +440,8 @@ iframe.landscape-secondary {
 }
 
 .battery > #fuel {
-  height: 8px;
-	background-image: -moz-linear-gradient(top, #b9fd00, #8fc400);
+  height: 6px;
+	background-color: #999999;
 }
 
 .battery > #fuel.low {
