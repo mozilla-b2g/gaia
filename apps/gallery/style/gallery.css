@@ -138,3 +138,8 @@ header h1 {
   right: 15px;
   background-image: url('images/play.png');
 }
+
+#play-button.playing {
+  background-image: url('images/pause.png');
+}
+

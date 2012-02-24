@@ -141,8 +141,10 @@ var Gallery = {
 
   currentPage: 0,
   photoTranslation: 0,          // pixels
-
   physics: null,
+  slideshowTimer: null,
+  SLIDE_INTERVAL: 3000,   // 3 seconds on each slides
+  SLIDE_TRANSITION: 500,  // 1/2 second transition between slides
 
   get header() {
     delete this.header;
@@ -169,6 +171,11 @@ var Gallery = {
     return this.backButton = document.getElementById('back-button');
   },
 
+  get slideshowButton() {
+    delete this.slideshowButton;
+    return this.slideshowButton = document.getElementById('play-button');
+  },
+
   init: function galleryInit() {
     this.thumbnails.addEventListener('click', (function thumbnailsClick(evt) {
       var target = evt.target;
@@ -182,11 +189,20 @@ var Gallery = {
     AddEventHandlers(this.photos, this, ['touchstart', 'touchmove', 'touchend']);
 
     this.backButton.addEventListener('click', (function backButtonClick(evt) {
+      this.stopSlideshow();
       this.showThumbnails();
+    }).bind(this));
+
+    this.slideshowButton.addEventListener('click', (function slideshowClick() {
+      if (this.slideshowTimer)
+        this.stopSlideshow();
+      else
+        this.startSlideshow();
     }).bind(this));
 
     window.addEventListener('keypress', (function keyPressHandler(evt) {
       if (this.focusedPhoto && evt.keyCode == evt.DOM_VK_ESCAPE) {
+        this.stopSlideshow();
         this.showThumbnails();
         evt.preventDefault();
       }
@@ -298,6 +314,50 @@ var Gallery = {
     }
     e.preventDefault();
   },
+
+  startSlideshow: function() {
+    // If we're already displaying the last slide, then move to the first
+    var lastPage = this.photos.childNodes.length - 1;
+    var currentPage = this.currentPage;
+    if (currentPage === lastPage)
+      this.setPage(0, this.SLIDE_TRANSITION/1000);
+      
+    // Now schedule the next slide
+    var self = this;
+    this.slideshowTimer = setTimeout(function() { self.nextSlide(); },
+                                     this.SLIDE_INTERVAL);
+    this.slideshowButton.classList.add('playing');
+  },
+
+  stopSlideshow: function() {
+    if (this.slideshowTimer) {
+      clearTimeout(this.slideshowTimer);
+      this.slideshowTimer = null;
+    }
+    this.slideshowButton.classList.remove('playing');
+  },
+
+  nextSlide: function() {
+    var lastPage = this.photos.childNodes.length - 1;
+    var currentPage = this.currentPage;
+
+    // Move to the next slide if we're not already on the last one
+    if (currentPage < lastPage) {
+      this.setPage(++currentPage, this.SLIDE_TRANSITION/1000);
+    }
+
+    // If we're still not on the last one, then schedule another slide
+    // Otherwise, stop the slideshow
+    if (currentPage < lastPage) {
+      var self = this;
+      this.slideshowTimer = setTimeout(function() { self.nextSlide(); },
+                                       this.SLIDE_INTERVAL);
+    }
+    else {
+      this.slideshowTimer = null;
+      this.stopSlideshow();
+    }
+  }
 };
 
 window.addEventListener('DOMContentLoaded', function GalleryInit() {
