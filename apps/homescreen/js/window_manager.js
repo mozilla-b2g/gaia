@@ -307,6 +307,9 @@ var WindowManager = {
   _lastWindowId: 0,
   launch: function wm_launch(url) {
     var application = Gaia.AppManager.getInstalledAppForURL(url);
+    if (!application)
+      return;
+
     var name = application.name;
 
     var applicationWindow = this.getWindowByApp(application);
