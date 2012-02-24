@@ -302,13 +302,13 @@
                  },
                  { // wikipedia
                    'installOrigin': 'http://www.wikipedia.org/',
-                   'origin': 'http://en.m.wikipedia.org/',
+                   'origin': '../wikipedia',
                    'receipt': null,
                    'installTime': 1323339869000,
                    manifest: {
                      'name': 'Wikipedia',
                      'description': 'Wikipedia Mobile Application',
-                     'launch_path': '/',
+                     'launch_path': '/wikipedia.html',
                      'developer': {
                        'name': 'Wikipedia',
                        'url': 'http://www.wikipedia.org/'
@@ -356,13 +356,13 @@
                  },
                  { // NY Times
                    'installOrigin': 'http://www.nytimes.com/',
-                   'origin': 'http://m.nytimes.com/',
+                   'origin': '../nytimes',
                    'receipt': null,
                    'installTime': 1323339869000,
                    manifest: {
                      'name': 'NY Times',
                      'description': 'NY Times Mobile Application',
-                     'launch_path': 'http://m.nytimes.com/',
+                     'launch_path': '/nytimes.html',
                      'developer': {
                        'name': 'NY Times',
                        'url': 'http://www.nytimes.com/'
