@@ -803,10 +803,6 @@ html * {
 
   z-index: 10;
 }
-#views.modal.hidden {
-  top: 100%;
-  opacity: 0;
-}
 
 #views.modal #phone-number-view-container,
 #views.modal #additionalKeyset {

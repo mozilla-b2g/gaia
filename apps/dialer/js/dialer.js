@@ -381,12 +381,7 @@ var CallHandler = {
   },
   closeModal: function ch_closeModal() {
     var views = document.getElementById('views');
-    views.classList.add('hidden');
-    views.addEventListener('transitionend', function ch_closeModalFinish() {
-      views.removeEventListener('transitionend', ch_closeModalFinish);
-      views.classList.remove('modal');
-      views.classList.remove('hidden');
-    });
+    views.classList.remove('modal');
   }
 };
 
