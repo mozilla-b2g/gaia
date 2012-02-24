@@ -351,7 +351,7 @@ iframe.landscape-secondary {
   display: -moz-box;
   overflow: hidden;
   position: relative;
-  z-index: 9997;
+  z-index: 20001;
   -moz-box-orient: horizontal;
 
   width: 100%;
@@ -825,7 +825,7 @@ iframe.landscape-secondary {
   width: 480px;
   height: 800px;
   background: url(images/grid.png);
-  z-index: 999999;
+  z-index: 20002;
   opacity: 0.2;
   pointer-events: none;
 }
