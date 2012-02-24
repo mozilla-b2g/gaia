@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Market</title>
+
+  <link rel="stylesheet" type="text/css" media="screen" href="style/calculator.css"/>
+
+</head>
+<body>
+
+  <div id="calc_wrapper">
+    <div class="row">
+      <input id="display" value="" disabled />
+      <input type="button" value="C" id="clear" data-type="command" />
+    </div>
+
+    <div class="row">
+      <input type="button" value="1" data-type="value" />
+      <input type="button" value="2" data-type="value" />
+      <input type="button" value="3" data-type="value" />
+      <input type="button" value="×" id="multiply" data-type="operator" />
+    </div>
+
+    <div class="row">
+      <input type="button" value="4" data-type="value" />
+      <input type="button" value="5" data-type="value" />
+      <input type="button" value="6" data-type="value" />
+      <input type="button" value="-" id="subtract" data-type="operator" />
+    </div>
+
+    <div class="row">
+      <input type="button" value="7" data-type="value" />
+      <input type="button" value="8" data-type="value" />
+      <input type="button" value="9" data-type="value" />
+      <input type="button" value="+" id="add" data-type="operator" />
+    </div>
+
+    <div class="row">
+      <input type="button" value="0" data-type="value" />
+      <input type="button" value="." data-type="value" />
+      <input type="button" value="÷" id="divide" data-type="operator" />
+      <input type="button" value="=" data-type="command" />
+    </div>
+  </div>
+
+  <script type="text/javascript" src="js/calculator.js"></script>
+
+</body>
+</html>
