@@ -24,6 +24,7 @@ var Contacts = {
     // a second argument that I can omit
     this.find(['id', 'displayName'], this.show.bind(this));
   },
+
   find: function contactsFind(fields, callback) {
     // Ideally I would like to choose the ordering
     // It also misses simple constaints like the one you can pass to the
@@ -35,6 +36,7 @@ var Contacts = {
       callback(contacts);
     });
   },
+
   findByNumber: function findByNumber(number, callback) {
     this.find(['id', 'phones'], function findByNumberCallback(contacts) {
       var results = contacts.filter(function findNumber(contact) {
