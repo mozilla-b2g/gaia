@@ -285,16 +285,13 @@ iframe.appWindow.active {
   background-color: #000;
 }
 
-#screen.fullscreen iframe.appWindow {
-  top: 0;
+#screen.fullscreen iframe.appWindow.active {
 /*
  * Do not specify height/width here! They should go to
  * Window.prototype.resize() in window_manager.js
  *
  */
-}
-
-#screen.fullscreen iframe.appWindow.active {
+  top: 0;
   z-index: 9998;
 }
 
