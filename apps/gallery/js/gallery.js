@@ -13,6 +13,45 @@ const SAMPLE_FILENAMES = ['DSC_1677.jpg', 'DSC_1701.jpg', 'DSC_1727.jpg',
 'IMG_8638.jpg', 'IMG_8648.jpg', 'IMG_8652.jpg', '_MG_0053.jpg', 'P1000115.jpg',
 'P1000404.jpg', 'P1000469.jpg', 'P1000486.jpg'];
 
+/*
+  slideshow:
+  
+  click play to start
+
+     hides the controls
+     shows photos for 2s
+     
+  slideshow ends when it reaches the end of the gallery
+
+  if user pans during slideshow I think I should keep automatically advancing
+
+  really should change the play button to a pause button
+--
+
+  play button onclick:
+
+     if not playing, start
+     else stop
+     
+     if not playing, change button to pause
+     else change button to play
+
+  next slide timer:
+
+     if we're on the last photo, stop (and change the button back, etc.)
+     else advance to next photo
+
+
+  methods:
+    startSlideshow
+    stopSlideshow
+    advanceSlide
+
+ fields: slideshowTimer
+
+*/
+
+
 //-----------------------------------------------------------------------------
 // XXX: share this with homescreen.  Paginated panning is a gap.
 //
@@ -141,8 +180,10 @@ var Gallery = {
 
   currentPage: 0,
   photoTranslation: 0,          // pixels
-
   physics: null,
+  slideshowTimer: null,
+  SLIDE_INTERVAL: 3000,   // 3 seconds on each slides
+  SLIDE_TRANSITION: 500,  // 1/2 second transition between slides
 
   get header() {
     delete this.header;
@@ -169,6 +210,11 @@ var Gallery = {
     return this.backButton = document.getElementById('back-button');
   },
 
+  get slideshowButton() {
+    delete this.slideshowButton;
+    return this.slideshowButton = document.getElementById('play-button');
+  },
+
   init: function galleryInit() {
     this.thumbnails.addEventListener('click', (function thumbnailsClick(evt) {
       var target = evt.target;
@@ -183,6 +229,13 @@ var Gallery = {
 
     this.backButton.addEventListener('click', (function backButtonClick(evt) {
       this.showThumbnails();
+    }).bind(this));
+
+    this.slideshowButton.addEventListener('click', (function slideshowClick() {
+      if (this.slideshowTimer)
+        this.stopSlideshow();
+      else
+        this.startSlideshow();
     }).bind(this));
 
     window.addEventListener('keypress', (function keyPressHandler(evt) {
@@ -298,6 +351,50 @@ var Gallery = {
     }
     e.preventDefault();
   },
+
+  startSlideshow: function() {
+    // If we're already displaying the last slide, then move to the first
+    var lastPage = this.photos.childNodes.length - 1;
+    var currentPage = this.currentPage;
+    if (currentPage === lastPage)
+      this.setPage(0, this.SLIDE_TRANSITION/1000);
+      
+    // Now schedule the next slide
+    var self = this;
+    this.slideshowTimer = setTimeout(function() { self.nextSlide(); },
+                                     this.SLIDE_INTERVAL);
+    this.slideshowButton.classList.add('playing');
+  },
+
+  stopSlideshow: function() {
+    if (this.slideshowTimer) {
+      clearTimeout(this.slideshowTimer);
+      this.slideshowTimer = null;
+    }
+    this.slideshowButton.classList.remove('playing');
+  },
+
+  nextSlide: function() {
+    var lastPage = this.photos.childNodes.length - 1;
+    var currentPage = this.currentPage;
+
+    // Move to the next slide if we're not already on the last one
+    if (currentPage < lastPage) {
+      this.setPage(++currentPage, this.SLIDE_TRANSITION/1000);
+    }
+
+    // If we're still not on the last one, then schedule another slide
+    // Otherwise, stop the slideshow
+    if (currentPage < lastPage) {
+      var self = this;
+      this.slideshowTimer = setTimeout(function() { self.nextSlide(); },
+                                       this.SLIDE_INTERVAL);
+    }
+    else {
+      this.slideshowTimer = null;
+      this.stopSlideshow();
+    }
+  }
 };
 
 window.addEventListener('DOMContentLoaded', function GalleryInit() {
