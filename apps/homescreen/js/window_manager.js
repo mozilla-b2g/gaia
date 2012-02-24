@@ -118,7 +118,8 @@ Window.prototype = {
     sprite.setActive(true);
     sprite.add();
 
-    var blur = function(evt) {
+    var blur = (function(evt) {
+      sprite.element.removeEventListener('transitionend', blur);
       this.hide();
       sprite.remove();
 
@@ -134,8 +135,8 @@ Window.prototype = {
 
       if (callback)
         callback();
-    };
-    sprite.element.addEventListener('transitionend', blur.bind(this));
+    }).bind(this);
+    sprite.element.addEventListener('transitionend', blur);
 
     if (this.application.fullscreen) {
       document.getElementById('screen').classList.remove('fullscreen');
@@ -297,12 +298,18 @@ var WindowManager = {
     oldWindow.blur((function blurCallback() {
       this._isInTransition = false;
       this._fireEvent(foregroundWindow.element, 'appclose');
+      if (oldWindow.application.hackKillMe) {
+        TaskManager.remove(oldWindow.application, oldWindow.id);
+      }
     }).bind(this));
   },
 
   _lastWindowId: 0,
   launch: function wm_launch(url) {
     var application = Gaia.AppManager.getInstalledAppForURL(url);
+    if (!application)
+      return;
+
     var name = application.name;
 
     var applicationWindow = this.getWindowByApp(application);

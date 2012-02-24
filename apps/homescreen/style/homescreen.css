@@ -160,7 +160,7 @@ body {
   bottom: 0px;
   height: 80px;
   background-image: url(images/notifications.png);
-  background-repeat: none;
+  background-repeat: no-repeat;
   background-size: 100% 100%;
   border-bottom-left-radius: 8px;
   border-bottom-right-radius: 8px;
@@ -543,7 +543,6 @@ iframe.landscape-secondary {
   width: 100%;
   -moz-transition: -moz-transform 0.3s ease;
   border-top: 2px solid #a3a3a3;
-  -moz-box-shadow: inset 0 0 0 1px #fff;
   border-bottom-left-radius: 8px;
   border-bottom-right-radius: 8px;
 }
