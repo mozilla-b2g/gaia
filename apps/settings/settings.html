@@ -31,6 +31,11 @@
       </ul>
       <ul class="tableView">
         <li>
+          <a class="push slideHorizontal" href="#languages">
+            <span>Languages</span>
+          </a>
+        </li>
+        <li>
           <a class="push slideHorizontal" href="#wallpapers">
             <span>Wallpapers</span>
           </a>
@@ -54,6 +59,26 @@
           <a class="push slideHorizontal" href="#debug">
             <span>Debug</span>
           </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Languages -->
+    <div id="languages" class="view" data-title="Languages">
+      <ul class="tableView">
+        <li id="language-en-us">
+          <span>English (United States)</span>
+          <label class="checkbox">
+            <input type="radio" name="language.current" value="en-US"/>
+            <span class="checkbox-inner"></span>
+          </label>
+        </li>
+        <li id="language-fr-Fr">
+          <span>Français</span>
+          <label class="checkbox">
+            <input type="radio" name="language.current" value="fr-FR"/>
+            <span class="checkbox-inner"></span>
+          </label>
         </li>
       </ul>
     </div>
@@ -136,6 +161,13 @@
             <span class="checkbox-inner"></span>
           </label>
         </li>
+        <li>
+          <span>Simplified Chinese (Pinyin)</span>
+          <label class="checkbox">
+            <input type="checkbox" name="keyboard.layouts.pinyin"/>
+            <span class="checkbox-inner"></span>
+          </label>
+        </li>
       </ul>
     </div>
 
@@ -148,7 +180,7 @@
     <div id="display" class="view" data-title="Display">
       <ul class="tableView">
       <li id="brightness">
-        <label>Brigthness level</label>
+        <label>Brightness level</label>
         <progress id="brightness-input" value="1" max="1"></progress>
         <br/ >
         <span class="comment">Waiting for <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=707626">bug 707626</a></span>

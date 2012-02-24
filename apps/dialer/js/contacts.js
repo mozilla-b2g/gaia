@@ -54,9 +54,11 @@ var Contacts = {
                    '</span></div>';
       }
 
-      content += '<div class="contact" id="' + contact.id + '">' +
-                 '  <span class="display-name">' + displayName + '</span>' +
-                 '</div>';
+      content += '<div class="contact" id="' + contact.id + '">';
+      for (var key in contact.name) {
+        content += '<span>' +  contact.name[key] + '</span> ';
+      }
+      content += '</div>';
     }
 
     var contactsContainer = document.getElementById('contacts-container');
@@ -99,7 +101,7 @@ var Contacts = {
 
     // Reflect the change in the shortcut letter
     var shortcuts = document.getElementById('contacts-shortcuts').children;
-    for (var j = 1; j < shortcuts.length; j++) {
+    for (var j = 0; j < shortcuts.length; j++) {
       var shortcut = shortcuts[j];
       var targetId = shortcut.name;
       var header = document.getElementById(targetId);
@@ -397,9 +399,7 @@ var ContactDetails = {
   render: function cd_render() {
     var names = '';
     for (var key in this._contact.name) {
-      names += '<div>' +
-               '  ' + this.inputFragment('text', this._contact.name[key]) +
-               '</div>';
+      names += '  ' +  this._contact.name[key];
     }
     document.getElementById('contact-name').innerHTML = names;
 
@@ -407,6 +407,7 @@ var ContactDetails = {
     var phones = '';
     this._contact.phones.forEach(function phoneIterator(phone) {
       phones += '<div data-number="' + phone + '">' +
+                '<span>phone</span>' +
                 '  ' + this.inputFragment('tel', phone) +
                 '</div>';
     }, this);
@@ -417,7 +418,7 @@ var ContactDetails = {
 
     var emails = '';
     this._contact.emails.forEach(function emailIterator(email) {
-      emails += '<div>' + this.inputFragment('email', email) + '</div>';
+      emails += '<div><span>email</span>' + this.inputFragment('email', email) + '</div>';
     }, this);
     emails += '<div ' + addAttr + '>' +
               '  Add email' +
@@ -427,10 +428,7 @@ var ContactDetails = {
   inputFragment: function cd_inputFragment(type, value, disabled) {
     disabled = (typeof disabled == 'undefined') ? true : disabled;
 
-    return '<div class="delete-button"' +
-           '  onclick="ContactDetails.remove(this.parentNode)">' +
-           '</div>' +
-           '<input type="' + type + '" value="' + value +
+    return '<input type="' + type + '" value="' + value +
            '  " data-action="autoscroll"' +
            '  ' + (disabled ? 'disabled="disabled"' : '') +
            '  onfocus="ContactDetails.execute(event)" />';

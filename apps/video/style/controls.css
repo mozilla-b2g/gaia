@@ -1,0 +1,114 @@
+/* video player controls
+ * XXX this stylesheet supposes we have a 800*480 resolution
+ */
+#videoControls {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  opacity: 1;
+  -moz-transition: opacity 0.5s;
+}
+#videoControls button {
+  position: absolute;
+  background-color: transparent;
+  border: none;
+}
+#videoControls.hidden {
+  opacity: 0;
+}
+
+/* close button */
+#close {
+  top: 16px;
+  right: 16px;
+  width: 80px;
+  height: 80px;
+  background-image: url("images/btn_close_off.png");
+  z-index: 100;
+}
+#close:active {
+  background-image: url("images/btn_close_press.png");
+}
+
+/* main control bar: play|pause, timeupdate, rwd|fwd */
+#videoBar {
+  position: relative;
+  left: 16px;
+  width: 112px;
+  height: 800px;
+  margin: 0;
+  padding: 0;
+  background-image: url("images/controls.png");
+}
+#videoBar button {
+  width: 96px;
+  height: 96px;
+  padding: 0;
+  margin: 0;
+  left: 16px;
+}
+
+/* rwd/fwd buttons */
+#rwd {
+  top: 588px;
+  background-image: url("images/btn_rwd_off.png");
+}
+#rwd:active {
+  background-image: url("images/btn_rwd_press.png");
+}
+#fwd {
+  top: 688px;
+  background-image: url("images/btn_fwd_off.png");
+}
+#fwd:active {
+  background-image: url("images/btn_fwd_press.png");
+}
+
+/* play/pause button */
+#play {
+  top: 16px;
+  background-image: url("images/btn_pause_off.png");
+}
+#play:active {
+  background-image: url("images/btn_pause_press.png");
+}
+.paused #play {
+  background-image: url("images/btn_play_off.png");
+}
+.paused #play:active {
+  background-image: url("images/btn_play_press.png");
+}
+
+/* time slider */
+#timeSlider {
+  position: relative;
+  top: 166px;
+  left: 32px;
+  width: 64px;
+  height: 378px;
+}
+#elapsedTime {
+  position: absolute;
+  top: 0;
+  left: 30px;
+  width: 6px;
+  height: 0; /* updated by script (ontimeupdate) */
+  background-color: #fff;
+  border-radius: 6px;
+}
+button#playHead {
+  top: 0; /* updated by script (ontimeupdate) */
+  left: 0;
+  margin-top: -31px;
+  width: 64px;
+  height: 64px;
+  background-image: url("images/btn_playhead_off.png");
+  background-position: center center;
+}
+button#playHead:active {
+  background-image: url("images/btn_playhead_press.png");
+}
+

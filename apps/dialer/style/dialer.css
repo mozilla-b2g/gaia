@@ -7,10 +7,24 @@ html, body {
 
   font-size: 2.5mozmm;
   color: white;
-  font-family: sans-serif;
-
+  font-family: 'Open Sans', sans-serif;
 
   background: #000;
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  src: url('fonts/Open-Sans.woff');
+}
+@font-face {
+  font-family: 'Open Sans';
+  font-weight: bold;
+  src: url('fonts/Open-Sans-Bold.woff');
+}
+@font-face {
+  font-family: 'Open Sans';
+  font-weight: 600;
+  src: url('fonts/Open-Sans-Semibold.woff');
 }
 
 html * {
@@ -28,7 +42,7 @@ html * {
 #tabs {
   position: absolute;
   width: 100%;
-  height: 100px;
+  height: 96px;
   bottom: 0;
 
 	background: url(images/app-texture.png) 50% 50%,
@@ -36,14 +50,12 @@ html * {
               -moz-radial-gradient(center top, hsla(0,100%,0%,0) 0%, hsla(0,0%,0%,0) 70%, hsla(0,0%,10%,.1) 100%),
               -moz-radial-gradient(center bottom, hsla(0,100%,0%,0) 0%, hsla(0,0%,0%,0) 70%, hsla(0,0%,10%,.2) 100%),
               hsla(212,8%,39%,1);
-
-  -moz-transition: bottom 0.3s ease;
 }
 
 #tabs fieldset {
   list-style: none;
 	width: -moz-calc(100% - 30px);
-	height: 100px;
+	height: 96px;
   padding: 0;
   margin: 0 auto;
 
@@ -71,34 +83,31 @@ html * {
   background: url(images/numpad-icon.png);
 }
 #keyboard-label[data-active] {
-  background:url(images/current-tab.png) top center no-repeat, url(images/numpad-icon-active.png) center center no-repeat;
+  background:url(images/current-tab.png) center -2px no-repeat, url(images/numpad-icon-active.png) center center no-repeat;
 }
 #contacts-label {
   background: url(images/contacts-icon.png);
 }
 #contacts-label[data-active]{
-  background:url(images/current-tab.png) top center no-repeat, url(images/contacts-icon-active.png) center center no-repeat;
+  background:url(images/current-tab.png) center -2px no-repeat, url(images/contacts-icon-active.png) center center no-repeat;
 }
 #recents-label {
   background: url(images/recents-icon.png);
 }
 #recents-label[data-active] {
-  background:url(images/current-tab.png) top center no-repeat, url(images/recents-icon-active.png) center center no-repeat;
+  background:url(images/current-tab.png) center -2px no-repeat, url(images/recents-icon-active.png) center center no-repeat;
 }
 
 /* === Application Views === */
 #views {
   position: absolute;
   top: 0;
-  height: -moz-calc(100% - 100px);
+  height: -moz-calc(100% - 96px);
   width: 100%;
 
-  -moz-transition-property: top;
-  -moz-transition-duration: 0.3s;
-  -moz-transition-timing-function: ease;
-
-  background: url(images/app-texture.png) 50% 50%, #F5F5F5;
   border-radius: 10px 10px 0 0;
+
+  background: url(images/keypad-bg.png) center bottom no-repeat #F6F6F6;
 }
 
 #views > .view {
@@ -107,28 +116,27 @@ html * {
 }
 
 .top-bar {
-	height: 10mozmm;
-  line-height: 10mozmm;
+	height: 7.5mozmm;
+  line-height: 7.5mozmm;
 
-  font-size: 3.5mozmm;
+  font-size: 3.2mozmm;
   text-align: center;
 
-  border-bottom: 2px solid #7F7F7F;
+  border-bottom: 2px solid #A3A3A3;
   background: url(images/app-texture.png) 50% 50%, -moz-linear-gradient(top, hsla(0,0%,96%,1), hsla(0,0%,92%,1) );
 }
 
 .top-bar a.add {
   position: absolute;
   display: block;
-  width: 8mozmm;
-  height: 7mozmm;
-  top: 1.5mozmm;
-  right: 2mozmm;
-  padding-left: 2px;
+  width: 6mozmm;
+  height: 6mozmm;
+  top: 0.75mozmm;
+  right: 0.75mozmm;
 
 	color: #7D8389;
   text-align: center;
-  line-height: 7mozmm;
+  line-height: 6mozmm;
   text-decoration: none;
   text-shadow: #929292 0 1px;
   font-size: 2em;
@@ -161,12 +169,12 @@ html * {
 #phone-number-view-container > div {
   display: block;
   position: relative;
-  height: 12mozmm;
+  height: 11mozmm;
   margin: auto;
 
   color: #FFFFFF;
-  font-size: 8mozmm;
-  line-height: 12mozmm;
+  font-size: 5mozmm;
+  line-height: 11mozmm;
   text-align: center;
   white-space: nowrap;
   text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
@@ -182,8 +190,8 @@ html * {
 	display: block;
 	right: 0;
 	top: 0;
-	width: 12mozmm;
-	height: 12mozmm;
+	width: 11mozmm;
+	height: 11mozmm;
 
   border: 0;
   background: url(images/backspace.png) 50% 50% no-repeat;
@@ -202,12 +210,12 @@ html * {
 }
 
 #keyboard-container {
-  height: -moz-calc(100% - 12mozmm);
+  height: -moz-calc(100% - 11mozmm);
 }
 
 #mainKeyset {
   width: 100%;
-  height: -moz-calc(100% - 16mozmm);
+  height: -moz-calc(100% - 15mozmm);
   min-height: 265px;
   padding: 0;
   margin: 0;
@@ -222,30 +230,43 @@ html * {
   width: 100%;
 }
 
-.keyboard-key {
+.keyboard-row .keyboard-key {
   float: left;
   width: -moz-calc(100% / 3 - 2px);
-  height: -moz-calc(100% - 2px);
-  padding: 0;
+  height: -moz-calc(100% - 36px);
+  padding: 34px 0 0 0;
 
-  border: 1px solid #ccc;
+  border: 1px solid rgba(192, 192, 192, 0.800);
 
+  font-size: 16.5px;
+  font-weight: 600;
   text-align: center;
 }
 
 .keyboard-key > span {
-  line-height: 1em;
+  display: block;
+
   pointer-events: none;
+
+  color: hsla(0,0%,20%,1);
+  font-size: 3em;
+  line-height: 0.9em;
+}
+
+.keyboard-key > span:last-child {
+  color: hsl(0,0%,60%);
+  text-transform: uppercase;
+  font-size: 1em;
 }
 
 .keyboard-row:first-child .keyboard-key {
   border-top: 0;
-  height: -moz-calc(100% - 1px);
+  height: -moz-calc(100% - 35px);
 }
 
 .keyboard-row:last-child .keyboard-key {
-  border-bottom: 2px solid #ccc;
-  height: -moz-calc(100% - 3px);
+  border-bottom: 2px solid rgba(192, 192, 192, 0.800);
+  height: -moz-calc(100% - 37px);
 }
 
 .keyboard-key:active {
@@ -254,55 +275,42 @@ html * {
 .keyboard-key:active > span:first-child {
   color: hsla(35,100%,50%,1);
 }
-.keyboard-key span {
-  display: block;
-
-  color: hsla(0,0%,20%,1);
-  font-size: 1.6em;
-  line-height: 1.8em;
-}
-
-.keyboard-key span:last-child {
-  color: hsl(0,0%,60%);
-  text-transform: uppercase;
-  font-size: 0.6em;
-  line-height:0.8em;
-}
 
 #additionalKeyset {
   width: 100%;
-  height: 16mozmm;
+  height: 15mozmm;
   padding: 0;
   margin: 0;
 }
 
 .keyboard-key[data-value="call"] {
-  width: -moz-calc(100% - 60px);
-  height: 8mozmm;
-  margin: 4mozmm 30px;
+  width: 100%;
+  height: 100%;
+  margin: 0;
 
   border: 0;
-  border-radius: 20px;
 
-  background: -moz-linear-gradient(top, hsl(39,100%,73%) 0, hsla(35,100%,80%,0.2) 2px, hsla(35,100%,50%,.4) 20%,
-                hsl(32,100%,38%) 98%, hsl(32,100%,38%) 99%, hsl(31,100%,50%) 100%),
-              -moz-linear-gradient(top, hsl(39,100%,73%) 0, hsla(35,100%,50%,1) 2px, hsl(32,100%,38%) 98%,
-                hsl(32,100%,38%) 99%, hsl(31,100%,50%) 100%);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-position: 0 0;
+  background-image: url(images/call-button-bg.png);
 }
 
 .keyboard-key[data-value="call"]:active {
-  background: -moz-linear-gradient(bottom, hsl(39,100%,73%) 0, hsla(35,100%,80%,0.2) 2px, hsla(35,100%,50%,.4) 20%,
-                hsl(32,100%,38%) 98%, hsl(32,100%,38%) 99%, hsl(31,100%,50%) 100%),
-              -moz-linear-gradient(bottom, hsl(39,100%,73%) 0, hsla(35,100%,50%,1) 2px, hsl(32,100%,38%) 98%,
-                hsl(32,100%,38%) 99%, hsl(31,100%,50%) 100%);
+  background-image: url(images/call-button-bg-active.png);
+  background-color: transparent;
+}
+.keyboard-key[data-value="call"]:active span {
+  color: white;
 }
 
 .keyboard-key[data-value="call"] span {
 	display: block;
 
   color: white;
-  font-size: 4mozmm;
-  line-height: 8mozmm;
+  line-height: 15mozmm;
+  font-size: 37px;
+  font-weight: bold;
   text-align: center;
   text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5);
   text-transform: none;
@@ -311,10 +319,25 @@ html * {
 @media all and (max-height: 500px) {
   #mainKeyset {
     min-height: 165px;
-    height: -moz-calc(100% - 12mozmm);
+    height: -moz-calc(100% - 11mozmm);
   }
 
-  .keyboard-key span {
+  .keyboard-row .keyboard-key {
+    height: -moz-calc(100% - 12px);
+    padding: 10px 0 0;
+  }
+
+  .keyboard-row:first-child .keyboard-key {
+    border-top: 0;
+    height: -moz-calc(100% - 11px);
+  }
+
+  .keyboard-row:last-child .keyboard-key {
+    border-bottom: 2px solid rgba(192, 192, 192, 0.800);
+    height: -moz-calc(100% - 13px);
+  }
+
+  .keyboard-row .keyboard-key span {
     font-size: 1.3em;
     line-height: 1.8em;
   }
@@ -328,22 +351,25 @@ html * {
     height: 12mozmm;
   }
 
-  .keyboard-key[data-value="call"] {
-    margin: 2mozmm 30px;
-    height: 8mozmm;
+  .keyboard-key[data-value="call"] span {
     font-size: 3mozmm;
-    line-height: 8mozmm;
+    line-height: 12mozmm;
+    display: block;
   }
 
-  .keyboard-key[data-value="call"] span {
-    display: block;
+  #contacts-shortcuts-background {
+    display: none;
+  }
+
+  #contacts-shortcuts {
+    display: none;
   }
 }
 
 /* === Contacts View === */
 
 #contacts-view-scrollable {
-  height: -moz-calc(100% - 10mozmm);
+  height: -moz-calc(100% - 7.5mozmm);
   overflow: scroll;
 }
 
@@ -354,7 +380,7 @@ html * {
 
 #contacts-container-top {
   position: absolute;
-  top: 10mozmm;
+  top: 7.5mozmm;
   width: 100%;
   height: 10px;
 
@@ -366,10 +392,11 @@ html * {
 
 #contacts-search-container {
   position: relative;
-  margin-top: 1.5mozmm;
+  margin-top: 1.25mozmm;
   margin-left: 2mozmm;
-  width: -moz-calc(100% - 14mozmm);
-  height: -moz-calc(7mozmm - 6px);
+  padding: 0;
+  width: -moz-calc(100% - 10mozmm);
+  height: -moz-calc(5mozmm - 6px);
 
   border: 3px solid #7B8288;
   border-radius: 50px 50px 50px 50px;
@@ -379,30 +406,27 @@ html * {
 
 #contacts-search {
   position: absolute;
-  top: 2px;
+  top: 0;
   left: 0;
   margin: 0;
-  padding: 0 20px 0 30px;
-  width: -moz-calc(100% - 54px);
-  height: -moz-calc(100% - 4px);
+  padding: 0 0 0 32px;
+  width: -moz-calc(100% - 15px - 15px);
+  height: 100%;
 
-  border: 0;
   background: url("images/input-icon-search.png") no-repeat scroll 8px 50%, -moz-linear-gradient(center top , rgba(0, 0, 0, 0.2) 0px, rgba(255, 255, 255, 0) 20px, #FFFFFF 100%) repeat scroll 0 0 #FFFFFF;
 
-  font-size: 1.1em;
+  border: 0;
 }
 
 .contact-header {
   position: relative;
-  height: 5mozmm;
+  height: 3.5mozmm;
   padding: 0 14px 0 20px;
   overflow: visible;
 
   background: url(images/diagonal-pattern.png) 0 0, hsla(60,13%,94%,1);
 
-  font-size: 1.4em;
   font-weight: 700;
-  line-height: 5mozmm;
   color: #FFFFFF;
 
   border-top: 1px solid hsla(0,0%,100%,1);
@@ -415,22 +439,23 @@ html * {
   position: absolute;
   top: -1mozmm;
   left: 2mozmm;
-  width: 7mozmm;
-  height: 7mozmm;
+  width: 5.5mozmm;
+  height: 5.5mozmm;
 
-  line-height: 7mozmm;
+  line-height: 5.5mozmm;
   color: hsla(0,0%,100%,1);
   text-align: center;
-  font-size: 1.2em;
+  font-size: 24px;
+  font-weight: bold;
   text-transform: uppercase;
 
   background: url(images/contacts-circle.png);
-  background-size: 7mozmm 7mozmm;
+  background-size: 100% 100%;
 }
 
 .contact {
   padding: 0 14px 0 4mozmm;
-  height: 8mozmm;
+  height: 7.2mozmm;
   width: -moz-calc(100% - 2px);
 
   border-bottom: 1px solid #CCCCCC;
@@ -438,8 +463,12 @@ html * {
   color: hsla(0,0%,20%,1);
 	background: none;
 
-  line-height: 8mozmm;
-  font-size: 3mozmm;
+  line-height: 7.2mozmm;
+  font-size: 26px;
+}
+
+.contact > span:last-child {
+  font-weight: bold;
 }
 
 .contact * {
@@ -454,10 +483,10 @@ html * {
 
 #contacts-shortcuts-background {
   position: fixed;
-  right: 10px;
-  top: 12mozmm;
-  width: 22px;
-  height: -moz-calc(100% - 14mozmm - 100px);
+  right: 0;
+  top: 11.1mozmm;
+  width: 32px;
+  height: -moz-calc(100% - 14.5mozmm - 96px);
 
   background: none;
   border-radius: 4px;
@@ -469,21 +498,21 @@ html * {
 
 #contacts-shortcuts {
   position: fixed;
-  right: 10px;
-  top: 14mozmm;
-  width: 44px;
-  height: -moz-calc(100% - 18mozmm - 100px);
+  right: 0;
+  top: 12.6mozmm;
+  width: 32px;
+  height: -moz-calc(100% - 17.5mozmm - 96px);
 }
 
 #contacts-shortcuts > a {
   display: block;
-  width: 22px;
-  height: -moz-calc(100% / 26 - 2px);
-  margin: 2px 0;
-  padding-left: 22px;
+  width: 32px;
+  height: -moz-calc(100% / 26);
+  margin: 0;
 
   color: #999999;
-  font-size: 12px;
+  font-weight: 600;
+  font-size: 14px;
   text-align: center;
 }
 
@@ -515,27 +544,29 @@ html * {
 
 #contact-details-container {
   position: absolute;
-  top: 10%;
-  left: 5%;
-  width: 90%;
-  height: 80%;
+  top: 12.5%;
+  left: 7%;
+  width: 86%;
+  height: 71%;
 
   overflow: visible;
   box-shadow: 0 3px 5px black;
 
   border-radius:5px;
-  background: url(images/details-texture.png) no-repeat,
-              url(images/app-texture.png) 50% 50%,
+  background: url(images/app-texture.png) 50% 50%,
               -moz-linear-gradient(bottom, hsla(0,0%,60%,1) 0,
               hsla(0,0%,0%,.1) 1px, hsla(0,0%,0%,0) 30%, hsla(0,0%,0%,0) 100%), hsla(0,0%,96%,1);
 }
 
 #contact-details-view {
-  padding: 20px;
+  padding: 24px;
   -moz-transition: opacity 0.15s ease;
 }
 
 #contact-edit-button {
+  /* TODO: re-activate when we have an edit feature */
+  display: none;
+
   position: absolute;
   bottom: 20px;
   right: 20px;
@@ -570,16 +601,34 @@ html * {
   display: none;
 }
 
+#contact-details-view span {
+  display: block;
+  float: left;
+  width: 20%;
+  margin-right: 5%;
+
+  color: #EE6700;
+  text-align: right;
+  text-transform: uppercase;
+  font-size: 18px;
+  font-weight: bold;
+  line-height: 32px;
+}
+
 #contact-details-view input {
-  width: -moz-calc(100% - 88px);
+  display: block;
+  float: left;
+  width: 75%;
   color: #000;
   background: none;
   border: none;
   padding: 0;
   margin: 0;
 
-  font-size: 0.8em;
-  text-align: center;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 32px;
+  text-align: left;
 }
 
 #contact-details-view input:invalid {
@@ -602,9 +651,14 @@ html * {
 
 #contact-name {
   float: left;
-  width: -moz-calc(100% - 140px - 20px);
-  margin: 20px 0;
-  font-size: 2.0em;
+  margin: 32px 10px;
+  width: -moz-calc(100% - 140px - 25px);
+  height: 40px;
+
+  font-size: 26px;
+  font-weight: bold;
+  color: #000000;
+  text-overflow: ellipsis;
 }
 
 #contact-name input {
@@ -616,16 +670,16 @@ html * {
 }
 
 #contact-details-view > .group {
-  width: -moz-calc(100% - 4px);
+  width: 100%;
   margin: 30px auto;
   clear: both;
 
-  border-radius: 10px;
-  border: 2px #EBEBEB solid;
   overflow: hidden;
 
-  font-size: 2em;
   text-align: center;
+
+  background: url(images/contact-input-bg.png) 50% 50% no-repeat;
+  background-size: contain;
 }
 
 #contact-details-view > .group > div {
@@ -648,10 +702,6 @@ html * {
 
 #contact-details-view > .group > div:first-child {
   border-top: 0px;
-}
-
-#contact-details-view > .group > div:hover:active {
-  background-color: rgba(49, 147, 255, 0.7);
 }
 
 #contact-details-view .delete-button {
@@ -692,9 +742,9 @@ html * {
 #contact-details-line {
   position: absolute;
   right: 10px;
-  bottom: -10px;
   left: 10px;
-  height: 10px;
+  bottom: -8px;
+  height: 8px;
 
   border-radius: 0 0 5px 5px;
   background: -moz-linear-gradient(bottom, hsla(25,100%,35%,1) 0%, hsla(25,100%,42%,1) 1px, hsla(25,100%,26%,1) 100%);
@@ -736,14 +786,6 @@ html * {
 }
 
 /* === Oncall transitions === */
-
-#tabs.oncall {
-  bottom: -100%;
-}
-
-#views.oncall {
-  top: 100%;
-}
 
 #call-screen.oncall {
   top: 0;
@@ -792,12 +834,13 @@ html * {
   border: 0;
 
   border-radius: 10px;
-	background: url(images/call-screen-bg.png) 0 0 no-repeat;
+  background: url(images/call-screen-bg.png) 0 0 no-repeat;
   background-size: 100% 100%;
 
   font-size: 7mozmm;
 
   -moz-transition: top 0.3s ease;
+  z-index: 100;
 }
 
 #call-screen-top {
@@ -807,7 +850,6 @@ html * {
 	background-image: url(images/call-screen-bg-top.png);
   background-position: 0 0;
   background-repeat: no-repeat;
-  background-size: 100% 100%;
 }
 
 #call-screen.incoming #call-screen-top {
@@ -823,7 +865,7 @@ html * {
 #call-picture {
   width: 140px;
   height: 140px;
-  margin: 44px 0;
+  margin: 32px 0;
 
   border-radius: 5px;
   box-shadow: 0 3px 5px rgba(0, 0, 0, .5);
@@ -991,4 +1033,55 @@ html * {
 
 #call-screen.calling #accept-call {
   display: none;
+}
+
+/* === Recents === */
+#recents-view {
+  overflow: scroll;
+}
+
+.recent {
+  position: relative;
+  padding: 0;
+  height: 96px;
+  width: -moz-calc(100% + 8px);
+
+  border-bottom: 1px solid #CCCCCC;
+  border-top: 1px solid #FFFFFF;
+  color: hsla(0,0%,20%,1);
+	background: none;
+
+  line-height: 7.2mozmm;
+  font-size: 26px;
+}
+
+.recent img {
+  float: left;
+  width: 96px;
+  height: 100%;
+}
+
+.recent .name {
+  margin-left: 112px;
+  font-weight: bold;
+}
+
+.recent .number {
+  position: absolute;
+  bottom: 8px;
+  left: 112px;
+
+  color: #666666;
+
+  font-size: 0.8em;
+}
+
+.recent .timestamp {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+
+  color: #999999;
+  font-size: 16px;
+  line-height: 1.4em;
 }

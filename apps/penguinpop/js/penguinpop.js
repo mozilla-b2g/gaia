@@ -5,23 +5,16 @@ window.addEventListener('load', function() {
   var gameframe = document.getElementById('gameframe');
   var splash = document.getElementById('splash');
 
-  // Start a CSS animation
-  splash.style.left = '180px';
-  splash.addEventListener('transitionend', function(e) {
-    if (e.propertyName === 'left') {
-      splash.style.MozTransform = 'scale(4)';
-      splash.style.opacity = 0;
-    }
-    else if (e.propertyName === '-moz-transform') {
-      splash.parentNode.removeChild(splash);
-    }
-  });
-
   // Load the game.
   gameframe.src = 'http://goosypets.com/html5games/whac/';
 
   gameframe.onload = function() {
-    // Make it opaque when loaded, hiding the splash icon
+    // Make the game opaque when loaded
     gameframe.style.opacity = 1;
+    splash.style.opacity = 0;
+    splash.addEventListener("transitionend", function() {
+      // When the transition is done, remove the splash image completely
+      splash.parentNode.removeChild(splash);
+    });
   };
 });
