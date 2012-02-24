@@ -744,7 +744,7 @@ function OnLoad() {
       };
 
       var appWindow = WindowManager.getForegroundWindow();
-      if (appWindow) {
+      if (appWindow && (appWindow.application.name != 'Dialer')) {
         WindowManager.closeForegroundWindow();
         appWindow.element.addEventListener('transitionend', function closed() {
           appWindow.element.removeEventListener('transitionend', closed);
