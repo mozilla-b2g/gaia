@@ -730,6 +730,15 @@ function OnLoad() {
   ];
   new NotificationScreen(touchables);
 
+  var telephony = navigator.mozTelephony;
+  if (telephony) {
+    telephony.addEventListener('incoming', function incoming(evt) {
+      var url = '../dialer/dialer.html?choice=incoming&number=';
+      var app = WindowManager.launch(url + evt.call.number);
+    });
+
+  }
+
   var apps = Gaia.AppManager.loadInstalledApps(function(apps) {
     var rows = Math.ceil((window.innerHeight - 200) / 200);
     var columns = Math.ceil((window.innerWidth - 100) / 150);
