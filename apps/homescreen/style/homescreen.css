@@ -393,7 +393,11 @@ iframe.landscape-secondary {
   width: 3px;
   margin: 1px;
 
-  background: #999;
+  background: #333333;
+}
+
+#signal span.haveSignal {
+  background: #999999;
 }
 
 #signal span:nth-child(1) {
