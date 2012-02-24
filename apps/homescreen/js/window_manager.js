@@ -85,17 +85,31 @@ Window.prototype = {
 
       sprite.crossFade();
 
+      var url = this.application.url;
       var element = this.element;
       if (!this._loaded) {
-        element.src = this.application.url;
+        element.src = url;
         this._loaded = true;
+
+        window.addEventListener('message', function waitForAppReady(evt) {
+          if (evt.data !== 'appready')
+            return;
+
+          window.removeEventListener('message', waitForAppReady);
+          element.contentWindow.postMessage({
+            message: 'visibilitychange',
+            url: element.src,
+            hidden: false
+          }, '*');
+        });
+      } else {
+        element.contentWindow.postMessage({
+          message: 'visibilitychange',
+          url: url,
+          hidden: false
+        }, '*');
       }
       element.focus();
-      element.contentWindow.postMessage({
-        message: 'visibilitychange',
-        url: this.application.url,
-        hidden: false
-      }, '*');
 
       if (callback)
         callback();
@@ -311,6 +325,10 @@ var WindowManager = {
       return;
 
     var name = application.name;
+
+    // getInstalledAppForURL will return an object with the URL stripped
+    // so let's set it back to default
+    application.url = url;
 
     var applicationWindow = this.getWindowByApp(application);
     if (applicationWindow) {
