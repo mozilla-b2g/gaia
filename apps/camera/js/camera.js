@@ -75,9 +75,12 @@ window.addEventListener('DOMContentLoaded', function CameraInit() {
 // we want this event to be fire when an app come back to life
 // or is minimized (it does not now).
 window.addEventListener('message', function CameraPause(evt) {
+  if (evt.data.message !== 'visibilitychange')
+    return;
+
   if (evt.data.hidden) {
     Camera.pause();
-  } else if (evt.data.hidden === false) {
+  } else {
     Camera.init();
   }
 });
