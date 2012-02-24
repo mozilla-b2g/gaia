@@ -13,45 +13,6 @@ const SAMPLE_FILENAMES = ['DSC_1677.jpg', 'DSC_1701.jpg', 'DSC_1727.jpg',
 'IMG_8638.jpg', 'IMG_8648.jpg', 'IMG_8652.jpg', '_MG_0053.jpg', 'P1000115.jpg',
 'P1000404.jpg', 'P1000469.jpg', 'P1000486.jpg'];
 
-/*
-  slideshow:
-  
-  click play to start
-
-     hides the controls
-     shows photos for 2s
-     
-  slideshow ends when it reaches the end of the gallery
-
-  if user pans during slideshow I think I should keep automatically advancing
-
-  really should change the play button to a pause button
---
-
-  play button onclick:
-
-     if not playing, start
-     else stop
-     
-     if not playing, change button to pause
-     else change button to play
-
-  next slide timer:
-
-     if we're on the last photo, stop (and change the button back, etc.)
-     else advance to next photo
-
-
-  methods:
-    startSlideshow
-    stopSlideshow
-    advanceSlide
-
- fields: slideshowTimer
-
-*/
-
-
 //-----------------------------------------------------------------------------
 // XXX: share this with homescreen.  Paginated panning is a gap.
 //
