@@ -357,11 +357,20 @@ var CallHandler = {
     var onCall = callScreen.classList.contains('oncall');
     callScreen.style.MozTransform = onCall ? 'translateY(-1px)' : 'translateY(-moz-calc(-100% + 1px))';
 
+    // hardening against the unavailability of MozAfterPaint
+    var finishTransition = function cs_finishTransition() {
+      callScreen.style.MozTransition = '-moz-transform 0.5s ease';
+      callScreen.style.MozTransform = onCall ? 'translateY(-100%)' : 'translateY(0)';
+      callScreen.classList.toggle('oncall');
+    };
+
+    var securityTimeout = setTimeout(finishTransition, 100);
+
     window.addEventListener('MozAfterPaint', function ch_triggerTransition() {
       window.removeEventListener('MozAfterPaint', ch_triggerTransition);
-        callScreen.style.MozTransition = '-moz-transform 0.5s ease';
-        callScreen.style.MozTransform = onCall ? 'translateY(-100%)' : 'translateY(0)';
-        callScreen.classList.toggle('oncall');
+
+      clearTimeout(securityTimeout);
+      finishTransition();
     });
   },
   toggleMute: function ch_toggleMute() {
