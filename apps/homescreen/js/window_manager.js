@@ -34,10 +34,12 @@ WindowSprite.prototype = {
 
   crossFade: function ws_crossFade() {
     var afterCrossFade = (this.remove).bind(this);
+    // XXX: wait for 50ms for iframe to be painted.
+    // setTimeout(0) is used to escape the current event firing.
     setTimeout((function () {
       this.element.addEventListener('transitionend', afterCrossFade);
       this.element.classList.add('crossFade');
-    }).bind(this), 0);
+    }).bind(this), 50);
   }
 };
 
