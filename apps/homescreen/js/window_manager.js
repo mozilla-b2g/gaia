@@ -48,7 +48,10 @@ var _statusBarHeight = null;
 function Window(application, id) {
   var element = this.element = document.createElement('iframe');
   element.setAttribute('mozallowfullscreen', 'true');
-  element.setAttribute('mozbrowser', 'true');
+  // TODO: a platform fix will come
+  if(application.name != 'Dialer') {
+    element.setAttribute('mozbrowser', 'true');
+  }
   element.id = 'window_' + id;
   element.className = 'appWindow';
 
