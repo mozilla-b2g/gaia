@@ -406,7 +406,8 @@
     'keyboard.layouts.zhuying': 'true',
     'debug.grid.enabled' : 'false',
     'homescreen.wallpaper': 'default.png',
-    'language.current': 'en-US'
+    'language.current': 'en-US',
+    'phone.vibrator.incoming': 'false'
   };
 
   var DBNAME = 'mozSettings';     // Strings used by IndexedDB
