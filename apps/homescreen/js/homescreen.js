@@ -734,8 +734,27 @@ function OnLoad() {
   var telephony = navigator.mozTelephony;
   if (telephony) {
     telephony.addEventListener('incoming', function incoming(evt) {
+      Gaia.lockScreen.unlock(-1, true);
+      screen.mozEnabled = true;
+      screen.mozBrightness = 1.0;
+
       var url = '../dialer/dialer.html?choice=incoming&number=';
-      var app = WindowManager.launch(url + evt.call.number);
+      var launchFunction = function launchDialer() {
+        WindowManager.launch(url + evt.call.number);
+      };
+
+      var appWindow = WindowManager.getForegroundWindow();
+      if (appWindow) {
+        WindowManager.closeForegroundWindow();
+        appWindow.element.addEventListener('transitionend', function closed() {
+          appWindow.element.removeEventListener('transitionend', closed);
+
+          launchFunction();
+        });
+      } else {
+        launchFunction();
+      }
+
     });
 
   }
