@@ -442,7 +442,7 @@
             settingsRequest.result = result;
             onsuccess.forEach(function(cb) { cb(); });
           };
-          dbreq.onerror = function() {
+          dbreq.onerror = function(e) {
             console.log('mozSettings error querying setting', key, e);
             onerror.forEach(function(cb) { cb(); });
           };
