@@ -219,9 +219,7 @@ var CallHandler = {
     this.pictureView.innerHTML = '';
     var self = this;
     Contacts.findByNumber(number, function showPicture(contact) {
-      self.pictureView.innerHTML = '<img src="../contacts/contact' +
-        (contact.id % 10) +
-        '.png" alt="contact picture" />';
+      self.pictureView.innerHTML = profilePictureForNumber(contact.id);
     });
 
     this.toggleCallScreen();
@@ -237,9 +235,7 @@ var CallHandler = {
     this.pictureView.innerHTML = ''
 
     // XXX: remove the fake contact when the contact API lands
-    this.pictureView.innerHTML = '<img src="../contacts/contact' +
-      (call.number % 10) +
-      '.png" alt="contact picture" />';
+    this.pictureView.innerHTML = profilePictureForNumber(call.numer);
 
     this.toggleCallScreen();
   },

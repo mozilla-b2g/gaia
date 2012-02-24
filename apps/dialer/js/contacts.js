@@ -416,9 +416,7 @@ var ContactDetails = {
     }
     document.getElementById('contact-name').innerHTML = names;
 
-    document.getElementById('contact-photo').innerHTML = '<img src="../contacts/contact' +
-      (this._contact.id % 10) +
-      '.png" alt="contact picture" />';
+    document.getElementById('contact-photo').innerHTML = profilePictureForNumber(this._contact.id);
 
     var addAttr = 'data-action="add" onclick="ContactDetails.execute(event)"';
     var phones = '';

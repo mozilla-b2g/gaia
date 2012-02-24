@@ -13,7 +13,7 @@ var Recents = {
       var recent = this.last[i];
 
       content += '<div class="recent" data-number="' + recent.number + '">' +
-                 '<img src="../contacts/contact' + i + '-small.png" alt="contact picture" />' +
+                 profilePictureForNumber(i) +
                  '<div class="name">' + recent.name + '</div>' +
                  '<div class="number">' + recent.number + '</div>' +
                  '<div class="timestamp">' + recent.timestamp + '</div>' +
