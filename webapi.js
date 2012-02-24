@@ -126,6 +126,7 @@
                      'name': 'Video',
                      'description': 'Gaia Video',
                      'launch_path': '/video.html',
+                     'hackKillMe': true,
                      'developer': {
                        'name': 'The Gaia Team',
                        'url': 'https://github.com/andreasgal/gaia'
@@ -235,6 +236,7 @@
                      'name': 'Crystal Skull',
                      'description': 'Demo of WebGL',
                      'launch_path': '/crystalskull.html',
+                     'hackKillMe': true,
                      'developer': {
                        'name': 'Unknown',
                        'url': 'http://www.everyday3d.com/j3d/demo/004_Glass.html'
@@ -292,7 +294,6 @@
                      'launch_path': '',
                      'orientation': 'landscape-primary',
                      'fullscreen': true,
-                     'hackKillMe': true,
                      'developer': {
                        'name': 'ZeptoLab',
                        'url': 'http://cuttherope.ie'
