@@ -197,10 +197,15 @@ var ConversationListView = {
     var name = num;
 
     var contacts = window.navigator.mozContacts.contacts;
-    contacts.forEach(function(contact) {
-      if (contact.phones[0] == num)
-        name = contact.displayName;
+    var matches = contacts.filter(function(contact) {
+      return contact.phones[0] == num;
     });
+
+    if (matches.length) {
+      name = matches[0].displayName;
+    } else {
+      name = formatNumber(num);
+    }
 
     return '<div data-num="' + num + '" data-name="' + name + '">' +
            '  <div class="photo">' +
@@ -458,6 +463,87 @@ var ConversationView = {
 };
 
 window.addEventListener('load', function loadMessageApp() {
-  ConversationView.init();
-  ConversationListView.init();
+  var request = window.navigator.mozSettings.get('language.current');
+  request.onsuccess = function() {
+    selectedLocale = request.result.value;
+    ConversationView.init();
+    ConversationListView.init();
+  }
 });
+
+
+var selectedLocale = 'en-US';
+
+var kLocaleFormatting = {
+  'en-US': 'xxx-xxx-xxxx',
+  'fr-FR': 'xx xx xx xx xx',
+  'es-ES': 'xx xxx xxxx'
+};
+
+function formatNumber(number) {
+  var format = kLocaleFormatting[selectedLocale];
+
+  if (number[0] == '+') {
+    switch (number[1]) {
+      case '1': // North America
+        format = 'xx ' + kLocaleFormatting['en-US'];
+        break;
+      case '2': // Africa
+        break;
+      case '3': // Europe
+        switch (number[2]) {
+          case '0': // Greece
+            break;
+          case '1': // Netherlands
+            break;
+          case '2': // Belgium
+            break;
+          case '3': // France
+            format = 'xxx ' + kLocaleFormatting['fr-FR'];
+            break;
+          case '4': // Spain
+            format = 'xxx ' + kLocaleFormatting['es-ES'];
+            break;
+            break;
+          case '5': 
+            break;
+          case '6': // Hungary
+            break;
+          case '7':
+            break;
+          case '8':
+            break;
+          case '9': // Italy
+            break;
+        }
+        break;
+      case '4': // Europe
+        break;
+      case '5': // South/Latin America
+        break;
+      case '6': // South Pacific/Oceania
+        break;
+      case '7': // Russia and Kazakhstan
+        break;
+      case '8': // East Asia, Special Services
+        break;
+      case '9': // West and South Asia, Middle East
+        break;
+    }
+  }
+
+  var formatted = '';
+
+  var index = 0;
+  for (var i = 0; i < number.length; i++) {
+    var c = format[index++];
+    if (c && c != 'x') {
+      formatted += c
+      index++;
+    }
+
+    formatted += number[i];
+  }
+
+  return formatted;
+};

@@ -152,7 +152,7 @@ input, textarea {
 	border-bottom: 1px solid hsla(223,7%,81%,1);
 }
 
-#msg-conversations-list > div:hover:active {
+#msg-conversations-list > div:active {
   background: hsla(35,100%,50%,.2);
 }
 
