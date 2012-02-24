@@ -3,143 +3,127 @@
 
 'use strict';
 
-if (!window['Gaia'])
-  var Gaia = {};
+var TaskManager = {
+  isActive: function tm_isActive() {
+    return this.container.classList.contains('active');
+  },
 
-(function() {
-  var timeout = 0;
+  show: function tm_show() {
+    this.container.classList.add('active');
+  },
 
-  Gaia.TaskManager = {
-    _active: false,
-    get isActive() {
-      return this._active;
-    },
+  hide: function tm_hide() {
+    this.container.classList.remove('active');
+  },
 
-    setActive: function(value) {
-      if (this._active && value)
-        return;
-      this._active = value;
+  get container() {
+    delete this.container;
+    return this.container = document.getElementById('taskManager');
+  },
 
-      WindowManager.setActive(false);
+  get items() {
+    delete this.items;
+    return this.items = this.container.getElementsByTagName('ul')[0];
+  },
 
-      WindowManager.windows.forEach(function(win) {
-        win.setActive(value);
-      });
+  enabled: true,
+  init: function tm_init() {
+    ['keydown', 'keyup', 'locked', 'unlocked'].forEach((function attachKey(type) {
+      window.addEventListener(type, this);
+    }).bind(this));
+  },
 
-      this.container.classList.toggle('active');
-    },
+  _timeout: 0,
+  handleEvent: function tm_handleEvent(evt) {
+    switch (evt.type) {
+      case 'keydown':
+        if (!this.enabled || evt.keyCode !== evt.DOM_VK_HOME || this._timeout)
+          return;
 
-    get container() {
-      delete this.container;
-      return this.container = document.getElementById('taskManager');
-    },
+        if (this.isActive()) {
+          this.hide();
+          return;
+        }
 
-    get items() {
-      delete this.items;
-      return this.items = this.container.getElementsByTagName('ul')[0];
-    },
+        this._timeout = window.setTimeout(function checkKeyPress(self) {
+          self.show();
+        }, 1000, this);
+        break;
 
-    enabled: true,
+      case 'keyup':
+        if (evt.keyCode !== evt.DOM_VK_HOME)
+          return;
 
-    init: function() {
-      window.addEventListener('keydown', this);
-      window.addEventListener('keyup', this);
-      window.addEventListener('locked', this);
-      window.addEventListener('unlocked', this);
-    },
+        window.clearTimeout(this._timeout);
+        this._timeout = 0;
+        break;
 
-    handleEvent: function(evt) {
-      switch (evt.type) {
-        case 'keydown':
-          if (!this.enabled || evt.keyCode !== evt.DOM_VK_HOME || timeout)
-            return;
 
-          if (this.isActive) {
-            this.setActive(false);
-            return;
-          }
-
-          timeout = window.setTimeout(function checkKeyPress(self) {
-            self.setActive(true);
-          }, 1000, this);
-          break;
-
-        case 'keyup':
-          if (evt.keyCode !== evt.DOM_VK_HOME)
-            return;
-
-          window.clearTimeout(timeout);
-          timeout = 0;
-          break;
-
-        case 'locked':
-          this.enabled = false;
-          break;
-        case 'unlocked':
-          this.enabled = true;
-          break;
-      }
-    },
-
-    add: function(app, id) {
-      var item = document.createElement('li');
-      item.id = 'task_' + id;
-
-      var style = 'background: -moz-element(#window_' + id + ') no-repeat';
-      item.setAttribute('style', style);
-
-      var close = document.createElement('a');
-      item.appendChild(close);
-
-      var title = document.createElement('h1');
-      title.innerHTML = app.name;
-      item.appendChild(title);
-
-      this.items.appendChild(item);
-
-      var self = this;
-      item.addEventListener('click', function taskClickHandler(evt) {
-        window.setTimeout(function launchApp() {
-          WindowManager.launch(app.url);
-        }, 400);
-        self.setActive(false);
-      });
-
-      close.addEventListener('click', function(evt) {
-        evt.stopPropagation();
-        evt.preventDefault();
-        self.remove(app, id);
-        return false;
-      }, true);
-
-      return item;
-    },
-
-    remove: function(app, id) {
-      var item = document.getElementById('task_' + id);
-      this.items.removeChild(item);
-      WindowManager.kill(app.url);
-
-      if (this.items.children.length === 0) 
-        this.setActive(false);
-    },
-
-    sendToFront: function(id) {
-      var items = this.items;
-      var firstItem = items.firstChild;
-
-      var item = document.getElementById('task_' + id);
-      if (item === firstItem)
-        return;
-
-      items.removeChild(item);
-      items.insertBefore(item, firstItem);
+      case 'locked':
+        this.enabled = false;
+        break;
+      case 'unlocked':
+        this.enabled = true;
+        break;
     }
+  },
 
-  };
+  add: function tm_add(app, id) {
+    var item = document.createElement('li');
+    item.id = 'task_' + id;
 
-  window.addEventListener('load', function(evt) {
-    Gaia.TaskManager.init();
-  });
+    var style = 'background: -moz-element(#window_' + id + ') no-repeat';
+    item.setAttribute('style', style);
 
-})();
+    var close = document.createElement('a');
+    item.appendChild(close);
+
+    var title = document.createElement('h1');
+    title.innerHTML = app.name;
+    item.appendChild(title);
+
+    this.items.appendChild(item);
+
+    var self = this;
+    item.addEventListener('click', function taskClickHandler(evt) {
+      self.hide();
+      WindowManager.launch(app.url);
+    });
+
+    close.addEventListener('click', function(evt) {
+      evt.stopPropagation();
+      evt.preventDefault();
+      self.remove(app, id);
+      return false;
+    }, true);
+
+    return item;
+  },
+
+  remove: function tm_remove(app, id) {
+    var item = document.getElementById('task_' + id);
+    this.items.removeChild(item);
+
+    WindowManager.kill(app.url);
+
+    if (this.items.children.length === 0) 
+      this.hide();
+  },
+
+  sendToFront: function tm_sendToFront(id) {
+    var items = this.items;
+    var firstItem = items.firstChild;
+
+    var item = document.getElementById('task_' + id);
+    if (item === firstItem)
+      return;
+
+    items.removeChild(item);
+    items.insertBefore(item, firstItem);
+  }
+};
+
+window.addEventListener('load', function(evt) {
+  TaskManager.init();
+});
+
