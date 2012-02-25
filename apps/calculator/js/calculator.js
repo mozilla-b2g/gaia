@@ -7,6 +7,7 @@ var Calculator = {
   display: document.getElementById('display'),
 
   backSpaceTimeout: null,
+  errorTimeout: null,
   toClear: false,
 
   operators: ['÷', '×', '-', '+'],
@@ -95,8 +96,16 @@ var Calculator = {
       /*jshint evil:true */
       this.stack = [eval(this.stack.map(this.substitute).join(''))];
       this.updateDisplay();
-    } catch(err) { }
-    this.toClear = true;
+      this.toClear = true;
+    } catch(err) {
+      this.display.classList.add('error');
+      if (this.errorTimeout === null) {
+        this.errorTimeout = window.setTimeout(function(self) {
+          self.display.classList.remove('error');
+          self.errorTimeout = null;
+        }, 300, this);
+      }
+    }
   },
 
   clearBackspaceTimeout: function() {
