@@ -73,8 +73,14 @@ body {
   background-origin: padding-box;
   background-position: center center;
   background-repeat: no-repeat;
-  background-size: cover;
 }
+
+@media not all and (width: 480px) and (height: 800px) {
+  #lockscreen > #lockscreenContainer {
+    background-size: cover;
+  }
+}
+
 
 #lockscreen #clock {
   position: absolute;
