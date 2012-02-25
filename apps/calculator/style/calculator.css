@@ -10,19 +10,28 @@ body, html {
 
 body {
     color: white;
-    font-family: "Roboto", sans-serif;
+    font-family: 'Open Sans Semibold', sans-serif;
     font-size: 2.5mozmm;
     background: url("images/home-texture.png") repeat scroll 2% 50% #666666;
 }
 
+input {
+    font-family: 'Open Sans Semibold', sans-serif;
+}
+
 @font-face {
-    font-family: Roboto;
-    src: url('fonts/Roboto-Regular.ttf');
+  font-family: 'Open Sans';
+  src: url('fonts/Open-Sans.woff');
 }
 @font-face {
-    font-family: Roboto;
-    font-weight: bold;
-    src: url('fonts/Roboto-Bold.ttf');
+  font-family: 'Open Sans Bold';
+  font-weight: bold;
+  src: url('fonts/Open-Sans-Bold.woff');
+}
+@font-face {
+  font-family: 'Open Sans Semibold';
+  font-weight: 600;
+  src: url('fonts/Open-Sans-Semibold.woff');
 }
 
 #calc_wrapper {
