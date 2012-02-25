@@ -450,7 +450,8 @@ const IMEManager = {
 
   handleEvent: function km_handleEvent(evt) {
     var activeWindow = Gaia.AppManager.foregroundWindow;
-    if (!activeWindow || activeWindow == this._closingWindow)
+    if (!activeWindow ||
+        (activeWindow == this._closingWindow && evt.type != 'appclose'))
       return;
 
     var target = evt.target;
