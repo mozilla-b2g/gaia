@@ -99,18 +99,20 @@ Window.prototype = {
             return;
 
           window.removeEventListener('message', waitForAppReady);
-          element.contentWindow.postMessage({
-            message: 'visibilitychange',
-            url: element.src,
-            hidden: false
-          }, '*');
+          if (element.contentWindow)
+            element.contentWindow.postMessage({
+              message: 'visibilitychange',
+              url: element.src,
+              hidden: false
+            }, '*');
         });
       } else {
-        element.contentWindow.postMessage({
-          message: 'visibilitychange',
-          url: url,
-          hidden: false
-        }, '*');
+        if (element.contentWindow)
+          element.contentWindow.postMessage({
+            message: 'visibilitychange',
+            url: url,
+            hidden: false
+          }, '*');
       }
       element.focus();
 
@@ -142,11 +144,12 @@ Window.prototype = {
 
       var element = this.element;
       element.blur();
-      element.contentWindow.postMessage({
-        message: 'visibilitychange',
-        url: this.application.url,
-        hidden: true
-      }, '*');
+      if (element.contentWindow)
+        element.contentWindow.postMessage({
+          message: 'visibilitychange',
+          url: this.application.url,
+          hidden: true
+        }, '*');
 
       window.top.focus();
 
@@ -201,6 +204,7 @@ function getApplicationManager() {
 var WindowManager = {
   init: function wm_init() {
     window.addEventListener('home', this);
+    window.addEventListener('switcher', this);
     window.addEventListener('message', this);
     window.addEventListener('appopen', this);
     window.addEventListener('appwillclose', this);
@@ -224,10 +228,21 @@ var WindowManager = {
         if (evt.data == 'appclose')
           this.closeForegroundWindow();
         break;
-      case 'home':
+      case 'home':  // quick press and release of the Home button
         if (!this.enabled)
           return;
-        this.closeForegroundWindow();
+        if (TaskManager.isActive())
+          TaskManager.hide();
+        else 
+          this.closeForegroundWindow();
+        break;
+      case 'switcher': // press and long hold of the Home button
+        if (!this.enabled)
+          return;
+        if (TaskManager.isActive())
+          TaskManager.hide();
+        else
+          TaskManager.show()
         break;
       case 'appopen':
         this.container.classList.add('active');
@@ -289,9 +304,12 @@ var WindowManager = {
   },
 
   setForegroundWindow: function wm_setForegroundWindow(newWindow) {
-    var oldWindow = this._foregroundWindow;
-    if (oldWindow === newWindow || this._isInTransition)
+    if (this._foregroundWindow === newWindow || this._isInTransition)
       return;
+
+    if (this._foregroundWindow != null)
+      this.closeForegroundWindow();
+
     this._foregroundWindow = newWindow;
     this._isInTransition = true;
 
@@ -362,6 +380,11 @@ var WindowManager = {
 
     var name = application.name;
     this._fireEvent(applicationWindow.element, 'appkill', name);
+    if (applicationWindow === this._foregroundWindow) {
+      // If we don't clear this here, we'll try to blur it later
+      // even though it has been killed.
+      this._foregroundWindow = null;
+    }
     this.remove(applicationWindow);
   },
 
