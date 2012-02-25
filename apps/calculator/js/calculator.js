@@ -1,12 +1,10 @@
-/*global window:true, document: true */
 'use strict';
 
 var Calculator = {
 
   BACKSPACE_TIMEOUT: 750,
 
-  dom_display: document.getElementById('display'),
-  dom_clear: document.getElementById('clear'),
+  display: document.getElementById('display'),
 
   backSpaceTimeout: null,
   toClear: false,
@@ -18,7 +16,7 @@ var Calculator = {
 
   updateDisplay: function() {
     if (this.stack.length === 0) {
-      this.dom_display.value = '0';
+      this.display.value = '0';
       return;
     }
 
@@ -35,7 +33,7 @@ var Calculator = {
       }
       prev = cur;
     }
-    this.dom_display.value = out.join('');
+    this.display.value = out.join('');
   },
 
   isOperator: function(val) {
@@ -117,41 +115,36 @@ var Calculator = {
     }, this.BACKSPACE_TIMEOUT, this);
   },
 
-  keyEvents: {
-    'value': function(e) {
-      this.appendValue(e.value);
-    },
-    'operator': function(e) {
-      this.appendOperator(e.value);
-    },
-    'command': function(e) {
-      if (e.value === '=') {
-        this.calculate();
-      } else if (e.value === 'C') {
-        this.backSpace();
+  handleEvent: function calculator_handleEvent(evt) {
+    switch (evt.type) {
+    case 'mousedown':
+      var value = evt.target.value;
+      switch (evt.target.dataset.type) {
+      case 'value':
+        this.appendValue(value);
+        break;
+      case 'operator':
+        this.appendOperator(value);
+        break;
+      case 'command':
+        if (value === '=') {
+          this.calculate();
+        } else if (value === 'C') {
+          this.backSpace();
+        }
+        break;
       }
+      break;
+
+    case 'mouseup':
+      this.clearBackspaceTimeout()
+      break;
     }
   },
 
-  bindEvents: function() {
-    var self = this;
-
-    document.addEventListener('mouseup', function() {
-      self.clearBackspaceTimeout();
-    });
-
-    document.addEventListener('mousedown', function(e) {
-      if (e.target.nodeName === 'INPUT') {
-        var type = e.target.getAttribute('data-type');
-        if (type !== null) {
-          self.keyEvents[type].apply(self, [e.target]);
-        }
-      }
-    });
-  },
-
-  init: function() {
-    this.bindEvents();
+  init: function calculator_init() {
+    document.addEventListener('mousedown', this);
+    document.addEventListener('mouseup', this);
     this.updateDisplay();
   }
 };
@@ -159,5 +152,4 @@ var Calculator = {
 window.addEventListener('load', function calcLoad(evt) {
   window.removeEventListener('load', calcLoad);
   Calculator.init();
-  window.parent.postMessage('appready', '*');
 });
