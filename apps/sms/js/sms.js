@@ -1,23 +1,35 @@
+'use strict';
 
 // Based on Resig's pretty date
 function prettyDate(time) {
   var diff = (Date.now() - time) / 1000;
   var day_diff = Math.floor(diff / 86400);
 
-  if (isNaN(day_diff) || day_diff < 0 || day_diff >= 31)
-    return '';
+  if (isNaN(day_diff))
+    return '(incorrect date)';
+
+  if (day_diff < 0 || diff < 0) {
+    // future time
+    return (new Date(time)).toLocaleFormat('%x %R');
+  }
 
   return day_diff == 0 && (
-          diff < 60 && 'just now' ||
-          diff < 120 && '1 minute ago' ||
-          diff < 3600 && Math.floor(diff / 60) + ' minutes ago' ||
-          diff < 7200 && '1 hour ago' ||
-          diff < 86400 && Math.floor(diff / 3600) + ' hours ago') ||
-          day_diff == 1 && 'Yesterday' ||
-          day_diff < 7 && day_diff + ' days ago' ||
-          day_diff < 31 && Math.ceil(day_diff / 7) + ' weeks ago';
+    diff < 60 && 'Just Now' ||
+    diff < 120 && '1 Minute Ago' ||
+    diff < 3600 && Math.floor(diff / 60) + ' Minutes Ago' ||
+    diff < 7200 && '1 Hour Ago' ||
+    diff < 86400 && Math.floor(diff / 3600) + ' Hours Ago') ||
+    day_diff == 1 && 'Yesterday' ||
+    day_diff < 7 && (new Date(time)).toLocaleFormat('%A') ||
+    (new Date(time)).toLocaleFormat('%x');
 }
 
+function profilePictureForId(id) {
+  // pic #9 is used as the phone holder
+  // id is the index # of the contact in Contacts array,
+  // or parseInt(phone number) if not in the list
+  return '../contacts/contact' + (id % 9) + '.png';
+}
 
 var MessageManager = {
   getMessages: function mm_getMessages(callback, filter, invert) {
@@ -31,7 +43,7 @@ var MessageManager = {
     var request = navigator.mozSms.getMessages(filter, !invert);
 
     var messages = [];
-    request.onsuccess = function() {
+    request.onsuccess = function onsuccess() {
       var result = request.result;
       if (!result) {
         callback(messages);
@@ -43,18 +55,36 @@ var MessageManager = {
       result.next();
     };
 
-    request.onerror = function() {
+    request.onerror = function onerror() {
       alert('Error reading the database. Error code: ' + request.errorCode);
     }
   },
 
   send: function mm_send(number, text, callback) {
+    // Use a fake send if mozSms is not present
+    if (!navigator.mozSms) {
+      var message = {
+        sender: null,
+        receiver: number,
+        body: text,
+        timestamp: Date.now()
+      };
+
+      window.setTimeout(function() {
+        callback(message);
+      }, 0);
+
+      return;
+    }
+
     var result = navigator.mozSms.send(number, text);
     result.onsuccess = function onsuccess(event) {
+      console.log('SMS sent.');
       callback(event.message);
     };
+
     result.onerror = function onerror(event) {
-      console.log("Error sending SMS!");
+      console.log('Error sending SMS!');
       callback(null);
     };
   },
@@ -63,7 +93,6 @@ var MessageManager = {
     navigator.mozSms.delete(id);
   }
 };
-
 
 // Until there is a database to store messages on the device, return
 // a fake list of messages.
@@ -93,15 +122,16 @@ var messagesHack = [];
 
   messagesHack = messages;
 })();
-var GetMessagesHack = function(callback, filter, invert) {
+
+var GetMessagesHack = function gmhack(callback, filter, invert) {
   function applyFilter(msgs) {
     if (!filter)
       return msgs;
 
     if (filter.number) {
       msgs = msgs.filter(function(element, index, array) {
-          return (filter.number && (filter.number == element.sender ||
-                  filter.number == element.receiver));
+        var num = filter.number;
+        return (num && (num == element.sender || num == element.receiver));
       });
     }
 
@@ -114,31 +144,129 @@ var GetMessagesHack = function(callback, filter, invert) {
   callback(applyFilter(msg));
 };
 
-// Use a fake send if mozSms is not present
-if (!navigator.mozSms) {
-  MessageManager.send = function mm_send(number, text, callback) {
-    var message = {
-      sender: null,
-      receiver: number,
-      body: text,
-      timestamp: Date.now()
-    };
-    window.setTimeout(function() {
-      callback(message);
-    }, 0);
-  };
-}
+var ConversationListView = {
+  get view() {
+    delete this.view;
+    return this.view = document.getElementById('msg-conversations-list');
+  },
 
-var MessageView = {
+  get searchInput() {
+    delete this.searchInput;
+    return this.searchInput = document.getElementById('msg-search');
+  },
+
   init: function init() {
     if (navigator.mozSms)
       navigator.mozSms.addEventListener('received', this);
-    this.showConversations();
+
+    window.addEventListener('transitionend', this);
+    this.searchInput.addEventListener('keyup', this);
+    this.view.addEventListener('click', this);
+
+    this.updateConversationList(function fireAppReady() {
+      window.parent.postMessage('appready', '*');
+    });
   },
 
-  get conversationView() {
-    delete this.conversationView;
-    return this.conversationView = document.getElementById('conversation');
+  updateConversationList: function updateConversationList(callback) {
+    var self = this;
+    var conversations = {};
+
+    // XXX: put all contacts in DOM tree then hide them in non-search view
+    var contacts = window.navigator.mozContacts.contacts;
+    contacts.forEach(function(contact, i) {
+      var num = contact.phones[0];
+      conversations[num] = {
+        hidden: true,
+        name: contact.displayName,
+        num: num,
+        body: '',
+        timestamp: '',
+        id: i
+      };
+    });
+
+    MessageManager.getMessages(function getMessagesCallback(messages) {
+      for (var i = 0; i < messages.length; i++) {
+        var message = messages[i];
+        var num = message.sender || message.receiver;
+        if (conversations[num] && !conversations[num].hidden)
+          continue;
+        if (!conversations[num]) {
+          conversations[num] = {
+            hidden: false,
+            num: (message.sender || message.receiver),
+            name: num,
+            // XXX: hack for contact pic
+            id: parseInt(num)
+          };
+        }
+
+        var data = {
+          hidden: false,
+          body: message.body,
+          timestamp: prettyDate(message.timestamp)
+        };
+
+        for (var key in data) {
+          conversations[num][key] = data[key];
+        }
+      }
+
+      var fragment = '';
+      for (var num in conversations) {
+        var msg = self.createNewConversation(conversations[num]);
+        fragment += msg;
+      }
+      self.view.innerHTML = fragment;
+
+      if (typeof callback === 'function')
+        callback.call(self);
+    }, null);
+  },
+
+  createNewConversation: function createNewConversation(conversation) {
+
+    return '<div data-num="' + conversation.num + '"' +
+           ' data-name="' + conversation.name + '"' +
+           ' data-notempty="' + (conversation.timestamp ? 'true':'') + '"' +
+           ' class="' + (conversation.hidden?'hide':'') + '">' +
+           '  <div class="photo">' +
+           '    <img src="' + profilePictureForId(conversation.id) + '" />' +
+           '  </div>' +
+           '  <div class="name">' + conversation.name + '</div>' +
+           '  <div class="msg">' + conversation.body + '</div>' +
+           '  <div class="time">' + conversation.timestamp + '</div>' +
+           '</div>';
+  },
+
+  searchConversations: function searchConversations() {
+    var str = this.searchInput.value;
+    var conversations = this.view.childNodes;
+    if (!str) {
+      // leaving search view
+      for (var i in conversations) {
+        var conversation = conversations[i];
+        if (conversation.dataset.notempty === 'true') {
+          conversations[i].classList.remove('hide');
+        } else {
+          conversations[i].classList.add('hide');
+        }
+      }
+      return;
+    }
+
+    var reg = new RegExp(str, 'i');
+
+    for (var i in conversations) {
+      var conversation = conversations[i];
+      if (!reg.test(conversation.dataset.num) &&
+          !reg.test(conversation.dataset.name)) {
+        conversation.classList.add('hide');
+      } else {
+        conversation.classList.remove('hide');
+      }
+    }
   },
 
   openConversationView: function openConversationView(num) {
@@ -146,124 +274,109 @@ var MessageView = {
       return;
 
     ConversationView.showConversation(num == '*' ? '' : num);
-
-    var conversationView = document.getElementById('conversationView');
-    conversationView.hidden = false;
-
-    window.setTimeout(function conversationSlideIn() {
-      conversationView.classList.remove('slideOut');
-      conversationView.classList.add('slideIn');
-    }, 100);
-  },
-
-  get view() {
-    delete this.view;
-    return this.view = document.getElementById('messages');
-  },
-
-  showConversations: function showConversations() {
-    var self = this;
-    MessageManager.getMessages(function(messages) {
-      var conversations = {};
-      for (var i = 0; i < messages.length; i++) {
-        var message = messages[i];
-        var sender = message.sender || message.receiver;
-        if (conversations[sender]) {
-          conversations[sender].count++;
-          continue;
-        }
-
-        conversations[sender] = {
-          sender: message.sender,
-          receiver: message.receiver,
-          body: message.body,
-          timestamp: prettyDate(message.timestamp),
-          count: 1
-        };
-      }
-
-      var fragment = '<div class="message" data-num="*">' +
-                     '  <div class="title">New Message</div>' +
-                     '  <div class="content">Write a message</div>' +
-                     '</div>';
-      for (var conversation in conversations) {
-        var msg = self.createNewMessage(conversations[conversation]);
-        fragment += msg;
-      }
-      self.view.innerHTML = fragment;
-
-      window.parent.postMessage('appready', '*');
-    }, null);
-  },
-
-  createNewMessage: function createNewMessage(msg) {
-    var className = 'class="message ' +
-                    (msg.sender ? 'sender' : 'receiver') + '"';
-
-    var num = (msg.sender || msg.receiver);
-    var dataNum = 'data-num="' + num + '"';
-
-    var contacts = window.navigator.mozContacts.contacts;
-    contacts.forEach(function(contact) {
-      if (contact.phones[0] == num)
-        num = contact.displayName;
-    });
-    var title = num + ' (' + msg.count + ')';
-
-    return '<div ' + className + ' ' + dataNum + '>' +
-           '  <div class="sms">' +
-           '    <div class="title">' + title + '</div>' +
-           '    <div class="content">' +
-           '      <span class="text">' + msg.body + '</span>' +
-           '      <span class="infos">' + msg.timestamp + '</span>' +
-           '    </div>' +
-           '  </div>' +
-           '</div>';
   },
 
   handleEvent: function handleEvent(evt) {
     switch (evt.type) {
       case 'received':
-        window.setTimeout(function() {
-          MessageView.showConversations();
+        window.setTimeout(function updadeConversationList() {
+          ConversationListView.updateConversationList();
         }, 0);
+        break;
+
+      case 'click':
+        this.openConversationView(evt.target.dataset.num);
+        break;
+
+      case 'transitionend':
+        if (!document.body.classList.contains('transition-back'))
+          return;
+
+        document.body.classList.remove('transition-back');
+        break;
+
+      case 'keypress':
+      case 'keyup':
+        this.searchConversations();
         break;
     }
   }
 };
 
-
 var ConversationView = {
   get view() {
     delete this.view;
-    return this.view = document.getElementById('conversation');
+    return this.view = document.getElementById('msg-conversation-view-list');
+  },
+
+  get num() {
+    delete this.number;
+    return this.number = document.getElementById('msg-conversation-view-num');
+  },
+
+  get title() {
+    delete this.title;
+    return this.title = document.getElementById('msg-conversation-view-name');
   },
 
   init: function cv_init() {
-    window.addEventListener('keypress', this, true);
     if (navigator.mozSms)
       navigator.mozSms.addEventListener('received', this);
+
+    document.getElementById('msg-conversation-view-back').addEventListener(
+      'click', (this.close).bind(this));
+
+    // click event does not trigger when keyboard is hiding
+    document.getElementById('msg-conversation-view-msg-send').addEventListener(
+      'mousedown', (this.sendMessage).bind(this));
+
+    var windowEvents = ['keypress', 'transitionend'];
+    windowEvents.forEach((function(eventName) {
+      window.addEventListener(eventName, this);
+    }).bind(this));
   },
 
   showConversation: function cv_showConversation(num) {
-    var contact = document.getElementById('contact');
-    contact.value = num;
+    var view = this.view;
+    var bodyclassList = document.body.classList;
+    var filter = ('SmsFilter' in window) ? new SmsFilter() : {};
+    filter.number = this.filter = num;
 
-    this.filter = num;
-    if (!this.filter) {
-      contact.classList.remove('filtered');
+    if (!num) {
+      /* XXX: gaia issue #483 (New Message dialog design)
+              gaia issue #108 (contact picker)
+      */
+
+      this.num.value = '';
       this.view.innerHTML = '';
+      bodyclassList.add('conversation-new-msg');
+      bodyclassList.add('conversation');
       return;
     }
-    contact.classList.add('filtered');
 
-    var view = this.view;
-    var filter = ('SmsFilter' in window) ? new SmsFilter() : {};
-    filter.number = this.filter;
+    bodyclassList.remove('conversation-new-msg');
 
-    view.innerHTML = '';
+    var name = num;
+    var receiverId = parseInt(num);
+
+    var contacts = window.navigator.mozContacts.contacts;
+    contacts.some(function(contact, i) {
+      if (contact.phones[0] == num) {
+        name = contact.displayName;
+        receiverId = i;
+        return true;
+      }
+      return false;
+    });
+
+    this.num.value = num;
+
+    this.title.textContent = name;
+    this.title.num = num;
+
     MessageManager.getMessages(function mm_getMessages(messages) {
       var fragment = '';
+
       for (var i = 0; i < messages.length; i++) {
         var msg = messages[i];
         var uuid = msg.hasOwnProperty('uuid') ? msg.uuid : '';
@@ -271,23 +384,32 @@ var ConversationView = {
 
         var dataNum = 'data-num="' + (msg.sender || msg.receiver) + '"';
 
-        var className = 'class="message ' +
+        var className = 'class="' +
                         (msg.sender ? 'sender' : 'receiver') + '"';
+
+        var pic;
+        if (msg.sender) {
+          pic = profilePictureForId(receiverId);
+        } else {
+          pic = '../contacts/contact9.png';
+        }
 
         var time = prettyDate(msg.timestamp);
         fragment += '<div ' + className + ' ' + dataNum + ' ' + dataId + '>' +
-                    '  <div class="arrow-left"></div>' +
-                    '  <div>' +
-                    '    <span class="text">' + msg.body + '</span>' +
-                    '    <span class="infos">' + time + '</span>' +
-                    '  </div>' +
+                      '<div class="photo">' +
+                      '  <img src="' + pic + '" />' +
+                      '</div>' +
+                      '<div class="text">' + msg.body + '</div>' +
+                      '<div class="time">' + time + '</div>' +
                     '</div>';
       }
 
       view.innerHTML = fragment;
-      setTimeout(function() {
-        view.scrollTop = view.scrollHeight;
-      }, 0);
+
+      if (view.lastChild)
+        view.scrollTop = view.lastChild.offsetTop + 10000;
+
+      bodyclassList.add('conversation');
     }, filter, true);
   },
 
@@ -308,41 +430,42 @@ var ConversationView = {
 
         if (this.close())
           evt.preventDefault();
+        break;
+
       case 'received':
-        var message = evt.message;
-        console.log('Received message from ' + message.sender + ': ' +
-                    message.body);
-        messagesHack.push(message);
-        window.setTimeout(function () {
+        var msg = evt.message;
+        messagesHack.unshift(msg);
+
+        console.log('Received message from ' + msg.sender + ': ' + msg.body);
+
+        window.setTimeout(function() {
           ConversationView.showConversation(ConversationView.filter);
         }, 0);
+        break;
+
+      case 'transitionend':
+        if (document.body.classList.contains('conversation'))
+          return;
+
+        this.view.innerHTML = '';
         break;
     }
   },
   close: function cv_close() {
-    var view = document.getElementById('conversationView');
-    if (view.hidden)
+    if (!document.body.classList.contains('conversation'))
       return false;
-
-    view.classList.remove('slideIn');
-    view.classList.add('slideOut');
-
-    view.addEventListener('transitionend', function slideOut(evt) {
-      view.removeEventListener('transitionend', slideOut);
-      var text = document.getElementById('text');
-      text.value = text.style.height = '';
-
-      view.hidden = true;
-    });
+    document.body.classList.remove('conversation');
+    document.body.classList.add('transition-back');
     return true;
   },
   sendMessage: function cv_sendMessage() {
-    var contact = document.getElementById('contact');
-    var text = document.getElementById('text');
-    if (contact.value == '' || text.value == '')
+    var num = this.num.value;
+    var text = document.getElementById('msg-conversation-view-msg-text').value;
+
+    if (num === '' || text === '')
       return;
 
-    MessageManager.send(contact.value, text.value, function onsent(msg) {
+    MessageManager.send(num, text, function onsent(msg) {
       // There was an error. We should really do some error handling here.
       // or in send() or wherever.
       if (!msg)
@@ -360,27 +483,108 @@ var ConversationView = {
     // Create a preliminary message object and update the view right away.
     var message = {
       sender: null,
-      receiver: contact.value,
-      body: text.value
+      receiver: num,
+      body: text,
+      timestamp: Date.now()
     };
-    messagesHack.push(message);
+    messagesHack.unshift(message);
 
-    text.value = "";
-    if (ConversationView.filter) {
-      ConversationView.showConversation(ConversationView.filter);
+    setTimeout(function keepKeyboardFocus() {
+      var input = document.getElementById('msg-conversation-view-msg-text');
+      input.value = '';
+    }, 0);
+
+    ConversationListView.updateConversationList();
+    if (this.filter) {
+      this.showConversation(this.filter);
       return;
     }
-    ConversationView.close();
-    MessageView.showConversations();
+    this.showConversation(num);
   }
 };
 
-ConversationView.init();
+window.addEventListener('load', function loadMessageApp() {
+  var request = window.navigator.mozSettings.get('language.current');
+  request.onsuccess = function() {
+    selectedLocale = request.result.value;
+    ConversationView.init();
+    ConversationListView.init();
+  }
+});
 
-function onKeyPress(evt) {
-  var target = evt.originalTarget;
-  setTimeout(function() {
-    target.style.height = '';
-    target.style.height = '-moz-calc(' + target.scrollHeight + 'px + 32px)';
-  }, 0);
-}
+
+var selectedLocale = 'en-US';
+
+var kLocaleFormatting = {
+  'en-US': 'xxx-xxx-xxxx',
+  'fr-FR': 'xx xx xx xx xx',
+  'es-ES': 'xx xxx xxxx'
+};
+
+function formatNumber(number) {
+  var format = kLocaleFormatting[selectedLocale];
+
+  if (number[0] == '+') {
+    switch (number[1]) {
+      case '1': // North America
+        format = 'xx ' + kLocaleFormatting['en-US'];
+        break;
+      case '2': // Africa
+        break;
+      case '3': // Europe
+        switch (number[2]) {
+          case '0': // Greece
+            break;
+          case '1': // Netherlands
+            break;
+          case '2': // Belgium
+            break;
+          case '3': // France
+            format = 'xxx ' + kLocaleFormatting['fr-FR'];
+            break;
+          case '4': // Spain
+            format = 'xxx ' + kLocaleFormatting['es-ES'];
+            break;
+            break;
+          case '5':
+            break;
+          case '6': // Hungary
+            break;
+          case '7':
+            break;
+          case '8':
+            break;
+          case '9': // Italy
+            break;
+        }
+        break;
+      case '4': // Europe
+        break;
+      case '5': // South/Latin America
+        break;
+      case '6': // South Pacific/Oceania
+        break;
+      case '7': // Russia and Kazakhstan
+        break;
+      case '8': // East Asia, Special Services
+        break;
+      case '9': // West and South Asia, Middle East
+        break;
+    }
+  }
+
+  var formatted = '';
+
+  var index = 0;
+  for (var i = 0; i < number.length; i++) {
+    var c = format[index++];
+    if (c && c != 'x') {
+      formatted += c
+      index++;
+    }
+
+    formatted += number[i];
+  }
+
+  return formatted;
+};

@@ -65,11 +65,23 @@ Gaia.AppManager = {
         if (icon && !window.localStorage.getItem(icon))
           icon = homescreenOrigin + manifest.icons['120'];
 
+        var orientation = "";
+        // We only allow those values for orientation in manifest.
+        if (manifest.orientation == "portrait-primary" ||
+            manifest.orientation == "portrait-secondary" ||
+            manifest.orientation == "landscape-primary" ||
+            manifest.orientation == "landscape-secondary") {
+          orientation = manifest.orientation;
+        }
+
         var url = app.origin + manifest.launch_path;
         cache.push({
           name: manifest.name,
           url: url,
-          icon: icon
+          icon: icon,
+          fullscreen: manifest.fullscreen || false,
+          orientation: orientation,
+          hackKillMe: manifest.hackKillMe || false
         });
       });
 

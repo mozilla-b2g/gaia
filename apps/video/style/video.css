@@ -1,85 +1,124 @@
-html {
+html, body {
+  font-family: "Open Sans", sans-serif;
   height: 100%;
-  width: 100%;
-}
-
-body {
-  background-color: #000;
-  color: #fff;
-  font-family: Arial, Helvetica, Sans-serif;
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  width: 100%;
-  font-size: 1.8mozmm;
-  overflow: hidden;
-}
-
-.thumbnails {
-  overflow: scroll;
-  padding: 5px;
-  margin: 0;
-  height: 100%;
-}
-
-.thumbnails li {
-  display: table;
-  text-align: center;
-  width: 140px;
-  height: 145px;  
-  float: left;
-  margin: 5px;
-  list-style-type: none;
-  padding: 0;
-  -moz-user-select: none;
-  user-select: none;
-}
-
-.thumbnails li a {
-  display: table-cell;
-  vertical-align: middle;
-  width: 140px;
-  height: 145px;
-  margin: 0;
-  padding: 0;
-  pointer-events: none;
-}
-
-.thumbnail {
-  max-width: 130px;
-  max-height: 130px;
   margin: 0 auto;
-  border: solid 5px #fff;
-  pointer-events: none;
 }
 
-#videoFrame {
-  display: table;
-  width: 100%;
-  height: 100%;
-  -moz-transform: rotate(90deg); /* XXX Hack: play videos in landscape mode */
+@font-face {
+  font-family: "Open Sans";
+  src: url("fonts/Open-Sans.woff");
+}
+@font-face {
+  font-family: "Open Sans";
+  font-weight: bold;
+  src: url("fonts/Open-Sans-Bold.woff");
+}
+@font-face {
+  font-family: "Open Sans";
+  font-weight: 600;
+  src: url("fonts/Open-Sans-Semibold.woff");
 }
 
-#videoBorder {
-  display: table-cell;
-  vertical-align: middle;
+/* title bar */
+header {
+  background-color: #fff;
+	background-image: -moz-linear-gradient(#fff, #eaeae4);
+  border-bottom: solid 2px #a3a3a3;
+  border-radius: 8px 8px 0 0;
+  height: 62px;
+  position: relative;
+}
+header h1 {
+  margin: 0;
+  padding: 0;
+  line-height: 64px;
   text-align: center;
-  width: 100%;
-  height: 100%;
-  
+  font-family: "Open Sans", sans-serif;
+  font-weight: bold;
+  font-size: 26px;
+}
+header button {
+  display: none; /* disabled atm */
+  background: url("images/grippy.png") repeat scroll -16px -16px transparent;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 64px;
+  height: 64px;
+  border: none;
+}
+header button:active {
+  background-position: -16px -116px;
 }
 
-.hidden, #videoFrame.hidden {
+/* git nail list */
+ul {
+  /*width: 100%;*/
+  width: -moz-calc(100% + 8px);
+  margin: 0 auto;
+  padding: 0;
+  height: -moz-calc(100% - 70px);
+  overflow-y: scroll;
+  background-color: #e0e5ea;
+}
+ul li:first-child {
+  border-top: none;
+}
+li {
+  margin: 0;
+  padding: 0 20px 0 144px;
+  height: 94px;
+  border-top: 1px solid rgba(255, 255, 255, 0.4);
+  border-bottom: 2px solid #c3c9cb;
+  position: relative;
+  list-style-type: none;
+  overflow: hidden;
+	background-color: #f5f5f5;
+}
+li:active, li.active {
+  /*background: -moz-linear-gradient(center top , #FFCE75 0pt, rgba(255, 212, 153, 0.2) 2px, rgba(255, 148, 0, 0.4) 20%, #C16700 98%, #C16700 99%, #FF8300 100%) repeat scroll 0 0%, -moz-linear-gradient(center top , #FFCE75 0pt, #FF9400 2px, #C16700 98%, #C16700 99%, #FF8300 100%) repeat scroll 0 0 transparent;*/
+	background-color: rgba(0, 0, 0, .07);
+}
+li img {
+  width: 128px;
+  height: 94px;
+  overflow: hidden;
+  position: absolute;
+  left: 0;
+  margin: 0;
+  padding: 0;
+}
+li p {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+p.name {
+  height: 30px;
+  margin-top: 12px;
+  color: #333;
+	font-weight: 600;
+  font-size: 26px;
+}
+p.time {
+  font-size: 22px;
+  color: #666;
+  text-shadow: 0 1px 0 #ddd;
+}
+
+/* fullscreen video player */
+#videoFrame {
+  display: none;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+body.fullscreen > * {
   display: none;
 }
-
-#player {
-  width: 0%;
-  height: auto;
-  -moz-transition: width 0.5s ease;
-}
-
-#player[data-visible] {
-  width: 100%;
+body.fullscreen #videoFrame {
+  display: block;
 }
 

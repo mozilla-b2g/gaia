@@ -1,163 +1,187 @@
-// Video database schema:
-// Database name: 'videos'
-//   Object store: 'videos'
-//     Record type: {
-//        title: string
-//        video: video blob
-//        poster: image blob
-//     }
-//     Keypath: 'title'
-// 
+window.addEventListener('DOMContentLoaded', function() {
+  'use strict';
+  var player = $('player');
 
-// The sample videos that we'll pre-install
-const samples = [
+  // This is the list of sample videos built in to the app
+  var samples = [
     {
-        title: 'Mozilla Manifesto',
-        video: 'samples/manifesto.ogv',
-        poster: 'samples/manifesto.png',
+      title: 'Mozilla Manifesto',
+      video: 'samples/manifesto.ogv',
+      poster: 'samples/manifesto.png',
+      width: '640',
+      height: '360',
+      duration: '2:05'
     },
     {
-        title: 'Meet The Cubs',
-        video: 'samples/meetthecubs.webm',
-        poster: 'samples/meetthecubs.png',
+      title: 'Meet The Cubs',
+      video: 'samples/meetthecubs.webm',
+      poster: 'samples/meetthecubs.png',
+      width: '640',
+      height: '360',
+      duration: '1:18'
     }
-];
+  ];
 
-// When the document loads, get the videos database (version 1) and pass
-// it to initUI. The first time we run, the DB will need to be created and
-// populated with sample videos, so initDB will be called to do that.
-window.addEventListener('DOMContentLoaded', function() {
-    getDB('videos', 1, initVideosDB).whendone(buildUI);
-});
+  // Build the thumbnails screen from the list of videos
+  samples.forEach(function(sample) {
+    var thumbnail = elt('li', {}, [
+                      elt('img', { src: sample.poster }),
+                      elt('p', { class: 'name' }, sample.title),
+                      elt('p', { class: 'time' }, sample.duration)
+                    ]);
 
-// Return a promise to initialize the database
-function initVideosDB(db) {
-    var initDBPromise = Promise();
-
-    if (db.objectStoreNames.contains('videos'))
-        db.deleteObjectStore('videos');
-
-    db.createObjectStore('videos', {
-        keyPath: 'title'
+    thumbnail.addEventListener('click', function(e) {
+      showPlayer(sample);
     });
 
-    // Now go fetch the sample video and poster data
-    // And when it arrives, store it in the db
+    $('thumbnails').appendChild(thumbnail);
+  });
 
-    var urls = [];  // URLs of the videos and poster images we need
+  // if this is true then the video tag is showing
+  // if false, then the gallery is showing
+  var playerShowing = false;
 
-    samples.forEach(function(s) { urls.push(s.video, s.poster); });
+  // same thing for the controls
+  var controlShowing = false;
 
-    getBlobs(urls)
-        .then(function(blobs) {
-            // Take the blobs and store them back into the 
-            // samples array, overwriting the URLs from which they came
-            for(var i = 0; i < samples.length; i++) {
-                samples[i].video = blobs[i*2];
-                samples[i].poster = blobs[i*2+1];
-            }
-            // Then return a promise to store the samples in the db
-            return storeSamples(db, samples);
-        })
-        .whendone(function(v) { initDBPromise.resolve(); })
-        .onfail(function(e) { initDBPromise.reject(e); });
-
-    // Return a Promise to store all of the samples into the db
-    function storeSamples(db) {
-        var transaction = db.transaction("videos", IDBTransaction.READ_WRITE);
-        var store = transaction.objectStore("videos");
-        var promises = samples.map(function(s) { return storeSample(store,s); })
-        return Promise.join(promises);
-    }
-
-    // Return a Promise to store a single sample record
-    function storeSample(store, sample) {
-        var p = Promise();
-        var request = store.put(sample);
-        request.onsuccess = function() { p.resolve(); };
-        request.onerror = function(e) { p.reject(e); };
-        return p;
-    }
-
-    return initDBPromise;
-}
-
-function buildUI(db) {
-    var titles = [];
-    var transaction = db.transaction('videos', IDBTransaction.READ_ONLY);
-    var store = transaction.objectStore('videos');
-    var cursor = store.openCursor(IDBKeyRange.lowerBound(0));
-    cursor.onsuccess = function() {
-        if (!cursor.result) {
-            // no more values, so return without calling continue
-            return; 
-        }
-        var record = cursor.result.value;
-        insertPoster(record.title, record.poster, record.video);
-        cursor.result.continue();
+  // fullscreen doesn't work properly yet -- here's an ugly shim
+  var realFullscreen = false;
+  if (realFullscreen) {
+    document.cancelFullScreen = document.mozCancelFullScreen;
+    player.requestFullScreen = player.mozRequestFullScreen;
+  } else {
+    // compute a CSS transform that centers & maximizes the <video> element
+    document.cancelFullScreen = function() {
+      player.style.mozTransform = 'none';
     };
-        
-    cursor.onerror = function(e) {
-        promise.reject(e);
-    };
-}
+    player.requestFullScreen = function() {
+      var style = getComputedStyle(document.body);
+      var bWidth = parseInt(style.width, 10);
+      var bHeight = parseInt(style.height, 10);
+      var scale = Math.floor(
+          Math.min(bHeight / player.srcWidth, bWidth / player.srcHeight) * 20
+        ) / 20; // round to the lower 5%
+      var yOffset = -Math.floor((bWidth + scale * player.srcHeight) / 2);
+      var xOffset = Math.floor((bHeight - scale * player.srcWidth) / 2);
+      var transform = 'rotate(90deg)' +
+        ' translate(' + xOffset + 'px, ' + yOffset + 'px)' +
+        ' scale(' + scale + ')';
+      player.style.MozTransformOrigin = 'top left';
+      player.style.MozTransform = transform;
+    }
+  }
 
-function insertPoster(title, posterblob, videoblob) {
+  // show|hide controls over the player
+  $('videoControls').addEventListener('click', function(event) {
+    if (!controlShowing) {
+      this.classList.remove('hidden');
+      controlShowing = true;
+    } else if (this == event.target) {
+      this.classList.add('hidden');
+      controlShowing = false;
+    }
+  }, false);
 
-    var posterurl = window.URL.createObjectURL(posterblob);
-    var videourl = window.URL.createObjectURL(videoblob);
+  // show|hide video player
+  function showPlayer(sample) {
+    // switch to the video player view
+    $('videoControls').classList.add('hidden');
+    document.body.classList.add('fullscreen');
+    $('videoBar').classList.remove('paused');
 
-    var poster = elt("li", { title: title },
-                     elt('a', { href: '#'}, 
-                         elt('img', {
-                             src: posterurl,
-                             'class': 'thumbnail'
-                         })));
+    // start player
+    player.src = sample.video;
+    player.srcWidth = sample.width;   // XXX use player.videoWidth instead
+    player.srcHeight = sample.height; // XXX use player.videoHeight instead
+    player.play();
+    player.requestFullScreen();
 
-    poster.addEventListener("click", function(e) {
-        showPlayer(videourl);
-    });
-    
-    $('thumbnails').appendChild(poster);
-}
+    playerShowing = true;
+    controlShowing = false;
+  }
+  function hidePlayer() {
+    if (!playerShowing)
+      return;
 
-// if this is true then the video tag is showing
-// if false, then the gallery is showing
-var playerShowing = false;
+    // switch to the video gallery view
+    document.cancelFullScreen();
+    document.body.classList.remove('fullscreen');
+    $('videoBar').classList.remove('paused');
 
-// Switch to the video gallery view
-function showGallery() {
-    $('thumbnails').classList.remove('hidden');
-    $('videoFrame').classList.add('hidden');
-
-    // If there is a player element, remove it
-    $('videoBorder').innerHTML = '';
+    // stop player
+    player.pause();
+    player.currentTime = 0;
 
     playerShowing = false;
-}
-
-// Switch to the video player view and play the video!
-function showPlayer(url) {
-    $('thumbnails').classList.add('hidden');
-    $('videoFrame').classList.remove('hidden');
-    playerShowing = true;
-
-    var player = elt('video', {
-        id: 'player',
-        src:url,
-        autoplay:'autoplay',
-        controls:'controls'
-    });
-    $('videoBorder').appendChild(player);
-
-    setTimeout(function() {
-        player.setAttribute('data-visible', 'true');
-    }, 100);
-}
-
-window.addEventListener('keypress', function(evt) {
-    if (playerShowing && evt.keyCode == evt.DOM_VK_ESCAPE) {
-        showGallery();
-        evt.preventDefault();
+  }
+  $('close').addEventListener('click', hidePlayer, false);
+  player.addEventListener('ended', function() {
+    if (!controlShowing)
+      hidePlayer();
+  }, false);
+  window.addEventListener('keypress', function(event) {
+    if (playerShowing && event.keyCode == event.DOM_VK_ESCAPE) {
+      hidePlayer();
+      event.preventDefault();
     }
+    if (event.keyCode == event.DOM_VK_HOME) {
+      hidePlayer();
+    }
+  }, false);
+
+  // control buttons: play|pause, rwd|fwd
+  $('play').addEventListener('click', function() {
+    if (!controlShowing)
+      return;
+    if (player.paused) {
+      $('videoBar').classList.remove('paused');
+      player.play();
+    } else {
+      $('videoBar').classList.add('paused');
+      player.pause();
+    }
+  }, false);
+  $('rwd').addEventListener('click', function() {
+    if (controlShowing)
+      player.currentTime -= 15;
+  }, false);
+  $('fwd').addEventListener('click', function() {
+    if (controlShowing)
+      player.currentTime += 15;
+  }, false);
+
+  // handle drags/clicks on the time slider
+  var isDragging = false;
+  var playHead = $('playHead');
+  var timeSlider = $('timeSlider');
+  var elapsedTime = $('elapsedTime');
+  var rect = null;
+  function getTimePos(event) {
+    if (!rect)
+      rect = timeSlider.getBoundingClientRect();
+    return (event.clientY - rect.top) / rect.height;
+  }
+  function setProgress(event) {
+    var progress = isDragging ?
+      getTimePos(event) : player.currentTime / player.duration;
+    var pos = progress * 100 + '%';
+    playHead.style.top = pos;
+    elapsedTime.style.height = pos;
+  }
+  function setCurrentTime(event) {
+    isDragging = false;
+    if (controlShowing)
+      player.currentTime = getTimePos(event) * player.duration;
+  }
+  player.addEventListener('timeupdate', setProgress, false);
+  playHead.addEventListener('mousemove', setProgress, false);
+  playHead.addEventListener('mousedown', function() {
+    if (controlShowing)
+      isDragging = true;
+  }, false);
+  timeSlider.addEventListener('mouseup', setCurrentTime, false);
+  timeSlider.addEventListener('mouseout', function(event) {
+    if (isDragging)
+      setCurrentTime(event);
+  }, false);
 });

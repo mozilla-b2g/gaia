@@ -24,6 +24,7 @@ var Contacts = {
     // a second argument that I can omit
     this.find(['id', 'displayName'], this.show.bind(this));
   },
+
   find: function contactsFind(fields, callback) {
     // Ideally I would like to choose the ordering
     // It also misses simple constaints like the one you can pass to the
@@ -33,6 +34,18 @@ var Contacts = {
         return a.name.familyName[0] > b.name.familyName[0];
       });
       callback(contacts);
+    });
+  },
+
+  findByNumber: function findByNumber(number, callback) {
+    this.find(['id', 'phones'], function findByNumberCallback(contacts) {
+      var results = contacts.filter(function findNumber(contact) {
+        return (contact.phones.indexOf(number) !== -1);
+      });
+      var contact = results[0];
+      if (contact) {
+        callback(contact);
+      }
     });
   },
   show: function contactsShow(contacts) {
@@ -54,9 +67,11 @@ var Contacts = {
                    '</span></div>';
       }
 
-      content += '<div class="contact" id="' + contact.id + '">' +
-                 '  <span class="display-name">' + displayName + '</span>' +
-                 '</div>';
+      content += '<div class="contact" id="' + contact.id + '">';
+      for (var key in contact.name) {
+        content += '<span>' +  contact.name[key] + '</span> ';
+      }
+      content += '</div>';
     }
 
     var contactsContainer = document.getElementById('contacts-container');
@@ -99,7 +114,7 @@ var Contacts = {
 
     // Reflect the change in the shortcut letter
     var shortcuts = document.getElementById('contacts-shortcuts').children;
-    for (var j = 1; j < shortcuts.length; j++) {
+    for (var j = 0; j < shortcuts.length; j++) {
       var shortcut = shortcuts[j];
       var targetId = shortcut.name;
       var header = document.getElementById(targetId);
@@ -330,7 +345,6 @@ var ContactDetails = {
       return;
     }
 
-    this.hide();
     var number = evt.target.dataset.number;
     if (number) {
       CallHandler.call(number);
@@ -397,16 +411,17 @@ var ContactDetails = {
   render: function cd_render() {
     var names = '';
     for (var key in this._contact.name) {
-      names += '<div>' +
-               '  ' + this.inputFragment('text', this._contact.name[key]) +
-               '</div>';
+      names += '  ' +  this._contact.name[key];
     }
     document.getElementById('contact-name').innerHTML = names;
+
+    document.getElementById('contact-photo').innerHTML = profilePictureForNumber(this._contact.id);
 
     var addAttr = 'data-action="add" onclick="ContactDetails.execute(event)"';
     var phones = '';
     this._contact.phones.forEach(function phoneIterator(phone) {
       phones += '<div data-number="' + phone + '">' +
+                '<span>phone</span>' +
                 '  ' + this.inputFragment('tel', phone) +
                 '</div>';
     }, this);
@@ -417,7 +432,7 @@ var ContactDetails = {
 
     var emails = '';
     this._contact.emails.forEach(function emailIterator(email) {
-      emails += '<div>' + this.inputFragment('email', email) + '</div>';
+      emails += '<div><span>email</span>' + this.inputFragment('email', email) + '</div>';
     }, this);
     emails += '<div ' + addAttr + '>' +
               '  Add email' +
@@ -427,13 +442,10 @@ var ContactDetails = {
   inputFragment: function cd_inputFragment(type, value, disabled) {
     disabled = (typeof disabled == 'undefined') ? true : disabled;
 
-    return '<div class="delete-button"' +
-           '  onclick="ContactDetails.remove(this.parentNode)">' +
-           '</div>' +
-           '<input type="' + type + '" value="' + value +
-           '  " data-action="autoscroll"' +
+    return '<div class="input" type="' + type + '"' +
+           '  data-action="autoscroll"' +
            '  ' + (disabled ? 'disabled="disabled"' : '') +
-           '  onfocus="ContactDetails.execute(event)" />';
+           '  onfocus="ContactDetails.execute(event)" >' + value + '</div>';
   },
   smoothTransition: function cd_smoothTransition(callback) {
     var detailsView = this.view;

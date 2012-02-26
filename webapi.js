@@ -4,172 +4,10 @@
 'use strict';
 
 // MozApps - Bug 709015
-(function (window) {
+(function(window) {
   var navigator = window.navigator;
 
   var webapps = [
-                 { // browser
-                   installOrigin: 'http://gaiamobile.org:8888',
-                   origin: '../browser',
-                   receipt: null,
-                   installTime: 1323339869000,
-                   manifest: {
-                     'name': 'Browser',
-                     'description': 'Gaia Web Browser',
-                     'launch_path': '/browser.html',
-                     'developer': {
-                       'name': 'The Gaia Team',
-                       'url': 'https://github.com/andreasgal/gaia'
-                     },
-                     'icons': {
-                       '120': '/style/icons/Browser.png'
-                     }
-                   }
-                 },
-                 { // settings
-                   'installOrigin': 'http://gaiamobile.org:8888',
-                   'origin': '../settings',
-                   'receipt': null,
-                   'installTime': 1323339869000,
-                   manifest: {
-                     'name': 'Settings',
-                     'description': 'Gaia Settings',
-                     'launch_path': '/settings.html',
-                     'developer': {
-                       'name': 'The Gaia Team',
-                       'url': 'https://github.com/andreasgal/gaia'
-                     },
-                     'icons': {
-                       '120': '/style/icons/Settings.png'
-                     }
-                   }
-                 },
-                 { // maps
-                   installOrigin: 'http://gaiamobile.org:8888',
-                   origin: '../maps',
-                   receipt: null,
-                   installTime: 1323339869000,
-                   manifest: {
-                     'name': 'Maps',
-                     'description': 'Google Maps',
-                     'launch_path': '/maps.html',
-                     'developer': {
-                       'name': 'The Gaia Team',
-                       'url': 'https://github.com/andreasgal/gaia'
-                     },
-                     'icons': {
-                       '120': '/style/icons/Maps.png'
-                     }
-                   }
-                 },
-                 { // clock
-                   installOrigin: 'http://gaiamobile.org:8888',
-                   origin: '../clock',
-                   receipt: null,
-                   installTime: 1323339869000,
-                   manifest: {
-                     'name': 'Clock',
-                     'description': 'Gaia Clock',
-                     'launch_path': '/clock.html',
-                     'developer': {
-                       'name': 'The Gaia Team',
-                       'url': 'https://github.com/andreasgal/gaia'
-                     },
-                     'icons': {
-                       '120': '/style/icons/Clock.png'
-                     }
-                   }
-                 },
-                 { // camera
-                   'installOrigin': 'http://gaiamobile.org:8888',
-                   'origin': '../camera',
-                   'receipt': null,
-                   'installTime': 1323339869000,
-                   manifest: {
-                     'name': 'Camera',
-                     'description': 'Gaia Camera',
-                     'launch_path': '/camera.html',
-                     'developer': {
-                       'name': 'The Gaia Team',
-                       'url': 'https://github.com/andreasgal/gaia'
-                     },
-                     'icons': {
-                       '120': '/style/icons/Camera.png'
-                     }
-                   }
-                 },
-                 { // gallery
-                   'installOrigin': 'http://gaiamobile.org:8888',
-                   'origin': '../gallery',
-                   'receipt': null,
-                   'installTime': 1323339869000,
-                   manifest: {
-                     'name': 'Gallery',
-                     'description': 'Gaia Gallery',
-                     'launch_path': '/gallery.html',
-                     'developer': {
-                       'name': 'The Gaia Team',
-                       'url': 'https://github.com/andreasgal/gaia'
-                     },
-                     'icons': {
-                       '120': '/style/icons/Gallery.png'
-                     }
-                   }
-                 },
-                 { // music
-                   'installOrigin': 'http://gaiamobile.org:8888',
-                   'origin': '../music',
-                   'receipt': null,
-                   'installTime': 1323339869000,
-                   manifest: {
-                     'name': 'Music',
-                     'description': 'Gaia Music',
-                     'launch_path': '/music.html',
-                     'developer': {
-                       'name': 'The Gaia Team',
-                       'url': 'https://github.com/andreasgal/gaia'
-                     },
-                     'icons': {
-                       '120': '/style/icons/Music.png'
-                     }
-                   }
-                 },
-                 { // video
-                   'installOrigin': 'http://gaiamobile.org:8888',
-                   'origin': '../video',
-                   'receipt': null,
-                   'installTime': 1323339869000,
-                   manifest: {
-                     'name': 'Video',
-                     'description': 'Gaia Video',
-                     'launch_path': '/video.html',
-                     'developer': {
-                       'name': 'The Gaia Team',
-                       'url': 'https://github.com/andreasgal/gaia'
-                     },
-                     'icons': {
-                       '120': '/style/icons/Video.png'
-                     }
-                   }
-                 },
-                 { // market
-                   'installOrigin': 'http://gaiamobile.org:8888',
-                   'origin': '../market',
-                   'receipt': null,
-                   'installTime': 1323339869000,
-                   manifest: {
-                     'name': 'Market',
-                     'description': 'Market for downloading and installing apps',
-                     'launch_path': '/market.html',
-                     'developer': {
-                       'name': 'The Gaia Team',
-                       'url': 'https://github.com/andreasgal/gaia'
-                     },
-                     'icons': {
-                       '120': '/style/icons/Market.png'
-                     }
-                   }
-                 },
                  { // dialer
                    'installOrigin': 'http://gaiamobile.org:8888',
                    'origin': '../dialer',
@@ -205,6 +43,338 @@
                        '120': '/style/icons/Messages.png'
                      }
                    }
+                 },
+                 { // browser
+                   installOrigin: 'http://gaiamobile.org:8888',
+                   origin: '../browser',
+                   receipt: null,
+                   installTime: 1323339869000,
+                   manifest: {
+                     'name': 'Browser',
+                     'description': 'Gaia Web Browser',
+                     'launch_path': '/browser.html',
+                     'developer': {
+                       'name': 'The Gaia Team',
+                       'url': 'https://github.com/andreasgal/gaia'
+                     },
+                     'icons': {
+                       '120': '/style/icons/Browser.png'
+                     }
+                   }
+                 },
+                 { // maps
+                   installOrigin: 'http://gaiamobile.org:8888',
+                   origin: '../maps',
+                   receipt: null,
+                   installTime: 1323339869000,
+                   manifest: {
+                     'name': 'Maps',
+                     'description': 'Google Maps',
+                     'launch_path': '/maps.html',
+                     'developer': {
+                       'name': 'The Gaia Team',
+                       'url': 'https://github.com/andreasgal/gaia'
+                     },
+                     'icons': {
+                       '120': '/style/icons/Maps.png'
+                     }
+                   }
+                 },
+                 { // camera
+                   'installOrigin': 'http://gaiamobile.org:8888',
+                   'origin': '../camera',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'Camera',
+                     'description': 'Gaia Camera',
+                     'launch_path': '/camera.html',
+                     'hackKillMe': true,
+                     'developer': {
+                       'name': 'The Gaia Team',
+                       'url': 'https://github.com/andreasgal/gaia'
+                     },
+                     'icons': {
+                       '120': '/style/icons/Camera.png'
+                     }
+                   }
+                 },
+                 { // gallery
+                   'installOrigin': 'http://gaiamobile.org:8888',
+                   'origin': '../gallery',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'Gallery',
+                     'description': 'Gaia Gallery',
+                     'launch_path': '/gallery.html',
+                     'developer': {
+                       'name': 'The Gaia Team',
+                       'url': 'https://github.com/andreasgal/gaia'
+                     },
+                     'icons': {
+                       '120': '/style/icons/Gallery.png'
+                     }
+                   }
+                 },
+                 { // video
+                   'installOrigin': 'http://gaiamobile.org:8888',
+                   'origin': '../video',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'Video',
+                     'description': 'Gaia Video',
+                     'launch_path': '/video.html',
+                     'hackKillMe': true,
+                     'developer': {
+                       'name': 'The Gaia Team',
+                       'url': 'https://github.com/andreasgal/gaia'
+                     },
+                     'icons': {
+                       '120': '/style/icons/Video.png'
+                     },
+                     'fullscreen': true,
+                   }
+                 },
+                 { // facebook
+                   'installOrigin': 'http://www.facebook.com',
+                   'origin': 'http://touch.facebook.com',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'Facebook',
+                     'description': 'Facebook Mobile Application',
+                     'launch_path': '/',
+                     'developer': {
+                       'name': 'Facebook',
+                       'url': 'http://www.facebook.com/'
+                     },
+                     'icons': {
+                       '120': '/style/icons/Facebook.png'
+                     }
+                   }
+                 },
+                 { // market
+                   'installOrigin': 'http://gaiamobile.org:8888',
+                   'origin': '../market',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'Market',
+                     'description': 'Market for downloading and installing apps',
+                     'launch_path': '/market.html',
+                     'developer': {
+                       'name': 'The Gaia Team',
+                       'url': 'https://github.com/andreasgal/gaia'
+                     },
+                     'icons': {
+                       '120': '/style/icons/Market.png'
+                     }
+                   }
+                 },
+                 { // music
+                   'installOrigin': 'http://gaiamobile.org:8888',
+                   'origin': '../music',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'Music',
+                     'description': 'Gaia Music',
+                     'launch_path': '/music.html',
+                     'developer': {
+                       'name': 'The Gaia Team',
+                       'url': 'https://github.com/andreasgal/gaia'
+                     },
+                     'icons': {
+                       '120': '/style/icons/Music.png'
+                     }
+                   }
+                 },
+                 { // settings
+                   'installOrigin': 'http://gaiamobile.org:8888',
+                   'origin': '../settings',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'Settings',
+                     'description': 'Gaia Settings',
+                     'launch_path': '/settings.html',
+                     'developer': {
+                       'name': 'The Gaia Team',
+                       'url': 'https://github.com/andreasgal/gaia'
+                     },
+                     'icons': {
+                       '120': '/style/icons/Settings.png'
+                     }
+                   }
+                 },
+                 { // clock
+                   installOrigin: 'http://gaiamobile.org:8888',
+                   origin: '../clock',
+                   receipt: null,
+                   installTime: 1323339869000,
+                   manifest: {
+                     'name': 'Clock',
+                     'description': 'Gaia Clock',
+                     'launch_path': '/clock.html',
+                     'developer': {
+                       'name': 'The Gaia Team',
+                       'url': 'https://github.com/andreasgal/gaia'
+                     },
+                     'icons': {
+                       '120': '/style/icons/Clock.png'
+                     }
+                   }
+                 },
+                 { // webgl demo
+                   'installOrigin': 'http://www.everyday3d.com/j3d/demo',
+                   'origin': '../crystalskull',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'Crystal Skull',
+                     'description': 'Demo of WebGL',
+                     'launch_path': '/crystalskull.html',
+                     'hackKillMe': true,
+                     'developer': {
+                       'name': 'Unknown',
+                       'url': 'http://www.everyday3d.com/j3d/demo/004_Glass.html'
+                     },
+                     'icons': {
+                       '120': '/style/icons/CrystalSkull.png'
+                     },
+                     'fullscreen': true
+                   }
+                 },
+                 { // PenguinPop
+                   'installOrigin': 'http://goosypets.com/html5games/whac',
+                   'origin': '../penguinpop',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'Penguin Pop',
+                     'description': 'Penguin Pop by TweenSoft.com',
+                     'launch_path': '/penguinpop.html',
+                     'developer': {
+                       'name': 'TweenSoft.com',
+                       'url': 'http://goosypets.com/html5games/whac/'
+                     },
+                     'icons': {
+                       '120': '/style/icons/PenguinPop.png'
+                     }
+                   }
+                 },
+                 { // TowerJelly
+                   'installOrigin': 'http://goosypets.com/html5games/tower/',
+                   'origin': '../towerjelly',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'Tower Jelly',
+                     'description': 'Tower Jelly by TweenSoft.com',
+                     'launch_path': '/towerjelly.html',
+                     'developer': {
+                       'name': 'TweenSoft.com',
+                       'url': 'http://goosypets.com/html5games/tower/'
+                     },
+                     'icons': {
+                       '120': '/style/icons/TowerJelly.png'
+                     }
+                   }
+                 },
+                 { // cut the rope
+                   'installOrigin': 'http://cuttherope.ie/',
+                   'origin': 'http://cuttherope.ie/',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'Cut The Rope',
+                     'description': 'http://cuttherope.ie',
+                     'launch_path': '',
+                     'orientation': 'landscape-primary',
+                     'fullscreen': true,
+                     'hackKillMe': true,
+                     'developer': {
+                       'name': 'ZeptoLab',
+                       'url': 'http://cuttherope.ie'
+                     },
+                     'icons': {
+                       '120': '/style/icons/CutTheRope.png'
+                     }
+                   }
+                 },
+                 { // wikipedia
+                   'installOrigin': 'http://www.wikipedia.org/',
+                   'origin': '../wikipedia',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'Wikipedia',
+                     'description': 'Wikipedia Mobile Application',
+                     'launch_path': '/wikipedia.html',
+                     'developer': {
+                       'name': 'Wikipedia',
+                       'url': 'http://www.wikipedia.org/'
+                     },
+                     'icons': {
+                       '120': '/style/icons/Wikipedia.png'
+                     }
+                   }
+                 },
+                 { // CNN
+                   'installOrigin': 'http://m.cnn.com/',
+                   'origin': '../cnn',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'CNN',
+                     'description': 'CNN Mobile Application',
+                     'launch_path': '/cnn.html',
+                     'developer': {
+                       'name': 'CNN',
+                       'url': 'http://www.cnn.com/'
+                     },
+                     'icons': {
+                       '120': '/style/icons/CNN.png'
+                     }
+                   }
+                 },
+                 { // BBC
+                   'installOrigin': 'http://m.bbc.co.uk/',
+                   'origin': '../bbc',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'BBC',
+                     'description': 'BBC Mobile Application',
+                     'launch_path': '/bbc.html',
+                     'developer': {
+                       'name': 'BBC',
+                       'url': 'http://www.bbc.co.uk/'
+                     },
+                     'icons': {
+                       '120': '/style/icons/BBC.png'
+                     }
+                   }
+                 },
+                 { // NY Times
+                   'installOrigin': 'http://www.nytimes.com/',
+                   'origin': '../nytimes',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'NY Times',
+                     'description': 'NY Times Mobile Application',
+                     'launch_path': '/nytimes.html',
+                     'developer': {
+                       'name': 'NY Times',
+                       'url': 'http://www.nytimes.com/'
+                     },
+                     'icons': {
+                       '120': '/style/icons/NYT.png'
+                     }
+                   }
                  }
   ];
 
@@ -217,69 +387,176 @@
   };
 })(this);
 
-// mozSettings (bug 678695)
-(function (window) {
-  var navigator = window.navigator;
-  if (window.mozSettings)
-    return;
 
-  var prefix = "settings:";
-
-  var immediates = [];
-  var magic = "moz-immediate";
-
-  window.addEventListener("message", function(event) {
-    if (event.source === window && event.data === magic) {
-      event.stopPropagation();
-      while (immediates.length > 0) {
-        var fn = immediates.shift();
-        fn();
-      }
-    }
-  }, true);
-
-  function setImmediate(fn) {
-    if (immediates.length === 0)
-      window.postMessage(magic, "*");
-    immediates.push(fn);
-  }
-
-  navigator.mozSettings = {
-    get: function(key) {
-      var onsuccess = [];
-      var request = {
-        addEventListener: function(name, fn) {
-          if (name === "success")
-            onsuccess.push(fn);
-        },
-        set onsuccess(fn) {
-          onsuccess.push(fn);
-        },
-      };
-      setImmediate(function() {
-        request.result = {
-          key: key,
-          value: localStorage.getItem(prefix + key)
-        };
-        while (onsuccess.length > 0) {
-          var fn = onsuccess.shift();
-          fn();
-        }
-      });
-      return request;
-    },
-    set: function(key, value) {
-      localStorage.setItem(prefix + key, value);
-    }
+// A hacked mozSettings implementation based on indexedDB instead
+// of localStorage to make it persist better in the face of unexpected
+// shutdowns and reboots
+(function() {
+  var DEFAULTS = {
+    'lockscreen.enabled': 'true',
+    'wifi.enabled': 'true',
+    'dnt.enabled': 'false',
+    'keyboard.vibration': 'false',
+    'keyboard.clicksound': 'true',
+    'keyboard.layouts.english': 'true',
+    'keyboard.layouts.dvorak': 'false',
+    'keyboard.layouts.otherlatins': 'false',
+    'keyboard.layouts.cyrillic': 'false',
+    'keyboard.layouts.hebrew': 'false',
+    'keyboard.layouts.zhuying': 'true',
+    'debug.grid.enabled' : 'false',
+    'homescreen.wallpaper': 'default.png',
+    'language.current': 'en-US',
+    'phone.vibrator.incoming': 'false'
   };
-})(this);
+
+  var DBNAME = 'mozSettings';     // Strings used by IndexedDB
+  var STORENAME = 'mozSettings';
+
+  var mozSettings;  // settings object created when needed
+
+  // We always overwrite any existing mozSettings implementation.
+  // This is to prevent surprises.  If you implement this in Gecko,
+  // come here and remove this code
+  Object.defineProperty(navigator, 'mozSettings', {
+    get: function() {
+      // This is a lazy getter. Don't set up the settings stuff
+      // unless an app actually asks for it.
+      try {
+        if (!mozSettings)
+          mozSettings = MozSettings();
+        return mozSettings;
+      } catch (e) {
+        return null;
+      }
+    },
+    enumerable: true,
+    configurable: true
+  });
+
+  // Return object that will be the value of navigator.mozSettings
+  function MozSettings() {
+    // Open the IndexedDB database
+    var settingsDB;
+    var openreq = mozIndexedDB.open(DBNAME, 1);
+
+    openreq.onsuccess = function() {
+      settingsDB = openreq.result;
+    }
+
+    openreq.onerror = function(e) {
+      console.log("Can't open mozSettings database!", e);
+    };
+
+    // The first time after the phone is flashed, or the profile
+    // is deleted, this callback gets called to initialize the database
+    openreq.onupgradeneeded = function() {
+      var db = openreq.result;
+      if (db.objectStoreNames.contains(STORENAME))
+        db.deleteObjectStore(STORENAME);
+      db.createObjectStore(STORENAME, { keyPath: 'key' });
+    };
+
+    // our hacked navigator.mozSettings has 2 methods: get and set
+    return {
+      // The set function is kind of easy becase we're leaving out the
+      // part where it is supposed to return a request object and fire
+      // error and success events.
+      set: function(key, value) {
+        // If the db isn't open yet, trigger the set when we
+        // get the onsuccess
+        var mozSettings = this;
+        if (!settingsDB) {
+          openreq.addEventListener('success', function() {
+            mozSettings.set(key, value);
+          });
+          return;
+        }
+
+        var txn = settingsDB.transaction(STORENAME, IDBTransaction.READ_WRITE);
+        var store = txn.objectStore(STORENAME);
+        // Note that we convert the value to a string because
+        // that is what the current clients of this hacked API seem to expect.
+        // Probably not the correct behavior, though.
+        var setreq = store.put({key: key, value: String(value)});
+
+        setreq.onerror = function(e) {
+          console.log('mozSettings failure', key, value, e);
+        };
+      },
+
+      // The get function returns a request object that allows callback
+      // registration.
+      get: function(key) {
+        // This event handling code copied from the localStorage version
+        // of this api.  There are a lot of things it does not do right.
+        // But good enough for the demo. Do not emulate this code.
+        var onsuccess = [];
+        var onerror = [];
+        var settingsRequest = { // not the same as the db request below
+          result: undefined,  // No result yet
+          addEventListener: function(name, fn) {
+            if (name === 'success')
+              onsuccess.push(fn);
+            if (name === 'error')
+              onerror.push(fn);
+          },
+          set onsuccess(fn) {
+            onsuccess.push(fn);
+          },
+          set onerror(fn) {
+            onerror.push(fn);
+          }
+        };
+
+        // This function queries the database and triggers
+        // the appropriate callbacks of the request object
+        function query() {
+          var txn = settingsDB.transaction(STORENAME, IDBTransaction.READ_ONLY);
+          var store = txn.objectStore(STORENAME);
+          var dbreq = store.get(key);
+          dbreq.onsuccess = function() {
+            var result = dbreq.result || {
+              value: DEFAULTS[key]
+            };
+            settingsRequest.result = result;
+            onsuccess.forEach(function(cb) { cb(); });
+          };
+          dbreq.onerror = function(e) {
+            console.log('mozSettings error querying setting', key, e);
+            onerror.forEach(function(cb) { cb(); });
+          };
+        }
+
+        // If the database is already open, query it now.
+        // Otherwise, wait for it before querying
+        if (settingsDB)
+          query();
+        else
+          openreq.addEventListener('success', query);
+
+        return settingsRequest;
+      }
+    };
+  }
+}());
 
 (function (window) {
   var navigator = window.navigator;
-  if (navigator.mozContacts)
+  if ('mozContacts' in navigator)
     return;
 
   var contacts = [
+  {
+    id: '0',
+    displayName: 'Andreas Gal',
+    name: {
+      familyName: ['Andreas'],
+      givenName: ['Gal']
+    },
+    phones: ['123-4242-4242'],
+    emails: ['gal@mozilla.com']
+  },
   {
     id: '3',
     displayName: 'Coby Newman',
@@ -1308,7 +1585,7 @@
 
 (function (window) {
   var navigator = window.navigator;
-  if (navigator.mozTelephony)
+  if ('mozTelephony' in navigator)
     return;
 
   navigator.mozTelephony = {

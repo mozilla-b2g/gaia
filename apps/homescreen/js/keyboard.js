@@ -29,25 +29,15 @@ const IMEManager = {
     'otherlatins': ['fr', 'de', 'nb', 'sk', 'tr'],
     'cyrillic': ['ru', 'sr-Cyrl'],
     'hebrew': ['he'],
-    'zhuying': ['zh-Hant-Zhuying']
+    'zhuying': ['zh-Hant-Zhuying'],
+    'pinyin': ['zh-Hans-Pinyin']
   },
 
-  kMozSettingsTimeout: 800,
   loadKeyboardSettings: function loadKeyboardSettings(callback) {
-    var completed = false;
     var completeSettingRequests = (function completeSettingRequests() {
-
-      if (completed)
-        return;
-
-      clearTimeout(settingTimer);
-
       if (!this.keyboards.length)
-        this.keyboards =
-          [].concat(
-            this.keyboardSettingGroups['english'],
-            this.keyboardSettingGroups['zhuying']
-          );
+        this.keyboards = [].concat(this.keyboardSettingGroups['english'],
+          this.keyboardSettingGroups['zhuying']);
 
       if (this.keyboards.indexOf(this.currentKeyboard) === -1)
         this.currentKeyboard = this.keyboards[0];
@@ -56,16 +46,8 @@ const IMEManager = {
         this.loadKeyboard(name);
       }).bind(this));
 
-      completed = true;
       callback();
     }).bind(this);
-
-    // XXX: Fallback if MozSettings timed out
-    var settingTimer = setTimeout(function settingTimer() {
-      dump('Keyboard: MozSettings timed out. Skip user settings.');
-      completeSettingRequests();
-
-    }, this.kMozSettingsTimeout);
 
     this.keyboards = [];
     var keyboardSettingGroupKeys = [];
@@ -78,9 +60,6 @@ const IMEManager = {
     var keyboardSettingRequest = function keyboardSettingRequest(key) {
       var request = navigator.mozSettings.get('keyboard.layouts.' + key);
       request.onsuccess = (function onsuccess(evt) {
-        // XXX: workaround with gaia issue 342
-        if (keyboardSettingGroupKeys.indexOf(key) !== i)
-          return;
 
         if (request.result.value === 'true') {
           this.keyboards = this.keyboards.concat(
@@ -96,12 +75,9 @@ const IMEManager = {
       }).bind(this);
 
       request.onerror = (function onerror(evt) {
-        // XXX: workaround with gaia issue 342
-        if (keyboardSettingGroupKeys.indexOf(key) !== i)
-          return;
 
-        dump(
-          'Having trouble getting setting for keyboard setting group: ' + key);
+        var msg = 'Having trouble getting setting for keyboard setting group: ';
+        dump(msg + key);
 
         if (++i === keyboardSettingGroupKeys.length) {
           completeSettingRequests();
@@ -400,7 +376,8 @@ const IMEManager = {
     }
   },
 
-  events: ['mouseup', 'showime', 'hideime', 'unload', 'appclose'],
+  events: ['mouseup', 'showime', 'hideime', 'unload', 'appclose',
+           'appwillclose', 'resize'],
   imeEvents: ['mousedown', 'mouseover', 'mouseleave', 'transitionend'],
   init: function km_init() {
     this.events.forEach((function attachEvents(type) {
@@ -473,8 +450,11 @@ const IMEManager = {
 
   handleEvent: function km_handleEvent(evt) {
     var activeWindow = Gaia.AppManager.foregroundWindow;
-    var target = evt.target;
+    if (!activeWindow ||
+        (activeWindow == this._closingWindow && evt.type != 'appclose'))
+      return;
 
+    var target = evt.target;
     switch (evt.type) {
       case 'showime':
         // cancel hideIME that imminently happen before showIME
@@ -511,11 +491,31 @@ const IMEManager = {
         break;
 
       case 'hideime':
-      case 'appclose':
         this.hideIMETimer = setTimeout((function execHideIME() {
           this.hideIME(activeWindow);
         }).bind(this), 0);
 
+        break;
+
+      case 'appwillclose':
+        this.hideIME(activeWindow, true);
+        this._closingWindow = activeWindow;
+
+        break;
+
+      case 'appclose':
+        this._closingWindow = null;
+        break;
+
+      case 'resize':
+        if (this.ime.dataset.hidden)
+          return;
+
+        // we presume that the targetWindow has been restored by
+        // window manager to full size by now.
+        this.getTargetWindowMetrics();
+        this.updateLayout();
+        this.updateTargetWindowHeight();
         break;
 
       case 'transitionend':
@@ -983,6 +983,14 @@ const IMEManager = {
     }
   },
 
+  getTargetWindowMetrics: function km_getTargetWindowMetrics() {
+    var targetWindow = this.targetWindow;
+    targetWindow.dataset.cssHeight =
+      targetWindow.style.height;
+    targetWindow.dataset.rectHeight =
+      targetWindow.getBoundingClientRect().height;
+  },
+
   updateTargetWindowHeight: function km_updateTargetWindowHeight() {
     this.targetWindow.style.height =
       (this.targetWindow.dataset.rectHeight - this.ime.scrollHeight) + 'px';
@@ -1012,30 +1020,42 @@ const IMEManager = {
       break;
     }
 
-    this.updateLayout();
-
     if (!this.ime.dataset.hidden) {
+      this.updateLayout();
       this.updateTargetWindowHeight();
       return;
     }
 
     this.targetWindow = targetWindow;
-    targetWindow.dataset.cssHeight =
-      targetWindow.style.height;
-    targetWindow.dataset.rectHeight =
-      targetWindow.getBoundingClientRect().height;
+    this.getTargetWindowMetrics();
+    this.updateLayout();
 
+    targetWindow.classList.add('keyboardOn');
     delete this.ime.dataset.hidden;
   },
 
-  hideIME: function km_hideIME(targetWindow) {
+  hideIME: function km_hideIME(targetWindow, imminent) {
 
     if (this.ime.dataset.hidden)
       return;
 
     this.ime.dataset.hidden = 'true';
     targetWindow.style.height = targetWindow.dataset.cssHeight;
+    targetWindow.classList.remove('keyboardOn');
 
+    if (imminent) {
+      var ime = this.ime;
+      ime.classList.add('imminent');
+      setTimeout(function () {
+        ime.classList.remove('imminent');
+      }, 0);
+
+      delete this.targetWindow.dataset.cssHeight;
+      delete this.targetWindow.dataset.rectHeight;
+      delete this.targetWindow;
+
+      ime.innerHTML = '';
+    }
   },
 
   showCandidates: function km_showCandidates(candidates) {

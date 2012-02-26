@@ -6,35 +6,47 @@ html {
   overflow: hidden;
 }
 
+@font-face {
+  font-family: "Open Sans";
+  src: url("fonts/Open-Sans.woff");
+}
+@font-face {
+  font-family: "Open Sans";
+  font-weight: bold;
+  src: url("fonts/Open-Sans-Bold.woff");
+}
+
 body {
   background-color: #000;
   color: #fff;
-  font-family: Arial, Helvetica, Sans-serif;
+  font-family: "Open Sans", sans-serif;
+  font-size: 1.8mozmm;
   margin: 0;
   padding: 0;
   height: 100%;
   width: 100%;
-  font-size: 1.8mozmm;
   overflow: hidden;
 }
 
 header {
-  height: 20px;
-  background-color: #fff;
-  background-image: -moz-linear-gradient(#fff, #eaeae4);
+  border-bottom: 2px solid #7F7F7F;
+  background: url(images/app-texture.png) 50% 50%, -moz-linear-gradient(top, hsla(0,0%,96%,1), hsla(0,0%,92%,1) );
+  border-radius: 6px 6px 0 0;
+  height: 64px;
   margin: 0;
-  padding: 25px;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
 }
 
 header h1 {
   margin: 0;
   padding: 0;
-  font-size: 20px;
-  color: #333;
-  text-align: center;
   width: 100%;
+  height: 64px;
+  line-height: 64px;
+  text-align: center;
+  font-family: "Open Sans", sans-serif;
+  font-weight: bold;
+  font-size: 26px;
+  color: #000;
 }
 
 #thumbnails {
@@ -67,7 +79,6 @@ header h1 {
 }
 
 #photos {
-  display: table;
   width: 100%;
   height: 100%;
   padding: 0;
@@ -75,12 +86,17 @@ header h1 {
   position: absolute;
   top: 0px;
   left: 0px;
+  overflow: hidden;
 }
 
-#photos li {
-  display: table-cell;
+#photos div {
+  position: absolute;
+  top: 0px;
+  left: 100%;
   width: 100%;
   height: 100%;
+  padding: 0;
+  margin: 0;
 }
 
 .hidden, #photos.hidden {
@@ -89,7 +105,6 @@ header h1 {
 
 .photo {
   width: 100%;
-  height: 100%;
 }
 
 #player-controls {
@@ -112,6 +127,10 @@ header h1 {
 
 }
 
+.button:active, .button:focus {
+  outline: none;
+}
+
 #back-button {
   top: 15px;
   left: 15px;
@@ -123,3 +142,8 @@ header h1 {
   right: 15px;
   background-image: url('images/play.png');
 }
+
+#play-button.playing {
+  background-image: url('images/pause.png');
+}
+

@@ -1,48 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-	<title>Settings</title>
-	<link rel="stylesheet" type="text/css" href="externals/scrollkit/scrollkit.css"/>
-	<link rel="stylesheet" type="text/css" href="externals/pushpop/pushpop.css"/>
-	<link rel="stylesheet" type="text/css" href="externals/pushpop/pushpop-tableview/pushpop-tableview.css"/>
-	<link rel="stylesheet" type="text/css" href="style/ui.css"/>
-	<link rel="stylesheet" type="text/css" href="style/settings.css"/>
-	<script type="text/javascript" src="../../webapi.js"></script>
-	<script type="text/javascript" src="externals/pushpop/jquery-1.7.1.js"></script>
-	<script type="text/javascript" src="externals/scrollkit/scrollkit.js"></script>
-	<script type="text/javascript" src="externals/pushpop/pushpop.js"></script>
-	<script type="text/javascript" src="externals/pushpop/pushpop-tableview/pushpop-tableview.js"></script>
-  <script type="text/javascript" src="js/ui.js"></script>
-  <script type="text/javascript" src="js/settings.js"></script>
-</head>
-<body>
-  <div class="pp-view-stack" id="view-stack">
-    <div class="pp-view sk-scroll-view root" id="root-view">
-      <ul class="pp-tableview">
-        <li class="header">General</li>
-        <li>
-          <span>Lockscreen Disabled</span>
-          <label class="checkbox">
-            <input type="checkbox" name="lockscreen.disabled"/>
-            <span class="checkbox-inner"></span>
-          </label>
-        </li>
-        <li>
-          <span>Airplane Mode</span>
-          <label class="checkbox">
-            <input type="checkbox" name="airplanemode.enabled"/>
-            <span class="checkbox-inner"></span>
-          </label>
-        </li>
-        <li>
-          <span>Location Services</span>
-          <label class="checkbox">
-            <input type="checkbox" name="locationservices.enabled"/>
-            <span class="checkbox-inner"></span>
-          </label>
-        </li>
+<html manifest="manifest.appcache">
+  <head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="pragma" content="no-cache">
+    <title>Settings</title>
+
+    <link rel="stylesheet" type="text/css" media="screen" href="style/ui.css"/>
+    <link rel="stylesheet" type="text/css" media="screen" href="style/settings.css"/>
+    <script type="text/javascript" src="../../webapi.js"></script>
+    <script type="text/javascript" src="js/ui.js"></script>
+    <script type="text/javascript" src="js/settings.js"></script>
+  </head>
+  <body>
+    <div id="root" class="view" data-title="Settings">
+      <ul class="tableView">
         <li>
           <span>Wi-Fi</span>
           <label class="checkbox">
@@ -57,36 +28,111 @@
             <span class="checkbox-inner"></span>
           </label>
         </li>
-        <li class="disclosure-indicator"><a class="push" data-transition="slide-horizontal" href="#keyboard-view">Keyboard</a></li>
-        <li class="disclosure-indicator"><a class="push" data-transition="slide-horizontal" href="#sounds-view">Sounds</a></li>
-        <li class="disclosure-indicator"><a class="push" data-transition="slide-horizontal" href="#display-view">Display</a></li>
-        <li class="disclosure-indicator"><a class="push" data-transition="slide-horizontal" href="#wallpaper-view">Wallpaper</a></li>
       </ul>
-      <ul class="pp-tableview">
-        <li class="header">Pushpop Transitions</li>
-        <li class="disclosure-indicator"><a class="push" data-transition="slide-horizontal" href="#example-view">Slide Horizontal</a></li>
-        <li class="disclosure-indicator"><a class="push" data-transition="slide-vertical" href="#example-view">Slide Vertical</a></li>
-        <li class="disclosure-indicator"><a class="push" data-transition="flip-horizontal" href="#example-view">Flip Horizontal</a></li>
-        <li class="disclosure-indicator"><a class="push" data-transition="flip-vertical" href="#example-view">Flip Vertical</a></li>
-        <li class="disclosure-indicator"><a class="push" data-transition="card-swap" href="#example-view">Card Swap</a></li>
-        <li class="disclosure-indicator"><a class="push" data-transition="zoom" href="#example-view">Zoom</a></li>
-        <li class="disclosure-indicator"><a class="push" data-transition="cross-fade" href="#example-view">Cross Fade</a></li>
+      <ul class="tableView">
+        <li>
+          <a class="push slideHorizontal" href="#languages">
+            <span>Languages</span>
+          </a>
+        </li>
+        <li>
+          <a class="push slideHorizontal" href="#wallpapers">
+            <span>Wallpapers</span>
+          </a>
+        </li>
+        <li>
+          <a class="push slideHorizontal" href="#display">
+            <span>Display</span>
+          </a>
+        </li>
+        <li>
+          <a class="push slideHorizontal" href="#keyboard">
+            <span>Keyboard</span>
+          </a>
+        </li>
+        <li>
+          <a class="push slideHorizontal" href="#sounds">
+            <span>Sounds</span>
+          </a>
+        </li>
+        <li>
+          <a class="push slideHorizontal" href="#phone">
+            <span>Phone</span>
+          </a>
+        </li>
+        <li>
+          <a class="push slideHorizontal" href="#debug">
+            <span>Debug</span>
+          </a>
+        </li>
       </ul>
-      <ul class="pp-tableview">
-        <li class="header">Example Table View Accessories</li>
-        <li class="checkmark">Checkmark</li>
-        <li class="delete-button">Delete Button</li>
-        <li class="detail-disclosure-button">Detail Disclosure Button</li>
+      <ul class="tableView">
+        <li>
+          <span>Power off</span>
+          <label class="checkbox">
+            <input type="checkbox" name="" onclick="navigator.mozPower.powerOff(); return false;" />
+            <span class="checkbox-inner"></span>
+          </label>
+        </li>
+        <li>
+          <span>Restart</span>
+          <label class="checkbox">
+            <input type="checkbox" name="" onclick="navigator.mozPower.reboot(); return false;" />
+            <span class="checkbox-inner"></span>
+          </label>
+        </li>
       </ul>
     </div>
-    <div class="pp-view sk-scroll-view" id="example-view">
-      <!-- This is how to create an automatic "Back" button -->
-      <a class="btn pop" href="#">Back</a>
-      <p>This is an example Pushpop view.</p>
+
+    <!-- Phone -->
+    <div id="phone" class="view" data-title="Phone">
+      <ul class="tableView">
+        <li id="vibrator">
+          <span>Vibrate</span>
+          <label class="checkbox">
+            <input type="checkbox" name="phone.vibrator.incoming"/>
+            <span class="checkbox-inner"></span>
+          </label>
+        </li>
+      </ul>
     </div>
-    <div class="pp-view sk-scroll-view" id="keyboard-view">
-      <ul class="pp-tableview">
-        <li class="header">Feedback</li>
+
+    <!-- Languages -->
+    <div id="languages" class="view" data-title="Languages">
+      <ul class="tableView">
+        <li id="language-en-us">
+          <span>English (United States)</span>
+          <label class="checkbox">
+            <input type="radio" name="language.current" value="en-US"/>
+            <span class="checkbox-inner"></span>
+          </label>
+        </li>
+        <li id="language-fr-Fr">
+          <span>Français</span>
+          <label class="checkbox">
+            <input type="radio" name="language.current" value="fr-FR"/>
+            <span class="checkbox-inner"></span>
+          </label>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Debug -->
+    <div id="debug" class="view" data-title="Debug">
+      <ul class="tableView">
+        <li>
+          <span>Grid</span>
+          <label class="checkbox">
+            <input type="checkbox" name="debug.grid.enabled"/>
+            <span class="checkbox-inner"></span>
+          </label>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Keyboard -->
+    <div id="keyboard" class="view" data-title="Display">
+      <ul class="tableView">
         <li>
           <span>Vibration</span>
           <label class="checkbox">
@@ -102,8 +148,7 @@
           </label>
         </li>
       </ul>
-      <ul class="pp-tableview">
-        <li class="header">Language</li>
+      <ul class="tableView">
         <li>
           <span>English</span>
           <label class="checkbox">
@@ -150,21 +195,27 @@
             <span class="checkbox-inner"></span>
           </label>
         </li>
+        <li>
+          <span>Simplified Chinese (Pinyin)</span>
+          <label class="checkbox">
+            <input type="checkbox" name="keyboard.layouts.pinyin"/>
+            <span class="checkbox-inner"></span>
+          </label>
+        </li>
       </ul>
     </div>
-    <div class="pp-view sk-scroll-view" id="sounds-view">
-      <ul class="pp-tableview">
-        <li class="header">Sounds</li>
-      </ul>
+
+    <!-- Sounds -->
+    <div id="sounds" class="view" data-title="Sounds">
+
     </div>
-    <div class="pp-view sk-scroll-view" id="display-view">
-      <ul class="pp-tableview">
-        <li class="header">Display</li>
+
+    <!-- Display -->
+    <div id="display" class="view" data-title="Display">
+      <ul class="tableView">
         <li id="brightness">
-          <label>Brigthness level</label>
-          <progress id="brightness-input" value="1" max="1"></progress>
-          <br/ >
-          <span class="comment">Waiting for <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=707626">bug 707626</a></span>
+          <label>Brightness level</label>
+          <progress id="brightness-level" value="10" max="10"></progress>
         </li>
         <li>
           <span>Lock Screen</span>
@@ -173,26 +224,34 @@
             <span class="checkbox-inner"></span>
           </label>
         </li>
-        <li id="screentimeout">
-          <label for="screentimeout-input">Screen Timeout</label>
-          <select>
-            <option value="0">Never</option>
-            <option value="15">15 seconds</option>
-            <option value="30">30 seconds</option>
-            <option value="60">1 minute</option>
-            <option value="120">2 minutes</option>
-            <option value="600">10 minutes</option>
-          </select>
-          <br/ >
-          <span class="comment">Waiting for <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=707626">bug 707626</a></span>
+      </ul>
+    </div>
+
+    <!-- Wallpapers -->
+    <div id="wallpapers" class="view" data-title="Wallpapers">
+      <ul class="tableView">
+        <li id="wallpaper-default">
+          <span>Default</span>
+          <label class="checkbox">
+            <input type="radio" name="homescreen.wallpaper" value="default.png"/>
+            <span class="checkbox-inner"></span>
+          </label>
+        </li>
+        <li id="wallpaper-water">
+          <span>Water</span>
+          <label class="checkbox">
+            <input type="radio" name="homescreen.wallpaper" value="water.png"/>
+            <span class="checkbox-inner"></span>
+          </label>
+        </li>
+        <li id="wallpaper-leaves">
+          <span>Leaves</span>
+          <label class="checkbox">
+            <input type="radio" name="homescreen.wallpaper" value="leaves.png"/>
+            <span class="checkbox-inner"></span>
+          </label>
         </li>
       </ul>
     </div>
-    <div class="pp-view sk-scroll-view" id="wallpaper-view">
-      <ul class="pp-tableview">
-        <li class="header">Wallpaper</li>
-      </ul>
-    </div>
-  </div>
-</body>
+  </body>
 </html>

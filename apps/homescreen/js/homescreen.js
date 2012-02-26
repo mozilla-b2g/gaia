@@ -7,9 +7,31 @@ const SHORTCUTS_HEIGHT = 144;
 
 var displayState;
 
+function foregroundAppURL() {
+  var win = WindowManager.getForegroundWindow();
+  return (win !== null) ? win.application.url : window.document.URL;
+}
+
+function toggleSourceViewer(url) {
+  if (isSourceViewerActive()) {
+    hideSourceViewer(url);
+  } else {
+    showSourceViewer(url);
+  }
+}
+
+function getSourceViewerElement() {
+  return content.document.getElementById('appViewsource');
+}
+
+function isSourceViewerActive() {
+  var viewsource = getSourceViewerElement();
+  return viewsource !== null && viewsource.style.visibility != 'hidden';
+}
+
 function showSourceViewer(url) {
   var document = content.document;
-  var viewsource = document.getElementById('appViewsource');
+  var viewsource = getSourceViewerElement();
   if (!viewsource) {
     var style = '#appViewsource { ' +
                 '  position: absolute;' +
@@ -36,10 +58,60 @@ function showSourceViewer(url) {
 }
 
 function hideSourceViewer() {
-  var viewsource = content.document.getElementById('appViewsource');
-  if (!viewsource)
-    return;
-  viewsource.style.visibility = 'hidden';
+  var viewsource = getSourceViewerElement();
+  if (viewsource !== null) {
+    viewsource.style.visibility = 'hidden';
+  }
+}
+
+function hideGrid() {
+  document.getElementById('debug-grid').style.display = 'none';
+}
+
+function showGrid() {
+  document.getElementById('debug-grid').style.display = 'block';
+}
+
+function toggleGrid() {
+  var visibility = document.getElementById('debug-grid').style.display;
+  visibility == 'block' ? hideGrid() : showGrid();
+}
+
+if (window.navigator.mozSettings) {
+  var settings = window.navigator.mozSettings;
+  var updateGrid = function() {
+    var request = settings.get('debug.grid.enabled');
+    request.addEventListener('success', function onsuccess(evt) {
+      if (request.result.value === 'true')
+        showGrid();
+    });
+  }
+
+  window.addEventListener('message', function listenGridChanges(evt) {
+    if (evt.data == 'debug.grid.enabled') {
+      toggleGrid();
+    }
+  });
+
+  updateGrid();
+}
+
+if (window.navigator.mozSettings) {
+  var settings = window.navigator.mozSettings;
+  var updateWallpaper = function() {
+    var request = settings.get('homescreen.wallpaper');
+    request.addEventListener('success', function onsuccess(evt) {
+      var home = document.getElementById('home');
+      home.style.background = 'url(style/backgrounds/' + request.result.value + ')';
+    });
+  }
+
+  window.addEventListener('message', function listenGridChanges(evt) {
+    if (evt.data == 'homescreen.wallpaper')
+      updateWallpaper();
+  });
+
+  updateWallpaper();
 }
 
 // Change the display state (off, locked, default)
@@ -49,6 +121,7 @@ function changeDisplayState(state) {
   // update clock and battery status (if needed)
   updateClock();
   updateBattery();
+  updateConnection();
 
   // Make sure the source viewer is not visible.
   if (state == 'locked')
@@ -110,12 +183,13 @@ DefaultPhysics.prototype = {
     var iconGrid = this.iconGrid;
     var currentPage = iconGrid.currentPage;
     if (tap) {
-      iconGrid.tap();
+      iconGrid.tap(e.target);
+      iconGrid.setPage(currentPage, 0);
       return;
     } else if (flick) {
       iconGrid.setPage(currentPage + dir, 0.2);
     } else {
-      if (Math.abs(diffX) < this.containerWidth / 2)
+      if (Math.abs(diffX) < window.innerWidth / 2)
         iconGrid.setPage(currentPage, 0.2);
       else
         iconGrid.setPage(currentPage + dir, 0.2);
@@ -188,7 +262,7 @@ function IconGrid(containerId, columns, rows, minPages, showLabels) {
   this.physics = createPhysicsFor(this);
 
   // install event handlers
-  AddEventHandlers(this.container, this, ['touchstart', 'touchmove', 'touchend', 'contextmenu']);
+  AddEventHandlers(this.container, this, ['touchstart', 'touchmove', 'touchend']);
   AddEventHandlers(window, this, ['resize']);
 }
 
@@ -202,14 +276,19 @@ IconGrid.prototype = {
   remove: function(icon) {
     this.icons.splice(icon.index);
   },
+
   // reflow the icon grid
   update: function() {
     var instance = this;
     var containerId = this.containerId;
     var container = this.container;
     var icons = this.icons;
-    var columns = this.columns;
-    var rows = this.rows;
+
+    var rows = Math.ceil((window.innerHeight - 200) / 200);
+    var columns = Math.ceil((window.innerWidth - 100) / 150);
+
+    var columns = columns;
+    var rows = rows;
     var currentPage = this.currentPage;
     var itemsPerPage = rows * columns;
     var iconWidth = Math.floor(100/columns);
@@ -235,17 +314,10 @@ IconGrid.prototype = {
       div.style.MozTransform = 'translate(' + x + ',' + y + ')';
     }
 
-    // touch handler for icons
-    var TouchHandler = {
-      handleEvent: function(e) {
-        instance.lastAction = (e.type === 'touchstart') ? e.target.action : null;
-      }
-    };
-
     // get page divs
     var elementList = container.childNodes;
     var pageDivs = [];
-    for (var n = 0; n < elementList; ++n) {
+    for (var n = 0; n < elementList.length; ++n) {
       var element = elementList[n];
       pageDivs[element.id] = element;
     }
@@ -253,7 +325,7 @@ IconGrid.prototype = {
     // get icon divs
     var elementList = document.querySelectorAll('#' + containerId + '> .page > .icon');
     var iconDivs = [];
-    for (var n = 0; n < elementList; ++n) {
+    for (var n = 0; n < elementList.length; ++n) {
       var element = elementList[n];
       iconDivs[element.id] = element;
     }
@@ -296,20 +368,18 @@ IconGrid.prototype = {
         iconDiv = document.createElement('div');
         iconDiv.id = n;
         iconDiv.className = 'icon';
-        var style = iconDiv.style;
-        style.width = iconWidth + '%';
-        style.height = iconHeight + '%';
-        var img = new Image();
-        AddEventHandlers(img, TouchHandler, ['touchstart', 'touchend']);
+        iconDiv.dataset.url = icon.action;
+
         var centerDiv = document.createElement('div');
         centerDiv.className = 'img';
-        centerDiv.appendChild(img);
         iconDiv.appendChild(centerDiv);
+
         if (this.showLabels) {
           var labelDiv = document.createElement('div');
           labelDiv.className = 'label';
           iconDiv.appendChild(labelDiv);
         }
+
         pageDivs[pageOfIcon].appendChild(iconDiv);
         iconDivs[n] = iconDiv;
       } else {
@@ -319,19 +389,23 @@ IconGrid.prototype = {
           pageDivs[pageOfIcon].appendChild(iconDiv);
         }
       }
-      // make sure icon has right image and label
-      var img = iconDiv.childNodes[0].childNodes[0];
-      img.action = icon.action;
-      var iconUrl = icon.iconUrl;
-      if (img.src != iconUrl)
-        img.src = iconUrl;
+
+      iconDiv.style.backgroundImage = 'url(' + icon.iconUrl + ')';
+
       if (this.showLabels) {
         var label = iconDiv.childNodes[1];
         if (label.textContent != icon.label)
           label.textContent = icon.label;
       }
+
       // update position
-      setPosition(iconDiv, getIconColumn(icon) + '00%', getIconRow(icon) + '00%');
+      var deltaX = 136;
+      var deltaY = 200;
+      if (window.innerHeight <= 480) {
+        deltaY = 184;
+      }
+
+      setPosition(iconDiv, getIconColumn(icon) * 136 + 'px', getIconRow(icon) * deltaY + 'px');
     }
 
     // remove icons we don't need
@@ -374,9 +448,8 @@ IconGrid.prototype = {
     if (dots)
       dots.update(number);
   },
-  tap: function() {
-    if (this.lastAction)
-      eval(this.lastAction);
+  tap: function(target) {
+    WindowManager.launch(target.dataset.url);
   },
   handleEvent: function(e) {
     var physics = this.physics;
@@ -386,12 +459,6 @@ IconGrid.prototype = {
       break;
     case 'touchmove':
       physics.onTouchMove(e.touches[0]);
-      break;
-    case 'contextmenu':
-      var sourceURL = window.document.URL;
-      showSourceViewer(sourceURL);
-      document.releaseCapture();
-      physics.touchState.active = false;
       break;
     case 'touchend':
       document.releaseCapture();
@@ -553,9 +620,10 @@ LockScreen.prototype = {
     var settings = window.navigator.mozSettings;
     if (!settings)
       return;
-    var request = settings.get('lockscreen.disabled');
+
+    var request = settings.get('lockscreen.enabled');
     request.addEventListener('success', (function onsuccess(evt) {
-      request.result.value !== 'true' ? this.lock(true) : this.unlock(-1, true);
+      request.result.value !== 'false' ? this.lock(true) : this.unlock(-1, true);
 
       if (callback)
         setTimeout(callback, 0);
@@ -634,8 +702,17 @@ LockScreen.prototype = {
       document.releaseCapture();
       break;
     case 'sleep':
-      if (!e.detail.enabled)
-        return;
+      // Lock the screen when screen is turn off can stop
+      // homescreen from showing up briefly when it's turn back on
+      // But we still do update() when it's turned back on
+      // coz the screen could be turned off by the timer
+      // instead of sleep button
+
+      // XXX: the above statement does not really works all the time
+      // gaia issue #513
+
+      //if (!e.detail.enabled)
+      //  return;
       this.update();
       break;
     default:
@@ -653,37 +730,64 @@ function OnLoad() {
     document.getElementById('statusbar')
   ];
   new NotificationScreen(touchables);
-  
+
+  var telephony = navigator.mozTelephony;
+  if (telephony) {
+    telephony.addEventListener('incoming', function incoming(evt) {
+      Gaia.lockScreen.unlock(-1, true);
+      screen.mozEnabled = true;
+      screen.mozBrightness = 1.0;
+
+      var url = '../dialer/dialer.html?choice=incoming&number=';
+      var launchFunction = function launchDialer() {
+        WindowManager.launch(url + evt.call.number);
+      };
+
+      var appWindow = WindowManager.getForegroundWindow();
+      if (appWindow && (appWindow.application.name != 'Dialer')) {
+        WindowManager.closeForegroundWindow();
+        appWindow.element.addEventListener('transitionend', function closed() {
+          appWindow.element.removeEventListener('transitionend', closed);
+
+          launchFunction();
+        });
+      } else {
+        launchFunction();
+      }
+
+    });
+
+  }
+
   var apps = Gaia.AppManager.loadInstalledApps(function(apps) {
-    var appsGrid = new IconGrid('apps', 3, 3, 3, true);
+    var rows = Math.ceil((window.innerHeight - 200) / 200);
+    var columns = Math.ceil((window.innerWidth - 100) / 150);
+    var pages = Math.floor(apps.length / (rows * columns)) + 1;
+
+    var appsGrid = new IconGrid('apps', columns, rows, pages, true);
+    var appsGridCount = 0;
     for (var n = 0; n < apps.length; ++n) {
       var app = apps[n];
-      appsGrid.add(n, app.icon, app.name, 'WindowManager.launch("' + app.url + '")');
+      appsGrid.add(n, app.icon, app.name, app.url);
     }
     appsGrid.dots = new Dots('dots', 'apps');
     appsGrid.update();
 
-    var favsGrid = new IconGrid('favs', 3, 1, 1, false);
-    var slot = 0;
-    for (var n = 0; n < apps.length; ++n) {
-      if (apps[n].name == 'Dialer' ||
-          apps[n].name == 'Messages') {
-        var app = apps[n];
-        favsGrid.add(slot++, app.icon, app.name, 'WindowManager.launch("' + app.url + '")');
-      }
-    }
-    favsGrid.add(slot++, 'style/images/reload.png', '', 'document.location.reload()');
-    favsGrid.update();
+    window.addEventListener('resize', function() {
+      appsGrid.update();
+    });
   });
 
-  var titlebar = document.getElementById('titlebar');
-  window.addEventListener('appopen', function(evt) {
-    titlebar.innerHTML = evt.detail;
+  window.addEventListener('keypress', function(evt) {
+    if (evt.keyCode == evt.DOM_VK_F5)
+      document.location.reload();
   });
 
-  window.addEventListener('appclose', function(evt) {
-    titlebar.innerHTML = '';
+  window.addEventListener('menu', function(evt) {
+    toggleSourceViewer(foregroundAppURL());
   });
+
+  changeDisplayState();
 }
 
 // Update the clock and schedule a new update if appropriate
@@ -728,11 +832,11 @@ function updateBattery() {
     if (battery.charging) {
       charging.hidden = false;
       fuel.className = 'charging';
-      fuel.style.minWidth = (level / 5.25) + 'px';
+      fuel.style.minWidth = (level / 5.88) + 'px';
     } else {
       charging.hidden = true;
 
-      fuel.style.minWidth = fuel.style.width = (level / 5.25) + 'px';
+      fuel.style.minWidth = fuel.style.width = (level / 5.88) + 'px';
       if (level <= 10)
         fuel.className = 'critical';
       else if (level <= 30)
@@ -748,3 +852,46 @@ function updateBattery() {
   battery.addEventListener('statuschange', updateBattery);
 }
 
+
+function updateConnection() {
+  var conn = window.navigator.mozMobileConnection;
+  if (!conn) {
+    console.log("There's no window.navigator.mozMobileConnection!");
+    return;
+  }
+
+  if (displayState == 'off') {
+    conn.removeEventListener("cardstatechange", updateConnection);
+    conn.removeEventListener("connectionchange", updateConnection);
+    return;
+  }
+
+  // Update the operator name / SIM status.
+  var title = "";
+  if (conn.cardState == "absent") {
+    title = "No SIM card";
+  } else if (!conn.connected) {
+    title = "Connecting...";
+  } else {
+    title = conn.operator || "";
+    if (conn.roaming) {
+      title += " (roaming)";
+    }
+  }
+  document.getElementById("titlebar").textContent = title;
+
+  // Update the signal strength bars.
+  var signalElements = document.querySelectorAll('#signal > span');
+  for (var i = 0; i < 4; i++) {
+    var haveSignal = (i < conn.bars);
+    var el = signalElements[i];
+    if (haveSignal) {
+      el.classList.add('haveSignal');
+    } else {
+      el.classList.remove('haveSignal');
+    }
+  }
+
+  conn.addEventListener("cardstatechange", updateConnection);
+  conn.addEventListener("connectionchange", updateConnection);
+}

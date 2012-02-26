@@ -5,11 +5,31 @@
     <meta http-equiv="pragma" content="no-cache">
     <title>Camera</title> 
 
-    <link rel="stylesheet" href="style/camera.css" type="text/css" />
+    <link type="text/css" rel="stylesheet" href="style/camera.css"/>
     <script type="text/javascript" src="js/camera.js"></script>
   </head>
   <body>
-    <input id="chooser" type="file" accept="image/*">
-    <img id="preview" class="hidden"/>
+    <div id="video-container">
+      <video id="video" autoplay> </video>
+    </div>
+
+    <div id="video-controls">
+      <span class="button" onclick="Camera.toggleCamera()">switch</span>
+      <span class="button">capture</span>
+    </div>
+
+    <div id="filter-controls">
+      <span class="button" onclick="Camera.toggleFilter(this)" data-filter="fGB">blur</span>
+      <span class="button" onclick="Camera.toggleFilter(this)" data-filter="fCMS">saturate</span>
+    </div>
+
+    <svg>
+      <filter id="fCMS" color-interpolation-filters="sRGB">
+        <feColorMatrix id="fCMSPrim" type="saturate" values="0.4"/>
+      </filter>
+      <filter id="fGB" color-interpolation-filters="sRGB">
+        <feGaussianBlur id="fGBPrim" stdDeviation="3"/>
+      </filter>
+    </svg>
   </body>
 </html>

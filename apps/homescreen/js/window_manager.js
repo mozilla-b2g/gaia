@@ -5,10 +5,11 @@
 
 function WindowSprite(win) {
   var element = this.element = document.createElement('div');
-  element.className = 'windowSprite';
-  element.style.width = win.element.style.width;
-  element.style.height = win.element.style.height;
-  element.style.background = '-moz-element(#window_' + win.id + ') no-repeat';
+  if (win.application.fullscreen) {
+    element.className = 'windowSprite fullscreen';
+  } else {
+    element.className = 'windowSprite';
+  }
 }
 
 WindowSprite.prototype = {
@@ -25,7 +26,20 @@ WindowSprite.prototype = {
   },
 
   remove: function ws_remove() {
+    if (!this.element.parentNode)
+      return;
+
     document.body.removeChild(this.element);
+  },
+
+  crossFade: function ws_crossFade() {
+    var afterCrossFade = (this.remove).bind(this);
+    // XXX: wait for 50ms for iframe to be painted.
+    // setTimeout(0) is used to escape the current event firing.
+    setTimeout((function () {
+      this.element.addEventListener('transitionend', afterCrossFade);
+      this.element.classList.add('crossFade');
+    }).bind(this), 50);
   }
 };
 
@@ -33,70 +47,99 @@ var _statusBarHeight = null;
 
 function Window(application, id) {
   var element = this.element = document.createElement('iframe');
+  element.setAttribute('mozallowfullscreen', 'true');
+
+  // TODO: a platform fix will come
+  var exceptions = ['Dialer', 'Settings'];
+  if(exceptions.indexOf(application.name) == -1) {
+    element.setAttribute('mozbrowser', 'true');
+  }
   element.id = 'window_' + id;
   element.className = 'appWindow';
 
-  var offsetHeight = document.getElementById('statusbar').offsetHeight;
-  var documentElement = document.documentElement;
-  element.style.width = documentElement.clientWidth + 'px';
-  element.style.height = documentElement.clientHeight - offsetHeight + 'px';
-  element.src = application.url;
-
   this.application = application;
   this.id = id;
+  this.resize();
 }
 
 Window.prototype = {
   element: null,
 
-  _active: false,
-  setActive: function window_setActive(active) {
-    var classes = this.element.classList;
-    if (this._active === active)
-      return;
+  _loaded: false,
 
-    classes.toggle('active');
-    this._active = active;
+  show: function window_show() {
+    this.element.classList.add('active');
+  },
+
+  hide: function window_hide() {
+    this.element.classList.remove('active');
   },
 
   focus: function window_focus(callback) {
-    if (this._active)
+    if (this.element.classList.contains('active'))
       return;
+
+    this.resize();
 
     var sprite = new WindowSprite(this);
     sprite.add();
-    this.setActive(true);
+    this.show();
 
-    var focus = function(evt) {
-      sprite.remove();
+    var focus = (function(evt) {
+      sprite.element.removeEventListener('transitionend', focus);
 
+      sprite.crossFade();
+
+      var url = this.application.url;
       var element = this.element;
+      if (!this._loaded) {
+        element.src = url;
+        this._loaded = true;
+
+        window.addEventListener('message', function waitForAppReady(evt) {
+          if (evt.data !== 'appready')
+            return;
+
+          window.removeEventListener('message', waitForAppReady);
+          element.contentWindow.postMessage({
+            message: 'visibilitychange',
+            url: element.src,
+            hidden: false
+          }, '*');
+        });
+      } else {
+        element.contentWindow.postMessage({
+          message: 'visibilitychange',
+          url: url,
+          hidden: false
+        }, '*');
+      }
       element.focus();
-      element.contentWindow.postMessage({
-        message: 'visibilitychange',
-        url: this.application.url,
-        hidden: false
-      }, '*');
 
       if (callback)
         callback();
-    };
-    sprite.element.addEventListener('transitionend', focus.bind(this));
+    }).bind(this);
+    sprite.element.addEventListener('transitionend', focus);
+
+    if (this.application.fullscreen) {
+      document.getElementById('screen').classList.add('fullscreen');
+    }
 
     document.body.offsetHeight;
     sprite.setActive(true);
   },
 
   blur: function window_blur(callback) {
-    if (!this._active)
+    if (!this.element.classList.contains('active'))
       return;
 
     var sprite = new WindowSprite(this);
     sprite.setActive(true);
     sprite.add();
 
-    var blur = function(evt) {
-      this.setActive(false);
+    var blur = (function(evt) {
+      sprite.element.removeEventListener('transitionend', blur);
+      this.hide();
       sprite.remove();
 
       var element = this.element;
@@ -111,11 +154,45 @@ Window.prototype = {
 
       if (callback)
         callback();
-    };
-    sprite.element.addEventListener('transitionend', blur.bind(this));
+    }).bind(this);
+    sprite.element.addEventListener('transitionend', blur);
+
+    if (this.application.fullscreen) {
+      document.getElementById('screen').classList.remove('fullscreen');
+    }
+
+    // NOTE: for the moment, orientation only works when fullscreen because of a
+    // too dirty hack...
+    if (this.application.fullscreen && this.application.orientation) {
+      var width = this.element.style.width;
+      this.element.style.width = this.element.style.height;
+      this.element.style.height = width;
+    }
 
     document.body.offsetHeight;
     sprite.setActive(false);
+  },
+
+  resize: function window_resize() {
+    var element = this.element;
+    var documentElement = document.documentElement;
+    // NOTE: for the moment, orientation only works when fullscreen because of a
+    // too dirty hack...
+    if (this.application.fullscreen && this.application.orientation) {
+      var width = this.element.style.width;
+      element.style.width = documentElement.clientHeight + 'px';
+      element.style.height = documentElement.clientWidth + 'px';
+
+      element.classList.add(this.application.orientation);
+    } else {
+      element.style.width = documentElement.clientWidth + 'px';
+
+      var height = documentElement.clientHeight;
+      if (!this.application.fullscreen) {
+        height -= document.getElementById('statusbar').offsetHeight;
+      }
+      element.style.height = height + 'px';
+    }
   }
 };
 
@@ -127,35 +204,57 @@ var WindowManager = {
   init: function wm_init() {
     window.addEventListener('home', this);
     window.addEventListener('message', this);
+    window.addEventListener('appopen', this);
+    window.addEventListener('appwillclose', this);
+    window.addEventListener('locked', this);
+    window.addEventListener('unlocked', this);
+    window.addEventListener('resize', this);
+  },
+
+  enabled: true,
+
+  get container() {
+    delete this.container;
+    return this.container = document.getElementById('windows');
   },
 
   handleEvent: function wm_handleEvent(evt) {
     switch (evt.type) {
       case 'message':
+        if (!this.enabled)
+          return;
         if (evt.data == 'appclose')
           this.closeForegroundWindow();
         break;
       case 'home':
+        if (!this.enabled)
+          return;
         this.closeForegroundWindow();
         break;
+      case 'appopen':
+        this.container.classList.add('active');
+        break;
+      case 'appwillclose':
+        this.container.classList.remove('active');
+        break;
+      case 'locked':
+        if (this._foregroundWindow.application.fullscreen) {
+          document.getElementById('screen').classList.remove('fullscreen');
+        }
+        this.enabled = false;
+        break;
+      case 'unlocked':
+        if (this._foregroundWindow.application.fullscreen) {
+          document.getElementById('screen').classList.add('fullscreen');
+        }
+        this.enabled = true;
+        break;
+      case 'resize':
+        if (!this._foregroundWindow)
+          return;
+        this._foregroundWindow.resize();
+        break;
     }
-  },
-
-
-  // Sets the WindowManager active/inactive. The WindowManager must be active
-  // for the foreground Window to be visible. When inactive, the Windows can
-  // still be used to get images used for the TaskManager and the minimize and
-  // maximize animations.
-  setActive: function wm_setActive(active) {
-    var classes = this.container.classList;
-    if (classes.contains('active') === active)
-      return;
-    classes.toggle('active');
-  },
-
-  get container() {
-    delete this.container;
-    return this.container = document.getElementById('windows');
   },
 
   windows: [],
@@ -191,46 +290,55 @@ var WindowManager = {
     return this._foregroundWindow;
   },
 
-  setForegroundWindow: function wm_setForegroundWindow(newWindow, callback) {
+  setForegroundWindow: function wm_setForegroundWindow(newWindow) {
     var oldWindow = this._foregroundWindow;
-    if (oldWindow === newWindow)
+    if (oldWindow === newWindow || this._isInTransition)
       return;
     this._foregroundWindow = newWindow;
+    this._isInTransition = true;
 
-    if (newWindow) {
-      newWindow.focus(function() {
-        WindowManager.setActive(true);
-        if (callback)
-          callback();
-      });
-      return;
-    }
-
-    this.setActive(false);
-    oldWindow.blur(callback);
+    newWindow.focus((function focusCallback() {
+      this._isInTransition = false;
+      this._fireEvent(newWindow.element, 'appopen', newWindow.name);
+    }).bind(this));
   },
 
-  closeForegroundWindow: function wm_closeForegroundWindow(callback) {
+  closeForegroundWindow: function wm_closeForegroundWindow() {
     var foregroundWindow = this._foregroundWindow;
-    if (!foregroundWindow)
+    if (!foregroundWindow || this._isInTransition)
       return;
 
-    this.setForegroundWindow(null, (function() {
+    this._fireEvent(foregroundWindow.element, 'appwillclose', name);
+
+    var oldWindow = this._foregroundWindow;
+    this._foregroundWindow = null;
+    this._isInTransition = true;
+
+    oldWindow.blur((function blurCallback() {
+      this._isInTransition = false;
       this._fireEvent(foregroundWindow.element, 'appclose');
-      if (callback)
-        callback();
+      if (oldWindow.application.hackKillMe) {
+        TaskManager.remove(oldWindow.application, oldWindow.id);
+      }
     }).bind(this));
   },
 
   _lastWindowId: 0,
   launch: function wm_launch(url) {
     var application = Gaia.AppManager.getInstalledAppForURL(url);
+    if (!application)
+      return;
+
     var name = application.name;
+
+    // getInstalledAppForURL will return an object with the URL stripped
+    // so let's set it back to default
+    application.url = url;
 
     var applicationWindow = this.getWindowByApp(application);
     if (applicationWindow) {
       Gaia.AppManager.foregroundWindow = applicationWindow.element;
-      Gaia.TaskManager.sendToFront(applicationWindow.id);
+      TaskManager.sendToFront(applicationWindow.id);
     } else {
       applicationWindow = new Window(application, ++this._lastWindowId);
       this.add(applicationWindow);
@@ -240,13 +348,10 @@ var WindowManager = {
       Gaia.AppManager.foregroundWindow = applicationWindow.element;
 
       this._fireEvent(applicationWindow.element, 'appwillopen', name);
-      Gaia.TaskManager.add(application, applicationWindow.id);
+      TaskManager.add(application, applicationWindow.id);
     }
 
-    this.setForegroundWindow(applicationWindow, (function() {
-      this._fireEvent(applicationWindow.element, 'appopen', name);
-    }).bind(this));
-
+    this.setForegroundWindow(applicationWindow);
     return applicationWindow;
   },
 
@@ -254,13 +359,17 @@ var WindowManager = {
     var application = Gaia.AppManager.getInstalledAppForURL(url);
     var applicationWindow = this.getWindowByApp(application);
 
-    if (applicationWindow)
-      this.remove(applicationWindow);
+    if (!applicationWindow)
+      return;
+
+    var name = application.name;
+    this._fireEvent(applicationWindow.element, 'appkill', name);
+    this.remove(applicationWindow);
   },
 
   _fireEvent: function wm_fireEvent(target, type, details) {
     var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent(type, true, true, details || null);
+    evt.initCustomEvent(type, true, false, details || null);
     target.dispatchEvent(evt);
   }
 };

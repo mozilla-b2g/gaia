@@ -8,28 +8,48 @@ if (!window['Gaia'])
 
 Gaia.SettingsApp = {
   init: function settings_init() {
-    var checkboxes = document.querySelectorAll('input[type="checkbox"]');
-
     var settings = window.navigator.mozSettings;
+
+    var checkboxes = document.querySelectorAll('input[type="checkbox"]');
     for (var i = 0; i < checkboxes.length; i++) {
       (function(checkbox) {
         var key = checkbox.name;
-        
         if (!key)
           return;
 
         var request = settings.get(key);
         request.onsuccess = function() {
           var result = request.result;
-          if (!result) {
-            settings.set(key, false);
-            return;
-          }
-          
           checkbox.checked = result.value === 'true' ? true : false;
         };
       })(checkboxes[i]);
     }
+
+    var radios = document.querySelectorAll('input[type="radio"]');
+    for (var i = 0; i < radios.length; i++) {
+      (function(radio) {
+        var key = radio.name;
+        if (!key)
+          return;
+
+        var request = settings.get(key);
+        request.onsuccess = function() {
+          var result = request.result;
+          radio.checked = (result.value === radio.value);
+        };
+      })(radios[i]);
+    }
+
+    var brightness = document.getElementById('brightness-level');
+    brightness.addEventListener('click', function clickBrightness(evt) {
+      var rect = brightness.getBoundingClientRect();
+      var position = Math.ceil((evt.clientX - rect.left) / (rect.width / 10));
+      screen.mozBrightness = position / 10;
+      brightness.value = position;
+    });
+    brightness.value = screen.mozBrightness * 10;
+
+    window.parent.postMessage('appready', '*');
   },
   handleEvent: function(evt) {
     switch(evt.type) {
@@ -43,10 +63,14 @@ Gaia.SettingsApp = {
         return;
         
       var value;
-      if (input.type === 'checkbox')
+      if (input.type === 'checkbox') {
         value = input.checked;
+      } else if (input.type == 'radio') {
+        value = input.value;
+      }
 
       window.navigator.mozSettings.set(key, value);
+      window.parent.postMessage(key, '*');
       break;
     }
   }
