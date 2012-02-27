@@ -222,6 +222,7 @@ var KeyHandler = {
 
 var CallHandler = {
   currentCall: null,
+  _onCall: false,
 
   setupTelephony: function ch_setupTelephony() {
     if (this._telephonySetup)
@@ -297,7 +298,7 @@ var CallHandler = {
     this.callScreen.classList.remove('incoming');
     this.callScreen.classList.add('calling');
     // hardening against rapid ending
-    if (!document.getElementById('call-screen').classList.contains('oncall'))
+    if (!this._onCall)
       return;
 
     this.statusView.innerHTML = '00:00';
@@ -415,7 +416,7 @@ var CallHandler = {
     var callScreen = document.getElementById('call-screen');
     callScreen.style.MozTransition = '';
 
-    var onCall = callScreen.classList.contains('oncall');
+    var onCall = this._onCall;
     callScreen.style.MozTransform = onCall ? 'translateY(-1px)' : 'translateY(-moz-calc(-100% + 1px))';
 
     // hardening against the unavailability of MozAfterPaint
@@ -436,7 +437,7 @@ var CallHandler = {
 
     var securityTimeout = setTimeout(finishTransition, 100);
 
-    callScreen.classList.toggle('oncall');
+    this._onCall = !this._onCall;
   },
   toggleMute: function ch_toggleMute() {
     this.muteButton.classList.toggle('mute');
