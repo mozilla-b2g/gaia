@@ -1,31 +1,31 @@
 <!DOCTYPE html>
 <html manifest="manifest.appcache">
   <head>
-    <meta charset="utf-8"> 
+    <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
-    <script type="text/javascript" src="webapi+apps.js"></script>
 
     <link rel="stylesheet" type="text/css" href="style/dialer.css" />
+    <script type="application/javascript" src="../../webapi.js"></script>
+    <script type="application/javascript" src="js/helper.js"></script>
     <script type="application/javascript" src="js/contacts.js"></script>
     <script type="application/javascript" src="js/dialer.js"></script>
+    <script type="application/javascript" src="js/recents.js"></script>
   </head>
 
   <body>
     <div id="views">
       <div id="contacts-view" class="view" hidden="true">
         <div class="top-bar">
-          <span>Contacts</span>
+            <div id="contacts-search-container">
+              <input id="contacts-search" type="search" onmousedown="this.focus();"
+              oninput="Contacts.filter(event.target.value);" />
+            </div>
           <a class="add" href="#" onclick="Contacts.create()">+</a>
         </div>
 
-        <div id="contacts-wrapper">
-          <div id="contacts-view-scrollable">
-            <div id="contacts-search-container" hidden="true">
-              <input id="contacts-search" type="search" onmousedown="this.focus();"
-              oninput="Contacts.filter(event.target.value);" placeholder="Search&#8230;"></input>
-            </div>
-            <div id="contacts-container" onclick="Contacts.showDetails(event)"></div>
-          </div>
+        <div id="contacts-container-top"></div>
+        <div id="contacts-view-scrollable">
+          <div id="contacts-container" onclick="Contacts.showDetails(event)"></div>
         </div>
 
         <div id="contacts-shortcuts-background"></div>
@@ -57,27 +57,6 @@
           <a name="Y">Y</a>
           <a name="Z">Z</a>
         </div>
-
-        <div id="contact-details-container">
-          <div id="contact-details-view">
-            <div id="contact-edit-button" data-action="edit" onclick="ContactDetails.execute(event)">
-              <span>Edit</span>
-              <span>Save</span>
-            </div>
-            <div id="contact-photo">
-              <img src="style/images/missing.png" alt="missing" />
-            </div>
-            <div id="contact-name">
-            </div>
-            <div id="contact-phones" class="group" data-action="call" onclick="ContactDetails.execute(event)">
-            </div>
-            <div id="contact-emails" class="group">
-            </div>
-            <div id="contact-destroy-button" data-action="destroy" onclick="ContactDetails.execute(event)">
-              Destroy this contact
-            </div>
-          </div>
-        </div>
       </div>
 
       <div id="keyboard-view" class="view">
@@ -91,51 +70,143 @@
         </div>
 
         <div id="keyboard-container">
-          <div id="mainKeyset-container" onmousedown="KeyHandler.keyDown(event);" onmouseup="KeyHandler.keyUp(event);">
-            <div id="mainKeyset"></div>
+          <div id="mainKeyset" onmousedown="KeyHandler.keyDown(event);" onmouseup="KeyHandler.keyUp(event);">
+            <div class="keyboard-row">
+              <div class="keyboard-key" data-value="1">
+                <span>1</span>
+                <span />
+              </div>
+              <div class="keyboard-key" data-value="2">
+                <span>2</span>
+                <span>abc</span>
+              </div>
+              <div class="keyboard-key" data-value="3">
+                <span>3</span>
+                <span>def</span>
+              </div>
+            </div>
+            <div class="keyboard-row">
+              <div class="keyboard-key" data-value="4">
+                <span>4</span>
+                <span>ghi</span>
+              </div>
+              <div class="keyboard-key" data-value="5">
+                <span>5</span>
+                <span>jkl</span>
+              </div>
+              <div class="keyboard-key" data-value="6">
+                <span>6</span>
+                <span>mno</span>
+              </div>
+            </div>
+            <div class="keyboard-row">
+              <div class="keyboard-key" data-value="7">
+                <span>7</span>
+                <span>pqrs</span>
+              </div>
+              <div class="keyboard-key" data-value="8">
+                <span>8</span>
+                <span>tuv</span>
+              </div>
+              <div class="keyboard-key" data-value="9">
+                <span>9</span>
+                <span>wxyz</span>
+              </div>
+            </div>
+            <div class="keyboard-row">
+              <div class="keyboard-key" data-value="*">
+                <span>&#x2217;</span>
+                <span/>
+              </div>
+              <div class="keyboard-key" data-value="0">
+                <span>0</span>
+                <span>+</span>
+              </div>
+              <div class="keyboard-key" data-value="#">
+                <span>#</span>
+                <span/>
+              </div>
+            </div>
           </div>
           <div id="additionalKeyset" onclick="KeyHandler.keyDown(event)">
             <div class="keyboard-key" data-value="call">
-              <span></span>
+              <span>Call</span>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="recents-view" class="view">
+      </div>
+    </div>
+
+    <div id="tabs" onclick="choiceChanged(event.target)">
+      <fieldset>
+        <label id="keyboard-label" for="keyboard" data-choice="keyboard" data-active="true"><input id="keyboard" type="radio" name="tabs" checked="checked" /></label>
+        <label id="recents-label" for="recents" data-choice="recents"><input id="recents" type="radio" name="tabs" checked="" /></label>
+        <label id="contacts-label" for="contacts" data-choice="contacts"><input id="contacts" type="radio" name="tabs" checked="" /></label>
+      </fieldset>
+    </div>
+
+    <div id="contacts-overlay">
+      <div id="contact-details-container">
+        <div id="contact-details-view">
+          <div id="contact-details-top">
+            <div id="contact-photo">
+            </div>
+            <div id="contact-name">
+            </div>
+          </div>
+          <div id="contact-phones" class="group" data-action="call" onclick="ContactDetails.execute(event)">
+          </div>
+          <div id="contact-emails" class="group">
+          </div>
+          <div id="contact-destroy-button" data-action="destroy" onclick="ContactDetails.execute(event)">
+            Destroy this contact
+          </div>
+          <div id="contact-edit-button" data-action="edit" onclick="ContactDetails.execute(event)">
+            <span>Edit</span>
+            <span>Save</span>
+          </div>
+          <div id="contact-details-line">
           </div>
         </div>
       </div>
     </div>
 
     <div id="call-screen">
-      <div id="call-status-view" class="top-bar">
-      </div>
-      <div id="call-number-view">
+      <div id="call-screen-top">
+        <div id="call-status-view">
+        </div>
+        <div id="call-picture">
+        </div>
+        <div id="call-number-view">
+        </div>
       </div>
       <div id="call-actions-container">
         <div id="call-actions">
-          <div id="keypad-button" data-action="keypad" onclick="CallHandler.execute(this.dataset.action);">
+          <div data-action="toggleMute" onclick="CallHandler.execute(this.dataset.action);">
+            <div id="mute-button"></div>
+            <span>Mute</span>
           </div>
-          <div id="speaker-button" data-action="toggleSpeaker" onclick="CallHandler.execute(this.dataset.action);">
+          <div data-action="keypad" onclick="CallHandler.execute(this.dataset.action);">
+            <div id="keypad-button"></div>
+            <span>Keypad</span>
           </div>
-          <div id="mute-button" data-action="toggleMute" onclick="CallHandler.execute(this.dataset.action);">
+          <div data-action="toggleSpeaker" onclick="CallHandler.execute(this.dataset.action);">
+            <div id="speaker-button"></div>
+            <span>Speaker</span>
+          </div>
+          <div data-action="toggleHold" onclick="CallHandler.execute(this.dataset.action);">
+            <div id="hold-button"></div>
+            <span>Hold</span>
           </div>
         </div>
-      </div>
-      <div class="main-button-container">
-        <div id="call-button" onclick="CallHandler.execute(this.dataset.action);">
-          <span id="accept-call"></span>
-          <span id="end-call"></span>
+        <div id="call-button">
+          <div id="accept-call" onclick="CallHandler.execute('answer');"><span>Answer</span></div>
+          <div id="end-call" onclick="CallHandler.execute('end');"><span>End</span></div>
         </div>
       </div>
     </div>
-
-    <div id="tabs-container">
-      <div id="tabs" onclick="choiceChanged(event.target)">
-        <fieldset>
-          <label id="keyboard-label" for="keyboard" data-choice="keyboard" data-active="true"><input id="keyboard" type="radio" name="tabs" checked="checked" /></label>
-          <label id="contacts-label" for="contacts" data-choice="contacts"><input id="contacts" type="radio" name="tabs" checked="" /></label>
-          <!-- Should be favorites once we implement this screen-->
-          <label id="favorites-label" for="favorites" data-choice="contacts"><input id="favorites" type="radio" name="tabs" checked="" /></label>
-        </fieldset>
-      </div>
-    </div>
-
   </body>
 </html>

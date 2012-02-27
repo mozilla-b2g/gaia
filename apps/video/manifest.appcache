@@ -1,0 +1,20 @@
+CACHE MANIFEST
+# v2 2012-02-08
+
+# /
+video.html
+manifest.webapp
+
+# js/
+js/util.js
+js/video.js
+
+# style/
+style/video.css
+
+# icons used in the web application manifest.
+# Do not use icons/ directly since it is often used as an alias by Apache.
+style/icons/Video.png
+
+NETWORK:
+
