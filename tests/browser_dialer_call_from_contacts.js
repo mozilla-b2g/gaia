@@ -26,14 +26,15 @@ function test() {
         ok(overlay.classList.contains('displayed'), 'Overlay view displayed');
 
         var number = overlay.querySelector('#contact-phones div');
-        EventUtils.sendMouseEvent({type: 'click'}, number);
-
-        ok(overlay.classList.contains('hidden'), 'Overlay view hidden');
-
         var callScreen = dialerWindow.document.getElementById('call-screen');
-        ok(callScreen.classList.contains('oncall'), 'Call screen displayed');
 
-        windowManager.closeForegroundWindow();
+        EventUtils.sendMouseEvent({type: 'click'}, number);
+        callScreen.addEventListener('transitionend', function trWait() {
+          callScreen.removeEventListener('transitionend', trWait);
+          ok(callScreen.style.MozTransform == 'translateY(0px)', 'Call screen displayed');
+
+          windowManager.closeForegroundWindow();
+        });
       }, function() {
         return (('Contacts' in dialerWindow) && dialerWindow.Contacts._loaded);
       });
