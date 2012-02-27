@@ -756,7 +756,6 @@ function OnLoad() {
       }
 
     });
-
   }
 
   var apps = Gaia.AppManager.loadInstalledApps(function(apps) {

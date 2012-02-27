@@ -837,7 +837,7 @@ html * {
   border: 0;
 
   border-radius: 10px;
-  background: url(images/call-screen-bg.png) center top no-repeat;
+  background: url(images/call-screen-bg.png) center top no-repeat #575B66;
 
   font-size: 7mozmm;
 

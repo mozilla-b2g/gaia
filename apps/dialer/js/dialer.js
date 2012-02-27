@@ -45,13 +45,7 @@ function visibilityChanged(url, evt) {
     Contacts.load();
     choiceChanged(contacts);
   } else if (choice == 'incoming') {
-    var telephony = window.navigator.mozTelephony;
-    telephony.oncallschanged = function cc(evt) {
-      telephony.calls.forEach(function(call) {
-        if (call.state == 'incoming')
-          CallHandler.incoming(call, call.number);
-      });
-    };
+    CallHandler.setupTelephony();
   }
 }
 
@@ -228,6 +222,21 @@ var KeyHandler = {
 
 var CallHandler = {
   currentCall: null,
+
+  setupTelephony: function ch_setupTelephony() {
+    if (this._telephonySetup)
+      return;
+
+    this._telephonySetup = true;
+
+    var telephony = navigator.mozTelephony;
+    telephony.oncallschanged = function cc(evt) {
+      telephony.calls.forEach(function(call) {
+        if (call.state == 'incoming')
+          CallHandler.incoming(call, call.number);
+      });
+    };
+  },
 
   // callbacks
   call: function ch_call(number) {
@@ -410,20 +419,24 @@ var CallHandler = {
     callScreen.style.MozTransform = onCall ? 'translateY(-1px)' : 'translateY(-moz-calc(-100% + 1px))';
 
     // hardening against the unavailability of MozAfterPaint
-    var finishTransition = function cs_finishTransition() {
+    var finishTransition = function ch_finishTransition() {
+      if (securityTimeout) {
+        clearTimeout(securityTimeout);
+        securityTimeout = null;
+      }
+
       callScreen.style.MozTransition = '-moz-transform 0.5s ease';
       callScreen.style.MozTransform = onCall ? 'translateY(-100%)' : 'translateY(0)';
-      callScreen.classList.toggle('oncall');
     };
-
-    var securityTimeout = setTimeout(finishTransition, 100);
 
     window.addEventListener('MozAfterPaint', function ch_triggerTransition() {
       window.removeEventListener('MozAfterPaint', ch_triggerTransition);
-
-      clearTimeout(securityTimeout);
       finishTransition();
     });
+
+    var securityTimeout = setTimeout(finishTransition, 100);
+
+    callScreen.classList.toggle('oncall');
   },
   toggleMute: function ch_toggleMute() {
     this.muteButton.classList.toggle('mute');
