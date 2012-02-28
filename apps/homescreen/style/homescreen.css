@@ -66,8 +66,21 @@ body {
 #lockscreen > #lockscreenContainer {
   width: 100%;
   height: -moz-calc(100% - 32px);
-  background: #000 url(images/background.png);
+  background-color: #000;
+  background-attachment: fixed;
+  background-clip: border-box;
+  background-image: url(images/background.png);
+  background-origin: padding-box;
+  background-position: center center;
+  background-repeat: no-repeat;
 }
+
+@media not all and (width: 480px) and (height: 800px) {
+  #lockscreen > #lockscreenContainer {
+    background-size: cover;
+  }
+}
+
 
 #lockscreen #clock {
   position: absolute;
