@@ -121,6 +121,7 @@ function changeDisplayState(state) {
   // update clock and battery status (if needed)
   updateClock();
   updateBattery();
+  updateConnection();
 
   // Make sure the source viewer is not visible.
   if (state == 'locked')
@@ -183,11 +184,12 @@ DefaultPhysics.prototype = {
     var currentPage = iconGrid.currentPage;
     if (tap) {
       iconGrid.tap(e.target);
+      iconGrid.setPage(currentPage, 0);
       return;
     } else if (flick) {
       iconGrid.setPage(currentPage + dir, 0.2);
     } else {
-      if (Math.abs(diffX) < this.containerWidth / 2)
+      if (Math.abs(diffX) < window.innerWidth / 2)
         iconGrid.setPage(currentPage, 0.2);
       else
         iconGrid.setPage(currentPage + dir, 0.2);
@@ -281,8 +283,12 @@ IconGrid.prototype = {
     var containerId = this.containerId;
     var container = this.container;
     var icons = this.icons;
-    var columns = this.columns;
-    var rows = this.rows;
+
+    var rows = Math.ceil((window.innerHeight - 200) / 200);
+    var columns = Math.ceil((window.innerWidth - 100) / 150);
+
+    var columns = columns;
+    var rows = rows;
     var currentPage = this.currentPage;
     var itemsPerPage = rows * columns;
     var iconWidth = Math.floor(100/columns);
@@ -393,13 +399,13 @@ IconGrid.prototype = {
       }
 
       // update position
-      var deltaX = 132;
-      var deltaY = 196;
+      var deltaX = 136;
+      var deltaY = 200;
       if (window.innerHeight <= 480) {
         deltaY = 184;
       }
 
-      setPosition(iconDiv, getIconColumn(icon) * 132 + 'px', getIconRow(icon) * deltaY + 'px');
+      setPosition(iconDiv, getIconColumn(icon) * 136 + 'px', getIconRow(icon) * deltaY + 'px');
     }
 
     // remove icons we don't need
@@ -725,16 +731,37 @@ function OnLoad() {
   ];
   new NotificationScreen(touchables);
 
-  var apps = Gaia.AppManager.loadInstalledApps(function(apps) {
-    var rows = 3;
-    var columns = 3;
-    var pages = 2;
+  var telephony = navigator.mozTelephony;
+  if (telephony) {
+    telephony.addEventListener('incoming', function incoming(evt) {
+      Gaia.lockScreen.unlock(-1, true);
+      screen.mozEnabled = true;
+      screen.mozBrightness = 1.0;
 
-    if (window.innerHeight <= 480) {
-      pages = 3;
-      rows = 2;
-      columns = 2;
-    }
+      var url = '../dialer/dialer.html?choice=incoming&number=';
+      var launchFunction = function launchDialer() {
+        WindowManager.launch(url + evt.call.number);
+      };
+
+      var appWindow = WindowManager.getForegroundWindow();
+      if (appWindow && (appWindow.application.name != 'Dialer')) {
+        WindowManager.closeForegroundWindow();
+        appWindow.element.addEventListener('transitionend', function closed() {
+          appWindow.element.removeEventListener('transitionend', closed);
+
+          launchFunction();
+        });
+      } else {
+        launchFunction();
+      }
+
+    });
+  }
+
+  var apps = Gaia.AppManager.loadInstalledApps(function(apps) {
+    var rows = Math.ceil((window.innerHeight - 200) / 200);
+    var columns = Math.ceil((window.innerWidth - 100) / 150);
+    var pages = Math.floor(apps.length / (rows * columns)) + 1;
 
     var appsGrid = new IconGrid('apps', columns, rows, pages, true);
     var appsGridCount = 0;
@@ -744,15 +771,10 @@ function OnLoad() {
     }
     appsGrid.dots = new Dots('dots', 'apps');
     appsGrid.update();
-  });
 
-  var titlebar = document.getElementById('titlebar');
-  window.addEventListener('appopen', function(evt) {
-    titlebar.innerHTML = evt.detail;
-  });
-
-  window.addEventListener('appclose', function(evt) {
-    titlebar.innerHTML = '';
+    window.addEventListener('resize', function() {
+      appsGrid.update();
+    });
   });
 
   window.addEventListener('keypress', function(evt) {
@@ -809,11 +831,11 @@ function updateBattery() {
     if (battery.charging) {
       charging.hidden = false;
       fuel.className = 'charging';
-      fuel.style.minWidth = (level / 5.25) + 'px';
+      fuel.style.minWidth = (level / 5.88) + 'px';
     } else {
       charging.hidden = true;
 
-      fuel.style.minWidth = fuel.style.width = (level / 5.25) + 'px';
+      fuel.style.minWidth = fuel.style.width = (level / 5.88) + 'px';
       if (level <= 10)
         fuel.className = 'critical';
       else if (level <= 30)
@@ -827,4 +849,48 @@ function updateBattery() {
   battery.addEventListener('chargingchange', updateBattery);
   battery.addEventListener('levelchange', updateBattery);
   battery.addEventListener('statuschange', updateBattery);
+}
+
+
+function updateConnection() {
+  var conn = window.navigator.mozMobileConnection;
+  if (!conn) {
+    console.log("There's no window.navigator.mozMobileConnection!");
+    return;
+  }
+
+  if (displayState == 'off') {
+    conn.removeEventListener("cardstatechange", updateConnection);
+    conn.removeEventListener("connectionchange", updateConnection);
+    return;
+  }
+
+  // Update the operator name / SIM status.
+  var title = "";
+  if (conn.cardState == "absent") {
+    title = "No SIM card";
+  } else if (!conn.connected) {
+    title = "Connecting...";
+  } else {
+    title = conn.operator || "";
+    if (conn.roaming) {
+      title += " (roaming)";
+    }
+  }
+  document.getElementById("titlebar").textContent = title;
+
+  // Update the signal strength bars.
+  var signalElements = document.querySelectorAll('#signal > span');
+  for (var i = 0; i < 4; i++) {
+    var haveSignal = (i < conn.bars);
+    var el = signalElements[i];
+    if (haveSignal) {
+      el.classList.add('haveSignal');
+    } else {
+      el.classList.remove('haveSignal');
+    }
+  }
+
+  conn.addEventListener("cardstatechange", updateConnection);
+  conn.addEventListener("connectionchange", updateConnection);
 }

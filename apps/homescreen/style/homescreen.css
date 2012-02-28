@@ -20,12 +20,12 @@ body {
   src: url('fonts/Open-Sans.woff');
 }
 @font-face {
-  font-family: 'Open Sans Bold';
+  font-family: 'Open Sans';
   font-weight: bold;
   src: url('fonts/Open-Sans-Bold.woff');
 }
 @font-face {
-  font-family: 'Open Sans Semibold';
+  font-family: 'Open Sans';
   font-weight: 600;
   src: url('fonts/Open-Sans-Semibold.woff');
 }
@@ -66,41 +66,65 @@ body {
 #lockscreen > #lockscreenContainer {
   width: 100%;
   height: -moz-calc(100% - 32px);
-  background: url(images/noise.png), url(images/background.bmp);
+  background-color: #000;
+  background-attachment: fixed;
+  background-clip: border-box;
+  background-image: url(images/background.png);
+  background-origin: padding-box;
+  background-position: center center;
+  background-repeat: no-repeat;
 }
 
-#lockscreenContainer::before {
-  content: '';
-  display: block;
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0,0,0,0.6);
+@media not all and (width: 480px) and (height: 800px) {
+  #lockscreen > #lockscreenContainer {
+    background-size: cover;
+  }
 }
+
 
 #lockscreen #clock {
   position: absolute;
-  top: 200px;
+  top: 160px;
+	left: 30px;
   width: 100%;
-  text-align: center;
+  text-align: left;
   font-family: "Open Sans", sans-serif;
 }
 
 #lockscreen #clock > #hourMin {
   color: #fff;
-  font-size: 100px;
-  font-weight: 600;
-  text-shadow: 0 3px 2px rgba(86, 93, 101, 0.8);
+  font-size: 120px;
+	font-weight: 600;
+	letter-spacing: -2px;
+	line-height: 1.1em;
+	text-shadow: 0 0 10px rgba(255, 255, 255, .4), 0 0 3px rgba(255, 255, 255, .3);
 }
 
 #lockscreen #clock > #date {
-  color: #a2a5a8;
-  font-size: 24px;
+  color: #ffdfaa;
+  font-size: 34px;
+	padding-left: 20px;
+	text-shadow: 0 1px 1px rgba(0, 0, 0, .25);
 }
 
 #lockscreen #clock > *[data-format*="%b"] {
   font-size: 100px;
 }
+
+@media all and (max-height: 480px) {
+  #lockscreen #clock > #hourMin {
+    font-size: 100px;
+  }
+
+  #lockscreen #clock > *[data-format*="%b"] {
+    font-size: 90px;
+  }
+
+  #lockscreen #clock > #date {
+    font-size: 24px;
+  }
+}
+
 
 #notificationsScreen {
   position: absolute;
@@ -143,7 +167,7 @@ body {
 
 #home > #apps {
   top: 0;
-  height: 584px;
+  height: 594px;
   margin-top: 40px;
 }
 
@@ -158,13 +182,15 @@ body {
   bottom: 0px;
   height: 80px;
   background-image: url(images/notifications.png);
-  background-repeat: none;
+  background-repeat: no-repeat;
   background-size: 100% 100%;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
 }
 
 .page {
   position: absolute;
-  left: 40px;
+  left: 42px;
   top: 0px;
   width: 100%;
   height: 100%;
@@ -181,7 +207,7 @@ body {
   background-position: 8px 8px;
   background-repeat: no-repeat;
   background-color: #222;
-  border-radius: 4px;
+  border-radius: 5px;
   margin-right: 4px;
   margin-bottom: 4px;
 }
@@ -197,7 +223,7 @@ body {
 }
 
 .icon > .label {
-  padding-top: 40px;
+  padding-top: 36px;
   padding-left: 8px;
   color: white;
 }
@@ -242,14 +268,18 @@ body {
 #windows {
   position: absolute;
   left: 0px;
-  top: 100%;
   width: 100%;
-  height: 100%;
-  overflow: visible;
+  top: -100%;
+  height: 0;
+  max-height: 0;
+  border: 0px;
+  overflow: hidden;
 }
 
 #windows.active {
   top: 0;
+  height: 100%;
+  max-height: 100%;
 }
 
 iframe.appWindow {
@@ -283,16 +313,13 @@ iframe.appWindow.active {
   background-color: #000;
 }
 
-#screen.fullscreen iframe.appWindow {
-  top: 0;
+#screen.fullscreen iframe.appWindow.active {
 /*
  * Do not specify height/width here! They should go to
  * Window.prototype.resize() in window_manager.js
  *
  */
-}
-
-#screen.fullscreen iframe.appWindow.active {
+  top: 0;
   z-index: 9998;
 }
 
@@ -351,7 +378,7 @@ iframe.landscape-secondary {
   display: -moz-box;
   overflow: hidden;
   position: relative;
-  z-index: 9997;
+  z-index: 20001;
   -moz-box-orient: horizontal;
 
   width: 100%;
@@ -393,7 +420,11 @@ iframe.landscape-secondary {
   width: 3px;
   margin: 1px;
 
-  background: #999;
+  background: #333333;
+}
+
+#signal span.haveSignal {
+  background: #999999;
 }
 
 #signal span:nth-child(1) {
@@ -430,7 +461,7 @@ iframe.landscape-secondary {
 .battery {
   float:right;
   margin: 8px 3px;
-  padding: 4px 6px 4px 4px;
+  padding: 5px 7px 5px 5px;
   width: 29px;
   background: url(images/battery-main.png);
   background-repeat: no-repeat;
@@ -439,27 +470,17 @@ iframe.landscape-secondary {
 }
 
 .battery > #fuel {
-  height: 8px;
-	background-image: -moz-linear-gradient(top, #b9fd00, #8fc400);
+  height: 6px;
+	background-color: #999999;
 }
 
-.battery > #fuel.low {
-  background-image: -moz-linear-gradient(top, lightyellow 10%, yellow 80%, gold);
-}
-
-.battery > #fuel.critical {
-  background-image: -moz-linear-gradient(top, lightcoral 10%, red 80%, darkred);
-}
-
-.battery > #fuel.charging {
-  background-image: -moz-linear-gradient(top, #b9fd00, #8fc400);
-}
 .battery > #charging {
   height: 8px;
   width: 18px;
   background: transparent url(images/battery-charging.png) center center no-repeat;
   position: absolute;
-  top: 4px; left: 5px;
+  top: 4px;
+  left: 5px;
 }
 
 #taskManager {
@@ -534,7 +555,6 @@ iframe.landscape-secondary {
   width: 100%;
   -moz-transition: -moz-transform 0.3s ease;
   border-top: 2px solid #a3a3a3;
-  -moz-box-shadow: inset 0 0 0 1px #fff;
   border-bottom-left-radius: 8px;
   border-bottom-right-radius: 8px;
 }
@@ -825,7 +845,7 @@ iframe.landscape-secondary {
   width: 480px;
   height: 800px;
   background: url(images/grid.png);
-  z-index: 999999;
+  z-index: 20002;
   opacity: 0.2;
   pointer-events: none;
 }

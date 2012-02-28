@@ -1,4 +1,5 @@
 window.addEventListener('DOMContentLoaded', function() {
+  'use strict';
   var player = $('player');
 
   // This is the list of sample videos built in to the app
@@ -40,6 +41,9 @@ window.addEventListener('DOMContentLoaded', function() {
   // if false, then the gallery is showing
   var playerShowing = false;
 
+  // same thing for the controls
+  var controlShowing = false;
+
   // fullscreen doesn't work properly yet -- here's an ugly shim
   var realFullscreen = false;
   if (realFullscreen) {
@@ -69,8 +73,13 @@ window.addEventListener('DOMContentLoaded', function() {
 
   // show|hide controls over the player
   $('videoControls').addEventListener('click', function(event) {
-    if (event.target == this)
-      this.classList.toggle('hidden');
+    if (!controlShowing) {
+      this.classList.remove('hidden');
+      controlShowing = true;
+    } else if (this == event.target) {
+      this.classList.add('hidden');
+      controlShowing = false;
+    }
   }, false);
 
   // show|hide video player
@@ -82,12 +91,13 @@ window.addEventListener('DOMContentLoaded', function() {
 
     // start player
     player.src = sample.video;
-    player.srcWidth = sample.width;
-    player.srcHeight = sample.height;
+    player.srcWidth = sample.width;   // XXX use player.videoWidth instead
+    player.srcHeight = sample.height; // XXX use player.videoHeight instead
     player.play();
     player.requestFullScreen();
 
     playerShowing = true;
+    controlShowing = false;
   }
   function hidePlayer() {
     if (!playerShowing)
@@ -105,7 +115,10 @@ window.addEventListener('DOMContentLoaded', function() {
     playerShowing = false;
   }
   $('close').addEventListener('click', hidePlayer, false);
-  player.addEventListener('ended', hidePlayer, false);
+  player.addEventListener('ended', function() {
+    if (!controlShowing)
+      hidePlayer();
+  }, false);
   window.addEventListener('keypress', function(event) {
     if (playerShowing && event.keyCode == event.DOM_VK_ESCAPE) {
       hidePlayer();
@@ -116,10 +129,10 @@ window.addEventListener('DOMContentLoaded', function() {
     }
   }, false);
 
-  // media events: play|pause, rwd|fwd, timeupdate
-  playHead = $('playHead');
-  elapsedTime = $('elapsedTime');
+  // control buttons: play|pause, rwd|fwd
   $('play').addEventListener('click', function() {
+    if (!controlShowing)
+      return;
     if (player.paused) {
       $('videoBar').classList.remove('paused');
       player.play();
@@ -129,18 +142,46 @@ window.addEventListener('DOMContentLoaded', function() {
     }
   }, false);
   $('rwd').addEventListener('click', function() {
-    player.currentTime -= 15;
+    if (controlShowing)
+      player.currentTime -= 15;
   }, false);
   $('fwd').addEventListener('click', function() {
-    player.currentTime += 15;
-  }, false);
-  player.addEventListener('timeupdate', function() {
-    var pos = (player.currentTime / player.duration) * 100 + '%';
-    playHead.style.top = pos;
-    elapsedTime.style.height = pos;
+    if (controlShowing)
+      player.currentTime += 15;
   }, false);
 
-  // handle clicks on the time slider
-  $('timeSlider').addEventListener('click', function() {
+  // handle drags/clicks on the time slider
+  var isDragging = false;
+  var playHead = $('playHead');
+  var timeSlider = $('timeSlider');
+  var elapsedTime = $('elapsedTime');
+  var rect = null;
+  function getTimePos(event) {
+    if (!rect)
+      rect = timeSlider.getBoundingClientRect();
+    return (event.clientY - rect.top) / rect.height;
+  }
+  function setProgress(event) {
+    var progress = isDragging ?
+      getTimePos(event) : player.currentTime / player.duration;
+    var pos = progress * 100 + '%';
+    playHead.style.top = pos;
+    elapsedTime.style.height = pos;
+  }
+  function setCurrentTime(event) {
+    isDragging = false;
+    if (controlShowing)
+      player.currentTime = getTimePos(event) * player.duration;
+  }
+  player.addEventListener('timeupdate', setProgress, false);
+  playHead.addEventListener('mousemove', setProgress, false);
+  playHead.addEventListener('mousedown', function() {
+    if (controlShowing)
+      isDragging = true;
+  }, false);
+  timeSlider.addEventListener('mouseup', setCurrentTime, false);
+  timeSlider.addEventListener('mouseout', function(event) {
+    if (isDragging)
+      setCurrentTime(event);
   }, false);
 });

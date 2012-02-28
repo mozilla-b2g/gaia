@@ -31,6 +31,11 @@
       </ul>
       <ul class="tableView">
         <li>
+          <a class="push slideHorizontal" href="#languages">
+            <span>Languages</span>
+          </a>
+        </li>
+        <li>
           <a class="push slideHorizontal" href="#wallpapers">
             <span>Wallpapers</span>
           </a>
@@ -51,9 +56,63 @@
           </a>
         </li>
         <li>
+          <a class="push slideHorizontal" href="#phone">
+            <span>Phone</span>
+          </a>
+        </li>
+        <li>
           <a class="push slideHorizontal" href="#debug">
             <span>Debug</span>
           </a>
+        </li>
+      </ul>
+      <ul class="tableView">
+        <li>
+          <span>Power off</span>
+          <label class="checkbox">
+            <input type="checkbox" name="" onclick="navigator.mozPower.powerOff(); return false;" />
+            <span class="checkbox-inner"></span>
+          </label>
+        </li>
+        <li>
+          <span>Restart</span>
+          <label class="checkbox">
+            <input type="checkbox" name="" onclick="navigator.mozPower.reboot(); return false;" />
+            <span class="checkbox-inner"></span>
+          </label>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Phone -->
+    <div id="phone" class="view" data-title="Phone">
+      <ul class="tableView">
+        <li id="vibrator">
+          <span>Vibrate</span>
+          <label class="checkbox">
+            <input type="checkbox" name="phone.vibrator.incoming"/>
+            <span class="checkbox-inner"></span>
+          </label>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Languages -->
+    <div id="languages" class="view" data-title="Languages">
+      <ul class="tableView">
+        <li id="language-en-us">
+          <span>English (United States)</span>
+          <label class="checkbox">
+            <input type="radio" name="language.current" value="en-US"/>
+            <span class="checkbox-inner"></span>
+          </label>
+        </li>
+        <li id="language-fr-Fr">
+          <span>Français</span>
+          <label class="checkbox">
+            <input type="radio" name="language.current" value="fr-FR"/>
+            <span class="checkbox-inner"></span>
+          </label>
         </li>
       </ul>
     </div>
@@ -154,32 +213,17 @@
     <!-- Display -->
     <div id="display" class="view" data-title="Display">
       <ul class="tableView">
-      <li id="brightness">
-        <label>Brigthness level</label>
-        <progress id="brightness-input" value="1" max="1"></progress>
-        <br/ >
-        <span class="comment">Waiting for <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=707626">bug 707626</a></span>
-      </li>
-      <li>
-        <span>Lock Screen</span>
-        <label class="checkbox">
-          <input type="checkbox" name="lockscreen.enabled"/>
-          <span class="checkbox-inner"></span>
-        </label>
-      </li>
-      <li id="screentimeout">
-        <label for="screentimeout-input">Screen Timeout</label>
-        <select>
-          <option value="0">Never</option>
-          <option value="15">15 seconds</option>
-          <option value="30">30 seconds</option>
-          <option value="60">1 minute</option>
-          <option value="120">2 minutes</option>
-          <option value="600">10 minutes</option>
-        </select>
-        <br/ >
-        <span class="comment">Waiting for <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=707626">bug 707626</a></span>
-      </li>
+        <li id="brightness">
+          <label>Brightness level</label>
+          <progress id="brightness-level" value="10" max="10"></progress>
+        </li>
+        <li>
+          <span>Lock Screen</span>
+          <label class="checkbox">
+            <input type="checkbox" name="lockscreen.enabled"/>
+            <span class="checkbox-inner"></span>
+          </label>
+        </li>
       </ul>
     </div>
 

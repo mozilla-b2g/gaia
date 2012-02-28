@@ -1,6 +1,4 @@
-/* video player controls
- * XXX this stylesheet supposes we have a 800*480 resolution
- */
+/* video player controls */
 #videoControls {
   position: absolute;
   top: 0;
@@ -36,12 +34,15 @@
 /* main control bar: play|pause, timeupdate, rwd|fwd */
 #videoBar {
   position: relative;
+  top: -moz-calc(50% - 150px);
   left: 16px;
   width: 112px;
-  height: 800px;
+  height: 300px;
   margin: 0;
   padding: 0;
-  background-image: url("images/controls.png");
+  border: 1px solid gray;
+  border-radius: 16px;
+  background-color: rgba(0, 0, 0, 0.3);
 }
 #videoBar button {
   width: 96px;
@@ -53,14 +54,14 @@
 
 /* rwd/fwd buttons */
 #rwd {
-  top: 588px;
+  top: 0px;
   background-image: url("images/btn_rwd_off.png");
 }
 #rwd:active {
   background-image: url("images/btn_rwd_press.png");
 }
 #fwd {
-  top: 688px;
+  top: 200px;
   background-image: url("images/btn_fwd_off.png");
 }
 #fwd:active {
@@ -69,7 +70,7 @@
 
 /* play/pause button */
 #play {
-  top: 16px;
+  top: 100px;
   background-image: url("images/btn_pause_off.png");
 }
 #play:active {
@@ -85,31 +86,19 @@
 /* time slider */
 #timeSlider {
   position: relative;
-  top: 166px;
-  left: 32px;
-  width: 64px;
-  height: 378px;
+  top: 16px;
+  width: 32px;
+  height: 268px;
 }
 #elapsedTime {
   position: absolute;
-  top: 0;
-  left: 30px;
-  width: 6px;
+  left: 16px;
+  width: 4px;
   height: 0; /* updated by script (ontimeupdate) */
   background-color: #fff;
   border-radius: 6px;
 }
 button#playHead {
-  top: 0; /* updated by script (ontimeupdate) */
-  left: 0;
-  margin-top: -31px;
-  width: 64px;
-  height: 64px;
-  background-image: url("images/btn_playhead_off.png");
-  background-position: center center;
   display: none;
-}
-button#playHead:active {
-  background-image: url("images/btn_playhead_press.png");
 }
 

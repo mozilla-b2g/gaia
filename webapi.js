@@ -8,6 +8,42 @@
   var navigator = window.navigator;
 
   var webapps = [
+                 { // dialer
+                   'installOrigin': 'http://gaiamobile.org:8888',
+                   'origin': '../dialer',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'Dialer',
+                     'description': 'Gaia Dialer',
+                     'launch_path': '/dialer.html',
+                     'developer': {
+                       'name': 'The Gaia Team',
+                       'url': 'https://github.com/andreasgal/gaia'
+                     },
+                     'icons': {
+                       '120': '/style/icons/Phone.png'
+                     }
+                   }
+                 },
+                 { // sms
+                   'installOrigin': 'http://gaiamobile.org:8888',
+                   'origin': '../sms',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'Messages',
+                     'description': 'Gaia Messages',
+                     'launch_path': '/sms.html',
+                     'developer': {
+                       'name': 'The Gaia Team',
+                       'url': 'https://github.com/andreasgal/gaia'
+                     },
+                     'icons': {
+                       '120': '/style/icons/Messages.png'
+                     }
+                   }
+                 },
                  { // browser
                    installOrigin: 'http://gaiamobile.org:8888',
                    origin: '../browser',
@@ -23,24 +59,6 @@
                      },
                      'icons': {
                        '120': '/style/icons/Browser.png'
-                     }
-                   }
-                 },
-                 { // settings
-                   'installOrigin': 'http://gaiamobile.org:8888',
-                   'origin': '../settings',
-                   'receipt': null,
-                   'installTime': 1323339869000,
-                   manifest: {
-                     'name': 'Settings',
-                     'description': 'Gaia Settings',
-                     'launch_path': '/settings.html',
-                     'developer': {
-                       'name': 'The Gaia Team',
-                       'url': 'https://github.com/andreasgal/gaia'
-                     },
-                     'icons': {
-                       '120': '/style/icons/Settings.png'
                      }
                    }
                  },
@@ -62,24 +80,6 @@
                      }
                    }
                  },
-                 { // clock
-                   installOrigin: 'http://gaiamobile.org:8888',
-                   origin: '../clock',
-                   receipt: null,
-                   installTime: 1323339869000,
-                   manifest: {
-                     'name': 'Clock',
-                     'description': 'Gaia Clock',
-                     'launch_path': '/clock.html',
-                     'developer': {
-                       'name': 'The Gaia Team',
-                       'url': 'https://github.com/andreasgal/gaia'
-                     },
-                     'icons': {
-                       '120': '/style/icons/Clock.png'
-                     }
-                   }
-                 },
                  { // camera
                    'installOrigin': 'http://gaiamobile.org:8888',
                    'origin': '../camera',
@@ -89,6 +89,7 @@
                      'name': 'Camera',
                      'description': 'Gaia Camera',
                      'launch_path': '/camera.html',
+                     'hackKillMe': true,
                      'developer': {
                        'name': 'The Gaia Team',
                        'url': 'https://github.com/andreasgal/gaia'
@@ -116,24 +117,6 @@
                      }
                    }
                  },
-                 { // music
-                   'installOrigin': 'http://gaiamobile.org:8888',
-                   'origin': '../music',
-                   'receipt': null,
-                   'installTime': 1323339869000,
-                   manifest: {
-                     'name': 'Music',
-                     'description': 'Gaia Music',
-                     'launch_path': '/music.html',
-                     'developer': {
-                       'name': 'The Gaia Team',
-                       'url': 'https://github.com/andreasgal/gaia'
-                     },
-                     'icons': {
-                       '120': '/style/icons/Music.png'
-                     }
-                   }
-                 },
                  { // video
                    'installOrigin': 'http://gaiamobile.org:8888',
                    'origin': '../video',
@@ -143,6 +126,7 @@
                      'name': 'Video',
                      'description': 'Gaia Video',
                      'launch_path': '/video.html',
+                     'hackKillMe': true,
                      'developer': {
                        'name': 'The Gaia Team',
                        'url': 'https://github.com/andreasgal/gaia'
@@ -189,39 +173,57 @@
                      }
                    }
                  },
-                 { // dialer
+                 { // music
                    'installOrigin': 'http://gaiamobile.org:8888',
-                   'origin': '../dialer',
+                   'origin': '../music',
                    'receipt': null,
                    'installTime': 1323339869000,
                    manifest: {
-                     'name': 'Dialer',
-                     'description': 'Gaia Dialer',
-                     'launch_path': '/dialer.html',
+                     'name': 'Music',
+                     'description': 'Gaia Music',
+                     'launch_path': '/music.html',
                      'developer': {
                        'name': 'The Gaia Team',
                        'url': 'https://github.com/andreasgal/gaia'
                      },
                      'icons': {
-                       '120': '/style/icons/Phone.png'
+                       '120': '/style/icons/Music.png'
                      }
                    }
                  },
-                 { // sms
+                 { // settings
                    'installOrigin': 'http://gaiamobile.org:8888',
-                   'origin': '../sms',
+                   'origin': '../settings',
                    'receipt': null,
                    'installTime': 1323339869000,
                    manifest: {
-                     'name': 'Messages',
-                     'description': 'Gaia Messages',
-                     'launch_path': '/sms.html',
+                     'name': 'Settings',
+                     'description': 'Gaia Settings',
+                     'launch_path': '/settings.html',
                      'developer': {
                        'name': 'The Gaia Team',
                        'url': 'https://github.com/andreasgal/gaia'
                      },
                      'icons': {
-                       '120': '/style/icons/Messages.png'
+                       '120': '/style/icons/Settings.png'
+                     }
+                   }
+                 },
+                 { // clock
+                   installOrigin: 'http://gaiamobile.org:8888',
+                   origin: '../clock',
+                   receipt: null,
+                   installTime: 1323339869000,
+                   manifest: {
+                     'name': 'Clock',
+                     'description': 'Gaia Clock',
+                     'launch_path': '/clock.html',
+                     'developer': {
+                       'name': 'The Gaia Team',
+                       'url': 'https://github.com/andreasgal/gaia'
+                     },
+                     'icons': {
+                       '120': '/style/icons/Clock.png'
                      }
                    }
                  },
@@ -234,6 +236,7 @@
                      'name': 'Crystal Skull',
                      'description': 'Demo of WebGL',
                      'launch_path': '/crystalskull.html',
+                     'hackKillMe': true,
                      'developer': {
                        'name': 'Unknown',
                        'url': 'http://www.everyday3d.com/j3d/demo/004_Glass.html'
@@ -291,6 +294,7 @@
                      'launch_path': '',
                      'orientation': 'landscape-primary',
                      'fullscreen': true,
+                     'hackKillMe': true,
                      'developer': {
                        'name': 'ZeptoLab',
                        'url': 'http://cuttherope.ie'
@@ -299,8 +303,79 @@
                        '120': '/style/icons/CutTheRope.png'
                      }
                    }
+                 },
+                 { // wikipedia
+                   'installOrigin': 'http://www.wikipedia.org/',
+                   'origin': '../wikipedia',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'Wikipedia',
+                     'description': 'Wikipedia Mobile Application',
+                     'launch_path': '/wikipedia.html',
+                     'developer': {
+                       'name': 'Wikipedia',
+                       'url': 'http://www.wikipedia.org/'
+                     },
+                     'icons': {
+                       '120': '/style/icons/Wikipedia.png'
+                     }
+                   }
+                 },
+                 { // CNN
+                   'installOrigin': 'http://m.cnn.com/',
+                   'origin': '../cnn',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'CNN',
+                     'description': 'CNN Mobile Application',
+                     'launch_path': '/cnn.html',
+                     'developer': {
+                       'name': 'CNN',
+                       'url': 'http://www.cnn.com/'
+                     },
+                     'icons': {
+                       '120': '/style/icons/CNN.png'
+                     }
+                   }
+                 },
+                 { // BBC
+                   'installOrigin': 'http://m.bbc.co.uk/',
+                   'origin': '../bbc',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'BBC',
+                     'description': 'BBC Mobile Application',
+                     'launch_path': '/bbc.html',
+                     'developer': {
+                       'name': 'BBC',
+                       'url': 'http://www.bbc.co.uk/'
+                     },
+                     'icons': {
+                       '120': '/style/icons/BBC.png'
+                     }
+                   }
+                 },
+                 { // NY Times
+                   'installOrigin': 'http://www.nytimes.com/',
+                   'origin': '../nytimes',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'NY Times',
+                     'description': 'NY Times Mobile Application',
+                     'launch_path': '/nytimes.html',
+                     'developer': {
+                       'name': 'NY Times',
+                       'url': 'http://www.nytimes.com/'
+                     },
+                     'icons': {
+                       '120': '/style/icons/NYT.png'
+                     }
+                   }
                  }
-
   ];
 
   Object.freeze(webapps);
@@ -330,7 +405,9 @@
     'keyboard.layouts.hebrew': 'false',
     'keyboard.layouts.zhuying': 'true',
     'debug.grid.enabled' : 'false',
-    'homescreen.wallpaper': 'default.png'
+    'homescreen.wallpaper': 'default.png',
+    'language.current': 'en-US',
+    'phone.vibrator.incoming': 'false'
   };
 
   var DBNAME = 'mozSettings';     // Strings used by IndexedDB
@@ -345,9 +422,13 @@
     get: function() {
       // This is a lazy getter. Don't set up the settings stuff
       // unless an app actually asks for it.
-      if (!mozSettings)
-        mozSettings = MozSettings();
-      return mozSettings;
+      try {
+        if (!mozSettings)
+          mozSettings = MozSettings();
+        return mozSettings;
+      } catch (e) {
+        return null;
+      }
     },
     enumerable: true,
     configurable: true
@@ -441,7 +522,7 @@
             settingsRequest.result = result;
             onsuccess.forEach(function(cb) { cb(); });
           };
-          dbreq.onerror = function() {
+          dbreq.onerror = function(e) {
             console.log('mozSettings error querying setting', key, e);
             onerror.forEach(function(cb) { cb(); });
           };
@@ -466,6 +547,16 @@
     return;
 
   var contacts = [
+  {
+    id: '0',
+    displayName: 'Andreas Gal',
+    name: {
+      familyName: ['Andreas'],
+      givenName: ['Gal']
+    },
+    phones: ['123-4242-4242'],
+    emails: ['gal@mozilla.com']
+  },
   {
     id: '3',
     displayName: 'Coby Newman',
