@@ -22,7 +22,7 @@ html, body {
   border-bottom-right-radius: 8px;
 }
 
-#switch_button {
+#switch-button {
   display: block;
   position: absolute;
   left: 8px;
@@ -32,11 +32,11 @@ html, body {
   background-image: url('images/switch.png');
 }
 
-#switch_button:active {
+#switch-button:active {
   background-image: url('images/switch-pressed.png');
 }
 
-#capture_button {
+#capture-button {
   display: block;
   margin: 8px auto;
   width: 192px;
@@ -44,11 +44,11 @@ html, body {
   background-image: url('images/capture.png');
 }
 
-#capture_button:active {
+#capture-button:active {
   background-image: url('images/capture-pressed.png');
 }
 
-#gallery_button {
+#gallery-button {
   display: block;
   position: absolute;
   right: 8px;
@@ -58,6 +58,6 @@ html, body {
   background-image: url('images/gallery.png');
 }
 
-#gallery_button:active {
+#gallery-button:active {
   background-image: url('images/gallery-pressed.png');
 }
