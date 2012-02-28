@@ -8,11 +8,11 @@ var Camera = {
   },
 
   get switchButton() {
-    return document.getElementById('switch_button');
+    return document.getElementById('switch-button');
   },
 
   get captureButton() {
-    return document.getElementById('capture_button'); 
+    return document.getElementById('capture-button'); 
   },
 
   init: function cameraInit() {
