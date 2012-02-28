@@ -330,7 +330,7 @@ var ConversationView = {
     document.getElementById('msg-conversation-view-msg-send').addEventListener(
       'mousedown', (this.sendMessage).bind(this));
 
-    var windowEvents = ['keypress', 'transitionend'];
+    var windowEvents = ['keyup', 'transitionend'];
     windowEvents.forEach((function(eventName) {
       window.addEventListener(eventName, this);
     }).bind(this));
@@ -424,7 +424,7 @@ var ConversationView = {
 
   handleEvent: function handleEvent(evt) {
     switch (evt.type) {
-      case 'keypress':
+      case 'keyup':
         if (evt.keyCode != evt.DOM_VK_ESCAPE)
           return;
 

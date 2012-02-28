@@ -212,8 +212,7 @@ var Touch2Mouse = {
 
 var ForceOnWindow = {
   'touchmove': true,
-  'touchend': true,
-  'sleep': true
+  'touchend': true
 }
 
 function AddEventHandlers(target, listener, eventNames) {
@@ -608,7 +607,7 @@ NotificationScreen.prototype = {
 function LockScreen(overlay) {
   this.overlay = overlay;
 
-  AddEventHandlers(overlay, this, ['touchstart', 'touchmove', 'touchend', 'sleep']);
+  AddEventHandlers(overlay, this, ['touchstart', 'touchmove', 'touchend', 'keyup']);
 
   this.update(function fireHomescreenReady() {
     window.parent.postMessage('homescreenready', '*');
@@ -701,24 +700,48 @@ LockScreen.prototype = {
       this.onTouchEnd(e.changedTouches[0]);
       document.releaseCapture();
       break;
-    case 'sleep':
+    case 'keyup':
+      if (e.keyCode != e.DOM_VK_SLEEP)
+        return;
+
       // Lock the screen when screen is turn off can stop
       // homescreen from showing up briefly when it's turn back on
       // But we still do update() when it's turned back on
       // coz the screen could be turned off by the timer
       // instead of sleep button
 
-      // XXX: the above statement does not really works all the time
-      // gaia issue #513
+      ScreenManager.toggleScreen();
 
-      //if (!e.detail.enabled)
-      //  return;
-      this.update();
+      if (screen.mozEnabled)
+        this.update();
       break;
     default:
       return;
     }
     e.preventDefault();
+  }
+};
+
+var ScreenManager = {
+  previousBrightness: null,
+  toggleScreen: function lockscreen_toggleScreen() {
+    if (screen.mozEnabled)
+      this.turnScreenOff();
+    else
+      this.turnScreenOn();
+  },
+
+  turnScreenOff: function lockscreen_turnScreenOff() {
+    screen.mozEnabled = false;
+
+    this.previousBrightness = screen.mozBrightness;
+    screen.mozBrightness = 0.0;
+  },
+
+  turnScreenOn: function lockscreen_turnScreenOn() {
+    screen.mozEnabled = true;
+
+    screen.mozBrightness = this.previousBrightness || 1.0;
   }
 };
 
@@ -777,16 +800,19 @@ function OnLoad() {
     });
   });
 
-  window.addEventListener('keypress', function(evt) {
-    if (evt.keyCode == evt.DOM_VK_F5)
-      document.location.reload();
-  });
-
-  window.addEventListener('menu', function(evt) {
-    toggleSourceViewer(foregroundAppURL());
+  window.addEventListener('keyup', function(evt) {
+    switch (evt.keyCode) {
+      case evt.DOM_VK_CONTEXT_MENU:
+        toggleSourceViewer(foregroundAppURL());
+        break;
+      case evt.DOM_VK_F6:
+        document.location.reload();
+        break;
+    }
   });
 
   changeDisplayState();
+  ScreenManager.turnScreenOn();
 }
 
 // Update the clock and schedule a new update if appropriate

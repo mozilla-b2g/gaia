@@ -202,8 +202,8 @@ function getApplicationManager() {
 
 var WindowManager = {
   init: function wm_init() {
-    window.addEventListener('home', this);
-    window.addEventListener('message', this);
+    window.addEventListener('keyup', this);
+
     window.addEventListener('appopen', this);
     window.addEventListener('appwillclose', this);
     window.addEventListener('locked', this);
@@ -220,6 +220,18 @@ var WindowManager = {
 
   handleEvent: function wm_handleEvent(evt) {
     switch (evt.type) {
+      case 'keyup':
+        switch (evt.keyCode) {
+          case evt.DOM_VK_HOME:
+            if (this.enabled)
+              this.closeForegroundWindow();
+            break;
+          case evt.DOM_VK_ESCAPE:
+            if (this.enabled && !evt.defaultPrevented)
+              this.closeForegroundWindow();
+            break;
+        }
+        break;
       case 'message':
         if (!this.enabled)
           return;

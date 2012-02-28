@@ -228,7 +228,7 @@ var ShortcutsHandler = {
 var ContactDetails = {
   _editing: false,
   setup: function cd_setup() {
-    window.addEventListener('keypress', this, true);
+    window.addEventListener('keyup', this, true);
   },
   get overlay() {
     delete this.overlay;
@@ -399,7 +399,7 @@ var ContactDetails = {
 
   // back button handling
   handleEvent: function cd_handleEvent(evt) {
-    if (evt.type !== 'keypress' || evt.keyCode != evt.DOM_VK_ESCAPE) {
+    if (evt.type !== 'keyup' || evt.keyCode != evt.DOM_VK_ESCAPE) {
       return;
     }
 
