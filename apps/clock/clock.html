@@ -12,7 +12,46 @@
 
   <body>
     <div id="views">
-      <div id="stopwatch-view" class="view">
+      <div id="clock-view" class="view">
+        <svg id="clock" viewBox="0 0 100 100" width="400" height="400"> 
+          <defs>   <!-- Define a filter for drop-shadows -->
+            <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur in="SourceAlpha" stdDeviation="1" result="blur" />
+              <feOffset in="blur" dx="1" dy="1" result="shadow" />
+              <feMerge>
+                <feMergeNode in="SourceGraphic"/><feMergeNode in="shadow"/>
+              </feMerge>
+            </filter>
+          </defs>
+          <circle id="face" cx="50" cy="50" r="45"/>  <!-- the clock face -->
+          <g id="ticks">                              <!-- 12 hour tick marks -->
+            <line x1='50' y1='5.000' x2='50.00' y2='10.00'/>
+            <line x1='72.50' y1='11.03' x2='70.00' y2='15.36'/>
+            <line x1='88.97' y1='27.50' x2='84.64' y2='30.00'/>
+            <line x1='95.00' y1='50.00' x2='90.00' y2='50.00'/>
+            <line x1='88.97' y1='72.50' x2='84.64' y2='70.00'/>
+            <line x1='72.50' y1='88.97' x2='70.00' y2='84.64'/>
+            <line x1='50.00' y1='95.00' x2='50.00' y2='90.00'/>
+            <line x1='27.50' y1='88.97' x2='30.00' y2='84.64'/>
+            <line x1='11.03' y1='72.50' x2='15.36' y2='70.00'/>
+            <line x1='5.000' y1='50.00' x2='10.00' y2='50.00'/>
+            <line x1='11.03' y1='27.50' x2='15.36' y2='30.00'/>
+            <line x1='27.50' y1='11.03' x2='30.00' y2='15.36'/>
+          </g>
+          <g id="numbers">                     <!-- Number the cardinal directions-->
+            <text x="50" y="18">12</text><text x="85" y="53">3</text>
+            <text x="50" y="88">6</text><text x="15" y="53">9</text>
+          </g>
+          <!-- Draw hands pointing straight up. We rotate them in the code. -->
+          <g id="hands" filter="url(#shadow)"> <!-- Add shadows to the hands -->
+            <line id="hourhand" x1="50" y1="50" x2="50" y2="24"/>
+            <line id="minutehand" x1="50" y1="50" x2="50" y2="20"/>
+          </g>
+        </svg>
+
+
+      </div>
+      <div id="stopwatch-view" class="view" hidden="true">
         <div class="chrono-view-container">
           <div>
             <div class="chrono-view" id="stopwatch-chrono-view">00:00</div>
@@ -58,18 +97,22 @@
         </div>
       </div>
 
+<!--
       <div id="alarm-view" class="view" hidden="true">
       </div>
+-->
     </div>
     <div id="tabs-container">
       <div id="tabs" onclick="choiceChanged(event.target)">
         <fieldset>
-          <label id="stopwatch-label" for="stopwatch-choice" data-choice="stopwatch" data-active="true"><input id="stopwatch-choice" type="radio" name="tabs" checked="checked" /></label>
+          <label id="clock-label" for="clock-choice" data-choice="clock" data-active="true"><input id="clock-choice" type="radio" name="tabs" checked="checked" /></label>
+          <label id="stopwatch-label" for="stopwatch-choice" data-choice="stopwatch"><input id="stopwatch-choice" type="radio" name="tabs" checked="" /></label>
           <label id="timer-label" for="timer-choice" data-choice="timer"><input id="timer-choice" type="radio" name="tabs" checked="" /></label>
+<!--
           <label id="alarm-label" for="alarm-choice" data-choice="alarm"><input id="alarm-choice" type="radio" name="tabs" checked="" /></label>
+-->
         </fieldset>
       </div>
     </div>
-
   </body>
 </html>
