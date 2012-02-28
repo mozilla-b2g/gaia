@@ -12,7 +12,8 @@ var Recents = {
     for (var i = 0 ; i < this.last.length ; i++) {
       var recent = this.last[i];
 
-      content += '<div class="recent" data-number="' + recent.number + '">' +
+      content += '<div class="recent" data-number="' + recent.number + '" ' +
+                 'onclick="CallHandler.call(this.dataset.number)">' +
                  profilePictureForNumber(i) +
                  '<div class="name">' + recent.name + '</div>' +
                  '<div class="number">' + recent.number + '</div>' +

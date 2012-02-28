@@ -1043,6 +1043,10 @@ html * {
   font-size: 26px;
 }
 
+.recent > div * {
+  pointer-events: none;
+}
+
 .recent:first-child {
   border-top: 0;
   height: -moz-calc(96px - 1px);
@@ -1063,6 +1067,7 @@ html * {
   position: absolute;
   bottom: 8px;
   left: 112px;
+  right: 0;
 
   color: #666666;
 
