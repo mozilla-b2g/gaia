@@ -1,70 +1,70 @@
+'use strict';
+
 var Camera = {
-  _filter: '',
   _camera: 0,
 
-  get video() {
-    return document.getElementById('video');
+  get viewfinder() {
+    return document.getElementById('viewfinder');
+  },
+
+  get switchButton() {
+    return document.getElementById('switch-button');
+  },
+
+  get captureButton() {
+    return document.getElementById('capture-button'); 
+  },
+
+  get galleryButton() {
+    return document.getElementById('gallery-button');
   },
 
   init: function cameraInit() {
+    this.switchButton.addEventListener('click', this.toggleCamera.bind(this));
+    this.galleryButton.addEventListener('click', function() {
+      // This is bad. It should eventually become a hyperlink or Web Intent.
+      window.parent.WindowManager.launch('../gallery/gallery.html');
+    });
+
     var width, height;
-    if (window.innerWidth > window.innerHeight) {
-      width = window.innerWidth;
-      height = window.innerHeight;
-    } else {
-      width = window.innerHeight;
-      height = window.innerWidth;
+    var viewfinder = this.viewfinder;
 
-      var deltaX = (width - height) / 2;
-      var transform = 'rotate(90deg)';
-      if (this._camera == 1)
-        transform += ' scale(-1, 1)';
+    width = document.body.clientHeight;
+    height = document.body.clientWidth;
+      
+    var top = ((width/2) - ((height)/2));
+    var left = -((width/2) - (height/2));
+    viewfinder.style.top = top + 'px';
+    viewfinder.style.left = left + 'px';
 
-      var container = document.getElementById('video-container');
-      container.style.MozTransform = transform;
-    }
+    var transform = 'rotate(90deg)';
+    if (this._camera == 1)
+      transform += ' scale(-1, 1)';
+
+    viewfinder.style.MozTransform = transform;
 
     var config = {
-      width: width,
       height: height,
+      width: width,
       camera: this._camera
     }
 
-    var video = this.video;
-    video.style.width = width + 'px';
-    video.style.height = height + 'px';
-    video.style.filter = this._filter;
-
-    video.src = navigator.mozCamera.getCameraURI(config);
+    viewfinder.style.width = width + 'px';
+    viewfinder.style.height = height + 'px';
+    if(navigator.mozCamera)
+      viewfinder.src = navigator.mozCamera.getCameraURI(config);
   },
 
   pause: function pause() {
-    this.video.pause();
+    this.viewfinder.pause();
   },
 
   toggleCamera: function toggleCamera() {
     this._camera = 1 - this._camera;
-    this.video.src = '';
+    this.viewfinder.src = '';
     this.init();
   },
 
-  toggleFilter: function toggleFilter(target) {
-    var filter = '';
-
-    if (!target.classList.contains('selected')) {
-      var childs = target.parentNode.childNodes;
-      for (var i = 0; i < childs.length; i++) {
-        var child = childs[i];
-        if (child.classList)
-          child.classList.remove('selected');
-      }
-
-      filter = 'url(#' + target.dataset.filter + ')';
-    }
-
-    this._filter = this.video.style.filter = filter;
-    target.classList.toggle('selected');
-  }
 };
 
 window.addEventListener('DOMContentLoaded', function CameraInit() {

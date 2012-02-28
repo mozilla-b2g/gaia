@@ -2,38 +2,62 @@ html, body {
   height: 100%;
   width: 100%;
   padding: 0;
-  margin:0;
+  margin: 0;
   overflow: hidden;
-  background-color: grey;
+  background-color: black;
 }
 
-#video-controls {
+#viewfinder {
   position: absolute;
-  bottom: 20px;
-  right: 1mozmm;
 }
 
-#filter-controls {
+#controls {
   position: absolute;
-  bottom: 20px;
-  left: 1mozmm;
+  bottom: 0;
+  height: 128px;
+  background-color: #555e64;
+  width: 100%;
+  text-align: center;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
 }
 
-.button {
-  border-radius: 6px;
-  border: 2px solid rgba(5,5,5, 0.4);
-  background-color: rgba(5,5,5,0.5);
-
-  padding: 3mozmm 1mozmm;
-  height: 7mozmm;
-  line-height: 7mozmm;
-
-  color: white;
-  font-weight: bold;
+#switch-button {
+  display: block;
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  width: 113px;
+  height: 112px;
+  background-image: url('images/switch.png');
 }
 
-.selected {
-  background-color: rgba(150,130,5,0.5);
-  color: black;
+#switch-button:active {
+  background-image: url('images/switch-pressed.png');
 }
 
+#capture-button {
+  display: block;
+  margin: 8px auto;
+  width: 192px;
+  height: 112px;
+  background-image: url('images/capture.png');
+}
+
+#capture-button:active {
+  background-image: url('images/capture-pressed.png');
+}
+
+#gallery-button {
+  display: block;
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: 113px;
+  height: 112px;
+  background-image: url('images/gallery.png');
+}
+
+#gallery-button:active {
+  background-image: url('images/gallery-pressed.png');
+}

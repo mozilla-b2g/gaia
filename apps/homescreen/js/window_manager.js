@@ -50,7 +50,7 @@ function Window(application, id) {
   element.setAttribute('mozallowfullscreen', 'true');
 
   // TODO: a platform fix will come
-  var exceptions = ['Dialer', 'Settings'];
+  var exceptions = ['Dialer', 'Settings', 'Camera'];
   if(exceptions.indexOf(application.name) == -1) {
     element.setAttribute('mozbrowser', 'true');
   }
