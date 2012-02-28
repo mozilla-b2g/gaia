@@ -722,29 +722,6 @@ LockScreen.prototype = {
   }
 };
 
-var ScreenManager = {
-  previousBrightness: null,
-  toggleScreen: function lockscreen_toggleScreen() {
-    if (screen.mozEnabled)
-      this.turnScreenOff();
-    else
-      this.turnScreenOn();
-  },
-
-  turnScreenOff: function lockscreen_turnScreenOff() {
-    screen.mozEnabled = false;
-
-    this.previousBrightness = screen.mozBrightness;
-    screen.mozBrightness = 0.0;
-  },
-
-  turnScreenOn: function lockscreen_turnScreenOn() {
-    screen.mozEnabled = true;
-
-    screen.mozBrightness = this.previousBrightness || 1.0;
-  }
-};
-
 function OnLoad() {
   Gaia.lockScreen = new LockScreen(document.getElementById('lockscreen'));
 
@@ -800,20 +777,29 @@ function OnLoad() {
     });
   });
 
-  window.addEventListener('keyup', function(evt) {
-    switch (evt.keyCode) {
-      case evt.DOM_VK_CONTEXT_MENU:
-        toggleSourceViewer(foregroundAppURL());
-        break;
-      case evt.DOM_VK_F6:
-        document.location.reload();
-        break;
-    }
-  });
-
   changeDisplayState();
   ScreenManager.turnScreenOn();
 }
+
+window.addEventListener('keyup', function(evt) {
+  switch (evt.keyCode) {
+    case evt.DOM_VK_PAGE_UP:
+      SoundManager.changeVolume(1);
+      break;
+
+    case evt.DOM_VK_PAGE_DOWN:
+      SoundManager.changeVolume(-1);
+      break;
+
+    case evt.DOM_VK_CONTEXT_MENU:
+      toggleSourceViewer(foregroundAppURL());
+      break;
+
+    case evt.DOM_VK_F6:
+      document.location.reload();
+      break;
+  }
+});
 
 // Update the clock and schedule a new update if appropriate
 function updateClock() {
@@ -920,3 +906,59 @@ function updateConnection() {
   conn.addEventListener("cardstatechange", updateConnection);
   conn.addEventListener("connectionchange", updateConnection);
 }
+
+var ScreenManager = {
+  previousBrightness: null,
+  toggleScreen: function lockscreen_toggleScreen() {
+    if (screen.mozEnabled)
+      this.turnScreenOff();
+    else
+      this.turnScreenOn();
+  },
+
+  turnScreenOff: function lockscreen_turnScreenOff() {
+    screen.mozEnabled = false;
+
+    this.previousBrightness = screen.mozBrightness;
+    screen.mozBrightness = 0.0;
+  },
+
+  turnScreenOn: function lockscreen_turnScreenOn() {
+    screen.mozEnabled = true;
+
+    screen.mozBrightness = this.previousBrightness || 1.0;
+  }
+};
+
+var SoundManager = {
+  currentVolume: 5,
+  changeVolume: function soundManager_changeVolume(delta) {
+    var volume = this.currentVolume + delta;
+    this.currentVolume = volume = Math.max(0, Math.min(10, volume));
+
+    var notification = document.getElementById('volume');
+    if (volume == 0) {
+      notification.classList.add('vibration');
+    } else {
+      notification.classList.remove('vibration');
+    }
+
+    var steps = notification.children;
+    for (var i = 0; i < steps.length; i++) {
+      var step = steps[i];
+      if (i < volume)
+        step.classList.add('active');
+      else
+        step.classList.remove('active');
+    }
+
+    notification.classList.add('visible');
+    if (this._timeout)
+      window.clearTimeout(this._timeout);
+
+    this._timeout = window.setTimeout(function hideSound() {
+      notification.classList.remove('visible');
+    }, 3000);
+  }
+};
+

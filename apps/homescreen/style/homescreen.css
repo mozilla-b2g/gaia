@@ -837,6 +837,96 @@ iframe.landscape-secondary {
   box-shadow: 0 0 5px #fff;
 }
 
+/* === Volume  === */
+#volume {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  width: 220px;
+  height: 200px;
+  margin: -100px 0 0 -110px;
+  background: url(images/volume-on.png) no-repeat 50% 10%, hsla(0,0%,0%,.8);
+  border-radius: 10px;
+  z-index: 20002;
+  -moz-transition: opacity 0.5s ease;
+  opacity: 0;
+}
+
+#volume.visible {
+  opacity: 1.0;
+}
+
+#volume.off {
+  background: url(images/volume-off.png) no-repeat 50% 10%, hsla(0,0%,0%,.8);
+}
+
+#volume.vibration {
+  background: url(images/vibration.png) no-repeat 50% 10%, hsla(0,0%,0%,.8);
+}
+
+#volume div {
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  width: 10px;
+  border-radius: 4px;
+  background: hsla(0,0%,100%,.4)
+}
+
+#volume div.active {
+  background: hsla(0,0%,100%,.9)
+}
+
+#volume div:nth-child(1) {
+  height: 10px;
+  left: 10px;
+}
+
+#volume div:nth-child(2) {
+  height: 20px;
+  left: 30px;
+}
+
+#volume div:nth-child(3) {
+  height: 30px;
+  left: 50px;
+}
+
+#volume div:nth-child(4) {
+  height: 40px;
+  left: 70px;
+}
+
+#volume div:nth-child(5) {
+  height: 50px;
+  left: 90px;
+}
+
+#volume div:nth-child(6) {
+  height: 60px;
+  left: 110px;
+}
+
+#volume div:nth-child(7) {
+  height: 70px;
+  left:130px;
+}
+
+#volume div:nth-child(8) {
+  height: 80px;
+  left: 150px;
+}
+
+#volume div:nth-child(9) {
+  height: 90px;
+  left: 170px;
+}
+
+#volume div:nth-child(10) {
+  height: 100px;
+  left: 190px;
+}
+
 #debug-grid {
   position: absolute;
   top: 0;
