@@ -15,8 +15,16 @@ var Camera = {
     return document.getElementById('capture-button'); 
   },
 
+  get galleryButton() {
+    return document.getElementById('gallery-button');
+  },
+
   init: function cameraInit() {
     this.switchButton.addEventListener('click', this.toggleCamera.bind(this));
+    this.galleryButton.addEventListener('click', function() {
+      // This is bad. It should eventually become a hyperlink or Web Intent.
+      window.parent.WindowManager.launch('../gallery/gallery.html');
+    });
 
     var width, height;
     var viewfinder = this.viewfinder;
