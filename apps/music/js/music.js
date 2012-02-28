@@ -1,184 +1,74 @@
-var Music = {
-  playingSong: false,
-
-  init: function musicInit() {
-    var db = this.db;
-    db.open(this.buildSongList);
-
-    var self = this;
-    var songList = document.getElementById('songs');
-    songList.addEventListener('click', function songListClick(evt) {
-      var target = evt.target;
-      if (!target)
-        return;
-
-      db.getSong(target.id, function playSong(song) {
-        self.playSong(song);
-      });
-    });
-
-    window.addEventListener('keypress', function keyPressHandler(evt) {
-      if (Music.playingSong && evt.keyCode == evt.DOM_VK_ESCAPE) {
-        self.stopSong();
-        self.showSongList();
-        evt.preventDefault();
-      }
-    });
-
-    self.showSongList();
+var songs = [
+  {
+    file: 'audio/jonobacon-freesoftwaresong2.ogg',
+    title: 'The Free Software Song',
+    artist: 'Jono Bacon'
   },
-
-  buildSongList: function musicBuildSongList(songs) {
-    var content = '';
-    songs.forEach(function showMetadata(song) {
-      content += '<li class="song">' +
-                 '  <a id="' + song.id + '" href="#">' +
-                 '    ' + song.title + ' - ' + song.artist +
-                 '  </a>' +
-                 '</li>';
-    });
-    document.getElementById('songs').innerHTML = content;
+  {
+    file: 'audio/b2g.ogg',
+    title: 'Boot to Gecko',
+    artist: 'Brendan Eich'
   },
-
-  showSongList: function musicShowSongList(songs) {
-    ['songs'].forEach(function hideElement(id) {
-      document.getElementById(id).classList.remove('hidden');
-    });
-
-    ['player'].forEach(function showElement(id) {
-      document.getElementById(id).classList.add('hidden');
-    });
-
-   this.playingSong = false;
+  {
+    file: 'audio/Salt_Creek.ogg',
+    title: 'Salt Creek',
+    artist: 'The Rogue Bluegrass Band'
   },
-
-  playSong: function musicPlaySong(song) {
-    ['songs'].forEach(function hideElement(id) {
-      document.getElementById(id).classList.add('hidden');
-    });
-
-    ['player'].forEach(function showElement(id) {
-      document.getElementById(id).classList.remove('hidden');
-    });
-
-    var playerAudio = document.getElementById('playerAudio');
-    var src = 'data:audio/ogg;base64,' + song.data;
-    playerAudio.setAttribute('src', src);
-
-    Music.playingSong = true;
-  },
-
-  stopSong: function musicStopSong(song) {
-    var playerAudio = document.getElementById('playerAudio');
-    playerAudio.pause();
+  {
+    file: 'audio/treasure_island_01-02_stevenson.ogg',
+    title: 'Treasure Island',
+    artist: 'Read by Adrian Praetzellis'
   }
-};
+];
 
-Music.db = {
-  _db: null,
+window.addEventListener('DOMContentLoaded', function() {
+  var songList = document.getElementById('songs');
+  var player = document.getElementById('player');
+  var audio = document.getElementById('playerAudio');
 
-  open: function dbOpen(callback) {
-    const DB_NAME = 'music';
-    var request = window.mozIndexedDB.open(DB_NAME, 5);
+  var content = '';
+  songs.forEach(function(song) {
+    content += '<li class="song">' +
+      '  <a id="' + song.file + '" href="#">' +
+      '    ' + song.title + ' - ' + song.artist +
+      '  </a>' +
+      '</li>';
+  });
+  songList.innerHTML = content;
 
-    var empty = false;
-    request.onupgradeneeded = (function onUpgradeNeeded(evt) {
-      this._db = evt.target.result;
-      this._initialiseDB();
-      empty = true;
-    }).bind(this);
+  songList.addEventListener('click', function(evt) {
+    var target = evt.target;
+    if (!target)
+      return;
+    console.log('clicked on', target.id);
+    playSong(target.id); // song url is anchor id
+  });
+  
+  window.addEventListener('keypress', function keyPressHandler(evt) {
+    if (playing && evt.keyCode == evt.DOM_VK_ESCAPE) {
+      stopSong();
+      showSongList();
+      evt.preventDefault();
+    }
+  });
 
-    request.onsuccess = (function onSuccess(evt) {
-      this._db = evt.target.result;
-      if (!empty) {
-        this.getSongList(callback);
-        return;
-      }
-
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', 'js/samples.json', true);
-      xhr.onreadystatechange = (function() {
-        if (xhr.readyState == 4) {
-          var json = JSON.parse(xhr.responseText);
-          this._fillDB(json);
-          this.getSongList(callback);
-        }
-      }).bind(this);
-      xhr.send(null);
-    }).bind(this);
-
-    request.onerror = (function onDatabaseError(error) {
-      console.log('Database error: ', error);
-    }).bind(this);
-  },
-
-  _initialiseDB: function dbInitialzeDB() {
-    var db = this._db;
-    var stores = ['metadata', 'audio'];
-    stores.forEach(function createStore(store) {
-      if (db.objectStoreNames.contains(store))
-        db.deleteObjectStore(store);
-      db.createObjectStore(store, { keyPath: 'id' });
-    });
-  },
-
-  _fillDB: function dbFillDB(json) {
-    var stores = ['metadata', 'audio'];
-    var transaction = this._db.transaction(stores, IDBTransaction.READ_WRITE);
-
-    var samples = [json['metadata'], json['audio']];
-    stores.forEach(function populateStore(store, index) {
-      var objectStore = transaction.objectStore(store);
-
-      var sample = samples[index];
-      var request = objectStore.put(sample);
-
-      request.onsuccess = function onsuccess(e) {
-        console.log('Added a new song to ' + store);
-      }
-
-      request.onerror = function onerror(e) {
-        console.log('Error while adding an element to: ' + store);
-      }
-    });
-  },
-
-  getSongList: function dbGetSongList(callback) {
-    var transaction = this._db.transaction(['metadata'],
-                                           IDBTransaction.READ_ONLY);
-    var store = transaction.objectStore('metadata');
-    var cursorRequest = store.openCursor(IDBKeyRange.lowerBound(0));
-
-    var songList = [];
-    cursorRequest.onsuccess = function onsuccess(e) {
-      var result = e.target.result;
-      if (!result) {
-        callback(songList);
-        return;
-      }
-
-      songList.push(result.value);
-      result.continue();
-    };
-
-    cursorRequest.onerror = function onerror(e) {
-      console.log('Error getting music metadata');
-    };
-  },
-
-  getSong: function dbGetSong(id, callback) {
-    var transaction = this._db.transaction(['audio'], IDBTransaction.READ_ONLY);
-    var request = transaction.objectStore('audio').get(id);
-    request.onsuccess = function onsuccess(e) {
-      callback(e.target.result);
-    };
-
-    request.onerror = function onerror(e) {
-      console.log('Error retrieving audio: ' + e);
-    };
+  var playing = false;
+  
+  function showSongList(songs) {
+    songList.classList.remove('hidden');
+    player.classList.add('hidden');
+    playing = false;
   }
-};
 
-window.addEventListener('DOMContentLoaded', function MusicInit() {
-  Music.init();
+  function playSong(url) {
+    songList.classList.add('hidden');
+    player.classList.remove('hidden');
+    audio.src = url;
+    playing = true;
+  }
+
+  function stopSong(song) {
+    audio.pause();
+    playing = false;
+  }
 });
