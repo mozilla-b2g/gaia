@@ -7,30 +7,33 @@ function test() {
     function onReady(smsFrame) {
       let document = smsFrame.contentWindow.document;
 
-      var convCount = document.getElementById('messages').children.length;
+      var conversationView = document.getElementById('msg-conversation-view');
+      var contactField = document.getElementById('msg-conversation-view-num');
 
-      var conversationView = document.getElementById('conversationView');
-      var contactField = document.getElementById('contact');
-      var textField = document.getElementById('text');
-      var sendButton = document.getElementById('send');
-      var newButton = document.querySelector(".message[data-num='*']");
+      var textField = document.getElementById('msg-conversation-view-msg-text');
+      var sendButton = document.getElementById('msg-conversation-view-msg-send');
+      var newButton = document.getElementById('msg-new-message');
 
-      // TODO For some reasons this test timed out, so let's ignore it for now
-      /*
       EventUtils.sendMouseEvent({type: 'click'}, newButton);
       conversationView.addEventListener('transitionend', function trWait() {
         conversationView.removeEventListener('transitionend', trWait);
-        ok(!conversationView.hidden, 'Conversation displayed');
+        ok(document.body.classList.contains('conversation'), 'Conversation displayed');
         ok(contactField.value.length == 0, 'To: field empty');
 
         contactField.value = '123';
         textField.value = 'Hello world.';
-        EventUtils.sendMouseEvent({type: 'click'}, sendButton);
+        EventUtils.sendMouseEvent({type: 'mousedown'}, sendButton);
 
-        windowManager.closeForegroundWindow();
+        waitFor(function() {
+          var messageCount = document.querySelectorAll('#msg-conversation-view-list > div').length;
+          ok((messageCount == 1), 'Message added');
+
+          windowManager.closeForegroundWindow();
+        }, function() {
+          let messageCount = document.querySelectorAll('#msg-conversation-view-list > div').length;
+          return messageCount == 1;
+        });
       });
-      */
-      windowManager.closeForegroundWindow();
     }
 
     function onClose() {
