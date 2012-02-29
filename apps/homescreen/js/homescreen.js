@@ -702,7 +702,7 @@ LockScreen.prototype = {
       document.releaseCapture();
       break;
     case 'keydown':
-      if (e.keyCode != e.DOM_VK_SLEEP)
+      if (e.keyCode != e.DOM_VK_SLEEP || !screen.mozEnabled)
         return;
 
       this._timeout = window.setTimeout(function() {
