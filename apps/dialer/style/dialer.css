@@ -1058,6 +1058,29 @@ html * {
   height: 100%;
 }
 
+.recent .type {
+  position: absolute;
+  top: 46px;
+  right: 16px;
+  width: 31px;
+  height: 22px;
+
+  background-repeat: no-repeat;
+  background-position: center center;
+}
+.recent.incoming .type {
+  background-image: url("images/incoming.png");
+}
+.recent.incoming-connected .type {
+  background-image: url("images/incoming-connected.png");
+}
+.recent.outgoing .type {
+  background-image: url("images/outgoing.png");
+}
+.recent.outgoing-connected .type {
+  background-image: url("images/outgoing-connected.png");
+}
+
 .recent .name {
   margin-left: 112px;
   font-weight: bold;
