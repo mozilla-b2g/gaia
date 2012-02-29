@@ -1,16 +1,16 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html manifest="manifest.appcache">
   <head>
     <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
-    <script type="text/javascript" src="webapi+apps.js"></script>
+    <script type="text/javascript" src="../../webapi.js"></script>
 
     <link rel="stylesheet" type="text/css" href="style/homescreen.css">
-	  <script type="text/javascript" src="js/app_manager.js"></script>
-	  <script type="text/javascript" src="js/task_manager.js"></script>
+    <script type="text/javascript" src="js/task_manager.js"></script>
+    <script type="text/javascript" src="js/window_manager.js"></script>
+    <script type="text/javascript" src="js/app_manager.js"></script>
     <script type="text/javascript" src="js/keyboardLayout.js"></script>
     <script type="text/javascript" src="js/keyboard.js"></script>
-    <script type="text/javascript" src="js/scenegraph.js"></script>
     <script type="text/javascript" src="js/homescreen.js"></script>
   </head>
   <body onload="OnLoad();">
@@ -19,6 +19,13 @@
       <div id="statusbar">
         <div id="titlebar"></div>
         <div id="padding"></div>
+        <div id="signal">
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <div id="wifi"></div>
         <div class="battery">
           <div id="fuel"></div>
           <div id="charging" hidden="true"></div>
@@ -26,38 +33,37 @@
         <div class="time" data-format="%H:%M"></div>
       </div>
       <div id="home">
-        <canvas id="homeCanvas"></canvas>
-        <div id="home-menu">
-          <div id="home-pages"></div>
-          <div id="home-shortcuts"></div>
-        </div>
+        <div id="apps"></div>
+        <div id="dots"></div>
+        <div id="notifications"></div>
       </div>
       <div id="windows">
         <!-- application windows are added here -->
       </div>
-      <div id="notificationsScreen"></div>
+      <div id="notificationsScreen">
+        <div id="grippy">
+        </div>
+      </div>
       <div id="lockscreen">
 	      <div id="status">
-	        <div id="signal"></div>
-	        <div id="network"></div>
-	        <div id="padding"></div>
 	      </div>
-	      <div id="clock">
-	        <div class="time" data-format="%H:%M %p"></div>
-	        <div class="time" data-format="%A"></div>
-	        <div class="time" data-format="%d %b"></div>
-	      </div>
-	      <div id="notifications">
-	        Phone: <div id="phone">0</div>
-	        SMS: <div id="sms">0</div>
-	        Email: <div id="email">0</div>
-	      </div>
+	      <div id="lockscreenContainer">
+          <div id="clock">
+            <div id="hourMin" class="time" data-format="%H:%M"></div>
+            <div id="date">
+              <span class="time" data-format="%A"></span>,
+              <span class="time" data-format="%d %b"></span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     <div id="taskManager">
       <ul>
-        
+
       </ul>
     </div>
+
+    <div id="debug-grid"></div>
   </body>
 </html>
