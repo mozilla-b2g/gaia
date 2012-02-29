@@ -526,12 +526,12 @@ iframe.landscape-secondary {
 #taskManager li > a {
   background: url('images/close.png') no-repeat;
   display: block;
-  width: 32px;
-  height: 32px;
+  width: 64px;
+  height: 64px;
   position: absolute;
-  top: 10px;
-  right: 10px;
-  -moz-transform: scale(5);
+  top: 12px;
+  right: -32px;
+  -moz-transform: scale(3);
 }
 
 #taskManager li > h1 {
