@@ -155,7 +155,7 @@ DefaultPhysics.prototype = {
     if (touchState.active) {
       var dx = touchState.startX - e.pageX;
       if (dx !== 0) {
-        this.moved = this.moved || Math.abs(dx) >= 19;
+        this.moved = this.moved || Math.abs(dx) > 20;
         if (this.moved) {
           iconGrid.pan(-dx);
         }
@@ -176,7 +176,7 @@ DefaultPhysics.prototype = {
 
     var quick = (e.timeStamp - touchState.startTime < 200);
     var long = (e.timeStamp - touchState.startTime > 2000);
-    var small = Math.abs(diffX) < 20;
+    var small = Math.abs(diffX) <= 20;
 
     var flick = quick && !small;
     var tap = !this.moved;
