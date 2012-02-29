@@ -28,7 +28,7 @@ var TaskManager = {
 
   enabled: true,
   init: function tm_init() {
-    ['keydown', 'keyup', 'locked', 'unlocked'].forEach((function attachKey(type) {
+    ['locked', 'unlocked'].forEach((function attachKey(type) {
       window.addEventListener(type, this);
     }).bind(this));
   },
@@ -36,29 +36,6 @@ var TaskManager = {
   _timeout: 0,
   handleEvent: function tm_handleEvent(evt) {
     switch (evt.type) {
-      case 'keydown':
-        if (!this.enabled || evt.keyCode !== evt.DOM_VK_HOME || this._timeout)
-          return;
-
-        if (this.isActive()) {
-          this.hide();
-          return;
-        }
-
-        this._timeout = window.setTimeout(function checkKeyPress(self) {
-          self.show();
-        }, 1000, this);
-        break;
-
-      case 'keyup':
-        if (evt.keyCode !== evt.DOM_VK_HOME)
-          return;
-
-        window.clearTimeout(this._timeout);
-        this._timeout = 0;
-        break;
-
-
       case 'locked':
         this.enabled = false;
         break;
