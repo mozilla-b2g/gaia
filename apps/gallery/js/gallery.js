@@ -362,4 +362,5 @@ var Gallery = {
 
 window.addEventListener('DOMContentLoaded', function GalleryInit() {
   Gallery.init();
+  window.parent.postMessage('appready', '*');
 });
