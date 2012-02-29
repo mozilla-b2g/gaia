@@ -42,7 +42,6 @@
         border-radius: 5px;
         background-image: -moz-linear-gradient(bottom, rgb(16,16,16) 54%, rgb(13,13,13) 84%, rgb(27,27,27));
         -moz-user-select: none;
-        pointer-events: none;
       }
 
       #chrome-controls .button:hover:active {
@@ -75,5 +74,12 @@
       </div>
     </div>
   </body>
-</html>
 
+  <script>
+    var homeButton = document.querySelector("#chrome-home");
+    homeButton.addEventListener("click", function() {
+      var iframe = document.querySelector("iframe");
+      iframe.contentWindow.WindowManager.closeForegroundWindow();
+    }, true);
+  </script>
+</html>
