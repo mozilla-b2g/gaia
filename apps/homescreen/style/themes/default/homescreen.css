@@ -1,0 +1,229 @@
+/* Fonts */
+
+@font-face {
+  font-family: 'Open Sans';
+  src: url('fonts/Open-Sans.woff');
+}
+@font-face {
+  font-family: 'Open Sans';
+  font-weight: bold;
+  src: url('fonts/Open-Sans-Bold.woff');
+}
+@font-face {
+  font-family: 'Open Sans';
+  font-weight: 600;
+  src: url('fonts/Open-Sans-Semibold.woff');
+}
+
+body {
+  font-family: 'Open Sans Semibold', sans-serif;
+  color: white;
+  font-size: 15px;
+}
+
+@media screen and (max-width: 479px) {
+  body {
+    font-size: 10px;
+  }
+}
+
+/* Home Screen */
+
+#home {
+  border-radius: 8px;
+  background: url(images/background.jpg);
+}
+
+/* Lock Screen */
+
+#lockscreenContainer {
+  background-color: #000;
+  background-attachment: fixed;
+  background-clip: border-box;
+  background-image: url(images/background.png);
+  background-origin: padding-box;
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
+/* Notification Screen */
+
+#grippy {
+  background: #111 url(images/grippy.png) no-repeat 50% 50%;
+}
+
+/* App Icons */
+
+.icon {
+  width: 128px;
+  height: 192px;
+  background: url(images/thumb.png) 8px 8px no-repeat #222;
+  background-color: #222;
+  background-image: url(images/thumb.png);
+  background-position: 8px 8px;
+  background-repeat: no-repeat;
+  background-color: #222;
+  border-radius: 5px;
+  margin-right: 4px;
+  margin-bottom: 4px;
+}
+
+.icon > div {
+  width: 120px;
+  height: 120px;
+}
+
+.icon > .label {
+  padding-top: 36px;
+  padding-left: 8px;
+  color: white;
+}
+
+/* Screen markers */
+
+.dot {
+  width: 10px;
+  height: 10px;
+  background-color: rgba(255,255,255,0.5);
+  margin-left: 5px;
+  margin-right: 5px;
+  border-radius: 50%;
+}
+
+.dot.active {
+  background-color: white;
+}
+
+/* Windows */
+
+div.windowSprite {
+  background: rgba(0,0,0,0.8);
+  border-radius: 8px;
+}
+
+/* Task Manager */
+
+#taskManager li {
+  background-color: #00f;
+}
+
+#taskManager li > a {
+  background: url('images/close.png') no-repeat;
+}
+
+#taskManager li > h1 {
+  text-align: center;
+  color: #fff;
+  font-size: 2em;
+  text-shadow: #000 0 2px 1px;
+}
+
+/* Status bar */
+
+#statusbar {
+  color: #999;
+  background-color: #000;
+}
+
+#titlebar {
+  text-shadow: 0 0 3px hsla(0,0%,0%,.5);
+  line-height: 31px;
+  font-size: 18px;
+  margin: 0 4px;
+}
+
+#signal span {
+  background: #333333;
+  float: left;
+}
+
+#signal span.haveSignal {
+  background: #999999;
+}
+
+#signal span:nth-child(1) { /* poor signal */
+  margin-top: 17px;
+  height: 3px;
+}
+
+#signal span:nth-child(2) { /* medium signal */
+  margin-top: 13px;
+  height: 7px;
+}
+
+#signal span:nth-child(3) { /* good signal */
+  margin-top: 10px;
+  height: 10px;
+}
+
+#signal span:nth-child(4) { /* awesome signal */
+  margin-top: 6px;
+  height: 14px;
+}
+
+
+#wifi {
+  width: 30px;
+  background: url(imgs/wifi.png) 50% 8px no-repeat;
+}
+
+#statusbar .time {
+  text-shadow: 0 0 3px hsla(0,0%,0%,.5);
+  line-height: 31px;
+  margin: 0 4px;
+}
+
+.battery {
+  float:right;
+  margin: 8px 3px;
+  padding: 5px 7px 5px 5px;
+  width: 29px;
+  background: url(images/battery-main.png);
+  background-repeat: no-repeat;
+  background-size: 29px 16px;
+  position: relative;
+}
+
+.battery > #fuel {
+  height: 6px;
+	background-color: #999999;
+}
+
+.battery > #charging {
+  height: 8px;
+  width: 18px;
+  background: transparent url(imgs/battery-charging.png) center center no-repeat;
+  top: 4px;
+  left: 5px;
+}
+
+#statusbar .time {
+  text-shadow: 0 0 3px hsla(0,0%,0%,.5);
+  line-height: 31px;
+  margin: 0 4px;
+}
+
+.battery {
+  float:right;
+  margin: 8px 3px;
+  padding: 5px 7px 5px 5px;
+  width: 29px;
+  background: url(imgs/battery-main.png);
+  background-repeat: no-repeat;
+  background-size: 29px 16px;
+  position: relative;
+}
+
+.battery > #fuel {
+  height: 6px;
+	background-color: #999999;
+}
+
+.battery > #charging {
+  height: 8px;
+  width: 18px;
+  background: transparent url(images/battery-charging.png) center center no-repeat;
+  position: absolute;
+  top: 4px;
+  left: 5px;
+}
