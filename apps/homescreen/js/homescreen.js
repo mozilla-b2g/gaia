@@ -144,6 +144,7 @@ DefaultPhysics.prototype = {
 
     var touchState = this.touchState;
     this.moved = false;
+    this.movedThreshold = false;
     touchState.active = true;
     touchState.startX = e.pageX;
     touchState.startY = e.pageY;
@@ -155,8 +156,11 @@ DefaultPhysics.prototype = {
     if (touchState.active) {
       var dx = touchState.startX - e.pageX;
       if (dx !== 0) {
-        iconGrid.pan(-dx);
         this.moved = true;
+        this.movedThreshold = this.movedThreshold || Math.abs(dx) > 5;
+        if (this.movedThreshold) {
+          iconGrid.pan(-dx);
+        }
       }
       e.stopPropagation();
     }
@@ -177,7 +181,7 @@ DefaultPhysics.prototype = {
     var small = Math.abs(diffX) < 20;
 
     var flick = quick && !small;
-    var tap = small;
+    var tap = !this.movedThreshold;
     var drag = !quick;
 
     var iconGrid = this.iconGrid;
