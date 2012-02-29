@@ -1590,7 +1590,13 @@
 
   navigator.mozTelephony = {
     dial: function(number) {
-      console.log("dialing");
+      return {
+        number: number,
+        state: 'dialing',
+        addEventListener: function() {},
+        hangUp: function() {},
+        removeEventListener: function(){}
+      };
     },
     addEventListener: function(name, handler) {
     }
