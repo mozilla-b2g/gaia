@@ -607,7 +607,8 @@ NotificationScreen.prototype = {
 function LockScreen(overlay) {
   this.overlay = overlay;
 
-  AddEventHandlers(overlay, this, ['touchstart', 'touchmove', 'touchend', 'keyup']);
+  var events = ['touchstart', 'touchmove', 'touchend', 'keydown', 'keyup'];
+  AddEventHandlers(overlay, this, events);
 
   this.update(function fireHomescreenReady() {
     window.parent.postMessage('homescreenready', '*');
@@ -700,20 +701,25 @@ LockScreen.prototype = {
       this.onTouchEnd(e.changedTouches[0]);
       document.releaseCapture();
       break;
-    case 'keyup':
+    case 'keydown':
       if (e.keyCode != e.DOM_VK_SLEEP)
         return;
 
-      // Lock the screen when screen is turn off can stop
-      // homescreen from showing up briefly when it's turn back on
-      // But we still do update() when it's turned back on
-      // coz the screen could be turned off by the timer
-      // instead of sleep button
+      this._timeout = window.setTimeout(function() {
+        SleepMenu.show();
+      }, 1500);
+      break;
+    case 'keyup':
+      if (e.keyCode != e.DOM_VK_SLEEP || SleepMenu.visible)
+        return;
+      window.clearTimeout(this._timeout);
 
       ScreenManager.toggleScreen();
-
       if (screen.mozEnabled)
         this.update();
+
+      e.preventDefault();
+      e.stopPropagation();
       break;
     default:
       return;
@@ -961,4 +967,61 @@ var SoundManager = {
     }, 3000);
   }
 };
+
+var SleepMenu = {
+  get element() {
+    delete this.element;
+    return this.element = document.getElementById('sleep');
+  },
+
+  get visible() {
+    return this.element.classList.contains('visible');
+  },
+
+  show: function sleepmenu_show() {
+    this.element.classList.add('visible');
+  },
+
+  hide: function sleepmenu_hide() {
+    this.element.classList.remove('visible');
+  },
+
+  handleEvent: function sleepmenu_handleEvent(evt) {
+    if (!this.visible)
+      return;
+
+    switch (evt.type) {
+      case 'click':
+        var action = evt.target.dataset.value;
+        switch (action) {
+          case 'airplane':
+            // XXX There is no API for that yet
+            break;
+          case 'silent':
+            // XXX There is no API for that yet
+            break;
+          case 'restart':
+            navigator.mozPower.reboot();
+            break;
+          case 'power':
+            navigator.mozPower.powerOff();
+            break;
+        }
+        this.hide();
+        break;
+
+      case 'keyup':
+        if (evt.keyCode == evt.DOM_VK_ESCAPE ||
+            evt.keyCode == evt.DOM_VK_HOME) {
+
+            this.hide();
+            evt.preventDefault();
+            evt.stopPropagation();
+         }
+        break;
+    }
+  }
+};
+window.addEventListener('click', SleepMenu, true);
+window.addEventListener('keyup', SleepMenu, true);
 
