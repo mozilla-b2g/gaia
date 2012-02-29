@@ -223,6 +223,7 @@ var WindowManager = {
       case 'keyup':
         switch (evt.keyCode) {
           case evt.DOM_VK_HOME:
+            ScreenManager.turnScreenOn();
             if (this.enabled)
               this.closeForegroundWindow();
             break;

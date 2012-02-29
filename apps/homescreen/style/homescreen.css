@@ -850,6 +850,7 @@ iframe.landscape-secondary {
   z-index: 20002;
   -moz-transition: opacity 0.5s ease;
   opacity: 0;
+  pointer-events: none;
 }
 
 #volume.visible {
