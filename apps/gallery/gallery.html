@@ -4,20 +4,22 @@
     <meta charset="utf-8"> 
     <meta http-equiv="pragma" content="no-cache">
     <title>Gallery</title> 
-    <script type="text/javascript" src="webapi+apps.js"></script>
     <link rel="stylesheet" href="style/gallery.css" type="text/css" />
     <script type="text/javascript" src="js/gallery.js"></script>
   </head>
 
   <body>
-    <ul id="thumbnails" class="thumbnails">
-      <!-- Thumbnails inserted here -->
-    </ul>
+    <header id="header"><h1>Photos</h1></header>
 
-    <div id="photoFrame" class="hidden">
-      <div id="photoBorder">
-        <!-- Photo inserted here -->
-      </div>
+    <!-- Thumbnails inserted here -->
+    <ul id="thumbnails"></ul>
+
+    <!-- Photos inserted here -->
+    <div id="photos" class="hidden"></div>
+
+    <div id="player-controls" class="hidden">
+      <a id="back-button" class="button" href="#"></a>
+      <a id="play-button" class="button" href="#"></a>
     </div>
 
   </body>
