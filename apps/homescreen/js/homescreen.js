@@ -102,7 +102,7 @@ if (window.navigator.mozSettings) {
     var request = settings.get('homescreen.wallpaper');
     request.addEventListener('success', function onsuccess(evt) {
       var home = document.getElementById('home');
-      home.style.background = 'url(style/backgrounds/' + request.result.value + ')';
+      home.style.background = 'url(style/themes/default/backgrounds/' + request.result.value + ')';
     });
   }
 
@@ -155,8 +155,10 @@ DefaultPhysics.prototype = {
     if (touchState.active) {
       var dx = touchState.startX - e.pageX;
       if (dx !== 0) {
-        iconGrid.pan(-dx);
-        this.moved = true;
+        this.moved = this.moved || Math.abs(dx) > 20;
+        if (this.moved) {
+          iconGrid.pan(-dx);
+        }
       }
       e.stopPropagation();
     }
@@ -174,10 +176,10 @@ DefaultPhysics.prototype = {
 
     var quick = (e.timeStamp - touchState.startTime < 200);
     var long = (e.timeStamp - touchState.startTime > 2000);
-    var small = Math.abs(diffX) < 20;
+    var small = Math.abs(diffX) <= 20;
 
     var flick = quick && !small;
-    var tap = small;
+    var tap = !this.moved;
     var drag = !quick;
 
     var iconGrid = this.iconGrid;

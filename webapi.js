@@ -247,6 +247,25 @@
                      'fullscreen': true
                    }
                  },
+                 { // video cube demo
+                   'installOrigin': 'http://www.everyday3d.com/j3d/demo',
+                   'origin': '../cubevid',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'VideoCube',
+                     'description': 'Demo of WebGL',
+                     'launch_path': '/index.html',
+                     'developer': {
+                       'name': 'Unknown',
+                       'url': 'http://www.everyday3d.com/j3d/demo/004_Glass.html'
+                     },
+                     'icons': {
+                       '120': '/style/icons/VideoCube.png'
+                     },
+                     'fullscreen': true
+                   }
+                 },
                  { // PenguinPop
                    'installOrigin': 'http://goosypets.com/html5games/whac',
                    'origin': '../penguinpop',
