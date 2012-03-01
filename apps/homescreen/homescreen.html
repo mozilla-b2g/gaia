@@ -3,15 +3,21 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
-    <script type="text/javascript" src="../../webapi.js"></script>
 
+    <!-- Content -->
     <link rel="stylesheet" type="text/css" href="style/homescreen.css">
-    <script type="text/javascript" src="js/task_manager.js"></script>
-    <script type="text/javascript" src="js/window_manager.js"></script>
-    <script type="text/javascript" src="js/app_manager.js"></script>
-    <script type="text/javascript" src="js/keyboardLayout.js"></script>
-    <script type="text/javascript" src="js/keyboard.js"></script>
-    <script type="text/javascript" src="js/homescreen.js"></script>
+    <link rel="stylesheet" type="text/css" href="style/keyboard/keyboard.css">
+
+    <!-- Theme -->
+    <link rel="stylesheet" type="text/css" href="style/themes/default/homescreen.css">
+
+    <script src="../../webapi.js"></script>
+    <script src="js/task_manager.js"></script>
+    <script src="js/window_manager.js"></script>
+    <script src="js/app_manager.js"></script>
+    <script src="js/keyboardLayout.js"></script>
+    <script src="js/keyboard.js"></script>
+    <script src="js/homescreen.js"></script>
   </head>
   <body onload="OnLoad();">
     <div id="screen">
@@ -45,9 +51,9 @@
         </div>
       </div>
       <div id="lockscreen">
-	      <div id="status">
-	      </div>
-	      <div id="lockscreenContainer">
+        <div id="status">
+        </div>
+        <div id="lockscreenContainer">
           <div id="clock">
             <div id="hourMin" class="time" data-format="%H:%M"></div>
             <div id="date">
