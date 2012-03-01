@@ -625,7 +625,7 @@ new SettingListener('debug.grid.enabled', function(value) {
 /* === Wallpapers === */
 new SettingListener('homescreen.wallpaper', function(value) {
   var home = document.getElementById('home');
-  home.style.background = 'url(style/backgrounds/' + value + ')';
+  home.style.background = 'url(style/themes/default/backgrounds/' + value + ')';
 });
 
 /* === Ring Tone === */
