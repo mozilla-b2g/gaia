@@ -1000,16 +1000,3 @@ iframe.landscape-secondary {
   border-bottom-color: transparent;
 }
 
-#debug-grid {
-  position: absolute;
-  top: 0;
-  left: 0;
-  display: none;
-  width: 480px;
-  height: 800px;
-  background: url(images/grid.png);
-  z-index: 20002;
-  opacity: 0.2;
-  pointer-events: none;
-}
-

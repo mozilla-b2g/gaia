@@ -3,172 +3,8 @@
 
 'use strict';
 
-const SHORTCUTS_HEIGHT = 144;
-
+// Change the display state (unlocked, locked)
 var displayState;
-
-function foregroundAppURL() {
-  var win = WindowManager.getForegroundWindow();
-  return (win !== null) ? win.application.url : window.document.URL;
-}
-
-function toggleSourceViewer(url) {
-  if (isSourceViewerActive()) {
-    hideSourceViewer(url);
-  } else {
-    showSourceViewer(url);
-  }
-}
-
-function getSourceViewerElement() {
-  return content.document.getElementById('appViewsource');
-}
-
-function isSourceViewerActive() {
-  var viewsource = getSourceViewerElement();
-  return viewsource !== null && viewsource.style.visibility != 'hidden';
-}
-
-function showSourceViewer(url) {
-  var document = content.document;
-  var viewsource = getSourceViewerElement();
-  if (!viewsource) {
-    var style = '#appViewsource { ' +
-                '  position: absolute;' +
-                '  top: -moz-calc(10%);' +
-                '  left: -moz-calc(10%);' +
-                '  width: -moz-calc(80% - 2 * 15px);' +
-                '  height: -moz-calc(80% - 2 * 15px);' +
-                '  visibility: hidden;' +
-                '  box-shadow: 10px 10px 5px #888;' +
-                '  margin: 15px;' +
-                '  background-color: white;' +
-                '  opacity: 0.92;' +
-                '  color: black;' +
-                '  z-index: 9999;' +
-                '}';
-    document.styleSheets[0].insertRule(style, 0);
-
-    viewsource = document.createElement('iframe');
-    viewsource.id = 'appViewsource';
-    document.body.appendChild(viewsource);
-  }
-  viewsource.style.visibility = 'visible';
-  viewsource.src = 'view-source: ' + url;
-}
-
-function hideSourceViewer() {
-  var viewsource = getSourceViewerElement();
-  if (viewsource !== null) {
-    viewsource.style.visibility = 'hidden';
-  }
-}
-
-function hideGrid() {
-  document.getElementById('debug-grid').style.display = 'none';
-}
-
-function showGrid() {
-  document.getElementById('debug-grid').style.display = 'block';
-}
-
-function toggleGrid() {
-  var visibility = document.getElementById('debug-grid').style.display;
-  visibility == 'block' ? hideGrid() : showGrid();
-}
-
-if (window.navigator.mozSettings) {
-  var settings = window.navigator.mozSettings;
-  var updateGrid = function() {
-    var request = settings.get('debug.grid.enabled');
-    request.addEventListener('success', function onsuccess(evt) {
-      if (request.result.value === 'true')
-        showGrid();
-    });
-  }
-
-  window.addEventListener('message', function listenGridChanges(evt) {
-    if (evt.data == 'debug.grid.enabled') {
-      toggleGrid();
-    }
-  });
-
-  updateGrid();
-}
-
-if (window.navigator.mozSettings) {
-  var settings = window.navigator.mozSettings;
-  var updateWallpaper = function() {
-    var request = settings.get('homescreen.wallpaper');
-    request.addEventListener('success', function onsuccess(evt) {
-      var home = document.getElementById('home');
-      home.style.background = 'url(style/backgrounds/' + request.result.value + ')';
-    });
-  }
-
-  window.addEventListener('message', function listenGridChanges(evt) {
-    if (evt.data == 'homescreen.wallpaper')
-      updateWallpaper();
-  });
-
-  updateWallpaper();
-}
-
-if (window.navigator.mozSettings) {
-  var settings = window.navigator.mozSettings;
-  var updateRingTone = function() {
-    var request = settings.get('homescreen.ring');
-    request.addEventListener('success', function onsuccess(evt) {
-      var player = document.getElementById('ringtone-player');
-      player.src = 'style/ringtones/' + request.result.value;
-    });
-  }
-
-  window.addEventListener('message', function listenGridChanges(evt) {
-    if (evt.data == 'homescreen.ring')
-      updateRingTone();
-  });
-
-  updateRingTone();
-}
-
-var activateVibration = false;
-if (window.navigator.mozSettings) {
-  var settings = window.navigator.mozSettings;
-  var updateVibration = function() {
-    var request = settings.get('phone.vibration.incoming');
-      request.addEventListener('success', function onsuccess(evt) {
-        activateVibration = (request.result.value === 'true');
-    });
-  }
-
-  window.addEventListener('message', function listenGridChanges(evt) {
-    if (evt.data == 'phone.vibration.incoming')
-      updateVibration();
-  });
-
-  updateVibration();
-}
-
-var activePhoneSound = true;
-if (window.navigator.mozSettings) {
-  var settings = window.navigator.mozSettings;
-  var updateRing = function() {
-    var request = settings.get('phone.ring.incoming');
-      request.addEventListener('success', function onsuccess(evt) {
-        activePhoneSound = (request.result.value === 'true');
-    });
-  }
-
-  window.addEventListener('message', function listenGridChanges(evt) {
-    if (evt.data == 'phone.ring.incoming')
-      updateRing();
-  });
-
-  updateRing();
-}
-
-// Change the display state (off, locked, default)
 function changeDisplayState(state) {
   displayState = state;
 
@@ -177,13 +13,9 @@ function changeDisplayState(state) {
   updateBattery();
   updateConnection();
 
-  // Make sure the source viewer is not visible.
-  if (state == 'locked')
-    hideSourceViewer();
-}
-
-function createPhysicsFor(iconGrid) {
-  return new DefaultPhysics(iconGrid);
+  var evt = document.createEvent('CustomEvent');
+  evt.initCustomEvent(state, true, true, null);
+  window.dispatchEvent(evt);
 }
 
 function DefaultPhysics(iconGrid) {
@@ -194,8 +26,6 @@ function DefaultPhysics(iconGrid) {
 
 DefaultPhysics.prototype = {
   onTouchStart: function(e) {
-    hideSourceViewer();
-
     var touchState = this.touchState;
     this.moved = false;
     touchState.active = true;
@@ -314,7 +144,7 @@ function IconGrid(containerId, columns, rows, minPages, showLabels) {
   this.showLabels = showLabels;
   this.icons = [];
   this.currentPage = 0;
-  this.physics = createPhysicsFor(this);
+  this.physics = new DefaultPhysics(this);
 
   // install event handlers
   AddEventHandlers(this.container, this, ['touchstart', 'touchmove', 'touchend']);
@@ -632,7 +462,6 @@ NotificationScreen.prototype = {
     case 'touchstart':
       if (target != this.touchable)
         return;
-      hideSourceViewer();
       this.active = true;
 
       target.setCapture(this);
@@ -737,14 +566,8 @@ LockScreen.prototype = {
       style.MozTransform = 'translateY(0)';
     }
     changeDisplayState('locked');
-
-    var lockEvent = document.createEvent('CustomEvent');
-    lockEvent.initCustomEvent('locked', true, true, null);
-    window.dispatchEvent(lockEvent);
   },
   handleEvent: function(e) {
-    hideSourceViewer();
-
     switch (e.type) {
     case 'touchstart':
       this.onTouchStart(e.touches[0]);
@@ -868,34 +691,12 @@ function OnLoad() {
     });
   });
 
-  changeDisplayState();
   ScreenManager.turnScreenOn();
 }
 
-window.addEventListener('keyup', function(evt) {
-  switch (evt.keyCode) {
-    case evt.DOM_VK_PAGE_UP:
-      SoundManager.changeVolume(1);
-      break;
-
-    case evt.DOM_VK_PAGE_DOWN:
-      SoundManager.changeVolume(-1);
-      break;
-
-    case evt.DOM_VK_CONTEXT_MENU:
-      toggleSourceViewer(foregroundAppURL());
-      break;
-
-    case evt.DOM_VK_F6:
-      document.location.reload();
-      break;
-  }
-});
-
 // Update the clock and schedule a new update if appropriate
 function updateClock() {
-  // If the display is off, there is nothing to do here
-  if (displayState == 'off')
+  if (!screen.mozEnabled)
     return;
 
   var now = new Date();
@@ -917,7 +718,7 @@ function updateBattery() {
     return;
 
   // If the display is off, there is nothing to do here
-  if (displayState == 'off') {
+  if (!screen.mozEnabled) {
     battery.removeEventListener('chargingchange', updateBattery);
     battery.removeEventListener('levelchange', updateBattery);
     battery.removeEventListener('statuschange', updateBattery);
@@ -958,11 +759,10 @@ function updateBattery() {
 function updateConnection() {
   var conn = window.navigator.mozMobileConnection;
   if (!conn) {
-    console.log("There's no window.navigator.mozMobileConnection!");
     return;
   }
 
-  if (displayState == 'off') {
+  if (!screen.mozEnabled) {
     conn.removeEventListener("cardstatechange", updateConnection);
     conn.removeEventListener("connectionchange", updateConnection);
     return;
@@ -1126,4 +926,185 @@ var SleepMenu = {
 };
 window.addEventListener('click', SleepMenu, true);
 window.addEventListener('keyup', SleepMenu, true);
+
+
+
+function SettingListener(name, callback) {
+  var update = function update() {
+    var request = navigator.mozSettings.get(name);
+
+    request.addEventListener('success', function onsuccess(evt) {
+      callback(request.result.value);
+    });
+  };
+
+  window.addEventListener('message', function settingChange(evt) {
+    if (evt.data != name)
+      return;
+    update();
+  });
+
+  update();
+}
+
+/* === Source View === */
+var SourceView = {
+  get viewer() {
+    return document.getElementById('appViewsource');
+  },
+
+  get active() {
+    return !this.viewer ? false : this.viewer.style.visibility === 'visible';
+  },
+
+  show: function sv_show(url) {
+    var viewsource = this.viewer;
+    if (!viewsource) {
+      var style = '#appViewsource { ' +
+                  '  position: absolute;' +
+                  '  top: -moz-calc(10%);' +
+                  '  left: -moz-calc(10%);' +
+                  '  width: -moz-calc(80% - 2 * 15px);' +
+                  '  height: -moz-calc(80% - 2 * 15px);' +
+                  '  visibility: hidden;' +
+                  '  margin: 15px;' +
+                  '  background-color: white;' +
+                  '  opacity: 0.92;' +
+                  '  color: black;' +
+                  '  z-index: 9999;' +
+                  '}';
+      document.styleSheets[0].insertRule(style, 0);
+
+      viewsource = document.createElement('iframe');
+      viewsource.id = 'appViewsource';
+      document.body.appendChild(viewsource);
+
+      window.addEventListener('locked', this);
+    }
+
+    var currentWindow = WindowManager.getForegroundWindow();
+    var url = currentWindow ? currentWindow.application.url : document.URL;
+    viewsource.src = 'view-source: ' + url;
+
+    viewsource.style.visibility = 'visible';
+  },
+
+  hide: function sv_hide() {
+    if (this.viewer)
+      this.viewer.style.visibility = 'hidden';
+  },
+
+  toggle: function sv_toggle() {
+    this.active ? this.hide() : this.show();
+  },
+
+  handleEvent: function sv_handleEvent(evt) {
+    switch (evt.type) {
+      case 'unlocked':  
+        this.hide();
+        break;
+    }
+  }
+};
+
+/* === Debug GridView === */
+var GridView = {
+  get grid() {
+    return document.getElementById('debug-grid');
+  },
+
+  get visible() {
+    return this.grid && this.grid.style.display === 'block';
+  },
+
+  hide: function gv_hide() {
+    if (this.grid)
+      this.grid.style.display = 'none';
+  },
+
+  show: function gv_show() {
+    var grid = this.grid;
+    if (!grid) {
+      var style = '#debug-grid {' +
+                  '  position: absolute;' +
+                  '  top: 0;' + 
+                  '  left: 0;' +
+                  '  display: none;' +
+                  '  width: 480px;' +
+                  '  height: 800px;' +
+                  '  background: url(images/grid.png);' +
+                  '  z-index: 20002;' +
+                  '  opacity: 0.2;' +
+                  '  pointer-events: none;' +
+                  '}';
+      document.styleSheets[0].insertRule(style, 0);
+  
+      grid = document.createElement('div');
+      grid.id = 'debug-grid';
+
+      document.body.appendChild(grid);
+    }
+
+    grid.style.display = 'block';
+  },
+
+  toggle: function gv_toggle() {
+    this.visible ? this.hide() : this.show();
+  }
+};
+
+new SettingListener('debug.grid.enabled', function(value) {
+  value == 'true' ? GridView.show() : GridView.hide();
+});
+
+/* === Wallpapers === */
+new SettingListener('homescreen.wallpaper', function(value) {
+  var home = document.getElementById('home');
+  home.style.background = 'url(style/backgrounds/' + value + ')';
+});
+
+/* === Ring Tone === */
+new SettingListener('homescreen.ring', function(value) {
+  var player = document.getElementById('ringtone-player');
+  player.src = 'style/ringtones/' + value;
+});
+
+var activePhoneSound = true;
+new SettingListener('phone.ring.incoming', function(value) {
+  activePhoneSound = (value === 'true');
+});
+
+/* === Vibration === */
+var activateVibration = false;
+new SettingListener('phone.vibration.incoming', function(value) {
+  activateVibration = (value === 'true');
+});
+
+/* === KeyHandler === */
+var KeyHandler = {
+  handleEvent: function kh_handleEvent(evt) {
+    if (!screen.mozEnabled)
+      return;
+
+    switch (evt.keyCode) {
+      case evt.DOM_VK_PAGE_UP:
+        SoundManager.changeVolume(1);
+        break;
+
+      case evt.DOM_VK_PAGE_DOWN:
+        SoundManager.changeVolume(-1);
+        break;
+
+      case evt.DOM_VK_CONTEXT_MENU:
+        SourceView.toggle();
+        break;
+
+      case evt.DOM_VK_F6:
+        document.location.reload();
+        break;
+    }
+  }
+};
+
+window.addEventListener('keyup', KeyHandler);
 
