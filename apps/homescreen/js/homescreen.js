@@ -156,7 +156,7 @@ if (window.navigator.mozSettings) {
   var updateRing = function() {
     var request = settings.get('phone.ring.incoming');
       request.addEventListener('success', function onsuccess(evt) {
-        activatePhoneSound = (request.result.value === 'true');
+        activePhoneSound = (request.result.value === 'true');
     });
   }
 
