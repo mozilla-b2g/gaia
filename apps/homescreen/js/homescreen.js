@@ -102,7 +102,7 @@ if (window.navigator.mozSettings) {
     var request = settings.get('homescreen.wallpaper');
     request.addEventListener('success', function onsuccess(evt) {
       var home = document.getElementById('home');
-      home.style.background = 'url(style/backgrounds/' + request.result.value + ')';
+      home.style.background = 'url(style/themes/default/backgrounds/' + request.result.value + ')';
     });
   }
 
