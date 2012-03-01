@@ -251,6 +251,8 @@ var CallHandler = {
     call.addEventListener('statechange', this);
     this.currentCall = call;
 
+    this.recentsEntry = {date: Date.now(), type: 'outgoing', number: number};
+
     // XXX: remove the fake contact when the contact API lands
     this.pictureView.innerHTML = '';
     var self = this;
@@ -267,9 +269,11 @@ var CallHandler = {
     this.currentCall = call;
     call.addEventListener('statechange', this);
 
+    this.recentsEntry = {date: Date.now(), type: 'incoming', number: number};
+
     this.numberView.innerHTML = call.number;
     this.statusView.innerHTML = 'Call from...';
-    this.pictureView.innerHTML = ''
+    this.pictureView.innerHTML = '';
 
     // XXX: remove the fake contact when the contact API lands
     this.pictureView.innerHTML = profilePictureForNumber(parseInt(number));
@@ -302,6 +306,8 @@ var CallHandler = {
       return;
 
     this.statusView.innerHTML = '00:00';
+
+    this.recentsEntry.type = this.recentsEntry.type + '-connected';
 
     this._ticker = setInterval(function ch_updateTimer(self, startTime) {
       var elapsed = new Date(Date.now() - startTime);
@@ -336,6 +342,11 @@ var CallHandler = {
     if (this.currentCall) {
       this.currentCall.removeEventListener('statechange', this);
       this.currentCall = null;
+    }
+
+    if (this.recentsEntry) {
+      Recents.add(this.recentsEntry);
+      this.recentsEntry = null;
     }
 
     if (this.muteButton.classList.contains('mute'))
@@ -414,10 +425,10 @@ var CallHandler = {
 
   toggleCallScreen: function ch_toggleScreen() {
     var callScreen = document.getElementById('call-screen');
-    callScreen.style.MozTransition = '';
+    callScreen.classList.remove('animate');
 
     var onCall = this._onCall;
-    callScreen.style.MozTransform = onCall ? 'translateY(-1px)' : 'translateY(-moz-calc(-100% + 1px))';
+    callScreen.classList.toggle('prerender');
 
     // hardening against the unavailability of MozAfterPaint
     var finishTransition = function ch_finishTransition() {
@@ -426,8 +437,10 @@ var CallHandler = {
         securityTimeout = null;
       }
 
-      callScreen.style.MozTransition = '-moz-transform 0.5s ease';
-      callScreen.style.MozTransform = onCall ? 'translateY(-100%)' : 'translateY(0)';
+      callScreen.classList.add('animate');
+
+      callScreen.classList.toggle('oncall');
+      callScreen.classList.toggle('prerender');
     };
 
     window.addEventListener('MozAfterPaint', function ch_triggerTransition() {
