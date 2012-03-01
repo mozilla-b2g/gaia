@@ -19,7 +19,7 @@ var Recents = {
     };
 
     this._openreq.onerror = function re_dbOnError(e) {
-      console.log('Can t open dialerRecents database', e);
+      console.log('Can\'t open dialerRecents database', e);
     };
 
     // DB init
@@ -77,11 +77,13 @@ var Recents = {
         content += '<div class="recent ' + recent.type +
                    '" data-number="' + recent.number + '" ' +
                    'onclick="CallHandler.call(this.dataset.number)">' +
+
                    profilePictureForNumber(i) +
-                   '<div class="name">' + recent.number + '</div>' +
-                   '<div class="timestamp">' + prettyDate(recent.date) +
-                   '</div>' +
-                   '<div class="type"></div>' +
+                   '  <div class="name">' + recent.number + '</div>' +
+                   '  <div class="timestamp">' + prettyDate(recent.date) +
+                   '  </div>' +
+                   '  <div class="type"></div>' +
+
                    '</div>';
       }
 
