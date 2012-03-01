@@ -701,16 +701,19 @@ var TelephonyListener = function() {
     }
 
     telephony.oncallschanged = function() {
-      var incoming = false;
-      telephony.calls.forEach(function(call) {
-        if (call.state == 'incoming')
-          incoming = true;
-      });
+      try {
+        var incoming = false;
+        telephony.calls.forEach(function(call) {
+          if (call.state == 'incoming')
+            incoming = true;
+        });
 
-      if (!incoming) {
-        ringtonePlayer.pause();
-         window.clearInterval(vibrateInterval);
-      }
+        if (!incoming) {
+          ringtonePlayer.pause();
+          telephony.oncallschanged = null;
+          window.clearInterval(vibrateInterval);
+        }
+      } catch (e) {}
     };
 
     var url = '../dialer/dialer.html?choice=incoming&number=';
