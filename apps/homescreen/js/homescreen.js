@@ -359,33 +359,6 @@ function updateConnection() {
   conn.addEventListener('connectionchange', updateConnection);
 }
 
-var ScreenManager = {
-  preferredBrightness: null,
-  toggleScreen: function lockscreen_toggleScreen() {
-    if (screen.mozEnabled)
-      this.turnScreenOff();
-    else
-      this.turnScreenOn();
-  },
-
-  turnScreenOff: function lockscreen_turnScreenOff() {
-    screen.mozEnabled = false;
-
-    this.preferredBrightness = screen.mozBrightness;
-    screen.mozBrightness = 0.0;
-  },
-
-  turnScreenOn: function lockscreen_turnScreenOn() {
-    screen.mozEnabled = true;
-
-    screen.mozBrightness = this.preferredBrightness || 1.0;
-
-    updateClock();
-    updateBattery();
-    updateConnection();
-  }
-};
-
 var SoundManager = {
   currentVolume: 5,
   changeVolume: function soundManager_changeVolume(delta) {
@@ -491,8 +464,6 @@ var SleepMenu = {
 };
 window.addEventListener('click', SleepMenu, true);
 window.addEventListener('keyup', SleepMenu, true);
-
-
 
 function SettingListener(name, callback) {
   var update = function update() {
@@ -672,6 +643,39 @@ var KeyHandler = {
 };
 
 window.addEventListener('keyup', KeyHandler);
+
+/* === Screen Manager === */
+var ScreenManager = {
+  preferredBrightness: 0.5,
+  toggleScreen: function lockscreen_toggleScreen() {
+    if (screen.mozEnabled)
+      this.turnScreenOff();
+    else
+      this.turnScreenOn();
+  },
+
+  turnScreenOff: function lockscreen_turnScreenOff() {
+    screen.mozEnabled = false;
+
+    this.preferredBrightness = screen.mozBrightness;
+    screen.mozBrightness = 0.0;
+  },
+
+  turnScreenOn: function lockscreen_turnScreenOn() {
+    screen.mozEnabled = true;
+
+    screen.mozBrightness = this.preferredBrightness;
+
+    updateClock();
+    updateBattery();
+    updateConnection();
+  }
+};
+
+new SettingListener('screen.brightness', function(value) {
+  ScreenManager.preferredBrightness = screen.mozBrightness = parseFloat(value);
+});
+
 
 /* === TelephoneListener === */
 var TelephonyListener = function() {

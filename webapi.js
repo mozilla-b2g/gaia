@@ -428,7 +428,8 @@
     'homescreen.ring': 'classic.wav',
     'language.current': 'en-US',
     'phone.vibration.incoming': 'false',
-    'phone.ring.incoming': 'true'
+    'phone.ring.incoming': 'true',
+    'screen.brightness': '0.5'
   };
 
   var DBNAME = 'mozSettings';     // Strings used by IndexedDB
