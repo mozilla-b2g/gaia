@@ -74,7 +74,14 @@
         <li id="vibrator">
           <span>Vibrate</span>
           <label class="checkbox">
-            <input type="checkbox" name="phone.vibrator.incoming"/>
+            <input type="checkbox" name="phone.vibration.incoming"/>
+            <span class="checkbox-inner"></span>
+          </label>
+        </li>
+        <li id="ring">
+          <span>Ring</span>
+          <label class="checkbox">
+            <input type="checkbox" name="phone.ring.incoming"/>
             <span class="checkbox-inner"></span>
           </label>
         </li>
@@ -191,7 +198,29 @@
 
     <!-- Sounds -->
     <div id="sounds" class="view" data-title="Sounds">
-
+      <ul class="tableView">
+        <li id="ring-default">
+          <span>Default</span>
+          <label class="checkbox">
+            <input type="radio" name="homescreen.ring" value="classic.wav"/>
+            <span class="checkbox-inner"></span>
+          </label>
+        </li>
+        <li id="ring-bosscaling">
+          <span>Bosscaling</span>
+          <label class="checkbox">
+            <input type="radio" name="homescreen.ring" value="bosscaling.wav"/>
+            <span class="checkbox-inner"></span>
+          </label>
+        </li>
+        <li id="ring-goodnight">
+          <span>GoodMight</span>
+          <label class="checkbox">
+            <input type="radio" name="homescreen.ring" value="goodnight.wav"/>
+            <span class="checkbox-inner"></span>
+          </label>
+        </li>
+      </ul>
     </div>
 
     <!-- Display -->

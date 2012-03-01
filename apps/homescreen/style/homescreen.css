@@ -970,24 +970,34 @@ iframe.landscape-secondary {
   border-bottom: 1px solid hsla(0, 0%, 0%,0.4);
 }
 
-.sleep-menu div:first-child {
-  border-radius: 9px 9px 0 0;
-  border-top-color: transparent;
+.sleep-menu div[data-value="power"] {
   background: url(images/sleep/power-off.png) no-repeat 0 50%;
 }
 
-.sleep-menu div:nth-child(2) {
+.sleep-menu div[data-value="restart"] {
   background: url(images/sleep/restart.png) no-repeat 0 50%;
 }
 
-.sleep-menu div:nth-child(3) {
+.sleep-menu div[data-value="airplane"] {
   background: url(images/sleep/airplane.png) no-repeat 0 50%;
+}
+
+.sleep-menu div[data-value="normal"] {
+  background: url(images/sleep/normal.png) no-repeat 0 50%;
+}
+
+.sleep-menu div[data-value="silent"] {
+  background: url(images/sleep/vibration.png) no-repeat 0 50%;
+}
+
+.sleep-menu div:first-child {
+  border-radius: 9px 9px 0 0;
+  border-top-color: transparent;
 }
 
 .sleep-menu div:last-child {
   border-radius: 0 0 9px 9px;
   border-bottom-color: transparent;
-  background: url(images/sleep/vibration.png) no-repeat 0 50%;
 }
 
 #debug-grid {

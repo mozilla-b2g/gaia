@@ -425,8 +425,10 @@
     'keyboard.layouts.zhuying': 'true',
     'debug.grid.enabled' : 'false',
     'homescreen.wallpaper': 'default.png',
+    'homescreen.ring': 'classic.wav',
     'language.current': 'en-US',
-    'phone.vibrator.incoming': 'false'
+    'phone.vibration.incoming': 'false',
+    'phone.ring.incoming': 'true'
   };
 
   var DBNAME = 'mozSettings';     // Strings used by IndexedDB

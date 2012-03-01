@@ -114,6 +114,60 @@ if (window.navigator.mozSettings) {
   updateWallpaper();
 }
 
+if (window.navigator.mozSettings) {
+  var settings = window.navigator.mozSettings;
+  var updateRingTone = function() {
+    var request = settings.get('homescreen.ring');
+    request.addEventListener('success', function onsuccess(evt) {
+      var player = document.getElementById('ringtone-player');
+      player.src = 'style/ringtones/' + request.result.value;
+    });
+  }
+
+  window.addEventListener('message', function listenGridChanges(evt) {
+    if (evt.data == 'homescreen.ring')
+      updateRingTone();
+  });
+
+  updateRingTone();
+}
+
+var activateVibration = false;
+if (window.navigator.mozSettings) {
+  var settings = window.navigator.mozSettings;
+  var updateVibration = function() {
+    var request = settings.get('phone.vibration.incoming');
+      request.addEventListener('success', function onsuccess(evt) {
+        activateVibration = (request.result.value === 'true');
+    });
+  }
+
+  window.addEventListener('message', function listenGridChanges(evt) {
+    if (evt.data == 'phone.vibration.incoming')
+      updateVibration();
+  });
+
+  updateVibration();
+}
+
+var activePhoneSound = true;
+if (window.navigator.mozSettings) {
+  var settings = window.navigator.mozSettings;
+  var updateRing = function() {
+    var request = settings.get('phone.ring.incoming');
+      request.addEventListener('success', function onsuccess(evt) {
+        activatePhoneSound = (request.result.value === 'true');
+    });
+  }
+
+  window.addEventListener('message', function listenGridChanges(evt) {
+    if (evt.data == 'phone.ring.incoming')
+      updateRing();
+  });
+
+  updateRing();
+}
+
 // Change the display state (off, locked, default)
 function changeDisplayState(state) {
   displayState = state;
@@ -730,6 +784,7 @@ LockScreen.prototype = {
   }
 };
 
+
 function OnLoad() {
   Gaia.lockScreen = new LockScreen(document.getElementById('lockscreen'));
 
@@ -744,7 +799,35 @@ function OnLoad() {
     telephony.addEventListener('incoming', function incoming(evt) {
       Gaia.lockScreen.unlock(-1, true);
       screen.mozEnabled = true;
-      screen.mozBrightness = 1.0;
+
+
+      var vibrateInterval = 0;
+      if (activateVibration) {
+        vibrateInterval = window.setInterval(function vibrate() {
+          try {
+            navigator.mozVibrate([200]);
+          } catch (e) {}
+        }, 600);
+      }
+
+      var ringtonePlayer = document.getElementById('ringtone-player');
+      if (activePhoneSound) {
+        ringtonePlayer.play();
+      }
+
+      telephony.oncallschanged = function() {
+        var incoming = false;
+        telephony.calls.forEach(function(call) {
+          if (call.state == 'incoming')
+            incoming = true;
+        });
+
+        if (!incoming) {
+          ringtonePlayer.pause();
+          window.clearInterval(vibrateInterval);
+        }
+      };
+      
 
       var url = '../dialer/dialer.html?choice=incoming&number=';
       var launchFunction = function launchDialer() {
@@ -916,7 +999,7 @@ function updateConnection() {
 }
 
 var ScreenManager = {
-  previousBrightness: null,
+  preferredBrightness: null,
   toggleScreen: function lockscreen_toggleScreen() {
     if (screen.mozEnabled)
       this.turnScreenOff();
@@ -927,20 +1010,22 @@ var ScreenManager = {
   turnScreenOff: function lockscreen_turnScreenOff() {
     screen.mozEnabled = false;
 
-    this.previousBrightness = screen.mozBrightness;
+    this.preferredBrightness = screen.mozBrightness;
     screen.mozBrightness = 0.0;
   },
 
   turnScreenOn: function lockscreen_turnScreenOn() {
     screen.mozEnabled = true;
 
-    screen.mozBrightness = this.previousBrightness || 1.0;
+    screen.mozBrightness = this.preferredBrightness || 1.0;
   }
 };
 
 var SoundManager = {
   currentVolume: 5,
   changeVolume: function soundManager_changeVolume(delta) {
+    activePhoneSound = true;
+
     var volume = this.currentVolume + delta;
     this.currentVolume = volume = Math.max(0, Math.min(10, volume));
 
@@ -1000,7 +1085,22 @@ var SleepMenu = {
             // XXX There is no API for that yet
             break;
           case 'silent':
-            // XXX There is no API for that yet
+            activePhoneSound = false;
+
+            var settings = window.navigator.mozSettings;
+            settings.set('phone.ring.incoming', 'false');
+
+            document.getElementById('silent').hidden = true;
+            document.getElementById('normal').hidden = false;
+            break;
+          case 'normal':
+            activePhoneSound = true;
+
+            var settings = window.navigator.mozSettings;
+            settings.get('phone.ring.incoming', 'true');
+
+            document.getElementById('silent').hidden = false;
+            document.getElementById('normal').hidden = true;
             break;
           case 'restart':
             navigator.mozPower.reboot();
