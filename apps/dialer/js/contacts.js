@@ -69,7 +69,7 @@ var Contacts = {
 
       content += '<div class="contact" id="' + contact.id + '">';
       for (var key in contact.name) {
-        content += '<span>' +  contact.name[key] + '</span> ';
+        content += '<span>' + contact.name[key] + '</span> ';
       }
       content += '</div>';
     }
@@ -252,6 +252,7 @@ var ContactDetails = {
     this._contact = contact;
     this.render();
   },
+
   execute: function cd_execute(evt) {
     var action = evt.currentTarget.dataset.action;
     if (!this[action]) {
@@ -261,6 +262,7 @@ var ContactDetails = {
 
     this[action](evt);
   },
+
   show: function cd_show(contact) {
     if (typeof contact != 'undefined') {
       this.contact = contact;
@@ -274,6 +276,7 @@ var ContactDetails = {
       this.edit();
     }
   },
+
   hide: function cd_hide() {
     if (!this.overlay.classList.contains('displayed')) {
       return false;
@@ -411,11 +414,12 @@ var ContactDetails = {
   render: function cd_render() {
     var names = '';
     for (var key in this._contact.name) {
-      names += '  ' +  this._contact.name[key];
+      names += '  ' + this._contact.name[key];
     }
     document.getElementById('contact-name').innerHTML = names;
 
-    document.getElementById('contact-photo').innerHTML = profilePictureForNumber(this._contact.id);
+    document.getElementById('contact-photo').innerHTML =
+      profilePictureForNumber(this._contact.id);
 
     var addAttr = 'data-action="add" onclick="ContactDetails.execute(event)"';
     var phones = '';
@@ -431,8 +435,10 @@ var ContactDetails = {
     document.getElementById('contact-phones').innerHTML = phones;
 
     var emails = '';
-    this._contact.emails.forEach(function emailIterator(email) {
-      emails += '<div><span>email</span>' + this.inputFragment('email', email) + '</div>';
+    var emailArr = this._contact.emails;
+    emailArr.forEach(function emailIterator(email) {
+      emails += '<div><span>email</span>' +
+                this.inputFragment('email', email) + '</div>';
     }, this);
     emails += '<div ' + addAttr + '>' +
               '  Add email' +
