@@ -20,9 +20,9 @@ function waitFor(callback, test, timeout) {
 
 if (typeof content.ready === 'undefined') {
   try {
-    content.ready = !!content.wrappedJSObject.Gaia.lockScreen;
+    content.ready = !!content.wrappedJSObject.LockScreen;
     if (content.ready)
-      content.wrappedJSObject.Gaia.lockScreen.unlock(-1);
+      content.wrappedJSObject.LockScreen.unlock(-1);
   } catch (e) {
     content.ready = false;
   }
@@ -36,7 +36,7 @@ if (typeof content.ready === 'undefined') {
 
       content.removeEventListener('message', waitForReady);
 
-      content.wrappedJSObject.Gaia.lockScreen.unlock(-1);
+      content.wrappedJSObject.LockScreen.unlock(-1);
       content.ready = true;
     });
   });

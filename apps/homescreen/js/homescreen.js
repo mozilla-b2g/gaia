@@ -3,404 +3,168 @@
 
 'use strict';
 
-// Change the display state (unlocked, locked)
-var displayState;
-function changeDisplayState(state) {
-  displayState = state;
+function startup() {
+  new Homescreen();
 
-  // update clock and battery status (if needed)
-  updateClock();
-  updateBattery();
-  updateConnection();
+  LockScreen.init();
+  LockScreen.update(function fireHomescreenReady() {
+    ScreenManager.turnScreenOn();
 
-  var evt = document.createEvent('CustomEvent');
-  evt.initCustomEvent(state, true, true, null);
-  window.dispatchEvent(evt);
+    var touchables = [
+      document.getElementById('notificationsScreen'),
+      document.getElementById('statusbar')
+    ];
+    new NotificationScreen(touchables);
+
+    new TelephonyListener();
+
+    window.parent.postMessage('homescreenready', '*');
+  });
 }
 
-function DefaultPhysics(iconGrid) {
-  this.iconGrid = iconGrid;
-  this.moved = false;
-  this.touchState = { active: false, startX: 0, startY: 0 };
-}
-
-DefaultPhysics.prototype = {
-  onTouchStart: function(e) {
-    var touchState = this.touchState;
-    this.moved = false;
-    touchState.active = true;
-    touchState.startX = e.pageX;
-    touchState.startY = e.pageY;
-    touchState.startTime = e.timeStamp;
+var LockScreen = {
+  get overlay() {
+    delete this.overlay;
+    return this.overlay = document.getElementById('lockscreen');
   },
-  onTouchMove: function(e) {
-    var iconGrid = this.iconGrid;
-    var touchState = this.touchState;
-    if (touchState.active) {
-      var dx = touchState.startX - e.pageX;
-      if (dx !== 0) {
-        this.moved = this.moved || Math.abs(dx) > 20;
-        if (this.moved) {
-          iconGrid.pan(-dx);
-        }
-      }
-      e.stopPropagation();
+
+  init: function lockscreen_init() {
+    var events = ['touchstart', 'touchmove', 'touchend', 'keydown', 'keyup'];
+    AddEventHandlers(LockScreen.overlay, this, events);
+
+    // TODO We don't really want to unlock the homescreen here
+    if (navigator.telephony) {
+      telephony.addEventListener('incoming', (function incoming(evt) {
+        this.unlock(-1, true);
+      }).bind(this));
     }
   },
-  onTouchEnd: function(e) {
-    var touchState = this.touchState;
-    if (!touchState.active)
+
+  update: function lockscreen_update(callback) {
+    var settings = window.navigator.mozSettings;
+    if (!settings)
       return;
-    touchState.active = false;
 
-    var startX = touchState.startX;
-    var endX = e.pageX;
-    var diffX = endX - startX;
-    var dir = (diffX > 0) ? -1 : 1;
-
-    var quick = (e.timeStamp - touchState.startTime < 200);
-    var long = (e.timeStamp - touchState.startTime > 2000);
-    var small = Math.abs(diffX) <= 20;
-
-    var flick = quick && !small;
-    var tap = !this.moved;
-    var drag = !quick;
-
-    var iconGrid = this.iconGrid;
-    var currentPage = iconGrid.currentPage;
-    if (tap) {
-      iconGrid.tap(e.target);
-      iconGrid.setPage(currentPage, 0);
-      return;
-    } else if (flick) {
-      iconGrid.setPage(currentPage + dir, 0.2);
-    } else {
-      if (Math.abs(diffX) < window.innerWidth / 2)
-        iconGrid.setPage(currentPage, 0.2);
-      else
-        iconGrid.setPage(currentPage + dir, 0.2);
-    }
-    e.stopPropagation();
-  }
-};
-
-var Mouse2Touch = {
-  'mousedown': 'touchstart',
-  'mousemove': 'touchmove',
-  'mouseup': 'touchend'
-};
-
-var Touch2Mouse = {
-  'touchstart': 'mousedown',
-  'touchmove': 'mousemove',
-  'touchend': 'mouseup'
-};
-
-var ForceOnWindow = {
-  'touchmove': true,
-  'touchend': true
-}
-
-function AddEventHandlers(target, listener, eventNames) {
-  for (var n = 0; n < eventNames.length; ++n) {
-    var name = eventNames[n];
-    target = ForceOnWindow[name] ? window : target;
-    name = Touch2Mouse[name] || name;
-    target.addEventListener(name, {
-      handleEvent: function(e) {
-        if (Mouse2Touch[e.type]) {
-          var original = e;
-          e = {
-            type: Mouse2Touch[original.type],
-            target: original.target,
-            touches: [original],
-            preventDefault: function() {
-              original.preventDefault();
-            }
-          };
-          e.changedTouches = e.touches;
-        }
-        return listener.handleEvent(e);
-      }
-    }, true);
-  }
-}
-
-function RemoveEventHandlers(target, listener, eventNames) {
-  for (var n = 0; n < eventNames.length; ++n) {
-    var name = eventNames[n];
-    target = ForceOnWindow[name] ? window : target;
-    name = Touch2Mouse[name] || name;
-    target.removeEventListener(name, listener);
-  }
-}
-
-function IconGrid(containerId, columns, rows, minPages, showLabels) {
-  this.containerId = containerId;
-  this.container = document.getElementById(containerId);
-  this.columns = columns || 4;
-  this.rows = rows || 3;
-  this.minPages = minPages;
-  this.showLabels = showLabels;
-  this.icons = [];
-  this.currentPage = 0;
-  this.physics = new DefaultPhysics(this);
-
-  // install event handlers
-  AddEventHandlers(this.container, this, ['touchstart', 'touchmove', 'touchend']);
-  AddEventHandlers(window, this, ['resize']);
-}
-
-IconGrid.prototype = {
-  add: function(slot, iconUrl, label, action) {
-    var icons = this.icons;
-    var icon = { slot: slot, iconUrl: iconUrl, label: label, action: action };
-    icon.index = icons.length;
-    icons.push(icon);
-  },
-  remove: function(icon) {
-    this.icons.splice(icon.index);
-  },
-
-  // reflow the icon grid
-  update: function() {
-    var instance = this;
-    var containerId = this.containerId;
-    var container = this.container;
-    var icons = this.icons;
-
-    var rows = Math.ceil((window.innerHeight - 200) / 200);
-    var columns = Math.ceil((window.innerWidth - 100) / 150);
-
-    var columns = columns;
-    var rows = rows;
-    var currentPage = this.currentPage;
-    var itemsPerPage = rows * columns;
-    var iconWidth = Math.floor(100/columns);
-    var iconHeight = Math.floor(100/rows);
-
-    // get the page of an icon
-    function getIconPage(icon) {
-      return Math.floor(icon.slot / itemsPerPage);
-    }
-
-    // get the column of an icon
-    function getIconColumn(icon) {
-      return (icon.slot % itemsPerPage) % columns;
-    }
-
-    // get the row of an icon
-    function getIconRow(icon) {
-      return Math.floor((icon.slot % itemsPerPage) / columns);
-    }
-
-    // position a div using transform
-    function setPosition(div, x, y) {
-      div.style.MozTransform = 'translate(' + x + ',' + y + ')';
-    }
-
-    // get page divs
-    var elementList = container.childNodes;
-    var pageDivs = [];
-    for (var n = 0; n < elementList.length; ++n) {
-      var element = elementList[n];
-      pageDivs[element.id] = element;
-    }
-
-    // get icon divs
-    var elementList = document.querySelectorAll('#' + containerId + '> .page > .icon');
-    var iconDivs = [];
-    for (var n = 0; n < elementList.length; ++n) {
-      var element = elementList[n];
-      iconDivs[element.id] = element;
-    }
-
-    // calculate the new number of pages we need
-    var pageCount = 0;
-    for (var n = 0; n < icons.length; ++n) {
-      var icon = icons[n];
-      pageCount = Math.max(getIconPage(icon), pageCount);
-    }
-    pageCount = Math.max(this.minPages, pageCount);
-
-    // adjust existing pages and create new ones as needed
-    for (var n = 0; n < pageCount; ++n) {
-      var pageDiv = pageDivs[n];
-      if (!pageDiv) { // missing page
-        pageDiv = document.createElement('div');
-        pageDiv.id = n;
-        pageDiv.className = 'page';
-        container.appendChild(pageDiv);
-        pageDivs[n] = pageDiv;
-      }
-      setPosition(pageDiv, (n - currentPage) + '00%', 0);
-    }
-
-    // remove pages we don't need
-    for (var key in pageDivs) {
-      if (key >= pageCount) {
-        container.removeChild(pageDivs[key]);
-        pageDivs[key] = null;
-      }
-    }
-
-    // adjust existing icons and create new ones as needed
-    for (var n = 0; n < icons.length; ++n) {
-      var icon = icons[n];
-      var pageOfIcon = getIconPage(icon);
-      var iconDiv = iconDivs[n];
-      if (!iconDiv) { // missing icon
-        iconDiv = document.createElement('div');
-        iconDiv.id = n;
-        iconDiv.className = 'icon';
-        iconDiv.dataset.url = icon.action;
-
-        var centerDiv = document.createElement('div');
-        centerDiv.className = 'img';
-        iconDiv.appendChild(centerDiv);
-
-        if (this.showLabels) {
-          var labelDiv = document.createElement('div');
-          labelDiv.className = 'label';
-          iconDiv.appendChild(labelDiv);
-        }
-
-        pageDivs[pageOfIcon].appendChild(iconDiv);
-        iconDivs[n] = iconDiv;
+    var request = settings.get('lockscreen.enabled');
+    request.addEventListener('success', (function onsuccess(evt) {
+      var enabled = request.result.value !== 'false';
+      if (enabled) {
+        this.lock(true);
       } else {
-        // if icon is on the wrong page, move it
-        if (iconDiv.parentNode != pageDivs[pageOfIcon]) {
-          iconDiv.parentNode.removeChild(iconDiv);
-          pageDivs[pageOfIcon].appendChild(iconDiv);
-        }
+        this.unlock(-1, true);
       }
 
-      iconDiv.style.backgroundImage = 'url(' + icon.iconUrl + ')';
+      if (callback)
+        setTimeout(callback, 0);
+    }).bind(this));
 
-      if (this.showLabels) {
-        var label = iconDiv.childNodes[1];
-        if (label.textContent != icon.label)
-          label.textContent = icon.label;
-      }
+    request.addEventListener('error', (function onerror(evt) {
+      this.lock(true);
+      if (callback)
+        setTimeout(callback, 0);
+    }).bind(this));
+  },
 
-      // update position
-      var deltaX = 136;
-      var deltaY = 200;
-      if (window.innerHeight <= 480) {
-        deltaY = 184;
-      }
-
-      setPosition(iconDiv, getIconColumn(icon) * 136 + 'px', getIconRow(icon) * deltaY + 'px');
+  lock: function lockscreen_lock(instant) {
+    var style = this.overlay.style;
+    if (instant) {
+      style.MozTransition = style.MozTransform = '';
+    } else {
+      style.MozTransition = '-moz-transform 0.2s linear';
+      style.MozTransform = 'translateY(0)';
     }
 
-    // remove icons we don't need
-    for (var key in iconDivs) {
-      if (key > icons.length) {
-        iconDivs[key].parentNode.removeChild(iconDivs[key]);
-        iconDivs[key] = null;
-      }
-    }
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent('locked', true, true, null);
+    window.dispatchEvent(evt);
+  },
 
-    // update paginator, if we have one
-    var dots = this.dots;
-    if (dots)
-      dots.update(currentPage);
+  unlock: function lockscreen_unlock(direction, instant) {
+    var offset = '100%';
+    if (direction < 0)
+      offset = '-' + offset;
+
+    var style = this.overlay.style;
+    style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
+    style.MozTransform = 'translateY(' + offset + ')';
+
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent('unlocked', true, true, null);
+    window.dispatchEvent(evt);
   },
-  pan: function(x, duration) {
-    var pages = this.container.childNodes;
-    var currentPage = this.currentPage;
-    for (var n = 0; n < pages.length; ++n) {
-      var page = pages[n];
-      var style = page.style;
-      style.MozTransform = 'translateX(-moz-calc(' + (n - currentPage) + '00% + ' + x + 'px))';
-      style.MozTransition = duration ? ('all ' + duration + 's ease;') : "";
+
+  onTouchStart: function lockscreen_touchStart(e) {
+    this.startX = e.pageX;
+    this.startY = e.pageY;
+    this.moving = true;
+  },
+
+  onTouchMove: function lockscreen_touchMove(e) {
+    if (this.moving) {
+      var dy = -(this.startY - e.pageY);
+      var style = this.overlay.style;
+      style.MozTransition = '';
+      style.MozTransform = 'translateY(' + dy + 'px)';
     }
   },
-  setPage: function(number, duration) {
-    var pages = this.container.childNodes;
-    if (number < 0)
-      number = 0;
-    if (number >= pages.length)
-      number = pages.length - 1;
-    this.currentPage = number;
-    for (var n = 0; n < pages.length; ++n) {
-      var page = pages[n];
-      var style = page.style;
-      style.MozTransform = 'translateX(' + (n - number) + '00%)';
-      style.MozTransition = duration ? ('all ' + duration + 's ease') : "";
+
+  onTouchEnd: function lockscreen_touchend(e) {
+    if (this.moving) {
+      this.moving = false;
+      var dy = -(this.startY - e.pageY);
+      if (Math.abs(dy) < window.innerHeight / 4)
+        this.lock();
+      else
+        this.unlock(dy);
     }
-    var dots = this.dots;
-    if (dots)
-      dots.update(number);
   },
-  tap: function(target) {
-    WindowManager.launch(target.dataset.url);
-  },
-  handleEvent: function(e) {
-    var physics = this.physics;
+
+  handleEvent: function lockscreen_handleEvent(e) {
     switch (e.type) {
-    case 'touchstart':
-      physics.onTouchStart(e.touches[0]);
-      break;
-    case 'touchmove':
-      physics.onTouchMove(e.touches[0]);
-      break;
-    case 'touchend':
-      document.releaseCapture();
-      physics.onTouchEnd(e.changedTouches[0]);
-      break;
-    case 'resize':
-      this.update();
-      break;
-    default:
-      return;
+      case 'touchstart':
+        this.onTouchStart(e.touches[0]);
+        this.overlay.setCapture(false);
+        break;
+
+      case 'touchmove':
+        this.onTouchMove(e.touches[0]);
+        break;
+
+      case 'touchend':
+        this.onTouchEnd(e.changedTouches[0]);
+        document.releaseCapture();
+        break;
+
+      case 'keydown':
+        if (e.keyCode != e.DOM_VK_SLEEP || !screen.mozEnabled)
+          return;
+
+        this._timeout = window.setTimeout(function() {
+          SleepMenu.show();
+        }, 1500);
+        break;
+
+      case 'keyup':
+        if (e.keyCode != e.DOM_VK_SLEEP || SleepMenu.visible)
+          return;
+        window.clearTimeout(this._timeout);
+
+        ScreenManager.toggleScreen();
+        if (screen.mozEnabled)
+          this.update();
+
+        e.preventDefault();
+        e.stopPropagation();
+        break;
+
+      default:
+        return;
     }
     e.preventDefault();
   }
+
 };
 
-function Dots(containerId, gridId) {
-  this.containerId = containerId;
-  this.gridId = gridId;
-  this.container = document.getElementById(containerId);
-  this.grid = document.getElementById(gridId);
-}
-
-Dots.prototype = {
-  update: function(current) {
-    var container = this.container;
-    var grid = this.grid;
-
-    var numPages = grid.childNodes.length;
-
-    // Add additional dots if needed.
-    while (container.childNodes.length < numPages) {
-      var dot = document.createElement('div');
-      dot.className = "dot";
-      container.appendChild(dot);
-    }
-
-    // Remove excess dots.
-    while (container.childNodes.length > numPages)
-      container.removeChild(container.childNodes[0]);
-
-    // Set active/inactive state.
-    var childNodes = container.childNodes;
-    for (var n = 0; n < numPages; ++n) {
-      var dot = childNodes[n];
-      if (n == current) {
-        dot.classList.add("active");
-      } else {
-        dot.classList.remove("active");
-      }
-    }
-  }
-}
-
-function NotificationScreen(touchables) {
-  this.touchables = touchables;
-  this.attachEvents(this.touchable);
-}
 
 NotificationScreen.prototype = {
   get touchable() {
@@ -489,210 +253,7 @@ NotificationScreen.prototype = {
   }
 };
 
-function LockScreen(overlay) {
-  this.overlay = overlay;
 
-  var events = ['touchstart', 'touchmove', 'touchend', 'keydown', 'keyup'];
-  AddEventHandlers(overlay, this, events);
-
-  this.update(function fireHomescreenReady() {
-    window.parent.postMessage('homescreenready', '*');
-  });
-}
-
-LockScreen.prototype = {
-  update: function lockscreen_update(callback) {
-    var settings = window.navigator.mozSettings;
-    if (!settings)
-      return;
-
-    var request = settings.get('lockscreen.enabled');
-    request.addEventListener('success', (function onsuccess(evt) {
-      request.result.value !== 'false' ? this.lock(true) : this.unlock(-1, true);
-
-      if (callback)
-        setTimeout(callback, 0);
-    }).bind(this));
-
-    request.addEventListener('error', (function onerror(evt) {
-      this.lock(true);
-      if (callback)
-        setTimeout(callback, 0);
-    }).bind(this));
-  },
-  onTouchStart: function(e) {
-    this.startX = e.pageX;
-    this.startY = e.pageY;
-    this.moving = true;
-  },
-  onTouchMove: function(e) {
-    if (this.moving) {
-      var dy = -(this.startY - e.pageY);
-      var style = this.overlay.style;
-      style.MozTransition = '';
-      style.MozTransform = 'translateY(' + dy + 'px)';
-    }
-  },
-  onTouchEnd: function(e) {
-    if (this.moving) {
-      this.moving = false;
-      var dy = -(this.startY - e.pageY);
-      if (Math.abs(dy) < window.innerHeight / 4)
-        this.lock();
-      else
-        this.unlock(dy);
-    }
-  },
-  unlock: function(direction, instant) {
-    var offset = '100%';
-    if (direction < 0)
-      offset = '-' + offset;
-
-    var style = this.overlay.style;
-    style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
-    style.MozTransform = 'translateY(' + offset + ')';
-    changeDisplayState('unlocked');
-
-    var unlockEvent = document.createEvent('CustomEvent');
-    unlockEvent.initCustomEvent('unlocked', true, true, null);
-    window.dispatchEvent(unlockEvent);
-  },
-  lock: function(instant) {
-    var style = this.overlay.style;
-    if (instant) {
-      style.MozTransition = style.MozTransform = '';
-    } else {
-      style.MozTransition = '-moz-transform 0.2s linear';
-      style.MozTransform = 'translateY(0)';
-    }
-    changeDisplayState('locked');
-  },
-  handleEvent: function(e) {
-    switch (e.type) {
-    case 'touchstart':
-      this.onTouchStart(e.touches[0]);
-      this.overlay.setCapture(false);
-      break;
-    case 'touchmove':
-      this.onTouchMove(e.touches[0]);
-      break;
-    case 'touchend':
-      this.onTouchEnd(e.changedTouches[0]);
-      document.releaseCapture();
-      break;
-    case 'keydown':
-      if (e.keyCode != e.DOM_VK_SLEEP || !screen.mozEnabled)
-        return;
-
-      this._timeout = window.setTimeout(function() {
-        SleepMenu.show();
-      }, 1500);
-      break;
-    case 'keyup':
-      if (e.keyCode != e.DOM_VK_SLEEP || SleepMenu.visible)
-        return;
-      window.clearTimeout(this._timeout);
-
-      ScreenManager.toggleScreen();
-      if (screen.mozEnabled)
-        this.update();
-
-      e.preventDefault();
-      e.stopPropagation();
-      break;
-    default:
-      return;
-    }
-    e.preventDefault();
-  }
-};
-
-
-function OnLoad() {
-  Gaia.lockScreen = new LockScreen(document.getElementById('lockscreen'));
-
-  var touchables = [
-    document.getElementById('notificationsScreen'),
-    document.getElementById('statusbar')
-  ];
-  new NotificationScreen(touchables);
-
-  var telephony = navigator.mozTelephony;
-  if (telephony) {
-    telephony.addEventListener('incoming', function incoming(evt) {
-      Gaia.lockScreen.unlock(-1, true);
-      screen.mozEnabled = true;
-
-
-      var vibrateInterval = 0;
-      if (activateVibration) {
-        vibrateInterval = window.setInterval(function vibrate() {
-          try {
-            navigator.mozVibrate([200]);
-          } catch (e) {}
-        }, 600);
-      }
-
-      var ringtonePlayer = document.getElementById('ringtone-player');
-      if (activePhoneSound) {
-        ringtonePlayer.play();
-      }
-
-      telephony.oncallschanged = function() {
-        var incoming = false;
-        telephony.calls.forEach(function(call) {
-          if (call.state == 'incoming')
-            incoming = true;
-        });
-
-        if (!incoming) {
-          ringtonePlayer.pause();
-          window.clearInterval(vibrateInterval);
-        }
-      };
-      
-
-      var url = '../dialer/dialer.html?choice=incoming&number=';
-      var launchFunction = function launchDialer() {
-        WindowManager.launch(url + evt.call.number);
-      };
-
-      var appWindow = WindowManager.getForegroundWindow();
-      if (appWindow && (appWindow.application.name != 'Dialer')) {
-        WindowManager.closeForegroundWindow();
-        appWindow.element.addEventListener('transitionend', function closed() {
-          appWindow.element.removeEventListener('transitionend', closed);
-
-          launchFunction();
-        });
-      } else {
-        launchFunction();
-      }
-
-    });
-  }
-
-  var apps = Gaia.AppManager.loadInstalledApps(function(apps) {
-    var rows = Math.ceil((window.innerHeight - 200) / 200);
-    var columns = Math.ceil((window.innerWidth - 100) / 150);
-    var pages = Math.floor(apps.length / (rows * columns)) + 1;
-
-    var appsGrid = new IconGrid('apps', columns, rows, pages, true);
-    var appsGridCount = 0;
-    for (var n = 0; n < apps.length; ++n) {
-      var app = apps[n];
-      appsGrid.add(n, app.icon, app.name, app.url);
-    }
-    appsGrid.dots = new Dots('dots', 'apps');
-    appsGrid.update();
-
-    window.addEventListener('resize', function() {
-      appsGrid.update();
-    });
-  });
-
-  ScreenManager.turnScreenOn();
-}
 
 // Update the clock and schedule a new update if appropriate
 function updateClock() {
@@ -763,24 +324,24 @@ function updateConnection() {
   }
 
   if (!screen.mozEnabled) {
-    conn.removeEventListener("cardstatechange", updateConnection);
-    conn.removeEventListener("connectionchange", updateConnection);
+    conn.removeEventListener('cardstatechange', updateConnection);
+    conn.removeEventListener('connectionchange', updateConnection);
     return;
   }
 
   // Update the operator name / SIM status.
-  var title = "";
-  if (conn.cardState == "absent") {
-    title = "No SIM card";
+  var title = '';
+  if (conn.cardState == 'absent') {
+    title = 'No SIM card';
   } else if (!conn.connected) {
-    title = "Connecting...";
+    title = 'Connecting...';
   } else {
-    title = conn.operator || "";
+    title = conn.operator || '';
     if (conn.roaming) {
-      title += " (roaming)";
+      title += ' (roaming)';
     }
   }
-  document.getElementById("titlebar").textContent = title;
+  document.getElementById('titlebar').textContent = title;
 
   // Update the signal strength bars.
   var signalElements = document.querySelectorAll('#signal > span');
@@ -794,8 +355,8 @@ function updateConnection() {
     }
   }
 
-  conn.addEventListener("cardstatechange", updateConnection);
-  conn.addEventListener("connectionchange", updateConnection);
+  conn.addEventListener('cardstatechange', updateConnection);
+  conn.addEventListener('connectionchange', updateConnection);
 }
 
 var ScreenManager = {
@@ -818,6 +379,10 @@ var ScreenManager = {
     screen.mozEnabled = true;
 
     screen.mozBrightness = this.preferredBrightness || 1.0;
+
+    updateClock();
+    updateBattery();
+    updateConnection();
   }
 };
 
@@ -1000,7 +565,7 @@ var SourceView = {
 
   handleEvent: function sv_handleEvent(evt) {
     switch (evt.type) {
-      case 'unlocked':  
+      case 'locked':
         this.hide();
         break;
     }
@@ -1027,7 +592,7 @@ var GridView = {
     if (!grid) {
       var style = '#debug-grid {' +
                   '  position: absolute;' +
-                  '  top: 0;' + 
+                  '  top: 0;' +
                   '  left: 0;' +
                   '  display: none;' +
                   '  width: 480px;' +
@@ -1038,7 +603,7 @@ var GridView = {
                   '  pointer-events: none;' +
                   '}';
       document.styleSheets[0].insertRule(style, 0);
-  
+
       grid = document.createElement('div');
       grid.id = 'debug-grid';
 
@@ -1107,4 +672,474 @@ var KeyHandler = {
 };
 
 window.addEventListener('keyup', KeyHandler);
+
+/* === TelephoneListener === */
+var TelephonyListener = function() {
+  var telephony = navigator.mozTelephony;
+  if (!telephony)
+    return;
+
+  telephony.addEventListener('incoming', function incoming(evt) {
+    ScreenManager.turnScreenOn();
+
+    var vibrateInterval = 0;
+    if (activateVibration) {
+      vibrateInterval = window.setInterval(function vibrate() {
+        try {
+          navigator.mozVibrate([200]);
+        } catch (e) {}
+      }, 600);
+    }
+
+    var ringtonePlayer = document.getElementById('ringtone-player');
+    if (activePhoneSound) {
+      ringtonePlayer.play();
+    }
+
+    telephony.oncallschanged = function() {
+      var incoming = false;
+      telephony.calls.forEach(function(call) {
+        if (call.state == 'incoming')
+          incoming = true;
+      });
+
+      if (!incoming) {
+        ringtonePlayer.pause();
+         window.clearInterval(vibrateInterval);
+      }
+    };
+
+    var url = '../dialer/dialer.html?choice=incoming&number=';
+    var launchFunction = function launchDialer() {
+      WindowManager.launch(url + evt.call.number);
+    };
+
+    var appWindow = WindowManager.getForegroundWindow();
+    if (appWindow && (appWindow.application.name != 'Dialer')) {
+      WindowManager.closeForegroundWindow();
+      appWindow.element.addEventListener('transitionend', function closed() {
+        appWindow.element.removeEventListener('transitionend', closed);
+
+        launchFunction();
+      });
+    } else {
+      launchFunction();
+    }
+  });
+};
+
+/* === Homescreen === */
+var Homescreen = function() {
+  function populateApps(apps) {
+    var rows = Math.ceil((window.innerHeight - 200) / 200);
+    var columns = Math.ceil((window.innerWidth - 100) / 150);
+    var pages = Math.floor(apps.length / (rows * columns)) + 1;
+
+    var appsGrid = new IconGrid('apps', columns, rows, pages, true);
+    var appsGridCount = 0;
+    for (var n = 0; n < apps.length; ++n) {
+      var app = apps[n];
+      appsGrid.add(n, app.icon, app.name, app.url);
+    }
+    appsGrid.dots = new Dots('dots', 'apps');
+    appsGrid.update();
+
+    window.addEventListener('resize', function() {
+      appsGrid.update();
+    });
+  };
+
+  Gaia.AppManager.loadInstalledApps(populateApps);
+};
+
+function DefaultPhysics(iconGrid) {
+  this.iconGrid = iconGrid;
+  this.moved = false;
+  this.touchState = { active: false, startX: 0, startY: 0 };
+}
+
+DefaultPhysics.prototype = {
+  onTouchStart: function(e) {
+    var touchState = this.touchState;
+    this.moved = false;
+    touchState.active = true;
+    touchState.startX = e.pageX;
+    touchState.startY = e.pageY;
+    touchState.startTime = e.timeStamp;
+  },
+  onTouchMove: function(e) {
+    var iconGrid = this.iconGrid;
+    var touchState = this.touchState;
+    if (touchState.active) {
+      var dx = touchState.startX - e.pageX;
+      if (dx !== 0) {
+        this.moved = this.moved || Math.abs(dx) > 20;
+        if (this.moved) {
+          iconGrid.pan(-dx);
+        }
+      }
+      e.stopPropagation();
+    }
+  },
+  onTouchEnd: function(e) {
+    var touchState = this.touchState;
+    if (!touchState.active)
+      return;
+    touchState.active = false;
+
+    var startX = touchState.startX;
+    var endX = e.pageX;
+    var diffX = endX - startX;
+    var dir = (diffX > 0) ? -1 : 1;
+
+    var quick = (e.timeStamp - touchState.startTime < 200);
+    var long = (e.timeStamp - touchState.startTime > 2000);
+    var small = Math.abs(diffX) <= 20;
+
+    var flick = quick && !small;
+    var tap = !this.moved;
+    var drag = !quick;
+
+    var iconGrid = this.iconGrid;
+    var currentPage = iconGrid.currentPage;
+    if (tap) {
+      iconGrid.tap(e.target);
+      iconGrid.setPage(currentPage, 0);
+      return;
+    } else if (flick) {
+      iconGrid.setPage(currentPage + dir, 0.2);
+    } else {
+      if (Math.abs(diffX) < window.innerWidth / 2)
+        iconGrid.setPage(currentPage, 0.2);
+      else
+        iconGrid.setPage(currentPage + dir, 0.2);
+    }
+    e.stopPropagation();
+  }
+};
+
+var Mouse2Touch = {
+  'mousedown': 'touchstart',
+  'mousemove': 'touchmove',
+  'mouseup': 'touchend'
+};
+
+var Touch2Mouse = {
+  'touchstart': 'mousedown',
+  'touchmove': 'mousemove',
+  'touchend': 'mouseup'
+};
+
+var ForceOnWindow = {
+  'touchmove': true,
+  'touchend': true
+};
+
+function AddEventHandlers(target, listener, eventNames) {
+  for (var n = 0; n < eventNames.length; ++n) {
+    var name = eventNames[n];
+    target = ForceOnWindow[name] ? window : target;
+    name = Touch2Mouse[name] || name;
+    target.addEventListener(name, {
+      handleEvent: function(e) {
+        if (Mouse2Touch[e.type]) {
+          var original = e;
+          e = {
+            type: Mouse2Touch[original.type],
+            target: original.target,
+            touches: [original],
+            preventDefault: function() {
+              original.preventDefault();
+            }
+          };
+          e.changedTouches = e.touches;
+        }
+        return listener.handleEvent(e);
+      }
+    }, true);
+  }
+}
+
+function RemoveEventHandlers(target, listener, eventNames) {
+  for (var n = 0; n < eventNames.length; ++n) {
+    var name = eventNames[n];
+    target = ForceOnWindow[name] ? window : target;
+    name = Touch2Mouse[name] || name;
+    target.removeEventListener(name, listener);
+  }
+}
+
+function IconGrid(containerId, columns, rows, minPages, showLabels) {
+  this.containerId = containerId;
+  this.container = document.getElementById(containerId);
+  this.columns = columns || 4;
+  this.rows = rows || 3;
+  this.minPages = minPages;
+  this.showLabels = showLabels;
+  this.icons = [];
+  this.currentPage = 0;
+  this.physics = new DefaultPhysics(this);
+
+  // install event handlers
+  var events = ['touchstart', 'touchmove', 'touchend'];
+  AddEventHandlers(this.container, this, events);
+  AddEventHandlers(window, this, ['resize']);
+}
+
+IconGrid.prototype = {
+  add: function(slot, iconUrl, label, action) {
+    var icons = this.icons;
+    var icon = { slot: slot, iconUrl: iconUrl, label: label, action: action };
+    icon.index = icons.length;
+    icons.push(icon);
+  },
+  remove: function(icon) {
+    this.icons.splice(icon.index);
+  },
+
+  // reflow the icon grid
+  update: function() {
+    var instance = this;
+    var containerId = this.containerId;
+    var container = this.container;
+    var icons = this.icons;
+
+    var rows = Math.ceil((window.innerHeight - 200) / 200);
+    var columns = Math.ceil((window.innerWidth - 100) / 150);
+
+    var columns = columns;
+    var rows = rows;
+    var currentPage = this.currentPage;
+    var itemsPerPage = rows * columns;
+    var iconWidth = Math.floor(100 / columns);
+    var iconHeight = Math.floor(100 / rows);
+
+    // get the page of an icon
+    function getIconPage(icon) {
+      return Math.floor(icon.slot / itemsPerPage);
+    }
+
+    // get the column of an icon
+    function getIconColumn(icon) {
+      return (icon.slot % itemsPerPage) % columns;
+    }
+
+    // get the row of an icon
+    function getIconRow(icon) {
+      return Math.floor((icon.slot % itemsPerPage) / columns);
+    }
+
+    // position a div using transform
+    function setPosition(div, x, y) {
+      div.style.MozTransform = 'translate(' + x + ',' + y + ')';
+    }
+
+    // get page divs
+    var elementList = container.childNodes;
+    var pageDivs = [];
+    for (var n = 0; n < elementList.length; ++n) {
+      var element = elementList[n];
+      pageDivs[element.id] = element;
+    }
+
+    // get icon divs
+    var rule = '#' + containerId + '> .page > .icon';
+    elementList = document.querySelectorAll(rule);
+    var iconDivs = [];
+    for (var n = 0; n < elementList.length; ++n) {
+      var element = elementList[n];
+      iconDivs[element.id] = element;
+    }
+
+    // calculate the new number of pages we need
+    var pageCount = 0;
+    for (var n = 0; n < icons.length; ++n) {
+      var icon = icons[n];
+      pageCount = Math.max(getIconPage(icon), pageCount);
+    }
+    pageCount = Math.max(this.minPages, pageCount);
+
+    // adjust existing pages and create new ones as needed
+    for (var n = 0; n < pageCount; ++n) {
+      var pageDiv = pageDivs[n];
+      if (!pageDiv) { // missing page
+        pageDiv = document.createElement('div');
+        pageDiv.id = n;
+        pageDiv.className = 'page';
+        container.appendChild(pageDiv);
+        pageDivs[n] = pageDiv;
+      }
+      setPosition(pageDiv, (n - currentPage) + '00%', 0);
+    }
+
+    // remove pages we don't need
+    for (var key in pageDivs) {
+      if (key >= pageCount) {
+        container.removeChild(pageDivs[key]);
+        pageDivs[key] = null;
+      }
+    }
+
+    // adjust existing icons and create new ones as needed
+    for (var n = 0; n < icons.length; ++n) {
+      var icon = icons[n];
+      var pageOfIcon = getIconPage(icon);
+      var iconDiv = iconDivs[n];
+      if (!iconDiv) { // missing icon
+        iconDiv = document.createElement('div');
+        iconDiv.id = n;
+        iconDiv.className = 'icon';
+        iconDiv.dataset.url = icon.action;
+
+        var centerDiv = document.createElement('div');
+        centerDiv.className = 'img';
+        iconDiv.appendChild(centerDiv);
+
+        if (this.showLabels) {
+          var labelDiv = document.createElement('div');
+          labelDiv.className = 'label';
+          iconDiv.appendChild(labelDiv);
+        }
+
+        pageDivs[pageOfIcon].appendChild(iconDiv);
+        iconDivs[n] = iconDiv;
+      } else {
+        // if icon is on the wrong page, move it
+        if (iconDiv.parentNode != pageDivs[pageOfIcon]) {
+          iconDiv.parentNode.removeChild(iconDiv);
+          pageDivs[pageOfIcon].appendChild(iconDiv);
+        }
+      }
+
+      iconDiv.style.backgroundImage = 'url(' + icon.iconUrl + ')';
+
+      if (this.showLabels) {
+        var label = iconDiv.childNodes[1];
+        if (label.textContent != icon.label)
+          label.textContent = icon.label;
+      }
+
+      // TODO This code is really, really, dirty
+      var deltaX = getIconColumn(icon) * 136;
+      var deltaY = getIconRow(icon);
+      if (window.innerHeight <= 480) {
+        deltaY *= 184;
+      } else {
+        deltaY *= 200;
+      }
+
+      setPosition(iconDiv, deltaX + 'px', deltaY + 'px');
+    }
+
+    // remove icons we don't need
+    for (var key in iconDivs) {
+      if (key > icons.length) {
+        iconDivs[key].parentNode.removeChild(iconDivs[key]);
+        iconDivs[key] = null;
+      }
+    }
+
+    // update paginator, if we have one
+    var dots = this.dots;
+    if (dots)
+      dots.update(currentPage);
+  },
+  pan: function(x, duration) {
+    var pages = this.container.childNodes;
+    var currentPage = this.currentPage;
+    for (var n = 0; n < pages.length; ++n) {
+      var page = pages[n];
+
+      var calc = (n - currentPage) + '00% + ' + x + 'px';
+
+      var style = page.style;
+      style.MozTransform = 'translateX(-moz-calc(' + calc + '))';
+      style.MozTransition = duration ? ('all ' + duration + 's ease;') : '';
+    }
+  },
+  setPage: function(number, duration) {
+    var pages = this.container.childNodes;
+    if (number < 0)
+      number = 0;
+    if (number >= pages.length)
+      number = pages.length - 1;
+    this.currentPage = number;
+    for (var n = 0; n < pages.length; ++n) {
+      var page = pages[n];
+      var style = page.style;
+      style.MozTransform = 'translateX(' + (n - number) + '00%)';
+      style.MozTransition = duration ? ('all ' + duration + 's ease') : '';
+    }
+    var dots = this.dots;
+    if (dots)
+      dots.update(number);
+  },
+  tap: function(target) {
+    WindowManager.launch(target.dataset.url);
+  },
+  handleEvent: function(e) {
+    var physics = this.physics;
+    switch (e.type) {
+    case 'touchstart':
+      physics.onTouchStart(e.touches[0]);
+      break;
+    case 'touchmove':
+      physics.onTouchMove(e.touches[0]);
+      break;
+    case 'touchend':
+      document.releaseCapture();
+      physics.onTouchEnd(e.changedTouches[0]);
+      break;
+    case 'resize':
+      this.update();
+      break;
+    default:
+      return;
+    }
+    e.preventDefault();
+  }
+};
+
+function Dots(containerId, gridId) {
+  this.containerId = containerId;
+  this.gridId = gridId;
+  this.container = document.getElementById(containerId);
+  this.grid = document.getElementById(gridId);
+}
+
+Dots.prototype = {
+  update: function(current) {
+    var container = this.container;
+    var grid = this.grid;
+
+    var numPages = grid.childNodes.length;
+
+    // Add additional dots if needed.
+    while (container.childNodes.length < numPages) {
+      var dot = document.createElement('div');
+      dot.className = 'dot';
+      container.appendChild(dot);
+    }
+
+    // Remove excess dots.
+    while (container.childNodes.length > numPages)
+      container.removeChild(container.childNodes[0]);
+
+    // Set active/inactive state.
+    var childNodes = container.childNodes;
+    for (var n = 0; n < numPages; ++n) {
+      var dot = childNodes[n];
+      if (n == current) {
+        dot.classList.add('active');
+      } else {
+        dot.classList.remove('active');
+      }
+    }
+  }
+};
+
+function NotificationScreen(touchables) {
+  this.touchables = touchables;
+  this.attachEvents(this.touchable);
+}
 
