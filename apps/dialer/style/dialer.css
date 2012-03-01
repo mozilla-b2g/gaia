@@ -842,6 +842,21 @@ html * {
   z-index: 100;
 }
 
+#call-screen.animate {
+  -moz-transition: -moz-transform 0.5s ease;
+}
+
+#call-screen.prerender {
+  -moz-transform: translateY(-moz-calc(-100% + 1px));
+}
+#call-screen.oncall.prerender {
+  -moz-transform: translateY(-1px);
+}
+
+#call-screen.oncall {
+  -moz-transform: translateY(0);
+}
+
 #call-screen-top {
   height: -moz-calc(63% - 64px);
   padding: 64px 0 0 40px;

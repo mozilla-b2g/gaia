@@ -425,11 +425,10 @@ var CallHandler = {
 
   toggleCallScreen: function ch_toggleScreen() {
     var callScreen = document.getElementById('call-screen');
-    callScreen.style.MozTransition = '';
+    callScreen.classList.remove('animate');
 
     var onCall = this._onCall;
-    callScreen.style.MozTransform =
-      onCall ? 'translateY(-1px)' : 'translateY(-moz-calc(-100% + 1px))';
+    callScreen.classList.toggle('prerender');
 
     // hardening against the unavailability of MozAfterPaint
     var finishTransition = function ch_finishTransition() {
@@ -438,9 +437,10 @@ var CallHandler = {
         securityTimeout = null;
       }
 
-      callScreen.style.MozTransition = '-moz-transform 0.5s ease';
-      callScreen.style.MozTransform =
-        onCall ? 'translateY(-100%)' : 'translateY(0)';
+      callScreen.classList.add('animate');
+
+      callScreen.classList.toggle('oncall');
+      callScreen.classList.toggle('prerender');
     };
 
     window.addEventListener('MozAfterPaint', function ch_triggerTransition() {
