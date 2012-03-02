@@ -256,6 +256,7 @@
                      'name': 'VideoCube',
                      'description': 'Demo of WebGL',
                      'launch_path': '/index.html',
+                     'hackKillMe': true,
                      'developer': {
                        'name': 'Unknown',
                        'url': 'http://www.everyday3d.com/j3d/demo/004_Glass.html'
