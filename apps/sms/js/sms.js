@@ -235,7 +235,7 @@ var ConversationListView = {
            '    <img src="' + profilePictureForId(conversation.id) + '" />' +
            '  </div>' +
            '  <div class="name">' + conversation.name + '</div>' +
-           '  <div class="msg">' + conversation.body + '</div>' +
+           '  <div class="msg">' + conversation.body.split('\n')[0] + '</div>' +
            '  <div class="time">' + conversation.timestamp + '</div>' +
            '</div>';
   },
@@ -430,7 +430,7 @@ var ConversationView = {
                       '<div class="photo">' +
                       '  <img src="' + pic + '" />' +
                       '</div>' +
-                      '<div class="text">' + msg.body + '</div>' +
+                      '<div class="text">' + msg.body.replace(/\n/g, '<br />') + '</div>' +
                       '<div class="time">' + time + '</div>' +
                     '</div>';
       }
