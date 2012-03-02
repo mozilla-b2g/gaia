@@ -527,7 +527,7 @@ var ConversationView = {
     messagesHack.unshift(message);
 
     setTimeout((function keepKeyboardFocus() {
-      this.msgInput.value = '';
+      this.msgText.value = '';
       this.updateMsgTextHeight();
     }).bind(this), 0);
 
