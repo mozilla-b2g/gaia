@@ -35,7 +35,7 @@ var LockScreen = {
     // TODO We don't really want to unlock the homescreen here
     if (navigator.telephony) {
       telephony.addEventListener('incoming', (function incoming(evt) {
-        this.unlock(-1, true);
+        this.unlock(true);
       }).bind(this));
     }
   },
@@ -51,7 +51,7 @@ var LockScreen = {
       if (enabled) {
         this.lock(true);
       } else {
-        this.unlock(-1, true);
+        this.unlock(true);
       }
 
       if (callback)
@@ -79,10 +79,8 @@ var LockScreen = {
     window.dispatchEvent(evt);
   },
 
-  unlock: function lockscreen_unlock(direction, instant) {
-    var offset = '100%';
-    if (direction < 0)
-      offset = '-' + offset;
+  unlock: function lockscreen_unlock(instant) {
+    var offset = '-100%';
 
     var style = this.overlay.style;
     style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
@@ -101,7 +99,7 @@ var LockScreen = {
 
   onTouchMove: function lockscreen_touchMove(e) {
     if (this.moving) {
-      var dy = -(this.startY - e.pageY);
+      var dy = Math.min(0, -(this.startY - e.pageY));
       var style = this.overlay.style;
       style.MozTransition = '';
       style.MozTransform = 'translateY(' + dy + 'px)';

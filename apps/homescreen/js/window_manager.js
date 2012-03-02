@@ -228,8 +228,13 @@ var WindowManager = {
               this.closeForegroundWindow();
             break;
           case evt.DOM_VK_ESCAPE:
-            if (this.enabled && !evt.defaultPrevented)
-              this.closeForegroundWindow();
+            if (this.enabled && !evt.defaultPrevented) {
+              if (TaskManager.isActive()) {
+                TaskManager.hide();
+              } else {
+                this.closeForegroundWindow();
+              }
+            }
             break;
         }
         break;

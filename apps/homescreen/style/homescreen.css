@@ -336,12 +336,12 @@ iframe.landscape-secondary {
 
 #taskManager li > a {
   display: block;
-  width: 32px;
-  height: 32px;
+  width: 64px;
+  height: 64px;
   position: absolute;
-  top: 10px;
-  right: 10px;
-  -moz-transform: scale(5);
+  top: -32px;
+  right: -32px;
+  -moz-transform: scale(2.5);
 }
 
 #taskManager li > h1 {

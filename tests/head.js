@@ -22,7 +22,7 @@ if (typeof content.ready === 'undefined') {
   try {
     content.ready = !!content.wrappedJSObject.LockScreen;
     if (content.ready)
-      content.wrappedJSObject.LockScreen.unlock(-1);
+      content.wrappedJSObject.LockScreen.unlock();
   } catch (e) {
     content.ready = false;
   }
@@ -36,7 +36,7 @@ if (typeof content.ready === 'undefined') {
 
       content.removeEventListener('message', waitForReady);
 
-      content.wrappedJSObject.LockScreen.unlock(-1);
+      content.wrappedJSObject.LockScreen.unlock();
       content.ready = true;
     });
   });
