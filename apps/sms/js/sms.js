@@ -319,9 +319,9 @@ var ConversationView = {
     return this.title = document.getElementById('msg-conversation-view-name');
   },
 
-  get msgText() {
-    delete this.msgText;
-    return this.msgText = document.getElementById('msg-conversation-view-msg-text');
+  get msgInput() {
+    delete this.msgInput;
+    return this.msgInput = document.getElementById('msg-conversation-view-msg-text');
   },
 
   init: function cv_init() {
@@ -329,13 +329,13 @@ var ConversationView = {
       navigator.mozSms.addEventListener('received', this);
 
     document.getElementById('msg-conversation-view-back').addEventListener(
-      'click', (this.close).bind(this));
+      'click', this.close.bind(this));
 
     // click event does not trigger when keyboard is hiding
     document.getElementById('msg-conversation-view-msg-send').addEventListener(
-      'mousedown', (this.sendMessage).bind(this));
+      'mousedown', this.sendMessage.bind(this));
 
-    this.msgText.addEventListener('input', (this.updateMsgTextHeight).bind(this));
+    this.msgInput.addEventListener('input', this.updateMsgInputHeight.bind(this));
 
     var windowEvents = ['resize', 'keypress', 'transitionend'];
     windowEvents.forEach((function(eventName) {
@@ -347,16 +347,17 @@ var ConversationView = {
     this.view.scrollTop = this.view.scrollHeight;
   },
 
-  updateMsgTextHeight: function cv_updateMsgTextHeight() {
-    var currentHeight = this.msgText.style.height;
-    this.msgText.style.height = null;
-    var newHeight = this.msgText.scrollHeight + 'px';
-    this.msgText.style.height = newHeight;
+  updateMsgInputHeight: function cv_updateMsgInputHeight() {
+    var input = this.msgInput;
+    var currentHeight = input.style.height;
+    input.style.height = null;
+    var newHeight = input.scrollHeight + 'px';
+    this.msgInput.style.height = newHeight;
 
     if (currentHeight === newHeight)
       return;
 
-    var bottomToolbarHeight = (this.msgText.scrollHeight + 32) + 'px';
+    var bottomToolbarHeight = (input.scrollHeight + 32) + 'px';
     var bottomToolbar =
       document.getElementById('msg-conversation-view-bottom-toolbar');
 
@@ -483,7 +484,7 @@ var ConversationView = {
         if (!document.body.classList.contains('conversation'))
           return;
 
-        this.updateMsgTextHeight();
+        this.updateMsgInputHeight();
         this.scrollViewToBottom();
         break;
     }
@@ -527,8 +528,8 @@ var ConversationView = {
     messagesHack.unshift(message);
 
     setTimeout((function keepKeyboardFocus() {
-      this.msgText.value = '';
-      this.updateMsgTextHeight();
+      this.msgInput.value = '';
+      this.updateMsgInputHeight();
     }).bind(this), 0);
 
     ConversationListView.updateConversationList();
