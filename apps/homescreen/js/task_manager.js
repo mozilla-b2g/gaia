@@ -31,6 +31,14 @@ var TaskManager = {
     ['keydown', 'keyup', 'locked', 'unlocked'].forEach((function attachKey(type) {
       window.addEventListener(type, this);
     }).bind(this));
+
+    // hiding the task manager when a call comes in
+    var telephony = navigator.mozTelephony;
+    if (telephony) {
+      telephony.addEventListener('incoming', (function incoming(evt) {
+        this.hide();
+      }).bind(this));
+    }
   },
 
   _timeout: 0,
