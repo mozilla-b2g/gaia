@@ -109,6 +109,37 @@ body {
   border-bottom-right-radius: 8px;
 }
 
+#home .notification {
+  margin-left: 85px;
+  font-weight: bold;
+}
+
+#home .notification > div:first-child {
+  padding: 5px 0 0 0;
+  height: 25px;
+  font-size: 2.5mozmm;
+  color: #111;
+}
+
+#home .notification > div:last-child {
+  display: table-cell;
+  font-size: 2mozmm;
+  height: 50px;
+  color: #666;
+  overflow: scroll;
+  vertical-align: middle;
+}
+
+#home .notification > div:first-child.empty {
+  display: none;
+}
+
+#home .notification > div:last-child.empty {
+  line-height: 80px;
+  height: 80px;
+  color: #aaa;
+}
+
 .page {
   position: absolute;
   left: 42px;
