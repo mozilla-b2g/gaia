@@ -33,7 +33,8 @@ var LockScreen = {
     AddEventHandlers(LockScreen.overlay, this, events);
 
     // TODO We don't really want to unlock the homescreen here
-    if (navigator.telephony) {
+    var telephony = navigator.mozTelephony;
+    if (telephony) {
       telephony.addEventListener('incoming', (function incoming(evt) {
         this.unlock(true);
       }).bind(this));
