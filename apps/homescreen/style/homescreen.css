@@ -128,7 +128,6 @@ body {
   color: #666;
   overflow: scroll;
   vertical-align: middle;
-  border: 2px solid red;
 }
 
 #home .notification > div:first-child.empty {
