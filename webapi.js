@@ -566,8 +566,11 @@
 
 (function (window) {
   var navigator = window.navigator;
+
+  // XXX: Forcing the use of the fake mozContact api while waiting for updated apps
+  /*
   if ('mozContacts' in navigator)
-    return;
+    return; */
 
   var contacts = [
   {

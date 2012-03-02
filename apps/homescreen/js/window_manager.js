@@ -339,7 +339,11 @@ var WindowManager = {
       this._isInTransition = false;
       this._fireEvent(foregroundWindow.element, 'appclose');
       if (oldWindow.application.hackKillMe) {
-        TaskManager.remove(oldWindow.application, oldWindow.id);
+        // waiting for the closing transition to end before removing the iframe from dom
+        oldWindow.element.addEventListener('transitionend', function waitToKill() {
+          oldWindow.element.removeEventListener('transitionend', waitToKill);
+          TaskManager.remove(oldWindow.application, oldWindow.id);
+        });
       }
     }).bind(this));
   },
