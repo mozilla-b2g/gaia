@@ -336,12 +336,15 @@ var ConversationView = {
       'mousedown', (this.sendMessage).bind(this));
 
     this.msgText.addEventListener('input', (this.updateMsgTextHeight).bind(this));
-    window.addEventListener('resize', (this.updateMsgTextHeight).bind(this));
 
-    var windowEvents = ['keypress', 'transitionend'];
+    var windowEvents = ['resize', 'keypress', 'transitionend'];
     windowEvents.forEach((function(eventName) {
       window.addEventListener(eventName, this);
     }).bind(this));
+  },
+
+  scrollViewToBottom: function cv_scrollViewToBottom() {
+    this.view.scrollTop = this.view.scrollHeight;
   },
 
   updateMsgTextHeight: function cv_updateMsgTextHeight() {
@@ -360,9 +363,11 @@ var ConversationView = {
     bottomToolbar.style.height = bottomToolbarHeight;
 
     this.view.style.bottom = bottomToolbarHeight;
+    this.scrollViewToBottom();
   },
 
   showConversation: function cv_showConversation(num) {
+    var self = this;
     var view = this.view;
     var bodyclassList = document.body.classList;
     var filter = ('SmsFilter' in window) ? new SmsFilter() : {};
@@ -431,9 +436,7 @@ var ConversationView = {
       }
 
       view.innerHTML = fragment;
-
-      if (view.lastChild)
-        view.scrollTop = view.lastChild.offsetTop + 10000;
+      self.scrollViewToBottom();
 
       bodyclassList.add('conversation');
     }, filter, true);
@@ -474,6 +477,14 @@ var ConversationView = {
           return;
 
         this.view.innerHTML = '';
+        break;
+
+      case 'resize':
+        if (!document.body.classList.contains('conversation'))
+          return;
+
+        this.updateMsgTextHeight();
+        this.scrollViewToBottom();
         break;
     }
   },
