@@ -276,23 +276,6 @@ var CallHandler = {
     // XXX: remove the fake contact when the contact API lands
     this.pictureView.innerHTML = profilePictureForNumber(parseInt(number));
 
-
-    var self = this;
-    if (window.navigator.mozSettings) {
-      var settings = window.navigator.mozSettings;
-      var request = settings.get('phone.vibrator.incoming');
-      request.addEventListener('success', function onsuccess(evt) {
-        if (request.result.value !== 'true')
-          return;
-
-        self._vibration = setInterval(function ch_vibrate() {
-          try {
-            navigator.mozVibrate([200]);
-          } catch (e) {}
-        }, 600);
-      });
-    }
-
     this.toggleCallScreen();
   },
   connected: function ch_connected() {
@@ -313,11 +296,8 @@ var CallHandler = {
   },
   answer: function ch_answer() {
     this.currentCall.answer();
-    this.stopVibration();
   },
   end: function ch_end() {
-    this.stopVibration();
-
     if (this.currentCall) {
       // XXX: workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=729503
       var toDisconnect = false;
@@ -334,8 +314,6 @@ var CallHandler = {
     }
   },
   disconnected: function ch_disconnected() {
-    this.stopVibration();
-
     if (this.currentCall) {
       this.currentCall.removeEventListener('statechange', this);
       this.currentCall = null;
@@ -411,13 +389,6 @@ var CallHandler = {
     }
 
     this[action]();
-  },
-
-  stopVibration: function ch_stopVibration() {
-    if (this._vibration) {
-      clearInterval(this._vibration);
-      this._vibration = null;
-    }
   },
 
   toggleCallScreen: function ch_toggleScreen() {
