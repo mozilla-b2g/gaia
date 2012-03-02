@@ -394,8 +394,11 @@ body.conversation-new-msg #msg-conversation-view-num {
   width: -moz-calc(100% - 16px);
   display: block;
   height: 48px;
+  overflow: hidden;
+  resize: none;
   font-size: 24px;
   font-weight: bold;
+  line-height: 48px;
   margin: 14px 0 0 16px;
 }
 
