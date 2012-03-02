@@ -625,7 +625,7 @@ LockScreen.prototype = {
 
     var request = settings.get('lockscreen.enabled');
     request.addEventListener('success', (function onsuccess(evt) {
-      request.result.value !== 'false' ? this.lock(true) : this.unlock(-1, true);
+      request.result.value !== 'false' ? this.lock(true) : this.unlock(true);
 
       if (callback)
         setTimeout(callback, 0);
@@ -644,7 +644,7 @@ LockScreen.prototype = {
   },
   onTouchMove: function(e) {
     if (this.moving) {
-      var dy = -(this.startY - e.pageY);
+      var dy = Math.min(0, -(this.startY - e.pageY));
       var style = this.overlay.style;
       style.MozTransition = '';
       style.MozTransform = 'translateY(' + dy + 'px)';
@@ -657,13 +657,11 @@ LockScreen.prototype = {
       if (Math.abs(dy) < window.innerHeight / 4)
         this.lock();
       else
-        this.unlock(dy);
+        this.unlock();
     }
   },
-  unlock: function(direction, instant) {
-    var offset = '100%';
-    if (direction < 0)
-      offset = '-' + offset;
+  unlock: function(instant) {
+    var offset = '-100%';
 
     var style = this.overlay.style;
     style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
@@ -736,7 +734,7 @@ function OnLoad() {
   var telephony = navigator.mozTelephony;
   if (telephony) {
     telephony.addEventListener('incoming', function incoming(evt) {
-      Gaia.lockScreen.unlock(-1, true);
+      Gaia.lockScreen.unlock(true);
       screen.mozEnabled = true;
       screen.mozBrightness = 1.0;
 
