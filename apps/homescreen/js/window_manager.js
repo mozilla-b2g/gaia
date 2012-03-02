@@ -231,9 +231,12 @@ var WindowManager = {
             if (this.enabled && !evt.defaultPrevented) {
               if (TaskManager.isActive()) {
                 TaskManager.hide();
+              } else if (IMEManager.targetWindow) {
+                IMEManager.hideIME();
               } else {
                 this.closeForegroundWindow();
               }
+              evt.preventDefault();
             }
             break;
         }
