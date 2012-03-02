@@ -119,7 +119,7 @@ window.addEventListener('DOMContentLoaded', function() {
     if (!controlShowing)
       hidePlayer();
   }, false);
-  window.addEventListener('keypress', function(event) {
+  window.addEventListener('keyup', function(event) {
     if (playerShowing && event.keyCode == event.DOM_VK_ESCAPE) {
       hidePlayer();
       event.preventDefault();
