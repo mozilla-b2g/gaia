@@ -109,26 +109,35 @@ body {
   border-bottom-right-radius: 8px;
 }
 
-#home .notification > div {
+#home .notification {
   margin-left: 85px;
   font-weight: bold;
 }
 
 #home .notification > div:first-child {
-  margin-top: 10px;
-  height: 20px;
-  font-size: 17px;
+  padding: 5px 0 0 0;
+  height: 25px;
+  font-size: 2.5mozmm;
   color: #111;
 }
 
 #home .notification > div:last-child {
-  font-size: 16px;
+  display: table-cell;
+  font-size: 2mozmm;
   height: 50px;
   color: #666;
   overflow: scroll;
+  vertical-align: middle;
+  border: 2px solid red;
 }
 
-#home .notification > div.empty {
+#home .notification > div:first-child.empty {
+  display: none;
+}
+
+#home .notification > div:last-child.empty {
+  line-height: 80px;
+  height: 80px;
   color: #aaa;
 }
 

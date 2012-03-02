@@ -684,9 +684,15 @@ var MessagesListener = function() {
 
   var notifications = document.getElementById('notifications');
   notifications.addEventListener('click', function notificationClick(evt) {
+    if (!notifications.dataset.sender)
+      return;
+
     while (notifications.hasChildNodes())
       notifications.removeChild(notifications.firstChild);
     showMessage('', 'Waiting for notifications...');
+  
+    var sender = notifications.dataset.sender;
+    WindowManager.launch('../sms/sms.html?sender=' + sender);
   });
 
   function showMessage(sender, body) {
@@ -701,12 +707,17 @@ var MessagesListener = function() {
 
     var message = document.createElement('div');
     message.textContent = body;
-    if (sender == '')
+
+    if (sender == '') {
+      title.classList.add('empty');
       message.classList.add('empty');
+    }
 
     notification.appendChild(title);
     notification.appendChild(message);
     notifications.appendChild(notification);
+
+    notifications.dataset.sender = sender;
   }
 
 
