@@ -738,9 +738,9 @@ function OnLoad() {
       screen.mozEnabled = true;
       screen.mozBrightness = 1.0;
 
-      var url = '../dialer/dialer.html?choice=incoming&number=';
+      var url = '../dialer/dialer.html';
       var launchFunction = function launchDialer() {
-        WindowManager.launch(url + evt.call.number);
+        WindowManager.launch(url);
       };
 
       var appWindow = WindowManager.getForegroundWindow();

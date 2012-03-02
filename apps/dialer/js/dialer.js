@@ -44,8 +44,6 @@ function visibilityChanged(url, evt) {
   if (choice == 'contact' || contacts.hasAttribute('data-active')) {
     Contacts.load();
     choiceChanged(contacts);
-  } else if (choice == 'incoming') {
-    CallHandler.setupTelephony();
   }
 }
 
@@ -295,7 +293,6 @@ var CallHandler = {
       });
     }
 
-
     this.toggleCallScreen();
   },
   connected: function ch_connected() {
@@ -494,6 +491,7 @@ window.addEventListener('load', function keyboardInit(evt) {
   window.removeEventListener('load', keyboardInit);
 
   KeyHandler.init();
+  CallHandler.setupTelephony();
 
   window.parent.postMessage('appready', '*');
 });
