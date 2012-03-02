@@ -155,6 +155,10 @@ div.windowSprite {
   background: url('images/close.png') no-repeat;
 }
 
+#taskManager li > a:active {
+  background: url('images/close-active.png') no-repeat;
+}
+
 #taskManager li > h1 {
   text-align: center;
   color: #fff;
