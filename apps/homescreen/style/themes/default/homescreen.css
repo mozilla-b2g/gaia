@@ -276,3 +276,166 @@ div.windowSprite {
   top: 4px;
   left: 5px;
 }
+
+/* Volume */
+#volume {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  width: 220px;
+  height: 200px;
+  margin: -100px 0 0 -110px;
+  background: url(images/volume-on.png) no-repeat 50% 10%, hsla(0,0%,0%,.8);
+  border-radius: 10px;
+  z-index: 20003;
+  -moz-transition: opacity 0.5s ease;
+  opacity: 0;
+  pointer-events: none;
+}
+
+#volume.visible {
+  opacity: 1.0;
+}
+
+#volume.off {
+  background: url(images/volume-off.png) no-repeat 50% 10%, hsla(0,0%,0%,.8);
+}
+
+#volume.vibration {
+  background: url(images/vibration.png) no-repeat 50% 10%, hsla(0,0%,0%,.8);
+}
+
+#volume div {
+  position: absolute;
+  bottom: 10px;
+  left: 0;
+  width: 10px;
+  border-radius: 4px;
+  background: hsla(0,0%,100%,.4)
+}
+
+#volume div.active {
+  background: hsla(0,0%,100%,.9)
+}
+
+#volume div:nth-child(1) {
+  height: 10px;
+  left: 10px;
+}
+
+#volume div:nth-child(2) {
+  height: 20px;
+  left: 30px;
+}
+
+#volume div:nth-child(3) {
+  height: 30px;
+  left: 50px;
+}
+
+#volume div:nth-child(4) {
+  height: 40px;
+  left: 70px;
+}
+
+#volume div:nth-child(5) {
+  height: 50px;
+  left: 90px;
+}
+
+#volume div:nth-child(6) {
+  height: 60px;
+  left: 110px;
+}
+
+#volume div:nth-child(7) {
+  height: 70px;
+  left:130px;
+}
+
+#volume div:nth-child(8) {
+  height: 80px;
+  left: 150px;
+}
+
+#volume div:nth-child(9) {
+  height: 90px;
+  left: 170px;
+}
+
+#volume div:nth-child(10) {
+  height: 100px;
+  left: 190px;
+}
+
+/* Sleep Menu */
+#sleep {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 20002;
+  pointer-events: none;
+  background-color: rgba(0,0,0,0.4);
+  opacity: 0;
+  -moz-transition: opacity 0.5s ease;
+}
+
+#sleep.visible {
+  pointer-events: auto;
+  opacity: 1;
+}
+
+.sleep-menu {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  width: 320px;
+  height: 300px;
+  margin: 0 0 0 -160px;
+  background: -moz-linear-gradient(center top , rgb(244, 244, 244), rgb(234, 234, 234)) repeat scroll 0% 0% white;
+  border-radius: 8px;
+  border: 1px solid hsla(0,0%,0%,0);
+}
+
+.sleep-menu div {
+  height: 73px;
+  line-height: 73px;
+  font-size: 26px;
+  color: #778;
+  padding: 0 20px 0 100px;
+  border-top: 1px solid hsla(0, 0%, 100%,0.2); 
+  border-bottom: 1px solid hsla(0, 0%, 0%,0.4);
+}
+
+.sleep-menu div[data-value="power"] {
+  background: url(images/sleep/power-off.png) no-repeat 0 50%;
+}
+
+.sleep-menu div[data-value="restart"] {
+  background: url(images/sleep/restart.png) no-repeat 0 50%;
+}
+
+.sleep-menu div[data-value="airplane"] {
+  background: url(images/sleep/airplane.png) no-repeat 0 50%;
+}
+
+.sleep-menu div[data-value="normal"] {
+  background: url(images/sleep/normal.png) no-repeat 0 50%;
+}
+
+.sleep-menu div[data-value="silent"] {
+  background: url(images/sleep/vibration.png) no-repeat 0 50%;
+}
+
+.sleep-menu div:first-child {
+  border-radius: 9px 9px 0 0;
+  border-top-color: transparent;
+}
+
+.sleep-menu div:last-child {
+  border-radius: 0 0 9px 9px;
+  border-bottom-color: transparent;
+}
+
