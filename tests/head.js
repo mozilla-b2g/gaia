@@ -22,7 +22,7 @@ if (typeof content.ready === 'undefined') {
   try {
     content.ready = !!content.wrappedJSObject.Gaia.lockScreen;
     if (content.ready)
-      content.wrappedJSObject.Gaia.lockScreen.unlock(-1);
+      content.wrappedJSObject.Gaia.lockScreen.unlock();
   } catch (e) {
     content.ready = false;
   }
@@ -36,7 +36,7 @@ if (typeof content.ready === 'undefined') {
 
       content.removeEventListener('message', waitForReady);
 
-      content.wrappedJSObject.Gaia.lockScreen.unlock(-1);
+      content.wrappedJSObject.Gaia.lockScreen.unlock();
       content.ready = true;
     });
   });
