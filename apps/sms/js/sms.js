@@ -319,6 +319,11 @@ var ConversationView = {
     return this.title = document.getElementById('msg-conversation-view-name');
   },
 
+  get msgText() {
+    delete this.msgText;
+    return this.msgText = document.getElementById('msg-conversation-view-msg-text');
+  },
+
   init: function cv_init() {
     if (navigator.mozSms)
       navigator.mozSms.addEventListener('received', this);
@@ -330,10 +335,31 @@ var ConversationView = {
     document.getElementById('msg-conversation-view-msg-send').addEventListener(
       'mousedown', (this.sendMessage).bind(this));
 
+    this.msgText.addEventListener('input', (this.updateMsgTextHeight).bind(this));
+    window.addEventListener('resize', (this.updateMsgTextHeight).bind(this));
+
     var windowEvents = ['keypress', 'transitionend'];
     windowEvents.forEach((function(eventName) {
       window.addEventListener(eventName, this);
     }).bind(this));
+  },
+
+  updateMsgTextHeight: function cv_updateMsgTextHeight() {
+    var currentHeight = this.msgText.style.height;
+    this.msgText.style.height = null;
+    var newHeight = this.msgText.scrollHeight + 'px';
+    this.msgText.style.height = newHeight;
+
+    if (currentHeight === newHeight)
+      return;
+
+    var bottomToolbarHeight = (this.msgText.scrollHeight + 32) + 'px';
+    var bottomToolbar =
+      document.getElementById('msg-conversation-view-bottom-toolbar');
+
+    bottomToolbar.style.height = bottomToolbarHeight;
+
+    this.view.style.bottom = bottomToolbarHeight;
   },
 
   showConversation: function cv_showConversation(num) {
@@ -489,10 +515,10 @@ var ConversationView = {
     };
     messagesHack.unshift(message);
 
-    setTimeout(function keepKeyboardFocus() {
-      var input = document.getElementById('msg-conversation-view-msg-text');
-      input.value = '';
-    }, 0);
+    setTimeout((function keepKeyboardFocus() {
+      this.msgInput.value = '';
+      this.updateMsgTextHeight();
+    }).bind(this), 0);
 
     ConversationListView.updateConversationList();
     if (this.filter) {
