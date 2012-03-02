@@ -109,11 +109,11 @@ var LockScreen = {
   onTouchEnd: function lockscreen_touchend(e) {
     if (this.moving) {
       this.moving = false;
-      var dy = -(this.startY - e.pageY);
-      if (Math.abs(dy) < window.innerHeight / 4)
+      var dy = Math.min(0, -(this.startY - e.pageY));
+      if (dy > -window.innerHeight / 4)
         this.lock();
       else
-        this.unlock(dy);
+        this.unlock();
     }
   },
 
