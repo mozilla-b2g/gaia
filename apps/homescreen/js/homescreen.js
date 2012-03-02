@@ -16,6 +16,7 @@ function startup() {
     ];
     new NotificationScreen(touchables);
 
+    new MessagesListener();
     new TelephonyListener();
 
     window.parent.postMessage('homescreenready', '*');
@@ -675,6 +676,47 @@ new SettingListener('screen.brightness', function(value) {
   ScreenManager.preferredBrightness = screen.mozBrightness = parseFloat(value);
 });
 
+/* === MessagesListener === */
+var MessagesListener = function() {
+  var messages = navigator.mozSms;
+  if (!messages)
+    return;
+
+  var notifications = document.getElementById('notifications');
+  notifications.addEventListener('click', function notificationClick(evt) {
+    while (notifications.hasChildNodes())
+      notifications.removeChild(notifications.firstChild);
+    showMessage('', 'Waiting for notifications...');
+  });
+
+  function showMessage(sender, body) {
+    while (notifications.hasChildNodes())
+      notifications.removeChild(notifications.firstChild);
+
+    var notification = document.createElement('div');
+    notification.className = 'notification';
+
+    var title = document.createElement('div');
+    title.textContent = sender;
+
+    var message = document.createElement('div');
+    message.textContent = body;
+    if (sender == '')
+      message.classList.add('empty');
+
+    notification.appendChild(title);
+    notification.appendChild(message);
+    notifications.appendChild(notification);
+  }
+
+
+  messages.addEventListener('received', function received(evt) {
+    var message = evt.message;
+    showMessage(message.sender, message.body);
+  });
+
+  showMessage('', 'Waiting for notifications...');
+};
 
 /* === TelephoneListener === */
 var TelephonyListener = function() {
