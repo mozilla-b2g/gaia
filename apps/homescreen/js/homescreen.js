@@ -338,7 +338,7 @@ IconGrid.prototype = {
       var icon = icons[n];
       pageCount = Math.max(getIconPage(icon), pageCount);
     }
-    pageCount = Math.max(this.minPages, pageCount);
+    pageCount = Math.max(this.minPages, pageCount + 1);
 
     // adjust existing pages and create new ones as needed
     for (var n = 0; n < pageCount; ++n) {
