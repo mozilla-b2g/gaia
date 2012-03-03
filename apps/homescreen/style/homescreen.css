@@ -107,6 +107,12 @@ body {
   background-size: 100% 100%;
   border-bottom-left-radius: 8px;
   border-bottom-right-radius: 8px;
+
+  -moz-transition: -moz-transform 0.3s ease;
+}
+
+#home > #notifications.hidden {
+  -moz-transform: translateY(80px);
 }
 
 #home .notification {
@@ -115,29 +121,25 @@ body {
 }
 
 #home .notification > div:first-child {
-  padding: 5px 0 0 0;
-  height: 25px;
+  margin: 0;
+  padding: 20px 0 0 0;
+
   font-size: 2.5mozmm;
+  line-height: 2.5mozmm;
   color: #111;
 }
 
 #home .notification > div:last-child {
-  display: table-cell;
+  margin: 0;
+  padding: 0;
+  width: -moz-calc(100% - 20px);
+  height: 25px;
+
   font-size: 2mozmm;
-  height: 50px;
   color: #666;
-  overflow: scroll;
-  vertical-align: middle;
-}
-
-#home .notification > div:first-child.empty {
-  display: none;
-}
-
-#home .notification > div:last-child.empty {
-  line-height: 80px;
-  height: 80px;
-  color: #aaa;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .page {
