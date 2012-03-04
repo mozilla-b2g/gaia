@@ -516,6 +516,9 @@ html * {
   font-weight: 600;
   font-size: 14px;
   text-align: center;
+
+  cursor: default;
+  -moz-user-select: none;
 }
 
 /* === Contact detail View === */
