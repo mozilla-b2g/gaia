@@ -229,6 +229,14 @@ var ContactDetails = {
   _editing: false,
   setup: function cd_setup() {
     window.addEventListener('keyup', this, true);
+
+    // click outside details container to close
+    this.overlay.addEventListener('click', function(evt) {
+      ContactDetails.hide();
+    });
+    this.container.addEventListener('click', function(evt) {
+      evt.stopPropagation();
+    });
   },
   get overlay() {
     delete this.overlay;
@@ -472,14 +480,6 @@ window.addEventListener('load', function contactSetup(evt) {
   Contacts.setup();
   ShortcutsHandler.setup();
   ContactDetails.setup();
-
-  // click outside details container to close
-  document.getElementById('contacts-overlay').addEventListener('click', function(evt) {
-    ContactDetails.hide();
-  });
-  document.getElementById('contact-details-container').addEventListener('click', function(evt) {
-    evt.stopPropagation();
-  });
 
   // add scrollwheel fallback for browser users
   var scrollNode = Contacts.view;
