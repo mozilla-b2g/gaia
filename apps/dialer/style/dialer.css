@@ -369,6 +369,7 @@ html * {
 /* === Contacts View === */
 
 #contacts-view-scrollable {
+  overflow-y: scroll;
   height: -moz-calc(100% - 7.5mozmm);
 }
 
