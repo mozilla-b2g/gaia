@@ -524,27 +524,24 @@ html * {
 /* === Contact detail View === */
 #contacts-overlay {
   position: absolute;
-  top: -100%;
   width: 100%;
   height: 100%;
   overflow: hidden;
 
+  -moz-transition-property: background-color;
+  -moz-transition-duration: 1s;
+
   background-color: rgba(0, 0, 0, 0.6);
 
-  -moz-transition-property: -moz-transform;
-  -moz-transition-duration: 0.30s;
-  -moz-transition-timing-function: linear;
-
-  -moz-transform: scale(0);
-  z-index: 20;
+  z-index: -1;
 }
 #contacts-overlay.displayed {
-  top: 0;
-  -moz-transform: scale(1);
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 20;
 }
 
 #contacts-overlay.hidden {
-  -moz-transform: scale(0);
+  background-color: rgba(0, 0, 0, 0);
 }
 
 #contact-details-container {
@@ -561,6 +558,19 @@ html * {
   background: url(images/app-texture.png) 50% 50%,
               -moz-linear-gradient(bottom, hsla(0,0%,60%,1) 0,
               hsla(0,0%,0%,.1) 1px, hsla(0,0%,0%,0) 30%, hsla(0,0%,0%,0) 100%), hsla(0,0%,96%,1);
+
+  -moz-transition-property: -moz-transform;
+  -moz-transition-duration: 0.30s;
+  -moz-transition-timing-function: linear;
+
+  -moz-transform: scale(0);
+}
+
+#contacts-overlay.displayed > #contact-details-container {
+  -moz-transform: scale(1);
+}
+#contacts-overlay.hidden > #contact-details-container {
+  -moz-transform: scale(0);
 }
 
 #contact-details-view {
