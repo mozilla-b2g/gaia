@@ -1040,7 +1040,7 @@ html * {
 
 /* === Recents === */
 #recents-view {
-  overflow: scroll;
+  overflow-y: scroll;
 }
 
 .recent {
