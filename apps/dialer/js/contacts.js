@@ -472,4 +472,13 @@ window.addEventListener('load', function contactSetup(evt) {
   Contacts.setup();
   ShortcutsHandler.setup();
   ContactDetails.setup();
+
+  // click outside details container to close
+  document.getElementById('contacts-overlay').addEventListener('click', function(evt) {
+    ContactDetails.hide();
+  });
+  document.getElementById('contact-details-container').addEventListener('click', function(evt) {
+    evt.stopPropagation();
+  });
+  
 });
