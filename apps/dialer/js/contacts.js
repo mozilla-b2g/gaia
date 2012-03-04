@@ -480,5 +480,18 @@ window.addEventListener('load', function contactSetup(evt) {
   document.getElementById('contact-details-container').addEventListener('click', function(evt) {
     evt.stopPropagation();
   });
-  
+
+  // add scrollwheel fallback for browser users
+  var scrollNode = Contacts.view;
+  scrollNode.addEventListener('DOMMouseScroll', wheel, false);
+
+  function wheel(evt){
+    var s;
+    if (!evt) {
+      s = -window.event.wheelDelta;
+    } else {
+      s = evt.detail;
+    }
+    scrollNode.scrollTop += 10 * ((s > 0) ? 1 : -1);
+  }
 });
