@@ -31,7 +31,7 @@ function test() {
         EventUtils.sendMouseEvent({type: 'click'}, number);
         callScreen.addEventListener('transitionend', function trWait() {
           callScreen.removeEventListener('transitionend', trWait);
-          ok(callScreen.style.MozTransform == 'translateY(0px)', 'Call screen displayed');
+          ok(callScreen.classList.contains('oncall'), 'Call screen displayed');
 
           windowManager.closeForegroundWindow();
         });

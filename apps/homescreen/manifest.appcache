@@ -20,18 +20,25 @@ imes/jszhuying/data.json
 
 # style/
 style/homescreen.css
-style/images/battery-charging.png
-style/images/battery-main.png
-style/images/close.png
-style/images/lockscreen.jpg
-style/images/noise.png
-style/images/paging.png
-style/images/notificationsbar-bg.png
-style/images/reload.png
-style/fonts/Roboto-BoldItalic.ttf
-style/fonts/Roboto-Bold.ttf
-style/fonts/Roboto-Italic.ttf
-style/fonts/Roboto-Regular.ttf
+style/images/grid.png
+style/images/notifications.png
+style/homescreen.css
+
+style/themes/default/statusbar.css
+style/themes/default/fonts/Open-Sans.woff
+style/themes/default/fonts/Open-Sans-Semibold.woff
+style/themes/default/fonts/Open-Sans-Bold.woff
+style/themes/default/images/background.png
+style/themes/default/images/wifi.png
+style/themes/default/images/noise.png
+style/themes/default/images/battery-main.png
+style/themes/default/images/battery-charging.png
+style/themes/default/images/close.png
+style/themes/default/images/grippy.png
+style/themes/default/backgrounds/default.png
+style/themes/default/backgrounds/water.png
+style/themes/default/backgrounds/leaves.png
+style/themes/default/homescreen.css
 
 # icons set for pre-installed apps
 style/icons/Browser.png
@@ -40,6 +47,23 @@ style/icons/Gallery.png
 style/icons/Messages.png
 style/icons/Phone.png
 style/icons/Settings.png
+
+# keyboard files
+style/keyboard/keyboard.css
+style/keyboard/images/left-active.png
+style/keyboard/images/right-active-accent.png
+style/keyboard/images/right.png
+style/keyboard/images/right-special.png
+style/keyboard/images/left-accent.png
+style/keyboard/images/middle-special.png
+style/keyboard/images/left.png
+style/keyboard/images/middle.png
+style/keyboard/images/right-accent.png
+style/keyboard/images/left-active-accent.png
+style/keyboard/images/left-special.png
+style/keyboard/images/right-active.png
+style/keyboard/fonts/Keyboard-Symbols.svg
+style/keyboard/fonts/Keyboard-Symbols.woff
 
 # tmp files
 webapi+apps.js

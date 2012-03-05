@@ -40,11 +40,10 @@ window.addEventListener('DOMContentLoaded', function() {
     var target = evt.target;
     if (!target)
       return;
-    console.log('clicked on', target.id);
     playSong(target.id); // song url is anchor id
   });
   
-  window.addEventListener('keypress', function keyPressHandler(evt) {
+  window.addEventListener('keyup', function keyPressHandler(evt) {
     if (playing && evt.keyCode == evt.DOM_VK_ESCAPE) {
       stopSong();
       showSongList();

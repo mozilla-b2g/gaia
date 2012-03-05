@@ -235,7 +235,7 @@ var ConversationListView = {
            '    <img src="' + profilePictureForId(conversation.id) + '" />' +
            '  </div>' +
            '  <div class="name">' + conversation.name + '</div>' +
-           '  <div class="msg">' + conversation.body + '</div>' +
+           '  <div class="msg">' + conversation.body.split('\n')[0] + '</div>' +
            '  <div class="time">' + conversation.timestamp + '</div>' +
            '</div>';
   },
@@ -319,24 +319,56 @@ var ConversationView = {
     return this.title = document.getElementById('msg-conversation-view-name');
   },
 
+  get msgInput() {
+    delete this.msgInput;
+    return this.msgInput = document.getElementById('msg-conversation-view-msg-text');
+  },
+
   init: function cv_init() {
     if (navigator.mozSms)
       navigator.mozSms.addEventListener('received', this);
 
     document.getElementById('msg-conversation-view-back').addEventListener(
-      'click', (this.close).bind(this));
+      'click', this.close.bind(this));
 
     // click event does not trigger when keyboard is hiding
     document.getElementById('msg-conversation-view-msg-send').addEventListener(
-      'mousedown', (this.sendMessage).bind(this));
+      'mousedown', this.sendMessage.bind(this));
 
-    var windowEvents = ['keypress', 'transitionend'];
+    this.msgInput.addEventListener('input', this.updateMsgInputHeight.bind(this));
+
+    var windowEvents = ['resize', 'keyup', 'transitionend'];
     windowEvents.forEach((function(eventName) {
       window.addEventListener(eventName, this);
     }).bind(this));
   },
 
+  scrollViewToBottom: function cv_scrollViewToBottom() {
+    this.view.scrollTop = this.view.scrollHeight;
+  },
+
+  updateMsgInputHeight: function cv_updateMsgInputHeight() {
+    var input = this.msgInput;
+    var currentHeight = input.style.height;
+    input.style.height = null;
+    var newHeight = input.scrollHeight + 'px';
+    this.msgInput.style.height = newHeight;
+
+    if (currentHeight === newHeight)
+      return;
+
+    var bottomToolbarHeight = (input.scrollHeight + 32) + 'px';
+    var bottomToolbar =
+      document.getElementById('msg-conversation-view-bottom-toolbar');
+
+    bottomToolbar.style.height = bottomToolbarHeight;
+
+    this.view.style.bottom = bottomToolbarHeight;
+    this.scrollViewToBottom();
+  },
+
   showConversation: function cv_showConversation(num) {
+    var self = this;
     var view = this.view;
     var bodyclassList = document.body.classList;
     var filter = ('SmsFilter' in window) ? new SmsFilter() : {};
@@ -399,15 +431,13 @@ var ConversationView = {
                       '<div class="photo">' +
                       '  <img src="' + pic + '" />' +
                       '</div>' +
-                      '<div class="text">' + msg.body + '</div>' +
+                      '<div class="text">' + msg.body.replace(/\n/g, '<br />') + '</div>' +
                       '<div class="time">' + time + '</div>' +
                     '</div>';
       }
 
       view.innerHTML = fragment;
-
-      if (view.lastChild)
-        view.scrollTop = view.lastChild.offsetTop + 10000;
+      self.scrollViewToBottom();
 
       bodyclassList.add('conversation');
     }, filter, true);
@@ -424,7 +454,7 @@ var ConversationView = {
 
   handleEvent: function handleEvent(evt) {
     switch (evt.type) {
-      case 'keypress':
+      case 'keyup':
         if (evt.keyCode != evt.DOM_VK_ESCAPE)
           return;
 
@@ -448,6 +478,14 @@ var ConversationView = {
           return;
 
         this.view.innerHTML = '';
+        break;
+
+      case 'resize':
+        if (!document.body.classList.contains('conversation'))
+          return;
+
+        this.updateMsgInputHeight();
+        this.scrollViewToBottom();
         break;
     }
   },
@@ -489,10 +527,10 @@ var ConversationView = {
     };
     messagesHack.unshift(message);
 
-    setTimeout(function keepKeyboardFocus() {
-      var input = document.getElementById('msg-conversation-view-msg-text');
-      input.value = '';
-    }, 0);
+    setTimeout((function keepKeyboardFocus() {
+      this.msgInput.value = '';
+      this.updateMsgInputHeight();
+    }).bind(this), 0);
 
     ConversationListView.updateConversationList();
     if (this.filter) {

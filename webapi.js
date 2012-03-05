@@ -247,6 +247,26 @@
                      'fullscreen': true
                    }
                  },
+                 { // video cube demo
+                   'installOrigin': 'http://www.everyday3d.com/j3d/demo',
+                   'origin': '../cubevid',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'VideoCube',
+                     'description': 'Demo of WebGL',
+                     'launch_path': '/index.html',
+                     'hackKillMe': true,
+                     'developer': {
+                       'name': 'Unknown',
+                       'url': 'http://www.everyday3d.com/j3d/demo/004_Glass.html'
+                     },
+                     'icons': {
+                       '120': '/style/icons/VideoCube.png'
+                     },
+                     'fullscreen': true
+                   }
+                 },
                  { // PenguinPop
                    'installOrigin': 'http://goosypets.com/html5games/whac',
                    'origin': '../penguinpop',
@@ -406,8 +426,11 @@
     'keyboard.layouts.zhuying': 'true',
     'debug.grid.enabled' : 'false',
     'homescreen.wallpaper': 'default.png',
+    'homescreen.ring': 'classic.wav',
     'language.current': 'en-US',
-    'phone.vibrator.incoming': 'false'
+    'phone.vibration.incoming': 'false',
+    'phone.ring.incoming': 'true',
+    'screen.brightness': '0.5'
   };
 
   var DBNAME = 'mozSettings';     // Strings used by IndexedDB
@@ -543,8 +566,11 @@
 
 (function (window) {
   var navigator = window.navigator;
+
+  // XXX: Forcing the use of the fake mozContact api while waiting for updated apps
+  /*
   if ('mozContacts' in navigator)
-    return;
+    return; */
 
   var contacts = [
   {
@@ -1590,7 +1616,13 @@
 
   navigator.mozTelephony = {
     dial: function(number) {
-      console.log("dialing");
+      return {
+        number: number,
+        state: 'dialing',
+        addEventListener: function() {},
+        hangUp: function() {},
+        removeEventListener: function(){}
+      };
     },
     addEventListener: function(name, handler) {
     }
