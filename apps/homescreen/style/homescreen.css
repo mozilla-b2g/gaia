@@ -14,17 +14,6 @@ body {
   height: 100%;
 }
 
-/*
- * Simulate a common device-screen size on large monitors, for testing
- * on desktops/laptops.  1300px is just wider than the widest tablet
- * screen on the market today.
- */
-@media all and (min-width: 1300px) {
-  #screen {
-    max-width: 480px;
-    max-height: 800px;
-  }
-}
 
 #lockscreen {
   position: absolute;
@@ -88,26 +77,26 @@ body {
 
 #home > #apps {
   top: 0;
-  height: 594px;
+  height:100%;
+  width: 100%;
   margin-top: 40px;
 }
 
 #home > #dots {
-  top: 650px;
+  bottom: 90px;
   height: 14px;
   line-height: 14px;
   text-align: center;
 }
 
 #home > #notifications {
-  bottom: 0px;
+  
+bottom: 0px;
   height: 80px;
-  background-image: url(images/notifications.png);
+  background: url(images/notifications.png) center left, -moz-linear-gradient(rgba(245,245,245, 0.6), rgba(233,233,233,0.6));
   background-repeat: no-repeat;
-  background-size: 100% 100%;
   border-bottom-left-radius: 8px;
   border-bottom-right-radius: 8px;
-
   -moz-transition: -moz-transform 0.3s ease;
 }
 
@@ -147,12 +136,13 @@ body {
   left: 42px;
   top: 0px;
   width: 100%;
-  height: 100%;
+  height: -moz-calc(100% - 200px);
 }
 
 .icon {
-  position: absolute;
+  position: relative;
   overflow: hidden;
+  float:left;
 }
 
 .icon > * {
