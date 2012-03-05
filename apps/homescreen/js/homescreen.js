@@ -960,8 +960,13 @@ IconGrid.prototype = {
     var container = this.container;
     var icons = this.icons;
 
-    var rows =  (window.innerHeight > 600) ? Math.ceil((window.innerHeight - 250) / 250) : Math.ceil((window.innerHeight - 68) /68);
-    var columns = (window.innerWidth > 450) ? Math.ceil((window.innerWidth - 150) / 150) : Math.ceil((window.innerWidth - 120) / 96);
+    var rows = (window.innerHeight > 600) ?
+      Math.ceil((window.innerHeight - 250) / 250) :
+      Math.ceil((window.innerHeight - 68) / 68);
+
+    var columns = (window.innerWidth > 450) ?
+      Math.ceil((window.innerWidth - 150) / 150) :
+      Math.ceil((window.innerWidth - 120) / 96);
 
     var currentPage = this.currentPage;
     var itemsPerPage = rows * columns;

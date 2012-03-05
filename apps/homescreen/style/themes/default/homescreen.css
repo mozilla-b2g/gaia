@@ -26,7 +26,7 @@ body {
 
 #home {
   border-radius: 8px;
-  background: url(backgrounds/default.png) bottom right no-repeat rgb(76, 82, 89);
+  background: url(backgrounds/default.png);
 }
 
 /* Lock Screen */
@@ -140,15 +140,15 @@ body {
     overflow: hidden;
     padding-bottom: 10px;
     margin-right: 20px;
-    margin-bottom:20px;
+    margin-bottom: 20px;
   }
 
 }
 @media all and (min-width: 600px)
 {
   .icon {
-    margin-right:20px;
-    margin-bottom:20px;
+    margin-right: 20px;
+    margin-bottom: 20px;
   }
 }
 @media all and (min-width: 1000px) and (min-height: 800px)
