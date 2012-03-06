@@ -209,14 +209,11 @@ var WindowManager = {
     window.addEventListener('locked', this);
     window.addEventListener('unlocked', this);
     window.addEventListener('resize', this);
+
+    this.container = document.getElementById('windows');
   },
 
   enabled: true,
-
-  get container() {
-    delete this.container;
-    return this.container = document.getElementById('windows');
-  },
 
   handleEvent: function wm_handleEvent(evt) {
     switch (evt.type) {
