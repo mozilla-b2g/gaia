@@ -1,14 +1,30 @@
 html, body {
-  font-size: 2mozmm;
   margin: 0;
   padding: 0;
+  font-size: 3mozmm;
 }
 
-h1 {
-  color: #666;
-  font-size: 1.25em;
-  margin: 0.5em;
-  text-shadow: 0 0.1em 0 rgba(255, 255, 255, 0.9);
+body {
+  background: hsl(0, 0%, 96%) url(images/app-texture.png);
+}
+
+header {
+  position: relative;
+  height: 62px;
+  background-color: #fff;
+  background-image: -moz-linear-gradient(#fff, #eaeae4);
+  border-bottom: solid 2px #a3a3a3;
+  border-radius: 8px 8px 0 0;
+  display: none;
+}
+header h1 {
+  margin: 0;
+  padding: 0;
+  line-height: 64px;
+  text-align: center;
+  font-family: "Open Sans", sans-serif;
+  font-weight: bold;
+  font-size: 1em;
 }
 
 a {
@@ -27,10 +43,14 @@ a {
 }
 
 .view > h2 { /* list separators */
-  margin: 0 0.75em;
-  padding: 0.6em 0 0 0;
-  color: #fff;
-  text-shadow: #000 0 1px 0;
+  margin: 0;
+  padding: 0 0 0 10px;
+  height: 40px;
+  line-height: 40px;
+  font-size: 0.85em;
+  color: #333;
+  border-bottom: 2px solid #c3c9cb;
+  background: url("images/diagonal-pattern.png") repeat scroll 0 0 #F1F1ED;
 }
 
 .view.active {
@@ -44,111 +64,64 @@ a {
 
 /* View - Slide Horizontal Transition */
 .view.slideHorizontal {
-  -webkit-transition: all 0.5s ease;
   -moz-transition: all 0.5s ease;
-  -o-transition: all 0.5s ease;
-  transition: all 0.5s ease;
 }
 
 .view.push.slideHorizontal {
-  -webkit-transform: translate3d(100%, 0, 0);
   -moz-transform: translateX(100%);
-  -o-transform: translateX(100%);
-  transform: translateX(100%);
 }
-
-.view.push.slideHorizontal.transition {
-  -webkit-transform: translate3d(0, 0, 0);
-  -moz-transform: translateX(0);
-  -o-transform: translateX(0);
-  transform: translateX(0);
-}
-
+.view.push.slideHorizontal.transition,
 .view.push.slideHorizontal.active {
-  -webkit-transform: translate3d(0, 0, 0);
   -moz-transform: translateX(0);
-  -o-transform: translateX(0);
-  transform: translateX(0);
 }
-
 .view.push.slideHorizontal.active.transition {
-  -webkit-transform: translate3d(-100%, 0, 0);
   -moz-transform: translateX(-100%);
-  -o-transform: translateX(-100%);
-  transform: translateX(-100%);
 }
 
 .view.pop.slideHorizontal {
-  -webkit-transform: translate3d(-100%, 0, 0);
   -moz-transform: translateX(-100%);
-  -o-transform: translateX(-100%);
-  transform: translateX(-100%);
 }
-
-.view.pop.slideHorizontal.transition {
-  -webkit-transform: translate3d(0, 0, 0);
-  -moz-transform: translateX(0);
-  -o-transform: translateX(0);
-  transform: translateX(0);
-}
-
+.view.pop.slideHorizontal.transition,
 .view.pop.slideHorizontal.active {
-  -webkit-transform: translate3d(0, 0, 0);
   -moz-transform: translateX(0);
-  -o-transform: translateX(0);
-  transform: translateX(0);
 }
-
 .view.pop.slideHorizontal.active.transition {
-  -webkit-transform: translate3d(100%, 0, 0);
   -moz-transform: translateX(100%);
-  -o-transform: translateX(100%);
-  transform: translateX(100%);
 }
 
 /* Table View */
 ul.tableView {
-  background: #444 url('images/noise.png');
-  font-family: "Roboto", sans-serif;
-  font-size: 1.2em;
-  list-style: none;
-  margin: 0.75em;
+  margin: 0;
   padding: 0;
   overflow: hidden;
-  border-radius: 0.6em;
-  -moz-border-radius: 0.6em;
-  box-shadow: inset 0 0.05em 0.15em rgba(0, 0, 0, 0.6);
-  -moz-box-shadow: inset 0 0.05em 0.15em rgba(0, 0, 0, 0.6);
+  list-style: none;
 }
 
 ul.tableView > li {
   position: relative;
-  border-bottom: 0.1em solid #555;
-  color: #ccc;
-  text-shadow: #000 0 1px 0;
-  padding: 0.6em;
-}
-
-ul.tableView > li:last-child {
-  border-bottom: 0;
+  background-color: #f5f5f5;
+  border-bottom: 2px solid #c3c9cb;
+  height:  60px;
+  padding: 20px;
 }
 
 ul.tableView > li > a {
-  color: #ccc;
+  color: #000;
   display: block;
-  margin: -0.6em;
-  padding: 0.6em;
+  /*margin: -0.6em;*/
+  /*padding: 0.6em;*/
+  width: 100%;
+  height: 100%;
   text-decoration: none;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
 }
 
-ul.tableView > li:active,
-ul.tableView > li > a:active {
-  background: -moz-linear-gradient(top, rgba(191, 210, 85, 0.7) 0%, rgba(142, 185, 42, 0.7) 50%, rgba(114, 170, 0, 0.7) 51%, rgba(158, 203, 45, 0.7) 100%);
-  background: linear-gradient(top, rgba(191, 210, 85, 0.7) 0%, rgba(142, 185, 42, 0.7) 50%, rgba(114, 170, 0, 0.7) 51%,rgba(158, 203, 45, 0.7) 100%);
+/*ul.tableView > li > a:active {*/
+ul.tableView > li:active {
   color: #222;
   text-shadow: #999 0 -1px 0;
+  background-color: rgba(0, 0, 0, .07);
 }
 
 ul.tableView > li > .checkbox {
@@ -160,152 +133,44 @@ ul.tableView > li > .checkbox {
   margin: 0;
 }
 
-ul.tableView > li h1 { /* dead code? */
-  display: inline-block;
-  vertical-align: middle;
-}
-
-ul.tableView > li img {
-  margin: 0.35em;
-  vertical-align: middle;
-  max-width: 3.5em;
-  max-height: 3.5em;
-}
-
-ul.tableView > li span.arrowRight {
-  border-color: transparent transparent transparent #888;
-  border-style: solid;
-  border-width: 0.5em;
-  width: 0;
-  height: 0;
-  margin-top: -0.4em;
-  padding: 0;
-  position: absolute;
-  right: 0.25em;
-  top: 50%;
-}
-
 .tableView small {
-  font-size: 0.5em !important;
+  font-size: 0.65em !important;
   color: grey !important;
 }
 
-.tableView label+* {
-  float: right;
+/* checkboxes */
+label.checkbox {
+  vertical-align: middle;
+  width: 98px;
+  height: 98px;
+  line-height: 98px;
 }
 
-/* Checkboxes */
-.checkbox {
-  display: inline-block;
-  /*width: 2em;*/
-  /*height: 2em;*/
-  width: 5em;
-  height: 100%;
-}
-
-.checkbox > input[type="radio"],
-.checkbox > input[type="checkbox"] {
+.checkbox > input {
   display: none;
 }
 
-.checkbox > input[type="radio"] + span.checkbox-inner,
-.checkbox > input[type="checkbox"] + span.checkbox-inner {
+.checkbox > input + span {
   display: block;
-  position: relative;
-  top: -moz-calc(50% - 1em);
-  width: 2em;
-  height: 2em;
+  width: 60px;
+  height: 60px;
+  border: 4px solid;
+  border-radius: 5px;
+  -moz-border-top-colors:    #c3c9cb #c3c9cb #fff #fff;
+  -moz-border-right-colors:  #c3c9cb #c3c9cb #fff #fff;
+  -moz-border-bottom-colors: #c3c9cb #c3c9cb #fff #fff;
+  -moz-border-left-colors:   #c3c9cb #c3c9cb #fff #fff;
   margin: auto;
-  background-color: rgba(0, 0, 0, 0.1);
-  -webkit-border-radius: 1em;
-  -moz-border-radius: 1em;
-  border-radius: 1em;
-  -webkit-box-shadow: inset 0 0.2em 0.1em 0 rgba(0, 0, 0, 0.5);
-  -moz-box-shadow: inset 0 0.2em 0.1em 0 rgba(0, 0, 0, 0.5);
-  box-shadow: inset 0 0.2em 0.1em 0 rgba(0, 0, 0, 0.5);
+  margin-top: -moz-calc(50% - 34px);
+  background:
+    url(images/check-off.png) no-repeat scroll center center,
+    -moz-linear-gradient(#eaeae4, #ffffff);
 }
 
-.checkbox > input[type="radio"] + span.checkbox-inner:after,
-.checkbox > input[type="checkbox"] + span.checkbox-inner:after {
-  content: '';
-  display: block;
-  position: absolute;
-  width: 1em;
-  height: 1em;
-  top: 0.5em;
-  left: 0.5em;
-  background-color: #333;
-  -webkit-border-radius: 0.5em;
-  -moz-border-radius: 0.5em;
-  border-radius: 0.5em;
-  -webkit-box-shadow: inset 0 0 0.1em 0.1em rgba(0, 0, 0, 0.5), 0 0.05em 0.1em 0 rgba(0, 0, 0, 0.5);
-  -moz-box-shadow: inset 0 0 0.1em 0.1em rgba(0, 0, 0, 0.5), 0 0.05em 0.1em 0 rgba(0, 0, 0, 0.5);
-  box-shadow: inset 0 0 0.1em 0.1em rgba(0, 0, 0, 0.5), 0 0.05em 0.1em 0 rgba(0, 0, 0, 0.5);
-  -webkit-transition: background-color 0.2s ease;
-  -moz-transition: background-color 0.2s ease;
-  transition: background-color 0.2s ease;
-}
-
-.checkbox > input[type="radio"]:checked + span.checkbox-inner:after,
-.checkbox > input[type="checkbox"]:checked + span.checkbox-inner:after {
-  background-color: #9ec549;
-}
-
-/* Button */
-a.button {
-  background-image: -moz-linear-gradient(#666, #333);
-  border: 0.1em outset #555;
-  border-radius: 0.4em;
-  -moz-border-radius: 0.4em;
-  box-shadow: 0 0.1em 0.15em rgba(0, 0, 0, 1);
-  -moz-box-shadow: 0 0.1em 0.15em rgba(0, 0, 0, 1);
-  display: inline-block;
-  text-shadow: 0 -0.1em 0 rgba(0, 0, 0, 1);
-  text-decoration: none;
-  color: #fff;
-  font-size: 0.9em;
-  margin: 0.25em 0 0.25em 0.75em;
-  padding: 0.5em;
-  z-index: 1;
-}
-
-a.button:active {
-  background-image: -moz-linear-gradient(#555, #222);
-  border: 0.1em inset #000;
-  box-shadow: inset 0 0.1em 0.15em rgba(0, 0, 0, 1);
-  -moz-box-shadow: inset 0 0.1em 0.15em rgba(0, 0, 0, 1);
-}
-
-a.button.hide {
-  display: none;
-  -moz-animation-duration: 250ms;
-  -moz-animation-name: animateButtonHide;
-}
-@-moz-keyframes animateButtonHide {
-  from {
-    opacity: 1;
-    display: inline-block;
-  }
-  to {
-    opacity: 0;
-    display: none;
-  }
-}
-
-a.button.show {
-  display: inline-block;
-  -moz-animation-duration: 250ms;
-  -moz-animation-name: animateButtonShow;
-}
-@-moz-keyframes animateButtonShow {
-  from {
-    opacity: 0;
-    display: none;
-  }
-  to {
-    opacity: 1;
-    display: inline-block;
-  }
+.checkbox > input:checked + span {
+  background:
+    url(images/check-on.png) no-repeat scroll center center,
+    -moz-linear-gradient(#ffffff, #eaeae4);
 }
 
 /* wifi icons */
@@ -313,39 +178,34 @@ a.button.show {
   position: absolute;
   top: 0;
   right: 0;
-  height: 100%;
-  width: 5em;
+  width: 98px;
+  height: 98px;
 }
 
 .wifi span {
   display: block;
-  width: 30px;
+  position: absolute;
+  width: 100%;
   height: 100%;
-  margin: auto;
 }
 
-.wifi .wifi-signal0,
-.wifi .wifi-signal1,
-.wifi .wifi-signal2,
-.wifi .wifi-signal3,
-.wifi .wifi-signal4,
-.wifi .wifi-signal5 {
-  background: url(images/wifi.png) no-repeat scroll center center;
+.wifi .wifi-signal0 {
+  background: url(images/wifi-0.png) no-repeat scroll center center;
 }
-.wifi .wifi-signal0 { background-color: #000; }
-.wifi .wifi-signal1 { background-color: #222; }
-.wifi .wifi-signal2 { background-color: #444; }
-.wifi .wifi-signal3 { background-color: #666; }
-.wifi .wifi-signal4 { background-color: #888; }
-.wifi .wifi-signal5 { background-color: #aaa; }
+.wifi .wifi-signal1 {
+  background: url(images/wifi-1.png) no-repeat scroll center center;
+}
+.wifi .wifi-signal2 {
+  background: url(images/wifi-2.png) no-repeat scroll center center;
+}
+.wifi .wifi-signal3 {
+  background: url(images/wifi-3.png) no-repeat scroll center center;
+}
+.wifi .wifi-signal4 {
+  background: url(images/wifi-4.png) no-repeat scroll center center;
+}
+.wifi .wifi-secure {
+  background: url(images/wifi-lock.png) no-repeat scroll center center;
+}
 
-/* Badge */ /* XXX dead code? */
-span.badge, ul.tableView > li span.badge {
-  background-color: #888;
-  border-radius: 0.4em;
-  -moz-border-radius: 0.4em;
-  color: #fff;
-  font-size: 0.75em;
-  padding: 0.15em 0.3em;
-  margin: 0.25em;
-}
+

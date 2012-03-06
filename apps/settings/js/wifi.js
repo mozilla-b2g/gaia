@@ -21,12 +21,13 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
     small.textContent = (network.flags) ? network.flags : 'open';
 
     // signal
-    var level = Math.floor(5 * network.signal / maxSignal);
+    var level = Math.floor(5 * (network.signal - 101) / maxSignal);
     wifi.className = 'wifi';
     signal.className = 'wifi-signal' + level;
-    secure.className = 'wifi-' + network.flags ? 'secure' : 'open';
+    secure.className = 'wifi-secure';
     wifi.appendChild(signal);
-    wifi.appendChild(secure);
+    if (network.flags !== undefined)
+      wifi.appendChild(secure);
 
     // create list item
     li.appendChild(span);
@@ -40,10 +41,9 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
       var connection = navigator.mozWifiManager.select(network);
       connection.onsuccess = function() {
         p.textContent = ssid + ' connected!';
-        //onConnect(ssid, network);
       };
       connection.onerror = function() {
-        p.textContent = connection.error;
+        p.textContent = connection.error.message;
       };
     };
     return li;
@@ -64,21 +64,15 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
     ssids.sort(function(a, b) {
       return networks[b].signal - networks[a].signal;
     });
-    maxSignal = networks[ssids[0]].signal;
-    minSignal = networks[ssids[ssids.length - 1]].signal;
+    maxSignal = -100 + networks[ssids[0]].signal;
+    minSignal = -100 + networks[ssids[ssids.length - 1]].signal;
     for (var i = 0; i < ssids.length; i++) {
       var key = ssids[i];
       var li = newListItem(key, networks[key]);
       ul.appendChild(li);
     }
-    /*
-    p.textContent += "Networks: " + Object.prototype.toSource.call(networks['Mozilla Guest']);
-    navigator.mozWifiManager.select(networks['Mozilla Guest'], function(ok) {
-      p.textContent += '\n' + ok;
-    });
-    */
   };
   req.onerror = function(error) {
-    alert("error: " + req.error);
+    p.textContent = 'error: '+ req.error;
   };
 });
