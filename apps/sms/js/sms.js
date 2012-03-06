@@ -176,56 +176,60 @@ var ConversationListView = {
     var conversations = {};
 
     // XXX: put all contacts in DOM tree then hide them in non-search view
-    var contacts = window.navigator.mozContacts.contacts;
-    contacts.forEach(function(contact, i) {
-      var num = contact.phones[0];
-      conversations[num] = {
-        hidden: true,
-        name: contact.displayName,
-        num: num,
-        body: '',
-        timestamp: '',
-        id: i
-      };
-    });
+    var request = window.navigator.mozContacts.find({});
+    request.onsuccess = function findCallback() {
+      var contacts = request.result;
 
-    MessageManager.getMessages(function getMessagesCallback(messages) {
-      for (var i = 0; i < messages.length; i++) {
-        var message = messages[i];
-        var num = message.sender || message.receiver;
-        if (conversations[num] && !conversations[num].hidden)
-          continue;
-        if (!conversations[num]) {
-          conversations[num] = {
-            hidden: false,
-            num: (message.sender || message.receiver),
-            name: num,
-            // XXX: hack for contact pic
-            id: parseInt(num)
-          };
-        }
-
-        var data = {
-          hidden: false,
-          body: message.body,
-          timestamp: prettyDate(message.timestamp)
+      contacts.forEach(function(contact, i) {
+        var num = contact.tel[0];
+        conversations[num] = {
+          hidden: true,
+          name: contact.name,
+          num: num,
+          body: '',
+          timestamp: '',
+          id: i
         };
+      });
 
-        for (var key in data) {
-          conversations[num][key] = data[key];
+      MessageManager.getMessages(function getMessagesCallback(messages) {
+        for (var i = 0; i < messages.length; i++) {
+          var message = messages[i];
+          var num = message.sender || message.receiver;
+          if (conversations[num] && !conversations[num].hidden)
+            continue;
+          if (!conversations[num]) {
+            conversations[num] = {
+              hidden: false,
+              num: (message.sender || message.receiver),
+              name: num,
+              // XXX: hack for contact pic
+              id: parseInt(num)
+            };
+          }
+
+          var data = {
+            hidden: false,
+            body: message.body,
+            timestamp: prettyDate(message.timestamp)
+          };
+
+          for (var key in data) {
+            conversations[num][key] = data[key];
+          }
         }
-      }
 
-      var fragment = '';
-      for (var num in conversations) {
-        var msg = self.createNewConversation(conversations[num]);
-        fragment += msg;
-      }
-      self.view.innerHTML = fragment;
+        var fragment = '';
+        for (var num in conversations) {
+          var msg = self.createNewConversation(conversations[num]);
+          fragment += msg;
+        }
+        self.view.innerHTML = fragment;
 
-      if (typeof callback === 'function')
-        callback.call(self);
-    }, null);
+        if (typeof callback === 'function')
+          callback.call(self);
+      }, null);
+    };
   },
 
   createNewConversation: function createNewConversation(conversation) {
@@ -391,22 +395,24 @@ var ConversationView = {
 
     bodyclassList.remove('conversation-new-msg');
 
-    var name = num;
     var receiverId = parseInt(num);
 
-    var contacts = window.navigator.mozContacts.contacts;
-    contacts.some(function(contact, i) {
-      if (contact.phones[0] == num) {
-        name = contact.displayName;
-        receiverId = i;
-        return true;
+    var self = this;
+    var options = {filterBy: ['tel'], filterOp: 'contains', filterValue: num};
+    var request = window.navigator.mozContacts.find(options);
+    request.onsuccess = function findCallback() {
+      if (request.result.length > 0) {
+        var contact = request.result[0];
+        self.title.textContent = contact.name;
+        var images = self.view.querySelectorAll('.photo img');
+        for (var i = 0; i < images.length; i++)
+          images[i].src = profilePictureForId(contact.id);
       }
-      return false;
-    });
+    };
 
     this.num.value = num;
 
-    this.title.textContent = name;
+    this.title.textContent = num;
     this.title.num = num;
 
     MessageManager.getMessages(function mm_getMessages(messages) {
