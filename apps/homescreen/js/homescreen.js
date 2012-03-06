@@ -3,134 +3,804 @@
 
 'use strict';
 
-const SHORTCUTS_HEIGHT = 144;
+function startup() {
+  new Homescreen();
 
-var displayState;
+  LockScreen.init();
+  LockScreen.update(function fireHomescreenReady() {
+    ScreenManager.turnScreenOn();
 
-function foregroundAppURL() {
-  var win = WindowManager.getForegroundWindow();
-  return (win !== null) ? win.application.url : window.document.URL;
+    var touchables = [
+      document.getElementById('notificationsScreen'),
+      document.getElementById('statusbar')
+    ];
+    new NotificationScreen(touchables);
+
+    new MessagesListener();
+    new TelephonyListener();
+
+    window.parent.postMessage('homescreenready', '*');
+  });
 }
 
-function toggleSourceViewer(url) {
-  if (isSourceViewerActive()) {
-    hideSourceViewer(url);
+var LockScreen = {
+  get overlay() {
+    delete this.overlay;
+    return this.overlay = document.getElementById('lockscreen');
+  },
+
+  init: function lockscreen_init() {
+    var events = ['touchstart', 'touchmove', 'touchend', 'keydown', 'keyup'];
+    AddEventHandlers(LockScreen.overlay, this, events);
+
+    // TODO We don't really want to unlock the homescreen here
+    var telephony = navigator.mozTelephony;
+    if (telephony) {
+      telephony.addEventListener('incoming', (function incoming(evt) {
+        this.unlock(true);
+      }).bind(this));
+    }
+  },
+
+  update: function lockscreen_update(callback) {
+    var settings = window.navigator.mozSettings;
+    if (!settings)
+      return;
+
+    var request = settings.get('lockscreen.enabled');
+    request.addEventListener('success', (function onsuccess(evt) {
+      var enabled = request.result.value !== 'false';
+      if (enabled) {
+        this.lock(true);
+      } else {
+        this.unlock(true);
+      }
+
+      if (callback)
+        setTimeout(callback, 0);
+    }).bind(this));
+
+    request.addEventListener('error', (function onerror(evt) {
+      this.lock(true);
+      if (callback)
+        setTimeout(callback, 0);
+    }).bind(this));
+  },
+
+  lock: function lockscreen_lock(instant) {
+    var style = this.overlay.style;
+    if (instant) {
+      style.MozTransition = style.MozTransform = '';
+    } else {
+      style.MozTransition = '-moz-transform 0.2s linear';
+      style.MozTransform = 'translateY(0)';
+    }
+
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent('locked', true, true, null);
+    window.dispatchEvent(evt);
+  },
+
+  unlock: function lockscreen_unlock(instant) {
+    var offset = '-100%';
+
+    var style = this.overlay.style;
+    style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
+    style.MozTransform = 'translateY(' + offset + ')';
+
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent('unlocked', true, true, null);
+    window.dispatchEvent(evt);
+  },
+
+  onTouchStart: function lockscreen_touchStart(e) {
+    this.startX = e.pageX;
+    this.startY = e.pageY;
+    this.moving = true;
+  },
+
+  onTouchMove: function lockscreen_touchMove(e) {
+    if (this.moving) {
+      var dy = Math.min(0, -(this.startY - e.pageY));
+      var style = this.overlay.style;
+      style.MozTransition = '';
+      style.MozTransform = 'translateY(' + dy + 'px)';
+    }
+  },
+
+  onTouchEnd: function lockscreen_touchend(e) {
+    if (this.moving) {
+      this.moving = false;
+      var dy = Math.min(0, -(this.startY - e.pageY));
+      if (dy > -window.innerHeight / 4)
+        this.lock();
+      else
+        this.unlock();
+    }
+  },
+
+  handleEvent: function lockscreen_handleEvent(e) {
+    switch (e.type) {
+      case 'touchstart':
+        this.onTouchStart(e.touches[0]);
+        this.overlay.setCapture(false);
+        break;
+
+      case 'touchmove':
+        this.onTouchMove(e.touches[0]);
+        break;
+
+      case 'touchend':
+        this.onTouchEnd(e.changedTouches[0]);
+        document.releaseCapture();
+        break;
+
+      case 'keydown':
+        if (e.keyCode != e.DOM_VK_SLEEP || !screen.mozEnabled)
+          return;
+
+        this._timeout = window.setTimeout(function() {
+          SleepMenu.show();
+        }, 1500);
+        break;
+
+      case 'keyup':
+        if (e.keyCode != e.DOM_VK_SLEEP || SleepMenu.visible)
+          return;
+        window.clearTimeout(this._timeout);
+
+        ScreenManager.toggleScreen();
+        if (screen.mozEnabled)
+          this.update();
+
+        e.preventDefault();
+        e.stopPropagation();
+        break;
+
+      default:
+        return;
+    }
+    e.preventDefault();
+  }
+
+};
+
+
+NotificationScreen.prototype = {
+  get touchable() {
+    return this.touchables[this.locked ? 0 : 1];
+  },
+  get screenHeight() {
+    var screenHeight = this._screenHeight;
+    if (!screenHeight) {
+      screenHeight = this.touchables[0].getBoundingClientRect().height;
+      this._screenHeight = screenHeight;
+    }
+    return screenHeight;
+  },
+  onTouchStart: function(e) {
+    this.startX = e.pageX;
+    this.startY = e.pageY;
+    this.onTouchMove({ pageY: e.pageY + 32 });
+  },
+  onTouchMove: function(e) {
+    var dy = -(this.startY - e.pageY);
+    if (this.locked)
+      dy += this.screenHeight;
+    dy = Math.min(this.screenHeight, dy);
+
+    var style = this.touchables[0].style;
+    style.MozTransition = '';
+    style.MozTransform = 'translateY(' + dy + 'px)';
+  },
+  onTouchEnd: function(e) {
+    var dy = -(this.startY - e.pageY);
+    var offset = Math.abs(dy);
+    if ((!this.locked && offset > this.screenHeight / 4) ||
+        (this.locked && offset < 10))
+      this.lock();
+    else
+      this.unlock();
+  },
+  unlock: function() {
+    var style = this.touchables[0].style;
+    style.MozTransition = '-moz-transform 0.2s linear';
+    style.MozTransform = 'translateY(0)';
+    this.locked = false;
+  },
+  lock: function(dy) {
+    var style = this.touchables[0].style;
+    style.MozTransition = '-moz-transform 0.2s linear';
+    style.MozTransform = 'translateY(100%)';
+    this.locked = true;
+  },
+  attachEvents: function ns_attachEvents(view) {
+    AddEventHandlers(window, this, ['touchstart', 'touchmove', 'touchend']);
+  },
+  detachEvents: function ns_detachEvents() {
+    RemoveEventHandlers(window, this, ['touchstart', 'touchmove', 'touchend']);
+  },
+  handleEvent: function(evt) {
+    var target = evt.target;
+    switch (evt.type) {
+    case 'touchstart':
+      if (target != this.touchable)
+        return;
+      this.active = true;
+
+      target.setCapture(this);
+      this.onTouchStart(evt.touches[0]);
+      break;
+    case 'touchmove':
+      if (!this.active)
+        return;
+
+      this.onTouchMove(evt.touches[0]);
+      break;
+    case 'touchend':
+      if (!this.active)
+        return;
+      this.active = false;
+
+      document.releaseCapture();
+      this.onTouchEnd(evt.changedTouches[0]);
+      break;
+    default:
+      return;
+    }
+
+    evt.preventDefault();
+  }
+};
+
+
+
+// Update the clock and schedule a new update if appropriate
+function updateClock() {
+  if (!screen.mozEnabled)
+    return;
+
+  var now = new Date();
+  var match = document.getElementsByClassName('time');
+  for (var n = 0; n < match.length; ++n) {
+    var element = match[n];
+    element.textContent = now.toLocaleFormat(element.dataset.format);
+  }
+
+  // Schedule another clock update when a new minute rolls around
+  var now = new Date();
+  var sec = now.getSeconds();
+  setTimeout(updateClock, (59 - sec) * 1000);
+}
+
+function updateBattery() {
+  var battery = window.navigator.mozBattery;
+  if (!battery)
+    return;
+
+  // If the display is off, there is nothing to do here
+  if (!screen.mozEnabled) {
+    battery.removeEventListener('chargingchange', updateBattery);
+    battery.removeEventListener('levelchange', updateBattery);
+    battery.removeEventListener('statuschange', updateBattery);
+    return;
+  }
+
+  var elements = document.getElementsByClassName('battery');
+  for (var n = 0; n < elements.length; ++n) {
+    var element = elements[n];
+    var fuel = element.children[0];
+    var level = battery.level * 100;
+
+    var charging = element.children[1];
+    if (battery.charging) {
+      charging.hidden = false;
+      fuel.className = 'charging';
+      fuel.style.minWidth = (level / 5.88) + 'px';
+    } else {
+      charging.hidden = true;
+
+      fuel.style.minWidth = fuel.style.width = (level / 5.88) + 'px';
+      if (level <= 10)
+        fuel.className = 'critical';
+      else if (level <= 30)
+        fuel.className = 'low';
+      else
+        fuel.className = '';
+    }
+  }
+
+  // Make sure we will be called for any changes to the battery status
+  battery.addEventListener('chargingchange', updateBattery);
+  battery.addEventListener('levelchange', updateBattery);
+  battery.addEventListener('statuschange', updateBattery);
+}
+
+
+function updateConnection() {
+  var conn = window.navigator.mozMobileConnection;
+  if (!conn) {
+    return;
+  }
+
+  if (!screen.mozEnabled) {
+    conn.removeEventListener('cardstatechange', updateConnection);
+    conn.removeEventListener('connectionchange', updateConnection);
+    return;
+  }
+
+  // Update the operator name / SIM status.
+  var title = '';
+  if (conn.cardState == 'absent') {
+    title = 'No SIM card';
+  } else if (!conn.connected) {
+    title = 'Connecting...';
   } else {
-    showSourceViewer(url);
+    title = conn.operator || '';
+    if (conn.roaming) {
+      title += ' (roaming)';
+    }
   }
-}
+  document.getElementById('titlebar').textContent = title;
 
-function getSourceViewerElement() {
-  return content.document.getElementById('appViewsource');
-}
-
-function isSourceViewerActive() {
-  var viewsource = getSourceViewerElement();
-  return viewsource !== null && viewsource.style.visibility != 'hidden';
-}
-
-function showSourceViewer(url) {
-  var document = content.document;
-  var viewsource = getSourceViewerElement();
-  if (!viewsource) {
-    var style = '#appViewsource { ' +
-                '  position: absolute;' +
-                '  top: -moz-calc(10%);' +
-                '  left: -moz-calc(10%);' +
-                '  width: -moz-calc(80% - 2 * 15px);' +
-                '  height: -moz-calc(80% - 2 * 15px);' +
-                '  visibility: hidden;' +
-                '  box-shadow: 10px 10px 5px #888;' +
-                '  margin: 15px;' +
-                '  background-color: white;' +
-                '  opacity: 0.92;' +
-                '  color: black;' +
-                '  z-index: 9999;' +
-                '}';
-    document.styleSheets[0].insertRule(style, 0);
-
-    viewsource = document.createElement('iframe');
-    viewsource.id = 'appViewsource';
-    document.body.appendChild(viewsource);
+  // Update the signal strength bars.
+  var signalElements = document.querySelectorAll('#signal > span');
+  for (var i = 0; i < 4; i++) {
+    var haveSignal = (i < conn.bars);
+    var el = signalElements[i];
+    if (haveSignal) {
+      el.classList.add('haveSignal');
+    } else {
+      el.classList.remove('haveSignal');
+    }
   }
-  viewsource.style.visibility = 'visible';
-  viewsource.src = 'view-source: ' + url;
+
+  conn.addEventListener('cardstatechange', updateConnection);
+  conn.addEventListener('connectionchange', updateConnection);
 }
 
-function hideSourceViewer() {
-  var viewsource = getSourceViewerElement();
-  if (viewsource !== null) {
-    viewsource.style.visibility = 'hidden';
+var SoundManager = {
+  currentVolume: 5,
+  changeVolume: function soundManager_changeVolume(delta) {
+    activePhoneSound = true;
+
+    var volume = this.currentVolume + delta;
+    this.currentVolume = volume = Math.max(0, Math.min(10, volume));
+
+    var notification = document.getElementById('volume');
+    if (volume == 0) {
+      notification.classList.add('vibration');
+    } else {
+      notification.classList.remove('vibration');
+    }
+
+    var steps = notification.children;
+    for (var i = 0; i < steps.length; i++) {
+      var step = steps[i];
+      if (i < volume)
+        step.classList.add('active');
+      else
+        step.classList.remove('active');
+    }
+
+    notification.classList.add('visible');
+    if (this._timeout)
+      window.clearTimeout(this._timeout);
+
+    this._timeout = window.setTimeout(function hideSound() {
+      notification.classList.remove('visible');
+    }, 3000);
   }
-}
+};
 
-function hideGrid() {
-  document.getElementById('debug-grid').style.display = 'none';
-}
+var SleepMenu = {
+  get element() {
+    delete this.element;
+    return this.element = document.getElementById('sleep');
+  },
 
-function showGrid() {
-  document.getElementById('debug-grid').style.display = 'block';
-}
+  get visible() {
+    return this.element.classList.contains('visible');
+  },
 
-function toggleGrid() {
-  var visibility = document.getElementById('debug-grid').style.display;
-  visibility == 'block' ? hideGrid() : showGrid();
-}
+  show: function sleepmenu_show() {
+    this.element.classList.add('visible');
+  },
 
-if (window.navigator.mozSettings) {
-  var settings = window.navigator.mozSettings;
-  var updateGrid = function() {
-    var request = settings.get('debug.grid.enabled');
+  hide: function sleepmenu_hide() {
+    this.element.classList.remove('visible');
+  },
+
+  handleEvent: function sleepmenu_handleEvent(evt) {
+    if (!this.visible)
+      return;
+
+    switch (evt.type) {
+      case 'click':
+        var action = evt.target.dataset.value;
+        switch (action) {
+          case 'airplane':
+            // XXX There is no API for that yet
+            break;
+          case 'silent':
+            activePhoneSound = false;
+
+            var settings = window.navigator.mozSettings;
+            settings.set('phone.ring.incoming', 'false');
+
+            document.getElementById('silent').hidden = true;
+            document.getElementById('normal').hidden = false;
+            break;
+          case 'normal':
+            activePhoneSound = true;
+
+            var settings = window.navigator.mozSettings;
+            settings.get('phone.ring.incoming', 'true');
+
+            document.getElementById('silent').hidden = false;
+            document.getElementById('normal').hidden = true;
+            break;
+          case 'restart':
+            navigator.mozPower.reboot();
+            break;
+          case 'power':
+            navigator.mozPower.powerOff();
+            break;
+        }
+        this.hide();
+        break;
+
+      case 'keyup':
+        if (evt.keyCode == evt.DOM_VK_ESCAPE ||
+            evt.keyCode == evt.DOM_VK_HOME) {
+
+            this.hide();
+            evt.preventDefault();
+            evt.stopPropagation();
+         }
+        break;
+    }
+  }
+};
+window.addEventListener('click', SleepMenu, true);
+window.addEventListener('keyup', SleepMenu, true);
+
+function SettingListener(name, callback) {
+  var update = function update() {
+    var request = navigator.mozSettings.get(name);
+
     request.addEventListener('success', function onsuccess(evt) {
-      if (request.result.value === 'true')
-        showGrid();
+      callback(request.result.value);
     });
+  };
+
+  window.addEventListener('message', function settingChange(evt) {
+    if (evt.data != name)
+      return;
+    update();
+  });
+
+  update();
+}
+
+/* === Source View === */
+var SourceView = {
+  get viewer() {
+    return document.getElementById('appViewsource');
+  },
+
+  get active() {
+    return !this.viewer ? false : this.viewer.style.visibility === 'visible';
+  },
+
+  show: function sv_show(url) {
+    var viewsource = this.viewer;
+    if (!viewsource) {
+      var style = '#appViewsource { ' +
+                  '  position: absolute;' +
+                  '  top: -moz-calc(10%);' +
+                  '  left: -moz-calc(10%);' +
+                  '  width: -moz-calc(80% - 2 * 15px);' +
+                  '  height: -moz-calc(80% - 2 * 15px);' +
+                  '  visibility: hidden;' +
+                  '  margin: 15px;' +
+                  '  background-color: white;' +
+                  '  opacity: 0.92;' +
+                  '  color: black;' +
+                  '  z-index: 9999;' +
+                  '}';
+      document.styleSheets[0].insertRule(style, 0);
+
+      viewsource = document.createElement('iframe');
+      viewsource.id = 'appViewsource';
+      document.body.appendChild(viewsource);
+
+      window.addEventListener('locked', this);
+    }
+
+    var currentWindow = WindowManager.getForegroundWindow();
+    var url = currentWindow ? currentWindow.application.url : document.URL;
+    viewsource.src = 'view-source: ' + url;
+
+    viewsource.style.visibility = 'visible';
+  },
+
+  hide: function sv_hide() {
+    if (this.viewer)
+      this.viewer.style.visibility = 'hidden';
+  },
+
+  toggle: function sv_toggle() {
+    this.active ? this.hide() : this.show();
+  },
+
+  handleEvent: function sv_handleEvent(evt) {
+    switch (evt.type) {
+      case 'locked':
+        this.hide();
+        break;
+    }
+  }
+};
+
+/* === Debug GridView === */
+var GridView = {
+  get grid() {
+    return document.getElementById('debug-grid');
+  },
+
+  get visible() {
+    return this.grid && this.grid.style.display === 'block';
+  },
+
+  hide: function gv_hide() {
+    if (this.grid)
+      this.grid.style.display = 'none';
+  },
+
+  show: function gv_show() {
+    var grid = this.grid;
+    if (!grid) {
+      var style = '#debug-grid {' +
+                  '  position: absolute;' +
+                  '  top: 0;' +
+                  '  left: 0;' +
+                  '  display: none;' +
+                  '  width: 480px;' +
+                  '  height: 800px;' +
+                  '  background: url(images/grid.png);' +
+                  '  z-index: 20002;' +
+                  '  opacity: 0.2;' +
+                  '  pointer-events: none;' +
+                  '}';
+      document.styleSheets[0].insertRule(style, 0);
+
+      grid = document.createElement('div');
+      grid.id = 'debug-grid';
+
+      document.body.appendChild(grid);
+    }
+
+    grid.style.display = 'block';
+  },
+
+  toggle: function gv_toggle() {
+    this.visible ? this.hide() : this.show();
+  }
+};
+
+new SettingListener('debug.grid.enabled', function(value) {
+  value == 'true' ? GridView.show() : GridView.hide();
+});
+
+/* === Wallpapers === */
+new SettingListener('homescreen.wallpaper', function(value) {
+  var home = document.getElementById('home');
+  home.style.background = 'url(style/themes/default/backgrounds/' + value + ')';
+});
+
+/* === Ring Tone === */
+new SettingListener('homescreen.ring', function(value) {
+  var player = document.getElementById('ringtone-player');
+  player.src = 'style/ringtones/' + value;
+});
+
+var activePhoneSound = true;
+new SettingListener('phone.ring.incoming', function(value) {
+  activePhoneSound = (value === 'true');
+});
+
+/* === Vibration === */
+var activateVibration = false;
+new SettingListener('phone.vibration.incoming', function(value) {
+  activateVibration = (value === 'true');
+});
+
+/* === KeyHandler === */
+var KeyHandler = {
+  handleEvent: function kh_handleEvent(evt) {
+    if (!screen.mozEnabled)
+      return;
+
+    switch (evt.keyCode) {
+      case evt.DOM_VK_PAGE_UP:
+        SoundManager.changeVolume(1);
+        break;
+
+      case evt.DOM_VK_PAGE_DOWN:
+        SoundManager.changeVolume(-1);
+        break;
+
+      case evt.DOM_VK_CONTEXT_MENU:
+        SourceView.toggle();
+        break;
+
+      case evt.DOM_VK_F6:
+        document.location.reload();
+        break;
+    }
+  }
+};
+
+window.addEventListener('keyup', KeyHandler);
+
+/* === Screen Manager === */
+var ScreenManager = {
+  preferredBrightness: 0.5,
+  toggleScreen: function lockscreen_toggleScreen() {
+    if (screen.mozEnabled)
+      this.turnScreenOff();
+    else
+      this.turnScreenOn();
+  },
+
+  turnScreenOff: function lockscreen_turnScreenOff() {
+    screen.mozEnabled = false;
+
+    this.preferredBrightness = screen.mozBrightness;
+    screen.mozBrightness = 0.0;
+  },
+
+  turnScreenOn: function lockscreen_turnScreenOn() {
+    screen.mozEnabled = true;
+
+    screen.mozBrightness = this.preferredBrightness;
+
+    updateClock();
+    updateBattery();
+    updateConnection();
+  }
+};
+
+new SettingListener('screen.brightness', function(value) {
+  ScreenManager.preferredBrightness = screen.mozBrightness = parseFloat(value);
+});
+
+/* === MessagesListener === */
+var MessagesListener = function() {
+  var messages = navigator.mozSms;
+  if (!messages)
+    return;
+
+  var notifications = document.getElementById('notifications');
+  notifications.addEventListener('click', function notificationClick(evt) {
+    if (!notifications.dataset.sender)
+      return;
+
+    while (notifications.hasChildNodes())
+      notifications.removeChild(notifications.firstChild);
+    notifications.classList.add('hidden');
+
+    var sender = notifications.dataset.sender;
+    WindowManager.launch('../sms/sms.html?sender=' + sender);
+  });
+
+  function showMessage(sender, body) {
+    while (notifications.hasChildNodes())
+      notifications.removeChild(notifications.firstChild);
+
+    var notification = document.createElement('div');
+    notification.className = 'notification';
+
+    var title = document.createElement('div');
+    title.textContent = sender;
+
+    var message = document.createElement('div');
+    message.textContent = body;
+
+    notification.appendChild(title);
+    notification.appendChild(message);
+    notifications.appendChild(notification);
+
+    notifications.dataset.sender = sender;
+
+    notifications.classList.remove('hidden');
   }
 
-  window.addEventListener('message', function listenGridChanges(evt) {
-    if (evt.data == 'debug.grid.enabled') {
-      toggleGrid();
+
+  messages.addEventListener('received', function received(evt) {
+    var message = evt.message;
+    showMessage(message.sender, message.body);
+  });
+
+  notifications.classList.add('hidden');
+};
+
+/* === TelephoneListener === */
+var TelephonyListener = function() {
+  var telephony = navigator.mozTelephony;
+  if (!telephony)
+    return;
+
+  telephony.addEventListener('incoming', function incoming(evt) {
+    ScreenManager.turnScreenOn();
+
+    var vibrateInterval = 0;
+    if (activateVibration) {
+      vibrateInterval = window.setInterval(function vibrate() {
+        try {
+          navigator.mozVibrate([200]);
+        } catch (e) {}
+      }, 600);
+    }
+
+    var ringtonePlayer = document.getElementById('ringtone-player');
+    if (activePhoneSound) {
+      ringtonePlayer.play();
+    }
+
+    telephony.calls.forEach(function(call) {
+      if (call.state == 'incoming') {
+        call.onstatechange = function () {
+          call.oncallschanged = null;
+          ringtonePlayer.pause();
+          window.clearInterval(vibrateInterval);
+        };
+      }
+    });
+
+    var url = '../dialer/dialer.html';
+    var launchFunction = function launchDialer() {
+      WindowManager.launch(url);
+    };
+
+    var appWindow = WindowManager.getForegroundWindow();
+    if (appWindow && (appWindow.application.name != 'Dialer')) {
+      WindowManager.closeForegroundWindow();
+      appWindow.element.addEventListener('transitionend', function closed() {
+        appWindow.element.removeEventListener('transitionend', closed);
+
+        launchFunction();
+      });
+    } else {
+      launchFunction();
     }
   });
+};
 
-  updateGrid();
-}
+/* === Homescreen === */
+var Homescreen = function() {
+  function populateApps(apps) {
+    var rows = Math.ceil((window.innerHeight - 200) / 200);
+    var columns = Math.ceil((window.innerWidth - 100) / 150);
+    var pages = Math.floor(apps.length / (rows * columns)) + 1;
 
-if (window.navigator.mozSettings) {
-  var settings = window.navigator.mozSettings;
-  var updateWallpaper = function() {
-    var request = settings.get('homescreen.wallpaper');
-    request.addEventListener('success', function onsuccess(evt) {
-      var home = document.getElementById('home');
-      home.style.background = 'url(style/themes/default/backgrounds/' + request.result.value + ')';
+    var appsGrid = new IconGrid('apps', columns, rows, pages, true);
+    var appsGridCount = 0;
+    for (var n = 0; n < apps.length; ++n) {
+      var app = apps[n];
+      appsGrid.add(n, app.icon, app.name, app.url);
+    }
+    appsGrid.dots = new Dots('dots', 'apps');
+    appsGrid.update();
+
+    window.addEventListener('resize', function() {
+      appsGrid.update();
     });
-  }
+  };
 
-  window.addEventListener('message', function listenGridChanges(evt) {
-    if (evt.data == 'homescreen.wallpaper')
-      updateWallpaper();
-  });
-
-  updateWallpaper();
-}
-
-// Change the display state (off, locked, default)
-function changeDisplayState(state) {
-  displayState = state;
-
-  // update clock and battery status (if needed)
-  updateClock();
-  updateBattery();
-  updateConnection();
-
-  // Make sure the source viewer is not visible.
-  if (state == 'locked')
-    hideSourceViewer();
-}
-
-function createPhysicsFor(iconGrid) {
-  return new DefaultPhysics(iconGrid);
-}
+  Gaia.AppManager.loadInstalledApps(populateApps);
+};
 
 function DefaultPhysics(iconGrid) {
   this.iconGrid = iconGrid;
@@ -140,8 +810,6 @@ function DefaultPhysics(iconGrid) {
 
 DefaultPhysics.prototype = {
   onTouchStart: function(e) {
-    hideSourceViewer();
-
     var touchState = this.touchState;
     this.moved = false;
     touchState.active = true;
@@ -214,9 +882,8 @@ var Touch2Mouse = {
 
 var ForceOnWindow = {
   'touchmove': true,
-  'touchend': true,
-  'sleep': true
-}
+  'touchend': true
+};
 
 function AddEventHandlers(target, listener, eventNames) {
   for (var n = 0; n < eventNames.length; ++n) {
@@ -261,10 +928,11 @@ function IconGrid(containerId, columns, rows, minPages, showLabels) {
   this.showLabels = showLabels;
   this.icons = [];
   this.currentPage = 0;
-  this.physics = createPhysicsFor(this);
+  this.physics = new DefaultPhysics(this);
 
   // install event handlers
-  AddEventHandlers(this.container, this, ['touchstart', 'touchmove', 'touchend']);
+  var events = ['touchstart', 'touchmove', 'touchend'];
+  AddEventHandlers(this.container, this, events);
   AddEventHandlers(window, this, ['resize']);
 }
 
@@ -293,8 +961,8 @@ IconGrid.prototype = {
     var rows = rows;
     var currentPage = this.currentPage;
     var itemsPerPage = rows * columns;
-    var iconWidth = Math.floor(100/columns);
-    var iconHeight = Math.floor(100/rows);
+    var iconWidth = Math.floor(100 / columns);
+    var iconHeight = Math.floor(100 / rows);
 
     // get the page of an icon
     function getIconPage(icon) {
@@ -325,7 +993,8 @@ IconGrid.prototype = {
     }
 
     // get icon divs
-    var elementList = document.querySelectorAll('#' + containerId + '> .page > .icon');
+    var rule = '#' + containerId + '> .page > .icon';
+    elementList = document.querySelectorAll(rule);
     var iconDivs = [];
     for (var n = 0; n < elementList.length; ++n) {
       var element = elementList[n];
@@ -338,7 +1007,7 @@ IconGrid.prototype = {
       var icon = icons[n];
       pageCount = Math.max(getIconPage(icon), pageCount);
     }
-    pageCount = Math.max(this.minPages, pageCount);
+    pageCount = Math.max(this.minPages, pageCount + 1);
 
     // adjust existing pages and create new ones as needed
     for (var n = 0; n < pageCount; ++n) {
@@ -400,14 +1069,16 @@ IconGrid.prototype = {
           label.textContent = icon.label;
       }
 
-      // update position
-      var deltaX = 136;
-      var deltaY = 200;
+      // TODO This code is really, really, dirty
+      var deltaX = getIconColumn(icon) * 136;
+      var deltaY = getIconRow(icon);
       if (window.innerHeight <= 480) {
-        deltaY = 184;
+        deltaY *= 184;
+      } else {
+        deltaY *= 200;
       }
 
-      setPosition(iconDiv, getIconColumn(icon) * 136 + 'px', getIconRow(icon) * deltaY + 'px');
+      setPosition(iconDiv, deltaX + 'px', deltaY + 'px');
     }
 
     // remove icons we don't need
@@ -428,9 +1099,12 @@ IconGrid.prototype = {
     var currentPage = this.currentPage;
     for (var n = 0; n < pages.length; ++n) {
       var page = pages[n];
+
+      var calc = (n - currentPage) + '00% + ' + x + 'px';
+
       var style = page.style;
-      style.MozTransform = 'translateX(-moz-calc(' + (n - currentPage) + '00% + ' + x + 'px))';
-      style.MozTransition = duration ? ('all ' + duration + 's ease;') : "";
+      style.MozTransform = 'translateX(-moz-calc(' + calc + '))';
+      style.MozTransition = duration ? ('all ' + duration + 's ease;') : '';
     }
   },
   setPage: function(number, duration) {
@@ -444,7 +1118,7 @@ IconGrid.prototype = {
       var page = pages[n];
       var style = page.style;
       style.MozTransform = 'translateX(' + (n - number) + '00%)';
-      style.MozTransition = duration ? ('all ' + duration + 's ease') : "";
+      style.MozTransition = duration ? ('all ' + duration + 's ease') : '';
     }
     var dots = this.dots;
     if (dots)
@@ -493,7 +1167,7 @@ Dots.prototype = {
     // Add additional dots if needed.
     while (container.childNodes.length < numPages) {
       var dot = document.createElement('div');
-      dot.className = "dot";
+      dot.className = 'dot';
       container.appendChild(dot);
     }
 
@@ -506,391 +1180,16 @@ Dots.prototype = {
     for (var n = 0; n < numPages; ++n) {
       var dot = childNodes[n];
       if (n == current) {
-        dot.classList.add("active");
+        dot.classList.add('active');
       } else {
-        dot.classList.remove("active");
+        dot.classList.remove('active');
       }
     }
   }
-}
+};
 
 function NotificationScreen(touchables) {
   this.touchables = touchables;
   this.attachEvents(this.touchable);
 }
 
-NotificationScreen.prototype = {
-  get touchable() {
-    return this.touchables[this.locked ? 0 : 1];
-  },
-  get screenHeight() {
-    var screenHeight = this._screenHeight;
-    if (!screenHeight) {
-      screenHeight = this.touchables[0].getBoundingClientRect().height;
-      this._screenHeight = screenHeight;
-    }
-    return screenHeight;
-  },
-  onTouchStart: function(e) {
-    this.startX = e.pageX;
-    this.startY = e.pageY;
-    this.onTouchMove({ pageY: e.pageY + 32 });
-  },
-  onTouchMove: function(e) {
-    var dy = -(this.startY - e.pageY);
-    if (this.locked)
-      dy += this.screenHeight;
-    dy = Math.min(this.screenHeight, dy);
-
-    var style = this.touchables[0].style;
-    style.MozTransition = '';
-    style.MozTransform = 'translateY(' + dy + 'px)';
-  },
-  onTouchEnd: function(e) {
-    var dy = -(this.startY - e.pageY);
-    var offset = Math.abs(dy);
-    if ((!this.locked && offset > this.screenHeight / 4) ||
-        (this.locked && offset < 10))
-      this.lock();
-    else
-      this.unlock();
-  },
-  unlock: function() {
-    var style = this.touchables[0].style;
-    style.MozTransition = '-moz-transform 0.2s linear';
-    style.MozTransform = 'translateY(0)';
-    this.locked = false;
-  },
-  lock: function(dy) {
-    var style = this.touchables[0].style;
-    style.MozTransition = '-moz-transform 0.2s linear';
-    style.MozTransform = 'translateY(100%)';
-    this.locked = true;
-  },
-  attachEvents: function ns_attachEvents(view) {
-    AddEventHandlers(window, this, ['touchstart', 'touchmove', 'touchend']);
-  },
-  detachEvents: function ns_detachEvents() {
-    RemoveEventHandlers(window, this, ['touchstart', 'touchmove', 'touchend']);
-  },
-  handleEvent: function(evt) {
-    var target = evt.target;
-    switch (evt.type) {
-    case 'touchstart':
-      if (target != this.touchable)
-        return;
-      hideSourceViewer();
-      this.active = true;
-
-      target.setCapture(this);
-      this.onTouchStart(evt.touches[0]);
-      break;
-    case 'touchmove':
-      if (!this.active)
-        return;
-
-      this.onTouchMove(evt.touches[0]);
-      break;
-    case 'touchend':
-      if (!this.active)
-        return;
-      this.active = false;
-
-      document.releaseCapture();
-      this.onTouchEnd(evt.changedTouches[0]);
-      break;
-    default:
-      return;
-    }
-
-    evt.preventDefault();
-  }
-};
-
-function LockScreen(overlay) {
-  this.overlay = overlay;
-
-  AddEventHandlers(overlay, this, ['touchstart', 'touchmove', 'touchend', 'sleep']);
-
-  this.update(function fireHomescreenReady() {
-    window.parent.postMessage('homescreenready', '*');
-  });
-}
-
-LockScreen.prototype = {
-  update: function lockscreen_update(callback) {
-    var settings = window.navigator.mozSettings;
-    if (!settings)
-      return;
-
-    var request = settings.get('lockscreen.enabled');
-    request.addEventListener('success', (function onsuccess(evt) {
-      request.result.value !== 'false' ? this.lock(true) : this.unlock(true);
-
-      if (callback)
-        setTimeout(callback, 0);
-    }).bind(this));
-
-    request.addEventListener('error', (function onerror(evt) {
-      this.lock(true);
-      if (callback)
-        setTimeout(callback, 0);
-    }).bind(this));
-  },
-  onTouchStart: function(e) {
-    this.startX = e.pageX;
-    this.startY = e.pageY;
-    this.moving = true;
-  },
-  onTouchMove: function(e) {
-    if (this.moving) {
-      var dy = Math.min(0, -(this.startY - e.pageY));
-      var style = this.overlay.style;
-      style.MozTransition = '';
-      style.MozTransform = 'translateY(' + dy + 'px)';
-    }
-  },
-  onTouchEnd: function(e) {
-    if (this.moving) {
-      this.moving = false;
-      var dy = Math.min(0, -(this.startY - e.pageY));
-      if (dy > -window.innerHeight / 4)
-        this.lock();
-      else
-        this.unlock();
-    }
-  },
-  unlock: function(instant) {
-    var offset = '-100%';
-
-    var style = this.overlay.style;
-    style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
-    style.MozTransform = 'translateY(' + offset + ')';
-    changeDisplayState('unlocked');
-
-    var unlockEvent = document.createEvent('CustomEvent');
-    unlockEvent.initCustomEvent('unlocked', true, true, null);
-    window.dispatchEvent(unlockEvent);
-  },
-  lock: function(instant) {
-    var style = this.overlay.style;
-    if (instant) {
-      style.MozTransition = style.MozTransform = '';
-    } else {
-      style.MozTransition = '-moz-transform 0.2s linear';
-      style.MozTransform = 'translateY(0)';
-    }
-    changeDisplayState('locked');
-
-    var lockEvent = document.createEvent('CustomEvent');
-    lockEvent.initCustomEvent('locked', true, true, null);
-    window.dispatchEvent(lockEvent);
-  },
-  handleEvent: function(e) {
-    hideSourceViewer();
-
-    switch (e.type) {
-    case 'touchstart':
-      this.onTouchStart(e.touches[0]);
-      this.overlay.setCapture(false);
-      break;
-    case 'touchmove':
-      this.onTouchMove(e.touches[0]);
-      break;
-    case 'touchend':
-      this.onTouchEnd(e.changedTouches[0]);
-      document.releaseCapture();
-      break;
-    case 'sleep':
-      // Lock the screen when screen is turn off can stop
-      // homescreen from showing up briefly when it's turn back on
-      // But we still do update() when it's turned back on
-      // coz the screen could be turned off by the timer
-      // instead of sleep button
-
-      // XXX: the above statement does not really works all the time
-      // gaia issue #513
-
-      //if (!e.detail.enabled)
-      //  return;
-      this.update();
-      break;
-    default:
-      return;
-    }
-    e.preventDefault();
-  }
-};
-
-function OnLoad() {
-  Gaia.lockScreen = new LockScreen(document.getElementById('lockscreen'));
-
-  var touchables = [
-    document.getElementById('notificationsScreen'),
-    document.getElementById('statusbar')
-  ];
-  new NotificationScreen(touchables);
-
-  var telephony = navigator.mozTelephony;
-  if (telephony) {
-    telephony.addEventListener('incoming', function incoming(evt) {
-      Gaia.lockScreen.unlock(true);
-      screen.mozEnabled = true;
-      screen.mozBrightness = 1.0;
-
-      var url = '../dialer/dialer.html?choice=incoming&number=';
-      var launchFunction = function launchDialer() {
-        WindowManager.launch(url + evt.call.number);
-      };
-
-      var appWindow = WindowManager.getForegroundWindow();
-      if (appWindow && (appWindow.application.name != 'Dialer')) {
-        WindowManager.closeForegroundWindow();
-        appWindow.element.addEventListener('transitionend', function closed() {
-          appWindow.element.removeEventListener('transitionend', closed);
-
-          launchFunction();
-        });
-      } else {
-        launchFunction();
-      }
-
-    });
-  }
-
-  var apps = Gaia.AppManager.loadInstalledApps(function(apps) {
-    var rows = Math.ceil((window.innerHeight - 200) / 200);
-    var columns = Math.ceil((window.innerWidth - 100) / 150);
-    var pages = Math.floor(apps.length / (rows * columns)) + 1;
-
-    var appsGrid = new IconGrid('apps', columns, rows, pages, true);
-    var appsGridCount = 0;
-    for (var n = 0; n < apps.length; ++n) {
-      var app = apps[n];
-      appsGrid.add(n, app.icon, app.name, app.url);
-    }
-    appsGrid.dots = new Dots('dots', 'apps');
-    appsGrid.update();
-
-    window.addEventListener('resize', function() {
-      appsGrid.update();
-    });
-  });
-
-  window.addEventListener('keypress', function(evt) {
-    if (evt.keyCode == evt.DOM_VK_F5)
-      document.location.reload();
-  });
-
-  window.addEventListener('menu', function(evt) {
-    toggleSourceViewer(foregroundAppURL());
-  });
-
-  changeDisplayState();
-}
-
-// Update the clock and schedule a new update if appropriate
-function updateClock() {
-  // If the display is off, there is nothing to do here
-  if (displayState == 'off')
-    return;
-
-  var now = new Date();
-  var match = document.getElementsByClassName('time');
-  for (var n = 0; n < match.length; ++n) {
-    var element = match[n];
-    element.textContent = now.toLocaleFormat(element.dataset.format);
-  }
-
-  // Schedule another clock update when a new minute rolls around
-  var now = new Date();
-  var sec = now.getSeconds();
-  setTimeout(updateClock, (59 - sec) * 1000);
-}
-
-function updateBattery() {
-  var battery = window.navigator.mozBattery;
-  if (!battery)
-    return;
-
-  // If the display is off, there is nothing to do here
-  if (displayState == 'off') {
-    battery.removeEventListener('chargingchange', updateBattery);
-    battery.removeEventListener('levelchange', updateBattery);
-    battery.removeEventListener('statuschange', updateBattery);
-    return;
-  }
-
-  var elements = document.getElementsByClassName('battery');
-  for (var n = 0; n < elements.length; ++n) {
-    var element = elements[n];
-    var fuel = element.children[0];
-    var level = battery.level * 100;
-
-    var charging = element.children[1];
-    if (battery.charging) {
-      charging.hidden = false;
-      fuel.className = 'charging';
-      fuel.style.minWidth = (level / 5.88) + 'px';
-    } else {
-      charging.hidden = true;
-
-      fuel.style.minWidth = fuel.style.width = (level / 5.88) + 'px';
-      if (level <= 10)
-        fuel.className = 'critical';
-      else if (level <= 30)
-        fuel.className = 'low';
-      else
-        fuel.className = '';
-    }
-  }
-
-  // Make sure we will be called for any changes to the battery status
-  battery.addEventListener('chargingchange', updateBattery);
-  battery.addEventListener('levelchange', updateBattery);
-  battery.addEventListener('statuschange', updateBattery);
-}
-
-
-function updateConnection() {
-  var conn = window.navigator.mozMobileConnection;
-  if (!conn) {
-    console.log("There's no window.navigator.mozMobileConnection!");
-    return;
-  }
-
-  if (displayState == 'off') {
-    conn.removeEventListener("cardstatechange", updateConnection);
-    conn.removeEventListener("connectionchange", updateConnection);
-    return;
-  }
-
-  // Update the operator name / SIM status.
-  var title = "";
-  if (conn.cardState == "absent") {
-    title = "No SIM card";
-  } else if (!conn.connected) {
-    title = "Connecting...";
-  } else {
-    title = conn.operator || "";
-    if (conn.roaming) {
-      title += " (roaming)";
-    }
-  }
-  document.getElementById("titlebar").textContent = title;
-
-  // Update the signal strength bars.
-  var signalElements = document.querySelectorAll('#signal > span');
-  for (var i = 0; i < 4; i++) {
-    var haveSignal = (i < conn.bars);
-    var el = signalElements[i];
-    if (haveSignal) {
-      el.classList.add('haveSignal');
-    } else {
-      el.classList.remove('haveSignal');
-    }
-  }
-
-  conn.addEventListener("cardstatechange", updateConnection);
-  conn.addEventListener("connectionchange", updateConnection);
-}

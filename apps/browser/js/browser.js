@@ -51,7 +51,7 @@ var Browser = {
     this.forwardButton.addEventListener('click', this.goForward.bind(this));
     this.shade.addEventListener('click', this.toggleMenu.bind(this));
     window.addEventListener('submit', this);
-    window.addEventListener('keypress', this, true);
+    window.addEventListener('keyup', this, true);
 
     var browserEvents = ['loadstart', 'loadend', 'locationchange'];
     browserEvents.forEach((function attachBrowserEvent(type) {
@@ -80,7 +80,7 @@ var Browser = {
         evt.preventDefault();
         break;
 
-      case 'keypress':
+      case 'keyup':
         if (!MockHistory.backLength() || evt.keyCode != evt.DOM_VK_ESCAPE)
           break;
 

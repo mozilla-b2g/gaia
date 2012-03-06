@@ -107,6 +107,39 @@ body {
   background-size: 100% 100%;
   border-bottom-left-radius: 8px;
   border-bottom-right-radius: 8px;
+
+  -moz-transition: -moz-transform 0.3s ease;
+}
+
+#home > #notifications.hidden {
+  -moz-transform: translateY(80px);
+}
+
+#home .notification {
+  margin-left: 85px;
+  font-weight: bold;
+}
+
+#home .notification > div:first-child {
+  margin: 0;
+  padding: 20px 0 0 0;
+
+  font-size: 2.5mozmm;
+  line-height: 2.5mozmm;
+  color: #111;
+}
+
+#home .notification > div:last-child {
+  margin: 0;
+  padding: 0;
+  width: -moz-calc(100% - 20px);
+  height: 25px;
+
+  font-size: 2mozmm;
+  color: #666;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .page {
@@ -350,15 +383,3 @@ iframe.landscape-secondary {
   width: 100%;
 }
 
-#debug-grid {
-  position: absolute;
-  top: 0;
-  left: 0;
-  display: none;
-  width: 480px;
-  height: 800px;
-  background: url(images/grid.png);
-  z-index: 20002;
-  opacity: 0.2;
-  pointer-events: none;
-}

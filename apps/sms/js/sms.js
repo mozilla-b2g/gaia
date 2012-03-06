@@ -337,7 +337,7 @@ var ConversationView = {
 
     this.msgInput.addEventListener('input', this.updateMsgInputHeight.bind(this));
 
-    var windowEvents = ['resize', 'keypress', 'transitionend'];
+    var windowEvents = ['resize', 'keyup', 'transitionend'];
     windowEvents.forEach((function(eventName) {
       window.addEventListener(eventName, this);
     }).bind(this));
@@ -454,7 +454,7 @@ var ConversationView = {
 
   handleEvent: function handleEvent(evt) {
     switch (evt.type) {
-      case 'keypress':
+      case 'keyup':
         if (evt.keyCode != evt.DOM_VK_ESCAPE)
           return;
 

@@ -426,8 +426,11 @@
     'keyboard.layouts.zhuying': 'true',
     'debug.grid.enabled' : 'false',
     'homescreen.wallpaper': 'default.png',
+    'homescreen.ring': 'classic.wav',
     'language.current': 'en-US',
-    'phone.vibrator.incoming': 'false'
+    'phone.vibration.incoming': 'false',
+    'phone.ring.incoming': 'true',
+    'screen.brightness': '0.5'
   };
 
   var DBNAME = 'mozSettings';     // Strings used by IndexedDB
@@ -563,8 +566,11 @@
 
 (function (window) {
   var navigator = window.navigator;
+
+  // XXX: Forcing the use of the fake mozContact api while waiting for updated apps
+  /*
   if ('mozContacts' in navigator)
-    return;
+    return; */
 
   var contacts = [
   {

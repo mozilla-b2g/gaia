@@ -44,8 +44,6 @@ function visibilityChanged(url, evt) {
   if (choice == 'contact' || contacts.hasAttribute('data-active')) {
     Contacts.load();
     choiceChanged(contacts);
-  } else if (choice == 'incoming') {
-    CallHandler.setupTelephony();
   }
 }
 
@@ -231,6 +229,11 @@ var CallHandler = {
     this._telephonySetup = true;
 
     var telephony = navigator.mozTelephony;
+    if (telephony.calls.length > 0) {
+      var call = telephony.calls[0];
+      CallHander.incoming(call, call.number);
+    }
+
     telephony.oncallschanged = function cc(evt) {
       telephony.calls.forEach(function(call) {
         if (call.state == 'incoming')
@@ -278,24 +281,6 @@ var CallHandler = {
     // XXX: remove the fake contact when the contact API lands
     this.pictureView.innerHTML = profilePictureForNumber(parseInt(number));
 
-
-    var self = this;
-    if (window.navigator.mozSettings) {
-      var settings = window.navigator.mozSettings;
-      var request = settings.get('phone.vibrator.incoming');
-      request.addEventListener('success', function onsuccess(evt) {
-        if (request.result.value !== 'true')
-          return;
-
-        self._vibration = setInterval(function ch_vibrate() {
-          try {
-            navigator.mozVibrate([200]);
-          } catch (e) {}
-        }, 600);
-      });
-    }
-
-
     this.toggleCallScreen();
   },
   connected: function ch_connected() {
@@ -316,29 +301,15 @@ var CallHandler = {
   },
   answer: function ch_answer() {
     this.currentCall.answer();
-    this.stopVibration();
   },
   end: function ch_end() {
-    this.stopVibration();
-
     if (this.currentCall) {
-      // XXX: workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=729503
-      var toDisconnect = false;
-      if (this.currentCall.state == 'dialing')
-        toDisconnect = true;
-
       this.currentCall.hangUp();
-
-      if (toDisconnect) {
-        this.disconnected();
-      }
     } else {
       this.disconnected();
     }
   },
   disconnected: function ch_disconnected() {
-    this.stopVibration();
-
     if (this.currentCall) {
       this.currentCall.removeEventListener('statechange', this);
       this.currentCall = null;
@@ -416,13 +387,6 @@ var CallHandler = {
     this[action]();
   },
 
-  stopVibration: function ch_stopVibration() {
-    if (this._vibration) {
-      clearInterval(this._vibration);
-      this._vibration = null;
-    }
-  },
-
   toggleCallScreen: function ch_toggleScreen() {
     var callScreen = document.getElementById('call-screen');
     callScreen.classList.remove('animate');
@@ -494,6 +458,7 @@ window.addEventListener('load', function keyboardInit(evt) {
   window.removeEventListener('load', keyboardInit);
 
   KeyHandler.init();
+  CallHandler.setupTelephony();
 
   window.parent.postMessage('appready', '*');
 });
