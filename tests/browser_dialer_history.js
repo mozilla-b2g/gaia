@@ -17,6 +17,7 @@ function test() {
         callScreen.addEventListener('transitionend', function trWait() {
           callScreen.removeEventListener('transitionend', trWait);
           dialerWindow.CallHandler.end();
+          dialerWindow.CallHandler.disconnected();
 
           callScreen.addEventListener('transitionend', function trWait() {
             callScreen.removeEventListener('transitionend', trWait);
@@ -34,6 +35,7 @@ function test() {
               dialerWindow.CallHandler.answer();
               dialerWindow.CallHandler.connected();
               dialerWindow.CallHandler.end();
+              dialerWindow.CallHandler.disconnected();
 
               dialerWindow.Recents.history(function(history) {
                 ok(history.length == (initialCount + 2),
