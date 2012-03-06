@@ -26,6 +26,13 @@ a {
   left: 0;
 }
 
+.view > h2 { /* list separators */
+  margin: 0 0.75em;
+  padding: 0.6em 0 0 0;
+  color: #fff;
+  text-shadow: #000 0 1px 0;
+}
+
 .view.active {
   display: block;
 }
@@ -115,6 +122,7 @@ ul.tableView {
 }
 
 ul.tableView > li {
+  position: relative;
   border-bottom: 0.1em solid #555;
   color: #ccc;
   text-shadow: #000 0 1px 0;
@@ -135,6 +143,7 @@ ul.tableView > li > a {
   box-sizing: border-box;
 }
 
+ul.tableView > li:active,
 ul.tableView > li > a:active {
   background: -moz-linear-gradient(top, rgba(191, 210, 85, 0.7) 0%, rgba(142, 185, 42, 0.7) 50%, rgba(114, 170, 0, 0.7) 51%, rgba(158, 203, 45, 0.7) 100%);
   background: linear-gradient(top, rgba(191, 210, 85, 0.7) 0%, rgba(142, 185, 42, 0.7) 50%, rgba(114, 170, 0, 0.7) 51%,rgba(158, 203, 45, 0.7) 100%);
@@ -143,11 +152,15 @@ ul.tableView > li > a:active {
 }
 
 ul.tableView > li > .checkbox {
-  float: right;
-  margin: -0.35em -0.35em 0 0;
+  /*float: right;*/
+  /*margin: -0.35em -0.35em 0 0;*/
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 0;
 }
 
-ul.tableView > li h1 {
+ul.tableView > li h1 { /* dead code? */
   display: inline-block;
   vertical-align: middle;
 }
@@ -172,7 +185,7 @@ ul.tableView > li span.arrowRight {
   top: 50%;
 }
 
-.tableView .comment {
+.tableView small {
   font-size: 0.5em !important;
   color: grey !important;
 }
@@ -184,8 +197,10 @@ ul.tableView > li span.arrowRight {
 /* Checkboxes */
 .checkbox {
   display: inline-block;
-  width: 2em;
-  height: 2em;
+  /*width: 2em;*/
+  /*height: 2em;*/
+  width: 5em;
+  height: 100%;
 }
 
 .checkbox > input[type="radio"],
@@ -197,8 +212,10 @@ ul.tableView > li span.arrowRight {
 .checkbox > input[type="checkbox"] + span.checkbox-inner {
   display: block;
   position: relative;
+  top: -moz-calc(50% - 1em);
   width: 2em;
   height: 2em;
+  margin: auto;
   background-color: rgba(0, 0, 0, 0.1);
   -webkit-border-radius: 1em;
   -moz-border-radius: 1em;
@@ -291,7 +308,38 @@ a.button.show {
   }
 }
 
-/* Badge */
+/* wifi icons */
+.wifi {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 5em;
+}
+
+.wifi span {
+  display: block;
+  width: 30px;
+  height: 100%;
+  margin: auto;
+}
+
+.wifi .wifi-signal0,
+.wifi .wifi-signal1,
+.wifi .wifi-signal2,
+.wifi .wifi-signal3,
+.wifi .wifi-signal4,
+.wifi .wifi-signal5 {
+  background: url(images/wifi.png) no-repeat scroll center center;
+}
+.wifi .wifi-signal0 { background-color: #000; }
+.wifi .wifi-signal1 { background-color: #222; }
+.wifi .wifi-signal2 { background-color: #444; }
+.wifi .wifi-signal3 { background-color: #666; }
+.wifi .wifi-signal4 { background-color: #888; }
+.wifi .wifi-signal5 { background-color: #aaa; }
+
+/* Badge */ /* XXX dead code? */
 span.badge, ul.tableView > li span.badge {
   background-color: #888;
   border-radius: 0.4em;

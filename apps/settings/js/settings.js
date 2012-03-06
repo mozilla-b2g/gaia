@@ -57,11 +57,11 @@ Gaia.SettingsApp = {
       var input = evt.target;
       if (!input)
         return;
-        
+
       var key = input.name;
       if (!key)
         return;
-        
+
       var value;
       if (input.type === 'checkbox') {
         value = input.checked;
