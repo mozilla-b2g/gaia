@@ -201,7 +201,6 @@ AppWindow.prototype = {
 var WindowManager = {
   init: function wm_init() {
     window.addEventListener('keyup', this);
-
     window.addEventListener('appopen', this);
     window.addEventListener('appwillclose', this);
     window.addEventListener('locked', this);
@@ -241,11 +240,6 @@ var WindowManager = {
           return;
         if (evt.data == 'appclose')
           this.closeForegroundWindow();
-        break;
-      case 'home':
-        if (!this.enabled)
-          return;
-        this.closeForegroundWindow();
         break;
       case 'appopen':
         this.container.classList.add('active');
