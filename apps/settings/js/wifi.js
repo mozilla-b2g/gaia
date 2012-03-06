@@ -14,20 +14,22 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
     var small = document.createElement('small');
     var wifi = document.createElement('span');
     var signal = document.createElement('span');
-    var secure = document.createElement('span');
 
     // ssid
     span.textContent = ssid;
     small.textContent = (network.flags) ? network.flags : 'open';
 
     // signal
-    var level = Math.floor(5 * (network.signal - 101) / maxSignal);
+    // level should be between 0 and 4
+    var level = Math.ceil(4 * (network.signal - 100) / maxSignal);
     wifi.className = 'wifi';
-    signal.className = 'wifi-signal' + level;
-    secure.className = 'wifi-secure';
+    signal.className = 'wifi-signal' + Math.max(0, level);
     wifi.appendChild(signal);
-    if (network.flags !== undefined)
+    if (network.flags !== undefined) {
+      var secure = document.createElement('span');
+      secure.className = 'wifi-secure';
       wifi.appendChild(secure);
+    }
 
     // create list item
     li.appendChild(span);
@@ -49,9 +51,6 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
     return li;
   }
 
-  function onConnect(ssid, network) {
-  }
-
   // scan wifi networks
   var networks;
   var ul = document.querySelector('#wifi-networks');
@@ -59,7 +58,8 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
 
   req.onsuccess = function() {
     networks = req.result;
-    ul.innerHTML = ''; // XXX
+    while (ul.hasChildNodes())
+      ul.removeChild(ul.lastChild);
     var ssids = Object.getOwnPropertyNames(networks);
     ssids.sort(function(a, b) {
       return networks[b].signal - networks[a].signal;
@@ -73,6 +73,6 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
     }
   };
   req.onerror = function(error) {
-    p.textContent = 'error: '+ req.error;
+    p.textContent = 'error: '+ req.error.name;
   };
 });

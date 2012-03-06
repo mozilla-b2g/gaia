@@ -17,6 +17,7 @@ header {
   border-radius: 8px 8px 0 0;
   display: none;
 }
+
 header h1 {
   margin: 0;
   padding: 0;
@@ -115,7 +116,6 @@ ul.tableView > li > a {
   height: 100%;
   text-decoration: none;
   -moz-box-sizing: border-box;
-  box-sizing: border-box;
 }
 
 /*ul.tableView > li > a:active {*/
