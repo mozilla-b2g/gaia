@@ -749,21 +749,15 @@ var TelephonyListener = function() {
       ringtonePlayer.play();
     }
 
-    telephony.oncallschanged = function() {
-      try {
-        var incoming = false;
-        telephony.calls.forEach(function(call) {
-          if (call.state == 'incoming')
-            incoming = true;
-        });
-
-        if (!incoming) {
+    telephony.calls.forEach(function(call) {
+      if (call.state == 'incoming') {
+        call.onstatechange = function () {
+          call.oncallschanged = null;
           ringtonePlayer.pause();
-          telephony.oncallschanged = null;
           window.clearInterval(vibrateInterval);
-        }
-      } catch (e) {}
-    };
+        };
+      }
+    });
 
     var url = '../dialer/dialer.html';
     var launchFunction = function launchDialer() {
