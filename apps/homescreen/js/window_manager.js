@@ -196,10 +196,6 @@ AppWindow.prototype = {
   }
 };
 
-function getApplicationManager() {
-  return WindowManager;
-}
-
 var WindowManager = {
   init: function wm_init() {
     window.addEventListener('keyup', this);
