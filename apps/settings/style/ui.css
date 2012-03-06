@@ -137,7 +137,12 @@ ul.tableView > li > .checkbox {
 .tableView small {
   font-size: 0.65em !important;
   color: #888 !important;
-  overflow: ellipsis;
+  /* text ellipsis */
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: -moz-calc(100% - 80px);
 }
 
 /* checkboxes */
