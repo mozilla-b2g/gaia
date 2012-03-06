@@ -1,6 +1,6 @@
 function test() {
-  waitForExplicitFinish();
-  let url = '../dialer/dialer.html';
+    waitForExplicitFinish();
+    let url = '../dialer/dialer.html';
   
   getWindowManager(function(windowManager) {
     function onReady(dialerFrame) {
