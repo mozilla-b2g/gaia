@@ -45,7 +45,7 @@ WindowSprite.prototype = {
 
 var _statusBarHeight = null;
 
-function Window(application, id) {
+function AppWindow(application, id) {
   var element = this.element = document.createElement('iframe');
   element.setAttribute('mozallowfullscreen', 'true');
 
@@ -62,7 +62,7 @@ function Window(application, id) {
   this.resize();
 }
 
-Window.prototype = {
+AppWindow.prototype = {
   element: null,
 
   _loaded: false,
@@ -362,7 +362,7 @@ var WindowManager = {
       Gaia.AppManager.foregroundWindow = applicationWindow.element;
       TaskManager.sendToFront(applicationWindow.id);
     } else {
-      applicationWindow = new Window(application, ++this._lastWindowId);
+      applicationWindow = new AppWindow(application, ++this._lastWindowId);
       this.add(applicationWindow);
 
       // To be compatible with the upstream webapi.js file,
