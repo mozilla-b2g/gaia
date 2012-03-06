@@ -99,6 +99,7 @@ ul.tableView {
 
 ul.tableView > li {
   position: relative;
+  color: #555 !important;
   background-color: #f5f5f5;
   border-bottom: 2px solid #c3c9cb;
   height:  60px;
@@ -135,7 +136,8 @@ ul.tableView > li > .checkbox {
 
 .tableView small {
   font-size: 0.65em !important;
-  color: grey !important;
+  color: #888 !important;
+  overflow: ellipsis;
 }
 
 /* checkboxes */
@@ -208,4 +210,10 @@ label.checkbox {
   background: url(images/wifi-lock.png) no-repeat scroll center center;
 }
 
+/* first page */
+#root ul.tableView > li > span,
+#root ul.tableView > li > a {
+  height: 60px;
+  line-height: 60px;
+}
 
