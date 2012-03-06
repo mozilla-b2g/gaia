@@ -125,7 +125,8 @@ AppWindow.prototype = {
       document.getElementById('screen').classList.add('fullscreen');
     }
 
-    document.body.offsetHeight;
+    document.body.offsetHeight; // Trigger layout; not a no-op
+
     sprite.setActive(true);
   },
 
@@ -169,7 +170,8 @@ AppWindow.prototype = {
       this.element.style.height = width;
     }
 
-    document.body.offsetHeight;
+    document.body.offsetHeight;  // Trigger layout; not a no-op.
+
     sprite.setActive(false);
   },
 
