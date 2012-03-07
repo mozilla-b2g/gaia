@@ -11,7 +11,7 @@ function test() {
         ok(number == '5707534296', 'Phone number sanitized');
         windowManager.closeForegroundWindow();
 
-        var fakeCall = {number: '123', addEventListener: function(){}};
+        var fakeCall = {number: '123', addEventListener: function() {}};
         return fakeCall;
       };
 

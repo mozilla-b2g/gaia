@@ -10,19 +10,22 @@ function test() {
       var conversationView = document.getElementById('msg-conversation-view');
       var contactField = document.getElementById('msg-conversation-view-num');
 
-      var aConv = document.querySelector("#msg-conversations-list > div[data-notempty='true']");
+      var convSelector = "#msg-conversations-list > div[data-notempty='true']";
+      var aConv = document.querySelector(convSelector);
       EventUtils.sendMouseEvent({type: 'click'}, aConv);
 
       conversationView.addEventListener('transitionend', function trWait() {
         conversationView.removeEventListener('transitionend', trWait);
-        ok(document.body.classList.contains('conversation'), 'Conversation displayed');
+        ok(document.body.classList.contains('conversation'),
+           'Conversation displayed');
         ok(contactField.value.length != 0, 'To: field filled');
 
         // closing the conversation view
         EventUtils.sendKey('ESCAPE', smsFrame.contentWindow);
         conversationView.addEventListener('transitionend', function trWait() {
           conversationView.removeEventListener('transitionend', trWait);
-          ok(!document.body.classList.contains('conversation'), 'Conversation hidden');
+          ok(!document.body.classList.contains('conversation'),
+             'Conversation hidden');
 
           setTimeout(function() {
             windowManager.closeForegroundWindow();
