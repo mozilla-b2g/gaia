@@ -198,6 +198,7 @@ var ConversationListView = {
           var num = message.sender || message.receiver;
           if (conversations[num] && !conversations[num].hidden)
             continue;
+
           if (!conversations[num]) {
             conversations[num] = {
               hidden: false,
@@ -401,13 +402,14 @@ var ConversationView = {
     var options = {filterBy: ['tel'], filterOp: 'contains', filterValue: num};
     var request = window.navigator.mozContacts.find(options);
     request.onsuccess = function findCallback() {
-      if (request.result.length > 0) {
-        var contact = request.result[0];
-        self.title.textContent = contact.name;
-        var images = self.view.querySelectorAll('.photo img');
-        for (var i = 0; i < images.length; i++)
-          images[i].src = profilePictureForId(contact.id);
-      }
+      if (request.result.length == 0)
+        return;
+
+      var contact = request.result[0];
+      self.title.textContent = contact.name;
+      var images = self.view.querySelectorAll('.photo img');
+      for (var i = 0; i < images.length; i++)
+        images[i].src = profilePictureForId(contact.id);
     };
 
     this.num.value = num;

@@ -39,9 +39,11 @@ var Contacts = {
     var options = {filterBy: ['tel'], filterOp: 'contains', filterValue: number};
     var request = window.navigator.mozContacts.find(options);
     request.onsuccess = function findCallback() {
+      if (request.result.length == 0)
+        return;
+
       var contacts = request.result;
-      if (contacts.length > 0)
-        callback(contacts[0]);
+      callback(contacts[0]);
     };
   },
 
@@ -145,9 +147,11 @@ var Contacts = {
     var options = {filterBy: ['id'], filterOp: 'equals', filterValue: contactId};
     var request = window.navigator.mozContacts.find(options);
     request.onsuccess = function findCallback() {
+      if (request.result == 0)
+        return;
+
       var contacts = request.result;
-      if (contacts.length > 0)
-        ContactDetails.show(contacts[0]);
+      ContactDetails.show(contacts[0]);
     };
   },
 
