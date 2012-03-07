@@ -33,9 +33,7 @@ function profilePictureForId(id) {
 
 var MessageManager = {
   getMessages: function mm_getMessages(callback, filter, invert) {
-    // XXX Bug 712809
-    // Until there is a database for mozSms, use a fake GetMessages
-    if (true) {
+    if (!navigator.mozSms) {
       GetMessagesHack(callback, filter, invert);
       return;
     }
@@ -44,20 +42,20 @@ var MessageManager = {
 
     var messages = [];
     request.onsuccess = function onsuccess() {
-      var result = request.result;
-      if (!result) {
+      var cursor = request.result;
+      if (!cursor.message) {
         callback(messages);
         return;
       }
 
-      var message = result.message;
-      messages.push(message);
-      result.next();
+      messages.push(cursor.message);
+      cursor.continue();
     };
 
     request.onerror = function onerror() {
-      alert('Error reading the database. Error code: ' + request.errorCode);
-    }
+      console.log('Error reading the database. Error code: ' +
+                  request.errorCode);
+    };
   },
 
   send: function mm_send(number, text, callback) {
@@ -128,10 +126,11 @@ var GetMessagesHack = function gmhack(callback, filter, invert) {
     if (!filter)
       return msgs;
 
-    if (filter.number) {
+    if (filter.numbers) {
       msgs = msgs.filter(function(element, index, array) {
-        var num = filter.number;
-        return (num && (num == element.sender || num == element.receiver));
+        var num = filter.numbers;
+        return (num && (num.indexOf(element.sender) != -1 ||
+                        num.indexOf(element.receiver) != -1));
       });
     }
 
@@ -163,12 +162,12 @@ var ConversationListView = {
     this.searchInput.addEventListener('keyup', this);
     this.view.addEventListener('click', this);
 
-    this.updateConversationList(function fireAppReady() {
+    this.updateConversationList(null, function fireAppReady() {
       window.parent.postMessage('appready', '*');
     });
   },
 
-  updateConversationList: function updateConversationList(callback) {
+  updateConversationList: function updateConversationList(pendingMsg, callback) {
     var self = this;
     var conversations = {};
 
@@ -187,6 +186,9 @@ var ConversationListView = {
     });
 
     MessageManager.getMessages(function getMessagesCallback(messages) {
+      if (pendingMsg)
+        messages.push(pendingMsg);
+
       for (var i = 0; i < messages.length; i++) {
         var message = messages[i];
         var num = message.sender || message.receiver;
@@ -367,12 +369,13 @@ var ConversationView = {
     this.scrollViewToBottom();
   },
 
-  showConversation: function cv_showConversation(num) {
+  showConversation: function cv_showConversation(num, pendingMsg) {
     var self = this;
     var view = this.view;
     var bodyclassList = document.body.classList;
-    var filter = ('SmsFilter' in window) ? new SmsFilter() : {};
-    filter.number = this.filter = num;
+    var filter = new MozSmsFilter();
+    filter.numbers = [num];
+    this.filter = num;
 
     if (!num) {
       /* XXX: gaia issue #483 (New Message dialog design)
@@ -407,6 +410,9 @@ var ConversationView = {
     this.title.num = num;
 
     MessageManager.getMessages(function mm_getMessages(messages) {
+      if (pendingMsg)
+        messages.push(pendingMsg);
+
       var fragment = '';
 
       for (var i = 0; i < messages.length; i++) {
@@ -514,8 +520,14 @@ var ConversationView = {
       for (var key in msg)
         message[msg] = msg[key];
 
-      if (ConversationView.filter)
-        ConversationView.showConversation(ConversationView.filter);
+      if (ConversationView.filter) {
+        // Add a slight delay so that the database has time to write the
+        // message in the background. Ideally we'd just be updating the UI
+        // from "sending..." to "sent" at this point...
+        window.setTimeout(function () {
+          ConversationView.showConversation(ConversationView.filter);
+        }, 100);
+      }
     });
 
     // Create a preliminary message object and update the view right away.
@@ -525,19 +537,18 @@ var ConversationView = {
       body: text,
       timestamp: Date.now()
     };
-    messagesHack.unshift(message);
 
     setTimeout((function keepKeyboardFocus() {
       this.msgInput.value = '';
       this.updateMsgInputHeight();
     }).bind(this), 0);
 
-    ConversationListView.updateConversationList();
+    ConversationListView.updateConversationList(message);
     if (this.filter) {
-      this.showConversation(this.filter);
+      this.showConversation(this.filter, message);
       return;
     }
-    this.showConversation(num);
+    this.showConversation(num, message);
   }
 };
 
