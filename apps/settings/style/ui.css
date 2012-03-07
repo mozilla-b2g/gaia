@@ -28,10 +28,6 @@ header h1 {
   font-size: 1em;
 }
 
-a {
-  outline: 0;
-}
-
 /* View */
 .view {
   border: 0;
@@ -91,52 +87,41 @@ a {
 }
 
 /* Table View */
-ul.tableView {
+ul {
   margin: 0;
   padding: 0;
   overflow: hidden;
   list-style: none;
 }
 
-ul.tableView > li {
+ul li { /* 96px, including a 2px border */
   position: relative;
-  color: #555 !important;
+  height: 94px;
   background-color: #f5f5f5;
   border-bottom: 2px solid #c3c9cb;
-  height:  60px;
-  padding: 20px;
+  color: #555;
 }
 
-ul.tableView > li > a {
-  color: #000;
-  display: block;
-  /*margin: -0.6em;*/
-  /*padding: 0.6em;*/
-  width: 100%;
-  height: 100%;
-  text-decoration: none;
-  -moz-box-sizing: border-box;
-}
-
-/*ul.tableView > li > a:active {*/
-ul.tableView > li:active {
-  color: #222;
-  text-shadow: #999 0 -1px 0;
+ul li:active {
   background-color: rgba(0, 0, 0, .07);
+  text-shadow: #999 0 -1px 0;
+  color: #222;
 }
 
-ul.tableView > li > .checkbox {
-  /*float: right;*/
-  /*margin: -0.35em -0.35em 0 0;*/
+ul li > a {
+  display: block;
+  padding: 20px;
+  /* XXX height/line-height must be adjusted it the container height changes */
+  height:      54px; /* -moz-calc(100% - 40px); */
+  line-height: 54px; /* -moz-calc(100% - 40px); */
+  text-decoration: none;
+  outline: 0;
+  color: #555;
+}
+
+ul li > span, ul li > small {
   position: absolute;
-  top: 0;
-  right: 0;
-  margin: 0;
-}
-
-.tableView small {
-  font-size: 0.65em !important;
-  color: #888 !important;
+  left: 20px;
   /* text ellipsis */
   display: block;
   overflow: hidden;
@@ -145,19 +130,33 @@ ul.tableView > li > .checkbox {
   max-width: -moz-calc(100% - 80px);
 }
 
-/* checkboxes */
-label.checkbox {
-  vertical-align: middle;
-  width: 98px;
-  height: 98px;
-  line-height: 98px;
+ul li > span {
+  bottom: 50%;
 }
 
-.checkbox > input {
+ul li > small {
+  top: 50%;
+  font-size: 0.65em;
+  color: #888;
+}
+
+/* checkboxes / radio buttons */
+label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+label > input {
   display: none;
 }
 
-.checkbox > input + span {
+label > span { /* fake input box */
+  position: absolute;
+  top: -moz-calc(50% - 34px);
+  right: 20px;
   display: block;
   width: 60px;
   height: 60px;
@@ -167,58 +166,44 @@ label.checkbox {
   -moz-border-right-colors:  #c3c9cb #c3c9cb #fff #fff;
   -moz-border-bottom-colors: #c3c9cb #c3c9cb #fff #fff;
   -moz-border-left-colors:   #c3c9cb #c3c9cb #fff #fff;
-  margin: auto;
-  margin-top: -moz-calc(50% - 34px);
-  background:
-    url(images/check-off.png) no-repeat scroll center center,
+}
+
+label > input[type=radio] + span,
+label > input[type=checkbox] + span {
+  background: url(images/check-off.png) no-repeat scroll center center,
     -moz-linear-gradient(#eaeae4, #ffffff);
 }
 
-.checkbox > input:checked + span {
-  background:
-    url(images/check-on.png) no-repeat scroll center center,
+label > input[type=radio]:checked + span,
+label > input[type=checkbox]:checked + span {
+  background: url(images/check-on.png) no-repeat scroll center center,
     -moz-linear-gradient(#ffffff, #eaeae4);
 }
 
 /* wifi icons */
-.wifi {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 98px;
-  height: 98px;
+#wifi-networks span {
+  -moz-border-top-colors:    transparent;
+  -moz-border-right-colors:  transparent;
+  -moz-border-bottom-colors: transparent;
+  -moz-border-left-colors:   transparent;
 }
 
-.wifi span {
-  display: block;
-  position: absolute;
-  width: 100%;
-  height: 100%;
-}
-
-.wifi .wifi-signal0 {
+#wifi-networks .wifi-signal0 {
   background: url(images/wifi-0.png) no-repeat scroll center center;
 }
-.wifi .wifi-signal1 {
+#wifi-networks .wifi-signal1 {
   background: url(images/wifi-1.png) no-repeat scroll center center;
 }
-.wifi .wifi-signal2 {
+#wifi-networks .wifi-signal2 {
   background: url(images/wifi-2.png) no-repeat scroll center center;
 }
-.wifi .wifi-signal3 {
+#wifi-networks .wifi-signal3 {
   background: url(images/wifi-3.png) no-repeat scroll center center;
 }
-.wifi .wifi-signal4 {
+#wifi-networks .wifi-signal4 {
   background: url(images/wifi-4.png) no-repeat scroll center center;
 }
-.wifi .wifi-secure {
+#wifi-networks .wifi-secure {
   background: url(images/wifi-lock.png) no-repeat scroll center center;
-}
-
-/* first page */
-#root ul.tableView > li > span,
-#root ul.tableView > li > a {
-  height: 60px;
-  line-height: 60px;
 }
 
