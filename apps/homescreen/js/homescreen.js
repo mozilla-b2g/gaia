@@ -822,9 +822,7 @@ DefaultPhysics.prototype = {
       var dx = touchState.startX - e.pageX;
       if (dx !== 0) {
         this.moved = this.moved || Math.abs(dx) > 20;
-        if (this.moved) {
-          iconGrid.pan(-dx);
-        }
+        iconGrid.pan(-dx);
       }
       e.stopPropagation();
     }
