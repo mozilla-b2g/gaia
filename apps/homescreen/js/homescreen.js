@@ -781,21 +781,19 @@ var TelephonyListener = function() {
 /* === Homescreen === */
 var Homescreen = function() {
   function populateApps(apps) {
-    var rows = Math.ceil((window.innerHeight - 200) / 200);
-    var columns = Math.ceil((window.innerWidth - 100) / 150);
-    var pages = Math.floor(apps.length / (rows * columns)) + 1;
+    var grid = new IconGrid('apps');
+    grid.dots = new Dots('dots', 'apps');
 
-    var appsGrid = new IconGrid('apps', columns, rows, pages, true);
-    var appsGridCount = 0;
-    for (var n = 0; n < apps.length; ++n) {
-      var app = apps[n];
-      appsGrid.add(n, app.icon, app.name, app.url);
+    for (var i = 0; i < apps.length; i++) {
+      var app = apps[i];
+      grid.add(app.icon, app.name, app.url);
     }
-    appsGrid.dots = new Dots('dots', 'apps');
-    appsGrid.update();
+
+    grid.update();
+    grid.setPage(0);
 
     window.addEventListener('resize', function() {
-      appsGrid.update();
+      grid.update();
     });
   };
 
@@ -919,13 +917,9 @@ function RemoveEventHandlers(target, listener, eventNames) {
   }
 }
 
-function IconGrid(containerId, columns, rows, minPages, showLabels) {
+function IconGrid(containerId) {
   this.containerId = containerId;
   this.container = document.getElementById(containerId);
-  this.columns = columns || 4;
-  this.rows = rows || 3;
-  this.minPages = minPages;
-  this.showLabels = showLabels;
   this.icons = [];
   this.currentPage = 0;
   this.physics = new DefaultPhysics(this);
@@ -933,157 +927,119 @@ function IconGrid(containerId, columns, rows, minPages, showLabels) {
   // install event handlers
   var events = ['touchstart', 'touchmove', 'touchend'];
   AddEventHandlers(this.container, this, events);
-  AddEventHandlers(window, this, ['resize']);
 }
 
 IconGrid.prototype = {
-  add: function(slot, iconUrl, label, action) {
+  add: function(iconUrl, label, action) {
     var icons = this.icons;
-    var icon = { slot: slot, iconUrl: iconUrl, label: label, action: action };
+    var icon = { iconUrl: iconUrl, label: label, action: action };
     icon.index = icons.length;
     icons.push(icon);
   },
+
   remove: function(icon) {
     this.icons.splice(icon.index);
   },
 
   // reflow the icon grid
   update: function() {
-    var instance = this;
-    var containerId = this.containerId;
     var container = this.container;
     var icons = this.icons;
 
-    var rows = Math.ceil((window.innerHeight - 200) / 200);
-    var columns = Math.ceil((window.innerWidth - 100) / 150);
-
-    var columns = columns;
-    var rows = rows;
-    var currentPage = this.currentPage;
-    var itemsPerPage = rows * columns;
-    var iconWidth = Math.floor(100 / columns);
-    var iconHeight = Math.floor(100 / rows);
-
-    // get the page of an icon
-    function getIconPage(icon) {
-      return Math.floor(icon.slot / itemsPerPage);
-    }
-
-    // get the column of an icon
-    function getIconColumn(icon) {
-      return (icon.slot % itemsPerPage) % columns;
-    }
-
-    // get the row of an icon
-    function getIconRow(icon) {
-      return Math.floor((icon.slot % itemsPerPage) / columns);
-    }
-
-    // position a div using transform
-    function setPosition(div, x, y) {
-      div.style.MozTransform = 'translate(' + x + ',' + y + ')';
-    }
-
-    // get page divs
-    var elementList = container.childNodes;
-    var pageDivs = [];
-    for (var n = 0; n < elementList.length; ++n) {
-      var element = elementList[n];
-      pageDivs[element.id] = element;
+    // get pages divs
+    var pages = [];
+    var rule = '#' + this.containerId + '> .page';
+    var children = document.querySelectorAll(rule);
+    for (var n = 0; n < children.length; n++) {
+      var element = children[n];
+      pages[element.id] = element;
     }
 
     // get icon divs
-    var rule = '#' + containerId + '> .page > .icon';
-    elementList = document.querySelectorAll(rule);
     var iconDivs = [];
-    for (var n = 0; n < elementList.length; ++n) {
-      var element = elementList[n];
+
+    rule = '#' + this.containerId + '> .page > .icon';
+    children = document.querySelectorAll(rule);
+    for (var n = 0; n < children.length; n++) {
+      var element = children[n];
       iconDivs[element.id] = element;
     }
 
-    // calculate the new number of pages we need
-    var pageCount = 0;
-    for (var n = 0; n < icons.length; ++n) {
-      var icon = icons[n];
-      pageCount = Math.max(getIconPage(icon), pageCount);
-    }
-    pageCount = Math.max(this.minPages, pageCount + 1);
+    // issue #723 - The calculation of the width/height of the icons
+    // should be dynamic and ot harcoded like that. The reason why it
+    // it is done like that at this point is because there is no icon
+    // when the application starts and so there is nothing to calculate
+    // against.
+    container.style.minHeight = container.style.maxHeight = '';
+    var iconHeight = 196;
+    var iconWidth = 132;
+
+    var rect = container.getBoundingClientRect();
+    var rows = Math.floor(rect.height / iconHeight);
+    var columns = Math.floor(rect.width / iconWidth);
+
+    var targetHeight = iconHeight * rows + 'px';
+    container.style.minHeight = container.style.maxHeight = targetHeight;
 
     // adjust existing pages and create new ones as needed
-    for (var n = 0; n < pageCount; ++n) {
-      var pageDiv = pageDivs[n];
-      if (!pageDiv) { // missing page
-        pageDiv = document.createElement('div');
-        pageDiv.id = n;
-        pageDiv.className = 'page';
-        container.appendChild(pageDiv);
-        pageDivs[n] = pageDiv;
-      }
-      setPosition(pageDiv, (n - currentPage) + '00%', 0);
+    var itemsPerPage = rows * columns;
+    var pageCount = Math.ceil(icons.length / itemsPerPage);
+    for (var n = 0; n < pageCount; n++) {
+      var page = pages[n];
+      if (page)
+        continue;
+
+      page = document.createElement('div');
+      page.id = n;
+      page.className = 'page';
+      container.appendChild(page);
+
+      pages[n] = page;
     }
 
     // remove pages we don't need
-    for (var key in pageDivs) {
+    for (var key in pages) {
       if (key >= pageCount) {
-        container.removeChild(pageDivs[key]);
-        pageDivs[key] = null;
+        container.removeChild(pages[key]);
+        pages[key] = null;
       }
     }
 
+
     // adjust existing icons and create new ones as needed
-    for (var n = 0; n < icons.length; ++n) {
+    var iconsCount = icons.length;
+    for (var n = 0; n < iconsCount; ++n) {
       var icon = icons[n];
-      var pageOfIcon = getIconPage(icon);
+
       var iconDiv = iconDivs[n];
       if (!iconDiv) { // missing icon
         iconDiv = document.createElement('div');
         iconDiv.id = n;
         iconDiv.className = 'icon';
+        iconDiv.style.backgroundImage = 'url(' + icon.iconUrl + ')';
         iconDiv.dataset.url = icon.action;
 
         var centerDiv = document.createElement('div');
         centerDiv.className = 'img';
         iconDiv.appendChild(centerDiv);
 
-        if (this.showLabels) {
-          var labelDiv = document.createElement('div');
-          labelDiv.className = 'label';
-          iconDiv.appendChild(labelDiv);
-        }
+        var labelDiv = document.createElement('div');
+        labelDiv.className = 'label';
+        iconDiv.appendChild(labelDiv);
 
-        pageDivs[pageOfIcon].appendChild(iconDiv);
+        if (labelDiv.textContent != icon.label)
+          labelDiv.textContent = icon.label;
+
         iconDivs[n] = iconDiv;
-      } else {
-        // if icon is on the wrong page, move it
-        if (iconDiv.parentNode != pageDivs[pageOfIcon]) {
-          iconDiv.parentNode.removeChild(iconDiv);
-          pageDivs[pageOfIcon].appendChild(iconDiv);
-        }
       }
 
-      iconDiv.style.backgroundImage = 'url(' + icon.iconUrl + ')';
-
-      if (this.showLabels) {
-        var label = iconDiv.childNodes[1];
-        if (label.textContent != icon.label)
-          label.textContent = icon.label;
-      }
-
-      // TODO This code is really, really, dirty
-      var deltaX = getIconColumn(icon) * 136;
-      var deltaY = getIconRow(icon);
-      if (window.innerHeight <= 480) {
-        deltaY *= 184;
-      } else {
-        deltaY *= 200;
-      }
-
-      setPosition(iconDiv, deltaX + 'px', deltaY + 'px');
+      var pageOfIcon = Math.floor(n / itemsPerPage);
+      pages[pageOfIcon].appendChild(iconDiv);
     }
 
     // remove icons we don't need
     for (var key in iconDivs) {
-      if (key > icons.length) {
+      if (key > iconsCount) {
         iconDivs[key].parentNode.removeChild(iconDivs[key]);
         iconDivs[key] = null;
       }
@@ -1092,8 +1048,9 @@ IconGrid.prototype = {
     // update paginator, if we have one
     var dots = this.dots;
     if (dots)
-      dots.update(currentPage);
+      dots.update(this.currentPage);
   },
+
   pan: function(x, duration) {
     var pages = this.container.childNodes;
     var currentPage = this.currentPage;
@@ -1107,6 +1064,7 @@ IconGrid.prototype = {
       style.MozTransition = duration ? ('all ' + duration + 's ease;') : '';
     }
   },
+
   setPage: function(number, duration) {
     var pages = this.container.childNodes;
     if (number < 0)
@@ -1139,9 +1097,6 @@ IconGrid.prototype = {
     case 'touchend':
       document.releaseCapture();
       physics.onTouchEnd(e.changedTouches[0]);
-      break;
-    case 'resize':
-      this.update();
       break;
     default:
       return;
