@@ -1415,18 +1415,33 @@
   if ('mozTelephony' in navigator)
     return;
 
+  var TelephonyCalls = [];
+
   navigator.mozTelephony = {
     dial: function(number) {
-      return {
+      var TelephonyCall = {
         number: number,
         state: 'dialing',
         addEventListener: function() {},
         hangUp: function() {},
-        removeEventListener: function(){}
+        removeEventListener: function() {}
       };
+
+      TelephonyCalls.push(TelephonyCall);
+
+      return TelephonyCall;
     },
     addEventListener: function(name, handler) {
-    }
+    },
+    get calls() {
+      return TelephonyCalls;
+    },
+    muted: false,
+    speakerEnabled: false,
+
+    // Stubs
+    onincoming: null,
+    oncallschanged: null
   };
 })(this);
 
