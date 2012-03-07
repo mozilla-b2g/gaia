@@ -814,6 +814,18 @@ DefaultPhysics.prototype = {
     touchState.startX = e.pageX;
     touchState.startY = e.pageY;
     touchState.startTime = e.timeStamp;
+    var self = this;
+    var handler = function(timestamp) {
+      var touchState = self.touchState;
+      if (!touchState.active)
+        return;
+      self.iconGrid.pan(-((touchState.dx + touchState.lastdx)/2));
+      touchState.lastdx = touchState.dx;
+      window.mozRequestAnimationFrame(handler);
+    };
+    touchState.dx = 0;
+    touchState.lastdx = 0;
+    window.mozRequestAnimationFrame(handler);
   },
   onTouchMove: function(e) {
     var iconGrid = this.iconGrid;
@@ -822,7 +834,7 @@ DefaultPhysics.prototype = {
       var dx = touchState.startX - e.pageX;
       if (dx !== 0) {
         this.moved = this.moved || Math.abs(dx) > 20;
-        iconGrid.pan(-dx);
+        touchState.dx = dx;
       }
       e.stopPropagation();
     }
