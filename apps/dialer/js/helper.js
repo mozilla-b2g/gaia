@@ -1,6 +1,9 @@
 'use strict';
 
 function profilePictureForNumber(number) {
+  if (typeof(number) == 'string')
+    number = parseInt(number.replace(/[^0-9]/g, ''));
+
   var image = '../contacts/contact' + (number % 10) + '.png';
   return '<img src="' + image + '" alt="profile picture" />';
 }

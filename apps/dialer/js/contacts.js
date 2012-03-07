@@ -20,34 +20,33 @@ var Contacts = {
       return;
     }
 
-    // Could be much easier to have an argument named 'parameters' pass as
-    // a second argument that I can omit
-    this.find(['id', 'displayName'], this.show.bind(this));
+    this.find(this.show.bind(this));
   },
 
-  find: function contactsFind(fields, callback) {
+  find: function contactsFind(callback) {
     // Ideally I would like to choose the ordering
-    // It also misses simple constaints like the one you can pass to the
-    // webSMS API
-    window.navigator.mozContacts.find(fields, function findCallback(contacts) {
+    var request = window.navigator.mozContacts.find({});
+    request.onsuccess = function findCallback() {
+      var contacts = request.result;
       contacts.sort(function contactsSort(a, b) {
-        return a.name.familyName[0] > b.name.familyName[0];
+        return a.familyName[0] > b.familyName[0];
       });
       callback(contacts);
-    });
+    };
   },
 
   findByNumber: function findByNumber(number, callback) {
-    this.find(['id', 'phones'], function findByNumberCallback(contacts) {
-      var results = contacts.filter(function findNumber(contact) {
-        return (contact.phones.indexOf(number) !== -1);
-      });
-      var contact = results[0];
-      if (contact) {
-        callback(contact);
-      }
-    });
+    var options = {filterBy: ['tel'], filterOp: 'contains', filterValue: number};
+    var request = window.navigator.mozContacts.find(options);
+    request.onsuccess = function findCallback() {
+      if (request.result.length == 0)
+        return;
+
+      var contacts = request.result;
+      callback(contacts[0]);
+    };
   },
+
   show: function contactsShow(contacts) {
     var content = '';
     var currentLetter = '';
@@ -55,9 +54,8 @@ var Contacts = {
     var count = contacts.length;
     for (var i = 0; i < count; i++) {
       var contact = contacts[i];
-      var displayName = contact.displayName;
 
-      var name = contact.name.familyName[0];
+      var name = contact.familyName[0];
       if (currentLetter != name[0]) {
         currentLetter = name[0].toUpperCase();
 
@@ -68,9 +66,8 @@ var Contacts = {
       }
 
       content += '<div class="contact" id="' + contact.id + '">';
-      for (var key in contact.name) {
-        content += '<span>' + contact.name[key] + '</span> ';
-      }
+      content += '<span>' + contact.givenName + '</span> ';
+      content += '<span>' + contact.familyName + '</span>';
       content += '</div>';
     }
 
@@ -80,6 +77,7 @@ var Contacts = {
 
     this._loaded = true;
   },
+
   filter: function contactsFilter(value) {
     var container = document.getElementById('contacts-container');
     var contacts = container.children;
@@ -131,6 +129,7 @@ var Contacts = {
       }
     }
   },
+
   anchor: function contactsAnchor(targetId) {
     var target = document.getElementById(targetId);
     if (!target)
@@ -141,21 +140,21 @@ var Contacts = {
     var scrollableTop = scrollable.getBoundingClientRect().top;
     scrollable.scrollTop = (top - scrollableTop) + scrollable.scrollTop;
   },
+
   showDetails: function contactsShowDetails(evt) {
-    // I'm under the impression that there will be a better way to do this
-    // with the final API (ie. getting a contact from an id)
     var contactId = evt.target.id;
 
-    this.find(['id'], function showDetailCallback(contacts) {
-      var results = contacts.filter(function finById(contact) {
-        return (contact.id == contactId);
-      });
-      var contact = results[0];
-      if (contact) {
-        ContactDetails.show(contact);
-      }
-    });
+    var options = {filterBy: ['id'], filterOp: 'equals', filterValue: contactId};
+    var request = window.navigator.mozContacts.find(options);
+    request.onsuccess = function findCallback() {
+      if (request.result == 0)
+        return;
+
+      var contacts = request.result;
+      ContactDetails.show(contacts[0]);
+    };
   },
+
   create: function contactsCreate() {
     // creating an empty contact
     var contact = {
@@ -421,9 +420,8 @@ var ContactDetails = {
 
   render: function cd_render() {
     var names = '';
-    for (var key in this._contact.name) {
-      names += '  ' + this._contact.name[key];
-    }
+    names += this._contact.givenName;
+    names += ' ' + this._contact.familyName;
     document.getElementById('contact-name').innerHTML = names;
 
     document.getElementById('contact-photo').innerHTML =
@@ -431,7 +429,7 @@ var ContactDetails = {
 
     var addAttr = 'data-action="add" onclick="ContactDetails.execute(event)"';
     var phones = '';
-    this._contact.phones.forEach(function phoneIterator(phone) {
+    this._contact.tel.forEach(function phoneIterator(phone) {
       phones += '<div data-number="' + phone + '">' +
                 '<span>phone</span>' +
                 '  ' + this.inputFragment('tel', phone) +
@@ -443,7 +441,7 @@ var ContactDetails = {
     document.getElementById('contact-phones').innerHTML = phones;
 
     var emails = '';
-    var emailArr = this._contact.emails;
+    var emailArr = this._contact.email;
     emailArr.forEach(function emailIterator(email) {
       emails += '<div><span>email</span>' +
                 this.inputFragment('email', email) + '</div>';
