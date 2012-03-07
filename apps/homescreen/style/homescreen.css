@@ -76,10 +76,13 @@ body {
 }
 
 #home > #apps {
-  top: 0;
-  height: 100%;
-  width: 100%;
   margin-top: 40px;
+  top: 0;
+
+  /* height = -margin-top +100% - dots.height - notifications.height */
+  height: -moz-calc(-40px + 100% - 14px - 80px);
+
+  width: 100%;
 }
 
 #home > #dots {
@@ -90,8 +93,7 @@ body {
 }
 
 #home > #notifications {
-  
-bottom: 0px;
+  bottom: 0px;
   height: 80px;
   background: url(images/notifications.png) center left, -moz-linear-gradient(rgba(245,245,245, 0.6), rgba(233,233,233,0.6));
   background-repeat: no-repeat;
@@ -135,14 +137,12 @@ bottom: 0px;
   position: absolute;
   left: 42px;
   top: 0px;
-  width: 100%;
-  height: -moz-calc(100% - 200px);
+  width: -moz-calc(100% - 42px);
 }
 
 .icon {
   position: relative;
-  overflow: hidden;
-  float:left;
+  float: left;
 }
 
 .icon > * {
@@ -157,26 +157,25 @@ bottom: 0px;
   display: inline-block;
 }
 
-@media all and (max-height: 480px) {
+@media all and (max-height: 600px) {
   #home > #apps {
-    height: 400px;
-    margin-top: 10px;
+    /* height = -margin-top +100% - dots.height - notifications.height */
+    height: -moz-calc(-40px + 100% - 14px - 0px);
   }
 
   #home > #notifications {
-    height: 50px;
+    display: none;
   }
 
   #home > #dots {
-    top: 380px;
+    bottom: 0px;
   }
+}
 
+@media all and (max-width: 320px) {
   .page {
     left: 30px;
-  }
-
-  .icon {
-    height: 180px;
+    width: -moz-calc(100% - 30px);
   }
 }
 

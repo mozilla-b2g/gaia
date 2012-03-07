@@ -105,6 +105,7 @@ body {
   border-radius: 5px;
   margin-right: 4px;
   margin-bottom: 4px;
+  overflow: hidden;
 }
 
 .icon > div {
@@ -116,47 +117,6 @@ body {
   padding-top: 36px;
   padding-left: 8px;
   color: white;
-}
-@media all and (max-width: 450px)
-{
-  .icon {
-    background-position: bottom left;
-    width: 40px;
-    height: 38px;
-    overflow: hidden;
-    padding-bottom: 10px;
-    margin-right: 20px;
-    margin-bottom:20px;
-  }
-
-}
-
-@media all and (max-height: 600px)
-{
-  .icon {
-    background-position: bottom left;
-    width: 40px;
-    height: 38px;
-    overflow: hidden;
-    padding-bottom: 10px;
-    margin-right: 20px;
-    margin-bottom: 20px;
-  }
-
-}
-@media all and (min-width: 600px)
-{
-  .icon {
-    margin-right: 20px;
-    margin-bottom: 20px;
-  }
-}
-@media all and (min-width: 1000px) and (min-height: 800px)
-{
-  .icon {
-    margin-right: 50px;
-    margin-bottom: 50px;
-  }
 }
 
 /* Screen markers */
