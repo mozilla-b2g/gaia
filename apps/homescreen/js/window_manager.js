@@ -198,6 +198,13 @@ AppWindow.prototype = {
   }
 };
 
+// This function is unused by the homescreen app itself, but is
+// currently required by chrome code in b2g/chrome/content/*.js
+// Do not delete this function until that dependency is removed.
+function getApplicationManager() {
+  return WindowManager;
+}
+
 var WindowManager = {
   init: function wm_init() {
     window.addEventListener('keyup', this);
