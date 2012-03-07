@@ -69,7 +69,7 @@ var Contacts = {
 
       content += '<div class="contact" id="' + contact.id + '">';
       for (var key in contact.name) {
-        content += '<span>' +  contact.name[key] + '</span> ';
+        content += '<span>' + contact.name[key] + '</span> ';
       }
       content += '</div>';
     }
@@ -228,7 +228,15 @@ var ShortcutsHandler = {
 var ContactDetails = {
   _editing: false,
   setup: function cd_setup() {
-    window.addEventListener('keypress', this, true);
+    window.addEventListener('keyup', this, true);
+
+    // click outside details container to close
+    this.overlay.addEventListener('click', function(evt) {
+      ContactDetails.hide();
+    });
+    this.container.addEventListener('click', function(evt) {
+      evt.stopPropagation();
+    });
   },
   get overlay() {
     delete this.overlay;
@@ -252,6 +260,7 @@ var ContactDetails = {
     this._contact = contact;
     this.render();
   },
+
   execute: function cd_execute(evt) {
     var action = evt.currentTarget.dataset.action;
     if (!this[action]) {
@@ -261,6 +270,7 @@ var ContactDetails = {
 
     this[action](evt);
   },
+
   show: function cd_show(contact) {
     if (typeof contact != 'undefined') {
       this.contact = contact;
@@ -274,6 +284,7 @@ var ContactDetails = {
       this.edit();
     }
   },
+
   hide: function cd_hide() {
     if (!this.overlay.classList.contains('displayed')) {
       return false;
@@ -399,7 +410,7 @@ var ContactDetails = {
 
   // back button handling
   handleEvent: function cd_handleEvent(evt) {
-    if (evt.type !== 'keypress' || evt.keyCode != evt.DOM_VK_ESCAPE) {
+    if (evt.type !== 'keyup' || evt.keyCode != evt.DOM_VK_ESCAPE) {
       return;
     }
 
@@ -411,11 +422,12 @@ var ContactDetails = {
   render: function cd_render() {
     var names = '';
     for (var key in this._contact.name) {
-      names += '  ' +  this._contact.name[key];
+      names += '  ' + this._contact.name[key];
     }
     document.getElementById('contact-name').innerHTML = names;
 
-    document.getElementById('contact-photo').innerHTML = profilePictureForNumber(this._contact.id);
+    document.getElementById('contact-photo').innerHTML =
+      profilePictureForNumber(this._contact.id);
 
     var addAttr = 'data-action="add" onclick="ContactDetails.execute(event)"';
     var phones = '';
@@ -431,8 +443,10 @@ var ContactDetails = {
     document.getElementById('contact-phones').innerHTML = phones;
 
     var emails = '';
-    this._contact.emails.forEach(function emailIterator(email) {
-      emails += '<div><span>email</span>' + this.inputFragment('email', email) + '</div>';
+    var emailArr = this._contact.emails;
+    emailArr.forEach(function emailIterator(email) {
+      emails += '<div><span>email</span>' +
+                this.inputFragment('email', email) + '</div>';
     }, this);
     emails += '<div ' + addAttr + '>' +
               '  Add email' +

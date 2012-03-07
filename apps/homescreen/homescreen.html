@@ -3,17 +3,23 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
-    <script type="text/javascript" src="../../webapi.js"></script>
 
+    <!-- Content -->
     <link rel="stylesheet" type="text/css" href="style/homescreen.css">
-    <script type="text/javascript" src="js/task_manager.js"></script>
-    <script type="text/javascript" src="js/window_manager.js"></script>
-    <script type="text/javascript" src="js/app_manager.js"></script>
-    <script type="text/javascript" src="js/keyboardLayout.js"></script>
-    <script type="text/javascript" src="js/keyboard.js"></script>
-    <script type="text/javascript" src="js/homescreen.js"></script>
+    <link rel="stylesheet" type="text/css" href="style/keyboard/keyboard.css">
+
+    <!-- Theme -->
+    <link rel="stylesheet" type="text/css" href="style/themes/default/homescreen.css">
+
+    <script src="../../webapi.js"></script>
+    <script src="js/task_manager.js"></script>
+    <script src="js/window_manager.js"></script>
+    <script src="js/app_manager.js"></script>
+    <script src="js/keyboardLayout.js"></script>
+    <script src="js/keyboard.js"></script>
+    <script src="js/homescreen.js"></script>
   </head>
-  <body onload="OnLoad();">
+  <body onload="startup();">
     <div id="screen">
       <div id="keyboard" data-hidden="true" onmousedown="return false;"></div>
       <div id="statusbar">
@@ -45,9 +51,9 @@
         </div>
       </div>
       <div id="lockscreen">
-	      <div id="status">
-	      </div>
-	      <div id="lockscreenContainer">
+        <div id="status">
+        </div>
+        <div id="lockscreenContainer">
           <div id="clock">
             <div id="hourMin" class="time" data-format="%H:%M"></div>
             <div id="date">
@@ -64,6 +70,29 @@
       </ul>
     </div>
 
-    <div id="debug-grid"></div>
+    <div id="volume" class="vibration">
+      <div class="active"></div>
+      <div class="active"></div>
+      <div class="active"></div>
+      <div class="active"></div>
+      <div class="active"></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
+
+    <div id="sleep">
+      <div class="sleep-menu">
+        <div data-value="airplane">Airplane Mode</div>
+        <div id="silent" data-value="silent">Silent Mode</div>
+        <div id="normal" data-value="normal" hidden>Normal Mode</div>
+        <div data-value="restart">Restart</div>
+        <div data-value="power">Power Off</div>
+      </div>
+    </div>
+
+    <audio id="ringtone-player" src="style/ringtones/classic.wav" loop hidden></audio>
   </body>
 </html>
