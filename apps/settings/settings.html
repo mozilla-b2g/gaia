@@ -4,22 +4,24 @@
     <meta charset="utf-8"/>
     <meta http-equiv="pragma" content="no-cache">
     <title>Settings</title>
-
     <link rel="stylesheet" type="text/css" media="screen" href="style/ui.css"/>
     <link rel="stylesheet" type="text/css" media="screen" href="style/settings.css"/>
     <script type="text/javascript" src="../../webapi.js"></script>
     <script type="text/javascript" src="js/ui.js"></script>
+    <script type="text/javascript" src="js/wifi.js"></script>
     <script type="text/javascript" src="js/settings.js"></script>
   </head>
   <body>
+    <header>
+      <h1>Settings</h1>
+    </header>
+
     <div id="root" class="view" data-title="Settings">
       <ul class="tableView">
         <li>
-          <span>Wi-Fi</span>
-          <label class="checkbox">
-            <input type="checkbox" name="wifi.enabled"/>
-            <span class="checkbox-inner"></span>
-          </label>
+          <a class="push slideHorizontal" href="#wifi">
+            <span>Wi-Fi</span>
+          </a>
         </li>
         <li>
           <span>Do Not Track</span>
@@ -29,6 +31,7 @@
           </label>
         </li>
       </ul>
+      <h2> </h2>
       <ul class="tableView">
         <li>
           <a class="push slideHorizontal" href="#languages">
@@ -64,6 +67,39 @@
           <a class="push slideHorizontal" href="#debug">
             <span>Debug</span>
           </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Wi-Fi -->
+    <div id="wifi" class="view" data-title="WiFi">
+      <ul class="tableView">
+        <li id="status">
+          <span>Status</span><br />
+          <small>…</small>
+          <label class="checkbox">
+            <input type="checkbox" name="wifi.enabled"/>
+            <span class="checkbox-inner"></span>
+          </label>
+        </li>
+        <li id="notification">
+          <span>Network notification</span><br />
+          <small>Notify me when an open network is available</small>
+          <label class="checkbox">
+            <input type="checkbox" name="wifi.notification"/>
+            <span class="checkbox-inner"></span>
+          </label>
+        </li>
+      </ul>
+      <h2> Wi-Fi networks </h2>
+      <ul class="tableView" id="wifi-networks">
+        <li>
+          <span>Scanning…</span><br />
+          <small></small>
+          <span class="wifi">
+            <span class="wifi-signal3"></span>
+            <span class="wifi-secure"></span>
+          </span>
         </li>
       </ul>
     </div>
@@ -156,8 +192,8 @@
         </li>
         <li>
           <span>Other Latin scripts</span>
-          <br/ >
-          <span class="comment">French, German, Norwegian Bokmal, Slovak, Turkish</span>
+          <br />
+          <small>French, German, Norwegian Bokmal, Slovak, Turkish</small>
           <label class="checkbox">
             <input type="checkbox" name="keyboard.layouts.otherlatins"/>
             <span class="checkbox-inner"></span>
@@ -165,8 +201,8 @@
         </li>
         <li>
           <span>Cyrillic scripts</span>
-          <br/ >
-          <span class="comment">Russian, Serbian (Cyrillic)</span>
+          <br />
+          <small>Russian, Serbian (Cyrillic)</small>
           <label class="checkbox">
             <input type="checkbox" name="keyboard.layouts.cyrillic"/>
             <span class="checkbox-inner"></span>
