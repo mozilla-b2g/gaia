@@ -10,7 +10,7 @@ var Calculator = {
   errorTimeout: null,
   toClear: false,
 
-  operators: ['÷', '×', '-', '+'],
+  operators: ['÷', '×', '-', '+', '*', '/'],
 
   // Holds the current symbols for calculation
   stack: [],
@@ -20,21 +20,7 @@ var Calculator = {
       this.display.value = '0';
       return;
     }
-
-    var out = [];
-    var prev = false;
-    var cur = false;
-
-    for (var i = 0; i < this.stack.length; i++) {
-      cur = this.stack[i];
-      if (this.isOperator(cur) && (cur !== '-' || !this.isOperator(prev))) {
-        out.push(' ' + cur + ' ');
-      } else {
-        out.push(cur);
-      }
-      prev = cur;
-    }
-    this.display.value = out.join('');
+    this.display.value = this.stack.join('');
   },
 
   isOperator: function(val) {
@@ -82,10 +68,21 @@ var Calculator = {
   substitute: function(key) {
     if (key === '×') {
       return '*';
-    } else if (key === '÷') {
+    }
+    if (key === '÷') {
       return '/';
     }
+    // if (key === '-') {
+    //   return '0-';
+    // }
     return key;
+  },
+
+  formatNumber: function(n) {
+    if (n % 1 == 0) {
+      return n;
+    }
+    return n.toFixed(3);
   },
 
   calculate: function() {
@@ -93,14 +90,15 @@ var Calculator = {
       return;
     }
     try {
-      /*jshint evil:true */
-      this.stack = [eval(this.stack.map(this.substitute).join(''))];
+      var postfix = this.infix2postfix(this.stack.map(this.substitute).join(''));
+      var result = this.evaluatePostfix(postfix);
+      this.stack = [this.formatNumber(result)];
       this.updateDisplay();
       this.toClear = true;
     } catch(err) {
       this.display.classList.add('error');
       if (this.errorTimeout === null) {
-        this.errorTimeout = window.setTimeout(function(self) {
+        this.errorTimeout = window.setTimeout(function calc_errorTimeout(self) {
           self.display.classList.remove('error');
           self.errorTimeout = null;
         }, 300, this);
@@ -122,6 +120,91 @@ var Calculator = {
       self.updateDisplay();
       self.backSpaceTimeout = null;
     }, this.BACKSPACE_TIMEOUT, this);
+  },
+
+  precedence: function(val) {
+    if (['-', '+'].indexOf(val) !== -1) {
+      return 2;
+    }
+    if (['*', '/'].indexOf(val) !== -1) {
+      return 3;
+    }
+  },
+
+  // This is a basic implementation of the shunting yard algorithm
+  // described http://en.wikipedia.org/wiki/Shunting-yard_algorithm
+  // Currently functions are unimplemented and only operators with
+  // left association are used
+  infix2postfix: function(infix) {
+    // We cant know up till this point whether - is for negation or subtraction
+    // at this point we modify negation operators into (0-N) so 4+-5 -> 4+(0-5)
+    infix = infix.replace(/(.)?(-)([0-9.]+)/g, function(match, pre, _, num) {
+      return Calculator.isOperator(match[0]) ? pre + '(0-' + num + ')' : match;
+    });
+
+    // basic tokenisation to ensure we group numbers with >1 digit together
+    var tokens = infix.match(/[0-9.]+|\*|\/|\+|\-|\(|\)/g);
+    var output = [];
+    var stack = [];
+
+    tokens.forEach(function infix2postfix_inner(token) {
+      if (/[0-9.]+/.test(token)) {
+        output.push(parseFloat(token, 10));
+      }
+
+      if (this.isOperator(token)) {
+        while (this.isOperator(stack[stack.length-1]) &&
+               this.precedence(token) <= this.precedence(stack[stack.length-1])) {
+          output.push(stack.pop());
+        }
+        stack.push(token);
+      }
+      if (token === '(') {
+        stack.push(token);
+      }
+      if (token === ')') {
+        while (stack.length && stack[stack.length-1] !== '(') {
+          output.push(stack.pop());
+        }
+        // This is the (
+        stack.pop();
+      }
+    }, this);
+
+    while (stack.length > 0) {
+      output.push(stack.pop());
+    }
+
+    return output;
+  },
+
+  evaluate: {
+    '*': function(a, b) { return a * b; },
+    '+': function(a, b) { return a + b; },
+    '-': function(a, b) { return a - b; },
+    '/': function(a, b) { return a / b; }
+  },
+
+  evaluatePostfix: function(postfix) {
+    var stack = [];
+
+    postfix.forEach(function evaluatePostFix_inner(token) {
+      if (!this.isOperator(token)) {
+        stack.push(token);
+      } else {
+        var op2 = stack.pop();
+        var op1 = stack.pop();
+        var result = this.evaluate[token](op1, op2);
+        stack.push(result);
+      }
+    }, this);
+    return stack.pop();
+  },
+
+  init: function calculator_init() {
+    document.addEventListener('mousedown', this);
+    document.addEventListener('mouseup', this);
+    this.updateDisplay();
   },
 
   handleEvent: function calculator_handleEvent(evt) {
@@ -149,12 +232,6 @@ var Calculator = {
       this.clearBackspaceTimeout()
       break;
     }
-  },
-
-  init: function calculator_init() {
-    document.addEventListener('mousedown', this);
-    document.addEventListener('mouseup', this);
-    this.updateDisplay();
   }
 };
 
@@ -162,3 +239,33 @@ window.addEventListener('load', function calcLoad(evt) {
   window.removeEventListener('load', calcLoad);
   Calculator.init();
 });
+
+Calculator.test = function() {
+
+  function run(args) {
+    var formula = args[0];
+    var expected = args[1];
+    var postfix = Calculator.infix2postfix(formula);
+    var result = Calculator.evaluatePostfix(postfix);
+    console.log('expected', expected, 'got', result);
+    return expected === result;
+  };
+
+  var formulas = [
+    ['1+1', 2],
+    ['3+4*2/(1-5)', 1],
+    ['39+4*2/(1-5)', 37],
+    ['(39+4)*2/(1-5)', -21.5],
+    ['4+-5', -1],
+    ['-5*6', -30],
+    ['-5.5*6', -33],
+    ['-5.5*-6.4', 35.2]
+  ];
+
+  var passed = formulas.every(run);
+
+  if (passed) {
+    console.log("Tests Passed!");
+  }
+  return passed;
+};
