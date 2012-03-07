@@ -11,7 +11,7 @@ function test() {
       dialerWindow.Recents.history(function(initialHistory) {
         var initialCount = initialHistory.length;
 
-        var callScreen = dialerWindow.document.getElementById('call-screen');
+        var callScreen = dialerWindow.CallHandler.callScreen;
 
         dialerWindow.CallHandler.call('42424242');
         callScreen.addEventListener('transitionend', function trWait() {

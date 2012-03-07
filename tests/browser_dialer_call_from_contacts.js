@@ -22,7 +22,7 @@ function test() {
         var aContact = contactsList.querySelector('.contact');
         EventUtils.sendMouseEvent({type: 'click'}, aContact);
 
-        var overlay = dialerWindow.document.getElementById('contacts-overlay');
+        var overlay = dialerWindow.ContactDetails.overlay;
 
         overlay.addEventListener('transitionend', function trWait() {
           overlay.removeEventListener('transitionend', trWait);
@@ -30,7 +30,7 @@ function test() {
           ok(overlay.classList.contains('displayed'), 'Overlay view displayed');
 
           var number = overlay.querySelector('#contact-phones div');
-          var callScreen = dialerWindow.document.getElementById('call-screen');
+          var callScreen = dialerWindow.CallHandler.callScreen;
 
           EventUtils.sendMouseEvent({type: 'click'}, number);
           callScreen.addEventListener('transitionend', function trWait() {
