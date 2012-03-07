@@ -25,7 +25,12 @@ const IMEManager = {
   // TODO: gaia issue 347, better setting UI and setting data store
   keyboardSettingGroups: {
     'english': ['en'],
-    'arabic': ['ar']
+    'dvorak': ['en-Dvorak'],
+    'otherlatins': ['fr', 'de', 'nb', 'sk', 'tr'],
+    'cyrillic': ['ru', 'sr-Cyrl'],
+    'hebrew': ['he'],
+    'zhuying': ['zh-Hant-Zhuying'],
+    'pinyin': ['zh-Hans-Pinyin']
   },
 
   loadKeyboardSettings: function loadKeyboardSettings(callback) {
@@ -396,7 +401,6 @@ const IMEManager = {
 
   loadKeyboard: function km_loadKeyboard(name) {
     var keyboard = Keyboards[name];
-
     if (keyboard.type !== 'ime')
       return;
 
@@ -533,7 +537,6 @@ const IMEManager = {
         this.currentKey = target;
         this.isPressing = true;
 
-  		
         if (!keyCode && !target.dataset.selection)
           return;
 
@@ -686,40 +689,28 @@ const IMEManager = {
                 this.currentKeyboard = this.keyboards[0];
               else
                 this.currentKeyboard = target.dataset.keyboard;
-				
-				
 
               this.currentKeyboardMode = '';
               this.isUpperCase = false;
               this.updateLayout();
               this.updateTargetWindowHeight();
-			  
+
+              break;
             }
-			else
-			{
 
-				// If this is the last keyboard in the stack, start
-				// back from the beginning.
-				var keyboards = this.keyboards;
-				var index = keyboards.indexOf(this.currentKeyboard);
-				if (index >= keyboards.length - 1 || index < 0)
-				  this.currentKeyboard = keyboards[0];
-				else
-				  this.currentKeyboard = keyboards[++index];
+            // If this is the last keyboard in the stack, start
+            // back from the beginning.
+            var keyboards = this.keyboards;
+            var index = keyboards.indexOf(this.currentKeyboard);
+            if (index >= keyboards.length - 1 || index < 0)
+              this.currentKeyboard = keyboards[0];
+            else
+              this.currentKeyboard = keyboards[++index];
 
-				this.currentKeyboardMode = '';
-				this.isUpperCase = false;
-				this.updateLayout();
-				this.updateTargetWindowHeight();
-				
-			}
-
-			// This gives the author the ability to change the direction of the text
-			if ( Keyboards[ this.currentKeyboard ][ 'direction' ] == 'rtl')
-				this.targetWindow.style.direction = 'rtl'
-			else
-				this.targetWindow.style.direction = 'ltr';
-
+            this.currentKeyboardMode = '';
+            this.isUpperCase = false;
+            this.updateLayout();
+            this.updateTargetWindowHeight();
 
           break;
 
@@ -856,15 +847,14 @@ const IMEManager = {
         var hasSpecialCode = specialCodes.indexOf(key.keyCode) > -1;
         if (!(key.keyCode < 0 || hasSpecialCode) && this.isUpperCase)
           keyChar = layout.upperCase[keyChar] || keyChar.toUpperCase();
-		  
+        
         // This gives layout author the ability to rewrite AlternateLayoutKeys
         var hasSpecialCode = specialCodes.indexOf(key.keyCode) > -1;
         if (!(key.keyCode < 0 || hasSpecialCode) && this.isAlternateLayout)
           keyChar = Keyboards[ this.currentKeyboard ]['alternateLayoutOverwrite'][keyChar] || keyChar;
 
         var code = key.keyCode || keyChar.charCodeAt(0);
-
-
+        
         if (code == KeyboardEvent.DOM_VK_SPACE) {
           // space key: replace/append with control and type keys
 
@@ -880,21 +870,20 @@ const IMEManager = {
               1
             );
           }
-		  		  
+
+          // Alternate layout key
           // This gives the author the ability to change the alternate layout key contents
-		  var alternateLayoutKey = "?123";
-		  if( Keyboards[ this.currentKeyboard ]['alternateLayoutKey'])
-		  {
-			alternateLayoutKey = Keyboards[ this.currentKeyboard ]['alternateLayoutKey'];
-		  }
-		  
+          var alternateLayoutKey = "?123";
+          if( Keyboards[ this.currentKeyboard ]['alternateLayoutKey']) {
+            alternateLayoutKey = Keyboards[ this.currentKeyboard ]['alternateLayoutKey'];
+          }
+          
           // This gives the author the ability to change the basic layout key contents
-		  var basicLayoutKey = "ABC";
-		  if( Keyboards[ this.currentKeyboard ]['basicLayoutKey'])
-		  {
-			basicLayoutKey = Keyboards[ this.currentKeyboard ]['basicLayoutKey'];
-		  }
-		  
+          var basicLayoutKey = "ABC";
+          if( Keyboards[ this.currentKeyboard ]['basicLayoutKey']) {
+            basicLayoutKey = Keyboards[ this.currentKeyboard ]['basicLayoutKey'];	
+          }
+          
           ratio -= 2;
           if (this.currentKeyboardMode == '') {
             content += buildKey(
@@ -906,7 +895,7 @@ const IMEManager = {
           } else {
             content += buildKey(
               this.BASIC_LAYOUT,
-             basicLayoutKey,
+              basicLayoutKey,
               'keyboard-key-special',
               2
             );
@@ -1120,3 +1109,4 @@ window.addEventListener('load', function initIMEManager(evt) {
   window.removeEventListener('load', initIMEManager);
   IMEManager.init();
 });
+
