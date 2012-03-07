@@ -954,11 +954,14 @@ IconGrid.prototype = {
     var container = this.container;
     var icons = this.icons;
 
-    var rows = Math.ceil((window.innerHeight - 200) / 200);
-    var columns = Math.ceil((window.innerWidth - 100) / 150);
+    var rows = (window.innerHeight > 600) ?
+      Math.ceil((window.innerHeight - 250) / 250) :
+      Math.ceil((window.innerHeight - 68) / 68);
 
-    var columns = columns;
-    var rows = rows;
+    var columns = (window.innerWidth > 450) ?
+      Math.ceil((window.innerWidth - 150) / 150) :
+      Math.ceil((window.innerWidth - 120) / 96);
+
     var currentPage = this.currentPage;
     var itemsPerPage = rows * columns;
     var iconWidth = Math.floor(100 / columns);
@@ -1069,16 +1072,6 @@ IconGrid.prototype = {
           label.textContent = icon.label;
       }
 
-      // TODO This code is really, really, dirty
-      var deltaX = getIconColumn(icon) * 136;
-      var deltaY = getIconRow(icon);
-      if (window.innerHeight <= 480) {
-        deltaY *= 184;
-      } else {
-        deltaY *= 200;
-      }
-
-      setPosition(iconDiv, deltaX + 'px', deltaY + 'px');
     }
 
     // remove icons we don't need
