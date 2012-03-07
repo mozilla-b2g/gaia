@@ -16,18 +16,11 @@ var TaskManager = {
     this.container.classList.remove('active');
   },
 
-  get container() {
-    delete this.container;
-    return this.container = document.getElementById('taskManager');
-  },
-
-  get items() {
-    delete this.items;
-    return this.items = this.container.getElementsByTagName('ul')[0];
-  },
-
   enabled: true,
   init: function tm_init() {
+    this.container = document.getElementById('taskManager');
+    this.items = this.container.getElementsByTagName('ul')[0];
+
     ['keydown', 'keyup', 'locked', 'unlocked'].forEach((function attachKey(type) {
       window.addEventListener(type, this);
     }).bind(this));

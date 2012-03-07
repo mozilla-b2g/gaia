@@ -45,7 +45,7 @@ WindowSprite.prototype = {
 
 var _statusBarHeight = null;
 
-function Window(application, id) {
+function AppWindow(application, id) {
   var element = this.element = document.createElement('iframe');
   element.setAttribute('mozallowfullscreen', 'true');
 
@@ -62,7 +62,7 @@ function Window(application, id) {
   this.resize();
 }
 
-Window.prototype = {
+AppWindow.prototype = {
   element: null,
 
   _loaded: false,
@@ -125,7 +125,8 @@ Window.prototype = {
       document.getElementById('screen').classList.add('fullscreen');
     }
 
-    document.body.offsetHeight;
+    document.body.offsetHeight; // Trigger layout; not a no-op
+
     sprite.setActive(true);
   },
 
@@ -169,7 +170,8 @@ Window.prototype = {
       this.element.style.height = width;
     }
 
-    document.body.offsetHeight;
+    document.body.offsetHeight;  // Trigger layout; not a no-op.
+
     sprite.setActive(false);
   },
 
@@ -196,6 +198,9 @@ Window.prototype = {
   }
 };
 
+// This function is unused by the homescreen app itself, but is
+// currently required by chrome code in b2g/chrome/content/*.js
+// Do not delete this function until that dependency is removed.
 function getApplicationManager() {
   return WindowManager;
 }
@@ -203,20 +208,16 @@ function getApplicationManager() {
 var WindowManager = {
   init: function wm_init() {
     window.addEventListener('keyup', this);
-
     window.addEventListener('appopen', this);
     window.addEventListener('appwillclose', this);
     window.addEventListener('locked', this);
     window.addEventListener('unlocked', this);
     window.addEventListener('resize', this);
+
+    this.container = document.getElementById('windows');
   },
 
   enabled: true,
-
-  get container() {
-    delete this.container;
-    return this.container = document.getElementById('windows');
-  },
 
   handleEvent: function wm_handleEvent(evt) {
     switch (evt.type) {
@@ -246,11 +247,6 @@ var WindowManager = {
           return;
         if (evt.data == 'appclose')
           this.closeForegroundWindow();
-        break;
-      case 'home':
-        if (!this.enabled)
-          return;
-        this.closeForegroundWindow();
         break;
       case 'appopen':
         this.container.classList.add('active');
@@ -365,7 +361,7 @@ var WindowManager = {
       Gaia.AppManager.foregroundWindow = applicationWindow.element;
       TaskManager.sendToFront(applicationWindow.id);
     } else {
-      applicationWindow = new Window(application, ++this._lastWindowId);
+      applicationWindow = new AppWindow(application, ++this._lastWindowId);
       this.add(applicationWindow);
 
       // To be compatible with the upstream webapi.js file,
