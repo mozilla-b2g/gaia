@@ -72,9 +72,6 @@ var Calculator = {
     if (key === '÷') {
       return '/';
     }
-    // if (key === '-') {
-    //   return '0-';
-    // }
     return key;
   },
 
