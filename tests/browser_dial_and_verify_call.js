@@ -20,7 +20,6 @@ function test() {
 	  var keyEnd = document.getElementById('end-call');
 	
 	  //Having declared the keys, enter the number "15555215556"
-	  
       dialNumeric("15555215556");
 	  
       //Verify the phone number view contains the correct number
@@ -30,8 +29,9 @@ function test() {
       pressKey("call");
       
       
-      //verify that 'end-call' button is created
-	  ok(document.getElementById('end-call') != null, "Element exists");
+      //verify that call-screen is created, and oncall element exists
+      ok(document.getElementById('call-screen') != null, "Element exists");
+      ok(document.getElementsByClassName('oncall') != null, "Element exists");
 
 	  //hit 'end-call' button to end the call
       EventUtils.sendMouseEvent({type: 'mousedown'}, keyEnd);
