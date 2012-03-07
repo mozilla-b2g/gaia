@@ -229,8 +229,10 @@ var CallHandler = {
     this._telephonySetup = true;
 
     var telephony = navigator.mozTelephony;
-    if (telephony.calls.length > 0) {
-      var call = telephony.calls[0];
+    var calls;
+
+    if (telephony.calls && telephony.calls.length > 0) {
+      call = telephony.calls[0];
       CallHander.incoming(call, call.number);
     }
 
