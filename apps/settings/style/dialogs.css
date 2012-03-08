@@ -1,0 +1,83 @@
+/* dialog boxes */
+#dialogs {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: none;
+}
+
+body.dialog {
+  overflow: hidden;
+}
+
+body.dialog #dialogs {
+  display: table;
+}
+
+body.dialog #dialogs > div {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+div.dialog {
+  display: none;
+  width: 360px;
+  margin: auto;
+  background-color: #eaeae4;
+  border-radius: 8px 8px 0 0;
+}
+
+div.dialog.active {
+  display: block;
+}
+
+div.dialog > * {
+  padding: 0 20px;
+}
+
+div.dialog dl > * {
+  line-height: 2.0em;
+}
+
+div.dialog dt {
+  float: left;
+  margin-right: 0.5em;
+}
+
+div.dialog dd {
+  font-weight: bold;
+}
+
+div.dialog input[type=text],
+div.dialog input[type=password] {
+  width: 100%;
+  margin-bottom: 1em;
+  font-size: 1em;
+}
+
+div.dialog footer {
+  text-align: center;
+  line-height: 80px;
+  height: 80px;
+  margin-top: 20px;
+}
+
+div.dialog footer button {
+  width: 40%;
+  height: 60px;
+  border: 4px solid;
+  border-radius: 5px;
+  -moz-border-top-colors:    #c3c9cb #c3c9cb #fff #fff;
+  -moz-border-right-colors:  #c3c9cb #c3c9cb #fff #fff;
+  -moz-border-bottom-colors: #c3c9cb #c3c9cb #fff #fff;
+  -moz-border-left-colors:   #c3c9cb #c3c9cb #fff #fff;
+  background: -moz-linear-gradient(#eaeae4, #ffffff);
+  font-size: 1em;
+}
+
+div.dialog footer button:active {
+  background: -moz-linear-gradient(#ffffff, #eaeae4);
+}

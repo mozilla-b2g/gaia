@@ -5,6 +5,7 @@
     <meta http-equiv="pragma" content="no-cache">
     <title>Settings</title>
     <link rel="stylesheet" type="text/css" media="screen" href="style/ui.css"/>
+    <link rel="stylesheet" type="text/css" media="screen" href="style/dialogs.css"/>
     <link rel="stylesheet" type="text/css" media="screen" href="style/settings.css"/>
     <script type="text/javascript" src="../../webapi.js"></script>
     <script type="text/javascript" src="js/ui.js"></script>
@@ -96,8 +97,7 @@
         <li>
           <a>Scanning…</a>
           <label>
-            <span class="wifi-signal3"></span>
-            <span class="wifi-secure"></span>
+            <span class="wifi-search"></span>
           </label>
         </li>
       </ul>
@@ -303,24 +303,64 @@
       </ul>
     </div>
 
-    <!-- Dialogs -->
-    <div id="wifi-eap">
-      <div class="dialog">
-        <header>foo</header>
-        <dl>
-          <dt>security</dt>
-          <dd>WPA2-EAP</dd>
-          <dt>Signal strength</dt>
-          <dd>good</dd>
-          <dt>identity</dt>
-          <dd><input type="text" /></dd>
-          <dt>password</dt>
-          <dd><input type="password" /></dd>
-        </dl>
-        <footer>
-          <button>OK</button>
-          <button>Cancel</button>
-        </footer>
+    <!-- Dialog Boxes -->
+    <div id="dialogs">
+      <div>
+
+        <!-- PSK authentication -->
+        <div id="wifi-psk" class="dialog">
+          <header>Authentication</header>
+          <dl>
+            <dt>security:</dt>
+            <dd>WPA-PSK</dd>
+            <dt>signal strength:</dt>
+            <dd>good</dd>
+          </dl>
+          <div>
+            <label>
+              password
+              <input name="password" type="password" />
+            </label>
+            <label>
+              <input name="show-pwd" type="checkbox" />
+              show password
+            </label>
+          </div>
+          <footer>
+            <button>OK</button>
+            <button>Cancel</button>
+          </footer>
+        </div>
+
+        <!-- EAP authentication -->
+        <div id="wifi-eap" class="dialog">
+          <header>Authentication</header>
+          <dl>
+            <dt>security:</dt>
+            <dd>WPA-EAP</dd>
+            <dt>signal strength:</dt>
+            <dd>good</dd>
+          </dl>
+          <div>
+            <label>
+              identity
+              <input name="identity" type="text" />
+            </label>
+            <label>
+              password
+              <input name="password" type="password" />
+            </label>
+            <label>
+              <input name="show-pwd" type="checkbox" />
+              show password
+            </label>
+          </div>
+          <footer>
+            <button>OK</button>
+            <button>Cancel</button>
+          </footer>
+        </div>
+
       </div>
     </div>
   </body>

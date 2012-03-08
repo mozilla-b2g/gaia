@@ -147,7 +147,7 @@ ul li > small {
 }
 
 /* fake input boxes for checkboxes & radio buttons */
-label {
+.view label {
   position: absolute;
   top: 0;
   left: 0;
@@ -155,29 +155,29 @@ label {
   height: 100%;
 }
 
-label > input {
+.view label > input {
   display: none;
 }
 
-label > span {
+.view label > span {
   position: absolute;
   top: -moz-calc(50% - 34px);
   right: 20px;
   display: block;
-}
-
-label > input[type=radio] + span {
   width: 64px;
   height: 64px;
   border: none;
+}
+
+.view label > input[type=radio] + span {
   background: url(images/radio-off.png) no-repeat scroll center center;
 }
 
-label > input[type=radio]:checked + span {
+.view label > input[type=radio]:checked + span {
   background: url(images/radio-on.png) no-repeat scroll center center;
 }
 
-label > input[type=checkbox] + span {
+.view label > input[type=checkbox] + span {
   width: 60px;
   height: 60px;
   border: 4px solid;
@@ -190,7 +190,7 @@ label > input[type=checkbox] + span {
     -moz-linear-gradient(#eaeae4, #ffffff);
 }
 
-label > input[type=checkbox]:checked + span {
+.view label > input[type=checkbox]:checked + span {
   background: url(images/check-on.png) no-repeat scroll center center,
     -moz-linear-gradient(#ffffff, #eaeae4);
 }
@@ -215,95 +215,43 @@ li#brightness progress {
 }
 
 /* wifi icons */
-li#wifi-networks span {
+#wifi-networks span {
   -moz-border-top-colors:    transparent;
   -moz-border-right-colors:  transparent;
   -moz-border-bottom-colors: transparent;
   -moz-border-left-colors:   transparent;
+  background-repeat: no-repeat;
+  background-position: center center;
 }
 
 #wifi-networks .wifi-signal0 {
-  background: url(images/wifi-0.png) no-repeat scroll center center;
+  background-image: url(images/wifi-0.png);
 }
 #wifi-networks .wifi-signal1 {
-  background: url(images/wifi-1.png) no-repeat scroll center center;
+  background-image: url(images/wifi-1.png);
 }
 #wifi-networks .wifi-signal2 {
-  background: url(images/wifi-2.png) no-repeat scroll center center;
+  background-image: url(images/wifi-2.png);
 }
 #wifi-networks .wifi-signal3 {
-  background: url(images/wifi-3.png) no-repeat scroll center center;
+  background-image: url(images/wifi-3.png);
 }
 #wifi-networks .wifi-signal4 {
-  background: url(images/wifi-4.png) no-repeat scroll center center;
+  background-image: url(images/wifi-4.png);
 }
+
 #wifi-networks .wifi-secure {
-  background: url(images/wifi-lock.png) no-repeat scroll center center;
+  background-image: url(images/wifi-lock.png);
 }
 
-/* dialog box */
-body.dialog {
-  overflow: hidden;
+#wifi-networks .wifi-search {
+  background-image: url(images/wifi-scan.png);
+  -moz-animation: 2s ease 0s normal none infinite scan;
+  -moz-transform: rotate(-30deg);
+  -moz-transform-origin: center bottom;
 }
-
-#wifi-eap {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.7);
-  display: none;
-}
-
-#wifi-eap div {
-  margin: 100px auto;
-  width: 320px;
-  /*height: 320px;*/
-  /*background-color: #f5f5f5;*/
-  background-color: #eaeae4;
-  border-radius: 8px 8px 0 0;
-}
-
-#wifi-eap div > * {
-  padding: 0 20px;
-}
-
-body.dialog #wifi-eap {
-  display: block;
-}
-
-.dialog dt {
-  float: left;
-  margin-right: 1em;
-}
-.dialog dd {
-  font-weight: bold;
-  margin: 1em 0 0 0;
-  padding: 0;
-}
-.dialog dd input {
-  width: 100%;
-}
-
-.dialog footer {
-  text-align: center;
-  line-height: 64px;
-  height: 64px;
-}
-
-.dialog footer button {
-  width: 40%;
-  height: 60px;
-  border: 4px solid;
-  border-radius: 5px;
-  -moz-border-top-colors:    #c3c9cb #c3c9cb #fff #fff;
-  -moz-border-right-colors:  #c3c9cb #c3c9cb #fff #fff;
-  -moz-border-bottom-colors: #c3c9cb #c3c9cb #fff #fff;
-  -moz-border-left-colors:   #c3c9cb #c3c9cb #fff #fff;
-  background: -moz-linear-gradient(#eaeae4, #ffffff);
-}
-
-.dialog footer button:active {
-  background: -moz-linear-gradient(#ffffff, #eaeae4);
+@-moz-keyframes scan {
+    0%  { -moz-transform: rotate(-30deg); }
+   50%  { -moz-transform: rotate(+30deg); }
+  100%  { -moz-transform: rotate(-30deg); }
 }
