@@ -11,7 +11,7 @@
     <script type="text/javascript" src="js/wifi.js"></script>
     <script type="text/javascript" src="js/settings.js"></script>
   </head>
-  <body>
+  <body class="">
     <header>
       <h1>Settings</h1>
     </header>
@@ -31,7 +31,7 @@
           </label>
         </li>
       </ul>
-      <h2> </h2>
+      <h2>Settings</h2>
       <ul>
         <li>
           <a class="push slideHorizontal" href="#languages">
@@ -76,9 +76,9 @@
       <ul>
         <li id="status">
           <span>Wi-Fi</span>
-          <small>Disconnected.</small>
+          <small>offline</small>
           <label>
-            <input type="checkbox" name="wifi.enabled"/>
+            <input type="checkbox" />
             <span></span>
           </label>
         </li>
@@ -174,7 +174,7 @@
           </label>
         </li>
       </ul>
-      <h2> </h2>
+      <h2>Layouts</h2>
       <ul>
         <li>
           <a>English</a>
@@ -214,14 +214,16 @@
           </label>
         </li>
         <li>
-          <a>Traditional Chinese (ZhuYing)</a>
+          <span>Traditional Chinese</span>
+          <small>ZhuYing</small>
           <label>
             <input type="checkbox" name="keyboard.layouts.zhuying"/>
             <span></span>
           </label>
         </li>
         <li>
-          <a>Simplified Chinese (Pinyin)</a>
+          <span>Simplified Chinese</span>
+          <small>Pinyin</small>
           <label>
             <input type="checkbox" name="keyboard.layouts.pinyin"/>
             <span></span>
@@ -261,7 +263,7 @@
     <div id="display" class="view" data-title="Display">
       <ul>
         <li id="brightness">
-          <label>Brightness level</label>
+          <a>Brightness level</a>
           <progress id="brightness-level" data-name="screen.brightness" value="10" max="10"></progress>
         </li>
         <li>
@@ -299,6 +301,27 @@
           </label>
         </li>
       </ul>
+    </div>
+
+    <!-- Dialogs -->
+    <div id="wifi-eap">
+      <div class="dialog">
+        <header>foo</header>
+        <dl>
+          <dt>security</dt>
+          <dd>WPA2-EAP</dd>
+          <dt>Signal strength</dt>
+          <dd>good</dd>
+          <dt>identity</dt>
+          <dd><input type="text" /></dd>
+          <dt>password</dt>
+          <dd><input type="password" /></dd>
+        </dl>
+        <footer>
+          <button>OK</button>
+          <button>Cancel</button>
+        </footer>
+      </div>
     </div>
   </body>
 </html>
