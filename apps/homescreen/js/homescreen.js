@@ -803,41 +803,39 @@ var Homescreen = function() {
 function DefaultPhysics(iconGrid) {
   this.iconGrid = iconGrid;
   this.moved = false;
-  this.touchState = { active: false, startX: 0, startY: 0 };
+  var touchState = this.touchState = {
+    active: false, startX: 0, deltaX: 0, previousX: 0
+  };
+
+  this.onRequestAnimationFrame = function(timestamp) {
+    if (!touchState.active)
+      return;
+
+    iconGrid.pan(-(touchState.deltaX + touchState.previousX) / 2);
+    touchState.previousX = touchState.deltaX;
+    window.mozRequestAnimationFrame(this);
+  };
 }
 
 DefaultPhysics.prototype = {
   onTouchStart: function(e) {
     var touchState = this.touchState;
-    this.moved = false;
     touchState.active = true;
-    touchState.startX = e.pageX;
-    touchState.startY = e.pageY;
     touchState.startTime = e.timeStamp;
-    var self = this;
-    var handler = function(timestamp) {
-      var touchState = self.touchState;
-      if (!touchState.active)
-        return;
-      self.iconGrid.pan(-((touchState.dx + touchState.lastdx)/2));
-      touchState.lastdx = touchState.dx;
-      window.mozRequestAnimationFrame(handler);
-    };
-    touchState.dx = 0;
-    touchState.lastdx = 0;
-    window.mozRequestAnimationFrame(handler);
+
+    touchState.startX = e.pageX;
+    touchState.deltaX = 0;
+    touchState.previousX = 0;
+
+    window.mozRequestAnimationFrame(this.onRequestAnimationFrame);
   },
   onTouchMove: function(e) {
-    var iconGrid = this.iconGrid;
     var touchState = this.touchState;
-    if (touchState.active) {
-      var dx = touchState.startX - e.pageX;
-      if (dx !== 0) {
-        this.moved = this.moved || Math.abs(dx) > 20;
-        touchState.dx = dx;
-      }
-      e.stopPropagation();
-    }
+    if (!touchState.active)
+      return;
+
+    touchState.deltaX = touchState.startX - e.pageX;
+    e.stopPropagation();
   },
   onTouchEnd: function(e) {
     var touchState = this.touchState;
@@ -855,7 +853,7 @@ DefaultPhysics.prototype = {
     var small = Math.abs(diffX) <= 20;
 
     var flick = quick && !small;
-    var tap = !this.moved;
+    var tap = small;
     var drag = !quick;
 
     var iconGrid = this.iconGrid;
