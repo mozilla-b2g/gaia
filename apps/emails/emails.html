@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="pragma" content="no-cache">
+
+    <link type="text/css" rel="stylesheet" href="style/emails.css"><link>
+
+    <script type="application/x-javascript" src="js/emails.js"></script>
+  </head>
+  <body>
+    <div id="titlebar">
+      <h1 id="folder-title">Inbox</h1>
+      <button id="refresh" onclick="Mails.refresh();"></button>
+    </div>
+
+    <div id="messages" onclick="Mails.show(event.target.id)">
+    </div>
+
+    <div id="message" class="panel">
+      <textarea id="content" readonly></textarea>
+      <div class="toolbar">
+        <div class="button back" onclick="Mails.hide()"></div>
+      </div>
+    </div>
+
+    <div id="compose" hidden>
+      <input type="text"></input>
+      <textarea id=""></textarea>
+    </div>
+
+    <div id="settings" class="panel">
+      <div class="toolbar">
+        <div class="button back" onclick="Settings.hide()"></div>
+        <div class="button add" onclick="Settings.add()"></div>
+      </div>
+    </div>
+
+    <div id="toolbar" class="toolbar">
+      <div class="button inbox"></div>
+      <div class="button compose"></div>
+      <div class="button settings" onclick="Settings.show()"></div>
+    </div>
+  </body>
+</html>
+
