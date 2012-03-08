@@ -76,11 +76,12 @@ var IMAP = {
       delete self.stack[tag];
       window.clearInterval(interval);
 
-      callback(buffer);
+      if (callback)
+        callback(buffer);
     }, 20, this);
 
     this.stack[tag] = '';
-    dump(data);
+    LOG(data);
 
     tcp.write(tag + ' ' + data + '\r\n');
     return tag;
@@ -103,16 +104,26 @@ var IMAP = {
 
   fetch: function imap_fetch() {
     var cmd = 'SELECT inbox';
-    this.send(cmd, (function(data) {
+
+    var self = this;
+    this.send(cmd, function(data) {
       var uid = parseInt(data.match(/\* ([0-9]+) EXISTS/)[1]);
 
       var previousUID = (uid - Mails.VIEW_SIZE);
       var cmd = 'FETCH ' + previousUID + ':' + uid + ' (BODY.PEEK[HEADER])';
-      this.send(cmd, this.parseFetchHeaders.bind(this));
+  
+      self.send(cmd, function(data) {
+        self.parseFetchHeaders(data);
 
-      var cmd = 'FETCH ' + previousUID + ':' + uid + ' FLAGS';
-      this.send(cmd, this.parseFetchFlags);
-    }).bind(this));
+        cmd = 'FETCH ' + previousUID + ':' + uid + ' FLAGS';
+        self.send(cmd, function(data) {
+          self.parseFetchFlags(data);
+
+          cmd = 'LOGOUT';
+          self.send(cmd);
+        });
+      });
+    });
   },
 
   parseFetchHeaders: function imap_parseFetchHeaders(data) {
@@ -150,7 +161,7 @@ var IMAP = {
 
     var cmd = 'LOGIN ' + config['username'] + ' ' + config['password'];
     this.send(cmd, (function(data) {
-      if (/Success/.test(data)) {
+      if (/OK/.test(data)) {
         this.state = STATE_CONNECTED;
 
         if (this[this.action])
@@ -226,11 +237,12 @@ var configs = Configs.get();
 var config = 0;
 function readNextConfig() {
   var current = configs[config];
-  if (!current) {
+  if (!current && config == 0) {
     Settings.show();
     return null;
   }
 
+  config++;
   return current;
 }
 
@@ -250,6 +262,7 @@ var Mails = {
   handleEvent: function mails_handleEvent(evt) {
     switch (evt.type) {
       case 'load':
+      case 'disconnected':
         var config = readNextConfig();
         if (config)
           IMAP.connect(config, 'fetch');
@@ -342,7 +355,7 @@ var Mails = {
   }
 };
 
-['load', 'unload', 'keyup'].forEach(function(type) {
+['load', 'unload', 'disconnected', 'keyup'].forEach(function(type) {
   window.addEventListener(type, Mails, true);
 });
 
@@ -353,7 +366,18 @@ var Settings = {
     return this.panel = document.getElementById('settings');
   },
 
+  get accounts() {
+    delete this.accounts;
+    return this.accounts = document.getElementById('accounts');
+  },
+
   show: function settings_show() {
+    var accounts = this.accounts.children;
+    for (var i = 0; i < accounts.length; i++) {
+      var account = accounts[i];
+      this.accounts.removeChild(account);
+    }
+
     this.panel.dataset.visible = 'true';
 
     var accounts = Configs.get();
@@ -419,7 +443,7 @@ var Settings = {
     buttons.appendChild(remove);
 
     account.appendChild(buttons);
-    this.panel.insertBefore(account, this.panel.lastChild);
+    this.accounts.insertBefore(account, this.accounts.lastChild);
   },
 
   save: function settings_save(target) {
@@ -448,13 +472,13 @@ var Settings = {
     var key = this._getKey(target);
     delete localStorage[key];
 
-    this.panel.removeChild(target);
+    this.accounts.removeChild(target);
     if (this._getFields(this.panel).length == 0)
       this.add();
   },
 
   _getKey: function settings_getKey(node) {
-    return 'mail_' + Array.prototype.indexOf.call(this.panel.childNodes, node);
+    return 'mail_' + Array.prototype.indexOf.call(this.accounts.childNodes, node);
   },
 
   _getFields: function settings_getFiels(target) {

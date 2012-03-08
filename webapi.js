@@ -62,6 +62,24 @@
                      }
                    }
                  },
+                 { // emails
+                   installOrigin: 'http://gaiamobile.org:8888',
+                   origin: '../emails',
+                   receipt: null,
+                   installTime: 1323339869000,
+                   manifest: {
+                     'name': 'Emails',
+                     'description': 'Gaia Mail Client',
+                     'launch_path': '/emails.html',
+                     'developer': {
+                       'name': 'The Gaia Team',
+                       'url': 'https://github.com/andreasgal/gaia'
+                     },
+                     'icons': {
+                       '120': '/style/icons/Emails.png'
+                     }
+                   }
+                 },
                  { // maps
                    installOrigin: 'http://gaiamobile.org:8888',
                    origin: '../maps',
