@@ -1,5 +1,5 @@
 
-var debug = false;
+var debug = true;
 function LOG(str) {
   if (debug)
     dump(str);
@@ -158,7 +158,7 @@ var IMAP = {
     while ((result = regexp.exec(data)) != null) {
 
       var id = result[1];
-      var flags = result[2].replace('\\', '').toLowerCase().split(' ');
+      var flags = result[2].replace(/\\/g, '').toLowerCase().split(' ');
 
       for (var i = 0; i < flags.length; i++)
         Mails.flag(this.config, id, flags[i]);
@@ -194,6 +194,8 @@ var IMAP = {
 
   buffer: '',
   onDataAvailable: function imap_dataAvailable(data) {
+    LOG(data);
+
     var commands = data.split('\r\n');
     commands.forEach((function(command) {
       this.buffer += command + '\r\n';
