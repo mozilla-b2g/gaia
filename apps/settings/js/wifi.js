@@ -18,18 +18,20 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
     if (currentNetwork) {
       gCurrentSSID = currentNetwork.ssid;
       gStatus.textContent = 'connected to ' + gCurrentSSID + '.';
-      enabledBox.checked = true;
+      //enabledBox.checked = true;
     } else if (wifiManager.enabled) {
       gStatus.textContent = 'offline';
-      enabledBox.checked = true;
+      //enabledBox.checked = true;
     } else {
       gStatus.textContent = 'disabled';
-      enabledBox.checked = false;
+      //enabledBox.checked = false;
     }
+    enabledBox.checked = wifiManager.enabled;
     dump('### ' + enabledBox.outerHTML + ' - ' + enabledBox.checked);
   }
 
-  document.querySelector('#status input').onclick = function() {
+  // toggle wifi on/off
+  document.querySelector('#status input').onchange = function() {
     if (wifiManager.enabled) {
       wifiManager.setEnabled(false);
       while (gList.hasChildNodes())
@@ -41,9 +43,11 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
       var signal = document.createElement('signal');
       var secure = document.createElement('secure');
       */
+      updateState();
     } else {
       wifiManager.setEnabled(true);
-      req = wifiManager.getNetworks();
+      wifiScanNetworks();
+      updateState();
     }
   }
 
@@ -117,26 +121,27 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
   };
 
   // scan wifi networks
-  var networks;
-  var req = wifiManager.getNetworks();
-  req.onsuccess = function() {
-    networks = req.result;
-    while (gList.hasChildNodes())
-      gList.removeChild(gList.lastChild);
-    var ssids = Object.getOwnPropertyNames(networks);
-    ssids.sort(function(a, b) {
-      return networks[b].signal - networks[a].signal;
-    });
-    for (var i = 0; i < ssids.length; i++) {
-      var key = ssids[i];
-      var li = newListItem(key, networks[key]);
-      gList.appendChild(li);
-    }
-  };
-  req.onerror = function(error) {
-    gStatus.textContent = 'error: '+ req.error.name;
-  };
-  updateState();
+  function wifiScanNetworks() {
+    var req = wifiManager.getNetworks();
+    req.onsuccess = function() {
+      var networks = req.result;
+      while (gList.hasChildNodes())
+        gList.removeChild(gList.lastChild);
+      var ssids = Object.getOwnPropertyNames(networks);
+      ssids.sort(function(a, b) {
+        return networks[b].signal - networks[a].signal;
+      });
+      for (var i = 0; i < ssids.length; i++) {
+        var key = ssids[i];
+        var li = newListItem(key, networks[key]);
+        gList.appendChild(li);
+      }
+    };
+    req.onerror = function(error) {
+      gStatus.textContent = 'error: '+ req.error.name;
+    };
+    updateState();
+  }
 
   function showNetwork(network) {
     //if (network.connected) {
@@ -169,7 +174,7 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
     if (header)
       header.textContent = network.ssid;
     var security = dialog.querySelector('dd[data-security]');
-    if (security)
+    if (security && network.keyManagement)
       security.textContent = network.keyManagement.join(', ');
     var signal = dialog.querySelector('dd[data-signal]');
     if (signal) {
@@ -206,7 +211,8 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
       if (password) {
         network.password = password.value;
         //network.keyManagement = 'WPA-' + type.toUpperCase(); // XXX
-        network.keyManagement = 'WPA-EAP'; // XXX
+        //network.keyManagement = 'WPA-EAP'; // XXX
+        network.keyManagement = network.keyManagement[0]; // XXX
       }
       return callback ? callback(network) : null;
     };
@@ -220,4 +226,8 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
     document.body.classList.add('dialog');
     return dialog;
   }
+
+  updateState();
+  if (wifiManager.enabled)
+    wifiScanNetworks();
 });
