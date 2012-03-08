@@ -52,10 +52,11 @@ var IMAP = {
   state: STATE_DISCONNECTED,
 
   _tag: 0,
-  connect: function imap_connect(config, action) {
+  connect: function imap_connect(config, action, details) {
     this.state = STATE_CONNECTING;
     this.config = config;
     this.action = action;
+    this.details = details;
 
     tcp.start(config['imap'], config['port'], this);
   },
@@ -87,18 +88,27 @@ var IMAP = {
     return tag;
   },
 
-  body: function imap_body(id, callback) {
-    var cmd = 'FETCH ' + id + ' BODY[text]';
-    this.send(cmd, function(data) {
-      var regexp = /\* ([0-9]+) FETCH \(BODY\[TEXT\] {([0-9]+)}/gi;
-      var result = regexp.exec(data);
-      if (!result)
-        return;
+  body: function imap_body() {
+    var details = this.details;
+    var self = this;
 
-      var size = result[2];
-      var start = result.index + result[0].length;
-      var message = data.substr(start, parseInt(size));
-      callback(message);
+    var cmd = 'SELECT inbox';
+    this.send(cmd, function() {
+      var cmd = 'FETCH ' + details.id + ' BODY[text]';
+
+      self.send(cmd, function(data) {
+        var regexp = /\* ([0-9]+) FETCH \(BODY\[TEXT\] {([0-9]+)}/gi;
+        var result = regexp.exec(data);
+        if (!result)
+          return;
+
+        var size = result[2];
+        var start = result.index + result[0].length;
+        var message = data.substr(start, parseInt(size));
+        details.callback(message);
+
+        self.send('LOGOUT');
+      });
     });
   },
 
@@ -137,7 +147,7 @@ var IMAP = {
 
       var start = result.index + result[0].length;
       var message = data.substr(start, parseInt(size));
-      Mails.append(id, MIMEParser.parse(message));
+      Mails.append(this.config, id, MIMEParser.parse(message));
     }
   },
 
@@ -151,7 +161,7 @@ var IMAP = {
       var flags = result[2].replace('\\', '').toLowerCase().split(' ');
 
       for (var i = 0; i < flags.length; i++)
-        Mails.flag(id, flags[i]);
+        Mails.flag(this.config, id, flags[i]);
     }
   },
 
@@ -230,19 +240,23 @@ var Configs = {
     });
 
     return accounts;
-  }
+  },
+
+  current: null
 };
 
-var configs = Configs.get();
 var config = 0;
+var configs = Configs.get();
+
 function readNextConfig() {
-  var current = configs[config];
+  var current = Configs.current = configs[config];
   if (!current && config == 0) {
     Settings.show();
     return null;
   }
-
   config++;
+
+  window.addEventListener('disconnected', Mails);
   return current;
 }
 
@@ -263,6 +277,8 @@ var Mails = {
     switch (evt.type) {
       case 'load':
       case 'disconnected':
+        window.removeEventListener(evt.type, this);
+
         var config = readNextConfig();
         if (config)
           IMAP.connect(config, 'fetch');
@@ -292,10 +308,11 @@ var Mails = {
     IMAP.connect(readNextConfig(), 'fetch');
   },
 
-  append: function mails_append(id, headers) {
+  append: function mails_append(config, id, headers) {
     var mail = document.createElement('div');
-    mail.id = id;
+    mail.id = '_' + id;
     mail.className = 'mail';
+    mail.dataset.config = config['index'];
 
     var from = document.createElement('div');
     from.className = 'from';
@@ -330,8 +347,9 @@ var Mails = {
     this.view.insertBefore(mail, target);
   },
 
-  flag: function mails_flag(id, flag) {
-    var mail = document.getElementById(id);
+  flag: function mails_flag(config, id, flag) {
+    var rule = '#_' + id + '[data-config="' + config['index'] + '"]';
+    var mail = document.querySelector(rule);
     if (!mail)
       return;
 
@@ -342,11 +360,27 @@ var Mails = {
     var mail = document.getElementById(id);
     var view = this.msg;
 
-    IMAP.body(id, function(msg) {
-      mail.classList.add('seen');
+    var configs = Configs.get();
 
-      view.firstElementChild.value = msg;
-      view.dataset.visible = 'true';
+    var config = null;
+    for (var i = 0; i < configs.length; i++) {
+      if (configs[i]['index'] == mail.dataset.config) {
+        config = configs[i];
+        break;
+      }
+    }
+
+    if (!config)
+      throw new Error('Can\'t find config');
+
+    IMAP.connect(config, 'body', {
+      'id': id.replace(/_/, ''),
+      'callback': function(msg) {
+        mail.classList.add('seen');
+
+        view.firstElementChild.value = msg;
+        view.dataset.visible = 'true';
+      }
     });
   },
 
