@@ -11,10 +11,15 @@ body {
 header {
   position: relative;
   height: 62px;
+  line-height: 62px;
+  text-align: center;
   background-color: #fff;
   background-image: -moz-linear-gradient(#fff, #eaeae4);
   border-bottom: solid 2px #a3a3a3;
   border-radius: 8px 8px 0 0;
+}
+
+body > header {
   display: none;
 }
 
@@ -119,28 +124,29 @@ ul li > a {
   color: #555;
 }
 
-ul li > span, ul li > small {
-  position: absolute;
-  left: 20px;
-  /* text ellipsis */
+ul li > a, ul li > span, ul li > small { /* text ellipsis */
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: -moz-calc(100% - 80px);
+  max-width: -moz-calc(100% - 120px);
 }
 
 ul li > span {
+  position: absolute;
+  left: 20px;
   bottom: 50%;
 }
 
 ul li > small {
+  position: absolute;
+  left: 20px;
   top: 50%;
   font-size: 0.65em;
   color: #888;
 }
 
-/* checkboxes / radio buttons */
+/* fake input boxes for checkboxes & radio buttons */
 label {
   position: absolute;
   top: 0;
@@ -153,11 +159,25 @@ label > input {
   display: none;
 }
 
-label > span { /* fake input box */
+label > span {
   position: absolute;
   top: -moz-calc(50% - 34px);
   right: 20px;
   display: block;
+}
+
+label > input[type=radio] + span {
+  width: 64px;
+  height: 64px;
+  border: none;
+  background: url(images/radio-off.png) no-repeat scroll center center;
+}
+
+label > input[type=radio]:checked + span {
+  background: url(images/radio-on.png) no-repeat scroll center center;
+}
+
+label > input[type=checkbox] + span {
   width: 60px;
   height: 60px;
   border: 4px solid;
@@ -166,22 +186,36 @@ label > span { /* fake input box */
   -moz-border-right-colors:  #c3c9cb #c3c9cb #fff #fff;
   -moz-border-bottom-colors: #c3c9cb #c3c9cb #fff #fff;
   -moz-border-left-colors:   #c3c9cb #c3c9cb #fff #fff;
-}
-
-label > input[type=radio] + span,
-label > input[type=checkbox] + span {
   background: url(images/check-off.png) no-repeat scroll center center,
     -moz-linear-gradient(#eaeae4, #ffffff);
 }
 
-label > input[type=radio]:checked + span,
 label > input[type=checkbox]:checked + span {
   background: url(images/check-on.png) no-repeat scroll center center,
     -moz-linear-gradient(#ffffff, #eaeae4);
 }
 
+/* brightness level */
+li#brightness:active {
+  background-color: #f5f5f5;
+  text-shadow: none;
+  color: #555;
+}
+
+li#brightness a {
+  max-width: -moz-calc(60% - 50px);
+}
+
+li#brightness progress {
+  width: 40%;
+  height: 40%;
+  position: absolute;
+  right: 20px;
+  top: 30%;
+}
+
 /* wifi icons */
-#wifi-networks span {
+li#wifi-networks span {
   -moz-border-top-colors:    transparent;
   -moz-border-right-colors:  transparent;
   -moz-border-bottom-colors: transparent;
@@ -206,4 +240,3 @@ label > input[type=checkbox]:checked + span {
 #wifi-networks .wifi-secure {
   background: url(images/wifi-lock.png) no-repeat scroll center center;
 }
-
