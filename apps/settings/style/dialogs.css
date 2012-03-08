@@ -74,10 +74,14 @@ div.dialog footer button {
   -moz-border-right-colors:  #c3c9cb #c3c9cb #fff #fff;
   -moz-border-bottom-colors: #c3c9cb #c3c9cb #fff #fff;
   -moz-border-left-colors:   #c3c9cb #c3c9cb #fff #fff;
-  background: -moz-linear-gradient(#eaeae4, #ffffff);
+  background: -moz-linear-gradient(#ffffff, #eaeae4);
   font-size: 1em;
 }
 
 div.dialog footer button:active {
-  background: -moz-linear-gradient(#ffffff, #eaeae4);
+  background: -moz-linear-gradient(#eaeae4, #ffffff);
+}
+
+div.dialog footer button::-moz-focus-inner {
+  border: none;
 }

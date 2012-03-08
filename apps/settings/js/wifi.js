@@ -79,16 +79,14 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
     li.appendChild(label);
 
     // bind connection callback
-    if (1) li.onclick = function() {
-      wifiAuthenticate(network, wifiConnect);
-    };
-    else li.onclick = function() {
+    li.onclick = function() {
       showNetwork(network);
-    };
+    }
     return li;
   }
 
   function wifiConnect(network) {
+    dump('### wifiConnect - ' + network.ssid + '\n');
     var connection = wifiManager.select(network);
     connection.onsuccess = function() {
       gStatus.textContent = 'Connecting to ' + network.ssid + '…';
@@ -97,6 +95,10 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
     connection.onerror = function() {
       gStatus.textContent = connection.error.name;
     };
+  }
+
+  function wifiDisconnect(network) {
+    // not working yet
   }
 
   // mozWifiManager events / callbacks
@@ -137,56 +139,76 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
   updateState();
 
   function showNetwork(network) {
-    var dialog = document.querySelector('#wifi-eap');
-
-    var header = dialog.querySelector('header');
-    header.textContent = network.ssid;
-    dump('### network = ' + network.ssid + '\n');
-
-    var footer = dialog.querySelector('footer');
-    var action = document.createElement('button');
-    var cancel = document.createElement('button');
-    action.textContent = 'disconnect';
-    cancel.textContent = 'cancel';
-    footer.appendChild(action);
-    footer.appendChild(cancel);
-    dump('### network = ' + network.ssid + '\n');
-
-    body.className = 'dialog';
+    //if (network.connected) {
+    //if (network == wifiManager.connected) {
+    var currentNetwork = wifiManager.connected;
+    if (currentNetwork && currentNetwork.ssid == network.ssid) {
+      // online: show status + offer to disconnect
+      wifiDialog('#wifi-status', network, wifiDisconnect);
+    }
+    else {
+      // offline: offer to connect
+      if (/EAP$/.test(network.keyManagement))
+        wifiDialog('#wifi-eap', network, wifiConnect);
+      else if (/PSK$/.test(network.keyManagement))
+        wifiDialog('#wifi-psk', network, wifiConnect);
+      else
+        wifiConnect(network);
+    }
   }
 
-  function wifiAuthenticate(network, callback) {
-    var type;
-    if (/EAP$/.test(network.keyManagement))
-      type = 'eap';
-    else if (/PSK$/.test(network.keyManagement))
-      type = 'psk';
-    else
-      return callback(network);
-    var dialog = document.querySelector('#wifi-' + type);
+  function wifiDialog(selector, network, callback) {
+    var dialog = document.querySelector(selector);
+    if (!dialog)
+      return;
+    if (!network)
+      throw "no network!!!!";
 
-    function close() { // hide  dialog box
-      document.body.classList.remove('dialog');
-      dialog.classList.remove('active');
+    // network info
+    var header = dialog.querySelector('header');
+    if (header)
+      header.textContent = network.ssid;
+    var security = dialog.querySelector('dd[data-security]');
+    if (security)
+      security.textContent = network.keyManagement.join(', ');
+    var signal = dialog.querySelector('dd[data-signal]');
+    if (signal) {
+      var levels = ['very weak', 'weak', 'average', 'good', 'very good'];
+      var lvl = Math.min(Math.floor(network.signal / 20), 4);
+      signal.textContent = levels[lvl];
     }
 
     // identity/password
     var identity = dialog.querySelector('input[name=identity]');
+    if (identity)
+      identity.value = network.identity;
     var password = dialog.querySelector('input[name=password]');
-    dialog.querySelector('input[name=show-pwd]').onchange = function() {
-      password.type = this.checked ? 'text' : 'password';
-    };
-    identity.value = network.identity;
-    password.value = network.password;
+    if (password)
+      password.value = network.password;
+    var tShowPwd = dialog.querySelector('input[name=show-pwd]');
+    if (tShowPwd)
+      tShowPwd.onchange = function() {
+        password.type = this.checked ? 'text' : 'password';
+      };
+
+    // hide dialog box
+    function close() {
+      document.body.classList.remove('dialog');
+      dialog.classList.remove('active');
+    }
 
     // OK|Cancel
     var buttons = dialog.querySelectorAll('footer button');
     buttons[0].onclick = function() { // OK
       close();
-      network.identity = identity.value;
-      network.password = password.value;
-      network.keyManagement = 'WPA-' + type.toUpperCase(); // XXX
-      return callback(network);
+      if (identity)
+        network.identity = identity.value;
+      if (password) {
+        network.password = password.value;
+        //network.keyManagement = 'WPA-' + type.toUpperCase(); // XXX
+        network.keyManagement = 'WPA-EAP'; // XXX
+      }
+      return callback ? callback(network) : null;
     };
     buttons[1].onclick = function() { // Cancel
       close();
@@ -196,5 +218,6 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
     // show dialog box
     dialog.classList.add('active');
     document.body.classList.add('dialog');
+    return dialog;
   }
 });

@@ -12,7 +12,7 @@
     <script type="text/javascript" src="js/wifi.js"></script>
     <script type="text/javascript" src="js/settings.js"></script>
   </head>
-  <body class="">
+  <body>
     <header>
       <h1>Settings</h1>
     </header>
@@ -307,16 +307,31 @@
     <div id="dialogs">
       <div>
 
+        <!-- network status -->
+        <div id="wifi-status" class="dialog">
+          <header>Network</header>
+          <dl>
+            <dt>security:</dt>
+            <dd data-security>WPA-PSK</dd>
+            <dt>signal strength:</dt>
+            <dd data-signal>good</dd>
+          </dl>
+          <footer>
+            <button style="display: none;">Disconnect</button>
+            <button>Cancel</button>
+          </footer>
+        </div>
+
         <!-- PSK authentication -->
         <div id="wifi-psk" class="dialog">
           <header>Authentication</header>
           <dl>
             <dt>security:</dt>
-            <dd>WPA-PSK</dd>
+            <dd data-security>WPA-PSK</dd>
             <dt>signal strength:</dt>
-            <dd>good</dd>
+            <dd data-signal>good</dd>
           </dl>
-          <div>
+          <form action="#">
             <label>
               password
               <input name="password" type="password" />
@@ -325,7 +340,7 @@
               <input name="show-pwd" type="checkbox" />
               show password
             </label>
-          </div>
+          </form>
           <footer>
             <button>OK</button>
             <button>Cancel</button>
@@ -337,11 +352,11 @@
           <header>Authentication</header>
           <dl>
             <dt>security:</dt>
-            <dd>WPA-EAP</dd>
+            <dd data-security>WPA-EAP</dd>
             <dt>signal strength:</dt>
-            <dd>good</dd>
+            <dd data-signal>good</dd>
           </dl>
-          <div>
+          <form action="#">
             <label>
               identity
               <input name="identity" type="text" />
@@ -354,7 +369,7 @@
               <input name="show-pwd" type="checkbox" />
               show password
             </label>
-          </div>
+          </form>
           <footer>
             <button>OK</button>
             <button>Cancel</button>
