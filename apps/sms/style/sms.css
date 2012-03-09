@@ -390,16 +390,18 @@ body.conversation-new-msg #view-num {
 }
 
 #view-msg-text {
-  padding: 0 20px;
+  padding: 0 10px;
   width: -moz-calc(100% - 16px);
   display: block;
-  height: 48px;
-  overflow: hidden;
+  height: 50px;
   resize: none;
   font-size: 24px;
   font-weight: bold;
-  line-height: 48px;
+  line-height: 46px;
   margin: 14px 0 0 16px;
+  overflow: auto;
+  overflow-x: auto;
+  border: 1px solid red;
 }
 
 #view-msg-send-container {
