@@ -303,6 +303,11 @@ iframe.landscape-secondary {
   height: 32px;
 }
 
+#state-calls[data-visible] {
+  width: 32px;
+  height: 32px;
+}
+
 #statusbar > #padding {
   -moz-box-flex: 1;
 }

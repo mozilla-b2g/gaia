@@ -24,7 +24,7 @@ var Calculator = {
   },
 
   isOperator: function calculator_isOperator(val) {
-    return this.operators.indexOf(val) !== -1;
+    return Calculator.operators.indexOf(val) !== -1;
   },
 
   appendValue: function calculator_appendValue(value) {
@@ -150,7 +150,7 @@ var Calculator = {
         output.push(parseFloat(token, 10));
       }
 
-      var preference = this.precedence;
+      var precedence = this.precedence;
       var isOperator = this.isOperator;
       if (isOperator(token)) {
         while (isOperator(stack[stack.length - 1]) &&
