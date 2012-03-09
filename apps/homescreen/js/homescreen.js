@@ -11,10 +11,11 @@ function startup() {
     ScreenManager.turnScreenOn();
 
     var touchables = [
-      document.getElementById('notificationsScreen'),
+      document.getElementById('notifications-screen'),
       document.getElementById('statusbar')
     ];
-    new NotificationScreen(touchables);
+
+    NotificationScreen.init(touchables);
 
     new MessagesListener();
     new TelephonyListener();
@@ -165,11 +166,11 @@ var LockScreen = {
 
 };
 
-
-NotificationScreen.prototype = {
+var NotificationScreen = {
   get touchable() {
     return this.touchables[this.locked ? 0 : 1];
   },
+
   get screenHeight() {
     var screenHeight = this._screenHeight;
     if (!screenHeight) {
@@ -178,12 +179,19 @@ NotificationScreen.prototype = {
     }
     return screenHeight;
   },
-  onTouchStart: function(e) {
+
+  init: function ns_init(touchables) {
+    this.touchables = touchables;
+    this.attachEvents(touchables);
+  },
+
+  onTouchStart: function ns_onTouchStart(e) {
     this.startX = e.pageX;
     this.startY = e.pageY;
     this.onTouchMove({ pageY: e.pageY + 32 });
   },
-  onTouchMove: function(e) {
+
+  onTouchMove: function ns_onTouchMove(e) {
     var dy = -(this.startY - e.pageY);
     if (this.locked)
       dy += this.screenHeight;
@@ -193,7 +201,8 @@ NotificationScreen.prototype = {
     style.MozTransition = '';
     style.MozTransform = 'translateY(' + dy + 'px)';
   },
-  onTouchEnd: function(e) {
+
+  onTouchEnd: function ns_onTouchEnd(e) {
     var dy = -(this.startY - e.pageY);
     var offset = Math.abs(dy);
     if ((!this.locked && offset > this.screenHeight / 4) ||
@@ -202,24 +211,29 @@ NotificationScreen.prototype = {
     else
       this.unlock();
   },
-  unlock: function() {
+
+  unlock: function ns_unlock(instant) {
     var style = this.touchables[0].style;
-    style.MozTransition = '-moz-transform 0.2s linear';
+    style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
     style.MozTransform = 'translateY(0)';
     this.locked = false;
   },
-  lock: function(dy) {
+
+  lock: function ns_lock(dy) {
     var style = this.touchables[0].style;
     style.MozTransition = '-moz-transform 0.2s linear';
     style.MozTransform = 'translateY(100%)';
     this.locked = true;
   },
+
   attachEvents: function ns_attachEvents(view) {
     AddEventHandlers(window, this, ['touchstart', 'touchmove', 'touchend']);
   },
+
   detachEvents: function ns_detachEvents() {
     RemoveEventHandlers(window, this, ['touchstart', 'touchmove', 'touchend']);
   },
+
   handleEvent: function(evt) {
     var target = evt.target;
     switch (evt.type) {
@@ -682,25 +696,39 @@ var MessagesListener = function() {
   if (!messages)
     return;
 
-  var notifications = document.getElementById('notifications');
+  var notifications = document.getElementById('notifications-container');
   notifications.addEventListener('click', function notificationClick(evt) {
-    if (!notifications.dataset.sender)
+    var notification = evt.target;
+    var sender = notification.dataset.sender;
+    if (!sender)
       return;
 
-    while (notifications.hasChildNodes())
-      notifications.removeChild(notifications.firstChild);
-    notifications.classList.add('hidden');
-
-    var sender = notifications.dataset.sender;
+    NotificationScreen.unlock(true);
     WindowManager.launch('../sms/sms.html?sender=' + sender);
   });
 
+  var hasMessages = document.getElementById('state-messages');
   function showMessage(sender, body) {
-    while (notifications.hasChildNodes())
-      notifications.removeChild(notifications.firstChild);
+    hasMessages.dataset.visible = 'true';
+
+    // First look if there is already one message from the same
+    // source. If there is one, let's aggregate them.
+    var children = notifications.children;
+    for (var i = 0; i < children.length; i++) {
+      var notification = children[i];
+      if (notification.dataset.sender != sender)
+        continue;
+
+      var unread = parseInt(notification.dataset.count) + 1;
+      var msg = 'You have ' + unread + ' unread messages';
+      notification.lastElementChild.textContent = msg;
+      return;
+    }
 
     var notification = document.createElement('div');
     notification.className = 'notification';
+    notification.dataset.sender = sender;
+    notification.dataset.count = 1;
 
     var title = document.createElement('div');
     title.textContent = sender;
@@ -711,19 +739,28 @@ var MessagesListener = function() {
     notification.appendChild(title);
     notification.appendChild(message);
     notifications.appendChild(notification);
-
-    notifications.dataset.sender = sender;
-
-    notifications.classList.remove('hidden');
   }
-
 
   messages.addEventListener('received', function received(evt) {
     var message = evt.message;
     showMessage(message.sender, message.body);
   });
 
-  notifications.classList.add('hidden');
+  window.addEventListener('appopen', function onAppOpen(evt) {
+    // If the sms application is opened, just delete all messages
+    // notifications
+    var applicationURL = evt.detail;
+    if (!/^\.\.\/sms\/sms\.html/.test(applicationURL))
+      return;
+
+    delete hasMessages.dataset.visible;
+
+    var children = notifications.children;
+    for (var i = children.length - 1; i >= 0; i--) {
+      var notification = children[i];
+      notification.parentNode.removeChild(notification);
+    }
+  });
 };
 
 /* === TelephoneListener === */
@@ -1150,9 +1187,4 @@ Dots.prototype = {
     }
   }
 };
-
-function NotificationScreen(touchables) {
-  this.touchables = touchables;
-  this.attachEvents(this.touchable);
-}
 
