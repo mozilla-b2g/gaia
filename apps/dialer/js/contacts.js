@@ -450,8 +450,8 @@ var ContactDetails = {
     var contact = this._contact;
 
     var names = '';
-    names += contact.givenName ? contact.givenName : '';
-    names += ' ' + (contact.familyName ? contact.familyName : '');
+    names += contact.givenName || '';
+    names += ' ' + (contact.familyName || '');
     this.contactName.innerHTML = names;
 
     this.contactGivenNameField.value =
