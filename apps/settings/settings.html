@@ -94,12 +94,7 @@
       </ul>
       <h2> Wi-Fi networks </h2>
       <ul id="wifi-networks">
-        <li>
-          <a>Scanning…</a>
-          <label>
-            <span class="wifi-search"></span>
-          </label>
-        </li>
+        <!-- filled by wifi.js -->
       </ul>
     </div>
 
@@ -318,6 +313,31 @@
           </dl>
           <footer>
             <button style="display: none;">Disconnect</button>
+            <button>Cancel</button>
+          </footer>
+        </div>
+
+        <!-- WEP authentication -->
+        <div id="wifi-wep" class="dialog">
+          <header data-ssid>Authentication</header>
+          <dl>
+            <dt>security:</dt>
+            <dd data-security>WPA-WEP</dd>
+            <dt>signal strength:</dt>
+            <dd data-signal>good</dd>
+          </dl>
+          <form action="#">
+            <label>
+              password
+              <input data-wep name="password" type="password" />
+            </label>
+            <label>
+              <input name="show-pwd" type="checkbox" />
+              show password
+            </label>
+          </form>
+          <footer>
+            <button>OK</button>
             <button>Cancel</button>
           </footer>
         </div>

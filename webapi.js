@@ -1537,36 +1537,41 @@
 
   /** fake network list, where each network object looks like:
     * {
-    *   ssid          : SSID string (human-readable name)
-    *   bssid         : network identifier string
-    *   keyManagement : array of strings (supported authentication methods)
-    *   signal        : 0-100 signal level (integer)
+    *   ssid         : SSID string (human-readable name)
+    *   bssid        : network identifier string
+    *   capabilities : array of strings (supported authentication methods)
+    *   signal       : 0-100 signal level (integer)
+    *   connected    : boolean state
     * }
     */
   var fakeNetworks = {
     'Mozilla-G': {
       ssid: 'Mozilla-G',
       bssid: 'xx:xx:xx:xx:xx:xx',
-      keyManagement: ['WPA-EAP'],
-      signal: 67
+      capabilities: ['WPA-EAP'],
+      signal: 67,
+      connected: false
     },
     'Livebox 6752': {
       ssid: 'Livebox 6752',
       bssid: 'xx:xx:xx:xx:xx:xx',
-      keyManagement: ['WEP'],
-      signal: 32
+      capabilities: ['WEP'],
+      signal: 32,
+      connected: false
     },
     'Mozilla Guest': {
       ssid: 'Mozilla Guest',
       bssid: 'xx:xx:xx:xx:xx:xx',
-      keyManagement: [],
-      signal: 98
+      capabilities: [],
+      signal: 98,
+      connected: false
     },
     'Freebox 8953': {
       ssid: 'Freebox 8953',
       bssid: 'xx:xx:xx:xx:xx:xx',
-      keyManagement: ['WPA2'],
-      signal: 89
+      capabilities: ['WPA2-PSK'],
+      signal: 89,
+      connected: false
     }
   };
 
@@ -1576,6 +1581,7 @@
 
     // enables/disables the wifi
     setEnabled: function fakeSetEnabled(bool) {
+      var self = this;
       var request = { result: bool };
 
       setTimeout(function() {
@@ -1583,6 +1589,7 @@
           request.onsuccess();
       }, 0);
 
+      self.enabled = bool;
       return request;
     },
 
@@ -1593,7 +1600,7 @@
       setTimeout(function() {
         if (request.onsuccess)
           request.onsuccess();
-      }, 0);
+      }, 2000);
 
       return request;
     },
@@ -1602,7 +1609,7 @@
     select: function(network) {
       var self = this;
       var connection = { result: network };
-      var networkEvent = { id: network.ssid };
+      var networkEvent = { network: network };
 
       setTimeout(function() {
         if (connection.onsuccess)

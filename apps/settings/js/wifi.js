@@ -11,18 +11,18 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
   var gList = document.querySelector('#wifi-networks');
 
   // current state
-  // XXX we need an event to know when the wifi is reallly enabled/disabled,
-  // and this function should be called by an event listener.
   function updateState() {
     var currentNetwork = wifiManager.connected;
     var enabledBox = document.querySelector('#wifi input[type=checkbox]');
     if (currentNetwork) {
       gStatus.textContent = 'connected to ' + currentNetwork.ssid + '.';
       enabledBox.checked = true;
-    } else if (wifiManager.enabled) {
+    }
+    else if (wifiManager.enabled) {
       gStatus.textContent = 'offline';
       enabledBox.checked = true;
-    } else {
+    }
+    else {
       gStatus.textContent = 'disabled';
       enabledBox.checked = false;
     }
@@ -30,17 +30,36 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
 
   // toggle wifi on/off
   document.querySelector('#status input').onchange = function() {
+    while (gList.hasChildNodes())
+      gList.removeChild(gList.lastChild);
+
     var req;
     if (wifiManager.enabled) {
       req = wifiManager.setEnabled(false);
-      while (gList.hasChildNodes())
-        gList.removeChild(gList.lastChild);
-      updateState();
-    } else {
-      wifiManager.setEnabled(true);
-      wifiScanNetworks();
-      updateState();
     }
+    else {
+      req = wifiManager.setEnabled(true);
+      gList.appendChild(newScanItem());
+      wifiScanNetworks();
+    }
+    req.onsuccess = updateState;
+  }
+
+  function newScanItem() {
+    var a = document.createElement('a');
+    a.textContent = 'Scanning…';
+
+    var span = document.createElement('span');
+    span.className = 'wifi-search';
+
+    var label = document.createElement('label');
+    label.appendChild(span);
+
+    var li = document.createElement('li');
+    li.appendChild(a);
+    li.appendChild(label);
+
+    return li;
   }
 
   function newListItem(network) {
@@ -58,13 +77,14 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
 
     // supported authentication methods
     var small = document.createElement('small');
-    var keys = network.keyManagement;
+    var keys = network.capabilities;
     if (keys && keys.length) {
       small.textContent = 'secured by ' + keys.join(', ');
       var secure = document.createElement('span');
       secure.className = 'wifi-secure';
       label.appendChild(secure);
-    } else {
+    }
+    else {
       small.textContent = 'open';
     }
 
@@ -84,7 +104,7 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
   function wifiConnect(network) {
     var connection = wifiManager.select(network);
     connection.onsuccess = function() {
-      gStatus.textContent = 'Connecting to ' + network.ssid + '…';
+      gStatus.textContent = 'connecting to ' + network.ssid + '…';
     };
     connection.onerror = function() {
       gStatus.textContent = connection.error.name;
@@ -97,16 +117,16 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
 
   // mozWifiManager events / callbacks
   wifiManager.onassociate = function(event) {
-    var ssid = event.network ? (' from ' + event.network.id) : '';
+    var ssid = event.network ? (' from ' + event.network.ssid) : '';
     gStatus.textContent = 'obtaining an IP address' + ssid + '…';
   };
 
   wifiManager.onconnect = function(event) {
-    var ssid = event.network ? (' to ' + event.network.id) : '';
+    var ssid = event.network ? (' to ' + event.network.ssid) : '';
     gStatus.textContent = 'connected' + ssid + '.';
   };
 
-  wifiManager.ondisconnect = function() {
+  wifiManager.ondisconnect = function(event) {
     gStatus.textContent = 'offline';
   };
 
@@ -141,10 +161,14 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
     }
     else {
       // offline: offer to connect
-      if (/EAP$/.test(network.keyManagement)) {
+      var key = network.capabilities[0];
+      if (/WEP$/.test(key)) {
+        wifiDialog('#wifi-wep', network, wifiConnect);
+      }
+      else if (/EAP$/.test(key)) {
         wifiDialog('#wifi-eap', network, wifiConnect);
       }
-      else if (/PSK$/.test(network.keyManagement)) {
+      else if (/PSK$/.test(key)) {
         wifiDialog('#wifi-psk', network, wifiConnect);
       }
       else {
@@ -155,18 +179,15 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
 
   function wifiDialog(selector, network, callback) {
     var dialog = document.querySelector(selector);
-    if (!dialog)
-      return;
-
-    if (!network)
-      throw 'no network!';
+    if (!dialog || !network)
+      return null;
 
     // network info
     var ssid = dialog.querySelector('*[data-ssid]');
     if (ssid)
       ssid.textContent = network.ssid;
 
-    var keys = network.keyManagement;
+    var keys = network.capabilities;
     var security = dialog.querySelector('*[data-security]');
     if (security)
       security.textContent = (keys && keys.length) ? keys.join(', ') : 'none';
@@ -199,26 +220,38 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
       dialog.classList.remove('active');
     }
 
-    // OK|Cancel
+    // OK|Cancel buttons
     var buttons = dialog.querySelectorAll('footer button');
+
     var okButton = buttons[0];
     okButton.onclick = function() {
       close();
       if (identity)
         network.identity = identity.value;
       if (password) {
-        network.password = password.value;
-        // XXX temporary workaround:
-        // the API should not require to assign any string to 'keyManagement',
-        // which is an *array*. A distinct property will be used instead.
-        network.keyManagement = network.keyManagement[0];
+        var key = network.capabilities[0];
+        var keyManagement = '';
+        if (/WEP$/.test(key)) {
+          keyManagement = 'WEP';
+          network.wep = password.value;
+        }
+        else if (/PSK$/.test(key)) {
+          keyManagement = 'WPA-PSK';
+          network.psk = password.value;
+        }
+        else if (/EAP$/.test(key)) {
+          keyManagement = 'WPA-EAP';
+          network.password = password.value;
+        }
+        network.keyManagement = keyManagement;
       }
-      return callback ? callback(network) : null;
+      return callback ? callback(network) : false;
     };
+
     var cancelButton = buttons[1];
     cancelButton.onclick = function() {
       close();
-      return null;
+      return;
     };
 
     // show dialog box
