@@ -88,10 +88,14 @@ var Recents = {
                    '</div>';
 
         Contacts.findByNumber(recent.number, (function(contact) {
-          var entry = this.view.querySelector('.recent[data-number="' +
+          var entries = this.view.querySelectorAll('.recent[data-number="' +
                                                contact.tel[0] + '"]');
-          entry.querySelector('.name').textContent = contact.name;
-          entry.querySelector('.number').textContent = contact.tel[0];
+
+          for (var i = 0; i < entries.length; i++) {
+            var entry = entries[i];
+            entry.querySelector('.name').textContent = contact.name;
+            entry.querySelector('.number').textContent = contact.tel[0];
+          }
         }).bind(this));
       }
 
