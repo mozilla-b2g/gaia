@@ -1,5 +1,4 @@
 * {
-  box-sizing: border-box;
   -moz-box-sizing: border-box;
 }
 body, html {
@@ -36,9 +35,7 @@ input {
 
 #calc-wrapper {
   -moz-box-orient: vertical;
-  -webkit-box-orient: vertical;
   display: -moz-box;
-  display: -webkit-box;
   height: 100%;
   width: 100%;
   padding: 0 0 5px 5px;
