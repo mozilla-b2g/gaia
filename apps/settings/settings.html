@@ -5,6 +5,7 @@
     <meta http-equiv="pragma" content="no-cache">
     <title>Settings</title>
     <link rel="stylesheet" type="text/css" media="screen" href="style/ui.css"/>
+    <link rel="stylesheet" type="text/css" media="screen" href="style/dialogs.css"/>
     <link rel="stylesheet" type="text/css" media="screen" href="style/settings.css"/>
     <script type="text/javascript" src="../../webapi.js"></script>
     <script type="text/javascript" src="js/ui.js"></script>
@@ -17,22 +18,22 @@
     </header>
 
     <div id="root" class="view" data-title="Settings">
-      <ul class="tableView">
+      <ul>
         <li>
           <a class="push slideHorizontal" href="#wifi">
             <span>Wi-Fi</span>
           </a>
         </li>
         <li>
-          <span>Do Not Track</span>
-          <label class="checkbox">
+          <a>Do Not Track</a>
+          <label>
             <input type="checkbox" name="dnt.enabled"/>
-            <span class="checkbox-inner"></span>
+            <span></span>
           </label>
         </li>
       </ul>
-      <h2> </h2>
-      <ul class="tableView">
+      <h2>Settings</h2>
+      <ul>
         <li>
           <a class="push slideHorizontal" href="#languages">
             <span>Languages</span>
@@ -73,52 +74,45 @@
 
     <!-- Wi-Fi -->
     <div id="wifi" class="view" data-title="WiFi">
-      <ul class="tableView">
+      <ul>
         <li id="status">
-          <span>Status</span><br />
-          <small>…</small>
-          <label class="checkbox">
-            <input type="checkbox" name="wifi.enabled"/>
-            <span class="checkbox-inner"></span>
+          <span>Wi-Fi</span>
+          <small>offline</small>
+          <label>
+            <input type="checkbox" />
+            <span></span>
           </label>
         </li>
         <li id="notification">
-          <span>Network notification</span><br />
+          <span>Network notification</span>
           <small>Notify me when an open network is available</small>
-          <label class="checkbox">
+          <label>
             <input type="checkbox" name="wifi.notification"/>
-            <span class="checkbox-inner"></span>
+            <span></span>
           </label>
         </li>
       </ul>
       <h2> Wi-Fi networks </h2>
-      <ul class="tableView" id="wifi-networks">
-        <li>
-          <span>Scanning…</span><br />
-          <small></small>
-          <span class="wifi">
-            <span class="wifi-signal3"></span>
-            <span class="wifi-secure"></span>
-          </span>
-        </li>
+      <ul id="wifi-networks">
+        <!-- filled by wifi.js -->
       </ul>
     </div>
 
     <!-- Phone -->
     <div id="phone" class="view" data-title="Phone">
-      <ul class="tableView">
+      <ul>
         <li id="vibrator">
-          <span>Vibrate</span>
-          <label class="checkbox">
+          <a>Vibrate</a>
+          <label>
             <input type="checkbox" name="phone.vibration.incoming"/>
-            <span class="checkbox-inner"></span>
+            <span></span>
           </label>
         </li>
         <li id="ring">
-          <span>Ring</span>
-          <label class="checkbox">
+          <a>Ring</a>
+          <label>
             <input type="checkbox" name="phone.ring.incoming"/>
-            <span class="checkbox-inner"></span>
+            <span></span>
           </label>
         </li>
       </ul>
@@ -126,19 +120,19 @@
 
     <!-- Languages -->
     <div id="languages" class="view" data-title="Languages">
-      <ul class="tableView">
+      <ul>
         <li id="language-en-us">
-          <span>English (United States)</span>
-          <label class="checkbox">
+          <a>English (United States)</a>
+          <label>
             <input type="radio" name="language.current" value="en-US"/>
-            <span class="checkbox-inner"></span>
+            <span></span>
           </label>
         </li>
         <li id="language-fr-Fr">
-          <span>Français</span>
-          <label class="checkbox">
+          <a>Français</a>
+          <label>
             <input type="radio" name="language.current" value="fr-FR"/>
-            <span class="checkbox-inner"></span>
+            <span></span>
           </label>
         </li>
         <li id="language-ar">
@@ -153,12 +147,12 @@
 
     <!-- Debug -->
     <div id="debug" class="view" data-title="Debug">
-      <ul class="tableView">
+      <ul>
         <li>
-          <span>Grid</span>
-          <label class="checkbox">
+          <a>Grid</a>
+          <label>
             <input type="checkbox" name="debug.grid.enabled"/>
-            <span class="checkbox-inner"></span>
+            <span></span>
           </label>
         </li>
       </ul>
@@ -166,74 +160,75 @@
 
     <!-- Keyboard -->
     <div id="keyboard" class="view" data-title="Display">
-      <ul class="tableView">
+      <ul>
         <li>
-          <span>Vibration</span>
-          <label class="checkbox">
+          <a>Vibration</a>
+          <label>
             <input type="checkbox" name="keyboard.vibration"/>
-            <span class="checkbox-inner"></span>
+            <span></span>
           </label>
         </li>
         <li>
-          <span>Click sound</span>
-          <label class="checkbox">
+          <a>Click sound</a>
+          <label>
             <input type="checkbox" name="keyboard.clicksound"/>
-            <span class="checkbox-inner"></span>
+            <span></span>
           </label>
         </li>
       </ul>
-      <ul class="tableView">
+      <h2>Layouts</h2>
+      <ul>
         <li>
-          <span>English</span>
-          <label class="checkbox">
+          <a>English</a>
+          <label>
             <input type="checkbox" name="keyboard.layouts.english"/>
-            <span class="checkbox-inner"></span>
+            <span></span>
           </label>
         </li>
         <li>
-          <span>English (Dvorak)</span>
-          <label class="checkbox">
+          <a>English (Dvorak)</a>
+          <label>
             <input type="checkbox" name="keyboard.layouts.dvorak"/>
-            <span class="checkbox-inner"></span>
+            <span></span>
           </label>
         </li>
         <li>
           <span>Other Latin scripts</span>
-          <br />
           <small>French, German, Norwegian Bokmal, Slovak, Turkish</small>
-          <label class="checkbox">
+          <label>
             <input type="checkbox" name="keyboard.layouts.otherlatins"/>
-            <span class="checkbox-inner"></span>
+            <span></span>
           </label>
         </li>
         <li>
           <span>Cyrillic scripts</span>
-          <br />
           <small>Russian, Serbian (Cyrillic)</small>
-          <label class="checkbox">
+          <label>
             <input type="checkbox" name="keyboard.layouts.cyrillic"/>
-            <span class="checkbox-inner"></span>
+            <span></span>
           </label>
         </li>
         <li>
-          <span>Hebrew</span>
-          <label class="checkbox">
+          <a>Hebrew</a>
+          <label>
             <input type="checkbox" name="keyboard.layouts.hebrew"/>
-            <span class="checkbox-inner"></span>
+            <span></span>
           </label>
         </li>
         <li>
-          <span>Traditional Chinese (ZhuYing)</span>
-          <label class="checkbox">
+          <span>Traditional Chinese</span>
+          <small>ZhuYing</small>
+          <label>
             <input type="checkbox" name="keyboard.layouts.zhuying"/>
-            <span class="checkbox-inner"></span>
+            <span></span>
           </label>
         </li>
         <li>
-          <span>Simplified Chinese (Pinyin)</span>
-          <label class="checkbox">
+          <span>Simplified Chinese</span>
+          <small>Pinyin</small>
+          <label>
             <input type="checkbox" name="keyboard.layouts.pinyin"/>
-            <span class="checkbox-inner"></span>
+            <span></span>
           </label>
         </li>
       </ul>
@@ -241,26 +236,26 @@
 
     <!-- Sounds -->
     <div id="sounds" class="view" data-title="Sounds">
-      <ul class="tableView">
+      <ul>
         <li id="ring-default">
-          <span>Default</span>
-          <label class="checkbox">
+          <a>Default</a>
+          <label>
             <input type="radio" name="homescreen.ring" value="classic.wav"/>
-            <span class="checkbox-inner"></span>
+            <span></span>
           </label>
         </li>
         <li id="ring-bosscaling">
-          <span>Bosscaling</span>
-          <label class="checkbox">
+          <a>Bosscaling</a>
+          <label>
             <input type="radio" name="homescreen.ring" value="bosscaling.wav"/>
-            <span class="checkbox-inner"></span>
+            <span></span>
           </label>
         </li>
         <li id="ring-goodnight">
-          <span>GoodMight</span>
-          <label class="checkbox">
+          <a>GoodMight</a>
+          <label>
             <input type="radio" name="homescreen.ring" value="goodnight.wav"/>
-            <span class="checkbox-inner"></span>
+            <span></span>
           </label>
         </li>
       </ul>
@@ -268,16 +263,16 @@
 
     <!-- Display -->
     <div id="display" class="view" data-title="Display">
-      <ul class="tableView">
+      <ul>
         <li id="brightness">
-          <label>Brightness level</label>
+          <a>Brightness level</a>
           <progress id="brightness-level" data-name="screen.brightness" value="10" max="10"></progress>
         </li>
         <li>
-          <span>Lock Screen</span>
-          <label class="checkbox">
+          <a>Lock Screen</a>
+          <label>
             <input type="checkbox" name="lockscreen.enabled"/>
-            <span class="checkbox-inner"></span>
+            <span></span>
           </label>
         </li>
       </ul>
@@ -285,30 +280,130 @@
 
     <!-- Wallpapers -->
     <div id="wallpapers" class="view" data-title="Wallpapers">
-      <ul class="tableView">
+      <ul>
         <li id="wallpaper-default">
-          <span>Default</span>
-          <label class="checkbox">
+          <a>Default</a>
+          <label>
             <input type="radio" name="homescreen.wallpaper" value="default.png"/>
-            <span class="checkbox-inner"></span>
+            <span></span>
           </label>
         </li>
         <li id="wallpaper-water">
-          <span>Water</span>
-          <label class="checkbox">
+          <a>Water</a>
+          <label>
             <input type="radio" name="homescreen.wallpaper" value="water.png"/>
-            <span class="checkbox-inner"></span>
+            <span></span>
           </label>
         </li>
         <li id="wallpaper-leaves">
-          <span>Leaves</span>
-          <label class="checkbox">
+          <a>Leaves</a>
+          <label>
             <input type="radio" name="homescreen.wallpaper" value="leaves.png"/>
-            <span class="checkbox-inner"></span>
+            <span></span>
           </label>
         </li>
       </ul>
     </div>
+
+    <!-- Dialog Boxes -->
+    <div id="dialogs">
+      <div>
+
+        <!-- network status -->
+        <div id="wifi-status" class="dialog">
+          <header data-ssid>Network</header>
+          <dl>
+            <dt>security:</dt>
+            <dd data-security>WPA-PSK</dd>
+            <dt>signal strength:</dt>
+            <dd data-signal>good</dd>
+          </dl>
+          <footer>
+            <button style="display: none;">Disconnect</button>
+            <button>Cancel</button>
+          </footer>
+        </div>
+
+        <!-- WEP authentication -->
+        <div id="wifi-wep" class="dialog">
+          <header data-ssid>Authentication</header>
+          <dl>
+            <dt>security:</dt>
+            <dd data-security>WPA-WEP</dd>
+            <dt>signal strength:</dt>
+            <dd data-signal>good</dd>
+          </dl>
+          <form action="#">
+            <label>
+              password
+              <input data-wep name="password" type="password" />
+            </label>
+            <label>
+              <input name="show-pwd" type="checkbox" />
+              show password
+            </label>
+          </form>
+          <footer>
+            <button>OK</button>
+            <button>Cancel</button>
+          </footer>
+        </div>
+
+        <!-- PSK authentication -->
+        <div id="wifi-psk" class="dialog">
+          <header data-ssid>Authentication</header>
+          <dl>
+            <dt>security:</dt>
+            <dd data-security>WPA-PSK</dd>
+            <dt>signal strength:</dt>
+            <dd data-signal>good</dd>
+          </dl>
+          <form action="#">
+            <label>
+              password
+              <input data-psk name="password" type="password" />
+            </label>
+            <label>
+              <input name="show-pwd" type="checkbox" />
+              show password
+            </label>
+          </form>
+          <footer>
+            <button>OK</button>
+            <button>Cancel</button>
+          </footer>
+        </div>
+
+        <!-- EAP authentication -->
+        <div id="wifi-eap" class="dialog">
+          <header data-ssid>Authentication</header>
+          <dl>
+            <dt>security:</dt>
+            <dd data-security>WPA-EAP</dd>
+            <dt>signal strength:</dt>
+            <dd data-signal>good</dd>
+          </dl>
+          <form action="#">
+            <label>
+              identity
+              <input data-identity name="identity" type="text" />
+            </label>
+            <label>
+              password
+              <input data-password name="password" type="password" />
+            </label>
+            <label>
+              <input name="show-pwd" type="checkbox" />
+              show password
+            </label>
+          </form>
+          <footer>
+            <button>OK</button>
+            <button>Cancel</button>
+          </footer>
+        </div>
+
+      </div>
+    </div>
   </body>
 </html>
-

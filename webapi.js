@@ -583,6 +583,7 @@
   }
 }());
 
+// navigator.mozContacts
 (function (window) {
   var navigator = window.navigator;
 
@@ -1452,6 +1453,7 @@
   }
 })(this);
 
+// navigator.mozTelephony
 (function (window) {
   var navigator = window.navigator;
   if ('mozTelephony' in navigator)
@@ -1568,3 +1570,110 @@
     }
   });
 })(this);
+
+// navigator.mozWifiManager
+(function (window) {
+  var navigator = window.navigator;
+  if ('mozWifiManager' in navigator)
+    return;
+
+  /** fake network list, where each network object looks like:
+    * {
+    *   ssid         : SSID string (human-readable name)
+    *   bssid        : network identifier string
+    *   capabilities : array of strings (supported authentication methods)
+    *   signal       : 0-100 signal level (integer)
+    *   connected    : boolean state
+    * }
+    */
+  var fakeNetworks = {
+    'Mozilla-G': {
+      ssid: 'Mozilla-G',
+      bssid: 'xx:xx:xx:xx:xx:xx',
+      capabilities: ['WPA-EAP'],
+      signal: 67,
+      connected: false
+    },
+    'Livebox 6752': {
+      ssid: 'Livebox 6752',
+      bssid: 'xx:xx:xx:xx:xx:xx',
+      capabilities: ['WEP'],
+      signal: 32,
+      connected: false
+    },
+    'Mozilla Guest': {
+      ssid: 'Mozilla Guest',
+      bssid: 'xx:xx:xx:xx:xx:xx',
+      capabilities: [],
+      signal: 98,
+      connected: false
+    },
+    'Freebox 8953': {
+      ssid: 'Freebox 8953',
+      bssid: 'xx:xx:xx:xx:xx:xx',
+      capabilities: ['WPA2-PSK'],
+      signal: 89,
+      connected: false
+    }
+  };
+
+  navigator.mozWifiManager = {
+    // true if the wifi is enabled
+    enabled: false,
+
+    // enables/disables the wifi
+    setEnabled: function fakeSetEnabled(bool) {
+      var self = this;
+      var request = { result: bool };
+
+      setTimeout(function() {
+        if (request.onsuccess)
+          request.onsuccess();
+      }, 0);
+
+      self.enabled = bool;
+      return request;
+    },
+
+    // returns a list of visible networks
+    getNetworks: function() {
+      var request = { result: fakeNetworks };
+
+      setTimeout(function() {
+        if (request.onsuccess)
+          request.onsuccess();
+      }, 2000);
+
+      return request;
+    },
+
+    // selects a network
+    select: function(network) {
+      var self = this;
+      var connection = { result: network };
+      var networkEvent = { network: network };
+
+      setTimeout(function() {
+        if (connection.onsuccess)
+          connection.onsuccess();
+      }, 0);
+
+      setTimeout(function() {
+        if (self.onassociate)
+          self.onassociate(networkEvent);
+      }, 1000);
+
+      setTimeout(function() {
+        self.connected = network;
+        if (self.onconnect)
+          self.onconnect(networkEvent);
+      }, 2000);
+
+      return connection;
+    },
+
+    // returns a network object for the currently connected network (if any)
+    connected: null
+  };
+})(this);
+
