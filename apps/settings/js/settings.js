@@ -97,3 +97,16 @@ window.addEventListener('load', function loadSettings(evt) {
   window.addEventListener('click', Settings);
   Settings.init();
 });
+
+// ensure the root page is visible at startup
+window.addEventListener('DOMContentLoaded', function() {
+  document.location.hash = '#root';
+  document.querySelector('#root').classList.remove('active');
+}, false);
+
+// back button = back to the root page
+window.addEventListener('keyup', function(event) {
+  if (event.keyCode === event.DOM_VK_ESCAPE) {
+    document.location.hash = '#root';
+  }
+}, false);
