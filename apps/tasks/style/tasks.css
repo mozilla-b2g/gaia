@@ -1,0 +1,65 @@
+html {
+  background: #777 url('images/noise.png');
+}
+
+html, body {
+  font-family: "Roboto", sans-serif;
+}
+
+@font-face {
+  font-family: Roboto;
+  src: url('fonts/Roboto-Regular.ttf');
+}
+@font-face {
+  font-family: Roboto;
+  font-weight: bold;
+  src: url('fonts/Roboto-Bold.ttf');
+}
+@font-face {
+  font-family: Roboto;
+  font-style: italic;
+  src: url('fonts/Roboto-Italic.ttf');
+}
+@font-face {
+  font-family: Roboto;
+  font-weight: bold;
+  font-style: italic;
+  src: url('fonts/Roboto-BoldItalic.ttf');
+}
+
+.text-input {
+	color:#AAA;
+	background: url('icons/play.png') top right no-repeat;
+	border:none;
+	margin-top:-3px;
+	width:70%;
+}
+
+.text-input:focus  {
+	background: #FFF;
+	border: 1px solid #AAA;
+}
+
+textarea.text-input {
+	margin-left:30%;
+}
+
+div.buttons {
+	margin: 0 auto;
+}
+
+.half {
+	width:43%;
+}
+
+.third {
+	width:28%;
+}
+
+input ~ * {
+	color:#E00;
+}
+
+input ~ *:empty {
+	display:none;
+}
