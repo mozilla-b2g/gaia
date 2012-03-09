@@ -24,7 +24,7 @@ var Calculator = {
   },
 
   isOperator: function calculator_isOperator(val) {
-    return this.operators.indexOf(val) !== -1;
+    return Calculator.operators.indexOf(val) !== -1;
   },
 
   appendValue: function calculator_appendValue(value) {
