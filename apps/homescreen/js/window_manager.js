@@ -35,7 +35,6 @@ WindowSprite.prototype = {
   crossFade: function ws_crossFade() {
     var afterCrossFade = (this.remove).bind(this);
     // XXX: wait for 50ms for iframe to be painted.
-    // setTimeout(0) is used to escape the current event firing.
     setTimeout((function () {
       this.element.addEventListener('transitionend', afterCrossFade);
       this.element.classList.add('crossFade');
@@ -49,8 +48,12 @@ function AppWindow(application, id) {
   var element = this.element = document.createElement('iframe');
   element.setAttribute('mozallowfullscreen', 'true');
 
-  // TODO: a platform fix will come
-  var exceptions = ['Dialer', 'Settings', 'Camera'];
+  // TODO: Some of the applications requite a special access to the
+  //       homescreen. This is all bad and should be removed as soon
+  //       as possible. 'Dialer', 'Camera' and 'Messages' will be fixed
+  //       by Intents and 'Settings' will be fixed by when the regular
+  //       Settings API will land.
+  var exceptions = ['Dialer', 'Settings', 'Camera', 'Messages'];
   if(exceptions.indexOf(application.name) == -1) {
     element.setAttribute('mozbrowser', 'true');
   }
@@ -316,7 +319,8 @@ var WindowManager = {
 
     newWindow.focus((function focusCallback() {
       this._isInTransition = false;
-      this._fireEvent(newWindow.element, 'appopen', newWindow.name);
+      var url = newWindow.application.url;
+      this._fireEvent(newWindow.element, 'appopen', url);
     }).bind(this));
   },
 
@@ -325,7 +329,8 @@ var WindowManager = {
     if (!foregroundWindow || this._isInTransition)
       return;
 
-    this._fireEvent(foregroundWindow.element, 'appwillclose', name);
+    var url = foregroundWindow.application.url;
+    this._fireEvent(foregroundWindow.element, 'appwillclose', url);
 
     var oldWindow = this._foregroundWindow;
     this._foregroundWindow = null;
@@ -333,7 +338,7 @@ var WindowManager = {
 
     oldWindow.blur((function blurCallback() {
       this._isInTransition = false;
-      this._fireEvent(foregroundWindow.element, 'appclose');
+      this._fireEvent(foregroundWindow.element, 'appclose', url);
       if (oldWindow.application.hackKillMe) {
         // waiting for the closing transition to end before removing the iframe from dom
         oldWindow.element.addEventListener('transitionend', function waitToKill() {
