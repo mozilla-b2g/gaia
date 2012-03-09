@@ -45,6 +45,10 @@ function visibilityChanged(url, evt) {
     Contacts.load();
     choiceChanged(contacts);
   }
+  var recents = document.getElementById('recents-label');
+  if (choice == 'recents' || recents.hasAttribute('data-active')) {
+    choiceChanged(recents);
+  }
 }
 
 function choiceChanged(target) {
@@ -318,18 +322,6 @@ var CallHandler = {
       this.currentCall = null;
     }
 
-    if (this.recentsEntry) {
-      Recents.add(this.recentsEntry);
-
-      if ((this.recentsEntry.type.indexOf('outgoing') == -1) &&
-          (this.recentsEntry.type.indexOf('-refused') == -1)) {
-        // XXX: This should be replaced by a web notification as
-        // soon as we have them
-        window.parent.postMessage('dialer-missed-call', '*');
-      }
-      this.recentsEntry = null;
-    }
-
     if (this.muteButton.classList.contains('mute'))
       this.toggleMute();
     if (this.speakerButton.classList.contains('speak'))
@@ -339,6 +331,21 @@ var CallHandler = {
     clearInterval(this._ticker);
 
     this.toggleCallScreen();
+
+    if (this.recentsEntry) {
+      Recents.add(this.recentsEntry);
+
+      if ((this.recentsEntry.type.indexOf('outgoing') == -1) &&
+          (this.recentsEntry.type.indexOf('-refused') == -1)) {
+        // XXX: This should be replaced by a web notification as
+        // soon as we have them
+        window.parent.postMessage({
+          type: 'missed-call',
+          sender: this.recentsEntry.number
+        }, '*');
+      }
+      this.recentsEntry = null;
+    }
   },
 
   handleEvent: function fm_handleEvent(evt) {
