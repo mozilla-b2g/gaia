@@ -5,31 +5,47 @@ function test() {
 
   getWindowManager(function(windowManager) {
     function onReady(smsFrame) {
-      let document = smsFrame.contentWindow.document;
+      let window = smsFrame.contentWindow;
+      let document = window.document;
+      let ConversationView = window.ConversationView;
+      let ConversationListView = window.ConversationListView;
 
-      var conversationView = document.getElementById('msg-conversation-view');
-      var contactField = document.getElementById('msg-conversation-view-num');
+      var message = {
+        'hidden': false,
+        'body': 'test',
+        'name': 'test',
+        'num': '888',
+        'timestamp': Date.now(),
+        'id': parseInt(21)
+      };
+
+      var view = ConversationListView.view;
+      view.innerHTML = ConversationListView.createNewConversation(message);
 
       var convSelector = "#msg-conversations-list > div[data-notempty='true']";
       var aConv = document.querySelector(convSelector);
       EventUtils.sendMouseEvent({type: 'click'}, aConv);
 
-      conversationView.addEventListener('transitionend', function trWait() {
-        conversationView.removeEventListener('transitionend', trWait);
+      window.addEventListener('transitionend', function trWait() {
+        window.removeEventListener('transitionend', trWait);
         ok(document.body.classList.contains('conversation'),
            'Conversation displayed');
+
+        var contactField = document.getElementById('view-num');
         ok(contactField.value.length != 0, 'To: field filled');
 
-        // closing the conversation view
-        EventUtils.sendKey('ESCAPE', smsFrame.contentWindow);
-        conversationView.addEventListener('transitionend', function trWait() {
-          conversationView.removeEventListener('transitionend', trWait);
-          ok(!document.body.classList.contains('conversation'),
-             'Conversation hidden');
+        setTimeout(function() {
+          // closing the conversation view
+          EventUtils.sendKey('ESCAPE', smsFrame.contentWindow);
+          window.addEventListener('transitionend', function trWait() {
+            window.removeEventListener('transitionend', trWait);
+            ok(!document.body.classList.contains('conversation'),
+               'Conversation hidden');
 
-          setTimeout(function() {
-            windowManager.closeForegroundWindow();
-          }, 0);
+            setTimeout(function() {
+              windowManager.closeForegroundWindow();
+            }, 0);
+          });
         });
       });
     }
