@@ -368,6 +368,7 @@ var ContactDetails = {
 
       contact.givenName = this.contactGivenNameField.value;
       contact.familyName = this.contactFamilyNameField.value;
+      contact.name = contact.givenName + ' ' + contact.familyName;
 
       if (this.contactPhoneField.value.length)
         contact.tel = [this.contactPhoneField.value];
