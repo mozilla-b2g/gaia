@@ -169,10 +169,18 @@ div.windowSprite {
   background-color: #000;
 }
 
-#state-messages[data-visible] {
-  background-image: url("images/sms.png");
+.state {
+  float: left;
   background-repeat: no-repeat;
   background-position: center center;
+}
+
+#state-messages[data-visible] {
+  background-image: url("images/sms.png");
+}
+
+#state-calls[data-visible] {
+  background-image: url("images/missing-call.png");
 }
 
 #titlebar {

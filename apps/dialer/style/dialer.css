@@ -1085,11 +1085,18 @@ html * {
 .recent.incoming-connected .type {
   background-image: url("images/incoming-connected.png");
 }
+.recent.incoming-refused .type {
+  background-image: url("images/incoming-refused.png");
+}
+
 .recent.outgoing .type {
   background-image: url("images/outgoing.png");
 }
 .recent.outgoing-connected .type {
   background-image: url("images/outgoing-connected.png");
+}
+.recent.outgoing-refused .type {
+  background-image: url("images/outgoing-refused.png");
 }
 
 .recent .name {

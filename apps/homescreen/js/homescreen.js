@@ -264,6 +264,50 @@ var NotificationScreen = {
     }
 
     evt.preventDefault();
+  },
+
+  addNotification: function ns_addNotification(type, sender, body) {
+    var notifications = document.getElementById('notifications-container');
+    // First look if there is already one message from the same
+    // source. If there is one, let's aggregate them.
+    var children = notifications.querySelectorAll('div[data-type="' + type + '"]');
+    for (var i = 0; i < children.length; i++) {
+      var notification = children[i];
+      if (notification.dataset.sender != sender)
+        continue;
+
+      var unread = parseInt(notification.dataset.count) + 1;
+      var msg = 'You have ' + unread + ((type == 'sms') ? ' unread messages' :
+                                        ' missed calls');
+      notification.lastElementChild.textContent = msg;
+      return;
+    }
+
+    var notification = document.createElement('div');
+    notification.className = 'notification';
+    notification.dataset.type = type;
+    notification.dataset.sender = sender;
+    notification.dataset.count = 1;
+
+    var title = document.createElement('div');
+    title.textContent = sender;
+
+    notification.appendChild(title);
+
+    var message = document.createElement('div');
+    message.textContent = body;
+    notification.appendChild(message);
+
+    notifications.appendChild(notification);
+  },
+
+  removeNotifications: function ns_removeNotifications(type) {
+    var notifications = document.getElementById('notifications-container');
+    var children = notifications.querySelectorAll('div[data-type="' + type + '"]');
+    for (var i = children.length - 1; i >= 0; i--) {
+      var notification = children[i];
+      notification.parentNode.removeChild(notification);
+    }
   }
 };
 
@@ -700,7 +744,8 @@ var MessagesListener = function() {
   notifications.addEventListener('click', function notificationClick(evt) {
     var notification = evt.target;
     var sender = notification.dataset.sender;
-    if (!sender)
+    var type = notification.dataset.type;
+    if ((type != 'sms') || (!sender))
       return;
 
     NotificationScreen.unlock(true);
@@ -711,34 +756,7 @@ var MessagesListener = function() {
   function showMessage(sender, body) {
     hasMessages.dataset.visible = 'true';
 
-    // First look if there is already one message from the same
-    // source. If there is one, let's aggregate them.
-    var children = notifications.children;
-    for (var i = 0; i < children.length; i++) {
-      var notification = children[i];
-      if (notification.dataset.sender != sender)
-        continue;
-
-      var unread = parseInt(notification.dataset.count) + 1;
-      var msg = 'You have ' + unread + ' unread messages';
-      notification.lastElementChild.textContent = msg;
-      return;
-    }
-
-    var notification = document.createElement('div');
-    notification.className = 'notification';
-    notification.dataset.sender = sender;
-    notification.dataset.count = 1;
-
-    var title = document.createElement('div');
-    title.textContent = sender;
-
-    var message = document.createElement('div');
-    message.textContent = body;
-
-    notification.appendChild(title);
-    notification.appendChild(message);
-    notifications.appendChild(notification);
+    NotificationScreen.addNotification('sms', sender, body);
   }
 
   messages.addEventListener('received', function received(evt) {
@@ -749,17 +767,12 @@ var MessagesListener = function() {
   window.addEventListener('appopen', function onAppOpen(evt) {
     // If the sms application is opened, just delete all messages
     // notifications
-    var applicationURL = evt.detail;
+    var applicationURL = evt.detail.url;
     if (!/^\.\.\/sms\/sms\.html/.test(applicationURL))
       return;
 
     delete hasMessages.dataset.visible;
-
-    var children = notifications.children;
-    for (var i = children.length - 1; i >= 0; i--) {
-      var notification = children[i];
-      notification.parentNode.removeChild(notification);
-    }
+    NotificationScreen.removeNotifications('sms');
   });
 };
 
@@ -812,6 +825,41 @@ var TelephonyListener = function() {
     } else {
       launchFunction();
     }
+  });
+
+  // Handling the missed call notification
+  var hasMissedCalls = document.getElementById('state-calls');
+
+  window.addEventListener('message', function settingChange(evt) {
+    if ((evt.data) && (typeof(evt.data) != 'string') &&
+        (evt.data.type) && (evt.data.type == 'missed-call')) {
+
+      hasMissedCalls.dataset.visible = 'true';
+      NotificationScreen.addNotification('call', evt.data.sender, 'Missed call');
+    }
+  });
+
+  window.addEventListener('appopen', function onAppOpen(evt) {
+    // If the dialer application is opened, just delete all messages
+    // notifications
+    var applicationURL = evt.detail.url;
+    if (!/^\.\.\/dialer\/dialer\.html/.test(applicationURL))
+      return;
+
+    delete hasMissedCalls.dataset.visible;
+    NotificationScreen.removeNotifications('call');
+  });
+
+  var notifications = document.getElementById('notifications-container');
+  notifications.addEventListener('click', function notificationClick(evt) {
+    var notification = evt.target;
+    var sender = notification.dataset.sender;
+    var type = notification.dataset.type;
+    if (type != 'call')
+      return;
+
+    NotificationScreen.unlock(true);
+    WindowManager.launch('../dialer/dialer.html?choice=recents');
   });
 };
 

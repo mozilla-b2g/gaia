@@ -214,7 +214,7 @@ iframe.appWindow {
 
 iframe.appWindow.active {
   z-index: 9995;
-  background-color: #000;
+  background-color: #fff;
 }
 
 #screen.fullscreen iframe.appWindow.active {
@@ -299,6 +299,11 @@ iframe.landscape-secondary {
 }
 
 #state-messages[data-visible] {
+  width: 32px;
+  height: 32px;
+}
+
+#state-calls[data-visible] {
   width: 32px;
   height: 32px;
 }
