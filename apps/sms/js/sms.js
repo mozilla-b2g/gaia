@@ -254,15 +254,11 @@ var ConversationView = {
 
   updateInputHeight: function cv_updateInputHeight() {
     var input = this.input;
-    var currentHeight = input.style.height;
     input.style.height = null;
-    var newHeight = input.scrollHeight + 'px';
-    this.input.style.height = newHeight;
+    input.style.height = input.scrollHeight + 4 + 'px';
 
-    if (currentHeight === newHeight)
-      return;
-
-    var bottomToolbarHeight = (input.scrollHeight + 32) + 'px';
+    var newHeight = input.getBoundingClientRect().height;
+    var bottomToolbarHeight = (newHeight + 32) + 'px';
     var bottomToolbar =
       document.getElementById('view-bottom-toolbar');
 
