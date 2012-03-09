@@ -1437,6 +1437,19 @@
       return request;
     }
   };
+
+  if (!('mozContact' in window)) {
+    window.mozContact = function() {
+      return {
+        id: 'undefined',
+        givenName: '',
+        familyName: '',
+        tel: [''],
+        email: [''],
+        init: function() {}
+      };
+    };
+  }
 })(this);
 
 (function (window) {
