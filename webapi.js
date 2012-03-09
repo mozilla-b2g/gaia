@@ -442,6 +442,7 @@
     'keyboard.layouts.cyrillic': 'false',
     'keyboard.layouts.hebrew': 'false',
     'keyboard.layouts.zhuying': 'true',
+    'keyboard.layouts.arabic': 'true',
     'debug.grid.enabled' : 'false',
     'homescreen.wallpaper': 'default.png',
     'homescreen.ring': 'classic.wav',
