@@ -104,9 +104,20 @@ window.addEventListener('DOMContentLoaded', function() {
   document.querySelector('#root').classList.remove('active');
 }, false);
 
-// back button = back to the root page
+// back button = close dialog || back to the root page
 window.addEventListener('keyup', function(event) {
-  if (event.keyCode === event.DOM_VK_ESCAPE) {
-    document.location.hash = '#root';
+  if (document.location.hash != '#root' &&
+      event.keyCode === event.DOM_VK_ESCAPE) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    var dialog = document.querySelector('#dialogs .active');
+    if (dialog) {
+      dialog.classList.remove('active');
+      document.body.classList.remove('dialog');
+    }
+    else {
+      document.location.hash = '#root';
+    }
   }
 }, false);
