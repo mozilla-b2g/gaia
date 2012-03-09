@@ -173,6 +173,12 @@ div.windowSprite {
   background-color: #000;
 }
 
+#state-messages[data-visible] {
+  background-image: url("images/sms.png");
+  background-repeat: no-repeat;
+  background-position: center center;
+}
+
 #titlebar {
   text-shadow: 0 0 3px hsla(0,0%,0%,.5);
   line-height: 31px;

@@ -1,43 +1,10 @@
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
 'use strict';
-
-// Based on Resig's pretty date
-function prettyDate(time) {
-  var diff = (Date.now() - time) / 1000;
-  var day_diff = Math.floor(diff / 86400);
-
-  if (isNaN(day_diff))
-    return '(incorrect date)';
-
-  if (day_diff < 0 || diff < 0) {
-    // future time
-    return (new Date(time)).toLocaleFormat('%x %R');
-  }
-
-  return day_diff == 0 && (
-    diff < 60 && 'Just Now' ||
-    diff < 120 && '1 Minute Ago' ||
-    diff < 3600 && Math.floor(diff / 60) + ' Minutes Ago' ||
-    diff < 7200 && '1 Hour Ago' ||
-    diff < 86400 && Math.floor(diff / 3600) + ' Hours Ago') ||
-    day_diff == 1 && 'Yesterday' ||
-    day_diff < 7 && (new Date(time)).toLocaleFormat('%A') ||
-    (new Date(time)).toLocaleFormat('%x');
-}
-
-function profilePictureForId(id) {
-  // pic #9 is used as the phone holder
-  // id is the index # of the contact in Contacts array,
-  // or parseInt(phone number) if not in the list
-  return '../contacts/contact' + (id % 9) + '.png';
-}
 
 var MessageManager = {
   getMessages: function mm_getMessages(callback, filter, invert) {
-    if (!navigator.mozSms) {
-      GetMessagesHack(callback, filter, invert);
-      return;
-    }
-
     var request = navigator.mozSms.getMessages(filter, !invert);
 
     var messages = [];
@@ -53,36 +20,18 @@ var MessageManager = {
     };
 
     request.onerror = function onerror() {
-      console.log('Error reading the database. Error code: ' +
-                  request.errorCode);
+      var msg = 'Error reading the database. Error: ' + request.errorCode;
+      console.log(msg);
     };
   },
 
   send: function mm_send(number, text, callback) {
-    // Use a fake send if mozSms is not present
-    if (!navigator.mozSms) {
-      var message = {
-        sender: null,
-        receiver: number,
-        body: text,
-        timestamp: Date.now()
-      };
-
-      window.setTimeout(function() {
-        callback(message);
-      }, 0);
-
-      return;
-    }
-
     var result = navigator.mozSms.send(number, text);
     result.onsuccess = function onsuccess(event) {
-      console.log('SMS sent.');
       callback(event.message);
     };
 
     result.onerror = function onerror(event) {
-      console.log('Error sending SMS!');
       callback(null);
     };
   },
@@ -90,57 +39,6 @@ var MessageManager = {
   delete: function mm_delete(id) {
     navigator.mozSms.delete(id);
   }
-};
-
-// Until there is a database to store messages on the device, return
-// a fake list of messages.
-var messagesHack = [];
-(function() {
-  var messages = [
-    {
-      sender: null,
-      receiver: '1-977-743-6797',
-      body: 'Nothing :)',
-      timestamp: Date.now() - 44000000
-    },
-    {
-      sender: '1-977-743-6797',
-      body: 'Hey! What\s up?',
-      timestamp: Date.now() - 50000000
-    }
-  ];
-
-  for (var i = 0; i < 40; i++) {
-    messages.push({
-      sender: '1-488-678-3487',
-      body: 'Hello world!',
-      timestamp: Date.now() - 60000000
-    });
-  }
-
-  messagesHack = messages;
-})();
-
-var GetMessagesHack = function gmhack(callback, filter, invert) {
-  function applyFilter(msgs) {
-    if (!filter)
-      return msgs;
-
-    if (filter.numbers) {
-      msgs = msgs.filter(function(element, index, array) {
-        var num = filter.numbers;
-        return (num && (num.indexOf(element.sender) != -1 ||
-                        num.indexOf(element.receiver) != -1));
-      });
-    }
-
-    return msgs;
-  }
-
-  var msg = messagesHack.slice();
-  if (invert)
-    msg.reverse();
-  callback(applyFilter(msg));
 };
 
 var ConversationListView = {
@@ -163,11 +61,14 @@ var ConversationListView = {
     this.view.addEventListener('click', this);
 
     this.updateConversationList(null, function fireAppReady() {
+      var url = document.location.toString();
+      visibilityChanged(url);
+
       window.parent.postMessage('appready', '*');
     });
   },
 
-  updateConversationList: function updateConversationList(pendingMsg, callback) {
+  updateConversationList: function updateCL(pendingMsg, callback) {
     var self = this;
     var conversations = {};
 
@@ -175,6 +76,7 @@ var ConversationListView = {
     var contacts = window.navigator.mozContacts.contacts;
     contacts.forEach(function(contact, i) {
       var num = contact.phones[0];
+
       conversations[num] = {
         hidden: true,
         name: contact.displayName,
@@ -231,8 +133,8 @@ var ConversationListView = {
 
     return '<div data-num="' + conversation.num + '"' +
            ' data-name="' + conversation.name + '"' +
-           ' data-notempty="' + (conversation.timestamp ? 'true':'') + '"' +
-           ' class="' + (conversation.hidden?'hide':'') + '">' +
+           ' data-notempty="' + (conversation.timestamp ? 'true' : '') + '"' +
+           ' class="' + (conversation.hidden ? 'hide' : '') + '">' +
            '  <div class="photo">' +
            '    <img src="' + profilePictureForId(conversation.id) + '" />' +
            '  </div>' +
@@ -308,36 +210,36 @@ var ConversationListView = {
 var ConversationView = {
   get view() {
     delete this.view;
-    return this.view = document.getElementById('msg-conversation-view-list');
+    return this.view = document.getElementById('view-list');
   },
 
   get num() {
     delete this.number;
-    return this.number = document.getElementById('msg-conversation-view-num');
+    return this.number = document.getElementById('view-num');
   },
 
   get title() {
     delete this.title;
-    return this.title = document.getElementById('msg-conversation-view-name');
+    return this.title = document.getElementById('view-name');
   },
 
-  get msgInput() {
-    delete this.msgInput;
-    return this.msgInput = document.getElementById('msg-conversation-view-msg-text');
+  get input() {
+    delete this.input;
+    return this.input = document.getElementById('view-msg-text');
   },
 
   init: function cv_init() {
     if (navigator.mozSms)
       navigator.mozSms.addEventListener('received', this);
 
-    document.getElementById('msg-conversation-view-back').addEventListener(
+    document.getElementById('view-back').addEventListener(
       'click', this.close.bind(this));
 
     // click event does not trigger when keyboard is hiding
-    document.getElementById('msg-conversation-view-msg-send').addEventListener(
+    document.getElementById('view-msg-send').addEventListener(
       'mousedown', this.sendMessage.bind(this));
 
-    this.msgInput.addEventListener('input', this.updateMsgInputHeight.bind(this));
+    this.input.addEventListener('input', this.updateInputHeight.bind(this));
 
     var windowEvents = ['resize', 'keyup', 'transitionend'];
     windowEvents.forEach((function(eventName) {
@@ -349,7 +251,7 @@ var ConversationView = {
     this.view.scrollTop = this.view.scrollHeight;
   },
 
-  updateMsgInputHeight: function cv_updateMsgInputHeight() {
+  updateInputHeight: function cv_updateInputHeight() {
     var input = this.msgInput;
     var currentHeight = input.style.height;
     input.style.height = null;
@@ -361,7 +263,7 @@ var ConversationView = {
 
     var bottomToolbarHeight = (input.scrollHeight + 32) + 'px';
     var bottomToolbar =
-      document.getElementById('msg-conversation-view-bottom-toolbar');
+      document.getElementById('view-bottom-toolbar');
 
     bottomToolbar.style.height = bottomToolbarHeight;
 
@@ -373,11 +275,13 @@ var ConversationView = {
     var self = this;
     var view = this.view;
     var bodyclassList = document.body.classList;
-    var filter = new MozSmsFilter();
-    filter.numbers = [num];
-    this.filter = num;
 
-    if (!num) {
+    if (num) {
+      var filter = new MozSmsFilter();
+      filter.numbers = [num || ''];
+
+      this.filter = num;
+    } else {
       /* XXX: gaia issue #483 (New Message dialog design)
               gaia issue #108 (contact picker)
       */
@@ -433,11 +337,12 @@ var ConversationView = {
         }
 
         var time = prettyDate(msg.timestamp);
+        var body = msg.body.replace(/\n/g, '<br />');
         fragment += '<div ' + className + ' ' + dataNum + ' ' + dataId + '>' +
                       '<div class="photo">' +
                       '  <img src="' + pic + '" />' +
                       '</div>' +
-                      '<div class="text">' + msg.body.replace(/\n/g, '<br />') + '</div>' +
+                      '<div class="text">' + body + '</div>' +
                       '<div class="time">' + time + '</div>' +
                     '</div>';
       }
@@ -472,8 +377,6 @@ var ConversationView = {
         var msg = evt.message;
         messagesHack.unshift(msg);
 
-        console.log('Received message from ' + msg.sender + ': ' + msg.body);
-
         window.setTimeout(function() {
           ConversationView.showConversation(ConversationView.filter);
         }, 0);
@@ -490,7 +393,7 @@ var ConversationView = {
         if (!document.body.classList.contains('conversation'))
           return;
 
-        this.updateMsgInputHeight();
+        this.updateInputHeight();
         this.scrollViewToBottom();
         break;
     }
@@ -504,7 +407,7 @@ var ConversationView = {
   },
   sendMessage: function cv_sendMessage() {
     var num = this.num.value;
-    var text = document.getElementById('msg-conversation-view-msg-text').value;
+    var text = document.getElementById('view-msg-text').value;
 
     if (num === '' || text === '')
       return;
@@ -524,7 +427,7 @@ var ConversationView = {
         // Add a slight delay so that the database has time to write the
         // message in the background. Ideally we'd just be updating the UI
         // from "sending..." to "sent" at this point...
-        window.setTimeout(function () {
+        window.setTimeout(function() {
           ConversationView.showConversation(ConversationView.filter);
         }, 100);
       }
@@ -538,9 +441,9 @@ var ConversationView = {
       timestamp: Date.now()
     };
 
-    setTimeout((function keepKeyboardFocus() {
+    setTimeout((function updateMessageField() {
       this.msgInput.value = '';
-      this.updateMsgInputHeight();
+      this.updateInputHeight();
     }).bind(this), 0);
 
     ConversationListView.updateConversationList(message);
@@ -553,7 +456,7 @@ var ConversationView = {
 };
 
 window.addEventListener('load', function loadMessageApp() {
-  var request = window.navigator.mozSettings.get('language.current');
+  var request = navigator.mozSettings.get('language.current');
   request.onsuccess = function() {
     selectedLocale = request.result.value;
     ConversationView.init();
@@ -628,7 +531,7 @@ function formatNumber(number) {
   for (var i = 0; i < number.length; i++) {
     var c = format[index++];
     if (c && c != 'x') {
-      formatted += c
+      formatted += c;
       index++;
     }
 
@@ -636,4 +539,5 @@ function formatNumber(number) {
   }
 
   return formatted;
-};
+}
+
