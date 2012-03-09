@@ -29,7 +29,7 @@ function test() {
 
           ok(overlay.classList.contains('displayed'), 'Overlay view displayed');
 
-          var number = overlay.querySelector('#contact-phones div');
+          var number = dialerWindow.ContactDetails.contactPhone;
           var callScreen = dialerWindow.CallHandler.callScreen;
 
           EventUtils.sendMouseEvent({type: 'click'}, number);

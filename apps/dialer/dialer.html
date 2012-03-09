@@ -20,7 +20,7 @@
               <input id="contacts-search" type="search" onmousedown="this.focus();"
               oninput="Contacts.filter(event.target.value);" />
             </div>
-          <a class="add" href="#" onclick="Contacts.create()">+</a>
+          <a id="contact-add" class="add" href="#" onclick="Contacts.create()">+</a>
         </div>
 
         <div id="contacts-container-top"></div>
@@ -151,23 +151,47 @@
     <div id="contacts-overlay">
       <div id="contact-details-container">
         <div id="contact-details-view">
-          <div id="contact-details-top">
-            <div id="contact-photo">
+          <div id="contact-photo">
+          </div>
+          <div id="contact-details-show">
+            <div id="contact-details-top">
+              <div id="contact-name">
+              </div>
             </div>
-            <div id="contact-name">
+            <div id="contact-phone" class="entry" data-action="call" onclick="ContactDetails.execute(event)">
+              <span>phone</span>
+              <div class="value"></div>
             </div>
+            <div id="contact-email" class="entry">
+              <span>email</span>
+              <div class="value"></div>
+            </div>
+            <button data-action="edit" onclick="ContactDetails.execute(event)">Edit</button>
           </div>
-          <div id="contact-phones" class="group" data-action="call" onclick="ContactDetails.execute(event)">
-          </div>
-          <div id="contact-emails" class="group">
-          </div>
-          <div id="contact-destroy-button" data-action="destroy" onclick="ContactDetails.execute(event)">
-            Destroy this contact
-          </div>
-          <div id="contact-edit-button" data-action="edit" onclick="ContactDetails.execute(event)">
-            <span>Edit</span>
-            <span>Save</span>
-          </div>
+          <form id="contact-details-edit" onsubmit="ContactDetails.save(this)" action="#">
+            <div class="entry">
+              <span>First</span>
+              <input id="contact-given-name-field" data-action="autoscroll" onfocus="ContactDetails.execute(event)" />
+            </div>
+            <div class="entry">
+              <span>Last</span>
+              <input id="contact-family-name-field" data-action="autoscroll" required="true" onfocus="ContactDetails.execute(event)" />
+            </div>
+            <div class="entry" data-action="call">
+              <span>phone</span>
+              <input id="contact-phone-field" type="tel" data-action="autoscroll" onfocus="ContactDetails.execute(event)" />
+            </div>
+            <div class="entry">
+              <span>email</span>
+              <input id="contact-email-field" type="email" data-action="autoscroll" onfocus="ContactDetails.execute(event)" />
+            </div>
+            <div>
+              <input type="submit" value="Save" />
+            </div>
+            <div id="contact-destroy-button" data-action="destroy" onclick="ContactDetails.execute(event)">
+              Destroy this contact
+            </div>
+          </form>
           <div id="contact-details-line">
           </div>
         </div>
