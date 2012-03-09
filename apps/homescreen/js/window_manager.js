@@ -75,7 +75,7 @@ function AppWindow(application, id) {
   //       by Intents and 'Settings' will be fixed by when the regular
   //       Settings API will land.
   var exceptions = ['Dialer', 'Settings', 'Camera', 'Messages'];
-  if(exceptions.indexOf(application.name) == -1) {
+  if (exceptions.indexOf(application.name) == -1) {
     element.setAttribute('mozbrowser', 'true');
   }
 

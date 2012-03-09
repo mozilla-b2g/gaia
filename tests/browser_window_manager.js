@@ -38,7 +38,8 @@ function test() {
     function onClose() {
       windowManager.kill(url);
 
-      ok(count == events.length, 'Some events has not been fired - got ' + count + ' expected ' + events.length);
+      ok(count == events.length,
+         'Missing events got ' + count + ' expected ' + events.length);
       ok(windowManager.windows.length === 0, 'No apps running');
       finish();
     }

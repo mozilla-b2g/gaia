@@ -140,7 +140,7 @@ var TaskManager = {
 
     WindowManager.kill(app.url);
 
-    if (this.items.children.length === 0) 
+    if (this.items.children.length === 0)
       this.hide();
   },
 
