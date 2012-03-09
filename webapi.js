@@ -395,6 +395,24 @@
                        '120': '/style/icons/NYT.png'
                      }
                    }
+                 },
+                 { // Tasks
+                   'installOrigin': 'http://gaiamobile.org:8888',
+                   'origin': '../tasks',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'Tasks',
+                     'description': 'Tasks Application',
+                     'launch_path': '/tasks.html',
+                     'developer': {
+                       'name': 'Ignacio Fernández Moreno',
+                       'url': 'https://github.com/Nachete/gaia-tasks-app'
+                     },
+                     'icons': {
+                       '120': '/style/icons/Tasks.png'
+                     }
+                   }
                  }
   ];
 

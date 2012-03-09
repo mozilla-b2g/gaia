@@ -94,11 +94,11 @@ var TaskList = {
       img.src = TASK_ICONS[task.type];
       a.appendChild(img);
 
-      var label = document.createElement('label');
+      var label = document.createElement('span');
       label.textContent = task.name;
       a.appendChild(label);
 
-      var span = document.createElement('span');
+      var span = document.createElement('label');
       span.textContent = Cal.toShortDateTime(task.date);
 
       a.appendChild(span);

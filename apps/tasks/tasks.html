@@ -13,29 +13,29 @@
 
   <body>
 	<div id="root" class="view" data-title="Tasks">
-		<div class="buttons">
-			<a id="tasks-reset" href="#" class="button third">Next tasks</a>
-			<a id="cal-load" href="#cal" class="button third push slideHorizontal">Cal</a>
-			<a id="task-new" href="#task" class="button third push slideHorizontal">New</a>
+		<a id="task-new" href="#task" class="right button push slideHorizontal">New</a>
+		<div>
+		  <a id="tasks-reset" href="#" class="button">Next tasks</a>
+		  <a id="cal-load" href="#cal" class="button push slideHorizontal">Calendar</a>
 		</div>
 		<ul id="tasks" class="tableView"></ul>
 	</div>
 	
 	<!-- Task -->
     <div id="task" class="view" data-title="Task">
-	  <a id="task-del" href="#root" class="button pop slideHorizontal">Delete</a>
+	  <a id="task-del" href="#root" class="right button pop slideHorizontal">Delete</a>
+	  <div>
+		  <a id="task-save" href="#root" class="button pop slideHorizontal">Save</a>
+		  <a href="#root" class="button pop slideHorizontal">Back</a>
+	  </div>
       <ul class="tableView">
         <li>
-          <label>
           <span>Name</span>
-          </label>
-          <input type="text" name="task.name" class="text-input"/>
+		  <input type="text" name="task.name"/>
 		  <p></p>
         </li>
         <li>
-          <label>
           <span>Type</span>
-          </label>
 		  <select name="task.type">
 			  <option value="0">Task</option>
 			  <option value="1">Appointment</option>
@@ -43,33 +43,27 @@
         </li>
         <li>
 		  <span>Description</span>
-		  <textarea name="task.desc" class="text-input"></textarea>
+		  <textarea name="task.desc"></textarea>
         </li>
 		<li>
-          <label>
           <span>Date</span>
-          </label>
-          <input type="datetime-local" name="task.date" class="text-input"/>
+          <input type="datetime-local" name="task.date"/>
 		  <p></p>
         </li>
       </ul>
-	  <a id="task-save" href="#root" class="button half pop slideHorizontal">Save</a>
-	  <a href="#root" class="button half pop slideHorizontal">Back</a>
     </div>
 	
 	<!-- Calendar -->
     <div id="cal" class="view" data-title="Calendar">
+	  <a id="cal-pick" href="#root" class="button pop slideHorizontal">Pick</a>
+	  <a href="#root" class="button pop slideHorizontal">Back</a>
       <ul class="tableView">
         <li>
-          <label>
-            <span>Pick a date</span>
-          </label>
-          <input type="datetime-local" name="cal.date" class="text-input"/>
+          <span>Pick a date</span>
+          <input type="datetime-local" name="cal.date"/>
 		  <p></p>
         </li>
       </ul>
-	  <a id="cal-pick" href="#root" class="button half pop slideHorizontal">Pick</a>
-	  <a href="#root" class="button half pop slideHorizontal">Back</a>
 	<div>
   </body>
 </html>

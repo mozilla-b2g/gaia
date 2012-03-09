@@ -30,7 +30,7 @@ if (!window['Gaia'])
       // Add event listeners for push/pop links.
       document.addEventListener('click', this);
 
-      window.addEventListener('keypress', this, true);
+      window.addEventListener('keyup', this, true);
     },
     handleEvent: function(evt) {
       switch (evt.type) {
@@ -73,7 +73,7 @@ if (!window['Gaia'])
 
           evt.preventDefault();
           break;
-        case 'keypress':
+        case 'keyup':
           if (Gaia.UI.views.length === 1)
             return;
 
