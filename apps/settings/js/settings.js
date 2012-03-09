@@ -59,8 +59,7 @@ var Settings = {
     var key = input.name || input.dataset.name;
     if (!key)
       return;
-        
-        
+
     switch(evt.type) {
       case 'change':
         var value;

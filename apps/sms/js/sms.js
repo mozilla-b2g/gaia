@@ -70,69 +70,66 @@ var ConversationListView = {
 
   updateConversationList: function updateCL(pendingMsg, callback) {
     var self = this;
-    var conversations = {};
-
-    // XXX: put all contacts in DOM tree then hide them in non-search view
-    var contacts = window.navigator.mozContacts.contacts;
-    contacts.forEach(function(contact, i) {
-      var num = contact.phones[0];
-
-      conversations[num] = {
-        hidden: true,
-        name: contact.displayName,
-        num: num,
-        body: '',
-        timestamp: '',
-        id: i
-      };
-    });
-
     MessageManager.getMessages(function getMessagesCallback(messages) {
       if (pendingMsg)
         messages.push(pendingMsg);
 
-      for (var i = 0; i < messages.length; i++) {
-        var message = messages[i];
-        var num = message.sender || message.receiver;
-        if (conversations[num] && !conversations[num].hidden)
-          continue;
-        if (!conversations[num]) {
+      var conversations = {};
+      var request = window.navigator.mozContacts.find({});
+      request.onsuccess = function findCallback() {
+        var contacts = request.result;
+
+        contacts.forEach(function(contact, i) {
+          var num = contact.tel[0];
           conversations[num] = {
-            hidden: false,
-            num: (message.sender || message.receiver),
-            name: num,
-            // XXX: hack for contact pic
-            id: parseInt(num)
+            'hidden': true,
+            'name': contact.name,
+            'num': num,
+            'body': '',
+            'timestamp': '',
+            'id': parseInt(i)
           };
+        });
+
+        for (var i = 0; i < messages.length; i++) {
+          var message = messages[i];
+          var num = message.sender || message.receiver;
+          var conversation = conversations[num];
+          if (conversation && !conversation.hidden)
+            continue;
+
+          if (!conversation) {
+            conversation = conversations[num] = {
+              'hidden': false,
+              'body': message.body,
+              'name': num,
+              'num': num,
+              'timestamp': prettyDate(message.timestamp),
+              'id': parseInt(i)
+            };
+          } else {
+            conversation.hidden = false;
+            conversation.timestamp = prettyDate(message.timestamp);
+            conversation.body = message.body;
+          }
         }
 
-        var data = {
-          hidden: false,
-          body: message.body,
-          timestamp: prettyDate(message.timestamp)
-        };
-
-        for (var key in data) {
-          conversations[num][key] = data[key];
+        var fragment = '';
+        for (var num in conversations) {
+          var msg = self.createNewConversation(conversations[num]);
+          fragment += msg;
         }
-      }
+        self.view.innerHTML = fragment;
 
-      var fragment = '';
-      for (var num in conversations) {
-        var msg = self.createNewConversation(conversations[num]);
-        fragment += msg;
-      }
-      self.view.innerHTML = fragment;
-
-      if (typeof callback === 'function')
-        callback.call(self);
+        if (callback)
+          callback();
+      };
     }, null);
   },
 
   createNewConversation: function createNewConversation(conversation) {
-
     return '<div data-num="' + conversation.num + '"' +
-           ' data-name="' + conversation.name + '"' +
+           ' data-name="' + (conversation.name || conversation.num) + '"' +
            ' data-notempty="' + (conversation.timestamp ? 'true' : '') + '"' +
            ' class="' + (conversation.hidden ? 'hide' : '') + '">' +
            '  <div class="photo">' +
@@ -145,16 +142,17 @@ var ConversationListView = {
   },
 
   searchConversations: function searchConversations() {
+    var conversations = this.view.children;
+
     var str = this.searchInput.value;
-    var conversations = this.view.childNodes;
     if (!str) {
       // leaving search view
-      for (var i in conversations) {
+      for (var i = 0; i < conversations.length; i++) {
         var conversation = conversations[i];
         if (conversation.dataset.notempty === 'true') {
-          conversations[i].classList.remove('hide');
+          conversation.classList.remove('hide');
         } else {
-          conversations[i].classList.add('hide');
+          conversation.classList.add('hide');
         }
       }
       return;
@@ -162,14 +160,18 @@ var ConversationListView = {
 
     var reg = new RegExp(str, 'i');
 
-    for (var i in conversations) {
+    for (var i = 0; i < conversations.length; i++) {
       var conversation = conversations[i];
-      if (!reg.test(conversation.dataset.num) &&
-          !reg.test(conversation.dataset.name)) {
+    try {
+      var dataset = conversation.dataset;
+      if (!reg.test(dataset.num) && !reg.test(dataset.name)) {
         conversation.classList.add('hide');
       } else {
         conversation.classList.remove('hide');
       }
+  } catch(e) {
+      alert(conversation);
+  } 
     }
   },
 
@@ -199,7 +201,6 @@ var ConversationListView = {
         document.body.classList.remove('transition-back');
         break;
 
-      case 'keypress':
       case 'keyup':
         this.searchConversations();
         break;
@@ -252,11 +253,11 @@ var ConversationView = {
   },
 
   updateInputHeight: function cv_updateInputHeight() {
-    var input = this.msgInput;
+    var input = this.input;
     var currentHeight = input.style.height;
     input.style.height = null;
     var newHeight = input.scrollHeight + 'px';
-    this.msgInput.style.height = newHeight;
+    this.input.style.height = newHeight;
 
     if (currentHeight === newHeight)
       return;
@@ -295,22 +296,25 @@ var ConversationView = {
 
     bodyclassList.remove('conversation-new-msg');
 
-    var name = num;
     var receiverId = parseInt(num);
 
-    var contacts = window.navigator.mozContacts.contacts;
-    contacts.some(function(contact, i) {
-      if (contact.phones[0] == num) {
-        name = contact.displayName;
-        receiverId = i;
-        return true;
-      }
-      return false;
-    });
+    var self = this;
+    var options = {filterBy: ['tel'], filterOp: 'contains', filterValue: num};
+    var request = window.navigator.mozContacts.find(options);
+    request.onsuccess = function findCallback() {
+      if (request.result.length == 0)
+        return;
+
+      var contact = request.result[0];
+      self.title.textContent = contact.name;
+      var images = self.view.querySelectorAll('.photo img');
+      for (var i = 0; i < images.length; i++)
+        images[i].src = profilePictureForId(contact.id);
+    };
 
     this.num.value = num;
 
-    this.title.textContent = name;
+    this.title.textContent = num;
     this.title.num = num;
 
     MessageManager.getMessages(function mm_getMessages(messages) {
@@ -442,7 +446,7 @@ var ConversationView = {
     };
 
     setTimeout((function updateMessageField() {
-      this.msgInput.value = '';
+      this.input.value = '';
       this.updateInputHeight();
     }).bind(this), 0);
 
@@ -456,11 +460,13 @@ var ConversationView = {
 };
 
 window.addEventListener('load', function loadMessageApp() {
-  var request = navigator.mozSettings.get('language.current');
-  request.onsuccess = function() {
-    selectedLocale = request.result.value;
-    ConversationView.init();
-    ConversationListView.init();
+  if (navigator.mozSettings) {
+    var request = navigator.mozSettings.get('language.current');
+    request.onsuccess = function() {
+      selectedLocale = request.result.value;
+      ConversationView.init();
+      ConversationListView.init();
+    }
   }
 });
 

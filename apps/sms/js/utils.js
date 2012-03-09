@@ -29,7 +29,7 @@ function prettyDate(time) {
 
 window.addEventListener('message', function visibleApp(evt) {
   var data = evt.data;
-  if (evt.data.message == 'visibilitychange' && !data.hidden) {
+  if (data.message == 'visibilitychange' && !data.hidden) {
     visibilityChanged(data.url);
   }
 });
