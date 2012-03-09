@@ -292,7 +292,7 @@ var CallHandler = {
 
     this.statusView.innerHTML = '00:00';
 
-    this.recentsEntry.type = this.recentsEntry.type + '-connected';
+    this.recentsEntry.type += '-connected';
 
     this._ticker = setInterval(function ch_updateTimer(self, startTime) {
       var elapsed = new Date(Date.now() - startTime);
@@ -303,6 +303,9 @@ var CallHandler = {
     this.currentCall.answer();
   },
   end: function ch_end() {
+    if (this.recentsEntry && (this.recentsEntry.type.indexOf('-connected') == -1)) {
+      this.recentsEntry.type += '-refused';
+    }
     if (this.currentCall) {
       this.currentCall.hangUp();
     } else {
@@ -317,6 +320,13 @@ var CallHandler = {
 
     if (this.recentsEntry) {
       Recents.add(this.recentsEntry);
+
+      if ((this.recentsEntry.type.indexOf('outgoing') == -1) &&
+          (this.recentsEntry.type.indexOf('-refused') == -1)) {
+        // XXX: This should be replaced by a web notification as
+        // soon as we have them
+        window.parent.postMessage('dialer-missed-call', '*');
+      }
       this.recentsEntry = null;
     }
 
