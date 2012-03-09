@@ -150,7 +150,7 @@ var Calculator = {
         output.push(parseFloat(token, 10));
       }
 
-      var preference = this.precedence;
+      var precedence = this.precedence;
       var isOperator = this.isOperator;
       if (isOperator(token)) {
         while (isOperator(stack[stack.length - 1]) &&
