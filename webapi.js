@@ -191,6 +191,42 @@
                      }
                    }
                  },
+                 { // mail
+                   installOrigin: 'http://mail.google.com',
+                   origin: 'http://mail.google.com',
+                   receipt: null,
+                   installTime: 1323339869000,
+                   manifest: {
+                     'name': 'Mail',
+                     'description': 'GMail',
+                     'launch_path': '/mail/mu',
+                     'developer': {
+                       'name': 'Google',
+                       'url': 'http://google.com'
+                     },
+                     'icons': {
+                       '120': '/style/icons/GMail.png'
+                     }
+                   }
+                 },
+                 { // calendar
+                   installOrigin: 'http://google.com',
+                   origin: 'http://google.com',
+                   receipt: null,
+                   installTime: 1323339869000,
+                   manifest: {
+                     'name': 'Calendar',
+                     'description': 'Google Calendar',
+                     'launch_path': '/calendar/gp',
+                     'developer': {
+                       'name': 'Google',
+                       'url': 'http://google.com'
+                     },
+                     'icons': {
+                       '120': '/style/icons/GoogleCalendar.png'
+                     }
+                   }
+                 },
                  { // settings
                    'installOrigin': 'http://gaiamobile.org:8888',
                    'origin': '../settings',

@@ -214,7 +214,7 @@ iframe.appWindow {
 
 iframe.appWindow.active {
   z-index: 9995;
-  background-color: #000;
+  background-color: #fff;
 }
 
 #screen.fullscreen iframe.appWindow.active {
