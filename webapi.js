@@ -395,6 +395,24 @@
                        '120': '/style/icons/NYT.png'
                      }
                    }
+                 },
+                 { // Calculator
+                   'installOrigin': 'http://gaiamobile.org:8888',
+                   'origin': '../calculator',
+                   'receipt': null,
+                   'installTime': 1323339869000,
+                   manifest: {
+                     'name': 'Calculator',
+                     'description': 'Gaia Settings',
+                     'launch_path': '/calculator.html',
+                     'developer': {
+                       'name': 'The Gaia Team',
+                       'url': 'https://github.com/andreasgal/gaia'
+                     },
+                     'icons': {
+                       '120': '/style/icons/Calculator.png'
+                     }
+                   }
                  }
   ];
 
