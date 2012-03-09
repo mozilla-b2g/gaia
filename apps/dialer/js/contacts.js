@@ -364,15 +364,17 @@ var ContactDetails = {
 
   save: function cd_save(form) {
     if (form.checkValidity()) {
-      this._contact.givenName = this.contactGivenNameField.value;
-      this._contact.familyName = this.contactFamilyNameField.value;
+      var contact = this._contact;
+
+      contact.givenName = this.contactGivenNameField.value;
+      contact.familyName = this.contactFamilyNameField.value;
 
       if (this.contactPhoneField.value.length)
-        this._contact.tel = [this.contactPhoneField.value];
+        contact.tel = [this.contactPhoneField.value];
       if (this.contactEmailField.value.length)
-        this._contact.email = [this.contactEmailField.value];
+        contact.email = [this.contactEmailField.value];
 
-      var req = navigator.mozContacts.save(this._contact);
+      var req = navigator.mozContacts.save(contact);
       req.onsuccess = (function() {
         this.render();
         this.endEditing();
@@ -445,32 +447,34 @@ var ContactDetails = {
   },
 
   render: function cd_render() {
+    var contact = this._contact;
+
     var names = '';
-    names += this._contact.givenName ? this._contact.givenName : '';
-    names += ' ' + (this._contact.familyName ? this._contact.familyName : '');
+    names += contact.givenName ? contact.givenName : '';
+    names += ' ' + (contact.familyName ? contact.familyName : '');
     this.contactName.innerHTML = names;
 
     this.contactGivenNameField.value =
-      this._contact.givenName;
+      contact.givenName;
     this.contactFamilyNameField.value =
-      this._contact.familyName;
+      contact.familyName;
 
     document.getElementById('contact-photo').innerHTML =
-      profilePictureForNumber(this._contact.id);
+      profilePictureForNumber(contact.id);
 
-    if (this._contact.tel) {
+    if (contact.tel) {
       this.contactPhone.querySelector('.value').innerHTML =
-        this._contact.tel[0];
-      this.contactPhone.dataset.number = this._contact.tel[0];
+        contact.tel[0];
+      this.contactPhone.dataset.number = contact.tel[0];
 
-      this.contactPhoneField.value = this._contact.tel[0];
+      this.contactPhoneField.value = contact.tel[0];
     }
 
     if (this._contact.email) {
       this.contactEmail.querySelector('.value').innerHTML =
-        this._contact.email[0];
+        contact.email[0];
 
-      this.contactEmailField.value = this._contact.email[0];
+      this.contactEmailField.value = contact.email[0];
     }
   }
 };
