@@ -48,7 +48,7 @@ function test() {
                   var recents = recentsView.querySelectorAll('.recent');
                   ok(recents[0].classList.contains('incoming-connected'),
                      'Incoming call displayed');
-                  ok(recents[1].classList.contains('outgoing'),
+                  ok(recents[1].classList.contains('outgoing-refused'),
                      'Outgoing call displayed');
 
                   windowManager.closeForegroundWindow();

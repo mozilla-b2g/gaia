@@ -45,6 +45,10 @@ function visibilityChanged(url, evt) {
     Contacts.load();
     choiceChanged(contacts);
   }
+  var recents = document.getElementById('recents-label');
+  if (choice == 'recents' || recents.hasAttribute('data-active')) {
+    choiceChanged(recents);
+  }
 }
 
 function choiceChanged(target) {
@@ -292,7 +296,7 @@ var CallHandler = {
 
     this.statusView.innerHTML = '00:00';
 
-    this.recentsEntry.type = this.recentsEntry.type + '-connected';
+    this.recentsEntry.type += '-connected';
 
     this._ticker = setInterval(function ch_updateTimer(self, startTime) {
       var elapsed = new Date(Date.now() - startTime);
@@ -303,6 +307,9 @@ var CallHandler = {
     this.currentCall.answer();
   },
   end: function ch_end() {
+    if (this.recentsEntry && (this.recentsEntry.type.indexOf('-connected') == -1)) {
+      this.recentsEntry.type += '-refused';
+    }
     if (this.currentCall) {
       this.currentCall.hangUp();
     } else {
@@ -315,11 +322,6 @@ var CallHandler = {
       this.currentCall = null;
     }
 
-    if (this.recentsEntry) {
-      Recents.add(this.recentsEntry);
-      this.recentsEntry = null;
-    }
-
     if (this.muteButton.classList.contains('mute'))
       this.toggleMute();
     if (this.speakerButton.classList.contains('speak'))
@@ -329,6 +331,21 @@ var CallHandler = {
     clearInterval(this._ticker);
 
     this.toggleCallScreen();
+
+    if (this.recentsEntry) {
+      Recents.add(this.recentsEntry);
+
+      if ((this.recentsEntry.type.indexOf('outgoing') == -1) &&
+          (this.recentsEntry.type.indexOf('-refused') == -1)) {
+        // XXX: This should be replaced by a web notification as
+        // soon as we have them
+        window.parent.postMessage({
+          type: 'missed-call',
+          sender: this.recentsEntry.number
+        }, '*');
+      }
+      this.recentsEntry = null;
+    }
   },
 
   handleEvent: function fm_handleEvent(evt) {
