@@ -336,7 +336,8 @@ var CallHandler = {
       Recents.add(this.recentsEntry);
 
       if ((this.recentsEntry.type.indexOf('outgoing') == -1) &&
-          (this.recentsEntry.type.indexOf('-refused') == -1)) {
+          (this.recentsEntry.type.indexOf('-refused') == -1) &&
+          (this.recentsEntry.type.indexOf('-connected') == -1)) {
         // XXX: This should be replaced by a web notification as
         // soon as we have them
         window.parent.postMessage({
