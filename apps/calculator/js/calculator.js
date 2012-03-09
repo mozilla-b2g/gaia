@@ -15,7 +15,7 @@ var Calculator = {
   // Holds the current symbols for calculation
   stack: [],
 
-  updateDisplay: function() {
+  updateDisplay: function calculator_updateDisplay() {
     if (this.stack.length === 0) {
       this.display.value = '0';
       return;
@@ -23,11 +23,11 @@ var Calculator = {
     this.display.value = this.stack.join('');
   },
 
-  isOperator: function(val) {
+  isOperator: function calculator_isOperator(val) {
     return this.operators.indexOf(val) !== -1;
   },
 
-  appendValue: function(value) {
+  appendValue: function calculator_appendValue(value) {
     if (this.toClear) {
       this.stack = [];
       this.toClear = false;
@@ -36,7 +36,7 @@ var Calculator = {
     this.updateDisplay();
   },
 
-  appendOperator: function(value) {
+  appendOperator: function calculator_appendOperator(value) {
     this.toClear = false;
 
     // Subtraction can also be used as a negative value
@@ -58,14 +58,14 @@ var Calculator = {
 
   // if backspace / clear is held for BACKSPACE_TIMEOUT, it will clear the
   // full formula
-  backSpace: function() {
+  backSpace: function calculator_backSpace() {
     this.clearBackspaceTimeout();
     this.startBackspaceTimeout();
     this.stack = this.stack.slice(0, -1);
     this.updateDisplay();
   },
 
-  substitute: function(key) {
+  substitute: function calculator_substitute(key) {
     if (key === '×') {
       return '*';
     }
@@ -75,24 +75,25 @@ var Calculator = {
     return key;
   },
 
-  formatNumber: function(n) {
+  formatNumber: function calculator_formatNumber(n) {
     if (n % 1 == 0) {
       return n;
     }
     return n.toFixed(3);
   },
 
-  calculate: function() {
-    if (this.stack.length === 0) {
+  calculate: function calculator_calculate() {
+    if (this.stack.length === 0)
       return;
-    }
+
     try {
-      var postfix = this.infix2postfix(this.stack.map(this.substitute).join(''));
+      var postfix =
+        this.infix2postfix(this.stack.map(this.substitute).join(''));
       var result = this.evaluatePostfix(postfix);
       this.stack = [this.formatNumber(result)];
       this.updateDisplay();
       this.toClear = true;
-    } catch(err) {
+    } catch (err) {
       this.display.classList.add('error');
       if (this.errorTimeout === null) {
         this.errorTimeout = window.setTimeout(function calc_errorTimeout(self) {
@@ -149,9 +150,11 @@ var Calculator = {
         output.push(parseFloat(token, 10));
       }
 
-      if (this.isOperator(token)) {
-        while (this.isOperator(stack[stack.length-1]) &&
-               this.precedence(token) <= this.precedence(stack[stack.length-1])) {
+      var preference = this.precedence;
+      var isOperator = this.isOperator;
+      if (isOperator(token)) {
+        while (isOperator(stack[stack.length - 1]) &&
+               precedence(token) <= precedence(stack[stack.length - 1])) {
           output.push(stack.pop());
         }
         stack.push(token);
@@ -160,7 +163,7 @@ var Calculator = {
         stack.push(token);
       }
       if (token === ')') {
-        while (stack.length && stack[stack.length-1] !== '(') {
+        while (stack.length && stack[stack.length - 1] !== '(') {
           output.push(stack.pop());
         }
         // This is the (
@@ -226,7 +229,7 @@ var Calculator = {
       break;
 
     case 'mouseup':
-      this.clearBackspaceTimeout()
+      this.clearBackspaceTimeout();
       break;
     }
   }
@@ -238,13 +241,11 @@ window.addEventListener('load', function calcLoad(evt) {
 });
 
 Calculator.test = function() {
-
   function run(args) {
     var formula = args[0];
     var expected = args[1];
     var postfix = Calculator.infix2postfix(formula);
     var result = Calculator.evaluatePostfix(postfix);
-    console.log('expected', expected, 'got', result);
     return expected === result;
   };
 
@@ -262,7 +263,9 @@ Calculator.test = function() {
   var passed = formulas.every(run);
 
   if (passed) {
-    console.log("Tests Passed!");
+    console.log('Tests Passed!');
   }
   return passed;
 };
+
+
