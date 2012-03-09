@@ -144,8 +144,9 @@ html * {
 
   border-radius: 5px 5px 5px 5px;
 }
-.top-bar a.add:active {
+.top-bar a.add:active, .top-bar a.add:focus {
   color: #FF6600;
+  outline: none;
 }
 
 /* === Keyboard View === */
@@ -578,14 +579,12 @@ html * {
   -moz-transition: opacity 0.15s ease;
 }
 
-#contact-edit-button {
-  /* TODO: re-activate when we have an edit feature */
-  display: none;
-
+#contact-details-view button,
+#contact-details-view input[type="submit"] {
   position: absolute;
   bottom: 20px;
   right: 20px;
-  width: 8mozmm;
+  width: 13mozmm;
   height: 6mozmm;
   padding: 0 8px;
 
@@ -594,6 +593,9 @@ html * {
 
   line-height: 6mozmm;
   font-size: 1.3em;
+  color: #666;
+  font-weight: normal;
+  text-transform: none;
   text-align: center;
   text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.5);
 
@@ -601,22 +603,9 @@ html * {
 
   border: 1px solid #A0A09C;
   border-radius: 5px;
-
-  color: #666666;
-}
-#contact-edit-button[data-action='save'] {
-  background-color: rgba(49, 147, 255, 0.7);
-}
-#contact-edit-button span:first-child,
-#contact-edit-button[data-action='save'] span:last-child {
-  display: inline;
-}
-#contact-edit-button span:last-child,
-#contact-edit-button[data-action='save'] span:first-child {
-  display: none;
 }
 
-#contact-details-view span {
+#contact-details-view .entry span {
   display: block;
   float: left;
   width: 20%;
@@ -627,10 +616,10 @@ html * {
   text-transform: uppercase;
   font-size: 18px;
   font-weight: bold;
-  line-height: 32px;
+  line-height: 46px;
 }
 
-#contact-details-view .input {
+#contact-details-view .value {
   display: block;
   float: left;
   width: 75%;
@@ -642,19 +631,12 @@ html * {
 
   font-size: 24px;
   font-weight: 600;
-  line-height: 32px;
+  line-height: 46px;
   text-align: left;
-
-  -moz-appearance: none;
-}
-
-#contact-details-view input:invalid {
-  border: 0;
-  color: #D86C72;
 }
 
 #contact-photo {
-  float: left;
+  position: absolute;
   width: 140px;
   height: 140px;
 
@@ -672,8 +654,7 @@ html * {
 }
 
 #contact-name {
-  float: left;
-  margin: 32px 10px;
+  margin: 32px 10px 64px 152px;
   width: -moz-calc(100% - 140px - 25px);
   height: 40px;
 
@@ -681,6 +662,7 @@ html * {
   font-weight: bold;
   color: #000000;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 #contact-name input {
@@ -691,7 +673,7 @@ html * {
   padding: 2px 10px;
 }
 
-#contact-details-view > .group {
+#contact-details-view .entry {
   width: 100%;
   margin: 30px auto;
   clear: both;
@@ -700,11 +682,11 @@ html * {
 
   text-align: center;
 
-  background: url(images/contact-input-bg.png) 50% 50% no-repeat;
-  background-size: contain;
+  background: url(images/contact-input-bg.png) bottom center no-repeat;
+  background-size: 100% 100%;
 }
 
-#contact-details-view > .group > div {
+#contact-details-view > .entry > div {
   position: relative;
   padding: 12px;
 
@@ -714,15 +696,15 @@ html * {
   overflow: hidden;
 }
 
-#contact-details-view:not(.editing) > .group > div * {
+#contact-details-show > .entry > * {
   pointer-events: none;
 }
 
-#contact-details-view > .group > div[data-action='add'] {
+#contact-details-view > .entry > div[data-action='add'] {
   display: none;
 }
 
-#contact-details-view > .group > div:first-child {
+#contact-details-view > .entry > div:first-child {
   border-top: 0px;
 }
 
@@ -771,40 +753,41 @@ html * {
   border-radius: 0 0 5px 5px;
   background: -moz-linear-gradient(bottom, hsla(25,100%,35%,1) 0%, hsla(25,100%,42%,1) 1px, hsla(25,100%,26%,1) 100%);
 }
-/* === Contact Edit transitions === */
+/* === Contact Edit === */
 
-#contact-details-view.hidden {
-  opacity: 0;
+#contact-details-edit {
+  margin-top : 162px;
 }
 
-#contact-details-view.editing > .group > div[data-action='add'] {
-  display: block;
+#contact-details-edit .entry {
+  margin: 10px 0;
 }
 
-#contact-details-view.editing #contact-name {
-  border-radius: 10px;
-  border: 2px #EBEBEB solid;
+#contact-details-edit .entry input {
+  float: left;
+  width: -moz-calc(100% - 124px);
+  margin-top: 8px;
+  padding: 0 10px;
+
+  background: -moz-linear-gradient(rgba(204, 204, 204, 0.5), rgba(204, 204, 204, 0) 95%) repeat scroll 0 0 transparent;
+  border: 2px solid;
+  border-radius: 5px 5px 5px 5px;
+  -moz-border-top-colors: #ccc #fff;
+  -moz-border-right-colors: #ccc #fff;
+  -moz-border-bottom-colors: #ccc #fff;
+  -moz-border-left-colors: #ccc #fff;
+
+  color: #333333;
+  font-size: 22px;
 }
 
-#contact-details-view.editing #contact-name > div {
-  border-top: 2px #EBEBEB solid;
-  padding: 0px 8px;
-}
-
-#contact-details-view.editing #contact-name > div:first-child {
-  border-top: 0;
-}
-
-#contact-details-view.editing #contact-destroy-button {
-  display: block;
-}
-
-#contact-details-view.editing .delete-button {
-  display: block;
-}
-
-#contact-details-view.editing #contact-name .delete-button {
+#contact-details-view.editing #contact-details-show,
+#contact-details-edit {
   display: none;
+}
+
+#contact-details-view.editing #contact-details-edit {
+  display: block;
 }
 
 /* === Modal transitions === */
