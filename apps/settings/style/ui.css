@@ -182,10 +182,10 @@ ul li > small {
   height: 60px;
   border: 4px solid;
   border-radius: 5px;
-  -moz-border-top-colors:    #c3c9cb #c3c9cb #fff #fff;
-  -moz-border-right-colors:  #c3c9cb #c3c9cb #fff #fff;
+  -moz-border-top-colors: #c3c9cb #c3c9cb #fff #fff;
+  -moz-border-right-colors: #c3c9cb #c3c9cb #fff #fff;
   -moz-border-bottom-colors: #c3c9cb #c3c9cb #fff #fff;
-  -moz-border-left-colors:   #c3c9cb #c3c9cb #fff #fff;
+  -moz-border-left-colors: #c3c9cb #c3c9cb #fff #fff;
   background: url(images/check-off.png) no-repeat scroll center center,
     -moz-linear-gradient(#eaeae4, #ffffff);
 }
@@ -216,10 +216,10 @@ li#brightness progress {
 
 /* wifi icons */
 #wifi-networks span {
-  -moz-border-top-colors:    transparent;
-  -moz-border-right-colors:  transparent;
+  -moz-border-top-colors: transparent;
+  -moz-border-right-colors: transparent;
   -moz-border-bottom-colors: transparent;
-  -moz-border-left-colors:   transparent;
+  -moz-border-left-colors: transparent;
   background-repeat: no-repeat;
   background-position: center center;
 }
@@ -246,12 +246,5 @@ li#brightness progress {
 
 #wifi-networks .wifi-search {
   background-image: url(images/wifi-scan.png);
-  -moz-animation: 2s ease 0s normal none infinite scan;
-  -moz-transform: rotate(-30deg);
-  -moz-transform-origin: center bottom;
 }
-@-moz-keyframes scan {
-    0%  { -moz-transform: rotate(-30deg); }
-   50%  { -moz-transform: rotate(+30deg); }
-  100%  { -moz-transform: rotate(-30deg); }
-}
+
