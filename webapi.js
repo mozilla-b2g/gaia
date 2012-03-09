@@ -564,6 +564,7 @@
   }
 }());
 
+// navigator.mozContacts
 (function (window) {
   var navigator = window.navigator;
 
@@ -1410,6 +1411,7 @@
   };
 })(this);
 
+// navigator.mozTelephony
 (function (window) {
   var navigator = window.navigator;
   if ('mozTelephony' in navigator)
@@ -1526,3 +1528,103 @@
     }
   });
 })(this);
+
+// navigator.mozWifiManager
+(function (window) {
+  var navigator = window.navigator;
+  if ('mozWifiManager' in navigator)
+    return;
+
+  /** fake network list, where each network object looks like:
+    * {
+    *   ssid          : SSID string (human-readable name)
+    *   bssid         : network identifier string
+    *   keyManagement : array of strings (supported authentication methods)
+    *   signal        : 0-100 signal level (integer)
+    * }
+    */
+  var fakeNetworks = {
+    'Mozilla-G': {
+      ssid: 'Mozilla-G',
+      bssid: 'xx:xx:xx:xx:xx:xx',
+      keyManagement: ['WPA-EAP'],
+      signal: 67
+    },
+    'Livebox 6752': {
+      ssid: 'Livebox 6752',
+      bssid: 'xx:xx:xx:xx:xx:xx',
+      keyManagement: ['WEP'],
+      signal: 32
+    },
+    'Mozilla Guest': {
+      ssid: 'Mozilla Guest',
+      bssid: 'xx:xx:xx:xx:xx:xx',
+      keyManagement: [],
+      signal: 98
+    },
+    'Freebox 8953': {
+      ssid: 'Freebox 8953',
+      bssid: 'xx:xx:xx:xx:xx:xx',
+      keyManagement: ['WPA2'],
+      signal: 89
+    }
+  };
+
+  navigator.mozWifiManager = {
+    // true if the wifi is enabled
+    enabled: false,
+
+    // enables/disables the wifi
+    setEnabled: function fakeSetEnabled(bool) {
+      var request = { result: bool };
+
+      setTimeout(function() {
+        if (request.onsuccess)
+          request.onsuccess();
+      }, 0);
+
+      return request;
+    },
+
+    // returns a list of visible networks
+    getNetworks: function() {
+      var request = { result: fakeNetworks };
+
+      setTimeout(function() {
+        if (request.onsuccess)
+          request.onsuccess();
+      }, 0);
+
+      return request;
+    },
+
+    // selects a network
+    select: function(network) {
+      var self = this;
+      var connection = { result: network };
+      var networkEvent = { id: network.ssid };
+
+      setTimeout(function() {
+        if (connection.onsuccess)
+          connection.onsuccess();
+      }, 0);
+
+      setTimeout(function() {
+        if (self.onassociate)
+          self.onassociate(networkEvent);
+      }, 1000);
+
+      setTimeout(function() {
+        self.connected = network;
+        if (self.onconnect)
+          self.onconnect(networkEvent);
+      }, 2000);
+
+      return connection;
+    },
+
+    // returns a network object for the currently connected network (if any)
+    connected: null
+  };
+})(this);
+

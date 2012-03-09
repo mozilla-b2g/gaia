@@ -309,7 +309,7 @@
 
         <!-- network status -->
         <div id="wifi-status" class="dialog">
-          <header>Network</header>
+          <header data-ssid>Network</header>
           <dl>
             <dt>security:</dt>
             <dd data-security>WPA-PSK</dd>
@@ -324,7 +324,7 @@
 
         <!-- PSK authentication -->
         <div id="wifi-psk" class="dialog">
-          <header>Authentication</header>
+          <header data-ssid>Authentication</header>
           <dl>
             <dt>security:</dt>
             <dd data-security>WPA-PSK</dd>
@@ -334,7 +334,7 @@
           <form action="#">
             <label>
               password
-              <input name="password" type="password" />
+              <input data-psk name="password" type="password" />
             </label>
             <label>
               <input name="show-pwd" type="checkbox" />
@@ -349,7 +349,7 @@
 
         <!-- EAP authentication -->
         <div id="wifi-eap" class="dialog">
-          <header>Authentication</header>
+          <header data-ssid>Authentication</header>
           <dl>
             <dt>security:</dt>
             <dd data-security>WPA-EAP</dd>
@@ -359,11 +359,11 @@
           <form action="#">
             <label>
               identity
-              <input name="identity" type="text" />
+              <input data-identity name="identity" type="text" />
             </label>
             <label>
               password
-              <input name="password" type="password" />
+              <input data-password name="password" type="password" />
             </label>
             <label>
               <input name="show-pwd" type="checkbox" />

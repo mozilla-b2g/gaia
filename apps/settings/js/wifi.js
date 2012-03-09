@@ -4,16 +4,11 @@
 'use strict';
 
 window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
-  var wifiManager = navigator.mozWifiManager || { connected: null };
+  var wifiManager = navigator.mozWifiManager;
 
   // globals
   var gStatus = document.querySelector('#status small');
   var gList = document.querySelector('#wifi-networks');
-
-  // TODO:
-  // the current wifi API does not always attach an 'ssid' property to 'network'
-  // objects. We use this global SSID variable until this bug is fixed.
-  var gCurrentSSID = '';
 
   // current state
   // XXX we need an event to know when the wifi is reallly enabled/disabled,
@@ -22,8 +17,7 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
     var currentNetwork = wifiManager.connected;
     var enabledBox = document.querySelector('#wifi input[type=checkbox]');
     if (currentNetwork) {
-      gCurrentSSID = currentNetwork.ssid;
-      gStatus.textContent = 'connected to ' + gCurrentSSID + '.';
+      gStatus.textContent = 'connected to ' + currentNetwork.ssid + '.';
       enabledBox.checked = true;
     } else if (wifiManager.enabled) {
       gStatus.textContent = 'offline';
@@ -36,8 +30,9 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
 
   // toggle wifi on/off
   document.querySelector('#status input').onchange = function() {
+    var req;
     if (wifiManager.enabled) {
-      wifiManager.setEnabled(false);
+      req = wifiManager.setEnabled(false);
       while (gList.hasChildNodes())
         gList.removeChild(gList.lastChild);
       updateState();
@@ -48,22 +43,10 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
     }
   }
 
-  function newListItem(ssid, network) {
-    // network = {
-    //   ssid          : SSID string (human-readable name)
-    //   bssid         : network identifier string
-    //   keyManagement : array of strings (supported authentication methods)
-    //   signal        : 0-100 signal level (integer)
-    // }
-
+  function newListItem(network) {
     // ssid
     var span = document.createElement('span');
-    span.textContent = ssid;
-
-    // supported authentication methods
-    var small = document.createElement('small');
-    var keys = network.keyManagement;
-    small.textContent = keys.length ? 'secured by ' + keys.join(', ') : 'open';
+    span.textContent = network.ssid;
 
     // signal is between 0 and 100, level should be between 0 and 4
     var signal = document.createElement('span');
@@ -72,10 +55,17 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
     var label = document.createElement('label');
     label.className = 'wifi';
     label.appendChild(signal);
-    if (network.keyManagement.length) {
+
+    // supported authentication methods
+    var small = document.createElement('small');
+    var keys = network.keyManagement;
+    if (keys && keys.length) {
+      small.textContent = 'secured by ' + keys.join(', ');
       var secure = document.createElement('span');
       secure.className = 'wifi-secure';
       label.appendChild(secure);
+    } else {
+      small.textContent = 'open';
     }
 
     // create list item
@@ -95,7 +85,6 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
     var connection = wifiManager.select(network);
     connection.onsuccess = function() {
       gStatus.textContent = 'Connecting to ' + network.ssid + '…';
-      gCurrentSSID = network.ssid;
     };
     connection.onerror = function() {
       gStatus.textContent = connection.error.name;
@@ -107,13 +96,14 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
   }
 
   // mozWifiManager events / callbacks
-  wifiManager.onassociate = function(networkEvent) {
-    gStatus.textContent = 'obtaining an IP address from ' + gCurrentSSID + '…';
+  wifiManager.onassociate = function(event) {
+    var ssid = event.network ? (' from ' + event.network.id) : '';
+    gStatus.textContent = 'obtaining an IP address' + ssid + '…';
   };
 
-  wifiManager.onconnect = function(networkEvent) {
-    gCurrentSSID = wifiManager.connected.ssid;
-    gStatus.textContent = 'connected to ' + gCurrentSSID + '.';
+  wifiManager.onconnect = function(event) {
+    var ssid = event.network ? (' to ' + event.network.id) : '';
+    gStatus.textContent = 'connected' + ssid + '.';
   };
 
   wifiManager.ondisconnect = function() {
@@ -132,8 +122,7 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
         return networks[b].signal - networks[a].signal;
       });
       for (var i = 0; i < ssids.length; i++) {
-        var key = ssids[i];
-        var li = newListItem(key, networks[key]);
+        var li = newListItem(networks[ssids[i]]);
         gList.appendChild(li);
       }
     };
@@ -173,16 +162,16 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
       throw 'no network!';
 
     // network info
-    var header = dialog.querySelector('header');
-    if (header)
-      header.textContent = network.ssid;
+    var ssid = dialog.querySelector('*[data-ssid]');
+    if (ssid)
+      ssid.textContent = network.ssid;
 
     var keys = network.keyManagement;
-    var security = dialog.querySelector('dd[data-security]');
+    var security = dialog.querySelector('*[data-security]');
     if (security)
       security.textContent = (keys && keys.length) ? keys.join(', ') : 'none';
 
-    var signal = dialog.querySelector('dd[data-signal]');
+    var signal = dialog.querySelector('*[data-signal]');
     if (signal) {
       var levels = ['very weak', 'weak', 'average', 'good', 'very good'];
       var lvl = Math.min(Math.floor(network.signal / 20), 4);
