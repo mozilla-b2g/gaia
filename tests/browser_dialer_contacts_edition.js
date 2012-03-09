@@ -44,6 +44,7 @@ function test() {
                 var contactId = contact.id;
                 var entry = dialerWindow.document.getElementById(contactId);
                 ok(entry != null, 'Entry for the contact created');
+                ok(contact.name == 'John Appleseed', 'The contact name was set');
 
                 // editing the contact
                 EventUtils.sendMouseEvent({type: 'click'}, entry);
