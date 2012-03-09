@@ -7,30 +7,32 @@ function test() {
     function onReady(smsFrame) {
       let document = smsFrame.contentWindow.document;
 
-      var conversationView = document.getElementById('msg-conversation-view');
-      var contactField = document.getElementById('msg-conversation-view-num');
+      let conversationView = document.getElementById('view');
+      let contactField = document.getElementById('view-num');
 
-      var textField = document.getElementById('msg-conversation-view-msg-text');
-      var sendButton = document.getElementById('msg-conversation-view-msg-send');
-      var newButton = document.getElementById('msg-new-message');
+      let textField = document.getElementById('view-msg-text');
+      let sendButton = document.getElementById('view-msg-send');
+      let newButton = document.getElementById('msg-new-message');
 
       EventUtils.sendMouseEvent({type: 'click'}, newButton);
       conversationView.addEventListener('transitionend', function trWait() {
         conversationView.removeEventListener('transitionend', trWait);
-        ok(document.body.classList.contains('conversation'), 'Conversation displayed');
+        ok(document.body.classList.contains('conversation'),
+           'Conversation displayed');
         ok(contactField.value.length == 0, 'To: field empty');
 
         contactField.value = '123';
         textField.value = 'Hello world.';
         EventUtils.sendMouseEvent({type: 'mousedown'}, sendButton);
 
+        let rule = '#view-list > div';
         waitFor(function() {
-          var messageCount = document.querySelectorAll('#msg-conversation-view-list > div').length;
+          let messageCount = document.querySelectorAll(rule).length;
           ok((messageCount == 1), 'Message added');
 
           windowManager.closeForegroundWindow();
         }, function() {
-          let messageCount = document.querySelectorAll('#msg-conversation-view-list > div').length;
+          let messageCount = document.querySelectorAll(rule).length;
           return messageCount == 1;
         });
       });
