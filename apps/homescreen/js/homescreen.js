@@ -767,7 +767,7 @@ var MessagesListener = function() {
   window.addEventListener('appopen', function onAppOpen(evt) {
     // If the sms application is opened, just delete all messages
     // notifications
-    var applicationURL = evt.detail;
+    var applicationURL = evt.detail.url;
     if (!/^\.\.\/sms\/sms\.html/.test(applicationURL))
       return;
 
@@ -842,7 +842,7 @@ var TelephonyListener = function() {
   window.addEventListener('appopen', function onAppOpen(evt) {
     // If the dialer application is opened, just delete all messages
     // notifications
-    var applicationURL = evt.detail;
+    var applicationURL = evt.detail.url;
     if (!/^\.\.\/dialer\/dialer\.html/.test(applicationURL))
       return;
 
