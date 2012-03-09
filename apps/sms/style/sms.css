@@ -393,15 +393,15 @@ body.conversation-new-msg #view-num {
   padding: 0 10px;
   width: -moz-calc(100% - 16px);
   display: block;
-  height: 50px;
   resize: none;
   font-size: 24px;
   font-weight: bold;
-  line-height: 46px;
+  line-height: 44px;
   margin: 14px 0 0 16px;
   overflow: auto;
   overflow-x: auto;
-  border: 1px solid red;
+  min-height: 50px;
+  max-height: 200px;
 }
 
 #view-msg-send-container {
