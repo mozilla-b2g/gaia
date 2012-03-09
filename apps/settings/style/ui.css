@@ -2,6 +2,7 @@ html, body {
   margin: 0;
   padding: 0;
   font-size: 3mozmm;
+  overflow: hidden !important;
 }
 
 body {
@@ -35,13 +36,13 @@ header h1 {
 
 /* View */
 .view {
-  border: 0;
-  display: none;
-  position: relative;
-  width: 100%;
-  height: 100%;
+  position: absolute;
   top: 0;
   left: 0;
+  border: 0;
+  width: 100%;
+  height: 100%;
+  overflow-y: scroll;
 }
 
 .view > h2 { /* list separators */
@@ -55,40 +56,23 @@ header h1 {
   background: url("images/diagonal-pattern.png") repeat scroll 0 0 #F1F1ED;
 }
 
-.view.active {
-  display: block;
-}
-
-.view.push, .view.pop {
-  display: block;
-  position: absolute;
-}
-
 /* View - Slide Horizontal Transition */
-.view.slideHorizontal {
-  -moz-transition: all 0.5s ease;
-}
-
-.view.push.slideHorizontal {
+.view {
+  -moz-transition: -moz-transform 0.3s ease;
   -moz-transform: translateX(100%);
 }
-.view.push.slideHorizontal.transition,
-.view.push.slideHorizontal.active {
-  -moz-transform: translateX(0);
-}
-.view.push.slideHorizontal.active.transition {
+
+#root {
   -moz-transform: translateX(-100%);
 }
 
-.view.pop.slideHorizontal {
-  -moz-transform: translateX(-100%);
+#root:target, .view:target {
+  -moz-transform: none;
 }
-.view.pop.slideHorizontal.transition,
-.view.pop.slideHorizontal.active {
-  -moz-transform: translateX(0);
-}
-.view.pop.slideHorizontal.active.transition {
-  -moz-transform: translateX(100%);
+
+#root.active {
+  -moz-transform: none;
+  -moz-transition: none;
 }
 
 /* Table View */
