@@ -323,9 +323,9 @@ const IMEManager = {
     menu.className = '';
     menu.innerHTML = '';
 
-    var siblings = this._currentMenuKey.parentNode.childNodes;
-    for (var key in siblings) {
-      siblings[key].removeEventListener('mouseover', siblings[key].redirect);
+    var siblings = this._currentMenuKey.parentNode.children;
+    for (var i = 0; i < siblings.length; i++) {
+      siblings[i].removeEventListener('mouseover', siblings[i].redirect);
     }
 
     delete this._currentMenuKey;
