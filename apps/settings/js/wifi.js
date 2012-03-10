@@ -205,14 +205,18 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
       identity.value = network.identity;
 
     var password = dialog.querySelector('input[name=password]');
-    if (password)
+    if (password) {
+      password.type = 'password';
       password.value = network.password || '';
+    }
 
     var showPassword = dialog.querySelector('input[name=show-pwd]');
-    if (showPassword)
+    if (showPassword) {
+      showPassword.checked = false;
       showPassword.onchange = function() {
         password.type = this.checked ? 'text' : 'password';
       };
+    }
 
     // hide dialog box
     function close() {
