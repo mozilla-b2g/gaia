@@ -22,7 +22,7 @@ var TaskManager = {
     this.items = this.container.getElementsByTagName('ul')[0];
 
     var events = ['locked', 'unlocked', 'appwillopen', 'appfocus',
-                  'appwillclose'];
+                  'appclose'];
     events.forEach((function attachKey(type) {
       window.addEventListener(type, this);
     }).bind(this));
