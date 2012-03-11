@@ -240,8 +240,9 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
         var keyManagement = '';
         if (/WEP$/.test(key)) {
           keyManagement = 'WEP';
-          // XXX untested -- copying password to .wep and .password,
-          //     maybe on of them will work...
+          // XXX the wifi API says we should put the password in .wep,
+          //     but the current implementation only reads .password.
+          //     Copying the password to both until the situation gets clear.
           network.wep = password.value;
           network.password = password.value;
         }
