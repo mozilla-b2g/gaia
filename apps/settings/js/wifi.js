@@ -153,7 +153,10 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
   }
 
   function showNetwork(network) {
-    // TODO: use (network.connected) or (wifiManager.connected) instead
+    // XXX the API should expose a 'connected' property on 'network',
+    // and the wifiManager.connected object should be comparable to 'network'.
+    // Until this is properly implemented, we just compare SSIDs to tell wether
+    // the network is already connected or not.
     var currentNetwork = wifiManager.connected;
     if (currentNetwork && currentNetwork.ssid == network.ssid) {
       // online: show status + offer to disconnect
@@ -205,14 +208,18 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
       identity.value = network.identity;
 
     var password = dialog.querySelector('input[name=password]');
-    if (password)
+    if (password) {
+      password.type = 'password';
       password.value = network.password || '';
+    }
 
     var showPassword = dialog.querySelector('input[name=show-pwd]');
-    if (showPassword)
+    if (showPassword) {
+      showPassword.checked = false;
       showPassword.onchange = function() {
         password.type = this.checked ? 'text' : 'password';
       };
+    }
 
     // hide dialog box
     function close() {
@@ -233,11 +240,19 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
         var keyManagement = '';
         if (/WEP$/.test(key)) {
           keyManagement = 'WEP';
+          // XXX the wifi API says we should put the password in .wep,
+          //     but the current implementation only reads .password.
+          //     Copying the password to both until the situation gets clear.
           network.wep = password.value;
+          network.password = password.value;
         }
         else if (/PSK$/.test(key)) {
           keyManagement = 'WPA-PSK';
+          // XXX the wifi API says we should put the password in .psk,
+          //     but the current implementation only reads .password.
+          //     Copying the password to both until the situation gets clear.
           network.psk = password.value;
+          network.password = password.value;
         }
         else if (/EAP$/.test(key)) {
           keyManagement = 'WPA-EAP';
@@ -261,6 +276,8 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
   }
 
   updateState();
-  if (wifiManager.enabled)
+  if (wifiManager.enabled) {
+    gList.appendChild(newScanItem());
     wifiScanNetworks();
+  }
 });
