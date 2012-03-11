@@ -1701,6 +1701,7 @@
 
       setTimeout(function() {
         self.connected = network;
+        network.connected = true;
         if (self.onconnect)
           self.onconnect(networkEvent);
       }, 2000);
