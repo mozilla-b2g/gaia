@@ -5,6 +5,7 @@
 
 window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
   var wifiManager = navigator.mozWifiManager;
+  var _ = navigator.mozL10n.get;
 
   // globals
   var gStatus = document.querySelector('#status small');
@@ -15,15 +16,15 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
     var currentNetwork = wifiManager.connected;
     var enabledBox = document.querySelector('#wifi input[type=checkbox]');
     if (currentNetwork) {
-      gStatus.textContent = 'connected to ' + currentNetwork.ssid + '.';
+      gStatus.textContent = _('connected', { ssid: currentNetwork.ssid });
       enabledBox.checked = true;
     }
     else if (wifiManager.enabled) {
-      gStatus.textContent = 'offline';
+      gStatus.textContent = _('offline');
       enabledBox.checked = true;
     }
     else {
-      gStatus.textContent = 'disabled';
+      gStatus.textContent = _('disabled');
       enabledBox.checked = false;
     }
   }
@@ -47,7 +48,7 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
 
   function newScanItem() {
     var a = document.createElement('a');
-    a.textContent = 'Scanning…';
+    a.textContent = _('scanning');
 
     var span = document.createElement('span');
     span.className = 'wifi-search';
@@ -79,13 +80,13 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
     var small = document.createElement('small');
     var keys = network.capabilities;
     if (keys && keys.length) {
-      small.textContent = 'secured by ' + keys.join(', ');
+      small.textContent = _('securedBy', { capabilities: keys.join(', ') });
       var secure = document.createElement('span');
       secure.className = 'wifi-secure';
       label.appendChild(secure);
     }
     else {
-      small.textContent = 'open';
+      small.textContent = _('securityOpen');
     }
 
     // create list item
@@ -104,7 +105,7 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
   function wifiConnect(network) {
     var connection = wifiManager.select(network);
     connection.onsuccess = function() {
-      gStatus.textContent = 'connecting to ' + network.ssid + '…';
+      gStatus.textContent = _('connecting', { ssid: network.ssid });
     };
     connection.onerror = function() {
       gStatus.textContent = connection.error.name;
@@ -117,17 +118,15 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
 
   // mozWifiManager events / callbacks
   wifiManager.onassociate = function(event) {
-    var ssid = event.network ? (' from ' + event.network.ssid) : '';
-    gStatus.textContent = 'obtaining an IP address' + ssid + '…';
+    gStatus.textContent = _('associating');
   };
 
   wifiManager.onconnect = function(event) {
-    var ssid = event.network ? (' to ' + event.network.ssid) : '';
-    gStatus.textContent = 'connected' + ssid + '.';
+    gStatus.textContent = _('connected', { ssid: event.network.ssid });
   };
 
   wifiManager.ondisconnect = function(event) {
-    gStatus.textContent = 'offline';
+    gStatus.textContent = _('offline');
   };
 
   // scan wifi networks
@@ -190,13 +189,13 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
     var keys = network.capabilities;
     var security = dialog.querySelector('*[data-security]');
     if (security)
-      security.textContent = (keys && keys.length) ? keys.join(', ') : 'none';
+      security.textContent = (keys && keys.length) ?
+        keys.join(', ') : _('securityNone');
 
     var signal = dialog.querySelector('*[data-signal]');
     if (signal) {
-      var levels = ['very weak', 'weak', 'average', 'good', 'very good'];
       var lvl = Math.min(Math.floor(network.signal / 20), 4);
-      signal.textContent = levels[lvl];
+      signal.textContent = _('signalLevel' + lvl);
     }
 
     // identity/password
