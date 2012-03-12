@@ -58,7 +58,10 @@ var Recents = {
       var setreq = store.put(recentCall);
 
       setreq.onsuccess = (function() {
-        this.render();
+        var entry = this.createEntry(recentCall);
+
+        var firstEntry = this.view.firstChild;
+        this.view.insertBefore(entry, firstEntry);
       }).bind(this);
 
       setreq.onerror = function(e) {
@@ -67,39 +70,36 @@ var Recents = {
     }).bind(this));
   },
 
+  createEntry: function re_createEntry(recent) {
+    var innerFragment = profilePictureForNumber(recent.number) +
+                  '<div class="name">' + recent.number + '</div>' +
+                  '<div class="number"></div>' +
+                  '<div class="timestamp">' + prettyDate(recent.date) +
+                  '</div>' +
+                  '<div class="type"></div>';
+
+    var entry = document.createElement('div');
+    entry.classList.add('recent');
+    entry.classList.add(recent.type);
+    entry.dataset.number = recent.number;
+    entry.innerHTML = innerFragment;
+
+    Contacts.findByNumber(recent.number, (function(contact) {
+      this.querySelector('.name').textContent = contact.name;
+      this.querySelector('.number').textContent = contact.tel[0];
+    }).bind(entry));
+
+    return entry;
+  },
+
   render: function re_render() {
-    content = '';
+    this.view.innerHTML = '';
 
     this.history((function(history) {
       for (var i = 0; i < history.length; i++) {
-        var recent = history[i];
-
-        content += '<div class="recent ' + recent.type +
-                   '" data-number="' + recent.number + '" ' +
-                   'onclick="CallHandler.call(this.dataset.number)">' +
-
-                   profilePictureForNumber(i) +
-                   '  <div class="name">' + recent.number + '</div>' +
-                   '  <div class="number"></div>' +
-                   '  <div class="timestamp">' + prettyDate(recent.date) +
-                   '  </div>' +
-                   '  <div class="type"></div>' +
-
-                   '</div>';
-
-        Contacts.findByNumber(recent.number, (function(contact) {
-          var entries = this.view.querySelectorAll('.recent[data-number="' +
-                                               contact.tel[0] + '"]');
-
-          for (var i = 0; i < entries.length; i++) {
-            var entry = entries[i];
-            entry.querySelector('.name').textContent = contact.name;
-            entry.querySelector('.number').textContent = contact.tel[0];
-          }
-        }).bind(this));
+        var entry = this.createEntry(history[i]);
+        this.view.appendChild(entry);
       }
-
-      this.view.innerHTML = content;
     }).bind(this));
   },
 
