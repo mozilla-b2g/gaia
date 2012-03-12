@@ -48,6 +48,7 @@ function visibilityChanged(url, evt) {
   var recents = document.getElementById('recents-label');
   if (choice == 'recents' || recents.hasAttribute('data-active')) {
     choiceChanged(recents);
+    Recents.showLast();
   }
 }
 

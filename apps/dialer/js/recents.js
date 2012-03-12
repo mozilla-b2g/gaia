@@ -140,6 +140,10 @@ var Recents = {
         callback([]);
       };
     }).bind(this));
+  },
+
+  showLast: function re_showLast() {
+    this.view.scrollTop = 0;
   }
 };
 
