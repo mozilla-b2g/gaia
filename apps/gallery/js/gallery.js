@@ -200,7 +200,7 @@ var Gallery = {
         this.startSlideshow();
     }).bind(this));
 
-    window.addEventListener('keypress', (function keyPressHandler(evt) {
+    window.addEventListener('keyup', (function keyPressHandler(evt) {
       if (this.focusedPhoto && evt.keyCode == evt.DOM_VK_ESCAPE) {
         this.stopSlideshow();
         this.showThumbnails();

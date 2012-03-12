@@ -3,6 +3,9 @@
 
 const kDefaultWait = 2000;
 
+// Until we have a better mechanism, disable mozbrowser for testing
+SpecialPowers.setBoolPref('dom.mozBrowserFramesEnabled', false);
+
 // Wait for a condition and call a supplied callback if condition is met within
 // alloted time. If condition is not met, cause a hard failure,
 // stopping the test.
@@ -20,9 +23,9 @@ function waitFor(callback, test, timeout) {
 
 if (typeof content.ready === 'undefined') {
   try {
-    content.ready = !!content.wrappedJSObject.Gaia.lockScreen;
+    content.ready = !!content.wrappedJSObject.Gaia.AppManager.installedApps;
     if (content.ready)
-      content.wrappedJSObject.Gaia.lockScreen.unlock(-1);
+      content.wrappedJSObject.LockScreen.unlock();
   } catch (e) {
     content.ready = false;
   }
@@ -36,7 +39,7 @@ if (typeof content.ready === 'undefined') {
 
       content.removeEventListener('message', waitForReady);
 
-      content.wrappedJSObject.Gaia.lockScreen.unlock(-1);
+      content.wrappedJSObject.LockScreen.unlock();
       content.ready = true;
     });
   });

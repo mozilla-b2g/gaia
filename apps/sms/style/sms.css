@@ -42,8 +42,8 @@ body.conversation .panel {
   -moz-transform: translateX(-100%);
 }
 
-body.conversation #msg-conversation-view,
-body.transition-back #msg-conversation-view {
+body.conversation #view,
+body.transition-back #view {
   left: 100%;
 }
 
@@ -224,7 +224,7 @@ input, textarea {
   width: -moz-calc(100% - 32px - 32px);
 }
 
-#msg-conversation-view-back {
+#view-back {
 	padding-left: 40px;
 	background: url(./images/top-navibar-left-arrow.png) no-repeat 16px 50%;
 	line-height: 60px;
@@ -238,7 +238,7 @@ input, textarea {
   width: 96px;
 }
 
-#msg-conversation-view-name {
+#view-name {
   font-size: 26px;
   font-weight: bold;
   margin: 0 96px;
@@ -251,11 +251,11 @@ input, textarea {
   white-space: nowrap;
 }
 
-body.conversation-new-msg #msg-conversation-view-name {
+body.conversation-new-msg #view-name {
   display: none;
 }
 
-#msg-conversation-view-num {
+#view-num {
   display: block;
   margin: 10px 144px;
   padding: 0 20px;
@@ -263,18 +263,18 @@ body.conversation-new-msg #msg-conversation-view-name {
   width: -moz-calc(100% - 288px);
 }
 
-body.conversation-new-msg #msg-conversation-view-num {
+body.conversation-new-msg #view-num {
   display: block;
 }
 
-#msg-conversation-view-edit-container {
+#view-edit-container {
   position: absolute;
   top: 0; right: 0;
   height: 60px;
   width: 96px;
 }
 
-#msg-conversation-view-edit {
+#view-edit {
 	position: absolute;
 	-moz-box-sizing: border-box;
 	top: 16px;
@@ -293,15 +293,15 @@ body.conversation-new-msg #msg-conversation-view-num {
 	background: -moz-linear-gradient(top, hsla(0,0%,97%,1) 0, hsla(280,8%,93%,1) 1px, hsla(0,0%,87%,1) 100%);
 }
 
-#msg-conversation-view-edit:active {
+#view-edit:active {
 	background: -moz-linear-gradient(top, hsla(0,0%,97%,1) 0, hsla(0,0%,87%,1) 1px, hsla(280,8%,93%,1) 100%);
 }
 
-#msg-conversation-view-list {
+#view-list {
   background: url('images/conversation-view-list-bg.png');
 }
 
-#msg-conversation-view-list > div {
+#view-list > div {
   background: url("images/app-texture.png") repeat scroll 50% 50%, rgb(191, 204, 215);
   margin: 8px;
   min-height: 64px;
@@ -311,16 +311,16 @@ body.conversation-new-msg #msg-conversation-view-num {
   -moz-box-sizing: border-box;
 }
 
-#msg-conversation-view-list > div.sender {
+#view-list > div.sender {
   padding-left: 96px;
 }
 
-#msg-conversation-view-list > div.receiver {
+#view-list > div.receiver {
   padding-right: 96px;
   text-align: right;
 }
 
-#msg-conversation-view-list .photo {
+#view-list .photo {
 	position: absolute;
 	top: 0;
 	width: 80px;
@@ -333,19 +333,19 @@ body.conversation-new-msg #msg-conversation-view-num {
   z-index: 2;
 }
 
-#msg-conversation-view-list > div.sender .photo {
+#view-list > div.sender .photo {
   left: 0;
 }
 
-#msg-conversation-view-list > div.receiver .photo {
+#view-list > div.receiver .photo {
   right: 0;
 }
 
-#msg-conversation-view-list .photo img {
+#view-list .photo img {
 	width: 100%;
 }
 
-#msg-conversation-view-list > div .text {
+#view-list > div .text {
   font-size: 24px;
   font-weight: 600;
   color: rgb(18, 47, 64);
@@ -353,14 +353,14 @@ body.conversation-new-msg #msg-conversation-view-num {
   line-height: 32px;
 }
 
-#msg-conversation-view-list > div .time {
+#view-list > div .time {
   font-size: 18px;
   line-height: 23px;
   color: rgb(62, 86, 106);
   text-shadow: 0 1px 0 #ddd;
 }
 
-#msg-conversation-view-list > div::before {
+#view-list > div::before {
   content: '';
   display: block;
   width: 11.2px; /* 8px * sqrt(2) */
@@ -371,40 +371,45 @@ body.conversation-new-msg #msg-conversation-view-num {
   -moz-transform: rotate(45deg);
 }
 
-#msg-conversation-view-list > div.sender::before {
+#view-list > div.sender::before {
   left: -5.6px;
 }
 
-#msg-conversation-view-list > div.receiver::before {
+#view-list > div.receiver::before {
   right: -5.6px;
 }
 
-#msg-conversation-view-bottom-toolbar {
+#view-bottom-toolbar {
   background: url('images/diagonal-gray-pattern.png'),
   -moz-linear-gradient(center top , rgb(244, 244, 244), rgb(234, 234, 234)) repeat scroll 0% 0% transparent;
 }
 
-#msg-conversation-view-msg-text-container {
+#view-msg-text-container {
   float: left;
   width: -moz-calc(100% - 128px);
 }
 
-#msg-conversation-view-msg-text {
-  padding: 0 20px;
+#view-msg-text {
+  padding: 0 10px;
   width: -moz-calc(100% - 16px);
   display: block;
-  height: 48px;
+  resize: none;
   font-size: 24px;
   font-weight: bold;
+  line-height: 44px;
   margin: 14px 0 0 16px;
+  overflow: auto;
+  overflow-x: auto;
+  min-height: 50px;
+  max-height: 200px;
 }
 
-#msg-conversation-view-msg-send-container {
+#view-msg-send-container {
   float: left;
   width: 118px;
 }
 
-#msg-conversation-view-msg-send {
+#view-msg-send {
   display: block;
   width: 96px;
   height: 48px;

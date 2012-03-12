@@ -7,30 +7,30 @@
     <link rel="stylesheet" type="text/css" href="style/sms.css">
     <script type="text/javascript" src="../../webapi.js"></script>
     <script type="text/javascript" src="js/sms.js"></script>
+    <script type="text/javascript" src="js/utils.js"></script>
     <title>Messages</title>
   </head>
 
   <body>
-    <div id="msg-conversation-view" class="panel">
-      <div id="msg-conversation-view-toolbar" class="toolbar toolbar-top">
-        <div id="msg-conversation-view-back">Messages</div>
-        <h2 id="msg-conversation-view-name">
+    <div id="view" class="panel">
+      <div id="view-toolbar" class="toolbar toolbar-top">
+        <div id="view-back">Messages</div>
+        <h2 id="view-name">
 
         </h2>
-        <input type="tel" id="msg-conversation-view-num" />
-        <div id="msg-conversation-view-edit-container">
-          <div id="msg-conversation-view-edit">Edit</div>
+        <input type="tel" id="view-num" />
+        <div id="view-edit-container">
+          <div id="view-edit">Edit</div>
         </div>
       </div>
-      <div id="msg-conversation-view-list" class="list">
+      <div id="view-list" class="list">
       </div>
-      <div id="msg-conversation-view-bottom-toolbar" class="toolbar toolbar-bottom">
-        <div id="msg-conversation-view-msg-text-container">
-          <!-- XXX: should be textarea -->
-          <input type="text" id="msg-conversation-view-msg-text"></input>
+      <div id="view-bottom-toolbar" class="toolbar toolbar-bottom">
+        <div id="view-msg-text-container">
+          <textarea type="text" id="view-msg-text"></textarea>
         </div>
-        <div id="msg-conversation-view-msg-send-container">
-          <button id="msg-conversation-view-msg-send" class="button">Send</button>
+        <div id="view-msg-send-container">
+          <button id="view-msg-send" class="button">Send</button>
         </div>
       </div>
     </div>

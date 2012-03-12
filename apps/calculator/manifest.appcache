@@ -1,0 +1,25 @@
+CACHE MANIFEST
+# v1 2012-02-25
+
+# /
+calculator.html
+manifest.webapp
+
+# js/
+js/calculator.js
+
+# style/
+style/calculator.css
+style/fonts/Open-Sans.woff
+style/fonts/Open-Sans-Bold.woff
+style/fonts/Open-Sans-Semibold.woff
+
+# icons used in the web application manifest.
+# Do not use icons/ directly since it is often used as an alias by Apache.
+style/icons/Calculator.png
+
+# tmp files
+webapi+apps.js
+
+NETWORK:
+
