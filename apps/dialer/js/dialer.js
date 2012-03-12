@@ -16,16 +16,17 @@ var gTonesFrequencies = {
 // or is minimized (it does not now).
 window.addEventListener('message', function visibleApp(evt) {
   var data = evt.data;
-  if (evt.data.message == 'visibilitychange' && !data.hidden) {
+  if (data.message == 'visibilitychange') {
     visibilityChanged(data.url, evt);
-  } else if (evt.data == 'connected') {
+  } else if (data == 'connected') {
     CallHandler.connected();
-  } else if (evt.data == 'disconnected') {
+  } else if (data == 'disconnected') {
     CallHandler.disconnected();
   }
 });
 
 function visibilityChanged(url, evt) {
+  var data = evt.data;
   var params = (function makeURL() {
     var a = document.createElement('a');
     a.href = url;
@@ -39,16 +40,23 @@ function visibilityChanged(url, evt) {
     return rv;
   })();
 
-  var choice = params['choice'];
-  var contacts = document.getElementById('contacts-label');
-  if (choice == 'contact' || contacts.hasAttribute('data-active')) {
-    Contacts.load();
-    choiceChanged(contacts);
-  }
-  var recents = document.getElementById('recents-label');
-  if (choice == 'recents' || recents.hasAttribute('data-active')) {
-    choiceChanged(recents);
-    Recents.showLast();
+  if (!data.hidden) {
+    Recents.startUpdatingDates();
+
+    var choice = params['choice'];
+    var contacts = document.getElementById('contacts-label');
+    if (choice == 'contact' || contacts.hasAttribute('data-active')) {
+      Contacts.load();
+      choiceChanged(contacts);
+    }
+    var recents = document.getElementById('recents-label');
+    if (choice == 'recents' || recents.hasAttribute('data-active')) {
+      choiceChanged(recents);
+      Recents.showLast();
+    }
+
+  } else {
+    Recents.stopUpdatingDates();
   }
 }
 

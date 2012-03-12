@@ -3,6 +3,7 @@
 var Recents = {
   DBNAME: 'dialerRecents',
   STORENAME: 'dialerRecents',
+  _prettyDatesInterval: null,
 
   get view() {
     delete this.view;
@@ -30,24 +31,14 @@ var Recents = {
       db.createObjectStore(self.STORENAME, { keyPath: 'date' });
     };
 
-    this._prettyDatesInterval = setInterval(function re_updateDates(self) {
-      var datesSelector = '.timestamp[data-time]';
-      var datesElements = self.view.querySelectorAll(datesSelector);
-
-      for (var i = 0; i < datesElements.length; i++) {
-        var element = datesElements[i];
-        var time = parseInt(element.dataset.time);
-        element.textContent = prettyDate(time);
-      }
-    }, 1000 * 60 * 5, this);
+    this.startUpdatingDates();
   },
 
   cleanup: function re_cleanup() {
     if (this._recentsDB)
       this._recentsDB.close();
 
-    if (this._prettyDatesInterval)
-      clearInterval(this._prettyDatesInterval);
+    this.stopUpdatingDates();
   },
 
   getDatabase: function re_getDatabase(callback) {
@@ -144,6 +135,33 @@ var Recents = {
 
   showLast: function re_showLast() {
     this.view.scrollTop = 0;
+  },
+
+  startUpdatingDates: function re_startUpdatingDates() {
+    if (this._prettyDatesInterval)
+      return;
+
+    var self = this;
+    var updatePrettyDates = function re_updateDates() {
+      var datesSelector = '.timestamp[data-time]';
+      var datesElements = self.view.querySelectorAll(datesSelector);
+
+      for (var i = 0; i < datesElements.length; i++) {
+        var element = datesElements[i];
+        var time = parseInt(element.dataset.time);
+        element.textContent = prettyDate(time);
+      }
+    };
+
+    this._prettyDatesInterval = setInterval(updatePrettyDates, 1000 * 60 * 5);
+    updatePrettyDates();
+  },
+
+  stopUpdatingDates: function re_stopUpdatingDates() {
+    if (this._prettyDatesInterval) {
+      clearInterval(this._prettyDatesInterval);
+      this._prettyDatesInterval = null;
+    }
   }
 };
 
