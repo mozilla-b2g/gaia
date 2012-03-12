@@ -254,6 +254,8 @@ var CallHandler = {
     this.numberView.innerHTML = number;
     this.statusView.innerHTML = 'Calling...';
 
+    this.lookupContact(number);
+
     var sanitizedNumber = number.replace(/-/g, '');
     var call = window.navigator.mozTelephony.dial(sanitizedNumber);
     call.addEventListener('statechange', this);
@@ -270,6 +272,7 @@ var CallHandler = {
 
     this.toggleCallScreen();
   },
+
   incoming: function ch_incoming(call) {
     this.callScreen.classList.remove('calling');
     this.callScreen.classList.add('incoming');
@@ -287,11 +290,14 @@ var CallHandler = {
     this.statusView.innerHTML = 'Call from...';
     this.pictureView.innerHTML = '';
 
+    this.lookupContact(call.number);
+
     // XXX: remove the fake contact when the contact API lands
     this.pictureView.innerHTML = profilePictureForNumber(parseInt(call.number));
 
     this.toggleCallScreen();
   },
+
   connected: function ch_connected() {
     this.callScreen.classList.remove('incoming');
     this.callScreen.classList.add('calling');
@@ -308,9 +314,11 @@ var CallHandler = {
       self.statusView.innerHTML = elapsed.toLocaleFormat('%M:%S');
     }, 1000, this, Date.now());
   },
+
   answer: function ch_answer() {
     this.currentCall.answer();
   },
+
   end: function ch_end() {
     if (this.recentsEntry &&
        (this.recentsEntry.type.indexOf('-connected') == -1)) {
@@ -322,6 +330,7 @@ var CallHandler = {
       this.disconnected();
     }
   },
+
   disconnected: function ch_disconnected() {
     if (this.currentCall) {
       this.currentCall.removeEventListener('statechange', this);
@@ -445,27 +454,33 @@ var CallHandler = {
 
     this._onCall = !this._onCall;
   },
+
   toggleMute: function ch_toggleMute() {
     this.muteButton.classList.toggle('mute');
     navigator.mozTelephony.muted = !navigator.mozTelephony.muted;
   },
+
   toggleSpeaker: function ch_toggleSpeaker() {
     this.speakerButton.classList.toggle('speak');
     navigator.mozTelephony.speakerEnabled =
       !navigator.mozTelephony.speakerEnabled;
   },
+
   toggleHold: function ch_toggleHold() {
     this.holdButton.classList.toggle('hold');
     // TODO: make the actual hold call
   },
+
   keypad: function ch_keypad() {
     choiceChanged(document.getElementById('keyboard-label'));
     this.toggleModal();
   },
+
   contacts: function ch_contacts() {
     choiceChanged(document.getElementById('contacts-label'));
     this.toggleModal();
   },
+
   toggleModal: function ch_toggleModal() {
     // 2 steps closing to avoid showing the view in its non-modal state
     // during the transition
@@ -480,6 +495,12 @@ var CallHandler = {
   closeModal: function ch_closeModal() {
     var views = document.getElementById('views');
     views.classList.remove('modal');
+  },
+
+  lookupContact: function ch_lookupContact(number) {
+    Contacts.findByNumber(number, (function(contact) {
+      this.numberView.innerHTML = contact.name;
+    }).bind(this));
   }
 };
 
