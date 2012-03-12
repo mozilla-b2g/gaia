@@ -29,7 +29,7 @@ var Camera = {
     this.setSource(this._camera);
   },
 
-  setSource: function camera_setSource(src) {
+  setSource: function camera_setSource(camera) {
     this.viewfinder.src = '';
 
     var width, height;
@@ -52,7 +52,7 @@ var Camera = {
     var config = {
       height: height,
       width: width,
-      camera: src
+      camera: camera
     }
 
     viewfinder.style.width = width + 'px';
