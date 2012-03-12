@@ -235,13 +235,13 @@ var CallHandler = {
     var telephony = navigator.mozTelephony;
     if (telephony.calls.length > 0) {
       var call = telephony.calls[0];
-      CallHander.incoming(call, call.number);
+      CallHander.incoming(call);
     }
 
     telephony.oncallschanged = function cc(evt) {
       telephony.calls.forEach(function(call) {
         if (call.state == 'incoming')
-          CallHandler.incoming(call, call.number);
+          CallHandler.incoming(call);
       });
     };
   },
@@ -269,21 +269,21 @@ var CallHandler = {
 
     this.toggleCallScreen();
   },
-  incoming: function ch_incoming(call, number) {
+  incoming: function ch_incoming(call) {
     this.callScreen.classList.remove('calling');
     this.callScreen.classList.add('incoming');
 
     this.currentCall = call;
     call.addEventListener('statechange', this);
 
-    this.recentsEntry = {date: Date.now(), type: 'incoming', number: number};
+    this.recentsEntry = {date: Date.now(), type: 'incoming', number: call.number};
 
     this.numberView.innerHTML = call.number;
     this.statusView.innerHTML = 'Call from...';
     this.pictureView.innerHTML = '';
 
     // XXX: remove the fake contact when the contact API lands
-    this.pictureView.innerHTML = profilePictureForNumber(parseInt(number));
+    this.pictureView.innerHTML = profilePictureForNumber(parseInt(call.number));
 
     this.toggleCallScreen();
   },
