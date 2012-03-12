@@ -1869,7 +1869,7 @@
 
   // replace {{arguments}} with their values
   function substArguments(str, args) {
-    var reArgs = /\{\{\s*([a-zA-Z\.]+)\s*\}\}/g;
+    var reArgs = /\{\{\s*([a-zA-Z\.]+)\s*\}\}/;
     var match = reArgs.exec(str);
     while (match) {
       if (!match || match.length < 2)
