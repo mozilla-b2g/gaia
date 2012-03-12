@@ -29,11 +29,25 @@ var Recents = {
         db.deleteObjectStore(self.STORENAME);
       db.createObjectStore(self.STORENAME, { keyPath: 'date' });
     };
+
+    this._prettyDatesInterval = setInterval(function re_updateDates(self) {
+      var datesSelector = '.timestamp[data-time]';
+      var datesElements = self.view.querySelectorAll(datesSelector);
+
+      for (var i = 0; i < datesElements.length; i++) {
+        var element = datesElements[i];
+        var time = element.dataset.time;
+        element.textContent = prettyDate(time);
+      }
+    }, 1000 * 60 * 5, this);
   },
 
   cleanup: function re_cleanup() {
     if (this._recentsDB)
       this._recentsDB.close();
+
+    if (this._prettyDatesInterval)
+      clearInterval(this._prettyDatesInterval);
   },
 
   getDatabase: function re_getDatabase(callback) {
@@ -74,7 +88,8 @@ var Recents = {
     var innerFragment = profilePictureForNumber(recent.number) +
                   '<div class="name">' + recent.number + '</div>' +
                   '<div class="number"></div>' +
-                  '<div class="timestamp">' + prettyDate(recent.date) +
+                  '<div class="timestamp" data-time="' + recent.date + '">' +
+                  '  ' + prettyDate(recent.date) +
                   '</div>' +
                   '<div class="type"></div>';
 
