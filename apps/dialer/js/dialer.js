@@ -413,23 +413,28 @@ var CallHandler = {
     callScreen.classList.toggle('prerender');
 
     // hardening against the unavailability of MozAfterPaint
+    var finished = false;
+
     var finishTransition = function ch_finishTransition() {
+      if (finished)
+        return;
+
       if (securityTimeout) {
         clearTimeout(securityTimeout);
         securityTimeout = null;
       }
 
-      callScreen.classList.add('animate');
+      finished = true;
 
+      callScreen.classList.add('animate');
       callScreen.classList.toggle('oncall');
       callScreen.classList.toggle('prerender');
     };
 
-    window.addEventListener('MozAfterPaint', function ch_triggerTransition() {
-      window.removeEventListener('MozAfterPaint', ch_triggerTransition);
+    window.addEventListener('MozAfterPaint', function ch_finishFromAfterPaint() {
+      window.removeEventListener('MozAfterPaint', ch_finishFromAfterPaint);
       finishTransition();
     });
-
     var securityTimeout = setTimeout(finishTransition, 100);
 
     this._onCall = !this._onCall;
