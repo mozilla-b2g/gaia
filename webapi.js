@@ -1867,51 +1867,93 @@
     }
   }
 
-  // translate a string
-  function translateString(key, args) {
-    var str = gL10nData[key];
-    if (!str)
-      return key;
-    str = gL10nData[key].value || gL10nData[key];
-    if (args) for (var k in args) {
-      str = str.replace('{{' + k + '}}', args[k]);
+  // replace {{arguments}} with their values
+  function substArguments(str, args) {
+    var reArgs = /\{\{\s*([a-zA-Z\.]+)\s*\}\}/g;
+    var match = reArgs.exec(str);
+    while (match) {
+      if (!match || match.length < 2)
+        return str; // argument key not found
+
+      var arg = match[1];
+      var sub = '';
+      if (arg in args) {
+        sub = args[arg];
+      }
+      else if (arg in gL10nData) {
+        sub = gL10nData[arg];
+      }
+      else {
+        return str; // argument value not found
+      }
+
+      str = str.substring(0, match.index) + sub +
+            str.substr(match.index + match[0].length);
+      match = reArgs.exec(str);
     }
     return str;
   }
 
+  // translate a string
+  function translateString(key, args) {
+    var str = gL10nData[key];
+    if (!str)
+      return '{{' + key + '}}';
+    // key is found, get the raw string and look for {{arguments}}
+    str = gL10nData[key].value || gL10nData[key];
+    return substArguments(str, args);
+  }
+
   // translate an HTML element
   function translateElement(element) {
-    element = element || document;
+    if (!element || !element.dataset)
+      return;
+
+    // translate the element
+    var key = element.dataset.l10nId;
+    var data = gL10nData[key];
+    if (!data)
+      return;
+
+    // get arguments (if any)
+    // TODO: implement a more flexible parser
+    var args = {};
+    if (element.dataset.l10nArgs) try {
+      args = JSON.parse(element.dataset.l10nArgs);
+    } catch(e) {}
+
+    // element content
+    var str = data.value || data;
+    element.textContent = substArguments(str, args);
 
     // list of translatable attributes
     var attrList = ['title', 'accesskey', 'alt', 'longdesc'];
     var attrCount = attrList.length;
 
+    // element attributes
+    if (data.attributes) {
+      for (var j = 0; j < attrCount; j++) {
+        var attrName = attrList[j];
+        var attrValue = substArguments(data.attributes[attrName], args);
+        if (attrValue && element.hasAttribute(attrName))
+          element.setAttribute(attrName, attrValue);
+      }
+    }
+  }
+
+  // translate an HTML subtree
+  function translateFragment(element) {
+    element = element || document.querySelector('html');
+
     // check all translatable children (= w/ a `data-l10n-id' attribute)
     var children = element.querySelectorAll('*[data-l10n-id]');
     var elementCount = children.length;
-    for (var i = 0; i < elementCount; i++) {
-      var child = children[i];
+    for (var i = 0; i < elementCount; i++)
+      translateElement(children[i]);
 
-      // translate the child
-      var key = child.dataset.l10nId;
-      var data = gL10nData[key];
-      if (!data)
-        continue;
-
-      // child content
-      child.textContent = data.value || data;
-
-      // child attributes
-      if (data.attributes) {
-        for (var j = 0; j < attrCount; j++) {
-          var attrName = attrList[j];
-          var attrValue = data.attributes[attrName];
-          if (attrValue && child.hasAttribute(attrName))
-            child.setAttribute(attrName, attrValue);
-        }
-      }
-    }
+    // translate element itself if necessary
+    if (element.dataset.l10nId)
+      translateElement(element);
   }
 
   // clear all l10n data
@@ -1923,25 +1965,30 @@
 
   // load the default locale on startup
   window.addEventListener('DOMContentLoaded', function() {
-    var req = navigator.mozSettings.get('language.current');
-    req.onsuccess = function() {
-      loadLocale(req.result.value, translateElement);
-    };
-    req.onerror = function() {
-      loadLocale(navigator.language, translateElement);
-    };
+    if (navigator.mozSettings) {
+      var req = navigator.mozSettings.get('language.current');
+      req.onsuccess = function() {
+        loadLocale(req.result.value, translateFragment);
+      };
+      req.onerror = function() {
+        loadLocale(navigator.language, translateFragment);
+      };
+    }
+    else {
+      loadLocale(navigator.language, translateFragment);
+    }
   }, false);
 
   navigator.mozL10n = {
     get: translateString,
     set: function(key, val) { gL10nData[key] = val; },
     get language() { return gLanguage; },
-    set language(lang) { loadLocale(lang, translateElement); },
+    set language(lang) { loadLocale(lang, translateFragment); },
     get text() { return gTextData; },
     get data() { return gL10nData; },
     loadResource: loadResource,
     loadLocale: loadLocale,
-    translate: translateElement,
+    translate: translateFragment,
     clear: clear
   };
 })(this);
