@@ -11,10 +11,11 @@ function startup() {
     ScreenManager.turnScreenOn();
 
     var touchables = [
-      document.getElementById('notificationsScreen'),
+      document.getElementById('notifications-screen'),
       document.getElementById('statusbar')
     ];
-    new NotificationScreen(touchables);
+
+    NotificationScreen.init(touchables);
 
     new MessagesListener();
     new TelephonyListener();
@@ -165,11 +166,11 @@ var LockScreen = {
 
 };
 
-
-NotificationScreen.prototype = {
+var NotificationScreen = {
   get touchable() {
     return this.touchables[this.locked ? 0 : 1];
   },
+
   get screenHeight() {
     var screenHeight = this._screenHeight;
     if (!screenHeight) {
@@ -178,12 +179,19 @@ NotificationScreen.prototype = {
     }
     return screenHeight;
   },
-  onTouchStart: function(e) {
+
+  init: function ns_init(touchables) {
+    this.touchables = touchables;
+    this.attachEvents(touchables);
+  },
+
+  onTouchStart: function ns_onTouchStart(e) {
     this.startX = e.pageX;
     this.startY = e.pageY;
     this.onTouchMove({ pageY: e.pageY + 32 });
   },
-  onTouchMove: function(e) {
+
+  onTouchMove: function ns_onTouchMove(e) {
     var dy = -(this.startY - e.pageY);
     if (this.locked)
       dy += this.screenHeight;
@@ -193,7 +201,8 @@ NotificationScreen.prototype = {
     style.MozTransition = '';
     style.MozTransform = 'translateY(' + dy + 'px)';
   },
-  onTouchEnd: function(e) {
+
+  onTouchEnd: function ns_onTouchEnd(e) {
     var dy = -(this.startY - e.pageY);
     var offset = Math.abs(dy);
     if ((!this.locked && offset > this.screenHeight / 4) ||
@@ -202,24 +211,29 @@ NotificationScreen.prototype = {
     else
       this.unlock();
   },
-  unlock: function() {
+
+  unlock: function ns_unlock(instant) {
     var style = this.touchables[0].style;
-    style.MozTransition = '-moz-transform 0.2s linear';
+    style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
     style.MozTransform = 'translateY(0)';
     this.locked = false;
   },
-  lock: function(dy) {
+
+  lock: function ns_lock(dy) {
     var style = this.touchables[0].style;
     style.MozTransition = '-moz-transform 0.2s linear';
     style.MozTransform = 'translateY(100%)';
     this.locked = true;
   },
+
   attachEvents: function ns_attachEvents(view) {
     AddEventHandlers(window, this, ['touchstart', 'touchmove', 'touchend']);
   },
+
   detachEvents: function ns_detachEvents() {
     RemoveEventHandlers(window, this, ['touchstart', 'touchmove', 'touchend']);
   },
+
   handleEvent: function(evt) {
     var target = evt.target;
     switch (evt.type) {
@@ -250,6 +264,50 @@ NotificationScreen.prototype = {
     }
 
     evt.preventDefault();
+  },
+
+  addNotification: function ns_addNotification(type, sender, body) {
+    var notifications = document.getElementById('notifications-container');
+    // First look if there is already one message from the same
+    // source. If there is one, let's aggregate them.
+    var children = notifications.querySelectorAll('div[data-type="' + type + '"]');
+    for (var i = 0; i < children.length; i++) {
+      var notification = children[i];
+      if (notification.dataset.sender != sender)
+        continue;
+
+      var unread = parseInt(notification.dataset.count) + 1;
+      var msg = 'You have ' + unread + ((type == 'sms') ? ' unread messages' :
+                                        ' missed calls');
+      notification.lastElementChild.textContent = msg;
+      return;
+    }
+
+    var notification = document.createElement('div');
+    notification.className = 'notification';
+    notification.dataset.type = type;
+    notification.dataset.sender = sender;
+    notification.dataset.count = 1;
+
+    var title = document.createElement('div');
+    title.textContent = sender;
+
+    notification.appendChild(title);
+
+    var message = document.createElement('div');
+    message.textContent = body;
+    notification.appendChild(message);
+
+    notifications.appendChild(notification);
+  },
+
+  removeNotifications: function ns_removeNotifications(type) {
+    var notifications = document.getElementById('notifications-container');
+    var children = notifications.querySelectorAll('div[data-type="' + type + '"]');
+    for (var i = children.length - 1; i >= 0; i--) {
+      var notification = children[i];
+      notification.parentNode.removeChild(notification);
+    }
   }
 };
 
@@ -682,48 +740,40 @@ var MessagesListener = function() {
   if (!messages)
     return;
 
-  var notifications = document.getElementById('notifications');
+  var notifications = document.getElementById('notifications-container');
   notifications.addEventListener('click', function notificationClick(evt) {
-    if (!notifications.dataset.sender)
+    var notification = evt.target;
+    var sender = notification.dataset.sender;
+    var type = notification.dataset.type;
+    if ((type != 'sms') || (!sender))
       return;
 
-    while (notifications.hasChildNodes())
-      notifications.removeChild(notifications.firstChild);
-    notifications.classList.add('hidden');
-
-    var sender = notifications.dataset.sender;
+    NotificationScreen.unlock(true);
     WindowManager.launch('../sms/sms.html?sender=' + sender);
   });
 
+  var hasMessages = document.getElementById('state-messages');
   function showMessage(sender, body) {
-    while (notifications.hasChildNodes())
-      notifications.removeChild(notifications.firstChild);
+    hasMessages.dataset.visible = 'true';
 
-    var notification = document.createElement('div');
-    notification.className = 'notification';
-
-    var title = document.createElement('div');
-    title.textContent = sender;
-
-    var message = document.createElement('div');
-    message.textContent = body;
-
-    notification.appendChild(title);
-    notification.appendChild(message);
-    notifications.appendChild(notification);
-
-    notifications.dataset.sender = sender;
-
-    notifications.classList.remove('hidden');
+    NotificationScreen.addNotification('sms', sender, body);
   }
-
 
   messages.addEventListener('received', function received(evt) {
     var message = evt.message;
     showMessage(message.sender, message.body);
   });
 
-  notifications.classList.add('hidden');
+  window.addEventListener('appopen', function onAppOpen(evt) {
+    // If the sms application is opened, just delete all messages
+    // notifications
+    var applicationURL = evt.detail.url;
+    if (!/^\.\.\/sms\/sms\.html/.test(applicationURL))
+      return;
+
+    delete hasMessages.dataset.visible;
+    NotificationScreen.removeNotifications('sms');
+  });
 };
 
 /* === TelephoneListener === */
@@ -749,21 +799,15 @@ var TelephonyListener = function() {
       ringtonePlayer.play();
     }
 
-    telephony.oncallschanged = function() {
-      try {
-        var incoming = false;
-        telephony.calls.forEach(function(call) {
-          if (call.state == 'incoming')
-            incoming = true;
-        });
-
-        if (!incoming) {
+    telephony.calls.forEach(function(call) {
+      if (call.state == 'incoming') {
+        call.onstatechange = function () {
+          call.oncallschanged = null;
           ringtonePlayer.pause();
-          telephony.oncallschanged = null;
           window.clearInterval(vibrateInterval);
-        }
-      } catch (e) {}
-    };
+        };
+      }
+    });
 
     var url = '../dialer/dialer.html';
     var launchFunction = function launchDialer() {
@@ -782,26 +826,59 @@ var TelephonyListener = function() {
       launchFunction();
     }
   });
+
+  // Handling the missed call notification
+  var hasMissedCalls = document.getElementById('state-calls');
+
+  window.addEventListener('message', function settingChange(evt) {
+    if ((evt.data) && (typeof(evt.data) != 'string') &&
+        (evt.data.type) && (evt.data.type == 'missed-call')) {
+
+      hasMissedCalls.dataset.visible = 'true';
+      NotificationScreen.addNotification('call', evt.data.sender, 'Missed call');
+    }
+  });
+
+  window.addEventListener('appopen', function onAppOpen(evt) {
+    // If the dialer application is opened, just delete all messages
+    // notifications
+    var applicationURL = evt.detail.url;
+    if (!/^\.\.\/dialer\/dialer\.html/.test(applicationURL))
+      return;
+
+    delete hasMissedCalls.dataset.visible;
+    NotificationScreen.removeNotifications('call');
+  });
+
+  var notifications = document.getElementById('notifications-container');
+  notifications.addEventListener('click', function notificationClick(evt) {
+    var notification = evt.target;
+    var sender = notification.dataset.sender;
+    var type = notification.dataset.type;
+    if (type != 'call')
+      return;
+
+    NotificationScreen.unlock(true);
+    WindowManager.launch('../dialer/dialer.html?choice=recents');
+  });
 };
 
 /* === Homescreen === */
 var Homescreen = function() {
   function populateApps(apps) {
-    var rows = Math.ceil((window.innerHeight - 200) / 200);
-    var columns = Math.ceil((window.innerWidth - 100) / 150);
-    var pages = Math.floor(apps.length / (rows * columns)) + 1;
+    var grid = new IconGrid('apps');
+    grid.dots = new Dots('dots', 'apps');
 
-    var appsGrid = new IconGrid('apps', columns, rows, pages, true);
-    var appsGridCount = 0;
-    for (var n = 0; n < apps.length; ++n) {
-      var app = apps[n];
-      appsGrid.add(n, app.icon, app.name, app.url);
+    for (var i = 0; i < apps.length; i++) {
+      var app = apps[i];
+      grid.add(app.icon, app.name, app.url);
     }
-    appsGrid.dots = new Dots('dots', 'apps');
-    appsGrid.update();
+
+    grid.update();
+    grid.setPage(0);
 
     window.addEventListener('resize', function() {
-      appsGrid.update();
+      grid.update();
     });
   };
 
@@ -811,31 +888,39 @@ var Homescreen = function() {
 function DefaultPhysics(iconGrid) {
   this.iconGrid = iconGrid;
   this.moved = false;
-  this.touchState = { active: false, startX: 0, startY: 0 };
+  var touchState = this.touchState = {
+    active: false, startX: 0, deltaX: 0, previousX: 0
+  };
+
+  this.onRequestAnimationFrame = function(timestamp) {
+    if (!touchState.active)
+      return;
+
+    iconGrid.pan(-(touchState.deltaX + touchState.previousX) / 2);
+    touchState.previousX = touchState.deltaX;
+    window.mozRequestAnimationFrame(this);
+  };
 }
 
 DefaultPhysics.prototype = {
   onTouchStart: function(e) {
     var touchState = this.touchState;
-    this.moved = false;
     touchState.active = true;
-    touchState.startX = e.pageX;
-    touchState.startY = e.pageY;
     touchState.startTime = e.timeStamp;
+
+    touchState.startX = e.pageX;
+    touchState.deltaX = 0;
+    touchState.previousX = 0;
+
+    window.mozRequestAnimationFrame(this.onRequestAnimationFrame);
   },
   onTouchMove: function(e) {
-    var iconGrid = this.iconGrid;
     var touchState = this.touchState;
-    if (touchState.active) {
-      var dx = touchState.startX - e.pageX;
-      if (dx !== 0) {
-        this.moved = this.moved || Math.abs(dx) > 20;
-        if (this.moved) {
-          iconGrid.pan(-dx);
-        }
-      }
-      e.stopPropagation();
-    }
+    if (!touchState.active)
+      return;
+
+    touchState.deltaX = touchState.startX - e.pageX;
+    e.stopPropagation();
   },
   onTouchEnd: function(e) {
     var touchState = this.touchState;
@@ -853,7 +938,7 @@ DefaultPhysics.prototype = {
     var small = Math.abs(diffX) <= 20;
 
     var flick = quick && !small;
-    var tap = !this.moved;
+    var tap = small;
     var drag = !quick;
 
     var iconGrid = this.iconGrid;
@@ -925,13 +1010,9 @@ function RemoveEventHandlers(target, listener, eventNames) {
   }
 }
 
-function IconGrid(containerId, columns, rows, minPages, showLabels) {
+function IconGrid(containerId) {
   this.containerId = containerId;
   this.container = document.getElementById(containerId);
-  this.columns = columns || 4;
-  this.rows = rows || 3;
-  this.minPages = minPages;
-  this.showLabels = showLabels;
   this.icons = [];
   this.currentPage = 0;
   this.physics = new DefaultPhysics(this);
@@ -939,157 +1020,119 @@ function IconGrid(containerId, columns, rows, minPages, showLabels) {
   // install event handlers
   var events = ['touchstart', 'touchmove', 'touchend'];
   AddEventHandlers(this.container, this, events);
-  AddEventHandlers(window, this, ['resize']);
 }
 
 IconGrid.prototype = {
-  add: function(slot, iconUrl, label, action) {
+  add: function(iconUrl, label, action) {
     var icons = this.icons;
-    var icon = { slot: slot, iconUrl: iconUrl, label: label, action: action };
+    var icon = { iconUrl: iconUrl, label: label, action: action };
     icon.index = icons.length;
     icons.push(icon);
   },
+
   remove: function(icon) {
     this.icons.splice(icon.index);
   },
 
   // reflow the icon grid
   update: function() {
-    var instance = this;
-    var containerId = this.containerId;
     var container = this.container;
     var icons = this.icons;
 
-    var rows = Math.ceil((window.innerHeight - 200) / 200);
-    var columns = Math.ceil((window.innerWidth - 100) / 150);
-
-    var columns = columns;
-    var rows = rows;
-    var currentPage = this.currentPage;
-    var itemsPerPage = rows * columns;
-    var iconWidth = Math.floor(100 / columns);
-    var iconHeight = Math.floor(100 / rows);
-
-    // get the page of an icon
-    function getIconPage(icon) {
-      return Math.floor(icon.slot / itemsPerPage);
-    }
-
-    // get the column of an icon
-    function getIconColumn(icon) {
-      return (icon.slot % itemsPerPage) % columns;
-    }
-
-    // get the row of an icon
-    function getIconRow(icon) {
-      return Math.floor((icon.slot % itemsPerPage) / columns);
-    }
-
-    // position a div using transform
-    function setPosition(div, x, y) {
-      div.style.MozTransform = 'translate(' + x + ',' + y + ')';
-    }
-
-    // get page divs
-    var elementList = container.childNodes;
-    var pageDivs = [];
-    for (var n = 0; n < elementList.length; ++n) {
-      var element = elementList[n];
-      pageDivs[element.id] = element;
+    // get pages divs
+    var pages = [];
+    var rule = '#' + this.containerId + '> .page';
+    var children = document.querySelectorAll(rule);
+    for (var n = 0; n < children.length; n++) {
+      var element = children[n];
+      pages[element.id] = element;
     }
 
     // get icon divs
-    var rule = '#' + containerId + '> .page > .icon';
-    elementList = document.querySelectorAll(rule);
     var iconDivs = [];
-    for (var n = 0; n < elementList.length; ++n) {
-      var element = elementList[n];
+
+    rule = '#' + this.containerId + '> .page > .icon';
+    children = document.querySelectorAll(rule);
+    for (var n = 0; n < children.length; n++) {
+      var element = children[n];
       iconDivs[element.id] = element;
     }
 
-    // calculate the new number of pages we need
-    var pageCount = 0;
-    for (var n = 0; n < icons.length; ++n) {
-      var icon = icons[n];
-      pageCount = Math.max(getIconPage(icon), pageCount);
-    }
-    pageCount = Math.max(this.minPages, pageCount + 1);
+    // issue #723 - The calculation of the width/height of the icons
+    // should be dynamic and ot harcoded like that. The reason why it
+    // it is done like that at this point is because there is no icon
+    // when the application starts and so there is nothing to calculate
+    // against.
+    container.style.minHeight = container.style.maxHeight = '';
+    var iconHeight = 196;
+    var iconWidth = 132;
+
+    var rect = container.getBoundingClientRect();
+    var rows = Math.floor(rect.height / iconHeight);
+    var columns = Math.floor(rect.width / iconWidth);
+
+    var targetHeight = iconHeight * rows + 'px';
+    container.style.minHeight = container.style.maxHeight = targetHeight;
 
     // adjust existing pages and create new ones as needed
-    for (var n = 0; n < pageCount; ++n) {
-      var pageDiv = pageDivs[n];
-      if (!pageDiv) { // missing page
-        pageDiv = document.createElement('div');
-        pageDiv.id = n;
-        pageDiv.className = 'page';
-        container.appendChild(pageDiv);
-        pageDivs[n] = pageDiv;
-      }
-      setPosition(pageDiv, (n - currentPage) + '00%', 0);
+    var itemsPerPage = rows * columns;
+    var pageCount = Math.ceil(icons.length / itemsPerPage);
+    for (var n = 0; n < pageCount; n++) {
+      var page = pages[n];
+      if (page)
+        continue;
+
+      page = document.createElement('div');
+      page.id = n;
+      page.className = 'page';
+      container.appendChild(page);
+
+      pages[n] = page;
     }
 
     // remove pages we don't need
-    for (var key in pageDivs) {
+    for (var key in pages) {
       if (key >= pageCount) {
-        container.removeChild(pageDivs[key]);
-        pageDivs[key] = null;
+        container.removeChild(pages[key]);
+        pages[key] = null;
       }
     }
 
+
     // adjust existing icons and create new ones as needed
-    for (var n = 0; n < icons.length; ++n) {
+    var iconsCount = icons.length;
+    for (var n = 0; n < iconsCount; ++n) {
       var icon = icons[n];
-      var pageOfIcon = getIconPage(icon);
+
       var iconDiv = iconDivs[n];
       if (!iconDiv) { // missing icon
         iconDiv = document.createElement('div');
         iconDiv.id = n;
         iconDiv.className = 'icon';
+        iconDiv.style.backgroundImage = 'url(' + icon.iconUrl + ')';
         iconDiv.dataset.url = icon.action;
 
         var centerDiv = document.createElement('div');
         centerDiv.className = 'img';
         iconDiv.appendChild(centerDiv);
 
-        if (this.showLabels) {
-          var labelDiv = document.createElement('div');
-          labelDiv.className = 'label';
-          iconDiv.appendChild(labelDiv);
-        }
+        var labelDiv = document.createElement('div');
+        labelDiv.className = 'label';
+        iconDiv.appendChild(labelDiv);
 
-        pageDivs[pageOfIcon].appendChild(iconDiv);
+        if (labelDiv.textContent != icon.label)
+          labelDiv.textContent = icon.label;
+
         iconDivs[n] = iconDiv;
-      } else {
-        // if icon is on the wrong page, move it
-        if (iconDiv.parentNode != pageDivs[pageOfIcon]) {
-          iconDiv.parentNode.removeChild(iconDiv);
-          pageDivs[pageOfIcon].appendChild(iconDiv);
-        }
       }
 
-      iconDiv.style.backgroundImage = 'url(' + icon.iconUrl + ')';
-
-      if (this.showLabels) {
-        var label = iconDiv.childNodes[1];
-        if (label.textContent != icon.label)
-          label.textContent = icon.label;
-      }
-
-      // TODO This code is really, really, dirty
-      var deltaX = getIconColumn(icon) * 136;
-      var deltaY = getIconRow(icon);
-      if (window.innerHeight <= 480) {
-        deltaY *= 184;
-      } else {
-        deltaY *= 200;
-      }
-
-      setPosition(iconDiv, deltaX + 'px', deltaY + 'px');
+      var pageOfIcon = Math.floor(n / itemsPerPage);
+      pages[pageOfIcon].appendChild(iconDiv);
     }
 
     // remove icons we don't need
     for (var key in iconDivs) {
-      if (key > icons.length) {
+      if (key > iconsCount) {
         iconDivs[key].parentNode.removeChild(iconDivs[key]);
         iconDivs[key] = null;
       }
@@ -1098,8 +1141,9 @@ IconGrid.prototype = {
     // update paginator, if we have one
     var dots = this.dots;
     if (dots)
-      dots.update(currentPage);
+      dots.update(this.currentPage);
   },
+
   pan: function(x, duration) {
     var pages = this.container.childNodes;
     var currentPage = this.currentPage;
@@ -1113,6 +1157,7 @@ IconGrid.prototype = {
       style.MozTransition = duration ? ('all ' + duration + 's ease;') : '';
     }
   },
+
   setPage: function(number, duration) {
     var pages = this.container.childNodes;
     if (number < 0)
@@ -1145,9 +1190,6 @@ IconGrid.prototype = {
     case 'touchend':
       document.releaseCapture();
       physics.onTouchEnd(e.changedTouches[0]);
-      break;
-    case 'resize':
-      this.update();
       break;
     default:
       return;
@@ -1193,9 +1235,4 @@ Dots.prototype = {
     }
   }
 };
-
-function NotificationScreen(touchables) {
-  this.touchables = touchables;
-  this.attachEvents(this.touchable);
-}
 

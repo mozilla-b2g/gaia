@@ -80,11 +80,23 @@ var Recents = {
 
                    profilePictureForNumber(i) +
                    '  <div class="name">' + recent.number + '</div>' +
+                   '  <div class="number"></div>' +
                    '  <div class="timestamp">' + prettyDate(recent.date) +
                    '  </div>' +
                    '  <div class="type"></div>' +
 
                    '</div>';
+
+        Contacts.findByNumber(recent.number, (function(contact) {
+          var entries = this.view.querySelectorAll('.recent[data-number="' +
+                                               contact.tel[0] + '"]');
+
+          for (var i = 0; i < entries.length; i++) {
+            var entry = entries[i];
+            entry.querySelector('.name').textContent = contact.name;
+            entry.querySelector('.number').textContent = contact.tel[0];
+          }
+        }).bind(this));
       }
 
       this.view.innerHTML = content;

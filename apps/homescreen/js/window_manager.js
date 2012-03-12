@@ -3,13 +3,14 @@
 
 'use strict';
 
+// The WindowSprite object is used to apply an animation effect when
+// the window is opened/closed.
 function WindowSprite(win) {
   var element = this.element = document.createElement('div');
-  if (win.application.fullscreen) {
-    element.className = 'windowSprite fullscreen';
-  } else {
-    element.className = 'windowSprite';
-  }
+  element.className = 'windowSprite';
+
+  if (win.application.fullscreen)
+    element.classList.add('fullscreen');
 }
 
 WindowSprite.prototype = {
@@ -34,38 +35,58 @@ WindowSprite.prototype = {
 
   crossFade: function ws_crossFade() {
     var afterCrossFade = (this.remove).bind(this);
-    // XXX: wait for 50ms for iframe to be painted.
-    // setTimeout(0) is used to escape the current event firing.
-    setTimeout((function () {
-      this.element.addEventListener('transitionend', afterCrossFade);
-      this.element.classList.add('crossFade');
-    }).bind(this), 50);
+
+    // Wait for 50ms for iframe to be painted.
+    var element = this.element;
+    window.setTimeout(function() {
+      element.addEventListener('transitionend', afterCrossFade);
+      element.classList.add('crossFade');
+    }, 50);
   }
 };
 
-var _statusBarHeight = null;
 
-function Window(application, id) {
+// The AppWindow object is a wrapper around an iframe that loads
+// the actual application.
+function fireWindowEvent(appWindow, type) {
+  var application = appWindow.application;
+  var details = {
+    'id': appWindow.id,
+    'name': application.name,
+    'url': application.url,
+    'hackKillMe': application.hackKillMe
+  };
+
+  var evt = document.createEvent('CustomEvent');
+  evt.initCustomEvent(type, true, false, details);
+  appWindow.element.dispatchEvent(evt);
+}
+
+
+function AppWindow(application, id) {
   var element = this.element = document.createElement('iframe');
-  element.setAttribute('mozallowfullscreen', 'true');
-
-  // TODO: a platform fix will come
-  var exceptions = ['Dialer', 'Settings', 'Camera'];
-  if(exceptions.indexOf(application.name) == -1) {
-    element.setAttribute('mozbrowser', 'true');
-  }
   element.id = 'window_' + id;
   element.className = 'appWindow';
+  element.setAttribute('mozallowfullscreen', 'true');
+
+  // TODO: Some of the applications requite a special access to the
+  //       homescreen. This is all bad and should be removed as soon
+  //       as possible. 'Dialer', 'Camera' and 'Messages' will be fixed
+  //       by Intents and 'Settings' will be fixed by when the regular
+  //       Settings API will land.
+  var exceptions = ['Dialer', 'Settings', 'Camera', 'Messages'];
+  if (exceptions.indexOf(application.name) == -1) {
+    element.setAttribute('mozbrowser', 'true');
+  }
 
   this.application = application;
   this.id = id;
+
   this.resize();
 }
 
-Window.prototype = {
+AppWindow.prototype = {
   element: null,
-
-  _loaded: false,
 
   show: function window_show() {
     this.element.classList.add('active');
@@ -75,6 +96,7 @@ Window.prototype = {
     this.element.classList.remove('active');
   },
 
+  _loaded: false,
   focus: function window_focus(callback) {
     if (this.element.classList.contains('active'))
       return;
@@ -93,8 +115,8 @@ Window.prototype = {
       var url = this.application.url;
       var element = this.element;
       if (!this._loaded) {
-        element.src = url;
         this._loaded = true;
+        element.src = url;
 
         window.addEventListener('message', function waitForAppReady(evt) {
           if (evt.data !== 'appready')
@@ -115,6 +137,7 @@ Window.prototype = {
         }, '*');
       }
       element.focus();
+      fireWindowEvent(this, 'appfocus');
 
       if (callback)
         callback();
@@ -125,7 +148,8 @@ Window.prototype = {
       document.getElementById('screen').classList.add('fullscreen');
     }
 
-    document.body.offsetHeight;
+    document.body.offsetHeight; // Trigger layout; not a no-op
+
     sprite.setActive(true);
   },
 
@@ -169,7 +193,8 @@ Window.prototype = {
       this.element.style.height = width;
     }
 
-    document.body.offsetHeight;
+    document.body.offsetHeight;  // Trigger layout; not a no-op.
+
     sprite.setActive(false);
   },
 
@@ -196,6 +221,9 @@ Window.prototype = {
   }
 };
 
+// This function is unused by the homescreen app itself, but is
+// currently required by chrome code in b2g/chrome/content/*.js
+// Do not delete this function until that dependency is removed.
 function getApplicationManager() {
   return WindowManager;
 }
@@ -203,77 +231,67 @@ function getApplicationManager() {
 var WindowManager = {
   init: function wm_init() {
     window.addEventListener('keyup', this);
-
     window.addEventListener('appopen', this);
     window.addEventListener('appwillclose', this);
     window.addEventListener('locked', this);
     window.addEventListener('unlocked', this);
     window.addEventListener('resize', this);
+
+    this.container = document.getElementById('windows');
   },
 
   enabled: true,
 
-  get container() {
-    delete this.container;
-    return this.container = document.getElementById('windows');
-  },
-
   handleEvent: function wm_handleEvent(evt) {
+    var foregroundWindow = this._foregroundWindow;
+
     switch (evt.type) {
       case 'keyup':
         switch (evt.keyCode) {
           case evt.DOM_VK_HOME:
             ScreenManager.turnScreenOn();
-            if (this.enabled)
-              this.closeForegroundWindow();
+            if (!this.enabled || evt.defaultPrevented || !foregroundWindow)
+              return;
+
+            this.closeForegroundWindow();
+            evt.preventDefault();
             break;
+
           case evt.DOM_VK_ESCAPE:
-            if (this.enabled && !evt.defaultPrevented) {
-              if (TaskManager.isActive()) {
-                TaskManager.hide();
-              } else if (IMEManager.targetWindow) {
-                IMEManager.hideIME();
-              } else {
-                this.closeForegroundWindow();
-              }
+            if (!this.enabled || evt.defaultPrevented || !foregroundWindow)
+              return;
+
+              this.closeForegroundWindow();
               evt.preventDefault();
-            }
             break;
         }
         break;
-      case 'message':
-        if (!this.enabled)
-          return;
-        if (evt.data == 'appclose')
-          this.closeForegroundWindow();
-        break;
-      case 'home':
-        if (!this.enabled)
-          return;
-        this.closeForegroundWindow();
-        break;
+
       case 'appopen':
         this.container.classList.add('active');
         break;
+
       case 'appwillclose':
         this.container.classList.remove('active');
         break;
+
       case 'locked':
-        if (this._foregroundWindow.application.fullscreen) {
+        this.enabled = false;
+        if (foregroundWindow && foregroundWindow.application.fullscreen) {
           document.getElementById('screen').classList.remove('fullscreen');
         }
-        this.enabled = false;
         break;
+
       case 'unlocked':
-        if (this._foregroundWindow.application.fullscreen) {
+        this.enabled = true;
+        if (foregroundWindow && foregroundWindow.application.fullscreen) {
           document.getElementById('screen').classList.add('fullscreen');
         }
-        this.enabled = true;
         break;
+
       case 'resize':
-        if (!this._foregroundWindow)
-          return;
-        this._foregroundWindow.resize();
+        if (foregroundWindow)
+          foregroundWindow.resize();
         break;
     }
   },
@@ -320,7 +338,7 @@ var WindowManager = {
 
     newWindow.focus((function focusCallback() {
       this._isInTransition = false;
-      this._fireEvent(newWindow.element, 'appopen', newWindow.name);
+      fireWindowEvent(newWindow, 'appopen');
     }).bind(this));
   },
 
@@ -329,7 +347,7 @@ var WindowManager = {
     if (!foregroundWindow || this._isInTransition)
       return;
 
-    this._fireEvent(foregroundWindow.element, 'appwillclose', name);
+    fireWindowEvent(foregroundWindow, 'appwillclose');
 
     var oldWindow = this._foregroundWindow;
     this._foregroundWindow = null;
@@ -337,14 +355,8 @@ var WindowManager = {
 
     oldWindow.blur((function blurCallback() {
       this._isInTransition = false;
-      this._fireEvent(foregroundWindow.element, 'appclose');
-      if (oldWindow.application.hackKillMe) {
-        // waiting for the closing transition to end before removing the iframe from dom
-        oldWindow.element.addEventListener('transitionend', function waitToKill() {
-          oldWindow.element.removeEventListener('transitionend', waitToKill);
-          TaskManager.remove(oldWindow.application, oldWindow.id);
-        });
-      }
+
+      fireWindowEvent(oldWindow, 'appclose');
     }).bind(this));
   },
 
@@ -354,27 +366,23 @@ var WindowManager = {
     if (!application)
       return;
 
-    var name = application.name;
-
     // getInstalledAppForURL will return an object with the URL stripped
     // so let's set it back to default
     application.url = url;
 
     var applicationWindow = this.getWindowByApp(application);
-    if (applicationWindow) {
-      Gaia.AppManager.foregroundWindow = applicationWindow.element;
-      TaskManager.sendToFront(applicationWindow.id);
-    } else {
-      applicationWindow = new Window(application, ++this._lastWindowId);
+    if (!applicationWindow) {
+      applicationWindow = new AppWindow(application, ++this._lastWindowId);
       this.add(applicationWindow);
 
-      // To be compatible with the upstream webapi.js file,
-      // foregroundWindow should be set on the AppManager...
-      Gaia.AppManager.foregroundWindow = applicationWindow.element;
-
-      this._fireEvent(applicationWindow.element, 'appwillopen', name);
-      TaskManager.add(application, applicationWindow.id);
+      setTimeout(function(self) {
+        fireWindowEvent(applicationWindow, 'appwillopen');
+      }, 0, this);
     }
+
+    // To be compatible with the upstream webapi.js file,
+    // foregroundWindow should be set on the AppManager...
+    Gaia.AppManager.foregroundWindow = applicationWindow.element;
 
     this.setForegroundWindow(applicationWindow);
     return applicationWindow;
@@ -383,19 +391,11 @@ var WindowManager = {
   kill: function wm_kill(url) {
     var application = Gaia.AppManager.getInstalledAppForURL(url);
     var applicationWindow = this.getWindowByApp(application);
-
     if (!applicationWindow)
       return;
 
-    var name = application.name;
-    this._fireEvent(applicationWindow.element, 'appkill', name);
+    fireWindowEvent(applicationWindow, 'appkill');
     this.remove(applicationWindow);
-  },
-
-  _fireEvent: function wm_fireEvent(target, type, details) {
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent(type, true, false, details || null);
-    target.dispatchEvent(evt);
   }
 };
 

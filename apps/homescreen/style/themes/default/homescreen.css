@@ -21,11 +21,6 @@ body {
   font-size: 15px;
 }
 
-@media screen and (max-width: 479px) {
-  body {
-    font-size: 10px;
-  }
-}
 
 /* Home Screen */
 
@@ -110,6 +105,7 @@ body {
   border-radius: 5px;
   margin-right: 4px;
   margin-bottom: 4px;
+  overflow: hidden;
 }
 
 .icon > div {
@@ -171,6 +167,20 @@ div.windowSprite {
 #statusbar {
   color: #999;
   background-color: #000;
+}
+
+.state {
+  float: left;
+  background-repeat: no-repeat;
+  background-position: center center;
+}
+
+#state-messages[data-visible] {
+  background-image: url("images/sms.png");
+}
+
+#state-calls[data-visible] {
+  background-image: url("images/missing-call.png");
 }
 
 #titlebar {
