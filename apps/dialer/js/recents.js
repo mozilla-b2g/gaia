@@ -36,7 +36,7 @@ var Recents = {
 
       for (var i = 0; i < datesElements.length; i++) {
         var element = datesElements[i];
-        var time = element.dataset.time;
+        var time = parseInt(element.dataset.time);
         element.textContent = prettyDate(time);
       }
     }, 1000 * 60 * 5, this);
