@@ -1,5 +1,5 @@
 
-var debug = true;
+var debug = false;
 function LOG(str) {
   if (debug)
     dump(str);
@@ -41,8 +41,6 @@ var MIMEParser = {
   }
 };
 
-var tcp = window.navigator.mozTCPSocket;
-
 var STATE_CONNECTING = 0;
 var STATE_CONNECTED = 1;
 var STATE_DISCONNECTING = 3;
@@ -58,7 +56,13 @@ var IMAP = {
     this.action = action;
     this.details = details;
 
-    tcp.start(config['imap'], config['port'], this);
+    var connection = this.connection = new MozTCPSocket();
+    connection.open(config['imap'], config['port'], true);
+
+    connection.onopen = this.onopen.bind(this);
+    connection.onclose = this.onclose.bind(this);
+    connection.onmessage = this.onmessage.bind(this);
+    connection.onerror = this.onerror.bind(this);
   },
 
   disconnect: function imap_disconnect() {
@@ -84,7 +88,7 @@ var IMAP = {
     this.stack[tag] = '';
     LOG(data);
 
-    tcp.write(tag + ' ' + data + '\r\n');
+    this.connection.send(tag + ' ' + data + '\r\n');
     return tag;
   },
 
@@ -165,7 +169,7 @@ var IMAP = {
     }
   },
 
-  onConnect: function imap_connect() {
+  onopen: function imap_open() {
     this.state = STATE_CONNECTED;
     var config = this.config;
 
@@ -184,7 +188,11 @@ var IMAP = {
     window.dispatchEvent(evt);
   },
 
-  onDisconnect: function imap_disconnect() {
+  onerror: function imap_error() {
+    alert('rekrlek');
+  },
+
+  onclose: function imap_close() {
     this.state = STATE_DISCONNECTED;
 
     var evt = document.createEvent('CustomEvent');
@@ -193,7 +201,8 @@ var IMAP = {
   },
 
   buffer: '',
-  onDataAvailable: function imap_dataAvailable(data) {
+  onmessage: function imap_message(evt) {
+    var data = evt.data;
     LOG(data);
 
     var commands = data.split('\r\n');
@@ -284,10 +293,6 @@ var Mails = {
         var config = readNextConfig();
         if (config)
           IMAP.connect(config, 'fetch');
-        break;
-
-      case 'unload':
-        tcp.stop();
         break;
 
       case 'keyup':
