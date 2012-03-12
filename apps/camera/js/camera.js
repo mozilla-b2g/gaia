@@ -26,6 +26,12 @@ var Camera = {
       window.parent.WindowManager.launch('../gallery/gallery.html');
     });
 
+    this.setSource(this._camera);
+  },
+
+  setSource: function camera_setSource(camera) {
+    this.viewfinder.src = '';
+
     var width, height;
     var viewfinder = this.viewfinder;
 
@@ -46,7 +52,7 @@ var Camera = {
     var config = {
       height: height,
       width: width,
-      camera: this._camera
+      camera: camera
     }
 
     viewfinder.style.width = width + 'px';
@@ -61,8 +67,7 @@ var Camera = {
 
   toggleCamera: function toggleCamera() {
     this._camera = 1 - this._camera;
-    this.viewfinder.src = '';
-    this.init();
+    this.setSource(this._camera);
   },
 
 };
