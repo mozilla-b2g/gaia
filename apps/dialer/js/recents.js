@@ -82,9 +82,6 @@ var Recents = {
     entry.classList.add('recent');
     entry.classList.add(recent.type);
     entry.dataset.number = recent.number;
-    entry.onclick = (function(number) {
-      CallHandler.call(number);
-    }).bind(this, recent.number);
     entry.innerHTML = innerFragment;
 
     Contacts.findByNumber(recent.number, (function(contact) {

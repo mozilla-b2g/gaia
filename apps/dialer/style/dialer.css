@@ -1054,7 +1054,7 @@ html * {
   font-size: 26px;
 }
 
-.recent > div * {
+.recent > * {
   pointer-events: none;
 }
 
