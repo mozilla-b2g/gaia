@@ -1824,6 +1824,11 @@
   function loadLocale(lang, callback) {
     clear();
 
+    // add 'dir="rtl"' to <html> if required
+    var rtlLanguages = ['ar', 'he', 'fa'];
+    if (rtlLanguages.indexOf(lang) >= 0)
+      document.querySelector('html').setAttribute('dir', 'rtl');
+
     // check all <link type="application/l10n" href="..." /> nodes
     // and load the resource files
     var langLinks = document.querySelectorAll('link[type="application/l10n"]');
