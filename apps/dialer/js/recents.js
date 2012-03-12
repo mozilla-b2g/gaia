@@ -57,12 +57,12 @@ var Recents = {
 
       var setreq = store.put(recentCall);
 
-      setreq.onsuccess = (function(recent) {
-        var entry = this.createEntry(recent);
+      setreq.onsuccess = (function() {
+        var entry = this.createEntry(recentCall);
 
         var firstEntry = this.view.firstChild;
         this.view.insertBefore(entry, firstEntry);
-      }).bind(this, recentCall);
+      }).bind(this);
 
       setreq.onerror = function(e) {
         console.log('dialerRecents add failure: ', e.message, setreq.errorCode);
