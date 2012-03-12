@@ -276,7 +276,11 @@ var CallHandler = {
     this.currentCall = call;
     call.addEventListener('statechange', this);
 
-    this.recentsEntry = {date: Date.now(), type: 'incoming', number: call.number};
+    this.recentsEntry = {
+      date: Date.now(),
+      type: 'incoming',
+      number: call.number
+    };
 
     this.numberView.innerHTML = call.number;
     this.statusView.innerHTML = 'Call from...';
@@ -307,7 +311,8 @@ var CallHandler = {
     this.currentCall.answer();
   },
   end: function ch_end() {
-    if (this.recentsEntry && (this.recentsEntry.type.indexOf('-connected') == -1)) {
+    if (this.recentsEntry &&
+       (this.recentsEntry.type.indexOf('-connected') == -1)) {
       this.recentsEntry.type += '-refused';
     }
     if (this.currentCall) {
@@ -431,8 +436,8 @@ var CallHandler = {
       callScreen.classList.toggle('prerender');
     };
 
-    window.addEventListener('MozAfterPaint', function ch_finishFromAfterPaint() {
-      window.removeEventListener('MozAfterPaint', ch_finishFromAfterPaint);
+    window.addEventListener('MozAfterPaint', function ch_finishAfterPaint() {
+      window.removeEventListener('MozAfterPaint', ch_finishAfterPaint);
       finishTransition();
     });
     var securityTimeout = setTimeout(finishTransition, 100);
