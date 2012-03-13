@@ -26,9 +26,10 @@ function test() {
               answer: function() {},
               hangUp: function() {},
               removeEventListener: function() {},
-              state: 'dialing'
+              state: 'dialing',
+              number: '123-4242-4242'
             };
-            dialerWindow.CallHandler.incoming(fakeCall, '123-4242-4242');
+            dialerWindow.CallHandler.incoming(fakeCall);
 
             callScreen.addEventListener('transitionend', function trWait() {
               callScreen.removeEventListener('transitionend', trWait);
