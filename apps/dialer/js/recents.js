@@ -77,7 +77,9 @@ var Recents = {
 
   createEntry: function re_createEntry(recent) {
     var innerFragment = profilePictureForNumber(recent.number) +
-                  '<div class="name">' + recent.number + '</div>' +
+                  '<div class="name">' +
+                  '  ' + (recent.number || 'Anonymous') +
+                  '</div>' +
                   '<div class="number"></div>' +
                   '<div class="timestamp" data-time="' + recent.date + '">' +
                   '  ' + prettyDate(recent.date) +
@@ -90,10 +92,12 @@ var Recents = {
     entry.dataset.number = recent.number;
     entry.innerHTML = innerFragment;
 
-    Contacts.findByNumber(recent.number, (function(contact) {
-      this.querySelector('.name').textContent = contact.name;
-      this.querySelector('.number').textContent = contact.tel[0];
-    }).bind(entry));
+    if (recent.number) {
+      Contacts.findByNumber(recent.number, (function(contact) {
+        this.querySelector('.name').textContent = contact.name;
+        this.querySelector('.number').textContent = contact.tel[0];
+      }).bind(entry));
+    }
 
     return entry;
   },

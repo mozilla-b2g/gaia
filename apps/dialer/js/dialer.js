@@ -294,14 +294,16 @@ var CallHandler = {
       number: call.number
     };
 
-    this.numberView.innerHTML = call.number;
+    this.numberView.innerHTML = call.number || 'Anonymous';
     this.statusView.innerHTML = 'Call from...';
     this.pictureView.innerHTML = '';
 
-    this.lookupContact(call.number);
+    if (call.number)
+      this.lookupContact(call.number);
 
     // XXX: remove the fake contact when the contact API lands
-    this.pictureView.innerHTML = profilePictureForNumber(parseInt(call.number));
+    this.pictureView.innerHTML = call.number ?
+      profilePictureForNumber(parseInt(call.number)) : '';
 
     this.toggleCallScreen();
   },
