@@ -7,7 +7,7 @@ TEST_PATH=gaia/tests/${TEST_FILE}
 
 mochitest:
 	echo "Checking if the mozilla build has mochitests enabled..."
-	test -d $(MOZ_TESTS) || exit 1
+	test -d $(MOZ_TESTS) || (echo "Please ensure you don't have |ac_add_options --disable-tests| in your mozconfig." && exit 1)
 	echo "Checking the injected Gaia..."
 	test -L $(INJECTED_GAIA) || ln -s $(GAIA) $(INJECTED_GAIA)
 	TEST_PATH=$(TEST_PATH) make -C $(MOZ_OBJDIR) mochitest-browser-chrome EXTRA_TEST_ARGS=--browser-arg=""
