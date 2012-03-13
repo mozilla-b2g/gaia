@@ -1,222 +1,337 @@
 'use strict';
 
-// Load custom build of Modernizr if an appropriate build has not been loaded.
-if (!window['Modernizr'] || Modernizr.touch === undefined || Modernizr.csstransitions === undefined || Modernizr.csstransforms === undefined || Modernizr.csstransforms3d === undefined) {
-
-  /* Modernizr 2.5.2 (Custom Build) | MIT & BSD
-   * Build: http://www.modernizr.com/download/#-csstransforms-csstransforms3d-csstransitions-touch-cssclasses-teststyles-testprop-testallprops-prefixes-domprefixes
-   */
-  ;window.Modernizr=function(a,b,c){function z(a){j.cssText=a}function A(a,b){return z(m.join(a+";")+(b||""))}function B(a,b){return typeof a===b}function C(a,b){return!!~(""+a).indexOf(b)}function D(a,b){for(var d in a)if(j[a[d]]!==c)return b=="pfx"?a[d]:!0;return!1}function E(a,b,d){for(var e in a){var f=b[a[e]];if(f!==c)return d===!1?a[e]:B(f,"function")?f.bind(d||b):f}return!1}function F(a,b,c){var d=a.charAt(0).toUpperCase()+a.substr(1),e=(a+" "+o.join(d+" ")+d).split(" ");return B(b,"string")||B(b,"undefined")?D(e,b):(e=(a+" "+p.join(d+" ")+d).split(" "),E(e,b,c))}var d="2.5.2",e={},f=!0,g=b.documentElement,h="modernizr",i=b.createElement(h),j=i.style,k,l={}.toString,m=" -webkit- -moz- -o- -ms- ".split(" "),n="Webkit Moz O ms",o=n.split(" "),p=n.toLowerCase().split(" "),q={},r={},s={},t=[],u=t.slice,v,w=function(a,c,d,e){var f,i,j,k=b.createElement("div"),l=b.body,m=l?l:b.createElement("body");if(parseInt(d,10))while(d--)j=b.createElement("div"),j.id=e?e[d]:h+(d+1),k.appendChild(j);return f=["&#173;","<style>",a,"</style>"].join(""),k.id=h,m.innerHTML+=f,m.appendChild(k),l||g.appendChild(m),i=c(k,a),l?k.parentNode.removeChild(k):m.parentNode.removeChild(m),!!i},x={}.hasOwnProperty,y;!B(x,"undefined")&&!B(x.call,"undefined")?y=function(a,b){return x.call(a,b)}:y=function(a,b){return b in a&&B(a.constructor.prototype[b],"undefined")},Function.prototype.bind||(Function.prototype.bind=function(b){var c=this;if(typeof c!="function")throw new TypeError;var d=u.call(arguments,1),e=function(){if(this instanceof e){var a=function(){};a.prototype=c.prototype;var f=new a,g=c.apply(f,d.concat(u.call(arguments)));return Object(g)===g?g:f}return c.apply(b,d.concat(u.call(arguments)))};return e});var G=function(c,d){var f=c.join(""),g=d.length;w(f,function(c,d){var f=b.styleSheets[b.styleSheets.length-1],h=f?f.cssRules&&f.cssRules[0]?f.cssRules[0].cssText:f.cssText||"":"",i=c.childNodes,j={};while(g--)j[i[g].id]=i[g];e.touch="ontouchstart"in a||a.DocumentTouch&&b instanceof DocumentTouch||(j.touch&&j.touch.offsetTop)===9,e.csstransforms3d=(j.csstransforms3d&&j.csstransforms3d.offsetLeft)===9&&j.csstransforms3d.offsetHeight===3},g,d)}([,["@media (",m.join("touch-enabled),("),h,")","{#touch{top:9px;position:absolute}}"].join(""),["@media (",m.join("transform-3d),("),h,")","{#csstransforms3d{left:9px;position:absolute;height:3px;}}"].join("")],[,"touch","csstransforms3d"]);q.touch=function(){return e.touch},q.csstransforms=function(){return!!F("transform")},q.csstransforms3d=function(){var a=!!F("perspective");return a&&"webkitPerspective"in g.style&&(a=e.csstransforms3d),a},q.csstransitions=function(){return F("transition")};for(var H in q)y(q,H)&&(v=H.toLowerCase(),e[v]=q[H](),t.push((e[v]?"":"no-")+v));return z(""),i=k=null,e._version=d,e._prefixes=m,e._domPrefixes=p,e._cssomPrefixes=o,e.testProp=function(a){return D([a])},e.testAllProps=F,e.testStyles=w,g.className=g.className.replace(/(^|\s)no-js(\s|$)/,"$1$2")+(f?" js "+t.join(" "):""),e}(this,this.document);
-}
-
-if (!window['Pushpop']) window.Pushpop = {};
-
-Pushpop.defaultTransition = 'slide-horizontal';
-
-Pushpop.View = function(element) {
-  var $element = this.$element = $(element);
-  
-  var view = $element.data('view');
-  if (view) return view;
-  
-  this.element = $element[0];
-  
-  $element.data('view', this);
-};
-
-Pushpop.View.prototype = {
-  element: null,
-  $element: null,
-  transition: null,
-  setTransition: function(value) {
-    this.transition = value;
-    this.$element.addClass(value);
-  },
-  getViewStack: function() {
-    return this.$element.parents('.pp-view-stack:first').data('viewStack');
-  },
-  forceReflow: function() {
-    this.element.offsetWidth;
-  }
-};
-
-Pushpop.ViewStack = function(element) {
-  var $element = this.$element = $(element);
-  this.element = $element[0];
-  
-  var views = this.views = [];
-  
-  var $rootViewElement = $element.children('.pp-view.root,.pp-view:first').first().addClass('active');
-  var rootView = this.rootView = $rootViewElement.data('view') ||
-    new Pushpop.View($rootViewElement.addClass('root'));
-  
-  views.push(rootView);
-  
-  $element.data('viewStack', this);
-};
-
-Pushpop.ViewStack.prototype = {
-  element: null,
-  $element: null,
-  views: null,
-  rootView: null,
-  isTransitioning: false,
-  handleEvent: function(evt) {
-    switch (evt.type) {
-      case 'webkitTransitionEnd':
-      case 'transitionend':
-      case 'oTransitionEnd':
-      case 'transitionEnd':
-        var eventData = evt.data;
-        if (!eventData) return;
-        
-        var newActiveView = eventData.newActiveView;
-        if (!newActiveView || evt.target !== newActiveView.element) return;
-        
-        var viewStack = newActiveView.getViewStack();
-        var oldActiveView = viewStack.$element.children('.pp-view.active').data('view');
-        if (!oldActiveView) return;
-        
-        var $newActiveViewElement = newActiveView.$element;
-        var $oldActiveViewElement = oldActiveView.$element;
-        
-        $newActiveViewElement.unbind(evt);
-        $newActiveViewElement.addClass('active');
-        $newActiveViewElement.removeClass('transition push pop ' + newActiveView.transition);
-        $oldActiveViewElement.removeClass('active transition push pop ' + newActiveView.transition);
-        
-        viewStack.isTransitioning = false;
-        break;
-      default:
-        break;
-    }
-  },
-  push: function(view, transition) {
-    if (this.isTransitioning) return;
-    this.isTransitioning = true;
+(function() {
+  var _transitionEndEvents = ['webkitTransitionEnd', 'transitionend', 'oTransitionEnd', 'transitionEnd'];
+  var _generateTransitionStyle = function(transition) {
+    var name = transition.name;
+    var vendors = ['webkit', 'moz', 'ms', 'o'];
     
-    var oldActiveView = this.getActiveView();
-    var newActiveView = view;
-    
-    this.views.push(newActiveView);
-    
-    var $oldActiveViewElement = oldActiveView.$element;
-    var $newActiveViewElement = newActiveView.$element;
-
-    $newActiveViewElement.bind('webkitTransitionEnd transitionend oTransitionEnd transitionEnd', {
-      newActiveView: newActiveView
-    }, this.handleEvent);
-    
-    transition = newActiveView.transition = transition || newActiveView.transition || Pushpop.defaultTransition;
-    
-    $oldActiveViewElement.addClass('push ' + transition);
-    $newActiveViewElement.addClass('push ' + transition);
-    
-    oldActiveView.forceReflow();
-    newActiveView.forceReflow();
-    
-    $oldActiveViewElement.addClass('transition');
-    $newActiveViewElement.addClass('transition');
-  },
-  pop: function(viewOrTransition, transition) {
-    if (this.isTransitioning) return;
-    this.isTransitioning = true;
-    
-    var views = this.views;
-    if (views.length <= 1) return;
-    
-    var oldActiveView = this.getActiveView();
-    var newActiveView;
-    
-    if (viewOrTransition && typeof viewOrTransition !== 'string') {
-      newActiveView = viewOrTransition;
+    var _generateDeclaration = function(property, value, transition) {
+      switch (property) {
+        case 'x':
+          property = 'transform';
+          value = 'translate3d(' + value + ', 0, 0)';
+          break;
+        case 'y':
+          property = 'transform';
+          value = 'translate3d(0, ' + value + ', 0)';
+          break;
+      }
       
-      if (this.containsView(newActiveView)) {
-        while (views.length > 1 && this.getActiveView() !== newActiveView) {
-          views.pop();
+      var declaration = property + ': ' + value + ';\n';
+      
+      if (property === 'transform' || property === 'transform-origin') {
+        if (transition && property === 'transform') declaration += _generateDeclaration('transition', property + ' ' + transition.duration + ' ' + transition.easingFunction + ' ' + transition.delay);
+        
+        for (var i = 0, length = vendors.length; i < length; i++) {
+          declaration += '-' + vendors[i] + '-' + property + ': ' + value + ';\n';
+          if (transition && property === 'transform') declaration += _generateDeclaration( '-' + vendors[i] + '-' + 'transition', '-' + vendors[i] + '-' + property + ' ' + transition.duration + ' ' + transition.easingFunction + ' ' + transition.delay);
         }
       }
-    } else {
-      if (viewOrTransition) transition = viewOrTransition;
       
-      views.pop();
-      newActiveView = this.getActiveView();
+      return declaration;
+    };
+    
+    var _generateDirection = function(pushOrPop) {
+      var direction = transition[pushOrPop];
+      if (!direction) return '';
+      
+      var setup = direction.setup || {};
+      var setupWrapper = setup.wrapper, setupNewView = setup.newView, setupOldView = setup.oldView;
+      var setupWrapperStyle = '', setupNewViewStyle = '', setupOldViewStyle = '';
+      
+      for (attr in setupWrapper) setupWrapperStyle += _generateDeclaration(attr, setupWrapper[attr]);
+      for (attr in setupNewView) setupNewViewStyle += _generateDeclaration(attr, setupNewView[attr]);
+      for (attr in setupOldView) setupOldViewStyle += _generateDeclaration(attr, setupOldView[attr]);
+      
+      var trans = direction.transition || {};
+      var transA = trans.start, transB = trans.end;
+      var transWrapperStyle = '', transNewViewStyle = '', transOldViewStyle = '';
+      var attr;
+      
+      switch (trans.element.toUpperCase()) {
+        case 'NEWVIEW':
+          for (attr in transA) transNewViewStyle += _generateDeclaration(attr, transA[attr], trans);
+          for (attr in transB) transNewViewStyle += _generateDeclaration(attr, transB[attr]);
+          break;
+        case 'OLDVIEW':
+          for (attr in transA) transOldViewStyle += _generateDeclaration(attr, transA[attr], trans);
+          for (attr in transB) transOldViewStyle += _generateDeclaration(attr, transB[attr]);
+          break;
+        case 'WRAPPER':
+        default:
+          for (attr in transA) transWrapperStyle += _generateDeclaration(attr, transA[attr], trans);
+          for (attr in transB) transWrapperStyle += _generateDeclaration(attr, transB[attr]);
+          break;
+      }
+      
+      var css = '';
+      if (setupWrapperStyle) css += '.pp-view-wrapper.pp-' + pushOrPop + '.' + name + ' {\n' + setupWrapperStyle + '}\n';
+      if (setupNewViewStyle) css += '.pp-view-wrapper.pp-' + pushOrPop + '.' + name + ' > .pp-view {\n' + setupNewViewStyle + '}\n';
+      if (setupOldViewStyle) css += '.pp-view-wrapper.pp-' + pushOrPop + '.' + name + ' > .pp-view.pp-active {\n' + setupOldViewStyle + '}\n';
+      if (transWrapperStyle) css += '.pp-view-wrapper.pp-' + pushOrPop + '.pp-transition.' + name + ' {\n' + transWrapperStyle + '}\n';
+      if (transNewViewStyle) css += '.pp-view-wrapper.pp-' + pushOrPop + '.pp-transition.' + name + ' > .pp-view {\n' + transNewViewStyle + '}\n';
+      if (transOldViewStyle) css += '.pp-view-wrapper.pp-' + pushOrPop + '.pp-transition.' + name + ' > .pp-view.pp-active {\n' + transOldViewStyle + '}\n';
+      return css;
+    };
+    
+    return _generateDirection('push') + _generateDirection('pop');
+  };
+  
+  window.Pushpop = window['Pushpop'] || {
+    defaultTransition: 'slide-horizontal',
+    transitionsStyleElement: null,
+    init: function() {
+      
+      // Generate CSS for Transitions.
+      var transitions = this.Transitions, transitionsStyle = '', i, length;
+      for (i = 0, length = transitions.length; i < length; i++) transitionsStyle += _generateTransitionStyle(transitions[i]);
+      
+      // Add <style/> tag to the <head/> for the CSS Transitions.
+      var headElement = document.getElementsByTagName('head')[0];
+      var transitionsStyleElement = this.transitionsStyleElement = document.createElement('style');
+      transitionsStyleElement.setAttribute('type', 'text/css');
+      transitionsStyleElement.innerHTML = transitionsStyle;
+      headElement.appendChild(transitionsStyleElement);
+      
+      // Initialize all ViewStacks.
+      var viewStackElements = document.getElementsByClassName('pp-view-stack');
+      for (i = 0, length = viewStackElements.length; i < length; i++) new Pushpop.ViewStack(viewStackElements[i]);
+    
+      window.addEventListener('click', function(evt) {
+        var target = evt.target;
+        
+        if (target.nodeName !== 'A') return;
+        
+        var className = ' ' + target.className.replace(/[\n\t]/g, ' ') + ' ';
+        var href = (target.getAttribute('href') || '#').substring(1), transition = target.getAttribute('data-transition');
+        var viewElement, view, viewStack;
+        
+        // Perform a push.
+        if (className.indexOf(' pp-push ') !== -1) {
+          viewElement = document.getElementById(href);
+          view = viewElement.view || new Pushpop.View(viewElement);
+          viewStack = view.getViewStack();
+          
+          if (viewStack) viewStack.push(view, transition);
+        }
+        
+        // Perform a pop.
+        if (className.indexOf(' pp-pop ') !== -1) {
+          if (href) {
+            viewElement = document.getElementById(href);
+            view = viewElement.view || new Pushpop.View(viewElement);
+            viewStack = view.getViewStack();
+            
+            if (viewStack) viewStack.pop(view, transition || viewStack.getActiveView().transition);
+          } else {
+            var parent = target.parentNode;
+            var parentClassName;
+            
+            while (!viewStack && parent !== document.documentElement) {
+              parentClassName = ' ' + parent.className.replace(/[\n\t]/g, ' ') + ' ';
+              if (parentClassName.indexOf(' pp-view-stack ') !== -1) viewStack = parent.viewStack;
+              parent = parent.parentNode;
+            }
+            
+            if (viewStack) viewStack.pop(transition || viewStack.getActiveView().transition);
+          }
+        }
+        
+        evt.preventDefault();
+      });
     }
+  };
+  
+  Pushpop.ViewStack = function(element) {
+    var viewStack = element.viewStack;
+    if (viewStack) return viewStack;
     
-    var $oldActiveViewElement = oldActiveView.$element;
-    var $newActiveViewElement = newActiveView.$element;
+    this.element = element;
+    element.viewStack = this;
 
-    $newActiveViewElement.bind('webkitTransitionEnd transitionend oTransitionEnd transitionEnd', {
-      newActiveView: newActiveView
-    }, this.handleEvent);
-    
-    transition = newActiveView.transition = transition || oldActiveView.transition || Pushpop.defaultTransition;
-    
-    $oldActiveViewElement.addClass('pop ' + transition);
-    $newActiveViewElement.addClass('pop ' + transition);
-    
-    oldActiveView.forceReflow();
-    newActiveView.forceReflow();
-    
-    $oldActiveViewElement.addClass('transition');
-    $newActiveViewElement.addClass('transition');
-  },
-  getActiveView: function() {
-    var views = this.views;
-    var viewCount = views.length;
-    
-    return (viewCount === 0) ? null : views[viewCount - 1];
-  },
-  containsView: function(view) {
-    var views = this.views;
-    var viewCount = views.length;
-    
-    for (var i = viewCount - 1; i >= 0; i--) if (views[i] === view) return true;
-    return false;
-  }
-};
+    // Create the wrapper element.
+    var wrapperElement = this.wrapperElement = document.createElement('div');
+    wrapperElement.className = 'pp-view-wrapper';
+    element.appendChild(wrapperElement);
 
-$(function() {
-  var $views = $('.pp-view');
-  
-  $views.each(function(index, element) {
-    new Pushpop.View(element);
-  });
-  
-  var $viewStacks = $('.pp-view-stack');
-  
-  $viewStacks.each(function(index, element) {
-    new Pushpop.ViewStack(element);
-  });
-  
-  $('a.push').live('click', function(evt) {
-    var $this = $(this);
-    var href = $this.attr('href');
-    var $viewElement = $(href);
-    
-    var view = $viewElement.data('view') || new Pushpop.View($viewElement);
-    var viewStack = view.getViewStack();
-    if (viewStack) viewStack.push(view, $this.data('transition'));
-    
-    evt.preventDefault();
-  });
-  
-  $('a.pop').live('click', function(evt) {
-    var $this = $(this);
-    var href = $this.attr('href');
-    var viewStack;
-    
-    if (href === '#') {
-      viewStack = $this.parents('.pp-view-stack:first').data('viewStack');
-      if (viewStack) viewStack.pop($this.data('transition'));
-    } else {
-      var $viewElement = $(href);
-    
-      var view = $viewElement.data('view') || new Pushpop.View($viewElement);
-      viewStack = view.getViewStack();
-      if (viewStack) viewStack.pop(view, $this.data('transition'));
+    var views = this.views = [];
+
+    // Initialize the Views.
+    var childNodes = element.childNodes, childNode, classAttribute, view, rootView;
+    for (var i = 0, length = childNodes.length; i < length; i++) {
+      if (!(childNode = childNodes[i]) || childNode.tagName !== 'DIV') continue;
+      if ((' ' + childNode.className.replace(/[\n\t]/g, ' ') + ' ').indexOf(' pp-view ') === -1) continue;
+      
+      // Move the View element into the wrapper.
+      wrapperElement.appendChild(childNode);
+      
+      view = new Pushpop.View(childNode);
+      
+      // Set the first View as the root View.
+      if (!rootView) {
+        childNode.className += ' pp-active';
+        rootView = this.rootView = view;
+        views.push(rootView);
+      }
     }
+  };
+  
+  Pushpop.ViewStack.prototype = {
+    element: null,
+    wrapperElement: null,
+    views: null,
+    rootView: null,
+    isTransitioning: false,
+    handleEvent: function(evt) {
+      switch (evt.type) {
+        case 'webkitTransitionEnd':
+        case 'transitionend':
+        case 'oTransitionEnd':
+        case 'transitionEnd':
+          var wrapperElement = this.wrapperElement;
+          if (evt.target !== wrapperElement && (' ' + evt.target.className.replace(/[\n\t]/g, ' ') + ' ').indexOf(' pp-transition ') === -1) return;
+          
+          var viewElements = wrapperElement.childNodes;
+          var viewElement, oldViewElement, newViewElement;
+          var viewElementClassName, oldViewElementClassName, newViewElementClassName;
+          for (var i = 0, length = viewElements.length; i < length; i++) {
+            viewElement = viewElements[i];
+            
+            if (viewElement.nodeName !== 'DIV') continue;
+            
+            viewElementClassName = ' ' + viewElement.className.replace(/[\n\t]/g, ' ') + ' ';
+            
+            if (viewElementClassName.indexOf(' pp-view ') === -1) continue;
+            if (viewElementClassName.indexOf(' pp-transition ') === -1) continue;
+            
+            if (viewElementClassName.indexOf(' pp-active ') === -1) {
+              newViewElement = viewElement;
+              newViewElementClassName = viewElementClassName;
+            } else {
+              oldViewElement = viewElement;
+              oldViewElementClassName = viewElementClassName;
+            }
+            
+            if (oldViewElement && newViewElement) break;
+          }
+          
+          oldViewElement.className = oldViewElementClassName.replace('pp-transition', '').replace('pp-active', '');
+          newViewElement.className = newViewElementClassName.replace('pp-transition', '') + 'pp-active';
+          wrapperElement.className = 'pp-view-wrapper';
+          
+          this.isTransitioning = false;
+          break;
+        default:
+          break;
+      }
+    },
+    getActiveView: function() {
+      var views = this.views;
+      var viewCount = views.length;
+
+      return (viewCount === 0) ? null : views[viewCount - 1];
+    },
+    containsView: function(view) {
+      var views = this.views;
+      var viewCount = views.length;
+
+      for (var i = viewCount - 1; i >= 0; i--) if (views[i] === view) return true;
+      return false;
+    },
+    forceReflow: function() {
+      return this.element.offsetWidth;
+    },
+    push: function(view, transition) {
+      if (this.isTransitioning) return;
+      this.isTransitioning = true;
+
+      var oldView = this.getActiveView();
+      var newView = view;
+      var element = this.element;
+      var oldViewElement = oldView.element, newViewElement = newView.element, wrapperElement = this.wrapperElement;
+
+      // TODO: Trigger events.
+
+      this.views.push(newView);
+      
+      for (var i = 0, length = _transitionEndEvents.length; i < length; i++) element.addEventListener(_transitionEndEvents[i], this);
+      
+      transition = newView.transition = transition || newView.transition || Pushpop.defaultTransition;
+      oldViewElement.className += ' pp-transition';
+      newViewElement.className += ' pp-transition';
+      wrapperElement.className += ' pp-push ' + transition;
+      
+      this.forceReflow();
+      
+      // TODO: Investigate use of setTimeout for Android
+      wrapperElement.className += ' pp-transition';
+    },
+    pop: function(viewOrTransition, transition) {
+      if (this.isTransitioning) return;
+      this.isTransitioning = true;
+      
+      var views = this.views;
+      if (views.length <= 1) {
+        console.log(views.length);
+        return;
+      }
+      
+      var oldView = this.getActiveView();
+      var newView, transition;
+      
+      if (viewOrTransition && typeof viewOrTransition === 'object') {
+        newView = viewOrTransition;
+        
+        if (this.containsView(newView)) while (views.length > 1 && this.getActiveView() !== newView) views.pop();
+      }
+      
+      else {
+        if (viewOrTransition && typeof viewOrTransition === 'string') transition = viewOrTransition;
+        
+        views.pop();
+        newView = this.getActiveView();
+      }
+      
+      var element = this.element;
+      var oldViewElement = oldView.element, newViewElement = newView.element, wrapperElement = this.wrapperElement;
+      
+      // TODO: Trigger events.
+      
+      for (var i = 0, length = _transitionEndEvents.length; i < length; i++) element.addEventListener(_transitionEndEvents[i], this);
+      
+      transition = newView.transition = transition || oldView.transition || Pushpop.defaultTransition;
+      oldViewElement.className += ' pp-transition';
+      newViewElement.className += ' pp-transition';
+      wrapperElement.className += ' pp-pop ' + transition;
+      
+      this.forceReflow();
+      
+      // TODO: Investigate use of setTimeout for Android
+      wrapperElement.className += ' pp-transition';
+    }
+  };
+  
+  Pushpop.View = function(element) {
+    var view = element.view;
+    if (view) return view;
     
-    evt.preventDefault();
-  });
+    this.element = element;
+    element.view = this;
+    
+    this.title = element.getAttribute('data-view-title');
+  };
+  
+  Pushpop.View.prototype = {
+    element: null,
+    transition: null,
+    title: null,
+    getViewStack: function() {
+      return this.element.parentNode.parentNode.viewStack;
+    }
+  };
+})();
+
+window.addEventListener('load', function(evt) {
+  Pushpop.init();
 });
