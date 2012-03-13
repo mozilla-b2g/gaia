@@ -1,10 +1,14 @@
 
 B2G_HOMESCREEN=file://${GAIA}/homescreen.html
-INJECTED_GAIA = "$(MOZ_OBJDIR)/_tests/testing/mochitest/browser/gaia"
+MOZ_TESTS = "$(MOZ_OBJDIR)/_tests/testing/mochitest"
+INJECTED_GAIA = "$(MOZ_TESTS)/browser/gaia"
 TEST_PATH=gaia/tests/${TEST_FILE}
 
 
 mochitest:
+	echo "Checking if the mozilla build has mochitests enabled..."
+	test -d $(MOZ_TESTS) || exit 1
+	echo "Checking the injected Gaia..."
 	test -L $(INJECTED_GAIA) || ln -s $(GAIA) $(INJECTED_GAIA)
 	TEST_PATH=$(TEST_PATH) make -C $(MOZ_OBJDIR) mochitest-browser-chrome EXTRA_TEST_ARGS=--browser-arg=""
 
