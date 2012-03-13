@@ -102,6 +102,19 @@ window.addEventListener('load', function loadSettings(evt) {
 window.addEventListener('DOMContentLoaded', function() {
   document.location.hash = '#root';
   document.querySelector('#root').classList.remove('active');
+
+  // update UI when the language setting is changed
+  // XXX there's no way currently to fire a callback when a pref is changed
+  //     so we're using an ugly onclick + timeout :-/
+  var languages = document.getElementById('languages');
+  languages.addEventListener('mouseup', function() {
+    setTimeout(function() {
+      var req = navigator.mozSettings.get('language.current');
+      req.onsuccess = function() {
+        navigator.mozL10n.language = req.result.value;
+      }
+    }, 100);
+  }, false);
 }, false);
 
 // back button = close dialog || back to the root page
@@ -120,4 +133,15 @@ window.addEventListener('keyup', function(event) {
       document.location.hash = '#root';
     }
   }
+}, false);
+
+// Set the 'lang' and 'dir' attributes to <html> when the page is translated
+window.addEventListener('l10nLocaleLoaded', function() {
+  var lang = navigator.mozL10n.language;
+  var html = document.querySelector('html');
+  var rtlList = ['ar', 'he', 'fa']; // Arabic, Hebrew, Farsi
+  html.setAttribute('lang', lang);
+  html.setAttribute('dir', (rtlList.indexOf(lang) >= 0) ? 'rtl' : 'ltr');
+  // <body> is hidden (display: none) until the UI is translated
+  document.body.style.display = 'block';
 }, false);

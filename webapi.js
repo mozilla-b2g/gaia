@@ -1824,11 +1824,6 @@
   function loadLocale(lang, callback) {
     clear();
 
-    // add 'dir="rtl"' to <html> if required
-    var rtlLanguages = ['ar', 'he', 'fa'];
-    if (rtlLanguages.indexOf(lang) >= 0)
-      document.querySelector('html').setAttribute('dir', 'rtl');
-
     // check all <link type="application/l10n" href="..." /> nodes
     // and load the resource files
     var langLinks = document.querySelectorAll('link[type="application/l10n"]');
@@ -1846,6 +1841,7 @@
         // fire an 'l10nLocaleLoaded' DOM event
         var evtObject = document.createEvent('Event');
         evtObject.initEvent('l10nLocaleLoaded', false, false);
+        evtObject.language = lang;
         window.dispatchEvent(evtObject);
       }
     }
@@ -1986,14 +1982,8 @@
 
   navigator.mozL10n = {
     get: translateString,
-    set: function(key, val) { gL10nData[key] = val; },
     get language() { return gLanguage; },
     set language(lang) { loadLocale(lang, translateFragment); },
-    get text() { return gTextData; },
-    get data() { return gL10nData; },
-    loadResource: loadResource,
-    loadLocale: loadLocale,
-    translate: translateFragment,
-    clear: clear
+    translate: translateFragment
   };
 })(this);
