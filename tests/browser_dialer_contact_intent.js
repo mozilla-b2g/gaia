@@ -6,7 +6,13 @@ function test() {
   getWindowManager(function(windowManager) {
     function onReady(dialerFrame) {
       let dialerWindow = dialerFrame.contentWindow;
-      dialerWindow.visibilityChanged('../dialer/dialer.html?choice=contact');
+      var fakeEvt = {
+        data: {
+          hidden: false
+        }
+      };
+      dialerWindow.visibilityChanged('../dialer/dialer.html?choice=contact',
+                                     fakeEvt);
 
       ok(!dialerWindow.document.getElementById('contacts-view').hidden,
          'Contact view displayed');
