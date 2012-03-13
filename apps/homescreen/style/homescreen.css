@@ -14,17 +14,6 @@ body {
   height: 100%;
 }
 
-/*
- * Simulate a common device-screen size on large monitors, for testing
- * on desktops/laptops.  1300px is just wider than the widest tablet
- * screen on the market today.
- */
-@media all and (min-width: 1300px) {
-  #screen {
-    max-width: 480px;
-    max-height: 800px;
-  }
-}
 
 #lockscreen {
   position: absolute;
@@ -51,7 +40,7 @@ body {
   }
 }
 
-#notificationsScreen {
+#notifications-screen {
   position: absolute;
   z-index: 9996;
   top: -moz-calc(-100% + 64px);
@@ -60,7 +49,42 @@ body {
   background-color: #222;
 }
 
-#notificationsScreen > #grippy {
+#notifications-container .notification {
+  background-image: url(images/notifications.png);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+
+  height: 80px;
+  font-weight: bold;
+}
+
+#notifications-container .notification * {
+  pointer-events: none;
+}
+
+#notifications-container .notification > div:first-child {
+  margin: 0 0 0 85px;
+  padding: 20px 0 0 0;
+
+  font-size: 2.5mozmm;
+  line-height: 2.5mozmm;
+  color: #111;
+}
+
+#notifications-container .notification > div:last-child {
+  margin: 0 0 0 85px;
+  padding: 0;
+  width: -moz-calc(100% - 105px);
+  height: 25px;
+
+  font-size: 2mozmm;
+  color: #666;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#grippy {
   pointer-events: none;
   position: absolute;
   bottom: 0;
@@ -87,72 +111,32 @@ body {
 }
 
 #home > #apps {
-  top: 0;
-  height: 594px;
   margin-top: 40px;
+  top: 0;
+
+  /* height = -margin-top +100% - dots.height - notifications.height */
+  height: -moz-calc(-40px + 100% - 14px - 80px);
+
+  width: 100%;
 }
 
 #home > #dots {
-  top: 650px;
+  bottom: 90px;
   height: 14px;
   line-height: 14px;
   text-align: center;
-}
-
-#home > #notifications {
-  bottom: 0px;
-  height: 80px;
-  background-image: url(images/notifications.png);
-  background-repeat: no-repeat;
-  background-size: 100% 100%;
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
-
-  -moz-transition: -moz-transform 0.3s ease;
-}
-
-#home > #notifications.hidden {
-  -moz-transform: translateY(80px);
-}
-
-#home .notification {
-  margin-left: 85px;
-  font-weight: bold;
-}
-
-#home .notification > div:first-child {
-  margin: 0;
-  padding: 20px 0 0 0;
-
-  font-size: 2.5mozmm;
-  line-height: 2.5mozmm;
-  color: #111;
-}
-
-#home .notification > div:last-child {
-  margin: 0;
-  padding: 0;
-  width: -moz-calc(100% - 20px);
-  height: 25px;
-
-  font-size: 2mozmm;
-  color: #666;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .page {
   position: absolute;
   left: 42px;
   top: 0px;
-  width: 100%;
-  height: 100%;
+  width: -moz-calc(100% - 42px);
 }
 
 .icon {
-  position: absolute;
-  overflow: hidden;
+  position: relative;
+  float: left;
 }
 
 .icon > * {
@@ -167,26 +151,21 @@ body {
   display: inline-block;
 }
 
-@media all and (max-height: 480px) {
+@media all and (max-height: 600px) {
   #home > #apps {
-    height: 400px;
-    margin-top: 10px;
-  }
-
-  #home > #notifications {
-    height: 50px;
+    /* height = -margin-top +100% - dots.height - notifications.height */
+    height: -moz-calc(-40px + 100% - 14px - 0px);
   }
 
   #home > #dots {
-    top: 380px;
+    bottom: 0px;
   }
+}
 
+@media all and (max-width: 320px) {
   .page {
     left: 30px;
-  }
-
-  .icon {
-    height: 180px;
+    width: -moz-calc(100% - 30px);
   }
 }
 
@@ -235,7 +214,7 @@ iframe.appWindow {
 
 iframe.appWindow.active {
   z-index: 9995;
-  background-color: #000;
+  background-color: #fff;
 }
 
 #screen.fullscreen iframe.appWindow.active {
@@ -315,8 +294,18 @@ iframe.landscape-secondary {
   pointer-events: none;
 }
 
-#screen.fullscreen > :-moz-any(#statusbar,#notificationsScreen) {
+#screen.fullscreen > :-moz-any(#statusbar,#notifications-screen) {
   display: none;
+}
+
+#state-messages[data-visible] {
+  width: 32px;
+  height: 32px;
+}
+
+#state-calls[data-visible] {
+  width: 32px;
+  height: 32px;
 }
 
 #statusbar > #padding {

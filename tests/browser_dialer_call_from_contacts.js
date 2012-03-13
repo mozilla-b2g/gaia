@@ -22,18 +22,23 @@ function test() {
         var aContact = contactsList.querySelector('.contact');
         EventUtils.sendMouseEvent({type: 'click'}, aContact);
 
-        var overlay = dialerWindow.document.getElementById('contacts-overlay');
-        ok(overlay.classList.contains('displayed'), 'Overlay view displayed');
+        var overlay = dialerWindow.ContactDetails.overlay;
 
-        var number = overlay.querySelector('#contact-phones div');
-        var callScreen = dialerWindow.document.getElementById('call-screen');
+        overlay.addEventListener('transitionend', function trWait() {
+          overlay.removeEventListener('transitionend', trWait);
 
-        EventUtils.sendMouseEvent({type: 'click'}, number);
-        callScreen.addEventListener('transitionend', function trWait() {
-          callScreen.removeEventListener('transitionend', trWait);
-          ok(callScreen.classList.contains('oncall'), 'Call screen displayed');
+          ok(overlay.classList.contains('displayed'), 'Overlay view displayed');
 
-          windowManager.closeForegroundWindow();
+          var number = dialerWindow.ContactDetails.contactPhone;
+          var callScreen = dialerWindow.CallHandler.callScreen;
+
+          EventUtils.sendMouseEvent({type: 'click'}, number);
+          callScreen.addEventListener('transitionend', function trWait() {
+            callScreen.removeEventListener('transitionend', trWait);
+            ok(callScreen.classList.contains('oncall'), 'CallScreen displayed');
+
+            windowManager.closeForegroundWindow();
+          });
         });
       }, function() {
         return (('Contacts' in dialerWindow) && dialerWindow.Contacts._loaded);

@@ -59,8 +59,7 @@ var Settings = {
     var key = input.name || input.dataset.name;
     if (!key)
       return;
-        
-        
+
     switch(evt.type) {
       case 'change':
         var value;
@@ -98,3 +97,27 @@ window.addEventListener('load', function loadSettings(evt) {
   window.addEventListener('click', Settings);
   Settings.init();
 });
+
+// ensure the root page is visible at startup
+window.addEventListener('DOMContentLoaded', function() {
+  document.location.hash = '#root';
+  document.querySelector('#root').classList.remove('active');
+}, false);
+
+// back button = close dialog || back to the root page
+window.addEventListener('keyup', function(event) {
+  if (document.location.hash != '#root' &&
+      event.keyCode === event.DOM_VK_ESCAPE) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    var dialog = document.querySelector('#dialogs .active');
+    if (dialog) {
+      dialog.classList.remove('active');
+      document.body.classList.remove('dialog');
+    }
+    else {
+      document.location.hash = '#root';
+    }
+  }
+}, false);

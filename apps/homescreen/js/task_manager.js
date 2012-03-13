@@ -16,21 +16,19 @@ var TaskManager = {
     this.container.classList.remove('active');
   },
 
-  get container() {
-    delete this.container;
-    return this.container = document.getElementById('taskManager');
-  },
-
-  get items() {
-    delete this.items;
-    return this.items = this.container.getElementsByTagName('ul')[0];
-  },
-
   enabled: true,
   init: function tm_init() {
-    ['keydown', 'keyup', 'locked', 'unlocked'].forEach((function attachKey(type) {
+    this.container = document.getElementById('taskManager');
+    this.items = this.container.getElementsByTagName('ul')[0];
+
+    var events = ['locked', 'unlocked', 'appwillopen', 'appfocus',
+                  'appclose'];
+    events.forEach((function attachKey(type) {
       window.addEventListener(type, this);
     }).bind(this));
+
+    window.addEventListener('keydown', this);
+    window.addEventListener('keyup', this);
 
     // hiding the task manager when a call comes in
     var telephony = navigator.mozTelephony;
@@ -43,35 +41,63 @@ var TaskManager = {
 
   _timeout: 0,
   handleEvent: function tm_handleEvent(evt) {
+    var detail = evt.detail;
     switch (evt.type) {
       case 'keydown':
-        if (!this.enabled || evt.keyCode !== evt.DOM_VK_HOME || this._timeout)
+        if (!this.enabled || this._timeout)
           return;
+        this._cancelled = false;
 
-        if (this.isActive()) {
-          this.hide();
+        if (evt.keyCode !== evt.DOM_VK_HOME || this.isActive())
           return;
-        }
 
         this._timeout = window.setTimeout(function checkKeyPress(self) {
+          self._cancelled = true;
           self.show();
         }, 1000, this);
         break;
 
       case 'keyup':
-        if (evt.keyCode !== evt.DOM_VK_HOME)
-          return;
+        if (!this._timeout && !evt.defaultPrevented && this.isActive()) {
+          this.hide();
+          evt.preventDefault();
+        }
+
+        if (this._cancelled)
+          evt.preventDefault();
 
         window.clearTimeout(this._timeout);
         this._timeout = 0;
         break;
 
-
       case 'locked':
         this.enabled = false;
         break;
+
       case 'unlocked':
         this.enabled = true;
+        break;
+
+      case 'appwillopen':
+        this.add(detail, detail.id);
+        break;
+
+      case 'appfocus':
+        this.sendToFront(detail.id);
+        break;
+
+      case 'appclose':
+        if (!detail.hackKillMe)
+          return;
+
+        // waiting for the closing transition to end before removing
+        // the iframe from dom
+        var self = this;
+        var target = evt.target;
+        target.addEventListener('transitionend', function waitToKill() {
+          target.removeEventListener('transitionend', waitToKill);
+          self.remove(detail, detail.id);
+        });
         break;
     }
   },
@@ -114,7 +140,7 @@ var TaskManager = {
 
     WindowManager.kill(app.url);
 
-    if (this.items.children.length === 0) 
+    if (this.items.children.length === 0)
       this.hide();
   },
 

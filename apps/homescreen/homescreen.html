@@ -23,6 +23,10 @@
     <div id="screen">
       <div id="keyboard" data-hidden="true" onmousedown="return false;"></div>
       <div id="statusbar">
+        <div id="state">
+          <div id="state-messages" class="state"></div>
+          <div id="state-calls" class="state"></div>
+        </div>
         <div id="titlebar"></div>
         <div id="padding"></div>
         <div id="signal">
@@ -41,12 +45,14 @@
       <div id="home">
         <div id="apps"></div>
         <div id="dots"></div>
-        <div id="notifications"></div>
+        <div id="shortcuts"></div>
       </div>
       <div id="windows">
         <!-- application windows are added here -->
       </div>
-      <div id="notificationsScreen">
+      <div id="notifications-screen">
+        <div id="notifications-container">
+        </div>
         <div id="grippy">
         </div>
       </div>
