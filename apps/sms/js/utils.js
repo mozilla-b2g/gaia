@@ -27,6 +27,16 @@ function prettyDate(time) {
     (new Date(time)).toLocaleFormat('%x');
 }
 
+setInterval(
+  function updatePrettyDate() {
+    var labels = document.querySelectorAll('[data-time]');
+    for (var i in labels) {
+      labels[i].nodeValue = prettyDate(labels[i].dataset.time);
+    }
+  },
+  60*1000
+);
+
 window.addEventListener('message', function visibleApp(evt) {
   var data = evt.data;
   if (data.message == 'visibilitychange' && !data.hidden) {

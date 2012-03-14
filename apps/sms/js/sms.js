@@ -104,12 +104,12 @@ var ConversationListView = {
               'body': message.body,
               'name': num,
               'num': num,
-              'timestamp': prettyDate(message.timestamp),
+              'timestamp': message.timestamp,
               'id': parseInt(i)
             };
           } else {
             conversation.hidden = false;
-            conversation.timestamp = prettyDate(message.timestamp);
+            conversation.timestamp = message.timestamp;
             conversation.body = message.body;
           }
         }
@@ -137,7 +137,9 @@ var ConversationListView = {
            '  </div>' +
            '  <div class="name">' + conversation.name + '</div>' +
            '  <div class="msg">' + conversation.body.split('\n')[0] + '</div>' +
-           '  <div class="time">' + conversation.timestamp + '</div>' +
+           (conversation.timestamp ?
+             '  <div class="time" data-time="' + conversation.timestamp + '">' +
+                 prettyDate(conversation.timestamp) + '</div>' : '') +
            '</div>';
   },
 
@@ -336,14 +338,14 @@ var ConversationView = {
           pic = '../contacts/contact9.png';
         }
 
-        var time = prettyDate(msg.timestamp);
         var body = msg.body.replace(/\n/g, '<br />');
         fragment += '<div ' + className + ' ' + dataNum + ' ' + dataId + '>' +
                       '<div class="photo">' +
                       '  <img src="' + pic + '" />' +
                       '</div>' +
                       '<div class="text">' + body + '</div>' +
-                      '<div class="time">' + time + '</div>' +
+                      '<div class="time" data-time="' + msg.timestamp + '">' +
+                          prettyDate(msg.timestamp) + '</div>' +
                     '</div>';
       }
 
