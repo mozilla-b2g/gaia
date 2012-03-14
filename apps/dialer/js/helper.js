@@ -37,7 +37,7 @@ setInterval(
     var labels = document.querySelectorAll('[data-time]');
     var i = labels.length;
     while(i--) {
-      labels[i].nodeValue = prettyDate(labels[i].dataset.time);
+      labels[i].textContent = prettyDate(labels[i].dataset.time);
     }
   },
   60*1000
