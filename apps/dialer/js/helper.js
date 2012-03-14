@@ -52,4 +52,4 @@ function prettyDate(time) {
       timer = setInterval(updatePrettyDate, 60 * 1000);
     }
   });
-);
+})();

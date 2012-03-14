@@ -47,7 +47,7 @@ function prettyDate(time) {
       timer = setInterval(updatePrettyDate, 60 * 1000);
     }
   });
-);
+})();
 
 window.addEventListener('message', function visibleApp(evt) {
   var data = evt.data;
