@@ -11,19 +11,10 @@ js/contacts.js
 
 # style/
 style/dialer.css
-style/images/missing.png
-style/images/lens.png
-style/fonts/Roboto-BoldItalic.ttf
-style/fonts/Roboto-Bold.ttf
-style/fonts/Roboto-Italic.ttf
-style/fonts/Roboto-Regular.ttf
 
 # icons used in the web application manifest.
 # Do not use icons/ directly since it is often used as an alias by Apache.
 style/icons/Phone.png
-
-# tmp files
-webapi+apps.js
 
 NETWORK:
 

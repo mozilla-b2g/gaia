@@ -8,15 +8,14 @@ manifest.webapp
 
 # js/
 js/homescreen.js
-js/scenegraph.js
 js/app_manager.js
 js/task_manager.js
 js/keyboard.js
 js/keyboardLayout.js
 
 # imes/
-imes/jszhuying/loader.js
-imes/jszhuying/data.json
+imes/jszhuying/jszhuying.js
+imes/jspinyin/jspinyin.js
 
 # style/
 style/homescreen.css
@@ -28,7 +27,6 @@ style/themes/default/statusbar.css
 style/themes/default/fonts/Open-Sans.woff
 style/themes/default/fonts/Open-Sans-Semibold.woff
 style/themes/default/fonts/Open-Sans-Bold.woff
-style/themes/default/images/background.png
 style/themes/default/images/wifi.png
 style/themes/default/images/noise.png
 style/themes/default/images/battery-main.png
@@ -64,9 +62,6 @@ style/keyboard/images/left-special.png
 style/keyboard/images/right-active.png
 style/keyboard/fonts/Keyboard-Symbols.svg
 style/keyboard/fonts/Keyboard-Symbols.woff
-
-# tmp files
-webapi+apps.js
 
 NETWORK:
 

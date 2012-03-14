@@ -20,8 +20,5 @@ style/images/loading.gif
 # Do not use icons/ directly since it is often used as an alias by Apache.
 style/icons/Browser.png
 
-# tmp files
-webapi+apps.js
-
 NETWORK:
 

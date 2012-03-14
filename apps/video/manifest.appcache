@@ -6,7 +6,7 @@ video.html
 manifest.webapp
 
 # js/
-js/util.js
+js/domutils.js
 js/video.js
 
 # style/

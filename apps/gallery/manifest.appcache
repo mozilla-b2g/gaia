@@ -7,7 +7,6 @@ manifest.webapp
 
 # js/
 js/gallery.js
-js/sample_data.json
 
 # style/
 style/gallery.css
@@ -15,9 +14,6 @@ style/gallery.css
 # icons used in the web application manifest.
 # Do not use icons/ directly since it is often used as an alias by Apache.
 style/icons/Gallery.png
-
-# tmp files
-webapi+apps.js
 
 NETWORK:
 

@@ -18,8 +18,5 @@ style/fonts/Open-Sans-Semibold.woff
 # Do not use icons/ directly since it is often used as an alias by Apache.
 style/icons/Calculator.png
 
-# tmp files
-webapi+apps.js
-
 NETWORK:
 

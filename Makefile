@@ -1,8 +1,11 @@
 
-B2G_HOMESCREEN=file://${GAIA}/homescreen.html
+GAIA_DIR?=$(CURDIR)
+B2G_HOMESCREEN=file://$(GAIA_DIR)/homescreen.html
+
+PROFILE_DIR?=$(CURDIR)
+
 INJECTED_GAIA = "$(MOZ_OBJDIR)/_tests/testing/mochitest/browser/gaia"
 TEST_PATH=gaia/tests/${TEST_FILE}
-
 
 mochitest:
 	test -L $(INJECTED_GAIA) || ln -s $(GAIA) $(INJECTED_GAIA)
@@ -50,4 +53,9 @@ forward:
 	$(ADB) shell touch /data/local/rilproxyd
 	$(ADB) shell killall rilproxy
 	$(ADB) forward tcp:6200 localreserved:rilproxyd
+
+# Build the offline cache database
+.PHONY: offline
+offline:
+	$(MOZ_OBJDIR)/dist/bin/run-mozilla.sh $(MOZ_OBJDIR)/dist/bin/xpcshell -e 'const GAIA_DIR = "$(GAIA_DIR)"; const PROFILE_DIR = "$(PROFILE_DIR)"' offline-cache.js
 
