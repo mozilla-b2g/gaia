@@ -72,7 +72,31 @@ function test() {
                       function(contact) {
                         ok(contact.id == contactId, 'Contact has been updated');
 
-                        windowManager.closeForegroundWindow();
+                        entry = dialerWindow.document.getElementById(contactId);
+                        EventUtils.sendMouseEvent({type: 'click'}, entry);
+
+                        overlay.addEventListener('transitionend', function trWait() {
+                          overlay.removeEventListener('transitionend', trWait);
+
+                          EventUtils.sendMouseEvent({type: 'click'}, editButton);
+
+                          var deleteSelector = 'button[data-action="destroy"]';
+                          var deleteButton = details.view.querySelector(deleteSelector);
+
+                          EventUtils.sendMouseEvent({type: 'click'}, deleteButton);
+
+                          overlay.addEventListener('transitionend', function trWait() {
+                            overlay.removeEventListener('transitionend', trWait);
+
+                            ok(!details.view.classList.contains('editing'),
+                               'Out of editing mode');
+
+                            entry = dialerWindow.document.getElementById(contactId);
+                            ok(entry == null, 'Entry for the contact removed');
+
+                            windowManager.closeForegroundWindow();
+                          });
+                        });
                       });
                     });
                   }, function() {

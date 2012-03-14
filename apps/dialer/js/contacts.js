@@ -384,9 +384,16 @@ var ContactDetails = {
     }
   },
 
-  destroy: function cd_destroy() {
-    // TODO: destroy the contact
-    this.hide();
+  destroy: function cd_destroy(evt) {
+
+    var req = navigator.mozContacts.remove(this._contact);
+    req.onsuccess = (function() {
+      this.render();
+      this.hide();
+      Contacts.reload();
+    }.bind(this));
+
+    evt.preventDefault();
   },
 
   call: function cd_call(evt) {
