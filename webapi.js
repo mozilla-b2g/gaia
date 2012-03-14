@@ -227,6 +227,24 @@
                      }
                    }
                  },
+                 { // zimbra
+                   installOrigin: 'https://mail.mozilla.com',
+                   origin: 'https://mail.mozilla.com',
+                   receipt: null,
+                   installTime: 1323339869000,
+                   manifest: {
+                     'name': 'Zimbra',
+                     'description': 'Mozilla Zimbra Mail',
+                     'launch_path': '/zimbra/m',
+                     'developer': {
+                       'name': 'Zimbra',
+                       'url': 'http://zimbra.com'
+                     },
+                     'icons': {
+                       '120': '/style/icons/Zimbra.png'
+                     }
+                   }
+                 },
                  { // settings
                    'installOrigin': 'http://gaiamobile.org:8888',
                    'origin': '../settings',
@@ -1701,6 +1719,7 @@
 
       setTimeout(function() {
         self.connected = network;
+        network.connected = true;
         if (self.onconnect)
           self.onconnect(networkEvent);
       }, 2000);
