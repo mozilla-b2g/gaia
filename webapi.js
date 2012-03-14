@@ -1978,7 +1978,7 @@
     else {
       loadLocale(navigator.language, translateFragment);
     }
-  }, false);
+  });
 
   // Public API
   document.mozL10n = {

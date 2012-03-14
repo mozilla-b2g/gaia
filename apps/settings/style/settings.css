@@ -27,8 +27,12 @@ html, body {
   padding: 0 10px 0 0;
 }
 
-*[dir=rtl] .view { -moz-transform: translateX(-100%); }
-*[dir=rtl] #root { -moz-transform: translateX(+100%); }
+*[dir=rtl] .view {
+  -moz-transform: translateX(-100%);
+}
+*[dir=rtl] #root {
+  -moz-transform: translateX(+100%);
+}
 
 *[dir=rtl] #root:target,
 *[dir=rtl] .view:target {

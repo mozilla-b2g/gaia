@@ -9,6 +9,10 @@ body {
   background: hsl(0, 0%, 96%) url(images/app-texture.png);
 }
 
+body.hidden * {
+  display: none;
+}
+
 header {
   position: relative;
   height: 62px;
