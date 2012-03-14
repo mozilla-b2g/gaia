@@ -113,7 +113,7 @@ window.addEventListener('DOMContentLoaded', function showRoot() {
       req.onsuccess = function retranslate() {
         document.mozL10n.language = req.result.value;
       }
-    }, 100);
+    }, 0);
   });
 });
 
