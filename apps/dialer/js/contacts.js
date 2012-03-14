@@ -100,7 +100,7 @@ var Contacts = {
       if (contact.className == 'contact-header')
         continue;
 
-      var name = contact.querySelector('span').textContent;
+      var name = contact.textContent;
       var rule = new RegExp(value, 'gi');
       contact.hidden = (name.search(rule) == -1);
     }
