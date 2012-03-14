@@ -580,8 +580,7 @@ html * {
 }
 
 #contact-details-view button,
-#contact-details-view input[type="submit"],
-#contact-details-view input.destroy
+#contact-details-view input[type="submit"]
 {
   position: absolute;
   bottom: 20px;
@@ -607,7 +606,7 @@ html * {
   border-radius: 5px;
 }
 
-#contact-details-view input.destroy {
+#contact-details-view button[data-action='destroy'] {
 	right:auto;
 	left:20px;
 	color: hsl(0,0%,100%);
