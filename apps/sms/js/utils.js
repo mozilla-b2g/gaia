@@ -27,15 +27,26 @@ function prettyDate(time) {
     (new Date(time)).toLocaleFormat('%x');
 }
 
-setInterval(
-  function updatePrettyDate() {
+(function() {
+  var updatePrettyDate = function updatePrettyDate() {
     var labels = document.querySelectorAll('[data-time]');
     var i = labels.length;
     while (i--) {
       labels[i].textContent = prettyDate(labels[i].dataset.time);
     }
-  },
-  60*1000
+  };
+  var timer = setInterval(updatePrettyDate, 60 * 1000);
+
+  window.addEventListener('message', function visibleAppUpdatePrettyDate(evt) {
+    var data = evt.data;
+    if (data.message !== 'visibilitychange')
+      return;
+    clearTimeout(timer);
+    if (!data.hidden) {
+      updatePrettyDate();
+      timer = setInterval(updatePrettyDate, 60 * 1000);
+    }
+  });
 );
 
 window.addEventListener('message', function visibleApp(evt) {
