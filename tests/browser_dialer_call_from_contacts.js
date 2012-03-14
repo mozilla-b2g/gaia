@@ -4,19 +4,20 @@ function test() {
   let url = '../dialer/dialer.html';
 
   getWindowManager(function(windowManager) {
+    var testContact;
     function onReady(dialerFrame) {
       let dialerWindow = dialerFrame.contentWindow;
 
       // creating a contact
-      var contact = new mozContact();
-      contact.init({
+      testContact = new mozContact();
+      testContact.init({
         givenName: 'Tom',
         familyName: 'Testing',
         name: 'Tom Testing',
         tel: '123-456-789'
       });
 
-      var req = navigator.mozContacts.save(contact);
+      var req = navigator.mozContacts.save(testContact);
       req.onsuccess = function() {
         var keyboardTab = dialerWindow.document.getElementById('keyboard-label');
         EventUtils.sendMouseEvent({type: 'click'}, keyboardTab);
@@ -58,6 +59,7 @@ function test() {
     }
 
     function onClose() {
+      navigator.mozContacts.remove(testContact);
       windowManager.kill(url);
       finish();
     }
