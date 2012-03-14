@@ -111,7 +111,7 @@ window.addEventListener('DOMContentLoaded', function() {
     setTimeout(function() {
       var req = navigator.mozSettings.get('language.current');
       req.onsuccess = function() {
-        navigator.mozL10n.language = req.result.value;
+        document.mozL10n.language = req.result.value;
       }
     }, 100);
   }, false);
@@ -137,11 +137,9 @@ window.addEventListener('keyup', function(event) {
 
 // Set the 'lang' and 'dir' attributes to <html> when the page is translated
 window.addEventListener('l10nLocaleLoaded', function() {
-  var lang = navigator.mozL10n.language;
   var html = document.querySelector('html');
-  var rtlList = ['ar', 'he', 'fa']; // Arabic, Hebrew, Farsi
-  html.setAttribute('lang', lang);
-  html.setAttribute('dir', (rtlList.indexOf(lang) >= 0) ? 'rtl' : 'ltr');
+  html.setAttribute('lang', document.mozL10n.language);
+  html.setAttribute('dir', document.mozL10n.direction);
   // <body> is hidden (display: none) until the UI is translated
-  document.body.style.display = 'block';
+  document.body.removeAttribute('style');
 }, false);

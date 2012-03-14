@@ -5,7 +5,7 @@
 
 window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
   var wifiManager = navigator.mozWifiManager;
-  var _ = navigator.mozL10n.get;
+  var _ = document.mozL10n.get;
 
   // globals
   var gStatus = document.querySelector('#status small');

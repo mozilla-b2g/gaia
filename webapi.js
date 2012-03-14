@@ -1713,7 +1713,7 @@
   };
 })(this);
 
-// navigator.mozL10n
+// document.mozL10n
 (function(window) {
   var gL10nData = {};
   var gTextData = '';
@@ -1980,10 +1980,22 @@
     }
   }, false);
 
-  navigator.mozL10n = {
+  // Public API
+  document.mozL10n = {
+    // get|set a localized string
     get: translateString,
+    set: function(key, val) { gL10nData[key] = val; },
+
+    // get|set the document language
     get language() { return gLanguage; },
     set language(lang) { loadLocale(lang, translateFragment); },
-    translate: translateFragment
+
+    // get the direction (ltr|rtl) of the current language
+    get direction() {
+      // http://www.w3.org/International/questions/qa-scripts
+      // Arabic, Hebrew, Farsi, Pashto, Urdu
+      var rtlList = ['ar', 'he', 'fa', 'ps', 'ur'];
+      return (rtlList.indexOf(gLanguage) >= 0) ? 'rtl' : 'ltr';
+    }
   };
 })(this);
