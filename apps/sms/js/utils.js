@@ -30,8 +30,9 @@ function prettyDate(time) {
 setInterval(
   function updatePrettyDate() {
     var labels = document.querySelectorAll('[data-time]');
-    for (var i in labels) {
-      labels[i].nodeValue = prettyDate(labels[i].dataset.time);
+    var i = labels.length;
+    while (i--) {
+      labels[i].textContent = prettyDate(labels[i].dataset.time);
     }
   },
   60*1000
