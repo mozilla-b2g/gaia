@@ -22,6 +22,10 @@ function startup() {
 
     window.parent.postMessage('homescreenready', '*');
   });
+
+  updateClock();
+  updateBattery();
+  updateConnection();
 }
 
 var LockScreen = {
@@ -416,14 +420,6 @@ function updateConnection() {
   conn.addEventListener('cardstatechange', updateConnection);
   conn.addEventListener('connectionchange', updateConnection);
 }
-
-window.addEventListener('load', function load(){
-  window.removeEventListener('load', load);
-
-  updateClock();
-  updateBattery();
-  updateConnection();
-});
 
 var SoundManager = {
   currentVolume: 5,
