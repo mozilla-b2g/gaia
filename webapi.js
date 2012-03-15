@@ -1450,25 +1450,8 @@
     email: ['faucibus.lectus@nuncsedpede.com']
   }];
 
-  if (('mozContacts' in navigator) && (navigator.mozContacts != null)) {
-    // XXX: pre-filling the mozContacts database for now
-    var request = window.navigator.mozContacts.find({});
-    request.onsuccess = function contactFill() {
-      if (request.result.length == 0) {
-        contacts.forEach(function contactIterator(contact) {
-          var newContact = new mozContact();
-          newContact.init({name: contact.name,
-                           familyName: contact.familyName[0],
-                           givenName: contact.givenName[0],
-                           tel: contact.tel[0],
-                           email: contact.email[0]});
-
-          var writeRequest = navigator.mozContacts.save(newContact);
-        });
-      }
-    };
+  if (('mozContacts' in navigator) && (navigator.mozContacts != null))
     return;
-  }
 
   navigator.mozContacts = {
     find: function fakeContactFind() {

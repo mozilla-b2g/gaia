@@ -21,20 +21,7 @@ function test() {
            'Conversation displayed');
         ok(contactField.value.length == 0, 'To: field empty');
 
-        contactField.value = '123';
-        textField.value = 'Hello world.';
-        EventUtils.sendMouseEvent({type: 'mousedown'}, sendButton);
-
-        let rule = '#view-list > div';
-        waitFor(function() {
-          let messageCount = document.querySelectorAll(rule).length;
-          ok((messageCount == 1), 'Message added');
-
-          windowManager.closeForegroundWindow();
-        }, function() {
-          let messageCount = document.querySelectorAll(rule).length;
-          return messageCount == 1;
-        });
+        windowManager.closeForegroundWindow();
       });
     }
 
