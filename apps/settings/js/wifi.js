@@ -13,7 +13,7 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
 
   // current state
   function updateState() {
-    var currentNetwork = wifiManager.connected;
+    var currentNetwork = wifiManager.connectedNetwork;
     var enabledBox = document.querySelector('#wifi input[type=checkbox]');
     if (currentNetwork) {
       gStatus.textContent = _('connected', { ssid: currentNetwork.ssid });
@@ -103,7 +103,7 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
   }
 
   function wifiConnect(network) {
-    var connection = wifiManager.select(network);
+    var connection = wifiManager.associate(network);
     connection.onsuccess = function() {
       gStatus.textContent = _('connecting', { ssid: network.ssid });
     };
@@ -123,6 +123,7 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
 
   wifiManager.onconnect = function(event) {
     gStatus.textContent = _('connected', { ssid: event.network.ssid });
+    wifiScanNetworks(); // refresh the network list
   };
 
   wifiManager.ondisconnect = function(event) {
@@ -132,32 +133,44 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
   // scan wifi networks
   function wifiScanNetworks() {
     var req = wifiManager.getNetworks();
+
     req.onsuccess = function() {
       var networks = req.result;
-      while (gList.hasChildNodes())
-        gList.removeChild(gList.lastChild);
+
+      // sort networks: connected network first, then by signal strength
       var ssids = Object.getOwnPropertyNames(networks);
       ssids.sort(function(a, b) {
-        return networks[b].signal - networks[a].signal;
+        return isConnected(networks[b]) ?  100 :
+          networks[b].signal - networks[a].signal;
       });
+
+      // create list
+      while (gList.hasChildNodes())
+        gList.removeChild(gList.lastChild);
       for (var i = 0; i < ssids.length; i++) {
         var li = newListItem(networks[ssids[i]]);
         gList.appendChild(li);
       }
     };
+
     req.onerror = function(error) {
       gStatus.textContent = 'error: ' + req.error.name;
     };
+
     updateState();
   }
 
-  function showNetwork(network) {
+  function isConnected(network) {
     // XXX the API should expose a 'connected' property on 'network',
-    // and the wifiManager.connected object should be comparable to 'network'.
+    // and 'wifiManager.connectedNetwork' should be comparable to 'network'.
     // Until this is properly implemented, we just compare SSIDs to tell wether
     // the network is already connected or not.
-    var currentNetwork = wifiManager.connected;
-    if (currentNetwork && currentNetwork.ssid == network.ssid) {
+    var currentNetwork = wifiManager.connectedNetwork;
+    return currentNetwork && (currentNetwork.ssid == network.ssid);
+  }
+
+  function showNetwork(network) {
+    if (isConnected(network)) {
       // online: show status + offer to disconnect
       wifiDialog('#wifi-status', network, wifiDisconnect);
     }
@@ -204,7 +217,7 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
     // identity/password
     var identity = dialog.querySelector('input[name=identity]');
     if (identity)
-      identity.value = network.identity;
+      identity.value = network.identity || '';
 
     var password = dialog.querySelector('input[name=password]');
     if (password) {
@@ -234,24 +247,18 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
       close();
       if (identity)
         network.identity = identity.value;
-      if (password) {
+      // when we're on a known network, password == '*':
+      // no further authentication required.
+      if (password && password.value != '*') {
         var key = network.capabilities[0];
         var keyManagement = '';
         if (/WEP$/.test(key)) {
           keyManagement = 'WEP';
-          // XXX the wifi API says we should put the password in .wep,
-          //     but the current implementation only reads .password.
-          //     Copying the password to both until the situation gets clear.
           network.wep = password.value;
-          network.password = password.value;
         }
         else if (/PSK$/.test(key)) {
           keyManagement = 'WPA-PSK';
-          // XXX the wifi API says we should put the password in .psk,
-          //     but the current implementation only reads .password.
-          //     Copying the password to both until the situation gets clear.
           network.psk = password.value;
-          network.password = password.value;
         }
         else if (/EAP$/.test(key)) {
           keyManagement = 'WPA-EAP';

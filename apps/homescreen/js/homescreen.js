@@ -22,6 +22,10 @@ function startup() {
 
     window.parent.postMessage('homescreenready', '*');
   });
+
+  updateClock();
+  updateBattery();
+  updateConnection();
 }
 
 var LockScreen = {
@@ -720,6 +724,10 @@ var ScreenManager = {
 
     this.preferredBrightness = screen.mozBrightness;
     screen.mozBrightness = 0.0;
+
+    updateClock();
+    updateBattery();
+    updateConnection();
 
     return true;
   },
