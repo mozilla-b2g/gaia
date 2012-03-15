@@ -140,11 +140,9 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
 
       // sort networks: connected network first, then by signal strength
       var ssids = Object.getOwnPropertyNames(networks);
-      var currentSSID = wifiManager.connectedNetwork ?
-        wifiManager.connectedNetwork.ssid : '';
       ssids.sort(function(a, b) {
-        return (networks[b].ssid == currentSSID) ?
-          100 : networks[b].signal - networks[a].signal;
+        return isConnected(networks[b]) ?  100 :
+          networks[b].signal - networks[a].signal;
       });
 
       // create list
@@ -163,13 +161,17 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
     updateState();
   }
 
-  function showNetwork(network) {
+  function isConnected(network) {
     // XXX the API should expose a 'connected' property on 'network',
     // and 'wifiManager.connectedNetwork' should be comparable to 'network'.
     // Until this is properly implemented, we just compare SSIDs to tell wether
     // the network is already connected or not.
     var currentNetwork = wifiManager.connectedNetwork;
-    if (currentNetwork && currentNetwork.ssid == network.ssid) {
+    return currentNetwork && (currentNetwork.ssid == network.ssid);
+  }
+
+  function showNetwork(network) {
+    if (isConnected(network)) {
       // online: show status + offer to disconnect
       wifiDialog('#wifi-status', network, wifiDisconnect);
     }
