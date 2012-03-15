@@ -244,7 +244,7 @@ var CallHandler = {
     var telephony = navigator.mozTelephony;
     if (telephony.calls.length > 0) {
       var call = telephony.calls[0];
-      CallHander.incoming(call);
+      CallHandler.incoming(call);
     }
 
     telephony.oncallschanged = function cc(evt) {
