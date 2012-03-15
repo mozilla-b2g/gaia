@@ -134,24 +134,32 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
   // scan wifi networks
   function wifiScanNetworks() {
     var req = wifiManager.getNetworks();
+
     req.onsuccess = function() {
       var networks = req.result;
-      while (gList.hasChildNodes())
-        gList.removeChild(gList.lastChild);
+
+      // sort networks: connected network first, then by signal strength
       var ssids = Object.getOwnPropertyNames(networks);
       var currentSSID = wifiManager.connectedNetwork ?
         wifiManager.connectedNetwork.ssid : '';
       ssids.sort(function(a, b) {
-        return networks[b].signal - networks[a].signal;
+        return (networks[b].ssid == currentSSID) ?
+          100 : networks[b].signal - networks[a].signal;
       });
+
+      // create list
+      while (gList.hasChildNodes())
+        gList.removeChild(gList.lastChild);
       for (var i = 0; i < ssids.length; i++) {
         var li = newListItem(networks[ssids[i]]);
         gList.appendChild(li);
       }
     };
+
     req.onerror = function(error) {
       gStatus.textContent = 'error: ' + req.error.name;
     };
+
     updateState();
   }
 
