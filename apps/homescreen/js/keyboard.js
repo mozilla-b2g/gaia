@@ -30,7 +30,8 @@ const IMEManager = {
     'cyrillic': ['ru', 'sr-Cyrl'],
     'hebrew': ['he'],
     'zhuying': ['zh-Hant-Zhuying'],
-    'pinyin': ['zh-Hans-Pinyin']
+    'pinyin': ['zh-Hans-Pinyin'],
+    'arabic': ['ar']
   },
 
   loadKeyboardSettings: function loadKeyboardSettings(callback) {
@@ -847,7 +848,7 @@ const IMEManager = {
         var hasSpecialCode = specialCodes.indexOf(key.keyCode) > -1;
         if (!(key.keyCode < 0 || hasSpecialCode) && this.isUpperCase)
           keyChar = layout.upperCase[keyChar] || keyChar.toUpperCase();
-        
+
         // This gives layout author the ability to rewrite AlternateLayoutKeys
         var hasSpecialCode = specialCodes.indexOf(key.keyCode) > -1;
         if (!(key.keyCode < 0 || hasSpecialCode) && this.isAlternateLayout) {
@@ -856,7 +857,7 @@ const IMEManager = {
         }
 
         var code = key.keyCode || keyChar.charCodeAt(0);
-        
+
         if (code == KeyboardEvent.DOM_VK_SPACE) {
           // space key: replace/append with control and type keys
 
@@ -879,13 +880,13 @@ const IMEManager = {
           if (Keyboards[this.currentKeyboard]['alternateLayoutKey']) {
             alternateLayoutKey = Keyboards[this.currentKeyboard]['alternateLayoutKey'];
           }
-          
+
           // This gives the author the ability to change the basic layout key contents
           var basicLayoutKey = "ABC";
           if (Keyboards[this.currentKeyboard]['basicLayoutKey']) {
-            basicLayoutKey = Keyboards[this.currentKeyboard]['basicLayoutKey'];	
+            basicLayoutKey = Keyboards[this.currentKeyboard]['basicLayoutKey'];
           }
-          
+
           ratio -= 2;
           if (this.currentKeyboardMode == '') {
             content += buildKey(
