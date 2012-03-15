@@ -45,8 +45,12 @@ var LockScreen = {
 
   update: function lockscreen_update(callback) {
     var settings = window.navigator.mozSettings;
-    if (!settings)
+    if (!settings) {
+      this.lock(true);
+      if (callback)
+        setTimeout(callback, 0, true);
       return;
+    }
 
     var request = settings.get('lockscreen.enabled');
     request.addEventListener('success', (function onsuccess(evt) {
@@ -58,13 +62,13 @@ var LockScreen = {
       }
 
       if (callback)
-        setTimeout(callback, 0);
+        setTimeout(callback, 0, !!enabled);
     }).bind(this));
 
     request.addEventListener('error', (function onerror(evt) {
       this.lock(true);
       if (callback)
-        setTimeout(callback, 0);
+        setTimeout(callback, 0, true);
     }).bind(this));
   },
 
@@ -150,9 +154,24 @@ var LockScreen = {
           return;
         window.clearTimeout(this._timeout);
 
-        ScreenManager.toggleScreen();
-        if (screen.mozEnabled)
-          this.update();
+        if (screen.mozEnabled) {
+          this.update(
+            function lockScreenUpdate(locked) {
+              if (!locked) {
+                ScreenManager.turnScreenOff();
+                return;
+              }
+              // Wait for painting before dim the screen
+              var turnScreenOffAfrerPaint = function afterPaint() {
+                window.removeEventListener('MozAfterPaint', turnScreenOffAfrerPaint);
+                ScreenManager.turnScreenOff();
+              };
+              window.addEventListener('MozAfterPaint', turnScreenOffAfrerPaint);
+            }
+          );
+        } else {
+          ScreenManager.turnScreenOn();
+        }
 
         e.preventDefault();
         e.stopPropagation();
