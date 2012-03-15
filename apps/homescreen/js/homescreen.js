@@ -30,6 +30,8 @@ var LockScreen = {
     return this.overlay = document.getElementById('lockscreen');
   },
 
+  locked: true,
+
   init: function lockscreen_init() {
     var events = ['touchstart', 'touchmove', 'touchend', 'keydown', 'keyup'];
     AddEventHandlers(LockScreen.overlay, this, events);
@@ -46,7 +48,7 @@ var LockScreen = {
   update: function lockscreen_update(callback) {
     var settings = window.navigator.mozSettings;
     if (!settings) {
-      this.lock(true);
+      this.lock(true, callback);
       if (callback)
         setTimeout(callback, 0, true);
       return;
@@ -56,23 +58,25 @@ var LockScreen = {
     request.addEventListener('success', (function onsuccess(evt) {
       var enabled = request.result.value !== 'false';
       if (enabled) {
-        this.lock(true);
+        this.lock(true, callback);
       } else {
-        this.unlock(true);
+        this.unlock(true, callback);
       }
-
-      if (callback)
-        setTimeout(callback, 0, !!enabled);
     }).bind(this));
 
     request.addEventListener('error', (function onerror(evt) {
-      this.lock(true);
-      if (callback)
-        setTimeout(callback, 0, true);
+      this.lock(true, callback);
     }).bind(this));
   },
 
-  lock: function lockscreen_lock(instant) {
+  lock: function lockscreen_lock(instant, callback) {
+    if (this.locked) {
+      if (callback)
+        setTimeout(callback, 0, true);
+      return;
+    }
+
+    this.locked = true;
     var style = this.overlay.style;
     if (instant) {
       style.MozTransition = style.MozTransform = '';
@@ -84,11 +88,25 @@ var LockScreen = {
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('locked', true, true, null);
     window.dispatchEvent(evt);
+
+    // Wait for paint before firing callback
+    var afterPaintCallback = function afterPaint() {
+      window.removeEventListener('MozAfterPaint', afterPaintCallback);
+      callback(true);
+    };
+    window.addEventListener('MozAfterPaint', afterPaintCallback);
   },
 
-  unlock: function lockscreen_unlock(instant) {
-    var offset = '-100%';
+  unlock: function lockscreen_unlock(instant, callback) {
+    if (!this.locked) {
+      if (callback)
+        setTimeout(callback, 0, false);
+      return;
+    }
 
+    this.locked = false;
+
+    var offset = '-100%';
     var style = this.overlay.style;
     style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
     style.MozTransform = 'translateY(' + offset + ')';
@@ -96,6 +114,9 @@ var LockScreen = {
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('unlocked', true, true, null);
     window.dispatchEvent(evt);
+
+    if (callback)
+      setTimeout(callback, 0, false);
   },
 
   onTouchStart: function lockscreen_touchStart(e) {
@@ -155,20 +176,7 @@ var LockScreen = {
         window.clearTimeout(this._timeout);
 
         if (screen.mozEnabled) {
-          this.update(
-            function lockScreenUpdate(locked) {
-              if (!locked) {
-                ScreenManager.turnScreenOff();
-                return;
-              }
-              // Wait for painting before dim the screen
-              var turnScreenOffAfrerPaint = function afterPaint() {
-                window.removeEventListener('MozAfterPaint', turnScreenOffAfrerPaint);
-                ScreenManager.turnScreenOff();
-              };
-              window.addEventListener('MozAfterPaint', turnScreenOffAfrerPaint);
-            }
-          );
+          this.update(ScreenManager.turnScreenOff);
         } else {
           ScreenManager.turnScreenOn();
         }
