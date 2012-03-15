@@ -417,6 +417,14 @@ function updateConnection() {
   conn.addEventListener('connectionchange', updateConnection);
 }
 
+window.addEventListener('load', function load(){
+  window.removeEventListener('load', load);
+
+  updateClock();
+  updateBattery();
+  updateConnection();
+});
+
 var SoundManager = {
   currentVolume: 5,
   changeVolume: function soundManager_changeVolume(delta) {
@@ -720,6 +728,10 @@ var ScreenManager = {
 
     this.preferredBrightness = screen.mozBrightness;
     screen.mozBrightness = 0.0;
+
+    updateClock();
+    updateBattery();
+    updateConnection();
 
     return true;
   },
