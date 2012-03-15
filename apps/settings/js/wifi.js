@@ -218,7 +218,7 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
     // identity/password
     var identity = dialog.querySelector('input[name=identity]');
     if (identity)
-      identity.value = network.identity;
+      identity.value = network.identity || '';
 
     var password = dialog.querySelector('input[name=password]');
     if (password) {
