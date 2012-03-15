@@ -30,7 +30,8 @@ const IMEManager = {
     'cyrillic': ['ru', 'sr-Cyrl'],
     'hebrew': ['he'],
     'zhuying': ['zh-Hant-Zhuying'],
-    'pinyin': ['zh-Hans-Pinyin']
+    'pinyin': ['zh-Hans-Pinyin'],
+    'arabic': ['ar']
   },
 
   loadKeyboardSettings: function loadKeyboardSettings(callback) {
@@ -323,9 +324,9 @@ const IMEManager = {
     menu.className = '';
     menu.innerHTML = '';
 
-    var siblings = this._currentMenuKey.parentNode.childNodes;
-    for (var key in siblings) {
-      siblings[key].removeEventListener('mouseover', siblings[key].redirect);
+    var siblings = this._currentMenuKey.parentNode.children;
+    for (var i = 0; i < siblings.length; i++) {
+      siblings[i].removeEventListener('mouseover', siblings[i].redirect);
     }
 
     delete this._currentMenuKey;
@@ -847,14 +848,16 @@ const IMEManager = {
         var hasSpecialCode = specialCodes.indexOf(key.keyCode) > -1;
         if (!(key.keyCode < 0 || hasSpecialCode) && this.isUpperCase)
           keyChar = layout.upperCase[keyChar] || keyChar.toUpperCase();
-        
+
         // This gives layout author the ability to rewrite AlternateLayoutKeys
         var hasSpecialCode = specialCodes.indexOf(key.keyCode) > -1;
-        if (!(key.keyCode < 0 || hasSpecialCode) && this.isAlternateLayout)
-          keyChar = Keyboards[ this.currentKeyboard ]['alternateLayoutOverwrite'][keyChar] || keyChar;
+        if (!(key.keyCode < 0 || hasSpecialCode) && this.isAlternateLayout) {
+          if (Keyboards[this.currentKeyboard]['alternateLayoutOverwrite'])
+            keyChar = Keyboards[this.currentKeyboard]['alternateLayoutOverwrite'][keyChar];
+        }
 
         var code = key.keyCode || keyChar.charCodeAt(0);
-        
+
         if (code == KeyboardEvent.DOM_VK_SPACE) {
           // space key: replace/append with control and type keys
 
@@ -874,16 +877,16 @@ const IMEManager = {
           // Alternate layout key
           // This gives the author the ability to change the alternate layout key contents
           var alternateLayoutKey = "?123";
-          if( Keyboards[ this.currentKeyboard ]['alternateLayoutKey']) {
-            alternateLayoutKey = Keyboards[ this.currentKeyboard ]['alternateLayoutKey'];
+          if (Keyboards[this.currentKeyboard]['alternateLayoutKey']) {
+            alternateLayoutKey = Keyboards[this.currentKeyboard]['alternateLayoutKey'];
           }
-          
+
           // This gives the author the ability to change the basic layout key contents
           var basicLayoutKey = "ABC";
-          if( Keyboards[ this.currentKeyboard ]['basicLayoutKey']) {
-            basicLayoutKey = Keyboards[ this.currentKeyboard ]['basicLayoutKey'];	
+          if (Keyboards[this.currentKeyboard]['basicLayoutKey']) {
+            basicLayoutKey = Keyboards[this.currentKeyboard]['basicLayoutKey'];
           }
-          
+
           ratio -= 2;
           if (this.currentKeyboardMode == '') {
             content += buildKey(

@@ -22,6 +22,10 @@ function startup() {
 
     window.parent.postMessage('homescreenready', '*');
   });
+
+  updateClock();
+  updateBattery();
+  updateConnection();
 }
 
 var LockScreen = {
@@ -713,13 +717,25 @@ var ScreenManager = {
   },
 
   turnScreenOff: function lockscreen_turnScreenOff() {
+    if (!screen.mozEnabled)
+      return false;
+
     screen.mozEnabled = false;
 
     this.preferredBrightness = screen.mozBrightness;
     screen.mozBrightness = 0.0;
+
+    updateClock();
+    updateBattery();
+    updateConnection();
+
+    return true;
   },
 
   turnScreenOn: function lockscreen_turnScreenOn() {
+    if (screen.mozEnabled)
+      return false;
+
     screen.mozEnabled = true;
 
     screen.mozBrightness = this.preferredBrightness;
@@ -727,6 +743,8 @@ var ScreenManager = {
     updateClock();
     updateBattery();
     updateConnection();
+
+    return true;
   }
 };
 
