@@ -6,7 +6,7 @@ html, body {
 }
 
 body {
-  background: hsl(0, 0%, 96%) url(images/app-texture.png);
+  background: #333 url(images/app-texture.png);
 }
 
 header {
@@ -34,18 +34,7 @@ header h1 {
   font-size: 1em;
 }
 
-/* View */
-.view {
-  position: absolute;
-  top: 0;
-  left: 0;
-  border: 0;
-  width: 100%;
-  height: 100%;
-  overflow-y: scroll;
-}
-
-.view > h2 { /* list separators */
+.pp-view > h2 { /* list separators */
   margin: 0;
   padding: 0 0 0 10px;
   height: 40px;
@@ -54,25 +43,6 @@ header h1 {
   color: #333;
   border-bottom: 2px solid #c3c9cb;
   background: url("images/diagonal-pattern.png") repeat scroll 0 0 #F1F1ED;
-}
-
-/* View - Slide Horizontal Transition */
-.view {
-  -moz-transition: -moz-transform 0.3s ease;
-  -moz-transform: translateX(100%);
-}
-
-#root {
-  -moz-transform: translateX(-100%);
-}
-
-#root:target, .view:target {
-  -moz-transform: none;
-}
-
-#root.active {
-  -moz-transform: none;
-  -moz-transition: none;
 }
 
 /* Table View */
@@ -131,7 +101,7 @@ ul li > small {
 }
 
 /* fake input boxes for checkboxes & radio buttons */
-.view label {
+.pp-view label {
   position: absolute;
   top: 0;
   left: 0;
@@ -139,11 +109,11 @@ ul li > small {
   height: 100%;
 }
 
-.view label > input {
+.pp-view label > input {
   display: none;
 }
 
-.view label > span {
+.pp-view label > span {
   position: absolute;
   top: -moz-calc(50% - 34px);
   right: 20px;
@@ -153,15 +123,15 @@ ul li > small {
   border: none;
 }
 
-.view label > input[type=radio] + span {
+.pp-view label > input[type=radio] + span {
   background: url(images/radio-off.png) no-repeat scroll center center;
 }
 
-.view label > input[type=radio]:checked + span {
+.pp-view label > input[type=radio]:checked + span {
   background: url(images/radio-on.png) no-repeat scroll center center;
 }
 
-.view label > input[type=checkbox] + span {
+.pp-view label > input[type=checkbox] + span {
   width: 60px;
   height: 60px;
   border: 4px solid;
@@ -174,7 +144,7 @@ ul li > small {
     -moz-linear-gradient(#eaeae4, #ffffff);
 }
 
-.view label > input[type=checkbox]:checked + span {
+.pp-view label > input[type=checkbox]:checked + span {
   background: url(images/check-on.png) no-repeat scroll center center,
     -moz-linear-gradient(#ffffff, #eaeae4);
 }
@@ -231,4 +201,3 @@ li#brightness progress {
 #wifi-networks .wifi-search {
   background-image: url(images/wifi-scan.png);
 }
-

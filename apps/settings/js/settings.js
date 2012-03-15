@@ -106,18 +106,11 @@ window.addEventListener('DOMContentLoaded', function() {
 
 // back button = close dialog || back to the root page
 window.addEventListener('keyup', function(event) {
-  if (document.location.hash != '#root' &&
-      event.keyCode === event.DOM_VK_ESCAPE) {
+  var rootViewStack = document.getElementById('root-view-stack').viewStack;
+  
+  if (rootViewStack.views.length > 1 && event.keyCode === event.DOM_VK_ESCAPE) {
     event.preventDefault();
     event.stopPropagation();
-
-    var dialog = document.querySelector('#dialogs .active');
-    if (dialog) {
-      dialog.classList.remove('active');
-      document.body.classList.remove('dialog');
-    }
-    else {
-      document.location.hash = '#root';
-    }
+    rootViewStack.pop();
   }
 }, false);
