@@ -6,7 +6,7 @@ function generatorTest() {
   testContact.init({
     givenName: 'Kennedy',
     familyName: 'Cooley',
-    name: 'Kennedy Cooley',
+    name: 'Kennedy Cooley'
   });
 
   // Save the contact, and yield until the save is done
@@ -29,7 +29,7 @@ function testContactsSearch(window, document, nextStep) {
 
   // And wait until the app API is ready
   yield until(function() window.Contacts && window.Contacts._loaded, nextStep);
-  
+
   var contactsView = document.getElementById('contacts-view');
   var displayedContacts = contactsView.querySelectorAll('.contact');
   var contactElement = null;
@@ -42,7 +42,7 @@ function testContactsSearch(window, document, nextStep) {
   ok(contactElement != null, 'Test contact displayed at first');
 
   var searchField = document.getElementById('contacts-search');
-  
+
   // open the keyboard and wait for the resize event it generates
   searchField.focus();
   yield window.addEventListener('resize', function afterResize() {
@@ -55,11 +55,13 @@ function testContactsSearch(window, document, nextStep) {
 
   searchField.value = '';
   EventUtils.sendString('coo');
-  ok(!contactElement.hidden, 'Test contact displayed when matching on family name');
+  ok(!contactElement.hidden,
+     'Test contact displayed when matching on family name');
 
   searchField.value = '';
   EventUtils.sendString('enn');
-  ok(!contactElement.hidden, 'Test contact displayed when matching on given name');
+  ok(!contactElement.hidden,
+     'Test contact displayed when matching on given name');
 
   // closing the keyboard
   window.addEventListener('resize', function afterResize() {

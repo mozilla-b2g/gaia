@@ -4,22 +4,12 @@ function generatorTest() {
   finish();
 }
 
-function debug(s) {
-  dump("DEBUG: " + s + "\n");
-}
-
 function testTimer(window, document, nextStep) {
-  debug(window);
-  debug(document)
-  debug(document.readyState)
-  debug(JSON.stringify(window.Timer));
-  debug(document.getElementById('timer-action-button'));
-
   var timer = window.Timer;
   var actionButton = document.getElementById('timer-action-button');
-  ok(actionButton !== null, "action button defined");
+  ok(actionButton !== null, 'action button defined');
   var durationField = document.getElementById('duration-field');
-  ok(durationField !== null, "duration field defined");
+  ok(durationField !== null, 'duration field defined');
   var tickerView = document.getElementById('timer-ticker-view');
   var chronoView = document.getElementById('timer-chrono-view');
 
