@@ -10,6 +10,12 @@ js/camera.js
 
 # style/
 style/camera.css
+style/images/switch-pressed.png
+style/images/gallery-pressed.png
+style/images/gallery.png
+style/images/switch.png
+style/images/capture-pressed.png
+style/images/capture.png
 
 # icons used in the web application manifest.
 # Do not use icons/ directly since it is often used as an alias by Apache.

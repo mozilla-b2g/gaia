@@ -7,14 +7,26 @@ manifest.webapp
 
 # js/
 js/sms.js
+js/utils.js
 
 # style/
 style/sms.css
+style/fonts/Open-Sans.woff
+style/fonts/Open-Sans-Semibold.woff
+style/fonts/Open-Sans-Bold.woff
+style/images/conversation-view-list-bg.png
+style/images/app-texture.png
+style/images/input-icon-search.png
+style/images/diagonal-gray-pattern.png
 style/images/missing.png
+style/images/top-navibar-left-arrow.png
 
 # icons used in the web application manifest.
 # Do not use icons/ directly since it is often used as an alias by Apache.
 style/icons/Messages.png
+
+# TEMP webapi.js
+../../webapi.js
 
 NETWORK:
 

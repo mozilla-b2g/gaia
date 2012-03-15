@@ -1109,7 +1109,7 @@ IconGrid.prototype = {
         iconDiv = document.createElement('div');
         iconDiv.id = n;
         iconDiv.className = 'icon';
-        iconDiv.style.backgroundImage = 'url(' + icon.iconUrl + ')';
+        iconDiv.style.backgroundImage = 'url("' + icon.iconUrl + '")';
         iconDiv.dataset.url = icon.action;
 
         var centerDiv = document.createElement('div');

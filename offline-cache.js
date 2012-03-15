@@ -41,6 +41,11 @@ const { 'classes': Cc, 'interfaces': Ci, 'results': Cr, } = Components;
  * Compile Gaia into an offline cache sqlite database.
  */
 function storeCache(id, url, content, count) {
+  // The temporary webapi.js file should be stored in the
+  // same directory as the running application. So rewrite
+  // a little bit the url and the content for that.
+  url = url.replace("../../webapi.js", "webapi.js");
+
   const nsICache = Ci.nsICache;
   let cacheService = Cc["@mozilla.org/network/cache-service;1"]
                        .getService(Ci.nsICacheService);
@@ -50,10 +55,13 @@ function storeCache(id, url, content, count) {
   cacheEntry.setMetaDataElement("response-head", "GET / HTTP/1.1\r\n");
 
   let outputStream = cacheEntry.openOutputStream(0);
-  let data = '';
-  for (let i = 0; i < count; i++)
-    data += String.fromCharCode(content[i]);
-  outputStream.write(data, count);
+  
+  let bufferedOutputStream = Cc["@mozilla.org/network/buffered-output-stream;1"]
+                              .createInstance(Ci.nsIBufferedOutputStream);
+  bufferedOutputStream.init(outputStream, count);
+  bufferedOutputStream.writeFrom(content, count);
+
+  bufferedOutputStream.close();
   outputStream.close();
   cacheEntry.close();
 }
@@ -119,17 +127,32 @@ function getFileContent(file) {
                    .createInstance(Ci.nsIFileInputStream);  
   fileStream.init(file, 1, 0, false);
 
-  let binaryStream = Cc['@mozilla.org/binaryinputstream;1']  
-                       .createInstance(Ci.nsIBinaryInputStream);  
-  binaryStream.setInputStream(fileStream);
+  if (!(/\.html$/.test(file.path))) {
+    return [fileStream, fileStream.available()];
+  }
 
-  let count = fileStream.available();
-  let data = binaryStream.readByteArray(count);  
+  let converterStream = Cc["@mozilla.org/intl/converter-input-stream;1"]
+                          .createInstance(Ci.nsIConverterInputStream);
+  converterStream.init(fileStream, "utf-8", fileStream.available(),
+                       Ci.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER);
 
-  binaryStream.close();
-  fileStream.close();
+  let out = {};  
+  converterStream.readString(fileStream.available(), out);  
 
-  return [data, count];
+  let content = out.value;  
+  converterStream.close();  
+  fileStream.close(); 
+
+  content = content.replace("../../webapi.js", "webapi.js");
+
+  let uconv = Cc["@mozilla.org/intl/scriptableunicodeconverter"]
+                .createInstance(Ci.nsIScriptableUnicodeConverter);
+  uconv.charset = "utf-8";
+
+  let inputStream = uconv.convertToInputStream(content);
+  let count = inputStream.available();
+
+  return [inputStream, count];
 }
 
 
@@ -187,6 +210,7 @@ directories.forEach(function generateAppCache(dir) {
     print (file.path);
   
     let [content, length] = getFileContent(file);
+
     storeCache(applicationCache.clientID, documentSpec, content, length);
   });
 });
