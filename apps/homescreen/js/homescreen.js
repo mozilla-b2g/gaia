@@ -176,7 +176,7 @@ var LockScreen = {
         window.clearTimeout(this._timeout);
 
         if (screen.mozEnabled) {
-          this.update(ScreenManager.turnScreenOff);
+          this.update(ScreenManager.turnScreenOff.bind(this));
         } else {
           ScreenManager.turnScreenOn();
         }
