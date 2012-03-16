@@ -212,6 +212,11 @@
                 candidates.push([term, 'term']);
               });
 
+              if (i === 1 && !terms.length) {
+                debug('The first syllable does not make up a word, output the symbol.');
+                candidates.push([syllables.join(''), 'symbol']);
+              }
+
               if (!--i) {
                 debug('Done Looking.');
                 settings.sendCandidates(candidates);
@@ -432,6 +437,9 @@
       settings.sendString(text);
 
       var i = text.length;
+      if (type == 'symbol')
+        i = 1;
+
       while (i--) {
         syllablesInBuffer.shift();
       }
