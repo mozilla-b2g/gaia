@@ -728,6 +728,7 @@ var KeyHandler = {
         switch (evt.keyCode) {
           case evt.DOM_VK_PAGE_UP:
             SoundManager.changeVolume(1);
+            clearTimeout(this._timer);
             this._timer = setTimeout((function volumeTimeout() {
               SoundManager.changeVolume(1);
               this._timer = setInterval(function volumeInterval() {
@@ -738,6 +739,7 @@ var KeyHandler = {
 
           case evt.DOM_VK_PAGE_DOWN:
             SoundManager.changeVolume(-1);
+            clearTimeout(this._timer);
             this._timer = setTimeout((function volumeTimeout() {
               SoundManager.changeVolume(-1);
               this._timer = setInterval(function volumeInterval() {
