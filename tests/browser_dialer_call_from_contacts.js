@@ -14,13 +14,6 @@ function generatorTest() {
 }
 
 function testCallFromContacts(window, document, nextStep) {
-  // Wait for the API we need
-/*
-  yield until(
-    function() window.Contacts && window.Contacts._loaded && window.CallHandler,
-    nextStep);
-*/
-
   var keyboardTab = document.getElementById('keyboard-label');
   EventUtils.sendMouseEvent({type: 'click'}, keyboardTab);
 
