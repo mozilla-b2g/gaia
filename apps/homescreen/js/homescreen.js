@@ -92,6 +92,9 @@ var LockScreen = {
     window.dispatchEvent(evt);
 
     // Wait for paint before firing callback
+    if (!callback)
+      return;
+
     var afterPaintCallback = function afterPaint() {
       window.removeEventListener('MozAfterPaint', afterPaintCallback);
       callback(true);
@@ -178,9 +181,17 @@ var LockScreen = {
         window.clearTimeout(this._timeout);
 
         if (screen.mozEnabled) {
-          this.update(ScreenManager.turnScreenOff.bind(this));
+          this.update(function lockScreenCallback() {
+            ScreenManager.turnScreenOff();
+          });
         } else {
-          ScreenManager.turnScreenOn();
+          // XXX: screen could be turned off by idle service instead of us.
+          // Update the lockscreen again when turning the screen on.
+          // (home screen would still flash when USB is plugged in)
+          this.update(function lockScreenCallback() {
+            ScreenManager.turnScreenOn();
+          });
+          //ScreenManager.turnScreenOn();
         }
 
         e.preventDefault();
