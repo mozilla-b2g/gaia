@@ -99,5 +99,13 @@ Gaia.AppManager = {
     }
 
     return null;
+  },
+
+  // TODO
+  // This is currently used in src/b2g/chrome/content/webapi.js file
+  // There isn't any reason for any other code to use it, and we should
+  // get rid of it when we can.
+  get foregroundWindow() {
+    return WindowManager.getAppFrame(WindowManager.getDisplayedApp());
   }
 };
