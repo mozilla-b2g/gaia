@@ -49,8 +49,6 @@ var LockScreen = {
     var settings = window.navigator.mozSettings;
     if (!settings) {
       this.lock(true, callback);
-      if (callback)
-        setTimeout(callback, 0, true);
       return;
     }
 
