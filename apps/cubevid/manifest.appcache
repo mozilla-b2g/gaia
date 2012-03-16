@@ -1,19 +1,18 @@
 CACHE MANIFEST
-# v1 2012-17-01
+# v1 2012-15-03
 
 # /
-clock.html
+index.html
 manifest.webapp
-
-# js/
-js/clock.js
-
-# style/
-style/clock.css
+glUtils.js
+sylvester.js
+webgl.css
+webgl-demo.js
+mozilla.webm
 
 # icons used in the web application manifest.
 # Do not use icons/ directly since it is often used as an alias by Apache.
-style/icons/Clock.png
+icon.png
 
 NETWORK:
 
