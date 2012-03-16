@@ -19,6 +19,7 @@ function debug() {
 // if we ever actually need them.
 //
 EventUtils.swipe = function swipe(e, x0, y0, x1, y1, interval, whendone) {
+  silentOK(e != null, 'trying to swipe on an inexistant element');
   var t = 0;  // Start at time 0
 
   // Begin with a mouse down event
@@ -115,8 +116,11 @@ function testApp(url, testfunc) {
 
   function testAppGenerator(url, testfunc, nextStep) {
     // Wait until the content document is ready
+    // An about:blank page is loaded first, we keep waiting until
+    // the homescreen's readyState is complete
     yield until(
-      function() content.wrappedJSObject.document.readyState === 'complete',
+      function() ((content.wrappedJSObject.document.readyState === 'complete') &&
+                  (content.wrappedJSObject.document.body.children.length > 0)),
       nextStep);
 
     let contentWin = content.wrappedJSObject;
@@ -261,9 +265,7 @@ function testApp(url, testfunc) {
       EventUtils.sendKey('SLEEP', contentWin);
 
       // Wait until it is locked
-      yield until(
-        function() lockscreen.style.MozTransform !== 'translateY(-100%)',
-        nextStep);
+      yield until(function() isLocked(), nextStep);
     }
   }
 }
