@@ -116,14 +116,12 @@ function testApp(url, testfunc) {
 
   function testAppGenerator(url, testfunc, nextStep) {
     // Wait until the content document is ready
-    yield until(function() {
-      if (content.wrappedJSObject.document.readyState === 'complete') {
-        // An about:blank page is loaded first, we keep waiting until
-        // the homescreen's readyState is complete
-        return (content.wrappedJSObject.document.body.children.length > 0);
-      }
-      return false;
-    }, nextStep);
+    // An about:blank page is loaded first, we keep waiting until
+    // the homescreen's readyState is complete
+    yield until(
+      function() ((content.wrappedJSObject.document.readyState === 'complete') &&
+                  (content.wrappedJSObject.document.body.children.length > 0)),
+      nextStep);
 
     let contentWin = content.wrappedJSObject;
     let contentDoc = contentWin.document;
