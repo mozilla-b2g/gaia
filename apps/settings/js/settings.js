@@ -51,8 +51,6 @@ var Settings = {
         };
       })(progresses[i]);
     }
-
-    window.parent.postMessage('appready', '*');
   },
   handleEvent: function(evt) {
     var input = evt.target;

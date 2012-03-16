@@ -519,7 +519,5 @@ window.addEventListener('load', function keyboardInit(evt) {
 
   KeyHandler.init();
   CallHandler.setupTelephony();
-
-  window.parent.postMessage('appready', '*');
 });
 
