@@ -716,30 +716,58 @@ new SettingListener('phone.vibration.incoming', function(value) {
 
 /* === KeyHandler === */
 var KeyHandler = {
+  kRepeatTimeout: 700,
+  kRepeatRate: 100,
+
   handleEvent: function kh_handleEvent(evt) {
     if (!screen.mozEnabled)
       return;
 
-    switch (evt.keyCode) {
-      case evt.DOM_VK_PAGE_UP:
-        SoundManager.changeVolume(1);
-        break;
+    switch (evt.type) {
+      case 'keydown':
+        switch (evt.keyCode) {
+          case evt.DOM_VK_PAGE_UP:
+            SoundManager.changeVolume(1);
+            this._timer = setTimeout((function volumeTimeout() {
+              SoundManager.changeVolume(1);
+              this._timer = setInterval(function volumeInterval() {
+                SoundManager.changeVolume(1);
+              }, this.kRepeatRate);
+            }).bind(this), this.kRepeatTimeout);
+            break;
 
-      case evt.DOM_VK_PAGE_DOWN:
-        SoundManager.changeVolume(-1);
+          case evt.DOM_VK_PAGE_DOWN:
+            SoundManager.changeVolume(-1);
+            this._timer = setTimeout((function volumeTimeout() {
+              SoundManager.changeVolume(-1);
+              this._timer = setInterval(function volumeInterval() {
+                SoundManager.changeVolume(-1);
+              }, this.kRepeatRate);
+            }).bind(this), this.kRepeatTimeout);
+            break;
+        }
         break;
+      case 'keyup':
+        switch (evt.keyCode) {
+          case evt.DOM_VK_PAGE_UP:
+          case evt.DOM_VK_PAGE_DOWN:
+            clearTimeout(this._timer);
+            break;
 
-      case evt.DOM_VK_CONTEXT_MENU:
-        SourceView.toggle();
-        break;
+          case evt.DOM_VK_CONTEXT_MENU:
+            SourceView.toggle();
+            break;
 
-      case evt.DOM_VK_F6:
-        document.location.reload();
+          case evt.DOM_VK_F6:
+            document.location.reload();
+            break;
+        }
         break;
     }
   }
 };
 
+window.addEventListener('keydown', KeyHandler);
 window.addEventListener('keyup', KeyHandler);
 
 /* === Screen Manager === */
