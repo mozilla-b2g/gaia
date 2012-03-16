@@ -719,6 +719,17 @@ var KeyHandler = {
   kRepeatTimeout: 700,
   kRepeatRate: 100,
 
+  repeatKey: function kh_repeatKey(actionCallback) {
+    actionCallback();
+    clearTimeout(this._timer);
+    this._timer = setTimeout((function volumeTimeout() {
+      actionCallback();
+      this._timer = setInterval(function volumeInterval() {
+        actionCallback();
+      }, this.kRepeatRate);
+    }).bind(this), this.kRepeatTimeout);
+  },
+
   handleEvent: function kh_handleEvent(evt) {
     if (!screen.mozEnabled)
       return;
@@ -727,25 +738,15 @@ var KeyHandler = {
       case 'keydown':
         switch (evt.keyCode) {
           case evt.DOM_VK_PAGE_UP:
-            SoundManager.changeVolume(1);
-            clearTimeout(this._timer);
-            this._timer = setTimeout((function volumeTimeout() {
+            this.repeatKey(function repeatKeyCallback() {
               SoundManager.changeVolume(1);
-              this._timer = setInterval(function volumeInterval() {
-                SoundManager.changeVolume(1);
-              }, this.kRepeatRate);
-            }).bind(this), this.kRepeatTimeout);
+            });
             break;
 
           case evt.DOM_VK_PAGE_DOWN:
-            SoundManager.changeVolume(-1);
-            clearTimeout(this._timer);
-            this._timer = setTimeout((function volumeTimeout() {
+            this.repeatKey(function repeatKeyCallback() {
               SoundManager.changeVolume(-1);
-              this._timer = setInterval(function volumeInterval() {
-                SoundManager.changeVolume(-1);
-              }, this.kRepeatRate);
-            }).bind(this), this.kRepeatTimeout);
+            });
             break;
         }
         break;
