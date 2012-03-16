@@ -380,13 +380,13 @@
                  },
                  { // wikipedia
                    'installOrigin': 'http://www.wikipedia.org/',
-                   'origin': '../wikipedia',
+                   'origin': 'http://en.m.wikipedia.org/',
                    'receipt': null,
                    'installTime': 1323339869000,
                    manifest: {
                      'name': 'Wikipedia',
                      'description': 'Wikipedia Mobile Application',
-                     'launch_path': '/wikipedia.html',
+                     'launch_path': '/',
                      'developer': {
                        'name': 'Wikipedia',
                        'url': 'http://www.wikipedia.org/'
@@ -398,13 +398,13 @@
                  },
                  { // CNN
                    'installOrigin': 'http://m.cnn.com/',
-                   'origin': '../cnn',
+                   'origin': 'http://m.cnn.com/',
                    'receipt': null,
                    'installTime': 1323339869000,
                    manifest: {
                      'name': 'CNN',
                      'description': 'CNN Mobile Application',
-                     'launch_path': '/cnn.html',
+                     'launch_path': '/',
                      'developer': {
                        'name': 'CNN',
                        'url': 'http://www.cnn.com/'
@@ -416,13 +416,13 @@
                  },
                  { // BBC
                    'installOrigin': 'http://m.bbc.co.uk/',
-                   'origin': '../bbc',
+                   'origin': 'http://m.bbc.co.uk/',
                    'receipt': null,
                    'installTime': 1323339869000,
                    manifest: {
                      'name': 'BBC',
                      'description': 'BBC Mobile Application',
-                     'launch_path': '/bbc.html',
+                     'launch_path': '/',
                      'developer': {
                        'name': 'BBC',
                        'url': 'http://www.bbc.co.uk/'
@@ -434,13 +434,13 @@
                  },
                  { // NY Times
                    'installOrigin': 'http://www.nytimes.com/',
-                   'origin': '../nytimes',
+                   'origin': 'http://m.nytimes.com/',
                    'receipt': null,
                    'installTime': 1323339869000,
                    manifest: {
                      'name': 'NY Times',
                      'description': 'NY Times Mobile Application',
-                     'launch_path': '/nytimes.html',
+                     'launch_path': '/',
                      'developer': {
                        'name': 'NY Times',
                        'url': 'http://www.nytimes.com/'

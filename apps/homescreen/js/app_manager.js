@@ -63,7 +63,7 @@ Gaia.AppManager = {
         // of pre-installed apps that does not have any icons defined
         // in offline storage.
         if (icon && !window.localStorage.getItem(icon))
-          icon = homescreenOrigin + manifest.icons['120'];
+          icon = '.' + manifest.icons['120'];
 
         var orientation = "";
         // We only allow those values for orientation in manifest.
