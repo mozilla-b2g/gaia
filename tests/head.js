@@ -266,9 +266,7 @@ function testApp(url, testfunc) {
       EventUtils.sendKey('SLEEP', contentWin);
 
       // Wait until it is locked
-      yield until(
-        function() lockscreen.style.MozTransform !== 'translateY(-100%)',
-        nextStep);
+      yield until(function() isLocked(), nextStep);
     }
   }
 }
