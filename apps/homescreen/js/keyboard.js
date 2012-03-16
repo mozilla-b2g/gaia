@@ -1084,7 +1084,6 @@ const IMEManager = {
   },
 
   showCandidates: function km_showCandidates(candidates) {
-    // TODO: candidate panel should be allow toggled to fullscreen
     var candidatePanel = document.getElementById('keyboard-candidate-panel');
     var toggleButton =
       document.getElementById('keyboard-candidate-panel-toggle-button');
