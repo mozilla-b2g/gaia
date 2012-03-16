@@ -192,11 +192,6 @@
             candidates.push([sentence, 'whole']);
           });
 
-          if (!candidates.length) {
-            // no sentences nor terms for the entire buffer
-            debug('Insert all symbols as the first candidate.');
-            candidates.push([syllablesInBuffer.join(''), 'whole']);
-          }
           firstCandidate = candidates[0][0];
 
           // The remaining candidates doesn't match the entire buffer
@@ -818,8 +813,13 @@
             self.getTermWithHighestScore(
               syllables.slice(start, start + numOfWord),
               function getTermWithHighestScoreCallback(term) {
-                if (!term)
+                if (!term && numOfWord > 1)
                   return finish();
+                if (!term) {
+                  var syllable = syllables.slice(start, start + numOfWord).join('');
+                  debug('Syllable ' + syllable + ' does not made up a word, insert symbol.');
+                  term = [syllable, -7];
+                }
 
                 str.push(term);
                 start += numOfWord;
