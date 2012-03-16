@@ -738,15 +738,23 @@ var KeyHandler = {
       case 'keydown':
         switch (evt.keyCode) {
           case evt.DOM_VK_PAGE_UP:
-            this.repeatKey(function repeatKeyCallback() {
+            this.repeatKey((function repeatKeyCallback() {
+              if (SoundManager.currentVolume == 10) {
+                clearTimeout(this._timer);
+                return;
+              }
               SoundManager.changeVolume(1);
-            });
+            }).bind(this));
             break;
 
           case evt.DOM_VK_PAGE_DOWN:
-            this.repeatKey(function repeatKeyCallback() {
+            this.repeatKey((function repeatKeyCallback() {
+              if (SoundManager.currentVolume == 0) {
+                clearTimeout(this._timer);
+                return;
+              }
               SoundManager.changeVolume(-1);
-            });
+            }).bind(this));
             break;
         }
         break;
