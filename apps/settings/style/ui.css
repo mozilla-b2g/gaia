@@ -174,12 +174,11 @@ ul li > small {
   -moz-border-right-colors: #c3c9cb #c3c9cb #fff #fff;
   -moz-border-bottom-colors: #c3c9cb #c3c9cb #fff #fff;
   -moz-border-left-colors: #c3c9cb #c3c9cb #fff #fff;
-  background: url(images/check-off.png) no-repeat scroll center center,
-    -moz-linear-gradient(#eaeae4, #ffffff);
+  background: -moz-linear-gradient(#eaeae4, #ffffff);
 }
 
 .view label > input[type=checkbox]:checked + span {
-  background: url(images/check-on.png) no-repeat scroll center center,
+  background: url(images/checked.png) no-repeat scroll center center,
     -moz-linear-gradient(#ffffff, #eaeae4);
 }
 

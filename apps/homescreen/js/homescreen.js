@@ -34,6 +34,8 @@ var LockScreen = {
     return this.overlay = document.getElementById('lockscreen');
   },
 
+  locked: true,
+
   init: function lockscreen_init() {
     var events = ['touchstart', 'touchmove', 'touchend', 'keydown', 'keyup'];
     AddEventHandlers(LockScreen.overlay, this, events);
@@ -49,30 +51,34 @@ var LockScreen = {
 
   update: function lockscreen_update(callback) {
     var settings = window.navigator.mozSettings;
-    if (!settings)
+    if (!settings) {
+      this.lock(true, callback);
       return;
+    }
 
     var request = settings.get('lockscreen.enabled');
     request.addEventListener('success', (function onsuccess(evt) {
       var enabled = request.result.value !== 'false';
       if (enabled) {
-        this.lock(true);
+        this.lock(true, callback);
       } else {
-        this.unlock(true);
+        this.unlock(true, callback);
       }
-
-      if (callback)
-        setTimeout(callback, 0);
     }).bind(this));
 
     request.addEventListener('error', (function onerror(evt) {
-      this.lock(true);
-      if (callback)
-        setTimeout(callback, 0);
+      this.lock(true, callback);
     }).bind(this));
   },
 
-  lock: function lockscreen_lock(instant) {
+  lock: function lockscreen_lock(instant, callback) {
+    if (this.locked) {
+      if (callback)
+        setTimeout(callback, 0, true);
+      return;
+    }
+
+    this.locked = true;
     var style = this.overlay.style;
     if (instant) {
       style.MozTransition = style.MozTransform = '';
@@ -84,11 +90,28 @@ var LockScreen = {
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('locked', true, true, null);
     window.dispatchEvent(evt);
+
+    // Wait for paint before firing callback
+    if (!callback)
+      return;
+
+    var afterPaintCallback = function afterPaint() {
+      window.removeEventListener('MozAfterPaint', afterPaintCallback);
+      callback(true);
+    };
+    window.addEventListener('MozAfterPaint', afterPaintCallback);
   },
 
-  unlock: function lockscreen_unlock(instant) {
-    var offset = '-100%';
+  unlock: function lockscreen_unlock(instant, callback) {
+    if (!this.locked) {
+      if (callback)
+        setTimeout(callback, 0, false);
+      return;
+    }
 
+    this.locked = false;
+
+    var offset = '-100%';
     var style = this.overlay.style;
     style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
     style.MozTransform = 'translateY(' + offset + ')';
@@ -96,6 +119,9 @@ var LockScreen = {
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('unlocked', true, true, null);
     window.dispatchEvent(evt);
+
+    if (callback)
+      setTimeout(callback, 0, false);
   },
 
   onTouchStart: function lockscreen_touchStart(e) {
@@ -154,9 +180,19 @@ var LockScreen = {
           return;
         window.clearTimeout(this._timeout);
 
-        ScreenManager.toggleScreen();
-        if (screen.mozEnabled)
-          this.update();
+        if (screen.mozEnabled) {
+          this.update(function lockScreenCallback() {
+            ScreenManager.turnScreenOff();
+          });
+        } else {
+          // XXX: screen could be turned off by idle service instead of us.
+          // Update the lockscreen again when turning the screen on.
+          // (home screen would still flash when USB is plugged in)
+          this.update(function lockScreenCallback() {
+            ScreenManager.turnScreenOn();
+          });
+          //ScreenManager.turnScreenOn();
+        }
 
         e.preventDefault();
         e.stopPropagation();
