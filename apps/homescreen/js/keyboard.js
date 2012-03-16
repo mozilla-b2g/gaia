@@ -398,6 +398,12 @@ const IMEManager = {
     this.imeEvents.forEach((function imeEvents(type) {
       this.ime.removeEventListener(type, this);
     }).bind(this));
+
+    for(var engine in this.IMEngines) {
+      if (this.IMEngines[engine].uninit)
+        this.IMEngines[engine].uninit();
+      delete this.IMEngines[engine];
+    }
   },
 
   loadKeyboard: function km_loadKeyboard(name) {

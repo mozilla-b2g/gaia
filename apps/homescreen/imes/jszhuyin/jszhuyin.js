@@ -406,12 +406,14 @@
     /* ==== init ==== */
 
     this.init = function ime_init(options) {
+      debug('Init.');
       settings = options;
     };
 
     /* ==== uninit ==== */
 
-    this.uninit = function ime_unload(code) {
+    this.uninit = function ime_uninit() {
+      debug('Uninit.');
       empty();
       db.uninit();
       db = null;
