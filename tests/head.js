@@ -15,7 +15,10 @@ function debug() {
 // event, so this function just sends a mouse down, waits, then sends a
 // mouse up from the new point.
 //
-function swipe(e, x0, y0, x1, y1, interval, whendone) {
+// TODO: use EventUtils.synthesizeMouse() to send mousemove events
+// if we ever actually need them.
+//
+EventUtils.swipe = function swipe(e, x0, y0, x1, y1, interval, whendone) {
   var t = 0;  // Start at time 0
 
   // Begin with a mouse down event
@@ -35,7 +38,7 @@ function swipe(e, x0, y0, x1, y1, interval, whendone) {
     }, e);
     if (whendone) whendone();
   }, interval);
-}
+};
 
 // Poll every 50ms for the condition function to return a truthy value
 // and then call the callback function when it does.
@@ -53,13 +56,22 @@ function until(condition, callback) {
   var timer = setInterval(check, 50);
 
   function check() {
-    if (!condition()) return;
+    if (!condition())
+      return;
     clearInterval(timer);
     callback();
   }
 }
 
+// Like ok(), but don't print anything and don't count it if the test succeeds.
+// Only generate output for tests that fail.
+function silentOK(condition, message) {
+  if (!condition)
+    ok(condition, message);
+}
 
+//
+// testApp():
 //
 // This function does the following:
 // - unlocks the lock screen
@@ -72,9 +84,7 @@ function until(condition, callback) {
 // Write tests like this:
 //
 //  function generatorTest() {
-//    waitForExplicitFinish();
 //    yield testApp("../dialer/dialer.html", dialerTest)
-//    finish();
 //  }
 //
 // function dialerTest(window, document, nextStep) {...}
@@ -109,28 +119,36 @@ function testApp(url, testfunc) {
       function() content.wrappedJSObject.document.readyState === 'complete',
       nextStep);
 
-
     let contentWin = content.wrappedJSObject;
     let contentDoc = contentWin.document;
     let lockscreen = contentDoc.getElementById('lockscreen');
 
     // Send the Home key to turn the screen on if it was off
     EventUtils.sendKey('HOME', contentWin);
+    silentOK(screen.mozEnabled, 'screen not on');
 
-    function isUnlocked() {
-      return lockscreen.style.MozTransform === 'translateY(-100%)';
+    function isLocked() {
+      // It might be better to do this by inspecting the DOM to see
+      // if the lockscreen is visible and on top. But the way the CSS
+      // is setup, the only way to check is like this, and that is
+      // is too vague:
+      // return lockscreen.style.MozTransform !== 'translateY(-100%)';
+
+      // So we rely on the lock screen module's JS API instead
+      return contentWin.LockScreen.locked;
     }
 
     // Unlock the homescreen if it is locked
-    if (!isUnlocked()) {
-      yield swipe(lockscreen, 200, 700, 200, 100, 500, nextStep);
+    if (isLocked()) {
+      yield EventUtils.swipe(lockscreen, 200, 700, 200, 100, 500, nextStep);
 
       // And wait for the unlock animation to complete
-      yield until(isUnlocked, nextStep);
+      yield until(function() !isLocked(), nextStep);
     }
 
     // Find all the icons on the homescreen
     var icons = contentDoc.querySelectorAll('#apps > .page > .icon');
+    silentOK(icons.length > 0, 'no homescreen icons found');
     var icon = null;
 
     // Look through them for the one that launches the specified app
@@ -141,18 +159,16 @@ function testApp(url, testfunc) {
       }
     }
 
-    if (!icon)
-      ok(false, 'found an icon to launch ' + url);
+    silentOK(icon, 'no icon found for ' + url);
 
     // Before we launch the app, register an event handler that will notice
     // when the app's window appears
-    var window_container = contentDoc.getElementById('windows');
+    var windowContainer = contentDoc.getElementById('windows');
     var appframe = null;
-    window_container.addEventListener('DOMNodeInserted', function handler(e) {
-      window_container.removeEventListener('DOMNodeInserted', handler);
+    windowContainer.addEventListener('DOMNodeInserted', function handler(e) {
+      windowContainer.removeEventListener('DOMNodeInserted', handler);
       appframe = e.target;
-      if (!appframe)
-        ok(false, 'got a newly launched window');
+      silentOK(appframe, 'got a newly launched window');
       nextStep();
     });
 
@@ -171,9 +187,14 @@ function testApp(url, testfunc) {
     yield until(function() appframe.src, nextStep);
 
     // Now wait until the frame's content document has a readyState of complete
-    let w = appframe.contentWindow.wrappedJSObject;
-    let d = w.document;
-    yield until(function() d.readyState === 'complete', nextStep);
+    let win = appframe.contentWindow.wrappedJSObject;
+    yield until(function() win.document.readyState === 'complete', nextStep);
+
+    // Give the app one more chance to settle down.
+    // I'm not really sure why this line needs to be here, but it seems
+    // to prevent a very strange intermittent failure in one of the
+    // dialer tests.
+    yield setTimeout(nextStep, 0);
 
     // We now have a newly-launched app in an iframe, and it is time
     // to call the test function for this app. This should work with
@@ -181,7 +202,7 @@ function testApp(url, testfunc) {
     // the third argument is the nextStep function to call
     try {
       if (testfunc) {
-        let generator = testfunc(w, d,
+        let generator = testfunc(win, win.document,
                                  function() {
                                    try {
                                      generator.next();
@@ -201,7 +222,6 @@ function testApp(url, testfunc) {
     }
     catch (e) {
       // Any exception from the test function gets reported as a failed test
-      debug('Exception in app test func', e, e.fileName, e.lineNumber, e.stack);
       ok(false, 'Exception in testApp() test function: ' +
          e.toString() + ' ' + e.fileName + ':' + e.lineNumber +
         '\n' + e.stack);
@@ -226,10 +246,8 @@ function testApp(url, testfunc) {
       // Find all the close buttons in the task switcher
       // There should only be one task open, but click all buttons if more.
       var closebtns = contentDoc.querySelectorAll('#taskManager > ul > li > a');
-      if (closebtns.length === 0)
-        ok(false, 'no running tasks in task switcher');
-      if (closebtns.length > 1)
-        ok(false, 'too many tasks in task switcher');
+      silentOK(closebtns.length === 1,
+               closebtns.length + ' tasks running; expected 1.');
       for (var i = 0; i < closebtns.length; i++) {
         var btn = closebtns[i];
         EventUtils.sendMouseEvent({type: 'click'}, btn);

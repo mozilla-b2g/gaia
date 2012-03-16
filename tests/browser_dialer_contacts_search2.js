@@ -1,6 +1,4 @@
 function generatorTest() {
-  waitForExplicitFinish();
-
   // Add a new contact to the database
   var testContact = new mozContact();
   testContact.init({
@@ -17,13 +15,10 @@ function generatorTest() {
 
   // Remove the contact
   navigator.mozContacts.remove(testContact);
-
-  finish();
 }
 
 function testContactsSearch(window, document, nextStep) {
-
-  // Click on the contacts tab of the dialoer
+  // Click on the contacts tab of the dialer
   var contactTab = document.getElementById('contacts-label');
   EventUtils.sendMouseEvent({type: 'click'}, contactTab);
 
@@ -41,16 +36,13 @@ function testContactsSearch(window, document, nextStep) {
   }
   ok(contactElement != null, 'Test contact displayed at first');
 
+  // focus the search field and wait until it actually has focus
   var searchField = document.getElementById('contacts-search');
-
-  // open the keyboard and wait for the resize event it generates
   searchField.focus();
-  yield window.addEventListener('resize', function afterResize() {
-    window.removeEventListener('resize', afterResize);
-    nextStep();
-  });
+  yield until(function() document.activeElement === searchField, nextStep);
 
-  EventUtils.sendString('aaarg');
+  searchField.value = '';
+  EventUtils.sendString('aaar');
   ok(contactElement.hidden, 'Test contact hidden when no match');
 
   searchField.value = '';
@@ -63,10 +55,4 @@ function testContactsSearch(window, document, nextStep) {
   ok(!contactElement.hidden,
      'Test contact displayed when matching on given name');
 
-  // closing the keyboard
-  window.addEventListener('resize', function afterResize() {
-    window.removeEventListener('resize', afterResize);
-    nextStep();
-  });
-  yield EventUtils.sendKey('ESCAPE', window);
 }

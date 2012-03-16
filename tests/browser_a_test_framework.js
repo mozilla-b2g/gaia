@@ -1,5 +1,5 @@
 function generatorTest() {
-  waitForExplicitFinish();
+//  waitForExplicitFinish();
 
   yield testApp('../dialer/dialer.html', function(window, document, nextStep) {
     ok(window.document === document, 'window and document are related');
@@ -7,5 +7,5 @@ function generatorTest() {
     ok(typeof nextStep === 'function', 'nextStep func is okay');
   });
 
-  finish();
+//  finish();
 }

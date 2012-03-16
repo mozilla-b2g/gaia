@@ -1,6 +1,5 @@
 function generatorTest() {
-  waitForExplicitFinish();
-  requestLongerTimeout(2);  // Need 60s to open and close all apps
+  requestLongerTimeout(3); // We may need > 60s to open and close all apps
 
   // Wait until the content document is ready
   yield until(
@@ -19,6 +18,4 @@ function generatorTest() {
       ok(document, 'app launched from ' + url);
     });
   }
-
-  finish();
 }
