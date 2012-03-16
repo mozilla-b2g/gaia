@@ -9,8 +9,8 @@
 
   var webapps = [
                  { // dialer
-                   'installOrigin': 'http://gaiamobile.org:8888',
-                   'origin': '../dialer',
+                   'installOrigin': 'http://dialer.gaiamobile.org',
+                   'origin': 'http://dialer.gaiamobile.org',
                    'receipt': null,
                    'installTime': 1323339869000,
                    manifest: {
@@ -27,8 +27,8 @@
                    }
                  },
                  { // sms
-                   'installOrigin': 'http://gaiamobile.org:8888',
-                   'origin': '../sms',
+                   'installOrigin': 'http://sms.gaiamobile.org',
+                   'origin': 'http://sms.gaiamobile.org',
                    'receipt': null,
                    'installTime': 1323339869000,
                    manifest: {
@@ -45,8 +45,8 @@
                    }
                  },
                  { // browser
-                   installOrigin: 'http://gaiamobile.org:8888',
-                   origin: '../browser',
+                   installOrigin: 'http://browser.gaiamobile.org',
+                   origin: 'http://browser.gaiamobile.org',
                    receipt: null,
                    installTime: 1323339869000,
                    manifest: {
@@ -63,8 +63,8 @@
                    }
                  },
                  { // maps
-                   installOrigin: 'http://gaiamobile.org:8888',
-                   origin: '../maps',
+                   installOrigin: 'http://maps.gaiamobile.org',
+                   origin: 'http://maps.gaiamobile.org',
                    receipt: null,
                    installTime: 1323339869000,
                    manifest: {
@@ -81,8 +81,8 @@
                    }
                  },
                  { // camera
-                   'installOrigin': 'http://gaiamobile.org:8888',
-                   'origin': '../camera',
+                   'installOrigin': 'http://camera.gaiamobile.org',
+                   'origin': 'http://camera.gaiamobile.org',
                    'receipt': null,
                    'installTime': 1323339869000,
                    manifest: {
@@ -100,8 +100,8 @@
                    }
                  },
                  { // gallery
-                   'installOrigin': 'http://gaiamobile.org:8888',
-                   'origin': '../gallery',
+                   'installOrigin': 'http://gallery.gaiamobile.org',
+                   'origin': 'http://gallery.gaiamobile.org',
                    'receipt': null,
                    'installTime': 1323339869000,
                    manifest: {
@@ -118,8 +118,8 @@
                    }
                  },
                  { // video
-                   'installOrigin': 'http://gaiamobile.org:8888',
-                   'origin': '../video',
+                   'installOrigin': 'http://video.gaiamobile.org',
+                   'origin': 'http://video.gaiamobile.org',
                    'receipt': null,
                    'installTime': 1323339869000,
                    manifest: {
@@ -156,8 +156,8 @@
                    }
                  },
                  { // market
-                   'installOrigin': 'http://gaiamobile.org:8888',
-                   'origin': '../market',
+                   'installOrigin': 'http://market.gaiamobile.org',
+                   'origin': 'http://market.gaiamobile.org',
                    'receipt': null,
                    'installTime': 1323339869000,
                    manifest: {
@@ -174,8 +174,8 @@
                    }
                  },
                  { // music
-                   'installOrigin': 'http://gaiamobile.org:8888',
-                   'origin': '../music',
+                   'installOrigin': 'http://music.gaiamobile.org',
+                   'origin': 'http://music.gaiamobile.org',
                    'receipt': null,
                    'installTime': 1323339869000,
                    manifest: {
@@ -228,8 +228,8 @@
                    }
                  },
                  { // settings
-                   'installOrigin': 'http://gaiamobile.org:8888',
-                   'origin': '../settings',
+                   'installOrigin': 'http://settings.gaiamobile.org',
+                   'origin': 'http://settings.gaiamobile.org',
                    'receipt': null,
                    'installTime': 1323339869000,
                    manifest: {
@@ -246,8 +246,8 @@
                    }
                  },
                  { // clock
-                   installOrigin: 'http://gaiamobile.org:8888',
-                   origin: '../clock',
+                   installOrigin: 'http://clock.gaiamobile.org',
+                   origin: 'http://clock.gaiamobile.org',
                    receipt: null,
                    installTime: 1323339869000,
                    manifest: {
@@ -264,8 +264,8 @@
                    }
                  },
                  { // webgl demo
-                   'installOrigin': 'http://www.everyday3d.com/j3d/demo',
-                   'origin': '../crystalskull',
+                   'installOrigin': 'http://crystalskull.gaiamobile.org',
+                   'origin': 'http://crystalskull.gaiamobile.org',
                    'receipt': null,
                    'installTime': 1323339869000,
                    manifest: {
@@ -284,8 +284,8 @@
                    }
                  },
                  { // video cube demo
-                   'installOrigin': 'http://www.everyday3d.com/j3d/demo',
-                   'origin': '../cubevid',
+                   'installOrigin': 'http://videocube.gaiamobile.org',
+                   'origin': 'http://videocube.gaiamobile.org',
                    'receipt': null,
                    'installTime': 1323339869000,
                    manifest: {
@@ -304,8 +304,8 @@
                    }
                  },
                  { // PenguinPop
-                   'installOrigin': 'http://goosypets.com/html5games/whac',
-                   'origin': '../penguinpop',
+                   'installOrigin': 'http://penguinpop.gaiamobile.org',
+                   'origin': 'http://penguinpop.gaiamobile.org',
                    'receipt': null,
                    'installTime': 1323339869000,
                    manifest: {
@@ -322,8 +322,8 @@
                    }
                  },
                  { // TowerJelly
-                   'installOrigin': 'http://goosypets.com/html5games/tower/',
-                   'origin': '../towerjelly',
+                   'installOrigin': 'http://towerjelly.gaiamobile.org',
+                   'origin': 'http://towerjelly.gaiamobile.org',
                    'receipt': null,
                    'installTime': 1323339869000,
                    manifest: {
@@ -346,7 +346,7 @@
                    'installTime': 1323339869000,
                    manifest: {
                      'name': 'Cut The Rope',
-                     'description': 'http://cuttherope.ie',
+                     'description': 'Cut The Rope Game',
                      'launch_path': '',
                      'orientation': 'landscape-primary',
                      'fullscreen': true,
@@ -361,8 +361,8 @@
                    }
                  },
                  { // wikipedia
-                   'installOrigin': 'http://www.wikipedia.org/',
-                   'origin': '../wikipedia',
+                   'installOrigin': 'http://wikipedia.gaiamobile.org',
+                   'origin': 'http://wikipedia.gaiamobile.org',
                    'receipt': null,
                    'installTime': 1323339869000,
                    manifest: {
@@ -379,8 +379,8 @@
                    }
                  },
                  { // CNN
-                   'installOrigin': 'http://m.cnn.com/',
-                   'origin': '../cnn',
+                   'installOrigin': 'http://cnn.gaiamobile.org',
+                   'origin': 'http://cnn.gaiamobile.org',
                    'receipt': null,
                    'installTime': 1323339869000,
                    manifest: {
@@ -397,8 +397,8 @@
                    }
                  },
                  { // BBC
-                   'installOrigin': 'http://m.bbc.co.uk/',
-                   'origin': '../bbc',
+                   'installOrigin': 'http://bbc.gaiamobile.org',
+                   'origin': 'http://bbc.gaiamobile.org',
                    'receipt': null,
                    'installTime': 1323339869000,
                    manifest: {
@@ -415,8 +415,8 @@
                    }
                  },
                  { // NY Times
-                   'installOrigin': 'http://www.nytimes.com/',
-                   'origin': '../nytimes',
+                   'installOrigin': 'http://nytimes.gaiamobile.org',
+                   'origin': 'http://nytimes.gaiamobile.org',
                    'receipt': null,
                    'installTime': 1323339869000,
                    manifest: {
@@ -433,8 +433,8 @@
                    }
                  },
                  { // Calculator
-                   'installOrigin': 'http://gaiamobile.org:8888',
-                   'origin': '../calculator',
+                   'installOrigin': 'http://calculator.gaiamobile.org',
+                   'origin': 'http://calculator.gaiamobile.org',
                    'receipt': null,
                    'installTime': 1323339869000,
                    manifest: {
