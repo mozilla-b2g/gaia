@@ -92,6 +92,9 @@ var LockScreen = {
     window.dispatchEvent(evt);
 
     // Wait for paint before firing callback
+    if (!callback)
+      return;
+
     var afterPaintCallback = function afterPaint() {
       window.removeEventListener('MozAfterPaint', afterPaintCallback);
       callback(true);
