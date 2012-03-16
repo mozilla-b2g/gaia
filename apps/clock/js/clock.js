@@ -23,9 +23,3 @@ function choiceChanged(target) {
   target.dataset.active = true;
   view.hidden = false;
 }
-
-window.addEventListener('load', function clockLoad(evt) {
-  window.removeEventListener('load', clockLoad);
-
-  window.parent.postMessage('appready', '*');
-});
