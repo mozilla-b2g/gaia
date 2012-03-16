@@ -121,6 +121,11 @@ function testApp(url, testfunc) {
 
     let contentWin = content.wrappedJSObject;
     let contentDoc = contentWin.document;
+
+    // The 'complete' readyState can be triggered at a time where
+    // the LockScreen module isn't accessible, so we wait.
+    yield until(function() 'LockScreen' in contentWin, nextStep);
+
     let lockscreen = contentDoc.getElementById('lockscreen');
 
     // Send the Home key to turn the screen on if it was off
