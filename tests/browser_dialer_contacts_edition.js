@@ -16,12 +16,11 @@ function testContactsEdition(window, document, nextStep) {
 
   // -- Creating a contact
   var addButton = document.getElementById('contact-add');
-  EventUtils.sendMouseEvent({type: 'click'}, addButton);
-
-  yield overlay.addEventListener('transitionend', function trWait() {
+  overlay.addEventListener('transitionend', function trWait() {
     overlay.removeEventListener('transitionend', trWait);
     nextStep();
   });
+  yield EventUtils.sendMouseEvent({type: 'click'}, addButton);
 
   var testNumber = '321-123-4242';
 
@@ -38,11 +37,11 @@ function testContactsEdition(window, document, nextStep) {
   yield until(function() !details.view.classList.contains('editing'), nextStep);
 
   // Closing the modal view
-  EventUtils.sendKey('ESCAPE', window);
-  yield overlay.addEventListener('transitionend', function trWait() {
+  overlay.addEventListener('transitionend', function trWait() {
     overlay.removeEventListener('transitionend', trWait);
     nextStep();
   });
+  yield EventUtils.sendKey('ESCAPE', window);
 
   // Looking up the new contact in the mozContacts DB
   var foundContact;
@@ -58,11 +57,11 @@ function testContactsEdition(window, document, nextStep) {
 
 
   // Showing the contact details
-  EventUtils.sendMouseEvent({type: 'click'}, entry);
-  yield overlay.addEventListener('transitionend', function trWait() {
+  overlay.addEventListener('transitionend', function trWait() {
     overlay.removeEventListener('transitionend', trWait);
     nextStep();
   });
+  yield EventUtils.sendMouseEvent({type: 'click'}, entry);
 
   // -- Editing the new contact
   var editSelector = 'button[data-action="edit"]';
@@ -80,11 +79,11 @@ function testContactsEdition(window, document, nextStep) {
   yield until(function() !details.view.classList.contains('editing'), nextStep);
 
   // Closing the modal view
-  EventUtils.sendKey('ESCAPE', window);
-  yield overlay.addEventListener('transitionend', function trWait() {
+  overlay.addEventListener('transitionend', function trWait() {
     overlay.removeEventListener('transitionend', trWait);
     nextStep();
   });
+  yield EventUtils.sendKey('ESCAPE', window);
 
   // Looking up the contact with the new number
   yield contacts.findByNumber(newNumber, function(contact) {
@@ -96,11 +95,11 @@ function testContactsEdition(window, document, nextStep) {
 
   // -- Deleting the contact
   entry = document.getElementById(contactId);
-  EventUtils.sendMouseEvent({type: 'click'}, entry);
-  yield overlay.addEventListener('transitionend', function trWait() {
+  overlay.addEventListener('transitionend', function trWait() {
     overlay.removeEventListener('transitionend', trWait);
     nextStep();
   });
+  yield EventUtils.sendMouseEvent({type: 'click'}, entry);
 
   // Entering edit mode
   EventUtils.sendMouseEvent({type: 'click'}, editButton);
@@ -109,11 +108,11 @@ function testContactsEdition(window, document, nextStep) {
   var deleteButton = details.view.querySelector(deleteSelector);
 
   // Calling the delete action
-  EventUtils.sendMouseEvent({type: 'click'}, deleteButton);
-  yield overlay.addEventListener('transitionend', function trWait() {
+  overlay.addEventListener('transitionend', function trWait() {
     overlay.removeEventListener('transitionend', trWait);
     nextStep();
   });
+  yield EventUtils.sendMouseEvent({type: 'click'}, deleteButton);
 
   ok(!details.view.classList.contains('editing'),
      'Out of editing mode');
