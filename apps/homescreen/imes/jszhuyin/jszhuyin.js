@@ -11,9 +11,9 @@
       return;
 
     if (window.dump)
-      window.dump('JSZhuYing: ' + str + '\n');
+      window.dump('JSZhuyin: ' + str + '\n');
     if (console && console.log) {
-      console.log('JSZhuYing: ' + str);
+      console.log('JSZhuyin: ' + str);
       if (arguments.length > 1)
         console.log.apply(this, arguments);
     }
@@ -459,8 +459,8 @@
     var settings;
 
     /* name and version of IndexedDB */
-    var kDBName = 'JSZhuYing';
-    var kDBVersion = 6;
+    var kDBName = 'JSZhuyin';
+    var kDBVersion = 1;
 
     var jsonData;
     var iDB;
@@ -869,14 +869,14 @@
     };
   };
 
-  var jszhuying = new IMEngine();
+  var jszhuyin = new IMEngine();
 
-  // Expose JSZhuYing as an AMD module
+  // Expose JSZhuyin as an AMD module
   if (typeof define === 'function' && define.amd)
-    define('jszhuying', [], function() { return jszhuying; });
+    define('jszhuyin', [], function() { return jszhuyin; });
 
   // Expose to IMEManager if we are in Gaia homescreen
   if (IMEManager && IMEManager.IMEngines)
-    IMEManager.IMEngines.jszhuying = new IMEngine();
+    IMEManager.IMEngines.jszhuyin = new IMEngine();
 
 })();
