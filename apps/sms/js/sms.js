@@ -62,9 +62,7 @@ var ConversationListView = {
 
     this.updateConversationList(null, function fireAppReady() {
       var url = document.location.toString();
-      visibilityChanged(url);
-
-      window.parent.postMessage('appready', '*');
+      visibilityChanged(url); // FIXME: this function is not defined
     });
   },
 
