@@ -19,6 +19,7 @@ function debug() {
 // if we ever actually need them.
 //
 EventUtils.swipe = function swipe(e, x0, y0, x1, y1, interval, whendone) {
+  silentOK(e != null, 'trying to swipe on an inexistant element');
   var t = 0;  // Start at time 0
 
   // Begin with a mouse down event
@@ -115,17 +116,17 @@ function testApp(url, testfunc) {
 
   function testAppGenerator(url, testfunc, nextStep) {
     // Wait until the content document is ready
-    yield until(
-      function() content.wrappedJSObject.document.readyState === 'complete',
-      nextStep);
+    yield until(function() {
+      if (content.wrappedJSObject.document.readyState === 'complete') {
+        // An about:blank page is loaded first, we keep waiting until
+        // the homescreen's readyState is complete
+        return (content.wrappedJSObject.document.body.children.length > 0);
+      }
+      return false;
+    }, nextStep);
 
     let contentWin = content.wrappedJSObject;
     let contentDoc = contentWin.document;
-
-    // The 'complete' readyState can be triggered at a time where
-    // the LockScreen module isn't accessible, so we wait.
-    yield until(function() 'LockScreen' in contentWin, nextStep);
-
     let lockscreen = contentDoc.getElementById('lockscreen');
 
     // Send the Home key to turn the screen on if it was off
