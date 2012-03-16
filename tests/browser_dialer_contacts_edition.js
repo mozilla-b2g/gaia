@@ -1,125 +1,122 @@
+function generatorTest() {
+  // Launch the dialer app
+  yield testApp('../dialer/dialer.html', testContactsEdition);
+}
 
-function test() {
-  waitForExplicitFinish();
-  let url = '../dialer/dialer.html';
+function testContactsEdition(window, document, nextStep) {
+  var contactTab = document.getElementById('contacts-label');
+  EventUtils.sendMouseEvent({type: 'click'}, contactTab);
 
-  getWindowManager(function(windowManager) {
-    function onReady(dialerFrame) {
-      let dialerWindow = dialerFrame.contentWindow;
+  // Waiting until the contacts are loaded
+  yield until(function() window.Contacts && window.Contacts._loaded, nextStep);
 
-      var contactTab = dialerWindow.document.getElementById('contacts-label');
-      EventUtils.sendMouseEvent({type: 'click'}, contactTab);
+  var details = window.ContactDetails;
+  var contacts = window.Contacts;
+  var overlay = details.overlay;
 
-      ok(!dialerWindow.document.getElementById('contacts-view').hidden,
-         'Contact view displayed');
-
-      waitFor(function() {
-        // creating a contact
-        var addButton = dialerWindow.document.getElementById('contact-add');
-        EventUtils.sendMouseEvent({type: 'click'}, addButton);
-
-        var details = dialerWindow.ContactDetails;
-        var overlay = details.overlay;
-
-        overlay.addEventListener('transitionend', function trWait() {
-          overlay.removeEventListener('transitionend', trWait);
-
-          var testNumber = '321-123-4242';
-
-          details.contactGivenNameField.value = 'John';
-          details.contactFamilyNameField.value = 'Appleseed';
-          details.contactPhoneField.value = testNumber;
-          details.contactEmailField.value = 'john@appleseed.com';
-
-          var submitButton = details.view.querySelector('input[type="submit"]');
-          EventUtils.sendMouseEvent({type: 'click'}, submitButton);
-
-          waitFor(function() {
-            EventUtils.sendKey('ESCAPE', dialerWindow);
-
-            overlay.addEventListener('transitionend', function trWait() {
-              overlay.removeEventListener('transitionend', trWait);
-
-              dialerWindow.Contacts.findByNumber(testNumber, function(contact) {
-                var contactId = contact.id;
-                var entry = dialerWindow.document.getElementById(contactId);
-                ok(entry != null, 'Entry for the contact created');
-                ok(contact.name == 'John Appleseed', 'The contact name was set');
-
-                // editing the contact
-                EventUtils.sendMouseEvent({type: 'click'}, entry);
-
-                overlay.addEventListener('transitionend', function trWait() {
-                  overlay.removeEventListener('transitionend', trWait);
-
-                  var editSelector = 'button[data-action="edit"]';
-                  var editButton = details.view.querySelector(editSelector);
-                  EventUtils.sendMouseEvent({type: 'click'}, editButton);
-
-                  ok(details.view.classList.contains('editing'),
-                     'In editing mode');
-
-                  var newNumber = '0112345678';
-                  details.contactPhoneField.value = newNumber;
-                  EventUtils.sendMouseEvent({type: 'click'}, submitButton);
-                  waitFor(function() {
-                    EventUtils.sendKey('ESCAPE', dialerWindow);
-
-                    overlay.addEventListener('transitionend', function tWait() {
-                      overlay.removeEventListener('transitionend', tWait);
-
-                      dialerWindow.Contacts.findByNumber(newNumber,
-                      function(contact) {
-                        ok(contact.id == contactId, 'Contact has been updated');
-
-                        entry = dialerWindow.document.getElementById(contactId);
-                        EventUtils.sendMouseEvent({type: 'click'}, entry);
-
-                        overlay.addEventListener('transitionend', function trWait() {
-                          overlay.removeEventListener('transitionend', trWait);
-
-                          EventUtils.sendMouseEvent({type: 'click'}, editButton);
-
-                          var deleteSelector = 'button[data-action="destroy"]';
-                          var deleteButton = details.view.querySelector(deleteSelector);
-
-                          EventUtils.sendMouseEvent({type: 'click'}, deleteButton);
-
-                          overlay.addEventListener('transitionend', function trWait() {
-                            overlay.removeEventListener('transitionend', trWait);
-
-                            ok(!details.view.classList.contains('editing'),
-                               'Out of editing mode');
-
-                            entry = dialerWindow.document.getElementById(contactId);
-                            ok(entry == null, 'Entry for the contact removed');
-
-                            windowManager.closeForegroundWindow();
-                          });
-                        });
-                      });
-                    });
-                  }, function() {
-                    return !(details.view.classList.contains('editing'));
-                  });
-                });
-              });
-            });
-          }, function() {
-            return !(details.view.classList.contains('editing'));
-          });
-        });
-      }, function() {
-        return (('Contacts' in dialerWindow) && dialerWindow.Contacts._loaded);
-      });
-    }
-
-    function onClose() {
-      windowManager.kill(url);
-      finish();
-    }
-
-    let appFrame = windowManager.launch(url).element;
-    ApplicationObserver(appFrame, onReady, onClose);
+  // -- Creating a contact
+  var addButton = document.getElementById('contact-add');
+  overlay.addEventListener('transitionend', function trWait() {
+    overlay.removeEventListener('transitionend', trWait);
+    nextStep();
   });
+  yield EventUtils.sendMouseEvent({type: 'click'}, addButton);
+
+  var testNumber = '321-123-4242';
+
+  // Filling the form
+  details.contactGivenNameField.value = 'John';
+  details.contactFamilyNameField.value = 'Appleseed';
+  details.contactPhoneField.value = testNumber;
+  details.contactEmailField.value = 'john@appleseed.com';
+
+  // Saving the new contact
+  var submitButton = details.view.querySelector('input[type="submit"]');
+  EventUtils.sendMouseEvent({type: 'click'}, submitButton);
+
+  yield until(function() !details.view.classList.contains('editing'), nextStep);
+
+  // Closing the modal view
+  overlay.addEventListener('transitionend', function trWait() {
+    overlay.removeEventListener('transitionend', trWait);
+    nextStep();
+  });
+  yield EventUtils.sendKey('ESCAPE', window);
+
+  // Looking up the new contact in the mozContacts DB
+  var foundContact;
+  yield contacts.findByNumber(testNumber, function(contact) {
+    foundContact = contact;
+    nextStep();
+  });
+
+  var contactId = foundContact.id;
+  var entry = document.getElementById(contactId);
+  ok(entry != null, 'Entry for the contact created');
+  ok(foundContact.name == 'John Appleseed', 'The contact name was set');
+
+
+  // Showing the contact details
+  overlay.addEventListener('transitionend', function trWait() {
+    overlay.removeEventListener('transitionend', trWait);
+    nextStep();
+  });
+  yield EventUtils.sendMouseEvent({type: 'click'}, entry);
+
+  // -- Editing the new contact
+  var editSelector = 'button[data-action="edit"]';
+  var editButton = details.view.querySelector(editSelector);
+  EventUtils.sendMouseEvent({type: 'click'}, editButton);
+
+  ok(details.view.classList.contains('editing'),
+     'In editing mode');
+
+  var newNumber = '0112345678';
+  details.contactPhoneField.value = newNumber;
+
+  // Saving the changes
+  EventUtils.sendMouseEvent({type: 'click'}, submitButton);
+  yield until(function() !details.view.classList.contains('editing'), nextStep);
+
+  // Closing the modal view
+  overlay.addEventListener('transitionend', function trWait() {
+    overlay.removeEventListener('transitionend', trWait);
+    nextStep();
+  });
+  yield EventUtils.sendKey('ESCAPE', window);
+
+  // Looking up the contact with the new number
+  yield contacts.findByNumber(newNumber, function(contact) {
+    foundContact = contact;
+    nextStep();
+  });
+
+  ok(foundContact.id == contactId, 'Contact has been updated');
+
+  // -- Deleting the contact
+  entry = document.getElementById(contactId);
+  overlay.addEventListener('transitionend', function trWait() {
+    overlay.removeEventListener('transitionend', trWait);
+    nextStep();
+  });
+  yield EventUtils.sendMouseEvent({type: 'click'}, entry);
+
+  // Entering edit mode
+  EventUtils.sendMouseEvent({type: 'click'}, editButton);
+
+  var deleteSelector = 'button[data-action="destroy"]';
+  var deleteButton = details.view.querySelector(deleteSelector);
+
+  // Calling the delete action
+  overlay.addEventListener('transitionend', function trWait() {
+    overlay.removeEventListener('transitionend', trWait);
+    nextStep();
+  });
+  yield EventUtils.sendMouseEvent({type: 'click'}, deleteButton);
+
+  ok(!details.view.classList.contains('editing'),
+     'Out of editing mode');
+
+  entry = window.document.getElementById(contactId);
+  ok(entry == null, 'Entry for the contact removed');
 }
