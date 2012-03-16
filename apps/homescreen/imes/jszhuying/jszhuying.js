@@ -153,6 +153,10 @@
           pendingSymbols.join('') + ' ';
       }
 
+      if (!syllablesForQuery[syllablesForQuery.length - 1]) {
+        syllablesForQuery.pop();
+      }
+
       debug('Get term candidates for the entire buffer.');
       lookup(syllablesForQuery, 'term', function lookupCallback(terms) {
         terms.forEach(function readTerm(term) {
