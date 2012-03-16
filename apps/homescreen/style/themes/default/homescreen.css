@@ -96,9 +96,7 @@ body {
 .icon {
   width: 128px;
   height: 192px;
-  background: url(images/thumb.png) 8px 8px no-repeat #222;
   background-color: #222;
-  background-image: url(images/thumb.png);
   background-position: 8px 8px;
   background-repeat: no-repeat;
   background-color: #222;

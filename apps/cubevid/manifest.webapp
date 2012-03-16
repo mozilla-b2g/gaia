@@ -1,0 +1,13 @@
+{
+  "name": "CubeVid",
+  "description": "Video Cube Demo",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "The Original Author",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "icons": {
+    "120": "icon.png"
+  }
+}
+

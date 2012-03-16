@@ -7,6 +7,7 @@ manifest.webapp
 
 # style/
 style/market.css
+style/images/market.png
 
 # icons used in the web application manifest.
 # Do not use icons/ directly since it is often used as an alias by Apache.

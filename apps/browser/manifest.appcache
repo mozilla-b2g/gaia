@@ -10,18 +10,26 @@ js/browser.js
 
 # style/
 style/browser.css
-style/images/back-disabled.png
-style/images/back.png
-style/images/favicon.png
-style/images/go.png
+style/fonts/Open-Sans.woff
+style/fonts/Open-Sans-Semibold.woff
+style/fonts/Open-Sans-Bold.woff
 style/images/loading.gif
+style/images/bookmark.png
+style/images/downloads.png
+style/images/menu.png
+style/images/go.png
+style/images/back.png
+style/images/settings.png
+style/images/back-pressed.png
+style/images/forward.png
+style/images/favicon.png
+style/images/back-disabled.png
+style/images/menu-pressed.png
+style/images/refresh.png
 
 # icons used in the web application manifest.
 # Do not use icons/ directly since it is often used as an alias by Apache.
 style/icons/Browser.png
-
-# tmp files
-webapi+apps.js
 
 NETWORK:
 
