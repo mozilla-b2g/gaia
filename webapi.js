@@ -1840,7 +1840,7 @@
         // execute the [optional] callback
         if (callback)
           callback();
-        // fire an 'localized' DOM event
+        // fire a 'localized' DOM event
         var evtObject = document.createEvent('Event');
         evtObject.initEvent('localized', false, false);
         evtObject.language = lang;
