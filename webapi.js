@@ -1840,9 +1840,9 @@
         // execute the [optional] callback
         if (callback)
           callback();
-        // fire an 'l10nLocaleLoaded' DOM event
+        // fire an 'localized' DOM event
         var evtObject = document.createEvent('Event');
-        evtObject.initEvent('l10nLocaleLoaded', false, false);
+        evtObject.initEvent('localized', false, false);
         evtObject.language = lang;
         window.dispatchEvent(evtObject);
       }
