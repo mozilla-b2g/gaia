@@ -1,29 +1,19 @@
-
-function test() {
+function generatorTest() {
   waitForExplicitFinish();
-  let url = '../dialer/dialer.html';
+  yield testApp('../dialer/dialer.html', testDialerSanitizing);
+  finish();
+}
 
-  getWindowManager(function(windowManager) {
-    function onReady(dialerFrame) {
-      let dialerWindow = dialerFrame.contentWindow;
+function testDialerSanitizing(window, document, nextStep) {
 
-      dialerWindow.navigator.mozTelephony.dial = function fake_dial(number) {
-        ok(number == '5707534296', 'Phone number sanitized');
-        windowManager.closeForegroundWindow();
+  window.navigator.mozTelephony.dial = function fake_dial(number) {
+    ok(number == '5707534296', 'Phone number sanitized');
+    var fakeCall = {number: '123', addEventListener: function() {}};
+    return fakeCall;
+  };
 
-        var fakeCall = {number: '123', addEventListener: function() {}};
-        return fakeCall;
-      };
+  // Wait for the call handler to be available
+  yield until(function() window.CallHandler, nextStep);
 
-      dialerWindow.CallHandler.call('570-753-4296');
-    }
-
-    function onClose() {
-      windowManager.kill(url);
-      finish();
-    }
-
-    let appFrame = windowManager.launch(url).element;
-    ApplicationObserver(appFrame, onReady, onClose);
-  });
+  window.CallHandler.call('570-753-4296');
 }
