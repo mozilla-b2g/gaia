@@ -210,6 +210,7 @@
   font-family: 'Keyboard Symbols', 'Open Sans', sans-serif;
   pointer-events: none;
   top: 0; left: 0;
+  z-index: 2;
   color: #333;
   background: -moz-linear-gradient(top, rgba(194,197,202,0.9) 10%, rgba(164,164,172,0.9) 90%);
   font-size: 50px;

@@ -153,6 +153,7 @@ const IMEManager = {
     delete this.candidatePanel;
     var candidatePanel = document.createElement('div');
     candidatePanel.id = 'keyboard-candidate-panel';
+    candidatePanel.addEventListener('scroll', this);
     return this.candidatePanel = candidatePanel;
   },
 
@@ -185,6 +186,12 @@ const IMEManager = {
     if (target.parentNode === menu) {
       top += menu.offsetTop;
       left += menu.offsetLeft;
+    }
+
+    var candidatePanel = this.candidatePanel;
+    if (target.parentNode === candidatePanel) {
+      top += candidatePanel.offsetTop - candidatePanel.scrollTop;
+      left += candidatePanel.offsetLeft - candidatePanel.scrollLeft;
     }
 
     left = Math.max(left, 5);
@@ -639,6 +646,7 @@ const IMEManager = {
         break;
 
       case 'mouseleave':
+      case 'scroll': // scrolling IME candidate panel
         if (!this.isPressing || !this.currentKey)
           return;
 
@@ -648,6 +656,9 @@ const IMEManager = {
         this._hideMenuTimeout = setTimeout((function hideMenuTimeout() {
             this.hideAccentCharMenu();
           }).bind(this), this.kHideAccentCharMenuTimeout);
+
+        if (evt.type == 'scroll')
+          this.isPressing = false; // cancel the following mouseover event
 
         break;
 
