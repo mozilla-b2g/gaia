@@ -1110,6 +1110,7 @@ const IMEManager = {
       candidatePanel.className = '';
       if (!noWindowHeightUpdate)
         this.updateTargetWindowHeight();
+      this.updateKeyHighlight();
       return;
     }
 
