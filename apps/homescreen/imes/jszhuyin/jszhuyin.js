@@ -879,6 +879,6 @@
 
   // Expose to IMEManager if we are in Gaia homescreen
   if (IMEManager && IMEManager.IMEngines)
-    IMEManager.IMEngines.jszhuyin = new IMEngine();
+    IMEManager.IMEngines.jszhuyin = jszhuyin;
 
 })();
