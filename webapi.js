@@ -203,7 +203,7 @@
 }());
 
 // navigator.mozContacts
-(function (window) {
+(function(window) {
   var navigator = window.navigator;
 
   var contacts = [{
@@ -1056,7 +1056,7 @@
 })(this);
 
 // navigator.mozTelephony
-(function (window) {
+(function(window) {
   var navigator = window.navigator;
   if ('mozTelephony' in navigator)
     return;
@@ -1093,7 +1093,7 @@
 
 // Register a handler to automatically update apps when the app cache
 // changes.
-(function (window) {
+(function(window) {
   var cache = window.applicationCache;
   if (!cache)
     return;
@@ -1111,7 +1111,7 @@
 
 // Emulate device buttons. This is groteskly unsafe and should be removed
 // soon.
-(function (window) {
+(function(window) {
   var supportedEvents = { keydown: true, keyup: true };
   var listeners = [];
 
@@ -1141,15 +1141,15 @@
     DOM_VK_HOME: 36
   };
 
-  window.addEventListener("message", function(event) {
+  window.addEventListener('message', function(event) {
     var data = event.data;
-    if (typeof data === "string" && data.indexOf("moz-key-") == 0) {
-      var type,  key;
-      if (data.indexOf("moz-key-down-") == 0) {
-        type = "keydown";
+    if (typeof data === 'string' && data.indexOf('moz-key-') == 0) {
+      var type, key;
+      if (data.indexOf('moz-key-down-') == 0) {
+        type = 'keydown';
         key = data.substr(13);
-      } else if (data.indexOf("moz-key-up-") == 0) {
-        type = "keyup";
+      } else if (data.indexOf('moz-key-up-') == 0) {
+        type = 'keyup';
         key = data.substr(11);
       } else {
         return;
@@ -1161,9 +1161,9 @@
           var e = Object.create(KeyEventProto);
           e.type = type;
           e.keyCode = key;
-          if (typeof fn === "function")
+          if (typeof fn === 'function')
             fn(e);
-          else if (typeof fn === "object" && fn.handleEvent)
+          else if (typeof fn === 'object' && fn.handleEvent)
             fn.handleEvent(e);
           if (listeners[n].capture)
             return;
@@ -1174,7 +1174,7 @@
 })(this);
 
 // navigator.mozWifiManager
-(function (window) {
+(function(window) {
   var navigator = window.navigator;
   if ('mozWifiManager' in navigator)
     return;
