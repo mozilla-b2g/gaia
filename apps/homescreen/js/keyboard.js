@@ -156,6 +156,15 @@ const IMEManager = {
     return this.candidatePanel = candidatePanel;
   },
 
+  get candidatePanelToggleButton() {
+    delete this.candidatePanelToggleButton;
+    var toggleButton = document.createElement('span');
+    toggleButton.innerHTML = '⇪';
+    toggleButton.id = 'keyboard-candidate-panel-toggle-button';
+    toggleButton.dataset.keycode = this.TOGGLE_CANDIDATE_PANEL;
+    return this.candidatePanelToggleButton = toggleButton;
+  },
+
   updateKeyHighlight: function km_updateKeyHighlight() {
     var keyHighlight = this.keyHighlight;
     var target = this.currentKey;
@@ -996,12 +1005,8 @@ const IMEManager = {
     // insert candidate panel if the keyboard layout needs it
 
     if (layout.needsCandidatePanel) {
-      var toggleButton = document.createElement('span');
-      toggleButton.innerHTML = '⇪';
-      toggleButton.id = 'keyboard-candidate-panel-toggle-button';
-      toggleButton.dataset.keycode = this.TOGGLE_CANDIDATE_PANEL;
-      this.ime.insertBefore(toggleButton, this.ime.firstChild);
-
+      this.ime.insertBefore(
+        this.candidatePanelToggleButton, this.ime.firstChild);
       this.ime.insertBefore(this.candidatePanel, this.ime.firstChild);
       this.showCandidates([], true);
       this.currentEngine.empty();
@@ -1084,9 +1089,8 @@ const IMEManager = {
   },
 
   showCandidates: function km_showCandidates(candidates, noWindowHeightUpdate) {
-    var candidatePanel = document.getElementById('keyboard-candidate-panel');
-    var toggleButton =
-      document.getElementById('keyboard-candidate-panel-toggle-button');
+    var candidatePanel = this.candidatePanel;
+    var toggleButton = this.candidatePanelToggleButton;
 
     candidatePanel.innerHTML = '';
 
