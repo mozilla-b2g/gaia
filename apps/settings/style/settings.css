@@ -23,3 +23,29 @@ html, body {
   src: url('fonts/Roboto-BoldItalic.ttf');
 }
 
+*[dir=rtl] .view > h2 {
+  padding: 0 10px 0 0;
+}
+
+*[dir=rtl] .view {
+  -moz-transform: translateX(-100%);
+}
+*[dir=rtl] #root {
+  -moz-transform: translateX(+100%);
+}
+
+*[dir=rtl] #root:target,
+*[dir=rtl] .view:target {
+  -moz-transform: none;
+}
+
+*[dir=rtl] ul li > span,
+*[dir=rtl] ul li > small {
+  left: auto;
+  right: 20px;
+}
+
+*[dir=rtl] .view label > span {
+  left: 20px;
+  right: auto;
+}
