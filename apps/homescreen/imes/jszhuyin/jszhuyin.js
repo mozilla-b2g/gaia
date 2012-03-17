@@ -11,9 +11,9 @@
       return;
 
     if (window.dump)
-      window.dump('JSZhuYing: ' + str + '\n');
+      window.dump('JSZhuyin: ' + str + '\n');
     if (console && console.log) {
-      console.log('JSZhuYing: ' + str);
+      console.log('JSZhuyin: ' + str);
       if (arguments.length > 1)
         console.log.apply(this, arguments);
     }
@@ -153,6 +153,10 @@
           pendingSymbols.join('') + ' ';
       }
 
+      if (!syllablesForQuery[syllablesForQuery.length - 1]) {
+        syllablesForQuery.pop();
+      }
+
       debug('Get term candidates for the entire buffer.');
       lookup(syllablesForQuery, 'term', function lookupCallback(terms) {
         terms.forEach(function readTerm(term) {
@@ -188,11 +192,6 @@
             candidates.push([sentence, 'whole']);
           });
 
-          if (!candidates.length) {
-            // no sentences nor terms for the entire buffer
-            debug('Insert all symbols as the first candidate.');
-            candidates.push([syllablesInBuffer.join(''), 'whole']);
-          }
           firstCandidate = candidates[0][0];
 
           // The remaining candidates doesn't match the entire buffer
@@ -212,6 +211,11 @@
               terms.forEach(function readTerm(term) {
                 candidates.push([term, 'term']);
               });
+
+              if (i === 1 && !terms.length) {
+                debug('The first syllable does not make up a word, output the symbol.');
+                candidates.push([syllables.join(''), 'symbol']);
+              }
 
               if (!--i) {
                 debug('Done Looking.');
@@ -402,12 +406,14 @@
     /* ==== init ==== */
 
     this.init = function ime_init(options) {
+      debug('Init.');
       settings = options;
     };
 
     /* ==== uninit ==== */
 
-    this.uninit = function ime_unload(code) {
+    this.uninit = function ime_uninit() {
+      debug('Uninit.');
       empty();
       db.uninit();
       db = null;
@@ -433,6 +439,9 @@
       settings.sendString(text);
 
       var i = text.length;
+      if (type == 'symbol')
+        i = 1;
+
       while (i--) {
         syllablesInBuffer.shift();
       }
@@ -452,8 +461,8 @@
     var settings;
 
     /* name and version of IndexedDB */
-    var kDBName = 'JSZhuYing';
-    var kDBVersion = 6;
+    var kDBName = 'JSZhuyin';
+    var kDBVersion = 1;
 
     var jsonData;
     var iDB;
@@ -814,8 +823,13 @@
             self.getTermWithHighestScore(
               syllables.slice(start, start + numOfWord),
               function getTermWithHighestScoreCallback(term) {
-                if (!term)
+                if (!term && numOfWord > 1)
                   return finish();
+                if (!term) {
+                  var syllable = syllables.slice(start, start + numOfWord).join('');
+                  debug('Syllable ' + syllable + ' does not made up a word, insert symbol.');
+                  term = [syllable, -7];
+                }
 
                 str.push(term);
                 start += numOfWord;
@@ -857,7 +871,14 @@
     };
   };
 
-  // Expose to IMEManager
-  IMEManager.IMEngines.jszhuying = new IMEngine();
+  var jszhuyin = new IMEngine();
+
+  // Expose JSZhuyin as an AMD module
+  if (typeof define === 'function' && define.amd)
+    define('jszhuyin', [], function() { return jszhuyin; });
+
+  // Expose to IMEManager if we are in Gaia homescreen
+  if (IMEManager && IMEManager.IMEngines)
+    IMEManager.IMEngines.jszhuyin = new IMEngine();
 
 })();
