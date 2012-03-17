@@ -1,0 +1,12 @@
+{
+  "name": "Calendar",
+  "description": "Google Calendar",
+  "launch_path": "http://google.com/calendar/gp",
+  "developer": {
+    "name": "Google",
+    "url": "http://google.com"
+  },
+  "icons": {
+    "120": "/style/icons/GoogleCalendar.png"
+  }
+}

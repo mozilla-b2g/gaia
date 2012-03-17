@@ -1,0 +1,12 @@
+{
+  "name": "CNN",
+  "description": "CNN Mobile Application",
+  "launch_path": "http://m.cnn.com/",
+  "developer": {
+    "name": "CNN"
+    "url": "http://www.cnn.com/"
+  },
+  "icons": {
+    "120": "/style/icons/CNN.png"
+  }
+}

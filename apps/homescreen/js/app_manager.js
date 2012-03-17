@@ -48,6 +48,9 @@ Gaia.AppManager = {
       var cache = [];
       apps.forEach(function(app) {
         var manifest = app.manifest;
+        if (!manifest) // usually means 'badly formed manifest.webapp'
+          return;
+
         if (app.origin == homescreenOrigin)
           return;
 
@@ -55,7 +58,7 @@ Gaia.AppManager = {
         // Even if the icon is stored by the offline cache, trying to load it
         // will fail because the cache is used only when the application is
         // opened.
-        // So when an application is installed it's icon is inserted into
+        // So when an application is installed its icon is inserted into
         // the offline storage database - and retrieved later when the
         // homescreen is used offline. (TODO)
         // So we try to look inside the database for the icon and if it's
@@ -74,7 +77,10 @@ Gaia.AppManager = {
           orientation = manifest.orientation;
         }
 
-        var url = app.origin + manifest.launch_path;
+        var url = manifest.launch_path;
+        if (!/^(http|https):\/\//.test(url))
+           url = '../' + app.origin + url;
+
         cache.push({
           name: manifest.name,
           url: url,

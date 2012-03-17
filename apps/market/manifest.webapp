@@ -1,13 +1,13 @@
 {
-  "name": "Settings",
-  "description": "Gaia Settings",
-  "launch_path": "/settings.html",
+  "name": "Market",
+  "description": "Market for downloading and installing apps",
+  "launch_path": "/market.html",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/andreasgal/gaia"
   },
   "icons": {
-    "120": "/icons/Settings.png"
+    "120": "/style/icons/Market.png"
   }
 }
 

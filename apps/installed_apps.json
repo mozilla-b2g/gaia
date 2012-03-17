@@ -1,0 +1,178 @@
+[
+
+  {
+    "origin": "dialer",
+    "installOrigin": "http://gaiamobile.org:8888",
+    "receipt": null,
+    "installTime": 1323339869000
+  },
+
+  {
+    "origin": "sms",
+    "installOrigin": "http://gaiamobile.org:8888",
+    "receipt": null,
+    "installTime": 1323339869000
+  },
+
+  {
+    "origin": "browser",
+    "installOrigin": "http://gaiamobile.org:8888",
+    "receipt": null,
+    "installTime": 1323339869000
+  },
+
+  {
+    "origin": "maps",
+    "installOrigin": "http://gaiamobile.org:8888",
+    "receipt": null,
+    "installTime": 1323339869000
+  },
+
+  {
+    "origin": "camera",
+    "installOrigin": "http://gaiamobile.org:8888",
+    "receipt": null,
+    "installTime": 1323339869000
+  },
+
+  {
+    "origin": "gallery",
+    "installOrigin": "http://gaiamobile.org:8888",
+    "receipt": null,
+    "installTime": 1323339869000
+  },
+
+  {
+    "origin": "video",
+    "installOrigin": "http://gaiamobile.org:8888",
+    "receipt": null,
+    "installTime": 1323339869000
+  },
+
+  {
+    "origin": "facebook",
+    "installOrigin": "http://www.facebook.com",
+    "receipt": null,
+    "installTime": 1323339869000
+  },
+
+  {
+    "origin": "market",
+    "installOrigin": "http://gaiamobile.org:8888",
+    "receipt": null,
+    "installTime": 1323339869000
+  },
+
+  {
+    "origin": "music",
+    "installOrigin": "http://gaiamobile.org:8888",
+    "receipt": null,
+    "installTime": 1323339869000
+  },
+
+  {
+    "origin": "gmail",
+    "installOrigin": "http://mail.google.com",
+    "receipt": null,
+    "installTime": 1323339869000
+  },
+
+  {
+    "origin": "calendar",
+    "installOrigin": "http://google.com",
+    "receipt": null,
+    "installTime": 1323339869000
+  },
+
+  {
+    "origin": "zimbra",
+    "installOrigin": "https://mail.mozilla.com",
+    "receipt": null,
+    "installTime": 1323339869000
+  },
+
+  {
+    "origin": "settings",
+    "installOrigin": "http://gaiamobile.org:8888",
+    "receipt": null,
+    "installTime": 1323339869000
+  },
+
+  {
+    "origin": "clock",
+    "installOrigin": "http://gaiamobile.org:8888",
+    "receipt": null,
+    "installTime": 1323339869000
+  },
+
+  {
+    "origin": "crystalskull",
+    "installOrigin": "http://www.everyday3d.com/j3d/demo",
+    "receipt": null,
+    "installTime": 1323339869000
+  },
+
+  {
+    "origin": "cubevid",
+    "installOrigin": "http://www.everyday3d.com/j3d/demo",
+    "receipt": null,
+    "installTime": 1323339869000
+  },
+
+  {
+    "origin": "penguinpop",
+    "installOrigin": "http://goosypets.com/html5games/whac",
+    "receipt": null,
+    "installTime": 1323339869000
+  },
+
+  {
+    "origin": "towerjelly",
+    "installOrigin": "http://goosypets.com/html5games/tower/",
+    "receipt": null,
+    "installTime": 1323339869000
+  },
+
+  {
+    "origin": "cuttherope",
+    "installOrigin": "http://cuttherope.ie/",
+    "receipt": null,
+    "installTime": 1323339869000
+  },
+
+  {
+    "origin": "wikipedia",
+    "installOrigin": "http://www.wikipedia.org/",
+    "receipt": null,
+    "installTime": 1323339869000
+  },
+
+  {
+    "origin": "cnn",
+    "installOrigin": "http://m.cnn.com/",
+    "receipt": null,
+    "installTime": 1323339869000
+  },
+
+  {
+    "origin": "bbc",
+    "installOrigin": "http://m.bbc.co.uk/",
+    "receipt": null,
+    "installTime": 1323339869000
+  },
+
+  {
+    "origin": "nytimes",
+    "installOrigin": "http://www.nytimes.com/",
+    "receipt": null,
+    "installTime": 1323339869000
+  },
+
+  {
+    "origin": "calculator",
+    "installOrigin": "http://gaiamobile.org:8888",
+    "receipt": null,
+    "installTime": 1323339869000
+  }
+
+]

@@ -1,0 +1,15 @@
+{
+  "name": "Cut The Rope",
+  "description": "http://cuttherope.ie",
+  "launch_path": "http://cuttherope.ie",
+  "orientation": "landscape-primary",
+  "fullscreen": true,
+  "hackKillMe": true,
+  "developer": {
+    "name": "CutTheRope",
+    "url": "http://cuttherope.ie"
+  },
+  "icons": {
+    "120": "/style/icons/CutTheRope.png"
+  }
+}
