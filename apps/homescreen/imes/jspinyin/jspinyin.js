@@ -29,6 +29,9 @@ function PhraseDictionary() {
       phraseList.push(phrases[i]);
     }
   };
+  this.uninit = function() {
+    phraseList = null;
+  };
 }
 
 function SyllableSplitter() {
@@ -269,6 +272,12 @@ var PinyinImEngine = function(dictionary, splitter) {
     glue = aGlue;
   };
 
+  this.uninit = function jspinyin_uninit() {
+    dictionary.uninit();
+    dictionary = null;
+    splitter = null;
+  };
+
   this.click = function jspinyin_click(aKeyCode) {
     if (aKeyCode == 39 || (97 <= aKeyCode && aKeyCode <= 122)) {
       spell += String.fromCharCode(aKeyCode);
@@ -309,8 +318,6 @@ var PinyinImEngine = function(dictionary, splitter) {
   }
 };
 
-var engine = new PinyinImEngine(splitter, dictionary);
-
 var dictionary = new PhraseDictionary();
 var loader = new XMLHttpRequest();
 loader.open('GET', './imes/jspinyin/db.json');
@@ -318,6 +325,7 @@ loader.responseType = 'json';
 loader.onreadystatechange = function(event) {
   if (loader.readyState == 4) {
     dictionary.addPhrases(loader.response);
+    loader = null;
   }
 };
 loader.send();

@@ -255,12 +255,12 @@ const Keyboards = {
       [ { value: " ", ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE }, { value: "↵", ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN } ]
     ]
   },
-  'zh-Hant-Zhuying': {
+  'zh-Hant-Zhuyin': {
     type: 'ime',
-    label: 'Chinese - Traditional - ZhuYing',
+    label: 'Chinese - Traditional - Zhuyin',
     menuLabel: '繁體注音輸入',
     needsCandidatePanel: true,
-    imEngine: 'jszhuying',
+    imEngine: 'jszhuyin',
     width: 11,
     textLayoutOverwrite: {
       ',': "，",
@@ -338,7 +338,7 @@ const Keyboards = {
       و: "+"
     },
     textLayoutOverwrite: {
-      ',': '،' 
+      ',': '،'
     },
     alternateLayoutOverwrite: {
       '?': '؟'
