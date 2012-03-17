@@ -1,7 +1,7 @@
 {
   "name": "Wikipedia",
   "description": "Wikipedia Mobile Application",
-  "launch_path": "http://www.wikipedia.org/"
+  "launch_path": "http://en.m.wikipedia.org/",
   "developer": {
     "name": "Wikipedia",
     "url": "http://www.wikipedia.org/"

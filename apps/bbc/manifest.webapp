@@ -1,12 +1,12 @@
 {
-  "name": "Maps",
-  "description": "Facebook Mobile Application",
-  "launch_path": "http://touch.facebook.com/",
+  "name": "BBC",
+  "description": "BBC Mobile Application",
+  "launch_path": "http://m.bbc.co.uk/",
   "developer": {
-    "name": "Facebook"
-    "url": "http://www.facebook.com/"
+    "name": "BBC",
+    "url": "http://www.bbc.co.uk/"
   },
   "icons": {
-    "120": "/icons/Facebook.png"
+    "120": "/style/icons/BBC.png"
   }
 }

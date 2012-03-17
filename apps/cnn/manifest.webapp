@@ -3,7 +3,7 @@
   "description": "CNN Mobile Application",
   "launch_path": "http://m.cnn.com/",
   "developer": {
-    "name": "CNN"
+    "name": "CNN",
     "url": "http://www.cnn.com/"
   },
   "icons": {

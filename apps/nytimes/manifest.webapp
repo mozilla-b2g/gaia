@@ -1,9 +1,9 @@
 {
   "name": "NY Times",
   "description": "NY Times Mobile Application",
-  "launch_path": "http://www.nytimes.com/",
+  "launch_path": "http://m.nytimes.com/",
   "developer": {
-    "name": "NY Times"
+    "name": "NY Times",
     "url": "http://www.nytimes.com/"
   },
   "icons": {
