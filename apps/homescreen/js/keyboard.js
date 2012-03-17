@@ -29,7 +29,7 @@ const IMEManager = {
     'otherlatins': ['fr', 'de', 'nb', 'sk', 'tr'],
     'cyrillic': ['ru', 'sr-Cyrl'],
     'hebrew': ['he'],
-    'zhuying': ['zh-Hant-Zhuying'],
+    'zhuyin': ['zh-Hant-Zhuyin'],
     'pinyin': ['zh-Hans-Pinyin'],
     'arabic': ['ar']
   },
@@ -38,7 +38,7 @@ const IMEManager = {
     var completeSettingRequests = (function completeSettingRequests() {
       if (!this.keyboards.length)
         this.keyboards = [].concat(this.keyboardSettingGroups['english'],
-          this.keyboardSettingGroups['zhuying']);
+          this.keyboardSettingGroups['zhuyin']);
 
       if (this.keyboards.indexOf(this.currentKeyboard) === -1)
         this.currentKeyboard = this.keyboards[0];
@@ -153,7 +153,17 @@ const IMEManager = {
     delete this.candidatePanel;
     var candidatePanel = document.createElement('div');
     candidatePanel.id = 'keyboard-candidate-panel';
+    candidatePanel.addEventListener('scroll', this);
     return this.candidatePanel = candidatePanel;
+  },
+
+  get candidatePanelToggleButton() {
+    delete this.candidatePanelToggleButton;
+    var toggleButton = document.createElement('span');
+    toggleButton.innerHTML = '⇪';
+    toggleButton.id = 'keyboard-candidate-panel-toggle-button';
+    toggleButton.dataset.keycode = this.TOGGLE_CANDIDATE_PANEL;
+    return this.candidatePanelToggleButton = toggleButton;
   },
 
   updateKeyHighlight: function km_updateKeyHighlight() {
@@ -176,6 +186,12 @@ const IMEManager = {
     if (target.parentNode === menu) {
       top += menu.offsetTop;
       left += menu.offsetLeft;
+    }
+
+    var candidatePanel = this.candidatePanel;
+    if (target.parentNode === candidatePanel) {
+      top += candidatePanel.offsetTop - candidatePanel.scrollTop;
+      left += candidatePanel.offsetLeft - candidatePanel.scrollLeft;
     }
 
     left = Math.max(left, 5);
@@ -398,6 +414,12 @@ const IMEManager = {
     this.imeEvents.forEach((function imeEvents(type) {
       this.ime.removeEventListener(type, this);
     }).bind(this));
+
+    for(var engine in this.IMEngines) {
+      if (this.IMEngines[engine].uninit)
+        this.IMEngines[engine].uninit();
+      delete this.IMEngines[engine];
+    }
   },
 
   loadKeyboard: function km_loadKeyboard(name) {
@@ -624,6 +646,7 @@ const IMEManager = {
         break;
 
       case 'mouseleave':
+      case 'scroll': // scrolling IME candidate panel
         if (!this.isPressing || !this.currentKey)
           return;
 
@@ -633,6 +656,9 @@ const IMEManager = {
         this._hideMenuTimeout = setTimeout((function hideMenuTimeout() {
             this.hideAccentCharMenu();
           }).bind(this), this.kHideAccentCharMenuTimeout);
+
+        if (evt.type == 'scroll')
+          this.isPressing = false; // cancel the following mouseover event
 
         break;
 
@@ -990,14 +1016,10 @@ const IMEManager = {
     // insert candidate panel if the keyboard layout needs it
 
     if (layout.needsCandidatePanel) {
-      var toggleButton = document.createElement('span');
-      toggleButton.innerHTML = '⇪';
-      toggleButton.id = 'keyboard-candidate-panel-toggle-button';
-      toggleButton.dataset.keycode = this.TOGGLE_CANDIDATE_PANEL;
-      this.ime.insertBefore(toggleButton, this.ime.firstChild);
-
+      this.ime.insertBefore(
+        this.candidatePanelToggleButton, this.ime.firstChild);
       this.ime.insertBefore(this.candidatePanel, this.ime.firstChild);
-      this.showCandidates([]);
+      this.showCandidates([], true);
       this.currentEngine.empty();
     }
   },
@@ -1077,25 +1099,25 @@ const IMEManager = {
     }
   },
 
-  showCandidates: function km_showCandidates(candidates) {
-    // TODO: candidate panel should be allow toggled to fullscreen
-    var candidatePanel = document.getElementById('keyboard-candidate-panel');
-    var toggleButton =
-      document.getElementById('keyboard-candidate-panel-toggle-button');
+  showCandidates: function km_showCandidates(candidates, noWindowHeightUpdate) {
+    var candidatePanel = this.candidatePanel;
+    var toggleButton = this.candidatePanelToggleButton;
 
     candidatePanel.innerHTML = '';
 
     if (!candidates.length) {
       toggleButton.className = '';
       candidatePanel.className = '';
-      this.updateTargetWindowHeight();
+      if (!noWindowHeightUpdate)
+        this.updateTargetWindowHeight();
+      this.updateKeyHighlight();
       return;
     }
 
     toggleButton.className = toggleButton.className || 'show';
     candidatePanel.className = candidatePanel.className || 'show';
 
-    if (toggleButton.className == 'show')
+    if (toggleButton.className == 'show' && !noWindowHeightUpdate)
       this.updateTargetWindowHeight();
 
     candidates.forEach(function buildCandidateEntry(candidate) {

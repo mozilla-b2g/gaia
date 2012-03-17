@@ -15,13 +15,11 @@ js/keyboardLayout.js
 js/homescreen.js
 
 # imes/
-imes/jszhuying/jszhuying.js
-imes/jszhuying/phrases.json
-imes/jszhuying/README
-imes/jszhuying/words.json
-imes/jspinyin/COPYING
 imes/jspinyin/db.json
 imes/jspinyin/jspinyin.js
+imes/jszhuyin/jszhuyin.js
+imes/jszhuyin/phrases.json
+imes/jszhuyin/words.json
 
 # style/
 style/homescreen.css
