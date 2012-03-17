@@ -1003,7 +1003,7 @@ const IMEManager = {
       this.ime.insertBefore(toggleButton, this.ime.firstChild);
 
       this.ime.insertBefore(this.candidatePanel, this.ime.firstChild);
-      this.showCandidates([]);
+      this.showCandidates([], true);
       this.currentEngine.empty();
     }
   },
@@ -1083,7 +1083,7 @@ const IMEManager = {
     }
   },
 
-  showCandidates: function km_showCandidates(candidates) {
+  showCandidates: function km_showCandidates(candidates, noWindowHeightUpdate) {
     var candidatePanel = document.getElementById('keyboard-candidate-panel');
     var toggleButton =
       document.getElementById('keyboard-candidate-panel-toggle-button');
@@ -1093,14 +1093,15 @@ const IMEManager = {
     if (!candidates.length) {
       toggleButton.className = '';
       candidatePanel.className = '';
-      this.updateTargetWindowHeight();
+      if (!noWindowHeightUpdate)
+        this.updateTargetWindowHeight();
       return;
     }
 
     toggleButton.className = toggleButton.className || 'show';
     candidatePanel.className = candidatePanel.className || 'show';
 
-    if (toggleButton.className == 'show')
+    if (toggleButton.className == 'show' && !noWindowHeightUpdate)
       this.updateTargetWindowHeight();
 
     candidates.forEach(function buildCandidateEntry(candidate) {
