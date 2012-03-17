@@ -716,30 +716,69 @@ new SettingListener('phone.vibration.incoming', function(value) {
 
 /* === KeyHandler === */
 var KeyHandler = {
+  kRepeatTimeout: 700,
+  kRepeatRate: 100,
+
+  repeatKey: function kh_repeatKey(actionCallback) {
+    actionCallback();
+    clearTimeout(this._timer);
+    this._timer = setTimeout((function volumeTimeout() {
+      actionCallback();
+      this._timer = setInterval(function volumeInterval() {
+        actionCallback();
+      }, this.kRepeatRate);
+    }).bind(this), this.kRepeatTimeout);
+  },
+
   handleEvent: function kh_handleEvent(evt) {
     if (!screen.mozEnabled)
       return;
 
-    switch (evt.keyCode) {
-      case evt.DOM_VK_PAGE_UP:
-        SoundManager.changeVolume(1);
-        break;
+    switch (evt.type) {
+      case 'keydown':
+        switch (evt.keyCode) {
+          case evt.DOM_VK_PAGE_UP:
+            this.repeatKey((function repeatKeyCallback() {
+              if (SoundManager.currentVolume == 10) {
+                clearTimeout(this._timer);
+                return;
+              }
+              SoundManager.changeVolume(1);
+            }).bind(this));
+            break;
 
-      case evt.DOM_VK_PAGE_DOWN:
-        SoundManager.changeVolume(-1);
+          case evt.DOM_VK_PAGE_DOWN:
+            this.repeatKey((function repeatKeyCallback() {
+              if (SoundManager.currentVolume == 0) {
+                clearTimeout(this._timer);
+                return;
+              }
+              SoundManager.changeVolume(-1);
+            }).bind(this));
+            break;
+        }
         break;
+      case 'keyup':
+        switch (evt.keyCode) {
+          case evt.DOM_VK_PAGE_UP:
+          case evt.DOM_VK_PAGE_DOWN:
+            clearTimeout(this._timer);
+            break;
 
-      case evt.DOM_VK_CONTEXT_MENU:
-        SourceView.toggle();
-        break;
+          case evt.DOM_VK_CONTEXT_MENU:
+            SourceView.toggle();
+            break;
 
-      case evt.DOM_VK_F6:
-        document.location.reload();
+          case evt.DOM_VK_F6:
+            document.location.reload();
+            break;
+        }
         break;
     }
   }
 };
 
+window.addEventListener('keydown', KeyHandler);
 window.addEventListener('keyup', KeyHandler);
 
 /* === Screen Manager === */

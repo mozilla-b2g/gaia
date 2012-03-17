@@ -134,7 +134,7 @@ window.addEventListener('keyup', function goBack(event) {
 });
 
 // Set the 'lang' and 'dir' attributes to <html> when the page is translated
-window.addEventListener('l10nLocaleLoaded', function showBody() {
+window.addEventListener('localized', function showBody() {
   var html = document.querySelector('html');
   html.setAttribute('lang', document.mozL10n.language);
   html.setAttribute('dir', document.mozL10n.direction);
