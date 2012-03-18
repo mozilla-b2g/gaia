@@ -80,7 +80,8 @@ var WindowManager = (function() {
   // Public function.  Pass null to make the homescreen visible
   function launch(url) {
     // If it is already being displayed, do nothing
-    if (displayedApp === url) return;
+    if (displayedApp === url)
+      return;
 
     // If it is not already running, start it
     if (url && !isRunning(url))
@@ -102,8 +103,8 @@ var WindowManager = (function() {
   function setAppSize(url) {
 
     // TODO: does this function need to handle the manifest.orientation
-    // property, or was that a temporary hack?  Only cut the rope is
-    // using it currently, and it might just be broken
+    // property, or was that a temporary hack?
+    // See https://bugzilla.mozilla.org/show_bug.cgi?id=673922
 
     var app = runningApps[url];
     var frame = app.frame;
@@ -148,8 +149,9 @@ var WindowManager = (function() {
     // The old window manager sent an 'appwillclose' event before closing
     // a window and then sent an 'appclose' event after it closed. The
     // keyboard.js module listens for these events in order to close the
-    // keyboard associated with an app.  But it seems to be workign
+    // keyboard associated with an app.  But it seems to be working
     // just fine without the events, so I'm going to leave them out for now.
+    // See https://github.com/andreasgal/gaia/issues/832
 
     var frame = runningApps[url].frame;
 
@@ -181,7 +183,8 @@ var WindowManager = (function() {
 
   // Switch to a different app
   function setDisplayedApp(url) {
-    if (displayedApp === url) return;
+    if (displayedApp === url)
+      return;
 
     // Hide the displayed app, if there is one
     if (displayedApp) {
@@ -201,7 +204,8 @@ var WindowManager = (function() {
 
   // Start running the specified app.
   function start(url) {
-    if (isRunning(url)) return;
+    if (isRunning(url))
+      return;
 
     var manifest = Gaia.AppManager.getInstalledAppForURL(url);
     var name = manifest.name;
@@ -239,8 +243,9 @@ var WindowManager = (function() {
     // Currently the chrome code in src/b2g/chrome/content/webapi.js
     // listens for 'appwillopen' events to know when to inject custom
     // JS code into new app windows.  That chrome code ought to change
-    // to listend for DOMNodeInserted events or similar, but for now
+    // to listen for DOMNodeInserted events or similar, but for now
     // we've got to send this custom event to make things work right
+    // See bug 736628: https://bugzilla.mozilla.org/show_bug.cgi?id=736628
     setTimeout(function() {
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent('appwillopen', true, false, {});
@@ -250,7 +255,8 @@ var WindowManager = (function() {
 
   // Stop running the app with the specified url
   function stop(url) {
-    if (!isRunning(url)) return;
+    if (!isRunning(url))
+      return;
 
     // If the app is the currently displayed app, switch to the homescreen
     if (url === displayedApp)
@@ -365,6 +371,11 @@ var WindowManager = (function() {
   //
   // FIXME: some other apps use capturing listeners for Back.
   //   they should be changed to use non-capturing, I think.
+  //   See https://github.com/andreasgal/gaia/issues/753
+  // 
+  //   Also, we may not event need a capturing listener here. This might
+  //   be a focus management issue instead:
+  //   https://github.com/andreasgal/gaia/issues/753#issuecomment-4559674
   //
   // This is the capturing listener for Back.
   // TODO: right now this only knows about the task switcher, but
@@ -424,7 +435,8 @@ var WindowManager = (function() {
     }
 
     function keyupHandler(e) {
-      if (e.keyCode !== e.DOM_VK_HOME) return;
+      if (e.keyCode !== e.DOM_VK_HOME)
+        return;
 
       keydown = false;
 
@@ -478,6 +490,7 @@ var WindowManager = (function() {
 // currently required by chrome code in b2g/chrome/content/shell.js
 // Do not delete this function until that dependency is removed.
 // See also the foregroundWindow getter in app_manager.js
+// See bug 736632: https://bugzilla.mozilla.org/show_bug.cgi?id=736632
 function getApplicationManager() {
   return {
     launch: function(url) {
