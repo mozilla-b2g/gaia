@@ -587,13 +587,24 @@
     var getWordsJSON = function imedb_getWordsJSON(callback) {
       var xhr = new XMLHttpRequest();
       xhr.open('GET', (settings.wordsJSON || './words.json'), true);
-      xhr.responseType = 'json';
+      try {
+        xhr.responseType = 'json';
+      } catch (e) { }
       xhr.overrideMimeType('application/json; charset=utf-8');
       xhr.onreadystatechange = function xhrReadystatechange(ev) {
         if (xhr.readyState !== 4)
           return;
 
-        if (typeof xhr.response !== 'object') {
+        var response;
+        if (xhr.responseType == 'json') {
+          response = xhr.response;
+        } else {
+          try {
+            response = JSON.parse(xhr.responseText);
+          } catch (e) { }
+        }
+
+        if (typeof response !== 'object') {
           debug('Failed to load words.json: Malformed JSON');
           callback();
           return;
@@ -601,8 +612,8 @@
 
         jsonData = {};
         // clone everything under response coz it's readonly.
-        for (var s in xhr.response) {
-          jsonData[s] = xhr.response[s];
+        for (var s in response) {
+          jsonData[s] = response[s];
         }
         xhr = null;
 
@@ -615,21 +626,32 @@
     var getPhrasesJSON = function getPhrasesJSON(callback) {
       var xhr = new XMLHttpRequest();
       xhr.open('GET', (settings.phrasesJSON || './phrases.json'), true);
-      xhr.responseType = 'json';
+      try {
+        xhr.responseType = 'json';
+      } catch (e) { }
       xhr.overrideMimeType('application/json; charset=utf-8');
       xhr.onreadystatechange = function xhrReadystatechange(ev) {
         if (xhr.readyState !== 4)
           return;
 
-        if (typeof xhr.response !== 'object') {
+        var response;
+        if (xhr.responseType == 'json') {
+          response = xhr.response;
+        } else {
+          try {
+            response = JSON.parse(xhr.responseText);
+          } catch (e) { }
+        }
+
+        if (typeof response !== 'object') {
           debug('Failed to load phrases.json: Malformed JSON');
           callback();
           return;
         }
 
         // clone everything under response coz it's readonly.
-        for (var s in xhr.response) {
-          jsonData[s] = xhr.response[s];
+        for (var s in response) {
+          jsonData[s] = response[s];
         }
         xhr = null;
 
