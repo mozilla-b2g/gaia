@@ -194,7 +194,4 @@ window.addEventListener('localized', function showBody() {
   html.setAttribute('dir', lang.direction);
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('hidden');
-  setTimeout(function() {
-    lang.name = 'ar';
-  }, 1000);
 });

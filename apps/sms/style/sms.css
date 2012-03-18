@@ -144,12 +144,12 @@ input, textarea {
 }
 
 #msg-conversations-list > div {
-	-moz-box-sizing: border-box;
-	height: 96px;
-	position: relative;
-	padding: 13px 16px 0 112px;
-	border-top: 1px solid hsla(207,22%,92%,1);
-	border-bottom: 1px solid hsla(223,7%,81%,1);
+  -moz-box-sizing: border-box;
+  height: 96px;
+  position: relative;
+  padding: 13px 16px 0 112px;
+  border-top: 1px solid hsla(207,22%,92%,1);
+  border-bottom: 1px solid hsla(223,7%,81%,1);
 }
 
 #msg-conversations-list > div:active {
@@ -165,48 +165,48 @@ input, textarea {
 }
 
 #msg-conversations-list > div:first-child {
-	border-top-color: transparent;
+  border-top-color: transparent;
 }
 
 #msg-conversations-list .photo {
-	position: absolute;
-	top: -1px;
+  position: absolute;
+  top: -1px;
   left: 0;
-	width: 95px;
+  width: 95px;
   height: 95px;
-	overflow: hidden;
+  overflow: hidden;
   background-color: #ccc;
   box-shadow: inset 0 1px 0 #ddd;
 }
 
 #msg-conversations-list .photo img {
-	width: 100%;
+  width: 100%;
 }
 
 #msg-conversations-list .name {
   font-size: 26px;
   color: rgb(18, 47, 64);
-	line-height: 32px;
-	font-weight: 600;
+  line-height: 32px;
+  font-weight: 600;
 }
 
 #msg-conversations-list .msg {
   color: #666;
   text-shadow: 0 1px 0 #ddd;
-	font-size: 22px;
-	height: 32px;
-	overflow: hidden;
-	white-space: nowrap;
-	text-overflow: ellipsis;
+  font-size: 22px;
+  height: 32px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 #msg-conversations-list .time {
-	position: absolute;
-	top: 9px;
-	right: 16px;
-	text-align: right;
-	color: hsla(0,0%,0%,.5);
-	font-size: 18px;
+  position: absolute;
+  top: 9px;
+  right: 16px;
+  text-align: right;
+  color: hsla(0,0%,0%,.5);
+  font-size: 18px;
 }
 
 #msg-new-message-container {
@@ -225,12 +225,12 @@ input, textarea {
 }
 
 #view-back {
-	padding-left: 40px;
-	background: url(./images/top-navibar-left-arrow.png) no-repeat 16px 50%;
-	line-height: 60px;
-	font-size: 18px;
-	font-weight: 600;
-	color: #828282;
+  padding-left: 40px;
+  background: url(./images/top-navibar-left-arrow.png) no-repeat 16px 50%;
+  line-height: 60px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #828282;
 
   position: absolute;
   top: 3px; left: 0;
@@ -275,26 +275,26 @@ body.conversation-new-msg #view-num {
 }
 
 #view-edit {
-	position: absolute;
-	-moz-box-sizing: border-box;
-	top: 16px;
-	right: 16px;
-	height: 32px;
-	line-height: 32px;
-	width: 64px;
-	padding: 0 8px;
-	border-radius: 5px;
-	border: 1px solid hsl(60,2%,62%);
-	text-align: center;
-	font-size: 18px;
-	font-weight: bold;
-	color: #666;
-	text-shadow: 1px 1px 1px hsla(0,0%,100%,.5);
-	background: -moz-linear-gradient(top, hsla(0,0%,97%,1) 0, hsla(280,8%,93%,1) 1px, hsla(0,0%,87%,1) 100%);
+  position: absolute;
+  -moz-box-sizing: border-box;
+  top: 16px;
+  right: 16px;
+  height: 32px;
+  line-height: 32px;
+  width: 64px;
+  padding: 0 8px;
+  border-radius: 5px;
+  border: 1px solid hsl(60,2%,62%);
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+  color: #666;
+  text-shadow: 1px 1px 1px hsla(0,0%,100%,.5);
+  background: -moz-linear-gradient(top, hsla(0,0%,97%,1) 0, hsla(280,8%,93%,1) 1px, hsla(0,0%,87%,1) 100%);
 }
 
 #view-edit:active {
-	background: -moz-linear-gradient(top, hsla(0,0%,97%,1) 0, hsla(0,0%,87%,1) 1px, hsla(280,8%,93%,1) 100%);
+  background: -moz-linear-gradient(top, hsla(0,0%,97%,1) 0, hsla(0,0%,87%,1) 1px, hsla(280,8%,93%,1) 100%);
 }
 
 #view-list {
@@ -321,11 +321,11 @@ body.conversation-new-msg #view-num {
 }
 
 #view-list .photo {
-	position: absolute;
-	top: 0;
-	width: 80px;
-	height: 80px;
-	margin: 8px;
+  position: absolute;
+  top: 0;
+  width: 80px;
+  height: 80px;
+  margin: 8px;
   border-radius: 5px;
   box-shadow: inset 0 1px 0 #ddd, 0 1px 0 #999;
   overflow: hidden;
@@ -342,7 +342,7 @@ body.conversation-new-msg #view-num {
 }
 
 #view-list .photo img {
-	width: 100%;
+  width: 100%;
 }
 
 #view-list > div .text {
@@ -417,5 +417,10 @@ body.conversation-new-msg #view-num {
   font-size: 24px;
   font-weight: bold;
   line-height: 42px;
+}
+
+/* localization */
+body.hidden *[data-l10n-id] {
+  visibility: hidden;
 }
 

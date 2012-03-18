@@ -167,7 +167,7 @@
               <span data-l10n-id="email">email</span>
               <div class="value"></div>
             </div>
-            <button data-action="edit" onclick="ContactDetails.execute(event)">Edit</button>
+            <button data-l10n-id="edit" data-action="edit" onclick="ContactDetails.execute(event)">Edit</button>
           </div>
           <form id="contact-details-edit" onsubmit="ContactDetails.save(this)" action="#">
             <div class="entry">
@@ -187,7 +187,7 @@
               <input id="contact-email-field" type="email" data-action="autoscroll" onfocus="ContactDetails.execute(event)" />
             </div>
             <div>
-            	<button data-action="destroy" onclick="ContactDetails.execute(event);">Delete</button>
+              <button data-l10n-id="delete" data-action="destroy" onclick="ContactDetails.execute(event);">Delete</button>
             </div>
             <div>
               <input type="submit" value="Save" />
