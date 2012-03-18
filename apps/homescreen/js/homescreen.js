@@ -616,10 +616,8 @@ var SourceView = {
       window.addEventListener('locked', this);
     }
 
-    var currentWindow = WindowManager.getForegroundWindow();
-    var url = currentWindow ? currentWindow.application.url : document.URL;
+    var url = WindowManager.getDisplayedApp();
     viewsource.src = 'view-source: ' + url;
-
     viewsource.style.visibility = 'visible';
   },
 
@@ -902,22 +900,7 @@ var TelephonyListener = function() {
       }
     });
 
-    var url = '../dialer/dialer.html';
-    var launchFunction = function launchDialer() {
-      WindowManager.launch(url);
-    };
-
-    var appWindow = WindowManager.getForegroundWindow();
-    if (appWindow && (appWindow.application.name != 'Dialer')) {
-      WindowManager.closeForegroundWindow();
-      appWindow.element.addEventListener('transitionend', function closed() {
-        appWindow.element.removeEventListener('transitionend', closed);
-
-        launchFunction();
-      });
-    } else {
-      launchFunction();
-    }
+    WindowManager.launch('../dialer/dialer.html');
   });
 
   // Handling the missed call notification
