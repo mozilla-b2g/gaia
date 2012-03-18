@@ -1315,3 +1315,4 @@ Dots.prototype = {
   }
 };
 
+window.addEventListener('localized', startup);
