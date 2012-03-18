@@ -145,15 +145,27 @@ var WindowManager = (function() {
   }
 
   function closeWindow(url, instant) {
-    // FIXME
-    // The old window manager sent an 'appwillclose' event before closing
-    // a window and then sent an 'appclose' event after it closed. The
-    // keyboard.js module listens for these events in order to close the
-    // keyboard associated with an app.  But it seems to be working
-    // just fine without the events, so I'm going to leave them out for now.
-    // See https://github.com/andreasgal/gaia/issues/832
-
     var frame = runningApps[url].frame;
+
+    // Send a synthentic 'appwillclose' event.
+    // The keyboard uses this and the appclose event to know when to close
+    // See https://github.com/andreasgal/gaia/issues/832
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent('appwillclose', true, false, {});
+    frame.dispatchEvent(evt);
+
+    // Send a synthentic 'appclose' event.
+    // The keyboard uses this event to know when to close
+    // FIXME: this second event should probably happen 
+    // below, after the animation. But the event isn't being
+    // delivered correctly if I do that.
+    // See https://github.com/andreasgal/gaia/issues/832
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent('appclose', true, false, {});
+    frame.dispatchEvent(evt);
+
+    // Take keyboard focus away from the closing window
+    frame.blur();
 
     // If we're not doing an animation, then just switch directly
     // to the closed state.
@@ -171,7 +183,6 @@ var WindowManager = (function() {
 
     // Query css to flush this change
     var width = document.documentElement.clientWidth;
-
 
     // Step 2: when the animation ends, transition immediately to closed
     frame.addEventListener('transitionend', function handler(e) {
