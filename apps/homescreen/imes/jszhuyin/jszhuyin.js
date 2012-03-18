@@ -878,7 +878,7 @@
     define('jszhuyin', [], function() { return jszhuyin; });
 
   // Expose to IMEManager if we are in Gaia homescreen
-  if (IMEManager && IMEManager.IMEngines)
+  if (typeof IMEManager !== 'undefined')
     IMEManager.IMEngines.jszhuyin = jszhuyin;
 
 })();
