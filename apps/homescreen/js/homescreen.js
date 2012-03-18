@@ -73,6 +73,9 @@ var LockScreen = {
 
   lock: function lockscreen_lock(instant, callback) {
     if (this.locked) {
+      var style = this.overlay.style;
+      style.MozTransition = '-moz-transform 0.2s linear';
+      style.MozTransform = 'translateY(0)';
       if (callback)
         setTimeout(callback, 0, true);
       return;
