@@ -122,3 +122,15 @@ body.fullscreen #videoFrame {
   display: block;
 }
 
+/* localization */
+body.hidden *[data-l10n-id] {
+  visibility: hidden;
+}
+*[dir=rtl] li {
+  padding: 0 144px 0 20px;
+}
+*[dir=rtl] li img {
+  left: auto;
+  right: 0;
+}
+
