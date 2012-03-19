@@ -48,8 +48,10 @@ Gaia.AppManager = {
       var cache = [];
       apps.forEach(function(app) {
         var manifest = app.manifest;
-        if (!manifest) // usually means 'badly formed manifest.webapp'
+        if (!manifest) {
+          throw "malformed manifest for " + app.origin;
           return;
+        }
 
         if (app.origin == homescreenOrigin)
           return;
