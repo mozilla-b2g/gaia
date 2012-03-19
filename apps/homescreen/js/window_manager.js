@@ -363,8 +363,8 @@ var WindowManager = (function() {
 
   // When a resize event occurs, resize the running app, if there is one
   window.addEventListener('resize', function() {
-    if (runningApp)
-      setAppSize(runningApp);
+    if (displayedApp)
+      setAppSize(displayedApp);
   });
 
   // Listen for the Back button.  We need both a capturing listener
