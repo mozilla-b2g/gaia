@@ -111,7 +111,7 @@ var LockScreen = {
 
   unlock: function lockscreen_unlock(instant, callback) {
     var offset = '-100%';
-    
+
     if (!this.locked) {
       if (instant) {
         style.MozTransition = style.MozTransform = '';
@@ -538,7 +538,8 @@ var SleepMenu = {
             activePhoneSound = false;
 
             var settings = window.navigator.mozSettings;
-            settings.set('phone.ring.incoming', 'false');
+            if (settings)
+              settings.set('phone.ring.incoming', 'false');
 
             document.getElementById('silent').hidden = true;
             document.getElementById('normal').hidden = false;
@@ -547,7 +548,8 @@ var SleepMenu = {
             activePhoneSound = true;
 
             var settings = window.navigator.mozSettings;
-            settings.get('phone.ring.incoming', 'true');
+            if (settings)
+              settings.get('phone.ring.incoming', 'true');
 
             document.getElementById('silent').hidden = false;
             document.getElementById('normal').hidden = true;
@@ -579,6 +581,8 @@ window.addEventListener('keyup', SleepMenu, true);
 
 function SettingListener(name, callback) {
   var update = function update() {
+    if (!navigator.mozSettings)
+      return;
     var request = navigator.mozSettings.get(name);
 
     request.addEventListener('success', function onsuccess(evt) {
