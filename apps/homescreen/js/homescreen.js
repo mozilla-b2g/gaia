@@ -72,8 +72,9 @@ var LockScreen = {
   },
 
   lock: function lockscreen_lock(instant, callback) {
+    var style = this.overlay.style;
+
     if (this.locked) {
-      var style = this.overlay.style;
       if (instant) {
         style.MozTransition = style.MozTransform = '';
       } else {
@@ -86,7 +87,6 @@ var LockScreen = {
     }
 
     this.locked = true;
-    var style = this.overlay.style;
     if (instant) {
       style.MozTransition = style.MozTransform = '';
     } else {
@@ -111,6 +111,7 @@ var LockScreen = {
 
   unlock: function lockscreen_unlock(instant, callback) {
     var offset = '-100%';
+    var style = this.overlay.style;
 
     if (!this.locked) {
       if (instant) {
@@ -125,8 +126,6 @@ var LockScreen = {
     }
 
     this.locked = false;
-
-    var style = this.overlay.style;
     style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
     style.MozTransform = 'translateY(' + offset + ')';
 
