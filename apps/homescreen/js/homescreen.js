@@ -727,7 +727,7 @@ new SettingListener('debug.grid.enabled', function(value) {
 /* === Wallpapers === */
 new SettingListener('homescreen.wallpaper', function(value) {
   var home = document.getElementById('home');
-  home.style.background = 'url(style/themes/default/backgrounds/' + value + ')';
+  home.style.backgroundImage = 'url(style/themes/default/backgrounds/' + value + ')';
 });
 
 /* === Ring Tone === */
@@ -1338,7 +1338,7 @@ IconGrid.prototype = {
     }
 
     // issue #723 - The calculation of the width/height of the icons
-    // should be dynamic and not harcoded like that. The reason why it
+    // should be dynamic and not hardcoded like that. The reason why it
     // it is done like that at this point is because there is no icon
     // when the application starts and so there is nothing to calculate
     // against.
