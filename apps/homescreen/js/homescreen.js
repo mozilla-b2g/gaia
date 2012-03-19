@@ -1153,6 +1153,12 @@ IconGrid.prototype = {
     // adjust existing pages and create new ones as needed
     var itemsPerPage = rows * columns;
     var pageCount = Math.ceil(icons.length / itemsPerPage);
+
+    // prevent an endless loop when shrinking the window to zero
+    // (this might happen when debugging with Firebug)
+    var maxPageCount = 32;
+    pageCount = Math.min(pageCount, maxPageCount);
+
     for (var n = 0; n < pageCount; n++) {
       var page = pages[n];
       if (page)
@@ -1174,9 +1180,8 @@ IconGrid.prototype = {
       }
     }
 
-
     // adjust existing icons and create new ones as needed
-    var iconsCount = icons.length;
+    var iconsCount = Math.min(icons.length, itemsPerPage * maxPageCount);
     for (var n = 0; n < iconsCount; ++n) {
       var icon = icons[n];
 
