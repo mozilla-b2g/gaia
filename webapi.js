@@ -1986,7 +1986,6 @@
   document.mozL10n = {
     // get|set a localized string
     get: translateString,
-    set: function(key, val) { gL10nData[key] = val; },
 
     // get|set the document language and direction
     get language() {
