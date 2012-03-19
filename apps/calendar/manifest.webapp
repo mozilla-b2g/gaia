@@ -1,7 +1,7 @@
 {
   "name": "Calendar",
   "description": "Google Calendar",
-  "launch_path": "http://google.com/calendar/gp",
+  "launch_path": "/calendar/gp",
   "developer": {
     "name": "Google",
     "url": "http://google.com"

@@ -1,7 +1,7 @@
 {
   "name": "Mail",
   "description": "GMail",
-  "launch_path": "http://mail.google.com/mail/mu",
+  "launch_path": "/mail/mu",
   "developer": {
     "name": "GMail",
     "url": "http://google.com/"

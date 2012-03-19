@@ -77,10 +77,7 @@ Gaia.AppManager = {
           orientation = manifest.orientation;
         }
 
-        var url = manifest.launch_path;
-        if (!/^(http|https):\/\//.test(url))
-           url = '../' + app.origin + url;
-
+        var url = app.origin + manifest.launch_path;
         cache.push({
           name: manifest.name,
           url: url,

@@ -1,7 +1,7 @@
 {
   "name": "CNN",
   "description": "CNN Mobile Application",
-  "launch_path": "http://m.cnn.com/",
+  "launch_path": "/",
   "developer": {
     "name": "CNN",
     "url": "http://www.cnn.com/"

@@ -10,7 +10,7 @@
 
   function loadManifest(app) {
     var xhr = new XMLHttpRequest();
-    var href = '../' + app.origin + '/manifest.webapp';
+    var href = app.path + '/manifest.webapp';
     xhr.open('GET', href, false); // XXX synchronous call!
     xhr.onreadystatechange = function() {
       if ((xhr.readyState == 4) && (xhr.status == 200)) {

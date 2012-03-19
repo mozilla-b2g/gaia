@@ -1,7 +1,7 @@
 {
   "name": "BBC",
   "description": "BBC Mobile Application",
-  "launch_path": "http://m.bbc.co.uk/",
+  "launch_path": "/",
   "developer": {
     "name": "BBC",
     "url": "http://www.bbc.co.uk/"

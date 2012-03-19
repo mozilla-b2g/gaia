@@ -1,7 +1,7 @@
 {
   "name": "Zimbra",
   "description": "Mozilla Zimbra Mail",
-  "launch_path": "https://mail.mozilla.com/zimbra/m",
+  "launch_path": "/zimbra/m",
   "developer": {
     "name": "Zimbra",
     "url": "http://zimbra.com"
