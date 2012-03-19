@@ -1984,7 +1984,7 @@
 
   // Public API
   document.mozL10n = {
-    // get|set a localized string
+    // get a localized string
     get: translateString,
 
     // get|set the document language and direction
