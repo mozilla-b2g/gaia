@@ -152,13 +152,18 @@ body {
 }
 
 @media all and (max-height: 600px) {
+  #home {
+    background-size: cover;
+  }
+
   #home > #apps {
-    /* height = -margin-top +100% - dots.height - notifications.height */
-    height: -moz-calc(-40px + 100% - 14px - 0px);
+    /* height = -margin-top +100% - dots.height - dots.bottom - notifications.height */
+    height: -moz-calc(-24px + 100% - 14px - 14px - 0px);
+    margin-top: 24px;
   }
 
   #home > #dots {
-    bottom: 0px;
+    bottom: 14px;
   }
 }
 
@@ -166,6 +171,13 @@ body {
   .page {
     left: 30px;
     width: -moz-calc(100% - 30px);
+  }
+}
+
+@media all and (min-width: 800px) {
+  .page {
+    left: 70px;
+    width: -moz-calc(100% - 70px);
   }
 }
 
@@ -214,8 +226,8 @@ iframe.appWindow.active {
 }
 
 /*
- * Open (active) windows have a high z-index and closed (hidden) windows 
- * have a low one. But we want to animate window opening and closing with 
+ * Open (active) windows have a high z-index and closed (hidden) windows
+ * have a low one. But we want to animate window opening and closing with
  * zoom-in and fade in and zoom out and fade out.
  * We can't leave closed windows small and transparent, however, because
  * the task switcher uses background: -moz-element to get capture an image
@@ -225,7 +237,7 @@ iframe.appWindow.active {
  * to class closed which changes the zindex and restores its opacity and size.
  * To open a window we change the class (without animation) from closed to
  * opening, and then do an animated transition from opening to open.
- * 
+ *
  * See openWindow() and closeWindow() in launcher.js for the code.
  */
 iframe.appWindow.opening {
