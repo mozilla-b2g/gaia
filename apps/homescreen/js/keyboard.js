@@ -1116,6 +1116,7 @@ const IMEManager = {
 
     toggleButton.className = toggleButton.className || 'show';
     candidatePanel.className = candidatePanel.className || 'show';
+    candidatePanel.scrollTop = candidatePanel.scrollLeft = 0;
 
     if (toggleButton.className == 'show' && !noWindowHeightUpdate)
       this.updateTargetWindowHeight();
