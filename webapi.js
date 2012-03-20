@@ -10,8 +10,7 @@
 
   function loadManifest(app) {
     var xhr = new XMLHttpRequest();
-    var href = app.path + '/manifest.webapp';
-    xhr.open('GET', href, false); // XXX synchronous call!
+    xhr.open('GET', app.manifestPath, false); // XXX synchronous call!
     xhr.onreadystatechange = function() {
       if ((xhr.readyState == 4) && (xhr.status == 200)) {
         // TODO: check that JSON is well-formed

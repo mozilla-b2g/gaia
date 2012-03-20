@@ -49,7 +49,7 @@ Gaia.AppManager = {
       apps.forEach(function(app) {
         var manifest = app.manifest;
         if (!manifest) {
-          throw "malformed manifest for " + app.origin;
+          console.warn('malformed manifest for ' + app.origin);
           return;
         }
 
