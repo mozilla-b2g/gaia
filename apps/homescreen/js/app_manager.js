@@ -38,11 +38,6 @@ Gaia.AppManager = {
 
     this.installedApps = [];
 
-    var homescreenOrigin = document.location.protocol + '//' +
-                           document.location.host +
-                           document.location.pathname;
-    homescreenOrigin = homescreenOrigin.replace(/[a-zA-Z.0-9]+$/, '');
-
     var self = this;
 
     var lang = document.mozL10n.language.code;
@@ -58,9 +53,6 @@ Gaia.AppManager = {
           return;
         }
 
-        if (app.origin == homescreenOrigin)
-          return;
-
         // localized manifest?
         if (manifest.locales && manifest.locales[lang]) {
           var loc = manifest.locales[lang];
@@ -69,8 +61,6 @@ Gaia.AppManager = {
         }
 
         var icon = manifest.icons ? app.origin + manifest.icons['120'] : '';
-
-        console.log("icon", icon);
 
         // Even if the icon is stored by the offline cache, trying to load it
         // will fail because the cache is used only when the application is
@@ -85,8 +75,6 @@ Gaia.AppManager = {
         if (icon && !window.localStorage.getItem(icon))
           icon = '.' + manifest.icons['120'];
 
-        console.log("icon", icon);
-
         var orientation = "";
         // We only allow those values for orientation in manifest.
         if (manifest.orientation == "portrait-primary" ||
@@ -98,7 +86,6 @@ Gaia.AppManager = {
 
         var url = app.origin + manifest.launch_path;
 
-        console.log("url", url);
         cache.push({
           name: manifest.name,
           url: url,

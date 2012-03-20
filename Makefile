@@ -34,6 +34,13 @@ PROFILE_DATA := profile
 install-gaia: copy-manifests
 	$(ADB) start-server
 	$(ADB) shell rm -r /data/local/*
+	@for file in $$(ls $(PROFILE_DATA)); \
+	do \
+		data=$${file##*/}; \
+		echo Copying $$data; \
+		$(ADB) shell rm -r $(PROFILE)/$$data; \
+		$(ADB) push profile/$$data $(PROFILE)/$$data; \
+	done
 	@for i in $$(ls); do $(ADB) push $$i /data/local/$$i; done
 	@echo 'Rebooting b2g now'
 	$(ADB) shell killall b2g
@@ -44,7 +51,7 @@ install-gaia: copy-manifests
 copy-manifests:
 	@cp apps/webapps.json profile/webapps
 	@cd apps; \
-	for d in `find * -type d -depth 0` ;\
+	for d in `find * -type d -maxdepth 0` ;\
 	do \
 		mkdir -p ../profile/webapps/$$d; \
 		cp $$d/manifest.json ../profile/webapps/$$d  ;\
@@ -75,12 +82,3 @@ forward:
 .PHONY: offline
 offline:
 	$(MOZ_OBJDIR)/dist/bin/run-mozilla.sh $(MOZ_OBJDIR)/dist/bin/xpcshell -e 'const GAIA_DIR = "$(GAIA_DIR)"; const PROFILE_DIR = "$(PROFILE_DIR)"' offline-cache.js
-
-copy-manifests:
-	@cp apps/webapps.json profile/webapps
-	@cd apps; \
-	for d in `find * -type d -depth 0` ;\
-	do \
-		mkdir -p ../profile/webapps/$$d; \
-		cp $$d/manifest.json ../profile/webapps/$$d  ;\
-	done
