@@ -56,6 +56,7 @@ header h1 {
   overflow-x: hidden;
   width: -moz-calc(100% + 8px);
   height: -moz-calc(100% - 70px);
+  background-color: #e0e5ea;
 }
 
 #thumbnails li {
@@ -147,3 +148,11 @@ header h1 {
   background-image: url('images/pause.png');
 }
 
+/* localization */
+body.hidden *[data-l10n-id] {
+  visibility: hidden;
+}
+
+*[dir=rtl] #thumbnails li {
+  float: right;
+}
