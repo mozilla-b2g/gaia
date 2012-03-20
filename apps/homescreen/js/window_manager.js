@@ -118,21 +118,56 @@ var WindowManager = (function() {
 
   // Perform an "open" animation for the app's iframe
   function openWindow(url) {
-    var frame = runningApps[url].frame;
+    var app = runningApps[url];
+    var frame = app.frame;
+    var manifest = app.manifest;
 
-    // First switch to the opening state
-    frame.classList.remove('closed');
-    frame.classList.add('opening');
+    // Create a window sprite element to perform an window open animation.
+    // Start it off in its 'closed' state.
+    var sprite = document.createElement('div');
+    sprite.className = 'closed windowSprite';
+
+    if (manifest.fullscreen)
+      sprite.classList.add('fullscreen');
+
+    // Make the sprite look like the app that it is animating for.
+    // Animating an image resize is quicker than animating and resizing
+    // the live app in its iframe.  But if even this background image
+    // animation is too slow, then just comment this line out.
+    sprite.style.background = '-moz-element(#' + frame.id + ') no-repeat';
+
+    // Add the sprite to the document
+    document.body.appendChild(sprite);
 
     // Query css to flush this change
     var width = document.documentElement.clientWidth;
 
-    // Now switch to the open state
-    frame.classList.remove('opening');
-    frame.classList.add('open');
+    // And start the animation
+    sprite.classList.add('open');
+    sprite.classList.remove('closed');
 
-    // And give the window keyboard focus
-    frame.focus();
+    // This event handler is triggered when the transition ends.
+    // We're going to do two transitions, so it gets called twice.
+    sprite.addEventListener('transitionend', function transitionListener(e) {
+      // Only listen for opacity transition
+      // Otherwise we may get called multiple times for each transition
+      if (e.propertyName !== 'opacity')
+        return;
+
+      // If the sprite is not yet faded
+      if (!sprite.classList.contains('faded')) {
+        // The first transition has just completed.
+        // Make the app window visible, give it keyboard focus,
+        // and fade the sprite away
+        frame.classList.add('active');
+        frame.focus();
+        sprite.classList.add('faded');
+      }
+      else {
+        // The first transition has just completed; we're done with the sprite
+        document.body.removeChild(sprite);
+      }
+    });
 
     // FIXME
     // We broadcast an 'appopen' event here.
@@ -145,7 +180,9 @@ var WindowManager = (function() {
   }
 
   function closeWindow(url, instant) {
-    var frame = runningApps[url].frame;
+    var app = runningApps[url];
+    var frame = app.frame;
+    var manifest = app.manifest;
 
     // Send a synthentic 'appwillclose' event.
     // The keyboard uses this and the appclose event to know when to close
@@ -156,7 +193,7 @@ var WindowManager = (function() {
 
     // Send a synthentic 'appclose' event.
     // The keyboard uses this event to know when to close
-    // FIXME: this second event should probably happen 
+    // FIXME: this second event should probably happen
     // below, after the animation. But the event isn't being
     // delivered correctly if I do that.
     // See https://github.com/andreasgal/gaia/issues/832
@@ -170,25 +207,41 @@ var WindowManager = (function() {
     // If we're not doing an animation, then just switch directly
     // to the closed state.
     if (instant) {
-      frame.classList.remove('open');
-      frame.classList.add('closed');
+      frame.classList.remove('active');
       return;
     }
 
-    // Otherwise we do a two step animation
+    // Create a window sprite object in the open state, then hide
+    // the app window and transition the sprite down to the closed state.
+    var sprite = document.createElement('div');
+    sprite.className = 'open windowSprite';
 
-    // Step 1: animate to the closing state
-    frame.classList.remove('open');
-    frame.classList.add('closing');
+    if (manifest.fullscreen)
+      sprite.classList.add('fullscreen');
+
+    // Make the sprite look like the app that it is animating for.
+    // Animating an image resize is quicker than animating and resizing
+    // the live app in its iframe.  But if even this background image
+    // animation is too slow, then just comment this line out.
+    sprite.style.background = '-moz-element(#' + frame.id + ') no-repeat';
+
+    // Add the sprite to the document
+    document.body.appendChild(sprite);
+
+    // And close the real app window
+    frame.classList.remove('active');
 
     // Query css to flush this change
     var width = document.documentElement.clientWidth;
 
-    // Step 2: when the animation ends, transition immediately to closed
-    frame.addEventListener('transitionend', function handler(e) {
-      frame.classList.remove('closing');
-      frame.classList.add('closed');
-      frame.removeEventListener('transitionend', handler);
+    // And begin the transition
+    sprite.classList.remove('open');
+    sprite.classList.add('closed');
+
+    // When the transition ends, discard the sprite
+    sprite.addEventListener('transitionend', function transitionListener() {
+      sprite.removeEventListener('transitionend', transitionListener);
+      document.body.removeChild(sprite);
     });
   }
 
@@ -383,7 +436,7 @@ var WindowManager = (function() {
   // FIXME: some other apps use capturing listeners for Back.
   //   they should be changed to use non-capturing, I think.
   //   See https://github.com/andreasgal/gaia/issues/753
-  // 
+  //
   //   Also, we may not event need a capturing listener here. This might
   //   be a focus management issue instead:
   //   https://github.com/andreasgal/gaia/issues/753#issuecomment-4559674
