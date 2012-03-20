@@ -3,6 +3,8 @@
 
 'use strict';
 
+var _ = document.mozL10n.get;
+
 function startup() {
   new Homescreen();
 
@@ -330,8 +332,8 @@ var NotificationScreen = {
         continue;
 
       var unread = parseInt(notification.dataset.count) + 1;
-      var msg = 'You have ' + unread + ((type == 'sms') ? ' unread messages' :
-                                        ' missed calls');
+      var msg = (type == 'sms') ?
+        _('unreadMessages', { n: unread }) : _( 'missedCalls', { n: unread });
       notification.lastElementChild.textContent = msg;
       return;
     }
@@ -443,13 +445,14 @@ function updateConnection() {
   // Update the operator name / SIM status.
   var title = '';
   if (conn.cardState == 'absent') {
-    title = 'No SIM card';
+    title = _('noSimCard');
   } else if (!conn.connected) {
-    title = 'Connecting...';
+    title = _('connecting');
   } else {
-    title = conn.operator || '';
     if (conn.roaming) {
-      title += ' (roaming)';
+      title = _('roaming', { operator: (conn.operator || '') });
+    } else {
+      title = conn.operator || '';
     }
   }
   document.getElementById('titlebar').textContent = title;
@@ -1325,3 +1328,4 @@ Dots.prototype = {
   }
 };
 
+window.addEventListener('localized', startup);

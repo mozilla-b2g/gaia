@@ -23,3 +23,13 @@ function choiceChanged(target) {
   target.dataset.active = true;
   view.hidden = false;
 }
+
+// Set the 'lang' and 'dir' attributes to <html> when the page is translated
+window.addEventListener('localized', function showBody() {
+  var html = document.querySelector('html');
+  var lang = document.mozL10n.language;
+  html.setAttribute('lang', lang.name);
+  html.setAttribute('dir', lang.direction);
+  // <body> children are hidden until the UI is translated
+  document.body.classList.remove('hidden');
+});

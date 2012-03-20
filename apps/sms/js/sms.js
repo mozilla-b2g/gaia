@@ -455,7 +455,9 @@ var ConversationView = {
   }
 };
 
-window.addEventListener('load', function loadMessageApp() {
+window.addEventListener('localized', function showBody() {
+  // get the [lang]-[REGION] setting
+  // TODO: expose [REGION] in navigator.mozRegion or document.mozL10n.region?
   if (navigator.mozSettings) {
     var request = navigator.mozSettings.get('language.current');
     request.onsuccess = function() {
@@ -464,8 +466,18 @@ window.addEventListener('load', function loadMessageApp() {
       ConversationListView.init();
     }
   }
-});
 
+  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
+  if (document.mozL10n && document.mozL10n.language) {
+    var lang = document.mozL10n.language;
+    var html = document.querySelector('html');
+    html.setAttribute('lang', lang.name);
+    html.setAttribute('dir', lang.direction);
+  }
+
+  // <body> children are hidden until the UI is translated
+  document.body.classList.remove('hidden');
+});
 
 var selectedLocale = 'en-US';
 
