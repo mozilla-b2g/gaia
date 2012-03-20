@@ -1,12 +1,12 @@
 {
-  "name": "Maps",
+  "name": "Facebook",
   "description": "Facebook Mobile Application",
-  "launch_path": "http://touch.facebook.com/",
+  "launch_path": "/",
   "developer": {
-    "name": "Facebook"
+    "name": "Facebook",
     "url": "http://www.facebook.com/"
   },
   "icons": {
-    "120": "/icons/Facebook.png"
+    "120": "/style/icons/Facebook.png"
   }
 }

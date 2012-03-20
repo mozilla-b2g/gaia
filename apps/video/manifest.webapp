@@ -7,8 +7,9 @@
     "url": "https://github.com/andreasgal/gaia"
   },
   "icons": {
-    "120": "/icons/Video.png"
+    "120": "/style/icons/Video.png"
   },
+  "hackKillMe": true,
   "fullscreen": true,
   "orientation": "landscape-primary"
 }
