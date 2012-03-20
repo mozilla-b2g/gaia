@@ -31,12 +31,24 @@ ADB?=adb
 PROFILE := $$($(ADB) shell ls -d /data/b2g/mozilla/*.default | tr -d '\r')
 PROFILE_DATA := profile
 .PHONY: install-gaia
-install-gaia: 
+install-gaia: copy-manifests
 	$(ADB) start-server
 	$(ADB) shell rm -r /data/local/*
 	@for i in $$(ls); do $(ADB) push $$i /data/local/$$i; done
 	@echo 'Rebooting b2g now'
 	$(ADB) shell killall b2g
+
+# Copy the app manifest files to the profile dir where the
+# mozApps API can find them. For desktop usage, you must create
+# a symbolic link from your profile directory to $GAIA/profile/webapps
+copy-manifests:
+	@cp apps/webapps.json profile/webapps
+	@cd apps; \
+	for d in `find * -type d -depth 0` ;\
+	do \
+		mkdir -p ../profile/webapps/$$d; \
+		cp $$d/manifest.json ../profile/webapps/$$d  ;\
+	done
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 .PHONY: delete-databases
@@ -72,7 +84,3 @@ copy-manifests:
 		mkdir -p ../profile/webapps/$$d; \
 		cp $$d/manifest.json ../profile/webapps/$$d  ;\
 	done
-
-
-
-
