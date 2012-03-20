@@ -1,0 +1,227 @@
+
+html, body {
+  background-color: white;
+  color: black;
+  margin: 0;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
+
+#titlebar {
+  position: absolute;
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  border-bottom: 1px solid #aaa;
+  background-color: #fff;
+  z-index: 2;
+        
+  box-shadow: 0 0 2px rgba(0,0,0,0.15);
+  height: 48px; 
+}
+
+#folder-title {
+  font-size: 12px;
+  line-height: 24px;
+  margin-left: 10px;
+  width: -moz-calc(60%);
+}
+
+button {
+  height: 24px;
+  padding: 0 10px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #e6e6e6 #bbb #bbb #e6e6e6;
+  border-radius: 2px;
+  font-size: 12px;
+
+  background-image: -moz-linear-gradient(top, #fafafa 0%, #f2f2f2 100%);
+}
+
+button:active {
+  border: 1px solid #888;
+  background-image: none;
+  background-color: #e6e6e6;
+    
+  box-shadow: 0 0 2px 1px rgba(0,0,0,0.25) inset;
+}
+
+#refresh {
+  width: 28px;
+  height: 24px;
+  padding: 0;
+  background-image: url('images/reload.png'), -moz-linear-gradient(top, #fafafa 0%, #f2f2f2 100%);
+  background-repeat: no-repeat, repeat;
+  background-position: center center, top left;
+
+  position: absolute;
+  right: 30px;
+  top: 14px;
+}
+
+.toolbar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 47px;
+  border-top: 1px solid #aaa;
+  z-index: 2;
+        
+  box-shadow: 0 0 2px 1px rgba(0,0,0,0.25);
+  overflow: hidden;
+    
+  background-color: #222;
+  background-image: -moz-linear-gradient(top, #222 0%, #1f1f1f 100%);
+}
+
+.toolbar .button {
+  width: 48px;
+  height: 100%;
+  margin-left: 20px;
+  float: left;
+}
+
+.button.inbox {
+  background-image: url("images/inbox.png");
+}
+
+.button.compose {
+  background-image: url("images/compose.png");
+  margin-right: -moz-calc(100% - 144px - 60px);
+}
+
+.button.settings {
+  background-image: url("images/settings.png");
+}
+
+
+#accounts {
+  height: -moz-calc(100% - 48px);
+  overflow: scroll;
+}
+
+#settings .account {
+  font-size: 14px;
+  border: 1px solid lightgrey;
+  border-radius: 8px;
+  padding: 10px;
+  margin: 10px;
+}
+
+#settings .account input {
+  -moz-appearance: none;
+  border: 1px solid lightgrey;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+#settings .account input:not([type="checkbox"]) {
+  display: block;
+}
+
+#settings .account .buttons {
+  display: block;
+  margin-top: 20px;
+}
+
+#messages {
+  overflow: scroll;
+  overflow-x: hidden;
+  z-index: 1;
+
+  position: absolute;
+  top: 48px;
+  left: 0;
+
+  height: -moz-calc(100% - 96px);
+  width: -moz-calc(100%);
+}
+
+.mail {
+  background-color: #ccc;
+  padding: 10px 10px 2px 10px;
+  border-bottom: 1px solid #e6e6e6;
+  overflow: hidden;
+  line-height: 24px;
+}
+
+.mail * {
+  pointer-events: none;
+}
+
+.mail.flagged {
+  background-image: url(images/starred.png);
+  background-position: 96% 4%;
+  background-repeat: no-repeat;
+}
+
+.mail.seen {
+  background-color: #fff;
+}
+
+.from {
+  font-weight: bold;
+  color: #222;
+}
+
+.date {
+  float: right;
+  font-size: small;
+  font-weight: bold;
+  color: #666;
+}
+
+.subject {
+  color: #666;
+}
+
+.panel {
+  position: absolute;
+  top: 0px;
+  left: 100%;
+  -moz-transition: -moz-transform 0.3s ease;
+  z-index: 3;
+  background-color: white;
+  width: 100%;
+  height: -moz-calc(100%);
+  overflow: hidden;
+  padding: 0;
+}
+
+.panel:not([data-visible='true']) {
+  visibility: hidden;
+  max-width: 0;
+}
+
+.panel[data-visible='true'] {
+  -moz-transform: translateX(-100%);
+}
+
+#content {
+  width: -moz-calc(100% + 10px);
+  height: -moz-calc(100% - 48px + 10px);
+  -moz-box-sizing: border-box;
+  border: 0;
+  margin: 0;
+  padding: 10px;
+  overflow: scroll;
+  background-color: white;
+}
+
+.back {
+  background-image: url("images/back.png");
+  background-position: center center;
+  background-repeat: no-repeat;
+  margin-right: -moz-calc(100% - 84px - 60px);
+}
+
+.add {
+  background-image: url("images/add.png");
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
