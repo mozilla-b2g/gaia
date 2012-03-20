@@ -52,7 +52,15 @@
   border-bottom: 1px solid #808098;
 }
 
-#keyboard-candidate-panel span {
+#keyboard-candidate-panel[data-truncated]::after {
+  content: '…';
+  background: none ! important;
+  border-color: transparent ! important;
+  color: #666;
+}
+
+#keyboard-candidate-panel span,
+#keyboard-candidate-panel[data-truncated]::after {
   border-left: 1px solid #e8e8ff;
   border-right: 1px solid #808098;
   font-size: 32px;

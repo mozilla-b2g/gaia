@@ -1121,6 +1121,13 @@ const IMEManager = {
     if (toggleButton.className == 'show' && !noWindowHeightUpdate)
       this.updateTargetWindowHeight();
 
+    // If there were too many candidate
+    delete candidatePanel.dataset.truncated;
+    if (candidates.length > 74) {
+      candidates = candidates.slice(0, 74);
+      candidatePanel.dataset.truncated = true;
+    }
+
     candidates.forEach(function buildCandidateEntry(candidate) {
       var span = document.createElement('span');
       span.dataset.data = candidate[1];
