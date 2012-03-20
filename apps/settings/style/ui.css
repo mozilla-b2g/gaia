@@ -70,7 +70,7 @@ header h1 {
   -moz-transform: translateX(-100%);
 }
 
-#root:target, .view:target {
+.view:target {
   -moz-transform: none;
 }
 

@@ -96,11 +96,7 @@ window.addEventListener('load', function loadSettings(evt) {
   Settings.init();
 });
 
-// ensure the root page is visible at startup
 window.addEventListener('DOMContentLoaded', function showRoot() {
-  document.location.hash = '#root';
-  document.querySelector('#root').classList.remove('active');
-
   // update UI when the language setting is changed
   // XXX there's no way currently to fire a callback when a pref is changed
   //     so we're using an ugly onclick + timeout :-/
@@ -115,9 +111,24 @@ window.addEventListener('DOMContentLoaded', function showRoot() {
   });
 });
 
+// When the user clicks on a link to display a new panel then change
+// to the CSS :target pseudo-element will trigger a transition that makes
+// that panel slide in.  We also have to hide the root panel, and there
+// seems to be a gecko bug that prevents that from happening with the same
+// :target pseudo-element trick.  So as a workaround we listen for hashchange
+// events here to be notified when document.location.hash changes and we
+// explicitly remove the 'active' class of the root panel to hide it.
+// The back button event listener below adds the 'active' class back in.
+window.addEventListener('hashchange', function hashChange(evt) {
+  // If the hash has changed to be non-empty, then a settings panel
+  // is being displayed and we need to hide the root panel
+  if (document.location.hash)
+    document.getElementById('root').classList.remove('active');
+});
+
 // back button = close dialog || back to the root page
 window.addEventListener('keyup', function goBack(event) {
-  if (document.location.hash != '#root' &&
+  if (document.location.hash != '' &&
       event.keyCode === event.DOM_VK_ESCAPE) {
     event.preventDefault();
     event.stopPropagation();
@@ -128,7 +139,8 @@ window.addEventListener('keyup', function goBack(event) {
       document.body.classList.remove('dialog');
     }
     else {
-      document.location.hash = '#root';
+      document.location.hash = '';
+      document.getElementById('root').classList.add('active');
     }
   }
 });
