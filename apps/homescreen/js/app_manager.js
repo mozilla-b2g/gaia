@@ -44,6 +44,7 @@ Gaia.AppManager = {
     homescreenOrigin = homescreenOrigin.replace(/[a-zA-Z.0-9]+$/, '');
 
     var self = this;
+    var lang = document.mozL10n.language.code;
     window.navigator.mozApps.enumerate(function enumerateApps(apps) {
       var cache = [];
       apps.forEach(function(app) {
@@ -55,6 +56,14 @@ Gaia.AppManager = {
 
         if (app.origin == homescreenOrigin)
           return;
+
+        // localized manifest?
+        if (manifest.locales && manifest.locales[lang]) {
+          var loc = manifest.locales[lang];
+          for (var k in loc)
+            manifest[k] = loc[k];
+          console.log(manifest);
+        }
 
         var icon = manifest.icons ? app.origin + manifest.icons['120'] : '';
         // Even if the icon is stored by the offline cache, trying to load it

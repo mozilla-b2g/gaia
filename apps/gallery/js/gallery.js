@@ -364,7 +364,7 @@ window.addEventListener('localized', function showBody() {
   // Set the 'lang' and 'dir' attributes to <html> when the page is translated
   var html = document.querySelector('html');
   var lang = document.mozL10n.language;
-  html.setAttribute('lang', lang.name);
+  html.setAttribute('lang', lang.code);
   html.setAttribute('dir', lang.direction);
 
   // display the gallery

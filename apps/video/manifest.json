@@ -11,6 +11,13 @@
   },
   "hackKillMe": true,
   "fullscreen": true,
-  "orientation": "landscape-primary"
+  "orientation": "landscape-primary",
+  "locales": {
+    "fr": {
+      "name": "Vidéo",
+      "description": "Vidéo Gaia"
+    }
+  },
+  "default_locale": "en"
 }
 

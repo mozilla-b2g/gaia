@@ -8,6 +8,13 @@
   },
   "icons": {
     "120": "/style/icons/Settings.png"
-  }
+  },
+  "locales": {
+    "fr": {
+      "name": "Paramètres",
+      "description": "Paramètres Gaia"
+    }
+  },
+  "default_locale": "en"
 }
 

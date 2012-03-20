@@ -9,6 +9,13 @@
   "hackKillMe": true,
   "icons": {
     "120": "/style/icons/Camera.png"
-  }
+  },
+  "locales": {
+    "fr": {
+      "name": "Caméra",
+      "description": "Caméra Gaia"
+    }
+  },
+  "default_locale": "en"
 }
 
