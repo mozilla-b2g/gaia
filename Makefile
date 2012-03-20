@@ -64,3 +64,15 @@ forward:
 offline:
 	$(MOZ_OBJDIR)/dist/bin/run-mozilla.sh $(MOZ_OBJDIR)/dist/bin/xpcshell -e 'const GAIA_DIR = "$(GAIA_DIR)"; const PROFILE_DIR = "$(PROFILE_DIR)"' offline-cache.js
 
+copy-manifests:
+	@cp apps/webapps.json profile/webapps
+	@cd apps; \
+	for d in `find * -type d -depth 0` ;\
+	do \
+		mkdir -p ../profile/webapps/$$d; \
+		cp $$d/manifest.json ../profile/webapps/$$d  ;\
+	done
+
+
+
+
