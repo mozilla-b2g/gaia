@@ -74,14 +74,21 @@ var LockScreen = {
   },
 
   lock: function lockscreen_lock(instant, callback) {
+    var style = this.overlay.style;
+
     if (this.locked) {
+      if (instant) {
+        style.MozTransition = style.MozTransform = '';
+      } else {
+        style.MozTransition = '-moz-transform 0.2s linear';
+      }
+      style.MozTransform = 'translateY(0)';
       if (callback)
         setTimeout(callback, 0, true);
       return;
     }
 
     this.locked = true;
-    var style = this.overlay.style;
     if (instant) {
       style.MozTransition = style.MozTransform = '';
     } else {
@@ -105,16 +112,22 @@ var LockScreen = {
   },
 
   unlock: function lockscreen_unlock(instant, callback) {
+    var offset = '-100%';
+    var style = this.overlay.style;
+    
     if (!this.locked) {
+      if (instant) {
+        style.MozTransition = style.MozTransform = '';
+      } else {
+        style.MozTransition = '-moz-transform 0.2s linear';
+      }
+      style.MozTransform = 'translateY(' + offset + ')';
       if (callback)
         setTimeout(callback, 0, false);
       return;
     }
 
     this.locked = false;
-
-    var offset = '-100%';
-    var style = this.overlay.style;
     style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
     style.MozTransform = 'translateY(' + offset + ')';
 
@@ -1138,7 +1151,7 @@ IconGrid.prototype = {
     }
 
     // issue #723 - The calculation of the width/height of the icons
-    // should be dynamic and ot harcoded like that. The reason why it
+    // should be dynamic and not harcoded like that. The reason why it
     // it is done like that at this point is because there is no icon
     // when the application starts and so there is nothing to calculate
     // against.
@@ -1147,8 +1160,8 @@ IconGrid.prototype = {
     var iconWidth = 132;
 
     var rect = container.getBoundingClientRect();
-    var rows = Math.floor(rect.height / iconHeight);
-    var columns = Math.floor(rect.width / iconWidth);
+    var rows = Math.max(1, Math.floor(rect.height / iconHeight));
+    var columns = Math.max(1, Math.floor(rect.width / iconWidth));
 
     var targetHeight = iconHeight * rows + 'px';
     container.style.minHeight = container.style.maxHeight = targetHeight;

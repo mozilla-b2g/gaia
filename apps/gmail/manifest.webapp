@@ -1,0 +1,12 @@
+{
+  "name": "Mail",
+  "description": "GMail",
+  "launch_path": "/mail/mu",
+  "developer": {
+    "name": "GMail",
+    "url": "http://google.com/"
+  },
+  "icons": {
+    "120": "/style/icons/GMail.png"
+  }
+}

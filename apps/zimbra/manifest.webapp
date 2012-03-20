@@ -1,0 +1,12 @@
+{
+  "name": "Zimbra",
+  "description": "Mozilla Zimbra Mail",
+  "launch_path": "/zimbra/m",
+  "developer": {
+    "name": "Zimbra",
+    "url": "http://zimbra.com"
+  },
+  "icons": {
+    "120": "/style/icons/Zimbra.png"
+  }
+}
