@@ -191,7 +191,7 @@ iframe.appWindow {
   left: 0;
   top: 32px;
 
-  z-index: 9995;  /* but closed class specifies a z-index of 1 */
+  z-index: 1;
 
 /*
  * Do not specify height/width here! They should go to
@@ -213,41 +213,33 @@ iframe.appWindow.active {
   background-color: #fff;
 }
 
-/*
- * Open (active) windows have a high z-index and closed (hidden) windows 
- * have a low one. But we want to animate window opening and closing with 
- * zoom-in and fade in and zoom out and fade out.
- * We can't leave closed windows small and transparent, however, because
- * the task switcher uses background: -moz-element to get capture an image
- * of a hidden window. So we need multiple states here.  A closing window
- * transitions from class open to class closing and that transition is animated.
- * Then, when that transition is complete, we switch it (without animation)
- * to class closed which changes the zindex and restores its opacity and size.
- * To open a window we change the class (without animation) from closed to
- * opening, and then do an animated transition from opening to open.
- * 
- * See openWindow() and closeWindow() in launcher.js for the code.
- */
-iframe.appWindow.opening {
-    opacity: 0;
-    -moz-transform: scale(.25);
+div.windowSprite {
+  position: absolute;
+  top: 32px;
+  left: 0;
+  width: 100%;
+  height: -moz-calc(100% - 32px);
+  z-index: 999999;
+  -moz-transition: -moz-transform 0.5s ease, opacity 0.5s ease;
 }
 
-iframe.appWindow.open {
-    -moz-transition: opacity .5s ease, -moz-transform .5s ease;
-    opacity: 1;
+div.windowSprite.fullscreen {
+  border-radius: 0;
+  top: 0;
+  height: 100%;
 }
 
-iframe.appWindow.closing {
-  -moz-transition: opacity .5s ease, -moz-transform .5s ease;
+div.windowSprite.closed {
+  -moz-transform: scale(0.5);
   opacity: 0;
-  -moz-transform: scale(.25);
 }
 
-iframe.appWindow.closed {
-  z-index: 1;
+div.windowSprite.open {
 }
 
+div.windowSprite.faded {
+  opacity: 0;
+}
 
 #screen.fullscreen iframe.appWindow.active {
 /*
