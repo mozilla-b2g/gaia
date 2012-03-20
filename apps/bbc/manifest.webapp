@@ -1,0 +1,12 @@
+{
+  "name": "BBC",
+  "description": "BBC Mobile Application",
+  "launch_path": "/",
+  "developer": {
+    "name": "BBC",
+    "url": "http://www.bbc.co.uk/"
+  },
+  "icons": {
+    "120": "/style/icons/BBC.png"
+  }
+}
