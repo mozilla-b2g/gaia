@@ -1555,8 +1555,8 @@
     get language() {
       return {
         // get|set the document language (ISO-639-1)
-        get name() { return gLanguage; },
-        set name(lang) { loadLocale(lang, translateFragment); },
+        get code() { return gLanguage; },
+        set code(lang) { loadLocale(lang, translateFragment); },
 
         // get the direction (ltr|rtl) of the current language
         get direction() {
