@@ -8,5 +8,12 @@
   },
   "icons": {
     "120": "/style/icons/Wikipedia.png"
-  }
+  },
+  "locales": {
+    "fr": {
+      "name": "Wikipedia",
+      "description": "Application mobile Wikipedia"
+    }
+  },
+  "default_locale": "en"
 }

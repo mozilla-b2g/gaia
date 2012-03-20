@@ -8,6 +8,13 @@
   },
   "icons": {
     "120": "/style/icons/Clock.png"
-  }
+  },
+  "locales": {
+    "fr": {
+      "name": "Horloge",
+      "description": "Horloge Gaia"
+    }
+  },
+  "default_locale": "en"
 }
 

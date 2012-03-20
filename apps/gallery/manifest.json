@@ -8,6 +8,13 @@
   },
   "icons": {
     "120": "/style/icons/Gallery.png"
-  }
+  },
+  "locales": {
+    "fr": {
+      "name": "Galerie",
+      "description": "Galerie Gaia"
+    }
+  },
+  "default_locale": "en"
 }
 

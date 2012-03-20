@@ -8,6 +8,13 @@
   },
   "icons": {
     "120": "/style/icons/Messages.png"
-  }
+  },
+  "locales": {
+    "fr": {
+      "name": "Messages",
+      "description": "Messages Gaia"
+    }
+  },
+  "default_locale": "en"
 }
 

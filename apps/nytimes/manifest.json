@@ -8,5 +8,12 @@
   },
   "icons": {
     "120": "/style/icons/NYT.png"
-  }
+  },
+  "locales": {
+    "fr": {
+      "name": "NY Times",
+      "description": "Application mobile NY Times"
+    }
+  },
+  "default_locale": "en"
 }

@@ -8,6 +8,13 @@
   },
   "icons": {
     "120": "/style/icons/VideoCube.png"
-  }
+  },
+  "locales": {
+    "fr": {
+      "name": "CubeVid",
+      "description": "Démo de vidéo cube"
+    }
+  },
+  "default_locale": "en"
 }
 
