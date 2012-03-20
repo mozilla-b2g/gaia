@@ -513,13 +513,12 @@ var WindowManager = (function() {
         timer = null;
 
         // If the screen is locked, ignore the home button.
-        // Otherwise, if the task switcher is visible, then hide it.
         // Otherwise, make the homescreen visible.
+        // Also, if the task switcher is visible, then hide it.
         if (!LockScreen.locked) {
-          if (taskManager.classList.contains('active'))
+          setDisplayedApp(null);
+          if (taskSwitcherIsShown())
             hideTaskSwitcher();
-          else
-            setDisplayedApp(null);
         }
       }
 
@@ -529,10 +528,11 @@ var WindowManager = (function() {
 
     function longPressHandler() {
       // If the timer fires, then this was a long press on the home key
-      // So bring up the app switcher overlay.
+      // So bring up the app switcher overlay if we're not locked
+      // and if the task switcher is not already shown
       timer = null;
 
-      if (!LockScreen.locked)
+      if (!LockScreen.locked && !taskSwitcherIsShown())
         showTaskSwitcher();
     }
   }());
