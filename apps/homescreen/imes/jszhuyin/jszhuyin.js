@@ -866,6 +866,23 @@
       debug('Do range search in IndexedDB.');
       var constants = syllablesStr.replace(/([^\-])[^\-]*/g, '$1');
       debug('Search for constantSyllables: ' + constants);
+      if (iDBCache['CONSTANT:' + constants]) {
+        debug('Found constantSyllables result in iDBCache.');
+        var result = [];
+        iDBCache['CONSTANT:' + constants].forEach(function (obj) {
+          if (matchRegEx.exec(obj.syllables))
+            result = result.concat(obj.terms);
+        });
+        if (result.length) {
+          result = processResult(result);
+        } else {
+          result = false;
+        }
+        cacheSetTimeout();
+        iDBCache[syllablesStr] = result;
+        callback(result);
+        return;
+      }
       var req = store.index('constantSyllables').openCursor(
         IDBKeyRange.only(constants));
       req.onerror = function getdbError(ev) {
@@ -873,6 +890,7 @@
         callback(false);
       };
       var result = [];
+      var constantResult = [];
       req.onsuccess = function getdbSuccess(ev) {
         var cursor = ev.target.result;
         if (!cursor) {
@@ -882,11 +900,13 @@
             result = false;
           }
           cacheSetTimeout();
+          iDBCache['CONSTANT:' + constants] = constantResult;
           iDBCache[syllablesStr] = result;
           callback(result);
           return;
         }
         iDBCache[cursor.value.syllables] = cursor.value.terms;
+        constantResult.push(cursor.value);
         if (!matchRegEx.exec(cursor.value.syllables)) {
           cursor.continue();
           return;
