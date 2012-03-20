@@ -410,7 +410,7 @@
                        'url': 'https://github.com/Nachete/gaia-tasks-app'
                      },
                      'icons': {
-                       '120': '/style/icons/Tasks.png'
+                       '120': '/style/icons/ToDo.png'
                      }
                    }
                  }

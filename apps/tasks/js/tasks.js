@@ -3,19 +3,8 @@
 if (!window['Gaia'])
   var Gaia = {};
 
-const TASK_ICONS = ['style/icons/task_ta.png', // Task type
-      'style/icons/task_ap.png']; // Appointment type
-var sample_tasks = [];
-var dates = [];
-
-var idVal = 1;
-
-for (var i = -4; i < 40; i = i + 2) {
-  var date = new Date();
-  date.setHours(date.getHours() + i);
-  sample_tasks.push({id: idVal++, name: 't' + i, type: 0,
-    desc: 'Long desc\n with line breaks.' + i, date: date});
-}
+const TASK_ICONS = ['task_ta.png'];
+var taskDataList = [];
 
 var TaskList = {
   /** Date property to hold current TaskList date.
@@ -51,7 +40,7 @@ var TaskList = {
           Cal.load();
           break;
         default:
-          EditTask.load(EditTask.taskFromDataset(link.dataset));
+          EditTask.load(EditTask.taskFromDataset(link.parentNode.dataset));
       }
       break;
     }
@@ -83,25 +72,25 @@ var TaskList = {
       a.dataset.name = task.name;
       a.dataset.desc = task.desc;
       a.dataset.date = task.date;
+      a.dataset.done = task.done;
 
       a.href = '#task';
-      a.classList.add('push');
-      a.classList.add('slideHorizontal');
 
       li.appendChild(a);
 
       var img = document.createElement('img');
-      img.src = TASK_ICONS[task.type];
+      img.src = task.done ? 'style/icons/done_' + TASK_ICONS[0] : 'style/icons/' + TASK_ICONS[0];
       a.appendChild(img);
 
-      var label = document.createElement('span');
-      label.textContent = task.name;
+      var nameSpan = document.createElement('span');
+      nameSpan.textContent = task.name;
+      a.appendChild(nameSpan);
+
+      var label = document.createElement('label');
+      label.classList.add('text');
+      label.textContent = Cal.toShortDateTime(task.date);
+
       a.appendChild(label);
-
-      var span = document.createElement('label');
-      span.textContent = Cal.toShortDateTime(task.date);
-
-      a.appendChild(span);
 
       a.addEventListener('click', TaskList);
 
@@ -128,9 +117,9 @@ var TaskList = {
 
   tasksInRange: function(start, end) {
     var tasks = [];
-    for (i in sample_tasks) {
-      if (sample_tasks[i].date >= start && sample_tasks[i].date <= end) {
-        tasks.push(sample_tasks[i]);
+    for (var i in taskDataList) {
+      if (taskDataList[i].date >= start && taskDataList[i].date <= end) {
+        tasks.push(taskDataList[i]);
       }
     }
 
@@ -158,17 +147,16 @@ var EditTask = {
       document.querySelector('textarea[name=\'task.desc\']');
   },
 
-  get typeInput() {
-    delete this.typeInput;
-    return this.typeInput =
-      document.querySelector('select[name=\'task.type\']');
-  },
-
   get dateInput() {
     delete this.dateInput;
     return this.dateInput = document.querySelector('input[name=\'task.date\']');
   },
 
+  get doneInput() {
+    delete this.doneInput;
+    return this.doneInput = document.querySelector('input[name=\'task.done\']');
+  },
+  
   handleEvent: function(evt) {
     switch (evt.type) {
     case 'click':
@@ -191,22 +179,6 @@ var EditTask = {
           break;
       }
       break;
-    case 'change': // Auto save on change. Not used by now.
-      var input = evt.target;
-      if (!input)
-        return;
-
-      var id = undefined;
-
-      if (this.element.dataset.id != '') {
-        var id = parseInt(this.element.dataset.id.substring(5));
-      }
-
-      this.updateTaskProperty(id, input.name.substring(5), input.value);
-
-      TaskList.reset();
-
-      break;
     }
   },
 
@@ -216,9 +188,9 @@ var EditTask = {
     task.id = dataset.id;
     task.name = dataset.name ? dataset.name : 'New task';
     task.desc = dataset.desc ? dataset.desc : '';
-    task.type = dataset.type ? dataset.type : 0;
     task.date = dataset.date ?
       new Date(dataset.date) : TaskList.getCurrentDate();
+    task.done = dataset.done == 'true' ? true : false;
 
     return task;
   },
@@ -227,9 +199,9 @@ var EditTask = {
     // Set the values
     this.element.dataset.id = task.id;
     this.nameInput.value = task.name;
-    this.typeInput.value = task.type;
     this.descInput.value = task.desc;
     this.dateInput.value = task.date.toISOString();
+    this.doneInput.checked = task.done;
   },
 
   updateCurrent: function() {
@@ -243,8 +215,8 @@ var EditTask = {
 
     task.name = this.nameInput.value;
     task.desc = this.descInput.value;
-    task.type = this.typeInput.value;
     task.date = new Date(this.dateInput.value);
+    task.done = this.doneInput.checked;
 
     if (!task.name) {
       this.nameInput.nextElementSibling.textContent = 'Required';
@@ -270,9 +242,9 @@ var EditTask = {
   },
 
   updateTaskProperty: function(id, property, value) {
-    for (i in sample_tasks) {
-      if (sample_tasks[i].id == id) {
-        sample_tasks[i][property] = value;
+    for (var i in taskDataList) {
+      if (taskDataList[i].id == id) {
+        taskDataList[i][property] = value;
         break;
       }
     }
@@ -280,27 +252,28 @@ var EditTask = {
 
   manageTask: function(task) {
     if (task.id) {
-      sample_tasks.some(function(taskElem) {
+      taskDataList.some(function(taskElem) {
         if (taskElem.id == task.id) {
           taskElem.name = task.name;
-          taskElem.type = task.type;
           taskElem.desc = task.desc;
           taskElem.date = task.date;
+          taskElem.done = task.done;
           return true;
         }
         return false;
       });
     } else {
-      task.id = sample_tasks[sample_tasks.length - 1].id + 1;
-      sample_tasks.push(task);
+      task.id = taskDataList.length > 0 ? 
+        taskDataList[taskDataList.length - 1].id + 1 : 1;
+      taskDataList.push(task);
     }
   },
 
   deleteTask: function(id) {
     if (id) {
-      sample_tasks.some(function(taskElem, index) {
+      taskDataList.some(function(taskElem, index) {
         if (taskElem.id == id) {
-          sample_tasks.splice(index, 1);
+          taskDataList.splice(index, 1);
           return true;
         }
         return false;
@@ -378,6 +351,5 @@ window.addEventListener('DOMContentLoaded', function() {
   document.querySelector('#task-del').addEventListener('click', EditTask);
 
   document.querySelector('#cal-pick').addEventListener('click', Cal);
-  // window.addEventListener('change', EditTask); AUTO SAVE ON CHANGE
   TaskList.init();
 });

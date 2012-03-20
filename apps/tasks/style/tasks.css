@@ -23,24 +23,33 @@ html, body {
   src: url('fonts/Roboto-BoldItalic.ttf');
 }
 
+/* ---------- header --------------- */
+
+header {
+	text-align:left;
+}
+
 /* ------------- Button ------------- */
-a.button {
+a.button, span.button {
+	margin:4px;
+	padding:12px;
+	line-height: 22px;
 	border:1px solid #aaa;
 	background-color:#FFF;
 	color:#000;
-	padding:20px;
-	margin:4px;
 	display:inline-block;
 	text-decoration:none;
 	border-radius: 15px;
+	cursor:pointer;
 }
 
-.right {
+a.button.right {
 	float:right;
+	margin-top:7px;
 }
 
 /* ----------- Inputs ------------- */
-ul > li label, select, input, textarea {
+ul > select, input, textarea {
 	float:right;
 }
 
@@ -48,6 +57,8 @@ select, input, textarea {
 	background:none;
 	border:1px solid #AAA;
 	width:70%;
+	height:80%;
+	margin:8px;
 }
 
 select:focus, input:focus, textarea:focus {
@@ -63,7 +74,19 @@ input ~ *:empty {
 	display:none;
 }
 
-/* ------------- Task ------------- */
+/* ------------- Tasks ------------- */
+
+.view {
+  background: hsl(0, 0%, 96%) url(images/app-texture.png);
+}
+
+.view label.text {
+	text-align:right;
+  padding: 20px 0;
+	text-indent:20px;
+	direction:rtl;
+}
+
 li img {
 	vertical-align: middle;
 	margin-right:10px;

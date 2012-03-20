@@ -7,63 +7,64 @@
     <link rel="stylesheet" type="text/css" media="screen" href="style/ui.css"/>
     <link rel="stylesheet" type="text/css" media="screen" href="style/tasks.css"/>
     <script type="text/javascript" src="../../webapi.js"></script>
-    <script type="text/javascript" src="js/ui.js"></script>
     <script type="text/javascript" src="js/tasks.js"></script>
   </head>
 
   <body>
-	<div id="root" class="view" data-title="Tasks">
-		<a id="task-new" href="#task" class="right button push slideHorizontal">New</a>
-		<div>
-		  <a id="tasks-reset" href="#" class="button">Next tasks</a>
-		  <a id="cal-load" href="#cal" class="button push slideHorizontal">Calendar</a>
-		</div>
-		<ul id="tasks" class="tableView"></ul>
+	<div id="root" class="active view" data-title="Tasks">
+	  <header>
+		<a id="task-new" href="#task" class="right button">New</a>
+		<span id="tasks-reset" class="button">Next tasks</span>
+        <a id="cal-load" href="#cal" class="button">Calendar</a>
+	  </header>
+	  <ul id="tasks" class="tableView"></ul>
 	</div>
 	
 	<!-- Task -->
-    <div id="task" class="view" data-title="Task">
-	  <a id="task-del" href="#root" class="right button pop slideHorizontal">Delete</a>
-	  <div>
-		  <a id="task-save" href="#root" class="button pop slideHorizontal">Save</a>
-		  <a href="#root" class="button pop slideHorizontal">Back</a>
-	  </div>
-      <ul class="tableView">
-        <li>
-          <span>Name</span>
+	<div id="task" class="view" data-title="Task">
+	  <header>
+		<a id="task-del" href="#root" class="right button">Delete</a>
+		<a id="task-save" href="#root" class="button">Save</a>
+		<a href="#root" class="button">Back</a>
+	  </header>
+	  <ul class="tableView">
+		<li>
+		  <span>Name</span>
 		  <input type="text" name="task.name"/>
 		  <p></p>
-        </li>
-        <li>
-          <span>Type</span>
-		  <select name="task.type">
-			  <option value="0">Task</option>
-			  <option value="1">Appointment</option>
-		  </select>
-        </li>
-        <li>
+		</li>
+		<li>
 		  <span>Description</span>
 		  <textarea name="task.desc"></textarea>
-        </li>
+		</li>
 		<li>
-          <span>Date</span>
-          <input type="datetime-local" name="task.date"/>
+		  <span>Date</span>
+		  <input type="text" name="task.date"/>
 		  <p></p>
-        </li>
-      </ul>
-    </div>
+		</li>
+		<li>
+		  <span>Done</span>
+		  <label>
+			  <input type="checkbox" name="task.done"/>
+			  <span></span>
+		  </label>
+		</li>
+	  </ul>
+	</div>
 	
 	<!-- Calendar -->
-    <div id="cal" class="view" data-title="Calendar">
-	  <a id="cal-pick" href="#root" class="button pop slideHorizontal">Pick</a>
-	  <a href="#root" class="button pop slideHorizontal">Back</a>
-      <ul class="tableView">
-        <li>
-          <span>Pick a date</span>
-          <input type="datetime-local" name="cal.date"/>
+	<div id="cal" class="view" data-title="Calendar">
+	  <header>
+		  <a id="cal-pick" href="#root" class="button">Pick</a>
+		  <a href="#root" class="button">Back</a>
+	  </header>
+	  <ul class="tableView">
+		<li>
+		  <span>Pick a date</span>
+		  <input type="text" name="cal.date"/>
 		  <p></p>
-        </li>
-      </ul>
-	<div>
+		</li>
+	  </ul>
+	</div>
   </body>
 </html>
