@@ -3,24 +3,24 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
-
+    <title>Messages</title>
     <link rel="stylesheet" type="text/css" href="style/sms.css">
+    <link rel="resource" type="application/l10n" href="locale/sms.properties">
     <script type="text/javascript" src="../../webapi.js"></script>
     <script type="text/javascript" src="js/sms.js"></script>
     <script type="text/javascript" src="js/utils.js"></script>
-    <title>Messages</title>
   </head>
 
-  <body>
+  <body class="hidden">
     <div id="view" class="panel">
       <div id="view-toolbar" class="toolbar toolbar-top">
-        <div id="view-back">Messages</div>
+        <div id="view-back" data-l10n-id="messages">Messages</div>
         <h2 id="view-name">
 
         </h2>
         <input type="tel" id="view-num" />
         <div id="view-edit-container">
-          <div id="view-edit">Edit</div>
+          <div id="view-edit" data-l10n-id="edit">Edit</div>
         </div>
       </div>
       <div id="view-list" class="list">
@@ -30,7 +30,7 @@
           <textarea type="text" id="view-msg-text"></textarea>
         </div>
         <div id="view-msg-send-container">
-          <button id="view-msg-send" class="button">Send</button>
+          <button id="view-msg-send" class="button" data-l10n-id="send">Send</button>
         </div>
       </div>
     </div>
@@ -44,7 +44,8 @@
       </div>
       <div id="msg-bottom-toolbar" class="toolbar toolbar-bottom">
         <div id="msg-new-message-container">
-          <button id="msg-new-message" class="button" onclick="ConversationView.showConversation();">New Message</button>
+          <button id="msg-new-message" class="button"
+            onclick="ConversationView.showConversation();" data-l10n-id="newMessage">New Message</button>
         </div>
       </div>
     </div>

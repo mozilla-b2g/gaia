@@ -109,7 +109,7 @@ window.addEventListener('DOMContentLoaded', function showRoot() {
     setTimeout(function getLanguageSetting() {
       var req = navigator.mozSettings.get('language.current');
       req.onsuccess = function retranslate() {
-        document.mozL10n.language = req.result.value;
+        document.mozL10n.language.name = req.result.value;
       }
     }, 0);
   });
@@ -136,8 +136,9 @@ window.addEventListener('keyup', function goBack(event) {
 // Set the 'lang' and 'dir' attributes to <html> when the page is translated
 window.addEventListener('localized', function showBody() {
   var html = document.querySelector('html');
-  html.setAttribute('lang', document.mozL10n.language);
-  html.setAttribute('dir', document.mozL10n.direction);
+  var lang = document.mozL10n.language;
+  html.setAttribute('lang', lang.name);
+  html.setAttribute('dir', lang.direction);
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('hidden');
 });
