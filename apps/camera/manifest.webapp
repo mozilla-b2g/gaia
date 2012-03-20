@@ -6,8 +6,9 @@
     "name": "The Gaia Team",
     "url": "https://github.com/andreasgal/gaia"
   },
+  "hackKillMe": true,
   "icons": {
-    "120": "/icons/Camera.png"
+    "120": "/style/icons/Camera.png"
   }
 }
 

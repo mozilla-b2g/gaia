@@ -1,0 +1,12 @@
+{
+  "name": "Wikipedia",
+  "description": "Wikipedia Mobile Application",
+  "launch_path": "/",
+  "developer": {
+    "name": "Wikipedia",
+    "url": "http://www.wikipedia.org/"
+  },
+  "icons": {
+    "120": "/style/icons/Wikipedia.png"
+  }
+}

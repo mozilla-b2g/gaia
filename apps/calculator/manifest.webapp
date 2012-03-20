@@ -1,12 +1,12 @@
 {
-  "name": "Calc",
+  "name": "Calculator",
   "description": "Calculator",
-  "launch_path": "/calc.html",
+  "launch_path": "/calculator.html",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/andreasgal/gaia"
   },
   "icons": {
-    "120": "/icons/Settings.png"
+    "120": "/style/icons/Calculator.png"
   }
 }
