@@ -260,12 +260,8 @@ function testApp(url, testfunc) {
       // Wait a bit for the app to close
       yield until(function() appframe.parentNode == null, nextStep);
 
-      // Now send a sleep button event.  This should lock the screen
-      // and it might also turn the screen off.
-      EventUtils.sendKey('SLEEP', contentWin);
-
-      // Wait until it is locked
-      yield until(function() isLocked(), nextStep);
+      // Lock the screen
+      yield contentWin.LockScreen.lock(false, nextStep);
     }
   }
 }
