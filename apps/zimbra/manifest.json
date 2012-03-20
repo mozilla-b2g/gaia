@@ -8,5 +8,12 @@
   },
   "icons": {
     "120": "/style/icons/Zimbra.png"
-  }
+  },
+  "locales": {
+    "fr": {
+      "name": "Zimbra",
+      "description": "Courriel Mozilla Zimbra"
+    }
+  },
+  "default_locale": "en"
 }

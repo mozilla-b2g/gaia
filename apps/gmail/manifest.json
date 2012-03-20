@@ -8,5 +8,12 @@
   },
   "icons": {
     "120": "/style/icons/GMail.png"
-  }
+  },
+  "locales": {
+    "fr": {
+      "name": "Courriel",
+      "description": "GMail"
+    }
+  },
+  "default_locale": "en"
 }

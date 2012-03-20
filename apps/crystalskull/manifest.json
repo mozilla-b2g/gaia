@@ -8,6 +8,12 @@
   },
   "icons": {
     "120": "/style/icons/CrystalSkull.png"
-  }
+  },
+  "locales": {
+    "fr": {
+      "description": "Démo WebGL"
+    }
+  },
+  "default_locale": "en"
 }
 

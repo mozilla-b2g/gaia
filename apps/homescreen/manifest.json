@@ -5,6 +5,13 @@
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/andreasgal/gaia"
-  }
+  },
+  "locales": {
+    "fr": {
+      "name": "Écran d’accueil",
+      "description": "Écran d’accueil Gaia"
+    }
+  },
+  "default_locale": "en"
 }
 
