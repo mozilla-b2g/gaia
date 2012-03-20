@@ -148,9 +148,9 @@
 
       if (pendingSymbols[SymbolType.TONE] === '' &&
           syllablesForQuery[syllablesForQuery.length - 1]) {
-        debug('The last syllable is incomplete, add default tone.');
+        debug('The last syllable is incomplete, add asterisk.');
         syllablesForQuery[syllablesForQuery.length - 1] =
-          pendingSymbols.join('') + ' ';
+          pendingSymbols.join('') + '*';
       }
 
       if (!syllablesForQuery[syllablesForQuery.length - 1]) {
@@ -486,6 +486,10 @@
       window.webkitIDBTransaction ||
       window.msIDBTransaction;
 
+    var IDBKeyRange = window.IDBKeyRange ||
+      window.webkitIDBKeyRange ||
+      window.msIDBKeyRange;
+
     /* ==== init functions ==== */
 
     var getTermsInDB = function imedb_getTermsInDB(callback) {
@@ -774,42 +778,116 @@
       }
 
       var syllablesStr = syllables.join('-').replace(/ /g , '');
+      var asteriskSyllablesStr;
+      if (syllablesStr.indexOf('*') !== -1)
+        asteriskSyllablesStr = syllablesStr.substring(0, syllablesStr.indexOf('*'));
 
       debug('Get terms for ' + syllablesStr + '.');
 
-      if (jsonData) {
-        debug('Lookup in JSON.');
-        callback(jsonData[syllablesStr] || false);
-        return;
-      }
-
       if (typeof iDBCache[syllablesStr] !== 'undefined') {
-        debug('Lookup in iDBCache.');
+        debug('Found in iDBCache.');
+        cacheSetTimeout();
         callback(iDBCache[syllablesStr]);
         return;
       }
 
-      debug('Lookup in IndexedDB.');
-      var req = iDB.transaction('terms', IDBTransaction.READ_ONLY)
-          .objectStore('terms')
-          .get(syllablesStr);
+      if (jsonData) {
+        debug('Lookup in JSON.');
+        if (!asteriskSyllablesStr) {
+          callback(jsonData[syllablesStr] || false);
+          return;
+        }
+        debug('Do range search in JSON data.');
+        var result = [];
+        var dash = /\-/g;
+        // XXX: this is not efficient
+        for (var s in jsonData) {
+          if (s.length < asteriskSyllablesStr)
+            continue;
+          if (s.substr(0, asteriskSyllablesStr.length) !== asteriskSyllablesStr)
+            continue;
+          // TODO: filter result if asterisk is not at the very end
+          if (s.substr(asteriskSyllablesStr.length).indexOf('-') !== -1)
+            continue;
+          result = result.concat(jsonData[s]);
+        }
+        result = result.sort(
+          function sort_result(a, b) {
+            return (b[1] - a[1]);
+          }
+        );
+        cacheSetTimeout();
+        iDBCache[syllablesStr] = result;
+        if (result.length) {
+          callback(result);
+        } else {
+          callback(false);
+        }
+        return;
+      }
 
+      debug('Lookup in IndexedDB.');
+      var store = iDB.transaction('terms', IDBTransaction.READ_ONLY)
+        .objectStore('terms');
+      if (!asteriskSyllablesStr) {
+        var req = store.get(syllablesStr);
+        req.onerror = function getdbError(ev) {
+          debug('Database read error.');
+          callback(false);
+        };
+
+        req.onsuccess = function getdbSuccess(ev) {
+          cacheSetTimeout();
+
+          if (!ev.target.result) {
+            iDBCache[syllablesStr] = false;
+            callback(false);
+            return;
+          }
+
+          iDBCache[syllablesStr] = ev.target.result.terms;
+          callback(ev.target.result.terms);
+        };
+        return;
+      }
+      debug('Do range search in IndexedDB.');
+      // XXX: this is extremely slow
+      var req = store.openCursor(
+        IDBKeyRange.lowerBound(asteriskSyllablesStr, false));
       req.onerror = function getdbError(ev) {
         debug('Database read error.');
         callback(false);
       };
-
+      var result = [];
       req.onsuccess = function getdbSuccess(ev) {
-        cacheSetTimeout();
-
-        if (!ev.target.result) {
-          iDBCache[syllablesStr] = false;
-          callback(false);
+        var cursor = ev.target.result;
+        var outOfRange = cursor &&
+          cursor.key.substr(0, asteriskSyllablesStr.length) !== asteriskSyllablesStr;
+        if (cursor) {
+          iDBCache[cursor.key] = cursor.value.terms;
+        }
+        if (!cursor || outOfRange) {
+          result = result.sort(
+            function sort_result(a, b) {
+              return (b[1] - a[1]);
+            }
+          );
+          cacheSetTimeout();
+          iDBCache[syllablesStr] = result;
+          if (result.length) {
+            callback(result);
+          } else {
+            callback(false);
+          }
           return;
         }
-
-        iDBCache[syllablesStr] = ev.target.result.terms;
-        callback(ev.target.result.terms);
+        // TODO: filter result if asterisk is not at the very end
+        if (cursor.key.substr(asteriskSyllablesStr.length).indexOf('-') !== -1) {
+          cursor.continue();
+          return;
+        }
+        result = result.concat(cursor.value.terms);
+        cursor.continue();
       };
     };
 
@@ -850,7 +928,7 @@
                 if (!term) {
                   var syllable = syllables.slice(start, start + numOfWord).join('');
                   debug('Syllable ' + syllable + ' does not made up a word, insert symbol.');
-                  term = [syllable, -7];
+                  term = [syllable.replace(/\*/g, ''), -7];
                 }
 
                 str.push(term);
