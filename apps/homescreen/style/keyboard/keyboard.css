@@ -34,6 +34,8 @@
 }
 #keyboard-candidate-panel.show {
   display: block;
+  width: -moz-calc(100% - 62px);
+  overflow-y: hidden;
 }
 #keyboard-candidate-panel.full {
   display: block;
@@ -46,6 +48,8 @@
   border: none;
   border-top: 2px solid #a3a3a3;
   z-index: 1;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 #keyboard-candidate-panel.full span {
   border-top: 1px solid #e8e8ff;
@@ -76,6 +80,7 @@
 #keyboard-candidate-panel-toggle-button {
   border-left: 1px solid #e8e8ff;
   border-right: 1px solid #808098;
+  border-bottom: 1px solid #808098;
   position: absolute;
   font-size: 32px;
   line-height: 60px;
@@ -93,7 +98,6 @@
 #keyboard-candidate-panel-toggle-button.full {
   display: block;
   border-top: 1px solid #e8e8ff;
-  border-bottom: 1px solid #808098;
   top: -66px;
   z-index: 1;
 }
