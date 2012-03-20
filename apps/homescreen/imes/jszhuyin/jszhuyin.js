@@ -462,7 +462,7 @@
 
     /* name and version of IndexedDB */
     var kDBName = 'JSZhuyin';
-    var kDBVersion = 1;
+    var kDBVersion = 2;
 
     var jsonData;
     var iDB;
@@ -516,7 +516,9 @@
           iDB.deleteObjectStore('terms');
 
         // create ObjectStore
-        iDB.createObjectStore('terms', { keyPath: 'syllables' });
+        var store = iDB.createObjectStore('terms', { keyPath: 'syllables' });
+        store.createIndex(
+          'constantSyllables', 'constantSyllables', { unique: false });
 
         // no callback() here
         // onupgradeneeded will follow by onsuccess event
@@ -572,8 +574,10 @@
         var chunk = chunks.shift();
         for (i in chunk) {
           var syllables = chunk[i];
+          var constantSyllables = syllables.replace(/([^\-])[^\-]*/g, '$1');
           store.put({
             syllables: syllables,
+            constantSyllables: constantSyllables,
             terms: jsonData[syllables]
           });
         }
@@ -778,9 +782,27 @@
       }
 
       var syllablesStr = syllables.join('-').replace(/ /g , '');
-      var asteriskSyllablesStr;
-      if (syllablesStr.indexOf('*') !== -1)
-        asteriskSyllablesStr = syllablesStr.substring(0, syllablesStr.indexOf('*'));
+      var matchRegEx;
+      if (syllablesStr.indexOf('*') !== -1) {
+        matchRegEx = new RegExp(
+          '^' + syllablesStr.replace(/\-/g, '\\-')
+                .replace(/\*/g, '[^-]*') + '$');
+        var processResult = function processResult(r) {
+          r = r.sort(
+            function sort_result(a, b) {
+              return (b[1] - a[1]);
+            }
+          );
+          var result = [];
+          var t = [];
+          r.forEach(function (term) {
+            if (t.indexOf(term[0]) !== -1) return;
+            t.push(term[0]);
+            result.push(term);
+          });
+          return result;
+        };
+      }
 
       debug('Get terms for ' + syllablesStr + '.');
 
@@ -793,7 +815,7 @@
 
       if (jsonData) {
         debug('Lookup in JSON.');
-        if (!asteriskSyllablesStr) {
+        if (!matchRegEx) {
           callback(jsonData[syllablesStr] || false);
           return;
         }
@@ -802,34 +824,25 @@
         var dash = /\-/g;
         // XXX: this is not efficient
         for (var s in jsonData) {
-          if (s.length < asteriskSyllablesStr)
-            continue;
-          if (s.substr(0, asteriskSyllablesStr.length) !== asteriskSyllablesStr)
-            continue;
-          // TODO: filter result if asterisk is not at the very end
-          if (s.substr(asteriskSyllablesStr.length).indexOf('-') !== -1)
+          if (!matchRegEx.exec(s))
             continue;
           result = result.concat(jsonData[s]);
         }
-        result = result.sort(
-          function sort_result(a, b) {
-            return (b[1] - a[1]);
-          }
-        );
+        if (result.length) {
+          result = processResult(result);
+        } else {
+          result = false;
+        }
         cacheSetTimeout();
         iDBCache[syllablesStr] = result;
-        if (result.length) {
-          callback(result);
-        } else {
-          callback(false);
-        }
+        callback(result);
         return;
       }
 
       debug('Lookup in IndexedDB.');
       var store = iDB.transaction('terms', IDBTransaction.READ_ONLY)
         .objectStore('terms');
-      if (!asteriskSyllablesStr) {
+      if (!matchRegEx) {
         var req = store.get(syllablesStr);
         req.onerror = function getdbError(ev) {
           debug('Database read error.');
@@ -851,9 +864,10 @@
         return;
       }
       debug('Do range search in IndexedDB.');
-      // XXX: this is extremely slow
-      var req = store.openCursor(
-        IDBKeyRange.lowerBound(asteriskSyllablesStr, false));
+      var constants = syllablesStr.replace(/([^\-])[^\-]*/g, '$1');
+      debug('Search for constantSyllables: ' + constants);
+      var req = store.index('constantSyllables').openCursor(
+        IDBKeyRange.only(constants));
       req.onerror = function getdbError(ev) {
         debug('Database read error.');
         callback(false);
@@ -861,28 +875,19 @@
       var result = [];
       req.onsuccess = function getdbSuccess(ev) {
         var cursor = ev.target.result;
-        var outOfRange = cursor &&
-          cursor.key.substr(0, asteriskSyllablesStr.length) !== asteriskSyllablesStr;
-        if (cursor) {
-          iDBCache[cursor.key] = cursor.value.terms;
-        }
-        if (!cursor || outOfRange) {
-          result = result.sort(
-            function sort_result(a, b) {
-              return (b[1] - a[1]);
-            }
-          );
+        if (!cursor) {
+          if (result.length) {
+            result = processResult(result);
+          } else {
+            result = false;
+          }
           cacheSetTimeout();
           iDBCache[syllablesStr] = result;
-          if (result.length) {
-            callback(result);
-          } else {
-            callback(false);
-          }
+          callback(result);
           return;
         }
-        // TODO: filter result if asterisk is not at the very end
-        if (cursor.key.substr(asteriskSyllablesStr.length).indexOf('-') !== -1) {
+        iDBCache[cursor.value.syllables] = cursor.value.terms;
+        if (!matchRegEx.exec(cursor.value.syllables)) {
           cursor.continue();
           return;
         }
