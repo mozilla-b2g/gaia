@@ -1,7 +1,7 @@
 [
 
   {
-    "manifestPath": "../dialer/manifest.webapp",
+    "manifestPath": "../dialer/manifest.json",
     "origin": "../dialer",
     "installOrigin": "http://gaiamobile.org:8888",
     "receipt": null,
@@ -9,7 +9,7 @@
   },
 
   {
-    "manifestPath": "../sms/manifest.webapp",
+    "manifestPath": "../sms/manifest.json",
     "origin": "../sms",
     "installOrigin": "http://gaiamobile.org:8888",
     "receipt": null,
@@ -17,7 +17,7 @@
   },
 
   {
-    "manifestPath": "../browser/manifest.webapp",
+    "manifestPath": "../browser/manifest.json",
     "origin": "../browser",
     "installOrigin": "http://gaiamobile.org:8888",
     "receipt": null,
@@ -25,7 +25,7 @@
   },
 
   {
-    "manifestPath": "../maps/manifest.webapp",
+    "manifestPath": "../maps/manifest.json",
     "origin": "../maps",
     "installOrigin": "http://gaiamobile.org:8888",
     "receipt": null,
@@ -33,7 +33,7 @@
   },
 
   {
-    "manifestPath": "../camera/manifest.webapp",
+    "manifestPath": "../camera/manifest.json",
     "origin": "../camera",
     "installOrigin": "http://gaiamobile.org:8888",
     "receipt": null,
@@ -41,7 +41,7 @@
   },
 
   {
-    "manifestPath": "../gallery/manifest.webapp",
+    "manifestPath": "../gallery/manifest.json",
     "origin": "../gallery",
     "installOrigin": "http://gaiamobile.org:8888",
     "receipt": null,
@@ -49,7 +49,7 @@
   },
 
   {
-    "manifestPath": "../video/manifest.webapp",
+    "manifestPath": "../video/manifest.json",
     "origin": "../video",
     "installOrigin": "http://gaiamobile.org:8888",
     "receipt": null,
@@ -57,7 +57,7 @@
   },
 
   {
-    "manifestPath": "../facebook/manifest.webapp",
+    "manifestPath": "../facebook/manifest.json",
     "origin": "http://touch.facebook.com",
     "installOrigin": "http://www.facebook.com",
     "receipt": null,
@@ -65,7 +65,7 @@
   },
 
   {
-    "manifestPath": "../market/manifest.webapp",
+    "manifestPath": "../market/manifest.json",
     "origin": "../market",
     "installOrigin": "http://gaiamobile.org:8888",
     "receipt": null,
@@ -73,7 +73,7 @@
   },
 
   {
-    "manifestPath": "../music/manifest.webapp",
+    "manifestPath": "../music/manifest.json",
     "origin": "../music",
     "installOrigin": "http://gaiamobile.org:8888",
     "receipt": null,
@@ -81,7 +81,7 @@
   },
 
   {
-    "manifestPath": "../gmail/manifest.webapp",
+    "manifestPath": "../gmail/manifest.json",
     "origin": "http://mail.google.com",
     "installOrigin": "http://mail.google.com",
     "receipt": null,
@@ -89,7 +89,7 @@
   },
 
   {
-    "manifestPath": "../calendar/manifest.webapp",
+    "manifestPath": "../calendar/manifest.json",
     "origin": "http://google.com",
     "installOrigin": "http://google.com",
     "receipt": null,
@@ -97,7 +97,7 @@
   },
 
   {
-    "manifestPath": "../zimbra/manifest.webapp",
+    "manifestPath": "../zimbra/manifest.json",
     "origin": "https://mail.mozilla.com",
     "installOrigin": "https://mail.mozilla.com",
     "receipt": null,
@@ -105,7 +105,7 @@
   },
 
   {
-    "manifestPath": "../settings/manifest.webapp",
+    "manifestPath": "../settings/manifest.json",
     "origin": "../settings",
     "installOrigin": "http://gaiamobile.org:8888",
     "receipt": null,
@@ -113,7 +113,7 @@
   },
 
   {
-    "manifestPath": "../clock/manifest.webapp",
+    "manifestPath": "../clock/manifest.json",
     "origin": "../clock",
     "installOrigin": "http://gaiamobile.org:8888",
     "receipt": null,
@@ -121,7 +121,7 @@
   },
 
   {
-    "manifestPath": "../crystalskull/manifest.webapp",
+    "manifestPath": "../crystalskull/manifest.json",
     "origin": "../crystalskull",
     "installOrigin": "http://www.everyday3d.com/j3d/demo",
     "receipt": null,
@@ -129,7 +129,7 @@
   },
 
   {
-    "manifestPath": "../cubevid/manifest.webapp",
+    "manifestPath": "../cubevid/manifest.json",
     "origin": "../cubevid",
     "installOrigin": "http://www.everyday3d.com/j3d/demo",
     "receipt": null,
@@ -137,7 +137,7 @@
   },
 
   {
-    "manifestPath": "../penguinpop/manifest.webapp",
+    "manifestPath": "../penguinpop/manifest.json",
     "origin": "../penguinpop",
     "installOrigin": "http://goosypets.com/html5games/whac",
     "receipt": null,
@@ -145,7 +145,7 @@
   },
 
   {
-    "manifestPath": "../towerjelly/manifest.webapp",
+    "manifestPath": "../towerjelly/manifest.json",
     "origin": "../towerjelly",
     "installOrigin": "http://goosypets.com/html5games/tower",
     "receipt": null,
@@ -153,7 +153,7 @@
   },
 
   {
-    "manifestPath": "../cuttherope/manifest.webapp",
+    "manifestPath": "../cuttherope/manifest.json",
     "origin": "http://cuttherope.ie",
     "installOrigin": "http://cuttherope.ie",
     "receipt": null,
@@ -161,7 +161,7 @@
   },
 
   {
-    "manifestPath": "../wikipedia/manifest.webapp",
+    "manifestPath": "../wikipedia/manifest.json",
     "origin": "http://en.m.wikipedia.org",
     "installOrigin": "http://www.wikipedia.org",
     "receipt": null,
@@ -169,7 +169,7 @@
   },
 
   {
-    "manifestPath": "../cnn/manifest.webapp",
+    "manifestPath": "../cnn/manifest.json",
     "origin": "http://m.cnn.com",
     "installOrigin": "http://m.cnn.com",
     "receipt": null,
@@ -177,7 +177,7 @@
   },
 
   {
-    "manifestPath": "../bbc/manifest.webapp",
+    "manifestPath": "../bbc/manifest.json",
     "origin": "http://m.bbc.co.uk",
     "installOrigin": "http://www.bbc.co.uk",
     "receipt": null,
@@ -185,7 +185,7 @@
   },
 
   {
-    "manifestPath": "../nytimes/manifest.webapp",
+    "manifestPath": "../nytimes/manifest.json",
     "origin": "http://m.nytimes.com",
     "installOrigin": "http://www.nytimes.com",
     "receipt": null,
@@ -193,7 +193,7 @@
   },
 
   {
-    "manifestPath": "../calculator/manifest.webapp",
+    "manifestPath": "../calculator/manifest.json",
     "origin": "../calculator",
     "installOrigin": "http://gaiamobile.org:8888",
     "receipt": null,
