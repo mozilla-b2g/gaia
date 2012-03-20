@@ -8,5 +8,11 @@
   },
   "icons": {
     "120": "/style/icons/BBC.png"
-  }
+  },
+  "locales": {
+    "fr": {
+      "description": "Application mobile BBC"
+    }
+  },
+  "default_locale": "en"
 }

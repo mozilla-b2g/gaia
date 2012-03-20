@@ -39,7 +39,7 @@ Gaia.AppManager = {
     this.installedApps = [];
 
     var self = this;
-
+    var lang = document.mozL10n.language.code;
     var req = navigator.mozApps.mgmt.getAll().onsuccess = function(e) {
       var apps = e.target.result;
       var cache = [];
@@ -49,6 +49,14 @@ Gaia.AppManager = {
         if (!manifest) {
           console.warn('malformed manifest for ' + app.origin);
           return;
+        }
+
+        // localized manifest?
+        if (manifest.locales && manifest.locales[lang]) {
+          var loc = manifest.locales[lang];
+          for (var k in loc)
+            manifest[k] = loc[k];
+          console.log(manifest);
         }
 
         var icon = manifest.icons ? app.origin + manifest.icons['120'] : '';

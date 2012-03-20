@@ -8,5 +8,12 @@
   },
   "icons": {
     "120": "/style/icons/GoogleCalendar.png"
-  }
+  },
+  "locales": {
+    "fr": {
+      "name": "Calendrier",
+      "description": "Calendrier Google"
+    }
+  },
+  "default_locale": "en"
 }

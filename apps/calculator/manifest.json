@@ -8,5 +8,12 @@
   },
   "icons": {
     "120": "/style/icons/Calculator.png"
-  }
+  },
+  "locales": {
+    "fr": {
+      "name": "Calculatrice",
+      "description": "Calculatrice"
+    }
+  },
+  "default_locale": "en"
 }
