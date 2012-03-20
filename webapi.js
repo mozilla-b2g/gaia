@@ -3,47 +3,6 @@
 
 'use strict';
 
-// MozApps - Bug 709015
-(function(window) {
-  var navigator = window.navigator;
-  var webapps = [];
-
-  function loadManifest(app) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', app.manifestPath, false); // XXX synchronous call!
-    xhr.onreadystatechange = function() {
-      if ((xhr.readyState == 4) && (xhr.status == 200)) {
-        // TODO: check that JSON is well-formed
-        app.manifest = JSON.parse(xhr.responseText);
-      }
-    };
-    xhr.send(null);
-  }
-
-  function getWebApps() {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', '../installed_apps.json', false); // XXX synchronous call
-    xhr.onreadystatechange = function() {
-      if ((xhr.readyState == 4) && (xhr.status == 200)) {
-        webapps = JSON.parse(xhr.responseText);
-        for (var i = 0; i < webapps.length; i++)
-          loadManifest(webapps[i]);
-        Object.freeze(webapps);
-      }
-    };
-    xhr.send(null);
-  }
-
-  navigator.mozApps = {
-    enumerate: function(callback) {
-      if (!webapps || !webapps.length)
-        getWebApps();
-      callback(webapps);
-    }
-  };
-})(this);
-
-
 // A hacked mozSettings implementation based on indexedDB instead
 // of localStorage to make it persist better in the face of unexpected
 // shutdowns and reboots

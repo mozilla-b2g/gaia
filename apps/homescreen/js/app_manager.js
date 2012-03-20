@@ -38,25 +38,21 @@ Gaia.AppManager = {
 
     this.installedApps = [];
 
-    var homescreenOrigin = document.location.protocol + '//' +
-                           document.location.host +
-                           document.location.pathname;
-    homescreenOrigin = homescreenOrigin.replace(/[a-zA-Z.0-9]+$/, '');
-
     var self = this;
-    window.navigator.mozApps.enumerate(function enumerateApps(apps) {
+
+    var req = navigator.mozApps.mgmt.getAll().onsuccess = function(e) {
+      var apps = e.target.result;
       var cache = [];
       apps.forEach(function(app) {
         var manifest = app.manifest;
+
         if (!manifest) {
           console.warn('malformed manifest for ' + app.origin);
           return;
         }
 
-        if (app.origin == homescreenOrigin)
-          return;
-
         var icon = manifest.icons ? app.origin + manifest.icons['120'] : '';
+
         // Even if the icon is stored by the offline cache, trying to load it
         // will fail because the cache is used only when the application is
         // opened.
@@ -80,6 +76,7 @@ Gaia.AppManager = {
         }
 
         var url = app.origin + manifest.launch_path;
+
         cache.push({
           name: manifest.name,
           url: url,
@@ -92,7 +89,7 @@ Gaia.AppManager = {
 
       self.installedApps = cache;
       callback(cache);
-    });
+    };
   },
 
   getInstalledAppForURL: function(url) {
