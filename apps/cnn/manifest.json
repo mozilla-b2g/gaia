@@ -8,5 +8,11 @@
   },
   "icons": {
     "120": "/style/icons/CNN.png"
-  }
+  },
+  "locales": {
+    "fr": {
+      "description": "Application mobile CNN"
+    }
+  },
+  "default_locale": "en"
 }

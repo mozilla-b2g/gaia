@@ -8,6 +8,13 @@
   },
   "icons": {
     "120": "/style/icons/Maps.png"
-  }
+  },
+  "locales": {
+    "fr": {
+      "name": "Cartes",
+      "description": "Google Maps"
+    }
+  },
+  "default_locale": "en"
 }
 

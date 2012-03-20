@@ -8,6 +8,13 @@
   },
   "icons": {
     "120": "/style/icons/Market.png"
-  }
+  },
+  "locales": {
+    "fr": {
+      "name": "Logithèque",
+      "description": "Catalogue en ligne d’applications"
+    }
+  },
+  "default_locale": "en"
 }
 

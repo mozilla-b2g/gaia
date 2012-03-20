@@ -471,7 +471,7 @@ window.addEventListener('localized', function showBody() {
   if (document.mozL10n && document.mozL10n.language) {
     var lang = document.mozL10n.language;
     var html = document.querySelector('html');
-    html.setAttribute('lang', lang.name);
+    html.setAttribute('lang', lang.code);
     html.setAttribute('dir', lang.direction);
   }
 

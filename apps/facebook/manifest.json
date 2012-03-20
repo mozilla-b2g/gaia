@@ -8,5 +8,12 @@
   },
   "icons": {
     "120": "/style/icons/Facebook.png"
-  }
+  },
+  "locales": {
+    "fr": {
+      "name": "Facebook",
+      "description": "Application mobile Facebook"
+    }
+  },
+  "default_locale": "en"
 }
