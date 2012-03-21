@@ -383,6 +383,13 @@ iframe.landscape-secondary {
   right: 42px;
 }
 
+@media all and (max-width: 320px) {
+  .page {
+    left: auto;
+    right: 30px;
+  }
+}
+
 *[dir=rtl] .icon {
   float: right;
   margin-left: 4px;
