@@ -223,7 +223,7 @@ var WindowManager = (function() {
     // Animating an image resize is quicker than animating and resizing
     // the live app in its iframe.  But if even this background image
     // animation is too slow, then just comment this line out.
-    sprite.style.background = '-moz-element(#' + frame.id + ') no-repeat';
+    //sprite.style.background = '-moz-element(#' + frame.id + ') no-repeat';
 
     // Add the sprite to the document
     document.body.appendChild(sprite);
