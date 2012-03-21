@@ -56,7 +56,6 @@ Gaia.AppManager = {
           var loc = manifest.locales[lang];
           for (var k in loc)
             manifest[k] = loc[k];
-          console.log(manifest);
         }
 
         var icon = manifest.icons ? app.origin + manifest.icons['120'] : '';
