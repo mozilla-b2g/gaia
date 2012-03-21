@@ -6,6 +6,13 @@
 var _ = document.mozL10n.get;
 
 function startup() {
+  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
+  var html = document.querySelector('html');
+  var lang = document.mozL10n.language;
+  html.lang = lang.code;
+  html.dir = lang.direction;
+  document.dir = lang.direction;
+
   new Homescreen();
 
   LockScreen.init();
@@ -24,13 +31,6 @@ function startup() {
 
     window.parent.postMessage('homescreenready', '*');
   });
-
-  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
-  var html = document.querySelector('html');
-  var lang = document.mozL10n.language;
-  html.lang = lang.code;
-  html.dir = lang.direction;
-  document.dir = lang.direction;
 
   updateClock();
   updateBattery();

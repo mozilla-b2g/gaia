@@ -10,6 +10,9 @@
     "120": "/style/icons/BBC.png"
   },
   "locales": {
+    "ar": {
+      "description": "BBC تطبيقة موبيل"
+    },
     "fr": {
       "description": "Application mobile BBC"
     },

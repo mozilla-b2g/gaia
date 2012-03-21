@@ -10,6 +10,10 @@
     "120": "/style/icons/Music.png"
   },
   "locales": {
+    "ar": {
+      "name": "موسيقى",
+      "description": "Gaia موسيقى"
+    },
     "fr": {
       "name": "Musique",
       "description": "Musique Gaia"

@@ -10,6 +10,10 @@
     "120": "/style/icons/GoogleCalendar.png"
   },
   "locales": {
+    "ar": {
+      "name": "تقويم",
+      "description": "Google تقويم"
+    },
     "fr": {
       "name": "Calendrier",
       "description": "Calendrier Google"

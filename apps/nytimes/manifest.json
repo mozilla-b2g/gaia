@@ -10,6 +10,10 @@
     "120": "/style/icons/NYT.png"
   },
   "locales": {
+    "ar": {
+      "name": "NY Times",
+      "description": "NY Times تطبيقة موبيل"
+    },
     "fr": {
       "name": "NY Times",
       "description": "Application mobile NY Times"
