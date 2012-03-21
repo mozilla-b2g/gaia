@@ -83,11 +83,17 @@
       return false;
     };
 
+    var sendPandingSymbols = function ime_updatePandingSymbol() {
+      var symbols = syllablesInBuffer.join('');
+      settings.sendPandingSymbols(symbols);
+    };
+
     var empty = function ime_empty() {
       debug('Empty buffer.');
       syllablesInBuffer = [''];
       pendingSymbols = ['', '', '', ''];
       firstCandidate = '';
+      sendPandingSymbols();
       isWorking = false;
       if (!db)
         initDB();
@@ -297,6 +303,7 @@
             syllablesInBuffer.slice(0, syllablesInBuffer.length - 1);
           syllablesInBuffer[syllablesInBuffer.length - 1] =
             pendingSymbols.join('');
+          sendPandingSymbols();
           updateCandidateList(next);
           return;
         }
@@ -306,6 +313,7 @@
         // remove the pendingSymbols
         pendingSymbols = ['', '', '', ''];
         syllablesInBuffer[syllablesInBuffer.length - 1] = '';
+        sendPandingSymbols();
         updateCandidateList(next);
         return;
       }
@@ -342,6 +350,7 @@
       // update syllablesInBuffer
       syllablesInBuffer[syllablesInBuffer.length - 1] =
         pendingSymbols.join('');
+      sendPandingSymbols();
 
       if (
         typeOfSymbol(code) === SymbolType.TONE &&
@@ -377,6 +386,8 @@
             while (i--) {
               syllablesInBuffer.shift();
             }
+
+            sendPandingSymbols();
 
             updateCandidateList(function updateCandidateListCallback() {
               // bump the buffer to the next character
@@ -451,6 +462,7 @@
         pendingSymbols = ['', '', '', ''];
       }
 
+      sendPandingSymbols();
       updateCandidateList(function() {});
     };
 
