@@ -10,6 +10,10 @@
     "120": "/style/icons/Market.png"
   },
   "locales": {
+    "ar": {
+      "name": "مكتبة البرامج",
+      "description": "مكتبة برامج اونلاين"
+    },
     "fr": {
       "name": "Logithèque",
       "description": "Catalogue en ligne d’applications"

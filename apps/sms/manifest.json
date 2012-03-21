@@ -10,6 +10,10 @@
     "120": "/style/icons/Messages.png"
   },
   "locales": {
+    "ar": {
+      "name": "رسائل",
+      "description": "Gaia رسائل"
+    },
     "fr": {
       "name": "Messages",
       "description": "Messages Gaia"

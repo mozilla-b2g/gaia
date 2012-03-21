@@ -11,6 +11,10 @@
     "120": "/style/icons/Camera.png"
   },
   "locales": {
+    "ar": {
+      "name": "الكاميرا",
+      "description": " Gaiaالكاميرا"
+    },
     "fr": {
       "name": "Caméra",
       "description": "Caméra Gaia"

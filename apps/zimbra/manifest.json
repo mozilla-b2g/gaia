@@ -10,6 +10,10 @@
     "120": "/style/icons/Zimbra.png"
   },
   "locales": {
+    "ar": {
+      "name": "Zimbra",
+      "description": "Mozilla Zimbra البريد"
+    },
     "fr": {
       "name": "Zimbra",
       "description": "Courriel Mozilla Zimbra"
