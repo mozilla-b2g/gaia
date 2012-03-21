@@ -285,6 +285,14 @@ var WindowManager = (function() {
       openWindow(url);
     }
 
+    // If there was no app before and now there is one, make
+    // the window container active and visible.  Or, if
+    // there was an app but now there is none, do the opposite.
+    if (!displayedApp && url)
+      windows.classList.add('active');
+    else if (displayedApp && !url) 
+      windows.classList.remove('active');
+
     displayedApp = url;
   }
 
