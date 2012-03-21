@@ -118,7 +118,7 @@ var WindowManager = (function() {
   }
 
   // Perform an "open" animation for the app's iframe
-  function openWindow(url) {
+  function openWindow(url, callback) {
     var app = runningApps[url];
     var frame = app.frame;
     var manifest = app.manifest;
@@ -160,15 +160,19 @@ var WindowManager = (function() {
       // If the sprite is not yet faded
       if (!sprite.classList.contains('faded')) {
         // The first transition has just completed.
-        // Make the app window visible, give it keyboard focus,
-        // and fade the sprite away
-        windows.classList.add('active');
+        // Call the callback if there is one.
+        // Make the app window visible and then fade the sprite away
+        if (callback)
+          callback();
+
         frame.classList.add('active');
-        frame.focus();
+        windows.classList.add('active');
         sprite.classList.add('faded');
       }
       else {
-        // The first transition has just completed; we're done with the sprite
+        // The second transition has just completed
+        // give the app focus and discard the sprite.
+        frame.focus();
         document.body.removeChild(sprite);
       }
     });
@@ -271,20 +275,35 @@ var WindowManager = (function() {
 
   // Switch to a different app
   function setDisplayedApp(url) {
-    if (displayedApp === url)
-      return;
+    var currentApp = displayedApp, newApp = url;
 
-    // Hide the displayed app, if there is one
-    if (displayedApp) {
+    // There are four cases that we handle in different ways:
+    // 1) The new app is already displayed: do nothing
+    // 2) We're going from the homescreen to an app
+    // 3) We're going from an app to the homescreen
+    // 4) We're going from one app to another (via task switcher)
+
+    // Case 1
+    if (currentApp == newApp) {
+      // Do nothing
+    }
+    // Case 2: homescreen->app
+    else if (currentApp == null) {
+      setAppSize(newApp);
+      openWindow(newApp);
+    }
+    // Case 3: app->homescreen
+    else if (newApp == null) {
       // If we're switching to another app, then just hide this
       // one immediately.  Otherwise, do an animation
-      closeWindow(displayedApp, url != null);
+      closeWindow(currentApp);
     }
-
-    // Show the new app, if there is one
-    if (url) {
-      setAppSize(url);
-      openWindow(url);
+    // Case 4: app-to-app transition
+    else {
+      setAppSize(newApp);
+      openWindow(newApp, function() {
+        closeWindow(currentApp, true);
+      });
     }
 
     displayedApp = url;
