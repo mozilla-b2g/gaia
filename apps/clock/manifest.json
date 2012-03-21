@@ -13,6 +13,10 @@
     "fr": {
       "name": "Horloge",
       "description": "Horloge Gaia"
+    },
+    "zh-TW": {
+      "name": "時鐘",
+      "description": "Gaia 時鐘"
     }
   },
   "default_locale": "en"

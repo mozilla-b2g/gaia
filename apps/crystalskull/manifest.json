@@ -12,6 +12,9 @@
   "locales": {
     "fr": {
       "description": "Démo WebGL"
+    },
+    "zh-TW": {
+      "description": "WebGL 示範"
     }
   },
   "default_locale": "en"

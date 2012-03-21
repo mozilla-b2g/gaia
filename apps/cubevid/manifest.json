@@ -13,6 +13,9 @@
     "fr": {
       "name": "CubeVid",
       "description": "Démo de vidéo cube"
+    },
+    "zh-TW": {
+      "description": "Video Cube 示範"
     }
   },
   "default_locale": "en"

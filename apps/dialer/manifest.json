@@ -13,6 +13,10 @@
     "fr": {
       "name": "Appel",
       "description": "Appel téléphonique Gaia"
+    },
+    "zh-TW": {
+      "name": "電話",
+      "description": "Gaia 電話"
     }
   },
   "default_locale": "en"

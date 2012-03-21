@@ -12,6 +12,9 @@
   "locales": {
     "fr": {
       "description": "Application mobile CNN"
+    },
+    "zh-TW": {
+      "description": "CNN 行動應用程式"
     }
   },
   "default_locale": "en"

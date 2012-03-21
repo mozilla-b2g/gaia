@@ -10,6 +10,10 @@
     "fr": {
       "name": "Écran d’accueil",
       "description": "Écran d’accueil Gaia"
+    },
+    "zh-TW": {
+      "name": "主畫面",
+      "description": "Gaia 主畫面"
     }
   },
   "default_locale": "en"

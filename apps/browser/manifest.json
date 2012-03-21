@@ -13,6 +13,10 @@
     "fr": {
       "name": "Navigateur",
       "description": "Navigateur Web Gaia"
+    },
+    "zh-TW": {
+      "name": "網路瀏覽器",
+      "description": "Gaia 網路瀏覽器"
     }
   },
   "default_locale": "en"
