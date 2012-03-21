@@ -3,7 +3,7 @@
 
 'use strict';
 
-window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
+window.addEventListener('localized', function scanWifiNetworks(evt) {
   var wifiManager = navigator.mozWifiManager;
   var _ = document.mozL10n.get;
 

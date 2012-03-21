@@ -6,7 +6,7 @@
 var _ = document.mozL10n.get;
 
 function startup() {
-  // set the 'lang' and 'dir' attributes to <html> when the page is translated
+  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
   var html = document.querySelector('html');
   var lang = document.mozL10n.language;
   html.lang = lang.code;
