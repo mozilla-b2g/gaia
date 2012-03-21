@@ -127,28 +127,18 @@ function testApp(url, testfunc) {
     let contentDoc = contentWin.document;
     let lockscreen = contentDoc.getElementById('lockscreen');
 
+    // Make sure the LockScreen module is loaded before we go on
+    yield until(function() contentWin.LockScreen, nextStep);
+
     // Send the Home key to turn the screen on if it was off
     EventUtils.sendKey('HOME', contentWin);
     silentOK(screen.mozEnabled, 'screen not on');
 
-    function isLocked() {
-      // It might be better to do this by inspecting the DOM to see
-      // if the lockscreen is visible and on top. But the way the CSS
-      // is setup, the only way to check is like this, and that is
-      // is too vague:
-      // return lockscreen.style.MozTransform !== 'translateY(-100%)';
-
-      // So we rely on the lock screen module's JS API instead
-      return contentWin.LockScreen.locked;
-    }
-
-    // Unlock the homescreen if it is locked
-    if (isLocked()) {
-      yield EventUtils.swipe(lockscreen, 200, 700, 200, 100, 500, nextStep);
-
-      // And wait for the unlock animation to complete
-      yield until(function() !isLocked(), nextStep);
-    }
+    // Unlock the screen
+    // FIXME: I used to do this by sending swipe events, but it broke
+    // for some reason, so now we just call a homescreen module to do it
+    yield contentWin.LockScreen.unlock(false, nextStep);
+    silentOK(!contentWin.LockScreen.locked, 'screen did not unlock');
 
     // Find all the icons on the homescreen
     var icons = contentDoc.querySelectorAll('#apps > .page > .icon');
