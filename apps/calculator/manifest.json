@@ -10,6 +10,10 @@
     "120": "/style/icons/Calculator.png"
   },
   "locales": {
+    "ar": {
+      "name": "الحاسبة",
+      "description": "الحاسبة"
+    },
     "fr": {
       "name": "Calculatrice",
       "description": "Calculatrice"

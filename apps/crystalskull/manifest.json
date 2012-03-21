@@ -10,6 +10,9 @@
     "120": "/style/icons/CrystalSkull.png"
   },
   "locales": {
+    "ar": {
+      "description": " WebGL عرض"
+    },
     "fr": {
       "description": "Démo WebGL"
     },

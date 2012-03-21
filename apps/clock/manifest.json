@@ -10,6 +10,10 @@
     "120": "/style/icons/Clock.png"
   },
   "locales": {
+    "ar": {
+      "name": "الساعة",
+      "description": "Gaia الساعة"
+    },
     "fr": {
       "name": "Horloge",
       "description": "Horloge Gaia"

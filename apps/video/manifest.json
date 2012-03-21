@@ -13,6 +13,10 @@
   "fullscreen": true,
   "orientation": "landscape-primary",
   "locales": {
+    "ar": {
+      "name": "فيديو",
+      "description": "Gaia فيديو"
+    },
     "fr": {
       "name": "Vidéo",
       "description": "Vidéo Gaia"

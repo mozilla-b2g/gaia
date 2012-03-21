@@ -10,6 +10,10 @@
     "120": "/style/icons/VideoCube.png"
   },
   "locales": {
+    "ar": {
+      "name": "CubeVid",
+      "description": " cube عرض لشريط"
+    },
     "fr": {
       "name": "CubeVid",
       "description": "Démo de vidéo cube"
