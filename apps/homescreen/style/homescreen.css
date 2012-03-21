@@ -369,10 +369,9 @@ iframe.landscape-secondary {
   width: 100%;
 }
 
-/* localization */
-body.hidden * {
-  visibility: hidden;
-}
+/*
+ * Localization: RTL layout
+ */
 
 *[dir=rtl] .page {
   left: auto;
