@@ -30,12 +30,33 @@
   var IMEngine = function ime() {
     var settings;
 
-    var kBufferLenLimit = 8;
+    // Enable IndexedDB
+    var enableIndexedDB = true;
+
+    // Tell the algorithm what's the longest term
+    // it should attempt to match
     var kDBTermMaxLength = 8;
 
-    // XXX: disable due to efficiency and usefulness of this feature
-    // and the ambiguities on separating symbols into 1 or 2 syllables
+    // Buffer limit will force output the first matching terms
+    // if the length of the syllables buffer is reached.
+    // This hides the fact that we are using a 2^n algorithm
+    var kBufferLenLimit = 8;
+
+    // The following features require range search
+    // disable on low end phones
+    // Without these features user can only do
+    // ㄊㄞˊㄅㄟˇ -> 台北
+
+    // Incomplete Matching allow user to do this:
+    // ㄊㄅ -> 台北
+    // But some terms never gets matched in this way, like
+    // ㄓㄨ -> 諸, not 中文
     var incompleteMatching = true;
+
+    // Auto-complete allow user to do this:
+    // ㄊㄞˊㄅ -> 台北
+    var autocompleteLastSyllables = true;
+
 
     /* ==== init functions ==== */
 
@@ -44,7 +65,8 @@
     var initDB = function ime_initDB(readyCallback) {
       var dbSettings = {
         wordsJSON: settings.path + '/words.json',
-        phrasesJSON: settings.path + '/phrases.json'
+        phrasesJSON: settings.path + '/phrases.json',
+        enableIndexedDB: enableIndexedDB
       };
 
       if (readyCallback)
@@ -158,9 +180,15 @@
 
       if (pendingSymbols[SymbolType.TONE] === '' &&
           syllablesForQuery[syllablesForQuery.length - 1]) {
-        debug('The last syllable is incomplete, add asterisk.');
-        syllablesForQuery[syllablesForQuery.length - 1] =
-          pendingSymbols.join('') + '*';
+        if (autocompleteLastSyllables) {
+          debug('The last syllable is incomplete, add asterisk.');
+          syllablesForQuery[syllablesForQuery.length - 1] =
+            pendingSymbols.join('') + '*';
+        } else {
+          debug('The last syllable is incomplete, add default tone.');
+          syllablesForQuery[syllablesForQuery.length - 1] =
+           pendingSymbols.join('') + ' ';
+        }
       }
 
       if (!syllablesForQuery[syllablesForQuery.length - 1]) {
@@ -746,7 +774,7 @@
           settings.ready();
       };
 
-      if (settings.disableIndexedDB) {
+      if (!settings.enableIndexedDB) {
         debug('IndexedDB disabled; Downloading JSON ...');
         getTermsJSON(ready);
         return;
