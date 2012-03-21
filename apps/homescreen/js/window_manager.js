@@ -235,6 +235,14 @@ var WindowManager = (function() {
     // And close the real app window
     frame.classList.remove('active');
 
+    // If this is an hackKillMe app, set the apps iframe's src attribute
+    // to an empty file to get rid of whatever resource-intensive 
+    // app it is currently running. For some reason actually removing
+    // the iframe from the document here does not work, so we remove it
+    // after the transition below.
+    if (manifest.hackKillMe)
+      frame.src = "blank.html";
+
     // Query css to flush this change
     var width = document.documentElement.clientWidth;
 
@@ -243,11 +251,11 @@ var WindowManager = (function() {
     sprite.classList.add('closed');
 
     // When the transition ends, discard the sprite.
-    // And for hackKillMe apps, stop running the app, too
+    // For hackKillMe apps, stop running the app, too
     sprite.addEventListener('transitionend', function transitionListener() {
       sprite.removeEventListener('transitionend', transitionListener);
       document.body.removeChild(sprite);
-      if (app.manifest.hackKillMe)
+      if (manifest.hackKillMe)
         stop(url);
     });
   }
