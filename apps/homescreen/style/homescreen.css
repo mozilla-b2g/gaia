@@ -369,3 +369,23 @@ iframe.landscape-secondary {
   width: 100%;
 }
 
+/* localization */
+body.hidden * {
+  visibility: hidden;
+}
+
+*[dir=rtl] .page {
+  left: auto;
+  right: 42px;
+}
+
+*[dir=rtl] .icon {
+  float: right;
+  margin-left: 4px;
+  margin-right: auto;
+}
+
+*[dir=rtl] .icon > .label {
+  padding-left: auto;
+  padding-right: 8px;
+}

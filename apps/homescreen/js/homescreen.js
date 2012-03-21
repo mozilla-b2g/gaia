@@ -25,9 +25,19 @@ function startup() {
     window.parent.postMessage('homescreenready', '*');
   });
 
+  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
+  var html = document.querySelector('html');
+  var lang = document.mozL10n.language;
+  html.lang = lang.code;
+  html.dir = lang.direction;
+  document.dir = lang.direction;
+
   updateClock();
   updateBattery();
   updateConnection();
+
+  // <body> children are hidden until the UI is translated
+  document.body.classList.remove('hidden');
 }
 
 var LockScreen = {
@@ -988,7 +998,10 @@ function DefaultPhysics(iconGrid) {
     if (!touchState.active)
       return;
 
-    iconGrid.pan(-(touchState.deltaX + touchState.previousX) / 2);
+    var x = (document.dir == 'ltr') ?
+      - (touchState.deltaX + touchState.previousX) :
+        (touchState.deltaX + touchState.previousX);
+    iconGrid.pan(x / 2);
     touchState.previousX = touchState.deltaX;
     window.mozRequestAnimationFrame(this);
   };
@@ -1024,6 +1037,8 @@ DefaultPhysics.prototype = {
     var endX = e.pageX;
     var diffX = endX - startX;
     var dir = (diffX > 0) ? -1 : 1;
+    if (document.dir == 'rtl')
+      dir = -dir;
 
     var quick = (e.timeStamp - touchState.startTime < 200);
     var long = (e.timeStamp - touchState.startTime > 2000);
@@ -1242,7 +1257,9 @@ IconGrid.prototype = {
     for (var n = 0; n < pages.length; ++n) {
       var page = pages[n];
 
-      var calc = (n - currentPage) + '00% + ' + x + 'px';
+      var calc = (document.dir == 'ltr') ?
+        (n - currentPage) + '00% + ' + x + 'px' :
+        (currentPage - n) + '00% - ' + x + 'px' ;
 
       var style = page.style;
       style.MozTransform = 'translateX(-moz-calc(' + calc + '))';
@@ -1260,7 +1277,8 @@ IconGrid.prototype = {
     for (var n = 0; n < pages.length; ++n) {
       var page = pages[n];
       var style = page.style;
-      style.MozTransform = 'translateX(' + (n - number) + '00%)';
+      var p = (document.dir == 'ltr') ? (n - number) : (number - n);
+      style.MozTransform = 'translateX(' + p + '00%)';
       style.MozTransition = duration ? ('all ' + duration + 's ease') : '';
     }
     var dots = this.dots;
