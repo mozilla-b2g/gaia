@@ -2,7 +2,7 @@
 GAIA_DIR?=$(CURDIR)
 B2G_HOMESCREEN=file://$(GAIA_DIR)/homescreen.html
 
-PROFILE_DIR?=$(CURDIR)
+PROFILE_DIR?=$(CURDIR)/profile
 
 MOZ_TESTS = "$(MOZ_OBJDIR)/_tests/testing/mochitest"
 INJECTED_GAIA = "$(MOZ_TESTS)/browser/gaia"
@@ -31,10 +31,11 @@ ADB?=adb
 PROFILE := $$($(ADB) shell ls -d /data/b2g/mozilla/*.default | tr -d '\r')
 PROFILE_DATA := profile
 .PHONY: install-gaia
-install-gaia: 
+install-gaia:
 	$(ADB) start-server
-	$(ADB) shell rm -r /data/local/*
-	@for i in $$(ls); do $(ADB) push $$i /data/local/$$i; done
+	$(ADB) shell rm -r /data/local/OfflineCache
+	$(ADB) shell mkdir /data/local/OfflineCache
+	$(ADB) push $(PROFILE_DIR)/OfflineCache /data/local/OfflineCache/
 	@echo 'Rebooting b2g now'
 	$(ADB) shell killall b2g
 
