@@ -6,7 +6,7 @@
 var _ = document.mozL10n.get;
 
 function startup() {
-  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
+  // set the 'lang' and 'dir' attributes to <html> when the page is translated
   var html = document.querySelector('html');
   var lang = document.mozL10n.language;
   html.lang = lang.code;
@@ -124,7 +124,7 @@ var LockScreen = {
   unlock: function lockscreen_unlock(instant, callback) {
     var offset = '-100%';
     var style = this.overlay.style;
-    
+
     if (!this.locked) {
       if (instant) {
         style.MozTransition = style.MozTransform = '';
@@ -713,6 +713,27 @@ var GridView = {
 
 new SettingListener('debug.grid.enabled', function(value) {
   value == 'true' ? GridView.show() : GridView.hide();
+});
+
+/* === Language === */
+function switchLocale(lang) {
+  // clear UI
+  var apps = document.getElementById('apps');
+  while (apps.hasChildNodes())
+    apps.removeChild(apps.lastChild);
+  var dots = document.getElementById('dots');
+  while (dots.hasChildNodes())
+    dots.removeChild(dots.lastChild);
+
+  // reset apps to force a redraw
+  Gaia.AppManager.installedApps = null;
+
+  // change language -- this triggers startup()
+  document.mozL10n.language.code = lang;
+}
+
+new SettingListener('language.current', function(value) {
+  switchLocale(value);
 });
 
 /* === Wallpapers === */

@@ -393,10 +393,10 @@ iframe.landscape-secondary {
 *[dir=rtl] .icon {
   float: right;
   margin-left: 4px;
-  margin-right: auto;
+  margin-right: 0;
 }
 
 *[dir=rtl] .icon > .label {
-  padding-left: auto;
+  padding-left: 0;
   padding-right: 8px;
 }

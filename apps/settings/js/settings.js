@@ -89,6 +89,7 @@ var Settings = {
   }
 };
 
+// apply user changes to 'Settings'
 window.addEventListener('load', function loadSettings(evt) {
   window.removeEventListener('load', loadSettings);
   window.addEventListener('change', Settings);
@@ -96,14 +97,12 @@ window.addEventListener('load', function loadSettings(evt) {
   Settings.init();
 });
 
+// update UI when the language setting is changed
 window.addEventListener('DOMContentLoaded', function showRoot() {
-  document.location.hash = '#root';
-
-  // update UI when the language setting is changed
   // XXX there's no way currently to fire a callback when a pref is changed
   //     so we're using an ugly onclick + timeout :-/
   var languages = document.getElementById('languages');
-  languages.addEventListener('click', function onclick() {
+  languages.addEventListener('mouseup', function onclick() {
     setTimeout(function getLanguageSetting() {
       var req = navigator.mozSettings.get('language.current');
       req.onsuccess = function retranslate() {
@@ -126,17 +125,29 @@ window.addEventListener('keyup', function goBack(event) {
       document.body.classList.remove('dialog');
     }
     else {
-      document.location.hash = '#root';
+      document.location.hash = 'root';
     }
   }
 });
 
-// Set the 'lang' and 'dir' attributes to <html> when the page is translated
-window.addEventListener('localized', function showBody() {
+// set the 'lang' and 'dir' attributes to <html> when the page is translated
+window.addEventListener('localized', function showPanel() {
   var html = document.querySelector('html');
   var lang = document.mozL10n.language;
-  html.setAttribute('lang', lang.code);
-  html.setAttribute('dir', lang.direction);
+  html.lang = lang.code;
+  html.dir = lang.direction;
+
   // <body> children are hidden until the UI is translated
-  document.body.classList.remove('hidden');
+  if (document.body.classList.contains('hidden')) {
+    // first run: show main page
+    document.location.hash = 'root';
+    document.body.classList.remove('hidden');
+  }
+  else {
+    // we were in #languages and selected another locale:
+    // reset the hash to prevent weird focus bugs when switching LTR/RTL
+    setTimeout(function() {
+      document.location.hash = 'languages';
+    }, 0);
+  }
 });
