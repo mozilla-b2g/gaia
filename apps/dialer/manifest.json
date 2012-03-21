@@ -10,6 +10,10 @@
     "120": "/style/icons/Phone.png"
   },
   "locales": {
+    "ar": {
+      "name": "المكالمة",
+      "description": "Gaia مكالمة هاتفية"
+    },
     "fr": {
       "name": "Appel",
       "description": "Appel téléphonique Gaia"

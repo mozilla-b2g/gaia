@@ -10,6 +10,10 @@
     "120": "/style/icons/Settings.png"
   },
   "locales": {
+    "ar": {
+      "name": "الضبط",
+      "description": "Gaia الضبط"
+    },
     "fr": {
       "name": "Paramètres",
       "description": "Paramètres Gaia"

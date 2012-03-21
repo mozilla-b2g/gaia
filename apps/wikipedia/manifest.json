@@ -10,6 +10,10 @@
     "120": "/style/icons/Wikipedia.png"
   },
   "locales": {
+    "ar": {
+      "name": "ويكيبيديا",
+      "description": "تطبيقة موبيل ويكيبيديا"
+    },
     "fr": {
       "name": "Wikipedia",
       "description": "Application mobile Wikipedia"

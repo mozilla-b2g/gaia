@@ -10,6 +10,10 @@
     "120": "/style/icons/Facebook.png"
   },
   "locales": {
+    "ar": {
+      "name": "Facebook",
+      "description": "Facebook تطبيقة موبيل"
+    },
     "fr": {
       "name": "Facebook",
       "description": "Application mobile Facebook"

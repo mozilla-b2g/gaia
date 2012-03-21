@@ -10,6 +10,10 @@
     "120": "/style/icons/Gallery.png"
   },
   "locales": {
+    "ar": {
+      "name": "إستديو",
+      "description": "Gaia إستديو"
+    },
     "fr": {
       "name": "Galerie",
       "description": "Galerie Gaia"

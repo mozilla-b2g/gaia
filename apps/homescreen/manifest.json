@@ -7,6 +7,10 @@
     "url": "https://github.com/andreasgal/gaia"
   },
   "locales": {
+    "ar": {
+      "name": "الشاشة الرئيسية",
+      "description": "Gaia الشاشة الرئيسية "
+    },
     "fr": {
       "name": "Écran d’accueil",
       "description": "Écran d’accueil Gaia"
