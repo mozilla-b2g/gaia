@@ -13,6 +13,10 @@
     "fr": {
       "name": "Courriel",
       "description": "GMail"
+    },
+    "zh-TW": {
+      "name": "郵件",
+      "description": "GMail"
     }
   },
   "default_locale": "en"

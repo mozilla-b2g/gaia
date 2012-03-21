@@ -13,6 +13,10 @@
     "fr": {
       "name": "Wikipedia",
       "description": "Application mobile Wikipedia"
+    },
+    "zh-TW": {
+      "name": "維基百科",
+      "description": "維基百科行動應用程式"
     }
   },
   "default_locale": "en"

@@ -14,6 +14,10 @@
     "fr": {
       "name": "Caméra",
       "description": "Caméra Gaia"
+    },
+    "fr": {
+      "name": "相機",
+      "description": "Gaia 相機"
     }
   },
   "default_locale": "en"

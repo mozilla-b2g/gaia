@@ -13,6 +13,10 @@
     "fr": {
       "name": "Musique",
       "description": "Musique Gaia"
+    },
+    "zh-TW": {
+      "name": "音樂",
+      "description": "Gaia 音樂"
     }
   },
   "default_locale": "en"
