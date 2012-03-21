@@ -13,6 +13,10 @@
     "fr": {
       "name": "Logithèque",
       "description": "Catalogue en ligne d’applications"
+    },
+    "zh-TW": {
+      "name": "市集",
+      "description": "下載與安裝應用程式"
     }
   },
   "default_locale": "en"

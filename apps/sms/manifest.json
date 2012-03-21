@@ -13,6 +13,10 @@
     "fr": {
       "name": "Messages",
       "description": "Messages Gaia"
+    },
+    "zh-TW": {
+      "name": "訊息",
+      "description": "Gaia 訊息"
     }
   },
   "default_locale": "en"

@@ -16,6 +16,10 @@
     "fr": {
       "name": "Vidéo",
       "description": "Vidéo Gaia"
+    },
+    "zh-TW": {
+      "name": "影片",
+      "description": "Gaia 影片"
     }
   },
   "default_locale": "en"
