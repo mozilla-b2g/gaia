@@ -182,7 +182,7 @@ body {
 
 iframe.appWindow {
   position: absolute;
-  background-color: #000;
+  background: url("themes/default/images/noise.png") repeat scroll 50% 50%, #373a3d;
   -moz-transition: background-color 1s ease;
   border: 0;
   margin: 0;
@@ -190,7 +190,6 @@ iframe.appWindow {
   overflow: auto;
   left: 0;
   top: 32px;
-
   z-index: 1;
 
 /*
@@ -220,6 +219,7 @@ div.windowSprite {
   width: 100%;
   height: -moz-calc(100% - 32px);
   z-index: 999999;
+  background: url("themes/default/images/noise.png") repeat scroll 50% 50%, #373a3d;
   -moz-transition: -moz-transform 0.5s ease, opacity 0.5s ease;
 }
 
