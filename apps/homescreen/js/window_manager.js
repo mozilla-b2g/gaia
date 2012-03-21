@@ -205,7 +205,11 @@ var WindowManager = (function() {
     frame.blur();
 
     // If we're not doing an animation, then just switch directly
-    // to the closed state.
+    // to the closed state. Note that we don't handle the hackKillMe
+    // flag here. If we bring up the task switcher and switch to another
+    // app then the video or camera or whatever should keep running
+    // in the background. Its only animated transitions to the homescreen
+    // that should kill those resource-intensive apps.
     if (instant) {
       frame.classList.remove('active');
       return;
@@ -238,10 +242,13 @@ var WindowManager = (function() {
     sprite.classList.remove('open');
     sprite.classList.add('closed');
 
-    // When the transition ends, discard the sprite
+    // When the transition ends, discard the sprite.
+    // And for hackKillMe apps, stop running the app, too
     sprite.addEventListener('transitionend', function transitionListener() {
       sprite.removeEventListener('transitionend', transitionListener);
       document.body.removeChild(sprite);
+      if (app.manifest.hackKillMe)
+        stop(url);
     });
   }
 
