@@ -162,6 +162,7 @@ var WindowManager = (function() {
         // The first transition has just completed.
         // Make the app window visible, give it keyboard focus,
         // and fade the sprite away
+        windows.classList.add('active');
         frame.classList.add('active');
         frame.focus();
         sprite.classList.add('faded');
@@ -241,6 +242,7 @@ var WindowManager = (function() {
 
     // And close the real app window
     frame.classList.remove('active');
+    windows.classList.remove('active');
 
     // If this is an hackKillMe app, set the apps iframe's src attribute
     // to an empty file to get rid of whatever resource-intensive 
@@ -284,14 +286,6 @@ var WindowManager = (function() {
       setAppSize(url);
       openWindow(url);
     }
-
-    // If there was no app before and now there is one, make
-    // the window container active and visible.  Or, if
-    // there was an app but now there is none, do the opposite.
-    if (!displayedApp && url)
-      windows.classList.add('active');
-    else if (displayedApp && !url) 
-      windows.classList.remove('active');
 
     displayedApp = url;
   }
