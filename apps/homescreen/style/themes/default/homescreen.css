@@ -25,8 +25,7 @@ body {
 /* Home Screen */
 
 #home {
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
+  border-radius: 8px;
   background: url(backgrounds/default.png);
 }
 
@@ -137,8 +136,7 @@ body {
 
 div.windowSprite {
   background: url("images/noise.png") repeat scroll 50% 50%, #373a3d;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
+  border-radius: 8px;
 }
 
 /* Task Manager */
