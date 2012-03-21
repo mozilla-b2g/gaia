@@ -33,6 +33,10 @@
     var kBufferLenLimit = 8;
     var kDBTermMaxLength = 8;
 
+    // XXX: disable due to efficiency and usefulness of this feature
+    // and the ambiguities on separating symbols into 1 or 2 syllables
+    var incompleteMatching = true;
+
     /* ==== init functions ==== */
 
     var db;
@@ -84,7 +88,7 @@
     };
 
     var sendPandingSymbols = function ime_updatePandingSymbol() {
-      var symbols = syllablesInBuffer.join('');
+      var symbols = syllablesInBuffer.join('').replace(/\*/g, '');
       settings.sendPandingSymbols(symbols);
     };
 
@@ -345,6 +349,15 @@
       debug('Processing symbol: ' + symbol);
 
       // add symbol to pendingSymbols
+      if (incompleteMatching &&
+          pendingSymbols.slice(type).join('') !== '') {
+        debug('Symbol place already occupied; move on to next.');
+        pendingSymbols[SymbolType.TONE] = '*';
+        syllablesInBuffer[syllablesInBuffer.length - 1] =
+          pendingSymbols.join('');
+        syllablesInBuffer.push('');
+        pendingSymbols = ['', '', '', ''];
+      }
       pendingSymbols[type] = symbol;
 
       // update syllablesInBuffer
