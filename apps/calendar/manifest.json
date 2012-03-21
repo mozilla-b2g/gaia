@@ -13,6 +13,10 @@
     "fr": {
       "name": "Calendrier",
       "description": "Calendrier Google"
+    },
+    "zh-TW": {
+      "name": "行事曆",
+      "description": "Google 日曆"
     }
   },
   "default_locale": "en"

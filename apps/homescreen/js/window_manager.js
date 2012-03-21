@@ -48,6 +48,7 @@ var WindowManager = (function() {
   var kLongPressInterval = 1000;
 
   // Some document elements we use
+  var screen = document.getElementById('screen');
   var statusbar = document.getElementById('statusbar');
   var windows = document.getElementById('windows');
   var taskManager = document.getElementById('taskManager');
@@ -127,8 +128,10 @@ var WindowManager = (function() {
     var sprite = document.createElement('div');
     sprite.className = 'closed windowSprite';
 
-    if (manifest.fullscreen)
+    if (manifest.fullscreen) {
       sprite.classList.add('fullscreen');
+      screen.classList.add('fullscreen');
+    }
 
     // Make the sprite look like the app that it is animating for.
     // Animating an image resize is quicker than animating and resizing
@@ -204,8 +207,16 @@ var WindowManager = (function() {
     // Take keyboard focus away from the closing window
     frame.blur();
 
+    // If this was a fullscreen app, leave full-screen mode
+    if (manifest.fullscreen) 
+      screen.classList.remove('fullscreen');
+
     // If we're not doing an animation, then just switch directly
-    // to the closed state.
+    // to the closed state. Note that we don't handle the hackKillMe
+    // flag here. If we bring up the task switcher and switch to another
+    // app then the video or camera or whatever should keep running
+    // in the background. Its only animated transitions to the homescreen
+    // that should kill those resource-intensive apps.
     if (instant) {
       frame.classList.remove('active');
       return;
@@ -231,6 +242,14 @@ var WindowManager = (function() {
     // And close the real app window
     frame.classList.remove('active');
 
+    // If this is an hackKillMe app, set the apps iframe's src attribute
+    // to an empty file to get rid of whatever resource-intensive 
+    // app it is currently running. For some reason actually removing
+    // the iframe from the document here does not work, so we remove it
+    // after the transition below.
+    if (manifest.hackKillMe)
+      frame.src = "blank.html";
+
     // Query css to flush this change
     var width = document.documentElement.clientWidth;
 
@@ -238,10 +257,13 @@ var WindowManager = (function() {
     sprite.classList.remove('open');
     sprite.classList.add('closed');
 
-    // When the transition ends, discard the sprite
+    // When the transition ends, discard the sprite.
+    // For hackKillMe apps, stop running the app, too
     sprite.addEventListener('transitionend', function transitionListener() {
       sprite.removeEventListener('transitionend', transitionListener);
       document.body.removeChild(sprite);
+      if (manifest.hackKillMe)
+        stop(url);
     });
   }
 

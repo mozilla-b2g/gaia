@@ -12,6 +12,9 @@
   "locales": {
     "fr": {
       "description": "Application mobile BBC"
+    },
+    "zh-TW": {
+      "description": "BBC 行動應用程式"
     }
   },
   "default_locale": "en"
