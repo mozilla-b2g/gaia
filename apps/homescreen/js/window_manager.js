@@ -48,6 +48,7 @@ var WindowManager = (function() {
   var kLongPressInterval = 1000;
 
   // Some document elements we use
+  var screen = document.getElementById('screen');
   var statusbar = document.getElementById('statusbar');
   var windows = document.getElementById('windows');
   var taskManager = document.getElementById('taskManager');
@@ -127,8 +128,10 @@ var WindowManager = (function() {
     var sprite = document.createElement('div');
     sprite.className = 'closed windowSprite';
 
-    if (manifest.fullscreen)
+    if (manifest.fullscreen) {
       sprite.classList.add('fullscreen');
+      screen.classList.add('fullscreen');
+    }
 
     // Make the sprite look like the app that it is animating for.
     // Animating an image resize is quicker than animating and resizing
@@ -203,6 +206,10 @@ var WindowManager = (function() {
 
     // Take keyboard focus away from the closing window
     frame.blur();
+
+    // If this was a fullscreen app, leave full-screen mode
+    if (manifest.fullscreen) 
+      screen.classList.remove('fullscreen');
 
     // If we're not doing an animation, then just switch directly
     // to the closed state. Note that we don't handle the hackKillMe
