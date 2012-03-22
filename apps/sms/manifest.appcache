@@ -6,6 +6,7 @@ sms.html
 manifest.webapp
 
 # js/
+http://gaiamobile.org/webapi.js
 js/sms.js
 js/utils.js
 
