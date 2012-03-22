@@ -279,6 +279,15 @@
     var keypressQueue = [];
     var isWorking = false;
 
+    var start = function ime_start() {
+      if (isWorking)
+        return;
+
+      isWorking = true;
+      debug('Start keyQueue loop.');
+      next();
+    };
+
     var next = function ime_next() {
       debug('Processing keypress');
 
@@ -294,6 +303,27 @@
       }
 
       var code = keypressQueue.shift();
+
+      if (code < 0) {
+        // This is a select function operation
+        var i = code * -1;
+        dump('Removing ' + (code * -1) + ' syllables from buffer.');
+
+        while (i--) {
+          syllablesInBuffer.shift();
+        }
+
+        if (!syllablesInBuffer.length) {
+          syllablesInBuffer = [''];
+          pendingSymbols = ['', '', '', ''];
+        }
+
+        sendPandingSymbols();
+        updateCandidateList(function() {});
+        next();
+        return;
+      }
+
       debug('key code: ' + code);
 
       if (code === KeyEvent.DOM_VK_RETURN) {
@@ -491,13 +521,7 @@
     this.click = function ime_click(code) {
       debug('Click keyCode: ' + code);
       keypressQueue.push(code);
-
-      if (isWorking)
-        return;
-
-      isWorking = true;
-      debug('Start keyQueue loop.');
-      next();
+      start();
     };
 
 
@@ -505,21 +529,12 @@
       debug('Select text ' + text);
       settings.sendString(text);
 
-      var i = text.length;
+      var numOfSyllablesToRemove = text.length;
       if (type == 'symbol')
-        i = 1;
+        numOfSyllablesToRemove = 1;
 
-      while (i--) {
-        syllablesInBuffer.shift();
-      }
-
-      if (!syllablesInBuffer.length) {
-        syllablesInBuffer = [''];
-        pendingSymbols = ['', '', '', ''];
-      }
-
-      sendPandingSymbols();
-      updateCandidateList(function() {});
+      keypressQueue.push(numOfSyllablesToRemove * -1);
+      start();
     };
 
     this.empty = empty;
