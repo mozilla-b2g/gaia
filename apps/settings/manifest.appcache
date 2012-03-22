@@ -6,6 +6,7 @@ settings.html
 manifest.webapp
 
 # js/
+http://gaiamobile.org/webapi.js
 js/settings.js
 js/wifi.js
 
