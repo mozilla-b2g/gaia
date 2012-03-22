@@ -999,9 +999,9 @@ function DefaultPhysics(iconGrid) {
       return;
 
     var x = (document.dir == 'ltr') ?
-      - (touchState.deltaX + touchState.previousX) :
-        (touchState.deltaX + touchState.previousX);
-    iconGrid.pan(x / 2);
+      - (touchState.deltaX * 3 + touchState.previousX) :
+        (touchState.deltaX * 3 + touchState.previousX);
+    iconGrid.pan(x / 4);
     touchState.previousX = touchState.deltaX;
     window.mozRequestAnimationFrame(this);
   };
@@ -1040,7 +1040,7 @@ DefaultPhysics.prototype = {
     if (document.dir == 'rtl')
       dir = -dir;
 
-    var quick = (e.timeStamp - touchState.startTime < 200);
+    var quick = (e.timeStamp - touchState.startTime < 300);
     var long = (e.timeStamp - touchState.startTime > 2000);
     var small = Math.abs(diffX) <= 20;
 
@@ -1055,12 +1055,12 @@ DefaultPhysics.prototype = {
       iconGrid.setPage(currentPage, 0);
       return;
     } else if (flick) {
-      iconGrid.setPage(currentPage + dir, 0.2);
+      iconGrid.setPage(currentPage + dir, 0.4);
     } else {
       if (Math.abs(diffX) < window.innerWidth / 2)
-        iconGrid.setPage(currentPage, 0.2);
+        iconGrid.setPage(currentPage, 0.4);
       else
-        iconGrid.setPage(currentPage + dir, 0.2);
+        iconGrid.setPage(currentPage + dir, 0.4);
     }
     e.stopPropagation();
   }
