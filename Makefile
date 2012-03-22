@@ -31,12 +31,32 @@ ADB?=adb
 PROFILE := $$($(ADB) shell ls -d /data/b2g/mozilla/*.default | tr -d '\r')
 PROFILE_DATA := profile
 .PHONY: install-gaia
-install-gaia: 
+install-gaia: copy-manifests
 	$(ADB) start-server
 	$(ADB) shell rm -r /data/local/*
+	@for file in $$(ls $(PROFILE_DATA)); \
+	do \
+		data=$${file##*/}; \
+		echo Copying $$data; \
+		$(ADB) shell rm -r $(PROFILE)/$$data; \
+		$(ADB) push profile/$$data $(PROFILE)/$$data; \
+	done
 	@for i in $$(ls); do $(ADB) push $$i /data/local/$$i; done
 	@echo 'Rebooting b2g now'
 	$(ADB) shell killall b2g
+
+# Copy the app manifest files to the profile dir where the
+# mozApps API can find them. For desktop usage, you must create
+# a symbolic link from your profile directory to $GAIA/profile/webapps
+copy-manifests:
+	@mkdir -p profile/webapps
+	@cp apps/webapps.json profile/webapps
+	@cd apps; \
+	for d in `find * -type d -maxdepth 0` ;\
+	do \
+		mkdir -p ../profile/webapps/$$d; \
+		cp $$d/manifest.json ../profile/webapps/$$d  ;\
+	done
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 .PHONY: delete-databases
@@ -63,4 +83,3 @@ forward:
 .PHONY: offline
 offline:
 	$(MOZ_OBJDIR)/dist/bin/run-mozilla.sh $(MOZ_OBJDIR)/dist/bin/xpcshell -e 'const GAIA_DIR = "$(GAIA_DIR)"; const PROFILE_DIR = "$(PROFILE_DIR)"' offline-cache.js
-

@@ -1018,19 +1018,7 @@ function DefaultPhysics(iconGrid) {
   this.iconGrid = iconGrid;
   this.moved = false;
   var touchState = this.touchState = {
-    active: false, startX: 0, deltaX: 0, previousX: 0
-  };
-
-  this.onRequestAnimationFrame = function(timestamp) {
-    if (!touchState.active)
-      return;
-
-    var x = (document.dir == 'ltr') ?
-      - (touchState.deltaX + touchState.previousX) :
-        (touchState.deltaX + touchState.previousX);
-    iconGrid.pan(x / 2);
-    touchState.previousX = touchState.deltaX;
-    window.mozRequestAnimationFrame(this);
+    active: false, startX: 0
   };
 }
 
@@ -1039,19 +1027,13 @@ DefaultPhysics.prototype = {
     var touchState = this.touchState;
     touchState.active = true;
     touchState.startTime = e.timeStamp;
-
     touchState.startX = e.pageX;
-    touchState.deltaX = 0;
-    touchState.previousX = 0;
-
-    window.mozRequestAnimationFrame(this.onRequestAnimationFrame);
   },
   onTouchMove: function(e) {
     var touchState = this.touchState;
     if (!touchState.active)
       return;
-
-    touchState.deltaX = touchState.startX - e.pageX;
+    this.iconGrid.pan(-(touchState.startX - e.pageX));
     e.stopPropagation();
   },
   onTouchEnd: function(e) {
