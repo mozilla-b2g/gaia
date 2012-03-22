@@ -64,3 +64,20 @@ forward:
 offline:
 	$(MOZ_OBJDIR)/dist/bin/run-mozilla.sh $(MOZ_OBJDIR)/dist/bin/xpcshell -e 'const GAIA_DIR = "$(GAIA_DIR)"; const PROFILE_DIR = "$(PROFILE_DIR)"' offline-cache.js
 
+pull-prefs:
+	$(ADB) shell mv /system/b2g/b2g /system/b2g/b2g.hidden
+	$(ADB) shell killall b2g
+	sleep 1
+	$(ADB) pull $(PROFILE)/prefs.js
+	$(ADB) shell mv /system/b2g/b2g.hidden /system/b2g/b2g
+	sleep 1
+	$(ADB) reboot
+
+push-prefs:
+	$(ADB) shell mv /system/b2g/b2g /system/b2g/b2g.hidden
+	$(ADB) shell killall b2g
+	sleep 1
+	$(ADB) push prefs.js $(PROFILE)/prefs.js
+	$(ADB) shell mv /system/b2g/b2g.hidden /system/b2g/b2g
+	sleep 1
+	$(ADB) reboot
