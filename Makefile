@@ -70,6 +70,7 @@ pull-prefs:
 	sleep 1
 	$(ADB) pull $(PROFILE)/prefs.js
 	$(ADB) shell mv /system/b2g/b2g.hidden /system/b2g/b2g
+	sleep 1
 	$(ADB) reboot
 
 push-prefs:
@@ -78,4 +79,5 @@ push-prefs:
 	sleep 1
 	$(ADB) push prefs.js $(PROFILE)/prefs.js
 	$(ADB) shell mv /system/b2g/b2g.hidden /system/b2g/b2g
+	sleep 1
 	$(ADB) reboot
