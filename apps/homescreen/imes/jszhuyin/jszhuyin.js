@@ -329,22 +329,37 @@
         }
 
         if (!pendingSymbols.join('')) {
-          // pendingSymbols is empty; remove the last syllable in buffer
+          // pendingSymbols is empty
+          // remove the last symbol in the last syllable in buffer
           debug('Remove last syllable.');
-          syllablesInBuffer =
-            syllablesInBuffer.slice(0, syllablesInBuffer.length - 1);
-          syllablesInBuffer[syllablesInBuffer.length - 1] =
-            pendingSymbols.join('');
-          sendPandingSymbols();
-          updateCandidateList(next);
-          return;
+          syllablesInBuffer.pop();
+          // XXX: we do this here instead of changing _entire_ code
+          // on definition of syllablesInBuffer.
+          pendingSymbols = (function pendingSymbols_unjoin(syllable) {
+            var symbols = ['', '', '', ''];
+            syllable.split('').forEach(
+              function syllable_forEach(symbol) {
+                var type = typeOfSymbol(symbol.charCodeAt(0));
+                if (type !== false)
+                  symbols[type] = symbol;
+              }
+            );
+            return symbols;
+          })(syllablesInBuffer[syllablesInBuffer.length - 1]);
         }
 
-        debug('Remove pending symbols.');
+        debug('Remove one pending symbols.');
 
-        // remove the pendingSymbols
-        pendingSymbols = ['', '', '', ''];
-        syllablesInBuffer[syllablesInBuffer.length - 1] = '';
+        var i = 4;
+        while (i--) {
+          if (pendingSymbols[i] == '*' || pendingSymbols[i] == '')
+            continue;
+          pendingSymbols[i] = '';
+          break;
+        }
+
+        syllablesInBuffer[syllablesInBuffer.length - 1] =
+          pendingSymbols.join('');
         sendPandingSymbols();
         updateCandidateList(next);
         return;
