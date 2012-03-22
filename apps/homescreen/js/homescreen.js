@@ -991,19 +991,7 @@ function DefaultPhysics(iconGrid) {
   this.iconGrid = iconGrid;
   this.moved = false;
   var touchState = this.touchState = {
-    active: false, startX: 0, deltaX: 0, previousX: 0
-  };
-
-  this.onRequestAnimationFrame = function(timestamp) {
-    if (!touchState.active)
-      return;
-
-    var x = (document.dir == 'ltr') ?
-      - (touchState.deltaX * 3 + touchState.previousX) :
-        (touchState.deltaX * 3 + touchState.previousX);
-    iconGrid.pan(x / 4);
-    touchState.previousX = touchState.deltaX;
-    window.mozRequestAnimationFrame(this);
+    active: false, startX: 0
   };
 }
 
@@ -1012,19 +1000,13 @@ DefaultPhysics.prototype = {
     var touchState = this.touchState;
     touchState.active = true;
     touchState.startTime = e.timeStamp;
-
     touchState.startX = e.pageX;
-    touchState.deltaX = 0;
-    touchState.previousX = 0;
-
-    window.mozRequestAnimationFrame(this.onRequestAnimationFrame);
   },
   onTouchMove: function(e) {
     var touchState = this.touchState;
     if (!touchState.active)
       return;
-
-    touchState.deltaX = touchState.startX - e.pageX;
+    this.iconGrid.pan(-(touchState.startX - e.pageX));
     e.stopPropagation();
   },
   onTouchEnd: function(e) {
@@ -1040,7 +1022,7 @@ DefaultPhysics.prototype = {
     if (document.dir == 'rtl')
       dir = -dir;
 
-    var quick = (e.timeStamp - touchState.startTime < 300);
+    var quick = (e.timeStamp - touchState.startTime < 200);
     var long = (e.timeStamp - touchState.startTime > 2000);
     var small = Math.abs(diffX) <= 20;
 
@@ -1055,12 +1037,12 @@ DefaultPhysics.prototype = {
       iconGrid.setPage(currentPage, 0);
       return;
     } else if (flick) {
-      iconGrid.setPage(currentPage + dir, 0.4);
+      iconGrid.setPage(currentPage + dir, 0.2);
     } else {
       if (Math.abs(diffX) < window.innerWidth / 2)
-        iconGrid.setPage(currentPage, 0.4);
+        iconGrid.setPage(currentPage, 0.2);
       else
-        iconGrid.setPage(currentPage + dir, 0.4);
+        iconGrid.setPage(currentPage + dir, 0.2);
     }
     e.stopPropagation();
   }
