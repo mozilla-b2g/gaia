@@ -49,6 +49,7 @@ install-gaia: copy-manifests
 # mozApps API can find them. For desktop usage, you must create
 # a symbolic link from your profile directory to $GAIA/profile/webapps
 copy-manifests:
+	@mkdir -p profile/webapps
 	@cp apps/webapps.json profile/webapps
 	@cd apps; \
 	for d in `find * -type d -maxdepth 0` ;\
