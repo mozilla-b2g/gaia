@@ -57,12 +57,10 @@ Gaia.AppManager = {
         if (app.origin == homescreenOrigin)
           return;
 
-        // localized manifest?
-        if (manifest.locales && manifest.locales[lang]) {
-          var loc = manifest.locales[lang];
-          for (var k in loc)
-            manifest[k] = loc[k];
-        }
+        // localized manifest? We only look at the name for the moment.
+        var name = manifest.name;
+        if (manifest.locales && manifest.locales[lang])
+          name = manifest.locales[lang].name || name;
 
         var icon = manifest.icons ? app.origin + manifest.icons['120'] : '';
         // Even if the icon is stored by the offline cache, trying to load it
@@ -89,7 +87,7 @@ Gaia.AppManager = {
 
         var url = app.origin + manifest.launch_path;
         cache.push({
-          name: manifest.name,
+          name: name,
           url: url,
           icon: icon,
           fullscreen: manifest.fullscreen || false,

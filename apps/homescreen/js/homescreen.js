@@ -732,8 +732,14 @@ function switchLocale(lang) {
   document.mozL10n.language.code = lang;
 }
 
-new SettingListener('language.current', function(value) {
-  switchLocale(value);
+// Unfortunately, a setting listener doesn't seem to work here.
+// That might be an issue of the Settings API...
+//new SettingListener('language.current', switchLocale);
+// ... so let's listen to post messages instead:
+window.addEventListener('message', function getMessage(evt) {
+  if (evt.data && evt.data.language) {
+    switchLocale(evt.data.language);
+  }
 });
 
 /* === Wallpapers === */

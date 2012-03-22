@@ -107,6 +107,7 @@ window.addEventListener('DOMContentLoaded', function showRoot() {
       var req = navigator.mozSettings.get('language.current');
       req.onsuccess = function retranslate() {
         document.mozL10n.language.code = req.result.value;
+        window.parent.postMessage({ language: req.result.value }, '*');
       }
     }, 0);
   });
