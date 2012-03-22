@@ -1,0 +1,28 @@
+{
+  "name": "Browser",
+  "description": "Gaia Web Browser",
+  "launch_path": "/browser.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "icons": {
+    "120": "/style/icons/Browser.png"
+  },
+  "locales": {
+    "ar": {
+      "name": "المتصفح",
+      "description": "Gaia متصفح الويب"
+    },
+    "fr": {
+      "name": "Navigateur",
+      "description": "Navigateur Web Gaia"
+    },
+    "zh-TW": {
+      "name": "網路瀏覽器",
+      "description": "Gaia 網路瀏覽器"
+    }
+  },
+  "default_locale": "en"
+}
+

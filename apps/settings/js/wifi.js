@@ -5,6 +5,7 @@
 
 window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
   var wifiManager = navigator.mozWifiManager;
+  var _ = document.mozL10n.get;
 
   // globals
   var gStatus = document.querySelector('#status small');
@@ -12,18 +13,18 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
 
   // current state
   function updateState() {
-    var currentNetwork = wifiManager.connected;
+    var currentNetwork = wifiManager.connectedNetwork;
     var enabledBox = document.querySelector('#wifi input[type=checkbox]');
     if (currentNetwork) {
-      gStatus.textContent = 'connected to ' + currentNetwork.ssid + '.';
+      gStatus.textContent = _('connected', { ssid: currentNetwork.ssid });
       enabledBox.checked = true;
     }
     else if (wifiManager.enabled) {
-      gStatus.textContent = 'offline';
+      gStatus.textContent = _('offline');
       enabledBox.checked = true;
     }
     else {
-      gStatus.textContent = 'disabled';
+      gStatus.textContent = _('disabled');
       enabledBox.checked = false;
     }
   }
@@ -47,7 +48,7 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
 
   function newScanItem() {
     var a = document.createElement('a');
-    a.textContent = 'Scanning…';
+    a.textContent = _('scanning');
 
     var span = document.createElement('span');
     span.className = 'wifi-search';
@@ -79,13 +80,13 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
     var small = document.createElement('small');
     var keys = network.capabilities;
     if (keys && keys.length) {
-      small.textContent = 'secured by ' + keys.join(', ');
+      small.textContent = _('securedBy', { capabilities: keys.join(', ') });
       var secure = document.createElement('span');
       secure.className = 'wifi-secure';
       label.appendChild(secure);
     }
     else {
-      small.textContent = 'open';
+      small.textContent = _('securityOpen');
     }
 
     // create list item
@@ -102,9 +103,9 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
   }
 
   function wifiConnect(network) {
-    var connection = wifiManager.select(network);
+    var connection = wifiManager.associate(network);
     connection.onsuccess = function() {
-      gStatus.textContent = 'connecting to ' + network.ssid + '…';
+      gStatus.textContent = _('connecting', { ssid: network.ssid });
     };
     connection.onerror = function() {
       gStatus.textContent = connection.error.name;
@@ -117,48 +118,59 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
 
   // mozWifiManager events / callbacks
   wifiManager.onassociate = function(event) {
-    var ssid = event.network ? (' from ' + event.network.ssid) : '';
-    gStatus.textContent = 'obtaining an IP address' + ssid + '…';
+    gStatus.textContent = _('associating');
   };
 
   wifiManager.onconnect = function(event) {
-    var ssid = event.network ? (' to ' + event.network.ssid) : '';
-    gStatus.textContent = 'connected' + ssid + '.';
+    gStatus.textContent = _('connected', { ssid: event.network.ssid });
+    wifiScanNetworks(); // refresh the network list
   };
 
   wifiManager.ondisconnect = function(event) {
-    gStatus.textContent = 'offline';
+    gStatus.textContent = _('offline');
   };
 
   // scan wifi networks
   function wifiScanNetworks() {
     var req = wifiManager.getNetworks();
+
     req.onsuccess = function() {
       var networks = req.result;
-      while (gList.hasChildNodes())
-        gList.removeChild(gList.lastChild);
+
+      // sort networks: connected network first, then by signal strength
       var ssids = Object.getOwnPropertyNames(networks);
       ssids.sort(function(a, b) {
-        return networks[b].signal - networks[a].signal;
+        return isConnected(networks[b]) ?  100 :
+          networks[b].signal - networks[a].signal;
       });
+
+      // create list
+      while (gList.hasChildNodes())
+        gList.removeChild(gList.lastChild);
       for (var i = 0; i < ssids.length; i++) {
         var li = newListItem(networks[ssids[i]]);
         gList.appendChild(li);
       }
     };
+
     req.onerror = function(error) {
       gStatus.textContent = 'error: ' + req.error.name;
     };
+
     updateState();
   }
 
-  function showNetwork(network) {
+  function isConnected(network) {
     // XXX the API should expose a 'connected' property on 'network',
-    // and the wifiManager.connected object should be comparable to 'network'.
+    // and 'wifiManager.connectedNetwork' should be comparable to 'network'.
     // Until this is properly implemented, we just compare SSIDs to tell wether
     // the network is already connected or not.
-    var currentNetwork = wifiManager.connected;
-    if (currentNetwork && currentNetwork.ssid == network.ssid) {
+    var currentNetwork = wifiManager.connectedNetwork;
+    return currentNetwork && (currentNetwork.ssid == network.ssid);
+  }
+
+  function showNetwork(network) {
+    if (isConnected(network)) {
       // online: show status + offer to disconnect
       wifiDialog('#wifi-status', network, wifiDisconnect);
     }
@@ -193,19 +205,19 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
     var keys = network.capabilities;
     var security = dialog.querySelector('*[data-security]');
     if (security)
-      security.textContent = (keys && keys.length) ? keys.join(', ') : 'none';
+      security.textContent = (keys && keys.length) ?
+        keys.join(', ') : _('securityNone');
 
     var signal = dialog.querySelector('*[data-signal]');
     if (signal) {
-      var levels = ['very weak', 'weak', 'average', 'good', 'very good'];
       var lvl = Math.min(Math.floor(network.signal / 20), 4);
-      signal.textContent = levels[lvl];
+      signal.textContent = _('signalLevel' + lvl);
     }
 
     // identity/password
     var identity = dialog.querySelector('input[name=identity]');
     if (identity)
-      identity.value = network.identity;
+      identity.value = network.identity || '';
 
     var password = dialog.querySelector('input[name=password]');
     if (password) {
@@ -235,24 +247,18 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
       close();
       if (identity)
         network.identity = identity.value;
-      if (password) {
+      // when we're on a known network, password == '*':
+      // no further authentication required.
+      if (password && password.value != '*') {
         var key = network.capabilities[0];
         var keyManagement = '';
         if (/WEP$/.test(key)) {
           keyManagement = 'WEP';
-          // XXX the wifi API says we should put the password in .wep,
-          //     but the current implementation only reads .password.
-          //     Copying the password to both until the situation gets clear.
           network.wep = password.value;
-          network.password = password.value;
         }
         else if (/PSK$/.test(key)) {
           keyManagement = 'WPA-PSK';
-          // XXX the wifi API says we should put the password in .psk,
-          //     but the current implementation only reads .password.
-          //     Copying the password to both until the situation gets clear.
           network.psk = password.value;
-          network.password = password.value;
         }
         else if (/EAP$/.test(key)) {
           keyManagement = 'WPA-EAP';

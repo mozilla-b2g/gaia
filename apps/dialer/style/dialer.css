@@ -580,7 +580,8 @@ html * {
 }
 
 #contact-details-view button,
-#contact-details-view input[type="submit"] {
+#contact-details-view input[type="submit"]
+{
   position: absolute;
   bottom: 20px;
   right: 20px;
@@ -599,10 +600,18 @@ html * {
   text-align: center;
   text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.5);
 
-  background: -moz-linear-gradient(center top , #F7F7F7 0pt, #EDEBEE 1px, #DDDDDD 100%) repeat scroll 0 0 transparent;
+  background: -moz-linear-gradient(center top , #F7F7F7 0pt, #EDEBEE 1px, #DDDDDD 100%);
 
   border: 1px solid #A0A09C;
   border-radius: 5px;
+}
+
+#contact-details-view button[data-action='destroy'] {
+	right:auto;
+	left:20px;
+	color: hsl(0,0%,100%);
+	border-color: hsl(360, 84%, 34%);
+	background: -moz-linear-gradient(center top , hsl(4, 98%, 60%) 0, hsl(0, 99%, 45%) 100%);
 }
 
 #contact-details-view .entry span {
@@ -720,25 +729,6 @@ html * {
   background-repeat: no-repeat;
   background-size: 24px 24px;
   background-position: center center;
-
-  display: none;
-}
-
-#contact-destroy-button {
-  width: -moz-calc(90% - 2px);
-  margin: 50px auto 10px auto;
-  clear: both;
-
-  box-shadow: 0 1px 3px black;
-  background: -moz-linear-gradient(top, #FF4844, #FF1813 50%, #C70E0C 51%);
-
-  border-radius: 10px;
-  border: 1px solid #151515;
-  border-top: 1px solid #c3d6df;
-
-  line-height: 44px;
-  font-size: 2em;
-  text-align: center;
 
   display: none;
 }
@@ -1123,4 +1113,9 @@ html * {
   color: #999999;
   font-size: 16px;
   line-height: 1.4em;
+}
+
+/* localization */
+body.hidden *[data-l10n-id] {
+  visibility: hidden;
 }

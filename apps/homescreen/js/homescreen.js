@@ -3,7 +3,16 @@
 
 'use strict';
 
+var _ = document.mozL10n.get;
+
 function startup() {
+  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
+  var html = document.querySelector('html');
+  var lang = document.mozL10n.language;
+  html.lang = lang.code;
+  html.dir = lang.direction;
+  document.dir = lang.direction;
+
   new Homescreen();
 
   LockScreen.init();
@@ -22,6 +31,13 @@ function startup() {
 
     window.parent.postMessage('homescreenready', '*');
   });
+
+  updateClock();
+  updateBattery();
+  updateConnection();
+
+  // <body> children are hidden until the UI is translated
+  document.body.classList.remove('hidden');
 }
 
 var LockScreen = {
@@ -29,6 +45,8 @@ var LockScreen = {
     delete this.overlay;
     return this.overlay = document.getElementById('lockscreen');
   },
+
+  locked: true,
 
   init: function lockscreen_init() {
     var events = ['touchstart', 'touchmove', 'touchend', 'keydown', 'keyup'];
@@ -45,31 +63,42 @@ var LockScreen = {
 
   update: function lockscreen_update(callback) {
     var settings = window.navigator.mozSettings;
-    if (!settings)
+    if (!settings) {
+      this.lock(true, callback);
       return;
+    }
 
     var request = settings.get('lockscreen.enabled');
     request.addEventListener('success', (function onsuccess(evt) {
       var enabled = request.result.value !== 'false';
       if (enabled) {
-        this.lock(true);
+        this.lock(true, callback);
       } else {
-        this.unlock(true);
+        this.unlock(true, callback);
       }
-
-      if (callback)
-        setTimeout(callback, 0);
     }).bind(this));
 
     request.addEventListener('error', (function onerror(evt) {
-      this.lock(true);
-      if (callback)
-        setTimeout(callback, 0);
+      this.lock(true, callback);
     }).bind(this));
   },
 
-  lock: function lockscreen_lock(instant) {
+  lock: function lockscreen_lock(instant, callback) {
     var style = this.overlay.style;
+
+    if (this.locked) {
+      if (instant) {
+        style.MozTransition = style.MozTransform = '';
+      } else {
+        style.MozTransition = '-moz-transform 0.2s linear';
+      }
+      style.MozTransform = 'translateY(0)';
+      if (callback)
+        setTimeout(callback, 0, true);
+      return;
+    }
+
+    this.locked = true;
     if (instant) {
       style.MozTransition = style.MozTransform = '';
     } else {
@@ -80,18 +109,44 @@ var LockScreen = {
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('locked', true, true, null);
     window.dispatchEvent(evt);
+
+    // Wait for paint before firing callback
+    if (!callback)
+      return;
+
+    var afterPaintCallback = function afterPaint() {
+      window.removeEventListener('MozAfterPaint', afterPaintCallback);
+      callback(true);
+    };
+    window.addEventListener('MozAfterPaint', afterPaintCallback);
   },
 
-  unlock: function lockscreen_unlock(instant) {
+  unlock: function lockscreen_unlock(instant, callback) {
     var offset = '-100%';
-
     var style = this.overlay.style;
+    
+    if (!this.locked) {
+      if (instant) {
+        style.MozTransition = style.MozTransform = '';
+      } else {
+        style.MozTransition = '-moz-transform 0.2s linear';
+      }
+      style.MozTransform = 'translateY(' + offset + ')';
+      if (callback)
+        setTimeout(callback, 0, false);
+      return;
+    }
+
+    this.locked = false;
     style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
     style.MozTransform = 'translateY(' + offset + ')';
 
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('unlocked', true, true, null);
     window.dispatchEvent(evt);
+
+    if (callback)
+      setTimeout(callback, 0, false);
   },
 
   onTouchStart: function lockscreen_touchStart(e) {
@@ -150,9 +205,19 @@ var LockScreen = {
           return;
         window.clearTimeout(this._timeout);
 
-        ScreenManager.toggleScreen();
-        if (screen.mozEnabled)
-          this.update();
+        if (screen.mozEnabled) {
+          this.update(function lockScreenCallback() {
+            ScreenManager.turnScreenOff();
+          });
+        } else {
+          // XXX: screen could be turned off by idle service instead of us.
+          // Update the lockscreen again when turning the screen on.
+          // (home screen would still flash when USB is plugged in)
+          this.update(function lockScreenCallback() {
+            ScreenManager.turnScreenOn();
+          });
+          //ScreenManager.turnScreenOn();
+        }
 
         e.preventDefault();
         e.stopPropagation();
@@ -277,8 +342,8 @@ var NotificationScreen = {
         continue;
 
       var unread = parseInt(notification.dataset.count) + 1;
-      var msg = 'You have ' + unread + ((type == 'sms') ? ' unread messages' :
-                                        ' missed calls');
+      var msg = (type == 'sms') ?
+        _('unreadMessages', { n: unread }) : _( 'missedCalls', { n: unread });
       notification.lastElementChild.textContent = msg;
       return;
     }
@@ -390,13 +455,14 @@ function updateConnection() {
   // Update the operator name / SIM status.
   var title = '';
   if (conn.cardState == 'absent') {
-    title = 'No SIM card';
+    title = _('noSimCard');
   } else if (!conn.connected) {
-    title = 'Connecting...';
+    title = _('connecting');
   } else {
-    title = conn.operator || '';
     if (conn.roaming) {
-      title += ' (roaming)';
+      title = _('roaming', { operator: (conn.operator || '') });
+    } else {
+      title = conn.operator || '';
     }
   }
   document.getElementById('titlebar').textContent = title;
@@ -576,10 +642,8 @@ var SourceView = {
       window.addEventListener('locked', this);
     }
 
-    var currentWindow = WindowManager.getForegroundWindow();
-    var url = currentWindow ? currentWindow.application.url : document.URL;
+    var url = WindowManager.getDisplayedApp();
     viewsource.src = 'view-source: ' + url;
-
     viewsource.style.visibility = 'visible';
   },
 
@@ -676,30 +740,69 @@ new SettingListener('phone.vibration.incoming', function(value) {
 
 /* === KeyHandler === */
 var KeyHandler = {
+  kRepeatTimeout: 700,
+  kRepeatRate: 100,
+
+  repeatKey: function kh_repeatKey(actionCallback) {
+    actionCallback();
+    clearTimeout(this._timer);
+    this._timer = setTimeout((function volumeTimeout() {
+      actionCallback();
+      this._timer = setInterval(function volumeInterval() {
+        actionCallback();
+      }, this.kRepeatRate);
+    }).bind(this), this.kRepeatTimeout);
+  },
+
   handleEvent: function kh_handleEvent(evt) {
     if (!screen.mozEnabled)
       return;
 
-    switch (evt.keyCode) {
-      case evt.DOM_VK_PAGE_UP:
-        SoundManager.changeVolume(1);
-        break;
+    switch (evt.type) {
+      case 'keydown':
+        switch (evt.keyCode) {
+          case evt.DOM_VK_PAGE_UP:
+            this.repeatKey((function repeatKeyCallback() {
+              if (SoundManager.currentVolume == 10) {
+                clearTimeout(this._timer);
+                return;
+              }
+              SoundManager.changeVolume(1);
+            }).bind(this));
+            break;
 
-      case evt.DOM_VK_PAGE_DOWN:
-        SoundManager.changeVolume(-1);
+          case evt.DOM_VK_PAGE_DOWN:
+            this.repeatKey((function repeatKeyCallback() {
+              if (SoundManager.currentVolume == 0) {
+                clearTimeout(this._timer);
+                return;
+              }
+              SoundManager.changeVolume(-1);
+            }).bind(this));
+            break;
+        }
         break;
+      case 'keyup':
+        switch (evt.keyCode) {
+          case evt.DOM_VK_PAGE_UP:
+          case evt.DOM_VK_PAGE_DOWN:
+            clearTimeout(this._timer);
+            break;
 
-      case evt.DOM_VK_CONTEXT_MENU:
-        SourceView.toggle();
-        break;
+          case evt.DOM_VK_CONTEXT_MENU:
+            SourceView.toggle();
+            break;
 
-      case evt.DOM_VK_F6:
-        document.location.reload();
+          case evt.DOM_VK_F6:
+            document.location.reload();
+            break;
+        }
         break;
     }
   }
 };
 
+window.addEventListener('keydown', KeyHandler);
 window.addEventListener('keyup', KeyHandler);
 
 /* === Screen Manager === */
@@ -713,13 +816,25 @@ var ScreenManager = {
   },
 
   turnScreenOff: function lockscreen_turnScreenOff() {
+    if (!screen.mozEnabled)
+      return false;
+
     screen.mozEnabled = false;
 
     this.preferredBrightness = screen.mozBrightness;
     screen.mozBrightness = 0.0;
+
+    updateClock();
+    updateBattery();
+    updateConnection();
+
+    return true;
   },
 
   turnScreenOn: function lockscreen_turnScreenOn() {
+    if (screen.mozEnabled)
+      return false;
+
     screen.mozEnabled = true;
 
     screen.mozBrightness = this.preferredBrightness;
@@ -727,6 +842,8 @@ var ScreenManager = {
     updateClock();
     updateBattery();
     updateConnection();
+
+    return true;
   }
 };
 
@@ -809,22 +926,7 @@ var TelephonyListener = function() {
       }
     });
 
-    var url = '../dialer/dialer.html';
-    var launchFunction = function launchDialer() {
-      WindowManager.launch(url);
-    };
-
-    var appWindow = WindowManager.getForegroundWindow();
-    if (appWindow && (appWindow.application.name != 'Dialer')) {
-      WindowManager.closeForegroundWindow();
-      appWindow.element.addEventListener('transitionend', function closed() {
-        appWindow.element.removeEventListener('transitionend', closed);
-
-        launchFunction();
-      });
-    } else {
-      launchFunction();
-    }
+    WindowManager.launch('../dialer/dialer.html');
   });
 
   // Handling the missed call notification
@@ -889,16 +991,7 @@ function DefaultPhysics(iconGrid) {
   this.iconGrid = iconGrid;
   this.moved = false;
   var touchState = this.touchState = {
-    active: false, startX: 0, deltaX: 0, previousX: 0
-  };
-
-  this.onRequestAnimationFrame = function(timestamp) {
-    if (!touchState.active)
-      return;
-
-    iconGrid.pan(-(touchState.deltaX + touchState.previousX) / 2);
-    touchState.previousX = touchState.deltaX;
-    window.mozRequestAnimationFrame(this);
+    active: false, startX: 0
   };
 }
 
@@ -907,19 +1000,13 @@ DefaultPhysics.prototype = {
     var touchState = this.touchState;
     touchState.active = true;
     touchState.startTime = e.timeStamp;
-
     touchState.startX = e.pageX;
-    touchState.deltaX = 0;
-    touchState.previousX = 0;
-
-    window.mozRequestAnimationFrame(this.onRequestAnimationFrame);
   },
   onTouchMove: function(e) {
     var touchState = this.touchState;
     if (!touchState.active)
       return;
-
-    touchState.deltaX = touchState.startX - e.pageX;
+    this.iconGrid.pan(-(touchState.startX - e.pageX));
     e.stopPropagation();
   },
   onTouchEnd: function(e) {
@@ -932,6 +1019,8 @@ DefaultPhysics.prototype = {
     var endX = e.pageX;
     var diffX = endX - startX;
     var dir = (diffX > 0) ? -1 : 1;
+    if (document.dir == 'rtl')
+      dir = -dir;
 
     var quick = (e.timeStamp - touchState.startTime < 200);
     var long = (e.timeStamp - touchState.startTime > 2000);
@@ -1059,7 +1148,7 @@ IconGrid.prototype = {
     }
 
     // issue #723 - The calculation of the width/height of the icons
-    // should be dynamic and ot harcoded like that. The reason why it
+    // should be dynamic and not harcoded like that. The reason why it
     // it is done like that at this point is because there is no icon
     // when the application starts and so there is nothing to calculate
     // against.
@@ -1068,8 +1157,8 @@ IconGrid.prototype = {
     var iconWidth = 132;
 
     var rect = container.getBoundingClientRect();
-    var rows = Math.floor(rect.height / iconHeight);
-    var columns = Math.floor(rect.width / iconWidth);
+    var rows = Math.max(1, Math.floor(rect.height / iconHeight));
+    var columns = Math.max(1, Math.floor(rect.width / iconWidth));
 
     var targetHeight = iconHeight * rows + 'px';
     container.style.minHeight = container.style.maxHeight = targetHeight;
@@ -1109,7 +1198,7 @@ IconGrid.prototype = {
         iconDiv = document.createElement('div');
         iconDiv.id = n;
         iconDiv.className = 'icon';
-        iconDiv.style.backgroundImage = 'url(' + icon.iconUrl + ')';
+        iconDiv.style.backgroundImage = 'url("' + icon.iconUrl + '")';
         iconDiv.dataset.url = icon.action;
 
         var centerDiv = document.createElement('div');
@@ -1150,7 +1239,9 @@ IconGrid.prototype = {
     for (var n = 0; n < pages.length; ++n) {
       var page = pages[n];
 
-      var calc = (n - currentPage) + '00% + ' + x + 'px';
+      var calc = (document.dir == 'ltr') ?
+        (n - currentPage) + '00% + ' + x + 'px' :
+        (currentPage - n) + '00% - ' + x + 'px' ;
 
       var style = page.style;
       style.MozTransform = 'translateX(-moz-calc(' + calc + '))';
@@ -1168,7 +1259,8 @@ IconGrid.prototype = {
     for (var n = 0; n < pages.length; ++n) {
       var page = pages[n];
       var style = page.style;
-      style.MozTransform = 'translateX(' + (n - number) + '00%)';
+      var p = (document.dir == 'ltr') ? (n - number) : (number - n);
+      style.MozTransform = 'translateX(' + p + '00%)';
       style.MozTransition = duration ? ('all ' + duration + 's ease') : '';
     }
     var dots = this.dots;
@@ -1236,3 +1328,4 @@ Dots.prototype = {
   }
 };
 
+window.addEventListener('localized', startup);

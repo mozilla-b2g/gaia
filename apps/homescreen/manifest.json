@@ -1,0 +1,25 @@
+{
+  "name": "Homescreen",
+  "description": "Gaia Homescreen",
+  "launch_path": "/homescreen.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "locales": {
+    "ar": {
+      "name": "الشاشة الرئيسية",
+      "description": "Gaia الشاشة الرئيسية "
+    },
+    "fr": {
+      "name": "Écran d’accueil",
+      "description": "Écran d’accueil Gaia"
+    },
+    "zh-TW": {
+      "name": "主畫面",
+      "description": "Gaia 主畫面"
+    }
+  },
+  "default_locale": "en"
+}
+

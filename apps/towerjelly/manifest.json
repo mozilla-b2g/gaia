@@ -1,0 +1,13 @@
+{
+  "name": "TowerJelly",
+  "description": "Tower Jelly",
+  "launch_path": "/towerjelly.html",
+  "developer": {
+    "name": "The Original Author",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "icons": {
+    "120": "/style/icons/TowerJelly.png"
+  }
+}
+

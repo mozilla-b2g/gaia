@@ -210,6 +210,7 @@
   font-family: 'Keyboard Symbols', 'Open Sans', sans-serif;
   pointer-events: none;
   top: 0; left: 0;
+  z-index: 2;
   color: #333;
   background: -moz-linear-gradient(top, rgba(194,197,202,0.9) 10%, rgba(164,164,172,0.9) 90%);
   font-size: 50px;
@@ -257,12 +258,24 @@
 #keyboard-accent-char-menu.menu {
   height: auto;
   margin-top: -5px;
+  border: none;
+  padding: 0;
+  overflow: hidden;
+}
+
+#keyboard-accent-char-menu.menu > .keyboard-key {
+  display: block;
+  padding: 5px;
+  margin: 0;
+  background: url(images/middle-special.png) left top repeat-x;
+}
+
+#keyboard-accent-char-menu.menu > .keyboard-key[data-active] {
+  background: rgb(118, 118, 118);
 }
 
 #keyboard-accent-char-menu > .keyboard-key {
-  background: url(images/left-accent.png) left top no-repeat,
-              url(images/right-accent.png) right top no-repeat,
-              url(images/middle.png) left top repeat-x;
+  background: url(images/middle.png) left top repeat-x;
 }
 #keyboard-accent-char-menu > .keyboard-key[data-active] {
   color: #fff;

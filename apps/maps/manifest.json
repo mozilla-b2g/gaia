@@ -1,0 +1,28 @@
+{
+  "name": "Maps",
+  "description": "Google Maps",
+  "launch_path": "/maps.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "icons": {
+    "120": "/style/icons/Maps.png"
+  },
+  "locales": {
+    "ar": {
+      "name": "خرائط",
+      "description": "Google Maps"
+    },
+    "fr": {
+      "name": "Cartes",
+      "description": "Google Maps"
+    },
+    "zh-TW": {
+      "name": "地圖",
+      "description": "Google 地圖"
+    }
+  },
+  "default_locale": "en"
+}
+

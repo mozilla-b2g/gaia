@@ -1,0 +1,28 @@
+{
+  "name": "Settings",
+  "description": "Gaia Settings",
+  "launch_path": "/settings.html#root",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "icons": {
+    "120": "/style/icons/Settings.png"
+  },
+  "locales": {
+    "ar": {
+      "name": "الضبط",
+      "description": "Gaia الضبط"
+    },
+    "fr": {
+      "name": "Paramètres",
+      "description": "Paramètres Gaia"
+    },
+    "zh-TW": {
+      "name": "設定",
+      "description": "Gaia 設定"
+    }
+  },
+  "default_locale": "en"
+}
+

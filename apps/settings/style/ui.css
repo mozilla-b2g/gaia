@@ -9,6 +9,10 @@ body {
   background: hsl(0, 0%, 96%) url(images/app-texture.png);
 }
 
+body.hidden * {
+  display: none;
+}
+
 header {
   position: relative;
   height: 62px;
@@ -66,11 +70,12 @@ header h1 {
   -moz-transform: translateX(-100%);
 }
 
-#root:target, .view:target {
+#root:target,
+.view:target {
   -moz-transform: none;
 }
 
-#root.active {
+body.hidden #root {
   -moz-transform: none;
   -moz-transition: none;
 }
@@ -170,12 +175,11 @@ ul li > small {
   -moz-border-right-colors: #c3c9cb #c3c9cb #fff #fff;
   -moz-border-bottom-colors: #c3c9cb #c3c9cb #fff #fff;
   -moz-border-left-colors: #c3c9cb #c3c9cb #fff #fff;
-  background: url(images/check-off.png) no-repeat scroll center center,
-    -moz-linear-gradient(#eaeae4, #ffffff);
+  background: -moz-linear-gradient(#eaeae4, #ffffff);
 }
 
 .view label > input[type=checkbox]:checked + span {
-  background: url(images/check-on.png) no-repeat scroll center center,
+  background: url(images/checked.png) no-repeat scroll center center,
     -moz-linear-gradient(#ffffff, #eaeae4);
 }
 

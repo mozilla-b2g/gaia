@@ -38,24 +38,34 @@ Gaia.AppManager = {
 
     this.installedApps = [];
 
-    var homescreenOrigin = document.location.protocol + '//' +
-                           document.location.host +
-                           document.location.pathname;
-    homescreenOrigin = homescreenOrigin.replace(/[a-zA-Z.0-9]+$/, '');
-
     var self = this;
-    window.navigator.mozApps.enumerate(function enumerateApps(apps) {
+
+    var lang = document.mozL10n.language.code;
+
+    navigator.mozApps.mgmt.getAll().onsuccess = function(e) {
+      var apps = e.target.result;
       var cache = [];
       apps.forEach(function(app) {
         var manifest = app.manifest;
-        if (app.origin == homescreenOrigin)
+
+        if (!manifest) {
+          console.warn('malformed manifest for ' + app.origin);
           return;
+        }
+
+        // localized manifest?
+        if (manifest.locales && manifest.locales[lang]) {
+          var loc = manifest.locales[lang];
+          for (var k in loc)
+            manifest[k] = loc[k];
+        }
 
         var icon = manifest.icons ? app.origin + manifest.icons['120'] : '';
+
         // Even if the icon is stored by the offline cache, trying to load it
         // will fail because the cache is used only when the application is
         // opened.
-        // So when an application is installed it's icon is inserted into
+        // So when an application is installed its icon is inserted into
         // the offline storage database - and retrieved later when the
         // homescreen is used offline. (TODO)
         // So we try to look inside the database for the icon and if it's
@@ -63,7 +73,7 @@ Gaia.AppManager = {
         // of pre-installed apps that does not have any icons defined
         // in offline storage.
         if (icon && !window.localStorage.getItem(icon))
-          icon = homescreenOrigin + manifest.icons['120'];
+          icon = '.' + manifest.icons['120'];
 
         var orientation = "";
         // We only allow those values for orientation in manifest.
@@ -75,6 +85,7 @@ Gaia.AppManager = {
         }
 
         var url = app.origin + manifest.launch_path;
+
         cache.push({
           name: manifest.name,
           url: url,
@@ -87,7 +98,7 @@ Gaia.AppManager = {
 
       self.installedApps = cache;
       callback(cache);
-    });
+    };
   },
 
   getInstalledAppForURL: function(url) {
@@ -99,5 +110,14 @@ Gaia.AppManager = {
     }
 
     return null;
+  },
+
+  // TODO
+  // This is currently used in src/b2g/chrome/content/webapi.js file
+  // There isn't any reason for any other code to use it, and we should
+  // get rid of it when we can.
+  // See bug 736628: https://bugzilla.mozilla.org/show_bug.cgi?id=736628
+  get foregroundWindow() {
+    return WindowManager.getAppFrame(WindowManager.getDisplayedApp());
   }
 };

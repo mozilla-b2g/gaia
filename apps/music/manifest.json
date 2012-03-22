@@ -1,0 +1,28 @@
+{
+  "name": "Music",
+  "description": "Gaia Music",
+  "launch_path": "/music.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "icons": {
+    "120": "/style/icons/Music.png"
+  },
+  "locales": {
+    "ar": {
+      "name": "موسيقى",
+      "description": "Gaia موسيقى"
+    },
+    "fr": {
+      "name": "Musique",
+      "description": "Musique Gaia"
+    },
+    "zh-TW": {
+      "name": "音樂",
+      "description": "Gaia 音樂"
+    }
+  },
+  "default_locale": "en"
+}
+

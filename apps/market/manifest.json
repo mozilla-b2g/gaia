@@ -1,0 +1,28 @@
+{
+  "name": "Market",
+  "description": "Market for downloading and installing apps",
+  "launch_path": "/market.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "icons": {
+    "120": "/style/icons/Market.png"
+  },
+  "locales": {
+    "ar": {
+      "name": "مكتبة البرامج",
+      "description": "مكتبة برامج اونلاين"
+    },
+    "fr": {
+      "name": "Logithèque",
+      "description": "Catalogue en ligne d’applications"
+    },
+    "zh-TW": {
+      "name": "市集",
+      "description": "下載與安裝應用程式"
+    }
+  },
+  "default_locale": "en"
+}
+

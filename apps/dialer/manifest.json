@@ -1,0 +1,28 @@
+{
+  "name": "Dialer",
+  "description": "Gaia Dialer",
+  "launch_path": "/dialer.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "icons": {
+    "120": "/style/icons/Phone.png"
+  },
+  "locales": {
+    "ar": {
+      "name": "مكالمة",
+      "description": "Gaia مكالمة هاتفية"
+    },
+    "fr": {
+      "name": "Appel",
+      "description": "Appel téléphonique Gaia"
+    },
+    "zh-TW": {
+      "name": "電話",
+      "description": "Gaia 電話"
+    }
+  },
+  "default_locale": "en"
+}
+

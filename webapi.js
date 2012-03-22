@@ -3,465 +3,6 @@
 
 'use strict';
 
-// MozApps - Bug 709015
-(function(window) {
-  var navigator = window.navigator;
-
-  var webapps = [
-                 { // dialer
-                   'installOrigin': 'http://dialer.gaiamobile.org',
-                   'origin': 'http://dialer.gaiamobile.org',
-                   'receipt': null,
-                   'installTime': 1323339869000,
-                   manifest: {
-                     'name': 'Dialer',
-                     'description': 'Gaia Dialer',
-                     'launch_path': '/dialer.html',
-                     'developer': {
-                       'name': 'The Gaia Team',
-                       'url': 'https://github.com/andreasgal/gaia'
-                     },
-                     'icons': {
-                       '120': '/style/icons/Phone.png'
-                     }
-                   }
-                 },
-                 { // sms
-                   'installOrigin': 'http://sms.gaiamobile.org',
-                   'origin': 'http://sms.gaiamobile.org',
-                   'receipt': null,
-                   'installTime': 1323339869000,
-                   manifest: {
-                     'name': 'Messages',
-                     'description': 'Gaia Messages',
-                     'launch_path': '/sms.html',
-                     'developer': {
-                       'name': 'The Gaia Team',
-                       'url': 'https://github.com/andreasgal/gaia'
-                     },
-                     'icons': {
-                       '120': '/style/icons/Messages.png'
-                     }
-                   }
-                 },
-                 { // browser
-                   installOrigin: 'http://browser.gaiamobile.org',
-                   origin: 'http://browser.gaiamobile.org',
-                   receipt: null,
-                   installTime: 1323339869000,
-                   manifest: {
-                     'name': 'Browser',
-                     'description': 'Gaia Web Browser',
-                     'launch_path': '/browser.html',
-                     'developer': {
-                       'name': 'The Gaia Team',
-                       'url': 'https://github.com/andreasgal/gaia'
-                     },
-                     'icons': {
-                       '120': '/style/icons/Browser.png'
-                     }
-                   }
-                 },
-                 { // maps
-                   installOrigin: 'http://maps.gaiamobile.org',
-                   origin: 'http://maps.gaiamobile.org',
-                   receipt: null,
-                   installTime: 1323339869000,
-                   manifest: {
-                     'name': 'Maps',
-                     'description': 'Google Maps',
-                     'launch_path': '/maps.html',
-                     'developer': {
-                       'name': 'The Gaia Team',
-                       'url': 'https://github.com/andreasgal/gaia'
-                     },
-                     'icons': {
-                       '120': '/style/icons/Maps.png'
-                     }
-                   }
-                 },
-                 { // camera
-                   'installOrigin': 'http://camera.gaiamobile.org',
-                   'origin': 'http://camera.gaiamobile.org',
-                   'receipt': null,
-                   'installTime': 1323339869000,
-                   manifest: {
-                     'name': 'Camera',
-                     'description': 'Gaia Camera',
-                     'launch_path': '/camera.html',
-                     'hackKillMe': true,
-                     'developer': {
-                       'name': 'The Gaia Team',
-                       'url': 'https://github.com/andreasgal/gaia'
-                     },
-                     'icons': {
-                       '120': '/style/icons/Camera.png'
-                     }
-                   }
-                 },
-                 { // gallery
-                   'installOrigin': 'http://gallery.gaiamobile.org',
-                   'origin': 'http://gallery.gaiamobile.org',
-                   'receipt': null,
-                   'installTime': 1323339869000,
-                   manifest: {
-                     'name': 'Gallery',
-                     'description': 'Gaia Gallery',
-                     'launch_path': '/gallery.html',
-                     'developer': {
-                       'name': 'The Gaia Team',
-                       'url': 'https://github.com/andreasgal/gaia'
-                     },
-                     'icons': {
-                       '120': '/style/icons/Gallery.png'
-                     }
-                   }
-                 },
-                 { // video
-                   'installOrigin': 'http://video.gaiamobile.org',
-                   'origin': 'http://video.gaiamobile.org',
-                   'receipt': null,
-                   'installTime': 1323339869000,
-                   manifest: {
-                     'name': 'Video',
-                     'description': 'Gaia Video',
-                     'launch_path': '/video.html',
-                     'hackKillMe': true,
-                     'developer': {
-                       'name': 'The Gaia Team',
-                       'url': 'https://github.com/andreasgal/gaia'
-                     },
-                     'icons': {
-                       '120': '/style/icons/Video.png'
-                     },
-                     'fullscreen': true,
-                   }
-                 },
-                 { // facebook
-                   'installOrigin': 'http://www.facebook.com',
-                   'origin': 'http://touch.facebook.com',
-                   'receipt': null,
-                   'installTime': 1323339869000,
-                   manifest: {
-                     'name': 'Facebook',
-                     'description': 'Facebook Mobile Application',
-                     'launch_path': '/',
-                     'developer': {
-                       'name': 'Facebook',
-                       'url': 'http://www.facebook.com/'
-                     },
-                     'icons': {
-                       '120': '/style/icons/Facebook.png'
-                     }
-                   }
-                 },
-                 { // market
-                   'installOrigin': 'http://market.gaiamobile.org',
-                   'origin': 'http://market.gaiamobile.org',
-                   'receipt': null,
-                   'installTime': 1323339869000,
-                   manifest: {
-                     'name': 'Market',
-                     'description': 'Market for downloading and installing apps',
-                     'launch_path': '/market.html',
-                     'developer': {
-                       'name': 'The Gaia Team',
-                       'url': 'https://github.com/andreasgal/gaia'
-                     },
-                     'icons': {
-                       '120': '/style/icons/Market.png'
-                     }
-                   }
-                 },
-                 { // music
-                   'installOrigin': 'http://music.gaiamobile.org',
-                   'origin': 'http://music.gaiamobile.org',
-                   'receipt': null,
-                   'installTime': 1323339869000,
-                   manifest: {
-                     'name': 'Music',
-                     'description': 'Gaia Music',
-                     'launch_path': '/music.html',
-                     'developer': {
-                       'name': 'The Gaia Team',
-                       'url': 'https://github.com/andreasgal/gaia'
-                     },
-                     'icons': {
-                       '120': '/style/icons/Music.png'
-                     }
-                   }
-                 },
-                 { // mail
-                   installOrigin: 'http://mail.google.com',
-                   origin: 'http://mail.google.com',
-                   receipt: null,
-                   installTime: 1323339869000,
-                   manifest: {
-                     'name': 'Mail',
-                     'description': 'GMail',
-                     'launch_path': '/mail/mu',
-                     'developer': {
-                       'name': 'Google',
-                       'url': 'http://google.com'
-                     },
-                     'icons': {
-                       '120': '/style/icons/GMail.png'
-                     }
-                   }
-                 },
-                 { // calendar
-                   installOrigin: 'http://google.com',
-                   origin: 'http://google.com',
-                   receipt: null,
-                   installTime: 1323339869000,
-                   manifest: {
-                     'name': 'Calendar',
-                     'description': 'Google Calendar',
-                     'launch_path': '/calendar/gp',
-                     'developer': {
-                       'name': 'Google',
-                       'url': 'http://google.com'
-                     },
-                     'icons': {
-                       '120': '/style/icons/GoogleCalendar.png'
-                     }
-                   }
-                 },
-                 { // settings
-                   'installOrigin': 'http://settings.gaiamobile.org',
-                   'origin': 'http://settings.gaiamobile.org',
-                   'receipt': null,
-                   'installTime': 1323339869000,
-                   manifest: {
-                     'name': 'Settings',
-                     'description': 'Gaia Settings',
-                     'launch_path': '/settings.html',
-                     'developer': {
-                       'name': 'The Gaia Team',
-                       'url': 'https://github.com/andreasgal/gaia'
-                     },
-                     'icons': {
-                       '120': '/style/icons/Settings.png'
-                     }
-                   }
-                 },
-                 { // clock
-                   installOrigin: 'http://clock.gaiamobile.org',
-                   origin: 'http://clock.gaiamobile.org',
-                   receipt: null,
-                   installTime: 1323339869000,
-                   manifest: {
-                     'name': 'Clock',
-                     'description': 'Gaia Clock',
-                     'launch_path': '/clock.html',
-                     'developer': {
-                       'name': 'The Gaia Team',
-                       'url': 'https://github.com/andreasgal/gaia'
-                     },
-                     'icons': {
-                       '120': '/style/icons/Clock.png'
-                     }
-                   }
-                 },
-                 { // webgl demo
-                   'installOrigin': 'http://crystalskull.gaiamobile.org',
-                   'origin': 'http://crystalskull.gaiamobile.org',
-                   'receipt': null,
-                   'installTime': 1323339869000,
-                   manifest: {
-                     'name': 'Crystal Skull',
-                     'description': 'Demo of WebGL',
-                     'launch_path': '/crystalskull.html',
-                     'hackKillMe': true,
-                     'developer': {
-                       'name': 'Unknown',
-                       'url': 'http://www.everyday3d.com/j3d/demo/004_Glass.html'
-                     },
-                     'icons': {
-                       '120': '/style/icons/CrystalSkull.png'
-                     },
-                     'fullscreen': true
-                   }
-                 },
-                 { // video cube demo
-                   'installOrigin': 'http://videocube.gaiamobile.org',
-                   'origin': 'http://videocube.gaiamobile.org',
-                   'receipt': null,
-                   'installTime': 1323339869000,
-                   manifest: {
-                     'name': 'VideoCube',
-                     'description': 'Demo of WebGL',
-                     'launch_path': '/index.html',
-                     'hackKillMe': true,
-                     'developer': {
-                       'name': 'Unknown',
-                       'url': 'http://www.everyday3d.com/j3d/demo/004_Glass.html'
-                     },
-                     'icons': {
-                       '120': '/style/icons/VideoCube.png'
-                     },
-                     'fullscreen': true
-                   }
-                 },
-                 { // PenguinPop
-                   'installOrigin': 'http://penguinpop.gaiamobile.org',
-                   'origin': 'http://penguinpop.gaiamobile.org',
-                   'receipt': null,
-                   'installTime': 1323339869000,
-                   manifest: {
-                     'name': 'Penguin Pop',
-                     'description': 'Penguin Pop by TweenSoft.com',
-                     'launch_path': '/penguinpop.html',
-                     'developer': {
-                       'name': 'TweenSoft.com',
-                       'url': 'http://goosypets.com/html5games/whac/'
-                     },
-                     'icons': {
-                       '120': '/style/icons/PenguinPop.png'
-                     }
-                   }
-                 },
-                 { // TowerJelly
-                   'installOrigin': 'http://towerjelly.gaiamobile.org',
-                   'origin': 'http://towerjelly.gaiamobile.org',
-                   'receipt': null,
-                   'installTime': 1323339869000,
-                   manifest: {
-                     'name': 'Tower Jelly',
-                     'description': 'Tower Jelly by TweenSoft.com',
-                     'launch_path': '/towerjelly.html',
-                     'developer': {
-                       'name': 'TweenSoft.com',
-                       'url': 'http://goosypets.com/html5games/tower/'
-                     },
-                     'icons': {
-                       '120': '/style/icons/TowerJelly.png'
-                     }
-                   }
-                 },
-                 { // cut the rope
-                   'installOrigin': 'http://cuttherope.ie/',
-                   'origin': 'http://cuttherope.ie/',
-                   'receipt': null,
-                   'installTime': 1323339869000,
-                   manifest: {
-                     'name': 'Cut The Rope',
-                     'description': 'Cut The Rope Game',
-                     'launch_path': '',
-                     'orientation': 'landscape-primary',
-                     'fullscreen': true,
-                     'hackKillMe': true,
-                     'developer': {
-                       'name': 'ZeptoLab',
-                       'url': 'http://cuttherope.ie'
-                     },
-                     'icons': {
-                       '120': '/style/icons/CutTheRope.png'
-                     }
-                   }
-                 },
-                 { // wikipedia
-                   'installOrigin': 'http://wikipedia.gaiamobile.org',
-                   'origin': 'http://wikipedia.gaiamobile.org',
-                   'receipt': null,
-                   'installTime': 1323339869000,
-                   manifest: {
-                     'name': 'Wikipedia',
-                     'description': 'Wikipedia Mobile Application',
-                     'launch_path': '/wikipedia.html',
-                     'developer': {
-                       'name': 'Wikipedia',
-                       'url': 'http://www.wikipedia.org/'
-                     },
-                     'icons': {
-                       '120': '/style/icons/Wikipedia.png'
-                     }
-                   }
-                 },
-                 { // CNN
-                   'installOrigin': 'http://cnn.gaiamobile.org',
-                   'origin': 'http://cnn.gaiamobile.org',
-                   'receipt': null,
-                   'installTime': 1323339869000,
-                   manifest: {
-                     'name': 'CNN',
-                     'description': 'CNN Mobile Application',
-                     'launch_path': '/cnn.html',
-                     'developer': {
-                       'name': 'CNN',
-                       'url': 'http://www.cnn.com/'
-                     },
-                     'icons': {
-                       '120': '/style/icons/CNN.png'
-                     }
-                   }
-                 },
-                 { // BBC
-                   'installOrigin': 'http://bbc.gaiamobile.org',
-                   'origin': 'http://bbc.gaiamobile.org',
-                   'receipt': null,
-                   'installTime': 1323339869000,
-                   manifest: {
-                     'name': 'BBC',
-                     'description': 'BBC Mobile Application',
-                     'launch_path': '/bbc.html',
-                     'developer': {
-                       'name': 'BBC',
-                       'url': 'http://www.bbc.co.uk/'
-                     },
-                     'icons': {
-                       '120': '/style/icons/BBC.png'
-                     }
-                   }
-                 },
-                 { // NY Times
-                   'installOrigin': 'http://nytimes.gaiamobile.org',
-                   'origin': 'http://nytimes.gaiamobile.org',
-                   'receipt': null,
-                   'installTime': 1323339869000,
-                   manifest: {
-                     'name': 'NY Times',
-                     'description': 'NY Times Mobile Application',
-                     'launch_path': '/nytimes.html',
-                     'developer': {
-                       'name': 'NY Times',
-                       'url': 'http://www.nytimes.com/'
-                     },
-                     'icons': {
-                       '120': '/style/icons/NYT.png'
-                     }
-                   }
-                 },
-                 { // Calculator
-                   'installOrigin': 'http://calculator.gaiamobile.org',
-                   'origin': 'http://calculator.gaiamobile.org',
-                   'receipt': null,
-                   'installTime': 1323339869000,
-                   manifest: {
-                     'name': 'Calculator',
-                     'description': 'Gaia Settings',
-                     'launch_path': '/calculator.html',
-                     'developer': {
-                       'name': 'The Gaia Team',
-                       'url': 'https://github.com/andreasgal/gaia'
-                     },
-                     'icons': {
-                       '120': '/style/icons/Calculator.png'
-                     }
-                   }
-                 }
-  ];
-
-  Object.freeze(webapps);
-
-  navigator.mozApps = {
-    enumerate: function(callback) {
-      callback(webapps);
-    }
-  };
-})(this);
-
-
 // A hacked mozSettings implementation based on indexedDB instead
 // of localStorage to make it persist better in the face of unexpected
 // shutdowns and reboots
@@ -477,7 +18,7 @@
     'keyboard.layouts.otherlatins': 'false',
     'keyboard.layouts.cyrillic': 'false',
     'keyboard.layouts.hebrew': 'false',
-    'keyboard.layouts.zhuying': 'true',
+    'keyboard.layouts.zhuyin': 'true',
     'keyboard.layouts.arabic': 'true',
     'debug.grid.enabled' : 'false',
     'homescreen.wallpaper': 'default.png',
@@ -620,7 +161,7 @@
 }());
 
 // navigator.mozContacts
-(function (window) {
+(function(window) {
   var navigator = window.navigator;
 
   var contacts = [{
@@ -1432,25 +973,8 @@
     email: ['faucibus.lectus@nuncsedpede.com']
   }];
 
-  if (('mozContacts' in navigator) && (navigator.mozContacts != null)) {
-    // XXX: pre-filling the mozContacts database for now
-    var request = window.navigator.mozContacts.find({});
-    request.onsuccess = function contactFill() {
-      if (request.result.length == 0) {
-        contacts.forEach(function contactIterator(contact) {
-          var newContact = new mozContact();
-          newContact.init({name: contact.name,
-                           familyName: contact.familyName[0],
-                           givenName: contact.givenName[0],
-                           tel: contact.tel[0],
-                           email: contact.email[0]});
-
-          var writeRequest = navigator.mozContacts.save(newContact);
-        });
-      }
-    };
+  if (('mozContacts' in navigator) && (navigator.mozContacts != null))
     return;
-  }
 
   navigator.mozContacts = {
     find: function fakeContactFind() {
@@ -1490,7 +1014,7 @@
 })(this);
 
 // navigator.mozTelephony
-(function (window) {
+(function(window) {
   var navigator = window.navigator;
   if ('mozTelephony' in navigator)
     return;
@@ -1527,7 +1051,7 @@
 
 // Register a handler to automatically update apps when the app cache
 // changes.
-(function (window) {
+(function(window) {
   var cache = window.applicationCache;
   if (!cache)
     return;
@@ -1545,7 +1069,7 @@
 
 // Emulate device buttons. This is groteskly unsafe and should be removed
 // soon.
-(function (window) {
+(function(window) {
   var supportedEvents = { keydown: true, keyup: true };
   var listeners = [];
 
@@ -1575,15 +1099,15 @@
     DOM_VK_HOME: 36
   };
 
-  window.addEventListener("message", function(event) {
+  window.addEventListener('message', function(event) {
     var data = event.data;
-    if (typeof data === "string" && data.indexOf("moz-key-") == 0) {
-      var type,  key;
-      if (data.indexOf("moz-key-down-") == 0) {
-        type = "keydown";
+    if (typeof data === 'string' && data.indexOf('moz-key-') == 0) {
+      var type, key;
+      if (data.indexOf('moz-key-down-') == 0) {
+        type = 'keydown';
         key = data.substr(13);
-      } else if (data.indexOf("moz-key-up-") == 0) {
-        type = "keyup";
+      } else if (data.indexOf('moz-key-up-') == 0) {
+        type = 'keyup';
         key = data.substr(11);
       } else {
         return;
@@ -1595,9 +1119,9 @@
           var e = Object.create(KeyEventProto);
           e.type = type;
           e.keyCode = key;
-          if (typeof fn === "function")
+          if (typeof fn === 'function')
             fn(e);
-          else if (typeof fn === "object" && fn.handleEvent)
+          else if (typeof fn === 'object' && fn.handleEvent)
             fn.handleEvent(e);
           if (listeners[n].capture)
             return;
@@ -1608,7 +1132,7 @@
 })(this);
 
 // navigator.mozWifiManager
-(function (window) {
+(function(window) {
   var navigator = window.navigator;
   if ('mozWifiManager' in navigator)
     return;
@@ -1714,3 +1238,293 @@
   };
 })(this);
 
+// document.mozL10n
+(function(window) {
+  var gL10nData = {};
+  var gTextData = '';
+  var gLanguage = '';
+
+  // parser
+
+  function evalString(text) {
+    return text.replace(/\\\\/g, '\\')
+               .replace(/\\n/g, '\n')
+               .replace(/\\r/g, '\r')
+               .replace(/\\t/g, '\t')
+               .replace(/\\b/g, '\b')
+               .replace(/\\f/g, '\f')
+               .replace(/\\{/g, '{')
+               .replace(/\\}/g, '}')
+               .replace(/\\"/g, '"')
+               .replace(/\\'/g, "'");
+  }
+
+  function parseProperties(text, lang) {
+    var reBlank = /^\s*|\s*$/;
+    var reComment = /^\s*#|^\s*$/;
+    var reSection = /^\s*\[(.*)\]\s*$/;
+    var reImport = /^\s*@import\s+url\((.*)\)\s*$/i;
+
+    // parse the *.properties file into an associative array
+    var currentLang = '*';
+    var supportedLang = [];
+    var skipLang = false;
+    var data = [];
+    var match = '';
+    var entries = text.replace(reBlank, '').split(/[\r\n]+/);
+    for (var i = 0; i < entries.length; i++) {
+      var line = entries[i];
+
+      // comment or blank line?
+      if (reComment.test(line))
+        continue;
+
+      // section start?
+      if (reSection.test(line)) {
+        match = reSection.exec(line);
+        currentLang = match[1];
+        skipLang = (currentLang != lang) && (currentLang != '*');
+        continue;
+      } else if (skipLang)
+        continue;
+
+      // @import rule?
+      if (reImport.test(line)) {
+        match = reImport.exec(line);
+      }
+
+      // key-value pair
+      var tmp = line.split('=');
+      if (tmp.length > 1)
+        data[tmp[0]] = evalString(tmp[1]);
+    }
+
+    // find the attribute descriptions, if any
+    for (var key in data) {
+      var hasAttribute = false;
+      var index = key.lastIndexOf('.');
+      if (index > 0) {
+        var attr = key.substr(index + 1);
+        var elt = key.substring(0, index);
+        hasAttribute = (elt in data);
+      }
+      if (hasAttribute) {
+        if (typeof gL10nData[elt] === 'string') {
+          gL10nData[elt] = {};
+          gL10nData[elt].value = data[elt];
+          gL10nData[elt].attributes = {};
+        }
+        gL10nData[elt].attributes[attr] = data[key];
+      } else
+        gL10nData[key] = data[key];
+    }
+  }
+
+  function parse(text, lang) {
+    gTextData += text;
+    // we only support *.properties files at the moment
+    return parseProperties(text, lang);
+  }
+
+  // load and parse the specified resource file
+  function loadResource(href, lang, onSuccess, onFailure) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', href, true);
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState == 4) {
+        if (xhr.status == 200) {
+          parse(xhr.responseText, lang);
+          if (onSuccess)
+            onSuccess();
+        } else {
+          if (onFailure)
+            onFailure();
+        }
+      }
+    };
+    xhr.send(null);
+  }
+
+  // load and parse all resources for the specified locale
+  function loadLocale(lang, callback) {
+    clear();
+
+    // check all <link type="application/l10n" href="..." /> nodes
+    // and load the resource files
+    var langLinks = document.querySelectorAll('link[type="application/l10n"]');
+    var langCount = langLinks.length;
+
+    // start the callback when all resources are loaded
+    var onResourceLoaded = null;
+    var gResourceCount = 0;
+    onResourceLoaded = function() {
+      gResourceCount++;
+      if (gResourceCount >= langCount) {
+        // execute the [optional] callback
+        if (callback)
+          callback();
+        // fire a 'localized' DOM event
+        var evtObject = document.createEvent('Event');
+        evtObject.initEvent('localized', false, false);
+        evtObject.language = lang;
+        window.dispatchEvent(evtObject);
+      }
+    }
+
+    // load all resource files
+    function l10nResourceLink(link) {
+      var href = link.href;
+      var type = link.type;
+      this.load = function(lang, callback) {
+        var applied = lang;
+        loadResource(href, lang, callback, function() {
+          console.warn(href + ' not found.');
+          applied = '';
+        });
+        return applied; // return lang if found, an empty string if not found
+      };
+    }
+    gLanguage = lang;
+    for (var i = 0; i < langCount; i++) {
+      var resource = new l10nResourceLink(langLinks[i]);
+      var rv = resource.load(lang, onResourceLoaded);
+      if (rv != lang) // lang not found, used default resource instead
+        gLanguage = '';
+    }
+  }
+
+  // replace {{arguments}} with their values
+  function substArguments(str, args) {
+    var reArgs = /\{\{\s*([a-zA-Z\.]+)\s*\}\}/;
+    var match = reArgs.exec(str);
+    while (match) {
+      if (!match || match.length < 2)
+        return str; // argument key not found
+
+      var arg = match[1];
+      var sub = '';
+      if (arg in args) {
+        sub = args[arg];
+      }
+      else if (arg in gL10nData) {
+        sub = gL10nData[arg];
+      }
+      else {
+        return str; // argument value not found
+      }
+
+      str = str.substring(0, match.index) + sub +
+            str.substr(match.index + match[0].length);
+      match = reArgs.exec(str);
+    }
+    return str;
+  }
+
+  // translate a string
+  function translateString(key, args) {
+    var str = gL10nData[key];
+    if (!str)
+      return '{{' + key + '}}';
+    // key is found, get the raw string and look for {{arguments}}
+    str = gL10nData[key].value || gL10nData[key];
+    return substArguments(str, args);
+  }
+
+  // translate an HTML element
+  function translateElement(element) {
+    if (!element || !element.dataset)
+      return;
+
+    // translate the element
+    var key = element.dataset.l10nId;
+    var data = gL10nData[key];
+    if (!data)
+      return;
+
+    // get arguments (if any)
+    // TODO: implement a more flexible parser
+    var args = {};
+    if (element.dataset.l10nArgs) try {
+      args = JSON.parse(element.dataset.l10nArgs);
+    } catch (e) {}
+
+    // element content
+    var str = data.value || data;
+    element.textContent = substArguments(str, args);
+
+    // list of translatable attributes
+    var attrList = ['title', 'accesskey', 'alt', 'longdesc'];
+    var attrCount = attrList.length;
+
+    // element attributes
+    if (data.attributes) {
+      for (var j = 0; j < attrCount; j++) {
+        var attrName = attrList[j];
+        var attrValue = substArguments(data.attributes[attrName], args);
+        if (attrValue && element.hasAttribute(attrName))
+          element.setAttribute(attrName, attrValue);
+      }
+    }
+  }
+
+  // translate an HTML subtree
+  function translateFragment(element) {
+    element = element || document.querySelector('html');
+
+    // check all translatable children (= w/ a `data-l10n-id' attribute)
+    var children = element.querySelectorAll('*[data-l10n-id]');
+    var elementCount = children.length;
+    for (var i = 0; i < elementCount; i++)
+      translateElement(children[i]);
+
+    // translate element itself if necessary
+    if (element.dataset.l10nId)
+      translateElement(element);
+  }
+
+  // clear all l10n data
+  function clear() {
+    gL10nData = {};
+    gTextData = '';
+    gLanguage = '';
+  }
+
+  // load the default locale on startup
+  window.addEventListener('DOMContentLoaded', function() {
+    if (navigator.mozSettings) {
+      var req = navigator.mozSettings.get('language.current');
+      req.onsuccess = function() {
+        loadLocale(req.result.value, translateFragment);
+      };
+      req.onerror = function() {
+        loadLocale(navigator.language, translateFragment);
+      };
+    }
+    else {
+      loadLocale(navigator.language, translateFragment);
+    }
+  });
+
+  // Public API
+  document.mozL10n = {
+    // get a localized string
+    get: translateString,
+
+    // get|set the document language and direction
+    get language() {
+      return {
+        // get|set the document language (ISO-639-1)
+        get code() { return gLanguage; },
+        set code(lang) { loadLocale(lang, translateFragment); },
+
+        // get the direction (ltr|rtl) of the current language
+        get direction() {
+          // http://www.w3.org/International/questions/qa-scripts
+          // Arabic, Hebrew, Farsi, Pashto, Urdu
+          var rtlList = ['ar', 'he', 'fa', 'ps', 'ur'];
+          return (rtlList.indexOf(gLanguage) >= 0) ? 'rtl' : 'ltr';
+        }
+      };
+    }
+  };
+})(this);

@@ -1,0 +1,27 @@
+{
+  "name": "Calendar",
+  "description": "Google Calendar",
+  "launch_path": "/calendar/gp",
+  "developer": {
+    "name": "Google",
+    "url": "http://google.com"
+  },
+  "icons": {
+    "120": "/style/icons/GoogleCalendar.png"
+  },
+  "locales": {
+    "ar": {
+      "name": "تقويم",
+      "description": "Google تقويم"
+    },
+    "fr": {
+      "name": "Calendrier",
+      "description": "Calendrier Google"
+    },
+    "zh-TW": {
+      "name": "行事曆",
+      "description": "Google 日曆"
+    }
+  },
+  "default_locale": "en"
+}

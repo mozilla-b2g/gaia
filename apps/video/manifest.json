@@ -1,0 +1,31 @@
+{
+  "name": "Video",
+  "description": "Gaia Video",
+  "launch_path": "/video.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "icons": {
+    "120": "/style/icons/Video.png"
+  },
+  "hackKillMe": true,
+  "fullscreen": true,
+  "orientation": "landscape-primary",
+  "locales": {
+    "ar": {
+      "name": "فيديو",
+      "description": "Gaia فيديو"
+    },
+    "fr": {
+      "name": "Vidéo",
+      "description": "Vidéo Gaia"
+    },
+    "zh-TW": {
+      "name": "影片",
+      "description": "Gaia 影片"
+    }
+  },
+  "default_locale": "en"
+}
+

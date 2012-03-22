@@ -1,0 +1,29 @@
+{
+  "name": "Camera",
+  "description": "Gaia Camera",
+  "launch_path": "/camera.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "hackKillMe": true,
+  "icons": {
+    "120": "/style/icons/Camera.png"
+  },
+  "locales": {
+    "ar": {
+      "name": "الكاميرا",
+      "description": " Gaiaالكاميرا"
+    },
+    "fr": {
+      "name": "Caméra",
+      "description": "Caméra Gaia"
+    },
+    "zh-TW": {
+      "name": "相機",
+      "description": "Gaia 相機"
+    }
+  },
+  "default_locale": "en"
+}
+

@@ -62,9 +62,7 @@ var ConversationListView = {
 
     this.updateConversationList(null, function fireAppReady() {
       var url = document.location.toString();
-      visibilityChanged(url);
-
-      window.parent.postMessage('appready', '*');
+      visibilityChanged(url); // FIXME: this function is not defined
     });
   },
 
@@ -104,12 +102,12 @@ var ConversationListView = {
               'body': message.body,
               'name': num,
               'num': num,
-              'timestamp': prettyDate(message.timestamp),
+              'timestamp': message.timestamp.getTime(),
               'id': parseInt(i)
             };
           } else {
             conversation.hidden = false;
-            conversation.timestamp = prettyDate(message.timestamp);
+            conversation.timestamp = message.timestamp.getTime();
             conversation.body = message.body;
           }
         }
@@ -137,7 +135,9 @@ var ConversationListView = {
            '  </div>' +
            '  <div class="name">' + conversation.name + '</div>' +
            '  <div class="msg">' + conversation.body.split('\n')[0] + '</div>' +
-           '  <div class="time">' + conversation.timestamp + '</div>' +
+           (conversation.timestamp ?
+             '  <div class="time" data-time="' + conversation.timestamp + '">' +
+                 prettyDate(conversation.timestamp) + '</div>' : '') +
            '</div>';
   },
 
@@ -336,14 +336,14 @@ var ConversationView = {
           pic = '../contacts/contact9.png';
         }
 
-        var time = prettyDate(msg.timestamp);
         var body = msg.body.replace(/\n/g, '<br />');
         fragment += '<div ' + className + ' ' + dataNum + ' ' + dataId + '>' +
                       '<div class="photo">' +
                       '  <img src="' + pic + '" />' +
                       '</div>' +
                       '<div class="text">' + body + '</div>' +
-                      '<div class="time">' + time + '</div>' +
+                      '<div class="time" data-time="' + msg.timestamp.getTime() + '">' +
+                          prettyDate(msg.timestamp) + '</div>' +
                     '</div>';
       }
 
@@ -455,7 +455,9 @@ var ConversationView = {
   }
 };
 
-window.addEventListener('load', function loadMessageApp() {
+window.addEventListener('localized', function showBody() {
+  // get the [lang]-[REGION] setting
+  // TODO: expose [REGION] in navigator.mozRegion or document.mozL10n.region?
   if (navigator.mozSettings) {
     var request = navigator.mozSettings.get('language.current');
     request.onsuccess = function() {
@@ -464,8 +466,18 @@ window.addEventListener('load', function loadMessageApp() {
       ConversationListView.init();
     }
   }
-});
 
+  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
+  if (document.mozL10n && document.mozL10n.language) {
+    var lang = document.mozL10n.language;
+    var html = document.querySelector('html');
+    html.setAttribute('lang', lang.code);
+    html.setAttribute('dir', lang.direction);
+  }
+
+  // <body> children are hidden until the UI is translated
+  document.body.classList.remove('hidden');
+});
 
 var selectedLocale = 'en-US';
 

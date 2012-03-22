@@ -51,8 +51,6 @@ var Settings = {
         };
       })(progresses[i]);
     }
-
-    window.parent.postMessage('appready', '*');
   },
   handleEvent: function(evt) {
     var input = evt.target;
@@ -98,14 +96,25 @@ window.addEventListener('load', function loadSettings(evt) {
   Settings.init();
 });
 
-// ensure the root page is visible at startup
-window.addEventListener('DOMContentLoaded', function() {
+window.addEventListener('DOMContentLoaded', function showRoot() {
   document.location.hash = '#root';
-  document.querySelector('#root').classList.remove('active');
-}, false);
+
+  // update UI when the language setting is changed
+  // XXX there's no way currently to fire a callback when a pref is changed
+  //     so we're using an ugly onclick + timeout :-/
+  var languages = document.getElementById('languages');
+  languages.addEventListener('click', function onclick() {
+    setTimeout(function getLanguageSetting() {
+      var req = navigator.mozSettings.get('language.current');
+      req.onsuccess = function retranslate() {
+        document.mozL10n.language.code = req.result.value;
+      }
+    }, 0);
+  });
+});
 
 // back button = close dialog || back to the root page
-window.addEventListener('keyup', function(event) {
+window.addEventListener('keyup', function goBack(event) {
   if (document.location.hash != '#root' &&
       event.keyCode === event.DOM_VK_ESCAPE) {
     event.preventDefault();
@@ -120,4 +129,14 @@ window.addEventListener('keyup', function(event) {
       document.location.hash = '#root';
     }
   }
-}, false);
+});
+
+// Set the 'lang' and 'dir' attributes to <html> when the page is translated
+window.addEventListener('localized', function showBody() {
+  var html = document.querySelector('html');
+  var lang = document.mozL10n.language;
+  html.setAttribute('lang', lang.code);
+  html.setAttribute('dir', lang.direction);
+  // <body> children are hidden until the UI is translated
+  document.body.classList.remove('hidden');
+});

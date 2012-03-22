@@ -1,0 +1,27 @@
+{
+  "name": "Wikipedia",
+  "description": "Wikipedia Mobile Application",
+  "launch_path": "/",
+  "developer": {
+    "name": "Wikipedia",
+    "url": "http://www.wikipedia.org/"
+  },
+  "icons": {
+    "120": "/style/icons/Wikipedia.png"
+  },
+  "locales": {
+    "ar": {
+      "name": "ويكيبيديا",
+      "description": "تطبيقة موبيل ويكيبيديا"
+    },
+    "fr": {
+      "name": "Wikipedia",
+      "description": "Application mobile Wikipedia"
+    },
+    "zh-TW": {
+      "name": "維基百科",
+      "description": "維基百科行動應用程式"
+    }
+  },
+  "default_locale": "en"
+}

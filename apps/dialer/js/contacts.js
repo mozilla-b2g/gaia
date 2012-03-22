@@ -91,6 +91,7 @@ var Contacts = {
   },
 
   filter: function contactsFilter(value) {
+    var pattern = new RegExp(value, 'i');
     var container = document.getElementById('contacts-container');
     var contacts = container.children;
 
@@ -100,9 +101,7 @@ var Contacts = {
       if (contact.className == 'contact-header')
         continue;
 
-      var name = contact.querySelector('span').textContent;
-      var rule = new RegExp(value, 'gi');
-      contact.hidden = (name.search(rule) == -1);
+      contact.hidden = !pattern.test(contact.textContent);
     }
 
     // If there is 0 childs for a particular letter, hide it.
@@ -384,9 +383,16 @@ var ContactDetails = {
     }
   },
 
-  destroy: function cd_destroy() {
-    // TODO: destroy the contact
-    this.hide();
+  destroy: function cd_destroy(evt) {
+
+    var req = navigator.mozContacts.remove(this._contact);
+    req.onsuccess = (function() {
+      this.render();
+      this.hide();
+      Contacts.reload();
+    }.bind(this));
+
+    evt.preventDefault();
   },
 
   call: function cd_call(evt) {

@@ -1,0 +1,27 @@
+{
+  "name": "NY Times",
+  "description": "NY Times Mobile Application",
+  "launch_path": "/",
+  "developer": {
+    "name": "NY Times",
+    "url": "http://www.nytimes.com/"
+  },
+  "icons": {
+    "120": "/style/icons/NYT.png"
+  },
+  "locales": {
+    "ar": {
+      "name": "NY Times",
+      "description": "NY Times تطبيقة موبيل"
+    },
+    "fr": {
+      "name": "NY Times",
+      "description": "Application mobile NY Times"
+    },
+    "zh-TW": {
+      "name": "NY Times",
+      "description": "NY Times 行動應用程式"
+    }
+  },
+  "default_locale": "en"
+}

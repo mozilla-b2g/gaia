@@ -197,6 +197,7 @@ iframe.appWindow {
   left: 0;
   top: 32px;
   z-index: 1;
+
 /*
  * Do not specify height/width here! They should go to
  * Window.prototype.resize() in window_manager.js
@@ -217,6 +218,34 @@ iframe.appWindow.active {
   background-color: #fff;
 }
 
+div.windowSprite {
+  position: absolute;
+  top: 32px;
+  left: 0;
+  width: 100%;
+  height: -moz-calc(100% - 32px);
+  z-index: 999999;
+  -moz-transition: -moz-transform 0.5s ease, opacity 0.5s ease;
+}
+
+div.windowSprite.fullscreen {
+  border-radius: 0;
+  top: 0;
+  height: 100%;
+}
+
+div.windowSprite.closed {
+  -moz-transform: scale(0.5);
+  opacity: 0;
+}
+
+div.windowSprite.open {
+}
+
+div.windowSprite.faded {
+  opacity: 0;
+}
+
 #screen.fullscreen iframe.appWindow.active {
 /*
  * Do not specify height/width here! They should go to
@@ -230,33 +259,6 @@ iframe.appWindow.active {
 iframe.appWindow.keyboardOn {
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
-}
-
-div.windowSprite {
-  position: absolute;
-  top: 32px;
-  left: 0;
-  width: 100%;
-  height: -moz-calc(100% - 32px);
-  z-index: 999999;
-  -moz-transform: scale(0.5);
-  -moz-transition: -moz-transform 0.5s ease, opacity 0.5s ease;
-  opacity: 0;
-}
-
-div.windowSprite.fullscreen {
-  border-radius: 0;
-  top: 0;
-  height: 100%;
-}
-
-div.windowSprite.active {
-  opacity: 1;
-  -moz-transform: scale(1);
-}
-
-div.windowSprite.crossFade {
-  opacity: 0;
 }
 
 iframe.portrait-primary {
@@ -372,3 +374,29 @@ iframe.landscape-secondary {
   width: 100%;
 }
 
+/*
+ * Localization: RTL layout
+ */
+
+*[dir=rtl] .page {
+  left: auto;
+  right: 42px;
+}
+
+@media all and (max-width: 320px) {
+  .page {
+    left: auto;
+    right: 30px;
+  }
+}
+
+*[dir=rtl] .icon {
+  float: right;
+  margin-left: 4px;
+  margin-right: auto;
+}
+
+*[dir=rtl] .icon > .label {
+  padding-left: auto;
+  padding-right: 8px;
+}

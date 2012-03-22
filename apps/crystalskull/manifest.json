@@ -1,0 +1,25 @@
+{
+  "name": "CrystalSkull",
+  "description": "WebGL Demo",
+  "launch_path": "/crystalskull.html",
+  "developer": {
+    "name": "The J3D Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "icons": {
+    "120": "/style/icons/CrystalSkull.png"
+  },
+  "locales": {
+    "ar": {
+      "description": " WebGL عرض"
+    },
+    "fr": {
+      "description": "Démo WebGL"
+    },
+    "zh-TW": {
+      "description": "WebGL 示範"
+    }
+  },
+  "default_locale": "en"
+}
+

@@ -1,0 +1,28 @@
+{
+  "name": "Clock",
+  "description": "Gaia Clock",
+  "launch_path": "/clock.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "icons": {
+    "120": "/style/icons/Clock.png"
+  },
+  "locales": {
+    "ar": {
+      "name": "الساعة",
+      "description": "Gaia الساعة"
+    },
+    "fr": {
+      "name": "Horloge",
+      "description": "Horloge Gaia"
+    },
+    "zh-TW": {
+      "name": "時鐘",
+      "description": "Gaia 時鐘"
+    }
+  },
+  "default_locale": "en"
+}
+

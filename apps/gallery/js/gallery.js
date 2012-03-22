@@ -360,7 +360,16 @@ var Gallery = {
   }
 };
 
-window.addEventListener('DOMContentLoaded', function GalleryInit() {
+window.addEventListener('localized', function showBody() {
+  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
+  var html = document.querySelector('html');
+  var lang = document.mozL10n.language;
+  html.setAttribute('lang', lang.code);
+  html.setAttribute('dir', lang.direction);
+
+  // display the gallery
   Gallery.init();
-  window.parent.postMessage('appready', '*');
+
+  // <body> children are hidden until the UI is translated
+  document.body.classList.remove('hidden');
 });

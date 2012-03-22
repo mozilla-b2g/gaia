@@ -1,0 +1,28 @@
+{
+  "name": "Gallery",
+  "description": "Gaia Gallery",
+  "launch_path": "/gallery.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "icons": {
+    "120": "/style/icons/Gallery.png"
+  },
+  "locales": {
+    "ar": {
+      "name": "إستديو",
+      "description": "Gaia إستديو"
+    },
+    "fr": {
+      "name": "Galerie",
+      "description": "Galerie Gaia"
+    },
+    "zh-TW": {
+      "name": "相簿",
+      "description": "Gaia 相簿"
+    }
+  },
+  "default_locale": "en"
+}
+

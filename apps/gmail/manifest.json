@@ -1,0 +1,27 @@
+{
+  "name": "Mail",
+  "description": "GMail",
+  "launch_path": "/mail/mu",
+  "developer": {
+    "name": "GMail",
+    "url": "http://google.com/"
+  },
+  "icons": {
+    "120": "/style/icons/GMail.png"
+  },
+  "locales": {
+    "ar": {
+      "name": "البريد",
+      "description": "GMail"
+    },
+    "fr": {
+      "name": "Courriel",
+      "description": "GMail"
+    },
+    "zh-TW": {
+      "name": "郵件",
+      "description": "GMail"
+    }
+  },
+  "default_locale": "en"
+}

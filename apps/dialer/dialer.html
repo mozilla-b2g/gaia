@@ -3,8 +3,9 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
-
-    <link rel="stylesheet" type="text/css" href="style/dialer.css" />
+    <title>Dialer</title>
+    <link rel="stylesheet" type="text/css" href="style/dialer.css">
+    <link rel="resource" type="application/l10n" href="locale/dialer.properties">
     <script type="application/javascript" src="http://gaiamobile.org/webapi.js"></script>
     <script type="application/javascript" src="js/helper.js"></script>
     <script type="application/javascript" src="js/contacts.js"></script>
@@ -12,7 +13,7 @@
     <script type="application/javascript" src="js/recents.js"></script>
   </head>
 
-  <body>
+  <body class="hidden">
     <div id="views">
       <div id="contacts-view" class="view" hidden="true">
         <div class="top-bar">
@@ -130,7 +131,7 @@
           </div>
           <div id="additionalKeyset" onclick="KeyHandler.keyDown(event)">
             <div class="keyboard-key" data-value="call">
-              <span>Call</span>
+              <span data-l10n-id="call">Call</span>
             </div>
           </div>
         </div>
@@ -159,37 +160,37 @@
               </div>
             </div>
             <div id="contact-phone" class="entry" data-action="call" onclick="ContactDetails.execute(event)">
-              <span>phone</span>
+              <span data-l10n-id="phone">phone</span>
               <div class="value"></div>
             </div>
             <div id="contact-email" class="entry">
-              <span>email</span>
+              <span data-l10n-id="email">email</span>
               <div class="value"></div>
             </div>
-            <button data-action="edit" onclick="ContactDetails.execute(event)">Edit</button>
+            <button data-l10n-id="edit" data-action="edit" onclick="ContactDetails.execute(event)">Edit</button>
           </div>
           <form id="contact-details-edit" onsubmit="ContactDetails.save(this)" action="#">
             <div class="entry">
-              <span>First</span>
+              <span data-l10n-id="firstName">First</span>
               <input id="contact-given-name-field" data-action="autoscroll" onfocus="ContactDetails.execute(event)" />
             </div>
             <div class="entry">
-              <span>Last</span>
+              <span data-l10n-id="lastName">Last</span>
               <input id="contact-family-name-field" data-action="autoscroll" required="true" onfocus="ContactDetails.execute(event)" />
             </div>
             <div class="entry" data-action="call">
-              <span>phone</span>
+              <span data-l10n-id="phone">phone</span>
               <input id="contact-phone-field" type="tel" data-action="autoscroll" onfocus="ContactDetails.execute(event)" />
             </div>
             <div class="entry">
-              <span>email</span>
+              <span data-l10n-id="email">email</span>
               <input id="contact-email-field" type="email" data-action="autoscroll" onfocus="ContactDetails.execute(event)" />
             </div>
             <div>
-              <input type="submit" value="Save" />
+              <button data-l10n-id="delete" data-action="destroy" onclick="ContactDetails.execute(event);">Delete</button>
             </div>
-            <div id="contact-destroy-button" data-action="destroy" onclick="ContactDetails.execute(event)">
-              Destroy this contact
+            <div>
+              <input type="submit" value="Save" />
             </div>
           </form>
           <div id="contact-details-line">
@@ -211,24 +212,24 @@
         <div id="call-actions">
           <div data-action="toggleMute" onclick="CallHandler.execute(this.dataset.action);">
             <div id="mute-button"></div>
-            <span>Mute</span>
+            <span data-l10n-id="mute">Mute</span>
           </div>
           <div data-action="keypad" onclick="CallHandler.execute(this.dataset.action);">
             <div id="keypad-button"></div>
-            <span>Keypad</span>
+            <span data-l10n-id="keypad">Keypad</span>
           </div>
           <div data-action="toggleSpeaker" onclick="CallHandler.execute(this.dataset.action);">
             <div id="speaker-button"></div>
-            <span>Speaker</span>
+            <span data-l10n-id="speaker">Speaker</span>
           </div>
           <div data-action="toggleHold" onclick="CallHandler.execute(this.dataset.action);">
             <div id="hold-button"></div>
-            <span>Hold</span>
+            <span data-l10n-id="hold">Hold</span>
           </div>
         </div>
         <div id="call-button">
-          <div id="accept-call" onclick="CallHandler.execute('answer');"><span>Answer</span></div>
-          <div id="end-call" onclick="CallHandler.execute('end');"><span>End</span></div>
+          <div id="accept-call" onclick="CallHandler.execute('answer');"><span data-l10n-id="answer">Answer</span></div>
+          <div id="end-call" onclick="CallHandler.execute('end');"><span data-l10n-id="answer">End</span></div>
         </div>
       </div>
     </div>

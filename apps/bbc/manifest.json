@@ -1,0 +1,24 @@
+{
+  "name": "BBC",
+  "description": "BBC Mobile Application",
+  "launch_path": "/",
+  "developer": {
+    "name": "BBC",
+    "url": "http://www.bbc.co.uk/"
+  },
+  "icons": {
+    "120": "/style/icons/BBC.png"
+  },
+  "locales": {
+    "ar": {
+      "description": "BBC تطبيقة موبيل"
+    },
+    "fr": {
+      "description": "Application mobile BBC"
+    },
+    "zh-TW": {
+      "description": "BBC 行動應用程式"
+    }
+  },
+  "default_locale": "en"
+}

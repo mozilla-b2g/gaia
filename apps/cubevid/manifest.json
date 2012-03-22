@@ -1,0 +1,27 @@
+{
+  "name": "CubeVid",
+  "description": "Video Cube Demo",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "The Original Author",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "icons": {
+    "120": "/style/icons/VideoCube.png"
+  },
+  "locales": {
+    "ar": {
+      "name": "CubeVid",
+      "description": " cube عرض لشريط"
+    },
+    "fr": {
+      "name": "CubeVid",
+      "description": "Démo de vidéo cube"
+    },
+    "zh-TW": {
+      "description": "Video Cube 示範"
+    }
+  },
+  "default_locale": "en"
+}
+

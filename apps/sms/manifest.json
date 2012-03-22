@@ -1,0 +1,28 @@
+{
+  "name": "Messages",
+  "description": "Gaia Messages",
+  "launch_path": "/sms.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "icons": {
+    "120": "/style/icons/Messages.png"
+  },
+  "locales": {
+    "ar": {
+      "name": "رسائل",
+      "description": "Gaia رسائل"
+    },
+    "fr": {
+      "name": "Messages",
+      "description": "Messages Gaia"
+    },
+    "zh-TW": {
+      "name": "訊息",
+      "description": "Gaia 訊息"
+    }
+  },
+  "default_locale": "en"
+}
+

@@ -2,3 +2,5 @@
 *.rej
 *.orig
 *.swp
+*~
+profile/

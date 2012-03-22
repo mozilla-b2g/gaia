@@ -1,10 +1,18 @@
 
-B2G_HOMESCREEN=file://${GAIA}/homescreen.html
-INJECTED_GAIA = "$(MOZ_OBJDIR)/_tests/testing/mochitest/browser/gaia"
+GAIA_DIR?=$(CURDIR)
+B2G_HOMESCREEN=file://$(GAIA_DIR)/homescreen.html
+
+PROFILE_DIR?=$(CURDIR)
+
+MOZ_TESTS = "$(MOZ_OBJDIR)/_tests/testing/mochitest"
+INJECTED_GAIA = "$(MOZ_TESTS)/browser/gaia"
+
 TEST_PATH=gaia/tests/${TEST_FILE}
 
-
 mochitest:
+	echo "Checking if the mozilla build has mochitests enabled..."
+	test -d $(MOZ_TESTS) || (echo "Please ensure you don't have |ac_add_options --disable-tests| in your mozconfig." && exit 1)
+	echo "Checking the injected Gaia..."
 	test -L $(INJECTED_GAIA) || ln -s $(GAIA) $(INJECTED_GAIA)
 	TEST_PATH=$(TEST_PATH) make -C $(MOZ_OBJDIR) mochitest-browser-chrome EXTRA_TEST_ARGS=--browser-arg=""
 
@@ -23,12 +31,32 @@ ADB?=adb
 PROFILE := $$($(ADB) shell ls -d /data/b2g/mozilla/*.default | tr -d '\r')
 PROFILE_DATA := profile
 .PHONY: install-gaia
-install-gaia: 
+install-gaia: copy-manifests
 	$(ADB) start-server
 	$(ADB) shell rm -r /data/local/*
+	@for file in $$(ls $(PROFILE_DATA)); \
+	do \
+		data=$${file##*/}; \
+		echo Copying $$data; \
+		$(ADB) shell rm -r $(PROFILE)/$$data; \
+		$(ADB) push profile/$$data $(PROFILE)/$$data; \
+	done
 	@for i in $$(ls); do $(ADB) push $$i /data/local/$$i; done
 	@echo 'Rebooting b2g now'
 	$(ADB) shell killall b2g
+
+# Copy the app manifest files to the profile dir where the
+# mozApps API can find them. For desktop usage, you must create
+# a symbolic link from your profile directory to $GAIA/profile/webapps
+copy-manifests:
+	@mkdir -p profile/webapps
+	@cp apps/webapps.json profile/webapps
+	@cd apps; \
+	for d in `find * -type d -maxdepth 0` ;\
+	do \
+		mkdir -p ../profile/webapps/$$d; \
+		cp $$d/manifest.json ../profile/webapps/$$d  ;\
+	done
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 .PHONY: delete-databases
@@ -51,3 +79,7 @@ forward:
 	$(ADB) shell killall rilproxy
 	$(ADB) forward tcp:6200 localreserved:rilproxyd
 
+# Build the offline cache database
+.PHONY: offline
+offline:
+	$(MOZ_OBJDIR)/dist/bin/run-mozilla.sh $(MOZ_OBJDIR)/dist/bin/xpcshell -e 'const GAIA_DIR = "$(GAIA_DIR)"; const PROFILE_DIR = "$(PROFILE_DIR)"' offline-cache.js
