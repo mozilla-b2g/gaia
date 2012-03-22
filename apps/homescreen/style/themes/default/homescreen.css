@@ -136,7 +136,6 @@ body {
 
 div.windowSprite {
   background: url("images/noise.png") repeat scroll 50% 50%, #373a3d;
-  border-radius: 8px;
 }
 
 /* Task Manager */
