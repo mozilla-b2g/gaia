@@ -1,16 +1,9 @@
 CACHE MANIFEST
-# v1 2011-09-12
-
-# /
-penguinpop.html
-manifest.webapp
-
-# js/
+index.html
 js/penguinpop.js
-
-# style/
-style/penguinpop.css
+manifest.appcache
+manifest.json
 style/images/PenguinPop.png
-
-NETWORK:
-
+style/icons/PenguinPop.png
+style/penguinpop.css
+http://gaiamobile.org/webapi.js

@@ -1,25 +1,12 @@
 CACHE MANIFEST
-# v1 2011-09-12
-
-# /
-music.html
-manifest.webapp
-
-# js/
-js/music.js
-
-# style/
-style/music.css
-
-# audio
-audio/b2g.ogg
-audio/jonobacon-freesoftwaresong2.ogg
 audio/treasure_island_01-02_stevenson.ogg
+audio/jonobacon-freesoftwaresong2.ogg
+audio/b2g.ogg
 audio/Salt_Creek.ogg
-
-# icons used in the web application manifest.
-# Do not use icons/ directly since it is often used as an alias by Apache.
+index.html
+js/music.js
+manifest.appcache
+manifest.json
 style/icons/Music.png
-
-NETWORK:
-
+style/music.css
+http://gaiamobile.org/webapi.js

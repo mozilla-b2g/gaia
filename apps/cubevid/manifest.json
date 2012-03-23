@@ -1,27 +1,36 @@
 {
   "name": "CubeVid",
-  "description": "Video Cube Demo",
-  "launch_path": "/index.html",
-  "developer": {
-    "name": "The Original Author",
-    "url": "https://github.com/andreasgal/gaia"
-  },
+  "default_locale": "en-US",
   "icons": {
     "120": "/style/icons/VideoCube.png"
   },
+  "description": "Video Cube Demo",
+  "launch_path": "/",
+  "hackKillMe": true,
   "locales": {
+    "ru": {
+      "name": "CubeVid",
+      "description": "\u0414\u0435\u043c\u043e\u043d\u0441\u0442\u0440\u0430\u0446\u0438\u044f Video Cube"
+    },
+    "en-US": {
+      "name": "CubeVid",
+      "description": "Video Cube Demo"
+    },
     "ar": {
       "name": "CubeVid",
-      "description": " cube عرض لشريط"
+      "description": " cube \u0639\u0631\u0636 \u0644\u0634\u0631\u064a\u0637"
     },
     "fr": {
       "name": "CubeVid",
-      "description": "Démo de vidéo cube"
+      "description": "D\u00e9mo de vid\u00e9o cube"
     },
     "zh-TW": {
-      "description": "Video Cube 示範"
+      "name": "CubeVid",
+      "description": "Video Cube \u793a\u7bc4"
     }
   },
-  "default_locale": "en"
+  "developer": {
+    "url": "https://github.com/andreasgal/gaia",
+    "name": "The Original Author"
+  }
 }
-
