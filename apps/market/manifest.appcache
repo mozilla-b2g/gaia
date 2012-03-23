@@ -1,17 +1,8 @@
 CACHE MANIFEST
-# v1 2011-09-12
-
-# /
 index.html
-manifest.webapp
-
-# style/
-style/market.css
+manifest.appcache
+manifest.json
 style/images/market.png
-
-# icons used in the web application manifest.
-# Do not use icons/ directly since it is often used as an alias by Apache.
 style/icons/Market.png
-
-NETWORK:
-
+style/market.css
+http://gaiamobile.org/webapi.js

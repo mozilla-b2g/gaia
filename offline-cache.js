@@ -63,6 +63,7 @@ function storeCache(id, url, content, count) {
 
   bufferedOutputStream.close();
   outputStream.close();
+  cacheEntry.markValid();
   cacheEntry.close();
 }
 
@@ -141,9 +142,7 @@ function getFileContent(file) {
 
   let content = out.value;  
   converterStream.close();  
-  fileStream.close(); 
-
-  content = content.replace("../../webapi.js", "webapi.js");
+  fileStream.close();
 
   let uconv = Cc["@mozilla.org/intl/scriptableunicodeconverter"]
                 .createInstance(Ci.nsIScriptableUnicodeConverter);
@@ -155,15 +154,12 @@ function getFileContent(file) {
   return [inputStream, count];
 }
 
-
-
 let applicationCacheService = Cc["@mozilla.org/network/application-cache-service;1"]
                                 .getService(Ci.nsIApplicationCacheService);
 
-const domain = "http://localhost";
-
 let directories = getDirectories();
 directories.forEach(function generateAppCache(dir) {
+  let domain = "http://" + dir + "." + GAIA_DOMAIN;
   let manifest = Cc["@mozilla.org/file/local;1"]
                    .createInstance(Ci.nsILocalFile);
   manifest.initWithPath(GAIA_DIR);
@@ -180,12 +176,13 @@ directories.forEach(function generateAppCache(dir) {
 
   // Get the url for the manifest. At some points the root
   // domain should be extracted from manifest.webapp
-  let manifestSpec = manifest.path.replace(base, domain);;
   let applicationCache =
-    applicationCacheService.createApplicationCache(manifestSpec);
+    applicationCacheService.createApplicationCache(domain + "/manifest.appcache");
   applicationCache.activate();
 
-  print ("\nCompiling " + dir + " (" + manifestSpec + ")");
+  print ("\nCompiling " + dir + " (" + domain + ")");
+
+  let hasWebapi = false;
 
   let files = getCachedFiles(manifest);
   files.forEach(function appendFile(name) {
@@ -193,7 +190,12 @@ directories.forEach(function generateAppCache(dir) {
     let file = Cc["@mozilla.org/file/local;1"]
                  .createInstance(Ci.nsILocalFile);
     file.initWithPath(root);
-    
+
+    if (name == ("http://" + GAIA_DOMAIN + "/webapi.js")) {
+      hasWebapi = true;
+      return;
+    }
+
     let paths = name.split("/");
     for (let i = 0; i < paths.length; i++) {
       file.append(paths[i]);
@@ -205,13 +207,46 @@ directories.forEach(function generateAppCache(dir) {
       throw new Error(msg);
     }
 
-    let documentSpec = file.path.replace(base, domain);
-
-    print (file.path);
+    let documentSpec = domain;
+    for (let i = 0; i < paths.length; i++) {
+      documentSpec += "/";
+      if (paths[i] != "index.html")
+         documentSpec += paths[i];
+    }
   
     let [content, length] = getFileContent(file);
-
     storeCache(applicationCache.clientID, documentSpec, content, length);
-  });
-});
 
+    // Set the item type
+    let itemType = Ci.nsIApplicationCache.ITEM_EXPLICIT;
+    if (file.leafName == "index.html")
+      itemType = Ci.nsIApplicationCache.ITEM_IMPLICIT;
+    else if (file.leafName == "manifest.appcache")
+      itemType = Ci.nsIApplicationCache.ITEM_MANIFEST;
+
+    print (file.path + " -> " + documentSpec + " (" + itemType + ")");
+
+    applicationCache.markEntry(documentSpec, itemType);
+  });
+
+  if (hasWebapi) {
+    let file = Cc["@mozilla.org/file/local;1"]
+                 .createInstance(Ci.nsILocalFile);
+    file.initWithPath(base);
+    file.append("..");
+    file.append("webapi.js");
+
+    if (!file.exists()) {
+      let msg = "File " + file.path + " exists in the manifest but does not " +
+                "points to a real file.";
+      throw new Error(msg);
+    }
+
+    let documentSpec = "http://" + GAIA_DOMAIN + "/webapi.js"
+    print (file.path + " -> " + documentSpec);
+
+    let [content, length] = getFileContent(file);
+    storeCache(applicationCache.clientID, documentSpec, content, length);
+    applicationCache.markEntry(documentSpec, Ci.nsIApplicationCache.ITEM_FOREIGN);
+  }
+});
