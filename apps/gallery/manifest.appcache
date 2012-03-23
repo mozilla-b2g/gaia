@@ -6,6 +6,7 @@ gallery.html
 manifest.webapp
 
 # js/
+http://gaiamobile.org/webapi.js
 js/gallery.js
 
 # style/

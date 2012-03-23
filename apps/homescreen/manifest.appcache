@@ -7,6 +7,7 @@ blank.html
 manifest.webapp
 
 # js/
+http://gaiamobile.org/webapi.js
 js/task_manager.js
 js/window_manager.js
 js/app_manager.js
