@@ -102,29 +102,6 @@ input::-moz-focus-inner {
   border: 0;
 }
 
-#browser-tab-button {
-  display: block;
-  height: 62px;
-  line-height: 62px;
-  width: 54px;
-  margin: 0;
-  font-weight: bold;
-  font-size: 24px;
-  text-align: center;
-  color: #555;
-}
-
-#browser-tab-button::after {
-  display: block;
-  width: 1px;
-  content: ' ';
-  height: 42px;
-  background-color: rgba(0, 0, 0, 0.1);
-  position: absolute;
-  top: 22px;
-  right: 56px;
-}
-
 #browser-back-button[disabled] {
   background-image: url("images/back-disabled.png");
 }
