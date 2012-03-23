@@ -438,12 +438,8 @@
         pendingSymbols.join('');
       sendPandingSymbols();
 
-      if (
-        typeOfSymbol(code) === SymbolType.TONE &&
-        (settings.bufferLenLimit || kBufferLenLimit) &&
-        syllablesInBuffer.length >=
-          (settings.bufferLenLimit || kBufferLenLimit)
-      ) {
+      if (kBufferLenLimit &&
+        syllablesInBuffer.length >= kBufferLenLimit) {
         // syllablesInBuffer is too long; find a term and sendString()
         debug('Buffer exceed limit');
         var i = syllablesInBuffer.length - 1;
@@ -475,13 +471,7 @@
 
             sendPandingSymbols();
 
-            updateCandidateList(function updateCandidateListCallback() {
-              // bump the buffer to the next character
-              syllablesInBuffer.push('');
-              pendingSymbols = ['', '', '', ''];
-
-              next();
-            });
+            updateCandidateList(next);
           });
         };
 
