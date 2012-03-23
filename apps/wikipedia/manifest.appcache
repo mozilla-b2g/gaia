@@ -1,8 +1,5 @@
 CACHE MANIFEST
-js/maps.js
 manifest.appcache
 manifest.json
-maps.html
-style/icons/Maps.png
-style/maps.css
+style/icons/Wikipedia.png
 http://gaiamobile.org/webapi.js

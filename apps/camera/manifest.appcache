@@ -1,25 +1,14 @@
 CACHE MANIFEST
-# v1 2011-09-12
-
-# /
 index.html
-manifest.webapp
-
-# js/
 js/camera.js
-
-# style/
-style/camera.css
-style/images/switch-pressed.png
-style/images/gallery-pressed.png
-style/images/gallery.png
+manifest.appcache
+manifest.json
 style/images/switch.png
-style/images/capture-pressed.png
+style/images/gallery-pressed.png
 style/images/capture.png
-
-# icons used in the web application manifest.
-# Do not use icons/ directly since it is often used as an alias by Apache.
+style/images/gallery.png
+style/images/capture-pressed.png
+style/images/switch-pressed.png
+style/camera.css
 style/icons/Camera.png
-
-NETWORK:
-
+http://gaiamobile.org/webapi.js
