@@ -1,7 +1,7 @@
 {
   "name": "CrystalSkull",
   "description": "WebGL Demo",
-  "launch_path": "/crystalskull.html",
+  "launch_path": "/",
   "hackKillMe": true,
   "developer": {
     "name": "The J3D Team",

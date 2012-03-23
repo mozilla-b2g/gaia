@@ -1,49 +1,49 @@
 {
  "dialer": {
-    "origin": "../dialer",
-    "installOrigin": "http://gaiamobile.org:8888",
+    "origin": "http://dialer.gaiamobile.org",
+    "installOrigin": "http://dialer.gaiamobile.org",
     "receipt": null,
     "installTime": 1323339869000
   },
 
  "sms": {
-    "origin": "../sms",
-    "installOrigin": "http://gaiamobile.org:8888",
+    "origin": "http://sms.gaiamobile.org",
+    "installOrigin": "http://sms.gaiamobile.org",
     "receipt": null,
     "installTime": 1323339869000
   },
 
  "browser": {
-    "origin": "../browser",
-    "installOrigin": "http://gaiamobile.org:8888",
+    "origin": "http://browser.gaiamobile.org",
+    "installOrigin": "http://browser.gaiamobile.org",
     "receipt": null,
     "installTime": 1323339869000
   },
 
  "maps": {
-    "origin": "../maps",
-    "installOrigin": "http://gaiamobile.org:8888",
+    "origin": "http://maps.gaiamobile.org",
+    "installOrigin": "http://maps.gaiamobile.org",
     "receipt": null,
     "installTime": 1323339869000
   },
 
  "camera": {
-    "origin": "../camera",
-    "installOrigin": "http://gaiamobile.org:8888",
+    "origin": "http://camera.gaiamobile.org",
+    "installOrigin": "http://camera.gaiamobile.org",
     "receipt": null,
     "installTime": 1323339869000
   },
 
  "gallery": {
-    "origin": "../gallery",
-    "installOrigin": "http://gaiamobile.org:8888",
+    "origin": "http://gallery.gaiamobile.org",
+    "installOrigin": "http://gallery.gaiamobile.org",
     "receipt": null,
     "installTime": 1323339869000
   },
 
  "video": {
-    "origin": "../video",
-    "installOrigin": "http://gaiamobile.org:8888",
+    "origin": "http://video.gaiamobile.org",
+    "installOrigin": "http://video.gaiamobile.org",
     "receipt": null,
     "installTime": 1323339869000
   },
@@ -56,15 +56,15 @@
   },
 
  "market": {
-    "origin": "../market",
-    "installOrigin": "http://gaiamobile.org:8888",
+    "origin": "http://market.gaiamobile.org",
+    "installOrigin": "http://market.gaiamobile.org",
     "receipt": null,
     "installTime": 1323339869000
   },
 
  "music": {
-    "origin": "../music",
-    "installOrigin": "http://gaiamobile.org:8888",
+    "origin": "http://music.gaiamobile.org",
+    "installOrigin": "http://music.gaiamobile.org",
     "receipt": null,
     "installTime": 1323339869000
   },
@@ -91,15 +91,15 @@
   },
 
  "settings": {
-    "origin": "../settings",
-    "installOrigin": "http://gaiamobile.org:8888",
+    "origin": "http://settings.gaiamobile.org",
+    "installOrigin": "http://settings.gaiamobile.org",
     "receipt": null,
     "installTime": 1323339869000
   },
 
  "clock": {
-    "origin": "../clock",
-    "installOrigin": "http://gaiamobile.org:8888",
+    "origin": "http://clock.gaiamobile.org",
+    "installOrigin": "http://clock.gaiamobile.org",
     "receipt": null,
     "installTime": 1323339869000
   },
@@ -112,22 +112,22 @@
   },
 
  "cubevid": {
-    "origin": "../cubevid",
-    "installOrigin": "http://www.everyday3d.com/j3d/demo",
+    "origin": "http://cubevid.gaiamobile.org",
+    "installOrigin": "http://cubevid.gaiamobile.org",
     "receipt": null,
     "installTime": 1323339869000
   },
 
  "penguinpop": {
-    "origin": "../penguinpop",
-    "installOrigin": "http://goosypets.com/html5games/whac",
+    "origin": "http://penguinpop.gaiamobile.org",
+    "installOrigin": "http://penguinpop.gaiamobile.org",
     "receipt": null,
     "installTime": 1323339869000
   },
 
  "towerjelly": {
-    "origin": "../towerjelly",
-    "installOrigin": "http://goosypets.com/html5games/tower",
+    "origin": "http://towerjelly.gaiamobile.org",
+    "installOrigin": "http://towerjelly.gaiamobile.org",
     "receipt": null,
     "installTime": 1323339869000
   },
@@ -168,8 +168,8 @@
   },
 
  "calculator": {
-    "origin": "../calculator",
-    "installOrigin": "http://gaiamobile.org:8888",
+    "origin": "http://calculator.gaiamobile.org",
+    "installOrigin": "http://calculator.gaiamobile.org",
     "receipt": null,
     "installTime": 1323339869000
   }

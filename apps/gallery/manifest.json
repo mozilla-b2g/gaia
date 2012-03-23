@@ -1,7 +1,7 @@
 {
   "name": "Gallery",
   "description": "Gaia Gallery",
-  "launch_path": "/gallery.html",
+  "launch_path": "/",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/andreasgal/gaia"

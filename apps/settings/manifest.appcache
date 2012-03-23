@@ -1,47 +1,32 @@
 CACHE MANIFEST
-# v1 2011-09-12
-
-# /
-settings.html
-manifest.webapp
-
-# js/
-http://gaiamobile.org/webapi.js
-js/settings.js
+index.html
 js/wifi.js
-
-# style/
+js/settings.js
+locale/settings.properties
+manifest.appcache
+manifest.json
 style/settings.css
-style/dialogs.css
 style/ui.css
-style/images/wifi-4.png
-style/images/wifi.png
-style/images/wifi-3.png
-style/images/radio-on.png
-style/images/wifi-0.png
-style/images/wifi-2.png
-style/images/checked.png
-style/images/app-texture.png
-style/images/diagonal-pattern.png
-style/images/wifi-lock.png
-style/images/wifi-1.png
 style/images/wifi-scan.png
-style/images/radio-off.png
-style/images/noise.png
-style/images/noise-texture.png
 style/images/dialing-pattern.png
+style/images/wifi-2.png
+style/images/wifi-0.png
+style/images/app-texture.png
+style/images/noise-texture.png
+style/images/checked.png
+style/images/radio-on.png
+style/images/wifi-1.png
+style/images/noise.png
+style/images/wifi-4.png
+style/images/wifi-3.png
+style/images/diagonal-pattern.png
+style/images/radio-off.png
+style/images/wifi-lock.png
+style/images/wifi.png
+style/dialogs.css
+style/icons/Settings.png
+style/fonts/Roboto-Bold.ttf
 style/fonts/Roboto-BoldItalic.ttf
 style/fonts/Roboto-Regular.ttf
 style/fonts/Roboto-Italic.ttf
-style/fonts/Roboto-Bold.ttf
-
-# icons used in the web application manifest.
-# Do not use icons/ directly since it is often used as an alias by Apache.
-style/icons/Settings.png
-
-# TEMP webapi.js
-../../webapi.js
-
-
-NETWORK:
-
+http://gaiamobile.org/webapi.js

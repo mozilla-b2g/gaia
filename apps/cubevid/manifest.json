@@ -1,7 +1,7 @@
 {
   "name": "CubeVid",
   "description": "Video Cube Demo",
-  "launch_path": "/index.html",
+  "launch_path": "/",
   "hackKillMe": true,
   "developer": {
     "name": "The Original Author",
