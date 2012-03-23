@@ -1,7 +1,7 @@
 {
   "name": "Market",
   "description": "Market for downloading and installing apps",
-  "launch_path": "/market.html",
+  "launch_path": "/",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/andreasgal/gaia"

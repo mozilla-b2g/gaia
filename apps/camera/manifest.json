@@ -1,7 +1,7 @@
 {
   "name": "Camera",
   "description": "Gaia Camera",
-  "launch_path": "/camera.html",
+  "launch_path": "/",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/andreasgal/gaia"
