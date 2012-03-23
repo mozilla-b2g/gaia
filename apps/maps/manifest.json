@@ -1,17 +1,22 @@
 {
   "name": "Maps",
-  "description": "Google Maps",
-  "launch_path": "/",
-  "developer": {
-    "name": "The Gaia Team",
-    "url": "https://github.com/andreasgal/gaia"
-  },
+  "default_locale": "en-US",
   "icons": {
     "120": "/style/icons/Maps.png"
   },
+  "description": "Google Maps",
+  "launch_path": "/",
   "locales": {
+    "ru": {
+      "name": "\u041a\u0430\u0440\u0442\u044b",
+      "description": "Google Maps"
+    },
+    "en-US": {
+      "name": "Maps",
+      "description": "Google Maps"
+    },
     "ar": {
-      "name": "خرائط",
+      "name": "\u062e\u0631\u0627\u0626\u0637",
       "description": "Google Maps"
     },
     "fr": {
@@ -19,10 +24,12 @@
       "description": "Google Maps"
     },
     "zh-TW": {
-      "name": "地圖",
-      "description": "Google 地圖"
+      "name": "\u5730\u5716",
+      "description": "Google \u5730\u5716"
     }
   },
-  "default_locale": "en"
+  "developer": {
+    "url": "https://github.com/andreasgal/gaia",
+    "name": "The Gaia Team"
+  }
 }
-
