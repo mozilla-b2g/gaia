@@ -237,9 +237,11 @@ var ShortcutsHandler = {
 var ContactDetails = {
   _editing: false,
   _lastFocusedInput: null,
+  _keyboardDisplayed: false,
 
   setup: function cd_setup() {
     window.addEventListener('keyup', this, true);
+    window.addEventListener('resize', this, true);
 
     // Binding to properly handle the return key
     var inputs = this.container.querySelectorAll('input');
@@ -470,7 +472,24 @@ var ContactDetails = {
 
   // back button handling
   handleEvent: function cd_handleEvent(evt) {
+    if (evt.type == 'resize') {
+      //XXX: the keyboard resizes the frame before we get the ESCAPE
+      // event. So the frame is always full-height when we get it
+      // if we don't add this timeout
+      setTimeout((function() {
+        this._keyboardDisplayed = !this._keyboardDisplayed;
+      }).bind(this), 300);
+      return;
+    }
+
     if (evt.type !== 'keyup' || evt.keyCode != evt.DOM_VK_ESCAPE) {
+      return;
+    }
+
+    // If the user escaped just to remove the keyboard we stay
+    // in edit mode
+    if (this._keyboardDisplayed) {
+      evt.preventDefault();
       return;
     }
 
