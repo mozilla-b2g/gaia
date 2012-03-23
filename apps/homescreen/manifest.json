@@ -1,25 +1,32 @@
 {
   "name": "Homescreen",
+  "default_locale": "en-US",
   "description": "Gaia Homescreen",
   "launch_path": "/",
-  "developer": {
-    "name": "The Gaia Team",
-    "url": "https://github.com/andreasgal/gaia"
-  },
   "locales": {
+    "ru": {
+      "name": "\u0413\u043b\u0430\u0432\u043d\u044b\u0439 \u044d\u043a\u0440\u0430\u043d",
+      "description": "\u0413\u043b\u0430\u0432\u043d\u044b\u0439 \u044d\u043a\u0440\u0430\u043d Gaia"
+    },
+    "en-US": {
+      "name": "Homescreen",
+      "description": "Gaia Homescreen"
+    },
     "ar": {
-      "name": "الشاشة الرئيسية",
-      "description": "Gaia الشاشة الرئيسية "
+      "name": "\u0627\u0644\u0634\u0627\u0634\u0629 \u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629",
+      "description": "Gaia \u0627\u0644\u0634\u0627\u0634\u0629 \u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629 "
     },
     "fr": {
-      "name": "Écran d’accueil",
-      "description": "Écran d’accueil Gaia"
+      "name": "\u00c9cran d\u2019accueil",
+      "description": "\u00c9cran d\u2019accueil Gaia"
     },
     "zh-TW": {
-      "name": "主畫面",
-      "description": "Gaia 主畫面"
+      "name": "\u4e3b\u756b\u9762",
+      "description": "Gaia \u4e3b\u756b\u9762"
     }
   },
-  "default_locale": "en"
+  "developer": {
+    "url": "https://github.com/andreasgal/gaia",
+    "name": "The Gaia Team"
+  }
 }
-

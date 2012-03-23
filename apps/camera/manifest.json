@@ -1,29 +1,36 @@
 {
   "name": "Camera",
-  "description": "Gaia Camera",
-  "launch_path": "/",
-  "developer": {
-    "name": "The Gaia Team",
-    "url": "https://github.com/andreasgal/gaia"
-  },
-  "hackKillMe": true,
+  "default_locale": "en-US",
   "icons": {
     "120": "/style/icons/Camera.png"
   },
+  "description": "Gaia Camera",
+  "launch_path": "/",
+  "developer": {
+    "url": "https://github.com/andreasgal/gaia",
+    "name": "The Gaia Team"
+  },
   "locales": {
+    "ru": {
+      "name": "\u041a\u0430\u043c\u0435\u0440\u0430",
+      "description": "\u041a\u0430\u043c\u0435\u0440\u0430 Gaia"
+    },
+    "en-US": {
+      "name": "Camera",
+      "description": "Gaia Camera"
+    },
     "ar": {
-      "name": "الكاميرا",
-      "description": " Gaiaالكاميرا"
+      "name": "\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627",
+      "description": " Gaia\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627"
     },
     "fr": {
-      "name": "Caméra",
-      "description": "Caméra Gaia"
+      "name": "Photo",
+      "description": "Appareil photo Gaia"
     },
     "zh-TW": {
-      "name": "相機",
-      "description": "Gaia 相機"
+      "name": "\u76f8\u6a5f",
+      "description": "Gaia \u76f8\u6a5f"
     }
   },
-  "default_locale": "en"
+  "hackKillMe": true
 }
-

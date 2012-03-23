@@ -1,27 +1,35 @@
 {
   "name": "Calculator",
-  "description": "Calculator",
-  "launch_path": "/",
-  "developer": {
-    "name": "The Gaia Team",
-    "url": "https://github.com/andreasgal/gaia"
-  },
+  "default_locale": "en-US",
   "icons": {
     "120": "/style/icons/Calculator.png"
   },
+  "description": "Calculator",
+  "launch_path": "/",
   "locales": {
+    "ru": {
+      "name": "\u041a\u0430\u043b\u044c\u043a\u0443\u043b\u044f\u0442\u043e\u0440",
+      "description": "\u041a\u0430\u043b\u044c\u043a\u0443\u043b\u044f\u0442\u043e\u0440"
+    },
+    "en-US": {
+      "name": "Calculator",
+      "description": "Calculator"
+    },
     "ar": {
-      "name": "الحاسبة",
-      "description": "الحاسبة"
+      "name": "\u0627\u0644\u062d\u0627\u0633\u0628\u0629",
+      "description": "\u0627\u0644\u062d\u0627\u0633\u0628\u0629"
     },
     "fr": {
       "name": "Calculatrice",
-      "description": "Calculatrice"
+      "description": "Calculatrice Gaia"
     },
     "zh-TW": {
-      "name": "計算機",
-      "description": "計算機"
+      "name": "\u8a08\u7b97\u6a5f",
+      "description": "\u8a08\u7b97\u6a5f"
     }
   },
-  "default_locale": "en"
+  "developer": {
+    "url": "https://github.com/andreasgal/gaia",
+    "name": "The Gaia Team"
+  }
 }
