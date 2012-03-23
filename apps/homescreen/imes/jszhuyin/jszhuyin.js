@@ -567,6 +567,10 @@
       window.webkitIDBKeyRange ||
       window.msIDBKeyRange;
 
+    var IDBIndex = window.IDBIndex ||
+      window.webkitIDBIndex ||
+      window.msIDBIndex;
+
     /* ==== init functions ==== */
 
     var getTermsInDB = function imedb_getTermsInDB(callback) {
@@ -960,26 +964,45 @@
         callback(result);
         return;
       }
-      var req = store.index('constantSyllables').openCursor(
-        IDBKeyRange.only(constants));
+      if (IDBIndex.prototype.getAll) {
+        // Mozilla IndexedDB extension
+        var req = store.index('constantSyllables').getAll(
+          IDBKeyRange.only(constants));
+      } else {
+        var req = store.index('constantSyllables').openCursor(
+          IDBKeyRange.only(constants));
+      }
       req.onerror = function getdbError(ev) {
         debug('Database read error.');
         callback(false);
       };
       var result = [];
       var constantResult = [];
+      var finish = function index_finish() {
+        if (result.length) {
+          result = processResult(result);
+        } else {
+          result = false;
+        }
+        cacheSetTimeout();
+        iDBCache['CONSTANT:' + constants] = constantResult;
+        iDBCache[syllablesStr] = result;
+        callback(result);
+      };
       req.onsuccess = function getdbSuccess(ev) {
+        if (ev.target.result && ev.target.result.constructor == Array) {
+          constantResult = ev.target.result;
+          constantResult.forEach(
+            function index_forEach(value) {
+              if (matchRegEx.exec(value.syllables))
+                result = result.concat(value.terms);
+            });
+          finish();
+          return;
+        }
         var cursor = ev.target.result;
         if (!cursor) {
-          if (result.length) {
-            result = processResult(result);
-          } else {
-            result = false;
-          }
-          cacheSetTimeout();
-          iDBCache['CONSTANT:' + constants] = constantResult;
-          iDBCache[syllablesStr] = result;
-          callback(result);
+          finish();
           return;
         }
         iDBCache[cursor.value.syllables] = cursor.value.terms;
