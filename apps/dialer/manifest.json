@@ -21,6 +21,10 @@
     "zh-TW": {
       "name": "電話",
       "description": "Gaia 電話"
+    },
+    "ru": {
+      "name": "Телефон",
+      "description": "Телефон Gaia"
     }
   },
   "default_locale": "en"

@@ -21,6 +21,9 @@
     "zh-TW": {
       "name": "NY Times",
       "description": "NY Times 行動應用程式"
+    },
+    "ru": {
+      "description": "Мобильное приложение NY Times"
     }
   },
   "default_locale": "en"

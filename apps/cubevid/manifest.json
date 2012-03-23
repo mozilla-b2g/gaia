@@ -20,6 +20,9 @@
     },
     "zh-TW": {
       "description": "Video Cube 示範"
+    },
+    "ru": {
+      "description": "Демонстрация Video Cube"
     }
   },
   "default_locale": "en"

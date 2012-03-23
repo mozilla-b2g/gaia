@@ -21,6 +21,10 @@
     "zh-TW": {
       "name": "訊息",
       "description": "Gaia 訊息"
+    },
+    "ru": {
+      "name": "Сообщения",
+      "description": "Сообщения Gaia"
     }
   },
   "default_locale": "en"

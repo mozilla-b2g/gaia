@@ -257,10 +257,10 @@ body.conversation-new-msg #view-name {
 
 #view-num {
   display: block;
-  margin: 10px 144px;
+  margin: 10px 156px;
   padding: 0 20px;
   -moz-box-sizing: border-box;
-  width: -moz-calc(100% - 288px);
+  width: -moz-calc(100% - 300px);
 }
 
 body.conversation-new-msg #view-num {
@@ -281,7 +281,7 @@ body.conversation-new-msg #view-num {
   right: 16px;
   height: 32px;
   line-height: 32px;
-  width: 64px;
+  width: 120px;
   padding: 0 8px;
   border-radius: 5px;
   border: 1px solid hsl(60,2%,62%);
@@ -386,7 +386,7 @@ body.conversation-new-msg #view-num {
 
 #view-msg-text-container {
   float: left;
-  width: -moz-calc(100% - 128px);
+  width: -moz-calc(100% - 138px);
 }
 
 #view-msg-text {
@@ -406,12 +406,12 @@ body.conversation-new-msg #view-num {
 
 #view-msg-send-container {
   float: left;
-  width: 118px;
+  width: 128px;
 }
 
 #view-msg-send {
   display: block;
-  width: 96px;
+  width: 106px;
   height: 48px;
   margin: 14px 0 0 16px;
   font-size: 24px;

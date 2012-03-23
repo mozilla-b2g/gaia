@@ -18,6 +18,9 @@
     },
     "zh-TW": {
       "description": "BBC 行動應用程式"
+    },
+    "ru": {
+      "description": "Мобильное приложение BBC"
     }
   },
   "default_locale": "en"

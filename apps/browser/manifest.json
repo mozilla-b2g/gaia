@@ -21,6 +21,10 @@
     "zh-TW": {
       "name": "網路瀏覽器",
       "description": "Gaia 網路瀏覽器"
+    },
+    "ru": {
+      "name": "Навигатор",
+      "description": "Веб-навигатор Gaia"
     }
   },
   "default_locale": "en"

@@ -21,6 +21,10 @@
     "zh-TW": {
       "name": "行事曆",
       "description": "Google 日曆"
+    },
+    "ru": {
+      "name": "Календарь",
+      "description": "Календарь Google"
     }
   },
   "default_locale": "en"

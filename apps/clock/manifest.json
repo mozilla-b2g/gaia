@@ -21,6 +21,10 @@
     "zh-TW": {
       "name": "時鐘",
       "description": "Gaia 時鐘"
+    },
+    "ru": {
+      "name": "Часы",
+      "description": "Часы Gaia"
     }
   },
   "default_locale": "en"

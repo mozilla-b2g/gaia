@@ -21,6 +21,10 @@
     "zh-TW": {
       "name": "設定",
       "description": "Gaia 設定"
+    },
+    "ru": {
+      "name": "Установки",
+      "description": "Установки Gaia"
     }
   },
   "default_locale": "en"
