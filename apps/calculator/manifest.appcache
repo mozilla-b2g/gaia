@@ -1,23 +1,12 @@
 CACHE MANIFEST
-# v1 2012-02-25
-
-# /
-calculator.html
-manifest.webapp
-
-# js/
+index.html
 js/calculator.js
-
-# style/
-style/calculator.css
+manifest.appcache
+manifest.json
 style/images/home-texture.png
-style/fonts/Open-Sans.woff
-style/fonts/Open-Sans-Bold.woff
-style/fonts/Open-Sans-Semibold.woff
-
-# icons used in the web application manifest.
-# Do not use icons/ directly since it is often used as an alias by Apache.
+style/calculator.css
 style/icons/Calculator.png
-
-NETWORK:
-
+style/fonts/Open-Sans-Semibold.woff
+style/fonts/Open-Sans-Bold.woff
+style/fonts/Open-Sans.woff
+http://gaiamobile.org/webapi.js

@@ -1,7 +1,7 @@
 {
   "name": "Video",
   "description": "Gaia Video",
-  "launch_path": "/video.html",
+  "launch_path": "/",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/andreasgal/gaia"
