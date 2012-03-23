@@ -102,19 +102,25 @@ var WindowManager = (function() {
   // and each time an app is brought to the front, since the
   // orientation could have changed since it was last displayed
   function setAppSize(url) {
-
-    // TODO: does this function need to handle the manifest.orientation
-    // property, or was that a temporary hack?
-    // See https://bugzilla.mozilla.org/show_bug.cgi?id=673922
-
     var app = runningApps[url];
     var frame = app.frame;
     var manifest = app.manifest;
 
-    frame.style.width = window.innerWidth + 'px';
-    frame.style.height = manifest.fullscreen
-      ? window.innerHeight + 'px'
-      : (window.innerHeight - statusbar.offsetHeight) + 'px';
+    // FIXME: for now, we support apps (video and cut the rope) that run
+    // in landscape mode and fullscreen. Once we get real orientation
+    // support, this code will have to become more sophisticated.
+    // See https://bugzilla.mozilla.org/show_bug.cgi?id=673922
+    if (manifest.fullscreen && manifest.orientation) {
+      frame.style.width = window.innerHeight + 'px';
+      frame.style.height = window.innerWidth + 'px';
+      frame.classList.add(manifest.orientation);
+    }
+    else {
+      frame.style.width = window.innerWidth + 'px';
+      frame.style.height = manifest.fullscreen
+        ? window.innerHeight + 'px'
+        : (window.innerHeight - statusbar.offsetHeight) + 'px';
+    }
   }
 
   // Perform an "open" animation for the app's iframe
