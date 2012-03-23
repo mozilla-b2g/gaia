@@ -84,12 +84,12 @@ var WindowManager = (function() {
     if (displayedApp === url)
       return;
 
-    // If it is not already running, start it
-    if (url && !isRunning(url))
+    // If the app is already running (or there is no app), just display it
+    // Otherwise, start the app
+    if (!url || isRunning(url))
+      setDisplayedApp(url);
+    else
       start(url);
-
-    // The app is running, so display it
-    setDisplayedApp(url);
   }
 
   function isRunning(url) {
@@ -160,11 +160,7 @@ var WindowManager = (function() {
       // If the sprite is not yet faded
       if (!sprite.classList.contains('faded')) {
         // The first transition has just completed.
-        // Call the callback if there is one.
         // Make the app window visible and then fade the sprite away
-        if (callback)
-          callback();
-
         frame.classList.add('active');
         windows.classList.add('active');
         sprite.classList.add('faded');
@@ -174,6 +170,9 @@ var WindowManager = (function() {
         // give the app focus and discard the sprite.
         frame.focus();
         document.body.removeChild(sprite);
+        // Finally, call the callback if there is one.
+        if (callback)
+          callback();
       }
     });
 
@@ -187,7 +186,7 @@ var WindowManager = (function() {
     frame.dispatchEvent(evt);
   }
 
-  function closeWindow(url, instant) {
+  function closeWindow(url, instant, callback) {
     var app = runningApps[url];
     var frame = app.frame;
     var manifest = app.manifest;
@@ -213,7 +212,7 @@ var WindowManager = (function() {
     frame.blur();
 
     // If this was a fullscreen app, leave full-screen mode
-    if (manifest.fullscreen) 
+    if (manifest.fullscreen)
       screen.classList.remove('fullscreen');
 
     // If we're not doing an animation, then just switch directly
@@ -224,6 +223,8 @@ var WindowManager = (function() {
     // that should kill those resource-intensive apps.
     if (instant) {
       frame.classList.remove('active');
+      if (callback)
+        callback();
       return;
     }
 
@@ -249,12 +250,12 @@ var WindowManager = (function() {
     windows.classList.remove('active');
 
     // If this is an hackKillMe app, set the apps iframe's src attribute
-    // to an empty file to get rid of whatever resource-intensive 
+    // to an empty file to get rid of whatever resource-intensive
     // app it is currently running. For some reason actually removing
     // the iframe from the document here does not work, so we remove it
     // after the transition below.
     if (manifest.hackKillMe)
-      frame.src = "blank.html";
+      frame.src = 'blank.html';
 
     // Query css to flush this change
     var width = document.documentElement.clientWidth;
@@ -270,11 +271,13 @@ var WindowManager = (function() {
       document.body.removeChild(sprite);
       if (manifest.hackKillMe)
         stop(url);
+      if (callback)
+        callback();
     });
   }
 
   // Switch to a different app
-  function setDisplayedApp(url) {
+  function setDisplayedApp(url, callback) {
     var currentApp = displayedApp, newApp = url;
 
     // There are four cases that we handle in different ways:
@@ -285,24 +288,25 @@ var WindowManager = (function() {
 
     // Case 1
     if (currentApp == newApp) {
-      // Do nothing
+      // Just run the callback right away
+      if (callback)
+        callback();
     }
     // Case 2: homescreen->app
     else if (currentApp == null) {
       setAppSize(newApp);
-      openWindow(newApp);
+      openWindow(newApp, callback);
     }
     // Case 3: app->homescreen
     else if (newApp == null) {
-      // If we're switching to another app, then just hide this
-      // one immediately.  Otherwise, do an animation
-      closeWindow(currentApp);
+      // Animate the window close
+      closeWindow(currentApp, false, callback);
     }
     // Case 4: app-to-app transition
     else {
       setAppSize(newApp);
       openWindow(newApp, function() {
-        closeWindow(currentApp, true);
+        closeWindow(currentApp, true, callback);
       });
     }
 
@@ -310,6 +314,9 @@ var WindowManager = (function() {
   }
 
   // Start running the specified app.
+  // In order to have a nice smooth open animation,
+  // we don't actually set the iframe src property until
+  // the animation has completed.
   function start(url) {
     if (isRunning(url))
       return;
@@ -330,9 +337,6 @@ var WindowManager = (function() {
     if (exceptions.indexOf(manifest.name) == -1) {
       frame.setAttribute('mozbrowser', 'true');
     }
-
-    // Load the app into the iframe
-    frame.src = url;
 
     // Add the iframe to the document
     windows.appendChild(frame);
@@ -358,6 +362,13 @@ var WindowManager = (function() {
       evt.initCustomEvent('appwillopen', true, false, {});
       frame.dispatchEvent(evt);
     }, 0);
+
+
+    // Now animate the window opening and actually set the iframe src
+    // when that is done.
+    setDisplayedApp(url, function() {
+      frame.src = url;
+    });
   }
 
   // Stop running the app with the specified url
