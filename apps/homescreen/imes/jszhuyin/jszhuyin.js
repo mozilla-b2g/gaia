@@ -178,7 +178,7 @@
       var candidates = [];
       var syllablesForQuery = [].concat(syllablesInBuffer);
 
-      if (pendingSymbols[SymbolType.TONE] === '' &&
+      if (!pendingSymbols[SymbolType.TONE] &&
           syllablesForQuery[syllablesForQuery.length - 1]) {
         if (autocompleteLastSyllables) {
           debug('The last syllable is incomplete, add asterisk.');
@@ -252,7 +252,7 @@
 
               if (i === 1 && !terms.length) {
                 debug('The first syllable does not make up a word, output the symbol.');
-                candidates.push([syllables.join(''), 'symbol']);
+                candidates.push([syllables.join('').replace(/\*/g, ''), 'symbol']);
               }
 
               if (!--i) {
@@ -461,7 +461,7 @@
             // sendString
             settings.sendString(
               candidates[0] ||
-              syllablesInBuffer.slice(0, i).join('')
+              syllablesInBuffer.slice(0, i).join('').replace(/\*/g, '')
             );
 
             // remove syllables from buffer
@@ -509,6 +509,10 @@
     /* ==== interaction functions ==== */
 
     this.click = function ime_click(code) {
+      if (code < 0) {
+        debug('Ignoring keyCode < 0.');
+        return;
+      }
       debug('Click keyCode: ' + code);
       keypressQueue.push(code);
       start();
@@ -859,7 +863,7 @@
       if (syllablesStr.indexOf('*') !== -1) {
         matchRegEx = new RegExp(
           '^' + syllablesStr.replace(/\-/g, '\\-')
-                .replace(/\*/g, '[^-]*') + '$');
+                .replace(/\*/g, '[^\-]*') + '$');
         var processResult = function processResult(r) {
           r = r.sort(
             function sort_result(a, b) {
