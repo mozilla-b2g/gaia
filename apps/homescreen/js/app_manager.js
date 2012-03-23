@@ -17,7 +17,6 @@ var AppManager = (function() {
 
     installedApps = {};
 
-
     navigator.mozApps.mgmt.getAll().onsuccess = function(e) {
       var apps = e.target.result;
       apps.forEach(function(app) {
@@ -25,58 +24,6 @@ var AppManager = (function() {
       });
       callback(installedApps);
     };
-
-/*
-    // The current language for localizing the manifest
-    var lang = document.mozL10n.language.code;
-
-
-        if (!app.manifest) {
-          console.warn('malformed manifest for ' + app.origin);
-          return;
-        }
-
-        var origin = app.origin;
-        var manifest = app.manifest;
-        var name = manifest.name;
-
-        // localize the manifest
-        if (manifest.locales && manifest.locales[lang]) {
-          var loc = manifest.locales[lang];
-          for (var k in loc)
-            manifest[k] = loc[k];
-        }
-
-
-        // FIXME: need to be smarter about using whatever icon size
-        // is the best.  And actually, that logic ought to in the homescreen
-        // UI, not here.  Maybe just store the entire manifest and let
-        // the homescreen choose it own icons
-        var icon = manifest.icons ? app.origin + manifest.icons['120'] : '';
-
-        var orientation = "";
-        // We only allow those values for orientation in manifest.
-        if (manifest.orientation == "portrait-primary" ||
-            manifest.orientation == "portrait-secondary" ||
-            manifest.orientation == "landscape-primary" ||
-            manifest.orientation == "landscape-secondary") {
-          orientation = manifest.orientation;
-        }
-
-        var url = app.origin + manifest.launch_path;
-
-        installedApps.push({
-          name: manifest.name,
-          app: app,
-          url: url,
-          icon: icon,
-          fullscreen: manifest.fullscreen || false,
-          orientation: orientation,
-          hackKillMe: manifest.hackKillMe || false
-        });
-      });
-*/
-
   }
 
   function getAppByOrigin(origin) {
