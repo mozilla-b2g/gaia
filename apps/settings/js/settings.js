@@ -102,7 +102,7 @@ window.addEventListener('DOMContentLoaded', function showRoot() {
   // XXX there's no way currently to fire a callback when a pref is changed
   //     so we're using an ugly onclick + timeout :-/
   var languages = document.getElementById('languages');
-  languages.addEventListener('mouseup', function onclick() {
+  languages.addEventListener('click', function onclick() {
     setTimeout(function getLanguageSetting() {
       var req = navigator.mozSettings.get('language.current');
       req.onsuccess = function retranslate() {
