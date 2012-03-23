@@ -236,8 +236,21 @@ var ShortcutsHandler = {
 
 var ContactDetails = {
   _editing: false,
+  _lastFocusedInput: null,
+
   setup: function cd_setup() {
     window.addEventListener('keyup', this, true);
+
+    // Binding to properly handle the return key
+    var inputs = this.container.querySelectorAll('input');
+    for (var i = 0; i < inputs.length; i++) {
+      inputs[i].onkeypress = (function cd_inputKeyPress(event) {
+        if (event.keyCode == event.DOM_VK_RETURN) {
+          this.focusNextField();
+          return false;
+        }
+      }).bind(this);
+    }
 
     // click outside details container to close
     this.overlay.addEventListener('click', function(evt) {
@@ -419,15 +432,9 @@ var ContactDetails = {
   // scrolling to the right position when one of the fields
   // takes focus
   autoscroll: function cd_autoscroll(event) {
-    var element = event.currentTarget;
+    this._lastFocusedInput = event.currentTarget;
+    var element = this.nextField(event.currentTarget);
     var self = this;
-
-    // displaying the next input or the save button
-    var nextGroup = element.parentNode.nextElementSibling;
-    var nextElement = nextGroup.querySelector('input');
-    if (nextElement) {
-      element = nextElement;
-    }
 
     var scrollInPlace = function cd_autoscrollMove() {
       element.scrollIntoView(false);
@@ -440,6 +447,25 @@ var ContactDetails = {
 
       scrollInPlace();
     });
+  },
+
+  focusNextField: function cd_focusNextField() {
+    if (!this._editing)
+      return;
+
+    if (this._lastFocusedInput)
+      this.nextField(this._lastFocusedInput).focus();
+  },
+
+  nextField: function cd_nextField(element) {
+    // selecting the next input or the save button
+    var nextGroup = element.parentNode.nextElementSibling;
+    var nextElement = nextGroup.querySelector('input');
+    if (nextElement) {
+      element = nextElement;
+    }
+
+    return element;
   },
 
   // back button handling
