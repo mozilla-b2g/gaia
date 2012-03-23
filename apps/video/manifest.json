@@ -1,30 +1,37 @@
 {
+  "fullscreen": true,
   "name": "Video",
-  "description": "Gaia Video",
-  "launch_path": "/video.html",
-  "developer": {
-    "name": "The Gaia Team",
-    "url": "https://github.com/andreasgal/gaia"
-  },
+  "default_locale": "en-US",
   "icons": {
     "120": "/style/icons/Video.png"
   },
-  "hackKillMe": true,
-  "fullscreen": true,
+  "description": "Gaia Video",
+  "launch_path": "/video.html",
+  "developer": {
+    "url": "https://github.com/andreasgal/gaia",
+    "name": "The Gaia Team"
+  },
   "locales": {
+    "ru": {
+      "name": "\u0412\u0438\u0434\u0435\u043e",
+      "description": "\u0412\u0438\u0434\u0435\u043e Gaia"
+    },
+    "en-US": {
+      "name": "Video",
+      "description": "Gaia Video"
+    },
     "ar": {
-      "name": "فيديو",
-      "description": "Gaia فيديو"
+      "name": "\u0641\u064a\u062f\u064a\u0648",
+      "description": "Gaia \u0641\u064a\u062f\u064a\u0648"
     },
     "fr": {
-      "name": "Vidéo",
-      "description": "Vidéo Gaia"
+      "name": "Vid\u00e9o",
+      "description": "Lecteur vid\u00e9o Gaia"
     },
     "zh-TW": {
-      "name": "影片",
-      "description": "Gaia 影片"
+      "name": "\u5f71\u7247",
+      "description": "Gaia \u5f71\u7247"
     }
   },
-  "default_locale": "en"
+  "hackKillMe": true
 }
-
