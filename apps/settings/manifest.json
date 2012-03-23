@@ -1,28 +1,35 @@
 {
   "name": "Settings",
-  "description": "Gaia Settings",
-  "launch_path": "/settings.html#root",
-  "developer": {
-    "name": "The Gaia Team",
-    "url": "https://github.com/andreasgal/gaia"
-  },
+  "default_locale": "en-US",
   "icons": {
     "120": "/style/icons/Settings.png"
   },
+  "description": "Gaia Settings",
+  "launch_path": "/settings.html#root",
   "locales": {
+    "ru": {
+      "name": "\u0423\u0441\u0442\u0430\u043d\u043e\u0432\u043a\u0438",
+      "description": "\u0423\u0441\u0442\u0430\u043d\u043e\u0432\u043a\u0438 Gaia"
+    },
+    "en-US": {
+      "name": "Settings",
+      "description": "Gaia Settings"
+    },
     "ar": {
-      "name": "الضبط",
-      "description": "Gaia الضبط"
+      "name": "\u0627\u0644\u0636\u0628\u0637",
+      "description": "Gaia \u0627\u0644\u0636\u0628\u0637"
     },
     "fr": {
-      "name": "Paramètres",
-      "description": "Paramètres Gaia"
+      "name": "Param\u00e8tres",
+      "description": "Param\u00e8tres Gaia"
     },
     "zh-TW": {
-      "name": "設定",
-      "description": "Gaia 設定"
+      "name": "\u8a2d\u5b9a",
+      "description": "Gaia \u8a2d\u5b9a"
     }
   },
-  "default_locale": "en"
+  "developer": {
+    "url": "https://github.com/andreasgal/gaia",
+    "name": "The Gaia Team"
+  }
 }
-
