@@ -102,23 +102,29 @@ var WindowManager = (function() {
   // and each time an app is brought to the front, since the
   // orientation could have changed since it was last displayed
   function setAppSize(url) {
-
-    // TODO: does this function need to handle the manifest.orientation
-    // property, or was that a temporary hack?
-    // See https://bugzilla.mozilla.org/show_bug.cgi?id=673922
-
     var app = runningApps[url];
     var frame = app.frame;
     var manifest = app.manifest;
 
-    frame.style.width = window.innerWidth + 'px';
-    frame.style.height = manifest.fullscreen
-      ? window.innerHeight + 'px'
-      : (window.innerHeight - statusbar.offsetHeight) + 'px';
+    // FIXME: for now, we support apps (video and cut the rope) that run
+    // in landscape mode and fullscreen.  Once we get real orientation
+    // support, this code will have to become more sophisticated.
+    // See https://bugzilla.mozilla.org/show_bug.cgi?id=673922
+    if (manifest.fullscreen && manifest.orientation) {
+      frame.style.width = window.innerHeight + 'px';
+      frame.style.height = window.innerWidth + 'px';
+      frame.classList.add(manifest.orientation);
+    }
+    else {
+      frame.style.width = window.innerWidth + 'px';
+      frame.style.height = manifest.fullscreen
+        ? window.innerHeight + 'px'
+        : (window.innerHeight - statusbar.offsetHeight) + 'px';
+    }
   }
 
   // Perform an "open" animation for the app's iframe
-  function openWindow(url, callback) {
+  function openWindow(url) {
     var app = runningApps[url];
     var frame = app.frame;
     var manifest = app.manifest;
@@ -160,19 +166,14 @@ var WindowManager = (function() {
       // If the sprite is not yet faded
       if (!sprite.classList.contains('faded')) {
         // The first transition has just completed.
-        // Call the callback if there is one.
-        // Make the app window visible and then fade the sprite away
-        if (callback)
-          callback();
-
+        // Make the app window visible, give it keyboard focus,
+        // and fade the sprite away
         frame.classList.add('active');
-        windows.classList.add('active');
+        frame.focus();
         sprite.classList.add('faded');
       }
       else {
-        // The second transition has just completed
-        // give the app focus and discard the sprite.
-        frame.focus();
+        // The first transition has just completed; we're done with the sprite
         document.body.removeChild(sprite);
       }
     });
@@ -246,7 +247,6 @@ var WindowManager = (function() {
 
     // And close the real app window
     frame.classList.remove('active');
-    windows.classList.remove('active');
 
     // If this is an hackKillMe app, set the apps iframe's src attribute
     // to an empty file to get rid of whatever resource-intensive 
@@ -275,36 +275,29 @@ var WindowManager = (function() {
 
   // Switch to a different app
   function setDisplayedApp(url) {
-    var currentApp = displayedApp, newApp = url;
+    if (displayedApp === url)
+      return;
 
-    // There are four cases that we handle in different ways:
-    // 1) The new app is already displayed: do nothing
-    // 2) We're going from the homescreen to an app
-    // 3) We're going from an app to the homescreen
-    // 4) We're going from one app to another (via task switcher)
-
-    // Case 1
-    if (currentApp == newApp) {
-      // Do nothing
-    }
-    // Case 2: homescreen->app
-    else if (currentApp == null) {
-      setAppSize(newApp);
-      openWindow(newApp);
-    }
-    // Case 3: app->homescreen
-    else if (newApp == null) {
+    // Hide the displayed app, if there is one
+    if (displayedApp) {
       // If we're switching to another app, then just hide this
       // one immediately.  Otherwise, do an animation
-      closeWindow(currentApp);
+      closeWindow(displayedApp, url != null);
     }
-    // Case 4: app-to-app transition
-    else {
-      setAppSize(newApp);
-      openWindow(newApp, function() {
-        closeWindow(currentApp, true);
-      });
+
+    // Show the new app, if there is one
+    if (url) {
+      setAppSize(url);
+      openWindow(url);
     }
+
+    // If there was no app before and now there is one, make
+    // the window container active and visible.  Or, if
+    // there was an app but now there is none, do the opposite.
+    if (!displayedApp && url)
+      windows.classList.add('active');
+    else if (displayedApp && !url) 
+      windows.classList.remove('active');
 
     displayedApp = url;
   }
