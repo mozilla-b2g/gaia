@@ -973,24 +973,52 @@ var TelephonyListener = function() {
 
 /* === Homescreen === */
 var Homescreen = function() {
-  function populateApps(apps) {
+  AppManager.getInstalledApps(function(apps) {
     var grid = new IconGrid('apps');
     grid.dots = new Dots('dots', 'apps');
-
-    for (var i = 0; i < apps.length; i++) {
-      var app = apps[i];
-      grid.add(app.icon, app.name, app.url);
+      
+    // The current language for localizing app names 
+    var lang = document.mozL10n.language.code;
+    
+    for(var origin in apps) {
+      var app = apps[origin];
+      
+      // FIXME:
+      // We should be smarter about choosing the icon size here.
+      // And we should get the icons from their own origin, not
+      // hardcode the homescreen here.  But until the homescreen can
+      // load and store a private copy of the icon, we'll do it this way.
+      // 
+      // Most apps will host their own icons at their own origin.
+      // But for apps that are bookmarks to other sites, the icons 
+      // should probably be a data:// URL.  So take the icon from the
+      // manifest, and if it is an absolute URL, leave it alone.  
+      // Otherwise, put the app origin in front of it.
+      // 
+      // FIXME: for now, this is just a hack, and all icons are
+      // hosted on the homescreen site
+      //
+      var icon = app.manifest.icons
+        ? 'http://homescreen.gaiamobile.org' + app.manifest.icons['120']
+        : '';
+      
+      // Localize the app name
+      var name = app.manifest.name;
+      if (app.manifest.locales &&
+          app.manifest.locales[lang] &&
+          app.manifest.locales[lang].name)
+        name = app.manifest.locales[lang].name;
+      
+      grid.add(icon, name, origin);
     }
-
+    
     grid.update();
     grid.setPage(0);
-
+    
     window.addEventListener('resize', function() {
-      grid.update();
+        grid.update();
     });
-  };
-
-  Gaia.AppManager.loadInstalledApps(populateApps);
+  });
 };
 
 function DefaultPhysics(iconGrid) {
