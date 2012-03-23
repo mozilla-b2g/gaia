@@ -18,6 +18,10 @@
     "zh-TW": {
       "name": "主畫面",
       "description": "Gaia 主畫面"
+    },
+    "ru": {
+      "name": "Главный экран",
+      "description": "Главный экран Gaia"
     }
   },
   "default_locale": "en"

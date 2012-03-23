@@ -18,6 +18,9 @@
     },
     "zh-TW": {
       "description": "CNN 行動應用程式"
+    },
+    "ru": {
+      "description": "Мобильное приложение CNN"
     }
   },
   "default_locale": "en"

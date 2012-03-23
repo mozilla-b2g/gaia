@@ -21,6 +21,10 @@
     "zh-TW": {
       "name": "郵件",
       "description": "GMail"
+    },
+    "ru": {
+      "name": "Почта",
+      "description": "GMail"
     }
   },
   "default_locale": "en"

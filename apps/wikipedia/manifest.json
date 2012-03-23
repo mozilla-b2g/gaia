@@ -21,6 +21,10 @@
     "zh-TW": {
       "name": "維基百科",
       "description": "維基百科行動應用程式"
+    },
+    "ru": {
+      "name": "Википедия",
+      "description": "Мобильное приложения Википедия"
     }
   },
   "default_locale": "en"

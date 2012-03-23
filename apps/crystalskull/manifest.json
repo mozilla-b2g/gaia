@@ -19,6 +19,9 @@
     },
     "zh-TW": {
       "description": "WebGL 示範"
+    },
+    "ru": {
+      "description": "Демонстрация WebGL"
     }
   },
   "default_locale": "en"

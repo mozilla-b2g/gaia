@@ -21,6 +21,10 @@
     "zh-TW": {
       "name": "市集",
       "description": "下載與安裝應用程式"
+    },
+    "ru": {
+      "name": "Маркет",
+      "description": "Каталог для загрузки и установки приложений"
     }
   },
   "default_locale": "en"

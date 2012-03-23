@@ -21,6 +21,10 @@
     "zh-TW": {
       "name": "計算機",
       "description": "計算機"
+    },
+    "ru": {
+      "name": "Калькулятор",
+      "description": "Калькулятор"
     }
   },
   "default_locale": "en"

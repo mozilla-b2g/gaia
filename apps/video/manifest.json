@@ -23,6 +23,10 @@
     "zh-TW": {
       "name": "影片",
       "description": "Gaia 影片"
+    },
+    "ru": {
+      "name": "Видео",
+      "description": "Видео Gaia"
     }
   },
   "default_locale": "en"

@@ -21,6 +21,10 @@
     "zh-TW": {
       "name": "相簿",
       "description": "Gaia 相簿"
+    },
+    "ru": {
+      "name": "Галерея",
+      "description": "Галерея Gaia"
     }
   },
   "default_locale": "en"

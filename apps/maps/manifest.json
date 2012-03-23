@@ -21,6 +21,10 @@
     "zh-TW": {
       "name": "地圖",
       "description": "Google 地圖"
+    },
+    "ru": {
+      "name": "Карты",
+      "description": "Google Maps"
     }
   },
   "default_locale": "en"

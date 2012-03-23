@@ -21,6 +21,10 @@
     "zh-TW": {
       "name": "Facebook",
       "description": "Facebook 行動應用程式"
+    },
+    "ru": {
+      "name": "Facebook",
+      "description": "Мобильное приложение Facebook"
     }
   },
   "default_locale": "en"

@@ -21,6 +21,9 @@
     "zh-TW": {
       "name": "Zimbra",
       "description": "Mozilla Zimbra 郵件"
+    },
+    "ru": {
+      "description": "Почта Mozilla Zimbra"
     }
   },
   "default_locale": "en"

@@ -21,6 +21,10 @@
     "zh-TW": {
       "name": "音樂",
       "description": "Gaia 音樂"
+    },
+    "ru": {
+      "name": "Музыка",
+      "description": "Музыка Gaia"
     }
   },
   "default_locale": "en"
