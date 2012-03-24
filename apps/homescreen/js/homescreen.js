@@ -1108,7 +1108,10 @@ AppScreen.prototype.build = function(rebuild) {
     // (technically, manifests are not supposed to have those)
     // Otherwise, prefix with the app origin
     if (icon.indexOf(':') == -1) {
-      icon = app.origin + icon;
+      // XXX it looks like the homescreen can't load images from other origins (WTF??)
+      // so use the ones from the homescreen.gaiamobile.org domain for now
+      // icon = app.origin + icon;
+      icon = "http://homescreen.gaiamobile.org" + icon;
     }
 
     // Localize the app name
