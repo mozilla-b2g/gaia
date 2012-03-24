@@ -580,8 +580,10 @@ window.addEventListener('keyup', SleepMenu, true);
 
 function SettingListener(name, callback) {
   var update = function update() {
-    if (!navigator.mozSettings)
+    if (!navigator.mozSettings) {
+      console.log('mozSettings is not available on this platform.');
       return;
+    }
     var request = navigator.mozSettings.get(name);
 
     request.addEventListener('success', function onsuccess(evt) {
