@@ -995,12 +995,8 @@ function AppScreen() {
 
       var app = e.detail.app;
 
-      // FIXME: Localize the app name from the manifest
-      // and use document.mozL10n.get() to localize the entire message
-      var message = 'Do you want to install ' +
-        app.manifest.name + ' from ' + app.origin + '?';
-
-      requestPermission(message,
+      // Note: we could use `requestPermission(_('install', app), ...)`
+      requestPermission(_('install', { name: app.name, origin: app.origin }),
                         function() { sendResponse(e.detail.id, true); },
                         function() { sendResponse(e.detail.id, false); });
     }
