@@ -105,7 +105,7 @@
   },
 
  "crystalskull": {
-    "origin": "../crystalskull",
+    "origin": "http://crystalskull.gaiamobile.org",
     "installOrigin": "http://www.everyday3d.com/j3d/demo",
     "receipt": null,
     "installTime": 1323339869000
