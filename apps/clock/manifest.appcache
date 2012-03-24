@@ -1,15 +1,15 @@
 CACHE MANIFEST
 index.html
-js/timer.js
 js/clock.js
 js/stopwatch.js
+js/timer.js
 locale/clock.properties
 manifest.appcache
 manifest.json
 style/clock.css
+style/icons/Clock.png
 style/images/alarm.png
 style/images/home-texture.png
-style/images/timer.png
 style/images/stopwatch.png
-style/icons/Clock.png
+style/images/timer.png
 http://gaiamobile.org/webapi.js
