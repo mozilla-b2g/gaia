@@ -10,6 +10,8 @@ INJECTED_GAIA = "$(MOZ_TESTS)/browser/gaia"
 
 TEST_PATH=gaia/tests/${TEST_FILE}
 
+B2G_PID=$(shell $(ADB) shell toolbox ps | grep "b2g" | awk '{ print $$2; }')
+
 mochitest:
 	echo "Checking if the mozilla build has mochitests enabled..."
 	test -d $(MOZ_TESTS) || (echo "Please ensure you don't have |ac_add_options --disable-tests| in your mozconfig." && exit 1)
@@ -48,7 +50,7 @@ install-gaia: copy-manifests offline
 	$(ADB) push profile/OfflineCache /data/local/OfflineCache
 	$(ADB) push profile/webapps /data/local/webapps
 	@echo 'Rebooting b2g now'
-	$(ADB) shell killall b2g
+	$(ADB) shell kill $(B2G_PID)
 
 # Copy the app manifest files to the profile dir where the
 # mozApps API can find them. For desktop usage, you must create
