@@ -9,10 +9,7 @@ imes/jszhuyin/README
 imes/jszhuyin/words.json
 index.html
 js/app_manager.js
-js/#homescreen.js#
 js/homescreen.js
-js/homescreen.js.orig
-js/homescreen.js.rej
 js/keyboard.js
 js/keyboardLayout.js
 js/window_manager.js
