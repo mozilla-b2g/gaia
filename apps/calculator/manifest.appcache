@@ -3,10 +3,10 @@ index.html
 js/calculator.js
 manifest.appcache
 manifest.json
-style/images/home-texture.png
 style/calculator.css
-style/icons/Calculator.png
-style/fonts/Open-Sans-Semibold.woff
 style/fonts/Open-Sans-Bold.woff
+style/fonts/Open-Sans-Semibold.woff
 style/fonts/Open-Sans.woff
+style/icons/Calculator.png
+style/images/home-texture.png
 http://gaiamobile.org/webapi.js
