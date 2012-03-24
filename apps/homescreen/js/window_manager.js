@@ -327,20 +327,20 @@ var WindowManager = (function() {
     if (isRunning(origin))
       return;
 
-    var app = AppManager.getAppByOrigin(origin);
+    var app = appscreen.getAppByOrigin(origin);
     app.launch();
   }
 
   // The mozApps API launch() method generates an event that we handle
   // here to do the actual launching of the app
-  window.addEventListener("mozChromeEvent", function(e) {
+  window.addEventListener('mozChromeEvent', function(e) {
     if (e.detail.type === 'webapps-launch') {
       var origin = e.detail.origin;
       var url = e.detail.url;
       if (isRunning(origin))
         return;
 
-      var app = AppManager.getAppByOrigin(origin);
+      var app = appscreen.getAppByOrigin(origin);
       var manifest = app.manifest;
       var name = manifest.name;
 
