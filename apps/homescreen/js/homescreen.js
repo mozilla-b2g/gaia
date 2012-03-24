@@ -124,7 +124,7 @@ var LockScreen = {
   unlock: function lockscreen_unlock(instant, callback) {
     var offset = '-100%';
     var style = this.overlay.style;
-    
+
     if (!this.locked) {
       if (instant) {
         style.MozTransition = style.MozTransform = '';
@@ -550,7 +550,8 @@ var SleepMenu = {
             activePhoneSound = false;
 
             var settings = window.navigator.mozSettings;
-            settings.set('phone.ring.incoming', 'false');
+            if (settings)
+              settings.set('phone.ring.incoming', 'false');
 
             document.getElementById('silent').hidden = true;
             document.getElementById('normal').hidden = false;
@@ -559,7 +560,8 @@ var SleepMenu = {
             activePhoneSound = true;
 
             var settings = window.navigator.mozSettings;
-            settings.get('phone.ring.incoming', 'true');
+            if (settings)
+              settings.get('phone.ring.incoming', 'true');
 
             document.getElementById('silent').hidden = false;
             document.getElementById('normal').hidden = true;
@@ -591,6 +593,10 @@ window.addEventListener('keyup', SleepMenu, true);
 
 function SettingListener(name, callback) {
   var update = function update() {
+    if (!navigator.mozSettings) {
+      console.log('mozSettings is not available on this platform.');
+      return;
+    }
     var request = navigator.mozSettings.get(name);
 
     request.addEventListener('success', function onsuccess(evt) {
@@ -718,7 +724,7 @@ new SettingListener('debug.grid.enabled', function(value) {
 /* === Wallpapers === */
 new SettingListener('homescreen.wallpaper', function(value) {
   var home = document.getElementById('home');
-  home.style.background = 'url(style/themes/default/backgrounds/' + value + ')';
+  home.style.backgroundImage = 'url(style/themes/default/backgrounds/' + value + ')';
 });
 
 /* === Ring Tone === */
@@ -1148,7 +1154,7 @@ IconGrid.prototype = {
     }
 
     // issue #723 - The calculation of the width/height of the icons
-    // should be dynamic and not harcoded like that. The reason why it
+    // should be dynamic and not hardcoded like that. The reason why it
     // it is done like that at this point is because there is no icon
     // when the application starts and so there is nothing to calculate
     // against.
