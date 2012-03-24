@@ -151,6 +151,7 @@ body {
   display: inline-block;
 }
 
+/* Horizontal orientation height of our current target phones */
 @media all and (max-height: 600px) {
   #home {
     background-size: cover;
@@ -167,6 +168,7 @@ body {
   }
 }
 
+/* Vertical orientation of 320x480 phones */
 @media all and (max-width: 320px) {
   .page {
     left: 30px;
@@ -174,6 +176,7 @@ body {
   }
 }
 
+/* Horizontal orientation height of 800x480 phones */
 @media all and (min-width: 800px) {
   .page {
     left: 70px;
