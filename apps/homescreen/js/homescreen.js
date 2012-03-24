@@ -996,7 +996,7 @@ function AppScreen() {
       var app = e.detail.app;
 
       // Note: we could use `requestPermission(_('install', app)), ...)`
-      requestPermission(_('install', { name: app.name, origin: app.origin })),
+      requestPermission(_('install', { name: app.name, origin: app.origin }),
                         function() { sendResponse(e.detail.id, true); },
                         function() { sendResponse(e.detail.id, false); });
     }
