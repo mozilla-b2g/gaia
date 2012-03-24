@@ -90,7 +90,7 @@ offline:
 			echo \\t$$d ;\
 			cd $$d ;\
 			echo "CACHE MANIFEST" > manifest.appcache ;\
-			find * -type f | grep -v tools >> manifest.appcache ;\
+			find * -type f | grep -v tools | sort >> manifest.appcache ;\
 			echo "http://gaiamobile.org/webapi.js" >> manifest.appcache ;\
 			cd .. ;\
 		fi \
