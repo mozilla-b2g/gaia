@@ -1,7 +1,7 @@
 
 GAIA_DOMAIN ?= gaiamobile.org
 GAIA_DIR?=$(CURDIR)
-B2G_HOMESCREEN=file://$(GAIA_DIR)/homescreen.html
+B2G_HOMESCREEN=file://$(GAIA_DIR)/index.html
 
 PROFILE_DIR?=$(CURDIR)/profile
 
@@ -96,4 +96,4 @@ offline:
 		fi \
 	done
 	@cd ..
-	$(MOZ_OBJDIR)/dist/bin/run-mozilla.sh $(MOZ_OBJDIR)/dist/bin/xpcshell -e 'const GAIA_DIR = "$(GAIA_DIR)"; const PROFILE_DIR = "$(PROFILE_DIR)"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)"' offline-cache.js
+	$(MOZ_OBJDIR)/run-mozilla.sh $(MOZ_OBJDIR)/xpcshell -e 'const GAIA_DIR = "$(GAIA_DIR)"; const PROFILE_DIR = "$(PROFILE_DIR)"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)"' offline-cache.js
