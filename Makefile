@@ -22,6 +22,14 @@ mochitest:
 # to specify its location.
 ADB?=adb
 
+# Linux only!
+# downloads and installs locally xulrunner to run the xpchsell
+# script that creates the offline cache
+XULRUNNER=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/11.0/runtimes/xulrunner-11.0.en-US.linux-i686.tar.bz2
+.PHONY: xulrunner
+xulrunner:
+	test -d xulrunner || (wget $(XULRUNNER) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2)
+
 
 # If your gaia/ directory is a sub-directory of the B2G directory, then
 # you should use the install-gaia target of the B2G Makefile. But if you're
@@ -76,12 +84,9 @@ forward:
 	$(ADB) shell killall rilproxy
 	$(ADB) forward tcp:6200 localreserved:rilproxyd
 
-# Build the offline cache database
-.PHONY: offline
-offline:
-	@echo "Building offline manifests and cache"
-	@rm -rf profile/OfflineCache
-	@mkdir -p profile/OfflineCache
+# update the manifest.appcache files to match what's actually there
+.PHONY: appcache-manifests
+appcache-manifests:
 	@cd apps; \
 	for d in `find * -maxdepth 0 -type d` ;\
 	do \
@@ -95,5 +100,12 @@ offline:
 			cd .. ;\
 		fi \
 	done
+
+# Build the offline cache database
+.PHONY: offline
+offline: xulrunner
+	@echo "Building offline cache"
+	@rm -rf profile/OfflineCache
+	@mkdir -p profile/OfflineCache
 	@cd ..
-	$(MOZ_OBJDIR)/run-mozilla.sh $(MOZ_OBJDIR)/xpcshell -e 'const GAIA_DIR = "$(GAIA_DIR)"; const PROFILE_DIR = "$(PROFILE_DIR)"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)"' offline-cache.js
+	./xulrunner/run-mozilla.sh ./xulrunner/xpcshell -e 'const GAIA_DIR = "$(GAIA_DIR)"; const PROFILE_DIR = "$(PROFILE_DIR)"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)"' offline-cache.js
