@@ -1332,7 +1332,7 @@
     xhr.open('GET', href, true);
     xhr.onreadystatechange = function() {
       if (xhr.readyState == 4) {
-        if (xhr.status == 200) {
+        if (xhr.status == 200 || xhr.status == 0) {
           parse(xhr.responseText, lang);
           if (onSuccess)
             onSuccess();
