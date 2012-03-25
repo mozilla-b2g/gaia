@@ -18,24 +18,29 @@ function startup() {
   html.dir = lang.direction;
   document.dir = lang.direction;
 
-  appscreen = new AppScreen();
+  if (!appscreen) { // first start: init
+    appscreen = new AppScreen();
 
-  LockScreen.init();
-  LockScreen.update(function fireHomescreenReady() {
-    ScreenManager.turnScreenOn();
+    LockScreen.init();
+    LockScreen.update(function fireHomescreenReady() {
+      ScreenManager.turnScreenOn();
 
-    var touchables = [
-      document.getElementById('notifications-screen'),
-      document.getElementById('statusbar')
-    ];
+      var touchables = [
+        document.getElementById('notifications-screen'),
+        document.getElementById('statusbar')
+      ];
 
-    NotificationScreen.init(touchables);
+      NotificationScreen.init(touchables);
 
-    new MessagesListener();
-    new TelephonyListener();
+      new MessagesListener();
+      new TelephonyListener();
 
-    window.parent.postMessage('homescreenready', '*');
-  });
+      window.parent.postMessage('homescreenready', '*');
+    });
+  }
+  else { // locale has been changed: rebuild app grid
+    appscreen.build(true);
+  }
 
   updateClock();
   updateBattery();
@@ -724,6 +729,19 @@ var GridView = {
 
 new SettingListener('debug.grid.enabled', function(value) {
   value == 'true' ? GridView.show() : GridView.hide();
+});
+
+/* === Language === */
+
+// Unfortunately, a setting listener doesn't seem to work here.
+// That might be an issue of the Settings API...
+//new SettingListener('language.current', switchLocale);
+// ... so let's listen to post messages instead:
+window.addEventListener('message', function getMessage(evt) {
+  if (evt.data && evt.data.language) {
+    // change language -- this triggers startup() and a rebuild
+    document.mozL10n.language.code = evt.data.language;
+  }
 });
 
 /* === Wallpapers === */
