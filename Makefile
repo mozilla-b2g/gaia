@@ -1,7 +1,7 @@
 
 GAIA_DOMAIN ?= gaiamobile.org
 GAIA_DIR?=$(CURDIR)
-B2G_HOMESCREEN=file://$(GAIA_DIR)/homescreen.html
+B2G_HOMESCREEN=file://$(GAIA_DIR)/index.html
 
 PROFILE_DIR?=$(CURDIR)/profile
 
@@ -9,6 +9,8 @@ MOZ_TESTS = "$(MOZ_OBJDIR)/_tests/testing/mochitest"
 INJECTED_GAIA = "$(MOZ_TESTS)/browser/gaia"
 
 TEST_PATH=gaia/tests/${TEST_FILE}
+
+B2G_PID=$(shell $(ADB) shell toolbox ps | grep "b2g" | awk '{ print $$2; }')
 
 mochitest:
 	echo "Checking if the mozilla build has mochitests enabled..."
@@ -21,6 +23,14 @@ mochitest:
 # It should be in your path somewhere, or you can edit this line
 # to specify its location.
 ADB?=adb
+
+# Linux only!
+# downloads and installs locally xulrunner to run the xpchsell
+# script that creates the offline cache
+XULRUNNER=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/11.0/runtimes/xulrunner-11.0.en-US.linux-i686.tar.bz2
+.PHONY: xulrunner
+xulrunner:
+	test -d xulrunner || (wget $(XULRUNNER) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2)
 
 
 # If your gaia/ directory is a sub-directory of the B2G directory, then
@@ -40,7 +50,7 @@ install-gaia: copy-manifests offline
 	$(ADB) push profile/OfflineCache /data/local/OfflineCache
 	$(ADB) push profile/webapps /data/local/webapps
 	@echo 'Rebooting b2g now'
-	$(ADB) shell killall b2g
+	$(ADB) shell kill $(B2G_PID)
 
 # Copy the app manifest files to the profile dir where the
 # mozApps API can find them. For desktop usage, you must create
@@ -76,12 +86,9 @@ forward:
 	$(ADB) shell killall rilproxy
 	$(ADB) forward tcp:6200 localreserved:rilproxyd
 
-# Build the offline cache database
-.PHONY: offline
-offline:
-	@echo "Building offline manifests and cache"
-	@rm -rf profile/OfflineCache
-	@mkdir -p profile/OfflineCache
+# update the manifest.appcache files to match what's actually there
+.PHONY: appcache-manifests
+appcache-manifests:
 	@cd apps; \
 	for d in `find * -maxdepth 0 -type d` ;\
 	do \
@@ -90,10 +97,17 @@ offline:
 			echo \\t$$d ;\
 			cd $$d ;\
 			echo "CACHE MANIFEST" > manifest.appcache ;\
-			find * -type f | grep -v tools >> manifest.appcache ;\
+			find * -type f | grep -v tools | sort >> manifest.appcache ;\
 			echo "http://gaiamobile.org/webapi.js" >> manifest.appcache ;\
 			cd .. ;\
 		fi \
 	done
+
+# Build the offline cache database
+.PHONY: offline
+offline: xulrunner
+	@echo "Building offline cache"
+	@rm -rf profile/OfflineCache
+	@mkdir -p profile/OfflineCache
 	@cd ..
-	$(MOZ_OBJDIR)/dist/bin/run-mozilla.sh $(MOZ_OBJDIR)/dist/bin/xpcshell -e 'const GAIA_DIR = "$(GAIA_DIR)"; const PROFILE_DIR = "$(PROFILE_DIR)"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)"' offline-cache.js
+	./xulrunner/run-mozilla.sh ./xulrunner/xpcshell -e 'const GAIA_DIR = "$(GAIA_DIR)"; const PROFILE_DIR = "$(PROFILE_DIR)"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)"' offline-cache.js
