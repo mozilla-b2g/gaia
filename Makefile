@@ -32,6 +32,10 @@ XULRUNNER=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/11.0/runtime
 xulrunner:
 	test -d xulrunner || (wget $(XULRUNNER) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2)
 
+# Install into profile/ all the files needed to load gaia on device.
+.PHONY: gaia
+gaia: copy-manifests offline
+	@echo "Installed gaia into profile/."
 
 # If your gaia/ directory is a sub-directory of the B2G directory, then
 # you should use the install-gaia target of the B2G Makefile. But if you're
@@ -42,7 +46,7 @@ xulrunner:
 PROFILE := $$($(ADB) shell ls -d /data/b2g/mozilla/*.default | tr -d '\r')
 PROFILE_DATA := profile
 .PHONY: install-gaia
-install-gaia: copy-manifests offline
+install-gaia: gaia
 	$(ADB) start-server
 	$(ADB) shell rm -r /data/local/*
 	$(ADB) shell rm -r /cache/*
