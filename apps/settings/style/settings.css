@@ -49,3 +49,11 @@ html, body {
   left: 20px;
   right: auto;
 }
+
+*[dir=ltr] a[dir=rtl] {
+  text-align: left;
+}
+
+*[dir=rtl] a[dir=ltr] {
+  text-align: right;
+}
