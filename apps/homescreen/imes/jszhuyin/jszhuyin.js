@@ -921,10 +921,16 @@
       }
 
       debug('Lookup in IndexedDB.');
-      var store = iDB.transaction('terms', IDBTransaction.READ_ONLY)
-        .objectStore('terms');
+
+      // Only create transaction if necessary,
+      // prevent clogging the IndexedDB
+      var getStore = function getStore() {
+        return iDB.transaction('terms', IDBTransaction.READ_ONLY)
+          .objectStore('terms');
+      };
+
       if (!matchRegEx) {
-        var req = store.get(syllablesStr);
+        var req = getStore().get(syllablesStr);
         req.onerror = function getdbError(ev) {
           debug('Database read error.');
           callback(false);
@@ -966,10 +972,10 @@
       }
       if (IDBIndex.prototype.getAll) {
         // Mozilla IndexedDB extension
-        var req = store.index('constantSyllables').getAll(
+        var req = getStore().index('constantSyllables').getAll(
           IDBKeyRange.only(constants));
       } else {
-        var req = store.index('constantSyllables').openCursor(
+        var req = getStore().index('constantSyllables').openCursor(
           IDBKeyRange.only(constants));
       }
       req.onerror = function getdbError(ev) {
