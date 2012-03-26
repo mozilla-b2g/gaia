@@ -955,7 +955,7 @@ var TelephonyListener = function() {
       }
     });
 
-    WindowManager.launch('../dialer/dialer.html');
+    WindowManager.launch('http://dialer.gaiamobile.org');
   });
 
   // Handling the missed call notification
@@ -1104,7 +1104,7 @@ AppScreen.prototype.build = function(rebuild) {
     // manifest, and if it is an absolute URL, leave it alone.
     // Otherwise, put the app origin in front of it.
     // If no icon is defined we'll get this undefined one.
-    var icon = 'http://homescreen.gaiamobile.org/style/icons/Unknown.png';
+    var icon = 'http://' + document.location.host + '/style/icons/Unknown.png';
     if (app.manifest.icons) {
       if ('120' in app.manifest.icons) {
         icon = app.manifest.icons['120'];
@@ -1123,9 +1123,9 @@ AppScreen.prototype.build = function(rebuild) {
     // Otherwise, prefix with the app origin
     if (icon.indexOf(':') == -1) {
       // XXX it looks like the homescreen can't load images from other origins (WTF??)
-      // so use the ones from the homescreen.gaiamobile.org domain for now
+      // so use the ones from the url host for now
       // icon = app.origin + icon;
-      icon = "http://homescreen.gaiamobile.org" + icon;
+      icon = 'http://' + document.location.host + icon;
     }
 
     // Localize the app name
