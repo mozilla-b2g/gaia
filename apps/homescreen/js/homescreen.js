@@ -914,7 +914,7 @@ var MessagesListener = function() {
     // If the sms application is opened, just delete all messages
     // notifications
     var applicationURL = evt.detail.url;
-    if (!/^\.\.\/sms\/sms\.html/.test(applicationURL))
+    if (!/sms\.gaiamobile/.test(applicationURL))
       return;
 
     delete hasMessages.dataset.visible;
@@ -974,7 +974,7 @@ var TelephonyListener = function() {
     // If the dialer application is opened, just delete all messages
     // notifications
     var applicationURL = evt.detail.url;
-    if (!/^\.\.\/dialer\/dialer\.html/.test(applicationURL))
+    if (!/dialer\.gaiamobile/.test(applicationURL))
       return;
 
     delete hasMissedCalls.dataset.visible;
