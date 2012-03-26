@@ -6,7 +6,11 @@
     <title>Clock</title>
     <link rel="stylesheet" type="text/css" href="style/clock.css">
     <link rel="resource" type="application/l10n" href="locale/clock.properties">
-    <script src="http://gaiamobile.org/webapi.js"></script>
+    <script>
+      var host = document.location.host.replace(/^[a-z]+\./i,'');
+      var src = 'http://' + host + '/webapi.js';
+      document.write('<script src="' + src + '"><\/script>');
+    </script>
     <script type="application/javascript" src="js/clock.js"></script>
     <script type="application/javascript" src="js/stopwatch.js"></script>
     <script type="application/javascript" src="js/timer.js"></script>
@@ -59,16 +63,12 @@
           </div>
         </div>
       </div>
-
-      <div id="alarm-view" class="view" hidden="true">
-      </div>
     </div>
     <div id="tabs-container">
       <div id="tabs" onclick="choiceChanged(event.target)">
         <fieldset>
           <label id="stopwatch-label" for="stopwatch-choice" data-choice="stopwatch" data-active="true"><input id="stopwatch-choice" type="radio" name="tabs" checked="checked" /></label>
           <label id="timer-label" for="timer-choice" data-choice="timer"><input id="timer-choice" type="radio" name="tabs" checked="" /></label>
-          <label id="alarm-label" for="alarm-choice" data-choice="alarm"><input id="alarm-choice" type="radio" name="tabs" checked="" /></label>
         </fieldset>
       </div>
     </div>

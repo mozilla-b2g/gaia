@@ -1134,8 +1134,14 @@
 // navigator.mozWifiManager
 (function(window) {
   var navigator = window.navigator;
-  if ('mozWifiManager' in navigator)
-    return;
+
+  try {
+    if ('mozWifiManager' in navigator)
+      return;
+  } catch(e) {
+    //Bug 739234 - state[0] is undefined when initializing DOMWifiManager
+    dump(e);
+  }
 
   /** fake network list, where each network object looks like:
     * {
@@ -1330,6 +1336,7 @@
   function loadResource(href, lang, onSuccess, onFailure) {
     var xhr = new XMLHttpRequest();
     xhr.open('GET', href, true);
+    xhr.overrideMimeType('text/plain; charset=utf-8');
     xhr.onreadystatechange = function() {
       if (xhr.readyState == 4) {
         if (xhr.status == 200 || xhr.status == 0) {

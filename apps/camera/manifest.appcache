@@ -1,7 +1,7 @@
 CACHE MANIFEST
 index.html
 js/camera.js
-manifest.appcache
+
 manifest.json
 style/camera.css
 style/icons/Camera.png
