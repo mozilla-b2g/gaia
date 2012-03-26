@@ -41,11 +41,6 @@ const { 'classes': Cc, 'interfaces': Ci, 'results': Cr, } = Components;
  * Compile Gaia into an offline cache sqlite database.
  */
 function storeCache(id, url, content, count) {
-  // The temporary webapi.js file should be stored in the
-  // same directory as the running application. So rewrite
-  // a little bit the url and the content for that.
-  url = url.replace("../../webapi.js", "webapi.js");
-
   const nsICache = Ci.nsICache;
   let cacheService = Cc["@mozilla.org/network/cache-service;1"]
                        .getService(Ci.nsICacheService);
@@ -191,7 +186,7 @@ directories.forEach(function generateAppCache(dir) {
                  .createInstance(Ci.nsILocalFile);
     file.initWithPath(root);
 
-    if (name == ("http://" + GAIA_DOMAIN + "/webapi.js")) {
+    if (name == ("http://gaiamobile.org/webapi.js")) {
       hasWebapi = true;
       return;
     }
@@ -232,8 +227,7 @@ directories.forEach(function generateAppCache(dir) {
   if (hasWebapi) {
     let file = Cc["@mozilla.org/file/local;1"]
                  .createInstance(Ci.nsILocalFile);
-    file.initWithPath(base);
-    file.append("..");
+    file.initWithPath(GAIA_DIR);
     file.append("webapi.js");
 
     if (!file.exists()) {

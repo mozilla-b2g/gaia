@@ -89,4 +89,4 @@ style/themes/default/images/volume-off.png
 style/themes/default/images/volume-on.png
 style/themes/default/images/wifi.png
 style/themes/default/statusbar.css
-../../webapi.js
+http://gaiamobile.org/webapi.js
