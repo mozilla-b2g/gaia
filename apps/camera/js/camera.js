@@ -23,7 +23,7 @@ var Camera = {
     this.switchButton.addEventListener('click', this.toggleCamera.bind(this));
     this.galleryButton.addEventListener('click', function() {
       // This is bad. It should eventually become a hyperlink or Web Intent.
-      window.parent.WindowManager.launch('../gallery/gallery.html');
+      window.parent.WindowManager.launch('http://gallery.gaiamobile.org/');
     });
 
     this.setSource(this._camera);

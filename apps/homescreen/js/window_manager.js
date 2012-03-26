@@ -328,6 +328,10 @@ var WindowManager = (function() {
       return;
 
     var app = appscreen.getAppByOrigin(origin);
+    // TODO: is the startPoint argument implemented?
+    // and is it passed back to us in the webapps-launch method?
+    // If so, we could use that to pass a query string or fragmentid
+    // to append to the apps' URL.
     app.launch();
   }
 
