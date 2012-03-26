@@ -919,7 +919,9 @@ var MessagesListener = function() {
     // If the sms application is opened, just delete all messages
     // notifications
     var applicationURL = evt.detail.url;
-    if (!/sms\.gaiamobile/.test(applicationURL))
+    var host = document.location.host.replace(/^[a-z]+\./i,'');
+    var matcher = new RegExp('/sms\.' + host);
+    if (!matcher.test(applicationURL))
       return;
 
     delete hasMessages.dataset.visible;
@@ -979,7 +981,10 @@ var TelephonyListener = function() {
     // If the dialer application is opened, just delete all messages
     // notifications
     var applicationURL = evt.detail.url;
-    if (!/dialer\.gaiamobile/.test(applicationURL))
+
+    var host = document.location.host.replace(/^[a-z]+\./i,'');
+    var matcher = new RegExp('/dialer\.' + host);
+    if (!matcher.test(applicationURL))
       return;
 
     delete hasMissedCalls.dataset.visible;
