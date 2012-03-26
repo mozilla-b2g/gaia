@@ -83,7 +83,7 @@ install-gaia: gaia
 copy-manifests:
 	@mkdir -p profile/webapps
 	@cp apps/webapps.json profile/webapps
-	sed profile/webapps/webapps.json -i -e 's|gaiamobile.org|$(GAIA_DOMAIN)|g'
+	sed -i -e 's|gaiamobile.org|$(GAIA_DOMAIN)|g' profile/webapps/webapps.json
 	@cd apps; \
 	for d in `find * -maxdepth 0 -type d` ;\
 	do \
@@ -127,7 +127,7 @@ appcache-manifests:
 			cd $$d ;\
 			echo "CACHE MANIFEST" > manifest.appcache ;\
 			find * -type f | grep -v tools | sort >> manifest.appcache ;\
-			sed manifest.appcache -i -e 's|manifest.appcache||g' ;\
+			sed -i -e 's|manifest.appcache||g' manifest.appcache ;\
 			echo "http://$(GAIA_DOMAIN)/webapi.js" >> manifest.appcache ;\
 			cd .. ;\
 		fi \
