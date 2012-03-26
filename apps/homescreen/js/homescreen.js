@@ -955,7 +955,7 @@ var TelephonyListener = function() {
       }
     });
 
-    WindowManager.launch('../dialer/dialer.html');
+    WindowManager.launch('http://dialer.gaiamobile.org');
   });
 
   // Handling the missed call notification
