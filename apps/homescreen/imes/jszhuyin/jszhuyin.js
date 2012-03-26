@@ -30,6 +30,29 @@
   var IMEngine = function ime() {
     var settings;
 
+    /*
+      Terminologies:
+
+        * Symbol: single Zhuyin alphabet, e.g. "ㄊ"
+        * Syllable: a set of symbols that made up a sound e.g. "ㄊㄞˊ",
+          it always ended with tone symbol in Zhuyin.
+        * Terms: a meaningful series of characters in Chinese,
+          e.g. "台北".
+          Possible to have one character only, e.g. "台".
+        * Sentence: combination of terms.
+        * Buffer: Symbols are resolved into syllables and put in the
+          buffer for look up terms in database.
+        * Candidates: Sentence or terms that resolved from syllables
+          for user to select for actual output.
+
+      This "Smart" Zhuyin IME aim to select terms automatically based on
+      series of syllables user inputs, so user won't have to choose characters
+      to build terms one by one. Still, in order to allow access to all
+      characters, every character in our targeted range is included in the
+      database as one character term, but with lowest score.
+
+    */
+
     // Enable IndexedDB
     var enableIndexedDB = true;
 
