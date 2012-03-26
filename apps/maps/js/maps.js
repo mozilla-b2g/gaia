@@ -1,7 +1,7 @@
 function callback() {
     var options = {
 	zoom: 8,
-	center: new google.maps.LatLng(41.23, 2.11),
+	center: new google.maps.LatLng(33.50, -111.92),
 	disableDefaultUI: true,
 	mapTypeControl: true,
 	mapTypeControlOptions: {
