@@ -5,7 +5,7 @@
 
 (function() {
 
-  var debugging = false;
+  var debugging = true;
   var debug = function(str) {
     if (!debugging)
       return;
@@ -422,14 +422,18 @@
 
       if (code === KeyEvent.DOM_VK_BACK_SPACE) {
         debug('Backspace key');
-        if (
-          syllablesInBuffer.length === 1 &&
-          syllablesInBuffer[0] === ''
-        ) {
+        if (!syllablesInBuffer.join('') &&
+            !firstCandidate) {
           // pass the key to IMEManager for default action
           debug('Default action.');
           settings.sendKey(code);
           next();
+          return;
+        }
+
+        if (!syllablesInBuffer.join('')) {
+          debug('Remove candidates.');
+          updateCandidateList(next);
           return;
         }
 
