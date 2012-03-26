@@ -1336,6 +1336,7 @@
   function loadResource(href, lang, onSuccess, onFailure) {
     var xhr = new XMLHttpRequest();
     xhr.open('GET', href, true);
+    xhr.overrideMimeType('text/plain; charset=utf-8');
     xhr.onreadystatechange = function() {
       if (xhr.readyState == 4) {
         if (xhr.status == 200 || xhr.status == 0) {
