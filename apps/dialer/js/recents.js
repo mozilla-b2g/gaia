@@ -76,15 +76,17 @@ var Recents = {
   },
 
   createEntry: function re_createEntry(recent) {
-    var innerFragment = profilePictureForNumber(recent.number) +
-                  '<div class="name">' +
-                  '  ' + (recent.number || 'Anonymous') +
-                  '</div>' +
-                  '<div class="number"></div>' +
-                  '<div class="timestamp" data-time="' + recent.date + '">' +
-                  '  ' + prettyDate(recent.date) +
-                  '</div>' +
-                  '<div class="type"></div>';
+    var innerFragment = '<img src="style/images/contact-placeholder.png"' +
+                        '  alt="profile" />' +
+                        '<div class="name">' +
+                        '  ' + (recent.number || 'Anonymous') +
+                        '</div>' +
+                        '<div class="number"></div>' +
+                        '<div class="timestamp" data-time="' +
+                        '  ' + recent.date + '">' +
+                        '  ' + prettyDate(recent.date) +
+                        '</div>' +
+                        '<div class="type"></div>';
 
     var entry = document.createElement('div');
     entry.classList.add('recent');
