@@ -374,6 +374,9 @@ var ContactDetails = {
     // setting a min-height in preparation for the keyboard appearance
     var minHeight = this.container.getBoundingClientRect().height;
     this.container.style.minHeight = minHeight + 'px';
+
+    // keeping track of the size pre-keyboard appearance
+    this._overlayHeight = this.overlay.getBoundingClientRect().height;
   },
 
   save: function cd_save(form) {
@@ -476,8 +479,10 @@ var ContactDetails = {
       //XXX: the keyboard resizes the frame before we get the ESCAPE
       // event. So _keyboardDisplayed is always false when we get it
       // if we don't add this timeout
+      var keyboardDisplayed = (this._overlayHeight >
+                               this.overlay.getBoundingClientRect().height);
       setTimeout((function() {
-        this._keyboardDisplayed = !this._keyboardDisplayed;
+        this._keyboardDisplayed = keyboardDisplayed;
       }).bind(this), 300);
       return;
     }
