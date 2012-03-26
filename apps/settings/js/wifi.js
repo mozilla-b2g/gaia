@@ -11,8 +11,10 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
   var gStatus = document.querySelector('#status small');
 
   // network list
-  function networkList(list) {
-    var self = this;
+  var gNetworkList = (function networkList(list) {
+    var scanning = false;
+    var autoscan = false;
+    var scanRate = 5000; // 5s after last scan results
 
     // private DOM helper: create a "Scanning..." list item
     function newScanItem() {
@@ -73,21 +75,23 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
     }
 
     // clear the network list
-    this.clear = function(scanning) {
+    function clear(addScanningItem) {
       while (list.hasChildNodes())
         list.removeChild(list.lastChild);
-      if (scanning)
+      if (addScanningItem)
         list.appendChild(newScanItem());
     };
 
     // scan wifi networks and display them in the list
-    this.scan = function() {
-      if (!wifiManager.enabled)
+    function scan() {
+      if (!wifiManager.enabled || !screen.mozEnabled || scanning)
         return;
 
       var req = wifiManager.getNetworks();
+      scanning = true;
 
       req.onsuccess = function() {
+        scanning = false;
         var networks = req.result;
 
         // sort networks: connected network first, then by signal strength
@@ -98,9 +102,13 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
         });
 
         // create list
-        self.clear();
+        clear();
         for (var i = 0; i < ssids.length; i++)
           list.appendChild(newListItem(networks[ssids[i]]));
+
+        // auto-rescan if requested
+        if (autoscan)
+          setTimeout(scan, scanRate);
       };
 
       req.onerror = function(error) {
@@ -109,11 +117,27 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
 
       updateState();
     };
-  }
 
-  // FIXME: we need a 'networkScanReady' event. Until that...
-  var gNetworkList = new networkList(document.getElementById('wifi-networks'));
-  setInterval(gNetworkList.scan, 10000); // XXX battery drainer!
+    // API
+    return {
+      get autoscan() { return autoscan; },
+      set autoscan(value) { autoscan = value; },
+      clear: clear,
+      scan: scan,
+      get scanning() { return scanning; }
+    };
+  }) (document.getElementById('wifi-networks'));
+
+  // auto-scan networks if the wifi panel is active
+  window.addEventListener('hashchange', function autoscan() {
+    if (document.location.hash == '#wifi') {
+      gNetworkList.autoscan = true;
+      gNetworkList.scan();
+    }
+    else {
+      gNetworkList.autoscan = false;
+    }
+  });
 
   // current state
   function updateState() {
