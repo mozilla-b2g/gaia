@@ -81,6 +81,7 @@
     var autocompleteLastSyllables = true;
 
     // Auto-suggest generates candidates that follows a selection
+    // ㄊㄞˊㄅㄟˇ -> 台北, then suggest 市, 縣, 市長, 市立 ...
     var autoSuggestCandidates = true;
 
     /* ==== init functions ==== */
@@ -870,6 +871,52 @@
       }, kCacheTimeout);
     };
 
+    var getTermsFromConstantSyllables =
+        function imedb_getTermsFromConstantSyllables(constants, callback) {
+      debug('Getting terms with constantSyllables: ' + constants);
+
+      if (iDBCache['CONSTANT:' + constants]) {
+        debug('Found constantSyllables result in iDBCache.');
+        callback(iDBCache['CONSTANT:' + constants]);
+        return;
+      }
+
+      var store = iDB.transaction('terms', IDBTransaction.READ_ONLY)
+        .objectStore('terms');
+      if (IDBIndex.prototype.getAll) {
+        // Mozilla IndexedDB extension
+        var req = store.index('constantSyllables').getAll(
+          IDBKeyRange.only(constants));
+      } else {
+        var req = store.index('constantSyllables').openCursor(
+          IDBKeyRange.only(constants));
+      }
+      req.onerror = function getdbError(ev) {
+        debug('Database read error.');
+        callback(false);
+      };
+      var constantResult = [];
+      req.onsuccess = function getdbSuccess(ev) {
+        if (ev.target.result && ev.target.result.constructor == Array) {
+          constantResult = ev.target.result;
+          cacheSetTimeout();
+          iDBCache['CONSTANT:' + constants] = constantResult;
+          callback(constantResult);
+          return;
+        }
+        var cursor = ev.target.result;
+        if (!cursor) {
+          cacheSetTimeout();
+          iDBCache['CONSTANT:' + constants] = constantResult;
+          callback(constantResult);
+          return;
+        }
+        iDBCache[cursor.value.syllables] = cursor.value.terms;
+        constantResult.push(cursor.value);
+        cursor.continue();
+      };
+    };
+
     /* ==== init ==== */
 
     this.init = function imedb_init(options) {
@@ -942,6 +989,14 @@
       }
 
       var syllablesStr = syllables.join('-').replace(/ /g , '');
+      var result = [];
+      var matchTerm = function matchTerm(term) {
+        if (term[0].substr(0, textStr.length) !== textStr)
+          return;
+        if (term[0] == textStr)
+          return;
+        result.push(term);
+      };
       var processResult = function processResult(r) {
         r = r.sort(
           function sort_result(a, b) {
@@ -986,13 +1041,7 @@
             continue;
           }
           var terms = jsonData[s];
-          terms.forEach(function terms_forEach(term) {
-            if (term[0].substr(0, textStr.length) !== textStr)
-              return;
-            if (term[0] == textStr)
-              return;
-            result.push(term);
-          });
+          terms.forEach(matchTerm);
         }
         if (result.length) {
           result = processResult(result);
@@ -1006,8 +1055,83 @@
       }
 
       debug('Lookup in IndexedDB.');
-      // TODO: not implemented
-      callback(false);
+
+      var findSuggestionsInIDB = function findSuggestionsInIDB() {
+        var upperBound = syllablesStr.substr(0, syllablesStr.length -1)
+          + String.fromCharCode(
+            syllablesStr.substr(syllablesStr.length -1).charCodeAt(0) + 1);
+
+        debug('Do IndexedDB range search with lowerBound ' + syllablesStr +
+          ' and upperBound ' + upperBound + '.');
+
+        var store = iDB.transaction('terms', IDBTransaction.READ_ONLY)
+          .objectStore('terms');
+        if (IDBIndex.prototype.getAll) {
+          // Mozilla IndexedDB extension
+          var req = store.getAll(
+            IDBKeyRange.bound(syllablesStr, upperBound, true, true));
+        } else {
+          var req = store.openCursor(
+            IDBKeyRange.bound(syllablesStr, upperBound, true, true));
+        }
+        req.onerror = function getdbError(ev) {
+          debug('Database read error.');
+          callback(false);
+        };
+        var finish = function index_finish() {
+          if (result.length) {
+            result = processResult(result);
+          } else {
+            result = false;
+          }
+          cacheSetTimeout();
+          iDBCache['SUGGESTION:' + textStr] = result;
+          callback(result);
+        };
+        req.onsuccess = function getdbSuccess(ev) {
+          if (ev.target.result && ev.target.result.constructor == Array) {
+            ev.target.result.forEach(function index_forEach(value) {
+              value.terms.forEach(matchTerm);
+            });
+            finish();
+            return;
+          }
+          var cursor = ev.target.result;
+          if (!cursor) {
+            finish();
+            return;
+          }
+          cursor.value.terms.forEach(matchTerm);
+          cursor.continue();
+        };
+      };
+
+      if (!matchRegEx) {
+        findSuggestionsInIDB();
+        return;
+      }
+      debug('Attempt to resolve the complete syllables of ' + textStr +
+        ' from ' + syllablesStr + '.');
+      var constants = syllablesStr.replace(/([^\-])[^\-]*/g, '$1');
+      getTermsFromConstantSyllables(constants, function gotTerms(constantResult) {
+        if (!constantResult) {
+          callback(false);
+          return;
+        }
+        constantResult.some(function (obj) {
+          if (!matchRegEx.exec(obj.syllables))
+            return false;
+          return obj.terms.some(function term_forEach(term) {
+            if (term[0] === textStr) {
+              debug('Found ' + obj.syllables);
+              syllablesStr = obj.syllables;
+              return true;
+            }
+            return false;
+          });
+        });
+        findSuggestionsInIDB();
+      });
     },
 
     this.getTerms = function imedb_getTerms(syllables, callback) {
@@ -1077,15 +1201,10 @@
 
       debug('Lookup in IndexedDB.');
 
-      // Only create transaction if necessary,
-      // prevent clogging the IndexedDB
-      var getStore = function getStore() {
-        return iDB.transaction('terms', IDBTransaction.READ_ONLY)
-          .objectStore('terms');
-      };
-
       if (!matchRegEx) {
-        var req = getStore().get(syllablesStr);
+        var store = iDB.transaction('terms', IDBTransaction.READ_ONLY)
+          .objectStore('terms');
+        var req = store.get(syllablesStr);
         req.onerror = function getdbError(ev) {
           debug('Database read error.');
           callback(false);
@@ -1107,11 +1226,13 @@
       }
       debug('Do range search in IndexedDB.');
       var constants = syllablesStr.replace(/([^\-])[^\-]*/g, '$1');
-      debug('Search for constantSyllables: ' + constants);
-      if (iDBCache['CONSTANT:' + constants]) {
-        debug('Found constantSyllables result in iDBCache.');
+      getTermsFromConstantSyllables(constants, function gotTerms(constantResult) {
         var result = [];
-        iDBCache['CONSTANT:' + constants].forEach(function (obj) {
+        if (!constantResult) {
+          callback(false);
+          return;
+        }
+        constantResult.forEach(function (obj) {
           if (matchRegEx.exec(obj.syllables))
             result = result.concat(obj.terms);
         });
@@ -1123,58 +1244,7 @@
         cacheSetTimeout();
         iDBCache[syllablesStr] = result;
         callback(result);
-        return;
-      }
-      if (IDBIndex.prototype.getAll) {
-        // Mozilla IndexedDB extension
-        var req = getStore().index('constantSyllables').getAll(
-          IDBKeyRange.only(constants));
-      } else {
-        var req = getStore().index('constantSyllables').openCursor(
-          IDBKeyRange.only(constants));
-      }
-      req.onerror = function getdbError(ev) {
-        debug('Database read error.');
-        callback(false);
-      };
-      var result = [];
-      var constantResult = [];
-      var finish = function index_finish() {
-        if (result.length) {
-          result = processResult(result);
-        } else {
-          result = false;
-        }
-        cacheSetTimeout();
-        iDBCache['CONSTANT:' + constants] = constantResult;
-        iDBCache[syllablesStr] = result;
-        callback(result);
-      };
-      req.onsuccess = function getdbSuccess(ev) {
-        if (ev.target.result && ev.target.result.constructor == Array) {
-          constantResult = ev.target.result;
-          constantResult.forEach(
-            function index_forEach(value) {
-              if (matchRegEx.exec(value.syllables))
-                result = result.concat(value.terms);
-            });
-          finish();
-          return;
-        }
-        var cursor = ev.target.result;
-        if (!cursor) {
-          finish();
-          return;
-        }
-        iDBCache[cursor.value.syllables] = cursor.value.terms;
-        constantResult.push(cursor.value);
-        if (!matchRegEx.exec(cursor.value.syllables)) {
-          cursor.continue();
-          return;
-        }
-        result = result.concat(cursor.value.terms);
-        cursor.continue();
-      };
+      });
     };
 
     this.getTermWithHighestScore =
