@@ -659,7 +659,7 @@ var SourceView = {
     }
 
     var url = WindowManager.getDisplayedApp();
-    viewsource.src = 'view-source: ' + url;
+    viewsource.src = 'view-source: ' + (url || '');
     viewsource.style.visibility = 'visible';
   },
 
