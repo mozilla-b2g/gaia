@@ -170,6 +170,12 @@ var WindowManager = (function() {
         frame.classList.add('active');
         windows.classList.add('active');
         sprite.classList.add('faded');
+
+        // Let the app know that it has become visible
+        frame.contentWindow.postMessage({
+          message: 'visibilitychange',
+          hidden: false
+        }, '*');
       }
       else {
         // The second transition has just completed
@@ -216,6 +222,12 @@ var WindowManager = (function() {
 
     // Take keyboard focus away from the closing window
     frame.blur();
+
+    // Let the app know that it has become hidden
+    frame.contentWindow.postMessage({
+      message: 'visibilitychange',
+      hidden: true
+    }, '*');
 
     // If this was a fullscreen app, leave full-screen mode
     if (manifest.fullscreen)
