@@ -1,7 +1,7 @@
 CACHE MANIFEST
 index.html
 j3d.js
-manifest.appcache
+
 manifest.json
 models/skull.js
 models/textures/skybox/back.jpg

@@ -15,7 +15,7 @@ js/keyboardLayout.js
 js/request.js
 js/window_manager.js
 locale/homescreen.properties
-manifest.appcache
+
 manifest.json
 style/homescreen.css
 style/icons/BBC.png

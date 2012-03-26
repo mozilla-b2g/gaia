@@ -216,13 +216,28 @@ directories.forEach(function generateAppCache(dir) {
     let itemType = Ci.nsIApplicationCache.ITEM_EXPLICIT;
     if (file.leafName == "index.html")
       itemType = Ci.nsIApplicationCache.ITEM_IMPLICIT;
-    else if (file.leafName == "manifest.appcache")
-      itemType = Ci.nsIApplicationCache.ITEM_MANIFEST;
 
     print (file.path + " -> " + documentSpec + " (" + itemType + ")");
 
     applicationCache.markEntry(documentSpec, itemType);
   });
+
+  // Store the appcache file
+  let documentSpec = domain + '/manifest.appcache';
+
+  let file = Cc["@mozilla.org/file/local;1"]
+               .createInstance(Ci.nsILocalFile);
+  file.initWithPath(root);
+  file.append('manifest.appcache');
+
+  if (file.exists()) {
+    let [content, length] = getFileContent(file);
+    storeCache(applicationCache.clientID, documentSpec, content, length);
+    itemType = Ci.nsIApplicationCache.ITEM_MANIFEST;
+    applicationCache.markEntry(documentSpec, itemType);
+
+    print (file.path + " -> " + documentSpec + " (" + itemType + ")");
+  }
 
   if (hasWebapi) {
     let file = Cc["@mozilla.org/file/local;1"]

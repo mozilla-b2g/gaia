@@ -5,7 +5,7 @@ js/dialer.js
 js/helper.js
 js/recents.js
 locale/dialer.properties
-manifest.appcache
+
 manifest.json
 profilePhotos/contact0.png
 profilePhotos/contact0-small.png

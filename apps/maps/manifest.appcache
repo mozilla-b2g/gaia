@@ -1,6 +1,6 @@
 CACHE MANIFEST
 js/maps.js
-manifest.appcache
+
 manifest.json
 maps.html
 style/icons/Maps.png
