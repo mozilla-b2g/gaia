@@ -467,7 +467,7 @@ var ContactDetails = {
       contact.familyName;
 
     document.getElementById('contact-photo').innerHTML =
-      profilePictureForNumber(contact.id);
+      '<img src="style/images/contact-placeholder.png" alt="profile" />';
 
     if (contact.tel) {
       this.contactPhone.querySelector('.value').innerHTML =

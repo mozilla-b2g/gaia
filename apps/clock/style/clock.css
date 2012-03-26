@@ -58,7 +58,7 @@ html * {
 #tabs label {
   float: left;
   display: block;
-  width: -moz-calc(100% / 3 - 2px);
+  width: -moz-calc(100% / 2 - 2px);
   height: 100%;
   padding: 0;
   margin: 0;
@@ -94,13 +94,6 @@ html * {
 }
 #timer-label[data-active] {
   background: url(images/timer.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 1px, hsl(0,0%,56%) 100%);
-}
-
-#alarm-label {
-  background-image: url(images/alarm.png);
-}
-#alarm-label[data-active] {
-  background: url(images/alarm.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 1px, hsl(0,0%,56%) 100%);
 }
 
 #views {

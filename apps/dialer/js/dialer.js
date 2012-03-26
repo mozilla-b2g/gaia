@@ -271,12 +271,7 @@ var CallHandler = {
 
     this.recentsEntry = {date: Date.now(), type: 'outgoing', number: number};
 
-    // XXX: remove the fake contact when the contact API lands
-    this.pictureView.innerHTML = '';
     var self = this;
-    Contacts.findByNumber(number, function showPicture(contact) {
-      self.pictureView.innerHTML = profilePictureForNumber(contact.id);
-    });
 
     this.toggleCallScreen();
   },
@@ -296,14 +291,9 @@ var CallHandler = {
 
     this.numberView.innerHTML = call.number || 'Anonymous';
     this.statusView.innerHTML = 'Call from...';
-    this.pictureView.innerHTML = '';
 
     if (call.number)
       this.lookupContact(call.number);
-
-    // XXX: remove the fake contact when the contact API lands
-    this.pictureView.innerHTML = call.number ?
-      profilePictureForNumber(parseInt(call.number)) : '';
 
     this.toggleCallScreen();
   },
@@ -399,10 +389,6 @@ var CallHandler = {
   get statusView() {
     delete this.statusView;
     return this.statusView = document.getElementById('call-status-view');
-  },
-  get pictureView() {
-    delete this.pictureView;
-    return this.pictureView = document.getElementById('call-picture');
   },
   get actionsView() {
     delete this.actionsView;
