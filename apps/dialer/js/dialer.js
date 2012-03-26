@@ -324,11 +324,15 @@ var CallHandler = {
        (this.recentsEntry.type.indexOf('-connected') == -1)) {
       this.recentsEntry.type += '-refused';
     }
+
     if (this.currentCall) {
       this.currentCall.hangUp();
-    } else {
-      this.disconnected();
     }
+
+    // We're not waiting for a disconnected statechange
+    // If the user touch the 'end' button we wants to get
+    // out of the call-screen right away.
+    this.disconnected();
   },
 
   disconnected: function ch_disconnected() {
