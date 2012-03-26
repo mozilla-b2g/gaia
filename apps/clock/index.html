@@ -6,7 +6,11 @@
     <title>Clock</title>
     <link rel="stylesheet" type="text/css" href="style/clock.css">
     <link rel="resource" type="application/l10n" href="locale/clock.properties">
-    <script src="http://gaiamobile.org/webapi.js"></script>
+    <script>
+      var host = document.location.host.replace(/^[a-z]+\./i,'');
+      var src = 'http://' + host + '/webapi.js';
+      document.write('<script src="' + src + '"><\/script>');
+    </script>
     <script type="application/javascript" src="js/clock.js"></script>
     <script type="application/javascript" src="js/stopwatch.js"></script>
     <script type="application/javascript" src="js/timer.js"></script>

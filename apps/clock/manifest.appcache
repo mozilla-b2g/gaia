@@ -4,7 +4,7 @@ js/clock.js
 js/stopwatch.js
 js/timer.js
 locale/clock.properties
-manifest.appcache
+
 manifest.json
 style/clock.css
 style/icons/Clock.png

@@ -1,4 +1,4 @@
-GAIA_DOMAIN ?= gaiamobile.org
+GAIA_DOMAIN?=gaiamobile.org
 GAIA_DIR?=$(CURDIR)
 B2G_HOMESCREEN=file://$(GAIA_DIR)/index.html
 
@@ -83,11 +83,15 @@ install-gaia: gaia
 copy-manifests:
 	@mkdir -p profile/webapps
 	@cp apps/webapps.json profile/webapps
+	sed profile/webapps/webapps.json -i -e 's|gaiamobile.org|$(GAIA_DOMAIN)|g'
 	@cd apps; \
 	for d in `find * -maxdepth 0 -type d` ;\
 	do \
-		mkdir -p ../profile/webapps/$$d; \
-		cp $$d/manifest.json ../profile/webapps/$$d  ;\
+	  if [ -f $$d/manifest.json ]; \
+		then \
+		  mkdir -p ../profile/webapps/$$d; \
+		  cp $$d/manifest.json ../profile/webapps/$$d  ;\
+		fi \
 	done
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
@@ -123,7 +127,8 @@ appcache-manifests:
 			cd $$d ;\
 			echo "CACHE MANIFEST" > manifest.appcache ;\
 			find * -type f | grep -v tools | sort >> manifest.appcache ;\
-			echo "http://gaiamobile.org/webapi.js" >> manifest.appcache ;\
+			sed manifest.appcache -i -e 's|manifest.appcache||g' ;\
+			echo "http://$(GAIA_DOMAIN)/webapi.js" >> manifest.appcache ;\
 			cd .. ;\
 		fi \
 	done

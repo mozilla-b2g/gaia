@@ -3,7 +3,7 @@ index.html
 js/sms.js
 js/utils.js
 locale/sms.properties
-manifest.appcache
+
 manifest.json
 style/fonts/Open-Sans-Bold.woff
 style/fonts/Open-Sans-Semibold.woff

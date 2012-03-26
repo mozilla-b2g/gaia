@@ -11,7 +11,13 @@
 
     <!-- Theme -->
     <link rel="stylesheet" type="text/css" href="style/themes/default/homescreen.css">
-    <script src="../../webapi.js"></script>
+
+    <!-- Scripts -->
+    <script>
+      var host = document.location.host.replace(/^[a-z]+\./i,'');
+      var src = 'http://' + host + '/webapi.js';
+      document.write('<script src="' + src + '"><\/script>');
+    </script>
     <script defer src="js/window_manager.js"></script>
     <script src="js/app_manager.js"></script>
     <script src="js/keyboardLayout.js"></script>

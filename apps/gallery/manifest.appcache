@@ -2,7 +2,7 @@ CACHE MANIFEST
 index.html
 js/gallery.js
 locale/gallery.properties
-manifest.appcache
+
 manifest.json
 sample_photos/DSC_1677.jpg
 sample_photos/DSC_1701.jpg
