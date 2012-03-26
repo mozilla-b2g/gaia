@@ -899,7 +899,7 @@ var MessagesListener = function() {
     // We'd really like to launch the SMS app to show
     // a particular sender, but don't have a good way to do it.
     // This should be replaced with a web intent or similar.
-    WindowManager.launch('http://sms.gaiamobile.org'
+    WindowManager.launch('http://sms.gaiamobile.org/'
                          /* +'?sender=' + sender*/);
   });
 
@@ -960,7 +960,7 @@ var TelephonyListener = function() {
       }
     });
 
-    WindowManager.launch('http://dialer.gaiamobile.org');
+    WindowManager.launch('http://dialer.gaiamobile.org/');
   });
 
   // Handling the missed call notification
@@ -999,7 +999,7 @@ var TelephonyListener = function() {
     // FIXME: we'd really like to launch the the "Recent calls" view
     // of the dialer app, but don't have a good way to do it.
     // This should be replaced with a web intent or similar.
-    WindowManager.launch('http://dialer.gaiamobile.org'
+    WindowManager.launch('http://dialer.gaiamobile.org/'
                          /* '?choice=recents' */);
   });
 };
