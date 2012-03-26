@@ -1,4 +1,3 @@
-
 GAIA_DOMAIN ?= gaiamobile.org
 GAIA_DIR?=$(CURDIR)
 B2G_HOMESCREEN=file://$(GAIA_DIR)/index.html
@@ -24,13 +23,35 @@ mochitest:
 # to specify its location.
 ADB?=adb
 
+# what OS are we on?
+SYS=$(shell uname -s)
+
+# The install-xulrunner target arranges to get xulrunner downloaded and sets up
+# some commands for invoking it. But it is platform dependent
+.PHONY: install-xulrunner
+
+ifeq ($(SYS),Darwin)
+# We're on a mac
+XULRUNNER_DOWNLOAD=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/11.0/sdk/xulrunner-11.0.en-US.mac-x86_64.sdk.tar.bz2
+XULRUNNER=./xulrunner-sdk/bin/run-mozilla.sh
+XPCSHELL=./xulrunner-sdk/bin/xpcshell
+
+install-xulrunner:
+	test -d xulrunner-sdk || (wget $(XULRUNNER_DOWNLOAD) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2) 
+
+else
+# Not a mac: assume linux
 # Linux only!
 # downloads and installs locally xulrunner to run the xpchsell
 # script that creates the offline cache
-XULRUNNER=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/11.0/runtimes/xulrunner-11.0.en-US.linux-i686.tar.bz2
-.PHONY: xulrunner
-xulrunner:
-	test -d xulrunner || (wget $(XULRUNNER) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2)
+XULRUNNER_DOWNLOAD=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/11.0/runtimes/xulrunner-11.0.en-US.linux-i686.tar.bz2
+XULRUNNER=./xulrunner/run-mozilla.sh
+XPCSHELL=./xulrunner/xpcshell
+
+install-xulrunner:
+	test -d xulrunner || (wget $(XULRUNNER_DOWNLOAD) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2)
+
+endif
 
 # Install into profile/ all the files needed to load gaia on device.
 .PHONY: gaia
@@ -109,9 +130,9 @@ appcache-manifests:
 
 # Build the offline cache database
 .PHONY: offline
-offline: xulrunner
+offline: install-xulrunner
 	@echo "Building offline cache"
 	@rm -rf profile/OfflineCache
 	@mkdir -p profile/OfflineCache
 	@cd ..
-	./xulrunner/run-mozilla.sh ./xulrunner/xpcshell -e 'const GAIA_DIR = "$(GAIA_DIR)"; const PROFILE_DIR = "$(PROFILE_DIR)"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)"' offline-cache.js
+	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(GAIA_DIR)"; const PROFILE_DIR = "$(PROFILE_DIR)"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)"' offline-cache.js
