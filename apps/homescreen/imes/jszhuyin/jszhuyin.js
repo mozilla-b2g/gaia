@@ -185,17 +185,20 @@
           });
         break;
         case 'suggestion':
-          db.getSuggestions(query[0], query[1], function gotSuggestions(dbResults) {
-            if (!dbResults) {
-              callback([]);
-              return;
+          db.getSuggestions(
+            query[0], query[1],
+            function gotSuggestions(dbResults) {
+              if (!dbResults) {
+                callback([]);
+                return;
+              }
+              var results = [];
+              dbResults.forEach(function readTerm(term) {
+                results.push(term[0]);
+              });
+              callback(results);
             }
-            var results = [];
-            dbResults.forEach(function readTerm(term) {
-              results.push(term[0]);
-            });
-            callback(results);
-          });
+          );
         break;
         default:
           debug('Error: no such lookup() type.');
@@ -203,7 +206,8 @@
       }
     };
 
-    var updateCandidateList = function ime_updateCandidateList(callback, noSuggestions) {
+    var updateCandidateList =
+      function ime_updateCandidateList(callback, noSuggestions) {
       debug('Update Candidate List.');
 
       if (!syllablesInBuffer.join('').length) {
@@ -216,12 +220,13 @@
           var texts = selectedText.split('');
           var i = syllablesRemoved.length;
           lookup([syllablesRemoved, texts], 'suggestion',
-            function (suggestions) {
+            function(suggestions) {
               selectedText = undefined;
               syllablesRemoved = undefined;
               suggestions.forEach(
                 function suggestions_forEach(suggestion) {
-                  candidates.push([suggestion.substr(texts.length), 'suggestion']);
+                  candidates.push(
+                    [suggestion.substr(texts.length), 'suggestion']);
                 }
               );
               if (candidates.length) {
@@ -319,8 +324,10 @@
               });
 
               if (i === 1 && !terms.length) {
-                debug('The first syllable does not make up a word, output the symbol.');
-                candidates.push([syllables.join('').replace(/\*/g, ''), 'symbol']);
+                debug('The first syllable does not make up a word,' +
+                  ' output the symbol.');
+                candidates.push(
+                  [syllables.join('').replace(/\*/g, ''), 'symbol']);
               }
 
               if (!--i) {
@@ -985,7 +992,8 @@
 
     /* ==== db lookup functions ==== */
 
-    this.getSuggestions = function imedb_getSuggestions(syllables, text, callback) {
+    this.getSuggestions =
+      function imedb_getSuggestions(syllables, text, callback) {
       if (!jsonData && !iDB) {
         debug('Database not ready.');
         callback(false);
@@ -1009,7 +1017,7 @@
         );
         var result = [];
         var t = [];
-        r.forEach(function (term) {
+        r.forEach(function(term) {
           if (t.indexOf(term[0]) !== -1) return;
           t.push(term[0]);
           result.push(term);
@@ -1061,9 +1069,9 @@
       debug('Lookup in IndexedDB.');
 
       var findSuggestionsInIDB = function findSuggestionsInIDB() {
-        var upperBound = syllablesStr.substr(0, syllablesStr.length -1)
-          + String.fromCharCode(
-            syllablesStr.substr(syllablesStr.length -1).charCodeAt(0) + 1);
+        var upperBound = syllablesStr.substr(0, syllablesStr.length - 1) +
+          String.fromCharCode(
+            syllablesStr.substr(syllablesStr.length - 1).charCodeAt(0) + 1);
 
         debug('Do IndexedDB range search with lowerBound ' + syllablesStr +
           ' and upperBound ' + upperBound + '.');
@@ -1117,25 +1125,27 @@
       debug('Attempt to resolve the complete syllables of ' + textStr +
         ' from ' + syllablesStr + '.');
       var constants = syllablesStr.replace(/([^\-])[^\-]*/g, '$1');
-      getTermsFromConstantSyllables(constants, function gotTerms(constantResult) {
-        if (!constantResult) {
-          callback(false);
-          return;
-        }
-        constantResult.some(function (obj) {
-          if (!matchRegEx.exec(obj.syllables))
-            return false;
-          return obj.terms.some(function term_forEach(term) {
-            if (term[0] === textStr) {
-              debug('Found ' + obj.syllables);
-              syllablesStr = obj.syllables;
-              return true;
-            }
-            return false;
+      getTermsFromConstantSyllables(
+        constants, function gotTerms(constantResult) {
+          if (!constantResult) {
+            callback(false);
+            return;
+          }
+          constantResult.some(function(obj) {
+            if (!matchRegEx.exec(obj.syllables))
+              return false;
+            return obj.terms.some(function term_forEach(term) {
+              if (term[0] === textStr) {
+                debug('Found ' + obj.syllables);
+                syllablesStr = obj.syllables;
+                return true;
+              }
+              return false;
+            });
           });
-        });
-        findSuggestionsInIDB();
-      });
+          findSuggestionsInIDB();
+        }
+      );
     },
 
     this.getTerms = function imedb_getTerms(syllables, callback) {
@@ -1159,7 +1169,7 @@
           );
           var result = [];
           var t = [];
-          r.forEach(function (term) {
+          r.forEach(function(term) {
             if (t.indexOf(term[0]) !== -1) return;
             t.push(term[0]);
             result.push(term);
@@ -1230,25 +1240,28 @@
       }
       debug('Do range search in IndexedDB.');
       var constants = syllablesStr.replace(/([^\-])[^\-]*/g, '$1');
-      getTermsFromConstantSyllables(constants, function gotTerms(constantResult) {
-        var result = [];
-        if (!constantResult) {
-          callback(false);
-          return;
+      getTermsFromConstantSyllables(
+        constants,
+        function gotTerms(constantResult) {
+          var result = [];
+          if (!constantResult) {
+            callback(false);
+            return;
+          }
+          constantResult.forEach(function(obj) {
+            if (matchRegEx.exec(obj.syllables))
+              result = result.concat(obj.terms);
+          });
+          if (result.length) {
+            result = processResult(result);
+          } else {
+            result = false;
+          }
+          cacheSetTimeout();
+          iDBCache[syllablesStr] = result;
+          callback(result);
         }
-        constantResult.forEach(function (obj) {
-          if (matchRegEx.exec(obj.syllables))
-            result = result.concat(obj.terms);
-        });
-        if (result.length) {
-          result = processResult(result);
-        } else {
-          result = false;
-        }
-        cacheSetTimeout();
-        iDBCache[syllablesStr] = result;
-        callback(result);
-      });
+      );
     };
 
     this.getTermWithHighestScore =
@@ -1286,8 +1299,10 @@
                 if (!term && numOfWord > 1)
                   return finish();
                 if (!term) {
-                  var syllable = syllables.slice(start, start + numOfWord).join('');
-                  debug('Syllable ' + syllable + ' does not made up a word, insert symbol.');
+                  var syllable =
+                    syllables.slice(start, start + numOfWord).join('');
+                  debug('Syllable ' + syllable +
+                    ' does not made up a word, insert symbol.');
                   term = [syllable.replace(/\*/g, ''), -7];
                 }
 
