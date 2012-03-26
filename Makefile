@@ -11,8 +11,6 @@ TEST_PATH=gaia/tests/${TEST_FILE}
 
 B2G_PID=$(shell $(ADB) shell toolbox ps | grep "b2g" | awk '{ print $$2; }')
 
-
-
 mochitest:
 	echo "Checking if the mozilla build has mochitests enabled..."
 	test -d $(MOZ_TESTS) || (echo "Please ensure you don't have |ac_add_options --disable-tests| in your mozconfig." && exit 1)
@@ -25,7 +23,6 @@ mochitest:
 # to specify its location.
 ADB?=adb
 
-
 # what OS are we on?
 SYS=$(shell uname -s)
 
@@ -36,7 +33,6 @@ SYS=$(shell uname -s)
 ifeq ($(SYS),Darwin)
 # We're on a mac
 XULRUNNER_DOWNLOAD=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/11.0/sdk/xulrunner-11.0.en-US.mac-x86_64.sdk.tar.bz2
-
 XULRUNNER=./xulrunner-sdk/bin/run-mozilla.sh
 XPCSHELL=./xulrunner-sdk/bin/xpcshell
 
@@ -45,7 +41,6 @@ install-xulrunner:
 
 else
 # Not a mac: assume linux
-
 # Linux only!
 # downloads and installs locally xulrunner to run the xpchsell
 # script that creates the offline cache
@@ -57,11 +52,6 @@ install-xulrunner:
 	test -d xulrunner || (wget $(XULRUNNER_DOWNLOAD) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2)
 
 endif
-
-
-
-
-
 
 # Install into profile/ all the files needed to load gaia on device.
 .PHONY: gaia
