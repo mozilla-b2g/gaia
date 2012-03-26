@@ -6,7 +6,11 @@
     <title>Gallery</title>
     <link rel="stylesheet" href="style/gallery.css" type="text/css" />
     <link rel="resource" type="application/l10n" href="locale/gallery.properties" />
-    <script src="http://gaiamobile.org/webapi.js"></script>
+    <script>
+      var host = document.location.host.replace(/^[a-z]+\./i,'');
+      var src = 'http://' + host + '/webapi.js';
+      document.write('<script src="' + src + '"><\/script>');
+    </script>
     <script type="text/javascript" src="js/gallery.js"></script>
   </head>
 

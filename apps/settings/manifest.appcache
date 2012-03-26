@@ -3,7 +3,7 @@ index.html
 js/settings.js
 js/wifi.js
 locale/settings.properties
-manifest.appcache
+
 manifest.json
 style/dialogs.css
 style/fonts/Roboto-BoldItalic.ttf

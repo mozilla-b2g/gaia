@@ -15,7 +15,7 @@ js/keyboardLayout.js
 js/request.js
 js/window_manager.js
 locale/homescreen.properties
-manifest.appcache
+
 manifest.json
 style/homescreen.css
 style/icons/BBC.png
@@ -89,4 +89,4 @@ style/themes/default/images/volume-off.png
 style/themes/default/images/volume-on.png
 style/themes/default/images/wifi.png
 style/themes/default/statusbar.css
-../../webapi.js
+http://gaiamobile.org/webapi.js

@@ -2,7 +2,7 @@ CACHE MANIFEST
 glUtils.js
 icon.png
 index.html
-manifest.appcache
+
 manifest.json
 mozilla.webm
 style/icons/VideoCube.png

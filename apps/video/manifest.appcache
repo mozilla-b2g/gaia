@@ -3,7 +3,7 @@ index.html
 js/domutils.js
 js/video.js
 locale/video.properties
-manifest.appcache
+
 manifest.json
 samples/manifesto.ogv
 samples/manifesto.png
