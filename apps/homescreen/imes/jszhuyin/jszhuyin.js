@@ -80,6 +80,8 @@
     // ㄊㄞˊㄅ -> 台北
     var autocompleteLastSyllables = true;
 
+    // Auto-suggest generates candidates that follows a selection
+    var autoSuggestCandidates = true;
 
     /* ==== init functions ==== */
 
@@ -148,10 +150,10 @@
         initDB();
     };
 
-    var lookup = function ime_lookup(syllables, type, callback) {
+    var lookup = function ime_lookup(query, type, callback) {
       switch (type) {
         case 'sentence':
-          db.getSentences(syllables, function getSentencesCallback(dbResults) {
+          db.getSentences(query, function getSentencesCallback(dbResults) {
             if (!dbResults) {
               callback([]);
               return;
@@ -169,7 +171,20 @@
           });
         break;
         case 'term':
-          db.getTerms(syllables, function getTermsCallback(dbResults) {
+          db.getTerms(query, function getTermsCallback(dbResults) {
+            if (!dbResults) {
+              callback([]);
+              return;
+            }
+            var results = [];
+            dbResults.forEach(function readTerm(term) {
+              results.push(term[0]);
+            });
+            callback(results);
+          });
+        break;
+        case 'suggestion':
+          db.getSuggestions(query[0], query[1], function gotSuggestions(dbResults) {
             if (!dbResults) {
               callback([]);
               return;
@@ -187,10 +202,39 @@
       }
     };
 
-    var updateCandidateList = function ime_updateCandidateList(callback) {
+    var updateCandidateList = function ime_updateCandidateList(callback, noSuggestions) {
       debug('Update Candidate List.');
 
       if (!syllablesInBuffer.join('').length) {
+        if (autoSuggestCandidates &&
+            selectedText &&
+            !noSuggestions) {
+          debug('Buffer is empty; ' +
+            'make suggestions based on select term.');
+          var candidates = [];
+          var texts = selectedText.split('');
+          var i = syllablesRemoved.length;
+          lookup([syllablesRemoved, texts], 'suggestion',
+            function (suggestions) {
+              selectedText = undefined;
+              syllablesRemoved = undefined;
+              suggestions.forEach(
+                function suggestions_forEach(suggestion) {
+                  candidates.push([suggestion.substr(texts.length), 'suggestion']);
+                }
+              );
+              if (candidates.length) {
+                settings.sendCandidates(candidates);
+                firstCandidate = candidates[0][0];
+              } else {
+                settings.sendCandidates([]);
+                firstCandidate = '';
+              }
+              callback();
+            }
+          );
+          return;
+        }
         debug('Buffer is empty; send empty candidate list.');
         settings.sendCandidates([]);
         firstCandidate = '';
@@ -305,7 +349,6 @@
     var start = function ime_start() {
       if (isWorking)
         return;
-
       isWorking = true;
       debug('Start keyQueue loop.');
       next();
@@ -327,10 +370,19 @@
 
       var code = keypressQueue.shift();
 
+      if (code == 0) {
+        // This is a select function operation after selecting suggestions
+        sendPandingSymbols();
+        updateCandidateList(next, true);
+        return;
+      }
+
       if (code < 0) {
         // This is a select function operation
         var i = code * -1;
         dump('Removing ' + (code * -1) + ' syllables from buffer.');
+
+        syllablesRemoved = syllablesInBuffer.slice(0, i);
 
         while (i--) {
           syllablesInBuffer.shift();
@@ -342,8 +394,7 @@
         }
 
         sendPandingSymbols();
-        updateCandidateList(function() {});
-        next();
+        updateCandidateList(next);
         return;
       }
 
@@ -532,8 +583,8 @@
     /* ==== interaction functions ==== */
 
     this.click = function ime_click(code) {
-      if (code < 0) {
-        debug('Ignoring keyCode < 0.');
+      if (code <= 0) {
+        debug('Ignoring keyCode <= 0.');
         return;
       }
       debug('Click keyCode: ' + code);
@@ -541,14 +592,19 @@
       start();
     };
 
+    var selectedText;
+    var syllablesRemoved;
 
     this.select = function ime_select(text, type) {
       debug('Select text ' + text);
+      selectedText = text;
       settings.sendString(text);
 
       var numOfSyllablesToRemove = text.length;
       if (type == 'symbol')
         numOfSyllablesToRemove = 1;
+      if (type == 'suggestion')
+        numOfSyllablesToRemove = 0;
 
       keypressQueue.push(numOfSyllablesToRemove * -1);
       start();
@@ -877,6 +933,82 @@
     };
 
     /* ==== db lookup functions ==== */
+
+    this.getSuggestions = function imedb_getSuggestions(syllables, text, callback) {
+      if (!jsonData && !iDB) {
+        debug('Database not ready.');
+        callback(false);
+        return;
+      }
+
+      var syllablesStr = syllables.join('-').replace(/ /g , '');
+      var processResult = function processResult(r) {
+        r = r.sort(
+          function sort_result(a, b) {
+            return (b[1] - a[1]);
+          }
+        );
+        var result = [];
+        var t = [];
+        r.forEach(function (term) {
+          if (t.indexOf(term[0]) !== -1) return;
+          t.push(term[0]);
+          result.push(term);
+        });
+        return result;
+      };
+      var matchRegEx;
+      if (syllablesStr.indexOf('*') !== -1) {
+        matchRegEx = new RegExp(
+          '^' + syllablesStr.replace(/\-/g, '\\-')
+                .replace(/\*/g, '[^\-]*'));
+      }
+      var textStr = text.join('');
+      var result = [];
+
+      debug('Get suggestion for ' + textStr + '.');
+
+      if (typeof iDBCache['SUGGESTION:' + textStr] !== 'undefined') {
+        debug('Found in iDBCache.');
+        cacheSetTimeout();
+        callback(iDBCache['SUGGESTION:' + textStr]);
+        return;
+      }
+
+      if (jsonData) {
+        debug('Lookup in JSON.');
+        // XXX: this is not efficient
+        for (var s in jsonData) {
+          if (matchRegEx) {
+            if (!matchRegEx.exec(s))
+              continue;
+          } else if (s.substr(0, syllablesStr.length) !== syllablesStr) {
+            continue;
+          }
+          var terms = jsonData[s];
+          terms.forEach(function terms_forEach(term) {
+            if (term[0].substr(0, textStr.length) !== textStr)
+              return;
+            if (term[0] == textStr)
+              return;
+            result.push(term);
+          });
+        }
+        if (result.length) {
+          result = processResult(result);
+        } else {
+          result = false;
+        }
+        cacheSetTimeout();
+        iDBCache['SUGGESTION:' + textStr] = result;
+        callback(result);
+        return;
+      }
+
+      debug('Lookup in IndexedDB.');
+      // TODO: not implemented
+      callback(false);
+    },
 
     this.getTerms = function imedb_getTerms(syllables, callback) {
       if (!jsonData && !iDB) {
