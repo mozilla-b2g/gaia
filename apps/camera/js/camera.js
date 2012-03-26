@@ -26,6 +26,19 @@ var Camera = {
       window.parent.WindowManager.launch('../gallery/gallery.html');
     });
 
+    // Monitor the class attribute of our containing iframe and turn 
+    // the camera off if we're not the active app anymore.  Turn it back
+    // on when we become active again. Note that the camera is defined
+    // with the autoplay attribute so we don't have to call play when
+    // we first start up.
+    window.frameElement.addEventListener('DOMAttrModified', function(e) {
+      if (e.attrName !== 'class') return;
+      if (window.frameElement.classList.contains('active'))
+        Camera.play();
+      else 
+        Camera.pause();
+    });
+
     this.setSource(this._camera);
   },
 
@@ -65,6 +78,10 @@ var Camera = {
     this.viewfinder.pause();
   },
 
+  play: function play() {
+    this.viewfinder.play();
+  },
+
   toggleCamera: function toggleCamera() {
     this._camera = 1 - this._camera;
     this.setSource(this._camera);
@@ -76,16 +93,3 @@ window.addEventListener('DOMContentLoaded', function CameraInit() {
   Camera.init();
 });
 
-// Bug 690056 implement a visibility API, and it's likely that
-// we want this event to be fire when an app come back to life
-// or is minimized (it does not now).
-window.addEventListener('message', function CameraPause(evt) {
-  if (evt.data.message !== 'visibilitychange')
-    return;
-
-  if (evt.data.hidden) {
-    Camera.pause();
-  } else {
-    Camera.init();
-  }
-});
