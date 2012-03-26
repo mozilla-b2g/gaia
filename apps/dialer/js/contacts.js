@@ -474,7 +474,7 @@ var ContactDetails = {
   handleEvent: function cd_handleEvent(evt) {
     if (evt.type == 'resize') {
       //XXX: the keyboard resizes the frame before we get the ESCAPE
-      // event. So the frame is always full-height when we get it
+      // event. So _keyboardDisplayed is always false when we get it
       // if we don't add this timeout
       setTimeout((function() {
         this._keyboardDisplayed = !this._keyboardDisplayed;
