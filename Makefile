@@ -116,18 +116,25 @@ forward:
 	$(ADB) forward tcp:6200 localreserved:rilproxyd
 
 # update the manifest.appcache files to match what's actually there
+# we use the content of $APP/version.txt to trigger cache updates
 .PHONY: appcache-manifests
 appcache-manifests:
 	@cd apps; \
 	for d in `find * -maxdepth 0 -type d` ;\
 	do \
+		if [ ! -f $$d/version.txt ] ;\
+		then \
+			echo "# Version 1.0" > $$d/version.txt ;\
+		fi ;\
 		if [ -f $$d/manifest.json ] ;\
 		then \
 			echo \\t$$d ;\
 			cd $$d ;\
-			echo "CACHE MANIFEST" > manifest.appcache ;\
+			cat version.txt > manifest.appcache ; \
+			echo "CACHE MANIFEST" >> manifest.appcache ;\
 			find * -type f | grep -v tools | sort >> manifest.appcache ;\
 			sed -i -e 's|manifest.appcache||g' manifest.appcache ;\
+			sed -i -e 's|version.txt||g' manifest.appcache ;\
 			echo "http://$(GAIA_DOMAIN)/webapi.js" >> manifest.appcache ;\
 			cd .. ;\
 		fi \

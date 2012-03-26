@@ -1,3 +1,4 @@
+# Version 1.0
 CACHE MANIFEST
 audio/b2g.ogg
 audio/jonobacon-freesoftwaresong2.ogg
@@ -9,4 +10,5 @@ js/music.js
 manifest.json
 style/icons/Music.png
 style/music.css
+
 http://gaiamobile.org/webapi.js

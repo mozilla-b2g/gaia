@@ -1,3 +1,4 @@
+# Version 1.0
 CACHE MANIFEST
 blank.html
 imes/jspinyin/COPYING
@@ -89,4 +90,5 @@ style/themes/default/images/volume-off.png
 style/themes/default/images/volume-on.png
 style/themes/default/images/wifi.png
 style/themes/default/statusbar.css
+
 http://gaiamobile.org/webapi.js

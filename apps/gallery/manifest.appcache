@@ -1,3 +1,4 @@
+# Version 1.0
 CACHE MANIFEST
 index.html
 js/gallery.js
@@ -104,4 +105,5 @@ style/images/app-texture.png
 style/images/close.png
 style/images/pause.png
 style/images/play.png
+
 http://gaiamobile.org/webapi.js

@@ -1,3 +1,4 @@
+# Version 1.0
 CACHE MANIFEST
 index.html
 js/browser.js
@@ -21,4 +22,5 @@ style/images/menu.png
 style/images/menu-pressed.png
 style/images/refresh.png
 style/images/settings.png
+
 http://gaiamobile.org/webapi.js

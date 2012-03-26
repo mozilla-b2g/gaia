@@ -1,3 +1,4 @@
+# Version 1.0
 CACHE MANIFEST
 index.html
 js/domutils.js
@@ -31,4 +32,5 @@ style/images/btn_rwd_press.png
 style/images/controls.png
 style/images/grippy.png
 style/video.css
+
 http://gaiamobile.org/webapi.js
