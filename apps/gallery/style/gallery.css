@@ -67,7 +67,6 @@ header h1 {
   list-style-type: none;
   padding: 0;
   -moz-user-select: none;
-  user-select: none;
 }
 
 .thumbnail {

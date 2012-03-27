@@ -227,8 +227,6 @@ div.windowSprite {
 #wifi {
   width: 30px;
   background: url(images/wifi-0.png) 50% 8px no-repeat;
-  /* XXX the current wifi-*.png images are too bright, here's a dirty workaround */
-  opacity 0.1;
 }
 
 #wifi.signal-level0 {
