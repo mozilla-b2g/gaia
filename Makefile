@@ -15,9 +15,11 @@ B2G_PID=$(shell $(ADB) shell toolbox ps | grep "b2g" | awk '{ print $$2; }')
 SYS=$(shell uname -s)
 
 ifeq ($(SYS),Darwin)
-MD5SUM=md5 -r
+MD5SUM = md5 -r
+SED_INPLACE_NO_SUFFIX = " ''"
 else
-MD5SUM=md5sum -b
+MD5SUM = md5sum -b
+SED_INPLACE_NO_SUFFIX = ""
 endif
 
 
@@ -95,7 +97,7 @@ stamp-commit-hash:
 copy-manifests:
 	@mkdir -p profile/webapps
 	@cp apps/webapps.json profile/webapps
-	@sed -i '' -e 's|gaiamobile.org|$(GAIA_DOMAIN)|g' profile/webapps/webapps.json
+	@sed -i$(SED_INPLACE_NO_SUFFIX) -e 's|gaiamobile.org|$(GAIA_DOMAIN)|g' profile/webapps/webapps.json
 	@cd apps; \
 	for d in `find * -maxdepth 0 -type d` ;\
 	do \
@@ -140,7 +142,7 @@ appcache-manifests:
 			cat `find * -type f | sort` | $(MD5SUM) | cut -f 1 -d ' ' | sed s/^/\#\ Version\ / > manifest.appcache ;\
 			echo "CACHE MANIFEST" >> manifest.appcache ;\
 			find * -type f | grep -v tools | sort >> manifest.appcache ;\
-			sed -i '' -e 's|manifest.appcache||g' manifest.appcache ;\
+			sed -i$(SED_IN_PLACE_NO_SUFFIX) -e 's|manifest.appcache||g' manifest.appcache ;\
 			echo "http://$(GAIA_DOMAIN)/webapi.js" >> manifest.appcache ;\
 			cd .. ;\
 		fi \
