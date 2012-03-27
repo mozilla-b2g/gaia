@@ -604,7 +604,7 @@ window.addEventListener('keyup', SleepMenu, true);
 
 
 var SettingsListener = {
-  _settings: {},
+  _callbacks: {},
 
   init: function sl_init() {
     if ('mozSettings' in navigator)
@@ -612,7 +612,7 @@ var SettingsListener = {
   },
 
   onchange: function sl_onchange(evt) {
-    var callback = this._settings[evt.settingName];
+    var callback = this._callbacks[evt.settingName];
     if (callback) {
       callback(evt.settingValue);
     }
@@ -625,12 +625,13 @@ var SettingsListener = {
       return;
     }
 
-    var request = settings.getLock().get(name);
-    request.addEventListener('success', (function onsuccess() {
-      callback(typeof(request.result[name]) != 'undefined' || defaultValue);
+    var req = settings.getLock().get(name);
+    req.addEventListener('success', (function onsuccess() {
+      callback(typeof(req.result[name]) != 'undefined' ? req.result[name]
+                                                       : defaultValue);
     }));
 
-    this._settings[name] = callback;
+    this._callbacks[name] = callback;
   }
 };
 
@@ -753,7 +754,7 @@ SettingsListener.observe('debug.grid.enabled', false, function(value) {
 /* === Language === */
 SettingsListener.observe('language.current', 'en-US', function(value) {
   // change language -- this triggers startup() and a rebuild
-  document.mozL10n.language.code = evt.data.language;
+  document.mozL10n.language.code = value;
 });
 
 /* === Wallpapers === */
