@@ -32,7 +32,7 @@ var Settings = {
           return;
 
         var request = transaction.get(key);
-        request.onsuccess = function(evt) {
+        request.onsuccess = function() {
           radio.checked = (request.result[key] === radio.value);
         };
       })(radios[i]);
@@ -46,7 +46,7 @@ var Settings = {
           return;
 
         var request = transaction.get(key);
-        request.onsuccess = function(evt) {
+        request.onsuccess = function() {
           progress.value = parseFloat(request.result[key]) * 10;
         };
       })(progresses[i]);
