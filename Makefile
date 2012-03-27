@@ -116,7 +116,6 @@ forward:
 	$(ADB) forward tcp:6200 localreserved:rilproxyd
 
 # update the manifest.appcache files to match what's actually there
-# we use the content of $APP/version.txt to trigger cache updates
 .PHONY: appcache-manifests
 appcache-manifests:
 	@cd apps; \
