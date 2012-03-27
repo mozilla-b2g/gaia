@@ -420,9 +420,9 @@
 
         // candidate list exists; output the first candidate
         debug('Sending first candidate.');
+        selectedText = firstCandidate;
         settings.sendString(firstCandidate);
-        settings.sendCandidates([]);
-        empty();
+        keypressQueue.push(syllablesInBuffer.length * -1);
         next();
         return;
       }
