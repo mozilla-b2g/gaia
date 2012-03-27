@@ -70,6 +70,10 @@ var WindowManager = (function() {
   // The origin of the currently displayed app, or null if there isn't one
   var displayedApp = null;
 
+  // The localization of the "Loading..." message that appears while
+  // and app is loading
+  var localizedLoading = null;
+
   // Public function. Return the origin of the currently displayed app
   // or null if there is none.
   function getDisplayedApp() {
@@ -364,7 +368,12 @@ var WindowManager = (function() {
       frame.id = 'appframe' + nextAppId++;
       frame.className = 'appWindow';
       frame.setAttribute('mozallowfullscreen', 'true');
-      frame.src = 'data:text/html,<body style="background-color:black"><h3 style="font-family:OpenSans,sans-serif;color:white;text-align:center; margin-top:100px;">Loading...</h3></body>';
+
+      // Localize the "Loading..." message if we haven't already
+      if (!localizedLoading) 
+        localizedLoading = document.mozL10n.get('loading') || "Loading...";
+
+      frame.src = 'data:text/html,<body style="background-color:black"><h3 style="font-family:OpenSans,sans-serif;color:white;text-align:center; margin-top:100px;">' + localizedLoading + '</h3></body>';
 
       // Note that we don't set the frame size here.  That will happen
       // when we display the app in setDisplayedApp()
