@@ -26,12 +26,12 @@ var MessageManager = {
   },
 
   send: function mm_send(number, text, callback) {
-    var result = navigator.mozSms.send(number, text);
-    result.onsuccess = function onsuccess(event) {
-      callback(event.message);
+    var req = navigator.mozSms.send(number, text);
+    req.onsuccess = function onsuccess() {
+      callback(req.result);
     };
 
-    result.onerror = function onerror(event) {
+    req.onerror = function onerror() {
       callback(null);
     };
   },
@@ -191,9 +191,10 @@ var ConversationListView = {
   handleEvent: function handleEvent(evt) {
     switch (evt.type) {
       case 'received':
-        window.setTimeout(function updadeConversationList() {
-          ConversationListView.updateConversationList();
-        }, 0);
+        if (ConversationView.filter)
+          ConversationView.showConversation(ConversationView.filter);
+        else
+          ConversationListView.updateConversationList(evt.message);
         break;
 
       case 'click':
@@ -419,11 +420,6 @@ var ConversationView = {
       // or in send() or wherever.
       if (!msg)
         return;
-
-      // Copy all the information from the actual message object to the
-      // preliminary message object. Then update the view.
-      for (var key in msg)
-        message[msg] = msg[key];
 
       if (ConversationView.filter) {
         // Add a slight delay so that the database has time to write the
