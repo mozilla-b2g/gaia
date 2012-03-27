@@ -1,9 +1,6 @@
-# Version 4122156d6b85024581ee2a79f6579fa7
+# Version 3674f1c92cec0c76bbc9fb24b22508b0
 CACHE MANIFEST
-index.html
-js/maps.js
 
 manifest.json
 style/icons/Maps.png
-style/maps.css
 http://gaiamobile.org/webapi.js
