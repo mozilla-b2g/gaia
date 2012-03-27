@@ -55,7 +55,7 @@ endif
 
 # Install into profile/ all the files needed to load gaia on device.
 .PHONY: gaia
-gaia: copy-manifests offline
+gaia: stamp-commit-hash appcache-manifests copy-manifests offline
 	@echo "Installed gaia into profile/."
 
 # If your gaia/ directory is a sub-directory of the B2G directory, then
@@ -76,6 +76,10 @@ install-gaia: gaia
 	$(ADB) push profile/webapps /data/local/webapps
 	@echo 'Rebooting b2g now'
 	$(ADB) shell kill $(B2G_PID)
+
+.PHONY: stamp-commit-hash
+stamp-commit-hash:
+	git rev-parse HEAD > apps/settings/gaia-commit.txt
 
 # Copy the app manifest files to the profile dir where the
 # mozApps API can find them. For desktop usage, you must create
