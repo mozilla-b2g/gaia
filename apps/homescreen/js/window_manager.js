@@ -351,6 +351,7 @@ var WindowManager = (function() {
   // here to do the actual launching of the app
   window.addEventListener('mozChromeEvent', function(e) {
     if (e.detail.type === 'webapps-launch') {
+      console.log("------- launching a webapp ?");
       var origin = e.detail.origin;
       var url = e.detail.url;
       if (isRunning(origin))

@@ -49,12 +49,6 @@ function visibilityChanged(url, evt) {
       Contacts.load();
       choiceChanged(contacts);
     }
-    var recents = document.getElementById('recents-label');
-    if (choice == 'recents' || recents.hasAttribute('data-active')) {
-      choiceChanged(recents);
-      Recents.showLast();
-    }
-
   } else {
     Recents.stopUpdatingDates();
   }
@@ -358,12 +352,21 @@ var CallHandler = {
       if ((this.recentsEntry.type.indexOf('outgoing') == -1) &&
           (this.recentsEntry.type.indexOf('-refused') == -1) &&
           (this.recentsEntry.type.indexOf('-connected') == -1)) {
-        // XXX: This should be replaced by a web notification as
-        // soon as we have them
-        window.parent.postMessage({
-          type: 'missed-call',
-          sender: this.recentsEntry.number
-        }, '*');
+
+        var mozNotif = navigator.mozNotification;
+        if (mozNotif) {
+          var notification = mozNotif.createNotification(
+            'Missed call', 'From ' + this.recentsEntry.number
+          );
+          notification.onclick = function ch_notificationClick() {
+            var recents = document.getElementById('recents-label');
+            choiceChanged(recents);
+            Recents.showLast();
+
+            // TODO: Ask to launch the dialer
+          };
+          notification.show();
+        }
       }
       this.recentsEntry = null;
     }
