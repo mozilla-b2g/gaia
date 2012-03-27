@@ -659,13 +659,19 @@ var SourceView = {
     }
 
     var url = WindowManager.getDisplayedApp();
+    if (!url)
+      // Assume the home screen is the visible app.
+      url = window.location.toString();
     viewsource.src = 'view-source: ' + url;
     viewsource.style.visibility = 'visible';
   },
 
   hide: function sv_hide() {
-    if (this.viewer)
-      this.viewer.style.visibility = 'hidden';
+    var viewsource = this.viewer;
+    if (viewsource) {
+      viewsource.style.visibility = 'hidden';
+      viewsource.src = 'about:blank';
+    }
   },
 
   toggle: function sv_toggle() {
