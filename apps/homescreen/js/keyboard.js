@@ -37,8 +37,7 @@ const IMEManager = {
   loadKeyboardSettings: function loadKeyboardSettings(callback) {
     var completeSettingRequests = (function completeSettingRequests() {
       if (!this.keyboards.length)
-        this.keyboards = [].concat(this.keyboardSettingGroups['english'],
-          this.keyboardSettingGroups['zhuyin']);
+        this.keyboards = [].concat(this.keyboardSettingGroups['english']);
 
       if (this.keyboards.indexOf(this.currentKeyboard) === -1)
         this.currentKeyboard = this.keyboards[0];
@@ -55,14 +54,12 @@ const IMEManager = {
     for (var key in this.keyboardSettingGroups) {
       keyboardSettingGroupKeys.push(key);
     }
-    // XXX: shift() & length is neater than this
+
     var i = 0;
-
     var keyboardSettingRequest = function keyboardSettingRequest(key) {
-      var request = navigator.mozSettings.get('keyboard.layouts.' + key);
+      var request = navigator.mozSettings.getLock().get('keyboard.layouts.' + key);
       request.onsuccess = (function onsuccess(evt) {
-
-        if (request.result.value === 'true') {
+        if (request.result['keyboard.layouts.' + key] === 'true') {
           this.keyboards = this.keyboards.concat(
             this.keyboardSettingGroups[key]
           );
