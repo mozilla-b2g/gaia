@@ -602,21 +602,39 @@ var SleepMenu = {
 window.addEventListener('click', SleepMenu, true);
 window.addEventListener('keyup', SleepMenu, true);
 
-function SettingListener(name, _default, callback) {
-  var settings = window.navigator.mozSettings;
-  if (!settings) {
-    setTimeout(function() { callback(_default); });
-    return;
-  }
-  var request = settings.getLock().get(name);
-  request.addEventListener('success', (function onsuccess() {
-    callback(typeof(request.result[name]) != 'undefined' || _default);
-  }));
-  settings.onsettingchange = function(evt) {
-    if (evt.settingName == name)
+
+var SettingsListener = {
+  _settings: {},
+
+  init: function sl_init() {
+    if ('mozSettings' in navigator)
+      navigator.mozSettings.onsettingchange = this.onchange.bind(this);
+  },
+
+  onchange: function sl_onchange(evt) {
+    var callback = this._settings[evt.settingName];
+    if (callback) {
       callback(evt.settingValue);
+    }
+  },
+
+  observe: function sl_observe(name, defaultValue, callback) {
+    var settings = window.navigator.mozSettings;
+    if (!settings) {
+      setTimeout(function() { callback(defaultValue); });
+      return;
+    }
+
+    var request = settings.getLock().get(name);
+    request.addEventListener('success', (function onsuccess() {
+      callback(typeof(request.result[name]) != 'undefined' || defaultValue);
+    }));
+
+    this._settings[name] = callback;
   }
-}
+};
+
+SettingsListener.init();
 
 /* === Source View === */
 var SourceView = {
@@ -728,36 +746,36 @@ var GridView = {
   }
 };
 
-new SettingListener('debug.grid.enabled', false, function(value) {
+SettingsListener.observe('debug.grid.enabled', false, function(value) {
   !!value ? GridView.show() : GridView.hide();
 });
 
 /* === Language === */
-new SettingListener('language.current', 'en-US', function(value) {
+SettingsListener.observe('language.current', 'en-US', function(value) {
   // change language -- this triggers startup() and a rebuild
   document.mozL10n.language.code = evt.data.language;
 });
 
 /* === Wallpapers === */
-new SettingListener('homescreen.wallpaper', 'default.png', function(value) {
+SettingsListener.observe('homescreen.wallpaper', 'default.png', function(value) {
   var home = document.getElementById('home');
   home.style.backgroundImage = 'url(style/themes/default/backgrounds/' + value + ')';
 });
 
 /* === Ring Tone === */
-new SettingListener('homescreen.ring', 'classic.wav', function(value) {
+SettingsListener.observe('homescreen.ring', 'classic.wav', function(value) {
   var player = document.getElementById('ringtone-player');
   player.src = 'style/ringtones/' + value;
 });
 
 var activePhoneSound = true;
-new SettingListener('phone.ring.incoming', true, function(value) {
+SettingsListener.observe('phone.ring.incoming', true, function(value) {
   activePhoneSound = !!value;
 });
 
 /* === Vibration === */
 var activateVibration = false;
-new SettingListener('phone.vibration.incoming', false, function(value) {
+SettingsListener.observe('phone.vibration.incoming', false, function(value) {
   activateVibration = !!value;
 });
 
@@ -870,7 +888,7 @@ var ScreenManager = {
   }
 };
 
-new SettingListener('screen.brightness', 0.5, function(value) {
+SettingsListener.observe('screen.brightness', 0.5, function(value) {
   ScreenManager.preferredBrightness = screen.mozBrightness = parseFloat(value);
 });
 
