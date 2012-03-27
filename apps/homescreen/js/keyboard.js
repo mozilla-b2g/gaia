@@ -504,13 +504,13 @@ const IMEManager = {
 
         // TODO: workaround gaia issue 374
         setTimeout((function keyboardVibrateSettingRequest() {
-          var request = navigator.mozSettings.get('keyboard.vibration');
+          var request = navigator.mozSettings.getLock().get('keyboard.vibration');
           request.addEventListener('success', (function onsuccess(evt) {
             this.vibrate = (request.result.value === 'true');
           }).bind(this));
 
           setTimeout((function keyboardClickSoundSettingRequest() {
-            var request = navigator.mozSettings.get('keyboard.clicksound');
+            var request = navigator.mozSettings.getLock().get('keyboard.clicksound');
             request.addEventListener('success', (function onsuccess(evt) {
               this.clicksound = (request.result.value === 'true');
             }).bind(this));
