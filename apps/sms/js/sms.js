@@ -91,7 +91,13 @@ var ConversationListView = {
 
         for (var i = 0; i < messages.length; i++) {
           var message = messages[i];
-          var num = message.sender || message.receiver;
+
+          // XXX why does this happen?
+          if (!message.delivery)
+            continue;
+
+          var num = message.delivery == 'received' ?
+                    message.sender : message.receiver;
           var conversation = conversations[num];
           if (conversation && !conversation.hidden)
             continue;
@@ -103,7 +109,7 @@ var ConversationListView = {
               'name': num,
               'num': num,
               'timestamp': message.timestamp.getTime(),
-              'id': parseInt(i)
+              'id': i
             };
           } else {
             conversation.hidden = false;
@@ -324,10 +330,11 @@ var ConversationView = {
         var uuid = msg.hasOwnProperty('uuid') ? msg.uuid : '';
         var dataId = 'data-id="' + uuid + '"';
 
-        var dataNum = 'data-num="' + (msg.sender || msg.receiver) + '"';
+        var outgoing = (msg.delivery == 'sent');
+        var num = outgoing ? msg.receiver : msg.sender;
+        var dataNum = 'data-num="' + num + '"';
 
-        var className = 'class="' +
-                        (msg.sender ? 'sender' : 'receiver') + '"';
+        var className = 'class="' + (outgoing ? 'receiver' : 'sender') + '"';
 
         var pic;
         if (msg.sender) {
