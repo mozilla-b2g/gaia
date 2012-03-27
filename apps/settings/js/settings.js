@@ -5,7 +5,10 @@
 
 var Settings = {
   init: function settings_init() {
+    this.loadGaiaCommit();
+
     var settings = window.navigator.mozSettings;
+    var transaction = settings.getLock();
 
     var checkboxes = document.querySelectorAll('input[type="checkbox"]');
     for (var i = 0; i < checkboxes.length; i++) {
@@ -14,10 +17,9 @@ var Settings = {
         if (!key)
           return;
 
-        var request = settings.get(key);
+        var request = transaction.get(key);
         request.onsuccess = function() {
-          var result = request.result;
-          checkbox.checked = result.value === 'true' ? true : false;
+          checkbox.checked = !!request.result[key];
         };
       })(checkboxes[i]);
     }
@@ -29,10 +31,9 @@ var Settings = {
         if (!key)
           return;
 
-        var request = settings.get(key);
+        var request = transaction.get(key);
         request.onsuccess = function() {
-          var result = request.result;
-          radio.checked = (result.value === radio.value);
+          radio.checked = (request.result[key] === radio.value);
         };
       })(radios[i]);
     }
@@ -44,10 +45,9 @@ var Settings = {
         if (!key)
           return;
 
-        var request = settings.get(key);
+        var request = transaction.get(key);
         request.onsuccess = function() {
-          var result = request.result;
-          progress.value = parseFloat(result.value) * 10;
+          progress.value = parseFloat(request.result[key]) * 10;
         };
       })(progresses[i]);
     }
@@ -66,15 +66,13 @@ var Settings = {
         } else if (input.type == 'radio') {
           value = input.value;
         }
-
-        window.navigator.mozSettings.set(key, value);
-        window.parent.postMessage(key, '*');
+        var cset = { };  cset[key] = value;
+        window.navigator.mozSettings.getLock().set(cset);
         break;
 
       case 'click':
         if (input.tagName.toLowerCase() != 'progress')
           return;
-
         var rect = input.getBoundingClientRect();
         var position = Math.ceil((evt.clientX - rect.left) / (rect.width / 10));
 
@@ -82,10 +80,30 @@ var Settings = {
         screen.mozBrightness = value;
         input.value = position;
 
-        window.navigator.mozSettings.set(key, value);
-        window.parent.postMessage(key, '*');
+        var cset = { };  cset[key] = value;
+        window.navigator.mozSettings.getLock().set(cset);
         break;
     }
+  },
+  loadGaiaCommit: function() {
+    var req = new XMLHttpRequest();
+    req.onreadystatechange = (function(e) {
+      if (req.readyState === 4) {
+        if (req.status === 200) {
+          var hash = req.responseText;
+          var disp = document.getElementById('gaia-commit');
+          // XXX it would be great to pop a link to the github page
+          // showing the commit but there doesn't seem to be any way
+          // to tell the browser to do it.
+          disp.textContent = 'Git commit '+ hash;
+        } else {
+          console.error("Failed to fetch gaia commit: ", oXHR.statusText);
+        }  
+      }
+    }).bind(this);
+    req.open("GET", 'gaia-commit.txt', true/*async*/);
+    req.responseType = 'text';
+    req.send();
   }
 };
 
@@ -95,22 +113,6 @@ window.addEventListener('load', function loadSettings(evt) {
   window.addEventListener('change', Settings);
   window.addEventListener('click', Settings);
   Settings.init();
-});
-
-// update UI when the language setting is changed
-window.addEventListener('DOMContentLoaded', function showRoot() {
-  // XXX there's no way currently to fire a callback when a pref is changed
-  //     so we're using an ugly onclick + timeout :-/
-  var languages = document.getElementById('languages');
-  languages.addEventListener('click', function onclick() {
-    setTimeout(function getLanguageSetting() {
-      var req = navigator.mozSettings.get('language.current');
-      req.onsuccess = function retranslate() {
-        document.mozL10n.language.code = req.result.value;
-        window.parent.postMessage({ language: req.result.value }, '*');
-      }
-    }, 0);
-  });
 });
 
 // back button = close dialog || back to the root page

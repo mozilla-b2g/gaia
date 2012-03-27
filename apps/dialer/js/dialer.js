@@ -234,6 +234,7 @@ var KeyHandler = {
 var CallHandler = {
   currentCall: null,
   _onCall: false,
+  _screenLock: null,
 
   setupTelephony: function ch_setupTelephony() {
     if (this._telephonySetup)
@@ -453,6 +454,15 @@ var CallHandler = {
     var securityTimeout = setTimeout(finishTransition, 100);
 
     this._onCall = !this._onCall;
+
+    // Assume we always either onCall or not, and always onCall before
+    // not onCall.
+    if (this._onCall) {
+      this._screenLock = navigator.requestWakeLock("screen");
+    } else {
+      this._screenLock.unlock();
+      this._screenLock = null;
+    }
   },
 
   toggleMute: function ch_toggleMute() {
