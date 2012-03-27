@@ -5,6 +5,8 @@
 
 var Settings = {
   init: function settings_init() {
+    this.loadGaiaCommit();
+
     var settings = window.navigator.mozSettings;
 
     var checkboxes = document.querySelectorAll('input[type="checkbox"]');
@@ -86,6 +88,26 @@ var Settings = {
         window.parent.postMessage(key, '*');
         break;
     }
+  },
+  loadGaiaCommit: function() {
+    var req = new XMLHttpRequest();
+    req.onreadystatechange = (function(e) {
+      if (req.readyState === 4) {
+        if (req.status === 200) {
+          var hash = req.responseText;
+          var disp = document.getElementById('gaia-commit');
+          // XXX it would be great to pop a link to the github page
+          // showing the commit but there doesn't seem to be any way
+          // to tell the browser to do it.
+          disp.textContent = 'Git commit '+ hash;
+        } else {
+          console.error("Failed to fetch gaia commit: ", oXHR.statusText);
+        }  
+      }
+    }).bind(this);
+    req.open("GET", 'gaia-commit.txt', true/*async*/);
+    req.responseType = 'text';
+    req.send();
   }
 };
 
