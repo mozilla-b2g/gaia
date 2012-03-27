@@ -100,7 +100,7 @@ var Settings = {
           // to tell the browser to do it.
           disp.textContent = 'Git commit '+ hash;
         } else {
-          console.error("Failed to fetch gaia commit: ", oXHR.statusText);
+          console.error("Failed to fetch gaia commit: ", req.statusText);
         }  
       }
     }).bind(this);
