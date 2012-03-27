@@ -200,6 +200,11 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
     gStatus.textContent = _('offline');
   };
 
+  wifiManager.connectionInfoUpdate = function(event) {
+    console.log( event.network.ssid + ' - ' + event.signalStrength);
+    gStatus.textContent = event.network.ssid + ' - ' + event.signalStrength;
+  };
+
   function isConnected(network) {
     // XXX the API should expose a 'connected' property on 'network',
     // and 'wifiManager.connectedNetwork' should be comparable to 'network'.
