@@ -690,6 +690,7 @@ var SourceView = {
   handleEvent: function sv_handleEvent(evt) {
     switch (evt.type) {
       case 'locked':
+        this.state = 'inactive';
         this.hide();
         break;
     }
