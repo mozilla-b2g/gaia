@@ -505,14 +505,14 @@ const IMEManager = {
         // TODO: workaround gaia issue 374
         setTimeout((function keyboardVibrateSettingRequest() {
           var request = navigator.mozSettings.getLock().get('keyboard.vibration');
-          request.addEventListener('success', (function onsuccess(evt) {
-            this.vibrate = (request.result.value === 'true');
+          request.addEventListener('success', (function onsuccess() {
+            this.vibrate = (request.result['keyboard.vibration'] === 'true');
           }).bind(this));
 
           setTimeout((function keyboardClickSoundSettingRequest() {
             var request = navigator.mozSettings.getLock().get('keyboard.clicksound');
-            request.addEventListener('success', (function onsuccess(evt) {
-              this.clicksound = (request.result.value === 'true');
+            request.addEventListener('success', (function onsuccess() {
+              this.clicksound = (request.result['keyboard.clicksound'] === 'true');
             }).bind(this));
           }).bind(this), 0);
 
