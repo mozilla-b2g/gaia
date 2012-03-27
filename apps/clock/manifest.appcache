@@ -1,4 +1,4 @@
-# Version 1.0
+# Version a6c5c6e106015194221303f757137641
 CACHE MANIFEST
 index.html
 js/clock.js
@@ -13,5 +13,4 @@ style/images/alarm.png
 style/images/home-texture.png
 style/images/stopwatch.png
 style/images/timer.png
-
 http://gaiamobile.org/webapi.js

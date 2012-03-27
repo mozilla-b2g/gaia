@@ -1,4 +1,4 @@
-# Version 1.0
+# Version 7a2119dc1149e99d5a7d59d0413b3be2
 CACHE MANIFEST
 glUtils.js
 icon.png
@@ -8,7 +8,6 @@ manifest.json
 mozilla.webm
 style/icons/VideoCube.png
 sylvester.js
-
 webgl.css
 webgl-demo.js
 http://gaiamobile.org/webapi.js

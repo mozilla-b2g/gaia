@@ -1,4 +1,4 @@
-# Version 1.0
+# Version db8ee91195592a2f58b4239e0a4f3bb2
 CACHE MANIFEST
 index.html
 js/calculator.js
@@ -10,5 +10,4 @@ style/fonts/Open-Sans-Semibold.woff
 style/fonts/Open-Sans.woff
 style/icons/Calculator.png
 style/images/home-texture.png
-
 http://gaiamobile.org/webapi.js

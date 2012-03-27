@@ -1,4 +1,4 @@
-# Version 1.0
+# Version 302009824b275a5aa1da69eb5f3637fd
 CACHE MANIFEST
 index.html
 j3d.js
@@ -14,5 +14,4 @@ models/textures/skybox/up.jpg
 shaders/Glass.glsl
 style/common.css
 style/icons/CrystalSkull.png
-
 http://gaiamobile.org/webapi.js

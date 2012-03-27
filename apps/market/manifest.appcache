@@ -1,4 +1,4 @@
-# Version 1.0
+# Version f40c09e42f11253cb0a134c4bc882ac0
 CACHE MANIFEST
 index.html
 
@@ -6,5 +6,4 @@ manifest.json
 style/icons/Market.png
 style/images/market.png
 style/market.css
-
 http://gaiamobile.org/webapi.js

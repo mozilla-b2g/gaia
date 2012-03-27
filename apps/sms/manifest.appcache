@@ -1,4 +1,4 @@
-# Version 1.0
+# Version 9f2d4af56b91d60a8638863aa8910694
 CACHE MANIFEST
 index.html
 js/sms.js
@@ -17,5 +17,4 @@ style/images/input-icon-search.png
 style/images/missing.png
 style/images/top-navibar-left-arrow.png
 style/sms.css
-
 http://gaiamobile.org/webapi.js

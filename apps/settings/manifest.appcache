@@ -1,4 +1,4 @@
-# Version 1.0
+# Version c61b9253b0f17a4235aa87904f6ef520
 CACHE MANIFEST
 index.html
 js/settings.js
@@ -30,5 +30,4 @@ style/images/wifi.png
 style/images/wifi-scan.png
 style/settings.css
 style/ui.css
-
 http://gaiamobile.org/webapi.js

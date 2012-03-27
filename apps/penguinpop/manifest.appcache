@@ -1,4 +1,4 @@
-# Version 1.0
+# Version 5da0394e6031ce60d1872235c79dbce8
 CACHE MANIFEST
 index.html
 js/penguinpop.js
@@ -7,5 +7,4 @@ manifest.json
 style/icons/PenguinPop.png
 style/images/PenguinPop.png
 style/penguinpop.css
-
 http://gaiamobile.org/webapi.js

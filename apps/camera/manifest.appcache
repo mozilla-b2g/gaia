@@ -1,4 +1,4 @@
-# Version 1.0
+# Version 12bb399e50014247ef0e93bb843a3725
 CACHE MANIFEST
 index.html
 js/camera.js
@@ -12,5 +12,4 @@ style/images/gallery.png
 style/images/gallery-pressed.png
 style/images/switch.png
 style/images/switch-pressed.png
-
 http://gaiamobile.org/webapi.js

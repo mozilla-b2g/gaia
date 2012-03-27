@@ -122,19 +122,14 @@ appcache-manifests:
 	@cd apps; \
 	for d in `find * -maxdepth 0 -type d` ;\
 	do \
-		if [ ! -f $$d/version.txt ] ;\
-		then \
-			echo "# Version 1.0" > $$d/version.txt ;\
-		fi ;\
 		if [ -f $$d/manifest.json ] ;\
 		then \
 			echo \\t$$d ;\
 			cd $$d ;\
-			cat version.txt > manifest.appcache ; \
+			cat `find * -type f | sort` | md5sum -b | cut -f 1 -d ' ' | sed s/^/\#\ Version\ / > manifest.appcache ;\
 			echo "CACHE MANIFEST" >> manifest.appcache ;\
 			find * -type f | grep -v tools | sort >> manifest.appcache ;\
 			sed -i -e 's|manifest.appcache||g' manifest.appcache ;\
-			sed -i -e 's|version.txt||g' manifest.appcache ;\
 			echo "http://$(GAIA_DOMAIN)/webapi.js" >> manifest.appcache ;\
 			cd .. ;\
 		fi \
