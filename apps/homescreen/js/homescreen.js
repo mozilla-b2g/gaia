@@ -625,15 +625,17 @@ function SettingListener(name, callback) {
 
 /* === Source View === */
 var SourceView = {
+  /*const*/states: [ 'inactive', 'source', 'manifest' ],
+  state: 'inactive',
+
   get viewer() {
     return document.getElementById('appViewsource');
   },
 
-  get active() {
-    return !this.viewer ? false : this.viewer.style.visibility === 'visible';
-  },
-
   show: function sv_show(url) {
+    if (this.state == 'inactive')
+      throw "Shouldn't be trying to show() when inactive ...";
+
     var viewsource = this.viewer;
     if (!viewsource) {
       var style = '#appViewsource { ' +
@@ -659,17 +661,30 @@ var SourceView = {
     }
 
     var url = WindowManager.getDisplayedApp();
+    if (!url)
+      // Assume the home screen is the visible app.
+      url = window.location.toString();
+    if (this.state == 'manifest')
+      url += '/manifest.appcache';
     viewsource.src = 'view-source: ' + url;
     viewsource.style.visibility = 'visible';
   },
 
   hide: function sv_hide() {
-    if (this.viewer)
-      this.viewer.style.visibility = 'hidden';
+    var viewsource = this.viewer;
+    if (viewsource) {
+      viewsource.style.visibility = 'hidden';
+      viewsource.src = 'about:blank';
+    }
   },
 
   toggle: function sv_toggle() {
-    this.active ? this.hide() : this.show();
+    var state = this.state =
+      this.states[(this.states.indexOf(this.state) + 1) % this.states.length];
+    if (state == 'inactive')
+      this.hide();
+    else
+      this.show();
   },
 
   handleEvent: function sv_handleEvent(evt) {
