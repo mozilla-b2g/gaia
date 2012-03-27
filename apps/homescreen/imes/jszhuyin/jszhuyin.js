@@ -145,6 +145,8 @@
       syllablesInBuffer = [''];
       pendingSymbols = ['', '', '', ''];
       firstCandidate = '';
+      selectedText = '';
+      selectedSyllables = [];
       sendPandingSymbols();
       isWorking = false;
       if (!db)
@@ -207,22 +209,18 @@
     };
 
     var updateCandidateList =
-      function ime_updateCandidateList(callback, noSuggestions) {
+      function ime_updateCandidateList(callback) {
       debug('Update Candidate List.');
 
       if (!syllablesInBuffer.join('').length) {
         if (autoSuggestCandidates &&
-            selectedText &&
-            !noSuggestions) {
+            selectedSyllables.length) {
           debug('Buffer is empty; ' +
             'make suggestions based on select term.');
           var candidates = [];
           var texts = selectedText.split('');
-          var i = syllablesRemoved.length;
-          lookup([syllablesRemoved, texts], 'suggestion',
+          lookup([selectedSyllables, texts], 'suggestion',
             function(suggestions) {
-              selectedText = undefined;
-              syllablesRemoved = undefined;
               suggestions.forEach(
                 function suggestions_forEach(suggestion) {
                   candidates.push(
@@ -247,6 +245,9 @@
         callback();
         return;
       }
+
+      selectedText = '';
+      selectedSyllables = [];
 
       var candidates = [];
       var syllablesForQuery = [].concat(syllablesInBuffer);
@@ -381,7 +382,7 @@
       if (code == 0) {
         // This is a select function operation after selecting suggestions
         sendPandingSymbols();
-        updateCandidateList(next, true);
+        updateCandidateList(next);
         return;
       }
 
@@ -389,8 +390,6 @@
         // This is a select function operation
         var i = code * -1;
         dump('Removing ' + (code * -1) + ' syllables from buffer.');
-
-        syllablesRemoved = syllablesInBuffer.slice(0, i);
 
         while (i--) {
           syllablesInBuffer.shift();
@@ -420,27 +419,33 @@
 
         // candidate list exists; output the first candidate
         debug('Sending first candidate.');
-        selectedText = firstCandidate;
         settings.sendString(firstCandidate);
-        keypressQueue.push(syllablesInBuffer.length * -1);
+        selectedText = firstCandidate;
+        selectedSyllables = [].concat(syllablesInBuffer);
+        if (!selectedSyllables[selectedSyllables.length - 1])
+          selectedSyllables.pop();
+        keypressQueue.push(selectedSyllables.length * -1);
         next();
         return;
       }
 
       if (code === KeyEvent.DOM_VK_BACK_SPACE) {
         debug('Backspace key');
-        if (!syllablesInBuffer.join('') &&
-            !firstCandidate) {
+        if (!syllablesInBuffer.join('')) {
+          if (firstCandidate) {
+            debug('Remove candidates.');
+
+            // prevent updateCandidateList from making the same suggestions
+            selectedText = '';
+            selectedSyllables = [];
+
+            updateCandidateList(next);
+            return;
+          }
           // pass the key to IMEManager for default action
           debug('Default action.');
           settings.sendKey(code);
           next();
-          return;
-        }
-
-        if (!syllablesInBuffer.join('')) {
-          debug('Remove candidates.');
-          updateCandidateList(next);
           return;
         }
 
@@ -605,11 +610,10 @@
     };
 
     var selectedText;
-    var syllablesRemoved;
+    var selectedSyllables = [];
 
     this.select = function ime_select(text, type) {
       debug('Select text ' + text);
-      selectedText = text;
       settings.sendString(text);
 
       var numOfSyllablesToRemove = text.length;
@@ -617,6 +621,10 @@
         numOfSyllablesToRemove = 1;
       if (type == 'suggestion')
         numOfSyllablesToRemove = 0;
+
+      selectedText = text;
+      selectedSyllables =
+        syllablesInBuffer.slice(0, numOfSyllablesToRemove);
 
       keypressQueue.push(numOfSyllablesToRemove * -1);
       start();
