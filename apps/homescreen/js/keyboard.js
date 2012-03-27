@@ -38,7 +38,7 @@ const IMEManager = {
     var completeSettingRequests = (function completeSettingRequests() {
       if (!this.keyboards.length)
         this.keyboards = [].concat(this.keyboardSettingGroups['english'],
-          this.keyboardSettingGroups['zhuyin']);
+                                   this.keyboardSettingGroups['zhuyin']);
 
       if (this.keyboards.indexOf(this.currentKeyboard) === -1)
         this.currentKeyboard = this.keyboards[0];
@@ -55,14 +55,12 @@ const IMEManager = {
     for (var key in this.keyboardSettingGroups) {
       keyboardSettingGroupKeys.push(key);
     }
-    // XXX: shift() & length is neater than this
+
     var i = 0;
-
     var keyboardSettingRequest = function keyboardSettingRequest(key) {
-      var request = navigator.mozSettings.get('keyboard.layouts.' + key);
+      var request = navigator.mozSettings.getLock().get('keyboard.layouts.' + key);
       request.onsuccess = (function onsuccess(evt) {
-
-        if (request.result.value === 'true') {
+        if (!!request.result['keyboard.layouts.' + key]) {
           this.keyboards = this.keyboards.concat(
             this.keyboardSettingGroups[key]
           );
@@ -507,15 +505,15 @@ const IMEManager = {
 
         // TODO: workaround gaia issue 374
         setTimeout((function keyboardVibrateSettingRequest() {
-          var request = navigator.mozSettings.get('keyboard.vibration');
-          request.addEventListener('success', (function onsuccess(evt) {
-            this.vibrate = (request.result.value === 'true');
+          var request = navigator.mozSettings.getLock().get('keyboard.vibration');
+          request.addEventListener('success', (function onsuccess() {
+            this.vibrate = !!request.result['keyboard.vibration'];
           }).bind(this));
 
           setTimeout((function keyboardClickSoundSettingRequest() {
-            var request = navigator.mozSettings.get('keyboard.clicksound');
-            request.addEventListener('success', (function onsuccess(evt) {
-              this.clicksound = (request.result.value === 'true');
+            var request = navigator.mozSettings.getLock().get('keyboard.clicksound');
+            request.addEventListener('success', (function onsuccess() {
+              this.clicksound = !!request.result['keyboard.clicksound'];
             }).bind(this));
           }).bind(this), 0);
 
