@@ -11,6 +11,17 @@ TEST_PATH=gaia/tests/${TEST_FILE}
 
 B2G_PID=$(shell $(ADB) shell toolbox ps | grep "b2g" | awk '{ print $$2; }')
 
+# what OS are we on?
+SYS=$(shell uname -s)
+
+ifeq ($(SYS),Darwin)
+MD5SUM=md5 -r
+else
+MD5SUM=md5sum -b
+endif
+
+
+
 mochitest:
 	echo "Checking if the mozilla build has mochitests enabled..."
 	test -d $(MOZ_TESTS) || (echo "Please ensure you don't have |ac_add_options --disable-tests| in your mozconfig." && exit 1)
@@ -22,9 +33,6 @@ mochitest:
 # It should be in your path somewhere, or you can edit this line
 # to specify its location.
 ADB?=adb
-
-# what OS are we on?
-SYS=$(shell uname -s)
 
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up
 # some commands for invoking it. But it is platform dependent
@@ -87,7 +95,7 @@ stamp-commit-hash:
 copy-manifests:
 	@mkdir -p profile/webapps
 	@cp apps/webapps.json profile/webapps
-	sed -i -e 's|gaiamobile.org|$(GAIA_DOMAIN)|g' profile/webapps/webapps.json
+	@sed -i '' -e 's|gaiamobile.org|$(GAIA_DOMAIN)|g' profile/webapps/webapps.json
 	@cd apps; \
 	for d in `find * -maxdepth 0 -type d` ;\
 	do \
@@ -129,10 +137,10 @@ appcache-manifests:
 		then \
 			echo \\t$$d ;\
 			cd $$d ;\
-			cat `find * -type f | sort` | md5sum -b | cut -f 1 -d ' ' | sed s/^/\#\ Version\ / > manifest.appcache ;\
+			cat `find * -type f | sort` | $(MD5SUM) | cut -f 1 -d ' ' | sed s/^/\#\ Version\ / > manifest.appcache ;\
 			echo "CACHE MANIFEST" >> manifest.appcache ;\
 			find * -type f | grep -v tools | sort >> manifest.appcache ;\
-			sed -i -e 's|manifest.appcache||g' manifest.appcache ;\
+			sed -i '' -e 's|manifest.appcache||g' manifest.appcache ;\
 			echo "http://$(GAIA_DOMAIN)/webapi.js" >> manifest.appcache ;\
 			cd .. ;\
 		fi \

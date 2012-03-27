@@ -131,7 +131,7 @@ var ConversationListView = {
            ' data-notempty="' + (conversation.timestamp ? 'true' : '') + '"' +
            ' class="' + (conversation.hidden ? 'hide' : '') + '">' +
            '  <div class="photo">' +
-           '    <img src="' + profilePictureForId(conversation.id) + '" />' +
+           '    <img src="style/images/contact-placeholder.png" />' +
            '  </div>' +
            '  <div class="name">' + conversation.name + '</div>' +
            '  <div class="msg">' + conversation.body.split('\n')[0] + '</div>' +
@@ -305,7 +305,7 @@ var ConversationView = {
       self.title.textContent = contact.name;
       var images = self.view.querySelectorAll('.photo img');
       for (var i = 0; i < images.length; i++)
-        images[i].src = profilePictureForId(contact.id);
+        images[i].src = 'style/images/contact-placeholder.png';
     };
 
     this.num.value = num;
@@ -329,12 +329,7 @@ var ConversationView = {
         var className = 'class="' +
                         (msg.sender ? 'sender' : 'receiver') + '"';
 
-        var pic;
-        if (msg.sender) {
-          pic = profilePictureForId(receiverId);
-        } else {
-          pic = '../contacts/contact9.png';
-        }
+        var pic = 'style/images/contact-placeholder.png';
 
         var body = msg.body.replace(/\n/g, '<br />');
         fragment += '<div ' + className + ' ' + dataNum + ' ' + dataId + '>' +
