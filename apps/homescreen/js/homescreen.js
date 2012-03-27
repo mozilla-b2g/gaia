@@ -80,7 +80,8 @@ var LockScreen = {
 
     var request = settings.getLock().get('lockscreen.enabled');
     request.addEventListener('success', (function onsuccess() {
-      var enabled = request.result['lockscreen.enabled'] !== 'false';
+      var value = request.result['lockscreen.enabled'];
+      var enabled = typeof(value) == 'boolean' ? value : true;
       if (enabled) {
         this.lock(true, callback);
       } else {
@@ -561,7 +562,7 @@ var SleepMenu = {
 
             var settings = window.navigator.mozSettings;
             if (settings)
-              settings.getLock().set('phone.ring.incoming', 'false');
+              settings.getLock().set({ 'phone.ring.incoming': false});
 
             document.getElementById('silent').hidden = true;
             document.getElementById('normal').hidden = false;
@@ -571,7 +572,7 @@ var SleepMenu = {
 
             var settings = window.navigator.mozSettings;
             if (settings)
-              settings.getLock().get('phone.ring.incoming', 'true');
+              settings.getLock().get({'phone.ring.incoming': true});
 
             document.getElementById('silent').hidden = false;
             document.getElementById('normal').hidden = true;
@@ -602,11 +603,16 @@ window.addEventListener('click', SleepMenu, true);
 window.addEventListener('keyup', SleepMenu, true);
 
 function SettingListener(name, _default, callback) {
-  var request = window.navigator.mozSettings.getLock().get(name);
+  var settings = window.navigator.mozSettings;
+  if (!settings) {
+    setTimeout(function() { callback(_default); });
+    return;
+  }
+  var request = settings.getLock().get(name);
   request.addEventListener('success', (function onsuccess() {
-    callback(request.result[name] || _default);
+    callback(typeof(request.result[name]) != 'undefined' || _default);
   }));
-  window.navigator.mozSettings.onsettingchange = function(evt) {
+  settings.onsettingchange = function(evt) {
     if (evt.settingName == name)
       callback(evt.settingValue);
   }
@@ -723,7 +729,7 @@ var GridView = {
 };
 
 new SettingListener('debug.grid.enabled', false, function(value) {
-  value == 'true' ? GridView.show() : GridView.hide();
+  !!value ? GridView.show() : GridView.hide();
 });
 
 /* === Language === */
@@ -746,13 +752,13 @@ new SettingListener('homescreen.ring', 'classic.wav', function(value) {
 
 var activePhoneSound = true;
 new SettingListener('phone.ring.incoming', true, function(value) {
-  activePhoneSound = (value === 'true');
+  activePhoneSound = !!value;
 });
 
 /* === Vibration === */
 var activateVibration = false;
 new SettingListener('phone.vibration.incoming', false, function(value) {
-  activateVibration = (value === 'true');
+  activateVibration = !!value;
 });
 
 /* === KeyHandler === */

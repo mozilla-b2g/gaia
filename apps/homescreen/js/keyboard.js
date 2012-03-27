@@ -37,7 +37,8 @@ const IMEManager = {
   loadKeyboardSettings: function loadKeyboardSettings(callback) {
     var completeSettingRequests = (function completeSettingRequests() {
       if (!this.keyboards.length)
-        this.keyboards = [].concat(this.keyboardSettingGroups['english']);
+        this.keyboards = [].concat(this.keyboardSettingGroups['english'],
+                                   this.keyboardSettingGroups['zhuyin']);
 
       if (this.keyboards.indexOf(this.currentKeyboard) === -1)
         this.currentKeyboard = this.keyboards[0];
@@ -59,7 +60,7 @@ const IMEManager = {
     var keyboardSettingRequest = function keyboardSettingRequest(key) {
       var request = navigator.mozSettings.getLock().get('keyboard.layouts.' + key);
       request.onsuccess = (function onsuccess(evt) {
-        if (request.result['keyboard.layouts.' + key] === 'true') {
+        if (!!request.result['keyboard.layouts.' + key]) {
           this.keyboards = this.keyboards.concat(
             this.keyboardSettingGroups[key]
           );
@@ -506,13 +507,13 @@ const IMEManager = {
         setTimeout((function keyboardVibrateSettingRequest() {
           var request = navigator.mozSettings.getLock().get('keyboard.vibration');
           request.addEventListener('success', (function onsuccess() {
-            this.vibrate = (request.result['keyboard.vibration'] === 'true');
+            this.vibrate = !!request.result['keyboard.vibration'];
           }).bind(this));
 
           setTimeout((function keyboardClickSoundSettingRequest() {
             var request = navigator.mozSettings.getLock().get('keyboard.clicksound');
             request.addEventListener('success', (function onsuccess() {
-              this.clicksound = (request.result['keyboard.clicksound'] === 'true');
+              this.clicksound = !!request.result['keyboard.clicksound'];
             }).bind(this));
           }).bind(this), 0);
 

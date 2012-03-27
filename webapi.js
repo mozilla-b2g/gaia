@@ -1344,7 +1344,7 @@
     if (navigator.mozSettings) {
       var req = navigator.mozSettings.getLock().get('language.current');
       req.onsuccess = function() {
-        loadLocale(req['language.current'] || navigator.language, translateFragment);
+        loadLocale(req.result['language.current'] || navigator.language, translateFragment);
       };
       req.onerror = function() {
         loadLocale(navigator.language, translateFragment);

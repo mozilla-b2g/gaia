@@ -19,7 +19,7 @@ var Settings = {
 
         var request = transaction.get(key);
         request.onsuccess = function() {
-          checkbox.checked = request.result[key] === 'true' ? true : false;
+          checkbox.checked = !!request.result[key];
         };
       })(checkboxes[i]);
     }
@@ -66,14 +66,13 @@ var Settings = {
         } else if (input.type == 'radio') {
           value = input.value;
         }
-
-        window.navigator.mozSettings.getLock().set(key, value);
+        var cset = { };  cset[key] = value;
+        window.navigator.mozSettings.getLock().set(cset);
         break;
 
       case 'click':
         if (input.tagName.toLowerCase() != 'progress')
           return;
-
         var rect = input.getBoundingClientRect();
         var position = Math.ceil((evt.clientX - rect.left) / (rect.width / 10));
 
@@ -81,7 +80,8 @@ var Settings = {
         screen.mozBrightness = value;
         input.value = position;
 
-        window.navigator.mozSettings.getLock().set(key, value);
+        var cset = { };  cset[key] = value;
+        window.navigator.mozSettings.getLock().set(cset);
         break;
     }
   },
