@@ -735,7 +735,7 @@ new SettingListener('debug.grid.enabled', false, function(value) {
 /* === Language === */
 new SettingListener('language.current', 'en-US', function(value) {
   // change language -- this triggers startup() and a rebuild
-  document.mozL10n.language.code = evt.data.language;
+  document.mozL10n.language.code = value;
 });
 
 /* === Wallpapers === */
