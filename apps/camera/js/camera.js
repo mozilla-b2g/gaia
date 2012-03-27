@@ -65,6 +65,10 @@ var Camera = {
     this.viewfinder.pause();
   },
 
+  resume: function resume() {
+    this.viewfinder.play();
+  },
+
   toggleCamera: function toggleCamera() {
     this._camera = 1 - this._camera;
     this.setSource(this._camera);
@@ -84,8 +88,13 @@ window.addEventListener('message', function CameraPause(evt) {
     return;
 
   if (evt.data.hidden) {
+    // If we're hidden, stop the video
     Camera.pause();
   } else {
-    Camera.init();
+    // If we become visible again, first reconfigure the camera
+    // in case the screen has rotated or something, and then 
+    // resume the video.
+    Camera.setSource(Camera._camera);
+    Camera.resume();
   }
 });
