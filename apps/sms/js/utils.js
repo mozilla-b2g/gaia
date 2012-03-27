@@ -76,13 +76,6 @@ function visibilityChanged(url) {
   }
 }
 
-function profilePictureForId(id) {
-  // pic #9 is used as the phone holder
-  // id is the index # of the contact in Contacts array,
-  // or parseInt(phone number) if not in the list
-  return '../contacts/contact' + (id % 9) + '.png';
-}
-
 if (!navigator.mozSms) {
   // Until there is a database to store messages on the device, return
   // a fake list of messages.
