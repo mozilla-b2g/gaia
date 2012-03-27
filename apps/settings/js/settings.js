@@ -68,7 +68,6 @@ var Settings = {
         }
 
         window.navigator.mozSettings.getLock().set(key, value);
-        window.parent.postMessage(key, '*');
         break;
 
       case 'click':
@@ -83,7 +82,6 @@ var Settings = {
         input.value = position;
 
         window.navigator.mozSettings.getLock().set(key, value);
-        window.parent.postMessage(key, '*');
         break;
     }
   },
