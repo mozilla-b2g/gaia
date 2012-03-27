@@ -125,7 +125,8 @@ appcache-manifests:
 		then \
 			echo \\t$$d ;\
 			cd $$d ;\
-			echo "CACHE MANIFEST" > manifest.appcache ;\
+			cat `find * -type f | sort` | md5sum -b | cut -f 1 -d ' ' | sed s/^/\#\ Version\ / > manifest.appcache ;\
+			echo "CACHE MANIFEST" >> manifest.appcache ;\
 			find * -type f | grep -v tools | sort >> manifest.appcache ;\
 			sed -i -e 's|manifest.appcache||g' manifest.appcache ;\
 			echo "http://$(GAIA_DOMAIN)/webapi.js" >> manifest.appcache ;\
