@@ -36,7 +36,7 @@
   border-top-right-radius: 8px;
   border-top: 1px solid #d5d5d5;
   border-right: 1px solid #d5d5d5;
-  white-space: nowarp;
+  white-space: nowrap;
 }
 
 #keyboard-panding-symbol-panel:empty {
