@@ -364,6 +364,7 @@ var WindowManager = (function() {
       frame.id = 'appframe' + nextAppId++;
       frame.className = 'appWindow';
       frame.setAttribute('mozallowfullscreen', 'true');
+      frame.src = 'data:text/html,<h1 style="text-align:center; margin-top:100px;">Loading...</h1>';
 
       // Note that we don't set the frame size here.  That will happen
       // when we display the app in setDisplayedApp()
