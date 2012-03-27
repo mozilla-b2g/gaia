@@ -459,9 +459,9 @@ window.addEventListener('localized', function showBody() {
   // get the [lang]-[REGION] setting
   // TODO: expose [REGION] in navigator.mozRegion or document.mozL10n.region?
   if (navigator.mozSettings) {
-    var request = navigator.mozSettings.get('language.current');
+    var request = navigator.mozSettings.getLock().get('language.current');
     request.onsuccess = function() {
-      selectedLocale = request.result.value;
+      selectedLocale = request.result['language.current'] || navigator.language;
       ConversationView.init();
       ConversationListView.init();
     }

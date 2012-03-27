@@ -78,9 +78,9 @@ var LockScreen = {
       return;
     }
 
-    var request = settings.get('lockscreen.enabled');
-    request.addEventListener('success', (function onsuccess(evt) {
-      var enabled = request.result.value !== 'false';
+    var request = settings.getLock().get('lockscreen.enabled');
+    request.addEventListener('success', (function onsuccess() {
+      var enabled = request.result['lockscreen.enabled'] !== 'false';
       if (enabled) {
         this.lock(true, callback);
       } else {
@@ -88,7 +88,7 @@ var LockScreen = {
       }
     }).bind(this));
 
-    request.addEventListener('error', (function onerror(evt) {
+    request.addEventListener('error', (function onerror() {
       this.lock(true, callback);
     }).bind(this));
   },
@@ -561,7 +561,7 @@ var SleepMenu = {
 
             var settings = window.navigator.mozSettings;
             if (settings)
-              settings.set('phone.ring.incoming', 'false');
+              settings.getLock().set('phone.ring.incoming', 'false');
 
             document.getElementById('silent').hidden = true;
             document.getElementById('normal').hidden = false;
@@ -571,7 +571,7 @@ var SleepMenu = {
 
             var settings = window.navigator.mozSettings;
             if (settings)
-              settings.get('phone.ring.incoming', 'true');
+              settings.getLock().get('phone.ring.incoming', 'true');
 
             document.getElementById('silent').hidden = false;
             document.getElementById('normal').hidden = true;
@@ -601,26 +601,15 @@ var SleepMenu = {
 window.addEventListener('click', SleepMenu, true);
 window.addEventListener('keyup', SleepMenu, true);
 
-function SettingListener(name, callback) {
-  var update = function update() {
-    if (!navigator.mozSettings) {
-      console.log('mozSettings is not available on this platform.');
-      return;
-    }
-    var request = navigator.mozSettings.get(name);
-
-    request.addEventListener('success', function onsuccess(evt) {
-      callback(request.result.value);
-    });
-  };
-
-  window.addEventListener('message', function settingChange(evt) {
-    if (evt.data != name)
-      return;
-    update();
-  });
-
-  update();
+function SettingListener(name, _default, callback) {
+  var request = window.navigator.mozSettings.getLock().get(name);
+  request.addEventListener('success', (function onsuccess() {
+    callback(request.result[name] || _default);
+  }));
+  window.navigator.mozSettings.onsettingchange = function(evt) {
+    if (evt.settingName == name)
+      callback(evt.settingValue);
+  }
 }
 
 /* === Source View === */
@@ -733,43 +722,36 @@ var GridView = {
   }
 };
 
-new SettingListener('debug.grid.enabled', function(value) {
+new SettingListener('debug.grid.enabled', false, function(value) {
   value == 'true' ? GridView.show() : GridView.hide();
 });
 
 /* === Language === */
-
-// Unfortunately, a setting listener doesn't seem to work here.
-// That might be an issue of the Settings API...
-//new SettingListener('language.current', switchLocale);
-// ... so let's listen to post messages instead:
-window.addEventListener('message', function getMessage(evt) {
-  if (evt.data && evt.data.language) {
-    // change language -- this triggers startup() and a rebuild
-    document.mozL10n.language.code = evt.data.language;
-  }
+new SettingListener('language.current', 'en-US', function(value) {
+  // change language -- this triggers startup() and a rebuild
+  document.mozL10n.language.code = evt.data.language;
 });
 
 /* === Wallpapers === */
-new SettingListener('homescreen.wallpaper', function(value) {
+new SettingListener('homescreen.wallpaper', 'default.png', function(value) {
   var home = document.getElementById('home');
   home.style.backgroundImage = 'url(style/themes/default/backgrounds/' + value + ')';
 });
 
 /* === Ring Tone === */
-new SettingListener('homescreen.ring', function(value) {
+new SettingListener('homescreen.ring', 'classic.wav', function(value) {
   var player = document.getElementById('ringtone-player');
   player.src = 'style/ringtones/' + value;
 });
 
 var activePhoneSound = true;
-new SettingListener('phone.ring.incoming', function(value) {
+new SettingListener('phone.ring.incoming', true, function(value) {
   activePhoneSound = (value === 'true');
 });
 
 /* === Vibration === */
 var activateVibration = false;
-new SettingListener('phone.vibration.incoming', function(value) {
+new SettingListener('phone.vibration.incoming', false, function(value) {
   activateVibration = (value === 'true');
 });
 
@@ -882,7 +864,7 @@ var ScreenManager = {
   }
 };
 
-new SettingListener('screen.brightness', function(value) {
+new SettingListener('screen.brightness', 0.5, function(value) {
   ScreenManager.preferredBrightness = screen.mozBrightness = parseFloat(value);
 });
 
