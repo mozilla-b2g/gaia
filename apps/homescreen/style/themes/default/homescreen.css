@@ -226,7 +226,29 @@ div.windowSprite {
 
 #wifi {
   width: 30px;
-  background: url(images/wifi.png) 50% 8px no-repeat;
+  background: url(images/wifi-0.png) 50% 8px no-repeat;
+  /* XXX the current wifi-*.png images are too bright, here's a dirty workaround */
+  opacity 0.1;
+}
+
+#wifi.signal-level0 {
+  background-image: url(images/wifi-0.png);
+}
+
+#wifi.signal-level1 {
+  background-image: url(images/wifi-1.png);
+}
+
+#wifi.signal-level2 {
+  background-image: url(images/wifi-2.png);
+}
+
+#wifi.signal-level3 {
+  background-image: url(images/wifi-3.png);
+}
+
+#wifi.signal-level4 {
+  background-image: url(images/wifi-4.png);
 }
 
 #statusbar .time {

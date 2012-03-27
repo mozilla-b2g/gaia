@@ -1565,4 +1565,15 @@ Dots.prototype = {
   }
 };
 
+if ('mozWifiManager' in window.navigator) {
+  window.addEventListener('DOMContentLoaded', function() {
+    var wifiIndicator = document.getElementById('wifi');
+    window.navigator.mozWifiManager.connectionInfoUpdate = function(event) {
+      // relSignalStrength should be between 0 and 100
+      var level = Math.min(Math.floor(event.relSignalStrength / 20), 4);
+      wifiIndicator.className = 'signal-level' + level;
+    };
+  });
+}
+
 window.addEventListener('localized', startup);

@@ -415,3 +415,7 @@ iframe.landscape-secondary {
   padding-left: 0;
   padding-right: 8px;
 }
+
+*[dir=rtl] #signal span {
+  float: right;
+}
