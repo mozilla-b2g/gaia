@@ -17,6 +17,11 @@ var TaskList = {
     return this.tasks = document.getElementById('tasks');
   },
 
+  get title() {
+    delete this.title;
+    return this.title = document.getElementById('tasks-title');
+  },
+  
   /** Gets current date or now if not set.
   * @this {TaskList}
   * @return {Date} Current date or now.
@@ -52,7 +57,8 @@ var TaskList = {
       var startDate = new Date();
       var endDate = new Date();
       endDate.setDate(endDate.getDate() + 1);
-
+      this.title.textContent = 'Tasks in 24 hours';
+      
     } else {
       var startDate = new Date(this.currentDate.getTime());
       startDate.setHours(0);
@@ -61,6 +67,8 @@ var TaskList = {
       var endDate = new Date(this.currentDate.getTime());
       endDate.setHours(23);
       endDate.setMinutes(59);
+      
+      this.title.textContent = 'Tasks for ' + Cal.toShortDate(this.currentDate);
     }
 
     var self = this;
