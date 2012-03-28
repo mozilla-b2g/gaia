@@ -117,7 +117,7 @@ INJECTED_GAIA = "$(MOZ_TESTS)/browser/gaia"
 TEST_PATH=gaia/tests/${TEST_FILE}
 
 # XXX This variable should be removed once make preferences is implemented
-B2G_HOMESCREEN?=file://$(CURDIR)/index.html
+B2G_HOMESCREEN?=http://homescreen.gaiamobile.org/
 
 .PHONY: tests
 tests: manifests offline
