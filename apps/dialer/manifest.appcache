@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# Version 789446cdd8e860c7f3e197816bc59e36
+# Version 1e3712f380a2493c119592f971f2b9c1
 index.html
 js/contacts.js
 js/dialer.js
@@ -8,11 +8,13 @@ js/recents.js
 locale/dialer.properties
 
 manifest.json
+style/.DS_Store
 style/dialer.css
 style/fonts/Open-Sans-Bold.woff
 style/fonts/Open-Sans-Semibold.woff
 style/fonts/Open-Sans.woff
 style/icons/Phone.png
+style/images/.DS_Store
 style/images/accept-call-bg-active.png
 style/images/accept-call-bg.png
 style/images/app-texture.png
@@ -22,9 +24,9 @@ style/images/call-button-bg-active.png
 style/images/call-button-bg.png
 style/images/call-end-icon.png
 style/images/call-icon.png
-style/images/call-screen-bg.png
 style/images/call-screen-bg-top-large.png
 style/images/call-screen-bg-top.png
+style/images/call-screen-bg.png
 style/images/contact-input-bg.png
 style/images/contact-placeholder.png
 style/images/contacts-circle.png
@@ -43,8 +45,8 @@ style/images/hold-icon-active.png
 style/images/hold-icon.png
 style/images/home-texture.png
 style/images/incoming-connected.png
-style/images/incoming.png
 style/images/incoming-refused.png
+style/images/incoming.png
 style/images/input-icon-search.png
 style/images/keypad-bg.png
 style/images/microphone-off.png
@@ -53,8 +55,8 @@ style/images/mute-icon.png
 style/images/numpad-icon-active.png
 style/images/numpad-icon.png
 style/images/outgoing-connected.png
-style/images/outgoing.png
 style/images/outgoing-refused.png
+style/images/outgoing.png
 style/images/recents-icon-active.png
 style/images/recents-icon.png
 style/images/speaker-icon-active.png
