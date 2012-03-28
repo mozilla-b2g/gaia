@@ -72,7 +72,7 @@ var WindowManager = (function() {
 
   // The localization of the "Loading..." message that appears while
   // an app is loading
-  var localizedLoading = "Loading...";
+  var localizedLoading = 'Loading...';
   window.addEventListener('localized', function() {
     localizedLoading = document.mozL10n.get('loading');
   });
@@ -124,9 +124,9 @@ var WindowManager = (function() {
     }
     else {
       frame.style.width = window.innerWidth + 'px';
-      frame.style.height = manifest.fullscreen
-        ? window.innerHeight + 'px'
-        : (window.innerHeight - statusbar.offsetHeight) + 'px';
+      frame.style.height = manifest.fullscreen ?
+        window.innerHeight + 'px' :
+        (window.innerHeight - statusbar.offsetHeight) + 'px';
     }
   }
 
