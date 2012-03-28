@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# Version 789446cdd8e860c7f3e197816bc59e36
+# Version f137aadadcbc73bb00ba26b2529c9b62
 index.html
 js/contacts.js
 js/dialer.js
@@ -8,6 +8,7 @@ js/recents.js
 locale/dialer.properties
 
 manifest.json
+manifest.json~
 style/dialer.css
 style/fonts/Open-Sans-Bold.woff
 style/fonts/Open-Sans-Semibold.woff
