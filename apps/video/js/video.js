@@ -1,6 +1,9 @@
 'use strict';
 
 window.addEventListener('DOMContentLoaded', function() {
+  function $(id) {
+    return document.getElementById(id);
+  }
   var player = $('player');
 
   // This is the list of sample videos built in to the app
@@ -25,12 +28,21 @@ window.addEventListener('DOMContentLoaded', function() {
 
   // Build the thumbnails screen from the list of videos
   samples.forEach(function(sample) {
-    var thumbnail = elt('li', {}, [
-                      elt('img', { src: sample.poster }),
-                      elt('p', { class: 'name' }, sample.title),
-                      elt('p', { class: 'time' }, sample.duration)
-                    ]);
+    var poster = document.createElement('img');
+    poster.src = sample.poster;
 
+    var title = document.createElement('p');
+    title.className = 'name';
+    title.textContent = sample.title;
+
+    var duration = document.createElement('p');
+    duration.className = 'time';
+    duration.textContent = sample.duration;
+
+    var thumbnail = document.createElement('li');
+    thumbnail.appendChild(poster);
+    thumbnail.appendChild(title);
+    thumbnail.appendChild(duration);
     thumbnail.addEventListener('click', function(e) {
       showPlayer(sample);
     });
