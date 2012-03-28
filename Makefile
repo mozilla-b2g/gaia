@@ -36,11 +36,19 @@ ADB?=adb
 # what OS are we on?
 SYS=$(shell uname -s)
 
+ifeq ($(SYS),Darwin)
+MD5SUM = md5 -r
+SED_INPLACE_NO_SUFFIX = sed -i ''
+else
+MD5SUM = md5sum -b
+SED_INPLACE_NO_SUFFIX = sed -i
+endif
 
 # Generate profile/
 profile: stamp-commit-hash update-offline-manifests manifests offline
 	@echo "\nProfile Ready: please run [b2g|firefox] -profile $(CURDIR)/profile"
 
+LANG=POSIX # Avoiding sort order differences between OSes
 
 # Generate profile/webapps/
 manifests:
@@ -132,6 +140,22 @@ tests:
 stamp-commit-hash:
 	git rev-parse HEAD > apps/settings/gaia-commit.txt
 
+# Copy the app manifest files to the profile dir where the
+# mozApps API can find them. For desktop usage, you must create
+# a symbolic link from your profile directory to $GAIA/profile/webapps
+copy-manifests:
+	@mkdir -p profile/webapps
+	@cp apps/webapps.json profile/webapps
+	@$(SED_INPLACE_NO_SUFFIX) -e 's|gaiamobile.org|$(GAIA_DOMAIN)|g' profile/webapps/webapps.json
+	@cd apps; \
+	for d in `find * -maxdepth 0 -type d` ;\
+	do \
+	  if [ -f $$d/manifest.json ]; \
+		then \
+		  mkdir -p ../profile/webapps/$$d; \
+		  cp $$d/manifest.json ../profile/webapps/$$d  ;\
+		fi \
+	done
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 delete-databases:
@@ -155,14 +179,6 @@ forward:
 
 
 # update the manifest.appcache files to match what's actually there
-ifeq ($(SYS),Darwin)
-MD5SUM = md5 -r
-SED_INPLACE_NO_SUFFIX = " ''"
-else
-MD5SUM = md5sum -b
-SED_INPLACE_NO_SUFFIX = ""
-endif
-
 update-offline-manifests:
 	@cd apps; \
 	for d in `find * -maxdepth 0 -type d` ;\
@@ -172,9 +188,9 @@ update-offline-manifests:
 			echo \\t$$d ;\
 			cd $$d ;\
 			echo "CACHE MANIFEST" > manifest.appcache ;\
-			cat `find * -type f | sort` | $(MD5SUM) | cut -f 1 -d ' ' | sed s/^/\#\ Version\ / >> manifest.appcache ;\
+			cat `find * -type f | sort -nfs` | $(MD5SUM) | cut -f 1 -d ' ' | sed 's/^/\#\ Version\ /' >> manifest.appcache ;\
 			find * -type f | grep -v tools | sort >> manifest.appcache ;\
-			sed -i$(SED_IN_PLACE_NO_SUFFIX) -e 's|manifest.appcache||g' manifest.appcache ;\
+			$(SED_INPLACE_NO_SUFFIX) -e 's|manifest.appcache||g' manifest.appcache ;\
 			echo "http://$(GAIA_DOMAIN)/webapi.js" >> manifest.appcache ;\
 			cd .. ;\
 		fi \

@@ -71,10 +71,10 @@ var WindowManager = (function() {
   var displayedApp = null;
 
   // The localization of the "Loading..." message that appears while
-  // and app is loading
-  var localizedLoading = null;
+  // an app is loading
+  var localizedLoading = 'Loading...';
   window.addEventListener('localized', function() {
-    localizedLoading = document.mozL10n.get('loading') || "Loading...";
+    localizedLoading = document.mozL10n.get('loading');
   });
 
   // Public function. Return the origin of the currently displayed app
@@ -124,9 +124,9 @@ var WindowManager = (function() {
     }
     else {
       frame.style.width = window.innerWidth + 'px';
-      frame.style.height = manifest.fullscreen
-        ? window.innerHeight + 'px'
-        : (window.innerHeight - statusbar.offsetHeight) + 'px';
+      frame.style.height = manifest.fullscreen ?
+        window.innerHeight + 'px' :
+        (window.innerHeight - statusbar.offsetHeight) + 'px';
     }
   }
 
@@ -373,11 +373,15 @@ var WindowManager = (function() {
       frame.setAttribute('mozallowfullscreen', 'true');
 
       if (manifest.hackNetworkBound) {
-        // Localize the "Loading..." message if we haven't already
-        if (!localizedLoading) 
-          localizedLoading = document.mozL10n.get('loading') || "Loading...";
+        var style = 'font-family: OpenSans,sans-serif;' +
+                    'text-align: center;' +
+                    'color: white;' +
+                    'margin-top: 100px;';
 
-        frame.src = 'data:text/html,<body style="background-color:black"><h3 style="font-family:OpenSans,sans-serif;color:white;text-align:center; margin-top:100px;">' + localizedLoading + '</h3></body>';
+        frame.src = 'data:text/html,' +
+          '<body style="background-color: black">' +
+          '  <h3 style="' + style + '">' + localizedLoading + '</h3>' +
+          '</body>';
       }
 
       // Note that we don't set the frame size here.  That will happen
