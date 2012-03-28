@@ -6,6 +6,7 @@
   },
   "description": "BBC Mobile Application",
   "launch_path": "/",
+  "hackNetworkBound": "true",
   "locales": {
     "ru": {
       "name": "BBC",

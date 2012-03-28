@@ -6,6 +6,7 @@
   },
   "description": "Mozilla Zimbra Mail",
   "launch_path": "/zimbra/m",
+  "hackNetworkBound": "true",
   "locales": {
     "ru": {
       "name": "Zimbra",
