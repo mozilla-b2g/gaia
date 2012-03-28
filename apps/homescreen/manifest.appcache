@@ -1,12 +1,12 @@
 CACHE MANIFEST
-# Version 530d3632ca84f1c19d5bcd849a1fc80c
+# Version 0f309f3f812ce5b447f7c7b14267a865
 blank.html
 imes/jspinyin/COPYING
 imes/jspinyin/db.json
 imes/jspinyin/jspinyin.js
+imes/jszhuyin/README
 imes/jszhuyin/jszhuyin.js
 imes/jszhuyin/phrases.json
-imes/jszhuyin/README
 imes/jszhuyin/words.json
 index.html
 js/app_manager.js
@@ -18,18 +18,19 @@ js/window_manager.js
 locale/homescreen.properties
 
 manifest.json
+style/.DS_Store
 style/homescreen.css
 style/icons/BBC.png
 style/icons/Browser.png
+style/icons/CNN.png
 style/icons/Calculator.png
 style/icons/Camera.png
 style/icons/Clock.png
-style/icons/CNN.png
 style/icons/CrystalSkull.png
 style/icons/CutTheRope.png
 style/icons/Facebook.png
-style/icons/Gallery.png
 style/icons/GMail.png
+style/icons/Gallery.png
 style/icons/GoogleCalendar.png
 style/icons/Maps.png
 style/icons/Market.png
@@ -40,10 +41,11 @@ style/icons/PenguinPop.png
 style/icons/Phone.png
 style/icons/Settings.png
 style/icons/TowerJelly.png
-style/icons/VideoCube.png
 style/icons/Video.png
+style/icons/VideoCube.png
 style/icons/Wikipedia.png
 style/icons/Zimbra.png
+style/images/.DS_Store
 style/images/grid.png
 style/images/notifications.png
 style/keyboard/fonts/Keyboard-Symbols.svg
@@ -51,20 +53,22 @@ style/keyboard/fonts/Keyboard-Symbols.woff
 style/keyboard/images/left-accent.png
 style/keyboard/images/left-active-accent.png
 style/keyboard/images/left-active.png
-style/keyboard/images/left.png
 style/keyboard/images/left-special.png
-style/keyboard/images/middle.png
+style/keyboard/images/left.png
 style/keyboard/images/middle-special.png
+style/keyboard/images/middle.png
 style/keyboard/images/right-accent.png
 style/keyboard/images/right-active-accent.png
 style/keyboard/images/right-active.png
-style/keyboard/images/right.png
 style/keyboard/images/right-special.png
+style/keyboard/images/right.png
 style/keyboard/keyboard.css
+style/ringtones/README
 style/ringtones/bosscaling.wav
 style/ringtones/classic.wav
 style/ringtones/goodnight.wav
-style/ringtones/README
+style/themes/.DS_Store
+style/themes/default/.DS_Store
 style/themes/default/backgrounds/default.png
 style/themes/default/backgrounds/leaves.png
 style/themes/default/backgrounds/rings.png
@@ -73,6 +77,7 @@ style/themes/default/fonts/Open-Sans-Bold.woff
 style/themes/default/fonts/Open-Sans-Semibold.woff
 style/themes/default/fonts/Open-Sans.woff
 style/themes/default/homescreen.css
+style/themes/default/images/.DS_Store
 style/themes/default/images/battery-charging.png
 style/themes/default/images/battery-main.png
 style/themes/default/images/close-active.png
