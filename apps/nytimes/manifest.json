@@ -6,6 +6,7 @@
   },
   "description": "NY Times Mobile Application",
   "launch_path": "/",
+  "hackNetworkBound": "true",
   "locales": {
     "ru": {
       "name": "NY Times",
