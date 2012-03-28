@@ -1,28 +1,35 @@
 {
   "name": "Messages",
-  "description": "Gaia Messages",
-  "launch_path": "/sms.html",
-  "developer": {
-    "name": "The Gaia Team",
-    "url": "https://github.com/andreasgal/gaia"
-  },
+  "default_locale": "en-US",
   "icons": {
     "120": "/style/icons/Messages.png"
   },
+  "description": "Gaia Messages",
+  "launch_path": "/",
   "locales": {
+    "ru": {
+      "name": "\u0421\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u044f",
+      "description": "\u0421\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u044f Gaia"
+    },
+    "en-US": {
+      "name": "Messages",
+      "description": "Gaia Messages"
+    },
     "ar": {
-      "name": "رسائل",
-      "description": "Gaia رسائل"
+      "name": "\u0631\u0633\u0627\u0626\u0644",
+      "description": "Gaia \u0631\u0633\u0627\u0626\u0644"
     },
     "fr": {
       "name": "Messages",
       "description": "Messages Gaia"
     },
     "zh-TW": {
-      "name": "訊息",
-      "description": "Gaia 訊息"
+      "name": "\u8a0a\u606f",
+      "description": "Gaia \u8a0a\u606f"
     }
   },
-  "default_locale": "en"
+  "developer": {
+    "url": "https://github.com/andreasgal/gaia",
+    "name": "The Gaia Team"
+  }
 }
-

@@ -41,6 +41,9 @@ window.addEventListener('DOMContentLoaded', function() {
   // if false, then the gallery is showing
   var playerShowing = false;
 
+  // Keep the screen on when playing
+  var screenLock;
+
   // same thing for the controls
   var controlShowing = false;
 
@@ -98,6 +101,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
     playerShowing = true;
     controlShowing = false;
+    screenLock = navigator.requestWakeLock("screen");
   }
   function hidePlayer() {
     if (!playerShowing)
@@ -113,6 +117,7 @@ window.addEventListener('DOMContentLoaded', function() {
     player.currentTime = 0;
 
     playerShowing = false;
+    screenLock.unlock();
   }
   $('close').addEventListener('click', hidePlayer, false);
   player.addEventListener('ended', function() {

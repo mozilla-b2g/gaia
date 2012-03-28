@@ -5,6 +5,11 @@
 
 var _ = document.mozL10n.get;
 
+
+// The appscreen is the main part of the homescreen: the part that
+// displays icons that launch all of the installed apps.
+var appscreen;
+
 function startup() {
   // Set the 'lang' and 'dir' attributes to <html> when the page is translated
   var html = document.querySelector('html');
@@ -13,24 +18,29 @@ function startup() {
   html.dir = lang.direction;
   document.dir = lang.direction;
 
-  new Homescreen();
+  if (!appscreen) { // first start: init
+    appscreen = new AppScreen();
 
-  LockScreen.init();
-  LockScreen.update(function fireHomescreenReady() {
-    ScreenManager.turnScreenOn();
+    LockScreen.init();
+    LockScreen.update(function fireHomescreenReady() {
+      ScreenManager.turnScreenOn();
 
-    var touchables = [
-      document.getElementById('notifications-screen'),
-      document.getElementById('statusbar')
-    ];
+      var touchables = [
+        document.getElementById('notifications-screen'),
+        document.getElementById('statusbar')
+      ];
 
-    NotificationScreen.init(touchables);
+      NotificationScreen.init(touchables);
 
-    new MessagesListener();
-    new TelephonyListener();
+      new MessagesListener();
+      new TelephonyListener();
 
-    window.parent.postMessage('homescreenready', '*');
-  });
+      window.parent.postMessage('homescreenready', '*');
+    });
+  }
+  else { // locale has been changed: rebuild app grid
+    appscreen.build(true);
+  }
 
   updateClock();
   updateBattery();
@@ -68,9 +78,10 @@ var LockScreen = {
       return;
     }
 
-    var request = settings.get('lockscreen.enabled');
-    request.addEventListener('success', (function onsuccess(evt) {
-      var enabled = request.result.value !== 'false';
+    var request = settings.getLock().get('lockscreen.enabled');
+    request.addEventListener('success', (function onsuccess() {
+      var value = request.result['lockscreen.enabled'];
+      var enabled = typeof(value) == 'boolean' ? value : true;
       if (enabled) {
         this.lock(true, callback);
       } else {
@@ -78,7 +89,7 @@ var LockScreen = {
       }
     }).bind(this));
 
-    request.addEventListener('error', (function onerror(evt) {
+    request.addEventListener('error', (function onerror() {
       this.lock(true, callback);
     }).bind(this));
   },
@@ -124,7 +135,7 @@ var LockScreen = {
   unlock: function lockscreen_unlock(instant, callback) {
     var offset = '-100%';
     var style = this.overlay.style;
-    
+
     if (!this.locked) {
       if (instant) {
         style.MozTransition = style.MozTransform = '';
@@ -343,7 +354,7 @@ var NotificationScreen = {
 
       var unread = parseInt(notification.dataset.count) + 1;
       var msg = (type == 'sms') ?
-        _('unreadMessages', { n: unread }) : _( 'missedCalls', { n: unread });
+        _('unreadMessages', { n: unread }) : _('missedCalls', { n: unread });
       notification.lastElementChild.textContent = msg;
       return;
     }
@@ -550,7 +561,8 @@ var SleepMenu = {
             activePhoneSound = false;
 
             var settings = window.navigator.mozSettings;
-            settings.set('phone.ring.incoming', 'false');
+            if (settings)
+              settings.getLock().set({ 'phone.ring.incoming': false});
 
             document.getElementById('silent').hidden = true;
             document.getElementById('normal').hidden = false;
@@ -559,7 +571,8 @@ var SleepMenu = {
             activePhoneSound = true;
 
             var settings = window.navigator.mozSettings;
-            settings.get('phone.ring.incoming', 'true');
+            if (settings)
+              settings.getLock().get({'phone.ring.incoming': true});
 
             document.getElementById('silent').hidden = false;
             document.getElementById('normal').hidden = true;
@@ -589,23 +602,40 @@ var SleepMenu = {
 window.addEventListener('click', SleepMenu, true);
 window.addEventListener('keyup', SleepMenu, true);
 
-function SettingListener(name, callback) {
-  var update = function update() {
-    var request = navigator.mozSettings.get(name);
 
-    request.addEventListener('success', function onsuccess(evt) {
-      callback(request.result.value);
-    });
-  };
+var SettingsListener = {
+  _callbacks: {},
 
-  window.addEventListener('message', function settingChange(evt) {
-    if (evt.data != name)
+  init: function sl_init() {
+    if ('mozSettings' in navigator)
+      navigator.mozSettings.onsettingchange = this.onchange.bind(this);
+  },
+
+  onchange: function sl_onchange(evt) {
+    var callback = this._callbacks[evt.settingName];
+    if (callback) {
+      callback(evt.settingValue);
+    }
+  },
+
+  observe: function sl_observe(name, defaultValue, callback) {
+    var settings = window.navigator.mozSettings;
+    if (!settings) {
+      setTimeout(function() { callback(defaultValue); });
       return;
-    update();
-  });
+    }
 
-  update();
-}
+    var req = settings.getLock().get(name);
+    req.addEventListener('success', (function onsuccess() {
+      callback(typeof(req.result[name]) != 'undefined' ? req.result[name]
+                                                       : defaultValue);
+    }));
+
+    this._callbacks[name] = callback;
+  }
+};
+
+SettingsListener.init();
 
 /* === Source View === */
 var SourceView = {
@@ -643,13 +673,19 @@ var SourceView = {
     }
 
     var url = WindowManager.getDisplayedApp();
+    if (!url)
+      // Assume the home screen is the visible app.
+      url = window.location.toString();
     viewsource.src = 'view-source: ' + url;
     viewsource.style.visibility = 'visible';
   },
 
   hide: function sv_hide() {
-    if (this.viewer)
-      this.viewer.style.visibility = 'hidden';
+    var viewsource = this.viewer;
+    if (viewsource) {
+      viewsource.style.visibility = 'hidden';
+      viewsource.src = 'about:blank';
+    }
   },
 
   toggle: function sv_toggle() {
@@ -711,31 +747,37 @@ var GridView = {
   }
 };
 
-new SettingListener('debug.grid.enabled', function(value) {
-  value == 'true' ? GridView.show() : GridView.hide();
+SettingsListener.observe('debug.grid.enabled', false, function(value) {
+  !!value ? GridView.show() : GridView.hide();
+});
+
+/* === Language === */
+SettingsListener.observe('language.current', 'en-US', function(value) {
+  // change language -- this triggers startup() and a rebuild
+  document.mozL10n.language.code = value;
 });
 
 /* === Wallpapers === */
-new SettingListener('homescreen.wallpaper', function(value) {
+SettingsListener.observe('homescreen.wallpaper', 'default.png', function(value) {
   var home = document.getElementById('home');
-  home.style.background = 'url(style/themes/default/backgrounds/' + value + ')';
+  home.style.backgroundImage = 'url(style/themes/default/backgrounds/' + value + ')';
 });
 
 /* === Ring Tone === */
-new SettingListener('homescreen.ring', function(value) {
+SettingsListener.observe('homescreen.ring', 'classic.wav', function(value) {
   var player = document.getElementById('ringtone-player');
   player.src = 'style/ringtones/' + value;
 });
 
 var activePhoneSound = true;
-new SettingListener('phone.ring.incoming', function(value) {
-  activePhoneSound = (value === 'true');
+SettingsListener.observe('phone.ring.incoming', true, function(value) {
+  activePhoneSound = !!value;
 });
 
 /* === Vibration === */
 var activateVibration = false;
-new SettingListener('phone.vibration.incoming', function(value) {
-  activateVibration = (value === 'true');
+SettingsListener.observe('phone.vibration.incoming', false, function(value) {
+  activateVibration = !!value;
 });
 
 /* === KeyHandler === */
@@ -847,7 +889,7 @@ var ScreenManager = {
   }
 };
 
-new SettingListener('screen.brightness', function(value) {
+SettingsListener.observe('screen.brightness', 0.5, function(value) {
   ScreenManager.preferredBrightness = screen.mozBrightness = parseFloat(value);
 });
 
@@ -866,7 +908,12 @@ var MessagesListener = function() {
       return;
 
     NotificationScreen.unlock(true);
-    WindowManager.launch('../sms/sms.html?sender=' + sender);
+
+    // We'd really like to launch the SMS app to show
+    // a particular sender, but don't have a good way to do it.
+    // This should be replaced with a web intent or similar.
+    WindowManager.launch('http://sms.gaiamobile.org/'
+                         /* +'?sender=' + sender*/);
   });
 
   var hasMessages = document.getElementById('state-messages');
@@ -885,7 +932,9 @@ var MessagesListener = function() {
     // If the sms application is opened, just delete all messages
     // notifications
     var applicationURL = evt.detail.url;
-    if (!/^\.\.\/sms\/sms\.html/.test(applicationURL))
+    var host = document.location.host.replace(/^[a-z]+\./i,'');
+    var matcher = new RegExp('/sms\.' + host);
+    if (!matcher.test(applicationURL))
       return;
 
     delete hasMessages.dataset.visible;
@@ -918,7 +967,7 @@ var TelephonyListener = function() {
 
     telephony.calls.forEach(function(call) {
       if (call.state == 'incoming') {
-        call.onstatechange = function () {
+        call.onstatechange = function() {
           call.oncallschanged = null;
           ringtonePlayer.pause();
           window.clearInterval(vibrateInterval);
@@ -926,7 +975,7 @@ var TelephonyListener = function() {
       }
     });
 
-    WindowManager.launch('../dialer/dialer.html');
+    WindowManager.launch('http://dialer.gaiamobile.org/');
   });
 
   // Handling the missed call notification
@@ -945,7 +994,10 @@ var TelephonyListener = function() {
     // If the dialer application is opened, just delete all messages
     // notifications
     var applicationURL = evt.detail.url;
-    if (!/^\.\.\/dialer\/dialer\.html/.test(applicationURL))
+
+    var host = document.location.host.replace(/^[a-z]+\./i,'');
+    var matcher = new RegExp('/dialer\.' + host);
+    if (!matcher.test(applicationURL))
       return;
 
     delete hasMissedCalls.dataset.visible;
@@ -961,39 +1013,183 @@ var TelephonyListener = function() {
       return;
 
     NotificationScreen.unlock(true);
-    WindowManager.launch('../dialer/dialer.html?choice=recents');
+
+    // FIXME: we'd really like to launch the the "Recent calls" view
+    // of the dialer app, but don't have a good way to do it.
+    // This should be replaced with a web intent or similar.
+    WindowManager.launch('http://dialer.gaiamobile.org/'
+                         /* '?choice=recents' */);
   });
 };
 
-/* === Homescreen === */
-var Homescreen = function() {
-  function populateApps(apps) {
-    var grid = new IconGrid('apps');
-    grid.dots = new Dots('dots', 'apps');
+/* === AppScreen === */
+function AppScreen() {
+  this.installedApps = {};
+  var appscreen = this;
 
-    for (var i = 0; i < apps.length; i++) {
-      var app = apps[i];
-      grid.add(app.icon, app.name, app.url);
-    }
-
-    grid.update();
-    grid.setPage(0);
-
-    window.addEventListener('resize', function() {
-      grid.update();
+  navigator.mozApps.mgmt.getAll().onsuccess = function(e) {
+    var apps = e.target.result;
+    apps.forEach(function(app) {
+      appscreen.installedApps[app.origin] = app;
     });
+    appscreen.build();
   };
 
-  Gaia.AppManager.loadInstalledApps(populateApps);
+  // Listen for app installation requests
+  window.addEventListener('mozChromeEvent', function(e) {
+    if (e.detail.type === 'webapps-ask-install') {
+
+      var app = e.detail.app;
+
+      // Note: we could use `requestPermission(_('install', app), ...)`
+      requestPermission(_('install', { name: app.name, origin: app.origin }),
+                        function() { sendResponse(e.detail.id, true); },
+                        function() { sendResponse(e.detail.id, false); });
+    }
+
+    // This is how we say yes or no to the request after the user decides
+    function sendResponse(id, allow) {
+      var event = document.createEvent('CustomEvent');
+      event.initCustomEvent('mozContentEvent', true, true, {
+        id: id,
+        type: allow ? 'webapps-install-granted' : 'webapps-install-denied'
+      });
+      window.dispatchEvent(event);
+    }
+  });
+
+  // Listen for app installations and rebuild the appscreen when we get one
+  navigator.mozApps.mgmt.oninstall = function(event) {
+    var newapp = event.application;
+    appscreen.installedApps[newapp.origin] = newapp;
+    appscreen.build(true);
+  };
+
+  // Do the same for uninstalls
+  navigator.mozApps.mgmt.onuninstall = function(event) {
+    var newapp = event.application;
+    delete appscreen.installedApps[newapp.origin];
+    appscreen.build(true);
+  };
+
+  window.addEventListener('resize', function() {
+    appscreen.grid.update();
+  });
+}
+
+// Look up the app object for a specified app origin
+AppScreen.prototype.getAppByOrigin = function getAppByOrigin(origin) {
+  return this.installedApps[origin];
+};
+
+// Populate the appscreen with icons. The constructor automatically calls this.
+// But we also call it when new apps are installed or when the locale changes.
+AppScreen.prototype.build = function(rebuild) {
+  var startpage = 0;
+
+  if (rebuild) {
+    // FIXME: the commented code below is not working for me.
+    // After the screen is rebuilt each gesture generates multiple events
+    // and the uninstall dialog does not behave right
+    // So here I'm trying something more heavy handed to blow away
+    // the event listeners:
+
+    // Remember the page we're on so that after rebuild we can stay there.
+    startpage = this.grid.currentPage;
+
+    document.getElementById('home').innerHTML =
+      '<div id="apps"></div><div id="dots"></div><div id="shortcuts"></div>';
+
+    /*
+    // We're rebuilding the app screen, not creating it for the first time,
+    // so first we've got to get rid of the old
+    var container = document.getElementById('apps');
+
+    // This undoes code in the IconGrid() construtor.
+    // FIXME: kind of ugly to have to put this here.
+    RemoveEventHandlers(container,
+                        this.grid,
+                        ['touchstart', 'touchmove', 'touchend']);
+
+    container.innerHTML = "";
+    document.getElementById('dots').innerHTML = "";
+    */
+  }
+
+  // Create the widgets
+  this.grid = new IconGrid('apps');
+  this.grid.dots = new Dots('dots', 'apps');
+
+  // The current language for localizing app names
+  var lang = document.mozL10n.language.code;
+
+  for (var origin in this.installedApps) {
+    var app = this.installedApps[origin];
+
+    // Most apps will host their own icons at their own origin.
+    // But for apps that are bookmarks to other sites, the icons
+    // should probably be a data:// URL.  So take the icon from the
+    // manifest, and if it is an absolute URL, leave it alone.
+    // Otherwise, put the app origin in front of it.
+    // If no icon is defined we'll get this undefined one.
+    var icon = 'http://' + document.location.host + '/style/icons/Unknown.png';
+    if (app.manifest.icons) {
+      if ('120' in app.manifest.icons) {
+        icon = app.manifest.icons['120'];
+      }
+      else {
+        // Get all sizes
+        var sizes = Object.keys(app.manifest.icons).map(parseInt);
+        // Largest to smallest
+        sizes.sort(function(x, y) { return y - x; });
+        icon = app.manifest.icons[sizes[0]];
+      }
+    }
+
+    // If the icons is a fully-qualifed URL, leave it alone
+    // (technically, manifests are not supposed to have those)
+    // Otherwise, prefix with the app origin
+    if (icon.indexOf(':') == -1) {
+      // XXX it looks like the homescreen can't load images from other origins (WTF??)
+      // so use the ones from the url host for now
+      // icon = app.origin + icon;
+      icon = 'http://' + document.location.host + icon;
+    }
+
+    // Localize the app name
+    var name = app.manifest.name;
+    if (app.manifest.locales &&
+        app.manifest.locales[lang] &&
+        app.manifest.locales[lang].name)
+      name = app.manifest.locales[lang].name;
+
+    this.grid.add(icon, name, origin);
+  }
+
+  this.grid.update();
+  this.grid.setPage(startpage);
 };
 
 function DefaultPhysics(iconGrid) {
   this.iconGrid = iconGrid;
   this.moved = false;
-  var touchState = this.touchState = {
-    active: false, startX: 0
+  this.touchState = {
+    active: false,
+    startX: 0,
+    startY: 0,
+    timer: null,
+    initialTarget: null
   };
 }
+
+// How long do you have to hold your finger still over an icon
+// before triggering an uninstall rather than a launch.
+DefaultPhysics.HOLD_INTERVAL = 1000;
+// How many pixels can you move your finger before a tap becomes
+// a flick or a pan?
+DefaultPhysics.SMALL_MOVE = 20;
+// How long can your finger be on the screen before a flick becomes a pan?
+DefaultPhysics.FLICK_TIME = 200;
 
 DefaultPhysics.prototype = {
   onTouchStart: function(e) {
@@ -1001,16 +1197,47 @@ DefaultPhysics.prototype = {
     touchState.active = true;
     touchState.startTime = e.timeStamp;
     touchState.startX = e.pageX;
+    touchState.startY = e.pageY;
+
+    // If this timer triggers and the user hasn't moved their finger
+    // then this is a hold rather than a tap.
+    touchState.timer = setTimeout(this.onHoldTimeout.bind(this),
+                                  DefaultPhysics.HOLD_INTERVAL);
+
+    // For tap and hold gestures, we keep track of what icon
+    // the touch started on. Even if it strays slightly into another
+    // nearby icon, the initial touch is probably what the user wanted.
+    touchState.initialTarget = e.target;
   },
+
   onTouchMove: function(e) {
     var touchState = this.touchState;
+
+    // If we move more than a small amount this is not a hold, so
+    // cancel the timer if it is still running
+    if (touchState.timer &&
+        (Math.abs(touchState.startX - e.pageX) > DefaultPhysics.SMALL_MOVE ||
+         Math.abs(touchState.startX - e.pageX) > DefaultPhysics.SMALL_MOVE)) {
+      clearTimeout(touchState.timer);
+      touchState.timer = null;
+    }
+
     if (!touchState.active)
       return;
+
     this.iconGrid.pan(-(touchState.startX - e.pageX));
     e.stopPropagation();
   },
+
   onTouchEnd: function(e) {
     var touchState = this.touchState;
+
+    // If the timer hasn't triggered yet, cancel it before it does
+    if (touchState.timer) {
+      clearTimeout(touchState.timer);
+      touchState.timer = null;
+    }
+
     if (!touchState.active)
       return;
     touchState.active = false;
@@ -1022,9 +1249,9 @@ DefaultPhysics.prototype = {
     if (document.dir == 'rtl')
       dir = -dir;
 
-    var quick = (e.timeStamp - touchState.startTime < 200);
-    var long = (e.timeStamp - touchState.startTime > 2000);
-    var small = Math.abs(diffX) <= 20;
+    var quick = (e.timeStamp - touchState.startTime <
+                 DefaultPhysics.FLICK_TIME);
+    var small = Math.abs(diffX) <= DefaultPhysics.SMALL_MOVE;
 
     var flick = quick && !small;
     var tap = small;
@@ -1033,18 +1260,28 @@ DefaultPhysics.prototype = {
     var iconGrid = this.iconGrid;
     var currentPage = iconGrid.currentPage;
     if (tap) {
-      iconGrid.tap(e.target);
+      iconGrid.tap(touchState.initialTarget);
       iconGrid.setPage(currentPage, 0);
       return;
     } else if (flick) {
       iconGrid.setPage(currentPage + dir, 0.2);
-    } else {
+    } else { // drag
       if (Math.abs(diffX) < window.innerWidth / 2)
         iconGrid.setPage(currentPage, 0.2);
       else
         iconGrid.setPage(currentPage + dir, 0.2);
     }
     e.stopPropagation();
+  },
+
+  // Triggered if the user holds their finger on the screen for
+  // DefaultPhysics.HOLD_INTERVAL ms without moving more than
+  // DefaultPhyiscs.SMALL_MOVE pixels horizontally or vertically
+  onHoldTimeout: function() {
+    var touchState = this.touchState;
+    touchState.timer = null;
+    touchState.active = false;
+    this.iconGrid.hold(touchState.initialTarget);
   }
 };
 
@@ -1148,7 +1385,7 @@ IconGrid.prototype = {
     }
 
     // issue #723 - The calculation of the width/height of the icons
-    // should be dynamic and not harcoded like that. The reason why it
+    // should be dynamic and not hardcoded like that. The reason why it
     // it is done like that at this point is because there is no icon
     // when the application starts and so there is nothing to calculate
     // against.
@@ -1241,7 +1478,7 @@ IconGrid.prototype = {
 
       var calc = (document.dir == 'ltr') ?
         (n - currentPage) + '00% + ' + x + 'px' :
-        (currentPage - n) + '00% - ' + x + 'px' ;
+        (currentPage - n) + '00% + ' + x + 'px' ;
 
       var style = page.style;
       style.MozTransform = 'translateX(-moz-calc(' + calc + '))';
@@ -1269,6 +1506,13 @@ IconGrid.prototype = {
   },
   tap: function(target) {
     WindowManager.launch(target.dataset.url);
+  },
+  hold: function(target) {
+    var app = appscreen.getAppByOrigin(target.dataset.url);
+
+    // FIXME: localize this message
+    requestPermission('Do you want to uninstall ' + app.manifest.name + '?',
+                      function() { app.uninstall(); });
   },
   handleEvent: function(e) {
     var physics = this.physics;
@@ -1327,5 +1571,16 @@ Dots.prototype = {
     }
   }
 };
+
+if ('mozWifiManager' in window.navigator) {
+  window.addEventListener('DOMContentLoaded', function() {
+    var wifiIndicator = document.getElementById('wifi');
+    window.navigator.mozWifiManager.connectionInfoUpdate = function(event) {
+      // relSignalStrength should be between 0 and 100
+      var level = Math.min(Math.floor(event.relSignalStrength / 20), 4);
+      wifiIndicator.className = 'signal-level' + level;
+    };
+  });
+}
 
 window.addEventListener('localized', startup);

@@ -1,14 +1,6 @@
 CACHE MANIFEST
-# v1 2011-09-12
+# Version 7b799021aaff5898f12d62fa1c587d99
 
-# /
-maps.html
-manifest.webapp
-js/maps.js
-style/maps.css
-
-# icons used in the web application manifest.
-# Do not use icons/ directly since it is often used as an alias by Apache.
+manifest.json
 style/icons/Maps.png
-
-NETWORK:
+http://gaiamobile.org/webapi.js

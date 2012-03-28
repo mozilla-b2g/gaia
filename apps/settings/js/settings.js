@@ -5,7 +5,10 @@
 
 var Settings = {
   init: function settings_init() {
+    this.loadGaiaCommit();
+
     var settings = window.navigator.mozSettings;
+    var transaction = settings.getLock();
 
     var checkboxes = document.querySelectorAll('input[type="checkbox"]');
     for (var i = 0; i < checkboxes.length; i++) {
@@ -14,10 +17,10 @@ var Settings = {
         if (!key)
           return;
 
-        var request = settings.get(key);
+        var request = transaction.get(key);
         request.onsuccess = function() {
-          var result = request.result;
-          checkbox.checked = result.value === 'true' ? true : false;
+          if (request.result[key] != undefined)
+            checkbox.checked = !!request.result[key];
         };
       })(checkboxes[i]);
     }
@@ -29,10 +32,10 @@ var Settings = {
         if (!key)
           return;
 
-        var request = settings.get(key);
+        var request = transaction.get(key);
         request.onsuccess = function() {
-          var result = request.result;
-          radio.checked = (result.value === radio.value);
+          if (request.result[key] != undefined)
+            radio.checked = (request.result[key] === radio.value);
         };
       })(radios[i]);
     }
@@ -44,10 +47,10 @@ var Settings = {
         if (!key)
           return;
 
-        var request = settings.get(key);
+        var request = transaction.get(key);
         request.onsuccess = function() {
-          var result = request.result;
-          progress.value = parseFloat(result.value) * 10;
+          if (request.result[key] != undefined)
+            progress.value = parseFloat(request.result[key]) * 10;
         };
       })(progresses[i]);
     }
@@ -66,15 +69,13 @@ var Settings = {
         } else if (input.type == 'radio') {
           value = input.value;
         }
-
-        window.navigator.mozSettings.set(key, value);
-        window.parent.postMessage(key, '*');
+        var cset = { };  cset[key] = value;
+        window.navigator.mozSettings.getLock().set(cset);
         break;
 
       case 'click':
         if (input.tagName.toLowerCase() != 'progress')
           return;
-
         var rect = input.getBoundingClientRect();
         var position = Math.ceil((evt.clientX - rect.left) / (rect.width / 10));
 
@@ -82,35 +83,39 @@ var Settings = {
         screen.mozBrightness = value;
         input.value = position;
 
-        window.navigator.mozSettings.set(key, value);
-        window.parent.postMessage(key, '*');
+        var cset = { };  cset[key] = value;
+        window.navigator.mozSettings.getLock().set(cset);
         break;
     }
+  },
+  loadGaiaCommit: function() {
+    var req = new XMLHttpRequest();
+    req.onreadystatechange = (function(e) {
+      if (req.readyState === 4) {
+        if (req.status === 200) {
+          var hash = req.responseText;
+          var disp = document.getElementById('gaia-commit');
+          // XXX it would be great to pop a link to the github page
+          // showing the commit but there doesn't seem to be any way
+          // to tell the browser to do it.
+          disp.textContent = 'Git commit '+ hash;
+        } else {
+          console.error("Failed to fetch gaia commit: ", req.statusText);
+        }  
+      }
+    }).bind(this);
+    req.open("GET", 'gaia-commit.txt', true/*async*/);
+    req.responseType = 'text';
+    req.send();
   }
 };
 
+// apply user changes to 'Settings'
 window.addEventListener('load', function loadSettings(evt) {
   window.removeEventListener('load', loadSettings);
   window.addEventListener('change', Settings);
   window.addEventListener('click', Settings);
   Settings.init();
-});
-
-window.addEventListener('DOMContentLoaded', function showRoot() {
-  document.location.hash = '#root';
-
-  // update UI when the language setting is changed
-  // XXX there's no way currently to fire a callback when a pref is changed
-  //     so we're using an ugly onclick + timeout :-/
-  var languages = document.getElementById('languages');
-  languages.addEventListener('click', function onclick() {
-    setTimeout(function getLanguageSetting() {
-      var req = navigator.mozSettings.get('language.current');
-      req.onsuccess = function retranslate() {
-        document.mozL10n.language.code = req.result.value;
-      }
-    }, 0);
-  });
 });
 
 // back button = close dialog || back to the root page
@@ -126,17 +131,29 @@ window.addEventListener('keyup', function goBack(event) {
       document.body.classList.remove('dialog');
     }
     else {
-      document.location.hash = '#root';
+      document.location.hash = 'root';
     }
   }
 });
 
-// Set the 'lang' and 'dir' attributes to <html> when the page is translated
-window.addEventListener('localized', function showBody() {
+// set the 'lang' and 'dir' attributes to <html> when the page is translated
+window.addEventListener('localized', function showPanel() {
   var html = document.querySelector('html');
   var lang = document.mozL10n.language;
-  html.setAttribute('lang', lang.code);
-  html.setAttribute('dir', lang.direction);
+  html.lang = lang.code;
+  html.dir = lang.direction;
+
   // <body> children are hidden until the UI is translated
-  document.body.classList.remove('hidden');
+  if (document.body.classList.contains('hidden')) {
+    // first run: show main page
+    document.location.hash = 'root';
+    document.body.classList.remove('hidden');
+  }
+  else {
+    // we were in #languages and selected another locale:
+    // reset the hash to prevent weird focus bugs when switching LTR/RTL
+    setTimeout(function() {
+      document.location.hash = 'languages';
+    }, 0);
+  }
 });

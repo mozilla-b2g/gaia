@@ -1,18 +1,13 @@
 CACHE MANIFEST
-# v1 2012-15-03
-
-# /
-index.html
-manifest.webapp
+# Version 9d23d90e6a54ab423d369c9e8735993a
 glUtils.js
-sylvester.js
-webgl.css
-webgl-demo.js
-mozilla.webm
-
-# icons used in the web application manifest.
-# Do not use icons/ directly since it is often used as an alias by Apache.
 icon.png
+index.html
 
-NETWORK:
-
+manifest.json
+mozilla.webm
+style/icons/VideoCube.png
+sylvester.js
+webgl-demo.js
+webgl.css
+http://gaiamobile.org/webapi.js

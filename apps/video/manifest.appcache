@@ -1,48 +1,35 @@
 CACHE MANIFEST
-# v2 2012-02-08
-
-# /
-video.html
-manifest.webapp
-
-# js/
-http://gaiamobile.org/webapi.js
+# Version 72549ec3c8ec5e598eea31236e619636
+index.html
 js/domutils.js
 js/video.js
+locale/video.properties
 
-# style/
-style/video.css
-style/controls.css
-style/controls-800px.css
-style/video.css
-style/fonts/Open-Sans.woff
-style/fonts/Open-Sans-Semibold.woff
-style/fonts/Open-Sans-Bold.woff
-style/images/btn_playhead_press.png
-style/images/grippy.png
-style/images/btn_play_off.png
-style/images/btn_play_press.png
-style/images/btn_close_press.png
-style/images/app-texture.png
-style/images/btn_pause_press.png
-style/images/btn_playhead_off.png
-style/images/btn_fwd_off.png
-style/images/controls.png
-style/images/btn_fwd_press.png
-style/images/btn_pause_off.png
-style/images/btn_rwd_press.png
-style/images/btn_close_off.png
-style/images/btn_rwd_off.png
-
-# samples/
-samples/meetthecubs.webm
-samples/meetthecubs.png
+manifest.json
 samples/manifesto.ogv
 samples/manifesto.png
-
-# icons used in the web application manifest.
-# Do not use icons/ directly since it is often used as an alias by Apache.
+samples/meetthecubs.png
+samples/meetthecubs.webm
+style/controls-800px.css
+style/controls.css
+style/fonts/Open-Sans-Bold.woff
+style/fonts/Open-Sans-Semibold.woff
+style/fonts/Open-Sans.woff
 style/icons/Video.png
-
-NETWORK:
-
+style/images/app-texture.png
+style/images/btn_close_off.png
+style/images/btn_close_press.png
+style/images/btn_fwd_off.png
+style/images/btn_fwd_press.png
+style/images/btn_pause_off.png
+style/images/btn_pause_press.png
+style/images/btn_play_off.png
+style/images/btn_play_press.png
+style/images/btn_playhead_off.png
+style/images/btn_playhead_press.png
+style/images/btn_rwd_off.png
+style/images/btn_rwd_press.png
+style/images/controls.png
+style/images/grippy.png
+style/video.css
+http://gaiamobile.org/webapi.js

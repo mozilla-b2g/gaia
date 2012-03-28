@@ -1,18 +1,24 @@
 {
   "name": "Zimbra",
-  "description": "Mozilla Zimbra Mail",
-  "launch_path": "/zimbra/m",
-  "developer": {
-    "name": "Zimbra",
-    "url": "http://zimbra.com"
-  },
+  "default_locale": "en-US",
   "icons": {
     "120": "/style/icons/Zimbra.png"
   },
+  "description": "Mozilla Zimbra Mail",
+  "launch_path": "/zimbra/m",
+  "hackNetworkBound": "true",
   "locales": {
+    "ru": {
+      "name": "Zimbra",
+      "description": "\u041f\u043e\u0447\u0442\u0430 Mozilla Zimbra"
+    },
+    "en-US": {
+      "name": "Zimbra",
+      "description": "Mozilla Zimbra Mail"
+    },
     "ar": {
       "name": "Zimbra",
-      "description": "Mozilla Zimbra البريد"
+      "description": "Mozilla Zimbra \u0627\u0644\u0628\u0631\u064a\u062f"
     },
     "fr": {
       "name": "Zimbra",
@@ -20,8 +26,11 @@
     },
     "zh-TW": {
       "name": "Zimbra",
-      "description": "Mozilla Zimbra 郵件"
+      "description": "Mozilla Zimbra \u90f5\u4ef6"
     }
   },
-  "default_locale": "en"
+  "developer": {
+    "url": "http://zimbra.com",
+    "name": "Zimbra"
+  }
 }

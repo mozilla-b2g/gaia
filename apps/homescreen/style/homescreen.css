@@ -151,21 +151,36 @@ body {
   display: inline-block;
 }
 
+/* Horizontal orientation height of our current target phones */
 @media all and (max-height: 600px) {
+  #home {
+    background-size: cover;
+  }
+
   #home > #apps {
-    /* height = -margin-top +100% - dots.height - notifications.height */
-    height: -moz-calc(-40px + 100% - 14px - 0px);
+    /* height = -margin-top +100% - dots.height - dots.bottom - notifications.height */
+    height: -moz-calc(-24px + 100% - 14px - 14px - 0px);
+    margin-top: 24px;
   }
 
   #home > #dots {
-    bottom: 0px;
+    bottom: 14px;
   }
 }
 
+/* Vertical orientation of 320x480 phones */
 @media all and (max-width: 320px) {
   .page {
     left: 30px;
     width: -moz-calc(100% - 30px);
+  }
+}
+
+/* Horizontal orientation height of 800x480 phones */
+@media all and (min-width: 800px) {
+  .page {
+    left: 70px;
+    width: -moz-calc(100% - 70px);
   }
 }
 
@@ -393,10 +408,14 @@ iframe.landscape-secondary {
 *[dir=rtl] .icon {
   float: right;
   margin-left: 4px;
-  margin-right: auto;
+  margin-right: 0;
 }
 
 *[dir=rtl] .icon > .label {
-  padding-left: auto;
+  padding-left: 0;
   padding-right: 8px;
+}
+
+*[dir=rtl] #signal span {
+  float: right;
 }

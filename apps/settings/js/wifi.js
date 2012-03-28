@@ -3,13 +3,141 @@
 
 'use strict';
 
-window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
+window.addEventListener('localized', function scanWifiNetworks(evt) {
   var wifiManager = navigator.mozWifiManager;
   var _ = document.mozL10n.get;
 
   // globals
   var gStatus = document.querySelector('#status small');
-  var gList = document.querySelector('#wifi-networks');
+
+  // network list
+  var gNetworkList = (function networkList(list) {
+    var scanning = false;
+    var autoscan = false;
+    var scanRate = 5000; // 5s after last scan results
+
+    // private DOM helper: create a "Scanning..." list item
+    function newScanItem() {
+      var a = document.createElement('a');
+      a.textContent = _('scanning');
+
+      var span = document.createElement('span');
+      span.className = 'wifi-search';
+
+      var label = document.createElement('label');
+      label.appendChild(span);
+
+      var li = document.createElement('li');
+      li.appendChild(a);
+      li.appendChild(label);
+
+      return li;
+    }
+
+    // private DOM helper: create a network list item
+    function newListItem(network) {
+      // ssid
+      var span = document.createElement('span');
+      span.textContent = network.ssid;
+
+      // signal is between 0 and 100, level should be between 0 and 4
+      var signal = document.createElement('span');
+      var level = Math.min(Math.floor(network.signal / 20), 4);
+      signal.className = 'wifi-signal' + level;
+      var label = document.createElement('label');
+      label.className = 'wifi';
+      label.appendChild(signal);
+
+      // supported authentication methods
+      var small = document.createElement('small');
+      var keys = network.capabilities;
+      if (keys && keys.length) {
+        small.textContent = _('securedBy', { capabilities: keys.join(', ') });
+        var secure = document.createElement('span');
+        secure.className = 'wifi-secure';
+        label.appendChild(secure);
+      }
+      else {
+        small.textContent = _('securityOpen');
+      }
+
+      // create list item
+      var li = document.createElement('li');
+      li.appendChild(span);
+      li.appendChild(small);
+      li.appendChild(label);
+
+      // bind connection callback
+      li.onclick = function() {
+        showNetwork(network);
+      }
+      return li;
+    }
+
+    // clear the network list
+    function clear(addScanningItem) {
+      while (list.hasChildNodes())
+        list.removeChild(list.lastChild);
+      if (addScanningItem)
+        list.appendChild(newScanItem());
+    };
+
+    // scan wifi networks and display them in the list
+    function scan() {
+      if (!wifiManager.enabled || !screen.mozEnabled || scanning)
+        return;
+
+      var req = wifiManager.getNetworks();
+      scanning = true;
+
+      req.onsuccess = function() {
+        scanning = false;
+        var networks = req.result;
+
+        // sort networks: connected network first, then by signal strength
+        var ssids = Object.getOwnPropertyNames(networks);
+        ssids.sort(function(a, b) {
+          return isConnected(networks[b]) ?  100 :
+            networks[b].signal - networks[a].signal;
+        });
+
+        // create list
+        clear();
+        for (var i = 0; i < ssids.length; i++)
+          list.appendChild(newListItem(networks[ssids[i]]));
+
+        // auto-rescan if requested
+        if (autoscan)
+          setTimeout(scan, scanRate);
+      };
+
+      req.onerror = function(error) {
+        gStatus.textContent = 'error: ' + req.error.name;
+      };
+
+      updateState();
+    };
+
+    // API
+    return {
+      get autoscan() { return autoscan; },
+      set autoscan(value) { autoscan = value; },
+      clear: clear,
+      scan: scan,
+      get scanning() { return scanning; }
+    };
+  }) (document.getElementById('wifi-networks'));
+
+  // auto-scan networks if the wifi panel is active
+  window.addEventListener('hashchange', function autoscan() {
+    if (document.location.hash == '#wifi') {
+      gNetworkList.autoscan = true;
+      gNetworkList.scan();
+    }
+    else {
+      gNetworkList.autoscan = false;
+    }
+  });
 
   // current state
   function updateState() {
@@ -31,75 +159,17 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
 
   // toggle wifi on/off
   document.querySelector('#status input').onchange = function() {
-    while (gList.hasChildNodes())
-      gList.removeChild(gList.lastChild);
-
     var req;
     if (wifiManager.enabled) {
+      gNetworkList.clear();
       req = wifiManager.setEnabled(false);
     }
     else {
       req = wifiManager.setEnabled(true);
-      gList.appendChild(newScanItem());
-      wifiScanNetworks();
+      gNetworkList.clear(true);
+      gNetworkList.scan();
     }
     req.onsuccess = updateState;
-  }
-
-  function newScanItem() {
-    var a = document.createElement('a');
-    a.textContent = _('scanning');
-
-    var span = document.createElement('span');
-    span.className = 'wifi-search';
-
-    var label = document.createElement('label');
-    label.appendChild(span);
-
-    var li = document.createElement('li');
-    li.appendChild(a);
-    li.appendChild(label);
-
-    return li;
-  }
-
-  function newListItem(network) {
-    // ssid
-    var span = document.createElement('span');
-    span.textContent = network.ssid;
-
-    // signal is between 0 and 100, level should be between 0 and 4
-    var signal = document.createElement('span');
-    var level = Math.min(Math.floor(network.signal / 20), 4);
-    signal.className = 'wifi-signal' + level;
-    var label = document.createElement('label');
-    label.className = 'wifi';
-    label.appendChild(signal);
-
-    // supported authentication methods
-    var small = document.createElement('small');
-    var keys = network.capabilities;
-    if (keys && keys.length) {
-      small.textContent = _('securedBy', { capabilities: keys.join(', ') });
-      var secure = document.createElement('span');
-      secure.className = 'wifi-secure';
-      label.appendChild(secure);
-    }
-    else {
-      small.textContent = _('securityOpen');
-    }
-
-    // create list item
-    var li = document.createElement('li');
-    li.appendChild(span);
-    li.appendChild(small);
-    li.appendChild(label);
-
-    // bind connection callback
-    li.onclick = function() {
-      showNetwork(network);
-    }
-    return li;
   }
 
   function wifiConnect(network) {
@@ -123,42 +193,12 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
 
   wifiManager.onconnect = function(event) {
     gStatus.textContent = _('connected', { ssid: event.network.ssid });
-    wifiScanNetworks(); // refresh the network list
+    gNetworkList.scan(); // refresh the network list
   };
 
   wifiManager.ondisconnect = function(event) {
     gStatus.textContent = _('offline');
   };
-
-  // scan wifi networks
-  function wifiScanNetworks() {
-    var req = wifiManager.getNetworks();
-
-    req.onsuccess = function() {
-      var networks = req.result;
-
-      // sort networks: connected network first, then by signal strength
-      var ssids = Object.getOwnPropertyNames(networks);
-      ssids.sort(function(a, b) {
-        return isConnected(networks[b]) ?  100 :
-          networks[b].signal - networks[a].signal;
-      });
-
-      // create list
-      while (gList.hasChildNodes())
-        gList.removeChild(gList.lastChild);
-      for (var i = 0; i < ssids.length; i++) {
-        var li = newListItem(networks[ssids[i]]);
-        gList.appendChild(li);
-      }
-    };
-
-    req.onerror = function(error) {
-      gStatus.textContent = 'error: ' + req.error.name;
-    };
-
-    updateState();
-  }
 
   function isConnected(network) {
     // XXX the API should expose a 'connected' property on 'network',
@@ -283,7 +323,7 @@ window.addEventListener('DOMContentLoaded', function scanWifiNetworks(evt) {
 
   updateState();
   if (wifiManager.enabled) {
-    gList.appendChild(newScanItem());
-    wifiScanNetworks();
+    gNetworkList.clear(true);
+    gNetworkList.scan();
   }
 });

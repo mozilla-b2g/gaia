@@ -1,16 +1,10 @@
 CACHE MANIFEST
-# v1 2011-09-12
-
-# /
-towerjelly.html
-manifest.webapp
-
-# js/
+# Version aa11cb79bf44b435c2b30a3c444aba04
+index.html
 js/towerjelly.js
 
-# style/
-style/towerjelly.css
+manifest.json
+style/icons/TowerJelly.png
 style/images/TowerJelly.png
-
-NETWORK:
-
+style/towerjelly.css
+http://gaiamobile.org/webapi.js

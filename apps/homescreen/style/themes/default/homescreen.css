@@ -26,7 +26,13 @@ body {
 
 #home {
   border-radius: 8px;
-  background: url(backgrounds/default.png);
+  background-color: #000;
+  background-attachment: fixed;
+  background-clip: border-box;
+  background-image: url(backgrounds/default.png);
+  background-origin: padding-box;
+  background-position: center center;
+  background-repeat: no-repeat;
 }
 
 /* Lock Screen */
@@ -220,7 +226,27 @@ div.windowSprite {
 
 #wifi {
   width: 30px;
-  background: url(images/wifi.png) 50% 8px no-repeat;
+  background: url(images/wifi-0.png) 50% 8px no-repeat;
+}
+
+#wifi.signal-level0 {
+  background-image: url(images/wifi-0.png);
+}
+
+#wifi.signal-level1 {
+  background-image: url(images/wifi-1.png);
+}
+
+#wifi.signal-level2 {
+  background-image: url(images/wifi-2.png);
+}
+
+#wifi.signal-level3 {
+  background-image: url(images/wifi-3.png);
+}
+
+#wifi.signal-level4 {
+  background-image: url(images/wifi-4.png);
 }
 
 #statusbar .time {
@@ -412,7 +438,7 @@ div.windowSprite {
   font-size: 26px;
   color: #778;
   padding: 0 20px 0 100px;
-  border-top: 1px solid hsla(0, 0%, 100%,0.2); 
+  border-top: 1px solid hsla(0, 0%, 100%,0.2);
   border-bottom: 1px solid hsla(0, 0%, 0%,0.4);
 }
 
@@ -446,3 +472,45 @@ div.windowSprite {
   border-bottom-color: transparent;
 }
 
+/* Permission request dialog see apps/homescreen/js/request.js */
+/* FIXME: this is very ugly */
+#permissionscreen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 20001; /* just below the sleep menu */
+  pointer-events: none;
+  background-color: rgba(0,0,0,0.4);
+  opacity: 0;
+  -moz-transition: opacity 0.5s ease;
+}
+
+#permissionscreen.visible {
+  pointer-events: auto;
+  opacity: 1;
+}
+
+#permissiondialog {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  width: 320px;
+  height: 300px;
+  margin: 0 0 0 -160px;
+  color: #778;
+  background: -moz-linear-gradient(center top , rgb(244, 244, 244), rgb(234, 234, 234)) repeat scroll 0% 0% white;
+  border-radius: 8px;
+  border: 1px solid hsla(0,0%,0%,0);
+  font-size: 20px;
+}
+
+#permissionmessage {
+    margin: 20px;
+}
+
+#permissiondialog button {
+    margin: 30px;
+    padding: 20px;
+}

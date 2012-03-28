@@ -23,9 +23,9 @@
 // The public API of the module is small. It defines an WindowManager object
 // with these methods:
 //
-//    launch(url): start, or switch to the specified app
-//    getDisplayedApp: return the url of the currently displayed app
-//    getAppFrame(url): returns the iframe element for the specified url
+//    launch(origin): start, or switch to the specified app
+//    getDisplayedApp: return the origin of the currently displayed app
+//    getAppFrame(origin): returns the iframe element for the specified origin
 //      which is assumed to be running.  This is only currently used
 //      for tests and chrome stuff: see the end of the file
 //
@@ -56,7 +56,7 @@ var WindowManager = (function() {
 
   //
   // The set of running apps.
-  // This is a map from app url to an object like this:
+  // This is a map from app origin to an object like this:
   // {
   //    name: the app's name
   //    manifest: the app's manifest object
@@ -67,10 +67,17 @@ var WindowManager = (function() {
   var numRunningApps = 0; // start() and stop() maintain this count
   var nextAppId = 0;      // to give each app's iframe a unique id attribute
 
-  // The url of the currently displayed app, or null if there isn't one
+  // The origin of the currently displayed app, or null if there isn't one
   var displayedApp = null;
 
-  // Public function. Return the URL of the currently displayed app
+  // The localization of the "Loading..." message that appears while
+  // an app is loading
+  var localizedLoading = 'Loading...';
+  window.addEventListener('localized', function() {
+    localizedLoading = document.mozL10n.get('loading');
+  });
+
+  // Public function. Return the origin of the currently displayed app
   // or null if there is none.
   function getDisplayedApp() {
     return displayedApp || null;
@@ -79,21 +86,21 @@ var WindowManager = (function() {
   // Start the specified app if it is not already running and make it
   // the displayed app.
   // Public function.  Pass null to make the homescreen visible
-  function launch(url) {
+  function launch(origin) {
     // If it is already being displayed, do nothing
-    if (displayedApp === url)
+    if (displayedApp === origin)
       return;
 
     // If the app is already running (or there is no app), just display it
     // Otherwise, start the app
-    if (!url || isRunning(url))
-      setDisplayedApp(url);
+    if (!origin || isRunning(origin))
+      setDisplayedApp(origin);
     else
-      start(url);
+      start(origin);
   }
 
-  function isRunning(url) {
-    return runningApps.hasOwnProperty(url);
+  function isRunning(origin) {
+    return runningApps.hasOwnProperty(origin);
   }
 
   // Set the size of the app's iframe to match the size of the screen.
@@ -101,8 +108,8 @@ var WindowManager = (function() {
   // phone orientation is changed). And also when an app is launched
   // and each time an app is brought to the front, since the
   // orientation could have changed since it was last displayed
-  function setAppSize(url) {
-    var app = runningApps[url];
+  function setAppSize(origin) {
+    var app = runningApps[origin];
     var frame = app.frame;
     var manifest = app.manifest;
 
@@ -117,15 +124,15 @@ var WindowManager = (function() {
     }
     else {
       frame.style.width = window.innerWidth + 'px';
-      frame.style.height = manifest.fullscreen
-        ? window.innerHeight + 'px'
-        : (window.innerHeight - statusbar.offsetHeight) + 'px';
+      frame.style.height = manifest.fullscreen ?
+        window.innerHeight + 'px' :
+        (window.innerHeight - statusbar.offsetHeight) + 'px';
     }
   }
 
   // Perform an "open" animation for the app's iframe
-  function openWindow(url, callback) {
-    var app = runningApps[url];
+  function openWindow(origin, callback) {
+    var app = runningApps[origin];
     var frame = app.frame;
     var manifest = app.manifest;
 
@@ -170,6 +177,12 @@ var WindowManager = (function() {
         frame.classList.add('active');
         windows.classList.add('active');
         sprite.classList.add('faded');
+
+        // Let the app know that it has become visible
+        frame.contentWindow.postMessage({
+          message: 'visibilitychange',
+          hidden: false
+        }, '*');
       }
       else {
         // The second transition has just completed
@@ -188,12 +201,12 @@ var WindowManager = (function() {
     // this event and uses it to clear notifications when the dialer
     // or sms apps are opened up. We probably need a better way to do this.
     var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('appopen', true, false, { url: url });
+    evt.initCustomEvent('appopen', true, false, { url: origin });
     frame.dispatchEvent(evt);
   }
 
-  function closeWindow(url, instant, callback) {
-    var app = runningApps[url];
+  function closeWindow(origin, instant, callback) {
+    var app = runningApps[origin];
     var frame = app.frame;
     var manifest = app.manifest;
 
@@ -216,6 +229,12 @@ var WindowManager = (function() {
 
     // Take keyboard focus away from the closing window
     frame.blur();
+
+    // Let the app know that it has become hidden
+    frame.contentWindow.postMessage({
+      message: 'visibilitychange',
+      hidden: true
+    }, '*');
 
     // If this was a fullscreen app, leave full-screen mode
     if (manifest.fullscreen)
@@ -276,15 +295,15 @@ var WindowManager = (function() {
       sprite.removeEventListener('transitionend', transitionListener);
       document.body.removeChild(sprite);
       if (manifest.hackKillMe)
-        stop(url);
+        stop(origin);
       if (callback)
         callback();
     });
   }
 
   // Switch to a different app
-  function setDisplayedApp(url, callback) {
-    var currentApp = displayedApp, newApp = url;
+  function setDisplayedApp(origin, callback) {
+    var currentApp = displayedApp, newApp = origin;
 
     // There are four cases that we handle in different ways:
     // 1) The new app is already displayed: do nothing
@@ -316,79 +335,114 @@ var WindowManager = (function() {
       });
     }
 
-    displayedApp = url;
+    displayedApp = origin;
   }
 
   // Start running the specified app.
   // In order to have a nice smooth open animation,
   // we don't actually set the iframe src property until
   // the animation has completed.
-  function start(url) {
-    if (isRunning(url))
+  function start(origin) {
+    if (isRunning(origin))
       return;
 
-    var manifest = Gaia.AppManager.getInstalledAppForURL(url);
-    var name = manifest.name;
-    var frame = document.createElement('iframe');
-    frame.id = 'appframe' + nextAppId++;
-    frame.className = 'appWindow';
-    frame.setAttribute('mozallowfullscreen', 'true');
-
-    // Note that we don't set the frame size here.  That will happen
-    // when we display the app in setDisplayedApp()
-
-    // Most apps currently need to be hosted in a special 'mozbrowser' iframe
-    // FIXME: a platform fix will come
-    var exceptions = ['Dialer', 'Settings', 'Camera'];
-    if (exceptions.indexOf(manifest.name) == -1) {
-      frame.setAttribute('mozbrowser', 'true');
-    }
-
-    // Add the iframe to the document
-    windows.appendChild(frame);
-
-    // And map the app url to the info we need for the app
-    runningApps[url] = {
-      name: name,
-      manifest: manifest,
-      frame: frame
-    };
-
-    numRunningApps++;
-
-    // FIXME
-    // Currently the chrome code in src/b2g/chrome/content/webapi.js
-    // listens for 'appwillopen' events to know when to inject custom
-    // JS code into new app windows.  That chrome code ought to change
-    // to listen for DOMNodeInserted events or similar, but for now
-    // we've got to send this custom event to make things work right
-    // See bug 736628: https://bugzilla.mozilla.org/show_bug.cgi?id=736628
-    setTimeout(function() {
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('appwillopen', true, false, {});
-      frame.dispatchEvent(evt);
-    }, 0);
-
-
-    // Now animate the window opening and actually set the iframe src
-    // when that is done.
-    setDisplayedApp(url, function() {
-      frame.src = url;
-    });
+    var app = appscreen.getAppByOrigin(origin);
+    // TODO: is the startPoint argument implemented?
+    // and is it passed back to us in the webapps-launch method?
+    // If so, we could use that to pass a query string or fragmentid
+    // to append to the apps' URL.
+    app.launch();
   }
 
-  // Stop running the app with the specified url
-  function stop(url) {
-    if (!isRunning(url))
+  // The mozApps API launch() method generates an event that we handle
+  // here to do the actual launching of the app
+  window.addEventListener('mozChromeEvent', function(e) {
+    if (e.detail.type === 'webapps-launch') {
+      var origin = e.detail.origin;
+      var url = e.detail.url;
+      if (isRunning(origin))
+        return;
+
+      var app = appscreen.getAppByOrigin(origin);
+      var manifest = app.manifest;
+      var name = manifest.name;
+
+      var frame = document.createElement('iframe');
+      frame.id = 'appframe' + nextAppId++;
+      frame.className = 'appWindow';
+      frame.setAttribute('mozallowfullscreen', 'true');
+
+      if (manifest.hackNetworkBound) {
+        var style = 'font-family: OpenSans,sans-serif;' +
+                    'text-align: center;' +
+                    'color: white;' +
+                    'margin-top: 100px;';
+
+        frame.src = 'data:text/html,' +
+          '<body style="background-color: black">' +
+          '  <h3 style="' + style + '">' + localizedLoading + '</h3>' +
+          '</body>';
+      }
+
+      // Note that we don't set the frame size here.  That will happen
+      // when we display the app in setDisplayedApp()
+
+      // Most apps currently need to be hosted in a special 'mozbrowser' iframe
+      // FIXME: a platform fix will come
+      var exceptions = ['Dialer', 'Settings', 'Camera'];
+      if (exceptions.indexOf(manifest.name) == -1) {
+        frame.setAttribute('mozbrowser', 'true');
+      }
+
+      // Add the iframe to the document
+      // Note that we have not yet set its src property.
+      // In order for the open animation to be smooth, we don't
+      // actually set src until the open has finished.
+      windows.appendChild(frame);
+
+      // And map the app origin to the info we need for the app
+      runningApps[origin] = {
+        name: name,
+        manifest: manifest,
+        frame: frame
+      };
+
+      numRunningApps++;
+
+      // FIXME
+      // Currently the chrome code in src/b2g/chrome/content/webapi.js
+      // listens for 'appwillopen' events to know when to inject custom
+      // JS code into new app windows.  That chrome code ought to change
+      // to listen for DOMNodeInserted events or similar, but for now
+      // we've got to send this custom event to make things work right
+      // See bug 736628: https://bugzilla.mozilla.org/show_bug.cgi?id=736628
+      setTimeout(function() {
+        var evt = document.createEvent('CustomEvent');
+        evt.initCustomEvent('appwillopen', true, false, {});
+        frame.dispatchEvent(evt);
+      }, 0);
+
+
+      // Now animate the window opening and actually set the iframe src
+      // when that is done.
+      setDisplayedApp(origin, function() {
+        frame.src = url;
+      });
+    }
+  });
+
+  // Stop running the app with the specified origin
+  function stop(origin) {
+    if (!isRunning(origin))
       return;
 
     // If the app is the currently displayed app, switch to the homescreen
-    if (url === displayedApp)
+    if (origin === displayedApp)
       setDisplayedApp(null);
 
-    var app = runningApps[url];
+    var app = runningApps[origin];
     windows.removeChild(app.frame);
-    delete runningApps[url];
+    delete runningApps[origin];
     numRunningApps--;
 
   }
@@ -405,8 +459,8 @@ var WindowManager = (function() {
   // scroll so that the current task is always shown
   function showTaskSwitcher() {
     // First add an item to the taskList for each running app
-    for (var url in runningApps)
-      addTaskIcon(url, runningApps[url]);
+    for (var origin in runningApps)
+      addTaskIcon(origin, runningApps[origin]);
 
     // Then make the taskManager overlay active
     taskManager.classList.add('active');
@@ -415,7 +469,7 @@ var WindowManager = (function() {
     if (displayedApp)
       runningApps[displayedApp].frame.blur();
 
-    function addTaskIcon(url, app) {
+    function addTaskIcon(origin, app) {
       // Build an icon representation of each window.
       // And add it to the task switcher
       var icon = document.createElement('li');
@@ -442,7 +496,7 @@ var WindowManager = (function() {
         // If the app is the currently displayed one,
         // this will also switch back to the homescreen
         // (though the task switcher will still be displayed over it)
-        stop(url);
+        stop(origin);
 
         // if there are no more running apps, then dismiss
         // the task switcher
@@ -453,7 +507,7 @@ var WindowManager = (function() {
       // A click elsewhere in the icon switches to that task
       icon.addEventListener('click', function() {
         hideTaskSwitcher();
-        setDisplayedApp(url);
+        setDisplayedApp(origin);
       });
     }
   }
@@ -601,27 +655,12 @@ var WindowManager = (function() {
   return {
     launch: launch,
     getDisplayedApp: getDisplayedApp,
-    getAppFrame: function(url) {
-      if (isRunning(url))
-        return runningApps[url].frame;
+    getAppFrame: function(origin) {
+      if (isRunning(origin))
+        return runningApps[origin].frame;
       else
         return null;
     }
   };
 }());
-
-// This function is unused by the homescreen app itself, but is
-// currently required by chrome code in b2g/chrome/content/shell.js
-// Do not delete this function until that dependency is removed.
-// See also the foregroundWindow getter in app_manager.js
-// See bug 736632: https://bugzilla.mozilla.org/show_bug.cgi?id=736632
-function getApplicationManager() {
-  return {
-    launch: function(url) {
-      WindowManager.launch(url);
-      return WindowManager.getAppFrame(url);
-    }
-  };
-}
-
 

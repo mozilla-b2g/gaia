@@ -1,17 +1,23 @@
 {
   "name": "Mail",
-  "description": "GMail",
-  "launch_path": "/mail/mu",
-  "developer": {
-    "name": "GMail",
-    "url": "http://google.com/"
-  },
+  "default_locale": "en-US",
   "icons": {
     "120": "/style/icons/GMail.png"
   },
+  "description": "GMail",
+  "launch_path": "/mail/mu",
+  "hackNetworkBound": "true",
   "locales": {
+    "ru": {
+      "name": "\u041f\u043e\u0447\u0442\u0430",
+      "description": "GMail"
+    },
+    "en-US": {
+      "name": "Mail",
+      "description": "GMail"
+    },
     "ar": {
-      "name": "البريد",
+      "name": "\u0627\u0644\u0628\u0631\u064a\u062f",
       "description": "GMail"
     },
     "fr": {
@@ -19,9 +25,12 @@
       "description": "GMail"
     },
     "zh-TW": {
-      "name": "郵件",
+      "name": "\u90f5\u4ef6",
       "description": "GMail"
     }
   },
-  "default_locale": "en"
+  "developer": {
+    "url": "http://google.com/",
+    "name": "GMail"
+  }
 }
