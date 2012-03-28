@@ -1,5 +1,4 @@
-CACHE MANIFEST
-# Version ae66e18f7955f1825160be1c7ec2aab7
+# Version 72549ec3c8ec5e598eea31236e619636
 index.html
 js/video.js
 locale/video.properties
@@ -22,10 +21,10 @@ style/images/btn_fwd_off.png
 style/images/btn_fwd_press.png
 style/images/btn_pause_off.png
 style/images/btn_pause_press.png
-style/images/btn_playhead_off.png
-style/images/btn_playhead_press.png
 style/images/btn_play_off.png
 style/images/btn_play_press.png
+style/images/btn_playhead_off.png
+style/images/btn_playhead_press.png
 style/images/btn_rwd_off.png
 style/images/btn_rwd_press.png
 style/images/controls.png
