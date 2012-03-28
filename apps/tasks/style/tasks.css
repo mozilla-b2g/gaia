@@ -48,6 +48,14 @@ a.button.right {
 	margin-top:7px;
 }
 
+/* ----------- Label -------------- */
+span.label {
+	margin:4px;
+	padding:12px;
+	color:#333;
+	font-size:1.2em;
+}
+
 /* ----------- Inputs ------------- */
 ul > select, input, textarea {
 	float:right;
