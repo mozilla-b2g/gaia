@@ -9,7 +9,7 @@ function generatorTest() {
   });
 
   yield navigator.mozContacts.save(testContact).onsuccess = nextStep;
-  yield testApp('../dialer/dialer.html', testCallFromContacts);
+  yield testApp('http://dialer.gaiamobile.org/', testCallFromContacts);
   yield navigator.mozContacts.remove(testContact).onsuccess = nextStep;
 }
 

@@ -1,6 +1,6 @@
 function generatorTest() {
   // Launch the dialer app
-  yield testApp('../dialer/dialer.html', testContactsEdition);
+  yield testApp('http://dialer.gaiamobile.org/', testContactsEdition);
 }
 
 function testContactsEdition(window, document, nextStep) {
