@@ -70,6 +70,13 @@ var WindowManager = (function() {
   // The origin of the currently displayed app, or null if there isn't one
   var displayedApp = null;
 
+  // The localization of the "Loading..." message that appears while
+  // an app is loading
+  var localizedLoading = "Loading...";
+  window.addEventListener('localized', function() {
+    localizedLoading = document.mozL10n.get('loading');
+  });
+
   // Public function. Return the origin of the currently displayed app
   // or null if there is none.
   function getDisplayedApp() {
@@ -373,7 +380,7 @@ var WindowManager = (function() {
 
         frame.src = 'data:text/html,' +
           '<body style="background-color: black">' +
-          '  <h3 style="' + style + '">' + _('loading') + '</h3>' +
+          '  <h3 style="' + style + '">' + localizedLoading + '</h3>' +
           '</body>';
       }
 
