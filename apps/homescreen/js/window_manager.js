@@ -365,14 +365,17 @@ var WindowManager = (function() {
       frame.className = 'appWindow';
       frame.setAttribute('mozallowfullscreen', 'true');
 
-      var style = 'font-family: OpenSans,sans-serif;' +
-                  'text-align: center;' +
-                  'color: white;' +
-                  'margin-top: 100px;';
-      frame.src = 'data:text/html,' +
-        '<body style="background-color: black">' +
-        '  <h3 style="' + style + '">' + _('loading') + '</h3>' +
-        '</body>';
+      if (manifest.hackNetworkBound) {
+        var style = 'font-family: OpenSans,sans-serif;' +
+                    'text-align: center;' +
+                    'color: white;' +
+                    'margin-top: 100px;';
+
+        frame.src = 'data:text/html,' +
+          '<body style="background-color: black">' +
+          '  <h3 style="' + style + '">' + _('loading') + '</h3>' +
+          '</body>';
+      }
 
       // Note that we don't set the frame size here.  That will happen
       // when we display the app in setDisplayedApp()
