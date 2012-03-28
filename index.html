@@ -42,7 +42,6 @@
         border-radius: 5px;
         background-image: -moz-linear-gradient(bottom, rgb(16,16,16) 54%, rgb(13,13,13) 84%, rgb(27,27,27));
         -moz-user-select: none;
-        pointer-events: none;
       }
 
       #chrome-controls .button:hover:active {
@@ -56,6 +55,18 @@
         border-radius: 5px;
       }
     </style>
+
+    <script>
+      /* Simulate the HOME button */
+      window.addEventListener('load', function() {
+        var home = document.querySelector('#chrome-home');
+        home.addEventListener('click', function() {
+          var content = document.querySelector('#content');
+          content.contentWindow.WindowManager.closeForegroundWindow();
+        }, true);
+      }, true);
+    </script>
+
   </head>
 
   <body>
