@@ -1,5 +1,6 @@
+'use strict';
+
 window.addEventListener('DOMContentLoaded', function() {
-  'use strict';
   var player = $('player');
 
   // This is the list of sample videos built in to the app
@@ -52,7 +53,8 @@ window.addEventListener('DOMContentLoaded', function() {
   if (realFullscreen) {
     document.cancelFullScreen = document.mozCancelFullScreen;
     player.requestFullScreen = player.mozRequestFullScreen;
-  } else {
+  }
+  else {
     // compute a CSS transform that centers & maximizes the <video> element
     document.cancelFullScreen = function() {
       player.style.mozTransform = 'none';
@@ -79,7 +81,8 @@ window.addEventListener('DOMContentLoaded', function() {
     if (!controlShowing) {
       this.classList.remove('hidden');
       controlShowing = true;
-    } else if (this == event.target) {
+    }
+    else if (this == event.target) {
       this.classList.add('hidden');
       controlShowing = false;
     }
@@ -101,7 +104,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
     playerShowing = true;
     controlShowing = false;
-    screenLock = navigator.requestWakeLock("screen");
+    screenLock = navigator.requestWakeLock('screen');
   }
   function hidePlayer() {
     if (!playerShowing)
@@ -141,7 +144,8 @@ window.addEventListener('DOMContentLoaded', function() {
     if (player.paused) {
       $('videoBar').classList.remove('paused');
       player.play();
-    } else {
+    }
+    else {
       $('videoBar').classList.add('paused');
       player.pause();
     }
@@ -195,8 +199,8 @@ window.addEventListener('DOMContentLoaded', function() {
 window.addEventListener('localized', function showBody() {
   var html = document.querySelector('html');
   var lang = document.mozL10n.language;
-  html.setAttribute('lang', lang.code);
-  html.setAttribute('dir', lang.direction);
+  html.lang = lang.code;
+  html.dir = lang.direction;
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('hidden');
 });
