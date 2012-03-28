@@ -1,15 +1,15 @@
 CACHE MANIFEST
-# Version e57573db457148f036eafe9fc7ac79f5
+# Version ac564db4c788e67b8740ceba206c9927
 index.html
 js/camera.js
 
 manifest.json
 style/camera.css
 style/icons/Camera.png
-style/images/capture.png
 style/images/capture-pressed.png
-style/images/gallery.png
+style/images/capture.png
 style/images/gallery-pressed.png
-style/images/switch.png
+style/images/gallery.png
 style/images/switch-pressed.png
+style/images/switch.png
 http://gaiamobile.org/webapi.js
