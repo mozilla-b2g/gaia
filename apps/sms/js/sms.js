@@ -1,90 +1,37 @@
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
 'use strict';
-
-// Based on Resig's pretty date
-function prettyDate(time) {
-  var diff = (Date.now() - time) / 1000;
-  var day_diff = Math.floor(diff / 86400);
-
-  if (isNaN(day_diff))
-    return '(incorrect date)';
-
-  if (day_diff < 0 || diff < 0) {
-    // future time
-    return (new Date(time)).toLocaleFormat('%x %R');
-  }
-
-  return day_diff == 0 && (
-    diff < 60 && 'Just Now' ||
-    diff < 120 && '1 Minute Ago' ||
-    diff < 3600 && Math.floor(diff / 60) + ' Minutes Ago' ||
-    diff < 7200 && '1 Hour Ago' ||
-    diff < 86400 && Math.floor(diff / 3600) + ' Hours Ago') ||
-    day_diff == 1 && 'Yesterday' ||
-    day_diff < 7 && (new Date(time)).toLocaleFormat('%A') ||
-    (new Date(time)).toLocaleFormat('%x');
-}
-
-function profilePictureForId(id) {
-  // pic #9 is used as the phone holder
-  // id is the index # of the contact in Contacts array,
-  // or parseInt(phone number) if not in the list
-  return '../contacts/contact' + (id % 9) + '.png';
-}
 
 var MessageManager = {
   getMessages: function mm_getMessages(callback, filter, invert) {
-    // XXX Bug 712809
-    // Until there is a database for mozSms, use a fake GetMessages
-    if (true) {
-      GetMessagesHack(callback, filter, invert);
-      return;
-    }
-
     var request = navigator.mozSms.getMessages(filter, !invert);
 
     var messages = [];
     request.onsuccess = function onsuccess() {
-      var result = request.result;
-      if (!result) {
+      var cursor = request.result;
+      if (!cursor.message) {
         callback(messages);
         return;
       }
 
-      var message = result.message;
-      messages.push(message);
-      result.next();
+      messages.push(cursor.message);
+      cursor.continue();
     };
 
     request.onerror = function onerror() {
-      alert('Error reading the database. Error code: ' + request.errorCode);
-    }
+      var msg = 'Error reading the database. Error: ' + request.errorCode;
+      console.log(msg);
+    };
   },
 
   send: function mm_send(number, text, callback) {
-    // Use a fake send if mozSms is not present
-    if (!navigator.mozSms) {
-      var message = {
-        sender: null,
-        receiver: number,
-        body: text,
-        timestamp: Date.now()
-      };
-
-      window.setTimeout(function() {
-        callback(message);
-      }, 0);
-
-      return;
-    }
-
-    var result = navigator.mozSms.send(number, text);
-    result.onsuccess = function onsuccess(event) {
-      console.log('SMS sent.');
-      callback(event.message);
+    var req = navigator.mozSms.send(number, text);
+    req.onsuccess = function onsuccess() {
+      callback(req.result);
     };
 
-    result.onerror = function onerror(event) {
-      console.log('Error sending SMS!');
+    req.onerror = function onerror() {
       callback(null);
     };
   },
@@ -92,56 +39,6 @@ var MessageManager = {
   delete: function mm_delete(id) {
     navigator.mozSms.delete(id);
   }
-};
-
-// Until there is a database to store messages on the device, return
-// a fake list of messages.
-var messagesHack = [];
-(function() {
-  var messages = [
-    {
-      sender: null,
-      receiver: '1-977-743-6797',
-      body: 'Nothing :)',
-      timestamp: Date.now() - 44000000
-    },
-    {
-      sender: '1-977-743-6797',
-      body: 'Hey! What\s up?',
-      timestamp: Date.now() - 50000000
-    }
-  ];
-
-  for (var i = 0; i < 40; i++) {
-    messages.push({
-      sender: '1-488-678-3487',
-      body: 'Hello world!',
-      timestamp: Date.now() - 60000000
-    });
-  }
-
-  messagesHack = messages;
-})();
-
-var GetMessagesHack = function gmhack(callback, filter, invert) {
-  function applyFilter(msgs) {
-    if (!filter)
-      return msgs;
-
-    if (filter.number) {
-      msgs = msgs.filter(function(element, index, array) {
-        var num = filter.number;
-        return (num && (num == element.sender || num == element.receiver));
-      });
-    }
-
-    return msgs;
-  }
-
-  var msg = messagesHack.slice();
-  if (invert)
-    msg.reverse();
-  callback(applyFilter(msg));
 };
 
 var ConversationListView = {
@@ -163,94 +60,105 @@ var ConversationListView = {
     this.searchInput.addEventListener('keyup', this);
     this.view.addEventListener('click', this);
 
-    this.updateConversationList(function fireAppReady() {
-      window.parent.postMessage('appready', '*');
+    this.updateConversationList(null, function fireAppReady() {
+      var url = document.location.toString();
+      visibilityChanged(url); // FIXME: this function is not defined
     });
   },
 
-  updateConversationList: function updateConversationList(callback) {
+  updateConversationList: function updateCL(pendingMsg, callback) {
     var self = this;
-    var conversations = {};
-
-    // XXX: put all contacts in DOM tree then hide them in non-search view
-    var contacts = window.navigator.mozContacts.contacts;
-    contacts.forEach(function(contact, i) {
-      var num = contact.phones[0];
-      conversations[num] = {
-        hidden: true,
-        name: contact.displayName,
-        num: num,
-        body: '',
-        timestamp: '',
-        id: i
-      };
-    });
-
     MessageManager.getMessages(function getMessagesCallback(messages) {
-      for (var i = 0; i < messages.length; i++) {
-        var message = messages[i];
-        var num = message.sender || message.receiver;
-        if (conversations[num] && !conversations[num].hidden)
-          continue;
-        if (!conversations[num]) {
+      if (pendingMsg)
+        messages.push(pendingMsg);
+
+      var conversations = {};
+      var request = window.navigator.mozContacts.find({});
+      request.onsuccess = function findCallback() {
+        var contacts = request.result;
+
+        contacts.forEach(function(contact, i) {
+          var num = contact.tel[0];
           conversations[num] = {
-            hidden: false,
-            num: (message.sender || message.receiver),
-            name: num,
-            // XXX: hack for contact pic
-            id: parseInt(num)
+            'hidden': true,
+            'name': contact.name,
+            'num': num,
+            'body': '',
+            'timestamp': '',
+            'id': parseInt(i)
           };
+        });
+
+        for (var i = 0; i < messages.length; i++) {
+          var message = messages[i];
+
+          // XXX why does this happen?
+          if (!message.delivery)
+            continue;
+
+          var num = message.delivery == 'received' ?
+                    message.sender : message.receiver;
+          var conversation = conversations[num];
+          if (conversation && !conversation.hidden)
+            continue;
+
+          if (!conversation) {
+            conversation = conversations[num] = {
+              'hidden': false,
+              'body': message.body,
+              'name': num,
+              'num': num,
+              'timestamp': message.timestamp.getTime(),
+              'id': i
+            };
+          } else {
+            conversation.hidden = false;
+            conversation.timestamp = message.timestamp.getTime();
+            conversation.body = message.body;
+          }
         }
 
-        var data = {
-          hidden: false,
-          body: message.body,
-          timestamp: prettyDate(message.timestamp)
-        };
-
-        for (var key in data) {
-          conversations[num][key] = data[key];
+        var fragment = '';
+        for (var num in conversations) {
+          var msg = self.createNewConversation(conversations[num]);
+          fragment += msg;
         }
-      }
+        self.view.innerHTML = fragment;
 
-      var fragment = '';
-      for (var num in conversations) {
-        var msg = self.createNewConversation(conversations[num]);
-        fragment += msg;
-      }
-      self.view.innerHTML = fragment;
-
-      if (typeof callback === 'function')
-        callback.call(self);
+        if (callback)
+          callback();
+      };
     }, null);
   },
 
   createNewConversation: function createNewConversation(conversation) {
-
     return '<div data-num="' + conversation.num + '"' +
-           ' data-name="' + conversation.name + '"' +
-           ' data-notempty="' + (conversation.timestamp ? 'true':'') + '"' +
-           ' class="' + (conversation.hidden?'hide':'') + '">' +
+           ' data-name="' + (conversation.name || conversation.num) + '"' +
+           ' data-notempty="' + (conversation.timestamp ? 'true' : '') + '"' +
+           ' class="' + (conversation.hidden ? 'hide' : '') + '">' +
            '  <div class="photo">' +
-           '    <img src="' + profilePictureForId(conversation.id) + '" />' +
+           '    <img src="style/images/contact-placeholder.png" />' +
            '  </div>' +
            '  <div class="name">' + conversation.name + '</div>' +
-           '  <div class="msg">' + conversation.body + '</div>' +
-           '  <div class="time">' + conversation.timestamp + '</div>' +
+           '  <div class="msg">' + conversation.body.split('\n')[0] + '</div>' +
+           (conversation.timestamp ?
+             '  <div class="time" data-time="' + conversation.timestamp + '">' +
+                 prettyDate(conversation.timestamp) + '</div>' : '') +
            '</div>';
   },
 
   searchConversations: function searchConversations() {
+    var conversations = this.view.children;
+
     var str = this.searchInput.value;
-    var conversations = this.view.childNodes;
     if (!str) {
       // leaving search view
-      for (var i in conversations) {
+      for (var i = 0; i < conversations.length; i++) {
         var conversation = conversations[i];
         if (conversation.dataset.notempty === 'true') {
-          conversations[i].classList.remove('hide');
+          conversation.classList.remove('hide');
         } else {
-          conversations[i].classList.add('hide');
+          conversation.classList.add('hide');
         }
       }
       return;
@@ -258,14 +166,18 @@ var ConversationListView = {
 
     var reg = new RegExp(str, 'i');
 
-    for (var i in conversations) {
+    for (var i = 0; i < conversations.length; i++) {
       var conversation = conversations[i];
-      if (!reg.test(conversation.dataset.num) &&
-          !reg.test(conversation.dataset.name)) {
+    try {
+      var dataset = conversation.dataset;
+      if (!reg.test(dataset.num) && !reg.test(dataset.name)) {
         conversation.classList.add('hide');
       } else {
         conversation.classList.remove('hide');
       }
+  } catch(e) {
+      alert(conversation);
+  } 
     }
   },
 
@@ -279,9 +191,10 @@ var ConversationListView = {
   handleEvent: function handleEvent(evt) {
     switch (evt.type) {
       case 'received':
-        window.setTimeout(function updadeConversationList() {
-          ConversationListView.updateConversationList();
-        }, 0);
+        if (ConversationView.filter)
+          ConversationView.showConversation(ConversationView.filter);
+        else
+          ConversationListView.updateConversationList(evt.message);
         break;
 
       case 'click':
@@ -295,7 +208,6 @@ var ConversationListView = {
         document.body.classList.remove('transition-back');
         break;
 
-      case 'keypress':
       case 'keyup':
         this.searchConversations();
         break;
@@ -306,43 +218,74 @@ var ConversationListView = {
 var ConversationView = {
   get view() {
     delete this.view;
-    return this.view = document.getElementById('msg-conversation-view-list');
+    return this.view = document.getElementById('view-list');
   },
 
   get num() {
     delete this.number;
-    return this.number = document.getElementById('msg-conversation-view-num');
+    return this.number = document.getElementById('view-num');
   },
 
   get title() {
     delete this.title;
-    return this.title = document.getElementById('msg-conversation-view-name');
+    return this.title = document.getElementById('view-name');
+  },
+
+  get input() {
+    delete this.input;
+    return this.input = document.getElementById('view-msg-text');
   },
 
   init: function cv_init() {
     if (navigator.mozSms)
       navigator.mozSms.addEventListener('received', this);
 
-    document.getElementById('msg-conversation-view-back').addEventListener(
-      'click', (this.close).bind(this));
+    document.getElementById('view-back').addEventListener(
+      'click', this.close.bind(this));
 
     // click event does not trigger when keyboard is hiding
-    document.getElementById('msg-conversation-view-msg-send').addEventListener(
-      'mousedown', (this.sendMessage).bind(this));
+    document.getElementById('view-msg-send').addEventListener(
+      'mousedown', this.sendMessage.bind(this));
 
-    var windowEvents = ['keypress', 'transitionend'];
+    this.input.addEventListener('input', this.updateInputHeight.bind(this));
+
+    var windowEvents = ['resize', 'keyup', 'transitionend'];
     windowEvents.forEach((function(eventName) {
       window.addEventListener(eventName, this);
     }).bind(this));
   },
 
-  showConversation: function cv_showConversation(num) {
+  scrollViewToBottom: function cv_scrollViewToBottom() {
+    this.view.scrollTop = this.view.scrollHeight;
+  },
+
+  updateInputHeight: function cv_updateInputHeight() {
+    var input = this.input;
+    input.style.height = null;
+    input.style.height = input.scrollHeight + 4 + 'px';
+
+    var newHeight = input.getBoundingClientRect().height;
+    var bottomToolbarHeight = (newHeight + 32) + 'px';
+    var bottomToolbar =
+      document.getElementById('view-bottom-toolbar');
+
+    bottomToolbar.style.height = bottomToolbarHeight;
+
+    this.view.style.bottom = bottomToolbarHeight;
+    this.scrollViewToBottom();
+  },
+
+  showConversation: function cv_showConversation(num, pendingMsg) {
+    var self = this;
     var view = this.view;
     var bodyclassList = document.body.classList;
-    var filter = ('SmsFilter' in window) ? new SmsFilter() : {};
-    filter.number = this.filter = num;
 
-    if (!num) {
+    if (num) {
+      var filter = new MozSmsFilter();
+      filter.numbers = [num || ''];
+
+      this.filter = num;
+    } else {
       /* XXX: gaia issue #483 (New Message dialog design)
               gaia issue #108 (contact picker)
       */
@@ -356,25 +299,31 @@ var ConversationView = {
 
     bodyclassList.remove('conversation-new-msg');
 
-    var name = num;
     var receiverId = parseInt(num);
 
-    var contacts = window.navigator.mozContacts.contacts;
-    contacts.some(function(contact, i) {
-      if (contact.phones[0] == num) {
-        name = contact.displayName;
-        receiverId = i;
-        return true;
-      }
-      return false;
-    });
+    var self = this;
+    var options = {filterBy: ['tel'], filterOp: 'contains', filterValue: num};
+    var request = window.navigator.mozContacts.find(options);
+    request.onsuccess = function findCallback() {
+      if (request.result.length == 0)
+        return;
+
+      var contact = request.result[0];
+      self.title.textContent = contact.name;
+      var images = self.view.querySelectorAll('.photo img');
+      for (var i = 0; i < images.length; i++)
+        images[i].src = 'style/images/contact-placeholder.png';
+    };
 
     this.num.value = num;
 
-    this.title.textContent = name;
+    this.title.textContent = num;
     this.title.num = num;
 
     MessageManager.getMessages(function mm_getMessages(messages) {
+      if (pendingMsg)
+        messages.push(pendingMsg);
+
       var fragment = '';
 
       for (var i = 0; i < messages.length; i++) {
@@ -382,32 +331,27 @@ var ConversationView = {
         var uuid = msg.hasOwnProperty('uuid') ? msg.uuid : '';
         var dataId = 'data-id="' + uuid + '"';
 
-        var dataNum = 'data-num="' + (msg.sender || msg.receiver) + '"';
+        var outgoing = (msg.delivery == 'sent');
+        var num = outgoing ? msg.receiver : msg.sender;
+        var dataNum = 'data-num="' + num + '"';
 
-        var className = 'class="' +
-                        (msg.sender ? 'sender' : 'receiver') + '"';
+        var className = 'class="' + (outgoing ? 'receiver' : 'sender') + '"';
 
-        var pic;
-        if (msg.sender) {
-          pic = profilePictureForId(receiverId);
-        } else {
-          pic = '../contacts/contact9.png';
-        }
+        var pic = 'style/images/contact-placeholder.png';
 
-        var time = prettyDate(msg.timestamp);
+        var body = msg.body.replace(/\n/g, '<br />');
         fragment += '<div ' + className + ' ' + dataNum + ' ' + dataId + '>' +
                       '<div class="photo">' +
                       '  <img src="' + pic + '" />' +
                       '</div>' +
-                      '<div class="text">' + msg.body + '</div>' +
-                      '<div class="time">' + time + '</div>' +
+                      '<div class="text">' + body + '</div>' +
+                      '<div class="time" data-time="' + msg.timestamp.getTime() + '">' +
+                          prettyDate(msg.timestamp) + '</div>' +
                     '</div>';
       }
 
       view.innerHTML = fragment;
-
-      if (view.lastChild)
-        view.scrollTop = view.lastChild.offsetTop + 10000;
+      self.scrollViewToBottom();
 
       bodyclassList.add('conversation');
     }, filter, true);
@@ -424,7 +368,7 @@ var ConversationView = {
 
   handleEvent: function handleEvent(evt) {
     switch (evt.type) {
-      case 'keypress':
+      case 'keyup':
         if (evt.keyCode != evt.DOM_VK_ESCAPE)
           return;
 
@@ -435,8 +379,6 @@ var ConversationView = {
       case 'received':
         var msg = evt.message;
         messagesHack.unshift(msg);
-
-        console.log('Received message from ' + msg.sender + ': ' + msg.body);
 
         window.setTimeout(function() {
           ConversationView.showConversation(ConversationView.filter);
@@ -449,6 +391,14 @@ var ConversationView = {
 
         this.view.innerHTML = '';
         break;
+
+      case 'resize':
+        if (!document.body.classList.contains('conversation'))
+          return;
+
+        this.updateInputHeight();
+        this.scrollViewToBottom();
+        break;
     }
   },
   close: function cv_close() {
@@ -460,7 +410,7 @@ var ConversationView = {
   },
   sendMessage: function cv_sendMessage() {
     var num = this.num.value;
-    var text = document.getElementById('msg-conversation-view-msg-text').value;
+    var text = document.getElementById('view-msg-text').value;
 
     if (num === '' || text === '')
       return;
@@ -471,13 +421,14 @@ var ConversationView = {
       if (!msg)
         return;
 
-      // Copy all the information from the actual message object to the
-      // preliminary message object. Then update the view.
-      for (var key in msg)
-        message[msg] = msg[key];
-
-      if (ConversationView.filter)
-        ConversationView.showConversation(ConversationView.filter);
+      if (ConversationView.filter) {
+        // Add a slight delay so that the database has time to write the
+        // message in the background. Ideally we'd just be updating the UI
+        // from "sending..." to "sent" at this point...
+        window.setTimeout(function() {
+          ConversationView.showConversation(ConversationView.filter);
+        }, 100);
+      }
     });
 
     // Create a preliminary message object and update the view right away.
@@ -487,31 +438,44 @@ var ConversationView = {
       body: text,
       timestamp: Date.now()
     };
-    messagesHack.unshift(message);
 
-    setTimeout(function keepKeyboardFocus() {
-      var input = document.getElementById('msg-conversation-view-msg-text');
-      input.value = '';
-    }, 0);
+    setTimeout((function updateMessageField() {
+      this.input.value = '';
+      this.updateInputHeight();
+    }).bind(this), 0);
 
-    ConversationListView.updateConversationList();
+    ConversationListView.updateConversationList(message);
     if (this.filter) {
-      this.showConversation(this.filter);
+      this.showConversation(this.filter, message);
       return;
     }
-    this.showConversation(num);
+    this.showConversation(num, message);
   }
 };
 
-window.addEventListener('load', function loadMessageApp() {
-  var request = window.navigator.mozSettings.get('language.current');
-  request.onsuccess = function() {
-    selectedLocale = request.result.value;
-    ConversationView.init();
-    ConversationListView.init();
+window.addEventListener('localized', function showBody() {
+  // get the [lang]-[REGION] setting
+  // TODO: expose [REGION] in navigator.mozRegion or document.mozL10n.region?
+  if (navigator.mozSettings) {
+    var request = navigator.mozSettings.getLock().get('language.current');
+    request.onsuccess = function() {
+      selectedLocale = request.result['language.current'] || navigator.language;
+      ConversationView.init();
+      ConversationListView.init();
+    }
   }
-});
 
+  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
+  if (document.mozL10n && document.mozL10n.language) {
+    var lang = document.mozL10n.language;
+    var html = document.querySelector('html');
+    html.setAttribute('lang', lang.code);
+    html.setAttribute('dir', lang.direction);
+  }
+
+  // <body> children are hidden until the UI is translated
+  document.body.classList.remove('hidden');
+});
 
 var selectedLocale = 'en-US';
 
@@ -579,7 +543,7 @@ function formatNumber(number) {
   for (var i = 0; i < number.length; i++) {
     var c = format[index++];
     if (c && c != 'x') {
-      formatted += c
+      formatted += c;
       index++;
     }
 
@@ -587,4 +551,5 @@ function formatNumber(number) {
   }
 
   return formatted;
-};
+}
+

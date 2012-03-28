@@ -29,15 +29,16 @@ const IMEManager = {
     'otherlatins': ['fr', 'de', 'nb', 'sk', 'tr'],
     'cyrillic': ['ru', 'sr-Cyrl'],
     'hebrew': ['he'],
-    'zhuying': ['zh-Hant-Zhuying'],
-    'pinyin': ['zh-Hans-Pinyin']
+    'zhuyin': ['zh-Hant-Zhuyin'],
+    'pinyin': ['zh-Hans-Pinyin'],
+    'arabic': ['ar']
   },
 
   loadKeyboardSettings: function loadKeyboardSettings(callback) {
     var completeSettingRequests = (function completeSettingRequests() {
       if (!this.keyboards.length)
         this.keyboards = [].concat(this.keyboardSettingGroups['english'],
-          this.keyboardSettingGroups['zhuying']);
+                                   this.keyboardSettingGroups['zhuyin']);
 
       if (this.keyboards.indexOf(this.currentKeyboard) === -1)
         this.currentKeyboard = this.keyboards[0];
@@ -54,14 +55,12 @@ const IMEManager = {
     for (var key in this.keyboardSettingGroups) {
       keyboardSettingGroupKeys.push(key);
     }
-    // XXX: shift() & length is neater than this
+
     var i = 0;
-
     var keyboardSettingRequest = function keyboardSettingRequest(key) {
-      var request = navigator.mozSettings.get('keyboard.layouts.' + key);
+      var request = navigator.mozSettings.getLock().get('keyboard.layouts.' + key);
       request.onsuccess = (function onsuccess(evt) {
-
-        if (request.result.value === 'true') {
+        if (!!request.result['keyboard.layouts.' + key]) {
           this.keyboards = this.keyboards.concat(
             this.keyboardSettingGroups[key]
           );
@@ -148,11 +147,28 @@ const IMEManager = {
     return this.ime = document.getElementById('keyboard');
   },
 
+  get pendingSymbolPanel() {
+    delete this.pendingSymbolPanel;
+    var pendingSymbolPanel = document.createElement('div');
+    pendingSymbolPanel.id = 'keyboard-pending-symbol-panel';
+    return this.pendingSymbolPanel = pendingSymbolPanel;
+  },
+
   get candidatePanel() {
     delete this.candidatePanel;
     var candidatePanel = document.createElement('div');
     candidatePanel.id = 'keyboard-candidate-panel';
+    candidatePanel.addEventListener('scroll', this);
     return this.candidatePanel = candidatePanel;
+  },
+
+  get candidatePanelToggleButton() {
+    delete this.candidatePanelToggleButton;
+    var toggleButton = document.createElement('span');
+    toggleButton.innerHTML = '⇪';
+    toggleButton.id = 'keyboard-candidate-panel-toggle-button';
+    toggleButton.dataset.keycode = this.TOGGLE_CANDIDATE_PANEL;
+    return this.candidatePanelToggleButton = toggleButton;
   },
 
   updateKeyHighlight: function km_updateKeyHighlight() {
@@ -175,6 +191,12 @@ const IMEManager = {
     if (target.parentNode === menu) {
       top += menu.offsetTop;
       left += menu.offsetLeft;
+    }
+
+    var candidatePanel = this.candidatePanel;
+    if (target.parentNode === candidatePanel) {
+      top += candidatePanel.offsetTop - candidatePanel.scrollTop;
+      left += candidatePanel.offsetLeft - candidatePanel.scrollLeft;
     }
 
     left = Math.max(left, 5);
@@ -323,9 +345,9 @@ const IMEManager = {
     menu.className = '';
     menu.innerHTML = '';
 
-    var siblings = this._currentMenuKey.parentNode.childNodes;
-    for (var key in siblings) {
-      siblings[key].removeEventListener('mouseover', siblings[key].redirect);
+    var siblings = this._currentMenuKey.parentNode.children;
+    for (var i = 0; i < siblings.length; i++) {
+      siblings[i].removeEventListener('mouseover', siblings[i].redirect);
     }
 
     delete this._currentMenuKey;
@@ -397,6 +419,12 @@ const IMEManager = {
     this.imeEvents.forEach((function imeEvents(type) {
       this.ime.removeEventListener(type, this);
     }).bind(this));
+
+    for(var engine in this.IMEngines) {
+      if (this.IMEngines[engine].uninit)
+        this.IMEngines[engine].uninit();
+      delete this.IMEngines[engine];
+    }
   },
 
   loadKeyboard: function km_loadKeyboard(name) {
@@ -421,6 +449,9 @@ const IMEManager = {
       path: sourceDir + imEngine,
       sendCandidates: function(candidates) {
         self.showCandidates(candidates);
+      },
+      sendPendingSymbols: function(symbols) {
+        self.showPendingSymbols(symbols);
       },
       sendKey: function(keyCode) {
         switch (keyCode) {
@@ -474,15 +505,15 @@ const IMEManager = {
 
         // TODO: workaround gaia issue 374
         setTimeout((function keyboardVibrateSettingRequest() {
-          var request = navigator.mozSettings.get('keyboard.vibration');
-          request.addEventListener('success', (function onsuccess(evt) {
-            this.vibrate = (request.result.value === 'true');
+          var request = navigator.mozSettings.getLock().get('keyboard.vibration');
+          request.addEventListener('success', (function onsuccess() {
+            this.vibrate = !!request.result['keyboard.vibration'];
           }).bind(this));
 
           setTimeout((function keyboardClickSoundSettingRequest() {
-            var request = navigator.mozSettings.get('keyboard.clicksound');
-            request.addEventListener('success', (function onsuccess(evt) {
-              this.clicksound = (request.result.value === 'true');
+            var request = navigator.mozSettings.getLock().get('keyboard.clicksound');
+            request.addEventListener('success', (function onsuccess() {
+              this.clicksound = !!request.result['keyboard.clicksound'];
             }).bind(this));
           }).bind(this), 0);
 
@@ -623,6 +654,7 @@ const IMEManager = {
         break;
 
       case 'mouseleave':
+      case 'scroll': // scrolling IME candidate panel
         if (!this.isPressing || !this.currentKey)
           return;
 
@@ -632,6 +664,9 @@ const IMEManager = {
         this._hideMenuTimeout = setTimeout((function hideMenuTimeout() {
             this.hideAccentCharMenu();
           }).bind(this), this.kHideAccentCharMenuTimeout);
+
+        if (evt.type == 'scroll')
+          this.isPressing = false; // cancel the following mouseover event
 
         break;
 
@@ -715,9 +750,14 @@ const IMEManager = {
           break;
 
           case this.TOGGLE_CANDIDATE_PANEL:
-            var panel = this.candidatePanel;
-            var className = (panel.className == 'full') ? 'show' : 'full';
-            panel.className = target.className = className;
+            if (this.ime.classList.contains('candidate-panel')) {
+              this.ime.classList.remove('candidate-panel');
+              this.ime.classList.add('full-candidate-panel');
+            } else {
+              this.ime.classList.add('candidate-panel');
+              this.ime.classList.remove('full-candidate-panel');
+            }
+            this.updateTargetWindowHeight();
           break;
 
           case this.DOT_COM:
@@ -848,8 +888,14 @@ const IMEManager = {
         if (!(key.keyCode < 0 || hasSpecialCode) && this.isUpperCase)
           keyChar = layout.upperCase[keyChar] || keyChar.toUpperCase();
 
-        var code = key.keyCode || keyChar.charCodeAt(0);
+        // This gives layout author the ability to rewrite AlternateLayoutKeys
+        var hasSpecialCode = specialCodes.indexOf(key.keyCode) > -1;
+        if (!(key.keyCode < 0 || hasSpecialCode) && this.isAlternateLayout) {
+          if (Keyboards[this.currentKeyboard]['alternateLayoutOverwrite'])
+            keyChar = Keyboards[this.currentKeyboard]['alternateLayoutOverwrite'][keyChar];
+        }
 
+        var code = key.keyCode || keyChar.charCodeAt(0);
 
         if (code == KeyboardEvent.DOM_VK_SPACE) {
           // space key: replace/append with control and type keys
@@ -868,18 +914,30 @@ const IMEManager = {
           }
 
           // Alternate layout key
+          // This gives the author the ability to change the alternate layout key contents
+          var alternateLayoutKey = "?123";
+          if (Keyboards[this.currentKeyboard]['alternateLayoutKey']) {
+            alternateLayoutKey = Keyboards[this.currentKeyboard]['alternateLayoutKey'];
+          }
+
+          // This gives the author the ability to change the basic layout key contents
+          var basicLayoutKey = "ABC";
+          if (Keyboards[this.currentKeyboard]['basicLayoutKey']) {
+            basicLayoutKey = Keyboards[this.currentKeyboard]['basicLayoutKey'];
+          }
+
           ratio -= 2;
           if (this.currentKeyboardMode == '') {
             content += buildKey(
               this.ALTERNATE_LAYOUT,
-              '?123',
+              alternateLayoutKey,
               'keyboard-key-special',
               2
             );
           } else {
             content += buildKey(
               this.BASIC_LAYOUT,
-              'ABC',
+              basicLayoutKey,
               'keyboard-key-special',
               2
             );
@@ -971,14 +1029,13 @@ const IMEManager = {
     // insert candidate panel if the keyboard layout needs it
 
     if (layout.needsCandidatePanel) {
-      var toggleButton = document.createElement('span');
-      toggleButton.innerHTML = '⇪';
-      toggleButton.id = 'keyboard-candidate-panel-toggle-button';
-      toggleButton.dataset.keycode = this.TOGGLE_CANDIDATE_PANEL;
-      this.ime.insertBefore(toggleButton, this.ime.firstChild);
-
+      this.ime.insertBefore(
+        this.candidatePanelToggleButton, this.ime.firstChild);
       this.ime.insertBefore(this.candidatePanel, this.ime.firstChild);
-      this.showCandidates([]);
+      this.ime.insertBefore(
+        this.pendingSymbolPanel, this.ime.firstChild);
+      this.showPendingSymbols('');
+      this.showCandidates([], true);
       this.currentEngine.empty();
     }
   },
@@ -1058,26 +1115,42 @@ const IMEManager = {
     }
   },
 
-  showCandidates: function km_showCandidates(candidates) {
-    // TODO: candidate panel should be allow toggled to fullscreen
-    var candidatePanel = document.getElementById('keyboard-candidate-panel');
-    var toggleButton =
-      document.getElementById('keyboard-candidate-panel-toggle-button');
+  showPendingSymbols: function km_showPendingSymbols(symbols) {
+    var pendingSymbolPanel = this.pendingSymbolPanel;
+    pendingSymbolPanel.textContent = symbols;
+  },
+
+  showCandidates: function km_showCandidates(candidates, noWindowHeightUpdate) {
+    var ime = this.ime;
+    var candidatePanel = this.candidatePanel;
+    var isFullView = this.ime.classList.contains('full-candidate-panel');
 
     candidatePanel.innerHTML = '';
 
     if (!candidates.length) {
-      toggleButton.className = '';
-      candidatePanel.className = '';
-      this.updateTargetWindowHeight();
+      ime.classList.remove('candidate-panel');
+      ime.classList.remove('full-candidate-panel');
+      if (!noWindowHeightUpdate)
+        this.updateTargetWindowHeight();
+      this.updateKeyHighlight();
       return;
     }
 
-    toggleButton.className = toggleButton.className || 'show';
-    candidatePanel.className = candidatePanel.className || 'show';
+    if (!isFullView) {
+      ime.classList.add('candidate-panel');
+    }
 
-    if (toggleButton.className == 'show')
+    candidatePanel.scrollTop = candidatePanel.scrollLeft = 0;
+
+    if (!noWindowHeightUpdate)
       this.updateTargetWindowHeight();
+
+    // If there were too many candidate
+    delete candidatePanel.dataset.truncated;
+    if (candidates.length > 74) {
+      candidates = candidates.slice(0, 74);
+      candidatePanel.dataset.truncated = true;
+    }
 
     candidates.forEach(function buildCandidateEntry(candidate) {
       var span = document.createElement('span');

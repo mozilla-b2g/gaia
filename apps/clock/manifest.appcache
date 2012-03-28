@@ -1,22 +1,16 @@
 CACHE MANIFEST
-# v1 2012-17-01
-
-# /
-clock.html
-manifest.webapp
-
-# js/
+# Version 1120269ed3f79baeec3bd39e009d73df
+index.html
 js/clock.js
+js/stopwatch.js
+js/timer.js
+locale/clock.properties
 
-# style/
+manifest.json
 style/clock.css
-
-# icons used in the web application manifest.
-# Do not use icons/ directly since it is often used as an alias by Apache.
 style/icons/Clock.png
-
-# tmp files
-webapi+apps.js
-
-NETWORK:
-
+style/images/alarm.png
+style/images/home-texture.png
+style/images/stopwatch.png
+style/images/timer.png
+http://gaiamobile.org/webapi.js

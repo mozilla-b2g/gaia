@@ -1,0 +1,35 @@
+{
+  "name": "Music",
+  "default_locale": "en-US",
+  "icons": {
+    "120": "/style/icons/Music.png"
+  },
+  "description": "Gaia Music",
+  "launch_path": "/",
+  "locales": {
+    "ru": {
+      "name": "\u041c\u0443\u0437\u044b\u043a\u0430",
+      "description": "\u041c\u0443\u0437\u044b\u043a\u0430 Gaia"
+    },
+    "en-US": {
+      "name": "Music",
+      "description": "Gaia Music"
+    },
+    "ar": {
+      "name": "\u0645\u0648\u0633\u064a\u0642\u0649",
+      "description": "Gaia \u0645\u0648\u0633\u064a\u0642\u0649"
+    },
+    "fr": {
+      "name": "Musique",
+      "description": "Lecteur audio Gaia"
+    },
+    "zh-TW": {
+      "name": "\u97f3\u6a02",
+      "description": "Gaia \u97f3\u6a02"
+    }
+  },
+  "developer": {
+    "url": "https://github.com/andreasgal/gaia",
+    "name": "The Gaia Team"
+  }
+}

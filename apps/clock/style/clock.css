@@ -6,34 +6,13 @@ html, body {
 
   font-size: 2.5mozmm;
   color: white;
-  font-family: "Roboto", sans-serif;
+  font-family: sans-serif;
 
   background: url(images/home-texture.png) repeat scroll 2% 50% #666666;
 }
 
 html * {
   overflow: hidden;
-}
-
-@font-face {
-  font-family: Roboto;
-  src: url('fonts/Roboto-Regular.ttf');
-}
-@font-face {
-  font-family: Roboto;
-  font-weight: bold;
-  src: url('fonts/Roboto-Bold.ttf');
-}
-@font-face {
-  font-family: Roboto;
-  font-style: italic;
-  src: url('fonts/Roboto-Italic.ttf');
-}
-@font-face {
-  font-family: Roboto;
-  font-weight: bold;
-  font-style: italic;
-  src: url('fonts/Roboto-BoldItalic.ttf');
 }
 
 @media all and (min-resolution: 200dpi) {
@@ -53,7 +32,7 @@ html * {
 }
 
 #tabs {
-	width: -moz-calc(100% - 38px);
+  width: -moz-calc(100% - 38px);
   padding: 9px 9px 7px 9px;
   margin: auto;
 
@@ -63,15 +42,15 @@ html * {
 
 #tabs fieldset {
   list-style: none;
-	width: -moz-calc(100% - 2px);
-	height: 66px;
+  width: -moz-calc(100% - 2px);
+  height: 66px;
   padding: 0;
   margin: 0;
 
-	display: -moz-box;
-	-moz-box-orient: horizontal;
+  display: -moz-box;
+  -moz-box-orient: horizontal;
 
-	border: 1px solid #333333;
+  border: 1px solid #333333;
   border-radius: 3px;
   background:-moz-linear-gradient(top, hsl(0,0%,65%) 0, hsl(0,0%,56%) 1px, hsl(0,0%,37%) 100%);
 }
@@ -79,13 +58,13 @@ html * {
 #tabs label {
   float: left;
   display: block;
-  width: -moz-calc(100% / 3 - 2px);
+  width: -moz-calc(100% / 2 - 2px);
   height: 100%;
   padding: 0;
   margin: 0;
 
-	border-right: 1px solid rgb(29,29,29);
-	border-left: 1px solid rgb(123,123,123);
+  border-right: 1px solid rgb(29,29,29);
+  border-left: 1px solid rgb(123,123,123);
 
   background-position: 50% 50%;
   background-repeat: no-repeat;
@@ -117,13 +96,6 @@ html * {
   background: url(images/timer.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 1px, hsl(0,0%,56%) 100%);
 }
 
-#alarm-label {
-  background-image: url(images/alarm.png);
-}
-#alarm-label[data-active] {
-  background: url(images/alarm.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 1px, hsl(0,0%,56%) 100%);
-}
-
 #views {
   position: absolute;
   top: 0;
@@ -144,7 +116,7 @@ html * {
   padding: 9px;
 
   border-radius: 5px;
-	background:rgba(0,0,0,0.3);
+  background:rgba(0,0,0,0.3);
 }
 
 .chrono-view-container > div:first-child {
@@ -160,8 +132,8 @@ html * {
   text-align: center;
   font-size: 4em;
   text-overflow: ellipsis;
-	text-shadow:0 0 3px rgba(0,0,0,.5);
-	white-space: nowrap;
+  text-shadow:0 0 3px rgba(0,0,0,.5);
+  white-space: nowrap;
 }
 
 .chrono-view-container > div.ended {
@@ -227,11 +199,11 @@ html * {
 }
 
 .button-container > div > span {
-	display: block;
+  display: block;
   width: -moz-calc(100% - 2px);
   height: 15mozmm;
 
-	border-radius: 3px;
+  border-radius: 3px;
 
   background: -moz-linear-gradient(center top , #A5A5A5 0pt, #878787 1px, #545454 100%) repeat scroll 0 0 transparent;
 
@@ -256,17 +228,17 @@ html * {
 }
 
 #stopwatch-action-button > div > span {
-	background: -moz-linear-gradient(top, rgb(177,214,0) 1px, rgb(143,195,0) 2px, rgb(82,107,23) 100%);
+  background: -moz-linear-gradient(top, rgb(177,214,0) 1px, rgb(143,195,0) 2px, rgb(82,107,23) 100%);
 }
 #stopwatch-action-button > div > span:last-child {
-	background: -moz-linear-gradient(top, hsl(355,93%,42%) 0, hsl(356,94%,37%) 1px, hsl(353,100%,22%) 100%);
+  background: -moz-linear-gradient(top, hsl(355,93%,42%) 0, hsl(356,94%,37%) 1px, hsl(353,100%,22%) 100%);
 }
 
 #stopwatch-action-button:active span:first-child {
-	background: -moz-linear-gradient(top, rgb(82,107,23) 0, rgb(143,195,0) 100%);
+  background: -moz-linear-gradient(top, rgb(82,107,23) 0, rgb(143,195,0) 100%);
 }
 #stopwatch-action-button:active span:last-child {
-	background: -moz-linear-gradient(top, hsl(353,100%,22%) 0, hsl(356,94%,37%) 100%);
+  background: -moz-linear-gradient(top, hsl(353,100%,22%) 0, hsl(356,94%,37%) 100%);
 }
 
 
@@ -286,17 +258,17 @@ html * {
 }
 
 #timer-action-button > div > span {
-	background: -moz-linear-gradient(top, rgb(177,214,0) 1px, rgb(143,195,0) 2px, rgb(82,107,23) 100%);
+  background: -moz-linear-gradient(top, rgb(177,214,0) 1px, rgb(143,195,0) 2px, rgb(82,107,23) 100%);
 }
 #timer-action-button > div > span:last-child {
-	background: -moz-linear-gradient(top, hsl(355,93%,42%) 0, hsl(356,94%,37%) 1px, hsl(353,100%,22%) 100%);
+  background: -moz-linear-gradient(top, hsl(355,93%,42%) 0, hsl(356,94%,37%) 1px, hsl(353,100%,22%) 100%);
 }
 
 #timer-action-button:active span:first-child {
-	background: -moz-linear-gradient(top, rgb(82,107,23) 0, rgb(143,195,0) 100%);
+  background: -moz-linear-gradient(top, rgb(82,107,23) 0, rgb(143,195,0) 100%);
 }
 #timer-action-button:active span:last-child {
-	background: -moz-linear-gradient(top, hsl(353,100%,22%) 0, hsl(356,94%,37%) 100%);
+  background: -moz-linear-gradient(top, hsl(353,100%,22%) 0, hsl(356,94%,37%) 100%);
 }
 
 
@@ -328,4 +300,9 @@ html * {
 #duration-field:invalid {
   box-shadow: none;
   color: red;
+}
+
+/* localization */
+body.hidden *[data-l10n-id] {
+  visibility: hidden;
 }

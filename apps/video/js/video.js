@@ -41,6 +41,9 @@ window.addEventListener('DOMContentLoaded', function() {
   // if false, then the gallery is showing
   var playerShowing = false;
 
+  // Keep the screen on when playing
+  var screenLock;
+
   // same thing for the controls
   var controlShowing = false;
 
@@ -98,6 +101,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
     playerShowing = true;
     controlShowing = false;
+    screenLock = navigator.requestWakeLock("screen");
   }
   function hidePlayer() {
     if (!playerShowing)
@@ -113,13 +117,14 @@ window.addEventListener('DOMContentLoaded', function() {
     player.currentTime = 0;
 
     playerShowing = false;
+    screenLock.unlock();
   }
   $('close').addEventListener('click', hidePlayer, false);
   player.addEventListener('ended', function() {
     if (!controlShowing)
       hidePlayer();
   }, false);
-  window.addEventListener('keypress', function(event) {
+  window.addEventListener('keyup', function(event) {
     if (playerShowing && event.keyCode == event.DOM_VK_ESCAPE) {
       hidePlayer();
       event.preventDefault();
@@ -184,4 +189,14 @@ window.addEventListener('DOMContentLoaded', function() {
     if (isDragging)
       setCurrentTime(event);
   }, false);
+});
+
+// Set the 'lang' and 'dir' attributes to <html> when the page is translated
+window.addEventListener('localized', function showBody() {
+  var html = document.querySelector('html');
+  var lang = document.mozL10n.language;
+  html.setAttribute('lang', lang.code);
+  html.setAttribute('dir', lang.direction);
+  // <body> children are hidden until the UI is translated
+  document.body.classList.remove('hidden');
 });

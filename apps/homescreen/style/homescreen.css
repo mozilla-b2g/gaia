@@ -4,30 +4,7 @@ body {
   margin: 0px;
   padding: 0px;
   background: black;
-  font-family: 'Open Sans Semibold', sans-serif;
   overflow: hidden;
-  font-size: 15px;
-}
-
-@media screen and (max-width: 479px) {
-  body {
-    font-size: 10px;
-  }
-}
-
-@font-face {
-  font-family: 'Open Sans';
-  src: url('fonts/Open-Sans.woff');
-}
-@font-face {
-  font-family: 'Open Sans';
-  font-weight: bold;
-  src: url('fonts/Open-Sans-Bold.woff');
-}
-@font-face {
-  font-family: 'Open Sans';
-  font-weight: 600;
-  src: url('fonts/Open-Sans-Semibold.woff');
 }
 
 #screen {
@@ -37,17 +14,6 @@ body {
   height: 100%;
 }
 
-/*
- * Simulate a common device-screen size on large monitors, for testing
- * on desktops/laptops.  1300px is just wider than the widest tablet
- * screen on the market today.
- */
-@media all and (min-width: 1300px) {
-  #screen {
-    max-width: 480px;
-    max-height: 800px;
-  }
-}
 
 #lockscreen {
   position: absolute;
@@ -66,13 +32,6 @@ body {
 #lockscreen > #lockscreenContainer {
   width: 100%;
   height: -moz-calc(100% - 32px);
-  background-color: #000;
-  background-attachment: fixed;
-  background-clip: border-box;
-  background-image: url(images/background.png);
-  background-origin: padding-box;
-  background-position: center center;
-  background-repeat: no-repeat;
 }
 
 @media not all and (width: 480px) and (height: 800px) {
@@ -81,52 +40,7 @@ body {
   }
 }
 
-
-#lockscreen #clock {
-  position: absolute;
-  top: 160px;
-	left: 30px;
-  width: 100%;
-  text-align: left;
-  font-family: "Open Sans", sans-serif;
-}
-
-#lockscreen #clock > #hourMin {
-  color: #fff;
-  font-size: 120px;
-	font-weight: 600;
-	letter-spacing: -2px;
-	line-height: 1.1em;
-	text-shadow: 0 0 10px rgba(255, 255, 255, .4), 0 0 3px rgba(255, 255, 255, .3);
-}
-
-#lockscreen #clock > #date {
-  color: #ffdfaa;
-  font-size: 34px;
-	padding-left: 20px;
-	text-shadow: 0 1px 1px rgba(0, 0, 0, .25);
-}
-
-#lockscreen #clock > *[data-format*="%b"] {
-  font-size: 100px;
-}
-
-@media all and (max-height: 480px) {
-  #lockscreen #clock > #hourMin {
-    font-size: 100px;
-  }
-
-  #lockscreen #clock > *[data-format*="%b"] {
-    font-size: 90px;
-  }
-
-  #lockscreen #clock > #date {
-    font-size: 24px;
-  }
-}
-
-
-#notificationsScreen {
+#notifications-screen {
   position: absolute;
   z-index: 9996;
   top: -moz-calc(-100% + 64px);
@@ -135,7 +49,42 @@ body {
   background-color: #222;
 }
 
-#notificationsScreen > #grippy {
+#notifications-container .notification {
+  background-image: url(images/notifications.png);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+
+  height: 80px;
+  font-weight: bold;
+}
+
+#notifications-container .notification * {
+  pointer-events: none;
+}
+
+#notifications-container .notification > div:first-child {
+  margin: 0 0 0 85px;
+  padding: 20px 0 0 0;
+
+  font-size: 2.5mozmm;
+  line-height: 2.5mozmm;
+  color: #111;
+}
+
+#notifications-container .notification > div:last-child {
+  margin: 0 0 0 85px;
+  padding: 0;
+  width: -moz-calc(100% - 105px);
+  height: 25px;
+
+  font-size: 2mozmm;
+  color: #666;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#grippy {
   pointer-events: none;
   position: absolute;
   bottom: 0;
@@ -144,8 +93,6 @@ body {
 
   border-bottom: 1px solid #111;
   border-top: 1px solid #111;
-
-  background: #111 url(images/grippy.png) no-repeat 50% 50%;
 }
 
 #home {
@@ -153,8 +100,6 @@ body {
   top: 32px;
   width: -moz-calc(100%);
   height: -moz-calc(100% - 32px);
-  border-radius: 8px;
-  background: url(backgrounds/default.png);
   z-index: 9994;
 }
 
@@ -166,50 +111,32 @@ body {
 }
 
 #home > #apps {
-  top: 0;
-  height: 594px;
   margin-top: 40px;
+  top: 0;
+
+  /* height = -margin-top +100% - dots.height - notifications.height */
+  height: -moz-calc(-40px + 100% - 14px - 80px);
+
+  width: 100%;
 }
 
 #home > #dots {
-  top: 650px;
+  bottom: 90px;
   height: 14px;
   line-height: 14px;
   text-align: center;
-}
-
-#home > #notifications {
-  bottom: 0px;
-  height: 80px;
-  background-image: url(images/notifications.png);
-  background-repeat: no-repeat;
-  background-size: 100% 100%;
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
 }
 
 .page {
   position: absolute;
   left: 42px;
   top: 0px;
-  width: 100%;
-  height: 100%;
+  width: -moz-calc(100% - 42px);
 }
 
 .icon {
-  position: absolute;
-  width: 128px;
-  height: 192px;
-  overflow: hidden;
-  background: url(images/thumb.png) 8px 8px no-repeat #222;
-  background-color: #222;
-  background-image: url(images/thumb.png);
-  background-position: 8px 8px;
-  background-repeat: no-repeat;
-  background-color: #222;
-  border-radius: 5px;
-  margin-right: 4px;
-  margin-bottom: 4px;
+  position: relative;
+  float: left;
 }
 
 .icon > * {
@@ -218,50 +145,42 @@ body {
 
 .icon > div {
   display: inline-block;
-  width: 120px;
-  height: 120px;
-}
-
-.icon > .label {
-  padding-top: 36px;
-  padding-left: 8px;
-  color: white;
 }
 
 .dot {
   display: inline-block;
-  width: 10px;
-  height: 10px;
-  background-color: darkgray;
-  margin-left: 5px;
-  margin-right: 5px;
-  border-radius: 5px;
 }
 
-.dot.active {
-  background-color: white;
-}
-
-@media all and (max-height: 480px) {
-  #home > #apps {
-    height: 400px;
-    margin-top: 10px;
+/* Horizontal orientation height of our current target phones */
+@media all and (max-height: 600px) {
+  #home {
+    background-size: cover;
   }
 
-  #home > #notifications {
-    height: 50px;
+  #home > #apps {
+    /* height = -margin-top +100% - dots.height - dots.bottom - notifications.height */
+    height: -moz-calc(-24px + 100% - 14px - 14px - 0px);
+    margin-top: 24px;
   }
 
   #home > #dots {
-    top: 380px;
+    bottom: 14px;
   }
+}
 
+/* Vertical orientation of 320x480 phones */
+@media all and (max-width: 320px) {
   .page {
     left: 30px;
+    width: -moz-calc(100% - 30px);
   }
+}
 
-  .icon {
-    height: 180px;
+/* Horizontal orientation height of 800x480 phones */
+@media all and (min-width: 800px) {
+  .page {
+    left: 70px;
+    width: -moz-calc(100% - 70px);
   }
 }
 
@@ -293,6 +212,7 @@ iframe.appWindow {
   left: 0;
   top: 32px;
   z-index: 1;
+
 /*
  * Do not specify height/width here! They should go to
  * Window.prototype.resize() in window_manager.js
@@ -310,7 +230,35 @@ iframe.appWindow {
 
 iframe.appWindow.active {
   z-index: 9995;
-  background-color: #000;
+  background-color: #fff;
+}
+
+div.windowSprite {
+  position: absolute;
+  top: 32px;
+  left: 0;
+  width: 100%;
+  height: -moz-calc(100% - 32px);
+  z-index: 999999;
+  -moz-transition: -moz-transform 0.5s ease, opacity 0.5s ease;
+}
+
+div.windowSprite.fullscreen {
+  border-radius: 0;
+  top: 0;
+  height: 100%;
+}
+
+div.windowSprite.closed {
+  -moz-transform: scale(0.5);
+  opacity: 0;
+}
+
+div.windowSprite.open {
+}
+
+div.windowSprite.faded {
+  opacity: 0;
 }
 
 #screen.fullscreen iframe.appWindow.active {
@@ -326,35 +274,6 @@ iframe.appWindow.active {
 iframe.appWindow.keyboardOn {
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
-}
-
-div.windowSprite {
-  position: absolute;
-  top: 32px;
-  left: 0;
-  width: 100%;
-  height: -moz-calc(100% - 32px);
-  z-index: 999999;
-  -moz-transform: scale(0.5);
-  -moz-transition: -moz-transform 0.5s ease, opacity 0.5s ease;
-  opacity: 0;
-  background: url("images/noise.png") repeat scroll 50% 50%, #373a3d;
-  border-radius: 8px;
-}
-
-div.windowSprite.fullscreen {
-  border-radius: 0;
-  top: 0;
-  height: 100%;
-}
-
-div.windowSprite.active {
-  opacity: 1;
-  -moz-transform: scale(1);
-}
-
-div.windowSprite.crossFade {
-  opacity: 0;
 }
 
 iframe.portrait-primary {
@@ -385,9 +304,6 @@ iframe.landscape-secondary {
   -moz-box-sizing: border-box;
   height: 32px;
   padding: 2px;
-
-  color: #999;
-  background-color: #000;
 }
 
 #statusbar > * {
@@ -395,92 +311,27 @@ iframe.landscape-secondary {
   pointer-events: none;
 }
 
-#screen.fullscreen > :-moz-any(#statusbar,#notificationsScreen) {
+#screen.fullscreen > :-moz-any(#statusbar,#notifications-screen) {
   display: none;
+}
+
+#state-messages[data-visible] {
+  width: 32px;
+  height: 32px;
+}
+
+#state-calls[data-visible] {
+  width: 32px;
+  height: 32px;
 }
 
 #statusbar > #padding {
   -moz-box-flex: 1;
 }
 
-#statusbar > #titlebar {
-  text-shadow: 0 0 3px hsla(0,0%,0%,.5);
-  line-height: 31px;
-  font-size: 18px;
-  margin: 0 4px;
-}
-
 #signal {
   width: 20px;
   margin-top: 2px;
-}
-
-#signal span {
-  float: left;
-  width: 3px;
-  margin: 1px;
-
-  background: #333333;
-}
-
-#signal span.haveSignal {
-  background: #999999;
-}
-
-#signal span:nth-child(1) {
-  margin-top: 17px;
-  height: 3px;
-}
-
-#signal span:nth-child(2) {
-  margin-top: 13px;
-  height: 7px;
-}
-
-#signal span:nth-child(3) {
-  margin-top: 10px;
-  height: 10px;
-}
-
-#signal span:nth-child(4) {
-  margin-top: 6px;
-  height: 14px;
-}
-
-#wifi {
-  width: 30px;
-  background: url(images/wifi.png) 50% 8px no-repeat;
-}
-
-#statusbar .time {
-  text-shadow: 0 0 3px hsla(0,0%,0%,.5);
-  line-height: 31px;
-  margin: 0 4px;
-}
-
-.battery {
-  float:right;
-  margin: 8px 3px;
-  padding: 5px 7px 5px 5px;
-  width: 29px;
-  background: url(images/battery-main.png);
-  background-repeat: no-repeat;
-  background-size: 29px 16px;
-  position: relative;
-}
-
-.battery > #fuel {
-  height: 6px;
-	background-color: #999999;
-}
-
-.battery > #charging {
-  height: 8px;
-  width: 18px;
-  background: transparent url(images/battery-charging.png) center center no-repeat;
-  position: absolute;
-  top: 4px;
-  left: 5px;
 }
 
 #taskManager {
@@ -514,7 +365,6 @@ iframe.landscape-secondary {
 }
 
 #taskManager li {
-  background-color: #00f;
   display: inline-block;
   width: 100%;
   height: 100%;
@@ -524,329 +374,48 @@ iframe.landscape-secondary {
 }
 
 #taskManager li > a {
-  background: url('images/close.png') no-repeat;
   display: block;
-  width: 32px;
-  height: 32px;
+  width: 64px;
+  height: 64px;
   position: absolute;
-  top: 10px;
-  right: 10px;
-  -moz-transform: scale(5);
+  top: -32px;
+  right: -32px;
+  -moz-transform: scale(2.5);
 }
 
 #taskManager li > h1 {
   position: absolute;
   top: 100%;
   width: 100%;
-  text-align: center;
-  color: #fff;
-  font-size: 2em;
-  text-shadow: #000 0 2px 1px;
 }
 
-#keyboard {
-  position: absolute;
-  font-family: 'Open Sans', sans-serif;
-  font-weight: bold;
-  z-index: 9999;
-  bottom: 0;
-  overflow: visible;
-  background-color: #f0f1f2;
-  width: 100%;
-  -moz-transition: -moz-transform 0.3s ease;
-  border-top: 2px solid #a3a3a3;
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
-}
-
-#keyboard.imminent {
-  -moz-transition: none;
-}
-
-#keyboard[data-hidden] {
-  bottom: -2px;
-  -moz-transform: translateY(100%);
-}
-
-#keyboard-candidate-panel {
-  height: 64px;
-  overflow: auto;
-  white-space: nowrap;
-  color: black;
-  background: rgb(176, 174, 168);
-  border-top: 1px solid #e8e8ff;
-  border-bottom: 1px solid #808098;
-  display: none;
-}
-#keyboard-candidate-panel.show {
-  display: block;
-}
-#keyboard-candidate-panel.full {
-  display: block;
-  position: absolute;
-  white-space: normal;
-  top: -68px;
-  bottom: 0;
-  height: -moz-calc(100% + 68px);
-  width: 100%;
-  border: none;
-  border-top: 2px solid #a3a3a3;
-  z-index: 1;
-}
-#keyboard-candidate-panel.full span {
-  border-top: 1px solid #e8e8ff;
-  border-bottom: 1px solid #808098;
-}
-
-#keyboard-candidate-panel span {
-  border-left: 1px solid #e8e8ff;
-  border-right: 1px solid #808098;
-  font-size: 32px;
-  line-height: 60px;
-  min-width: 60px;
-  display: inline-block;
-  height: 64px;
-  padding: 0 10px;
-  text-align: center;
-  background: -moz-linear-gradient(top, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
-}
-
-#keyboard-candidate-panel-toggle-button {
-  border-left: 1px solid #e8e8ff;
-  border-right: 1px solid #808098;
-  position: absolute;
-  font-size: 32px;
-  line-height: 60px;
-  right: 0;
-  top: 1px;
-  text-align: center;
-  box-shadow: -4px 0 5px -5px black;
-  width: 60px;
-  height: 64px;
-  color: black;
-  background: -moz-linear-gradient(top, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
-  display: none;
-}
-
-#keyboard-candidate-panel-toggle-button.full {
-  display: block;
-  border-top: 1px solid #e8e8ff;
-  border-bottom: 1px solid #808098;
-  top: -66px;
-  z-index: 1;
-}
-
-#keyboard-candidate-panel-toggle-button.show {
-  display: block;
-}
-
-#keyboard-candidate-panel span[data-active],
-#keyboard-candidate-panel-toggle-button[data-active] {
-  background: -moz-linear-gradient(bottom, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
-}
-
-.keyboard-row {
-  margin: 10px 0;
-  /* XXX: 11 key-row layouts add up to 802px when width=800px,
-  need detail fix on key width calculation */
-  white-space: nowrap;
-}
-
-.keyboard-key {
-  display: inline-block;
-  vertical-align: middle;
-  overflow: hidden;
-  text-align: center;
-  color: rgb(36, 36, 36);
-  font-size: 33px;
-  height: 58px;
-  min-width: 0 !important;
-  margin: 0 2px;
-  -moz-box-sizing: border-box;
-  padding: 0;
 /*
- * Below are the rules from which the following bitmaps were
- * generated.  Painting with the raw style is currently too slow, so
- * we fall back on bitmaps.
- *
-  line-height: 55px;
-  border: 1px solid #d5d5d5;
-  -moz-box-shadow: inset 0 0 2px 2px #fff;
-  border-radius: 5px;
-  background: -moz-linear-gradient(top, #fff 10%, #fff 70%, #f6f6f6 100%);
-*/
-  line-height: 56px;
-  background: url(images/left.png) left top no-repeat,
-              url(images/right.png) right top no-repeat,
-              url(images/middle.png) left top repeat-x;
+ * Localization: RTL layout
+ */
+
+*[dir=rtl] .page {
+  left: auto;
+  right: 42px;
 }
 
-.keyboard-key.spacekey {
-  color: #9b9b9b;
-  font-size: 18px;
+@media all and (max-width: 320px) {
+  .page {
+    left: auto;
+    right: 30px;
+  }
 }
 
-@font-face {
-  font-family: 'Keyboard Symbols';
-  font-weight: 600;
-  src: url('fonts/Keyboard-Symbols.woff');
+*[dir=rtl] .icon {
+  float: right;
+  margin-left: 4px;
+  margin-right: 0;
 }
 
-.keyboard-key[data-keycode="-3"], /* IMEManager.SWITCH_KEYBOARD */
-.keyboard-key[data-keycode="8"], /* KeyEvent.DOM_VK_BACK_SPACE */
-.keyboard-key[data-keycode="20"], /* KeyEvent.DOM_VK_CAPS_LOCK */
-.keyboard-key[data-keycode="13"] { /* KeyEvent.DOM_VK_RETURN */
-  font-family: 'Keyboard Symbols', sans-serif;
-  font-size: 28px;
+*[dir=rtl] .icon > .label {
+  padding-left: 0;
+  padding-right: 8px;
 }
 
-.keyboard-key[data-active] {
-  color: #fff;
-/*
- * Disable this for now because it's too slow to repaint.
- *
-  -moz-box-shadow: inset 0 0 2px 2px #6f6f6f;
-  text-shadow: 0 -1px #909090, 0 1px #9b9b9b;
-  background: rgb(118, 118, 118);
-*/
-  background: url(images/left-active.png) left top no-repeat,
-              url(images/right-active.png) right top no-repeat,
-              rgb(118, 118, 118);
+*[dir=rtl] #signal span {
+  float: right;
 }
-
-.keyboard-key-special {
-  color: #fff;
-  font-size: 18px;
-  text-shadow: 0 -1px #848d96, 0 1px #bac2cb;
-/*
- * Disable this for now because it's too slow to repaint.
- *
-  background: -moz-linear-gradient(top, #a3aeb9 10%, #a3aeb9 70%, #929ca6 100%);
-  -moz-box-shadow: none;
-  border: 1px solid #8a949d;
-*/
-  background: url(images/left-special.png) left top no-repeat,
-              url(images/right-special.png) right top no-repeat,
-              url(images/middle-special.png) left top repeat-x;
-}
-
-.keyboard-key-special.toggle {
-  position: relative;
-}
-.keyboard-key-special.toggle::before {
-  content: '';
-  display: block;
-  position: absolute;
-  left: 8px;
-  top: 8px;
-  width: 8px;
-  height: 8px;
-  border-radius: 4px;
-  background-color: #999;
-}
-.keyboard-key-special[data-enabled] {
-  text-shadow: 0 0 5px #fff;
-}
-.keyboard-key-special[data-enabled]::before {
-  background-color: #0c0;
-}
-
-#keyboard-key-highlight {
-  position: absolute;
-  font-family: 'Keyboard Symbols', 'Open Sans', sans-serif;
-  pointer-events: none;
-  top: 0; left: 0;
-  color: #333;
-  background: -moz-linear-gradient(top, rgba(194,197,202,0.9) 10%, rgba(164,164,172,0.9) 90%);
-  font-size: 50px;
-  line-height: 100px;
-  min-width: 70px;
-  padding: 0 5px;
-  height: 100px;
-  margin-top: -110px;
-  text-align: center;
-  border: 1px solid #fff;
-/*
- * Disabled for now ... too slow :(.
- *
-  box-shadow: 0 0 2px #ccc;
-  border-radius: 5px;
-*/
-  display: none;
-}
-
-#keyboard-key-highlight.show {
-  display: block;
-}
-
-#keyboard[data-hidden] #keyboard-key-highlight.show {
-  display: none;
-}
-
-#keyboard-accent-char-menu {
-  position: absolute;
-  display: none;
-  background-color: #cac9c5;
-  height: 58px;
-  padding: 5px;
-  margin-top: -84px;
-  border-radius: 5px;
-  border: 1px solid #fff;
-  box-shadow: 0 0 2px #ccc;
-  white-space: nowrap;
-}
-
-#keyboard-accent-char-menu.show {
-  display: block;
-}
-
-#keyboard-accent-char-menu.menu {
-  height: auto;
-  margin-top: -5px;
-}
-
-#keyboard-accent-char-menu > .keyboard-key {
-  background: url(images/left-accent.png) left top no-repeat,
-              url(images/right-accent.png) right top no-repeat,
-              url(images/middle.png) left top repeat-x;
-}
-#keyboard-accent-char-menu > .keyboard-key[data-active] {
-  color: #fff;
-/*
- * Disable this for now because it's too slow to repaint.
- *
-  -moz-box-shadow: inset 0 0 2px 2px #6f6f6f;
-  text-shadow: 0 -1px #909090, 0 1px #9b9b9b;
-  background: rgb(118, 118, 118);
-*/
-  background: url(images/left-active-accent.png) left top no-repeat,
-              url(images/right-active-accent.png) right top no-repeat,
-              rgb(118, 118, 118);
-}
-
-#keyboard-accent-char-menu.menu > .current-keyboard::before {
-  content: '';
-  display: block;
-  position: absolute;
-  left: 8px;
-  top: 8px;
-  width: 8px;
-  height: 8px;
-  border-radius: 4px;
-  background-color: #0c0;
-  box-shadow: 0 0 5px #fff;
-}
-
-#debug-grid {
-  position: absolute;
-  top: 0;
-  left: 0;
-  display: none;
-  width: 480px;
-  height: 800px;
-  background: url(images/grid.png);
-  z-index: 20002;
-  opacity: 0.2;
-  pointer-events: none;
-}
-
