@@ -103,24 +103,29 @@ body {
   width: 128px;
   height: 192px;
   background-color: #222;
-  background-position: 8px 8px;
-  background-repeat: no-repeat;
-  background-color: #222;
   border-radius: 5px;
   margin-right: 4px;
   margin-bottom: 4px;
   overflow: hidden;
 }
 
-.icon > div {
-  width: 120px;
-  height: 120px;
+.icon > .img { /* the image container, not the image itself */
+  margin-top: 8px;
+  margin-left: 8px;
+  width:112px;
+  height:152px;
+  overflow:hidden;  /* don't let over-large icons escape */
 }
 
 .icon > .label {
-  padding-top: 36px;
+  padding-top: 4px;
   padding-left: 8px;
   color: white;
+}
+
+.icon > .img > img {
+  vertical-align: middle;
+  text-align: center;
 }
 
 /* Screen markers */

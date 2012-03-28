@@ -1,7 +1,8 @@
 CACHE MANIFEST
-# Version ac564db4c788e67b8740ceba206c9927
+# Version 5d3d6471f2f423df6009f3747e3b7f03
 index.html
 js/camera.js
+js/camera.js~
 
 manifest.json
 style/camera.css

@@ -1042,7 +1042,8 @@ function AppScreen() {
       var app = e.detail.app;
 
       // Note: we could use `requestPermission(_('install', app), ...)`
-      requestPermission(_('install', { name: app.name, origin: app.origin }),
+      var msg = _('install', { name: app.manifest.name, origin: app.origin });
+      requestPermission(msg,
                         function() { sendResponse(e.detail.id, true); },
                         function() { sendResponse(e.detail.id, false); });
     }
@@ -1150,10 +1151,10 @@ AppScreen.prototype.build = function(rebuild) {
     // (technically, manifests are not supposed to have those)
     // Otherwise, prefix with the app origin
     if (icon.indexOf(':') == -1) {
-      // XXX it looks like the homescreen can't load images from other origins (WTF??)
-      // so use the ones from the url host for now
-      // icon = app.origin + icon;
-      icon = 'http://' + document.location.host + icon;
+      if (origin[origin.length-1] === '/' && icon[0] === '/')
+        icon = origin + icon.substring(1);
+      else
+        icon = origin + icon;
     }
 
     // Localize the app name
@@ -1435,12 +1436,15 @@ IconGrid.prototype = {
         iconDiv = document.createElement('div');
         iconDiv.id = n;
         iconDiv.className = 'icon';
-        iconDiv.style.backgroundImage = 'url("' + icon.iconUrl + '")';
         iconDiv.dataset.url = icon.action;
 
         var centerDiv = document.createElement('div');
         centerDiv.className = 'img';
         iconDiv.appendChild(centerDiv);
+
+        var img = document.createElement('img');
+        img.src = icon.iconUrl;
+        centerDiv.appendChild(img);
 
         var labelDiv = document.createElement('div');
         labelDiv.className = 'label';

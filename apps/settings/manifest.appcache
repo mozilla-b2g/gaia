@@ -1,7 +1,9 @@
-# Version be1b6dc69dd70eb13e6e5374fd25e22b
+CACHE MANIFEST
+# Version ed04f486c9df6b6d5c549023cc8c7cc6
 gaia-commit.txt
 index.html
 js/settings.js
+js/settings.js~
 js/wifi.js
 locale/settings.properties
 

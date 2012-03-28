@@ -2,7 +2,7 @@
   "name": "Calendar",
   "default_locale": "en-US",
   "icons": {
-    "120": "/style/icons/GoogleCalendar.png"
+    "120": "http://homescreen.gaiamobile.org/style/icons/GoogleCalendar.png"
   },
   "description": "Google Calendar",
   "launch_path": "/calendar/gp",

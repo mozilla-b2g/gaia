@@ -1,4 +1,5 @@
-# Version 0f309f3f812ce5b447f7c7b14267a865
+CACHE MANIFEST
+# Version 2edd22d82623adaebb53cd2e607f5d3e
 blank.html
 imes/jspinyin/COPYING
 imes/jspinyin/db.json
@@ -8,17 +9,21 @@ imes/jszhuyin/jszhuyin.js
 imes/jszhuyin/phrases.json
 imes/jszhuyin/words.json
 index.html
+index.html~
 js/app_manager.js
 js/homescreen.js
+js/homescreen.js~
 js/keyboard.js
 js/keyboardLayout.js
 js/request.js
 js/window_manager.js
+js/window_manager.js~
 locale/homescreen.properties
+locale/homescreen.properties~
 
 manifest.json
-style/.DS_Store
 style/homescreen.css
+style/homescreen.css~
 style/icons/BBC.png
 style/icons/Browser.png
 style/icons/CNN.png
@@ -44,7 +49,6 @@ style/icons/Video.png
 style/icons/VideoCube.png
 style/icons/Wikipedia.png
 style/icons/Zimbra.png
-style/images/.DS_Store
 style/images/grid.png
 style/images/notifications.png
 style/keyboard/fonts/Keyboard-Symbols.svg
@@ -66,8 +70,6 @@ style/ringtones/README
 style/ringtones/bosscaling.wav
 style/ringtones/classic.wav
 style/ringtones/goodnight.wav
-style/themes/.DS_Store
-style/themes/default/.DS_Store
 style/themes/default/backgrounds/default.png
 style/themes/default/backgrounds/leaves.png
 style/themes/default/backgrounds/rings.png
@@ -76,7 +78,7 @@ style/themes/default/fonts/Open-Sans-Bold.woff
 style/themes/default/fonts/Open-Sans-Semibold.woff
 style/themes/default/fonts/Open-Sans.woff
 style/themes/default/homescreen.css
-style/themes/default/images/.DS_Store
+style/themes/default/homescreen.css~
 style/themes/default/images/battery-charging.png
 style/themes/default/images/battery-main.png
 style/themes/default/images/close-active.png

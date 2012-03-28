@@ -2,7 +2,7 @@
   "name": "Zimbra",
   "default_locale": "en-US",
   "icons": {
-    "120": "/style/icons/Zimbra.png"
+    "120": "http://homescreen.gaiamobile.org/style/icons/Zimbra.png"
   },
   "description": "Mozilla Zimbra Mail",
   "launch_path": "/zimbra/m",
