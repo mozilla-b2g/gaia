@@ -149,11 +149,11 @@ const IMEManager = {
     return this.ime = document.getElementById('keyboard');
   },
 
-  get pandingSymbolPanel() {
-    delete this.pandingSymbolPanel;
-    var pandingSymbolPanel = document.createElement('div');
-    pandingSymbolPanel.id = 'keyboard-panding-symbol-panel';
-    return this.pandingSymbolPanel = pandingSymbolPanel;
+  get pendingSymbolPanel() {
+    delete this.pendingSymbolPanel;
+    var pendingSymbolPanel = document.createElement('div');
+    pendingSymbolPanel.id = 'keyboard-pending-symbol-panel';
+    return this.pendingSymbolPanel = pendingSymbolPanel;
   },
 
   get candidatePanel() {
@@ -452,8 +452,8 @@ const IMEManager = {
       sendCandidates: function(candidates) {
         self.showCandidates(candidates);
       },
-      sendPandingSymbols: function(symbols) {
-        self.showPandingSymbols(symbols);
+      sendPendingSymbols: function(symbols) {
+        self.showPendingSymbols(symbols);
       },
       sendKey: function(keyCode) {
         switch (keyCode) {
@@ -1035,8 +1035,8 @@ const IMEManager = {
         this.candidatePanelToggleButton, this.ime.firstChild);
       this.ime.insertBefore(this.candidatePanel, this.ime.firstChild);
       this.ime.insertBefore(
-        this.pandingSymbolPanel, this.ime.firstChild);
-      this.showPandingSymbols('');
+        this.pendingSymbolPanel, this.ime.firstChild);
+      this.showPendingSymbols('');
       this.showCandidates([], true);
       this.currentEngine.empty();
     }
@@ -1117,9 +1117,9 @@ const IMEManager = {
     }
   },
 
-  showPandingSymbols: function km_showPandingSymbols(symbols) {
-    var pandingSymbolPanel = this.pandingSymbolPanel;
-    pandingSymbolPanel.textContent = symbols;
+  showPendingSymbols: function km_showPendingSymbols(symbols) {
+    var pendingSymbolPanel = this.pendingSymbolPanel;
+    pendingSymbolPanel.textContent = symbols;
   },
 
   showCandidates: function km_showCandidates(candidates, noWindowHeightUpdate) {

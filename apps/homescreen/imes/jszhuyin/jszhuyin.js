@@ -135,9 +135,9 @@
       return false;
     };
 
-    var sendPandingSymbols = function ime_updatePandingSymbol() {
+    var sendPendingSymbols = function ime_updatePendingSymbol() {
       var symbols = syllablesInBuffer.join('').replace(/\*/g, '');
-      settings.sendPandingSymbols(symbols);
+      settings.sendPendingSymbols(symbols);
     };
 
     var empty = function ime_empty() {
@@ -147,7 +147,7 @@
       firstCandidate = '';
       selectedText = '';
       selectedSyllables = [];
-      sendPandingSymbols();
+      sendPendingSymbols();
       isWorking = false;
       if (!db)
         initDB();
@@ -381,7 +381,7 @@
 
       if (code == 0) {
         // This is a select function operation after selecting suggestions
-        sendPandingSymbols();
+        sendPendingSymbols();
         updateCandidateList(next);
         return;
       }
@@ -400,7 +400,7 @@
           pendingSymbols = ['', '', '', ''];
         }
 
-        sendPandingSymbols();
+        sendPendingSymbols();
         updateCandidateList(next);
         return;
       }
@@ -481,7 +481,7 @@
 
         syllablesInBuffer[syllablesInBuffer.length - 1] =
           pendingSymbols.join('');
-        sendPandingSymbols();
+        sendPendingSymbols();
         updateCandidateList(next);
         return;
       }
@@ -527,7 +527,7 @@
       // update syllablesInBuffer
       syllablesInBuffer[syllablesInBuffer.length - 1] =
         pendingSymbols.join('');
-      sendPandingSymbols();
+      sendPendingSymbols();
 
       if (kBufferLenLimit &&
         syllablesInBuffer.length >= kBufferLenLimit) {
@@ -560,7 +560,7 @@
               syllablesInBuffer.shift();
             }
 
-            sendPandingSymbols();
+            sendPendingSymbols();
 
             updateCandidateList(next);
           });

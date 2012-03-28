@@ -22,7 +22,7 @@
   -moz-transform: translateY(100%);
 }
 
-#keyboard-panding-symbol-panel {
+#keyboard-pending-symbol-panel {
   position: absolute;
   top: -35px;
   left: 0;
@@ -39,7 +39,7 @@
   white-space: nowarp;
 }
 
-#keyboard-panding-symbol-panel:empty {
+#keyboard-pending-symbol-panel:empty {
   display: none;
 }
 
