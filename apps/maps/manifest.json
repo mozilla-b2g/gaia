@@ -6,6 +6,7 @@
   },
   "description": "Google Maps",
   "launch_path": "/",
+  "hackNetworkBound": "true",
   "locales": {
     "ru": {
       "name": "\u041a\u0430\u0440\u0442\u044b",

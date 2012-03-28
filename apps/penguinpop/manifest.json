@@ -2,6 +2,7 @@
   "name": "PenguinPop",
   "description": "PenGuin Pop",
   "launch_path": "/",
+  "hackNetworkBound": "true",
   "developer": {
     "name": "The Original Author",
     "url": "https://github.com/andreasgal/gaia"

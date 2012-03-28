@@ -372,11 +372,13 @@ var WindowManager = (function() {
       frame.className = 'appWindow';
       frame.setAttribute('mozallowfullscreen', 'true');
 
-      // Localize the "Loading..." message if we haven't already
-      if (!localizedLoading) 
-        localizedLoading = document.mozL10n.get('loading') || "Loading...";
+      if (manifest.hackNetworkBound) {
+        // Localize the "Loading..." message if we haven't already
+        if (!localizedLoading) 
+          localizedLoading = document.mozL10n.get('loading') || "Loading...";
 
-      frame.src = 'data:text/html,<body style="background-color:black"><h3 style="font-family:OpenSans,sans-serif;color:white;text-align:center; margin-top:100px;">' + localizedLoading + '</h3></body>';
+        frame.src = 'data:text/html,<body style="background-color:black"><h3 style="font-family:OpenSans,sans-serif;color:white;text-align:center; margin-top:100px;">' + localizedLoading + '</h3></body>';
+      }
 
       // Note that we don't set the frame size here.  That will happen
       // when we display the app in setDisplayedApp()
