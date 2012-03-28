@@ -121,7 +121,7 @@ B2G_HOMESCREEN?=file://$(CURDIR)/index.html
 
 .PHONY: tests
 tests: manifests offline
-	echo "Checking if the mozilla build has mochitests enabled..."
+	echo "Checking if the mozilla build has tests enabled..."
 	test -d $(MOZ_TESTS) || (echo "Please ensure you don't have |ac_add_options --disable-tests| in your mozconfig." && exit 1)
 	echo "Checking the injected Gaia..."
 	test -L $(INJECTED_GAIA) || ln -s $(CURDIR) $(INJECTED_GAIA)
