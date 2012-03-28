@@ -202,7 +202,7 @@ update-offline-manifests:
 # working on just gaia itself, and you already have B2G firmware on your
 # phone, and you have adb in your path, then you can use the install-gaia
 # target to update the gaia files and reboot b2g
-install-gaia: gaia
+install-gaia: profile
 	$(ADB) start-server
 	$(ADB) shell rm -r /data/local/*
 	$(ADB) shell rm -r /cache/*
