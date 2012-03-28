@@ -43,10 +43,6 @@
   display: none;
 }
 
-#keyboard.full-candidate-panel #keyboard-panding-symbol-panel {
-  top: -101px;
-}
-
 #keyboard-candidate-panel {
   height: 64px;
   overflow: auto;
@@ -62,13 +58,18 @@
   width: -moz-calc(100% - 62px);
   overflow-y: hidden;
 }
+
+#keyboard.full-candidate-panel {
+  padding-top: 66px;
+}
+
 #keyboard.full-candidate-panel #keyboard-candidate-panel {
   display: block;
   position: absolute;
   white-space: normal;
-  top: -68px;
+  top: -2px;
   bottom: 0;
-  height: -moz-calc(100% + 68px);
+  height: 100%;
   width: 100%;
   border: none;
   border-top: 2px solid #a3a3a3;
@@ -123,7 +124,7 @@
 #keyboard.full-candidate-panel #keyboard-candidate-panel-toggle-button {
   display: block;
   border-top: 1px solid #e8e8ff;
-  top: -66px;
+  top: 0;
   z-index: 1;
 }
 

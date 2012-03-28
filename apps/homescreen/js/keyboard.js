@@ -759,6 +759,7 @@ const IMEManager = {
               this.ime.classList.add('candidate-panel');
               this.ime.classList.remove('full-candidate-panel');
             }
+            this.updateTargetWindowHeight();
           break;
 
           case this.DOT_COM:
