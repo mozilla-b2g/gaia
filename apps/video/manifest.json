@@ -3,7 +3,7 @@
   "name": "Video",
   "default_locale": "en-US",
   "icons": {
-    "120": "/style/icons/Video.png"
+    "120": "http://homescreen.gaiamobile.org/style/icons/Video.png"
   },
   "description": "Gaia Video",
   "launch_path": "/",

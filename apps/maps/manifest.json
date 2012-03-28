@@ -2,7 +2,7 @@
   "name": "Maps",
   "default_locale": "en-US",
   "icons": {
-    "120": "/style/icons/Maps.png"
+    "120": "http://homescreen.gaiamobile.org/style/icons/Maps.png"
   },
   "description": "Google Maps",
   "launch_path": "/",

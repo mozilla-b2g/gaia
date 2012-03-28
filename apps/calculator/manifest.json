@@ -2,7 +2,7 @@
   "name": "Calculator",
   "default_locale": "en-US",
   "icons": {
-    "120": "/style/icons/Calculator.png"
+    "120": "http://homescreen.gaiamobile.org/style/icons/Calculator.png"
   },
   "description": "Calculator",
   "launch_path": "/",

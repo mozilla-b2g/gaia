@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# Version 2edd22d82623adaebb53cd2e607f5d3e
+# Version f3ea529081aa71c84fc5411ff768d879
 blank.html
 imes/jspinyin/COPYING
 imes/jspinyin/db.json
@@ -9,21 +9,16 @@ imes/jszhuyin/jszhuyin.js
 imes/jszhuyin/phrases.json
 imes/jszhuyin/words.json
 index.html
-index.html~
 js/app_manager.js
 js/homescreen.js
-js/homescreen.js~
 js/keyboard.js
 js/keyboardLayout.js
 js/request.js
 js/window_manager.js
-js/window_manager.js~
 locale/homescreen.properties
-locale/homescreen.properties~
 
 manifest.json
 style/homescreen.css
-style/homescreen.css~
 style/icons/BBC.png
 style/icons/Browser.png
 style/icons/CNN.png
