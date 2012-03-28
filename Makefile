@@ -16,13 +16,14 @@ SYS=$(shell uname -s)
 
 ifeq ($(SYS),Darwin)
 MD5SUM = md5 -r
-SED_INPLACE_NO_SUFFIX = " ''"
+SED_INPLACE_NO_SUFFIX = sed -i ''
 else
 MD5SUM = md5sum -b
-SED_INPLACE_NO_SUFFIX = ""
+SED_INPLACE_NO_SUFFIX = sed -i
 endif
 
 
+LANG=POSIX # Avoiding sort order differences between OSes
 
 mochitest:
 	echo "Checking if the mozilla build has mochitests enabled..."
@@ -97,7 +98,7 @@ stamp-commit-hash:
 copy-manifests:
 	@mkdir -p profile/webapps
 	@cp apps/webapps.json profile/webapps
-	@sed -i$(SED_INPLACE_NO_SUFFIX) -e 's|gaiamobile.org|$(GAIA_DOMAIN)|g' profile/webapps/webapps.json
+	@$(SED_INPLACE_NO_SUFFIX) -e 's|gaiamobile.org|$(GAIA_DOMAIN)|g' profile/webapps/webapps.json
 	@cd apps; \
 	for d in `find * -maxdepth 0 -type d` ;\
 	do \
@@ -140,9 +141,9 @@ appcache-manifests:
 			echo \\t$$d ;\
 			cd $$d ;\
 			echo "CACHE MANIFEST" > manifest.appcache ;\
-			cat `find * -type f | sort` | $(MD5SUM) | cut -f 1 -d ' ' | sed s/^/\#\ Version\ / >> manifest.appcache ;\
+			cat `find * -type f | sort -nfs` | $(MD5SUM) | cut -f 1 -d ' ' | sed 's/^/\#\ Version\ /' >> manifest.appcache ;\
 			find * -type f | grep -v tools | sort >> manifest.appcache ;\
-			sed -i$(SED_IN_PLACE_NO_SUFFIX) -e 's|manifest.appcache||g' manifest.appcache ;\
+			$(SED_INPLACE_NO_SUFFIX) -e 's|manifest.appcache||g' manifest.appcache ;\
 			echo "http://$(GAIA_DOMAIN)/webapi.js" >> manifest.appcache ;\
 			cd .. ;\
 		fi \
