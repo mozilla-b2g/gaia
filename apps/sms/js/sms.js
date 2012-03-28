@@ -177,7 +177,7 @@ var ConversationListView = {
       }
   } catch(e) {
       alert(conversation);
-  } 
+  }
     }
   },
 
@@ -191,10 +191,11 @@ var ConversationListView = {
   handleEvent: function handleEvent(evt) {
     switch (evt.type) {
       case 'received':
-        if (ConversationView.filter)
-          ConversationView.showConversation(ConversationView.filter);
-        else
-          ConversationListView.updateConversationList(evt.message);
+        // Add a slight delay so that the database has time to write the
+        // message in the background.
+        window.setTimeout(function() {
+          ConversationListView.updateConversationList();
+        }, 100);
         break;
 
       case 'click':
@@ -377,12 +378,12 @@ var ConversationView = {
         break;
 
       case 'received':
-        var msg = evt.message;
-        messagesHack.unshift(msg);
-
+        // Add a slight delay so that the database has time to write the
+        // message in the background.
         window.setTimeout(function() {
-          ConversationView.showConversation(ConversationView.filter);
-        }, 0);
+          if (ConversationView.filter)
+            ConversationView.showConversation(ConversationView.filter);
+        }, 100);
         break;
 
       case 'transitionend':
@@ -421,21 +422,22 @@ var ConversationView = {
       if (!msg)
         return;
 
-      if (ConversationView.filter) {
-        // Add a slight delay so that the database has time to write the
-        // message in the background. Ideally we'd just be updating the UI
-        // from "sending..." to "sent" at this point...
-        window.setTimeout(function() {
+      // Add a slight delay so that the database has time to write the
+      // message in the background. Ideally we'd just be updating the UI
+      // from "sending..." to "sent" at this point...
+      window.setTimeout(function() {
+        ConversationListView.updateConversationList();
+        if (ConversationView.filter)
           ConversationView.showConversation(ConversationView.filter);
-        }, 100);
-      }
+      }, 100);
     });
 
     // Create a preliminary message object and update the view right away.
-    var message = {
+    var pendingMessage = {
       sender: null,
       receiver: num,
       body: text,
+      delivery: 'sent', // XXX: should be pending with different style
       timestamp: Date.now()
     };
 
@@ -444,12 +446,12 @@ var ConversationView = {
       this.updateInputHeight();
     }).bind(this), 0);
 
-    ConversationListView.updateConversationList(message);
+    ConversationListView.updateConversationList(pendingMessage);
     if (this.filter) {
-      this.showConversation(this.filter, message);
+      this.showConversation(this.filter, pendingMessage);
       return;
     }
-    this.showConversation(num, message);
+    this.showConversation(num, pendingMessage);
   }
 };
 
