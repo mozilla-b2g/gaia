@@ -54,7 +54,10 @@ window.addEventListener('DOMContentLoaded', function() {
   // if false, then the gallery is showing
   var playerShowing = false;
 
-  // Keep the screen on when playing
+  // XXX workaround for the appCache bug (see showPlayer())
+  var playerDuration;
+
+  // keep the screen on when playing
   var screenLock;
 
   // same thing for the controls
@@ -98,7 +101,7 @@ window.addEventListener('DOMContentLoaded', function() {
       this.classList.add('hidden');
       controlShowing = false;
     }
-  }, false);
+  });
 
   // show|hide video player
   function showPlayer(sample) {
@@ -113,6 +116,14 @@ window.addEventListener('DOMContentLoaded', function() {
     player.srcHeight = sample.height; // XXX use player.videoHeight instead
     player.play();
     player.requestFullScreen();
+
+    // XXX in appCache mode, player.duration == Infinity
+    // here's a workaround until this bug is fixed on the platform
+    playerDuration = player.duration;
+    if (isNaN(player.duration) || player.duration >= Infinity) {
+      var tmp = sample.duration.split(':');
+      playerDuration = 60 * parseInt(tmp[0], 10) + parseInt(tmp[1], 10);
+    }
 
     playerShowing = true;
     controlShowing = false;
@@ -134,11 +145,11 @@ window.addEventListener('DOMContentLoaded', function() {
     playerShowing = false;
     screenLock.unlock();
   }
-  $('close').addEventListener('click', hidePlayer, false);
+  $('close').addEventListener('click', hidePlayer);
   player.addEventListener('ended', function() {
     if (!controlShowing)
       hidePlayer();
-  }, false);
+  });
   window.addEventListener('keyup', function(event) {
     if (playerShowing && event.keyCode == event.DOM_VK_ESCAPE) {
       hidePlayer();
@@ -147,29 +158,31 @@ window.addEventListener('DOMContentLoaded', function() {
     if (event.keyCode == event.DOM_VK_HOME) {
       hidePlayer();
     }
-  }, false);
+  });
 
   // control buttons: play|pause, rwd|fwd
-  $('play').addEventListener('click', function() {
+  $('videoBar').addEventListener('click', function(event) {
     if (!controlShowing)
       return;
-    if (player.paused) {
-      $('videoBar').classList.remove('paused');
-      player.play();
+    switch (event.target.id) {
+      case 'play':
+        if (player.paused) {
+          this.classList.remove('paused');
+          player.play();
+        }
+        else {
+          this.classList.add('paused');
+          player.pause();
+        }
+        break;
+      case 'rwd':
+        player.currentTime -= 15;
+        break;
+      case 'fwd':
+        player.currentTime += 15;
+        break;
     }
-    else {
-      $('videoBar').classList.add('paused');
-      player.pause();
-    }
-  }, false);
-  $('rwd').addEventListener('click', function() {
-    if (controlShowing)
-      player.currentTime -= 15;
-  }, false);
-  $('fwd').addEventListener('click', function() {
-    if (controlShowing)
-      player.currentTime += 15;
-  }, false);
+  });
 
   // handle drags/clicks on the time slider
   var isDragging = false;
@@ -184,27 +197,26 @@ window.addEventListener('DOMContentLoaded', function() {
   }
   function setProgress(event) {
     var progress = isDragging ?
-      getTimePos(event) : player.currentTime / player.duration;
+      getTimePos(event) : player.currentTime / playerDuration;
     var pos = progress * 100 + '%';
     playHead.style.top = pos;
     elapsedTime.style.height = pos;
   }
   function setCurrentTime(event) {
-    isDragging = false;
     if (controlShowing)
-      player.currentTime = getTimePos(event) * player.duration;
+      player.currentTime = getTimePos(event) * playerDuration;
   }
-  player.addEventListener('timeupdate', setProgress, false);
-  playHead.addEventListener('mousemove', setProgress, false);
+  player.addEventListener('timeupdate', setProgress);
+  playHead.addEventListener('mousemove', setProgress);
   playHead.addEventListener('mousedown', function() {
     if (controlShowing)
       isDragging = true;
-  }, false);
-  timeSlider.addEventListener('mouseup', setCurrentTime, false);
+  });
+  timeSlider.addEventListener('mouseup', setCurrentTime);
   timeSlider.addEventListener('mouseout', function(event) {
     if (isDragging)
       setCurrentTime(event);
-  }, false);
+  });
 });
 
 // Set the 'lang' and 'dir' attributes to <html> when the page is translated
