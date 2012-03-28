@@ -23,7 +23,7 @@ SED_INPLACE_NO_SUFFIX = sed -i
 endif
 
 
-LANG=POSIX
+LANG=POSIX # Avoiding sort order differences between OSes
 
 mochitest:
 	echo "Checking if the mozilla build has mochitests enabled..."
