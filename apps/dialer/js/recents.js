@@ -122,7 +122,7 @@ var Recents = {
       var txn = database.transaction(this.STORENAME, "readonly");
       var store = txn.objectStore(this.STORENAME);
 
-      var cursor = store.openCursor(null, IDBCursor.PREV);
+      var cursor = store.openCursor(null, "prev");
       cursor.onsuccess = function(event) {
         var item = event.target.result;
         if (item) {
