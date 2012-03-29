@@ -1,7 +1,6 @@
 CACHE MANIFEST
 # Version 72549ec3c8ec5e598eea31236e619636
 index.html
-js/domutils.js
 js/video.js
 locale/video.properties
 

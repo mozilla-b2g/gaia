@@ -1,5 +1,9 @@
+'use strict';
+
 window.addEventListener('DOMContentLoaded', function() {
-  'use strict';
+  function $(id) {
+    return document.getElementById(id);
+  }
   var player = $('player');
 
   // This is the list of sample videos built in to the app
@@ -24,12 +28,21 @@ window.addEventListener('DOMContentLoaded', function() {
 
   // Build the thumbnails screen from the list of videos
   samples.forEach(function(sample) {
-    var thumbnail = elt('li', {}, [
-                      elt('img', { src: sample.poster }),
-                      elt('p', { class: 'name' }, sample.title),
-                      elt('p', { class: 'time' }, sample.duration)
-                    ]);
+    var poster = document.createElement('img');
+    poster.src = sample.poster;
 
+    var title = document.createElement('p');
+    title.className = 'name';
+    title.textContent = sample.title;
+
+    var duration = document.createElement('p');
+    duration.className = 'time';
+    duration.textContent = sample.duration;
+
+    var thumbnail = document.createElement('li');
+    thumbnail.appendChild(poster);
+    thumbnail.appendChild(title);
+    thumbnail.appendChild(duration);
     thumbnail.addEventListener('click', function(e) {
       showPlayer(sample);
     });
@@ -41,7 +54,10 @@ window.addEventListener('DOMContentLoaded', function() {
   // if false, then the gallery is showing
   var playerShowing = false;
 
-  // Keep the screen on when playing
+  // XXX workaround for the appCache bug (see showPlayer())
+  var playerDuration;
+
+  // keep the screen on when playing
   var screenLock;
 
   // same thing for the controls
@@ -52,7 +68,8 @@ window.addEventListener('DOMContentLoaded', function() {
   if (realFullscreen) {
     document.cancelFullScreen = document.mozCancelFullScreen;
     player.requestFullScreen = player.mozRequestFullScreen;
-  } else {
+  }
+  else {
     // compute a CSS transform that centers & maximizes the <video> element
     document.cancelFullScreen = function() {
       player.style.mozTransform = 'none';
@@ -79,11 +96,12 @@ window.addEventListener('DOMContentLoaded', function() {
     if (!controlShowing) {
       this.classList.remove('hidden');
       controlShowing = true;
-    } else if (this == event.target) {
+    }
+    else if (this == event.target) {
       this.classList.add('hidden');
       controlShowing = false;
     }
-  }, false);
+  });
 
   // show|hide video player
   function showPlayer(sample) {
@@ -99,9 +117,19 @@ window.addEventListener('DOMContentLoaded', function() {
     player.play();
     player.requestFullScreen();
 
+    // XXX in appCache mode, player.duration == Infinity
+    // here's a workaround until this bug is fixed on the platform
+    // https://github.com/andreasgal/gaia/issues/1062
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=740124
+    playerDuration = player.duration;
+    if (isNaN(player.duration) || player.duration >= Infinity) {
+      var tmp = sample.duration.split(':');
+      playerDuration = 60 * parseInt(tmp[0], 10) + parseInt(tmp[1], 10);
+    }
+
     playerShowing = true;
     controlShowing = false;
-    screenLock = navigator.requestWakeLock("screen");
+    screenLock = navigator.requestWakeLock('screen');
   }
   function hidePlayer() {
     if (!playerShowing)
@@ -119,11 +147,11 @@ window.addEventListener('DOMContentLoaded', function() {
     playerShowing = false;
     screenLock.unlock();
   }
-  $('close').addEventListener('click', hidePlayer, false);
+  $('close').addEventListener('click', hidePlayer);
   player.addEventListener('ended', function() {
     if (!controlShowing)
       hidePlayer();
-  }, false);
+  });
   window.addEventListener('keyup', function(event) {
     if (playerShowing && event.keyCode == event.DOM_VK_ESCAPE) {
       hidePlayer();
@@ -132,28 +160,31 @@ window.addEventListener('DOMContentLoaded', function() {
     if (event.keyCode == event.DOM_VK_HOME) {
       hidePlayer();
     }
-  }, false);
+  });
 
   // control buttons: play|pause, rwd|fwd
-  $('play').addEventListener('click', function() {
+  $('videoBar').addEventListener('click', function(event) {
     if (!controlShowing)
       return;
-    if (player.paused) {
-      $('videoBar').classList.remove('paused');
-      player.play();
-    } else {
-      $('videoBar').classList.add('paused');
-      player.pause();
+    switch (event.target.id) {
+      case 'play':
+        if (player.paused) {
+          this.classList.remove('paused');
+          player.play();
+        }
+        else {
+          this.classList.add('paused');
+          player.pause();
+        }
+        break;
+      case 'rwd':
+        player.currentTime -= 15;
+        break;
+      case 'fwd':
+        player.currentTime += 15;
+        break;
     }
-  }, false);
-  $('rwd').addEventListener('click', function() {
-    if (controlShowing)
-      player.currentTime -= 15;
-  }, false);
-  $('fwd').addEventListener('click', function() {
-    if (controlShowing)
-      player.currentTime += 15;
-  }, false);
+  });
 
   // handle drags/clicks on the time slider
   var isDragging = false;
@@ -168,35 +199,34 @@ window.addEventListener('DOMContentLoaded', function() {
   }
   function setProgress(event) {
     var progress = isDragging ?
-      getTimePos(event) : player.currentTime / player.duration;
+      getTimePos(event) : player.currentTime / playerDuration;
     var pos = progress * 100 + '%';
     playHead.style.top = pos;
     elapsedTime.style.height = pos;
   }
   function setCurrentTime(event) {
-    isDragging = false;
     if (controlShowing)
-      player.currentTime = getTimePos(event) * player.duration;
+      player.currentTime = getTimePos(event) * playerDuration;
   }
-  player.addEventListener('timeupdate', setProgress, false);
-  playHead.addEventListener('mousemove', setProgress, false);
+  player.addEventListener('timeupdate', setProgress);
+  playHead.addEventListener('mousemove', setProgress);
   playHead.addEventListener('mousedown', function() {
     if (controlShowing)
       isDragging = true;
-  }, false);
-  timeSlider.addEventListener('mouseup', setCurrentTime, false);
+  });
+  timeSlider.addEventListener('mouseup', setCurrentTime);
   timeSlider.addEventListener('mouseout', function(event) {
     if (isDragging)
       setCurrentTime(event);
-  }, false);
+  });
 });
 
 // Set the 'lang' and 'dir' attributes to <html> when the page is translated
 window.addEventListener('localized', function showBody() {
   var html = document.querySelector('html');
   var lang = document.mozL10n.language;
-  html.setAttribute('lang', lang.code);
-  html.setAttribute('dir', lang.direction);
+  html.lang = lang.code;
+  html.dir = lang.direction;
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('hidden');
 });
