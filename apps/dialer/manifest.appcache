@@ -1,9 +1,5 @@
 CACHE MANIFEST
-<<<<<<< HEAD
-# Version f137aadadcbc73bb00ba26b2529c9b62
-=======
-# Version 1e3712f380a2493c119592f971f2b9c1
->>>>>>> upstream/master
+# Version 88fbaedb2eff7fd41f15a777e522eb8c
 index.html
 js/contacts.js
 js/dialer.js
@@ -12,17 +8,11 @@ js/recents.js
 locale/dialer.properties
 
 manifest.json
-<<<<<<< HEAD
-manifest.json~
-=======
-style/.DS_Store
->>>>>>> upstream/master
 style/dialer.css
 style/fonts/Open-Sans-Bold.woff
 style/fonts/Open-Sans-Semibold.woff
 style/fonts/Open-Sans.woff
 style/icons/Phone.png
-style/images/.DS_Store
 style/images/accept-call-bg-active.png
 style/images/accept-call-bg.png
 style/images/app-texture.png
