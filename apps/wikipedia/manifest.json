@@ -2,7 +2,7 @@
   "name": "Wikipedia",
   "default_locale": "en-US",
   "icons": {
-    "120": "/style/icons/Wikipedia.png"
+    "120": "http://homescreen.gaiamobile.org/style/icons/Wikipedia.png"
   },
   "description": "Wikipedia Mobile Application",
   "launch_path": "/",

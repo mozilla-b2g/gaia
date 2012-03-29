@@ -2,7 +2,7 @@
   "name": "Settings",
   "default_locale": "en-US",
   "icons": {
-    "120": "/style/icons/Settings.png"
+    "120": "http://homescreen.gaiamobile.org/style/icons/Settings.png"
   },
   "description": "Gaia Settings",
   "launch_path": "/#root",

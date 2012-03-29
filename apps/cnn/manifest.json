@@ -2,7 +2,7 @@
   "name": "CNN",
   "default_locale": "en-US",
   "icons": {
-    "120": "/style/icons/CNN.png"
+    "120": "http://homescreen.gaiamobile.org/style/icons/CNN.png"
   },
   "description": "CNN Mobile Application",
   "launch_path": "/",

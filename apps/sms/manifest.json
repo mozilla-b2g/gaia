@@ -2,7 +2,7 @@
   "name": "Messages",
   "default_locale": "en-US",
   "icons": {
-    "120": "/style/icons/Messages.png"
+    "120": "http://homescreen.gaiamobile.org/style/icons/Messages.png"
   },
   "description": "Gaia Messages",
   "launch_path": "/",

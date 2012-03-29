@@ -1,4 +1,5 @@
-# Version 0f309f3f812ce5b447f7c7b14267a865
+CACHE MANIFEST
+# Version f3ea529081aa71c84fc5411ff768d879
 blank.html
 imes/jspinyin/COPYING
 imes/jspinyin/db.json
@@ -43,7 +44,6 @@ style/icons/Video.png
 style/icons/VideoCube.png
 style/icons/Wikipedia.png
 style/icons/Zimbra.png
-style/images/.DS_Store
 style/images/grid.png
 style/images/notifications.png
 style/keyboard/fonts/Keyboard-Symbols.svg
@@ -65,8 +65,6 @@ style/ringtones/README
 style/ringtones/bosscaling.wav
 style/ringtones/classic.wav
 style/ringtones/goodnight.wav
-style/themes/.DS_Store
-style/themes/default/.DS_Store
 style/themes/default/backgrounds/default.png
 style/themes/default/backgrounds/leaves.png
 style/themes/default/backgrounds/rings.png
@@ -75,7 +73,7 @@ style/themes/default/fonts/Open-Sans-Bold.woff
 style/themes/default/fonts/Open-Sans-Semibold.woff
 style/themes/default/fonts/Open-Sans.woff
 style/themes/default/homescreen.css
-style/themes/default/images/.DS_Store
+style/themes/default/homescreen.css~
 style/themes/default/images/battery-charging.png
 style/themes/default/images/battery-main.png
 style/themes/default/images/close-active.png

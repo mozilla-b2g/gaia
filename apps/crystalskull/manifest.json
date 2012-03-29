@@ -2,7 +2,7 @@
   "name": "CrystalSkull",
   "default_locale": "en-US",
   "icons": {
-    "120": "/style/icons/CrystalSkull.png"
+    "120": "http://homescreen.gaiamobile.org/style/icons/CrystalSkull.png"
   },
   "description": "WebGL Demo",
   "launch_path": "/",

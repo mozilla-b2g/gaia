@@ -2,7 +2,7 @@
   "name": "Mail",
   "default_locale": "en-US",
   "icons": {
-    "120": "/style/icons/GMail.png"
+    "120": "http://homescreen.gaiamobile.org/style/icons/GMail.png"
   },
   "description": "GMail",
   "launch_path": "/mail/mu",

@@ -2,7 +2,7 @@
   "name": "CubeVid",
   "default_locale": "en-US",
   "icons": {
-    "120": "/style/icons/VideoCube.png"
+    "120": "http://homescreen.gaiamobile.org/style/icons/VideoCube.png"
   },
   "description": "Video Cube Demo",
   "launch_path": "/",

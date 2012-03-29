@@ -2,7 +2,7 @@
   "name": "NY Times",
   "default_locale": "en-US",
   "icons": {
-    "120": "/style/icons/NYT.png"
+    "120": "http://homescreen.gaiamobile.org/style/icons/NYT.png"
   },
   "description": "NY Times Mobile Application",
   "launch_path": "/",

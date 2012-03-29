@@ -2,7 +2,7 @@
   "name": "Music",
   "default_locale": "en-US",
   "icons": {
-    "120": "/style/icons/Music.png"
+    "120": "http://homescreen.gaiamobile.org/style/icons/Music.png"
   },
   "description": "Gaia Music",
   "launch_path": "/",

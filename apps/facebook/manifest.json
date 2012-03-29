@@ -2,7 +2,7 @@
   "name": "Facebook",
   "default_locale": "en-US",
   "icons": {
-    "120": "/style/icons/Facebook.png"
+    "120": "http://homescreen.gaiamobile.org/style/icons/Facebook.png"
   },
   "description": "Facebook Mobile Application",
   "launch_path": "/",

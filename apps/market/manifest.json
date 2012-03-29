@@ -2,7 +2,7 @@
   "name": "Market",
   "default_locale": "en-US",
   "icons": {
-    "120": "/style/icons/Market.png"
+    "120": "http://homescreen.gaiamobile.org/style/icons/Market.png"
   },
   "description": "Market for downloading and installing apps",
   "launch_path": "/",
