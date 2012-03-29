@@ -1067,23 +1067,27 @@ function AppScreen() {
     }
   });
 
-  // Listen for app installations and rebuild the appscreen when we get one
-  navigator.mozApps.mgmt.oninstall = function(event) {
-    var newapp = event.application;
-    appscreen.installedApps[newapp.origin] = newapp;
-    appscreen.build(true);
-  };
-
-  // Do the same for uninstalls
-  navigator.mozApps.mgmt.onuninstall = function(event) {
-    var newapp = event.application;
-    delete appscreen.installedApps[newapp.origin];
-    appscreen.build(true);
-  };
-
   window.addEventListener('resize', function() {
     appscreen.grid.update();
   });
+
+  // Installing these handlers on desktop causes JS execution to stop silently,
+  // so work around that for now here.
+  if (navigator.userAgent.indexOf('Mobile') != -1) {
+    // Listen for app installations and rebuild the appscreen when we get one
+    navigator.mozApps.mgmt.oninstall = function(event) {
+      var newapp = event.application;
+      appscreen.installedApps[newapp.origin] = newapp;
+      appscreen.build(true);
+    };
+
+    // Do the same for uninstalls
+    navigator.mozApps.mgmt.onuninstall = function(event) {
+      var newapp = event.application;
+      delete appscreen.installedApps[newapp.origin];
+      appscreen.build(true);
+    };
+  }
 }
 
 // Look up the app object for a specified app origin
