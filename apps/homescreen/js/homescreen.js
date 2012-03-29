@@ -572,7 +572,7 @@ var SleepMenu = {
 
             var settings = window.navigator.mozSettings;
             if (settings)
-              settings.getLock().get({'phone.ring.incoming': true});
+              settings.getLock().set({'phone.ring.incoming': true});
 
             document.getElementById('silent').hidden = false;
             document.getElementById('normal').hidden = true;
