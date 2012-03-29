@@ -607,7 +607,7 @@ var SettingsListener = {
   _callbacks: {},
 
   init: function sl_init() {
-    if ('mozSettings' in navigator)
+    if ('mozSettings' in navigator && navigator.mozSettings)
       navigator.mozSettings.onsettingchange = this.onchange.bind(this);
   },
 
