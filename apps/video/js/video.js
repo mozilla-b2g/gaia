@@ -119,6 +119,8 @@ window.addEventListener('DOMContentLoaded', function() {
 
     // XXX in appCache mode, player.duration == Infinity
     // here's a workaround until this bug is fixed on the platform
+    // https://github.com/andreasgal/gaia/issues/1062
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=740124
     playerDuration = player.duration;
     if (isNaN(player.duration) || player.duration >= Infinity) {
       var tmp = sample.duration.split(':');
