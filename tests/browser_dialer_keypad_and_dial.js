@@ -1,6 +1,6 @@
 function generatorTest() {
   waitForExplicitFinish();
-  yield testApp('../dialer/dialer.html', testDialerKeypad);
+  yield testApp('http://dialer.gaiamobile.org/', testDialerKeypad);
   finish();
 }
 
