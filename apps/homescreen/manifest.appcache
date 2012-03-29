@@ -17,7 +17,6 @@ js/window_manager.js
 locale/homescreen.properties
 
 manifest.json
-style/.DS_Store
 style/homescreen.css
 style/icons/BBC.png
 style/icons/Browser.png
