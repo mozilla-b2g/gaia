@@ -764,9 +764,9 @@ SettingsListener.observe('homescreen.wallpaper', 'default.png', function(value) 
 });
 
 /* === Ring Tone === */
+var selectedPhoneSound = "";
 SettingsListener.observe('homescreen.ring', 'classic.wav', function(value) {
-  var player = document.getElementById('ringtone-player');
-  player.src = 'style/ringtones/' + value;
+    selectedPhoneSound = 'style/ringtones/' + value;
 });
 
 var activePhoneSound = true;
@@ -970,7 +970,8 @@ var TelephonyListener = function() {
     }
 
     var ringtonePlayer = document.getElementById('ringtone-player');
-    if (activePhoneSound) {
+    if (activePhoneSound && selectedPhoneSound) {
+      ringtonePlayer.src = selectedPhoneSound;
       ringtonePlayer.play();
     }
 
@@ -979,6 +980,7 @@ var TelephonyListener = function() {
         call.onstatechange = function() {
           call.oncallschanged = null;
           ringtonePlayer.pause();
+          ringtonePlayer.src = "";
           window.clearInterval(vibrateInterval);
         };
       }
