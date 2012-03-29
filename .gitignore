@@ -3,6 +3,7 @@
 *.orig
 *.swp
 *~
+manifest.appcache
 apps/settings/gaia-commit.txt
 profile/
 xulrunner/
