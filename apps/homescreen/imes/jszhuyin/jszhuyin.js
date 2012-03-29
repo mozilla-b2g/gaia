@@ -734,7 +734,7 @@
         debug('Loading data chunk into IndexedDB, ' +
             (chunks.length - 1) + ' chunks remaining.');
 
-        var transaction = iDB.transaction('terms', IDBTransaction.READ_WRITE);
+        var transaction = iDB.transaction('terms', "readwrite");
         var store = transaction.objectStore('terms');
 
         transaction.onerror = function putError(ev) {
@@ -900,7 +900,7 @@
         return;
       }
 
-      var store = iDB.transaction('terms', IDBTransaction.READ_ONLY)
+      var store = iDB.transaction('terms', "readonly")
         .objectStore('terms');
       if (IDBIndex.prototype.getAll) {
         // Mozilla IndexedDB extension
@@ -1084,7 +1084,7 @@
         debug('Do IndexedDB range search with lowerBound ' + syllablesStr +
           ' and upperBound ' + upperBound + '.');
 
-        var store = iDB.transaction('terms', IDBTransaction.READ_ONLY)
+        var store = iDB.transaction('terms', "readonly")
           .objectStore('terms');
         if (IDBIndex.prototype.getAll) {
           // Mozilla IndexedDB extension
@@ -1224,7 +1224,7 @@
       debug('Lookup in IndexedDB.');
 
       if (!matchRegEx) {
-        var store = iDB.transaction('terms', IDBTransaction.READ_ONLY)
+        var store = iDB.transaction('terms', "readonly")
           .objectStore('terms');
         var req = store.get(syllablesStr);
         req.onerror = function getdbError(ev) {
