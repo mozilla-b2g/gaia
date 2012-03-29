@@ -8,7 +8,8 @@ class CustomHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
             host = host.split(':')[0]
         if "." in host:
             host = host.split('.')[0]
-        self.path = 'apps/' + host + self.path
+        if host != 'local':
+            self.path = 'apps/' + host + self.path
         print(self.path)
         SimpleHTTPServer.SimpleHTTPRequestHandler.do_GET(self)
 
