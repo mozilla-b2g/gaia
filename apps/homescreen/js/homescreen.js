@@ -780,6 +780,15 @@ SettingsListener.observe('phone.vibration.incoming', false, function(value) {
   activateVibration = !!value;
 });
 
+/* === Invert Display === */
+SettingsListener.observe('accessibility.invert', false, function(value) {
+  var screen = document.getElementById('screen');
+  if (value)
+    screen.classList.add('accessibility-invert');
+  else
+    screen.classList.remove('accessibility-invert');
+});
+
 /* === KeyHandler === */
 var KeyHandler = {
   kRepeatTimeout: 700,
