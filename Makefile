@@ -103,7 +103,9 @@ endif
 
 # Generate profile/prefs.js
 preferences:
-	@echo "Empty for now"
+	@echo "Generating prefs.js..."
+	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)"' preferences.js
+	@echo "Done"
 
 
 

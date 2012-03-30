@@ -1,4 +1,11 @@
 {
+ "homescreen": {
+    "origin": "http://homescreen.gaiamobile.org/",
+    "installOrigin": "http://homescreen.gaiamobile.org/",
+    "receipt": null,
+    "installTime": 1323339869000
+  },
+
  "dialer": {
     "origin": "http://dialer.gaiamobile.org/",
     "installOrigin": "http://dialer.gaiamobile.org/",
