@@ -1,6 +1,6 @@
 function generatorTest() {
   waitForExplicitFinish();
-  yield testApp('../sms/sms.html', testSMSConversation);
+  yield testApp('http://sms.gaiamobile.org/', testSMSConversation);
   finish();
 }
 

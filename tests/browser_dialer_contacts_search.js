@@ -11,7 +11,7 @@ function generatorTest() {
   yield navigator.mozContacts.save(testContact).onsuccess = nextStep;
 
   // Launch the dialer app
-  yield testApp('../dialer/dialer.html', testContactsSearch);
+  yield testApp('http://dialer.gaiamobile.org/', testContactsSearch);
 
   // Remove the contact
   navigator.mozContacts.remove(testContact);

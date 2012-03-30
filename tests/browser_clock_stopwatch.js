@@ -1,6 +1,6 @@
 function generatorTest() {
   waitForExplicitFinish();
-  yield testApp('../clock/clock.html', testStopwatch);
+  yield testApp('http://clock.gaiamobile.org/', testStopwatch);
   finish();
 }
 

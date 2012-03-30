@@ -8,7 +8,7 @@ function generatorTest() {
   });
   yield navigator.mozContacts.save(testContact).onsuccess = nextStep;
 
-  yield testApp('../dialer/dialer.html', testContactIntent);
+  yield testApp('http://dialer.gaiamobile.org/', testContactIntent);
 
   yield navigator.mozContacts.remove(testContact).onsuccess = nextStep;
 }
@@ -19,7 +19,7 @@ function testContactIntent(window, document, nextStep) {
       hidden: false
     }
   };
-  window.visibilityChanged('../dialer/dialer.html?choice=contact', fakeEvt);
+  window.visibilityChanged('http://dialer.gaiamobile.org/index.html?choice=contact', fakeEvt);
 
   ok(!document.getElementById('contacts-view').hidden,
      'Contact view displayed');
