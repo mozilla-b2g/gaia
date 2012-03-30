@@ -1038,13 +1038,13 @@ function AppScreen() {
   this.installedApps = {};
   var appscreen = this;
 
-  AppLoader.load(function(e) {
+  navigator.mozApps.mgmt.getAll().onsuccess = function(e) {
     var apps = e.target.result;
     apps.forEach(function(app) {
       appscreen.installedApps[app.origin] = app;
     });
     appscreen.build();
-  });
+  };
 
   // Listen for app installation requests
   window.addEventListener('mozChromeEvent', function(e) {

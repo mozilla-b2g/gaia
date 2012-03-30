@@ -1087,6 +1087,104 @@
   };
 })(this);
 
+// navigator.mozApps.mgmt
+(function(window){
+
+  if(navigator.userAgent.indexOf('Mobile') != -1){
+    return;
+  }
+  var MockApp = function(data){
+    var key;
+    for(key in data){
+      this[key] = data[key];
+    }
+
+  };
+
+  MockApp.prototype = {
+
+    getDetails: function() {
+      return {
+        origin: this.origin,
+        url: this.origin + this.manifest.launch_path,
+        type: 'webapps-launch'
+      };
+    },
+
+    launch: function(){
+      var event = document.createEvent('CustomEvent');
+      event.initCustomEvent('mozChromeEvent', true, true, this.getDetails());
+
+      window.dispatchEvent(event);
+    }
+  };
+
+  function MozAppGetAll(){
+    setTimeout(this._loadManifest.bind(this), 0);
+  }
+
+  MozAppGetAll.prototype = {
+
+    //relative to homescreen
+    appManifestFallback: './apps-manifest-fallback.json',
+
+    onsuccess: function(){},
+    onerror: function(){},
+
+    _processAllAppsManifest: function(xhr){
+      var data = JSON.parse(xhr.responseText),
+          app, entry, applications = [];
+
+      for(app in data.webapps){
+        entry = data.webapps[app];
+        entry.manifest = data.manifests[app];
+
+        applications.push(new MockApp(entry));
+      }
+
+      return {
+        target: {
+          result: applications
+        }
+      }
+    },
+
+    _loadManifest: function(){
+      var xhr = new XMLHttpRequest(),
+          self = this;
+
+      xhr.open('GET', this.appManifestFallback, true);
+
+      xhr.onreadystatechange = function() {
+        if(xhr.readyState === 4){
+          if(xhr.status === 200 || xhr.status === 0){
+            self.onsuccess(self._processAllAppsManifest(xhr));
+          } else {
+            //notify user that app fallback failed
+            self.onerror();
+          }
+        }
+      }
+
+      xhr.send(null);
+    }
+  };
+
+  window.navigator.mozApps = {
+    mgmt: {
+      ////stubs
+      oninstall: function(){},
+      onuninstall: function(){},
+
+      getAll: function(){
+        return new MozAppGetAll();
+      }
+    }
+  };
+
+}(this));
+
+
 // document.mozL10n
 (function(window) {
   var gL10nData = {};
