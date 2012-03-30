@@ -194,6 +194,9 @@ update-offline-manifests:
 			find * -type f | grep -v tools | sort >> manifest.appcache ;\
 			$(SED_INPLACE_NO_SUFFIX) -e 's|manifest.appcache||g' manifest.appcache ;\
 			echo "http://$(GAIA_DOMAIN)/webapi.js" >> manifest.appcache ;\
+			echo "NETWORK:" >> manifest.appcache ;\
+			echo "http://*" >> manifest.appcache ;\
+			echo "https://*" >> manifest.appcache ;\
 			cd .. ;\
 		fi \
 	done
