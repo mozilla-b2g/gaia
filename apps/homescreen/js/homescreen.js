@@ -1041,6 +1041,8 @@ function AppScreen() {
   navigator.mozApps.mgmt.getAll().onsuccess = function(e) {
     var apps = e.target.result;
     apps.forEach(function(app) {
+      if (app.origin == document.location)
+        return;
       appscreen.installedApps[app.origin] = app;
     });
     appscreen.build();
