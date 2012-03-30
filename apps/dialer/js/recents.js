@@ -57,7 +57,7 @@ var Recents = {
 
   add: function re_add(recentCall) {
     this.getDatabase((function(database) {
-      var txn = database.transaction(this.STORENAME, "readwrite");
+      var txn = database.transaction(this.STORENAME, 'readwrite');
       var store = txn.objectStore(this.STORENAME);
 
       var setreq = store.put(recentCall);
@@ -119,10 +119,10 @@ var Recents = {
     this.getDatabase((function(database) {
       var recents = [];
 
-      var txn = database.transaction(this.STORENAME, "readonly");
+      var txn = database.transaction(this.STORENAME, 'readonly');
       var store = txn.objectStore(this.STORENAME);
 
-      var cursor = store.openCursor(null, "prev");
+      var cursor = store.openCursor(null, 'prev');
       cursor.onsuccess = function(event) {
         var item = event.target.result;
         if (item) {
