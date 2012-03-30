@@ -56,8 +56,8 @@
   },
 
  "market": {
-    "origin": "http://market.gaiamobile.org/",
-    "installOrigin": "http://market.gaiamobile.org/",
+    "origin": "https://apps.mozillalabs.com/appdir/",
+    "installOrigin": "https://apps.mozillalabs.com/appdir/",
     "receipt": null,
     "installTime": 1323339869000
   },
