@@ -1053,7 +1053,12 @@ function AppScreen() {
       var app = e.detail.app;
 
       // Note: we could use `requestPermission(_('install', app), ...)`
-      requestPermission(_('install', { name: app.name, origin: app.origin }),
+      var name = app.manifest.name;
+      if (app.manifest.locales &&
+          app.manifest.locales[lang] &&
+          app.manifest.locales[lang].name)
+        name = app.manifest.locales[lang].name;
+      requestPermission(_('install', { name: name, origin: app.origin }),
                         function() { sendResponse(e.detail.id, true); },
                         function() { sendResponse(e.detail.id, false); });
     }
