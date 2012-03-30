@@ -36,10 +36,28 @@ const IMEManager = {
     'arabic': ['ar']
   },
 
-  enableSettingGroups: function enableSettingGroups(theKey) {
+  enableSetting: function km_enableSetting(theKey) {
     if (this.settingGroups.indexOf(theKey) === -1)
       this.settingGroups.push(theKey);
 
+    this.updateSettings();
+  },
+
+  disableSetting: function km_disableSetting(theKey) {
+    var i = this.settingGroups.indexOf(theKey);
+    if (i === -1) {
+      this.updateSettings();
+      return;
+    }
+
+    this.settingGroups = [].concat(
+      this.settingGroups.slice(0, i),
+      this.settingGroups.slice(i + 1, this.settingGroups.length));
+
+    this.updateSettings();
+  },
+
+  updateSettings: function km_updateSettings() {
     this.keyboards = [];
     for (var key in this.keyboardSettingGroups) {
       if (this.settingGroups.indexOf(key) === -1)
@@ -47,36 +65,15 @@ const IMEManager = {
       this.keyboards = this.keyboards.concat(this.keyboardSettingGroups[key]);
     }
 
+    if (!this.keyboards.length)
+      this.keyboards = [].concat(this.keyboardSettingGroups['english']);
+
     if (this.keyboards.indexOf(this.currentKeyboard) === -1)
         this.currentKeyboard = this.keyboards[0];
 
     this.keyboards.forEach((function loadIMEngines(name) {
       this.loadKeyboard(name);
     }).bind(this));
-  },
-
-  disableSettingGroups: function enableSettingGroups(theKey) {
-    var i = this.settingGroups.indexOf(theKey);
-    if (i === -1)
-      return;
-
-    this.settingGroups = [].concat(
-      this.settingGroups.slice(0, i),
-      this.settingGroups.slice(i + 1, this.settingGroups.length));
-
-    this.keyboards = [];
-    for (var key in this.keyboardSettingGroups) {
-      if (this.settingGroups.indexOf(key) !== -1)
-        this.keyboards = this.keyboards.concat(
-          this.keyboardSettingGroups[key]);
-    }
-
-    if (!this.keyboards.length)
-      this.keyboards = [].concat(this.keyboardSettingGroups['english'],
-                                 this.keyboardSettingGroups['zhuyin']);
-
-    if (this.keyboards.indexOf(this.currentKeyboard) === -1)
-        this.currentKeyboard = this.keyboards[0];
   },
 
   currentType: 'text',
@@ -422,9 +419,9 @@ const IMEManager = {
           'keyboard.layouts.' + key, false,
           function(value) {
             if (value)
-              self.enableSettingGroups(key);
+              self.enableSetting(key);
             else
-              self.disableSettingGroups(key);
+              self.disableSetting(key);
           }
         );
       })(key);
