@@ -236,8 +236,23 @@ var ShortcutsHandler = {
 
 var ContactDetails = {
   _editing: false,
+  _lastFocusedInput: null,
+  _keyboardDisplayed: false,
+
   setup: function cd_setup() {
     window.addEventListener('keyup', this, true);
+    window.addEventListener('resize', this, true);
+
+    // Binding to properly handle the return key
+    var inputs = this.container.querySelectorAll('input');
+    for (var i = 0; i < inputs.length; i++) {
+      inputs[i].onkeypress = (function cd_inputKeyPress(event) {
+        if (event.keyCode == event.DOM_VK_RETURN) {
+          this.focusNextField();
+          return false;
+        }
+      }).bind(this);
+    }
 
     // click outside details container to close
     this.overlay.addEventListener('click', function(evt) {
@@ -359,6 +374,9 @@ var ContactDetails = {
     // setting a min-height in preparation for the keyboard appearance
     var minHeight = this.container.getBoundingClientRect().height;
     this.container.style.minHeight = minHeight + 'px';
+
+    // keeping track of the size pre-keyboard appearance
+    this._overlayHeight = this.overlay.getBoundingClientRect().height;
   },
 
   save: function cd_save(form) {
@@ -419,15 +437,9 @@ var ContactDetails = {
   // scrolling to the right position when one of the fields
   // takes focus
   autoscroll: function cd_autoscroll(event) {
-    var element = event.currentTarget;
+    this._lastFocusedInput = event.currentTarget;
+    var element = this.nextField(event.currentTarget);
     var self = this;
-
-    // displaying the next input or the save button
-    var nextGroup = element.parentNode.nextElementSibling;
-    var nextElement = nextGroup.querySelector('input');
-    if (nextElement) {
-      element = nextElement;
-    }
 
     var scrollInPlace = function cd_autoscrollMove() {
       element.scrollIntoView(false);
@@ -442,9 +454,47 @@ var ContactDetails = {
     });
   },
 
+  focusNextField: function cd_focusNextField() {
+    if (!this._editing)
+      return;
+
+    if (this._lastFocusedInput)
+      this.nextField(this._lastFocusedInput).focus();
+  },
+
+  nextField: function cd_nextField(element) {
+    // selecting the next input or the save button
+    var nextGroup = element.parentNode.nextElementSibling;
+    var nextElement = nextGroup.querySelector('input');
+    if (nextElement) {
+      element = nextElement;
+    }
+
+    return element;
+  },
+
   // back button handling
   handleEvent: function cd_handleEvent(evt) {
+    if (evt.type == 'resize') {
+      //XXX: the keyboard resizes the frame before we get the ESCAPE
+      // event. So _keyboardDisplayed is always false when we get it
+      // if we don't add this timeout
+      var keyboardDisplayed = (this._overlayHeight >
+                               this.overlay.getBoundingClientRect().height);
+      setTimeout((function() {
+        this._keyboardDisplayed = keyboardDisplayed;
+      }).bind(this), 300);
+      return;
+    }
+
     if (evt.type !== 'keyup' || evt.keyCode != evt.DOM_VK_ESCAPE) {
+      return;
+    }
+
+    // If the user escaped just to remove the keyboard we stay
+    // in edit mode
+    if (this._keyboardDisplayed) {
+      evt.preventDefault();
       return;
     }
 
@@ -467,7 +517,7 @@ var ContactDetails = {
       contact.familyName;
 
     document.getElementById('contact-photo').innerHTML =
-      profilePictureForNumber(contact.id);
+      '<img src="style/images/contact-placeholder.png" alt="profile" />';
 
     if (contact.tel) {
       this.contactPhone.querySelector('.value').innerHTML =

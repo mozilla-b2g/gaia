@@ -191,11 +191,9 @@
               <input id="contact-email-field" type="email" data-action="autoscroll" onfocus="ContactDetails.execute(event)" />
             </div>
             <div>
-              <button data-l10n-id="delete" data-action="destroy" onclick="ContactDetails.execute(event);">Delete</button>
-            </div>
-            <div>
               <input type="submit" value="Save" />
             </div>
+            <button data-l10n-id="delete" data-action="destroy" onclick="ContactDetails.execute(event);">Delete</button>
           </form>
           <div id="contact-details-line">
           </div>
@@ -208,6 +206,7 @@
         <div id="call-status-view">
         </div>
         <div id="call-picture">
+          <img src="style/images/contact-placeholder.png" alt="profile" />
         </div>
         <div id="call-number-view">
         </div>
@@ -218,22 +217,14 @@
             <div id="mute-button"></div>
             <span data-l10n-id="mute">Mute</span>
           </div>
-          <div data-action="keypad" onclick="CallHandler.execute(this.dataset.action);">
-            <div id="keypad-button"></div>
-            <span data-l10n-id="keypad">Keypad</span>
-          </div>
           <div data-action="toggleSpeaker" onclick="CallHandler.execute(this.dataset.action);">
             <div id="speaker-button"></div>
             <span data-l10n-id="speaker">Speaker</span>
           </div>
-          <div data-action="toggleHold" onclick="CallHandler.execute(this.dataset.action);">
-            <div id="hold-button"></div>
-            <span data-l10n-id="hold">Hold</span>
-          </div>
         </div>
         <div id="call-button">
           <div id="accept-call" onclick="CallHandler.execute('answer');"><span data-l10n-id="answer">Answer</span></div>
-          <div id="end-call" onclick="CallHandler.execute('end');"><span data-l10n-id="answer">End</span></div>
+          <div id="end-call" onclick="CallHandler.execute('end');"><span data-l10n-id="end">End</span></div>
         </div>
       </div>
     </div>

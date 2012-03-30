@@ -1,6 +1,6 @@
-body {
-	font-family: Georgia, serif;
-	background-color: #fff;
-	margin: 0;
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
 }
-

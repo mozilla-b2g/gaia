@@ -1,4 +1,4 @@
-CACHE MANIFEST
+# Version f4ed9dd96fe214420f91f6209fe482f4
 index.html
 js/gallery.js
 locale/gallery.properties
@@ -45,11 +45,11 @@ sample_photos/IMG_8631.jpg
 sample_photos/IMG_8638.jpg
 sample_photos/IMG_8648.jpg
 sample_photos/IMG_8652.jpg
-sample_photos/_MG_0053.jpg
 sample_photos/P1000115.jpg
 sample_photos/P1000404.jpg
 sample_photos/P1000469.jpg
 sample_photos/P1000486.jpg
+sample_photos/_MG_0053.jpg
 sample_photos/thumbnails/DSC_1677.jpg
 sample_photos/thumbnails/DSC_1701.jpg
 sample_photos/thumbnails/DSC_1727.jpg
@@ -91,11 +91,11 @@ sample_photos/thumbnails/IMG_8631.jpg
 sample_photos/thumbnails/IMG_8638.jpg
 sample_photos/thumbnails/IMG_8648.jpg
 sample_photos/thumbnails/IMG_8652.jpg
-sample_photos/thumbnails/_MG_0053.jpg
 sample_photos/thumbnails/P1000115.jpg
 sample_photos/thumbnails/P1000404.jpg
 sample_photos/thumbnails/P1000469.jpg
 sample_photos/thumbnails/P1000486.jpg
+sample_photos/thumbnails/_MG_0053.jpg
 style/fonts/Open-Sans-Bold.woff
 style/fonts/Open-Sans.woff
 style/gallery.css

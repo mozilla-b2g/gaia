@@ -1,4 +1,5 @@
-CACHE MANIFEST
+# Version be1b6dc69dd70eb13e6e5374fd25e22b
+gaia-commit.txt
 index.html
 js/settings.js
 js/wifi.js
@@ -6,8 +7,8 @@ locale/settings.properties
 
 manifest.json
 style/dialogs.css
-style/fonts/Roboto-BoldItalic.ttf
 style/fonts/Roboto-Bold.ttf
+style/fonts/Roboto-BoldItalic.ttf
 style/fonts/Roboto-Italic.ttf
 style/fonts/Roboto-Regular.ttf
 style/icons/Settings.png
@@ -15,8 +16,8 @@ style/images/app-texture.png
 style/images/checked.png
 style/images/diagonal-pattern.png
 style/images/dialing-pattern.png
-style/images/noise.png
 style/images/noise-texture.png
+style/images/noise.png
 style/images/radio-off.png
 style/images/radio-on.png
 style/images/wifi-0.png
@@ -25,8 +26,8 @@ style/images/wifi-2.png
 style/images/wifi-3.png
 style/images/wifi-4.png
 style/images/wifi-lock.png
-style/images/wifi.png
 style/images/wifi-scan.png
+style/images/wifi.png
 style/settings.css
 style/ui.css
 http://gaiamobile.org/webapi.js

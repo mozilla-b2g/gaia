@@ -38,7 +38,7 @@ const IMEManager = {
     var completeSettingRequests = (function completeSettingRequests() {
       if (!this.keyboards.length)
         this.keyboards = [].concat(this.keyboardSettingGroups['english'],
-          this.keyboardSettingGroups['zhuyin']);
+                                   this.keyboardSettingGroups['zhuyin']);
 
       if (this.keyboards.indexOf(this.currentKeyboard) === -1)
         this.currentKeyboard = this.keyboards[0];
@@ -55,14 +55,12 @@ const IMEManager = {
     for (var key in this.keyboardSettingGroups) {
       keyboardSettingGroupKeys.push(key);
     }
-    // XXX: shift() & length is neater than this
+
     var i = 0;
-
     var keyboardSettingRequest = function keyboardSettingRequest(key) {
-      var request = navigator.mozSettings.get('keyboard.layouts.' + key);
+      var request = navigator.mozSettings.getLock().get('keyboard.layouts.' + key);
       request.onsuccess = (function onsuccess(evt) {
-
-        if (request.result.value === 'true') {
+        if (!!request.result['keyboard.layouts.' + key]) {
           this.keyboards = this.keyboards.concat(
             this.keyboardSettingGroups[key]
           );
@@ -147,6 +145,13 @@ const IMEManager = {
   get ime() {
     delete this.ime;
     return this.ime = document.getElementById('keyboard');
+  },
+
+  get pendingSymbolPanel() {
+    delete this.pendingSymbolPanel;
+    var pendingSymbolPanel = document.createElement('div');
+    pendingSymbolPanel.id = 'keyboard-pending-symbol-panel';
+    return this.pendingSymbolPanel = pendingSymbolPanel;
   },
 
   get candidatePanel() {
@@ -445,6 +450,9 @@ const IMEManager = {
       sendCandidates: function(candidates) {
         self.showCandidates(candidates);
       },
+      sendPendingSymbols: function(symbols) {
+        self.showPendingSymbols(symbols);
+      },
       sendKey: function(keyCode) {
         switch (keyCode) {
           case KeyEvent.DOM_VK_BACK_SPACE:
@@ -497,15 +505,15 @@ const IMEManager = {
 
         // TODO: workaround gaia issue 374
         setTimeout((function keyboardVibrateSettingRequest() {
-          var request = navigator.mozSettings.get('keyboard.vibration');
-          request.addEventListener('success', (function onsuccess(evt) {
-            this.vibrate = (request.result.value === 'true');
+          var request = navigator.mozSettings.getLock().get('keyboard.vibration');
+          request.addEventListener('success', (function onsuccess() {
+            this.vibrate = !!request.result['keyboard.vibration'];
           }).bind(this));
 
           setTimeout((function keyboardClickSoundSettingRequest() {
-            var request = navigator.mozSettings.get('keyboard.clicksound');
-            request.addEventListener('success', (function onsuccess(evt) {
-              this.clicksound = (request.result.value === 'true');
+            var request = navigator.mozSettings.getLock().get('keyboard.clicksound');
+            request.addEventListener('success', (function onsuccess() {
+              this.clicksound = !!request.result['keyboard.clicksound'];
             }).bind(this));
           }).bind(this), 0);
 
@@ -742,9 +750,14 @@ const IMEManager = {
           break;
 
           case this.TOGGLE_CANDIDATE_PANEL:
-            var panel = this.candidatePanel;
-            var className = (panel.className == 'full') ? 'show' : 'full';
-            panel.className = target.className = className;
+            if (this.ime.classList.contains('candidate-panel')) {
+              this.ime.classList.remove('candidate-panel');
+              this.ime.classList.add('full-candidate-panel');
+            } else {
+              this.ime.classList.add('candidate-panel');
+              this.ime.classList.remove('full-candidate-panel');
+            }
+            this.updateTargetWindowHeight();
           break;
 
           case this.DOT_COM:
@@ -1019,6 +1032,9 @@ const IMEManager = {
       this.ime.insertBefore(
         this.candidatePanelToggleButton, this.ime.firstChild);
       this.ime.insertBefore(this.candidatePanel, this.ime.firstChild);
+      this.ime.insertBefore(
+        this.pendingSymbolPanel, this.ime.firstChild);
+      this.showPendingSymbols('');
       this.showCandidates([], true);
       this.currentEngine.empty();
     }
@@ -1099,27 +1115,42 @@ const IMEManager = {
     }
   },
 
+  showPendingSymbols: function km_showPendingSymbols(symbols) {
+    var pendingSymbolPanel = this.pendingSymbolPanel;
+    pendingSymbolPanel.textContent = symbols;
+  },
+
   showCandidates: function km_showCandidates(candidates, noWindowHeightUpdate) {
+    var ime = this.ime;
     var candidatePanel = this.candidatePanel;
-    var toggleButton = this.candidatePanelToggleButton;
+    var isFullView = this.ime.classList.contains('full-candidate-panel');
 
     candidatePanel.innerHTML = '';
 
     if (!candidates.length) {
-      toggleButton.className = '';
-      candidatePanel.className = '';
+      ime.classList.remove('candidate-panel');
+      ime.classList.remove('full-candidate-panel');
       if (!noWindowHeightUpdate)
         this.updateTargetWindowHeight();
       this.updateKeyHighlight();
       return;
     }
 
-    toggleButton.className = toggleButton.className || 'show';
-    candidatePanel.className = candidatePanel.className || 'show';
+    if (!isFullView) {
+      ime.classList.add('candidate-panel');
+    }
+
     candidatePanel.scrollTop = candidatePanel.scrollLeft = 0;
 
-    if (toggleButton.className == 'show' && !noWindowHeightUpdate)
+    if (!noWindowHeightUpdate)
       this.updateTargetWindowHeight();
+
+    // If there were too many candidate
+    delete candidatePanel.dataset.truncated;
+    if (candidates.length > 74) {
+      candidates = candidates.slice(0, 74);
+      candidatePanel.dataset.truncated = true;
+    }
 
     candidates.forEach(function buildCandidateEntry(candidate) {
       var span = document.createElement('span');

@@ -70,6 +70,13 @@ var WindowManager = (function() {
   // The origin of the currently displayed app, or null if there isn't one
   var displayedApp = null;
 
+  // The localization of the "Loading..." message that appears while
+  // an app is loading
+  var localizedLoading = 'Loading...';
+  window.addEventListener('localized', function() {
+    localizedLoading = document.mozL10n.get('loading');
+  });
+
   // Public function. Return the origin of the currently displayed app
   // or null if there is none.
   function getDisplayedApp() {
@@ -117,9 +124,9 @@ var WindowManager = (function() {
     }
     else {
       frame.style.width = window.innerWidth + 'px';
-      frame.style.height = manifest.fullscreen
-        ? window.innerHeight + 'px'
-        : (window.innerHeight - statusbar.offsetHeight) + 'px';
+      frame.style.height = manifest.fullscreen ?
+        window.innerHeight + 'px' :
+        (window.innerHeight - statusbar.offsetHeight) + 'px';
     }
   }
 
@@ -170,6 +177,12 @@ var WindowManager = (function() {
         frame.classList.add('active');
         windows.classList.add('active');
         sprite.classList.add('faded');
+
+        // Let the app know that it has become visible
+        frame.contentWindow.postMessage({
+          message: 'visibilitychange',
+          hidden: false
+        }, '*');
       }
       else {
         // The second transition has just completed
@@ -216,6 +229,12 @@ var WindowManager = (function() {
 
     // Take keyboard focus away from the closing window
     frame.blur();
+
+    // Let the app know that it has become hidden
+    frame.contentWindow.postMessage({
+      message: 'visibilitychange',
+      hidden: true
+    }, '*');
 
     // If this was a fullscreen app, leave full-screen mode
     if (manifest.fullscreen)
@@ -328,6 +347,10 @@ var WindowManager = (function() {
       return;
 
     var app = appscreen.getAppByOrigin(origin);
+    // TODO: is the startPoint argument implemented?
+    // and is it passed back to us in the webapps-launch method?
+    // If so, we could use that to pass a query string or fragmentid
+    // to append to the apps' URL.
     app.launch();
   }
 
@@ -348,6 +371,18 @@ var WindowManager = (function() {
       frame.id = 'appframe' + nextAppId++;
       frame.className = 'appWindow';
       frame.setAttribute('mozallowfullscreen', 'true');
+
+      if (manifest.hackNetworkBound) {
+        var style = 'font-family: OpenSans,sans-serif;' +
+                    'text-align: center;' +
+                    'color: white;' +
+                    'margin-top: 100px;';
+
+        frame.src = 'data:text/html,' +
+          '<body style="background-color: black">' +
+          '  <h3 style="' + style + '">' + localizedLoading + '</h3>' +
+          '</body>';
+      }
 
       // Note that we don't set the frame size here.  That will happen
       // when we display the app in setDisplayedApp()

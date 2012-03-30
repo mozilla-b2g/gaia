@@ -234,6 +234,7 @@ var KeyHandler = {
 var CallHandler = {
   currentCall: null,
   _onCall: false,
+  _screenLock: null,
 
   setupTelephony: function ch_setupTelephony() {
     if (this._telephonySetup)
@@ -271,12 +272,7 @@ var CallHandler = {
 
     this.recentsEntry = {date: Date.now(), type: 'outgoing', number: number};
 
-    // XXX: remove the fake contact when the contact API lands
-    this.pictureView.innerHTML = '';
     var self = this;
-    Contacts.findByNumber(number, function showPicture(contact) {
-      self.pictureView.innerHTML = profilePictureForNumber(contact.id);
-    });
 
     this.toggleCallScreen();
   },
@@ -296,14 +292,9 @@ var CallHandler = {
 
     this.numberView.innerHTML = call.number || 'Anonymous';
     this.statusView.innerHTML = 'Call from...';
-    this.pictureView.innerHTML = '';
 
     if (call.number)
       this.lookupContact(call.number);
-
-    // XXX: remove the fake contact when the contact API lands
-    this.pictureView.innerHTML = call.number ?
-      profilePictureForNumber(parseInt(call.number)) : '';
 
     this.toggleCallScreen();
   },
@@ -334,11 +325,15 @@ var CallHandler = {
        (this.recentsEntry.type.indexOf('-connected') == -1)) {
       this.recentsEntry.type += '-refused';
     }
+
     if (this.currentCall) {
       this.currentCall.hangUp();
-    } else {
-      this.disconnected();
     }
+
+    // We're not waiting for a disconnected statechange
+    // If the user touch the 'end' button we wants to get
+    // out of the call-screen right away.
+    this.disconnected();
   },
 
   disconnected: function ch_disconnected() {
@@ -400,10 +395,6 @@ var CallHandler = {
     delete this.statusView;
     return this.statusView = document.getElementById('call-status-view');
   },
-  get pictureView() {
-    delete this.pictureView;
-    return this.pictureView = document.getElementById('call-picture');
-  },
   get actionsView() {
     delete this.actionsView;
     return this.actionsView = document.getElementById('call-actions-container');
@@ -463,6 +454,15 @@ var CallHandler = {
     var securityTimeout = setTimeout(finishTransition, 100);
 
     this._onCall = !this._onCall;
+
+    // Assume we always either onCall or not, and always onCall before
+    // not onCall.
+    if (this._onCall) {
+      this._screenLock = navigator.requestWakeLock("screen");
+    } else {
+      this._screenLock.unlock();
+      this._screenLock = null;
+    }
   },
 
   toggleMute: function ch_toggleMute() {

@@ -1,4 +1,5 @@
 CACHE MANIFEST
+# Version 72549ec3c8ec5e598eea31236e619636
 index.html
 js/domutils.js
 js/video.js
@@ -22,10 +23,10 @@ style/images/btn_fwd_off.png
 style/images/btn_fwd_press.png
 style/images/btn_pause_off.png
 style/images/btn_pause_press.png
-style/images/btn_playhead_off.png
-style/images/btn_playhead_press.png
 style/images/btn_play_off.png
 style/images/btn_play_press.png
+style/images/btn_playhead_off.png
+style/images/btn_playhead_press.png
 style/images/btn_rwd_off.png
 style/images/btn_rwd_press.png
 style/images/controls.png

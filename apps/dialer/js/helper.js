@@ -1,13 +1,5 @@
 'use strict';
 
-function profilePictureForNumber(number) {
-  if (typeof(number) == 'string')
-    number = parseInt(number.replace(/[^0-9]/g, ''));
-
-  var image = 'profilePhotos/contact' + (number % 10) + '.png';
-  return '<img src="' + image + '" alt="profile picture" />';
-}
-
 // Based on Resig's pretty date
 function prettyDate(time) {
   var diff = (Date.now() - time) / 1000;

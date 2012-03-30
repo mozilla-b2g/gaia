@@ -78,9 +78,10 @@ var LockScreen = {
       return;
     }
 
-    var request = settings.get('lockscreen.enabled');
-    request.addEventListener('success', (function onsuccess(evt) {
-      var enabled = request.result.value !== 'false';
+    var request = settings.getLock().get('lockscreen.enabled');
+    request.addEventListener('success', (function onsuccess() {
+      var value = request.result['lockscreen.enabled'];
+      var enabled = typeof(value) == 'boolean' ? value : true;
       if (enabled) {
         this.lock(true, callback);
       } else {
@@ -88,7 +89,7 @@ var LockScreen = {
       }
     }).bind(this));
 
-    request.addEventListener('error', (function onerror(evt) {
+    request.addEventListener('error', (function onerror() {
       this.lock(true, callback);
     }).bind(this));
   },
@@ -561,7 +562,7 @@ var SleepMenu = {
 
             var settings = window.navigator.mozSettings;
             if (settings)
-              settings.set('phone.ring.incoming', 'false');
+              settings.getLock().set({ 'phone.ring.incoming': false});
 
             document.getElementById('silent').hidden = true;
             document.getElementById('normal').hidden = false;
@@ -571,7 +572,7 @@ var SleepMenu = {
 
             var settings = window.navigator.mozSettings;
             if (settings)
-              settings.get('phone.ring.incoming', 'true');
+              settings.getLock().get({'phone.ring.incoming': true});
 
             document.getElementById('silent').hidden = false;
             document.getElementById('normal').hidden = true;
@@ -601,27 +602,40 @@ var SleepMenu = {
 window.addEventListener('click', SleepMenu, true);
 window.addEventListener('keyup', SleepMenu, true);
 
-function SettingListener(name, callback) {
-  var update = function update() {
-    if (!navigator.mozSettings) {
-      console.log('mozSettings is not available on this platform.');
+
+var SettingsListener = {
+  _callbacks: {},
+
+  init: function sl_init() {
+    if ('mozSettings' in navigator)
+      navigator.mozSettings.onsettingchange = this.onchange.bind(this);
+  },
+
+  onchange: function sl_onchange(evt) {
+    var callback = this._callbacks[evt.settingName];
+    if (callback) {
+      callback(evt.settingValue);
+    }
+  },
+
+  observe: function sl_observe(name, defaultValue, callback) {
+    var settings = window.navigator.mozSettings;
+    if (!settings) {
+      setTimeout(function() { callback(defaultValue); });
       return;
     }
-    var request = navigator.mozSettings.get(name);
 
-    request.addEventListener('success', function onsuccess(evt) {
-      callback(request.result.value);
-    });
-  };
+    var req = settings.getLock().get(name);
+    req.addEventListener('success', (function onsuccess() {
+      callback(typeof(req.result[name]) != 'undefined' ? req.result[name]
+                                                       : defaultValue);
+    }));
 
-  window.addEventListener('message', function settingChange(evt) {
-    if (evt.data != name)
-      return;
-    update();
-  });
+    this._callbacks[name] = callback;
+  }
+};
 
-  update();
-}
+SettingsListener.init();
 
 /* === Source View === */
 var SourceView = {
@@ -659,13 +673,19 @@ var SourceView = {
     }
 
     var url = WindowManager.getDisplayedApp();
-    viewsource.src = 'view-source: ' + (url || '');
+    if (!url)
+      // Assume the home screen is the visible app.
+      url = window.location.toString();
+    viewsource.src = 'view-source: ' + url;
     viewsource.style.visibility = 'visible';
   },
 
   hide: function sv_hide() {
-    if (this.viewer)
-      this.viewer.style.visibility = 'hidden';
+    var viewsource = this.viewer;
+    if (viewsource) {
+      viewsource.style.visibility = 'hidden';
+      viewsource.src = 'about:blank';
+    }
   },
 
   toggle: function sv_toggle() {
@@ -727,44 +747,37 @@ var GridView = {
   }
 };
 
-new SettingListener('debug.grid.enabled', function(value) {
-  value == 'true' ? GridView.show() : GridView.hide();
+SettingsListener.observe('debug.grid.enabled', false, function(value) {
+  !!value ? GridView.show() : GridView.hide();
 });
 
 /* === Language === */
-
-// Unfortunately, a setting listener doesn't seem to work here.
-// That might be an issue of the Settings API...
-//new SettingListener('language.current', switchLocale);
-// ... so let's listen to post messages instead:
-window.addEventListener('message', function getMessage(evt) {
-  if (evt.data && evt.data.language) {
-    // change language -- this triggers startup() and a rebuild
-    document.mozL10n.language.code = evt.data.language;
-  }
+SettingsListener.observe('language.current', 'en-US', function(value) {
+  // change language -- this triggers startup() and a rebuild
+  document.mozL10n.language.code = value;
 });
 
 /* === Wallpapers === */
-new SettingListener('homescreen.wallpaper', function(value) {
+SettingsListener.observe('homescreen.wallpaper', 'default.png', function(value) {
   var home = document.getElementById('home');
   home.style.backgroundImage = 'url(style/themes/default/backgrounds/' + value + ')';
 });
 
 /* === Ring Tone === */
-new SettingListener('homescreen.ring', function(value) {
+SettingsListener.observe('homescreen.ring', 'classic.wav', function(value) {
   var player = document.getElementById('ringtone-player');
   player.src = 'style/ringtones/' + value;
 });
 
 var activePhoneSound = true;
-new SettingListener('phone.ring.incoming', function(value) {
-  activePhoneSound = (value === 'true');
+SettingsListener.observe('phone.ring.incoming', true, function(value) {
+  activePhoneSound = !!value;
 });
 
 /* === Vibration === */
 var activateVibration = false;
-new SettingListener('phone.vibration.incoming', function(value) {
-  activateVibration = (value === 'true');
+SettingsListener.observe('phone.vibration.incoming', false, function(value) {
+  activateVibration = !!value;
 });
 
 /* === KeyHandler === */
@@ -876,7 +889,7 @@ var ScreenManager = {
   }
 };
 
-new SettingListener('screen.brightness', function(value) {
+SettingsListener.observe('screen.brightness', 0.5, function(value) {
   ScreenManager.preferredBrightness = screen.mozBrightness = parseFloat(value);
 });
 
@@ -895,7 +908,12 @@ var MessagesListener = function() {
       return;
 
     NotificationScreen.unlock(true);
-    WindowManager.launch('../sms/sms.html?sender=' + sender);
+
+    // We'd really like to launch the SMS app to show
+    // a particular sender, but don't have a good way to do it.
+    // This should be replaced with a web intent or similar.
+    WindowManager.launch('http://sms.gaiamobile.org/'
+                         /* +'?sender=' + sender*/);
   });
 
   var hasMessages = document.getElementById('state-messages');
@@ -914,7 +932,9 @@ var MessagesListener = function() {
     // If the sms application is opened, just delete all messages
     // notifications
     var applicationURL = evt.detail.url;
-    if (!/^\.\.\/sms\/sms\.html/.test(applicationURL))
+    var host = document.location.host.replace(/^[a-z]+\./i,'');
+    var matcher = new RegExp('/sms\.' + host);
+    if (!matcher.test(applicationURL))
       return;
 
     delete hasMessages.dataset.visible;
@@ -955,7 +975,7 @@ var TelephonyListener = function() {
       }
     });
 
-    WindowManager.launch('../dialer/dialer.html');
+    WindowManager.launch('http://dialer.gaiamobile.org/');
   });
 
   // Handling the missed call notification
@@ -974,7 +994,10 @@ var TelephonyListener = function() {
     // If the dialer application is opened, just delete all messages
     // notifications
     var applicationURL = evt.detail.url;
-    if (!/^\.\.\/dialer\/dialer\.html/.test(applicationURL))
+
+    var host = document.location.host.replace(/^[a-z]+\./i,'');
+    var matcher = new RegExp('/dialer\.' + host);
+    if (!matcher.test(applicationURL))
       return;
 
     delete hasMissedCalls.dataset.visible;
@@ -990,7 +1013,12 @@ var TelephonyListener = function() {
       return;
 
     NotificationScreen.unlock(true);
-    WindowManager.launch('../dialer/dialer.html?choice=recents');
+
+    // FIXME: we'd really like to launch the the "Recent calls" view
+    // of the dialer app, but don't have a good way to do it.
+    // This should be replaced with a web intent or similar.
+    WindowManager.launch('http://dialer.gaiamobile.org/'
+                         /* '?choice=recents' */);
   });
 };
 
@@ -1543,5 +1571,16 @@ Dots.prototype = {
     }
   }
 };
+
+if ('mozWifiManager' in window.navigator) {
+  window.addEventListener('DOMContentLoaded', function() {
+    var wifiIndicator = document.getElementById('wifi');
+    window.navigator.mozWifiManager.connectionInfoUpdate = function(event) {
+      // relSignalStrength should be between 0 and 100
+      var level = Math.min(Math.floor(event.relSignalStrength / 20), 4);
+      wifiIndicator.className = 'signal-level' + level;
+    };
+  });
+}
 
 window.addEventListener('localized', startup);

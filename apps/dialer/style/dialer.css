@@ -909,7 +909,7 @@ html * {
 #call-actions > div {
   float: left;
   display: block;
-  width: -moz-calc(100% / 4);
+  width: -moz-calc(100% / 2);
   padding: 0;
   margin: 0;
 
@@ -935,13 +935,6 @@ html * {
   background-position: 50% 50%;
 }
 
-#keypad-button {
-  background-image: url(images/numpad-icon.png);
-}
-#keypad-button:active {
-  background-image: url(images/numpad-icon-active.png);
-}
-
 #speaker-button {
   background-image: url(images/speaker-icon.png);
 }
@@ -954,13 +947,6 @@ html * {
 }
 #mute-button.mute {
   background-image: url(images/mute-icon-active.png);
-}
-
-#hold-button {
-  background-image: url(images/hold-icon.png);
-}
-#hold-button.hold {
-  background-image: url(images/hold-icon-active.png);
 }
 
 #call-button {
