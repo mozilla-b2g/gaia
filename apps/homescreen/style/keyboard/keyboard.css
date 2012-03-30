@@ -1,8 +1,12 @@
+#screen.fullscreen #keyboard {
+  z-index: 9999;
+}
+
 #keyboard {
   position: absolute;
   font-family: 'Open Sans', sans-serif;
   font-weight: bold;
-  z-index: 9999;
+  z-index: 9996;
   bottom: 0;
   overflow: visible;
   background-color: #f0f1f2;
