@@ -54,17 +54,56 @@ function getJSON(dir, name) {
   return JSON.parse(content);
 }
 
-let prefNames = {
-  "dom.power.whitelist": "power",
-  "dom.sms.whitelist": "sms",
-  "dom.mozContacts.whitelist": "contacts",
-  "dom.telephone.app.phone.url": "telephony",
-  "dom.mozScreenWhiteList": "screen"
+function writeContent(content) {
+  let file = Cc["@mozilla.org/file/local;1"]
+               .createInstance(Ci.nsILocalFile);
+  file.initWithPath(GAIA_DIR);
+  file.append('profile');
+  file.append('user.js');
+
+  let stream = Cc["@mozilla.org/network/file-output-stream;1"]  
+                   .createInstance(Ci.nsIFileOutputStream);  
+  stream.init(file, 0x02 | 0x08 | 0x20, 0666, 0);   
+  stream.write(content, content.length);
+  stream.close();
+}
+
+
+let permissions = {
+  "power": {
+    "urls": [],
+    "pref": "dom.power.whitelist"
+  },
+  "sms": {
+    "urls": [],
+    "pref": "dom.sms.whitelist"
+  },
+  "contacts": {
+    "urls": [],
+    "pref": "dom.mozContacts.whitelist"
+  },
+  "telephony": {
+    "urls": [],
+    "pref": "dom.telephone.app.phone.url"
+  },
+  "screen": {
+    "urls": [],
+    "pref": "dom.mozScreenWhiteList"
+  },
+  "mozbrowser": {
+    "urls": [],
+    "pref": "dom.mozBrowserFramesWhitelist"
+  }
 };
+
+let content = "";
+
+let homescreen = "http://homescreen." + GAIA_DOMAIN;
+content += "user_pref(\"b2g.homescreenURL\",\"" + homescreen + "\");\n\n";
 
 let webapps = getJSON(".", "webapps.json");
 if (webapps) {
-  let permissions = {};
+  let privileges = [];
 
   let directories = getDirectories();
   directories.forEach(function readManifests(dir) {
@@ -73,11 +112,39 @@ if (webapps) {
     if (!manifest || !webapp)
       return;
 
-    if (manifest.permissions) {
-      permissions[webapp.origin] = manifest.permissions;
-      print (webapp.origin + " -> " + manifest.permissions);
+    let domain = webapp.origin.replace("gaiamobile.org", GAIA_DOMAIN);
+    privileges.push(domain);
+
+    let perms = manifest.permissions;
+    if (perms) {
+      for each(let name in perms) {
+        permissions[name].urls.push(domain);
+      }
     }
   });
-}
 
+  content += "user_pref(\"b2g.privileged.domains\", \"" + privileges.join(",") + "\");\n\n";
+
+  for (let name in permissions) {
+    let perm = permissions[name];
+    content += "user_pref(\"" + perm.pref + "\",\"" + perm.urls.join(",") + "\");\n";
+  }
+
+  if (DEBUG) {
+    content += "\n";
+    content += "user_pref(\"marionette.defaultPrefs.enabled\", true);\n";
+    content += "user_pref(\"b2g.remote-js.enabled\", true);\n";
+    content += "user_pref(\"b2g.remote-js.port\", 4242);\n";
+    content += "user_pref(\"javascript.options.showInConsole\", true);\n";
+    content += "user_pref(\"nglayout.debug.disable_xul_cache\", true);\n";
+    content += "user_pref(\"browser.dom.window.dump.enabled\", true);\n";
+    content += "user_pref(\"javascript.options.strict\", true);\n";
+    content += "user_pref(\"dom.report_all_js_exceptions\", true);\n";
+    content += "user_pref(\"nglayout.debug.disable_xul_fastload\", true);\n";
+    content += "\n";
+  }
+
+  writeContent(content);
+  dump("\n" + content);
+}
 
