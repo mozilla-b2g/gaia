@@ -1188,6 +1188,56 @@ AppScreen.prototype.build = function(rebuild) {
     this.grid.add(icon, name, origin);
   }
 
+  // XXX Ideally this should be saved inside a local database
+  var bookmarks = [
+    {
+      "name": "Facebook",
+      "url" : "http://touch.facebook.com",
+      "icon": "/style/icons/Facebook.png"
+    },
+    {
+      "name": "GMail",
+      "url" : "http://mail.google.com/mail/mu",
+      "icon": "/style/icons/GMail.png"
+    },
+    {
+      "name": "Calendar",
+      "url" : "http://google.com/calendar/gp",
+      "icon": "/style/icons/GoogleCalendar.png"
+    },
+    {
+      "name": "Zimbra",
+      "url" : "http://mail.mozilla.com/zimbra/m",
+      "icon": "/style/icons/Zimbra.png"
+    },
+    {
+      "name": "Wikipedia",
+      "url" : "http://en.m.wikipedia.org/",
+      "icon": "/style/icons/Wikipedia.png"
+    },
+    {
+      "name": "CNN",
+      "url" : "http://m.cnn.com/",
+      "icon": "/style/icons/CNN.png"
+    },
+    {
+      "name": "BBC",
+      "url" : "http://m.bbc.co.uk/",
+      "icon": "/style/icons/BBC.png"
+    },
+    {
+      "name": "NY Times",
+      "url" : "http://m.nytimes.com/",
+      "icon": "/style/icons/NYT.png"
+    }
+  ];
+
+  for each(var bookmark in bookmarks) {
+    var icon = document.location + bookmark.icon;
+    this.grid.add(icon, bookmark.name, bookmark.url);
+    dump('========= icon:' + icon + '\n\n');
+  }
+
   this.grid.update();
   this.grid.setPage(startpage);
 };

@@ -55,13 +55,6 @@
     "installTime": 1323339869000
   },
 
- "facebook": {
-    "origin": "http://touch.facebook.com",
-    "installOrigin": "http://www.facebook.com",
-    "receipt": null,
-    "installTime": 1323339869000
-  },
-
  "market": {
     "origin": "http://market.gaiamobile.org/",
     "installOrigin": "http://market.gaiamobile.org/",
@@ -72,27 +65,6 @@
  "music": {
     "origin": "http://music.gaiamobile.org/",
     "installOrigin": "http://music.gaiamobile.org/",
-    "receipt": null,
-    "installTime": 1323339869000
-  },
-
- "gmail": {
-    "origin": "http://mail.google.com",
-    "installOrigin": "http://mail.google.com",
-    "receipt": null,
-    "installTime": 1323339869000
-  },
-
- "calendar": {
-    "origin": "http://google.com",
-    "installOrigin": "http://google.com",
-    "receipt": null,
-    "installTime": 1323339869000
-  },
-
- "zimbra": {
-    "origin": "https://mail.mozilla.com",
-    "installOrigin": "https://mail.mozilla.com",
     "receipt": null,
     "installTime": 1323339869000
   },
@@ -142,34 +114,6 @@
  "cuttherope": {
     "origin": "http://cuttherope.ie",
     "installOrigin": "http://cuttherope.ie",
-    "receipt": null,
-    "installTime": 1323339869000
-  },
-
- "wikipedia": {
-    "origin": "http://en.m.wikipedia.org/",
-    "installOrigin": "http://www.wikipedia.org/",
-    "receipt": null,
-    "installTime": 1323339869000
-  },
-
- "cnn": {
-    "origin": "http://m.cnn.com",
-    "installOrigin": "http://m.cnn.com",
-    "receipt": null,
-    "installTime": 1323339869000
-  },
-
- "bbc": {
-    "origin": "http://m.bbc.co.uk",
-    "installOrigin": "http://www.bbc.co.uk",
-    "receipt": null,
-    "installTime": 1323339869000
-  },
-
- "nytimes": {
-    "origin": "http://m.nytimes.com",
-    "installOrigin": "http://www.nytimes.com",
     "receipt": null,
     "installTime": 1323339869000
   },
