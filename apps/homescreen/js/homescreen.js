@@ -5,6 +5,7 @@
 
 var _ = document.mozL10n.get;
 
+var bookmarks = null;
 
 // The appscreen is the main part of the homescreen: the part that
 // displays icons that launch all of the installed apps.
@@ -1045,7 +1046,20 @@ function AppScreen() {
         return;
       appscreen.installedApps[app.origin] = app;
     });
-    appscreen.build();
+
+    var req = new XMLHttpRequest();
+    req.open('GET', 'js/bookmarks.json', true);
+    req.responseType = 'json';
+    req.send(null);
+
+    req.onload = function bookmarks_load(evt) {
+      bookmarks = req.response;
+      appscreen.build();
+    };
+
+    req.onerror = function bookmarks_error(evt) {
+      appscreen.build();
+    };
   };
 
   // Listen for app installation requests
@@ -1188,54 +1202,10 @@ AppScreen.prototype.build = function(rebuild) {
     this.grid.add(icon, name, origin);
   }
 
-  // XXX To be able to install/uninstall bookmarks, they should be
-  // inside a database relative to the homescreen.
-  var bookmarks = [
-    {
-      "name": "Facebook",
-      "url" : "http://touch.facebook.com",
-      "icon": "/style/icons/Facebook.png"
-    },
-    {
-      "name": "GMail",
-      "url" : "http://mail.google.com/mail/mu",
-      "icon": "/style/icons/GMail.png"
-    },
-    {
-      "name": "Calendar",
-      "url" : "http://google.com/calendar/gp",
-      "icon": "/style/icons/GoogleCalendar.png"
-    },
-    {
-      "name": "Zimbra",
-      "url" : "http://mail.mozilla.com/zimbra/m",
-      "icon": "/style/icons/Zimbra.png"
-    },
-    {
-      "name": "Wikipedia",
-      "url" : "http://en.m.wikipedia.org/",
-      "icon": "/style/icons/Wikipedia.png"
-    },
-    {
-      "name": "CNN",
-      "url" : "http://m.cnn.com/",
-      "icon": "/style/icons/CNN.png"
-    },
-    {
-      "name": "BBC",
-      "url" : "http://m.bbc.co.uk/",
-      "icon": "/style/icons/BBC.png"
-    },
-    {
-      "name": "NY Times",
-      "url" : "http://m.nytimes.com/",
-      "icon": "/style/icons/NYT.png"
-    }
-  ];
-
-  for each(var bookmark in bookmarks) {
+  for (var name in bookmarks) {
+    var bookmark = bookmarks[name];
     var icon = document.location + bookmark.icon;
-    this.grid.add(icon, bookmark.name, bookmark.url);
+    this.grid.add(icon, name, bookmark.url);
   }
 
   this.grid.update();
