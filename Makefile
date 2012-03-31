@@ -8,12 +8,15 @@
 #               you need to have adb in your path or you can edit this line to#
 #               specify its location.                                         #
 #                                                                             #
+# DEBUG       : If you want to activate more debugging options                #
+#                                                                             #
 ###############################################################################
 GAIA_DOMAIN?=gaiamobile.org
 
 ADB?=adb
 
 
+DEBUG?=0
 
 ###############################################################################
 # The above rules generate the profile/ folder and all it's content.          #
@@ -45,7 +48,7 @@ SED_INPLACE_NO_SUFFIX = sed -i
 endif
 
 # Generate profile/
-profile: stamp-commit-hash update-offline-manifests manifests offline
+profile: stamp-commit-hash update-offline-manifests preferences manifests offline
 	@echo "\nProfile Ready: please run [b2g|firefox] -profile $(CURDIR)/profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
@@ -104,7 +107,7 @@ endif
 # Generate profile/prefs.js
 preferences:
 	@echo "Generating prefs.js..."
-	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)"' preferences.js
+	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)"; const DEBUG = $(DEBUG)' preferences.js
 	@echo "Done"
 
 
