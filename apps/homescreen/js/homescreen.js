@@ -1188,7 +1188,8 @@ AppScreen.prototype.build = function(rebuild) {
     this.grid.add(icon, name, origin);
   }
 
-  // XXX Ideally this should be saved inside a local database
+  // XXX To be able to install/uninstall bookmarks, they should be
+  // inside a database relative to the homescreen.
   var bookmarks = [
     {
       "name": "Facebook",
@@ -1235,7 +1236,6 @@ AppScreen.prototype.build = function(rebuild) {
   for each(var bookmark in bookmarks) {
     var icon = document.location + bookmark.icon;
     this.grid.add(icon, bookmark.name, bookmark.url);
-    dump('========= icon:' + icon + '\n\n');
   }
 
   this.grid.update();

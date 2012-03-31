@@ -346,26 +346,9 @@ var WindowManager = (function() {
     if (isRunning(origin))
       return;
 
-    var app = appscreen.getAppByOrigin(origin);
-    // TODO: is the startPoint argument implemented?
-    // and is it passed back to us in the webapps-launch method?
-    // If so, we could use that to pass a query string or fragmentid
-    // to append to the apps' URL.
-    app.launch();
-  }
-
-  // The mozApps API launch() method generates an event that we handle
-  // here to do the actual launching of the app
-  window.addEventListener('mozChromeEvent', function(e) {
-    if (e.detail.type === 'webapps-launch') {
-      var origin = e.detail.origin;
-      var url = e.detail.url;
+    function launch(origin, url, name, manifest) {
       if (isRunning(origin))
         return;
-
-      var app = appscreen.getAppByOrigin(origin);
-      var manifest = app.manifest;
-      var name = manifest.name;
 
       var frame = document.createElement('iframe');
       frame.id = 'appframe' + nextAppId++;
@@ -409,25 +392,38 @@ var WindowManager = (function() {
 
       numRunningApps++;
 
-      // FIXME
-      // Currently the chrome code in src/b2g/chrome/content/webapi.js
-      // listens for 'appwillopen' events to know when to inject custom
-      // JS code into new app windows.  That chrome code ought to change
-      // to listen for DOMNodeInserted events or similar, but for now
-      // we've got to send this custom event to make things work right
-      // See bug 736628: https://bugzilla.mozilla.org/show_bug.cgi?id=736628
-      setTimeout(function() {
-        var evt = document.createEvent('CustomEvent');
-        evt.initCustomEvent('appwillopen', true, false, {});
-        frame.dispatchEvent(evt);
-      }, 0);
-
-
       // Now animate the window opening and actually set the iframe src
       // when that is done.
       setDisplayedApp(origin, function() {
         frame.src = url;
       });
+    }
+
+    var app = appscreen.getAppByOrigin(origin);
+    if (!app) {
+      launch(origin, origin, 'Foo', {});
+      return;
+    }
+
+    // TODO: is the startPoint argument implemented?
+    // and is it passed back to us in the webapps-launch method?
+    // If so, we could use that to pass a query string or fragmentid
+    // to append to the apps' URL.
+    app.launch();
+  }
+
+  // The mozApps API launch() method generates an event that we handle
+  // here to do the actual launching of the app
+  window.addEventListener('mozChromeEvent', function(e) {
+    if (e.detail.type === 'webapps-launch') {
+      var origin = e.detail.origin;
+      var url = e.detail.url;
+
+      var app = appscreen.getAppByOrigin(origin);
+      var manifest = app.manifest;
+      var name = manifest.name;
+
+      launch(origin, url, name, manifest);
     }
   });
 
