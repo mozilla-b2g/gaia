@@ -99,7 +99,7 @@ let permissions = {
 let content = "";
 
 let homescreen = "http://homescreen." + GAIA_DOMAIN;
-content += "user_pref(\"b2g.homescreenURL\",\"" + homescreen + "\");\n\n";
+content += "user_pref(\"browser.homescreenURL\",\"" + homescreen + "\");\n\n";
 
 let webapps = getJSON(".", "webapps.json");
 if (webapps) {

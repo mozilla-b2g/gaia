@@ -15,7 +15,6 @@ GAIA_DOMAIN?=gaiamobile.org
 
 ADB?=adb
 
-
 DEBUG?=0
 
 ###############################################################################
@@ -105,7 +104,8 @@ install-xulrunner:
 endif
 
 # Generate profile/prefs.js
-preferences:
+preferences: install-xulrunner
+	@mkdir -p profile
 	@echo "Generating prefs.js..."
 	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)"; const DEBUG = $(DEBUG)' preferences.js
 	@echo "Done"
