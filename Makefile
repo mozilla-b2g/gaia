@@ -8,12 +8,14 @@
 #               you need to have adb in your path or you can edit this line to#
 #               specify its location.                                         #
 #                                                                             #
+# DEBUG       : If you want to activate more debugging options                #
+#                                                                             #
 ###############################################################################
 GAIA_DOMAIN?=gaiamobile.org
 
 ADB?=adb
 
-
+DEBUG?=0
 
 ###############################################################################
 # The above rules generate the profile/ folder and all it's content.          #
@@ -45,7 +47,7 @@ SED_INPLACE_NO_SUFFIX = sed -i
 endif
 
 # Generate profile/
-profile: stamp-commit-hash update-offline-manifests manifests offline
+profile: stamp-commit-hash update-offline-manifests preferences manifests offline
 	@echo "\nProfile Ready: please run [b2g|firefox] -profile $(CURDIR)/profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
@@ -86,7 +88,7 @@ XULRUNNER=./xulrunner-sdk/bin/run-mozilla.sh
 XPCSHELL=./xulrunner-sdk/bin/xpcshell
 
 install-xulrunner:
-	test -d xulrunner-sdk || (wget $(XULRUNNER_DOWNLOAD) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2) 
+	test -d xulrunner-sdk || (wget $(XULRUNNER_DOWNLOAD) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2)
 
 else
 # Not a mac: assume linux
@@ -102,8 +104,11 @@ install-xulrunner:
 endif
 
 # Generate profile/prefs.js
-preferences:
-	@echo "Empty for now"
+preferences: install-xulrunner
+	@mkdir -p profile
+	@echo "Generating prefs.js..."
+	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)"; const DEBUG = $(DEBUG)' preferences.js
+	@echo "Done"
 
 
 
@@ -117,15 +122,15 @@ INJECTED_GAIA = "$(MOZ_TESTS)/browser/gaia"
 TEST_PATH=gaia/tests/${TEST_FILE}
 
 # XXX This variable should be removed once make preferences is implemented
-B2G_HOMESCREEN?=file://$(CURDIR)/index.html
+B2G_HOMESCREEN?=http://homescreen.gaiamobile.org/
 
 .PHONY: tests
-tests:
+tests: manifests offline
 	echo "Checking if the mozilla build has tests enabled..."
 	test -d $(MOZ_TESTS) || (echo "Please ensure you don't have |ac_add_options --disable-tests| in your mozconfig." && exit 1)
 	echo "Checking the injected Gaia..."
-	test -L $(INJECTED_GAIA) || ln -s $(GAIA) $(INJECTED_GAIA)
-	TEST_PATH=$(TEST_PATH) make -C $(MOZ_OBJDIR) mochitest-browser-chrome EXTRA_TEST_ARGS=--browser-arg=""
+	test -L $(INJECTED_GAIA) || ln -s $(CURDIR) $(INJECTED_GAIA)
+	TEST_PATH=$(TEST_PATH) make -C $(MOZ_OBJDIR) mochitest-browser-chrome EXTRA_TEST_ARGS="--browser-arg=\"\" --extra-profile-file=$(CURDIR)/profile/webapps --extra-profile-file=$(CURDIR)/profile/OfflineCache"
 
 
 ###############################################################################
@@ -164,8 +169,8 @@ delete-databases:
 
 # Take a screenshot of the device and put it in screenshot.png
 screenshot:
-	mkdir screenshotdata
-	$(ADB) pull /dev/graphics/fb0 screenshotdata/fb0 
+	mkdir -p screenshotdata
+	$(ADB) pull /dev/graphics/fb0 screenshotdata/fb0
 	dd bs=1920 count=800 if=screenshotdata/fb0 of=screenshotdata/fb0b
 	ffmpeg -vframes 1 -vcodec rawvideo -f rawvideo -pix_fmt rgb32 -s 480x800 -i screenshotdata/fb0b -f image2 -vcodec png screenshot.png
 	rm -rf screenshotdata
@@ -192,6 +197,9 @@ update-offline-manifests:
 			find * -type f | grep -v tools | sort >> manifest.appcache ;\
 			$(SED_INPLACE_NO_SUFFIX) -e 's|manifest.appcache||g' manifest.appcache ;\
 			echo "http://$(GAIA_DOMAIN)/webapi.js" >> manifest.appcache ;\
+			echo "NETWORK:" >> manifest.appcache ;\
+			echo "http://*" >> manifest.appcache ;\
+			echo "https://*" >> manifest.appcache ;\
 			cd .. ;\
 		fi \
 	done
@@ -213,3 +221,5 @@ install-gaia: profile
 	$(ADB) shell kill $(shell $(ADB) shell toolbox ps | grep "b2g" | awk '{ print $$2; }')
 	@echo 'Rebooting b2g now'
 
+httpd:
+	python tools/httpd.py

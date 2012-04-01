@@ -322,12 +322,13 @@ div.windowSprite {
   border-radius: 10px;
   z-index: 20003;
   -moz-transition: opacity 0.5s ease;
-  opacity: 0;
   pointer-events: none;
+  display: none;
 }
 
 #volume.visible {
-  opacity: 1.0;
+  pointer-events: auto;
+  display: block;
 }
 
 #volume.off {
@@ -411,13 +412,14 @@ div.windowSprite {
   z-index: 20002;
   pointer-events: none;
   background-color: rgba(0,0,0,0.4);
-  opacity: 0;
   -moz-transition: opacity 0.5s ease;
+  pointer-events: none;
+  display: none;
 }
 
 #sleep.visible {
   pointer-events: auto;
-  opacity: 1;
+  display: block;
 }
 
 .sleep-menu {
@@ -481,15 +483,15 @@ div.windowSprite {
   width: 100%;
   height: 100%;
   z-index: 20001; /* just below the sleep menu */
-  pointer-events: none;
   background-color: rgba(0,0,0,0.4);
-  opacity: 0;
   -moz-transition: opacity 0.5s ease;
+  pointer-events: none;
+  display: none;
 }
 
 #permissionscreen.visible {
   pointer-events: auto;
-  opacity: 1;
+  display: block;
 }
 
 #permissiondialog {

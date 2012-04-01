@@ -85,7 +85,7 @@ function silentOK(condition, message) {
 // Write tests like this:
 //
 //  function generatorTest() {
-//    yield testApp("../dialer/dialer.html", dialerTest)
+//    yield testApp("http://dialer.gaiamobile.org/", dialerTest)
 //  }
 //
 // function dialerTest(window, document, nextStep) {...}
@@ -141,6 +141,7 @@ function testApp(url, testfunc) {
     silentOK(!contentWin.LockScreen.locked, 'screen did not unlock');
 
     // Find all the icons on the homescreen
+    yield until(function() contentDoc.querySelectorAll('#apps > .page > .icon').length > 0, nextStep);
     var icons = contentDoc.querySelectorAll('#apps > .page > .icon');
     silentOK(icons.length > 0, 'no homescreen icons found');
     var icon = null;

@@ -572,7 +572,7 @@ var SleepMenu = {
 
             var settings = window.navigator.mozSettings;
             if (settings)
-              settings.getLock().get({'phone.ring.incoming': true});
+              settings.getLock().set({'phone.ring.incoming': true});
 
             document.getElementById('silent').hidden = false;
             document.getElementById('normal').hidden = true;
@@ -607,7 +607,7 @@ var SettingsListener = {
   _callbacks: {},
 
   init: function sl_init() {
-    if ('mozSettings' in navigator)
+    if ('mozSettings' in navigator && navigator.mozSettings)
       navigator.mozSettings.onsettingchange = this.onchange.bind(this);
   },
 
@@ -764,9 +764,9 @@ SettingsListener.observe('homescreen.wallpaper', 'default.png', function(value) 
 });
 
 /* === Ring Tone === */
+var selectedPhoneSound = "";
 SettingsListener.observe('homescreen.ring', 'classic.wav', function(value) {
-  var player = document.getElementById('ringtone-player');
-  player.src = 'style/ringtones/' + value;
+    selectedPhoneSound = 'style/ringtones/' + value;
 });
 
 var activePhoneSound = true;
@@ -778,6 +778,15 @@ SettingsListener.observe('phone.ring.incoming', true, function(value) {
 var activateVibration = false;
 SettingsListener.observe('phone.vibration.incoming', false, function(value) {
   activateVibration = !!value;
+});
+
+/* === Invert Display === */
+SettingsListener.observe('accessibility.invert', false, function(value) {
+  var screen = document.getElementById('screen');
+  if (value)
+    screen.classList.add('accessibility-invert');
+  else
+    screen.classList.remove('accessibility-invert');
 });
 
 /* === KeyHandler === */
@@ -961,7 +970,8 @@ var TelephonyListener = function() {
     }
 
     var ringtonePlayer = document.getElementById('ringtone-player');
-    if (activePhoneSound) {
+    if (activePhoneSound && selectedPhoneSound) {
+      ringtonePlayer.src = selectedPhoneSound;
       ringtonePlayer.play();
     }
 
@@ -970,6 +980,7 @@ var TelephonyListener = function() {
         call.onstatechange = function() {
           call.oncallschanged = null;
           ringtonePlayer.pause();
+          ringtonePlayer.src = "";
           window.clearInterval(vibrateInterval);
         };
       }
@@ -1030,6 +1041,8 @@ function AppScreen() {
   navigator.mozApps.mgmt.getAll().onsuccess = function(e) {
     var apps = e.target.result;
     apps.forEach(function(app) {
+      if (app.origin == document.location)
+        return;
       appscreen.installedApps[app.origin] = app;
     });
     appscreen.build();
@@ -1042,7 +1055,12 @@ function AppScreen() {
       var app = e.detail.app;
 
       // Note: we could use `requestPermission(_('install', app), ...)`
-      requestPermission(_('install', { name: app.name, origin: app.origin }),
+      var name = app.manifest.name;
+      if (app.manifest.locales &&
+          app.manifest.locales[lang] &&
+          app.manifest.locales[lang].name)
+        name = app.manifest.locales[lang].name;
+      requestPermission(_('install', { name: name, origin: app.origin }),
                         function() { sendResponse(e.detail.id, true); },
                         function() { sendResponse(e.detail.id, false); });
     }
@@ -1058,23 +1076,27 @@ function AppScreen() {
     }
   });
 
-  // Listen for app installations and rebuild the appscreen when we get one
-  navigator.mozApps.mgmt.oninstall = function(event) {
-    var newapp = event.application;
-    appscreen.installedApps[newapp.origin] = newapp;
-    appscreen.build(true);
-  };
-
-  // Do the same for uninstalls
-  navigator.mozApps.mgmt.onuninstall = function(event) {
-    var newapp = event.application;
-    delete appscreen.installedApps[newapp.origin];
-    appscreen.build(true);
-  };
-
   window.addEventListener('resize', function() {
     appscreen.grid.update();
   });
+
+  // Installing these handlers on desktop causes JS execution to stop silently,
+  // so work around that for now here.
+  if (navigator.userAgent.indexOf('Mobile') != -1) {
+    // Listen for app installations and rebuild the appscreen when we get one
+    navigator.mozApps.mgmt.oninstall = function(event) {
+      var newapp = event.application;
+      appscreen.installedApps[newapp.origin] = newapp;
+      appscreen.build(true);
+    };
+
+    // Do the same for uninstalls
+    navigator.mozApps.mgmt.onuninstall = function(event) {
+      var newapp = event.application;
+      delete appscreen.installedApps[newapp.origin];
+      appscreen.build(true);
+    };
+  }
 }
 
 // Look up the app object for a specified app origin
