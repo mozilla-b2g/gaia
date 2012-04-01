@@ -1,34 +1,34 @@
 {
   "Facebook": {
     "url" : "http://touch.facebook.com",
-    "icon": "/style/icons/Facebook.png"
+    "icon": "style/icons/Facebook.png"
   },
   "GMail": {
     "url" : "http://mail.google.com/mail/mu",
-    "icon": "/style/icons/GMail.png"
+    "icon": "style/icons/GMail.png"
   },
   "Calendar": {
     "url" : "http://google.com/calendar/gp",
-    "icon": "/style/icons/GoogleCalendar.png"
+    "icon": "style/icons/GoogleCalendar.png"
   },
   "Zimbra": {
     "url" : "http://mail.mozilla.com/zimbra/m",
-    "icon": "/style/icons/Zimbra.png"
+    "icon": "style/icons/Zimbra.png"
   },
   "Wikipedia": {
     "url" : "http://en.m.wikipedia.org/",
-    "icon": "/style/icons/Wikipedia.png"
+    "icon": "style/icons/Wikipedia.png"
   },
   "CNN": {
     "url" : "http://m.cnn.com/",
-    "icon": "/style/icons/CNN.png"
+    "icon": "style/icons/CNN.png"
   },
   "BBC": {
     "url" : "http://m.bbc.co.uk/",
-    "icon": "/style/icons/BBC.png"
+    "icon": "style/icons/BBC.png"
   },
   "NY Times": {
     "url" : "http://m.nytimes.com/",
-    "icon": "/style/icons/NYT.png"
+    "icon": "style/icons/NYT.png"
   }
 }

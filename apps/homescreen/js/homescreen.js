@@ -1163,10 +1163,6 @@ AppScreen.prototype.build = function(rebuild) {
     var app = this.installedApps[origin];
 
     // Most apps will host their own icons at their own origin.
-    // But for apps that are bookmarks to other sites, the icons
-    // should probably be a data:// URL.  So take the icon from the
-    // manifest, and if it is an absolute URL, leave it alone.
-    // Otherwise, put the app origin in front of it.
     // If no icon is defined we'll get this undefined one.
     var icon = 'http://' + document.location.host + '/style/icons/Unknown.png';
     if (app.manifest.icons) {
