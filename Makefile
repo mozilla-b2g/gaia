@@ -56,8 +56,7 @@ LANG=POSIX # Avoiding sort order differences between OSes
 manifests:
 	@echo "Generated webapps"
 	@mkdir -p profile/webapps
-	@cp apps/webapps.json profile/webapps
-	@sed -i$(SED_INPLACE_NO_SUFFIX) -e 's|gaiamobile.org|$(GAIA_DOMAIN)|g' profile/webapps/webapps.json
+	@echo { > profile/webapps/webapps.json
 	@cd apps; \
 	for d in `find * -maxdepth 0 -type d` ;\
 	do \
@@ -65,8 +64,18 @@ manifests:
 		then \
 		  mkdir -p ../profile/webapps/$$d; \
 		  cp $$d/manifest.json ../profile/webapps/$$d  ;\
+      \
+			echo  \"$$d\": {\\n \
+			      \"origin\": \"http://$$d.$(GAIA_DOMAIN)\", \\n\
+			      \"installOrigin\": \"http://$$d.$(GAIA_DOMAIN)\",\\n \
+			      \"receipt\": null,\\n \
+			      \"installTime\": 132333986000\\n \
+            }, >> ../profile/webapps/webapps.json;\
 		fi \
 	done
+	@$(SED_INPLACE_NO_SUFFIX) -e '$$s|,||' profile/webapps/webapps.json
+	@echo } >> profile/webapps/webapps.json
+	@cat profile/webapps/webapps.json
 	@echo "Done"
 
 
