@@ -151,22 +151,6 @@ tests: manifests offline
 stamp-commit-hash:
 	git rev-parse HEAD > apps/settings/gaia-commit.txt
 
-# Copy the app manifest files to the profile dir where the
-# mozApps API can find them. For desktop usage, you must create
-# a symbolic link from your profile directory to $GAIA/profile/webapps
-copy-manifests:
-	@mkdir -p profile/webapps
-	@cp apps/webapps.json profile/webapps
-	@$(SED_INPLACE_NO_SUFFIX) -e 's|gaiamobile.org|$(GAIA_DOMAIN)|g' profile/webapps/webapps.json
-	@cd apps; \
-	for d in `find * -maxdepth 0 -type d` ;\
-	do \
-	  if [ -f $$d/manifest.json ]; \
-		then \
-		  mkdir -p ../profile/webapps/$$d; \
-		  cp $$d/manifest.json ../profile/webapps/$$d  ;\
-		fi \
-	done
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 delete-databases:
