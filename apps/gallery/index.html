@@ -7,9 +7,11 @@
     <link rel="stylesheet" href="style/gallery.css" type="text/css" />
     <link rel="resource" type="application/l10n" href="locale/gallery.properties" />
     <script>
-      var host = document.location.host.replace(/^[a-z]+\./i,'');
-      var src = 'http://' + host + '/webapi.js';
+      var host = document.location.host;
+      var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+      var src = 'http://' + domain + '/webapi.js';
       document.write('<script src="' + src + '"><\/script>');
+    </script>
     </script>
     <script type="text/javascript" src="js/gallery.js"></script>
   </head>
