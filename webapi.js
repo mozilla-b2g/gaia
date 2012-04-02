@@ -1177,18 +1177,47 @@
 
   // load and parse the specified resource file
   function loadResource(href, lang, onSuccess, onFailure) {
-    var xhr = new XMLHttpRequest();
+    // create a list of links based on the locale and the file to load
+    var path, resName, resources = [];
+
+    path = href.substr(0, href.lastIndexOf('/') + 1);
+    resName = href.substr(href.lastIndexOf('/') + 1);
+
+    resources.push(href);
+    /* A file per locale, we could even try to do fallback
+    * to parent resources like es-MX -> es
+    * Current format: path / <locale> / resource_name
+    */
+    resources.push(path + lang + '/' + resName);
+
+    loadResourceFromList(resources, lang, onSuccess, onFailure);
+  }
+
+  // load an specific resource from a list, fallback to the next one if failed
+  function loadResourceFromList(resources, lang, onSuccess, onFailure) {
+    if (!Array.isArray(resources) || resources.length == 0) {
+      if (onFailure) {
+        onFailure();
+      } else {
+        return;
+      }
+    }
+
+    var xhr, href = resources.pop();
+    xhr = new XMLHttpRequest();
     xhr.open('GET', href, true);
-    xhr.overrideMimeType('text/plain; charset=utf-8');
     xhr.onreadystatechange = function() {
       if (xhr.readyState == 4) {
-        if (xhr.status == 200 || xhr.status == 0) {
+        if (xhr.status == 200) {
           parse(xhr.responseText, lang);
           if (onSuccess)
             onSuccess();
         } else {
-          if (onFailure)
+          if (resources.length == 0 && onFailure) {
             onFailure();
+          } else {
+            loadResourceFromList(resources, lang, onSuccess, onFailure);
+          }
         }
       }
     };
