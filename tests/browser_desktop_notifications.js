@@ -1,6 +1,6 @@
 function generatorTest() {
   waitForExplicitFinish();
-  yield testApp('http://dialer.gaiamobile.org/', testDesktopNotifications);
+  yield testApp('http://dialer.gaiamobile.org', testDesktopNotifications);
   finish();
 }
 

@@ -268,7 +268,7 @@ var NotificationScreen = {
 
     window.addEventListener('mozChromeEvent', function(e) {
       var detail = e.detail;
-      if (e.detail.type == 'desktop-notification') {
+      if (detail.type == 'desktop-notification') {
         NotificationScreen.addNotification('desktop-notification',
                                             detail.title, detail.text,
                                             detail.id);
@@ -276,7 +276,7 @@ var NotificationScreen = {
         var hasNotifications = document.getElementById('state-notifications');
         hasNotifications.dataset.visible = 'true';
       }
-    }, false);
+    });
 
     var self = this;
     var notifications = this.container;
