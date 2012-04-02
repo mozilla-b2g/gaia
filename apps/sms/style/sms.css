@@ -75,6 +75,20 @@ body.transition-back #view {
   border-top: solid 3px #9b9b9b;
 }
 
+.toolbar-panel {
+  display: -moz-box;
+  -moz-box-orient: horizontal;
+  width: 100%;
+}
+
+.toolbar-panel-item {
+  -moz-box-flex: 1;
+}
+
+.toolbar-panel-fixed-item {
+  -moz-box-flex: 0;
+}
+
 /* media queries for removing rounded border when keyboard is shown */
 @media screen and (max-height: 700px) {
   .toolbar-bottom {
@@ -257,10 +271,10 @@ body.conversation-new-msg #view-name {
 
 #view-num {
   display: block;
-  margin: 10px 144px;
+  margin: 10px 152px;
   padding: 0 20px;
   -moz-box-sizing: border-box;
-  width: -moz-calc(100% - 288px);
+  width: -moz-calc(100% - 300px);
 }
 
 body.conversation-new-msg #view-num {
@@ -382,11 +396,10 @@ body.conversation-new-msg #view-num {
 #view-bottom-toolbar {
   background: url('images/diagonal-gray-pattern.png'),
   -moz-linear-gradient(center top , rgb(244, 244, 244), rgb(234, 234, 234)) repeat scroll 0% 0% transparent;
+  padding-right: 16px;
 }
 
 #view-msg-text-container {
-  float: left;
-  width: -moz-calc(100% - 128px);
 }
 
 #view-msg-text {
@@ -405,14 +418,9 @@ body.conversation-new-msg #view-num {
 }
 
 #view-msg-send-container {
-  float: left;
-  width: 118px;
 }
 
 #view-msg-send {
-  display: block;
-  width: 96px;
-  height: 48px;
   margin: 14px 0 0 16px;
   font-size: 24px;
   font-weight: bold;
