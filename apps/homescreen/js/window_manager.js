@@ -424,8 +424,10 @@ var WindowManager = (function() {
   window.addEventListener('mozChromeEvent', function(e) {
     if (e.detail.type === 'webapps-launch') {
       var origin = e.detail.origin;
-      if (isRunning(origin))
+      if (isRunning(origin)) {
+        setDisplayedApp(origin);
         return;
+      }
 
       var app = appscreen.getAppByOrigin(origin);
       appendFrame(origin, e.detail.url, app.manifest.name, app.manifest);

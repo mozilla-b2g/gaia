@@ -22,16 +22,16 @@ function startup() {
   if (!appscreen) { // first start: init
     appscreen = new AppScreen();
 
+    var touchables = [
+      document.getElementById('notifications-screen'),
+      document.getElementById('statusbar')
+    ];
+
+    NotificationScreen.init(touchables);
+
     LockScreen.init();
     LockScreen.update(function fireHomescreenReady() {
       ScreenManager.turnScreenOn();
-
-      var touchables = [
-        document.getElementById('notifications-screen'),
-        document.getElementById('statusbar')
-      ];
-
-      NotificationScreen.init(touchables);
 
       new MessagesListener();
       new TelephonyListener();
@@ -257,9 +257,57 @@ var NotificationScreen = {
     return screenHeight;
   },
 
+  get container() {
+    delete this.container;
+    return this.container = document.getElementById('notifications-container');
+  },
+
   init: function ns_init(touchables) {
     this.touchables = touchables;
     this.attachEvents(touchables);
+
+    window.addEventListener('mozChromeEvent', function notificationListener(e) {
+      var detail = e.detail;
+      if (detail.type == 'desktop-notification') {
+        NotificationScreen.addNotification('desktop-notification',
+                                            detail.title, detail.text,
+                                            detail.id);
+
+        var hasNotifications = document.getElementById('state-notifications');
+        hasNotifications.dataset.visible = 'true';
+      }
+    });
+
+    var self = this;
+    var notifications = this.container;
+    notifications.addEventListener('click', function notificationClick(evt) {
+      var target = evt.target;
+      var closing = false;
+
+      // Handling the close button
+      if (target.classList.contains('close')) {
+        closing = true;
+        target = target.parentNode;
+      }
+
+      self.removeNotification(target);
+
+      var type = target.dataset.type;
+      if (type != 'desktop-notification')
+        return;
+
+      var event = document.createEvent('CustomEvent');
+      event.initCustomEvent('mozContentEvent', true, true, {
+        type: closing ?
+          'desktop-notification-close' : 'desktop-notification-click',
+        id: target.dataset.notificationID
+      });
+      window.dispatchEvent(event);
+
+      // And hide the notification tray
+      if (!closing)
+        self.unlock();
+    });
   },
 
   onTouchStart: function ns_onTouchStart(e) {
@@ -343,44 +391,69 @@ var NotificationScreen = {
     evt.preventDefault();
   },
 
-  addNotification: function ns_addNotification(type, sender, body) {
-    var notifications = document.getElementById('notifications-container');
+  addNotification: function ns_addNotification(type, nTitle, body, nID) {
+    var notifications = this.container;
     // First look if there is already one message from the same
     // source. If there is one, let's aggregate them.
-    var children = notifications.querySelectorAll('div[data-type="' + type + '"]');
+    var smsNotifSelector = 'div[data-type="sms"]';
+    var children = notifications.querySelectorAll(smsNotifSelector);
     for (var i = 0; i < children.length; i++) {
       var notification = children[i];
-      if (notification.dataset.sender != sender)
+      if (notification.dataset.sender != nTitle)
         continue;
 
       var unread = parseInt(notification.dataset.count) + 1;
-      var msg = (type == 'sms') ?
-        _('unreadMessages', { n: unread }) : _('missedCalls', { n: unread });
-      notification.lastElementChild.textContent = msg;
+      var msg = _('unreadMessages', { n: unread });
+      notification.querySelector('div.detail').textContent = msg;
       return;
     }
 
     var notification = document.createElement('div');
     notification.className = 'notification';
     notification.dataset.type = type;
-    notification.dataset.sender = sender;
-    notification.dataset.count = 1;
+
+    if (type == 'sms') {
+      notification.dataset.count = 1;
+      notification.dataset.sender = nTitle;
+    }
+
+    if (type == 'desktop-notification') {
+      notification.dataset.notificationID = nID;
+    }
 
     var title = document.createElement('div');
-    title.textContent = sender;
-
+    title.textContent = nTitle;
     notification.appendChild(title);
 
     var message = document.createElement('div');
+    message.classList.add('detail');
     message.textContent = body;
     notification.appendChild(message);
+
+    var close = document.createElement('a');
+    close.className = 'close';
+    notification.appendChild(close);
 
     notifications.appendChild(notification);
   },
 
+  removeNotification: function ns_removeNotification(notification) {
+    notification.parentNode.removeChild(notification);
+
+    // Hiding the notification indicator in the status bar
+    // if this is the last desktop notification
+    var notifSelector = 'div[data-type="desktop-notification"]';
+    var desktopNotifications = this.container.querySelectorAll(notifSelector);
+    if (desktopNotifications.length == 0) {
+      var hasNotifications = document.getElementById('state-notifications');
+      delete hasNotifications.dataset.visible;
+    }
+  },
+
   removeNotifications: function ns_removeNotifications(type) {
-    var notifications = document.getElementById('notifications-container');
-    var children = notifications.querySelectorAll('div[data-type="' + type + '"]');
+    var notifications = this.container;
+    var typeSelector = 'div[data-type="' + type + '"]';
+    var children = notifications.querySelectorAll(typeSelector);
     for (var i = children.length - 1; i >= 0; i--) {
       var notification = children[i];
       notification.parentNode.removeChild(notification);
@@ -988,48 +1061,6 @@ var TelephonyListener = function() {
 
     WindowManager.launch('http://dialer.' + domain);
   });
-
-  // Handling the missed call notification
-  var hasMissedCalls = document.getElementById('state-calls');
-
-  window.addEventListener('message', function settingChange(evt) {
-    if ((evt.data) && (typeof(evt.data) != 'string') &&
-        (evt.data.type) && (evt.data.type == 'missed-call')) {
-
-      hasMissedCalls.dataset.visible = 'true';
-      NotificationScreen.addNotification('call', evt.data.sender, 'Missed call');
-    }
-  });
-
-  window.addEventListener('appopen', function onAppOpen(evt) {
-    // If the dialer application is opened, just delete all messages
-    // notifications
-    var applicationURL = evt.detail.url;
-
-    var matcher = new RegExp('/dialer\.' + domain);
-    if (!matcher.test(applicationURL))
-      return;
-
-    delete hasMissedCalls.dataset.visible;
-    NotificationScreen.removeNotifications('call');
-  });
-
-  var notifications = document.getElementById('notifications-container');
-  notifications.addEventListener('click', function notificationClick(evt) {
-    var notification = evt.target;
-    var sender = notification.dataset.sender;
-    var type = notification.dataset.type;
-    if (type != 'call')
-      return;
-
-    NotificationScreen.unlock(true);
-
-    // FIXME: we'd really like to launch the the "Recent calls" view
-    // of the dialer app, but don't have a good way to do it.
-    // This should be replaced with a web intent or similar.
-    WindowManager.launch('http://dialer.' + domain
-                         /* '?choice=recents' */);
-  });
 };
 
 /* === AppScreen === */
@@ -1517,7 +1548,7 @@ IconGrid.prototype = {
 
       var calc = (document.dir == 'ltr') ?
         (n - currentPage) + '00% + ' + x + 'px' :
-        (currentPage - n) + '00% + ' + x + 'px' ;
+        (currentPage - n) + '00% - ' + x + 'px';
 
       var style = page.style;
       style.MozTransform = 'translateX(-moz-calc(' + calc + '))';
