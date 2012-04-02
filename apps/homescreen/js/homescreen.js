@@ -133,57 +133,89 @@ var LockScreen = {
     window.addEventListener('MozAfterPaint', afterPaintCallback);
   },
 
-  unlock: function lockscreen_unlock(instant, callback) {
-    var offset = '-100%';
+  // Unlock the lockscreen, doing an animation for the specified time.
+  // Call the callback, if there is one, without waiting for the
+  // animation to complete.
+  // If no time is specified use a default of 0.2 seconds.
+  // For backward compatibility, you can pass true as the first argument
+  // for a time of 0.
+  unlock: function lockscreen_unlock(time, callback) {
     var style = this.overlay.style;
+    var wasAlreadyUnlocked = !this.locked;
 
-    if (!this.locked) {
-      if (instant) {
-        style.MozTransition = style.MozTransform = '';
-      } else {
-        style.MozTransition = '-moz-transform 0.2s linear';
-      }
-      style.MozTransform = 'translateY(' + offset + ')';
-      if (callback)
-        setTimeout(callback, 0, false);
-      return;
-    }
+    if (time == undefined)
+      time = 0.2;
+    else if (time === true)
+      time = 0;
 
     this.locked = false;
-    style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
-    style.MozTransform = 'translateY(' + offset + ')';
+    if (time === 0)
+      style.MozTransition = style.MozTransform = '';
+    else
+      style.MozTransition = '-moz-transform ' + time + 's linear';
+    style.MozTransform = 'translateY(-100%)';
 
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('unlocked', true, true, null);
-    window.dispatchEvent(evt);
+    if (!wasAlreadyUnlocked) {
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent('unlocked', true, true, null);
+      window.dispatchEvent(evt);
+    }
 
     if (callback)
       setTimeout(callback, 0, false);
   },
 
   onTouchStart: function lockscreen_touchStart(e) {
-    this.startX = e.pageX;
-    this.startY = e.pageY;
+    this.startY = this.lastY = e.pageY;
+    this.lastTime = e.timeStamp;
+    this.velocity = 0;
     this.moving = true;
   },
 
   onTouchMove: function lockscreen_touchMove(e) {
     if (this.moving) {
-      var dy = Math.min(0, -(this.startY - e.pageY));
+      this.velocity = (this.lastY - e.pageY) / (e.timeStamp - this.lastTime);
+      this.lastY = e.pageY;
+      this.lastTime = e.timeStamp;
+      var dy = Math.max(0, this.startY - e.pageY);
       var style = this.overlay.style;
       style.MozTransition = '';
-      style.MozTransform = 'translateY(' + dy + 'px)';
+      style.MozTransform = 'translateY(' + (-dy) + 'px)';
     }
   },
+
+  // Tune these parameters to make the lockscreen unlock feel right
+  FRICTION: 0.01,           // pixels/ms/ms
+  UNLOCK_THRESHOLD: 0.25,    // fraction of screen height
 
   onTouchEnd: function lockscreen_touchend(e) {
     if (this.moving) {
       this.moving = false;
-      var dy = Math.min(0, -(this.startY - e.pageY));
-      if (dy > -window.innerHeight / 4)
+
+      // Physics:
+      // An object moving with a velocity v against a frictional
+      // deceleration a will travel a distance of 0.5*v*v/a before
+      // coming to rest (I think).
+      //
+      // If the user's gesture plus the distance due to the gesture velocity
+      // is more than the unlock threshold times screen height,
+      // unlock the phone. Otherwise move the lockscreen back down again.
+      //
+      var dy = Math.max(0, this.startY - e.pageY);
+      var distance = dy +
+        0.5 * this.velocity * this.velocity / LockScreen.FRICTION;
+
+      if (distance > window.innerHeight * LockScreen.UNLOCK_THRESHOLD) {
+        // Perform the animation at the gesture velocity
+        var distanceRemaining = window.innerHeight - dy;
+        var timeRemaining = distanceRemaining / this.velocity / 1000;
+        // But don't take longer than 1/2 second to complete it.
+        timeRemaining = Math.min(timeRemaining, .5);
+        this.unlock(timeRemaining);
+      }
+      else {
         this.lock();
-      else
-        this.unlock();
+      }
     }
   },
 
