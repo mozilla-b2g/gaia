@@ -97,7 +97,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
         // sort networks: connected network first, then by signal strength
         var ssids = Object.getOwnPropertyNames(networks);
         ssids.sort(function(a, b) {
-          return isConnected(networks[b]) ?  100 :
+          return isConnected(networks[b]) ? 100 :
             networks[b].signal - networks[a].signal;
         });
 
