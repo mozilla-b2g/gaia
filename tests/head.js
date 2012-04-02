@@ -137,7 +137,7 @@ function testApp(url, testfunc) {
     // Unlock the screen
     // FIXME: I used to do this by sending swipe events, but it broke
     // for some reason, so now we just call a homescreen module to do it
-    yield contentWin.LockScreen.unlock(false, nextStep);
+    yield contentWin.LockScreen.unlock(0, nextStep);
     silentOK(!contentWin.LockScreen.locked, 'screen did not unlock');
 
     // Find all the icons on the homescreen
