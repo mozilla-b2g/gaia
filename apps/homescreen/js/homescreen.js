@@ -266,7 +266,7 @@ var NotificationScreen = {
     this.touchables = touchables;
     this.attachEvents(touchables);
 
-    window.addEventListener('mozChromeEvent', function(e) {
+    window.addEventListener('mozChromeEvent', function notificationListener(e) {
       var detail = e.detail;
       if (detail.type == 'desktop-notification') {
         NotificationScreen.addNotification('desktop-notification',
