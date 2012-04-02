@@ -21,16 +21,16 @@ function startup() {
   if (!appscreen) { // first start: init
     appscreen = new AppScreen();
 
+    var touchables = [
+      document.getElementById('notifications-screen'),
+      document.getElementById('statusbar')
+    ];
+
+    NotificationScreen.init(touchables);
+
     LockScreen.init();
     LockScreen.update(function fireHomescreenReady() {
       ScreenManager.turnScreenOn();
-
-      var touchables = [
-        document.getElementById('notifications-screen'),
-        document.getElementById('statusbar')
-      ];
-
-      NotificationScreen.init(touchables);
 
       new MessagesListener();
       new TelephonyListener();
