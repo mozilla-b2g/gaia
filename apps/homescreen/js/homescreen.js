@@ -5,6 +5,7 @@
 
 var _ = document.mozL10n.get;
 
+var bookmarks = null;
 
 // The appscreen is the main part of the homescreen: the part that
 // displays icons that launch all of the installed apps.
@@ -994,7 +995,7 @@ var MessagesListener = function() {
     // We'd really like to launch the SMS app to show
     // a particular sender, but don't have a good way to do it.
     // This should be replaced with a web intent or similar.
-    WindowManager.launch('http://sms.gaiamobile.org/'
+    WindowManager.launch('http://sms.' + domain
                          /* +'?sender=' + sender*/);
   });
 
@@ -1014,8 +1015,7 @@ var MessagesListener = function() {
     // If the sms application is opened, just delete all messages
     // notifications
     var applicationURL = evt.detail.url;
-    var host = document.location.host.replace(/^[a-z]+\./i,'');
-    var matcher = new RegExp('/sms\.' + host);
+    var matcher = new RegExp('/sms\.' + domain);
     if (!matcher.test(applicationURL))
       return;
 
@@ -1059,7 +1059,7 @@ var TelephonyListener = function() {
       }
     });
 
-    WindowManager.launch('http://dialer.gaiamobile.org/');
+    WindowManager.launch('http://dialer.' + domain);
   });
 };
 
@@ -1070,12 +1070,28 @@ function AppScreen() {
 
   navigator.mozApps.mgmt.getAll().onsuccess = function(e) {
     var apps = e.target.result;
+    
+    var lastSlash = new RegExp(/\/$/);
+    var currentHost = document.location.toString().replace(lastSlash, '');
     apps.forEach(function(app) {
-      if (app.origin == document.location)
+      if (app.origin.replace(lastSlash, '') == currentHost)
         return;
       appscreen.installedApps[app.origin] = app;
     });
-    appscreen.build();
+
+    var req = new XMLHttpRequest();
+    req.open('GET', 'js/bookmarks.json', true);
+    req.responseType = 'json';
+    req.send(null);
+
+    req.onload = function bookmarks_load(evt) {
+      bookmarks = req.response;
+      appscreen.build();
+    };
+
+    req.onerror = function bookmarks_error(evt) {
+      appscreen.build();
+    };
   };
 
   // Listen for app installation requests
@@ -1179,10 +1195,6 @@ AppScreen.prototype.build = function(rebuild) {
     var app = this.installedApps[origin];
 
     // Most apps will host their own icons at their own origin.
-    // But for apps that are bookmarks to other sites, the icons
-    // should probably be a data:// URL.  So take the icon from the
-    // manifest, and if it is an absolute URL, leave it alone.
-    // Otherwise, put the app origin in front of it.
     // If no icon is defined we'll get this undefined one.
     var icon = 'http://' + document.location.host + '/style/icons/Unknown.png';
     if (app.manifest.icons) {
@@ -1216,6 +1228,12 @@ AppScreen.prototype.build = function(rebuild) {
       name = app.manifest.locales[lang].name;
 
     this.grid.add(icon, name, origin);
+  }
+
+  for (var name in bookmarks) {
+    var bookmark = bookmarks[name];
+    var icon = document.location + bookmark.icon;
+    this.grid.add(icon, name, bookmark.url);
   }
 
   this.grid.update();

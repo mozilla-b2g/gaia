@@ -810,7 +810,8 @@ const IMEManager = {
 
             window.navigator.mozKeyboard.sendKey(0, keyCode);
 
-            if (this.isUpperCase && !this.isUpperCaseLocked) {
+            if (this.isUpperCase &&
+                !this.isUpperCaseLocked && !this.currentKeyboardMode) {
               this.isUpperCase = false;
               this.updateLayout();
             }
@@ -1014,6 +1015,14 @@ const IMEManager = {
     // Inject the HTML and assign this.menu & this.keyHighlight
 
     this.ime.innerHTML = content;
+
+    if (this.isUpperCaseLocked && this.isUpperCase) {
+      var shiftKey = document.querySelector(
+        'span[data-keycode="' + KeyEvent.DOM_VK_CAPS_LOCK + '"]');
+      if (shiftKey)
+        shiftKey.dataset.enabled = 'true';
+    }
+
     this.menu = document.getElementById('keyboard-accent-char-menu');
     this.keyHighlight = document.getElementById('keyboard-key-highlight');
 

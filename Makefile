@@ -8,7 +8,8 @@
 #               you need to have adb in your path or you can edit this line to#
 #               specify its location.                                         #
 #                                                                             #
-# DEBUG       : If you want to activate more debugging options                #
+# DEBUG       : debug mode enables mode output on the console and disable the #
+#               the offline cache. This is mostly for desktop debugging.      #
 #                                                                             #
 ###############################################################################
 GAIA_DOMAIN?=gaiamobile.org
@@ -16,6 +17,7 @@ GAIA_DOMAIN?=gaiamobile.org
 ADB?=adb
 
 DEBUG?=0
+
 
 ###############################################################################
 # The above rules generate the profile/ folder and all it's content.          #
@@ -35,6 +37,19 @@ DEBUG?=0
 #                                                                             #
 ###############################################################################
 
+# In debug mode the offline cache is not used (even if it is generated) and
+# Gaia is loaded by a built-in web server via port GAIA_PORT.
+# 
+# XXX For now the name of the domain should be mapped to localhost manually
+# by editing /etc/hosts on linux/mac. This steps would not be required 
+# anymore once https://bugzilla.mozilla.org/show_bug.cgi?id=722197 will land.
+ifeq ($(DEBUG),1)
+GAIA_PORT=:8080
+else
+GAIA_PORT=
+endif
+
+
 # what OS are we on?
 SYS=$(shell uname -s)
 
@@ -47,7 +62,7 @@ SED_INPLACE_NO_SUFFIX = sed -i
 endif
 
 # Generate profile/
-profile: stamp-commit-hash update-offline-manifests preferences manifests offline
+profile: stamp-commit-hash update-offline-manifests preferences manifests offline extensions
 	@echo "\nProfile Ready: please run [b2g|firefox] -profile $(CURDIR)/profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
@@ -56,8 +71,7 @@ LANG=POSIX # Avoiding sort order differences between OSes
 manifests:
 	@echo "Generated webapps"
 	@mkdir -p profile/webapps
-	@cp apps/webapps.json profile/webapps
-	@sed -i$(SED_INPLACE_NO_SUFFIX) -e 's|gaiamobile.org|$(GAIA_DOMAIN)|g' profile/webapps/webapps.json
+	@echo { > profile/webapps/webapps.json
 	@cd apps; \
 	for d in `find * -maxdepth 0 -type d` ;\
 	do \
@@ -65,8 +79,18 @@ manifests:
 		then \
 		  mkdir -p ../profile/webapps/$$d; \
 		  cp $$d/manifest.json ../profile/webapps/$$d  ;\
+      \
+			echo  \"$$d\": {\\n \
+			      \"origin\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)\", \\n\
+			      \"installOrigin\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)\",\\n \
+			      \"receipt\": null,\\n \
+			      \"installTime\": 132333986000\\n \
+            }, >> ../profile/webapps/webapps.json;\
 		fi \
 	done
+	@$(SED_INPLACE_NO_SUFFIX) -e '$$s|,||' profile/webapps/webapps.json
+	@echo } >> profile/webapps/webapps.json
+	@cat profile/webapps/webapps.json
 	@echo "Done"
 
 
@@ -76,7 +100,7 @@ offline: install-xulrunner
 	@rm -rf profile/OfflineCache
 	@mkdir -p profile/OfflineCache
 	@cd ..
-	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)"' offline-cache.js
+	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)$(GAIA_PORT)"' offline-cache.js
 	@echo "Done"
 
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up
@@ -105,9 +129,27 @@ endif
 
 # Generate profile/prefs.js
 preferences: install-xulrunner
-	@mkdir -p profile
 	@echo "Generating prefs.js..."
-	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)"; const DEBUG = $(DEBUG)' preferences.js
+	@mkdir -p profile
+	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)$(GAIA_PORT)"; const DEBUG = $(DEBUG)' preferences.js
+	@echo "Done"
+
+
+# Generate profile/extensions
+EXT_DIR=profile/extensions
+extensions:
+	@echo "Generating extensions..."
+	@mkdir -p profile
+	@rm -rf $(EXT_DIR)
+ifeq ($(DEBUG),1)
+	cp -r tools/extensions $(EXT_DIR)
+	# httpd
+	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_DIR@|$(CURDIR)|g' $(EXT_DIR)/httpd@gaiamobile.org
+	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_DOMAIN@|$(GAIA_DOMAIN)|g' $(EXT_DIR)/httpd/content/httpd.js
+	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_DIR@|$(CURDIR)|g' $(EXT_DIR)/httpd/content/loader.js
+	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_DOMAIN@|$(GAIA_DOMAIN)|g' $(EXT_DIR)/httpd/content/loader.js
+	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_PORT@|$(subst :,,$(GAIA_PORT))|g' $(EXT_DIR)/httpd/content/loader.js
+endif
 	@echo "Done"
 
 
@@ -121,16 +163,13 @@ INJECTED_GAIA = "$(MOZ_TESTS)/browser/gaia"
 
 TEST_PATH=gaia/tests/${TEST_FILE}
 
-# XXX This variable should be removed once make preferences is implemented
-B2G_HOMESCREEN?=http://homescreen.gaiamobile.org/
-
 .PHONY: tests
 tests: manifests offline
 	echo "Checking if the mozilla build has tests enabled..."
 	test -d $(MOZ_TESTS) || (echo "Please ensure you don't have |ac_add_options --disable-tests| in your mozconfig." && exit 1)
 	echo "Checking the injected Gaia..."
 	test -L $(INJECTED_GAIA) || ln -s $(CURDIR) $(INJECTED_GAIA)
-	TEST_PATH=$(TEST_PATH) make -C $(MOZ_OBJDIR) mochitest-browser-chrome EXTRA_TEST_ARGS="--browser-arg=\"\" --extra-profile-file=$(CURDIR)/profile/webapps --extra-profile-file=$(CURDIR)/profile/OfflineCache"
+	TEST_PATH=$(TEST_PATH) make -C $(MOZ_OBJDIR) mochitest-browser-chrome EXTRA_TEST_ARGS="--browser-arg=\"\" --extra-profile-file=$(CURDIR)/profile/webapps --extra-profile-file=$(CURDIR)/profile/OfflineCache --extra-profile-file=$(CURDIR)/profile/user.js"
 
 
 ###############################################################################
@@ -145,22 +184,6 @@ tests: manifests offline
 stamp-commit-hash:
 	git rev-parse HEAD > apps/settings/gaia-commit.txt
 
-# Copy the app manifest files to the profile dir where the
-# mozApps API can find them. For desktop usage, you must create
-# a symbolic link from your profile directory to $GAIA/profile/webapps
-copy-manifests:
-	@mkdir -p profile/webapps
-	@cp apps/webapps.json profile/webapps
-	@$(SED_INPLACE_NO_SUFFIX) -e 's|gaiamobile.org|$(GAIA_DOMAIN)|g' profile/webapps/webapps.json
-	@cd apps; \
-	for d in `find * -maxdepth 0 -type d` ;\
-	do \
-	  if [ -f $$d/manifest.json ]; \
-		then \
-		  mkdir -p ../profile/webapps/$$d; \
-		  cp $$d/manifest.json ../profile/webapps/$$d  ;\
-		fi \
-	done
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 delete-databases:
@@ -196,7 +219,7 @@ update-offline-manifests:
 			cat `find * -type f | sort -nfs` | $(MD5SUM) | cut -f 1 -d ' ' | sed 's/^/\#\ Version\ /' >> manifest.appcache ;\
 			find * -type f | grep -v tools | sort >> manifest.appcache ;\
 			$(SED_INPLACE_NO_SUFFIX) -e 's|manifest.appcache||g' manifest.appcache ;\
-			echo "http://$(GAIA_DOMAIN)/webapi.js" >> manifest.appcache ;\
+			echo "http://$(GAIA_DOMAIN)$(GAIA_PORT)/webapi.js" >> manifest.appcache ;\
 			echo "NETWORK:" >> manifest.appcache ;\
 			echo "http://*" >> manifest.appcache ;\
 			echo "https://*" >> manifest.appcache ;\
@@ -221,5 +244,3 @@ install-gaia: profile
 	$(ADB) shell kill $(shell $(ADB) shell toolbox ps | grep "b2g" | awk '{ print $$2; }')
 	@echo 'Rebooting b2g now'
 
-httpd:
-	python tools/httpd.py

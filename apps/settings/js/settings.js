@@ -61,7 +61,7 @@ var Settings = {
     if (!key)
       return;
 
-    switch(evt.type) {
+    switch (evt.type) {
       case 'change':
         var value;
         if (input.type === 'checkbox') {
@@ -69,7 +69,7 @@ var Settings = {
         } else if (input.type == 'radio') {
           value = input.value;
         }
-        var cset = { };  cset[key] = value;
+        var cset = { }; cset[key] = value;
         window.navigator.mozSettings.getLock().set(cset);
         break;
 
@@ -83,7 +83,7 @@ var Settings = {
         screen.mozBrightness = value;
         input.value = position;
 
-        var cset = { };  cset[key] = value;
+        var cset = { }; cset[key] = value;
         window.navigator.mozSettings.getLock().set(cset);
         break;
     }
@@ -98,13 +98,13 @@ var Settings = {
           // XXX it would be great to pop a link to the github page
           // showing the commit but there doesn't seem to be any way
           // to tell the browser to do it.
-          disp.textContent = 'Git commit '+ hash;
+          disp.textContent = 'Git commit ' + hash;
         } else {
-          console.error("Failed to fetch gaia commit: ", req.statusText);
-        }  
+          console.error('Failed to fetch gaia commit: ', req.statusText);
+        }
       }
     }).bind(this);
-    req.open("GET", 'gaia-commit.txt', true/*async*/);
+    req.open('GET', 'gaia-commit.txt', true/*async*/);
     req.responseType = 'text';
     req.send();
   }
@@ -157,3 +157,11 @@ window.addEventListener('localized', function showPanel() {
     }, 0);
   }
 });
+
+// translate Settings UI if a new locale is selected
+if ('mozSettings' in navigator && navigator.mozSettings) {
+  navigator.mozSettings.onsettingchange = function(event) {
+    if (event.settingName == 'language.current')
+      document.mozL10n.language.code = event.settingValue;
+  };
+}
