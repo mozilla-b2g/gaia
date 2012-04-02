@@ -101,50 +101,47 @@ let content = "";
 let homescreen = "http://homescreen." + GAIA_DOMAIN;
 content += "user_pref(\"browser.homescreenURL\",\"" + homescreen + "\");\n\n";
 
-let webapps = getJSON(".", "webapps.json");
-if (webapps) {
-  let privileges = [];
+let privileges = [];
 
-  let directories = getDirectories();
-  directories.forEach(function readManifests(dir) {
-    let manifest = getJSON(dir, "manifest.json");
-    let webapp = webapps[dir];
-    if (!manifest || !webapp)
-      return;
+let directories = getDirectories();
+directories.forEach(function readManifests(dir) {
+  let manifest = getJSON(dir, "manifest.json");
+  if (!manifest)
+    return;
 
-    let domain = webapp.origin.replace("gaiamobile.org", GAIA_DOMAIN);
-    privileges.push(domain);
+  let domain = "http://" + dir + "." + GAIA_DOMAIN;
+  privileges.push(domain);
 
-    let perms = manifest.permissions;
-    if (perms) {
-      for each(let name in perms) {
-        permissions[name].urls.push(domain);
-      }
+  let perms = manifest.permissions;
+  if (perms) {
+    for each(let name in perms) {
+      permissions[name].urls.push(domain);
     }
-  });
-
-  content += "user_pref(\"b2g.privileged.domains\", \"" + privileges.join(",") + "\");\n\n";
-
-  for (let name in permissions) {
-    let perm = permissions[name];
-    content += "user_pref(\"" + perm.pref + "\",\"" + perm.urls.join(",") + "\");\n";
   }
+});
 
-  if (DEBUG) {
-    content += "\n";
-    content += "user_pref(\"marionette.defaultPrefs.enabled\", true);\n";
-    content += "user_pref(\"b2g.remote-js.enabled\", true);\n";
-    content += "user_pref(\"b2g.remote-js.port\", 4242);\n";
-    content += "user_pref(\"javascript.options.showInConsole\", true);\n";
-    content += "user_pref(\"nglayout.debug.disable_xul_cache\", true);\n";
-    content += "user_pref(\"browser.dom.window.dump.enabled\", true);\n";
-    content += "user_pref(\"javascript.options.strict\", true);\n";
-    content += "user_pref(\"dom.report_all_js_exceptions\", true);\n";
-    content += "user_pref(\"nglayout.debug.disable_xul_fastload\", true);\n";
-    content += "\n";
-  }
+content += "user_pref(\"b2g.privileged.domains\", \"" + privileges.join(",") + "\");\n\n";
 
-  writeContent(content);
-  dump("\n" + content);
+for (let name in permissions) {
+  let perm = permissions[name];
+  content += "user_pref(\"" + perm.pref + "\",\"" + perm.urls.join(",") + "\");\n";
 }
+
+if (DEBUG) {
+  content += "\n";
+  content += "user_pref(\"marionette.defaultPrefs.enabled\", true);\n";
+  content += "user_pref(\"b2g.remote-js.enabled\", true);\n";
+  content += "user_pref(\"b2g.remote-js.port\", 4242);\n";
+  content += "user_pref(\"javascript.options.showInConsole\", true);\n";
+  content += "user_pref(\"nglayout.debug.disable_xul_cache\", true);\n";
+  content += "user_pref(\"browser.dom.window.dump.enabled\", true);\n";
+  content += "user_pref(\"javascript.options.strict\", true);\n";
+  content += "user_pref(\"dom.report_all_js_exceptions\", true);\n";
+  content += "user_pref(\"nglayout.debug.disable_xul_fastload\", true);\n";
+  content += "user_pref(\"browser.cache.offline.enable\", false);\n";
+  content += "\n";
+}
+
+writeContent(content);
+dump("\n" + content);
 
