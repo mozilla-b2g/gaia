@@ -1040,9 +1040,10 @@ function AppScreen() {
   navigator.mozApps.mgmt.getAll().onsuccess = function(e) {
     var apps = e.target.result;
     
-    var currentHost = document.location.toString().replace(/\/$/, '');
+    var lastSlash = new RegExp(/\/$/);
+    var currentHost = document.location.toString().replace(lastSlash, '');
     apps.forEach(function(app) {
-      if (app.origin.replace(/\/$/, '') == currentHost)
+      if (app.origin.replace(lastSlash, '') == currentHost)
         return;
       appscreen.installedApps[app.origin] = app;
     });
