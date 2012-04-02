@@ -361,8 +361,10 @@ var WindowManager = (function() {
       console.log("------- launching a webapp ?");
       var origin = e.detail.origin;
       var url = e.detail.url;
-      if (isRunning(origin))
+      if (isRunning(origin)) {
+        setDisplayedApp(origin);
         return;
+      }
 
       var app = appscreen.getAppByOrigin(origin);
       var manifest = app.manifest;
