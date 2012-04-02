@@ -192,6 +192,7 @@
     };
 
     var sendPendingSymbols = function ime_updatePendingSymbol() {
+      debug('SendPendingSymbol: ' + syllablesInBuffer.join(','));
       var symbols = syllablesInBuffer.join('').replace(/\*/g, '');
       settings.sendPendingSymbols(symbols);
     };
