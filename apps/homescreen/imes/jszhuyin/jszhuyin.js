@@ -502,6 +502,9 @@
         syllablesInBuffer[syllablesInBuffer.length - 1] =
           getLastSyllable().replace(/.(\*?)$/, '$1').replace(/^\*$/, '');
 
+        if (!getLastSyllable() && syllablesInBuffer.length !== 1)
+          syllablesInBuffer.pop();
+
         sendPendingSymbols();
         updateCandidateList(next);
         return;
