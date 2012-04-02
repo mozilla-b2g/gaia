@@ -138,6 +138,7 @@ if (DEBUG) {
   content += "user_pref(\"javascript.options.strict\", true);\n";
   content += "user_pref(\"dom.report_all_js_exceptions\", true);\n";
   content += "user_pref(\"nglayout.debug.disable_xul_fastload\", true);\n";
+  content += "user_pref(\"browser.cache.offline.enable\", false);\n";
   content += "\n";
 }
 
