@@ -244,5 +244,3 @@ install-gaia: profile
 	$(ADB) shell kill $(shell $(ADB) shell toolbox ps | grep "b2g" | awk '{ print $$2; }')
 	@echo 'Rebooting b2g now'
 
-httpd:
-	python tools/httpd.py
