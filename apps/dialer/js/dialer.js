@@ -49,12 +49,6 @@ function visibilityChanged(url, evt) {
       Contacts.load();
       choiceChanged(contacts);
     }
-    var recents = document.getElementById('recents-label');
-    if (choice == 'recents' || recents.hasAttribute('data-active')) {
-      choiceChanged(recents);
-      Recents.showLast();
-    }
-
   } else {
     Recents.stopUpdatingDates();
   }
@@ -358,12 +352,33 @@ var CallHandler = {
       if ((this.recentsEntry.type.indexOf('outgoing') == -1) &&
           (this.recentsEntry.type.indexOf('-refused') == -1) &&
           (this.recentsEntry.type.indexOf('-connected') == -1)) {
-        // XXX: This should be replaced by a web notification as
-        // soon as we have them
-        window.parent.postMessage({
-          type: 'missed-call',
-          sender: this.recentsEntry.number
-        }, '*');
+
+        var mozNotif = navigator.mozNotification;
+        if (mozNotif) {
+          var notification = mozNotif.createNotification(
+            'Missed call', 'From ' + this.recentsEntry.number
+          );
+
+          notification.onclick = function ch_notificationClick() {
+            var recents = document.getElementById('recents-label');
+            choiceChanged(recents);
+            Recents.showLast();
+
+            // XXX: This is currently the less ugly way to launch the dialer
+            // The app looks for itself in the mozApps list and then launch
+            navigator.mozApps.mgmt.getAll().onsuccess = function(e) {
+              var apps = e.target.result;
+              apps.forEach(function(app) {
+                if (app.origin == document.location) {
+                  app.launch();
+                  return;
+                }
+              });
+            };
+          };
+
+          notification.show();
+        }
       }
       this.recentsEntry = null;
     }
@@ -458,7 +473,7 @@ var CallHandler = {
     // Assume we always either onCall or not, and always onCall before
     // not onCall.
     if (this._onCall) {
-      this._screenLock = navigator.requestWakeLock("screen");
+      this._screenLock = navigator.requestWakeLock('screen');
     } else {
       this._screenLock.unlock();
       this._screenLock = null;

@@ -97,6 +97,11 @@ body {
   background: #111 url(images/grippy.png) no-repeat 50% 50%;
 }
 
+#notifications-container .notification > a.close {
+  background: url('images/close.png') center center no-repeat;
+  background-size: 40px 40px;
+}
+
 /* App Icons */
 
 .icon {
@@ -182,8 +187,8 @@ div.windowSprite {
   background-image: url("images/sms.png");
 }
 
-#state-calls[data-visible] {
-  background-image: url("images/missing-call.png");
+#state-notifications[data-visible] {
+  background-image: url("images/desktop-notification.png");
 }
 
 #titlebar {
