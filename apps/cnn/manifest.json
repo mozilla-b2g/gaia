@@ -6,6 +6,7 @@
   },
   "description": "CNN Mobile Application",
   "launch_path": "/",
+  "hackNetworkBound": "true",
   "locales": {
     "ru": {
       "name": "CNN",

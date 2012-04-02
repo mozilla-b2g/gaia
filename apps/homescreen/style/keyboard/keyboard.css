@@ -1,8 +1,12 @@
+#screen.fullscreen #keyboard {
+  z-index: 9999;
+}
+
 #keyboard {
   position: absolute;
   font-family: 'Open Sans', sans-serif;
   font-weight: bold;
-  z-index: 9999;
+  z-index: 9996;
   bottom: 0;
   overflow: visible;
   background-color: #f0f1f2;
@@ -22,7 +26,7 @@
   -moz-transform: translateY(100%);
 }
 
-#keyboard-panding-symbol-panel {
+#keyboard-pending-symbol-panel {
   position: absolute;
   top: -35px;
   left: 0;
@@ -36,15 +40,11 @@
   border-top-right-radius: 8px;
   border-top: 1px solid #d5d5d5;
   border-right: 1px solid #d5d5d5;
-  white-space: nowarp;
+  white-space: nowrap;
 }
 
-#keyboard-panding-symbol-panel:empty {
+#keyboard-pending-symbol-panel:empty {
   display: none;
-}
-
-#keyboard.full-candidate-panel #keyboard-panding-symbol-panel {
-  top: -101px;
 }
 
 #keyboard-candidate-panel {
@@ -62,13 +62,18 @@
   width: -moz-calc(100% - 62px);
   overflow-y: hidden;
 }
+
+#keyboard.full-candidate-panel {
+  padding-top: 66px;
+}
+
 #keyboard.full-candidate-panel #keyboard-candidate-panel {
   display: block;
   position: absolute;
   white-space: normal;
-  top: -68px;
+  top: -2px;
   bottom: 0;
-  height: -moz-calc(100% + 68px);
+  height: 100%;
   width: 100%;
   border: none;
   border-top: 2px solid #a3a3a3;
@@ -123,7 +128,7 @@
 #keyboard.full-candidate-panel #keyboard-candidate-panel-toggle-button {
   display: block;
   border-top: 1px solid #e8e8ff;
-  top: -66px;
+  top: 0;
   z-index: 1;
 }
 

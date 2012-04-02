@@ -639,7 +639,7 @@ var SleepMenu = {
 
             var settings = window.navigator.mozSettings;
             if (settings)
-              settings.getLock().get({'phone.ring.incoming': true});
+              settings.getLock().set({'phone.ring.incoming': true});
 
             document.getElementById('silent').hidden = false;
             document.getElementById('normal').hidden = true;
@@ -669,21 +669,40 @@ var SleepMenu = {
 window.addEventListener('click', SleepMenu, true);
 window.addEventListener('keyup', SleepMenu, true);
 
-function SettingListener(name, _default, callback) {
-  var settings = window.navigator.mozSettings;
-  if (!settings) {
-    setTimeout(function() { callback(_default); });
-    return;
-  }
-  var request = settings.getLock().get(name);
-  request.addEventListener('success', (function onsuccess() {
-    callback(typeof(request.result[name]) != 'undefined' || _default);
-  }));
-  settings.onsettingchange = function(evt) {
-    if (evt.settingName == name)
+
+var SettingsListener = {
+  _callbacks: {},
+
+  init: function sl_init() {
+    if ('mozSettings' in navigator && navigator.mozSettings)
+      navigator.mozSettings.onsettingchange = this.onchange.bind(this);
+  },
+
+  onchange: function sl_onchange(evt) {
+    var callback = this._callbacks[evt.settingName];
+    if (callback) {
       callback(evt.settingValue);
+    }
+  },
+
+  observe: function sl_observe(name, defaultValue, callback) {
+    var settings = window.navigator.mozSettings;
+    if (!settings) {
+      setTimeout(function() { callback(defaultValue); });
+      return;
+    }
+
+    var req = settings.getLock().get(name);
+    req.addEventListener('success', (function onsuccess() {
+      callback(typeof(req.result[name]) != 'undefined' ? req.result[name]
+                                                       : defaultValue);
+    }));
+
+    this._callbacks[name] = callback;
   }
-}
+};
+
+SettingsListener.init();
 
 /* === Source View === */
 var SourceView = {
@@ -795,37 +814,46 @@ var GridView = {
   }
 };
 
-new SettingListener('debug.grid.enabled', false, function(value) {
+SettingsListener.observe('debug.grid.enabled', false, function(value) {
   !!value ? GridView.show() : GridView.hide();
 });
 
 /* === Language === */
-new SettingListener('language.current', 'en-US', function(value) {
+SettingsListener.observe('language.current', 'en-US', function(value) {
   // change language -- this triggers startup() and a rebuild
-  document.mozL10n.language.code = evt.data.language;
+  document.mozL10n.language.code = value;
 });
 
 /* === Wallpapers === */
-new SettingListener('homescreen.wallpaper', 'default.png', function(value) {
+SettingsListener.observe('homescreen.wallpaper', 'default.png', function(value) {
   var home = document.getElementById('home');
   home.style.backgroundImage = 'url(style/themes/default/backgrounds/' + value + ')';
 });
 
 /* === Ring Tone === */
-new SettingListener('homescreen.ring', 'classic.wav', function(value) {
-  var player = document.getElementById('ringtone-player');
-  player.src = 'style/ringtones/' + value;
+var selectedPhoneSound = "";
+SettingsListener.observe('homescreen.ring', 'classic.wav', function(value) {
+    selectedPhoneSound = 'style/ringtones/' + value;
 });
 
 var activePhoneSound = true;
-new SettingListener('phone.ring.incoming', true, function(value) {
+SettingsListener.observe('phone.ring.incoming', true, function(value) {
   activePhoneSound = !!value;
 });
 
 /* === Vibration === */
 var activateVibration = false;
-new SettingListener('phone.vibration.incoming', false, function(value) {
+SettingsListener.observe('phone.vibration.incoming', false, function(value) {
   activateVibration = !!value;
+});
+
+/* === Invert Display === */
+SettingsListener.observe('accessibility.invert', false, function(value) {
+  var screen = document.getElementById('screen');
+  if (value)
+    screen.classList.add('accessibility-invert');
+  else
+    screen.classList.remove('accessibility-invert');
 });
 
 /* === KeyHandler === */
@@ -937,7 +965,7 @@ var ScreenManager = {
   }
 };
 
-new SettingListener('screen.brightness', 0.5, function(value) {
+SettingsListener.observe('screen.brightness', 0.5, function(value) {
   ScreenManager.preferredBrightness = screen.mozBrightness = parseFloat(value);
 });
 
@@ -1009,7 +1037,8 @@ var TelephonyListener = function() {
     }
 
     var ringtonePlayer = document.getElementById('ringtone-player');
-    if (activePhoneSound) {
+    if (activePhoneSound && selectedPhoneSound) {
+      ringtonePlayer.src = selectedPhoneSound;
       ringtonePlayer.play();
     }
 
@@ -1018,6 +1047,7 @@ var TelephonyListener = function() {
         call.onstatechange = function() {
           call.oncallschanged = null;
           ringtonePlayer.pause();
+          ringtonePlayer.src = "";
           window.clearInterval(vibrateInterval);
         };
       }
@@ -1078,6 +1108,8 @@ function AppScreen() {
   navigator.mozApps.mgmt.getAll().onsuccess = function(e) {
     var apps = e.target.result;
     apps.forEach(function(app) {
+      if (app.origin == document.location)
+        return;
       appscreen.installedApps[app.origin] = app;
     });
     appscreen.build();
@@ -1090,7 +1122,12 @@ function AppScreen() {
       var app = e.detail.app;
 
       // Note: we could use `requestPermission(_('install', app), ...)`
-      requestPermission(_('install', { name: app.name, origin: app.origin }),
+      var name = app.manifest.name;
+      if (app.manifest.locales &&
+          app.manifest.locales[lang] &&
+          app.manifest.locales[lang].name)
+        name = app.manifest.locales[lang].name;
+      requestPermission(_('install', { name: name, origin: app.origin }),
                         function() { sendResponse(e.detail.id, true); },
                         function() { sendResponse(e.detail.id, false); });
     }
@@ -1106,23 +1143,27 @@ function AppScreen() {
     }
   });
 
-  // Listen for app installations and rebuild the appscreen when we get one
-  navigator.mozApps.mgmt.oninstall = function(event) {
-    var newapp = event.application;
-    appscreen.installedApps[newapp.origin] = newapp;
-    appscreen.build(true);
-  };
-
-  // Do the same for uninstalls
-  navigator.mozApps.mgmt.onuninstall = function(event) {
-    var newapp = event.application;
-    delete appscreen.installedApps[newapp.origin];
-    appscreen.build(true);
-  };
-
   window.addEventListener('resize', function() {
     appscreen.grid.update();
   });
+
+  // Installing these handlers on desktop causes JS execution to stop silently,
+  // so work around that for now here.
+  if (navigator.userAgent.indexOf('Mobile') != -1) {
+    // Listen for app installations and rebuild the appscreen when we get one
+    navigator.mozApps.mgmt.oninstall = function(event) {
+      var newapp = event.application;
+      appscreen.installedApps[newapp.origin] = newapp;
+      appscreen.build(true);
+    };
+
+    // Do the same for uninstalls
+    navigator.mozApps.mgmt.onuninstall = function(event) {
+      var newapp = event.application;
+      delete appscreen.installedApps[newapp.origin];
+      appscreen.build(true);
+    };
+  }
 }
 
 // Look up the app object for a specified app origin

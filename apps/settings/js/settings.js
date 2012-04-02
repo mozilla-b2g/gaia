@@ -19,7 +19,8 @@ var Settings = {
 
         var request = transaction.get(key);
         request.onsuccess = function() {
-          checkbox.checked = !!request.result[key];
+          if (request.result[key] != undefined)
+            checkbox.checked = !!request.result[key];
         };
       })(checkboxes[i]);
     }
@@ -33,7 +34,8 @@ var Settings = {
 
         var request = transaction.get(key);
         request.onsuccess = function() {
-          radio.checked = (request.result[key] === radio.value);
+          if (request.result[key] != undefined)
+            radio.checked = (request.result[key] === radio.value);
         };
       })(radios[i]);
     }
@@ -47,7 +49,8 @@ var Settings = {
 
         var request = transaction.get(key);
         request.onsuccess = function() {
-          progress.value = parseFloat(request.result[key]) * 10;
+          if (request.result[key] != undefined)
+            progress.value = parseFloat(request.result[key]) * 10;
         };
       })(progresses[i]);
     }
@@ -97,7 +100,7 @@ var Settings = {
           // to tell the browser to do it.
           disp.textContent = 'Git commit '+ hash;
         } else {
-          console.error("Failed to fetch gaia commit: ", oXHR.statusText);
+          console.error("Failed to fetch gaia commit: ", req.statusText);
         }  
       }
     }).bind(this);

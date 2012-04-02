@@ -6,6 +6,7 @@
   },
   "description": "GMail",
   "launch_path": "/mail/mu",
+  "hackNetworkBound": "true",
   "locales": {
     "ru": {
       "name": "\u041f\u043e\u0447\u0442\u0430",

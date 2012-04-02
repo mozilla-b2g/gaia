@@ -1,6 +1,11 @@
 
 const { 'classes': Cc, 'interfaces': Ci, 'results': Cr, } = Components;
 
+let CC = Components.Constructor;
+let Namespace = CC("@mozilla.org/network/application-cache-namespace;1",
+                   "nsIApplicationCacheNamespace",
+                   "init");
+
 /*
  * This method will map the profile directory to the directory
  * defined by the const PROFILE_DIR.
@@ -48,6 +53,7 @@ function storeCache(id, url, content, count) {
   let cacheEntry = session.openCacheEntry(url, nsICache.ACCESS_WRITE, false);
   cacheEntry.setMetaDataElement("request-method", "GET");
   cacheEntry.setMetaDataElement("response-head", "GET / HTTP/1.1\r\n");
+  cacheEntry.setExpirationTime(0); // will force an update. the default expiration time is way too far in the future.
 
   let outputStream = cacheEntry.openOutputStream(0);
   
@@ -186,7 +192,7 @@ directories.forEach(function generateAppCache(dir) {
                  .createInstance(Ci.nsILocalFile);
     file.initWithPath(root);
 
-    if (name == ("http://gaiamobile.org/webapi.js")) {
+    if (name == ("http://" + GAIA_DOMAIN + "/webapi.js")) {
       hasWebapi = true;
       return;
     }
@@ -221,6 +227,18 @@ directories.forEach(function generateAppCache(dir) {
 
     applicationCache.markEntry(documentSpec, itemType);
   });
+
+  // NETWORK:
+  // http://*
+  // https://*
+  let array = Cc["@mozilla.org/array;1"]
+                .createInstance(Ci.nsIArray);
+  array.QueryInterface(Ci.nsIMutableArray);
+
+  let bypass = Ci.nsIApplicationCacheNamespace.NAMESPACE_BYPASS;
+  array.appendElement(new Namespace(bypass, 'http://*', ''), false);
+  array.appendElement(new Namespace(bypass, 'https://*', ''), false);
+  applicationCache.addNamespaces(array);
 
   // Store the appcache file
   let documentSpec = domain + '/manifest.appcache';

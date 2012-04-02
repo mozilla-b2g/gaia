@@ -135,9 +135,9 @@
       return false;
     };
 
-    var sendPandingSymbols = function ime_updatePandingSymbol() {
+    var sendPendingSymbols = function ime_updatePendingSymbol() {
       var symbols = syllablesInBuffer.join('').replace(/\*/g, '');
-      settings.sendPandingSymbols(symbols);
+      settings.sendPendingSymbols(symbols);
     };
 
     var empty = function ime_empty() {
@@ -145,7 +145,9 @@
       syllablesInBuffer = [''];
       pendingSymbols = ['', '', '', ''];
       firstCandidate = '';
-      sendPandingSymbols();
+      selectedText = '';
+      selectedSyllables = [];
+      sendPendingSymbols();
       isWorking = false;
       if (!db)
         initDB();
@@ -207,22 +209,18 @@
     };
 
     var updateCandidateList =
-      function ime_updateCandidateList(callback, noSuggestions) {
+      function ime_updateCandidateList(callback) {
       debug('Update Candidate List.');
 
       if (!syllablesInBuffer.join('').length) {
         if (autoSuggestCandidates &&
-            selectedText &&
-            !noSuggestions) {
+            selectedSyllables.length) {
           debug('Buffer is empty; ' +
             'make suggestions based on select term.');
           var candidates = [];
           var texts = selectedText.split('');
-          var i = syllablesRemoved.length;
-          lookup([syllablesRemoved, texts], 'suggestion',
+          lookup([selectedSyllables, texts], 'suggestion',
             function(suggestions) {
-              selectedText = undefined;
-              syllablesRemoved = undefined;
               suggestions.forEach(
                 function suggestions_forEach(suggestion) {
                   candidates.push(
@@ -247,6 +245,9 @@
         callback();
         return;
       }
+
+      selectedText = '';
+      selectedSyllables = [];
 
       var candidates = [];
       var syllablesForQuery = [].concat(syllablesInBuffer);
@@ -380,8 +381,8 @@
 
       if (code == 0) {
         // This is a select function operation after selecting suggestions
-        sendPandingSymbols();
-        updateCandidateList(next, true);
+        sendPendingSymbols();
+        updateCandidateList(next);
         return;
       }
 
@@ -389,8 +390,6 @@
         // This is a select function operation
         var i = code * -1;
         dump('Removing ' + (code * -1) + ' syllables from buffer.');
-
-        syllablesRemoved = syllablesInBuffer.slice(0, i);
 
         while (i--) {
           syllablesInBuffer.shift();
@@ -401,7 +400,7 @@
           pendingSymbols = ['', '', '', ''];
         }
 
-        sendPandingSymbols();
+        sendPendingSymbols();
         updateCandidateList(next);
         return;
       }
@@ -421,26 +420,32 @@
         // candidate list exists; output the first candidate
         debug('Sending first candidate.');
         settings.sendString(firstCandidate);
-        settings.sendCandidates([]);
-        empty();
+        selectedText = firstCandidate;
+        selectedSyllables = [].concat(syllablesInBuffer);
+        if (!selectedSyllables[selectedSyllables.length - 1])
+          selectedSyllables.pop();
+        keypressQueue.push(selectedSyllables.length * -1);
         next();
         return;
       }
 
       if (code === KeyEvent.DOM_VK_BACK_SPACE) {
         debug('Backspace key');
-        if (!syllablesInBuffer.join('') &&
-            !firstCandidate) {
+        if (!syllablesInBuffer.join('')) {
+          if (firstCandidate) {
+            debug('Remove candidates.');
+
+            // prevent updateCandidateList from making the same suggestions
+            selectedText = '';
+            selectedSyllables = [];
+
+            updateCandidateList(next);
+            return;
+          }
           // pass the key to IMEManager for default action
           debug('Default action.');
           settings.sendKey(code);
           next();
-          return;
-        }
-
-        if (!syllablesInBuffer.join('')) {
-          debug('Remove candidates.');
-          updateCandidateList(next);
           return;
         }
 
@@ -476,7 +481,7 @@
 
         syllablesInBuffer[syllablesInBuffer.length - 1] =
           pendingSymbols.join('');
-        sendPandingSymbols();
+        sendPendingSymbols();
         updateCandidateList(next);
         return;
       }
@@ -522,7 +527,7 @@
       // update syllablesInBuffer
       syllablesInBuffer[syllablesInBuffer.length - 1] =
         pendingSymbols.join('');
-      sendPandingSymbols();
+      sendPendingSymbols();
 
       if (kBufferLenLimit &&
         syllablesInBuffer.length >= kBufferLenLimit) {
@@ -555,7 +560,7 @@
               syllablesInBuffer.shift();
             }
 
-            sendPandingSymbols();
+            sendPendingSymbols();
 
             updateCandidateList(next);
           });
@@ -605,11 +610,10 @@
     };
 
     var selectedText;
-    var syllablesRemoved;
+    var selectedSyllables = [];
 
     this.select = function ime_select(text, type) {
       debug('Select text ' + text);
-      selectedText = text;
       settings.sendString(text);
 
       var numOfSyllablesToRemove = text.length;
@@ -617,6 +621,10 @@
         numOfSyllablesToRemove = 1;
       if (type == 'suggestion')
         numOfSyllablesToRemove = 0;
+
+      selectedText = text;
+      selectedSyllables =
+        syllablesInBuffer.slice(0, numOfSyllablesToRemove);
 
       keypressQueue.push(numOfSyllablesToRemove * -1);
       start();
@@ -649,10 +657,6 @@
     var IDBDatabase = window.IDBDatabase ||
       window.webkitIDBDatabase ||
       window.msIDBDatabase;
-
-    var IDBTransaction = window.IDBTransaction ||
-      window.webkitIDBTransaction ||
-      window.msIDBTransaction;
 
     var IDBKeyRange = window.IDBKeyRange ||
       window.webkitIDBKeyRange ||
@@ -726,7 +730,7 @@
         debug('Loading data chunk into IndexedDB, ' +
             (chunks.length - 1) + ' chunks remaining.');
 
-        var transaction = iDB.transaction('terms', IDBTransaction.READ_WRITE);
+        var transaction = iDB.transaction('terms', 'readwrite');
         var store = transaction.objectStore('terms');
 
         transaction.onerror = function putError(ev) {
@@ -892,7 +896,7 @@
         return;
       }
 
-      var store = iDB.transaction('terms', IDBTransaction.READ_ONLY)
+      var store = iDB.transaction('terms', 'readonly')
         .objectStore('terms');
       if (IDBIndex.prototype.getAll) {
         // Mozilla IndexedDB extension
@@ -1076,7 +1080,7 @@
         debug('Do IndexedDB range search with lowerBound ' + syllablesStr +
           ' and upperBound ' + upperBound + '.');
 
-        var store = iDB.transaction('terms', IDBTransaction.READ_ONLY)
+        var store = iDB.transaction('terms', 'readonly')
           .objectStore('terms');
         if (IDBIndex.prototype.getAll) {
           // Mozilla IndexedDB extension
@@ -1216,7 +1220,7 @@
       debug('Lookup in IndexedDB.');
 
       if (!matchRegEx) {
-        var store = iDB.transaction('terms', IDBTransaction.READ_ONLY)
+        var store = iDB.transaction('terms', 'readonly')
           .objectStore('terms');
         var req = store.get(syllablesStr);
         req.onerror = function getdbError(ev) {
