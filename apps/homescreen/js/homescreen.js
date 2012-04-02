@@ -281,11 +281,15 @@ var NotificationScreen = {
     var notifications = this.container;
     notifications.addEventListener('click', function notificationClick(evt) {
       var target = evt.target;
+      var closing = false;
+
       // Handling the close button
       if (target.classList.contains('close')) {
-        self.removeNotification(target.parentNode);
-        return;
+        closing = true;
+        target = target.parentNode;
       }
+
+      self.removeNotification(target);
 
       var type = target.dataset.type;
       if (type != 'desktop-notification')
@@ -293,13 +297,15 @@ var NotificationScreen = {
 
       var event = document.createEvent('CustomEvent');
       event.initCustomEvent('mozContentEvent', true, true, {
-        type: 'desktop-notification-click',
+        type: closing ?
+          'desktop-notification-close' : 'desktop-notification-click',
         id: target.dataset.notificationID
       });
       window.dispatchEvent(event);
 
-      self.removeNotification(target);
-      // TODO: the app that created the notification should be launched
+      // And hide the notification tray
+      if (!closing)
+        self.unlock();
     });
   },
 
