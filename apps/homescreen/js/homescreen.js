@@ -1055,49 +1055,6 @@ var TelephonyListener = function() {
 
     WindowManager.launch('http://dialer.gaiamobile.org/');
   });
-
-  // Handling the missed call notification
-  var hasMissedCalls = document.getElementById('state-calls');
-
-  window.addEventListener('message', function settingChange(evt) {
-    if ((evt.data) && (typeof(evt.data) != 'string') &&
-        (evt.data.type) && (evt.data.type == 'missed-call')) {
-
-      hasMissedCalls.dataset.visible = 'true';
-      NotificationScreen.addNotification('call', evt.data.sender, 'Missed call');
-    }
-  });
-
-  window.addEventListener('appopen', function onAppOpen(evt) {
-    // If the dialer application is opened, just delete all messages
-    // notifications
-    var applicationURL = evt.detail.url;
-
-    var host = document.location.host.replace(/^[a-z]+\./i,'');
-    var matcher = new RegExp('/dialer\.' + host);
-    if (!matcher.test(applicationURL))
-      return;
-
-    delete hasMissedCalls.dataset.visible;
-    NotificationScreen.removeNotifications('call');
-  });
-
-  var notifications = document.getElementById('notifications-container');
-  notifications.addEventListener('click', function notificationClick(evt) {
-    var notification = evt.target;
-    var sender = notification.dataset.sender;
-    var type = notification.dataset.type;
-    if (type != 'call')
-      return;
-
-    NotificationScreen.unlock(true);
-
-    // FIXME: we'd really like to launch the the "Recent calls" view
-    // of the dialer app, but don't have a good way to do it.
-    // This should be replaced with a web intent or similar.
-    WindowManager.launch('http://dialer.gaiamobile.org/'
-                         /* '?choice=recents' */);
-  });
 };
 
 /* === AppScreen === */

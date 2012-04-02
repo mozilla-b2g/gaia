@@ -358,13 +358,25 @@ var CallHandler = {
           var notification = mozNotif.createNotification(
             'Missed call', 'From ' + this.recentsEntry.number
           );
+
           notification.onclick = function ch_notificationClick() {
             var recents = document.getElementById('recents-label');
             choiceChanged(recents);
             Recents.showLast();
 
-            // TODO: Ask to launch the dialer
+            // XXX: This is currently the less ugly way to launch the dialer
+            // The app looks for itself in the mozApps list and then launch
+            navigator.mozApps.mgmt.getAll().onsuccess = function(e) {
+              var apps = e.target.result;
+              apps.forEach(function(app) {
+                if (app.origin == document.location) {
+                  app.launch();
+                  return;
+                }
+              });
+            };
           };
+
           notification.show();
         }
       }
@@ -461,7 +473,7 @@ var CallHandler = {
     // Assume we always either onCall or not, and always onCall before
     // not onCall.
     if (this._onCall) {
-      this._screenLock = navigator.requestWakeLock("screen");
+      this._screenLock = navigator.requestWakeLock('screen');
     } else {
       this._screenLock.unlock();
       this._screenLock = null;
