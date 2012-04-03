@@ -34,6 +34,11 @@ var Browser = {
     return this.menuButton = document.getElementById('browser-menu-button');
   },
 
+  get clearButton() {
+    delete this.clearButton;
+    return this.clearButton = document.getElementById('menu-clear');
+  },
+
   get refreshButton() {
     delete this.refreshButton;
     return this.refreshButton = document.getElementById('menu-refresh');
@@ -47,6 +52,7 @@ var Browser = {
   init: function browser_init() {
     this.backButton.addEventListener('click', this.goBack.bind(this));
     this.menuButton.addEventListener('click', this.toggleMenu.bind(this));
+    this.clearButton.addEventListener('click', this.clear.bind(this));
     this.refreshButton.addEventListener('click', this.refresh.bind(this));
     this.forwardButton.addEventListener('click', this.goForward.bind(this));
     this.shade.addEventListener('click', this.toggleMenu.bind(this));
@@ -124,6 +130,12 @@ var Browser = {
   locationChange: function browser_locationChange(url) {
     this.urlbar.value = url;
     this.updateHistory(url);
+  },
+  
+  clear: function browser_clear() {
+    this.urlbar.value = "";
+	  this.urlbar.focus();
+    this.toggleMenu();
   },
 
   refresh: function browser_refresh() {
