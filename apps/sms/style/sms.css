@@ -129,6 +129,7 @@ input, textarea {
   color: #fff;
   text-shadow: 0pt -1px 1px rgba(0, 0, 0, 0.5);
   border: none;
+  padding: 0 16px;
   background: -moz-linear-gradient(top, hsl(39,100%,73%) 0, hsla(35,100%,80%,0.2) 2px, hsla(35,100%,50%,.4) 20%,
                 hsl(32,100%,38%) 98%, hsl(32,100%,38%) 99%, hsl(31,100%,50%) 100%),
               -moz-linear-gradient(top, hsl(39,100%,73%) 0, hsla(35,100%,50%,1) 2px, hsl(32,100%,38%) 98%,
@@ -425,6 +426,9 @@ body.conversation-new-msg #view-num {
   font-size: 24px;
   font-weight: bold;
   line-height: 42px;
+  height: 48px;
+  min-width: 96px;
+  -moz-box-sizing: border-box;
 }
 
 /* localization */
