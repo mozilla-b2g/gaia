@@ -76,6 +76,12 @@ function visibilityChanged(url) {
   }
 }
 
+/* ***********************************************************
+
+  Code below are for desktop testing!
+
+*********************************************************** */
+
 if (!navigator.mozSms) {
   // We made up a fake database on
   var messagesHack = [];
@@ -144,10 +150,14 @@ if (!navigator.mozSms) {
       timestamp: new Date()
     };
 
-    window.setTimeout(function sent() {
-      // simulate failure
-      //callback(null);
-      //return;
+    var simulateFail = /fail/i.test(text);
+
+    setTimeout(function sent() {
+      if (simulateFail) {
+        // simulate failure
+        callback(null);
+        return;
+      }
 
       // simulate success
       callback(message);
@@ -157,15 +167,34 @@ if (!navigator.mozSms) {
         messagesHack.unshift(message);
       }, 90 * Math.random());
     }, 3000 * Math.random());
-  };
 
-  if (!navigator.mozSettings) {
-    window.addEventListener('load', function loadWithoutSettings() {
-      selectedLocale = 'en-US';
-      ConversationView.init();
-      ConversationListView.init();
-    });
-  }
+    if (simulateFail)
+      return;
+
+    setTimeout(function hiBack() {
+      var message = {
+        sender: number,
+        receiver: null,
+        delivery: 'received',
+        body: 'Hi back! ' + text,
+        timestamp: new Date()
+      };
+
+      var evt = {
+        type: 'received',
+        message: message
+      };
+
+      ConversationView.handleEvent.call(ConversationView, evt);
+      ConversationListView.handleEvent.call(ConversationView, evt);
+
+      // the SMS DB is written after the callback
+      setTimeout(function writeDB() {
+        messagesHack.unshift(message);
+      }, 90 * Math.random());
+
+    }, 5000 + 3000 * Math.random());
+  };
 }
 
 if (!navigator.mozSettings) {
