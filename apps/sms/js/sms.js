@@ -262,8 +262,25 @@ var ConversationView = {
     }).bind(this));
   },
 
-  scrollViewToBottom: function cv_scrollViewToBottom() {
-    this.view.scrollTop = this.view.scrollHeight;
+  scrollViewToBottom: function cv_scrollViewToBottom(animateFromPos) {
+    if (!animateFromPos) {
+      this.view.scrollTop = this.view.scrollHeight;
+      return;
+    }
+
+    clearTimeout(this.viewScrollingTimer);
+    this.view.scrollTop = animateFromPos;
+    this.viewScrollingTimer = setInterval((function scrollStep() {
+      if (this.view.scrollTop
+          === this.view.scrollHeight - this.view.offsetHeight) {
+        clearTimeout(this.viewScrollingTimer);
+        return;
+      }
+      this.view.scrollTop +=
+        Math.ceil((this.view.scrollHeight - this.view.offsetHeight
+          - this.view.scrollTop) / 2);
+    }).bind(this), 100);
+
   },
 
   updateInputHeight: function cv_updateInputHeight() {
@@ -286,10 +303,14 @@ var ConversationView = {
     var self = this;
     var view = this.view;
     var bodyclassList = document.body.classList;
+    var currentScrollTop;
 
     if (num) {
       var filter = new MozSmsFilter();
       filter.numbers = [num || ''];
+
+      if (this.filter == num)
+        currentScrollTop = this.view.scrollTop;
 
       this.filter = num;
     } else {
@@ -361,7 +382,7 @@ var ConversationView = {
       }
 
       view.innerHTML = fragment;
-      self.scrollViewToBottom();
+      self.scrollViewToBottom(currentScrollTop);
 
       bodyclassList.add('conversation');
     }, filter, true);
@@ -457,14 +478,16 @@ var ConversationView = {
     setTimeout((function updateMessageField() {
       this.input.value = '';
       this.updateInputHeight();
+      this.input.focus();
+
+      if (this.filter) {
+        this.showConversation(this.filter, message);
+        return;
+      }
+      this.showConversation(num, message);
     }).bind(this), 0);
 
     ConversationListView.updateConversationList(message);
-    if (this.filter) {
-      this.showConversation(this.filter, message);
-      return;
-    }
-    this.showConversation(num, message);
   }
 };
 
