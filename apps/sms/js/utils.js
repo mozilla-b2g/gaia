@@ -168,3 +168,10 @@ if (!navigator.mozSms) {
   }
 }
 
+if (!navigator.mozSettings) {
+  window.addEventListener('load', function loadWithoutSettings() {
+    selectedLocale = 'en-US';
+    ConversationView.init();
+    ConversationListView.init();
+  });
+}
