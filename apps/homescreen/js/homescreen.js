@@ -300,13 +300,28 @@ var NotificationScreen = {
 
     window.addEventListener('mozChromeEvent', function notificationListener(e) {
       var detail = e.detail;
-      if (detail.type == 'desktop-notification') {
-        NotificationScreen.addNotification('desktop-notification',
-                                            detail.title, detail.text,
-                                            detail.id);
+      switch (detail.type) {
+        case 'desktop-notification':
+          NotificationScreen.addNotification('desktop-notification',
+                                              detail.title, detail.text,
+                                              detail.id);
 
-        var hasNotifications = document.getElementById('state-notifications');
-        hasNotifications.dataset.visible = 'true';
+          var hasNotifications = document.getElementById('state-notifications');
+          hasNotifications.dataset.visible = 'true';
+          break;
+
+        case 'content-permission':
+          // XXX Needs to implements more UI but for now let's allow stuffs
+          var event = document.createEvent('CustomEvent');
+          event.initCustomEvent('mozContentEvent', true, true, {
+            type: 'content-permission-allow',
+            id: detail.id
+          });
+          window.dispatchEvent(event);
+          break;
+
+        default:
+          break;
       }
     });
 
