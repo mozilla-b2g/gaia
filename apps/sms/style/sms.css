@@ -335,6 +335,19 @@ body.conversation-new-msg #view-num {
   text-align: right;
 }
 
+#view-list > div.pending {
+  -moz-animation: fadeIn 2s;
+}
+
+@-moz-keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 #view-list .photo {
   position: absolute;
   top: 0;

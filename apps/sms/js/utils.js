@@ -77,8 +77,7 @@ function visibilityChanged(url) {
 }
 
 if (!navigator.mozSms) {
-  // Until there is a database to store messages on the device, return
-  // a fake list of messages.
+  // We made up a fake database on
   var messagesHack = [];
   (function() {
     var messages = [
@@ -86,12 +85,14 @@ if (!navigator.mozSms) {
         sender: null,
         receiver: '1-977-743-6797',
         body: 'Nothing :)',
-        timestamp: Date.now() - 44000000
+        delivery: 'sent',
+        timestamp: new Date(Date.now() - 44000000)
       },
       {
         sender: '1-977-743-6797',
         body: 'Hey! What\s up?',
-        timestamp: Date.now() - 50000000
+        delivery: 'received',
+        timestamp: new Date(Date.now() - 50000000)
       }
     ];
 
@@ -99,7 +100,8 @@ if (!navigator.mozSms) {
       messages.push({
         sender: '1-488-678-3487',
         body: 'Hello world!',
-        timestamp: Date.now() - 60000000
+        delivery: 'received',
+        timestamp: new Date(Date.now() - 60000000)
       });
     }
 
@@ -137,13 +139,24 @@ if (!navigator.mozSms) {
     var message = {
       sender: null,
       receiver: number,
+      delivery: 'sent',
       body: text,
-      timestamp: Date.now()
+      timestamp: new Date()
     };
 
-    window.setTimeout(function() {
+    window.setTimeout(function sent() {
+      // simulate failure
+      //callback(null);
+      //return;
+
+      // simulate success
       callback(message);
-    }, 0);
+
+      // the SMS DB is written after the callback
+      setTimeout(function writeDB() {
+        messagesHack.unshift(message);
+      }, 90 * Math.random());
+    }, 3000 * Math.random());
   };
 
   if (!navigator.mozSettings) {

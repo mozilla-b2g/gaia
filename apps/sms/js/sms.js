@@ -177,7 +177,7 @@ var ConversationListView = {
       }
   } catch(e) {
       alert(conversation);
-  } 
+  }
     }
   },
 
@@ -328,14 +328,17 @@ var ConversationView = {
 
       for (var i = 0; i < messages.length; i++) {
         var msg = messages[i];
+
         var uuid = msg.hasOwnProperty('uuid') ? msg.uuid : '';
         var dataId = 'data-id="' + uuid + '"';
 
-        var outgoing = (msg.delivery == 'sent');
+        var outgoing = (msg.delivery == 'sent' || msg.delivery == 'sending');
         var num = outgoing ? msg.receiver : msg.sender;
         var dataNum = 'data-num="' + num + '"';
 
         var className = 'class="' + (outgoing ? 'receiver' : 'sender') + '"';
+        if (msg.delivery == 'sending')
+          className = 'class="receiver pending"';
 
         var pic = 'style/images/contact-placeholder.png';
 
@@ -416,10 +419,14 @@ var ConversationView = {
       return;
 
     MessageManager.send(num, text, function onsent(msg) {
-      // There was an error. We should really do some error handling here.
-      // or in send() or wherever.
-      if (!msg)
+      if (!msg) {
+        ConversationView.input.value = text;
+        ConversationView.updateInputHeight();
+
+        if (ConversationView.filter)
+          ConversationView.showConversation(ConversationView.filter);
         return;
+      }
 
       if (ConversationView.filter) {
         // Add a slight delay so that the database has time to write the
@@ -435,8 +442,9 @@ var ConversationView = {
     var message = {
       sender: null,
       receiver: num,
+      delivery: 'sending',
       body: text,
-      timestamp: Date.now()
+      timestamp: (new Date())
     };
 
     setTimeout((function updateMessageField() {
