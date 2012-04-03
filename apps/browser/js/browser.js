@@ -134,7 +134,7 @@ var Browser = {
   
   clear: function browser_clear() {
     this.urlbar.value = "";
-	this.urlbar.focus();
+	  this.urlbar.focus();
     this.toggleMenu();
   },
 
