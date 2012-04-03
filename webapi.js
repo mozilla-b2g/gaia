@@ -821,7 +821,7 @@
 
   navigator.mozContacts = {
     find: function fakeContactFind() {
-      var request = {result: contacts};
+      var request = {result: [].concat(contacts)};
       setTimeout(function() {
         if (request.onsuccess) {
           request.onsuccess();
