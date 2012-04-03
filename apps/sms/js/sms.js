@@ -52,7 +52,7 @@ var ConversationListView = {
     return this.searchInput = document.getElementById('msg-search');
   },
 
-  init: function init() {
+  init: function cl_init() {
     if (navigator.mozSms)
       navigator.mozSms.addEventListener('received', this);
 
@@ -62,20 +62,29 @@ var ConversationListView = {
 
     this.updateConversationList(null, function fireAppReady() {
       var url = document.location.toString();
-      visibilityChanged(url); // FIXME: this function is not defined
+      visibilityChanged(url);
     });
   },
 
-  updateConversationList: function updateCL(pendingMsg, callback) {
+  updateConversationList: function cl_updateCL(pendingMsg, callback) {
     var self = this;
+    /*
+      TODO: Conversation list is always order by contact family names
+      not the timestamp.
+      It should be timestamp in normal view, and order by name while searching
+    */
     MessageManager.getMessages(function getMessagesCallback(messages) {
       if (pendingMsg)
-        messages.push(pendingMsg);
+        messages.unshift(pendingMsg);
 
       var conversations = {};
       var request = window.navigator.mozContacts.find({});
       request.onsuccess = function findCallback() {
         var contacts = request.result;
+
+        contacts.sort(function contactsSort(a, b) {
+          return a.familyName[0].toUpperCase() > b.familyName[0].toUpperCase();
+        });
 
         contacts.forEach(function(contact, i) {
           var num = contact.tel[0];
@@ -98,12 +107,13 @@ var ConversationListView = {
 
           var num = message.delivery == 'received' ?
                     message.sender : message.receiver;
+
           var conversation = conversations[num];
           if (conversation && !conversation.hidden)
             continue;
 
           if (!conversation) {
-            conversation = conversations[num] = {
+            conversations[num] = {
               'hidden': false,
               'body': message.body,
               'name': num,
@@ -131,7 +141,7 @@ var ConversationListView = {
     }, null);
   },
 
-  createNewConversation: function createNewConversation(conversation) {
+  createNewConversation: function cl_createNewConversation(conversation) {
     return '<div data-num="' + conversation.num + '"' +
            ' data-name="' + (conversation.name || conversation.num) + '"' +
            ' data-notempty="' + (conversation.timestamp ? 'true' : '') + '"' +
@@ -147,7 +157,7 @@ var ConversationListView = {
            '</div>';
   },
 
-  searchConversations: function searchConversations() {
+  searchConversations: function cl_searchConversations() {
     var conversations = this.view.children;
 
     var str = this.searchInput.value;
@@ -181,20 +191,17 @@ var ConversationListView = {
     }
   },
 
-  openConversationView: function openConversationView(num) {
+  openConversationView: function cl_openConversationView(num) {
     if (!num)
       return;
 
     ConversationView.showConversation(num == '*' ? '' : num);
   },
 
-  handleEvent: function handleEvent(evt) {
+  handleEvent: function cl_handleEvent(evt) {
     switch (evt.type) {
       case 'received':
-        if (ConversationView.filter)
-          ConversationView.showConversation(ConversationView.filter);
-        else
-          ConversationListView.updateConversationList(evt.message);
+        ConversationListView.updateConversationList(evt.message);
         break;
 
       case 'click':
@@ -360,7 +367,7 @@ var ConversationView = {
     }, filter, true);
   },
 
-  deleteMessage: function deleteMessage(evt) {
+  deleteMessage: function cv_deleteMessage(evt) {
     var uuid = evt.target.getAttribute('data-id');
     if (!uuid)
       return;
@@ -369,7 +376,7 @@ var ConversationView = {
     this.showConversation(this.filter);
   },
 
-  handleEvent: function handleEvent(evt) {
+  handleEvent: function cv_handleEvent(evt) {
     switch (evt.type) {
       case 'keyup':
         if (evt.keyCode != evt.DOM_VK_ESCAPE)
@@ -381,11 +388,9 @@ var ConversationView = {
 
       case 'received':
         var msg = evt.message;
-        messagesHack.unshift(msg);
 
-        window.setTimeout(function() {
-          ConversationView.showConversation(ConversationView.filter);
-        }, 0);
+        if (this.filter)
+          this.showConversation(ConversationView.filter, msg);
         break;
 
       case 'transitionend':
@@ -409,6 +414,7 @@ var ConversationView = {
       return false;
     document.body.classList.remove('conversation');
     document.body.classList.add('transition-back');
+    this.filter = null;
     return true;
   },
   sendMessage: function cv_sendMessage() {
@@ -425,17 +431,18 @@ var ConversationView = {
 
         if (ConversationView.filter)
           ConversationView.showConversation(ConversationView.filter);
+        ConversationListView.updateConversationList();
         return;
       }
 
-      if (ConversationView.filter) {
-        // Add a slight delay so that the database has time to write the
-        // message in the background. Ideally we'd just be updating the UI
-        // from "sending..." to "sent" at this point...
-        window.setTimeout(function() {
+      // Add a slight delay so that the database has time to write the
+      // message in the background. Ideally we'd just be updating the UI
+      // from "sending..." to "sent" at this point...
+      window.setTimeout(function() {
+        if (ConversationView.filter)
           ConversationView.showConversation(ConversationView.filter);
-        }, 100);
-      }
+        ConversationListView.updateConversationList();
+      }, 100);
     });
 
     // Create a preliminary message object and update the view right away.
