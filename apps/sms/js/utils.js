@@ -5,6 +5,16 @@
 
 // Based on Resig's pretty date
 function prettyDate(time) {
+
+  switch (time.constructor) {
+    case String:
+      time = parseInt(time);
+      break;
+    case Date:
+      time = time.getTime();
+      break;
+  }
+
   var diff = (Date.now() - time) / 1000;
   var day_diff = Math.floor(diff / 86400);
 
