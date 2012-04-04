@@ -42,9 +42,17 @@ body.conversation .panel {
   -moz-transform: translateX(-100%);
 }
 
+#view {
+  -moz-transform: translateX(100%);
+}
+
 body.conversation #view,
-body.transition-back #view {
-  left: 100%;
+#msg-conversations {
+  -moz-transform: translateX(0);
+}
+
+body.conversation #msg-conversations {
+  -moz-transform: translateX(-100%);
 }
 
 .toolbar {

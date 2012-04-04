@@ -56,7 +56,6 @@ var ConversationListView = {
     if (navigator.mozSms)
       navigator.mozSms.addEventListener('received', this);
 
-    window.addEventListener('transitionend', this);
     this.searchInput.addEventListener('keyup', this);
     this.view.addEventListener('click', this);
 
@@ -206,13 +205,6 @@ var ConversationListView = {
 
       case 'click':
         this.openConversationView(evt.target.dataset.num);
-        break;
-
-      case 'transitionend':
-        if (!document.body.classList.contains('transition-back'))
-          return;
-
-        document.body.classList.remove('transition-back');
         break;
 
       case 'keyup':
@@ -434,7 +426,6 @@ var ConversationView = {
     if (!document.body.classList.contains('conversation'))
       return false;
     document.body.classList.remove('conversation');
-    document.body.classList.add('transition-back');
     this.filter = null;
     return true;
   },
