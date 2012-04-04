@@ -1,36 +1,42 @@
 {
   "name": "Browser",
-  "default_locale": "en-US",
-  "icons": {
-    "120": "/style/icons/Browser.png"
-  },
   "description": "Gaia Web Browser",
   "launch_path": "/",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "permissions": [
+    "mozbrowser"
+  ],
   "locales": {
-    "ru": {
-      "name": "\u041d\u0430\u0432\u0438\u0433\u0430\u0442\u043e\u0440",
-      "description": "\u0412\u0435\u0431-\u043d\u0430\u0432\u0438\u0433\u0430\u0442\u043e\u0440 Gaia"
+    "ar": {
+      "name": "\u0627\u0644\u0645\u062a\u0635\u0641\u062d",
+      "description": "Gaia \u0645\u062a\u0635\u0641\u062d \u0627\u0644\u0648\u064a\u0628"
+    },
+    "de": {
+      "name": "Browser",
+      "description": "Gaia Web Browser"
     },
     "en-US": {
       "name": "Browser",
       "description": "Gaia Web Browser"
     },
-    "ar": {
-      "name": "\u0627\u0644\u0645\u062a\u0635\u0641\u062d",
-      "description": "Gaia \u0645\u062a\u0635\u0641\u062d \u0627\u0644\u0648\u064a\u0628"
-    },
     "fr": {
       "name": "Navigateur",
       "description": "Navigateur Web Gaia"
+    },
+    "ru": {
+      "name": "\u041d\u0430\u0432\u0438\u0433\u0430\u0442\u043e\u0440",
+      "description": "\u0412\u0435\u0431-\u043d\u0430\u0432\u0438\u0433\u0430\u0442\u043e\u0440 Gaia"
     },
     "zh-TW": {
       "name": "\u7db2\u8def\u700f\u89bd\u5668",
       "description": "Gaia \u7db2\u8def\u700f\u89bd\u5668"
     }
   },
-  "developer": {
-    "url": "https://github.com/andreasgal/gaia",
-    "name": "The Gaia Team"
-  },
-  "permissions": ["mozbrowser"]
+  "default_locale": "en-US",
+  "icons": {
+    "120": "/style/icons/Browser.png"
+  }
 }
