@@ -21,7 +21,7 @@ var TaskList = {
     delete this.title;
     return this.title = document.getElementById('tasks-title');
   },
-  
+
   /** Gets current date or now if not set.
   * @this {TaskList}
   * @return {Date} Current date or now.
@@ -194,7 +194,7 @@ var EditTask = {
     var task = {};
 
     task.id = dataset.id;
-    task.name = dataset.name ? dataset.name : 'New task';
+    task.name = dataset.name ? dataset.name : '';
     task.desc = dataset.desc ? dataset.desc : '';
     task.date = dataset.date ?
       new Date(dataset.date) : TaskList.getCurrentDate();

@@ -44,7 +44,7 @@ header h1 {
   top: 0;
   left: 0;
   border: 0;
-  width: 100%;
+  width: -moz-calc(100% + 8px); /* scrollbar bug */
   height: 100%;
   overflow-y: scroll;
 }
