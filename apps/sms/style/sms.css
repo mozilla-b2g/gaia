@@ -345,6 +345,7 @@ body.conversation-new-msg #view-num {
 
 #view-list > div.pending {
   -moz-animation: fadeIn 2s ease;
+  opacity: 0.5;
 }
 
 @-moz-keyframes fadeIn {
