@@ -1,0 +1,71 @@
+<!DOCTYPE html> 
+<html manifest="manifest.appcache"> 
+  <head>
+    <meta charset="utf-8"> 
+    <meta http-equiv="pragma" content="no-cache">
+    <title>Tasks</title> 
+    <link rel="stylesheet" type="text/css" media="screen" href="style/ui.css"/>
+    <link rel="stylesheet" type="text/css" media="screen" href="style/tasks.css"/>
+    <script type="text/javascript" src="../../webapi.js"></script>
+    <script type="text/javascript" src="js/tasks.js"></script>
+  </head>
+
+  <body>
+	<div id="root" class="active view" data-title="Tasks">
+	  <header>
+		<a id="task-new" href="#task" class="right button">New</a>
+		<span id="tasks-reset" class="button">Next tasks</span>
+        	<a id="cal-load" href="#cal" class="button">Calendar</a>
+		<span id="tasks-title" class="label">Not loaded</span>
+	  </header>
+	  <ul id="tasks" class="tableView"></ul>
+	</div>
+	
+	<!-- Task -->
+	<div id="task" class="view" data-title="Task">
+	  <header>
+		<a id="task-del" href="#root" class="right button">Delete</a>
+		<a id="task-save" href="#root" class="button">Save</a>
+		<a href="#root" class="button">Back</a>
+	  </header>
+	  <ul class="tableView">
+		<li>
+		  <span>Name</span>
+		  <input type="text" name="task.name"/>
+		  <p></p>
+		</li>
+		<li>
+		  <span>Description</span>
+		  <textarea name="task.desc"></textarea>
+		</li>
+		<li>
+		  <span>Date</span>
+		  <input type="text" name="task.date"/>
+		  <p></p>
+		</li>
+		<li>
+		  <span>Done</span>
+		  <label>
+			  <input type="checkbox" name="task.done"/>
+			  <span></span>
+		  </label>
+		</li>
+	  </ul>
+	</div>
+	
+	<!-- Calendar -->
+	<div id="cal" class="view" data-title="Calendar">
+	  <header>
+		  <a id="cal-pick" href="#root" class="button">Pick</a>
+		  <a href="#root" class="button">Back</a>
+	  </header>
+	  <ul class="tableView">
+		<li>
+		  <span>Pick a date</span>
+		  <input type="text" name="cal.date"/>
+		  <p></p>
+		</li>
+	  </ul>
+	</div>
+  </body>
+</html>
