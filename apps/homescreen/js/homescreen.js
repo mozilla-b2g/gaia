@@ -310,17 +310,16 @@ var NotificationScreen = {
           hasNotifications.dataset.visible = 'true';
           break;
 
-        case 'content-permission':
+        default:
           // XXX Needs to implements more UI but for now let's allow stuffs
           var event = document.createEvent('CustomEvent');
           event.initCustomEvent('mozContentEvent', true, true, {
-            type: 'content-permission-allow',
+            type: 'permission-allow',
             id: detail.id
           });
           window.dispatchEvent(event);
           break;
 
-        default:
           break;
       }
     });
