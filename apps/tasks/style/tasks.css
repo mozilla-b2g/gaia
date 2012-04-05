@@ -26,47 +26,48 @@ html, body {
 /* ---------- header --------------- */
 
 header {
-	text-align:left;
+  position: relative;
+	text-align: center;
 }
 
 /* ------------- Button ------------- */
 a.button, span.button {
 	margin:4px;
 	padding:12px;
+  min-width: 6mozmm;
 	line-height: 22px;
 	border:1px solid #aaa;
 	background-color:#FFF;
 	color:#000;
 	display:inline-block;
+  text-align: center;
 	text-decoration:none;
 	border-radius: 15px;
 	cursor:pointer;
 }
 
 a.button.right {
-	float:right;
-	margin-top:7px;
+	position: absolute;
+  top: 3px;
+  right: 3px;
 }
 
-/* ----------- Label -------------- */
-span.label {
-	margin:4px;
-	padding:12px;
-	color:#333;
-	font-size:1.2em;
+a.button.left {
+	position: absolute;
+  top: 3px;
+  left: 3px;
 }
 
 /* ----------- Inputs ------------- */
-ul > select, input, textarea {
-	float:right;
-}
 
 select, input, textarea {
+  display: block;
+  clear: both;
 	background:none;
 	border:1px solid #AAA;
-	width:70%;
-	height:80%;
+	width: -moz-calc(100% - 24px);
 	margin:8px;
+  font-size: 1em;
 }
 
 select:focus, input:focus, textarea:focus {
@@ -98,4 +99,27 @@ input ~ *:empty {
 li img {
 	vertical-align: middle;
 	margin-right:10px;
+}
+
+#task ul li > span {
+  position: static;
+  display: block;
+}
+
+#task ul li:active {
+  background-color: rgba(0, 0, 0, .07);
+  background-color: #f5f5f5;
+}
+
+li.multiline {
+  height: 132px;
+}
+
+li.delete {
+  text-align: center;
+}
+
+li.delete > a {
+  color: red;
+  text-align: underline;
 }

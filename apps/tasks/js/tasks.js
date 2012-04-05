@@ -28,9 +28,6 @@ var TaskList = {
         case 'tasks-reset':
           this.refresh();
           break;
-        case 'cal-load':
-          Cal.load();
-          break;
         default:
           EditTask.load(EditTask.taskFromDataset(link.parentNode.dataset));
       }
@@ -227,4 +224,15 @@ window.addEventListener('DOMContentLoaded', function() {
   document.querySelector('#task-del').addEventListener('click', EditTask);
 
   TaskList.init();
+});
+
+window.addEventListener('keyup', function goBack(event) {
+  if (document.location.hash != '#root' &&
+      event.keyCode === event.DOM_VK_ESCAPE) {
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    document.location.hash = 'root';
+  }
 });
