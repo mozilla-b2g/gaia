@@ -496,7 +496,7 @@ div.windowSprite {
 
 #permissionscreen.visible {
   pointer-events: auto;
-  display: block;
+  display: none;
 }
 
 #permissiondialog {
@@ -518,6 +518,49 @@ div.windowSprite {
 }
 
 #permissiondialog button {
+    margin: 30px;
+    padding: 20px;
+}
+
+/* Updates request dialog see apps/homescreen/js/updates.js */
+/* FIXME: this is very ugly */
+#updatesscreen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 20001; /* just below the sleep menu */
+  pointer-events: none;
+  background-color: rgba(0,0,0,0.4);
+  -moz-transition: opacity 0.5s ease;
+  display: none;
+}
+
+#updatesscreen.visible {
+  pointer-events: auto;
+  display: none;
+}
+
+#updatesdialog {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  width: 320px;
+  height: 300px;
+  margin: 0 0 0 -160px;
+  color: #778;
+  background: -moz-linear-gradient(center top , rgb(244, 244, 244), rgb(234, 234, 234)) repeat scroll 0% 0% white;
+  border-radius: 8px;
+  border: 1px solid hsla(0,0%,0%,0);
+  font-size: 20px;
+}
+
+#updatesnmessage {
+    margin: 20px;
+}
+
+#updatesdialog button {
     margin: 30px;
     padding: 20px;
 }
