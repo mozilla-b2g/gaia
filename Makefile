@@ -182,7 +182,7 @@ tests: manifests offline
 #     let us remove the update-offline-manifests target dependancy of the
 #     default target.
 stamp-commit-hash:
-	git log -1 --format="%H%n%aD" HEAD > apps/settings/gaia-commit.txt
+	git log -1 --format="%H%n%at" HEAD > apps/settings/gaia-commit.txt
 
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
