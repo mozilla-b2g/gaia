@@ -1167,6 +1167,29 @@ function AppScreen() {
       requestPermission(_('install', { name: name, origin: app.origin }),
                         function() { sendResponse(e.detail.id, true); },
                         function() { sendResponse(e.detail.id, false); });
+    } else if (e.detail.type == 'updates-request') {
+    	dump("*****homescreen: received updates-requestXXXXXXX"+e.toString()+"\n");
+      requestUpdates(e.detail,
+                     function () { sendUpdate(e.detail.update, true); },
+                     function () { sendUpdate(e.detail.update, false); });
+      dump("****homescreen: returned from requestUpdates\n");
+    }
+
+    function sendUpdate(detail, now) {
+      dump("******in sendUpdate\n");
+      if (now) {
+        var event = document.createEvent('CustomEvent');
+        event.initCustomEvent('mozContentEvent', true, false, {
+          aUpdate: detail,
+          type: 'updates-now',
+        });
+        window.dispatchEvent(event);
+      } else {
+        window.setTimeout(requestUpdates(_('update', { name: app.name, origin: app.origin }),
+                                                  function() { sendUpdate(e.detail, true); },
+                                                  function() { sendUpdate(e.detail, false); }),
+                          10*60*1000);
+      }
     }
 
     // This is how we say yes or no to the request after the user decides
