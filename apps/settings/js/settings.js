@@ -92,7 +92,8 @@ var Settings = {
   loadGaiaCommit: function() {
     function dateToUTC(d) {
       var arr = [];
-      [ d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(),
+      [
+        d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(),
         d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds()
       ].forEach(function(n) {
         arr.push((n >= 10) ? n : '0' + n);
@@ -109,7 +110,6 @@ var Settings = {
           // XXX it would be great to pop a link to the github page
           // showing the commit but there doesn't seem to be any way
           // to tell the browser to do it.
-          //dispDate.textContent = data[1];
           var d = new Date(parseInt(data[1] + '000', 10));
           dispDate.textContent = dateToUTC(d);
           disp.textContent = data[0];
