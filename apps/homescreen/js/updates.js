@@ -1,5 +1,4 @@
 function requestUpdates(aUpdate, allowcallback, delaycallback) {
-  dump("******In requestUpdates message="+aUpdate.toString()+"\n");
   // These are the UI elements we work with
   var screen = document.getElementById('updatesscreen');
   var messagediv = document.getElementById('updatesmessage');
@@ -9,7 +8,7 @@ function requestUpdates(aUpdate, allowcallback, delaycallback) {
 
   // If there is already a pending updaes request, return
   if (screen.classList.contains('visible')) {
-    dump("****** Screen is already visible\n");
+    dump("****** UpdatesScreen is already visible\n");
     return;
   }
 
@@ -19,7 +18,6 @@ function requestUpdates(aUpdate, allowcallback, delaycallback) {
   messagediv.textContent = "Update "+aUpdate.name+"?";
 
   // Set event listeners for the yes and no buttons
-  dump("*****Adding eventListeners\n");
   nowbutton.addEventListener('click', clickHandler);
   delaybutton.addEventListener('click', clickHandler);
 
@@ -35,7 +33,6 @@ function requestUpdates(aUpdate, allowcallback, delaycallback) {
   // This is the event listener function for the buttons
   function clickHandler(e) {
     // cleanup the event handlers
-    dump("***** In clickHandler\n");
     updatebutton.removeEventListener('click', clickHandler);
     delaybutton.removeEventListener('click', clickHandler);
     if (timeout) {
