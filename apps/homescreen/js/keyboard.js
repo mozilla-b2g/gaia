@@ -20,6 +20,8 @@ const IMEManager = {
   currentKeyboardMode: '',
   // keyboard layouts selected by the user from settings
   keyboards: [],
+  // keyboard setting groups selected by the user from settings
+  settingGroups: [],
 
   // layouts to turn on correspond to keyboard.layouts.* setting
   // TODO: gaia issue 347, better setting UI and setting data store
@@ -34,60 +36,44 @@ const IMEManager = {
     'arabic': ['ar']
   },
 
-  loadKeyboardSettings: function loadKeyboardSettings(callback) {
-    var completeSettingRequests = (function completeSettingRequests() {
-      if (!this.keyboards.length)
-        this.keyboards = [].concat(this.keyboardSettingGroups['english'],
-                                   this.keyboardSettingGroups['zhuyin']);
+  enableSetting: function km_enableSetting(theKey) {
+    if (this.settingGroups.indexOf(theKey) === -1)
+      this.settingGroups.push(theKey);
 
-      if (this.keyboards.indexOf(this.currentKeyboard) === -1)
-        this.currentKeyboard = this.keyboards[0];
+    this.updateSettings();
+  },
 
-      this.keyboards.forEach((function loadIMEngines(name) {
-        this.loadKeyboard(name);
-      }).bind(this));
-
-      callback();
-    }).bind(this);
-
-    this.keyboards = [];
-    var keyboardSettingGroupKeys = [];
-    for (var key in this.keyboardSettingGroups) {
-      keyboardSettingGroupKeys.push(key);
+  disableSetting: function km_disableSetting(theKey) {
+    var i = this.settingGroups.indexOf(theKey);
+    if (i === -1) {
+      this.updateSettings();
+      return;
     }
 
-    var i = 0;
-    var keyboardSettingRequest = function keyboardSettingRequest(key) {
-      var request = navigator.mozSettings.getLock().get('keyboard.layouts.' + key);
-      request.onsuccess = (function onsuccess(evt) {
-        if (!!request.result['keyboard.layouts.' + key]) {
-          this.keyboards = this.keyboards.concat(
-            this.keyboardSettingGroups[key]
-          );
-        }
+    this.settingGroups = [].concat(
+      this.settingGroups.slice(0, i),
+      this.settingGroups.slice(i + 1, this.settingGroups.length));
 
-        if (++i === keyboardSettingGroupKeys.length) {
-          completeSettingRequests();
-        } else {
-          keyboardSettingRequest.call(this, keyboardSettingGroupKeys[i]);
-        }
-      }).bind(this);
+    this.updateSettings();
+  },
 
-      request.onerror = (function onerror(evt) {
+  updateSettings: function km_updateSettings() {
+    this.keyboards = [];
+    for (var key in this.keyboardSettingGroups) {
+      if (this.settingGroups.indexOf(key) === -1)
+        continue;
+      this.keyboards = this.keyboards.concat(this.keyboardSettingGroups[key]);
+    }
 
-        var msg = 'Having trouble getting setting for keyboard setting group: ';
-        dump(msg + key);
+    if (!this.keyboards.length)
+      this.keyboards = [].concat(this.keyboardSettingGroups['english']);
 
-        if (++i === keyboardSettingGroupKeys.length) {
-          completeSettingRequests();
-        } else {
-          keyboardSettingRequest.call(this, keyboardSettingGroupKeys[i]);
-        }
+    if (this.keyboards.indexOf(this.currentKeyboard) === -1)
+        this.currentKeyboard = this.keyboards[0];
 
-      }).bind(this);
-    };
-
-    keyboardSettingRequest.call(this, keyboardSettingGroupKeys[i]);
+    this.keyboards.forEach((function loadIMEngines(name) {
+      this.loadKeyboard(name);
+    }).bind(this));
   },
 
   currentType: 'text',
@@ -409,6 +395,38 @@ const IMEManager = {
     this.imeEvents.forEach((function imeEvents(type) {
       this.ime.addEventListener(type, this);
     }).bind(this));
+
+    var self = this;
+
+    SettingsListener.observe(
+      'keyboard.vibration', false,
+      function(value) {
+        self.vibrate = !!value;
+      }
+    );
+
+    SettingsListener.observe(
+      'keyboard.clicksound', false,
+      function(value) {
+        self.clicksound = !!value;
+      }
+    );
+
+    for (var key in this.keyboardSettingGroups) {
+      // Use SettingsListener defined in homescreen.js
+      (function observeSettings(key) {
+        SettingsListener.observe(
+          'keyboard.layouts.' + key, false,
+          function(value) {
+            if (value)
+              self.enableSetting(key);
+            else
+              self.disableSetting(key);
+          }
+        );
+      })(key);
+    }
+
   },
 
   uninit: function km_uninit() {
@@ -490,34 +508,7 @@ const IMEManager = {
       case 'showime':
         // cancel hideIME that imminently happen before showIME
         clearTimeout(this.hideIMETimer);
-
-        // TODO: gaia issue 346
-        // Instead of reading the latest setting every time
-        // when showime and relay on the callback,
-        // allow attachment of a read-only event listener
-        // to add/remove keyboard as setting changes
-        // see bug 712778
-        this.loadKeyboardSettings(
-          (function showIMEAfterSettingLoaded() {
-            this.showIME(activeWindow, evt.detail.type);
-          }).bind(this)
-        );
-
-        // TODO: workaround gaia issue 374
-        setTimeout((function keyboardVibrateSettingRequest() {
-          var request = navigator.mozSettings.getLock().get('keyboard.vibration');
-          request.addEventListener('success', (function onsuccess() {
-            this.vibrate = !!request.result['keyboard.vibration'];
-          }).bind(this));
-
-          setTimeout((function keyboardClickSoundSettingRequest() {
-            var request = navigator.mozSettings.getLock().get('keyboard.clicksound');
-            request.addEventListener('success', (function onsuccess() {
-              this.clicksound = !!request.result['keyboard.clicksound'];
-            }).bind(this));
-          }).bind(this), 0);
-
-        }).bind(this), 0);
+        this.showIME(activeWindow, evt.detail.type);
 
         break;
 
@@ -819,7 +810,8 @@ const IMEManager = {
 
             window.navigator.mozKeyboard.sendKey(0, keyCode);
 
-            if (this.isUpperCase && !this.isUpperCaseLocked) {
+            if (this.isUpperCase &&
+                !this.isUpperCaseLocked && !this.currentKeyboardMode) {
               this.isUpperCase = false;
               this.updateLayout();
             }
@@ -1023,6 +1015,14 @@ const IMEManager = {
     // Inject the HTML and assign this.menu & this.keyHighlight
 
     this.ime.innerHTML = content;
+
+    if (this.isUpperCaseLocked && this.isUpperCase) {
+      var shiftKey = document.querySelector(
+        'span[data-keycode="' + KeyEvent.DOM_VK_CAPS_LOCK + '"]');
+      if (shiftKey)
+        shiftKey.dataset.enabled = 'true';
+    }
+
     this.menu = document.getElementById('keyboard-accent-char-menu');
     this.keyHighlight = document.getElementById('keyboard-key-highlight');
 

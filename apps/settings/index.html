@@ -9,9 +9,11 @@
     <link rel="stylesheet" type="text/css" media="screen" href="style/settings.css"/>
     <link rel="resource" type="application/l10n" href="locale/settings.properties"/>
     <script>
-      var host = document.location.host.replace(/^[a-z]+\./i,'');
-      var src = 'http://' + host + '/webapi.js';
+      var host = document.location.host;
+      var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+      var src = 'http://' + domain + '/webapi.js';
       document.write('<script src="' + src + '"><\/script>');
+    </script>
     </script>
     <script type="text/javascript" src="js/settings.js"></script>
     <script type="text/javascript" src="js/wifi.js"></script>
@@ -66,6 +68,11 @@
         <li>
           <a href="#phone">
             <span data-l10n-id="phone">Phone</span>
+          </a>
+        </li>
+        <li>
+          <a href="#accessibility">
+            <span data-l10n-id="accessibility">Accessibility</span>
           </a>
         </li>
         <li>
@@ -125,11 +132,55 @@
           </label>
         </li>
       </ul>
+      <h2 data-l10n-id="messages">Messages</h2>
+      <ul>
+        <li id="vibrator">
+          <a data-l10n-id="vibrate">Vibrate</a>
+          <label>
+            <input type="checkbox" name="sms.vibration.received"/>
+            <span></span>
+          </label>
+        </li>
+        <li id="ring">
+          <a data-l10n-id="ring">Ring</a>
+          <label>
+            <input type="checkbox" name="sms.ring.received" checked="true" />
+            <span></span>
+          </label>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Accessibility -->
+    <div id="accessibility" class="view" data-title="Accessibility">
+      <ul>
+        <li id="invert">
+          <a data-l10n-id="invertColors">Invert Colors</a>
+          <label>
+            <input type="checkbox" name="accessibility.invert"/>
+            <span></span>
+          </label>
+        </li>
+      </ul>
     </div>
 
     <!-- Languages -->
     <div id="languages" class="view" data-title="Languages">
       <ul>
+        <li id="language-ar">
+          <a>العربية</a>
+          <label class="checkbox">
+            <input type="radio" name="language.current" value="ar"/>
+            <span class="checkbox-inner"></span>
+          </label>
+        </li>
+        <li id="language-de">
+          <a dir="ltr">Deutsch</a>
+          <label>
+            <input type="radio" name="language.current" value="de"/>
+            <span></span>
+          </label>
+        </li>
         <li id="language-en-us">
           <a dir="ltr">English (US)</a>
           <label>
@@ -144,24 +195,17 @@
             <span></span>
           </label>
         </li>
-        <li id="language-ar">
-          <a>العربية</a>
-          <label class="checkbox">
-            <input type="radio" name="language.current" value="ar"/>
-            <span class="checkbox-inner"></span>
+        <li id="language-ru">
+          <a dir="ltr">Русский</a>
+          <label>
+            <input type="radio" name="language.current" value="ru"/>
+            <span></span>
           </label>
         </li>
         <li id="language-zh-tw">
           <a dir="ltr">正體中文</a>
           <label>
             <input type="radio" name="language.current" value="zh-TW"/>
-            <span></span>
-          </label>
-        </li>
-        <li id="language-ru">
-          <a dir="ltr">Русский</a>
-          <label>
-            <input type="radio" name="language.current" value="ru"/>
             <span></span>
           </label>
         </li>
@@ -256,7 +300,7 @@
         </li>
         <li>
           <span data-l10n-id="traditionalChinese">Traditional Chinese</span>
-          <small data-l10n-id="traditionalChines-desc">Zhuyin</small>
+          <small data-l10n-id="traditionalChinese-desc">Zhuyin</small>
           <label>
             <input type="checkbox" name="keyboard.layouts.zhuyin"/>
             <span></span>

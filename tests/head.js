@@ -85,7 +85,7 @@ function silentOK(condition, message) {
 // Write tests like this:
 //
 //  function generatorTest() {
-//    yield testApp("../dialer/dialer.html", dialerTest)
+//    yield testApp("http://dialer.gaiamobile.org/", dialerTest)
 //  }
 //
 // function dialerTest(window, document, nextStep) {...}
@@ -137,10 +137,11 @@ function testApp(url, testfunc) {
     // Unlock the screen
     // FIXME: I used to do this by sending swipe events, but it broke
     // for some reason, so now we just call a homescreen module to do it
-    yield contentWin.LockScreen.unlock(false, nextStep);
+    yield contentWin.LockScreen.unlock(0, nextStep);
     silentOK(!contentWin.LockScreen.locked, 'screen did not unlock');
 
     // Find all the icons on the homescreen
+    yield until(function() contentDoc.querySelectorAll('#apps > .page > .icon').length > 0, nextStep);
     var icons = contentDoc.querySelectorAll('#apps > .page > .icon');
     silentOK(icons.length > 0, 'no homescreen icons found');
     var icon = null;

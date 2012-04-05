@@ -1,6 +1,11 @@
 
 const { 'classes': Cc, 'interfaces': Ci, 'results': Cr, } = Components;
 
+let CC = Components.Constructor;
+let Namespace = CC("@mozilla.org/network/application-cache-namespace;1",
+                   "nsIApplicationCacheNamespace",
+                   "init");
+
 /*
  * This method will map the profile directory to the directory
  * defined by the const PROFILE_DIR.
@@ -222,6 +227,18 @@ directories.forEach(function generateAppCache(dir) {
 
     applicationCache.markEntry(documentSpec, itemType);
   });
+
+  // NETWORK:
+  // http://*
+  // https://*
+  let array = Cc["@mozilla.org/array;1"]
+                .createInstance(Ci.nsIArray);
+  array.QueryInterface(Ci.nsIMutableArray);
+
+  let bypass = Ci.nsIApplicationCacheNamespace.NAMESPACE_BYPASS;
+  array.appendElement(new Namespace(bypass, 'http://*', ''), false);
+  array.appendElement(new Namespace(bypass, 'https://*', ''), false);
+  applicationCache.addNamespaces(array);
 
   // Store the appcache file
   let documentSpec = domain + '/manifest.appcache';

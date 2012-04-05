@@ -338,6 +338,58 @@ var WindowManager = (function() {
     displayedApp = origin;
   }
 
+
+  function appendFrame(origin, url, name, manifest) {
+    var frame = document.createElement('iframe');
+    frame.id = 'appframe' + nextAppId++;
+    frame.className = 'appWindow';
+    frame.setAttribute('mozallowfullscreen', 'true');
+
+    if (manifest.hackNetworkBound) {
+      var style = 'font-family: OpenSans,sans-serif;' +
+                  'text-align: center;' +
+                  'color: white;' +
+                  'margin-top: 100px;';
+
+      frame.src = 'data:text/html,' +
+        '<body style="background-color: black">' +
+        '  <h3 style="' + style + '">' + localizedLoading + '</h3>' +
+        '</body>';
+    }
+
+    // Note that we don't set the frame size here.  That will happen
+    // when we display the app in setDisplayedApp()
+
+    // Most apps currently need to be hosted in a special 'mozbrowser' iframe
+    // FIXME: a platform fix will come
+    var exceptions = ['Dialer', 'Camera'];
+    if (exceptions.indexOf(manifest.name) == -1) {
+      frame.setAttribute('mozbrowser', 'true');
+    }
+
+    // Add the iframe to the document
+    // Note that we have not yet set its src property.
+    // In order for the open animation to be smooth, we don't
+    // actually set src until the open has finished.
+    windows.appendChild(frame);
+
+    // And map the app origin to the info we need for the app
+    runningApps[origin] = {
+      name: name,
+      manifest: manifest,
+      frame: frame
+    };
+
+    numRunningApps++;
+
+    // Now animate the window opening and actually set the iframe src
+    // when that is done.
+    setDisplayedApp(origin, function() {
+      frame.src = url;
+    });
+  }
+
+
   // Start running the specified app.
   // In order to have a nice smooth open animation,
   // we don't actually set the iframe src property until
@@ -347,6 +399,19 @@ var WindowManager = (function() {
       return;
 
     var app = appscreen.getAppByOrigin(origin);
+
+    // If the application is not a regular application, it can be bookmark.
+    // A bookmark consist in a name, an url and an icon. No manifest.
+    if (!app) {
+      for (var name in bookmarks) {
+        if (bookmarks[name].url == origin)
+          break;
+      }
+
+      appendFrame(origin, origin, name, { 'hackNetworkBound': true });
+      return;
+    }
+
     // TODO: is the startPoint argument implemented?
     // and is it passed back to us in the webapps-launch method?
     // If so, we could use that to pass a query string or fragmentid
@@ -359,75 +424,13 @@ var WindowManager = (function() {
   window.addEventListener('mozChromeEvent', function(e) {
     if (e.detail.type === 'webapps-launch') {
       var origin = e.detail.origin;
-      var url = e.detail.url;
-      if (isRunning(origin))
+      if (isRunning(origin)) {
+        setDisplayedApp(origin);
         return;
+      }
 
       var app = appscreen.getAppByOrigin(origin);
-      var manifest = app.manifest;
-      var name = manifest.name;
-
-      var frame = document.createElement('iframe');
-      frame.id = 'appframe' + nextAppId++;
-      frame.className = 'appWindow';
-      frame.setAttribute('mozallowfullscreen', 'true');
-
-      if (manifest.hackNetworkBound) {
-        var style = 'font-family: OpenSans,sans-serif;' +
-                    'text-align: center;' +
-                    'color: white;' +
-                    'margin-top: 100px;';
-
-        frame.src = 'data:text/html,' +
-          '<body style="background-color: black">' +
-          '  <h3 style="' + style + '">' + localizedLoading + '</h3>' +
-          '</body>';
-      }
-
-      // Note that we don't set the frame size here.  That will happen
-      // when we display the app in setDisplayedApp()
-
-      // Most apps currently need to be hosted in a special 'mozbrowser' iframe
-      // FIXME: a platform fix will come
-      var exceptions = ['Dialer', 'Settings', 'Camera'];
-      if (exceptions.indexOf(manifest.name) == -1) {
-        frame.setAttribute('mozbrowser', 'true');
-      }
-
-      // Add the iframe to the document
-      // Note that we have not yet set its src property.
-      // In order for the open animation to be smooth, we don't
-      // actually set src until the open has finished.
-      windows.appendChild(frame);
-
-      // And map the app origin to the info we need for the app
-      runningApps[origin] = {
-        name: name,
-        manifest: manifest,
-        frame: frame
-      };
-
-      numRunningApps++;
-
-      // FIXME
-      // Currently the chrome code in src/b2g/chrome/content/webapi.js
-      // listens for 'appwillopen' events to know when to inject custom
-      // JS code into new app windows.  That chrome code ought to change
-      // to listen for DOMNodeInserted events or similar, but for now
-      // we've got to send this custom event to make things work right
-      // See bug 736628: https://bugzilla.mozilla.org/show_bug.cgi?id=736628
-      setTimeout(function() {
-        var evt = document.createEvent('CustomEvent');
-        evt.initCustomEvent('appwillopen', true, false, {});
-        frame.dispatchEvent(evt);
-      }, 0);
-
-
-      // Now animate the window opening and actually set the iframe src
-      // when that is done.
-      setDisplayedApp(origin, function() {
-        frame.src = url;
-      });
+      appendFrame(origin, e.detail.url, app.manifest.name, app.manifest);
     }
   });
 

@@ -97,6 +97,11 @@ body {
   background: #111 url(images/grippy.png) no-repeat 50% 50%;
 }
 
+#notifications-container .notification > a.close {
+  background: url('images/close.png') center center no-repeat;
+  background-size: 40px 40px;
+}
+
 /* App Icons */
 
 .icon {
@@ -182,8 +187,8 @@ div.windowSprite {
   background-image: url("images/sms.png");
 }
 
-#state-calls[data-visible] {
-  background-image: url("images/missing-call.png");
+#state-notifications[data-visible] {
+  background-image: url("images/desktop-notification.png");
 }
 
 #titlebar {
@@ -322,12 +327,13 @@ div.windowSprite {
   border-radius: 10px;
   z-index: 20003;
   -moz-transition: opacity 0.5s ease;
-  opacity: 0;
   pointer-events: none;
+  display: none;
 }
 
 #volume.visible {
-  opacity: 1.0;
+  pointer-events: auto;
+  display: block;
 }
 
 #volume.off {
@@ -411,13 +417,14 @@ div.windowSprite {
   z-index: 20002;
   pointer-events: none;
   background-color: rgba(0,0,0,0.4);
-  opacity: 0;
   -moz-transition: opacity 0.5s ease;
+  pointer-events: none;
+  display: none;
 }
 
 #sleep.visible {
   pointer-events: auto;
-  opacity: 1;
+  display: block;
 }
 
 .sleep-menu {
@@ -481,15 +488,15 @@ div.windowSprite {
   width: 100%;
   height: 100%;
   z-index: 20001; /* just below the sleep menu */
-  pointer-events: none;
   background-color: rgba(0,0,0,0.4);
-  opacity: 0;
   -moz-transition: opacity 0.5s ease;
+  pointer-events: none;
+  display: none;
 }
 
 #permissionscreen.visible {
   pointer-events: auto;
-  opacity: 1;
+  display: block;
 }
 
 #permissiondialog {

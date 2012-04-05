@@ -1,15 +1,54 @@
+###############################################################################
+# Global configurations                                                       #
+#                                                                             #
+# GAIA_DOMAIN : change that if you plan to use a different domain to update   #
+#               your applications or want to use a local domain               #
+#                                                                             #
+# ADB         : if you use a device and plan to send update it with your work #
+#               you need to have adb in your path or you can edit this line to#
+#               specify its location.                                         #
+#                                                                             #
+# DEBUG       : debug mode enables mode output on the console and disable the #
+#               the offline cache. This is mostly for desktop debugging.      #
+#                                                                             #
+###############################################################################
 GAIA_DOMAIN?=gaiamobile.org
-GAIA_DIR?=$(CURDIR)
-B2G_HOMESCREEN=file://$(GAIA_DIR)/index.html
 
-PROFILE_DIR?=$(CURDIR)/profile
+ADB?=adb
 
-MOZ_TESTS = "$(MOZ_OBJDIR)/_tests/testing/mochitest"
-INJECTED_GAIA = "$(MOZ_TESTS)/browser/gaia"
+DEBUG?=0
 
-TEST_PATH=gaia/tests/${TEST_FILE}
 
-B2G_PID=$(shell $(ADB) shell toolbox ps | grep "b2g" | awk '{ print $$2; }')
+###############################################################################
+# The above rules generate the profile/ folder and all it's content.          #
+# The profile folder content depends on different rules:                      #
+#  1. manifests                                                               #
+#     A directory structure representing the applications installed using the #
+#     Apps API. In Gaia all applications use this method.                     #
+#     See https://developer.mozilla.org/en/Apps/Apps_JavaScript_API           #
+#                                                                             #
+#	 2. offline                                                                 #
+#			An Application Cache database containing Gaia apps, so the phone can be #
+#     used offline and application can be updated easily. For details about it#
+#     see: https://developer.mozilla.org/en/Using_Application_Cache           #
+#                                                                             #
+#  3. preferences                                                             #
+#     A preference file used by the platform to configure permissions         #
+#                                                                             #
+###############################################################################
+
+# In debug mode the offline cache is not used (even if it is generated) and
+# Gaia is loaded by a built-in web server via port GAIA_PORT.
+# 
+# XXX For now the name of the domain should be mapped to localhost manually
+# by editing /etc/hosts on linux/mac. This steps would not be required 
+# anymore once https://bugzilla.mozilla.org/show_bug.cgi?id=722197 will land.
+ifeq ($(DEBUG),1)
+GAIA_PORT=:8080
+else
+GAIA_PORT=
+endif
+
 
 # what OS are we on?
 SYS=$(shell uname -s)
@@ -22,25 +61,50 @@ MD5SUM = md5sum -b
 SED_INPLACE_NO_SUFFIX = sed -i
 endif
 
+# Generate profile/
+profile: stamp-commit-hash update-offline-manifests preferences manifests offline extensions
+	@echo "\nProfile Ready: please run [b2g|firefox] -profile $(CURDIR)/profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
 
-mochitest:
-	echo "Checking if the mozilla build has mochitests enabled..."
-	test -d $(MOZ_TESTS) || (echo "Please ensure you don't have |ac_add_options --disable-tests| in your mozconfig." && exit 1)
-	echo "Checking the injected Gaia..."
-	test -L $(INJECTED_GAIA) || ln -s $(GAIA) $(INJECTED_GAIA)
-	TEST_PATH=$(TEST_PATH) make -C $(MOZ_OBJDIR) mochitest-browser-chrome EXTRA_TEST_ARGS=--browser-arg=""
+# Generate profile/webapps/
+manifests:
+	@echo "Generated webapps"
+	@mkdir -p profile/webapps
+	@echo { > profile/webapps/webapps.json
+	@cd apps; \
+	for d in `find * -maxdepth 0 -type d` ;\
+	do \
+	  if [ -f $$d/manifest.json ]; \
+		then \
+		  mkdir -p ../profile/webapps/$$d; \
+		  cp $$d/manifest.json ../profile/webapps/$$d  ;\
+      \
+			echo  \"$$d\": {\\n \
+			      \"origin\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)\", \\n\
+			      \"installOrigin\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)\",\\n \
+			      \"receipt\": null,\\n \
+			      \"installTime\": 132333986000\\n \
+            }, >> ../profile/webapps/webapps.json;\
+		fi \
+	done
+	@$(SED_INPLACE_NO_SUFFIX) -e '$$s|,||' profile/webapps/webapps.json
+	@echo } >> profile/webapps/webapps.json
+	@cat profile/webapps/webapps.json
+	@echo "Done"
 
-# The targets below all require adb
-# It should be in your path somewhere, or you can edit this line
-# to specify its location.
-ADB?=adb
+
+# Generate profile/OfflineCache/
+offline: install-xulrunner
+	@echo "Building offline cache"
+	@rm -rf profile/OfflineCache
+	@mkdir -p profile/OfflineCache
+	@cd ..
+	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)$(GAIA_PORT)"' offline-cache.js
+	@echo "Done"
 
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up
 # some commands for invoking it. But it is platform dependent
-.PHONY: install-xulrunner
-
 ifeq ($(SYS),Darwin)
 # We're on a mac
 XULRUNNER_DOWNLOAD=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/11.0/sdk/xulrunner-11.0.en-US.mac-x86_64.sdk.tar.bz2
@@ -48,7 +112,7 @@ XULRUNNER=./xulrunner-sdk/bin/run-mozilla.sh
 XPCSHELL=./xulrunner-sdk/bin/xpcshell
 
 install-xulrunner:
-	test -d xulrunner-sdk || (wget $(XULRUNNER_DOWNLOAD) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2) 
+	test -d xulrunner-sdk || (wget $(XULRUNNER_DOWNLOAD) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2)
 
 else
 # Not a mac: assume linux
@@ -61,78 +125,89 @@ XPCSHELL=./xulrunner/xpcshell
 
 install-xulrunner:
 	test -d xulrunner || (wget $(XULRUNNER_DOWNLOAD) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2)
-
 endif
 
-# Install into profile/ all the files needed to load gaia on device.
-.PHONY: gaia
-gaia: stamp-commit-hash appcache-manifests copy-manifests offline
-	@echo "Installed gaia into profile/."
+# Generate profile/prefs.js
+preferences: install-xulrunner
+	@echo "Generating prefs.js..."
+	@mkdir -p profile
+	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)$(GAIA_PORT)"; const DEBUG = $(DEBUG)' preferences.js
+	@echo "Done"
 
-# If your gaia/ directory is a sub-directory of the B2G directory, then
-# you should use the install-gaia target of the B2G Makefile. But if you're
-# working on just gaia itself, and you already have B2G firmware on your
-# phone, and you have adb in your path, then you can use this target to
-# update the gaia files and reboot b2g
 
-PROFILE := $$($(ADB) shell ls -d /data/b2g/mozilla/*.default | tr -d '\r')
-PROFILE_DATA := profile
-.PHONY: install-gaia
-install-gaia: gaia
-	$(ADB) start-server
-	$(ADB) shell rm -r /data/local/*
-	$(ADB) shell rm -r /cache/*
-# just push the profile
-	$(ADB) push profile/OfflineCache /data/local/OfflineCache
-	$(ADB) push profile/webapps /data/local/webapps
-	@echo 'Rebooting b2g now'
-	$(ADB) shell kill $(B2G_PID)
+# Generate profile/extensions
+EXT_DIR=profile/extensions
+extensions:
+	@echo "Generating extensions..."
+	@mkdir -p profile
+	@rm -rf $(EXT_DIR)
+ifeq ($(DEBUG),1)
+	cp -r tools/extensions $(EXT_DIR)
+	# httpd
+	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_DIR@|$(CURDIR)|g' $(EXT_DIR)/httpd@gaiamobile.org
+	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_DOMAIN@|$(GAIA_DOMAIN)|g' $(EXT_DIR)/httpd/content/httpd.js
+	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_DIR@|$(CURDIR)|g' $(EXT_DIR)/httpd/content/loader.js
+	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_DOMAIN@|$(GAIA_DOMAIN)|g' $(EXT_DIR)/httpd/content/loader.js
+	@$(SED_INPLACE_NO_SUFFIX) -e 's|@GAIA_PORT@|$(subst :,,$(GAIA_PORT))|g' $(EXT_DIR)/httpd/content/loader.js
+endif
+	@echo "Done"
 
-.PHONY: stamp-commit-hash
+
+
+###############################################################################
+# Tests                                                                       #
+###############################################################################
+
+MOZ_TESTS = "$(MOZ_OBJDIR)/_tests/testing/mochitest"
+INJECTED_GAIA = "$(MOZ_TESTS)/browser/gaia"
+
+TEST_PATH=gaia/tests/${TEST_FILE}
+
+.PHONY: tests
+tests: manifests offline
+	echo "Checking if the mozilla build has tests enabled..."
+	test -d $(MOZ_TESTS) || (echo "Please ensure you don't have |ac_add_options --disable-tests| in your mozconfig." && exit 1)
+	echo "Checking the injected Gaia..."
+	test -L $(INJECTED_GAIA) || ln -s $(CURDIR) $(INJECTED_GAIA)
+	TEST_PATH=$(TEST_PATH) make -C $(MOZ_OBJDIR) mochitest-browser-chrome EXTRA_TEST_ARGS="--browser-arg=\"\" --extra-profile-file=$(CURDIR)/profile/webapps --extra-profile-file=$(CURDIR)/profile/OfflineCache --extra-profile-file=$(CURDIR)/profile/user.js"
+
+
+###############################################################################
+# Utils                                                                       #
+###############################################################################
+
+
+# Generate a text file containing the current changeset of Gaia
+# XXX I wonder if this should be a replace-in-file hack. This would let us
+#     let us remove the update-offline-manifests target dependancy of the
+#     default target.
 stamp-commit-hash:
 	git rev-parse HEAD > apps/settings/gaia-commit.txt
 
-# Copy the app manifest files to the profile dir where the
-# mozApps API can find them. For desktop usage, you must create
-# a symbolic link from your profile directory to $GAIA/profile/webapps
-copy-manifests:
-	@mkdir -p profile/webapps
-	@cp apps/webapps.json profile/webapps
-	@$(SED_INPLACE_NO_SUFFIX) -e 's|gaiamobile.org|$(GAIA_DOMAIN)|g' profile/webapps/webapps.json
-	@cd apps; \
-	for d in `find * -maxdepth 0 -type d` ;\
-	do \
-	  if [ -f $$d/manifest.json ]; \
-		then \
-		  mkdir -p ../profile/webapps/$$d; \
-		  cp $$d/manifest.json ../profile/webapps/$$d  ;\
-		fi \
-	done
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
-.PHONY: delete-databases
 delete-databases:
 	$(ADB) shell rm -r /data/b2g/mozilla/*.default/indexedDB/*
 
+
 # Take a screenshot of the device and put it in screenshot.png
-.PHONY: screenshot
 screenshot:
-	mkdir screenshotdata
-	$(ADB) pull /dev/graphics/fb0 screenshotdata/fb0 
+	mkdir -p screenshotdata
+	$(ADB) pull /dev/graphics/fb0 screenshotdata/fb0
 	dd bs=1920 count=800 if=screenshotdata/fb0 of=screenshotdata/fb0b
 	ffmpeg -vframes 1 -vcodec rawvideo -f rawvideo -pix_fmt rgb32 -s 480x800 -i screenshotdata/fb0b -f image2 -vcodec png screenshot.png
 	rm -rf screenshotdata
 
-# Port forwarding to use the RIL daemon from the device
-.PHONY: forward
+
+# Forward port to use the RIL daemon from the device
 forward:
 	$(ADB) shell touch /data/local/rilproxyd
 	$(ADB) shell killall rilproxy
 	$(ADB) forward tcp:6200 localreserved:rilproxyd
 
+
 # update the manifest.appcache files to match what's actually there
-.PHONY: appcache-manifests
-appcache-manifests:
+update-offline-manifests:
 	@cd apps; \
 	for d in `find * -maxdepth 0 -type d` ;\
 	do \
@@ -144,16 +219,28 @@ appcache-manifests:
 			cat `find * -type f | sort -nfs` | $(MD5SUM) | cut -f 1 -d ' ' | sed 's/^/\#\ Version\ /' >> manifest.appcache ;\
 			find * -type f | grep -v tools | sort >> manifest.appcache ;\
 			$(SED_INPLACE_NO_SUFFIX) -e 's|manifest.appcache||g' manifest.appcache ;\
-			echo "http://$(GAIA_DOMAIN)/webapi.js" >> manifest.appcache ;\
+			echo "http://$(GAIA_DOMAIN)$(GAIA_PORT)/webapi.js" >> manifest.appcache ;\
+			echo "NETWORK:" >> manifest.appcache ;\
+			echo "http://*" >> manifest.appcache ;\
+			echo "https://*" >> manifest.appcache ;\
 			cd .. ;\
 		fi \
 	done
 
-# Build the offline cache database
-.PHONY: offline
-offline: install-xulrunner
-	@echo "Building offline cache"
-	@rm -rf profile/OfflineCache
-	@mkdir -p profile/OfflineCache
-	@cd ..
-	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(GAIA_DIR)"; const PROFILE_DIR = "$(PROFILE_DIR)"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)"' offline-cache.js
+
+# If your gaia/ directory is a sub-directory of the B2G directory, then
+# you should use the install-gaia target of the B2G Makefile. But if you're
+# working on just gaia itself, and you already have B2G firmware on your
+# phone, and you have adb in your path, then you can use the install-gaia
+# target to update the gaia files and reboot b2g
+install-gaia: profile
+	$(ADB) start-server
+	$(ADB) shell rm -r /data/local/*
+	$(ADB) shell rm -r /cache/*
+	# just push the profile
+	$(ADB) push profile/OfflineCache /data/local/OfflineCache
+	$(ADB) push profile/webapps /data/local/webapps
+	@echo "Installed gaia into profile/."
+	$(ADB) shell kill $(shell $(ADB) shell toolbox ps | grep "b2g" | awk '{ print $$2; }')
+	@echo 'Rebooting b2g now'
+

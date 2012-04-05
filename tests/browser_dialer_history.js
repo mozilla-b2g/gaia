@@ -1,5 +1,5 @@
 function generatorTest() {
-  yield testApp('../dialer/dialer.html', testDialerHistory);
+  yield testApp('http://dialer.gaiamobile.org/', testDialerHistory);
 }
 
 function testDialerHistory(window, document, nextStep) {

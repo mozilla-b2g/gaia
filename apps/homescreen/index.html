@@ -14,8 +14,9 @@
 
     <!-- Scripts -->
     <script>
-      var host = document.location.host.replace(/^[a-z]+\./i,'');
-      var src = 'http://' + host + '/webapi.js';
+      var host = document.location.host;
+      var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+      var src = 'http://' + domain + '/webapi.js';
       document.write('<script src="' + src + '"><\/script>');
     </script>
     <script defer src="js/window_manager.js"></script>
@@ -31,7 +32,7 @@
       <div id="statusbar">
         <div id="state">
           <div id="state-messages" class="state"></div>
-          <div id="state-calls" class="state"></div>
+          <div id="state-notifications" class="state"></div>
         </div>
         <div id="titlebar"></div>
         <div id="padding"></div>
@@ -114,6 +115,6 @@
       </div>
     </div>
 
-    <audio id="ringtone-player" src="style/ringtones/classic.wav" loop hidden></audio>
+    <audio id="ringtone-player" loop hidden></audio>
   </body>
 </html>
