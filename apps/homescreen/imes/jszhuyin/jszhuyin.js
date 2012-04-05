@@ -515,7 +515,7 @@
       if (type === false) {
         debug('Non-bopomofo code');
 
-        if (firstCandidate) {
+        if (firstCandidate && syllablesInBuffer.join('') !== '') {
           // candidate list exists; output the first candidate
           debug('Sending first candidate.');
           settings.sendString(firstCandidate);
@@ -523,6 +523,14 @@
           empty();
 
           // no return here
+        }
+
+        if (firstCandidate) {
+          debug('Default action; remove suggestion panel.');
+          settings.sendKey(code);
+          settings.sendCandidates([]);
+          firstCandidate = '';
+          next();
         }
 
         //pass the key to IMEManager for default action
