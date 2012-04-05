@@ -214,9 +214,11 @@
 
     <!-- About -->
     <div id="about" class="view" data-title="About">
+      <h2> Git commit info </h2>
       <ul>
         <li>
-          <a id="gaia-commit">(fetching commit rev...)</a>
+          <span id="gaia-commit-hash">(fetching commit rev...)</span>
+          <small id="gaia-commit-date"></small>
         </li>
       </ul>
     </div>
@@ -311,13 +313,6 @@
           <small data-l10n-id="simplifiedChinese-desc">Pinyin</small>
           <label>
             <input type="checkbox" name="keyboard.layouts.pinyin"/>
-            <span></span>
-          </label>
-        </li>
-        <li>
-          <span>Arabic</span>
-          <label>
-            <input type="checkbox" name="keyboard.layouts.arabic"/>
             <span></span>
           </label>
         </li>
