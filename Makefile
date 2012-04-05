@@ -79,13 +79,13 @@ manifests:
 		then \
 		  mkdir -p ../profile/webapps/$$d; \
 		  cp $$d/manifest.json ../profile/webapps/$$d  ;\
-      \
-			echo  \"$$d\": {\\n \
-			      \"origin\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)\", \\n\
-			      \"installOrigin\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)\",\\n \
-			      \"receipt\": null,\\n \
-			      \"installTime\": 132333986000\\n \
-            }, >> ../profile/webapps/webapps.json;\
+                  (\
+			echo \"$$d\": { ;\
+			echo \"origin\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
+			echo \"installOrigin\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
+			echo \"receipt\": null, ;\
+			echo \"installTime\": 132333986000 ;\
+                        echo },) >> ../profile/webapps/webapps.json;\
 		fi \
 	done
 	@$(SED_INPLACE_NO_SUFFIX) -e '$$s|,||' profile/webapps/webapps.json
