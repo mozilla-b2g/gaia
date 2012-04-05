@@ -11,11 +11,15 @@ var UITest = {
   },
   init: function ut_init() {
     this.testList.addEventListener('click', this);
+    this.iframe.addEventListener('load', this);
+    this.iframe.addEventListener('unload', this);
     document.body.addEventListener('transitionend', this);
     window.addEventListener('keyup', this);
   },
   uninit: function ut_uninit() {
     this.testList.removeEventListener('click', this);
+    this.iframe.removeEventListener('load', this);
+    this.iframe.removeEventListener('unload', this);
     document.body.removeEventListener('transitionend', this);
     window.removeEventListener('keyup', this);
   },
@@ -26,6 +30,12 @@ var UITest = {
           return;
         if (this.closeTest())
           ev.preventDefault();
+        break;
+      case 'load':
+        this.iframe.contentWindow.addEventListener('keyup', this);
+        break;
+      case 'unload':
+        this.iframe.contentWindow.removeEventListener('keyup', this);
         break;
       case 'click':
         var name = ev.target.dataset.name;
