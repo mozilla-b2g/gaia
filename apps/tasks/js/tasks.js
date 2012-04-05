@@ -7,11 +7,6 @@ const TASK_ICONS = ['task_ta.png'];
 var taskDataList = [];
 
 var TaskList = {
-  /** Date property to hold current TaskList date.
-  * Undefined value means "next task in 24 hours"
-  */
-  currentDate: undefined,
-
   get tasks() {
     delete this.tasks;
     return this.tasks = document.getElementById('tasks');
@@ -20,14 +15,6 @@ var TaskList = {
   get title() {
     delete this.title;
     return this.title = document.getElementById('tasks-title');
-  },
-
-  /** Gets current date or now if not set.
-  * @this {TaskList}
-  * @return {Date} Current date or now.
-  */
-  getCurrentDate: function() {
-    return this.currentDate ? this.currentDate : new Date();
   },
 
   handleEvent: function(evt) {
@@ -39,7 +26,7 @@ var TaskList = {
 
       switch (link.id) {
         case 'tasks-reset':
-          this.reload();
+          this.refresh();
           break;
         case 'cal-load':
           Cal.load();
@@ -52,34 +39,14 @@ var TaskList = {
   },
 
   init: function() {
-
-    if (!this.currentDate || isNaN(this.currentDate.getTime())) {
-      var startDate = new Date();
-      var endDate = new Date();
-      endDate.setDate(endDate.getDate() + 1);
-      this.title.textContent = 'Tasks in 24 hours';
-      
-    } else {
-      var startDate = new Date(this.currentDate.getTime());
-      startDate.setHours(0);
-      startDate.setMinutes(0);
-
-      var endDate = new Date(this.currentDate.getTime());
-      endDate.setHours(23);
-      endDate.setMinutes(59);
-      
-      this.title.textContent = 'Tasks for ' + Cal.toShortDate(this.currentDate);
-    }
-
     var self = this;
-    this.tasksInRange(startDate, endDate).forEach(function(task) {
+    taskDataList.forEach(function(task) {
 
       var li = document.createElement('li');
       var a = document.createElement('a');
       a.dataset.id = 'task-' + task.id;
       a.dataset.name = task.name;
       a.dataset.desc = task.desc;
-      a.dataset.date = task.date;
       a.dataset.done = task.done;
 
       a.href = '#task';
@@ -96,7 +63,6 @@ var TaskList = {
 
       var label = document.createElement('label');
       label.classList.add('text');
-      label.textContent = Cal.toShortDateTime(task.date);
 
       a.appendChild(label);
 
@@ -117,24 +83,6 @@ var TaskList = {
 
     this.init();
   },
-
-  reload: function(date) {
-    this.currentDate = date;
-    this.refresh();
-  },
-
-  tasksInRange: function(start, end) {
-    var tasks = [];
-    for (var i in taskDataList) {
-      if (taskDataList[i].date >= start && taskDataList[i].date <= end) {
-        tasks.push(taskDataList[i]);
-      }
-    }
-
-    tasks.sort(function(a, b) {return a.date.getTime() - b.date.getTime();});
-
-    return tasks;
-  }
 };
 
 var EditTask = {
@@ -155,16 +103,11 @@ var EditTask = {
       document.querySelector('textarea[name=\'task.desc\']');
   },
 
-  get dateInput() {
-    delete this.dateInput;
-    return this.dateInput = document.querySelector('input[name=\'task.date\']');
-  },
-
   get doneInput() {
     delete this.doneInput;
     return this.doneInput = document.querySelector('input[name=\'task.done\']');
   },
-  
+
   handleEvent: function(evt) {
     switch (evt.type) {
     case 'click':
@@ -174,12 +117,8 @@ var EditTask = {
 
       switch (input.id) {
         case 'task-save':
-          if (this.updateCurrent()) {
+          if (this.updateCurrent())
             TaskList.refresh();
-          } else {
-            evt.preventDefault();
-            evt.stopPropagation();
-          }
           break;
         case 'task-del':
           this.deleteCurrent();
@@ -196,8 +135,6 @@ var EditTask = {
     task.id = dataset.id;
     task.name = dataset.name ? dataset.name : '';
     task.desc = dataset.desc ? dataset.desc : '';
-    task.date = dataset.date ?
-      new Date(dataset.date) : TaskList.getCurrentDate();
     task.done = dataset.done == 'true' ? true : false;
 
     return task;
@@ -208,7 +145,6 @@ var EditTask = {
     this.element.dataset.id = task.id;
     this.nameInput.value = task.name;
     this.descInput.value = task.desc;
-    this.dateInput.value = task.date.toISOString();
     this.doneInput.checked = task.done;
   },
 
@@ -223,16 +159,11 @@ var EditTask = {
 
     task.name = this.nameInput.value;
     task.desc = this.descInput.value;
-    task.date = new Date(this.dateInput.value);
     task.done = this.doneInput.checked;
 
     if (!task.name) {
       this.nameInput.nextElementSibling.textContent = 'Required';
       error = true;
-    }
-
-    if (!Cal.checkDate(task.date)) {
-      this.dateInput.nextElementSibling.textContent = 'Invalid date';
     }
 
     if (!error) {
@@ -264,7 +195,6 @@ var EditTask = {
         if (taskElem.id == task.id) {
           taskElem.name = task.name;
           taskElem.desc = task.desc;
-          taskElem.date = task.date;
           taskElem.done = task.done;
           return true;
         }
@@ -290,74 +220,11 @@ var EditTask = {
   }
 };
 
-var Cal = {
-
-  get dateInput() {
-    delete this.dateInput;
-    return this.dateInput = document.querySelector('input[name=\'cal.date\']');
-  },
-
-  handleEvent: function(evt) {
-    switch (evt.type) {
-    case 'click':
-      var input = evt.target;
-      if (!input)
-        return;
-
-      var selDate = new Date(this.dateInput.value);
-
-      if (this.checkDate(selDate)) {
-        TaskList.reload(selDate);
-      } else {
-        this.dateInput.nextElementSibling.textContent = 'Invalid date';
-        evt.preventDefault();
-        evt.stopPropagation();
-      }
-
-      break;
-    }
-  },
-
-  load: function() {
-    this.dateInput.nextElementSibling.textContent = '';
-    this.dateInput.value = this.toShortDate(TaskList.getCurrentDate());
-  },
-
-  toShortTime: function(date) {
-    return this.pad(date.getHours(), 2) + ':' + this.pad(date.getMinutes(), 2);
-  },
-
-  toShortDate: function(date) {
-    return date.getFullYear() + '-' + this.pad((date.getMonth() + 1), 2) +
-      '-' + this.pad(date.getDate(), 2);
-  },
-
-  toShortDateTime: function(date) {
-    return this.toShortTime(date) + '   ' + this.toShortDate(date);
-  },
-
-  pad: function(number, length) {
-    var str = '' + number;
-    while (str.length < length) {
-        str = '0' + str;
-    }
-
-    return str;
-  },
-
-  checkDate: function(date) {
-    return date && !isNaN(date.getTime());
-  }
-};
-
 window.addEventListener('DOMContentLoaded', function() {
-  document.querySelector('#tasks-reset').addEventListener('click', TaskList);
   document.querySelector('#task-new').addEventListener('click', TaskList);
-  document.querySelector('#cal-load').addEventListener('click', TaskList);
 
   document.querySelector('#task-save').addEventListener('click', EditTask);
   document.querySelector('#task-del').addEventListener('click', EditTask);
 
-  document.querySelector('#cal-pick').addEventListener('click', Cal);
   TaskList.init();
 });
