@@ -1,35 +1,39 @@
 {
   "name": "Calculator",
-  "default_locale": "en-US",
-  "icons": {
-    "120": "/style/icons/Calculator.png"
-  },
   "description": "Calculator",
   "launch_path": "/",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
   "locales": {
-    "ru": {
-      "name": "\u041a\u0430\u043b\u044c\u043a\u0443\u043b\u044f\u0442\u043e\u0440",
-      "description": "\u041a\u0430\u043b\u044c\u043a\u0443\u043b\u044f\u0442\u043e\u0440"
+    "ar": {
+      "name": "\u0627\u0644\u062d\u0627\u0633\u0628\u0629",
+      "description": "\u0627\u0644\u062d\u0627\u0633\u0628\u0629"
+    },
+    "de": {
+      "name": "Taschenrechner",
+      "description": "Taschenrechner"
     },
     "en-US": {
       "name": "Calculator",
       "description": "Calculator"
     },
-    "ar": {
-      "name": "\u0627\u0644\u062d\u0627\u0633\u0628\u0629",
-      "description": "\u0627\u0644\u062d\u0627\u0633\u0628\u0629"
-    },
     "fr": {
       "name": "Calculatrice",
       "description": "Calculatrice Gaia"
+    },
+    "ru": {
+      "name": "\u041a\u0430\u043b\u044c\u043a\u0443\u043b\u044f\u0442\u043e\u0440",
+      "description": "\u041a\u0430\u043b\u044c\u043a\u0443\u043b\u044f\u0442\u043e\u0440"
     },
     "zh-TW": {
       "name": "\u8a08\u7b97\u6a5f",
       "description": "\u8a08\u7b97\u6a5f"
     }
   },
-  "developer": {
-    "url": "https://github.com/andreasgal/gaia",
-    "name": "The Gaia Team"
+  "default_locale": "en-US",
+  "icons": {
+    "120": "/style/icons/Calculator.png"
   }
 }
