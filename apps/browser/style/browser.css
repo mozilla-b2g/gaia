@@ -186,10 +186,6 @@ input::-moz-focus-inner {
   font-weight: 600;
 }
 
-#menu-clear a {
-  background-image: url('images/clear.png');
-}
-
 #menu-refresh a {
   background-image: url('images/refresh.png');
 }
