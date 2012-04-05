@@ -152,7 +152,7 @@ var Browser = {
   },
 
   refresh: function browser_refresh() {
-    var url = this.urlbar.value;
+    var url = this.currentUrl;
     this.content.setAttribute('src', url);
     this.toggleMenu();
   },
