@@ -529,19 +529,18 @@ var CallHandler = {
   }
 };
 
-window.addEventListener('localized', function keyboardInit(evt) {
-  window.removeEventListener('load', keyboardInit);
+window.addEventListener('localized', function startup(evt) {
+  window.removeEventListener('localized', startup);
 
   KeyHandler.init();
   CallHandler.setupTelephony();
-});
 
-window.addEventListener('localized', function showBody(evt) {
   // Set the 'lang' and 'dir' attributes to <html> when the page is translated
   var html = document.querySelector('html');
   var lang = document.mozL10n.language;
-  html.setAttribute('lang', lang.code);
-  html.setAttribute('dir', lang.direction);
+  html.lang = lang.code;
+  html.dir = lang.direction;
+
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('hidden');
 });
