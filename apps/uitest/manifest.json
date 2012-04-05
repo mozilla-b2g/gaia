@@ -4,5 +4,6 @@
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/andreasgal/gaia"
-  }
+  },
+  "fullscreen": true
 }
