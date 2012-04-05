@@ -197,10 +197,14 @@
       settings.sendPendingSymbols(symbols);
     };
 
+    var sendCandidates = function ime_sendCandidates(candidates) {
+      firstCandidate = (candidates[0])? candidates[0][0] : '';
+      settings.sendCandidates(candidates);
+    };
+
     var empty = function ime_empty() {
       debug('Empty buffer.');
       syllablesInBuffer = [''];
-      firstCandidate = '';
       selectedText = '';
       selectedSyllables = [];
       sendPendingSymbols();
@@ -283,21 +287,14 @@
                     [suggestion.substr(texts.length), 'suggestion']);
                 }
               );
-              if (candidates.length) {
-                settings.sendCandidates(candidates);
-                firstCandidate = candidates[0][0];
-              } else {
-                settings.sendCandidates([]);
-                firstCandidate = '';
-              }
+              sendCandidates(candidates);
               callback();
             }
           );
           return;
         }
         debug('Buffer is empty; send empty candidate list.');
-        settings.sendCandidates([]);
-        firstCandidate = '';
+        sendCandidates([]);
         callback();
         return;
       }
@@ -325,8 +322,7 @@
             candidates.push([syllablesInBuffer.join('').replace(/\*/g, ''), 'whole']);
           }
 
-          settings.sendCandidates(candidates);
-          firstCandidate = candidates[0][0];
+          sendCandidates(candidates);
           callback();
           return;
         }
@@ -345,8 +341,6 @@
 
             candidates.push([sentence, 'whole']);
           });
-
-          firstCandidate = candidates[0][0];
 
           // The remaining candidates doesn't match the entire buffer
           // these candidates helps user find the exact character/term
@@ -375,7 +369,7 @@
 
               if (!--i) {
                 debug('Done Looking.');
-                settings.sendCandidates(candidates);
+                sendCandidates(candidates);
                 callback();
                 return;
               }
@@ -519,7 +513,7 @@
           // candidate list exists; output the first candidate
           debug('Sending first candidate.');
           settings.sendString(firstCandidate);
-          settings.sendCandidates([]);
+          sendCandidates([]);
           empty();
 
           // no return here
@@ -528,8 +522,7 @@
         if (firstCandidate) {
           debug('Default action; remove suggestion panel.');
           settings.sendKey(code);
-          settings.sendCandidates([]);
-          firstCandidate = '';
+          sendCandidates([]);
           next();
         }
 
