@@ -260,17 +260,16 @@ var ConversationView = {
       return;
     }
 
-    clearTimeout(this.viewScrollingTimer);
+    clearInterval(this.viewScrollingTimer);
     this.view.scrollTop = animateFromPos;
     this.viewScrollingTimer = setInterval((function scrollStep() {
-      if (this.view.scrollTop
-          === this.view.scrollHeight - this.view.offsetHeight) {
-        clearTimeout(this.viewScrollingTimer);
+      var view = this.view;
+      var height = view.scrollHeight - view.offsetHeight;
+      if (view.scrollTop === height) {
+        clearInterval(this.viewScrollingTimer);
         return;
       }
-      this.view.scrollTop +=
-        Math.ceil((this.view.scrollHeight - this.view.offsetHeight
-          - this.view.scrollTop) / 2);
+      view.scrollTop += Math.ceil((height - view.scrollTop) / 2);
     }).bind(this), 100);
 
   },
@@ -302,7 +301,7 @@ var ConversationView = {
       filter.numbers = [num || ''];
 
       if (this.filter == num)
-        currentScrollTop = this.view.scrollTop;
+        currentScrollTop = view.scrollTop;
 
       this.filter = num;
     } else {
@@ -463,7 +462,7 @@ var ConversationView = {
       receiver: num,
       delivery: 'sending',
       body: text,
-      timestamp: (new Date())
+      timestamp: new Date()
     };
 
     setTimeout((function updateMessageField() {
