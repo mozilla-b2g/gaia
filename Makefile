@@ -39,9 +39,9 @@ DEBUG?=0
 
 # In debug mode the offline cache is not used (even if it is generated) and
 # Gaia is loaded by a built-in web server via port GAIA_PORT.
-# 
+#
 # XXX For now the name of the domain should be mapped to localhost manually
-# by editing /etc/hosts on linux/mac. This steps would not be required 
+# by editing /etc/hosts on linux/mac. This steps would not be required
 # anymore once https://bugzilla.mozilla.org/show_bug.cgi?id=722197 will land.
 ifeq ($(DEBUG),1)
 GAIA_PORT=:8080
@@ -79,13 +79,13 @@ manifests:
 		then \
 		  mkdir -p ../profile/webapps/$$d; \
 		  cp $$d/manifest.json ../profile/webapps/$$d  ;\
-      \
-			echo  \"$$d\": {\\n \
-			      \"origin\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)\", \\n\
-			      \"installOrigin\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)\",\\n \
-			      \"receipt\": null,\\n \
-			      \"installTime\": 132333986000\\n \
-            }, >> ../profile/webapps/webapps.json;\
+                  (\
+			echo \"$$d\": { ;\
+			echo \"origin\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
+			echo \"installOrigin\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
+			echo \"receipt\": null, ;\
+			echo \"installTime\": 132333986000 ;\
+                        echo },) >> ../profile/webapps/webapps.json;\
 		fi \
 	done
 	@$(SED_INPLACE_NO_SUFFIX) -e '$$s|,||' profile/webapps/webapps.json
@@ -182,7 +182,7 @@ tests: manifests offline
 #     let us remove the update-offline-manifests target dependancy of the
 #     default target.
 stamp-commit-hash:
-	git rev-parse HEAD > apps/settings/gaia-commit.txt
+	git log -1 --format="%H%n%at" HEAD > apps/settings/gaia-commit.txt
 
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.

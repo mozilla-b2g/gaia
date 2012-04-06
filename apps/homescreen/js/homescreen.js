@@ -894,10 +894,20 @@ SettingsListener.observe('phone.ring.incoming', true, function(value) {
   activePhoneSound = !!value;
 });
 
+var activeSMSSound = true;
+SettingsListener.observe('sms.ring.received', true, function(value) {
+  activeSMSSound = !!value;
+});
+
 /* === Vibration === */
 var activateVibration = false;
 SettingsListener.observe('phone.vibration.incoming', false, function(value) {
   activateVibration = !!value;
+});
+
+var activateSMSVibration = false;
+SettingsListener.observe('sms.vibration.received', false, function(value) {
+  activateSMSVibration = !!value;
 });
 
 /* === Invert Display === */
@@ -1055,6 +1065,22 @@ var MessagesListener = function() {
   messages.addEventListener('received', function received(evt) {
     var message = evt.message;
     showMessage(message.sender, message.body);
+
+    if (activeSMSSound) {
+      var ringtonePlayer = document.getElementById('ringtone-player');
+      ringtonePlayer.src = 'style/ringtones/sms.wav';
+      ringtonePlayer.play();
+      setTimeout(function smsRingtoneEnder() {
+        ringtonePlayer.pause();
+        ringtonePlayer.src = "";
+      }, 500);
+    }
+
+    if (activateSMSVibration) {
+      if ('mozVibrate' in navigator) {
+        navigator.mozVibrate([200, 200, 200, 200]);
+      }
+    }
   });
 
   window.addEventListener('appopen', function onAppOpen(evt) {
@@ -1082,9 +1108,9 @@ var TelephonyListener = function() {
     var vibrateInterval = 0;
     if (activateVibration) {
       vibrateInterval = window.setInterval(function vibrate() {
-        try {
+        if ('mozVibrate' in navigator) {
           navigator.mozVibrate([200]);
-        } catch (e) {}
+        }
       }, 600);
     }
 

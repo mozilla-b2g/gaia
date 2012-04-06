@@ -1,35 +1,39 @@
 {
   "name": "Clock",
-  "default_locale": "en-US",
-  "icons": {
-    "120": "/style/icons/Clock.png"
-  },
   "description": "Gaia Clock",
   "launch_path": "/",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
   "locales": {
-    "ru": {
-      "name": "\u0427\u0430\u0441\u044b",
-      "description": "\u0427\u0430\u0441\u044b Gaia"
+    "ar": {
+      "name": "\u0627\u0644\u0633\u0627\u0639\u0629",
+      "description": "Gaia \u0627\u0644\u0633\u0627\u0639\u0629"
+    },
+    "de": {
+      "name": "Uhr",
+      "description": "Gaia Uhr"
     },
     "en-US": {
       "name": "Clock",
       "description": "Gaia Clock"
     },
-    "ar": {
-      "name": "\u0627\u0644\u0633\u0627\u0639\u0629",
-      "description": "Gaia \u0627\u0644\u0633\u0627\u0639\u0629"
-    },
     "fr": {
       "name": "Horloge",
       "description": "Horloge Gaia"
+    },
+    "ru": {
+      "name": "\u0427\u0430\u0441\u044b",
+      "description": "\u0427\u0430\u0441\u044b Gaia"
     },
     "zh-TW": {
       "name": "\u6642\u9418",
       "description": "Gaia \u6642\u9418"
     }
   },
-  "developer": {
-    "url": "https://github.com/andreasgal/gaia",
-    "name": "The Gaia Team"
+  "default_locale": "en-US",
+  "icons": {
+    "120": "/style/icons/Clock.png"
   }
 }
