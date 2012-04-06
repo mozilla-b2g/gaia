@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html manifest="manifest.appcache">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="pragma" content="no-cache">
+    <title>Tasks</title>
+    <link rel="stylesheet" type="text/css" media="screen" href="style/ui.css"/>
+    <link rel="stylesheet" type="text/css" media="screen" href="style/tasks.css"/>
+    <script type="text/javascript" src="js/tasks.js"></script>
+  </head>
+
+  <body>
+    <div id="root" class="active view" data-title="Tasks">
+      <header>
+        <a id="task-new" href="#task" class="right button">+</a>
+        <span id="tasks-title" class="label">Tasks</span>
+      </header>
+      <ul id="tasks" class="tableView"></ul>
+    </div>
+
+    <!-- Task -->
+    <div id="task" class="view" data-title="Task">
+      <header>
+        <a href="#root" class="left button">Back</a>
+        <a id="task-save" href="#root" class="right button">Save</a>
+      </header>
+      <ul class="tableView">
+        <li>
+          <span>Name</span>
+          <input type="text" name="task.name" placeholder="New task" />
+          <p></p>
+        </li>
+        <li class="multiline">
+          <span>Description</span>
+          <textarea name="task.desc"></textarea>
+        </li>
+        <li>
+          <span>Done</span>
+          <label>
+            <input type="checkbox" name="task.done"/>
+            <span></span>
+          </label>
+        </li>
+        <li class="delete">
+          <a id="task-del" href="#root">Delete</a>
+        </li>
+      </ul>
+    </div>
+  </body>
+</html>
