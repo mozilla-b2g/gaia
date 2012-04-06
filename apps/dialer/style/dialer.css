@@ -80,10 +80,10 @@ html * {
 }
 
 #keyboard-label {
-  background: url(images/numpad-icon.png);
+  background: url(images/keypad-icon.png);
 }
 #keyboard-label[data-active] {
-  background:url(images/current-tab.png) center -2px no-repeat, url(images/numpad-icon-active.png) center center no-repeat;
+  background:url(images/current-tab.png) center -2px no-repeat, url(images/keypad-icon-active.png) center center no-repeat;
 }
 #contacts-label {
   background: url(images/contacts-icon.png);
