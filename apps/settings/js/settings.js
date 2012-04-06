@@ -66,7 +66,8 @@ var Settings = {
         var value;
         if (input.type === 'checkbox') {
           value = input.checked;
-        } else if (input.type == 'radio') {
+        }
+        else if (input.type == 'radio') {
           value = input.value;
         }
         var cset = { }; cset[key] = value;
@@ -89,6 +90,16 @@ var Settings = {
     }
   },
   loadGaiaCommit: function() {
+    function dateToUTC(d) {
+      var arr = [];
+      [
+        d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(),
+        d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds()
+      ].forEach(function(n) {
+        arr.push((n >= 10) ? n : '0' + n);
+      });
+      return arr.splice(0, 3).join('-') + ' ' + arr.join(':');
+    }
     var req = new XMLHttpRequest();
     req.onreadystatechange = (function(e) {
       if (req.readyState === 4) {
@@ -99,9 +110,11 @@ var Settings = {
           // XXX it would be great to pop a link to the github page
           // showing the commit but there doesn't seem to be any way
           // to tell the browser to do it.
-          dispDate.textContent = data[1];
-          disp.textContent = 'Hash: ' + data[0];
-        } else {
+          var d = new Date(parseInt(data[1] + '000', 10));
+          dispDate.textContent = dateToUTC(d);
+          disp.textContent = data[0];
+        }
+        else {
           console.error('Failed to fetch gaia commit: ', req.statusText);
         }
       }
@@ -156,7 +169,7 @@ window.addEventListener('localized', function showPanel() {
     // reset the hash to prevent weird focus bugs when switching LTR/RTL
     setTimeout(function() {
       document.location.hash = 'languages';
-    }, 0);
+    });
   }
 });
 

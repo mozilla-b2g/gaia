@@ -42,9 +42,46 @@ body.conversation .panel {
   -moz-transform: translateX(-100%);
 }
 
-body.conversation #view,
-body.transition-back #view {
-  left: 100%;
+/* View - Slide Horizontal Transition */
+/* XXX hack: the width is adjusted (0-100%) with a delayed transition in order
+ *           to hide the horizontal scrollbar on the device (at least, when the
+ *           transition is over).
+ * This is just a workaround: the platform bug should be fixed later.  */
+
+#view {
+  -moz-transform: translateX(100%);
+
+  /* XXX hack */
+  overflow: hidden;
+  z-index: 1;
+  width: 0%;
+  -moz-transition: -moz-transform 0.3s ease, width 0s linear 0.5s;
+}
+
+#msg-conversations {
+  -moz-transform: translateX(0);
+
+  /* XXX hack */
+  overflow: hidden;
+  z-index: 10;
+}
+
+body.conversation #view {
+  -moz-transform: translateX(0);
+
+  /* XXX hack */
+  z-index: 10;
+  width: 100%;
+  -moz-transition: -moz-transform 0.3s ease;
+}
+
+body.conversation #msg-conversations {
+  -moz-transform: translateX(-100%);
+
+  /* XXX hack */
+  z-index: 1;
+  width: 0%;
+  -moz-transition: -moz-transform 0.3s ease, width 0s linear 0.5s;
 }
 
 .toolbar {
@@ -333,6 +370,20 @@ body.conversation-new-msg #view-num {
 #view-list > div.receiver {
   padding-right: 96px;
   text-align: right;
+}
+
+#view-list > div.pending {
+  -moz-animation: fadeIn 2s ease;
+  opacity: 0.5;
+}
+
+@-moz-keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.5;
+  }
 }
 
 #view-list .photo {

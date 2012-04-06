@@ -821,7 +821,7 @@
 
   navigator.mozContacts = {
     find: function fakeContactFind() {
-      var request = {result: contacts};
+      var request = {result: [].concat(contacts)};
       setTimeout(function() {
         if (request.onsuccess) {
           request.onsuccess();
@@ -981,7 +981,7 @@
   try {
     if ('mozWifiManager' in navigator)
       return;
-  } catch(e) {
+  } catch (e) {
     //Bug 739234 - state[0] is undefined when initializing DOMWifiManager
     dump(e);
   }
@@ -1134,8 +1134,9 @@
         currentLang = match[1];
         skipLang = (currentLang != lang) && (currentLang != '*');
         continue;
-      } else if (skipLang)
+      } else if (skipLang) {
         continue;
+      }
 
       // @import rule?
       if (reImport.test(line)) {
@@ -1150,22 +1151,17 @@
 
     // find the attribute descriptions, if any
     for (var key in data) {
-      var hasAttribute = false;
-      var index = key.lastIndexOf('.');
-      if (index > 0) {
-        var attr = key.substr(index + 1);
-        var elt = key.substring(0, index);
-        hasAttribute = (elt in data);
+      var id, prop, index = key.lastIndexOf('.');
+      if (index > 0) { // attribute
+        id = key.substring(0, index);
+        prop = key.substr(index + 1);
+      } else { // textContent, could be innerHTML as well
+        id = key;
+        prop = 'textContent';
       }
-      if (hasAttribute) {
-        if (typeof gL10nData[elt] === 'string') {
-          gL10nData[elt] = {};
-          gL10nData[elt].value = data[elt];
-          gL10nData[elt].attributes = {};
-        }
-        gL10nData[elt].attributes[attr] = data[key];
-      } else
-        gL10nData[key] = data[key];
+      if (!gL10nData[id])
+        gL10nData[id] = {};
+      gL10nData[id][prop] = data[key];
     }
   }
 
@@ -1243,6 +1239,14 @@
     }
   }
 
+  // fetch an l10n object, warn if not found
+  function getL10nData(key) {
+    var data = gL10nData[key];
+    if (!data)
+      console.warn('[l10n] #' + key + ' missing for [' + gLanguage + ']');
+    return data;
+  }
+
   // replace {{arguments}} with their values
   function substArguments(str, args) {
     var reArgs = /\{\{\s*([a-zA-Z\.]+)\s*\}\}/;
@@ -1255,12 +1259,11 @@
       var sub = '';
       if (arg in args) {
         sub = args[arg];
-      }
-      else if (arg in gL10nData) {
-        sub = gL10nData[arg];
-      }
-      else {
-        return str; // argument value not found
+      } else if (arg in gL10nData) {
+        sub = gL10nData[arg].textContent;
+      } else {
+        console.warn('[l10n] could not find argument {{' + arg + '}}');
+        return str;
       }
 
       str = str.substring(0, match.index) + sub +
@@ -1272,12 +1275,10 @@
 
   // translate a string
   function translateString(key, args) {
-    var str = gL10nData[key];
-    if (!str)
+    var data = getL10nData(key);
+    if (!data)
       return '{{' + key + '}}';
-    // key is found, get the raw string and look for {{arguments}}
-    str = gL10nData[key].value || gL10nData[key];
-    return substArguments(str, args);
+    return substArguments(data.textContent, args);
   }
 
   // translate an HTML element
@@ -1285,36 +1286,25 @@
     if (!element || !element.dataset)
       return;
 
-    // translate the element
+    // get the related l10n object
     var key = element.dataset.l10nId;
-    var data = gL10nData[key];
+    var data = getL10nData(key);
     if (!data)
       return;
 
     // get arguments (if any)
-    // TODO: implement a more flexible parser
-    var args = {};
+    // TODO: more flexible parser?
+    var args;
     if (element.dataset.l10nArgs) try {
       args = JSON.parse(element.dataset.l10nArgs);
-    } catch (e) {}
-
-    // element content
-    var str = data.value || data;
-    element.textContent = substArguments(str, args);
-
-    // list of translatable attributes
-    var attrList = ['title', 'accesskey', 'alt', 'longdesc'];
-    var attrCount = attrList.length;
-
-    // element attributes
-    if (data.attributes) {
-      for (var j = 0; j < attrCount; j++) {
-        var attrName = attrList[j];
-        var attrValue = substArguments(data.attributes[attrName], args);
-        if (attrValue && element.hasAttribute(attrName))
-          element.setAttribute(attrName, attrValue);
-      }
+    } catch (e) {
+      console.warn('[l10n] could not parse arguments for #' + key + '');
     }
+
+    // translate element
+    // TODO: security check?
+    for (var k in data)
+      element[k] = substArguments(data[k], args);
   }
 
   // translate an HTML subtree
@@ -1341,17 +1331,17 @@
 
   // load the default locale on startup
   window.addEventListener('DOMContentLoaded', function() {
+    var lang = navigator.language;
     if (navigator.mozSettings) {
       var req = navigator.mozSettings.getLock().get('language.current');
       req.onsuccess = function() {
-        loadLocale(req.result['language.current'] || navigator.language, translateFragment);
+        loadLocale(req.result['language.current'] || lang, translateFragment);
       };
       req.onerror = function() {
-        loadLocale(navigator.language, translateFragment);
+        loadLocale(lang, translateFragment);
       };
-    }
-    else {
-      loadLocale(navigator.language, translateFragment);
+    } else {
+      loadLocale(lang, translateFragment);
     }
   });
 

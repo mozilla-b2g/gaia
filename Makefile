@@ -61,6 +61,18 @@ MD5SUM = md5sum -b
 SED_INPLACE_NO_SUFFIX = sed -i
 endif
 
+#Marionette testing variables
+#make sure we're python 2.7.x
+ifeq ($(strip $(PYTHON_27)),)
+PYTHON_27 := `which python`
+endif
+PYTHON_FULL := $(wordlist 2,4,$(subst ., ,$(shell $(PYTHON_27) --version 2>&1)))
+PYTHON_MAJOR := $(word 1,$(PYTHON_FULL))
+PYTHON_MINOR := $(word 2,$(PYTHON_FULL))
+MARIONETTE_HOST ?= localhost
+MARIONETTE_PORT ?= 2828
+TEST_DIRS ?= $(CURDIR)/tests
+
 # Generate profile/
 profile: stamp-commit-hash update-offline-manifests preferences manifests offline extensions
 	@echo "\nProfile Ready: please run [b2g|firefox] -profile $(CURDIR)/profile"
@@ -79,13 +91,13 @@ manifests:
 		then \
 		  mkdir -p ../profile/webapps/$$d; \
 		  cp $$d/manifest.json ../profile/webapps/$$d  ;\
-      \
-			echo  \"$$d\": {\\n \
-			      \"origin\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)\", \\n\
-			      \"installOrigin\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)\",\\n \
-			      \"receipt\": null,\\n \
-			      \"installTime\": 132333986000\\n \
-            }, >> ../profile/webapps/webapps.json;\
+                  (\
+			echo \"$$d\": { ;\
+			echo \"origin\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
+			echo \"installOrigin\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
+			echo \"receipt\": null, ;\
+			echo \"installTime\": 132333986000 ;\
+                        echo },) >> ../profile/webapps/webapps.json;\
 		fi \
 	done
 	@$(SED_INPLACE_NO_SUFFIX) -e '$$s|,||' profile/webapps/webapps.json
@@ -171,6 +183,27 @@ tests: manifests offline
 	test -L $(INJECTED_GAIA) || ln -s $(CURDIR) $(INJECTED_GAIA)
 	TEST_PATH=$(TEST_PATH) make -C $(MOZ_OBJDIR) mochitest-browser-chrome EXTRA_TEST_ARGS="--browser-arg=\"\" --extra-profile-file=$(CURDIR)/profile/webapps --extra-profile-file=$(CURDIR)/profile/OfflineCache --extra-profile-file=$(CURDIR)/profile/user.js"
 
+.PHONY: marionette
+marionette:
+#need the profile
+	test -d $(GAIA)/profile || $(MAKE) profile
+ifneq ($(PYTHON_MAJOR), 2)
+	@echo "Python 2.7.x is needed for the marionette client. You can set the PYTHON_27 variable to your python2.7 path." && exit 1
+endif
+ifneq ($(PYTHON_MINOR), 7)
+	@echo "Python 2.7.x is needed for the marionette client. You can set the PYTHON_27 variable to your python2.7 path." && exit 1
+endif
+ifeq ($(strip $(MC_DIR)),)
+	@echo "Please have the MC_DIR environment variable point to the top of your mozilla-central tree." && exit 1
+endif
+#if B2G_BIN is defined, we will run the b2g binary, otherwise, we assume an instance is running
+ifneq ($(strip $(B2G_BIN)),)
+	cd $(MC_DIR)/testing/marionette/client/marionette && \
+	sh venv_test.sh $(PYTHON_27) --address=$(MARIONETTE_HOST):$(MARIONETTE_PORT) --b2gbin=$(B2G_BIN) $(TEST_DIRS)
+else
+	cd $(MC_DIR)/testing/marionette/client/marionette && \
+	sh venv_test.sh $(PYTHON_27) --address=$(MARIONETTE_HOST):$(MARIONETTE_PORT) $(TEST_DIRS)
+endif
 
 ###############################################################################
 # Utils                                                                       #
@@ -182,7 +215,7 @@ tests: manifests offline
 #     let us remove the update-offline-manifests target dependancy of the
 #     default target.
 stamp-commit-hash:
-	git log -1 --format="%H%n%aD" HEAD > apps/settings/gaia-commit.txt
+	git log -1 --format="%H%n%at" HEAD > apps/settings/gaia-commit.txt
 
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.

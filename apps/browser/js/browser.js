@@ -2,10 +2,16 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 var Browser = {
+
   get backButton() {
     delete this.backButton;
     return this.backButton =
       document.getElementById('browser-back-button');
+  },
+
+  get addressbar() {
+    delete this.addressbar;
+    return this.addressbar = document.getElementById('browser-address');
   },
 
   get urlbar() {
@@ -34,11 +40,6 @@ var Browser = {
     return this.menuButton = document.getElementById('browser-menu-button');
   },
 
-  get clearButton() {
-    delete this.clearButton;
-    return this.clearButton = document.getElementById('menu-clear');
-  },
-
   get refreshButton() {
     delete this.refreshButton;
     return this.refreshButton = document.getElementById('menu-refresh');
@@ -49,22 +50,29 @@ var Browser = {
     return this.forwardButton = document.getElementById('menu-forward');
   },
 
+  currentTitle: '',
+
+  currentUrl: '',
+
   init: function browser_init() {
     this.backButton.addEventListener('click', this.goBack.bind(this));
     this.menuButton.addEventListener('click', this.toggleMenu.bind(this));
-    this.clearButton.addEventListener('click', this.clear.bind(this));
     this.refreshButton.addEventListener('click', this.refresh.bind(this));
     this.forwardButton.addEventListener('click', this.goForward.bind(this));
     this.shade.addEventListener('click', this.toggleMenu.bind(this));
+    this.urlbar.addEventListener('focus', this.urlFocus.bind(this));
+    this.urlbar.addEventListener('blur', this.urlBlur.bind(this));
     window.addEventListener('submit', this);
     window.addEventListener('keyup', this, true);
 
-    var browserEvents = ['loadstart', 'loadend', 'locationchange'];
+    var browserEvents = ['loadstart', 'loadend', 'locationchange',
+      'titlechange'];
     browserEvents.forEach((function attachBrowserEvent(type) {
       this.content.addEventListener('mozbrowser' + type, this);
     }).bind(this));
 
     var url = this.urlbar.value;
+    this.currentUrl = url;
     this.navigate(url);
     this.updateHistory(url);
   },
@@ -95,15 +103,26 @@ var Browser = {
         break;
 
       case 'mozbrowserloadstart':
+        this.currentTitle = '';
         urlbar.classList.add('loading');
         break;
 
       case 'mozbrowserloadend':
         urlbar.classList.remove('loading');
+        if (this.currentTitle)
+          urlbar.value = this.currentTitle;
+        else
+          urlbar.value = this.currentUrl;
         break;
 
       case 'mozbrowserlocationchange':
         this.locationChange(evt.detail);
+        break;
+
+      case 'mozbrowsertitlechange':
+        this.currentTitle = evt.detail;
+        if (!this.addressbar.querySelector(':focus'))
+          this.urlbar.value = this.currentTitle;
         break;
     }
   },
@@ -128,18 +147,12 @@ var Browser = {
   },
  
   locationChange: function browser_locationChange(url) {
-    this.urlbar.value = url;
+    this.currentUrl = url;
     this.updateHistory(url);
-  },
-  
-  clear: function browser_clear() {
-    this.urlbar.value = "";
-	  this.urlbar.focus();
-    this.toggleMenu();
   },
 
   refresh: function browser_refresh() {
-    var url = this.urlbar.value;
+    var url = this.currentUrl;
     this.content.setAttribute('src', url);
     this.toggleMenu();
   },
@@ -147,6 +160,18 @@ var Browser = {
   toggleMenu: function browser_toggleMenu() {
     this.menu.classList.toggle('hidden');
     this.shade.classList.toggle('hidden');
+  },
+
+  urlFocus: function browser_urlFocus() {
+    this.urlbar.value = this.currentUrl;
+    this.urlbar.select();
+  },
+
+  urlBlur: function browser_urlBlur() {
+    if (this.currentTitle)
+      this.urlbar.value = this.currentTitle;
+    else
+      this.urlbar.value = this.currentUrl;
   }
 };
 

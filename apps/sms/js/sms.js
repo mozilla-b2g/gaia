@@ -52,30 +52,38 @@ var ConversationListView = {
     return this.searchInput = document.getElementById('msg-search');
   },
 
-  init: function init() {
+  init: function cl_init() {
     if (navigator.mozSms)
       navigator.mozSms.addEventListener('received', this);
 
-    window.addEventListener('transitionend', this);
     this.searchInput.addEventListener('keyup', this);
     this.view.addEventListener('click', this);
 
     this.updateConversationList(null, function fireAppReady() {
       var url = document.location.toString();
-      visibilityChanged(url); // FIXME: this function is not defined
+      visibilityChanged(url);
     });
   },
 
-  updateConversationList: function updateCL(pendingMsg, callback) {
+  updateConversationList: function cl_updateCL(pendingMsg, callback) {
     var self = this;
+    /*
+      TODO: Conversation list is always order by contact family names
+      not the timestamp.
+      It should be timestamp in normal view, and order by name while searching
+    */
     MessageManager.getMessages(function getMessagesCallback(messages) {
-      if (pendingMsg)
-        messages.push(pendingMsg);
+      if (pendingMsg && messages[0].id !== pendingMsg.id)
+        messages.unshift(pendingMsg);
 
       var conversations = {};
       var request = window.navigator.mozContacts.find({});
       request.onsuccess = function findCallback() {
         var contacts = request.result;
+
+        contacts.sort(function contactsSort(a, b) {
+          return a.familyName[0].toUpperCase() > b.familyName[0].toUpperCase();
+        });
 
         contacts.forEach(function(contact, i) {
           var num = contact.tel[0];
@@ -98,12 +106,13 @@ var ConversationListView = {
 
           var num = message.delivery == 'received' ?
                     message.sender : message.receiver;
+
           var conversation = conversations[num];
           if (conversation && !conversation.hidden)
             continue;
 
           if (!conversation) {
-            conversation = conversations[num] = {
+            conversations[num] = {
               'hidden': false,
               'body': message.body,
               'name': num,
@@ -131,7 +140,7 @@ var ConversationListView = {
     }, null);
   },
 
-  createNewConversation: function createNewConversation(conversation) {
+  createNewConversation: function cl_createNewConversation(conversation) {
     return '<div data-num="' + conversation.num + '"' +
            ' data-name="' + (conversation.name || conversation.num) + '"' +
            ' data-notempty="' + (conversation.timestamp ? 'true' : '') + '"' +
@@ -147,7 +156,7 @@ var ConversationListView = {
            '</div>';
   },
 
-  searchConversations: function searchConversations() {
+  searchConversations: function cl_searchConversations() {
     var conversations = this.view.children;
 
     var str = this.searchInput.value;
@@ -177,35 +186,25 @@ var ConversationListView = {
       }
   } catch(e) {
       alert(conversation);
-  } 
+  }
     }
   },
 
-  openConversationView: function openConversationView(num) {
+  openConversationView: function cl_openConversationView(num) {
     if (!num)
       return;
 
     ConversationView.showConversation(num == '*' ? '' : num);
   },
 
-  handleEvent: function handleEvent(evt) {
+  handleEvent: function cl_handleEvent(evt) {
     switch (evt.type) {
       case 'received':
-        if (ConversationView.filter)
-          ConversationView.showConversation(ConversationView.filter);
-        else
-          ConversationListView.updateConversationList(evt.message);
+        ConversationListView.updateConversationList(evt.message);
         break;
 
       case 'click':
         this.openConversationView(evt.target.dataset.num);
-        break;
-
-      case 'transitionend':
-        if (!document.body.classList.contains('transition-back'))
-          return;
-
-        document.body.classList.remove('transition-back');
         break;
 
       case 'keyup':
@@ -255,8 +254,24 @@ var ConversationView = {
     }).bind(this));
   },
 
-  scrollViewToBottom: function cv_scrollViewToBottom() {
-    this.view.scrollTop = this.view.scrollHeight;
+  scrollViewToBottom: function cv_scrollViewToBottom(animateFromPos) {
+    if (!animateFromPos) {
+      this.view.scrollTop = this.view.scrollHeight;
+      return;
+    }
+
+    clearInterval(this.viewScrollingTimer);
+    this.view.scrollTop = animateFromPos;
+    this.viewScrollingTimer = setInterval((function scrollStep() {
+      var view = this.view;
+      var height = view.scrollHeight - view.offsetHeight;
+      if (view.scrollTop === height) {
+        clearInterval(this.viewScrollingTimer);
+        return;
+      }
+      view.scrollTop += Math.ceil((height - view.scrollTop) / 2);
+    }).bind(this), 100);
+
   },
 
   updateInputHeight: function cv_updateInputHeight() {
@@ -279,10 +294,14 @@ var ConversationView = {
     var self = this;
     var view = this.view;
     var bodyclassList = document.body.classList;
+    var currentScrollTop;
 
     if (num) {
       var filter = new MozSmsFilter();
       filter.numbers = [num || ''];
+
+      if (this.filter == num)
+        currentScrollTop = view.scrollTop;
 
       this.filter = num;
     } else {
@@ -321,21 +340,24 @@ var ConversationView = {
     this.title.num = num;
 
     MessageManager.getMessages(function mm_getMessages(messages) {
-      if (pendingMsg)
+      if (pendingMsg && messages[messages.length - 1].id !== pendingMsg.id)
         messages.push(pendingMsg);
 
       var fragment = '';
 
       for (var i = 0; i < messages.length; i++) {
         var msg = messages[i];
+
         var uuid = msg.hasOwnProperty('uuid') ? msg.uuid : '';
         var dataId = 'data-id="' + uuid + '"';
 
-        var outgoing = (msg.delivery == 'sent');
+        var outgoing = (msg.delivery == 'sent' || msg.delivery == 'sending');
         var num = outgoing ? msg.receiver : msg.sender;
         var dataNum = 'data-num="' + num + '"';
 
         var className = 'class="' + (outgoing ? 'receiver' : 'sender') + '"';
+        if (msg.delivery == 'sending')
+          className = 'class="receiver pending"';
 
         var pic = 'style/images/contact-placeholder.png';
 
@@ -351,13 +373,13 @@ var ConversationView = {
       }
 
       view.innerHTML = fragment;
-      self.scrollViewToBottom();
+      self.scrollViewToBottom(currentScrollTop);
 
       bodyclassList.add('conversation');
     }, filter, true);
   },
 
-  deleteMessage: function deleteMessage(evt) {
+  deleteMessage: function cv_deleteMessage(evt) {
     var uuid = evt.target.getAttribute('data-id');
     if (!uuid)
       return;
@@ -366,7 +388,7 @@ var ConversationView = {
     this.showConversation(this.filter);
   },
 
-  handleEvent: function handleEvent(evt) {
+  handleEvent: function cv_handleEvent(evt) {
     switch (evt.type) {
       case 'keyup':
         if (evt.keyCode != evt.DOM_VK_ESCAPE)
@@ -378,11 +400,9 @@ var ConversationView = {
 
       case 'received':
         var msg = evt.message;
-        messagesHack.unshift(msg);
 
-        window.setTimeout(function() {
-          ConversationView.showConversation(ConversationView.filter);
-        }, 0);
+        if (this.filter)
+          this.showConversation(ConversationView.filter, msg);
         break;
 
       case 'transitionend':
@@ -405,7 +425,7 @@ var ConversationView = {
     if (!document.body.classList.contains('conversation'))
       return false;
     document.body.classList.remove('conversation');
-    document.body.classList.add('transition-back');
+    this.filter = null;
     return true;
   },
   sendMessage: function cv_sendMessage() {
@@ -416,40 +436,48 @@ var ConversationView = {
       return;
 
     MessageManager.send(num, text, function onsent(msg) {
-      // There was an error. We should really do some error handling here.
-      // or in send() or wherever.
-      if (!msg)
-        return;
+      if (!msg) {
+        ConversationView.input.value = text;
+        ConversationView.updateInputHeight();
 
-      if (ConversationView.filter) {
-        // Add a slight delay so that the database has time to write the
-        // message in the background. Ideally we'd just be updating the UI
-        // from "sending..." to "sent" at this point...
-        window.setTimeout(function() {
+        if (ConversationView.filter)
           ConversationView.showConversation(ConversationView.filter);
-        }, 100);
+        ConversationListView.updateConversationList();
+        return;
       }
+
+      // Add a slight delay so that the database has time to write the
+      // message in the background. Ideally we'd just be updating the UI
+      // from "sending..." to "sent" at this point...
+      window.setTimeout(function() {
+        if (ConversationView.filter)
+          ConversationView.showConversation(ConversationView.filter);
+        ConversationListView.updateConversationList();
+      }, 100);
     });
 
     // Create a preliminary message object and update the view right away.
     var message = {
       sender: null,
       receiver: num,
+      delivery: 'sending',
       body: text,
-      timestamp: Date.now()
+      timestamp: new Date()
     };
 
     setTimeout((function updateMessageField() {
       this.input.value = '';
       this.updateInputHeight();
+      this.input.focus();
+
+      if (this.filter) {
+        this.showConversation(this.filter, message);
+        return;
+      }
+      this.showConversation(num, message);
     }).bind(this), 0);
 
     ConversationListView.updateConversationList(message);
-    if (this.filter) {
-      this.showConversation(this.filter, message);
-      return;
-    }
-    this.showConversation(num, message);
   }
 };
 

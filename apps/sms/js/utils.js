@@ -5,6 +5,16 @@
 
 // Based on Resig's pretty date
 function prettyDate(time) {
+
+  switch (time.constructor) {
+    case String:
+      time = parseInt(time);
+      break;
+    case Date:
+      time = time.getTime();
+      break;
+  }
+
   var diff = (Date.now() - time) / 1000;
   var day_diff = Math.floor(diff / 86400);
 
@@ -76,9 +86,14 @@ function visibilityChanged(url) {
   }
 }
 
+/* ***********************************************************
+
+  Code below are for desktop testing!
+
+*********************************************************** */
+
 if (!navigator.mozSms) {
-  // Until there is a database to store messages on the device, return
-  // a fake list of messages.
+  // We made up a fake database on
   var messagesHack = [];
   (function() {
     var messages = [
@@ -86,12 +101,14 @@ if (!navigator.mozSms) {
         sender: null,
         receiver: '1-977-743-6797',
         body: 'Nothing :)',
-        timestamp: Date.now() - 44000000
+        delivery: 'sent',
+        timestamp: new Date(Date.now() - 44000000)
       },
       {
         sender: '1-977-743-6797',
         body: 'Hey! What\s up?',
-        timestamp: Date.now() - 50000000
+        delivery: 'received',
+        timestamp: new Date(Date.now() - 50000000)
       }
     ];
 
@@ -99,7 +116,8 @@ if (!navigator.mozSms) {
       messages.push({
         sender: '1-488-678-3487',
         body: 'Hello world!',
-        timestamp: Date.now() - 60000000
+        delivery: 'received',
+        timestamp: new Date(Date.now() - 60000000)
       });
     }
 
@@ -137,21 +155,62 @@ if (!navigator.mozSms) {
     var message = {
       sender: null,
       receiver: number,
+      delivery: 'sent',
       body: text,
-      timestamp: Date.now()
+      timestamp: new Date()
     };
 
-    window.setTimeout(function() {
-      callback(message);
-    }, 0);
-  };
+    var simulateFail = /fail/i.test(text);
 
-  if (!navigator.mozSettings) {
-    window.addEventListener('load', function loadWithoutSettings() {
-      selectedLocale = 'en-US';
-      ConversationView.init();
-      ConversationListView.init();
-    });
-  }
+    setTimeout(function sent() {
+      if (simulateFail) {
+        // simulate failure
+        callback(null);
+        return;
+      }
+
+      // simulate success
+      callback(message);
+
+      // the SMS DB is written after the callback
+      setTimeout(function writeDB() {
+        messagesHack.unshift(message);
+      }, 90 * Math.random());
+    }, 3000 * Math.random());
+
+    if (simulateFail)
+      return;
+
+    setTimeout(function hiBack() {
+      var message = {
+        sender: number,
+        receiver: null,
+        delivery: 'received',
+        body: 'Hi back! ' + text,
+        timestamp: new Date()
+      };
+
+      var evt = {
+        type: 'received',
+        message: message
+      };
+
+      ConversationView.handleEvent.call(ConversationView, evt);
+      ConversationListView.handleEvent.call(ConversationView, evt);
+
+      // the SMS DB is written after the callback
+      setTimeout(function writeDB() {
+        messagesHack.unshift(message);
+      }, 90 * Math.random());
+
+    }, 5000 + 3000 * Math.random());
+  };
 }
 
+if (!navigator.mozSettings) {
+  window.addEventListener('load', function loadWithoutSettings() {
+    selectedLocale = 'en-US';
+    ConversationView.init();
+    ConversationListView.init();
+  });
+}

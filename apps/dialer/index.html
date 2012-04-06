@@ -193,7 +193,7 @@
               <input id="contact-email-field" type="email" data-action="autoscroll" onfocus="ContactDetails.execute(event)" />
             </div>
             <div>
-              <input type="submit" value="Save" />
+              <input type="submit" value="Done" data-l10n-id="done" />
             </div>
             <button data-l10n-id="delete" data-action="destroy" onclick="ContactDetails.execute(event);">Delete</button>
           </form>
@@ -218,6 +218,10 @@
           <div data-action="toggleMute" onclick="CallHandler.execute(this.dataset.action);">
             <div id="mute-button"></div>
             <span data-l10n-id="mute">Mute</span>
+          </div>
+          <div data-action="toggleKeypad" onclick="CallHandler.execute(this.dataset.action);">
+            <div id="keypad-button"></div>
+            <span data-l10n-id="keypad">Keypad</span>
           </div>
           <div data-action="toggleSpeaker" onclick="CallHandler.execute(this.dataset.action);">
             <div id="speaker-button"></div>
