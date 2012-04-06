@@ -56,8 +56,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
         var secure = document.createElement('span');
         secure.className = 'wifi-secure';
         label.appendChild(secure);
-      }
-      else {
+      } else {
         small.textContent = _('securityOpen');
       }
 
@@ -133,8 +132,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
     if (document.location.hash == '#wifi') {
       gNetworkList.autoscan = true;
       gNetworkList.scan();
-    }
-    else {
+    } else {
       gNetworkList.autoscan = false;
     }
   });
@@ -146,12 +144,10 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
     if (currentNetwork) {
       gStatus.textContent = _('connected', { ssid: currentNetwork.ssid });
       enabledBox.checked = true;
-    }
-    else if (wifiManager.enabled) {
+    } else if (wifiManager.enabled) {
       gStatus.textContent = _('offline');
       enabledBox.checked = true;
-    }
-    else {
+    } else {
       gStatus.textContent = _('disabled');
       enabledBox.checked = false;
     }
@@ -163,8 +159,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
     if (wifiManager.enabled) {
       gNetworkList.clear();
       req = wifiManager.setEnabled(false);
-    }
-    else {
+    } else {
       req = wifiManager.setEnabled(true);
       gNetworkList.clear(true);
       gNetworkList.scan();
@@ -213,20 +208,16 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
     if (isConnected(network)) {
       // online: show status + offer to disconnect
       wifiDialog('#wifi-status', network, wifiDisconnect);
-    }
-    else {
+    } else {
       // offline: offer to connect
       var key = network.capabilities[0];
       if (/WEP$/.test(key)) {
         wifiDialog('#wifi-wep', network, wifiConnect);
-      }
-      else if (/EAP$/.test(key)) {
+      } else if (/EAP$/.test(key)) {
         wifiDialog('#wifi-eap', network, wifiConnect);
-      }
-      else if (/PSK$/.test(key)) {
+      } else if (/PSK$/.test(key)) {
         wifiDialog('#wifi-psk', network, wifiConnect);
-      }
-      else {
+      } else {
         wifiConnect(network);
       }
     }
@@ -295,12 +286,10 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
         if (/WEP$/.test(key)) {
           keyManagement = 'WEP';
           network.wep = password.value;
-        }
-        else if (/PSK$/.test(key)) {
+        } else if (/PSK$/.test(key)) {
           keyManagement = 'WPA-PSK';
           network.psk = password.value;
-        }
-        else if (/EAP$/.test(key)) {
+        } else if (/EAP$/.test(key)) {
           keyManagement = 'WPA-EAP';
           network.password = password.value;
         }
@@ -327,3 +316,4 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
     gNetworkList.scan();
   }
 });
+
