@@ -1134,8 +1134,7 @@
         currentLang = match[1];
         skipLang = (currentLang != lang) && (currentLang != '*');
         continue;
-      }
-      else if (skipLang) {
+      } else if (skipLang) {
         continue;
       }
 
@@ -1154,10 +1153,9 @@
     for (var key in data) {
       var id, prop, index = key.lastIndexOf('.');
       if (index > 0) { // attribute
-        prop = key.substr(index + 1);
         id = key.substring(0, index);
-      }
-      else { // textContent, could be innerHTML as well
+        prop = key.substr(index + 1);
+      } else { // textContent, could be innerHTML as well
         id = key;
         prop = 'textContent';
       }
@@ -1184,8 +1182,7 @@
           parse(xhr.responseText, lang);
           if (onSuccess)
             onSuccess();
-        }
-        else {
+        } else {
           if (onFailure)
             onFailure();
         }
@@ -1262,11 +1259,9 @@
       var sub = '';
       if (arg in args) {
         sub = args[arg];
-      }
-      else if (arg in gL10nData) {
+      } else if (arg in gL10nData) {
         sub = gL10nData[arg].textContent;
-      }
-      else {
+      } else {
         console.warn('[l10n] could not find argument {{' + arg + '}}');
         return str;
       }
@@ -1345,8 +1340,7 @@
       req.onerror = function() {
         loadLocale(lang, translateFragment);
       };
-    }
-    else {
+    } else {
       loadLocale(lang, translateFragment);
     }
   });
