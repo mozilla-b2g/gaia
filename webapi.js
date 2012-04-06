@@ -981,7 +981,7 @@
   try {
     if ('mozWifiManager' in navigator)
       return;
-  } catch(e) {
+  } catch (e) {
     //Bug 739234 - state[0] is undefined when initializing DOMWifiManager
     dump(e);
   }
@@ -1242,6 +1242,14 @@
     }
   }
 
+  // fetch an l10n object, warn if not found
+  function getL10nData(key) {
+    var data = gL10nData[key];
+    if (!data)
+      console.warn('[l10n] #' + key + ' missing for [' + gLanguage + ']');
+    return data;
+  }
+
   // replace {{arguments}} with their values
   function substArguments(str, args) {
     var reArgs = /\{\{\s*([a-zA-Z\.]+)\s*\}\}/;
@@ -1259,7 +1267,8 @@
         sub = gL10nData[arg].textContent;
       }
       else {
-        return str; // argument value not found
+        console.warn('[l10n] could not find argument {{' + arg + '}}');
+        return str;
       }
 
       str = str.substring(0, match.index) + sub +
@@ -1271,10 +1280,9 @@
 
   // translate a string
   function translateString(key, args) {
-    var data = gL10nData[key];
+    var data = getL10nData(key);
     if (!data)
       return '{{' + key + '}}';
-    // key is found, get the raw string and look for {{arguments}}
     return substArguments(data.textContent, args);
   }
 
@@ -1285,23 +1293,23 @@
 
     // get the related l10n object
     var key = element.dataset.l10nId;
-    var data = gL10nData[key];
-    if (!data) {
-      console.log(key + ' not found.');
+    var data = getL10nData(key);
+    if (!data)
       return;
-    }
 
     // get arguments (if any)
     // TODO: more flexible parser?
     var args;
     if (element.dataset.l10nArgs) try {
       args = JSON.parse(element.dataset.l10nArgs);
-    } catch (e) {}
+    } catch (e) {
+      console.warn('[l10n] could not parse arguments for #' + key + '');
+    }
 
     // translate element
     // TODO: security check?
     for (var k in data)
-      element[k] = args ? substArguments(data[k], args) : data[k];
+      element[k] = substArguments(data[k], args);
   }
 
   // translate an HTML subtree
@@ -1328,17 +1336,18 @@
 
   // load the default locale on startup
   window.addEventListener('DOMContentLoaded', function() {
+    var lang = navigator.language;
     if (navigator.mozSettings) {
       var req = navigator.mozSettings.getLock().get('language.current');
       req.onsuccess = function() {
-        loadLocale(req.result['language.current'] || navigator.language, translateFragment);
+        loadLocale(req.result['language.current'] || lang, translateFragment);
       };
       req.onerror = function() {
-        loadLocale(navigator.language, translateFragment);
+        loadLocale(lang, translateFragment);
       };
     }
     else {
-      loadLocale(navigator.language, translateFragment);
+      loadLocale(lang, translateFragment);
     }
   });
 
