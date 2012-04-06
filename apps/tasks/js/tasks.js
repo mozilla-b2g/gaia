@@ -51,7 +51,9 @@ var TaskList = {
       li.appendChild(a);
 
       var img = document.createElement('img');
-      img.src = task.done ? 'style/icons/done_' + TASK_ICONS[0] : 'style/icons/' + TASK_ICONS[0];
+      img.src = task.done ?
+        'style/icons/done_' + TASK_ICONS[0] :
+        'style/icons/' + TASK_ICONS[0];
       a.appendChild(img);
 
       var nameSpan = document.createElement('span');
@@ -79,7 +81,7 @@ var TaskList = {
     }
 
     this.init();
-  },
+  }
 };
 
 var EditTask = {
@@ -198,7 +200,7 @@ var EditTask = {
         return false;
       });
     } else {
-      task.id = taskDataList.length > 0 ? 
+      task.id = taskDataList.length > 0 ?
         taskDataList[taskDataList.length - 1].id + 1 : 1;
       taskDataList.push(task);
     }
