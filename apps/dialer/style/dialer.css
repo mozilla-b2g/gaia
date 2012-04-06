@@ -80,10 +80,10 @@ html * {
 }
 
 #keyboard-label {
-  background: url(images/numpad-icon.png);
+  background: url(images/keypad-icon.png);
 }
 #keyboard-label[data-active] {
-  background:url(images/current-tab.png) center -2px no-repeat, url(images/numpad-icon-active.png) center center no-repeat;
+  background:url(images/current-tab.png) center -2px no-repeat, url(images/keypad-icon-active.png) center center no-repeat;
 }
 #contacts-label {
   background: url(images/contacts-icon.png);
@@ -781,34 +781,6 @@ html * {
   display: block;
 }
 
-/* === Modal transitions === */
-
-#views.modal {
-  position: absolute;
-  top: 0;
-  height: -moz-calc(100% - 290px);
-  opacity: 1;
-
-	background: url(images/app-texture.png) repeat 50% 50%,
-							url(images/dialing-pattern.png) repeat-x 0 0,
-							-moz-linear-gradient(top, hsla(0,0%,0%,.2) 0%, hsla(0,0%,0%,.2) 100%),
-							hsl(212,8%,37%);
-
-  z-index: 10;
-}
-
-#views.modal #phone-number-view-container,
-#views.modal #additionalKeyset {
-  display: none;
-}
-
-#views.modal #keyboard-container {
-  height: 100%;
-}
-#views.modal #mainKeyset {
-  height: -moz-calc(100% - 20px);
-}
-
 /* === Call Screen === */
 
 #call-screen {
@@ -910,7 +882,7 @@ html * {
 #call-actions > div {
   float: left;
   display: block;
-  width: -moz-calc(100% / 2);
+  width: -moz-calc(100% / 3);
   padding: 0;
   margin: 0;
 
@@ -941,6 +913,13 @@ html * {
 }
 #speaker-button.speak {
   background-image: url(images/speaker-icon-active.png);
+}
+
+#keypad-button {
+  background-image: url(images/keypad-icon.png);
+}
+#keypad-button.displayed {
+  background-image: url(images/keypad-icon-active.png);
 }
 
 #mute-button {
@@ -1009,6 +988,29 @@ html * {
 
 #call-screen.calling #accept-call {
   display: none;
+}
+
+#mainKeyset.overlay {
+  position: absolute;
+  top: 0;
+  height: 72%;
+
+  background: url(images/call-screen-bg.png) center top no-repeat #575B66;
+
+  color: white;
+  z-index: 200;
+}
+
+#mainKeyset.overlay .keyboard-row .keyboard-key {
+  border: 1px solid #bcbcbc;
+}
+
+#mainKeyset.overlay .keyboard-key > span {
+  color: white;
+}
+
+#mainKeyset.overlay .keyboard-key:active {
+  background: rgba(255, 255, 255, .3);
 }
 
 /* === Recents === */

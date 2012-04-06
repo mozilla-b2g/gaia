@@ -215,6 +215,15 @@ var KeyHandler = {
       this.phoneNumber.value += key;
       this.updateFontSize();
       TonePlayer.play(gTonesFrequencies[key]);
+
+      // Sending the DTMF tone
+      var telephony = navigator.mozTelephony;
+      if (telephony) {
+        telephony.startTone(key);
+        setTimeout(function ch_stopTone() {
+          telephony.stopTone();
+        }, 100);
+      }
     }
 
     this._timeout = window.setTimeout(callback, 400, this);
@@ -340,8 +349,9 @@ var CallHandler = {
       this.toggleMute();
     if (this.speakerButton.classList.contains('speak'))
       this.toggleSpeaker();
+    if (this.keypadButton.classList.contains('displayed'))
+      this.toggleKeypad();
 
-    this.closeModal();
     clearInterval(this._ticker);
 
     this.toggleCallScreen();
@@ -422,9 +432,13 @@ var CallHandler = {
     delete this.speakerButton;
     return this.speakerButton = document.getElementById('speaker-button');
   },
-  get holdButton() {
-    delete this.holdButton;
-    return this.holdButton = document.getElementById('hold-button');
+  get keypadButton() {
+    delete this.keypadButton;
+    return this.keypadButton = document.getElementById('keypad-button');
+  },
+  get keypadView() {
+    delete this.keypadView;
+    return this.keypadView = document.getElementById('mainKeyset');
   },
 
   execute: function ch_execute(action) {
@@ -485,41 +499,15 @@ var CallHandler = {
     navigator.mozTelephony.muted = !navigator.mozTelephony.muted;
   },
 
+  toggleKeypad: function ch_toggleKeypad() {
+    this.keypadButton.classList.toggle('displayed');
+    this.keypadView.classList.toggle('overlay');
+  },
+
   toggleSpeaker: function ch_toggleSpeaker() {
     this.speakerButton.classList.toggle('speak');
     navigator.mozTelephony.speakerEnabled =
       !navigator.mozTelephony.speakerEnabled;
-  },
-
-  toggleHold: function ch_toggleHold() {
-    this.holdButton.classList.toggle('hold');
-    // TODO: make the actual hold call
-  },
-
-  keypad: function ch_keypad() {
-    choiceChanged(document.getElementById('keyboard-label'));
-    this.toggleModal();
-  },
-
-  contacts: function ch_contacts() {
-    choiceChanged(document.getElementById('contacts-label'));
-    this.toggleModal();
-  },
-
-  toggleModal: function ch_toggleModal() {
-    // 2 steps closing to avoid showing the view in its non-modal state
-    // during the transition
-    var views = document.getElementById('views');
-    if (views.classList.contains('modal')) {
-      this.closeModal();
-      return;
-    }
-
-    views.classList.add('modal');
-  },
-  closeModal: function ch_closeModal() {
-    var views = document.getElementById('views');
-    views.classList.remove('modal');
   },
 
   lookupContact: function ch_lookupContact(number) {
