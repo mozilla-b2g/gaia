@@ -1186,7 +1186,7 @@ function AppScreen() {
 
   // Installing these handlers on desktop causes JS execution to stop silently,
   // so work around that for now here.
-  if (navigator.userAgent.indexOf('Mobile') != -1) {
+  if (navigator.userAgent.indexOf('Mobile') == -1) {
     // Listen for app installations and rebuild the appscreen when we get one
     navigator.mozApps.mgmt.oninstall = function(event) {
       var newapp = event.application;
