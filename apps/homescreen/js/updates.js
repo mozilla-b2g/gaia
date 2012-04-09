@@ -1,14 +1,19 @@
-function requestUpdates(aUpdate, allowcallback, delaycallback) {
+function requestUpdates(aUpdate, nowcallback, delaycallback) {
+  dump("#####updates.js:requestUpdates\n");
   // These are the UI elements we work with
   var screen = document.getElementById('updatesscreen');
   var messagediv = document.getElementById('updatesmessage');
-  var allowbutton = document.getElementById('updatesallow');
+  var nowbutton = document.getElementById('updatesnow');
   var delaybutton = document.getElementById('updatesdelay');
   var timeout = null;
 
+  dump("#####updates.js:requestUpdates screen="+screen.toString()+"\n");
+  dump("#####updates.js:requestUpdates messagediv="+messagediv.toString()+"\n");
+  dump("#####updates.js:requestUpdates nowbutton="+nowbutton.toString()+"\n");
+  dump("#####updates.js:requestUpdates delaybutton="+delaybutton.toString()+"\n");
   // If there is already a pending updaes request, return
   if (screen.classList.contains('visible')) {
-    dump("****** UpdatesScreen is already visible\n");
+    dump("#####updates.js:requestUpdates UpdatesScreen is already visible\n");
     return;
   }
 
@@ -25,15 +30,17 @@ function requestUpdates(aUpdate, allowcallback, delaycallback) {
   screen.classList.add('visible');
   screen.visibility = true;
   messagediv.visibility = true;
-  allowbutton.visibility = true;
+  nowbutton.visibility = true;
   delaybutton.visibility = true;
 
-  timeout = window.setTimeout(allowcallback, 60*1000);
+  dump("#####updates.js:requestUpdates setting no response timeout\n");
+  timeout = window.setTimeout(clickHandler, 60*1000);
 
   // This is the event listener function for the buttons
   function clickHandler(e) {
+    dump("#####updates.js:clickHandler\n");
     // cleanup the event handlers
-    updatebutton.removeEventListener('click', clickHandler);
+    nowbutton.removeEventListener('click', clickHandler);
     delaybutton.removeEventListener('click', clickHandler);
     if (timeout) {
       window.clearTimeout(timeout);
@@ -44,11 +51,12 @@ function requestUpdates(aUpdate, allowcallback, delaycallback) {
     screen.classList.remove('visible');
 
     // Call the appropriate callback, if it is defined
-    if (e.target === allowbutton) {
-      if (yescallback)
-        allowcallback();
-    }
-    else {
+    if (e == null || e.target === nowbutton) {
+      dump("#####updates.js:clickHandler nowbutton selected\n");
+      if (nowcallback)
+        nowcallback();
+    } else {
+      dump("#####updates.js:clickHandler delaybutton selected\n");
       if (delaycallback)
         delaycallback();
     }

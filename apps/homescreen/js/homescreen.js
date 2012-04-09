@@ -1168,13 +1168,16 @@ function AppScreen() {
                         function() { sendResponse(e.detail.id, true); },
                         function() { sendResponse(e.detail.id, false); });
     } else if (e.detail.type == 'updates-request') {
+      dump("#####homescreen.js:eventListener have updates-request\n");
       requestUpdates(e.detail,
                      function () { sendUpdate(e.detail.update, true); },
                      function () { sendUpdate(e.detail.update, false); });
     }
 
     function sendUpdate(detail, now) {
+      dump("#####homescreen.js:sendUpdate\n");
       if (now) {
+        dump("#####homescreen.js:sendUpdate now==true\n");
         var event = document.createEvent('CustomEvent');
         event.initCustomEvent('mozContentEvent', true, false, {
           aUpdate: detail,
@@ -1182,6 +1185,7 @@ function AppScreen() {
         });
         window.dispatchEvent(event);
       } else {
+        dump("#####homescreen.js:sendUpdate now==false\n");
         window.setTimeout(requestUpdates(e.detail,
                           function() { sendUpdate(e.detail, true); },
                           function() { sendUpdate(e.detail, false); }),
