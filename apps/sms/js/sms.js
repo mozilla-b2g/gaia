@@ -73,7 +73,8 @@ var ConversationListView = {
       It should be timestamp in normal view, and order by name while searching
     */
     MessageManager.getMessages(function getMessagesCallback(messages) {
-      if (pendingMsg && messages[0].id !== pendingMsg.id)
+      if (pendingMsg &&
+          (!messages[0] || messages[0].id !== pendingMsg.id))
         messages.unshift(pendingMsg);
 
       var conversations = {};
@@ -340,7 +341,9 @@ var ConversationView = {
     this.title.num = num;
 
     MessageManager.getMessages(function mm_getMessages(messages) {
-      if (pendingMsg && messages[messages.length - 1].id !== pendingMsg.id)
+      var lastMessage = messages[messages.length - 1];
+      if (pendingMsg &&
+          (!lastMessage || lastMessage.id !== pendingMsg.id))
         messages.push(pendingMsg);
 
       var fragment = '';
