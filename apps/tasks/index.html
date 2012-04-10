@@ -6,6 +6,7 @@
     <title>Tasks</title>
     <link rel="stylesheet" type="text/css" media="screen" href="style/ui.css"/>
     <link rel="stylesheet" type="text/css" media="screen" href="style/tasks.css"/>
+    <link rel="resource" type="application/l10n" href="locale/tasks.properties"/>
     <script type="text/javascript" src="js/tasks.js"></script>
   </head>
 
@@ -13,7 +14,7 @@
     <div id="root" class="active view" data-title="Tasks">
       <header>
         <a id="task-new" href="#task" class="right button">+</a>
-        <span id="tasks-title" class="label">Tasks</span>
+        <span id="tasks-title" class="label" data-l10n-id="tasks">Tasks</span>
       </header>
       <ul id="tasks" class="tableView"></ul>
     </div>
@@ -21,28 +22,28 @@
     <!-- Task -->
     <div id="task" class="view" data-title="Task">
       <header>
-        <a href="#root" class="left button">Back</a>
-        <a id="task-save" href="#root" class="right button">Save</a>
+        <a href="#root" class="left button" data-l10n-id="back">Back</a>
+        <a id="task-save" href="#root" class="right button" data-l10n-id="save">Save</a>
       </header>
       <ul class="tableView">
         <li>
-          <span>Name</span>
+          <span data-l10n-id="name">Name</span>
           <input type="text" name="task.name" placeholder="New task" />
           <p></p>
         </li>
         <li class="multiline">
-          <span>Description</span>
+          <span data-l10n-id="description">Description</span>
           <textarea name="task.desc"></textarea>
         </li>
         <li>
-          <span>Done</span>
+          <span data-l10n-id="done">Done</span>
           <label>
             <input type="checkbox" name="task.done"/>
             <span></span>
           </label>
         </li>
         <li class="delete">
-          <a id="task-del" href="#root">Delete</a>
+          <a id="task-del" href="#root" data-l10n-id="delete">Delete</a>
         </li>
       </ul>
     </div>
