@@ -422,8 +422,10 @@ var ConversationView = {
 
       case 'hashchange':
         var num = this.getNumFromHash();
-        if (!num)
+        if (!num) {
+          this.filter = null;
           return;
+        }
 
         this.showConversation(num);
         break;
@@ -440,7 +442,7 @@ var ConversationView = {
   close: function cv_close() {
     if (!document.body.classList.contains('conversation'))
       return false;
-    this.filter = null;
+
     window.location.hash = '';
     return true;
   },
@@ -456,8 +458,12 @@ var ConversationView = {
         ConversationView.input.value = text;
         ConversationView.updateInputHeight();
 
-        if (ConversationView.filter)
-          ConversationView.showConversation(ConversationView.filter);
+        if (ConversationView.filter) {
+          if (window.location.hash !== '#num=' + ConversationView.filter)
+            window.location.hash = '#num=' + ConversationView.filter;
+          else
+            ConversationView.showConversation(ConversationView.filter);
+        }
         ConversationListView.updateConversationList();
         return;
       }
@@ -466,8 +472,12 @@ var ConversationView = {
       // message in the background. Ideally we'd just be updating the UI
       // from "sending..." to "sent" at this point...
       window.setTimeout(function() {
-        if (ConversationView.filter)
-          ConversationView.showConversation(ConversationView.filter);
+        if (ConversationView.filter) {
+          if (window.location.hash !== '#num=' + ConversationView.filter)
+            window.location.hash = '#num=' + ConversationView.filter;
+          else
+            ConversationView.showConversation(ConversationView.filter);
+        }
         ConversationListView.updateConversationList();
       }, 100);
     });
