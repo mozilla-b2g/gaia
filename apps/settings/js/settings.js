@@ -80,7 +80,7 @@ var Settings = {
         var position = Math.ceil((evt.clientX - rect.left) / (rect.width / 10));
 
         var value = position / input.max;
-        screen.mozBrightness = value;
+        navigator.mozPower.screenBrightness = value;
         input.value = position;
 
         var cset = { }; cset[key] = value;

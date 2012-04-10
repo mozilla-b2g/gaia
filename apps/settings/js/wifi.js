@@ -83,7 +83,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
 
     // scan wifi networks and display them in the list
     function scan() {
-      if (!wifiManager.enabled || !screen.mozEnabled || scanning)
+      if (!wifiManager.enabled || !navigator.mozPower.screenEnabled || scanning)
         return;
 
       var req = wifiManager.getNetworks();
