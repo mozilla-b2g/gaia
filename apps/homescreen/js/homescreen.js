@@ -236,7 +236,7 @@ var LockScreen = {
         break;
 
       case 'keydown':
-        if (e.keyCode != e.DOM_VK_SLEEP || !screen.mozEnabled)
+        if (e.keyCode != e.DOM_VK_SLEEP || !navigator.mozPower.screenEnabled)
           return;
 
         this._timeout = window.setTimeout(function() {
@@ -249,7 +249,7 @@ var LockScreen = {
           return;
         window.clearTimeout(this._timeout);
 
-        if (screen.mozEnabled) {
+        if (navigator.mozPower.screenEnabled) {
           this.update(function lockScreenCallback() {
             ScreenManager.turnScreenOff();
           });
@@ -497,7 +497,7 @@ var NotificationScreen = {
 
 // Update the clock and schedule a new update if appropriate
 function updateClock() {
-  if (!screen.mozEnabled)
+  if (!navigator.mozPower.screenEnabled)
     return;
 
   var now = new Date();
@@ -519,7 +519,7 @@ function updateBattery() {
     return;
 
   // If the display is off, there is nothing to do here
-  if (!screen.mozEnabled) {
+  if (!navigator.mozPower.screenEnabled) {
     battery.removeEventListener('chargingchange', updateBattery);
     battery.removeEventListener('levelchange', updateBattery);
     battery.removeEventListener('statuschange', updateBattery);
@@ -563,7 +563,7 @@ function updateConnection() {
     return;
   }
 
-  if (!screen.mozEnabled) {
+  if (!navigator.mozPower.screenEnabled) {
     conn.removeEventListener('cardstatechange', updateConnection);
     conn.removeEventListener('connectionchange', updateConnection);
     return;
@@ -922,7 +922,7 @@ var KeyHandler = {
   },
 
   handleEvent: function kh_handleEvent(evt) {
-    if (!screen.mozEnabled)
+    if (!navigator.mozPower.screenEnabled)
       return;
 
     switch (evt.type) {
@@ -976,20 +976,20 @@ window.addEventListener('keyup', KeyHandler);
 var ScreenManager = {
   preferredBrightness: 0.5,
   toggleScreen: function lockscreen_toggleScreen() {
-    if (screen.mozEnabled)
+    if (navigator.mozPower.screenEnabled)
       this.turnScreenOff();
     else
       this.turnScreenOn();
   },
 
   turnScreenOff: function lockscreen_turnScreenOff() {
-    if (!screen.mozEnabled)
+    if (!navigator.mozPower.screenEnabled)
       return false;
 
-    screen.mozEnabled = false;
+    navigator.mozPower.screenEnabled = false;
 
-    this.preferredBrightness = screen.mozBrightness;
-    screen.mozBrightness = 0.0;
+    this.preferredBrightness = navigator.mozPower.screenBrightness;
+    navigator.mozPower.screenBrightness = 0.0;
 
     updateClock();
     updateBattery();
@@ -999,12 +999,12 @@ var ScreenManager = {
   },
 
   turnScreenOn: function lockscreen_turnScreenOn() {
-    if (screen.mozEnabled)
+    if (navigator.mozPower.screenEnabled)
       return false;
 
-    screen.mozEnabled = true;
+    navigator.mozPower.screenEnabled = true;
 
-    screen.mozBrightness = this.preferredBrightness;
+    navigator.mozPower.screenBrightness = this.preferredBrightness;
 
     updateClock();
     updateBattery();
@@ -1015,7 +1015,7 @@ var ScreenManager = {
 };
 
 SettingsListener.observe('screen.brightness', 0.5, function(value) {
-  ScreenManager.preferredBrightness = screen.mozBrightness = parseFloat(value);
+  ScreenManager.preferredBrightness = navigator.mozPower.screenBrightness = parseFloat(value);
 });
 
 /* === MessagesListener === */
