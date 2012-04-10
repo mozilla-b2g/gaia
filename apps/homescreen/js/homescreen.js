@@ -1606,7 +1606,7 @@ IconGrid.prototype = {
 
       var calc = (document.dir == 'ltr') ?
         (n - currentPage) + '00% + ' + x + 'px' :
-        (currentPage - n) + '00% - ' + x + 'px';
+        (currentPage - n) + '00% + ' + x + 'px';
 
       var style = page.style;
       style.MozTransform = 'translateX(-moz-calc(' + calc + '))';
