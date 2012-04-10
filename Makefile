@@ -277,6 +277,7 @@ update-offline-manifests:
 # Some notes:
 #
 #  * This will fall over if there are spaces in filenames.
+#  * There's no md5sum on mac, but md5 -r is the same.
 #  * Lines come in from adb shell with CRLF endings!  We have to use tr instead
 #    of dos2unix because dos2unix is not universal.
 #  * Always sort on the host, because sort behaves differently on different
@@ -291,9 +292,14 @@ update-offline-manifests:
 #
 SHELL:=/bin/bash
 define SYNC_FILES
-differences=$$(diff <($(ADB) shell "cd /data/local && find . | xargs sha1sum" | tr -d \\r | sort) \
-                    <(sort <(cd profile && find ./webapps -type f | xargs sha1sum && \
-                                           find ./OfflineCache -type f | xargs sha1sum)) || true) && \
+host_md5="$$(which md5sum)" && \
+if [[ -z "$$host_md5" ]]; then \
+  host_md5="md5 -r"; \
+fi && \
+\
+differences=$$(diff <($(ADB) shell "cd /data/local && find . | xargs md5sum" | tr -d \\r | sort) \
+                    <(sort <(cd profile && find ./webapps -type f | xargs $$host_md5 && \
+                                           find ./OfflineCache -type f | xargs $$host_md5)) || true) && \
 \
 to_remove=$$(echo "$$differences" | grep '^<' | grep --only-match '  .*' || true) && \
 echo "Will remove from device: $$to_remove" && \
