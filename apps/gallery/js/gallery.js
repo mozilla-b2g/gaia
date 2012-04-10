@@ -13,362 +13,324 @@ const SAMPLE_FILENAMES = ['DSC_1677.jpg', 'DSC_1701.jpg', 'DSC_1727.jpg',
 'IMG_8638.jpg', 'IMG_8648.jpg', 'IMG_8652.jpg', '_MG_0053.jpg', 'P1000115.jpg',
 'P1000404.jpg', 'P1000469.jpg', 'P1000486.jpg'];
 
-//-----------------------------------------------------------------------------
-// XXX: share this with homescreen.  Paginated panning is a gap.
-//
-function createPhysicsFor(iconGrid) {
-  return new DefaultPhysics(iconGrid);
-}
+const SLIDE_INTERVAL = 3000;   // 3 seconds on each slides
+const SLIDE_TRANSITION = 500;  // 1/2 second transition between slides
 
-function DefaultPhysics(iconGrid) {
-  this.iconGrid = iconGrid;
-  this.moved = false;
-  this.touchState = { active: false, startX: 0, startY: 0 };
-}
+const PAN_THRESHOLD = 50; // How many pixels before one-finger pan
 
-DefaultPhysics.prototype = {
-  onTouchStart: function(e) {
-    var touchState = this.touchState;
-    this.moved = false;
-    touchState.active = true;
-    touchState.startX = e.pageX;
-    touchState.startY = e.pageY;
-    touchState.startTime = e.timeStamp;
-  },
-  onTouchMove: function(e) {
-    var iconGrid = this.iconGrid;
-    var touchState = this.touchState;
-    if (touchState.active) {
-      var dx = touchState.startX - e.pageX;
-      if (dx !== 0) {
-        iconGrid.pan(-dx);
-        this.moved = true;
-      }
-      e.stopPropagation();
-    }
-  },
-  onTouchEnd: function(e) {
-    var touchState = this.touchState;
-    if (!touchState.active)
-      return;
-    touchState.active = false;
+var numPhotos = SAMPLE_FILENAMES.length;
+var photoURL = function(n) { return SAMPLE_PHOTOS_DIR + SAMPLE_FILENAMES[n]; }
 
-    var startX = touchState.startX;
-    var endX = e.pageX;
-    var diffX = endX - startX;
-    var dir = (diffX > 0) ? -1 : 1;
+var currentPhotoIndex = 0;
+var slideshowTimer = null;
+var thumbnailsDisplayed = true;
 
-    var quick = (e.timeStamp - touchState.startTime < 200);
+// UI elements
+var header = document.getElementById('header');
+var thumbnails = document.getElementById('thumbnails');
+var photos = document.getElementById('photos');
+var playerControls = document.getElementById('player-controls');
+var backButton = document.getElementById('back-button');
+var slideshowButton = document.getElementById('play-button');
 
-    var small = Math.abs(diffX) < 20;
+// These three divs hold the previous, current and next photos
+var previousPhotoFrame, currentPhotoFrame, nextPhotoFrame;
 
-    var flick = quick && !small;
-    var tap = small;
-    var drag = !quick;
+thumbnails.addEventListener('click', function thumbnailsClick(evt) {
+  var target = evt.target;
+  if (!target || !target.classList.contains('thumbnailHolder'))
+    return;
+  showPhoto(parseInt(target.dataset.index));
+});
 
-    var iconGrid = this.iconGrid;
-    var currentPage = iconGrid.currentPage;
-    if (tap) {
-      iconGrid.tap();
-      return;
-    } else if (flick) {
-      iconGrid.setPage(currentPage + dir, 0.2);
-    } else {
-      if (Math.abs(diffX) < window.innerWidth / 2)
-        iconGrid.setPage(currentPage, 0.2);
-      else
-        iconGrid.setPage(currentPage + dir, 0.2);
-    }
-    e.stopPropagation();
+backButton.addEventListener('click', function backButtonClick(evt) {
+  stopSlideshow();
+  showThumbnails();
+});
+
+slideshowButton.addEventListener('click', function slideshowClick() {
+  if (slideshowTimer)
+    stopSlideshow();
+  else
+    startSlideshow();
+});
+
+window.addEventListener('keyup', function keyPressHandler(evt) {
+  if (!thumbnailsDisplayed && evt.keyCode == evt.DOM_VK_ESCAPE) {
+    stopSlideshow();
+    showThumbnails();
+    evt.preventDefault();
   }
-};
+});
 
-var Mouse2Touch = {
-  'mousedown': 'touchstart',
-  'mousemove': 'touchmove',
-  'mouseup': 'touchend'
-};
+// Handle clicks and drags on the photos
+photos.addEventListener('mousedown', function(event) {
+  var startX = event.screenX;
+  var panning = false;
 
-var Touch2Mouse = {
-  'touchstart': 'mousedown',
-  'touchmove': 'mousemove',
-  'touchend': 'mouseup'
-};
+  function move(event) {
+    var dx = event.screenX - startX;
 
-var ForceOnWindow = {
-  'touchmove': true,
-  'touchend': true,
-  'sleep': true
-}
+    if (!panning && Math.abs(dx) > PAN_THRESHOLD) 
+      panning = true;
 
-function AddEventHandlers(target, listener, eventNames) {
-  for (var n = 0; n < eventNames.length; ++n) {
-    var name = eventNames[n];
-    target = ForceOnWindow[name] ? window : target;
-    name = Touch2Mouse[name] || name;
-    target.addEventListener(name, {
-      handleEvent: function(e) {
-        if (Mouse2Touch[e.type]) {
-          var original = e;
-          e = {
-            type: Mouse2Touch[original.type],
-            target: original.target,
-            touches: [original],
-            preventDefault: function() {
-              original.preventDefault();
-            }
-          };
-          e.changedTouches = e.touches;
-        }
-        return listener.handleEvent(e);
-      }
-    }, true);
-  }
-}
-
-function RemoveEventHandlers(target, listener, eventNames) {
-  for (var n = 0; n < eventNames.length; ++n) {
-    var name = eventNames[n];
-    target = ForceOnWindow[name] ? window : target;
-    name = Touch2Mouse[name] || name;
-    target.removeEventListener(name, listener);
-  }
-}
-
-//-----------------------------------------------------------------------------
-
-var Gallery = {
-
-  currentPage: 0,
-  photoTranslation: 0,          // pixels
-  physics: null,
-  slideshowTimer: null,
-  SLIDE_INTERVAL: 3000,   // 3 seconds on each slides
-  SLIDE_TRANSITION: 500,  // 1/2 second transition between slides
-
-  get header() {
-    delete this.header;
-    return this.header = document.getElementById('header');
-  },
-
-  get thumbnails() {
-    delete this.thumbnails;
-    return this.thumbnails = document.getElementById('thumbnails');
-  },
-
-  get photos() {
-    delete this.photos;
-    return this.photos = document.getElementById('photos');
-  },
-
-  get playerControls() {
-    delete this.playerControls;
-    return this.playerControls = document.getElementById('player-controls');
-  },
-
-  get backButton() {
-    delete this.backButton;
-    return this.backButton = document.getElementById('back-button');
-  },
-
-  get slideshowButton() {
-    delete this.slideshowButton;
-    return this.slideshowButton = document.getElementById('play-button');
-  },
-
-  init: function galleryInit() {
-    this.thumbnails.addEventListener('click', (function thumbnailsClick(evt) {
-      var target = evt.target;
-      if (!target || !target.classList.contains('thumbnailHolder'))
-        return;
-
-      this.showPhotos(target.dataset);
-    }).bind(this));
-
-    this.physics = createPhysicsFor(this);
-    AddEventHandlers(this.photos, this, ['touchstart', 'touchmove', 'touchend']);
-
-    this.backButton.addEventListener('click', (function backButtonClick(evt) {
-      this.stopSlideshow();
-      this.showThumbnails();
-    }).bind(this));
-
-    this.slideshowButton.addEventListener('click', (function slideshowClick() {
-      if (this.slideshowTimer)
-        this.stopSlideshow();
-      else
-        this.startSlideshow();
-    }).bind(this));
-
-    window.addEventListener('keyup', (function keyPressHandler(evt) {
-      if (this.focusedPhoto && evt.keyCode == evt.DOM_VK_ESCAPE) {
-        this.stopSlideshow();
-        this.showThumbnails();
-        evt.preventDefault();
-      }
-    }).bind(this), true);
-
-
-    // Create the <img> elements for sample thumbnails and photos
-    var self = this;
-    SAMPLE_FILENAMES.forEach(function(filename) {
-      var thumbnailURL = SAMPLE_THUMBNAILS_DIR + filename;
-      var photoURL = SAMPLE_PHOTOS_DIR + filename;
-
-      var li = document.createElement('li');
-      li.dataset.filename = photoURL;
-      li.dataset.index = self.thumbnails.childNodes.length;
-      li.classList.add('thumbnailHolder');
-
-      var img = document.createElement('img');
-      img.src = thumbnailURL;
-      img.classList.add('thumbnail');
-      li.appendChild(img);
-
-      self.thumbnails.appendChild(li);
-
-      var div = document.createElement('div');
-      div.id = filename;
-
-      var img = document.createElement('img');
-      img.src = photoURL;
-      img.classList.add('photo');
-      div.appendChild(img);
-
-      self.photos.appendChild(div);
-    });
-  },
-
-  showThumbnails: function galleryShowThumbnails() {
-    this.thumbnails.classList.remove('hidden');
-    this.photos.classList.add('hidden');
-    this.playerControls.classList.add('hidden');
-    this.header.classList.remove('hidden');
-
-    this.focusedPhoto = null;
-    this.photoTransform = '';
-  },
-
-  showPhotos: function galleryShowPhotos(focusedPhoto) {
-    this.thumbnails.classList.add('hidden');
-    this.header.classList.add('hidden');
-    this.photos.classList.remove('hidden');
-    this.playerControls.classList.remove('hidden');
-    this.focusedPhoto = true;
-    this.currentPage = parseInt(focusedPhoto.index);
-
-    this.pan(0);
-  },
-
-  toggleControls: function galleryToggleControls() {
-    this.playerControls.classList.toggle('hidden');
-  },
-
-  // Touch handling
-  pan: function galleryPan(x, duration) {
-    var db = this.db;
-
-    var pages = this.photos.childNodes;
-    var thumbnails = this.thumbnails.childNodes;
-    var currentPage = this.currentPage;
-    for (var p = 0; p < pages.length; ++p) {
-      var page = pages[p];
-      var style = page.style;
-      // -1 because the pages are positioned offscreen to the right,
-      // by the width of a page right
-      var pageOffset = (p - currentPage) - 1;
-      style.MozTransform = 'translate(-moz-calc('+ pageOffset +'00% + '+ x +'px))';
-      style.MozTransition = duration ? ('all '+ duration + 's ease') : '';
+    if (panning) {
+      var pan = 'translate(' + dx + 'px)';
+      previousPhotoFrame.style.MozTransform = pan;
+      currentPhotoFrame.style.MozTransform = pan;
+      nextPhotoFrame.style.MozTransform = pan;
     }
-  },
+  }
+  
+  function up(event) {
+    // Remove the capturing event handlers
+    document.body.removeEventListener('mousemove', move, true);
+    document.body.removeEventListener('mouseup', up, true);
 
-  setPage: function(number, duration) {
-    var pages = this.photos.childNodes;
-    if (number < 0)
-      number = 0;
-    else if (number >= pages.length)
-      number = pages.length - 1;
-    this.currentPage = number;
-    this.pan(0, duration);
-  },
-
-  tap: function() {
-    this.toggleControls();
-  },
-
-  handleEvent: function(e) {
-    var physics = this.physics;
-    switch (e.type) {
-    case 'touchstart':
-      physics.onTouchStart(e.touches[0]);
-      break;
-    case 'touchmove':
-      physics.onTouchMove(e.touches[0]);
-      break;
-    case 'touchend':
-      document.releaseCapture();
-      physics.onTouchEnd(e.changedTouches[0]);
-      break;
-    default:
+    if (!panning) {  // this was just a tap
+      toggleControls();
       return;
     }
-    e.preventDefault();
-  },
-
-  startSlideshow: function() {
-    // If we're already displaying the last slide, then move to the first
-    var lastPage = this.photos.childNodes.length - 1;
-    var currentPage = this.currentPage;
-    if (currentPage === lastPage)
-      this.setPage(0, this.SLIDE_TRANSITION/1000);
-      
-    // Now schedule the next slide
-    var self = this;
-    this.slideshowTimer = setTimeout(function() { self.nextSlide(); },
-                                     this.SLIDE_INTERVAL);
-    this.slideshowButton.classList.add('playing');
-  },
-
-  stopSlideshow: function() {
-    if (this.slideshowTimer) {
-      clearTimeout(this.slideshowTimer);
-      this.slideshowTimer = null;
-    }
-    this.slideshowButton.classList.remove('playing');
-  },
-
-  nextSlide: function() {
-    var lastPage = this.photos.childNodes.length - 1;
-    var currentPage = this.currentPage;
-
-    // Move to the next slide if we're not already on the last one
-    if (currentPage < lastPage) {
-      this.setPage(++currentPage, this.SLIDE_TRANSITION/1000);
-    }
-
-    // If we're still not on the last one, then schedule another slide
-    // Otherwise, stop the slideshow
-    if (currentPage < lastPage) {
-      var self = this;
-      this.slideshowTimer = setTimeout(function() { self.nextSlide(); },
-                                       this.SLIDE_INTERVAL);
-    }
-    else {
-      this.slideshowTimer = null;
-      this.stopSlideshow();
-    }
+    
+    // Transition the photos
+    panning = false;
+    var dx = event.screenX - startX;
+    
+    // XXX
+    // Ideally, the transition time would be velocity sensitive
+    // Can I combine code from the lock screen and here to make that happen?
+    transition(dx);
   }
-};
+  
+  // Capture all subsequent mouse move and mouse up events
+  document.body.addEventListener('mousemove', move, true);
+  document.body.addEventListener('mouseup', up, true);
+});
+
+
+// Create the <img> elements for the thumbnails
+SAMPLE_FILENAMES.forEach(function(filename) {
+  var thumbnailURL = SAMPLE_THUMBNAILS_DIR + filename;
+  
+  var li = document.createElement('li');
+  li.dataset.index = self.thumbnails.childNodes.length;
+  li.classList.add('thumbnailHolder');
+  
+  var img = document.createElement('img');
+  img.src = thumbnailURL;
+  img.classList.add('thumbnail');
+  li.appendChild(img);
+  
+  thumbnails.appendChild(li);
+});
+
+function showThumbnails() {
+  thumbnails.classList.remove('hidden');
+  header.classList.remove('hidden');
+  photos.classList.add('hidden');
+  playerControls.classList.add('hidden');
+
+  thumbnailsDisplayed = true;
+}
+
+function hideThumbnails() {
+  thumbnails.classList.add('hidden');
+  header.classList.add('hidden');
+  photos.classList.remove('hidden');
+  playerControls.classList.remove('hidden');
+
+  thumbnailsDisplayed = false;
+}
+
+// Display the specified photo
+function showPhoto(n) {
+  if (thumbnailsDisplayed)
+    hideThumbnails();
+
+  var photo;
+  
+  previousPhotoFrame = document.createElement('div');
+  previousPhotoFrame.className = 'photoFrame previousPhoto';
+  if (n > 0) {
+    photo = document.createElement('img');
+    photo.src = photoURL(n-1);
+    previousPhotoFrame.appendChild(photo);
+  }
+
+  currentPhotoFrame = document.createElement('div');
+  currentPhotoFrame.className = 'photoFrame currentPhoto';
+  photo = document.createElement('img');
+  photo.src = photoURL(n);
+  currentPhotoFrame.appendChild(photo);
+  
+  nextPhotoFrame = document.createElement('div');
+  nextPhotoFrame.className = 'photoFrame nextPhoto';
+  if (n+1 < numPhotos) {
+    photo = document.createElement('img');
+    photo.src = photoURL(n+1);
+    nextPhotoFrame.appendChild(photo);
+  }
+
+  // Each of the new <div> elements may be subject to animated 
+  // transitions. So give them transitionend event handlers that 
+  // remove the -moz-transition style property when the transition ends
+  function removeTransition(event) {
+    event.target.style.MozTransition = '';
+  }
+  previousPhotoFrame.addEventListener('transitionend', removeTransition);
+  currentPhotoFrame.addEventListener('transitionend', removeTransition);
+  nextPhotoFrame.addEventListener('transitionend', removeTransition);
+
+  // Add these new elements to the photos element, replacing existing content
+  photos.textContent = '';
+  photos.appendChild(previousPhotoFrame);
+  photos.appendChild(currentPhotoFrame);
+  photos.appendChild(nextPhotoFrame);
+
+  currentPhotoIndex = n;
+}
+
+function nextPhoto(time) {
+  // If already displaying the last one, do nothing.
+  if (currentPhotoIndex === numPhotos - 1) 
+    return;
+
+  previousPhotoFrame.style.MozTransition = '';  // Not visible
+  currentPhotoFrame.style.MozTransition = 'all ' + time + 'ms linear';
+  nextPhotoFrame.style.MozTransition = 'all ' + time + 'ms linear';
+  previousPhotoFrame.style.MozTransform = '';
+  currentPhotoFrame.style.MozTransform = '';
+  nextPhotoFrame.style.MozTransform = '';
+  
+  previousPhotoFrame.classList.remove('previousPhoto');
+  currentPhotoFrame.classList.remove('currentPhoto');
+  nextPhotoFrame.classList.remove('nextPhoto');
+
+  var tmp = previousPhotoFrame;
+  previousPhotoFrame = currentPhotoFrame;
+  currentPhotoFrame = nextPhotoFrame;
+  nextPhotoFrame = tmp;
+  currentPhotoIndex++;
+
+  var img = '';
+  if (currentPhotoIndex + 1 < numPhotos)
+    img = '<img src="' + photoURL(currentPhotoIndex+1) + '"/>';
+  
+  nextPhotoFrame.innerHTML = img;
+
+  previousPhotoFrame.classList.add('previousPhoto');
+  currentPhotoFrame.classList.add('currentPhoto');
+  nextPhotoFrame.classList.add('nextPhoto');
+}
+
+function previousPhoto(time) {
+  // If already displaying the first one, do nothing.
+  if (currentPhotoIndex === 0) 
+    return;
+
+  previousPhotoFrame.style.MozTransition = 'all ' + time + 'ms linear';
+  currentPhotoFrame.style.MozTransition = 'all ' + time + 'ms linear';
+  nextPhotoFrame.style.MozTransition = ''; // Not visible
+  previousPhotoFrame.style.MozTransform = '';
+  currentPhotoFrame.style.MozTransform = '';
+  nextPhotoFrame.style.MozTransform = '';
+  
+  previousPhotoFrame.classList.remove('previousPhoto');
+  currentPhotoFrame.classList.remove('currentPhoto');
+  nextPhotoFrame.classList.remove('nextPhoto');
+
+  // transition to the previous photo
+  var tmp = nextPhotoFrame;
+  nextPhotoFrame = currentPhotoFrame;
+  currentPhotoFrame = previousPhotoFrame;
+  previousPhotoFrame = tmp;
+  currentPhotoIndex--;
+
+  var img = '';
+  if (currentPhotoIndex > 0)
+    img = '<img src="' + photoURL(currentPhotoIndex-1) + '"/>';
+  previousPhotoFrame.innerHTML = img;
+
+  previousPhotoFrame.classList.add('previousPhoto');
+  currentPhotoFrame.classList.add('currentPhoto');
+  nextPhotoFrame.classList.add('nextPhoto');
+}
+
+
+// Move to the next or previous photo, or just restore the current one
+// based on the, the amount of panning.  This is called by one of the
+// event handlers above.
+function transition(dx) {
+  // Did we drag far enough to go on to the previous or next photo?
+  if (Math.abs(dx) > window.innerWidth/4) {
+    // XXX: update this to do the right thing for RTL languages
+    if (dx < 0)
+      nextPhoto(200);      // Make the time velocity-dependent
+    else
+      previousPhoto(200);  // Make the time velocity-dependent
+
+    return;
+  }
+
+  // Otherwise, just restore the current photo by undoing
+  // the translations we added during panning
+  previousPhotoFrame.style.MozTransition = 'all 200ms linear';
+  currentPhotoFrame.style.MozTransition = 'all 200ms linear';
+  nextPhotoFrame.style.MozTransition = 'all 200ms linear';
+  previousPhotoFrame.style.MozTransform = '';
+  currentPhotoFrame.style.MozTransform = '';
+  nextPhotoFrame.style.MozTransform = '';
+}
+
+function toggleControls() {
+  playerControls.classList.toggle('hidden');
+}
+
+function startSlideshow() {
+  // If we're already displaying the last slide, then move to the first
+  if (currentPhotoIndex === numPhotos - 1)
+    showPhoto(0);
+  
+  // Now schedule the next slide
+  slideshowTimer = setTimeout(nextSlide, SLIDE_INTERVAL);
+  slideshowButton.classList.add('playing');
+}
+
+function stopSlideshow() {
+  if (slideshowTimer) {
+    clearTimeout(slideshowTimer);
+    slideshowTimer = null;
+  }
+  slideshowButton.classList.remove('playing');
+}
+
+function nextSlide() {
+  // Move to the next slide if we're not already on the last one
+  if (currentPhotoIndex+1 < numPhotos) {
+    nextPhoto(SLIDE_TRANSITION);
+  }
+
+  // If we're still not on the last one, then schedule another slide
+  // Otherwise, stop the slideshow
+  if (currentPhotoIndex+1 < numPhotos) {
+    slideshowTimer = setTimeout(nextSlide, SLIDE_INTERVAL);
+  }
+  else {
+    slideshowTimer = null;
+    stopSlideshow();
+  }
+}
 
 window.addEventListener('localized', function showBody() {
   // Set the 'lang' and 'dir' attributes to <html> when the page is translated
-  var html = document.querySelector('html');
+  var html = document.documentElement;
   var lang = document.mozL10n.language;
   html.setAttribute('lang', lang.code);
   html.setAttribute('dir', lang.direction);
 
-  // display the gallery
-  Gallery.init();
+  // XXX: we used to call Gallery.init() here to defer the setup 
+  // of the thumbnails, but since those don't actually get localized, 
+  // I don't think that matters.
 
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('hidden');
