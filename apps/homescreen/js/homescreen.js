@@ -865,7 +865,7 @@ SettingsListener.observe('language.current', 'en-US', function(value) {
 
 /* === Wallpapers === */
 SettingsListener.observe('homescreen.wallpaper', 'default.png',
-  function(val) {
+  function(value) {
     var home = document.getElementById('home');
     home.style.backgroundImage =
       'url(style/themes/default/backgrounds/' + value + ')';
