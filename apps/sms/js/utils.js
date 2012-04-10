@@ -59,33 +59,6 @@ function prettyDate(time) {
   });
 })();
 
-window.addEventListener('message', function visibleApp(evt) {
-  var data = evt.data;
-  if (data.message == 'visibilitychange' && !data.hidden) {
-    visibilityChanged(data.url);
-  }
-});
-
-function visibilityChanged(url) {
-  var params = (function makeURL() {
-    var a = document.createElement('a');
-    a.href = url;
-
-    var rv = {};
-    var params = a.search.substring(1, a.search.length).split('&');
-    for (var i = 0; i < params.length; i++) {
-      var data = params[i].split('=');
-      rv[data[0]] = data[1];
-    }
-    return rv;
-  })();
-
-  var sender = params['sender'];
-  if (sender) {
-    ConversationListView.openConversationView(sender);
-  }
-}
-
 /* ***********************************************************
 
   Code below are for desktop testing!

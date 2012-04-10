@@ -195,8 +195,11 @@ input, textarea {
   background: url("images/app-texture.png") repeat scroll 50% 50%, rgb(243, 243, 243);
 }
 
-#msg-conversations-list > div {
+#msg-conversations-list > a {
   -moz-box-sizing: border-box;
+  display: block;
+  text-decoration: none;
+  outline: none;
   height: 96px;
   position: relative;
   padding: 13px 16px 0 112px;
@@ -204,19 +207,19 @@ input, textarea {
   border-bottom: 1px solid hsla(223,7%,81%,1);
 }
 
-#msg-conversations-list > div:active {
+#msg-conversations-list > a:active {
   background: hsla(35,100%,50%,.2);
 }
 
-#msg-conversations-list > div.hide {
+#msg-conversations-list > a.hide {
   display: none;
 }
 
-#msg-conversations-list > div > * {
+#msg-conversations-list > a > * {
   pointer-events: none;
 }
 
-#msg-conversations-list > div:first-child {
+#msg-conversations-list > a:first-child {
   border-top-color: transparent;
 }
 
@@ -267,6 +270,7 @@ input, textarea {
 }
 
 #msg-new-message {
+  display: block;
   margin-top: 14px;
   margin-left: 32px;
   height: 48px;
@@ -274,6 +278,8 @@ input, textarea {
   font-size: 24px;
   font-weight: bold;
   width: -moz-calc(100% - 32px - 32px);
+  text-decoration: none;
+  outline: none;
 }
 
 #view-back {
@@ -283,6 +289,8 @@ input, textarea {
   font-size: 18px;
   font-weight: 600;
   color: #828282;
+  text-decoration: none;
+  outline: none;
 
   position: absolute;
   top: 3px; left: 0;
