@@ -547,15 +547,19 @@ function updateBattery() {
 }
 
 
-function updateConnection() {
+function updateConnection(event) {
   var conn = window.navigator.mozMobileConnection;
   if (!conn) {
+    return;
+  }
+  var voice = conn.voice;
+  if (!voice) {
     return;
   }
 
   if (!navigator.mozPower.screenEnabled) {
     conn.removeEventListener('cardstatechange', updateConnection);
-    conn.removeEventListener('connectionchange', updateConnection);
+    conn.removeEventListener('voicechange', updateConnection);
     return;
   }
 
@@ -563,13 +567,17 @@ function updateConnection() {
   var title = '';
   if (conn.cardState == 'absent') {
     title = _('noSimCard');
-  } else if (!conn.connected) {
-    title = _('connecting');
-  } else {
-    if (conn.roaming) {
-      title = _('roaming', { operator: (conn.operator || '') });
+  } else if (!voice.connected) {
+    if (voice.emergencyCallsOnly) {
+      title = _('emergencyCallsOnly');
     } else {
-      title = conn.operator || '';
+      title = _('searching');
+    }
+  } else {
+    if (voice.roaming) {
+      title = _('roaming', { operator: (voice.operator || '') });
+    } else {
+      title = voice.operator || '';
     }
   }
   document.getElementById('titlebar').textContent = title;
@@ -577,7 +585,7 @@ function updateConnection() {
   // Update the signal strength bars.
   var signalElements = document.querySelectorAll('#signal > span');
   for (var i = 0; i < 4; i++) {
-    var haveSignal = (i < conn.bars);
+    var haveSignal = (i < voice.relSignalStrength / 25);
     var el = signalElements[i];
     if (haveSignal) {
       el.classList.add('haveSignal');
@@ -587,7 +595,7 @@ function updateConnection() {
   }
 
   conn.addEventListener('cardstatechange', updateConnection);
-  conn.addEventListener('connectionchange', updateConnection);
+  conn.addEventListener('voicechange', updateConnection);
 }
 
 var SoundManager = {
