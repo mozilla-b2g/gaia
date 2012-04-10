@@ -125,6 +125,17 @@
         <button id="updatesdelay" data-value="delay10">Wait 10 minutes</button>
       </div>
     </div>
+
+ <!-- For requesting permissions: see js/permissions.js -->
+    <div id="permissionscreen">
+      <div id="permissiondialog">
+        <!-- FIXME: should this dialog include an optional icon? -->
+        <div id="permissionmessage"></div>
+        <button id="permissiongrant" data-value="grant">Grant</button>
+        <button id="permissiondeny" data-value="deny">Deny</button>
+      </div>
+    </div>
+
    <audio id="ringtone-player" loop hidden></audio>
   </body>
 </html>

@@ -1171,6 +1171,25 @@ function AppScreen() {
       requestUpdates(e.detail,
                      function () { sendUpdate(e.detail.update, true); },
                      function () { sendUpdate(e.detail.update, false); });
+    } else if (e.detail.type == 'permission-prompt') {
+      permissionPrompt(e.detail,
+                     function () { permissionResponse(e.detail.request, true); },
+                     function () { permissionResponse(e.detail.request, false); });
+    }
+
+    function permissionResponse(request, response) {
+      var event = document.createEvent('CustomEvent');
+      if (response) {
+        event.initCustomEvent('mozContentEvent', true, false, {
+          request: request,
+          type: 'grant-permission',
+        });
+      } else {
+        event.initCustomEvent('mozContentEvent', true, false, {
+          request: request,
+          type: 'deny-permission',
+        });        }
+      window.dispatchEvent(event);
     }
 
     function sendUpdate(detail, now) {
