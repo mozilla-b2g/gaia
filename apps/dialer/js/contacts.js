@@ -343,6 +343,8 @@ var ContactDetails = {
         self.edit();
       });
     }
+
+    this.container.classList.add('displayed');
   },
 
   hide: function cd_hide() {
@@ -351,11 +353,12 @@ var ContactDetails = {
     }
 
     var overlay = this.overlay;
-    overlay.classList.add('hidden');
-    overlay.addEventListener('transitionend', function fadeWait() {
-      overlay.removeEventListener('transitionend', fadeWait);
+    var container = this.container;
 
-      overlay.classList.remove('hidden');
+    container.classList.remove('displayed');
+    container.addEventListener('transitionend', function trWait() {
+      container.removeEventListener('transitionend', trWait);
+
       overlay.classList.remove('displayed');
     });
 
