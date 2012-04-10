@@ -12,12 +12,10 @@ var bookmarks = null;
 var appscreen;
 
 function startup() {
-  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
-  var html = document.querySelector('html');
-  var lang = document.mozL10n.language;
-  html.lang = lang.code;
-  html.dir = lang.direction;
-  document.dir = lang.direction;
+  // set the 'lang' and 'dir' attributes to <html> when the page is translated
+  document.documentElement.lang = document.mozL10n.language.code;
+  document.documentElement.dir = document.mozL10n.language.direction;
+  document.dir = document.mozL10n.language.direction;
 
   if (!appscreen) { // first start: init
     appscreen = new AppScreen();
@@ -38,8 +36,7 @@ function startup() {
 
       window.parent.postMessage('homescreenready', '*');
     });
-  }
-  else { // locale has been changed: rebuild app grid
+  } else { // locale has been changed: rebuild app grid
     appscreen.build(true);
   }
 
@@ -212,8 +209,7 @@ var LockScreen = {
         // But don't take longer than 1/2 second to complete it.
         timeRemaining = Math.min(timeRemaining, .5);
         this.unlock(timeRemaining);
-      }
-      else {
+      } else {
         this.lock();
       }
     }
@@ -733,8 +729,8 @@ var SettingsListener = {
 
     var req = settings.getLock().get(name);
     req.addEventListener('success', (function onsuccess() {
-      callback(typeof(req.result[name]) != 'undefined' ? req.result[name]
-                                                       : defaultValue);
+      callback(typeof(req.result[name]) != 'undefined' ?
+        req.result[name] : defaultValue);
     }));
 
     this._callbacks[name] = callback;
@@ -864,13 +860,16 @@ SettingsListener.observe('language.current', 'en-US', function(value) {
 });
 
 /* === Wallpapers === */
-SettingsListener.observe('homescreen.wallpaper', 'default.png', function(value) {
-  var home = document.getElementById('home');
-  home.style.backgroundImage = 'url(style/themes/default/backgrounds/' + value + ')';
-});
+SettingsListener.observe('homescreen.wallpaper', 'default.png',
+  function(value) {
+    var home = document.getElementById('home');
+    home.style.backgroundImage =
+      'url(style/themes/default/backgrounds/' + value + ')';
+  }
+);
 
 /* === Ring Tone === */
-var selectedPhoneSound = "";
+var selectedPhoneSound = '';
 SettingsListener.observe('homescreen.ring', 'classic.wav', function(value) {
     selectedPhoneSound = 'style/ringtones/' + value;
 });
@@ -1015,7 +1014,8 @@ var ScreenManager = {
 };
 
 SettingsListener.observe('screen.brightness', 0.5, function(value) {
-  ScreenManager.preferredBrightness = navigator.mozPower.screenBrightness = parseFloat(value);
+  ScreenManager.preferredBrightness =
+    navigator.mozPower.screenBrightness = parseFloat(value);
 });
 
 /* === MessagesListener === */
@@ -1058,7 +1058,7 @@ var MessagesListener = function() {
       ringtonePlayer.play();
       setTimeout(function smsRingtoneEnder() {
         ringtonePlayer.pause();
-        ringtonePlayer.src = "";
+        ringtonePlayer.src = '';
       }, 500);
     }
 
@@ -1111,7 +1111,7 @@ var TelephonyListener = function() {
         call.onstatechange = function() {
           call.oncallschanged = null;
           ringtonePlayer.pause();
-          ringtonePlayer.src = "";
+          ringtonePlayer.src = '';
           window.clearInterval(vibrateInterval);
         };
       }
@@ -1128,7 +1128,7 @@ function AppScreen() {
 
   navigator.mozApps.mgmt.getAll().onsuccess = function(e) {
     var apps = e.target.result;
-    
+
     var lastSlash = new RegExp(/\/$/);
     var currentHost = document.location.toString().replace(lastSlash, '');
     apps.forEach(function(app) {
@@ -1258,8 +1258,7 @@ AppScreen.prototype.build = function(rebuild) {
     if (app.manifest.icons) {
       if ('120' in app.manifest.icons) {
         icon = app.manifest.icons['120'];
-      }
-      else {
+      } else {
         // Get all sizes
         var sizes = Object.keys(app.manifest.icons).map(parseInt);
         // Largest to smallest
@@ -1272,7 +1271,7 @@ AppScreen.prototype.build = function(rebuild) {
     // (technically, manifests are not supposed to have those)
     // Otherwise, prefix with the app origin
     if (icon.indexOf(':') == -1) {
-      // XXX it looks like the homescreen can't load images from other origins (WTF??)
+      // XXX it looks like the homescreen can't load images from other origins
       // so use the ones from the url host for now
       // icon = app.origin + icon;
       icon = 'http://' + document.location.host + icon;
@@ -1606,7 +1605,7 @@ IconGrid.prototype = {
 
       var calc = (document.dir == 'ltr') ?
         (n - currentPage) + '00% + ' + x + 'px' :
-        (currentPage - n) + '00% - ' + x + 'px';
+        (currentPage - n) + '00% + ' + x + 'px';
 
       var style = page.style;
       style.MozTransform = 'translateX(-moz-calc(' + calc + '))';

@@ -275,8 +275,6 @@ var CallHandler = {
 
     this.recentsEntry = {date: Date.now(), type: 'outgoing', number: number};
 
-    var self = this;
-
     this.toggleCallScreen();
   },
 
@@ -471,9 +469,11 @@ var CallHandler = {
 
       finished = true;
 
-      callScreen.classList.add('animate');
-      callScreen.classList.toggle('oncall');
-      callScreen.classList.toggle('prerender');
+      setTimeout(function cs_transitionNextLoop() {
+        callScreen.classList.add('animate');
+        callScreen.classList.toggle('oncall');
+        callScreen.classList.toggle('prerender');
+      });
     };
 
     window.addEventListener('MozAfterPaint', function ch_finishAfterPaint() {
