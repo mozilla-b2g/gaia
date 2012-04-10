@@ -262,6 +262,55 @@ update-offline-manifests:
 		fi \
 	done
 
+# The script below figures figures out which files are different locally versus
+# on the device, then pushes only those files (and rm's any files on the device
+# which shouldn't be there).
+#
+# This should be equivalent to
+#
+#    $(ADB) shell rm -r /data/local/*
+#    $(ADB) push profile/OfflineCache /data/local/OfflineCache
+#    $(ADB) push profile/webapps /data/local/webapps,
+#
+# except that this script won't remove any directories.
+#
+# Some notes:
+#
+#  * This will fall over if there are spaces in filenames.
+#  * Lines come in from adb shell with CRLF endings!  We have to use tr instead
+#    of dos2unix because dos2unix is not universal.
+#  * Always sort on the host, because sort behaves differently on different
+#    machines.
+#  * After we figure out which files need to be pushed to the device, you'd
+#    *think* we could just call adb push in a loop.  But unfortunately that's
+#    quite slow when we have a lot to push.  So instead we push a tarball.
+#  * Something is strange with quoting inside adb shell, which necessitates 
+#       echo \"$$to_remove\" | xargs rm -f
+#    instead of something more straightforward (e.g. rm -f "$to_remove").
+#  * Mac doesn't support empty `mktemp` -- we have to do `mktemp foo.XXXXXX`.
+#
+SHELL:=/bin/bash
+define SYNC_FILES
+differences=$$(diff <($(ADB) shell "cd /data/local && find . | xargs sha1sum" | tr -d \\r | sort) \
+                    <(sort <(cd profile && find ./webapps -type f | xargs sha1sum && \
+                                           find ./OfflineCache -type f | xargs sha1sum)) || true) && \
+\
+to_remove=$$(echo "$$differences" | grep '^<' | grep --only-match '  .*' || true) && \
+echo "Will remove from device: $$to_remove" && \
+$(ADB) shell "cd /data/local && echo \"$$to_remove\" | xargs rm -f" && \
+\
+to_push=$$(echo "$$differences" | grep '^>' | grep --only-match '  .*' || true) && \
+echo "Will push to device: $$to_push" && \
+\
+if [[ -n "$$to_push" ]] ; then \
+  tmpfile=$$(mktemp --tmpdir b2g.XXXXXX.tgz) && \
+  tar -C profile -czf $$tmpfile $$to_push && \
+  adb push $$tmpfile /data/local && \
+  adb shell "cd /data/local && tar -xzf $$(basename $$tmpfile) && rm $$(basename $$tmpfile)" && \
+  rm $$tmpfile; \
+fi
+
+endef
 
 # If your gaia/ directory is a sub-directory of the B2G directory, then
 # you should use the install-gaia target of the B2G Makefile. But if you're
@@ -270,11 +319,8 @@ update-offline-manifests:
 # target to update the gaia files and reboot b2g
 install-gaia: profile
 	$(ADB) start-server
-	$(ADB) shell rm -r /data/local/*
 	$(ADB) shell rm -r /cache/*
-	# just push the profile
-	$(ADB) push profile/OfflineCache /data/local/OfflineCache
-	$(ADB) push profile/webapps /data/local/webapps
+	$(SYNC_FILES)
 	@echo "Installed gaia into profile/."
 	$(ADB) shell kill $(shell $(ADB) shell toolbox ps | grep "b2g" | awk '{ print $$2; }')
 	@echo 'Rebooting b2g now'
