@@ -60,10 +60,10 @@ var ConversationListView = {
 
     window.addEventListener('hashchange', this);
 
-    this.updateConversationList(null);
+    this.updateConversationList();
   },
 
-  updateConversationList: function cl_updateCL(pendingMsg, callback) {
+  updateConversationList: function cl_updateCL(pendingMsg) {
     var self = this;
     /*
       TODO: Conversation list is always order by contact family names
@@ -132,9 +132,6 @@ var ConversationListView = {
           fragment += msg;
         }
         self.view.innerHTML = fragment;
-
-        if (callback)
-          callback();
       };
     }, null);
   },
