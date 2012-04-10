@@ -102,12 +102,14 @@ if (!navigator.mozSms) {
         receiver: '1-977-743-6797',
         body: 'Nothing :)',
         delivery: 'sent',
+        id: 41,
         timestamp: new Date(Date.now() - 44000000)
       },
       {
         sender: '1-977-743-6797',
         body: 'Hey! What\s up?',
         delivery: 'received',
+        id: 40,
         timestamp: new Date(Date.now() - 50000000)
       }
     ];
@@ -117,6 +119,7 @@ if (!navigator.mozSms) {
         sender: '1-488-678-3487',
         body: 'Hello world!',
         delivery: 'received',
+        id: 39 - i,
         timestamp: new Date(Date.now() - 60000000)
       });
     }
@@ -157,6 +160,7 @@ if (!navigator.mozSms) {
       receiver: number,
       delivery: 'sent',
       body: text,
+      id: messagesHack.length,
       timestamp: new Date()
     };
 
@@ -187,6 +191,7 @@ if (!navigator.mozSms) {
         receiver: null,
         delivery: 'received',
         body: 'Hi back! ' + text,
+        id: messagesHack.length,
         timestamp: new Date()
       };
 
