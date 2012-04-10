@@ -12,12 +12,10 @@ var bookmarks = null;
 var appscreen;
 
 function startup() {
-  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
-  var html = document.querySelector('html');
-  var lang = document.mozL10n.language;
-  html.lang = lang.code;
-  html.dir = lang.direction;
-  document.dir = lang.direction;
+  // set the 'lang' and 'dir' attributes to <html> when the page is translated
+  document.documentElement.lang = document.mozL10n.language.code;
+  document.documentElement.dir = document.mozL10n.language.direction;
+  document.dir = document.mozL10n.language.direction;
 
   if (!appscreen) { // first start: init
     appscreen = new AppScreen();
@@ -38,8 +36,7 @@ function startup() {
 
       window.parent.postMessage('homescreenready', '*');
     });
-  }
-  else { // locale has been changed: rebuild app grid
+  } else { // locale has been changed: rebuild app grid
     appscreen.build(true);
   }
 
@@ -212,8 +209,7 @@ var LockScreen = {
         // But don't take longer than 1/2 second to complete it.
         timeRemaining = Math.min(timeRemaining, .5);
         this.unlock(timeRemaining);
-      }
-      else {
+      } else {
         this.lock();
       }
     }
@@ -236,7 +232,7 @@ var LockScreen = {
         break;
 
       case 'keydown':
-        if (e.keyCode != e.DOM_VK_SLEEP || !screen.mozEnabled)
+        if (e.keyCode != e.DOM_VK_SLEEP || !navigator.mozPower.screenEnabled)
           return;
 
         this._timeout = window.setTimeout(function() {
@@ -249,7 +245,7 @@ var LockScreen = {
           return;
         window.clearTimeout(this._timeout);
 
-        if (screen.mozEnabled) {
+        if (navigator.mozPower.screenEnabled) {
           this.update(function lockScreenCallback() {
             ScreenManager.turnScreenOff();
           });
@@ -497,7 +493,7 @@ var NotificationScreen = {
 
 // Update the clock and schedule a new update if appropriate
 function updateClock() {
-  if (!screen.mozEnabled)
+  if (!navigator.mozPower.screenEnabled)
     return;
 
   var now = new Date();
@@ -519,7 +515,7 @@ function updateBattery() {
     return;
 
   // If the display is off, there is nothing to do here
-  if (!screen.mozEnabled) {
+  if (!navigator.mozPower.screenEnabled) {
     battery.removeEventListener('chargingchange', updateBattery);
     battery.removeEventListener('levelchange', updateBattery);
     battery.removeEventListener('statuschange', updateBattery);
@@ -563,7 +559,7 @@ function updateConnection() {
     return;
   }
 
-  if (!screen.mozEnabled) {
+  if (!navigator.mozPower.screenEnabled) {
     conn.removeEventListener('cardstatechange', updateConnection);
     conn.removeEventListener('connectionchange', updateConnection);
     return;
@@ -733,8 +729,8 @@ var SettingsListener = {
 
     var req = settings.getLock().get(name);
     req.addEventListener('success', (function onsuccess() {
-      callback(typeof(req.result[name]) != 'undefined' ? req.result[name]
-                                                       : defaultValue);
+      callback(typeof(req.result[name]) != 'undefined' ?
+        req.result[name] : defaultValue);
     }));
 
     this._callbacks[name] = callback;
@@ -864,13 +860,16 @@ SettingsListener.observe('language.current', 'en-US', function(value) {
 });
 
 /* === Wallpapers === */
-SettingsListener.observe('homescreen.wallpaper', 'default.png', function(value) {
-  var home = document.getElementById('home');
-  home.style.backgroundImage = 'url(style/themes/default/backgrounds/' + value + ')';
-});
+SettingsListener.observe('homescreen.wallpaper', 'default.png',
+  function(value) {
+    var home = document.getElementById('home');
+    home.style.backgroundImage =
+      'url(style/themes/default/backgrounds/' + value + ')';
+  }
+);
 
 /* === Ring Tone === */
-var selectedPhoneSound = "";
+var selectedPhoneSound = '';
 SettingsListener.observe('homescreen.ring', 'classic.wav', function(value) {
     selectedPhoneSound = 'style/ringtones/' + value;
 });
@@ -922,7 +921,7 @@ var KeyHandler = {
   },
 
   handleEvent: function kh_handleEvent(evt) {
-    if (!screen.mozEnabled)
+    if (!navigator.mozPower.screenEnabled)
       return;
 
     switch (evt.type) {
@@ -976,20 +975,20 @@ window.addEventListener('keyup', KeyHandler);
 var ScreenManager = {
   preferredBrightness: 0.5,
   toggleScreen: function lockscreen_toggleScreen() {
-    if (screen.mozEnabled)
+    if (navigator.mozPower.screenEnabled)
       this.turnScreenOff();
     else
       this.turnScreenOn();
   },
 
   turnScreenOff: function lockscreen_turnScreenOff() {
-    if (!screen.mozEnabled)
+    if (!navigator.mozPower.screenEnabled)
       return false;
 
-    screen.mozEnabled = false;
+    navigator.mozPower.screenEnabled = false;
 
-    this.preferredBrightness = screen.mozBrightness;
-    screen.mozBrightness = 0.0;
+    this.preferredBrightness = navigator.mozPower.screenBrightness;
+    navigator.mozPower.screenBrightness = 0.0;
 
     updateClock();
     updateBattery();
@@ -999,12 +998,12 @@ var ScreenManager = {
   },
 
   turnScreenOn: function lockscreen_turnScreenOn() {
-    if (screen.mozEnabled)
+    if (navigator.mozPower.screenEnabled)
       return false;
 
-    screen.mozEnabled = true;
+    navigator.mozPower.screenEnabled = true;
 
-    screen.mozBrightness = this.preferredBrightness;
+    navigator.mozPower.screenBrightness = this.preferredBrightness;
 
     updateClock();
     updateBattery();
@@ -1015,7 +1014,8 @@ var ScreenManager = {
 };
 
 SettingsListener.observe('screen.brightness', 0.5, function(value) {
-  ScreenManager.preferredBrightness = screen.mozBrightness = parseFloat(value);
+  ScreenManager.preferredBrightness =
+    navigator.mozPower.screenBrightness = parseFloat(value);
 });
 
 /* === MessagesListener === */
@@ -1058,7 +1058,7 @@ var MessagesListener = function() {
       ringtonePlayer.play();
       setTimeout(function smsRingtoneEnder() {
         ringtonePlayer.pause();
-        ringtonePlayer.src = "";
+        ringtonePlayer.src = '';
       }, 500);
     }
 
@@ -1111,7 +1111,7 @@ var TelephonyListener = function() {
         call.onstatechange = function() {
           call.oncallschanged = null;
           ringtonePlayer.pause();
-          ringtonePlayer.src = "";
+          ringtonePlayer.src = '';
           window.clearInterval(vibrateInterval);
         };
       }
@@ -1128,7 +1128,7 @@ function AppScreen() {
 
   navigator.mozApps.mgmt.getAll().onsuccess = function(e) {
     var apps = e.target.result;
-    
+
     var lastSlash = new RegExp(/\/$/);
     var currentHost = document.location.toString().replace(lastSlash, '');
     apps.forEach(function(app) {
@@ -1204,23 +1204,19 @@ function AppScreen() {
     appscreen.grid.update();
   });
 
-  // Installing these handlers on desktop causes JS execution to stop silently,
-  // so work around that for now here.
-  if (navigator.userAgent.indexOf('Mobile') != -1) {
-    // Listen for app installations and rebuild the appscreen when we get one
-    navigator.mozApps.mgmt.oninstall = function(event) {
-      var newapp = event.application;
-      appscreen.installedApps[newapp.origin] = newapp;
-      appscreen.build(true);
-    };
+  // Listen for app installations and rebuild the appscreen when we get one
+  navigator.mozApps.mgmt.oninstall = function(event) {
+    var newapp = event.application;
+    appscreen.installedApps[newapp.origin] = newapp;
+    appscreen.build(true);
+  };
 
-    // Do the same for uninstalls
-    navigator.mozApps.mgmt.onuninstall = function(event) {
-      var newapp = event.application;
-      delete appscreen.installedApps[newapp.origin];
-      appscreen.build(true);
-    };
-  }
+  // Do the same for uninstalls
+  navigator.mozApps.mgmt.onuninstall = function(event) {
+    var newapp = event.application;
+    delete appscreen.installedApps[newapp.origin];
+    appscreen.build(true);
+  };
 }
 
 // Look up the app object for a specified app origin
@@ -1278,8 +1274,7 @@ AppScreen.prototype.build = function(rebuild) {
     if (app.manifest.icons) {
       if ('120' in app.manifest.icons) {
         icon = app.manifest.icons['120'];
-      }
-      else {
+      } else {
         // Get all sizes
         var sizes = Object.keys(app.manifest.icons).map(parseInt);
         // Largest to smallest
@@ -1292,7 +1287,7 @@ AppScreen.prototype.build = function(rebuild) {
     // (technically, manifests are not supposed to have those)
     // Otherwise, prefix with the app origin
     if (icon.indexOf(':') == -1) {
-      // XXX it looks like the homescreen can't load images from other origins (WTF??)
+      // XXX it looks like the homescreen can't load images from other origins
       // so use the ones from the url host for now
       // icon = app.origin + icon;
       icon = 'http://' + document.location.host + icon;
@@ -1626,7 +1621,7 @@ IconGrid.prototype = {
 
       var calc = (document.dir == 'ltr') ?
         (n - currentPage) + '00% + ' + x + 'px' :
-        (currentPage - n) + '00% - ' + x + 'px';
+        (currentPage - n) + '00% + ' + x + 'px';
 
       var style = page.style;
       style.MozTransform = 'translateX(-moz-calc(' + calc + '))';

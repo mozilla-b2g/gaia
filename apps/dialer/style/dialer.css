@@ -530,20 +530,12 @@ html * {
   height: 100%;
   overflow: hidden;
 
-  -moz-transition-property: background-color;
-  -moz-transition-duration: 1s;
-
   background-color: rgba(0, 0, 0, 0.6);
 
   z-index: -1;
 }
 #contacts-overlay.displayed {
-  background-color: rgba(0, 0, 0, 0.6);
   z-index: 20;
-}
-
-#contacts-overlay.hidden {
-  background-color: rgba(0, 0, 0, 0);
 }
 
 #contact-details-container {
@@ -565,14 +557,11 @@ html * {
   -moz-transition-duration: 0.30s;
   -moz-transition-timing-function: linear;
 
-  -moz-transform: scale(0);
+  -moz-transform: translateY(100%);
 }
 
-#contacts-overlay.displayed > #contact-details-container {
-  -moz-transform: scale(1);
-}
-#contacts-overlay.hidden > #contact-details-container {
-  -moz-transform: scale(0);
+#contact-details-container.displayed {
+  -moz-transform: translateY(0);
 }
 
 #contact-details-view {

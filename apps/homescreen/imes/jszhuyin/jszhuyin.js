@@ -60,7 +60,7 @@
     // it should attempt to match
     var kDBTermMaxLength = 8;
 
-    // Buffer limit will force output the first matching terms
+    // Buffer limit will force output the longest matching terms
     // if the length of the syllables buffer is reached.
     // This hides the fact that we are using a 2^n algorithm
     var kBufferLenLimit = 8;
@@ -71,13 +71,15 @@
     // ㄊㄞˊㄅㄟˇ -> 台北
 
     // Incomplete Matching allow user to do this:
-    // ㄊㄅ -> 台北
+    // ㄊㄅㄟˇ -> ㄊ*ㄅㄟˇ -> 台北
+    // or ㄊㄅ -> ㄊ*ㄅ* -> 台北 when autocompleteLastSyllables is also true
     // But some terms never gets matched in this way, like
     // ㄓㄨ -> 諸, not 中文
     var incompleteMatching = true;
 
     // Auto-complete allow user to do this:
-    // ㄊㄞˊㄅ -> 台北
+    // ㄊㄞˊㄅ -> ㄊㄞˊㄅ* -> 台北
+    // or ㄊㄅ -> ㄊ*ㄅ* -> 台北 when incompleteMatching is also true
     var autocompleteLastSyllables = true;
 
     // Auto-suggest generates candidates that follows a selection
@@ -105,7 +107,6 @@
     /* ==== helper functions ==== */
 
     var syllablesInBuffer = [''];
-    var pendingSymbols = ['', '', '', ''];
     var firstCandidate = '';
 
     var SymbolType = {
@@ -114,6 +115,61 @@
       VOWEL2: 2,
       TONE: 3
     };
+
+    var getLastSyllable = function ime_getLastSyllable() {
+      return syllablesInBuffer[syllablesInBuffer.length - 1];
+    };
+
+    var appendNewSymbol = function ime_appendNewSymbol(code) {
+      var syllable = syllablesInBuffer[syllablesInBuffer.length - 1];
+      var type = typeOfSymbol(code);
+      var symbol = String.fromCharCode(code);
+
+      /*
+        TODO: symbols array and conditional statements around it
+        should be replaced by an intelligent splitter function.
+      */
+      var symbols = ['', '', '', ''];
+
+      syllable.split('').forEach(
+        function syllable_forEach(symbol) {
+          var type = typeOfSymbol(symbol.charCodeAt(0));
+          // filter out asterisk here
+          if (type !== false)
+            symbols[type] = symbol;
+        }
+      );
+
+      if (incompleteMatching) {
+        if (symbols.slice(type).join('') !== '') {
+          debug('Symbol place already occupied; move on to next.');
+          if (!autocompleteLastSyllables && !symbols[SymbolType.TONE])
+            syllablesInBuffer[syllablesInBuffer.length - 1] += '*';
+          syllablesInBuffer.push('');
+          symbols = ['', '', '', ''];
+        }
+        symbols[type] = symbol;
+        syllablesInBuffer[syllablesInBuffer.length - 1] = symbols.join('');
+
+        if (autocompleteLastSyllables && !symbols[SymbolType.TONE]) {
+          debug('The last syllable is incomplete, add asterisk.');
+          syllablesInBuffer[syllablesInBuffer.length - 1] += '*';
+        }
+
+        return;
+      }
+
+      symbols[type] = symbol;
+      syllablesInBuffer[syllablesInBuffer.length - 1] = symbols.join('');
+
+      if (symbols[SymbolType.TONE]) {
+        debug('Syllable completed; move on the next.');
+        syllablesInBuffer.push('');
+      } else if (autocompleteLastSyllables) {
+        debug('The last syllable is incomplete, add asterisk.');
+        syllablesInBuffer[syllablesInBuffer.length - 1] += '*';
+      }
+    }
 
     var typeOfSymbol = function ime_typeOfSymbol(code) {
 
@@ -136,15 +192,19 @@
     };
 
     var sendPendingSymbols = function ime_updatePendingSymbol() {
+      debug('SendPendingSymbol: ' + syllablesInBuffer.join(','));
       var symbols = syllablesInBuffer.join('').replace(/\*/g, '');
       settings.sendPendingSymbols(symbols);
+    };
+
+    var sendCandidates = function ime_sendCandidates(candidates) {
+      firstCandidate = (candidates[0])? candidates[0][0] : '';
+      settings.sendCandidates(candidates);
     };
 
     var empty = function ime_empty() {
       debug('Empty buffer.');
       syllablesInBuffer = [''];
-      pendingSymbols = ['', '', '', ''];
-      firstCandidate = '';
       selectedText = '';
       selectedSyllables = [];
       sendPendingSymbols();
@@ -227,21 +287,14 @@
                     [suggestion.substr(texts.length), 'suggestion']);
                 }
               );
-              if (candidates.length) {
-                settings.sendCandidates(candidates);
-                firstCandidate = candidates[0][0];
-              } else {
-                settings.sendCandidates([]);
-                firstCandidate = '';
-              }
+              sendCandidates(candidates);
               callback();
             }
           );
           return;
         }
         debug('Buffer is empty; send empty candidate list.');
-        settings.sendCandidates([]);
-        firstCandidate = '';
+        sendCandidates([]);
         callback();
         return;
       }
@@ -252,22 +305,8 @@
       var candidates = [];
       var syllablesForQuery = [].concat(syllablesInBuffer);
 
-      if (!pendingSymbols[SymbolType.TONE] &&
-          syllablesForQuery[syllablesForQuery.length - 1]) {
-        if (autocompleteLastSyllables) {
-          debug('The last syllable is incomplete, add asterisk.');
-          syllablesForQuery[syllablesForQuery.length - 1] =
-            pendingSymbols.join('') + '*';
-        } else {
-          debug('The last syllable is incomplete, add default tone.');
-          syllablesForQuery[syllablesForQuery.length - 1] =
-           pendingSymbols.join('') + ' ';
-        }
-      }
-
-      if (!syllablesForQuery[syllablesForQuery.length - 1]) {
+      if (!syllablesForQuery[syllablesForQuery.length - 1])
         syllablesForQuery.pop();
-      }
 
       debug('Get term candidates for the entire buffer.');
       lookup(syllablesForQuery, 'term', function lookupCallback(terms) {
@@ -280,11 +319,10 @@
 
           if (!candidates.length) {
             // candidates unavailable; output symbols
-            candidates.push([syllablesInBuffer.join(''), 'whole']);
+            candidates.push([syllablesInBuffer.join('').replace(/\*/g, ''), 'whole']);
           }
 
-          settings.sendCandidates(candidates);
-          firstCandidate = candidates[0][0];
+          sendCandidates(candidates);
           callback();
           return;
         }
@@ -303,8 +341,6 @@
 
             candidates.push([sentence, 'whole']);
           });
-
-          firstCandidate = candidates[0][0];
 
           // The remaining candidates doesn't match the entire buffer
           // these candidates helps user find the exact character/term
@@ -333,7 +369,7 @@
 
               if (!--i) {
                 debug('Done Looking.');
-                settings.sendCandidates(candidates);
+                sendCandidates(candidates);
                 callback();
                 return;
               }
@@ -397,7 +433,6 @@
 
         if (!syllablesInBuffer.length) {
           syllablesInBuffer = [''];
-          pendingSymbols = ['', '', '', ''];
         }
 
         sendPendingSymbols();
@@ -449,38 +484,21 @@
           return;
         }
 
-        if (!pendingSymbols.join('')) {
-          // pendingSymbols is empty
+        if (!getLastSyllable()) {
+          // the last syllable is empty
           // remove the last symbol in the last syllable in buffer
           debug('Remove last syllable.');
           syllablesInBuffer.pop();
-          // XXX: we do this here instead of changing _entire_ code
-          // on definition of syllablesInBuffer.
-          pendingSymbols = (function pendingSymbols_unjoin(syllable) {
-            var symbols = ['', '', '', ''];
-            syllable.split('').forEach(
-              function syllable_forEach(symbol) {
-                var type = typeOfSymbol(symbol.charCodeAt(0));
-                if (type !== false)
-                  symbols[type] = symbol;
-              }
-            );
-            return symbols;
-          })(syllablesInBuffer[syllablesInBuffer.length - 1]);
         }
 
-        debug('Remove one pending symbols.');
-
-        var i = 4;
-        while (i--) {
-          if (pendingSymbols[i] == '*' || pendingSymbols[i] == '')
-            continue;
-          pendingSymbols[i] = '';
-          break;
-        }
+        debug('Remove one symbol.');
 
         syllablesInBuffer[syllablesInBuffer.length - 1] =
-          pendingSymbols.join('');
+          getLastSyllable().replace(/.(\*?)$/, '$1').replace(/^\*$/, '');
+
+        if (!getLastSyllable() && syllablesInBuffer.length !== 1)
+          syllablesInBuffer.pop();
+
         sendPendingSymbols();
         updateCandidateList(next);
         return;
@@ -491,14 +509,21 @@
       if (type === false) {
         debug('Non-bopomofo code');
 
-        if (firstCandidate) {
+        if (firstCandidate && syllablesInBuffer.join('') !== '') {
           // candidate list exists; output the first candidate
           debug('Sending first candidate.');
           settings.sendString(firstCandidate);
-          settings.sendCandidates([]);
+          sendCandidates([]);
           empty();
 
           // no return here
+        }
+
+        if (firstCandidate) {
+          debug('Default action; remove suggestion panel.');
+          settings.sendKey(code);
+          sendCandidates([]);
+          next();
         }
 
         //pass the key to IMEManager for default action
@@ -513,21 +538,7 @@
       debug('Processing symbol: ' + symbol);
 
       // add symbol to pendingSymbols
-      if (incompleteMatching &&
-          pendingSymbols.slice(type).join('') !== '') {
-        debug('Symbol place already occupied; move on to next.');
-        pendingSymbols[SymbolType.TONE] = '*';
-        syllablesInBuffer[syllablesInBuffer.length - 1] =
-          pendingSymbols.join('');
-        syllablesInBuffer.push('');
-        pendingSymbols = ['', '', '', ''];
-      }
-      pendingSymbols[type] = symbol;
-
-      // update syllablesInBuffer
-      syllablesInBuffer[syllablesInBuffer.length - 1] =
-        pendingSymbols.join('');
-      sendPendingSymbols();
+      appendNewSymbol(code);
 
       if (kBufferLenLimit &&
         syllablesInBuffer.length >= kBufferLenLimit) {
@@ -570,15 +581,8 @@
         return;
       }
 
-      updateCandidateList(function updateCandidateListCallback() {
-        if (typeOfSymbol(code) === SymbolType.TONE) {
-          // bump the buffer to the next character
-          syllablesInBuffer.push('');
-          pendingSymbols = ['', '', '', ''];
-        }
-
-        next();
-      });
+      sendPendingSymbols();
+      updateCandidateList(next);
     };
 
     /* ==== init ==== */
