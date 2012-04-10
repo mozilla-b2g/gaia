@@ -159,12 +159,15 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
     if (wifiManager.enabled) {
       gNetworkList.clear();
       req = wifiManager.setEnabled(false);
+      req.onsuccess = updateState;
     } else {
       req = wifiManager.setEnabled(true);
       gNetworkList.clear(true);
-      gNetworkList.scan();
+      req.onsuccess = function() {
+        updateState();
+        gNetworkList.scan();
+      }
     }
-    req.onsuccess = updateState;
   }
 
   function wifiConnect(network) {
@@ -178,7 +181,11 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
   }
 
   function wifiDisconnect(network) {
-    // not working yet
+    var req = wifiManager.forget(network);
+    req.onsuccess = function() {
+      updateState();
+      gNetworkList.scan(); // refresh the network list
+    };
   }
 
   // mozWifiManager events / callbacks
