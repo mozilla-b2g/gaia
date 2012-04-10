@@ -20,15 +20,15 @@ DEBUG?=0
 
 
 ###############################################################################
-# The above rules generate the profile/ folder and all it's content.          #
+# The above rules generate the profile/ folder and all its content.           #
 # The profile folder content depends on different rules:                      #
 #  1. manifests                                                               #
 #     A directory structure representing the applications installed using the #
 #     Apps API. In Gaia all applications use this method.                     #
 #     See https://developer.mozilla.org/en/Apps/Apps_JavaScript_API           #
 #                                                                             #
-#	 2. offline                                                                 #
-#			An Application Cache database containing Gaia apps, so the phone can be #
+#   2. offline                                                                #
+#     An Application Cache database containing Gaia apps, so the phone can be #
 #     used offline and application can be updated easily. For details about it#
 #     see: https://developer.mozilla.org/en/Using_Application_Cache           #
 #                                                                             #
