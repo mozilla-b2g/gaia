@@ -97,6 +97,11 @@ var WindowManager = (function() {
       setDisplayedApp(origin);
     else
       start(origin);
+
+    // launch() can be called from outside the task switcher
+    // hiding it if needed
+    if (taskSwitcherIsShown())
+      hideTaskSwitcher();
   }
 
   function isRunning(origin) {
