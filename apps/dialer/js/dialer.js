@@ -372,16 +372,10 @@ var CallHandler = {
             choiceChanged(recents);
             Recents.showLast();
 
-            // XXX: This is currently the less ugly way to launch the dialer
-            // The app looks for itself in the mozApps list and then launch
-            navigator.mozApps.mgmt.getAll().onsuccess = function(e) {
-              var apps = e.target.result;
-              apps.forEach(function(app) {
-                if (app.origin == document.location) {
-                  app.launch();
-                  return;
-                }
-              });
+            // Asking to launch itself
+            navigator.mozApps.getSelf().onsuccess = function(e) {
+              var app = e.target.result;
+              app.launch();
             };
           };
 
