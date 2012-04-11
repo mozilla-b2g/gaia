@@ -4,9 +4,9 @@ if (!window['Gaia'])
   var Gaia = {};
 
 const TASK_ICONS = ['task_ta.png'];
-var taskDataList = [];
 
 var TaskList = {
+
   get tasks() {
     delete this.tasks;
     return this.tasks = document.getElementById('tasks');
@@ -15,6 +15,11 @@ var TaskList = {
   get title() {
     delete this.title;
     return this.title = document.getElementById('tasks-title');
+  },
+  
+  get loading() {
+    delete this.loading;
+    return this.loading = document.getElementById('tasks-loading');
   },
 
   handleEvent: function(evt) {
@@ -36,7 +41,29 @@ var TaskList = {
   },
 
   init: function() {
+  
+    this.loading.classList.remove('hidden');
+    TasksDB.load();
+
+    window.parent.postMessage('appready', '*');
+  },
+
+  refresh: function() {
+    if (this.tasks.hasChildNodes()) {
+      while (this.tasks.childNodes.length >= 1) {
+        this.tasks.removeChild(this.tasks.firstChild);
+      }
+    }
+
+    this.loading.classList.remove('hidden');
+    
+    TasksDB.load();
+  },
+  
+  fill: function(taskDataList) {
+  
     var self = this;
+  
     taskDataList.forEach(function(task) {
 
       var li = document.createElement('li');
@@ -69,18 +96,8 @@ var TaskList = {
 
       self.tasks.appendChild(li);
     });
-
-    window.parent.postMessage('appready', '*');
-  },
-
-  refresh: function() {
-    if (this.tasks.hasChildNodes()) {
-      while (this.tasks.childNodes.length >= 1) {
-        this.tasks.removeChild(this.tasks.firstChild);
-      }
-    }
-
-    this.init();
+    
+    this.loading.classList.add('hidden');
   }
 };
 
@@ -116,8 +133,7 @@ var EditTask = {
 
       switch (input.id) {
         case 'task-save':
-          if (this.updateCurrent())
-            TaskList.refresh();
+          this.updateCurrent();
           break;
         case 'task-del':
           this.deleteCurrent();
@@ -150,7 +166,8 @@ var EditTask = {
   updateCurrent: function() {
 
     var task = {};
-    if (this.element.dataset.id != '') {
+    
+    if (this.element.dataset.id != 'undefined' && this.element.dataset.id != '') {
       task.id = parseInt(this.element.dataset.id.substring(5));
     }
 
@@ -166,7 +183,7 @@ var EditTask = {
     }
 
     if (!error) {
-      this.manageTask(task);
+      TasksDB.put(task);
     }
 
     return !error;
@@ -175,47 +192,40 @@ var EditTask = {
   deleteCurrent: function() {
     if (this.element.dataset.id != '') {
       var id = parseInt(this.element.dataset.id.substring(5));
-      this.deleteTask(id);
+      TasksDB.delete(id);
     }
   },
+  
+};
 
-  updateTaskProperty: function(id, property, value) {
-    for (var i in taskDataList) {
-      if (taskDataList[i].id == id) {
-        taskDataList[i][property] = value;
-        break;
-      }
-    }
+var TasksDB = {
+
+  DBNAME: 'tasks',
+  STORENAME: 'tasks',
+  
+  // Database methods
+  load: function() {
+    SimpleDB.query(this.DBNAME, this.STORENAME, SimpleDB.load, this.loadSuccess);
   },
-
-  manageTask: function(task) {
-    if (task.id) {
-      taskDataList.some(function(taskElem) {
-        if (taskElem.id == task.id) {
-          taskElem.name = task.name;
-          taskElem.desc = task.desc;
-          taskElem.done = task.done;
-          return true;
-        }
-        return false;
-      });
-    } else {
-      task.id = taskDataList.length > 0 ?
-        taskDataList[taskDataList.length - 1].id + 1 : 1;
-      taskDataList.push(task);
-    }
+  
+  put: function(task) {
+    SimpleDB.query(this.DBNAME, this.STORENAME, SimpleDB.put, this.putSuccess, task);
   },
-
-  deleteTask: function(id) {
-    if (id) {
-      taskDataList.some(function(taskElem, index) {
-        if (taskElem.id == id) {
-          taskDataList.splice(index, 1);
-          return true;
-        }
-        return false;
-      });
-    }
+  
+  delete: function(key) {
+    SimpleDB.query(this.DBNAME, this.STORENAME, SimpleDB.delete, this.deleteSuccess, key);
+  },
+  
+  putSuccess: function(task) {
+    TaskList.refresh();
+  },
+  
+  loadSuccess: function(tasks) {
+    TaskList.fill(tasks);
+  },
+  
+  deleteSuccess: function() {
+    TaskList.refresh();
   }
 };
 
