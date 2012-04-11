@@ -1052,7 +1052,7 @@ var MessagesListener = function() {
     // a particular sender, but don't have a good way to do it.
     // This should be replaced with a web intent or similar.
     WindowManager.launch('http://sms.' + domain
-                         /* +'?sender=' + sender*/);
+                         /* +'#num=' + sender*/);
   });
 
   var hasMessages = document.getElementById('state-messages');
