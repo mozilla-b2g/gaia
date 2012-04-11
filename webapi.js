@@ -1090,9 +1090,14 @@
 // navigator.mozApps.mgmt
 (function(window){
 
-  if(navigator.userAgent.indexOf('Mobile') != -1){
+  if('mozApps' in navigator){
     return;
   }
+
+  if(console.log){
+    console.log("Your browser does not have navigator.mozApps using fallback method - run make desktop-fallback-manifest (from gaia)")
+  }
+
   var MockApp = function(data){
     var key;
     for(key in data){

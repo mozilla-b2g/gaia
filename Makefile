@@ -50,7 +50,7 @@ profile: stamp-commit-hash update-offline-manifests manifests offline
 
 LANG=POSIX # Avoiding sort order differences between OSes
 
-desktop:
+desktop-fallback-manifest:
 	sh tools/create-desktop-apps.sh
 
 # Generate profile/webapps/
