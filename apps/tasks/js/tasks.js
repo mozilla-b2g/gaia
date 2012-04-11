@@ -107,6 +107,11 @@ var EditTask = {
     return this.doneInput = document.querySelector('input[name=\'task.done\']');
   },
 
+  get taskTitle() {
+    delete this.taskTitle;
+    return this.taskTitle = document.getElementById('task-title');
+  },
+
   handleEvent: function(evt) {
     switch (evt.type) {
     case 'click':
@@ -145,6 +150,13 @@ var EditTask = {
     this.nameInput.value = task.name;
     this.descInput.value = task.desc;
     this.doneInput.checked = task.done;
+
+    if(task.id) {
+      this.taskTitle.innerHTML = "Edit Task";
+    } else {
+      this.taskTitle.innerHTML = "New Task";
+    }
+    
   },
 
   updateCurrent: function() {
