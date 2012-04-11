@@ -57,6 +57,12 @@ mozSms.addEventListener('received', function received(ev) {
     message.sender, message.body
   );
   notification.onclick = function notiClick() {
+
+    // Switch to the clicked message conversation panel
+    // XXX: we somehow need to get access to the window object
+    // of the original web app to do this.
+    // window.parent.location.hash = '#num=' + message.sender;
+
     // Asking to launch itself
     navigator.mozApps.getSelf().onsuccess = function(e) {
       var app = e.target.result;
