@@ -6,6 +6,7 @@
     "name": "The Gaia Team",
     "url": "https://github.com/andreasgal/gaia"
   },
+  "background_page": "/background.html#0",
   "permissions": [
     "sms",
     "contacts"
