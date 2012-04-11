@@ -6,17 +6,17 @@ var Browser = {
   get backButton() {
     delete this.backButton;
     return this.backButton =
-      document.getElementById('browser-back-button');
+      document.getElementById('back-button');
   },
 
   get addressbar() {
     delete this.addressbar;
-    return this.addressbar = document.getElementById('browser-address');
+    return this.addressbar = document.getElementById('address-bar');
   },
 
   get urlbar() {
     delete this.urlbar;
-    return this.urlbar = document.getElementById('browser-url');
+    return this.urlbar = document.getElementById('url-bar');
   },
 
   /* Browser content */
@@ -32,22 +32,22 @@ var Browser = {
 
   get shade() {
     delete this.shade;
-    return this.shade = document.getElementById('browser-shade');
+    return this.shade = document.getElementById('shade');
   },
 
   get menuButton() {
     delete this.menuButton;
-    return this.menuButton = document.getElementById('browser-menu-button');
+    return this.menuButton = document.getElementById('menu-button');
   },
 
   get refreshButton() {
     delete this.refreshButton;
-    return this.refreshButton = document.getElementById('menu-refresh');
+    return this.refreshButton = document.getElementById('refresh');
   },
 
   get forwardButton() {
     delete this.forwardButton;
-    return this.forwardButton = document.getElementById('menu-forward');
+    return this.forwardButton = document.getElementById('forward-button');
   },
 
   currentTitle: '',
@@ -134,11 +134,12 @@ var Browser = {
   goBack: function browser_goBack() {
     MockHistory.back();
     this.backButton.disabled = !MockHistory.backLength();
+    this.forwardButton.disabled = !MockHistory.forwardLength();
   },
 
   goForward: function browser_goForward() {
     MockHistory.forward();
-    this.toggleMenu();
+    this.forwardButton.disabled = !MockHistory.forwardLength();
   },
 
   updateHistory: function browser_updateHistory(url) {
