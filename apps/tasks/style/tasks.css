@@ -74,6 +74,10 @@ input ~ *:empty {
 	direction:rtl;
 }
 
+.tableView p {
+  margin-left: 1.0em;
+}
+
 li img {
 	vertical-align: middle;
 	margin-right:10px;
