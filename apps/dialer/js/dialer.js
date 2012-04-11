@@ -275,8 +275,6 @@ var CallHandler = {
 
     this.recentsEntry = {date: Date.now(), type: 'outgoing', number: number};
 
-    var self = this;
-
     this.toggleCallScreen();
   },
 
@@ -374,16 +372,10 @@ var CallHandler = {
             choiceChanged(recents);
             Recents.showLast();
 
-            // XXX: This is currently the less ugly way to launch the dialer
-            // The app looks for itself in the mozApps list and then launch
-            navigator.mozApps.mgmt.getAll().onsuccess = function(e) {
-              var apps = e.target.result;
-              apps.forEach(function(app) {
-                if (app.origin == document.location) {
-                  app.launch();
-                  return;
-                }
-              });
+            // Asking to launch itself
+            navigator.mozApps.getSelf().onsuccess = function(e) {
+              var app = e.target.result;
+              app.launch();
             };
           };
 
@@ -471,9 +463,11 @@ var CallHandler = {
 
       finished = true;
 
-      callScreen.classList.add('animate');
-      callScreen.classList.toggle('oncall');
-      callScreen.classList.toggle('prerender');
+      setTimeout(function cs_transitionNextLoop() {
+        callScreen.classList.add('animate');
+        callScreen.classList.toggle('oncall');
+        callScreen.classList.toggle('prerender');
+      });
     };
 
     window.addEventListener('MozAfterPaint', function ch_finishAfterPaint() {
