@@ -93,6 +93,10 @@ let permissions = {
   "mozbrowser": {
     "urls": [],
     "pref": "dom.mozBrowserFramesWhitelist"
+  },
+  "mozApps": {
+    "urls": [],
+    "pref": "dom.mozApps.whitelist"
   }
 };
 
