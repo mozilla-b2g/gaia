@@ -296,13 +296,27 @@ var NotificationScreen = {
 
     window.addEventListener('mozChromeEvent', function notificationListener(e) {
       var detail = e.detail;
-      if (detail.type == 'desktop-notification') {
-        NotificationScreen.addNotification('desktop-notification',
-                                            detail.title, detail.text,
-                                            detail.id);
+      switch (detail.type) {
+        case 'desktop-notification':
+          NotificationScreen.addNotification('desktop-notification',
+                                              detail.title, detail.text,
+                                              detail.id);
 
-        var hasNotifications = document.getElementById('state-notifications');
-        hasNotifications.dataset.visible = 'true';
+          var hasNotifications = document.getElementById('state-notifications');
+          hasNotifications.dataset.visible = 'true';
+          break;
+
+        default:
+          // XXX Needs to implements more UI but for now let's allow stuffs
+          var event = document.createEvent('CustomEvent');
+          event.initCustomEvent('mozContentEvent', true, true, {
+            type: 'permission-allow',
+            id: detail.id
+          });
+          window.dispatchEvent(event);
+          break;
+
+          break;
       }
     });
 
@@ -730,7 +744,7 @@ var SourceView = {
     return !this.viewer ? false : this.viewer.style.visibility === 'visible';
   },
 
-  show: function sv_show(url) {
+  show: function sv_show() {
     var viewsource = this.viewer;
     if (!viewsource) {
       var style = '#appViewsource { ' +
@@ -1116,7 +1130,7 @@ AppScreen.prototype.getAppByOrigin = function getAppByOrigin(origin) {
 AppScreen.prototype.build = function(rebuild) {
   var startpage = 0;
 
-  if (rebuild) {
+  if (rebuild && 'grid' in this) {
     // FIXME: the commented code below is not working for me.
     // After the screen is rebuilt each gesture generates multiple events
     // and the uninstall dialog does not behave right
