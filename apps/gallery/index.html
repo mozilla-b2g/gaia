@@ -13,7 +13,7 @@
       document.write('<script src="' + src + '"><\/script>');
     </script>
     </script>
-    <script type="text/javascript" src="js/gallery.js"></script>
+    <script defer src="js/gallery.js"></script>
   </head>
 
   <body class="hidden">
@@ -25,7 +25,12 @@
     <ul id="thumbnails"></ul>
 
     <!-- Photos inserted here -->
-    <div id="photos" class="hidden"></div>
+    <div id="photos" class="hidden">
+      <!-- the current photo plus next and previous waiting in the wings -->
+      <div class="photoFrame previousPhoto"></div>
+      <div class="photoFrame currentPhoto"></div>
+      <div class="photoFrame nextPhoto"></div>
+    </div>
 
     <div id="player-controls" class="hidden">
       <a id="back-button" class="button" href="#"></a>
