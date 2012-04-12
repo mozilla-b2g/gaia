@@ -5,6 +5,28 @@
 
 (function() {
 
+var debugging = false;
+var debug = function(str) {
+  if (!debugging)
+    return;
+
+  if (window.dump)
+    window.dump('jspinyin: ' + str + '\n');
+  if (console && console.log) {
+    console.log('jspinyin: ' + str);
+    if (arguments.length > 1)
+      console.log.apply(this, arguments);
+  }
+};
+
+/* for non-Mozilla browsers */
+if (!KeyEvent) {
+  var KeyEvent = {
+    DOM_VK_BACK_SPACE: 0x8,
+    DOM_VK_RETURN: 0xd
+  };
+}
+  
 function PhraseDictionary() {
   var phraseList = [];
   var phraseList2 = [];
@@ -209,8 +231,102 @@ function SyllableSplitter() {
   }
 }
 
-var PinyinImEngine = function(dictionary, splitter) {
-  function buildQueryList(solutions, stopPosition) {
+function IMEManagerGlue() {
+  this.path = "";
+}
+
+function IMEngineBase() {
+}
+
+IMEngineBase.prototype = {
+  /**
+   * Glue ojbect between the IMEngieBase and the IMEManager.
+   */
+  _glue: {
+    /**
+     * The source code path of the IMEngine
+     * @type String
+     */
+    path: "",
+    
+    mode: false,
+    
+    /**
+     * Sends candidates to the IMEManager
+     */
+    sendCandidates: function(candidates){},
+    
+    /**
+     * Sends pending symbols to the IMEManager.
+     */
+    sendPendingSymbols: function(symbols){},
+    
+    /**
+     * Passes the clicked key to IMEManager for default action.
+     * @param {number} keyCode The key code of an integer.
+     */
+    sendKey: function(keyCode){},
+    
+    /**
+     * Sends the input string to the IMEManager.
+     * @param {String} str The input string.
+     */
+    sendString: function(str){}
+  },
+  
+  /**
+   * Initialization.
+   * @param {Glue} glue Glue object of the IMManager.
+   */
+  init: function(glue) {
+    this._glue = glue;
+  },
+  /**
+   * Destruction.
+   */
+  unint: function() {
+  },
+  
+  /**
+   * Notifies when a keyboard key is clicked.
+   * @param {number} keyCode The key code of an integer number.
+   */
+  click: function(keyCode) {
+  },
+  
+  /**
+   * Notifies when pending symbols need be cleared
+   */
+  empty: function() {
+  },
+  
+  /**
+   * Notifies when a candidate is selected.
+   * @param {String} text The text of the candidate.
+   * @param {String} type The type of the candidate.
+   */
+  select: function(text, type) {
+    this._glue.sendString(text);
+  },
+}
+
+function IMEngine(dictionary, splitter) {
+  IMEngineBase.call(this);
+  
+  this._dictionary = dictionary;
+  this._splitter = splitter;
+}
+
+IMEngine.prototype = {
+  __proto__: IMEngineBase.prototype,
+  
+  _dictionary: null,
+  _splitter: null,
+  _mode: true,
+  _spell: '',
+  _startPosition: 0,
+  
+  _buildQueryList: function(solutions, stopPosition) {
     var queryList = [];
     for (var i = 0; i < solutions.length; i++) {
       var solution = solutions[i];
@@ -248,28 +364,21 @@ var PinyinImEngine = function(dictionary, splitter) {
       }
     }
     return queryList;
-  }
-
-  var glue;
-  var spell = '';
+  },
   
-  this.mode = true;
-
-  function showChoices(choices) {
-    var prefix = (spell == '') ? [] : [[spell, spell]];
-    glue.sendCandidates(
+  _showChoices: function(choices) {
+    var prefix = [];
+    this._glue.sendCandidates(
       prefix.concat(
         choices.map(
           function(item) {return [item.phrase, item.prefix]}
         )
       )
     );
-  }
+  },
 
-  var startPosition = 0;
-
-  function refreshChoices(mode) {
-    var solutions = splitter.parse(spell.substring(startPosition));
+  _refreshChoices: function(mode) {
+    var solutions = this._splitter.parse(this._spell.substring(this._startPosition));
 
     var stopPositionSet = {};
     for (var i = 0; i < solutions.length; i++) {
@@ -287,67 +396,89 @@ var PinyinImEngine = function(dictionary, splitter) {
     var stopPositionList = unsortedStopPositionList.sort();
     var candidates = [];
     for (var i = stopPositionList.length - 1; i >= 0; i--) {
-      var queryList = buildQueryList(solutions, stopPositionList[i]);
+      var queryList = this._buildQueryList(solutions, stopPositionList[i]);
       candidates = candidates.concat(dictionary.lookUp(queryList,mode));
     }
-    showChoices(candidates);
-  }
+    this._showChoices(candidates);
+    this._sendPendingSymbols();
+  },
+  
+  _sendPendingSymbols: function () {
+    var symbols = this._spell;
+    this._glue.sendPendingSymbols(symbols);
+  },
 
-  this.init = function jspinyin_init(aGlue) {
-    glue = aGlue;
-  };
+  /**
+   * @Override
+   */
+  init: function(glue) {
+    IMEngineBase.prototype.init.call(this, glue);
+  },
 
-  this.uninit = function jspinyin_uninit() {
-    dictionary.uninit();
-    dictionary = null;
-    splitter = null;
-  };
+  /**
+   * @Override
+   */
+  uninit: function() {
+    this._dictionary.uninit();
+    this._dictionary = null;
+    this._splitter = null;
+  },
 
-  this.click = function jspinyin_click(aKeyCode) {
-    if(aKeyCode == -10) {
-      this.mode = false;
+  /**
+   *@Override
+   */
+  click: function(keyCode) {
+    if(keyCode == -10) {
+      this._mode = false;
     }
-    if(aKeyCode == -11) {
-      this.mode = true;
+    if(keyCode == -11) {
+      this._mode = true;
     }
-    if (aKeyCode == 39 || (97 <= aKeyCode && aKeyCode <= 122)) {
-      spell += String.fromCharCode(aKeyCode);
-      refreshChoices(this.mode);
+    if (keyCode == 39 || (97 <= keyCode && keyCode <= 122)) {
+      this._spell += String.fromCharCode(keyCode);
+      this._refreshChoices(this._mode);
     } else {
-      switch (aKeyCode) {
+      switch (keyCode) {
         case 8: {
-          if (spell.length == 0) {
-            glue.sendKey(aKeyCode);
+          if (this._spell.length == 0) {
+            this._glue.sendKey(keyCode);
           } else {
-            spell = spell.substring(0, spell.length - 1);
-            if (startPosition == spell.length) {
-              startPosition = 0;
+            this._spell = this._spell.substring(0, this._spell.length - 1);
+            if (this._startPosition == this._spell.length) {
+              this._startPosition = 0;
             }
-            refreshChoices(this.mode);
+            this._refreshChoices(this.mode);
           }
           break;
         }
         default:
-          glue.sendKey(aKeyCode);
+          this._glue.sendKey(keyCode);
       }
     }
   },
 
-  this.select = function jspinyin_select(aSelection, aSelectionData) {
-    glue.sendString(aSelection);
+  /**
+   * @Override
+   */
+  select: function(text, type) {
+    this._glue.sendString(text);
 
-    spell = spell.substring(aSelectionData.length);
-    if (startPosition == spell.length) {
+    this._spell = this._spell.substring(type.length);
+    if (this._startPosition == this._spell.length) {
       this.empty();
     }
-    refreshChoices(this.mode);
+    this._refreshChoices(this._mode);
   },
 
-  this.empty = function jspinyin_empty() {
-    spell = '';
-    startPosition = 0;
-  }
-};
+  /**
+   * @Override
+   */
+  empty: function() {
+    this._spell = '';
+    this._startPosition = 0;
+    this._sendPendingSymbols();
+  }  
+}
 
 var dictionary = new PhraseDictionary();
 var loader = new XMLHttpRequest();
@@ -373,8 +504,15 @@ loader2.onreadystatechange = function(event) {
 loader2.send();
 
 var splitter = new SyllableSplitter();
-var engine = new PinyinImEngine(dictionary, splitter);
+var jspinyin = new IMEngine(dictionary, splitter);
 
-IMEManager.IMEngines.jspinyin = engine;
+// Expose JSZhuyin as an AMD module
+if (typeof define === 'function' && define.amd)
+  define('jspinyin', [], function() { return jspinyin; });
+
+// Expose to IMEManager if we are in Gaia homescreen
+if (typeof IMEManager !== 'undefined')
+  IMEManager.IMEngines.jspinyin = jspinyin;
+
 })();
 
