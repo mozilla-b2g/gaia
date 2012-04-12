@@ -488,7 +488,7 @@ var ConversationView = {
       timestamp: new Date()
     };
 
-    setTimeout((function updateMessageField() {
+    window.setTimeout((function updateMessageField() {
       this.input.value = '';
       this.updateInputHeight();
       this.input.focus();

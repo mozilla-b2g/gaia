@@ -220,7 +220,7 @@ var KeyHandler = {
       var telephony = navigator.mozTelephony;
       if (telephony) {
         telephony.startTone(key);
-        setTimeout(function ch_stopTone() {
+        window.setTimeout(function ch_stopTone() {
           telephony.stopTone();
         }, 100);
       }
@@ -463,7 +463,7 @@ var CallHandler = {
 
       finished = true;
 
-      setTimeout(function cs_transitionNextLoop() {
+      window.setTimeout(function cs_transitionNextLoop() {
         callScreen.classList.add('animate');
         callScreen.classList.toggle('oncall');
         callScreen.classList.toggle('prerender');
@@ -474,7 +474,7 @@ var CallHandler = {
       window.removeEventListener('MozAfterPaint', ch_finishAfterPaint);
       finishTransition();
     });
-    var securityTimeout = setTimeout(finishTransition, 100);
+    var securityTimeout = window.setTimeout(finishTransition, 100);
 
     this._onCall = !this._onCall;
 
