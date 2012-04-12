@@ -69,10 +69,13 @@ var BackgroundServiceManager = (function bsm() {
   /* The close function will remove the iframe from DOM and
     delete the reference */
   var close = function bsm_close(origin) {
-    if (!frames[origin])
+    var frame = frames[origin];
+    if (!frame)
       return false;
 
-    frames[origin].parentNode.removeChild(frames[origin]);
+    frame.parentNode.removeChild(frame);
+
+    frame = undefined;
     delete frames[origin];
     return true;
   };
@@ -80,8 +83,9 @@ var BackgroundServiceManager = (function bsm() {
   /* Getting the window object reference of the background page. Unused.
      We have no way to give the object reference to the the app iframe for now */
   var getWindow = function bsm_getWindow(origin) {
-    if (frames[origin])
-      return frames[origin].contentWindow || null;
+    var frame = frames[origin];
+    if (frame)
+      return frame.contentWindow || null;
     return null;
   };
 
