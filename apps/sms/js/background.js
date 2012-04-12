@@ -42,7 +42,7 @@ mozSms.addEventListener('received', function received(evt) {
     var ringtonePlayer = new Audio();
     ringtonePlayer.src = 'style/ringtones/sms.wav';
     ringtonePlayer.play();
-    setTimeout(function smsRingtoneEnder() {
+    window.setTimeout(function smsRingtoneEnder() {
       ringtonePlayer.pause();
       ringtonePlayer.src = '';
     }, 500);

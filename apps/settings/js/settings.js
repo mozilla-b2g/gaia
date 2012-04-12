@@ -167,7 +167,7 @@ window.addEventListener('localized', function showPanel() {
   else {
     // we were in #languages and selected another locale:
     // reset the hash to prevent weird focus bugs when switching LTR/RTL
-    setTimeout(function() {
+    window.setTimeout(function() {
       document.location.hash = 'languages';
     });
   }

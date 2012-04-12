@@ -108,7 +108,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
 
         // auto-rescan if requested
         if (autoscan)
-          setTimeout(scan, scanRate);
+          window.setTimeout(scan, scanRate);
       };
 
       req.onerror = function(error) {

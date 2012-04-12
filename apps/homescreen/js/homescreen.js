@@ -102,7 +102,7 @@ var LockScreen = {
       }
       style.MozTransform = 'translateY(0)';
       if (callback)
-        setTimeout(callback, 0, true);
+        window.setTimeout(callback, 0, true);
       return;
     }
 
@@ -158,7 +158,7 @@ var LockScreen = {
     }
 
     if (callback)
-      setTimeout(callback, 0, false);
+      window.setTimeout(callback, 0, false);
   },
 
   onTouchStart: function lockscreen_touchStart(e) {
@@ -500,7 +500,7 @@ function updateClock() {
   // Schedule another clock update when a new minute rolls around
   var now = new Date();
   var sec = now.getSeconds();
-  setTimeout(updateClock, (59 - sec) * 1000);
+  window.setTimeout(updateClock, (59 - sec) * 1000);
 }
 
 function updateBattery() {
@@ -717,7 +717,7 @@ var SettingsListener = {
   observe: function sl_observe(name, defaultValue, callback) {
     var settings = window.navigator.mozSettings;
     if (!settings) {
-      setTimeout(function() { callback(defaultValue); });
+      window.setTimeout(function() { callback(defaultValue); });
       return;
     }
 
@@ -896,7 +896,7 @@ var KeyHandler = {
   repeatKey: function kh_repeatKey(actionCallback) {
     actionCallback();
     clearTimeout(this._timer);
-    this._timer = setTimeout((function volumeTimeout() {
+    this._timer = window.setTimeout((function volumeTimeout() {
       actionCallback();
       this._timer = setInterval(function volumeInterval() {
         actionCallback();
@@ -1244,7 +1244,7 @@ DefaultPhysics.prototype = {
 
     // If this timer triggers and the user hasn't moved their finger
     // then this is a hold rather than a tap.
-    touchState.timer = setTimeout(this.onHoldTimeout.bind(this),
+    touchState.timer = window.setTimeout(this.onHoldTimeout.bind(this),
                                   DefaultPhysics.HOLD_INTERVAL);
 
     // For tap and hold gestures, we keep track of what icon
