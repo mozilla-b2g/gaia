@@ -20,15 +20,15 @@ DEBUG?=0
 
 
 ###############################################################################
-# The above rules generate the profile/ folder and all it's content.          #
+# The above rules generate the profile/ folder and all its content.           #
 # The profile folder content depends on different rules:                      #
 #  1. manifests                                                               #
 #     A directory structure representing the applications installed using the #
 #     Apps API. In Gaia all applications use this method.                     #
 #     See https://developer.mozilla.org/en/Apps/Apps_JavaScript_API           #
 #                                                                             #
-#	 2. offline                                                                 #
-#			An Application Cache database containing Gaia apps, so the phone can be #
+#   2. offline                                                                #
+#     An Application Cache database containing Gaia apps, so the phone can be #
 #     used offline and application can be updated easily. For details about it#
 #     see: https://developer.mozilla.org/en/Using_Application_Cache           #
 #                                                                             #
@@ -262,7 +262,6 @@ update-offline-manifests:
 		fi \
 	done
 
-
 # If your gaia/ directory is a sub-directory of the B2G directory, then
 # you should use the install-gaia target of the B2G Makefile. But if you're
 # working on just gaia itself, and you already have B2G firmware on your
@@ -270,12 +269,8 @@ update-offline-manifests:
 # target to update the gaia files and reboot b2g
 install-gaia: profile
 	$(ADB) start-server
-	$(ADB) shell rm -r /data/local/*
 	$(ADB) shell rm -r /cache/*
-	# just push the profile
-	$(ADB) push profile/OfflineCache /data/local/OfflineCache
-	$(ADB) push profile/webapps /data/local/webapps
-	@echo "Installed gaia into profile/."
+	python build/install-gaia.py "$(ADB)"
 	$(ADB) shell kill $(shell $(ADB) shell toolbox ps | grep "b2g" | awk '{ print $$2; }')
 	@echo 'Rebooting b2g now'
 

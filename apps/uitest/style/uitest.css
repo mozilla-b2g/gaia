@@ -145,9 +145,16 @@ body.test #tests {
   border-bottom: 1px solid hsla(223,7%,81%,1);
 
   font-size: 26px;
-  color: rgb(18, 47, 64);
   line-height: 48px;
   font-weight: 600;
+}
+
+#test-list > li > a {
+  display: block;
+  outline: none;
+  width: 100%; height: 100%;
+  color: rgb(18, 47, 64);
+  text-decoration: none;
 }
 
 #test-list > li:active {

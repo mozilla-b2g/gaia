@@ -57,15 +57,13 @@ var ConversationListView = {
       navigator.mozSms.addEventListener('received', this);
 
     this.searchInput.addEventListener('keyup', this);
-    this.view.addEventListener('click', this);
 
-    this.updateConversationList(null, function fireAppReady() {
-      var url = document.location.toString();
-      visibilityChanged(url);
-    });
+    window.addEventListener('hashchange', this);
+
+    this.updateConversationList();
   },
 
-  updateConversationList: function cl_updateCL(pendingMsg, callback) {
+  updateConversationList: function cl_updateCL(pendingMsg) {
     var self = this;
     /*
       TODO: Conversation list is always order by contact family names
@@ -134,15 +132,12 @@ var ConversationListView = {
           fragment += msg;
         }
         self.view.innerHTML = fragment;
-
-        if (callback)
-          callback();
       };
     }, null);
   },
 
   createNewConversation: function cl_createNewConversation(conversation) {
-    return '<div data-num="' + conversation.num + '"' +
+    return '<a href="#num=' + conversation.num + '"' +
            ' data-name="' + (conversation.name || conversation.num) + '"' +
            ' data-notempty="' + (conversation.timestamp ? 'true' : '') + '"' +
            ' class="' + (conversation.hidden ? 'hide' : '') + '">' +
@@ -154,7 +149,7 @@ var ConversationListView = {
            (conversation.timestamp ?
              '  <div class="time" data-time="' + conversation.timestamp + '">' +
                  prettyDate(conversation.timestamp) + '</div>' : '') +
-           '</div>';
+           '</a>';
   },
 
   searchConversations: function cl_searchConversations() {
@@ -195,7 +190,7 @@ var ConversationListView = {
     if (!num)
       return;
 
-    ConversationView.showConversation(num == '*' ? '' : num);
+    window.location.hash = '#num=' + num;
   },
 
   handleEvent: function cl_handleEvent(evt) {
@@ -204,13 +199,14 @@ var ConversationListView = {
         ConversationListView.updateConversationList(evt.message);
         break;
 
-      case 'click':
-        this.openConversationView(evt.target.dataset.num);
-        break;
-
       case 'keyup':
         this.searchConversations();
         break;
+
+      case 'hashchange':
+        if (window.location.hash)
+          return;
+        document.body.classList.remove('conversation');
     }
   }
 };
@@ -240,19 +236,25 @@ var ConversationView = {
     if (navigator.mozSms)
       navigator.mozSms.addEventListener('received', this);
 
-    document.getElementById('view-back').addEventListener(
-      'click', this.close.bind(this));
-
     // click event does not trigger when keyboard is hiding
     document.getElementById('view-msg-send').addEventListener(
       'mousedown', this.sendMessage.bind(this));
 
     this.input.addEventListener('input', this.updateInputHeight.bind(this));
 
-    var windowEvents = ['resize', 'keyup', 'transitionend'];
+    var windowEvents = ['resize', 'keyup', 'transitionend', 'hashchange'];
     windowEvents.forEach((function(eventName) {
       window.addEventListener(eventName, this);
     }).bind(this));
+
+
+    var num = this.getNumFromHash();
+    if (num)
+      this.showConversation(num);
+  },
+
+  getNumFromHash: function cv_getNumFromHash() {
+    return (/\bnum=(.+)(&|$)/.exec(window.location.hash) || [])[1];
   },
 
   scrollViewToBottom: function cv_scrollViewToBottom(animateFromPos) {
@@ -297,7 +299,7 @@ var ConversationView = {
     var bodyclassList = document.body.classList;
     var currentScrollTop;
 
-    if (num) {
+    if (num !== '*') {
       var filter = new MozSmsFilter();
       filter.numbers = [num || ''];
 
@@ -415,6 +417,16 @@ var ConversationView = {
         this.view.innerHTML = '';
         break;
 
+      case 'hashchange':
+        var num = this.getNumFromHash();
+        if (!num) {
+          this.filter = null;
+          return;
+        }
+
+        this.showConversation(num);
+        break;
+
       case 'resize':
         if (!document.body.classList.contains('conversation'))
           return;
@@ -427,8 +439,8 @@ var ConversationView = {
   close: function cv_close() {
     if (!document.body.classList.contains('conversation'))
       return false;
-    document.body.classList.remove('conversation');
-    this.filter = null;
+
+    window.location.hash = '';
     return true;
   },
   sendMessage: function cv_sendMessage() {
@@ -443,8 +455,12 @@ var ConversationView = {
         ConversationView.input.value = text;
         ConversationView.updateInputHeight();
 
-        if (ConversationView.filter)
-          ConversationView.showConversation(ConversationView.filter);
+        if (ConversationView.filter) {
+          if (window.location.hash !== '#num=' + ConversationView.filter)
+            window.location.hash = '#num=' + ConversationView.filter;
+          else
+            ConversationView.showConversation(ConversationView.filter);
+        }
         ConversationListView.updateConversationList();
         return;
       }
@@ -453,8 +469,12 @@ var ConversationView = {
       // message in the background. Ideally we'd just be updating the UI
       // from "sending..." to "sent" at this point...
       window.setTimeout(function() {
-        if (ConversationView.filter)
-          ConversationView.showConversation(ConversationView.filter);
+        if (ConversationView.filter) {
+          if (window.location.hash !== '#num=' + ConversationView.filter)
+            window.location.hash = '#num=' + ConversationView.filter;
+          else
+            ConversationView.showConversation(ConversationView.filter);
+        }
         ConversationListView.updateConversationList();
       }, 100);
     });

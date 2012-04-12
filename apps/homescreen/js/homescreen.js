@@ -31,7 +31,6 @@ function startup() {
     LockScreen.update(function fireHomescreenReady() {
       ScreenManager.turnScreenOn();
 
-      new MessagesListener();
       new TelephonyListener();
 
       window.parent.postMessage('homescreenready', '*');
@@ -296,13 +295,27 @@ var NotificationScreen = {
 
     window.addEventListener('mozChromeEvent', function notificationListener(e) {
       var detail = e.detail;
-      if (detail.type == 'desktop-notification') {
-        NotificationScreen.addNotification('desktop-notification',
-                                            detail.title, detail.text,
-                                            detail.id);
+      switch (detail.type) {
+        case 'desktop-notification':
+          NotificationScreen.addNotification('desktop-notification',
+                                              detail.title, detail.text,
+                                              detail.id);
 
-        var hasNotifications = document.getElementById('state-notifications');
-        hasNotifications.dataset.visible = 'true';
+          var hasNotifications = document.getElementById('state-notifications');
+          hasNotifications.dataset.visible = 'true';
+          break;
+
+        default:
+          // XXX Needs to implements more UI but for now let's allow stuffs
+          var event = document.createEvent('CustomEvent');
+          event.initCustomEvent('mozContentEvent', true, true, {
+            type: 'permission-allow',
+            id: detail.id
+          });
+          window.dispatchEvent(event);
+          break;
+
+          break;
       }
     });
 
@@ -421,29 +434,10 @@ var NotificationScreen = {
 
   addNotification: function ns_addNotification(type, nTitle, body, nID) {
     var notifications = this.container;
-    // First look if there is already one message from the same
-    // source. If there is one, let's aggregate them.
-    var smsNotifSelector = 'div[data-type="sms"]';
-    var children = notifications.querySelectorAll(smsNotifSelector);
-    for (var i = 0; i < children.length; i++) {
-      var notification = children[i];
-      if (notification.dataset.sender != nTitle)
-        continue;
-
-      var unread = parseInt(notification.dataset.count) + 1;
-      var msg = _('unreadMessages', { n: unread });
-      notification.querySelector('div.detail').textContent = msg;
-      return;
-    }
 
     var notification = document.createElement('div');
     notification.className = 'notification';
     notification.dataset.type = type;
-
-    if (type == 'sms') {
-      notification.dataset.count = 1;
-      notification.dataset.sender = nTitle;
-    }
 
     if (type == 'desktop-notification') {
       notification.dataset.notificationID = nID;
@@ -749,7 +743,7 @@ var SourceView = {
     return !this.viewer ? false : this.viewer.style.visibility === 'visible';
   },
 
-  show: function sv_show(url) {
+  show: function sv_show() {
     var viewsource = this.viewer;
     if (!viewsource) {
       var style = '#appViewsource { ' +
@@ -879,20 +873,10 @@ SettingsListener.observe('phone.ring.incoming', true, function(value) {
   activePhoneSound = !!value;
 });
 
-var activeSMSSound = true;
-SettingsListener.observe('sms.ring.received', true, function(value) {
-  activeSMSSound = !!value;
-});
-
 /* === Vibration === */
 var activateVibration = false;
 SettingsListener.observe('phone.vibration.incoming', false, function(value) {
   activateVibration = !!value;
-});
-
-var activateSMSVibration = false;
-SettingsListener.observe('sms.vibration.received', false, function(value) {
-  activateSMSVibration = !!value;
 });
 
 /* === Invert Display === */
@@ -1018,70 +1002,6 @@ SettingsListener.observe('screen.brightness', 0.5, function(value) {
     navigator.mozPower.screenBrightness = parseFloat(value);
 });
 
-/* === MessagesListener === */
-var MessagesListener = function() {
-  var messages = navigator.mozSms;
-  if (!messages)
-    return;
-
-  var notifications = document.getElementById('notifications-container');
-  notifications.addEventListener('click', function notificationClick(evt) {
-    var notification = evt.target;
-    var sender = notification.dataset.sender;
-    var type = notification.dataset.type;
-    if ((type != 'sms') || (!sender))
-      return;
-
-    NotificationScreen.unlock(true);
-
-    // We'd really like to launch the SMS app to show
-    // a particular sender, but don't have a good way to do it.
-    // This should be replaced with a web intent or similar.
-    WindowManager.launch('http://sms.' + domain
-                         /* +'?sender=' + sender*/);
-  });
-
-  var hasMessages = document.getElementById('state-messages');
-  function showMessage(sender, body) {
-    hasMessages.dataset.visible = 'true';
-
-    NotificationScreen.addNotification('sms', sender, body);
-  }
-
-  messages.addEventListener('received', function received(evt) {
-    var message = evt.message;
-    showMessage(message.sender, message.body);
-
-    if (activeSMSSound) {
-      var ringtonePlayer = document.getElementById('ringtone-player');
-      ringtonePlayer.src = 'style/ringtones/sms.wav';
-      ringtonePlayer.play();
-      setTimeout(function smsRingtoneEnder() {
-        ringtonePlayer.pause();
-        ringtonePlayer.src = '';
-      }, 500);
-    }
-
-    if (activateSMSVibration) {
-      if ('mozVibrate' in navigator) {
-        navigator.mozVibrate([200, 200, 200, 200]);
-      }
-    }
-  });
-
-  window.addEventListener('appopen', function onAppOpen(evt) {
-    // If the sms application is opened, just delete all messages
-    // notifications
-    var applicationURL = evt.detail.url;
-    var matcher = new RegExp('/sms\.' + domain);
-    if (!matcher.test(applicationURL))
-      return;
-
-    delete hasMessages.dataset.visible;
-    NotificationScreen.removeNotifications('sms');
-  });
-};
-
 /* === TelephoneListener === */
 var TelephonyListener = function() {
   var telephony = navigator.mozTelephony;
@@ -1184,23 +1104,19 @@ function AppScreen() {
     appscreen.grid.update();
   });
 
-  // Installing these handlers on desktop causes JS execution to stop silently,
-  // so work around that for now here.
-  if (navigator.userAgent.indexOf('Mobile') != -1) {
-    // Listen for app installations and rebuild the appscreen when we get one
-    navigator.mozApps.mgmt.oninstall = function(event) {
-      var newapp = event.application;
-      appscreen.installedApps[newapp.origin] = newapp;
-      appscreen.build(true);
-    };
+  // Listen for app installations and rebuild the appscreen when we get one
+  navigator.mozApps.mgmt.oninstall = function(event) {
+    var newapp = event.application;
+    appscreen.installedApps[newapp.origin] = newapp;
+    appscreen.build(true);
+  };
 
-    // Do the same for uninstalls
-    navigator.mozApps.mgmt.onuninstall = function(event) {
-      var newapp = event.application;
-      delete appscreen.installedApps[newapp.origin];
-      appscreen.build(true);
-    };
-  }
+  // Do the same for uninstalls
+  navigator.mozApps.mgmt.onuninstall = function(event) {
+    var newapp = event.application;
+    delete appscreen.installedApps[newapp.origin];
+    appscreen.build(true);
+  };
 }
 
 // Look up the app object for a specified app origin
@@ -1213,7 +1129,7 @@ AppScreen.prototype.getAppByOrigin = function getAppByOrigin(origin) {
 AppScreen.prototype.build = function(rebuild) {
   var startpage = 0;
 
-  if (rebuild) {
+  if (rebuild && 'grid' in this) {
     // FIXME: the commented code below is not working for me.
     // After the screen is rebuilt each gesture generates multiple events
     // and the uninstall dialog does not behave right

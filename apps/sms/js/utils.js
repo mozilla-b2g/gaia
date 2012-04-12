@@ -59,33 +59,6 @@ function prettyDate(time) {
   });
 })();
 
-window.addEventListener('message', function visibleApp(evt) {
-  var data = evt.data;
-  if (data.message == 'visibilitychange' && !data.hidden) {
-    visibilityChanged(data.url);
-  }
-});
-
-function visibilityChanged(url) {
-  var params = (function makeURL() {
-    var a = document.createElement('a');
-    a.href = url;
-
-    var rv = {};
-    var params = a.search.substring(1, a.search.length).split('&');
-    for (var i = 0; i < params.length; i++) {
-      var data = params[i].split('=');
-      rv[data[0]] = data[1];
-    }
-    return rv;
-  })();
-
-  var sender = params['sender'];
-  if (sender) {
-    ConversationListView.openConversationView(sender);
-  }
-}
-
 /* ***********************************************************
 
   Code below are for desktop testing!
@@ -102,12 +75,14 @@ if (!navigator.mozSms) {
         receiver: '1-977-743-6797',
         body: 'Nothing :)',
         delivery: 'sent',
+        id: 41,
         timestamp: new Date(Date.now() - 44000000)
       },
       {
         sender: '1-977-743-6797',
         body: 'Hey! What\s up?',
         delivery: 'received',
+        id: 40,
         timestamp: new Date(Date.now() - 50000000)
       }
     ];
@@ -117,6 +92,7 @@ if (!navigator.mozSms) {
         sender: '1-488-678-3487',
         body: 'Hello world!',
         delivery: 'received',
+        id: 39 - i,
         timestamp: new Date(Date.now() - 60000000)
       });
     }
@@ -157,6 +133,7 @@ if (!navigator.mozSms) {
       receiver: number,
       delivery: 'sent',
       body: text,
+      id: messagesHack.length,
       timestamp: new Date()
     };
 
@@ -187,6 +164,7 @@ if (!navigator.mozSms) {
         receiver: null,
         delivery: 'received',
         body: 'Hi back! ' + text,
+        id: messagesHack.length,
         timestamp: new Date()
       };
 
