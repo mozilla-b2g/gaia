@@ -7,30 +7,54 @@
 
 function PhraseDictionary() {
   var phraseList = [];
-  this.lookUp = function(queryList) {
+  var phraseList2 = [];
+  this.lookUp = function(queryList,mode) {
     var result = [];
     var regExpList = queryList.map(function(q)  RegExp(q.pattern));
-
-    for (var i = 0; i < phraseList.length; i++) {
-      for (var j = 0; j < regExpList.length; j++) {
-        if (regExpList[j].test(phraseList[i].pronunciation)) {
-          result.push({
-              phrase: phraseList[i].phrase,
-              prefix: queryList[j].prefix
-          });
-          break;
+    
+    if (mode) {
+     for (var i = 0; i < phraseList.length; i++) {
+        for (var j = 0; j < regExpList.length; j++) {
+          if (regExpList[j].test(phraseList[i].pronunciation)) {
+            result.push({
+                phrase: phraseList[i].phrase,
+                prefix: queryList[j].prefix
+            });
+            break;
+          }
         }
       }
-    }
+    } else {
+      for (var i = 0; i < phraseList2.length; i++) {
+        for (var j = 0; j < regExpList.length; j++) {
+            if (regExpList[j].test(phraseList2[i].pronunciation)) {
+              result.push({
+                phrase: phraseList2[i].phrase,
+                prefix: queryList[j].prefix
+            });
+            break;
+          }
+        }
+      }
+    } 
     return result;
   };
+  
   this.addPhrases = function(phrases) {
     for (var i = 0; i < phrases.length; i++) {
       phraseList.push(phrases[i]);
     }
   };
+  
+  this.addPhrases2 = function(phrases) {
+    for (var i = 0; i < phrases.length; i++) {
+      phraseList2.push(phrases[i]);
+    }
+  };
+  
   this.uninit = function() {
     phraseList = null;
+    phraseList2 = null;
   };
 }
 
@@ -228,6 +252,8 @@ var PinyinImEngine = function(dictionary, splitter) {
 
   var glue;
   var spell = '';
+  
+  this.mode = true;
 
   function showChoices(choices) {
     var prefix = (spell == '') ? [] : [[spell, spell]];
@@ -242,7 +268,7 @@ var PinyinImEngine = function(dictionary, splitter) {
 
   var startPosition = 0;
 
-  function refreshChoices() {
+  function refreshChoices(mode) {
     var solutions = splitter.parse(spell.substring(startPosition));
 
     var stopPositionSet = {};
@@ -259,11 +285,10 @@ var PinyinImEngine = function(dictionary, splitter) {
       unsortedStopPositionList.push(pos);
     }
     var stopPositionList = unsortedStopPositionList.sort();
-
     var candidates = [];
     for (var i = stopPositionList.length - 1; i >= 0; i--) {
       var queryList = buildQueryList(solutions, stopPositionList[i]);
-      candidates = candidates.concat(dictionary.lookUp(queryList));
+      candidates = candidates.concat(dictionary.lookUp(queryList,mode));
     }
     showChoices(candidates);
   }
@@ -279,9 +304,15 @@ var PinyinImEngine = function(dictionary, splitter) {
   };
 
   this.click = function jspinyin_click(aKeyCode) {
+    if(aKeyCode == -10) {
+      this.mode = false;
+    }
+    if(aKeyCode == -11) {
+      this.mode = true;
+    }
     if (aKeyCode == 39 || (97 <= aKeyCode && aKeyCode <= 122)) {
       spell += String.fromCharCode(aKeyCode);
-      refreshChoices();
+      refreshChoices(this.mode);
     } else {
       switch (aKeyCode) {
         case 8: {
@@ -292,7 +323,7 @@ var PinyinImEngine = function(dictionary, splitter) {
             if (startPosition == spell.length) {
               startPosition = 0;
             }
-            refreshChoices();
+            refreshChoices(this.mode);
           }
           break;
         }
@@ -309,7 +340,7 @@ var PinyinImEngine = function(dictionary, splitter) {
     if (startPosition == spell.length) {
       this.empty();
     }
-    refreshChoices();
+    refreshChoices(this.mode);
   },
 
   this.empty = function jspinyin_empty() {
@@ -329,6 +360,18 @@ loader.onreadystatechange = function(event) {
   }
 };
 loader.send();
+
+var loader2 = new XMLHttpRequest();
+loader2.open('GET', './imes/jspinyin/db-tr.json');
+loader2.responseType = 'json';
+loader2.onreadystatechange = function(event) {
+  if (loader2.readyState == 4) {
+    dictionary.addPhrases2(loader2.response);
+    loader2 = null;
+  }
+};
+loader2.send();
+
 var splitter = new SyllableSplitter();
 var engine = new PinyinImEngine(dictionary, splitter);
 
