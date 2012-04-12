@@ -35,6 +35,10 @@ def compute_local_hashes():
     compute_local_hashes_in_dir('OfflineCache', hashes)
     return hashes
 
+def adb_push(local, remote):
+    global adb_cmd
+    subprocess.check_call([adb_cmd, 'push', local, remote])
+
 def adb_shell(cmd):
     global adb_cmd
 
@@ -56,7 +60,6 @@ def adb_shell(cmd):
 
     split = [line for line in stdout.split('\n') if line.strip()]
     if not split[-1].startswith('RETURN CODE: 0'):
-        print '-1 is: "%s"' % split[-1]
         raise Exception('adb shell "%s" did not complete successfully. Output:\n%s' % (cmd, stdout))
 
     # Don't return the "RETURN CODE: 0" line!
@@ -106,18 +109,35 @@ def push_to_remote(local_hashes, remote_hashes):
     tmpfile, tmpfilename = mkstemp()
     try:
         subprocess.check_call(['tar', '-czf', tmpfilename] + list(to_push))
-        subprocess.check_call([adb_cmd, 'push', tmpfilename, '/data/local'])
+        adb_push(tmpfilename, '/data/local')
         basename = os.path.basename(tmpfilename)
         adb_shell('cd /data/local && tar -xzf %s && rm %s' % (basename, basename))
     finally:
         os.remove(tmpfilename)
 
-def install_gaia():
+def install_gaia_fast():
     os.chdir('profile')
-    local_hashes = compute_local_hashes()
-    remote_hashes = compute_remote_hashes()
-    remove_from_remote(local_hashes, remote_hashes)
-    push_to_remote(local_hashes, remote_hashes)
+    try:
+        local_hashes = compute_local_hashes()
+        remote_hashes = compute_remote_hashes()
+        remove_from_remote(local_hashes, remote_hashes)
+        push_to_remote(local_hashes, remote_hashes)
+    finally:
+        os.chdir('..')
+
+def install_gaia_slow():
+    global adb_cmd
+    adb_shell("rm -rf /data/local/*")
+    adb_shell("rm -rf /cache/*")
+    adb_push('profile/OfflineCache', '/data/local/OfflineCache')
+    adb_push('profile/webapps', '/data/local/webapps')
+
+def install_gaia():
+    try:
+        install_gaia_fast()
+    except:
+        # If anything goes wrong, fall back to the slow method.
+        install_gaia_slow()
 
 if __name__ == '__main__':
     if len(sys.argv) > 2:
