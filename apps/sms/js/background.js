@@ -1,5 +1,4 @@
-
-'use stricts';
+'use strict';
 
 (function () {
 
@@ -12,30 +11,32 @@ if (!mozSms || !mozNotification || !mozSettings)
 
 var activeSMSSound;
 var activateSMSVibration;
+var ringSettingName = 'sms.ring.received';
+var vibrationSettingName = 'sms.vibration.received';
 
-mozSettings.onsettingchange = function onchange(ev) {
-  switch (ev.settingName) {
-    case 'sms.ring.received':
-      activeSMSSound = ev.settingValue;
+mozSettings.onsettingchange = function onchange(evt) {
+  switch (evt.settingName) {
+    case ringSettingName:
+      activeSMSSound = evt.settingValue;
       break;
-    case 'sms.vibration.received':
-      activateSMSVibration = ev.settingValue;
+    case vibrationSettingName:
+      activateSMSVibration = evt.settingValue;
       break;
   }
 };
 
-mozSettings.getLock().get('sms.ring.received')
-    .addEventListener('success', (function onsuccess(ev) {
-  activeSMSSound = ev.target.result['sms.ring.received'];
+mozSettings.getLock().get(ringSettingName)
+    .addEventListener('success', (function onsuccess(evt) {
+  activeSMSSound = evt.target.result[ringSettingName];
 }));
 
-mozSettings.getLock().get('sms.vibration.received')
-    .addEventListener('success', (function onsuccess(ev) {
-  activateSMSVibration = ev.target.result['sms.vibration.received'];
+mozSettings.getLock().get(vibrationSettingName)
+    .addEventListener('success', (function onsuccess(evt) {
+  activateSMSVibration = evt.target.result[vibrationSettingName];
 }));
 
-mozSms.addEventListener('received', function received(ev) {
-  var message = ev.message;
+mozSms.addEventListener('received', function received(evt) {
+  var message = evt.message;
 
   if (activeSMSSound) {
     var ringtonePlayer = new Audio();
@@ -64,8 +65,8 @@ mozSms.addEventListener('received', function received(ev) {
     // window.parent.location.hash = '#num=' + message.sender;
 
     // Asking to launch itself
-    navigator.mozApps.getSelf().onsuccess = function(e) {
-      var app = e.target.result;
+    navigator.mozApps.getSelf().onsuccess = function(evt) {
+      var app = evt.target.result;
       app.launch();
     };
   };
