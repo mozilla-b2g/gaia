@@ -23,25 +23,8 @@ var BackgroundServiceManager = (function bsm() {
   };
 
   /* XXX: https://bugzilla.mozilla.org/show_bug.cgi?id=731746
-  addEventListener does't work for now (workaround follows)
+  addEventListener does't work for now (workaround follows) */
 
-  navigator.mozApps.mgmt.addEventListener('install', function bsm_install(evt) {
-    var newapp = evt.application;
-    installedApps[newapp.origin] = newapp;
-
-    open(newapp.origin);
-  });
-
-  navigator.mozApps.mgmt.addEventListener('uninstall', function bsm_uninstall(evt) {
-    var newapp = evt.application;
-    delete installedApps[newapp.origin];
-
-    close(newapp.origin);
-  });
-
-  */
-
-  /* workaround */
   var mgmt = navigator.mozApps.mgmt;
   var OriginalOninstall = mgmt.oninstall;
   var OriginalOnuninstall = mgmt.onuninstall;
@@ -67,24 +50,11 @@ var BackgroundServiceManager = (function bsm() {
   };
   /* // workaround */
 
-  /* The open function will check for the needs and
-    permission before creating the containing iframe */
+  /* The open function is responsible of containing the iframe */
   var open = function bsm_open(origin) {
     var app = installedApps[origin];
     if (!app || !app.manifest.background_page)
       return false;
-
-    /*
-    app.manifset.permissions is used by preferences.js
-    can't use that for here. We don't check for permission for now.
-
-    if (!app.manifset.permissions ||
-        !app.manifset.permissions.indexOf('background') == -1) {
-      console.log('Error: app ' + origin + ' requests background_page'
-        + ' but it doesn\'t have the permission to.');
-      return false;
-    }
-    */
 
     var frame = document.createElement('iframe');
     frame.className = 'backgroundWindow';
