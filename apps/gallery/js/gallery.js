@@ -35,16 +35,16 @@ const SAMPLE_FILENAMES = ['DSC_1677.jpg', 'DSC_1701.jpg', 'DSC_1727.jpg',
 'IMG_8638.jpg', 'IMG_8648.jpg', 'IMG_8652.jpg', '_MG_0053.jpg', 'P1000115.jpg',
 'P1000404.jpg', 'P1000469.jpg', 'P1000486.jpg'];
 
-const numPhotos = SAMPLE_FILENAMES.length;
+const NUM_PHOTOS = SAMPLE_FILENAMES.length;
 
 function photoURL(n) {
-  if (n < 0 || n >= numPhotos)
+  if (n < 0 || n >= NUM_PHOTOS)
     return null;
   return SAMPLE_PHOTOS_DIR + SAMPLE_FILENAMES[n];
 }
 
 function thumbnailURL(n) {
-  if (n < 0 || n >= numPhotos)
+  if (n < 0 || n >= NUM_PHOTOS)
     return null;
   return SAMPLE_THUMBNAILS_DIR + SAMPLE_FILENAMES[n];
 }
@@ -79,7 +79,7 @@ var languageDirection;
 //
 // Create the <img> elements for the thumbnails
 //
-for (var i = 0; i < numPhotos; i++) {
+for (var i = 0; i < NUM_PHOTOS; i++) {
   var li = document.createElement('li');
   li.dataset.index = i;
   li.classList.add('thumbnailHolder');
@@ -208,7 +208,7 @@ photos.addEventListener('mousedown', function(event) {
     // FIXME: Is it possible to do a 1-handed swipe?
     // See the lockscreen swipe code
     if ((Math.abs(dx) > window.innerWidth / 4) &&
-        ((direction === 1 && currentPhotoIndex + 1 < numPhotos) ||
+        ((direction === 1 && currentPhotoIndex + 1 < NUM_PHOTOS) ||
          (direction === -1 && currentPhotoIndex > 0)))
     {
       // FIXME: Ideally, the transition time would be velocity sensitive
@@ -277,7 +277,7 @@ function showPhoto(n) {
 // This is used when the user pans and also for the slideshow.
 function nextPhoto(time) {
   // If already displaying the last one, do nothing.
-  if (currentPhotoIndex === numPhotos - 1)
+  if (currentPhotoIndex === NUM_PHOTOS - 1)
     return;
 
   // Set transitions for the visible photos
@@ -352,7 +352,7 @@ function previousPhoto(time) {
 
 function startSlideshow() {
   // If we're already displaying the last slide, then move to the first
-  if (currentPhotoIndex === numPhotos - 1)
+  if (currentPhotoIndex === NUM_PHOTOS - 1)
     showPhoto(0);
 
   // Now schedule the next slide
@@ -372,7 +372,7 @@ function stopSlideshow() {
 // Note that this is different than nextPhoto().
 function nextSlide() {
   // Move to the next slide if we're not already on the last one
-  if (currentPhotoIndex + 1 < numPhotos) {
+  if (currentPhotoIndex + 1 < NUM_PHOTOS) {
     nextPhoto(SLIDE_TRANSITION);
   }
 
@@ -391,7 +391,7 @@ function continueSlideshow() {
     clearInterval(slideshowTimer);
 
   // If we're still not on the last one, then schedule another slide.
-  if (currentPhotoIndex + 1 < numPhotos) {
+  if (currentPhotoIndex + 1 < NUM_PHOTOS) {
     slideshowTimer = setTimeout(nextSlide, SLIDE_INTERVAL);
   }
   // Otherwise, stop the slideshow
