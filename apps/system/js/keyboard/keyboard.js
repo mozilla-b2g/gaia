@@ -1029,13 +1029,13 @@ const IMEManager = {
                 );
                 content += buildKey(
                   this.PAGE_UP,
-                  'Up',
+                  '⇧',
                   '',
                   2
                 );
                 content += buildKey(
                   this.PAGE_DOWN,
-                  'Down',
+                  '⇩',
                   '',
                   2
                 );
