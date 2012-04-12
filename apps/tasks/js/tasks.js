@@ -36,7 +36,7 @@ var TaskList = {
   },
 
   init: function() {
-    
+
     var self = this;
     taskDataList.forEach(function(task) {
 
@@ -127,7 +127,6 @@ var EditTask = {
 
       switch (input.id) {
         case 'task-save':
-          
           if (this.updateCurrent()) {
             TaskList.refresh();
           } else {
@@ -166,14 +165,13 @@ var EditTask = {
     this.descInput.value = task.desc;
     this.doneInput.checked = task.done;
 
-    if(task.id) {
-      this.taskTitle.innerHTML = "Edit Task";
-      this.deleteElement.style.display = "block";
+    if (task.id) {
+      this.taskTitle.innerHTML = 'Edit Task';
+      this.deleteElement.style.display = 'block';
     } else {
-      this.taskTitle.innerHTML = "New Task";
-      this.deleteElement.style.display = "none";
+      this.taskTitle.innerHTML = 'New Task';
+      this.deleteElement.style.display = 'none';
     }
-    
   },
 
   updateCurrent: function() {
