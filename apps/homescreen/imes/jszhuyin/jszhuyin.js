@@ -743,10 +743,10 @@
 
         transaction.oncomplete = function putComplete() {
           if (chunks.length) {
-            setTimeout(addChunk, 0);
+            window.setTimeout(addChunk, 0);
           } else {
             jsonData = null;
-            setTimeout(callback, 0);
+            window.setTimeout(callback, 0);
           }
         };
 
@@ -763,7 +763,7 @@
         }
       };
 
-      setTimeout(addChunk, 0);
+      window.setTimeout(addChunk, 0);
     };
 
     var getTermsJSON = function imedb_getTermsJSON(callback) {
@@ -884,7 +884,7 @@
     var cacheSetTimeout = function imedb_cacheSetTimeout() {
       debug('Set iDBCache timeout.');
       clearTimeout(cacheTimer);
-      cacheTimer = setTimeout(function imedb_cacheTimeout() {
+      cacheTimer = window.setTimeout(function imedb_cacheTimeout() {
         debug('Empty iDBCache.');
         iDBCache = {};
       }, kCacheTimeout);
