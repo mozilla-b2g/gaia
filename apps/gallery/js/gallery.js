@@ -5,23 +5,23 @@
 //   we need a way to get photos from the camera and to store them on the device
 //   the ability to download photos from the web might be nice, too.
 //   we need to be able to determine the size of a photo, I think.
-//   do we need to read metadata?  
+//   do we need to read metadata?
 //   need to be able to deal with photos of different sizes and orientations
 //     can't just size them to 100%,100%.
 //   need to handle resize/orientationchange events because I'm guessing
 //     that image sizes will have to change.
 //   we should probably have a way to organize photos into albums
 //   How do we localize the slideshow Play button for RTL languages?
-//   Do we want users to be able to rotate photos to tell the 
+//   Do we want users to be able to rotate photos to tell the
 //     gallery app how to display them?
 //   Do we want borders around the photos?
-// 
+//
 
 //
 // Right now the set of photos is just hardcoded in the sample_photos directory
 //
 // We need to use the media storage API here or something similar.
-// 
+//
 const SAMPLE_PHOTOS_DIR = 'sample_photos/';
 const SAMPLE_THUMBNAILS_DIR = 'sample_photos/thumbnails/';
 const SAMPLE_FILENAMES = ['DSC_1677.jpg', 'DSC_1701.jpg', 'DSC_1727.jpg',
@@ -66,7 +66,7 @@ var backButton = document.getElementById('back-button');
 var slideshowButton = document.getElementById('play-button');
 
 // These three divs hold the previous, current and next photos
-// The divs get swapped around and reused when we pan to the 
+// The divs get swapped around and reused when we pan to the
 // next or previous photo: next becomes current, current becomes previous
 // etc.  See nextPhoto() and previousPhoto().
 var previousPhotoFrame = photos.querySelector('div.previousPhoto');
@@ -78,24 +78,24 @@ var languageDirection;
 
 //
 // Create the <img> elements for the thumbnails
-// 
-for(var i = 0; i < numPhotos; i++) {
+//
+for (var i = 0; i < numPhotos; i++) {
   var li = document.createElement('li');
   li.dataset.index = i;
   li.classList.add('thumbnailHolder');
-  
+
   var img = document.createElement('img');
   img.src = thumbnailURL(i);
   img.classList.add('thumbnail');
   li.appendChild(img);
-  
+
   thumbnails.appendChild(li);
 }
 
 
-// 
+//
 // Event handlers
-// 
+//
 
 // Wait for the "localized" event before displaying the document content
 window.addEventListener('localized', function showBody() {
@@ -110,8 +110,8 @@ window.addEventListener('localized', function showBody() {
   document.body.classList.remove('hidden');
 });
 
-// Each of the photoFrame <div> elements may be subject to animated 
-// transitions. So give them transitionend event handlers that 
+// Each of the photoFrame <div> elements may be subject to animated
+// transitions. So give them transitionend event handlers that
 // remove the -moz-transition style property when the transition ends.
 // This helps prevent unexpected transitions.
 function removeTransition(event) {
@@ -144,7 +144,7 @@ slideshowButton.addEventListener('click', function slideshowClick() {
     startSlideshow();
 });
 
-// If a photo is displayed, then the back button goes back to 
+// If a photo is displayed, then the back button goes back to
 // the thumbnail view.
 window.addEventListener('keyup', function keyPressHandler(evt) {
   if (!thumbnailsDisplayed && evt.keyCode == evt.DOM_VK_ESCAPE) {
@@ -164,7 +164,7 @@ photos.addEventListener('mousedown', function(event) {
   function move(event) {
     var dx = event.screenX - startX;
 
-    if (!panning && Math.abs(dx) > PAN_THRESHOLD) 
+    if (!panning && Math.abs(dx) > PAN_THRESHOLD)
       panning = true;
 
     if (panning) {
@@ -174,7 +174,7 @@ photos.addEventListener('mousedown', function(event) {
       nextPhotoFrame.style.MozTransform = pan;
     }
   }
-  
+
   function up(event) {
     // Remove the capturing event handlers
     document.body.removeEventListener('mousemove', move, true);
@@ -185,9 +185,9 @@ photos.addEventListener('mousedown', function(event) {
       playerControls.classList.toggle('hidden');
       return;
     }
-    else 
+    else
       panning = false;
-    
+
     // Transition the photos:
     // Move to the next or previous photo, or just restore the current one
     // based on the amount of panning.
@@ -200,14 +200,14 @@ photos.addEventListener('mousedown', function(event) {
       direction = -1;   // previous photo
 
     // If we're in a right-to-left locale, reverse those directions
-    if (languageDirection === "rtl")
+    if (languageDirection === 'rtl')
       direction *= -1;
 
     // Did we drag far enough to go on to the previous or next photo?
     // And is there a previous or next photo to display?
     // FIXME: Is it possible to do a 1-handed swipe?
     // See the lockscreen swipe code
-    if ((Math.abs(dx) > window.innerWidth/4) &&
+    if ((Math.abs(dx) > window.innerWidth / 4) &&
         ((direction === 1 && currentPhotoIndex + 1 < numPhotos) ||
          (direction === -1 && currentPhotoIndex > 0)))
     {
@@ -233,7 +233,7 @@ photos.addEventListener('mousedown', function(event) {
       nextPhotoFrame.style.MozTransform = '';
     }
   }
-  
+
   // Capture all subsequent mouse move and mouse up events
   document.body.addEventListener('mousemove', move, true);
   document.body.addEventListener('mouseup', up, true);
@@ -267,9 +267,9 @@ function showPhoto(n) {
     thumbnailsDisplayed = false;
   }
 
-  displayImageInFrame(photoURL(n-1), previousPhotoFrame);
+  displayImageInFrame(photoURL(n - 1), previousPhotoFrame);
   displayImageInFrame(photoURL(n), currentPhotoFrame);
-  displayImageInFrame(photoURL(n+1), nextPhotoFrame);
+  displayImageInFrame(photoURL(n + 1), nextPhotoFrame);
   currentPhotoIndex = n;
 }
 
@@ -277,7 +277,7 @@ function showPhoto(n) {
 // This is used when the user pans and also for the slideshow.
 function nextPhoto(time) {
   // If already displaying the last one, do nothing.
-  if (currentPhotoIndex === numPhotos - 1) 
+  if (currentPhotoIndex === numPhotos - 1)
     return;
 
   // Set transitions for the visible photos
@@ -289,7 +289,7 @@ function nextPhoto(time) {
   previousPhotoFrame.style.MozTransform = '';
   currentPhotoFrame.style.MozTransform = '';
   nextPhotoFrame.style.MozTransform = '';
-  
+
   // Remove the classes
   previousPhotoFrame.classList.remove('previousPhoto');
   currentPhotoFrame.classList.remove('currentPhoto');
@@ -304,7 +304,7 @@ function nextPhoto(time) {
   currentPhotoIndex++;
 
   // Update the image for the new next photo
-  displayImageInFrame(photoURL(currentPhotoIndex+1), nextPhotoFrame);
+  displayImageInFrame(photoURL(currentPhotoIndex + 1), nextPhotoFrame);
 
   // And add appropriate classes to the newly cycled frames
   previousPhotoFrame.classList.add('previousPhoto');
@@ -315,7 +315,7 @@ function nextPhoto(time) {
 // Just like nextPhoto() but in the other direction
 function previousPhoto(time) {
   // If already displaying the first one, do nothing.
-  if (currentPhotoIndex === 0) 
+  if (currentPhotoIndex === 0)
     return;
 
   // Transition the two visible photos
@@ -327,7 +327,7 @@ function previousPhoto(time) {
   previousPhotoFrame.style.MozTransform = '';
   currentPhotoFrame.style.MozTransform = '';
   nextPhotoFrame.style.MozTransform = '';
-  
+
   // Remove the frame classes since we're about to cycle the frames
   previousPhotoFrame.classList.remove('previousPhoto');
   currentPhotoFrame.classList.remove('currentPhoto');
@@ -342,7 +342,7 @@ function previousPhoto(time) {
   currentPhotoIndex--;
 
   // Preload the new previous photo
-  displayImageInFrame(photoURL(currentPhotoIndex-1), previousPhotoFrame);
+  displayImageInFrame(photoURL(currentPhotoIndex - 1), previousPhotoFrame);
 
   // And add the frame classes to the newly cycled frame divs.
   previousPhotoFrame.classList.add('previousPhoto');
@@ -354,7 +354,7 @@ function startSlideshow() {
   // If we're already displaying the last slide, then move to the first
   if (currentPhotoIndex === numPhotos - 1)
     showPhoto(0);
-  
+
   // Now schedule the next slide
   slideshowTimer = setTimeout(nextSlide, SLIDE_INTERVAL);
   slideshowButton.classList.add('playing');
@@ -372,7 +372,7 @@ function stopSlideshow() {
 // Note that this is different than nextPhoto().
 function nextSlide() {
   // Move to the next slide if we're not already on the last one
-  if (currentPhotoIndex+1 < numPhotos) {
+  if (currentPhotoIndex + 1 < numPhotos) {
     nextPhoto(SLIDE_TRANSITION);
   }
 
@@ -381,17 +381,17 @@ function nextSlide() {
   continueSlideshow();
 }
 
-// Clear any existing slideshow timer, and if there are more slides to 
+// Clear any existing slideshow timer, and if there are more slides to
 // show, start a new timer to show the next one. We use this after each
 // slide is shown, and also in the panning code so that if you manually pan
-// during a slide show, the timer resets and you get the full time to 
+// during a slide show, the timer resets and you get the full time to
 // view each slide.
 function continueSlideshow() {
   if (slideshowTimer)
     clearInterval(slideshowTimer);
 
   // If we're still not on the last one, then schedule another slide.
-  if (currentPhotoIndex+1 < numPhotos) {
+  if (currentPhotoIndex + 1 < numPhotos) {
     slideshowTimer = setTimeout(nextSlide, SLIDE_INTERVAL);
   }
   // Otherwise, stop the slideshow
