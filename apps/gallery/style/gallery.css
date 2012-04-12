@@ -98,20 +98,27 @@ header h1 {
   margin: 0;
 }
 
-.currentPhoto {
+div.currentPhoto {
   left: 0px;
 }
 
-/* 
- * FIXME:
- * For rtl languages, I'll want to switch these directions, I think
- */
-.nextPhoto {
-  left: 100%;
+/* the next photo is waiting in the wings just off to the right */
+/* We use 103% instead of 100% to give a small black border between photos */
+div.nextPhoto {
+  left: 103%;
 }
 
-.previousPhoto {
-  left: -100%;
+/* In RTL languages, the next photo is off to the left */
+*[dir=rtl] div.nextPhoto {
+  left: -103%;
+}
+
+div.previousPhoto {
+  left: -103%;
+}
+
+*[dir=rtl] div.previousPhoto {
+  left: 103%;
 }
 
 .photoFrame > img {
