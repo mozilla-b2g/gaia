@@ -139,7 +139,7 @@ if (!navigator.mozSms) {
 
     var simulateFail = /fail/i.test(text);
 
-    setTimeout(function sent() {
+    window.setTimeout(function sent() {
       if (simulateFail) {
         // simulate failure
         callback(null);
@@ -150,7 +150,7 @@ if (!navigator.mozSms) {
       callback(message);
 
       // the SMS DB is written after the callback
-      setTimeout(function writeDB() {
+      window.setTimeout(function writeDB() {
         messagesHack.unshift(message);
       }, 90 * Math.random());
     }, 3000 * Math.random());
@@ -158,7 +158,7 @@ if (!navigator.mozSms) {
     if (simulateFail)
       return;
 
-    setTimeout(function hiBack() {
+    window.setTimeout(function hiBack() {
       var message = {
         sender: number,
         receiver: null,
@@ -177,7 +177,7 @@ if (!navigator.mozSms) {
       ConversationListView.handleEvent.call(ConversationView, evt);
 
       // the SMS DB is written after the callback
-      setTimeout(function writeDB() {
+      window.setTimeout(function writeDB() {
         messagesHack.unshift(message);
       }, 90 * Math.random());
 

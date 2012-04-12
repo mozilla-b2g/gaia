@@ -513,7 +513,7 @@ const IMEManager = {
         break;
 
       case 'hideime':
-        this.hideIMETimer = setTimeout((function execHideIME() {
+        this.hideIMETimer = window.setTimeout((function execHideIME() {
           this.hideIME(activeWindow);
         }).bind(this), 0);
 
@@ -565,7 +565,7 @@ const IMEManager = {
         this.updateKeyHighlight();
         this.triggerFeedback();
 
-        this._menuTimeout = setTimeout((function menuTimeout() {
+        this._menuTimeout = window.setTimeout((function menuTimeout() {
             this.showAccentCharMenu();
           }).bind(this), this.kAccentCharMenuTimeout);
 
@@ -584,7 +584,7 @@ const IMEManager = {
         }).bind(this);
 
         sendDelete(false);
-        this._deleteTimeout = setTimeout((function deleteTimeout() {
+        this._deleteTimeout = window.setTimeout((function deleteTimeout() {
           sendDelete(true);
 
           this._deleteInterval = setInterval(function deleteInterval() {
@@ -625,7 +625,7 @@ const IMEManager = {
           clearTimeout(this._hideMenuTimeout);
         } else {
           if (this.menu.className) {
-            this._hideMenuTimeout = setTimeout(
+            this._hideMenuTimeout = window.setTimeout(
               (function hideMenuTimeout() {
                 this.hideAccentCharMenu();
               }).bind(this),
@@ -636,7 +636,7 @@ const IMEManager = {
           var needMenu =
             target.dataset.alt || keyCode === this.SWITCH_KEYBOARD;
           if (needMenu) {
-            this._menuTimeout = setTimeout((function menuTimeout() {
+            this._menuTimeout = window.setTimeout((function menuTimeout() {
                 this.showAccentCharMenu();
               }).bind(this), this.kAccentCharMenuTimeout);
           }
@@ -652,7 +652,7 @@ const IMEManager = {
         delete this.currentKey.dataset.active;
         delete this.currentKey;
         this.updateKeyHighlight();
-        this._hideMenuTimeout = setTimeout((function hideMenuTimeout() {
+        this._hideMenuTimeout = window.setTimeout((function hideMenuTimeout() {
             this.hideAccentCharMenu();
           }).bind(this), this.kHideAccentCharMenuTimeout);
 
@@ -779,7 +779,7 @@ const IMEManager = {
             }
             this.isWaitingForSecondTap = true;
 
-            setTimeout(
+            window.setTimeout(
               (function removeCapsLockTimeout() {
                 delete this.isWaitingForSecondTap;
               }).bind(this),
@@ -1103,7 +1103,7 @@ const IMEManager = {
     if (imminent) {
       var ime = this.ime;
       ime.classList.add('imminent');
-      setTimeout(function () {
+      window.setTimeout(function () {
         ime.classList.remove('imminent');
       }, 0);
 

@@ -97,6 +97,11 @@ var WindowManager = (function() {
       setDisplayedApp(origin);
     else
       start(origin);
+
+    // launch() can be called from outside the task switcher
+    // hiding it if needed
+    if (taskSwitcherIsShown())
+      hideTaskSwitcher();
   }
 
   function isRunning(origin) {
@@ -606,7 +611,7 @@ var WindowManager = (function() {
       // already a timer running, then this is a key repeat event
       // during a long Home key press and we ignore it.
       if (!keydown) {
-        timer = setTimeout(longPressHandler, kLongPressInterval);
+        timer = window.setTimeout(longPressHandler, kLongPressInterval);
         keydown = true;
       }
 
