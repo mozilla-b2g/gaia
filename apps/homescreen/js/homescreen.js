@@ -435,29 +435,10 @@ var NotificationScreen = {
 
   addNotification: function ns_addNotification(type, nTitle, body, nID) {
     var notifications = this.container;
-    // First look if there is already one message from the same
-    // source. If there is one, let's aggregate them.
-    var smsNotifSelector = 'div[data-type="sms"]';
-    var children = notifications.querySelectorAll(smsNotifSelector);
-    for (var i = 0; i < children.length; i++) {
-      var notification = children[i];
-      if (notification.dataset.sender != nTitle)
-        continue;
-
-      var unread = parseInt(notification.dataset.count) + 1;
-      var msg = _('unreadMessages', { n: unread });
-      notification.querySelector('div.detail').textContent = msg;
-      return;
-    }
 
     var notification = document.createElement('div');
     notification.className = 'notification';
     notification.dataset.type = type;
-
-    if (type == 'sms') {
-      notification.dataset.count = 1;
-      notification.dataset.sender = nTitle;
-    }
 
     if (type == 'desktop-notification') {
       notification.dataset.notificationID = nID;
@@ -893,20 +874,10 @@ SettingsListener.observe('phone.ring.incoming', true, function(value) {
   activePhoneSound = !!value;
 });
 
-var activeSMSSound = true;
-SettingsListener.observe('sms.ring.received', true, function(value) {
-  activeSMSSound = !!value;
-});
-
 /* === Vibration === */
 var activateVibration = false;
 SettingsListener.observe('phone.vibration.incoming', false, function(value) {
   activateVibration = !!value;
-});
-
-var activateSMSVibration = false;
-SettingsListener.observe('sms.vibration.received', false, function(value) {
-  activateSMSVibration = !!value;
 });
 
 /* === Invert Display === */
@@ -1031,70 +1002,6 @@ SettingsListener.observe('screen.brightness', 0.5, function(value) {
   ScreenManager.preferredBrightness =
     navigator.mozPower.screenBrightness = parseFloat(value);
 });
-
-/* === MessagesListener === */
-var MessagesListener = function() {
-  var messages = navigator.mozSms;
-  if (!messages)
-    return;
-
-  var notifications = document.getElementById('notifications-container');
-  notifications.addEventListener('click', function notificationClick(evt) {
-    var notification = evt.target;
-    var sender = notification.dataset.sender;
-    var type = notification.dataset.type;
-    if ((type != 'sms') || (!sender))
-      return;
-
-    NotificationScreen.unlock(true);
-
-    // We'd really like to launch the SMS app to show
-    // a particular sender, but don't have a good way to do it.
-    // This should be replaced with a web intent or similar.
-    WindowManager.launch('http://sms.' + domain
-                         /* +'#num=' + sender*/);
-  });
-
-  var hasMessages = document.getElementById('state-messages');
-  function showMessage(sender, body) {
-    hasMessages.dataset.visible = 'true';
-
-    NotificationScreen.addNotification('sms', sender, body);
-  }
-
-  messages.addEventListener('received', function received(evt) {
-    var message = evt.message;
-    showMessage(message.sender, message.body);
-
-    if (activeSMSSound) {
-      var ringtonePlayer = document.getElementById('ringtone-player');
-      ringtonePlayer.src = 'style/ringtones/sms.wav';
-      ringtonePlayer.play();
-      setTimeout(function smsRingtoneEnder() {
-        ringtonePlayer.pause();
-        ringtonePlayer.src = '';
-      }, 500);
-    }
-
-    if (activateSMSVibration) {
-      if ('mozVibrate' in navigator) {
-        navigator.mozVibrate([200, 200, 200, 200]);
-      }
-    }
-  });
-
-  window.addEventListener('appopen', function onAppOpen(evt) {
-    // If the sms application is opened, just delete all messages
-    // notifications
-    var applicationURL = evt.detail.url;
-    var matcher = new RegExp('/sms\.' + domain);
-    if (!matcher.test(applicationURL))
-      return;
-
-    delete hasMessages.dataset.visible;
-    NotificationScreen.removeNotifications('sms');
-  });
-};
 
 /* === TelephoneListener === */
 var TelephonyListener = function() {
