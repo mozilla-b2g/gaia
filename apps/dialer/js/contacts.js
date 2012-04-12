@@ -484,7 +484,7 @@ var ContactDetails = {
       // if we don't add this timeout
       var keyboardDisplayed = (this._overlayHeight >
                                this.overlay.getBoundingClientRect().height);
-      setTimeout((function() {
+      window.setTimeout((function() {
         this._keyboardDisplayed = keyboardDisplayed;
       }).bind(this), 300);
       return;
