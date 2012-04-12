@@ -65,7 +65,7 @@ def adb_shell(cmd):
 
 def compute_remote_hashes():
     hashes = {}
-    adb_out = adb_shell('cd /data/local && find . -type f | xargs sha1sum')
+    adb_out = adb_shell('cd /data/local && find . -type f | xargs -r sha1sum')
     for (hash, filename) in [line.split() for line in adb_out]:
         # Strip off './' from the filename.
         if filename.startswith('./'):
