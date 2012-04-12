@@ -105,13 +105,7 @@ def push_to_remote(local_hashes, remote_hashes):
 
     tmpfile, tmpfilename = mkstemp()
     try:
-        # The makefile sets LANG=POSIX, which causes Mac's tar to output an
-        # (innocuous) error, "tar: Failed to set default locale".  Deleting
-        # LANG from the environment silences the error.
-        tar_env = dict(os.environ)
-        if 'LANG' in tar_env:
-            del tar_env['LANG']
-        subprocess.check_call(['tar', '-czf', tmpfilename] + list(to_push), env=tar_env)
+        subprocess.check_call(['tar', '-czf', tmpfilename] + list(to_push))
         subprocess.check_call([adb_cmd, 'push', tmpfilename, '/data/local'])
         basename = os.path.basename(tmpfilename)
         adb_shell('cd /data/local && tar -xzf %s && rm %s' % (basename, basename))
