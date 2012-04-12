@@ -1642,24 +1642,25 @@ var BackgroundServiceManager = (function bsm() {
 
   /* Init */
 
-  navigator.mozApps.mgmt.getAll().onsuccess = function(ev) {
-    ev.target.result.forEach(function(app) {
+  navigator.mozApps.mgmt.getAll().onsuccess = function settings_getAll(evt) {
+    evt.target.result.forEach(function app_forEach(app) {
       installedApps[app.origin] = app;
       open(app.origin);
     });
   };
 
-  /* XXX: this is sad; addEventListener does't work for now
+  /* XXX: https://bugzilla.mozilla.org/show_bug.cgi?id=731746
+  addEventListener does't work for now (workaround follows)
 
-  navigator.mozApps.mgmt.addEventListener('install', function (ev) {
-    var newapp = event.application;
+  navigator.mozApps.mgmt.addEventListener('install', function bsm_install(evt) {
+    var newapp = evt.application;
     installedApps[newapp.origin] = newapp;
 
     open(newapp.origin);
   });
 
-  navigator.mozApps.mgmt.addEventListener('uninstall', function (ev) {
-    var newapp = event.application;
+  navigator.mozApps.mgmt.addEventListener('uninstall', function bsm_uninstall(evt) {
+    var newapp = evt.application;
     delete installedApps[newapp.origin];
 
     close(newapp.origin);
@@ -1667,13 +1668,13 @@ var BackgroundServiceManager = (function bsm() {
 
   */
 
-  /* workaround follows */
+  /* workaround */
   var mgmt = navigator.mozApps.mgmt;
   var OriginalOninstall = mgmt.oninstall;
   var OriginalOnuninstall = mgmt.onuninstall;
 
-  mgmt.oninstall = function (ev) {
-    var newapp = event.application;
+  mgmt.oninstall = function bsm_install(evt) {
+    var newapp = evt.application;
     installedApps[newapp.origin] = newapp;
 
     open(newapp.origin);
@@ -1682,8 +1683,8 @@ var BackgroundServiceManager = (function bsm() {
       OriginalOninstall.apply(this, arguments);
   };
 
-  mgmt.onuninstall = function (ev) {
-    var newapp = event.application;
+  mgmt.onuninstall = function bsm_uninstall(evt) {
+    var newapp = evt.application;
     delete installedApps[newapp.origin];
 
     close(newapp.origin);
@@ -1697,7 +1698,6 @@ var BackgroundServiceManager = (function bsm() {
     permission before creating the containing iframe */
   var open = function bsm_open(origin) {
     var app = installedApps[origin];
-
     if (!app || !app.manifest.background_page)
       return false;
 
@@ -1737,14 +1737,16 @@ var BackgroundServiceManager = (function bsm() {
   /* Getting the window object reference of the background page. Unused.
      We have no way to give the object reference to the the app iframe for now */
   var getWindow = function bsm_getWindow(origin) {
-    return frames[origin].contentWindow || null;
+    if (frames[origin])
+      return frames[origin].contentWindow || null;
+    return null;
   };
 
   /* Return the public APIs */
   return {
-    open: open,
-    close: close,
-    getWindow: getWindow
+    'open': open,
+    'close': close,
+    'getWindow': getWindow
   };
 
 }());
