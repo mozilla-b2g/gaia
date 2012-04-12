@@ -16,7 +16,7 @@ var TaskList = {
     delete this.title;
     return this.title = document.getElementById('tasks-title');
   },
-  
+
   get loading() {
     delete this.loading;
     return this.loading = document.getElementById('tasks-loading');
@@ -41,11 +41,9 @@ var TaskList = {
   },
 
   init: function() {
-  
+
     this.loading.classList.remove('hidden');
     TasksDB.load();
-
-    window.parent.postMessage('appready', '*');
   },
 
   refresh: function() {
@@ -56,14 +54,14 @@ var TaskList = {
     }
 
     this.loading.classList.remove('hidden');
-    
+
     TasksDB.load();
   },
-  
+
   fill: function(taskDataList) {
-  
+
     var self = this;
-  
+
     taskDataList.forEach(function(task) {
 
       var li = document.createElement('li');
@@ -96,7 +94,7 @@ var TaskList = {
 
       self.tasks.appendChild(li);
     });
-    
+
     this.loading.classList.add('hidden');
   }
 };
@@ -137,7 +135,6 @@ var EditTask = {
           break;
         case 'task-del':
           this.deleteCurrent();
-          TaskList.refresh();
           break;
       }
       break;
@@ -166,8 +163,9 @@ var EditTask = {
   updateCurrent: function() {
 
     var task = {};
-    
-    if (this.element.dataset.id != 'undefined' && this.element.dataset.id != '') {
+
+    if (this.element.dataset.id != 'undefined' &&
+        this.element.dataset.id != '') {
       task.id = parseInt(this.element.dataset.id.substring(5));
     }
 
@@ -194,36 +192,39 @@ var EditTask = {
       var id = parseInt(this.element.dataset.id.substring(5));
       TasksDB.delete(id);
     }
-  },
-  
+  }
+
 };
 
 var TasksDB = {
 
   DBNAME: 'tasks',
   STORENAME: 'tasks',
-  
+
   // Database methods
   load: function() {
-    SimpleDB.query(this.DBNAME, this.STORENAME, SimpleDB.load, this.loadSuccess);
+    SimpleDB.query(this.DBNAME, this.STORENAME, SimpleDB.load,
+      this.loadSuccess);
   },
-  
+
   put: function(task) {
-    SimpleDB.query(this.DBNAME, this.STORENAME, SimpleDB.put, this.putSuccess, task);
+    SimpleDB.query(this.DBNAME, this.STORENAME, SimpleDB.put,
+      this.putSuccess, task);
   },
-  
+
   delete: function(key) {
-    SimpleDB.query(this.DBNAME, this.STORENAME, SimpleDB.delete, this.deleteSuccess, key);
+    SimpleDB.query(this.DBNAME, this.STORENAME, SimpleDB.delete,
+      this.deleteSuccess, key);
   },
-  
+
   putSuccess: function(task) {
     TaskList.refresh();
   },
-  
+
   loadSuccess: function(tasks) {
     TaskList.fill(tasks);
   },
-  
+
   deleteSuccess: function() {
     TaskList.refresh();
   }

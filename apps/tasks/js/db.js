@@ -3,17 +3,17 @@
 var SimpleDB = {
 
   query: function(dbName, storeName, func, callback, data) {
-    
-    var request = mozIndexedDB.open(dbName,5);
-    
-    request.onsuccess = function (event) {
+
+    var request = mozIndexedDB.open(dbName, 5);
+
+    request.onsuccess = function(event) {
       func(request.result, storeName, callback, data);
     };
-    
-    request.onerror = function (event) {
+
+    request.onerror = function(event) {
       console.error('Can\'t open database', dbName, event);
     };
-    
+
     // DB init
     request.onupgradeneeded = function(event) {
       console.log('Upgrading db');
@@ -25,10 +25,10 @@ var SimpleDB = {
     };
   },
 
-  put: function (database, storeName, callback, item) {
-    var txn = database.transaction(storeName, "readwrite");
+  put: function(database, storeName, callback, item) {
+    var txn = database.transaction(storeName, 'readwrite');
     var store = txn.objectStore(storeName);
-    
+
     var putreq = store.put(item);
 
     putreq.onsuccess = function(event) {
@@ -37,11 +37,12 @@ var SimpleDB = {
     };
 
     putreq.onerror = function(e) {
-      console.error('Add operation failure: ', database.name, storeName, e.message, putreq.errorCode);
+      console.error('Add operation failure: ', database.name,
+        storeName, e.message, putreq.errorCode);
     };
   },
 
-  load: function (database, storeName, callback) {
+  load: function(database, storeName, callback) {
     var tasks = [];
 
     var txn = database.transaction(storeName);
@@ -62,16 +63,17 @@ var SimpleDB = {
       callback([]);
     };
   },
-  
-  delete: function (database, storeName, callback, key) {
+
+  delete: function(database, storeName, callback, key) {
       var txn = database.transaction(storeName, 'readwrite');
       var store = txn.objectStore(storeName);
       var request = store.delete(key);
-      
+
       request.onsuccess = callback;
 
       request.onerror = function(e) {
-        console.error('Delete operation failure: ', database.name, storeName, e.message, putreq.errorCode);
+        console.error('Delete operation failure: ', database.name,
+          storeName, e.message, putreq.errorCode);
       };
   }
 };
