@@ -31,7 +31,6 @@ function startup() {
     LockScreen.update(function fireHomescreenReady() {
       ScreenManager.turnScreenOn();
 
-      new MessagesListener();
       new TelephonyListener();
 
       window.parent.postMessage('homescreenready', '*');
