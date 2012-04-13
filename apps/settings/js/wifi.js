@@ -19,7 +19,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
         infoBlock.textContent = _('connected', { ssid: currentNetwork.ssid });
         checkbox.checked = true;
       } else if (wifiManager.enabled) {
-        infoBlock.textContent = _('offline');
+        infoBlock.textContent = _('disconnected');
         checkbox.checked = true;
       } else {
         infoBlock.textContent = _('disabled');
@@ -186,19 +186,42 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
     }
   });
 
-  // mozWifiManager events / callbacks
+  /** mozWifiManager events / callbacks
+    * see dom/wifi/nsIWifi.idl -- the 4 possible statuses are:
+    *  - connecting:
+    *        fires when we start the process of connecting to a network.
+    *  - associated:
+    *        fires when we have connected to an access point but do not yet
+    *        have an IP address.
+    *  - connected:
+    *        fires once we are fully connected to an access point and can
+    *        access the internet.
+    *  - disconnected:
+    *        fires when we either fail to connect to an access point
+    *          (transition: associated -> disconnected)
+    *        or when we were connected to a network but have disconnected
+    *          (transition: connected -> disconnected).
+    */
+  wifiManager.onstatuschange = function(event) {
+    var status = wifiManager.connectionStatus.status;
+    if (status == 'connected')
+      gNetworkList.scan(); // refresh the network list
+    gStatus.textContent = _(status, event.network); // only for ssid
+  };
+
+  // FIXME: remove this section when bug 745114 lands.
   wifiManager.onconnecting = function(event) {
     gStatus.textContent = _('connecting', { ssid: event.network.ssid });
   };
   wifiManager.onassociate = function(event) {
-    gStatus.textContent = _('associating');
+    gStatus.textContent = _('associated');
   };
   wifiManager.onconnect = function(event) {
     gStatus.textContent = _('connected', { ssid: event.network.ssid });
     gNetworkList.scan(); // refresh the network list
   };
   wifiManager.ondisconnect = function(event) {
-    gStatus.textContent = _('offline');
+    gStatus.textContent = _('disconnected');
   };
 
   function isConnected(network) {
