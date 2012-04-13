@@ -157,6 +157,10 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
 
       req.onerror = function(error) {
         gStatus.textContent = req.error.name;
+
+        // auto-rescan if requested
+        if (autoscan)
+          window.setTimeout(scan, scanRate);
       };
 
       gStatus.update();
