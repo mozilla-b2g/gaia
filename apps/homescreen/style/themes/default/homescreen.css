@@ -183,10 +183,6 @@ div.windowSprite {
   background-position: center center;
 }
 
-#state-messages[data-visible] {
-  background-image: url("images/sms.png");
-}
-
 #state-notifications[data-visible] {
   background-image: url("images/desktop-notification.png");
 }

@@ -280,7 +280,7 @@ var ConversationView = {
   updateInputHeight: function cv_updateInputHeight() {
     var input = this.input;
     input.style.height = null;
-    input.style.height = input.scrollHeight + 4 + 'px';
+    input.style.height = input.scrollHeight + 8 + 'px';
 
     var newHeight = input.getBoundingClientRect().height;
     var bottomToolbarHeight = (newHeight + 32) + 'px';
@@ -488,7 +488,7 @@ var ConversationView = {
       timestamp: new Date()
     };
 
-    setTimeout((function updateMessageField() {
+    window.setTimeout((function updateMessageField() {
       this.input.value = '';
       this.updateInputHeight();
       this.input.focus();

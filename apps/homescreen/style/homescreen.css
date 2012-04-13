@@ -325,11 +325,6 @@ iframe.landscape-secondary {
   display: none;
 }
 
-#state-messages[data-visible] {
-  width: 32px;
-  height: 32px;
-}
-
 #state-notifications[data-visible] {
   width: 32px;
   height: 32px;

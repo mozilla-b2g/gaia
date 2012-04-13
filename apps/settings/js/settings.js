@@ -66,8 +66,7 @@ var Settings = {
         var value;
         if (input.type === 'checkbox') {
           value = input.checked;
-        }
-        else if (input.type == 'radio') {
+        } else if (input.type == 'radio') {
           value = input.value;
         }
         var cset = { }; cset[key] = value;
@@ -113,8 +112,7 @@ var Settings = {
           var d = new Date(parseInt(data[1] + '000', 10));
           dispDate.textContent = dateToUTC(d);
           disp.textContent = data[0];
-        }
-        else {
+        } else {
           console.error('Failed to fetch gaia commit: ', req.statusText);
         }
       }
@@ -144,8 +142,7 @@ window.addEventListener('keyup', function goBack(event) {
     if (dialog) {
       dialog.classList.remove('active');
       document.body.classList.remove('dialog');
-    }
-    else {
+    } else {
       document.location.hash = 'root';
     }
   }
@@ -153,21 +150,18 @@ window.addEventListener('keyup', function goBack(event) {
 
 // set the 'lang' and 'dir' attributes to <html> when the page is translated
 window.addEventListener('localized', function showPanel() {
-  var html = document.querySelector('html');
-  var lang = document.mozL10n.language;
-  html.lang = lang.code;
-  html.dir = lang.direction;
+  document.documentElement.lang = document.mozL10n.language.code;
+  document.documentElement.dir = document.mozL10n.language.direction;
 
   // <body> children are hidden until the UI is translated
   if (document.body.classList.contains('hidden')) {
     // first run: show main page
     document.location.hash = 'root';
     document.body.classList.remove('hidden');
-  }
-  else {
+  } else {
     // we were in #languages and selected another locale:
     // reset the hash to prevent weird focus bugs when switching LTR/RTL
-    setTimeout(function() {
+    window.setTimeout(function() {
       document.location.hash = 'languages';
     });
   }
@@ -180,3 +174,4 @@ if ('mozSettings' in navigator && navigator.mozSettings) {
       document.mozL10n.language.code = event.settingValue;
   };
 }
+

@@ -7,15 +7,17 @@
     <link rel="stylesheet" type="text/css" media="screen" href="style/ui.css"/>
     <link rel="stylesheet" type="text/css" media="screen" href="style/tasks.css"/>
     <link rel="resource" type="application/l10n" href="locale/tasks.properties"/>
+    <script type="text/javascript" src="js/db.js"></script>
     <script type="text/javascript" src="js/tasks.js"></script>
   </head>
 
   <body>
     <div id="root" class="active view" data-title="Tasks">
       <header>
-        <a id="task-new" href="#task" class="right button">+</a>
-        <span id="tasks-title" class="label" data-l10n-id="tasks">Tasks</span>
+        <a id="task-new" href="#task" class="right button plus">+</a>
+        <h1 id="tasks-title" class="label" data-l10n-id="tasks">Tasks</h1>
       </header>
+	  <div id="tasks-loading" class="loading hidden" data-l10n-id="loading">Loading ...</div>
       <ul id="tasks" class="tableView"></ul>
     </div>
 
@@ -23,20 +25,21 @@
     <div id="task" class="view" data-title="Task">
       <header>
         <a href="#root" class="left button" data-l10n-id="back">Back</a>
-        <a id="task-save" href="#root" class="right button" data-l10n-id="save">Save</a>
+         <h1 id="task-title" class="label" data-l10n-id="task">Task</h1>
+        <a id="task-save" href="#root" class="right button save-btn" data-l10n-id="save">Save</a>
       </header>
       <ul class="tableView">
-        <li>
-          <span data-l10n-id="name">Name</span>
+        <li class="singleline">
+          <span class="view-task-lbl" data-l10n-id="name">Name</span>
           <input type="text" name="task.name" placeholder="New task" />
           <p></p>
         </li>
         <li class="multiline">
-          <span data-l10n-id="description">Description</span>
+          <span class="view-task-lbl" data-l10n-id="description">Description</span>
           <textarea name="task.desc"></textarea>
         </li>
         <li>
-          <span data-l10n-id="done">Done</span>
+          <span class="view-task-lbl" data-l10n-id="done">Done</span>
           <label>
             <input type="checkbox" name="task.done"/>
             <span></span>
