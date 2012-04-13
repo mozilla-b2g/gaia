@@ -23,25 +23,23 @@ var TaskList = {
   },
 
   handleEvent: function(evt) {
-    switch (evt.type) {
-    case 'click':
-      var link = evt.target;
-      if (!link)
-        return;
+    if (evt.type != 'click')
+      return;
 
-      switch (link.id) {
-        case 'tasks-reset':
-          this.refresh();
-          break;
-        default:
-          EditTask.load(EditTask.taskFromDataset(link.parentNode.dataset));
-      }
-      break;
+    var link = evt.target;
+    if (!link)
+      return;
+
+    switch (link.id) {
+      case 'tasks-reset':
+        this.refresh();
+        break;
+      default:
+        EditTask.load(EditTask.taskFromDataset(link.parentNode.dataset));
     }
   },
 
   init: function() {
-
     this.loading.classList.remove('hidden');
     TasksDB.load();
   },
@@ -59,7 +57,6 @@ var TaskList = {
   },
 
   fill: function(taskDataList) {
-
     var self = this;
 
     taskDataList.forEach(function(task) {
@@ -122,22 +119,34 @@ var EditTask = {
     return this.doneInput = document.querySelector('input[name=\'task.done\']');
   },
 
-  handleEvent: function(evt) {
-    switch (evt.type) {
-    case 'click':
-      var input = evt.target;
-      if (!input)
-        return;
+  get taskTitle() {
+    delete this.taskTitle;
+    return this.taskTitle = document.getElementById('task-title');
+  },
 
-      switch (input.id) {
-        case 'task-save':
-          this.updateCurrent();
-          break;
-        case 'task-del':
-          this.deleteCurrent();
-          break;
-      }
-      break;
+  get deleteElement() {
+    delete this.deleteElement;
+    return this.deleteElement = document.querySelector('li.delete');
+  },
+
+  handleEvent: function(evt) {
+    if (evt.type != 'click')
+      return;
+
+    var input = evt.target;
+    if (!input)
+      return;
+
+    switch (input.id) {
+      case 'task-save':
+        if (!this.updateCurrent()) {
+          evt.preventDefault();
+          return false;
+        }
+        break;
+      case 'task-del':
+        this.deleteCurrent();
+        break;
     }
   },
 
@@ -153,11 +162,23 @@ var EditTask = {
   },
 
   load: function(task) {
+
+    // Reset the required message to blank
+    this.nameInput.nextElementSibling.innerHTML = '';
+
     // Set the values
     this.element.dataset.id = task.id;
     this.nameInput.value = task.name;
     this.descInput.value = task.desc;
     this.doneInput.checked = task.done;
+
+    if (task.id) {
+      this.taskTitle.innerHTML = 'Edit Task';
+      this.deleteElement.style.display = 'block';
+    } else {
+      this.taskTitle.innerHTML = 'New Task';
+      this.deleteElement.style.display = 'none';
+    }
   },
 
   updateCurrent: function() {
