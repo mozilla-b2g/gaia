@@ -23,20 +23,19 @@ var TaskList = {
   },
 
   handleEvent: function(evt) {
-    switch (evt.type) {
-    case 'click':
-      var link = evt.target;
-      if (!link)
-        return;
+    if (evt.type != 'click')
+      return;
 
-      switch (link.id) {
-        case 'tasks-reset':
-          this.refresh();
-          break;
-        default:
-          EditTask.load(EditTask.taskFromDataset(link.parentNode.dataset));
-      }
-      break;
+    var link = evt.target;
+    if (!link)
+      return;
+
+    switch (link.id) {
+      case 'tasks-reset':
+        this.refresh();
+        break;
+      default:
+        EditTask.load(EditTask.taskFromDataset(link.parentNode.dataset));
     }
   },
 
@@ -131,24 +130,23 @@ var EditTask = {
   },
 
   handleEvent: function(evt) {
-    switch (evt.type) {
-    case 'click':
-      var input = evt.target;
-      if (!input)
-        return;
+    if (evt.type != 'click')
+      return;
 
-      switch (input.id) {
-        case 'task-save':
-          if (!this.updateCurrent()) {
-            evt.preventDefault();
-            return false;
-          }
-          break;
-        case 'task-del':
-          this.deleteCurrent();
-          break;
-      }
-      break;
+    var input = evt.target;
+    if (!input)
+      return;
+
+    switch (input.id) {
+      case 'task-save':
+        if (!this.updateCurrent()) {
+          evt.preventDefault();
+          return false;
+        }
+        break;
+      case 'task-del':
+        this.deleteCurrent();
+        break;
     }
   },
 
