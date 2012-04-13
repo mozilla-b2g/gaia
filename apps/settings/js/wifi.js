@@ -19,7 +19,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
         infoBlock.textContent = _('connected', { ssid: currentNetwork.ssid });
         checkbox.checked = true;
       } else if (wifiManager.enabled) {
-        infoBlock.textContent = _('offline');
+        infoBlock.textContent = _('disconnected');
         checkbox.checked = true;
       } else {
         infoBlock.textContent = _('disabled');
@@ -113,7 +113,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
 
       // bind connection callback
       li.onclick = function() {
-        showNetwork(network);
+        toggleNetwork(network);
       }
       return li;
     }
@@ -157,6 +157,10 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
 
       req.onerror = function(error) {
         gStatus.textContent = req.error.name;
+
+        // auto-rescan if requested
+        if (autoscan)
+          window.setTimeout(scan, scanRate);
       };
 
       gStatus.update();
@@ -182,19 +186,42 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
     }
   });
 
-  // mozWifiManager events / callbacks
+  /** mozWifiManager events / callbacks
+    * see dom/wifi/nsIWifi.idl -- the 4 possible statuses are:
+    *  - connecting:
+    *        fires when we start the process of connecting to a network.
+    *  - associated:
+    *        fires when we have connected to an access point but do not yet
+    *        have an IP address.
+    *  - connected:
+    *        fires once we are fully connected to an access point and can
+    *        access the internet.
+    *  - disconnected:
+    *        fires when we either fail to connect to an access point
+    *          (transition: associated -> disconnected)
+    *        or when we were connected to a network but have disconnected
+    *          (transition: connected -> disconnected).
+    */
+  wifiManager.onstatuschange = function(event) {
+    var status = wifiManager.connectionStatus.status;
+    if (status == 'connected')
+      gNetworkList.scan(); // refresh the network list
+    gStatus.textContent = _(status, event.network); // only for ssid
+  };
+
+  // FIXME: remove this section when bug 745114 lands.
   wifiManager.onconnecting = function(event) {
     gStatus.textContent = _('connecting', { ssid: event.network.ssid });
   };
   wifiManager.onassociate = function(event) {
-    gStatus.textContent = _('associating');
+    gStatus.textContent = _('associated');
   };
   wifiManager.onconnect = function(event) {
     gStatus.textContent = _('connected', { ssid: event.network.ssid });
     gNetworkList.scan(); // refresh the network list
   };
   wifiManager.ondisconnect = function(event) {
-    gStatus.textContent = _('offline');
+    gStatus.textContent = _('disconnected');
   };
 
   function isConnected(network) {
@@ -206,126 +233,137 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
     return currentNetwork && (currentNetwork.ssid == network.ssid);
   }
 
-  function wifiConnect(network) {
-    wifiManager.associate(network);
-    gStatus.textContent = '';
-  }
-
-  function wifiDisconnect(network) {
-    wifiManager.forget(network);
-    gStatus.textContent = '';
-  }
-
   // UI to connect/disconnect
-  function showNetwork(network) {
+  function toggleNetwork(network) {
     if (isConnected(network)) {
       // online: show status + offer to disconnect
-      //var wifiDisconnect = wifiManager.forget;
-      wifiDialog('#wifi-status', network, wifiDisconnect);
-    } else {
-      // offline: offer to connect
-      var key = network.capabilities[0];
-      //var wifiConnect = wifiManager.associate;
-      if (/WEP$/.test(key)) {
-        wifiDialog('#wifi-wep', network, wifiConnect);
-      } else if (/EAP$/.test(key)) {
-        wifiDialog('#wifi-eap', network, wifiConnect);
-      } else if (/PSK$/.test(key)) {
-        wifiDialog('#wifi-psk', network, wifiConnect);
-      } else {
-        wifiConnect(network);
-      }
-    }
-  }
-
-  // generic wifi property dialog
-  // TODO: the 'OK' button should be disabled until the password string
-  //       has a suitable length (e.g. 8..63)
-  function wifiDialog(selector, network, callback) {
-    var dialog = document.querySelector(selector);
-    if (!dialog || !network)
-      return null;
-
-    // network info
-    var ssid = dialog.querySelector('*[data-ssid]');
-    if (ssid)
-      ssid.textContent = network.ssid;
-
-    var keys = network.capabilities;
-    var security = dialog.querySelector('*[data-security]');
-    if (security)
-      security.textContent = (keys && keys.length) ?
-        keys.join(', ') : _('securityNone');
-
-    var signal = dialog.querySelector('*[data-signal]');
-    if (signal) {
-      var lvl = Math.min(Math.floor(network.signal / 20), 4);
-      signal.textContent = _('signalLevel' + lvl);
-    }
-
-    // identity/password
-    var identity = dialog.querySelector('input[name=identity]');
-    if (identity)
-      identity.value = network.identity || '';
-
-    var password = dialog.querySelector('input[name=password]');
-    if (password) {
-      password.type = 'password';
-      password.value = network.password || '';
-    }
-
-    var showPassword = dialog.querySelector('input[name=show-pwd]');
-    if (showPassword) {
-      showPassword.checked = false;
-      showPassword.onchange = function() {
-        password.type = this.checked ? 'text' : 'password';
-      };
-    }
-
-    // hide dialog box
-    function close() {
-      document.body.classList.remove('dialog');
-      dialog.classList.remove('active');
-    }
-
-    // OK|Cancel buttons
-    var buttons = dialog.querySelectorAll('footer button');
-
-    var okButton = buttons[0];
-    okButton.onclick = function() {
-      close();
-      if (identity)
-        network.identity = identity.value;
-      // when we're on a known network, password == '*':
+      wifiDialog('#wifi-status', wifiDisconnect);
+    } else if (network.password == '*') {
+      // offline, known network (hence the '*' password value):
       // no further authentication required.
-      if (password && password.value != '*') {
-        var key = network.capabilities[0];
-        var keyManagement = '';
-        if (/WEP$/.test(key)) {
-          keyManagement = 'WEP';
-          network.wep = password.value;
-        } else if (/PSK$/.test(key)) {
-          keyManagement = 'WPA-PSK';
-          network.psk = password.value;
-        } else if (/EAP$/.test(key)) {
-          keyManagement = 'WPA-EAP';
-          network.password = password.value;
-        }
-        network.keyManagement = keyManagement;
+      setPassword();
+      wifiConnect();
+    } else {
+      // offline, unknonw network: offer to connect
+      var key = getKeyManagement();
+      if (key == 'WEP') {
+        wifiDialog('#wifi-wep', wifiConnect);
+      } else if (key == 'WPA-PSK') {
+        wifiDialog('#wifi-psk', wifiConnect);
+      } else if (key == 'WPA-EAP') {
+        wifiDialog('#wifi-eap', wifiConnect);
+      } else {
+        wifiConnect();
       }
-      return callback ? callback(network) : false;
-    };
+    }
 
-    var cancelButton = buttons[1];
-    cancelButton.onclick = function() {
-      close();
-      return;
-    };
+    function wifiConnect() {
+      wifiManager.associate(network);
+      gStatus.textContent = '';
+    }
 
-    // show dialog box
-    dialog.classList.add('active');
-    document.body.classList.add('dialog');
-    return dialog;
+    function wifiDisconnect() {
+      wifiManager.forget(network);
+      gStatus.textContent = '';
+    }
+
+    function getKeyManagement() {
+      var key = network.capabilities[0];
+      if (/WEP$/.test(key))
+        return 'WEP';
+      if (/PSK$/.test(key))
+        return 'WPA-PSK';
+      if (/EAP$/.test(key))
+        return 'WPA-EAP';
+      return '';
+    }
+
+    function setPassword(password) {
+      var key = getKeyManagement();
+      if (key == 'WEP') {
+        network.wep = password;
+      } else if (key == 'WPA-PSK') {
+        network.psk = password;
+      } else if (key == 'WPA-EAP') {
+        network.password = password;
+      }
+      network.keyManagement = key;
+    }
+
+    // generic wifi property dialog
+    // TODO: the 'OK' button should be disabled until the password string
+    //       has a suitable length (e.g. 8..63)
+    function wifiDialog(selector, callback) {
+      var dialog = document.querySelector(selector);
+      if (!dialog || !network)
+        return null;
+
+      // network info
+      var ssid = dialog.querySelector('*[data-ssid]');
+      if (ssid)
+        ssid.textContent = network.ssid;
+
+      var keys = network.capabilities;
+      var security = dialog.querySelector('*[data-security]');
+      if (security)
+        security.textContent = (keys && keys.length) ?
+          keys.join(', ') : _('securityNone');
+
+      var signal = dialog.querySelector('*[data-signal]');
+      if (signal) {
+        var lvl = Math.min(Math.floor(network.signal / 20), 4);
+        signal.textContent = _('signalLevel' + lvl);
+      }
+
+      // identity/password
+      var identity = dialog.querySelector('input[name=identity]');
+      if (identity)
+        identity.value = network.identity || '';
+
+      var password = dialog.querySelector('input[name=password]');
+      if (password) {
+        password.type = 'password';
+        password.value = network.password || '';
+      }
+
+      var showPassword = dialog.querySelector('input[name=show-pwd]');
+      if (showPassword) {
+        showPassword.checked = false;
+        showPassword.onchange = function() {
+          password.type = this.checked ? 'text' : 'password';
+        };
+      }
+
+      // hide dialog box
+      function close() {
+        document.body.classList.remove('dialog');
+        dialog.classList.remove('active');
+      }
+
+      // OK|Cancel buttons
+      var buttons = dialog.querySelectorAll('footer button');
+
+      var okButton = buttons[0];
+      okButton.onclick = function() {
+        close();
+        if (identity)
+          network.identity = identity.value;
+        if (password)
+          setPassword(password.value);
+        return callback ? callback() : false;
+      };
+
+      var cancelButton = buttons[1];
+      cancelButton.onclick = function() {
+        close();
+        return;
+      };
+
+      // show dialog box
+      dialog.classList.add('active');
+      document.body.classList.add('dialog');
+      return dialog;
+    }
   }
 
   // startup

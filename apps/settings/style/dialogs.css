@@ -24,10 +24,9 @@ body.dialog #dialogs > div {
 
 div.dialog {
   display: none;
-  width: 360px;
+  width: 100%;
   margin: auto;
   background-color: #eaeae4;
-  border-radius: 8px 8px 0 0;
 }
 
 div.dialog.active {
@@ -66,7 +65,7 @@ div.dialog footer {
 }
 
 div.dialog footer button {
-  width: 40%;
+  width: 180px;
   height: 60px;
   border: 4px solid;
   border-radius: 5px;

@@ -895,18 +895,35 @@
 // Register a handler to automatically update apps when the app cache
 // changes.
 (function(window) {
-  var cache = window.applicationCache;
-  if (!cache)
+  if (!window.applicationCache)
     return;
 
-  // We can force an update every time by uncommenting the next line:
-  // cache.update();
+  window.applicationCache.addEventListener('updateready', function(evt) {
+      if (!navigator.mozNotification)
+        return;
 
-  cache.addEventListener('updateready', function updateReady(evt) {
-    // XXX Add a nice UI when an update is ready asking if the user
-    // want to reload the application now.
-    cache.swapCache();
-    window.document.location.reload();
+      // Figure out what our name is and where we come from
+      navigator.mozApps.getSelf().onsuccess = function(e) {
+        var app = e.target.result;
+        var name = app.manifest.name;
+        var origin = app.origin;
+
+        // FIXME Localize this message:
+        var notification = navigator.mozNotification.createNotification(
+                   'Update Available',
+                   'A new version of ' + name + ' is available');
+
+        notification.onclick = function(event) {
+
+          // If we're still running when the user taps on the notification
+          // then ask if they want to reload now
+          // FIXME: uncomment and localize when confirm() dialogs work
+          /* if (confirm('Update ' + name + ' from ' + origin + ' now?')) */
+          window.location.reload();
+        };
+
+        notification.show();
+      }
   });
 })(this);
 

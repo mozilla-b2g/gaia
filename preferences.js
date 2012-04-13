@@ -84,7 +84,7 @@ let permissions = {
   },
   "telephony": {
     "urls": [],
-    "pref": "dom.telephone.app.phone.url"
+    "pref": "dom.telephony.app.phone.url"
   },
   "screen": {
     "urls": [],
