@@ -36,6 +36,7 @@ var TaskList = {
   },
 
   init: function() {
+
     var self = this;
     taskDataList.forEach(function(task) {
 
@@ -107,6 +108,16 @@ var EditTask = {
     return this.doneInput = document.querySelector('input[name=\'task.done\']');
   },
 
+  get taskTitle() {
+    delete this.taskTitle;
+    return this.taskTitle = document.getElementById('task-title');
+  },
+
+  get deleteElement() {
+    delete this.deleteElement;
+    return this.deleteElement = document.querySelector('li.delete');
+  },
+
   handleEvent: function(evt) {
     switch (evt.type) {
     case 'click':
@@ -116,8 +127,12 @@ var EditTask = {
 
       switch (input.id) {
         case 'task-save':
-          if (this.updateCurrent())
+          if (this.updateCurrent()) {
             TaskList.refresh();
+          } else {
+            evt.preventDefault();
+            return false;
+          }
           break;
         case 'task-del':
           this.deleteCurrent();
@@ -140,11 +155,23 @@ var EditTask = {
   },
 
   load: function(task) {
+
+    // Reset the required message to blank
+    this.nameInput.nextElementSibling.innerHTML = '';
+
     // Set the values
     this.element.dataset.id = task.id;
     this.nameInput.value = task.name;
     this.descInput.value = task.desc;
     this.doneInput.checked = task.done;
+
+    if (task.id) {
+      this.taskTitle.innerHTML = 'Edit Task';
+      this.deleteElement.style.display = 'block';
+    } else {
+      this.taskTitle.innerHTML = 'New Task';
+      this.deleteElement.style.display = 'none';
+    }
   },
 
   updateCurrent: function() {
