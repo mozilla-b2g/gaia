@@ -284,10 +284,12 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
 
     // EAP modes
     var eap = dialog.querySelector('select[name=eap]');
+    var internalauth = dialog.querySelector('select[name=internalauth]');
     var caCert = dialog.querySelector('input[name=cacert]');
     var userCert = dialog.querySelector('input[name=usercert]') ;
     var userPKey = dialog.querySelector('input[name=userpkey]') ;
     var userPKeyPass = dialog.querySelector('input[name=userpkeypass]') ;
+    var anonymous = dialog.querySelector('input[name=anonymous]') ;
 
     if (eap) {
       eap.value = network.eap || 'NONE';
@@ -299,14 +301,33 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
               userCert.disabled = true;
               userPKey.disabled = false;
               userPKeyPass.disabled = false;
+              showPassphrase.disabled = false;
               password.disabled = true;
               showPassword.disabled = true;
+              internalauth.disabled = true;
+              anonymous.disabled = true;
             break;
+
+          case "PEAP":
+              caCert.disabled = true;
+              userCert.disabled = true;
+              userPKey.disabled = true;
+              userPKeyPass.disabled = true;
+              showPassphrase.disabled = true;
+              internalauth.disabled = false;
+              password.disabled = false;
+              showPassword.disabled = false;
+              anonymous.disabled = false;
+            break;
+
           default:
               caCert.disabled = true;
               userCert.disabled = true;
               userPKey.disabled = true;
               userPKeyPass.disabled = true;
+              showPassphrase.disabled = true;
+              internalauth.disabled = true;
+              anonymous.disabled = true;
               password.disabled = false;
               showPassword.disabled = false;
             break;
@@ -380,6 +401,14 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
                 network.ca_cert = caCert.value;
                 network.private_key = userPKey.value;
                 network.private_key_passwd = userPKeyPass.value;
+                break;
+
+              case "PEAP":
+                network.identity = identity.value;
+                network.password = password.value;
+                network.eap = 'PEAP';
+                network.phase1 = 'peaplabel=0';
+                network.phase2 = 'auth=' + internalauth.value;
                 break;
 
               default:

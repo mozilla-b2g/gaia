@@ -493,8 +493,21 @@
               <input name="show-passphrase" type="checkbox" />
             </label>
             <label>
+              <span data-l10n-id="internauth">Internal Auth</span>
+            </label>
+            <select data-eap name="internalauth" multiple="multiple">
+              <option value="MSCHAPv2">MSCHAPv2</option>
+              <option value="MD5">MD5</option>
+              <option value="GTC">GTC</option>
+            </select>
+            <br />
+            <label>
               <span data-l10n-id="identity">identity</span>
               <input data-identity name="identity" type="text" />
+            </label>
+            <label>
+              <span data-l10n-id="anonymous">Anonymous identity</span>
+              <input data-identity name="anonymous" type="text" />
             </label>
             <label>
               <span data-l10n-id="password">password</span>
