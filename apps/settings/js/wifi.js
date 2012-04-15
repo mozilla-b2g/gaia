@@ -186,6 +186,15 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
   wifiManager.onconnecting = function(event) {
     gStatus.textContent = _('connecting', { ssid: event.network.ssid });
   };
+  wifiManager.onauthenticating = function(event) {
+    gStatus.textContent = _('authenticating', { ssid: event.network.ssid });
+  };
+  wifiManager.onauthenticated = function(event) {
+    gStatus.textContent = _('authenticated', { ssid: event.network.ssid });
+  };
+  wifiManager.onauthfailure = function(event) {
+    gStatus.textContent = _('authfailure', { ssid: event.network.ssid });
+  };
   wifiManager.onassociate = function(event) {
     gStatus.textContent = _('associating');
   };
