@@ -462,6 +462,37 @@
           </dl>
           <form action="#">
             <label>
+              <span data-l10n-id="eap">EAP mode</span>
+            </label>
+            <select data-eap name="eap" multiple="multiple">
+              <option value="NONE">None</option>
+              <option value="TLS">TLS</option>
+              <option value="LEAP">LEAP</option>
+              <option value="TTLS">Tunneled TLS</option>
+              <option value="PEAP">Protected EAP</option>
+            </select>
+            <br />
+            <label>
+              <span data-l10n-id="cacert">CA certificate</span>
+              <input data-cacert name="cacert" type="text" />
+            </label>
+            <label>
+              <span data-l10n-id="usercert">User certificate</span>
+              <input data-usercert name="usercert" type="text" />
+            </label>
+            <label>
+              <span data-l10n-id="userpkey">User Private Key</span>
+              <input data-userpkey name="userpkey" type="text" />
+            </label>
+            <label>
+              <span data-l10n-id="userpkeypass">Private Key Passphrase</span>
+              <input data-userpkeypass name="userpkeypass" type="password" />
+            </label>
+            <label>
+              <span data-l10n-id="showPassPhrase">show passphrase</span>
+              <input name="show-passphrase" type="checkbox" />
+            </label>
+            <label>
               <span data-l10n-id="identity">identity</span>
               <input data-identity name="identity" type="text" />
             </label>

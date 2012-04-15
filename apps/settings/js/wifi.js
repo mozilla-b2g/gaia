@@ -282,6 +282,68 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
       };
     }
 
+    // EAP modes
+    var eap = dialog.querySelector('select[name=eap]');
+    var caCert = dialog.querySelector('input[name=cacert]');
+    var userCert = dialog.querySelector('input[name=usercert]') ;
+    var userPKey = dialog.querySelector('input[name=userpkey]') ;
+    var userPKeyPass = dialog.querySelector('input[name=userpkeypass]') ;
+
+    if (eap) {
+      eap.value = network.eap || 'NONE';
+      eap.onchange = function() {
+        switch(this.value) {
+          // limit to pkcs12, i.e. cert and pkey in the same file
+          case "TLS":
+              caCert.disabled = false;
+              userCert.disabled = true;
+              userPKey.disabled = false;
+              userPKeyPass.disabled = false;
+              password.disabled = true;
+              showPassword.disabled = true;
+            break;
+          default:
+              caCert.disabled = true;
+              userCert.disabled = true;
+              userPKey.disabled = true;
+              userPKeyPass.disabled = true;
+              password.disabled = false;
+              showPassword.disabled = false;
+            break;
+        }
+      };
+    }
+
+    if (caCert) {
+      caCert.value = network.ca_cert || '';
+    }
+
+    if (userCert) {
+      userCert.value = network.user_cert || '';
+    }
+
+    if (userPKey) {
+      userPKey.value = network.private_key || '';
+      userPKey.onchange = function() {
+        // if private key is PKCS12, it contains the user's certificate
+        if (/.p12$/.test(this.value)) {
+          userCert.disabled = true;
+        }
+      }
+    }
+
+    if (userPKeyPass) {
+      userPKeyPass.value = network.private_key_passwd || '';
+    }
+
+    var showPassphrase = dialog.querySelector('input[name=show-passphrase]');
+    if (showPassphrase) {
+      showPassphrase.checked = false;
+      showPassphrase.onchange = function() {
+        userPKeyPass.type = this.checked ? 'text' : 'password';
+      };
+    }
+
     // hide dialog box
     function close() {
       document.body.classList.remove('dialog');
@@ -309,7 +371,22 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
           network.psk = password.value;
         } else if (/EAP$/.test(key)) {
           keyManagement = 'WPA-EAP';
-          network.password = password.value;
+          if (eap) {
+            switch(eap.value) {
+              case "TLS":
+                network.identity = identity.value;
+                network.pairwise = 'CCMP TKIP';
+                network.eap = 'TLS';
+                network.ca_cert = caCert.value;
+                network.private_key = userPKey.value;
+                network.private_key_passwd = userPKeyPass.value;
+                break;
+
+              default:
+                network.password = password.value;
+                break;
+            }
+          }
         }
         network.keyManagement = keyManagement;
       }
