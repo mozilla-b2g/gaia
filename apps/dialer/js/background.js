@@ -1,6 +1,6 @@
 'use strict';
 
-(function () {
+(function() {
   var telephony = navigator.mozTelephony;
   if (!telephony) {
     return;
