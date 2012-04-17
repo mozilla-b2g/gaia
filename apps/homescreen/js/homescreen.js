@@ -243,7 +243,6 @@ var LockScreen = {
         if (e.keyCode != e.DOM_VK_SLEEP || SleepMenu.visible)
           return;
         window.clearTimeout(this._timeout);
-
         if (navigator.mozPower.screenEnabled) {
           this.update(function lockScreenCallback() {
             ScreenManager.turnScreenOff();
@@ -404,6 +403,8 @@ var NotificationScreen = {
     var target = evt.target;
     switch (evt.type) {
     case 'touchstart':
+      if (LockScreen.locked)
+        return;
       if (target != this.touchable)
         return;
       this.active = true;
