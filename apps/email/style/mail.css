@@ -1,0 +1,145 @@
+
+html, body {
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	background: white;
+  color: black;
+  font: normal 14px/15px Arial, Helvetica, sans-serif;
+}
+
+.hidden {
+	display: none;
+}
+
+a, a:hover {
+	text-decoration: none;
+	color: white;
+	outline: none;
+}
+
+input, button, textarea {
+	outline: none;
+}
+
+::-moz-inner-focus {
+	border: 0;
+}
+
+.top {
+	width: 100%;
+	border-bottom: 1px solid black;
+	border-top: 1px solid black;
+	overflow: hidden;
+	background: black;
+	color: white;
+	font-size: 16px;
+	line-height: 18px;
+	-moz-user-select: none;
+}
+
+.userbar {
+	overflow: hidden;
+}
+
+.account {
+	float: left;
+	padding: 15px;
+}
+
+.folder {
+	float: right;
+	padding: 15px;
+}
+
+.main {
+	height: -moz-calc(100% - 50px - 38px);
+    overflow: hidden;
+    background: black;
+    -moz-user-select: none;
+}
+.message-page {
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+}
+.message-summary-header {
+	overflow: hidden;
+	line-height: 19px;
+	padding-bottom: 3px;
+}
+.message-summary {
+	padding: 2% 10px;
+	border-bottom: 1px dotted gray;
+	cursor: default;
+	pointer-events: none;
+	height: 10%;
+	min-height: 35px;
+	overflow: hidden;
+	-moz-box-sizing: border-box;
+    -moz-user-select: none;
+}
+
+.message-summary-text {
+	font-size: 13px;
+	color: gray;
+	width: 100%;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+.message-summary-subject {
+	margin: 0;
+	font-size: 18px;
+	overflow: hidden;
+}
+.message-summary-mail {
+	float: right;
+	text-align: right;
+	font-size: 14px;
+	padding-left: 5px;
+}
+.message-summary-subject, .message-summary-mail {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.message-page {
+	background: white;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	overflow: auto;
+}
+.messages {
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+.actions {
+	width: 100%;
+	font-size: 14px;
+	line-height: 18px;
+}
+.action {
+	width: 50%;
+	float: left;
+	padding: 10px;
+	color: white;
+	background: black;
+	-moz-box-sizing: border-box;
+	text-align: center;
+	border-left: 1px dotted white;
+}
+
+.action:first-child {
+	border: none;
+}
+
+.action:active {
+	background: gray;
+	color: black;
+}

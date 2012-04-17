@@ -1,0 +1,10 @@
+[
+	{
+		"date": "Sat Apr 14 2012 14:25:07 GMT+0400 (MSK)",
+		"from": "User Man <test@mail.com>",
+		"subject": "Hello, world",
+		"to": "nekr.fabula@gmail.com",
+		"body": "The WHATWG work is all published in one specification (the one you are reading right now), parts of which are republished in a variety of other forms, including an edition optimized for Web developers (known as HTML5).",
+		"content-type": "text/plain"
+	}
+]
