@@ -35,14 +35,15 @@ var Browser = {
     return this.shade = document.getElementById('shade');
   },
 
+  /* Menu button coming back soon
   get menuButton() {
     delete this.menuButton;
     return this.menuButton = document.getElementById('menu-button');
-  },
+  },*/
 
-  get refreshButton() {
-    delete this.refreshButton;
-    return this.refreshButton = document.getElementById('refresh');
+  get goButton() {
+    delete this.goButton;
+    return this.goButton = document.getElementById('go-button');
   },
 
   get forwardButton() {
@@ -56,8 +57,10 @@ var Browser = {
 
   init: function browser_init() {
     this.backButton.addEventListener('click', this.goBack.bind(this));
+    /* Menu button coming back soon
     this.menuButton.addEventListener('click', this.toggleMenu.bind(this));
-    this.refreshButton.addEventListener('click', this.refresh.bind(this));
+    */
+    this.goButton.addEventListener('click', this.go.bind(this));
     this.forwardButton.addEventListener('click', this.goForward.bind(this));
     this.shade.addEventListener('click', this.toggleMenu.bind(this));
     this.urlbar.addEventListener('focus', this.urlFocus.bind(this));
@@ -131,6 +134,11 @@ var Browser = {
     this.content.setAttribute('src', url);
   },
 
+  go: function browser_go() {
+    var url = this.currentUrl;
+    this.content.setAttribute('src', url);
+  },
+
   goBack: function browser_goBack() {
     MockHistory.back();
     this.backButton.disabled = !MockHistory.backLength();
@@ -152,12 +160,6 @@ var Browser = {
     this.updateHistory(url);
   },
 
-  refresh: function browser_refresh() {
-    var url = this.currentUrl;
-    this.content.setAttribute('src', url);
-    this.toggleMenu();
-  },
-
   toggleMenu: function browser_toggleMenu() {
     this.menu.classList.toggle('hidden');
     this.shade.classList.toggle('hidden');
@@ -166,6 +168,7 @@ var Browser = {
   urlFocus: function browser_urlFocus() {
     this.urlbar.value = this.currentUrl;
     this.urlbar.select();
+    this.goButton.src = "style/images/go.png";
   },
 
   urlBlur: function browser_urlBlur() {
@@ -173,6 +176,7 @@ var Browser = {
       this.urlbar.value = this.currentTitle;
     else
       this.urlbar.value = this.currentUrl;
+    this.goButton.src = "style/images/refresh.png";
   }
 };
 
@@ -180,6 +184,7 @@ window.addEventListener('load', function browserOnLoad(evt) {
   window.removeEventListener('load', browserOnLoad);
   Browser.init();
 });
+
 
 var MockHistory = {
   history: [],
