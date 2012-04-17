@@ -22,8 +22,8 @@
 
   var selectedPhoneSound = '';
   SettingsListener.observe('homescreen.ring', 'classic.wav', function(value) {
-      selectedPhoneSound = 'style/ringtones/' + value;
-      ringtonePlayer.src = selectedPhoneSound;
+    selectedPhoneSound = 'style/ringtones/' + value;
+    ringtonePlayer.src = selectedPhoneSound;
   });
 
   var activateVibration = false;
