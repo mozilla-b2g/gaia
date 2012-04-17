@@ -1,10 +1,7 @@
-/**
- * Created by JetBrains WebStorm.
- * User: nekr
- * Date: 4/15/12
- * Time: 10:33 PM
- * To change this template use File | Settings | File Templates.
- */
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+ /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
+'use strict';
 
 const
   SWIPE_OFFSET = 30,
