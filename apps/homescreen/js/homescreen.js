@@ -234,7 +234,11 @@ var LockScreen = {
         if (e.keyCode != e.DOM_VK_SLEEP || !navigator.mozPower.screenEnabled)
           return;
 
+        if (SleepMenu.visible)
+          return;
         this._timeout = window.setTimeout(function() {
+          if (LockScreen.locked)
+            return;
           SleepMenu.show();
         }, 1500);
         break;
