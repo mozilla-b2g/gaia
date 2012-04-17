@@ -94,7 +94,12 @@ window.addEventListener('localized', load(function(){
 document.addEventListener('apploaded', function(){
   var messagePage = nodes.messages.querySelector('.message-page'),
     pages = [],
-    currentPage = 0;
+    currentPage = 0,
+    stopTransition = function(){
+      for(var i = -1; i < 2; i++){
+        pages[currentPage + i] && Transition.stop(pages[currentPage + i]);
+      }
+    };
 
   var updatePages = function(page){
     var tmp;
@@ -127,7 +132,9 @@ document.addEventListener('apploaded', function(){
   });
 
   nodes.messages.appendChild(pages[currentPage]).style.display = 'block';
+
   updatePages(currentPage);
+
   window.addEventListener('resize', function(){
     updatePages(currentPage);
   }, true);
@@ -145,17 +152,12 @@ document.addEventListener('apploaded', function(){
     });
 
     pages[currentPage].style.MozTransform = transform;
-      if(tmp = pages[currentPage + dir]){
-        tmp.style.MozTransform = new Transform({
-          translate: offset + window.innerWidth * dir + TRANSITION_PADDING * dir
-        });
-      }
 
-    /*page1.style.MozTransform = new Transform({
-      scale: Math.min(Math.abs(offset * 2), window.innerWidth) / window.innerWidth
-    });
-    page1.style.MozTransformOrigin = '50% 50%';*/
-    //}
+    if(tmp = pages[currentPage + dir]){
+      tmp.style.MozTransform = new Transform({
+        translate: offset + window.innerWidth * dir + TRANSITION_PADDING * dir
+      });
+    }
   },
     swipeStart,
     offset = 0,
@@ -164,11 +166,11 @@ document.addEventListener('apploaded', function(){
           next,
           factor;
 
-      Transition.stop(pages[currentPage]);
-
       dir = offset < 0 ? 1 : -1;
       next = currentPage + (Math.abs(offset) > window.innerWidth / 4 ? dir : 0);
       factor = (TRANSITION_PADDING + window.innerWidth - Math.abs(offset)) / (window.innerWidth + TRANSITION_PADDING);
+
+      stopTransition();
 
       Transition.run(pages[next] || pages[currentPage], {
         MozTransform: 'translate(0)'
@@ -180,7 +182,7 @@ document.addEventListener('apploaded', function(){
 
       if(next !== currentPage && pages[next]){
         Transition.run(pages[currentPage], {
-          MozTransform: Transform.translate(window.innerWidth * dir * -1 + TRANSITION_PADDING * dir * -1)
+          MozTransform: Transform.translate((window.innerWidth + TRANSITION_PADDING) * dir * -1)
         }, {
           duration: factor * PAGE_TRANSITION_DURATION
         });
@@ -188,7 +190,7 @@ document.addEventListener('apploaded', function(){
       }else{
         let tmp = pages[currentPage + dir];
         tmp && Transition.run(tmp, {
-          MozTransform: Transform.translate(window.innerWidth * dir + TRANSITION_PADDING * dir)
+          MozTransform: Transform.translate((window.innerWidth + TRANSITION_PADDING) * dir)
         }, {
           duration: factor * PAGE_TRANSITION_DURATION
         });
@@ -198,8 +200,10 @@ document.addEventListener('apploaded', function(){
       document.removeEventListener('swipeend', swipeEnd);
     };
 	nodes.main.addEventListener('swipestart', function(e){
+    //Transition.stop(pages[currentPage]);
     //console.log(e.detail, SWIPE_HORIZONTAL);
 		if(e.detail & SWIPE_HORIZONTAL){
+      stopTransition();
       swipeStart = e.clientX;
       pages[currentPage].style.MozTransition = '';
       document.addEventListener('mousemove', swipeMove);
