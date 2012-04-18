@@ -1,40 +1,95 @@
 'use strict';
 
 /*
-  
-This app displays photos that are stored on the phone.
-
-Its starts with a thumbnail view in which small versions of all photos
-are displayed.  Tapping on a thumbnail shows the full-size image.
-
-When a full-size image is displayed, swiping left or right moves to
-the next or previous image (this depends on the writing direction of
-the locale).  The app can also perform a slideshow, transitioning
-between photos automatically.
-
-
-
-*/
-
-
-
-
-//
-// TODO:
-//   we need a way to get photos from the camera and to store them on the device
-//   the ability to download photos from the web might be nice, too.
-//   we need to be able to determine the size of a photo, I think.
-//   do we need to read metadata?
-//   need to be able to deal with photos of different sizes and orientations
-//     can't just size them to 100%,100%.
-//   need to handle resize/orientationchange events because I'm guessing
-//     that image sizes will have to change.
-//   we should probably have a way to organize photos into albums
-//   How do we localize the slideshow Play button for RTL languages?
-//   Do we want users to be able to rotate photos to tell the
-//     gallery app how to display them?
-//   Do we want borders around the photos?
-//
+ * This app displays photos that are stored on the phone.
+ * 
+ * Its starts with a thumbnail view in which small versions of all photos
+ * are displayed.  Tapping on a thumbnail shows the full-size image.
+ * 
+ * When a full-size image is displayed, swiping left or right moves to
+ * the next or previous image (this depends on the writing direction of
+ * the locale).  The app can also perform a slideshow, transitioning
+ * between photos automatically.
+ * 
+ * The app supports two-finger "pinch" gestures to zoom in and out on an
+ * image.  When zoomed, a one finger swipe gesture pans within the zoomed
+ * image, and only moves to the next or previous image once you reach the
+ * edge of the currently displayed image.
+ * 
+ * To make transitions between photos smooth, the app preloads the next
+ * and previous images and positions them off-screen to the right and
+ * left (or opposite for RTL locales) of the currently displayed image.  
+ * 
+ * Images are displayed with <img> elements inside <div> elements. These
+ * <div> elements are called "frames", and the three global variables
+ * currentPhotoFrame, previousPhotoFrame and nextPhotoFrame refer to the
+ * three frame divs.  The next and previous frames are positioned by
+ * setting a CSS class, which sets the CSS left property to position them
+ * offscreen (the classes are defined differently for RTL and LTR
+ * languages).  When the user pans left or right (and when the current
+ * image isn't zoomed in) the app uses -moz-tranform to translate all
+ * three frames left or right so that the user sees one photo moving off
+ * screen and the other one moving on. When the user lifts their finger,
+ * the app uses a CSS transition to slide the current photo back into
+ * place (if the pan wasn't far enough) or to complete the transition to
+ * the next or previous photo.
+ * 
+ * The transitions are performed by changing the CSS classes on the three
+ * frame <divs> and cycling them. To transition to the next photo, for
+ * example, nextPhotoFrame becomes currentPhotoFrame, currentPhotoFrame
+ * becomes previousPhotoFrame, and previousPhotoFrame cycles around to
+ * become the new nextPhotoFrame (and loads a new image). At the same
+ * time, the css classes on these frames are changed to reposition them
+ * and CSS handles the transition animation for us, animating both the
+ * change in the left property caused by the class change, and the change
+ * in the -moz-transform property which is set back to the empty string.
+ * 
+ * The trickiest code has to do with handling zooms and pans while the
+ * photo is zoomed in.  If the photo isn't zoomed in, then any pan ends
+ * with a transition to a new photo or back to the original photo.  But
+ * when we're zoomed, then pans can just be moving around within the
+ * zoomed photo. Panning and zooming a photo is implemented by setting
+ * the CSS top, left, width and height photos of the img tag. (The img is
+ * display:relative, and the frame is overflow:none.) So this is a
+ * completely different positioning mechanism than the one used for
+ * swiping and transitioning photos sideways.
+ * 
+ * Notice that a single pan gesture can cause two different things to
+ * happen: it moves the zoomed in image within its frame and then, when
+ * edge of the photo is reached, it starts to transition from that photo
+ * to the next or previous one. Also, when we do zooms, we want to zoom
+ * in or out around the midpoint between the user's fingers, and zooming
+ * around a point requires us to pan the photo. The code for handling the
+ * zoom and pan computations is separated out into a separate PhotoState
+ * class.  I'm not entirely convinced that this is the best abstraction,
+ * but it does simplify things somewhat.
+ * 
+ * Pan gestures are made with a single finger and are implemented with a
+ * mousedown handler (so it works with a mouse on the desktop as well as
+ * with a finger on a phone) that registers temporary capturing mousemove
+ * and mouseup listeners.
+ * 
+ * Zoom gestures are two finger gestures so they only work on
+ * touch-sensitive devices and can't be tested on the desktop.  They're
+ * implemented on top of basic touch events in the separate file gestures.js.
+ * 
+ *
+ * TODO:
+ *   we need a way to get photos from the camera and to store them on the device
+ *   the ability to download photos from the web might be nice, too.
+ *   we need to be able to determine the size of a photo, I think.
+ *   do we need to read metadata?
+ *   need to be able to deal with photos of different sizes and orientations
+ *     can't just size them to 100%,100%.
+ *   need to handle resize/orientationchange events because I'm guessing
+ *     that image sizes will have to change.
+ *   we should probably have a way to organize photos into albums
+ *   How do we localize the slideshow Play button for RTL languages?
+ *   Do we want users to be able to rotate photos to tell the
+ *     gallery app how to display them?
+ *   Do we want borders around the photos?
+ *   Do we want to be able to send photos by email and sms?
+ */
 
 //
 // Right now the set of photos is just hardcoded in the sample_photos directory
