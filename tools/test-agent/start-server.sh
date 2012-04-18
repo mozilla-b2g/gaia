@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-START_CMD="js-test-agent server -c $DIR/test-agent-server.js -http-path $DIR/../../"
+START_CMD="js-test-agent server -c $DIR/test-agent-server.js --http-path $DIR/../../"
 
 type node > /dev/null 2> /dev/null
 
