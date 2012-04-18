@@ -1,5 +1,24 @@
 'use strict';
 
+/*
+  
+This app displays photos that are stored on the phone.
+
+Its starts with a thumbnail view in which small versions of all photos
+are displayed.  Tapping on a thumbnail shows the full-size image.
+
+When a full-size image is displayed, swiping left or right moves to
+the next or previous image (this depends on the writing direction of
+the locale).  The app can also perform a slideshow, transitioning
+between photos automatically.
+
+
+
+*/
+
+
+
+
 //
 // TODO:
 //   we need a way to get photos from the camera and to store them on the device
@@ -73,6 +92,26 @@ var previousPhotoFrame = photos.querySelector('div.previousPhoto');
 var currentPhotoFrame = photos.querySelector('div.currentPhoto');
 var nextPhotoFrame = photos.querySelector('div.nextPhoto');
 
+// The currently displayed <img> element.
+// This changes as photos are panned, but showPhoto(), nextPhoto() and
+// previousPhoto() keep its value current.
+var currentPhoto;
+
+// Our sample photos are all 480x800 for now, but this will change.
+// These variables hold the actual pixel size of the currently displayed photo.
+// FIXME: make the app work with other size photos!
+var currentPhotoWidth = 480; 
+var currentPhotoHeight = 800;
+
+// This will hold a PhotoState object that encapsulates the zoom and pan
+// calculations and holds the current size and position of the photo and
+// also the amount of sideways swiping of the photo frames.
+var photoState;
+
+// When this variable is set to true, we ignore any user gestures
+// so we don't try to pan or zoom during a photo transition.
+var transitioning = false;
+
 // This will be set to "ltr" or "rtl" when we get our localized event
 var languageDirection;
 
@@ -132,7 +171,6 @@ thumbnails.addEventListener('click', function thumbnailsClick(evt) {
 
 // Clicking on the back button goes back to the thumbnail view
 backButton.addEventListener('click', function backButtonClick(evt) {
-  stopSlideshow();
   showThumbnails();
 });
 
@@ -148,7 +186,6 @@ slideshowButton.addEventListener('click', function slideshowClick() {
 // the thumbnail view.
 window.addEventListener('keyup', function keyPressHandler(evt) {
   if (!thumbnailsDisplayed && evt.keyCode == evt.DOM_VK_ESCAPE) {
-    stopSlideshow();
     showThumbnails();
     evt.preventDefault();
   }
@@ -158,20 +195,29 @@ window.addEventListener('keyup', function keyPressHandler(evt) {
 // On a tap just show or hide the back and play buttons.
 // On a swipe, move to the next or previous photos.
 photos.addEventListener('mousedown', function(event) {
-  var startX = event.screenX;
+  if (transitioning)
+    return;
+
+  var lastX = event.screenX;
+  var lastY = event.screenY;
   var panning = false;
 
   function move(event) {
-    var dx = event.screenX - startX;
+    var dx = event.screenX - lastX;
+    var dy = event.screenY - lastY;
 
-    if (!panning && Math.abs(dx) > PAN_THRESHOLD)
+    if (!panning &&
+        (Math.abs(dx) > PAN_THRESHOLD || Math.abs(dy) > PAN_THRESHOLD))
       panning = true;
 
     if (panning) {
-      var pan = 'translate(' + dx + 'px)';
-      previousPhotoFrame.style.MozTransform = pan;
-      currentPhotoFrame.style.MozTransform = pan;
-      nextPhotoFrame.style.MozTransform = pan;
+      photoState.pan(dx, dy);
+      photoState.setPhotoStyles(currentPhoto);
+      photoState.setFrameStyles(currentPhotoFrame,
+                                previousPhotoFrame,
+                                nextPhotoFrame);
+      lastX = event.screenX;
+      lastY = event.screenY;
     }
   }
 
@@ -188,13 +234,10 @@ photos.addEventListener('mousedown', function(event) {
     else
       panning = false;
 
-    // Transition the photos:
-    // Move to the next or previous photo, or just restore the current one
-    // based on the amount of panning.
-    var dx = event.screenX - startX;
+    photoState.pan(event.screenX - lastX, event.screenY - lastY);
 
     var direction;
-    if (dx < 0)
+    if (photoState.swipe < 0)
       direction = 1;    // next photo
     else
       direction = -1;   // previous photo
@@ -205,32 +248,36 @@ photos.addEventListener('mousedown', function(event) {
 
     // Did we drag far enough to go on to the previous or next photo?
     // And is there a previous or next photo to display?
-    // FIXME: Is it possible to do a 1-handed swipe?
-    // See the lockscreen swipe code
-    if ((Math.abs(dx) > window.innerWidth / 4) &&
+    if ((Math.abs(photoState.swipe) > window.innerWidth / 4) &&
         ((direction === 1 && currentPhotoIndex + 1 < NUM_PHOTOS) ||
          (direction === -1 && currentPhotoIndex > 0)))
     {
       // FIXME: Ideally, the transition time would be velocity sensitive
       if (direction === 1)
-        nextPhoto(200);      // Make the time velocity-dependent
+        nextPhoto(200);
       else
-        previousPhoto(200);  // Make the time velocity-dependent
+        previousPhoto(200);
 
       // If a slideshow is in progress then reset the slide timer
       // after panning to a new one.
       if (slideshowTimer)
         continueSlideshow();
     }
-    else {
+    else if (photoState.swipe !== 0) {
       // Otherwise, just restore the current photo by undoing
       // the translations we added during panning
       previousPhotoFrame.style.MozTransition = 'all 200ms linear';
       currentPhotoFrame.style.MozTransition = 'all 200ms linear';
       nextPhotoFrame.style.MozTransition = 'all 200ms linear';
-      previousPhotoFrame.style.MozTransform = '';
-      currentPhotoFrame.style.MozTransform = '';
-      nextPhotoFrame.style.MozTransform = '';
+
+      photoState.swipe = 0;
+      photoState.setFrameStyles(currentPhotoFrame,
+                                previousPhotoFrame,
+                                nextPhotoFrame);
+
+      // Ignore  pan and zoom gestures while the transition happens
+      transitioning = true;
+      setTimeout(function() { transitioning = false; }, 200);
     }
   }
 
@@ -239,8 +286,25 @@ photos.addEventListener('mousedown', function(event) {
   document.body.addEventListener('mouseup', up, true);
 });
 
+// Use the gestures.js library to detect 2-finger transform gestures
+Gestures.detect('transform', photos);
+
+// For now, we only respond to scale gestures to allow the user to
+// zoom in on the photo.  
+photos.addEventListener('transformgesture', function(e) {
+  if (transitioning)
+    return;
+  photoState.zoom(e.detail.relative.scale, e.detail.clientX, e.detail.clientY);
+  photoState.setPhotoStyles(currentPhoto);
+  photoState.setFrameStyles(currentPhotoFrame,
+                            previousPhotoFrame,
+                            nextPhotoFrame);
+});
+
 // Switch from single-picture view to thumbnail view
 function showThumbnails() {
+  stopSlideshow();
+
   thumbnails.classList.remove('hidden');
   header.classList.remove('hidden');
   photos.classList.add('hidden');
@@ -271,6 +335,16 @@ function showPhoto(n) {
   displayImageInFrame(photoURL(n), currentPhotoFrame);
   displayImageInFrame(photoURL(n + 1), nextPhotoFrame);
   currentPhotoIndex = n;
+  currentPhoto = currentPhotoFrame.firstElementChild;
+
+  // Create the PhotoState object that stores the photo pan/zoom state
+  // And use it to apply CSS styles to the photo and photo frames.
+  // FIXME: these sizes are hardcoded right now.
+  photoState = new PhotoState(currentPhotoWidth, currentPhotoHeight);
+  photoState.setPhotoStyles(currentPhoto);
+  photoState.setFrameStyles(currentPhotoFrame,
+                            previousPhotoFrame,
+                            nextPhotoFrame);
 }
 
 // Transition to the next photo, animating it over the specified time (ms).
@@ -280,15 +354,14 @@ function nextPhoto(time) {
   if (currentPhotoIndex === NUM_PHOTOS - 1)
     return;
 
+  // Set a flag to ignore pan and zoom gestures during the transition.
+  transitioning = true;
+  setTimeout(function() { transitioning = false; }, time);
+
   // Set transitions for the visible photos
   previousPhotoFrame.style.MozTransition = '';  // Not visible
   currentPhotoFrame.style.MozTransition = 'all ' + time + 'ms linear';
   nextPhotoFrame.style.MozTransition = 'all ' + time + 'ms linear';
-
-  // Undo any transforms added from the panning code
-  previousPhotoFrame.style.MozTransform = '';
-  currentPhotoFrame.style.MozTransform = '';
-  nextPhotoFrame.style.MozTransform = '';
 
   // Remove the classes
   previousPhotoFrame.classList.remove('previousPhoto');
@@ -310,6 +383,31 @@ function nextPhoto(time) {
   previousPhotoFrame.classList.add('previousPhoto');
   currentPhotoFrame.classList.add('currentPhoto');
   nextPhotoFrame.classList.add('nextPhoto');
+
+  // Remember the new current <img> element.
+  currentPhoto = currentPhotoFrame.firstElementChild;
+
+  // Remember the old photoState object
+  var previousPhotoState = photoState;
+
+  // Start with default pan and zoom state for the new photo 
+  // And also reset the translation caused by swiping the photos
+  // FIXME: use the real size of the photo
+  photoState = new PhotoState(currentPhotoWidth, currentPhotoHeight);
+  photoState.setPhotoStyles(currentPhoto);
+  photoState.setFrameStyles(currentPhotoFrame,
+                            previousPhotoFrame,
+                            nextPhotoFrame);
+
+  // When the transition is done, restore the previous photo state
+  previousPhotoFrame.addEventListener('transitionend', function done(e) {
+    // Recompute and reposition the photo that just transitioned off the screen
+    previousPhotoState.reset();
+    previousPhotoState.setPhotoStyles(previousPhotoFrame.firstElementChild);
+
+    // FIXME: I want a jquery-style once() utility for auto removal
+    previousPhotoFrame.removeEventListener('transitionend', done);
+  });
 }
 
 // Just like nextPhoto() but in the other direction
@@ -318,15 +416,14 @@ function previousPhoto(time) {
   if (currentPhotoIndex === 0)
     return;
 
+  // Set a flag to ignore pan and zoom gestures during the transition.
+  transitioning = true;
+  setTimeout(function() { transitioning = false; }, time);
+
   // Transition the two visible photos
   previousPhotoFrame.style.MozTransition = 'all ' + time + 'ms linear';
   currentPhotoFrame.style.MozTransition = 'all ' + time + 'ms linear';
   nextPhotoFrame.style.MozTransition = ''; // Not visible
-
-  // Undo any previously transformations added by panning
-  previousPhotoFrame.style.MozTransform = '';
-  currentPhotoFrame.style.MozTransform = '';
-  nextPhotoFrame.style.MozTransform = '';
 
   // Remove the frame classes since we're about to cycle the frames
   previousPhotoFrame.classList.remove('previousPhoto');
@@ -348,6 +445,29 @@ function previousPhoto(time) {
   previousPhotoFrame.classList.add('previousPhoto');
   currentPhotoFrame.classList.add('currentPhoto');
   nextPhotoFrame.classList.add('nextPhoto');
+ 
+  // Get the new current photo
+  currentPhoto = currentPhotoFrame.firstElementChild;
+  
+  // Remember the old PhotoState object
+  var nextPhotoState = photoState;
+  
+  // Create a new photo state
+  photoState = new PhotoState(currentPhotoWidth, currentPhotoHeight);
+  photoState.setPhotoStyles(currentPhoto);
+  photoState.setFrameStyles(currentPhotoFrame,
+                            previousPhotoFrame,
+                            nextPhotoFrame);
+
+  // When the transition is done, restore the previous photo state
+  nextPhotoFrame.addEventListener('transitionend', function done(e) {
+    // Recompute and reposition the photo that just transitioned off the screen
+    nextPhotoState.reset();
+    nextPhotoState.setPhotoStyles(nextPhotoFrame.firstElementChild);
+
+    // FIXME: I want a jquery-style once() utility for auto removal
+    nextPhotoFrame.removeEventListener('transitionend', done);
+  });
 }
 
 function startSlideshow() {
@@ -399,4 +519,146 @@ function continueSlideshow() {
     slideshowTimer = null;
     stopSlideshow();
   }
+}
+
+/**
+ * This class encapsulates the zooming and panning functionality for
+ * the gallery app and maintains the current size and position of the 
+ * currently displayed photo as well as the transition state (if any)
+ * between photos.
+ */
+function PhotoState(width,height) {
+  // Remember the actual size of the photograph
+  this.photoWidth = width;
+  this.photoHeight = height;
+
+  // Do all the calculations
+  this.reset();
+}
+
+// Compute the default size and position of the photo
+PhotoState.prototype.reset = function() {
+  // And the actual size of the window 
+  // Create a new Tranform when we get a resize or orientationchange event
+  this.screenWidth = window.innerWidth;
+  this.screenHeight = window.innerHeight;
+
+  // Figure out the scale to make the photo fit in the window
+  var scalex = this.screenWidth / this.photoWidth;
+  var scaley = this.screenHeight / this.photoHeight;
+  this.baseScale = Math.min(Math.min(scalex, scaley), 1);
+  this.scale = 1;
+
+  // Compute photo size and position at that scale
+  this.width = Math.floor(this.photoWidth * this.baseScale);
+  this.height = Math.floor(this.photoHeight * this.baseScale);
+  this.left = (this.screenWidth - this.width)/2;
+  this.top = (this.screenHeight - this.height)/2;
+
+  // We start off with no swipe from left to right
+  this.swipe = 0;
+}
+
+// Zoom in by the specified factor, adjusting the pan amount so that
+// the point (x,y) stays at the same spot on the screen. Assume that zoom
+// gestures can't be done in the middle of swipes, so if we're calling 
+// zoom, then the swipe property will be 0.
+PhotoState.prototype.zoom = function(scale, x, y) {
+  this.scale *= scale;
+
+  // Never zoom in farther than 2x the native resolution of the image
+  if (this.baseScale * this.scale > 2) {
+    this.scale = 2/this.baseScale;
+  }
+  // And never zoom out to make the image smaller than it would normally be
+  else if (this.scale < 1) {
+    this.scale = 1;
+  }
+
+  this.width = Math.floor(this.photoWidth * this.baseScale * this.scale);
+  this.height = Math.floor(this.photoHeight * this.baseScale * this.scale);
+
+  // Adjust with a pan. This is to keep the midpoint of the gesture in place.
+  // XXX: I'm not sure my math is right here.
+  this.pan(Math.floor((1-scale) * (x - this.left)),
+           Math.floor((1-scale) * (y - this.top)));
+
+  // And if the pan caused a sideways swipe, remove that
+  this.swipe = 0;
+
+  // XXX: When zooming out, we can end up with blank space on the
+  // screen and big parts of the image off the screen, so we've got
+  // to adjust to make sure we don't have blank areas.
+
+
+};
+
+PhotoState.prototype.pan = function(dx, dy) {
+  // Handle panning in the y direction first, since it is easier.
+  // Don't pan in the y direction if we already fit on the screen
+  if (this.height > this.screenHeight) {
+    this.top += dy;
+
+    // Don't let the top of the photo be below the top of the screen
+    if (this.top > 0)
+      this.top = 0;
+
+    // bottom of photo shouldn't be above the bottom of screen
+    if (this.top + this.height < this.screenHeight) 
+      this.top = this.screenHeight - this.height;
+  }
+
+  // Now handle the X dimension. In this case, we have to handle panning within
+  // a zoomed image, and swiping to transition from one photo to the next
+  // or previous.
+  if (this.width <= this.screenWidth) {
+    // In this case, the photo isn't zoomed in, so we're just doing swiping
+    this.swipe += dx;
+  }
+  else {
+    if (this.swipe === 0) {
+      this.left += dx;
+      
+      // If this would take the left edge of the photo past the 
+      // left edge of the screen, then we've got to do a swipe
+      if (this.left > 0) {
+        this.swipe += this.left;
+        this.left = 0;
+      }
+      
+      // Or, if this would take the right edge of the photo past the
+      // right edge of the screen, then we've got to swipe the other way
+      if (this.left + this.width < this.screenWidth) {
+        this.swipe += this.left + this.width - this.screenWidth;
+        this.left = this.screenWidth - this.width;
+      }
+    }
+    else if (this.swipe > 0) {
+      this.swipe += dx;
+      if (this.swipe < 0) {
+        this.left += this.swipe;
+        this.swipe = 0;
+      }
+    }
+    else if (this.swipe < 0) {
+      this.swipe += dx;
+      if (this.swipe > 0) {
+        this.left += this.swipe;
+        this.swipe = 0;
+      }
+    }
+  }
+};
+
+PhotoState.prototype.setPhotoStyles = function(img) {
+  img.style.width = this.width + "px";
+  img.style.height = this.height + "px";
+  img.style.top = this.top + "px";
+  img.style.left = this.left + "px";
+};
+
+PhotoState.prototype.setFrameStyles = function(/*frames...*/) {
+  var translate = 'translate(' + this.swipe + 'px)';
+  for(var i = 0; i < arguments.length; i++) 
+    arguments[i].style.MozTransform = translate;
 }

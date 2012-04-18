@@ -96,6 +96,7 @@ header h1 {
   height: 100%;
   padding: 0;
   margin: 0;
+  overflow: hidden;
 }
 
 div.currentPhoto {
@@ -122,7 +123,7 @@ div.previousPhoto {
 }
 
 .photoFrame > img {
-  width: 100%;
+  position: relative;
   pointer-events: none;
   -moz-user-select: none;
 }
