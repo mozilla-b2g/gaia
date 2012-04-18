@@ -20,6 +20,30 @@
 
   worker.use(TestAgent.BrowserWorker.TestUi);
 
+  worker.addTestsProcessor(function(tests){
+    var domain = window.location.host.split('.'),
+        checkDomain = false;
+
+    if(domain.length > 1){
+      checkDomain = true;
+      domain = '/' + domain[0];
+    }
+
+    if(!checkDomain){
+      return tests;
+    }
+
+    return tests.map(function(item){
+      if(/^\/test\//.test(item)){
+        return item;
+      } else {
+        if(item.indexOf(domain) === 0){
+          return item.replace(domain, '');
+        }
+      }
+    });
+  });
+
   worker.on({
 
     'sandbox': function() {
@@ -27,6 +51,9 @@
       /* expect.js
       worker.loader.require('https://raw.github.com/LearnBoost/expect.js/master/expect.js');      
       */
+    },
+
+    'run tests': function(){
     },
 
     'open': function(){

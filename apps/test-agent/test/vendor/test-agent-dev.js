@@ -4440,7 +4440,7 @@ window.mocha = require('mocha');
       var iframe;
       if(!this._element){
         iframe = this._element = window.document.createElement('iframe');
-        iframe.src = this.url;
+        iframe.src = this.url + '?time=' + String(Date.now());
       }
       return this._element;
     },
@@ -4882,6 +4882,7 @@ window.mocha = require('mocha');
     );
 
 
+    this._testsProcessor = [];
     this.testRunner = options.testRunner;
   };
 
@@ -4933,6 +4934,41 @@ window.mocha = require('mocha');
   };
 
   /**
+   * Adds function which will reduce the test files given to runTests.
+   * Each filter much return an array of tests.
+   *
+   *    worker.addTestsProcessor(function(tests){
+   *      return tests;
+   *    });
+   *
+   * @param {Function} callback
+   * @chainable
+   */
+  proto.addTestsProcessor = function(callback){
+    this._testsProcessor.push(callback);
+  };
+
+
+  /**
+   * Runs tests through all testsProcessor reducers.
+   *
+   *
+   * @param {Array} tests
+   */
+  proto._processTests = function(tests){
+    var result = tests,
+        reducers = this._testsProcessor,
+        length = reducers.length,
+        i = 0;
+
+    for(; i < length; i++){
+      result = reducers[i](result);
+    }
+
+    return result;
+  };
+
+  /**
    * Builds sandbox executes the .testRunner function.
    *
    * @param {Array} tests
@@ -4946,7 +4982,7 @@ window.mocha = require('mocha');
     }
 
     this.createSandbox(function(){
-      self.testRunner(self, tests, done);
+      self.testRunner(self, self._processTests(tests), done);
     });
   };
 
