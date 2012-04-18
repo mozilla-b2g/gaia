@@ -77,7 +77,7 @@ input, button, textarea {
 	min-height: 35px;
 	overflow: hidden;
 	-moz-box-sizing: border-box;
-    -moz-user-select: none;
+  -moz-user-select: none;
 }
 
 .message-summary-text {

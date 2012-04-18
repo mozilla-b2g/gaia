@@ -7,17 +7,23 @@ const
 	MESSAGES_PER_PAGE = 10,
   PAGES_LENGTH = 5,
   TRANSITION_PADDING = 20,
-  PAGE_TRANSITION_DURATION = 300;
+  PAGE_TRANSITION_DURATION = 300,
+  CACHE_DOM_PAGES = 2,
+  DEFAULT_DIRECTION = 1,
+
+  //simple regexp for parse adresses
+  R_ADRESS_PARTS = /^(?:([\w\s]+) )?<(.+)>$/; 
 
 var mail = {
-	loadMessages: function(success, error){
+	loadMessages: function(interval, success, error){
 		var xhr = new XMLHttpRequest();
 
 		xhr.open('GET', 'fakemsgs.json', true);
 
 		xhr.onload = function(e){
 			try{
-				success && success.call(xhr, JSON.parse(xhr.response));
+        success && success.call(xhr, JSON.parse(xhr.response));
+
 			}catch(e){
 				error && error.call(xhr, e);
 			}
@@ -29,10 +35,73 @@ var mail = {
 
 		xhr.send(null);
 	},
+  loadPage: function(i, callback){
+    mail.loadMessages([i * MESSAGES_PER_PAGE, MESSAGES_PER_PAGE - 1], function(messages){
+      if(!Array.isArray(messages)) return;
+
+      let page = document.createElement('div');
+
+      for(let i = 0, len = Math.min(MESSAGES_PER_PAGE, messages.length); i < len; i++){
+        page.appendChild(mail.messageConstructor(messages[i]));
+      }
+
+      page.classList.add('message-page');
+      page.setAttribute('role', 'rowgroup');
+      page.style.display = 'none';
+
+      mail.pages[i] = page;
+      mail.updatePages();
+      callback && callback(page, messages);
+    });
+  },
 	loadFolder: function(){
 
 	},
-	folder: 'inbox'
+	folder: 'inbox',
+  currentPage: 0,
+  pages: [],
+  defaultDirection: DEFAULT_DIRECTION,
+  messageConstructor: function(data){
+    var message = document.createElement('article'),
+      from = data.from.match(R_ADRESS_PARTS);
+
+    message.setAttribute('role', 'row');
+    message.classList.add('message-summary');
+    let header = message.appendChild(document.createElement('header'));
+    header.classList.add('message-summary-header');
+    let address = header.appendChild(document.createElement('address'));
+    address.classList.add('message-summary-mail');
+    address.textContent = from[1] || from[2];
+    let subject = header.appendChild(document.createElement('h2'));
+    subject.classList.add('message-summary-subject');
+    subject.textContent = data.subject;
+    let summary = message.appendChild(document.createElement('div'));
+    summary.classList.add('message-summary-text');
+    summary.textContent = data.body.slice(0, Math.min(data.body.length, 200));
+
+    message.dataset.index = 0;
+
+    return message;
+  },
+  updatePages: function(page, dir){
+    var tmp,
+      pages = mail.pages;
+
+    page || (page = mail.currentPage);
+    dir || (page = mail.defaultDirection);
+
+    if(tmp = pages[page + dir * -1]){
+      tmp.style.display = 'block';
+      tmp.style.MozTransform = Transform.translate((window.innerWidth + TRANSITION_PADDING) * dir * -1);
+    }
+
+    if(tmp = pages[page + dir]){
+      if(!tmp.offsetWidth && !tmp.offsetHeight)
+        nodes.messages.appendChild(tmp).style.display = 'block';
+
+      tmp.style.MozTransform = Transform.translate((window.innerWidth + TRANSITION_PADDING) * dir);
+    }
+  }
 };
 
 var nodes = {},
@@ -41,7 +110,8 @@ var nodes = {},
 		var fn = function(){
 			if(loading.done) return null;
 
-				loading.splice(loading.indexOf(fn), 1);
+        let i = loading.indexOf(fn);
+				i !== -1 && loading.splice(i, 1);
 
 				let result = callback.apply(this, arguments);
 
@@ -60,8 +130,25 @@ var nodes = {},
 		return fn;
 	};
 
-mail.loadMessages(load(function(data){
-	console.log(data);
+//temporary way
+//by timer listen when page changes
+//and load new from related place
+
+setInterval(function(){
+  var tmp;
+
+  if(!mail.pages[tmp = mail.currentPage - 1] && tmp >= 0){
+    mail.loadPage(mail.currentPage - 1);
+  }
+
+  if(!mail.pages[tmp = mail.currentPage + 1] && tmp < PAGES_LENGTH){
+    mail.loadPage(mail.currentPage + 1);
+  }
+
+}, 100);
+
+mail.loadPage(0, load(function(page, messages){
+
 }));
 
 document.addEventListener('DOMContentLoaded', load(function(){
@@ -80,69 +167,56 @@ document.addEventListener('DOMContentLoaded', load(function(){
   });
 }), true);
 
-window.addEventListener('localized', load(function(){
+/*window.addEventListener('localized', load(function(){
   var html = document.documentElement,
     lang = document.mozL10n.language;
 
   html.setAttribute('lang', lang.code);
   html.setAttribute('dir', lang.direction);
 
+  if(lang.direction === 'rtl'){
+    mail.defaultDirection = -mail.defaultDirection;
+  }
+
   document.body.classList.remove('hidden');
 }));
-
+*/
 
 document.addEventListener('apploaded', function(){
   var messagePage = nodes.messages.querySelector('.message-page'),
-    pages = [],
+    pages = mail.pages,
     currentPage = 0,
     stopTransition = function(){
       for(var i = -1; i < 2; i++){
-        pages[currentPage + i] && Transition.stop(pages[currentPage + i]);
+        pages[mail.currentPage + i] && Transition.stop(pages[mail.currentPage + i]);
       }
-    };
+    },
+    lastDir = DEFAULT_DIRECTION,
+    updatePages = mail.updatePages;
 
-  var updatePages = function(page){
-    var tmp;
-
-    if(tmp = pages[page - 1]){
-      tmp.style.display = 'block';
-      tmp.style.MozTransform = Transform.translate(-window.innerWidth - TRANSITION_PADDING);
-    }
-
-    if(tmp = pages[page + 1]){
-
-      if(!tmp.offsetWidth && !tmp.offsetHeight)
-        nodes.messages.appendChild(tmp).style.display = 'block';
-
-      tmp.style.MozTransform = Transform.translate(window.innerWidth + TRANSITION_PADDING);
-    }
-
-  };
-
-  nodes.messages.removeChild(messagePage);
+  /*nodes.messages.removeChild(messagePage);
 
   for(let i = PAGES_LENGTH; i--;){
     pages.push(messagePage.cloneNode(true));
-  }
-
+  }*/
   nodes.messages.zIndex = 0;
   pages.forEach(function(page, i){
     page.style.zIndex = pages.length - i;
     page.style.display = 'none';
   });
 
-  nodes.messages.appendChild(pages[currentPage]).style.display = 'block';
+  nodes.messages.appendChild(pages[mail.currentPage]).style.display = 'block';
 
-  updatePages(currentPage);
+  //updatePages(mail.currentPage - 1);
 
   window.addEventListener('resize', function(){
-    updatePages(currentPage);
+    updatePages(mail.currentPage, lastDir);
   }, true);
 
 	var swipeMove = function(e){
     //if(e.detail === SWIPE_HORIZONTAL){
     var local = e.clientX - swipeStart,
-      dir = local < 0 ? 1 : -1,
+      dir = lastDir = local < 0 ? 1 : -1,
       tmp;
 
     offset = Math.max(Math.min(local, window.innerWidth + TRANSITION_PADDING), -window.innerWidth - TRANSITION_PADDING);
@@ -151,9 +225,9 @@ document.addEventListener('apploaded', function(){
       translate: offset
     });
 
-    pages[currentPage].style.MozTransform = transform;
+    pages[mail.currentPage].style.MozTransform = transform;
 
-    if(tmp = pages[currentPage + dir]){
+    if(tmp = pages[mail.currentPage + dir]){
       tmp.style.MozTransform = new Transform({
         translate: offset + window.innerWidth * dir + TRANSITION_PADDING * dir
       });
@@ -162,33 +236,41 @@ document.addEventListener('apploaded', function(){
     swipeStart,
     offset = 0,
     swipeEnd = function(e){
-      var dir,
-          next,
-          factor;
-
-      dir = offset < 0 ? 1 : -1;
-      next = currentPage + (Math.abs(offset) > window.innerWidth / 4 ? dir : 0);
-      factor = (TRANSITION_PADDING + window.innerWidth - Math.abs(offset)) / (window.innerWidth + TRANSITION_PADDING);
+      var dir = offset < 0 ? 1 : -1,
+        next = mail.currentPage + (Math.abs(offset) > window.innerWidth / 4 ? dir : 0),
+        prev = mail.currentPage + (-dir * 2),
+        factor = (TRANSITION_PADDING + window.innerWidth - Math.abs(offset)) / (window.innerWidth + TRANSITION_PADDING);
 
       stopTransition();
 
-      Transition.run(pages[next] || pages[currentPage], {
+      Transition.run(pages[next] || pages[mail.currentPage], {
         MozTransform: 'translate(0)'
       }, {
         duration: factor * PAGE_TRANSITION_DURATION
       }, function(){
-        updatePages(currentPage);
+        updatePages(mail.currentPage, dir);
       });
 
-      if(next !== currentPage && pages[next]){
-        Transition.run(pages[currentPage], {
+      if(next !== mail.currentPage && pages[next]){
+        Transition.run(pages[mail.currentPage], {
           MozTransform: Transform.translate((window.innerWidth + TRANSITION_PADDING) * dir * -1)
         }, {
           duration: factor * PAGE_TRANSITION_DURATION
+        }, function(){
+          /*var tmp;
+          if((tmp = pages[prev]) && tmp.parentNode){
+            tmp.parentNode.removeChild(tmp);
+          }*/
         });
-        currentPage = next;
+
+        let clean = pages[mail.currentPage + CACHE_DOM_PAGES * dir * -1];
+        if(clean && clean.parentNode){
+          clean.parentNode.removeChild(clean);
+        }
+
+        mail.currentPage = next;
       }else{
-        let tmp = pages[currentPage + dir];
+        let tmp = pages[mail.currentPage + dir];
         tmp && Transition.run(tmp, {
           MozTransform: Transform.translate((window.innerWidth + TRANSITION_PADDING) * dir)
         }, {
@@ -199,13 +281,15 @@ document.addEventListener('apploaded', function(){
       document.removeEventListener('mousemove', swipeMove);
       document.removeEventListener('swipeend', swipeEnd);
     };
+
 	nodes.main.addEventListener('swipestart', function(e){
     //Transition.stop(pages[currentPage]);
     //console.log(e.detail, SWIPE_HORIZONTAL);
 		if(e.detail & SWIPE_HORIZONTAL){
       stopTransition();
+      updatePages(mail.currentPage, lastDir);
       swipeStart = e.clientX;
-      pages[currentPage].style.MozTransition = '';
+      pages[mail.currentPage].style.MozTransition = '';
       document.addEventListener('mousemove', swipeMove);
       document.addEventListener('swipeend', swipeEnd);
     }

@@ -14,9 +14,10 @@ const
 
 document.addEventListener('mousedown', function(e){
   //console.log(e.clientX);
-  var upListener = function(e){
-      if(swipeMap){
+  var target = e.target,
+    upListener = function(e){
 
+      if(swipeMap){
         let swipe = new MouseEvent('swipeend', e);
         e.target.dispatchEvent(swipe);
 
@@ -29,6 +30,7 @@ document.addEventListener('mousedown', function(e){
         }
 
       }
+
       //console.log('up listener');
       document.removeEventListener('mouseup', upListener);
       document.removeEventListener('mousemove', moveListener);
@@ -38,6 +40,9 @@ document.addEventListener('mousedown', function(e){
       swipeMap = 0;
     },
     moveListener = function(e){
+
+      if(target !== e.target && e.target !== document  && !target.contains(e.target)) return;
+
       if(!(swipeMap & SWIPE_HORIZONTAL) && Math.abs(startX - e.clientX) > SWIPE_OFFSET){
        // console.log('in');
         swipeMap |= SWIPE_HORIZONTAL;
