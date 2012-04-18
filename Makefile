@@ -137,7 +137,7 @@ XULRUNNER_DOWNLOAD=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/11.
 XULRUNNER=./xulrunner/run-mozilla.sh
 XPCSHELL=./xulrunner/xpcshell
 
-install-xulrunner:
+install-xulrunner :
 	test -d xulrunner || ($(DOWNLOAD_CMD) $(XULRUNNER_DOWNLOAD) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2)
 endif
 
@@ -184,6 +184,10 @@ tests: manifests offline
 	echo "Checking the injected Gaia..."
 	test -L $(INJECTED_GAIA) || ln -s $(CURDIR) $(INJECTED_GAIA)
 	TEST_PATH=$(TEST_PATH) make -C $(MOZ_OBJDIR) mochitest-browser-chrome EXTRA_TEST_ARGS="--browser-arg=\"\" --extra-profile-file=$(CURDIR)/profile/webapps --extra-profile-file=$(CURDIR)/profile/OfflineCache --extra-profile-file=$(CURDIR)/profile/user.js"
+
+.PHONY: test-agent-server
+test-agent-server:
+	@sh ./tools/test-agent/start-server.sh
 
 .PHONY: marionette
 marionette:
