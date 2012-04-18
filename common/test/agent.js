@@ -13,7 +13,7 @@
   worker.use(TestAgent.BrowserWorker.MochaDriver, {
     ui: 'tdd',
     /* path to mocha */
-    mochaUrl: './vendor/mocha/mocha.js',
+    mochaUrl: CommonResourceLoader.url('/common/vendor/mocha/mocha.js'),
     /* path to your test helper this is required, but it can be a blank file if you like */
     testHelperUrl: './helper.js'
   });
@@ -70,3 +70,4 @@
   worker.start();
 
 }(this));
+

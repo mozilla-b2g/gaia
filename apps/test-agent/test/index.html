@@ -2,9 +2,35 @@
 <html>
 <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-
   <title>Serve the tests</title>
-  <link rel="stylesheet" href="./style/style.css" type="text/css" charset="utf-8">
+
+  <script type="text/javascript" charset="utf-8">
+  (function(window){
+    var Loader = window.CommonResourceLoader = {},
+        host = document.location.host,
+        domain = host.replace(/(^[\w\d-]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+
+    Loader.domain = document.location.protocol + '//' + domain;
+    Loader.url = function(url){
+      return this.domain + url;
+    }
+
+    Loader.script = function(url, doc){
+      doc = doc || document;
+      doc.write('<script src="' + this.url(url) + '"><\/script>');
+      return this;
+    };
+
+    Loader.stylesheet = function(url, doc){
+      doc = doc || document;
+      doc.write('<link rel="stylesheet" type="text/css" href="' + this.url(url) + '">');
+      return this;
+    };
+  }(this));
+
+  CommonResourceLoader.
+    stylesheet('/common/test/style/style.css');
+  </script>
 </head>
 <body>
 
@@ -12,9 +38,11 @@
 <div id="test-agent-ui">
 </div>
 
-<!-- Load the bare minimum to get the ui and runner working -->
-<script src="./vendor/test-agent-dev.js" type="text/javascript" charset="utf-8"></script>
-<script src="./agent.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript" charset="utf-8">
+CommonResourceLoader.
+  script('/common/vendor/test-agent/test-agent-dev.js').
+  script('/common/test/agent.js');
+</script>
 </body>
 </html>
 
