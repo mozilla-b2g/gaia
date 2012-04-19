@@ -15,31 +15,57 @@
 		<script type="application/javascript;version=1.8" src="js/transitions.js"></script>
 		<script type="application/javascript;version=1.8" src="js/mail.js"></script>
 	</head>
-<body >
-	<header class="top">
-		<div class="userbar">
-			<a href="#account" class="account" id="account">
-				<div><span>nekr.fabula@gmail.com</span></div>
-			</a>
-			<a href="#change-folder" class="folder" id="folder">
-				<div><span>Inbox</span>&nbsp;<span>10/30</span></div>
-			</a>
-		</div>
-		<div class="userbar-menu">
+<body>
+	<div class="hidden mail-screen" id="mail-screen">
+		<header class="top">
+			<div class="userbar">
+				<a href="#account" class="account" id="account">
+					<!--<div><span></span></div>-->
+				</a>
+				<a href="#change-folder" class="folder" id="folder">
+					<div><span>Inbox</span>&nbsp;<span>10/30</span></div>
+				</a>
+			</div>
+			<div class="userbar-menu">
 
+			</div>
+		</header>
+		<div class="main" id="main">
+			<section class="messages" id="messages">
+			</section>
 		</div>
-	</header>
-	<div class="main" id="main">
-		<section class="messages" id="messages">
-		</section>
+		<div id="actions" class="actions">
+			<a href="#write" class="action">
+				Compose
+			</a>
+			<a href="#filter" class="action">
+				Filter
+			</a>
+		</div>
 	</div>
-	<div id="actions" class="actions">
-		<a href="#write" class="action">
-			Compose
-		</a>
-		<a href="#filter" class="action">
-			Filter
-		</a>
+	<div class="first-screen" id="first-screen">
+
+		<header class="first-screen-header">
+			<h1>Gaia Mail Client</h1>
+		</header>
+
+		<form class="login-form" id="login-form">
+
+			<header class="login-header">
+			</header>
+
+			<fieldset class="login-fieldset">
+				<p><input type="text" name="account" placeholder="Enter your account">
+				<p><input type="password" name="password" placeholder="Enter your password">
+				<p><button type="submit" class="login-button">Log in</button>
+			</fieldset>
+
+		</form>
+
+
+		<footer class="first-screen-footer">
+			<button id="add-account-button" class="add-account-button">Add account</button>
+		</footer>
 	</div>
 </body>
 </html>

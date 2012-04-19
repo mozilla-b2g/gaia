@@ -26,7 +26,7 @@ document.addEventListener('mousedown', function(e){
         waitTap();
 
         let (tapend = new MouseEvent('tapend', e)){
-          e.target.dispatchEvent(tapend);
+          target.dispatchEvent(tapend);
         }
 
       }
@@ -52,7 +52,7 @@ document.addEventListener('mousedown', function(e){
         });
         //console.log(e.clientX);
         let swipe = new MouseEvent('swipestart', e);
-        e.target.dispatchEvent(swipe);
+        target.dispatchEvent(swipe);
        // console.log(swipeMap + 'a');
       }
 
@@ -63,7 +63,7 @@ document.addEventListener('mousedown', function(e){
           configurable: true
         });
         let swipe = new MouseEvent('swipestart', e);
-        e.target.dispatchEvent(swipe);
+        target.dispatchEvent(swipe);
       }
 
       latestEvent = e;
