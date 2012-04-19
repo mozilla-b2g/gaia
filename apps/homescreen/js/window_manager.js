@@ -663,6 +663,7 @@ var WindowManager = (function() {
   // Return the object that holds the public API
   return {
     launch: launch,
+    kill: stop,
     getDisplayedApp: getDisplayedApp,
     getAppFrame: function(origin) {
       if (isRunning(origin))
