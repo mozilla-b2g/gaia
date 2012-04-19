@@ -593,65 +593,98 @@ function PhotoState(width,height) {
 
 // Compute the default size and position of the photo
 PhotoState.prototype.reset = function() {
-  // And the actual size of the window 
-  // Create a new Tranform when we get a resize or orientationchange event
-  this.screenWidth = window.innerWidth;
-  this.screenHeight = window.innerHeight;
+  // Store the display space we have for photos
+  // call reset() when we get a resize or orientationchange event
+  this.viewportWidth = photos.offsetWidth;
+  this.viewportHeight = photos.offsetHeight;
 
   // Figure out the scale to make the photo fit in the window
-  var scalex = this.screenWidth / this.photoWidth;
-  var scaley = this.screenHeight / this.photoHeight;
+  var scalex = this.viewportWidth / this.photoWidth;
+  var scaley = this.viewportHeight / this.photoHeight;
   this.baseScale = Math.min(Math.min(scalex, scaley), 1);
   this.scale = 1;
 
   // Compute photo size and position at that scale
   this.width = Math.floor(this.photoWidth * this.baseScale);
   this.height = Math.floor(this.photoHeight * this.baseScale);
-  this.left = (this.screenWidth - this.width)/2;
-  this.top = (this.screenHeight - this.height)/2;
+  this.left = (this.viewportWidth - this.width)/2;
+  this.top = (this.viewportHeight - this.height)/2;
 
   // We start off with no swipe from left to right
   this.swipe = 0;
 }
 
 // Zoom in by the specified factor, adjusting the pan amount so that
-// the point (x,y) stays at the same spot on the screen. Assume that zoom
-// gestures can't be done in the middle of swipes, so if we're calling 
-// zoom, then the swipe property will be 0.
-PhotoState.prototype.zoom = function(scale, x, y) {
-  this.scale *= scale;
+// the image pixels at (centerX, centerY) remain at that position.
+// Assume that zoom gestures can't be done in the middle of swipes, so
+// if we're calling zoom, then the swipe property will be 0.
+PhotoState.prototype.zoom = function(scale, centerX, centerY) {
 
   // Never zoom in farther than 2x the native resolution of the image
-  if (this.baseScale * this.scale > 2) {
-    this.scale = 2/this.baseScale;
+  if (this.baseScale * this.scale * scale > 2) {
+    scale = 2/(this.baseScale*this.scale)
   }
   // And never zoom out to make the image smaller than it would normally be
-  else if (this.scale < 1) {
-    this.scale = 1;
+  else if (this.scale * scale < 1) {
+    scale = 1/this.scale;
   }
 
+  this.scale = this.scale * scale;
+
+  // Change the size of the photo
   this.width = Math.floor(this.photoWidth * this.baseScale * this.scale);
   this.height = Math.floor(this.photoHeight * this.baseScale * this.scale);
 
-  // Adjust with a pan. This is to keep the midpoint of the gesture in place.
-  // XXX: I'm not sure my math is right here.
-  this.pan(Math.floor((1-scale) * (x - this.left)),
-           Math.floor((1-scale) * (y - this.top)));
+  // centerX and centerY are in viewport coordinates.
+  // These are the photo coordinates displayed at that point in the viewport
+  var photoX = centerX - this.left;
+  var photoY = centerY - this.top;
 
-  // And if the pan caused a sideways swipe, remove that
-  this.swipe = 0;
+  // After zooming, these are the new photo coordinates.
+  // Note we just use the relative scale amount here, not this.scale
+  var photoX = Math.floor(photoX * scale);
+  var photoY = Math.floor(photoY * scale);
 
-  // XXX: When zooming out, we can end up with blank space on the
-  // screen and big parts of the image off the screen, so we've got
-  // to adjust to make sure we don't have blank areas.
+  // To keep that point still, here are the new left and top values we need
+  this.left = centerX - photoX;
+  this.top =  centerY - photoY;
 
+  // Now make sure we didn't pan too much: If the image fits on the
+  // screen, center it. If the image is bigger than the screen, then
+  // make sure we haven't gone past any edges
+  if (this.width <= this.viewportWidth) {
+    this.left = (this.viewportWidth - this.width)/2;
+  }
+  else {
+    // Don't let the left of the photo be past the left edge of the screen
+    if (this.left > 0)
+      this.left = 0;
 
+    // Right of photo shouldn't be to the left of the right edge
+    if (this.left + this.width < this.viewportWidth) {
+      this.left = this.viewportWidth - this.width;
+    }
+  }
+
+  if (this.height <= this.viewportHeight) {
+    this.top = (this.viewportHeight - this.height)/2;
+  }
+  else {
+    // Don't let the top of the photo be below the top of the screen
+    if (this.top > 0)
+      this.top = 0;
+
+    // bottom of photo shouldn't be above the bottom of screen
+    if (this.top + this.height < this.viewportHeight) {
+      this.top = this.viewportHeight - this.height;
+    }
+  }
 };
 
 PhotoState.prototype.pan = function(dx, dy) {
   // Handle panning in the y direction first, since it is easier.
   // Don't pan in the y direction if we already fit on the screen
-  if (this.height > this.screenHeight) {
+  if (this.height > this.viewportHeight) {
     this.top += dy;
 
     // Don't let the top of the photo be below the top of the screen
@@ -659,14 +692,14 @@ PhotoState.prototype.pan = function(dx, dy) {
       this.top = 0;
 
     // bottom of photo shouldn't be above the bottom of screen
-    if (this.top + this.height < this.screenHeight) 
-      this.top = this.screenHeight - this.height;
+    if (this.top + this.height < this.viewportHeight) 
+      this.top = this.viewportHeight - this.height;
   }
 
   // Now handle the X dimension. In this case, we have to handle panning within
   // a zoomed image, and swiping to transition from one photo to the next
   // or previous.
-  if (this.width <= this.screenWidth) {
+  if (this.width <= this.viewportWidth) {
     // In this case, the photo isn't zoomed in, so we're just doing swiping
     this.swipe += dx;
   }
@@ -683,9 +716,9 @@ PhotoState.prototype.pan = function(dx, dy) {
       
       // Or, if this would take the right edge of the photo past the
       // right edge of the screen, then we've got to swipe the other way
-      if (this.left + this.width < this.screenWidth) {
-        this.swipe += this.left + this.width - this.screenWidth;
-        this.left = this.screenWidth - this.width;
+      if (this.left + this.width < this.viewportWidth) {
+        this.swipe += this.left + this.width - this.viewportWidth;
+        this.left = this.viewportWidth - this.width;
       }
     }
     else if (this.swipe > 0) {

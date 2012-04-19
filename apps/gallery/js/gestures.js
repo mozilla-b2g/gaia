@@ -128,7 +128,10 @@ var Gestures = (function() {
         if (j == touches.length) // It wasn't already in the array
           touches.push(t);       // So add it as a new touch
       }
-      triggerEvent(detector.touchesChanged(touches));
+      var result = detector.touchesChanged(touches);
+      if (result)
+        e.preventDefault();
+      triggerEvent(result);
     }
 
     function handleTouchMove(e) {
@@ -140,7 +143,10 @@ var Gestures = (function() {
         }
       }
 
-      triggerEvent(detector.touchesChanged(touches));
+      var result = detector.touchesChanged(touches);
+      if (result)
+        e.preventDefault();
+      triggerEvent(result);
     }
 
     function handleTouchEnd(e) {
@@ -153,7 +159,10 @@ var Gestures = (function() {
           }
         }
       }
-      triggerEvent(detector.touchesChanged(touches));
+      var result = detector.touchesChanged(touches);
+      if (result)
+        e.preventDefault();
+      triggerEvent(result);
     }
 
     function handleTouchCancel(e) {
@@ -249,6 +258,16 @@ Gestures.addDetector("transform", (function() {
         this.initialDistance = this.lastDistance = distanceBetween(touches);
         this.initialAngle = this.lastAngle = angleBetween(touches);
         this.initialMidpoint = this.lastMidpoint = midpointBetween(touches);
+
+        // Remember the midpoint between the two touches using all
+        // three coordinate systems
+        this.screenX = Math.floor((touches[0].screenX + touches[1].screenX)/2);
+        this.screenY = Math.floor((touches[0].screenY + touches[1].screenY)/2);
+        this.pageX = Math.floor((touches[0].pageX + touches[1].pageX)/2);
+        this.pageY = Math.floor((touches[0].pageY + touches[1].pageY)/2);
+        this.clientX = Math.floor((touches[0].clientX + touches[1].clientX)/2);
+        this.clientY = Math.floor((touches[0].clientY + touches[1].clientY)/2);
+
         return START; // trigger gesture start
       }
       // Return undefined to trigger no event
@@ -340,12 +359,16 @@ Gestures.addDetector("transform", (function() {
           // The following 6 properties are the same as the ones in a Touch
           // object, but they specify the midpoint of the two touches. Clients
           // might uses these as the point to rotate around or zoom in on.
-          screenX: (touches[0].screenX + touches[1].screenX)/2,
-          screenY: (touches[0].screenY + touches[1].screenY)/2,
-          pageX: (touches[0].pageX + touches[1].pageX)/2,
-          pageY: (touches[0].pageY + touches[1].pageY)/2,
-          clientX: (touches[0].clientX + touches[1].clientX)/2,
-          clientY: (touches[0].clientY + touches[1].clientY)/2,
+          // Note that these are the initial midpoint and do not change as
+          // the gesture continues. This is because pinch gestures are often
+          // made by moving just one finger, but we don't want the point
+          // we're zooming about to drift.
+          screenX: this.screenX,
+          screenY: this.screenY,
+          pageX: this.pageX,
+          pageY: this.pageY,
+          clientX: this.clientX,
+          clientY: this.clientY
         }
 
         this.lastDistance = newDistance;
