@@ -41,7 +41,7 @@ body {
   border-top: solid 2px #a3a3a3;
 }
 
-#address-bar {
+#url-bar {
   -moz-box-flex: 1;
   display: -moz-box;
   -moz-box-orient: horizontal;
@@ -59,7 +59,7 @@ body {
   font-weight: 600;
 }
 
-#url-bar {
+#url-input {
   font-family: 'Open Sans';
   font-size: 18px;
   height: 44px;
@@ -68,11 +68,11 @@ body {
   border: none;
 }
 
-#url-bar:invalid {
+#url-input:invalid {
   box-shadow: none;
 }
 
-#address-bar.loading {
+#url-bar.loading {
   background-image: url('images/loading.gif');
 }
 
