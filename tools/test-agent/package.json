@@ -1,0 +1,8 @@
+{
+  "name": "gaia-test-agent",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "test-agent": "0.0.3"
+  }
+}
