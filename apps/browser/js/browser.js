@@ -3,68 +3,34 @@
 
 var Browser = {
 
-  get backButton() {
-    delete this.backButton;
-    return this.backButton =
-      document.getElementById('back-button');
-  },
-
-  get addressbar() {
-    delete this.addressbar;
-    return this.addressbar = document.getElementById('address-bar');
-  },
-
-  get urlbar() {
-    delete this.urlbar;
-    return this.urlbar = document.getElementById('url-bar');
-  },
-
-  /* Browser content */
-  get content() {
-    delete this.content;
-    return this.content = document.getElementById('browser-content');
-  },
-
-  get menu() {
-    delete this.menu;
-    return this.menu = document.getElementById('browser-menu');
-  },
-
-  get shade() {
-    delete this.shade;
-    return this.shade = document.getElementById('shade');
-  },
-
-  /* Menu button coming back soon
-  get menuButton() {
-    delete this.menuButton;
-    return this.menuButton = document.getElementById('menu-button');
-  },*/
-
-  get goButton() {
-    delete this.goButton;
-    return this.goButton = document.getElementById('go-button');
-  },
-
-  get forwardButton() {
-    delete this.forwardButton;
-    return this.forwardButton = document.getElementById('forward-button');
-  },
-
   currentTitle: '',
 
   currentUrl: '',
 
+  goIsRefresh: false,
+
   init: function browser_init() {
+    // Assign UI elements to variables
+    this.addressBar = document.getElementById('address-bar');
+    this.urlBar = document.getElementById('url-bar');
+    this.goButton = document.getElementById('go-button');
+    this.content = document.getElementById('browser-content');
+    this.backButton = document.getElementById('back-button');
+    this.forwardButton = document.getElementById('forward-button');
+    // Browser menu coming back soon
+    //this.shade = document.getElementById('shade');
+    //this.menu = document.getElementById('browser-menu');
+    //this.menuButton = document.getElementById('menu-button');
+
+    // Add event listeners
     this.backButton.addEventListener('click', this.goBack.bind(this));
-    /* Menu button coming back soon
-    this.menuButton.addEventListener('click', this.toggleMenu.bind(this));
-    */
+    // Menu button coming back soon
+    //this.menuButton.addEventListener('click', this.toggleMenu.bind(this));
+    //this.shade.addEventListener('click', this.toggleMenu.bind(this));
     this.goButton.addEventListener('click', this.go.bind(this));
     this.forwardButton.addEventListener('click', this.goForward.bind(this));
-    this.shade.addEventListener('click', this.toggleMenu.bind(this));
-    this.urlbar.addEventListener('focus', this.urlFocus.bind(this));
-    this.urlbar.addEventListener('blur', this.urlBlur.bind(this));
+    this.urlBar.addEventListener('focus', this.urlFocus.bind(this));
+    this.urlBar.addEventListener('blur', this.urlBlur.bind(this));
     window.addEventListener('submit', this);
     window.addEventListener('keyup', this, true);
 
@@ -74,27 +40,19 @@ var Browser = {
       this.content.addEventListener('mozbrowser' + type, this);
     }).bind(this));
 
-    var url = this.urlbar.value;
+    // Load homepage
+    var url = this.urlBar.value;
     this.currentUrl = url;
     this.navigate(url);
     this.updateHistory(url);
   },
 
   handleEvent: function browser_handleEvent(evt) {
-    var urlbar = this.urlbar;
+    var urlBar = this.urlBar;
 
     switch (evt.type) {
       case 'submit':
-        var url = urlbar.value.trim();
-        var protocolRegexp = /^([a-z]+:)(\/\/)?/i;
-        var protocol = protocolRegexp.exec(url);
-        if (!protocol)
-          url = 'http://' + url;
-
-        this.navigate(url);
-        urlbar.value = url;
-        urlbar.blur();
-        evt.preventDefault();
+          this.go(evt);
         break;
 
       case 'keyup':
@@ -107,15 +65,17 @@ var Browser = {
 
       case 'mozbrowserloadstart':
         this.currentTitle = '';
-        urlbar.classList.add('loading');
+        this.addressBar.classList.add('loading');
         break;
 
       case 'mozbrowserloadend':
-        urlbar.classList.remove('loading');
+        this.addressBar.classList.remove('loading');
         if (this.currentTitle)
-          urlbar.value = this.currentTitle;
+          urlBar.value = this.currentTitle;
         else
-          urlbar.value = this.currentUrl;
+          urlBar.value = this.currentUrl;
+        this.goButton.src = 'style/images/refresh.png';
+        this.goIsRefresh = true;
         break;
 
       case 'mozbrowserlocationchange':
@@ -124,8 +84,8 @@ var Browser = {
 
       case 'mozbrowsertitlechange':
         this.currentTitle = evt.detail;
-        if (!this.addressbar.querySelector(':focus'))
-          this.urlbar.value = this.currentTitle;
+        if (!this.addressBar.querySelector(':focus'))
+          urlBar.value = this.currentTitle;
         break;
     }
   },
@@ -134,9 +94,24 @@ var Browser = {
     this.content.setAttribute('src', url);
   },
 
-  go: function browser_go() {
-    var url = this.currentUrl;
-    this.content.setAttribute('src', url);
+  go: function browser_go(evt) {
+    evt.preventDefault();
+    if (this.goIsRefresh) {
+      this.navigate(this.currentUrl);
+    }
+    else {
+      var url = this.urlBar.value.trim();
+      var protocolRegexp = /^([a-z]+:)(\/\/)?/i;
+      var protocol = protocolRegexp.exec(url);
+      if (!protocol)
+        url = 'http://' + url;
+      if (url != this.currentUrl) {
+        this.urlBar.value = url;
+        this.currentUrl = url;
+      }
+      this.navigate(url);
+      this.urlBar.blur();
+    }
   },
 
   goBack: function browser_goBack() {
@@ -147,36 +122,46 @@ var Browser = {
 
   goForward: function browser_goForward() {
     MockHistory.forward();
+    this.backButton.disabled = !MockHistory.backLength();
     this.forwardButton.disabled = !MockHistory.forwardLength();
   },
 
   updateHistory: function browser_updateHistory(url) {
     MockHistory.pushState(null, '', url);
     this.backButton.disabled = !MockHistory.backLength();
-  },
- 
-  locationChange: function browser_locationChange(url) {
-    this.currentUrl = url;
-    this.updateHistory(url);
+    this.forwardButton.disabled = !MockHistory.forwardLength();
   },
 
+  locationChange: function browser_locationChange(url) {
+    if (url != this.currentUrl) {
+      this.currentUrl = url;
+      this.updateHistory(this.currentUrl);
+    }
+  },
+
+  /* Menu coming back soon
   toggleMenu: function browser_toggleMenu() {
     this.menu.classList.toggle('hidden');
     this.shade.classList.toggle('hidden');
-  },
+  },*/
 
   urlFocus: function browser_urlFocus() {
-    this.urlbar.value = this.currentUrl;
-    this.urlbar.select();
-    this.goButton.src = "style/images/go.png";
+    this.urlBar.value = this.currentUrl;
+    this.urlBar.select();
+    this.goButton.src = 'style/images/go.png';
+    this.goIsRefresh = false;
   },
 
   urlBlur: function browser_urlBlur() {
-    if (this.currentTitle)
-      this.urlbar.value = this.currentTitle;
-    else
-      this.urlbar.value = this.currentUrl;
-    this.goButton.src = "style/images/refresh.png";
+    if (this.urlBar.value == this.currentUrl) {
+      if (this.currentTitle)
+        this.urlBar.value = this.currentTitle;
+      this.goButton.src = 'style/images/refresh.png';
+      this.goIsRefresh = true;
+    }
+    else {
+      this.currentUrl = this.urlBar.value;
+    }
   }
 };
 
@@ -197,7 +182,7 @@ var MockHistory = {
   },
 
   forward: function() {
-    if(this.forwardLength() < 1)
+    if (this.forwardLength() < 1)
       return;
     Browser.navigate(this.history[++this.historyIndex]);
   },
