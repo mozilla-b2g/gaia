@@ -26,6 +26,7 @@
     <script src="js/homescreen.js"></script>
     <script src="js/background_service.js"></script>
     <script src="js/request.js"></script>
+    <script src="js/updates.js"></script>
   </head>
   <body class="hidden">
     <div id="screen">
@@ -115,6 +116,26 @@
       </div>
     </div>
 
-    <audio id="ringtone-player" loop hidden></audio>
+ <!-- For requesting updates: see js/updates.js -->
+    <div id="updatesscreen">
+      <div id="updatesdialog">
+        <!-- FIXME: should this dialog include an optional icon? -->
+        <div id="updatesmessage"></div>
+        <button id="updatesnow" data-value="update">Now</button>
+        <button id="updatesdelay" data-value="delay10">Wait 10 minutes</button>
+      </div>
+    </div>
+
+ <!-- For requesting permissions: see js/permissions.js -->
+    <div id="permissionscreen">
+      <div id="permissiondialog">
+        <!-- FIXME: should this dialog include an optional icon? -->
+        <div id="permissionmessage"></div>
+        <button id="permissiongrant" data-value="grant">Grant</button>
+        <button id="permissiondeny" data-value="deny">Deny</button>
+      </div>
+    </div>
+
+   <audio id="ringtone-player" loop hidden></audio>
   </body>
 </html>

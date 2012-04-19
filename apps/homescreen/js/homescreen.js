@@ -1087,6 +1087,45 @@ function AppScreen() {
       requestPermission(_('install', { name: name, origin: app.origin }),
                         function() { sendResponse(e.detail.id, true); },
                         function() { sendResponse(e.detail.id, false); });
+    } else if (e.detail.type == 'updates-request') {
+      requestUpdates(e.detail,
+                     function () { sendUpdate(e.detail.update, true); },
+                     function () { sendUpdate(e.detail.update, false); });
+    } else if (e.detail.type == 'permission-prompt') {
+      permissionPrompt(e.detail,
+                     function () { permissionResponse(e.detail.request, true); },
+                     function () { permissionResponse(e.detail.request, false); });
+    }
+
+    function permissionResponse(request, response) {
+      var event = document.createEvent('CustomEvent');
+      if (response) {
+        event.initCustomEvent('mozContentEvent', true, false, {
+          request: request,
+          type: 'grant-permission',
+        });
+      } else {
+        event.initCustomEvent('mozContentEvent', true, false, {
+          request: request,
+          type: 'deny-permission',
+        });        }
+      window.dispatchEvent(event);
+    }
+
+    function sendUpdate(detail, now) {
+      if (now) {
+        var event = document.createEvent('CustomEvent');
+        event.initCustomEvent('mozContentEvent', true, false, {
+          aUpdate: detail,
+          type: 'updates-now',
+        });
+        window.dispatchEvent(event);
+      } else {
+        window.setTimeout(requestUpdates(e.detail,
+                          function() { sendUpdate(e.detail, true); },
+                          function() { sendUpdate(e.detail, false); }),
+                          10*60*1000);
+      }
     }
 
     // This is how we say yes or no to the request after the user decides
