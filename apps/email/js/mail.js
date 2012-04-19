@@ -101,7 +101,7 @@ var mail = {
       swipeStart,
       offset = 0,
       swipeEnd = function(e){
-        var dir = offset < 0 ? 1 : -1,
+        var dir = (offset < 0 ? 1 : -1) * mail.defaultDirection,
           next = mail.currentPage + (Math.abs(offset) > window.innerWidth / 4 ? dir : 0),
           factor = (TRANSITION_PADDING + window.innerWidth - Math.abs(offset)) / (window.innerWidth + TRANSITION_PADDING);
 
@@ -246,9 +246,9 @@ var mail = {
       pages = mail.pages;
 
     page || (page = mail.currentPage);
-    dir || (page = mail.defaultDirection);
+    dir || (dir = mail.defaultDirection);
 
-    if(tmp = pages[page + dir * -1]){
+    if(tmp = pages[page - dir]){
       tmp.style.display = 'block';
       tmp.style.MozTransform = Transform.translate((window.innerWidth + TRANSITION_PADDING) * dir * -1);
     }
@@ -327,7 +327,7 @@ document.addEventListener('DOMContentLoaded', load(function(){
   });
 }), true);
 
-/*window.addEventListener('localized', load(function(){
+window.addEventListener('localized', load(function(){
   var html = document.documentElement,
     lang = document.mozL10n.language;
 
@@ -340,7 +340,6 @@ document.addEventListener('DOMContentLoaded', load(function(){
 
   document.body.classList.remove('hidden');
 }));
-*/
 
 //document.addEventListener('apploaded', function );
 
