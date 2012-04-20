@@ -36,7 +36,6 @@ if (!window['Gaia'])
 
     handleEvent: function(evt) {
       switch (evt.type) {
-      case 'touchstart':
       case 'mousedown':
         this.mousePosX = evt.clientX;
         evt.preventDefault();
@@ -45,7 +44,6 @@ if (!window['Gaia'])
 
         break;
 
-      case 'touchend':
       case 'mouseup':
         if (this.sliding) {
           this.sliding = false;
@@ -53,7 +51,6 @@ if (!window['Gaia'])
         }
         break;
 
-      case 'touchmove':
       case 'mousemove':
         if (this.sliding) {
           this.realtimeLeft = this.left + evt.clientX - this.mousePosX;
@@ -80,11 +77,8 @@ if (!window['Gaia'])
 
       // Attach events
       this.input.addEventListener('mousedown', this);
-      this.input.addEventListener('touchstart', this);
       this.input.addEventListener('mousemove', this);
-      this.input.addEventListener('touchmove', this);
       window.addEventListener('mouseup', this);
-      window.addEventListener('touchend', this);
 
       return mainDiv;
     },
