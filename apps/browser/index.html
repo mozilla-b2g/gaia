@@ -11,8 +11,9 @@
 
   <body>
     <menu type="toolbar" id="toolbar-start">
-      <form id="address-bar">
-        <input type="url" id="url-bar" value="http://www.google.com/m"></input>
+      <form id="url-bar">
+        <input type="url" id="url-input" value="http://www.google.com/m"></input>
+        <input type="image" id="url-button" src="style/images/go.png"></input>
       </form>
     </menu>
     <iframe id="browser-content" mozbrowser>
@@ -22,11 +23,6 @@
     <menu type="toolbar" id="toolbar-end">
       <button type="button" value="" id="back-button" alt="Back" title="" disabled="true"></button>
       <button type="button" value="" id="forward-button" alt="Forward" title="" disabled="true"></button>
-      <button type="button" value="" id="menu-button" alt="Menu" title=""></button>
-      <menu type="list" id="browser-menu" class="hidden">	
-        <li id="refresh"><a href="#">Reload</a></li>
-      </menu>
-    </menu>
   </body>
 
 </html>
