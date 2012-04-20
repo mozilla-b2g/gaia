@@ -4,23 +4,23 @@
 var Browser = {
 
   currentTitle: '',
-
   currentUrl: '',
-
-  goIsRefresh: false,
+  GO: 0,
+  REFRESH: 1,
+  urlButtonMode: this.GO,
 
   init: function browser_init() {
     // Assign UI elements to variables
     this.urlBar = document.getElementById('url-bar');
     this.urlInput = document.getElementById('url-input');
-    this.goButton = document.getElementById('go-button');
+    this.urlButton = document.getElementById('url-button');
     this.content = document.getElementById('browser-content');
     this.backButton = document.getElementById('back-button');
     this.forwardButton = document.getElementById('forward-button');
 
     // Add event listeners
     this.backButton.addEventListener('click', this.goBack.bind(this));
-    this.goButton.addEventListener('click', this.go.bind(this));
+    this.urlButton.addEventListener('click', this.go.bind(this));
     this.forwardButton.addEventListener('click', this.goForward.bind(this));
     this.urlInput.addEventListener('focus', this.urlFocus.bind(this));
     this.urlInput.addEventListener('blur', this.urlBlur.bind(this));
@@ -67,8 +67,7 @@ var Browser = {
           urlInput.value = this.currentTitle;
         else
           urlInput.value = this.currentUrl;
-        this.goButton.src = 'style/images/refresh.png';
-        this.goIsRefresh = true;
+        this.setUrlButtonMode(this.REFRESH);
         break;
 
       case 'mozbrowserlocationchange':
@@ -89,7 +88,7 @@ var Browser = {
 
   go: function browser_go(evt) {
     evt.preventDefault();
-    if (this.goIsRefresh) {
+    if (this.urlButtonMode == this.REFRESH) {
       this.navigate(this.currentUrl);
       return;
     }
@@ -135,18 +134,24 @@ var Browser = {
   urlFocus: function browser_urlFocus() {
     this.urlInput.value = this.currentUrl;
     this.urlInput.select();
-    this.goButton.src = 'style/images/go.png';
-    this.goIsRefresh = false;
+    this.setUrlButtonMode(this.GO);
   },
 
   urlBlur: function browser_urlBlur() {
-    if (this.urlInput.value == this.currentUrl) {
-      if (this.currentTitle)
-        this.urlInput.value = this.currentTitle;
-      this.goButton.src = 'style/images/refresh.png';
-      this.goIsRefresh = true;
-    } else {
-      this.currentUrl = this.urlInput.value;
+    if (this.currentTitle)
+      this.urlInput.value = this.currentTitle;
+    this.setUrlButtonMode(this.REFRESH);
+  },
+
+  setUrlButtonMode: function browser_setUrlButtonMode(mode) {
+    this.urlButtonMode = mode;
+    switch (mode) {
+      case this.GO:
+        this.urlButton.src = 'style/images/go.png';
+        break;
+      case this.REFRESH:
+        this.urlButton.src = 'style/images/refresh.png';
+        break;
     }
   }
 };
