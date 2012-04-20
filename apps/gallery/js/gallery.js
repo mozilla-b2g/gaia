@@ -101,13 +101,23 @@ const SAMPLE_THUMBNAILS_DIR = 'sample_photos/thumbnails/';
 const SAMPLE_FILENAMES = ['DSC_1677.jpg', 'DSC_1701.jpg', 'DSC_1727.jpg',
 'DSC_1729.jpg', 'DSC_1759.jpg', 'DSC_4236.jpg', 'DSC_4767.jpg', 'DSC_4858.jpg',
 'DSC_4861.jpg', 'DSC_4903.jpg', 'DSC_6842.jpg', 'DSC_6859.jpg', 'DSC_6883.jpg',
-'DSC_7150.jpg', 'IMG_0139.jpg', 'IMG_0160.jpg', 'IMG_0211.jpg', 'IMG_0225.jpg',
-'IMG_0251.jpg', 'IMG_0281.jpg', 'IMG_0476.jpg', 'IMG_0498.jpg', 'IMG_0506.jpg',
 'IMG_0546.jpg', 'IMG_0554.jpg', 'IMG_0592.jpg', 'IMG_0610.jpg', 'IMG_0668.jpg',
-'IMG_0676.jpg', 'IMG_1132.jpg', 'IMG_1307.jpg', 'IMG_1706.jpg', 'IMG_1974.jpg',
+'IMG_0676.jpg', 'IMG_1132.jpg', 'IMG_1307.jpg', 'IMG_1706.jpg',
 'IMG_7928.jpg', 'IMG_7990.jpg', 'IMG_8085.jpg', 'IMG_8164.jpg', 'IMG_8631.jpg',
 'IMG_8638.jpg', 'IMG_8648.jpg', 'IMG_8652.jpg', '_MG_0053.jpg', 'P1000115.jpg',
-'P1000404.jpg', 'P1000469.jpg', 'P1000486.jpg'];
+'P1000404.jpg', 'P1000469.jpg', 'P1000486.jpg', 
+'3548856279_a215152cd5_o.jpg', '3549661880_0c5565a518_o.jpg',
+'3549662882_8e41d11d28_o.jpg', '3551599565_db282cf840_o.jpg',
+'6839255446_2f245d8f0c.jpg', '6985376089_db00e0d18c_o.jpg'];
+
+const SAMPLE_SIZES = [
+  [480,800], [480,800], [480,800], [480,800], [480,800], [480,800], [480,800],
+  [480,800], [480,800], [480,800], [480,800], [480,800], [480,800], [480,800],
+  [480,800], [480,800], [480,800], [480,800], [480,800], [480,800], [480,800],
+  [480,800], [480,800], [480,800], [480,800], [480,800], [480,800], [480,800],
+  [480,800], [480,800], [480,800], [480,800], [480,800], [480,800], [480,800],
+  [1024,704], [1024,1010], [1018,826], [817,1019], [328,500], [2169,1613],
+];
 
 const NUM_PHOTOS = SAMPLE_FILENAMES.length;
 
@@ -151,12 +161,6 @@ var nextPhotoFrame = photos.querySelector('div.nextPhoto');
 // This changes as photos are panned, but showPhoto(), nextPhoto() and
 // previousPhoto() keep its value current.
 var currentPhoto;
-
-// Our sample photos are all 480x800 for now, but this will change.
-// These variables hold the actual pixel size of the currently displayed photo.
-// FIXME: make the app work with other size photos!
-var currentPhotoWidth = 480; 
-var currentPhotoHeight = 800;
 
 // This will hold a PhotoState object that encapsulates the zoom and pan
 // calculations and holds the current size and position of the photo and
@@ -371,8 +375,39 @@ function showThumbnails() {
 // URL should be the image to display. Frame should be previousPhotoFrame,
 // currentPhotoFrame or nextPhotoFrame.  Used in showPhoto(), nextPhoto()
 // and previousPhoto()
-function displayImageInFrame(url, frame) {
-  frame.innerHTML = url ? '<img src="' + url + '"/>' : '';
+function displayImageInFrame(n, frame) {
+  // Remove anything in the frame
+  while(frame.firstChild)
+    frame.removeChild(frame.firstChild);
+
+  // Get the url of photo n.  If n is out of range, just return now
+  var url = photoURL(n);
+  if (!url) 
+    return;
+
+  // Create the img element
+  var img = document.createElement('img');
+  img.src = url;
+
+  // Figure out the size and position of the image
+  // FIXME: this code is duplicated in the PhotoState class. Merge?
+  var size = SAMPLE_SIZES[n];
+  var photoWidth = size[0], photoHeight = size[1];
+  var viewportWidth = photos.offsetWidth, viewportHeight = photos.offsetHeight;
+  var scalex = viewportWidth / photoWidth;
+  var scaley = viewportHeight / photoHeight;
+  var scale = Math.min(Math.min(scalex, scaley), 1);
+
+  // Set the image size and position
+  var width = Math.floor(photoWidth * scale);
+  var height = Math.floor(photoHeight * scale);
+  var style = img.style;
+  style.width = width + 'px';
+  style.height = height + 'px';
+  style.left = Math.floor((viewportWidth - width)/2) + 'px';
+  style.top = Math.floor((viewportHeight - height)/2) + 'px';
+
+  frame.appendChild(img);
 }
 
 // Switch from thumbnail list view to single-picture view
@@ -386,16 +421,16 @@ function showPhoto(n) {
     thumbnailsDisplayed = false;
   }
 
-  displayImageInFrame(photoURL(n - 1), previousPhotoFrame);
-  displayImageInFrame(photoURL(n), currentPhotoFrame);
-  displayImageInFrame(photoURL(n + 1), nextPhotoFrame);
+  displayImageInFrame(n - 1, previousPhotoFrame);
+  displayImageInFrame(n, currentPhotoFrame);
+  displayImageInFrame(n + 1, nextPhotoFrame);
   currentPhotoIndex = n;
   currentPhoto = currentPhotoFrame.firstElementChild;
 
   // Create the PhotoState object that stores the photo pan/zoom state
   // And use it to apply CSS styles to the photo and photo frames.
   // FIXME: these sizes are hardcoded right now.
-  photoState = new PhotoState(currentPhotoWidth, currentPhotoHeight);
+  photoState = new PhotoState(SAMPLE_SIZES[n][0], SAMPLE_SIZES[n][1]);
   photoState.setPhotoStyles(currentPhoto);
   photoState.setFrameStyles(currentPhotoFrame,
                             previousPhotoFrame,
@@ -414,9 +449,11 @@ function nextPhoto(time) {
   setTimeout(function() { transitioning = false; }, time);
 
   // Set transitions for the visible photos
+  var transition = 'left ' + time + 'ms linear, ' +
+    '-moz-transform ' + time + 'ms linear';
   previousPhotoFrame.style.MozTransition = '';  // Not visible
-  currentPhotoFrame.style.MozTransition = 'all ' + time + 'ms linear';
-  nextPhotoFrame.style.MozTransition = 'all ' + time + 'ms linear';
+  currentPhotoFrame.style.MozTransition = transition;
+  nextPhotoFrame.style.MozTransition = transition;
 
   // Remove the classes
   previousPhotoFrame.classList.remove('previousPhoto');
@@ -430,9 +467,6 @@ function nextPhoto(time) {
   currentPhotoFrame = nextPhotoFrame;
   nextPhotoFrame = tmp;
   currentPhotoIndex++;
-
-  // Update the image for the new next photo
-  displayImageInFrame(photoURL(currentPhotoIndex + 1), nextPhotoFrame);
 
   // And add appropriate classes to the newly cycled frames
   previousPhotoFrame.classList.add('previousPhoto');
@@ -448,11 +482,15 @@ function nextPhoto(time) {
   // Start with default pan and zoom state for the new photo 
   // And also reset the translation caused by swiping the photos
   // FIXME: use the real size of the photo
-  photoState = new PhotoState(currentPhotoWidth, currentPhotoHeight);
+  var size = SAMPLE_SIZES[currentPhotoIndex];
+  photoState = new PhotoState(size[0], size[1]);
   photoState.setPhotoStyles(currentPhoto);
   photoState.setFrameStyles(currentPhotoFrame,
                             previousPhotoFrame,
                             nextPhotoFrame);
+
+  // Update the image for the new next photo
+  displayImageInFrame(currentPhotoIndex + 1, nextPhotoFrame);
 
   // When the transition is done, restore the previous photo state
   previousPhotoFrame.addEventListener('transitionend', function done(e) {
@@ -476,8 +514,10 @@ function previousPhoto(time) {
   setTimeout(function() { transitioning = false; }, time);
 
   // Transition the two visible photos
-  previousPhotoFrame.style.MozTransition = 'all ' + time + 'ms linear';
-  currentPhotoFrame.style.MozTransition = 'all ' + time + 'ms linear';
+  var transition = 'left ' + time + 'ms linear, ' +
+    '-moz-transform ' + time + 'ms linear';
+  previousPhotoFrame.style.MozTransition = transition;
+  currentPhotoFrame.style.MozTransition = transition;
   nextPhotoFrame.style.MozTransition = ''; // Not visible
 
   // Remove the frame classes since we're about to cycle the frames
@@ -493,9 +533,6 @@ function previousPhoto(time) {
   previousPhotoFrame = tmp;
   currentPhotoIndex--;
 
-  // Preload the new previous photo
-  displayImageInFrame(photoURL(currentPhotoIndex - 1), previousPhotoFrame);
-
   // And add the frame classes to the newly cycled frame divs.
   previousPhotoFrame.classList.add('previousPhoto');
   currentPhotoFrame.classList.add('currentPhoto');
@@ -508,11 +545,15 @@ function previousPhoto(time) {
   var nextPhotoState = photoState;
   
   // Create a new photo state
-  photoState = new PhotoState(currentPhotoWidth, currentPhotoHeight);
+  var size = SAMPLE_SIZES[currentPhotoIndex];
+  photoState = new PhotoState(size[0], size[1]);
   photoState.setPhotoStyles(currentPhoto);
   photoState.setFrameStyles(currentPhotoFrame,
                             previousPhotoFrame,
                             nextPhotoFrame);
+
+  // Preload the new previous photo
+  displayImageInFrame(currentPhotoIndex - 1, previousPhotoFrame);
 
   // When the transition is done, restore the previous photo state
   nextPhotoFrame.addEventListener('transitionend', function done(e) {

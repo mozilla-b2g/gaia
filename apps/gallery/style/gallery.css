@@ -62,6 +62,7 @@ header h1 {
 #thumbnails li {
   width: 160px;
   height: 140px;
+  overflow: none;
   float: left;
   margin: 0;
   list-style-type: none;
@@ -70,8 +71,10 @@ header h1 {
 }
 
 .thumbnail {
+/*
   width: 160px;
   height: 140px;
+*/
   margin: 0;
   padding: 0;
   border: none;
