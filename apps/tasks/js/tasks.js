@@ -66,6 +66,7 @@ var TaskList = {
       a.dataset.id = 'task-' + task.id;
       a.dataset.name = task.name;
       a.dataset.desc = task.desc;
+      a.dataset.date = task.date;
       a.dataset.done = task.done;
 
       a.href = '#task';
@@ -73,9 +74,24 @@ var TaskList = {
       li.appendChild(a);
 
       var img = document.createElement('img');
-      img.src = task.done ?
-        'style/icons/done_' + TASK_ICONS[0] :
-        'style/icons/' + TASK_ICONS[0];
+
+      if (task.done) {
+        img.src = 'style/icons/done_' + TASK_ICONS[0];
+      } else {
+        var dateMillis = Date.parse(task.date);
+
+        var overdue = false;
+
+        if (dateMillis) {
+          var taskDate = new Date(dateMillis);
+          overdue = taskDate < new Date();
+        }
+
+        img.src = overdue ?
+          'style/icons/over_' + TASK_ICONS[0] :
+          'style/icons/' + TASK_ICONS[0];
+      }
+
       a.appendChild(img);
 
       var nameSpan = document.createElement('span');
@@ -97,6 +113,7 @@ var TaskList = {
 };
 
 var EditTask = {
+  calendar: undefined,
 
   get element() {
     delete this.element;
@@ -114,6 +131,12 @@ var EditTask = {
       document.querySelector('textarea[name=\'task.desc\']');
   },
 
+  get dateInput() {
+    delete this.dateInput;
+    return this.dateInput =
+      document.querySelector('input[name=\'task.date\']');
+  },
+
   get doneInput() {
     delete this.doneInput;
     return this.doneInput = document.querySelector('input[name=\'task.done\']');
@@ -127,6 +150,16 @@ var EditTask = {
   get deleteElement() {
     delete this.deleteElement;
     return this.deleteElement = document.querySelector('li.delete');
+  },
+
+  get selectCalendar() {
+    delete this.selectCalendar;
+    return this.selectCalendar = document.getElementById('cal-sel');
+  },
+
+  get footer() {
+    delete this.footer;
+    return this.footer = document.querySelector('footer');
   },
 
   handleEvent: function(evt) {
@@ -147,6 +180,13 @@ var EditTask = {
       case 'task-del':
         this.deleteCurrent();
         break;
+      case 'cal-sel':
+        this.dateInput.value = this.calendar.toShortDate(this.calendar.date);
+        this.footer.classList.add('hidden');
+        break;
+      case 'cal-cancel':
+        this.footer.classList.add('hidden');
+        break;
     }
   },
 
@@ -156,6 +196,7 @@ var EditTask = {
     task.id = dataset.id;
     task.name = dataset.name ? dataset.name : '';
     task.desc = dataset.desc ? dataset.desc : '';
+    task.date = dataset.date ? dataset.date : '';
     task.done = dataset.done == 'true' ? true : false;
 
     return task;
@@ -170,6 +211,7 @@ var EditTask = {
     this.element.dataset.id = task.id;
     this.nameInput.value = task.name;
     this.descInput.value = task.desc;
+    this.dateInput.value = task.date;
     this.doneInput.checked = task.done;
 
     if (task.id) {
@@ -179,6 +221,8 @@ var EditTask = {
       this.taskTitle.innerHTML = 'New Task';
       this.deleteElement.style.display = 'none';
     }
+
+    this.calendar = new Gaia.UI.Calendar('#task-date', '#cal-widget');
   },
 
   updateCurrent: function() {
@@ -194,6 +238,7 @@ var EditTask = {
 
     task.name = this.nameInput.value;
     task.desc = this.descInput.value;
+    task.date = this.dateInput.value;
     task.done = this.doneInput.checked;
 
     if (!task.name) {
@@ -256,6 +301,9 @@ window.addEventListener('DOMContentLoaded', function() {
 
   document.querySelector('#task-save').addEventListener('click', EditTask);
   document.querySelector('#task-del').addEventListener('click', EditTask);
+
+  document.querySelector('#cal-sel').addEventListener('click', EditTask);
+  document.querySelector('#cal-cancel').addEventListener('click', EditTask);
 
   TaskList.init();
 });
