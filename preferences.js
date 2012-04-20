@@ -120,6 +120,11 @@ directories.forEach(function readManifests(dir) {
   if (perms) {
     for each(let name in perms) {
       permissions[name].urls.push(domain);
+
+      // special case for the telephony API which needs full URLs
+      if (name == 'telephony')
+        if (manifest.background_page)
+          permissions[name].urls.push(domain + manifest.background_page);
     }
   }
 });
