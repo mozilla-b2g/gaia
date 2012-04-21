@@ -80,156 +80,205 @@ function PhraseDictionary() {
   };
 }
 
-function SyllableSplitter() {
+/** Maximum limit of PinYin syllable length */
+var SYLLALBLE_MAX_LENGTH = 6;
+
+/**
+ * Divides a string into Pinyin syllables
+ */
+function PinyinParser() {
+  // Consonants(声母) list
+  var consonants= 'b p m f d t n l g k h j q x zh ch sh r z c s y w'.split(' ');
+  for(var i in consonants) {
+    var e = consonants[i];
+    this._consonantMap[e] = e;
+  }
+
+  // Valid pinyin syllables list
   var syllables = [
-  'ba', 'bai', 'ban', 'bang', 'bao', 'bei', 'ben', 'beng', 'bi', 'bian',
-  'biao', 'bie', 'bin', 'bing', 'bo', 'bu',
+    'a', 'o', 'e',
+  
+    'ai', 'ei', 'ao', 'ou', 'er', 'an', 'en', 'ang', 'eng',
+  
+    'ba', 'bai', 'ban', 'bang', 'bao', 'bei', 'ben', 'beng', 'bi', 'bian',
+    'biao', 'bie', 'bin', 'bing', 'bo', 'bu',
+  
+    'pa', 'pai', 'pan', 'pang', 'pao', 'pei', 'pen', 'peng', 'pi', 'pian',
+    'piao', 'pie', 'pin', 'ping', 'po', 'pou', 'pu',
 
-  'ca', 'cai', 'can', 'cang', 'cao', 'ce', 'cen', 'ceng', 'cha', 'chai',
-  'chan', 'chang', 'chao', 'che', 'chen', 'cheng', 'chong', 'chou', 'chu',
-  'chua', 'chuai', 'chuan', 'chuang', 'chui', 'chun', 'chuo', 'cong',
-  'cou', 'cu', 'cuan', 'cui', 'cun', 'cuo',
+    'ma', 'mai', 'man', 'mang', 'mao', 'me', 'mei', 'men', 'meng', 'mi', 'mian',
+    'miao', 'mie', 'min', 'ming', 'miu', 'mo', 'mou', 'mu',
+    
+    'fa', 'fan', 'fang', 'fei', 'fen', 'feng', 'fo', 'fou', 'fu',    
+    
+    'da', 'dai', 'dan', 'dang', 'dao', 'de', 'dei', 'deng', 'di', 'dian',
+    'diao', 'die', 'ding', 'diu', 'dong', 'dou', 'du', 'duan', 'dui', 'dun',
+    'duo',
+    
+    'ta', 'tai', 'tan', 'tang', 'tao', 'te', 'teng', 'ti', 'tian', 'tiao',
+    'tie', 'ting', 'tong', 'tou', 'tu', 'tuan', 'tui', 'tun', 'tuo',
+    
+    'na', 'nai', 'nan', 'nang', 'nao', 'ne', 'nei', 'nen', 'neng', 'ni', 'nian',
+    'niang', 'niao', 'nie', 'nin', 'ning', 'niu', 'nong', 'nou', 'nu', 'nv',
+    'nuan', 'nve', 'nuo',
 
-  'da', 'dai', 'dan', 'dang', 'dao', 'de', 'dei', 'deng', 'di', 'dian',
-  'diao', 'die', 'ding', 'diu', 'dong', 'dou', 'du', 'duan', 'dui', 'dun',
-  'duo',
+    'la', 'lai', 'lan', 'lang', 'lao', 'le', 'lei', 'leng', 'li', 'lia',
+    'lian', 'liang', 'liao', 'lie', 'lin', 'ling', 'liu', 'long', 'lou',
+    'lu', 'lv', 'luan', 'lve', 'lun', 'luo',
 
-  'fa', 'fan', 'fang', 'fei', 'fen', 'feng', 'fo', 'fou', 'fu',
+    'ga', 'gai', 'gan', 'gang', 'gao', 'ge', 'gei', 'gen', 'geng', 'gong',
+    'gou', 'gu', 'gua', 'guai', 'guan', 'guang', 'gui', 'gun', 'guo',
 
-  'ga', 'gai', 'gan', 'gang', 'gao', 'ge', 'gei', 'gen', 'geng', 'gong',
-  'gou', 'gu', 'gua', 'guai', 'guan', 'guang', 'gui', 'gun', 'guo',
+    'ka', 'kai', 'kan', 'kang', 'kao', 'ke', 'ken', 'keng', 'kong', 'kou',
+    'ku', 'kua', 'kuai', 'kuan', 'kuang', 'kui', 'kun', 'kuo',
 
-  'ha', 'hai', 'han', 'hang', 'hao', 'he', 'hei', 'hen', 'heng', 'hong',
-  'hou', 'hu', 'hua', 'huai', 'huan', 'huang', 'hui', 'hun', 'huo',
+    'ha', 'hai', 'han', 'hang', 'hao', 'he', 'hei', 'hen', 'heng', 'hong',
+    'hou', 'hu', 'hua', 'huai', 'huan', 'huang', 'hui', 'hun', 'huo',
+    
+    'ji', 'jia', 'jian', 'jiang', 'jiao', 'jie', 'jin', 'jing', 'jiong',
+    'jiu', 'ju', 'juan', 'jue', 'jun',
+  
+    'qi', 'qia', 'qian', 'qiang', 'qiao', 'qie', 'qin', 'qing', 'qiong', 'qiu',
+    'qu', 'quan', 'que', 'qun',
+    
+    'xi', 'xia', 'xian', 'xiang', 'xiao', 'xie', 'xin', 'xing', 'xiong', 'xiu',
+    'xu', 'xuan', 'xue', 'xun',
 
-  'ji', 'jia', 'jian', 'jiang', 'jiao', 'jie', 'jin', 'jing', 'jiong',
-  'jiu', 'ju', 'juan', 'jue', 'jun',
-
-  'ka', 'kai', 'kan', 'kang', 'kao', 'ke', 'ken', 'keng', 'kong', 'kou',
-  'ku', 'kua', 'kuai', 'kuan', 'kuang', 'kui', 'kun', 'kuo',
-
-  'la', 'lai', 'lan', 'lang', 'lao', 'le', 'lei', 'leng', 'li', 'lia',
-  'lian', 'liang', 'liao', 'lie', 'lin', 'ling', 'liu', 'long', 'lou',
-  'lu', 'lv', 'luan', 'lve', 'lun', 'luo',
-
-  'ma', 'mai', 'man', 'mang', 'mao', 'me', 'mei', 'men', 'meng', 'mi', 'mian',
-  'miao', 'mie', 'min', 'ming', 'miu', 'mo', 'mou', 'mu',
-
-  'na', 'nai', 'nan', 'nang', 'nao', 'ne', 'nei', 'nen', 'neng', 'ni', 'nian',
-  'niang', 'niao', 'nie', 'nin', 'ning', 'niu', 'nong', 'nou', 'nu', 'nv',
-  'nuan', 'nve', 'nuo',
-
-  'pa', 'pai', 'pan', 'pang', 'pao', 'pei', 'pen', 'peng', 'pi', 'pian',
-  'piao', 'pie', 'pin', 'ping', 'po', 'pou', 'pu',
-
-  'qi', 'qia', 'qian', 'qiang', 'qiao', 'qie', 'qin', 'qing', 'qiong', 'qiu',
-  'qu', 'quan', 'que', 'qun',
-
-  'ran', 'rang', 'rao', 're', 'ren', 'reng', 'ri', 'rong', 'rou', 'ru',
-  'ruan', 'rui', 'run', 'ruo',
-
-  'sa', 'sai', 'san', 'sang', 'sao', 'se', 'sen', 'seng', 'sha', 'shai',
-  'shan', 'shang', 'shao', 'she', 'shei', 'shen', 'sheng', 'shou', 'shu',
-  'shua', 'shuai', 'shuan', 'shuang', 'shui', 'shun', 'shuo', 'song',
-  'sou', 'su', 'suan', 'sui', 'sun', 'suo',
-
-  'ta', 'tai', 'tan', 'tang', 'tao', 'te', 'teng', 'ti', 'tian', 'tiao',
-  'tie', 'ting', 'tong', 'tou', 'tu', 'tuan', 'tui', 'tun', 'tuo',
-
-  'wa', 'wai', 'wan', 'wang', 'wei', 'wen', 'weng', 'wo', 'wu',
-
-  'xi', 'xia', 'xian', 'xiang', 'xiao', 'xie', 'xin', 'xing', 'xiong', 'xiu',
-  'xu', 'xuan', 'xue', 'xun',
-
-  'ya', 'yan', 'yang', 'yao', 'ye', 'yi', 'yin', 'ying', 'yong', 'you', 'yu',
-  'yuan', 'yue', 'yun',
-
-  'za', 'zai', 'zan', 'zang', 'zao', 'ze', 'zei', 'zen', 'zeng', 'zha', 'zhai',
-  'zhan', 'zhang', 'zhao', 'zhe', 'zhei', 'zhen', 'zheng', 'zhong', 'zhou',
-  'zhu', 'zhua', 'zhuai', 'zhuan', 'zhuang', 'zhui', 'zhun', 'zhuo', 'zong',
-  'zou', 'zu', 'zuan', 'zui', 'zun', 'zuo',
-
-  'zhi', 'chi', 'shi', 'ri', 'zi', 'ci', 'si',
-
-  'a', 'ai', 'an', 'ang', 'ao',
-
-  'e', 'ei', 'en', 'eng', 'er',
-
-  'o', 'ou'
-  ];
-  var initials = 'b p m f d t n l g k h j q x zh ch sh r z c s y w'.split(' ');
-
-  var startsWith = function(text, prefix) {
-    return text.indexOf(prefix) == 0;
-  };
-
-  var endsWith = function(text, suffix) {
-    return text.lastIndexOf(suffix) == text.length - 1;
-  }
-
-  var ensure = function(a, func, b) {
-    return func(a, b) == true;
-  }
-
-  function guessFirstSyllable(input) {
-    var possibleAnswers = [];
-    if (ensure(input, startsWith, "'")) {
-      possibleAnswers.push("'");
-    }
-
-    if (possibleAnswers.length == 0) {
-      for (var i = 0; i < syllables.length; i++) {
-        var answer = syllables[i];
-        if (input.indexOf(answer) == 0) {
-          if (/[aeiuv]$/.test(answer) &&
-              ensure(input, startsWith, answer + 'n')) continue;
-          if (/[aeiuv]n$/.test(answer) &&
-              ensure(input, startsWith, answer + "g'")) continue;
-          if (ensure(answer, endsWith, 'e') &&
-              ensure(input, startsWith, answer + 'r')) continue;
-          possibleAnswers.push(syllables[i]);
-        }
-      }
-    }
-
-    if (possibleAnswers.length == 0) {
-      for (var i = 0; i < initials.length; i++) {
-        if (input.indexOf(initials[i]) == 0) {
-          possibleAnswers.push(initials[i]);
-          break;
-        }
-      }
-    }
-    return possibleAnswers;
-  }
-
-  this.parse = function(input) {
-    function split(rawInput) {
-      if (rawInput != '') {
-        var prefix = '', input = rawInput;
-        var possibleFirstSyllables = guessFirstSyllable(input);
-        var currentTail = tail;
-        for (var i = 0; i < possibleFirstSyllables.length; i++) {
-          var firstSyllable = possibleFirstSyllables[i];
-          tail = {syllable: firstSyllable, parent: currentTail};
-          split(input.substring(firstSyllable.length));
-        }
-      } else {
-        var currentSegment = tail;
-        var path = [];
-        while (currentSegment != null) {
-          path.unshift(currentSegment.syllable);
-          currentSegment = currentSegment.parent;
-        }
-        solutions.push(path);
-      }
-    }
-    var solutions = [];
-    var tail = null;
-    split(input);
-    return solutions;
+    'zhi', 'zha', 'zhai', 'zhan', 'zhang', 'zhao', 'zhe', 'zhei', 'zhen', 'zheng',
+    'zhong', 'zhou', 'zhu', 'zhua', 'zhuai', 'zhuan', 'zhuang', 'zhui', 'zhun', 'zhuo',
+    
+    'chi', 'cha', 'chai', 'chan', 'chang', 'chao', 'che', 'chen', 'cheng', 'chong',
+    'chou', 'chu', 'chua', 'chuai', 'chuan', 'chuang', 'chui', 'chun', 'chuo',
+    
+    'shi', 'sha', 'shai', 'shan', 'shang', 'shao', 'she', 'shei', 'shen', 'sheng',
+    'shou', 'shu', 'shua', 'shuai', 'shuan', 'shuang', 'shui', 'shun', 'shuo',
+    
+    'ri', 'ran', 'rang', 'rao', 're', 'ren', 'reng', 'rong', 'rou', 'ru',
+    'ruan', 'rui', 'run', 'ruo',
+    
+    'zi', 'za', 'zai', 'zan', 'zang', 'zao', 'ze', 'zei', 'zen', 'zeng',
+    'zong', 'zou', 'zu', 'zuan', 'zui', 'zun', 'zuo',
+    
+    'ci', 'ca', 'cai', 'can', 'cang', 'cao', 'ce', 'cen', 'ceng', 'cong',
+    'cou', 'cu', 'cuan', 'cui', 'cun', 'cuo', 
+    
+    'si', 'sa', 'sai', 'san', 'sang', 'sao', 'se', 'sen', 'seng', 'song',
+    'sou', 'su', 'suan', 'sui', 'sun', 'suo',
+    
+    'ya', 'yan', 'yang', 'yao', 'ye', 'yi', 'yin', 'ying', 'yong', 'you',
+    'yu', 'yuan', 'yue', 'yun',
+  
+    'wa', 'wai', 'wan', 'wang', 'wei', 'wen', 'weng', 'wo', 'wu',
+    ];
+  for(var i in syllables) {
+    var e = syllables[i];
+    this._syllableMap[e] = e;
   }
 }
+
+PinyinParser.prototype = {
+  /**
+   * Consonant(声母) lookup map that maps a lowercase consonant to itself.
+   * _consonantMap 
+   */
+  _consonantMap: {},
+  
+  /**
+   * Syllable lookup map that maps a lowercase syllable to itself.
+   */
+  _syllableMap: {},
+  
+  /**
+   * Divides a string into Pinyin syllables.
+   * 
+   * There may exists more than one ways to divide the string. Each way of the
+   * division is a segment.
+   *
+   * For example, "fangan" could be divided into "FangAn"(方案) or "FanGan"(反感)
+   * ; "xian" could be divided into "Xian"(先) or "XiAn"(西安); "dier" could be
+   * divided into "DiEr"(第二) or "DieR".
+   *
+   * @param {String} input The string to be divided. The string should not be
+   * empty.
+   * @returns {Array} An array of segments. Each segment consists of an array of
+   * syllables. For example, parse("fangan") = [["fang", "an"], ["fan", "gan"],
+   * ["fan", "ga", "n"], ["fa", "n", "gan"]]
+   */  
+  parse: function(input) {
+    var results = [];
+    
+    // Trims the leading and trailing "'".
+    input = input.replace(/^'+|'+$/g, '');
+    
+    if (input == "") {
+      return results;
+    }
+    
+    var end = Math.min(input.length, SYLLALBLE_MAX_LENGTH);    
+    for (; end>0; end--) {
+      var key = input.substring(0, end);
+      if ((key in this._syllableMap) || (key in this._consonantMap)) {
+        var segments = [];
+        segments.push([key]);
+        if (end < input.length) {
+          var subSegments = this.parse(input.substring(end));
+          segments = this._appendsSubSegments(segments, subSegments);
+        }
+        results = results.concat(segments);
+      }
+    }
+    
+    // Sort the segments array. The segment with shorter length and fewer incomplete syllables
+    // comes first.
+    var self = this;
+    results.sort(function(a, b) {
+      if (a.length != b.length) {
+        return a.length - b.length;
+      } else {
+        return self._incompleteSyllables(a) - self._incompleteSyllables(b);
+      }
+    });
+    return results;
+  },
+  
+  /**
+   * Get cartesian product of two segments arrays.
+   * Cartesian product A X B:
+   * A X B = {(a, b) | a is member of A and b is member of B}.
+   */
+  _appendsSubSegments: function(segments, subSegments) {
+    if (segments.length == 0 || subSegments.length == 0) {
+      return subSegments;
+    }
+    var result = [];
+    for (var i=0; i<segments.length; i++) {
+      var segment = segments[i];
+      for (var j=0; j<subSegments.length; j++) {
+        result.push(segment.concat(subSegments[j]));
+      }
+    }
+    return result;
+  },
+  
+  /**
+   * Get the number of incomplete syllables.
+   *
+   * An incomplete syllable starts with a single consonant(声母).
+   * For example, the incomplete syllable of "hao" is "h".
+   *
+   * @param {Array} segement The segement array containing the syllables to be counted.
+   * @returns {Integer} The number of incomplete syllables.
+   */
+  _incompleteSyllables: function(segment) {
+    var count = 0;
+    for (var i in segment) {
+      if (segment[i] in this._consonantMap) {
+        ++count;
+      }
+    }
+    return count;
+  }
+};
 
 function IMEManagerGlue() {
   this.path = "";
@@ -673,7 +722,7 @@ IMEngine.prototype = {
     var syllable = this._syllablesInBuffer[this._syllablesInBuffer.length - 1];
     var symbol = String.fromCharCode(code);
     var tmp = this._splitter.parse(syllable + symbol);
-    var newSyllables = tmp[tmp.length - 1];
+    var newSyllables = (tmp.length > 0) ? tmp[0] : [];
     debug('this._syllablesInBuffer: ' + JSON.stringify(this._syllablesInBuffer), true);
     debug('syllable: ' + syllable + symbol, true);
     if (newSyllables.length == 0) {
@@ -1668,8 +1717,7 @@ loader2.onreadystatechange = function(event) {
 };
 loader2.send();
 
-var splitter = new SyllableSplitter();
-var jspinyin = new IMEngine(dictionary, splitter);
+var jspinyin = new IMEngine(dictionary, new PinyinParser());
 
 // Expose JSZhuyin as an AMD module
 if (typeof define === 'function' && define.amd)
