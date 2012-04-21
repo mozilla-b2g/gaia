@@ -1,14 +1,14 @@
 /**
  * gestures.js: high-level gesture events on top of multi-touch events.
- *  
+ *
  * This module defines an extensible multi-touch gesture event framework
- * and includes built-in support for two-finger transform (scale, rotate, 
+ * and includes built-in support for two-finger transform (scale, rotate,
  * translate) gestures such as pinch-to-zoom and twist-to-rotate. The
  * documentation for transform gestures appears later in this file.
- * 
+ *
  * This module defines a single global variable, Gestures, which is an
  * object with three function properties:
- * 
+ *
  * Gestures.detect(type, target):
  *   Start listening for touch events on the specified target element
  *   to detect gestures of the specified type. The type argument is a
@@ -16,9 +16,9 @@
  *   types can be added with Gestures.addDetector(). When gestures are
  *   detected, custom events are fired on the target element. The event
  *   type and event details depend on the gesture detector.
- * 
+ *
  * Gestures.ignore(type, target):
- *   Stop listening for touch events on target and stop detecting 
+ *   Stop listening for touch events on target and stop detecting
  *   gestures of the specified type.
  *
  * Gestures.addDetector(type, detector):
@@ -37,7 +37,7 @@
  * should be generated. If the method returns null, then no event is triggered.
  * Otherwise, it should return a two-element array. The first element should
  * be a string and will be the type of the event that is generated. The
- * second array element can be any value (including an object) and will 
+ * second array element can be any value (including an object) and will
  * be the value of the detail property of the event. Event names
  * for a gesture type "x" will typically be xgesturestart, xgesture, and
  * xgestureend, but this is dependent on the gesture detector.
@@ -59,8 +59,8 @@ var Gestures = (function() {
 
   // Find an entry in the detectors[] array.
   function findDetector(type, target) {
-    for(var i = detectors.length-1; i >= 0; i--) {
-      if (detectors[i].type === type && detectors[i].target === target) 
+    for (var i = detectors.length - 1; i >= 0; i--) {
+      if (detectors[i].type === type && detectors[i].target === target)
         break;
     }
     return i;
@@ -69,11 +69,11 @@ var Gestures = (function() {
   // This is the public Gestures.ignore() function
   function ignore(type, target) {
     if (!(type in gestureDetectors))
-      throw Error("unknown gesture type " + type)
+      throw Error('unknown gesture type ' + type);
 
     var index = findDetector(type, target);
     if (index === -1)
-      throw Error("not detecting " + type + " gestures for " + target);
+      throw Error('not detecting ' + type + ' gestures for ' + target);
 
     var listeners = detectors[index].listeners;
     detectors.splice(index, 1);
@@ -87,18 +87,18 @@ var Gestures = (function() {
   // This is the public Gestures.detect() function
   function detect(type, target) {
     if (!(type in gestureDetectors))
-      throw Error("unknown gesture type " + type)
+      throw Error('unknown gesture type ' + type);
 
-    if (findDetector(type, target) !== -1) 
-      throw Error("already detecting " + type + " gestures for " + target);
-  
+    if (findDetector(type, target) !== -1)
+      throw Error('already detecting ' + type + ' gestures for ' + target);
+
     // Create a new detector object to handle this gesture
     var detector = new gestureDetectors[type]();
 
     // This is the set of touches that we're going to track
     var touches = [];
 
-    // Now register handlers to capture the rest of the gesture 
+    // Now register handlers to capture the rest of the gesture
     // and to clean up when the gesture is complete.
     target.addEventListener('touchstart', handleTouchStart);
     target.addEventListener('touchmove', handleTouchMove);
@@ -117,9 +117,9 @@ var Gestures = (function() {
     function handleTouchStart(e) {
       // Sometimes we get more than one changedTouch. And some of them.
       // may already be in our array of touches
-      for(var i = 0; i < e.changedTouches.length; i++) {
+      for (var i = 0; i < e.changedTouches.length; i++) {
         var t = e.changedTouches[i];
-        for(var j = 0; j < touches.length; j++) {
+        for (var j = 0; j < touches.length; j++) {
           if (t.identifier === touches[j].identifier) {
             touches[j] = t; // A changed touch that is already down
             break;
@@ -135,10 +135,10 @@ var Gestures = (function() {
     }
 
     function handleTouchMove(e) {
-      for(var i = 0; i < e.changedTouches.length; i++) {
+      for (var i = 0; i < e.changedTouches.length; i++) {
         var t = e.changedTouches[i];
-        for(var j = 0; j < touches.length; j++) {
-          if (t.identifier === touches[j].identifier) 
+        for (var j = 0; j < touches.length; j++) {
+          if (t.identifier === touches[j].identifier)
             touches[j] = t;
         }
       }
@@ -150,9 +150,9 @@ var Gestures = (function() {
     }
 
     function handleTouchEnd(e) {
-      for(var i = 0; i < e.changedTouches.length; i++) {
+      for (var i = 0; i < e.changedTouches.length; i++) {
         var t = e.changedTouches[i];
-        for(var j = 0; j < touches.length; j++) {
+        for (var j = 0; j < touches.length; j++) {
           if (t.identifier === touches[j].identifier) {
             touches.splice(j, 1);
             break;
@@ -168,16 +168,16 @@ var Gestures = (function() {
     function handleTouchCancel(e) {
       // I don't know if gecko ever generates these events
       // XXX: for now, just log them, and remove the listeners
-      console.warn("Unexpected touchcancel event", e);
-      triggerEvent("end");
+      console.warn('Unexpected touchcancel event', e);
+      triggerEvent('end');
     }
 
-    // Trigger an event based on the return value from the detector's 
+    // Trigger an event based on the return value from the detector's
     // touchesChanged() method
     function triggerEvent(value) {
       if (value === undefined)
         return;
-      
+
       var type = value[0];
       var detail = value[1];
 
@@ -212,31 +212,31 @@ var Gestures = (function() {
  *   rotate: the overall angle of rotation (in degrees) for the gesture.
  *   translateX: the overall X translation in pixels
  *   translateY: the overall Y translation in pixels
- * 
+ *
  * The transformgesture event has a detail object with two properties:
- * absolute and relative.  These both refer to objects with scale, rotate, 
- * translateX and translateY properties as for the transformgestureend 
+ * absolute and relative.  These both refer to objects with scale, rotate,
+ * translateX and translateY properties as for the transformgestureend
  * event above. The absolute object specifes the overall transform since
- * the start of the gesture.  And the relative object specifies the 
- * how much the transform has changed since the last transformgesture 
+ * the start of the gesture.  And the relative object specifies the
+ * how much the transform has changed since the last transformgesture
  * event.
- **/ 
-Gestures.addDetector("transform", (function() { 
+ **/
+Gestures.addDetector('transform', (function() {
   // Don't start transforming until the gesture exceeds a threshold
   var SCALE_THRESHOLD = 40;     // pixels
   var ROTATE_THRESHOLD = 22.5;  // degrees
   var TRANSLATE_THRESHOLD = 20; // pixels
-  var START = ["transformgesturestart", null];
+  var START = ['transformgesturestart', null];
 
   // These utility functions will only be called when touches.length === 2
   function distanceBetween(touches) {
     var dx = touches[1].screenX - touches[0].screenX;
     var dy = touches[1].screenY - touches[0].screenY;
-    return Math.sqrt(dx*dx + dy*dy);
+    return Math.sqrt(dx * dx + dy * dy);
   }
   function midpointBetween(touches) {
-    return [(touches[0].screenX + touches[1].screenX)/2,
-            (touches[0].screenY + touches[1].screenY)/2];
+    return [(touches[0].screenX + touches[1].screenX) / 2,
+            (touches[0].screenY + touches[1].screenY) / 2];
   }
   function angleBetween(touches) {
     return Math.atan2(touches[1].screenY - touches[0].screenY,
@@ -245,7 +245,7 @@ Gestures.addDetector("transform", (function() {
 
   function TransformDetector() {
     this.gestureStarted = false;
-    // Don't start any of these transforms until a certain 
+    // Don't start any of these transforms until a certain
     // minimum threshold is passed. After that, do them on each change
     this.scaled = this.rotated = this.xtranslated = this.ytranslated = false;
   }
@@ -263,8 +263,8 @@ Gestures.addDetector("transform", (function() {
         // three coordinate systems
         this.screenX = Math.floor((touches[0].screenX + touches[1].screenX)/2);
         this.screenY = Math.floor((touches[0].screenY + touches[1].screenY)/2);
-        this.pageX = Math.floor((touches[0].pageX + touches[1].pageX)/2);
-        this.pageY = Math.floor((touches[0].pageY + touches[1].pageY)/2);
+        this.pageX = Math.floor((touches[0].pageX + touches[1].pageX) / 2);
+        this.pageY = Math.floor((touches[0].pageY + touches[1].pageY) / 2);
         this.clientX = Math.floor((touches[0].clientX + touches[1].clientX)/2);
         this.clientY = Math.floor((touches[0].clientY + touches[1].clientY)/2);
 
@@ -283,11 +283,11 @@ Gestures.addDetector("transform", (function() {
 
         // Trigger an end event, passing the overall transform between
         // the beginning and end of the gesture.
-        return ["transformgestureend",  {
-          scale: this.lastDistance/this.initialDistance,
+        return ['transformgestureend', {
+          scale: this.lastDistance / this.initialDistance,
           rotate: this.lastAngle - this.initialAngle,
           translateX: this.lastMidpoint[0] - this.initialMidpoint[0],
-          translateY: this.lastMidpoint[1] - this.initialMidpoint[1],
+          translateY: this.lastMidpoint[1] - this.initialMidpoint[1]
         }];
       }
       else {
@@ -304,33 +304,33 @@ Gestures.addDetector("transform", (function() {
         // the transforms are too jittery even when you try to hold your
         // fingers still.
         if (!this.scaled) {
-          if (Math.abs(newDistance - this.initialDistance) > SCALE_THRESHOLD) 
+          if (Math.abs(newDistance - this.initialDistance) > SCALE_THRESHOLD)
             this.scaled = true;
           else
             newDistance = this.initialDistance;
         }
         if (!this.rotated) {
-          if (Math.abs(newAngle - this.initialAngle) > ROTATE_THRESHOLD) 
+          if (Math.abs(newAngle - this.initialAngle) > ROTATE_THRESHOLD)
             this.rotated = true;
           else
             newAngle = this.initialAngle;
         }
         if (!this.xtranslated) {
-          var d = newMidpoint[0] - this.initialMidpoint[0]
-          if (Math.abs(d) > TRANSLATE_THRESHOLD) 
+          var d = newMidpoint[0] - this.initialMidpoint[0];
+          if (Math.abs(d) > TRANSLATE_THRESHOLD)
             this.xtranslated = true;
           else
             newMidpoint[0] = this.initialMidpoint[0];
         }
         if (!this.ytranslated) {
-          var d = newMidpoint[1] - this.initialMidpoint[1]
-          if (Math.abs(d) > TRANSLATE_THRESHOLD) 
+          var d = newMidpoint[1] - this.initialMidpoint[1];
+          if (Math.abs(d) > TRANSLATE_THRESHOLD)
             this.ytranslated = true;
           else
             newMidpoint[1] = this.initialMidpoint[1];
         }
 
-        // If nothing has exceeded the threshold yet, then we 
+        // If nothing has exceeded the threshold yet, then we
         // don't even have to fire an event.
         if (!this.scaled && !this.rotated &&
             !this.xtranslated && !this.ytranslated)
@@ -344,18 +344,18 @@ Gestures.addDetector("transform", (function() {
 
         var detail = {
           absolute: { // transform details since gesture start
-            scale: newDistance/this.initialDistance,
+            scale: newDistance / this.initialDistance,
             rotate: newAngle - this.initialAngle,
             translateX: newMidpoint[0] - this.initialMidpoint[0],
-            translateY: newMidpoint[1] - this.initialMidpoint[1],
+            translateY: newMidpoint[1] - this.initialMidpoint[1]
           },
           relative: { // transform since last gesture change
-            scale: newDistance/this.lastDistance,
+            scale: newDistance / this.lastDistance,
             rotate: newAngle - this.lastAngle,
             translateX: newMidpoint[0] - this.lastMidpoint[0],
-            translateY: newMidpoint[1] - this.lastMidpoint[1],
+            translateY: newMidpoint[1] - this.lastMidpoint[1]
           },
-          
+
           // The following 6 properties are the same as the ones in a Touch
           // object, but they specify the midpoint of the two touches. Clients
           // might uses these as the point to rotate around or zoom in on.
@@ -369,16 +369,16 @@ Gestures.addDetector("transform", (function() {
           pageY: this.pageY,
           clientX: this.clientX,
           clientY: this.clientY
-        }
+        };
 
         this.lastDistance = newDistance;
         this.lastAngle = newAngle;
         this.lastMidpoint = newMidpoint;
 
-        return ["transformgesture", detail];
+        return ['transformgesture', detail];
       }
     }
   }
- 
+
   return TransformDetector;
 }()));

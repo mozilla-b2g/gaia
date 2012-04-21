@@ -2,24 +2,24 @@
 
 /*
  * This app displays photos that are stored on the phone.
- * 
+ *
  * Its starts with a thumbnail view in which small versions of all photos
  * are displayed.  Tapping on a thumbnail shows the full-size image.
- * 
+ *
  * When a full-size image is displayed, swiping left or right moves to
  * the next or previous image (this depends on the writing direction of
  * the locale).  The app can also perform a slideshow, transitioning
  * between photos automatically.
- * 
+ *
  * The app supports two-finger "pinch" gestures to zoom in and out on an
  * image.  When zoomed, a one finger swipe gesture pans within the zoomed
  * image, and only moves to the next or previous image once you reach the
  * edge of the currently displayed image.
- * 
+ *
  * To make transitions between photos smooth, the app preloads the next
  * and previous images and positions them off-screen to the right and
- * left (or opposite for RTL locales) of the currently displayed image.  
- * 
+ * left (or opposite for RTL locales) of the currently displayed image.
+ *
  * Images are displayed with <img> elements inside <div> elements. These
  * <div> elements are called "frames", and the three global variables
  * currentPhotoFrame, previousPhotoFrame and nextPhotoFrame refer to the
@@ -33,7 +33,7 @@
  * the app uses a CSS transition to slide the current photo back into
  * place (if the pan wasn't far enough) or to complete the transition to
  * the next or previous photo.
- * 
+ *
  * The transitions are performed by changing the CSS classes on the three
  * frame <divs> and cycling them. To transition to the next photo, for
  * example, nextPhotoFrame becomes currentPhotoFrame, currentPhotoFrame
@@ -43,7 +43,7 @@
  * and CSS handles the transition animation for us, animating both the
  * change in the left property caused by the class change, and the change
  * in the -moz-transform property which is set back to the empty string.
- * 
+ *
  * The trickiest code has to do with handling zooms and pans while the
  * photo is zoomed in.  If the photo isn't zoomed in, then any pan ends
  * with a transition to a new photo or back to the original photo.  But
@@ -53,7 +53,7 @@
  * display:relative, and the frame is overflow:none.) So this is a
  * completely different positioning mechanism than the one used for
  * swiping and transitioning photos sideways.
- * 
+ *
  * Notice that a single pan gesture can cause two different things to
  * happen: it moves the zoomed in image within its frame and then, when
  * edge of the photo is reached, it starts to transition from that photo
@@ -63,16 +63,16 @@
  * zoom and pan computations is separated out into a separate PhotoState
  * class.  I'm not entirely convinced that this is the best abstraction,
  * but it does simplify things somewhat.
- * 
+ *
  * Pan gestures are made with a single finger and are implemented with a
  * mousedown handler (so it works with a mouse on the desktop as well as
  * with a finger on a phone) that registers temporary capturing mousemove
  * and mouseup listeners.
- * 
+ *
  * Zoom gestures are two finger gestures so they only work on
  * touch-sensitive devices and can't be tested on the desktop.  They're
  * implemented on top of basic touch events in the separate file gestures.js.
- * 
+ *
  *
  * TODO:
  *   we need a way to get photos from the camera and to store them on the device
@@ -105,7 +105,7 @@ const SAMPLE_FILENAMES = ['DSC_1677.jpg', 'DSC_1701.jpg', 'DSC_1727.jpg',
 'IMG_0676.jpg', 'IMG_1132.jpg', 'IMG_1307.jpg', 'IMG_1706.jpg',
 'IMG_7928.jpg', 'IMG_7990.jpg', 'IMG_8085.jpg', 'IMG_8164.jpg', 'IMG_8631.jpg',
 'IMG_8638.jpg', 'IMG_8648.jpg', 'IMG_8652.jpg', '_MG_0053.jpg', 'P1000115.jpg',
-'P1000404.jpg', 'P1000469.jpg', 'P1000486.jpg', 
+'P1000404.jpg', 'P1000469.jpg', 'P1000486.jpg',
 '3548856279_a215152cd5_o.jpg', '3549661880_0c5565a518_o.jpg',
 '3549662882_8e41d11d28_o.jpg', '3551599565_db282cf840_o.jpg',
 '6839255446_2f245d8f0c.jpg', '6985376089_db00e0d18c_o.jpg'];
@@ -116,7 +116,7 @@ const SAMPLE_SIZES = [
   [480,800], [480,800], [480,800], [480,800], [480,800], [480,800], [480,800],
   [480,800], [480,800], [480,800], [480,800], [480,800], [480,800], [480,800],
   [480,800], [480,800], [480,800], [480,800], [480,800], [480,800], [480,800],
-  [1024,704], [1024,1010], [1018,826], [817,1019], [328,500], [2169,1613],
+  [1024, 704], [1024, 1010], [1018, 826], [817, 1019], [328, 500], [2169, 1613]
 ];
 
 const NUM_PHOTOS = SAMPLE_FILENAMES.length;
@@ -349,7 +349,7 @@ photos.addEventListener('mousedown', function(event) {
 Gestures.detect('transform', photos);
 
 // For now, we only respond to scale gestures to allow the user to
-// zoom in on the photo.  
+// zoom in on the photo.
 photos.addEventListener('transformgesture', function(e) {
   if (transitioning)
     return;
@@ -377,12 +377,12 @@ function showThumbnails() {
 // and previousPhoto()
 function displayImageInFrame(n, frame) {
   // Remove anything in the frame
-  while(frame.firstChild)
+  while (frame.firstChild)
     frame.removeChild(frame.firstChild);
 
   // Get the url of photo n.  If n is out of range, just return now
   var url = photoURL(n);
-  if (!url) 
+  if (!url)
     return;
 
   // Create the img element
@@ -404,8 +404,8 @@ function displayImageInFrame(n, frame) {
   var style = img.style;
   style.width = width + 'px';
   style.height = height + 'px';
-  style.left = Math.floor((viewportWidth - width)/2) + 'px';
-  style.top = Math.floor((viewportHeight - height)/2) + 'px';
+  style.left = Math.floor((viewportWidth - width) / 2) + 'px';
+  style.top = Math.floor((viewportHeight - height) / 2) + 'px';
 
   frame.appendChild(img);
 }
@@ -479,7 +479,7 @@ function nextPhoto(time) {
   // Remember the old photoState object
   var previousPhotoState = photoState;
 
-  // Start with default pan and zoom state for the new photo 
+  // Start with default pan and zoom state for the new photo
   // And also reset the translation caused by swiping the photos
   // FIXME: use the real size of the photo
   var size = SAMPLE_SIZES[currentPhotoIndex];
@@ -537,13 +537,13 @@ function previousPhoto(time) {
   previousPhotoFrame.classList.add('previousPhoto');
   currentPhotoFrame.classList.add('currentPhoto');
   nextPhotoFrame.classList.add('nextPhoto');
- 
+
   // Get the new current photo
   currentPhoto = currentPhotoFrame.firstElementChild;
-  
+
   // Remember the old PhotoState object
   var nextPhotoState = photoState;
-  
+
   // Create a new photo state
   var size = SAMPLE_SIZES[currentPhotoIndex];
   photoState = new PhotoState(size[0], size[1]);
@@ -619,7 +619,7 @@ function continueSlideshow() {
 
 /**
  * This class encapsulates the zooming and panning functionality for
- * the gallery app and maintains the current size and position of the 
+ * the gallery app and maintains the current size and position of the
  * currently displayed photo as well as the transition state (if any)
  * between photos.
  */
@@ -648,12 +648,12 @@ PhotoState.prototype.reset = function() {
   // Compute photo size and position at that scale
   this.width = Math.floor(this.photoWidth * this.baseScale);
   this.height = Math.floor(this.photoHeight * this.baseScale);
-  this.left = (this.viewportWidth - this.width)/2;
-  this.top = (this.viewportHeight - this.height)/2;
+  this.left = (this.viewportWidth - this.width) / 2;
+  this.top = (this.viewportHeight - this.height) / 2;
 
   // We start off with no swipe from left to right
   this.swipe = 0;
-}
+};
 
 // Zoom in by the specified factor, adjusting the pan amount so that
 // the image pixels at (centerX, centerY) remain at that position.
@@ -663,11 +663,11 @@ PhotoState.prototype.zoom = function(scale, centerX, centerY) {
 
   // Never zoom in farther than 2x the native resolution of the image
   if (this.baseScale * this.scale * scale > 2) {
-    scale = 2/(this.baseScale*this.scale)
+    scale = 2 / (this.baseScale * this.scale);
   }
   // And never zoom out to make the image smaller than it would normally be
   else if (this.scale * scale < 1) {
-    scale = 1/this.scale;
+    scale = 1 / this.scale;
   }
 
   this.scale = this.scale * scale;
@@ -688,13 +688,13 @@ PhotoState.prototype.zoom = function(scale, centerX, centerY) {
 
   // To keep that point still, here are the new left and top values we need
   this.left = centerX - photoX;
-  this.top =  centerY - photoY;
+  this.top = centerY - photoY;
 
   // Now make sure we didn't pan too much: If the image fits on the
   // screen, center it. If the image is bigger than the screen, then
   // make sure we haven't gone past any edges
   if (this.width <= this.viewportWidth) {
-    this.left = (this.viewportWidth - this.width)/2;
+    this.left = (this.viewportWidth - this.width) / 2;
   }
   else {
     // Don't let the left of the photo be past the left edge of the screen
@@ -708,7 +708,7 @@ PhotoState.prototype.zoom = function(scale, centerX, centerY) {
   }
 
   if (this.height <= this.viewportHeight) {
-    this.top = (this.viewportHeight - this.height)/2;
+    this.top = (this.viewportHeight - this.height) / 2;
   }
   else {
     // Don't let the top of the photo be below the top of the screen
@@ -733,7 +733,7 @@ PhotoState.prototype.pan = function(dx, dy) {
       this.top = 0;
 
     // bottom of photo shouldn't be above the bottom of screen
-    if (this.top + this.height < this.viewportHeight) 
+    if (this.top + this.height < this.viewportHeight)
       this.top = this.viewportHeight - this.height;
   }
 
@@ -747,14 +747,14 @@ PhotoState.prototype.pan = function(dx, dy) {
   else {
     if (this.swipe === 0) {
       this.left += dx;
-      
-      // If this would take the left edge of the photo past the 
+
+      // If this would take the left edge of the photo past the
       // left edge of the screen, then we've got to do a swipe
       if (this.left > 0) {
         this.swipe += this.left;
         this.left = 0;
       }
-      
+
       // Or, if this would take the right edge of the photo past the
       // right edge of the screen, then we've got to swipe the other way
       if (this.left + this.width < this.viewportWidth) {
@@ -780,14 +780,14 @@ PhotoState.prototype.pan = function(dx, dy) {
 };
 
 PhotoState.prototype.setPhotoStyles = function(img) {
-  img.style.width = this.width + "px";
-  img.style.height = this.height + "px";
-  img.style.top = this.top + "px";
-  img.style.left = this.left + "px";
+  img.style.width = this.width + 'px';
+  img.style.height = this.height + 'px';
+  img.style.top = this.top + 'px';
+  img.style.left = this.left + 'px';
 };
 
 PhotoState.prototype.setFrameStyles = function(/*frames...*/) {
   var translate = 'translate(' + this.swipe + 'px)';
-  for(var i = 0; i < arguments.length; i++) 
+  for (var i = 0; i < arguments.length; i++)
     arguments[i].style.MozTransform = translate;
-}
+};
