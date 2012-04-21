@@ -17,6 +17,9 @@ const
 var mail = {
   firstScreen: function(){
 
+    const DOMAINS = {},
+      R_EMAIL_DOMAIN = /@(.*)$/;
+
     nodes.loginForm.addEventListener('submit', function(e){
 
       var account = this.account.value,
@@ -30,6 +33,76 @@ var mail = {
         mail.mailScreen(account);
       });
       
+
+    });
+    //console.log(nodes.preSelectMail);
+
+    [].forEach.call(nodes.preSelectMail.querySelectorAll('img'), function(img){
+      DOMAINS[img.dataset.domain] = {
+        title: img.alt,
+        img: img.cloneNode(true)
+      };
+    });
+
+    Object.freeze(DOMAINS);
+
+    nodes.loginForm.account.addEventListener('updatevalue', function(){
+        //will need to add autocomplete
+
+        var parts = this.value.match(R_EMAIL_DOMAIN);
+
+        nodes.preMailSelected.innerHTML = '';
+
+        //let tmp;
+        if(parts && parts[1] && DOMAINS[parts[1]]){
+          let tmp = DOMAINS[parts[1]];
+
+          nodes.preMailSelected.appendChild(tmp.img);
+          nodes.preMailSelected
+            .appendChild(document.createElement('span'))
+            .textContent = ' ' + tmp.title;
+
+        }
+
+    });
+
+    nodes.preSelectMail.addEventListener('click', function(e){
+      var nodeName = e.target.nodeName.toLowerCase(),
+        img;
+
+      if(nodeName === 'img'){
+        img = e.target;
+      } else if(nodeName === 'a'){
+        img = e.target.querySelector('img');
+      } else {
+        return;
+      }
+
+
+      {
+        let account = nodes.loginForm.account,
+          value = account.value,
+          i = value.indexOf('@'),
+          domain = img.dataset.domain,
+          range = document.createRange();
+
+        if(i !== -1){
+          //console.log(value.slice(i));
+          value = value.slice(0, i) + '@' + domain;
+        } else /*if(value)*/{
+          i = value.length;
+          value = value + '@' + domain;
+        }
+
+        account.value = value;
+        account.focus();
+        account.setSelectionRange(i, i);
+
+      }
+
+      //nodes.loginForm.account.value = '@' + img.dataset.domain;
+
+      e.preventDefault();
 
     });
 
@@ -47,7 +120,7 @@ var mail = {
 
     nodes.mailScreen.classList.remove('hidden');
 
-    nodes.account
+    nodes.accountBar
       .appendChild(document.createElement('div'))
       .appendChild(document.createElement('span'))
       .textContent = account;
@@ -307,14 +380,17 @@ setInterval(function(){
 
 document.addEventListener('DOMContentLoaded', load(function(){
   [
-    'account',
+    'account-field',
+    'account-bar',
     'folder',
     'messages',
     'main',
     'first-screen',
     'login-form',
-    'add-account-button',
-    'mail-screen'
+    'select-exist-button',
+    'mail-screen',
+    'pre-mail-selected',
+    'pre-select-mail'
   ].forEach(function(id){
     var target = document.getElementById(id);
 
@@ -325,9 +401,46 @@ document.addEventListener('DOMContentLoaded', load(function(){
     }
 
   });
+
+  let fields = document.querySelectorAll('.field');
+
+  [].forEach.call(fields, function(field){
+    var cleanButton = field.querySelector('.clean-button'),
+      input = field.querySelector('input'),
+      valueSetter = input.__lookupSetter__('value'),
+      valueGetter = input.__lookupGetter__('value'),
+      handle = function(){
+        if(this.value){
+          cleanButton.style.display = 'block';
+        }else{
+          cleanButton.style.display = 'none';
+        }
+        this.dispatchEvent(new CustomEvent('updatevalue'));
+      };
+
+      input.addEventListener('input', handle);
+      input.addEventListener('overflow', handle);
+      handle.call(input);
+
+      cleanButton.addEventListener('click', function(){
+        input.value = '';
+        handle.call(input);
+      });
+
+      input.__defineSetter__('value', function(val){
+        valueSetter.call(this, val);
+        handle.call(this);
+        return val;
+      });
+
+      input.__defineGetter__('value', valueGetter);
+
+  });
+
 }), true);
 
 window.addEventListener('localized', load(function(){
+
   var html = document.documentElement,
     lang = document.mozL10n.language;
 

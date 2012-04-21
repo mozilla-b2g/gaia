@@ -19,7 +19,7 @@
 	<div class="hidden mail-screen" id="mail-screen">
 		<header class="top">
 			<div class="userbar">
-				<a href="#account" class="account" id="account">
+				<a href="#account" class="account-bar" id="account">
 					<!--<div><span></span></div>-->
 				</a>
 				<a href="#change-folder" class="folder" id="folder">
@@ -47,24 +47,48 @@
 
 		<header class="first-screen-header">
 			<h1>Gaia Mail Client</h1>
+			<h2 class="pre-mail-selected" id="pre-mail-selected">
+
+			</h2>
 		</header>
 
 		<form class="login-form" id="login-form">
 
-			<header class="login-header">
-			</header>
 
 			<fieldset class="login-fieldset">
-				<p><input type="text" name="account" placeholder="Enter your account">
-				<p><input type="password" name="password" placeholder="Enter your password">
-				<p><button type="submit" class="login-button">Log in</button>
+				<ul>
+					<li class="login-field">
+						<div class="login-email-field field">
+							<input autocomplete="off" type="text" id="account-field" name="account" placeholder="Enter your account">
+							<span class="clean-button">✖</span>
+						</div>
+					</li>
+					<li class="login-field">
+						<div class="field">
+							<input type="password" name="password" placeholder="Enter your password">
+							<span class="clean-button">✖</span>
+						</div>
+					</li>
+					<li><button type="submit" class="add-account-button">Add account</button>
+				</ul>
 			</fieldset>
 
 		</form>
 
+		<div class="pre-select-mail" id="pre-select-mail">
+			<a href="#hotmail" id="hotmail-button">
+				<img src="style/icons/x48/hotmail.png" alt="Hotmail" data-domain="hotmail.com" title="Window Live Hotmail">
+			</a>
+			<a href="#gmail" id="gmail-button">
+				<img src="style/icons/x48/gmail.png" alt="Gmail" data-domain="gmail.com" title="Google Mail">
+			</a>
+			<a href="#yahoo-mail" id="yahoo-mail-button">
+				<img src="style/icons/x48/yahoo-mail.png" alt="Yahoo! Mail" data-domain="yahoo.com" title="Yahoo! Mail">
+			</a>
+		</div>
 
 		<footer class="first-screen-footer">
-			<button id="add-account-button" class="add-account-button">Add account</button>
+			<button id="select-exist-button" class="select-exist-button">Select exist account</button>
 		</footer>
 	</div>
 </body>

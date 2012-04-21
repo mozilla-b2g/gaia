@@ -1,4 +1,5 @@
 
+
 html, body {
 	width: 100%;
 	height: 100%;
@@ -160,14 +161,13 @@ input, button, textarea {
 	line-height: 36px;
 	text-align: center;
 	text-shadow: 1px 0 1px rgba(255, 255, 255, 0.3), 0 1px 1px rgba(255, 255, 255, 0.3);
-	padding-top: 20px;
+	padding-top: 5px;
 }
 
 .login-form {
 	width: 400px;
-	padding: 10px;
 	margin: 0 auto;
-	padding: 40px 0;
+	padding: 0 0 5px;
 }
 
 .login-fieldset {
@@ -176,21 +176,56 @@ input, button, textarea {
 	padding: 0;
 }
 
+.login-fieldset ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.login-fieldset li {
+	margin: 25px 0;
+	
+
+	
+}
+
 .login-fieldset input { 
 	margin: 0;
-	padding: 10px;
+	padding: 0;
+	border: 0;
+	background: transparent;
 	font-size: 26px;
 	line-height: 30px;
-	width: 100%;
 	font-weight: normal;
+	padding: 10px;
+	width: 100%;
+	-moz-box-sizing: border-box;
+}
+
+input::after {
+	position: relative;
+	z-index: 1;
+	content: 'x';
+	width: 100%;
+	height: 100%;
+	display: block;
+}
+
+.login-field {
 	-moz-box-sizing: border-box;
 	background: white;
 	border-radius: 4px;
 	box-shadow: 0 0 0 1px gray, 0 0 0 2px black;
 	border: 2px solid transparent;
+	width: 100%;
+	overflow: hidden;
 }
 
-.login-button {
+.login-email-field {
+	width: 100%;
+}
+
+.add-account-button {
 	width: 100%;
 }
 
@@ -211,19 +246,85 @@ button:active {
 }
 
 .login-header {
-	font-style: ;
+	//font-style: ;
 	font-weight: normal;
-	text-align: right;
+	text-align: left;
 }
 
 .first-screen-footer {
-	padding: 140px 0 0;
+	padding: 100px 0 0;
 	text-align: center;
 }
 
-.add-account-button {
+.select-exist-button {
 	padding: 10px 30px;
 	font-size: 28px;
 	line-height: 30px;
 	-moz-box-sizing: border-box;
+}
+
+.pre-select-mail {
+	text-align: center;
+	margin-top: 30px;
+	-moz-transition: all 0.3s;
+}
+
+@media screen and (max-height: 740px) {
+  .pre-select-mail {
+  	margin-top: -10px;
+  }
+}
+
+.pre-select-mail a {
+	display: inline-block;
+	margin: 0 30px;
+	background: white;
+	padding: 0 10px;
+	border-radius: 4px;
+	box-shadow: 0 0 0 1px gray, 0 0 0 2px black;
+	border: 2px solid transparent;
+}
+/*.pre-mail-selected {
+	float: right;
+	margin: 0;
+	padding: 0;
+	font-size: 26px;
+	line-height: 30px;
+	padding: 2px 10px 0 0;
+	vertical-align: middle;
+}*/
+.pre-mail-selected * {
+	vertical-align: middle;
+}
+.pre-mail-selected {
+	margin: 0;
+	text-align: left;
+	width: 400px;
+	margin: 0 auto;
+	vertical-align: middle;
+	height: 48px;
+	overflow: hidden;
+}
+
+.pre-mail-selected * {
+	vertical-align: middle;
+}
+
+.field {
+	position: relative;
+}
+
+.field .clean-button {
+	position: absolute;
+	font-size: 32px;
+	line-height: 34px;
+	right: 10px;
+	top: 50%;
+	margin-top: -17px;
+	display: none;
+	cursor: pointer;
+}
+
+.field input:focus ~ .clean-button {
+	//display: block;
 }
