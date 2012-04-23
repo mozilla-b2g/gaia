@@ -1,0 +1,80 @@
+body,
+#home,
+#top-bar,
+#apps,
+#apps > div,
+#apps > div:active,
+#toolbar,
+#toolbar > div,
+/* base.css */
+#statusbar,
+#statusbar > div
+{
+	background: none;
+}
+
+#statusbar {
+	background: #000;
+	color:#ccc;
+}
+
+#top-bar > div {
+	position: relative;
+	height: -moz-calc(100% - 2px);
+	border-radius:5px 5px 0 0;
+	background: -moz-linear-gradient(top, hsla(0,0%,0%,.2) 0%, hsla(0,0%,0%,.2) 100%);
+  border-bottom: solid 2px;
+	-moz-border-bottom-colors: hsla(0, 0%, 50%, .5) hsla(0, 0%, 0%, .3);
+	color:#fff;
+}
+
+#top-bar #msg {
+	position: absolute;
+	top:0;right:0;bottom:0;left:0;
+	line-height: 7mozmm;
+	text-align: center;
+}
+
+#top-bar-left-arrow {
+	float: left;
+	width: 6.3mozmm;
+	height: 100%;
+	background: url(images/top-bar-left-arrow.png) no-repeat 50% 50%;
+}
+
+#top-bar-right-arrow {
+	float: right;
+	width: 6.3mozmm;
+	height: 100%;
+	background: url(images/top-bar-right-arrow.png) no-repeat 50% 50%;
+}
+
+#home {
+	background: url(images/app-texture.png) repeat 50% 50%,
+							url(images/dialing-pattern.png?2) repeat-x 0 0,
+							-moz-linear-gradient(top, hsla(0,0%,0%,.2) 0%, hsla(0,0%,0%,.2) 100%),
+							hsl(212,8%,37%);
+  border-radius: 6px 6px 0 0;
+  border-top: 2px solid hsla(0, 100%, 100%, 0.1);
+}
+
+#apps > div:active {
+	background: hsla(0, 0%, 0%, 0.2);
+	border-radius: 4px;
+}
+
+#toolbar {
+	background: #000;
+}
+
+#toolbar div {
+	background: -moz-linear-gradient(top, hsla(0,0%,0%,.3) 0%, hsla(0,0%,0%,.3) 100%),
+							hsl(212,8%,37%);
+	height: -moz-calc(100% - 4px);
+  border-radius: 0 0 8px 8px;
+  border:solid 2px;
+	-moz-border-top-colors: hsla(0, 0%, 0%, .6) hsla(0, 0%, 50%, .3);
+  border-bottom-color: hsla(0, 0%, 28%, 1);
+  border-left:none;
+  border-right:none;
+}
