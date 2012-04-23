@@ -212,14 +212,22 @@ function test(input, expected) {
   print();
 }
 
-print("=======西安========\n")
+print("=======西安========\n");
 test('xian');
 test("xi'an");
-print("=======方案 反感========\n")
+print("=======方案 反感========\n");
 test("fangan");
 test("fang'an");
 test("fan'gan");
-print("=======你好========\n")
+print("=======北京========\n");
+test("bj");
+test("beijing");
+test("bjing");
+test("beij");
+test("bejing");
+test("bejing");
+test("bej");
+print("=======你好========\n");
 test("ni");
 test("nih");
 test("nihao");
@@ -227,9 +235,8 @@ test("nihaoa");
 test("nh");
 test("nha");
 test("nhaa");
-print("=======爱你啊========\n")
-test("ain");
-test("aini");
-test("ainia");
-test("an");
-test("ana");
+print("=======中========\n");
+test("zh");
+test("zho");
+test("zhon");
+test("zhong");

@@ -280,10 +280,6 @@ PinyinParser.prototype = {
   }
 };
 
-function IMEManagerGlue() {
-  this.path = "";
-}
-
 function IMEngineBase() {
 }
 
@@ -352,9 +348,9 @@ IMEngineBase.prototype = {
   /**
    * Notifies when a candidate is selected.
    * @param {String} text The text of the candidate.
-   * @param {String} type The type of the candidate.
+   * @param {Object} data User data of the candidate.
    */
-  select: function(text, type) {
+  select: function(text, data) {
     this._glue.sendString(text);
   },
 }
@@ -398,89 +394,14 @@ IMEngine.prototype = {
   
   _db: null, 
   
+  // The last selected text and syllables used to generate suggestions.
   _selectedText: '',
   _selectedSyllables: [],
-  _syllablesInBuffer: [''],
+  
+  _pendingSymbols: "",
   _firstCandidate: '',
   _keypressQueue: [],
   _isWorking: false,
-  
-  _buildQueryList: function(solutions, stopPosition) {
-    var queryList = [];
-    for (var i = 0; i < solutions.length; i++) {
-      var solution = solutions[i];
-      var solutionPattern = '';
-      var solutionPrefix = '';
-
-      for (var j = 0; j < solution.length; j++) {
-        var segment = solution[j];
-        solutionPrefix += segment;
-        if (solutionPrefix.length > stopPosition) {
-          solutionPattern = '';
-          break;
-        }
-
-        if (segment != "'") {
-          if (j > 0) {
-            solutionPattern += "'";
-          }
-
-          if (/^([bpmfdtnlgkhjqxryw]|[zcs]h?)/.test(segment)) {
-            solutionPattern += (segment + '[a-z]*[0-9]?');
-          } else {
-            solutionPattern += (segment + '[0-9]?');
-          }
-          if (solutionPrefix.length == stopPosition) {
-            break;
-          }
-        }
-      }
-      if (solutionPattern != '') {
-        queryList.push({
-            prefix: solutionPrefix,
-            pattern: '^' + solutionPattern + '$'
-        });
-      }
-    }
-    return queryList;
-  },
-  
-  _showChoices: function(choices) {
-    var prefix = [];
-    this._glue.sendCandidates(
-      prefix.concat(
-        choices.map(
-          function(item) {return [item.phrase, item.prefix]}
-        )
-      )
-    );
-  },
-
-  _refreshChoices: function(mode) {
-    var solutions = this._splitter.parse(this._spell.substring(this._startPosition));
-
-    var stopPositionSet = {};
-    for (var i = 0; i < solutions.length; i++) {
-      var pos = 0;
-      var solution = solutions[i];
-      for (var j = 0; j < solution.length; j++) {
-        pos += solution[j].length;
-        stopPositionSet[pos] = true;
-      }
-    }
-    var unsortedStopPositionList = [];
-    for (var pos in stopPositionSet) {
-      unsortedStopPositionList.push(pos);
-    }
-    var stopPositionList = unsortedStopPositionList.sort();
-    var candidates = [];
-    for (var i = stopPositionList.length - 1; i >= 0; i--) {
-      var queryList = this._buildQueryList(solutions, stopPositionList[i]);
-      candidates = candidates.concat(dictionary.lookUp(queryList,mode));
-    }
-    this._showChoices(candidates);
-    this._sendPendingSymbols();
-  },
    
   _initDB: function(readyCallback) {
     var dbSettings = {
@@ -497,16 +418,15 @@ IMEngine.prototype = {
   },
   
   _sendPendingSymbols: function () {
-    debug('SendPendingSymbol: ' + this._syllablesInBuffer.join(','));
-    var symbols = this._syllablesInBuffer.join('').replace(/\*/g, '');
-    this._glue.sendPendingSymbols(symbols);
+    debug('SendPendingSymbol: ' + this._pendingSymbols);
+    this._glue.sendPendingSymbols(this._pendingSymbols);
   },
   
   _sendCandidates: function(candidates) {
     this._firstCandidate = (candidates[0])? candidates[0][0] : '';
     this._glue.sendCandidates(candidates);
   },
-  
+    
   _start: function() {
     if (this._isWorking)
       return;
@@ -533,57 +453,18 @@ IMEngine.prototype = {
     var code = this._keypressQueue.shift();
 
     if (code == 0) {
-      // This is a select function operation after selecting suggestions
-      this._sendPendingSymbols();
-      this._updateCandidateList(this._next.bind(this));
-      return;
-    }
-
-    if (code < 0) {
-      // This is a select function operation
-      var i = code * -1;
-      dump('Removing ' + (code * -1) + ' syllables from buffer.');
-
-      while (i--) {
-        this._syllablesInBuffer.shift();
-      }
-
-      if (!this._syllablesInBuffer.length) {
-        this._syllablesInBuffer = [''];
-      }
-
+      // This is a select function operation.
       this._sendPendingSymbols();
       this._updateCandidateList(this._next.bind(this));
       return;
     }
 
     debug('key code: ' + code);
-
-    if (code === KeyEvent.DOM_VK_RETURN) {
-      debug('Return Key');
-      if (!this._firstCandidate) {
-        debug('Default action.');
-        // pass the key to IMEManager for default action
-        this._glue.sendKey(code);
-        this._next();
-        return;
-      }
-
-      // candidate list exists; output the first candidate
-      debug('Sending first candidate.');
-      this._glue.sendString(this._firstCandidate);
-      this._selectedText = this._firstCandidate;
-      this._selectedSyllables = [].concat(this._syllablesInBuffer);
-      if (!this._selectedSyllables[this._selectedSyllables.length - 1])
-        this._selectedSyllables.pop();
-      this._keypressQueue.push(selectedSyllables.length * -1);
-      this._next();
-      return;
-    }
-
+    
+    // Backspace - delete last input symbol if exists
     if (code === KeyEvent.DOM_VK_BACK_SPACE) {
       debug('Backspace key');
-      if (!this._syllablesInBuffer.join('')) {
+      if (!this._pendingSymbols) {
         if (this._firstCandidate) {
           debug('Remove candidates.');
 
@@ -600,49 +481,39 @@ IMEngine.prototype = {
         this._next();
         return;
       }
-
-      if (!this._getLastSyllable()) {
-        // the last syllable is empty
-        // remove the last symbol in the last syllable in buffer
-        debug('Remove last syllable.');
-        this._syllablesInBuffer.pop();
-      }
-
-      debug('Remove one symbol.');
-      debug('this._getLastSyllable(): ' + JSON.stringify(this._getLastSyllable()));
-      this._syllablesInBuffer[this._syllablesInBuffer.length - 1] =
-        this._getLastSyllable().replace(/.(\*?)$/, '$1').replace(/^\*$/, '');
-
-      if (!this._getLastSyllable() && this._syllablesInBuffer.length !== 1)
-        this._syllablesInBuffer.pop();
+      
+      this._pendingSymbols = this._pendingSymbols.substring(0, this._pendingSymbols.length - 1);
 
       this._sendPendingSymbols();
       this._updateCandidateList(this._next.bind(this));
       return;
-    }
+    }    
 
-    if (!this._isSymbol(code)) {
-      debug('Non-bopomofo code');
-
-      if (this._firstCandidate && this._syllablesInBuffer.join('') !== '') {
-        // candidate list exists; output the first candidate
-        debug('Sending first candidate.');
-        this._glue.sendString(this._firstCandidate);
-        this._sendCandidates([]);
-        this.empty();
-        // no return here
-      }
-
+    // Select the first candidate if needed.
+    if (code === KeyEvent.DOM_VK_RETURN
+        || !this._isSymbol(code)
+        || this._pendingSymbols.length >= this._kBufferLenLimit) {
+      debug('Return key or non-bopomofo code');
+      var sendKey = true;
       if (this._firstCandidate) {
-        debug('Default action; remove suggestion panel.');
-        this._glue.sendKey(code);
+        if (this._pendingSymbols) {
+          // candidate list exists; output the first candidate
+          debug('Sending first candidate.');
+          this._glue.sendString(this._firstCandidate);
+          this.empty();
+          // no return here
+          if (code === KeyEvent.DOM_VK_RETURN) {
+            sendKey = false;
+          }
+        }
         this._sendCandidates([]);
-        this._next();
       }
 
       //pass the key to IMEManager for default action
       debug('Default action.');
-      this._glue.sendKey(code);
+      if (sendKey) {
+        this._glue.sendKey(code);
+      }
       this._next();
       return;
     }
@@ -654,53 +525,8 @@ IMEngine.prototype = {
     // add symbol to pendingSymbols
     this._appendNewSymbol(code);
 
-    if (this._kBufferLenLimit &&
-      this._syllablesInBuffer.length >= this._kBufferLenLimit) {
-      // syllablesInBuffer is too long; find a term and sendString()
-      debug('Buffer exceed limit');
-      var i = this._syllablesInBuffer.length - 1;
-
-      var findTerms = function() {
-        debug('Find term for first ' + i + ' syllables.');
-
-        var syllables = this._syllablesInBuffer.slice(0, i);
-        lookup(syllables, 'term', function lookupCallback(candidates) {
-          if (i !== 1 && !candidates[0]) {
-            // not found, keep looking
-            i--;
-            findTerms();
-            return;
-          }
-
-          debug('Found.');
-
-          // sendString
-          this._glue.sendString(
-            candidates[0] ||
-            this._syllablesInBuffer.slice(0, i).join('').replace(/\*/g, '')
-          );
-
-          // remove syllables from buffer
-          while (i--) {
-            this._syllablesInBuffer.shift();
-          }
-
-          this._sendPendingSymbols();
-
-          this._updateCandidateList(this_next.bind(this));
-        });
-      };
-
-      findTerms();
-      return;
-    }
-
     this._sendPendingSymbols();
     this._updateCandidateList(this._next.bind(this));
-  },
-  
-  _getLastSyllable: function() {
-    return this._syllablesInBuffer[this._syllablesInBuffer.length - 1];
   },
   
   _isSymbol: function(code) {
@@ -719,20 +545,8 @@ IMEngine.prototype = {
   },
   
   _appendNewSymbol: function(code) {
-    var syllable = this._syllablesInBuffer[this._syllablesInBuffer.length - 1];
     var symbol = String.fromCharCode(code);
-    var tmp = this._splitter.parse(syllable + symbol);
-    var newSyllables = (tmp.length > 0) ? tmp[0] : [];
-    debug('this._syllablesInBuffer: ' + JSON.stringify(this._syllablesInBuffer), true);
-    debug('syllable: ' + syllable + symbol, true);
-    if (newSyllables.length == 0) {
-      this._syllablesInBuffer.push('');
-    } else if (newSyllables.length > 0) {
-      this._syllablesInBuffer[this._syllablesInBuffer.length - 1] = newSyllables[0];
-    }
-    if (newSyllables.length > 1) {
-      this._syllablesInBuffer.push(newSyllables[1]);
-    }
+    this._pendingSymbols += symbol;
   },
   
   _lookup: function(query, type, callback) {
@@ -794,19 +608,20 @@ IMEngine.prototype = {
     debug('Update Candidate List.');
     var self = this;
     
-    if (!this._syllablesInBuffer.join('').length) {
+    if (!this._pendingSymbols) {
       if (this._autoSuggestCandidates &&
           this._selectedSyllables.length) {
         debug('Buffer is empty; ' +
           'make suggestions based on select term.');
         var candidates = [];
         var texts = this._selectedText.split('');
-        this._lookup([this._selectedSyllables, texts], 'suggestion',
+        var selectedSyllables = this._selectedSyllables;
+        this._lookup([selectedSyllables, texts], 'suggestion',
           function(suggestions) {
             suggestions.forEach(
               function suggestions_forEach(suggestion) {
                 candidates.push(
-                  [suggestion.substr(texts.length), 'suggestion']);
+                  [suggestion.substr(texts.length), selectedSyllables]);
               }
             );
             self._sendCandidates(candidates);
@@ -825,23 +640,24 @@ IMEngine.prototype = {
     this._selectedSyllables = [];
 
     var candidates = [];
-    var syllablesForQuery = [].concat(this._syllablesInBuffer);
-
-    if (!syllablesForQuery[syllablesForQuery.length - 1])
-      syllablesForQuery.pop();
+    var segments = this._splitter.parse(this._pendingSymbols);
+    var syllablesForQuery = [];
+    if (segments.length > 0) {
+      syllablesForQuery = segments[0];
+    }
 
     debug('Get term candidates for the entire buffer.');
     this._lookup(syllablesForQuery, 'term', function lookupCallback(terms) {
       terms.forEach(function readTerm(term) {
-        candidates.push([term, 'whole']);
+        candidates.push([term, syllablesForQuery.join("'")]);
       });
 
-      if (self._syllablesInBuffer.length === 1) {
+      if (self._pendingSymbols.length === 1) {
         debug('Only one syllable; skip other lookups.');
 
         if (!candidates.length) {
           // candidates unavailable; output symbols
-          candidates.push([self._syllablesInBuffer.join('').replace(/\*/g, ''), 'whole']);
+          candidates.push([self._pendingSymbols, syllablesForQuery.join("'")]);
         }
 
         self._sendCandidates(candidates);
@@ -861,7 +677,7 @@ IMEngine.prototype = {
           if (exists)
             return;
 
-          candidates.push([sentence, 'whole']);
+          candidates.push([sentence, syllables]);
         });
 
         // The remaining candidates doesn't match the entire buffer
@@ -870,23 +686,22 @@ IMEngine.prototype = {
         // The remaining unmatched syllables will go through lookup
         // over and over until the buffer is emptied.
 
-        var i = Math.min(self._kDBTermMaxLength, self._syllablesInBuffer.length - 1);
+        var i = Math.min(self._kDBTermMaxLength, syllablesForQuery.length);
 
         var findTerms = function lookupFindTerms() {
           debug('Lookup for terms that matches first ' + i + ' syllables.');
 
           var syllables = syllablesForQuery.slice(0, i);
-
           self._lookup(syllables, 'term', function lookupCallback(terms) {
             terms.forEach(function readTerm(term) {
-              candidates.push([term, 'term']);
+              candidates.push([term, syllables]);
             });
 
             if (i === 1 && !terms.length) {
               debug('The first syllable does not make up a word,' +
                 ' output the symbol.');
               candidates.push(
-                [syllables.join('').replace(/\*/g, ''), 'symbol']);
+                [syllables.join(''), syllables]);
             }
 
             if (!--i) {
@@ -946,27 +761,31 @@ IMEngine.prototype = {
   /**
    * @Override
    */
-  select: function(text, type) {
-    IMEngineBase.prototype.select.call(this, text, type);
+  select: function(text, data) {
+    IMEngineBase.prototype.select.call(this, text, data);
 
-    var numOfSyllablesToRemove = text.length;
-    if (type == 'symbol')
-      numOfSyllablesToRemove = 1;
-    if (type == 'suggestion')
-      numOfSyllablesToRemove = 0;
-
+    var syllablesToRemove = data.split("'");
+    if (this._pendingSymbols != "") {
+      for (var i=0; i<syllablesToRemove.length; i++) {
+        var syllable = syllablesToRemove[i];
+        // Trims the leading "'".
+        this._pendingSymbols = this._pendingSymbols.replace(/^'+/g, '');
+        this._pendingSymbols = this._pendingSymbols.substring(syllable.length);
+      }
+      this._optimizedSyllables = [];
+    }
+    
     this._selectedText = text;
-    this._selectedSyllables = this._syllablesInBuffer.slice(0, numOfSyllablesToRemove);
-
-    this._keypressQueue.push(numOfSyllablesToRemove * -1);
-    this._start();
+    this._selectedSyllables = syllablesToRemove;
+    this._keypressQueue.push(0);
+    this._start();  
   },
 
   /**
    * @Override
    */
   empty: function() {
-    this._syllablesInBuffer = [''];
+    this._pendingSymbols = '';
     this._selectedText = '';
     this._selectedSyllables = [];
     this._sendPendingSymbols();
@@ -1719,7 +1538,7 @@ loader2.send();
 
 var jspinyin = new IMEngine(dictionary, new PinyinParser());
 
-// Expose JSZhuyin as an AMD module
+// Expose jspinyin as an AMD module
 if (typeof define === 'function' && define.amd)
   define('jspinyin', [], function() { return jspinyin; });
 
