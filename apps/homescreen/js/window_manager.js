@@ -367,7 +367,7 @@ var WindowManager = (function() {
 
     // Most apps currently need to be hosted in a special 'mozbrowser' iframe
     // FIXME: a platform fix will come
-    var exceptions = ['Dialer', 'Camera'];
+    var exceptions = ['Camera'];
     if (exceptions.indexOf(manifest.name) == -1) {
       frame.setAttribute('mozbrowser', 'true');
     }
@@ -662,6 +662,7 @@ var WindowManager = (function() {
   // Return the object that holds the public API
   return {
     launch: launch,
+    kill: stop,
     getDisplayedApp: getDisplayedApp,
     getAppFrame: function(origin) {
       if (isRunning(origin))

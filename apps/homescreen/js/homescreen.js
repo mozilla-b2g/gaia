@@ -31,8 +31,6 @@ function startup() {
     LockScreen.update(function fireHomescreenReady() {
       ScreenManager.turnScreenOn();
 
-      new TelephonyListener();
-
       window.parent.postMessage('homescreenready', '*');
     });
   } else { // locale has been changed: rebuild app grid
@@ -243,7 +241,6 @@ var LockScreen = {
         if (e.keyCode != e.DOM_VK_SLEEP || SleepMenu.visible)
           return;
         window.clearTimeout(this._timeout);
-
         if (navigator.mozPower.screenEnabled) {
           this.update(function lockScreenCallback() {
             ScreenManager.turnScreenOff();
@@ -404,6 +401,8 @@ var NotificationScreen = {
     var target = evt.target;
     switch (evt.type) {
     case 'touchstart':
+      if (LockScreen.locked)
+        return;
       if (target != this.touchable)
         return;
       this.active = true;
@@ -547,15 +546,19 @@ function updateBattery() {
 }
 
 
-function updateConnection() {
+function updateConnection(event) {
   var conn = window.navigator.mozMobileConnection;
   if (!conn) {
+    return;
+  }
+  var voice = conn.voice;
+  if (!voice) {
     return;
   }
 
   if (!navigator.mozPower.screenEnabled) {
     conn.removeEventListener('cardstatechange', updateConnection);
-    conn.removeEventListener('connectionchange', updateConnection);
+    conn.removeEventListener('voicechange', updateConnection);
     return;
   }
 
@@ -563,13 +566,17 @@ function updateConnection() {
   var title = '';
   if (conn.cardState == 'absent') {
     title = _('noSimCard');
-  } else if (!conn.connected) {
-    title = _('connecting');
-  } else {
-    if (conn.roaming) {
-      title = _('roaming', { operator: (conn.operator || '') });
+  } else if (!voice.connected) {
+    if (voice.emergencyCallsOnly) {
+      title = _('emergencyCallsOnly');
     } else {
-      title = conn.operator || '';
+      title = _('searching');
+    }
+  } else {
+    if (voice.roaming) {
+      title = _('roaming', { operator: (voice.operator || '') });
+    } else {
+      title = voice.operator || '';
     }
   }
   document.getElementById('titlebar').textContent = title;
@@ -577,7 +584,7 @@ function updateConnection() {
   // Update the signal strength bars.
   var signalElements = document.querySelectorAll('#signal > span');
   for (var i = 0; i < 4; i++) {
-    var haveSignal = (i < conn.bars);
+    var haveSignal = (i < voice.relSignalStrength / 25);
     var el = signalElements[i];
     if (haveSignal) {
       el.classList.add('haveSignal');
@@ -587,14 +594,12 @@ function updateConnection() {
   }
 
   conn.addEventListener('cardstatechange', updateConnection);
-  conn.addEventListener('connectionchange', updateConnection);
+  conn.addEventListener('voicechange', updateConnection);
 }
 
 var SoundManager = {
   currentVolume: 5,
   changeVolume: function soundManager_changeVolume(delta) {
-    activePhoneSound = true;
-
     var volume = this.currentVolume + delta;
     this.currentVolume = volume = Math.max(0, Math.min(10, volume));
 
@@ -654,8 +659,6 @@ var SleepMenu = {
             // XXX There is no API for that yet
             break;
           case 'silent':
-            activePhoneSound = false;
-
             var settings = window.navigator.mozSettings;
             if (settings)
               settings.getLock().set({ 'phone.ring.incoming': false});
@@ -664,8 +667,6 @@ var SleepMenu = {
             document.getElementById('normal').hidden = false;
             break;
           case 'normal':
-            activePhoneSound = true;
-
             var settings = window.navigator.mozSettings;
             if (settings)
               settings.getLock().set({'phone.ring.incoming': true});
@@ -847,6 +848,7 @@ SettingsListener.observe('debug.grid.enabled', false, function(value) {
   !!value ? GridView.show() : GridView.hide();
 });
 
+
 /* === Language === */
 SettingsListener.observe('language.current', 'en-US', function(value) {
   // change language -- this triggers startup() and a rebuild
@@ -861,23 +863,6 @@ SettingsListener.observe('homescreen.wallpaper', 'default.png',
       'url(style/themes/default/backgrounds/' + value + ')';
   }
 );
-
-/* === Ring Tone === */
-var selectedPhoneSound = '';
-SettingsListener.observe('homescreen.ring', 'classic.wav', function(value) {
-    selectedPhoneSound = 'style/ringtones/' + value;
-});
-
-var activePhoneSound = true;
-SettingsListener.observe('phone.ring.incoming', true, function(value) {
-  activePhoneSound = !!value;
-});
-
-/* === Vibration === */
-var activateVibration = false;
-SettingsListener.observe('phone.vibration.incoming', false, function(value) {
-  activateVibration = !!value;
-});
 
 /* === Invert Display === */
 SettingsListener.observe('accessibility.invert', false, function(value) {
@@ -1001,45 +986,6 @@ SettingsListener.observe('screen.brightness', 0.5, function(value) {
   ScreenManager.preferredBrightness =
     navigator.mozPower.screenBrightness = parseFloat(value);
 });
-
-/* === TelephoneListener === */
-var TelephonyListener = function() {
-  var telephony = navigator.mozTelephony;
-  if (!telephony)
-    return;
-
-  telephony.addEventListener('incoming', function incoming(evt) {
-    ScreenManager.turnScreenOn();
-
-    var vibrateInterval = 0;
-    if (activateVibration) {
-      vibrateInterval = window.setInterval(function vibrate() {
-        if ('mozVibrate' in navigator) {
-          navigator.mozVibrate([200]);
-        }
-      }, 600);
-    }
-
-    var ringtonePlayer = document.getElementById('ringtone-player');
-    if (activePhoneSound && selectedPhoneSound) {
-      ringtonePlayer.src = selectedPhoneSound;
-      ringtonePlayer.play();
-    }
-
-    telephony.calls.forEach(function(call) {
-      if (call.state == 'incoming') {
-        call.onstatechange = function() {
-          call.oncallschanged = null;
-          ringtonePlayer.pause();
-          ringtonePlayer.src = '';
-          window.clearInterval(vibrateInterval);
-        };
-      }
-    });
-
-    WindowManager.launch('http://dialer.' + domain);
-  });
-};
 
 /* === AppScreen === */
 function AppScreen() {
