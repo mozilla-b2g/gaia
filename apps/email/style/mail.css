@@ -8,6 +8,7 @@ html, body {
 	background: white;
   color: black;
   font: normal 14px/15px Arial, Helvetica, sans-serif;
+  overflow: hidden;
 }
 
 .hidden {
@@ -157,11 +158,10 @@ input, button, textarea {
 	overflow: hidden;
 }
 .first-screen-header {
-	font-size: 28px;
-	line-height: 30px;
+	font-size: 24px;
+	line-height: 26px;
 	text-align: center;
 	text-shadow: 1px 0 1px rgba(255, 255, 255, 0.3), 0 1px 1px rgba(255, 255, 255, 0.3);
-	padding-top: 5px;
 }
 
 .login-form {
@@ -183,10 +183,7 @@ input, button, textarea {
 }
 
 .login-fieldset li {
-	margin: 25px 0;
-	
-
-	
+	margin: 0 0 25px 0;
 }
 
 .login-fieldset input { 
@@ -271,18 +268,26 @@ button:active {
 
 @media screen and (max-height: 740px) {
   .pre-select-mail {
-  	margin-top: -10px;
+  	margin-top: 10px;
   }
 }
 
 .pre-select-mail a {
 	display: inline-block;
-	margin: 0 30px;
+	margin: 0 10px;
 	background: white;
 	padding: 0 10px;
+	width: 48px;
+	height: 48px;
 	border-radius: 4px;
 	box-shadow: 0 0 0 1px gray, 0 0 0 2px black;
 	border: 2px solid transparent;
+	vertical-align: top;
+}
+.pre-select-mail span {
+	color: black;
+	font-size: 30px;
+	line-height: 48px;
 }
 /*.pre-mail-selected {
 	float: right;
@@ -297,13 +302,14 @@ button:active {
 	vertical-align: middle;
 }
 .pre-mail-selected {
-	margin: 0;
 	text-align: left;
 	width: 400px;
-	margin: 0 auto;
+	margin: 15px auto;
 	vertical-align: middle;
 	height: 48px;
 	overflow: hidden;
+	font-size: 28px;
+	line-height: 30px;
 }
 
 .pre-mail-selected * {
@@ -328,3 +334,50 @@ button:active {
 .field input:focus ~ .clean-button {
 	//display: block;
 }
+
+.page {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+
+.select-exists-accounts {
+	position: absolute;
+	width: 100%;
+	-moz-box-sizing: padding-box;
+	height: -moz-calc(100% - 58px);
+	margin-top: 58px;
+	padding: 30px;
+	top: 0;
+	left: 0;
+	background: rgba(0, 0, 0, 0.3);
+}
+
+.select-exists-box {
+	width: 100%;
+	height: 100%;
+	background: white;
+	border-radius: 30px;
+	overflow: hidden;
+}
+
+.select-exists-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	height: 100%;
+	width: 100%;
+	overflow-y: auto;
+}
+
+.select-exists-list li {
+	padding: 10px 20px;
+	border-bottom: 1px dotted black;
+	cursor: default;
+}
+
+.select-exists-list li:active {
+	background: gray;
+};

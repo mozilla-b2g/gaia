@@ -13,10 +13,11 @@
 		</script>
 		<script type="application/javascript;version=1.8" src="js/swipe.js"></script>
 		<script type="application/javascript;version=1.8" src="js/transitions.js"></script>
+		<script type="application/javascript;version=1.8" src="js/paging.js"></script>
 		<script type="application/javascript;version=1.8" src="js/mail.js"></script>
 	</head>
-<body class="hidden">
-	<div class="hidden mail-screen" id="mail-screen">
+<body>
+	<div class="hidden mail-screen page" id="mail-screen">
 		<header class="top">
 			<div class="userbar">
 				<a href="#account" class="account-bar" id="account-bar">
@@ -43,14 +44,19 @@
 			</a>
 		</div>
 	</div>
-	<div class="first-screen" id="first-screen">
-
-		<header class="first-screen-header">
-			<h1>Gaia Mail Client</h1>
-			<h2 class="pre-mail-selected" id="pre-mail-selected">
+	<div class="first-screen page hidden" id="first-screen">
+		<header class="top">
+			<div class="userbar">
+				<h1 class="first-screen-header">Gaia Mail Client</h1>
+			</div>
+		</header>
+		<h2 class="pre-mail-selected" id="pre-mail-selected">
 
 			</h2>
-		</header>
+		<!-- <header class="first-screen-header">
+			<h1>Gaia Mail Client</h1>
+			
+		</header> -->
 
 		<form class="login-form" id="login-form">
 
@@ -85,11 +91,21 @@
 			<a href="#yahoo-mail" id="yahoo-mail-button">
 				<img src="style/icons/x48/yahoo-mail.png" alt="Yahoo! Mail" data-domain="yahoo.com" title="Yahoo! Mail">
 			</a>
+			<a href="#yahoo-mail" id="yahoo-mail-button">
+				<span>...</span>
+			</a>
 		</div>
 
 		<footer class="first-screen-footer">
 			<button id="select-exist-button" class="select-exist-button">Select exist account</button>
 		</footer>
+
+		<div class="select-exists-accounts hidden" id="select-account">
+			<div class="select-exists-box">
+				<ul class="select-exists-list" id="select-account-list">
+				</ul>
+			</div>
+		</div>
 	</div>
 </body>
 </html>

@@ -3,8 +3,7 @@
 
 'use strict';
 
-const
-  SWIPE_OFFSET = 30,
+const SWIPE_OFFSET = 30,
   SWIPE_ANIMATION = 400,
   SWIPE_HORIZONTAL = 1,
   SWIPE_VERTICAL = 2,
@@ -12,20 +11,20 @@ const
   TAP_DELAY = 100,
   LONG_TAP_DELAY = 500;
 
-document.addEventListener('mousedown', function(e){
+document.addEventListener('mousedown', function(e) {
   //console.log(e.clientX);
   var target = e.target,
-    upListener = function(e){
+    upListener = function(e) {
 
-      if(swipeMap){
+      if (swipeMap) {
         let swipe = new MouseEvent('swipeend', e);
         e.target.dispatchEvent(swipe);
 
-      }else if(!tapDispatched){
+      }else if (!tapDispatched) {
 
         waitTap();
 
-        let (tapend = new MouseEvent('tapend', e)){
+        let(tapend = new MouseEvent('tapend', e)) {
           target.dispatchEvent(tapend);
         }
 
@@ -39,11 +38,14 @@ document.addEventListener('mousedown', function(e){
       tapTimer = longTapTimer = null;
       swipeMap = 0;
     },
-    moveListener = function(e){
+    moveListener = function(e) {
 
-      if(target !== e.target && e.target !== document  && !target.contains(e.target)) return;
+      if (target !== e.target &&
+        e.target !== document &&
+        !target.contains(e.target)) return;
 
-      if(!(swipeMap & SWIPE_HORIZONTAL) && Math.abs(startX - e.clientX) > SWIPE_OFFSET){
+      if (!(swipeMap & SWIPE_HORIZONTAL) &&
+           Math.abs(startX - e.clientX) > SWIPE_OFFSET) {
        // console.log('in');
         swipeMap |= SWIPE_HORIZONTAL;
         Object.defineProperty(e, 'detail', {
@@ -56,7 +58,9 @@ document.addEventListener('mousedown', function(e){
        // console.log(swipeMap + 'a');
       }
 
-      if(!(swipeMap & SWIPE_VERTICAL) && Math.abs(startY - e.clientY) > SWIPE_OFFSET){
+      if (!(swipeMap & SWIPE_VERTICAL) &&
+          Math.abs(startY - e.clientY) > SWIPE_OFFSET) {
+
         swipeMap |= SWIPE_VERTICAL;
         Object.defineProperty(e, 'detail', {
           value: SWIPE_VERTICAL,
@@ -80,8 +84,8 @@ document.addEventListener('mousedown', function(e){
     longTapTimer = 0,
     latestEvent,
     tapDispatched,
-    waitTap = function(){
-      if(swipeMap) return;
+    waitTap = function() {
+      if (swipeMap) return;
 
       var tap = new MouseEvent('tapstart', latestEvent || e);
       e.target.dispatchEvent(tap);
@@ -94,8 +98,8 @@ document.addEventListener('mousedown', function(e){
   document.addEventListener('mousemove', moveListener);
 
   tapTimer = window.setTimeout(waitTap, TAP_DELAY);
-  longTapTimer = window.setTimeout(function(){
-    if(swipeMap || tapTimer) return;
+  longTapTimer = window.setTimeout(function() {
+    if (swipeMap || tapTimer) return;
     var tap = new MouseEvent('longtapstart', latestEvent || e);
     e.target.dispatchEvent(tap);
     longTapTimer = null;

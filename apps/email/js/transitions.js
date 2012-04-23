@@ -3,8 +3,7 @@
 
 'use strict';
 
-const
-  TRANSITION_PROPERTY = 'MozTransition',
+const TRANSITION_PROPERTY = 'MozTransition',
   TRANSFORM_MAP = {
     translatex: 'px',
     translatey: 'px',
@@ -26,15 +25,15 @@ const
 
 
 
-var Transition = function(params, duration, timing, delay){
+var Transition = function(params, duration, timing, delay) {
 
   var stack = this.stack = [];
 
   params || (params = []);
 
-  params.forEach(function(key){
+  params.forEach(function(key) {
     stack.push([
-      key.replace(R_CAMEL_TO_CSS, function(str, w){
+      key.replace(R_CAMEL_TO_CSS, function(str, w) {
         return '-' + w.toLowerCase();
       }),
       (duration || DEFAULT_TRANSITION_DURATION) + 'ms',
@@ -45,40 +44,41 @@ var Transition = function(params, duration, timing, delay){
 
 };
 
-Transition.stop = function(element){
+Transition.stop = function(element) {
   element.style[TRANSITION_PROPERTY] = 'null';
 };
-Transition.run = function(elem, props, params, callback){
+Transition.run = function(elem, props, params, callback) {
   var transition = [],
     style = elem.style;
 
-  if(typeof params === 'function'){
+  if (typeof params === 'function') {
     callback = params;
     params = {};
   }
 
   params || (params = {});
-  
-  Object.keys(props).forEach(function(key){
+
+  Object.keys(props).forEach(function(key) {
     transition.push(key);
     style[key] = props[key];
   });
 
-  elem.addEventListener('transitionend', function transitionListener(e){
-    if(e.eventPhase !== e.AT_TARGET) return;
+  elem.addEventListener('transitionend', function transitionListener(e) {
+    if (e.eventPhase !== e.AT_TARGET) return;
 
+    elem.removeEventListener('transitionend', transitionListener, true);
     callback && callback.call(this, e);
-    elem.removeEventListener('trasitionend', transitionListener);
     style.MozTransition = '';
 
   }, true);
 
-  style.MozTransition = new Transition(transition, params.duration, params.timing, params.delay);
-  
+  style.MozTransition = new Transition(
+    transition, params.duration, params.timing, params.delay);
+
 };
 
 Transition.prototype = {
-  toString: function(){
+  toString: function() {
     return this.stack.join(', ');
   }/*,
   start: function(element){
@@ -105,15 +105,17 @@ Transition.prototype = {
   }*/
 };
 
-var Transform = function(map){
+var Transform = function(map) {
   var stack = this.stack = [];
 
-  Object.keys(map).forEach(function(name){
-    stack.push(name + '(' + (map[name] + '').replace(/\s*(,)|$\s*/g, TRANSFORM_MAP[name.toLowerCase()] + '$1') + ')');
+  Object.keys(map).forEach(function(name) {
+    stack
+      .push(name + '(' + (map[name] + '')
+      .replace(/\s*(,)|$\s*/g, TRANSFORM_MAP[name.toLowerCase()] + '$1') + ')');
   });
 
 };
-Transform.translate = function(x, y){
+Transform.translate = function(x, y) {
   return [
     'translate(',
     x || 0,
@@ -123,13 +125,13 @@ Transform.translate = function(x, y){
   ].join('');
 };
 
-['translate', 'rotate', 'scale', 'skew'].forEach(function(key){
-  Transform.prototype[key] = function(){
+['translate', 'rotate', 'scale', 'skew'].forEach(function(key) {
+  Transform.prototype[key] = function() {
     this.stack.push(Transform[key].apply(null, arguments));
     return this;
   }
 });
 
-Transform.prototype.toString = function(){
+Transform.prototype.toString = function() {
   return this.stack.join(' ');
 };
