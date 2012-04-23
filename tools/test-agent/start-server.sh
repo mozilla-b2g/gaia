@@ -8,11 +8,22 @@ echo $(which type);
 
 if [ $? -eq 0 ]; 
 then
-  echo "Check - Node is present!"
+  echo "Check - node is present!"
 else
   echo "Please Install NodeJS -- (use aptitude on linux or homebrew on osx)"
   exit;
 fi
+
+type node-waf > /dev/null 2> /dev/null
+
+if [ $? -eq 0 ]; 
+then
+  echo "Check - node-waf is present!"
+else
+  echo "Node js is installed but node-waf is not. Please install nodejs-dev or the equivalent for your os"
+  exit;
+fi
+
 
 type npm > /dev/null 2> /dev/null
 
