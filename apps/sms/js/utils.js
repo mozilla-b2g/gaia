@@ -185,6 +185,12 @@ if (!navigator.mozSms) {
   };
 }
 
+function escapeHTML(str) {
+  var span = document.createElement('span');
+  span.textContent = str;
+  return span.innerHTML;
+}
+
 if (!navigator.mozSettings) {
   window.addEventListener('load', function loadWithoutSettings() {
     selectedLocale = 'en-US';
