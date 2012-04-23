@@ -4,8 +4,9 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 START_CMD="$DIR/node_modules/test-agent/bin/js-test-agent server -c $DIR/test-agent-server.js --http-path $DIR/../../ --growl"
 
 type node > /dev/null 2> /dev/null
+echo $(which type);
 
-if [ $? == 0 ]
+if [ $? -eq 0 ]; 
 then
   echo "Check - Node is present!"
 else
@@ -15,7 +16,7 @@ fi
 
 type npm > /dev/null 2> /dev/null
 
-if [ $? == 0 ]
+if [ $? -eq 0 ]
 then
   echo "Check - NPM is present"
 else

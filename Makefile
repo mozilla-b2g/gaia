@@ -187,7 +187,7 @@ tests: manifests offline
 
 .PHONY: test-agent-server
 test-agent-server:
-	@sh ./tools/test-agent/start-server.sh
+	./tools/test-agent/start-server.sh
 
 .PHONY: marionette
 marionette:
