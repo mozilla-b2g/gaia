@@ -13,19 +13,19 @@ import hashlib
 import subprocess
 from tempfile import mkstemp
 
-def hash_file(filename):
+def compute_local_hash(filename, hashes):
     h = hashlib.sha1()
     with open(filename,'rb') as f:
         for chunk in iter(lambda: f.read(256 * h.block_size), b''):
              h.update(chunk)
-    return h.hexdigest()
+    hashes[filename] = h.hexdigest()
 
 def compute_local_hashes_in_dir(dir, hashes):
     def visit(arg, dirname, names):
         for filename in [os.path.join(dirname, name) for name in names]:
             if not os.path.isfile(filename):
                 continue
-            hashes[filename] = hash_file(filename)
+            compute_local_hash(filename, hashes)
 
     os.path.walk(dir, visit, None)
 
@@ -33,6 +33,7 @@ def compute_local_hashes():
     hashes = {}
     compute_local_hashes_in_dir('webapps', hashes)
     compute_local_hashes_in_dir('OfflineCache', hashes)
+    compute_local_hash('user.js', hashes)
     return hashes
 
 def adb_push(local, remote):
@@ -131,6 +132,7 @@ def install_gaia_slow():
     adb_shell("rm -r /cache/*")
     adb_push('profile/OfflineCache', '/data/local/OfflineCache')
     adb_push('profile/webapps', '/data/local/webapps')
+    adb_push('profile/user.js', '/data/local')
 
 def install_gaia():
     try:
