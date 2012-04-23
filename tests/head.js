@@ -132,7 +132,7 @@ function testApp(url, testfunc) {
 
     // Send the Home key to turn the screen on if it was off
     EventUtils.sendKey('HOME', contentWin);
-    silentOK(screen.mozEnabled, 'screen not on');
+    silentOK(navigator.mozPower.screenEnabled, 'screen not on');
 
     // Unlock the screen
     // FIXME: I used to do this by sending swipe events, but it broke

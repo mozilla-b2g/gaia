@@ -6,9 +6,12 @@
     "name": "The Gaia Team",
     "url": "https://github.com/andreasgal/gaia"
   },
+  "background_page": "/background.html",
   "permissions": [
     "telephony",
-    "contacts"
+    "contacts",
+    "power",
+    "mozApps"
   ],
   "locales": {
     "ar": {

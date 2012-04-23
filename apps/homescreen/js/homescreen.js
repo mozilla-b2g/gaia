@@ -12,12 +12,10 @@ var bookmarks = null;
 var appscreen;
 
 function startup() {
-  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
-  var html = document.querySelector('html');
-  var lang = document.mozL10n.language;
-  html.lang = lang.code;
-  html.dir = lang.direction;
-  document.dir = lang.direction;
+  // set the 'lang' and 'dir' attributes to <html> when the page is translated
+  document.documentElement.lang = document.mozL10n.language.code;
+  document.documentElement.dir = document.mozL10n.language.direction;
+  document.dir = document.mozL10n.language.direction;
 
   if (!appscreen) { // first start: init
     appscreen = new AppScreen();
@@ -33,13 +31,9 @@ function startup() {
     LockScreen.update(function fireHomescreenReady() {
       ScreenManager.turnScreenOn();
 
-      new MessagesListener();
-      new TelephonyListener();
-
       window.parent.postMessage('homescreenready', '*');
     });
-  }
-  else { // locale has been changed: rebuild app grid
+  } else { // locale has been changed: rebuild app grid
     appscreen.build(true);
   }
 
@@ -106,7 +100,7 @@ var LockScreen = {
       }
       style.MozTransform = 'translateY(0)';
       if (callback)
-        setTimeout(callback, 0, true);
+        window.setTimeout(callback, 0, true);
       return;
     }
 
@@ -162,7 +156,7 @@ var LockScreen = {
     }
 
     if (callback)
-      setTimeout(callback, 0, false);
+      window.setTimeout(callback, 0, false);
   },
 
   onTouchStart: function lockscreen_touchStart(e) {
@@ -212,8 +206,7 @@ var LockScreen = {
         // But don't take longer than 1/2 second to complete it.
         timeRemaining = Math.min(timeRemaining, .5);
         this.unlock(timeRemaining);
-      }
-      else {
+      } else {
         this.lock();
       }
     }
@@ -236,7 +229,7 @@ var LockScreen = {
         break;
 
       case 'keydown':
-        if (e.keyCode != e.DOM_VK_SLEEP || !screen.mozEnabled)
+        if (e.keyCode != e.DOM_VK_SLEEP || !navigator.mozPower.screenEnabled)
           return;
 
         this._timeout = window.setTimeout(function() {
@@ -249,7 +242,7 @@ var LockScreen = {
           return;
         window.clearTimeout(this._timeout);
 
-        if (screen.mozEnabled) {
+        if (navigator.mozPower.screenEnabled) {
           this.update(function lockScreenCallback() {
             ScreenManager.turnScreenOff();
           });
@@ -300,13 +293,27 @@ var NotificationScreen = {
 
     window.addEventListener('mozChromeEvent', function notificationListener(e) {
       var detail = e.detail;
-      if (detail.type == 'desktop-notification') {
-        NotificationScreen.addNotification('desktop-notification',
-                                            detail.title, detail.text,
-                                            detail.id);
+      switch (detail.type) {
+        case 'desktop-notification':
+          NotificationScreen.addNotification('desktop-notification',
+                                              detail.title, detail.text,
+                                              detail.id);
 
-        var hasNotifications = document.getElementById('state-notifications');
-        hasNotifications.dataset.visible = 'true';
+          var hasNotifications = document.getElementById('state-notifications');
+          hasNotifications.dataset.visible = 'true';
+          break;
+
+        default:
+          // XXX Needs to implements more UI but for now let's allow stuffs
+          var event = document.createEvent('CustomEvent');
+          event.initCustomEvent('mozContentEvent', true, true, {
+            type: 'permission-allow',
+            id: detail.id
+          });
+          window.dispatchEvent(event);
+          break;
+
+          break;
       }
     });
 
@@ -425,29 +432,10 @@ var NotificationScreen = {
 
   addNotification: function ns_addNotification(type, nTitle, body, nID) {
     var notifications = this.container;
-    // First look if there is already one message from the same
-    // source. If there is one, let's aggregate them.
-    var smsNotifSelector = 'div[data-type="sms"]';
-    var children = notifications.querySelectorAll(smsNotifSelector);
-    for (var i = 0; i < children.length; i++) {
-      var notification = children[i];
-      if (notification.dataset.sender != nTitle)
-        continue;
-
-      var unread = parseInt(notification.dataset.count) + 1;
-      var msg = _('unreadMessages', { n: unread });
-      notification.querySelector('div.detail').textContent = msg;
-      return;
-    }
 
     var notification = document.createElement('div');
     notification.className = 'notification';
     notification.dataset.type = type;
-
-    if (type == 'sms') {
-      notification.dataset.count = 1;
-      notification.dataset.sender = nTitle;
-    }
 
     if (type == 'desktop-notification') {
       notification.dataset.notificationID = nID;
@@ -497,7 +485,7 @@ var NotificationScreen = {
 
 // Update the clock and schedule a new update if appropriate
 function updateClock() {
-  if (!screen.mozEnabled)
+  if (!navigator.mozPower.screenEnabled)
     return;
 
   var now = new Date();
@@ -510,7 +498,7 @@ function updateClock() {
   // Schedule another clock update when a new minute rolls around
   var now = new Date();
   var sec = now.getSeconds();
-  setTimeout(updateClock, (59 - sec) * 1000);
+  window.setTimeout(updateClock, (59 - sec) * 1000);
 }
 
 function updateBattery() {
@@ -519,7 +507,7 @@ function updateBattery() {
     return;
 
   // If the display is off, there is nothing to do here
-  if (!screen.mozEnabled) {
+  if (!navigator.mozPower.screenEnabled) {
     battery.removeEventListener('chargingchange', updateBattery);
     battery.removeEventListener('levelchange', updateBattery);
     battery.removeEventListener('statuschange', updateBattery);
@@ -563,7 +551,7 @@ function updateConnection() {
     return;
   }
 
-  if (!screen.mozEnabled) {
+  if (!navigator.mozPower.screenEnabled) {
     conn.removeEventListener('cardstatechange', updateConnection);
     conn.removeEventListener('connectionchange', updateConnection);
     return;
@@ -603,8 +591,6 @@ function updateConnection() {
 var SoundManager = {
   currentVolume: 5,
   changeVolume: function soundManager_changeVolume(delta) {
-    activePhoneSound = true;
-
     var volume = this.currentVolume + delta;
     this.currentVolume = volume = Math.max(0, Math.min(10, volume));
 
@@ -664,8 +650,6 @@ var SleepMenu = {
             // XXX There is no API for that yet
             break;
           case 'silent':
-            activePhoneSound = false;
-
             var settings = window.navigator.mozSettings;
             if (settings)
               settings.getLock().set({ 'phone.ring.incoming': false});
@@ -674,8 +658,6 @@ var SleepMenu = {
             document.getElementById('normal').hidden = false;
             break;
           case 'normal':
-            activePhoneSound = true;
-
             var settings = window.navigator.mozSettings;
             if (settings)
               settings.getLock().set({'phone.ring.incoming': true});
@@ -727,14 +709,14 @@ var SettingsListener = {
   observe: function sl_observe(name, defaultValue, callback) {
     var settings = window.navigator.mozSettings;
     if (!settings) {
-      setTimeout(function() { callback(defaultValue); });
+      window.setTimeout(function() { callback(defaultValue); });
       return;
     }
 
     var req = settings.getLock().get(name);
     req.addEventListener('success', (function onsuccess() {
-      callback(typeof(req.result[name]) != 'undefined' ? req.result[name]
-                                                       : defaultValue);
+      callback(typeof(req.result[name]) != 'undefined' ?
+        req.result[name] : defaultValue);
     }));
 
     this._callbacks[name] = callback;
@@ -753,7 +735,7 @@ var SourceView = {
     return !this.viewer ? false : this.viewer.style.visibility === 'visible';
   },
 
-  show: function sv_show(url) {
+  show: function sv_show() {
     var viewsource = this.viewer;
     if (!viewsource) {
       var style = '#appViewsource { ' +
@@ -857,6 +839,7 @@ SettingsListener.observe('debug.grid.enabled', false, function(value) {
   !!value ? GridView.show() : GridView.hide();
 });
 
+
 /* === Language === */
 SettingsListener.observe('language.current', 'en-US', function(value) {
   // change language -- this triggers startup() and a rebuild
@@ -864,37 +847,13 @@ SettingsListener.observe('language.current', 'en-US', function(value) {
 });
 
 /* === Wallpapers === */
-SettingsListener.observe('homescreen.wallpaper', 'default.png', function(value) {
-  var home = document.getElementById('home');
-  home.style.backgroundImage = 'url(style/themes/default/backgrounds/' + value + ')';
-});
-
-/* === Ring Tone === */
-var selectedPhoneSound = "";
-SettingsListener.observe('homescreen.ring', 'classic.wav', function(value) {
-    selectedPhoneSound = 'style/ringtones/' + value;
-});
-
-var activePhoneSound = true;
-SettingsListener.observe('phone.ring.incoming', true, function(value) {
-  activePhoneSound = !!value;
-});
-
-var activeSMSSound = true;
-SettingsListener.observe('sms.ring.received', true, function(value) {
-  activeSMSSound = !!value;
-});
-
-/* === Vibration === */
-var activateVibration = false;
-SettingsListener.observe('phone.vibration.incoming', false, function(value) {
-  activateVibration = !!value;
-});
-
-var activateSMSVibration = false;
-SettingsListener.observe('sms.vibration.received', false, function(value) {
-  activateSMSVibration = !!value;
-});
+SettingsListener.observe('homescreen.wallpaper', 'default.png',
+  function(value) {
+    var home = document.getElementById('home');
+    home.style.backgroundImage =
+      'url(style/themes/default/backgrounds/' + value + ')';
+  }
+);
 
 /* === Invert Display === */
 SettingsListener.observe('accessibility.invert', false, function(value) {
@@ -913,7 +872,7 @@ var KeyHandler = {
   repeatKey: function kh_repeatKey(actionCallback) {
     actionCallback();
     clearTimeout(this._timer);
-    this._timer = setTimeout((function volumeTimeout() {
+    this._timer = window.setTimeout((function volumeTimeout() {
       actionCallback();
       this._timer = setInterval(function volumeInterval() {
         actionCallback();
@@ -922,7 +881,7 @@ var KeyHandler = {
   },
 
   handleEvent: function kh_handleEvent(evt) {
-    if (!screen.mozEnabled)
+    if (!navigator.mozPower.screenEnabled)
       return;
 
     switch (evt.type) {
@@ -976,20 +935,20 @@ window.addEventListener('keyup', KeyHandler);
 var ScreenManager = {
   preferredBrightness: 0.5,
   toggleScreen: function lockscreen_toggleScreen() {
-    if (screen.mozEnabled)
+    if (navigator.mozPower.screenEnabled)
       this.turnScreenOff();
     else
       this.turnScreenOn();
   },
 
   turnScreenOff: function lockscreen_turnScreenOff() {
-    if (!screen.mozEnabled)
+    if (!navigator.mozPower.screenEnabled)
       return false;
 
-    screen.mozEnabled = false;
+    navigator.mozPower.screenEnabled = false;
 
-    this.preferredBrightness = screen.mozBrightness;
-    screen.mozBrightness = 0.0;
+    this.preferredBrightness = navigator.mozPower.screenBrightness;
+    navigator.mozPower.screenBrightness = 0.0;
 
     updateClock();
     updateBattery();
@@ -999,12 +958,12 @@ var ScreenManager = {
   },
 
   turnScreenOn: function lockscreen_turnScreenOn() {
-    if (screen.mozEnabled)
+    if (navigator.mozPower.screenEnabled)
       return false;
 
-    screen.mozEnabled = true;
+    navigator.mozPower.screenEnabled = true;
 
-    screen.mozBrightness = this.preferredBrightness;
+    navigator.mozPower.screenBrightness = this.preferredBrightness;
 
     updateClock();
     updateBattery();
@@ -1015,111 +974,9 @@ var ScreenManager = {
 };
 
 SettingsListener.observe('screen.brightness', 0.5, function(value) {
-  ScreenManager.preferredBrightness = screen.mozBrightness = parseFloat(value);
+  ScreenManager.preferredBrightness =
+    navigator.mozPower.screenBrightness = parseFloat(value);
 });
-
-/* === MessagesListener === */
-var MessagesListener = function() {
-  var messages = navigator.mozSms;
-  if (!messages)
-    return;
-
-  var notifications = document.getElementById('notifications-container');
-  notifications.addEventListener('click', function notificationClick(evt) {
-    var notification = evt.target;
-    var sender = notification.dataset.sender;
-    var type = notification.dataset.type;
-    if ((type != 'sms') || (!sender))
-      return;
-
-    NotificationScreen.unlock(true);
-
-    // We'd really like to launch the SMS app to show
-    // a particular sender, but don't have a good way to do it.
-    // This should be replaced with a web intent or similar.
-    WindowManager.launch('http://sms.' + domain
-                         /* +'?sender=' + sender*/);
-  });
-
-  var hasMessages = document.getElementById('state-messages');
-  function showMessage(sender, body) {
-    hasMessages.dataset.visible = 'true';
-
-    NotificationScreen.addNotification('sms', sender, body);
-  }
-
-  messages.addEventListener('received', function received(evt) {
-    var message = evt.message;
-    showMessage(message.sender, message.body);
-
-    if (activeSMSSound) {
-      var ringtonePlayer = document.getElementById('ringtone-player');
-      ringtonePlayer.src = 'style/ringtones/sms.wav';
-      ringtonePlayer.play();
-      setTimeout(function smsRingtoneEnder() {
-        ringtonePlayer.pause();
-        ringtonePlayer.src = "";
-      }, 500);
-    }
-
-    if (activateSMSVibration) {
-      if ('mozVibrate' in navigator) {
-        navigator.mozVibrate([200, 200, 200, 200]);
-      }
-    }
-  });
-
-  window.addEventListener('appopen', function onAppOpen(evt) {
-    // If the sms application is opened, just delete all messages
-    // notifications
-    var applicationURL = evt.detail.url;
-    var matcher = new RegExp('/sms\.' + domain);
-    if (!matcher.test(applicationURL))
-      return;
-
-    delete hasMessages.dataset.visible;
-    NotificationScreen.removeNotifications('sms');
-  });
-};
-
-/* === TelephoneListener === */
-var TelephonyListener = function() {
-  var telephony = navigator.mozTelephony;
-  if (!telephony)
-    return;
-
-  telephony.addEventListener('incoming', function incoming(evt) {
-    ScreenManager.turnScreenOn();
-
-    var vibrateInterval = 0;
-    if (activateVibration) {
-      vibrateInterval = window.setInterval(function vibrate() {
-        if ('mozVibrate' in navigator) {
-          navigator.mozVibrate([200]);
-        }
-      }, 600);
-    }
-
-    var ringtonePlayer = document.getElementById('ringtone-player');
-    if (activePhoneSound && selectedPhoneSound) {
-      ringtonePlayer.src = selectedPhoneSound;
-      ringtonePlayer.play();
-    }
-
-    telephony.calls.forEach(function(call) {
-      if (call.state == 'incoming') {
-        call.onstatechange = function() {
-          call.oncallschanged = null;
-          ringtonePlayer.pause();
-          ringtonePlayer.src = "";
-          window.clearInterval(vibrateInterval);
-        };
-      }
-    });
-
-    WindowManager.launch('http://dialer.' + domain);
-  });
-};
 
 /* === AppScreen === */
 function AppScreen() {
@@ -1128,7 +985,7 @@ function AppScreen() {
 
   navigator.mozApps.mgmt.getAll().onsuccess = function(e) {
     var apps = e.target.result;
-    
+
     var lastSlash = new RegExp(/\/$/);
     var currentHost = document.location.toString().replace(lastSlash, '');
     apps.forEach(function(app) {
@@ -1184,23 +1041,19 @@ function AppScreen() {
     appscreen.grid.update();
   });
 
-  // Installing these handlers on desktop causes JS execution to stop silently,
-  // so work around that for now here.
-  if (navigator.userAgent.indexOf('Mobile') != -1) {
-    // Listen for app installations and rebuild the appscreen when we get one
-    navigator.mozApps.mgmt.oninstall = function(event) {
-      var newapp = event.application;
-      appscreen.installedApps[newapp.origin] = newapp;
-      appscreen.build(true);
-    };
+  // Listen for app installations and rebuild the appscreen when we get one
+  navigator.mozApps.mgmt.oninstall = function(event) {
+    var newapp = event.application;
+    appscreen.installedApps[newapp.origin] = newapp;
+    appscreen.build(true);
+  };
 
-    // Do the same for uninstalls
-    navigator.mozApps.mgmt.onuninstall = function(event) {
-      var newapp = event.application;
-      delete appscreen.installedApps[newapp.origin];
-      appscreen.build(true);
-    };
-  }
+  // Do the same for uninstalls
+  navigator.mozApps.mgmt.onuninstall = function(event) {
+    var newapp = event.application;
+    delete appscreen.installedApps[newapp.origin];
+    appscreen.build(true);
+  };
 }
 
 // Look up the app object for a specified app origin
@@ -1213,7 +1066,7 @@ AppScreen.prototype.getAppByOrigin = function getAppByOrigin(origin) {
 AppScreen.prototype.build = function(rebuild) {
   var startpage = 0;
 
-  if (rebuild) {
+  if (rebuild && 'grid' in this) {
     // FIXME: the commented code below is not working for me.
     // After the screen is rebuilt each gesture generates multiple events
     // and the uninstall dialog does not behave right
@@ -1258,8 +1111,7 @@ AppScreen.prototype.build = function(rebuild) {
     if (app.manifest.icons) {
       if ('120' in app.manifest.icons) {
         icon = app.manifest.icons['120'];
-      }
-      else {
+      } else {
         // Get all sizes
         var sizes = Object.keys(app.manifest.icons).map(parseInt);
         // Largest to smallest
@@ -1272,7 +1124,7 @@ AppScreen.prototype.build = function(rebuild) {
     // (technically, manifests are not supposed to have those)
     // Otherwise, prefix with the app origin
     if (icon.indexOf(':') == -1) {
-      // XXX it looks like the homescreen can't load images from other origins (WTF??)
+      // XXX it looks like the homescreen can't load images from other origins
       // so use the ones from the url host for now
       // icon = app.origin + icon;
       icon = 'http://' + document.location.host + icon;
@@ -1329,7 +1181,7 @@ DefaultPhysics.prototype = {
 
     // If this timer triggers and the user hasn't moved their finger
     // then this is a hold rather than a tap.
-    touchState.timer = setTimeout(this.onHoldTimeout.bind(this),
+    touchState.timer = window.setTimeout(this.onHoldTimeout.bind(this),
                                   DefaultPhysics.HOLD_INTERVAL);
 
     // For tap and hold gestures, we keep track of what icon
@@ -1606,7 +1458,7 @@ IconGrid.prototype = {
 
       var calc = (document.dir == 'ltr') ?
         (n - currentPage) + '00% + ' + x + 'px' :
-        (currentPage - n) + '00% - ' + x + 'px';
+        (currentPage - n) + '00% + ' + x + 'px';
 
       var style = page.style;
       style.MozTransform = 'translateX(-moz-calc(' + calc + '))';

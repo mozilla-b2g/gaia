@@ -56,7 +56,7 @@ var requestPermission = (function() {
       // And if there are pending permission requests, trigger the next one
       if (pending.length > 0) {
         var request = pending.shift();
-        setTimeout(function() {
+        window.setTimeout(function() {
           requestPermission(request.message,
                             request.yescallback,
                             request.nocallback);

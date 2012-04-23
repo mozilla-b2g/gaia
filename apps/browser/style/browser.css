@@ -29,53 +29,62 @@ body {
   font-family: 'Open Sans', sans-serif;
 }
 
-#browser-tab {
-  -moz-box-flex: 1;
-  display: -moz-box;
-  -moz-box-orient: vertical;
-}
-
-#browser-toolbar {
+#toolbar-start {
   display: -moz-box;
   -moz-box-orient: horizontal;
-  height: 62px;
-  background-color: #fff;
-  background-image: -moz-linear-gradient(#fff, #eaeae4);
-  margin: 0;
-  padding: 0;
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
   border-bottom: solid 2px #a3a3a3;
 }
 
-#browser-address {
+#toolbar-end {
+  border-top: solid 2px #a3a3a3;
+}
+
+#url-bar {
   -moz-box-flex: 1;
   display: -moz-box;
   -moz-box-orient: horizontal;
   padding: 0;
   margin: 0;
-}
-
-#browser-url {
-  font-family: 'Open Sans';
-  -moz-box-flex: 1;
   border: solid 2px #9ca1a6;
   border-radius: 22px;
   height: 44px;
-  margin: 9px 2px;
+  margin: 9px 8px;
   padding: 0 0 0 40px;
-  font-size: 18px;
+  background-color: #fff;
   background-image: url('images/favicon.png');
   background-repeat: no-repeat;
   background-position: 14px 12px;
   font-weight: 600;
 }
 
-#browser-url.loading {
+#url-input {
+  font-family: 'Open Sans';
+  font-size: 18px;
+  height: 44px;
+  margin: 0;
+  -moz-box-flex: 1;
+  border: none;
+}
+
+#url-input:invalid {
+  box-shadow: none;
+}
+
+#url-bar.loading {
   background-image: url('images/loading.gif');
 }
 
-.browser-button {
+menu[type="toolbar"] {
+  height: 62px;
+  background-color: #fff;
+  background-image: -moz-linear-gradient(#fff, #eaeae4);
+  margin: 0;
+  padding: 0;
+}
+
+menu button {
   background-color: transparent;
   -moz-appearance: none;
   border: none;
@@ -84,30 +93,37 @@ body {
   padding: 0;
   width: 56px;
   height: 62px;
+  float: left;
 }
 
-#browser-back-button {
+#back-button {
   background-image: url("images/back.png");
 }
 
-#browser-back-button:active {
+#forward-button {
+  background-image: url("images/forward.png");
+}
+
+
+#back-button:active {
   background-image: url("images/back-pressed.png");
 }
 
-#browser-menu-button {
+#menu-button {
   background-image: url("images/menu.png");
+  float: right;
 }
 
 input::-moz-focus-inner {
   border: 0;
 }
 
-#browser-back-button[disabled] {
+#back-button[disabled] {
   background-image: url("images/back-disabled.png");
 }
 
-#browser-go-button {
-  margin: 0 2px;
+#forward-button[disabled] {
+  display: none;
 }
 
 #browser-content {
@@ -117,9 +133,9 @@ input::-moz-focus-inner {
   background-color: white;
 }
 
-#browser-shade {
+#shade {
   position: absolute;
-  top: 62px;
+  bottom: 62px;
   left: 0;
   width: 100%;
   height: -moz-calc(100% - 62px);
@@ -129,7 +145,7 @@ input::-moz-focus-inner {
 #browser-menu {
   position: absolute;
   right: 8px;
-  top: 72px;
+  bottom: 72px;
   width: 50%;
   background-color: #f5f2f3;
   border-radius: 8px;
@@ -145,7 +161,7 @@ input::-moz-focus-inner {
   width: 16px;
   height: 16px;
   position: absolute;
-  top: -8px;
+  bottom: -8px;
   right: 12px;
   -moz-transform: rotate(-45deg);
   background-color: #f5f2f3;
@@ -158,7 +174,7 @@ input::-moz-focus-inner {
   width: 30px;
   height: 16px;
   position: absolute;
-  top: 0;
+  bottom: 0;
   right: 7px;
   background-color: #f5f2f3;
 }
@@ -186,24 +202,8 @@ input::-moz-focus-inner {
   font-weight: 600;
 }
 
-#menu-refresh a {
+#refresh a {
   background-image: url('images/refresh.png');
-}
-
-#menu-forward a {
-  background-image: url('images/forward.png');
-}
-
-#menu-bookmark a {
-  background-image: url('images/bookmark.png');
-}
-
-#menu-settings a {
-  background-image: url('images/settings.png');
-}
-
-#menu-downloads a {
-  background-image: url('images/downloads.png');
 }
 
 .hidden {

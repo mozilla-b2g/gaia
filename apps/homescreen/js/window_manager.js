@@ -97,6 +97,11 @@ var WindowManager = (function() {
       setDisplayedApp(origin);
     else
       start(origin);
+
+    // launch() can be called from outside the task switcher
+    // hiding it if needed
+    if (taskSwitcherIsShown())
+      hideTaskSwitcher();
   }
 
   function isRunning(origin) {
@@ -362,7 +367,7 @@ var WindowManager = (function() {
 
     // Most apps currently need to be hosted in a special 'mozbrowser' iframe
     // FIXME: a platform fix will come
-    var exceptions = ['Dialer', 'Camera'];
+    var exceptions = ['Camera'];
     if (exceptions.indexOf(manifest.name) == -1) {
       frame.setAttribute('mozbrowser', 'true');
     }
@@ -606,7 +611,7 @@ var WindowManager = (function() {
       // already a timer running, then this is a key repeat event
       // during a long Home key press and we ignore it.
       if (!keydown) {
-        timer = setTimeout(longPressHandler, kLongPressInterval);
+        timer = window.setTimeout(longPressHandler, kLongPressInterval);
         keydown = true;
       }
 
@@ -657,6 +662,7 @@ var WindowManager = (function() {
   // Return the object that holds the public API
   return {
     launch: launch,
+    kill: stop,
     getDisplayedApp: getDisplayedApp,
     getAppFrame: function(origin) {
       if (isRunning(origin))

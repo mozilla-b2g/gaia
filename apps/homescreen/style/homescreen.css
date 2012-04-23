@@ -325,11 +325,6 @@ iframe.landscape-secondary {
   display: none;
 }
 
-#state-messages[data-visible] {
-  width: 32px;
-  height: 32px;
-}
-
 #state-notifications[data-visible] {
   width: 32px;
   height: 32px;
@@ -432,4 +427,12 @@ iframe.landscape-secondary {
 
 .accessibility-invert {
   filter: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgogIDxmaWx0ZXIKICAgICAgaWQ9ImludmVydEZpbHRlciIKICAgICAgY29sb3ItaW50ZXJwb2xhdGlvbi1maWx0ZXJzPSJzUkdCIj4KICAgIDxmZUNvbG9yTWF0cml4CiAgICAgICAgdmFsdWVzPSItMSAwIDAgMCAxIDAgLTEgMCAwIDEgMCAwIC0xIDAgMSAwIDAgMCAxIDAgIiAvPgogIDwvZmlsdGVyPgo8L3N2Zz4K#invertFilter);
+}
+
+iframe.backgroundWindow {
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  width: 1px;
+  height: 1px;
 }

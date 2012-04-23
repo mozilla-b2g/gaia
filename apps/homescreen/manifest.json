@@ -9,8 +9,8 @@
   "permissions": [
     "telephony",
     "mozbrowser",
-    "sms",
-    "power"
+    "power",
+    "mozApps"
   ],
   "locales": {
     "ar": {
