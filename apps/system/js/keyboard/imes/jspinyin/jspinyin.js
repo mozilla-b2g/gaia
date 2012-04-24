@@ -26,59 +26,6 @@ if (!KeyEvent) {
     DOM_VK_RETURN: 0xd
   };
 }
-  
-function PhraseDictionary() {
-  var phraseList = [];
-  var phraseList2 = [];
-  this.lookUp = function(queryList,mode) {
-    var result = [];
-    var regExpList = queryList.map(function(q)  RegExp(q.pattern));
-    
-    if (mode) {
-     for (var i = 0; i < phraseList.length; i++) {
-        for (var j = 0; j < regExpList.length; j++) {
-          if (regExpList[j].test(phraseList[i].pronunciation)) {
-            result.push({
-                phrase: phraseList[i].phrase,
-                prefix: queryList[j].prefix
-            });
-            break;
-          }
-        }
-      }
-    } else {
-      for (var i = 0; i < phraseList2.length; i++) {
-        for (var j = 0; j < regExpList.length; j++) {
-            if (regExpList[j].test(phraseList2[i].pronunciation)) {
-              result.push({
-                phrase: phraseList2[i].phrase,
-                prefix: queryList[j].prefix
-            });
-            break;
-          }
-        }
-      }
-    } 
-    return result;
-  };
-  
-  this.addPhrases = function(phrases) {
-    for (var i = 0; i < phrases.length; i++) {
-      phraseList.push(phrases[i]);
-    }
-  };
-  
-  this.addPhrases2 = function(phrases) {
-    for (var i = 0; i < phrases.length; i++) {
-      phraseList2.push(phrases[i]);
-    }
-  };
-  
-  this.uninit = function() {
-    phraseList = null;
-    phraseList2 = null;
-  };
-}
 
 /** Maximum limit of PinYin syllable length */
 var SYLLALBLE_MAX_LENGTH = 6;
@@ -355,17 +302,15 @@ IMEngineBase.prototype = {
   },
 }
 
-function IMEngine(dictionary, splitter) {
+function IMEngine(splitter) {
   IMEngineBase.call(this);
   
-  this._dictionary = dictionary;
   this._splitter = splitter;
 }
 
 IMEngine.prototype = {
   __proto__: IMEngineBase.prototype,
   
-  _dictionary: null,
   _splitter: null,
   _mode: true,
   _spell: '',
@@ -734,8 +679,6 @@ IMEngine.prototype = {
   uninit: function() {
     IMEngineBase.prototype.uninit.call(this);
     debug('Uninit.');
-    this._dictionary.uninit();
-    this._dictionary = null;
     this._splitter = null;
     if (this._db) {
       this._db.uninit();
@@ -801,6 +744,11 @@ var IMEngineDatabase = function imedb() {
   /* name and version of IndexedDB */
   var kDBName = 'jspinyin';
   var kDBVersion = 2;
+  
+  /**
+   * Dictionary words' total frequency.
+   */
+  var kDictTotalFreq = 1.0e8;
 
   var jsonData;
   var iDB;
@@ -1166,7 +1114,7 @@ var IMEngineDatabase = function imedb() {
       return;
     }
 
-    var syllablesStr = syllables.join('-').replace(/ /g , '');
+    var syllablesStr = syllables.join("'").replace(/ /g , '');
     var result = [];
     var matchTerm = function matchTerm(term) {
       if (term[0].substr(0, textStr.length) !== textStr)
@@ -1321,28 +1269,8 @@ var IMEngineDatabase = function imedb() {
       return;
     }
 
-    var syllablesStr = syllables.join('-').replace(/ /g , '');
+    var syllablesStr = syllables.join("'").replace(/ /g , '');
     var matchRegEx;
-    if (syllablesStr.indexOf('*') !== -1) {
-      matchRegEx = new RegExp(
-        '^' + syllablesStr.replace(/\-/g, '\\-')
-              .replace(/\*/g, '[^\-]*') + '$');
-      var processResult = function processResult(r) {
-        r = r.sort(
-          function sort_result(a, b) {
-            return (b[1] - a[1]);
-          }
-        );
-        var result = [];
-        var t = [];
-        r.forEach(function(term) {
-          if (t.indexOf(term[0]) !== -1) return;
-          t.push(term[0]);
-          result.push(term);
-        });
-        return result;
-      };
-    }
 
     debug('Get terms for ' + syllablesStr + '.');
 
@@ -1456,20 +1384,24 @@ var IMEngineDatabase = function imedb() {
 
         var next = function composition_next() {
           var numOfWord = composition[i];
-          if (composition.length === i)
-            return finish();
+          if (composition.length === i) {
+            finish();
+            return;
+          }
           i++;
           self.getTermWithHighestScore(
             syllables.slice(start, start + numOfWord),
             function getTermWithHighestScoreCallback(term) {
-              if (!term && numOfWord > 1)
-                return finish();
+              if (!term && numOfWord > 1) {
+                finish();
+                return;
+              }
               if (!term) {
                 var syllable =
                   syllables.slice(start, start + numOfWord).join('');
                 debug('Syllable ' + syllable +
                   ' does not made up a word, insert symbol.');
-                term = [syllable.replace(/\*/g, ''), -7];
+                term = [syllable.replace(/\*/g, ''), 0];
               }
 
               str.push(term);
@@ -1488,15 +1420,15 @@ var IMEngineDatabase = function imedb() {
             cacheSetTimeout();
 
             sentences = sentences.sort(function sortSentences(a, b) {
-              var scoreA = 0;
+              var scoreA = 1;
 
               a.forEach(function countScoreA(term) {
-                scoreA += term[1];
+                scoreA *= term[1] / kDictTotalFreq;
               });
 
-              var scoreB = 0;
+              var scoreB = 1;
               b.forEach(function countScoreB(term) {
-                scoreB += term[1];
+                scoreB *= term[1] / kDictTotalFreq;
               });
 
               return (scoreB - scoreA);
@@ -1508,35 +1440,11 @@ var IMEngineDatabase = function imedb() {
 
         next();
       }
-    );
+    ); // compositionsOf.call
   };
 };
 
-
-var dictionary = new PhraseDictionary();
-var loader = new XMLHttpRequest();
-loader.open('GET', './imes/jspinyin/db.json');
-loader.responseType = 'json';
-loader.onreadystatechange = function(event) {
-  if (loader.readyState == 4) {
-    dictionary.addPhrases(loader.response);
-    loader = null;
-  }
-};
-loader.send();
-
-var loader2 = new XMLHttpRequest();
-loader2.open('GET', './imes/jspinyin/db-tr.json');
-loader2.responseType = 'json';
-loader2.onreadystatechange = function(event) {
-  if (loader2.readyState == 4) {
-    dictionary.addPhrases2(loader2.response);
-    loader2 = null;
-  }
-};
-loader2.send();
-
-var jspinyin = new IMEngine(dictionary, new PinyinParser());
+var jspinyin = new IMEngine(new PinyinParser());
 
 // Expose jspinyin as an AMD module
 if (typeof define === 'function' && define.amd)
@@ -1547,4 +1455,3 @@ if (typeof IMEManager !== 'undefined')
   IMEManager.IMEngines.jspinyin = jspinyin;
 
 })();
-
