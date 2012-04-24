@@ -14,15 +14,6 @@ while (line = readline()) {
   var pinyin = fields.slice(3).join("'");
   var chinese = fields[0];
   var freq = parseFloat(fields[1]);
-  switch (arguments[0]) {
-    case 'words':
-    default:
-      if (chinese.length !== 1) continue;
-    break;
-    case 'phrases':
-      if (chinese.length === 1) continue;
-    break;
-  }
 
   if (!result[pinyin]) result[pinyin] = [];
 

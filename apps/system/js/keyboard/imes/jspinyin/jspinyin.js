@@ -33,7 +33,7 @@ var SYLLALBLE_MAX_LENGTH = 6;
 /**
  * Divides a string into Pinyin syllables
  */
-function PinyinParser() {
+var PinyinParser = function() {
   // Consonants(声母) list
   var consonants= 'b p m f d t n l g k h j q x zh ch sh r z c s y w'.split(' ');
   for(var i in consonants) {
@@ -227,7 +227,7 @@ PinyinParser.prototype = {
   }
 };
 
-function IMEngineBase() {
+var IMEngineBase = function() {
 }
 
 IMEngineBase.prototype = {
@@ -302,7 +302,7 @@ IMEngineBase.prototype = {
   },
 }
 
-function IMEngine(splitter) {
+var IMEngine = function(splitter) {
   IMEngineBase.call(this);
   
   this._splitter = splitter;
@@ -312,7 +312,7 @@ IMEngine.prototype = {
   __proto__: IMEngineBase.prototype,
   
   _splitter: null,
-  _mode: true,
+  _inputTraitionalChinese: false,
   _spell: '',
   _startPosition: 0,
   
@@ -327,11 +327,6 @@ IMEngine.prototype = {
   // if the length of the syllables buffer is reached.
   // This hides the fact that we are using a 2^n algorithm
   _kBufferLenLimit: 50,
-
-  // Auto-complete allow user to do this:
-  // ㄊㄞˊㄅ -> ㄊㄞˊㄅ* -> 台北
-  // or ㄊㄅ -> ㄊ*ㄅ* -> 台北 when incompleteMatching is also true
-  _autocompleteLastSyllables: true,
 
   // Auto-suggest generates candidates that follows a selection
   // ㄊㄞˊㄅㄟˇ -> 台北, then suggest 市, 縣, 市長, 市立 ...
@@ -350,9 +345,10 @@ IMEngine.prototype = {
    
   _initDB: function(readyCallback) {
     var dbSettings = {
-      wordsJSON: this._glue.path + '/words.json',
-      phrasesJSON: this._glue.path + '/phrases.json',
-      enableIndexedDB: this._enableIndexedDB
+      dbJSON: this._glue.path + '/db.json',   /* Simplified Chinese database */
+      dbTrJSON: this._glue.path + '/db-tr.json', /* Traditioanal Chinese database */
+      enableIndexedDB: this._enableIndexedDB,
+      useTraditionalDB: this._inputTraitionalChinese
     };
 
     if (readyCallback)
@@ -566,7 +562,7 @@ IMEngine.prototype = {
             suggestions.forEach(
               function suggestions_forEach(suggestion) {
                 candidates.push(
-                  [suggestion.substr(texts.length), selectedSyllables]);
+                  [suggestion.substr(texts.length), selectedSyllables.join("'")]);
               }
             );
             self._sendCandidates(candidates);
@@ -622,7 +618,7 @@ IMEngine.prototype = {
           if (exists)
             return;
 
-          candidates.push([sentence, syllables]);
+          candidates.push([sentence, syllables.join("'")]);
         });
 
         // The remaining candidates doesn't match the entire buffer
@@ -639,14 +635,14 @@ IMEngine.prototype = {
           var syllables = syllablesForQuery.slice(0, i);
           self._lookup(syllables, 'term', function lookupCallback(terms) {
             terms.forEach(function readTerm(term) {
-              candidates.push([term, syllables]);
+              candidates.push([term, syllables.join("'")]);
             });
 
             if (i === 1 && !terms.length) {
               debug('The first syllable does not make up a word,' +
                 ' output the symbol.');
               candidates.push(
-                [syllables.join(''), syllables]);
+                [syllables.join(''), syllables.join("'")]);
             }
 
             if (!--i) {
@@ -695,7 +691,10 @@ IMEngine.prototype = {
     
     // Toggle between the modes of tranditioanal Chinese and simplified Chinese
     if(keyCode == -10 || keyCode == -11) {
-      this._mode = !this._mode;
+      this._inputTraitionalChinese = !this._inputTraitionalChinese;
+      if (this._db) {
+        this._db.setUseTraditionalDB(this._inputTraitionalChinese);
+      }
     }
     this._keypressQueue.push(keyCode);
     this._start();
@@ -738,7 +737,7 @@ IMEngine.prototype = {
   }  
 }
 
-var IMEngineDatabase = function imedb() {
+var IMEngineDatabase = function() {
   var settings;
 
   /* name and version of IndexedDB */
@@ -750,7 +749,7 @@ var IMEngineDatabase = function imedb() {
    */
   var kDictTotalFreq = 1.0e8;
 
-  var jsonData;
+  var jsonData = {db: null, dbTr: null};
   var iDB;
 
   var iDBCache = {};
@@ -778,7 +777,7 @@ var IMEngineDatabase = function imedb() {
 
   /* ==== init functions ==== */
 
-  var getTermsInDB = function imedb_getTermsInDB(callback) {
+  var getTermsInDB = function(callback) {
     if (!indexedDB || // No IndexedDB API implementation
         IDBDatabase.prototype.setVersion || // old version of IndexedDB API
         window.location.protocol === 'file:') {  // bug 643318
@@ -798,13 +797,18 @@ var IMEngineDatabase = function imedb() {
       iDB = ev.target.result;
 
       // delete the old ObjectStore if present
-      if (iDB.objectStoreNames.length !== 0)
+      if (iDB.objectStoreNames.length !== 0) {
         iDB.deleteObjectStore('terms');
+        iDB.deleteObjectStore('terms_tr');
+      }
 
       // create ObjectStore
       var store = iDB.createObjectStore('terms', { keyPath: 'syllables' });
       store.createIndex(
         'constantSyllables', 'constantSyllables', { unique: false });
+      var storeTr = iDB.createObjectStore('terms_tr', { keyPath: 'syllables' });
+      storeTr.createIndex(
+        'constantSyllables', 'constantSyllables', { unique: false });      
 
       // no callback() here
       // onupgradeneeded will follow by onsuccess event
@@ -818,12 +822,13 @@ var IMEngineDatabase = function imedb() {
     };
   };
 
-  var populateDBFromJSON = function imedbPopulateDBFromJSON(callback) {
+  var populateDBFromJSON = function(storeName, callback) {
     var chunks = [];
     var chunk = [];
     var i = 0;
 
-    for (var syllables in jsonData) {
+    var dbName = storeName == "terms" ? 'db' : 'dbTr';
+    for (var syllables in jsonData[dbName]) {
       chunk.push(syllables);
       i++;
       if (i > 2048) {
@@ -834,14 +839,14 @@ var IMEngineDatabase = function imedb() {
     }
     chunks.push(chunk);
     chunks.push(['_last_entry_']);
-    jsonData['_last_entry_'] = true;
+    jsonData[dbName]['_last_entry_'] = true;
 
     var addChunk = function imedbAddChunk() {
       debug('Loading data chunk into IndexedDB, ' +
           (chunks.length - 1) + ' chunks remaining.');
 
-      var transaction = iDB.transaction('terms', 'readwrite');
-      var store = transaction.objectStore('terms');
+      var transaction = iDB.transaction(storeName, 'readwrite');
+      var store = transaction.objectStore(storeName);
 
       transaction.onerror = function putError(ev) {
         debug('Problem while populating DB with JSON data.');
@@ -851,7 +856,7 @@ var IMEngineDatabase = function imedb() {
         if (chunks.length) {
           setTimeout(addChunk, 0);
         } else {
-          jsonData = null;
+          jsonData[dbName] = null;
           setTimeout(callback, 0);
         }
       };
@@ -860,11 +865,11 @@ var IMEngineDatabase = function imedb() {
       var chunk = chunks.shift();
       for (i in chunk) {
         var syllables = chunk[i];
-        var constantSyllables = syllables.replace(/([^\-])[^\-]*/g, '$1');
+        var constantSyllables = syllables.replace(/([^'])[^']*/g, '$1');
         store.put({
           syllables: syllables,
           constantSyllables: constantSyllables,
-          terms: jsonData[syllables]
+          terms: jsonData[dbName][syllables]
         });
       }
     };
@@ -873,53 +878,16 @@ var IMEngineDatabase = function imedb() {
   };
 
   var getTermsJSON = function imedb_getTermsJSON(callback) {
-    getWordsJSON(function getWordsJSONCallback() {
-      getPhrasesJSON(callback);
-    });
+    // Get the simplified Chinese database first and then get the traditional Chinese database.
+    getDbJSON(function getWordsJSONCallback() {
+      getDbJSON(callback, true);
+    }, false);
   };
 
-  var getWordsJSON = function imedb_getWordsJSON(callback) {
+  var getDbJSON = function(callback, isTraditionalDb) {
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', (settings.wordsJSON || './words.json'), true);
-    try {
-      xhr.responseType = 'json';
-    } catch (e) { }
-    xhr.overrideMimeType('application/json; charset=utf-8');
-    xhr.onreadystatechange = function xhrReadystatechange(ev) {
-      if (xhr.readyState !== 4)
-        return;
-
-      var response;
-      if (xhr.responseType == 'json') {
-        response = xhr.response;
-      } else {
-        try {
-          response = JSON.parse(xhr.responseText);
-        } catch (e) { }
-      }
-
-      if (typeof response !== 'object') {
-        debug('Failed to load words.json: Malformed JSON');
-        callback();
-        return;
-      }
-
-      jsonData = {};
-      // clone everything under response coz it's readonly.
-      for (var s in response) {
-        jsonData[s] = response[s];
-      }
-      xhr = null;
-
-      callback();
-    };
-
-    xhr.send(null);
-  };
-
-  var getPhrasesJSON = function getPhrasesJSON(callback) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', (settings.phrasesJSON || './phrases.json'), true);
+    var url = !isTraditionalDb ? (settings.dbJSON || './db.json') : (settings.dbTrJSON || './db-tr.json');
+    xhr.open('GET', url, true);
     try {
       xhr.responseType = 'json';
     } catch (e) { }
@@ -943,12 +911,13 @@ var IMEngineDatabase = function imedb() {
         return;
       }
 
+      var dbName = !isTraditionalDb ? 'db' : 'dbTr';
+      jsonData[dbName] = {};
       // clone everything under response coz it's readonly.
       for (var s in response) {
-        jsonData[s] = response[s];
+        jsonData[dbName][s] = response[s];
       }
       xhr = null;
-
       callback();
     };
 
@@ -996,18 +965,18 @@ var IMEngineDatabase = function imedb() {
     }, kCacheTimeout);
   };
 
-  var getTermsFromConstantSyllables =
-      function imedb_getTermsFromConstantSyllables(constants, callback) {
+  var getTermsFromConstantSyllables = function (constants, callback) {
     debug('Getting terms with constantSyllables: ' + constants);
-
+    var storeName = getCurrentStoreName();
+    
     if (iDBCache['CONSTANT:' + constants]) {
       debug('Found constantSyllables result in iDBCache.');
       callback(iDBCache['CONSTANT:' + constants]);
       return;
     }
 
-    var store = iDB.transaction('terms', 'readonly')
-      .objectStore('terms');
+    var store = iDB.transaction(storeName, 'readonly')
+      .objectStore(storeName);
     if (IDBIndex.prototype.getAll) {
       // Mozilla IndexedDB extension
       var req = store.index('constantSyllables').getAll(
@@ -1044,10 +1013,10 @@ var IMEngineDatabase = function imedb() {
 
   /* ==== init ==== */
 
-  this.init = function imedb_init(options) {
+  this.init = function (options) {
     settings = options;
 
-    var ready = function imedbReady() {
+    var ready = function() {
       debug('Ready.');
       if (settings.ready)
         settings.ready();
@@ -1067,32 +1036,54 @@ var IMEngineDatabase = function imedb() {
         return;
       }
 
-      var transaction = iDB.transaction('terms');
-
+      var transaction = iDB.transaction('terms');      
       var req = transaction.objectStore('terms').get('_last_entry_');
-      req.onsuccess = function getdbSuccess(ev) {
-        if (ev.target.result !== undefined) {
-          ready();
-          return;
-        }
-
-        debug('IndexedDB is supported but empty; Downloading JSON ...');
-        getTermsJSON(function getTermsInDBCallback() {
-          if (!jsonData) {
-            debug('JSON failed to download.');
+      req.onsuccess = function(ev) {
+          if (ev.target.result !== undefined) {
+            ready();
             return;
           }
-
-          debug(
-            'JSON loaded,' +
-            'IME is ready to use while inserting data into db ...'
-          );
-          ready();
-          populateDBFromJSON(function getTermsInDBCallback() {
-            debug('IndexedDB ready and switched to indexedDB backend.');
+  
+          debug('IndexedDB is supported but empty; Downloading JSON ...');
+          getTermsJSON(function getTermsInDBCallback() {
+            if (!jsonData.db) {
+              debug('JSON failed to download.');
+              return;
+            }
+  
+            debug(
+              'JSON loaded,' +
+              'IME is ready to use while inserting data into db ...'
+            );
+            populateDBFromJSON('terms', function getTermsInDBCallback() {
+              var transaction = iDB.transaction('terms_tr');      
+              var req = transaction.objectStore('terms_tr').get('_last_entry_');
+              req.onsuccess = function(ev) {
+                  if (ev.target.result !== undefined) {
+                    ready();
+                    return;
+                  }
+          
+                  debug('IndexedDB is supported but empty; Downloading JSON ...');
+                  getTermsJSON(function getTermsInDBCallback() {
+                    if (!jsonData.dbTr) {
+                      debug('JSON failed to download.');
+                      return;
+                    }
+          
+                    debug(
+                      'JSON loaded,' +
+                      'IME is ready to use while inserting data into db ...'
+                    );
+                    ready();
+                    populateDBFromJSON('terms_tr', function getTermsInDBCallback() {
+                      debug('IndexedDB ready and switched to indexedDB backend.');
+                    });
+                  });
+                };              
+            });
           });
-        });
-      };
+        };
     });
   };
 
@@ -1101,14 +1092,32 @@ var IMEngineDatabase = function imedb() {
   this.uninit = function imedb_uninit() {
     if (iDB)
       iDB.close();
-    jsonData = null;
+    jsonData = {db: null, dbTr: null};
   };
 
+  /**
+   * Whether to use traditional Chinese database
+   */
+  this.setUseTraditionalDB = function(useTraditionalDB) {
+    settings.useTraditionalDB = useTraditionalDB;
+  };
+  
+  var getCurrentDbName = function() {
+    var name = !settings.useTraditionalDB ? 'db' : 'dbTr';
+    return name;
+  };
+  
+  var getCurrentStoreName = function() {
+    var name = !settings.useTraditionalDB ? 'terms' : 'terms_tr';
+    return name;
+  };  
   /* ==== db lookup functions ==== */
 
   this.getSuggestions =
-    function imedb_getSuggestions(syllables, text, callback) {
-    if (!jsonData && !iDB) {
+    function(syllables, text, callback) {
+    var dbName = getCurrentDbName();
+    var storeName = getCurrentStoreName(); 
+    if (!jsonData[dbName] && !iDB) {
       debug('Database not ready.');
       callback(false);
       return;
@@ -1156,17 +1165,17 @@ var IMEngineDatabase = function imedb() {
       return;
     }
 
-    if (jsonData) {
+    if (jsonData[dbName]) {
       debug('Lookup in JSON.');
       // XXX: this is not efficient
-      for (var s in jsonData) {
+      for (var s in jsonData[dbName]) {
         if (matchRegEx) {
           if (!matchRegEx.exec(s))
             continue;
         } else if (s.substr(0, syllablesStr.length) !== syllablesStr) {
           continue;
         }
-        var terms = jsonData[s];
+        var terms = jsonData[dbName][s];
         terms.forEach(matchTerm);
       }
       if (result.length) {
@@ -1190,8 +1199,8 @@ var IMEngineDatabase = function imedb() {
       debug('Do IndexedDB range search with lowerBound ' + syllablesStr +
         ' and upperBound ' + upperBound + '.');
 
-      var store = iDB.transaction('terms', 'readonly')
-        .objectStore('terms');
+      var store = iDB.transaction(storeName, 'readonly')
+        .objectStore(storeName);
       if (IDBIndex.prototype.getAll) {
         // Mozilla IndexedDB extension
         var req = store.getAll(
@@ -1262,8 +1271,10 @@ var IMEngineDatabase = function imedb() {
     );
   },
 
-  this.getTerms = function imedb_getTerms(syllables, callback) {
-    if (!jsonData && !iDB) {
+  this.getTerms = function (syllables, callback) {
+    var dbName = getCurrentDbName();
+    var storeName = getCurrentStoreName(); 
+    if (!jsonData[dbName] && !iDB) {
       debug('Database not ready.');
       callback(false);
       return;
@@ -1281,20 +1292,20 @@ var IMEngineDatabase = function imedb() {
       return;
     }
 
-    if (jsonData) {
+    if (jsonData[dbName]) {
       debug('Lookup in JSON.');
       if (!matchRegEx) {
-        callback(jsonData[syllablesStr] || false);
+        callback(jsonData[dbName][syllablesStr] || false);
         return;
       }
       debug('Do range search in JSON data.');
       var result = [];
       var dash = /\-/g;
       // XXX: this is not efficient
-      for (var s in jsonData) {
+      for (var s in jsonData[dbName]) {
         if (!matchRegEx.exec(s))
           continue;
-        result = result.concat(jsonData[s]);
+        result = result.concat(jsonData[dbName][s]);
       }
       if (result.length) {
         result = processResult(result);
@@ -1310,8 +1321,8 @@ var IMEngineDatabase = function imedb() {
     debug('Lookup in IndexedDB.');
 
     if (!matchRegEx) {
-      var store = iDB.transaction('terms', 'readonly')
-        .objectStore('terms');
+      var store = iDB.transaction(storeName, 'readonly')
+        .objectStore(storeName);
       var req = store.get(syllablesStr);
       req.onerror = function getdbError(ev) {
         debug('Database read error.');
@@ -1383,11 +1394,11 @@ var IMEngineDatabase = function imedb() {
         var i = 0;
 
         var next = function composition_next() {
-          var numOfWord = composition[i];
           if (composition.length === i) {
             finish();
             return;
           }
+          var numOfWord = composition[i];
           i++;
           self.getTermWithHighestScore(
             syllables.slice(start, start + numOfWord),

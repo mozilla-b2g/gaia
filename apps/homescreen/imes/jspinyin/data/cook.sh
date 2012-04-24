@@ -6,7 +6,7 @@
 JSSHELL=js
 
 if [ -z $1 ]; then
-  echo 'Convert data.txt from McBopomofo'
+  echo 'Convert data.txt to json db'
   echo
   echo Usage: $0 [data.txt]
   exit
@@ -17,11 +17,7 @@ if [ ! -f $1 ]; then
   exit
 fi
 
-echo 'Cooking words.json ...'
+echo 'Cooking db.json ...'
 
 cat $1 | \
-$JSSHELL -U `dirname $0`/cook.js words > `dirname $0`/../words.json
-
-echo 'Cooking phrases.json ...'
-cat $1 | \
-$JSSHELL -U `dirname $0`/cook.js phrases > `dirname $0`/../phrases.json
+$JSSHELL -U `dirname $0`/cook.js > `dirname $0`/../db.json
