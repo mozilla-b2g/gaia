@@ -1,19 +1,19 @@
 {
   "name": "Tasks",
-  "default_locale": "en-US",
-  "icons": {
-    "120": "/style/icons/Tasks.png"
-  },
-  "description": "Gaia Tasks",
+  "description": "Gaia Tasks"
   "launch_path": "/",
-  "locales": {
-    "en-US": {
-      "name": "Tasks",
-      "description": "Gaia Tasks"
-    }
-  },
   "developer": {
     "url": "https://github.com/andreasgal/gaia",
     "name": "The Gaia Team"
+  },
+  "locales": {
+    "de-DE": {
+      "name": "Taskmanager",
+      "description": "Gaia Taskmanager"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "120": "/style/icons/Tasks.png"
   }
 }
