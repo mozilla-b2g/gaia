@@ -1037,8 +1037,10 @@ function AppScreen() {
       var frame = WindowManager.appendFrame(e.detail.uri, e.detail.uri, e.detail.title, { 'hackNetworkBound': true });
       var event = document.createEvent('CustomEvent');
       event.initCustomEvent('mozContentEvent', true, true, {
+        type: 'activity-openwindow'
         id: e.detail.id,
         window: frame,
+        isNew: yes,
       });
       window.dispatchEvent(event);
     }
