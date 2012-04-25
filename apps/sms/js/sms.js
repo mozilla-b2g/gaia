@@ -138,7 +138,7 @@ var ConversationListView = {
 
   createNewConversation: function cl_createNewConversation(conversation) {
     return '<a href="#num=' + conversation.num + '"' +
-           ' data-name="' + escapeHTML(conversation.name || conversation.num) + '"' +
+           ' data-name="' + escapeHTML(conversation.name || conversation.num, true) + '"' +
            ' data-notempty="' + (conversation.timestamp ? 'true' : '') + '"' +
            ' class="' + (conversation.hidden ? 'hide' : '') + '">' +
            '  <div class="photo">' +
