@@ -11,6 +11,7 @@ var Browser = {
 
   init: function browser_init() {
     // Assign UI elements to variables
+    this.toolbarStart = document.getElementById('toolbar-start');
     this.urlBar = document.getElementById('url-bar');
     this.urlInput = document.getElementById('url-input');
     this.urlButton = document.getElementById('url-button');
@@ -58,11 +59,11 @@ var Browser = {
 
       case 'mozbrowserloadstart':
         this.currentTitle = '';
-        this.urlBar.classList.add('loading');
+        this.toolbarStart.classList.add('loading');
         break;
 
       case 'mozbrowserloadend':
-        this.urlBar.classList.remove('loading');
+        this.toolbarStart.classList.remove('loading');
         if (this.currentTitle)
           urlInput.value = this.currentTitle;
         else
