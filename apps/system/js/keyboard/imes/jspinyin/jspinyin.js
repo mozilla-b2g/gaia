@@ -1147,12 +1147,8 @@ var IMEngineDatabase = function() {
       });
       return result;
     };
-    var matchRegEx;
-    if (syllablesStr.indexOf('*') !== -1) {
-      matchRegEx = new RegExp(
-        '^' + syllablesStr.replace(/\-/g, '\\-')
-              .replace(/\*/g, '[^\-]*'));
-    }
+    var matchRegEx = new RegExp(
+       '^' + syllablesStr.replace(/([^']+)/g, "$1[^']*"));
     var textStr = text.join('');
     var result = [];
 
@@ -1169,12 +1165,8 @@ var IMEngineDatabase = function() {
       debug('Lookup in JSON.');
       // XXX: this is not efficient
       for (var s in jsonData[dbName]) {
-        if (matchRegEx) {
-          if (!matchRegEx.exec(s))
-            continue;
-        } else if (s.substr(0, syllablesStr.length) !== syllablesStr) {
+        if (!matchRegEx.exec(s))
           continue;
-        }
         var terms = jsonData[dbName][s];
         terms.forEach(matchTerm);
       }
@@ -1241,13 +1233,9 @@ var IMEngineDatabase = function() {
       };
     };
 
-    if (!matchRegEx) {
-      findSuggestionsInIDB();
-      return;
-    }
     debug('Attempt to resolve the complete syllables of ' + textStr +
       ' from ' + syllablesStr + '.');
-    var constants = syllablesStr.replace(/([^\-])[^\-]*/g, '$1');
+    var constants = syllablesStr.replace(/([^'])[^']*/g, '$1');
     getTermsFromConstantSyllables(
       constants, function gotTerms(constantResult) {
         if (!constantResult) {
@@ -1281,10 +1269,26 @@ var IMEngineDatabase = function() {
     }
 
     var syllablesStr = syllables.join("'").replace(/ /g , '');
-    var matchRegEx;
-
+    var matchRegEx = new RegExp(
+       '^' + syllablesStr.replace(/([^']+)/g, "$1[^']*"));
     debug('Get terms for ' + syllablesStr + '.');
 
+    var processResult = function processResult(r) {
+      r = r.sort(
+        function sort_result(a, b) {
+          return (b[1] - a[1]);
+        }
+      );
+      var result = [];
+      var t = [];
+      r.forEach(function(term) {
+        if (t.indexOf(term[0]) !== -1) return;
+        t.push(term[0]);
+        result.push(term);
+      });
+      return result;
+    };
+    
     if (typeof iDBCache[syllablesStr] !== 'undefined') {
       debug('Found in iDBCache.');
       cacheSetTimeout();
@@ -1294,13 +1298,8 @@ var IMEngineDatabase = function() {
 
     if (jsonData[dbName]) {
       debug('Lookup in JSON.');
-      if (!matchRegEx) {
-        callback(jsonData[dbName][syllablesStr] || false);
-        return;
-      }
       debug('Do range search in JSON data.');
       var result = [];
-      var dash = /\-/g;
       // XXX: this is not efficient
       for (var s in jsonData[dbName]) {
         if (!matchRegEx.exec(s))
@@ -1319,32 +1318,8 @@ var IMEngineDatabase = function() {
     }
 
     debug('Lookup in IndexedDB.');
-
-    if (!matchRegEx) {
-      var store = iDB.transaction(storeName, 'readonly')
-        .objectStore(storeName);
-      var req = store.get(syllablesStr);
-      req.onerror = function getdbError(ev) {
-        debug('Database read error.');
-        callback(false);
-      };
-
-      req.onsuccess = function getdbSuccess(ev) {
-        cacheSetTimeout();
-
-        if (!ev.target.result) {
-          iDBCache[syllablesStr] = false;
-          callback(false);
-          return;
-        }
-
-        iDBCache[syllablesStr] = ev.target.result.terms;
-        callback(ev.target.result.terms);
-      };
-      return;
-    }
     debug('Do range search in IndexedDB.');
-    var constants = syllablesStr.replace(/([^\-])[^\-]*/g, '$1');
+    var constants = syllablesStr.replace(/([^'])[^']*/g, '$1');
     getTermsFromConstantSyllables(
       constants,
       function gotTerms(constantResult) {
@@ -1412,7 +1387,7 @@ var IMEngineDatabase = function() {
                   syllables.slice(start, start + numOfWord).join('');
                 debug('Syllable ' + syllable +
                   ' does not made up a word, insert symbol.');
-                term = [syllable.replace(/\*/g, ''), 0];
+                term = [syllable, 0];
               }
 
               str.push(term);
