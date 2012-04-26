@@ -1,0 +1,18 @@
+{
+  "name": "Test Agent",
+  "default_locale": "en-US",
+  "description": "Gaia Test Agent",
+  "launch_path": "/",
+  "locales": {
+    "en-US": {
+      "name": "Test Agent",
+      "description": "Gaia Test Agent"
+    }
+  },
+  "developer": {
+    "url": "https://github.com/andreasgal/gaia",
+    "name": "The Gaia Team"
+  }
+}
+
+
