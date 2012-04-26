@@ -27,6 +27,63 @@ if (!KeyEvent) {
   };
 }
 
+var SyllableUtils = {
+  /**
+   * Converts a syllables array to a string that each syllable will be sperated by '.
+   * @example ['bei', 'jing'] will be converted to "bei'jing".
+   */
+  arrayToString: function(array) {
+    return array.join("'");
+  },
+  
+  /**
+   * Converts a syllables string to an array.
+   * @example "bei'jing" will be converted to [bei'jing].
+   */
+  arrayFromString: function(str) {
+    return str.split("'");
+  },
+  
+  /**
+   * Converts a syllables string to its abbreviated form.
+   * @example "bei'jing" will be converted to "b'j"
+   */
+  stringToAbbreviated: function(str) {
+    return str.replace(/([^'])[^']*/g, '$1');
+  }
+};
+
+var Term = function(phrase, freq) {
+  if (phrase) {
+    this.phrase = phrase;
+  }
+  if (freq) {
+    this.freq = freq;
+  }
+};
+
+Term.prototype = {
+  phrase: '北京',
+  freq: 0.01  /* The frequency of the term*/
+};
+
+/**
+ * Terms with same pronunciation.(同音词)
+ */
+var Homonyms = function(syllablesString, terms) {
+  this.syllablesString = syllablesString;
+  this.abbreviatedSyllablesString = SyllableUtils.stringToAbbreviated(syllablesString);
+  
+  // Clone a new array
+  this.terms = terms.concat();
+};
+
+Homonyms.prototype = {
+  syllablesString: "bei'jing",  /* Full pinyin syllables(全拼) */
+  abbreviatedSyllablesString: "b'j", /* Abbreviated pinyin syllabels(简拼) */
+  terms: [new Term('北京', 0.010), new Term('背景', 0.005)],  
+};
+
 /** Maximum limit of PinYin syllable length */
 var SYLLALBLE_MAX_LENGTH = 6;
 
@@ -317,7 +374,7 @@ IMEngine.prototype = {
   _startPosition: 0,
   
   // Enable IndexedDB
-  _enableIndexedDB: true,
+  _enableIndexedDB: false,
 
   // Tell the algorithm what's the longest term
   // it should attempt to match
@@ -375,6 +432,7 @@ IMEngine.prototype = {
   },
   
   _sendCandidates: function(candidates) {
+    debug('SendCandidates: ' + JSON.stringify(candidates));
     this._firstCandidate = (candidates[0])? candidates[0][0] : '';
     this._glue.sendCandidates(candidates);
   },
@@ -516,7 +574,7 @@ IMEngine.prototype = {
           dbResults.forEach(function readSentence(sentence) {
             var str = '';
             sentence.forEach(function readTerm(term) {
-              str += term[0];
+              str += term.phrase;
             });
             if (results.indexOf(str) === -1)
               results.push(str);
@@ -532,7 +590,7 @@ IMEngine.prototype = {
           }
           var results = [];
           dbResults.forEach(function readTerm(term) {
-            results.push(term[0]);
+            results.push(term.phrase);
           });
           callback(results);
         });
@@ -547,7 +605,7 @@ IMEngine.prototype = {
             }
             var results = [];
             dbResults.forEach(function readTerm(term) {
-              results.push(term[0]);
+              results.push(term.phrase);
             });
             callback(results);
           }
@@ -749,7 +807,323 @@ IMEngine.prototype = {
     if (!this._db[name])
       this._initDB(name);
   }  
-}
+};
+
+var DatabaseStorageBase = function() {
+};
+
+/**
+ * DatabaseStorageBase status code enumeration.
+ */
+DatabaseStorageBase.StatusCode = {
+  UNINITIALIZED: 0,   /* The storage isn't initilized.*/
+  BUSY: 1,            /* The storage is busy.*/
+  READY: 2,           /* The storage has been successfully initilized and is ready to use.*/
+  ERROR: 3,           /* The storage is failed to initilized and cannot be used.*/
+};
+
+DatabaseStorageBase.prototype =  {
+  _status: DatabaseStorageBase.StatusCode.UNINITIALIZED,
+  
+  /**
+   * Get the status code of the storage.
+   * @returns {DatabaseStorageBase.StatusCode} The status code.
+   */
+  getStatus: function() {
+    return this._status;
+  },
+  
+  isReady: function() {
+    return this._status == DatabaseStorageBase.StatusCode.READY;
+  },
+  
+  /**
+   * Initialization.
+   * @param {Function} callback Javascript function object that is called when the operation
+   * is finished. The definition of callback is function callback(statusCode). The statusCode
+   * parameter is of type DatabaseStorageBase.StatusCode that stores the status of the storage
+   * after Initialization.
+   */
+  init: function(callback /*function callback(statusCode)*/) {
+  },
+  
+  /**
+   * Destruction.
+   * @param {Function} callback Javascript function object that is called when the operation
+   * is finished. The definition of callback is function callback().
+   */  
+  uninit: function(callback /*function callback()*/) {
+  },
+  
+  /**
+   * Get all iterms.
+   * @param {Function} callback Javascript function object that is called when the operation
+   * is finished. The definition of callback is function callback(homonymsArray). The homonymsArray
+   * parameter is an array of Homonyms objects.
+   */   
+  getAllTerms: function(callback /*function callback(homonymsArray)*/) {
+  },
+  
+  /**
+   * Get iterm with given syllables string.
+   * @param {String} syllablesStr The syllables string of the matched terms.
+   * @param {Function} callback Javascript function object that is called when the operation
+   * is finished. The definition of callback is function callback(homonymsArray). The homonymsArray
+   * parameter is an array of Homonyms objects.
+   */   
+  getTermsBySyllables: function(syllablesStr, callback /*function callback(homonymsArray)*/) {
+  },
+  
+  /**
+   * Get iterms with given syllables string prefix.
+   * @param {String} prefix The prefix of the syllables string .
+   * @param {Function} callback Javascript function object that is called when the operation
+   * is finished. The definition of callback is function callback(homonymsArray). The homonymsArray
+   * parameter is an array of Homonyms objects.
+   */   
+  getTermsBySyllablesPrefix: function(prefix, callback /*function callback(homonymsArray)*/) {
+  },  
+  
+  /**
+   * Get iterm with given abbreviated syllables string. The given syllables could be partially abbreviated.
+   * @param {String} abbreviated The partially abbreviated syllables string of the matched terms.
+   * @param {Function} callback Javascript function object that is called when the operation
+   * is finished. The definition of callback is function callback(homonymsArray). The homonymsArray
+   * parameter is an array of Homonyms objects.
+   */   
+  getTermsByAbbreviatedSyllables: function(abbreviated, callback /*function callback(homonymsArray)*/) {
+  },
+  
+  /**
+   * Add a term to the storage.
+   * @param {String} syllablesStr The syllables string of the term.
+   * @param {Term} term The Term object of the term.
+   * @param {Function} callback Javascript function object that is called when the operation
+   * is finished. The definition of callback is function callback(). 
+   */   
+  addTerm: function(syllablesStr, term, callback /*function callback()*/) {
+  },
+  
+  /**
+   * Remove a term from the storage.
+   * @param {String} syllablesStr The syllables string of the term.
+   * @param {Term} term The Term object of the term.
+   * @param {Function} callback Javascript function object that is called when the operation
+   * is finished. The definition of callback is function callback(). 
+   */  
+  removeTerm: function(syllablesStr, term, callback /*function callback()*/) {  
+  },
+};
+
+var JsonStorage = function(jsonUrl) {
+  this._jsonUrl = jsonUrl;
+};
+
+JsonStorage.prototype = {
+  // Inherits DatabaseStorageBase
+  __proto__: DatabaseStorageBase.prototype,
+  
+  _dataArray: {},
+  
+  _jsonUrl: null,
+  
+  /**
+   * @Override
+   */
+  init: function(callback /*function callback(statusCode)*/) {
+    var self = this;
+    function doCallback() {
+      if (callback) {
+        callback(self._status);
+      }
+    }
+    // Check if we could initilize.
+    if (this._status != DatabaseStorageBase.StatusCode.UNINITIALIZED) {
+      doCallback();
+      return;
+    }
+    
+    // Set the status to busy.
+    this._status = DatabaseStorageBase.StatusCode.BUSY;
+    
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', this._jsonUrl, true);
+    try {
+      xhr.responseType = 'json';
+    } catch (e) { }
+    xhr.overrideMimeType('application/json; charset=utf-8');
+    xhr.onreadystatechange = function xhrReadystatechange(ev) {
+      if (xhr.readyState !== 4) {
+        self._status = DatabaseStorageBase.StatusCode.ERROR;
+        doCallback();
+        return;
+      }
+
+      var response;
+      if (xhr.responseType == 'json') {
+        response = xhr.response;
+      } else {
+        try {
+          response = JSON.parse(xhr.responseText);
+        } catch (e) { }
+      }
+
+      if (typeof response !== 'object') {
+        self._status = DatabaseStorageBase.StatusCode.ERROR;
+        doCallback();
+        return;
+      }
+
+      function toTerms(rawTerms) {
+        var terms = [];
+        for (var i=0; i<rawTerms.length; i++) {
+          var rawTerm = rawTerms[i];
+          terms.push(new Term(rawTerm[0], rawTerm[1]));
+        }
+        return terms;
+      }
+      
+      // clone everything under response because it's readonly.
+      for (var s in response) {
+        self._dataArray[s] = new Homonyms(s, toTerms(response[s]));
+      }
+      xhr = null;
+      self._status = DatabaseStorageBase.StatusCode.READY;
+      doCallback();
+    };
+
+    xhr.send(null);    
+  },
+ 
+  /**
+   * @Override
+   */  
+  uninit: function(callback) {
+    function doCallback() {
+      if (callback) {
+        callback();
+      }
+    }
+    
+    // Check if we could uninitilize the storage
+    if (this._status == DatabaseStorageBase.StatusCode.UNINITIALIZED) {
+      doCallback();
+      return;
+    }
+    
+    // Perform destruction operation
+    this._dataArray = null;
+    
+    this._status = DatabaseStorageBase.StatusCode.UNINITIALIZED;
+    doCallback();
+  },
+  
+  /**
+   * @Override
+   */ 
+  getAllTerms: function(callback /*function callback(homonymsArray)*/) {
+    var homonymsArray = [];
+    function doCallback() {
+      if (callback) {
+        callback(homonymsArray);
+      }
+    }
+    
+    // Check if the storage is ready.
+    if (!this.isReady()) {
+      doCallback();
+      return;
+    }
+    
+    // Query all terms
+    for (var s in this._dataArray) {
+      homonymsArray.push(this._dataArray[s]);
+    }
+    
+    doCallback();
+  },
+  
+  /**
+   * @Override
+   */   
+  getTermsBySyllables: function(syllablesStr, callback /*function callback(homonymsArray)*/) {
+    var homonymsArray = [];
+    function doCallback() {
+      if (callback) {
+        callback(homonymsArray);
+      }
+    }
+    
+    // Check if the storage is ready.
+    if (!this.isReady()) {
+      doCallback();
+      return;
+    }
+    
+    if (syllablesStr in this._dataArray) {
+      homonymsArray.push(this._dataArray[syllablesStr]);
+    }
+    
+    doCallback();
+  },
+
+  /**
+   * @Override
+   */   
+  getTermsBySyllablesPrefix: function(prefix, callback /*function callback(homonymsArray)*/) {
+    var homonymsArray = [];
+    function doCallback() {
+      if (callback) {
+        callback(homonymsArray);
+      }
+    }
+    
+    // Check if the storage is ready.
+    if (!this.isReady()) {
+      doCallback();
+      return;
+    }
+    
+    for (var syllablesStr in this._dataArray) {
+      if (syllablesStr.indexOf(prefix) == 0) {
+        homonymsArray.push(this._dataArray[syllablesStr]);
+      }
+    }
+    
+    doCallback();    
+  }, 
+
+  /**
+   * @Override
+   */   
+  getTermsByAbbreviatedSyllables: function(abbreviated, callback /*function callback(homonymsArray)*/) {
+    var homonymsArray = [];
+    function doCallback() {
+      if (callback) {
+        debug('JsonStorage#getTermsByAbbreviatedSyllables callback:' + JSON.stringify(homonymsArray));
+        callback(homonymsArray);
+      }
+    }
+    
+    // Check if the storage is ready.
+    if (!this.isReady()) {
+      doCallback();
+      return;
+    }
+    
+    var matchRegEx = new RegExp(
+       '^' + abbreviated.replace(/([^']+)/g, "$1[^']*"));
+    
+    for (var syllablesStr in this._dataArray) {
+      var fullyAbbreviated = SyllableUtils.stringToAbbreviated(syllablesStr);
+      if (matchRegEx.exec(syllablesStr)) {
+        homonymsArray.push(this._dataArray[syllablesStr]);
+      }
+    }
+    
+    doCallback();     
+  }
+};
 
 var IMEngineDatabase = function(storeName, jsonUrl) {
   var settings;
@@ -763,7 +1137,7 @@ var IMEngineDatabase = function(storeName, jsonUrl) {
    */
   var kDictTotalFreq = 1.0e8;
 
-  var jsonData = null;
+  var storage = new JsonStorage(jsonUrl);
   var iDB;
 
   var iDBCache = {};
@@ -840,97 +1214,58 @@ var IMEngineDatabase = function(storeName, jsonUrl) {
     var chunks = [];
     var chunk = [];
     var i = 0;
-
-    for (var syllables in jsonData) {
-      chunk.push(syllables);
-      i++;
-      if (i > 2048) {
-        chunks.push(chunk);
-        chunk = [];
-        i = 0;
+    
+    storage.getAllTerms(function(homonymsArray) {
+      for (var i=0; i<homonymsArray.length; i++) {
+        var homonyms = homonymsArray[i];
+        chunk.push(homonyms);
+        i++;
+        if (i > 2048) {
+          chunks.push(chunk);
+          chunk = [];
+          i = 0;
+        }
       }
-    }
-    chunks.push(chunk);
-    chunks.push(['_last_entry_']);
-    jsonData['_last_entry_'] = true;
-
-    var addChunk = function imedbAddChunk() {
-      debug('Loading data chunk into IndexedDB, ' +
-          (chunks.length - 1) + ' chunks remaining.');
-
-      var transaction = iDB.transaction(storeName, 'readwrite');
-      var store = transaction.objectStore(storeName);
-
-      transaction.onerror = function putError(ev) {
-        debug('Problem while populating DB with JSON data.');
-      };
-
-      transaction.oncomplete = function putComplete() {
-        if (chunks.length) {
-          setTimeout(addChunk, 0);
-        } else {
-          jsonData = null;
-          setTimeout(callback, 0);
+      chunks.push(chunk);
+      chunks.push(new Homonyms('_last_entry_', []));
+      
+      var addChunk = function() {
+        debug('Loading data chunk into IndexedDB, ' +
+            (chunks.length - 1) + ' chunks remaining.');
+  
+        var transaction = iDB.transaction(storeName, 'readwrite');
+        var store = transaction.objectStore(storeName);
+  
+        transaction.onerror = function putError(ev) {
+          debug('Problem while populating DB with JSON data.');
+        };
+  
+        transaction.oncomplete = function putComplete() {
+          if (chunks.length) {
+            setTimeout(addChunk, 0);
+          } else {
+            setTimeout(callback, 0);
+          }
+        };
+  
+        var chunk = chunks.shift();
+        for (i in chunk) {
+          var homonyms = chunk[i];
+          var constantSyllables = homonyms.abbreviatedSyllablesString;
+          store.put({
+            syllables: homonyms.syllablesString,
+            constantSyllables: constantSyllables,
+            terms: homonyms.terms
+          });
         }
       };
-
-      var syllables;
-      var chunk = chunks.shift();
-      for (i in chunk) {
-        var syllables = chunk[i];
-        var constantSyllables = syllables.replace(/([^'])[^']*/g, '$1');
-        store.put({
-          syllables: syllables,
-          constantSyllables: constantSyllables,
-          terms: jsonData[syllables]
-        });
-      }
-    };
-
-    setTimeout(addChunk, 0);
+  
+      setTimeout(addChunk, 0);      
+    });
   };
 
   var getTermsJSON = function imedb_getTermsJSON(callback) {
-    // Get the simplified Chinese database first and then get the traditional Chinese database.
-    getDbJSON(callback);
-  };
-
-  var getDbJSON = function(callback) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', jsonUrl, true);
-    try {
-      xhr.responseType = 'json';
-    } catch (e) { }
-    xhr.overrideMimeType('application/json; charset=utf-8');
-    xhr.onreadystatechange = function xhrReadystatechange(ev) {
-      if (xhr.readyState !== 4)
-        return;
-
-      var response;
-      if (xhr.responseType == 'json') {
-        response = xhr.response;
-      } else {
-        try {
-          response = JSON.parse(xhr.responseText);
-        } catch (e) { }
-      }
-
-      if (typeof response !== 'object') {
-        debug('Failed to load phrases.json: Malformed JSON');
-        callback();
-        return;
-      }
-
-      jsonData = {};
-      // clone everything under response coz it's readonly.
-      for (var s in response) {
-        jsonData[s] = response[s];
-      }
-      xhr = null;
-      callback();
-    };
-
-    xhr.send(null);
+    storage.init(callback);
   };
 
   /* ==== helper functions ==== */
@@ -1054,7 +1389,7 @@ var IMEngineDatabase = function(storeName, jsonUrl) {
   
           debug('IndexedDB is supported but empty; Downloading JSON ...');
           getTermsJSON(function getTermsInDBCallback() {
-            if (!jsonData) {
+            if (!storage.isReady()) {
               debug('JSON failed to download.');
               return;
             }
@@ -1076,14 +1411,14 @@ var IMEngineDatabase = function(storeName, jsonUrl) {
   this.uninit = function imedb_uninit() {
     if (iDB)
       iDB.close();
-    jsonData = null;
+    storage.uninit();
   };
 
   /* ==== db lookup functions ==== */
 
   this.getSuggestions =
     function(syllables, text, callback) {
-    if (!jsonData && !iDB) {
+    if (!storage.isReady() && !iDB) {
       debug('Database not ready.');
       callback(false);
       return;
@@ -1092,23 +1427,23 @@ var IMEngineDatabase = function(storeName, jsonUrl) {
     var syllablesStr = syllables.join("'").replace(/ /g , '');
     var result = [];
     var matchTerm = function matchTerm(term) {
-      if (term[0].substr(0, textStr.length) !== textStr)
+      if (term.phrase.substr(0, textStr.length) !== textStr)
         return;
-      if (term[0] == textStr)
+      if (term.phrase == textStr)
         return;
       result.push(term);
     };
     var processResult = function processResult(r) {
       r = r.sort(
         function sort_result(a, b) {
-          return (b[1] - a[1]);
+          return (b.freq - a.freq);
         }
       );
       var result = [];
       var t = [];
       r.forEach(function(term) {
-        if (t.indexOf(term[0]) !== -1) return;
-        t.push(term[0]);
+        if (t.indexOf(term.phrase) !== -1) return;
+        t.push(term.phrase);
         result.push(term);
       });
       return result;
@@ -1127,23 +1462,22 @@ var IMEngineDatabase = function(storeName, jsonUrl) {
       return;
     }
 
-    if (jsonData) {
+    if (storage.isReady()) {
       debug('Lookup in JSON.');
-      // XXX: this is not efficient
-      for (var s in jsonData) {
-        if (!matchRegEx.exec(s))
-          continue;
-        var terms = jsonData[s];
-        terms.forEach(matchTerm);
-      }
-      if (result.length) {
-        result = processResult(result);
-      } else {
-        result = false;
-      }
-      cacheSetTimeout();
-      iDBCache['SUGGESTION:' + textStr] = result;
-      callback(result);
+      storage.getTermsBySyllablesPrefix(syllablesStr, function(homonymsArray) {        
+        for (var i=0; i<homonymsArray.length; i++) {
+          var homonyms = homonymsArray[i];
+          homonyms.terms.forEach(matchTerm);
+        }
+        if (result.length) {
+          result = processResult(result);
+        } else {
+          result = false;
+        }
+        cacheSetTimeout();
+        iDBCache['SUGGESTION:' + textStr] = result;
+        callback(result);        
+      });
       return;
     }
 
@@ -1226,7 +1560,7 @@ var IMEngineDatabase = function(storeName, jsonUrl) {
   },
 
   this.getTerms = function (syllables, callback) {
-    if (!jsonData && !iDB) {
+    if (!storage.isReady() && !iDB) {
       debug('Database not ready.');
       callback(false);
       return;
@@ -1240,14 +1574,14 @@ var IMEngineDatabase = function(storeName, jsonUrl) {
     var processResult = function processResult(r) {
       r = r.sort(
         function sort_result(a, b) {
-          return (b[1] - a[1]);
+          return (b.freq - a.freq);
         }
       );
       var result = [];
       var t = [];
       r.forEach(function(term) {
-        if (t.indexOf(term[0]) !== -1) return;
-        t.push(term[0]);
+        if (t.indexOf(term.phrase) !== -1) return;
+        t.push(term.phrase);
         result.push(term);
       });
       return result;
@@ -1260,24 +1594,23 @@ var IMEngineDatabase = function(storeName, jsonUrl) {
       return;
     }
 
-    if (jsonData) {
+    if (storage.isReady()) {
       debug('Lookup in JSON.');
-      debug('Do range search in JSON data.');
-      var result = [];
-      // XXX: this is not efficient
-      for (var s in jsonData) {
-        if (!matchRegEx.exec(s))
-          continue;
-        result = result.concat(jsonData[s]);
-      }
-      if (result.length) {
-        result = processResult(result);
-      } else {
-        result = false;
-      }
-      cacheSetTimeout();
-      iDBCache[syllablesStr] = result;
-      callback(result);
+      storage.getTermsByAbbreviatedSyllables(syllablesStr, function(homonymsArray) {
+        var result = [];
+        for (var i=0; i<homonymsArray.length; i++) {
+          var homonyms = homonymsArray[i];
+          result = result.concat(homonyms.terms);          
+        }
+        if (result.length) {
+          result = processResult(result);
+        } else {
+          result = false;
+        }
+        cacheSetTimeout();
+        iDBCache[syllablesStr] = result;
+        callback(result);        
+      });
       return;
     }
 
@@ -1393,56 +1726,6 @@ var IMEngineDatabase = function(storeName, jsonUrl) {
     ); // compositionsOf.call
   };
 };
-
-
-var DatabaseStorageInterface =  {
-  init: function() {  
-  },
-  
-  uninit: function() {
-  },
-  
-  addTerm: function(syllables, term, freq) {
-  },
-  
-  removeTerm: function(syllables, term) {  
-  }
-};
-
-var JsonStorage = function() {
-  
-};
-
-JsonStorage.prototype = {
-  // Implements DatabaseStorageInterface
-  __proto__: IMEngineBase.prototype,
-  
-  /**
-   * @Override
-   */
-  init: function() {
-    
-  },
- 
-  /**
-   * @Override
-   */  
-  uninit: function() {
-  },
-  
-  /**
-   * @Override
-   */  
-  addTerm: function(syllables, term, freq) {
-  },
-  
-  /**
-   * @Override
-   */  
-  removeTerm: function(syllables, term) {  
-  } 
-}
-
 
 var jspinyin = new IMEngine(new PinyinParser());
 
