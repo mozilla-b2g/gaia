@@ -8,10 +8,10 @@
       var host = document.location.host;
       var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
       var src = 'http://' + domain + '/webapi.js';
-      document.write('<script defer src="' + src + '"><\/script>');
+      document.write('<script src="' + src + '"><\/script>');
     </script>
     <link rel="stylesheet" type="text/css" href="style/system.css">
-    <script defer src="js/background_services.js"></script>
+    <script defer src="js/background_service.js"></script>
     <script defer src="js/bootstrap.js"></script>
     <script defer src="js/settings.js"></script>
 

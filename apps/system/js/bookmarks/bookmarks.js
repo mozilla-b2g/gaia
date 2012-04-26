@@ -15,9 +15,12 @@
     return;
   localStorage['bookmarks'] = true;
 
+  var previousInstallHandler = navigator.mozApps.mgmt.oninstall;
+
   function installNextBookmark() {
     var bookmark = bookmarksList.pop();
     if (!bookmark) {
+      navigator.mozApps.mgmt.oninstall = previousInstallHandler;
       setTimeout(main);
       return;
     }
@@ -28,7 +31,7 @@
     var manifest = '{' +
                    '  "name": "' + bookmark.name + '",' +
                    '  "description": "' + bookmark.name + '",' +
-                   '  "launch_path": "' + bookmark.url + '",' + 
+                   '  "launch_path": "' + bookmark.url + '",' +
                    '  "icons": {' +
                    '    "120": "' + url + bookmark.icon + '"' +
                    '  }' +
@@ -52,7 +55,7 @@
 
   // If an error happened continue the normal exexution.
   xhr.onerror = function bookmarks_error() {
-    stopBookmarksHook(load);
+    setTimeout(main);
   };
 
   // Once the list of bookmarks if available starts to install them
@@ -69,7 +72,7 @@
   };
 
   // Every time a bookmark has finised to installed, add the next.
-  navigator.mozApps.mgmt.oninstall = function bookmark_instaled(evt) {
+  navigator.mozApps.mgmt.oninstall = function bookmark_installed(evt) {
     setTimeout(installNextBookmark);
   };
 })();

@@ -9,14 +9,13 @@ function startup() {
   KeyHandler.init();
   SleepMenu.init();
 
-  Applications.start(function start(apps) {
+  Applications.rebuild(function start(apps) {
     // FIXME Loop over all the registered activities from the applications
     //       list and start up the first application found registered for
     //       the HOME activity.
     var host = document.location.host;
     var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
     var homescreenURL = 'http://homescreen.' + domain;
-    alert(domain);
     document.getElementById('homescreen').src = homescreenURL;
 
     ScreenManager.turnScreenOn();
@@ -355,11 +354,6 @@ function RemoveEventHandlers(target, listener, eventNames) {
 
 
 var Applications = {
-  start: function a_start(callback) {
-    window.addEventListener('mozChromeEvent', this);
-    this.rebuild(callback);
-  },
-
   installedApps: [],
   rebuild: function a_rebuild(callback) {
     var self = this;
@@ -414,4 +408,7 @@ var Applications = {
                            function() { sendResponse(detail.id, false); });
   }
 };
+
+window.addEventListener('mozChromeEvent', Applications);
+
 

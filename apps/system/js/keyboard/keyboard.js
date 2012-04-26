@@ -431,7 +431,7 @@ const IMEManager = {
       this.ime.removeEventListener(type, this);
     }).bind(this));
 
-    for(var engine in this.IMEngines) {
+    for (var engine in this.IMEngines) {
       if (this.IMEngines[engine].uninit)
         this.IMEngines[engine].uninit();
       delete this.IMEngines[engine];
@@ -492,7 +492,8 @@ const IMEManager = {
 
   hideIMETimer: 0,
   handleEvent: function km_handleEvent(evt) {
-    var activeWindow = WindowManager.getAppFrame(WindowManager.getDisplayedApp());
+    var activeWindow =
+      WindowManager.getAppFrame(WindowManager.getDisplayedApp());
     if (!activeWindow ||
         (activeWindow == this._closingWindow && evt.type != 'appclose'))
       return;
@@ -877,8 +878,9 @@ const IMEManager = {
         // This gives layout author the ability to rewrite AlternateLayoutKeys
         var hasSpecialCode = specialCodes.indexOf(key.keyCode) > -1;
         if (!(key.keyCode < 0 || hasSpecialCode) && this.isAlternateLayout) {
-          if (Keyboards[this.currentKeyboard]['alternateLayoutOverwrite'])
-            keyChar = Keyboards[this.currentKeyboard]['alternateLayoutOverwrite'][keyChar];
+          var current = Keyboards[this.currentKeyboard];
+          if (current['alternateLayoutOverwrite'])
+            keyChar = current['alternateLayoutOverwrite'][keyChar];
         }
 
         var code = key.keyCode || keyChar.charCodeAt(0);
@@ -900,16 +902,19 @@ const IMEManager = {
           }
 
           // Alternate layout key
-          // This gives the author the ability to change the alternate layout key contents
-          var alternateLayoutKey = "?123";
-          if (Keyboards[this.currentKeyboard]['alternateLayoutKey']) {
-            alternateLayoutKey = Keyboards[this.currentKeyboard]['alternateLayoutKey'];
+          // This gives the author the ability to change the alternate layout
+          // key contents
+          var alternateLayoutKey = '?123';
+          var current = Keyboards[this.currentKeyboard];
+          if (current['alternateLayoutKey']) {
+            alternateLayoutKey = current['alternateLayoutKey'];
           }
 
-          // This gives the author the ability to change the basic layout key contents
-          var basicLayoutKey = "ABC";
-          if (Keyboards[this.currentKeyboard]['basicLayoutKey']) {
-            basicLayoutKey = Keyboards[this.currentKeyboard]['basicLayoutKey'];
+          // This gives the author the ability to change the basic layout
+          // key contents
+          var basicLayoutKey = 'ABC';
+          if (current['basicLayoutKey']) {
+            basicLayoutKey = current['basicLayoutKey'];
           }
 
           ratio -= 2;
@@ -1095,7 +1100,7 @@ const IMEManager = {
     if (imminent) {
       var ime = this.ime;
       ime.classList.add('imminent');
-      window.setTimeout(function () {
+      window.setTimeout(function remoteImminent() {
         ime.classList.remove('imminent');
       }, 0);
 

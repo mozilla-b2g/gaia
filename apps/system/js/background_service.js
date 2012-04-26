@@ -81,8 +81,8 @@ var BackgroundServiceManager = (function bsm() {
     return true;
   };
 
-  /* Getting the window object reference of the background page. Unused.
-     We have no way to give the object reference to the the app iframe for now */
+  // Getting the window object reference of the background page. Unused.
+  // We have no way to give the object reference to the the app iframe for now
   var getWindow = function bsm_getWindow(origin) {
     var frame = frames[origin];
     if (frame)
