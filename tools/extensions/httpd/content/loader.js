@@ -1,4 +1,3 @@
-
 const CC = Components.Constructor;
 const LocalFile = CC('@mozilla.org/file/local;1',
                      'nsILocalFile',
@@ -47,11 +46,11 @@ function startupHttpd(baseDir, port) {
 function getDirectories(dir) {
   let appsDir = Cc["@mozilla.org/file/local;1"]
                .createInstance(Ci.nsILocalFile);
-  appsDir.initWithPath(dir);  
+  appsDir.initWithPath(dir);
   appsDir.append('apps');
 
-  let dirs = [];  
-  let files = appsDir.directoryEntries;  
+  let dirs = [];
+  let files = appsDir.directoryEntries;
   while (files.hasMoreElements()) {
     let file = files.getNext().QueryInterface(Ci.nsILocalFile);
     if (file.isDirectory()) {
@@ -82,23 +81,24 @@ LongPoll.prototype = {
 
   drain_queue: function drain_queue(res) {
     let queue = this.buffer,
-        nextid = this.connid + '=' + Date.now();
+        response = { messages: [] };
 
     this.buffer = [];
 
     queue.forEach(function(chunk) {
-      res.write('msg('+JSON.stringify(chunk)+');\n');
-    });
+      response.messages.push({
+        id: this.connid,
+        response: chunk
+      })
+    }.bind(this));
 
-    res.write(
-      'next("/marionette?' + nextid + '");\n');
+    res.write(JSON.stringify(response));
   },
 
   send: function send(obj) {
     this.transport.send(obj);
   }
 }
-
 
 let connections = {},
     connection_num = 0,
@@ -109,18 +109,17 @@ function handleMarionette(req, res) {
   try {
     if (req.method === "GET") {
       if (req.queryString.length === 0) {
-        dump("getlogin\n");
-        // render login screen
-        res.setStatusLine("1.1", 303, "See Other");
-        res.setHeader("Location", "http://gaiamobile.org:8080/tools/marionette/");
-        res.write('');
+        res.setStatusLine("1.1", 404, "Not Found");
+        res.write(JSON.stringify({
+          error: 'connection not found'
+        }));
       } else {
         // render event stream
         let connid = req.queryString.split('=')[0],
             me = connections[connid];
 
         res.setStatusLine("1.1", 200, "OK");
-        res.setHeader("Content-Type", "application/javascript");
+        res.setHeader("Content-Type", "application/json");
 
         if (me.buffer.length === 0) {
           dump("waiting /marionette?" + req.queryString + "\n");
@@ -130,31 +129,28 @@ function handleMarionette(req, res) {
           dump("messages /marionette?" + req.queryString + "\n");
           me.drain_queue(res);
         }
-        //res.write('');
       }
     } else if (req.method === "POST") {
       // parse login screen
       // render connection stream
-      let connid = connection_num++,
-          ui_url = "http://gaiamobile.org:8080/tools/marionette/marionette.html?" + connid + '=' + Date.now();
- 
-      res.setStatusLine("1.1", 303, "See Other");
-      res.setHeader("Location", ui_url);
-      res.write('');
+      let connid = connection_num++;
+
+      res.setStatusLine("1.1", 200, "OK");
+      res.setHeader("Content-Type", "application/json");
+      res.write(JSON.stringify({ id: connid}));
+
       req.bodyInputStream.asyncWait(function (stream) {
         scriptable.init(stream);
         let bytes = scriptable.read(scriptable.available()),
-            parsed = {};
+            parsed = JSON.parse(bytes);
+
         dump("BYTES "+bytes+"\n");
-        bytes.split('&').forEach(function(sub) {
-          let spl = sub.split('=');
-          parsed[spl[0]] = spl[1];
-        });
+
         let transport = debuggerSocketConnect(parsed.server, parseInt(parsed.port)),
             me = new LongPoll(connid, transport);
-  
+
         connections[connid] = me;
-  
+
         transport.hooks = {
           onPacket: function onPacket(pack) {
             me.cast(pack);
@@ -165,10 +161,9 @@ function handleMarionette(req, res) {
           }
         }
         transport.ready();
-  //      client.request({'type': 'goUrl', 'value': 'http://zombo.com/'});
-  
+
         dump("transport\n");
-  
+
       }, 0, 0, Services.tm.currentThread);
     } else if (req.method === "PUT") {
       let connid = req.queryString.split('=')[0],

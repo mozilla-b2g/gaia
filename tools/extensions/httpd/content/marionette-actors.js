@@ -26,9 +26,15 @@ let xulAppInfo = Cc["@mozilla.org/xre/app-info;1"]
 let appName = xulAppInfo.name;
 
 // import logger
-Cu.import("resource://gre/modules/services-sync/log4moz.js");
-let logger = Log4Moz.repository.getLogger("Marionette");
-logger.info('marionette-actors.js loaded');
+//Cu.import("resource://gre/modules/services-sync/log4moz.js");
+//let logger = Log4Moz.repository.getLogger("Marionette");
+//logger.info('marionette-actors.js loaded');
+
+let logger = {
+  info: function(msg){
+    dump(msg);
+  }
+}
 
 /**
  * Creates the root actor once a connection is established
