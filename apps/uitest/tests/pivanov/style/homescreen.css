@@ -1,0 +1,108 @@
+#home {
+	height: -moz-calc(100% - 3.75%);
+	background: hsl(329, 36%, 84%);
+}
+
+/*=== top-bar ===*/
+#top-bar {
+	height: 7.235mozmm;
+	min-height: 8.054%;
+	width: 100%;
+	background: hsl(210, 23%, 52%);
+}
+
+/*=== apps ===*/
+#apps {
+	position: relative;
+	width: -moz-calc(100% + 2.8mozmm);
+	height: -moz-calc(100% - 8.054%);
+	padding:1.75mozmm 2.1mozmm 0;
+	left: -1.4mozmm;
+	overflow:hidden;
+}
+
+#apps > div {
+	float:left;
+	position:relative;
+	width:10.85mozmm;
+	height:16mozmm;
+	margin:0 1.4mozmm 1.75mozmm;
+	text-align:center;
+	overflow: hidden;
+	background: blue;
+}
+
+#apps > div > div {
+	display: block;
+	border-radius:6px;
+	margin:0.818mozmm auto;
+}
+
+#apps > div:active {
+	background:red;
+}
+
+/*=== 200dpi ===*/
+@media all and (min-resolution: 200dpi){
+	#apps > div > div { width:9.217mozmm;height:9.217mozmm;background-position: 50% 50%;background-repeat:no-repeat; }
+	div[data-app="app-1"] { background-image: url(images/icons/browser.png); }
+	div[data-app="app-2"] { background-image: url(images/icons/calculator.png); }
+	div[data-app="app-3"] { background-image: url(images/icons/camera.png); }
+	div[data-app="app-4"] { background-image: url(images/icons/clock.png); }
+	div[data-app="app-5"] { background-image: url(images/icons/crystalskull.png); }
+	div[data-app="app-6"] { background-image: url(images/icons/cuttherope.png); }
+	div[data-app="app-7"] { background-image: url(images/icons/market.png); }
+	div[data-app="app-8"] { background-image: url(images/icons/calendar.png); }
+	div[data-app="app-9"] { background-image: url(images/icons/gallery.png); }
+	div[data-app="app-10"] { background-image: url(images/icons/maps.png); }
+	div[data-app="app-11"] { background-image: url(images/icons/messages.png); }
+	div[data-app="app-12"] { background-image: url(images/icons/music.png); }
+	div[data-app="app-13"] { background-image: url(images/icons/phone.png); }
+	div[data-app="app-14"] { background-image: url(images/icons/settings.png); }
+	div[data-app="app-15"] { background-image: url(images/icons/tasks.png); }
+	div[data-app="app-16"] { background-image: url(images/icons/video.png); }
+}
+
+#apps span {
+	font-size:1em;
+	color:#fff;
+}
+
+/*=== dots ===*/
+#dots {
+	position: relative;
+	height: 1.4mozmm;
+	bottom: 11.45mozmm;
+	font-size:0;
+	text-align: center;
+}
+
+#dots > div {
+	width: 10px;
+	height: 10px;
+	margin: 0 6px;
+	display: inline-block;
+	background: url(images/white-dot.png) no-repeat 50% 50%;
+	opacity: .2;
+}
+
+#dots > .current {
+	opacity: .8;
+}
+
+/*=== toolbar ===*/
+#toolbar {
+	position: absolute;
+	left:0;
+	bottom: 0;
+	height:6.3mozmm;
+	min-height:6.75%;
+	width: 100%;
+	background: hsl(210, 23%, 52%);
+}
+
+#toolbar > div {
+	height:100%;
+	padding: 0 2.1mozmm;
+	background: hsl(192, 39%, 69%);
+}
