@@ -194,7 +194,7 @@ iframe.landscape-secondary {
 
 iframe.backgroundWindow {
   position: absolute;
-  top: -1px;
+  top: -33px;
   left: -1px;
   width: 1px;
   height: 1px;
