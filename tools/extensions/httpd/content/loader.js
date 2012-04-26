@@ -8,6 +8,14 @@ const ScriptableInputStream = CC(
 
 Components.utils.import('resource:///modules/devtools/dbg-client.jsm');
 
+let debug = false;
+
+function log(data) {
+  if (!debug) {
+    return;
+  }
+  dump(data);
+}
 
 function startupHttpd(baseDir, port) {
   const httpdURL = 'chrome://httpd.js/content/httpd.js';
@@ -74,7 +82,7 @@ LongPoll.prototype = {
   cast: function cast(msg) {
     clearTimeout(this.outstanding_noop);
     this.buffer.push(msg);
-    dump("cast "+JSON.stringify(msg)+ " " + this.outstanding_push + "\n");
+    log("cast "+JSON.stringify(msg)+ " " + this.outstanding_push + "\n");
     if (this.outstanding_push !== null) {
       this.drain_queue(this.outstanding_push);
       this.outstanding_push.finish();
@@ -116,7 +124,7 @@ let connections = {},
 
 
 function close(connid) {
-  dump("\n\n closing #" +connid + " \n\n");
+  log("\n\n closing #" +connid + " \n\n");
   let me = connections[connid];
   me.transport.close();
   delete connections[connid];
@@ -142,16 +150,16 @@ function handleMarionette(req, res) {
         clearTimeout(me.outstanding_timeout);
 
         if (me.buffer.length === 0) {
-          dump("waiting /marionette?" + req.queryString + "\n");
+          log("waiting /marionette?" + req.queryString + "\n");
           res.processAsync();
           me.outstanding_push = res;
-          dump("\n\nsetting timeout\n\n");
+          log("\n\nsetting timeout\n\n");
           me.outstanding_noop = setTimeout(function() {
-            dump('\n\nnoop\n\n');
+            log('\n\nnoop\n\n');
             me.cast({ noop: true });
           }, 25000);
         } else {
-          dump("messages /marionette?" + req.queryString + "\n");
+          log("messages /marionette?" + req.queryString + "\n");
           me.drain_queue(res);
         }
       }
@@ -169,15 +177,12 @@ function handleMarionette(req, res) {
         let bytes = scriptable.read(scriptable.available()),
             parsed = JSON.parse(bytes);
 
-        dump("BYTES "+bytes+"\n");
+        log("BYTES "+bytes+"\n");
         let hostport = parsed.server + ":" + parsed.port;
+        log("\n\ncheck\n\n");
         if (hostport in transports) {
-          let oldconnid = transports[hostport];
-          if(oldconnid === undefined){
-            connections[oldconnid].transport.close();
-            delete connections[oldconnid];
-            delete transports[hostport];
-          }
+          log("\n\nremove \n\n");
+          close(transports[hostport]);
         }
         let transport = debuggerSocketConnect(parsed.server, parseInt(parsed.port)),
             me = new LongPoll(connid, transport);
@@ -188,21 +193,21 @@ function handleMarionette(req, res) {
         transport.hooks = {
           onPacket: function onPacket(pack) {
             me.cast(pack);
-            dump("ONPACKET"+JSON.stringify(pack)+"\n");
+            log("ONPACKET"+JSON.stringify(pack)+"\n");
           },
           onClosed: function onClosed(status) {
-            dump("CLOSED"+JSON.stringify(status)+"\n");
+            log("CLOSED"+JSON.stringify(status)+"\n");
           }
         }
         transport.ready();
 
-        dump("transport\n");
+        log("transport\n");
 
       }, 0, 0, Services.tm.currentThread);
     } else if (req.method === "PUT") {
       let connid = req.queryString.split('=')[0],
           me = connections[connid];
-      dump("put\n");
+      log("put\n");
       res.setStatusLine("1.1", 201, "Accepted");
       res.setHeader("Content-Type", "text/plain", false);
       res.write('');
@@ -212,10 +217,10 @@ function handleMarionette(req, res) {
             parsed = null;
         try {
           parsed = JSON.parse(bytes);
-          dump("PARSED!\n");
+          log("PARSED!\n");
         } catch (e) {
         }
-        dump("stream " + bytes+"\n");
+        log("stream " + bytes+"\n");
         me.send(parsed);
       }, 0, 0, Services.tm.currentThread);
     } else if (req.method === "DELETE") {
