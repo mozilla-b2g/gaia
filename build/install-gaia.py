@@ -129,7 +129,6 @@ def install_gaia_fast():
 def install_gaia_slow():
     global adb_cmd
     adb_shell("rm -r /data/local/*")
-    adb_shell("rm -r /cache/*")
     adb_push('profile/OfflineCache', '/data/local/OfflineCache')
     adb_push('profile/webapps', '/data/local/webapps')
     adb_push('profile/user.js', '/data/local')
