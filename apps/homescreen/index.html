@@ -3,118 +3,33 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
-    <link rel="resource" type="application/l10n" href="locale/homescreen.properties">
 
-    <!-- Content -->
     <link rel="stylesheet" type="text/css" href="style/homescreen.css">
-    <link rel="stylesheet" type="text/css" href="style/keyboard/keyboard.css">
+    <script defer src="js/homescreen.js"></script>
 
-    <!-- Theme -->
-    <link rel="stylesheet" type="text/css" href="style/themes/default/homescreen.css">
+    <!-- This is used only for uninstalling application and can be
+         replaced with a simple confirm() once bug 741587 lands
+         and handling dialog will be done in the system app.
+     -->
+    <link rel="stylesheet" type="text/css" href="style/request.css">
+    <script defer src="js/request.js"></script>
 
-    <!-- Scripts -->
+    <!-- The helper can be removed once bug 731746 lands -->
+    <script defer src="js/settings.js"></script>
+
+    <!-- Compatibility -->
     <script>
       var host = document.location.host;
       var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
       var src = 'http://' + domain + '/webapi.js';
       document.write('<script src="' + src + '"><\/script>');
     </script>
-    <script defer src="js/window_manager.js"></script>
-    <script src="js/app_manager.js"></script>
-    <script src="js/keyboardLayout.js"></script>
-    <script src="js/keyboard.js"></script>
-    <script src="js/homescreen.js"></script>
-    <script src="js/background_service.js"></script>
-    <script src="js/request.js"></script>
   </head>
-  <body class="hidden">
-    <div id="screen">
-      <div id="keyboard" data-hidden="true" onmousedown="return false;"></div>
-      <div id="statusbar">
-        <div id="state">
-          <div id="state-notifications" class="state"></div>
-        </div>
-        <div id="titlebar"></div>
-        <div id="padding"></div>
-        <div id="signal">
-          <span></span>
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
-        <div id="wifi"></div>
-        <div class="battery">
-          <div id="fuel"></div>
-          <div id="charging" hidden="true"></div>
-        </div>
-        <div class="time" data-format="%H:%M"></div>
-      </div>
-      <div id="home">
-        <div id="apps"></div>
-        <div id="dots"></div>
-        <div id="shortcuts"></div>
-      </div>
-      <div id="windows">
-        <!-- application windows are added here -->
-      </div>
-      <div id="notifications-screen">
-        <div id="notifications-container">
-        </div>
-        <div id="grippy">
-        </div>
-      </div>
-      <div id="lockscreen">
-        <div id="status">
-        </div>
-        <div id="lockscreenContainer">
-          <div id="clock">
-            <div id="hourMin" class="time" data-format="%H:%M"></div>
-            <div id="date">
-              <span class="time" data-format="%A, %d %b"></span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div id="taskManager">
-      <ul>
 
-      </ul>
+  <body>
+    <div id="home">
+      <div id="apps"></div>
+      <div id="dots"></div>
     </div>
-
-    <div id="volume" class="vibration">
-      <div class="active"></div>
-      <div class="active"></div>
-      <div class="active"></div>
-      <div class="active"></div>
-      <div class="active"></div>
-      <div></div>
-      <div></div>
-      <div></div>
-      <div></div>
-      <div></div>
-    </div>
-
-    <div id="sleep">
-      <div class="sleep-menu">
-        <div data-l10n-id="airplane" data-value="airplane">Airplane Mode</div>
-        <div data-l10n-id="silent" data-value="silent" id="silent">Silent Mode</div>
-        <div data-l10n-id="normal" data-value="normal" id="normal" hidden>Normal Mode</div>
-        <div data-l10n-id="restart" data-value="restart">Restart</div>
-        <div data-l10n-id="power" data-value="power">Power Off</div>
-      </div>
-    </div>
-
-    <!-- For requesting permission: see js/request.js -->
-    <div id="permissionscreen">
-      <div id="permissiondialog">
-        <!-- FIXME: should this dialog include an optional icon? -->
-        <div id="permissionmessage"></div>
-        <button id="permissionyes" data-l10n-id="yes">Yes</button>
-        <button id="permissionno" data-l10n-id="no">No</button>
-      </div>
-    </div>
-
-    <audio id="ringtone-player" loop hidden></audio>
   </body>
 </html>

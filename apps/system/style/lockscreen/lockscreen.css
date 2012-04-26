@@ -1,0 +1,26 @@
+
+#lockscreen {
+  position: absolute;
+  z-index: 20000;
+  top: 0px;
+  width: -moz-calc(100%);
+  height: -moz-calc(100%);
+  overflow: hidden;
+}
+
+#lockscreen > #status {
+  height: 32px;
+  width: 100%;
+}
+
+#lockscreen > #lockscreenContainer {
+  width: 100%;
+  height: -moz-calc(100% - 32px);
+}
+
+@media not all and (width: 480px) and (height: 800px) {
+  #lockscreen > #lockscreenContainer {
+    background-size: cover;
+  }
+}
+

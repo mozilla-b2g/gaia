@@ -81,6 +81,9 @@ profile: stamp-commit-hash update-offline-manifests preferences manifests offlin
 
 LANG=POSIX # Avoiding sort order differences between OSes
 
+desktop-fallback-manifest:
+	sh tools/create-desktop-apps.sh
+
 # Generate profile/webapps/
 manifests:
 	@echo "Generated webapps"
@@ -114,7 +117,7 @@ offline: install-xulrunner
 	@rm -rf profile/OfflineCache
 	@mkdir -p profile/OfflineCache
 	@cd ..
-	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)$(GAIA_PORT)"' offline-cache.js
+	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)$(GAIA_PORT)"' build/offline-cache.js
 	@echo "Done"
 
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up
@@ -145,7 +148,7 @@ endif
 preferences: install-xulrunner
 	@echo "Generating prefs.js..."
 	@mkdir -p profile
-	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)$(GAIA_PORT)"; const DEBUG = $(DEBUG)' preferences.js
+	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)$(GAIA_PORT)"; const DEBUG = $(DEBUG)' build/preferences.js
 	@echo "Done"
 
 
@@ -262,7 +265,6 @@ update-offline-manifests:
 		fi \
 	done
 
-
 # If your gaia/ directory is a sub-directory of the B2G directory, then
 # you should use the install-gaia target of the B2G Makefile. But if you're
 # working on just gaia itself, and you already have B2G firmware on your
@@ -270,11 +272,8 @@ update-offline-manifests:
 # target to update the gaia files and reboot b2g
 install-gaia: profile
 	$(ADB) start-server
-	$(ADB) shell rm -r /data/local/*
 	$(ADB) shell rm -r /cache/*
-	# just push the profile
-	$(ADB) push profile/OfflineCache /data/local/OfflineCache
-	$(ADB) push profile/webapps /data/local/webapps
+	python build/install-gaia.py "$(ADB)"
 	@echo "Installed gaia into profile/."
 	$(ADB) shell kill $(shell $(ADB) shell toolbox ps | grep "b2g" | awk '{ print $$2; }')
 	@echo 'Rebooting b2g now'
