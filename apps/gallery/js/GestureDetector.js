@@ -1,10 +1,8 @@
-// gestureEvents.js: generate events for one and two finger gestures
+// GestureDetector.js: generate events for one and two finger gestures
 
 /*
 Start by handling touch events.
 Then try to add non-touch compatability with mouse events and MozMagnifyGesture
-
-XXX: write a webpage to test it and try it on Android and on B2G.
 
 Gesture events:
 
@@ -29,7 +27,12 @@ Another question: do I want to try to do any kind of CSS selector-based
  events dispatched on?  Currently the same one that we register the 
  handlers on, even if the gesture itself is occurring on descendant elements. 
 
-Based on a state machine. Each state has its own set of event handler functions.
+The GestureDetector() constructor takes an element as its first
+argument and listens for events on that element (and dispatches them
+on that element, too). The optional second argument is an object of options.
+Pass an object with property holdEvents true if you want to receive
+holdstart, holdmove and holdend events.
+
 
 */
 
@@ -38,9 +41,11 @@ var GestureDetector = (function() {
   // 
   // Constructor
   // 
-  function GestureDetector(e) {
+  function GestureDetector(e, options) {
     this.element = e;
-    this.state = states.initial;
+    this.options = options || {};
+    this.state = initialState;
+    this.timers = {};
   }
 
   // 
@@ -50,7 +55,7 @@ var GestureDetector = (function() {
   GestureDetector.prototype.startDetecting = function() {
     var self = this;
     eventtypes.forEach(function(t) {
-      this.element.addEventListener(t, self);
+      self.element.addEventListener(t, self);
     });
   };
 
@@ -70,22 +75,24 @@ var GestureDetector = (function() {
     if (!handler) return;
 
     // If this is a touch event handle each changed touch separately
-    if (e.touchesChanged) {
-      for(var i = 0; i < e.touchesChanged.length; i++) {
-        handler(this, e, e.touchesChanged[i]);
+    if (e.changedTouches) {
+      for(var i = 0; i < e.changedTouches.length; i++) {
+        handler(this, e, e.changedTouches[i]);
       }
     }
-    // Otherwise, just dispatch the event to the handler
-    handler(this, e);
+    else {    // Otherwise, just dispatch the event to the handler
+      handler(this, e);
+    }
   };
 
   GestureDetector.prototype.startTimer = function(type, time) {
     this.clearTimer(type);
+    var self = this;
     this.timers[type] = setTimeout(function() {
-      this.timers[type] = null;
-      var handler = this.state[type];
+      self.timers[type] = null;
+      var handler = self.state[type];
       if (handler)
-        hander(this, type);
+        handler(self, type);
     }, time);
   };
 
@@ -150,7 +157,7 @@ var GestureDetector = (function() {
       clientX: t.clientX,
       clientY: t.clientY,
       pageX: t.pageX,
-      pageY: t.pageY
+      pageY: t.pageY,
       timeStamp: e.timeStamp
     });
   }
@@ -164,21 +171,33 @@ var GestureDetector = (function() {
       pageY: floor((t1.pageY + t2.pageY) / 2),
       clientX: floor((t1.clientX + t2.clientX)/2),
       clientY: floor((t1.clientY + t2.clientY)/2),
-      timeStamp: e.timeStamp;
+      timeStamp: e.timeStamp
     });
   }
 
   // Compute the distance between two touches
-  function distanceBetween(t1, t2) {
+  function touchDistance(t1, t2) {
     var dx = t2.screenX - t1.screenX;
     var dy = t2.screenY - t1.screenY;
     return sqrt(dx * dx + dy * dy);
   }
 
-  // Compute the angle between two touches
-  function angleBetween(t1, t2) {
+  // Compute the direction (as an angle) of the line between two touches
+  // Returns a number d, -180 < d <= 180
+  function touchDirection(t1, t2) {
     return atan2(t2.screenY - t1.screenY,
                  t2.screenX - t1.screenX) * 180 / PI;
+  }
+
+  // Compute the clockwise angle between direction d1 and direction d2.
+  // Returns an angle a -180 < a <= 180.
+  function touchRotation(d1, d2) {
+    var angle = d2 - d1;
+    if (angle > 180) 
+      angle -= 360;
+    else if (angle <= -180)
+      angle += 360;
+    return angle;
   }
 
   // Determine if two taps are close enough in time and space to
@@ -208,7 +227,7 @@ var GestureDetector = (function() {
       d.touch1 = d.touch2 = null;
       d.vx = d.vy = null;
       d.startDistance = d.lastDistance = null;
-      d.startAngle = d.lastAngle = null;
+      d.startDirection = d.lastDirection = null;
       d.scaled = d.rotated = null;
     },
     
@@ -229,7 +248,9 @@ var GestureDetector = (function() {
       // Get the coordinates of the touch
       d.start = d.last = coordinates(e,t);
       // Start a timer for a hold
-      d.startTimer('holdtimeout', GestureDetector.HOLD_INTERVAL);
+      // If we're doing hold events, start a timer for them
+      if (d.options.holdEvents)
+        d.startTimer('holdtimeout', GestureDetector.HOLD_INTERVAL);
     },
 
     touchstart: function(d, e, t) {
@@ -257,8 +278,9 @@ var GestureDetector = (function() {
         return;
 
       // If there was a previous tap that was close enough in time
-      // and space, then emit a 'doubletap' event
+      // and space, then emit a 'dbltap' event
       if (d.lastTap && isDoubleTap(d.lastTap, d.start)) {
+        d.emitEvent('tap', d.start);
         d.emitEvent('dbltap', d.start);
         // clear the lastTap property, so we don't get another one
         d.lastTap = null;
@@ -268,8 +290,7 @@ var GestureDetector = (function() {
         // as the event details
         d.emitEvent('tap', d.start);
         
-        // Remember the coordinates of this tap so we can detect
-        // double taps
+        // Remember the coordinates of this tap so we can detect double taps
         d.lastTap = coordinates(e, t);
       }
 
@@ -289,6 +310,14 @@ var GestureDetector = (function() {
   // when the touch ends. We ignore any other touches that occur while this
   // pan/swipe gesture is in progress.
   var panStartedState = {
+    init: function(d, e, t) {
+      // If we transition into this state with a touchmove event,
+      // then process it with that handler. If we don't do this then
+      // we can end up with swipe events that don't know their velocity
+      if (e.type === "touchmove")
+        panStartedState.touchmove(d, e, t);
+    },
+
     touchmove: function(d, e, t) {
       // Ignore any fingers other than the one we're tracking
       if (t.identifier !== d.touch1) 
@@ -304,7 +333,8 @@ var GestureDetector = (function() {
         relative: {
           dx: current.screenX - d.last.screenX,
           dy: current.screenY - d.last.screenY
-        }
+        },
+        position: current
       });
 
       // Track the pan velocity so we can report this with the swipe
@@ -337,15 +367,21 @@ var GestureDetector = (function() {
       var current = coordinates(e, t);
       var dx = current.screenX - d.start.screenX;
       var dy = current.screenY - d.start.screenY;
-      var direction;
+      // angle is a positive number of degrees, starting at 0 on the
+      // positive x axis and increasing clockwise.
       var angle = atan2(dy,dx) * 180 / PI;
-      if (angle < -135 || angle >= 135)
-        direction = 'left'
-      else if (angle >= -135 && angle < -45)
-        direction = 'down'
-      else if (angle >= -45 && angle < 45)
-        direction = 'right';
+      if (angle < 0)
+        angle += 360;
+
+      // Direction is 'right', 'down', 'left' or 'up'
+      var direction;
+      if (angle >= 315 || angle < 45)
+        direction = 'right'
       else if (angle >= 45 && angle < 135)
+        direction = 'down'
+      else if (angle >= 135 && angle < 225)
+        direction = 'left';
+      else if (angle >= 225 && angle < 315)
         direction = 'up';
 
       d.emitEvent('swipe', {
@@ -378,13 +414,30 @@ var GestureDetector = (function() {
     },
 
     touchmove: function(d, e, t) {
-      // TODO: Do we want other details in the event?
-      d.emitEvent('holdmove', coordinates(e, t));
+      var current = coordinates(e, t);
+      d.emitEvent('holdmove', {
+        absolute: {
+          dx: current.screenX - d.start.screenX,
+          dy: current.screenY - d.start.screenY
+        },
+        relative: {
+          dx: current.screenX - d.last.screenX,
+          dy: current.screenY - d.last.screenY
+        },
+        position: current
+      });
+
+      d.last = current;
     },
 
     touchend: function(d, e, t) {
-      // TODO: Do we want other details in the event?
-      d.emitEvent('holdend', coordinates(e, t));
+      var current = coordinates(e, t);
+      d.emitEvent('holdend', {
+        start: d.start,
+        end: current,
+        dx: current.screenX - d.start.screenX,
+        dy: current.screenY - d.start.screenY,
+      });
       d.switchTo(initialState);
     },
   };
@@ -403,8 +456,8 @@ var GestureDetector = (function() {
       var t2 = e.touches.identifiedTouch(d.touch2);
 
       // Compute and remember the initial distance and angle
-      d.startDistance = d.lastDistance = distanceBetween(t1, t2);
-      d.startAngle = d.lastAngle = angleBetween(t1, t2);
+      d.startDistance = d.lastDistance = touchDistance(t1, t2);
+      d.startDirection = d.lastDirection = touchDirection(t1, t2);
 
       // Don't start emitting events until we're past a threshold
       d.scaled = d.rotated = false;
@@ -419,10 +472,11 @@ var GestureDetector = (function() {
       var t1 = e.touches.identifiedTouch(d.touch1);
       var t2 = e.touches.identifiedTouch(d.touch2);
 
-      // Compute the new midpoints, distance and angle
+      // Compute the new midpoints, distance and direction
       var midpoint = midpoints(e, t1, t2);
-      var distance = distanceBetween(t1, t2);
-      var angle = angleBetween(t1, t2);
+      var distance = touchDistance(t1, t2);
+      var direction = touchDirection(t1, t2);
+      var rotation = touchRotation(d.startDirection, direction);
 
       // Check all of these numbers against the thresholds. Otherwise
       // the transforms are too jittery even when you try to hold your
@@ -434,10 +488,10 @@ var GestureDetector = (function() {
           distance = d.startDistance;
       }
       if (!d.rotated) {
-        if (abs(angle - d.startAngle) > GestureDetector.ROTATE_THRESHOLD)
+        if (abs(rotation) > GestureDetector.ROTATE_THRESHOLD)
           d.rotated = true;
         else
-          angle = d.startAngle;
+          direction = d.startDirection;
       }
 
       // If nothing has exceeded the threshold yet, then we
@@ -449,18 +503,18 @@ var GestureDetector = (function() {
         // transformgesture event.
         d.emitEvent('transform', {
           absolute: { // transform details since gesture start
-            scale: distance / d.initialDistance,
-            rotate: angle - d.initialAngle,
+            scale: distance / d.startDistance,
+            rotate: touchRotation(d.startDirection, direction),
           },
           relative: { // transform since last gesture change
             scale: distance / d.lastDistance,
-            rotate: angle - d.lastAngle,
+            rotate: touchRotation(d.lastDirection, direction),
           },
           midpoint: midpoint
         });
 
         d.lastDistance = distance;
-        d.lastAngle = angle;
+        d.lastDirection = direction;
       }
     },
 
