@@ -1105,19 +1105,23 @@
 })(this);
 
 // navigator.mozApps.mgmt
-(function(window){
+(function(window) {
 
-  if('mozApps' in navigator){
+  if ('mozApps' in navigator) {
     return;
   }
 
-  if(console.log){
-    console.log("Your browser does not have navigator.mozApps using fallback method - run make desktop-fallback-manifest (from gaia)")
+  if (console.log) {
+    console.log(
+      'Your browser does not have navigator.mozApps' +
+      'using fallback method ' +
+      '- run make desktop-fallback-manifest to update list (from gaia)'
+    );
   }
 
-  var MockApp = function(data){
+  var MockApp = function(data) {
     var key;
-    for(key in data){
+    for (key in data) {
       this[key] = data[key];
     }
 
@@ -1125,7 +1129,7 @@
 
   MockApp.prototype = {
 
-    getDetails: function() {
+    getDetails: function getDetails() {
       return {
         origin: this.origin,
         url: this.origin + this.manifest.launch_path,
@@ -1133,7 +1137,7 @@
       };
     },
 
-    launch: function(){
+    launch: function launch() {
       var event = document.createEvent('CustomEvent');
       event.initCustomEvent('mozChromeEvent', true, true, this.getDetails());
 
@@ -1141,7 +1145,7 @@
     }
   };
 
-  function MozAppGetAll(){
+  function MozAppGetAll() {
     setTimeout(this._loadManifest.bind(this), 0);
   }
 
@@ -1150,14 +1154,14 @@
     //relative to homescreen
     appManifestFallback: './apps-manifest-fallback.json',
 
-    onsuccess: function(){},
-    onerror: function(){},
+    onsuccess: function() {},
+    onerror: function() {},
 
-    _processAllAppsManifest: function(xhr){
+    _processAllAppsManifest: function _processAllAppsManifest(xhr) {
       var data = JSON.parse(xhr.responseText),
           app, entry, applications = [];
 
-      for(app in data.webapps){
+      for (app in data.webapps) {
         entry = data.webapps[app];
         entry.manifest = data.manifests[app];
 
@@ -1168,18 +1172,18 @@
         target: {
           result: applications
         }
-      }
+      };
     },
 
-    _loadManifest: function(){
+    _loadManifest: function() {
       var xhr = new XMLHttpRequest(),
           self = this;
 
       xhr.open('GET', this.appManifestFallback, true);
 
       xhr.onreadystatechange = function() {
-        if(xhr.readyState === 4){
-          if(xhr.status === 200 || xhr.status === 0){
+        if (xhr.readyState === 4) {
+          if (xhr.status === 200 || xhr.status === 0) {
             self.onsuccess(self._processAllAppsManifest(xhr));
           } else {
             //notify user that app fallback failed
@@ -1195,10 +1199,10 @@
   window.navigator.mozApps = {
     mgmt: {
       ////stubs
-      oninstall: function(){},
-      onuninstall: function(){},
+      oninstall: function() {},
+      onuninstall: function() {},
 
-      getAll: function(){
+      getAll: function() {
         return new MozAppGetAll();
       }
     }

@@ -1,7 +1,7 @@
 #! /usr/bin/env sh
 APP_DIR=./apps
 APP_DIR_LEN=`expr $APP_DIR : '.*'`
-APP_WEBAPPS=$APP_DIR/webapps.json
+APP_WEBAPPS=./profile/webapps/webapps.json
 APP_DESKTOP_CACHE=$APP_DIR/homescreen/apps-manifest-fallback.json
 
 ## Truncate

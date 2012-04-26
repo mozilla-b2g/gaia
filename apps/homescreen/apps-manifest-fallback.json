@@ -1,0 +1,864 @@
+{"webapps": 
+ {
+"browser": {
+"origin": "http://browser.gaiamobile.org:8080",
+"installOrigin": "http://browser.gaiamobile.org:8080",
+"receipt": null,
+"installTime": 132333986000
+},
+"calculator": {
+"origin": "http://calculator.gaiamobile.org:8080",
+"installOrigin": "http://calculator.gaiamobile.org:8080",
+"receipt": null,
+"installTime": 132333986000
+},
+"camera": {
+"origin": "http://camera.gaiamobile.org:8080",
+"installOrigin": "http://camera.gaiamobile.org:8080",
+"receipt": null,
+"installTime": 132333986000
+},
+"clock": {
+"origin": "http://clock.gaiamobile.org:8080",
+"installOrigin": "http://clock.gaiamobile.org:8080",
+"receipt": null,
+"installTime": 132333986000
+},
+"crystalskull": {
+"origin": "http://crystalskull.gaiamobile.org:8080",
+"installOrigin": "http://crystalskull.gaiamobile.org:8080",
+"receipt": null,
+"installTime": 132333986000
+},
+"cubevid": {
+"origin": "http://cubevid.gaiamobile.org:8080",
+"installOrigin": "http://cubevid.gaiamobile.org:8080",
+"receipt": null,
+"installTime": 132333986000
+},
+"cuttherope": {
+"origin": "http://cuttherope.gaiamobile.org:8080",
+"installOrigin": "http://cuttherope.gaiamobile.org:8080",
+"receipt": null,
+"installTime": 132333986000
+},
+"dialer": {
+"origin": "http://dialer.gaiamobile.org:8080",
+"installOrigin": "http://dialer.gaiamobile.org:8080",
+"receipt": null,
+"installTime": 132333986000
+},
+"gallery": {
+"origin": "http://gallery.gaiamobile.org:8080",
+"installOrigin": "http://gallery.gaiamobile.org:8080",
+"receipt": null,
+"installTime": 132333986000
+},
+"homescreen": {
+"origin": "http://homescreen.gaiamobile.org:8080",
+"installOrigin": "http://homescreen.gaiamobile.org:8080",
+"receipt": null,
+"installTime": 132333986000
+},
+"market": {
+"origin": "http://market.gaiamobile.org:8080",
+"installOrigin": "http://market.gaiamobile.org:8080",
+"receipt": null,
+"installTime": 132333986000
+},
+"music": {
+"origin": "http://music.gaiamobile.org:8080",
+"installOrigin": "http://music.gaiamobile.org:8080",
+"receipt": null,
+"installTime": 132333986000
+},
+"penguinpop": {
+"origin": "http://penguinpop.gaiamobile.org:8080",
+"installOrigin": "http://penguinpop.gaiamobile.org:8080",
+"receipt": null,
+"installTime": 132333986000
+},
+"settings": {
+"origin": "http://settings.gaiamobile.org:8080",
+"installOrigin": "http://settings.gaiamobile.org:8080",
+"receipt": null,
+"installTime": 132333986000
+},
+"sms": {
+"origin": "http://sms.gaiamobile.org:8080",
+"installOrigin": "http://sms.gaiamobile.org:8080",
+"receipt": null,
+"installTime": 132333986000
+},
+"system": {
+"origin": "http://system.gaiamobile.org:8080",
+"installOrigin": "http://system.gaiamobile.org:8080",
+"receipt": null,
+"installTime": 132333986000
+},
+"tasks": {
+"origin": "http://tasks.gaiamobile.org:8080",
+"installOrigin": "http://tasks.gaiamobile.org:8080",
+"receipt": null,
+"installTime": 132333986000
+},
+"test-agent": {
+"origin": "http://test-agent.gaiamobile.org:8080",
+"installOrigin": "http://test-agent.gaiamobile.org:8080",
+"receipt": null,
+"installTime": 132333986000
+},
+"towerjelly": {
+"origin": "http://towerjelly.gaiamobile.org:8080",
+"installOrigin": "http://towerjelly.gaiamobile.org:8080",
+"receipt": null,
+"installTime": 132333986000
+},
+"uitest": {
+"origin": "http://uitest.gaiamobile.org:8080",
+"installOrigin": "http://uitest.gaiamobile.org:8080",
+"receipt": null,
+"installTime": 132333986000
+},
+"video": {
+"origin": "http://video.gaiamobile.org:8080",
+"installOrigin": "http://video.gaiamobile.org:8080",
+"receipt": null,
+"installTime": 132333986000
+}
+}, "manifests": { 
+
+"browser": {
+  "name": "Browser",
+  "description": "Gaia Web Browser",
+  "launch_path": "/",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "permissions": [
+    "mozbrowser"
+  ],
+  "locales": {
+    "ar": {
+      "name": "\u0627\u0644\u0645\u062a\u0635\u0641\u062d",
+      "description": "Gaia \u0645\u062a\u0635\u0641\u062d \u0627\u0644\u0648\u064a\u0628"
+    },
+    "de": {
+      "name": "Browser",
+      "description": "Gaia Webbrowser"
+    },
+    "en-US": {
+      "name": "Browser",
+      "description": "Gaia Web Browser"
+    },
+    "es": {
+      "name": "Navegador",
+      "description": "Navegador de Gaia"
+    },
+    "fr": {
+      "name": "Navigateur",
+      "description": "Navigateur Web Gaia"
+    },
+    "ru": {
+      "name": "\u0411\u0440\u0430\u0443\u0437\u0435\u0440",
+      "description": "\u0412\u0435\u0431-\u0431\u0440\u0430\u0443\u0437\u0435\u0440 Gaia"
+    },
+    "zh-TW": {
+      "name": "\u7db2\u8def\u700f\u89bd\u5668",
+      "description": "Gaia \u7db2\u8def\u700f\u89bd\u5668"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "120": "/style/icons/Browser.png"
+  }
+},"calculator": {
+  "name": "Calculator",
+  "description": "Calculator",
+  "launch_path": "/",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "locales": {
+    "ar": {
+      "name": "\u0627\u0644\u062d\u0627\u0633\u0628\u0629",
+      "description": "\u0627\u0644\u062d\u0627\u0633\u0628\u0629"
+    },
+    "de": {
+      "name": "Taschenrechner",
+      "description": "Taschenrechner"
+    },
+    "en-US": {
+      "name": "Calculator",
+      "description": "Calculator"
+    },
+    "es": {
+      "name": "Calculadora",
+      "description": "Calculadora"
+    },
+    "fr": {
+      "name": "Calculatrice",
+      "description": "Calculatrice Gaia"
+    },
+    "ru": {
+      "name": "\u041a\u0430\u043b\u044c\u043a\u0443\u043b\u044f\u0442\u043e\u0440",
+      "description": "\u041a\u0430\u043b\u044c\u043a\u0443\u043b\u044f\u0442\u043e\u0440"
+    },
+    "zh-TW": {
+      "name": "\u8a08\u7b97\u6a5f",
+      "description": "\u8a08\u7b97\u6a5f"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "120": "/style/icons/Calculator.png"
+  }
+},"camera": {
+  "name": "Camera",
+  "description": "Gaia Camera",
+  "launch_path": "/",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "locales": {
+    "ar": {
+      "name": "\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627",
+      "description": " Gaia\u0627\u0644\u0643\u0627\u0645\u064a\u0631\u0627"
+    },
+    "de": {
+      "name": "Kamera",
+      "description": "Gaia Kamera"
+    },
+    "en-US": {
+      "name": "Camera",
+      "description": "Gaia Camera"
+    },
+    "es": {
+      "name": "C\u00e1mara",
+      "description": "C\u00e1mara de Gaia"
+    },
+    "fr": {
+      "name": "Photo",
+      "description": "Appareil photo Gaia"
+    },
+    "ru": {
+      "name": "\u041a\u0430\u043c\u0435\u0440\u0430",
+      "description": "\u041a\u0430\u043c\u0435\u0440\u0430 Gaia"
+    },
+    "zh-TW": {
+      "name": "\u76f8\u6a5f",
+      "description": "Gaia \u76f8\u6a5f"
+    }
+  },
+  "default_locale": "en-US",
+  "hackKillMe": true,
+  "icons": {
+    "120": "/style/icons/Camera.png"
+  }
+},"clock": {
+  "name": "Clock",
+  "description": "Gaia Clock",
+  "launch_path": "/",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "locales": {
+    "ar": {
+      "name": "\u0627\u0644\u0633\u0627\u0639\u0629",
+      "description": "Gaia \u0627\u0644\u0633\u0627\u0639\u0629"
+    },
+    "de": {
+      "name": "Uhr",
+      "description": "Gaia Uhr"
+    },
+    "en-US": {
+      "name": "Clock",
+      "description": "Gaia Clock"
+    },
+    "es": {
+      "name": "Reloj",
+      "description": "Reloj de Gaia"
+    },
+    "fr": {
+      "name": "Horloge",
+      "description": "Horloge Gaia"
+    },
+    "ru": {
+      "name": "\u0427\u0430\u0441\u044b",
+      "description": "\u0427\u0430\u0441\u044b Gaia"
+    },
+    "zh-TW": {
+      "name": "\u6642\u9418",
+      "description": "Gaia \u6642\u9418"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "120": "/style/icons/Clock.png"
+  }
+},"crystalskull": {
+  "name": "CrystalSkull",
+  "description": "WebGL Demo",
+  "launch_path": "/",
+  "developer": {
+    "name": "The J3D Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "locales": {
+    "ar": {
+      "name": "CrystalSkull",
+      "description": " WebGL \u0639\u0631\u0636"
+    },
+    "de": {
+      "name": "CrystalSkull",
+      "description": "WebGL Demo"
+    },
+    "en-US": {
+      "name": "CrystalSkull",
+      "description": "WebGL Demo"
+    },
+    "es": {
+      "name": "CrystalSkull",
+      "description": "Demo de WebGL"
+    },
+    "fr": {
+      "name": "CrystalSkull",
+      "description": "D\u00e9mo WebGL"
+    },
+    "ru": {
+      "name": "CrystalSkull",
+      "description": "\u0414\u0435\u043c\u043e\u043d\u0441\u0442\u0440\u0430\u0446\u0438\u044f WebGL"
+    },
+    "zh-TW": {
+      "name": "CrystalSkull",
+      "description": "WebGL \u793a\u7bc4"
+    }
+  },
+  "default_locale": "en-US",
+  "hackKillMe": true,
+  "icons": {
+    "120": "/style/icons/CrystalSkull.png"
+  }
+},"cubevid": {
+  "name": "CubeVid",
+  "description": "Video Cube Demo",
+  "launch_path": "/",
+  "developer": {
+    "name": "The Original Author",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "locales": {
+    "ar": {
+      "name": "CubeVid",
+      "description": " cube \u0639\u0631\u0636 \u0644\u0634\u0631\u064a\u0637"
+    },
+    "de": {
+      "name": "CubeVid",
+      "description": "Video-W\u00fcrfel Demo"
+    },
+    "en-US": {
+      "name": "CubeVid",
+      "description": "Video Cube Demo"
+    },
+    "es": {
+      "name": "CubeVid",
+      "description": "Demo de un cubo con v\u00eddeo"
+    },
+    "fr": {
+      "name": "CubeVid",
+      "description": "D\u00e9mo de vid\u00e9o cube"
+    },
+    "ru": {
+      "name": "CubeVid",
+      "description": "\u0414\u0435\u043c\u043e\u043d\u0441\u0442\u0440\u0430\u0446\u0438\u044f Video Cube"
+    },
+    "zh-TW": {
+      "name": "CubeVid",
+      "description": "Video Cube \u793a\u7bc4"
+    }
+  },
+  "default_locale": "en-US",
+  "hackKillMe": true,
+  "icons": {
+    "120": "/style/icons/VideoCube.png"
+  }
+},"cuttherope": {
+  "name": "Cut The Rope",
+  "description": "http://cuttherope.ie",
+  "launch_path": "/",
+  "orientation": "landscape-primary",
+  "fullscreen": true,
+  "hackKillMe": true,
+  "hackNetworkBound": "true",
+  "developer": {
+    "name": "CutTheRope",
+    "url": "http://cuttherope.ie"
+  },
+  "icons": {
+    "120": "/style/icons/CutTheRope.png"
+  }
+},"dialer": {
+  "name": "Dialer",
+  "description": "Gaia Dialer",
+  "launch_path": "/",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "permissions": [
+    "telephony",
+    "contacts",
+    "power",
+    "mozApps"
+  ],
+  "locales": {
+    "ar": {
+      "name": "\u0645\u0643\u0627\u0644\u0645\u0629",
+      "description": "Gaia \u0645\u0643\u0627\u0644\u0645\u0629 \u0647\u0627\u062a\u0641\u064a\u0629"
+    },
+    "de": {
+      "name": "Telefon",
+      "description": "Gaia Telefon"
+    },
+    "en-US": {
+      "name": "Dialer",
+      "description": "Gaia Dialer"
+    },
+    "es": {
+      "name": "Llamada",
+      "description": "Realizar llamadas en Gaia"
+    },
+    "fr": {
+      "name": "Appel",
+      "description": "Appel t\u00e9l\u00e9phonique Gaia"
+    },
+    "ru": {
+      "name": "\u0422\u0435\u043b\u0435\u0444\u043e\u043d",
+      "description": "\u0422\u0435\u043b\u0435\u0444\u043e\u043d Gaia"
+    },
+    "zh-TW": {
+      "name": "\u96fb\u8a71",
+      "description": "Gaia \u96fb\u8a71"
+    }
+  },
+  "default_locale": "en-US",
+  "background_page": "/background.html",
+  "icons": {
+    "120": "/style/icons/Phone.png"
+  }
+},"gallery": {
+  "name": "Gallery",
+  "description": "Gaia Gallery",
+  "launch_path": "/",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "locales": {
+    "ar": {
+      "name": "\u0625\u0633\u062a\u062f\u064a\u0648",
+      "description": "Gaia \u0625\u0633\u062a\u062f\u064a\u0648"
+    },
+    "de": {
+      "name": "Bildergalerie",
+      "description": "Gaia Galerie"
+    },
+    "en-US": {
+      "name": "Gallery",
+      "description": "Gaia Gallery"
+    },
+    "es": {
+      "name": "Galler\u00eda",
+      "description": "Galler\u00eda de Gaia"
+    },
+    "fr": {
+      "name": "Galerie",
+      "description": "Galerie Gaia"
+    },
+    "ru": {
+      "name": "\u0413\u0430\u043b\u0435\u0440\u0435\u044f",
+      "description": "\u0413\u0430\u043b\u0435\u0440\u0435\u044f Gaia"
+    },
+    "zh-TW": {
+      "name": "\u76f8\u7c3f",
+      "description": "Gaia \u76f8\u7c3f"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "120": "/style/icons/Gallery.png"
+  }
+},"homescreen": {
+  "name": "Homescreen",
+  "description": "Gaia Homescreen",
+  "launch_path": "/",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "permissions": [
+    "telephony",
+    "mozbrowser",
+    "power",
+    "mozApps"
+  ],
+  "locales": {
+    "ar": {
+      "name": "\u0627\u0644\u0634\u0627\u0634\u0629 \u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629",
+      "description": "Gaia \u0627\u0644\u0634\u0627\u0634\u0629 \u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629 "
+    },
+    "de": {
+      "name": "Startbildschirm",
+      "description": "Gaia Startbildschirm"
+    },
+    "en-US": {
+      "name": "Homescreen",
+      "description": "Gaia Homescreen"
+    },
+    "es": {
+      "name": "Pantalla de inicio",
+      "description": "Pantalla de inicio de Gaia"
+    },
+    "fr": {
+      "name": "\u00c9cran d\u2019accueil",
+      "description": "\u00c9cran d\u2019accueil Gaia"
+    },
+    "ru": {
+      "name": "\u0413\u043b\u0430\u0432\u043d\u044b\u0439 \u044d\u043a\u0440\u0430\u043d",
+      "description": "\u0413\u043b\u0430\u0432\u043d\u044b\u0439 \u044d\u043a\u0440\u0430\u043d Gaia"
+    },
+    "zh-TW": {
+      "name": "\u4e3b\u756b\u9762",
+      "description": "Gaia \u4e3b\u756b\u9762"
+    }
+  },
+  "default_locale": "en-US"
+},"market": {
+  "name": "Market",
+  "description": "Market for downloading and installing apps",
+  "launch_path": "/",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "locales": {
+    "ar": {
+      "name": "\u0645\u0643\u062a\u0628\u0629 \u0627\u0644\u0628\u0631\u0627\u0645\u062c",
+      "description": "\u0645\u0643\u062a\u0628\u0629 \u0628\u0631\u0627\u0645\u062c \u0627\u0648\u0646\u0644\u0627\u064a\u0646"
+    },
+    "de": {
+      "name": "Markt",
+      "description": "Marktplatz um Apps herunter zu laden und zu installieren"
+    },
+    "en-US": {
+      "name": "Market",
+      "description": "Market for downloading and installing apps"
+    },
+    "es": {
+      "name": "Tienda",
+      "description": "Tienda para descargar e instalar aplicaciones"
+    },
+    "fr": {
+      "name": "Logith\u00e8que",
+      "description": "Catalogue en ligne d\u2019applications"
+    },
+    "ru": {
+      "name": "\u041c\u0430\u0440\u043a\u0435\u0442",
+      "description": "\u041a\u0430\u0442\u0430\u043b\u043e\u0433 \u0434\u043b\u044f \u0437\u0430\u0433\u0440\u0443\u0437\u043a\u0438 \u0438 \u0443\u0441\u0442\u0430\u043d\u043e\u0432\u043a\u0438 \u043f\u0440\u0438\u043b\u043e\u0436\u0435\u043d\u0438\u0439"
+    },
+    "zh-TW": {
+      "name": "\u5e02\u96c6",
+      "description": "\u4e0b\u8f09\u8207\u5b89\u88dd\u61c9\u7528\u7a0b\u5f0f"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "120": "/style/icons/Market.png"
+  }
+},"music": {
+  "name": "Music",
+  "description": "Gaia Music",
+  "launch_path": "/",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "locales": {
+    "ar": {
+      "name": "\u0645\u0648\u0633\u064a\u0642\u0649",
+      "description": "Gaia \u0645\u0648\u0633\u064a\u0642\u0649"
+    },
+    "de": {
+      "name": "Musik",
+      "description": "Gaia Musik"
+    },
+    "en-US": {
+      "name": "Music",
+      "description": "Gaia Music"
+    },
+    "es": {
+      "name": "M\u00fasica",
+      "description": "M\u00fasica de Gaia"
+    },
+    "fr": {
+      "name": "Musique",
+      "description": "Lecteur audio Gaia"
+    },
+    "ru": {
+      "name": "\u041c\u0443\u0437\u044b\u043a\u0430",
+      "description": "\u041c\u0443\u0437\u044b\u043a\u0430 Gaia"
+    },
+    "zh-TW": {
+      "name": "\u97f3\u6a02",
+      "description": "Gaia \u97f3\u6a02"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "120": "/style/icons/Music.png"
+  }
+},"penguinpop": {
+  "name": "PenguinPop",
+  "description": "PenGuin Pop",
+  "launch_path": "/",
+  "hackNetworkBound": "true",
+  "developer": {
+    "name": "The Original Author",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "icons": {
+    "120": "/style/icons/PenguinPop.png"
+  }
+},"settings": {
+  "name": "Settings",
+  "description": "Gaia Settings",
+  "launch_path": "/#root",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "permissions": [
+    "screen",
+    "power"
+  ],
+  "locales": {
+    "ar": {
+      "name": "\u0627\u0644\u0636\u0628\u0637",
+      "description": "Gaia \u0627\u0644\u0636\u0628\u0637"
+    },
+    "de": {
+      "name": "Einstellungen",
+      "description": "Gaia Einstellungen"
+    },
+    "en-US": {
+      "name": "Settings",
+      "description": "Gaia Settings"
+    },
+    "es": {
+      "name": "Configuraci\u00f3n",
+      "description": "Configuraci\u00f3n de Gaia"
+    },
+    "fr": {
+      "name": "Param\u00e8tres",
+      "description": "Param\u00e8tres Gaia"
+    },
+    "ru": {
+      "name": "\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438",
+      "description": "\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 Gaia"
+    },
+    "zh-TW": {
+      "name": "\u8a2d\u5b9a",
+      "description": "Gaia \u8a2d\u5b9a"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "120": "/style/icons/Settings.png"
+  }
+},"sms": {
+  "name": "Messages",
+  "description": "Gaia Messages",
+  "launch_path": "/",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "permissions": [
+    "sms",
+    "contacts"
+  ],
+  "locales": {
+    "ar": {
+      "name": "\u0631\u0633\u0627\u0626\u0644",
+      "description": "Gaia \u0631\u0633\u0627\u0626\u0644"
+    },
+    "de": {
+      "name": "Nachrichten",
+      "description": "Gaia Nachrichten"
+    },
+    "en-US": {
+      "name": "Messages",
+      "description": "Gaia Messages"
+    },
+    "es": {
+      "name": "Mensajes",
+      "description": "Mensajes de Gaia"
+    },
+    "fr": {
+      "name": "Messages",
+      "description": "Messages Gaia"
+    },
+    "ru": {
+      "name": "\u0421\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u044f",
+      "description": "\u0421\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u044f Gaia"
+    },
+    "zh-TW": {
+      "name": "\u8a0a\u606f",
+      "description": "Gaia \u8a0a\u606f"
+    }
+  },
+  "default_locale": "en-US",
+  "background_page": "/background.html#0",
+  "icons": {
+    "120": "/style/icons/Messages.png"
+  }
+},"system": {
+  "name": "System",
+  "description": "Main System",
+  "launch_path": "/",
+  "developer": {
+    "url": "https://github.com/andreasgal/gaia",
+    "name": "The Gaia Team"
+  },
+  "permissions": [
+    "mozbrowser",
+    "power",
+    "mozApps"
+  ]
+},"tasks": {
+  "name": "Tasks",
+  "description": "Gaia Tasks",
+  "launch_path": "/",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "locales": {
+    "ar": {
+      "name": "Tasks",
+      "description": "Gaia Tasks"
+    },
+    "de": {
+      "name": "Taskmanager",
+      "description": "Gaia Taskmanager"
+    },
+    "en-US": {
+      "name": "Tasks",
+      "description": "Gaia Tasks"
+    },
+    "es": {
+      "name": "Tareas",
+      "description": "Tareas de Gaia"
+    },
+    "fr": {
+      "name": "Tasks",
+      "description": "Gaia Tasks"
+    },
+    "ru": {
+      "name": "Tasks",
+      "description": "Gaia Tasks"
+    },
+    "zh-TW": {
+      "name": "Tasks",
+      "description": "Gaia Tasks"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "120": "/style/icons/Tasks.png"
+  }
+},"test-agent": {
+  "name": "Test Agent",
+  "default_locale": "en-US",
+  "description": "Gaia Test Agent",
+  "launch_path": "/",
+  "locales": {
+    "en-US": {
+      "name": "Test Agent",
+      "description": "Gaia Test Agent"
+    }
+  },
+  "developer": {
+    "url": "https://github.com/andreasgal/gaia",
+    "name": "The Gaia Team"
+  }
+},"towerjelly": {
+  "name": "TowerJelly",
+  "description": "Tower Jelly",
+  "launch_path": "/",
+  "hackNetworkBound": "true",
+  "developer": {
+    "name": "The Original Author",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "icons": {
+    "120": "/style/icons/TowerJelly.png"
+  }
+},"uitest": {
+  "name": "UI tests",
+  "launch_path": "/",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "fullscreen": true
+},"video": {
+  "name": "Video",
+  "description": "Gaia Video",
+  "launch_path": "/",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "locales": {
+    "ar": {
+      "name": "\u0641\u064a\u062f\u064a\u0648",
+      "description": "Gaia \u0641\u064a\u062f\u064a\u0648"
+    },
+    "de": {
+      "name": "Video",
+      "description": "Gaia Video"
+    },
+    "en-US": {
+      "name": "Video",
+      "description": "Gaia Video"
+    },
+    "es": {
+      "name": "V\u00eddeo",
+      "description": "V\u00eddeo de Gaia"
+    },
+    "fr": {
+      "name": "Vid\u00e9o",
+      "description": "Lecteur vid\u00e9o Gaia"
+    },
+    "ru": {
+      "name": "\u0412\u0438\u0434\u0435\u043e",
+      "description": "\u0412\u0438\u0434\u0435\u043e Gaia"
+    },
+    "zh-TW": {
+      "name": "\u5f71\u7247",
+      "description": "Gaia \u5f71\u7247"
+    }
+  },
+  "default_locale": "en-US",
+  "fullscreen": true,
+  "hackKillMe": true,
+  "icons": {
+    "120": "/style/icons/Video.png"
+  }
+}
+}}
