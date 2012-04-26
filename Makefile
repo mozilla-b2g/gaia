@@ -262,7 +262,6 @@ update-offline-manifests:
 		fi \
 	done
 
-
 # If your gaia/ directory is a sub-directory of the B2G directory, then
 # you should use the install-gaia target of the B2G Makefile. But if you're
 # working on just gaia itself, and you already have B2G firmware on your
@@ -270,12 +269,8 @@ update-offline-manifests:
 # target to update the gaia files and reboot b2g
 install-gaia: profile
 	$(ADB) start-server
-	$(ADB) shell rm -r /data/local/*
 	$(ADB) shell rm -r /cache/*
-	# just push the profile
-	$(ADB) push profile/OfflineCache /data/local/OfflineCache
-	$(ADB) push profile/webapps /data/local/webapps
-	$(ADB) push profile/user.js /data/local/user.js
+	python build/install-gaia.py "$(ADB)"
 	@echo "Installed gaia into profile/."
 	$(ADB) shell kill $(shell $(ADB) shell toolbox ps | grep "b2g" | awk '{ print $$2; }')
 	@echo 'Rebooting b2g now'
