@@ -302,7 +302,7 @@ var NotificationScreen = {
           hasNotifications.dataset.visible = 'true';
           break;
 
-        default:
+        case 'permission-prompt':
           // XXX Needs to implements more UI but for now let's allow stuffs
           var event = document.createEvent('CustomEvent');
           event.initCustomEvent('mozContentEvent', true, true, {
@@ -1033,6 +1033,16 @@ function AppScreen() {
       requestPermission(_('install', { name: name, origin: app.origin }),
                         function() { sendResponse(e.detail.id, true); },
                         function() { sendResponse(e.detail.id, false); });
+    } else if (e.detail.type == 'activity-openwindow') {
+      var frame = WindowManager.appendFrame(e.detail.uri, e.detail.uri, e.detail.title, { 'hackNetworkBound': true });
+      var event = document.createEvent('CustomEvent');
+      event.initCustomEvent('mozContentEvent', true, true, {
+        type: 'activity-openwindow'
+        id: e.detail.id,
+        window: frame,
+        isNew: yes,
+      });
+      window.dispatchEvent(event);
     }
 
     // This is how we say yes or no to the request after the user decides

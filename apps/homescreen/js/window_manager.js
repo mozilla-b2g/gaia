@@ -392,6 +392,7 @@ var WindowManager = (function() {
     setDisplayedApp(origin, function() {
       frame.src = url;
     });
+    return frame;
   }
 
 
@@ -669,7 +670,8 @@ var WindowManager = (function() {
         return runningApps[origin].frame;
       else
         return null;
-    }
+    },
+    appendFrame: appendFrame
   };
 }());
 
