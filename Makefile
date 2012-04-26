@@ -81,6 +81,9 @@ profile: stamp-commit-hash update-offline-manifests preferences manifests offlin
 
 LANG=POSIX # Avoiding sort order differences between OSes
 
+desktop-fallback-manifest:
+	sh tools/create-desktop-apps.sh
+
 # Generate profile/webapps/
 manifests:
 	@echo "Generated webapps"
