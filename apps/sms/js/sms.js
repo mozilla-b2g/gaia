@@ -26,7 +26,7 @@ var MessageManager = {
   },
 
   send: function mm_send(number, text, callback) {
-    var req = navigator.mozSms.send(number, text);
+    var req = navigator.mozSms.sendText(number, text);
     req.onsuccess = function onsuccess() {
       callback(req.result);
     };
