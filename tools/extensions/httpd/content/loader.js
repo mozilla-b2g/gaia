@@ -66,16 +66,22 @@ function LongPoll(connid, transport) {
   this.connid = connid;
   this.buffer = [];
   this.outstanding_push = null;
+  this.outstanding_noop = null;
+  this.outstanding_timeout = null;
 }
 
 LongPoll.prototype = {
   cast: function cast(msg) {
+    clearTimeout(this.outstanding_noop);
     this.buffer.push(msg);
     dump("cast "+JSON.stringify(msg)+ " " + this.outstanding_push + "\n");
     if (this.outstanding_push !== null) {
       this.drain_queue(this.outstanding_push);
       this.outstanding_push.finish();
       this.outstanding_push = null;
+      this.outstanding_timeout = setTimeout(function() {
+        close(this.connid);
+      }.bind(this), 5000);
     }
   },
 
@@ -86,6 +92,9 @@ LongPoll.prototype = {
     this.buffer = [];
 
     queue.forEach(function(chunk) {
+      if (chunk.noop) {
+        return;
+      }
       response.messages.push({
         id: this.connid,
         response: chunk
@@ -101,8 +110,17 @@ LongPoll.prototype = {
 }
 
 let connections = {},
+    transports = {},
     connection_num = 0,
     scriptable = new ScriptableInputStream();
+
+
+function close(connid) {
+  dump("\n\n closing #" +connid + " \n\n");
+  let me = connections[connid];
+  me.transport.close();
+  delete connections[connid];
+}
 
 
 function handleMarionette(req, res) {
@@ -121,10 +139,17 @@ function handleMarionette(req, res) {
         res.setStatusLine("1.1", 200, "OK");
         res.setHeader("Content-Type", "application/json");
 
+        clearTimeout(me.outstanding_timeout);
+
         if (me.buffer.length === 0) {
           dump("waiting /marionette?" + req.queryString + "\n");
           res.processAsync();
           me.outstanding_push = res;
+          dump("\n\nsetting timeout\n\n");
+          me.outstanding_noop = setTimeout(function() {
+            dump('\n\nnoop\n\n');
+            me.cast({ noop: true });
+          }, 25000);
         } else {
           dump("messages /marionette?" + req.queryString + "\n");
           me.drain_queue(res);
@@ -145,11 +170,20 @@ function handleMarionette(req, res) {
             parsed = JSON.parse(bytes);
 
         dump("BYTES "+bytes+"\n");
-
+        let hostport = parsed.server + ":" + parsed.port;
+        if (hostport in transports) {
+          let oldconnid = transports[hostport];
+          if(oldconnid === undefined){
+            connections[oldconnid].transport.close();
+            delete connections[oldconnid];
+            delete transports[hostport];
+          }
+        }
         let transport = debuggerSocketConnect(parsed.server, parseInt(parsed.port)),
             me = new LongPoll(connid, transport);
 
         connections[connid] = me;
+        transports[hostport] = connid;
 
         transport.hooks = {
           onPacket: function onPacket(pack) {
@@ -184,6 +218,9 @@ function handleMarionette(req, res) {
         dump("stream " + bytes+"\n");
         me.send(parsed);
       }, 0, 0, Services.tm.currentThread);
+    } else if (req.method === "DELETE") {
+        let connid = req.queryString.split('=')[0];
+        close(connid);
     } else {
       res.setStatusLine("1.1", 405, "Method Not Allowed");
       res.write('');
