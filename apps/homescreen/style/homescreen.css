@@ -2,11 +2,13 @@
   font-family: 'Open Sans';
   src: url('fonts/Open-Sans.woff');
 }
+
 @font-face {
   font-family: 'Open Sans';
   font-weight: bold;
   src: url('fonts/Open-Sans-Bold.woff');
 }
+
 @font-face {
   font-family: 'Open Sans';
   font-weight: 600;
@@ -18,11 +20,19 @@ body {
   height: 100%;
   margin: 0px;
   padding: 0px;
-  background: black;
   overflow: hidden;
   font-family: 'Open Sans Semibold', sans-serif;
   color: white;
   font-size: 15px;
+}
+
+#home {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+  left: 0;
 
   border-radius: 8px;
   background-color: #000;
@@ -34,28 +44,23 @@ body {
   background-repeat: no-repeat;
 }
 
-body > div {
+#apps {
   position: absolute;
-  overflow: hidden;
-  width: -moz-calc(100%);
-  left: 0;
-}
-
-body > #apps {
-  margin-top: 40px;
   top: 0;
+  margin-top: 40px;
 
   /* height = -margin-top +100% - dots.height - notifications.height */
   height: -moz-calc(-40px + 100% - 14px - 80px);
-
   width: 100%;
 }
 
-body > #dots {
+#dots {
+  position: absolute;
   bottom: 90px;
   height: 14px;
   line-height: 14px;
   text-align: center;
+  width: 100%;
 }
 
 .page {
@@ -115,17 +120,13 @@ body > #dots {
 
 /* Horizontal orientation height of our current target phones */
 @media all and (max-height: 600px) {
-  body {
-    background-size: cover;
-  }
-
-  body > #apps {
+  #apps {
     /* height = -margin-top +100% - dots.height - dots.bottom - notifications.height */
     height: -moz-calc(-24px + 100% - 14px - 14px - 0px);
     margin-top: 24px;
   }
 
-  body > #dots {
+  #dots {
     bottom: 14px;
   }
 }

@@ -59,7 +59,10 @@ AppScreen.prototype.build = function(rebuild) {
     // Remember the page we're on so that after rebuild we can stay there.
     startpage = this.grid.currentPage;
 
-    document.body.innerHTML = '<div id="apps"></div><div id="dots"></div>';
+    document.body.innerHTML = '<div id="home">' +
+                              '  <div id="apps"></div>' +
+                              '  <div id="dots"></div>' +
+                              '</div>';
   }
 
   // Create the widgets
