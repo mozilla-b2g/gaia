@@ -19,6 +19,10 @@
       "name": "Market",
       "description": "Market for downloading and installing apps"
     },
+    "es": {
+      "name": "Tienda",
+      "description": "Tienda para descargar e instalar aplicaciones"
+    },
     "fr": {
       "name": "Logith\u00e8que",
       "description": "Catalogue en ligne d\u2019applications"

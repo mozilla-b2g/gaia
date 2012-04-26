@@ -19,6 +19,10 @@
       "name": "CubeVid",
       "description": "Video Cube Demo"
     },
+    "es": {
+      "name": "CubeVid",
+      "description": "Demo de un cubo con v\u00eddeo"
+    },
     "fr": {
       "name": "CubeVid",
       "description": "D\u00e9mo de vid\u00e9o cube"
