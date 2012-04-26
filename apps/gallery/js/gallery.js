@@ -1,5 +1,34 @@
 'use strict';
 
+// XXX: gesture bug
+// Currently this app detects zoom gestures with gestures.js and touch events
+// But detects single-finger pan gestures with its own code.
+// The problem is that they don't interact well.  When he first finger
+// goes down, we get a mousedown and a pan gesture starts, registering
+// listeners for mouse move and mouse up events.  But then the second 
+// finger goes down and the pinch gesture starts being recoginzed. It 
+// calls preventDefault, so those touch events don't get translated into
+// mouse events and the pan handler is just left there stranded. Then when
+// the zoom is over, and a new pan begins with a mouse down, we now have
+// two sets of mousemove handlers, and the pan is weird. After the mouseup
+// subsequent pans are fine.
+// 
+// There's also a bug where you start panning and then zoom and the photos
+// get stuck between frames.
+// 
+// The moral is that I've got to handle pan gestures with the same
+// code that handles pinch gestures: these two have got to interact.
+// And it means that the gesture recognizer code probably can't be
+// extensible the way I was trying to do it.  When a second finger
+// goes down, that has got to end the pan.  (And, if a pan has started
+// by exceeding a threshold, then the second finger going down probably
+// shouldn't start a pinch.)
+//
+// Also: can I use MozMagnifyGestureStart MozMagnifyGestureUpdate and
+// MozMagnifyGesture to make pinch gestures work on the desktop
+// from a trackpad?
+
+
 /*
  * This app displays photos that are stored on the phone.
  *
@@ -264,10 +293,11 @@ photos.addEventListener('mousedown', function(event) {
   function move(event) {
     var dx = event.screenX - lastX;
     var dy = event.screenY - lastY;
-
+    var first = false;
+    
     if (!panning &&
         (Math.abs(dx) > PAN_THRESHOLD || Math.abs(dy) > PAN_THRESHOLD))
-      panning = true;
+      panning = first = true;
 
     if (panning) {
       photoState.pan(dx, dy);
@@ -660,7 +690,6 @@ PhotoState.prototype.reset = function() {
 // Assume that zoom gestures can't be done in the middle of swipes, so
 // if we're calling zoom, then the swipe property will be 0.
 PhotoState.prototype.zoom = function(scale, centerX, centerY) {
-
   // Never zoom in farther than 2x the native resolution of the image
   if (this.baseScale * this.scale * scale > 2) {
     scale = 2 / (this.baseScale * this.scale);
