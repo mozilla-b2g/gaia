@@ -8,4 +8,5 @@ apps/settings/gaia-commit.txt
 profile/
 xulrunner/
 xulrunner-sdk/
+node_modules
 apps/homescreen/apps-manifest-fallback.json

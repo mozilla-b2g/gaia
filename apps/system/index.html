@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html manifest="manifest.appcache">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="pragma" content="no-cache">
+    <!-- System -->
+    <script>
+      var host = document.location.host;
+      var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+      var src = 'http://' + domain + '/webapi.js';
+      document.write('<script src="' + src + '"><\/script>');
+    </script>
+    <link rel="stylesheet" type="text/css" href="style/system.css">
+    <script defer src="js/background_service.js"></script>
+    <script defer src="js/bootstrap.js"></script>
+    <script defer src="js/settings.js"></script>
+
+    <!-- LockScreen -->
+    <link rel="stylesheet" type="text/css" href="style/lockscreen/lockscreen.css">
+    <script defer src="js/lockscreen/lockscreen.js"></script>
+
+    <!-- Statusbar -->
+    <link rel="stylesheet" type="text/css" href="style/statusbar/statusbar.css">
+    <script defer src="js/statusbar/statusbar.js"></script>
+
+    <!-- Dialogs -->
+    <link rel="stylesheet" type="text/css" href="style/dialogs/request.css">
+    <script defer src="js/dialogs/request.js"></script>
+
+
+    <!-- Windows -->
+    <link rel="stylesheet" type="text/css" href="style/windows/windows.css">
+    <script defer src="js/windows/window_manager.js"></script>
+
+    <!-- Keyboard -->
+    <link rel="stylesheet" type="text/css" href="style/keyboard/keyboard.css">
+    <script defer src="js/keyboard/layout.js"></script>
+    <script defer src="js/keyboard/keyboard.js"></script>
+
+    <!-- Bookmarks -->
+    <script defer src="js/bookmarks/bookmarks.js"></script>
+
+    <!-- Theme and localization -->
+    <link rel="stylesheet" type="text/css" href="style/themes/default/system.css">
+    <link rel="resource" type="application/l10n" href="locale/system.properties">
+  </head>
+
+  <body onload="startup()">
+    <div id="screen">
+      <div id="keyboard" data-hidden="true" onmousedown="return false;"></div>
+
+      <div id="statusbar">
+        <div id="state">
+          <div id="state-notifications" class="state"></div>
+        </div>
+        <div id="titlebar"></div>
+        <div id="padding"></div>
+        <div id="signal">
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <div id="wifi"></div>
+        <div class="battery">
+          <div id="fuel"></div>
+          <div id="charging" hidden="true"></div>
+        </div>
+        <div class="time" data-format="%H:%M"></div>
+      </div>
+
+      <!-- homescreen -->
+      <iframe id="homescreen" mozbrowser></iframe>
+
+      <div id="windows">
+        <!-- application windows are added here -->
+      </div>
+
+      <div id="notifications-screen">
+        <div id="notifications-container">
+        </div>
+        <div id="grippy">
+        </div>
+      </div>
+      <div id="lockscreen">
+        <div id="status"></div>
+        <div id="lockscreenContainer">
+          <div id="clock">
+            <div id="hourMin" class="time" data-format="%H:%M"></div>
+            <div id="date">
+              <span class="time" data-format="%A, %d %b"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="taskManager">
+      <ul>
+
+      </ul>
+    </div>
+
+    <div id="volume" class="vibration">
+      <div class="active"></div>
+      <div class="active"></div>
+      <div class="active"></div>
+      <div class="active"></div>
+      <div class="active"></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
+
+    <div id="sleep">
+      <div class="sleep-menu">
+        <div data-l10n-id="airplane" data-value="airplane">Airplane Mode</div>
+        <div data-l10n-id="silent" data-value="silent" id="silent">Silent Mode</div>
+        <div data-l10n-id="normal" data-value="normal" id="normal" hidden>Normal Mode</div>
+        <div data-l10n-id="restart" data-value="restart">Restart</div>
+        <div data-l10n-id="power" data-value="power">Power Off</div>
+      </div>
+    </div>
+  </body>
+</html>
