@@ -398,25 +398,18 @@ const IMEManager = {
 
     var self = this;
 
-    SettingsListener.observe(
-      'keyboard.vibration', false,
-      function(value) {
-        self.vibrate = !!value;
-      }
-    );
+    // Use SettingsListener defined in system.js
+    SettingsListener.observe('keyboard.vibration', false, function(value) {
+      self.vibrate = !!value;
+    });
 
-    SettingsListener.observe(
-      'keyboard.clicksound', false,
-      function(value) {
-        self.clicksound = !!value;
-      }
-    );
+    SettingsListener.observe('keyboard.clicksound', false, function(value) {
+      self.clicksound = !!value;
+    });
 
     for (var key in this.keyboardSettingGroups) {
-      // Use SettingsListener defined in homescreen.js
       (function observeSettings(key) {
-        SettingsListener.observe(
-          'keyboard.layouts.' + key, false,
+        SettingsListener.observe('keyboard.layouts.' + key, false,
           function(value) {
             if (value)
               self.enableSetting(key);
@@ -450,7 +443,7 @@ const IMEManager = {
     if (keyboard.type !== 'ime')
       return;
 
-    var sourceDir = './imes/';
+    var sourceDir = './js/keyboard/imes/';
     var imEngine = keyboard.imEngine;
 
     // Same IME Engine could be load by multiple keyboard layouts
@@ -497,8 +490,9 @@ const IMEManager = {
     document.body.appendChild(script);
   },
 
+  hideIMETimer: 0,
   handleEvent: function km_handleEvent(evt) {
-    var activeWindow = Gaia.AppManager.foregroundWindow;
+    var activeWindow = WindowManager.getAppFrame(WindowManager.getDisplayedApp());
     if (!activeWindow ||
         (activeWindow == this._closingWindow && evt.type != 'appclose'))
       return;
@@ -1028,12 +1022,11 @@ const IMEManager = {
 
     // insert candidate panel if the keyboard layout needs it
 
+    var ime = this.ime;
     if (layout.needsCandidatePanel) {
-      this.ime.insertBefore(
-        this.candidatePanelToggleButton, this.ime.firstChild);
-      this.ime.insertBefore(this.candidatePanel, this.ime.firstChild);
-      this.ime.insertBefore(
-        this.pendingSymbolPanel, this.ime.firstChild);
+      ime.insertBefore(this.candidatePanelToggleButton, ime.firstChild);
+      ime.insertBefore(this.candidatePanel, ime.firstChild);
+      ime.insertBefore(this.pendingSymbolPanel, ime.firstChild);
       this.showPendingSymbols('');
       this.showCandidates([], true);
       this.currentEngine.empty();
@@ -1054,7 +1047,6 @@ const IMEManager = {
   },
 
   showIME: function km_showIME(targetWindow, type) {
-
     switch (type) {
       // basic types
       case 'url':

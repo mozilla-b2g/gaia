@@ -102,7 +102,7 @@ let permissions = {
 
 let content = "";
 
-let homescreen = "http://homescreen." + GAIA_DOMAIN;
+let homescreen = "http://system." + GAIA_DOMAIN;
 content += "user_pref(\"browser.homescreenURL\",\"" + homescreen + "\");\n\n";
 
 let privileges = [];
