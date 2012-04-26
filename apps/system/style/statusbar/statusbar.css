@@ -32,7 +32,7 @@
 
 #notifications-container .notification {
   position: relative;
-  background-image: url(images/notifications.png);
+  background-image: url(notifications.png);
   background-repeat: no-repeat;
   background-size: 100% 100%;
 
