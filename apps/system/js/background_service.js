@@ -1,9 +1,11 @@
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
 'use strict';
 
 /*
   Allow web apps to inject a tiny persistent background iframe
   as the phone starts.
-
 */
 var BackgroundServiceManager = (function bsm() {
   /* We keep information about the installed Apps here */
@@ -14,8 +16,8 @@ var BackgroundServiceManager = (function bsm() {
   var frames = {};
 
   /* Init */
-
-  navigator.mozApps.mgmt.getAll().onsuccess = function settings_getAll(evt) {
+  var apps = navigator.mozApps;
+  apps.mgmt.getAll().onsuccess = function settings_getAll(evt) {
     evt.target.result.forEach(function app_forEach(app) {
       installedApps[app.origin] = app;
       open(app.origin);
@@ -25,11 +27,10 @@ var BackgroundServiceManager = (function bsm() {
   /* XXX: https://bugzilla.mozilla.org/show_bug.cgi?id=731746
   addEventListener does't work for now (workaround follows) */
 
-  var mgmt = navigator.mozApps.mgmt;
-  var OriginalOninstall = mgmt.oninstall;
-  var OriginalOnuninstall = mgmt.onuninstall;
+  var OriginalOninstall = apps.mgmt.oninstall;
+  var OriginalOnuninstall = apps.mgmt.onuninstall;
 
-  mgmt.oninstall = function bsm_install(evt) {
+  apps.mgmt.oninstall = function bsm_install(evt) {
     var newapp = evt.application;
     installedApps[newapp.origin] = newapp;
 
@@ -39,7 +40,7 @@ var BackgroundServiceManager = (function bsm() {
       OriginalOninstall.apply(this, arguments);
   };
 
-  mgmt.onuninstall = function bsm_uninstall(evt) {
+  apps.mgmt.onuninstall = function bsm_uninstall(evt) {
     var newapp = evt.application;
     delete installedApps[newapp.origin];
 
@@ -80,8 +81,8 @@ var BackgroundServiceManager = (function bsm() {
     return true;
   };
 
-  /* Getting the window object reference of the background page. Unused.
-     We have no way to give the object reference to the the app iframe for now */
+  // Getting the window object reference of the background page. Unused.
+  // We have no way to give the object reference to the the app iframe for now
   var getWindow = function bsm_getWindow(origin) {
     var frame = frames[origin];
     if (frame)
@@ -95,5 +96,5 @@ var BackgroundServiceManager = (function bsm() {
     'close': close,
     'getWindow': getWindow
   };
-
 }());
+

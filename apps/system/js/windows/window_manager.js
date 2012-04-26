@@ -403,8 +403,9 @@ var WindowManager = (function() {
     if (isRunning(origin))
       return;
 
-    var app = appscreen.getAppByOrigin(origin);
+    var app = Applications.getByOrigin(origin);
 
+    /*
     // If the application is not a regular application, it can be bookmark.
     // A bookmark consist in a name, an url and an icon. No manifest.
     if (!app) {
@@ -416,6 +417,7 @@ var WindowManager = (function() {
       appendFrame(origin, origin, name, { 'hackNetworkBound': true });
       return;
     }
+    */
 
     // TODO: is the startPoint argument implemented?
     // and is it passed back to us in the webapps-launch method?
@@ -434,7 +436,7 @@ var WindowManager = (function() {
         return;
       }
 
-      var app = appscreen.getAppByOrigin(origin);
+      var app = Applications.getByOrigin(origin);
       appendFrame(origin, e.detail.url, app.manifest.name, app.manifest);
     }
   });
@@ -590,7 +592,7 @@ var WindowManager = (function() {
   });
 
   // Handle the Home key with capturing event listeners so that
-  // apps and other homescreen modules never even see the key.
+  // other homescreen modules never even see the key.
   (function() {
     var timer = null;
     var keydown = false;
