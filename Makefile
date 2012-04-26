@@ -63,6 +63,16 @@ SED_INPLACE_NO_SUFFIX = sed -i
 DOWNLOAD_CMD = wget
 endif
 
+# Test agent setup
+TEST_AGENT_DIR=tools/test-agent/
+ifeq ($(strip $(NODEJS)),)
+	NODEJS := `which node`
+endif
+
+ifeq ($(strip $(NPM)),)
+	NPM := `which npm`
+endif
+
 #Marionette testing variables
 #make sure we're python 2.7.x
 ifeq ($(strip $(PYTHON_27)),)
@@ -187,7 +197,12 @@ tests: manifests offline
 
 .PHONY: test-agent-server
 test-agent-server:
-	./tools/test-agent/start-server.sh
+	@test -x $(NODEJS) || (echo "Please Install NodeJS -- (use aptitude on linux or homebrew on osx)" && exit 1 )
+	@test -x $(NPM) || (echo "Please install NPM (node package manager) -- http://npmjs.org/" && exit 1 )
+
+	cd $(TEST_AGENT_DIR) && npm install .
+
+	$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent server -c ./$(TEST_AGENT_DIR)/test-agent-server.js --http-path . --growl
 
 .PHONY: marionette
 marionette:
