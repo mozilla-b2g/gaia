@@ -37,6 +37,11 @@ body {
   border-bottom: solid 2px #a3a3a3;
 }
 
+#toolbar-start.loading {
+  border-bottom-width: 4px;
+  -moz-border-image: url('images/progress.gif') 0 1 100% 1;
+}
+
 #toolbar-end {
   border-top: solid 2px #a3a3a3;
 }
@@ -51,11 +56,8 @@ body {
   border-radius: 22px;
   height: 44px;
   margin: 9px 8px;
-  padding: 0 0 0 40px;
+  padding: 0 0 0 16px;
   background-color: #fff;
-  background-image: url('images/favicon.png');
-  background-repeat: no-repeat;
-  background-position: 14px 12px;
   font-weight: 600;
 }
 
@@ -66,14 +68,11 @@ body {
   margin: 0;
   -moz-box-flex: 1;
   border: none;
+  background-color: transparent;
 }
 
 #url-input:invalid {
   box-shadow: none;
-}
-
-#url-bar.loading {
-  background-image: url('images/loading.gif');
 }
 
 menu[type="toolbar"] {
