@@ -138,14 +138,14 @@ var ConversationListView = {
 
   createNewConversation: function cl_createNewConversation(conversation) {
     return '<a href="#num=' + conversation.num + '"' +
-           ' data-name="' + (conversation.name || conversation.num) + '"' +
+           ' data-name="' + escapeHTML(conversation.name || conversation.num, true) + '"' +
            ' data-notempty="' + (conversation.timestamp ? 'true' : '') + '"' +
            ' class="' + (conversation.hidden ? 'hide' : '') + '">' +
            '  <div class="photo">' +
            '    <img src="style/images/contact-placeholder.png" />' +
            '  </div>' +
-           '  <div class="name">' + conversation.name + '</div>' +
-           '  <div class="msg">' + conversation.body.split('\n')[0] + '</div>' +
+           '  <div class="name">' + escapeHTML(conversation.name) + '</div>' +
+           '  <div class="msg">' + escapeHTML(conversation.body.split('\n')[0]) + '</div>' +
            (conversation.timestamp ?
              '  <div class="time" data-time="' + conversation.timestamp + '">' +
                  prettyDate(conversation.timestamp) + '</div>' : '') +
@@ -371,7 +371,7 @@ var ConversationView = {
                       '<div class="photo">' +
                       '  <img src="' + pic + '" />' +
                       '</div>' +
-                      '<div class="text">' + body + '</div>' +
+                      '<div class="text">' + escapeHTML(body) + '</div>' +
                       '<div class="time" data-time="' + msg.timestamp.getTime() + '">' +
                           prettyDate(msg.timestamp) + '</div>' +
                     '</div>';

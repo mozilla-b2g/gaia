@@ -37,35 +37,42 @@ body {
   border-bottom: solid 2px #a3a3a3;
 }
 
+#toolbar-start.loading {
+  border-bottom-width: 4px;
+  -moz-border-image: url('images/progress.gif') 0 1 100% 1;
+}
+
 #toolbar-end {
   border-top: solid 2px #a3a3a3;
 }
 
-#address-bar {
+#url-bar {
   -moz-box-flex: 1;
   display: -moz-box;
   -moz-box-orient: horizontal;
   padding: 0;
   margin: 0;
-}
-
-#url-bar {
-  font-family: 'Open Sans';
-  -moz-box-flex: 1;
   border: solid 2px #9ca1a6;
   border-radius: 22px;
   height: 44px;
   margin: 9px 8px;
-  padding: 0 0 0 40px;
-  font-size: 18px;
-  background-image: url('images/favicon.png');
-  background-repeat: no-repeat;
-  background-position: 14px 12px;
+  padding: 0 0 0 16px;
+  background-color: #fff;
   font-weight: 600;
 }
 
-#url-bar.loading {
-  background-image: url('images/loading.gif');
+#url-input {
+  font-family: 'Open Sans';
+  font-size: 18px;
+  height: 44px;
+  margin: 0;
+  -moz-box-flex: 1;
+  border: none;
+  background-color: transparent;
+}
+
+#url-input:invalid {
+  box-shadow: none;
 }
 
 menu[type="toolbar"] {

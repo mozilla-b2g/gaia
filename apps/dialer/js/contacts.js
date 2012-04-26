@@ -251,6 +251,7 @@ var ContactDetails = {
           this.focusNextField();
           return false;
         }
+        return true;
       }).bind(this);
     }
 

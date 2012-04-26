@@ -9,7 +9,6 @@
   "permissions": [
     "telephony",
     "mozbrowser",
-    "sms",
     "power",
     "mozApps"
   ],

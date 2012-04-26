@@ -193,7 +193,7 @@ function dumpn(str)
         prefix += min + ":" + sec.toFixed(3) + " | ";
     }
 
-    dump(prefix + str + "\n");
+    dumpn(prefix + str + "\n");
   }
 }
 
@@ -764,7 +764,7 @@ nsHttpServer.prototype =
     {
       // not throwing because this is specified as being usually (but not
       // always) asynchronous
-      dump("!!! error running onStopped callback: " + e + "\n");
+      dumpn("!!! error running onStopped callback: " + e + "\n");
     }
   },
 
@@ -1427,7 +1427,7 @@ RequestReader.prototype =
           if (host != '@GAIA_DOMAIN@' && host.indexOf('.') != -1) {
             var oldPath = request._path;
             request._path = '/apps/' + host.split('.')[0] + oldPath;
-            dump(request._path + '\n');
+            dumpn(request._path + '\n');
           }
         } catch (e) {
           dump(e);
@@ -2678,11 +2678,11 @@ ServerHandler.prototype =
         }
         catch (e)
         {
-          dump("*** error running SJS at " + file.path + ": " +
-               e + " on line " +
-               (e instanceof Error
-               ? e.lineNumber + " in httpd.js"
-               : (e.lineNumber - line)) + "\n");
+          dumpn("*** error running SJS at " + file.path + ": " +
+                e + " on line " +
+                (e instanceof Error
+                ? e.lineNumber + " in httpd.js"
+                : (e.lineNumber - line)) + "\n");
           throw HTTP_500;
         }
       }
