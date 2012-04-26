@@ -19,6 +19,10 @@
       "name": "Calculator",
       "description": "Calculator"
     },
+    "es": {
+      "name": "Calculadora",
+      "description": "Calculadora"
+    },
     "fr": {
       "name": "Calculatrice",
       "description": "Calculatrice Gaia"

@@ -19,6 +19,10 @@
       "name": "Video",
       "description": "Gaia Video"
     },
+    "es": {
+      "name": "V\u00eddeo",
+      "description": "V\u00eddeo de Gaia"
+    },
     "fr": {
       "name": "Vid\u00e9o",
       "description": "Lecteur vid\u00e9o Gaia"
