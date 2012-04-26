@@ -121,7 +121,7 @@ var PinyinParser = function() {
     var e = syllables[i];
     this._syllableMap[e] = e;
   }
-}
+};
 
 PinyinParser.prototype = {
   /**
@@ -228,7 +228,7 @@ PinyinParser.prototype = {
 };
 
 var IMEngineBase = function() {
-}
+};
 
 IMEngineBase.prototype = {
   /**
@@ -306,7 +306,7 @@ var IMEngine = function(splitter) {
   IMEngineBase.call(this);
   
   this._splitter = splitter;
-}
+};
 
 IMEngine.prototype = {
   __proto__: IMEngineBase.prototype,
@@ -332,7 +332,14 @@ IMEngine.prototype = {
   // ㄊㄞˊㄅㄟˇ -> 台北, then suggest 市, 縣, 市長, 市立 ...
   _autoSuggestCandidates: true,
   
-  _db: null, 
+  // Whether to input traditional Chinese
+  _inputTraditionalChinese: false,
+  
+  // Input method database
+  _db: {
+    simplified: null,  
+    traditional: null
+  },
   
   // The last selected text and syllables used to generate suggestions.
   _selectedText: '',
@@ -342,20 +349,24 @@ IMEngine.prototype = {
   _firstCandidate: '',
   _keypressQueue: [],
   _isWorking: false,
-   
-  _initDB: function(readyCallback) {
+  
+  _getCurrentDatabaseName: function() {
+    return  this._inputTraditionalChinese ? 'traditional' : 'simplified';
+  },
+  
+  _initDB: function(name, readyCallback) {
     var dbSettings = {
-      dbJSON: this._glue.path + '/db.json',   /* Simplified Chinese database */
-      dbTrJSON: this._glue.path + '/db-tr.json', /* Traditioanal Chinese database */
       enableIndexedDB: this._enableIndexedDB,
-      useTraditionalDB: this._inputTraitionalChinese
     };
 
-    if (readyCallback)
+    if (readyCallback) {
       dbSettings.ready = readyCallback;
-
-    this._db = new IMEngineDatabase();
-    this._db.init(dbSettings);
+    }
+    
+    var storeName = name == 'traditional' ? 'terms_tr' : 'terms';
+    var jsonUrl = this._glue.path + (name == 'traditional' ? '/db-tr.json' : '/db.json');
+    this._db[name] = new IMEngineDatabase(storeName, jsonUrl);
+    this._db[name].init(dbSettings);  
   },
   
   _sendPendingSymbols: function () {
@@ -378,8 +389,10 @@ IMEngine.prototype = {
 
   _next: function() {
     debug('Processing keypress');
+    
+    var name = this._getCurrentDatabaseName();
 
-    if (!this._db) {
+    if (!this._db[name]) {
       debug('DB not initialized, defer processing.');
       this._initDB(this._next.bind(this));
       return;
@@ -491,9 +504,10 @@ IMEngine.prototype = {
   },
   
   _lookup: function(query, type, callback) {
+    var name = this._getCurrentDatabaseName();
     switch (type) {
       case 'sentence':
-        this._db.getSentences(query, function getSentencesCallback(dbResults) {
+        this._db[name].getSentences(query, function getSentencesCallback(dbResults) {
           if (!dbResults) {
             callback([]);
             return;
@@ -511,7 +525,7 @@ IMEngine.prototype = {
         });
       break;
       case 'term':
-        this._db.getTerms(query, function getTermsCallback(dbResults) {
+        this._db[name].getTerms(query, function getTermsCallback(dbResults) {
           if (!dbResults) {
             callback([]);
             return;
@@ -524,7 +538,7 @@ IMEngine.prototype = {
         });
       break;
       case 'suggestion':
-        this._db.getSuggestions(
+        this._db[name].getSuggestions(
           query[0], query[1],
           function gotSuggestions(dbResults) {
             if (!dbResults) {
@@ -676,9 +690,11 @@ IMEngine.prototype = {
     IMEngineBase.prototype.uninit.call(this);
     debug('Uninit.');
     this._splitter = null;
-    if (this._db) {
-      this._db.uninit();
-      this._db = null;
+    for (var name in ['simplified', 'traditional']) { 
+      if (this._db[name]) {
+        this._db[name].uninit();
+        this._db[name] = null;
+      }
     }
     this.empty();
   },
@@ -688,13 +704,10 @@ IMEngine.prototype = {
    */
   click: function(keyCode) {
     IMEngineBase.prototype.click.call(this, keyCode);
-    
+        
     // Toggle between the modes of tranditioanal Chinese and simplified Chinese
     if(keyCode == -10 || keyCode == -11) {
-      this._inputTraitionalChinese = !this._inputTraitionalChinese;
-      if (this._db) {
-        this._db.setUseTraditionalDB(this._inputTraitionalChinese);
-      }
+      this._inputTraditionalChinese = !this._inputTraditionalChinese;
     }
     this._keypressQueue.push(keyCode);
     this._start();
@@ -727,17 +740,18 @@ IMEngine.prototype = {
    * @Override
    */
   empty: function() {
+    var name = this._getCurrentDatabaseName();
     this._pendingSymbols = '';
     this._selectedText = '';
     this._selectedSyllables = [];
     this._sendPendingSymbols();
     this._isWorking = false;
-    if (!this._db)
-      this._initDB();
+    if (!this._db[name])
+      this._initDB(name);
   }  
 }
 
-var IMEngineDatabase = function() {
+var IMEngineDatabase = function(storeName, jsonUrl) {
   var settings;
 
   /* name and version of IndexedDB */
@@ -749,7 +763,7 @@ var IMEngineDatabase = function() {
    */
   var kDictTotalFreq = 1.0e8;
 
-  var jsonData = {db: null, dbTr: null};
+  var jsonData = null;
   var iDB;
 
   var iDBCache = {};
@@ -822,13 +836,12 @@ var IMEngineDatabase = function() {
     };
   };
 
-  var populateDBFromJSON = function(storeName, callback) {
+  var populateDBFromJSON = function(callback) {
     var chunks = [];
     var chunk = [];
     var i = 0;
 
-    var dbName = storeName == "terms" ? 'db' : 'dbTr';
-    for (var syllables in jsonData[dbName]) {
+    for (var syllables in jsonData) {
       chunk.push(syllables);
       i++;
       if (i > 2048) {
@@ -839,7 +852,7 @@ var IMEngineDatabase = function() {
     }
     chunks.push(chunk);
     chunks.push(['_last_entry_']);
-    jsonData[dbName]['_last_entry_'] = true;
+    jsonData['_last_entry_'] = true;
 
     var addChunk = function imedbAddChunk() {
       debug('Loading data chunk into IndexedDB, ' +
@@ -856,7 +869,7 @@ var IMEngineDatabase = function() {
         if (chunks.length) {
           setTimeout(addChunk, 0);
         } else {
-          jsonData[dbName] = null;
+          jsonData = null;
           setTimeout(callback, 0);
         }
       };
@@ -869,7 +882,7 @@ var IMEngineDatabase = function() {
         store.put({
           syllables: syllables,
           constantSyllables: constantSyllables,
-          terms: jsonData[dbName][syllables]
+          terms: jsonData[syllables]
         });
       }
     };
@@ -879,15 +892,12 @@ var IMEngineDatabase = function() {
 
   var getTermsJSON = function imedb_getTermsJSON(callback) {
     // Get the simplified Chinese database first and then get the traditional Chinese database.
-    getDbJSON(function getWordsJSONCallback() {
-      getDbJSON(callback, true);
-    }, false);
+    getDbJSON(callback);
   };
 
-  var getDbJSON = function(callback, isTraditionalDb) {
+  var getDbJSON = function(callback) {
     var xhr = new XMLHttpRequest();
-    var url = !isTraditionalDb ? (settings.dbJSON || './db.json') : (settings.dbTrJSON || './db-tr.json');
-    xhr.open('GET', url, true);
+    xhr.open('GET', jsonUrl, true);
     try {
       xhr.responseType = 'json';
     } catch (e) { }
@@ -911,11 +921,10 @@ var IMEngineDatabase = function() {
         return;
       }
 
-      var dbName = !isTraditionalDb ? 'db' : 'dbTr';
-      jsonData[dbName] = {};
+      jsonData = {};
       // clone everything under response coz it's readonly.
       for (var s in response) {
-        jsonData[dbName][s] = response[s];
+        jsonData[s] = response[s];
       }
       xhr = null;
       callback();
@@ -967,7 +976,6 @@ var IMEngineDatabase = function() {
 
   var getTermsFromConstantSyllables = function (constants, callback) {
     debug('Getting terms with constantSyllables: ' + constants);
-    var storeName = getCurrentStoreName();
     
     if (iDBCache['CONSTANT:' + constants]) {
       debug('Found constantSyllables result in iDBCache.');
@@ -1036,8 +1044,8 @@ var IMEngineDatabase = function() {
         return;
       }
 
-      var transaction = iDB.transaction('terms');      
-      var req = transaction.objectStore('terms').get('_last_entry_');
+      var transaction = iDB.transaction(storeName);      
+      var req = transaction.objectStore(storeName).get('_last_entry_');
       req.onsuccess = function(ev) {
           if (ev.target.result !== undefined) {
             ready();
@@ -1046,7 +1054,7 @@ var IMEngineDatabase = function() {
   
           debug('IndexedDB is supported but empty; Downloading JSON ...');
           getTermsJSON(function getTermsInDBCallback() {
-            if (!jsonData.db) {
+            if (!jsonData) {
               debug('JSON failed to download.');
               return;
             }
@@ -1055,32 +1063,8 @@ var IMEngineDatabase = function() {
               'JSON loaded,' +
               'IME is ready to use while inserting data into db ...'
             );
-            populateDBFromJSON('terms', function getTermsInDBCallback() {
-              var transaction = iDB.transaction('terms_tr');      
-              var req = transaction.objectStore('terms_tr').get('_last_entry_');
-              req.onsuccess = function(ev) {
-                  if (ev.target.result !== undefined) {
-                    ready();
-                    return;
-                  }
-          
-                  debug('IndexedDB is supported but empty; Downloading JSON ...');
-                  getTermsJSON(function getTermsInDBCallback() {
-                    if (!jsonData.dbTr) {
-                      debug('JSON failed to download.');
-                      return;
-                    }
-          
-                    debug(
-                      'JSON loaded,' +
-                      'IME is ready to use while inserting data into db ...'
-                    );
-                    ready();
-                    populateDBFromJSON('terms_tr', function getTermsInDBCallback() {
-                      debug('IndexedDB ready and switched to indexedDB backend.');
-                    });
-                  });
-                };              
+            populateDBFromJSON(function getTermsInDBCallback() {
+              debug('IndexedDB ready and switched to indexedDB backend.');
             });
           });
         };
@@ -1092,32 +1076,14 @@ var IMEngineDatabase = function() {
   this.uninit = function imedb_uninit() {
     if (iDB)
       iDB.close();
-    jsonData = {db: null, dbTr: null};
+    jsonData = null;
   };
 
-  /**
-   * Whether to use traditional Chinese database
-   */
-  this.setUseTraditionalDB = function(useTraditionalDB) {
-    settings.useTraditionalDB = useTraditionalDB;
-  };
-  
-  var getCurrentDbName = function() {
-    var name = !settings.useTraditionalDB ? 'db' : 'dbTr';
-    return name;
-  };
-  
-  var getCurrentStoreName = function() {
-    var name = !settings.useTraditionalDB ? 'terms' : 'terms_tr';
-    return name;
-  };  
   /* ==== db lookup functions ==== */
 
   this.getSuggestions =
     function(syllables, text, callback) {
-    var dbName = getCurrentDbName();
-    var storeName = getCurrentStoreName(); 
-    if (!jsonData[dbName] && !iDB) {
+    if (!jsonData && !iDB) {
       debug('Database not ready.');
       callback(false);
       return;
@@ -1161,13 +1127,13 @@ var IMEngineDatabase = function() {
       return;
     }
 
-    if (jsonData[dbName]) {
+    if (jsonData) {
       debug('Lookup in JSON.');
       // XXX: this is not efficient
-      for (var s in jsonData[dbName]) {
+      for (var s in jsonData) {
         if (!matchRegEx.exec(s))
           continue;
-        var terms = jsonData[dbName][s];
+        var terms = jsonData[s];
         terms.forEach(matchTerm);
       }
       if (result.length) {
@@ -1260,9 +1226,7 @@ var IMEngineDatabase = function() {
   },
 
   this.getTerms = function (syllables, callback) {
-    var dbName = getCurrentDbName();
-    var storeName = getCurrentStoreName(); 
-    if (!jsonData[dbName] && !iDB) {
+    if (!jsonData && !iDB) {
       debug('Database not ready.');
       callback(false);
       return;
@@ -1296,15 +1260,15 @@ var IMEngineDatabase = function() {
       return;
     }
 
-    if (jsonData[dbName]) {
+    if (jsonData) {
       debug('Lookup in JSON.');
       debug('Do range search in JSON data.');
       var result = [];
       // XXX: this is not efficient
-      for (var s in jsonData[dbName]) {
+      for (var s in jsonData) {
         if (!matchRegEx.exec(s))
           continue;
-        result = result.concat(jsonData[dbName][s]);
+        result = result.concat(jsonData[s]);
       }
       if (result.length) {
         result = processResult(result);
@@ -1429,6 +1393,56 @@ var IMEngineDatabase = function() {
     ); // compositionsOf.call
   };
 };
+
+
+var DatabaseStorageInterface =  {
+  init: function() {  
+  },
+  
+  uninit: function() {
+  },
+  
+  addTerm: function(syllables, term, freq) {
+  },
+  
+  removeTerm: function(syllables, term) {  
+  }
+};
+
+var JsonStorage = function() {
+  
+};
+
+JsonStorage.prototype = {
+  // Implements DatabaseStorageInterface
+  __proto__: IMEngineBase.prototype,
+  
+  /**
+   * @Override
+   */
+  init: function() {
+    
+  },
+ 
+  /**
+   * @Override
+   */  
+  uninit: function() {
+  },
+  
+  /**
+   * @Override
+   */  
+  addTerm: function(syllables, term, freq) {
+  },
+  
+  /**
+   * @Override
+   */  
+  removeTerm: function(syllables, term) {  
+  } 
+}
+
 
 var jspinyin = new IMEngine(new PinyinParser());
 
