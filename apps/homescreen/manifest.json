@@ -25,6 +25,10 @@
       "name": "Homescreen",
       "description": "Gaia Homescreen"
     },
+    "es": {
+      "name": "Pantalla de inicio",
+      "description": "Pantalla de inicio de Gaia"
+    },
     "fr": {
       "name": "\u00c9cran d\u2019accueil",
       "description": "\u00c9cran d\u2019accueil Gaia"

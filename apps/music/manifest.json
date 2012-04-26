@@ -19,6 +19,10 @@
       "name": "Music",
       "description": "Gaia Music"
     },
+    "es": {
+      "name": "M\u00fasica",
+      "description": "M\u00fasica de Gaia"
+    },
     "fr": {
       "name": "Musique",
       "description": "Lecteur audio Gaia"

@@ -19,6 +19,10 @@
       "name": "Camera",
       "description": "Gaia Camera"
     },
+    "es": {
+      "name": "C\u00e1mara",
+      "description": "C\u00e1mara de Gaia"
+    },
     "fr": {
       "name": "Photo",
       "description": "Appareil photo Gaia"

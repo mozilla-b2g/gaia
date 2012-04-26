@@ -13,11 +13,15 @@
     },
     "de": {
       "name": "Bildergalerie",
-      "description": "Gaia Bildergalerie"
+      "description": "Gaia Galerie"
     },
     "en-US": {
       "name": "Gallery",
       "description": "Gaia Gallery"
+    },
+    "es": {
+      "name": "Galler\u00eda",
+      "description": "Galler\u00eda de Gaia"
     },
     "fr": {
       "name": "Galerie",
