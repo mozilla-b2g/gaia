@@ -195,12 +195,20 @@ tests: manifests offline
 	test -L $(INJECTED_GAIA) || ln -s $(CURDIR) $(INJECTED_GAIA)
 	TEST_PATH=$(TEST_PATH) make -C $(MOZ_OBJDIR) mochitest-browser-chrome EXTRA_TEST_ARGS="--browser-arg=\"\" --extra-profile-file=$(CURDIR)/profile/webapps --extra-profile-file=$(CURDIR)/profile/OfflineCache --extra-profile-file=$(CURDIR)/profile/user.js"
 
-.PHONY: test-agent-server
-test-agent-server:
+.PHONY: test-agent-install
+test-agent-install:
 	@test -x $(NODEJS) || (echo "Please Install NodeJS -- (use aptitude on linux or homebrew on osx)" && exit 1 )
 	@test -x $(NPM) || (echo "Please install NPM (node package manager) -- http://npmjs.org/" && exit 1 )
 
 	cd $(TEST_AGENT_DIR) && npm install .
+
+.PHONY: test-agent-update-common
+test-agent-update-common: test-agent-install
+	rm -f common/vendor/test-agent/test-agent*.js
+	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.js common/vendor/test-agent/
+
+.PHONY: test-agent-server
+test-agent-server: test-agent-install
 	$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent server -c ./$(TEST_AGENT_DIR)/test-agent-server.js --http-path . --growl
 
 .PHONY: marionette
