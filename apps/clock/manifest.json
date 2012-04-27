@@ -19,6 +19,10 @@
       "name": "Clock",
       "description": "Gaia Clock"
     },
+    "es": {
+      "name": "Reloj",
+      "description": "Reloj de Gaia"
+    },
     "fr": {
       "name": "Horloge",
       "description": "Horloge Gaia"

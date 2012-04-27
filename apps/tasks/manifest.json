@@ -1,19 +1,43 @@
 {
   "name": "Tasks",
-  "default_locale": "en-US",
-  "icons": {
-    "120": "/style/icons/Tasks.png"
-  },
   "description": "Gaia Tasks",
   "launch_path": "/",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
   "locales": {
+    "ar": {
+      "name": "Tasks",
+      "description": "Gaia Tasks"
+    },
+    "de": {
+      "name": "Taskmanager",
+      "description": "Gaia Taskmanager"
+    },
     "en-US": {
+      "name": "Tasks",
+      "description": "Gaia Tasks"
+    },
+    "es": {
+      "name": "Tareas",
+      "description": "Tareas de Gaia"
+    },
+    "fr": {
+      "name": "Tasks",
+      "description": "Gaia Tasks"
+    },
+    "ru": {
+      "name": "Tasks",
+      "description": "Gaia Tasks"
+    },
+    "zh-TW": {
       "name": "Tasks",
       "description": "Gaia Tasks"
     }
   },
-  "developer": {
-    "url": "https://github.com/andreasgal/gaia",
-    "name": "The Gaia Team"
+  "default_locale": "en-US",
+  "icons": {
+    "120": "/style/icons/Tasks.png"
   }
 }

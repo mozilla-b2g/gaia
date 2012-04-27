@@ -19,6 +19,10 @@
       "name": "CrystalSkull",
       "description": "WebGL Demo"
     },
+    "es": {
+      "name": "CrystalSkull",
+      "description": "Demo de WebGL"
+    },
     "fr": {
       "name": "CrystalSkull",
       "description": "D\u00e9mo WebGL"
