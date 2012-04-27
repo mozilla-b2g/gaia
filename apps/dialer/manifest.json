@@ -6,7 +6,6 @@
     "name": "The Gaia Team",
     "url": "https://github.com/andreasgal/gaia"
   },
-  "background_page": "/background.html",
   "permissions": [
     "telephony",
     "contacts",
@@ -20,11 +19,19 @@
     },
     "de": {
       "name": "Telefon",
-      "description": "Gaia Telefonw\u00e4hler"
+      "description": "Gaia Telefon"
+    },
+    "el": {
+      "name": "\u03a4\u03b7\u03bb\u03ad\u03c6\u03c9\u03bd\u03bf",
+      "description": "\u03a4\u03b7\u03bb\u03ad\u03c6\u03c9\u03bd\u03bf Gaia"
     },
     "en-US": {
       "name": "Dialer",
       "description": "Gaia Dialer"
+    },
+    "es": {
+      "name": "Llamada",
+      "description": "Realizar llamadas en Gaia"
     },
     "fr": {
       "name": "Appel",
@@ -40,6 +47,7 @@
     }
   },
   "default_locale": "en-US",
+  "background_page": "/background.html",
   "icons": {
     "120": "/style/icons/Phone.png"
   }

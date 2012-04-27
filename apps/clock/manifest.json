@@ -15,9 +15,17 @@
       "name": "Uhr",
       "description": "Gaia Uhr"
     },
+    "el": {
+      "name": "\u03a1\u03bf\u03bb\u03cc\u03b9",
+      "description": "\u03a1\u03bf\u03bb\u03cc\u03b9 Gaia"
+    },
     "en-US": {
       "name": "Clock",
       "description": "Gaia Clock"
+    },
+    "es": {
+      "name": "Reloj",
+      "description": "Reloj de Gaia"
     },
     "fr": {
       "name": "Horloge",

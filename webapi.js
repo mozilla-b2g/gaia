@@ -1247,6 +1247,7 @@
         return applied; // return lang if found, an empty string if not found
       };
     }
+
     gLanguage = lang;
     for (var i = 0; i < langCount; i++) {
       var resource = new l10nResourceLink(langLinks[i]);
@@ -1385,3 +1386,4 @@
     }
   };
 })(this);
+

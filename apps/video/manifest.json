@@ -15,9 +15,17 @@
       "name": "Video",
       "description": "Gaia Video"
     },
+    "el": {
+      "name": "\u0392\u03af\u03bd\u03c4\u03b5\u03bf",
+      "description": "\u0392\u03af\u03bd\u03c4\u03b5\u03bf Gaia"
+    },
     "en-US": {
       "name": "Video",
       "description": "Gaia Video"
+    },
+    "es": {
+      "name": "V\u00eddeo",
+      "description": "V\u00eddeo de Gaia"
     },
     "fr": {
       "name": "Vid\u00e9o",
