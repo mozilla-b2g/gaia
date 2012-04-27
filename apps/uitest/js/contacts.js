@@ -49,26 +49,40 @@ var ContactsTest = {
       }
     }.bind(this);
 
-    req.send(null);
     this.loadButton.disabled = true;
+    req.send(null);
   },
 
-  _insertContacts: function ct_insertContacts(aContacts) {
-    var contactsLen = aContacts.length;
-    for (var i = 0; i < contactsLen; i++) {
-      var contactData = aContacts[i];
-      var contactName = contactData.familyName[0];
-      contactData.tel = "";
-      var contact = new mozContact();
-      contact.init(contactData);
-      var req = navigator.mozContacts.save(contact);
-      req.onsuccess = (function() {
-        log(contactName);
-      })
-      req.onerror = (function() {
-        log("Nope for: " + contactName);
-      })
+  _insertContacts: function ct_insertContacts(aContacts, aCurrent) {
+    if (!aCurrent)
+      aCurrent = 0;
+
+    this._setInsertionCount(aCurrent, aContacts.length);
+
+    if (aCurrent >= aContacts.length) {
+      log('Done!');
+      this.loadButton.disabled = false;
+      return;
     }
+
+    var contact = new mozContact();
+    var contactData = aContacts[aCurrent];
+    contactData.tel = "";
+    contact.init(contactData);
+
+    var req = navigator.mozContacts.save(contact);
+    req.onsuccess = function() {
+      this._insertContacts(aContacts, aCurrent + 1);
+    }.bind(this);
+
+    req.onerror = (function() {
+      log("Nope for: " + contactData.familyName[0]);
+    })
+  },
+
+  _setInsertionCount: function ct__setInsertionCount(aSoFar, aTotal) {
+    var insertionEl = document.getElementById('insertion-count');
+    insertionEl.textContent = aSoFar + ' / ' + aTotal;
   }
 };
 
