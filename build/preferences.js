@@ -135,6 +135,8 @@ domains.push(GAIA_DOMAIN);
         if (name == 'telephony')
           if (manifest.background_page)
             permissions[name].urls.push(rootURL + manifest.background_page);
+        if (manifest.attention_page)
+          permissions[name].urls.push(rootURL + manifest.attention_page);
       }
     }
   });
