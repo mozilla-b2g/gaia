@@ -1,20 +1,26 @@
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
+'use strict';
+
 const CC = Components.Constructor;
+const Cu = Components.utils;
+
+Cu.import('resource:///modules/devtools/dbg-client.jsm');
+
 const LocalFile = CC('@mozilla.org/file/local;1',
                      'nsILocalFile',
                      'initWithPath');
-const ScriptableInputStream = CC(
-  '@mozilla.org/scriptableinputstream;1',
-  'nsIScriptableInputStream');
 
-Components.utils.import('resource:///modules/devtools/dbg-client.jsm');
+const ScriptableInputStream = CC('@mozilla.org/scriptableinputstream;1',
+                                 'nsIScriptableInputStream',
+                                 'init');
 
-let debug = false;
-
-function log(data) {
-  if (!debug) {
+let DEBUG = false;
+function debug(data) {
+  if (!DEBUG)
     return;
-  }
-  dump(data);
+  dump(data + '\n');
 }
 
 function startupHttpd(baseDir, port) {
@@ -38,7 +44,7 @@ function startupHttpd(baseDir, port) {
     identity.add(scheme, name + '.' + host, port);
   });
 
-  server.registerPathHandler('/marionette', handleMarionette);
+  server.registerPathHandler('/marionette', MarionetteHandler);
 }
 
 function getDirectories(dir) {
@@ -63,43 +69,46 @@ function LongPoll(connid, transport) {
   this.transport = transport;
   this.connid = connid;
   this.buffer = [];
-  this.outstanding_push = null;
-  this.outstanding_noop = null;
-  this.outstanding_timeout = null;
+
+  this.outstanding = {
+    push: null,
+    noop: null,
+    timeout: null
+  };
 }
 
 LongPoll.prototype = {
   cast: function cast(msg) {
-    clearTimeout(this.outstanding_noop);
+    let outstanding = this.outstanding;
+    clearTimeout(outstanding.noop);
     this.buffer.push(msg);
-    log('cast ' + JSON.stringify(msg) + ' ' + this.outstanding_push + '\n');
-    if (this.outstanding_push !== null) {
-      this.drain_queue(this.outstanding_push);
-      this.outstanding_push.finish();
-      this.outstanding_push = null;
-      this.outstanding_timeout = setTimeout(function() {
-        close(this.connid);
-      }.bind(this), 5000);
-    }
+
+    if (outstanding.push === null)
+      return;
+
+    debug('cast ' + JSON.stringify(msg) + ' ' + outstanding.push);
+    this.drain_queue(outstanding.push);
+    outstanding.push.finish();
+    outstanding.push = null;
+
+    outstanding.timeout = setTimeout(function close(uid) {
+      Connections.close(uid);
+    }, 5000, this.connid);
   },
 
-  drain_queue: function drain_queue(res) {
-    let queue = this.buffer,
-        response = { messages: [] };
-
+  drain_queue: function drain_queue(response) {
+    let queue = this.buffer;
     this.buffer = [];
 
+    let json = { 'messages': [] };
     queue.forEach(function(chunk) {
-      if (chunk.noop) {
+      if (chunk.noop)
         return;
-      }
-      response.messages.push({
-        id: this.connid,
-        response: chunk
-      });
+
+      json.messages.push({ 'id': this.connid, 'response': chunk });
     }.bind(this));
 
-    res.write(JSON.stringify(response));
+    response.write(JSON.stringify(json));
   },
 
   send: function send(obj) {
@@ -107,131 +116,156 @@ LongPoll.prototype = {
   }
 };
 
-let connections = {},
-    transports = {},
-    connection_num = 0,
-    scriptable = new ScriptableInputStream();
+let transports = {};
 
-
-function close(connid) {
-  log('\n\n closing #' + connid + ' \n\n');
-  let connection = connections[connid];
-  connection.transport.close();
-  delete connections[connid];
+function getUID() {
+ return Cc['@mozilla.org/uuid-generator;1'].getService(Ci.nsIUUIDGenerator)
+                                           .generateUUID()
+                                           .toString();
 }
 
+var Connections = {
+  _connections: {},
+  close: function connections_close(uid) {
+    this._connections[uid].transport.close();
+    delete this._connections[uid];
+  },
 
-function handleMarionette(req, res) {
-  try {
-    if (req.method === 'GET') {
-      if (req.queryString.length === 0) {
-        res.setStatusLine('1.1', 404, 'Not Found');
-        res.write(JSON.stringify({
-          error: 'connection not found'
-        }));
-      } else {
-        // render event stream
-        let connid = req.queryString.split('=')[0],
-            connection = connections[connid];
+  add: function connections_add(uid, connection) {
+    this._connections[uid] = connection;
+  },
 
-        res.setStatusLine('1.1', 200, 'OK');
-        res.setHeader('Content-Type', 'application/json');
-
-        clearTimeout(connection.outstanding_timeout);
-
-        if (connection.buffer.length === 0) {
-          log('waiting /marionette?' + req.queryString + '\n');
-          res.processAsync();
-          connection.outstanding_push = res;
-          log('\n\nsetting timeout\n\n');
-          connection.outstanding_noop = setTimeout(function() {
-            log('\n\nnoop\n\n');
-            connection.cast({ noop: true });
-          }, 25000);
-        } else {
-          log('messages /marionette?' + req.queryString + '\n');
-          connection.drain_queue(res);
-        }
-      }
-    } else if (req.method === 'POST') {
-      // parse login screen
-      // render connection stream
-      let connid = connection_num++;
-
-      res.setStatusLine('1.1', 200, 'OK');
-      res.setHeader('Content-Type', 'application/json');
-      res.write(JSON.stringify({ id: connid}));
-
-      req.bodyInputStream.asyncWait(function(stream) {
-        scriptable.init(stream);
-        let bytes = scriptable.read(scriptable.available()),
-            parsed = JSON.parse(bytes);
-
-        log('BYTES ' + bytes + '\n');
-        let hostport = parsed.server + ':' + parsed.port;
-        log('\n\ncheck\n\n');
-        if (hostport in transports) {
-          log('\n\nremove \n\n');
-          close(transports[hostport]);
-        }
-        let transport,
-            connection;
-
-        transport = debuggerSocketConnect(parsed.server, parseInt(parsed.port));
-        connection = new LongPoll(connid, transport);
-
-        connections[connid] = connection;
-        transports[hostport] = connid;
-
-        transport.hooks = {
-          onPacket: function onPacket(pack) {
-            connection.cast(pack);
-            log('ONPACKET' + JSON.stringify(pack) + '\n');
-          },
-          onClosed: function onClosed(status) {
-            log('CLOSED' + JSON.stringify(status) + '\n');
-          }
-        };
-        transport.ready();
-
-        log('transport\n');
-
-      }, 0, 0, Services.tm.currentThread);
-    } else if (req.method === 'PUT') {
-      let connid = req.queryString.split('=')[0],
-          connection = connections[connid];
-      log('put\n');
-      res.setStatusLine('1.1', 201, 'Accepted');
-      res.setHeader('Content-Type', 'text/plain', false);
-      res.write('');
-      req.bodyInputStream.asyncWait(function(stream) {
-        scriptable.init(stream);
-        let bytes = scriptable.read(scriptable.available()),
-            parsed = null;
-        try {
-          parsed = JSON.parse(bytes);
-          log('PARSED!\n');
-        } catch (e) {
-        }
-        log('stream ' + bytes + '\n');
-        connection.send(parsed);
-      }, 0, 0, Services.tm.currentThread);
-    } else if (req.method === 'DELETE') {
-        let connid = req.queryString.split('=')[0];
-        close(connid);
-    } else {
-      res.setStatusLine('1.1', 405, 'Method Not Allowed');
-      res.write('');
-    }
-  } catch (e) {
-    res.setStatusLine('1.1', 500, 'Internal Server Error');
-    if (e.stack === undefined) {
-      res.write(e.toString());
-    } else {
-      res.write(e.toString() + ' ' + e.stack);
-    }
+  get: function connections_get(uid) {
+    return this._connections[uid] || null;
   }
-}
+};
+
+var MarionetteHandler = {
+  // nsIHttpRequestHandler
+  handle: function mh_handle(request, response) {
+    try {
+      debug(request.method);
+
+      switch (request.method) {
+        case 'GET':
+          this.onGet(request, response);
+          break;
+        case 'POST':
+          this.onPost(request, response);
+          break;
+        case 'PUT':
+          this.onPut(request, response);
+          break;
+        case 'DELETE':
+          this.onDelete(request, response);
+          break;
+        default:
+          this.onDefault(request, response);
+          break;
+      }
+    } catch(e) {
+      response.setStatusLine('1.1', 500, 'Internal Server Error');
+      response.write(e.toString() + e.stack == undefined ? '' : ' ' + e.stack);
+    }
+  },
+
+  onGet: function mh_get(request, response) {
+    debug('/marionette?' + request.queryString);
+    if (request.queryString.length === 0) {
+      response.setStatusLine('1.1', 404, 'Not Found');
+      response.write(JSON.stringify({ 'error': 'connection not found' }));
+      return;
+    }
+    response.setStatusLine('1.1', 200, 'OK');
+    response.setHeader('Content-Type', 'application/json');
+
+    let uid = request.queryString.split('=')[0];
+    let connection = Connections.get(uid);
+    if (!connection) {
+      debug('Could not get connection for ' + request.queryString);
+      return;
+    }
+
+    clearTimeout(connection.outstanding_timeout);
+
+    if (connection.buffer.length !== 0) {
+      connection.drain_queue(response);
+      return;
+    }
+
+    response.processAsync();
+
+    connection.outstanding_push = response;
+    connection.outstanding_noop = setTimeout(function() {
+      connection.cast({ 'noop': true });
+    }, 25000);
+  },
+
+  onPost: function mh_post(request, response) {
+    response.setStatusLine('1.1', 200, 'OK');
+    response.setHeader('Content-Type', 'application/json');
+
+    let uid = getUID();
+    response.write(JSON.stringify({ 'id': uid }));
+
+    request.bodyInputStream.asyncWait(function(stream) {
+      let scriptable = new ScriptableInputStream(stream);
+      let json = scriptable.read(scriptable.available());
+      let { server: server, port: port } = JSON.parse(json);
+
+      let hostport = server + ':' + port;
+      if (hostport in transports) {
+        Connections.close(transports[hostport]);
+      }
+
+      debug('Opening a transport socket to the debugger...');
+      let transport = debuggerSocketConnect(server, parseInt(port));
+      let connection = new LongPoll(uid, transport);
+      Connections.add(uid, connection);
+      transports[hostport] = uid;
+
+      transport.hooks = {
+        onPacket: function onPacket(pack) {
+          debug('onpacket ' + JSON.stringify(pack));
+          connection.cast(pack);
+        },
+        onClosed: function onClosed(status) {
+          debug('onclosed ' + JSON.stringify(status));
+        }
+      };
+
+      transport.ready();
+    }, 0, 0, Services.tm.currentThread);
+  },
+
+  onPut: function mh_put(request, response) {
+    response.setStatusLine('1.1', 201, 'Accepted');
+    response.setHeader('Content-Type', 'text/plain', false);
+    response.write('');
+
+    let uid = request.queryString.split('=')[0];
+    let connection = Connnections.get(uid);
+    if (!connection) {
+      debug('Could not get connection for ' + request.queryString);
+      return;
+    }
+
+    request.bodyInputStream.asyncWait(function(stream) {
+      let scriptable = new ScriptableInputStream(stream);
+      let json = scriptable.read(scriptable.available());
+      connection.send(JSON.parse(json));
+    }, 0, 0, Services.tm.currentThread);
+  },
+
+  onDelete: function mh_delete(request, response) {
+    Connections.close(request.queryString.split('=')[0]);
+  },
+
+  onDefault: function mh_default(request, response) {
+    response.setStatusLine('1.1', 405, 'Method Not Allowed');
+    response.write('');
+  }
+};
 
 startupHttpd('@GAIA_DIR@', @GAIA_PORT@);
 
