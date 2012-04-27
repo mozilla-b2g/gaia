@@ -6,8 +6,8 @@
 (function() {
 
 var debugging = false;
-var debug = function(str, force) {
-  if (!debugging && !force)
+var debug = function(str) {
+  if (!debugging)
     return;
 
   if (window.dump)
@@ -17,6 +17,16 @@ var debug = function(str, force) {
     if (arguments.length > 1)
       console.log.apply(this, arguments);
   }
+};
+
+
+var log = function(str) {
+  var logfunc = console.log || window.dump;
+  var logStr = '';
+  for (var i=0; i<arguments.length; i++) {
+    logStr += JSON.stringify(arguments[i]);
+  }
+  logfunc(logStr);
 };
 
 /* for non-Mozilla browsers */
@@ -374,7 +384,7 @@ IMEngine.prototype = {
   _startPosition: 0,
   
   // Enable IndexedDB
-  _enableIndexedDB: false,
+  _enableIndexedDB: true,
 
   // Tell the algorithm what's the longest term
   // it should attempt to match
@@ -420,9 +430,8 @@ IMEngine.prototype = {
       dbSettings.ready = readyCallback;
     }
     
-    var storeName = name == 'traditional' ? 'terms_tr' : 'terms';
     var jsonUrl = this._glue.path + (name == 'traditional' ? '/db-tr.json' : '/db.json');
-    this._db[name] = new IMEngineDatabase(storeName, jsonUrl);
+    this._db[name] = new IMEngineDatabase(name, jsonUrl);
     this._db[name].init(dbSettings);  
   },
   
@@ -833,6 +842,9 @@ DatabaseStorageBase.prototype =  {
     return this._status;
   },
   
+  /**
+   * Whether the database is ready to use.
+   */
   isReady: function() {
     return this._status == DatabaseStorageBase.StatusCode.READY;
   },
@@ -855,13 +867,30 @@ DatabaseStorageBase.prototype =  {
   uninit: function(callback /*function callback()*/) {
   },
   
+
   /**
-   * Get all iterms.
+   * Whether the storage is empty.
+   * @returns {Boolean} true if the storage is empty; otherwise false.
+   */
+  isEmpty: function() {
+  },
+  
+  /**
+   * Get all terms.
    * @param {Function} callback Javascript function object that is called when the operation
    * is finished. The definition of callback is function callback(homonymsArray). The homonymsArray
    * parameter is an array of Homonyms objects.
    */   
   getAllTerms: function(callback /*function callback(homonymsArray)*/) {
+  },
+  
+  /**
+   * Set all the terms of the storage.
+   * @param {Array} homonymsArray The array of Homonyms objects containing all the terms.
+   * @param {Function} callback Javascript function object that is called when the operation
+   * is finished. The definition of callback is function callback(). 
+   */   
+  setAllTerms: function(homonymsArray, callback /*function callback()*/) {
   },
   
   /**
@@ -912,7 +941,7 @@ DatabaseStorageBase.prototype =  {
    * is finished. The definition of callback is function callback(). 
    */  
   removeTerm: function(syllablesStr, term, callback /*function callback()*/) {  
-  },
+  } 
 };
 
 var JsonStorage = function(jsonUrl) {
@@ -925,6 +954,7 @@ JsonStorage.prototype = {
   
   _dataArray: {},
   
+  // The JSON file url.
   _jsonUrl: null,
   
   /**
@@ -1016,6 +1046,16 @@ JsonStorage.prototype = {
     
     this._status = DatabaseStorageBase.StatusCode.UNINITIALIZED;
     doCallback();
+  },
+  
+  /**
+   * @Override
+   */
+  isEmpty: function() {
+    for (var s in this._dataArray) {
+      return false;
+    }
+    return true;
   },
   
   /**
@@ -1125,20 +1165,362 @@ JsonStorage.prototype = {
   }
 };
 
-var IMEngineDatabase = function(storeName, jsonUrl) {
-  var settings;
 
-  /* name and version of IndexedDB */
-  var kDBName = 'jspinyin';
-  var kDBVersion = 2;
+/**
+ * Interfaces of indexedDB
+ */
+var IndexedDB = {
+  indexedDB: window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB,
+  
+  IDBDatabase: window.IDBDatabase || window.webkitIDBDatabase ||window.msIDBDatabase,
+  
+  IDBIndex: window.IDBIndex || window.webkitIDBIndex || window.msIDBIndex,
+  
+  /**
+   * Check if the indexedDB is available on this platform
+   */
+  isReady: function() {
+    if (!this.indexedDB || // No IndexedDB API implementation
+        this.IDBDatabase.prototype.setVersion || // old version of IndexedDB API
+        window.location.protocol === 'file:') {  // bug 643318
+      debug('IndexedDB is not available on this platform.');
+      return false;
+    }
+    return true;
+  },
+};
+
+var IndexedDBStorage = function(dbName) {
+  this._dbName= dbName;
+};
+
+IndexedDBStorage.kDBVersion = 1.0;
+
+IndexedDBStorage.prototype = {
+  // Inherits DatabaseStorageBase
+  __proto__: DatabaseStorageBase.prototype,
+  
+  // Database name
+  _dbName: null,
+    
+  // IDBDatabase interface
+  _IDBDatabase: null,
+  
+  _cache: {},
+  
+  _count: 0,
+  
+  /**
+   * @Override
+   */
+  init: function(callback /*function callback(statusCode)*/) {
+    var self = this;
+    function doCallback() {
+      if (callback) {
+        callback(self._status);
+      }
+    }
+    
+    // Check if we could initilize.
+    if (IndexedDB.isReady() && this._status != DatabaseStorageBase.StatusCode.UNINITIALIZED) {
+      doCallback();
+      return;
+    }
+    
+    // Set the status to busy.
+    this._status = DatabaseStorageBase.StatusCode.BUSY;
+    
+    // Open the database
+    var req = IndexedDB.indexedDB.open(this._dbName, IndexedDBStorage.kDBVersion);
+    req.onerror = function dbopenError(ev) {
+      debug('Encounter error while opening IndexedDB.');
+      self._status = DatabaseStorageBase.StatusCode.ERROR;
+      doCallback();
+    };
+
+    req.onupgradeneeded = function dbopenUpgradeneeded(ev) {
+      debug('IndexedDB upgradeneeded.');
+      self._IDBDatabase = ev.target.result;
+
+      // delete the old ObjectStore if present
+      if (self._IDBDatabase.objectStoreNames.length !== 0) {
+        self._IDBDatabase.deleteObjectStore('homonyms');
+      }
+
+      // create ObjectStore
+      var store = self._IDBDatabase.createObjectStore('homonyms', { keyPath: 'syllablesString' });
+      store.createIndex(
+        'abbreviatedSyllablesString', 'abbreviatedSyllablesString', { unique: false });     
+
+      // no callback() here
+      // onupgradeneeded will follow by onsuccess event
+    };
+
+    req.onsuccess = function dbopenSuccess(ev) {
+      debug('IndexedDB opened.');
+      self._IDBDatabase = ev.target.result;
+      
+      self._count = 0;
+
+      // Get the count
+      var transaction = self._IDBDatabase.transaction('homonyms', 'readonly');    
+      var reqCount = transaction.objectStore('homonyms').count();
+
+      reqCount.onsuccess = function(ev) {
+        if (ev.target.result !== undefined) {
+          self._status = DatabaseStorageBase.StatusCode.READY;
+        } else {
+          self._status = DatabaseStorageBase.StatusCode.ERROR;
+        }
+        doCallback();
+      };
+
+      reqCount.onerror = function (ev) {
+        self._status = DatabaseStorageBase.StatusCode.ERROR;
+        doCallback();
+      };      
+    };    
+  },
+ 
+  /**
+   * @Override
+   */  
+  uninit: function(callback) {
+    function doCallback() {
+      if (callback) {
+        callback();
+      }
+    }
+    
+    // Check if we could uninitilize the storage
+    if (this._status == DatabaseStorageBase.StatusCode.UNINITIALIZED) {
+      doCallback();
+      return;
+    }
+    
+    // Perform destruction operation
+    if (this._IDBDatabase) {
+      this._IDBDatabase.close();
+    }
+    
+    this._status = DatabaseStorageBase.StatusCode.UNINITIALIZED;
+    doCallback();
+  },
+  
+  /**
+   * @Override
+   */
+  isEmpty: function() {
+    return this._count == 0;
+  },
+  
+  /**
+   * @Override
+   */ 
+  getAllTerms: function(callback /*function callback(homonymsArray)*/) {
+    var homonymsArray = [];
+    function doCallback() {
+      if (callback) {
+        callback(homonymsArray);
+      }
+    }
+    
+    // Check if the storage is ready.
+    if (!this.isReady()) {
+      doCallback();
+      return;
+    }
+    
+    // Query all terms
+    var store = this._IDBDatabase.transaction(['homonyms'], 'readonly')
+      .objectStore('homonyms');
+    var req = store.openCursor();
+    
+    req.onerror = function(ev) {
+      debug('Database read error.');
+      doCallback();
+    };
+    req.onsuccess = function(ev) {
+      var cursor = ev.target.result;
+      if (cursor) {
+        var homonyms = cursor.value;
+        homonymsArray.push(homonyms); 
+        cursor.continue();
+      } else {
+        doCallback();
+      }
+    };
+  },
+  
+  setAllTerms: function(homonymsArray, callback /*function callback()*/) {
+    var self = this;
+    function doCallback() {
+      self._status = DatabaseStorageBase.StatusCode.READY;
+      if (callback) {
+        callback();
+      }
+    }
+    
+    // Check if the storage is ready.
+    if (!this.isReady()) {
+      doCallback();
+      return;
+    }
+    
+    // Set the status to busy.
+    this._status = DatabaseStorageBase.StatusCode.BUSY;
+    
+    var doAdd = function() { 
+      var transaction = self._IDBDatabase.transaction(['homonyms'], 'readwrite');
+      var store = transaction.objectStore('homonyms');
+      
+      transaction.onerror = function(ev) {
+        debug('Database read error.');
+        doCallback();
+      };
+      
+      transaction.oncomplete = function() {
+        doCallback();
+      };
+      
+      for (var i=0; i<homonymsArray.length; i++) {
+        var homonyms = homonymsArray[i];
+        store.put(homonyms);
+      }
+    }
+    
+    setTimeout(doAdd, 0);
+  },
+  
+  /**
+   * @Override
+   */   
+  getTermsBySyllables: function(syllablesStr, callback /*function callback(homonymsArray)*/) {
+    var homonymsArray = [];
+    function doCallback() {
+      if (callback) {
+        callback(homonymsArray);
+      }
+    }
+    
+    // Check if the storage is ready.
+    if (!this.isReady()) {
+      doCallback();
+      return;
+    }
+    
+    var store = this._IDBDatabase.transaction(['homonyms'], 'readyonly')
+      .objectStore('homonyms');
+    var req = store.get(syllablesStr);
+    
+    req.onerror = function(ev) {
+      debug('Database read error.');
+      doCallback();
+    };
+    
+    req.onsuccess = function(ev) {
+      var homonyms = ev.target.result;
+      homonymsArray.push(homonyms);
+      doCallback();
+    };    
+  },
+
+  /**
+   * @Override
+   */   
+  getTermsBySyllablesPrefix: function(prefix, callback /*function callback(homonymsArray)*/) {
+    var homonymsArray = [];
+    function doCallback() {
+      if (callback) {
+        callback(homonymsArray);
+      }
+    }
+    
+    // Check if the storage is ready.
+    if (!this.isReady()) {
+      doCallback();
+      return;
+    }
+    
+    var upperBound = prefix.substr(0, prefix.length - 1) +
+      String.fromCharCode(prefix.substr(prefix.length - 1).charCodeAt(0) + 1);
+  
+    var store = this._IDBDatabase.transaction(['homonyms'], 'readonly')
+      .objectStore('homonyms');
+    var req = store.openCursor(IDBKeyRange.bound(prefix, upperBound, true, true));
+    
+    req.onerror = function(ev) {
+      debug('Database read error.');
+      doCallback();
+    };
+    req.onsuccess = function(ev) {
+      var cursor = ev.target.result;
+      if (cursor) {
+        var homonyms = cursor.value;
+        homonymsArray.push(homonyms); 
+        cursor.continue();
+      } else {
+        doCallback();
+      }
+    };  
+  }, 
+
+  /**
+   * @Override
+   */   
+  getTermsByAbbreviatedSyllables: function(abbreviated, callback /*function callback(homonymsArray)*/) {
+    var homonymsArray = [];
+    function doCallback() {
+      if (callback) {
+        debug('JsonStorage#getTermsByAbbreviatedSyllables callback:' + JSON.stringify(homonymsArray));
+        callback(homonymsArray);
+      }
+    }
+    
+    // Check if the storage is ready.
+    if (!this.isReady()) {
+      doCallback();
+      return;
+    }
+    
+    var matchRegEx = new RegExp(
+       '^' + abbreviated.replace(/([^']+)/g, "$1[^']*"));
+    
+    var fullyAbbreviated = SyllableUtils.stringToAbbreviated(abbreviated);
+  
+    var store = this._IDBDatabase.transaction(['homonyms'], 'readonly')
+      .objectStore('homonyms');
+    var req = store.index('abbreviatedSyllablesString').openCursor(IDBKeyRange.only(fullyAbbreviated));
+    
+    req.onerror = function(ev) {
+      debug('Database read error.');
+      doCallback();
+    };
+    req.onsuccess = function(ev) {
+      var cursor = ev.target.result;
+      if (cursor) {
+        var homonyms = cursor.value;
+        if (matchRegEx.exec(homonyms.syllablesString)) {
+          homonymsArray.push(homonyms);
+        }
+        cursor.continue();
+      } else {
+        doCallback();
+      }
+    };  
+  }
+};
+
+var IMEngineDatabase = function(dbName, jsonUrl) {
+  var settings;
   
   /**
    * Dictionary words' total frequency.
    */
   var kDictTotalFreq = 1.0e8;
 
-  var storage = new JsonStorage(jsonUrl);
-  var iDB;
+  var jsonStorage = new JsonStorage(jsonUrl);
+  var indexedDBStorage = new IndexedDBStorage(dbName);
 
   var iDBCache = {};
   var cacheTimer;
@@ -1146,126 +1528,16 @@ var IMEngineDatabase = function(storeName, jsonUrl) {
 
   var self = this;
 
-  var indexedDB = window.indexedDB ||
-    window.webkitIndexedDB ||
-    window.mozIndexedDB ||
-    window.msIndexedDB;
-
-  var IDBDatabase = window.IDBDatabase ||
-    window.webkitIDBDatabase ||
-    window.msIDBDatabase;
-
-  var IDBKeyRange = window.IDBKeyRange ||
-    window.webkitIDBKeyRange ||
-    window.msIDBKeyRange;
-
-  var IDBIndex = window.IDBIndex ||
-    window.webkitIDBIndex ||
-    window.msIDBIndex;
-
   /* ==== init functions ==== */
 
   var getTermsInDB = function(callback) {
-    if (!indexedDB || // No IndexedDB API implementation
-        IDBDatabase.prototype.setVersion || // old version of IndexedDB API
-        window.location.protocol === 'file:') {  // bug 643318
-      debug('IndexedDB is not available on this platform.');
-      callback();
-      return;
-    }
-
-    var req = indexedDB.open(kDBName, kDBVersion);
-    req.onerror = function dbopenError(ev) {
-      debug('Encounter error while opening IndexedDB.');
-      callback();
-    };
-
-    req.onupgradeneeded = function dbopenUpgradeneeded(ev) {
-      debug('IndexedDB upgradeneeded.');
-      iDB = ev.target.result;
-
-      // delete the old ObjectStore if present
-      if (iDB.objectStoreNames.length !== 0) {
-        iDB.deleteObjectStore('terms');
-        iDB.deleteObjectStore('terms_tr');
-      }
-
-      // create ObjectStore
-      var store = iDB.createObjectStore('terms', { keyPath: 'syllables' });
-      store.createIndex(
-        'constantSyllables', 'constantSyllables', { unique: false });
-      var storeTr = iDB.createObjectStore('terms_tr', { keyPath: 'syllables' });
-      storeTr.createIndex(
-        'constantSyllables', 'constantSyllables', { unique: false });      
-
-      // no callback() here
-      // onupgradeneeded will follow by onsuccess event
-      return;
-    };
-
-    req.onsuccess = function dbopenSuccess(ev) {
-      debug('IndexedDB opened.');
-      iDB = ev.target.result;
-      callback();
-    };
+    indexedDBStorage.init(callback);
   };
 
-  var populateDBFromJSON = function(callback) {
-    var chunks = [];
-    var chunk = [];
-    var i = 0;
-    
-    storage.getAllTerms(function(homonymsArray) {
-      for (var i=0; i<homonymsArray.length; i++) {
-        var homonyms = homonymsArray[i];
-        chunk.push(homonyms);
-        i++;
-        if (i > 2048) {
-          chunks.push(chunk);
-          chunk = [];
-          i = 0;
-        }
-      }
-      chunks.push(chunk);
-      chunks.push(new Homonyms('_last_entry_', []));
-      
-      var addChunk = function() {
-        debug('Loading data chunk into IndexedDB, ' +
-            (chunks.length - 1) + ' chunks remaining.');
-  
-        var transaction = iDB.transaction(storeName, 'readwrite');
-        var store = transaction.objectStore(storeName);
-  
-        transaction.onerror = function putError(ev) {
-          debug('Problem while populating DB with JSON data.');
-        };
-  
-        transaction.oncomplete = function putComplete() {
-          if (chunks.length) {
-            setTimeout(addChunk, 0);
-          } else {
-            setTimeout(callback, 0);
-          }
-        };
-  
-        var chunk = chunks.shift();
-        for (i in chunk) {
-          var homonyms = chunk[i];
-          var constantSyllables = homonyms.abbreviatedSyllablesString;
-          store.put({
-            syllables: homonyms.syllablesString,
-            constantSyllables: constantSyllables,
-            terms: homonyms.terms
-          });
-        }
-      };
-  
-      setTimeout(addChunk, 0);      
+  var populateDBFromJSON = function(callback) {    
+    jsonStorage.getAllTerms(function(homonymsArray) {
+      indexedDBStorage.setAllTerms(homonymsArray, callback);
     });
-  };
-
-  var getTermsJSON = function imedb_getTermsJSON(callback) {
-    storage.init(callback);
   };
 
   /* ==== helper functions ==== */
@@ -1309,51 +1581,6 @@ var IMEngineDatabase = function(storeName, jsonUrl) {
     }, kCacheTimeout);
   };
 
-  var getTermsFromConstantSyllables = function (constants, callback) {
-    debug('Getting terms with constantSyllables: ' + constants);
-    
-    if (iDBCache['CONSTANT:' + constants]) {
-      debug('Found constantSyllables result in iDBCache.');
-      callback(iDBCache['CONSTANT:' + constants]);
-      return;
-    }
-
-    var store = iDB.transaction(storeName, 'readonly')
-      .objectStore(storeName);
-    if (IDBIndex.prototype.getAll) {
-      // Mozilla IndexedDB extension
-      var req = store.index('constantSyllables').getAll(
-        IDBKeyRange.only(constants));
-    } else {
-      var req = store.index('constantSyllables').openCursor(
-        IDBKeyRange.only(constants));
-    }
-    req.onerror = function getdbError(ev) {
-      debug('Database read error.');
-      callback(false);
-    };
-    var constantResult = [];
-    req.onsuccess = function getdbSuccess(ev) {
-      if (ev.target.result && ev.target.result.constructor == Array) {
-        constantResult = ev.target.result;
-        cacheSetTimeout();
-        iDBCache['CONSTANT:' + constants] = constantResult;
-        callback(constantResult);
-        return;
-      }
-      var cursor = ev.target.result;
-      if (!cursor) {
-        cacheSetTimeout();
-        iDBCache['CONSTANT:' + constants] = constantResult;
-        callback(constantResult);
-        return;
-      }
-      iDBCache[cursor.value.syllables] = cursor.value.terms;
-      constantResult.push(cursor.value);
-      cursor.continue();
-    };
-  };
-
   /* ==== init ==== */
 
   this.init = function (options) {
@@ -1367,58 +1594,59 @@ var IMEngineDatabase = function(storeName, jsonUrl) {
 
     if (!settings.enableIndexedDB) {
       debug('IndexedDB disabled; Downloading JSON ...');
-      getTermsJSON(ready);
+      jsonStorage.init(ready);
       return;
     }
 
     debug('Probing IndexedDB ...');
-    getTermsInDB(function getTermsInDBCallback() {
-      if (!iDB) {
+    indexedDBStorage.init(function() {
+      if (!indexedDBStorage.isReady()) {
         debug('IndexedDB not available; Downloading JSON ...');
-        getTermsJSON(ready);
+        jsonStorage.init(ready);
         return;
       }
-
-      var transaction = iDB.transaction(storeName);      
-      var req = transaction.objectStore(storeName).get('_last_entry_');
-      req.onsuccess = function(ev) {
-          if (ev.target.result !== undefined) {
-            ready();
+      if (indexedDBStorage.isEmpty()) {
+        jsonStorage.init(function () {
+          if (!jsonStorage.isReady()) {
+            debug('JSON failed to download.');
             return;
           }
   
-          debug('IndexedDB is supported but empty; Downloading JSON ...');
-          getTermsJSON(function getTermsInDBCallback() {
-            if (!storage.isReady()) {
-              debug('JSON failed to download.');
-              return;
-            }
-  
-            debug(
-              'JSON loaded,' +
-              'IME is ready to use while inserting data into db ...'
-            );
-            populateDBFromJSON(function getTermsInDBCallback() {
-              debug('IndexedDB ready and switched to indexedDB backend.');
-            });
+          debug(
+            'JSON loaded,' +
+            'IME is ready to use while inserting data into db ...'
+          );
+          populateDBFromJSON(function() {
+            debug('IndexedDB ready and switched to indexedDB backend.');
           });
-        };
+        });
+      }
     });
   };
 
   /* ==== uninit ==== */
 
   this.uninit = function imedb_uninit() {
-    if (iDB)
-      iDB.close();
-    storage.uninit();
+    indexedDBStorage.uninit();
+    jsonStorage.uninit();
+  };
+  
+  var getUsableStorage = function() {
+    var storage = settings.enableIndexedDB ? indexedDBStorage : jsonStorage;
+    if (settings.enableIndexedDB && indexedDBStorage.isReady()) {
+      return indexedDBStorage;
+    } else if (jsonStorage.isReady()) {
+      return jsonStorage;
+    } else {
+      return null;
+    }
   };
 
   /* ==== db lookup functions ==== */
 
-  this.getSuggestions =
-    function(syllables, text, callback) {
-    if (!storage.isReady() && !iDB) {
+  this.getSuggestions = function(syllables, text, callback) {
+    var storage = getUsableStorage();
+    if (!storage) {
       debug('Database not ready.');
       callback(false);
       return;
@@ -1462,105 +1690,25 @@ var IMEngineDatabase = function(storeName, jsonUrl) {
       return;
     }
 
-    if (storage.isReady()) {
-      debug('Lookup in JSON.');
-      storage.getTermsBySyllablesPrefix(syllablesStr, function(homonymsArray) {        
-        for (var i=0; i<homonymsArray.length; i++) {
-          var homonyms = homonymsArray[i];
-          homonyms.terms.forEach(matchTerm);
-        }
-        if (result.length) {
-          result = processResult(result);
-        } else {
-          result = false;
-        }
-        cacheSetTimeout();
-        iDBCache['SUGGESTION:' + textStr] = result;
-        callback(result);        
-      });
-      return;
-    }
-
-    debug('Lookup in IndexedDB.');
-
-    var findSuggestionsInIDB = function findSuggestionsInIDB() {
-      var upperBound = syllablesStr.substr(0, syllablesStr.length - 1) +
-        String.fromCharCode(
-          syllablesStr.substr(syllablesStr.length - 1).charCodeAt(0) + 1);
-
-      debug('Do IndexedDB range search with lowerBound ' + syllablesStr +
-        ' and upperBound ' + upperBound + '.');
-
-      var store = iDB.transaction(storeName, 'readonly')
-        .objectStore(storeName);
-      if (IDBIndex.prototype.getAll) {
-        // Mozilla IndexedDB extension
-        var req = store.getAll(
-          IDBKeyRange.bound(syllablesStr, upperBound, true, true));
+    storage.getTermsBySyllablesPrefix(syllablesStr, function(homonymsArray) {        
+      for (var i=0; i<homonymsArray.length; i++) {
+        var homonyms = homonymsArray[i];
+        homonyms.terms.forEach(matchTerm);
+      }
+      if (result.length) {
+        result = processResult(result);
       } else {
-        var req = store.openCursor(
-          IDBKeyRange.bound(syllablesStr, upperBound, true, true));
+        result = false;
       }
-      req.onerror = function getdbError(ev) {
-        debug('Database read error.');
-        callback(false);
-      };
-      var finish = function index_finish() {
-        if (result.length) {
-          result = processResult(result);
-        } else {
-          result = false;
-        }
-        cacheSetTimeout();
-        iDBCache['SUGGESTION:' + textStr] = result;
-        callback(result);
-      };
-      req.onsuccess = function getdbSuccess(ev) {
-        if (ev.target.result && ev.target.result.constructor == Array) {
-          ev.target.result.forEach(function index_forEach(value) {
-            value.terms.forEach(matchTerm);
-          });
-          finish();
-          return;
-        }
-        var cursor = ev.target.result;
-        if (!cursor) {
-          finish();
-          return;
-        }
-        cursor.value.terms.forEach(matchTerm);
-        cursor.continue();
-      };
-    };
-
-    debug('Attempt to resolve the complete syllables of ' + textStr +
-      ' from ' + syllablesStr + '.');
-    var constants = syllablesStr.replace(/([^'])[^']*/g, '$1');
-    getTermsFromConstantSyllables(
-      constants, function gotTerms(constantResult) {
-        if (!constantResult) {
-          callback(false);
-          return;
-        }
-        constantResult.some(function(obj) {
-          if (!matchRegEx.exec(obj.syllables))
-            return false;
-          return obj.terms.some(function term_forEach(term) {
-            if (term[0] === textStr) {
-              debug('Found ' + obj.syllables);
-              syllablesStr = obj.syllables;
-              return true;
-            }
-            return false;
-          });
-        });
-        findSuggestionsInIDB();
-      }
-    );
+      cacheSetTimeout();
+      iDBCache['SUGGESTION:' + textStr] = result;
+      callback(result);        
+    });
   },
 
   this.getTerms = function (syllables, callback) {
-    if (!storage.isReady() && !iDB) {
+    var storage = getUsableStorage();
+    if (!storage) {
       debug('Database not ready.');
       callback(false);
       return;
@@ -1594,51 +1742,21 @@ var IMEngineDatabase = function(storeName, jsonUrl) {
       return;
     }
 
-    if (storage.isReady()) {
-      debug('Lookup in JSON.');
-      storage.getTermsByAbbreviatedSyllables(syllablesStr, function(homonymsArray) {
-        var result = [];
-        for (var i=0; i<homonymsArray.length; i++) {
-          var homonyms = homonymsArray[i];
-          result = result.concat(homonyms.terms);          
-        }
-        if (result.length) {
-          result = processResult(result);
-        } else {
-          result = false;
-        }
-        cacheSetTimeout();
-        iDBCache[syllablesStr] = result;
-        callback(result);        
-      });
-      return;
-    }
-
-    debug('Lookup in IndexedDB.');
-    debug('Do range search in IndexedDB.');
-    var constants = syllablesStr.replace(/([^'])[^']*/g, '$1');
-    getTermsFromConstantSyllables(
-      constants,
-      function gotTerms(constantResult) {
-        var result = [];
-        if (!constantResult) {
-          callback(false);
-          return;
-        }
-        constantResult.forEach(function(obj) {
-          if (matchRegEx.exec(obj.syllables))
-            result = result.concat(obj.terms);
-        });
-        if (result.length) {
-          result = processResult(result);
-        } else {
-          result = false;
-        }
-        cacheSetTimeout();
-        iDBCache[syllablesStr] = result;
-        callback(result);
+    storage.getTermsByAbbreviatedSyllables(syllablesStr, function(homonymsArray) {
+      var result = [];
+      for (var i=0; i<homonymsArray.length; i++) {
+        var homonyms = homonymsArray[i];
+        result = result.concat(homonyms.terms);          
       }
-    );
+      if (result.length) {
+        result = processResult(result);
+      } else {
+        result = false;
+      }
+      cacheSetTimeout();
+      iDBCache[syllablesStr] = result;
+      callback(result);        
+    });
   };
 
   this.getTermWithHighestScore =
@@ -1684,7 +1802,7 @@ var IMEngineDatabase = function(storeName, jsonUrl) {
                   syllables.slice(start, start + numOfWord).join('');
                 debug('Syllable ' + syllable +
                   ' does not made up a word, insert symbol.');
-                term = [syllable, 0];
+                term = {phrase:syllable, freq: 0};
               }
 
               str.push(term);
@@ -1706,12 +1824,12 @@ var IMEngineDatabase = function(storeName, jsonUrl) {
               var scoreA = 1;
 
               a.forEach(function countScoreA(term) {
-                scoreA *= term[1] / kDictTotalFreq;
+                scoreA *= term.freq / kDictTotalFreq;
               });
 
               var scoreB = 1;
               b.forEach(function countScoreB(term) {
-                scoreB *= term[1] / kDictTotalFreq;
+                scoreB *= term.freq / kDictTotalFreq;
               });
 
               return (scoreB - scoreA);
