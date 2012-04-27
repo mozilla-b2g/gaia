@@ -3,8 +3,8 @@ const LocalFile = CC('@mozilla.org/file/local;1',
                      'nsILocalFile',
                      'initWithPath');
 const ScriptableInputStream = CC(
-  "@mozilla.org/scriptableinputstream;1",
-  "nsIScriptableInputStream");
+  '@mozilla.org/scriptableinputstream;1',
+  'nsIScriptableInputStream');
 
 Components.utils.import('resource:///modules/devtools/dbg-client.jsm');
 
@@ -38,21 +38,11 @@ function startupHttpd(baseDir, port) {
     identity.add(scheme, name + '.' + host, port);
   });
 
-  try {
-    Components.utils.import('resource:///modules/devtools/dbg-server.jsm');
-  //  DebuggerServer.addBrowserActors();
-    DebuggerServer.addActors('chrome://httpd.js/content/marionette-actors.js');
-    DebuggerServer.init();
-    DebuggerServer.openListener(2828, true);
-  } catch (e) {
-    // already open if running in b2g desktop
-  }
-
-  server.registerPathHandler('/marionette', handleMarionette);  
+  server.registerPathHandler('/marionette', handleMarionette);
 }
 
 function getDirectories(dir) {
-  let appsDir = Cc["@mozilla.org/file/local;1"]
+  let appsDir = Cc['@mozilla.org/file/local;1']
                .createInstance(Ci.nsILocalFile);
   appsDir.initWithPath(dir);
   appsDir.append('apps');
@@ -82,7 +72,7 @@ LongPoll.prototype = {
   cast: function cast(msg) {
     clearTimeout(this.outstanding_noop);
     this.buffer.push(msg);
-    log("cast "+JSON.stringify(msg)+ " " + this.outstanding_push + "\n");
+    log('cast ' + JSON.stringify(msg) + ' ' + this.outstanding_push + '\n');
     if (this.outstanding_push !== null) {
       this.drain_queue(this.outstanding_push);
       this.outstanding_push.finish();
@@ -106,7 +96,7 @@ LongPoll.prototype = {
       response.messages.push({
         id: this.connid,
         response: chunk
-      })
+      });
     }.bind(this));
 
     res.write(JSON.stringify(response));
@@ -115,7 +105,7 @@ LongPoll.prototype = {
   send: function send(obj) {
     this.transport.send(obj);
   }
-}
+};
 
 let connections = {},
     transports = {},
@@ -124,118 +114,121 @@ let connections = {},
 
 
 function close(connid) {
-  log("\n\n closing #" +connid + " \n\n");
-  let me = connections[connid];
-  me.transport.close();
+  log('\n\n closing #' + connid + ' \n\n');
+  let connection = connections[connid];
+  connection.transport.close();
   delete connections[connid];
 }
 
 
 function handleMarionette(req, res) {
   try {
-    if (req.method === "GET") {
+    if (req.method === 'GET') {
       if (req.queryString.length === 0) {
-        res.setStatusLine("1.1", 404, "Not Found");
+        res.setStatusLine('1.1', 404, 'Not Found');
         res.write(JSON.stringify({
           error: 'connection not found'
         }));
       } else {
         // render event stream
         let connid = req.queryString.split('=')[0],
-            me = connections[connid];
+            connection = connections[connid];
 
-        res.setStatusLine("1.1", 200, "OK");
-        res.setHeader("Content-Type", "application/json");
+        res.setStatusLine('1.1', 200, 'OK');
+        res.setHeader('Content-Type', 'application/json');
 
-        clearTimeout(me.outstanding_timeout);
+        clearTimeout(connection.outstanding_timeout);
 
-        if (me.buffer.length === 0) {
-          log("waiting /marionette?" + req.queryString + "\n");
+        if (connection.buffer.length === 0) {
+          log('waiting /marionette?' + req.queryString + '\n');
           res.processAsync();
-          me.outstanding_push = res;
-          log("\n\nsetting timeout\n\n");
-          me.outstanding_noop = setTimeout(function() {
+          connection.outstanding_push = res;
+          log('\n\nsetting timeout\n\n');
+          connection.outstanding_noop = setTimeout(function() {
             log('\n\nnoop\n\n');
-            me.cast({ noop: true });
+            connection.cast({ noop: true });
           }, 25000);
         } else {
-          log("messages /marionette?" + req.queryString + "\n");
-          me.drain_queue(res);
+          log('messages /marionette?' + req.queryString + '\n');
+          connection.drain_queue(res);
         }
       }
-    } else if (req.method === "POST") {
+    } else if (req.method === 'POST') {
       // parse login screen
       // render connection stream
       let connid = connection_num++;
 
-      res.setStatusLine("1.1", 200, "OK");
-      res.setHeader("Content-Type", "application/json");
+      res.setStatusLine('1.1', 200, 'OK');
+      res.setHeader('Content-Type', 'application/json');
       res.write(JSON.stringify({ id: connid}));
 
-      req.bodyInputStream.asyncWait(function (stream) {
+      req.bodyInputStream.asyncWait(function(stream) {
         scriptable.init(stream);
         let bytes = scriptable.read(scriptable.available()),
             parsed = JSON.parse(bytes);
 
-        log("BYTES "+bytes+"\n");
-        let hostport = parsed.server + ":" + parsed.port;
-        log("\n\ncheck\n\n");
+        log('BYTES ' + bytes + '\n');
+        let hostport = parsed.server + ':' + parsed.port;
+        log('\n\ncheck\n\n');
         if (hostport in transports) {
-          log("\n\nremove \n\n");
+          log('\n\nremove \n\n');
           close(transports[hostport]);
         }
-        let transport = debuggerSocketConnect(parsed.server, parseInt(parsed.port)),
-            me = new LongPoll(connid, transport);
+        let transport,
+            connection;
 
-        connections[connid] = me;
+        transport = debuggerSocketConnect(parsed.server, parseInt(parsed.port));
+        connection = new LongPoll(connid, transport);
+
+        connections[connid] = connection;
         transports[hostport] = connid;
 
         transport.hooks = {
           onPacket: function onPacket(pack) {
-            me.cast(pack);
-            log("ONPACKET"+JSON.stringify(pack)+"\n");
+            connection.cast(pack);
+            log('ONPACKET' + JSON.stringify(pack) + '\n');
           },
           onClosed: function onClosed(status) {
-            log("CLOSED"+JSON.stringify(status)+"\n");
+            log('CLOSED' + JSON.stringify(status) + '\n');
           }
-        }
+        };
         transport.ready();
 
-        log("transport\n");
+        log('transport\n');
 
       }, 0, 0, Services.tm.currentThread);
-    } else if (req.method === "PUT") {
+    } else if (req.method === 'PUT') {
       let connid = req.queryString.split('=')[0],
-          me = connections[connid];
-      log("put\n");
-      res.setStatusLine("1.1", 201, "Accepted");
-      res.setHeader("Content-Type", "text/plain", false);
+          connection = connections[connid];
+      log('put\n');
+      res.setStatusLine('1.1', 201, 'Accepted');
+      res.setHeader('Content-Type', 'text/plain', false);
       res.write('');
-      req.bodyInputStream.asyncWait(function (stream) {
+      req.bodyInputStream.asyncWait(function(stream) {
         scriptable.init(stream);
         let bytes = scriptable.read(scriptable.available()),
             parsed = null;
         try {
           parsed = JSON.parse(bytes);
-          log("PARSED!\n");
+          log('PARSED!\n');
         } catch (e) {
         }
-        log("stream " + bytes+"\n");
-        me.send(parsed);
+        log('stream ' + bytes + '\n');
+        connection.send(parsed);
       }, 0, 0, Services.tm.currentThread);
-    } else if (req.method === "DELETE") {
+    } else if (req.method === 'DELETE') {
         let connid = req.queryString.split('=')[0];
         close(connid);
     } else {
-      res.setStatusLine("1.1", 405, "Method Not Allowed");
+      res.setStatusLine('1.1', 405, 'Method Not Allowed');
       res.write('');
     }
   } catch (e) {
-    res.setStatusLine("1.1", 500, "Internal Server Error");
-    if(e.stack === undefined) {
+    res.setStatusLine('1.1', 500, 'Internal Server Error');
+    if (e.stack === undefined) {
       res.write(e.toString());
     } else {
-      res.write(e.toString() + " " + e.stack);
+      res.write(e.toString() + ' ' + e.stack);
     }
   }
 }
