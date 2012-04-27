@@ -15,6 +15,10 @@
       "name": "Bildergalerie",
       "description": "Gaia Galerie"
     },
+    "el": {
+      "name": "\u0393\u03ba\u03b1\u03bb\u03b5\u03c1\u03af",
+      "description": "\u0393\u03ba\u03b1\u03bb\u03b5\u03c1\u03af Gaia"
+    },
     "en-US": {
       "name": "Gallery",
       "description": "Gaia Gallery"

@@ -15,6 +15,10 @@
       "name": "Kamera",
       "description": "Gaia Kamera"
     },
+    "el": {
+      "name": "\u039a\u03ac\u03bc\u03b5\u03c1\u03b1",
+      "description": "\u039a\u03ac\u03bc\u03b5\u03c1\u03b1 Gaia"
+    },
     "en-US": {
       "name": "Camera",
       "description": "Gaia Camera"

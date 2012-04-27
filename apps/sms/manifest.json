@@ -19,6 +19,10 @@
       "name": "Nachrichten",
       "description": "Gaia Nachrichten"
     },
+    "el": {
+      "name": "\u039c\u03b7\u03bd\u03cd\u03bc\u03b1\u03c4\u03b1",
+      "description": "\u039c\u03b7\u03bd\u03cd\u03bc\u03b1\u03c4\u03b1 Gaia"
+    },
     "en-US": {
       "name": "Messages",
       "description": "Gaia Messages"
