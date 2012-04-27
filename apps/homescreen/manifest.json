@@ -21,6 +21,10 @@
       "name": "Startbildschirm",
       "description": "Gaia Startbildschirm"
     },
+    "el": {
+      "name": "\u0391\u03c1\u03c7\u03b9\u03ba\u03ae \u039f\u03b8\u03cc\u03bd\u03b7",
+      "description": "\u0391\u03c1\u03c7\u03b9\u03ba\u03ae \u039f\u03b8\u03cc\u03bd\u03b7 Gaia"
+    },
     "en-US": {
       "name": "Homescreen",
       "description": "Gaia Homescreen"
