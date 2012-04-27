@@ -1,18 +1,41 @@
 'use stricts';
 
 var ContactsTest = {
-  get button() {
-    delete this.button;
-    return this.button = document.getElementById('insert-contacts');
+  get loadButton() {
+    delete this.loadButton;
+    return this.loadButton = document.getElementById('insert-contacts');
+  },
+
+  get clearButton() {
+    delete this.clearButton;
+    return this.clearButton = document.getElementById('clear-contacts');
   },
 
   init: function ct_init() {
     log("Initing!");
-    this.button.addEventListener('click', this.loadContacts.bind(this));
+    this.loadButton.addEventListener('click', this.loadContacts.bind(this));
+    this.clearButton.addEventListener('click', this.clearContacts.bind(this));
   },
 
   uninit: function ct_uninit() {
-    this.button.removeEventListener('click', this.loadContacts.bind(this));
+    this.loadButton.removeEventListener('click', this.loadContacts.bind(this));
+    this.clearButton.removeEventListener('click',
+                                         this.clearContacts.bind(this));
+  },
+
+  clearContacts: function ct_clearContacts() {
+    if (!confirm('This will wipe out ALL of the contacts in the database. ' +
+                 'Are you sure?'))
+      return;
+
+    // Ok, we're really doing this.
+    var req = window.navigator.mozContacts.clear();
+    req.onsuccess = function() {
+      log("Contacts deleted.");
+    };
+    req.onerror = function() {
+      log("Problem deleting contacts.");
+    };
   },
 
   loadContacts: function ct_loadContacts() {
@@ -22,15 +45,15 @@ var ContactsTest = {
     req.onreadystatechange = function () {
       if (req.readyState === 4 && req.status === 200) {
         var contacts = JSON.parse(req.responseText);
-        this.insertContacts(contacts);
+        this._insertContacts(contacts);
       }
     }.bind(this);
 
     req.send(null);
-    this.button.disabled = true;
+    this.loadButton.disabled = true;
   },
 
-  insertContacts: function ct_insertContacts(aContacts) {
+  _insertContacts: function ct_insertContacts(aContacts) {
     var contactsLen = aContacts.length;
     for (var i = 0; i < contactsLen; i++) {
       var contactData = aContacts[i];
