@@ -128,8 +128,10 @@ function getUID() {
 var Connections = {
   _connections: {},
   close: function connections_close(uid) {
-    this._connections[uid].transport.close();
-    delete this._connections[uid];
+    if (uid in this._connections) {
+      this._connections[uid].transport.close();
+      delete this._connections[uid];
+    }
   },
 
   add: function connections_add(uid, connection) {
