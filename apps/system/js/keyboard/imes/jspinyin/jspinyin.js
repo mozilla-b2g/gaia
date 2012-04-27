@@ -5,7 +5,7 @@
 
 (function() {
 
-var debugging = false;
+var debugging = true;
 var debug = function(str) {
   if (!debugging)
     return;
@@ -441,7 +441,6 @@ IMEngine.prototype = {
   },
   
   _sendCandidates: function(candidates) {
-    debug('SendCandidates: ' + JSON.stringify(candidates));
     this._firstCandidate = (candidates[0])? candidates[0][0] : '';
     this._glue.sendCandidates(candidates);
   },
@@ -1140,7 +1139,6 @@ JsonStorage.prototype = {
     var homonymsArray = [];
     function doCallback() {
       if (callback) {
-        debug('JsonStorage#getTermsByAbbreviatedSyllables callback:' + JSON.stringify(homonymsArray));
         callback(homonymsArray);
       }
     }
@@ -1267,11 +1265,8 @@ IndexedDBStorage.prototype = {
       var reqCount = transaction.objectStore('homonyms').count();
 
       reqCount.onsuccess = function(ev) {
-        if (ev.target.result !== undefined) {
-          self._status = DatabaseStorageBase.StatusCode.READY;
-        } else {
-          self._status = DatabaseStorageBase.StatusCode.ERROR;
-        }
+        self._status = DatabaseStorageBase.StatusCode.READY;
+        self._count = ev.target.result;
         doCallback();
       };
 
@@ -1472,7 +1467,6 @@ IndexedDBStorage.prototype = {
     var homonymsArray = [];
     function doCallback() {
       if (callback) {
-        debug('JsonStorage#getTermsByAbbreviatedSyllables callback:' + JSON.stringify(homonymsArray));
         callback(homonymsArray);
       }
     }
@@ -1529,10 +1523,6 @@ var IMEngineDatabase = function(dbName, jsonUrl) {
   var self = this;
 
   /* ==== init functions ==== */
-
-  var getTermsInDB = function(callback) {
-    indexedDBStorage.init(callback);
-  };
 
   var populateDBFromJSON = function(callback) {    
     jsonStorage.getAllTerms(function(homonymsArray) {
