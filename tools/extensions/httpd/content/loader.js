@@ -4,7 +4,6 @@
 'use strict';
 
 const CC = Components.Constructor;
-const Cu = Components.utils;
 
 Cu.import('resource:///modules/devtools/dbg-client.jsm');
 
@@ -102,9 +101,11 @@ LongPoll.prototype = {
 
     let json = { 'messages': [] };
     queue.forEach(function(chunk) {
-      if (chunk.noop)
+      if (chunk.noop) {
+        //we need to send something to keep the client polling
+        json.messages.push({});
         return;
-
+      }
       json.messages.push({ 'id': this.connid, 'response': chunk });
     }.bind(this));
 
@@ -186,7 +187,7 @@ var MarionetteHandler = {
       return;
     }
 
-    clearTimeout(connection.outstanding_timeout);
+    clearTimeout(connection.outstanding.timeout);
 
     if (connection.buffer.length !== 0) {
       connection.drain_queue(response);
@@ -195,8 +196,9 @@ var MarionetteHandler = {
 
     response.processAsync();
 
-    connection.outstanding_push = response;
-    connection.outstanding_noop = setTimeout(function() {
+    connection.outstanding.push = response;
+    connection.outstanding.noop = setTimeout(function() {
+      debug('sending noop')
       connection.cast({ 'noop': true });
     }, 25000);
   },
@@ -244,7 +246,7 @@ var MarionetteHandler = {
     response.write('');
 
     let uid = request.queryString.split('=')[0];
-    let connection = Connnections.get(uid);
+    let connection = Connections.get(uid);
     if (!connection) {
       debug('Could not get connection for ' + request.queryString);
       return;
