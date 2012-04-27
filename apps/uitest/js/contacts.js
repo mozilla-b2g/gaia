@@ -1,5 +1,12 @@
 'use stricts';
 
+/**
+ * Just a couple of testing tools for the Contacts app.
+ *
+ * Right now, it just allows you to insert a large number of fake contacts
+ * into the database, and then clear the database.
+ */
+
 var ContactsTest = {
   get loadButton() {
     delete this.loadButton;
@@ -12,7 +19,6 @@ var ContactsTest = {
   },
 
   init: function ct_init() {
-    log("Initing!");
     this.loadButton.addEventListener('click', this.loadContacts.bind(this));
     this.clearButton.addEventListener('click', this.clearContacts.bind(this));
   },
@@ -31,18 +37,18 @@ var ContactsTest = {
     // Ok, we're really doing this.
     var req = window.navigator.mozContacts.clear();
     req.onsuccess = function() {
-      log("Contacts deleted.");
+      alert('Contacts deleted.');
     };
     req.onerror = function() {
-      log("Problem deleting contacts.");
+      alert('Problem deleting contacts');
     };
   },
 
   loadContacts: function ct_loadContacts() {
     var req = new XMLHttpRequest();
-    req.overrideMimeType("application/json");
+    req.overrideMimeType('application/json');
     req.open('GET', '../data/fakecontacts/fakecontacts.json', true);
-    req.onreadystatechange = function () {
+    req.onreadystatechange = function() {
       if (req.readyState === 4 && req.status === 200) {
         var contacts = JSON.parse(req.responseText);
         this._insertContacts(contacts);
@@ -59,25 +65,29 @@ var ContactsTest = {
 
     this._setInsertionCount(aCurrent, aContacts.length);
 
+    // Base case - we've reached the end of the contacts list.
     if (aCurrent >= aContacts.length) {
-      log('Done!');
       this.loadButton.disabled = false;
       return;
     }
 
     var contact = new mozContact();
     var contactData = aContacts[aCurrent];
-    contactData.tel = "";
+    contactData.tel = '';
     contact.init(contactData);
 
     var req = navigator.mozContacts.save(contact);
+
+    // Use some recursion here to add the next contact when this one
+    // is done being inserted.
     req.onsuccess = function() {
       this._insertContacts(aContacts, aCurrent + 1);
     }.bind(this);
 
-    req.onerror = (function() {
-      log("Nope for: " + contactData.familyName[0]);
-    })
+    req.onerror = function() {
+      Components.utils.reportError('Could not add contact with name: ' +
+                                   contactData.familyName[0]);
+    }
   },
 
   _setInsertionCount: function ct__setInsertionCount(aSoFar, aTotal) {
@@ -85,13 +95,6 @@ var ContactsTest = {
     insertionEl.textContent = aSoFar + ' / ' + aTotal;
   }
 };
-
-function log(aMsg) {
-  var logEl = document.getElementById('log');
-  var newMsg = document.createElement('li');
-  newMsg.textContent = aMsg;
-  logEl.appendChild(newMsg);
-}
 
 window.onload = ContactsTest.init.bind(ContactsTest);
 window.onunload = ContactsTest.uninit.bind(ContactsTest);
