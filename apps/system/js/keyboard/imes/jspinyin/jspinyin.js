@@ -64,12 +64,8 @@ var SyllableUtils = {
 };
 
 var Term = function(phrase, freq) {
-  if (phrase) {
-    this.phrase = phrase;
-  }
-  if (freq) {
-    this.freq = freq;
-  }
+  this.phrase = phrase;
+  this.freq = freq;
 };
 
 Term.prototype = {
@@ -100,6 +96,8 @@ Homonyms.prototype = {
  * @param {String} keyPath The key path for the index to use.
  */
 var Index = function(targetArray, keyPath) {
+  this._keyMap = {};
+  this._sortedKeys = [];
   for (var i=0; i<targetArray.length; i++) {
     var key = targetArray[i][keyPath];
     if (!(key in this._keyMap)) {
@@ -112,8 +110,6 @@ var Index = function(targetArray, keyPath) {
 };
 
 Index.prototype = {
-  _keyPath: '',
-  
   // Map the key to the index of the storage array
   _keyMap: {},
   
@@ -148,7 +144,7 @@ Index.prototype = {
       return indices;
     }
     
-    var pos;
+    var pos = 0;
     
     // lower bound position
     var lowerPos = 0;
@@ -157,6 +153,9 @@ Index.prototype = {
     
     if (lower) {
       pos = this._binarySearch(lower, 0, upperPos);
+      if (pos == Infinity) {
+        return indices;
+      }
       if (pos != -Infinity) {
         lowerPos = Math.ceil(pos);
       }
@@ -167,9 +166,12 @@ Index.prototype = {
     
     if (upper) {
       pos = this._binarySearch(upper, lowerPos, upperPos);
+      if (pos == -Infinity) {
+        return indices;
+      }
       if (pos != Infinity) {
         upperPos = Math.floor(pos);
-      }
+      }       
       if (upperOpen && this._sortedKeys[upperPos] == upper) {
         upperPos--;
       }      
@@ -196,7 +198,7 @@ Index.prototype = {
       return -Infinity;
     }
     if (key > this._sortedKeys[right]) {
-      return Inifinity;
+      return Infinity;
     }
     
     while (right > left) {
@@ -269,6 +271,8 @@ Syllable.prototype = {
 var PinyinParser = function() {
   // Consonants(声母) list
   var consonants= 'b p m f d t n l g k h j q x zh ch sh r z c s y w'.split(' ');
+  
+  this._consonantMap = {};
   for(var i in consonants) {
     var e = consonants[i];
     this._consonantMap[e] = e;
@@ -350,6 +354,8 @@ var PinyinParser = function() {
   
     'wa', 'wai', 'wan', 'wang', 'wei', 'wen', 'weng', 'wo', 'wu',
     ];
+  
+  this._syllableArray = [];
   for(var i in syllables) {
     var e = syllables[i];
     this._syllableArray.push({syllable: e});
@@ -461,14 +467,16 @@ PinyinParser.prototype = {
       }
     }
     
-    // Sort the segments array. The segment with shorter length and fewer incomplete syllables
+    // Sort the segments array. The segment with fewer incomplete syllables and shorter length
     // comes first.
     var self = this;
     results.sort(function(a, b) {
-      if (a.length != b.length) {
-        return a.length - b.length;
+      var ai = self._getIncompleteness(a);
+      var bi = self._getIncompleteness(b);
+      if (ai != bi) {
+        return ai - bi;
       } else {
-        return self._getIncompleteness(a) - self._getIncompleteness(b);
+        return a.length - b.length;
       }
     });
     return results;
@@ -538,7 +546,7 @@ PinyinParser.prototype = {
       } else if (type == SyllableType.INCOMPLETE) {
         value += 1;
       } else if (type == SyllableType.INVALID) {
-        value += 3 * segment[i].syllable.length;
+        value += 3 * segment[i].str.length;
       }
     }
     return value;
@@ -546,6 +554,7 @@ PinyinParser.prototype = {
 };
 
 var IMEngineBase = function() {
+  this._glue = {};
 };
 
 IMEngineBase.prototype = {
@@ -624,13 +633,19 @@ var IMEngine = function(splitter) {
   IMEngineBase.call(this);
   
   this._splitter = splitter;
+  this._enableIndexedDB = false;
+  this._inputTraditionalChinese = false;
+  this._db = {
+    simplified: null,  
+    traditional: null
+  };
+  this._isWorking = false;
 };
 
 IMEngine.prototype = {
   __proto__: IMEngineBase.prototype,
   
   _splitter: null,
-  _inputTraitionalChinese: false,
   
   // Enable IndexedDB
   _enableIndexedDB: false,
@@ -709,7 +724,7 @@ IMEngine.prototype = {
 
     if (!this._db[name]) {
       debug('DB not initialized, defer processing.');
-      this._initDB(this._next.bind(this));
+      this._initDB(name, this._next.bind(this));
       return;
     }
     
@@ -1026,8 +1041,9 @@ IMEngine.prototype = {
     // Toggle between the modes of tranditioanal Chinese and simplified Chinese
     if(keyCode == -10 || keyCode == -11) {
       this._inputTraditionalChinese = !this._inputTraditionalChinese;
+    } else {
+      this._keypressQueue.push(keyCode);
     }
-    this._keypressQueue.push(keyCode);
     this._start();
   },
 
@@ -1070,6 +1086,7 @@ IMEngine.prototype = {
 };
 
 var DatabaseStorageBase = function() {
+  this._status = DatabaseStorageBase.StatusCode.UNINITIALIZED;
 };
 
 /**
@@ -1197,6 +1214,9 @@ DatabaseStorageBase.prototype =  {
 
 var JsonStorage = function(jsonUrl) {
   this._jsonUrl = jsonUrl;
+  this._dataArray = [];
+  this._syllablesIndex = null;
+  this._abrreviatedIndex = null;
 };
 
 JsonStorage.prototype = {
@@ -1215,7 +1235,7 @@ JsonStorage.prototype = {
   /**
    * @Override
    */
-  init: function(callback /*function callback(statusCode)*/) {
+  init: function(callback /*function callback(statusCode)*/) {  
     var self = this;
     function doCallback() {
       if (callback) {
@@ -1278,7 +1298,10 @@ JsonStorage.prototype = {
       doCallback();
     };
 
-    xhr.send(null);    
+    var perform = function() {
+      xhr.send(null);  
+    }
+    setTimeout(perform, 0); 
   },
  
   /**
@@ -1471,6 +1494,8 @@ var IndexedDB = {
 
 var IndexedDBStorage = function(dbName) {
   this._dbName= dbName;
+  this._IDBDatabase = null;
+  this._count = 0;
 };
 
 IndexedDBStorage.kDBVersion = 1.0;
@@ -1484,9 +1509,7 @@ IndexedDBStorage.prototype = {
     
   // IDBDatabase interface
   _IDBDatabase: null,
-  
-  _cache: {},
-  
+    
   _count: 0,
   
   /**
