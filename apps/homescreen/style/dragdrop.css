@@ -1,0 +1,24 @@
+
+#clone {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10000;
+  box-shadow: 0 0 5px 5px #888;
+  -moz-transform: scale(1.1) translate(0, 0);
+}
+
+#uninstall {
+  position: absolute;
+  bottom: 20px;
+  left: -moz-calc((100% - 32px) / 2);
+  width: 32px;
+  height: 32px;
+
+  background-color: rgba(0,0,0,0.4);
+  border: 5px solid transparent;
+}
+
+#uninstall.active {
+  border: 5px solid red;
+}
