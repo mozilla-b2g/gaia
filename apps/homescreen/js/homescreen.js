@@ -125,9 +125,6 @@ function DefaultPhysics(iconGrid) {
   };
 }
 
-// How long do you have to hold your finger still over an icon
-// before triggering an uninstall rather than a launch.
-DefaultPhysics.HOLD_INTERVAL = 1000;
 // How many pixels can you move your finger before a tap becomes
 // a flick or a pan?
 DefaultPhysics.SMALL_MOVE = 20;
@@ -142,29 +139,14 @@ DefaultPhysics.prototype = {
     touchState.startX = e.pageX;
     touchState.startY = e.pageY;
 
-    // If this timer triggers and the user hasn't moved their finger
-    // then this is a hold rather than a tap.
-    touchState.timer = window.setTimeout(this.onHoldTimeout.bind(this),
-                                  DefaultPhysics.HOLD_INTERVAL);
-
-    // For tap and hold gestures, we keep track of what icon
-    // the touch started on. Even if it strays slightly into another
-    // nearby icon, the initial touch is probably what the user wanted.
+    // For tap we keep track of what icon the touch started on.
+    // Even if it strays slightly into another nearby icon, the initial
+    // touch is probably what the user wanted.
     touchState.initialTarget = e.target;
   },
 
   onTouchMove: function(e) {
     var touchState = this.touchState;
-
-    // If we move more than a small amount this is not a hold, so
-    // cancel the timer if it is still running
-    if (touchState.timer &&
-        (Math.abs(touchState.startX - e.pageX) > DefaultPhysics.SMALL_MOVE ||
-         Math.abs(touchState.startX - e.pageX) > DefaultPhysics.SMALL_MOVE)) {
-      clearTimeout(touchState.timer);
-      touchState.timer = null;
-    }
-
     if (!touchState.active)
       return;
 
@@ -174,13 +156,6 @@ DefaultPhysics.prototype = {
 
   onTouchEnd: function(e) {
     var touchState = this.touchState;
-
-    // If the timer hasn't triggered yet, cancel it before it does
-    if (touchState.timer) {
-      clearTimeout(touchState.timer);
-      touchState.timer = null;
-    }
-
     if (!touchState.active)
       return;
     touchState.active = false;
@@ -215,16 +190,6 @@ DefaultPhysics.prototype = {
         iconGrid.setPage(currentPage + dir, 0.2);
     }
     e.stopPropagation();
-  },
-
-  // Triggered if the user holds their finger on the screen for
-  // DefaultPhysics.HOLD_INTERVAL ms without moving more than
-  // DefaultPhyiscs.SMALL_MOVE pixels horizontally or vertically
-  onHoldTimeout: function() {
-    var touchState = this.touchState;
-    touchState.timer = null;
-    touchState.active = false;
-    this.iconGrid.hold(touchState.initialTarget);
   }
 };
 
@@ -279,6 +244,7 @@ function RemoveEventHandlers(target, listener, eventNames) {
   }
 }
 
+
 function IconGrid(containerId) {
   this.containerId = containerId;
   this.container = document.getElementById(containerId);
@@ -287,7 +253,7 @@ function IconGrid(containerId) {
   this.physics = new DefaultPhysics(this);
 
   // install event handlers
-  var events = ['touchstart', 'touchmove', 'touchend'];
+  var events = ['contextmenu', 'touchstart', 'touchmove', 'touchend'];
   AddEventHandlers(this.container, this, events);
 }
 
@@ -352,7 +318,7 @@ IconGrid.prototype = {
         continue;
 
       page = document.createElement('div');
-      page.id = n;
+      page.id = 'page_' + n;
       page.className = 'page';
       container.appendChild(page);
 
@@ -376,7 +342,7 @@ IconGrid.prototype = {
       var iconDiv = iconDivs[n];
       if (!iconDiv) { // missing icon
         iconDiv = document.createElement('div');
-        iconDiv.id = n;
+        iconDiv.id = 'app_' + n;
         iconDiv.className = 'icon';
         iconDiv.style.backgroundImage = 'url("' + icon.iconUrl + '")';
         iconDiv.dataset.url = icon.action;
@@ -448,19 +414,10 @@ IconGrid.prototype = {
       dots.update(number);
   },
   tap: function(target) {
-    var app = appscreen.getAppByOrigin(target.dataset.url);
-    app.launch();
-  },
-  hold: function(target) {
-    var app = appscreen.getAppByOrigin(target.dataset.url);
-
-    // FIXME: localize this message
-    // FIXME: This could be a simple confirm() (see bug 741587)
-    requestPermission(
-      'Do you want to uninstall ' + app.manifest.name + '?',
-      function() { app.uninstall(); },
-      function() { }
-    );
+    if ('url' in target.dataset) {
+      var app = appscreen.getAppByOrigin(target.dataset.url);
+      app.launch();
+    }
   },
   handleEvent: function(e) {
     var physics = this.physics;
@@ -475,10 +432,13 @@ IconGrid.prototype = {
       document.releaseCapture();
       physics.onTouchEnd(e.changedTouches[0]);
       break;
+    case 'contextmenu':
+      document.releaseCapture();
+      physics.touchState.active = false;
+      break;
     default:
       return;
     }
-    e.preventDefault();
   }
 };
 
