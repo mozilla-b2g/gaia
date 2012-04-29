@@ -31,6 +31,10 @@
       "name": "Photo",
       "description": "Appareil photo Gaia"
     },
+    "it": {
+      "name": "Camera",
+      "description": "Camera di Gaia"
+    },
     "ru": {
       "name": "\u041a\u0430\u043c\u0435\u0440\u0430",
       "description": "\u041a\u0430\u043c\u0435\u0440\u0430 Gaia"
