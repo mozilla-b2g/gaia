@@ -1,14 +1,16 @@
 
-#clone {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 10000;
+.float {
+  z-index: 100000;
   box-shadow: 0 0 5px 5px #888;
   -moz-transform: scale(1.1) translate(0, 0);
 }
 
+.hidden {
+  visibility: hidden;
+}
+
 #uninstall {
+  display: none;
   position: absolute;
   bottom: 20px;
   left: -moz-calc((100% - 32px) / 2);
@@ -17,6 +19,10 @@
 
   background-color: rgba(0,0,0,0.4);
   border: 5px solid transparent;
+}
+
+#uninstall.visible {
+  display: block;
 }
 
 #uninstall.active {
