@@ -2,7 +2,7 @@
 
 if (!window['Gaia'])
   var Gaia = {'UI': {}};
-  
+
 if (!window[Gaia['UI']])
   Gaia['UI'] = {};
 

@@ -164,7 +164,7 @@ const IMEManager = {
     customPanel.id = 'keyboard-custom-panel';
     return this.customPanel = customPanel;
   },
-  
+
   updateKeyHighlight: function km_updateKeyHighlight() {
     var keyHighlight = this.keyHighlight;
     var target = this.currentKey;
@@ -806,7 +806,7 @@ const IMEManager = {
               Keyboards[this.currentKeyboard].done(keyCode);
               break;
             }
-            
+
             window.navigator.mozKeyboard.sendKey(keyCode, keyCode);
           break;
 
@@ -1053,7 +1053,7 @@ const IMEManager = {
       this.showCandidates([], true);
       this.currentEngine.empty();
     }
-    
+
     // If layout needs to draw custom elemts
     if (layout.draw) {
       this.ime.insertBefore(this.customPanel, this.ime.firstChild);
