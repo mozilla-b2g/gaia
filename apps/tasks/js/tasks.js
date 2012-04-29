@@ -113,7 +113,6 @@ var TaskList = {
 };
 
 var EditTask = {
-  calendar: undefined,
 
   get element() {
     delete this.element;
@@ -150,11 +149,6 @@ var EditTask = {
   get deleteElement() {
     delete this.deleteElement;
     return this.deleteElement = document.querySelector('li.delete');
-  },
-
-  get footer() {
-    delete this.footer;
-    return this.footer = document.querySelector('footer');
   },
 
   handleEvent: function(evt) {
