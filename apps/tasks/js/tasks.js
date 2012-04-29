@@ -152,11 +152,6 @@ var EditTask = {
     return this.deleteElement = document.querySelector('li.delete');
   },
 
-  get selectCalendar() {
-    delete this.selectCalendar;
-    return this.selectCalendar = document.getElementById('cal-sel');
-  },
-
   get footer() {
     delete this.footer;
     return this.footer = document.querySelector('footer');
@@ -179,13 +174,6 @@ var EditTask = {
         break;
       case 'task-del':
         this.deleteCurrent();
-        break;
-      case 'cal-sel':
-        this.dateInput.value = this.calendar.toShortDate(this.calendar.date);
-        this.footer.classList.add('hidden');
-        break;
-      case 'cal-cancel':
-        this.footer.classList.add('hidden');
         break;
     }
   },
@@ -221,8 +209,6 @@ var EditTask = {
       this.taskTitle.innerHTML = 'New Task';
       this.deleteElement.style.display = 'none';
     }
-
-    this.calendar = new Gaia.UI.Calendar('#task-date', '#cal-widget');
   },
 
   updateCurrent: function() {
@@ -301,9 +287,6 @@ window.addEventListener('DOMContentLoaded', function() {
 
   document.querySelector('#task-save').addEventListener('click', EditTask);
   document.querySelector('#task-del').addEventListener('click', EditTask);
-
-  document.querySelector('#cal-sel').addEventListener('click', EditTask);
-  document.querySelector('#cal-cancel').addEventListener('click', EditTask);
 
   TaskList.init();
 });

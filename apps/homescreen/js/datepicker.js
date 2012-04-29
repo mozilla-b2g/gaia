@@ -2,6 +2,9 @@
 
 if (!window['Gaia'])
   var Gaia = {'UI': {}};
+  
+if (!window[Gaia['UI']])
+  Gaia['UI'] = {};
 
 (function() {
   Gaia.UI.DateSlider = function(id, pixelmillis) {
@@ -176,7 +179,7 @@ if (!window['Gaia'])
     }
   };
 
-  Gaia.UI.Calendar = function(href, hrefCal) {
+  Gaia.UI.Datepicker = function(href, hrefCal) {
     var element = document.querySelector(href);
 
     if (element.tagName == 'INPUT') {
@@ -206,7 +209,7 @@ if (!window['Gaia'])
     this.element.classList.add('cal-widget');
   };
 
-  Gaia.UI.Calendar.prototype = {
+  Gaia.UI.Datepicker.prototype = {
     date: new Date(),
 
     oneDay: 1000 * 60 * 60 * 24,

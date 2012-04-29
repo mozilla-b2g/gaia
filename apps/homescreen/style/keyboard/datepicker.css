@@ -1,13 +1,8 @@
-/* ------------ Calendar ----------- */
-footer {
-	position:fixed;
-	width:100%;
-	height:220px;
-	bottom:0px;
-}
+/* ------------ Datepicker ----------- */
 
 .cal-widget > div {
     overflow:hidden;
+	color:#000;
 }
 
 .cal-widget > div > ul {
