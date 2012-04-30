@@ -58,6 +58,10 @@
     setTimeout(main);
   };
 
+  // Make sure the homescreen has started, even if bug 748896 has not landed.
+  var timeout = 0;
+  var kFallbackTimeout = 5000;
+
   // Once the list of bookmarks if available starts to install them
   // as application one by one.
   xhr.onload = function bookmarks_load(evt) {
@@ -68,11 +72,15 @@
       bookmarksList.push(bookmark);
     }
 
+    // In case bug 748896 has not landed, add a timeout
+    timeout= window.setTimeout(main, kFallbackTimeout);
+
     installNextBookmark();
   };
 
   // Every time a bookmark has finised to installed, add the next.
   navigator.mozApps.mgmt.oninstall = function bookmark_installed(evt) {
+    window.clearTimeout(timeout);
     setTimeout(installNextBookmark);
   };
 })();
