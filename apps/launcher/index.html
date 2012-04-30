@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html manifest="manifest.appcache">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="pragma" content="no-cache">
+
+    <link rel="stylesheet" type="text/css" href="style/launcher.css">
+    <script defer src="js/launcher.js"></script>
+
+    <!-- This is used only for uninstalling application and can be
+         replaced with a simple confirm() once bug 741587 lands
+         and handling dialog will be done in the system app.
+     -->
+    <link rel="stylesheet" type="text/css" href="style/request.css">
+    <script defer src="js/request.js"></script>
+
+    <!-- The helper can be removed once bug 731746 lands -->
+    <script defer src="js/settings.js"></script>
+
+    <!-- Compatibility -->
+    <script>
+      var host = document.location.host;
+      var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+      var src = 'http://' + domain + '/webapi.js';
+      document.write('<script src="' + src + '"><\/script>');
+    </script>
+  </head>
+
+  <body>
+    <div id="home">
+      <div id="apps"></div>
+      <div id="dots"></div>
+    </div>
+  </body>
+</html>
