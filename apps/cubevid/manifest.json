@@ -15,13 +15,25 @@
       "name": "CubeVid",
       "description": "Video-W\u00fcrfel Demo"
     },
+    "el": {
+      "name": "\u0392\u03b9\u03bd\u03c4\u03b5\u03bf\u03ba\u03cd\u03b2\u03bf\u03c2",
+      "description": "\u0394\u03bf\u03ba\u03b9\u03bc\u03ae \u0392\u03b9\u03bd\u03c4\u03b5\u03bf\u03ba\u03cd\u03b2\u03bf\u03c5"
+    },
     "en-US": {
       "name": "CubeVid",
       "description": "Video Cube Demo"
     },
+    "es": {
+      "name": "CubeVid",
+      "description": "Demo de un cubo con v\u00eddeo"
+    },
     "fr": {
       "name": "CubeVid",
       "description": "D\u00e9mo de vid\u00e9o cube"
+    },
+    "it": {
+      "name": "CubeVid",
+      "description": "Demo di un cubo con video"
     },
     "ru": {
       "name": "CubeVid",

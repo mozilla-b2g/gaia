@@ -15,13 +15,25 @@
       "name": "Taschenrechner",
       "description": "Taschenrechner"
     },
+    "el": {
+      "name": "\u0391\u03c1\u03b9\u03b8\u03bc\u03bf\u03bc\u03b7\u03c7\u03b1\u03bd\u03ae",
+      "description": "\u0391\u03c1\u03b9\u03b8\u03bc\u03bf\u03bc\u03b7\u03c7\u03b1\u03bd\u03ae"
+    },
     "en-US": {
       "name": "Calculator",
       "description": "Calculator"
     },
+    "es": {
+      "name": "Calculadora",
+      "description": "Calculadora"
+    },
     "fr": {
       "name": "Calculatrice",
       "description": "Calculatrice Gaia"
+    },
+    "it": {
+      "name": "Calcolatrice",
+      "description": "Calcolatrice"
     },
     "ru": {
       "name": "\u041a\u0430\u043b\u044c\u043a\u0443\u043b\u044f\u0442\u043e\u0440",

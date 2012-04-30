@@ -19,17 +19,29 @@
       "name": "Einstellungen",
       "description": "Gaia Einstellungen"
     },
+    "el": {
+      "name": "\u03a1\u03c5\u03b8\u03bc\u03af\u03c3\u03b5\u03b9\u03c2",
+      "description": "\u03a1\u03c5\u03b8\u03bc\u03af\u03c3\u03b5\u03b9\u03c2 Gaia"
+    },
     "en-US": {
       "name": "Settings",
       "description": "Gaia Settings"
+    },
+    "es": {
+      "name": "Configuraci\u00f3n",
+      "description": "Configuraci\u00f3n de Gaia"
     },
     "fr": {
       "name": "Param\u00e8tres",
       "description": "Param\u00e8tres Gaia"
     },
+    "it": {
+      "name": "Impostazioni",
+      "description": "Impostazioni di Gaia"
+    },
     "ru": {
-      "name": "\u0423\u0441\u0442\u0430\u043d\u043e\u0432\u043a\u0438",
-      "description": "\u0423\u0441\u0442\u0430\u043d\u043e\u0432\u043a\u0438 Gaia"
+      "name": "\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438",
+      "description": "\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 Gaia"
     },
     "zh-TW": {
       "name": "\u8a2d\u5b9a",

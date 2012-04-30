@@ -1,0 +1,53 @@
+{
+  "name": "System",
+  "description": "Main System",
+  "launch_path": "/",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "permissions": [
+    "mozbrowser",
+    "power",
+    "mozApps"
+  ],
+  "locales": {
+    "ar": {
+      "name": "System",
+      "description": "Main System"
+    },
+    "de": {
+      "name": "System",
+      "description": "Allgemeines System"
+    },
+    "el": {
+      "name": "\u03a3\u03cd\u03c3\u03c4\u03b7\u03bc\u03b1",
+      "description": "\u039a\u03cd\u03c1\u03b9\u03bf \u03a3\u03cd\u03c3\u03c4\u03b7\u03bc\u03b1"
+    },
+    "en-US": {
+      "name": "System",
+      "description": "Main System"
+    },
+    "es": {
+      "name": "System",
+      "description": "Main System"
+    },
+    "fr": {
+      "name": "System",
+      "description": "Main System"
+    },
+    "it": {
+      "name": "Sistema",
+      "description": "Sistema Principale"
+    },
+    "ru": {
+      "name": "System",
+      "description": "Main System"
+    },
+    "zh-TW": {
+      "name": "System",
+      "description": "Main System"
+    }
+  },
+  "default_locale": "en-US"
+}
