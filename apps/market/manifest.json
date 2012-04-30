@@ -13,7 +13,7 @@
     },
     "de": {
       "name": "Markt",
-      "description": "Marktplatz um Apps herunter zu laden und zu installieren"
+      "description": "Marktplatz, um Apps herunterzuladen und zu installieren"
     },
     "el": {
       "name": "\u0391\u03b3\u03bf\u03c1\u03ac",
@@ -30,6 +30,10 @@
     "fr": {
       "name": "Logith\u00e8que",
       "description": "Catalogue en ligne d\u2019applications"
+    },
+    "it": {
+      "name": "Negozio",
+      "description": "Negozio per scaricare ed installare applicazioni"
     },
     "ru": {
       "name": "\u041c\u0430\u0440\u043a\u0435\u0442",

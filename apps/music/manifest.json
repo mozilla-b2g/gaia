@@ -31,6 +31,10 @@
       "name": "Musique",
       "description": "Lecteur audio Gaia"
     },
+    "it": {
+      "name": "Musica",
+      "description": "Musica di Gaia"
+    },
     "ru": {
       "name": "\u041c\u0443\u0437\u044b\u043a\u0430",
       "description": "\u041c\u0443\u0437\u044b\u043a\u0430 Gaia"
