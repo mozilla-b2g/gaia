@@ -37,6 +37,10 @@
       "name": "Appel",
       "description": "Appel t\u00e9l\u00e9phonique Gaia"
     },
+    "it": {
+      "name": "Chiamata",
+      "description": "Chiamata di Gaia"
+    },
     "ru": {
       "name": "\u0422\u0435\u043b\u0435\u0444\u043e\u043d",
       "description": "\u0422\u0435\u043b\u0435\u0444\u043e\u043d Gaia"
