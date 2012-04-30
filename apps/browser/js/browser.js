@@ -34,6 +34,9 @@ var Browser = {
       this.content.addEventListener('mozbrowser' + type, this);
     }).bind(this));
 
+    // Open global history database
+    GlobalHistory.db.open();
+
     // Load homepage
     var url = this.urlInput.value;
     this.currentUrl = url;
@@ -50,7 +53,7 @@ var Browser = {
         break;
 
       case 'keyup':
-        if (!MockHistory.backLength() || evt.keyCode != evt.DOM_VK_ESCAPE)
+        if (!SessionHistory.backLength() || evt.keyCode != evt.DOM_VK_ESCAPE)
           break;
 
         this.goBack();
@@ -108,27 +111,28 @@ var Browser = {
   },
 
   goBack: function browser_goBack() {
-    MockHistory.back();
-    this.backButton.disabled = !MockHistory.backLength();
-    this.forwardButton.disabled = !MockHistory.forwardLength();
+    SessionHistory.back();
+    this.backButton.disabled = !SessionHistory.backLength();
+    this.forwardButton.disabled = !SessionHistory.forwardLength();
   },
 
   goForward: function browser_goForward() {
-    MockHistory.forward();
-    this.backButton.disabled = !MockHistory.backLength();
-    this.forwardButton.disabled = !MockHistory.forwardLength();
+    SessionHistory.forward();
+    this.backButton.disabled = !SessionHistory.backLength();
+    this.forwardButton.disabled = !SessionHistory.forwardLength();
   },
 
   updateHistory: function browser_updateHistory(url) {
-    MockHistory.pushState(null, '', url);
-    this.backButton.disabled = !MockHistory.backLength();
-    this.forwardButton.disabled = !MockHistory.forwardLength();
+    SessionHistory.pushState(null, '', url);
+    this.backButton.disabled = !SessionHistory.backLength();
+    this.forwardButton.disabled = !SessionHistory.forwardLength();
   },
 
   locationChange: function browser_locationChange(url) {
     if (url != this.currentUrl) {
       this.currentUrl = url;
-      this.updateHistory(this.currentUrl);
+      this.updateHistory(url);
+      GlobalHistory.addVisit(url);
     }
   },
 
@@ -161,52 +165,3 @@ window.addEventListener('load', function browserOnLoad(evt) {
   window.removeEventListener('load', browserOnLoad);
   Browser.init();
 });
-
-
-var MockHistory = {
-  history: [],
-  historyIndex: -1,
-
-  back: function() {
-    if (this.backLength() < 1)
-      return;
-    Browser.navigate(this.history[--this.historyIndex]);
-  },
-
-  forward: function() {
-    if (this.forwardLength() < 1)
-      return;
-    Browser.navigate(this.history[++this.historyIndex]);
-  },
-
-  historyLength: function() {
-    return this.history.length;
-  },
-
-  backLength: function() {
-   if (this.history.length < 2)
-     return 0;
-   return this.historyIndex;
-  },
-
-  forwardLength: function() {
-    return this.history.length - this.historyIndex - 1;
-  },
-
-  pushState: function(stateObj, title, url) {
-    var history = this.history;
-    var index = this.historyIndex;
-    if (url == history[index])
-      return;
-
-    // If history contains forward entries, replace them with the new location
-    if (this.forwardLength()) {
-      history.splice(index + 1, this.forwardLength(), url);
-      this.historyIndex++;
-    } else {
-      // Otherwise just append the new location to the end of the array
-      this.historyIndex = history.push(url) - 1;
-    }
-  }
-};
-
