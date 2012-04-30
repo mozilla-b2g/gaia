@@ -73,14 +73,14 @@
     }
 
     // In case bug 748896 has not landed, add a timeout
-    timeout= window.setTimeout(main, kFallbackTimeout);
+    timeout= setTimeout(main, kFallbackTimeout);
 
     installNextBookmark();
   };
 
   // Every time a bookmark has finised to installed, add the next.
   navigator.mozApps.mgmt.oninstall = function bookmark_installed(evt) {
-    window.clearTimeout(timeout);
+    clearTimeout(timeout);
     setTimeout(installNextBookmark);
   };
 })();
