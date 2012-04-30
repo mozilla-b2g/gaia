@@ -31,6 +31,10 @@
       "name": "Horloge",
       "description": "Horloge Gaia"
     },
+    "it": {
+      "name": "Orologio",
+      "description": "Orologio di Gaia"
+    },
     "ru": {
       "name": "\u0427\u0430\u0441\u044b",
       "description": "\u0427\u0430\u0441\u044b Gaia"
