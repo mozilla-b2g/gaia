@@ -16,19 +16,31 @@
     },
     "de": {
       "name": "Browser",
-      "description": "Gaia Web Browser"
+      "description": "Gaia Webbrowser"
+    },
+    "el": {
+      "name": "\u03a6\u03c5\u03bb\u03bb\u03bf\u03bc\u03b5\u03c4\u03c1\u03b7\u03c4\u03ae\u03c2",
+      "description": "\u03a6\u03c5\u03bb\u03bb\u03bf\u03bc\u03b5\u03c4\u03c1\u03b7\u03c4\u03ae\u03c2 \u0399\u03c3\u03c4\u03bf\u03cd Gaia"
     },
     "en-US": {
       "name": "Browser",
       "description": "Gaia Web Browser"
     },
+    "es": {
+      "name": "Navegador",
+      "description": "Navegador de Gaia"
+    },
     "fr": {
       "name": "Navigateur",
       "description": "Navigateur Web Gaia"
     },
+    "it": {
+      "name": "Browser",
+      "description": "Browser Web di Gaia"
+    },
     "ru": {
-      "name": "\u041d\u0430\u0432\u0438\u0433\u0430\u0442\u043e\u0440",
-      "description": "\u0412\u0435\u0431-\u043d\u0430\u0432\u0438\u0433\u0430\u0442\u043e\u0440 Gaia"
+      "name": "\u0411\u0440\u0430\u0443\u0437\u0435\u0440",
+      "description": "\u0412\u0435\u0431-\u0431\u0440\u0430\u0443\u0437\u0435\u0440 Gaia"
     },
     "zh-TW": {
       "name": "\u7db2\u8def\u700f\u89bd\u5668",

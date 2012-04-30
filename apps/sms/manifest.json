@@ -6,7 +6,6 @@
     "name": "The Gaia Team",
     "url": "https://github.com/andreasgal/gaia"
   },
-  "background_page": "/background.html#0",
   "permissions": [
     "sms",
     "contacts"
@@ -20,13 +19,25 @@
       "name": "Nachrichten",
       "description": "Gaia Nachrichten"
     },
+    "el": {
+      "name": "\u039c\u03b7\u03bd\u03cd\u03bc\u03b1\u03c4\u03b1",
+      "description": "\u039c\u03b7\u03bd\u03cd\u03bc\u03b1\u03c4\u03b1 Gaia"
+    },
     "en-US": {
       "name": "Messages",
       "description": "Gaia Messages"
     },
+    "es": {
+      "name": "Mensajes",
+      "description": "Mensajes de Gaia"
+    },
     "fr": {
       "name": "Messages",
       "description": "Messages Gaia"
+    },
+    "it": {
+      "name": "Messaggi",
+      "description": "Messaggi di Gaia"
     },
     "ru": {
       "name": "\u0421\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u044f",
@@ -38,6 +49,7 @@
     }
   },
   "default_locale": "en-US",
+  "background_page": "/background.html#0",
   "icons": {
     "120": "/style/icons/Messages.png"
   }
