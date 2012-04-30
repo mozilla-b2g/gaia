@@ -15,13 +15,25 @@
       "name": "CrystalSkull",
       "description": "WebGL Demo"
     },
+    "el": {
+      "name": "\u039a\u03c1\u03c5\u03c3\u03c4\u03ac\u03bb\u03bb\u03b9\u03bd\u03bf \u039a\u03c1\u03b1\u03bd\u03af\u03bf",
+      "description": "\u0394\u03bf\u03ba\u03b9\u03bc\u03ae \u03c4\u03b7\u03c2 WebGL"
+    },
     "en-US": {
       "name": "CrystalSkull",
       "description": "WebGL Demo"
     },
+    "es": {
+      "name": "CrystalSkull",
+      "description": "Demo de WebGL"
+    },
     "fr": {
       "name": "CrystalSkull",
       "description": "D\u00e9mo WebGL"
+    },
+    "it": {
+      "name": "CrystalSkull",
+      "description": "Demo di WebGL"
     },
     "ru": {
       "name": "CrystalSkull",

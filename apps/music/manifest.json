@@ -15,13 +15,25 @@
       "name": "Musik",
       "description": "Gaia Musik"
     },
+    "el": {
+      "name": "\u039c\u03bf\u03c5\u03c3\u03b9\u03ba\u03ae",
+      "description": "\u039c\u03bf\u03c5\u03c3\u03b9\u03ba\u03ae Gaia"
+    },
     "en-US": {
       "name": "Music",
       "description": "Gaia Music"
     },
+    "es": {
+      "name": "M\u00fasica",
+      "description": "M\u00fasica de Gaia"
+    },
     "fr": {
       "name": "Musique",
       "description": "Lecteur audio Gaia"
+    },
+    "it": {
+      "name": "Musica",
+      "description": "Musica di Gaia"
     },
     "ru": {
       "name": "\u041c\u0443\u0437\u044b\u043a\u0430",

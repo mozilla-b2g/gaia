@@ -63,6 +63,16 @@ SED_INPLACE_NO_SUFFIX = sed -i
 DOWNLOAD_CMD = wget
 endif
 
+# Test agent setup
+TEST_AGENT_DIR=tools/test-agent/
+ifeq ($(strip $(NODEJS)),)
+	NODEJS := `which node`
+endif
+
+ifeq ($(strip $(NPM)),)
+	NPM := `which npm`
+endif
+
 #Marionette testing variables
 #make sure we're python 2.7.x
 ifeq ($(strip $(PYTHON_27)),)
@@ -80,9 +90,6 @@ profile: stamp-commit-hash update-offline-manifests preferences manifests offlin
 	@echo "\nProfile Ready: please run [b2g|firefox] -profile $(CURDIR)/profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
-
-desktop-fallback-manifest:
-	sh tools/create-desktop-apps.sh
 
 # Generate profile/webapps/
 manifests:
@@ -140,7 +147,7 @@ XULRUNNER_DOWNLOAD=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/11.
 XULRUNNER=./xulrunner/run-mozilla.sh
 XPCSHELL=./xulrunner/xpcshell
 
-install-xulrunner:
+install-xulrunner :
 	test -d xulrunner || ($(DOWNLOAD_CMD) $(XULRUNNER_DOWNLOAD) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2)
 endif
 
@@ -187,6 +194,22 @@ tests: manifests offline
 	echo "Checking the injected Gaia..."
 	test -L $(INJECTED_GAIA) || ln -s $(CURDIR) $(INJECTED_GAIA)
 	TEST_PATH=$(TEST_PATH) make -C $(MOZ_OBJDIR) mochitest-browser-chrome EXTRA_TEST_ARGS="--browser-arg=\"\" --extra-profile-file=$(CURDIR)/profile/webapps --extra-profile-file=$(CURDIR)/profile/OfflineCache --extra-profile-file=$(CURDIR)/profile/user.js"
+
+.PHONY: test-agent-install
+test-agent-install:
+	@test -x $(NODEJS) || (echo "Please Install NodeJS -- (use aptitude on linux or homebrew on osx)" && exit 1 )
+	@test -x $(NPM) || (echo "Please install NPM (node package manager) -- http://npmjs.org/" && exit 1 )
+
+	cd $(TEST_AGENT_DIR) && npm install .
+
+.PHONY: test-agent-update-common
+test-agent-update-common: test-agent-install
+	rm -f common/vendor/test-agent/test-agent*.js
+	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.js common/vendor/test-agent/
+
+.PHONY: test-agent-server
+test-agent-server: test-agent-install
+	$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent server -c ./$(TEST_AGENT_DIR)/test-agent-server.js --http-path . --growl
 
 .PHONY: marionette
 marionette:
@@ -270,10 +293,15 @@ update-offline-manifests:
 # working on just gaia itself, and you already have B2G firmware on your
 # phone, and you have adb in your path, then you can use the install-gaia
 # target to update the gaia files and reboot b2g
+PROFILE_PATH = /data/b2g/mozilla/`$(ADB) shell ls -1 /data/b2g/mozilla/ | grep default | tr -d [:cntrl:]`
 install-gaia: profile
 	$(ADB) start-server
 	$(ADB) shell rm -r /cache/*
 	python build/install-gaia.py "$(ADB)"
+
+	# Until bug 746121 lands, push user.js in the profile
+	$(ADB) push profile/user.js ${PROFILE_PATH}/user.js
+
 	@echo "Installed gaia into profile/."
 	$(ADB) shell kill $(shell $(ADB) shell toolbox ps | grep "b2g" | awk '{ print $$2; }')
 	@echo 'Rebooting b2g now'
