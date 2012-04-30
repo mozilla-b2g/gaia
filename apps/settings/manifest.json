@@ -35,6 +35,10 @@
       "name": "Param\u00e8tres",
       "description": "Param\u00e8tres Gaia"
     },
+    "it": {
+      "name": "Impostazioni",
+      "description": "Impostazioni di Gaia"
+    },
     "ru": {
       "name": "\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438",
       "description": "\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 Gaia"
