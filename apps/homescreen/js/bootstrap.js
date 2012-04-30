@@ -15,8 +15,8 @@ function startup() {
     //       the HOME activity.
     var host = document.location.host;
     var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-    var homescreenURL = 'http://homescreen.' + domain;
-    document.getElementById('homescreen').src = homescreenURL;
+    var launcherURL = 'http://launcher.' + domain;
+    document.getElementById('launcher').src = launcherURL;
 
     ScreenManager.turnScreenOn();
   });

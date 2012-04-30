@@ -27,7 +27,7 @@
 
     // XXX The location of the bookmarks icon are a hack since they
     // live into an other application.
-    var url = document.location.toString().replace('system', 'homescreen');
+    var url = document.location.toString().replace('homescreen', 'launcher');
     var manifest = '{' +
                    '  "name": "' + bookmark.name + '",' +
                    '  "description": "' + bookmark.name + '",' +

@@ -9,16 +9,16 @@
 //   keeping track of the set of running apps (which we call tasks here)
 //   keeping track of which task is displayed (the foreground task)
 //   changing the foreground task
-//   hiding all apps to display the homescreen
+//   hiding all apps to display the launcher
 //   displaying the app switcher to allow the user to switch and kill apps
 //   performing appropriate transition animations between:
-//      the homescreen and an app
-//      the homescreen and the switcher
-//      an app and the homescreen
-//      the switcher and the homescreen
+//      the launcher and an app
+//      the launcher and the switcher
+//      an app and the launcher
+//      the switcher and the launcher
 //      the switcher and the current foreground task
 //      the switcher and a different task
-//   Handling Home key events to switch to the homescreen and the switcher
+//   Handling Home key events to switch to the launcher and the switcher
 //
 // The public API of the module is small. It defines an WindowManager object
 // with these methods:
@@ -30,11 +30,11 @@
 //      for tests and chrome stuff: see the end of the file
 //
 // This module does not (at least not currently) have anything to do
-// with the homescreen.  It simply assumes that if it hides all running
-// apps the homescreen will show
+// with the launcher.  It simply assumes that if it hides all running
+// apps the launcher will show
 //
 // TODO
-// It would be nice eventually to centralize much of the homescreen
+// It would be nice eventually to centralize much of the launcher
 // event handling code in a single place. When or if we do that, then
 // this module will just expose methods for managing the list of apps
 // and app visibility but will leave all the event handling to another module.
@@ -85,7 +85,7 @@ var WindowManager = (function() {
 
   // Start the specified app if it is not already running and make it
   // the displayed app.
-  // Public function.  Pass null to make the homescreen visible
+  // Public function.  Pass null to make the launcher visible
   function launch(origin) {
     // If it is already being displayed, do nothing
     if (displayedApp === origin)
@@ -249,7 +249,7 @@ var WindowManager = (function() {
     // to the closed state. Note that we don't handle the hackKillMe
     // flag here. If we bring up the task switcher and switch to another
     // app then the video or camera or whatever should keep running
-    // in the background. Its only animated transitions to the homescreen
+    // in the background. Its only animated transitions to the launcher
     // that should kill those resource-intensive apps.
     if (instant) {
       frame.classList.remove('active');
@@ -312,8 +312,8 @@ var WindowManager = (function() {
 
     // There are four cases that we handle in different ways:
     // 1) The new app is already displayed: do nothing
-    // 2) We're going from the homescreen to an app
-    // 3) We're going from an app to the homescreen
+    // 2) We're going from the launcher to an app
+    // 3) We're going from an app to the launcher
     // 4) We're going from one app to another (via task switcher)
 
     // Case 1
@@ -322,12 +322,12 @@ var WindowManager = (function() {
       if (callback)
         callback();
     }
-    // Case 2: homescreen->app
+    // Case 2: launcher->app
     else if (currentApp == null) {
       setAppSize(newApp);
       openWindow(newApp, callback);
     }
-    // Case 3: app->homescreen
+    // Case 3: app->launcher
     else if (newApp == null) {
       // Animate the window close
       closeWindow(currentApp, false, callback);
@@ -446,7 +446,7 @@ var WindowManager = (function() {
     if (!isRunning(origin))
       return;
 
-    // If the app is the currently displayed app, switch to the homescreen
+    // If the app is the currently displayed app, switch to the launcher
     if (origin === displayedApp)
       setDisplayedApp(null);
 
@@ -504,7 +504,7 @@ var WindowManager = (function() {
 
         // Stop the app itself
         // If the app is the currently displayed one,
-        // this will also switch back to the homescreen
+        // this will also switch back to the launcher
         // (though the task switcher will still be displayed over it)
         stop(origin);
 
@@ -551,7 +551,7 @@ var WindowManager = (function() {
   // back button should go to the displayed app first, so it can use
   // it if it has more than one screen.  Finally, if the event bubbles
   // is not cancelled and bubbles back up to the window, we use it to
-  // switch from an app back to the homescreen.
+  // switch from an app back to the launcher.
   //
   // FIXME: I'm using key up here because the other apps do that.
   // But I think for back we should use keydown.  Keyup is only for
@@ -581,18 +581,18 @@ var WindowManager = (function() {
   window.addEventListener('keyup', function(e) {
     // If we see the Back key, and it hasn't been cancelled, and there
     // is an app displayed, then hide the app and go back to the
-    // homescreen. Unlike the Home key, apps can intercept this event
+    // launcher. Unlike the Home key, apps can intercept this event
     // and use it for their own purposes.
     if (e.keyCode === e.DOM_VK_ESCAPE &&
         !e.defaultPrevented &&
         displayedApp !== null) {
 
-      setDisplayedApp(null); // back to the homescreen
+      setDisplayedApp(null); // back to the launcher
     }
   });
 
   // Handle the Home key with capturing event listeners so that
-  // other homescreen modules never even see the key.
+  // other launcher modules never even see the key.
   (function() {
     var timer = null;
     var keydown = false;
@@ -629,7 +629,7 @@ var WindowManager = (function() {
       keydown = false;
 
       // If the key was released before the timer, then this was
-      // a short press. Show the homescreen and cancel the timer.
+      // a short press. Show the launcher and cancel the timer.
       // Otherwise it was a long press that was handled in the timer
       // function so just ignore it.
       if (timer !== null) {
@@ -637,7 +637,7 @@ var WindowManager = (function() {
         timer = null;
 
         // If the screen is locked, ignore the home button.
-        // Otherwise, make the homescreen visible.
+        // Otherwise, make the launcher visible.
         // Also, if the task switcher is visible, then hide it.
         if (!LockScreen.locked) {
           setDisplayedApp(null);

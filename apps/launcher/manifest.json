@@ -1,0 +1,42 @@
+{
+  "name": "Launcher",
+  "description": "Gaia Launcher",
+  "launch_path": "/",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "permissions": [
+    "telephony",
+    "mozbrowser",
+    "power",
+    "mozApps"
+  ],
+  "locales": {
+    "ar": {
+      "name": "\u0627\u0644\u0634\u0627\u0634\u0629 \u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629",
+      "description": "Gaia \u0627\u0644\u0634\u0627\u0634\u0629 \u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629 "
+    },
+    "de": {
+      "name": "Startbildschirm",
+      "description": "Gaia Startbildschirm"
+    },
+    "en-US": {
+      "name": "Launcher",
+      "description": "Gaia Launcher"
+    },
+    "fr": {
+      "name": "\u00c9cran d\u2019accueil",
+      "description": "\u00c9cran d\u2019accueil Gaia"
+    },
+    "ru": {
+      "name": "\u0413\u043b\u0430\u0432\u043d\u044b\u0439 \u044d\u043a\u0440\u0430\u043d",
+      "description": "\u0413\u043b\u0430\u0432\u043d\u044b\u0439 \u044d\u043a\u0440\u0430\u043d Gaia"
+    },
+    "zh-TW": {
+      "name": "\u4e3b\u756b\u9762",
+      "description": "Gaia \u4e3b\u756b\u9762"
+    }
+  },
+  "default_locale": "en-US"
+}
