@@ -96,5 +96,5 @@ var ContactsTest = {
   }
 };
 
-window.onload = ContactsTest.init.bind(ContactsTest);
-window.onunload = ContactsTest.uninit.bind(ContactsTest);
+window.addEventListener('load', ContactsTest.init.bind(ContactsTest));
+window.addEventListener('unload', ContactsTest.uninit.bind(ContactsTest));
