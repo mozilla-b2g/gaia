@@ -1,47 +1,65 @@
 // GestureDetector.js: generate events for one and two finger gestures
-
-/*
-Start by handling touch events.
-Then try to add non-touch compatability with mouse events and MozMagnifyGesture
-
-Gesture events:
-
-   tap          // or can I use click?
-   dbltap       // or just dblclick?
-   pan          // single touch move
-   swipe        // end of a pan, includes velocity distance and direction
-   holdstart
-   holdmove
-   holdend
-   transform    // complex 2-finger gesture including scale, rotate, translate
-
-Open question: if we're listening for gestures on an element e, will 
-  other mouse and touch events ever be reported on that element, or 
-  will they only report gesture events?  That is, should the gesture
-  detector call preventDefault()?
-
-Another question: do I want to try to do any kind of CSS selector-based
- filtering? Given a root element and a selector, register the handlers
- on the root element, but only detect events if they originate in 
- descendants that match the selector? Also, what element are the gesture
- events dispatched on?  Currently the same one that we register the 
- handlers on, even if the gesture itself is occurring on descendant elements. 
-
-The GestureDetector() constructor takes an element as its first
-argument and listens for events on that element (and dispatches them
-on that element, too). The optional second argument is an object of options.
-Pass an object with property holdEvents true if you want to receive
-holdstart, holdmove and holdend events.
-
-
-*/
-
+//
+// A GestureDetector object listens for touch and mouse events on a specified
+// element and generates higher-level events that describe one and two finger
+// gestures on the element. The hope is that this will be useful for webapps
+// that need to run on mouse (or trackpad)-based desktop browsers and also
+// in touch-based mobile devices.
+// 
+// Supported events:
+// 
+//  tap        like a click event
+//  dbltap     like dblclick
+//  pan        one finger motion, or mousedown followed by mousemove
+//  swipe      when a finger is released following pan events
+//  holdstart  touch (or mousedown) and hold. Must set an option to get these.
+//  holdmove   motion after a holdstart event
+//  holdend    when the finger or mouse goes up after holdstart/holdmove
+//  transform  2-finger pinch and twist gestures for scaling and rotation
+//             These are touch-only; they can't be simulated with a mouse.
+// 
+// Each of these events is a bubbling CustomEvent with important details
+// in the event.detail field. The event details are not yet stable
+// and are not yet documented. See the calls to emitEvent() for details.
+// 
+// To use this library, create a GestureDetector object by passing an
+// element to the GestureDetector() constructor and then calling
+// startDetecting() on it. The element will be the target of all the
+// emitted gesture events. You can also pass an optional object as the
+// second constructor argument. If you're interested in
+// holdstart/holdmove/holdend events, pass {holdEvents:true} as this
+// second argument. Otherwise they will not be generated.
+//
+// Implementation note: event processing is done with a simple
+// finite-state machine. This means that in general, the various kinds
+// of gestures are mutually exclusive. You won't get pan events until
+// your finger or mouse has moved more than a minimum threshold, for
+// example, but it does, the FSM enters a new state in which it can
+// emit pan and swipe events and cannot emit hold events. Similarly,
+// if you've started a 1 finger pan/swipe gesture and accidentally
+// touch with a second finger, you'll continue to get pan events, and
+// won't suddenly start getting 2-finger transform events.
+// 
+// This library never calls preventDefault() or stopPropagation on any
+// of the events it processes, so the raw touch or mouse events should
+// still be available for other code to process. It is not clear to me
+// whether this is a feature or a bug.
+//
+// Each GestureDetector listens for mouse and touch events on a single
+// target element and dispatches its synthetic events on the same
+// element.  Its not clear to me whether this will be sufficient or
+// whether I need to do something more sophisticated. For example, the
+// GestureDetector() could take a CSS selector argument and only
+// detect gestures on elements that match that selector. Or it could
+// remember the originalTarget element on which the gesture began and
+// dispatch events on that object rather than the higher-level one.
+// 
 var GestureDetector = (function() {
 
   // 
   // Constructor
   // 
-  function GestureDetector(e, options) {
+  function GD(e, options) {
     this.element = e;
     this.options = options || {};
     this.state = initialState;
@@ -52,14 +70,14 @@ var GestureDetector = (function() {
   // Public methods
   //
 
-  GestureDetector.prototype.startDetecting = function() {
+  GD.prototype.startDetecting = function() {
     var self = this;
     eventtypes.forEach(function(t) {
       self.element.addEventListener(t, self);
     });
   };
 
-  GestureDetector.prototype.stopDetecting = function() {
+  GD.prototype.stopDetecting = function() {
     var self = this;
     eventtypes.forEach(function(t) {
       this.element.removeEventListener(t, self);
@@ -70,9 +88,11 @@ var GestureDetector = (function() {
   // Internal methods
   // 
 
-  GestureDetector.prototype.handleEvent = function(e) {
+  GD.prototype.handleEvent = function(e) {
     var handler = this.state[e.type];
     if (!handler) return;
+
+    // console.log("got input event", e.type);
 
     // If this is a touch event handle each changed touch separately
     if (e.changedTouches) {
@@ -85,7 +105,7 @@ var GestureDetector = (function() {
     }
   };
 
-  GestureDetector.prototype.startTimer = function(type, time) {
+  GD.prototype.startTimer = function(type, time) {
     this.clearTimer(type);
     var self = this;
     this.timers[type] = setTimeout(function() {
@@ -96,7 +116,7 @@ var GestureDetector = (function() {
     }, time);
   };
 
-  GestureDetector.prototype.clearTimer = function(type) {
+  GD.prototype.clearTimer = function(type) {
     if (this.timers[type]) {
       clearTimeout(this.timers[type]);
       this.timers[type] = null;
@@ -106,13 +126,15 @@ var GestureDetector = (function() {
   // Switch to a new FSM state, and call the init() function of that 
   // state, if it has one.  The event and touch arguments are optional
   // and are just passed through to the state init function.
-  GestureDetector.prototype.switchTo = function(state, event, touch) {
+  GD.prototype.switchTo = function(state, event, touch) {
+    // console.log("switching to ", state.name);
     this.state = state;
     if (state.init)
       state.init(this, event, touch);
   };
 
-  GestureDetector.prototype.emitEvent = function(type, detail) {
+  GD.prototype.emitEvent = function(type, detail) {
+    // console.log("Sending output event", type);
     var event = this.element.ownerDocument.createEvent('CustomEvent');
     event.initCustomEvent(type, true, true, detail);
     this.element.dispatchEvent(event);
@@ -121,15 +143,16 @@ var GestureDetector = (function() {
   // 
   // Tuneable parameters
   // 
-  GestureDetector.HOLD_INTERVAL = 1500;  // Hold events after 1500 ms
-  GestureDetector.PAN_THRESHOLD = 50;    // 50 pixels movement before panning
-  GestureDetector.DOUBLE_TAP_DISTANCE = 50;
-  GestureDetector.DOUBLE_TAP_TIME = 500;
-  GestureDetector.VELOCITY_SMOOTHING = .5;
+  GD.HOLD_INTERVAL = 1500;     // Hold events after 1500 ms
+  GD.PAN_THRESHOLD = 50;       // 50 pixels movement before touch panning
+  GD.MOUSE_PAN_THRESHOLD = 25; // Mice are more precise, so smaller threshold
+  GD.DOUBLE_TAP_DISTANCE = 50;
+  GD.DOUBLE_TAP_TIME = 500;
+  GD.VELOCITY_SMOOTHING = .5;
 
   // Don't start sending transform events until the gesture exceeds a threshold
-  GestureDetector.SCALE_THRESHOLD = 40;     // pixels
-  GestureDetector.ROTATE_THRESHOLD = 22.5;  // degrees
+  GD.SCALE_THRESHOLD = 40;     // pixels
+  GD.ROTATE_THRESHOLD = 22.5;  // degrees
 
 
   // 
@@ -143,9 +166,23 @@ var GestureDetector = (function() {
   var eventtypes = [
     'touchstart',
     'touchmove',
-    'touchend'
-    // XXX: add mouse and MozMagnifyGesture events
+    'touchend',
+    'mousedown',  // We register mousemove and mouseup manually
+    // XXX: add MozMagnifyGesture events
   ];
+
+  // Return the event's timestamp in ms
+  function eventTime(e) {
+    // In gecko, synthetic events seem to be in microseconds rather than ms.
+    // So if the timestamp is much larger than the current time, assue it is
+    // in microseconds and divide by 1000
+    var ts = e.timeStamp;
+    if (ts > 2*Date.now())
+      return Math.floor(ts/1000);
+    else
+      return ts;
+  }
+
 
   // Return an object containg the space and time coordinates of 
   // and event and touch. We freeze the object to make it immutable so
@@ -156,9 +193,7 @@ var GestureDetector = (function() {
       screenY: t.screenY,
       clientX: t.clientX,
       clientY: t.clientY,
-      pageX: t.pageX,
-      pageY: t.pageY,
-      timeStamp: e.timeStamp
+      timeStamp: eventTime(e)
     });
   }
 
@@ -167,13 +202,23 @@ var GestureDetector = (function() {
     return Object.freeze({
       screenX: floor((t1.screenX + t2.screenX)/2),
       screenY: floor((t1.screenY + t2.screenY)/2),
-      pageX: floor((t1.pageX + t2.pageX) / 2),
-      pageY: floor((t1.pageY + t2.pageY) / 2),
       clientX: floor((t1.clientX + t2.clientX)/2),
       clientY: floor((t1.clientY + t2.clientY)/2),
+      timeStamp: eventTime(e)
+    });
+  }
+
+  // Like coordinates(), but for a mouse event
+  function mouseCoordinates(e) {
+    return Object.freeze({
+      screenX: e.screenX,
+      screenY: e.screenY,
+      clientX: e.clientX,
+      clientY: e.clientY,
       timeStamp: e.timeStamp
     });
   }
+
 
   // Compute the distance between two touches
   function touchDistance(t1, t2) {
@@ -207,9 +252,9 @@ var GestureDetector = (function() {
     var dx = abs(thisTap.screenX - lastTap.screenX);
     var dy = abs(thisTap.screenY - lastTap.screenY);
     var dt = thisTap.timeStamp - lastTap.timeStamp;
-    return (dx < GestureDetector.DOUBLE_TAP_DISTANCE &&
-            dy < GestureDetector.DOUBLE_TAP_DISTANCE &&
-            dt < GestureDetector.DOUBLE_TAP_TIME)
+    return (dx < GD.DOUBLE_TAP_DISTANCE &&
+            dy < GD.DOUBLE_TAP_DISTANCE &&
+            dt < GD.DOUBLE_TAP_TIME)
   }
 
   // 
@@ -219,6 +264,7 @@ var GestureDetector = (function() {
   // In this state we're not processing any gestures, just waiting
   // for an event to start a gesture and ignoring others
   var initialState = {
+    name: "initialState",
     init: function(d) {
       // When we enter or return to the initial state, clear
       // the detector properties that were tracking gestures
@@ -231,10 +277,17 @@ var GestureDetector = (function() {
       d.scaled = d.rotated = null;
     },
     
+    // Switch to the touchstarted state and process the touch event there
+    // Once we've started processing a touch gesture we'll ignore mouse events
     touchstart: function(d, e, t) {
-      // Switch to the touchstarted state and process the touch event there
       d.switchTo(touchStartedState, e, t);
     },
+
+    // Or if we see a mouse event first, then start processing a mouse-based
+    // gesture, and ignore any touch events
+    mousedown: function(d, e) {
+      d.switchTo(mouseDownState, e);
+    }
   };
 
   // One finger is down but we haven't generated any event yet. We're 
@@ -242,6 +295,7 @@ var GestureDetector = (function() {
   // stays down and still, its a hold. If the finger moves its a pan/swipe.
   // And if a second finger goes down, its a transform
   var touchStartedState = {
+    name: "touchStartedState",
     init: function(d, e, t) {
       // Remember the id of the touch that started
       d.touch1 = t.identifier;
@@ -250,7 +304,7 @@ var GestureDetector = (function() {
       // Start a timer for a hold
       // If we're doing hold events, start a timer for them
       if (d.options.holdEvents)
-        d.startTimer('holdtimeout', GestureDetector.HOLD_INTERVAL);
+        d.startTimer('holdtimeout', GD.HOLD_INTERVAL);
     },
 
     touchstart: function(d, e, t) {
@@ -266,8 +320,8 @@ var GestureDetector = (function() {
       if (t.identifier !== d.touch1)
         return;
 
-      if (abs(t.screenX - d.start.screenX) > GestureDetector.PAN_THRESHOLD ||
-          abs(t.screenY - d.start.screenY) > GestureDetector.PAN_THRESHOLD) {
+      if (abs(t.screenX - d.start.screenX) > GD.PAN_THRESHOLD ||
+          abs(t.screenY - d.start.screenY) > GD.PAN_THRESHOLD) {
         d.clearTimer('holdtimeout');
         d.switchTo(panStartedState, e, t);
       }
@@ -310,6 +364,7 @@ var GestureDetector = (function() {
   // when the touch ends. We ignore any other touches that occur while this
   // pan/swipe gesture is in progress.
   var panStartedState = {
+    name: "panStartedState",
     init: function(d, e, t) {
       // If we transition into this state with a touchmove event,
       // then process it with that handler. If we don't do this then
@@ -340,7 +395,7 @@ var GestureDetector = (function() {
       // Track the pan velocity so we can report this with the swipe
       // Use a exponential moving average for a bit of smoothing
       // on the velocity
-      var dt = e.timeStamp - d.last.timeStamp;
+      var dt = current.timeStamp - d.last.timeStamp;
       var vx = (current.screenX - d.last.screenX)/dt;
       var vy = (current.screenY - d.last.screenY)/dt;
 
@@ -349,10 +404,10 @@ var GestureDetector = (function() {
         d.vy = vy;
       }
       else {
-        d.vx = d.vx * GestureDetector.VELOCITY_SMOOTHING + 
-          vx * (1 - GestureDetector.VELOCITY_SMOOTHING);
-        d.vy = d.vy * GestureDetector.VELOCITY_SMOOTHING + 
-          vy * (1 - GestureDetector.VELOCITY_SMOOTHING);
+        d.vx = d.vx * GD.VELOCITY_SMOOTHING + 
+          vx * (1 - GD.VELOCITY_SMOOTHING);
+        d.vy = d.vy * GD.VELOCITY_SMOOTHING + 
+          vy * (1 - GD.VELOCITY_SMOOTHING);
       }
 
       d.last = current;
@@ -409,6 +464,7 @@ var GestureDetector = (function() {
   // these events just report the coordinates of the touch.  Do we need
   // other details?
   var holdState = {
+    name: "holdState",
     init: function(d) {
       d.emitEvent('holdstart', d.start);
     },
@@ -447,6 +503,7 @@ var GestureDetector = (function() {
   // distance and angle between them to report scale and rotation values
   // in transform events.
   var transformState = {
+    name: "transformState",
     init: function(d, e, t) {
       // Remember the id of the second touch
       d.touch2 = t.identifier;
@@ -482,13 +539,13 @@ var GestureDetector = (function() {
       // the transforms are too jittery even when you try to hold your
       // fingers still.
       if (!d.scaled) {
-        if (abs(distance - d.startDistance) > GestureDetector.SCALE_THRESHOLD)
+        if (abs(distance - d.startDistance) > GD.SCALE_THRESHOLD)
           d.scaled = true;
         else
           distance = d.startDistance;
       }
       if (!d.rotated) {
-        if (abs(rotation) > GestureDetector.ROTATE_THRESHOLD)
+        if (abs(rotation) > GD.ROTATE_THRESHOLD)
           d.rotated = true;
         else
           direction = d.startDirection;
@@ -543,6 +600,7 @@ var GestureDetector = (function() {
   // We did a tranform and one finger went up. Wait for that finger to 
   // come back down or the other finger to go up too.
   var afterTransformState = {
+    name: "afterTransformState",
     touchstart: function(d, e, t) {
       d.switchTo(transformState, e, t);
     }, 
@@ -553,5 +611,196 @@ var GestureDetector = (function() {
     }
   };
 
-  return GestureDetector;
+  var mouseDownState = {
+    name: "mouseDownState",
+    init: function(d, e) {
+      // Register this detector as a *capturing* handler on the document
+      // so we get all subsequent mouse events until we remove these handlers
+      var doc = d.element.ownerDocument;
+      doc.addEventListener('mousemove', d, true);
+      doc.addEventListener('mouseup', d, true);
+
+      // Get the coordinates of the mouse event
+      d.start = d.last = mouseCoordinates(e);
+
+      // Start a timer for a hold
+      // If we're doing hold events, start a timer for them
+      if (d.options.holdEvents)
+        d.startTimer('holdtimeout', GD.HOLD_INTERVAL);
+    },
+
+    mousemove: function(d, e) {
+      // If the mouse has moved more than the panning threshold, 
+      // then switch to the mouse panning state. Otherwise remain
+      // in this state
+
+      if (abs(e.screenX - d.start.screenX) > GD.MOUSE_PAN_THRESHOLD ||
+          abs(e.screenY - d.start.screenY) > GD.MOUSE_PAN_THRESHOLD) {
+        d.clearTimer('holdtimeout');
+        d.switchTo(mousePannedState, e);
+      }
+    },
+
+    mouseup: function(d, e) {
+      // Remove the capturing event handlers
+      var doc = d.element.ownerDocument;
+      doc.removeEventListener('mousemove', d, true);
+      doc.removeEventListener('mouseup', d, true);
+
+      // If there was a previous tap that was close enough in time
+      // and space, then emit a 'dbltap' event
+      if (d.lastTap && isDoubleTap(d.lastTap, d.start)) {
+        d.emitEvent('tap', d.start);
+        d.emitEvent('dbltap', d.start);
+        d.lastTap = null; // so we don't get another one
+      }
+      else {
+        // Emit a 'tap' event using the starting coordinates
+        // as the event details
+        d.emitEvent('tap', d.start);
+        
+        // Remember the coordinates of this tap so we can detect double taps
+        d.lastTap = mouseCoordinates(e);
+      }
+
+      // In either case clear the timer and go back to the initial state
+      d.clearTimer('holdtimeout');
+      d.switchTo(initialState);
+    },
+
+    holdtimeout: function(d) {
+      d.switchTo(mouseHoldState);
+    },
+  };
+
+  // Like holdState, but for mouse events instead of touch events
+  var mouseHoldState = {
+    name: "mouseHoldState",
+    init: function(d) {
+      d.emitEvent('holdstart', d.start);
+    },
+
+    mousemove: function(d, e) {
+      var current = mouseCoordinates(e);
+      d.emitEvent('holdmove', {
+        absolute: {
+          dx: current.screenX - d.start.screenX,
+          dy: current.screenY - d.start.screenY
+        },
+        relative: {
+          dx: current.screenX - d.last.screenX,
+          dy: current.screenY - d.last.screenY
+        },
+        position: current
+      });
+
+      d.last = current;
+    },
+
+    mouseup: function(d, e) {
+      var current = mouseCoordinates(e);
+      d.emitEvent('holdend', {
+        start: d.start,
+        end: current,
+        dx: current.screenX - d.start.screenX,
+        dy: current.screenY - d.start.screenY,
+      });
+      d.switchTo(initialState);
+    },
+  };
+
+  var mousePannedState = {
+    name: "mousePannedState",
+    init: function(d, e) {
+      // If we transition into this state with a mousemove event,
+      // then process it with that handler. If we don't do this then
+      // we can end up with swipe events that don't know their velocity
+      if (e.type === "mousemove")
+        mousePannedState.mousemove(d, e);
+    },
+    mousemove: function(d, e) {
+      // Each time the mouse moves, emit a pan event but stay in this state
+      var current = mouseCoordinates(e);
+      d.emitEvent('pan', {
+        absolute: {
+          dx: current.screenX - d.start.screenX,
+          dy: current.screenY - d.start.screenY
+        },
+        relative: {
+          dx: current.screenX - d.last.screenX,
+          dy: current.screenY - d.last.screenY
+        },
+        position: current
+      });
+
+      // Track the pan velocity so we can report this with the swipe
+      // Use a exponential moving average for a bit of smoothing
+      // on the velocity
+      var dt = current.timeStamp - d.last.timeStamp;
+      var vx = (current.screenX - d.last.screenX)/dt;
+      var vy = (current.screenY - d.last.screenY)/dt;
+
+      if (d.vx == null) { // first time; no average
+        d.vx = vx;
+        d.vy = vy;
+      }
+      else {
+        d.vx = d.vx * GD.VELOCITY_SMOOTHING + 
+          vx * (1 - GD.VELOCITY_SMOOTHING);
+        d.vy = d.vy * GD.VELOCITY_SMOOTHING + 
+          vy * (1 - GD.VELOCITY_SMOOTHING);
+      }
+
+      d.last = current;
+    },
+    mouseup: function(d, e) {
+      // Remove the capturing event handlers
+      var doc = d.element.ownerDocument;
+      doc.removeEventListener('mousemove', d, true);
+      doc.removeEventListener('mouseup', d, true);
+
+      // Emit a swipe event when the mouse goes up.
+      // Report start and end point, dx, dy, dt, velocity and direction
+      var current = mouseCoordinates(e);
+
+      // FIXME:
+      // lots of code duplicated between this state and the corresponding
+      // touch state, can I combine them somehow?
+      var dx = current.screenX - d.start.screenX;
+      var dy = current.screenY - d.start.screenY;
+      // angle is a positive number of degrees, starting at 0 on the
+      // positive x axis and increasing clockwise.
+      var angle = atan2(dy,dx) * 180 / PI;
+      if (angle < 0)
+        angle += 360;
+
+      // Direction is 'right', 'down', 'left' or 'up'
+      var direction;
+      if (angle >= 315 || angle < 45)
+        direction = 'right'
+      else if (angle >= 45 && angle < 135)
+        direction = 'down'
+      else if (angle >= 135 && angle < 225)
+        direction = 'left';
+      else if (angle >= 225 && angle < 315)
+        direction = 'up';
+
+      d.emitEvent('swipe', {
+        start: d.start,
+        end: current,
+        dx: dx,
+        dy: dy,
+        dt: current.timeStamp - d.start.timeStamp,
+        vx: d.vx,
+        vy: d.vy,
+        direction: direction,
+        angle: angle
+      });
+
+      // Go back to the initial state
+      d.switchTo(initialState);
+    },
+  };
+
+  return GD;
 }());
