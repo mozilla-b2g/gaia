@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Mail test</title>
+    <link type="text/css" rel="stylesheet" href="style/mail.css">
+    <style>
+      .message-frame-header {
+        margin: 15px 0;
+        padding: 0 15px;
+        border-bottom: 1px solid gray;
+      }
+
+      .message-frame-header-line {
+        font-weight: normal;
+      }
+
+      .message-frame-header-line span{
+        float: left;
+        width: 20%;
+      }
+
+      .message-frame-subject {
+        width: 100%;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        font-size: 22px;
+        line-height: 30px;
+      }
+
+      .message-frame-body {
+        margin: 15px 0;
+        padding: 0 15px;
+        font-size: 20px;
+        line-height: 22px;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="message-frame-header">
+      <h2 class="message-frame-header-line"><span>From:</span><strong>Jane Doe</strong></h2>
+      <h2 class="message-frame-header-line"><span>To:</span><strong>John Doe</strong></h2>
+      <h2 class="message-frame-header-line"><span>cc:</span><strong>Benjamin Franklin</strong></h2>
+      <h2 class="message-frame-header-line"><span>bcc:</span><strong>George</strong></h2>
+      <h1 class="message-frame-subject">This is the subject of the message</h1>
+    </header>
+    <article class="message-frame-body">
+      <p>Lorem Ipsum is simply dummy text of the printing 
+and typesetting industry. Lorem Ipsum has been 
+the industry's standard dummy text ever since the 
+1500s, when an unknown printer took a galley of 
+type and scrambled it to make a type specimen 
+book.
+    </article>
+    <footer>
+
+    </footer>
+  </body>
+</html>

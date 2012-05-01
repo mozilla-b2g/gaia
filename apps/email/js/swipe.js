@@ -20,11 +20,12 @@ document.addEventListener('mousedown', function(e) {
         let swipe = new MouseEvent('swipeend', e);
         e.target.dispatchEvent(swipe);
 
-      }else if (!tapDispatched) {
+      } else {
+        if (!tapDispatched) {
+          waitTap();
+        }
 
-        waitTap();
-
-        let(tapend = new MouseEvent('tapend', e)) {
+        let (tapend = new MouseEvent('tapend', e)) {
           target.dispatchEvent(tapend);
         }
 
@@ -91,6 +92,7 @@ document.addEventListener('mousedown', function(e) {
       e.target.dispatchEvent(tap);
       tapTimer = null;
       tapDispatched = true;
+
     };
 
 

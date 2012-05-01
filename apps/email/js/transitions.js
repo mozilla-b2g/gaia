@@ -125,7 +125,7 @@ Transform.translate = function(x, y) {
   ].join('');
 };
 
-['translate', 'rotate', 'scale', 'skew'].forEach(function(key) {
+['translate', 'rotate', 'scale'].forEach(function(key) {
   Transform.prototype[key] = function() {
     this.stack.push(Transform[key].apply(null, arguments));
     return this;

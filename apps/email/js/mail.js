@@ -3,12 +3,10 @@
 
 'use strict';
 
-const MESSAGES_PER_PAGE = 10,
-  PAGES_LENGTH = 5,
-  TRANSITION_PADDING = 20,
-  PAGE_TRANSITION_DURATION = 300,
+const PAGE_TRANSITION_DURATION = 300,
   CACHE_DOM_PAGES = 2,
   DEFAULT_DIRECTION = 1,
+  MESSAGES_PER_SCREEN = 5,
 
   //simple regexp for parse addresses
   R_ADRESS_PARTS = /^(?:([\w\s]+) )?<(.+)>$/,
@@ -21,15 +19,15 @@ var mail = {
     const DOMAINS = {},
       R_EMAIL_DOMAIN = /@(.*)$/;
 
-    var pages = new Paging(nodes.firstScreen);
+    //var pages = new Paging(nodes.firstScreen);
 
     //pages.registerPage(nodes.selectAccount);
 
-    nodes.firstScreen.classList.remove('hidden');
+    nodes.firstScreen.hidden = false;
 
     nodes.selectExistButton.addEventListener('click', function() {
       nodes.selectAccount.style.top = window.innerHeight + 'px';
-      nodes.selectAccount.classList.remove('hidden');
+      nodes.selectAccount.hidden = false;
       window.addEventListener('MozAfterPaint', function afterPaint() {
         window.removeEventListener('MozAfterPaint', afterPaint);
 
@@ -41,10 +39,10 @@ var mail = {
 
       });
 
-      let accounts = mail.accounts.getAll();
+      var accounts = mail.accounts.getAll();
 
       nodes.selectAccountList.innerHTML = '';
-
+      
       accounts.forEach(function(account) {
         var li = document.createElement('li');
         //li.dataset.index = i;
@@ -55,7 +53,7 @@ var mail = {
 
           if (account) {
             window.removeEventListener('keyup', ESCLitener);
-            nodes.firstScreen.classList.add('hidden');
+            nodes.firstScreen.hidden = true;
             mail.configAccount(account.account, account.password);
           }
 
@@ -97,7 +95,7 @@ var mail = {
         document.activeElement.blur();
       }
 
-      nodes.firstScreen.classList.add('hidden');
+      nodes.firstScreen.hidden = true;
 
       mail.configAccount(account, password);
 
@@ -177,136 +175,76 @@ var mail = {
 
   },
   mailScreen: function(account) {
-    var pages = mail.pages,
-      currentPage = 0,
-      stopTransition = function() {
-        for (var i = -1; i < 2; i++) {
-          pages[mail.currentPage + i] &&
-            Transition.stop(pages[mail.currentPage + i]);
-        }
-      },
-      lastDir = DEFAULT_DIRECTION,
-      updatePages = mail.updatePages;
 
-    nodes.mailScreen.classList.remove('hidden');
+    var swipedTarget,
+      swipeMove = function() {
+
+      },
+      swipeEnd = function() {
+
+        swipedTarget = null;
+        document.removeEventListener('mousemove', swipeMove);
+        document.removeEventListener('swipeend', swipeEnd);
+
+      },
+      getMessage = function(target){
+
+        while (!('messageId' in target.dataset)) {
+
+          if ((target = target.parentNode) === nodes.mailScreen) {
+            return null;
+          };
+          
+        }
+
+        return target;
+
+      };
+
+    nodes.mailScreen.hidden = false;
 
     nodes.accountBar
       .appendChild(document.createElement('div'))
       .appendChild(document.createElement('span'))
       .textContent = account;
 
-    /*nodes.messages.removeChild(messagePage);
+    nodes.mailScreen.addEventListener('mousedown', function(e) {
+      swipedTarget = getMessage(e.target);
 
-    for(let i = PAGES_LENGTH; i--;){
-      pages.push(messagePage.cloneNode(true));
-    }*/
-    nodes.messages.zIndex = 0;
-    pages.forEach(function(page, i) {
-      page.style.zIndex = pages.length - i;
-      page.style.display = 'none';
-    });
+      if(!swipedTarget) {
+        return;
+      }
 
-    nodes.messages.appendChild(pages[mail.currentPage]).style.display = 'block';
+      let left = e.layerX,
+        width = swipedTarget.offsetWidth,
+        started = false;
 
-    //updatePages(mail.currentPage - 1);
-
-    window.addEventListener('resize', function() {
-      updatePages(mail.currentPage, lastDir);
-    }, true);
-
-    var swipeMove = function(e) {
-      //if(e.detail === SWIPE_HORIZONTAL){
-      var local = e.clientX - swipeStart,
-        dir = lastDir = local < 0 ? 1 : -1,
-        tmp;
-
-      offset = Math.max(
-          Math.min(local, window.innerWidth + TRANSITION_PADDING),
-          -window.innerWidth - TRANSITION_PADDING
-        );
-
-      var transform = new Transform({
-        translate: offset
+      document.addEventListener('tapstart', function() {
+        swipedTarget.classList.add('highlight');
       });
 
-      pages[mail.currentPage].style.MozTransform = transform;
+      if (left > width - width / 10) {
+        document.addEventListener('swipestart', function listenStart(e) {
+          if (e.detail & SWIPE_HORIZONTAL) {
+            console.log('swipe');
+            document.addEventListener('mousemove', function(e) {
+              console.log('move');
+              if (!started && left - e.layerX > width / 3) {
+                started = true;
+              }
 
-      if (tmp = pages[mail.currentPage + dir]) {
-        tmp.style.MozTransform = new Transform({
-          translate: offset + (window.innerWidth + TRANSITION_PADDING) * dir
-        });
-      }
+              if (started) {
 
-      if (tmp = pages[mail.currentPage + -dir]) {
-        tmp.style.MozTransform = new Transform({
-          translate: offset + (window.innerWidth + TRANSITION_PADDING) * -dir
-        });
-      }
-
-    },
-      swipeStart,
-      offset = 0,
-      swipeEnd = function(e) {
-        var dir = (offset < 0 ? 1 : -1) * mail.defaultDirection,
-          next = mail.currentPage +
-            (Math.abs(offset) > window.innerWidth / 4 ? dir : 0),
-          factor = (TRANSITION_PADDING + window.innerWidth - Math.abs(offset)) /
-            (window.innerWidth + TRANSITION_PADDING);
-
-        stopTransition();
-
-        Transition.run(pages[next] || pages[mail.currentPage], {
-          MozTransform: 'translate(0)'
-        }, {
-          duration: factor * PAGE_TRANSITION_DURATION
-        }, function() {
-          updatePages(mail.currentPage, dir);
-        });
-
-        if (next !== mail.currentPage && pages[next]) {
-          Transition.run(pages[mail.currentPage], {
-            MozTransform: Transform.translate(
-                (window.innerWidth + TRANSITION_PADDING) * -dir
-              )
-          }, {
-            duration: factor * PAGE_TRANSITION_DURATION
-          }, function() {
-
-          });
-
-          let clean = pages[mail.currentPage + CACHE_DOM_PAGES * -dir];
-          if (clean && clean.parentNode) {
-            clean.parentNode.removeChild(clean);
+              }
+            });
           }
+        });
+        document.addEventListener('mouseup', function() {
 
-          mail.currentPage = next;
-        } else {
-          let tmp = pages[mail.currentPage + dir];
-          tmp && Transition.run(tmp, {
-            MozTransform: Transform.translate((
-              window.innerWidth + TRANSITION_PADDING) * dir
-            )
-          }, {
-            duration: factor * PAGE_TRANSITION_DURATION
-          });
-        }
-
-        document.removeEventListener('mousemove', swipeMove);
-        document.removeEventListener('swipeend', swipeEnd);
-      };
-
-    nodes.main.addEventListener('swipestart', function(e) {
-      //Transition.stop(pages[currentPage]);
-      //console.log(e.detail, SWIPE_HORIZONTAL);
-      if (e.detail & SWIPE_HORIZONTAL) {
-        stopTransition();
-        updatePages(mail.currentPage, lastDir);
-        swipeStart = e.clientX;
-        pages[mail.currentPage].style.MozTransition = '';
-        document.addEventListener('mousemove', swipeMove);
-        document.addEventListener('swipeend', swipeEnd);
+        });
       }
-    });
+
+    }, true);
 
     nodes.main.addEventListener('tapstart', function(e) {
       console.log('tapstart');
@@ -317,6 +255,7 @@ var mail = {
     nodes.main.addEventListener('longtapstart', function(e) {
       console.log('longtap');
     });
+
   },
   configAccount: function(account, password) {
     //back-end function
@@ -331,7 +270,7 @@ var mail = {
     }
 
 
-    mail.loadPage(0, function() {
+    mail.loadFolder(mail.folder, function() {
       mail.mailScreen(account);
     });
 
@@ -343,12 +282,17 @@ var mail = {
 
     xhr.onload = function(e) {
       try {
-        success && success.call(xhr, JSON.parse(xhr.response));
+
+        let arr = JSON.parse(xhr.response);
+
+        success && success.call(xhr, 
+            arr.slice(0, Math.max(interval, arr.length))
+          );
 
       } catch (e) {
         error && error.call(xhr, e);
       }
-    };
+    };  
 
     xhr.onerror = function(e) {
       error && error.call(xhr, e);
@@ -356,34 +300,43 @@ var mail = {
 
     xhr.send(null);
   },
-  loadPage: function(i, callback) {
-    mail.loadMessages([i * MESSAGES_PER_PAGE, MESSAGES_PER_PAGE - 1],
-      function(messages) {
-        if (!Array.isArray(messages)) return;
+  loadFolder: function(folder, callback) {
 
-        let page = document.createElement('div');
+    var map = mail.folderMessages = new Map();
 
-        for (let i = 0, len = Math.min(MESSAGES_PER_PAGE, messages.length);
-           i < len; i++) {
-          page.appendChild(mail.messageConstructor(messages[i]));
-        }
+    mail.loadMessages(MESSAGES_PER_SCREEN * 2, function(arr){
+      arr.forEach(function(message){
+        var domMessage = mail.messageConstructor(message);
 
-        page.classList.add('message-page');
-        page.setAttribute('role', 'rowgroup');
-        page.style.display = 'none';
+        map.set(domMessage, message)
 
-        mail.pages[i] = page;
-        mail.updatePages();
-        callback && callback(page, messages);
+        nodes.messagesList.appendChild(domMessage);
+
+      });
     });
-  },
-  loadFolder: function() {
+
+    callback && callback(folder);
 
   },
   folder: 'inbox',
-  currentPage: 0,
-  pages: [],
   defaultDirection: DEFAULT_DIRECTION,
+  folderMessages: null,
+  messagesList: (function(){
+
+    var memmoryStack = {};
+
+    return {
+      getById: function(){
+
+      },
+      updateList: function(){
+
+      },
+      clearList: function(){
+
+      }
+    };
+  }()),
   accounts: (function() {
     var accounts,
       saveAccounts = function() {
@@ -468,14 +421,14 @@ var mail = {
     header.classList.add('message-summary-header');
     let address = header.appendChild(document.createElement('address'));
     address.classList.add('message-summary-mail');
-    address.appendChild(document.createElement('span'))
-      .textContent = from[1] || from[2];
-    address.appendChild(document.createTextNode(', '));
     address.appendChild(document.createElement('span')).textContent = [
       date.getDate(),
       date.getMonth() + 1,
       date.getYear() - 100
     ].join('.').replace(/(^|\.)(\d)(?!\d)($|\.)/g, '$10$2$3');
+    let author = header.appendChild(document.createElement('h1'));
+    author.classList.add('message-summary-author');
+    author.textContent = from[1] || from[2];
     let subject = header.appendChild(document.createElement('h2'));
     subject.classList.add('message-summary-subject');
     subject.textContent = data.subject;
@@ -483,7 +436,9 @@ var mail = {
     summary.classList.add('message-summary-text');
     summary.textContent = data.body.slice(0, Math.min(data.body.length, 200));
 
-    message.dataset.index = 0;
+    //message.dataset.index = 0;
+
+    message.dataset.messageId = +new Date;
 
     return message;
   },
@@ -503,7 +458,7 @@ var mail = {
 
     if (tmp = pages[page + dir]) {
       if (!tmp.offsetWidth && !tmp.offsetHeight)
-        nodes.messages.appendChild(tmp).style.display = 'block';
+        nodes.messagesList.appendChild(tmp).style.display = 'block';
 
       tmp.style.MozTransform = Transform.translate(
         (window.innerWidth + TRANSITION_PADDING) * dir
@@ -529,7 +484,6 @@ var nodes = {},
 
         document.dispatchEvent(event);
       }
-
       return result;
     };
 
@@ -538,28 +492,12 @@ var nodes = {},
     return fn;
   };
 
-//temporary way
-//by timer listen when page changes
-//and load new from related place
-
-setInterval(function() {
-  var tmp;
-
-  if (!mail.pages[tmp = mail.currentPage - 1] && tmp >= 0) {
-    mail.loadPage(mail.currentPage - 1);
-  }
-
-  if (!mail.pages[tmp = mail.currentPage + 1] && tmp < PAGES_LENGTH) {
-    mail.loadPage(mail.currentPage + 1);
-  }
-
-}, 100);
-
 document.addEventListener('DOMContentLoaded', load(function() {
   [
     'account-field',
     'account-bar',
     'folder',
+    'messages-list',
     'messages',
     'main',
     'first-screen',
@@ -618,7 +556,7 @@ document.addEventListener('DOMContentLoaded', load(function() {
 
 }), true);
 
-window.addEventListener('localized', load(function() {
+/*window.addEventListener('localized', load(function() {
 
   var html = document.documentElement,
     lang = document.mozL10n.language;
@@ -630,7 +568,7 @@ window.addEventListener('localized', load(function() {
     mail.defaultDirection = -mail.defaultDirection;
   }
 
-}));
+}));*/
 
 //document.addEventListener('apploaded', function );
 

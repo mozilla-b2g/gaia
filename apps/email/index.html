@@ -17,7 +17,7 @@
 		<script type="application/javascript;version=1.8" src="js/mail.js"></script>
 	</head>
 <body>
-	<div class="hidden mail-screen page" id="mail-screen">
+	<div class="mail-screen page" hidden id="mail-screen">
 		<header class="top">
 			<div class="userbar">
 				<a href="#account" class="account-bar" id="account-bar">
@@ -32,7 +32,16 @@
 			</div>
 		</header>
 		<div class="main" id="main">
-			<section class="messages" id="messages">
+			<section class="messages-list" id="messages-list">
+				
+			</section>
+			<section class="folders" hidden id="folders">
+				
+			</section>
+			<section class="messages" hidden id="messages">
+				<div class="message-wrap">
+					<iframe class="message-frame" sandbox src="mailtest.htm"></iframe>
+				</div>
 			</section>
 		</div>
 		<div id="actions" class="actions">
@@ -44,7 +53,7 @@
 			</a>
 		</div>
 	</div>
-	<div class="first-screen page hidden" id="first-screen">
+	<div class="first-screen page" hidden id="first-screen">
 		<header class="top">
 			<div class="userbar">
 				<h1 class="first-screen-header">Gaia Mail Client</h1>
@@ -100,7 +109,7 @@
 			<button id="select-exist-button" class="select-exist-button">Select exist account</button>
 		</footer>
 
-		<div class="select-exists-accounts hidden" id="select-account">
+		<div class="select-exists-accounts" hidden id="select-account">
 			<div class="select-exists-box">
 				<ul class="select-exists-list" id="select-account-list">
 				</ul>
