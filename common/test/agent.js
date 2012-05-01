@@ -44,7 +44,6 @@
           let parsedUrl = this.PARSE_REGEX.exec(url);
           let domain = location.protocol + '//' + parsedUrl[2] + '.';
           domain += domainParts.slice(1).join('.') + '/';
-          console.log(domain + parsedUrl[3]);
           return domain + parsedUrl[3];
         } else {
           //we are on localhost just add /apps/
