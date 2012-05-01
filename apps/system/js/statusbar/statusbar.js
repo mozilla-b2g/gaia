@@ -298,6 +298,8 @@ function updateBattery() {
 }
 
 function updateConnection(event) {
+  var _ = document.mozL10n.get;
+
   var conn = window.navigator.mozMobileConnection;
   if (!conn) {
     return;
