@@ -1,5 +1,6 @@
 {
   "tests": [
-    "/test/lib-test.js"
+    "test-agent/test/lib-test.js",
+    "test-agent/test/device/drive-test.js"
   ]
 }

@@ -1,4 +1,4 @@
-(function(window){
+(function(window) {
 
   var worker = new TestAgent.BrowserWorker({
         /* this is where your tests will be loaded into */
@@ -14,33 +14,51 @@
     ui: 'tdd',
     /* path to mocha */
     mochaUrl: CommonResourceLoader.url('/common/vendor/mocha/mocha.js'),
-    /* path to your test helper this is required, but it can be a blank file if you like */
-    testHelperUrl: './helper.js'
+    testHelperUrl: CommonResourceLoader.url('/common/test/helper.js')
   });
 
+
   worker.use(TestAgent.BrowserWorker.TestUi);
+  worker.use(TestAgent.BrowserWorker.ErrorReporting);
 
-  worker.addTestsProcessor(function(tests){
-    var domain = window.location.host.split('.'),
-        checkDomain = false;
+  let TestUrlResolver = (function() {
 
-    if(domain.length > 1){
-      checkDomain = true;
-      domain = '/' + domain[0];
+    let location = window.location,
+        domainParts = window.location.host.split('.'),
+        addSubdomain = false,
+        prefix = null;
+
+    if (domainParts.length === 3) {
+      //running from gaiamobile.org subdomain
+      addSubdomain = true;
+    } else {
+      //running from localhost
+      addSubdomain = false;
     }
 
-    if(!checkDomain){
-      return tests;
-    }
+    return {
+      PARSE_REGEX: /^(\/?)([\w\d-]+)\/(.*)/,
 
-    return tests.map(function(item){
-      if(/^\/test\//.test(item)){
-        return item;
-      } else {
-        if(item.indexOf(domain) === 0){
-          return item.replace(domain, '');
+      resolve: function tur_testUrl(url) {
+        if (addSubdomain) {
+          let parsedUrl = this.PARSE_REGEX.exec(url);
+          let domain = location.protocol + '//' + parsedUrl[2] + '.';
+          domain += domainParts.slice(1).join('.') + '/';
+          console.log(domain + parsedUrl[3]);
+          return domain + parsedUrl[3];
+        } else {
+          //we are on localhost just add /apps/
+          return '/apps/' + url;
         }
       }
+    };
+
+  }());
+
+  worker.addTestsProcessor(function(tests) {
+    return tests.map(function(item) {
+      var val = TestUrlResolver.resolve(item);
+      return val;
     });
   });
 
@@ -49,18 +67,17 @@
     'sandbox': function() {
       /* Load your fav assertion engine */
       /* expect.js
-      worker.loader.require('https://raw.github.com/LearnBoost/expect.js/master/expect.js');      
       */
     },
 
-    'run tests': function(){
+    'run tests': function() {
     },
 
-    'open': function(){
+    'open': function() {
       console.log('socket open');
     },
 
-    'close': function(){
+    'close': function() {
       console.log('lost client trying to reconnect');
     }
 

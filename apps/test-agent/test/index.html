@@ -17,7 +17,7 @@
 
     Loader.script = function(url, doc){
       doc = doc || document;
-      doc.write('<script src="' + this.url(url) + '"><\/script>');
+      doc.write('<script type="application/javascript;version=1.8" src="' + this.url(url) + '"><\/script>');
       return this;
     };
 
