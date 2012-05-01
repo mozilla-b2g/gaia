@@ -34,7 +34,7 @@ GlobalHistory.db = {
   _db: null,
 
   open: function db_open() {
-    const DB_VERSION = 13;
+    const DB_VERSION = 1;
     const DB_NAME = 'browser';
     var request = indexedDB.open(DB_NAME, DB_VERSION);
 
