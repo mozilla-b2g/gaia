@@ -10,6 +10,9 @@ var Browser = {
   urlButtonMode: this.GO,
 
   init: function browser_init() {
+    // Open global history database
+    GlobalHistory.db.open();
+
     // Assign UI elements to variables
     this.toolbarStart = document.getElementById('toolbar-start');
     this.urlBar = document.getElementById('url-bar');
@@ -33,9 +36,6 @@ var Browser = {
     browserEvents.forEach((function attachBrowserEvent(type) {
       this.content.addEventListener('mozbrowser' + type, this);
     }).bind(this));
-
-    // Open global history database
-    GlobalHistory.db.open();
 
     // Load homepage
     var url = this.urlInput.value;
@@ -82,6 +82,7 @@ var Browser = {
         this.currentTitle = evt.detail;
         if (!this.urlBar.querySelector(':focus'))
           urlInput.value = this.currentTitle;
+        GlobalHistory.setPageTitle(this.currentUrl, this.currentTitle);
         break;
     }
   },
@@ -124,6 +125,7 @@ var Browser = {
 
   updateHistory: function browser_updateHistory(url) {
     SessionHistory.pushState(null, '', url);
+    GlobalHistory.addVisit(url);
     this.backButton.disabled = !SessionHistory.backLength();
     this.forwardButton.disabled = !SessionHistory.forwardLength();
   },
@@ -132,7 +134,6 @@ var Browser = {
     if (url != this.currentUrl) {
       this.currentUrl = url;
       this.updateHistory(url);
-      GlobalHistory.addVisit(url);
     }
   },
 

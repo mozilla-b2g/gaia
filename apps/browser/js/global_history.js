@@ -18,6 +18,14 @@ var GlobalHistory = {
       timestamp: new Date().getTime()
     };
     this.db.saveVisit(visit);
+  },
+
+  setPageTitle: function globalHistory_setPageTitle(uri, title) {
+    var place = {
+      uri: uri,
+      title: title
+    };
+    this.db.updatePlace(place);
   }
 
 };
@@ -69,18 +77,43 @@ GlobalHistory.db = {
     var transaction = this._db.transaction(['places'],
       IDBTransaction.READ_WRITE);
     transaction.onerror = function dbTransactionError(e) {
-      console.log('Transaction error while trying to save place');
+      console.log('Transaction error while trying to save place: ' +
+        place.uri);
     };
 
     var objectStore = transaction.objectStore('places');
     var request = objectStore.add(place);
 
     request.onsuccess = function onsuccess(e) {
-      console.log('Successfully wrote place to global history store');
+      console.log('Successfully wrote place to global history store: ' +
+        place.uri);
     };
 
     request.onerror = function onerror(e) {
-      console.log('Error while adding place to global history store');
+      console.log('Error while adding place to global history store: ' +
+        place.uri);
+    };
+  },
+
+  updatePlace: function db_updatePlace(place) {
+    var transaction = this._db.transaction(['places'],
+      IDBTransaction.READ_WRITE);
+    transaction.onerror = function dbTransactionError(e) {
+      console.log('Transaction error while trying to update place: ' +
+        place.uri);
+    };
+
+    var objectStore = transaction.objectStore('places');
+    var request = objectStore.put(place);
+
+    request.onsuccess = function onsuccess(e) {
+      console.log('Successfully updated place in global history store: ' +
+        place.uri);
+    };
+
+    request.onerror = function onerror(e) {
+      console.log('Error while updating place in global history store: ' +
+        place.uri);
     };
   },
 
