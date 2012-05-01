@@ -31,6 +31,10 @@
       "name": "Calculatrice",
       "description": "Calculatrice Gaia"
     },
+    "it": {
+      "name": "Calcolatrice",
+      "description": "Calcolatrice"
+    },
     "ru": {
       "name": "\u041a\u0430\u043b\u044c\u043a\u0443\u043b\u044f\u0442\u043e\u0440",
       "description": "\u041a\u0430\u043b\u044c\u043a\u0443\u043b\u044f\u0442\u043e\u0440"

@@ -18,7 +18,7 @@
     },
     "de": {
       "name": "System",
-      "description": "Main System"
+      "description": "Allgemeines System"
     },
     "el": {
       "name": "\u03a3\u03cd\u03c3\u03c4\u03b7\u03bc\u03b1",
@@ -35,6 +35,10 @@
     "fr": {
       "name": "System",
       "description": "Main System"
+    },
+    "it": {
+      "name": "Sistema",
+      "description": "Sistema Principale"
     },
     "ru": {
       "name": "System",
