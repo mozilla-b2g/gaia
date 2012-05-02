@@ -100,7 +100,7 @@ AppScreen.prototype.build = function(rebuild) {
 
     // Localize the app name
     var name = app.manifest.name;
-    var lang = navigator.language;
+    var lang = document.mozL10n.language.code;
     if (app.manifest.locales &&
         app.manifest.locales[lang] &&
         app.manifest.locales[lang].name)

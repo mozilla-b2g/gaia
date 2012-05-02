@@ -35,6 +35,7 @@ SettingsListener.init();
 
 /* === Language === */
 SettingsListener.observe('language.current', 'en-US', function(value) {
+  document.mozL10n.language.code = value;
   document.documentElement.lang = document.mozL10n.language.code;
   document.documentElement.dir = document.mozL10n.language.direction;
 
