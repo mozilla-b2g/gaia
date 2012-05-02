@@ -2,7 +2,7 @@ var indexedDB = window.indexedDB || window.webkitIndexedDB ||
   window.mozIndexedDB || window.msIndexedDB;
 
 var GlobalHistory = {
-  addPlace: function globalHistory_addPlace(uri) {
+  addPlace: function gh_addPlace(uri) {
     var place = {
       uri: uri,
       // Set the title to the URI for now, until a real title is received.
@@ -11,7 +11,7 @@ var GlobalHistory = {
     this.db.savePlace(place);
   },
 
-  addVisit: function globalHistory_addVisit(uri) {
+  addVisit: function gh_addVisit(uri) {
     this.addPlace(uri);
     var visit = {
       uri: uri,
@@ -20,7 +20,7 @@ var GlobalHistory = {
     this.db.saveVisit(visit);
   },
 
-  setPageTitle: function globalHistory_setPageTitle(uri, title) {
+  setPageTitle: function gh_setPageTitle(uri, title) {
     var place = {
       uri: uri,
       title: title
