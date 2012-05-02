@@ -92,7 +92,7 @@ var Settings = {
     function dateToUTC(d) {
       var arr = [];
       [
-        d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(),
+        d.getUTCFullYear(), (d.getUTCMonth() + 1), d.getUTCDate(),
         d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds()
       ].forEach(function(n) {
         arr.push((n >= 10) ? n : '0' + n);
