@@ -37,6 +37,11 @@ if (!KeyEvent) {
   };
 }
 
+/**
+ * Max terms to match for incomplete or abbreviated syllables
+ */
+var MAX_TERMS_FOR_INCOMPLETE_SYLLABLES = 10;
+
 var SyllableUtils = {
   /**
    * Converts a syllables array to a string that each syllable will be sperated by '.
@@ -940,7 +945,7 @@ IMEngine.prototype = {
         candidates.push([term, syllablesForQuery.join("'")]);
       });
 
-      if (self._pendingSymbols.length === 1) {
+      if (syllablesForQuery.length === 1) {
         debug('Only one syllable; skip other lookups.');
 
         if (!candidates.length) {
@@ -974,7 +979,7 @@ IMEngine.prototype = {
         // The remaining unmatched syllables will go through lookup
         // over and over until the buffer is emptied.
 
-        var i = Math.min(self._kDBTermMaxLength, syllablesForQuery.length);
+        var i = Math.min(self._kDBTermMaxLength, syllablesForQuery.length - 1);
 
         var findTerms = function lookupFindTerms() {
           debug('Lookup for terms that matches first ' + i + ' syllables.');
@@ -1182,13 +1187,13 @@ DatabaseStorageBase.prototype =  {
   },  
   
   /**
-   * Get iterm with given abbreviated syllables string. The given syllables could be partially abbreviated.
-   * @param {String} abbreviated The partially abbreviated syllables string of the matched terms.
+   * Get iterm with given incomplete or abbreviated syllables string. The given syllables could be partially incomplete or abbreviated.
+   * @param {String} incomplete The partially incomplete or abbreviated syllables string of the matched terms.
    * @param {Function} callback Javascript function object that is called when the operation
    * is finished. The definition of callback is function callback(homonymsArray). The homonymsArray
    * parameter is an array of Homonyms objects.
    */   
-  getTermsByAbbreviatedSyllables: function(abbreviated, callback /*function callback(homonymsArray)*/) {
+  getTermsByIncompleteSyllables: function(incomplete, callback /*function callback(homonymsArray)*/) {
   },
   
   /**
@@ -1426,7 +1431,7 @@ JsonStorage.prototype = {
   /**
    * @Override
    */   
-  getTermsByAbbreviatedSyllables: function(abbreviated, callback /*function callback(homonymsArray)*/) {
+  getTermsByIncompleteSyllables: function(incomplete, callback /*function callback(homonymsArray)*/) {
     var self = this;
     var homonymsArray = [];
     function doCallback() {
@@ -1442,8 +1447,8 @@ JsonStorage.prototype = {
     }
     
     var matchRegEx = new RegExp(
-       '^' + abbreviated.replace(/([^']+)/g, "$1[^']*"));
-    var fullyAbbreviated = SyllableUtils.stringToAbbreviated(abbreviated); 
+       '^' + incomplete.replace(/([^']+)/g, "$1[^']*"));
+    var fullyAbbreviated = SyllableUtils.stringToAbbreviated(incomplete); 
         
     var perform = function() {
       var indices = self._abrreviatedIndex.get(fullyAbbreviated);
@@ -1767,7 +1772,7 @@ IndexedDBStorage.prototype = {
   /**
    * @Override
    */   
-  getTermsByAbbreviatedSyllables: function(abbreviated, callback /*function callback(homonymsArray)*/) {
+  getTermsByIncompleteSyllables: function(incomplete, callback /*function callback(homonymsArray)*/) {
     var homonymsArray = [];
     function doCallback() {
       if (callback) {
@@ -1782,9 +1787,9 @@ IndexedDBStorage.prototype = {
     }
     
     var matchRegEx = new RegExp(
-       '^' + abbreviated.replace(/([^']+)/g, "$1[^']*"));
+       '^' + incomplete.replace(/([^']+)/g, "$1[^']*"));
     
-    var fullyAbbreviated = SyllableUtils.stringToAbbreviated(abbreviated);
+    var fullyAbbreviated = SyllableUtils.stringToAbbreviated(incomplete);
   
     var store = this._IDBDatabase.transaction(['homonyms'], 'readonly')
       .objectStore('homonyms');
@@ -2011,7 +2016,7 @@ var IMEngineDatabase = function(dbName, jsonUrl) {
        '^' + syllablesStr.replace(/([^']+)/g, "$1[^']*"));
     debug('Get terms for ' + syllablesStr + '.');
 
-    var processResult = function processResult(r) {
+    var processResult = function processResult(r, limit) {
       r = r.sort(
         function sort_result(a, b) {
           return (b.freq - a.freq);
@@ -2024,6 +2029,9 @@ var IMEngineDatabase = function(dbName, jsonUrl) {
         t.push(term.phrase);
         result.push(term);
       });
+      if (limit > 0) {
+        result = result.slice(0, limit);
+      }
       return result;
     };
     
@@ -2033,22 +2041,38 @@ var IMEngineDatabase = function(dbName, jsonUrl) {
       callback(iDBCache[syllablesStr]);
       return;
     }
-
-    storage.getTermsByAbbreviatedSyllables(syllablesStr, function(homonymsArray) {
+    
+    storage.getTermsBySyllables(syllablesStr, function(homonymsArray)
+     {
       var result = [];
       for (var i=0; i<homonymsArray.length; i++) {
         var homonyms = homonymsArray[i];
         result = result.concat(homonyms.terms);          
       }
       if (result.length) {
-        result = processResult(result);
+        result = processResult(result, -1);
+        cacheSetTimeout();
+        iDBCache[syllablesStr] = result;
+        callback(result);
       } else {
-        result = false;
+        storage.getTermsByIncompleteSyllables(syllablesStr, function(homonymsArray) {
+          var result = [];
+          for (var i=0; i<homonymsArray.length; i++) {
+            var homonyms = homonymsArray[i];
+            result = result.concat(homonyms.terms);          
+          }
+          if (result.length) {
+            result = processResult(result, MAX_TERMS_FOR_INCOMPLETE_SYLLABLES);
+          } else {
+            result = false;
+          }
+          cacheSetTimeout();
+          iDBCache[syllablesStr] = result;
+          callback(result);        
+        });
       }
-      cacheSetTimeout();
-      iDBCache[syllablesStr] = result;
-      callback(result);        
     });
+    
   };
 
   this.getTermWithHighestScore =
