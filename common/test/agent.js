@@ -21,6 +21,9 @@
   worker.use(TestAgent.BrowserWorker.TestUi);
   worker.use(TestAgent.BrowserWorker.ErrorReporting);
 
+  //enable let, yield, etc...
+  worker.loader.type = 'application/javascript;version=1.8';
+
   worker.addTestsProcessor(function(tests) {
     return tests.map(function(item) {
       var val = TestUrlResolver.resolve(item);
