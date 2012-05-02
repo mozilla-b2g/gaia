@@ -32,6 +32,10 @@
     Assertion.prototype.assert = chaiAssert;
   }
 
+  window.requireApp = function(url, cb) {
+    require(TestUrlResolver.resolve(url), cb);
+  };
+
   /**
    * require's a file from /common/ resources.
    *
@@ -62,6 +66,9 @@
 
   //marionette utilities
   window.requireCommon('test/marionette.js');
+
+  //url utilities
+  window.requireCommon('test/test-url-resolver.js');
 
 }(this));
 
