@@ -33,7 +33,8 @@ const IMEManager = {
     'hebrew': ['he'],
     'zhuyin': ['zh-Hant-Zhuyin'],
     'pinyin': ['zh-Hans-Pinyin'],
-    'arabic': ['ar']
+    'arabic': ['ar'],
+    'greek': ['el']
   },
 
   enableSetting: function km_enableSetting(theKey) {
