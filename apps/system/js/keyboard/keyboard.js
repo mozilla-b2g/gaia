@@ -785,10 +785,6 @@ const IMEManager = {
             this.isTrChineseLayout = false;
           break;
 
-          case KeyEvent.DOM_VK_ALT:
-            this.isSymbolLayout = !this.isSymbolLayout;
-          break;
-
           case this.SWITCH_KEYBOARD:
 
             // If the user has specify a keyboard in the menu,
@@ -839,6 +835,10 @@ const IMEManager = {
             ('.com').split('').forEach((function sendDotCom(key) {
               window.navigator.mozKeyboard.sendKey(0, key.charCodeAt(0));
             }).bind(this));
+          break;
+
+          case KeyEvent.DOM_VK_ALT:
+            this.isSymbolLayout = !this.isSymbolLayout;
           break;
 
           case KeyEvent.DOM_VK_CAPS_LOCK:
@@ -1033,20 +1033,22 @@ const IMEManager = {
           }
 
           // Alternate layout key
-          // This gives the author the ability to change the alternate layout key contents
-          //Keyboards[this.currentKeyboard]['needAlternate'] !== false)
-          if (Keyboards[this.currentKeyboard]['needAlternate'] !== false) {
-            var alternateLayoutKey = '?123';
-            if (Keyboards[this.currentKeyboard]['alternateLayoutKey']) {
-              alternateLayoutKey = Keyboards[this.currentKeyboard]['alternateLayoutKey'];
+          // This gives the author the ability to change the alternate layout
+          // key contents
+          var alternateLayoutKey = '?123';
+          var current = Keyboards[this.currentKeyboard];
+          if (current['needAlternate']) {
+            if (current['alternateLayoutKey']) {
+              alternateLayoutKey = current['alternateLayoutKey'];
             }
 
-            // This gives the author the ability to change the basic layout key contents
+            // This gives the author the ability to change the basic layout
+            // key contents
             var basicLayoutKey = 'ABC';
-            if (Keyboards[this.currentKeyboard]['basicLayoutKey']) {
-              basicLayoutKey = Keyboards[this.currentKeyboard]['basicLayoutKey'];
+            if (current['basicLayoutKey']) {
+              basicLayoutKey = current['basicLayoutKey'];
             }
-          //if(Keyboards[this.currentKeyboard][''needAlternate] !== false){
+
             ratio -= 2;
             if (this.currentKeyboardMode == '') {
               content += buildKey(
@@ -1064,23 +1066,19 @@ const IMEManager = {
               );
             }
           }else {
-            if (layout['needAlternate'] == false) {
-              ratio -= 3;
-              content += buildKey(
-                  this.SYMBOLSC_LAYOUT,
-                  //-1,
-                  '?!#',
-                  '',
-                  1.5
-                );
-              content += buildKey(
-                  this.NUMBER_LAYOUT,
-                 //-2,
-                  '123',
-                  '',
-                  1.5
-                );
-            }
+            ratio -= 3;
+            content += buildKey(
+                this.SYMBOLSC_LAYOUT,
+                '?!#',
+                '',
+                1.5
+              );
+            content += buildKey(
+                this.NUMBER_LAYOUT,
+                '123',
+                '',
+                1.5
+              );
           }
 
           switch (this.currentType) {
