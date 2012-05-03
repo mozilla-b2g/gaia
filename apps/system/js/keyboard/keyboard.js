@@ -9,13 +9,13 @@ const IMEManager = {
   SWITCH_KEYBOARD: -3,
   TOGGLE_CANDIDATE_PANEL: -4,
   DOT_COM: -5,
-  SYMBOLSC_LAYOUT:-6,
-  NUMBER_LAYOUT:-7,
-  PAGE_UP:-8,
-  PAGE_DOWN:-9,
+  SYMBOLSC_LAYOUT: -6,
+  NUMBER_LAYOUT: -7,
+  PAGE_UP: -8,
+  PAGE_DOWN: -9,
   SC_TO_TR: -10,
   TR_TO_SC: -11,
-  
+
   // IME Engines are self registering here.
   IMEngines: {},
   get currentEngine() {
@@ -103,16 +103,16 @@ const IMEManager = {
     }
     this.updateTargetWindowHeight();
   },
-  
-  set isTrChineseLayout(isTrChineseLayout){
+
+  set isTrChineseLayout(isTrChineseLayout) {
     if (isTrChineseLayout) {
-      this.updateLayout("zh-Hans-Pinyin_tr");
+      this.updateLayout('zh-Hans-Pinyin_tr');
     } else {
       this.updateLayout();
     }
     this.updateTargetWindowHeight();
   },
-  
+
   get isSymbolLayout() {
     return this.currentKeyboardMode == 'Symbol';
   },
@@ -150,21 +150,10 @@ const IMEManager = {
   set isSymbolSCLayout(isSymbolSCLayout) {
     if (isSymbolSCLayout) {
       this.currentKeyboardMode = 'SymbolSC';
-      
-      if(this.currentPage === 0 ) {
-        this.updateLayout('SymbolSCLayout');  
-      console.log("currentPage = " + this.currentPage);
+      if (this.currentPage >= 0 && this.currentPage <= 2) {
+        this.updateLayout('SymbolSCLayout' + this.currentPage);
       }
-      if(this.currentPage ===1 ) {
-        console.log("currentPage = " + this.currentPage);
-        this.updateLayout('SymbolSCLayout1');  
-      }
-      if(this.currentPage === 2 ) {
-        console.log("currentPage = " + this.currentPage);
-        this.updateLayout('SymbolSCLayout2');  
-      }      
     } else {
-      console.log("currentPage ========== " );
       this.currentKeyboardMode = '';
       this.updateLayout();
     }
@@ -758,21 +747,21 @@ const IMEManager = {
           case this.ALTERNATE_LAYOUT:
             this.isAlternateLayout = true;
           break;
-          
+
           case this.NUMBER_LAYOUT:
             this.isNumberLayout = true;
           break;
-        
+
           case this.SYMBOLSC_LAYOUT:
             this.isSymbolSCLayout = true;
           break;
-          
+
           case this.PAGE_UP:
             this.currentPage += 1;
             this.currentPage %= 3;
             this.isSymbolSCLayout = true;
           break;
-          
+
           case this.PAGE_DOWN:
             if (this.currentPage > 0) {
               this.currentPage -= 1;
@@ -783,19 +772,19 @@ const IMEManager = {
             }
             this.isSymbolSCLayout = true;
           break;
-          
+
           case this.SC_TO_TR:
             this.currentEngine.mode = true;
             this.currentEngine.click(keyCode);
             this.isTrChineseLayout = true;
           break;
-          
+
           case this.TR_TO_SC:
             this.currentEngine.mode = false;
             this.currentEngine.click(keyCode);
             this.isTrChineseLayout = false;
           break;
-          
+
           case KeyEvent.DOM_VK_ALT:
             this.isSymbolLayout = !this.isSymbolLayout;
           break;
@@ -851,7 +840,7 @@ const IMEManager = {
               window.navigator.mozKeyboard.sendKey(0, key.charCodeAt(0));
             }).bind(this));
           break;
-          
+
           case KeyEvent.DOM_VK_CAPS_LOCK:
             if (this.isWaitingForSecondTap) {
               this.isUpperCaseLocked = true;
@@ -985,7 +974,7 @@ const IMEManager = {
           // space key: replace/append with control and type keys
 
           var ratio = key.ratio || 1;
-          if( layout['needAlternate'] !== true ){
+          if (layout['needAlternate'] !== true) {
             if (this.keyboards.length > 1) {
               // Switch keyboard key
               ratio -= 1;
@@ -996,9 +985,9 @@ const IMEManager = {
                 1
               );
             }
-          }else{
+          }else {
             if (this.keyboards.length > 1) {
-              if (layout['multi'] !== true){
+              if (layout['multi'] !== true) {
                 // Switch keyboard key
                 ratio -= 6;
                 content += buildKey(
@@ -1019,7 +1008,7 @@ const IMEManager = {
                   'keyboard-key',
                   2
                 );
-              }else{
+              }else {
                 ratio -= 6;
                 content += buildKey(
                   this.SWITCH_KEYBOARD,
@@ -1045,15 +1034,15 @@ const IMEManager = {
 
           // Alternate layout key
           // This gives the author the ability to change the alternate layout key contents
-          //Keyboards[this.currentKeyboard]['needAlternate'] !== false) 
-          if(Keyboards[this.currentKeyboard]['needAlternate'] !== false ){
-            var alternateLayoutKey = "?123";
+          //Keyboards[this.currentKeyboard]['needAlternate'] !== false)
+          if (Keyboards[this.currentKeyboard]['needAlternate'] !== false) {
+            var alternateLayoutKey = '?123';
             if (Keyboards[this.currentKeyboard]['alternateLayoutKey']) {
               alternateLayoutKey = Keyboards[this.currentKeyboard]['alternateLayoutKey'];
             }
-          
+
             // This gives the author the ability to change the basic layout key contents
-            var basicLayoutKey = "ABC";
+            var basicLayoutKey = 'ABC';
             if (Keyboards[this.currentKeyboard]['basicLayoutKey']) {
               basicLayoutKey = Keyboards[this.currentKeyboard]['basicLayoutKey'];
             }
@@ -1074,8 +1063,8 @@ const IMEManager = {
                 2
               );
             }
-          }else{
-            if( layout['needAlternate'] == false ){
+          }else {
+            if (layout['needAlternate'] == false) {
               ratio -= 3;
               content += buildKey(
                   this.SYMBOLSC_LAYOUT,
@@ -1093,7 +1082,7 @@ const IMEManager = {
                 );
             }
           }
-          
+
           switch (this.currentType) {
             case 'url':
               var size = Math.floor(ratio / 3);

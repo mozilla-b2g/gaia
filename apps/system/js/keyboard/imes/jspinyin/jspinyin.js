@@ -1,10 +1,9 @@
-/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
 
 (function() {
-
 var debugging = false;
 var debug = function(str) {
   if (!debugging)
@@ -23,7 +22,7 @@ var debug = function(str) {
 var log = function(str) {
   var logfunc = console.log || window.dump;
   var logStr = '';
-  for (var i=0; i<arguments.length; i++) {
+  for (var i = 0; i < arguments.length; i++) {
     logStr += JSON.stringify(arguments[i]);
   }
   logfunc(logStr);
@@ -44,24 +43,24 @@ var MAX_TERMS_FOR_INCOMPLETE_SYLLABLES = 10;
 
 var SyllableUtils = {
   /**
-   * Converts a syllables array to a string that each syllable will be sperated by '.
-   * @example ['bei', 'jing'] will be converted to "bei'jing".
+   * Converts a syllables array to a string that each syllable will be sperated
+   * by '. For example, ['bei', 'jing'] will be converted to "bei'jing".
    */
   arrayToString: function(array) {
     return array.join("'");
   },
-  
+
   /**
    * Converts a syllables string to an array.
-   * @example "bei'jing" will be converted to [bei'jing].
+   * For example, "bei'jing" will be converted to [bei'jing].
    */
   arrayFromString: function(str) {
     return str.split("'");
   },
-  
+
   /**
    * Converts a syllables string to its abbreviated form.
-   * @example "bei'jing" will be converted to "b'j"
+   * For example, "bei'jing" will be converted to "b'j"
    */
   stringToAbbreviated: function(str) {
     return str.replace(/([^'])[^']*/g, '$1');
@@ -83,8 +82,9 @@ Term.prototype = {
  */
 var Homonyms = function(syllablesString, terms) {
   this.syllablesString = syllablesString;
-  this.abbreviatedSyllablesString = SyllableUtils.stringToAbbreviated(syllablesString);
-  
+  this.abbreviatedSyllablesString =
+    SyllableUtils.stringToAbbreviated(syllablesString);
+
   // Clone a new array
   this.terms = terms.concat();
 };
@@ -92,7 +92,7 @@ var Homonyms = function(syllablesString, terms) {
 Homonyms.prototype = {
   syllablesString: "bei'jing",  /* Full pinyin syllables(全拼) */
   abbreviatedSyllablesString: "b'j", /* Abbreviated pinyin syllabels(简拼) */
-  terms: [new Term('北京', 0.010), new Term('背景', 0.005)],  
+  terms: [new Term('北京', 0.010), new Term('背景', 0.005)]
 };
 
 /**
@@ -103,7 +103,7 @@ Homonyms.prototype = {
 var Index = function(targetArray, keyPath) {
   this._keyMap = {};
   this._sortedKeys = [];
-  for (var i=0; i<targetArray.length; i++) {
+  for (var i = 0; i < targetArray.length; i++) {
     var key = targetArray[i][keyPath];
     if (!(key in this._keyMap)) {
       this._keyMap[key] = [];
@@ -117,13 +117,13 @@ var Index = function(targetArray, keyPath) {
 Index.prototype = {
   // Map the key to the index of the storage array
   _keyMap: {},
-  
+
   // Keys array in ascending order.
   _sortedKeys: [],
-  
+
   /**
    * Get array indices by given key.
-   * @returns {Array} An array of index.
+   * @return {Array} An array of index.
    */
   get: function(key) {
     var indices = [];
@@ -132,30 +132,32 @@ Index.prototype = {
     }
     return indices;
   },
-  
+
   /**
    * Get array indices by given key range.
-   * @param {String} lower The lower bound of the key range. If null, the range has no lower bound.
-   * @param {String} upper The upper bound of the key range. If null, the range has no upper bound.
-   * @param {Boolean} lowerOpen If false, the range includes the lower bound value of the key range.
-   * If the range has no lower bound, it will be ignored.
-   * @param {Boolean} upperOpen If false, the range includes the upper bound value of the key range.
-   * If the range has no upper bound, it will be ignored.
-   * @returns {Array} An array of index.
+   * @param {String} lower The lower bound of the key range. If null, the range
+   * has no lower bound.
+   * @param {String} upper The upper bound of the key range. If null, the range
+   * has no upper bound.
+   * @param {Boolean} lowerOpen If false, the range includes the lower bound
+   * value. If the range has no lower bound, it will be ignored.
+   * @param {Boolean} upperOpen If false, the range includes the upper bound
+   * value. If the range has no upper bound, it will be ignored.
+   * @return {Array} An array of index.
    */
   getRange: function(lower, upper, lowerOpen, upperOpen) {
     var indices = [];
     if (this._sortedKeys.length == 0) {
       return indices;
     }
-    
+
     var pos = 0;
-    
+
     // lower bound position
     var lowerPos = 0;
     // uppder bound position
     var upperPos = this._sortedKeys.length - 1;
-    
+
     if (lower) {
       pos = this._binarySearch(lower, 0, upperPos);
       if (pos == Infinity) {
@@ -168,7 +170,7 @@ Index.prototype = {
         lowerPos++;
       }
     }
-    
+
     if (upper) {
       pos = this._binarySearch(upper, lowerPos, upperPos);
       if (pos == -Infinity) {
@@ -176,27 +178,29 @@ Index.prototype = {
       }
       if (pos != Infinity) {
         upperPos = Math.floor(pos);
-      }       
+      }
       if (upperOpen && this._sortedKeys[upperPos] == upper) {
         upperPos--;
-      }      
+      }
     }
-    
-    for (var i=lowerPos; i<=upperPos; i++) {
+
+    for (var i = lowerPos; i <= upperPos; i++) {
       var key = this._sortedKeys[i];
       indices = indices.concat(this._keyMap[key]);
     }
     return indices;
   },
-  
+
   /**
    * Search the key position.
    * @param {String} key The key to search.
-   * @param {Number} left The begin position of the array. It should be less than the right parameter.
-   * @param {Number} right The end position of the array.It should be greater than the left parameter.
-   * @returns {Number} If success, returns the index of the key.
-   * If the key is between two adjacent keys, returns the average index of the two keys.
-   * If the key is out of bounds, returns Infinity or -Infinity.
+   * @param {Number} left The begin position of the array. It should be less
+   * than the right parameter.
+   * @param {Number} right The end position of the array.It should be greater
+   * than the left parameter.
+   * @return {Number} If success, returns the index of the key.
+   * If the key is between two adjacent keys, returns the average index of the
+   * two keys. If the key is out of bounds, returns Infinity or -Infinity.
    */
   _binarySearch: function(key, left, right) {
     if (key < this._sortedKeys[left]) {
@@ -205,7 +209,7 @@ Index.prototype = {
     if (key > this._sortedKeys[right]) {
       return Infinity;
     }
-    
+
     while (right > left) {
       var mid = Math.floor((left + right) / 2);
       var midKey = this._sortedKeys[mid];
@@ -217,7 +221,7 @@ Index.prototype = {
         return mid;
       }
     }
-    
+
     // left == right == mid
     var leftKey = this._sortedKeys[left];
     if (leftKey == key) {
@@ -243,7 +247,7 @@ Task.prototype = {
   /**
    * Task private data
    */
-  data: null,
+  data: null
 };
 
 var TaskQueue = function(oncomplete) {
@@ -253,32 +257,34 @@ var TaskQueue = function(oncomplete) {
 
 TaskQueue.prototype = {
   /**
-   * Callback Javascript function object that is called when the task queue is empty.
-   * The definition of callback is function oncomplete(queueData).
+   * Callback Javascript function object that is called when the task queue is
+   * empty. The definition of callback is function oncomplete(queueData).
    */
   oncomplete: null,
-    
+
   /**
    * Data sharing with all tasks of the queue
    */
   data: {},
-  
+
   /**
    * Task queue array.
    */
   _queue: [],
-  
+
   /**
    * Add a new task to the tail of the queue.
-   * @param{Function} taskFunc Task function object. The definition is function taskFunc(taskQueue, taskData).
-   * The taskQueue parameter is the task queue object itself, while the taskData parameter is the data property
+   * @param {Function} taskFunc Task function object. The definition is function
+   * taskFunc(taskQueue, taskData).
+   * The taskQueue parameter is the task queue object itself, while the taskData
+   * parameter is the data property
    * of the task queue object.
    * @param {Object} taskData The task's private data.
    */
-  push: function(taskFunc /*function taskFunc(taskQueue, taskData)*/, taskData) {
+  push: function(taskFunc, taskData) {
     this._queue.push(new Task(taskFunc, taskData));
   },
-  
+
   /**
    * Start running the task queue or process the next task.
    * It should be called when a task, including the last one, is finished.
@@ -286,18 +292,18 @@ TaskQueue.prototype = {
   processNext: function() {
     if (this._queue.length > 0) {
       var task = this._queue.pop();
-      if (typeof task.func == "function") {
+      if (typeof task.func == 'function') {
         task.func(this, task.data);
       } else {
         this.processNext();
       }
     } else {
-      if (typeof this.oncomplete == "function") {
+      if (typeof this.oncomplete == 'function') {
         this.oncomplete(this.data);
       }
     }
   },
-  
+
   /**
    * Get the number of remaining tasks.
    */
@@ -312,15 +318,16 @@ var SYLLALBLE_MAX_LENGTH = 6;
 var SyllableType = {
   /**
    * Complete syllable, such as "yue", "bei".
-   */  
+   */
   COMPLETE: 0,
   /**
-   * Abbreviated syllable that starts with a single consonant(声母), such as "b", "j".
+   * Abbreviated syllable that starts with a single consonant(声母),
+   * such as "b", "j".
    */
   ABBREVIATED: 1,
   /**
-   * An incomplete syllables is part of complete syllable. It is neither an abbreviated syllable,
-   * nor a complete syllable, such as "be".
+   * An incomplete syllables is part of complete syllable. It is neither an
+   * abbreviated syllable, nor a complete syllable, such as "be".
    */
   INCOMPLETE: 2,
   /**
@@ -339,7 +346,7 @@ Syllable.prototype = {
    * The syllable string
    */
   str: 'ai',
-  
+
   /**
    * The syllable type
    */
@@ -351,10 +358,11 @@ Syllable.prototype = {
  */
 var PinyinParser = function() {
   // Consonants(声母) list
-  var consonants= 'b p m f d t n l g k h j q x zh ch sh r z c s y w'.split(' ');
-  
+  var consonants =
+    'b p m f d t n l g k h j q x zh ch sh r z c s y w'.split(' ');
+
   this._consonantMap = {};
-  for(var i in consonants) {
+  for (var i in consonants) {
     var e = consonants[i];
     this._consonantMap[e] = e;
   }
@@ -362,27 +370,27 @@ var PinyinParser = function() {
   // Valid pinyin syllables list
   var syllables = [
     'a', 'o', 'e',
-  
+
     'ai', 'ei', 'ao', 'ou', 'er', 'an', 'en', 'ang', 'eng',
-  
+
     'ba', 'bai', 'ban', 'bang', 'bao', 'bei', 'ben', 'beng', 'bi', 'bian',
     'biao', 'bie', 'bin', 'bing', 'bo', 'bu',
-  
+
     'pa', 'pai', 'pan', 'pang', 'pao', 'pei', 'pen', 'peng', 'pi', 'pian',
     'piao', 'pie', 'pin', 'ping', 'po', 'pou', 'pu',
 
     'ma', 'mai', 'man', 'mang', 'mao', 'me', 'mei', 'men', 'meng', 'mi', 'mian',
     'miao', 'mie', 'min', 'ming', 'miu', 'mo', 'mou', 'mu',
-    
-    'fa', 'fan', 'fang', 'fei', 'fen', 'feng', 'fo', 'fou', 'fu',    
-    
+
+    'fa', 'fan', 'fang', 'fei', 'fen', 'feng', 'fo', 'fou', 'fu',
+
     'da', 'dai', 'dan', 'dang', 'dao', 'de', 'dei', 'deng', 'di', 'dian',
     'diao', 'die', 'ding', 'diu', 'dong', 'dou', 'du', 'duan', 'dui', 'dun',
     'duo',
-    
+
     'ta', 'tai', 'tan', 'tang', 'tao', 'te', 'teng', 'ti', 'tian', 'tiao',
     'tie', 'ting', 'tong', 'tou', 'tu', 'tuan', 'tui', 'tun', 'tuo',
-    
+
     'na', 'nai', 'nan', 'nang', 'nao', 'ne', 'nei', 'nen', 'neng', 'ni', 'nian',
     'niang', 'niao', 'nie', 'nin', 'ning', 'niu', 'nong', 'nou', 'nu', 'nv',
     'nuan', 'nve', 'nuo',
@@ -399,72 +407,76 @@ var PinyinParser = function() {
 
     'ha', 'hai', 'han', 'hang', 'hao', 'he', 'hei', 'hen', 'heng', 'hong',
     'hou', 'hu', 'hua', 'huai', 'huan', 'huang', 'hui', 'hun', 'huo',
-    
+
     'ji', 'jia', 'jian', 'jiang', 'jiao', 'jie', 'jin', 'jing', 'jiong',
     'jiu', 'ju', 'juan', 'jue', 'jun',
-  
+
     'qi', 'qia', 'qian', 'qiang', 'qiao', 'qie', 'qin', 'qing', 'qiong', 'qiu',
     'qu', 'quan', 'que', 'qun',
-    
+
     'xi', 'xia', 'xian', 'xiang', 'xiao', 'xie', 'xin', 'xing', 'xiong', 'xiu',
     'xu', 'xuan', 'xue', 'xun',
 
-    'zhi', 'zha', 'zhai', 'zhan', 'zhang', 'zhao', 'zhe', 'zhei', 'zhen', 'zheng',
-    'zhong', 'zhou', 'zhu', 'zhua', 'zhuai', 'zhuan', 'zhuang', 'zhui', 'zhun', 'zhuo',
-    
-    'chi', 'cha', 'chai', 'chan', 'chang', 'chao', 'che', 'chen', 'cheng', 'chong',
+    'zhi', 'zha', 'zhai', 'zhan', 'zhang', 'zhao', 'zhe', 'zhei', 'zhen',
+    'zheng',
+    'zhong', 'zhou', 'zhu', 'zhua', 'zhuai', 'zhuan', 'zhuang', 'zhui', 'zhun',
+    'zhuo',
+
+    'chi', 'cha', 'chai', 'chan', 'chang', 'chao', 'che', 'chen', 'cheng',
+    'chong',
     'chou', 'chu', 'chua', 'chuai', 'chuan', 'chuang', 'chui', 'chun', 'chuo',
-    
-    'shi', 'sha', 'shai', 'shan', 'shang', 'shao', 'she', 'shei', 'shen', 'sheng',
+
+    'shi', 'sha', 'shai', 'shan', 'shang', 'shao', 'she', 'shei', 'shen',
+    'sheng',
     'shou', 'shu', 'shua', 'shuai', 'shuan', 'shuang', 'shui', 'shun', 'shuo',
-    
+
     'ri', 'ran', 'rang', 'rao', 're', 'ren', 'reng', 'rong', 'rou', 'ru',
     'ruan', 'rui', 'run', 'ruo',
-    
+
     'zi', 'za', 'zai', 'zan', 'zang', 'zao', 'ze', 'zei', 'zen', 'zeng',
     'zong', 'zou', 'zu', 'zuan', 'zui', 'zun', 'zuo',
-    
+
     'ci', 'ca', 'cai', 'can', 'cang', 'cao', 'ce', 'cen', 'ceng', 'cong',
-    'cou', 'cu', 'cuan', 'cui', 'cun', 'cuo', 
-    
+    'cou', 'cu', 'cuan', 'cui', 'cun', 'cuo',
+
     'si', 'sa', 'sai', 'san', 'sang', 'sao', 'se', 'sen', 'seng', 'song',
     'sou', 'su', 'suan', 'sui', 'sun', 'suo',
-    
+
     'ya', 'yan', 'yang', 'yao', 'ye', 'yi', 'yin', 'ying', 'yong', 'you',
     'yu', 'yuan', 'yue', 'yun',
-  
-    'wa', 'wai', 'wan', 'wang', 'wei', 'wen', 'weng', 'wo', 'wu',
+
+    'wa', 'wai', 'wan', 'wang', 'wei', 'wen', 'weng', 'wo', 'wu'
     ];
-  
+
   this._syllableArray = [];
-  for(var i in syllables) {
+  for (var i in syllables) {
     var e = syllables[i];
     this._syllableArray.push({syllable: e});
   }
-  
+
   this._syllableIndex = new Index(this._syllableArray, 'syllable');
 };
 
 PinyinParser.prototype = {
   /**
    * Consonant(声母) lookup map that maps a lowercase consonant to itself.
-   * _consonantMap 
+   * _consonantMap
    */
   _consonantMap: {},
-  
+
   /**
    * Syllable array.
    */
   _syllableArray: [{syllable: 'a'}, {syllable: 'ai'}],
-  
+
   /**
    * syllableMap index to speed up search operation
    */
   _syllableIndex: null,
-  
+
   /**
    * Divides a string into Pinyin syllables.
-   * 
+   *
    * There may exists more than one ways to divide the string. Each way of the
    * division is a segment.
    *
@@ -474,39 +486,40 @@ PinyinParser.prototype = {
    *
    * @param {String} input The string to be divided. The string should not be
    * empty.
-   * @returns {Array} An array of segments. 
-   */  
+   * @return {Array} An array of segments.
+   */
   parse: function(input) {
     var results = [];
-    
+
     // Trims the leading and trailing "'".
     input = input.replace(/^'+|'+$/g, '');
-    
-    if (input == "") {
+
+    if (input == '') {
       return results;
     }
-    
-    var end = input.length;    
-    for (; end>0; end--) {
+
+    var end = input.length;
+    for (; end > 0; end--) {
       var sub = input.substring(0, end);
       results = this._parseInternal(sub);
       if (results.length > 0) {
         break;
       }
     }
-    
+
     if (end != input.length) {
       // The input contains invalid syllable.
       var invalidSyllable = input.substring(end);
-      results = this._appendsSubSegments(results, [[new Syllable(invalidSyllable, SyllableType.INVALID)]]);
+      results = this._appendsSubSegments(results,
+        [[new Syllable(invalidSyllable, SyllableType.INVALID)]]);
     }
-    
+
     return results;
   },
-  
+
   /**
    * Divides a string into valid syllables.
-   * 
+   *
    * There may exists more than one ways to divide the string. Each way of the
    * division is a segment.
    *
@@ -516,21 +529,21 @@ PinyinParser.prototype = {
    *
    * @param {String} input The string to be divided. The string should not be
    * empty.
-   * @returns {Array} An array of segments.
+   * @return {Array} An array of segments.
    * If the input string contains any invalid syllables, returns empty array.
-   */   
+   */
   _parseInternal: function(input) {
     var results = [];
-    
+
     // Trims the leading and trailing "'".
     input = input.replace(/^'+|'+$/g, '');
-    
-    if (input == "") {
+
+    if (input == '') {
       return results;
     }
-    
-    var end = Math.min(input.length, SYLLALBLE_MAX_LENGTH);    
-    for (; end>0; end--) {
+
+    var end = Math.min(input.length, SYLLALBLE_MAX_LENGTH);
+    for (; end > 0; end--) {
       var key = input.substring(0, end);
       var type = this._getSyllableType(key);
       if (type != SyllableType.INVALID) {
@@ -547,9 +560,9 @@ PinyinParser.prototype = {
         results = results.concat(segments);
       }
     }
-    
-    // Sort the segments array. The segment with fewer incomplete syllables and shorter length
-    // comes first.
+
+    // Sort the segments array. The segment with fewer incomplete syllables and
+    // shorter length comes first.
     var self = this;
     results.sort(function(a, b) {
       var ai = self._getIncompleteness(a);
@@ -562,7 +575,7 @@ PinyinParser.prototype = {
     });
     return results;
   },
-  
+
   /**
    * Check if the input string is a syllable
    */
@@ -570,22 +583,22 @@ PinyinParser.prototype = {
     if (str in this._consonantMap) {
       return SyllableType.ABBREVIATED;
     }
-    
+
     var indices = this._syllableIndex.get(str);
     if (indices.length > 0) {
       return SyllableType.COMPLETE;
     }
-    
+
     var upperBound = str.substr(0, str.length - 1) +
-      String.fromCharCode(str.substr(str.length - 1).charCodeAt(0) + 1);    
+      String.fromCharCode(str.substr(str.length - 1).charCodeAt(0) + 1);
     indices = this._syllableIndex.getRange(str, upperBound, true, true);
     if (indices.length > 0) {
       return SyllableType.INCOMPLETE;
     }
-    
+
     return SyllableType.INVALID;
   },
-  
+
   /**
    * Get cartesian product of two segments arrays.
    * Cartesian product A X B:
@@ -598,25 +611,27 @@ PinyinParser.prototype = {
     if (subSegments.length == 0) {
       return segments;
     }
-    
+
     var result = [];
-    for (var i=0; i<segments.length; i++) {
+    for (var i = 0; i < segments.length; i++) {
       var segment = segments[i];
-      for (var j=0; j<subSegments.length; j++) {
+      for (var j = 0; j < subSegments.length; j++) {
         result.push(segment.concat(subSegments[j]));
       }
     }
     return result;
   },
-  
+
   /**
    * Get the incompleteness of syllables.
    *
-   * Syllables containing incomplete and abbreviated syllable is of higher incompleteness value than those not.
+   * Syllables containing incomplete and abbreviated syllable is of higher
+   * incompleteness value than those not.
    *
-   * @param {Array} segement The segement array containing the syllables to be evaluated.
-   * @returns {Nunmber} The number of incompleteness. A higher value means more incomplete or
-   * abbreviated syllables.
+   * @param {Array} segement The segement array containing the syllables to be
+   * evaluated.
+   * @return {Nunmber} The number of incompleteness. A higher value means more
+   * incomplete or abbreviated syllables.
    */
   _getIncompleteness: function(segment) {
     var value = 0;
@@ -647,33 +662,33 @@ IMEngineBase.prototype = {
      * The source code path of the IMEngine
      * @type String
      */
-    path: "",
-    
+    path: '',
+
     mode: false,
-    
+
     /**
      * Sends candidates to the IMEManager
      */
-    sendCandidates: function(candidates){},
-    
+    sendCandidates: function(candidates) {},
+
     /**
      * Sends pending symbols to the IMEManager.
      */
-    sendPendingSymbols: function(symbols){},
-    
+    sendPendingSymbols: function(symbols) {},
+
     /**
      * Passes the clicked key to IMEManager for default action.
      * @param {number} keyCode The key code of an integer.
      */
-    sendKey: function(keyCode){},
-    
+    sendKey: function(keyCode) {},
+
     /**
      * Sends the input string to the IMEManager.
      * @param {String} str The input string.
      */
-    sendString: function(str){}
+    sendString: function(str) {}
   },
-  
+
   /**
    * Initialization.
    * @param {Glue} glue Glue object of the IMManager.
@@ -686,20 +701,20 @@ IMEngineBase.prototype = {
    */
   uninit: function() {
   },
-  
+
   /**
    * Notifies when a keyboard key is clicked.
    * @param {number} keyCode The key code of an integer number.
    */
   click: function(keyCode) {
   },
-  
+
   /**
    * Notifies when pending symbols need be cleared
    */
   empty: function() {
   },
-  
+
   /**
    * Notifies when a candidate is selected.
    * @param {String} text The text of the candidate.
@@ -707,17 +722,17 @@ IMEngineBase.prototype = {
    */
   select: function(text, data) {
     this._glue.sendString(text);
-  },
-}
+  }
+};
 
 var IMEngine = function(splitter) {
   IMEngineBase.call(this);
-  
+
   this._splitter = splitter;
   this._enableIndexedDB = false;
   this._inputTraditionalChinese = false;
   this._db = {
-    simplified: null,  
+    simplified: null,
     traditional: null
   };
   this._isWorking = false;
@@ -725,9 +740,9 @@ var IMEngine = function(splitter) {
 
 IMEngine.prototype = {
   __proto__: IMEngineBase.prototype,
-  
+
   _splitter: null,
-  
+
   // Enable IndexedDB
   _enableIndexedDB: false,
 
@@ -742,53 +757,54 @@ IMEngine.prototype = {
   // Auto-suggest generates candidates that follows a selection
   // taibei -> 台北, then suggest 市, 縣, 市長, 市立 ...
   _autoSuggestCandidates: true,
-  
+
   // Whether to input traditional Chinese
   _inputTraditionalChinese: false,
-  
+
   // Input method database
   _db: {
-    simplified: null,  
+    simplified: null,
     traditional: null
   },
-  
+
   // The last selected text and syllables used to generate suggestions.
   _selectedText: '',
   _selectedSyllables: [],
-  
-  _pendingSymbols: "",
+
+  _pendingSymbols: '',
   _firstCandidate: '',
   _keypressQueue: [],
   _isWorking: false,
-  
+
   _getCurrentDatabaseName: function() {
-    return  this._inputTraditionalChinese ? 'traditional' : 'simplified';
+    return this._inputTraditionalChinese ? 'traditional' : 'simplified';
   },
-  
+
   _initDB: function(name, readyCallback) {
     var dbSettings = {
-      enableIndexedDB: this._enableIndexedDB,
+      enableIndexedDB: this._enableIndexedDB
     };
 
     if (readyCallback) {
       dbSettings.ready = readyCallback;
     }
-    
-    var jsonUrl = this._glue.path + (name == 'traditional' ? '/db-tr.json' : '/db.json');
+
+    var jsonUrl = this._glue.path +
+      (name == 'traditional' ? '/db-tr.json' : '/db.json');
     this._db[name] = new IMEngineDatabase(name, jsonUrl);
-    this._db[name].init(dbSettings);  
+    this._db[name].init(dbSettings);
   },
-  
-  _sendPendingSymbols: function () {
+
+  _sendPendingSymbols: function() {
     debug('SendPendingSymbol: ' + this._pendingSymbols);
     this._glue.sendPendingSymbols(this._pendingSymbols);
   },
-  
+
   _sendCandidates: function(candidates) {
-    this._firstCandidate = (candidates[0])? candidates[0][0] : '';
+    this._firstCandidate = (candidates[0]) ? candidates[0][0] : '';
     this._glue.sendCandidates(candidates);
   },
-    
+
   _start: function() {
     if (this._isWorking)
       return;
@@ -799,7 +815,7 @@ IMEngine.prototype = {
 
   _next: function() {
     debug('Processing keypress');
-    
+
     var name = this._getCurrentDatabaseName();
 
     if (!this._db[name]) {
@@ -807,7 +823,7 @@ IMEngine.prototype = {
       this._initDB(name, this._next.bind(this));
       return;
     }
-    
+
     if (!this._keypressQueue.length) {
       debug('keyQueue emptied.');
       this._isWorking = false;
@@ -824,7 +840,7 @@ IMEngine.prototype = {
     }
 
     debug('key code: ' + code);
-    
+
     // Backspace - delete last input symbol if exists
     if (code === KeyEvent.DOM_VK_BACK_SPACE) {
       debug('Backspace key');
@@ -845,18 +861,19 @@ IMEngine.prototype = {
         this._next();
         return;
       }
-      
-      this._pendingSymbols = this._pendingSymbols.substring(0, this._pendingSymbols.length - 1);
+
+      this._pendingSymbols = this._pendingSymbols.substring(0,
+        this._pendingSymbols.length - 1);
 
       this._sendPendingSymbols();
       this._updateCandidateList(this._next.bind(this));
       return;
-    }    
+    }
 
     // Select the first candidate if needed.
-    if (code === KeyEvent.DOM_VK_RETURN
-        || !this._isSymbol(code)
-        || this._pendingSymbols.length >= this._kBufferLenLimit) {
+    if (code === KeyEvent.DOM_VK_RETURN ||
+        !this._isSymbol(code) ||
+        this._pendingSymbols.length >= this._kBufferLenLimit) {
       debug('Return key or non-bopomofo code');
       var sendKey = true;
       if (this._firstCandidate) {
@@ -892,35 +909,37 @@ IMEngine.prototype = {
     this._sendPendingSymbols();
     this._updateCandidateList(this._next.bind(this));
   },
-  
+
   _isSymbol: function(code) {
-    
-    // ' 
+
+    // '
     if (code == 39) {
       return true;
     }
-    
+
     // a-z
     if (code >= 97 && code <= 122) {
       return true;
     }
-    
+
     return false;
   },
-  
+
   _appendNewSymbol: function(code) {
     var symbol = String.fromCharCode(code);
     this._pendingSymbols += symbol;
   },
-  
+
   _lookup: function(query, type, callback) {
     var name = this._getCurrentDatabaseName();
     switch (type) {
       case 'sentence':
-        this._db[name].getSentence(query, function getSentencesCallback(sentence) {
-          callback([sentence]);
-        });
-      break;    
+        this._db[name].getSentence(query,
+          function getSentencesCallback(sentence) {
+            callback([sentence]);
+          }
+        );
+      break;
       case 'term':
         this._db[name].getTerms(query, function getTermsCallback(dbResults) {
           if (!dbResults) {
@@ -955,11 +974,11 @@ IMEngine.prototype = {
       break;
     }
   },
-  
-  _updateCandidateList: function (callback) {
+
+  _updateCandidateList: function(callback) {
     debug('Update Candidate List.');
     var self = this;
-    
+
     if (!this._pendingSymbols) {
       if (this._autoSuggestCandidates &&
           this._selectedSyllables.length) {
@@ -973,7 +992,8 @@ IMEngine.prototype = {
             suggestions.forEach(
               function suggestions_forEach(suggestion) {
                 candidates.push(
-                  [suggestion.substr(texts.length), selectedSyllables.join("'")]);
+                  [suggestion.substr(texts.length),
+                   selectedSyllables.join("'")]);
               }
             );
             self._sendCandidates(candidates);
@@ -987,7 +1007,7 @@ IMEngine.prototype = {
       callback();
       return;
     }
-    
+
     this._selectedText = '';
     this._selectedSyllables = [];
 
@@ -996,7 +1016,7 @@ IMEngine.prototype = {
     var syllablesForQuery = [];
     if (segments.length > 0) {
       var segment = segments[0];
-      for (var i=0; i<segment.length; i++) {
+      for (var i = 0; i < segment.length; i++) {
         syllablesForQuery.push(segment[i].str);
       }
     }
@@ -1073,24 +1093,24 @@ IMEngine.prototype = {
 
         findTerms();
       });
-    });    
+    });
   },
 
   /**
-   * @Override
+   * Override
    */
   init: function(glue) {
     IMEngineBase.prototype.init.call(this, glue);
   },
 
   /**
-   * @Override
+   * Override
    */
   uninit: function() {
     IMEngineBase.prototype.uninit.call(this);
     debug('Uninit.');
     this._splitter = null;
-    for (var name in ['simplified', 'traditional']) { 
+    for (var name in ['simplified', 'traditional']) {
       if (this._db[name]) {
         this._db[name].uninit();
         this._db[name] = null;
@@ -1100,13 +1120,13 @@ IMEngine.prototype = {
   },
 
   /**
-   *@Override
+   *Override
    */
   click: function(keyCode) {
     IMEngineBase.prototype.click.call(this, keyCode);
-        
+
     // Toggle between the modes of tranditioanal Chinese and simplified Chinese
-    if(keyCode == -10 || keyCode == -11) {
+    if (keyCode == -10 || keyCode == -11) {
       this._inputTraditionalChinese = !this._inputTraditionalChinese;
     } else {
       this._keypressQueue.push(keyCode);
@@ -1115,14 +1135,14 @@ IMEngine.prototype = {
   },
 
   /**
-   * @Override
+   * Override
    */
   select: function(text, data) {
     IMEngineBase.prototype.select.call(this, text, data);
 
     var syllablesToRemove = data.split("'");
-    if (this._pendingSymbols != "") {
-      for (var i=0; i<syllablesToRemove.length; i++) {
+    if (this._pendingSymbols != '') {
+      for (var i = 0; i < syllablesToRemove.length; i++) {
         var syllable = syllablesToRemove[i];
         // Trims the leading "'".
         this._pendingSymbols = this._pendingSymbols.replace(/^'+/g, '');
@@ -1130,15 +1150,15 @@ IMEngine.prototype = {
       }
       this._optimizedSyllables = [];
     }
-    
+
     this._selectedText = text;
     this._selectedSyllables = syllablesToRemove;
     this._keypressQueue.push(0);
-    this._start();  
+    this._start();
   },
 
   /**
-   * @Override
+   * Override
    */
   empty: function() {
     var name = this._getCurrentDatabaseName();
@@ -1149,7 +1169,7 @@ IMEngine.prototype = {
     this._isWorking = false;
     if (!this._db[name])
       this._initDB(name);
-  }  
+  }
 };
 
 var DatabaseStorageBase = function() {
@@ -1160,123 +1180,141 @@ var DatabaseStorageBase = function() {
  * DatabaseStorageBase status code enumeration.
  */
 DatabaseStorageBase.StatusCode = {
-  UNINITIALIZED: 0,   /* The storage isn't initilized.*/
-  BUSY: 1,            /* The storage is busy.*/
-  READY: 2,           /* The storage has been successfully initilized and is ready to use.*/
-  ERROR: 3,           /* The storage is failed to initilized and cannot be used.*/
+  /* The storage isn't initilized.*/
+  UNINITIALIZED: 0,
+  /* The storage is busy.*/
+  BUSY: 1,
+  /* The storage has been successfully initilized and is ready to use.*/
+  READY: 2,
+  /* The storage is failed to initilized and cannot be used.*/
+  ERROR: 3
 };
 
-DatabaseStorageBase.prototype =  {
+DatabaseStorageBase.prototype = {
   _status: DatabaseStorageBase.StatusCode.UNINITIALIZED,
-  
+
   /**
    * Get the status code of the storage.
-   * @returns {DatabaseStorageBase.StatusCode} The status code.
+   * @return {DatabaseStorageBase.StatusCode} The status code.
    */
   getStatus: function() {
     return this._status;
   },
-  
+
   /**
    * Whether the database is ready to use.
    */
   isReady: function() {
     return this._status == DatabaseStorageBase.StatusCode.READY;
   },
-  
+
   /**
    * Initialization.
-   * @param {Function} callback Javascript function object that is called when the operation
-   * is finished. The definition of callback is function callback(statusCode). The statusCode
-   * parameter is of type DatabaseStorageBase.StatusCode that stores the status of the storage
+   * @param {Function} callback Javascript function object that is called when
+   * the operation is finished. The definition of callback is
+   * function callback(statusCode). The statusCode parameter is of type
+   * DatabaseStorageBase.StatusCode that stores the status of the storage
    * after Initialization.
    */
-  init: function(callback /*function callback(statusCode)*/) {
+  init: function(callback) {
   },
-  
+
   /**
    * Destruction.
-   * @param {Function} callback Javascript function object that is called when the operation
-   * is finished. The definition of callback is function callback().
-   */  
-  uninit: function(callback /*function callback()*/) {
+   * @param {Function} callback Javascript function object that is called when
+   * the operation is finished.
+   * The definition of callback is function callback().
+   */
+  uninit: function(callback) {
   },
-  
+
 
   /**
    * Whether the storage is empty.
-   * @returns {Boolean} true if the storage is empty; otherwise false.
+   * @return {Boolean} true if the storage is empty; otherwise false.
    */
   isEmpty: function() {
   },
-  
+
   /**
    * Get all terms.
-   * @param {Function} callback Javascript function object that is called when the operation
-   * is finished. The definition of callback is function callback(homonymsArray). The homonymsArray
-   * parameter is an array of Homonyms objects.
-   */   
-  getAllTerms: function(callback /*function callback(homonymsArray)*/) {
+   * @param {Function} callback Javascript function object that is called when
+   * the operation is finished. The definition of callback is
+   * function callback(homonymsArray). The homonymsArray parameter is an array
+   * of Homonyms objects.
+   */
+  getAllTerms: function(callback) {
   },
-  
+
   /**
    * Set all the terms of the storage.
-   * @param {Array} homonymsArray The array of Homonyms objects containing all the terms.
-   * @param {Function} callback Javascript function object that is called when the operation
-   * is finished. The definition of callback is function callback(). 
-   */   
-  setAllTerms: function(homonymsArray, callback /*function callback()*/) {
+   * @param {Array} homonymsArray The array of Homonyms objects containing all
+   * the terms.
+   * @param {Function} callback Javascript function object that is called when
+   * the operation is finished. The definition of callback is
+   * function callback().
+   */
+  setAllTerms: function(homonymsArray, callback) {
   },
-  
+
   /**
    * Get iterm with given syllables string.
    * @param {String} syllablesStr The syllables string of the matched terms.
-   * @param {Function} callback Javascript function object that is called when the operation
-   * is finished. The definition of callback is function callback(homonymsArray). The homonymsArray
-   * parameter is an array of Homonyms objects.
-   */   
-  getTermsBySyllables: function(syllablesStr, callback /*function callback(homonymsArray)*/) {
+   * @param {Function} callback Javascript function object that is called when
+   * the operation is finished. The definition of callback is
+   * function callback(homonymsArray). The homonymsArray parameter is an array
+   * of Homonyms objects.
+   */
+  getTermsBySyllables: function(syllablesStr, callback) {
   },
-  
+
   /**
    * Get iterms with given syllables string prefix.
    * @param {String} prefix The prefix of the syllables string .
-   * @param {Function} callback Javascript function object that is called when the operation
-   * is finished. The definition of callback is function callback(homonymsArray). The homonymsArray
-   * parameter is an array of Homonyms objects.
-   */   
-  getTermsBySyllablesPrefix: function(prefix, callback /*function callback(homonymsArray)*/) {
-  },  
-  
-  /**
-   * Get iterm with given incomplete or abbreviated syllables string. The given syllables could be partially incomplete or abbreviated.
-   * @param {String} incomplete The partially incomplete or abbreviated syllables string of the matched terms.
-   * @param {Function} callback Javascript function object that is called when the operation
-   * is finished. The definition of callback is function callback(homonymsArray). The homonymsArray
-   * parameter is an array of Homonyms objects.
-   */   
-  getTermsByIncompleteSyllables: function(incomplete, callback /*function callback(homonymsArray)*/) {
+   * @param {Function} callback Javascript function object that is called when
+   * the operation is finished. The definition of callback is
+   * function callback(homonymsArray). The homonymsArray parameter is an array
+   * of Homonyms objects.
+   */
+  getTermsBySyllablesPrefix: function(prefix,
+    callback) {
   },
-  
+
+  /**
+   * Get iterm with given incomplete or abbreviated syllables string. The given
+   * syllables could be partially incomplete or abbreviated.
+   * @param {String} incomplete The partially incomplete or abbreviated
+   * syllables string of the matched terms.
+   * @param {Function} callback Javascript function object that is called when
+   * the operation is finished. The definition of callback is
+   * function callback(homonymsArray). The homonymsArray parameter is an array
+   * of Homonyms objects.
+   */
+  getTermsByIncompleteSyllables: function(incomplete,
+    callback) {
+  },
+
   /**
    * Add a term to the storage.
    * @param {String} syllablesStr The syllables string of the term.
    * @param {Term} term The Term object of the term.
-   * @param {Function} callback Javascript function object that is called when the operation
-   * is finished. The definition of callback is function callback(). 
-   */   
-  addTerm: function(syllablesStr, term, callback /*function callback()*/) {
+   * @param {Function} callback Javascript function object that is called when
+   * the operation is finished. The definition of callback is
+   * function callback().
+   */
+  addTerm: function(syllablesStr, term, callback) {
   },
-  
+
   /**
    * Remove a term from the storage.
    * @param {String} syllablesStr The syllables string of the term.
    * @param {Term} term The Term object of the term.
-   * @param {Function} callback Javascript function object that is called when the operation
-   * is finished. The definition of callback is function callback(). 
-   */  
-  removeTerm: function(syllablesStr, term, callback /*function callback()*/) {  
-  } 
+   * @param {Function} callback Javascript function object that is called when
+   * the operation is finished. The definition of callback is
+   * function callback().
+   */
+  removeTerm: function(syllablesStr, term, callback) {
+  }
 };
 
 var JsonStorage = function(jsonUrl) {
@@ -1289,20 +1327,20 @@ var JsonStorage = function(jsonUrl) {
 JsonStorage.prototype = {
   // Inherits DatabaseStorageBase
   __proto__: DatabaseStorageBase.prototype,
-  
+
   _dataArray: [],
-  
+
   // The JSON file url.
   _jsonUrl: null,
-  
+
   _syllablesIndex: null,
-  
-  _abrreviatedIndex: null, 
-  
+
+  _abrreviatedIndex: null,
+
   /**
-   * @Override
+   * Override
    */
-  init: function(callback /*function callback(statusCode)*/) {  
+  init: function(callback) {
     var self = this;
     function doCallback() {
       if (callback) {
@@ -1314,10 +1352,10 @@ JsonStorage.prototype = {
       doCallback();
       return;
     }
-    
+
     // Set the status to busy.
     this._status = DatabaseStorageBase.StatusCode.BUSY;
-    
+
     var xhr = new XMLHttpRequest();
     xhr.open('GET', this._jsonUrl, true);
     try {
@@ -1348,13 +1386,13 @@ JsonStorage.prototype = {
 
       function toTerms(rawTerms) {
         var terms = [];
-        for (var i=0; i<rawTerms.length; i++) {
+        for (var i = 0; i < rawTerms.length; i++) {
           var rawTerm = rawTerms[i];
           terms.push(new Term(rawTerm[0], rawTerm[1]));
         }
         return terms;
       }
-      
+
       // clone everything under response because it's readonly.
       for (var s in response) {
         self._dataArray.push(new Homonyms(s, toTerms(response[s])));
@@ -1366,45 +1404,45 @@ JsonStorage.prototype = {
     };
 
     var perform = function() {
-      xhr.send(null);  
+      xhr.send(null);
     }
-    setTimeout(perform, 0); 
+    setTimeout(perform, 0);
   },
- 
+
   /**
-   * @Override
-   */  
+   * Override
+   */
   uninit: function(callback) {
     function doCallback() {
       if (callback) {
         callback();
       }
     }
-    
+
     // Check if we could uninitilize the storage
     if (this._status == DatabaseStorageBase.StatusCode.UNINITIALIZED) {
       doCallback();
       return;
     }
-    
+
     // Perform destruction operation
     this._dataArray = [];
-    
+
     this._status = DatabaseStorageBase.StatusCode.UNINITIALIZED;
     doCallback();
   },
-  
+
   /**
-   * @Override
+   * Override
    */
   isEmpty: function() {
     return this._dataArray.length == 0;
   },
-  
+
   /**
-   * @Override
-   */ 
-  getAllTerms: function(callback /*function callback(homonymsArray)*/) {
+   * Override
+   */
+  getAllTerms: function(callback) {
     var self = this;
     var homonymsArray = [];
     function doCallback() {
@@ -1412,26 +1450,27 @@ JsonStorage.prototype = {
         callback(homonymsArray);
       }
     }
-    
+
     // Check if the storage is ready.
     if (!this.isReady()) {
       doCallback();
       return;
     }
-    
+
     var perform = function() {
       // Query all terms
       homonymsArray = homonymsArray.concat(self._dataArray);
       doCallback();
     }
-    
+
     setTimeout(perform, 0);
   },
-  
+
   /**
-   * @Override
-   */   
-  getTermsBySyllables: function(syllablesStr, callback /*function callback(homonymsArray)*/) {
+   * Override
+   */
+  getTermsBySyllables: function(syllablesStr,
+    callback) {
     var self = this;
     var homonymsArray = [];
     function doCallback() {
@@ -1439,29 +1478,30 @@ JsonStorage.prototype = {
         callback(homonymsArray);
       }
     }
-    
+
     // Check if the storage is ready.
     if (!this.isReady()) {
       doCallback();
       return;
     }
-    
+
     var perform = function() {
       var indices = self._syllablesIndex.get(syllablesStr);
-      for (var i=0; i<indices.length; i++) {
+      for (var i = 0; i < indices.length; i++) {
         var index = indices[i];
         homonymsArray.push(self._dataArray[index]);
       }
       doCallback();
     }
-  
-    setTimeout(perform, 0);  
+
+    setTimeout(perform, 0);
   },
 
   /**
-   * @Override
-   */   
-  getTermsBySyllablesPrefix: function(prefix, callback /*function callback(homonymsArray)*/) {
+   * Override
+   */
+  getTermsBySyllablesPrefix: function(prefix,
+    callback) {
     var self = this;
     var homonymsArray = [];
     function doCallback() {
@@ -1469,31 +1509,33 @@ JsonStorage.prototype = {
         callback(homonymsArray);
       }
     }
-    
+
     // Check if the storage is ready.
     if (!this.isReady()) {
       doCallback();
       return;
     }
-    
+
     var perform = function() {
       var upperBound = prefix.substr(0, prefix.length - 1) +
         String.fromCharCode(prefix.substr(prefix.length - 1).charCodeAt(0) + 1);
-      var indices = self._syllablesIndex.getRange(prefix, upperBound, false, false);
-      for (var i=0; i<indices.length; i++) {
+      var indices =
+        self._syllablesIndex.getRange(prefix, upperBound, false, false);
+      for (var i = 0; i < indices.length; i++) {
         var index = indices[i];
         homonymsArray.push(self._dataArray[index]);
-      }     
+      }
       doCallback();
     }
-    
+
     setTimeout(perform, 0);
-  }, 
+  },
 
   /**
-   * @Override
-   */   
-  getTermsByIncompleteSyllables: function(incomplete, callback /*function callback(homonymsArray)*/) {
+   * Override
+   */
+  getTermsByIncompleteSyllables: function(incomplete,
+      callback) {
     var self = this;
     var homonymsArray = [];
     function doCallback() {
@@ -1501,36 +1543,37 @@ JsonStorage.prototype = {
         callback(homonymsArray);
       }
     }
-    
+
     // Check if the storage is ready.
     if (!this.isReady()) {
       doCallback();
       return;
     }
-    
+
     var matchRegEx = new RegExp(
        '^' + incomplete.replace(/([^']+)/g, "$1[^']*"));
-    var fullyAbbreviated = SyllableUtils.stringToAbbreviated(incomplete); 
-        
+    var fullyAbbreviated = SyllableUtils.stringToAbbreviated(incomplete);
+
     var perform = function() {
       var indices = self._abrreviatedIndex.get(fullyAbbreviated);
-      for (var i=0; i<indices.length; i++) {
+      for (var i = 0; i < indices.length; i++) {
         var index = indices[i];
         var homonyms = self._dataArray[index];
         var syllablesStr = homonyms.syllablesString;
         if (matchRegEx.exec(syllablesStr)) {
           homonymsArray.push(homonyms);
         }
-      }     
+      }
       doCallback();
     }
-    
+
     setTimeout(perform, 0);
   },
-  
+
   _buildIndices: function() {
     this._syllablesIndex = new Index(this._dataArray, 'syllablesString');
-    this._abrreviatedIndex = new Index(this._dataArray, 'abbreviatedSyllablesString'); 
+    this._abrreviatedIndex = new Index(this._dataArray,
+      'abbreviatedSyllablesString');
   }
 };
 
@@ -1539,12 +1582,14 @@ JsonStorage.prototype = {
  * Interfaces of indexedDB
  */
 var IndexedDB = {
-  indexedDB: window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB,
-  
-  IDBDatabase: window.IDBDatabase || window.webkitIDBDatabase ||window.msIDBDatabase,
-  
+  indexedDB: window.indexedDB || window.webkitIndexedDB ||
+    window.mozIndexedDB || window.msIndexedDB,
+
+  IDBDatabase: window.IDBDatabase || window.webkitIDBDatabase ||
+    window.msIDBDatabase,
+
   IDBIndex: window.IDBIndex || window.webkitIDBIndex || window.msIDBIndex,
-  
+
   /**
    * Check if the indexedDB is available on this platform
    */
@@ -1556,11 +1601,11 @@ var IndexedDB = {
       return false;
     }
     return true;
-  },
+  }
 };
 
 var IndexedDBStorage = function(dbName) {
-  this._dbName= dbName;
+  this._dbName = dbName;
   this._IDBDatabase = null;
   this._count = 0;
 };
@@ -1570,37 +1615,39 @@ IndexedDBStorage.kDBVersion = 1.0;
 IndexedDBStorage.prototype = {
   // Inherits DatabaseStorageBase
   __proto__: DatabaseStorageBase.prototype,
-  
+
   // Database name
   _dbName: null,
-    
+
   // IDBDatabase interface
   _IDBDatabase: null,
-    
+
   _count: 0,
-  
+
   /**
-   * @Override
+   * Override
    */
-  init: function(callback /*function callback(statusCode)*/) {
+  init: function(callback) {
     var self = this;
     function doCallback() {
       if (callback) {
         callback(self._status);
       }
     }
-    
+
     // Check if we could initilize.
-    if (IndexedDB.isReady() && this._status != DatabaseStorageBase.StatusCode.UNINITIALIZED) {
+    if (IndexedDB.isReady() &&
+        this._status != DatabaseStorageBase.StatusCode.UNINITIALIZED) {
       doCallback();
       return;
     }
-    
+
     // Set the status to busy.
     this._status = DatabaseStorageBase.StatusCode.BUSY;
-    
+
     // Open the database
-    var req = IndexedDB.indexedDB.open(this._dbName, IndexedDBStorage.kDBVersion);
+    var req = IndexedDB.indexedDB.open(this._dbName,
+      IndexedDBStorage.kDBVersion);
     req.onerror = function dbopenError(ev) {
       debug('Encounter error while opening IndexedDB.');
       self._status = DatabaseStorageBase.StatusCode.ERROR;
@@ -1617,9 +1664,11 @@ IndexedDBStorage.prototype = {
       }
 
       // create ObjectStore
-      var store = self._IDBDatabase.createObjectStore('homonyms', { keyPath: 'syllablesString' });
+      var store = self._IDBDatabase.createObjectStore('homonyms',
+        { keyPath: 'syllablesString' });
       store.createIndex(
-        'abbreviatedSyllablesString', 'abbreviatedSyllablesString', { unique: false });     
+        'abbreviatedSyllablesString', 'abbreviatedSyllablesString',
+        { unique: false });
 
       // no callback() here
       // onupgradeneeded will follow by onsuccess event
@@ -1628,11 +1677,11 @@ IndexedDBStorage.prototype = {
     req.onsuccess = function dbopenSuccess(ev) {
       debug('IndexedDB opened.');
       self._IDBDatabase = ev.target.result;
-      
+
       self._count = 0;
 
       // Get the count
-      var transaction = self._IDBDatabase.transaction('homonyms', 'readonly');    
+      var transaction = self._IDBDatabase.transaction('homonyms', 'readonly');
       var reqCount = transaction.objectStore('homonyms').count();
 
       reqCount.onsuccess = function(ev) {
@@ -1641,67 +1690,67 @@ IndexedDBStorage.prototype = {
         doCallback();
       };
 
-      reqCount.onerror = function (ev) {
+      reqCount.onerror = function(ev) {
         self._status = DatabaseStorageBase.StatusCode.ERROR;
         doCallback();
-      };      
-    };    
+      };
+    };
   },
- 
+
   /**
-   * @Override
-   */  
+   * Override
+   */
   uninit: function(callback) {
     function doCallback() {
       if (callback) {
         callback();
       }
     }
-    
+
     // Check if we could uninitilize the storage
     if (this._status == DatabaseStorageBase.StatusCode.UNINITIALIZED) {
       doCallback();
       return;
     }
-    
+
     // Perform destruction operation
     if (this._IDBDatabase) {
       this._IDBDatabase.close();
     }
-    
+
     this._status = DatabaseStorageBase.StatusCode.UNINITIALIZED;
     doCallback();
   },
-  
+
   /**
-   * @Override
+   * Override
    */
   isEmpty: function() {
     return this._count == 0;
   },
-  
+
   /**
-   * @Override
-   */ 
-  getAllTerms: function(callback /*function callback(homonymsArray)*/) {
+   * Override
+   */
+  getAllTerms: function(callback) {
     var homonymsArray = [];
     function doCallback() {
       if (callback) {
         callback(homonymsArray);
       }
     }
-    
+
     // Check if the storage is ready.
     if (!this.isReady()) {
       doCallback();
       return;
     }
-    
+
     // Query all terms
     var store = this._IDBDatabase.transaction(['homonyms'], 'readonly')
       .objectStore('homonyms');
     var req = store.openCursor();
-    
+
     req.onerror = function(ev) {
       debug('Database read error.');
       doCallback();
@@ -1710,15 +1759,15 @@ IndexedDBStorage.prototype = {
       var cursor = ev.target.result;
       if (cursor) {
         var homonyms = cursor.value;
-        homonymsArray.push(homonyms); 
+        homonymsArray.push(homonyms);
         cursor.continue();
       } else {
         doCallback();
       }
     };
   },
-  
-  setAllTerms: function(homonymsArray, callback /*function callback()*/) {
+
+  setAllTerms: function(homonymsArray, callback) {
     var self = this;
     function doCallback() {
       self._status = DatabaseStorageBase.StatusCode.READY;
@@ -1726,95 +1775,99 @@ IndexedDBStorage.prototype = {
         callback();
       }
     }
-    
+
     // Check if the storage is ready.
     if (!this.isReady()) {
       doCallback();
       return;
     }
-    
+
     // Set the status to busy.
     this._status = DatabaseStorageBase.StatusCode.BUSY;
-    
-    var doAdd = function() { 
-      var transaction = self._IDBDatabase.transaction(['homonyms'], 'readwrite');
+
+    var doAdd = function() {
+      var transaction =
+        self._IDBDatabase.transaction(['homonyms'], 'readwrite');
       var store = transaction.objectStore('homonyms');
-      
+
       transaction.onerror = function(ev) {
         debug('Database write error.');
         doCallback();
       };
-      
+
       transaction.oncomplete = function() {
         doCallback();
       };
-      
-      for (var i=0; i<homonymsArray.length; i++) {
+
+      for (var i = 0; i < homonymsArray.length; i++) {
         var homonyms = homonymsArray[i];
         store.put(homonyms);
       }
     }
-    
+
     setTimeout(doAdd, 0);
   },
-  
+
   /**
-   * @Override
-   */   
-  getTermsBySyllables: function(syllablesStr, callback /*function callback(homonymsArray)*/) {
+   * Override
+   */
+  getTermsBySyllables: function(syllablesStr,
+    callback) {
     var homonymsArray = [];
     function doCallback() {
       if (callback) {
         callback(homonymsArray);
       }
     }
-    
+
     // Check if the storage is ready.
     if (!this.isReady()) {
       doCallback();
       return;
     }
-    
+
     var store = this._IDBDatabase.transaction(['homonyms'], 'readyonly')
       .objectStore('homonyms');
     var req = store.get(syllablesStr);
-    
+
     req.onerror = function(ev) {
       debug('Database read error.');
       doCallback();
     };
-    
+
     req.onsuccess = function(ev) {
       var homonyms = ev.target.result;
       homonymsArray.push(homonyms);
       doCallback();
-    };    
+    };
   },
 
   /**
-   * @Override
-   */   
-  getTermsBySyllablesPrefix: function(prefix, callback /*function callback(homonymsArray)*/) {
+   * Override
+   */
+  getTermsBySyllablesPrefix: function(prefix,
+    callback) {
     var homonymsArray = [];
     function doCallback() {
       if (callback) {
         callback(homonymsArray);
       }
     }
-    
+
     // Check if the storage is ready.
     if (!this.isReady()) {
       doCallback();
       return;
     }
-    
+
     var upperBound = prefix.substr(0, prefix.length - 1) +
       String.fromCharCode(prefix.substr(prefix.length - 1).charCodeAt(0) + 1);
-  
+
     var store = this._IDBDatabase.transaction(['homonyms'], 'readonly')
       .objectStore('homonyms');
-    var req = store.openCursor(IDBKeyRange.bound(prefix, upperBound, true, true));
-    
+    var req =
+      store.openCursor(IDBKeyRange.bound(prefix, upperBound, true, true));
+
     req.onerror = function(ev) {
       debug('Database read error.');
       doCallback();
@@ -1823,40 +1876,42 @@ IndexedDBStorage.prototype = {
       var cursor = ev.target.result;
       if (cursor) {
         var homonyms = cursor.value;
-        homonymsArray.push(homonyms); 
+        homonymsArray.push(homonyms);
         cursor.continue();
       } else {
         doCallback();
       }
-    };  
-  }, 
+    };
+  },
 
   /**
-   * @Override
-   */   
-  getTermsByIncompleteSyllables: function(incomplete, callback /*function callback(homonymsArray)*/) {
+   * Override
+   */
+  getTermsByIncompleteSyllables: function(incomplete,
+    callback) {
     var homonymsArray = [];
     function doCallback() {
       if (callback) {
         callback(homonymsArray);
       }
     }
-    
+
     // Check if the storage is ready.
     if (!this.isReady()) {
       doCallback();
       return;
     }
-    
+
     var matchRegEx = new RegExp(
        '^' + incomplete.replace(/([^']+)/g, "$1[^']*"));
-    
+
     var fullyAbbreviated = SyllableUtils.stringToAbbreviated(incomplete);
-  
+
     var store = this._IDBDatabase.transaction(['homonyms'], 'readonly')
       .objectStore('homonyms');
-    var req = store.index('abbreviatedSyllablesString').openCursor(IDBKeyRange.only(fullyAbbreviated));
-    
+    var req = store.index('abbreviatedSyllablesString').openCursor(
+      IDBKeyRange.only(fullyAbbreviated));
+
     req.onerror = function(ev) {
       debug('Database read error.');
       doCallback();
@@ -1872,13 +1927,13 @@ IndexedDBStorage.prototype = {
       } else {
         doCallback();
       }
-    };  
+    };
   }
 };
 
 var IMEngineDatabase = function(dbName, jsonUrl) {
   var settings;
-  
+
   /**
    * Dictionary words' total frequency.
    */
@@ -1895,7 +1950,7 @@ var IMEngineDatabase = function(dbName, jsonUrl) {
 
   /* ==== init functions ==== */
 
-  var populateDBFromJSON = function(callback) {    
+  var populateDBFromJSON = function(callback) {
     jsonStorage.getAllTerms(function(homonymsArray) {
       indexedDBStorage.setAllTerms(homonymsArray, callback);
     });
@@ -1917,7 +1972,7 @@ var IMEngineDatabase = function(dbName, jsonUrl) {
 
   /* ==== init ==== */
 
-  this.init = function (options) {
+  this.init = function(options) {
     settings = options;
 
     var ready = function() {
@@ -1940,12 +1995,12 @@ var IMEngineDatabase = function(dbName, jsonUrl) {
         return;
       }
       if (indexedDBStorage.isEmpty()) {
-        jsonStorage.init(function () {
+        jsonStorage.init(function() {
           if (!jsonStorage.isReady()) {
             debug('JSON failed to download.');
             return;
           }
-  
+
           debug(
             'JSON loaded,' +
             'IME is ready to use while inserting data into db ...'
@@ -1964,10 +2019,12 @@ var IMEngineDatabase = function(dbName, jsonUrl) {
     indexedDBStorage.uninit();
     jsonStorage.uninit();
   };
-  
+
   var getUsableStorage = function() {
     var storage = settings.enableIndexedDB ? indexedDBStorage : jsonStorage;
-    if (settings.enableIndexedDB && indexedDBStorage.isReady() && !indexedDBStorage.isEmpty()) {
+    if (settings.enableIndexedDB &&
+        indexedDBStorage.isReady() &&
+        !indexedDBStorage.isEmpty()) {
       return indexedDBStorage;
     } else if (jsonStorage.isReady() && !jsonStorage.isEmpty()) {
       return jsonStorage;
@@ -2022,8 +2079,8 @@ var IMEngineDatabase = function(dbName, jsonUrl) {
       return;
     }
 
-    storage.getTermsBySyllablesPrefix(syllablesStr, function(homonymsArray) {        
-      for (var i=0; i<homonymsArray.length; i++) {
+    storage.getTermsBySyllablesPrefix(syllablesStr, function(homonymsArray) {
+      for (var i = 0; i < homonymsArray.length; i++) {
         var homonyms = homonymsArray[i];
         homonyms.terms.forEach(matchTerm);
       }
@@ -2034,11 +2091,11 @@ var IMEngineDatabase = function(dbName, jsonUrl) {
       }
       cacheSetTimeout();
       iDBCache['SUGGESTION:' + textStr] = result;
-      callback(result);        
+      callback(result);
     });
   },
 
-  this.getTerms = function (syllables, callback) {
+  this.getTerms = function(syllables, callback) {
     var storage = getUsableStorage();
     if (!storage) {
       debug('Database not ready.');
@@ -2069,20 +2126,20 @@ var IMEngineDatabase = function(dbName, jsonUrl) {
       }
       return result;
     };
-    
+
     if (typeof iDBCache[syllablesStr] !== 'undefined') {
       debug('Found in iDBCache.');
       cacheSetTimeout();
       callback(iDBCache[syllablesStr]);
       return;
     }
-    
+
     storage.getTermsBySyllables(syllablesStr, function(homonymsArray)
      {
       var result = [];
-      for (var i=0; i<homonymsArray.length; i++) {
+      for (var i = 0; i < homonymsArray.length; i++) {
         var homonyms = homonymsArray[i];
-        result = result.concat(homonyms.terms);          
+        result = result.concat(homonyms.terms);
       }
       if (result.length) {
         result = processResult(result, -1);
@@ -2090,24 +2147,27 @@ var IMEngineDatabase = function(dbName, jsonUrl) {
         iDBCache[syllablesStr] = result;
         callback(result);
       } else {
-        storage.getTermsByIncompleteSyllables(syllablesStr, function(homonymsArray) {
-          var result = [];
-          for (var i=0; i<homonymsArray.length; i++) {
-            var homonyms = homonymsArray[i];
-            result = result.concat(homonyms.terms);          
+        storage.getTermsByIncompleteSyllables(syllablesStr,
+          function(homonymsArray) {
+            var result = [];
+            for (var i = 0; i < homonymsArray.length; i++) {
+              var homonyms = homonymsArray[i];
+              result = result.concat(homonyms.terms);
+            }
+            if (result.length) {
+              result =
+                processResult(result, MAX_TERMS_FOR_INCOMPLETE_SYLLABLES);
+            } else {
+              result = false;
+            }
+            cacheSetTimeout();
+            iDBCache[syllablesStr] = result;
+            callback(result);
           }
-          if (result.length) {
-            result = processResult(result, MAX_TERMS_FOR_INCOMPLETE_SYLLABLES);
-          } else {
-            result = false;
-          }
-          cacheSetTimeout();
-          iDBCache[syllablesStr] = result;
-          callback(result);        
-        });
+        );
       }
     });
-    
+
   };
 
   this.getTermWithHighestScore =
@@ -2120,7 +2180,7 @@ var IMEngineDatabase = function(dbName, jsonUrl) {
       callback(terms[0]);
     });
   }
-  
+
   this.getSentence = function(syllables, callback) {
     var self = this;
     var doCallback = function(sentence) {
@@ -2130,24 +2190,24 @@ var IMEngineDatabase = function(dbName, jsonUrl) {
     };
 
     var n = syllables.length;
-    
+
     if (n == 0) {
       callback('');
     }
-    
+
     var taskQueue = new TaskQueue(function taskQueueOnCompleteCallback(data) {
       var sentences = data.sentences;
       var sentence = sentences[sentences.length - 1];
       doCallback(sentence);
     });
-    
+
     taskQueue.data = {
       sentences: ['', ''],
       probabilities: [1, 0],
       sentenceLength: 1,
-      lastPhraseLength: 1,
+      lastPhraseLength: 1
     };
-    
+
     var getSentenceSubTask = function(taskQueue, taskData) {
       var queueData = taskQueue.data;
       var sentenceLength = queueData.sentenceLength;
@@ -2161,19 +2221,22 @@ var IMEngineDatabase = function(dbName, jsonUrl) {
         sentences.push('');
       }
       var maxProb = probabilities[sentenceLength];
-      var s = syllables.slice(sentenceLength - lastPhraseLength, sentenceLength);
+      var s = syllables.slice(sentenceLength -
+        lastPhraseLength, sentenceLength);
       self.getTermWithHighestScore(s,
         function(term) {
           if (!term) {
             var syllable = s.join('');
-            term = {phrase:syllable, freq: 0};
+            term = {phrase: syllable, freq: 0};
           }
-          var prob = probabilities[sentenceLength - lastPhraseLength] * term.freq / kDictTotalFreq;
+          var prob = probabilities[sentenceLength -
+              lastPhraseLength] * term.freq / kDictTotalFreq;
           if (prob > probabilities[sentenceLength]) {
             probabilities[sentenceLength] = prob;
-            sentences[sentenceLength] = sentences[sentenceLength - lastPhraseLength] + term.phrase;
+            sentences[sentenceLength] =
+              sentences[sentenceLength - lastPhraseLength] + term.phrase;
           }
-          
+
           // process next step
           if (lastPhraseLength < sentenceLength) {
             queueData.lastPhraseLength++;
@@ -2189,12 +2252,12 @@ var IMEngineDatabase = function(dbName, jsonUrl) {
           taskQueue.push(getSentenceSubTask, null);
           taskQueue.processNext();
         }
-      );      
+      );
     };
-    
+
     taskQueue.push(getSentenceSubTask, null);
     taskQueue.processNext();
-  };  
+  };
 };
 
 var jspinyin = new IMEngine(new PinyinParser());

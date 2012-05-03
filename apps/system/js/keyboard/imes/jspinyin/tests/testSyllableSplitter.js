@@ -1,7 +1,8 @@
-/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
+
 /**
  * An index class to speed up the search operation for ojbect array.
  * @param {Array} targetArray The array to be indexed.
@@ -10,7 +11,7 @@
 var Index = function(targetArray, keyPath) {
   this._keyMap = {};
   this._sortedKeys = [];
-  for (var i=0; i<targetArray.length; i++) {
+  for (var i = 0; i < targetArray.length; i++) {
     var key = targetArray[i][keyPath];
     if (!(key in this._keyMap)) {
       this._keyMap[key] = [];
@@ -24,13 +25,13 @@ var Index = function(targetArray, keyPath) {
 Index.prototype = {
   // Map the key to the index of the storage array
   _keyMap: {},
-  
+
   // Keys array in ascending order.
   _sortedKeys: [],
-  
+
   /**
    * Get array indices by given key.
-   * @returns {Array} An array of index.
+   * @return {Array} An array of index.
    */
   get: function(key) {
     var indices = [];
@@ -39,30 +40,32 @@ Index.prototype = {
     }
     return indices;
   },
-  
+
   /**
    * Get array indices by given key range.
-   * @param {String} lower The lower bound of the key range. If null, the range has no lower bound.
-   * @param {String} upper The upper bound of the key range. If null, the range has no upper bound.
-   * @param {Boolean} lowerOpen If false, the range includes the lower bound value of the key range.
-   * If the range has no lower bound, it will be ignored.
-   * @param {Boolean} upperOpen If false, the range includes the upper bound value of the key range.
-   * If the range has no upper bound, it will be ignored.
-   * @returns {Array} An array of index.
+   * @param {String} lower The lower bound of the key range. If null, the range
+   * has no lower bound.
+   * @param {String} upper The upper bound of the key range. If null, the range
+   * has no upper bound.
+   * @param {Boolean} lowerOpen If false, the range includes the lower bound
+   * value. If the range has no lower bound, it will be ignored.
+   * @param {Boolean} upperOpen If false, the range includes the upper bound
+   * value. If the range has no upper bound, it will be ignored.
+   * @return {Array} An array of index.
    */
   getRange: function(lower, upper, lowerOpen, upperOpen) {
     var indices = [];
     if (this._sortedKeys.length == 0) {
       return indices;
     }
-    
+
     var pos = 0;
-    
+
     // lower bound position
     var lowerPos = 0;
     // uppder bound position
     var upperPos = this._sortedKeys.length - 1;
-    
+
     if (lower) {
       pos = this._binarySearch(lower, 0, upperPos);
       if (pos == Infinity) {
@@ -75,7 +78,7 @@ Index.prototype = {
         lowerPos++;
       }
     }
-    
+
     if (upper) {
       pos = this._binarySearch(upper, lowerPos, upperPos);
       if (pos == -Infinity) {
@@ -83,27 +86,29 @@ Index.prototype = {
       }
       if (pos != Infinity) {
         upperPos = Math.floor(pos);
-      }       
+      }
       if (upperOpen && this._sortedKeys[upperPos] == upper) {
         upperPos--;
-      }      
+      }
     }
-    
-    for (var i=lowerPos; i<=upperPos; i++) {
+
+    for (var i = lowerPos; i <= upperPos; i++) {
       var key = this._sortedKeys[i];
       indices = indices.concat(this._keyMap[key]);
     }
     return indices;
   },
-  
+
   /**
    * Search the key position.
    * @param {String} key The key to search.
-   * @param {Number} left The begin position of the array. It should be less than the right parameter.
-   * @param {Number} right The end position of the array.It should be greater than the left parameter.
-   * @returns {Number} If success, returns the index of the key.
-   * If the key is between two adjacent keys, returns the average index of the two keys.
-   * If the key is out of bounds, returns Infinity or -Infinity.
+   * @param {Number} left The begin position of the array. It should be less
+   * than the right parameter.
+   * @param {Number} right The end position of the array.It should be greater
+   * than the left parameter.
+   * @return {Number} If success, returns the index of the key.
+   * If the key is between two adjacent keys, returns the average index of the
+   * two keys. If the key is out of bounds, returns Infinity or -Infinity.
    */
   _binarySearch: function(key, left, right) {
     if (key < this._sortedKeys[left]) {
@@ -112,7 +117,7 @@ Index.prototype = {
     if (key > this._sortedKeys[right]) {
       return Infinity;
     }
-    
+
     while (right > left) {
       var mid = Math.floor((left + right) / 2);
       var midKey = this._sortedKeys[mid];
@@ -124,7 +129,7 @@ Index.prototype = {
         return mid;
       }
     }
-    
+
     // left == right == mid
     var leftKey = this._sortedKeys[left];
     if (leftKey == key) {
@@ -143,15 +148,16 @@ var SYLLALBLE_MAX_LENGTH = 6;
 var SyllableType = {
   /**
    * Complete syllable, such as "yue", "bei".
-   */  
+   */
   COMPLETE: 0,
   /**
-   * Abbreviated syllable that starts with a single consonant(声母), such as "b", "j".
+   * Abbreviated syllable that starts with a single consonant(声母),
+   * such as "b", "j".
    */
   ABBREVIATED: 1,
   /**
-   * An incomplete syllables is part of complete syllable. It is neither an abbreviated syllable,
-   * nor a complete syllable, such as "be".
+   * An incomplete syllables is part of complete syllable. It is neither an
+   * abbreviated syllable, nor a complete syllable, such as "be".
    */
   INCOMPLETE: 2,
   /**
@@ -170,7 +176,7 @@ Syllable.prototype = {
    * The syllable string
    */
   str: 'ai',
-  
+
   /**
    * The syllable type
    */
@@ -182,10 +188,11 @@ Syllable.prototype = {
  */
 var PinyinParser = function() {
   // Consonants(声母) list
-  var consonants= 'b p m f d t n l g k h j q x zh ch sh r z c s y w'.split(' ');
-  
+  var consonants =
+    'b p m f d t n l g k h j q x zh ch sh r z c s y w'.split(' ');
+
   this._consonantMap = {};
-  for(var i in consonants) {
+  for (var i in consonants) {
     var e = consonants[i];
     this._consonantMap[e] = e;
   }
@@ -193,27 +200,27 @@ var PinyinParser = function() {
   // Valid pinyin syllables list
   var syllables = [
     'a', 'o', 'e',
-  
+
     'ai', 'ei', 'ao', 'ou', 'er', 'an', 'en', 'ang', 'eng',
-  
+
     'ba', 'bai', 'ban', 'bang', 'bao', 'bei', 'ben', 'beng', 'bi', 'bian',
     'biao', 'bie', 'bin', 'bing', 'bo', 'bu',
-  
+
     'pa', 'pai', 'pan', 'pang', 'pao', 'pei', 'pen', 'peng', 'pi', 'pian',
     'piao', 'pie', 'pin', 'ping', 'po', 'pou', 'pu',
 
     'ma', 'mai', 'man', 'mang', 'mao', 'me', 'mei', 'men', 'meng', 'mi', 'mian',
     'miao', 'mie', 'min', 'ming', 'miu', 'mo', 'mou', 'mu',
-    
-    'fa', 'fan', 'fang', 'fei', 'fen', 'feng', 'fo', 'fou', 'fu',    
-    
+
+    'fa', 'fan', 'fang', 'fei', 'fen', 'feng', 'fo', 'fou', 'fu',
+
     'da', 'dai', 'dan', 'dang', 'dao', 'de', 'dei', 'deng', 'di', 'dian',
     'diao', 'die', 'ding', 'diu', 'dong', 'dou', 'du', 'duan', 'dui', 'dun',
     'duo',
-    
+
     'ta', 'tai', 'tan', 'tang', 'tao', 'te', 'teng', 'ti', 'tian', 'tiao',
     'tie', 'ting', 'tong', 'tou', 'tu', 'tuan', 'tui', 'tun', 'tuo',
-    
+
     'na', 'nai', 'nan', 'nang', 'nao', 'ne', 'nei', 'nen', 'neng', 'ni', 'nian',
     'niang', 'niao', 'nie', 'nin', 'ning', 'niu', 'nong', 'nou', 'nu', 'nv',
     'nuan', 'nve', 'nuo',
@@ -230,72 +237,76 @@ var PinyinParser = function() {
 
     'ha', 'hai', 'han', 'hang', 'hao', 'he', 'hei', 'hen', 'heng', 'hong',
     'hou', 'hu', 'hua', 'huai', 'huan', 'huang', 'hui', 'hun', 'huo',
-    
+
     'ji', 'jia', 'jian', 'jiang', 'jiao', 'jie', 'jin', 'jing', 'jiong',
     'jiu', 'ju', 'juan', 'jue', 'jun',
-  
+
     'qi', 'qia', 'qian', 'qiang', 'qiao', 'qie', 'qin', 'qing', 'qiong', 'qiu',
     'qu', 'quan', 'que', 'qun',
-    
+
     'xi', 'xia', 'xian', 'xiang', 'xiao', 'xie', 'xin', 'xing', 'xiong', 'xiu',
     'xu', 'xuan', 'xue', 'xun',
 
-    'zhi', 'zha', 'zhai', 'zhan', 'zhang', 'zhao', 'zhe', 'zhei', 'zhen', 'zheng',
-    'zhong', 'zhou', 'zhu', 'zhua', 'zhuai', 'zhuan', 'zhuang', 'zhui', 'zhun', 'zhuo',
-    
-    'chi', 'cha', 'chai', 'chan', 'chang', 'chao', 'che', 'chen', 'cheng', 'chong',
+    'zhi', 'zha', 'zhai', 'zhan', 'zhang', 'zhao', 'zhe', 'zhei', 'zhen',
+    'zheng',
+    'zhong', 'zhou', 'zhu', 'zhua', 'zhuai', 'zhuan', 'zhuang', 'zhui', 'zhun',
+    'zhuo',
+
+    'chi', 'cha', 'chai', 'chan', 'chang', 'chao', 'che', 'chen', 'cheng',
+    'chong',
     'chou', 'chu', 'chua', 'chuai', 'chuan', 'chuang', 'chui', 'chun', 'chuo',
-    
-    'shi', 'sha', 'shai', 'shan', 'shang', 'shao', 'she', 'shei', 'shen', 'sheng',
+
+    'shi', 'sha', 'shai', 'shan', 'shang', 'shao', 'she', 'shei', 'shen',
+    'sheng',
     'shou', 'shu', 'shua', 'shuai', 'shuan', 'shuang', 'shui', 'shun', 'shuo',
-    
+
     'ri', 'ran', 'rang', 'rao', 're', 'ren', 'reng', 'rong', 'rou', 'ru',
     'ruan', 'rui', 'run', 'ruo',
-    
+
     'zi', 'za', 'zai', 'zan', 'zang', 'zao', 'ze', 'zei', 'zen', 'zeng',
     'zong', 'zou', 'zu', 'zuan', 'zui', 'zun', 'zuo',
-    
+
     'ci', 'ca', 'cai', 'can', 'cang', 'cao', 'ce', 'cen', 'ceng', 'cong',
-    'cou', 'cu', 'cuan', 'cui', 'cun', 'cuo', 
-    
+    'cou', 'cu', 'cuan', 'cui', 'cun', 'cuo',
+
     'si', 'sa', 'sai', 'san', 'sang', 'sao', 'se', 'sen', 'seng', 'song',
     'sou', 'su', 'suan', 'sui', 'sun', 'suo',
-    
+
     'ya', 'yan', 'yang', 'yao', 'ye', 'yi', 'yin', 'ying', 'yong', 'you',
     'yu', 'yuan', 'yue', 'yun',
-  
-    'wa', 'wai', 'wan', 'wang', 'wei', 'wen', 'weng', 'wo', 'wu',
+
+    'wa', 'wai', 'wan', 'wang', 'wei', 'wen', 'weng', 'wo', 'wu'
     ];
-  
+
   this._syllableArray = [];
-  for(var i in syllables) {
+  for (var i in syllables) {
     var e = syllables[i];
     this._syllableArray.push({syllable: e});
   }
-  
+
   this._syllableIndex = new Index(this._syllableArray, 'syllable');
 };
 
 PinyinParser.prototype = {
   /**
    * Consonant(声母) lookup map that maps a lowercase consonant to itself.
-   * _consonantMap 
+   * _consonantMap
    */
   _consonantMap: {},
-  
+
   /**
    * Syllable array.
    */
   _syllableArray: [{syllable: 'a'}, {syllable: 'ai'}],
-  
+
   /**
    * syllableMap index to speed up search operation
    */
   _syllableIndex: null,
-  
+
   /**
    * Divides a string into Pinyin syllables.
-   * 
+   *
    * There may exists more than one ways to divide the string. Each way of the
    * division is a segment.
    *
@@ -305,39 +316,40 @@ PinyinParser.prototype = {
    *
    * @param {String} input The string to be divided. The string should not be
    * empty.
-   * @returns {Array} An array of segments. 
-   */  
+   * @return {Array} An array of segments.
+   */
   parse: function(input) {
     var results = [];
-    
+
     // Trims the leading and trailing "'".
     input = input.replace(/^'+|'+$/g, '');
-    
-    if (input == "") {
+
+    if (input == '') {
       return results;
     }
-    
-    var end = input.length;    
-    for (; end>0; end--) {
+
+    var end = input.length;
+    for (; end > 0; end--) {
       var sub = input.substring(0, end);
       results = this._parseInternal(sub);
       if (results.length > 0) {
         break;
       }
     }
-    
+
     if (end != input.length) {
       // The input contains invalid syllable.
       var invalidSyllable = input.substring(end);
-      results = this._appendsSubSegments(results, [[new Syllable(invalidSyllable, SyllableType.INVALID)]]);
+      results = this._appendsSubSegments(results,
+        [[new Syllable(invalidSyllable, SyllableType.INVALID)]]);
     }
-    
+
     return results;
   },
-  
+
   /**
    * Divides a string into valid syllables.
-   * 
+   *
    * There may exists more than one ways to divide the string. Each way of the
    * division is a segment.
    *
@@ -347,21 +359,21 @@ PinyinParser.prototype = {
    *
    * @param {String} input The string to be divided. The string should not be
    * empty.
-   * @returns {Array} An array of segments.
+   * @return {Array} An array of segments.
    * If the input string contains any invalid syllables, returns empty array.
-   */   
+   */
   _parseInternal: function(input) {
     var results = [];
-    
+
     // Trims the leading and trailing "'".
     input = input.replace(/^'+|'+$/g, '');
-    
-    if (input == "") {
+
+    if (input == '') {
       return results;
     }
-    
-    var end = Math.min(input.length, SYLLALBLE_MAX_LENGTH);    
-    for (; end>0; end--) {
+
+    var end = Math.min(input.length, SYLLALBLE_MAX_LENGTH);
+    for (; end > 0; end--) {
       var key = input.substring(0, end);
       var type = this._getSyllableType(key);
       if (type != SyllableType.INVALID) {
@@ -378,8 +390,9 @@ PinyinParser.prototype = {
         results = results.concat(segments);
       }
     }
-    // Sort the segments array. The segment with fewer incomplete syllables and shorter length
-    // comes first.
+
+    // Sort the segments array. The segment with fewer incomplete syllables and
+    // shorter length comes first.
     var self = this;
     results.sort(function(a, b) {
       var ai = self._getIncompleteness(a);
@@ -392,7 +405,7 @@ PinyinParser.prototype = {
     });
     return results;
   },
-  
+
   /**
    * Check if the input string is a syllable
    */
@@ -400,22 +413,22 @@ PinyinParser.prototype = {
     if (str in this._consonantMap) {
       return SyllableType.ABBREVIATED;
     }
-    
+
     var indices = this._syllableIndex.get(str);
     if (indices.length > 0) {
       return SyllableType.COMPLETE;
     }
-    
+
     var upperBound = str.substr(0, str.length - 1) +
-      String.fromCharCode(str.substr(str.length - 1).charCodeAt(0) + 1);    
+      String.fromCharCode(str.substr(str.length - 1).charCodeAt(0) + 1);
     indices = this._syllableIndex.getRange(str, upperBound, true, true);
     if (indices.length > 0) {
       return SyllableType.INCOMPLETE;
     }
-    
+
     return SyllableType.INVALID;
   },
-  
+
   /**
    * Get cartesian product of two segments arrays.
    * Cartesian product A X B:
@@ -428,25 +441,27 @@ PinyinParser.prototype = {
     if (subSegments.length == 0) {
       return segments;
     }
-    
+
     var result = [];
-    for (var i=0; i<segments.length; i++) {
+    for (var i = 0; i < segments.length; i++) {
       var segment = segments[i];
-      for (var j=0; j<subSegments.length; j++) {
+      for (var j = 0; j < subSegments.length; j++) {
         result.push(segment.concat(subSegments[j]));
       }
     }
     return result;
   },
-  
+
   /**
    * Get the incompleteness of syllables.
    *
-   * Syllables containing incomplete and abbreviated syllable is of higher incompleteness value than those not.
+   * Syllables containing incomplete and abbreviated syllable is of higher
+   * incompleteness value than those not.
    *
-   * @param {Array} segement The segement array containing the syllables to be evaluated.
-   * @returns {Nunmber} The number of incompleteness. A higher value means more incomplete or
-   * abbreviated syllables.
+   * @param {Array} segement The segement array containing the syllables to be
+   * evaluated.
+   * @return {Nunmber} The number of incompleteness. A higher value means more
+   * incomplete or abbreviated syllables.
    */
   _getIncompleteness: function(segment) {
     var value = 0;
@@ -467,43 +482,43 @@ PinyinParser.prototype = {
 var pinyinParser = new PinyinParser();
 
 function test(input, expected) {
-  print("test - " + input);
+  print('test - ' + input);
   var choices = pinyinParser.parse(input);
   print(JSON.stringify(choices));
   print();
 }
 
-print("=======西安========\n");
+print('=======西安========\n');
 test('xian');
 test("xi'an");
-print("=======方案 反感========\n");
-test("fangan");
+print('=======方案 反感========\n');
+test('fangan');
 test("fang'an");
 test("fan'gan");
-print("=======北京========\n");
-test("bj");
-test("beijing");
-test("bjing");
-test("beij");
-test("bejing");
-test("bejing");
-test("bej");
-print("=======你好========\n");
-test("ni");
-test("nih");
-test("nihao");
-test("nihaoa");
-test("nh");
-test("nha");
-test("nhaa");
-print("=======中========\n");
-test("zh");
-test("zho");
-test("zhon");
-test("zhong");
-print("=======Invalid Input========\n");
-test("gi");
-test("gv");
-test("uu");
-test("ig");
-test("igv");
+print('=======北京========\n');
+test('bj');
+test('beijing');
+test('bjing');
+test('beij');
+test('bejing');
+test('bejing');
+test('bej');
+print('=======你好========\n');
+test('ni');
+test('nih');
+test('nihao');
+test('nihaoa');
+test('nh');
+test('nha');
+test('nhaa');
+print('=======中========\n');
+test('zh');
+test('zho');
+test('zhon');
+test('zhong');
+print('=======Invalid Input========\n');
+test('gi');
+test('gv');
+test('uu');
+test('ig');
+test('igv');
