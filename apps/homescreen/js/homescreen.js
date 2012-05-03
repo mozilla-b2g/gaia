@@ -1,6 +1,3 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
 'use strict';
 
 // The appscreen is the main part of the homescreen: the part that
@@ -150,6 +147,7 @@ DefaultPhysics.prototype = {
 
     // If this timer triggers and the user hasn't moved their finger
     // then this is a hold rather than a tap.
+    console.log("starting timer");
     touchState.timer = window.setTimeout(this.onHoldTimeout.bind(this),
                                   DefaultPhysics.HOLD_INTERVAL);
 
@@ -167,6 +165,7 @@ DefaultPhysics.prototype = {
     if (touchState.timer &&
         (Math.abs(touchState.startX - e.pageX) > DefaultPhysics.SMALL_MOVE ||
          Math.abs(touchState.startX - e.pageX) > DefaultPhysics.SMALL_MOVE)) {
+      console.log("clearing timer");
       clearTimeout(touchState.timer);
       touchState.timer = null;
     }
@@ -183,6 +182,7 @@ DefaultPhysics.prototype = {
 
     // If the timer hasn't triggered yet, cancel it before it does
     if (touchState.timer) {
+      console.log("clearing timer");
       clearTimeout(touchState.timer);
       touchState.timer = null;
     }
@@ -230,6 +230,7 @@ DefaultPhysics.prototype = {
     var touchState = this.touchState;
     touchState.timer = null;
     touchState.active = false;
+    console.log("timer fired", touchState.initialTarget, touchState.initialTarget.ownerDocument);
     this.iconGrid.hold(touchState.initialTarget);
   }
 };
@@ -408,7 +409,9 @@ IconGrid.prototype = {
     app.launch();
   },
   hold: function(target) {
+    console.log("hold", target, target.dataset.url);
     var app = appscreen.getAppByOrigin(target.dataset.url);
+    console.log(app);
 
     // FIXME: localize this message
     // FIXME: This could be a simple confirm() (see bug 741587)
