@@ -24,5 +24,5 @@ $(LOCAL_INSTALLED_MODULE):
 .PHONY: $(LOCAL_PATH)/profile.tar.gz
 $(LOCAL_PATH)/profile.tar.gz:
 	$(MAKE) -C $(GAIA_PATH) profile
-	cd $(GAIA_PATH)/profile && tar cfz $(abspath $@) OfflineCache webapps
+	cd $(GAIA_PATH)/profile && tar cfz $(abspath $@) OfflineCache webapps user.js
 
