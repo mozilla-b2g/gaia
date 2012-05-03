@@ -1,6 +1,3 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
 'use strict';
 
 // The appscreen is the main part of the homescreen: the part that
@@ -53,17 +50,20 @@ AppScreen.prototype.getAppByOrigin = function getAppByOrigin(origin) {
 // Populate the appscreen with icons. The constructor automatically calls this.
 // But we also call it when new apps are installed or when the locale changes.
 AppScreen.prototype.build = function(rebuild) {
-  var startpage = 0;
 
-  if (rebuild && 'grid' in this) {
-    // Remember the page we're on so that after rebuild we can stay there.
-    startpage = this.grid.currentPage;
+  // We can't rebuild the app screen if it hasn't already been build the 
+  // the first time. This happens when we get an initial language setting
+  // observation before we get the initial list of installed apps.
+  if (rebuild && !this.grid)
+    return;
 
-    document.body.innerHTML = '<div id="home">' +
-                              '  <div id="apps"></div>' +
-                              '  <div id="dots"></div>' +
-                              '</div>';
-  }
+  // If we're rebuilding, remember the page we're on
+  var startpage = rebuild ? this.grid.currentPage : 0;
+
+  // Start with completely fresh elements.
+  // If we're rebuilding, this will remove all old event listeners too.
+  document.getElementById('home').innerHTML = 
+    '<div id="apps"></div><div id="dots"></div>';
 
   // Create the widgets
   this.grid = new IconGrid('apps');
@@ -100,7 +100,7 @@ AppScreen.prototype.build = function(rebuild) {
 
     // Localize the app name
     var name = app.manifest.name;
-    var lang = navigator.language;
+    var lang = document.mozL10n.language.code;
     if (app.manifest.locales &&
         app.manifest.locales[lang] &&
         app.manifest.locales[lang].name)
@@ -228,57 +228,6 @@ DefaultPhysics.prototype = {
   }
 };
 
-var Mouse2Touch = {
-  'mousedown': 'touchstart',
-  'mousemove': 'touchmove',
-  'mouseup': 'touchend'
-};
-
-var Touch2Mouse = {
-  'touchstart': 'mousedown',
-  'touchmove': 'mousemove',
-  'touchend': 'mouseup'
-};
-
-var ForceOnWindow = {
-  'touchmove': true,
-  'touchend': true
-};
-
-function AddEventHandlers(target, listener, eventNames) {
-  for (var n = 0; n < eventNames.length; ++n) {
-    var name = eventNames[n];
-    target = ForceOnWindow[name] ? window : target;
-    name = Touch2Mouse[name] || name;
-    target.addEventListener(name, {
-      handleEvent: function(e) {
-        if (Mouse2Touch[e.type]) {
-          var original = e;
-          e = {
-            type: Mouse2Touch[original.type],
-            target: original.target,
-            touches: [original],
-            preventDefault: function() {
-              original.preventDefault();
-            }
-          };
-          e.changedTouches = e.touches;
-        }
-        return listener.handleEvent(e);
-      }
-    }, true);
-  }
-}
-
-function RemoveEventHandlers(target, listener, eventNames) {
-  for (var n = 0; n < eventNames.length; ++n) {
-    var name = eventNames[n];
-    target = ForceOnWindow[name] ? window : target;
-    name = Touch2Mouse[name] || name;
-    target.removeEventListener(name, listener);
-  }
-}
-
 function IconGrid(containerId) {
   this.containerId = containerId;
   this.container = document.getElementById(containerId);
@@ -287,8 +236,9 @@ function IconGrid(containerId) {
   this.physics = new DefaultPhysics(this);
 
   // install event handlers
-  var events = ['touchstart', 'touchmove', 'touchend'];
-  AddEventHandlers(this.container, this, events);
+  this.container.addEventListener('mousedown', this);
+  this.container.addEventListener('mousemove', this);
+  this.container.addEventListener('mouseup', this);
 }
 
 IconGrid.prototype = {
@@ -465,15 +415,14 @@ IconGrid.prototype = {
   handleEvent: function(e) {
     var physics = this.physics;
     switch (e.type) {
-    case 'touchstart':
-      physics.onTouchStart(e.touches[0]);
+    case 'mousedown':
+      physics.onTouchStart(e);
       break;
-    case 'touchmove':
-      physics.onTouchMove(e.touches[0]);
+    case 'mousemove':
+      physics.onTouchMove(e);
       break;
-    case 'touchend':
-      document.releaseCapture();
-      physics.onTouchEnd(e.changedTouches[0]);
+    case 'mouseup':
+      physics.onTouchEnd(e);
       break;
     default:
       return;

@@ -24,7 +24,7 @@ var requestPermission = (function() {
       screen.appendChild(dialog);
 
       message = document.createElement('div');
-      message.id = 'permissions-message';
+      message.id = 'permission-message';
       dialog.appendChild(message);
 
       yes = document.createElement('button');
@@ -43,7 +43,7 @@ var requestPermission = (function() {
     // If there is already a pending permission request, queue this one
     if (screen.classList.contains('visible')) {
       pending.push({
-        message: message,
+        message: msg,
         yescallback: yescallback,
         nocallback: nocallback
       });

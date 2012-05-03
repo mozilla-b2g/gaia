@@ -1,12 +1,12 @@
-(function(window){
+(function(window) {
 
-  function Lib(){
+  function Lib() {
 
   }
 
   Lib.prototype = {
-    method: function(){
-    
+    method: function() {
+
     }
   };
 

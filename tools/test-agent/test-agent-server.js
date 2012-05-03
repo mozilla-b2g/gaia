@@ -8,7 +8,8 @@ var Agent = TestAgent,
       path: fsPath.resolve(__dirname + '/../../apps/'),
       strictMode: false,
       testDir: 'test/',
-      libDir: 'js/'
+      libDir: 'js/',
+      testSuffix: '_test.js'
     });
 
 server.use(Apps.Suite, suite);
