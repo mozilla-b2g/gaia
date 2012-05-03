@@ -16,13 +16,15 @@ var BackgroundServiceManager = (function bsm() {
   var frames = {};
 
   /* Init */
-  var apps = navigator.mozApps;
-  apps.mgmt.getAll().onsuccess = function settings_getAll(evt) {
-    evt.target.result.forEach(function app_forEach(app) {
-      installedApps[app.origin] = app;
-      open(app.origin);
-    });
-  };
+  window.addEventListener('load', function() {
+    var apps = navigator.mozApps;
+    apps.mgmt.getAll().onsuccess = function settings_getAll(evt) {
+      evt.target.result.forEach(function app_forEach(app) {
+        installedApps[app.origin] = app;
+        open(app.origin);
+      });
+    };
+  });
 
   /* XXX: https://bugzilla.mozilla.org/show_bug.cgi?id=731746
   addEventListener does't work for now (workaround follows) */
