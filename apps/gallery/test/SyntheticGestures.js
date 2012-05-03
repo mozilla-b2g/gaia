@@ -39,6 +39,18 @@
 //   mouse-only version of this gesture, and the pinch() function will 
 //   fail on platforms that do not support touch events.
 //
+// The coordinates passed to these functions are relative to the
+// coordinate system of the target element.  If you pass numbers, they
+// are interpreted as pixels relative to upper-left corner of the
+// target.  If you pass a string, then it is parsed to a number. If a
+// string-valued coordinate ends with '%', then it is interpreted as a
+// percent of the target element's width or height, otherwise it is
+// interpreted as a number of pixels. For the swipe(), mouseswipe(),
+// hold(), and mousehold() functions, if the second two coordinates
+// are strings that begin with "+" or "-" then they are interpreted
+// relative to the first two coordinates. These relative values can be
+// specifed as percentages or as pixels.
+// 
 var SyntheticGestures = (function() {
   var touchSupported = typeof document.createTouch === "function";
 
@@ -202,6 +214,67 @@ var SyntheticGestures = (function() {
     }
   }
 
+  function coordinates(target, x0, y0, x1, y1) {
+    var coords = {};
+    var box = target.getBoundingClientRect();
+
+    var tx0 = typeof x0;
+    var ty0 = typeof y0;
+    var tx1 = typeof x1;
+    var ty1 = typeof y1;
+
+    function percent(s, x) {
+      s = s.trim();
+      var f = parseFloat(s);
+      if (s[s.length-1] === '%')
+        f = f * x / 100;
+      return f;
+    }
+
+    function relative(s, x) {
+      var factor;
+      if (s[0] === '+')
+        factor = 1;
+      else 
+        factor = -1;
+      return factor * percent(s.substring(1), x);
+    }
+
+    if (tx0 === 'number')
+      coords.x0 = box.left + x0;
+    else if (tx0 === 'string')
+      coords.x0 = box.left + percent(x0, box.width);
+
+    if (tx1 === 'number') 
+      coords.x1 = box.left + x1;
+    else if (tx1 === 'string') {
+      x1 = x1.trim();
+      if (x1[0] === '+'|| x1[0] === '-')
+        coords.x1 = coords.x0 + relative(x1, box.width);
+      else
+        coords.x1 = box.left + percent(x1, box.width);
+    }
+
+    if (ty0 === 'number')
+      coords.y0 = box.top + y0;
+    else if (ty0 === 'string')
+      coords.y0 = box.top + percent(y0, box.height);
+
+    if (ty1 === 'number') 
+      coords.y1 = box.top + y1;
+    else if (ty1 === 'string') {
+      y1 = y1.trim();
+      if (y1[0] === '+' || y1[0] === '-')
+        coords.y1 = coords.y0 + relative(y1, box.height);
+      else
+        coords.y1 = box.top + percent(y1, box.height);
+    }
+
+    return coords;
+  }
+
+
+
   // Dispatch touchstart and touchend events over the specified target
   // and then invoke the then() callback.
   // x and y are the relative to the viewport.
@@ -213,15 +286,14 @@ var SyntheticGestures = (function() {
       return mousetap(target, then, x, y, t);
     }
 
-    if (x == null || y == null) {
-      var box = target.getBoundingClientRect();
-      if (x == null)
-        x = box.left + box.width/2;
-      if (y == null)
-        y = box.top + box.height/2;
-    }
+    if (x == null)
+      x = '50%';
+    if (y == null)
+      y = '50%';
 
-    touch(target, t || 50, [x, x], [y, y], then);
+    var c = coordinates(target, x, y);
+
+    touch(target, t || 50, [c.x0, c.x0], [c.y0, c.y0], then);
   }
 
   // Dispatch a dbltap gesture. The arguments are like those to tap()
@@ -233,19 +305,17 @@ var SyntheticGestures = (function() {
       return mousedbltap(target, then, x, y, interval);
     }
 
-    if (x == null || y == null) {
-      var box = target.getBoundingClientRect();
-      if (x == null)
-        x = box.left + box.width/2;
-      if (y == null)
-        y = box.top + box.height/2;
-    }
+    if (x == null)
+      x = '50%';
+    if (y == null)
+      y = '50%';
+    var c = coordinates(target, x, y);
 
-    touch(target, 25, [x, x], [y, y], function() {
+    touch(target, 25, [c.x0, c.x0], [c.y0, c.y0], function() {
       // When the first tap is done, start a timer for interval ms.
       setTimeout(function() {
         // After interval ms, send the second tap
-        touch(target, 25, [x, x], [y, y], then);
+        touch(target, 25, [c.x0, c.x0], [c.y0, c.y0], then);
       }, interval||50);
     });
   }
@@ -258,9 +328,8 @@ var SyntheticGestures = (function() {
       return mouseswipe(target, x1, y1, x2, y2, duration, then);
     }
 
-    if (!duration)
-      duration = 200;
-    touch(target, duration, [x1, x2], [y1, y2], then);
+    var c = coordinates(target, x1, y1, x2, y2);
+    touch(target, duration||200, [c.x0, c.x1], [c.y0, c.y1], then);
   }
 
   // Begin a touch at x1,y1 and hold it for holdtime ms, 
@@ -274,18 +343,20 @@ var SyntheticGestures = (function() {
     if (!movetime)
       movetime = 200;
 
+    var c = coordinates(target, x1, y1, x2, y2);
+
     touch(target, holdtime+movetime, 
           function(t) { // x coordinate a function of t
             if (t < holdtime) 
-              return x1;
+              return c.x0;
             else 
-              return x1 + (t-holdtime)/movetime * (x2-x1);
+              return c.x0 + (t-holdtime)/movetime * (c.x1-c.x0);
           },
           function(t) { // y coordinate a function of t
             if (t < holdtime) 
-              return y1;
+              return c.y0;
             else 
-              return y1 + (t-holdtime)/movetime * (y2-y1);
+              return c.y0 + (t-holdtime)/movetime * (c.y1-c.y0);
           },
           then);
   }
@@ -298,6 +369,14 @@ var SyntheticGestures = (function() {
       console.error('pinch: touch events not supported on this platform');
       return;
     }
+
+    var c1 = coordinates(target, x1, y1);
+    var c2 = coordinates(target, x2, y2);
+    x1 = c1.x0;
+    y1 = c1.y0;
+    x2 = c2.x0;
+    y2 = c2.y0;
+
     var xmid = (x1 + x2)/2;
     var ymid = (y1 + y2)/2;
 
@@ -339,7 +418,7 @@ var SyntheticGestures = (function() {
   // of t that specify the mouse coordinates at time t just as for the 
   // touch() function.
   //
-  // Unlike the touch() function, this drag() function takes a window
+  // Unlike the touch() function, this drag() function takes a document
   // argument instead of an element argument, and always determines the
   // target of its events using document.elementFromPoint().  Callers
   // must ensure that xt and yt specify an initial point inside the
@@ -432,34 +511,30 @@ var SyntheticGestures = (function() {
   // Send a mousedown/mouseup pair
   // XXX: will the browser automatically follow this with a click event?
   function mousetap(target, then, x, y, t) {
-    if (x == null || y == null) {
-      var box = target.getBoundingClientRect();
-      if (x == null)
-        x = box.left + box.width/2;
-      if (y == null)
-        y = box.top + box.height/2;
-    }
+    if (x == null)
+      x = '50%';
+    if (y == null)
+      y = '50%';
+    var c = coordinates(target, x, y);
 
-    drag(target.ownerDocument, t || 50, [x, x], [y, y], then);
+    drag(target.ownerDocument, t || 50, [c.x0, c.x0], [c.y0, c.y0], then);
   }
 
   // Dispatch a dbltap gesture. The arguments are like those to tap()
   // except that interval is the time between taps rather than the time between
   // touchstart and touchend
   function mousedbltap(target, then, x, y, interval) {
-    if (x == null || y == null) {
-      var box = target.getBoundingClientRect();
-      if (x == null)
-        x = box.left + box.width/2;
-      if (y == null)
-        y = box.top + box.height/2;
-    }
+    if (x == null)
+      x = '50%';
+    if (y == null)
+      y = '50%';
+    var c = coordinates(target, x, y);
 
-    drag(target.ownerDocument, 25, [x, x], [y, y], function() {
+    drag(target.ownerDocument, 25, [c.x0, c.x0], [c.y0, c.y0], function() {
       // When the first tap is done, start a timer for interval ms.
       setTimeout(function() {
         // After interval ms, send the second tap with the click count set to 2.
-        drag(target.ownerDocument, 25, [x, x], [y, y], then, 2);
+        drag(target.ownerDocument, 25, [c.x0, c.x0], [c.y0, c.y0], then, 2);
       }, interval||50);
     });
   }
@@ -467,9 +542,9 @@ var SyntheticGestures = (function() {
   // Swipe smoothly with the mouse from (x1, y1) to (x2, y2) over duration ms
   // then invoke the then() callback.
   function mouseswipe(target, x1, y1, x2, y2, duration, then) {
-    if (!duration)
-      duration = 200;
-    drag(target.ownerDocument, duration, [x1, x2], [y1, y2], then);
+    var c = coordinates(target, x1, y1, x2, y2);
+    console.log('mouseswipe', JSON.stringify(c));
+    drag(target.ownerDocument, duration||200, [c.x0, c.x1], [c.y0, c.y1], then);
   }
 
   // Mousedown at x1,y1 and hold it for holdtime ms, 
@@ -478,18 +553,21 @@ var SyntheticGestures = (function() {
   function mousehold(target, holdtime, x1, y1, x2, y2, movetime, then) {
     if (!movetime)
       movetime = 200;
+
+    var c = coordinates(target, x1, y1, x2, y2);
+
     drag(target.ownerDocument, holdtime+movetime, 
           function(t) { // x coordinate a function of t
             if (t < holdtime) 
-              return x1;
+              return c.x0;
             else 
-              return x1 + (t-holdtime)/movetime * (x2-x1);
+              return c.x0 + (t-holdtime)/movetime * (c.x1-c.x0);
           },
           function(t) { // y coordinate a function of t
             if (t < holdtime) 
-              return y1;
+              return c.y0;
             else 
-              return y1 + (t-holdtime)/movetime * (y2-y1);
+              return c.y0 + (t-holdtime)/movetime * (c.y1-c.y0);
           },
           then);
   }

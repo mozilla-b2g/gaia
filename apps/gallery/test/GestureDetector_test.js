@@ -26,7 +26,8 @@ suite('GestureDetector', function() {
       return events.map(function(e) { return e.type }).join(" ");
     }
 
-    suiteSetup(function() {
+    setup(function() {
+      events = []; // Start a new array of events for each test
       element = document.createElement('div');
       element.setAttribute('style',
                            'position:absolute;left:0px;top:0px;width:100%;height:100%');
@@ -42,19 +43,12 @@ suite('GestureDetector', function() {
       });
 
       gd = new GestureDetector(element, {moveEvents: true});
-    });
-
-    suiteTeardown(function() {
-      document.body.removeChild(element);
-    });
-
-    setup(function() {
-      events = []; // Start a new array of events for each test
       gd.startDetecting();
     });
 
     teardown(function() {
       gd.stopDetecting();
+      document.body.removeChild(element);
     });
 
     test('tap', function(done) {
