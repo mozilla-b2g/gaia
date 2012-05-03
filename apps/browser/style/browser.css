@@ -132,6 +132,45 @@ input::-moz-focus-inner {
   background-color: white;
 }
 
+#awesomescreen {
+  -moz-box-flex: 1;
+  background-color: #fff;
+}
+
+#awesomescreen ul {
+  margin: 0;
+  padding: 0;
+}
+
+#awesomescreen li {
+  list-style-type: none;
+  border-bottom: solid 1px #ccc;
+}
+
+#awesomescreen li:last-child {
+  border-bottom: none;
+}
+
+#awesomescreen li a {
+  display: block;
+  padding: 8px;
+  text-decoration: none;
+  color: #000;
+}
+
+#awesomescreen li span {
+  display: block;
+}
+
+#awesomescreen li small {
+  display: block;
+  color: #666;
+}
+
+#history {
+  overlfow: scroll;
+}
+
 #shade {
   position: absolute;
   bottom: 62px;

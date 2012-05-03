@@ -12,19 +12,30 @@
   </head>
 
   <body>
+
     <menu type="toolbar" id="toolbar-start">
       <form id="url-bar">
         <input type="url" id="url-input" value="http://www.google.com/m"></input>
         <input type="image" id="url-button" src="style/images/go.png"></input>
       </form>
     </menu>
+
     <iframe id="browser-content" mozbrowser>
     </iframe>
 
+    <div id="awesomescreen" class="hidden">
+      <ul id="history" role="listbox">
+        <!--- History entries go here --->
+      </ul>
+    </div> 
+
     <div id="shade" class="hidden"></div>
+
     <menu type="toolbar" id="toolbar-end">
       <button type="button" value="" id="back-button" alt="Back" title="" disabled="true"></button>
       <button type="button" value="" id="forward-button" alt="Forward" title="" disabled="true"></button>
+    </menu>
+
   </body>
 
 </html>

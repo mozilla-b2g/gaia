@@ -2,6 +2,10 @@ var indexedDB = window.indexedDB || window.webkitIndexedDB ||
   window.mozIndexedDB || window.msIndexedDB;
 
 var GlobalHistory = {
+  init: function gh_init(callback) {
+    this.db.open(callback);
+  },
+
   addPlace: function gh_addPlace(uri) {
     var place = {
       uri: uri,
@@ -26,6 +30,10 @@ var GlobalHistory = {
       title: title
     };
     this.db.updatePlace(place);
+  },
+
+  getHistory: function gh_getHistory(callback) {
+    this.db.getAllVisits(callback);
   }
 
 };
@@ -33,7 +41,7 @@ var GlobalHistory = {
 GlobalHistory.db = {
   _db: null,
 
-  open: function db_open() {
+  open: function db_open(callback) {
     const DB_VERSION = 1;
     const DB_NAME = 'browser';
     var request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -47,10 +55,11 @@ GlobalHistory.db = {
     request.onsuccess = (function onSuccess(e) {
       this._db = e.target.result;
       console.log('Successfully opened browser database');
+      callback();
     }).bind(this);
 
     request.onerror = (function onDatabaseError(e) {
-      console.log('Error opening browser database: ' + e.target.errorCode);
+      console.log('Error opening browser database');
     }).bind(this);
   },
 
@@ -134,6 +143,21 @@ GlobalHistory.db = {
      request.onerror = function onerror(e) {
        console.log('Error while adding visit to global history store');
      };
+  },
+
+  getAllVisits: function db_getVisits(callback) {
+    var visits = [];
+
+    var objectStore = this._db.transaction('visits').objectStore('visits');
+    objectStore.openCursor(null, IDBCursor.PREV).onsuccess = function(e) {
+      var cursor = e.target.result;
+      if (cursor) {
+        visits.push(cursor.value);
+        cursor.continue();
+      } else {
+        callback(visits);
+      }
+    };
   }
 
 };
