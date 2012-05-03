@@ -43,7 +43,7 @@ var requestPermission = (function() {
     // If there is already a pending permission request, queue this one
     if (screen.classList.contains('visible')) {
       pending.push({
-        message: message,
+        message: msg,
         yescallback: yescallback,
         nocallback: nocallback
       });
