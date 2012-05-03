@@ -2975,6 +2975,7 @@ Runnable.prototype.run = function(fn){
     this.duration = new Date - start;
     fn();
   } catch (err) {
+    console.log('sync error', err.stack);
     fn(err);
   }
 };

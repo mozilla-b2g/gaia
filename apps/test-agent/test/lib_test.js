@@ -1,14 +1,14 @@
 require('../js/lib.js');
 
-suite('lib', function(){
+suite('lib', function() {
 
   var subject;
 
-  setup(function(){
+  setup(function() {
     subject = new Lib();
   });
 
-  test('#method', function(){
+  test('#method', function() {
     console.log('it works');
   });
 
