@@ -60,7 +60,7 @@ var SyntheticGestures = (function() {
     // Create the three lists of touches
 
     // All touches in the same document
-    var touches = doc.createTouchList(touches.filter(function(t) {
+    var documentTouches = doc.createTouchList(touches.filter(function(t) {
       return t.target.ownerDocument === doc;
     }));
     // All touches on the same target
@@ -78,7 +78,7 @@ var SyntheticGestures = (function() {
                          win,
                          0,    // detail
                          false, false, false, false, // no modifier keys
-                         touches, 
+                         documentTouches, 
                          targetTouches,
                          changedTouches);
 
@@ -147,59 +147,56 @@ var SyntheticGestures = (function() {
     setTimeout(nextEvent, EVENT_INTERVAL);
     
     function nextEvent() {
-      // Figure out if we've sent all of the touchmove events
+      // Figure out if this is the last of the touchmove events
       var time = Date.now();
       var dt = time - startTime;
-      var done = dt > duration;
+      var last = dt + EVENT_INTERVAL/2 > duration;
 
       // Find our touch object in the touches[] array.
       // Note that its index may have changed since we pushed it
-      var touchIndex = touches.indexOf(t);
+      var touchIndex = touches.indexOf(touch);
 
-      if (done) {  // If we're done, then send a touchend event
-        // For a touchend, we can reuse the touch object
-        // But we have to remove it from the touches array first
-        // so it is in the event's changedTouches list but not
-        // the touches or targetTouches lists.
+      // If this is the last move event, make sure we move all the way
+      if (last) 
+        dt = duration;
+
+      // New coordinates of the touch
+      clientX = Math.round(x(dt));
+      clientY = Math.round(y(dt));
+
+      // If we've moved, send a move event
+      if (clientX !== lastX || clientY !== lastY) { // If we moved
+        lastX = clientX;
+        lastY = clientY;
+        pageX = clientX + win.pageXOffset;
+        pageY = clientY + win.pageYOffset;
+        screenX = clientX + win.mozInnerScreenX;
+        screenY = clientY + win.mozInnerScreenY;
+
+        // Since we moved, we've got to create a new Touch object
+        // with the new coordinates
+        touch = doc.createTouch(win, target, touchId,
+                                pageX, pageY,
+                                screenX, screenY,
+                                clientX, clientY);
+
+        // Replace the old touch object with the new one
+        touches[touchIndex] = touch;
+
+        // And send the touchmove event
+        emitTouchEvent('touchmove', touch);
+      }
+
+      // If that was the last move, send the touchend event
+      // and call the callback
+      if (last) {
         touches.splice(touchIndex, 1);
         emitTouchEvent('touchend', touch);
-
-        // Call the callback, if there is one after sending the touchend event
         if (then)
           setTimeout(then, 0);
       }
-      else {       // Otherwise, send a touchmove, if we've moved
-        // If this is the penultimate event, make sure we move all the way
-        if (dt + EVENT_INTERVAL > duration) 
-          dt = duration;
-
-        // New coordinates of the touch
-        clientX = Math.round(x(dt));
-        clientY = Math.round(y(dt));
-
-        if (clientX !== lastX || clientY !== lastY) { // If we moved
-          lastX = clientX;
-          lastY = clientY;
-          pageX = clientX + win.pageXOffset;
-          pageY = clientY + win.pageYOffset;
-          screenX = clientX + win.mozInnerScreenX;
-          screenY = clientY + win.mozInnerScreenY;
-
-          // Since we moved, we've got to create a new Touch object
-          // with the new coordinates
-          touch = doc.createTouch(win, target, touchId,
-                                  pageX, pageY,
-                                  screenX, screenY,
-                                  clientX, clientY);
-
-          // Replace the old touch object with the new one
-          touches[touchIndex] = touch;
-
-          // And send the touchmove event
-          emitTouchEvent('touchmove', touch);
-        }
-
-        // Whether or not we moved, schedule another event in a little while.
+      // Otherwise, schedule the next event
+      else {
         setTimeout(nextEvent, EVENT_INTERVAL);
       }
     }
@@ -217,7 +214,7 @@ var SyntheticGestures = (function() {
     }
 
     if (x == null || y == null) {
-      var box = target.getClientBoundingRect();
+      var box = target.getBoundingClientRect();
       if (x == null)
         x = box.left + box.width/2;
       if (y == null)
@@ -237,19 +234,19 @@ var SyntheticGestures = (function() {
     }
 
     if (x == null || y == null) {
-      var box = target.getClientBoundingRect();
+      var box = target.getBoundingClientRect();
       if (x == null)
         x = box.left + box.width/2;
       if (y == null)
         y = box.top + box.height/2;
     }
 
-    touch(target, 50, [x, x], [y, y], function() {
+    touch(target, 25, [x, x], [y, y], function() {
       // When the first tap is done, start a timer for interval ms.
       setTimeout(function() {
         // After interval ms, send the second tap
-        touch(target, 50, [x, x], [y, y], then);
-      }, interval);
+        touch(target, 25, [x, x], [y, y], then);
+      }, interval||50);
     });
   }
 
@@ -351,8 +348,8 @@ var SyntheticGestures = (function() {
   // This is a low-level function that the higher-level mouse gesture
   // utilities are built on. Most testing code will not need to call it.
   // 
-  function drag(win, duration, xt, yt, then, detail, button) {
-    var doc = win.document;
+  function drag(doc, duration, xt, yt, then, detail, button) {
+    var win = doc.defaultView;
     detail = detail || 1;
     button = button || 0;
 
@@ -380,7 +377,7 @@ var SyntheticGestures = (function() {
     // at the specified coordinates in the viewport.
     function mouseEvent(type, clientX, clientY) {
       // Figure out what element the mouse would be over at (x,y)
-      var target = win.elementFromPoint(x, y);
+      var target = doc.elementFromPoint(clientX, clientY);
       // Create an event
       var mousedown = doc.createEvent("MouseEvent");
       // Initialize it
@@ -400,31 +397,33 @@ var SyntheticGestures = (function() {
       // Figure out if we've sent all of the mousemove events
       var time = Date.now();
       var dt = time - startTime;
-      var done = dt > duration;
 
-      if (done) {  // If we're done, then send a mouseup event
+      // Is this the last move event we'll be sending?
+      var last = dt + EVENT_INTERVAL/2 > duration;
+
+      // If so make sure we move all the way
+      if (last) 
+        dt = duration;
+
+      // New coordinates of the touch
+      clientX = Math.round(x(dt));
+      clientY = Math.round(y(dt));
+
+      // If we moved, send a move event
+      if (clientX !== lastX || clientY !== lastY) { // If we moved
+        lastX = clientX;
+        lastY = clientY;
+        mouseEvent('mousemove', clientX, clientY);
+      }
+
+      // If this was the last move, send a mouse up and call the callback
+      // Otherwise, schedule the next move event
+      if (last) {
         mouseEvent('mouseup', lastX, lastY);
-
-        // Call the callback, if there is one after sending the touchend event
         if (then)
           setTimeout(then, 0);
       }
-      else {       // Otherwise, send a touchmove, if we've moved
-        // If this is the penultimate event, make sure we move all the way
-        if (dt + EVENT_INTERVAL > duration) 
-          dt = duration;
-
-        // New coordinates of the touch
-        clientX = Math.round(x(dt));
-        clientY = Math.round(y(dt));
-
-        if (clientX !== lastX || clientY !== lastY) { // If we moved
-          lastX = clientX;
-          lastY = clientY;
-          mouseEvent('mousemove', clientX, clientY);
-        }
-
-        // Whether or not we moved, schedule another event in a little while.
+      else {
         setTimeout(nextEvent, EVENT_INTERVAL);
       }
     }
@@ -434,14 +433,14 @@ var SyntheticGestures = (function() {
   // XXX: will the browser automatically follow this with a click event?
   function mousetap(target, then, x, y, t) {
     if (x == null || y == null) {
-      var box = target.getClientBoundingRect();
+      var box = target.getBoundingClientRect();
       if (x == null)
         x = box.left + box.width/2;
       if (y == null)
         y = box.top + box.height/2;
     }
 
-    drag(target.ownerDocument.defaultView, t || 50, [x, x], [y, y], then);
+    drag(target.ownerDocument, t || 50, [x, x], [y, y], then);
   }
 
   // Dispatch a dbltap gesture. The arguments are like those to tap()
@@ -449,19 +448,19 @@ var SyntheticGestures = (function() {
   // touchstart and touchend
   function mousedbltap(target, then, x, y, interval) {
     if (x == null || y == null) {
-      var box = target.getClientBoundingRect();
+      var box = target.getBoundingClientRect();
       if (x == null)
         x = box.left + box.width/2;
       if (y == null)
         y = box.top + box.height/2;
     }
 
-    drag(target.ownerDocument.defaultView, 50, [x, x], [y, y], function() {
+    drag(target.ownerDocument, 25, [x, x], [y, y], function() {
       // When the first tap is done, start a timer for interval ms.
       setTimeout(function() {
         // After interval ms, send the second tap with the click count set to 2.
-        drag(target.ownerDocument.defaultView, 50, [x, x], [y, y], then, 2);
-      }, interval);
+        drag(target.ownerDocument, 25, [x, x], [y, y], then, 2);
+      }, interval||50);
     });
   }
 
@@ -470,16 +469,16 @@ var SyntheticGestures = (function() {
   function mouseswipe(target, x1, y1, x2, y2, duration, then) {
     if (!duration)
       duration = 200;
-    drag(target.ownerDocument.defaultView, duration, [x1, x2], [y1, y2], then);
+    drag(target.ownerDocument, duration, [x1, x2], [y1, y2], then);
   }
 
   // Mousedown at x1,y1 and hold it for holdtime ms, 
   // then move smoothly to x2,y2 over movetime ms, then mouse up, 
   // and then invoke then().
-  function hold(target, holdtime, x1, y1, x2, y2, movetime, then) {
+  function mousehold(target, holdtime, x1, y1, x2, y2, movetime, then) {
     if (!movetime)
       movetime = 200;
-    drag(target.ownerDocument.defaultView, holdtime+movetime, 
+    drag(target.ownerDocument, holdtime+movetime, 
           function(t) { // x coordinate a function of t
             if (t < holdtime) 
               return x1;

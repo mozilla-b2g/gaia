@@ -80,13 +80,13 @@ var GestureDetector = (function() {
   GD.prototype.stopDetecting = function() {
     var self = this;
     eventtypes.forEach(function(t) {
-      this.element.removeEventListener(t, self);
+      self.element.removeEventListener(t, self);
     });
   };
 
-  // 
+  //
   // Internal methods
-  // 
+  //
 
   GD.prototype.handleEvent = function(e) {
     var handler = this.state[e.type];
