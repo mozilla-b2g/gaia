@@ -15,10 +15,11 @@ var BackgroundServiceManager = (function bsm() {
     The iframes will be append to body */
   var frames = {};
 
+  var apps = navigator.mozApps;
+
   /* Init */
-  window.addEventListener('load', function() {
-    var apps = navigator.mozApps;
-    apps.mgmt.getAll().onsuccess = function settings_getAll(evt) {
+  window.addEventListener('load', function bsm_init() {
+    apps.mgmt.getAll().onsuccess = function mgmt_getAll(evt) {
       evt.target.result.forEach(function app_forEach(app) {
         installedApps[app.origin] = app;
         open(app.origin);
