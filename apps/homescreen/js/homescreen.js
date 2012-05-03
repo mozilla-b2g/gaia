@@ -62,11 +62,8 @@ AppScreen.prototype.build = function(rebuild) {
 
   // Start with completely fresh elements.
   // If we're rebuilding, this will remove all old event listeners too.
-  document.body.innerHTML =
-    '<div id="home">' +
-    '  <div id="apps"></div>' +
-    '  <div id="dots"></div>' +
-    '</div>';
+  document.getElementById('home').innerHTML = 
+    '<div id="apps"></div><div id="dots"></div>';
 
   // Create the widgets
   this.grid = new IconGrid('apps');
@@ -147,7 +144,6 @@ DefaultPhysics.prototype = {
 
     // If this timer triggers and the user hasn't moved their finger
     // then this is a hold rather than a tap.
-    console.log("starting timer");
     touchState.timer = window.setTimeout(this.onHoldTimeout.bind(this),
                                   DefaultPhysics.HOLD_INTERVAL);
 
@@ -165,7 +161,6 @@ DefaultPhysics.prototype = {
     if (touchState.timer &&
         (Math.abs(touchState.startX - e.pageX) > DefaultPhysics.SMALL_MOVE ||
          Math.abs(touchState.startX - e.pageX) > DefaultPhysics.SMALL_MOVE)) {
-      console.log("clearing timer");
       clearTimeout(touchState.timer);
       touchState.timer = null;
     }
@@ -182,7 +177,6 @@ DefaultPhysics.prototype = {
 
     // If the timer hasn't triggered yet, cancel it before it does
     if (touchState.timer) {
-      console.log("clearing timer");
       clearTimeout(touchState.timer);
       touchState.timer = null;
     }
@@ -230,7 +224,6 @@ DefaultPhysics.prototype = {
     var touchState = this.touchState;
     touchState.timer = null;
     touchState.active = false;
-    console.log("timer fired", touchState.initialTarget, touchState.initialTarget.ownerDocument);
     this.iconGrid.hold(touchState.initialTarget);
   }
 };
@@ -409,9 +402,7 @@ IconGrid.prototype = {
     app.launch();
   },
   hold: function(target) {
-    console.log("hold", target, target.dataset.url);
     var app = appscreen.getAppByOrigin(target.dataset.url);
-    console.log(app);
 
     // FIXME: localize this message
     // FIXME: This could be a simple confirm() (see bug 741587)
