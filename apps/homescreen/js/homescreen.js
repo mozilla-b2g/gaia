@@ -64,6 +64,13 @@ AppScreen.prototype.build = function(rebuild) {
                               '  <div id="dots"></div>' +
                               '</div>';
   }
+  else if (this.grid) {
+    // XXX: FIXME: I don't know why this is necessary but without it
+    // we're getting two copies of the listeners
+    this.grid.container.removeEventListener('mousedown', this.grid);
+    this.grid.container.removeEventListener('mousemove', this.grid);
+    this.grid.container.removeEventListener('mouseup', this.grid);
+  }
 
   // Create the widgets
   this.grid = new IconGrid('apps');
@@ -228,57 +235,6 @@ DefaultPhysics.prototype = {
   }
 };
 
-var Mouse2Touch = {
-  'mousedown': 'touchstart',
-  'mousemove': 'touchmove',
-  'mouseup': 'touchend'
-};
-
-var Touch2Mouse = {
-  'touchstart': 'mousedown',
-  'touchmove': 'mousemove',
-  'touchend': 'mouseup'
-};
-
-var ForceOnWindow = {
-  'touchmove': true,
-  'touchend': true
-};
-
-function AddEventHandlers(target, listener, eventNames) {
-  for (var n = 0; n < eventNames.length; ++n) {
-    var name = eventNames[n];
-    target = ForceOnWindow[name] ? window : target;
-    name = Touch2Mouse[name] || name;
-    target.addEventListener(name, {
-      handleEvent: function(e) {
-        if (Mouse2Touch[e.type]) {
-          var original = e;
-          e = {
-            type: Mouse2Touch[original.type],
-            target: original.target,
-            touches: [original],
-            preventDefault: function() {
-              original.preventDefault();
-            }
-          };
-          e.changedTouches = e.touches;
-        }
-        return listener.handleEvent(e);
-      }
-    }, true);
-  }
-}
-
-function RemoveEventHandlers(target, listener, eventNames) {
-  for (var n = 0; n < eventNames.length; ++n) {
-    var name = eventNames[n];
-    target = ForceOnWindow[name] ? window : target;
-    name = Touch2Mouse[name] || name;
-    target.removeEventListener(name, listener);
-  }
-}
-
 function IconGrid(containerId) {
   this.containerId = containerId;
   this.container = document.getElementById(containerId);
@@ -287,8 +243,9 @@ function IconGrid(containerId) {
   this.physics = new DefaultPhysics(this);
 
   // install event handlers
-  var events = ['touchstart', 'touchmove', 'touchend'];
-  AddEventHandlers(this.container, this, events);
+  this.container.addEventListener('mousedown', this);
+  this.container.addEventListener('mousemove', this);
+  this.container.addEventListener('mouseup', this);
 }
 
 IconGrid.prototype = {
@@ -465,15 +422,14 @@ IconGrid.prototype = {
   handleEvent: function(e) {
     var physics = this.physics;
     switch (e.type) {
-    case 'touchstart':
-      physics.onTouchStart(e.touches[0]);
+    case 'mousedown':
+      physics.onTouchStart(e);
       break;
-    case 'touchmove':
-      physics.onTouchMove(e.touches[0]);
+    case 'mousemove':
+      physics.onTouchMove(e);
       break;
-    case 'touchend':
-      document.releaseCapture();
-      physics.onTouchEnd(e.changedTouches[0]);
+    case 'mouseup':
+      physics.onTouchEnd(e);
       break;
     default:
       return;
