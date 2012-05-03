@@ -19,24 +19,40 @@
 
 #permission-dialog {
   position: absolute;
-  top: 20%;
-  left: 50%;
-  width: 320px;
-  height: 300px;
-  margin: 0 0 0 -160px;
-  color: #778;
-  background: -moz-linear-gradient(center top , rgb(244, 244, 244), rgb(234, 234, 234)) repeat scroll 0% 0% white;
+  top: 30%;
+  left: 12%;
+  width: 76%;
+  height: 30%;
+  color: black;
+  background: white;
+/*
+  background: -moz-linear-gradient(center top, rgb(244, 244, 244), rgb(234, 234, 234)) repeat scroll 0% 0% white;
+*/
   border-radius: 8px;
-  border: 1px solid hsla(0,0%,0%,0);
+/*  border: 1px solid hsla(0,0%,0%,0); */
   font-size: 20px;
 }
 
 #permission-message {
-  margin: 20px;
+  margin: 40px;
 }
 
 #permission-dialog button {
-  margin: 30px;
-  padding: 20px;
+  font-size: 20px;
 }
 
+#permission-yes {
+    position: absolute;
+    bottom: 15%;
+    height: 20%;
+    left: 15%;
+    width: 30%;
+}
+
+#permission-no {
+    position: absolute;
+    bottom: 15%;
+    height: 20%;
+    right: 15%;
+    width: 30%;
+}
