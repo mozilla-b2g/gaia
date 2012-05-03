@@ -53,24 +53,23 @@ AppScreen.prototype.getAppByOrigin = function getAppByOrigin(origin) {
 // Populate the appscreen with icons. The constructor automatically calls this.
 // But we also call it when new apps are installed or when the locale changes.
 AppScreen.prototype.build = function(rebuild) {
-  var startpage = 0;
 
-  if (rebuild && 'grid' in this) {
-    // Remember the page we're on so that after rebuild we can stay there.
-    startpage = this.grid.currentPage;
+  // We can't rebuild the app screen if it hasn't already been build the 
+  // the first time. This happens when we get an initial language setting
+  // observation before we get the initial list of installed apps.
+  if (rebuild && !this.grid)
+    return;
 
-    document.body.innerHTML = '<div id="home">' +
-                              '  <div id="apps"></div>' +
-                              '  <div id="dots"></div>' +
-                              '</div>';
-  }
-  else if (this.grid) {
-    // XXX: FIXME: I don't know why this is necessary but without it
-    // we're getting two copies of the listeners
-    this.grid.container.removeEventListener('mousedown', this.grid);
-    this.grid.container.removeEventListener('mousemove', this.grid);
-    this.grid.container.removeEventListener('mouseup', this.grid);
-  }
+  // If we're rebuilding, remember the page we're on
+  var startpage = rebuild ? this.grid.currentPage : 0;
+
+  // Start with completely fresh elements.
+  // If we're rebuilding, this will remove all old event listeners too.
+  document.body.innerHTML =
+    '<div id="home">' +
+    '  <div id="apps"></div>' +
+    '  <div id="dots"></div>' +
+    '</div>';
 
   // Create the widgets
   this.grid = new IconGrid('apps');
