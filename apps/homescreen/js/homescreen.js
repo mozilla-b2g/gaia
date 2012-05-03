@@ -60,6 +60,13 @@ AppScreen.prototype.build = function(rebuild) {
   // If we're rebuilding, remember the page we're on
   var startpage = rebuild ? this.grid.currentPage : 0;
 
+  // If we're rebuilding remove the event handlers on the window
+  // since they're going to be re-added when we create the new IconGrid below
+  if (rebuild) {
+    window.removeEventListener('mousemove', this.grid);
+    window.removeEventListener('mouseup', this.grid);
+  }
+
   // Start with completely fresh elements.
   // If we're rebuilding, this will remove all old event listeners too.
   document.getElementById('home').innerHTML = 
@@ -237,8 +244,8 @@ function IconGrid(containerId) {
 
   // install event handlers
   this.container.addEventListener('mousedown', this);
-  this.container.addEventListener('mousemove', this);
-  this.container.addEventListener('mouseup', this);
+  window.addEventListener('mousemove', this);
+  window.addEventListener('mouseup', this);
 }
 
 IconGrid.prototype = {
