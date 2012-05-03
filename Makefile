@@ -68,9 +68,9 @@ REPORTER=Spec
 # by editing /etc/hosts on linux/mac. This steps would not be required
 # anymore once https://bugzilla.mozilla.org/show_bug.cgi?id=722197 will land.
 ifeq ($(DEBUG),1)
-GAIA_PORT=
+GAIA_PORT?=:8080
 else
-GAIA_PORT=
+GAIA_PORT?=
 endif
 
 
@@ -144,12 +144,15 @@ manifests:
 
 # Generate profile/OfflineCache/
 offline: install-xulrunner
+ifneq ($(DEBUG),1)
 	@echo "Building offline cache"
 	@rm -rf profile/OfflineCache
 	@mkdir -p profile/OfflineCache
 	@cd ..
 	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)$(GAIA_PORT)"' build/offline-cache.js
 	@echo "Done"
+endif
+
 
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up
 # some commands for invoking it. But it is platform dependent

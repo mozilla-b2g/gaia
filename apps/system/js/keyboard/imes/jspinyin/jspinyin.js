@@ -230,6 +230,82 @@ Index.prototype = {
   }
 };
 
+var Task = function(taskFunc, taskData) {
+  this.func = taskFunc;
+  this.data = taskData;
+};
+
+Task.prototype = {
+  /**
+   * Task function
+   */
+  func: null,
+  /**
+   * Task private data
+   */
+  data: null,
+};
+
+var TaskQueue = function(oncomplete) {
+  this.oncomplete = oncomplete;
+  this._queue = [];
+};
+
+TaskQueue.prototype = {
+  /**
+   * Callback Javascript function object that is called when the task queue is empty.
+   * The definition of callback is function oncomplete(queueData).
+   */
+  oncomplete: null,
+    
+  /**
+   * Data sharing with all tasks of the queue
+   */
+  data: {},
+  
+  /**
+   * Task queue array.
+   */
+  _queue: [],
+  
+  /**
+   * Add a new task to the tail of the queue.
+   * @param{Function} taskFunc Task function object. The definition is function taskFunc(taskQueue, taskData).
+   * The taskQueue parameter is the task queue object itself, while the taskData parameter is the data property
+   * of the task queue object.
+   * @param {Object} taskData The task's private data.
+   */
+  push: function(taskFunc /*function taskFunc(taskQueue, taskData)*/, taskData) {
+    this._queue.push(new Task(taskFunc, taskData));
+  },
+  
+  /**
+   * Start running the task queue or process the next task.
+   * It should be called when a task, including the last one, is finished.
+   */
+  processNext: function() {
+    if (this._queue.length > 0) {
+      var task = this._queue.pop();
+      if (typeof task.func == "function") {
+        task.func(this, task.data);
+      } else {
+        this.processNext();
+      }
+    } else {
+      if (typeof this.oncomplete == "function") {
+        this.oncomplete(this.data);
+      }
+    }
+  },
+  
+  /**
+   * Get the number of remaining tasks.
+   */
+  getSize: function() {
+    return this._queue.length;
+  }
+};
+
 /** Maximum limit of PinYin syllable length */
 var SYLLALBLE_MAX_LENGTH = 6;
 
@@ -661,8 +737,7 @@ IMEngine.prototype = {
 
   // Buffer limit will force output the longest matching terms
   // if the length of the syllables buffer is reached.
-  // This hides the fact that we are using a 2^n algorithm
-  _kBufferLenLimit: 50,
+  _kBufferLenLimit: 30,
 
   // Auto-suggest generates candidates that follows a selection
   // taibei -> 台北, then suggest 市, 縣, 市長, 市立 ...
@@ -842,23 +917,10 @@ IMEngine.prototype = {
     var name = this._getCurrentDatabaseName();
     switch (type) {
       case 'sentence':
-        this._db[name].getSentences(query, function getSentencesCallback(dbResults) {
-          if (!dbResults) {
-            callback([]);
-            return;
-          }
-          var results = [];
-          dbResults.forEach(function readSentence(sentence) {
-            var str = '';
-            sentence.forEach(function readTerm(term) {
-              str += term.phrase;
-            });
-            if (results.indexOf(str) === -1)
-              results.push(str);
-          });
-          callback(results);
+        this._db[name].getSentence(query, function getSentencesCallback(sentence) {
+          callback([sentence]);
         });
-      break;
+      break;    
       case 'term':
         this._db[name].getTerms(query, function getTermsCallback(dbResults) {
           if (!dbResults) {
@@ -1842,33 +1904,6 @@ var IMEngineDatabase = function(dbName, jsonUrl) {
   /* ==== helper functions ==== */
 
   /*
-  * Math function that return all possible compositions of
-  * a given natural number
-  * callback will be called 2^(n-1) times.
-  *
-  * ref: http://en.wikipedia.org/wiki/Composition_(number_theory)#Examples
-  * also: http://stackoverflow.com/questions/8375439
-  *
-  */
-  var compositionsOf = function imedb_compositionsOf(n, callback) {
-    var x, a, j;
-    x = 1 << n - 1;
-    while (x--) {
-      a = [1];
-      j = 0;
-      while (n - 1 > j) {
-        if (x & (1 << j)) {
-          a[a.length - 1]++;
-        } else {
-          a.push(1);
-        }
-        j++;
-      }
-      callback.call(this, a);
-    }
-  };
-
-  /*
   * Data from IndexedDB gets to kept in iDBCache for kCacheTimeout seconds
   */
   var cacheSetTimeout = function imedb_cacheSetTimeout() {
@@ -2085,84 +2120,81 @@ var IMEngineDatabase = function(dbName, jsonUrl) {
       callback(terms[0]);
     });
   }
+  
+  this.getSentence = function(syllables, callback) {
+    var self = this;
+    var doCallback = function(sentence) {
+      if (callback) {
+        callback(sentence);
+      }
+    };
 
-  this.getSentences = function imedb_getSentences(syllables, callback) {
-    var sentences = [];
-    var n = 0;
-
-    if (syllables.length == 0) {
-      callback(sentences);
+    var n = syllables.length;
+    
+    if (n == 0) {
+      callback('');
     }
     
-    compositionsOf.call(
-      this,
-      syllables.length,
-      /* This callback will be called 2^(n-1) times */
-      function compositionsOfCallback(composition) {
-        var str = [];
-        var start = 0;
-        var i = 0;
-
-        var next = function composition_next() {
-          if (composition.length === i) {
-            finish();
-            return;
-          }
-          var numOfWord = composition[i];
-          i++;
-          self.getTermWithHighestScore(
-            syllables.slice(start, start + numOfWord),
-            function getTermWithHighestScoreCallback(term) {
-              if (!term && numOfWord > 1) {
-                finish();
-                return;
-              }
-              if (!term) {
-                var syllable =
-                  syllables.slice(start, start + numOfWord).join('');
-                debug('Syllable ' + syllable +
-                  ' does not made up a word, insert symbol.');
-                term = {phrase:syllable, freq: 0};
-              }
-
-              str.push(term);
-              start += numOfWord;
-              next();
-            }
-          );
-        };
-
-        var finish = function compositionFinish() {
-          // complete; this composition does made up a sentence
-          if (start === syllables.length)
-            sentences.push(str);
-
-          if (++n === (1 << (syllables.length - 1))) {
-            cacheSetTimeout();
-
-            sentences = sentences.sort(function sortSentences(a, b) {
-              var scoreA = 1;
-
-              a.forEach(function countScoreA(term) {
-                scoreA *= term.freq / kDictTotalFreq;
-              });
-
-              var scoreB = 1;
-              b.forEach(function countScoreB(term) {
-                scoreB *= term.freq / kDictTotalFreq;
-              });
-
-              return (scoreB - scoreA);
-            });
-
-            callback(sentences);
-          }
-        };
-
-        next();
+    var taskQueue = new TaskQueue(function taskQueueOnCompleteCallback(data) {
+      var sentences = data.sentences;
+      var sentence = sentences[sentences.length - 1];
+      doCallback(sentence);
+    });
+    
+    taskQueue.data = {
+      sentences: ['', ''],
+      probabilities: [1, 0],
+      sentenceLength: 1,
+      lastPhraseLength: 1,
+    };
+    
+    var getSentenceSubTask = function(taskQueue, taskData) {
+      var queueData = taskQueue.data;
+      var sentenceLength = queueData.sentenceLength;
+      var lastPhraseLength = queueData.lastPhraseLength;
+      var sentences = queueData.sentences;
+      var probabilities = queueData.probabilities;
+      if (probabilities.length < sentenceLength + 1) {
+        probabilities.push(-1);
       }
-    ); // compositionsOf.call
-  };
+      if (sentences.length < sentenceLength + 1) {
+        sentences.push('');
+      }
+      var maxProb = probabilities[sentenceLength];
+      var s = syllables.slice(sentenceLength - lastPhraseLength, sentenceLength);
+      self.getTermWithHighestScore(s,
+        function(term) {
+          if (!term) {
+            var syllable = s.join('');
+            term = {phrase:syllable, freq: 0};
+          }
+          var prob = probabilities[sentenceLength - lastPhraseLength] * term.freq / kDictTotalFreq;
+          if (prob > probabilities[sentenceLength]) {
+            probabilities[sentenceLength] = prob;
+            sentences[sentenceLength] = sentences[sentenceLength - lastPhraseLength] + term.phrase;
+          }
+          
+          // process next step
+          if (lastPhraseLength < sentenceLength) {
+            queueData.lastPhraseLength++;
+          } else {
+            queueData.lastPhraseLength = 1;
+            if (sentenceLength < n) {
+              queueData.sentenceLength++;
+            } else {
+              taskQueue.processNext();
+              return;
+            }
+          }
+          taskQueue.push(getSentenceSubTask, null);
+          taskQueue.processNext();
+        }
+      );      
+    };
+    
+    taskQueue.push(getSentenceSubTask, null);
+    taskQueue.processNext();
+  };  
 };
 
 var jspinyin = new IMEngine(new PinyinParser());
