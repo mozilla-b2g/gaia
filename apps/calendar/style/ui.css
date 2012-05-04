@@ -112,17 +112,23 @@ section.month {
 }
 
 .rtl section.month li {
-  padding-left: 1.8%;
   text-align: left;
 }
 
+.rtl section.month li > .day {
+  padding-left: 0.8mozmm;
+}
+
 .ltr section.month li {
-  padding-right: 1.8%;
   text-align: right;
 }
 
+.ltr section.month li > .day {
+  padding-right: 0.8mozmm;
+}
+
 section.month li {
-  padding-top: 0.15%;
+  padding-top: 0.3%;
   border-bottom: 1px solid #AAA;
   border-left: 1px solid #AAA;
   height: 6.5mozmm;
@@ -142,10 +148,6 @@ section.month li.selected {
 section.month li.past {
   background-color: #E7E7E7;
   color: #9A9A9A;
-}
-
-section.month li > .day {
-  padding: 1% 2% 0 0;
 }
 
 /* sub day rows: busy indicators */
