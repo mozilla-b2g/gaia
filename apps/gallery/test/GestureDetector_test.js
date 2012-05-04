@@ -30,7 +30,7 @@ suite('GestureDetector', function() {
       events = []; // Start a new array of events for each test
       element = document.createElement('div');
       element.setAttribute('style',
-                           'position:absolute;left:0px;top:0px;width:100%;height:100%');
+                           'position:fixed;left:0px;top:0px;width:100%;height:100%');
       document.body.appendChild(element);
 
       [
@@ -42,7 +42,7 @@ suite('GestureDetector', function() {
         element.addEventListener(type, function(e) { events.push(e); });
       });
 
-      gd = new GestureDetector(element, {moveEvents: true});
+      gd = new GestureDetector(element, {holdEvents: true});
       gd.startDetecting();
     });
 
@@ -73,10 +73,6 @@ suite('GestureDetector', function() {
 
     test('dbltap', function(done) {
       SyntheticGestures.dbltap(element, function() {
-        // XXX: Weird: I'm getting tap dbltap tap instead
-        // this means that the initial state, from the mousetap test above
-        // is interfering!  Do I change stopDetecting() to reset the state
-        // completely?  Or do I change the setup and teardown methods?
         assert.equal(eventseq(), "tap tap dbltap");
         assert.equal(events[2].detail.clientX, 100);
         assert.equal(events[2].detail.clientY, 200);
@@ -84,9 +80,240 @@ suite('GestureDetector', function() {
       }, 100, 200);
     });
 
+    test('mousedbltap', function(done) {
+      SyntheticGestures.mousedbltap(element, function() {
+        assert.equal(eventseq(), "tap tap dbltap");
+        assert.equal(events[2].detail.clientX, 100);
+        assert.equal(events[2].detail.clientY, 200);
+        done();
+      }, 100, 200);
+    });
 
+    function between(v, min, max) {
+      assert.isTrue(v >= min && v <= max,
+                    v + " is not between " + min + " and " + max);
+    }
+
+    var swipes = [
+      { name: 'E', x0:10, y0:10, x1:100, y1:10, direction: 'right' },
+      { name: 'W', x0:100, y0:10, x1:10, y1:10, direction: 'left' },
+      { name: 'S', x0:10, y0:10, x1:10,  y1:100, direction: 'down' },
+      { name: 'N', x0:10, y0:100, x1:10, y1:10, direction: 'up' },
+      { name: 'NNE', x0: 100, y0: 100, x1: 110, y1: 10, direction: 'up' },
+      { name: 'NNW', x0: 100, y0: 100, x1: 90, y1: 10, direction: 'up' },
+      { name: 'SSE', x0: 100, y0: 10, x1: 110, y1: 100, direction: 'down' },
+      { name: 'SSW', x0: 100, y0: 10, x1: 90, y1: 100, direction: 'down' },
+      { name: 'ENE', x0: 10, y0: 100, x1: 100, y1: 90, direction: 'right' },
+      { name: 'ESE', x0: 10, y0: 100, x1: 100, y1: 110, direction: 'right' },
+      { name: 'WNW', x0: 100, y0: 100, x1: 10, y1: 90, direction: 'left' },
+      { name: 'WSW', x0: 100, y0: 100, x1: 10, y1: 110, direction: 'left' },
+    ]
+
+    swipes.forEach(function(s) {
+      test('swipe ' + s.name, function(done) {
+        SyntheticGestures.swipe(element, s.x0, s.y0, s.x1, s.y1,
+                                100, checkswipe);
+        function checkswipe() {
+          assert.match(eventseq(), /(pan )+swipe/);
+          var e = events[events.length-1];
+          assert.equal(e.detail.start.clientX, s.x0);
+          assert.equal(e.detail.start.clientY, s.y0);
+          assert.equal(e.detail.end.clientX, s.x1);
+          assert.equal(e.detail.end.clientY, s.y1);
+          assert.equal(e.detail.dx, s.x1 - s.x0);
+          assert.equal(e.detail.dy, s.y1 - s.y0);
+          var vx = (s.x1 - s.x0)/100;
+          var vy = (s.y1 - s.y0)/100;
+          between(e.detail.vx, vx - .2, vx + .2);
+          between(e.detail.vy, vy - .2, vy + .2);
+          assert.equal(e.detail.direction, s.direction);
+
+          var angle = Math.atan2(s.y1-s.y0, s.x1-s.x0) * 180/Math.PI;
+          if (angle < 0)
+            angle += 360;
+          between(e.detail.angle, angle-1, angle+1);
+
+          var lastpan = events[events.length-2];
+          assert.equal(lastpan.detail.absolute.dx, s.x1-s.x0);
+          assert.equal(lastpan.detail.absolute.dy, s.y1-s.y0);
+          // Add up the relative deltas for all pans
+          var dx = 0, dy = 0;
+          events.forEach(function(e) {
+            if (e.type === 'pan') {
+              dx += e.detail.relative.dx;
+              dy += e.detail.relative.dy;
+              assert.equal(dx, e.detail.absolute.dx);
+              assert.equal(dy, e.detail.absolute.dy);
+            }
+          });
+          assert.equal(dx, s.x1-s.x0);
+          assert.equal(dy, s.y1-s.y0);
+
+          done();
+        }
+      });
+    });
+
+    swipes.forEach(function(s) {
+      test('mouseswipe ' + s.name, function(done) {
+        SyntheticGestures.mouseswipe(element, s.x0, s.y0, s.x1, s.y1,
+                                     100, checkswipe);
+        function checkswipe() {
+          assert.match(eventseq(), /(pan )+swipe/);
+          var e = events[events.length-1];
+          assert.equal(e.detail.start.clientX, s.x0);
+          assert.equal(e.detail.start.clientY, s.y0);
+          assert.equal(e.detail.end.clientX, s.x1);
+          assert.equal(e.detail.end.clientY, s.y1);
+          assert.equal(e.detail.dx, s.x1 - s.x0);
+          assert.equal(e.detail.dy, s.y1 - s.y0);
+          var vx = (s.x1 - s.x0)/100;
+          var vy = (s.y1 - s.y0)/100;
+          between(e.detail.vx, vx - .2, vx + .2);
+          between(e.detail.vy, vy - .2, vy + .2);
+          assert.equal(e.detail.direction, s.direction);
+
+          var angle = Math.atan2(s.y1-s.y0, s.x1-s.x0) * 180/Math.PI;
+          if (angle < 0)
+            angle += 360;
+          between(e.detail.angle, angle-1, angle+1);
+
+          var lastpan = events[events.length-2];
+          assert.equal(lastpan.detail.absolute.dx, s.x1-s.x0);
+          assert.equal(lastpan.detail.absolute.dy, s.y1-s.y0);
+          // Add up the relative deltas for all pans
+          var dx = 0, dy = 0;
+          events.forEach(function(e) {
+            if (e.type === 'pan') {
+              dx += e.detail.relative.dx;
+              dy += e.detail.relative.dy;
+              assert.equal(dx, e.detail.absolute.dx);
+              assert.equal(dy, e.detail.absolute.dy);
+            }
+          });
+          assert.equal(dx, s.x1-s.x0);
+          assert.equal(dy, s.y1-s.y0);
+
+          done();
+        }
+      });
+    });
+
+    var pinches = [
+      { x0: 0, y0: 0, x1: 100, y1: 100, scale: 2, duration: 200 },
+      { x0: 0, y0: 0, x1: 100, y1: 100, scale: .5, duration: 150 },
+      { x0: 100, y0: 100, x1: 10, y1: 10, scale: 1.5, duration: 150 },
+      { x0: 200, y0: 200, x1: 10, y1: 10, scale: .75, duration: 100 },
+      { x0: 200, y0: 200, x1: 200, y1: 0, scale: 2, duration: 150 },
+      { x0: 200, y0: 200, x1: 200, y1: 0, scale: .5, duration: 150 },
+      { x0: 200, y0: 200, x1: 0, y1: 200, scale: 3, duration: 150 },
+      { x0: 200, y0: 200, x1: 0, y1: 200, scale: .3, duration: 150 },
+    ];
+
+    pinches.forEach(function(p, index) {
+      test('pinch ' + index, function(done) {
+        SyntheticGestures.pinch(element, p.x0, p.y0, p.x1, p.y1, 
+                                p.scale, p.duration, checkpinch);
+        function checkpinch() {
+          assert.match(eventseq(), /(transform )*transform/);
+          var e = events[events.length-1];
+          var d = e.detail;
+          between(d.absolute.scale, 0.95*p.scale, 1.05*p.scale);
+          assert.equal(d.absolute.rotate, 0);
+          assert.equal(d.relative.rotate, 0);
+
+          // compute the product of all the relative scales
+          var s = 1.0;
+          events.forEach(function(e) { s *= e.detail.relative.scale; });
+          between(s, 0.95*p.scale, 1.05*p.scale);
+          done();
+        }
+      });
+    });
+
+    // Reuse some of the swipes data for testing hold+move events.
+    // The hold tests take about 1.5s each since they require > 1s
+    // just to trigger the hold detection. So only do four of each
+    swipes.length = 4;
+
+    swipes.forEach(function(s) {
+      test('hold ' + s.name, function(done) {
+        SyntheticGestures.hold(element, 1250, s.x0, s.y0, s.x1, s.y1,
+                               200, checkhold);
+        function checkhold() {
+          assert.match(eventseq(), /holdstart (holdmove )*holdend/);
+          
+          // Check start details
+          var d = events[0].detail;
+
+          assert.equal(d.clientX, s.x0)
+          assert.equal(d.clientY, s.y0)
+
+          // Check end details
+          d = events[events.length-1].detail;
+          console.log("holdend detail: ", JSON.stringify(d));
+          assert.equal(d.start.clientX, s.x0)
+          assert.equal(d.start.clientY, s.y0)
+          assert.equal(d.end.clientX, s.x1)
+          assert.equal(d.end.clientY, s.y1)
+          assert.equal(d.dx, s.x1-s.x0)
+          assert.equal(d.dy, s.y1-s.y0)
+ 
+          // Check relative vs absolute for all the holdmove events
+          var dx = 0, dy = 0;
+          events.forEach(function(e) {
+            if (e.type === 'holdmove') {
+              dx += e.detail.relative.dx;
+              dy += e.detail.relative.dy;
+              assert.equal(dx, e.detail.absolute.dx);
+              assert.equal(dy, e.detail.absolute.dy);
+            }
+          });
+          assert.equal(dx, s.x1-s.x0)
+          assert.equal(dy, s.y1-s.y0)
+
+          done();
+        }
+      });
+    });
+
+    // Reuse the swipes data for testing hold+move events
+    swipes.forEach(function(s) {
+      test('mousehold ' + s.name, function(done) {
+        SyntheticGestures.mousehold(element, 1250, s.x0, s.y0, s.x1, s.y1,
+                                    100, checkhold);
+        function checkhold() {
+          assert.match(eventseq(), /holdstart (holdmove )*holdend/);
+          
+          // Check start details
+          var d = events[0].detail;
+          assert.equal(d.clientX, s.x0)
+          assert.equal(d.clientY, s.y0)
+
+          // Check end details
+          var d = events[events.length-1].detail;
+          assert.equal(d.start.clientX, s.x0)
+          assert.equal(d.start.clientY, s.y0)
+          assert.equal(d.end.clientX, s.x1)
+          assert.equal(d.end.clientY, s.y1)
+          assert.equal(d.dx, s.x1-s.x0)
+          assert.equal(d.dy, s.y1-s.y0)
+ 
+          // Check relative vs absolute for all the holdmove events
+          var dx = 0, dy = 0;
+          events.forEach(function(e) {
+            if (e.type === 'holdmove') {
+              dx += e.detail.relative.dx;
+              dy += e.detail.relative.dy;
+              assert.equal(dx, e.detail.absolute.dx);
+              assert.equal(dy, e.detail.absolute.dy);
+            }
+          });
+          assert.equal(dx, s.x1-s.x0)
+          assert.equal(dy, s.y1-s.y0)
+          done();
+        }
+      });
+    });
   });
-
-
-
 });
