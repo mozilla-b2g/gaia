@@ -1,0 +1,113 @@
+/*
+COLORS
+
+BORDER: #AAA;
+CALENDER BORDER: #606060
+
+*/
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-size: 3mozmm;
+  height: 100%;
+  background: #E3E3E3;
+}
+
+
+ol {
+  font-size: 120%;
+}
+
+/* month view */
+/* sub: toolbar  */
+
+#month .toolbar {
+  width: 100%;
+  overflow: hidden;
+  padding: 1mozmm;
+  border-bottom: 2px solid black;
+}
+
+#month .toolbar h3 {
+  padding: 0px;
+  margin: 0px;
+}
+
+#month .toolbar h3,
+#month .toolbar a {
+  display: block;
+  float: left;
+  width: 33%;
+}
+
+.rtl #month .toolbar h3,
+.rtl #month .toolbar a {
+  float: right;
+}
+
+#month .toolbar h3 {
+  text-align: center;
+}
+
+.rtl #month .toolbar a.new-event,
+.ltr #month .toolbar a.accounts {
+  text-align: left;
+}
+
+.rtl #month .toolbar a.accounts,
+.ltr #month .toolbar a.new-event {
+  text-align: right;
+}
+
+/* sub common: day headers, day boxes */
+
+#month .month li,
+#month-days li {
+  width: 14.28%;
+  font-weight: bold;
+}
+
+.rtl #month-days li,
+.rtl #month .month li {
+  float: right;
+}
+
+.ltr #month-days li,
+.ltr #month .month li {
+  float: left;
+}
+
+/* sub: day header row */
+
+#month-days {
+  clear: both;
+}
+
+#month-days li {
+  color: white;
+  text-align: center;
+  background-color: #AAA;
+  text-transform: uppercase;
+  font-size: 75%;
+}
+
+section.month {
+  clear: both;
+}
+
+/* sub: day rows */
+
+section.month {
+  overflow: hidden;
+  border-left: 1px solid #AAA;
+  border-right: 1px solid #AAA;
+  border-bottom: 2px solid #606060;
+}
+
+section.month li {
+  text-align: right;
+  padding: 1% 2% 0 0;
+  border-bottom: 1px solid #AAA;
+  border-left: 1px solid #AAA;
+}

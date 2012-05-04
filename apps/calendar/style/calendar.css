@@ -1,0 +1,32 @@
+* { 
+  -moz-box-sizing: border-box;
+   box-sizing: border-box; 
+}
+
+@font-face {
+  font-family: Roboto;
+  src: url('fonts/Roboto-Regular.ttf');
+}
+@font-face {
+  font-family: Roboto;
+  font-weight: bold;
+  src: url('fonts/Roboto-Bold.ttf');
+}
+@font-face {
+  font-family: Roboto;
+  font-style: italic;
+  src: url('fonts/Roboto-Italic.ttf');
+}
+@font-face {
+  font-family: Roboto;
+  font-weight: bold;
+  font-style: italic;
+  src: url('fonts/Roboto-BoldItalic.ttf');
+}
+
+ol,
+ol li {
+  list-style: none;
+  margin: 0px;
+  padding: 0px;
+}

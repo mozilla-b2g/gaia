@@ -1,0 +1,18 @@
+{
+  "name": "Calendar",
+  "default_locale": "en-US",
+  "description": "Gaia Calendar",
+  "launch_path": "/",
+  "locales": {
+    "en-US": {
+      "name": "Calendar",
+      "description": "Gaia Calendar"
+    }
+  },
+  "developer": {
+    "url": "https://github.com/andreasgal/gaia",
+    "name": "The Gaia Team"
+  }
+}
+
+

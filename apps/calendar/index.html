@@ -1,0 +1,242 @@
+<!DOCTYPE HTML>
+<html class="ltr">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <link rel="stylesheet" type="text/css" href="./style/calendar.css">
+  <link rel="stylesheet" type="text/css" href="./style/ui.css">
+  <title>Gaia Calendar</title>
+</head>
+<body>
+
+<section id="calendar">
+
+  <section id="views">
+    <section id="month">
+      <header class="toolbar">
+        <a data-l10n-id="buttons.accounts" role="button" class="accounts" href="#accounts">
+          Accounts
+        </a>
+
+        <h3>
+          <span class="month">MAY</month>
+          <span class="year">2012</month>  
+        </h3>
+
+        <a data-l10n-id="buttons.new-event" role="button" class="new-event" href="#new-event">
+          New Event
+        </a>
+      </header>
+      <!--- title row all the days this will be static -->
+      <header id="month-days" role="row">
+        <ol role="row">
+          <li data-l10n-id="day.sun" role="column">sun</li>
+          <li data-l10n-id="day.mon" role="column">mon</li>
+          <li data-l10n-id="day.tue" role="column">tue</li>
+          <li data-l10n-id="day.wed" role="column">wed</li>
+          <li data-l10n-id="day.thu" role="column">thu</li>
+          <li data-l10n-id="day.fri" role="column">fri</li>
+          <li data-l10n-id="day.sat" role="column">sat</li>
+        </ol>
+      </header>
+      <!--- 
+        month grid there may be multiple of these
+        in the DOM at any one time for caching.
+        only one will ever be displayed.
+       -->
+      <section id="month-2012-1" class="month">
+        <ol role="row">
+          <li id="month-day-2012-5-1" class="past">
+            <span class="day">1</day>
+            <div class="busy-indicator"></div>
+          </li>
+          <li id="month-day-2012-5-2" class="past">
+            <span class="day">2</day>
+            <div class="busy-indicator"></div>
+          </li>
+          <li id="month-day-2012-5-3" class="past">
+            <span class="day">3</day>
+            <div class="busy-indicator"></div>
+          </li>
+
+          <li id="month-day-2012-5-4" class="past">
+            <span class="day">4</day>
+            <div class="busy-indicator"></div>
+          </li>
+
+          <li id="month-day-2012-5-5" class="past">
+            <span class="day">5</day>
+            <div class="busy-indicator"></div>
+          </li>
+          <li id="month-day-2012-5-6" class="past">
+
+            <span class="day">6</day>
+            <div class="busy-indicator"></div>
+          </li>
+          <li id="month-day-2012-5-7" class="past">
+
+            <span class="day">7</day>
+            <div class="busy-indicator"></div>
+          </li>
+        </ol> 
+        <ol role="row">
+          <li id="month-day-2012-5-1">
+            <span class="day">1</day>
+            <div class="busy-indicator"></div>
+          </li>
+
+          <li id="month-day-2012-5-2">
+            <span class="day">2</day>
+            <div class="busy-indicator"></div>
+          </li>
+
+          <li id="month-day-2012-5-3">
+            <span class="day">3</day>
+            <div class="busy-indicator"></div>
+          </li>
+
+          <li id="month-day-2012-5-4">
+            <span class="day">4</day>
+            <div class="busy-indicator"></div>
+          </li>
+
+          <li id="month-day-2012-5-5">
+            <span class="day">5</day>
+            <div class="busy-indicator"></div>
+          </li>
+
+          <li id="month-day-2012-5-6">
+            <span class="day">6</day>
+            <div class="busy-indicator"></div>
+          </li>
+
+          <li id="month-day-2012-5-7">
+            <span class="day">7</day>
+            <div class="busy-indicator"></div>
+          </li>
+        </ol>
+        <ol role="row">
+          <li id="month-day-2012-5-1">
+            <span class="day">1</day>
+            <div class="busy-indicator"></div>
+          </li>
+
+          <li id="month-day-2012-5-2">
+            <span class="day">2</day>
+            <div class="busy-indicator"></div>
+          </li>
+
+          <li id="month-day-2012-5-3">
+            <span class="day">3</day>
+            <div class="busy-indicator"></div>
+          </li>
+
+          <li id="month-day-2012-5-4" class="current">
+            <span class="day">4</day>
+            <div class="busy-indicator"></div>
+          </li>
+
+          <li id="month-day-2012-5-5">
+            <span class="day">5</day>
+            <div class="busy-indicator"></div>
+          </li>
+
+          <li id="month-day-2012-5-6">
+            <span class="day">6</day>
+            <div class="busy-indicator"></div>
+          </li>
+
+          <li id="month-day-2012-5-7">
+            <span class="day">7</day>
+            <div class="busy-indicator"></div>
+          </li>
+        </ol>
+        <ol role="row">
+          <li id="month-day-2012-5-1">
+            <span class="day">1</day>
+            <div class="busy-indicator"></div>
+          </li>
+
+          <li id="month-day-2012-5-2">
+            <span class="day">2</day>
+            <div class="busy-indicator"></div>
+          </li>
+
+          <li id="month-day-2012-5-3">
+            <span class="day">3</day>
+            <div class="busy-indicator"></div>
+          </li>
+
+          <li id="month-day-2012-5-4">
+            <span class="day">4</day>
+            <div class="busy-indicator"></div>
+          </li>
+
+          <li id="month-day-2012-5-5">
+            <span class="day">5</day>
+            <div class="busy-indicator"></div>
+          </li>
+
+          <li id="month-day-2012-5-6">
+            <span class="day">6</day>
+            <div class="busy-indicator"></div>
+          </li>
+
+          <li id="month-day-2012-5-7">
+            <span class="day">7</day>
+            <div class="busy-indicator"></div>
+          </li>
+        </ol>
+        <ol role="row">
+          <li id="month-day-2012-5-1">
+            <span class="day">1</day>
+            <div class="busy-indicator"></div>
+          </li>
+
+          <li id="month-day-2012-5-2">
+            <span class="day">2</day>
+            <div class="busy-indicator"></div>
+          </li>
+
+          <li id="month-day-2012-5-3">
+            <span class="day">3</day>
+            <div class="busy-indicator"></div>
+          </li>
+
+          <li id="month-day-2012-5-4">
+            <span class="day">4</day>
+            <div class="busy-indicator"></div>
+          </li>
+
+          <li id="month-day-2012-5-5">
+            <span class="day">5</day>
+            <div class="busy-indicator"></div>
+          </li>
+
+          <li id="month-day-2012-5-6">
+            <span class="day">6</day>
+            <div class="busy-indicator"></div>
+          </li>
+
+          <li id="month-day-2012-5-7">
+            <span class="day">7</day>
+            <div class="busy-indicator"></div>
+          </li>
+        </ol>
+      </section>
+    </section>
+
+    <section id="day">
+    </section>
+
+    <section id="agenda">
+    </section>
+
+    <section id="week">
+    </section>
+  </section>
+  
+</section>
+
+</body>
+</html>
+
