@@ -1126,7 +1126,8 @@ IMEngine.prototype = {
     IMEngineBase.prototype.click.call(this, keyCode);
 
     // Toggle between the modes of tranditioanal Chinese and simplified Chinese
-    if (keyCode == -10 || keyCode == -11) {
+    // TODO show the current mode on the keyboard.
+    if (keyCode == -10) {
       this._inputTraditionalChinese = !this._inputTraditionalChinese;
     } else {
       this._keypressQueue.push(keyCode);

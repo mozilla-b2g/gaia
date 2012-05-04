@@ -9,12 +9,6 @@ const IMEManager = {
   SWITCH_KEYBOARD: -3,
   TOGGLE_CANDIDATE_PANEL: -4,
   DOT_COM: -5,
-  SYMBOLSC_LAYOUT: -6,
-  NUMBER_LAYOUT: -7,
-  PAGE_UP: -8,
-  PAGE_DOWN: -9,
-  SC_TO_TR: -10,
-  TR_TO_SC: -11,
 
   // IME Engines are self registering here.
   IMEngines: {},
@@ -24,7 +18,6 @@ const IMEManager = {
 
   currentKeyboard: '',
   currentKeyboardMode: '',
-  currentPage: 0,
   // keyboard layouts selected by the user from settings
   keyboards: [],
   // keyboard setting groups selected by the user from settings
@@ -104,15 +97,6 @@ const IMEManager = {
     this.updateTargetWindowHeight();
   },
 
-  set isTrChineseLayout(isTrChineseLayout) {
-    if (isTrChineseLayout) {
-      this.updateLayout('zh-Hans-Pinyin_tr');
-    } else {
-      this.updateLayout();
-    }
-    this.updateTargetWindowHeight();
-  },
-
   get isSymbolLayout() {
     return this.currentKeyboardMode == 'Symbol';
   },
@@ -128,37 +112,6 @@ const IMEManager = {
     this.updateTargetWindowHeight();
   },
 
-  get isNumberLayout() {
-    return this.currentKeyboardMode == 'Number';
-  },
-
-  set isNumberLayout(isNumberLayout) {
-    if (isNumberLayout) {
-      this.currentKeyboardMode = 'Number';
-      this.updateLayout('NumberLayout');
-    } else {
-      this.currentKeyboardMode = '';
-      this.updateLayout();
-    }
-    this.updateTargetWindowHeight();
-  },
-
-  get isSymbolSCLayout() {
-    return this.currentKeyboardMode == 'SymbolSC';
-  },
-
-  set isSymbolSCLayout(isSymbolSCLayout) {
-    if (isSymbolSCLayout) {
-      this.currentKeyboardMode = 'SymbolSC';
-      if (this.currentPage >= 0 && this.currentPage <= 2) {
-        this.updateLayout('SymbolSCLayout' + this.currentPage);
-      }
-    } else {
-      this.currentKeyboardMode = '';
-      this.updateLayout();
-    }
-    this.updateTargetWindowHeight();
-  },
   // backspace repeat delay and repeat rate
   kRepeatTimeout: 700,
   kRepeatRate: 100,
@@ -748,43 +701,6 @@ const IMEManager = {
             this.isAlternateLayout = true;
           break;
 
-          case this.NUMBER_LAYOUT:
-            this.isNumberLayout = true;
-          break;
-
-          case this.SYMBOLSC_LAYOUT:
-            this.isSymbolSCLayout = true;
-          break;
-
-          case this.PAGE_UP:
-            this.currentPage += 1;
-            this.currentPage %= 3;
-            this.isSymbolSCLayout = true;
-          break;
-
-          case this.PAGE_DOWN:
-            if (this.currentPage > 0) {
-              this.currentPage -= 1;
-              this.currentPage %= 3;
-            } else {
-              this.currentPage += 2;
-              this.currentPage %= 3;
-            }
-            this.isSymbolSCLayout = true;
-          break;
-
-          case this.SC_TO_TR:
-            this.currentEngine.mode = true;
-            this.currentEngine.click(keyCode);
-            this.isTrChineseLayout = true;
-          break;
-
-          case this.TR_TO_SC:
-            this.currentEngine.mode = false;
-            this.currentEngine.click(keyCode);
-            this.isTrChineseLayout = false;
-          break;
-
           case this.SWITCH_KEYBOARD:
 
             // If the user has specify a keyboard in the menu,
@@ -974,62 +890,16 @@ const IMEManager = {
           // space key: replace/append with control and type keys
 
           var ratio = key.ratio || 1;
-          if (layout['needAlternate'] !== true) {
-            if (this.keyboards.length > 1) {
-              // Switch keyboard key
-              ratio -= 1;
-              content += buildKey(
-                this.SWITCH_KEYBOARD,
-                '&#x1f310;',
-                'keyboard-key-special',
-                1
-              );
-            }
-          }else {
-            if (this.keyboards.length > 1) {
-              if (layout['multi'] !== true) {
-                // Switch keyboard key
-                ratio -= 6;
-                content += buildKey(
-                  this.SWITCH_KEYBOARD,
-                  '&#x1f310;',
-                  'keyboard-key-special',
-                  2
-                );
-                content += buildKey(
-                  95,
-                  '?',
-                  'keyboard-key',
-                  2
-                );
-                content += buildKey(
-                  48,
-                  '0',
-                  'keyboard-key',
-                  2
-                );
-              }else {
-                ratio -= 6;
-                content += buildKey(
-                  this.SWITCH_KEYBOARD,
-                  '&#x1f310;',
-                  'keyboard-key-special',
-                  2
-                );
-                content += buildKey(
-                  this.PAGE_UP,
-                  '⇧',
-                  '',
-                  2
-                );
-                content += buildKey(
-                  this.PAGE_DOWN,
-                  '⇩',
-                  '',
-                  2
-                );
-              }
-            }
+
+          if (this.keyboards.length > 1) {
+            // Switch keyboard key
+            ratio -= 1;
+            content += buildKey(
+              this.SWITCH_KEYBOARD,
+              '&#x1f310;',
+              'keyboard-key-special',
+              1
+            );
           }
 
           // Alternate layout key
@@ -1037,48 +907,32 @@ const IMEManager = {
           // key contents
           var alternateLayoutKey = '?123';
           var current = Keyboards[this.currentKeyboard];
-          if (current['needAlternate']) {
-            if (current['alternateLayoutKey']) {
-              alternateLayoutKey = current['alternateLayoutKey'];
-            }
+          if (current['alternateLayoutKey']) {
+            alternateLayoutKey = current['alternateLayoutKey'];
+          }
 
-            // This gives the author the ability to change the basic layout
-            // key contents
-            var basicLayoutKey = 'ABC';
-            if (current['basicLayoutKey']) {
-              basicLayoutKey = current['basicLayoutKey'];
-            }
+          // This gives the author the ability to change the basic layout
+          // key contents
+          var basicLayoutKey = 'ABC';
+          if (current['basicLayoutKey']) {
+            basicLayoutKey = current['basicLayoutKey'];
+          }
 
-            ratio -= 2;
-            if (this.currentKeyboardMode == '') {
-              content += buildKey(
-                this.ALTERNATE_LAYOUT,
-                alternateLayoutKey,
-                'keyboard-key-special',
-                2
-              );
-            } else {
-              content += buildKey(
-                this.BASIC_LAYOUT,
-                basicLayoutKey,
-                'keyboard-key-special',
-                2
-              );
-            }
-          }else {
-            ratio -= 3;
+          ratio -= 2;
+          if (this.currentKeyboardMode == '') {
             content += buildKey(
-                this.SYMBOLSC_LAYOUT,
-                '?!#',
-                '',
-                1.5
-              );
+              this.ALTERNATE_LAYOUT,
+              alternateLayoutKey,
+              'keyboard-key-special',
+              2
+            );
+          } else {
             content += buildKey(
-                this.NUMBER_LAYOUT,
-                '123',
-                '',
-                1.5
-              );
+              this.BASIC_LAYOUT,
+              basicLayoutKey,
+              'keyboard-key-special',
+              2
+            );
           }
 
           switch (this.currentType) {
