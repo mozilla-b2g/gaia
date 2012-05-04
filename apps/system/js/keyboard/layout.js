@@ -43,12 +43,12 @@ const Keyboards = {
     width: 1,
     keys: [[{ value: "↵", ratio: 1, keyCode: KeyEvent.DOM_VK_RETURN}]],
     draw: function (drawArea) {
-      IMEManager.datepicker = new Gaia.UI.Datepicker('#' + drawArea.id);
+      IMEManager.datepicker = new Datepicker('#' + drawArea.id);
       IMEManager.datepicker.load(new Date());
       IMEManager.datepicker.init();
     },
     done: function(target) {
-      target.value = IMEManager.datepicker.toShortDate(IMEManager.datepicker.date);
+      target.value = IMEManager.datepicker.toShortDate(IMEManager.datepicker.getDate());
       for (index in value) {
         var key = value[index];
         window.navigator.mozKeyboard.sendKey(keyCode, keyCode);

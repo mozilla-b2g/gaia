@@ -1,18 +1,12 @@
 'use strict';
 
-if (!window['Gaia'])
-  var Gaia = {'UI': {}};
-
-if (!window[Gaia['UI']])
-  Gaia['UI'] = {};
-
 (function() {
-  Gaia.UI.DateSlider = function(id, pixelmillis) {
+  var DateSlider = function ds(id, pixelmillis) {
     this.id = id;
     this.pixelmillis = pixelmillis;
   };
 
-  Gaia.UI.DateSlider.prototype = {
+  DateSlider.prototype = {
     id: undefined,
     input: undefined,
 
@@ -30,14 +24,7 @@ if (!window[Gaia['UI']])
     realtimeLeft: 0, /* Widget offset form left in pixels,
                         it is updated during slide */
 
-    /** Get exact date this widget is pointing to.
-    */
-    get date() {
-      return new Date(this.cacheFirst.getTime() +
-        (this.pixelmillis * (this.distanceToCenter() - this.realtimeLeft)));
-    },
-
-    handleEvent: function(evt) {
+    handleEvent: function ds_handleEvent(evt) {
       switch (evt.type) {
       case 'mousedown':
         this.mousePosX = evt.clientX;
@@ -48,29 +35,38 @@ if (!window[Gaia['UI']])
         break;
 
       case 'mouseup':
-        if (this.sliding) {
-          this.sliding = false;
-          this.left = this.left + evt.clientX - this.mousePosX;
-        }
+        if (!this.sliding)
+          return;
+
+        this.sliding = false;
+        this.left = this.left + evt.clientX - this.mousePosX;
+
         break;
 
       case 'mousemove':
-        if (this.sliding) {
-          this.realtimeLeft = this.left + evt.clientX - this.mousePosX;
-          this.input.style.left = this.realtimeLeft + 'px';
+        if (!this.sliding)
+          return;
 
-          // Trigger dateslide event for calendar update
-          var slideEvent = document.createEvent('MouseEvents');
-          slideEvent.initEvent('dateslide', true, true);
-          this.input.dispatchEvent(slideEvent);
+        this.realtimeLeft = this.left + evt.clientX - this.mousePosX;
+        this.input.style.left = this.realtimeLeft + 'px';
 
-        }
+        // Trigger dateslide event for calendar update
+        var slideEvent = document.createEvent('MouseEvents');
+        slideEvent.initEvent('dateslide', true, true);
+        this.input.dispatchEvent(slideEvent);
+
         break;
       }
     },
 
-    load: function() {
+    /** Get exact date this widget is pointing to.
+    */
+    getDate: function ds_getDate() {
+      return new Date(this.cacheFirst.getTime() +
+        (this.pixelmillis * (this.distanceToCenter() - this.realtimeLeft)));
+    },
 
+    load: function ds_load() {
     // Load structure
       var mainDiv = document.createElement('div');
       this.input = document.createElement('ul');
@@ -88,7 +84,7 @@ if (!window[Gaia['UI']])
 
     /** Moves the widget to passed date.
     */
-    move: function(date) {
+    move: function ds_move(date) {
       // If moved while sliding take current movement into account
       var leftMove = this.sliding ? this.left - this.realtimeLeft : 0;
 
@@ -101,13 +97,12 @@ if (!window[Gaia['UI']])
 
     /** Gets selected element for this widget.
     */
-    selected: function() {
+    selected: function ds_selected() {
       var leftStr = this.input.style.left;
       var left = parseFloat(leftStr.substring(0, leftStr.length - 2)) -
         this.distanceToCenter();
 
-      for (var i = 0; i < this.input.children.length; i++)
-      {
+      for (var i = 0; i < this.input.children.length; i++) {
         var widthStr = this.input.children[i].style.width;
         // Width plus border
         left += parseFloat(widthStr.substring(0, widthStr.length - 2)) +
@@ -129,22 +124,21 @@ if (!window[Gaia['UI']])
     /** Gets distance to screen center.
     * It takes container div's computed style and divides by two.
     */
-    distanceToCenter: function() {
+    distanceToCenter: function ds_distanceToCenter() {
       return window.innerWidth / 2;
     },
 
     /** Deselects all elems of this widget.
     */
-    deselectAll: function() {
-      for (var i = 0; i < this.input.children.length; i++)
-      {
+    deselectAll: function ds_deselectAll() {
+      for (var i = 0; i < this.input.children.length; i++) {
         this.input.children[i].classList.remove('sel');
       }
     },
 
     /** Puts an element at the begining of the widget.
     */
-    addFirst: function(data) {
+    addFirst: function ds_addFirst(data) {
       var li = document.createElement('li');
 
       // Set width without borders
@@ -156,7 +150,7 @@ if (!window[Gaia['UI']])
 
     /** Puts an element at the end of the widget.
     */
-    addLast: function(data) {
+    addLast: function ds_addLast(data) {
       var li = document.createElement('li');
 
       // Set width without borders
@@ -168,18 +162,18 @@ if (!window[Gaia['UI']])
 
     /** Removes an element from the end of the widget.
     */
-    removeFirst: function() {
+    removeFirst: function ds_removeFirst() {
       this.input.removeChild(this.input.firstChild);
     },
 
     /** Removes an element from the end of the widget.
     */
-    removeLast: function() {
+    removeLast: function ds_removeLast() {
       this.input.removeChild(this.input.lastChild);
     }
   };
 
-  Gaia.UI.Datepicker = function(href, hrefCal) {
+  var Datepicker = function dp(href, hrefCal) {
     var element = document.querySelector(href);
 
     if (element.tagName == 'INPUT') {
@@ -197,11 +191,6 @@ if (!window[Gaia['UI']])
         self.init();
         self.element.parentNode.classList.remove('hidden');
       });
-
-      //element.addEventListener('blur', function (event) {
-      //  self.element.parentNode.classList.add('hidden');
-      //});
-
     } else {
       this.element = element;
     }
@@ -209,52 +198,51 @@ if (!window[Gaia['UI']])
     this.element.classList.add('cal-widget');
   };
 
-  Gaia.UI.Datepicker.prototype = {
+  Datepicker.prototype = {
     date: new Date(),
 
     oneDay: 1000 * 60 * 60 * 24,
-    months: ['January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'],
 
     element: undefined, // Main widget element
 
-    dayWidget: new Gaia.UI.DateSlider('cal-day',
+    dayWidget: new DateSlider('cal-day',
       1000 * 60 * 30), // Day widget
-    monthWidget: new Gaia.UI.DateSlider('cal-month',
+    monthWidget: new DateSlider('cal-month',
       1000 * 60 * 60 * 7), // Month widget
-    yearWidget: new Gaia.UI.DateSlider('cal-year',
+    yearWidget: new DateSlider('cal-year',
       1000 * 60 * 60 * 24 * 3), // Year widget
 
-    handleEvent: function(evt) {
-      if (evt.type == 'dateslide') {
-        if (evt.target == this.dayWidget.input) {
-          // If day was moved move month and year
-          var selDate = this.dayWidget.date;
-          this.monthWidget.move(selDate);
-          this.yearWidget.move(selDate);
-
-        } else if (evt.target == this.monthWidget.input) {
-          // If month was moved move day and year
-          var selDate = this.monthWidget.date;
-          this.dayWidget.move(selDate);
-          this.yearWidget.move(selDate);
-
-        } else if (evt.target == this.yearWidget.input) {
-          // If year was moved move day and month
-          var selDate = this.yearWidget.date;
-          this.dayWidget.move(selDate);
-          this.monthWidget.move(selDate);
-        }
-
-        this.checkRecursiveDayUpdate();
-        this.checkRecursiveMonthUpdate();
-        this.checkYearUpdate();
-
-        this.calculateSelected();
+    handleEvent: function dp_handleEvent(evt) {
+      // evt.type is not checked since 'dateslide' is the only event to handle
+      switch (evt.target) {
+      case this.dayWidget.input:
+        // If day was moved move month and year
+        var selDate = this.dayWidget.date;
+        this.monthWidget.move(selDate);
+        this.yearWidget.move(selDate);
+        break;
+      case this.monthWidget.input:
+        // If month was moved move day and year
+        var selDate = this.monthWidget.date;
+        this.dayWidget.move(selDate);
+        this.yearWidget.move(selDate);
+        break;
+      case this.yearWidget.input:
+        // If year was moved move day and month
+        var selDate = this.yearWidget.date;
+        this.dayWidget.move(selDate);
+        this.monthWidget.move(selDate);
+        break;
       }
+
+      this.checkRecursiveDayUpdate();
+      this.checkRecursiveMonthUpdate();
+      this.checkYearUpdate();
+
+      this.calculateSelected();
     },
 
-    load: function(date) {
+    load: function dp_load(date) {
       // Clear previous structure
       this.clear();
 
@@ -283,7 +271,6 @@ if (!window[Gaia['UI']])
 
       var dayIndex = new Date(this.dayWidget.cacheFirst.getTime());
       while (dayIndex < this.dayWidget.cacheLast) {
-
         this.dayWidget.addLast(this.dayData(dayIndex));
 
         dayIndex.setDate(dayIndex.getDate() + 1);
@@ -297,7 +284,6 @@ if (!window[Gaia['UI']])
 
       var monthIndex = new Date(this.monthWidget.cacheFirst.getTime());
       while (monthIndex < this.monthWidget.cacheLast) {
-
         this.monthWidget.addLast(this.monthData(monthIndex));
 
         monthIndex.setMonth(monthIndex.getMonth() + 1);
@@ -309,15 +295,13 @@ if (!window[Gaia['UI']])
 
       var yearIndex = new Date(this.yearWidget.cacheFirst.getTime());
       while (yearIndex < this.yearWidget.cacheLast) {
-
         this.yearWidget.addLast(this.yearData(yearIndex));
 
         yearIndex.setYear(yearIndex.getFullYear() + 1);
       }
     },
 
-    init: function() {
-
+    init: function dp_init() {
       // Set initial position
       this.dayWidget.move(this.date); // Set Day
       this.monthWidget.move(this.date); // Set month
@@ -326,16 +310,13 @@ if (!window[Gaia['UI']])
       this.calculateSelected();
     },
 
-    clear: function() {
-      while (this.element.firstChild) {
-        this.element.removeChild(this.element.firstChild);
-      }
+    clear: function dp_clear() {
+      this.element.innerHTML = '';
     },
 
     /** Gets and shows selected day.
     */
-    calculateSelected: function() {
-
+    calculateSelected: function dp_calculateSelected() {
       var dayElem = this.dayWidget.selected();
       var monthElem = this.monthWidget.selected();
       var yearElem = this.yearWidget.selected();
@@ -358,21 +339,21 @@ if (!window[Gaia['UI']])
 
     /** Gets a day object to fill one element of the day widget.
     */
-    dayData: function(date) {
+    dayData: function dp_dayData(date) {
       return {'id': date.getDate(), 'name': date.getDate(),
         'millis': this.oneDay};
     },
 
     /** Gets a month object to fill one element of the month widget.
     */
-    monthData: function(date) {
-      return {'id': date.getMonth(), 'name': this.months[date.getMonth()],
+    monthData: function dp_monthData(date) {
+      return {'id': date.getMonth(), 'name': date.toLocaleFormat('%D'),
         'millis': this.oneDay * this.daysInMonth(date)};
     },
 
     /** Gets a year object to fill one element of the year widget.
     */
-    yearData: function(date) {
+    yearData: function dp_yearData(date) {
       return {'id': date.getFullYear(), 'name': date.getFullYear(),
         'millis': this.oneDay * this.daysInYear(date)};
     },
@@ -380,7 +361,7 @@ if (!window[Gaia['UI']])
     /** Checks if the day widget needs a cache update based on current date.
     * @return {boolean} if the widget was updated.
     */
-    checkDayUpdate: function() {
+    checkDayUpdate: function dp_checkDayUpdate() {
       var updated = false;
       var selDate = this.dayWidget.date;
       var limitDate = new Date(this.dayWidget.cacheFirst);
@@ -403,13 +384,13 @@ if (!window[Gaia['UI']])
     /** Checks if the day widget needs a cache update based on
     *   current date recursively until it reaches today.
     */
-    checkRecursiveDayUpdate: function() {
-      while (this.checkDayUpdate()) {}
+    checkRecursiveDayUpdate: function dp_checkRecursiveDayUpdate() {
+      while (this.checkDayUpdate());
     },
 
     /** Checks if the month widget needs a cache update based on current date.
     */
-    checkMonthUpdate: function() {
+    checkMonthUpdate: function dp_checkMonthUpdate() {
       var selDate = this.monthWidget.date;
       var limitDate = new Date(this.monthWidget.cacheFirst);
       limitDate.setMonth(limitDate.getMonth() + 6);
@@ -427,13 +408,13 @@ if (!window[Gaia['UI']])
     /** Checks if the month widget needs a cache update based on
     *   current date recursively until it reaches today.
     */
-    checkRecursiveMonthUpdate: function() {
-      while (this.checkMonthUpdate()) {}
+    checkRecursiveMonthUpdate: function dp_checkRecursiveMonthUpdate() {
+      while (this.checkMonthUpdate());
     },
 
     /** Checks if the year widget needs a cache update based on current date.
     */
-    checkYearUpdate: function() {
+    checkYearUpdate: function dp_checkYearUpdate() {
       var selDate = this.yearWidget.date;
       var limitDate = new Date(this.yearWidget.cacheFirst);
       limitDate.setFullYear(limitDate.getFullYear() + 5);
@@ -450,8 +431,7 @@ if (!window[Gaia['UI']])
 
     /** Adds a number of months to the left of the widget cache.
     */
-    cacheLeft: function(widget, months) {
-
+    cacheLeft: function dp_cacheLeft(widget, months) {
       switch (widget.id) {
         case 'cal-day':
           // Date index, the day before the first cache date
@@ -503,8 +483,7 @@ if (!window[Gaia['UI']])
 
     /** Adds a number of months to the right of the widget cache.
     */
-    cacheRight: function(widget, months) {
-
+    cacheRight: function dp_cacheRight(widget, months) {
       var currentDate = widget.date;
 
       // Date index, the last cache date
@@ -516,7 +495,6 @@ if (!window[Gaia['UI']])
 
       // Add months to the right of the widget
       while (dateIndex < widget.cacheLast) {
-
         switch (widget.id) {
           case 'cal-day':
             widget.addLast(this.dayData(dateIndex));
@@ -539,29 +517,29 @@ if (!window[Gaia['UI']])
       widget.move(currentDate);
     },
 
-    toShortTime: function(date) {
+    toShortTime: function dp_toShortTime(date) {
       return this.pad(date.getHours(), 2) + ':' +
         this.pad(date.getMinutes(), 2);
     },
 
-    toShortDate: function(date) {
+    toShortDate: function dp_toShortDate(date) {
       return date.getFullYear() + '-' + this.pad((date.getMonth() + 1), 2) +
         '-' + this.pad(date.getDate(), 2);
     },
 
-    toShortDateTime: function(date) {
+    toShortDateTime: function dp_toShortDateTime(date) {
       return this.toShortTime(date) + '   ' + this.toShortDate(date);
     },
 
-    daysInMonth: function(date) {
+    daysInMonth: function dp_daysInMonth(date) {
       return 32 - new Date(date.getFullYear(), date.getMonth(), 32).getDate();
     },
 
-    daysInYear: function(date) {
+    daysInYear: function dp_daysInYear(date) {
       return 367 - new Date(date.getFullYear(), date.getMonth(), 367).getDate();
     },
 
-    pad: function(number, length) {
+    pad: function dp_pad(number, length) {
       var str = '' + number;
       while (str.length < length) {
           str = '0' + str;
@@ -570,7 +548,7 @@ if (!window[Gaia['UI']])
       return str;
     },
 
-    checkDate: function(date) {
+    checkDate: function dp_checkDate(date) {
       return date && !isNaN(date.getTime());
     }
   };
