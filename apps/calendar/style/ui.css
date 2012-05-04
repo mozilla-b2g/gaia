@@ -1,6 +1,7 @@
 /*
 COLORS
 
+BUSY BACKGROUND: #CCC
 BORDER: #AAA;
 CALENDER BORDER: #606060
 
@@ -107,7 +108,75 @@ section.month {
 
 section.month li {
   text-align: right;
-  padding: 1% 2% 0 0;
   border-bottom: 1px solid #AAA;
   border-left: 1px solid #AAA;
+  height: 6.5mozmm;
+  position: relative;
 }
+
+section.month li > .day {
+  padding: 1% 2% 0 0;
+}
+
+
+/* sub day rows: busy indicators */
+
+
+section.month li .busy-indicator,
+section.month li .busy-indicator > span{
+  height: 1.2mozmm;
+}
+
+section.month li .busy-indicator {
+  overflow: hidden;
+  clear: both;
+  bottom: 0px;
+  position: absolute;
+  line-height: 0px;
+  width: 100%;
+}
+
+section.month li .busy-indicator:before {
+  /* &nsbp; */
+  content:"\00a0";
+}
+
+
+section.month li .busy-indicator > span {
+  width: 8.33%;
+  background-color: #CCC;
+  position: absolute;
+  text-indent: -1000em;
+}
+
+/**
+Indicators are in units of 12
+*/
+/* ltr busy units */
+.ltr .busy-indicator .busy-1 { left: 0%; }
+.ltr .busy-indicator .busy-2 { left: 8.33%; }
+.ltr .busy-indicator .busy-3 { left: 16.66%; }
+.ltr .busy-indicator .busy-4 { left: 24.990000000000002%; }
+.ltr .busy-indicator .busy-5 { left: 33.32%; }
+.ltr .busy-indicator .busy-6 { left: 41.65%; }
+.ltr .busy-indicator .busy-7 { left: 49.980000000000004%; }
+.ltr .busy-indicator .busy-8 { left: 58.31%; }
+.ltr .busy-indicator .busy-9 { left: 66.64%; }
+.ltr .busy-indicator .busy-10 { left: 74.97%; }
+.ltr .busy-indicator .busy-11 { left: 83.3%; }
+.ltr .busy-indicator .busy-12 { left: 91.63%; }
+
+
+/* rtl busy units */
+.rtl .busy-indicator .busy-1 { right: 0%; }
+.rtl .busy-indicator .busy-2 { right: 8.33%; }
+.rtl .busy-indicator .busy-3 { right: 16.66%; }
+.rtl .busy-indicator .busy-4 { right: 24.990000000000002%; }
+.rtl .busy-indicator .busy-5 { right: 33.32%; }
+.rtl .busy-indicator .busy-6 { right: 41.65%; }
+.rtl .busy-indicator .busy-7 { right: 49.980000000000004%; }
+.rtl .busy-indicator .busy-8 { right: 58.31%; }
+.rtl .busy-indicator .busy-9 { right: 66.64%; }
+.rtl .busy-indicator .busy-10 { right: 74.97%; }
+.rtl .busy-indicator .busy-11 { right: 83.3%; }
+.rtl .busy-indicator .busy-12 { right: 91.63%; }
