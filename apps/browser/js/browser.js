@@ -16,6 +16,7 @@ var Browser = {
     // Assign UI elements to variables
     this.toolbarStart = document.getElementById('toolbar-start');
     this.urlBar = document.getElementById('url-bar');
+    this.favicon = document.getElementById('favicon');
     this.urlInput = document.getElementById('url-input');
     this.urlButton = document.getElementById('url-button');
     this.content = document.getElementById('browser-content');
@@ -32,7 +33,7 @@ var Browser = {
     window.addEventListener('keyup', this, true);
 
     var browserEvents = ['loadstart', 'loadend', 'locationchange',
-      'titlechange'];
+      'titlechange', 'iconchange'];
     browserEvents.forEach((function attachBrowserEvent(type) {
       this.content.addEventListener('mozbrowser' + type, this);
     }).bind(this));
@@ -83,6 +84,10 @@ var Browser = {
         if (!this.urlBar.querySelector(':focus'))
           urlInput.value = this.currentTitle;
         GlobalHistory.setPageTitle(this.currentUrl, this.currentTitle);
+        break;
+
+      case 'mozbrowsericonchange':
+        this.favicon.setAttribute('src', evt.detail);
         break;
     }
   },
