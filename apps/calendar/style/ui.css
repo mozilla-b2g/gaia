@@ -4,7 +4,9 @@ COLORS
 BUSY BACKGROUND: #CCC
 BORDER: #AAA;
 CALENDER BORDER: #606060
-
+MONTH DAY BACKGROUND: #FFF
+MONTH DAY PAST BACKGROUND: #A8A8A8
+MONTH DAY PAST COLOR: #666
 */
 
 html, body {
@@ -112,6 +114,12 @@ section.month li {
   border-left: 1px solid #AAA;
   height: 6.5mozmm;
   position: relative;
+  background-color: white;
+}
+
+section.month li.past {
+  background-color: #E7E7E7;
+  color: #9A9A9A;
 }
 
 section.month li > .day {
