@@ -45,15 +45,6 @@
 // still be available for other code to process. It is not clear to me
 // whether this is a feature or a bug.
 //
-// Each GestureDetector listens for mouse and touch events on a single
-// target element and dispatches its synthetic events on the same
-// element.  Its not clear to me whether this will be sufficient or
-// whether I need to do something more sophisticated. For example, the
-// GestureDetector() could take a CSS selector argument and only
-// detect gestures on elements that match that selector. Or it could
-// remember the originalTarget element on which the gesture began and
-// dispatch events on that object rather than the higher-level one.
-//
 var GestureDetector = (function() {
 
   //
@@ -131,9 +122,14 @@ var GestureDetector = (function() {
   };
 
   GD.prototype.emitEvent = function(type, detail) {
+    if (!this.target) {
+      console.error("Attempt to emit event with no target");
+      return;
+    }
+
     var event = this.element.ownerDocument.createEvent('CustomEvent');
     event.initCustomEvent(type, true, true, detail);
-    this.element.dispatchEvent(event);
+    this.target.dispatchEvent(event);
   }
 
   //
@@ -164,7 +160,6 @@ var GestureDetector = (function() {
     'touchmove',
     'touchend',
     'mousedown'  // We register mousemove and mouseup manually
-    // XXX: add MozMagnifyGesture events
   ];
 
   // Return the event's timestamp in ms
@@ -265,6 +260,7 @@ var GestureDetector = (function() {
       // When we enter or return to the initial state, clear
       // the detector properties that were tracking gestures
       // Don't clear d.lastTap here, though. We need it for dbltap events
+      d.target = null;
       d.start = d.last = null;
       d.touch1 = d.touch2 = null;
       d.vx = d.vy = null;
@@ -293,6 +289,8 @@ var GestureDetector = (function() {
   var touchStartedState = {
     name: 'touchStartedState',
     init: function(d, e, t) {
+      // Remember the target of the event
+      d.target = e.target;
       // Remember the id of the touch that started
       d.touch1 = t.identifier;
       // Get the coordinates of the touch
@@ -610,6 +608,9 @@ var GestureDetector = (function() {
   var mouseDownState = {
     name: 'mouseDownState',
     init: function(d, e) {
+      // Remember the target of the event
+      d.target = e.target;
+
       // Register this detector as a *capturing* handler on the document
       // so we get all subsequent mouse events until we remove these handlers
       var doc = d.element.ownerDocument;
