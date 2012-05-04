@@ -26,14 +26,14 @@ suite('SyntheticGestures', function() {
   // expected stream of synthetic events
   suite('eventstream', function() {
     var events;    // save a sequence of events
-    var element;   // dummy element to generate events on 
+    var element;   // dummy element to generate events on
 
     // Just push the event object into an array
     function saveevent(e) { events.push(e); }
 
     // Return the sequence of events as a string of event types
     function eventseq() {
-      return events.map(function(e) { return e.type }).join(" ");
+      return events.map(function(e) { return e.type }).join(' ');
     }
 
     suiteSetup(function() {
@@ -43,7 +43,7 @@ suite('SyntheticGestures', function() {
       document.addEventListener('mousedown', saveevent, true);
       document.addEventListener('mousemove', saveevent, true);
       document.addEventListener('mouseup', saveevent, true);
-    })
+    });
 
     suiteTeardown(function() {
       document.removeEventListener('touchstart', saveevent, true);
@@ -68,7 +68,7 @@ suite('SyntheticGestures', function() {
 
     test('tap', function(done) {
       SyntheticGestures.tap(element, function() {
-        assert.equal(eventseq(), "touchstart touchend"); 
+        assert.equal(eventseq(), 'touchstart touchend');
         assert.equal(events[0].changedTouches[0].clientX, 10);
         assert.equal(events[0].changedTouches[0].clientY, 20);
         assert.equal(events[1].changedTouches[0].clientX, 10);
@@ -79,7 +79,7 @@ suite('SyntheticGestures', function() {
 
     test('mousetap', function(done) {
       SyntheticGestures.mousetap(element, function() {
-        assert.equal(eventseq(), "mousedown mouseup"); 
+        assert.equal(eventseq(), 'mousedown mouseup');
         assert.equal(events[0].clientX, 10);
         assert.equal(events[0].clientY, 20);
         assert.equal(events[1].clientX, 10);
@@ -90,7 +90,7 @@ suite('SyntheticGestures', function() {
 
     test('dbltap', function(done) {
       SyntheticGestures.dbltap(element, function() {
-        assert.equal(eventseq(), "touchstart touchend touchstart touchend"); 
+        assert.equal(eventseq(), 'touchstart touchend touchstart touchend');
         assert.equal(events[0].changedTouches[0].clientX, 10);
         assert.equal(events[0].changedTouches[0].clientY, 20);
         assert.equal(events[3].changedTouches[0].clientX, 10);
@@ -101,13 +101,13 @@ suite('SyntheticGestures', function() {
 
     test('mousedbltap', function(done) {
       SyntheticGestures.mousedbltap(element, function() {
-        assert.equal(eventseq(), "mousedown mouseup mousedown mouseup"); 
+        assert.equal(eventseq(), 'mousedown mouseup mousedown mouseup');
         assert.equal(events[0].clientX, 10);
         assert.equal(events[0].clientY, 20);
         assert.equal(events[3].clientX, 10);
         assert.equal(events[3].clientY, 20);
         done();
-      },10,20);
+      },10, 20);
     });
 
     test('swipe', function(done) {
@@ -115,8 +115,8 @@ suite('SyntheticGestures', function() {
         assert.match(eventseq(), /touchstart (touchmove )+touchend/);
         assert.equal(events[0].changedTouches[0].clientX, 0);
         assert.equal(events[0].changedTouches[0].clientY, 0);
-        assert.equal(events[events.length-1].changedTouches[0].clientX, 100);
-        assert.equal(events[events.length-1].changedTouches[0].clientY, 100);
+        assert.equal(events[events.length - 1].changedTouches[0].clientX, 100);
+        assert.equal(events[events.length - 1].changedTouches[0].clientY, 100);
         done();
       });
     });
@@ -126,8 +126,8 @@ suite('SyntheticGestures', function() {
         assert.match(eventseq(), /mousedown (mousemove )+mouseup/);
         assert.equal(events[0].clientX, 0);
         assert.equal(events[0].clientY, 0);
-        assert.equal(events[events.length-1].clientX, 100);
-        assert.equal(events[events.length-1].clientY, 100);
+        assert.equal(events[events.length - 1].clientX, 100);
+        assert.equal(events[events.length - 1].clientY, 100);
         done();
       });
     });
@@ -137,31 +137,31 @@ suite('SyntheticGestures', function() {
         assert.match(eventseq(), /touchstart (touchmove )+touchend/);
         assert.equal(events[0].changedTouches[0].clientX, 0);
         assert.equal(events[0].changedTouches[0].clientY, 0);
-        assert.equal(events[events.length-1].changedTouches[0].clientX, 100);
-        assert.equal(events[events.length-1].changedTouches[0].clientY, 100);
+        assert.equal(events[events.length - 1].changedTouches[0].clientX, 100);
+        assert.equal(events[events.length - 1].changedTouches[0].clientY, 100);
         done();
       });
     });
 
     test('mousehold', function(done) {
-      SyntheticGestures.mousehold(element, 100, 0, 0, 100, 100, 100, function(){
+      SyntheticGestures.mousehold(element, 100, 0, 0, 100, 100, 100, function() {
         assert.match(eventseq(), /mousedown (mousemove )+mouseup/);
         assert.equal(events[0].clientX, 0);
         assert.equal(events[0].clientY, 0);
-        assert.equal(events[events.length-1].clientX, 100);
-        assert.equal(events[events.length-1].clientY, 100);
+        assert.equal(events[events.length - 1].clientX, 100);
+        assert.equal(events[events.length - 1].clientY, 100);
         done();
       });
     });
 
     test('pinch (out)', function(done) {
-      SyntheticGestures.pinch(element, 100, 100, 200, 100, 2, 200, function(){
+      SyntheticGestures.pinch(element, 100, 100, 200, 100, 2, 200, function() {
         assert.match(eventseq(),
                      /touchstart touchstart (touchmove )+touchend touchend/);
         assert.equal(events[0].touches.length, 1);
         assert.equal(events[1].touches.length, 2);
         assert.equal(events[1].targetTouches.length, 2);
-        var e = events[events.length-3];  // last touchmove event
+        var e = events[events.length - 3];  // last touchmove event
         var t1 = e.targetTouches[0];
         var t2 = e.targetTouches[1];
         var dx = Math.abs(t1.clientX - t2.clientX);
@@ -171,13 +171,13 @@ suite('SyntheticGestures', function() {
     });
 
     test('pinch (in)', function(done) {
-      SyntheticGestures.pinch(element, 100, 100, 200, 100, .75, 200, function(){
+      SyntheticGestures.pinch(element, 100, 100, 200, 100, .75, 200, function() {
         assert.match(eventseq(),
                      /touchstart touchstart (touchmove )+touchend touchend/);
         assert.equal(events[0].touches.length, 1);
         assert.equal(events[1].touches.length, 2);
         assert.equal(events[1].targetTouches.length, 2);
-        var e = events[events.length-3];  // last touchmove event
+        var e = events[events.length - 3];  // last touchmove event
         var t1 = e.targetTouches[0];
         var t2 = e.targetTouches[1];
         var dx = Math.abs(t1.clientX - t2.clientX);
@@ -190,14 +190,14 @@ suite('SyntheticGestures', function() {
   // Just like the above, but using relative coordinates
   suite('relative coordinates', function() {
     var events;    // save a sequence of events
-    var element;   // dummy element to generate events on 
+    var element;   // dummy element to generate events on
 
     // Just push the event object into an array
     function saveevent(e) { events.push(e); }
 
     // Return the sequence of events as a string of event types
     function eventseq() {
-      return events.map(function(e) { return e.type }).join(" ");
+      return events.map(function(e) { return e.type }).join(' ');
     }
 
     suiteSetup(function() {
@@ -207,7 +207,7 @@ suite('SyntheticGestures', function() {
       document.addEventListener('mousedown', saveevent, true);
       document.addEventListener('mousemove', saveevent, true);
       document.addEventListener('mouseup', saveevent, true);
-    })
+    });
 
     suiteTeardown(function() {
       document.removeEventListener('touchstart', saveevent, true);
@@ -232,18 +232,18 @@ suite('SyntheticGestures', function() {
 
     test('tap', function(done) {
       SyntheticGestures.tap(element, function() {
-        assert.equal(eventseq(), "touchstart touchend"); 
+        assert.equal(eventseq(), 'touchstart touchend');
         assert.equal(events[0].changedTouches[0].clientX, 40);
         assert.equal(events[0].changedTouches[0].clientY, 200);
         assert.equal(events[1].changedTouches[0].clientX, 40);
         assert.equal(events[1].changedTouches[0].clientY, 200);
         done();
-      }, "10%");
+      }, '10%');
     });
 
     test('mousetap', function(done) {
       SyntheticGestures.mousetap(element, function() {
-        assert.equal(eventseq(), "mousedown mouseup"); 
+        assert.equal(eventseq(), 'mousedown mouseup');
         assert.equal(events[0].clientX, 200);
         assert.equal(events[0].clientY, 200);
         assert.equal(events[1].clientX, 200);
@@ -254,7 +254,7 @@ suite('SyntheticGestures', function() {
 
     test('dbltap', function(done) {
       SyntheticGestures.dbltap(element, function() {
-        assert.equal(eventseq(), "touchstart touchend touchstart touchend"); 
+        assert.equal(eventseq(), 'touchstart touchend touchstart touchend');
         assert.equal(events[0].changedTouches[0].clientX, 40);
         assert.equal(events[0].changedTouches[0].clientY, 80);
         assert.equal(events[3].changedTouches[0].clientX, 40);
@@ -265,7 +265,7 @@ suite('SyntheticGestures', function() {
 
     test('mousedbltap', function(done) {
       SyntheticGestures.mousedbltap(element, function() {
-        assert.equal(eventseq(), "mousedown mouseup mousedown mouseup"); 
+        assert.equal(eventseq(), 'mousedown mouseup mousedown mouseup');
         assert.equal(events[0].clientX, 40);
         assert.equal(events[0].clientY, 80);
         assert.equal(events[3].clientX, 40);
@@ -280,8 +280,8 @@ suite('SyntheticGestures', function() {
         assert.match(eventseq(), /touchstart (touchmove )+touchend/);
         assert.equal(events[0].changedTouches[0].clientX, 40);
         assert.equal(events[0].changedTouches[0].clientY, 40);
-        assert.equal(events[events.length-1].changedTouches[0].clientX, 200);
-        assert.equal(events[events.length-1].changedTouches[0].clientY, 80);
+        assert.equal(events[events.length - 1].changedTouches[0].clientX, 200);
+        assert.equal(events[events.length - 1].changedTouches[0].clientY, 80);
         done();
       });
     });
@@ -292,8 +292,8 @@ suite('SyntheticGestures', function() {
         assert.match(eventseq(), /mousedown (mousemove )+mouseup/);
         assert.equal(events[0].clientX, 200);
         assert.equal(events[0].clientY, 200);
-        assert.equal(events[events.length-1].clientX, 100);
-        assert.equal(events[events.length-1].clientY, 160);
+        assert.equal(events[events.length - 1].clientX, 100);
+        assert.equal(events[events.length - 1].clientY, 160);
         done();
       });
     });
@@ -303,31 +303,31 @@ suite('SyntheticGestures', function() {
         assert.match(eventseq(), /touchstart (touchmove )+touchend/);
         assert.equal(events[0].changedTouches[0].clientX, 0);
         assert.equal(events[0].changedTouches[0].clientY, 40);
-        assert.equal(events[events.length-1].changedTouches[0].clientX, 400);
-        assert.equal(events[events.length-1].changedTouches[0].clientY, 36);
+        assert.equal(events[events.length - 1].changedTouches[0].clientX, 400);
+        assert.equal(events[events.length - 1].changedTouches[0].clientY, 36);
         done();
       });
     });
 
     test('mousehold', function(done) {
-      SyntheticGestures.mousehold(element, 100, '1%', '1', 100, '+1%', 100, function(){
+      SyntheticGestures.mousehold(element, 100, '1%', '1', 100, '+1%', 100, function() {
         assert.match(eventseq(), /mousedown (mousemove )+mouseup/);
         assert.equal(events[0].clientX, 4);
         assert.equal(events[0].clientY, 1);
-        assert.equal(events[events.length-1].clientX, 100);
-        assert.equal(events[events.length-1].clientY, 5);
+        assert.equal(events[events.length - 1].clientX, 100);
+        assert.equal(events[events.length - 1].clientY, 5);
         done();
       });
     });
 
     test('pinch (out)', function(done) {
-      SyntheticGestures.pinch(element, '10%', '10%', '20%', '10%', 2, 200, function(){
+      SyntheticGestures.pinch(element, '10%', '10%', '20%', '10%', 2, 200, function() {
         assert.match(eventseq(),
                      /touchstart touchstart (touchmove )+touchend touchend/);
         assert.equal(events[0].touches.length, 1);
         assert.equal(events[1].touches.length, 2);
         assert.equal(events[1].targetTouches.length, 2);
-        var e = events[events.length-3];  // last touchmove event
+        var e = events[events.length - 3];  // last touchmove event
         var t1 = e.targetTouches[0];
         var t2 = e.targetTouches[1];
         var dx = Math.abs(t1.clientX - t2.clientX);
@@ -337,13 +337,13 @@ suite('SyntheticGestures', function() {
     });
 
     test('pinch (in)', function(done) {
-      SyntheticGestures.pinch(element, '50%', 100, '0%', 100, .75, 200, function(){
+      SyntheticGestures.pinch(element, '50%', 100, '0%', 100, .75, 200, function() {
         assert.match(eventseq(),
                      /touchstart touchstart (touchmove )+touchend touchend/);
         assert.equal(events[0].touches.length, 1);
         assert.equal(events[1].touches.length, 2);
         assert.equal(events[1].targetTouches.length, 2);
-        var e = events[events.length-3];  // last touchmove event
+        var e = events[events.length - 3];  // last touchmove event
         var t1 = e.targetTouches[0];
         var t2 = e.targetTouches[1];
         var dx = Math.abs(t1.clientX - t2.clientX);

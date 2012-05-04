@@ -1,8 +1,5 @@
 'use strict';
 
-// XXX: with the new gestures, I can't use a mouse or trackpad.
-// So add to GestureDetector to support those before pushing this.
-
 /*
  * This app displays photos that are stored on the phone.
  *
@@ -82,8 +79,6 @@
  *   the ability to download photos from the web might be nice, too.
  *   we need to be able to determine the size of a photo, I think.
  *   do we need to read metadata?
- *   need to be able to deal with photos of different sizes and orientations
- *     can't just size them to 100%,100%.
  *   need to handle resize/orientationchange events because I'm guessing
  *     that image sizes will have to change.
  *   we should probably have a way to organize photos into albums
@@ -96,13 +91,13 @@
 
 //
 // Tuneable parameters
-// 
+//
 
 // Pan this % of width to transition from one photo to the next
-const TRANSITION_FRACTION = 0.25; 
+const TRANSITION_FRACTION = 0.25;
 
 // This is the speed of our default transitions in pixels/ms.
-// Swipe faster than this to transition faster. But we'll 
+// Swipe faster than this to transition faster. But we'll
 // never go slower (except slide show transitions).
 const TRANSITION_SPEED = 1.8;
 
@@ -307,10 +302,10 @@ photos.addEventListener('swipe', function(event) {
   // a different photo?
   var farenough = (Math.abs(pastEdge) > window.innerWidth*TRANSITION_FRACTION);
   var velocity = event.detail.vx;
-  var fastenough = Math.abs(velocity) > TRANSITION_SPEED; 
+  var fastenough = Math.abs(velocity) > TRANSITION_SPEED;
 
   // Make sure that that the speed and pan amount are in the same direction
-  var samedirection = velocity === 0 || pastEdge/velocity >= 0;
+  var samedirection = velocity === 0 || pastEdge / velocity >= 0;
 
   // Is there a next or previous photo to transition to?
   var photoexists =
@@ -339,7 +334,7 @@ photos.addEventListener('swipe', function(event) {
   else if (pastEdge !== 0) {
     // Otherwise, just restore the current photo by undoing
     // the translations we added during panning
-    var time = Math.abs(pastEdge)/TRANSITION_SPEED;
+    var time = Math.abs(pastEdge) / TRANSITION_SPEED;
     var transition = 'all ' + time + 'ms linear';
     previousPhotoFrame.style.MozTransition = transition;
     currentPhotoFrame.style.MozTransition = transition;
@@ -359,8 +354,8 @@ photos.addEventListener('swipe', function(event) {
 // Quick zoom in and out with dbltap events
 photos.addEventListener('dbltap', function(e) {
   var scale;
-  if (photoState.scale > 1)      // If already zoomed in, 
-    scale = 1/photoState.scale;  // zoom out to starting scale
+  if (photoState.scale > 1)      // If already zoomed in,
+    scale = 1 / photoState.scale;  // zoom out to starting scale
   else                           // Otherwise
     scale = 2;                   // Zoom in by a factor of 2
 
@@ -647,7 +642,7 @@ function continueSlideshow() {
  * currently displayed photo as well as the transition state (if any)
  * between photos.
  */
-function PhotoState(width,height) {
+function PhotoState(width, height) {
   // Remember the actual size of the photograph
   this.photoWidth = width;
   this.photoHeight = height;

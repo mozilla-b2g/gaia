@@ -15,7 +15,7 @@ suite('GestureDetector', function() {
       assert.isNumber(GestureDetector.DOUBLE_TAP_DISTANCE);
       assert.isNumber(GestureDetector.DOUBLE_TAP_TIME);
       assert.isNumber(GestureDetector.VELOCITY_SMOOTHING);
-    })
+    });
   });
 
   suite('gesture detection', function() {
@@ -23,7 +23,7 @@ suite('GestureDetector', function() {
 
     // Return the sequence of events as a string of event types
     function eventseq() {
-      return events.map(function(e) { return e.type }).join(" ");
+      return events.map(function(e) { return e.type }).join(' ');
     }
 
     setup(function() {
@@ -34,9 +34,9 @@ suite('GestureDetector', function() {
       document.body.appendChild(element);
 
       [
-        'tap','dbltap',
-        'pan','swipe',
-        'holdstart','holdmove','holdend',
+        'tap', 'dbltap',
+        'pan', 'swipe',
+        'holdstart', 'holdmove', 'holdend',
         'transform'
       ].forEach(function(type) {
         element.addEventListener(type, function(e) { events.push(e); });
@@ -73,7 +73,7 @@ suite('GestureDetector', function() {
 
     test('dbltap', function(done) {
       SyntheticGestures.dbltap(element, function() {
-        assert.equal(eventseq(), "tap tap dbltap");
+        assert.equal(eventseq(), 'tap tap dbltap');
         assert.equal(events[2].detail.clientX, 100);
         assert.equal(events[2].detail.clientY, 200);
         done();
@@ -82,7 +82,7 @@ suite('GestureDetector', function() {
 
     test('mousedbltap', function(done) {
       SyntheticGestures.mousedbltap(element, function() {
-        assert.equal(eventseq(), "tap tap dbltap");
+        assert.equal(eventseq(), 'tap tap dbltap');
         assert.equal(events[2].detail.clientX, 100);
         assert.equal(events[2].detail.clientY, 200);
         done();
@@ -91,14 +91,14 @@ suite('GestureDetector', function() {
 
     function between(v, min, max) {
       assert.isTrue(v >= min && v <= max,
-                    v + " is not between " + min + " and " + max);
+                    v + ' is not between ' + min + ' and ' + max);
     }
 
     var swipes = [
-      { name: 'E', x0:10, y0:10, x1:100, y1:10, direction: 'right' },
-      { name: 'W', x0:100, y0:10, x1:10, y1:10, direction: 'left' },
-      { name: 'S', x0:10, y0:10, x1:10,  y1:100, direction: 'down' },
-      { name: 'N', x0:10, y0:100, x1:10, y1:10, direction: 'up' },
+      { name: 'E', x0: 10, y0: 10, x1: 100, y1: 10, direction: 'right' },
+      { name: 'W', x0: 100, y0: 10, x1: 10, y1: 10, direction: 'left' },
+      { name: 'S', x0: 10, y0: 10, x1: 10, y1: 100, direction: 'down' },
+      { name: 'N', x0: 10, y0: 100, x1: 10, y1: 10, direction: 'up' },
       { name: 'NNE', x0: 100, y0: 100, x1: 110, y1: 10, direction: 'up' },
       { name: 'NNW', x0: 100, y0: 100, x1: 90, y1: 10, direction: 'up' },
       { name: 'SSE', x0: 100, y0: 10, x1: 110, y1: 100, direction: 'down' },
@@ -106,8 +106,8 @@ suite('GestureDetector', function() {
       { name: 'ENE', x0: 10, y0: 100, x1: 100, y1: 90, direction: 'right' },
       { name: 'ESE', x0: 10, y0: 100, x1: 100, y1: 110, direction: 'right' },
       { name: 'WNW', x0: 100, y0: 100, x1: 10, y1: 90, direction: 'left' },
-      { name: 'WSW', x0: 100, y0: 100, x1: 10, y1: 110, direction: 'left' },
-    ]
+      { name: 'WSW', x0: 100, y0: 100, x1: 10, y1: 110, direction: 'left' }
+    ];
 
     swipes.forEach(function(s) {
       test('swipe ' + s.name, function(done) {
@@ -115,27 +115,27 @@ suite('GestureDetector', function() {
                                 100, checkswipe);
         function checkswipe() {
           assert.match(eventseq(), /(pan )+swipe/);
-          var e = events[events.length-1];
+          var e = events[events.length - 1];
           assert.equal(e.detail.start.clientX, s.x0);
           assert.equal(e.detail.start.clientY, s.y0);
           assert.equal(e.detail.end.clientX, s.x1);
           assert.equal(e.detail.end.clientY, s.y1);
           assert.equal(e.detail.dx, s.x1 - s.x0);
           assert.equal(e.detail.dy, s.y1 - s.y0);
-          var vx = (s.x1 - s.x0)/100;
-          var vy = (s.y1 - s.y0)/100;
+          var vx = (s.x1 - s.x0) / 100;
+          var vy = (s.y1 - s.y0) / 100;
           between(e.detail.vx, vx - .2, vx + .2);
           between(e.detail.vy, vy - .2, vy + .2);
           assert.equal(e.detail.direction, s.direction);
 
-          var angle = Math.atan2(s.y1-s.y0, s.x1-s.x0) * 180/Math.PI;
+          var angle = Math.atan2(s.y1 - s.y0, s.x1 - s.x0) * 180 / Math.PI;
           if (angle < 0)
             angle += 360;
-          between(e.detail.angle, angle-1, angle+1);
+          between(e.detail.angle, angle - 1, angle + 1);
 
-          var lastpan = events[events.length-2];
-          assert.equal(lastpan.detail.absolute.dx, s.x1-s.x0);
-          assert.equal(lastpan.detail.absolute.dy, s.y1-s.y0);
+          var lastpan = events[events.length - 2];
+          assert.equal(lastpan.detail.absolute.dx, s.x1 - s.x0);
+          assert.equal(lastpan.detail.absolute.dy, s.y1 - s.y0);
           // Add up the relative deltas for all pans
           var dx = 0, dy = 0;
           events.forEach(function(e) {
@@ -146,8 +146,8 @@ suite('GestureDetector', function() {
               assert.equal(dy, e.detail.absolute.dy);
             }
           });
-          assert.equal(dx, s.x1-s.x0);
-          assert.equal(dy, s.y1-s.y0);
+          assert.equal(dx, s.x1 - s.x0);
+          assert.equal(dy, s.y1 - s.y0);
 
           done();
         }
@@ -160,27 +160,27 @@ suite('GestureDetector', function() {
                                      100, checkswipe);
         function checkswipe() {
           assert.match(eventseq(), /(pan )+swipe/);
-          var e = events[events.length-1];
+          var e = events[events.length - 1];
           assert.equal(e.detail.start.clientX, s.x0);
           assert.equal(e.detail.start.clientY, s.y0);
           assert.equal(e.detail.end.clientX, s.x1);
           assert.equal(e.detail.end.clientY, s.y1);
           assert.equal(e.detail.dx, s.x1 - s.x0);
           assert.equal(e.detail.dy, s.y1 - s.y0);
-          var vx = (s.x1 - s.x0)/100;
-          var vy = (s.y1 - s.y0)/100;
+          var vx = (s.x1 - s.x0) / 100;
+          var vy = (s.y1 - s.y0) / 100;
           between(e.detail.vx, vx - .2, vx + .2);
           between(e.detail.vy, vy - .2, vy + .2);
           assert.equal(e.detail.direction, s.direction);
 
-          var angle = Math.atan2(s.y1-s.y0, s.x1-s.x0) * 180/Math.PI;
+          var angle = Math.atan2(s.y1 - s.y0, s.x1 - s.x0) * 180 / Math.PI;
           if (angle < 0)
             angle += 360;
-          between(e.detail.angle, angle-1, angle+1);
+          between(e.detail.angle, angle - 1, angle + 1);
 
-          var lastpan = events[events.length-2];
-          assert.equal(lastpan.detail.absolute.dx, s.x1-s.x0);
-          assert.equal(lastpan.detail.absolute.dy, s.y1-s.y0);
+          var lastpan = events[events.length - 2];
+          assert.equal(lastpan.detail.absolute.dx, s.x1 - s.x0);
+          assert.equal(lastpan.detail.absolute.dy, s.y1 - s.y0);
           // Add up the relative deltas for all pans
           var dx = 0, dy = 0;
           events.forEach(function(e) {
@@ -191,8 +191,8 @@ suite('GestureDetector', function() {
               assert.equal(dy, e.detail.absolute.dy);
             }
           });
-          assert.equal(dx, s.x1-s.x0);
-          assert.equal(dy, s.y1-s.y0);
+          assert.equal(dx, s.x1 - s.x0);
+          assert.equal(dy, s.y1 - s.y0);
 
           done();
         }
@@ -207,25 +207,25 @@ suite('GestureDetector', function() {
       { x0: 200, y0: 200, x1: 200, y1: 0, scale: 2, duration: 150 },
       { x0: 200, y0: 200, x1: 200, y1: 0, scale: .5, duration: 150 },
       { x0: 200, y0: 200, x1: 0, y1: 200, scale: 3, duration: 150 },
-      { x0: 200, y0: 200, x1: 0, y1: 200, scale: .3, duration: 150 },
+      { x0: 200, y0: 200, x1: 0, y1: 200, scale: .3, duration: 150 }
     ];
 
     pinches.forEach(function(p, index) {
       test('pinch ' + index, function(done) {
-        SyntheticGestures.pinch(element, p.x0, p.y0, p.x1, p.y1, 
+        SyntheticGestures.pinch(element, p.x0, p.y0, p.x1, p.y1,
                                 p.scale, p.duration, checkpinch);
         function checkpinch() {
           assert.match(eventseq(), /(transform )*transform/);
-          var e = events[events.length-1];
+          var e = events[events.length - 1];
           var d = e.detail;
-          between(d.absolute.scale, 0.95*p.scale, 1.05*p.scale);
+          between(d.absolute.scale, 0.95 * p.scale, 1.05 * p.scale);
           assert.equal(d.absolute.rotate, 0);
           assert.equal(d.relative.rotate, 0);
 
           // compute the product of all the relative scales
           var s = 1.0;
           events.forEach(function(e) { s *= e.detail.relative.scale; });
-          between(s, 0.95*p.scale, 1.05*p.scale);
+          between(s, 0.95 * p.scale, 1.05 * p.scale);
           done();
         }
       });
@@ -242,23 +242,23 @@ suite('GestureDetector', function() {
                                200, checkhold);
         function checkhold() {
           assert.match(eventseq(), /holdstart (holdmove )*holdend/);
-          
+
           // Check start details
           var d = events[0].detail;
 
-          assert.equal(d.clientX, s.x0)
-          assert.equal(d.clientY, s.y0)
+          assert.equal(d.clientX, s.x0);
+          assert.equal(d.clientY, s.y0);
 
           // Check end details
-          d = events[events.length-1].detail;
-          console.log("holdend detail: ", JSON.stringify(d));
-          assert.equal(d.start.clientX, s.x0)
-          assert.equal(d.start.clientY, s.y0)
-          assert.equal(d.end.clientX, s.x1)
-          assert.equal(d.end.clientY, s.y1)
-          assert.equal(d.dx, s.x1-s.x0)
-          assert.equal(d.dy, s.y1-s.y0)
- 
+          d = events[events.length - 1].detail;
+          console.log('holdend detail: ', JSON.stringify(d));
+          assert.equal(d.start.clientX, s.x0);
+          assert.equal(d.start.clientY, s.y0);
+          assert.equal(d.end.clientX, s.x1);
+          assert.equal(d.end.clientY, s.y1);
+          assert.equal(d.dx, s.x1 - s.x0);
+          assert.equal(d.dy, s.y1 - s.y0);
+
           // Check relative vs absolute for all the holdmove events
           var dx = 0, dy = 0;
           events.forEach(function(e) {
@@ -269,8 +269,8 @@ suite('GestureDetector', function() {
               assert.equal(dy, e.detail.absolute.dy);
             }
           });
-          assert.equal(dx, s.x1-s.x0)
-          assert.equal(dy, s.y1-s.y0)
+          assert.equal(dx, s.x1 - s.x0);
+          assert.equal(dy, s.y1 - s.y0);
 
           done();
         }
@@ -284,21 +284,21 @@ suite('GestureDetector', function() {
                                     100, checkhold);
         function checkhold() {
           assert.match(eventseq(), /holdstart (holdmove )*holdend/);
-          
+
           // Check start details
           var d = events[0].detail;
-          assert.equal(d.clientX, s.x0)
-          assert.equal(d.clientY, s.y0)
+          assert.equal(d.clientX, s.x0);
+          assert.equal(d.clientY, s.y0);
 
           // Check end details
-          var d = events[events.length-1].detail;
-          assert.equal(d.start.clientX, s.x0)
-          assert.equal(d.start.clientY, s.y0)
-          assert.equal(d.end.clientX, s.x1)
-          assert.equal(d.end.clientY, s.y1)
-          assert.equal(d.dx, s.x1-s.x0)
-          assert.equal(d.dy, s.y1-s.y0)
- 
+          var d = events[events.length - 1].detail;
+          assert.equal(d.start.clientX, s.x0);
+          assert.equal(d.start.clientY, s.y0);
+          assert.equal(d.end.clientX, s.x1);
+          assert.equal(d.end.clientY, s.y1);
+          assert.equal(d.dx, s.x1 - s.x0);
+          assert.equal(d.dy, s.y1 - s.y0);
+
           // Check relative vs absolute for all the holdmove events
           var dx = 0, dy = 0;
           events.forEach(function(e) {
@@ -309,8 +309,8 @@ suite('GestureDetector', function() {
               assert.equal(dy, e.detail.absolute.dy);
             }
           });
-          assert.equal(dx, s.x1-s.x0)
-          assert.equal(dy, s.y1-s.y0)
+          assert.equal(dx, s.x1 - s.x0);
+          assert.equal(dy, s.y1 - s.y0);
           done();
         }
       });
