@@ -7,6 +7,9 @@ CALENDER BORDER: #606060
 MONTH DAY BACKGROUND: #FFF
 MONTH DAY PAST BACKGROUND: #A8A8A8
 MONTH DAY PAST COLOR: #666
+MONTH DAY TODAY BORDER COLOR: #444
+MONTH DAY SELECTED BACKGROUND: #444
+MONTH DAY SELECTED COLOR: white
 */
 
 html, body {
@@ -108,13 +111,32 @@ section.month {
   border-bottom: 2px solid #606060;
 }
 
-section.month li {
+.rtl section.month li {
+  padding-left: 1.8%;
+  text-align: left;
+}
+
+.ltr section.month li {
+  padding-right: 1.8%;
   text-align: right;
+}
+
+section.month li {
+  padding-top: 0.15%;
   border-bottom: 1px solid #AAA;
   border-left: 1px solid #AAA;
   height: 6.5mozmm;
   position: relative;
   background-color: white;
+}
+
+section.month li.today {
+  border: 3px solid #444;
+}
+
+section.month li.selected {
+  background-color: #444;
+  color: white;
 }
 
 section.month li.past {
@@ -126,9 +148,7 @@ section.month li > .day {
   padding: 1% 2% 0 0;
 }
 
-
 /* sub day rows: busy indicators */
-
 
 section.month li .busy-indicator,
 section.month li .busy-indicator > span{
