@@ -46,7 +46,7 @@ var SyllableUtils = {
    * Converts a syllables array to a string that each syllable will be sperated
    * by '. For example, ['bei', 'jing'] will be converted to "bei'jing".
    */
-  arrayToString: function(array) {
+  arrayToString: function syllableUtils_arrayToString(array) {
     return array.join("'");
   },
 
@@ -54,7 +54,7 @@ var SyllableUtils = {
    * Converts a syllables string to an array.
    * For example, "bei'jing" will be converted to [bei'jing].
    */
-  arrayFromString: function(str) {
+  arrayFromString: function syllableUtils_arrayFromString(str) {
     return str.split("'");
   },
 
@@ -62,7 +62,7 @@ var SyllableUtils = {
    * Converts a syllables string to its abbreviated form.
    * For example, "bei'jing" will be converted to "b'j"
    */
-  stringToAbbreviated: function(str) {
+  stringToAbbreviated: function syllableUtils_stringToAbbreviated(str) {
     return str.replace(/([^'])[^']*/g, '$1');
   }
 };
@@ -80,7 +80,7 @@ Term.prototype = {
 /**
  * Terms with same pronunciation.(同音词)
  */
-var Homonyms = function(syllablesString, terms) {
+var Homonyms = function homonyms_constructor(syllablesString, terms) {
   this.syllablesString = syllablesString;
   this.abbreviatedSyllablesString =
     SyllableUtils.stringToAbbreviated(syllablesString);
@@ -100,7 +100,7 @@ Homonyms.prototype = {
  * @param {Array} targetArray The array to be indexed.
  * @param {String} keyPath The key path for the index to use.
  */
-var Index = function(targetArray, keyPath) {
+var Index = function index_constructor(targetArray, keyPath) {
   this._keyMap = {};
   this._sortedKeys = [];
   for (var i = 0; i < targetArray.length; i++) {
@@ -125,7 +125,7 @@ Index.prototype = {
    * Get array indices by given key.
    * @return {Array} An array of index.
    */
-  get: function(key) {
+  get: function index_get(key) {
     var indices = [];
     if (key in this._keyMap) {
       indices = indices.concat(this._keyMap[key]);
@@ -145,7 +145,7 @@ Index.prototype = {
    * value. If the range has no upper bound, it will be ignored.
    * @return {Array} An array of index.
    */
-  getRange: function(lower, upper, lowerOpen, upperOpen) {
+  getRange: function index_getRange(lower, upper, lowerOpen, upperOpen) {
     var indices = [];
     if (this._sortedKeys.length == 0) {
       return indices;
@@ -202,7 +202,7 @@ Index.prototype = {
    * If the key is between two adjacent keys, returns the average index of the
    * two keys. If the key is out of bounds, returns Infinity or -Infinity.
    */
-  _binarySearch: function(key, left, right) {
+  _binarySearch: function index_binarySearch(key, left, right) {
     if (key < this._sortedKeys[left]) {
       return -Infinity;
     }
@@ -234,7 +234,7 @@ Index.prototype = {
   }
 };
 
-var Task = function(taskFunc, taskData) {
+var Task = function task_constructor(taskFunc, taskData) {
   this.func = taskFunc;
   this.data = taskData;
 };
@@ -250,7 +250,7 @@ Task.prototype = {
   data: null
 };
 
-var TaskQueue = function(oncomplete) {
+var TaskQueue = function taskQueue_constructor(oncomplete) {
   this.oncomplete = oncomplete;
   this._queue = [];
 };
@@ -281,7 +281,7 @@ TaskQueue.prototype = {
    * of the task queue object.
    * @param {Object} taskData The task's private data.
    */
-  push: function(taskFunc, taskData) {
+  push: function taskQueue_push(taskFunc, taskData) {
     this._queue.push(new Task(taskFunc, taskData));
   },
 
@@ -289,7 +289,7 @@ TaskQueue.prototype = {
    * Start running the task queue or process the next task.
    * It should be called when a task, including the last one, is finished.
    */
-  processNext: function() {
+  processNext: function taskQueue_processNext() {
     if (this._queue.length > 0) {
       var task = this._queue.pop();
       if (typeof task.func == 'function') {
@@ -307,7 +307,7 @@ TaskQueue.prototype = {
   /**
    * Get the number of remaining tasks.
    */
-  getSize: function() {
+  getSize: function taskQueue_getSize() {
     return this._queue.length;
   }
 };
@@ -336,7 +336,7 @@ var SyllableType = {
   INVALID: 3
 };
 
-var Syllable = function(str, type) {
+var Syllable = function syllable_constructor(str, type) {
   this.str = str;
   this.type = type;
 };
@@ -356,7 +356,7 @@ Syllable.prototype = {
 /**
  * Divides a string into Pinyin syllables
  */
-var PinyinParser = function() {
+var PinyinParser = function pinyinParser_constructor() {
   // Consonants(声母) list
   var consonants =
     'b p m f d t n l g k h j q x zh ch sh r z c s y w'.split(' ');
@@ -488,7 +488,7 @@ PinyinParser.prototype = {
    * empty.
    * @return {Array} An array of segments.
    */
-  parse: function(input) {
+  parse: function pinyinParser_parse(input) {
     var results = [];
 
     // Trims the leading and trailing "'".
@@ -532,7 +532,7 @@ PinyinParser.prototype = {
    * @return {Array} An array of segments.
    * If the input string contains any invalid syllables, returns empty array.
    */
-  _parseInternal: function(input) {
+  _parseInternal: function pinyinParser_parseInternal(input) {
     var results = [];
 
     // Trims the leading and trailing "'".
@@ -564,7 +564,7 @@ PinyinParser.prototype = {
     // Sort the segments array. The segment with fewer incomplete syllables and
     // shorter length comes first.
     var self = this;
-    results.sort(function(a, b) {
+    results.sort(function sortSegements(a, b) {
       var ai = self._getIncompleteness(a);
       var bi = self._getIncompleteness(b);
       if (ai != bi) {
@@ -579,7 +579,7 @@ PinyinParser.prototype = {
   /**
    * Check if the input string is a syllable
    */
-  _getSyllableType: function(str) {
+  _getSyllableType: function pinyinParser_getSyllableType(str) {
     if (str in this._consonantMap) {
       return SyllableType.ABBREVIATED;
     }
@@ -604,7 +604,8 @@ PinyinParser.prototype = {
    * Cartesian product A X B:
    * A X B = {(a, b) | a is member of A and b is member of B}.
    */
-  _appendsSubSegments: function(segments, subSegments) {
+  _appendsSubSegments: function pinyinParser_appendsSubSegments(
+      segments, subSegments) {
     if (segments.length == 0) {
       return subSegments;
     }
@@ -633,7 +634,7 @@ PinyinParser.prototype = {
    * @return {Nunmber} The number of incompleteness. A higher value means more
    * incomplete or abbreviated syllables.
    */
-  _getIncompleteness: function(segment) {
+  _getIncompleteness: function pinyinParser_getIncompleteness(segment) {
     var value = 0;
     for (var i in segment) {
       var type = segment[i].type;
@@ -649,7 +650,7 @@ PinyinParser.prototype = {
   }
 };
 
-var IMEngineBase = function() {
+var IMEngineBase = function engineBase_constructor() {
   this._glue = {};
 };
 
@@ -693,26 +694,26 @@ IMEngineBase.prototype = {
    * Initialization.
    * @param {Glue} glue Glue object of the IMManager.
    */
-  init: function(glue) {
+  init: function engineBase_init(glue) {
     this._glue = glue;
   },
   /**
    * Destruction.
    */
-  uninit: function() {
+  uninit: function engineBase_uninit() {
   },
 
   /**
    * Notifies when a keyboard key is clicked.
    * @param {number} keyCode The key code of an integer number.
    */
-  click: function(keyCode) {
+  click: function engineBase_click(keyCode) {
   },
 
   /**
    * Notifies when pending symbols need be cleared
    */
-  empty: function() {
+  empty: function engineBase_empty() {
   },
 
   /**
@@ -720,12 +721,12 @@ IMEngineBase.prototype = {
    * @param {String} text The text of the candidate.
    * @param {Object} data User data of the candidate.
    */
-  select: function(text, data) {
+  select: function engineBase_select(text, data) {
     this._glue.sendString(text);
   }
 };
 
-var IMEngine = function(splitter) {
+var IMEngine = function engine_constructor(splitter) {
   IMEngineBase.call(this);
 
   this._splitter = splitter;
@@ -776,11 +777,11 @@ IMEngine.prototype = {
   _keypressQueue: [],
   _isWorking: false,
 
-  _getCurrentDatabaseName: function() {
+  _getCurrentDatabaseName: function engine_getCurrentDatabaseName() {
     return this._inputTraditionalChinese ? 'traditional' : 'simplified';
   },
 
-  _initDB: function(name, readyCallback) {
+  _initDB: function engine_initDB(name, readyCallback) {
     var dbSettings = {
       enableIndexedDB: this._enableIndexedDB
     };
@@ -795,17 +796,17 @@ IMEngine.prototype = {
     this._db[name].init(dbSettings);
   },
 
-  _sendPendingSymbols: function() {
+  _sendPendingSymbols: function engine_sendPendingSymbols() {
     debug('SendPendingSymbol: ' + this._pendingSymbols);
     this._glue.sendPendingSymbols(this._pendingSymbols);
   },
 
-  _sendCandidates: function(candidates) {
+  _sendCandidates: function engine_sendCandidates(candidates) {
     this._firstCandidate = (candidates[0]) ? candidates[0][0] : '';
     this._glue.sendCandidates(candidates);
   },
 
-  _start: function() {
+  _start: function engine_start() {
     if (this._isWorking)
       return;
     this._isWorking = true;
@@ -813,7 +814,7 @@ IMEngine.prototype = {
     this._next();
   },
 
-  _next: function() {
+  _next: function engine_next() {
     debug('Processing keypress');
 
     var name = this._getCurrentDatabaseName();
@@ -910,7 +911,7 @@ IMEngine.prototype = {
     this._updateCandidateList(this._next.bind(this));
   },
 
-  _isSymbol: function(code) {
+  _isSymbol: function engine_isSymbol(code) {
 
     // '
     if (code == 39) {
@@ -925,12 +926,12 @@ IMEngine.prototype = {
     return false;
   },
 
-  _appendNewSymbol: function(code) {
+  _appendNewSymbol: function engine_appendNewSymbol(code) {
     var symbol = String.fromCharCode(code);
     this._pendingSymbols += symbol;
   },
 
-  _lookup: function(query, type, callback) {
+  _lookup: function engine_lookup(query, type, callback) {
     var name = this._getCurrentDatabaseName();
     switch (type) {
       case 'sentence':
@@ -975,7 +976,7 @@ IMEngine.prototype = {
     }
   },
 
-  _updateCandidateList: function(callback) {
+  _updateCandidateList: function engine_updateCandidateList(callback) {
     debug('Update Candidate List.');
     var self = this;
 
@@ -1099,14 +1100,14 @@ IMEngine.prototype = {
   /**
    * Override
    */
-  init: function(glue) {
+  init: function engine_init(glue) {
     IMEngineBase.prototype.init.call(this, glue);
   },
 
   /**
    * Override
    */
-  uninit: function() {
+  uninit: function engine_uninit() {
     IMEngineBase.prototype.uninit.call(this);
     debug('Uninit.');
     this._splitter = null;
@@ -1122,7 +1123,7 @@ IMEngine.prototype = {
   /**
    *Override
    */
-  click: function(keyCode) {
+  click: function engine_click(keyCode) {
     IMEngineBase.prototype.click.call(this, keyCode);
 
     // Toggle between the modes of tranditioanal Chinese and simplified Chinese
@@ -1138,7 +1139,7 @@ IMEngine.prototype = {
   /**
    * Override
    */
-  select: function(text, data) {
+  select: function engine_select(text, data) {
     IMEngineBase.prototype.select.call(this, text, data);
 
     var syllablesToRemove = data.split("'");
@@ -1161,7 +1162,7 @@ IMEngine.prototype = {
   /**
    * Override
    */
-  empty: function() {
+  empty: function engine_empty() {
     var name = this._getCurrentDatabaseName();
     this._pendingSymbols = '';
     this._selectedText = '';
@@ -1173,7 +1174,7 @@ IMEngine.prototype = {
   }
 };
 
-var DatabaseStorageBase = function() {
+var DatabaseStorageBase = function storagebase_constructor() {
   this._status = DatabaseStorageBase.StatusCode.UNINITIALIZED;
 };
 
@@ -1198,14 +1199,14 @@ DatabaseStorageBase.prototype = {
    * Get the status code of the storage.
    * @return {DatabaseStorageBase.StatusCode} The status code.
    */
-  getStatus: function() {
+  getStatus: function storagebase_getStatus() {
     return this._status;
   },
 
   /**
    * Whether the database is ready to use.
    */
-  isReady: function() {
+  isReady: function storagebase_isReady() {
     return this._status == DatabaseStorageBase.StatusCode.READY;
   },
 
@@ -1217,7 +1218,7 @@ DatabaseStorageBase.prototype = {
    * DatabaseStorageBase.StatusCode that stores the status of the storage
    * after Initialization.
    */
-  init: function(callback) {
+  init: function storagebase_init(callback) {
   },
 
   /**
@@ -1226,7 +1227,7 @@ DatabaseStorageBase.prototype = {
    * the operation is finished.
    * The definition of callback is function callback().
    */
-  uninit: function(callback) {
+  uninit: function storagebase_uninit(callback) {
   },
 
 
@@ -1234,7 +1235,7 @@ DatabaseStorageBase.prototype = {
    * Whether the storage is empty.
    * @return {Boolean} true if the storage is empty; otherwise false.
    */
-  isEmpty: function() {
+  isEmpty: function storagebase_isEmpty() {
   },
 
   /**
@@ -1244,7 +1245,7 @@ DatabaseStorageBase.prototype = {
    * function callback(homonymsArray). The homonymsArray parameter is an array
    * of Homonyms objects.
    */
-  getAllTerms: function(callback) {
+  getAllTerms: function storagebase_getAllTerms(callback) {
   },
 
   /**
@@ -1255,7 +1256,7 @@ DatabaseStorageBase.prototype = {
    * the operation is finished. The definition of callback is
    * function callback().
    */
-  setAllTerms: function(homonymsArray, callback) {
+  setAllTerms: function storagebase_setAllTerms(homonymsArray, callback) {
   },
 
   /**
@@ -1266,7 +1267,8 @@ DatabaseStorageBase.prototype = {
    * function callback(homonymsArray). The homonymsArray parameter is an array
    * of Homonyms objects.
    */
-  getTermsBySyllables: function(syllablesStr, callback) {
+  getTermsBySyllables: function storagebase_getTermsBySyllables(
+    syllablesStr, callback) {
   },
 
   /**
@@ -1277,8 +1279,8 @@ DatabaseStorageBase.prototype = {
    * function callback(homonymsArray). The homonymsArray parameter is an array
    * of Homonyms objects.
    */
-  getTermsBySyllablesPrefix: function(prefix,
-    callback) {
+  getTermsBySyllablesPrefix: function storagebase_getTermsBySyllablesPrefix(
+    prefix, callback) {
   },
 
   /**
@@ -1291,8 +1293,8 @@ DatabaseStorageBase.prototype = {
    * function callback(homonymsArray). The homonymsArray parameter is an array
    * of Homonyms objects.
    */
-  getTermsByIncompleteSyllables: function(incomplete,
-    callback) {
+  getTermsByIncompleteSyllables: function
+    storagebase_getTermsByIncompleteSyllables(incomplete, callback) {
   },
 
   /**
@@ -1303,7 +1305,7 @@ DatabaseStorageBase.prototype = {
    * the operation is finished. The definition of callback is
    * function callback().
    */
-  addTerm: function(syllablesStr, term, callback) {
+  addTerm: function storagebase_addTerm(syllablesStr, term, callback) {
   },
 
   /**
@@ -1314,11 +1316,11 @@ DatabaseStorageBase.prototype = {
    * the operation is finished. The definition of callback is
    * function callback().
    */
-  removeTerm: function(syllablesStr, term, callback) {
+  removeTerm: function storagebase_removeTerm(syllablesStr, term, callback) {
   }
 };
 
-var JsonStorage = function(jsonUrl) {
+var JsonStorage = function jsonStorage_construtor(jsonUrl) {
   this._jsonUrl = jsonUrl;
   this._dataArray = [];
   this._syllablesIndex = null;
@@ -1341,9 +1343,9 @@ JsonStorage.prototype = {
   /**
    * Override
    */
-  init: function(callback) {
+  init: function jsonStorage_init(callback) {
     var self = this;
-    function doCallback() {
+    var doCallback = function init_doCallback() {
       if (callback) {
         callback(self._status);
       }
@@ -1385,7 +1387,7 @@ JsonStorage.prototype = {
         return;
       }
 
-      function toTerms(rawTerms) {
+      var toTerms = function init_toTerms(rawTerms) {
         var terms = [];
         for (var i = 0; i < rawTerms.length; i++) {
           var rawTerm = rawTerms[i];
@@ -1404,7 +1406,7 @@ JsonStorage.prototype = {
       doCallback();
     };
 
-    var perform = function() {
+    var perform = function init_perform() {
       xhr.send(null);
     }
     setTimeout(perform, 0);
@@ -1413,8 +1415,8 @@ JsonStorage.prototype = {
   /**
    * Override
    */
-  uninit: function(callback) {
-    function doCallback() {
+  uninit: function jsonStorage_uninit(callback) {
+    var doCallback = function uninit_doCallback() {
       if (callback) {
         callback();
       }
@@ -1436,17 +1438,17 @@ JsonStorage.prototype = {
   /**
    * Override
    */
-  isEmpty: function() {
+  isEmpty: function jsonStorage_isEmpty() {
     return this._dataArray.length == 0;
   },
 
   /**
    * Override
    */
-  getAllTerms: function(callback) {
+  getAllTerms: function jsonStorage_getAllTerms(callback) {
     var self = this;
     var homonymsArray = [];
-    function doCallback() {
+    var doCallback = function getAllTerms_doCallback() {
       if (callback) {
         callback(homonymsArray);
       }
@@ -1458,7 +1460,7 @@ JsonStorage.prototype = {
       return;
     }
 
-    var perform = function() {
+    var perform = function getAllTerms_perform() {
       // Query all terms
       homonymsArray = homonymsArray.concat(self._dataArray);
       doCallback();
@@ -1470,11 +1472,11 @@ JsonStorage.prototype = {
   /**
    * Override
    */
-  getTermsBySyllables: function(syllablesStr,
+  getTermsBySyllables: function jsonStorage_getTermsBySyllables(syllablesStr,
     callback) {
     var self = this;
     var homonymsArray = [];
-    function doCallback() {
+    var doCallback = function getTermsBySyllables_doCallback() {
       if (callback) {
         callback(homonymsArray);
       }
@@ -1486,7 +1488,7 @@ JsonStorage.prototype = {
       return;
     }
 
-    var perform = function() {
+    var perform = function getTermsBySyllables_perform() {
       var indices = self._syllablesIndex.get(syllablesStr);
       for (var i = 0; i < indices.length; i++) {
         var index = indices[i];
@@ -1501,8 +1503,8 @@ JsonStorage.prototype = {
   /**
    * Override
    */
-  getTermsBySyllablesPrefix: function(prefix,
-    callback) {
+  getTermsBySyllablesPrefix: function
+    jsonStorage_getTermsBySyllablesPrefix(prefix, callback) {
     var self = this;
     var homonymsArray = [];
     function doCallback() {
@@ -1535,11 +1537,11 @@ JsonStorage.prototype = {
   /**
    * Override
    */
-  getTermsByIncompleteSyllables: function(incomplete,
-      callback) {
+  getTermsByIncompleteSyllables: function
+    jsonStorage_getTermsByIncompleteSyllables(incomplete, callback) {
     var self = this;
     var homonymsArray = [];
-    function doCallback() {
+    var doCallback = function getTermsByIncompleteSyllables_doCallback() {
       if (callback) {
         callback(homonymsArray);
       }
@@ -1555,7 +1557,7 @@ JsonStorage.prototype = {
        '^' + incomplete.replace(/([^']+)/g, "$1[^']*"));
     var fullyAbbreviated = SyllableUtils.stringToAbbreviated(incomplete);
 
-    var perform = function() {
+    var perform = function getTermsByIncompleteSyllables_perform() {
       var indices = self._abrreviatedIndex.get(fullyAbbreviated);
       for (var i = 0; i < indices.length; i++) {
         var index = indices[i];
@@ -1571,7 +1573,7 @@ JsonStorage.prototype = {
     setTimeout(perform, 0);
   },
 
-  _buildIndices: function() {
+  _buildIndices: function jsonStorage_buildIndices() {
     this._syllablesIndex = new Index(this._dataArray, 'syllablesString');
     this._abrreviatedIndex = new Index(this._dataArray,
       'abbreviatedSyllablesString');
@@ -1594,7 +1596,7 @@ var IndexedDB = {
   /**
    * Check if the indexedDB is available on this platform
    */
-  isReady: function() {
+  isReady: function indexedDB_isReady() {
     if (!this.indexedDB || // No IndexedDB API implementation
         this.IDBDatabase.prototype.setVersion || // old version of IndexedDB API
         window.location.protocol === 'file:') {  // bug 643318
@@ -1605,7 +1607,7 @@ var IndexedDB = {
   }
 };
 
-var IndexedDBStorage = function(dbName) {
+var IndexedDBStorage = function indexedDBStorage_constructor(dbName) {
   this._dbName = dbName;
   this._IDBDatabase = null;
   this._count = 0;
@@ -1628,7 +1630,7 @@ IndexedDBStorage.prototype = {
   /**
    * Override
    */
-  init: function(callback) {
+  init: function indexedDBStorage_init(callback) {
     var self = this;
     function doCallback() {
       if (callback) {
@@ -1701,7 +1703,7 @@ IndexedDBStorage.prototype = {
   /**
    * Override
    */
-  uninit: function(callback) {
+  uninit: function indexedDBStorage_uninit(callback) {
     function doCallback() {
       if (callback) {
         callback();
@@ -1726,14 +1728,14 @@ IndexedDBStorage.prototype = {
   /**
    * Override
    */
-  isEmpty: function() {
+  isEmpty: function indexedDBStorage_isEmpty() {
     return this._count == 0;
   },
 
   /**
    * Override
    */
-  getAllTerms: function(callback) {
+  getAllTerms: function indexedDBStorage_getAllTerms(callback) {
     var homonymsArray = [];
     function doCallback() {
       if (callback) {
@@ -1768,7 +1770,7 @@ IndexedDBStorage.prototype = {
     };
   },
 
-  setAllTerms: function(homonymsArray, callback) {
+  setAllTerms: function indexedDBStorage_setAllTerms(homonymsArray, callback) {
     var self = this;
     function doCallback() {
       self._status = DatabaseStorageBase.StatusCode.READY;
@@ -1812,8 +1814,8 @@ IndexedDBStorage.prototype = {
   /**
    * Override
    */
-  getTermsBySyllables: function(syllablesStr,
-    callback) {
+  getTermsBySyllables: function
+    indexedDBStorage_getTermsBySyllables(syllablesStr, callback) {
     var homonymsArray = [];
     function doCallback() {
       if (callback) {
@@ -1846,8 +1848,8 @@ IndexedDBStorage.prototype = {
   /**
    * Override
    */
-  getTermsBySyllablesPrefix: function(prefix,
-    callback) {
+  getTermsBySyllablesPrefix: function
+    indexedDBStorage_getTermsBySyllablesPrefix(prefix, callback) {
     var homonymsArray = [];
     function doCallback() {
       if (callback) {
@@ -1888,8 +1890,8 @@ IndexedDBStorage.prototype = {
   /**
    * Override
    */
-  getTermsByIncompleteSyllables: function(incomplete,
-    callback) {
+  getTermsByIncompleteSyllables: function
+    indexedDBStorage_getTermsByIncompleteSyllables(incomplete, callback) {
     var homonymsArray = [];
     function doCallback() {
       if (callback) {
@@ -1932,7 +1934,7 @@ IndexedDBStorage.prototype = {
   }
 };
 
-var IMEngineDatabase = function(dbName, jsonUrl) {
+var IMEngineDatabase = function imedb(dbName, jsonUrl) {
   var settings;
 
   /**
@@ -1951,8 +1953,8 @@ var IMEngineDatabase = function(dbName, jsonUrl) {
 
   /* ==== init functions ==== */
 
-  var populateDBFromJSON = function(callback) {
-    jsonStorage.getAllTerms(function(homonymsArray) {
+  var populateDBFromJSON = function imedb_populateDBFromJSON(callback) {
+    jsonStorage.getAllTerms(function getAllTermsCallback(homonymsArray) {
       indexedDBStorage.setAllTerms(homonymsArray, callback);
     });
   };
@@ -1973,7 +1975,7 @@ var IMEngineDatabase = function(dbName, jsonUrl) {
 
   /* ==== init ==== */
 
-  this.init = function(options) {
+  this.init = function imedb_init(options) {
     settings = options;
 
     var ready = function() {
@@ -2021,7 +2023,7 @@ var IMEngineDatabase = function(dbName, jsonUrl) {
     jsonStorage.uninit();
   };
 
-  var getUsableStorage = function() {
+  var getUsableStorage = function imedb_getUsableStorage() {
     var storage = settings.enableIndexedDB ? indexedDBStorage : jsonStorage;
     if (settings.enableIndexedDB &&
         indexedDBStorage.isReady() &&
@@ -2036,7 +2038,8 @@ var IMEngineDatabase = function(dbName, jsonUrl) {
 
   /* ==== db lookup functions ==== */
 
-  this.getSuggestions = function(syllables, text, callback) {
+  this.getSuggestions =
+    function imedb_getSuggestions(syllables, text, callback) {
     var storage = getUsableStorage();
     if (!storage) {
       debug('Database not ready.');
@@ -2046,22 +2049,22 @@ var IMEngineDatabase = function(dbName, jsonUrl) {
 
     var syllablesStr = syllables.join("'").replace(/ /g , '');
     var result = [];
-    var matchTerm = function matchTerm(term) {
+    var matchTerm = function getSuggestions_matchTerm(term) {
       if (term.phrase.substr(0, textStr.length) !== textStr)
         return;
       if (term.phrase == textStr)
         return;
       result.push(term);
     };
-    var processResult = function processResult(r) {
+    var processResult = function getSuggestions_processResult(r) {
       r = r.sort(
-        function sort_result(a, b) {
+        function getSuggestions_sort(a, b) {
           return (b.freq - a.freq);
         }
       );
       var result = [];
       var t = [];
-      r.forEach(function(term) {
+      r.forEach(function terms_foreach(term) {
         if (t.indexOf(term.phrase) !== -1) return;
         t.push(term.phrase);
         result.push(term);
@@ -2080,7 +2083,8 @@ var IMEngineDatabase = function(dbName, jsonUrl) {
       return;
     }
 
-    storage.getTermsBySyllablesPrefix(syllablesStr, function(homonymsArray) {
+    storage.getTermsBySyllablesPrefix(syllablesStr,
+      function getTermsBySyllablesPrefix_callback(homonymsArray) {
       for (var i = 0; i < homonymsArray.length; i++) {
         var homonyms = homonymsArray[i];
         homonyms.terms.forEach(matchTerm);
@@ -2096,7 +2100,7 @@ var IMEngineDatabase = function(dbName, jsonUrl) {
     });
   },
 
-  this.getTerms = function(syllables, callback) {
+  this.getTerms = function imedb_getTerms(syllables, callback) {
     var storage = getUsableStorage();
     if (!storage) {
       debug('Database not ready.');
@@ -2182,9 +2186,9 @@ var IMEngineDatabase = function(dbName, jsonUrl) {
     });
   }
 
-  this.getSentence = function(syllables, callback) {
+  this.getSentence = function imedb_getSentence(syllables, callback) {
     var self = this;
-    var doCallback = function(sentence) {
+    var doCallback = function getSentence_doCallback(sentence) {
       if (callback) {
         callback(sentence);
       }
@@ -2209,7 +2213,7 @@ var IMEngineDatabase = function(dbName, jsonUrl) {
       lastPhraseLength: 1
     };
 
-    var getSentenceSubTask = function(taskQueue, taskData) {
+    var getSentenceSubTask = function getSentence_subTask(taskQueue, taskData) {
       var queueData = taskQueue.data;
       var sentenceLength = queueData.sentenceLength;
       var lastPhraseLength = queueData.lastPhraseLength;
@@ -2225,7 +2229,7 @@ var IMEngineDatabase = function(dbName, jsonUrl) {
       var s = syllables.slice(sentenceLength -
         lastPhraseLength, sentenceLength);
       self.getTermWithHighestScore(s,
-        function(term) {
+        function getTermWithHighestScoreCallback(term) {
           if (!term) {
             var syllable = s.join('');
             term = {phrase: syllable, freq: 0};
