@@ -682,7 +682,13 @@ IMEngineBase.prototype = {
      * Sends the input string to the IMEManager.
      * @param {String} str The input string.
      */
-    sendString: function(str) {}
+    sendString: function(str) {},
+
+    /**
+     * Change the keyboad
+     * @param {String} keyboard The name of the keyboard.
+     */
+    alterKeyboard: function(keyboard) {}
   },
 
   /**
@@ -718,6 +724,12 @@ IMEngineBase.prototype = {
    */
   select: function engineBase_select(text, data) {
     this._glue.sendString(text);
+  },
+  
+  /**
+   * Notifies when the IM is shown
+   */
+  show: function engineBase_show() {    
   }
 };
 
@@ -767,6 +779,9 @@ IMEngine.prototype = {
   _firstCandidate: '',
   _keypressQueue: null,
   _isWorking: false,
+  
+  // Current keyboard
+  _keyboard: 'zh-Hans-Pinyin',
 
   _getCurrentDatabaseName: function engine_getCurrentDatabaseName() {
     return this._inputTraditionalChinese ? 'traditional' : 'simplified';
@@ -1087,6 +1102,12 @@ IMEngine.prototype = {
       });
     });
   },
+  
+  _alterKeyboard: function engine_changeKeyboard(keyboard) {
+    this._keyboard = keyboard;
+    this.empty(); 
+    this._glue.alterKeyboard(keyboard);    
+  },
 
   /**
    * Override
@@ -1117,12 +1138,36 @@ IMEngine.prototype = {
   click: function engine_click(keyCode) {
     IMEngineBase.prototype.click.call(this, keyCode);
 
-    // Toggle between the modes of tranditioanal Chinese and simplified Chinese
-    // TODO show the current mode on the keyboard.
-    if (keyCode == -10) {
-      this._inputTraditionalChinese = !this._inputTraditionalChinese;
-    } else {
-      this._keypressQueue.push(keyCode);
+    switch (keyCode) {
+      case -10:
+        // Switch to traditional Chinese input mode.
+        this._inputTraditionalChinese = true;
+        this._alterKeyboard('zh-Hans-Pinyin-tr');
+        break;
+      case -11:
+        // Switch to simplified Chinese input mode.
+        this._inputTraditionalChinese = false;
+        this._alterKeyboard('zh-Hans-Pinyin');
+        break;
+      case -12:
+        // Switch to number keyboard.
+        this._alterKeyboard('zh-Hans-Pinyin-number');
+        break;
+      case -13:
+        // Switch to symbol0 keyboard.
+        this._alterKeyboard('zh-Hans-Pinyin-symbol0');
+        break;
+      case -14:
+        // Switch to symbol1 keyboard.
+        this._alterKeyboard('zh-Hans-Pinyin-symbol1');
+        break;
+      case -15:
+        // Switch to symbol2 keyboard.
+        this._alterKeyboard('zh-Hans-Pinyin-symbol2');
+        break;
+      default:
+        this._keypressQueue.push(keyCode);
+        break;
     }
     this._start();
   },
@@ -1162,6 +1207,14 @@ IMEngine.prototype = {
     this._isWorking = false;
     if (!this._db[name])
       this._initDB(name);
+  },
+  
+  /**
+   * Override
+   */
+  show: function engine_show() {
+    // Restore the saved keyboard
+    this._glue.alterKeyboard(this._keyboard);
   }
 };
 

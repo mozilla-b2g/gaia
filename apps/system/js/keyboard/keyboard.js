@@ -480,7 +480,11 @@ const IMEManager = {
       sendString: function(str) {
         for (var i = 0; i < str.length; i++)
           this.sendKey(str.charCodeAt(i));
-      }
+      },
+      alterKeyboard: function(keyboard) {
+        self.updateLayout(keyboard);
+        self.updateTargetWindowHeight();
+      },
     };
 
     script.addEventListener('load', (function IMEnginesLoaded() {
@@ -860,7 +864,6 @@ const IMEManager = {
 
     layout.keys.forEach((function buildKeyboardRow(row) {
       content += '<div class="keyboard-row">';
-
       row.forEach((function buildKeyboardColumns(key) {
         var specialCodes = [
           KeyEvent.DOM_VK_BACK_SPACE,
@@ -890,8 +893,9 @@ const IMEManager = {
           // space key: replace/append with control and type keys
 
           var ratio = key.ratio || 1;
+          var current = Keyboards[this.currentKeyboard];
 
-          if (this.keyboards.length > 1) {
+          if (this.keyboards.length > 1 && !current['hidesSwitchKey']) {
             // Switch keyboard key
             ratio -= 1;
             content += buildKey(
@@ -906,7 +910,6 @@ const IMEManager = {
           // This gives the author the ability to change the alternate layout
           // key contents
           var alternateLayoutKey = '?123';
-          var current = Keyboards[this.currentKeyboard];
           if (current['alternateLayoutKey']) {
             alternateLayoutKey = current['alternateLayoutKey'];
           }
@@ -918,21 +921,23 @@ const IMEManager = {
             basicLayoutKey = current['basicLayoutKey'];
           }
 
-          ratio -= 2;
-          if (this.currentKeyboardMode == '') {
-            content += buildKey(
-              this.ALTERNATE_LAYOUT,
-              alternateLayoutKey,
-              'keyboard-key-special',
-              2
-            );
-          } else {
-            content += buildKey(
-              this.BASIC_LAYOUT,
-              basicLayoutKey,
-              'keyboard-key-special',
-              2
-            );
+          if (!current['disableAlternateLayout']) {
+            ratio -= 2;
+            if (this.currentKeyboardMode == '') {
+              content += buildKey(
+                this.ALTERNATE_LAYOUT,
+                alternateLayoutKey,
+                'keyboard-key-special',
+                2
+              );
+            } else {
+              content += buildKey(
+                this.BASIC_LAYOUT,
+                basicLayoutKey,
+                'keyboard-key-special',
+                2
+              );
+            }
           }
 
           switch (this.currentType) {
@@ -1087,13 +1092,19 @@ const IMEManager = {
 
     targetWindow.classList.add('keyboardOn');
     delete this.ime.dataset.hidden;
+    
+    if (Keyboards[this.currentKeyboard].type == 'ime') {
+      if (this.currentEngine.show) {
+        this.currentEngine.show();
+      }
+    }    
   },
 
   hideIME: function km_hideIME(targetWindow, imminent) {
 
     if (this.ime.dataset.hidden)
       return;
-
+    
     this.ime.dataset.hidden = 'true';
     targetWindow.style.height = targetWindow.dataset.cssHeight;
     targetWindow.classList.remove('keyboardOn');

@@ -277,9 +277,10 @@ const Keyboards = {
   'zh-Hans-Pinyin': {
     type: 'ime',
     label: 'Chinese - Simplified - Pinyin',
-    basicLayoutKey: '拼',
     menuLabel: '简体拼音输入',
     needsCandidatePanel: true,
+    disableAlternateLayout: true,
+    hidesSwitchKey: true,
     imEngine: 'jspinyin',
     width: 10,
     textLayoutOverwrite: {
@@ -289,8 +290,85 @@ const Keyboards = {
     keys: [
       [{ value: 'q' }, { value: 'w' }, { value: 'e' } , { value: 'r' }, { value: 't' } , { value: 'y' }, { value: 'u' } , { value: 'i' }, { value: 'o' }, { value: 'p' }],
       [{ value: 'a' }, { value: 's' }, { value: 'd' }, { value: 'f' }, { value: 'g' } , { value: 'h' }, { value: 'j' }, { value: 'k' }, { value: 'l' }, { value: "'" }],
-      [{ value: '简/繁', ratio: 1.5, keyCode: -10 }, { value: 'z' }, { value: 'x' }, { value: 'c' }, { value: 'v' }, { value: 'b' }, { value: 'n' }, { value: 'm' }, { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }],
-      [{ value: ' ', ratio: 8, keyCode: KeyEvent.DOM_VK_SPACE }, { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }]
+      [{ value: '简', ratio: 1.5, keyCode: -10 }, { value: 'z' }, { value: 'x' }, { value: 'c' }, { value: 'v' }, { value: 'b' }, { value: 'n' }, { value: 'm' }, { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }],
+      [{ value: '&#x1f310;', keyCode: -3}, { value: '符', keyCode: -13, ratio: 1.5}, { value: '123', keyCode: -12, ratio: 1.5}, { value: '空格', keyCode: KeyEvent.DOM_VK_SPACE, ratio: 4}, { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }]
+    ]
+  },
+  'zh-Hans-Pinyin-tr': {
+    type: 'keyboard',
+    width: 10,
+    needsCandidatePanel: true,
+    disableAlternateLayout: true,
+    hidesSwitchKey: true,
+    textLayoutOverwrite: {
+      ',': '，',
+      '.': '。'
+    },
+    keys: [
+      [{ value: 'q' }, { value: 'w' }, { value: 'e' } , { value: 'r' }, { value: 't' } , { value: 'y' }, { value: 'u' } , { value: 'i' }, { value: 'o' }, { value: 'p' }],
+      [{ value: 'a' }, { value: 's' }, { value: 'd' }, { value: 'f' }, { value: 'g' } , { value: 'h' }, { value: 'j' }, { value: 'k' }, { value: 'l' }, { value: "'" }],
+      [{ value: '繁', ratio: 1.5, keyCode: -11 }, { value: 'z' }, { value: 'x' }, { value: 'c' }, { value: 'v' }, { value: 'b' }, { value: 'n' }, { value: 'm' }, { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }],
+      [{ value: '&#x1f310;', keyCode: -3}, { value: '符', keyCode: -13, ratio: 1.5}, { value: '123', keyCode: -12, ratio: 1.5}, { value: '空格', keyCode: KeyEvent.DOM_VK_SPACE, ratio: 4}, { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }]
+    ]
+  },
+  'zh-Hans-Pinyin-number': {
+    type: 'keyboard',
+    disableAlternateLayout: true,
+    hidesSwitchKey: true,
+    textLayoutOverwrite: {
+      ',': false,
+      '.': false
+    },
+    keys: [
+      [{ value: '-', ratio: 2 }, { value: '1', ratio: 2 }, { value: '2', ratio: 2 }, { value: '3', ratio: 2 }, { value: '⌫', keyCode: KeyEvent.DOM_VK_BACK_SPACE, ratio: 2 }],
+      [{ value: '+', ratio: 2 }, { value: '4', ratio: 2 }, { value: '5', ratio: 2 }, { value: '6', ratio: 2 }, { value: '拼', keyCode: -1, ratio: 2 }],
+      [{ value: '.', ratio: 2 }, { value: '7', ratio: 2 }, { value: '8', ratio: 2 }, { value: '9', ratio: 2 }, { value: '符', keyCode: -13, ratio: 2 }],
+      [{ value: ':', ratio: 2 }, { value: '?', ratio: 2 }, { value: '0', ratio: 2 }, { value: '空格', keyCode: KeyboardEvent.DOM_VK_SPACE, ratio: 2}, { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }]
+    ]
+  },
+  'zh-Hans-Pinyin-symbol0': {
+    type: 'keyboard',
+    disableAlternateLayout: true,
+    hidesSwitchKey: true,
+    textLayoutOverwrite: {
+      ',': false,
+      '.': false
+    },
+    keys: [
+      [{ value: '，', ratio: 2 }, { value: '。', ratio: 2 }, { value: ',', ratio: 2 }, { value: '.', ratio: 2 }, { value: '⌫', ratio: 2, keyCode: KeyEvent.DOM_VK_BACK_SPACE }],
+      [{ value: '？', ratio: 2 }, { value: '！', ratio: 2 }, { value: '：', ratio: 2 }, { value: '；', ratio: 2 }, { value: '拼', keyCode: -1, ratio: 2 }],
+      [{ value: '“', ratio: 2 }, { value: '~', ratio: 2 }, { value: '@', ratio: 2 }, { value: '/', ratio: 2 }, { value: '123', keyCode: -12, ratio: 2 }],
+      [{ value: '⇧', ratio: 3, keyCode: -15}, { value: '⇩', ratio: 3, keyCode: -14}, { value: '空格', ratio: 2, keyCode: KeyboardEvent.DOM_VK_SPACE }, { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }]
+    ]
+  },
+  'zh-Hans-Pinyin-symbol1': {
+    type: 'keyboard',
+    disableAlternateLayout: true,
+    hidesSwitchKey: true,
+    textLayoutOverwrite: {
+      ',': false,
+      '.': false
+    },
+    keys: [
+      [{ value: '%', ratio: 2 }, { value: '&', ratio: 2 }, { value: '*', ratio: 2 }, { value: '-', ratio: 2 }, { value: '⌫', ratio: 2, keyCode: KeyEvent.DOM_VK_BACK_SPACE }],
+      [{ value: '_', ratio: 2 }, { value: '`', ratio: 2 }, { value: '[', ratio: 2 }, { value: ']', ratio: 2 }, { value: '拼', keyCode: -1, ratio: 2 }],
+      [{ value: '（', ratio: 2 }, { value: '）', ratio: 2 }, { value: '$', ratio: 2 }, { value: '￥', ratio: 2 }, { value: '123', keyCode: -12, ratio: 2 }],
+      [{ value: '⇧', ratio: 3, keyCode: -13}, { value: '⇩', ratio: 3, keyCode: -15}, { value: '空格', ratio: 2, keyCode: KeyboardEvent.DOM_VK_SPACE }, { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }]
+    ]
+  },
+  'zh-Hans-Pinyin-symbol2': {
+    type: 'keyboard',
+    disableAlternateLayout: true,
+    hidesSwitchKey: true,
+    textLayoutOverwrite: {
+      ',': false,
+      '.': false
+    },
+    keys: [
+      [{ value: '+', ratio: 2 }, { value: '#', ratio: 2 }, { value: '^', ratio: 2 }, { value: '\\', ratio: 2 }, { value: '⌫', ratio: 2, keyCode: KeyEvent.DOM_VK_BACK_SPACE }],
+      [{ value: '|', ratio: 2 }, { value: '{', ratio: 2 }, { value: '}', ratio: 2 }, { value: '÷', ratio: 2 }, { value: '拼', keyCode: -1, ratio: 2 }],
+      [{ value: '=', ratio: 2 }, { value: '<', ratio: 2 }, { value: '>', ratio: 2 }, { value: '℃', ratio: 2 }, { value: '123', keyCode: -12, ratio: 2 }],
+      [{ value: '⇧', ratio: 3, keyCode: -14}, { value: '⇩', ratio: 3, keyCode: -13}, { value: '空格', ratio: 2, keyCode: KeyboardEvent.DOM_VK_SPACE }, { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }]
     ]
   },
   ar: {
