@@ -35,6 +35,10 @@
       "name": "Attivit\u00e0",
       "description": "Attivit\u00e0 di Gaia"
     },
+    "pt-BR": {
+      "name": "Tarefas",
+      "description": "Tarefas do Gaia"
+    },
     "ru": {
       "name": "Tasks",
       "description": "Gaia Tasks"

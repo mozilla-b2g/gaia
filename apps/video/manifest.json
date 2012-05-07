@@ -24,8 +24,8 @@
       "description": "Gaia Video"
     },
     "es": {
-      "name": "V\u00eddeo",
-      "description": "V\u00eddeo de Gaia"
+      "name": "Video",
+      "description": "Video de Gaia"
     },
     "fr": {
       "name": "Vid\u00e9o",
@@ -34,6 +34,10 @@
     "it": {
       "name": "Video",
       "description": "Gaia Video"
+    },
+    "pt-BR": {
+      "name": "V\u00eddeo",
+      "description": "V\u00eddeo do Gaia"
     },
     "ru": {
       "name": "\u0412\u0438\u0434\u0435\u043e",
