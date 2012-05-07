@@ -461,6 +461,8 @@ var WindowManager = (function() {
         frame.mozRequestFullScreen();
       }
     });
+
+    return frame;
   }
 
 
