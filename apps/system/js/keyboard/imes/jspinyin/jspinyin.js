@@ -66,7 +66,7 @@ Term.prototype = {
   /*The actual string of the term, such as '北京'.*/
   phrase: '',
   /* The frequency of the term*/
-  freq: 0  
+  freq: 0
 };
 
 /**
@@ -2265,5 +2265,10 @@ if (typeof define === 'function' && define.amd)
 // Expose to IMEManager if we are in Gaia homescreen
 if (typeof IMEManager !== 'undefined')
   IMEManager.IMEngines.jspinyin = jspinyin;
+
+// For unit tests
+if (typeof Test !== 'undefined') {
+  Test.PinyinParser = PinyinParser;
+}
 
 })();

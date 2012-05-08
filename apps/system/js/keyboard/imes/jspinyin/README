@@ -2,7 +2,7 @@ The the original dictionary file - data/rawdict are from android open source
 project. It is part of the PinyinIME project of the android.
 http://source.android.com/source/downloading.html
 
-Conversion How-to:
+Database JSON files:
 
 1. Install SpiderMonkey JavaScript Shell(http://ftp.mozilla.org/pub/mozilla.org/firefox/nightly/latest-trunk/)
 
@@ -16,5 +16,14 @@ Conversion How-to:
 traditional Chinese file and save it as
 ./db-tr.json.
 
+Running tests:
 
+1. Install SpiderMonkey JavaScript Shell(http://ftp.mozilla.org/pub/mozilla.org/firefox/nightly/latest-trunk/)
 
+2. Run the tests:
+   $ cd tests
+   $ make
+
+3. Clean up the temporary files of the tests:
+   $ cd tests
+   $ make clean
