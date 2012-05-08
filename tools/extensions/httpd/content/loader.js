@@ -144,10 +144,23 @@ var Connections = {
 };
 
 var MarionetteHandler = {
+
+  /**
+   * Adding only test-agent for now.
+   * In the future individual apps may need
+   * access as well.
+   */
+  crosDomains: [
+    'http://test-agent.gaiamobile.org',
+    'http://test-agent.gaiamobile.org:8080',
+    'http://test-agent.trunk.gaiamobile.org',
+    'http://test-agent.trunk.gaiamobile.org:8080'
+  ],
+
   // nsIHttpRequestHandler
   handle: function mh_handle(request, response) {
     try {
-      debug(request.method);
+      this.handleCrosHeaders(request, response);
 
       switch (request.method) {
         case 'GET':
@@ -155,6 +168,9 @@ var MarionetteHandler = {
           break;
         case 'POST':
           this.onPost(request, response);
+          break;
+        case 'OPTIONS':
+          this.onOptions(request, response);
           break;
         case 'PUT':
           this.onPut(request, response);
@@ -166,10 +182,48 @@ var MarionetteHandler = {
           this.onDefault(request, response);
           break;
       }
-    } catch(e) {
+    } catch (e) {
       response.setStatusLine('1.1', 500, 'Internal Server Error');
       response.write(e.toString() + e.stack == undefined ? '' : ' ' + e.stack);
     }
+  },
+
+  onOptions: function mh_options(request, response) {
+    response.setStatusLine('1.1', 200, 'OK');
+  },
+
+  handleCrosHeaders: function mh_options(request, response) {
+    if(!request.hasHeader('Origin'))
+      return;
+
+    let methods = 'GET, POST, PUT, DELETE, OPTIONS';
+    let origin = request.getHeader('Origin');
+
+    if (!origin || this.crosDomains.indexOf(origin) === -1) {
+      return;
+    }
+
+    response.setHeader(
+      'Access-Control-Allow-Origin',
+      origin
+    );
+
+    response.setHeader(
+      'Access-Control-Allow-Credentials',
+      'true'
+    );
+
+    response.setHeader(
+      'Access-Control-Max-Age',
+      '2500'
+    );
+
+    response.setHeader(
+      'Access-Control-Allow-Methods',
+      methods
+    );
+
+    response.setHeader('Access-Control-Allow-Headers', 'Content-Type, *');
   },
 
   onGet: function mh_get(request, response) {
@@ -200,7 +254,7 @@ var MarionetteHandler = {
 
     connection.outstanding.push = response;
     connection.outstanding.noop = setTimeout(function() {
-      debug('sending noop')
+      debug('sending noop');
       connection.cast({ 'noop': true });
     }, 25000);
   },

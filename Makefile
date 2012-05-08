@@ -11,12 +11,36 @@
 # DEBUG       : debug mode enables mode output on the console and disable the #
 #               the offline cache. This is mostly for desktop debugging.      #
 #                                                                             #
+# REPORTER    : Mocha reporter to use for test output.                        #
+#                                                                             #
 ###############################################################################
 GAIA_DOMAIN?=gaiamobile.org
 
 ADB?=adb
 
 DEBUG?=0
+
+REPORTER=Spec
+
+
+###############################################################################
+# The above rules generate the profile/ folder and all its content.           #
+# The profile folder content depends on different rules:                      #
+#  1. manifests                                                               #
+#     A directory structure representing the applications installed using the #
+#     Apps API. In Gaia all applications use this method.                     #
+#     See https://developer.mozilla.org/en/Apps/Apps_JavaScript_API           #
+#                                                                             #
+#   2. offline                                                                #
+#     An Application Cache database containing Gaia apps, so the phone can be #
+###############################################################################
+GAIA_DOMAIN?=gaiamobile.org
+
+ADB?=adb
+
+DEBUG?=0
+
+REPORTER=Spec
 
 
 ###############################################################################
@@ -44,9 +68,9 @@ DEBUG?=0
 # by editing /etc/hosts on linux/mac. This steps would not be required
 # anymore once https://bugzilla.mozilla.org/show_bug.cgi?id=722197 will land.
 ifeq ($(DEBUG),1)
-GAIA_PORT=:8080
+GAIA_PORT?=:8080
 else
-GAIA_PORT=
+GAIA_PORT?=
 endif
 
 
@@ -120,12 +144,15 @@ manifests:
 
 # Generate profile/OfflineCache/
 offline: install-xulrunner
+ifneq ($(DEBUG),1)
 	@echo "Building offline cache"
 	@rm -rf profile/OfflineCache
 	@mkdir -p profile/OfflineCache
 	@cd ..
 	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)$(GAIA_PORT)"' build/offline-cache.js
 	@echo "Done"
+endif
+
 
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up
 # some commands for invoking it. But it is platform dependent
@@ -195,20 +222,34 @@ tests: manifests offline
 	test -L $(INJECTED_GAIA) || ln -s $(CURDIR) $(INJECTED_GAIA)
 	TEST_PATH=$(TEST_PATH) make -C $(MOZ_OBJDIR) mochitest-browser-chrome EXTRA_TEST_ARGS="--browser-arg=\"\" --extra-profile-file=$(CURDIR)/profile/webapps --extra-profile-file=$(CURDIR)/profile/OfflineCache --extra-profile-file=$(CURDIR)/profile/user.js"
 
-.PHONY: test-agent-install
-test-agent-install:
+.PHONY: common-install
+common-install:
 	@test -x $(NODEJS) || (echo "Please Install NodeJS -- (use aptitude on linux or homebrew on osx)" && exit 1 )
 	@test -x $(NPM) || (echo "Please install NPM (node package manager) -- http://npmjs.org/" && exit 1 )
 
 	cd $(TEST_AGENT_DIR) && npm install .
 
-.PHONY: test-agent-update-common
-test-agent-update-common: test-agent-install
+.PHONY: update-common
+update-common: common-install
+	mkdir -p common/vendor/test-agent/
+	mkdir -p common/vendor/marionette-client/
+	mkdir -p common/vendor/chai/
 	rm -f common/vendor/test-agent/test-agent*.js
+	rm -f common/vendor/marionette-client/*.js
+	rm -f common/vendor/chai/*.js
 	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.js common/vendor/test-agent/
+	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.css common/vendor/test-agent/
+	cp $(TEST_AGENT_DIR)/node_modules/marionette-client/marionette.js common/vendor/marionette-client/
+	cp $(TEST_AGENT_DIR)/node_modules/chai/chai.js common/vendor/chai/
+
+# Temp make file method until we can switch
+# over everything in test
+.PHONY: test-agent-test
+test-agent-test:
+	@$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent test --reporter $(REPORTER)
 
 .PHONY: test-agent-server
-test-agent-server: test-agent-install
+test-agent-server: common-install
 	$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent server -c ./$(TEST_AGENT_DIR)/test-agent-server.js --http-path . --growl
 
 .PHONY: marionette

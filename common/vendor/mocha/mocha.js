@@ -188,7 +188,7 @@ EventEmitter.prototype.removeAllListeners = function (name) {
 /**
  * Gets all listeners for a certain event.
  *
- * @api publci
+ * @api public
  */
 
 EventEmitter.prototype.listeners = function (name) {
@@ -2975,6 +2975,7 @@ Runnable.prototype.run = function(fn){
     this.duration = new Date - start;
     fn();
   } catch (err) {
+    console.log('sync error', err.stack);
     fn(err);
   }
 };
