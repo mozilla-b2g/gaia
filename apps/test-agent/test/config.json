@@ -1,6 +1,6 @@
 {
   "tests": [
-    "test-agent/test/lib_test.js",
-    "test-agent/test/device/drive_test.js"
+    "gallery/test/SyntheticGestures_test.js",
+    "gallery/test/GestureDetector_test.js"
   ]
 }
