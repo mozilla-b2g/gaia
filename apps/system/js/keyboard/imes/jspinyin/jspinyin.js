@@ -740,7 +740,7 @@ IMEngine.prototype = {
   _splitter: null,
 
   // Enable IndexedDB
-  _enableIndexedDB: false,
+  _enableIndexedDB: true,
 
   // Tell the algorithm what's the longest term
   // it should attempt to match
@@ -1357,7 +1357,6 @@ JsonStorage.prototype = {
     xhr.onreadystatechange = function xhrReadystatechange(ev) {
       if (xhr.readyState !== 4) {
         self._status = DatabaseStorageBase.StatusCode.ERROR;
-        doCallback();
         return;
       }
 
@@ -1675,6 +1674,7 @@ IndexedDBStorage.prototype = {
       var reqCount = transaction.objectStore('homonyms').count();
 
       reqCount.onsuccess = function(ev) {
+        debug('IndexedDB count: ' + ev.target.result);
         self._count = ev.target.result;
         self._status = DatabaseStorageBase.StatusCode.READY;
         doCallback();
@@ -1986,6 +1986,7 @@ var IMEngineDatabase = function imedb(dbName, jsonUrl) {
         jsonStorage.init(ready);
         return;
       }
+      ready();
       if (indexedDBStorage.isEmpty()) {
         jsonStorage.init(function jsonStorageInitCallback() {
           if (!jsonStorage.isReady()) {
