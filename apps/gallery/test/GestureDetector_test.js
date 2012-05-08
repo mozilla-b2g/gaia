@@ -95,24 +95,25 @@ suite('GestureDetector', function() {
     }
 
     var swipes = [
-      { name: 'E', x0: 10, y0: 10, x1: 100, y1: 10, direction: 'right' },
-      { name: 'W', x0: 100, y0: 10, x1: 10, y1: 10, direction: 'left' },
-      { name: 'S', x0: 10, y0: 10, x1: 10, y1: 100, direction: 'down' },
-      { name: 'N', x0: 10, y0: 100, x1: 10, y1: 10, direction: 'up' },
-      { name: 'NNE', x0: 100, y0: 100, x1: 110, y1: 10, direction: 'up' },
-      { name: 'NNW', x0: 100, y0: 100, x1: 90, y1: 10, direction: 'up' },
-      { name: 'SSE', x0: 100, y0: 10, x1: 110, y1: 100, direction: 'down' },
-      { name: 'SSW', x0: 100, y0: 10, x1: 90, y1: 100, direction: 'down' },
-      { name: 'ENE', x0: 10, y0: 100, x1: 100, y1: 90, direction: 'right' },
-      { name: 'ESE', x0: 10, y0: 100, x1: 100, y1: 110, direction: 'right' },
-      { name: 'WNW', x0: 100, y0: 100, x1: 10, y1: 90, direction: 'left' },
-      { name: 'WSW', x0: 100, y0: 100, x1: 10, y1: 110, direction: 'left' }
+      { name: 'E', x0: 10, y0: 10, x1: 200, y1: 10, direction: 'right' },
+      { name: 'W', x0: 200, y0: 10, x1: 10, y1: 10, direction: 'left' },
+      { name: 'S', x0: 10, y0: 10, x1: 10, y1: 200, direction: 'down' },
+      { name: 'N', x0: 10, y0: 200, x1: 10, y1: 10, direction: 'up' },
+      { name: 'NNE', x0: 100, y0: 200, x1: 110, y1: 10, direction: 'up' },
+      { name: 'NNW', x0: 100, y0: 200, x1: 90, y1: 10, direction: 'up' },
+      { name: 'SSE', x0: 100, y0: 10, x1: 110, y1: 200, direction: 'down' },
+      { name: 'SSW', x0: 100, y0: 10, x1: 90, y1: 200, direction: 'down' },
+      { name: 'ENE', x0: 10, y0: 100, x1: 200, y1: 90, direction: 'right' },
+      { name: 'ESE', x0: 10, y0: 100, x1: 200, y1: 110, direction: 'right' },
+      { name: 'WNW', x0: 200, y0: 100, x1: 10, y1: 90, direction: 'left' },
+      { name: 'WSW', x0: 200, y0: 100, x1: 10, y1: 110, direction: 'left' }
     ];
 
     swipes.forEach(function(s) {
       test('swipe ' + s.name, function(done) {
+        var startTime = Date.now();
         SyntheticGestures.swipe(element, s.x0, s.y0, s.x1, s.y1,
-                                100, checkswipe);
+                                200, checkswipe);
         function checkswipe() {
           assert.match(eventseq(), /(pan )+swipe/);
           var e = events[events.length - 1];
@@ -122,10 +123,7 @@ suite('GestureDetector', function() {
           assert.equal(e.detail.end.clientY, s.y1);
           assert.equal(e.detail.dx, s.x1 - s.x0);
           assert.equal(e.detail.dy, s.y1 - s.y0);
-          var vx = (s.x1 - s.x0) / 100;
-          var vy = (s.y1 - s.y0) / 100;
-          between(e.detail.vx, vx - .2, vx + .2);
-          between(e.detail.vy, vy - .2, vy + .2);
+
           assert.equal(e.detail.direction, s.direction);
 
           var angle = Math.atan2(s.y1 - s.y0, s.x1 - s.x0) * 180 / Math.PI;
@@ -157,7 +155,7 @@ suite('GestureDetector', function() {
     swipes.forEach(function(s) {
       test('mouseswipe ' + s.name, function(done) {
         SyntheticGestures.mouseswipe(element, s.x0, s.y0, s.x1, s.y1,
-                                     100, checkswipe);
+                                     200, checkswipe);
         function checkswipe() {
           assert.match(eventseq(), /(pan )+swipe/);
           var e = events[events.length - 1];
@@ -167,10 +165,7 @@ suite('GestureDetector', function() {
           assert.equal(e.detail.end.clientY, s.y1);
           assert.equal(e.detail.dx, s.x1 - s.x0);
           assert.equal(e.detail.dy, s.y1 - s.y0);
-          var vx = (s.x1 - s.x0) / 100;
-          var vy = (s.y1 - s.y0) / 100;
-          between(e.detail.vx, vx - .2, vx + .2);
-          between(e.detail.vy, vy - .2, vy + .2);
+
           assert.equal(e.detail.direction, s.direction);
 
           var angle = Math.atan2(s.y1 - s.y0, s.x1 - s.x0) * 180 / Math.PI;
@@ -251,7 +246,6 @@ suite('GestureDetector', function() {
 
           // Check end details
           d = events[events.length - 1].detail;
-          console.log('holdend detail: ', JSON.stringify(d));
           assert.equal(d.start.clientX, s.x0);
           assert.equal(d.start.clientY, s.y0);
           assert.equal(d.end.clientX, s.x1);
