@@ -3,74 +3,95 @@ COLORS
 
 BUSY BACKGROUND: #CCC
 BORDER: #AAA;
-CALENDER BORDER: #606060
-MONTH DAY BACKGROUND: #FFF
-MONTH DAY PAST BACKGROUND: #A8A8A8
+CALENDER BORDER: #B0B0B0
+MONTH DAY BG: #FFF
+MONTH DAY PAST BG: #A8A8A8
 MONTH DAY PAST COLOR: #666
 MONTH DAY TODAY BORDER COLOR: #444
-MONTH DAY SELECTED BACKGROUND: #444
+MONTH DAY SELECTED BG: #444
 MONTH DAY SELECTED COLOR: white
+
+MONTHS DAY TOOLBAR BG: #E2E2E2
+MONTHS DAY EVENT: #CACACA
+
+EVENT TIME COLOR: #333
 */
 
 html, body {
   margin: 0;
   padding: 0;
-  font-size: 3mozmm;
+  font-size: 2.7mozmm;
   height: 100%;
-  background: #E3E3E3;
+  background: #EFEFEF;
+  line-height: 100%;
 }
 
+/* keep ourselves honest about space */
+* {
+  overflow: hidden;
+}
 
 ol {
   font-size: 120%;
 }
 
+
+#views {
+  height: 100%;
+}
+
+#views > section {
+  height: -moz-calc(100% - 10mozmm);
+}
+
 /* month view */
 /* sub: toolbar  */
 
-#month .toolbar {
+#month > header.toolbar {
   width: 100%;
   overflow: hidden;
-  padding: 1mozmm;
+  height: 8mozmm;
+  padding: 2.5mozmm 1.5mozmm;
   border-bottom: 2px solid black;
 }
 
-#month .toolbar h3 {
-  padding: 0px;
-  margin: 0px;
-}
-
-#month .toolbar h3,
-#month .toolbar a {
+#month > header.toolbar h3,
+#month > header.toolbar a {
   display: block;
   float: left;
   width: 33%;
 }
 
-.rtl #month .toolbar h3,
-.rtl #month .toolbar a {
+.rtl #month > header.toolbar h3,
+.rtl #month > header.toolbar a {
   float: right;
 }
 
-#month .toolbar h3 {
+#month > header.toolbar h3 {
   text-align: center;
+  font-size: 3.5mozmm;
 }
 
-.rtl #month .toolbar a.new-event,
-.ltr #month .toolbar a.accounts {
+.rtl #month > header.toolbar a.new-event,
+.ltr #month > header.toolbar a.accounts {
   text-align: left;
 }
 
-.rtl #month .toolbar a.accounts,
-.ltr #month .toolbar a.new-event {
+.rtl #month > header.toolbar a.accounts,
+.ltr #month > header.toolbar a.new-event {
   text-align: right;
 }
 
 /* sub common: day headers, day boxes */
 
+#month-days {
+  overflow: hidden;
+}
+
 #month .month li,
 #month-days li {
   width: 14.28%;
+  line-height: 120%;
   font-weight: bold;
 }
 
@@ -95,10 +116,12 @@ ol {
   text-align: center;
   background-color: #AAA;
   text-transform: uppercase;
-  font-size: 60%;
+  font-size: 2.2mozmm;
+  padding: 0.5mozmm 0;
 }
 
 section.month {
+  height: 40%;
   clear: both;
 }
 
@@ -108,7 +131,6 @@ section.month {
   overflow: hidden;
   border-left: 1px solid #AAA;
   border-right: 1px solid #AAA;
-  border-bottom: 2px solid #606060;
 }
 
 .rtl section.month li {
@@ -125,15 +147,24 @@ section.month {
 
 .ltr section.month li > .day {
   padding-right: 0.8mozmm;
+
+}
+
+section.month ol {
+  height: 20%;
 }
 
 section.month li {
   padding-top: 0.3%;
   border-bottom: 1px solid #AAA;
   border-left: 1px solid #AAA;
-  height: 6.5mozmm;
+  height: 100%;
   position: relative;
   background-color: white;
+}
+
+section.month ol:last-child li {
+  border-bottom: none;
 }
 
 section.month li.today {
@@ -155,6 +186,8 @@ section.month li.past {
 section.month li .busy-indicator,
 section.month li .busy-indicator > span{
   height: 1.2mozmm;
+  padding-top: 1mozmm;
+/*  top: 0;*/
 }
 
 section.month li .busy-indicator {
@@ -162,7 +195,6 @@ section.month li .busy-indicator {
   clear: both;
   bottom: 0px;
   position: absolute;
-  line-height: 0px;
   width: 100%;
 }
 
@@ -171,8 +203,8 @@ section.month li .busy-indicator:before {
   content:"\00a0";
 }
 
-
 section.month li .busy-indicator > span {
+  top: 0px;
   width: 8.33%;
   background-color: #CCC;
   position: absolute;
@@ -210,3 +242,155 @@ Indicators are in units of 12
 .rtl .busy-indicator .busy-10 { right: 74.97%; }
 .rtl .busy-indicator .busy-11 { right: 83.3%; }
 .rtl .busy-indicator .busy-12 { right: 91.63%; }
+
+/* sub: months day view */
+
+#months-day-view {
+  border-top: 2px solid #B0B0B0;
+  background-color: white;
+  height: 60%;
+
+}
+
+#months-day-view .scrollable {
+  overflow-y: auto;
+}
+
+#months-day-view header.toolbar {
+  background-color: #E2E2E2;
+  border-bottom: 1px solid #CCC;
+  text-align: center;
+  padding: 2mozmm;
+}
+
+
+#months-day-view h4,
+#months-day-view h5 {
+  color: #555;
+}
+
+#months-day-view section {
+  border-bottom: 1px solid #CCC;
+  display: -moz-box;
+  -moz-box-orient: horizontal;
+}
+
+.rtl #months-day-view section > h4 {
+  -moz-box-ordinal-group: 2;
+  text-aligh: left;
+  padding-left: 1.4mozmm;
+}
+
+.ltr #months-day-view section > h4 {
+  text-align: right;
+  padding-right: 1.4mozmm;
+}
+
+.ltr #months-day-view section > ol li {
+  padding-left: 1.0mozmm;  
+}
+
+.rtl #months-day-view section > ol li {
+  padding-right: 1.0mozmm;
+}
+
+#months-day-view section > h4,
+#months-day-view section > ol li {
+  padding-top: 1.5mozmm;
+}
+
+#months-day-view section > h4 {
+  background-color: #E2E2E2;
+  font-size: 2.5mozmm;
+  width: 12mozmm;
+}
+
+#months-day-view section > ol,
+#months-day-view section > ol li  {
+  height: 11mozmm;
+}
+
+#months-day-view section > ol {
+  -moz-box-flex: 1;
+}
+
+#months-day-view section > ol li {
+  border-bottom: 1px solid #C3C3C3;
+}
+
+#months-day-view section > ol li:last-child {
+  border-bottom: none;
+}
+
+#months-day-view section > ol h5 {
+  font-weight: normal;
+  padding-top: 0.5mozmm;
+  font-size: 3.5mozmm;
+}
+
+
+#months-day-view section > ol .details {
+  padding-top: 1.3mozmm;
+  font-weight: bold;
+  color: #B3B3B3;
+  font-size: 2.4mozmm;
+}
+
+/** sub: view selector **/
+
+
+#view-selector {
+  margin-top: 1mozmm;
+  border-top: 1px solid black;
+  padding: 1.5mozmm 1.5mozmm;
+}
+
+#view-selector a {
+  text-decoration: none;
+  color: black;
+}
+
+.rtl #view-selector li {
+  float: right;
+}
+
+.ltr #view-selector li {
+  float: left;
+}
+
+#view-selector > li.today {
+  width: -moz-calc(30% - 2mozmm);
+  margin-right: 2mozmm;
+}
+
+#view-selector menu li.week {
+  border-right: 1px solid #9B9B9B;
+  border-left: 1px solid #9B9B9B;
+}
+
+#view-selector > li.time-selection {
+  width: 70%;
+}
+
+#view-selector > li a {
+  padding: 1.5mozmm 2mozmm;
+  display: block;  
+}
+
+#view-selector > li {
+  height: 5.9mozmm;
+  text-align: center;
+  font-weight: bold;
+  font-size: 3mozmm;
+  color: black;
+  display: block;
+  border-radius: 5px;
+  border: 1px solid #656565;
+  background-color: #DDD;
+  width: 100%;
+}
+
+
+#view-selector menu li {
+  width: 33%;
+}

@@ -4,29 +4,49 @@
 }
 
 @font-face {
-  font-family: Roboto;
-  src: url('fonts/Roboto-Regular.ttf');
+  font-family: 'Open Sans';
+  src: url('fonts/Open-Sans.woff');
 }
 @font-face {
-  font-family: Roboto;
+  font-family: 'Open Sans';
   font-weight: bold;
-  src: url('fonts/Roboto-Bold.ttf');
+  src: url('fonts/Open-Sans-Bold.woff');
 }
 @font-face {
-  font-family: Roboto;
-  font-style: italic;
-  src: url('fonts/Roboto-Italic.ttf');
+  font-family: 'Open Sans';
+  font-weight: 600;
+  src: url('fonts/Open-Sans-Semibold.woff');
 }
-@font-face {
-  font-family: Roboto;
-  font-weight: bold;
-  font-style: italic;
-  src: url('fonts/Roboto-BoldItalic.ttf');
+
+h3,
+h4,
+h5,
+menu,
+header,
+section {
+  padding: 0px;
+  margin: 0px;
+  width: 100%;
 }
 
 ol,
+menu li,
 ol li {
   list-style: none;
   margin: 0px;
   padding: 0px;
+}
+
+
+html, body {
+  font-family: 'Open Sans';
+}
+
+
+.ltr {
+  text-align: left;
+}
+
+.rtl {
+  text-align: right;
 }
