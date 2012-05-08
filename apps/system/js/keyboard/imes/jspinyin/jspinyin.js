@@ -57,7 +57,7 @@ var SyllableUtils = {
   }
 };
 
-var Term = function(phrase, freq) {
+var Term = function term_constructor(phrase, freq) {
   this.phrase = phrase;
   this.freq = freq;
 };
