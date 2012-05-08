@@ -55,7 +55,7 @@ var SyntheticGestures = (function() {
   var touchSupported = typeof document.createTouch === 'function';
 
   // Send move events about this often
-  var EVENT_INTERVAL = 50;  // milliseconds
+  var EVENT_INTERVAL = 30;  // milliseconds
 
   // The current array of all pending touches
   var touches = [];
