@@ -234,14 +234,14 @@ var Calculator = {
   },
 
   init: function calculator_init() {
-    document.addEventListener('mousedown', this);
-    document.addEventListener('mouseup', this);
+    document.addEventListener('touchstart', this);
+    document.addEventListener('touchend', this);
     this.updateDisplay();
   },
 
   handleEvent: function calculator_handleEvent(evt) {
     switch (evt.type) {
-      case 'mousedown':
+      case 'touchstart':
         var value = evt.target.value;
         switch (evt.target.dataset.type) {
           case 'value':
@@ -265,7 +265,7 @@ var Calculator = {
         }
         break;
 
-      case 'mouseup':
+      case 'touchend':
         this.clearBackspaceTimeout();
         break;
     }
