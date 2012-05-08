@@ -1786,6 +1786,7 @@ IndexedDBStorage.prototype = {
       };
 
       transaction.oncomplete = function() {
+        self._count = homonymsArray.length;
         doCallback();
       };
 
@@ -2000,6 +2001,7 @@ var IMEngineDatabase = function imedb(dbName, jsonUrl) {
           );
           populateDBFromJSON(function populateDBFromJSONCallback() {
             debug('IndexedDB ready and switched to indexedDB backend.');
+            jsonStorage.uninit();
           });
         });
       }
@@ -2014,7 +2016,6 @@ var IMEngineDatabase = function imedb(dbName, jsonUrl) {
   };
 
   var getUsableStorage = function imedb_getUsableStorage() {
-    var storage = settings.enableIndexedDB ? indexedDBStorage : jsonStorage;
     if (settings.enableIndexedDB &&
         indexedDBStorage.isReady() &&
         !indexedDBStorage.isEmpty()) {
