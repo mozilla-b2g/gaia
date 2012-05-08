@@ -148,16 +148,8 @@ if (DEBUG) {
   content += "user_pref(\"dom.report_all_js_exceptions\", true);\n";
   content += "user_pref(\"nglayout.debug.disable_xul_fastload\", true);\n";
   content += "user_pref(\"browser.cache.offline.enable\", false);\n";
-
-  let json = {
-    "name": "app-profile",
-    "addons": {
-      "mtime": 1336421259000
-    }
-  };
-  json.addons["httpd@" + GAIA_DOMAIN] = GAIA_DIR + "/profile/extensions/httpd";
-
-  content += "user_pref(\"extensions.installCache\", \'" + JSON.stringify(json) + "\');\n";
+  content += "user_pref(\"extensions.autoDisableScopes\", 0);\n";
+  content += "user_pref(\"browser.startup.homepage\", \"" + homescreen + "\");\n";
   content += "\n";
 }
 
