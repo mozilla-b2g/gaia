@@ -51,7 +51,7 @@ AppScreen.prototype.getAppByOrigin = function getAppByOrigin(origin) {
 // But we also call it when new apps are installed or when the locale changes.
 AppScreen.prototype.build = function(rebuild) {
 
-  // We can't rebuild the app screen if it hasn't already been build the 
+  // We can't rebuild the app screen if it hasn't already been build the
   // the first time. This happens when we get an initial language setting
   // observation before we get the initial list of installed apps.
   if (rebuild && !this.grid)
@@ -69,12 +69,12 @@ AppScreen.prototype.build = function(rebuild) {
 
   // Start with completely fresh elements.
   // If we're rebuilding, this will remove all old event listeners too.
-  document.getElementById('home').innerHTML = 
+  document.getElementById('home').innerHTML =
     '<div id="apps"></div><div id="dots"></div>';
 
   // Create the widgets
   this.grid = new IconGrid('apps');
-  this.grid.dots = new Dots('dots', 'apps');
+  this.grid.dots = new Dots('dots', this.grid);
 
   // The current language for localizing app names
   for (var origin in this.installedApps) {
@@ -404,6 +404,11 @@ IconGrid.prototype = {
     if (dots)
       dots.update(number);
   },
+
+  length: function() {
+    return this.container.childNodes.length;
+  },
+
   tap: function(target) {
     var app = appscreen.getAppByOrigin(target.dataset.url);
     app.launch();
@@ -421,6 +426,7 @@ IconGrid.prototype = {
   },
   handleEvent: function(e) {
     var physics = this.physics;
+
     switch (e.type) {
     case 'mousedown':
       physics.onTouchStart(e);
@@ -438,19 +444,17 @@ IconGrid.prototype = {
   }
 };
 
-function Dots(containerId, gridId) {
+function Dots(containerId, grid) {
   this.containerId = containerId;
-  this.gridId = gridId;
   this.container = document.getElementById(containerId);
-  this.grid = document.getElementById(gridId);
+  this.grid = grid;
 }
 
 Dots.prototype = {
   update: function(current) {
     var container = this.container;
     var grid = this.grid;
-
-    var numPages = grid.childNodes.length;
+    var numPages = grid.length();
 
     // Add additional dots if needed.
     while (container.childNodes.length < numPages) {
@@ -472,7 +476,32 @@ Dots.prototype = {
       } else {
         dot.classList.remove('active');
       }
+
+      dot.addEventListener('click', this);
     }
+  },
+
+  click: function(e) {
+    var childNodes = this.container.childNodes;
+    var length = childNodes.length;
+
+    for (var n = 0; n < length; ++n) {
+      var dot = childNodes[n];
+      if (dot == e.target) {
+        this.grid.setPage(n, 0.2);
+        break;
+      }
+    }
+  },
+
+  handleEvent: function(e) {
+    switch (e.type) {
+    case 'click':
+      this.click(e);
+      break;
+    default:
+      return;
+    }
+    e.preventDefault();
   }
 };
-
