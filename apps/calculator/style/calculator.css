@@ -119,9 +119,10 @@ input:first-child {
 }
 #tip-window input {
   display: block;
-  width: auto;
+  width: 100%;
   font-size: 150%;
   padding: 10px;
+  float: none;
   margin: 5% auto 0 auto;
 }
 
