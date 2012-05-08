@@ -48,6 +48,10 @@
       "name": "System",
       "description": "Main System"
     },
+    "tr": {
+      "name": "Sistem",
+      "description": "Ana Sistem"
+    },
     "zh-TW": {
       "name": "System",
       "description": "Main System"
