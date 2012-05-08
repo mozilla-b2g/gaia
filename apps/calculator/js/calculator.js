@@ -17,11 +17,11 @@ var Calculator = {
   stack: [],
 
   updateDisplay: function calculator_updateDisplay() {
-    if (this.stack.length === 0) {
-      this.display.innerHTML = '0';
-      return;
-    }
     var outval = this.stack.join('');
+    outval = this.stack.join('');
+    if (this.stack.length === 0) {
+      outval = '0';
+    }
     this.display.innerHTML = outval;
     var valWidth = this.display.offsetWidth;
     var screenWidth = this.display.parentNode.offsetWidth;
@@ -100,6 +100,9 @@ var Calculator = {
     }
     if (key === '÷') {
       return '/';
+    }
+    if (key === '−') {
+      return '-';
     }
     return key;
   },
