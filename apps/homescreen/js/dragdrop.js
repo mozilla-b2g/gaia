@@ -53,20 +53,21 @@
           this.startX = e.pageX;
           this.startY = e.pageY;
           this.onDragStart(target);
+          e.preventDefault();
           break;
 
         case 'mousemove':
           if (!this.target)
             return;
 
-          this.onDragMove(target, e.pageX - this.startX, e.pageY - this.startY);
+          this.onDragMove(this.target, e.pageX - this.startX, e.pageY - this.startY);
           break;
 
         case 'mouseup':
           if (!this.target)
             return;
 
-          this.onDragStop(target);
+          this.onDragStop(this.target);
           this.target = null;
           break;
       }
