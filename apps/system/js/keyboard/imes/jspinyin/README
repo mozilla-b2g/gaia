@@ -1,14 +1,20 @@
-The data files are converted from android open source project.
-http://android.git.kernel.org/?p=platform/packages/inputmethods/PinyinIME.git
+The the original dictionary file - data/rawdict are from android open source
+project. It is part of the PinyinIME project of the android.
+http://source.android.com/source/downloading.html
 
 Conversion How-to:
 
 1. Install SpiderMonkey JavaScript Shell(http://ftp.mozilla.org/pub/mozilla.org/firefox/nightly/latest-trunk/)
 
-2. Run the following commands to create the database JSON files:
+2. Run the following commands to create the simplifed Chinese database JSON files:
    $ cd data
    $ make
 
-./words.json and ./phrases.json will be updated.
+./db.json will be updated.
+
+3. Use the Microsoft Office Word or other tool to convert the db.json to the
+traditional Chinese file and save it as
+./db-tr.json.
+
 
 
