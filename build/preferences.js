@@ -149,6 +149,7 @@ if (DEBUG) {
   content += "user_pref(\"nglayout.debug.disable_xul_fastload\", true);\n";
   content += "user_pref(\"browser.cache.offline.enable\", false);\n";
   content += "user_pref(\"extensions.autoDisableScopes\", 0);\n";
+  content += "user_pref(\"browser.startup.homepage\", \"" + homescreen + "\");\n";
   content += "\n";
 }
 
