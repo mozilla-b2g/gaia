@@ -10,7 +10,12 @@
 
   <div id="calc-wrapper">
     <div class="row">
-      <input id="display" value="" disabled />
+      <div id="display"><b></b>
+      </div>
+    </div>
+
+    <div class="row">
+      <input type="button" value="TIP" id="tip" data-type="command" />
       <input type="button" value="C" id="clear" data-type="command" />
     </div>
 
@@ -42,6 +47,14 @@
       <input type="button" value="=" data-type="command" />
     </div>
   </div>
-
+  <div id="tip-window">
+    <table>
+      <tr><th>Rate</th><th>Tip</th><th>Total</th></tr>
+      <tr><th>15%</th><td id="tip-15"></td><td id="total-15"></td></tr>
+      <tr><th>18%</th><td id="tip-18"></td><td id="total-18"></td></tr>
+      <tr><th>20%</th><td id="tip-20"></td><td id="total-20"></td></tr>
+    </table>
+    <input type="button" value="close" data-type="close">
+  </div>
 </body>
 </html>
