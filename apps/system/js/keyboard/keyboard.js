@@ -469,6 +469,7 @@ const IMEManager = {
         switch (keyCode) {
           case KeyEvent.DOM_VK_BACK_SPACE:
           case KeyEvent.DOM_VK_RETURN:
+            window.navigator.mozKeyboard.sendKey(keyCode, 0);
             break;
 
           default:
