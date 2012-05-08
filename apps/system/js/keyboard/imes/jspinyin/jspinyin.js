@@ -63,8 +63,10 @@ var Term = function term_constructor(phrase, freq) {
 };
 
 Term.prototype = {
-  phrase: '北京',
-  freq: 0.01  /* The frequency of the term*/
+  /*The actual string of the term, such as '北京'.*/
+  phrase: '',
+  /* The frequency of the term*/
+  freq: 0  
 };
 
 /**
@@ -80,9 +82,12 @@ var Homonyms = function homonyms_constructor(syllablesString, terms) {
 };
 
 Homonyms.prototype = {
-  syllablesString: "bei'jing",  /* Full pinyin syllables(全拼) */
-  abbreviatedSyllablesString: "b'j", /* Abbreviated pinyin syllabels(简拼) */
-  terms: [new Term('北京', 0.010), new Term('背景', 0.005)]
+  // Full pinyin syllables(全拼), such as "bei'jing"
+  syllablesString: '',
+  // Abbreviated pinyin syllabels(简拼), such as "b'j" for "bei'jing"
+  abbreviatedSyllablesString: '',
+  // Terms array, such as [new Term('北京', 0.010), new Term('背景', 0.005)]
+  terms: null
 };
 
 /**
@@ -106,10 +111,10 @@ var Index = function index_constructor(targetArray, keyPath) {
 
 Index.prototype = {
   // Map the key to the index of the storage array
-  _keyMap: {},
+  _keyMap: null,
 
   // Keys array in ascending order.
-  _sortedKeys: [],
+  _sortedKeys: null,
 
   /**
    * Get array indices by given key.
@@ -243,6 +248,7 @@ Task.prototype = {
 var TaskQueue = function taskQueue_constructor(oncomplete) {
   this.oncomplete = oncomplete;
   this._queue = [];
+  this.data = {};
 };
 
 TaskQueue.prototype = {
@@ -255,12 +261,12 @@ TaskQueue.prototype = {
   /**
    * Data sharing with all tasks of the queue
    */
-  data: {},
+  data: null,
 
   /**
    * Task queue array.
    */
-  _queue: [],
+  _queue: null,
 
   /**
    * Add a new task to the tail of the queue.
@@ -333,9 +339,9 @@ var Syllable = function syllable_constructor(str, type) {
 
 Syllable.prototype = {
   /**
-   * The syllable string
+   * The syllable string, such as 'ai'
    */
-  str: 'ai',
+  str: '',
 
   /**
    * The syllable type
@@ -452,12 +458,12 @@ PinyinParser.prototype = {
    * Consonant(声母) lookup map that maps a lowercase consonant to itself.
    * _consonantMap
    */
-  _consonantMap: {},
+  _consonantMap: null,
 
   /**
-   * Syllable array.
+   * Syllable array, such as [{syllable: 'a'}, {syllable: 'ai'}]
    */
-  _syllableArray: [{syllable: 'a'}, {syllable: 'ai'}],
+  _syllableArray: null,
 
   /**
    * syllableMap index to speed up search operation
@@ -720,17 +726,16 @@ var IMEngine = function engine_constructor(splitter) {
   IMEngineBase.call(this);
 
   this._splitter = splitter;
-  this._enableIndexedDB = false;
-  this._inputTraditionalChinese = false;
   this._db = {
     simplified: null,
     traditional: null
   };
-  this._isWorking = false;
+  this._selectedSyllables = [];
+  this._keypressQueue = [];
 };
 
 IMEngine.prototype = {
-  __proto__: IMEngineBase.prototype,
+  __proto__: new IMEngineBase(),
 
   _splitter: null,
 
@@ -753,18 +758,15 @@ IMEngine.prototype = {
   _inputTraditionalChinese: false,
 
   // Input method database
-  _db: {
-    simplified: null,
-    traditional: null
-  },
+  _db: null,
 
   // The last selected text and syllables used to generate suggestions.
   _selectedText: '',
-  _selectedSyllables: [],
+  _selectedSyllables: null,
 
   _pendingSymbols: '',
   _firstCandidate: '',
-  _keypressQueue: [],
+  _keypressQueue: null,
   _isWorking: false,
 
   _getCurrentDatabaseName: function engine_getCurrentDatabaseName() {
@@ -1165,7 +1167,6 @@ IMEngine.prototype = {
 };
 
 var DatabaseStorageBase = function storagebase_constructor() {
-  this._status = DatabaseStorageBase.StatusCode.UNINITIALIZED;
 };
 
 /**
@@ -1313,15 +1314,13 @@ DatabaseStorageBase.prototype = {
 var JsonStorage = function jsonStorage_construtor(jsonUrl) {
   this._jsonUrl = jsonUrl;
   this._dataArray = [];
-  this._syllablesIndex = null;
-  this._abrreviatedIndex = null;
 };
 
 JsonStorage.prototype = {
   // Inherits DatabaseStorageBase
-  __proto__: DatabaseStorageBase.prototype,
+  __proto__: new DatabaseStorageBase(),
 
-  _dataArray: [],
+  _dataArray: null,
 
   // The JSON file url.
   _jsonUrl: null,
@@ -1599,15 +1598,13 @@ var IndexedDB = {
 
 var IndexedDBStorage = function indexedDBStorage_constructor(dbName) {
   this._dbName = dbName;
-  this._IDBDatabase = null;
-  this._count = 0;
 };
 
 IndexedDBStorage.kDBVersion = 1.0;
 
 IndexedDBStorage.prototype = {
   // Inherits DatabaseStorageBase
-  __proto__: DatabaseStorageBase.prototype,
+  __proto__: new DatabaseStorageBase(),
 
   // Database name
   _dbName: null,
@@ -1674,7 +1671,7 @@ IndexedDBStorage.prototype = {
       self._count = 0;
 
       // Get the count
-      var transaction = self._IDBDatabase.transaction('homonyms', 'readonly');
+      var transaction = self._IDBDatabase.transaction(['homonyms'], 'readonly');
       var reqCount = transaction.objectStore('homonyms').count();
 
       reqCount.onsuccess = function(ev) {
@@ -1819,7 +1816,7 @@ IndexedDBStorage.prototype = {
       return;
     }
 
-    var store = this._IDBDatabase.transaction(['homonyms'], 'readyonly')
+    var store = this._IDBDatabase.transaction(['homonyms'], 'readonly')
       .objectStore('homonyms');
     var req = store.get(syllablesStr);
 
@@ -1830,7 +1827,9 @@ IndexedDBStorage.prototype = {
 
     req.onsuccess = function(ev) {
       var homonyms = ev.target.result;
-      homonymsArray.push(homonyms);
+      if (homonyms) {
+        homonymsArray.push(homonyms);
+      }
       doCallback();
     };
   },
@@ -1981,14 +1980,14 @@ var IMEngineDatabase = function imedb(dbName, jsonUrl) {
     }
 
     debug('Probing IndexedDB ...');
-    indexedDBStorage.init(function() {
+    indexedDBStorage.init(function indexedDBStorageInitCallback() {
       if (!indexedDBStorage.isReady()) {
         debug('IndexedDB not available; Downloading JSON ...');
         jsonStorage.init(ready);
         return;
       }
       if (indexedDBStorage.isEmpty()) {
-        jsonStorage.init(function() {
+        jsonStorage.init(function jsonStorageInitCallback() {
           if (!jsonStorage.isReady()) {
             debug('JSON failed to download.');
             return;
@@ -1998,7 +1997,7 @@ var IMEngineDatabase = function imedb(dbName, jsonUrl) {
             'JSON loaded,' +
             'IME is ready to use while inserting data into db ...'
           );
-          populateDBFromJSON(function() {
+          populateDBFromJSON(function populateDBFromJSONCallback() {
             debug('IndexedDB ready and switched to indexedDB backend.');
           });
         });
