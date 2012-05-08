@@ -1,0 +1,32 @@
+/* ------------ Datepicker ----------- */
+
+.cal-widget > div {
+    overflow:hidden;
+	color:#000;
+}
+
+.cal-widget > div > ul {
+    font-size: 1.6em;
+    height:42px;
+    width:6000px;
+    list-style: none outside none;
+	margin: 4px 0;
+	padding:0;
+    position:relative;
+    white-space:nowrap;
+}
+
+.cal-widget > div > ul > li {
+    border: 1px solid #000000;
+	  background-color:#FFF;
+    float: left;
+    height: 40px;
+}
+
+.cal-widget > div > ul > li.sel {
+    border: 1px solid #FF0000;
+}
+
+.hidden {
+	display:none;
+}

@@ -158,6 +158,13 @@ const IMEManager = {
     return this.candidatePanelToggleButton = toggleButton;
   },
 
+  get customPanel() {
+    delete this.customPanel;
+    var customPanel = document.createElement('div');
+    customPanel.id = 'keyboard-custom-panel';
+    return this.customPanel = customPanel;
+  },
+
   updateKeyHighlight: function km_updateKeyHighlight() {
     var keyHighlight = this.keyHighlight;
     var target = this.currentKey;
@@ -794,6 +801,12 @@ const IMEManager = {
               break;
             }
 
+            if (Keyboards[this.currentKeyboard].type == 'custom' &&
+                !this.currentKeyboardMode) {
+              Keyboards[this.currentKeyboard].done(keyCode);
+              break;
+            }
+
             window.navigator.mozKeyboard.sendKey(keyCode, keyCode);
           break;
 
@@ -830,6 +843,9 @@ const IMEManager = {
       break;
       case 'tel':
         layout = Keyboards['telLayout'];
+      break;
+      case 'date':
+        layout = Keyboards['dateLayout'];
       break;
       default:
         layout = Keyboards[keyboard] || Keyboards[this.currentKeyboard];
@@ -1037,6 +1053,12 @@ const IMEManager = {
       this.showCandidates([], true);
       this.currentEngine.empty();
     }
+
+    // If layout needs to draw custom elemts
+    if (layout.draw) {
+      this.ime.insertBefore(this.customPanel, this.ime.firstChild);
+      layout.draw(this.customPanel);
+    }
   },
 
   getTargetWindowMetrics: function km_getTargetWindowMetrics() {
@@ -1059,6 +1081,7 @@ const IMEManager = {
       case 'tel':
       case 'email':
       case 'number':
+      case 'date':
       case 'text':
         this.currentType = type;
       break;

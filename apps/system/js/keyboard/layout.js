@@ -38,6 +38,23 @@ const Keyboards = {
       [ { value: "+", ratio: 3},{ value: ",", ratio: 3},{ value: "⌫", ratio: 3, keyCode: KeyEvent.DOM_VK_BACK_SPACE }]
     ]
   },
+  dateLayout: {
+    type: 'custom',
+    width: 1,
+    keys: [[{ value: "↵", ratio: 1, keyCode: KeyEvent.DOM_VK_RETURN}]],
+    draw: function (drawArea) {
+      IMEManager.datepicker = new Datepicker('#' + drawArea.id);
+      IMEManager.datepicker.load(new Date());
+      IMEManager.datepicker.init();
+    },
+    done: function(target) {
+      target.value = IMEManager.datepicker.toShortDate(IMEManager.datepicker.getDate());
+      for (index in value) {
+        var key = value[index];
+        window.navigator.mozKeyboard.sendKey(keyCode, keyCode);
+      }
+    }
+  },
   en: {
     type: 'keyboard',
     label: 'English',

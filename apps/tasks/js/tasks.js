@@ -66,6 +66,7 @@ var TaskList = {
       a.dataset.id = 'task-' + task.id;
       a.dataset.name = task.name;
       a.dataset.desc = task.desc;
+      a.dataset.date = task.date;
       a.dataset.done = task.done;
 
       a.href = '#task';
@@ -73,9 +74,24 @@ var TaskList = {
       li.appendChild(a);
 
       var img = document.createElement('img');
-      img.src = task.done ?
-        'style/icons/done_' + TASK_ICONS[0] :
-        'style/icons/' + TASK_ICONS[0];
+
+      if (task.done) {
+        img.src = 'style/icons/done_' + TASK_ICONS[0];
+      } else {
+        var dateMillis = Date.parse(task.date);
+
+        var overdue = false;
+
+        if (dateMillis) {
+          var taskDate = new Date(dateMillis);
+          overdue = taskDate < new Date();
+        }
+
+        img.src = overdue ?
+          'style/icons/over_' + TASK_ICONS[0] :
+          'style/icons/' + TASK_ICONS[0];
+      }
+
       a.appendChild(img);
 
       var nameSpan = document.createElement('span');
@@ -112,6 +128,12 @@ var EditTask = {
     delete this.descInput;
     return this.descInput =
       document.querySelector('textarea[name=\'task.desc\']');
+  },
+
+  get dateInput() {
+    delete this.dateInput;
+    return this.dateInput =
+      document.querySelector('input[name=\'task.date\']');
   },
 
   get doneInput() {
@@ -156,6 +178,7 @@ var EditTask = {
     task.id = dataset.id;
     task.name = dataset.name ? dataset.name : '';
     task.desc = dataset.desc ? dataset.desc : '';
+    task.date = dataset.date ? dataset.date : '';
     task.done = dataset.done == 'true' ? true : false;
 
     return task;
@@ -170,6 +193,7 @@ var EditTask = {
     this.element.dataset.id = task.id;
     this.nameInput.value = task.name;
     this.descInput.value = task.desc;
+    this.dateInput.value = task.date;
     this.doneInput.checked = task.done;
 
     if (task.id) {
@@ -194,6 +218,7 @@ var EditTask = {
 
     task.name = this.nameInput.value;
     task.desc = this.descInput.value;
+    task.date = this.dateInput.value;
     task.done = this.doneInput.checked;
 
     if (!task.name) {
