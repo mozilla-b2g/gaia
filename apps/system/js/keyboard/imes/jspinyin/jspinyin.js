@@ -18,16 +18,6 @@ var debug = function(str) {
   }
 };
 
-
-var log = function(str) {
-  var logfunc = console.log || window.dump;
-  var logStr = '';
-  for (var i = 0; i < arguments.length; i++) {
-    logStr += JSON.stringify(arguments[i]);
-  }
-  logfunc(logStr);
-};
-
 /* for non-Mozilla browsers */
 if (!KeyEvent) {
   var KeyEvent = {
