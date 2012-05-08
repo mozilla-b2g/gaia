@@ -1,0 +1,6 @@
+#! /usr/bin/env node
+
+var cmd = process.argv[2];
+var script = require('../lib/ci/' + cmd);
+
+script.run();
