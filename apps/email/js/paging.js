@@ -6,35 +6,20 @@
 
 const PAGING_TRANSITION = 300;
 
-var Paging = function Paging(page, data) {
-  this.pages = new Map();
+var Paging = function Paging(page) {
   this.navigationStack = [];
 
   if (page) {
-    this.registerPage(page, data);
     this.navigationStack.push(page);
     page.hidden = false;
   }
 };
 
 Paging.prototype = {
-  registerPage: function(page, data) {
-    //{
-    // push: function(){},
-    // pop: function(){}
-    //}
-
-    if (page && !this.pages.has(page)) {
-      this.pages.set(page, data || {});
-      page.hidden = true;
-    }
-
-  },
   moveToPage: function(page) {
     if (!page || this.moving) return false;
 
-    var data = this.pages.get(page),
-      stack = this.navigationStack,
+    var stack = this.navigationStack,
       self = this;
 
     this.moving = true;
@@ -48,10 +33,8 @@ Paging.prototype = {
         }, {
           duration: PAGING_TRANSITION
         }, function() {
-          var data = self.pages.get(current);
-          if (data && data.pop) {
-            data.pop.call(current);
-          }
+          var e = new CustomEvent('poppage');
+          current.dispatchEvent(e);
           current.hidden = true;
         });
       };
@@ -60,8 +43,6 @@ Paging.prototype = {
     {
 
       window.addEventListener('MozAfterPaint', function afterPaint(e) {
-
-        console.log(stack.length + ' current');
 
         window.removeEventListener('MozAfterPaint', afterPaint);
         moveCurrent && moveCurrent();
@@ -80,9 +61,8 @@ Paging.prototype = {
       page.style.MozTranstion = '';
       page.style.MozTransform = Transform.translate(window.innerWidth);
       page.hidden = false;
-      if (data && data.push) {
-        data.push.call(page);
-      }
+      let e = new CustomEvent('pushpage');
+      page.dispatchEvent(e);
 
     }
   },
@@ -101,30 +81,24 @@ Paging.prototype = {
 
       window.addEventListener('MozAfterPaint', function afterPrev(e) {
 
-        console.log(stack.length + ' prev');
+        window.removeEventListener('MozAfterPaint', afterPrev);
+        Transition.run(prev, {
+          MozTransform: ''
+        }, {
+          duration: PAGING_TRANSITION
+        }, function() {
+          self.moving = false;
+        });
 
-        //if (e.target === prev) {
-          window.removeEventListener('MozAfterPaint', afterPrev);
-          Transition.run(prev, {
-            MozTransform: ''
-          }, {
-            duration: PAGING_TRANSITION
-          }, function() {
-            self.moving = false;
-          });
-        //}
       });
-
-      let data = self.pages.get(prev);
 
       Transition.stop(prev);
 
       prev.style.MozTransform = Transform.translate(-window.innerWidth);
       prev.hidden = false;
 
-      if (data && data.push) {
-        data.push.call(prev);
-      }
+      let e = new CustomEvent('pushpage');
+      prev.dispatchEvent(e);
 
       window.addEventListener('MozAfterPaint', function afterCurrent() {
         window.removeEventListener('MozAfterPaint', afterCurrent);
@@ -133,10 +107,8 @@ Paging.prototype = {
         }, {
           duration: PAGING_TRANSITION
         }, function() {
-          var data = self.pages.get(current);
-          if (data && data.pop) {
-            data.pop.call(current);
-          }
+          var e = new CustomEvent('poppage');
+          current.dispatchEvent(e);
           current.hidden = true;
         });
       });

@@ -11,6 +11,8 @@ const PAGE_TRANSITION_DURATION = 300,
   //simple regexp for parse addresses
   R_ADDRESS_PARTS = /^(?:([\w\s]+) )?<(.+)>$/,
 
+  R_HTML_TEMPLATE = /\{\{(\w+?)\}\}/g,
+
   STORE_ACCOUNTS_KEYS = 'mail:accounts',
 
   DEFAULT_FOLDER = 'INBOX';
@@ -243,7 +245,6 @@ var mail = {
 
       },
       mouseMove = function(e) {
-        console.log('move');
         if (!started && left - e.layerX > width / 3) {
           started = true;
         }
@@ -278,7 +279,13 @@ var mail = {
 
     mail.screens = new Paging(nodes.mailScreen);
 
-    mail.screens.registerPage(nodes.messageScreen);
+    let xhr = mail.messageTemplate = new XMLHttpRequest();
+
+    xhr.open('GET', 'mailtest.htm', true);
+
+    xhr.overrideMimeType('text/html');
+
+    xhr.send();
 
   },
   configAccount: function(account, password) {
@@ -467,7 +474,46 @@ var mail = {
     return message;
   },
   readMessage: function(domMessage) {
-    mail.screens.moveToPage(nodes.messageScreen);
+    var read = function() {
+      if (this.responseText) {
+        let text = this.responseText,
+          iframe = document.createElement('iframe'),
+          message = mail.folder.map.get(domMessage);
+
+        text = text.replace(R_HTML_TEMPLATE, function(str, key/*, offset, input*/){
+          return message[key] || '';
+        });
+
+        let url = window.URL.createObjectURL(
+            new Blob([text], {
+              type: 'text\/html'
+            })
+          );
+
+        //has no affect in gecko :(
+        iframe.setAttribute('sandbox', '');
+
+        iframe.className = 'message-frame';
+
+        nodes.messageScreen.mainContent.appendChild(iframe);
+
+        iframe.src = url;
+
+        nodes.messageScreen.addEventListener('poppage', function popListener() {
+          window.URL.revokeObjectURL(url);
+          this.mainContent.innerHTML = '';
+          this.removeEventListener('poppage', popListener);
+        });
+
+        mail.screens.moveToPage(nodes.messageScreen);
+      }
+    };
+
+    if (mail.messageTemplate.readyState === 4) {
+      read.call(mail.messageTemplate);
+    } else {
+      mail.messageTemplate.onload = read;
+    }
 
     //console.log(nodes.messageScreen.hidden = false);
 
@@ -585,12 +631,19 @@ document.addEventListener('DOMContentLoaded', load(function() {
 
   });
 
-  let buttons = document.querySelectorAll('.back-button');
+  let pages = document.querySelectorAll('.page');
 
-  [].forEach.call(buttons, function(button) {
-    button.addEventListener('click', function() {
-      mail.screens.toPreviousPage();
-    });
+  [].forEach.call(pages, function(page) {
+    page.backButton = page.querySelector('.userbar .back-button');
+
+    if (page.backButton) {
+      page.backButton.addEventListener('click', function() {
+        mail.screens.toPreviousPage();
+      });
+    }
+
+    page.mainContent = page.querySelector('.main');
+
   });
 
 }), true);
