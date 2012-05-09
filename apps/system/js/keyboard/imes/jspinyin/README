@@ -1,6 +1,6 @@
 The the original dictionary file - data/rawdict are from android open source
 project. It is part of the PinyinIME project of the android.
-http://source.android.com/source/downloading.html
+http://android.googlesource.com/platform/packages/inputmethods/PinyinIME
 
 Database JSON files:
 
