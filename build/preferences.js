@@ -156,6 +156,7 @@ if (DEBUG) {
   content += "user_pref(\"dom.sms.enabled\", true);\n";
   content += "user_pref(\"dom.mozContacts.enabled\", true);\n";
   content += "user_pref(\"dom.mozSettings.enabled\", true);\n";
+  content += "user_pref(\"device.storage.enabled\", true);\n";
   content += "\n";
 }
 
