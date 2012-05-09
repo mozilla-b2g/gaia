@@ -62,16 +62,16 @@ const { 'classes': Cc, 'interfaces': Ci, 'results': Cr, 'utils' : Cu } = Compone
 let settingsDBService = Cc["@mozilla.org/settingsService;1"].getService(Ci.nsISettingsService);
 
 let callback = {
-  handle = function handle(name, result)
+  handle : function handle(name, result)
   { 
     Setting.counter--;
-  };
+  },
 
-  handleError = function handleError(name)
+  handleError : function handleError(name)
   {
     dump("SettingsDB Error: " + name);
     Setting.counter--;
-  };
+  }
 }
 
 let lock = settingsDBService.getLock();
