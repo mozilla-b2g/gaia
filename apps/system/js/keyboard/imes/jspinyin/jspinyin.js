@@ -867,7 +867,7 @@ IMEngine.prototype = {
     if (code === KeyEvent.DOM_VK_RETURN ||
         !this._isSymbol(code) ||
         this._pendingSymbols.length >= this._kBufferLenLimit) {
-      debug('Return key or non-bopomofo code');
+      debug('Nono-bopomofo key is pressed or the input is too long.');
       var sendKey = true;
       if (this._firstCandidate) {
         if (this._pendingSymbols) {
