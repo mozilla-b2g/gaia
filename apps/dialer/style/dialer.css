@@ -1002,6 +1002,23 @@ html * {
   background: rgba(255, 255, 255, .3);
 }
 
+/* == Screen turn off hack == */
+#screen-off {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+
+  background: black;
+  z-index: 100;
+
+  -moz-transform: translateY(-100%);
+}
+#screen-off.displayed {
+  -moz-transform: translateY(0);
+}
+
 /* === Recents === */
 #recents-view {
   overflow-y: scroll;
