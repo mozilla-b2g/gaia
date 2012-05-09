@@ -31,9 +31,10 @@ var Contacts = {
   },
 
   find: function contactsFind(callback) {
-    // Ideally I would like to choose the ordering
-    var options = {sortBy: "familyName",
-                   sortOrder: "ascending"};
+    var options = {
+      sortBy: 'familyName',
+      sortOrder: 'ascending'
+    };
     var request = window.navigator.mozContacts.find(options);
     request.onsuccess = function findCallback() {
       var contacts = request.result;
