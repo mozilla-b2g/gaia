@@ -2,14 +2,15 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-let DEBUG = 1;
-if (DEBUG) {
-  debug = function (s) { dump("-*- Populate SettingsDB: " + s + "\n"); }
-} else {
-  debug = function (s) {}
+'use strict';
+
+const DEBUG = false;
+function debug(msg) {
+  if (DEBUG)
+    dump("-*- Populate SettingsDB: " + msg + "\n");
 }
 
-debug("Populate settingsdb in:" + PROFILE_DIR);
+dump("Populate settingsdb in:" + PROFILE_DIR + "\n");
 
 // Todo: Get a list of settings
 var settings = [
@@ -60,17 +61,18 @@ const { 'classes': Cc, 'interfaces': Ci, 'results': Cr, 'utils' : Cu } = Compone
 
 let settingsDBService = Cc["@mozilla.org/settingsService;1"].getService(Ci.nsISettingsService);
 
-let callback = {};
-callback.handle = function handle(name, result)
-{ 
-  Setting.counter--;
-};
+let callback = {
+  handle = function handle(name, result)
+  { 
+    Setting.counter--;
+  };
 
-callback.handleError = function handleError(name)
-{
-  dump("SettingsDB Error: " + name);
-  Setting.counter--;
-};
+  handleError = function handleError(name)
+  {
+    dump("SettingsDB Error: " + name);
+    Setting.counter--;
+  };
+}
 
 let lock = settingsDBService.getLock();
 
@@ -87,4 +89,4 @@ while ((Setting.counter > 0) || thread.hasPendingEvents()) {
   thread.processNextEvent(true);
 }
 
-debug("SettingsDB filled, Shutdown");
+dump("SettingsDB filled.\n");
