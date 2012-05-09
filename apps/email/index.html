@@ -20,56 +20,48 @@
 	<div class="mail-screen page" hidden id="mail-screen">
 		<header class="top">
 			<div class="userbar">
-				<a href="#account" class="account-bar" id="account-bar">
-					<!--<div><span></span></div>-->
-				</a>
-				<a href="#change-folder" class="folder" id="folder">
-					<div><span>Inbox</span>&nbsp;<span>10/30</span></div>
-				</a>
+				<h1 class="userbar-header" id="folder-title">Inbox</h1>
+				<div class="userbar-nav">
+					<button class="userbar-left-button userbar-button" id="folders-button">
+						F
+					</button>
+					<button class="userbar-right-button userbar-button">
+						N
+					</button>
+				</div>
 			</div>
 			<div class="userbar-menu">
 
 			</div>
 		</header>
 		<div class="main" id="main">
-			<section class="messages-list" id="messages-list">
-				
-			</section>
-			<section class="folders" hidden id="folders">
-				
-			</section>
-			<section class="messages" hidden id="messages">
-				<div class="message-wrap">
-					<iframe class="message-frame" sandbox src="mailtest.htm"></iframe>
-				</div>
-			</section>
 		</div>
-		<div id="actions" class="actions">
-			<a href="#write" class="action">
-				Compose
-			</a>
-			<a href="#filter" class="action">
-				Filter
-			</a>
+		<div class="actions-bar" id="mail-actions">
+			<ul class="actions-bar-menu">
+				<li class="actions-bar-item">
+					<button class="actions-bar-button">C</button></li>
+				<li class="actions-bar-item">
+					<button class="actions-bar-button">F</button></li>
+				<li class="actions-bar-item">
+					<button class="actions-bar-button">D</button></li>
+				<li class="actions-bar-item">
+					<button class="actions-bar-button">M</button></li>
+				<li class="actions-bar-item">
+					<button class="actions-bar-button">A</button></li>
+			</ul>
 		</div>
 	</div>
 	<div class="first-screen page" hidden id="first-screen">
+
 		<header class="top">
 			<div class="userbar">
-				<h1 class="first-screen-header">Gaia Mail Client</h1>
+				<h1 class="userbar-header">Gaia Mail Client</h1>
 			</div>
 		</header>
-		<h2 class="pre-mail-selected" id="pre-mail-selected">
 
-			</h2>
-		<!-- <header class="first-screen-header">
-			<h1>Gaia Mail Client</h1>
-			
-		</header> -->
+		<h2 class="pre-mail-selected" id="pre-mail-selected"></h2>
 
 		<form class="login-form" id="login-form">
-
-
 			<fieldset class="login-fieldset">
 				<ul>
 					<li class="login-field">
@@ -87,7 +79,6 @@
 					<li><button type="submit" class="add-account-button">Add account</button>
 				</ul>
 			</fieldset>
-
 		</form>
 
 		<div class="pre-select-mail" id="pre-select-mail">
@@ -115,6 +106,28 @@
 				</ul>
 			</div>
 		</div>
+
+	</div>
+	<div class="message-screen page" id="message-screen" hidden>
+
+		<header class="top">
+			<div class="userbar">
+				<h1 class="userbar-header">Read</h1>
+				<div class="userbar-nav">
+					<button class="userbar-left-button userbar-button back-button">
+						⬅
+					</button>
+					<button class="userbar-right-button userbar-button">
+						R
+					</button>
+				</div>
+			</div>
+		</header>
+
+		<div class="main">
+			<iframe class="message-frame" sandbox src="mailtest.htm"></iframe>
+		</div>
+
 	</div>
 </body>
 </html>

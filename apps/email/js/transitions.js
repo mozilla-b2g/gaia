@@ -80,29 +80,7 @@ Transition.run = function(elem, props, params, callback) {
 Transition.prototype = {
   toString: function() {
     return this.stack.join(', ');
-  }/*,
-  start: function(element){
-    if(element.style){
-      let style = element.style,
-        properties = this.properties,
-        callback = this.callback;
-      element.addEventListener('transitionend', function(e){
-        if(e.eventPhase === e.AT_TARGET){
-          element[TRANSITION_PROPERTY] = '';
-          callback && callback.call(element, e);
-        }
-      }, true);
-      style[TRANSITION_PROPERTY] = this.stack.join(', ');
-      Object.keys(this.properties).forEach(function(prop){
-        if(properties[prop]){
-          style.setProperty(prop, properties[prop]);
-        }else{
-          style.removeProperty(prop);
-        }
-
-      });
-    }
-  }*/
+  }
 };
 
 var Transform = function(map) {

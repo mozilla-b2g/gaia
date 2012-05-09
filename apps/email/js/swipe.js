@@ -21,11 +21,16 @@ document.addEventListener('mousedown', function(e) {
         e.target.dispatchEvent(swipe);
 
       } else {
+        let tapend = new MouseEvent('tapend', e);
+
         if (!tapDispatched) {
           waitTap();
-        }
 
-        let (tapend = new MouseEvent('tapend', e)) {
+          setTimeout(function() {
+            target.dispatchEvent(tapend);
+          }, 0);
+
+        } else {
           target.dispatchEvent(tapend);
         }
 

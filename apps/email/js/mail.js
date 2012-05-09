@@ -9,9 +9,11 @@ const PAGE_TRANSITION_DURATION = 300,
   MESSAGES_PER_SCREEN = 5,
 
   //simple regexp for parse addresses
-  R_ADRESS_PARTS = /^(?:([\w\s]+) )?<(.+)>$/,
+  R_ADDRESS_PARTS = /^(?:([\w\s]+) )?<(.+)>$/,
 
-  STORE_ACCOUNTS_KEYS = 'mail:accounts';
+  STORE_ACCOUNTS_KEYS = 'mail:accounts',
+
+  DEFAULT_FOLDER = 'INBOX';
 
 var mail = {
   firstScreen: function() {
@@ -177,16 +179,11 @@ var mail = {
   mailScreen: function(account) {
 
     var swipedTarget,
-      swipeMove = function() {
+      taped = false,
+      left = 0,
+      width = 0,
+      started = false,
 
-      },
-      swipeEnd = function() {
-
-        swipedTarget = null;
-        document.removeEventListener('mousemove', swipeMove);
-        document.removeEventListener('swipeend', swipeEnd);
-
-      },
       getMessage = function(target){
 
         while (!('messageId' in target.dataset)) {
@@ -199,62 +196,89 @@ var mail = {
 
         return target;
 
+      },
+      cleanTap = function() {
+        document.removeEventListener('tapstart', tapStart);
+        document.removeEventListener('tapend', tapEnd);
+        taped = false;
+      },
+      tapEnd = function() {
+
+        mail.readMessage(swipedTarget);
+
+        if (taped) {
+          swipedTarget.classList.remove('highlight');
+        }
+        cleanTap();
+        cleanSwipe();
+
+      },
+      tapStart = function() {
+        swipedTarget.classList.add('highlight');
+        taped = true;
+
+        document.addEventListener('tapend', tapEnd);
+      },
+      cleanSwipe = function() {
+        document.removeEventListener('swipestart', swipeStart);
+        document.removeEventListener('mousemove', mouseMove);
+        document.removeEventListener('swipeend', swipeEnd);
+        swipedTarget = null;
+      },
+      swipeEnd = function() {
+        swipedTarget.classList.remove('highlight');
+        cleanSwipe();
+      },
+      swipeStart = function(e) {
+
+        if (taped) {
+          cleanTap();
+        }
+
+        if (e.detail & SWIPE_HORIZONTAL) {
+          console.log('swipe');
+          document.addEventListener('mousemove', mouseMove);
+        }
+
+
+      },
+      mouseMove = function(e) {
+        console.log('move');
+        if (!started && left - e.layerX > width / 3) {
+          started = true;
+        }
+
+        if (started) {
+
+        }
       };
 
     nodes.mailScreen.hidden = false;
 
-    nodes.accountBar
-      .appendChild(document.createElement('div'))
-      .appendChild(document.createElement('span'))
-      .textContent = account;
-
-    nodes.mailScreen.addEventListener('mousedown', function(e) {
+    nodes.mailScreen.addEventListener('mousedown', function downListener(e) {
       swipedTarget = getMessage(e.target);
 
       if(!swipedTarget) {
         return;
       }
 
-      let left = e.layerX,
-        width = swipedTarget.offsetWidth,
-        started = false;
+      left = e.layerX,
+      width = swipedTarget.offsetWidth,
+      started = false;
 
-      document.addEventListener('tapstart', function() {
-        swipedTarget.classList.add('highlight');
-      });
+      document.addEventListener('tapstart', tapStart);
 
       if (left > width - width / 10) {
-        document.addEventListener('swipestart', function listenStart(e) {
-          if (e.detail & SWIPE_HORIZONTAL) {
-            console.log('swipe');
-            document.addEventListener('mousemove', function(e) {
-              console.log('move');
-              if (!started && left - e.layerX > width / 3) {
-                started = true;
-              }
-
-              if (started) {
-
-              }
-            });
-          }
-        });
-        document.addEventListener('mouseup', function() {
-
-        });
+        document.addEventListener('swipestart', swipeStart);
       }
+
+      document.addEventListener('swipeend', swipeEnd);
 
     }, true);
 
-    nodes.main.addEventListener('tapstart', function(e) {
-      console.log('tapstart');
-    });
-    nodes.main.addEventListener('tapend', function(e) {
-      console.log('tapend');
-    });
-    nodes.main.addEventListener('longtapstart', function(e) {
-      console.log('longtap');
-    });
+    mail.screens = new Paging(nodes.mailScreen);
+
+    mail.screens.registerPage(nodes.messageScreen);
 
   },
   configAccount: function(account, password) {
@@ -270,7 +294,7 @@ var mail = {
     }
 
 
-    mail.loadFolder(mail.folder, function() {
+    mail.loadFolder(DEFAULT_FOLDER, function() {
       mail.mailScreen(account);
     });
 
@@ -302,41 +326,41 @@ var mail = {
   },
   loadFolder: function(folder, callback) {
 
-    var map = mail.folderMessages = new Map();
+    var map = mail.folderMessages = new Map(),
+      domList = document.createElement('section');
 
-    mail.loadMessages(MESSAGES_PER_SCREEN * 2, function(arr){
-      arr.forEach(function(message){
+    mail.folder = {
+      name: folder,
+      domList: domList,
+      map: map
+    };
+
+    folder = folder.toLowerCase().replace(/^\w/, function(w) {
+      return w.toUpperCase();
+    });
+
+    nodes.folderTitle.textContent = folder;
+
+    domList.className = 'messages-list';
+
+    mail.loadMessages(MESSAGES_PER_SCREEN * 2, function(arr) {
+      arr.forEach(function(message) {
         var domMessage = mail.messageConstructor(message);
 
-        map.set(domMessage, message)
+        map.set(domMessage, message);
 
-        nodes.messagesList.appendChild(domMessage);
+        domList.appendChild(domMessage);
 
       });
     });
 
-    callback && callback(folder);
+    nodes.main.appendChild(domList);
+
+    callback && callback(mail.folder);
 
   },
-  folder: 'inbox',
   defaultDirection: DEFAULT_DIRECTION,
   folderMessages: null,
-  messagesList: (function(){
-
-    var memmoryStack = {};
-
-    return {
-      getById: function(){
-
-      },
-      updateList: function(){
-
-      },
-      clearList: function(){
-
-      }
-    };
-  }()),
   accounts: (function() {
     var accounts,
       saveAccounts = function() {
@@ -412,7 +436,7 @@ var mail = {
   }()),
   messageConstructor: function(data) {
     var message = document.createElement('article'),
-      from = data.from.match(R_ADRESS_PARTS),
+      from = data.from.match(R_ADDRESS_PARTS),
       date = new Date(data.date);
 
     message.setAttribute('role', 'row');
@@ -441,6 +465,12 @@ var mail = {
     message.dataset.messageId = +new Date;
 
     return message;
+  },
+  readMessage: function(domMessage) {
+    mail.screens.moveToPage(nodes.messageScreen);
+
+    //console.log(nodes.messageScreen.hidden = false);
+
   },
   updatePages: function(page, dir) {
     var tmp,
@@ -496,9 +526,9 @@ document.addEventListener('DOMContentLoaded', load(function() {
   [
     'account-field',
     'account-bar',
-    'folder',
+    'folder-title',
     'messages-list',
-    'messages',
+    'message',
     'main',
     'first-screen',
     'login-form',
@@ -507,7 +537,8 @@ document.addEventListener('DOMContentLoaded', load(function() {
     'pre-mail-selected',
     'pre-select-mail',
     'select-account',
-    'select-account-list'
+    'select-account-list',
+    'message-screen'
   ].forEach(function(id) {
     var target = document.getElementById(id);
 
@@ -552,6 +583,14 @@ document.addEventListener('DOMContentLoaded', load(function() {
 
       input.__defineGetter__('value', valueGetter);
 
+  });
+
+  let buttons = document.querySelectorAll('.back-button');
+
+  [].forEach.call(buttons, function(button) {
+    button.addEventListener('click', function() {
+      mail.screens.toPreviousPage();
+    });
   });
 
 }), true);
