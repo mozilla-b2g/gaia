@@ -1013,10 +1013,10 @@ html * {
   background: black;
   z-index: 100;
 
-  -moz-transform: translateY(-100%);
+  display: none;
 }
 #screen-off.displayed {
-  -moz-transform: translateY(0);
+  display: block;
 }
 
 /* === Recents === */
