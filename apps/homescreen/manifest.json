@@ -41,9 +41,17 @@
       "name": "Schermata Iniziale",
       "description": "Schermata iniziale di Gaia"
     },
+    "pt-BR": {
+      "name": "Tela inicial",
+      "description": "Tela inicial do Gaia"
+    },
     "ru": {
       "name": "\u0413\u043b\u0430\u0432\u043d\u044b\u0439 \u044d\u043a\u0440\u0430\u043d",
       "description": "\u0413\u043b\u0430\u0432\u043d\u044b\u0439 \u044d\u043a\u0440\u0430\u043d Gaia"
+    },
+    "tr": {
+      "name": "Ana Ekran",
+      "description": "Gaia Ana Ekran"
     },
     "zh-TW": {
       "name": "\u4e3b\u756b\u9762",

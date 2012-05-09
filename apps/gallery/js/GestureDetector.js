@@ -5,9 +5,9 @@
 // gestures on the element. The hope is that this will be useful for webapps
 // that need to run on mouse (or trackpad)-based desktop browsers and also
 // in touch-based mobile devices.
-// 
+//
 // Supported events:
-// 
+//
 //  tap        like a click event
 //  dbltap     like dblclick
 //  pan        one finger motion, or mousedown followed by mousemove
@@ -17,11 +17,11 @@
 //  holdend    when the finger or mouse goes up after holdstart/holdmove
 //  transform  2-finger pinch and twist gestures for scaling and rotation
 //             These are touch-only; they can't be simulated with a mouse.
-// 
+//
 // Each of these events is a bubbling CustomEvent with important details
 // in the event.detail field. The event details are not yet stable
 // and are not yet documented. See the calls to emitEvent() for details.
-// 
+//
 // To use this library, create a GestureDetector object by passing an
 // element to the GestureDetector() constructor and then calling
 // startDetecting() on it. The element will be the target of all the
@@ -39,26 +39,17 @@
 // if you've started a 1 finger pan/swipe gesture and accidentally
 // touch with a second finger, you'll continue to get pan events, and
 // won't suddenly start getting 2-finger transform events.
-// 
+//
 // This library never calls preventDefault() or stopPropagation on any
 // of the events it processes, so the raw touch or mouse events should
 // still be available for other code to process. It is not clear to me
 // whether this is a feature or a bug.
 //
-// Each GestureDetector listens for mouse and touch events on a single
-// target element and dispatches its synthetic events on the same
-// element.  Its not clear to me whether this will be sufficient or
-// whether I need to do something more sophisticated. For example, the
-// GestureDetector() could take a CSS selector argument and only
-// detect gestures on elements that match that selector. Or it could
-// remember the originalTarget element on which the gesture began and
-// dispatch events on that object rather than the higher-level one.
-// 
 var GestureDetector = (function() {
 
-  // 
+  //
   // Constructor
-  // 
+  //
   function GD(e, options) {
     this.element = e;
     this.options = options || {};
@@ -66,7 +57,7 @@ var GestureDetector = (function() {
     this.timers = {};
   }
 
-  // 
+  //
   // Public methods
   //
 
@@ -80,23 +71,21 @@ var GestureDetector = (function() {
   GD.prototype.stopDetecting = function() {
     var self = this;
     eventtypes.forEach(function(t) {
-      this.element.removeEventListener(t, self);
+      self.element.removeEventListener(t, self);
     });
   };
 
-  // 
+  //
   // Internal methods
-  // 
+  //
 
   GD.prototype.handleEvent = function(e) {
     var handler = this.state[e.type];
     if (!handler) return;
 
-    // console.log("got input event", e.type);
-
     // If this is a touch event handle each changed touch separately
     if (e.changedTouches) {
-      for(var i = 0; i < e.changedTouches.length; i++) {
+      for (var i = 0; i < e.changedTouches.length; i++) {
         handler(this, e, e.changedTouches[i]);
       }
     }
@@ -123,27 +112,30 @@ var GestureDetector = (function() {
     }
   };
 
-  // Switch to a new FSM state, and call the init() function of that 
+  // Switch to a new FSM state, and call the init() function of that
   // state, if it has one.  The event and touch arguments are optional
   // and are just passed through to the state init function.
   GD.prototype.switchTo = function(state, event, touch) {
-    // console.log("switching to ", state.name);
     this.state = state;
     if (state.init)
       state.init(this, event, touch);
   };
 
   GD.prototype.emitEvent = function(type, detail) {
-    // console.log("Sending output event", type);
+    if (!this.target) {
+      console.error("Attempt to emit event with no target");
+      return;
+    }
+
     var event = this.element.ownerDocument.createEvent('CustomEvent');
     event.initCustomEvent(type, true, true, detail);
-    this.element.dispatchEvent(event);
+    this.target.dispatchEvent(event);
   }
 
-  // 
+  //
   // Tuneable parameters
-  // 
-  GD.HOLD_INTERVAL = 1500;     // Hold events after 1500 ms
+  //
+  GD.HOLD_INTERVAL = 1000;     // Hold events after 1000 ms
   GD.PAN_THRESHOLD = 50;       // 50 pixels movement before touch panning
   GD.MOUSE_PAN_THRESHOLD = 25; // Mice are more precise, so smaller threshold
   GD.DOUBLE_TAP_DISTANCE = 50;
@@ -155,9 +147,9 @@ var GestureDetector = (function() {
   GD.ROTATE_THRESHOLD = 22.5;  // degrees
 
 
-  // 
+  //
   // Helpful shortcuts and utility functions
-  // 
+  //
 
   var abs = Math.abs, floor = Math.floor, sqrt = Math.sqrt, atan2 = Math.atan2;
   var PI = Math.PI;
@@ -167,8 +159,7 @@ var GestureDetector = (function() {
     'touchstart',
     'touchmove',
     'touchend',
-    'mousedown',  // We register mousemove and mouseup manually
-    // XXX: add MozMagnifyGesture events
+    'mousedown'  // We register mousemove and mouseup manually
   ];
 
   // Return the event's timestamp in ms
@@ -177,14 +168,14 @@ var GestureDetector = (function() {
     // So if the timestamp is much larger than the current time, assue it is
     // in microseconds and divide by 1000
     var ts = e.timeStamp;
-    if (ts > 2*Date.now())
-      return Math.floor(ts/1000);
+    if (ts > 2 * Date.now())
+      return Math.floor(ts / 1000);
     else
       return ts;
   }
 
 
-  // Return an object containg the space and time coordinates of 
+  // Return an object containg the space and time coordinates of
   // and event and touch. We freeze the object to make it immutable so
   // we can pass it in events and not worry about values being changed.
   function coordinates(e, t) {
@@ -200,10 +191,10 @@ var GestureDetector = (function() {
   // Like coordinates(), but return the midpoint between two touches
   function midpoints(e, t1, t2) {
     return Object.freeze({
-      screenX: floor((t1.screenX + t2.screenX)/2),
-      screenY: floor((t1.screenY + t2.screenY)/2),
-      clientX: floor((t1.clientX + t2.clientX)/2),
-      clientY: floor((t1.clientY + t2.clientY)/2),
+      screenX: floor((t1.screenX + t2.screenX) / 2),
+      screenY: floor((t1.screenY + t2.screenY) / 2),
+      clientX: floor((t1.clientX + t2.clientX) / 2),
+      clientY: floor((t1.clientY + t2.clientY) / 2),
       timeStamp: eventTime(e)
     });
   }
@@ -215,7 +206,7 @@ var GestureDetector = (function() {
       screenY: e.screenY,
       clientX: e.clientX,
       clientY: e.clientY,
-      timeStamp: e.timeStamp
+      timeStamp: eventTime(e)
     });
   }
 
@@ -238,7 +229,7 @@ var GestureDetector = (function() {
   // Returns an angle a -180 < a <= 180.
   function touchRotation(d1, d2) {
     var angle = d2 - d1;
-    if (angle > 180) 
+    if (angle > 180)
       angle -= 360;
     else if (angle <= -180)
       angle += 360;
@@ -254,21 +245,22 @@ var GestureDetector = (function() {
     var dt = thisTap.timeStamp - lastTap.timeStamp;
     return (dx < GD.DOUBLE_TAP_DISTANCE &&
             dy < GD.DOUBLE_TAP_DISTANCE &&
-            dt < GD.DOUBLE_TAP_TIME)
+            dt < GD.DOUBLE_TAP_TIME);
   }
 
-  // 
+  //
   // The following objects are the states of our Finite State Machine
-  // 
+  //
 
   // In this state we're not processing any gestures, just waiting
   // for an event to start a gesture and ignoring others
   var initialState = {
-    name: "initialState",
+    name: 'initialState',
     init: function(d) {
       // When we enter or return to the initial state, clear
       // the detector properties that were tracking gestures
       // Don't clear d.lastTap here, though. We need it for dbltap events
+      d.target = null;
       d.start = d.last = null;
       d.touch1 = d.touch2 = null;
       d.vx = d.vy = null;
@@ -276,7 +268,7 @@ var GestureDetector = (function() {
       d.startDirection = d.lastDirection = null;
       d.scaled = d.rotated = null;
     },
-    
+
     // Switch to the touchstarted state and process the touch event there
     // Once we've started processing a touch gesture we'll ignore mouse events
     touchstart: function(d, e, t) {
@@ -290,17 +282,19 @@ var GestureDetector = (function() {
     }
   };
 
-  // One finger is down but we haven't generated any event yet. We're 
+  // One finger is down but we haven't generated any event yet. We're
   // waiting to see...  If the finger goes up soon, its a tap. If the finger
   // stays down and still, its a hold. If the finger moves its a pan/swipe.
   // And if a second finger goes down, its a transform
   var touchStartedState = {
-    name: "touchStartedState",
+    name: 'touchStartedState',
     init: function(d, e, t) {
+      // Remember the target of the event
+      d.target = e.target;
       // Remember the id of the touch that started
       d.touch1 = t.identifier;
       // Get the coordinates of the touch
-      d.start = d.last = coordinates(e,t);
+      d.start = d.last = coordinates(e, t);
       // Start a timer for a hold
       // If we're doing hold events, start a timer for them
       if (d.options.holdEvents)
@@ -308,7 +302,7 @@ var GestureDetector = (function() {
     },
 
     touchstart: function(d, e, t) {
-      // If another finger goes down in this state, then 
+      // If another finger goes down in this state, then
       // go to transform state to start 2-finger gestures.
       d.clearTimer('holdtimeout');
       d.switchTo(transformState, e, t);
@@ -343,7 +337,7 @@ var GestureDetector = (function() {
         // Emit a 'tap' event using the starting coordinates
         // as the event details
         d.emitEvent('tap', d.start);
-        
+
         // Remember the coordinates of this tap so we can detect double taps
         d.lastTap = coordinates(e, t);
       }
@@ -355,7 +349,7 @@ var GestureDetector = (function() {
 
     holdtimeout: function(d) {
       d.switchTo(holdState);
-    },
+    }
 
   };
 
@@ -364,22 +358,22 @@ var GestureDetector = (function() {
   // when the touch ends. We ignore any other touches that occur while this
   // pan/swipe gesture is in progress.
   var panStartedState = {
-    name: "panStartedState",
+    name: 'panStartedState',
     init: function(d, e, t) {
       // If we transition into this state with a touchmove event,
       // then process it with that handler. If we don't do this then
       // we can end up with swipe events that don't know their velocity
-      if (e.type === "touchmove")
+      if (e.type === 'touchmove')
         panStartedState.touchmove(d, e, t);
     },
 
     touchmove: function(d, e, t) {
       // Ignore any fingers other than the one we're tracking
-      if (t.identifier !== d.touch1) 
+      if (t.identifier !== d.touch1)
         return;
 
       // Each time the touch moves, emit a pan event but stay in this state
-      var current = coordinates(e,t);
+      var current = coordinates(e, t);
       d.emitEvent('pan', {
         absolute: {
           dx: current.screenX - d.start.screenX,
@@ -396,17 +390,17 @@ var GestureDetector = (function() {
       // Use a exponential moving average for a bit of smoothing
       // on the velocity
       var dt = current.timeStamp - d.last.timeStamp;
-      var vx = (current.screenX - d.last.screenX)/dt;
-      var vy = (current.screenY - d.last.screenY)/dt;
+      var vx = (current.screenX - d.last.screenX) / dt;
+      var vy = (current.screenY - d.last.screenY) / dt;
 
       if (d.vx == null) { // first time; no average
         d.vx = vx;
         d.vy = vy;
       }
       else {
-        d.vx = d.vx * GD.VELOCITY_SMOOTHING + 
+        d.vx = d.vx * GD.VELOCITY_SMOOTHING +
           vx * (1 - GD.VELOCITY_SMOOTHING);
-        d.vy = d.vy * GD.VELOCITY_SMOOTHING + 
+        d.vy = d.vy * GD.VELOCITY_SMOOTHING +
           vy * (1 - GD.VELOCITY_SMOOTHING);
       }
 
@@ -414,7 +408,7 @@ var GestureDetector = (function() {
     },
     touchend: function(d, e, t) {
       // Ignore any fingers other than the one we're tracking
-      if (t.identifier !== d.touch1) 
+      if (t.identifier !== d.touch1)
         return;
 
       // Emit a swipe event when the finger goes up.
@@ -424,16 +418,16 @@ var GestureDetector = (function() {
       var dy = current.screenY - d.start.screenY;
       // angle is a positive number of degrees, starting at 0 on the
       // positive x axis and increasing clockwise.
-      var angle = atan2(dy,dx) * 180 / PI;
+      var angle = atan2(dy, dx) * 180 / PI;
       if (angle < 0)
         angle += 360;
 
       // Direction is 'right', 'down', 'left' or 'up'
       var direction;
       if (angle >= 315 || angle < 45)
-        direction = 'right'
+        direction = 'right';
       else if (angle >= 45 && angle < 135)
-        direction = 'down'
+        direction = 'down';
       else if (angle >= 135 && angle < 225)
         direction = 'left';
       else if (angle >= 225 && angle < 315)
@@ -464,7 +458,7 @@ var GestureDetector = (function() {
   // these events just report the coordinates of the touch.  Do we need
   // other details?
   var holdState = {
-    name: "holdState",
+    name: 'holdState',
     init: function(d) {
       d.emitEvent('holdstart', d.start);
     },
@@ -492,10 +486,10 @@ var GestureDetector = (function() {
         start: d.start,
         end: current,
         dx: current.screenX - d.start.screenX,
-        dy: current.screenY - d.start.screenY,
+        dy: current.screenY - d.start.screenY
       });
       d.switchTo(initialState);
-    },
+    }
   };
 
   // We enter this state if a second touch starts before we start
@@ -503,7 +497,7 @@ var GestureDetector = (function() {
   // distance and angle between them to report scale and rotation values
   // in transform events.
   var transformState = {
-    name: "transformState",
+    name: 'transformState',
     init: function(d, e, t) {
       // Remember the id of the second touch
       d.touch2 = t.identifier;
@@ -561,11 +555,11 @@ var GestureDetector = (function() {
         d.emitEvent('transform', {
           absolute: { // transform details since gesture start
             scale: distance / d.startDistance,
-            rotate: touchRotation(d.startDirection, direction),
+            rotate: touchRotation(d.startDirection, direction)
           },
           relative: { // transform since last gesture change
             scale: distance / d.lastDistance,
-            rotate: touchRotation(d.lastDirection, direction),
+            rotate: touchRotation(d.lastDirection, direction)
           },
           midpoint: midpoint
         });
@@ -578,11 +572,11 @@ var GestureDetector = (function() {
     touchend: function(d, e, t) {
       // If either finger goes up, we're done with the gesture.
       // The user might move that finger and put it right back down
-      // again to begin another 2-finger gesture, so we can't go 
+      // again to begin another 2-finger gesture, so we can't go
       // back to the initial state while one of the fingers remains up.
       // On the other hand, we can't go back to touchStartedState because
       // that would mean that the finger left down could cause a tap or
-      // pan event. So we need an afterTransform state that waits for 
+      // pan event. So we need an afterTransform state that waits for
       // a finger to come back down or the other finger to go up.
       if (t.identifier === d.touch2)
         d.touch2 = null;
@@ -592,18 +586,18 @@ var GestureDetector = (function() {
       }
       else
         return; // It was a touch we weren't tracking
-      
+
       d.switchTo(afterTransformState);
-    },
+    }
   };
 
-  // We did a tranform and one finger went up. Wait for that finger to 
+  // We did a tranform and one finger went up. Wait for that finger to
   // come back down or the other finger to go up too.
   var afterTransformState = {
-    name: "afterTransformState",
+    name: 'afterTransformState',
     touchstart: function(d, e, t) {
       d.switchTo(transformState, e, t);
-    }, 
+    },
 
     touchend: function(d, e, t) {
       if (t.identifier === d.touch1)
@@ -612,8 +606,11 @@ var GestureDetector = (function() {
   };
 
   var mouseDownState = {
-    name: "mouseDownState",
+    name: 'mouseDownState',
     init: function(d, e) {
+      // Remember the target of the event
+      d.target = e.target;
+
       // Register this detector as a *capturing* handler on the document
       // so we get all subsequent mouse events until we remove these handlers
       var doc = d.element.ownerDocument;
@@ -630,7 +627,7 @@ var GestureDetector = (function() {
     },
 
     mousemove: function(d, e) {
-      // If the mouse has moved more than the panning threshold, 
+      // If the mouse has moved more than the panning threshold,
       // then switch to the mouse panning state. Otherwise remain
       // in this state
 
@@ -658,7 +655,7 @@ var GestureDetector = (function() {
         // Emit a 'tap' event using the starting coordinates
         // as the event details
         d.emitEvent('tap', d.start);
-        
+
         // Remember the coordinates of this tap so we can detect double taps
         d.lastTap = mouseCoordinates(e);
       }
@@ -670,12 +667,12 @@ var GestureDetector = (function() {
 
     holdtimeout: function(d) {
       d.switchTo(mouseHoldState);
-    },
+    }
   };
 
   // Like holdState, but for mouse events instead of touch events
   var mouseHoldState = {
-    name: "mouseHoldState",
+    name: 'mouseHoldState',
     init: function(d) {
       d.emitEvent('holdstart', d.start);
     },
@@ -703,19 +700,19 @@ var GestureDetector = (function() {
         start: d.start,
         end: current,
         dx: current.screenX - d.start.screenX,
-        dy: current.screenY - d.start.screenY,
+        dy: current.screenY - d.start.screenY
       });
       d.switchTo(initialState);
-    },
+    }
   };
 
   var mousePannedState = {
-    name: "mousePannedState",
+    name: 'mousePannedState',
     init: function(d, e) {
       // If we transition into this state with a mousemove event,
       // then process it with that handler. If we don't do this then
       // we can end up with swipe events that don't know their velocity
-      if (e.type === "mousemove")
+      if (e.type === 'mousemove')
         mousePannedState.mousemove(d, e);
     },
     mousemove: function(d, e) {
@@ -737,17 +734,17 @@ var GestureDetector = (function() {
       // Use a exponential moving average for a bit of smoothing
       // on the velocity
       var dt = current.timeStamp - d.last.timeStamp;
-      var vx = (current.screenX - d.last.screenX)/dt;
-      var vy = (current.screenY - d.last.screenY)/dt;
+      var vx = (current.screenX - d.last.screenX) / dt;
+      var vy = (current.screenY - d.last.screenY) / dt;
 
       if (d.vx == null) { // first time; no average
         d.vx = vx;
         d.vy = vy;
       }
       else {
-        d.vx = d.vx * GD.VELOCITY_SMOOTHING + 
+        d.vx = d.vx * GD.VELOCITY_SMOOTHING +
           vx * (1 - GD.VELOCITY_SMOOTHING);
-        d.vy = d.vy * GD.VELOCITY_SMOOTHING + 
+        d.vy = d.vy * GD.VELOCITY_SMOOTHING +
           vy * (1 - GD.VELOCITY_SMOOTHING);
       }
 
@@ -770,16 +767,16 @@ var GestureDetector = (function() {
       var dy = current.screenY - d.start.screenY;
       // angle is a positive number of degrees, starting at 0 on the
       // positive x axis and increasing clockwise.
-      var angle = atan2(dy,dx) * 180 / PI;
+      var angle = atan2(dy, dx) * 180 / PI;
       if (angle < 0)
         angle += 360;
 
       // Direction is 'right', 'down', 'left' or 'up'
       var direction;
       if (angle >= 315 || angle < 45)
-        direction = 'right'
+        direction = 'right';
       else if (angle >= 45 && angle < 135)
-        direction = 'down'
+        direction = 'down';
       else if (angle >= 135 && angle < 225)
         direction = 'left';
       else if (angle >= 225 && angle < 315)
@@ -799,7 +796,7 @@ var GestureDetector = (function() {
 
       // Go back to the initial state
       d.switchTo(initialState);
-    },
+    }
   };
 
   return GD;

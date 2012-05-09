@@ -148,6 +148,14 @@ if (DEBUG) {
   content += "user_pref(\"dom.report_all_js_exceptions\", true);\n";
   content += "user_pref(\"nglayout.debug.disable_xul_fastload\", true);\n";
   content += "user_pref(\"browser.cache.offline.enable\", false);\n";
+  content += "user_pref(\"extensions.autoDisableScopes\", 0);\n";
+  content += "user_pref(\"browser.startup.homepage\", \"" + homescreen + "\");\n";
+
+  content += "user_pref(\"dom.mozBrowserFramesEnabled\", true);\n";
+  content += "user_pref(\"b2g.ignoreXFrameOptions\", true);\n";
+  content += "user_pref(\"dom.sms.enabled\", true);\n";
+  content += "user_pref(\"dom.mozContacts.enabled\", true);\n";
+  content += "user_pref(\"dom.mozSettings.enabled\", true);\n";
   content += "\n";
 }
 
