@@ -47,7 +47,7 @@ var LockScreen = {
       style.MozTransform = 'translateY(0)';
     }
 
-    screen.mozLockOrientation('portrait');
+    screen.mozLockOrientation('portrait-primary');
 
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('locked', true, true, null);
