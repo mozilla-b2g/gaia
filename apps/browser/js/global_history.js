@@ -33,7 +33,8 @@ var GlobalHistory = {
   },
 
   getHistory: function gh_getHistory(callback) {
-    this.db.getAllVisits(callback);
+    // Just get the most recent 20 for now
+    this.db.getHistory(20, callback);
   }
 
 };
@@ -145,17 +146,29 @@ GlobalHistory.db = {
      };
   },
 
-  getAllVisits: function db_getVisits(callback) {
-    var visits = [];
+  getHistory: function db_getHistory(maximum, callback) {
+    var history = [];
+    var db = this._db;
 
-    var objectStore = this._db.transaction('visits').objectStore('visits');
-    objectStore.openCursor(null, IDBCursor.PREV).onsuccess = function(e) {
+    function makeVisitProcessor(visit) {
+      return function(e) {
+          var place = e.target.result;
+          visit.title = place.title;
+          history.push(visit);
+        };
+    }
+
+    var transaction = db.transaction(['visits', 'places']);
+    var visitsStore = transaction.objectStore('visits');
+    var placesStore = transaction.objectStore('places');
+    visitsStore.openCursor(null, IDBCursor.PREV).onsuccess = function(e) {
       var cursor = e.target.result;
-      if (cursor) {
-        visits.push(cursor.value);
+      if (cursor && history.length < maximum) {
+        var visit = cursor.value;
+        placesStore.get(visit.uri).onsuccess = makeVisitProcessor(visit);
         cursor.continue();
       } else {
-        callback(visits);
+        callback(history);
       }
     };
   }

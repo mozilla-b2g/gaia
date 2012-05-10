@@ -20,7 +20,7 @@ var Browser = {
     this.urlButton = document.getElementById('url-button');
     this.content = document.getElementById('browser-content');
     this.awesomescreen = document.getElementById('awesomescreen');
-    this.history = document.getElementById('history');
+    this.history = document.getElementById('history-list');
     this.backButton = document.getElementById('back-button');
     this.forwardButton = document.getElementById('forward-button');
 
@@ -32,7 +32,7 @@ var Browser = {
     this.urlInput.addEventListener('blur', this.urlBlur.bind(this));
     window.addEventListener('submit', this);
     window.addEventListener('keyup', this, true);
-    this.history.addEventListener('click', this.followBookmark.bind(this));
+    this.history.addEventListener('click', this.followLink.bind(this));
 
     var browserEvents = ['loadstart', 'loadend', 'locationchange',
       'titlechange'];
@@ -171,13 +171,14 @@ var Browser = {
     history.innerHTML = '';
     visits.forEach(function browser_populateHistory(visit) {
       var li = document.createElement('li');
-      li.innerHTML = '<a href="' + visit.uri + '"><span>' + visit.uri +
+      li.innerHTML = '<a href="' + visit.uri + '"><span>' +
+        (visit.title ? visit.title : visit.uri) +
         '</span><small>' + visit.uri + '</small></a>';
       history.appendChild(li);
     });
   },
 
-  followBookmark: function browser_followBookmark(e) {
+  followLink: function browser_followLink(e) {
     e.preventDefault();
     this.navigate(e.target.parentNode.getAttribute('href'));
   }

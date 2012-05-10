@@ -133,8 +133,14 @@ input::-moz-focus-inner {
 }
 
 #awesomescreen {
+  display: -moz-box;
+  -moz-box-orient: vertical;
   -moz-box-flex: 1;
   background-color: #fff;
+}
+
+#awesomescreen.hidden {
+  display: none;
 }
 
 #awesomescreen ul {
@@ -167,8 +173,15 @@ input::-moz-focus-inner {
   color: #666;
 }
 
-#history {
-  overlfow: scroll;
+#history{
+  display: -moz-box;
+  overflow-y: auto;
+  -moz-box-flex: 1;
+  -moz-box-orient: vertical;
+}
+
+#history-list {
+  -moz-box-flex: 1;
 }
 
 #shade {
