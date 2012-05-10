@@ -1,6 +1,6 @@
-* { 
+* {
   -moz-box-sizing: border-box;
-   box-sizing: border-box; 
+   box-sizing: border-box;
 }
 
 @font-face {
@@ -24,6 +24,8 @@ h5,
 menu,
 header,
 section {
+  /* unscrew up heights */
+  font-size: 100%;
   padding: 0px;
   margin: 0px;
   width: 100%;
@@ -40,6 +42,8 @@ ol li {
 
 html, body {
   font-family: 'Open Sans';
+  padding: 0px;
+  margin: 0px;
 }
 
 

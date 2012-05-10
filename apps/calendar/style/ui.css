@@ -12,7 +12,7 @@ MONTH DAY SELECTED BG: #444
 MONTH DAY SELECTED COLOR: white
 
 MONTHS DAY TOOLBAR BG: #E2E2E2
-MONTHS DAY EVENT: #CACACA
+MONTHS DAY EVENT: #CACACA 
 
 EVENT TIME COLOR: #333
 */
@@ -22,63 +22,55 @@ html, body {
   padding: 0;
   font-size: 2.7mozmm;
   height: 100%;
-  background: #EFEFEF;
+  background: white;
   line-height: 100%;
 }
 
-/* keep ourselves honest about space */
-* {
-  overflow: hidden;
-}
-
-ol {
-  font-size: 120%;
-}
-
-
 #views {
-  height: 100%;
+  height: -moz-calc(100% - 18mozmm);
 }
 
 #views > section {
-  height: -moz-calc(100% - 10mozmm);
+  height: 100%;
 }
 
 /* month view */
 /* sub: toolbar  */
 
-#month > header.toolbar {
+#top-toolbar {
+  height: 8mozmm;
+}
+
+#top-toolbar header.toolbar {
   width: 100%;
   overflow: hidden;
-  height: 8mozmm;
   padding: 2.5mozmm 1.5mozmm;
   border-bottom: 2px solid black;
 }
 
-#month > header.toolbar h3,
-#month > header.toolbar a {
+#top-toolbar header.toolbar h3,
+#top-toolbar header.toolbar a {
   display: block;
   float: left;
   width: 33%;
 }
 
-.rtl #month > header.toolbar h3,
-.rtl #month > header.toolbar a {
+.rtl #top-toolbar header.toolbar h3,
+.rtl #top-toolbar header.toolbar a {
   float: right;
 }
 
-#month > header.toolbar h3 {
+#top-toolbar header.toolbar h3 {
   text-align: center;
-  font-size: 3.5mozmm;
 }
 
-.rtl #month > header.toolbar a.new-event,
-.ltr #month > header.toolbar a.accounts {
+.rtl #top-toolbar header.toolbar a.new-event,
+.ltr #top-toolbar header.toolbar a.accounts {
   text-align: left;
 }
 
-.rtl #month > header.toolbar a.accounts,
-.ltr #month > header.toolbar a.new-event {
+.rtl #top-toolbar header.toolbar a.accounts,
+.ltr #top-toolbar header.toolbar a.new-event {
   text-align: right;
 }
 
@@ -86,6 +78,7 @@ ol {
 
 #month-days {
   overflow: hidden;
+  height: 3.6mozmm;
 }
 
 #month .month li,
@@ -116,7 +109,7 @@ ol {
   text-align: center;
   background-color: #AAA;
   text-transform: uppercase;
-  font-size: 2.2mozmm;
+  font-size: 90%;
   padding: 0.5mozmm 0;
 }
 
@@ -187,7 +180,6 @@ section.month li .busy-indicator,
 section.month li .busy-indicator > span{
   height: 1.2mozmm;
   padding-top: 1mozmm;
-/*  top: 0;*/
 }
 
 section.month li .busy-indicator {
@@ -248,15 +240,15 @@ Indicators are in units of 12
 #months-day-view {
   border-top: 2px solid #B0B0B0;
   background-color: white;
-  height: 60%;
-
+  height: -moz-calc(60% - 3.5mozmm);
 }
 
-#months-day-view .scrollable {
+#months-day-view .day-events {
+  height: -moz-calc(100% - 6mozmm);
   overflow-y: auto;
 }
 
-#months-day-view header.toolbar {
+#months-day-view  header.toolbar {
   background-color: #E2E2E2;
   border-bottom: 1px solid #CCC;
   text-align: center;
@@ -264,85 +256,19 @@ Indicators are in units of 12
 }
 
 
-#months-day-view h4,
-#months-day-view h5 {
-  color: #555;
-}
-
-#months-day-view section {
-  border-bottom: 1px solid #CCC;
-  display: -moz-box;
-  -moz-box-orient: horizontal;
-}
-
-.rtl #months-day-view section > h4 {
-  -moz-box-ordinal-group: 2;
-  text-aligh: left;
-  padding-left: 1.4mozmm;
-}
-
-.ltr #months-day-view section > h4 {
-  text-align: right;
-  padding-right: 1.4mozmm;
-}
-
-.ltr #months-day-view section > ol li {
-  padding-left: 1.0mozmm;  
-}
-
-.rtl #months-day-view section > ol li {
-  padding-right: 1.0mozmm;
-}
-
-#months-day-view section > h4,
-#months-day-view section > ol li {
-  padding-top: 1.5mozmm;
-}
-
-#months-day-view section > h4 {
-  background-color: #E2E2E2;
-  font-size: 2.5mozmm;
-  width: 12mozmm;
-}
-
-#months-day-view section > ol,
-#months-day-view section > ol li  {
-  height: 11mozmm;
-}
-
-#months-day-view section > ol {
-  -moz-box-flex: 1;
-}
-
-#months-day-view section > ol li {
-  border-bottom: 1px solid #C3C3C3;
-}
-
-#months-day-view section > ol li:last-child {
-  border-bottom: none;
-}
-
-#months-day-view section > ol h5 {
-  font-weight: normal;
-  padding-top: 0.5mozmm;
-  font-size: 3.5mozmm;
-}
-
-
-#months-day-view section > ol .details {
-  padding-top: 1.3mozmm;
-  font-weight: bold;
-  color: #B3B3B3;
-  font-size: 2.4mozmm;
-}
-
 /** sub: view selector **/
 
+
+#bottom-toolbar {
+  height: 9mozmm;
+  background: #EFEFEF;
+}
 
 #view-selector {
   margin-top: 1mozmm;
   border-top: 1px solid black;
   padding: 1.5mozmm 1.5mozmm;
+  overflow: hidden;
 }
 
 #view-selector a {
@@ -374,14 +300,13 @@ Indicators are in units of 12
 
 #view-selector > li a {
   padding: 1.5mozmm 2mozmm;
-  display: block;  
+  display: block;
 }
 
 #view-selector > li {
   height: 5.9mozmm;
   text-align: center;
   font-weight: bold;
-  font-size: 3mozmm;
   color: black;
   display: block;
   border-radius: 5px;
@@ -394,3 +319,12 @@ Indicators are in units of 12
 #view-selector menu li {
   width: 33%;
 }
+
+/* DEVICE SETTINGS */
+
+@media screen and (max-width: 480px) {
+  html, body {
+    font-size: 2mozmm;
+  }
+}
+

@@ -4,26 +4,31 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <link rel="stylesheet" type="text/css" href="./style/calendar.css">
   <link rel="stylesheet" type="text/css" href="./style/ui.css">
+  <link rel="stylesheet" type="text/css" href="./style/events.css">
   <title>Gaia Calendar</title>
 </head>
 <body>
+  
+<section id="top-toolbar">
+  <header class="toolbar">
+    <a data-l10n-id="buttons.accounts" role="button" class="accounts" href="#accounts">
+      Accounts
+    </a>
+
+    <h3>
+      <span class="month">MAY</month>
+      <span class="year">2012</month>
+    </h3>
+
+    <a data-l10n-id="buttons.new-event" role="button" class="new-event" href="#new-event">
+      New Event
+    </a>
+  </header>
+</section>
 
 <section id="views">
+  
   <section id="month">
-    <header class="toolbar">
-      <a data-l10n-id="buttons.accounts" role="button" class="accounts" href="#accounts">
-        Accounts
-      </a>
-
-      <h3>
-        <span class="month">MAY</month>
-        <span class="year">2012</month>
-      </h3>
-
-      <a data-l10n-id="buttons.new-event" role="button" class="new-event" href="#new-event">
-        New Event
-      </a>
-    </header>
     <!--- title row all the days this will be static -->
     <header id="month-days" role="row">
       <ol role="row">
@@ -44,7 +49,7 @@
     <section id="month-2012-1" class="month">
       <ol role="row">
         <li id="month-day-2012-5-1" class="past">
-          <span class="day">1</span>
+            <span class="day">1</span>
             <div class="busy-indicator">
               <span class="busy-1">&nbsp;</span>
               <span class="busy-2">&nbsp;</span>
@@ -55,10 +60,12 @@
               <span class="busy-12">&nbsp;</span>
             </div>
         </li>
+
         <li id="month-day-2012-5-2" class="past">
           <span class="day">2</span>
           <div class="busy-indicator"></div>
         </li>
+
         <li id="month-day-2012-5-3" class="past">
           <span class="day">3</span>
           <div class="busy-indicator"></div>
@@ -75,8 +82,8 @@
               <span class="busy-12">&nbsp;</span>
           </div>
         </li>
-        <li id="month-day-2012-5-6" class="past">
 
+        <li id="month-day-2012-5-6" class="past">
           <span class="day">6</span>
           <div class="busy-indicator"></div>
         </li>
@@ -243,10 +250,8 @@
       <header class="toolbar">
         <h3>Wednesday May 3</h3>
       </header>
-      <!---
-      Scrolling list of events
-      -->
-      <div class="scrollable">
+      
+       <section class="day-events">
         <section>
           <h4>All Day</h4>
           <ol class="events">
@@ -292,18 +297,12 @@
           </ol>
         </section>
       </section>
-    </div>
+    </section>
   </section>
+</section>
 
-  <!-- <section id="day">
-  </section>
 
-  <section id="agenda">
-  </section>
-
-  <section id="week">
-  </section> -->
-
+<section id="bottom-toolbar">
   <menu id="view-selector">
     <li class="today">
       <a href="#today">Today</a>
@@ -322,7 +321,7 @@
       </menu>
     </li>
   </menu>
-</selector>
+</section>
 
 </body>
 </html>
