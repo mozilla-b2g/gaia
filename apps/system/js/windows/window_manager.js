@@ -365,11 +365,14 @@ var WindowManager = (function() {
     // Note that we don't set the frame size here.  That will happen
     // when we display the app in setDisplayedApp()
 
-    // Most apps currently need to be hosted in a special 'mozbrowser' iframe
+    // Most apps currently need to be hosted in a special 'mozbrowser' iframe.
+    // They also need to be marked as 'mozapp' to be recognized as apps by the
+    // platform.
     // FIXME: a platform fix will come
     var exceptions = ['Camera'];
     if (exceptions.indexOf(manifest.name) == -1) {
       frame.setAttribute('mozbrowser', 'true');
+      frame.setAttribute('mozapp', 'true');
     }
 
     // Add the iframe to the document
