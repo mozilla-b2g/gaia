@@ -48,7 +48,7 @@ var WindowManager = (function() {
   var kLongPressInterval = 1000;
 
   // Some document elements we use
-  var screen = document.getElementById('screen');
+  var screenElement = document.getElementById('screen');
   var statusbar = document.getElementById('statusbar');
   var windows = document.getElementById('windows');
   var taskManager = document.getElementById('taskManager');
@@ -137,7 +137,7 @@ var WindowManager = (function() {
 
     if (manifest.fullscreen) {
       sprite.classList.add('fullscreen');
-      screen.classList.add('fullscreen');
+      screenElement.classList.add('fullscreen');
     }
 
     // Make the sprite look like the app that it is animating for.
@@ -232,7 +232,7 @@ var WindowManager = (function() {
 
     // If this was a fullscreen app, leave full-screen mode
     if (manifest.fullscreen)
-      screen.classList.remove('fullscreen');
+      screenElement.classList.remove('fullscreen');
 
     // If we're not doing an animation, then just switch directly
     // to the closed state. Note that we don't handle the hackKillMe
@@ -329,9 +329,38 @@ var WindowManager = (function() {
       });
     }
 
+    // Lock orientation as needed
+    if (newApp == null) {  // going to the homescreen, so force portrait
+      screen.mozLockOrientation('portrait-primary');
+    }
+    else {
+      setOrientationForApp(newApp);
+    }
+
     displayedApp = origin;
   }
 
+  function setOrientationForApp(origin) {
+    if (origin == null) { // homescreen
+      screen.mozLockOrientation('portrait-primary');
+      return;
+    }
+
+    var app = runningApps[origin];
+    if (!app)
+      return;
+    var manifest = app.manifest;
+    if (manifest.orientation) {
+      var rv = screen.mozLockOrientation(manifest.orientation);
+      if (rv === false) {
+        console.warn('screen.mozLockOrientation() returned false for', 
+                     origin, 'orientation', manifest.orientation);
+      }
+    }
+    else {  // If no orientation was requested, then let it rotate
+      screen.mozUnlockOrientation();
+    }
+  }
 
   function appendFrame(origin, url, name, manifest) {
     var frame = document.createElement('iframe');
@@ -467,6 +496,9 @@ var WindowManager = (function() {
     // Then make the taskManager overlay active
     taskManager.classList.add('active');
 
+    // Make sure we're in portrait mode
+    screen.mozLockOrientation('portrait');
+
     // If there is a displayed app, take keyboard focus away
     if (displayedApp)
       runningApps[displayedApp].frame.blur();
@@ -522,8 +554,11 @@ var WindowManager = (function() {
     taskList.textContent = '';
 
     // If there is a displayed app, give the keyboard focus back
-    if (displayedApp)
+    // And switch back to that's apps orientation
+    if (displayedApp) {
       runningApps[displayedApp].frame.focus();
+      setOrientationForApp(displayedApp);
+    }
   }
 
   function taskSwitcherIsShown() {
@@ -658,6 +693,7 @@ var WindowManager = (function() {
     launch: launch,
     kill: stop,
     getDisplayedApp: getDisplayedApp,
+    setOrientationForApp: setOrientationForApp,
     getAppFrame: function(origin) {
       if (isRunning(origin))
         return runningApps[origin].frame;
