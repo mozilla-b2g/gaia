@@ -47,6 +47,8 @@ var LockScreen = {
       style.MozTransform = 'translateY(0)';
     }
 
+    screen.mozLockOrientation('portrait');
+
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('locked', true, true, null);
     window.dispatchEvent(evt);
@@ -71,6 +73,8 @@ var LockScreen = {
     else
       style.MozTransition = '-moz-transform ' + time + 's linear';
     style.MozTransform = 'translateY(-100%)';
+
+    WindowManager.setOrientationForApp(WindowManager.getDisplayedApp());
 
     if (!wasAlreadyUnlocked) {
       var evt = document.createEvent('CustomEvent');

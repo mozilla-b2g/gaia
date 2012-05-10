@@ -341,6 +341,11 @@ var WindowManager = (function() {
   }
 
   function setOrientationForApp(origin) {
+    if (origin == null) { // homescreen
+      screen.mozLockOrientation('portrait-primary');
+      return;
+    }
+
     var app = runningApps[origin];
     if (!app)
       return;
@@ -685,6 +690,7 @@ var WindowManager = (function() {
     launch: launch,
     kill: stop,
     getDisplayedApp: getDisplayedApp,
+    setOrientationForApp: setOrientationForApp,
     getAppFrame: function(origin) {
       if (isRunning(origin))
         return runningApps[origin].frame;
