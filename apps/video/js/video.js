@@ -80,14 +80,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
   // Make the video fit
   function setPlayerSize() {
-    console.log("setPlayerSize");
-
     // compute a CSS transform that centers & maximizes the <video> element
-/*
-    var style = getComputedStyle(document.body);
-    var bWidth = parseInt(style.width, 10);
-    var bHeight = parseInt(style.height, 10);
-*/
     var bWidth = window.innerWidth;
     var bHeight = window.innerHeight;
 
@@ -95,27 +88,32 @@ window.addEventListener('DOMContentLoaded', function() {
       Math.min(bWidth / player.srcWidth, bHeight / player.srcHeight) * 20
     ) / 20; // round to the lower 5%
 
-    console.log(bWidth, bHeight, scale);
-
     var xOffset = Math.floor((bWidth - scale * player.srcWidth) / 2);
     var yOffset = Math.floor((bHeight - scale * player.srcHeight) / 2);
     var transform = 
       ' translate(' + xOffset + 'px, ' + yOffset + 'px)' +
       ' scale(' + scale + ')';
-    console.log(transform);
+    console.log('SETPLAYERSIZE', transform);
     player.style.MozTransformOrigin = 'top left';
     player.style.MozTransform = transform;
   }
 
   // Rescale when orientation changes
-  screen.addEventListener("mozorientationchange", setPlayerSize);
+//  screen.addEventListener("mozorientationchange", setPlayerSize);
+
+  // Rescale when window size changes. This should get called when
+  // orientation changes and when we go into fullscreen
+  window.addEventListener("resize", setPlayerSize);
 
   // show|hide video player
   function showPlayer(sample) {
     // switch to the video player view
+    $('videoFrame').classList.remove('hidden');
     $('videoControls').classList.add('hidden');
-    document.body.classList.add('fullscreen');
+//    document.body.classList.add('fullscreen');
     $('videoBar').classList.remove('paused');
+
+    $('videoFrame').mozRequestFullScreen();
 
     //TODO: fetch subtitles from UniversalSubtitles.org
     var req = new XMLHttpRequest();
@@ -147,7 +145,6 @@ window.addEventListener('DOMContentLoaded', function() {
     player.srcWidth = sample.width;   // XXX use player.videoWidth instead
     player.srcHeight = sample.height; // XXX use player.videoHeight instead
     player.play();
-    $('videoFrame').mozRequestFullScreen();
     setPlayerSize();
 
     // XXX in appCache mode, player.duration == Infinity
@@ -170,7 +167,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
     // switch to the video gallery view
     document.mozCancelFullScreen();
-    document.body.classList.remove('fullscreen');
+    $('videoFrame').classList.add('hidden');
     $('videoBar').classList.remove('paused');
 
     // stop player
