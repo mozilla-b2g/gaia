@@ -312,6 +312,11 @@ var ContactDetails = {
     return this.contactEmailField = document.getElementById(id);
   },
 
+  get favorited() {
+    delete this.favorited;
+    return this.favorited = document.getElementById('favorited');
+  },
+
   set contact(contact) {
     delete this._contact;
     this._contact = contact;
@@ -395,6 +400,12 @@ var ContactDetails = {
         contact.tel = [this.contactPhoneField.value];
       if (this.contactEmailField.value.length)
         contact.email = [this.contactEmailField.value];
+
+      if (this.favorited.checked) {
+        contact.category = ['Favorites'];
+      } else {
+        contact.category = [];
+      }
 
       var req = navigator.mozContacts.save(contact);
       req.onsuccess = (function() {
@@ -537,6 +548,10 @@ var ContactDetails = {
 
       this.contactEmailField.value = contact.email[0];
     }
+
+    this.favorited.checked = (contact.category &&
+      (contact.category.indexOf('Favorites') != -1));
+    console.log("+++ contact category " + contact.category);
   }
 };
 

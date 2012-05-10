@@ -175,7 +175,8 @@
             </div>
             <button data-l10n-id="edit" data-action="edit" onclick="ContactDetails.execute(event)">Edit</button>
           </div>
-          <form id="contact-details-edit" onsubmit="ContactDetails.save(this)" action="#">
+         <form id="contact-details-edit" onsubmit="ContactDetails.save(this)" action="#">
+            <input id="favorited" type="checkbox" value="" />
             <div class="entry">
               <span data-l10n-id="firstName">First</span>
               <input id="contact-given-name-field" data-action="autoscroll" onfocus="ContactDetails.execute(event)" />
