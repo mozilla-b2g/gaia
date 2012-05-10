@@ -62,5 +62,6 @@
   "background_page": "/background.html",
   "icons": {
     "120": "/style/icons/Phone.png"
-  }
+  },
+  "orientation": "portrait-primary"
 }
