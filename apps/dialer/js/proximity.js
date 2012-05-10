@@ -1,6 +1,7 @@
 var ProximityHandler = {
   // XXX: due to some issue with event dispatch when the screen
   // is disabled, we just put a black div on screen for now.
+  // See: https://bugzilla.mozilla.org/show_bug.cgi?id=753842
 
   get screenOff() {
     delete this.screenOff;
