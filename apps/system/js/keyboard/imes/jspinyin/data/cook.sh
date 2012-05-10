@@ -5,19 +5,22 @@
 
 JSSHELL=js
 
-if [ -z $1 ]; then
-  echo 'Convert data.txt to json db'
-  echo
-  echo Usage: $0 [data.txt]
+if [ ! -f data.txt ]; then
+  echo 'Error: data.txt not found.'
   exit
 fi
 
-if [ ! -f $1 ]; then
-  echo 'Error: data.txt not found.'
+if [ ! -f data-tr.txt ]; then
+  echo 'Error: data-tr.txt not found.'
   exit
 fi
 
 echo 'Cooking db.json ...'
 
-cat $1 | \
+cat data.txt | \
 $JSSHELL -U `dirname $0`/cook.js > `dirname $0`/../db.json
+
+echo 'Cooking db-tr.json ...'
+
+cat data-tr.txt | \
+$JSSHELL -U `dirname $0`/cook.js > `dirname $0`/../db-tr.json

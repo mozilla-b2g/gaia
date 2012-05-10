@@ -661,8 +661,6 @@ IMEngineBase.prototype = {
      */
     path: '',
 
-    mode: false,
-
     /**
      * Sends candidates to the IMEManager
      */
@@ -1362,42 +1360,30 @@ JsonStorage.prototype = {
 
       var response;
       if (xhr.responseType == 'json') {
-        response = xhr.response;
-      } else {
         try {
-          response = JSON.parse(xhr.responseText);
-        } catch (e) { }
+          // clone everything under response because it's readonly.
+          self._dataArray = xhr.response.slice();
+        } catch (e) {
+        }
       }
 
-      if (typeof response !== 'object') {
+      if (typeof self._dataArray !== 'object') {
         self._status = DatabaseStorageBase.StatusCode.ERROR;
         doCallback();
         return;
       }
 
-      var toTerms = function init_toTerms(rawTerms) {
-        var terms = [];
-        for (var i = 0; i < rawTerms.length; i++) {
-          var rawTerm = rawTerms[i];
-          terms.push(new Term(rawTerm[0], rawTerm[1]));
-        }
-        return terms;
-      }
-
-      // clone everything under response because it's readonly.
-      for (var s in response) {
-        self._dataArray.push(new Homonyms(s, toTerms(response[s])));
-      }
       xhr = null;
+      setTimeout(performBuildIndices, 100);
+    };
+
+    var performBuildIndices = function init_performBuildIndices() {
       self._buildIndices();
       self._status = DatabaseStorageBase.StatusCode.READY;
       doCallback();
     };
 
-    var perform = function init_perform() {
-      xhr.send(null);
-    }
-    setTimeout(perform, 0);
+    xhr.send(null);
   },
 
   /**
@@ -1766,8 +1752,10 @@ IndexedDBStorage.prototype = {
       }
     }
 
+    var n = homonymsArray.length;
+
     // Check if the storage is ready.
-    if (!this.isReady()) {
+    if (!this.isReady() || n == 0) {
       doCallback();
       return;
     }
@@ -1775,28 +1763,69 @@ IndexedDBStorage.prototype = {
     // Set the status to busy.
     this._status = DatabaseStorageBase.StatusCode.BUSY;
 
-    var doAdd = function() {
+    // Use task queue to add the terms by batch to prevent blocking the main
+    // thread.
+    var taskQueue = new TaskQueue(
+      function taskQueueOnCompleteCallback(queueData) {
+      self._count = n;
+      doCallback();
+    });
+
+    var processNextWithDelay = function setAllTerms_rocessNextWithDelay() {
+      setTimeout(function nextTask() {
+        taskQueue.processNext();
+      }, 0);
+    };
+
+    // Clear all the terms before adding
+    var clearAll = function setAllTerms_clearAll(taskQueue, taskData) {
       var transaction =
         self._IDBDatabase.transaction(['homonyms'], 'readwrite');
       var store = transaction.objectStore('homonyms');
+      var req = store.clear();
+      req.onsuccess = function(ev) {
+        debug('IndexedDB cleared.');
+        processNextWithDelay();
+      };
 
+      req.onerror = function(ev) {
+        debug('Failed to clear IndexedDB.');
+        self._status = DatabaseStorageBase.StatusCode.ERROR;
+        doCallback();
+      };
+
+    };
+
+    // Add a batch of terms
+    var addChunk = function setAllTerms_addChunk(taskQueue, taskData) {
+      var transaction =
+        self._IDBDatabase.transaction(['homonyms'], 'readwrite');
+      var store = transaction.objectStore('homonyms');
       transaction.onerror = function(ev) {
         debug('Database write error.');
         doCallback();
       };
 
       transaction.oncomplete = function() {
-        self._count = homonymsArray.length;
-        doCallback();
+        processNextWithDelay();
       };
 
-      for (var i = 0; i < homonymsArray.length; i++) {
+      var begin = taskData.begin;
+      var end = taskData.end;
+      for (var i = begin; i <= end; i++) {
         var homonyms = homonymsArray[i];
         store.put(homonyms);
       }
+    };
+
+    taskQueue.push(clearAll, null);
+
+    for (var begin = 0; begin < n; begin += 2000) {
+      var end = Math.min(begin + 1999, n - 1);
+      taskQueue.push(addChunk, {begin: begin, end: end});
     }
 
-    setTimeout(doAdd, 0);
+    processNextWithDelay();
   },
 
   /**
@@ -2001,7 +2030,9 @@ var IMEngineDatabase = function imedb(dbName, jsonUrl) {
           );
           populateDBFromJSON(function populateDBFromJSONCallback() {
             debug('IndexedDB ready and switched to indexedDB backend.');
-            jsonStorage.uninit();
+            if (!indexedDBStorage.isEmpty()) {
+              jsonStorage.uninit();
+            }
           });
         });
       }
@@ -2191,8 +2222,9 @@ var IMEngineDatabase = function imedb(dbName, jsonUrl) {
       callback('');
     }
 
-    var taskQueue = new TaskQueue(function taskQueueOnCompleteCallback(data) {
-      var sentences = data.sentences;
+    var taskQueue = new TaskQueue(
+      function taskQueueOnCompleteCallback(queueData) {
+      var sentences = queueData.sentences;
       var sentence = sentences[sentences.length - 1];
       doCallback(sentence);
     });
