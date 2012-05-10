@@ -15,12 +15,12 @@
 /* time slider */
 #timeSlider {
   left: 166px;
-  bottom: 32px;
+  bottom: -moz-calc(100% - 32px);
   height: 64px;
   width: 378px;
 }
 #elapsedTime {
-  bottom: 30px;
+  bottom: -moz-calc(100% - 30px);
   height: 6px;
   border-radius: 6px;
 }

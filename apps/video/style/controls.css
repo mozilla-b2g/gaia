@@ -17,8 +17,8 @@
 /* video player controls */
 #videoControls {
   position: absolute;
-  top: 0;
-  left: 0;
+  top: 0px;
+  left: 0px;
   width: 100%;
   height: 100%;
   z-index: 10;
@@ -51,7 +51,7 @@
 #videoBar {
   position: relative;
   left: -moz-calc(50% - 150px);
-  top: -moz-calc(100% - 16px);
+  bottom: -moz-calc(100% - 16px);
   height: 112px;
   width: 300px;
   margin: 0;
@@ -108,7 +108,7 @@
 }
 #elapsedTime {
   position: absolute;
-  bottom: 16px;
+  bottom: -moz-calc(100% - 16px);
   height: 4px;
   width: 0; /* updated by script (ontimeupdate) */
   background-color: #fff;
