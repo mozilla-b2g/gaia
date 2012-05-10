@@ -56,10 +56,9 @@ body {
 
 #dots {
   position: absolute;
-  bottom: 90px;
-  height: 14px;
-  line-height: 14px;
-  text-align: center;
+  top: 0;
+  height: 5px;
+  line-height: 5px;
   width: 100%;
 }
 
@@ -105,17 +104,12 @@ body {
 
 .dot {
   display: inline-block;
-
-  width: 10px;
-  height: 10px;
-  background-color: rgba(255,255,255,0.5);
-  margin-left: 5px;
-  margin-right: 5px;
-  border-radius: 50%;
+  height: 5px;
+  background-color: none;
 }
 
 .dot.active {
-  background-color: white;
+  background-color: #f5893f;
 }
 
 /* Horizontal orientation height of our current target phones */
