@@ -334,21 +334,27 @@ var WindowManager = (function() {
       screen.mozLockOrientation('portrait-primary');
     }
     else {
-      var manifest = runningApps[newApp].manifest;
-      if (manifest.orientation) {
-        var rv = screen.mozLockOrientation(manifest.orientation);
-        if (rv === false) {
-          console.warn('screen.mozLockOrientation() returned false for', 
-                       origin, 'orientation', manifest.orientation);
-        }
-      }
-      else {  // If no orientation was requested, then let it rotate
-        screen.mozUnlockOrientation();
-      }
+      setOrientationForApp(newApp);
     }
 
-
     displayedApp = origin;
+  }
+
+  function setOrientationForApp(origin) {
+    var app = runningApps[origin];
+    if (!app)
+      return;
+    var manifest = app.manifest;
+    if (manifest.orientation) {
+      var rv = screen.mozLockOrientation(manifest.orientation);
+      if (rv === false) {
+        console.warn('screen.mozLockOrientation() returned false for', 
+                     origin, 'orientation', manifest.orientation);
+      }
+    }
+    else {  // If no orientation was requested, then let it rotate
+      screen.mozUnlockOrientation();
+    }
   }
 
   function appendFrame(origin, url, name, manifest) {
@@ -482,6 +488,9 @@ var WindowManager = (function() {
     // Then make the taskManager overlay active
     taskManager.classList.add('active');
 
+    // Make sure we're in portrait mode
+    screen.mozLockOrientation('portrait');
+
     // If there is a displayed app, take keyboard focus away
     if (displayedApp)
       runningApps[displayedApp].frame.blur();
@@ -537,8 +546,11 @@ var WindowManager = (function() {
     taskList.textContent = '';
 
     // If there is a displayed app, give the keyboard focus back
-    if (displayedApp)
+    // And switch back to that's apps orientation
+    if (displayedApp) {
       runningApps[displayedApp].frame.focus();
+      setOrientationForApp(displayedApp);
+    }
   }
 
   function taskSwitcherIsShown() {
