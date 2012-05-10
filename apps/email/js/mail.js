@@ -256,7 +256,7 @@ var mail = {
 
     nodes.mailScreen.hidden = false;
 
-    nodes.mailScreen.addEventListener('mousedown', function downListener(e) {
+    nodes.mailScreen.mainContent.addEventListener('mousedown', function downListener(e) {
       swipedTarget = getMessage(e.target);
 
       if(!swipedTarget) {
@@ -268,6 +268,14 @@ var mail = {
       started = false;
 
       document.addEventListener('tapstart', tapStart);
+      //touch scroll did not fired like simple scroll :(
+      //next code has no affect
+      document.addEventListener('scroll', function scroll() {
+        if (taped) {
+          cleanTap();
+        }
+        document.removeEventListener('scroll', scroll);
+      });
 
       if (left > width - width / 10) {
         document.addEventListener('swipestart', swipeStart);
@@ -278,6 +286,11 @@ var mail = {
     }, true);
 
     mail.screens = new Paging(nodes.mailScreen);
+
+    nodes.messageFrame.header 
+      = nodes.messageFrame.querySelector('.message-frame-header');
+    nodes.messageFrame.body 
+      = nodes.messageFrame.querySelector('.message-frame-body');
 
     let xhr = mail.messageTemplate = new XMLHttpRequest();
 
@@ -474,72 +487,66 @@ var mail = {
     return message;
   },
   readMessage: function(domMessage) {
-    var read = function() {
-      if (this.responseText) {
-        let text = this.responseText,
-          iframe = document.createElement('iframe'),
-          message = mail.folder.map.get(domMessage);
+    let iframe = document.createElement('iframe'),
+      message = mail.folder.map.get(domMessage),
+      header = nodes.messageFrame.header,
+      body = nodes.messageFrame.body,
+      headers = {
+        From: message.from,
+        To: message.to,
+        cc: message.cc,
+        bcc: message.bcc
+      };
 
-        text = text.replace(R_HTML_TEMPLATE, function(str, key/*, offset, input*/){
-          return message[key] || '';
-        });
-
-        let url = window.URL.createObjectURL(
-            new Blob([text], {
-              type: 'text\/html'
-            })
-          );
-
-        //has no affect in gecko :(
-        iframe.setAttribute('sandbox', '');
-
-        iframe.className = 'message-frame';
-
-        nodes.messageScreen.mainContent.appendChild(iframe);
-
-        iframe.src = url;
-
-        nodes.messageScreen.addEventListener('poppage', function popListener() {
-          window.URL.revokeObjectURL(url);
-          this.mainContent.innerHTML = '';
-          this.removeEventListener('poppage', popListener);
-        });
-
-        mail.screens.moveToPage(nodes.messageScreen);
+    for (let key in headers) {
+      if (headers[key] && Object.prototype.hasOwnProperty.call(headers, key)) {
+        header.appendChild(mail.createHeaderLine(key, headers[key]));
       }
-    };
-
-    if (mail.messageTemplate.readyState === 4) {
-      read.call(mail.messageTemplate);
-    } else {
-      mail.messageTemplate.onload = read;
     }
 
-    //console.log(nodes.messageScreen.hidden = false);
+    let subject = header.appendChild(document.createElement('h2'));
+    subject.className = 'message-frame-subject';
+    subject.textContent = message.subject;
+
+    body.style.height = '-moz-calc(100% - ' + header.offsetHeight + 'px)';
+
+    let url = window.URL.createObjectURL(
+        new Blob([message.body], {
+          type: 'text\/html'
+        })
+      );
+
+    //has no affect in gecko :(
+    iframe.setAttribute('sandbox', '');
+
+    iframe.className = 'message-frame-content';
+
+    body.appendChild(iframe);
+
+    iframe.src = url;
+
+    nodes.messageScreen.addEventListener('poppage', function popListener() {
+      window.URL.revokeObjectURL(url);
+      header.innerHTML = body.innerHTML = '';
+      body.style.height = 'auto';
+      this.removeEventListener('poppage', popListener);
+    });
+
+    mail.screens.moveToPage(nodes.messageScreen);
 
   },
-  updatePages: function(page, dir) {
-    var tmp,
-      pages = mail.pages;
+  createHeaderLine: function(key, value) {
+    var line = document.createElement('h2');
+    line.className = 'message-frame-header-line';
 
-    page || (page = mail.currentPage);
-    dir || (dir = mail.defaultDirection);
+    line.appendChild(document.createElement('span'))
+      .textContent = key;
 
-    if (tmp = pages[page - dir]) {
-      tmp.style.display = 'block';
-      tmp.style.MozTransform = Transform.translate(
-        (window.innerWidth + TRANSITION_PADDING) * dir * -1
-      );
-    }
+    line.appendChild(document.createElement('strong'))
+      .textContent = value;
 
-    if (tmp = pages[page + dir]) {
-      if (!tmp.offsetWidth && !tmp.offsetHeight)
-        nodes.messagesList.appendChild(tmp).style.display = 'block';
+    return line;
 
-      tmp.style.MozTransform = Transform.translate(
-        (window.innerWidth + TRANSITION_PADDING) * dir
-      );
-    }
   }
 };
 
@@ -584,7 +591,8 @@ document.addEventListener('DOMContentLoaded', load(function() {
     'pre-select-mail',
     'select-account',
     'select-account-list',
-    'message-screen'
+    'message-screen',
+    'message-frame'
   ].forEach(function(id) {
     var target = document.getElementById(id);
 
@@ -648,6 +656,8 @@ document.addEventListener('DOMContentLoaded', load(function() {
 
 }), true);
 
+//this code is commented for reasons to debug in fx without b2g
+
 /*window.addEventListener('localized', load(function() {
 
   var html = document.documentElement,
@@ -661,7 +671,5 @@ document.addEventListener('DOMContentLoaded', load(function() {
   }
 
 }));*/
-
-//document.addEventListener('apploaded', function );
 
 document.addEventListener('apploaded', mail.firstScreen, true);

@@ -170,10 +170,9 @@ input, button, textarea {
 
 .message-frame {
   border: none;
-  width: 100%;
-  height: 100%;
   padding: 0;
   margin: 0;
+  background: white;
 }
 
 .actions-bar {
@@ -429,4 +428,47 @@ button:active {
 
 .select-exists-list li:active {
   background: gray;
+}
+
+.message-frame-header {
+  margin: 15px 0;
+  padding: 0 15px;
+  border-bottom: 1px solid gray;
+}
+
+.message-frame-header-line {
+  font-weight: normal;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  line-height: 22px;
+}
+
+.message-frame-header-line span {
+  float: left;
+  width: 20%;
+}
+
+.message-frame-subject {
+  width: 100%;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  font-size: 22px;
+  line-height: 30px;
+}
+
+.message-frame-body {
+  margin: 15px 0;
+  padding: 0 15px;
+  font-size: 20px;
+  line-height: 22px;
+}
+
+.message-frame-content {
+  margin: 0;
+  padding: 0;
+  border: none;
+  width: 100%;
+  height: 100%;
 }
