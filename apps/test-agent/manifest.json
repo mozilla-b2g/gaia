@@ -12,7 +12,8 @@
   "developer": {
     "url": "https://github.com/andreasgal/gaia",
     "name": "The Gaia Team"
-  }
+  },
+  "orientation": "portrait-primary"
 }
 
 
