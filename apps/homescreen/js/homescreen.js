@@ -501,6 +501,7 @@ Dots.prototype = {
       var dot = document.createElement('div');
       dot.className = 'dot';
       container.appendChild(dot);
+      dot.style.width = 100 / numPages + '%';
     }
 
     // Remove excess dots.
