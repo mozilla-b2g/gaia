@@ -1,6 +1,8 @@
 //put stuff here to help you tests out...
 
 (function(window) {
+  //register the global
+  window.navigator;
 
   var Common = window.parent.CommonResourceLoader,
       //mocha test methods we want to provide
