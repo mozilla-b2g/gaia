@@ -48,7 +48,7 @@ var WindowManager = (function() {
   var kLongPressInterval = 1000;
 
   // Some document elements we use
-  var screen = document.getElementById('screen');
+  var screenElement = document.getElementById('screen');
   var statusbar = document.getElementById('statusbar');
   var windows = document.getElementById('windows');
   var taskManager = document.getElementById('taskManager');
@@ -137,7 +137,7 @@ var WindowManager = (function() {
 
     if (manifest.fullscreen) {
       sprite.classList.add('fullscreen');
-      screen.classList.add('fullscreen');
+      screenElement.classList.add('fullscreen');
     }
 
     // Make the sprite look like the app that it is animating for.
@@ -232,7 +232,7 @@ var WindowManager = (function() {
 
     // If this was a fullscreen app, leave full-screen mode
     if (manifest.fullscreen)
-      screen.classList.remove('fullscreen');
+      screenElement.classList.remove('fullscreen');
 
     // If we're not doing an animation, then just switch directly
     // to the closed state. Note that we don't handle the hackKillMe
@@ -331,7 +331,6 @@ var WindowManager = (function() {
 
     displayedApp = origin;
   }
-
 
   function appendFrame(origin, url, name, manifest) {
     var frame = document.createElement('iframe');
