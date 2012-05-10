@@ -118,21 +118,10 @@ var WindowManager = (function() {
     var frame = app.frame;
     var manifest = app.manifest;
 
-    // FIXME: for now, we support apps (video and cut the rope) that run
-    // in landscape mode and fullscreen. Once we get real orientation
-    // support, this code will have to become more sophisticated.
-    // See https://bugzilla.mozilla.org/show_bug.cgi?id=673922
-    if (manifest.fullscreen && manifest.orientation) {
-      frame.style.width = window.innerHeight + 'px';
-      frame.style.height = window.innerWidth + 'px';
-      frame.classList.add(manifest.orientation);
-    }
-    else {
-      frame.style.width = window.innerWidth + 'px';
-      frame.style.height = manifest.fullscreen ?
-        window.innerHeight + 'px' :
-        (window.innerHeight - statusbar.offsetHeight) + 'px';
-    }
+    frame.style.width = window.innerWidth + 'px';
+    frame.style.height = manifest.fullscreen ?
+      window.innerHeight + 'px' :
+      (window.innerHeight - statusbar.offsetHeight) + 'px';
   }
 
   // Perform an "open" animation for the app's iframe
