@@ -4,18 +4,18 @@ Database JSON files:
 
 1. Install SpiderMonkey JavaScript Shell(http://ftp.mozilla.org/pub/mozilla.org/firefox/nightly/latest-trunk/)
 
-2. Clone a copy of PinyinIME at http://android.googlesource.com/platform/packages/inputmethods/PinyinIME
+2. Install simplified-traditional Chinese conversion tool
+   $ sudo apt-get install cconv
 
-3. Run the following commands to create the simplifed Chinese database JSON files:
+3. Clone a copy of PinyinIME at http://android.googlesource.com/platform/packages/inputmethods/PinyinIME
+
+4. Run the following commands to create the simplifed Chinese database JSON files:
    $ cp [PathToPinyinIME]/jni/data/rawdict_utf16_65105_freq.txt data/
    $ cd data
    $ make
 
-./db.json will be updated.
+./db.json and ./db-tr.json will be updated.
 
-4. Use the Microsoft Office Word or other tool to convert the db.json to the
-traditional Chinese file and save it as
-./db-tr.json.
 
 Running tests:
 
