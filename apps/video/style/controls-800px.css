@@ -1,27 +1,27 @@
-/* video player controls for big screens (height >= 800px) */
+/* video player controls for big screens (width >= 800px) */
 #videoBar {
-  top: -moz-calc(50% - 400px);
-  height: 800px;
+  left: -moz-calc(50% - 400px);
+  width: 800px;
   border: none;
   background-color: transparent;
   background-image: url("images/controls.png");
 }
 
 /* rwd/fwd and play/pause buttons */
-#rwd { top: 588px; }
-#fwd { top: 688px; }
-#play { top: 16px; }
+#rwd { left: 588px; }
+#fwd { left: 688px; }
+#play { bottom: 16px; }
 
 /* time slider */
 #timeSlider {
-  top: 166px;
-  left: 32px;
-  width: 64px;
-  height: 378px;
+  left: 166px;
+  bottom: 32px;
+  height: 64px;
+  width: 378px;
 }
 #elapsedTime {
-  left: 30px;
-  width: 6px;
+  bottom: 30px;
+  height: 6px;
   border-radius: 6px;
 }
 button#playHead {

@@ -11,7 +11,7 @@
   opacity: 1;
   font-size: 18px;
   text-shadow: 0 1px 1px rgba(0, 0, 0, 1);
-  -moz-transform: rotate(90deg) translate(0px, 300px);
+/*  -moz-transform: rotate(90deg) translate(0px, 300px);*/
 }
 
 /* video player controls */
@@ -50,10 +50,10 @@
 /* main control bar: play|pause, timeupdate, rwd|fwd */
 #videoBar {
   position: relative;
-  top: -moz-calc(50% - 150px);
-  left: 16px;
-  width: 112px;
-  height: 300px;
+  left: -moz-calc(50% - 150px);
+  top: -moz-calc(100% - 16px);
+  height: 112px;
+  width: 300px;
   margin: 0;
   padding: 0;
   border: 1px solid gray;
@@ -65,19 +65,19 @@
   height: 96px;
   padding: 0;
   margin: 0;
-  left: 16px;
+  button: 16px;
 }
 
 /* rwd/fwd buttons */
 #rwd {
-  top: 0px;
+  left: 0px;
   background-image: url("images/btn_rwd_off.png");
 }
 #rwd:active {
   background-image: url("images/btn_rwd_press.png");
 }
 #fwd {
-  top: 200px;
+  left: 200px;
   background-image: url("images/btn_fwd_off.png");
 }
 #fwd:active {
@@ -86,7 +86,7 @@
 
 /* play/pause button */
 #play {
-  top: 100px;
+  left: 100px;
   background-image: url("images/btn_pause_off.png");
 }
 #play:active {
@@ -102,15 +102,15 @@
 /* time slider */
 #timeSlider {
   position: relative;
-  top: 16px;
-  width: 32px;
-  height: 268px;
+  left: 16px;
+  height: 32px;
+  width: 268px;
 }
 #elapsedTime {
   position: absolute;
-  left: 16px;
-  width: 4px;
-  height: 0; /* updated by script (ontimeupdate) */
+  bottom: 16px;
+  height: 4px;
+  width: 0; /* updated by script (ontimeupdate) */
   background-color: #fff;
   border-radius: 6px;
 }
