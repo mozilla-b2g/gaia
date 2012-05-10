@@ -329,6 +329,25 @@ var WindowManager = (function() {
       });
     }
 
+    // Lock orientation as needed
+    if (newApp == null) {  // going to the homescreen, so force portrait
+      screen.mozLockOrientation('portrait-primary');
+    }
+    else {
+      var manifest = runningApps[newApp].manifest;
+      if (manifest.orientation) {
+        var rv = screen.mozLockOrientation(manifest.orientation);
+        if (rv === false) {
+          console.warn('screen.mozLockOrientation() returned false for', 
+                       origin, 'orientation', manifest.orientation);
+        }
+      }
+      else {  // If no orientation was requested, then let it rotate
+        screen.mozUnlockOrientation();
+      }
+    }
+
+
     displayedApp = origin;
   }
 
