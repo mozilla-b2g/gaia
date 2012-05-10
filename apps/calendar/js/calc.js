@@ -7,6 +7,8 @@
 
     PAST: 'past',
 
+    NEXT_MONTH: 'next-month',
+
     PRESENT: 'present',
 
     FUTURE: 'future',
@@ -127,6 +129,10 @@
 
       if (this.isPast(date)) {
         return this.PAST;
+      }
+
+      if (date.getMonth() != this.today.getMonth()) {
+        return this.FUTURE + ' ' + this.NEXT_MONTH;
       }
 
       return this.FUTURE;

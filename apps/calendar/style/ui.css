@@ -113,6 +113,10 @@ html, body {
   padding: 0.5mozmm 0;
 }
 
+#month-displays {
+  height: 100%;
+}
+
 section.month {
   height: 40%;
   clear: both;
@@ -182,7 +186,7 @@ section.month li .busy-indicator > span{
   padding-top: 1mozmm;
 }
 
-section.month li .busy-indicator {
+section.month li .busy-indicator {busy-indicator
   overflow: hidden;
   clear: both;
   bottom: 0px;
