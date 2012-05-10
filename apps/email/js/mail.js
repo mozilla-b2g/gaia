@@ -291,15 +291,6 @@ var mail = {
       = nodes.messageFrame.querySelector('.message-frame-header');
     nodes.messageFrame.body 
       = nodes.messageFrame.querySelector('.message-frame-body');
-
-    let xhr = mail.messageTemplate = new XMLHttpRequest();
-
-    xhr.open('GET', 'mailtest.htm', true);
-
-    xhr.overrideMimeType('text/html');
-
-    xhr.send();
-
   },
   configAccount: function(account, password) {
     //back-end function
