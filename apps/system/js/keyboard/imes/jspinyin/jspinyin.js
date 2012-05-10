@@ -288,6 +288,7 @@ TaskQueue.prototype = {
   processNext: function taskQueue_processNext() {
     if (this._queue.length > 0) {
       var task = this._queue.pop();
+      this._queue.shift();
       if (typeof task.func == 'function') {
         task.func(this, task.data);
       } else {
@@ -1652,24 +1653,36 @@ IndexedDBStorage.prototype = {
     req.onsuccess = function dbopenSuccess(ev) {
       debug('IndexedDB opened.');
       self._IDBDatabase = ev.target.result;
-
+      
+      self._status = DatabaseStorageBase.StatusCode.READY;
       self._count = 0;
-
-      // Get the count
-      var transaction = self._IDBDatabase.transaction(['homonyms'], 'readonly');
-      var reqCount = transaction.objectStore('homonyms').count();
-
-      reqCount.onsuccess = function(ev) {
-        debug('IndexedDB count: ' + ev.target.result);
-        self._count = ev.target.result;
-        self._status = DatabaseStorageBase.StatusCode.READY;
-        doCallback();
-      };
-
-      reqCount.onerror = function(ev) {
-        self._status = DatabaseStorageBase.StatusCode.ERROR;
-        doCallback();
-      };
+      
+      // Check the integrity of the storage
+      self.getTermsBySyllables('_last_entry_', function getLastEntryCallback(homonymsArray) {  
+        if (homonymsArray.length == 0) {
+          debug('IndexedDB is broken.');
+          // Could not find the '_last_entry_' element. The storage is broken
+          // and ignore all the data.
+          doCallback();
+          return;
+        }
+        
+        var transaction = self._IDBDatabase.transaction(['homonyms'], 'readonly');
+        // Get the count        
+        var reqCount = transaction.objectStore('homonyms').count();
+  
+        reqCount.onsuccess = function(ev) {
+          debug('IndexedDB count: ' + ev.target.result);
+          self._count = ev.target.result - 1;
+          self._status = DatabaseStorageBase.StatusCode.READY;
+          doCallback();
+        };
+  
+        reqCount.onerror = function(ev) {
+          self._status = DatabaseStorageBase.StatusCode.ERROR;
+          doCallback();
+        };        
+      });
     };
   },
 
@@ -1735,7 +1748,9 @@ IndexedDBStorage.prototype = {
       var cursor = ev.target.result;
       if (cursor) {
         var homonyms = cursor.value;
-        homonymsArray.push(homonyms);
+        if (homonyms.syllablesString != '_last_entry_') {
+          homonymsArray.push(homonyms);
+        }
         cursor.continue();
       } else {
         doCallback();
@@ -1815,6 +1830,11 @@ IndexedDBStorage.prototype = {
       for (var i = begin; i <= end; i++) {
         var homonyms = homonymsArray[i];
         store.put(homonyms);
+      }
+      
+      // Add a special element to indicate that all the items are saved.
+      if (end == n-1) {
+        store.put(new Homonyms('_last_entry_', []));
       }
     };
 
@@ -2029,9 +2049,11 @@ var IMEngineDatabase = function imedb(dbName, jsonUrl) {
             'IME is ready to use while inserting data into db ...'
           );
           populateDBFromJSON(function populateDBFromJSONCallback() {
-            debug('IndexedDB ready and switched to indexedDB backend.');
             if (!indexedDBStorage.isEmpty()) {
+              debug('IndexedDB ready and switched to indexedDB backend.');
               jsonStorage.uninit();
+            } else {
+              debug('Failed to populate IndexedDB from JSON.');
             }
           });
         });
