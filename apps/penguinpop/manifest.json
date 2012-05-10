@@ -9,6 +9,7 @@
   },
   "icons": {
     "120": "/style/icons/PenguinPop.png"
-  }
+  },
+  "orientation": "portrait-primary"
 }
 
