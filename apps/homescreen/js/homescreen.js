@@ -60,7 +60,7 @@ AppScreen.prototype.build = function(rebuild) {
   // If we're rebuilding, remember the page we're on
   var startpage = rebuild ? this.grid.currentPage : 0;
 
-    var className = editMode ? 'class=\"edit\"' : '';
+    var className = isInEditMode() ? 'class=\"edit\"' : '';
     document.getElementById('content').innerHTML =
       '<div id="home">' +
       '  <div id="apps" ' + className + '></div>' +
@@ -245,8 +245,18 @@ IconGrid.prototype = {
 
     container.style.minHeight = container.style.maxHeight = '';
 
-    var iconHeight = 0;
-    var iconWidth = 0;
+    function getIconSize(icon) {
+      var rect = icon.getBoundingClientRect();
+      var width = rect.width;
+      var height = rect.height;
+
+      var style = window.getComputedStyle(icon, null);
+      height += parseInt(style.marginTop) + parseInt(style.marginBottom);
+      width += parseInt(style.marginLeft) + parseInt(style.marginRight);
+      return { 'width': width, 'height': height };
+    }
+
+    var size = null;
     if (children.length === 0) {
       var page = document.createElement('div');
       page.className = 'page';
@@ -265,27 +275,14 @@ IconGrid.prototype = {
       page.appendChild(icon);
 
       container.appendChild(page);
-      var rect = icon.getBoundingClientRect();
-      iconWidth = rect.width;
-      iconHeight = rect.height;
-
-      var style = window.getComputedStyle(icon, null);
-      iconHeight = iconHeight + parseInt(style.marginTop)
-                              + parseInt(style.marginBottom);
-      iconWidth = iconWidth + parseInt(style.marginLeft)
-                            + parseInt(style.marginRight);
+      size = getIconSize(icon);
       container.removeChild(page);
     } else {
-      var rect = children[0].getBoundingClientRect();
-      iconWidth = rect.width;
-      iconHeight = rect.height;
-      var style = window.getComputedStyle(children[0], null);
-      iconHeight = iconHeight + parseInt(style.marginTop)
-                              + parseInt(style.marginBottom);
-      iconWidth = iconWidth + parseInt(style.marginLeft)
-                            + parseInt(style.marginRight);
-      container.removeChild(page);
+      size = getIconSize(children[0]);
     }
+
+    var iconHeight = size.height;
+    var iconWidth = size.width;
 
     var rect = container.getBoundingClientRect();
     var rows = Math.max(1, Math.floor(rect.height / iconHeight));
@@ -408,7 +405,7 @@ IconGrid.prototype = {
     }
 
     var app = appscreen.getAppByOrigin(target.dataset.url);
-    if (!editMode) {
+    if (!isInEditMode()) {
       app.launch();
       return;
     }

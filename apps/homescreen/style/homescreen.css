@@ -104,10 +104,26 @@ body {
   margin-top: 10px;
 }
 
+.icon.hidden {
+  visibility: hidden;
+}
+
+body > .icon {
+  z-index: 100000;
+  box-shadow: 0 0 5px 5px #666;
+}
+
+.edit .icon:before {
+  content: url(icons/close.png);
+  position: absolute;
+  top: -10px;
+  right: -10px;
+}
+
 .dot {
   display: inline-block;
   height: 5px;
-  background-color: none;
+  background-color: transparent;
 
   width: 10px;
   height: 10px;
@@ -121,50 +137,15 @@ body {
   background-color: white;
 }
 
-/* Horizontal orientation height of our current target phones */
-@media all and (max-height: 600px) {
-  #apps {
-    /* height = -margin-top +100% - dots.height - dots.bottom - shortcuts.height*/
-    height: -moz-calc(-24px + 100% - 14px - 14px - 135px);
-    margin-top: 24px;
-  }
-
-  #dots {
-    bottom: 14px;
-  }
-}
-
-/* Vertical orientation of 320x480 phones */
-@media all and (max-width: 320px) {
-  .page {
-    left: 30px;
-    width: -moz-calc(100% - 30px);
-  }
-}
-
-/* Horizontal orientation height of 800x480 phones */
-@media all and (min-width: 800px) {
-  .page {
-    left: 70px;
-    width: -moz-calc(100% - 70px);
-  }
-}
-
 /*
  * Localization: RTL layout
  */
 
 *[dir=rtl] .page {
   left: auto;
-  right: 20px;
 }
 
-@media all and (max-width: 320px) {
-  .page {
-    left: auto;
-    right: 10px;
-  }
-}
+/* Shortcuts */
 
 #shortcuts {
   position: absolute;
