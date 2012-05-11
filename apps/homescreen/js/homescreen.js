@@ -6,35 +6,29 @@
 // The appscreen is the main part of the homescreen: the part that
 // displays icons that launch all of the installed apps.
 var appscreen = null;
-window.addEventListener('load', function startApplicationScreen(e) {
-  appscreen = new AppScreen();
-});
+navigator.mozApps.mgmt.getAll().onsuccess = function(e) {
+  appscreen = new AppScreen(e.target.result);
+};
 
-function AppScreen() {
+function AppScreen(apps) {
   var installedApps = this.installedApps = {};
 
-  navigator.mozApps.mgmt.getAll().onsuccess = onGetAll.bind(this);
+  // Create an inner built-in list of installed apps
+  var lastSlash = new RegExp(/\/$/);
+  var currentHost = document.location.toString().replace(lastSlash, '');
+  apps.forEach(function(app) {
+    // Ignore the homescreen application itself
+    if (app.origin.replace(lastSlash, '') == currentHost)
+      return;
+    installedApps[app.origin] = app;
+  });
+
   navigator.mozApps.mgmt.oninstall = onInstall.bind(this);
   navigator.mozApps.mgmt.onuninstall = onUninstall.bind(this);
-  window.addEventListener('resize', onResize.bind(this));
-
-  function onGetAll(e) {
-    var apps = e.target.result;
-
-    var lastSlash = new RegExp(/\/$/);
-    var currentHost = document.location.toString().replace(lastSlash, '');
-    apps.forEach(function(app) {
-      // Ignore the homescreen application itself
-      if (app.origin.replace(lastSlash, '') == currentHost)
-        return;
-      installedApps[app.origin] = app;
-    });
-
-    this.build();
-  };
+  window.addEventListener('resize', this.build.bind(this, true));
 
   function onInstall(e) {
-    installedApps[e.applicationnew.origin] = e.application;
+    installedApps[e.application.origin] = e.application;
     this.build(true);
   };
 
@@ -43,9 +37,7 @@ function AppScreen() {
     this.build(true);
   };
 
-  function onResize(e) {
-    this.build(true);
-  };
+  this.build();
 }
 
 AppScreen.prototype = {
@@ -54,7 +46,6 @@ AppScreen.prototype = {
     return this.installedApps[origin];
   },
 
-  // But we also call it when new apps are installed or when the locale changes.
   build: function build(rebuild) {
     // We can't rebuild the app screen if it hasn't already been build the
     // the first time. This happens when we get an initial language setting
@@ -72,11 +63,7 @@ AppScreen.prototype = {
       '  <div id="dots"></div>' +
       '</div>';
 
-    // Create the widgets
-    this.grid = new IconGrid('apps');
-    this.grid.dots = new Dots('dots', this.grid);
-
-    // The current language for localizing app names
+    var apps = [];
     for (var origin in this.installedApps) {
       var app = this.installedApps[origin];
 
@@ -105,7 +92,7 @@ AppScreen.prototype = {
         icon = 'http://' + document.location.host + icon;
       }
 
-      // Localize the app name
+      // Translate the application name
       var name = app.manifest.name;
       var lang = document.mozL10n.language.code;
       if (app.manifest.locales && app.manifest.locales[lang])
@@ -113,11 +100,19 @@ AppScreen.prototype = {
 
       if (!icon)
         icon = 'http://' + document.location.host + '/style/icons/Unknown.png';
-      this.grid.add(icon, name, origin);
+      apps.push({ 'icon': icon, 'name': name, 'origin': origin });
     }
 
-    this.grid.update();
-    this.grid.setPage(startpage);
+    // Initialize the main grid view
+    var grid = this.grid = new IconGrid('apps');
+    grid.dots = new Dots('dots', this.grid);
+
+    apps.forEach(function(app) {
+      grid.add(app.icon, app.name, app.origin);
+    });
+
+    grid.update();
+    grid.setPage(startpage);
   }
 };
 
