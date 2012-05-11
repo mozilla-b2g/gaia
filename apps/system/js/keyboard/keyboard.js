@@ -484,7 +484,7 @@ const IMEManager = {
       alterKeyboard: function(keyboard) {
         self.updateLayout(keyboard);
         self.updateTargetWindowHeight();
-      },
+      }
     };
 
     script.addEventListener('load', (function IMEnginesLoaded() {
@@ -864,6 +864,7 @@ const IMEManager = {
 
     layout.keys.forEach((function buildKeyboardRow(row) {
       content += '<div class="keyboard-row">';
+
       row.forEach((function buildKeyboardColumns(key) {
         var specialCodes = [
           KeyEvent.DOM_VK_BACK_SPACE,
@@ -1092,19 +1093,19 @@ const IMEManager = {
 
     targetWindow.classList.add('keyboardOn');
     delete this.ime.dataset.hidden;
-    
+
     if (Keyboards[this.currentKeyboard].type == 'ime') {
       if (this.currentEngine.show) {
         this.currentEngine.show();
       }
-    }    
+    }
   },
 
   hideIME: function km_hideIME(targetWindow, imminent) {
 
     if (this.ime.dataset.hidden)
       return;
-    
+
     this.ime.dataset.hidden = 'true';
     targetWindow.style.height = targetWindow.dataset.cssHeight;
     targetWindow.classList.remove('keyboardOn');

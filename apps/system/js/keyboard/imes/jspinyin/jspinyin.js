@@ -287,8 +287,7 @@ TaskQueue.prototype = {
    */
   processNext: function taskQueue_processNext() {
     if (this._queue.length > 0) {
-      var task = this._queue.pop();
-      this._queue.shift();
+      var task = this._queue.shift();
       if (typeof task.func == 'function') {
         task.func(this, task.data);
       } else {
@@ -725,11 +724,11 @@ IMEngineBase.prototype = {
   select: function engineBase_select(text, data) {
     this._glue.sendString(text);
   },
-  
+
   /**
    * Notifies when the IM is shown
    */
-  show: function engineBase_show() {    
+  show: function engineBase_show() {
   }
 };
 
@@ -779,7 +778,7 @@ IMEngine.prototype = {
   _firstCandidate: '',
   _keypressQueue: null,
   _isWorking: false,
-  
+
   // Current keyboard
   _keyboard: 'zh-Hans-Pinyin',
 
@@ -1102,11 +1101,11 @@ IMEngine.prototype = {
       });
     });
   },
-  
+
   _alterKeyboard: function engine_changeKeyboard(keyboard) {
     this._keyboard = keyboard;
-    this.empty(); 
-    this._glue.alterKeyboard(keyboard);    
+    this.empty();
+    this._glue.alterKeyboard(keyboard);
   },
 
   /**
@@ -1208,7 +1207,7 @@ IMEngine.prototype = {
     if (!this._db[name])
       this._initDB(name);
   },
-  
+
   /**
    * Override
    */
@@ -1706,12 +1705,13 @@ IndexedDBStorage.prototype = {
     req.onsuccess = function dbopenSuccess(ev) {
       debug('IndexedDB opened.');
       self._IDBDatabase = ev.target.result;
-      
+
       self._status = DatabaseStorageBase.StatusCode.READY;
       self._count = 0;
-      
+
       // Check the integrity of the storage
-      self.getTermsBySyllables('_last_entry_', function getLastEntryCallback(homonymsArray) {  
+      self.getTermsBySyllables('_last_entry_',
+        function getLastEntryCallback(homonymsArray) {
         if (homonymsArray.length == 0) {
           debug('IndexedDB is broken.');
           // Could not find the '_last_entry_' element. The storage is broken
@@ -1719,22 +1719,23 @@ IndexedDBStorage.prototype = {
           doCallback();
           return;
         }
-        
-        var transaction = self._IDBDatabase.transaction(['homonyms'], 'readonly');
-        // Get the count        
+
+        var transaction =
+          self._IDBDatabase.transaction(['homonyms'], 'readonly');
+        // Get the count
         var reqCount = transaction.objectStore('homonyms').count();
-  
+
         reqCount.onsuccess = function(ev) {
           debug('IndexedDB count: ' + ev.target.result);
           self._count = ev.target.result - 1;
           self._status = DatabaseStorageBase.StatusCode.READY;
           doCallback();
         };
-  
+
         reqCount.onerror = function(ev) {
           self._status = DatabaseStorageBase.StatusCode.ERROR;
           doCallback();
-        };        
+        };
       });
     };
   },
@@ -1884,9 +1885,9 @@ IndexedDBStorage.prototype = {
         var homonyms = homonymsArray[i];
         store.put(homonyms);
       }
-      
+
       // Add a special element to indicate that all the items are saved.
-      if (end == n-1) {
+      if (end == n - 1) {
         store.put(new Homonyms('_last_entry_', []));
       }
     };
