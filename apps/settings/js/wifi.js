@@ -11,10 +11,12 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
   var gStatus = (function wifiStatus(element) {
     var checkbox = element.querySelector('input[type=checkbox]');
     var infoBlock = element.querySelector('small');
+    var switching = false;
 
     // current state
     function updateState() {
-      var currentNetwork = wifiManager.connectedNetwork;
+      switching = false;
+      var currentNetwork = wifiManager.connection.network;
       if (currentNetwork) {
         infoBlock.textContent = _('connected', { ssid: currentNetwork.ssid });
         checkbox.checked = true;
@@ -29,11 +31,14 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
 
     // toggle wifi on/off
     checkbox.onchange = function toggleWifi() {
+      if (switching)
+        return;
+      switching = true;
       var req;
       if (wifiManager.enabled) {
         // stop wifi
         gNetworkList.clear();
-        gStatus.textContent = '';
+        infoBlock.textContent = '';
         req = wifiManager.setEnabled(false);
         req.onsuccess = updateState;
       } else {
@@ -51,6 +56,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
     return {
       get textContent() { return infoBlock.textContent; },
       set textContent(value) { infoBlock.textContent = value; },
+      get switching() { return switching; },
       update: updateState
     };
   }) (document.getElementById('status'));
@@ -128,8 +134,14 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
 
     // scan wifi networks and display them in the list
     function scan() {
-      if (!wifiManager.enabled || !navigator.mozPower.screenEnabled || scanning)
+      if (scanning)
         return;
+
+      // stop auto-scanning if wifi disabled or power saving mode
+      if (!wifiManager.enabled || !navigator.mozPower.screenEnabled) {
+        scanning = false;
+        return;
+      }
 
       var req = wifiManager.getNetworks();
       scanning = true;
@@ -156,6 +168,8 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
       };
 
       req.onerror = function(error) {
+        scanning = false;
+        console.warn('wifi error: ' + req.error.name);
         gStatus.textContent = req.error.name;
 
         // auto-rescan if requested
@@ -203,33 +217,18 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
     *          (transition: connected -> disconnected).
     */
   wifiManager.onstatuschange = function(event) {
-    var status = wifiManager.connectionStatus.status;
+    var status = wifiManager.connection.status;
     if (status == 'connected')
       gNetworkList.scan(); // refresh the network list
     gStatus.textContent = _(status, event.network); // only for ssid
   };
 
-  // FIXME: remove this section when bug 745114 lands.
-  wifiManager.onconnecting = function(event) {
-    gStatus.textContent = _('connecting', { ssid: event.network.ssid });
-  };
-  wifiManager.onassociate = function(event) {
-    gStatus.textContent = _('associated');
-  };
-  wifiManager.onconnect = function(event) {
-    gStatus.textContent = _('connected', { ssid: event.network.ssid });
-    gNetworkList.scan(); // refresh the network list
-  };
-  wifiManager.ondisconnect = function(event) {
-    gStatus.textContent = _('disconnected');
-  };
-
   function isConnected(network) {
     // XXX the API should expose a 'connected' property on 'network',
-    // and 'wifiManager.connectedNetwork' should be comparable to 'network'.
+    // and 'wifiManager.connection.network' should be comparable to 'network'.
     // Until this is properly implemented, we just compare SSIDs to tell wether
     // the network is already connected or not.
-    var currentNetwork = wifiManager.connectedNetwork;
+    var currentNetwork = wifiManager.connection.network;
     return currentNetwork && (currentNetwork.ssid == network.ssid);
   }
 

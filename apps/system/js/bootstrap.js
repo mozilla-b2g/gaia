@@ -20,6 +20,18 @@ function startup() {
 
     ScreenManager.turnScreenOn();
   });
+
+  // This is code copied from
+  // http://dl.dropbox.com/u/8727858/physical-events/index.html
+  // It appears to workaround the Nexus S bug where we're not
+  // getting orientation data.  See:
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=753245
+  function dumbListener2(event) {}
+  window.addEventListener("devicemotion", dumbListener2, false);
+  
+  window.setTimeout(function() {
+      window.removeEventListener("devicemotion", dumbListener2, false);
+    }, 2000);
 }
 
 var SoundManager = {

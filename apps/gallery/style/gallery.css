@@ -62,7 +62,7 @@ header h1 {
 #thumbnails li {
   width: 160px;
   height: 140px;
-  overflow: none;
+  overflow: hidden;
   float: left;
   margin: 0;
   list-style-type: none;
@@ -87,8 +87,8 @@ header h1 {
   left: 0px;
   width: 100%;
   height: 100%;
-  padding: 0;
-  margin: 0;
+  padding: 0px;
+  margin: 0px;
   overflow: hidden;
 }
 
@@ -97,9 +97,10 @@ header h1 {
   top: 0px;
   width: 100%;
   height: 100%;
-  padding: 0;
-  margin: 0;
+  padding: 0px;
+  margin: 0px;
   overflow: hidden;
+  -moz-user-select: none;
 }
 
 div.currentPhoto {
@@ -107,26 +108,29 @@ div.currentPhoto {
 }
 
 /* the next photo is waiting in the wings just off to the right */
-/* We use 103% instead of 100% to give a small black border between photos */
+/* We use 102% instead of 100% to give a small black border between photos */
 div.nextPhoto {
-  left: 103%;
+  left: 102%;
 }
 
 /* In RTL languages, the next photo is off to the left */
 *[dir=rtl] div.nextPhoto {
-  left: -103%;
+  left: -102%;
 }
 
 div.previousPhoto {
-  left: -103%;
+  left: -102%;
 }
 
 *[dir=rtl] div.previousPhoto {
-  left: 103%;
+  left: 102%;
 }
 
 .photoFrame > img {
   position: relative;
+  border-width: 0px;
+  padding: 0px;
+  margin: 0px;
   pointer-events: none;
   -moz-user-select: none;
 }

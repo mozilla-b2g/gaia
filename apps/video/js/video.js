@@ -5,6 +5,7 @@ window.addEventListener('DOMContentLoaded', function() {
     return document.getElementById(id);
   }
   var player = $('player');
+  var subtitles = null;
 
   // This is the list of sample videos built in to the app
   var samples = [
@@ -12,6 +13,7 @@ window.addEventListener('DOMContentLoaded', function() {
       title: 'Mozilla Manifesto',
       video: 'samples/manifesto.ogv',
       poster: 'samples/manifesto.png',
+      subtitles: 'samples/manifesto.json',
       width: '640',
       height: '360',
       duration: '2:05'
@@ -20,6 +22,7 @@ window.addEventListener('DOMContentLoaded', function() {
       title: 'Meet The Cubs',
       video: 'samples/meetthecubs.webm',
       poster: 'samples/meetthecubs.png',
+      subtitles: 'samples/meetthecubs.json',
       width: '640',
       height: '360',
       duration: '1:18'
@@ -63,34 +66,6 @@ window.addEventListener('DOMContentLoaded', function() {
   // same thing for the controls
   var controlShowing = false;
 
-  // fullscreen doesn't work properly yet -- here's an ugly shim
-  var realFullscreen = false;
-  if (realFullscreen) {
-    document.cancelFullScreen = document.mozCancelFullScreen;
-    player.requestFullScreen = player.mozRequestFullScreen;
-  }
-  else {
-    // compute a CSS transform that centers & maximizes the <video> element
-    document.cancelFullScreen = function() {
-      player.style.mozTransform = 'none';
-    };
-    player.requestFullScreen = function() {
-      var style = getComputedStyle(document.body);
-      var bWidth = parseInt(style.width, 10);
-      var bHeight = parseInt(style.height, 10);
-      var scale = Math.floor(
-          Math.min(bHeight / player.srcWidth, bWidth / player.srcHeight) * 20
-        ) / 20; // round to the lower 5%
-      var yOffset = -Math.floor((bWidth + scale * player.srcHeight) / 2);
-      var xOffset = Math.floor((bHeight - scale * player.srcWidth) / 2);
-      var transform = 'rotate(90deg)' +
-        ' translate(' + xOffset + 'px, ' + yOffset + 'px)' +
-        ' scale(' + scale + ')';
-      player.style.MozTransformOrigin = 'top left';
-      player.style.MozTransform = transform;
-    }
-  }
-
   // show|hide controls over the player
   $('videoControls').addEventListener('click', function(event) {
     if (!controlShowing) {
@@ -103,19 +78,74 @@ window.addEventListener('DOMContentLoaded', function() {
     }
   });
 
+  // Make the video fit
+  function setPlayerSize() {
+    // compute a CSS transform that centers & maximizes the <video> element
+    var bWidth = window.innerWidth;
+    var bHeight = window.innerHeight;
+
+    var scale = Math.floor(
+      Math.min(bWidth / player.srcWidth, bHeight / player.srcHeight) * 20
+    ) / 20; // round to the lower 5%
+
+    var xOffset = Math.floor((bWidth - scale * player.srcWidth) / 2);
+    var yOffset = Math.floor((bHeight - scale * player.srcHeight) / 2);
+    var transform = 
+      ' translate(' + xOffset + 'px, ' + yOffset + 'px)' +
+      ' scale(' + scale + ')';
+    console.log('SETPLAYERSIZE', transform);
+    player.style.MozTransformOrigin = 'top left';
+    player.style.MozTransform = transform;
+  }
+
+  // Rescale when orientation changes
+//  screen.addEventListener("mozorientationchange", setPlayerSize);
+
+  // Rescale when window size changes. This should get called when
+  // orientation changes and when we go into fullscreen
+  window.addEventListener("resize", setPlayerSize);
+
   // show|hide video player
   function showPlayer(sample) {
     // switch to the video player view
+    $('videoFrame').classList.remove('hidden');
     $('videoControls').classList.add('hidden');
-    document.body.classList.add('fullscreen');
+//    document.body.classList.add('fullscreen');
     $('videoBar').classList.remove('paused');
+
+    $('videoFrame').mozRequestFullScreen();
+
+    //TODO: fetch subtitles from UniversalSubtitles.org
+    var req = new XMLHttpRequest();
+    req.open('GET', sample.subtitles, false);
+    req.send();
+    subtitles = JSON.parse(req.responseText);
+
+    function secs(str){
+      var t = str.split(":");
+      var h = t[0];
+      var m = t[1];
+      var s = parseFloat(t[2]);
+      return (h*60+m)*60+s;
+    }
+
+    player.ontimeupdate = function(){
+      var time = player.currentTime;
+
+      for (var s in subtitles){
+        if (time > secs(subtitles[s][0]) && time <= secs(subtitles[s][0]) + secs(subtitles[s][1])){
+          $('videoSubtitles').innerHTML = subtitles[s][2];
+          break;
+        }
+      }
+    }
 
     // start player
     player.src = sample.video;
     player.srcWidth = sample.width;   // XXX use player.videoWidth instead
     player.srcHeight = sample.height; // XXX use player.videoHeight instead
     player.play();
-    player.requestFullScreen();
+    setPlayerSize();
 
     // XXX in appCache mode, player.duration == Infinity
     // here's a workaround until this bug is fixed on the platform
@@ -136,13 +166,16 @@ window.addEventListener('DOMContentLoaded', function() {
       return;
 
     // switch to the video gallery view
-    document.cancelFullScreen();
-    document.body.classList.remove('fullscreen');
+    document.mozCancelFullScreen();
+    $('videoFrame').classList.add('hidden');
     $('videoBar').classList.remove('paused');
 
     // stop player
     player.pause();
     player.currentTime = 0;
+
+    //clear currently displayed caption
+    $('videoSubtitles').innerHTML = "";
 
     playerShowing = false;
     screenLock.unlock();
@@ -201,8 +234,8 @@ window.addEventListener('DOMContentLoaded', function() {
     var progress = isDragging ?
       getTimePos(event) : player.currentTime / playerDuration;
     var pos = progress * 100 + '%';
-    playHead.style.top = pos;
-    elapsedTime.style.height = pos;
+    playHead.style.left = pos;
+    elapsedTime.style.width = pos;
   }
   function setCurrentTime(event) {
     if (controlShowing)

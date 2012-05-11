@@ -8,12 +8,11 @@
     <link rel="stylesheet" type="text/css" media="screen" href="style/dialogs.css"/>
     <link rel="stylesheet" type="text/css" media="screen" href="style/settings.css"/>
     <link rel="resource" type="application/l10n" href="locale/settings.properties"/>
-    <script>
+    <script type="text/javascript">
       var host = document.location.host;
       var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
       var src = 'http://' + domain + '/webapi.js';
       document.write('<script src="' + src + '"><\/script>');
-    </script>
     </script>
     <script type="text/javascript" src="js/settings.js"></script>
     <script type="text/javascript" src="js/wifi.js"></script>
@@ -88,7 +87,7 @@
       <ul>
         <li id="status">
           <span data-l10n-id="wifi">Wi-Fi</span>
-          <small data-l10n-id="offline">offline</small>
+          <small data-l10n-id="disconnected">offline</small>
           <label>
             <input type="checkbox" />
             <span></span>
@@ -208,6 +207,13 @@
           <a dir="ltr">Italiano</a>
           <label>
             <input type="radio" name="language.current" value="it"/>
+            <span></span>
+          </label>
+        </li>
+        <li id="language-tr">
+          <a dir="ltr">Türkçe</a>
+          <label>
+            <input type="radio" name="language.current" value="tr"/>
             <span></span>
           </label>
         </li>

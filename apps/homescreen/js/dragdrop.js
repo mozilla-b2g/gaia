@@ -83,6 +83,8 @@ var currentTarget = null;
             return;
 
           this.onDragMove(this.target, e.pageX - this.startX, e.pageY - this.startY);
+          e.preventDefault();
+          e.stopPropagation();
           break;
 
         case 'mouseup':
@@ -106,7 +108,7 @@ var currentTarget = null;
 
   window.addEventListener('contextmenu', DragDropHandler, true);
   window.addEventListener('mousedown', DragDropHandler);
-  window.addEventListener('mousemove', DragDropHandler);
+  window.addEventListener('mousemove', DragDropHandler, true);
   window.addEventListener('mouseup', DragDropHandler);
 
   window.addEventListener('keyup', DragDropHandler);

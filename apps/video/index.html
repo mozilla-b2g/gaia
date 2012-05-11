@@ -16,7 +16,7 @@
     <link rel="stylesheet" type="text/css" href="style/video.css" />
     <link rel="stylesheet" type="text/css" href="style/controls.css" />
     <link rel="stylesheet" type="text/css" href="style/controls-800px.css"
-          media="all and (min-height: 800px)" />
+          media="all and (min-width: 800px)" />
     <style type="text/css">
       html, body { background-color: black; overflow: hidden; }
     </style>
@@ -33,9 +33,10 @@
     </ul>
 
     <!-- 'fullscreen' (maximized) video player -->
-    <div id="videoFrame">
+    <div id="videoFrame" class="hidden">
       <video src="about:blank" id="player"></video>
       <!-- video controls -->
+      <div id="videoSubtitles"></div>
       <div id="videoControls" class="hidden">
         <button id="close"></button>
         <div id="videoBar">

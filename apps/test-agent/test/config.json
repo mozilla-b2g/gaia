@@ -1,5 +1,6 @@
 {
   "tests": [
-    "/test/lib-test.js"
+    "gallery/test/SyntheticGestures_test.js",
+    "gallery/test/GestureDetector_test.js"
   ]
 }

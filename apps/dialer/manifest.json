@@ -30,8 +30,8 @@
       "description": "Gaia Dialer"
     },
     "es": {
-      "name": "Llamada",
-      "description": "Realizar llamadas en Gaia"
+      "name": "Marcador",
+      "description": "Marcador de Gaia"
     },
     "fr": {
       "name": "Appel",
@@ -41,9 +41,17 @@
       "name": "Chiamata",
       "description": "Chiamata di Gaia"
     },
+    "pt-BR": {
+      "name": "Discador",
+      "description": "Discador do Gaia"
+    },
     "ru": {
       "name": "\u0422\u0435\u043b\u0435\u0444\u043e\u043d",
       "description": "\u0422\u0435\u043b\u0435\u0444\u043e\u043d Gaia"
+    },
+    "tr": {
+      "name": "Numara \u00c7evirici",
+      "description": "Gaia Numara \u00c7evirici"
     },
     "zh-TW": {
       "name": "\u96fb\u8a71",
@@ -54,5 +62,6 @@
   "background_page": "/background.html",
   "icons": {
     "120": "/style/icons/Phone.png"
-  }
+  },
+  "orientation": "portrait-primary"
 }

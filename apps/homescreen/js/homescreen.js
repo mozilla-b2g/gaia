@@ -1,6 +1,3 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
 'use strict';
 
 // The appscreen is the main part of the homescreen: the part that
@@ -53,11 +50,15 @@ AppScreen.prototype.getAppByOrigin = function getAppByOrigin(origin) {
 // Populate the appscreen with icons. The constructor automatically calls this.
 // But we also call it when new apps are installed or when the locale changes.
 AppScreen.prototype.build = function(rebuild) {
-  var startpage = 0;
 
-  if (rebuild && 'grid' in this) {
-    // Remember the page we're on so that after rebuild we can stay there.
-    startpage = this.grid.currentPage;
+  // We can't rebuild the app screen if it hasn't already been build the
+  // the first time. This happens when we get an initial language setting
+  // observation before we get the initial list of installed apps.
+  if (rebuild && !this.grid)
+    return;
+
+  // If we're rebuilding, remember the page we're on
+  var startpage = rebuild ? this.grid.currentPage : 0;
 
     var className = editMode ? 'class=\"edit\"' : '';
     document.getElementById('content').innerHTML =
@@ -65,11 +66,15 @@ AppScreen.prototype.build = function(rebuild) {
       '  <div id="apps" ' + className + '></div>' +
       '  <div id="dots"></div>' +
       '</div>';
-  }
+
+  // Start with completely fresh elements.
+  // If we're rebuilding, this will remove all old event listeners too.
+  document.getElementById('home').innerHTML =
+    '<div id="apps"></div><div id="dots"></div>';
 
   // Create the widgets
   this.grid = new IconGrid('apps');
-  this.grid.dots = new Dots('dots', 'apps');
+  this.grid.dots = new Dots('dots', this.grid);
 
   // The current language for localizing app names
   for (var origin in this.installedApps) {
@@ -195,58 +200,6 @@ DefaultPhysics.prototype = {
   }
 };
 
-var Mouse2Touch = {
-  'mousedown': 'touchstart',
-  'mousemove': 'touchmove',
-  'mouseup': 'touchend'
-};
-
-var Touch2Mouse = {
-  'touchstart': 'mousedown',
-  'touchmove': 'mousemove',
-  'touchend': 'mouseup'
-};
-
-var ForceOnWindow = {
-  'touchmove': true,
-  'touchend': true
-};
-
-function AddEventHandlers(target, listener, eventNames) {
-  for (var n = 0; n < eventNames.length; ++n) {
-    var name = eventNames[n];
-    target = ForceOnWindow[name] ? window : target;
-    name = Touch2Mouse[name] || name;
-    target.addEventListener(name, {
-      handleEvent: function(e) {
-        if (Mouse2Touch[e.type]) {
-          var original = e;
-          e = {
-            type: Mouse2Touch[original.type],
-            target: original.target,
-            touches: [original],
-            preventDefault: function() {
-              original.preventDefault();
-            }
-          };
-          e.changedTouches = e.touches;
-        }
-        return listener.handleEvent(e);
-      }
-    }, true);
-  }
-}
-
-function RemoveEventHandlers(target, listener, eventNames) {
-  for (var n = 0; n < eventNames.length; ++n) {
-    var name = eventNames[n];
-    target = ForceOnWindow[name] ? window : target;
-    name = Touch2Mouse[name] || name;
-    target.removeEventListener(name, listener);
-  }
-}
-
-
 function IconGrid(containerId) {
   this.container = document.getElementById(containerId);
   this.icons = [];
@@ -254,8 +207,9 @@ function IconGrid(containerId) {
   this.physics = new DefaultPhysics(this);
 
   // install event handlers
-  var events = ['contextmenu', 'touchstart', 'touchmove', 'touchend'];
-  AddEventHandlers(this.container, this, events);
+  this.container.addEventListener('mousedown', this);
+  window.addEventListener('mousemove', this);
+  window.addEventListener('mouseup', this);
 }
 
 IconGrid.prototype = {
@@ -296,7 +250,8 @@ IconGrid.prototype = {
 
     container.style.minHeight = container.style.maxHeight = '';
 
-    var rect = null;
+    var iconHeight = 0;
+    var iconWidth = 0;
     if (children.length === 0) {
       var page = document.createElement('div');
       page.className = 'page';
@@ -315,15 +270,27 @@ IconGrid.prototype = {
       page.appendChild(icon);
 
       container.appendChild(page);
-      rect = icon.getBoundingClientRect();
+      var rect = icon.getBoundingClientRect();
+      iconWidth = rect.width;
+      iconHeight = rect.height;
+
+      var style = window.getComputedStyle(icon, null);
+      iconHeight = iconHeight + parseInt(style.marginTop)
+                              + parseInt(style.marginBottom);
+      iconWidth = iconWidth + parseInt(style.marginLeft)
+                            + parseInt(style.marginRight);
       container.removeChild(page);
     } else {
-      rect = children[0].getBoundingClientRect();
+      var rect = children[0].getBoundingClientRect();
+      iconWidth = rect.width;
+      iconHeight = rect.height;
+      var style = window.getComputedStyle(children[0], null);
+      iconHeight = iconHeight + parseInt(style.marginTop)
+                              + parseInt(style.marginBottom);
+      iconWidth = iconWidth + parseInt(style.marginLeft)
+                            + parseInt(style.marginRight);
+      container.removeChild(page);
     }
-
-    // XXX use getComputedStyle
-    var iconHeight = rect.height + 60;
-    var iconWidth = rect.width + 40;
 
     var rect = container.getBoundingClientRect();
     var rows = Math.max(1, Math.floor(rect.height / iconHeight));
@@ -435,6 +402,11 @@ IconGrid.prototype = {
     if (dots)
       dots.update(number);
   },
+
+  length: function() {
+    return this.container.childNodes.length;
+  },
+
   tap: function(target) {
     if (editMode)
       return;
@@ -447,14 +419,14 @@ IconGrid.prototype = {
   handleEvent: function(e) {
     var physics = this.physics;
     switch (e.type) {
-    case 'touchstart':
-      physics.onTouchStart(e.touches[0]);
+    case 'mousedown':
+      physics.onTouchStart(e);
       break;
-    case 'touchmove':
-      physics.onTouchMove(e.touches[0]);
+    case 'mousemove':
+      physics.onTouchMove(e);
       break;
-    case 'touchend':
-      physics.onTouchEnd(e.changedTouches[0]);
+    case 'mouseup':
+      physics.onTouchEnd(e);
       break;
     case 'contextmenu':
       physics.touchState.active = false;
@@ -465,18 +437,17 @@ IconGrid.prototype = {
   }
 };
 
-function Dots(containerId, gridId) {
-  this.gridId = gridId;
+function Dots(containerId, grid) {
+  this.containerId = containerId;
   this.container = document.getElementById(containerId);
-  this.grid = document.getElementById(gridId);
+  this.grid = grid;
 }
 
 Dots.prototype = {
   update: function(current) {
     var container = this.container;
     var grid = this.grid;
-
-    var numPages = grid.childNodes.length;
+    var numPages = grid.length();
 
     // Add additional dots if needed.
     while (container.childNodes.length < numPages) {
@@ -498,7 +469,32 @@ Dots.prototype = {
       } else {
         dot.classList.remove('active');
       }
+
+      dot.addEventListener('click', this);
     }
+  },
+
+  click: function(e) {
+    var childNodes = this.container.childNodes;
+    var length = childNodes.length;
+
+    for (var n = 0; n < length; ++n) {
+      var dot = childNodes[n];
+      if (dot == e.target) {
+        this.grid.setPage(n, 0.2);
+        break;
+      }
+    }
+  },
+
+  handleEvent: function(e) {
+    switch (e.type) {
+    case 'click':
+      this.click(e);
+      break;
+    default:
+      return;
+    }
+    e.preventDefault();
   }
 };
-

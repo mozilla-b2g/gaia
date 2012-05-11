@@ -48,16 +48,16 @@ body {
 #apps {
   position: absolute;
   top: 0;
-  margin-top: 40px;
+  margin-top: 20px;
 
-  /* height = -margin-top +100% - dots.height - notifications.height - shortcuts.height*/
-  height: -moz-calc(-40px + 100% - 14px - 80px - 64px);
+  /* height = -margin-top +100% - dots.height - shortcuts.height*/
+  height: -moz-calc(-20px + 100% - 14px - 135px);
   width: 100%;
 }
 
 #dots {
   position: absolute;
-  bottom: 90px;
+  bottom: 140px;
   height: 14px;
   line-height: 14px;
   text-align: center;
@@ -81,7 +81,6 @@ body {
   margin: 30px 20px;
   border-radius: 10px;
   text-align: center;
-  box-shadow: 0 0 3px 3px #222;
 }
 
 *[dir=rtl] .icon {
@@ -101,8 +100,14 @@ body {
   color: white;
 }
 
+.icon > .label {
+  margin-top: 10px;
+}
+
 .dot {
   display: inline-block;
+  height: 5px;
+  background-color: none;
 
   width: 10px;
   height: 10px;
@@ -119,8 +124,8 @@ body {
 /* Horizontal orientation height of our current target phones */
 @media all and (max-height: 600px) {
   #apps {
-    /* height = -margin-top +100% - dots.height - dots.bottom - notifications.height - shortcuts.height*/
-    height: -moz-calc(-24px + 100% - 14px - 14px - 0px - 64px);
+    /* height = -margin-top +100% - dots.height - dots.bottom - shortcuts.height*/
+    height: -moz-calc(-24px + 100% - 14px - 14px - 135px);
     margin-top: 24px;
   }
 
@@ -164,26 +169,23 @@ body {
 #shortcuts {
   position: absolute;
   bottom: 0;
-  height: 64px;
+  height: 135px;
   width: 100%;
-  background: #000;
+  background: rgba(0,0,0,0.1);
 }
 
 #shortcuts .shortcut {
   float: left;
   width: 25%;
-  height: 40px;
-  padding: 12px 0px;
-  border-radius: 4px;
+  margin: 5px 0;
   text-align: center;
 }
 
 #shortcuts .shortcut img {
   display: block;
-  margin: 0 auto;
-}
-
-#shortcuts .shortcut:active {
-  background: #505050;
+  height: 79px;
+  height: 79px;
+  border-radius: 10px;
+  margin: 10px auto 15px auto;
 }
 
