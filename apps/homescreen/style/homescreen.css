@@ -81,6 +81,7 @@ body {
   margin: 30px 20px;
   border-radius: 10px;
   text-align: center;
+  box-shadow: 0 0 3px 3px #222;
 }
 
 *[dir=rtl] .icon {
