@@ -344,7 +344,7 @@ var WindowManager = (function() {
   }
 
 
-  function appendFrame(origin, url, name, manifest) {
+  function appendFrame(origin, url, name, manifest, manifestURL) {
     var frame = document.createElement('iframe');
     frame.id = 'appframe' + nextAppId++;
     frame.className = 'appWindow';
@@ -372,7 +372,7 @@ var WindowManager = (function() {
     var exceptions = ['Camera'];
     if (exceptions.indexOf(manifest.name) == -1) {
       frame.setAttribute('mozbrowser', 'true');
-      frame.setAttribute('mozapp', 'true');
+      frame.setAttribute('mozapp', manifestURL);
     }
 
     // Add the iframe to the document
@@ -440,7 +440,7 @@ var WindowManager = (function() {
       }
 
       var app = Applications.getByOrigin(origin);
-      appendFrame(origin, e.detail.url, app.manifest.name, app.manifest);
+      appendFrame(origin, e.detail.url, app.manifest.name, app.manifest, app.manifestURL);
     }
   });
 
