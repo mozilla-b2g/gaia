@@ -67,11 +67,6 @@ AppScreen.prototype.build = function(rebuild) {
       '  <div id="dots"></div>' +
       '</div>';
 
-  // Start with completely fresh elements.
-  // If we're rebuilding, this will remove all old event listeners too.
-  document.getElementById('home').innerHTML =
-    '<div id="apps"></div><div id="dots"></div>';
-
   // Create the widgets
   this.grid = new IconGrid('apps');
   this.grid.dots = new Dots('dots', this.grid);
@@ -185,7 +180,7 @@ DefaultPhysics.prototype = {
     var iconGrid = this.iconGrid;
     var currentPage = iconGrid.currentPage;
     if (tap) {
-      iconGrid.tap(touchState.initialTarget);
+      iconGrid.tap(touchState.initialTarget, e.pageX, e.pageY);
       iconGrid.setPage(currentPage, 0);
       return;
     } else if (flick) {
@@ -407,13 +402,24 @@ IconGrid.prototype = {
     return this.container.childNodes.length;
   },
 
-  tap: function(target) {
-    if (editMode)
+  tap: function(target, x, y) {
+    if (!('url' in target.dataset)) {
       return;
+    }
 
-    if ('url' in target.dataset) {
-      var app = appscreen.getAppByOrigin(target.dataset.url);
+    var app = appscreen.getAppByOrigin(target.dataset.url);
+    if (!editMode) {
       app.launch();
+      return;
+    }
+
+    // If the click happens in the top-right corner in edit-mode, this is
+    // to uninstall the application.
+    var rect = target.getBoundingClientRect();
+    if (x > rect.left + rect.width - 20 &&
+        x < rect.left + rect.width + 20 &&
+        y > rect.top - 20 && y < rect.top + 20) {
+      app.uninstall();
     }
   },
   handleEvent: function(e) {
