@@ -89,7 +89,8 @@ function isInEditMode() {
           if (!this.target)
             return;
 
-          this.onDragMove(this.target, e.pageX - this.startX, e.pageY - this.startY);
+          this.onDragMove(this.target, e.pageX - this.startX,
+                          e.pageY - this.startY);
           e.preventDefault();
           e.stopPropagation();
           break;
