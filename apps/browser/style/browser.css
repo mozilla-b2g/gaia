@@ -132,6 +132,58 @@ input::-moz-focus-inner {
   background-color: white;
 }
 
+#awesomescreen {
+  display: -moz-box;
+  -moz-box-orient: vertical;
+  -moz-box-flex: 1;
+  background-color: #fff;
+}
+
+#awesomescreen.hidden {
+  display: none;
+}
+
+#awesomescreen ul {
+  margin: 0;
+  padding: 0;
+}
+
+#awesomescreen li {
+  list-style-type: none;
+  border-bottom: solid 1px #ccc;
+}
+
+#awesomescreen li:last-child {
+  border-bottom: none;
+}
+
+#awesomescreen li a {
+  display: block;
+  padding: 8px;
+  text-decoration: none;
+  color: #000;
+}
+
+#awesomescreen li span {
+  display: block;
+}
+
+#awesomescreen li small {
+  display: block;
+  color: #666;
+}
+
+#history{
+  display: -moz-box;
+  overflow-y: auto;
+  -moz-box-flex: 1;
+  -moz-box-orient: vertical;
+}
+
+#history-list {
+  -moz-box-flex: 1;
+}
+
 #shade {
   position: absolute;
   bottom: 62px;
