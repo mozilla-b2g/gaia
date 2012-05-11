@@ -129,6 +129,32 @@ body {
   background-size: cover;
 }
 
+#keypadscreen::before {
+  content: ': )';
+/*  -moz-transform: rotate(90deg); */
+  display: block;
+  position: absolute;
+  top: 25px;
+  width: 100%;
+  text-align: center;
+
+  color: #fff;
+  font-size: 100px;
+  font-weight: 600;
+  letter-spacing: -2px;
+  line-height: 1.1em;
+  text-shadow: 0 0 10px rgba(255, 255, 255, .4), 0 0 3px rgba(255, 255, 255, .3);
+}
+
+#keypadscreen[data-status="error"]::before {
+  content: ":'(";
+  color: #ccc;
+}
+
+#keypadscreen[data-status="success"]::before {
+  content: "\\o/";
+}
+
 #keypadscreen-code {
   position: absolute;
   bottom: 400px;
@@ -151,12 +177,20 @@ body {
   position: relative;
 }
 
-#keypadscreen-code[data-error] > span {
+#keypadscreen[data-status="error"] #keypadscreen-code > span {
   box-shadow: 0 0 10px #f00 inset;
 }
 
-#keypadscreen-code[data-error] > span[data-dot]::before {
+#keypadscreen[data-status="error"] #keypadscreen-code > span[data-dot]::before {
   background-color: #f00;
+}
+
+#keypadscreen[data-status="success"] #keypadscreen-code > span {
+  box-shadow: 0 0 10px #0c0 inset;
+}
+
+#keypadscreen[data-status="success"] #keypadscreen-code > span[data-dot]::before {
+  background-color: #0c0;
 }
 
 #keypadscreen-code > span[data-dot]::before {

@@ -212,8 +212,12 @@ var LockScreen = {
         break;
 
       case 'transitionend':
-        if (this.locked && localStorage['passcode-lock'] == 'true') {
+        if (localStorage['passcode-lock'] !== 'true')
+          return;
+        if (this.locked) {
           this.lockPadlock();
+        } else {
+          delete this.padlockOverlay.dataset.status;
         }
         break;
 
@@ -298,6 +302,9 @@ var PadLock = {
   },
 
   handleEvent: function padlock_handleEvent(e) {
+    if (this.padlockOverlay.dataset.status)
+      return;
+
     if (!e.target.dataset.key)
       return;
 
@@ -310,7 +317,6 @@ var PadLock = {
           LockScreen.lock();
           break;
         }
-        delete this.codeUI.dataset.error;
         this.currentCode =
           this.currentCode.substr(0, this.currentCode.length - 1);
         this.updateCodeUI();
@@ -325,13 +331,17 @@ var PadLock = {
 
         if (this.currentCode.length === 4) {
           if (this.currentCode === this.passCode) {
-            LockScreen.unlockPadlock();
-            this.currentCode = '';
-            this.updateCodeUI();
-          } else {
-            this.codeUI.dataset.error = 'true';
+            this.padlockOverlay.dataset.status = 'success';
             setTimeout(function () {
-              delete PadLock.codeUI.dataset.error;
+              delete PadLock.padlockOverlay.dataset.status;
+              LockScreen.unlockPadlock();
+              PadLock.currentCode = '';
+              PadLock.updateCodeUI();
+            }, 500);
+          } else {
+            this.padlockOverlay.dataset.status = 'error';
+            setTimeout(function () {
+              delete PadLock.padlockOverlay.dataset.status;
               PadLock.currentCode = '';
               PadLock.updateCodeUI();
             }, 500);
