@@ -315,13 +315,10 @@ const Keyboards = {
     type: 'keyboard',
     disableAlternateLayout: true,
     hidesSwitchKey: true,
-    textLayoutOverwrite: {
-      ',': false,
-      '.': false
-    },
+    typeInsensitive: true,
     keys: [
       [{ value: '-', ratio: 2 }, { value: '1', ratio: 2 }, { value: '2', ratio: 2 }, { value: '3', ratio: 2 }, { value: '⌫', keyCode: KeyEvent.DOM_VK_BACK_SPACE, ratio: 2 }],
-      [{ value: '+', ratio: 2 }, { value: '4', ratio: 2 }, { value: '5', ratio: 2 }, { value: '6', ratio: 2 }, { value: '拼', keyCode: -1, ratio: 2 }],
+      [{ value: '+', ratio: 2 }, { value: '4', ratio: 2 }, { value: '5', ratio: 2 }, { value: '6', ratio: 2 }, { value: '拼', keyCode: -20, ratio: 2 }],
       [{ value: '.', ratio: 2 }, { value: '7', ratio: 2 }, { value: '8', ratio: 2 }, { value: '9', ratio: 2 }, { value: '符', keyCode: -13, ratio: 2 }],
       [{ value: ':', ratio: 2 }, { value: '?', ratio: 2 }, { value: '0', ratio: 2 }, { value: '空格', keyCode: KeyboardEvent.DOM_VK_SPACE, ratio: 2}, { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }]
     ]
@@ -330,13 +327,10 @@ const Keyboards = {
     type: 'keyboard',
     disableAlternateLayout: true,
     hidesSwitchKey: true,
-    textLayoutOverwrite: {
-      ',': false,
-      '.': false
-    },
+    typeInsensitive: true,
     keys: [
       [{ value: '，', ratio: 2 }, { value: '。', ratio: 2 }, { value: ',', ratio: 2 }, { value: '.', ratio: 2 }, { value: '⌫', ratio: 2, keyCode: KeyEvent.DOM_VK_BACK_SPACE }],
-      [{ value: '？', ratio: 2 }, { value: '！', ratio: 2 }, { value: '：', ratio: 2 }, { value: '；', ratio: 2 }, { value: '拼', keyCode: -1, ratio: 2 }],
+      [{ value: '？', ratio: 2 }, { value: '！', ratio: 2 }, { value: '：', ratio: 2 }, { value: '；', ratio: 2 }, { value: '拼', keyCode: -20, ratio: 2 }],
       [{ value: '“', ratio: 2 }, { value: '~', ratio: 2 }, { value: '@', ratio: 2 }, { value: '/', ratio: 2 }, { value: '123', keyCode: -12, ratio: 2 }],
       [{ value: '⇧', ratio: 3, keyCode: -15}, { value: '⇩', ratio: 3, keyCode: -14}, { value: '空格', ratio: 2, keyCode: KeyboardEvent.DOM_VK_SPACE }, { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }]
     ]
@@ -345,13 +339,10 @@ const Keyboards = {
     type: 'keyboard',
     disableAlternateLayout: true,
     hidesSwitchKey: true,
-    textLayoutOverwrite: {
-      ',': false,
-      '.': false
-    },
+    typeInsensitive: true,
     keys: [
       [{ value: '%', ratio: 2 }, { value: '&', ratio: 2 }, { value: '*', ratio: 2 }, { value: '-', ratio: 2 }, { value: '⌫', ratio: 2, keyCode: KeyEvent.DOM_VK_BACK_SPACE }],
-      [{ value: '_', ratio: 2 }, { value: '`', ratio: 2 }, { value: '[', ratio: 2 }, { value: ']', ratio: 2 }, { value: '拼', keyCode: -1, ratio: 2 }],
+      [{ value: '_', ratio: 2 }, { value: '`', ratio: 2 }, { value: '[', ratio: 2 }, { value: ']', ratio: 2 }, { value: '拼', keyCode: -20, ratio: 2 }],
       [{ value: '（', ratio: 2 }, { value: '）', ratio: 2 }, { value: '$', ratio: 2 }, { value: '￥', ratio: 2 }, { value: '123', keyCode: -12, ratio: 2 }],
       [{ value: '⇧', ratio: 3, keyCode: -13}, { value: '⇩', ratio: 3, keyCode: -15}, { value: '空格', ratio: 2, keyCode: KeyboardEvent.DOM_VK_SPACE }, { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }]
     ]
@@ -360,13 +351,10 @@ const Keyboards = {
     type: 'keyboard',
     disableAlternateLayout: true,
     hidesSwitchKey: true,
-    textLayoutOverwrite: {
-      ',': false,
-      '.': false
-    },
+    typeInsensitive: true,
     keys: [
       [{ value: '+', ratio: 2 }, { value: '#', ratio: 2 }, { value: '^', ratio: 2 }, { value: '\\', ratio: 2 }, { value: '⌫', ratio: 2, keyCode: KeyEvent.DOM_VK_BACK_SPACE }],
-      [{ value: '|', ratio: 2 }, { value: '{', ratio: 2 }, { value: '}', ratio: 2 }, { value: '÷', ratio: 2 }, { value: '拼', keyCode: -1, ratio: 2 }],
+      [{ value: '|', ratio: 2 }, { value: '{', ratio: 2 }, { value: '}', ratio: 2 }, { value: '÷', ratio: 2 }, { value: '拼', keyCode: -20, ratio: 2 }],
       [{ value: '=', ratio: 2 }, { value: '<', ratio: 2 }, { value: '>', ratio: 2 }, { value: '℃', ratio: 2 }, { value: '123', keyCode: -12, ratio: 2 }],
       [{ value: '⇧', ratio: 3, keyCode: -14}, { value: '⇩', ratio: 3, keyCode: -13}, { value: '空格', ratio: 2, keyCode: KeyboardEvent.DOM_VK_SPACE }, { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }]
     ]

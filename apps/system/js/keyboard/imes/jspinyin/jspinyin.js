@@ -728,7 +728,7 @@ IMEngineBase.prototype = {
   /**
    * Notifies when the IM is shown
    */
-  show: function engineBase_show() {
+  show: function engineBase_show(inputType) {
   }
 };
 
@@ -1113,6 +1113,10 @@ IMEngine.prototype = {
    */
   init: function engine_init(glue) {
     IMEngineBase.prototype.init.call(this, glue);
+    debug('init.');
+    var keyboard = this._inputTraditionalChinese ?
+      'zh-Hans-Pinyin-tr' : 'zh-Hans-Pinyin';
+    this._alterKeyboard(keyboard);
   },
 
   /**
@@ -1164,6 +1168,12 @@ IMEngine.prototype = {
         // Switch to symbol2 keyboard.
         this._alterKeyboard('zh-Hans-Pinyin-symbol2');
         break;
+      case -20:
+        // Switch back to the basic keyboard.
+        var keyboard = this._inputTraditionalChinese ?
+          'zh-Hans-Pinyin-tr' : 'zh-Hans-Pinyin';
+        this._alterKeyboard(keyboard);
+        break;
       default:
         this._keypressQueue.push(keyCode);
         break;
@@ -1198,6 +1208,8 @@ IMEngine.prototype = {
    * Override
    */
   empty: function engine_empty() {
+    IMEngineBase.prototype.empty.call(this);
+    debug('empty.');
     var name = this._getCurrentDatabaseName();
     this._pendingSymbols = '';
     this._selectedText = '';
@@ -1211,9 +1223,16 @@ IMEngine.prototype = {
   /**
    * Override
    */
-  show: function engine_show() {
-    // Restore the saved keyboard
-    this._glue.alterKeyboard(this._keyboard);
+  show: function engine_show(inputType) {
+    IMEngineBase.prototype.show.call(this, inputType);
+    debug('Show. Input type: ' + inputType);
+    var keyboard = this._inputTraditionalChinese ?
+      'zh-Hans-Pinyin-tr' : 'zh-Hans-Pinyin';
+    if (inputType == '' || inputType == 'text' || inputType == 'textarea') {
+      keyboard = this._keyboard;
+    }
+
+    this._glue.alterKeyboard(keyboard);
   }
 };
 
