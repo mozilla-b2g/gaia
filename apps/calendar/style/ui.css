@@ -38,7 +38,7 @@ html, body {
 /* sub: toolbar  */
 
 #top-toolbar {
-  height: 8mozmm;
+  /*height: 8mozmm;*/
 }
 
 #top-toolbar header.toolbar {
@@ -78,7 +78,7 @@ html, body {
 
 #month-days {
   overflow: hidden;
-  height: 3.6mozmm;
+  /*height: 3.6mozmm;*/
 }
 
 #month .month li,
@@ -114,11 +114,11 @@ html, body {
 }
 
 #month-displays {
-  height: 100%;
+  height: 50%;
 }
 
 section.month {
-  height: 40%;
+  height: 100%;
   clear: both;
 }
 
@@ -172,7 +172,7 @@ section.month li.present {
 }
 
 section.month li.selected {
-  background-color: #444;
+  background-color: #444 !important;
   color: white;
 }
 
@@ -182,7 +182,6 @@ section.month li.past {
 }
 
 section.month li.next-month {
-  /*background-color: #E7E7E7;*/
   color: #9A9A9A;
 }
 
@@ -252,11 +251,11 @@ Indicators are in units of 12
 #months-day-view {
   border-top: 2px solid #B0B0B0;
   background-color: white;
-  height: -moz-calc(60% - 3.5mozmm);
+  height: -moz-calc(50% - 3.5mozmm);
 }
 
 #months-day-view .day-events {
-  height: -moz-calc(100% - 6mozmm);
+  height: -moz-calc(100% - 4.3mozmm);
   overflow-y: auto;
 }
 
@@ -264,7 +263,7 @@ Indicators are in units of 12
   background-color: #E2E2E2;
   border-bottom: 1px solid #CCC;
   text-align: center;
-  padding: 2mozmm;
+  padding: 1mozmm;
 }
 
 /** sub: view selector **/
@@ -335,6 +334,10 @@ Indicators are in units of 12
 @media screen and (max-width: 480px) {
   html, body {
     font-size: 2mozmm;
+  }
+
+  #months-day-view .day-events {
+    height: -moz-calc(100% - 3mozmm);
   }
 }
 

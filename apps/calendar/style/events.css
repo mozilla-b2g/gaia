@@ -36,12 +36,12 @@
 .day-events section > h4 {
   background-color: #E2E2E2;
   font-size:  90%;
-  width: 12mozmm;
+  width: 8.7mozmm;
 }
 
 .day-events section > ol,
 .day-events section > ol li  {
-  height: 11mozmm;
+  height: 9.5mozmm;
 }
 
 .day-events section > ol {
@@ -57,13 +57,10 @@
 }
 
 .day-events section > ol h5 {
-  font-weight: normal;
   padding-top: 0.5mozmm;
 }
 
 .day-events section > ol .details {
   padding-top: 1.3mozmm;
-  font-weight: bold;
   color: #B3B3B3;
-  /*font-size: 70%;*/
 }

@@ -5,6 +5,7 @@
   <link rel="stylesheet" type="text/css" href="./style/calendar.css">
   <link rel="stylesheet" type="text/css" href="./style/ui.css">
   <link rel="stylesheet" type="text/css" href="./style/events.css">
+  <link rel="stylesheet" type="text/css" href="./style/hacks.css">
   <title>Gaia Calendar</title>
 </head>
 <body>
@@ -56,7 +57,6 @@
     access to the details here
     -->
 
-    <!---
     <section id="months-day-view">
       <header class="toolbar">
         <h3>Wednesday May 3</h3>
@@ -109,8 +109,6 @@
       </section>
     </section>
   </section>
-
-  -->
 </section>
 
 
@@ -139,20 +137,11 @@
 <script src="/js/format.js" type="text/javascript" charset="utf-8"></script>
 <script src="/js/responder.js" type="text/javascript" charset="utf-8"></script>
 <script src="/js/models/busytime.js" type="text/javascript" charset="utf-8"></script>
+<script src="/js/models/events.js" type="text/javascript" charset="utf-8"></script>
+<script src="/js/gesture_detector.js" type="text/javascript" charset="utf-8"></script>
 <script src="/js/views/month.js" type="text/javascript" charset="utf-8"></script>
-
-<script type="text/javascript" charset="utf-8">
-  var date = new Date();
-  date.setDate(1);
-  
-  var busy = new Calendar.Models.Busytime();
-  
-  var view = new Calendar.Views.Month({
-    busytimes: busy
-  });
-  
-  view.render();
-</script>
+<script src="/js/controller.js" type="text/javascript" charset="utf-8"></script>
+<script src="/js/index.js" type="text/javascript" charset="utf-8"></script>
 
 </body>
 </html>

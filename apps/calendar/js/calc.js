@@ -49,6 +49,35 @@
     },
 
     /**
+     * Returns a date object from
+     * a string id for a date.
+     *
+     * @param {String} id identifier for date.
+     * @return {Date} date output.
+     */
+    dateFromId: function(id) {
+      var parts = id.split('-'),
+          date,
+          type;
+
+      if (parts.length > 1) {
+        type = parts.shift();
+        switch (type) {
+          case 'd':
+            date = new Date(parts[0], parts[1], parts[2]);
+            break;
+          case 'm':
+            date = new Date(parts[0], parts[1]);
+            break;
+        }
+
+        return date;
+      }
+
+      return false;
+    },
+
+    /**
      * Returns an identifier for a specific
      * month in time for a given date.
      *
@@ -115,8 +144,9 @@
      *
      * @return {Boolean} true when date is in the past.
      */
-    isPast: function(date) {
-      return (date.valueOf() < this.today.valueOf());
+    isPast: function(date, today) {
+      today = today || this.today;
+      return (date.valueOf() < today.valueOf());
     },
 
     /**
@@ -124,8 +154,8 @@
      *
      * @return {Boolean} true when date is in the future.
      */
-    isFuture: function(value) {
-      return !this.isPast(value);
+    isFuture: function(value, today) {
+      return !this.isPast(value, today);
     },
 
     /**
@@ -135,18 +165,21 @@
      *  past, present, future
      *
      * @param {Date} date for compare.
+     * @param {Date} today today's date.
      * @return {String} state.
      */
-    relativeState: function(date) {
-      if (this.isToday(date)) {
+    relativeState: function(date, today) {
+      today = today || this.today;
+
+      if (this.isToday(date, today)) {
         return this.PRESENT;
       }
 
-      if (this.isPast(date)) {
+      if (this.isPast(date, today)) {
         return this.PAST;
       }
 
-      if (date.getMonth() != this.today.getMonth()) {
+      if (date.getMonth() != today.getMonth()) {
         return this.FUTURE + ' ' + this.NEXT_MONTH;
       }
 

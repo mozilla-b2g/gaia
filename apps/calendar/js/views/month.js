@@ -27,7 +27,6 @@
       }
     }
 
-    this.currentMonth = null;
     this.selectedDay = null;
     this.renderedMonths = {};
 
@@ -39,16 +38,6 @@
   var proto = Month.prototype = Object.create(
     Calendar.Responder.prototype
   );
-
-  proto._initEvents = function() {
-    var self = this;
-
-    this.on('currentMonthChange', function(value) {
-      self.updateCurrentMonth();
-      self.activateMonth(value);
-    });
-
-  };
 
   /**
    * Selector for element that will contain
@@ -99,7 +88,7 @@
     ].join(''),
 
     monthSectionDay: [
-      '<li id="%s" class="%s">',
+      '<li id="%s" data-date="%s" class="%s">',
         '<span class="day">%s</span>',
         '<div class="busy-indicator">%s</div>',
       '</li>'
@@ -141,29 +130,85 @@
 
   proto.INACTIVE = ' inactive';
 
+  proto.SELECTED = 'selected';
+
   proto.busyPercision = (24 / 12);
 
-  function setter(attr, value) {
-    this[attr] = value;
-    this.emit(attr + 'Change', value);
-  }
-
-  /**
-   * Sets current month and emits currentMonthChange event.
-   *
-   * @param {Date} month month.
-   */
-  proto.setCurrentMonth = function(value) {
-    setter.call(this, 'currentMonth', value);
+  proto._clearSelectedDay = function() {
+    var li = this.monthsDisplayElement().querySelector('li.selected');
+    if (li) {
+      li.className = li.className.replace(' selected', '');
+    }
   };
 
-  /**
-   * Sets current day and emits selectedDayChange event.
-   *
-   * @param {Date} day current day.
-   */
-  proto.setSelectedDay = function(value) {
-    setter.call(this, 'selectedDay', value);
+  proto._initEvents = function() {
+    var self = this,
+        months = this.monthsDisplayElement();
+
+    this.controller.on('selectedDayChange', function(newVal, oldVal) {
+      var el, id;
+      self._clearSelectedDay();
+
+      id = Calendar.Calc.getDayId(newVal);
+      id = 'month-view-' + id;
+      el = document.getElementById(id);
+
+
+      if (el) {
+        el.className += ' selected';
+      }
+    });
+
+    this.controller.on('currentMonthChange', function(value) {
+      self.updateCurrentMonth();
+      self.activateMonth(value);
+      self._clearSelectedDay();
+
+    });
+
+    new GestureDetector(months).startDetecting();
+
+    months.addEventListener('swipe', function(data) {
+      self._onSwipe.apply(self, arguments);
+    });
+
+    months.addEventListener('tap', function(data) {
+      self._onTap.apply(self, arguments);
+    }, false);
+
+  };
+
+
+  proto._onTap = function(event) {
+    var target = event.target,
+        id,
+        date,
+        el;
+
+    if (target.tagName.toLowerCase() == 'li') {
+      el = target;
+    } else {
+      el = target.parentNode;
+    }
+
+    id = el.getAttribute('data-date');
+
+    if (id) {
+      date = Calendar.Calc.dateFromId(id);
+      this.controller.setSelectedDay(date, el);
+    }
+
+  };
+
+  proto._onSwipe = function(event) {
+    var direction = event.detail.direction;
+
+    if (direction === 'right') {
+      this.previous();
+    } else {
+      this.next();
+    }
+
   };
 
   /**
@@ -208,8 +253,8 @@
    * @return {String} html blob with current month.
    */
   proto._renderCurrentMonth = function() {
-    var month = this.currentMonth.getMonth(),
-        year = this.currentMonth.getFullYear();
+    var month = this.controller.currentMonth.getMonth(),
+        year = this.controller.currentMonth.getFullYear();
 
     return format(
       this.templates.currentMonth,
@@ -236,15 +281,23 @@
         hours,
         day = day,
         id = Calendar.Calc.getDayId(day),
-        klass = Calendar.Calc.relativeState(day);
+        state,
+        busytimes = this.controller.busytime;
 
-    hours = this.busytimes.getHours(day);
+    if (this.controller.currentMonth.getMonth() != Calendar.Calc.today.getMonth()) {
+      state = Calendar.Calc.relativeState(day, this.controller.currentMonth);
+    } else {
+      state = Calendar.Calc.relativeState(day);
+    }
+
+    hours = busytimes.getHours(day);
     busyHtml = this._renderBusyUnits(hours);
 
     return format(
       this.templates.monthSectionDay,
       'month-view-' + id,
-      klass,
+      id,
+      state,
       day.getDate(),
       busyHtml
     );
@@ -355,22 +408,28 @@
    * Moves calendar to the next month.
    */
   proto.next = function() {
-    var now = this.currentMonth;
+    var now = this.controller.currentMonth;
+    var date = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      now.getDate()
+    );
 
-    now.setMonth(now.getMonth() + 1);
-
-    this.setCurrentMonth(now);
+    this.controller.setCurrentMonth(date);
   };
 
   /**
    * Moves calendar to the next month.
    */
   proto.previous = function() {
-    var now = this.currentMonth;
+    var now = this.controller.currentMonth;
+    var date = new Date(
+      now.getFullYear(),
+      now.getMonth() - 1,
+      now.getDate()
+    );
 
-    now.setMonth(now.getMonth() - 1);
-
-    this.setCurrentMonth(now);
+    this.controller.setCurrentMonth(date);
   };
 
   /**
@@ -392,8 +451,8 @@
       currentEl = this.renderedMonths[id];
       className = currentEl.className;
       currentEl.className = className.replace(this.INACTIVE, '');
+      this.displayedMonthEl = currentEl;
     } else {
-
       if (this.displayedMonthEl) {
         this.displayedMonthEl.className += this.INACTIVE;
       }
@@ -416,7 +475,7 @@
 
     now.setDate(1);
 
-    this.setCurrentMonth(now);
+    this.controller.setCurrentMonth(now);
   }
 
   Calendar.Views.Month = Month;
