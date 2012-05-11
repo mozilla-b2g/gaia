@@ -152,9 +152,9 @@ else
 # downloads and installs locally xulrunner to run the xpchsell
 # script that creates the offline cache
 ifeq ($(ARCH),x86_64)
-XULRUNNER_DOWNLOAD=ftp://ftp.mozilla.org/pub/xulrunner/nightly/2012/05/2012-05-08-03-05-17-mozilla-central/xulrunner-15.0a1.en-US.linux-x86_64.tar.bz2
+XULRUNNER_DOWNLOAD=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/11.0/runtimes/xulrunner-11.0.en-US.linux-x86_64.tar.bz2
 else
-XULRUNNER_DOWNLOAD=ftp://ftp.mozilla.org/pub/xulrunner/nightly/2012/05/2012-05-08-03-05-17-mozilla-central/xulrunner-15.0a1.en-US.linux-i686.tar.bz2
+XULRUNNER_DOWNLOAD=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/11.0/runtimes/xulrunner-11.0.en-US.linux-i686.tar.bz2
 endif
 XULRUNNER=./xulrunner/run-mozilla.sh
 XPCSHELL=./xulrunner/xpcshell
