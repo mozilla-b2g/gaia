@@ -124,6 +124,10 @@ section.month {
 
 /* sub: day rows */
 
+section.month.inactive {
+  display: none
+}
+
 section.month {
   overflow: hidden;
   border-left: 1px solid #AAA;
@@ -144,7 +148,6 @@ section.month {
 
 .ltr section.month li > .day {
   padding-right: 0.8mozmm;
-
 }
 
 section.month ol {
@@ -164,7 +167,7 @@ section.month ol:last-child li {
   border-bottom: none;
 }
 
-section.month li.today {
+section.month li.present {
   border: 3px solid #444;
 }
 
@@ -178,6 +181,11 @@ section.month li.past {
   color: #9A9A9A;
 }
 
+section.month li.next-month {
+  /*background-color: #E7E7E7;*/
+  color: #9A9A9A;
+}
+
 /* sub day rows: busy indicators */
 
 section.month li .busy-indicator,
@@ -186,7 +194,7 @@ section.month li .busy-indicator > span{
   padding-top: 1mozmm;
 }
 
-section.month li .busy-indicator {busy-indicator
+section.month li .busy-indicator {
   overflow: hidden;
   clear: both;
   bottom: 0px;
@@ -259,9 +267,7 @@ Indicators are in units of 12
   padding: 2mozmm;
 }
 
-
 /** sub: view selector **/
-
 
 #bottom-toolbar {
   height: 9mozmm;

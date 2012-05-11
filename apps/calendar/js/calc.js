@@ -41,9 +41,24 @@
      */
     getDayId: function(date) {
       return [
+        'd',
         date.getFullYear(),
         date.getMonth(),
         date.getDate()
+      ].join('-');
+    },
+
+    /**
+     * Returns an identifier for a specific
+     * month in time for a given date.
+     *
+     * @return {String} identifier.
+     */
+    getMonthId: function(date) {
+      return [
+        'm',
+        date.getFullYear(),
+        date.getMonth()
       ].join('-');
     },
 
