@@ -59,53 +59,9 @@
 
     <section id="months-day-view">
       <header class="toolbar">
-        <h3>Wednesday May 3</h3>
+        <h3 id="selected-day-title"></h3>
       </header>
-       <section class="day-events">
-        <section>
-          <h4>All Day</h4>
-          <ol class="events">
-            <li class="event">
-              <h5>Get a workout in</h5>
-            </li>
-          </ol>
-        </section>
-
-        <section>
-          <h4>10 AM</h4>
-          <ol class="events">
-            <li class="event">
-              <h5>B2G UX Team Meeting</h5>
-              <div class="details">
-                <span class="location">
-                  Paris
-                </span>
-                -
-                <span class="attendee">Josh</span>,
-                <span class="attendee">Patryk</span>,
-                <span class="attendee">Larissa</span>,
-                <span class="attendee">Casey</span>,
-                <span class="attendee">Frank</span>
-              </div>
-            </li>
-          </ol>
-        </section>
-
-        <section>
-          <h4>5 PM</h4>
-          <ol class="events">
-            <li class="event">
-              <h5>Lunch with John</h5>
-              <div class="details">
-                <span class="location">
-                  Chipotle
-                </span>
-                -
-                <span class="attendee">John</span>
-              </div>
-            </li>
-          </ol>
-        </section>
+       <section id="event-list" class="day-events">
       </section>
     </section>
   </section>
@@ -140,6 +96,7 @@
 <script src="/js/models/events.js" type="text/javascript" charset="utf-8"></script>
 <script src="/js/gesture_detector.js" type="text/javascript" charset="utf-8"></script>
 <script src="/js/views/month.js" type="text/javascript" charset="utf-8"></script>
+<script src="/js/views/day.js" type="text/javascript" charset="utf-8"></script>
 <script src="/js/controller.js" type="text/javascript" charset="utf-8"></script>
 <script src="/js/index.js" type="text/javascript" charset="utf-8"></script>
 
