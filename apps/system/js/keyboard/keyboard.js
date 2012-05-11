@@ -239,6 +239,10 @@ const IMEManager = {
 
     var before = (window.innerWidth / 2 > target.offsetLeft);
     var dataset = target.dataset;
+    
+    /* Comment out the following section due to Keyboard recommendations (P.3),
+       Not to show the original char in the accent menu
+
     if (before) {
       content += '<span class="keyboard-key" ' +
         'data-keycode="' + dataset.keycode + '" ' +
@@ -248,6 +252,7 @@ const IMEManager = {
         target.innerHTML +
         '</span>';
     }
+    */
 
     var altChars = target.dataset.alt.split('');
     if (!before)
@@ -262,6 +267,9 @@ const IMEManager = {
         '</span>';
     });
 
+    /* Comment out the following section due to Keyboard recommendations (P.3),
+       Not to show the original char in the accent menu
+
     if (!before) {
       content += '<span class="keyboard-key" ' +
         'data-keycode="' + dataset.keycode + '" ' +
@@ -271,6 +279,7 @@ const IMEManager = {
         target.innerHTML +
         '</span>';
     }
+    */
 
     menu.innerHTML = content;
     menu.className = 'show';
