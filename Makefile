@@ -4,6 +4,8 @@
 # GAIA_DOMAIN : change that if you plan to use a different domain to update   #
 #               your applications or want to use a local domain               #
 #                                                                             #
+# HOMESCREEN  : url of the homescreen to start on                             #
+#                                                                             #
 # ADB         : if you use a device and plan to send update it with your work #
 #               you need to have adb in your path or you can edit this line to#
 #               specify its location.                                         #
@@ -15,6 +17,8 @@
 #                                                                             #
 ###############################################################################
 GAIA_DOMAIN?=gaiamobile.org
+
+HOMESCREEN?=http://system.$(GAIA_DOMAIN)
 
 ADB?=adb
 
@@ -171,7 +175,7 @@ settingsdb :
 preferences: install-xulrunner
 	@echo "Generating prefs.js..."
 	@mkdir -p profile
-	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)$(GAIA_PORT)"; const DEBUG = $(DEBUG)' build/preferences.js
+	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)$(GAIA_PORT)"; const DEBUG = $(DEBUG); const HOMESCREEN = "$(HOMESCREEN)"' build/preferences.js
 	@echo "Done"
 
 
