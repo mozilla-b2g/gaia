@@ -43,6 +43,10 @@
       "name": "CrystalSkull",
       "description": "\u0414\u0435\u043c\u043e\u043d\u0441\u0442\u0440\u0430\u0446\u0438\u044f WebGL"
     },
+    "tr": {
+      "name": "CrystalSkull",
+      "description": "WebGL Tan\u0131t\u0131m\u0131"
+    },
     "zh-TW": {
       "name": "CrystalSkull",
       "description": "WebGL \u793a\u7bc4"
@@ -52,5 +56,6 @@
   "hackKillMe": true,
   "icons": {
     "120": "/style/icons/CrystalSkull.png"
-  }
+  },
+  "orientation": "portrait-primary"
 }

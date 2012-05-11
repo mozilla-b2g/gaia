@@ -43,6 +43,10 @@
       "name": "\u041c\u0443\u0437\u044b\u043a\u0430",
       "description": "\u041c\u0443\u0437\u044b\u043a\u0430 Gaia"
     },
+    "tr": {
+      "name": "M\u00fczik",
+      "description": "Gaia M\u00fczik"
+    },
     "zh-TW": {
       "name": "\u97f3\u6a02",
       "description": "Gaia \u97f3\u6a02"
@@ -51,5 +55,6 @@
   "default_locale": "en-US",
   "icons": {
     "120": "/style/icons/Music.png"
-  }
+  },
+  "orientation": "portrait-primary"
 }

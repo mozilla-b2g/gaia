@@ -43,6 +43,10 @@
       "name": "Tasks",
       "description": "Gaia Tasks"
     },
+    "tr": {
+      "name": "G\u00f6revler",
+      "description": "Gaia G\u00f6revler"
+    },
     "zh-TW": {
       "name": "Tasks",
       "description": "Gaia Tasks"
@@ -51,5 +55,6 @@
   "default_locale": "en-US",
   "icons": {
     "120": "/style/icons/Tasks.png"
-  }
+  },
+  "orientation": "portrait-primary"
 }
