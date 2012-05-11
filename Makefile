@@ -113,8 +113,9 @@ manifests:
 			echo \"origin\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
 			echo \"installOrigin\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
 			echo \"receipt\": null, ;\
-			echo \"installTime\": 132333986000 ;\
-                        echo },) >> ../profile/webapps/webapps.json;\
+			echo \"installTime\": 132333986000, ;\
+			echo \"manifestURL\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.json\" ;\
+			echo },) >> ../profile/webapps/webapps.json;\
 		fi \
 	done
 	@$(SED_INPLACE_NO_SUFFIX) -e '$$s|,||' profile/webapps/webapps.json
