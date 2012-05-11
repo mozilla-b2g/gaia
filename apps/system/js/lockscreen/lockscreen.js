@@ -9,6 +9,11 @@ var LockScreen = {
     return this.overlay = document.getElementById('lockscreen');
   },
 
+  get padlockOverlay() {
+    delete this.padlockOverlay;
+    return this.padlockOverlay = document.getElementById('keypadscreen');
+  },
+
   get notification() {
     delete this.notification;
     return this.notification = document.getElementById('lockscreenNotification');
@@ -17,7 +22,7 @@ var LockScreen = {
   locked: true,
 
   init: function lockscreen_init() {
-    var events = ['touchstart', 'touchmove', 'touchend', 'keydown', 'keyup'];
+    var events = ['touchstart', 'touchmove', 'touchend', 'keydown', 'keyup', 'transitionend'];
     AddEventHandlers(LockScreen.overlay, this, events);
     this.update();
 
@@ -30,6 +35,12 @@ var LockScreen = {
 
       LockScreen.showNotification(detail.title, detail.text);
     });
+
+    PadLock.init();
+
+    if (localStorage['passcode-lock'] == 'false') {
+      this.unlockPadlock(true);
+    }
   },
 
   update: function lockscreen_update() {
@@ -57,6 +68,7 @@ var LockScreen = {
     if (this.locked) {
       if (instant) {
         style.MozTransition = style.MozTransform = '';
+        this.lockPadlock();
       } else {
         style.MozTransition = '-moz-transform 0.2s linear';
       }
@@ -64,9 +76,12 @@ var LockScreen = {
       return;
     }
 
+    var wasAlreadyLocked = this.locked;
+
     this.locked = true;
     if (instant) {
       style.MozTransition = style.MozTransform = '';
+      this.lockPadlock();
     } else {
       style.MozTransition = '-moz-transform 0.2s linear';
       style.MozTransform = 'translateY(0)';
@@ -74,9 +89,20 @@ var LockScreen = {
 
     screen.mozLockOrientation('portrait-primary');
 
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('locked', true, true, null);
-    window.dispatchEvent(evt);
+    if (!wasAlreadyLocked) {
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent('locked', true, true, null);
+      window.dispatchEvent(evt);
+    }
+  },
+
+  lockPadlock: function lockscreen_lockPadlock() {
+    if (localStorage['passcode-lock'] == 'false')
+      return;
+
+    var style = this.padlockOverlay.style;
+    style.MozTransform = '';
+    style.MozTransition = '';
   },
 
   // Unlock the lockscreen, doing an animation for the specified time.
@@ -85,21 +111,37 @@ var LockScreen = {
   // for a time of 0.
   unlock: function lockscreen_unlock(time) {
     var style = this.overlay.style;
-    var wasAlreadyUnlocked = !this.locked;
 
     if (time == undefined)
       time = 0.2;
     else if (time === true)
       time = 0;
 
-    this.locked = false;
     if (time === 0)
       style.MozTransition = style.MozTransform = '';
     else
       style.MozTransition = '-moz-transform ' + time + 's linear';
     style.MozTransform = 'translateY(-100%)';
 
+    if (localStorage['passcode-lock'] == 'false') {
+      this.unlockPadlock(true);
+    }
+  },
+
+  unlockPadlock: function lockscreen_unlockPadlock(instant) {
+    var wasAlreadyUnlocked = !this.locked;
+
+    var style = this.padlockOverlay.style;
+    if (instant)
+      style.MozTransition = style.MozTransform = '';
+    else
+      style.MozTransition = '-moz-transform 0.2s linear';
+    style.MozTransform = 'translateY(-100%)';
+
     WindowManager.setOrientationForApp(WindowManager.getDisplayedApp());
+
+    this.locked = false;
+    delete this.padlockOverlay.dataset.active;
 
     if (!wasAlreadyUnlocked) {
       var evt = document.createEvent('CustomEvent');
@@ -169,6 +211,12 @@ var LockScreen = {
         this.hideNotification();
         break;
 
+      case 'transitionend':
+        if (this.locked && localStorage['passcode-lock'] == 'true') {
+          this.lockPadlock();
+        }
+        break;
+
       case 'touchstart':
         this.onTouchStart(e.touches[0]);
         this.overlay.setCapture(false);
@@ -216,5 +264,80 @@ var LockScreen = {
         return;
     }
     e.preventDefault();
+  }
+};
+
+var PadLock = {
+  get padlockOverlay() {
+    delete this.padlockOverlay;
+    return this.padlockOverlay = document.getElementById('keypadscreen');
+  },
+
+  get codeUI() {
+    delete this.codeUI;
+    return this.codeUI = document.getElementById('keypadscreen-code');
+  },
+
+  passCode: '0000',
+
+  currentCode: '',
+
+  init: function padlock_init() {
+    this.padlockOverlay.addEventListener('click', this);
+  },
+
+  updateCodeUI: function padlock_updateCodeUI() {
+    var i = 4;
+    while (i--) {
+      var span = this.codeUI.childNodes[i];
+      if (this.currentCode.length > i)
+        span.dataset.dot = true;
+      else
+        delete span.dataset.dot;
+    }
+  },
+
+  handleEvent: function padlock_handleEvent(e) {
+    if (!e.target.dataset.key)
+      return;
+
+    switch (e.target.dataset.key) {
+      case 'e':
+        // XXX: TBD
+        break;
+      case 'b':
+        if (!this.currentCode) {
+          LockScreen.lock();
+          break;
+        }
+        delete this.codeUI.dataset.error;
+        this.currentCode =
+          this.currentCode.substr(0, this.currentCode.length - 1);
+        this.updateCodeUI();
+
+        break;
+      default:
+        if (this.currentCode.length === 4)
+          break;
+
+        this.currentCode += e.target.dataset.key;
+        this.updateCodeUI();
+
+        if (this.currentCode.length === 4) {
+          if (this.currentCode === this.passCode) {
+            LockScreen.unlockPadlock();
+            this.currentCode = '';
+            this.updateCodeUI();
+          } else {
+            this.codeUI.dataset.error = 'true';
+            setTimeout(function () {
+              delete PadLock.codeUI.dataset.error;
+              PadLock.currentCode = '';
+              PadLock.updateCodeUI();
+            }, 500);
+          }
+        }
+        break;
+    }
   }
 };

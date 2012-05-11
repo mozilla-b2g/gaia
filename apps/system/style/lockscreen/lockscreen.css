@@ -24,3 +24,12 @@
   }
 }
 
+#keypadscreen {
+  position: absolute;
+  z-index: 19999;
+  left: 0;
+  top: 32px;
+  width: -moz-calc(100%);
+  height: -moz-calc(100% - 32px);
+  overflow: hidden;
+}
