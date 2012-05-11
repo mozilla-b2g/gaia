@@ -9,12 +9,27 @@ var LockScreen = {
     return this.overlay = document.getElementById('lockscreen');
   },
 
+  get notification() {
+    delete this.notification;
+    return this.notification = document.getElementById('lockscreenNotification');
+  },
+
   locked: true,
 
   init: function lockscreen_init() {
     var events = ['touchstart', 'touchmove', 'touchend', 'keydown', 'keyup'];
     AddEventHandlers(LockScreen.overlay, this, events);
     this.update();
+
+    this.notification.addEventListener('click', this);
+
+    window.addEventListener('mozChromeEvent', function notificationListener(e) {
+      var detail = e.detail;
+      if (detail.type !== 'desktop-notification')
+        return;
+
+      LockScreen.showNotification(detail.title, detail.text);
+    });
   },
 
   update: function lockscreen_update() {
@@ -24,6 +39,16 @@ var LockScreen = {
     }
 
     this.lock(true);
+  },
+
+  showNotification: function lockscreen_showNotification(title, detail) {
+    this.notification.dataset.visible = true;
+    this.notification.firstChild.textContent = title;
+    this.notification.lastChild.textContent = detail;
+  },
+
+  hideNotification: function lockscreen_hideNotification() {
+    delete this.notification.dataset.visible;
   },
 
   lock: function lockscreen_lock(instant) {
@@ -80,6 +105,8 @@ var LockScreen = {
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent('unlocked', true, true, null);
       window.dispatchEvent(evt);
+
+      this.hideNotification();
     }
   },
 
@@ -138,6 +165,10 @@ var LockScreen = {
 
   handleEvent: function lockscreen_handleEvent(e) {
     switch (e.type) {
+      case 'click':
+        this.hideNotification();
+        break;
+
       case 'touchstart':
         this.onTouchStart(e.touches[0]);
         this.overlay.setCapture(false);
