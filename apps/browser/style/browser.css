@@ -17,29 +17,170 @@ html, body {
   height: 100%;
   padding: 0;
   margin: 0;
+  background-color: #575E66;
 }
 
 body {
+  overflow: hidden;
+  position: relative;
+}
+
+
+/* These are only in use when we are current on the tabs screen */
+.tabs-screen iframe {
+  pointer-events: none;
+}
+
+.tabs-screen #page-screen {
+  opacity: 0.5;
+}
+
+.current {
+  background: black;
+}
+
+#tabs {
+  -moz-transition: 0.2s ease-in-out;
+  position:absolute;
+  left: 70px;
+  right: 20px;
+  top:0px;
+  bottom: 0px;
+  color:white;
+  z-index: 40;
+}
+
+#new-tab {
+  height: 30px;
+  margin: 18px;
+  border: 0;
+  color: white;
+  background: black;
+  font-size: 16px;
+  padding: 5px;
+  cursor: pointer;
+}
+
+#tabs-list {
+  border-top: 1px solid #333;
+  overflow-y: auto;
+  position:absolute;
+  top: 64px;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+}
+
+#tabs ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+#tabs li a {
+  display: block;
+  height: 100%;
+  padding: 5px;
+  margin-right:50px;
+}
+
+#tabs li {
+  margin: 0;
+  height: 80px;
+  border-bottom: 1px solid #333;
+  font-family: 'Open Sans', sans-serif;
+  overflow: hidden;
+  position:relative;
+}
+
+#tabs li a:hover {
+  background: #333;
+  cursor: pointer;
+}
+
+#tabs img {
+  display: block;
+  width: 90px;
+  height: 60px;
+  background: grey;
+  float:left;
+  border-radius: 5px;
+  margin: 5px 10px 5px 5px;
+  pointer-events: none;
+}
+
+#tabs span {
+  pointer-events: none;
+}
+
+#tabs .close:hover {
+  color:#666;
+}
+
+#tabs .close {
+  font-family: 'Open Sans', sans-serif;
+  border: 0px;
+  position: absolute;
+  right: 0px;
+  height:100%;
+  width:50px;
+  top:0px;
+  background:transparent;
+  font-size: 28px;
+  color:white;
+  outline:none;
+  padding-bottom: 7px;
+}
+
+#page-screen {
+ -moz-transition: 0.2s ease-in-out;
   margin: 0;
   display: -moz-box;
   -moz-box-orient: vertical;
   width: 100%;
   height: 100%;
-  background-color: #000;
   font-family: 'Open Sans', sans-serif;
+  z-index: 50;
+  position: relative;
+}
+
+#tabs-badge {
+  font-family: 'Open Sans', sans-serif;
+  position: absolute;
+  right: 0px;
+  top: 0;
+  font-size:28px;
+  color:white;
+  z-index: 100;
+  display: block;
+  width: 50px;
+  height: 62px;
+  line-height: 62px;
+  text-align:center;
+  cursor: pointer;
+  -moz-user-select: none;
 }
 
 #toolbar-start {
   display: -moz-box;
   -moz-box-orient: horizontal;
   border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
-  border-bottom: solid 2px #a3a3a3;
+  border-top-right-radius: 20px;
+  margin-right: 50px;
 }
 
-#toolbar-start.loading {
-  border-bottom-width: 4px;
-  -moz-border-image: url('images/progress.gif') 0 1 100% 1;
+#throbber {
+  position: absolute;
+  top: -3px;
+  width: 100%;
+  height: 3px;
+  background-image: -moz-linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.3));
+  z-index: 100;
+}
+
+#throbber.loading {
+  height: 4px;
+  background-image: url('images/progress.gif');
 }
 
 #toolbar-end {
@@ -52,8 +193,9 @@ body {
   -moz-box-orient: horizontal;
   padding: 0;
   margin: 0;
-  border: solid 2px #9ca1a6;
-  border-radius: 22px;
+  border: solid 1px;
+  border-color: #9CA1A6;
+  border-radius: 16px;
   height: 44px;
   margin: 9px 8px;
   padding: 0 0 0 16px;
@@ -78,7 +220,7 @@ body {
 menu[type="toolbar"] {
   height: 62px;
   background-color: #fff;
-  background-image: -moz-linear-gradient(#fff, #eaeae4);
+  background-image: -moz-linear-gradient(#EEE, #C3CED9);
   margin: 0;
   padding: 0;
 }
@@ -125,17 +267,28 @@ input::-moz-focus-inner {
   display: none;
 }
 
-#browser-content {
+#tabs-wrapper {
   -moz-box-flex: 1;
   width: 100%;
+  position:relative;
+  background: white;
+}
+
+#tabs-wrapper iframe {
+  position:absolute;
+  display: block;
+  height: 100%;
+  width:100%;
   border: none;
-  background-color: white;
 }
 
 #awesomescreen {
-  display: -moz-box;
-  -moz-box-orient: vertical;
-  -moz-box-flex: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 60;
   background-color: #fff;
 }
 
@@ -174,10 +327,8 @@ input::-moz-focus-inner {
 }
 
 #history{
-  display: -moz-box;
+  height: 100%;
   overflow-y: auto;
-  -moz-box-flex: 1;
-  -moz-box-orient: vertical;
 }
 
 #history-list {
