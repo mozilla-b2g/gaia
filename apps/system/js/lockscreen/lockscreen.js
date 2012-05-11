@@ -37,10 +37,6 @@ var LockScreen = {
     });
 
     PadLock.init();
-
-    if (localStorage['passcode-lock'] == 'false') {
-      this.unlockPadlock(true);
-    }
   },
 
   update: function lockscreen_update() {
@@ -224,6 +220,13 @@ var LockScreen = {
       case 'touchstart':
         this.onTouchStart(e.touches[0]);
         this.overlay.setCapture(false);
+
+        // XXX: Put it here because setting value during init()
+        // is not updated for real
+        if (localStorage['passcode-lock'] == 'false') {
+          this.unlockPadlock(true);
+        }
+
         break;
 
       case 'touchmove':
@@ -286,6 +289,8 @@ var PadLock = {
 
   currentCode: '',
 
+  error: 0,
+
   init: function padlock_init() {
     this.padlockOverlay.addEventListener('click', this);
   },
@@ -332,19 +337,27 @@ var PadLock = {
         if (this.currentCode.length === 4) {
           if (this.currentCode === this.passCode) {
             this.padlockOverlay.dataset.status = 'success';
+            this.error = 0;
             setTimeout(function () {
               delete PadLock.padlockOverlay.dataset.status;
               LockScreen.unlockPadlock();
               PadLock.currentCode = '';
               PadLock.updateCodeUI();
-            }, 500);
+            }, 300);
           } else {
             this.padlockOverlay.dataset.status = 'error';
+            var timeout = 500;
+            this.error++;
+            if (this.error === 3) {
+              timeout = 5000;
+              this.error = 0;
+            }
+
             setTimeout(function () {
               delete PadLock.padlockOverlay.dataset.status;
               PadLock.currentCode = '';
               PadLock.updateCodeUI();
-            }, 500);
+            }, timeout);
           }
         }
         break;
