@@ -27,7 +27,7 @@ function AppScreen() {
   };
 
   window.addEventListener('resize', function resize() {
-    self.grid.update();
+    self.build(true);
   });
 
   // Listen for app installations and rebuild the appscreen when we get one
@@ -59,10 +59,12 @@ AppScreen.prototype.build = function(rebuild) {
     // Remember the page we're on so that after rebuild we can stay there.
     startpage = this.grid.currentPage;
 
-    document.body.innerHTML = '<div id="home">' +
-                              '  <div id="apps"></div>' +
-                              '  <div id="dots"></div>' +
-                              '</div>';
+    var className = editMode ? 'class=\"edit\"' : '';
+    document.getElementById('content').innerHTML =
+      '<div id="home">' +
+      '  <div id="apps" ' + className + '></div>' +
+      '  <div id="dots"></div>' +
+      '</div>';
   }
 
   // Create the widgets
@@ -246,7 +248,6 @@ function RemoveEventHandlers(target, listener, eventNames) {
 
 
 function IconGrid(containerId) {
-  this.containerId = containerId;
   this.container = document.getElementById(containerId);
   this.icons = [];
   this.currentPage = 0;
@@ -276,7 +277,7 @@ IconGrid.prototype = {
 
     // get pages divs
     var pages = [];
-    var rule = '#' + this.containerId + '> .page';
+    var rule = '#' + container.id + '> .page';
     var children = document.querySelectorAll(rule);
     for (var n = 0; n < children.length; n++) {
       var element = children[n];
@@ -286,21 +287,43 @@ IconGrid.prototype = {
     // get icon divs
     var iconDivs = [];
 
-    rule = '#' + this.containerId + '> .page > .icon';
+    rule = '#' + container.id + '> .page > .icon';
     children = document.querySelectorAll(rule);
     for (var n = 0; n < children.length; n++) {
       var element = children[n];
       iconDivs[element.id] = element;
     }
 
-    // issue #723 - The calculation of the width/height of the icons
-    // should be dynamic and not hardcoded like that. The reason why it
-    // it is done like that at this point is because there is no icon
-    // when the application starts and so there is nothing to calculate
-    // against.
     container.style.minHeight = container.style.maxHeight = '';
-    var iconHeight = 196;
-    var iconWidth = 132;
+
+    var rect = null;
+    if (children.length === 0) {
+      var page = document.createElement('div');
+      page.className = 'page';
+
+      var icon = document.createElement('div');
+      icon.className = 'icon';
+
+      var center = document.createElement('div');
+      center.className = 'img';
+      icon.appendChild(center);
+
+      var label = document.createElement('div');
+      label.className = 'label';
+      label.textContent = 'Foo';
+      icon.appendChild(label);
+      page.appendChild(icon);
+
+      container.appendChild(page);
+      rect = icon.getBoundingClientRect();
+      container.removeChild(page);
+    } else {
+      rect = children[0].getBoundingClientRect();
+    }
+
+    // XXX use getComputedStyle
+    var iconHeight = rect.height + 60;
+    var iconWidth = rect.width + 40;
 
     var rect = container.getBoundingClientRect();
     var rows = Math.max(1, Math.floor(rect.height / iconHeight));
@@ -332,7 +355,6 @@ IconGrid.prototype = {
         pages[key] = null;
       }
     }
-
 
     // adjust existing icons and create new ones as needed
     var iconsCount = icons.length;
@@ -414,6 +436,9 @@ IconGrid.prototype = {
       dots.update(number);
   },
   tap: function(target) {
+    if (editMode)
+      return;
+
     if ('url' in target.dataset) {
       var app = appscreen.getAppByOrigin(target.dataset.url);
       app.launch();
@@ -429,11 +454,9 @@ IconGrid.prototype = {
       physics.onTouchMove(e.touches[0]);
       break;
     case 'touchend':
-      document.releaseCapture();
       physics.onTouchEnd(e.changedTouches[0]);
       break;
     case 'contextmenu':
-      document.releaseCapture();
       physics.touchState.active = false;
       break;
     default:
@@ -443,7 +466,6 @@ IconGrid.prototype = {
 };
 
 function Dots(containerId, gridId) {
-  this.containerId = containerId;
   this.gridId = gridId;
   this.container = document.getElementById(containerId);
   this.grid = document.getElementById(gridId);

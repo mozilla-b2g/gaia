@@ -42,6 +42,7 @@ body {
   background-origin: padding-box;
   background-position: center center;
   background-repeat: no-repeat;
+  background-size: 100%;
 }
 
 #apps {
@@ -49,8 +50,8 @@ body {
   top: 0;
   margin-top: 40px;
 
-  /* height = -margin-top +100% - dots.height - notifications.height */
-  height: -moz-calc(-40px + 100% - 14px - 80px);
+  /* height = -margin-top +100% - dots.height - notifications.height - shortcuts.height*/
+  height: -moz-calc(-40px + 100% - 14px - 80px - 64px);
   width: 100%;
 }
 
@@ -65,25 +66,25 @@ body {
 
 .page {
   position: absolute;
-  left: 42px;
+  left: 0px;
   top: 0px;
-  width: -moz-calc(100% - 42px);
+  width: -moz-calc(100%);
+  overflow: hidden;
 }
 
 .icon {
   position: relative;
   float: left;
 
-  width: 128px;
-  height: 192px;
-  background-color: #222;
-  background-position: 8px 8px;
-  background-repeat: no-repeat;
-  background-color: #222;
-  border-radius: 5px;
-  margin-right: 4px;
-  margin-bottom: 4px;
-  overflow: hidden;
+  width: 79px;
+  height: 79px;
+  margin: 30px 20px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+*[dir=rtl] .icon {
+  float: right;
 }
 
 .icon > * {
@@ -93,13 +94,9 @@ body {
 .icon > div {
   display: inline-block;
 
-  width: 120px;
-  height: 120px;
-}
-
-.icon > .label {
-  padding-top: 36px;
-  padding-left: 8px;
+  width: 79px;
+  height: 79px;
+  text-align: center;
   color: white;
 }
 
@@ -121,8 +118,8 @@ body {
 /* Horizontal orientation height of our current target phones */
 @media all and (max-height: 600px) {
   #apps {
-    /* height = -margin-top +100% - dots.height - dots.bottom - notifications.height */
-    height: -moz-calc(-24px + 100% - 14px - 14px - 0px);
+    /* height = -margin-top +100% - dots.height - dots.bottom - notifications.height - shortcuts.height*/
+    height: -moz-calc(-24px + 100% - 14px - 14px - 0px - 64px);
     margin-top: 24px;
   }
 
@@ -153,24 +150,39 @@ body {
 
 *[dir=rtl] .page {
   left: auto;
-  right: 42px;
+  right: 20px;
 }
 
 @media all and (max-width: 320px) {
   .page {
     left: auto;
-    right: 30px;
+    right: 10px;
   }
 }
 
-*[dir=rtl] .icon {
-  float: right;
-  margin-left: 4px;
-  margin-right: 0;
+#shortcuts {
+  position: absolute;
+  bottom: 0;
+  height: 64px;
+  width: 100%;
+  background: #000;
 }
 
-*[dir=rtl] .icon > .label {
-  padding-left: 0;
-  padding-right: 8px;
+#shortcuts .shortcut {
+  float: left;
+  width: 25%;
+  height: 40px;
+  padding: 12px 0px;
+  border-radius: 4px;
+  text-align: center;
+}
+
+#shortcuts .shortcut img {
+  display: block;
+  margin: 0 auto;
+}
+
+#shortcuts .shortcut:active {
+  background: #505050;
 }
 
