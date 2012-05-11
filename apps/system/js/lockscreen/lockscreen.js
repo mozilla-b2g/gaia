@@ -33,6 +33,8 @@ var LockScreen = {
       if (detail.type !== 'desktop-notification')
         return;
 
+      if (!LockScreen.locked)
+        return;
       LockScreen.showNotification(detail.title, detail.text);
     });
 
@@ -285,14 +287,31 @@ var PadLock = {
     return this.codeUI = document.getElementById('keypadscreen-code');
   },
 
+  /* The pass code */
   passCode: '0000',
 
+  /* code typed by the user */
   currentCode: '',
 
+  /* number of tries */
   error: 0,
+
+  /* time to wait before sliding up */
+  kTimeout: 300,
+
+  /* default timeout after incorrect attempt */
+  kErrorTimeout: 500,
+
+  /* number of attempts allowed */
+  kTries: 3,
+
+  /* cool down period after kTries */
+  kTriesTimeout: 5000,
 
   init: function padlock_init() {
     this.padlockOverlay.addEventListener('click', this);
+    // enable swiping of the keypad but break behavior on desktop
+    this.padlockOverlay.addEventListener('mouseover', this);
   },
 
   updateCodeUI: function padlock_updateCodeUI() {
@@ -306,14 +325,45 @@ var PadLock = {
     }
   },
 
-  handleEvent: function padlock_handleEvent(e) {
+  checkCode: function padlock_checkCode() {
+    if (this.currentCode === this.passCode) {
+      this.padlockOverlay.dataset.status = 'success';
+      this.error = 0;
+
+      setTimeout(function success() {
+        delete PadLock.padlockOverlay.dataset.status;
+        LockScreen.unlockPadlock();
+        PadLock.currentCode = '';
+        PadLock.updateCodeUI();
+      }, this.kTimeout);
+    } else {
+      this.padlockOverlay.dataset.status = 'error';
+      navigator.mozVibrate([50, 50, 50]);
+      var timeout = this.kErrorTimeout;
+      this.error++;
+      if (this.error === 3) {
+        timeout = this.kTriesTimeout;
+        this.error = 0;
+      }
+
+      setTimeout(function error() {
+        delete PadLock.padlockOverlay.dataset.status;
+        PadLock.currentCode = '';
+        PadLock.updateCodeUI();
+      }, timeout);
+    }
+  },
+
+  handleEvent: function padlock_handleEvent(evt) {
     if (this.padlockOverlay.dataset.status)
       return;
 
-    if (!e.target.dataset.key)
+    if (!evt.target.dataset.key)
       return;
 
-    switch (e.target.dataset.key) {
+    evt.preventDefault();
+
+    switch (evt.target.dataset.key) {
       case 'e':
         // XXX: TBD
         break;
@@ -328,38 +378,11 @@ var PadLock = {
 
         break;
       default:
-        if (this.currentCode.length === 4)
-          break;
-
-        this.currentCode += e.target.dataset.key;
+        this.currentCode += evt.target.dataset.key;
         this.updateCodeUI();
 
-        if (this.currentCode.length === 4) {
-          if (this.currentCode === this.passCode) {
-            this.padlockOverlay.dataset.status = 'success';
-            this.error = 0;
-            setTimeout(function () {
-              delete PadLock.padlockOverlay.dataset.status;
-              LockScreen.unlockPadlock();
-              PadLock.currentCode = '';
-              PadLock.updateCodeUI();
-            }, 300);
-          } else {
-            this.padlockOverlay.dataset.status = 'error';
-            var timeout = 500;
-            this.error++;
-            if (this.error === 3) {
-              timeout = 5000;
-              this.error = 0;
-            }
-
-            setTimeout(function () {
-              delete PadLock.padlockOverlay.dataset.status;
-              PadLock.currentCode = '';
-              PadLock.updateCodeUI();
-            }, timeout);
-          }
-        }
+        if (this.currentCode.length === 4)
+          this.checkCode();
         break;
     }
   }
