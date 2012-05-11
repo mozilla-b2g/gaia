@@ -33,26 +33,6 @@ REPORTER=Spec
 #                                                                             #
 #   2. offline                                                                #
 #     An Application Cache database containing Gaia apps, so the phone can be #
-###############################################################################
-GAIA_DOMAIN?=gaiamobile.org
-
-ADB?=adb
-
-DEBUG?=0
-
-REPORTER=Spec
-
-
-###############################################################################
-# The above rules generate the profile/ folder and all its content.           #
-# The profile folder content depends on different rules:                      #
-#  1. manifests                                                               #
-#     A directory structure representing the applications installed using the #
-#     Apps API. In Gaia all applications use this method.                     #
-#     See https://developer.mozilla.org/en/Apps/Apps_JavaScript_API           #
-#                                                                             #
-#   2. offline                                                                #
-#     An Application Cache database containing Gaia apps, so the phone can be #
 #     used offline and application can be updated easily. For details about it#
 #     see: https://developer.mozilla.org/en/Using_Application_Cache           #
 #                                                                             #
@@ -76,6 +56,7 @@ endif
 
 # what OS are we on?
 SYS=$(shell uname -s)
+ARCH=$(shell uname -m)
 
 ifeq ($(SYS),Darwin)
 MD5SUM = md5 -r
@@ -158,7 +139,7 @@ endif
 # some commands for invoking it. But it is platform dependent
 ifeq ($(SYS),Darwin)
 # We're on a mac
-XULRUNNER_DOWNLOAD=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/11.0/sdk/xulrunner-11.0.en-US.mac-x86_64.sdk.tar.bz2
+XULRUNNER_DOWNLOAD=ftp://ftp.mozilla.org/pub/xulrunner/nightly/2012/05/2012-05-08-03-05-17-mozilla-central/xulrunner-15.0a1.en-US.mac-x86_64.sdk.tar.bz2
 XULRUNNER=./xulrunner-sdk/bin/run-mozilla.sh
 XPCSHELL=./xulrunner-sdk/bin/xpcshell
 
@@ -170,13 +151,21 @@ else
 # Linux only!
 # downloads and installs locally xulrunner to run the xpchsell
 # script that creates the offline cache
-XULRUNNER_DOWNLOAD=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/11.0/runtimes/xulrunner-11.0.en-US.linux-i686.tar.bz2
+ifeq ($(ARCH),x86_64)
+XULRUNNER_DOWNLOAD=ftp://ftp.mozilla.org/pub/xulrunner/nightly/2012/05/2012-05-08-03-05-17-mozilla-central/xulrunner-15.0a1.en-US.linux-x86_64.tar.bz2
+else
+XULRUNNER_DOWNLOAD=ftp://ftp.mozilla.org/pub/xulrunner/nightly/2012/05/2012-05-08-03-05-17-mozilla-central/xulrunner-15.0a1.en-US.linux-i686.tar.bz2
+endif
 XULRUNNER=./xulrunner/run-mozilla.sh
 XPCSHELL=./xulrunner/xpcshell
 
 install-xulrunner :
 	test -d xulrunner || ($(DOWNLOAD_CMD) $(XULRUNNER_DOWNLOAD) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2)
 endif
+
+settingsdb :
+	@echo "B2G pre-populate settings DB."
+	$(XULRUNNER) $(XPCSHELL) -e 'const PROFILE_DIR = "$(CURDIR)/profile"' build/settings.js
 
 # Generate profile/prefs.js
 preferences: install-xulrunner

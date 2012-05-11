@@ -110,17 +110,24 @@ p.time {
 
 /* fullscreen video player */
 #videoFrame {
-  display: none;
+  display: block;
   position: relative;
   width: 100%;
   height: 100%;
 }
+
+#videoFrame.hidden {
+  display: none;
+}
+
+/*
 body.fullscreen > * {
   display: none;
 }
 body.fullscreen #videoFrame {
   display: block;
 }
+*/
 
 /* localization */
 body.hidden *[data-l10n-id] {

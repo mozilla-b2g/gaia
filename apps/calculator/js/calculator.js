@@ -4,7 +4,8 @@ var Calculator = {
 
   BACKSPACE_TIMEOUT: 750,
 
-  display: document.getElementById('display'),
+  display: document.querySelector('#display b'),
+  tip: document.querySelector('#tip-window'),
 
   backSpaceTimeout: null,
   errorTimeout: null,
@@ -17,10 +18,38 @@ var Calculator = {
 
   updateDisplay: function calculator_updateDisplay() {
     if (this.stack.length === 0) {
-      this.display.value = '0';
+      this.display.innerHTML = '0';
       return;
     }
-    this.display.value = this.stack.join('');
+    var outval = this.stack.join('');
+    this.display.innerHTML = outval;
+    var valWidth = this.display.offsetWidth;
+    var screenWidth = this.display.parentNode.offsetWidth;
+    var scaleFactor = Math.min(1, screenWidth / valWidth);
+    this.display.style.MozTransform = 'scale(' + scaleFactor + ')';
+  },
+
+  showTip: function calculator_showTip() {
+    var val = parseFloat(this.stack.join(''), 10);
+    if (!val) return;
+    function r2(n) {
+      var s = (Math.round(n * 100) / 100).toString();
+      if (s.indexOf('.') < 0) {
+        return s + '.00';
+      } else {
+        if (s.indexOf('.') == s.length - 2) {
+          s += '0';
+        }
+        return s;
+      }
+    }
+    document.getElementById('tip-15').innerHTML = r2(0.15 * val);
+    document.getElementById('tip-18').innerHTML = r2(0.18 * val);
+    document.getElementById('tip-20').innerHTML = r2(0.20 * val);
+    document.getElementById('total-15').innerHTML = r2(1.15 * val);
+    document.getElementById('total-18').innerHTML = r2(1.18 * val);
+    document.getElementById('total-20').innerHTML = r2(1.20 * val);
+    this.tip.classList.add('show');
   },
 
   isOperator: function calculator_isOperator(val) {
@@ -209,28 +238,33 @@ var Calculator = {
 
   handleEvent: function calculator_handleEvent(evt) {
     switch (evt.type) {
-    case 'mousedown':
-      var value = evt.target.value;
-      switch (evt.target.dataset.type) {
-      case 'value':
-        this.appendValue(value);
-        break;
-      case 'operator':
-        this.appendOperator(value);
-        break;
-      case 'command':
-        if (value === '=') {
-          this.calculate();
-        } else if (value === 'C') {
-          this.backSpace();
+      case 'mousedown':
+        var value = evt.target.value;
+        switch (evt.target.dataset.type) {
+          case 'value':
+            this.appendValue(value);
+            break;
+          case 'operator':
+            this.appendOperator(value);
+            break;
+          case 'command':
+            if (value === '=') {
+              this.calculate();
+            } else if (value === 'C') {
+              this.backSpace();
+            } else if (value === 'TIP') {
+              this.showTip();
+            }
+            break;
+          case 'close':
+            this.tip.classList.remove('show');
+            break;
         }
         break;
-      }
-      break;
 
-    case 'mouseup':
-      this.clearBackspaceTimeout();
-      break;
+      case 'mouseup':
+        this.clearBackspaceTimeout();
+        break;
     }
   }
 };

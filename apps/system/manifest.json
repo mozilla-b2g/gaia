@@ -29,8 +29,8 @@
       "description": "Main System"
     },
     "es": {
-      "name": "System",
-      "description": "Main System"
+      "name": "Sistema",
+      "description": "Sistema principal"
     },
     "fr": {
       "name": "System",
@@ -40,9 +40,17 @@
       "name": "Sistema",
       "description": "Sistema Principale"
     },
+    "pt-BR": {
+      "name": "Sistema",
+      "description": "Sistema Principal"
+    },
     "ru": {
       "name": "System",
       "description": "Main System"
+    },
+    "tr": {
+      "name": "Sistem",
+      "description": "Ana Sistem"
     },
     "zh-TW": {
       "name": "System",

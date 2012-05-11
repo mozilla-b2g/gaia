@@ -15,14 +15,17 @@ var BackgroundServiceManager = (function bsm() {
     The iframes will be append to body */
   var frames = {};
 
-  /* Init */
   var apps = navigator.mozApps;
-  apps.mgmt.getAll().onsuccess = function settings_getAll(evt) {
-    evt.target.result.forEach(function app_forEach(app) {
-      installedApps[app.origin] = app;
-      open(app.origin);
-    });
-  };
+
+  /* Init */
+  window.addEventListener('load', function bsm_init() {
+    apps.mgmt.getAll().onsuccess = function mgmt_getAll(evt) {
+      evt.target.result.forEach(function app_forEach(app) {
+        installedApps[app.origin] = app;
+        open(app.origin);
+      });
+    };
+  });
 
   /* XXX: https://bugzilla.mozilla.org/show_bug.cgi?id=731746
   addEventListener does't work for now (workaround follows) */
@@ -60,6 +63,7 @@ var BackgroundServiceManager = (function bsm() {
     var frame = document.createElement('iframe');
     frame.className = 'backgroundWindow';
     frame.setAttribute('mozbrowser', 'true');
+    frame.setAttribute('mozapp', 'true');
     frame.src = origin + app.manifest.background_page;
     frames[origin] = frame;
 

@@ -62,6 +62,7 @@ var Browser = {
 
       case 'mozbrowserloadstart':
         this.currentTitle = '';
+        urlInput.value = this.currentUrl;
         this.toolbarStart.classList.add('loading');
         break;
 
