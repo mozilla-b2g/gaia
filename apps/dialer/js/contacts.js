@@ -2,6 +2,7 @@
 
 var Contacts = {
   _loaded: false,
+
   get view() {
     delete this.view;
     return this.view = document.getElementById('contacts-view-scrollable');
@@ -23,6 +24,10 @@ var Contacts = {
     }
 
     this.find(this.show.bind(this));
+
+    this.findFavorites(function(favs) {
+      console.log("favorites contacts are ->" + JSON.stringify(favs));
+    });
   },
 
   reload: function contactsReload() {
@@ -55,6 +60,21 @@ var Contacts = {
 
       var contacts = request.result;
       callback(contacts[0]);
+    };
+  },
+
+  findFavorites: function findFavorites(callback) {
+    var options = {
+      filterBy: ['category'],
+      filterOp: 'contains',
+      filterValue: 'Favorites',
+      sortBy: 'familyName',
+      sortOrder: 'ascending'
+    };
+    var request = window.navigator.mozContacts.find(options);
+    request.onsuccess = function findCallback() {
+      var contacts = request.result;
+      callback(contacts);
     };
   },
 
@@ -392,12 +412,14 @@ var ContactDetails = {
     if (form.checkValidity()) {
       var contact = this._contact;
 
-      contact.givenName = this.contactGivenNameField.value;
-      contact.familyName = this.contactFamilyNameField.value;
-      contact.name = contact.givenName + ' ' + contact.familyName;
+      contact.givenName = [this.contactGivenNameField.value];
+      contact.familyName = [this.contactFamilyNameField.value];
+      contact.name = [contact.givenName[0] + ' ' + contact.familyName[0]];
 
       if (this.contactPhoneField.value.length)
-        contact.tel = [this.contactPhoneField.value];
+        contact.tel = [{ number: this.contactPhoneField.value,
+                        type: ''
+                      }];
       if (this.contactEmailField.value.length)
         contact.email = [this.contactEmailField.value];
 
@@ -413,6 +435,11 @@ var ContactDetails = {
         this.endEditing();
         Contacts.reload();
       }.bind(this));
+      req.onerror = (function() {
+        console.log("FUCK");
+      });
+    } else {
+      console.log("FORM IS INVALID");
     }
   },
 
@@ -535,11 +562,11 @@ var ContactDetails = {
       '<img src="style/images/contact-placeholder.png" alt="profile" />';
 
     if (contact.tel) {
-      this.contactPhone.querySelector('.value').innerHTML =
-        contact.tel[0];
-      this.contactPhone.dataset.number = contact.tel[0];
+      var number = contact.tel[0].number;
+      this.contactPhone.querySelector('.value').innerHTML = number;
+      this.contactPhone.dataset.number = number;
 
-      this.contactPhoneField.value = contact.tel[0];
+      this.contactPhoneField.value = number;
     }
 
     if (this._contact.email) {
@@ -551,7 +578,6 @@ var ContactDetails = {
 
     this.favorited.checked = (contact.category &&
       (contact.category.indexOf('Favorites') != -1));
-    console.log("+++ contact category " + contact.category);
   }
 };
 

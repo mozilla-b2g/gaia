@@ -73,7 +73,6 @@ var ContactsTest = {
 
     var contact = new mozContact();
     var contactData = aContacts[aCurrent];
-    contactData.tel = '';
     contact.init(contactData);
 
     var req = navigator.mozContacts.save(contact);
