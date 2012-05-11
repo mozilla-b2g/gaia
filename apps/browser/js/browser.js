@@ -10,8 +10,8 @@ var Browser = {
   urlButtonMode: this.GO,
 
   init: function browser_init() {
-    // Open global history database
-    GlobalHistory.db.open();
+    // Load homepage once GlobalHistory is initialised
+    GlobalHistory.init(this.go.bind(this));
 
     // Assign UI elements to variables
     this.toolbarStart = document.getElementById('toolbar-start');
@@ -19,6 +19,8 @@ var Browser = {
     this.urlInput = document.getElementById('url-input');
     this.urlButton = document.getElementById('url-button');
     this.content = document.getElementById('browser-content');
+    this.awesomescreen = document.getElementById('awesomescreen');
+    this.history = document.getElementById('history-list');
     this.backButton = document.getElementById('back-button');
     this.forwardButton = document.getElementById('forward-button');
 
@@ -30,18 +32,13 @@ var Browser = {
     this.urlInput.addEventListener('blur', this.urlBlur.bind(this));
     window.addEventListener('submit', this);
     window.addEventListener('keyup', this, true);
+    this.history.addEventListener('click', this.followLink.bind(this));
 
     var browserEvents = ['loadstart', 'loadend', 'locationchange',
       'titlechange'];
     browserEvents.forEach((function attachBrowserEvent(type) {
       this.content.addEventListener('mozbrowser' + type, this);
     }).bind(this));
-
-    // Load homepage
-    var url = this.urlInput.value;
-    this.currentUrl = url;
-    this.navigate(url);
-    this.updateHistory(url);
   },
 
   handleEvent: function browser_handleEvent(evt) {
@@ -90,10 +87,14 @@ var Browser = {
 
   navigate: function browser_navigate(url) {
     this.content.setAttribute('src', url);
+    this.awesomescreen.classList.add('hidden');
+    this.content.classList.remove('hidden');
   },
 
-  go: function browser_go(evt) {
-    evt.preventDefault();
+  go: function browser_go(e) {
+    if (e)
+      e.preventDefault();
+
     if (this.urlButtonMode == this.REFRESH) {
       this.navigate(this.currentUrl);
       return;
@@ -142,6 +143,9 @@ var Browser = {
     this.urlInput.value = this.currentUrl;
     this.urlInput.select();
     this.setUrlButtonMode(this.GO);
+    this.content.classList.add('hidden');
+    this.awesomescreen.classList.remove('hidden');
+    GlobalHistory.getHistory(this.showGlobalHistory.bind(this));
   },
 
   urlBlur: function browser_urlBlur() {
@@ -160,6 +164,23 @@ var Browser = {
         this.urlButton.src = 'style/images/refresh.png';
         break;
     }
+  },
+
+  showGlobalHistory: function browser_showGlobalHistory(visits) {
+    var history = this.history;
+    history.innerHTML = '';
+    visits.forEach(function browser_populateHistory(visit) {
+      var li = document.createElement('li');
+      li.innerHTML = '<a href="' + visit.uri + '"><span>' +
+        (visit.title ? visit.title : visit.uri) +
+        '</span><small>' + visit.uri + '</small></a>';
+      history.appendChild(li);
+    });
+  },
+
+  followLink: function browser_followLink(e) {
+    e.preventDefault();
+    this.navigate(e.target.parentNode.getAttribute('href'));
   }
 };
 
