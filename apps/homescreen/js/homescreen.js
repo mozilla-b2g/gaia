@@ -24,7 +24,7 @@ function AppScreen() {
   };
 
   window.addEventListener('resize', function resize() {
-    self.grid.update();
+    self.build(true);
   });
 
   // Listen for app installations and rebuild the appscreen when we get one
@@ -60,17 +60,12 @@ AppScreen.prototype.build = function(rebuild) {
   // If we're rebuilding, remember the page we're on
   var startpage = rebuild ? this.grid.currentPage : 0;
 
-  // If we're rebuilding remove the event handlers on the window
-  // since they're going to be re-added when we create the new IconGrid below
-  if (rebuild) {
-    window.removeEventListener('mousemove', this.grid);
-    window.removeEventListener('mouseup', this.grid);
-  }
-
-  // Start with completely fresh elements.
-  // If we're rebuilding, this will remove all old event listeners too.
-  document.getElementById('home').innerHTML =
-    '<div id="apps"></div><div id="dots"></div>';
+    var className = isInEditMode() ? 'class=\"edit\"' : '';
+    document.getElementById('content').innerHTML =
+      '<div id="home">' +
+      '  <div id="apps" ' + className + '></div>' +
+      '  <div id="dots"></div>' +
+      '</div>';
 
   // Create the widgets
   this.grid = new IconGrid('apps');
@@ -132,9 +127,6 @@ function DefaultPhysics(iconGrid) {
   };
 }
 
-// How long do you have to hold your finger still over an icon
-// before triggering an uninstall rather than a launch.
-DefaultPhysics.HOLD_INTERVAL = 1000;
 // How many pixels can you move your finger before a tap becomes
 // a flick or a pan?
 DefaultPhysics.SMALL_MOVE = 20;
@@ -149,29 +141,14 @@ DefaultPhysics.prototype = {
     touchState.startX = e.pageX;
     touchState.startY = e.pageY;
 
-    // If this timer triggers and the user hasn't moved their finger
-    // then this is a hold rather than a tap.
-    touchState.timer = window.setTimeout(this.onHoldTimeout.bind(this),
-                                  DefaultPhysics.HOLD_INTERVAL);
-
-    // For tap and hold gestures, we keep track of what icon
-    // the touch started on. Even if it strays slightly into another
-    // nearby icon, the initial touch is probably what the user wanted.
+    // For tap we keep track of what icon the touch started on.
+    // Even if it strays slightly into another nearby icon, the initial
+    // touch is probably what the user wanted.
     touchState.initialTarget = e.target;
   },
 
   onTouchMove: function(e) {
     var touchState = this.touchState;
-
-    // If we move more than a small amount this is not a hold, so
-    // cancel the timer if it is still running
-    if (touchState.timer &&
-        (Math.abs(touchState.startX - e.pageX) > DefaultPhysics.SMALL_MOVE ||
-         Math.abs(touchState.startX - e.pageX) > DefaultPhysics.SMALL_MOVE)) {
-      clearTimeout(touchState.timer);
-      touchState.timer = null;
-    }
-
     if (!touchState.active)
       return;
 
@@ -181,13 +158,6 @@ DefaultPhysics.prototype = {
 
   onTouchEnd: function(e) {
     var touchState = this.touchState;
-
-    // If the timer hasn't triggered yet, cancel it before it does
-    if (touchState.timer) {
-      clearTimeout(touchState.timer);
-      touchState.timer = null;
-    }
-
     if (!touchState.active)
       return;
     touchState.active = false;
@@ -210,7 +180,7 @@ DefaultPhysics.prototype = {
     var iconGrid = this.iconGrid;
     var currentPage = iconGrid.currentPage;
     if (tap) {
-      iconGrid.tap(touchState.initialTarget);
+      iconGrid.tap(touchState.initialTarget, e.pageX, e.pageY);
       iconGrid.setPage(currentPage, 0);
       return;
     } else if (flick) {
@@ -222,21 +192,10 @@ DefaultPhysics.prototype = {
         iconGrid.setPage(currentPage + dir, 0.2);
     }
     e.stopPropagation();
-  },
-
-  // Triggered if the user holds their finger on the screen for
-  // DefaultPhysics.HOLD_INTERVAL ms without moving more than
-  // DefaultPhyiscs.SMALL_MOVE pixels horizontally or vertically
-  onHoldTimeout: function() {
-    var touchState = this.touchState;
-    touchState.timer = null;
-    touchState.active = false;
-    this.iconGrid.hold(touchState.initialTarget);
   }
 };
 
 function IconGrid(containerId) {
-  this.containerId = containerId;
   this.container = document.getElementById(containerId);
   this.icons = [];
   this.currentPage = 0;
@@ -267,7 +226,7 @@ IconGrid.prototype = {
 
     // get pages divs
     var pages = [];
-    var rule = '#' + this.containerId + '> .page';
+    var rule = '#' + container.id + '> .page';
     var children = document.querySelectorAll(rule);
     for (var n = 0; n < children.length; n++) {
       var element = children[n];
@@ -277,21 +236,53 @@ IconGrid.prototype = {
     // get icon divs
     var iconDivs = [];
 
-    rule = '#' + this.containerId + '> .page > .icon';
+    rule = '#' + container.id + '> .page > .icon';
     children = document.querySelectorAll(rule);
     for (var n = 0; n < children.length; n++) {
       var element = children[n];
       iconDivs[element.id] = element;
     }
 
-    // issue #723 - The calculation of the width/height of the icons
-    // should be dynamic and not hardcoded like that. The reason why it
-    // it is done like that at this point is because there is no icon
-    // when the application starts and so there is nothing to calculate
-    // against.
     container.style.minHeight = container.style.maxHeight = '';
-    var iconHeight = 196;
-    var iconWidth = 132;
+
+    function getIconSize(icon) {
+      var rect = icon.getBoundingClientRect();
+      var width = rect.width;
+      var height = rect.height;
+
+      var style = window.getComputedStyle(icon, null);
+      height += parseInt(style.marginTop) + parseInt(style.marginBottom);
+      width += parseInt(style.marginLeft) + parseInt(style.marginRight);
+      return { 'width': width, 'height': height };
+    }
+
+    var size = null;
+    if (children.length === 0) {
+      var page = document.createElement('div');
+      page.className = 'page';
+
+      var icon = document.createElement('div');
+      icon.className = 'icon';
+
+      var center = document.createElement('div');
+      center.className = 'img';
+      icon.appendChild(center);
+
+      var label = document.createElement('div');
+      label.className = 'label';
+      label.textContent = 'Foo';
+      icon.appendChild(label);
+      page.appendChild(icon);
+
+      container.appendChild(page);
+      size = getIconSize(icon);
+      container.removeChild(page);
+    } else {
+      size = getIconSize(children[0]);
+    }
+
+    var iconHeight = size.height;
+    var iconWidth = size.width;
 
     var rect = container.getBoundingClientRect();
     var rows = Math.max(1, Math.floor(rect.height / iconHeight));
@@ -309,7 +300,7 @@ IconGrid.prototype = {
         continue;
 
       page = document.createElement('div');
-      page.id = n;
+      page.id = 'page_' + n;
       page.className = 'page';
       container.appendChild(page);
 
@@ -324,7 +315,6 @@ IconGrid.prototype = {
       }
     }
 
-
     // adjust existing icons and create new ones as needed
     var iconsCount = icons.length;
     for (var n = 0; n < iconsCount; ++n) {
@@ -333,7 +323,7 @@ IconGrid.prototype = {
       var iconDiv = iconDivs[n];
       if (!iconDiv) { // missing icon
         iconDiv = document.createElement('div');
-        iconDiv.id = n;
+        iconDiv.id = 'app_' + n;
         iconDiv.className = 'icon';
         iconDiv.style.backgroundImage = 'url("' + icon.iconUrl + '")';
         iconDiv.dataset.url = icon.action;
@@ -409,24 +399,28 @@ IconGrid.prototype = {
     return this.container.childNodes.length;
   },
 
-  tap: function(target) {
-    var app = appscreen.getAppByOrigin(target.dataset.url);
-    app.launch();
-  },
-  hold: function(target) {
-    var app = appscreen.getAppByOrigin(target.dataset.url);
+  tap: function(target, x, y) {
+    if (!('url' in target.dataset)) {
+      return;
+    }
 
-    // FIXME: localize this message
-    // FIXME: This could be a simple confirm() (see bug 741587)
-    requestPermission(
-      'Do you want to uninstall ' + app.manifest.name + '?',
-      function() { app.uninstall(); },
-      function() { }
-    );
+    var app = appscreen.getAppByOrigin(target.dataset.url);
+    if (!isInEditMode()) {
+      app.launch();
+      return;
+    }
+
+    // If the click happens in the top-right corner in edit-mode, this is
+    // to uninstall the application.
+    var rect = target.getBoundingClientRect();
+    if (x > rect.left + rect.width - 20 &&
+        x < rect.left + rect.width + 20 &&
+        y > rect.top - 20 && y < rect.top + 20) {
+      app.uninstall();
+    }
   },
   handleEvent: function(e) {
     var physics = this.physics;
-
     switch (e.type) {
     case 'mousedown':
       physics.onTouchStart(e);
@@ -437,10 +431,12 @@ IconGrid.prototype = {
     case 'mouseup':
       physics.onTouchEnd(e);
       break;
+    case 'contextmenu':
+      physics.touchState.active = false;
+      break;
     default:
       return;
     }
-    e.preventDefault();
   }
 };
 
@@ -461,7 +457,6 @@ Dots.prototype = {
       var dot = document.createElement('div');
       dot.className = 'dot';
       container.appendChild(dot);
-      dot.style.width = 100 / numPages + '%';
     }
 
     // Remove excess dots.
