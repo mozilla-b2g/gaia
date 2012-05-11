@@ -312,6 +312,7 @@ function updateConnection(event) {
   if (!navigator.mozPower.screenEnabled) {
     conn.removeEventListener('cardstatechange', updateConnection);
     conn.removeEventListener('voicechange', updateConnection);
+    conn.removeEventListener('datachange', updateConnection);
     return;
   }
 
@@ -334,6 +335,10 @@ function updateConnection(event) {
   }
   document.getElementById('titlebar').textContent = title;
 
+  // Update the 3G/data status.
+  var dataType = conn.data.connected ? conn.data.type : '';
+  document.getElementById('data').textContent = dataType;
+
   // Update the signal strength bars.
   var signalElements = document.querySelectorAll('#signal > span');
   for (var i = 0; i < 4; i++) {
@@ -348,6 +353,7 @@ function updateConnection(event) {
 
   conn.addEventListener('cardstatechange', updateConnection);
   conn.addEventListener('voicechange', updateConnection);
+  conn.addEventListener('datachange', updateConnection);
 }
 
 if ('mozWifiManager' in window.navigator) {
