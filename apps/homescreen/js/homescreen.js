@@ -1,64 +1,69 @@
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
 'use strict';
 
 // The appscreen is the main part of the homescreen: the part that
 // displays icons that launch all of the installed apps.
-var appscreen = new AppScreen();
+var appscreen = null;
+window.addEventListener('load', function startApplicationScreen(e) {
+  appscreen = new AppScreen();
+});
 
-/* === AppScreen === */
 function AppScreen() {
-  this.installedApps = {};
+  var installedApps = this.installedApps = {};
 
-  var self = this;
-  navigator.mozApps.mgmt.getAll().onsuccess = function(e) {
+  navigator.mozApps.mgmt.getAll().onsuccess = onGetAll.bind(this);
+  navigator.mozApps.mgmt.oninstall = onInstall.bind(this);
+  navigator.mozApps.mgmt.onuninstall = onUninstall.bind(this);
+  window.addEventListener('resize', onResize.bind(this));
+
+  function onGetAll(e) {
     var apps = e.target.result;
 
     var lastSlash = new RegExp(/\/$/);
     var currentHost = document.location.toString().replace(lastSlash, '');
     apps.forEach(function(app) {
+      // Ignore the homescreen application itself
       if (app.origin.replace(lastSlash, '') == currentHost)
         return;
-      self.installedApps[app.origin] = app;
+      installedApps[app.origin] = app;
     });
 
-    self.build();
+    this.build();
   };
 
-  window.addEventListener('resize', function resize() {
-    self.build(true);
-  });
-
-  // Listen for app installations and rebuild the appscreen when we get one
-  navigator.mozApps.mgmt.oninstall = function install(event) {
-    var newapp = event.application;
-    self.installedApps[newapp.origin] = newapp;
-    self.build(true);
+  function onInstall(e) {
+    installedApps[e.applicationnew.origin] = e.application;
+    this.build(true);
   };
 
-  // Do the same for uninstalls
-  navigator.mozApps.mgmt.onuninstall = function uninstall(event) {
-    var newapp = event.application;
-    delete self.installedApps[newapp.origin];
-    self.build(true);
+  function onUninstall(e) {
+    delete installedApps[e.application.origin];
+    this.build(true);
+  };
+
+  function onResize(e) {
+    this.build(true);
   };
 }
 
-// Look up the app object for a specified app origin
-AppScreen.prototype.getAppByOrigin = function getAppByOrigin(origin) {
-  return this.installedApps[origin];
-};
+AppScreen.prototype = {
+  // Look up the app object for a specified app origin
+  getAppByOrigin: function getAppByOrigin(origin) {
+    return this.installedApps[origin];
+  },
 
-// Populate the appscreen with icons. The constructor automatically calls this.
-// But we also call it when new apps are installed or when the locale changes.
-AppScreen.prototype.build = function(rebuild) {
+  // But we also call it when new apps are installed or when the locale changes.
+  build: function build(rebuild) {
+    // We can't rebuild the app screen if it hasn't already been build the
+    // the first time. This happens when we get an initial language setting
+    // observation before we get the initial list of installed apps.
+    if (rebuild && !this.grid)
+      return;
 
-  // We can't rebuild the app screen if it hasn't already been build the
-  // the first time. This happens when we get an initial language setting
-  // observation before we get the initial list of installed apps.
-  if (rebuild && !this.grid)
-    return;
-
-  // If we're rebuilding, remember the page we're on
-  var startpage = rebuild ? this.grid.currentPage : 0;
+    // If we're rebuilding, remember the page we're on
+    var startpage = rebuild ? this.grid.currentPage : 0;
 
     var className = isInEditMode() ? 'class=\"edit\"' : '';
     document.getElementById('content').innerHTML =
@@ -67,52 +72,53 @@ AppScreen.prototype.build = function(rebuild) {
       '  <div id="dots"></div>' +
       '</div>';
 
-  // Create the widgets
-  this.grid = new IconGrid('apps');
-  this.grid.dots = new Dots('dots', this.grid);
+    // Create the widgets
+    this.grid = new IconGrid('apps');
+    this.grid.dots = new Dots('dots', this.grid);
 
-  // The current language for localizing app names
-  for (var origin in this.installedApps) {
-    var app = this.installedApps[origin];
+    // The current language for localizing app names
+    for (var origin in this.installedApps) {
+      var app = this.installedApps[origin];
 
-    // Most apps will host their own icons at their own origin.
-    // If no icon is defined we'll get this undefined one.
-    var icon = 'http://' + document.location.host + '/style/icons/Unknown.png';
-    if (app.manifest.icons) {
-      if ('120' in app.manifest.icons) {
-        icon = app.manifest.icons['120'];
-      } else {
-        // Get all sizes
-        var sizes = Object.keys(app.manifest.icons).map(parseInt);
-        // Largest to smallest
-        sizes.sort(function(x, y) { return y - x; });
-        icon = app.manifest.icons[sizes[0]];
+      // Most apps will host their own icons at their own origin.
+      // If no icon is defined we'll get this undefined one.
+      var icon = '';
+      if (app.manifest.icons) {
+        if ('120' in app.manifest.icons) {
+          icon = app.manifest.icons['120'];
+        } else {
+          // Get all sizes
+          var sizes = Object.keys(app.manifest.icons).map(parseInt);
+          // Largest to smallest
+          sizes.sort(function(x, y) { return y - x; });
+          icon = app.manifest.icons[sizes[0]];
+        }
       }
+
+      // If the icons is a fully-qualifed URL, leave it alone
+      // (technically, manifests are not supposed to have those)
+      // Otherwise, prefix with the app origin
+      if (icon.indexOf(':') == -1) {
+        // XXX it looks like the homescreen can't load images from other origins
+        // so use the ones from the url host for now
+        // icon = app.origin + icon;
+        icon = 'http://' + document.location.host + icon;
+      }
+
+      // Localize the app name
+      var name = app.manifest.name;
+      var lang = document.mozL10n.language.code;
+      if (app.manifest.locales && app.manifest.locales[lang])
+        name = app.manifest.locales[lang].name || name;
+
+      if (!icon)
+        icon = 'http://' + document.location.host + '/style/icons/Unknown.png';
+      this.grid.add(icon, name, origin);
     }
 
-    // If the icons is a fully-qualifed URL, leave it alone
-    // (technically, manifests are not supposed to have those)
-    // Otherwise, prefix with the app origin
-    if (icon.indexOf(':') == -1) {
-      // XXX it looks like the homescreen can't load images from other origins
-      // so use the ones from the url host for now
-      // icon = app.origin + icon;
-      icon = 'http://' + document.location.host + icon;
-    }
-
-    // Localize the app name
-    var name = app.manifest.name;
-    var lang = document.mozL10n.language.code;
-    if (app.manifest.locales &&
-        app.manifest.locales[lang] &&
-        app.manifest.locales[lang].name)
-      name = app.manifest.locales[lang].name;
-
-    this.grid.add(icon, name, origin);
+    this.grid.update();
+    this.grid.setPage(startpage);
   }
-
-  this.grid.update();
-  this.grid.setPage(startpage);
 };
 
 function DefaultPhysics(iconGrid) {
@@ -195,32 +201,32 @@ DefaultPhysics.prototype = {
   }
 };
 
+
 function IconGrid(containerId) {
   this.container = document.getElementById(containerId);
   this.icons = [];
   this.currentPage = 0;
   this.physics = new DefaultPhysics(this);
 
-  // install event handlers
   this.container.addEventListener('mousedown', this);
   window.addEventListener('mousemove', this);
   window.addEventListener('mouseup', this);
 }
 
 IconGrid.prototype = {
-  add: function(iconUrl, label, action) {
+  add: function add(iconUrl, label, action) {
     var icons = this.icons;
     var icon = { iconUrl: iconUrl, label: label, action: action };
     icon.index = icons.length;
     icons.push(icon);
   },
 
-  remove: function(icon) {
+  remove: function remove(icon) {
     this.icons.splice(icon.index);
   },
 
   // reflow the icon grid
-  update: function() {
+  update: function update() {
     var container = this.container;
     var icons = this.icons;
 
@@ -360,23 +366,23 @@ IconGrid.prototype = {
       dots.update(this.currentPage);
   },
 
-  pan: function(x, duration) {
+  pan: function pan(x, duration) {
     var pages = this.container.childNodes;
     var currentPage = this.currentPage;
     for (var n = 0; n < pages.length; ++n) {
       var page = pages[n];
 
-      var calc = (document.dir == 'ltr') ?
+      var translate = (document.dir == 'ltr') ?
         (n - currentPage) + '00% + ' + x + 'px' :
         (currentPage - n) + '00% + ' + x + 'px';
 
       var style = page.style;
-      style.MozTransform = 'translateX(-moz-calc(' + calc + '))';
+      style.MozTransform = 'translateX(-moz-calc(' + translate + '))';
       style.MozTransition = duration ? ('all ' + duration + 's ease;') : '';
     }
   },
 
-  setPage: function(number, duration) {
+  setPage: function setPage(number, duration) {
     var pages = this.container.childNodes;
     if (number < 0)
       number = 0;
@@ -395,11 +401,11 @@ IconGrid.prototype = {
       dots.update(number);
   },
 
-  length: function() {
+  length: function length() {
     return this.container.childNodes.length;
   },
 
-  tap: function(target, x, y) {
+  tap: function tap(target, x, y) {
     if (!('url' in target.dataset)) {
       return;
     }
@@ -419,29 +425,29 @@ IconGrid.prototype = {
       app.uninstall();
     }
   },
-  handleEvent: function(e) {
+  handleEvent: function handleEvent(e) {
     var physics = this.physics;
     switch (e.type) {
-    case 'mousedown':
-      physics.onTouchStart(e);
-      break;
-    case 'mousemove':
-      physics.onTouchMove(e);
-      break;
-    case 'mouseup':
-      physics.onTouchEnd(e);
-      break;
-    case 'contextmenu':
-      physics.touchState.active = false;
-      break;
-    default:
-      return;
+      case 'mousedown':
+        physics.onTouchStart(e);
+        break;
+      case 'mousemove':
+        physics.onTouchMove(e);
+        break;
+      case 'mouseup':
+        physics.onTouchEnd(e);
+        break;
+      case 'contextmenu':
+        physics.touchState.active = false;
+        break;
+      default:
+        return;
     }
   }
 };
 
+
 function Dots(containerId, grid) {
-  this.containerId = containerId;
   this.container = document.getElementById(containerId);
   this.grid = grid;
 }
@@ -501,3 +507,4 @@ Dots.prototype = {
     e.preventDefault();
   }
 };
+
