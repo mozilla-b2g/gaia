@@ -56,5 +56,6 @@
   "hackKillMe": true,
   "icons": {
     "120": "/style/icons/CrystalSkull.png"
-  }
+  },
+  "orientation": "portrait-primary"
 }

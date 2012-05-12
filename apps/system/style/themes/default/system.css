@@ -195,7 +195,7 @@ div.windowSprite {
   background-image: url(images/wifi/wifi-4.png);
 }
 
-#statusbar .time {
+#data, #statusbar .time {
   text-shadow: 0 0 3px hsla(0,0%,0%,.5);
   line-height: 31px;
   margin: 0 4px;

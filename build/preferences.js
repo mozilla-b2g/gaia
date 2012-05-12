@@ -130,6 +130,7 @@ directories.forEach(function readManifests(dir) {
 });
 
 content += "user_pref(\"b2g.privileged.domains\", \"" + privileges.join(",") + "\");\n\n";
+content += "user_pref(\"network.dns.localDomains\", \"" + privileges.join(",") + "\");\n";
 
 for (let name in permissions) {
   let perm = permissions[name];
@@ -156,6 +157,7 @@ if (DEBUG) {
   content += "user_pref(\"dom.sms.enabled\", true);\n";
   content += "user_pref(\"dom.mozContacts.enabled\", true);\n";
   content += "user_pref(\"dom.mozSettings.enabled\", true);\n";
+  content += "user_pref(\"device.storage.enabled\", true);\n";
   content += "\n";
 }
 

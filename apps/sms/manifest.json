@@ -60,5 +60,6 @@
   "background_page": "/background.html#0",
   "icons": {
     "120": "/style/icons/Messages.png"
-  }
+  },
+  "orientation": "portrait-primary"
 }
