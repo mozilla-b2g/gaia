@@ -106,18 +106,32 @@ input, button, textarea {
   overflow: hidden;
 }
 
+/* Message flags section */
+
+.message-summary-unread .message-summary-subject::before {
+  width: 10px;
+  height: 10px;
+  background: orange;
+  position: absolute;
+  left: -20px;
+  top: 50%;
+  margin-top: -5px;
+  border-radius: 50%;
+  content: '';
+}
+
+.message-summary-unread .message-summary-date {
+  color: orange;
+}
+
 .message-summary-header {
-  overflow: hidden;
   line-height: 19px;
-  padding-bottom: 3px;
 }
 .message-summary {
-  padding: 20px;
+  padding: 15px 50px 15px 30px;
   border-bottom: 1px dotted gray;
   cursor: default;
-  height: 20%;
   min-height: 35px;
-  overflow: hidden;
   -moz-box-sizing: border-box;
   -moz-user-select: none;
 }
@@ -127,7 +141,7 @@ input, button, textarea {
 }
 
 .message-summary-text {
-  font-size: 15px;
+  font-size: 16px;
   margin: 10px 0 0;
   color: gray;
   width: 100%;
@@ -139,23 +153,23 @@ input, button, textarea {
 .message-summary-author {
   font-weight: normal;
   line-height: 22px;
-  margin: 0 0 15px;
-  font-size: 19px;
+  margin: 0 0 10px;
+  font-size: 22px;
 }
 
 .message-summary-subject {
   margin: 0;
-  font-size: 18px;
-  overflow: hidden;
+  font-size: 17px;
+  position: relative;
 }
-.message-summary-mail {
-  float: right;
-  text-align: right;
+.message-summary-date {
+  color: gray;
+  font-weight: normal;
   font-size: 14px;
-  padding-left: 5px;
+  padding-left: 10px;
 }
-.message-summary-subject, .message-summary-mail {
-  overflow: hidden;
+.message-summary-subject,
+.message-summary-date {
   text-overflow: ellipsis;
   white-space: nowrap;
 }

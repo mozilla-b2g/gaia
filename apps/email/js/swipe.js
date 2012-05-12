@@ -8,8 +8,8 @@ const SWIPE_OFFSET = 30,
   SWIPE_HORIZONTAL = 1,
   SWIPE_VERTICAL = 2,
   SWIPE_BOTH = 3,
-  TAP_DELAY = 100,
-  LONG_TAP_DELAY = 500;
+  TAP_DELAY = 200,
+  LONG_TAP_DELAY = 800;
 
 document.addEventListener('mousedown', function(e) {
   //console.log(e.clientX);

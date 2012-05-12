@@ -1,11 +1,13 @@
 [
 	{
-		"date": "Sat Apr 14 2012 14:25:07 GMT+0400 (MSK)",
+		"date": "Sun May 13 2012 01:14:29 GMT+0400 (MSK)",
 		"from": "User Man <test@mail.com>",
 		"subject": "Hello, world",
 		"to": "Arthur Stolyar nekr.fabula@gmail.com",
 		"body": "The WHATWG work is all published in one specification (the one you are reading right now), parts of which are republished in a variety of other forms, including an edition optimized for Web developers (known as HTML5).",
-		"content-type": "text/plain"
+		"content-type": "text/plain",
+		"unread": true,
+		"attachments": []
 	},
 	{
 		"date": "Sat Apr 14 2012 14:25:07 GMT+0400 (MSK)",
@@ -13,7 +15,8 @@
 		"subject": "Hello, world 2",
 		"to": "Arthur Stolyar <nekr.fabula@gmail.com>",
 		"body": "The WHATWG work is all published in one specification (the one you are reading right now), parts of which are republished in a variety of other forms, including an edition optimized for Web developers (known as HTML5).",
-		"content-type": "text/plain"
+		"content-type": "text/plain",
+		"unread": true
 	},
 	{
 		"date": "Sat Apr 14 2012 14:25:07 GMT+0400 (MSK)",
@@ -21,7 +24,8 @@
 		"subject": "Hello, world",
 		"to": "Arthur Stolyar nekr.fabula@gmail.com",
 		"body": "The WHATWG work is all published in one specification (the one you are reading right now), parts of which are republished in a variety of other forms, including an edition optimized for Web developers (known as HTML5).",
-		"content-type": "text/plain"
+		"content-type": "text/plain",
+		"attachments": []
 	},
 	{
 		"date": "Sat Apr 14 2012 14:25:07 GMT+0400 (MSK)",

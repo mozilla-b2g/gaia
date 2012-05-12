@@ -11,8 +11,6 @@ const PAGE_TRANSITION_DURATION = 300,
   //simple regexp for parse addresses
   R_ADDRESS_PARTS = /^(?:([\w\s]+) )?<(.+)>$/,
 
-  R_HTML_TEMPLATE = /\{\{(\w+?)\}\}/g,
-
   STORE_ACCOUNTS_KEYS = 'mail:accounts',
 
   DEFAULT_FOLDER = 'INBOX';
@@ -185,7 +183,7 @@ var mail = {
       left = 0,
       width = 0,
       started = false,
-
+      swiped = false,
       getMessage = function(target){
 
         while (!('messageId' in target.dataset)) {
@@ -208,9 +206,6 @@ var mail = {
 
         mail.readMessage(swipedTarget);
 
-        if (taped) {
-          swipedTarget.classList.remove('highlight');
-        }
         cleanTap();
         cleanSwipe();
 
@@ -226,6 +221,7 @@ var mail = {
         document.removeEventListener('mousemove', mouseMove);
         document.removeEventListener('swipeend', swipeEnd);
         swipedTarget = null;
+        swiped = false;
       },
       swipeEnd = function() {
         swipedTarget.classList.remove('highlight');
@@ -238,7 +234,7 @@ var mail = {
         }
 
         if (e.detail & SWIPE_HORIZONTAL) {
-          console.log('swipe');
+          swiped = true;
           document.addEventListener('mousemove', mouseMove);
         }
 
@@ -268,14 +264,26 @@ var mail = {
       started = false;
 
       document.addEventListener('tapstart', tapStart);
-      //touch scroll did not fired like simple scroll :(
-      //next code has no affect
-      document.addEventListener('scroll', function scroll() {
+
+      /*let domList = mail.folder.domList;
+
+      domList.addEventListener('scroll', function scrollListener() {
         if (taped) {
           cleanTap();
+
+          document.addEventListener('mouseup', function mouseupListener() {
+            if (!swiped) {
+              swipedTarget.classList.remove('highlight');
+            }
+
+            document.removeEventListener('mouseup', mouseupListener);
+          });
+
         }
-        document.removeEventListener('scroll', scroll);
-      });
+
+       domList.removeEventListener('scroll', scrollListener);
+
+      });*/
 
       if (left > width - width / 10) {
         document.addEventListener('swipestart', swipeStart);
@@ -445,33 +453,72 @@ var mail = {
     };
 
   }()),
+  makeUnread: function(domMessage) {
+    domMessage.classList.add('message-summary-unread');
+  },
+  makeRead: function(domMessage) {
+    domMessage.classList.remove('message-summary-unread');
+  },
   messageConstructor: function(data) {
     var message = document.createElement('article'),
       from = data.from.match(R_ADDRESS_PARTS),
-      date = new Date(data.date);
+      date = new Date(data.date),
+      flags = [
+        'unread'
+      ];
 
     message.setAttribute('role', 'row');
     message.classList.add('message-summary');
+
+    /* Heaader block */
     let header = message.appendChild(document.createElement('header'));
     header.classList.add('message-summary-header');
-    let address = header.appendChild(document.createElement('address'));
-    address.classList.add('message-summary-mail');
-    address.appendChild(document.createElement('span')).textContent = [
-      date.getDate(),
-      date.getMonth() + 1,
-      date.getYear() - 100
-    ].join('.').replace(/(^|\.)(\d)(?!\d)($|\.)/g, '$10$2$3');
+
+    /* Author block*/
     let author = header.appendChild(document.createElement('h1'));
     author.classList.add('message-summary-author');
     author.textContent = from[1] || from[2];
+
+    /* Subject block */
     let subject = header.appendChild(document.createElement('h2'));
     subject.classList.add('message-summary-subject');
     subject.textContent = data.subject;
+
+    /* Date block */
+    
+
+    //for ability to run just in browser
+    if (document.mozL10n) {
+      let relative = DateAPI.getRelativeFrom(date);
+
+      if (relative.case === 'format') {
+
+        if (relative.time) {
+          relative.time = date.toLocaleFormat(document.mozL10n.get('time'));
+        } else if(relative.month) {
+          relative.month = document.mozL10n.get('month_' + relative.month);
+        }
+
+        date = document.mozL10n.get('format_' + relative.format, relative);
+
+      } else {
+        date = document.mozL10n.get('date_' + relative.case, relative);
+      }
+    }
+
+
+    let dateBlock = author.appendChild(document.createElement('span'));
+    dateBlock.classList.add('message-summary-date');
+    dateBlock.textContent = date;
+
+    /* Summary block */
     let summary = message.appendChild(document.createElement('div'));
     summary.classList.add('message-summary-text');
     summary.textContent = data.body.slice(0, Math.min(data.body.length, 200));
 
-    //message.dataset.index = 0;
+    if (data.unread) {
+      mail.makeUnread(message);
+    }
 
     message.dataset.messageId = +new Date;
 
@@ -521,6 +568,13 @@ var mail = {
       header.innerHTML = body.innerHTML = '';
       body.style.height = 'auto';
       this.removeEventListener('poppage', popListener);
+    });
+
+    nodes.mailScreen.addEventListener('pushpage', function pushListener() {
+      message.unread = false;
+      mail.makeRead(domMessage);
+      domMessage.classList.remove('highlight');
+      this.removeEventListener('poppage', pushListener);
     });
 
     mail.screens.moveToPage(nodes.messageScreen);
