@@ -46,10 +46,6 @@ document.addEventListener('mousedown', function(e) {
     },
     moveListener = function(e) {
 
-      if (target !== e.target &&
-        e.target !== document &&
-        !target.contains(e.target)) return;
-
       if (!(swipeMap & SWIPE_HORIZONTAL) &&
            Math.abs(startX - e.clientX) > SWIPE_OFFSET) {
        // console.log('in');

@@ -1,20 +1,20 @@
 [
 	{
 		"date": "Sun May 13 2012 01:14:29 GMT+0400 (MSK)",
-		"from": "User Man <test@mail.com>",
-		"subject": "Hello, world",
-		"to": "Arthur Stolyar nekr.fabula@gmail.com",
-		"body": "The WHATWG work is all published in one specification (the one you are reading right now), parts of which are republished in a variety of other forms, including an edition optimized for Web developers (known as HTML5).",
-		"content-type": "text/plain",
+		"from": "Mozilla Foundation <mission@mozilla.org>",
+		"subject": "Mozilla Mission",
+		"to": "Arthur Stolyar <nekr.fabula@gmail.com>",
+		"body": "Whether you want to learn more about who we are, how to be a part of Mozilla or just where to find us, you've come to the right place. To find out what drives us and makes us different, please visit our <a href='http://www.mozilla.org/en-US/mission/'>mission</a> page.",
+		"content-type": "text/html",
 		"unread": true,
 		"attachments": []
 	},
 	{
-		"date": "Sat Apr 14 2012 14:25:07 GMT+0400 (MSK)",
+		"date": "Sat May 12 2012 12:14:29 GMT+0400 (MSK)",
 		"from": "Test Man <test@mail.com>",
 		"subject": "Hello, world 2",
 		"to": "Arthur Stolyar <nekr.fabula@gmail.com>",
-		"body": "The WHATWG work is all published in one specification (the one you are reading right now), parts of which are republished in a variety of other forms, including an edition optimized for Web developers (known as HTML5).",
+		"body": "The WHATWG work is all <a href='#' style='color: red'>published</a> in one specification (the one you are reading right now), parts of which are republished in a variety of other forms, including an edition optimized for Web developers (known as HTML5).",
 		"content-type": "text/plain",
 		"unread": true
 	},

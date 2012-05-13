@@ -83,6 +83,27 @@ Transition.prototype = {
   }
 };
 
+Transition.effects = {
+  scale: function(current) {
+
+    Transition.run(current, {
+      MozTransform: 'scale(0.2)',
+      opacity: 0.2
+    }, {
+      duration: 300
+    }, function(){
+      current.style.MozTransform = '';
+      current.style.opacity = 1;
+      current.hidden = true;
+      current.style.MozTransform = '';
+      current.style.MozTransition = '';
+    });
+    
+  }
+};
+
+// Transform section
+
 var Transform = function(map) {
   var stack = this.stack = [];
 
@@ -113,3 +134,4 @@ Transform.translate = function(x, y) {
 Transform.prototype.toString = function() {
   return this.stack.join(' ');
 };
+

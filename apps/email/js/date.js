@@ -8,23 +8,11 @@
 
 'use strict';
 
-const ENUMERABLE = [
-  'FullYear',
-  'Date',
-  'Hours',
-  'Minutes',
-  'Seconds',
-  'Milliseconds',
-  'Day'
-],
-  LEAP_YEAR_INTERVAL = 4,
-  SECOND = 1000,
+const SECOND = 1000,
   MINUTE = 60 * SECOND,
   HOUR = 60 * MINUTE,
   DAY = 24 * HOUR,
   WEEK = 7 * DAY,
-
-  YEAR_BY_DAYS = 365,
 
   MONTHS = [
     'january',
@@ -49,7 +37,7 @@ var DateAPI = function(date) {
 // https://wiki.mozilla.org/Gaia/Design/Patterns#Chronological_Lists
 // Relative date pattern
 
-DateAPI.getRelativeFrom = function getRelativeFrom(from) {
+DateAPI.getRelativeSince = function getRelativeSince(from) {
 
   if (!(from instanceof Date)) return null;
 
@@ -66,10 +54,14 @@ DateAPI.getRelativeFrom = function getRelativeFrom(from) {
   if (now.getFullYear() !== from.getFullYear()) {
     result.year = from.getFullYear() - 1970;
     result.format = 'year';
-  } else if(diff < DAY) {
+  } else if(now.getDate() === from.getDate() 
+    && now.getMonth() === from.getMonth()) {
     result.time = true;
     result.format = 'time';
-  } else if (diff < DAY + DAY) {
+  } else if (now.getDate() - 1 === from.getDate()
+    && now.getMonth() === from.getMonth()
+    || now.getDate() === 1 
+    && now.getMonth() - 1 === from.getMonth()) {
     result.case = 'yesterday';
   } else if (diff < WEEK) {
     result.case = 'days';

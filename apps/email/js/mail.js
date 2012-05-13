@@ -13,17 +13,25 @@ const PAGE_TRANSITION_DURATION = 300,
 
   STORE_ACCOUNTS_KEYS = 'mail:accounts',
 
-  DEFAULT_FOLDER = 'INBOX';
+  ACCOUNT_AUTH = 'mail:auth',
+
+  DEFAULT_FOLDER = 'INBOX',
+  DOM_TAGS = [
+    'link',
+    'script',
+    'style',
+    'iframe',
+    'embed',
+    'param',
+    'canvas'
+  ],
+  ORIGIN = window.location.protocol + '//' + window.location.hostname;
 
 var mail = {
   firstScreen: function() {
 
     const DOMAINS = {},
       R_EMAIL_DOMAIN = /@(.*)$/;
-
-    //var pages = new Paging(nodes.firstScreen);
-
-    //pages.registerPage(nodes.selectAccount);
 
     nodes.firstScreen.hidden = false;
 
@@ -55,7 +63,6 @@ var mail = {
 
           if (account) {
             window.removeEventListener('keyup', ESCLitener);
-            nodes.firstScreen.hidden = true;
             mail.configAccount(account.account, account.password);
           }
 
@@ -96,8 +103,6 @@ var mail = {
       if (document.activeElement && document.activeElement.blur) {
         document.activeElement.blur();
       }
-
-      nodes.firstScreen.hidden = true;
 
       mail.configAccount(account, password);
 
@@ -265,29 +270,7 @@ var mail = {
 
       document.addEventListener('tapstart', tapStart);
 
-      /*let domList = mail.folder.domList;
-
-      domList.addEventListener('scroll', function scrollListener() {
-        if (taped) {
-          cleanTap();
-
-          document.addEventListener('mouseup', function mouseupListener() {
-            if (!swiped) {
-              swipedTarget.classList.remove('highlight');
-            }
-
-            document.removeEventListener('mouseup', mouseupListener);
-          });
-
-        }
-
-       domList.removeEventListener('scroll', scrollListener);
-
-      });*/
-
-      if (left > width - width / 10) {
-        document.addEventListener('swipestart', swipeStart);
-      }
+      document.addEventListener('swipestart', swipeStart);
 
       document.addEventListener('swipeend', swipeEnd);
 
@@ -310,11 +293,13 @@ var mail = {
         password: password,
         account: account
       });
+      mail.accounts.auth(account);
     }
 
 
-    mail.loadFolder(DEFAULT_FOLDER, function() {
-      mail.mailScreen(account);
+    mail.loadFolder(DEFAULT_FOLDER, function(){
+      Transition.effects.scale(nodes.firstScreen, nodes.mailScreen);
+      mail.mailScreen();
     });
 
   },
@@ -322,6 +307,8 @@ var mail = {
     var xhr = new XMLHttpRequest();
 
     xhr.open('GET', 'fakemsgs.json', true);
+
+    xhr.overrideMimeType('text/plain');
 
     xhr.onload = function(e) {
       try {
@@ -334,6 +321,7 @@ var mail = {
 
       } catch (e) {
         error && error.call(xhr, e);
+        console.log(e);
       }
     };  
 
@@ -348,17 +336,15 @@ var mail = {
     var map = mail.folderMessages = new Map(),
       domList = document.createElement('section');
 
+
+    nodes.mailScreen.mainContent.innerHTML = '';
+
     mail.folder = {
       name: folder,
       domList: domList,
-      map: map
+      map: map,
+      unread: 0
     };
-
-    folder = folder.toLowerCase().replace(/^\w/, function(w) {
-      return w.toUpperCase();
-    });
-
-    nodes.folderTitle.textContent = folder;
 
     domList.className = 'messages-list';
 
@@ -370,12 +356,40 @@ var mail = {
 
         domList.appendChild(domMessage);
 
+        if (message.unread) {
+          mail.folder.unread++;
+        }
+
+        mail.setFolderTitle(folder, mail.folder.unread);
+
       });
     });
 
     nodes.main.appendChild(domList);
 
     callback && callback(mail.folder);
+
+  },
+  setFolderTitle: function(folder, unread) {
+    var title = document.createElement('span');
+
+    folder = folder.toLowerCase().replace(/^\w/, function(w) {
+      return w.toUpperCase();
+    });
+
+    nodes.folderTitle.innerHTML = '';
+
+    nodes.folderTitle.appendChild(title)
+      .textContent = folder;
+
+    if (unread) {
+      let count = document.createElement('span');
+      count.className = 'folder-unread-count';
+
+      nodes.folderTitle.appendChild(count)
+        .textContent = ' (' + unread + ')';
+
+    }
 
   },
   defaultDirection: DEFAULT_DIRECTION,
@@ -404,6 +418,14 @@ var mail = {
     };
     //console.log(accounts);
     return {
+      auth: function(account) {
+
+        account = this.get(localStorage[ACCOUNT_AUTH] = account 
+          || localStorage[ACCOUNT_AUTH]);
+
+        return account;
+
+      },
       add: function(main, account, data) {
         if (!main || !account) return false;
 
@@ -489,7 +511,7 @@ var mail = {
 
     //for ability to run just in browser
     if (document.mozL10n) {
-      let relative = DateAPI.getRelativeFrom(date);
+      let relative = DateAPI.getRelativeSince(date);
 
       if (relative.case === 'format') {
 
@@ -514,7 +536,8 @@ var mail = {
     /* Summary block */
     let summary = message.appendChild(document.createElement('div'));
     summary.classList.add('message-summary-text');
-    summary.textContent = data.body.slice(0, Math.min(data.body.length, 200));
+    let text = data.body.slice(0, Math.min(data.body.length, 200))
+    summary.textContent = App.cleanTags(App.sanitizeHTML(text));
 
     if (data.unread) {
       mail.makeUnread(message);
@@ -534,7 +557,8 @@ var mail = {
         To: message.to,
         cc: message.cc,
         bcc: message.bcc
-      };
+      },
+      url;
 
     for (let key in headers) {
       if (headers[key] && Object.prototype.hasOwnProperty.call(headers, key)) {
@@ -548,20 +572,78 @@ var mail = {
 
     body.style.height = '-moz-calc(100% - ' + header.offsetHeight + 'px)';
 
-    let url = window.URL.createObjectURL(
-        new Blob([message.body], {
+    if (message['content-type'] === 'text/html') {
+
+      let html = App.sanitizeHTML(message.body);
+
+      // Pattern from MDN 
+      // https://developer.mozilla.org/en/HTML/Canvas/Drawing_DOM_objects_into_a_canvas#Drawing_HTML
+      let doc = document.implementation.createHTMLDocument('');
+
+      doc.body.innerHTML = html;
+
+      let replacedNodes = doc.querySelectorAll(DOM_TAGS.join(', '));
+
+      [].forEach.call(replacedNodes, function(node) {
+        if (node && node.parentNode) {
+          node.parentNode.removeChild(node);
+        }
+      });
+
+      html = doc.body.innerHTML;
+
+      url = window.URL.createObjectURL(
+        new Blob([
+           '<!DOCTYPE html>',
+            '<meta charset="utf-8">',
+            html,
+            '<script>\n',
+            'window.addEventListener("message", function(e) {\n',
+              'console.log(e.origin);\n',
+            '});\n',
+            'var links = document.querySelectorAll("a");\n',
+            '[].forEach.call(links, function(link) {\n',
+              'link.onclick = function(e) {\n',
+                'window.parent.postMessage({messageLink: this.href}, "' + ORIGIN + '");\n',
+                'e.preventDefault();\n',
+                'return false;\n',
+              '};\n',
+            '});\n',
+            '</script>'
+          ], {
           type: 'text\/html'
         })
       );
 
-    //has no affect in gecko :(
+    } else { 
+      // text/plain
+
+      let text = App.escapeHTML(message.body);
+
+      url = window.URL.createObjectURL(
+        new Blob([
+            '<!DOCTYPE html>',
+            //Should be message encoding
+            '<meta charset="utf-8">',
+            text
+          ], {
+          type: 'text\/html'
+        })
+      );
+
+    }
+    
+
+    // Has no affect in Gecko :(
+
     iframe.setAttribute('sandbox', '');
 
     iframe.className = 'message-frame-content';
 
+    iframe.src = url;
+
     body.appendChild(iframe);
 
-    iframe.src = url;
 
     nodes.messageScreen.addEventListener('poppage', function popListener() {
       window.URL.revokeObjectURL(url);
@@ -571,8 +653,14 @@ var mail = {
     });
 
     nodes.mailScreen.addEventListener('pushpage', function pushListener() {
-      message.unread = false;
-      mail.makeRead(domMessage);
+
+      if (message.unread) {
+        message.unread = false;
+        mail.makeRead(domMessage);
+        mail.folder.unread--;
+        mail.setFolderTitle(mail.folder.name, mail.folder.unread);
+      }
+      
       domMessage.classList.remove('highlight');
       this.removeEventListener('poppage', pushListener);
     });
@@ -596,6 +684,10 @@ var mail = {
 };
 
 var nodes = {},
+
+  // Simple pre-load pattern
+  // Then all callback are fired, apploaded event will dispatched
+
   loading = [],
   load = function(callback) {
     var fn = function() {
@@ -615,39 +707,31 @@ var nodes = {},
       return result;
     };
 
+    callback.boundHandler = fn;
+
     loading.push(fn);
 
     return fn;
   };
 
 document.addEventListener('DOMContentLoaded', load(function() {
-  [
-    'account-field',
-    'account-bar',
-    'folder-title',
-    'messages-list',
-    'message',
-    'main',
-    'first-screen',
-    'login-form',
-    'select-exist-button',
-    'mail-screen',
-    'pre-mail-selected',
-    'pre-select-mail',
-    'select-account',
-    'select-account-list',
-    'message-screen',
-    'message-frame'
-  ].forEach(function(id) {
-    var target = document.getElementById(id);
+
+  // Fetch all IDs from the document to |nodes| object
+
+  let targets = document.querySelectorAll('[id]');
+
+  [].forEach.call(targets, function(target) {
 
     if (target) {
-      nodes[id.replace(/(?:-)(\w)/g, function(str, p) {
+      nodes[target.id.replace(/(?:-)(\w)/g, function(str, p) {
         return (p || '').toUpperCase();
       })] = target;
     }
 
   });
+
+  // Featch all specail market textfields and adding
+  // new input API
 
   let fields = document.querySelectorAll('.field');
 
@@ -684,6 +768,9 @@ document.addEventListener('DOMContentLoaded', load(function() {
 
   });
 
+  // Select all predefined pages and find in them "back buttons"
+  // back buttons uses for return to previous screen
+
   let pages = document.querySelectorAll('.page');
 
   [].forEach.call(pages, function(page) {
@@ -701,20 +788,70 @@ document.addEventListener('DOMContentLoaded', load(function() {
 
 }), true);
 
-//this code is commented for reasons to debug in fx without b2g
+window.addEventListener('localized', load(function() {
 
-/*window.addEventListener('localized', load(function() {
+  if (document.mozL10n) {
+    let html = document.documentElement,
+      lang = document.mozL10n.language;
 
-  var html = document.documentElement,
-    lang = document.mozL10n.language;
+    html.setAttribute('lang', lang.code);
+    html.setAttribute('dir', lang.direction);
 
-  html.setAttribute('lang', lang.code);
-  html.setAttribute('dir', lang.direction);
-
-  if (lang.direction === 'rtl') {
-    mail.defaultDirection = -mail.defaultDirection;
+    if (lang.direction === 'rtl') {
+      mail.defaultDirection = -mail.defaultDirection;
+    }
   }
 
-}));*/
+}));
 
-document.addEventListener('apploaded', mail.firstScreen, true);
+var handleLoad = function(e){
+
+    if (e.data.message !== 'visibilitychange'
+      || e.data.hidden) return;
+
+    let account = mail.accounts.auth();
+
+    if (account) {
+      setTimeout(function(){
+        mail.loadFolder(DEFAULT_FOLDER, mail.mailScreen);
+      }, 1);
+    } else {
+      mail.firstScreen();
+    }
+
+  },
+  handleChange = function() {
+
+  };
+
+// Listen outer event |visibilitychange|
+window.addEventListener('message', function(e) {
+  if (loading.done) {
+    handleChange(e);
+  } else {
+    mail.parentWindow = e.source;
+    document.addEventListener('apploaded', function() {
+      handleLoad(e);
+    });
+  }
+}, true);
+
+window.addEventListener('message', function(e) {
+  if (e.origin === ORIGIN) {
+
+    let url = e.data.messageLink;
+
+    if (!url.indexOf('http:') || !url.indexOf('https:')) {
+      mail.parentWindow.postMessage({
+        request: window.location.href.replace('email', 'browser').replace(/\/$/, ''),
+        params: {
+          url: url
+        }
+      }, '*');
+    }
+  }
+});
+
+ /*setTimeout(function(){
+  e.source
+}, 1000);*/
