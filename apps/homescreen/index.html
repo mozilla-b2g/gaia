@@ -7,6 +7,9 @@
     <link rel="stylesheet" type="text/css" href="style/homescreen.css">
     <script defer src="js/homescreen.js"></script>
 
+    <!-- DragDrop -->
+    <script defer src="js/dragdrop.js"></script>
+
     <!-- This is used only for uninstalling application and can be
          replaced with a simple confirm() once bug 741587 lands
          and handling dialog will be done in the system app.
@@ -27,9 +30,30 @@
   </head>
 
   <body>
-    <div id="home">
-      <div id="apps"></div>
-      <div id="dots"></div>
+    <div id="content">
+      <div id="home">
+        <div id="apps"></div>
+        <div id="dots"></div>
+      </div>
+    </div>
+
+    <div id="shortcuts">
+      <div class="shortcut">
+        <img src="style/icons/Phone.png"></img>
+        <span>Dialer</span>
+      </div>
+      <div class="shortcut">
+        <img src="style/icons/Messages.png"></img>
+        <span>Messages</span>
+      </div>
+      <div class="shortcut">
+        <img src="style/icons/Market.png"></img>
+        <span>Market</span>
+      </div>
+      <div class="shortcut">
+        <img src="style/icons/Browser.png"></img>
+        <span>Browser</span>
+      </div>
     </div>
   </body>
 </html>

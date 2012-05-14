@@ -2,6 +2,10 @@ var indexedDB = window.indexedDB || window.webkitIndexedDB ||
   window.mozIndexedDB || window.msIndexedDB;
 
 var GlobalHistory = {
+  init: function gh_init(callback) {
+    this.db.open(callback);
+  },
+
   addPlace: function gh_addPlace(uri) {
     var place = {
       uri: uri,
@@ -26,6 +30,11 @@ var GlobalHistory = {
       title: title
     };
     this.db.updatePlace(place);
+  },
+
+  getHistory: function gh_getHistory(callback) {
+    // Just get the most recent 20 for now
+    this.db.getHistory(20, callback);
   }
 
 };
@@ -33,7 +42,7 @@ var GlobalHistory = {
 GlobalHistory.db = {
   _db: null,
 
-  open: function db_open() {
+  open: function db_open(callback) {
     const DB_VERSION = 1;
     const DB_NAME = 'browser';
     var request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -47,10 +56,11 @@ GlobalHistory.db = {
     request.onsuccess = (function onSuccess(e) {
       this._db = e.target.result;
       console.log('Successfully opened browser database');
+      callback();
     }).bind(this);
 
     request.onerror = (function onDatabaseError(e) {
-      console.log('Error opening browser database: ' + e.target.errorCode);
+      console.log('Error opening browser database');
     }).bind(this);
   },
 
@@ -134,6 +144,33 @@ GlobalHistory.db = {
      request.onerror = function onerror(e) {
        console.log('Error while adding visit to global history store');
      };
+  },
+
+  getHistory: function db_getHistory(maximum, callback) {
+    var history = [];
+    var db = this._db;
+
+    function makeVisitProcessor(visit) {
+      return function(e) {
+          var place = e.target.result;
+          visit.title = place.title;
+          history.push(visit);
+        };
+    }
+
+    var transaction = db.transaction(['visits', 'places']);
+    var visitsStore = transaction.objectStore('visits');
+    var placesStore = transaction.objectStore('places');
+    visitsStore.openCursor(null, IDBCursor.PREV).onsuccess = function(e) {
+      var cursor = e.target.result;
+      if (cursor && history.length < maximum) {
+        var visit = cursor.value;
+        placesStore.get(visit.uri).onsuccess = makeVisitProcessor(visit);
+        cursor.continue();
+      } else {
+        callback(history);
+      }
+    };
   }
 
 };

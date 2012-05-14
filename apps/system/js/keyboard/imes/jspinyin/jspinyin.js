@@ -287,8 +287,7 @@ TaskQueue.prototype = {
    */
   processNext: function taskQueue_processNext() {
     if (this._queue.length > 0) {
-      var task = this._queue.pop();
-      this._queue.shift();
+      var task = this._queue.shift();
       if (typeof task.func == 'function') {
         task.func(this, task.data);
       } else {
@@ -682,7 +681,13 @@ IMEngineBase.prototype = {
      * Sends the input string to the IMEManager.
      * @param {String} str The input string.
      */
-    sendString: function(str) {}
+    sendString: function(str) {},
+
+    /**
+     * Change the keyboad
+     * @param {String} keyboard The name of the keyboard.
+     */
+    alterKeyboard: function(keyboard) {}
   },
 
   /**
@@ -718,6 +723,12 @@ IMEngineBase.prototype = {
    */
   select: function engineBase_select(text, data) {
     this._glue.sendString(text);
+  },
+
+  /**
+   * Notifies when the IM is shown
+   */
+  show: function engineBase_show(inputType) {
   }
 };
 
@@ -767,6 +778,9 @@ IMEngine.prototype = {
   _firstCandidate: '',
   _keypressQueue: null,
   _isWorking: false,
+
+  // Current keyboard
+  _keyboard: 'zh-Hans-Pinyin',
 
   _getCurrentDatabaseName: function engine_getCurrentDatabaseName() {
     return this._inputTraditionalChinese ? 'traditional' : 'simplified';
@@ -1088,11 +1102,21 @@ IMEngine.prototype = {
     });
   },
 
+  _alterKeyboard: function engine_changeKeyboard(keyboard) {
+    this._keyboard = keyboard;
+    this.empty();
+    this._glue.alterKeyboard(keyboard);
+  },
+
   /**
    * Override
    */
   init: function engine_init(glue) {
     IMEngineBase.prototype.init.call(this, glue);
+    debug('init.');
+    var keyboard = this._inputTraditionalChinese ?
+      'zh-Hans-Pinyin-tr' : 'zh-Hans-Pinyin';
+    this._alterKeyboard(keyboard);
   },
 
   /**
@@ -1117,12 +1141,42 @@ IMEngine.prototype = {
   click: function engine_click(keyCode) {
     IMEngineBase.prototype.click.call(this, keyCode);
 
-    // Toggle between the modes of tranditioanal Chinese and simplified Chinese
-    // TODO show the current mode on the keyboard.
-    if (keyCode == -10) {
-      this._inputTraditionalChinese = !this._inputTraditionalChinese;
-    } else {
-      this._keypressQueue.push(keyCode);
+    switch (keyCode) {
+      case -10:
+        // Switch to traditional Chinese input mode.
+        this._inputTraditionalChinese = true;
+        this._alterKeyboard('zh-Hans-Pinyin-tr');
+        break;
+      case -11:
+        // Switch to simplified Chinese input mode.
+        this._inputTraditionalChinese = false;
+        this._alterKeyboard('zh-Hans-Pinyin');
+        break;
+      case -12:
+        // Switch to number keyboard.
+        this._alterKeyboard('zh-Hans-Pinyin-number');
+        break;
+      case -13:
+        // Switch to symbol0 keyboard.
+        this._alterKeyboard('zh-Hans-Pinyin-symbol0');
+        break;
+      case -14:
+        // Switch to symbol1 keyboard.
+        this._alterKeyboard('zh-Hans-Pinyin-symbol1');
+        break;
+      case -15:
+        // Switch to symbol2 keyboard.
+        this._alterKeyboard('zh-Hans-Pinyin-symbol2');
+        break;
+      case -20:
+        // Switch back to the basic keyboard.
+        var keyboard = this._inputTraditionalChinese ?
+          'zh-Hans-Pinyin-tr' : 'zh-Hans-Pinyin';
+        this._alterKeyboard(keyboard);
+        break;
+      default:
+        this._keypressQueue.push(keyCode);
+        break;
     }
     this._start();
   },
@@ -1154,6 +1208,8 @@ IMEngine.prototype = {
    * Override
    */
   empty: function engine_empty() {
+    IMEngineBase.prototype.empty.call(this);
+    debug('empty.');
     var name = this._getCurrentDatabaseName();
     this._pendingSymbols = '';
     this._selectedText = '';
@@ -1162,6 +1218,21 @@ IMEngine.prototype = {
     this._isWorking = false;
     if (!this._db[name])
       this._initDB(name);
+  },
+
+  /**
+   * Override
+   */
+  show: function engine_show(inputType) {
+    IMEngineBase.prototype.show.call(this, inputType);
+    debug('Show. Input type: ' + inputType);
+    var keyboard = this._inputTraditionalChinese ?
+      'zh-Hans-Pinyin-tr' : 'zh-Hans-Pinyin';
+    if (inputType == '' || inputType == 'text' || inputType == 'textarea') {
+      keyboard = this._keyboard;
+    }
+
+    this._glue.alterKeyboard(keyboard);
   }
 };
 
@@ -1653,12 +1724,13 @@ IndexedDBStorage.prototype = {
     req.onsuccess = function dbopenSuccess(ev) {
       debug('IndexedDB opened.');
       self._IDBDatabase = ev.target.result;
-      
+
       self._status = DatabaseStorageBase.StatusCode.READY;
       self._count = 0;
-      
+
       // Check the integrity of the storage
-      self.getTermsBySyllables('_last_entry_', function getLastEntryCallback(homonymsArray) {  
+      self.getTermsBySyllables('_last_entry_',
+        function getLastEntryCallback(homonymsArray) {
         if (homonymsArray.length == 0) {
           debug('IndexedDB is broken.');
           // Could not find the '_last_entry_' element. The storage is broken
@@ -1666,22 +1738,23 @@ IndexedDBStorage.prototype = {
           doCallback();
           return;
         }
-        
-        var transaction = self._IDBDatabase.transaction(['homonyms'], 'readonly');
-        // Get the count        
+
+        var transaction =
+          self._IDBDatabase.transaction(['homonyms'], 'readonly');
+        // Get the count
         var reqCount = transaction.objectStore('homonyms').count();
-  
+
         reqCount.onsuccess = function(ev) {
           debug('IndexedDB count: ' + ev.target.result);
           self._count = ev.target.result - 1;
           self._status = DatabaseStorageBase.StatusCode.READY;
           doCallback();
         };
-  
+
         reqCount.onerror = function(ev) {
           self._status = DatabaseStorageBase.StatusCode.ERROR;
           doCallback();
-        };        
+        };
       });
     };
   },
@@ -1831,9 +1904,9 @@ IndexedDBStorage.prototype = {
         var homonyms = homonymsArray[i];
         store.put(homonyms);
       }
-      
+
       // Add a special element to indicate that all the items are saved.
-      if (end == n-1) {
+      if (end == n - 1) {
         store.put(new Homonyms('_last_entry_', []));
       }
     };

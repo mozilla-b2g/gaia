@@ -243,3 +243,16 @@ li#brightness progress {
   background-image: url(images/wifi-scan.png);
 }
 
+/* APN data (should be in a dialog) */
+#data form {
+  padding: 0 20px;
+}
+#data form p {
+  margin-bottom: 0;
+}
+#data form span, #data form input {
+  display: block;
+  width: 99%;
+  font-size: 1em;
+}
+
