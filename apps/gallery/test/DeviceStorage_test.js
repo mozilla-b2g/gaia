@@ -1,7 +1,13 @@
 // Make sure the navigator object exists
+// This is a workaround to defeat lazy initialization of navigator
+// and prevent erroneous reports of global leakage.
 window.navigator;
 
 suite("DeviceStorage", function() {
+
+  // If the API hasn't landed yet, then don't test it.
+  if (!navigator.getDeviceStorage)
+    return;
 
   test("api existence", function() {
     assert.typeOf(navigator.getDeviceStorage, "function");
