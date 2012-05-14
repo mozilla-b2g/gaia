@@ -276,8 +276,8 @@ const Keyboards = {
   },
   'zh-Hans-Pinyin': {
     type: 'ime',
-    label: 'Chinese - Simplified - Pinyin',
-    menuLabel: '简体拼音输入',
+    label: 'Chinese - Simplified & Traditional - Pinyin',
+    menuLabel: '拼音输入',
     needsCandidatePanel: true,
     disableAlternateLayout: true,
     hidesSwitchKey: true,
