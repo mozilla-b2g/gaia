@@ -241,7 +241,7 @@ update-common: common-install
 # Create the json config file
 # for use with the test agent GUI
 build-test-ui:
-	@rm $(TEST_AGENT_CONFIG)
+	@rm -f $(TEST_AGENT_CONFIG)
 	@touch $(TEST_AGENT_CONFIG)
 	@echo '{\n  "tests": [' >> $(TEST_AGENT_CONFIG)
 
