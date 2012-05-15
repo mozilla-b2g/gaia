@@ -102,7 +102,8 @@ let permissions = {
 
 let content = "";
 
-content += "user_pref(\"browser.homescreenURL\",\"" + HOMESCREEN + "\");\n\n";
+let homescreen = HOMESCREEN + (GAIA_PORT ? GAIA_PORT : '');
+content += "user_pref(\"browser.homescreenURL\",\"" + homescreen + "\");\n\n";
 
 let privileges = [];
 
