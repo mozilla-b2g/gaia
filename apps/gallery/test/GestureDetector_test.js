@@ -209,7 +209,12 @@ suite('GestureDetector', function() {
       ];
       
       pinches.forEach(function(p, index) {
-        test('pinch ' + index, function(done) {
+        var testname = 'Pinch ' + index +
+          ': (' + p.x0 + ',' + p.y0 + ')' + 
+          ' & (' + p.x1 + ',' + p.y1 + ')' + 
+          ' scale: ' + p.scale;
+
+        test(testname, function(done) {
           SyntheticGestures.pinch(element, p.x0, p.y0, p.x1, p.y1,
                                   p.scale, p.duration, checkpinch);
           function checkpinch() {
