@@ -3,6 +3,8 @@ requireApp('gallery/js/GestureDetector.js');
 
 suite('GestureDetector', function() {
 
+  var touchDevice = (window.Touch !== undefined);
+
   suite('API', function() {
     test('public methods and constants', function() {
       assert.typeOf(GestureDetector, 'function');
@@ -194,37 +196,44 @@ suite('GestureDetector', function() {
       });
     });
 
-    var pinches = [
-      { x0: 0, y0: 0, x1: 100, y1: 100, scale: 2, duration: 200 },
-      { x0: 0, y0: 0, x1: 100, y1: 100, scale: .5, duration: 150 },
-      { x0: 100, y0: 100, x1: 10, y1: 10, scale: 1.5, duration: 150 },
-      { x0: 200, y0: 200, x1: 10, y1: 10, scale: .75, duration: 100 },
-      { x0: 200, y0: 200, x1: 200, y1: 0, scale: 2, duration: 150 },
-      { x0: 200, y0: 200, x1: 200, y1: 0, scale: .5, duration: 150 },
-      { x0: 200, y0: 200, x1: 0, y1: 200, scale: 3, duration: 150 },
-      { x0: 200, y0: 200, x1: 0, y1: 200, scale: .3, duration: 150 }
-    ];
+    if (touchDevice) {
+      var pinches = [
+        { x0: 0, y0: 0, x1: 100, y1: 100, scale: 2, duration: 200 },
+        { x0: 0, y0: 0, x1: 100, y1: 100, scale: .5, duration: 150 },
+        { x0: 100, y0: 100, x1: 10, y1: 10, scale: 1.5, duration: 150 },
+        { x0: 200, y0: 200, x1: 10, y1: 10, scale: .75, duration: 100 },
+        { x0: 200, y0: 200, x1: 200, y1: 0, scale: 2, duration: 150 },
+        { x0: 200, y0: 200, x1: 200, y1: 0, scale: .5, duration: 150 },
+        { x0: 200, y0: 200, x1: 0, y1: 200, scale: 3, duration: 150 },
+        { x0: 200, y0: 200, x1: 0, y1: 200, scale: .3, duration: 150 }
+      ];
+      
+      pinches.forEach(function(p, index) {
+        var testname = 'Pinch ' + index +
+          ': (' + p.x0 + ',' + p.y0 + ')' + 
+          ' & (' + p.x1 + ',' + p.y1 + ')' + 
+          ' scale: ' + p.scale;
 
-    pinches.forEach(function(p, index) {
-      test('pinch ' + index, function(done) {
-        SyntheticGestures.pinch(element, p.x0, p.y0, p.x1, p.y1,
-                                p.scale, p.duration, checkpinch);
-        function checkpinch() {
-          assert.match(eventseq(), /(transform )*transform/);
-          var e = events[events.length - 1];
-          var d = e.detail;
-          between(d.absolute.scale, 0.95 * p.scale, 1.05 * p.scale);
-          assert.equal(d.absolute.rotate, 0);
-          assert.equal(d.relative.rotate, 0);
-
-          // compute the product of all the relative scales
-          var s = 1.0;
-          events.forEach(function(e) { s *= e.detail.relative.scale; });
-          between(s, 0.95 * p.scale, 1.05 * p.scale);
-          done();
-        }
+        test(testname, function(done) {
+          SyntheticGestures.pinch(element, p.x0, p.y0, p.x1, p.y1,
+                                  p.scale, p.duration, checkpinch);
+          function checkpinch() {
+            assert.match(eventseq(), /(transform )*transform/);
+            var e = events[events.length - 1];
+            var d = e.detail;
+            between(d.absolute.scale, 0.95 * p.scale, 1.05 * p.scale);
+            assert.equal(d.absolute.rotate, 0);
+            assert.equal(d.relative.rotate, 0);
+            
+            // compute the product of all the relative scales
+            var s = 1.0;
+            events.forEach(function(e) { s *= e.detail.relative.scale; });
+            between(s, 0.95 * p.scale, 1.05 * p.scale);
+            done();
+          }
+        });
       });
-    });
+    }
 
     // Reuse some of the swipes data for testing hold+move events.
     // The hold tests take about 1.5s each since they require > 1s
