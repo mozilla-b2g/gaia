@@ -82,7 +82,7 @@ body {
 }
 
 #notifications-container .notification > a.close {
-  background: url('images/close.png') center center no-repeat;
+  background: url('images/notifications/close.png') center center no-repeat;
   background-size: 40px 40px;
 }
 
