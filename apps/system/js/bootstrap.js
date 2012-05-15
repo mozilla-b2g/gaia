@@ -275,6 +275,11 @@ var KeyHandler = {
   }
 };
 
+/* === Keyboard === */
+
+// TODO: Retrieve it from Settings, allowing 3rd party keyboards
+var KEYBOARD_URL = "http://keyboard.gaiamobile.org";
+
 
 /* === Screen Manager === */
 var ScreenManager = {
