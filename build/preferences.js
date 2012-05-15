@@ -102,8 +102,7 @@ let permissions = {
 
 let content = "";
 
-let homescreen = "http://system." + GAIA_DOMAIN;
-content += "user_pref(\"browser.homescreenURL\",\"" + homescreen + "\");\n\n";
+content += "user_pref(\"browser.homescreenURL\",\"" + HOMESCREEN + "\");\n\n";
 
 let privileges = [];
 
@@ -150,7 +149,7 @@ if (DEBUG) {
   content += "user_pref(\"nglayout.debug.disable_xul_fastload\", true);\n";
   content += "user_pref(\"browser.cache.offline.enable\", false);\n";
   content += "user_pref(\"extensions.autoDisableScopes\", 0);\n";
-  content += "user_pref(\"browser.startup.homepage\", \"" + homescreen + "\");\n";
+  content += "user_pref(\"browser.startup.homepage\", \"" + HOMESCREEN + "\");\n";
 
   content += "user_pref(\"dom.mozBrowserFramesEnabled\", true);\n";
   content += "user_pref(\"b2g.ignoreXFrameOptions\", true);\n";
