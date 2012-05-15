@@ -274,8 +274,12 @@ endif
 #     let us remove the update-offline-manifests target dependancy of the
 #     default target.
 stamp-commit-hash:
-	git log -1 --format="%H%n%at" HEAD > apps/settings/gaia-commit.txt
-
+	(if [ -d ./.git ]; then \
+	  git log -1 --format="%H%n%at" HEAD > apps/settings/gaia-commit.txt; \
+	else \
+	  echo 'Unknown Git commit; build date shown here.' > apps/settings/gaia-commit.txt; \
+	  date +%s >> apps/settings/gaia-commit.txt; \
+	fi)
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 delete-databases:
