@@ -97,7 +97,7 @@ MARIONETTE_PORT ?= 2828
 TEST_DIRS ?= $(CURDIR)/tests
 
 # Generate profile/
-profile: stamp-commit-hash update-offline-manifests preferences manifests offline extensions build-test-ui
+profile: stamp-commit-hash update-offline-manifests preferences manifests offline extensions test-agent-config
 	@echo "\nProfile Ready: please run [b2g|firefox] -profile $(CURDIR)/profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
@@ -240,13 +240,13 @@ update-common: common-install
 
 # Create the json config file
 # for use with the test agent GUI
-build-test-ui:
+test-agent-config:
 	@rm -f $(TEST_AGENT_CONFIG)
 	@touch $(TEST_AGENT_CONFIG)
 	@echo '{\n  "tests": [' >> $(TEST_AGENT_CONFIG)
 
 	# Build json array of all test files
-	@(find . -name "*_test.js" | \
+	@(find ./apps -name "*_test.js" | \
 		sed 's:./apps/::' | \
 		sed 's:\(.*\):"\1":' | \
 		sed -e ':a' -e 'N' -e '$$!ba' -e 's/\n/,\
