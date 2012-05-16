@@ -16,7 +16,7 @@
 				currentApp.style.height = "-moz-calc("+currentApp.style.height+" - "+event.height+")";
 				currentApp.classList.add("keyboardOn");
 				keyboardFrame.style.display = "block";
-				keyboardFrame.style.height = event.height;
+				keyboardFrame.style.height = "100%";
 			}
 		});
 
