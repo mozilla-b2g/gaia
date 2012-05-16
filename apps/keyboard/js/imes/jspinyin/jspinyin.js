@@ -2383,6 +2383,135 @@ var IMEngineDatabase = function imedb(dbName, jsonUrl) {
   };
 };
 
+var PinyinDecoderService = {
+  /**
+   * Open the decoder engine.
+   * @retrun {Boolean} true if open the decode engine sucessfully.
+   */
+  open: function decoderService_open() {
+    
+  },
+  
+  /**
+   * Close the decode engine.
+   */
+  close: function decoderService_close() {
+    
+  },
+  
+  /**
+   * Flush cached data to persistent memory. Because at runtime, in order to
+   * achieve best performance, some data is only store in memory.
+   */
+  flushCache: function decoderService_flushCache() {
+    
+  },
+  
+  /**
+   * Use a spelling string(Pinyin string) to search. The engine will try to do
+   * an incremental search based on its previous search result, so if the new
+   * string has the same prefix with the previous one stored in the decoder,
+   * the decoder will only continue the search from the end of the prefix.
+   * If the caller needs to do a brand new search, please call im_reset_search()
+   * first.
+   *
+   * @param {String} spsStr The spelling string buffer to decode.
+   * @return {Integer} The number of candidates.
+   */
+  search: function decoderService_search(spsStr) {
+    
+  },
+
+  /**
+   * Make a delete operation in the current search result, and make research if
+   * necessary.
+   *
+   * @param {Integer} pos The posistion of char in spelling string to delete, or the
+   * position of spelling id in result string to delete.
+   * @param {Boolean} isPosInSplid Indicate whether the pos parameter is the position
+   * in the spelling string, or the position in the result spelling id string.
+   * @param {Boolean} clearFixed If true, the fixed spellings will be cleared.
+   * @return The number of candidates.
+   */
+  delSearch: function decoderService_delSearch(pos, isPosInSplid, clearFixed) {
+    
+  },
+
+  /**
+   * Reset the previous search result.
+   */
+  resetSearch: function decoderService_resetSearch() {
+    
+  },
+
+  /**
+   * Get the spelling string kept by the decoder.
+   *
+   * @return {String} The spelling string kept by the decoder.
+   */
+  getSpsStr: function decoderService_getSpsStr() {
+    
+  },
+
+  /**
+   * Get a candidate(or choice) string.
+   *
+   * @param {Integer} candId The id to get a candidate. Started from 0. Usually, id 0
+   * is a sentence-level candidate.
+   * @return {String } The candidate string if succeeds, otherwise null.
+   */
+  getCandidate: function decoderService_getCandidate(candId) {
+    
+  },
+
+  /**
+   * Get the segmentation information(the starting positions) of the spelling
+   * string.
+   *
+   * @return {Array} An array contains the starting position of all the
+   * spellings.
+   */
+  getSplStartPos: function decoderService_getSplStartPos() {
+    
+  },
+
+  /**
+   * Choose a candidate and make it fixed. If the candidate does not match
+   * the end of all spelling ids, new candidates will be provided from the
+   * first unfixed position. If the candidate matches the end of the all
+   * spelling ids, there will be only one new candidates, or the whole fixed
+   * sentence.
+   *
+   * @param {Integer} candId The id of candidate to select and make it fixed.
+   * @return {Integer} The number of candidates. If after the selection, the whole result
+   * string has been fixed, there will be only one candidate.
+   */
+  choose: function decoderService_choose(candId) {
+    
+  },
+
+  /**
+   * Get the number of fixed spelling ids, or Chinese characters.
+   *
+   * @return {Integer} The number of fixed spelling ids, of Chinese characters.
+   */
+  getFixedLen: function decoderService_getFixedLen() {
+    
+  },
+
+  /**
+   * Get prediction candiates based on the given fixed Chinese string as the
+   * history.
+   *
+   * @param {String} history The history string to do the prediction. 
+   * @param pre_buf Used to return prediction result list.
+   * @return {Array} The prediction result list of an string array.
+   */
+  getPredicts: function decoderService_getPredicts(history) {
+    
+  }
+};
+
 var jspinyin = new IMEngine(new PinyinParser());
 
 // Expose jspinyin as an AMD module
