@@ -488,7 +488,7 @@ const IMEManager = {
     if (keyboard.type !== 'ime')
       return;
 
-    var sourceDir = './js/keyboard/imes/';
+    var sourceDir = './js/imes/';
     var imEngine = keyboard.imEngine;
 
     // Same IME Engine could be load by multiple keyboard layouts
