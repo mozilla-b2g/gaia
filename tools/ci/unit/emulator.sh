@@ -1,3 +1,5 @@
+#!/bin/bash
+
 CI_TOOLS=$PWD;
 
 source $PWD/config.sh
@@ -13,7 +15,7 @@ rm -f gaia/profile.tar.gz
 DOMAIN=http://test-agent.trunk.gaiamobile.org/index.html#?websocketUrl=$TEST_AGENT_SERVER
 
 echo "Starting Emulator";
-./gecko/testing/marionette/client/marionette/runemu.sh \
+./gecko/testing/marionette/client/marionette/scripts/runemu.sh \
   python --repo $B2G_HOME \
   --pidfile $B2G_HOME/emulator.pid  \
   --url $DOMAIN;

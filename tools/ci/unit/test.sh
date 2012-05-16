@@ -1,3 +1,5 @@
+#!/bin/bash
+
 cd $B2G_HOME/gaia
 
 # start test agent server put it in the background
