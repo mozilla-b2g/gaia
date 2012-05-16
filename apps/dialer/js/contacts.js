@@ -587,20 +587,21 @@ var ContactDetails = {
     document.getElementById('contact-photo').innerHTML =
       '<img src="style/images/contact-placeholder.png" alt="profile" />';
 
-    if (contact.tel) {
-      var number = contact.tel.length ? contact.tel[0].number : '';
+    this.contactPhoneField.value = '';
+    if (contact.tel.length) {
+      var number = contact.tel[0].number;
       this.contactPhone.querySelector('.value').innerHTML = number;
       this.contactPhone.dataset.number = number;
 
       this.contactPhoneField.value = number;
     }
 
-    if (this._contact.email) {
+    this.contactEmailField.value = '';
+    if (this._contact.email.length) {
       this.contactEmail.querySelector('.value').innerHTML =
         contact.email[0];
 
-      this.contactEmailField.value = contact.email.length ?
-        contact.email[0] : '';
+      this.contactEmailField.value = contact.email[0];
     }
 
     this.favorited.checked = (contact.category &&
