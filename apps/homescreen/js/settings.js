@@ -1,4 +1,3 @@
-
 var SettingsListener = {
   _callbacks: {},
 
@@ -32,23 +31,3 @@ var SettingsListener = {
 };
 
 SettingsListener.init();
-
-/* === Language === */
-SettingsListener.observe('language.current', 'en-US', function(value) {
-  document.mozL10n.language.code = value;
-  document.documentElement.lang = document.mozL10n.language.code;
-  document.documentElement.dir = document.mozL10n.language.direction;
-
-  setTimeout(function() {
-    appscreen.build(true);
-  });
-});
-
-/* === Wallpapers === */
-SettingsListener.observe('homescreen.wallpaper', 'default.png',
-  function(value) {
-    document.getElementById('home').style.backgroundImage =
-      'url(style/backgrounds/' + value + ')';
-  }
-);
-
