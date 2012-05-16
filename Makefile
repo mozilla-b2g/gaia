@@ -4,6 +4,8 @@
 # GAIA_DOMAIN : change that if you plan to use a different domain to update   #
 #               your applications or want to use a local domain               #
 #                                                                             #
+# HOMESCREEN  : url of the homescreen to start on                             #
+#                                                                             #
 # ADB         : if you use a device and plan to send update it with your work #
 #               you need to have adb in your path or you can edit this line to#
 #               specify its location.                                         #
@@ -15,6 +17,8 @@
 #                                                                             #
 ###############################################################################
 GAIA_DOMAIN?=gaiamobile.org
+
+HOMESCREEN?=http://system.$(GAIA_DOMAIN)
 
 ADB?=adb
 
@@ -78,6 +82,8 @@ ifeq ($(strip $(NPM)),)
 	NPM := `which npm`
 endif
 
+TEST_AGENT_CONFIG="./apps/test-agent/test/config.json"
+
 #Marionette testing variables
 #make sure we're python 2.7.x
 ifeq ($(strip $(PYTHON_27)),)
@@ -91,7 +97,7 @@ MARIONETTE_PORT ?= 2828
 TEST_DIRS ?= $(CURDIR)/tests
 
 # Generate profile/
-profile: stamp-commit-hash update-offline-manifests preferences manifests offline extensions
+profile: stamp-commit-hash update-offline-manifests preferences manifests offline extensions test-agent-config
 	@echo "\nProfile Ready: please run [b2g|firefox] -profile $(CURDIR)/profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
@@ -172,7 +178,7 @@ settingsdb :
 preferences: install-xulrunner
 	@echo "Generating prefs.js..."
 	@mkdir -p profile
-	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)$(GAIA_PORT)"; const DEBUG = $(DEBUG)' build/preferences.js
+	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)$(GAIA_PORT)"; const DEBUG = $(DEBUG); const HOMESCREEN = "$(HOMESCREEN)"; GAIA_PORT = "$(GAIA_PORT)"' build/preferences.js
 	@echo "Done"
 
 
@@ -232,6 +238,24 @@ update-common: common-install
 	cp $(TEST_AGENT_DIR)/node_modules/marionette-client/marionette.js common/vendor/marionette-client/
 	cp $(TEST_AGENT_DIR)/node_modules/chai/chai.js common/vendor/chai/
 
+# Create the json config file
+# for use with the test agent GUI
+test-agent-config:
+	@rm -f $(TEST_AGENT_CONFIG)
+	@touch $(TEST_AGENT_CONFIG)
+	@echo '{\n  "tests": [' >> $(TEST_AGENT_CONFIG)
+
+	# Build json array of all test files
+	@(find ./apps -name "*_test.js" | \
+		sed 's:./apps/::' | \
+		sed 's:\(.*\):"\1":' | \
+		sed -e ':a' -e 'N' -e '$$!ba' -e 's/\n/,\
+	/g') >> $(TEST_AGENT_CONFIG)
+
+	@echo '  ]\n}' >> $(TEST_AGENT_CONFIG);
+	@echo "Built test ui config file: $(TEST_AGENT_CONFIG)"
+
+
 # Temp make file method until we can switch
 # over everything in test
 .PHONY: test-agent-test
@@ -274,8 +298,12 @@ endif
 #     let us remove the update-offline-manifests target dependancy of the
 #     default target.
 stamp-commit-hash:
-	git log -1 --format="%H%n%at" HEAD > apps/settings/gaia-commit.txt
-
+	(if [ -d ./.git ]; then \
+	  git log -1 --format="%H%n%at" HEAD > apps/settings/gaia-commit.txt; \
+	else \
+	  echo 'Unknown Git commit; build date shown here.' > apps/settings/gaia-commit.txt; \
+	  date +%s >> apps/settings/gaia-commit.txt; \
+	fi)
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 delete-databases:

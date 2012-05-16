@@ -211,6 +211,9 @@
     "name": [
       "Maria Dias Lima"
     ], 
+    "category": [
+      "Favorites"
+    ],
     "org": [
       "Cala Foods"
     ], 
@@ -388,6 +391,9 @@
     "name": [
       "Rebecca Mascarenas Ozuna"
     ], 
+    "category": [
+      "Favorites"
+    ],
     "org": [
       "Dee's Drive-In"
     ], 
@@ -1506,6 +1512,9 @@
     "org": [
       "Rite Solution"
     ], 
+    "category": [
+      "Favorites"
+    ],
     "tel": [
       {
         "number": "02.85.63.19.56", 
@@ -12885,7 +12894,10 @@
     ], 
     "org": [
       "Custom Lawn Service"
-    ], 
+    ],
+    "category": [
+      "Favorites"
+    ],
     "tel": [
       {
         "number": "(61) 6055-8910", 
