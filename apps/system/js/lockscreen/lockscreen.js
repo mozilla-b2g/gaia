@@ -19,26 +19,33 @@ var LockScreen = {
     return this.notification = document.getElementById('lockscreenNotification');
   },
 
+  get notificationTitle() {
+    delete this.notificationTitle;
+    return this.notificationTitle =
+      document.getElementById('lockscreenNotificationTitle');
+  },
+
+  get notificationDetail() {
+    delete this.notificationDetail;
+    return this.notificationDetail =
+      document.getElementById('lockscreenNotificationDetail');
+  },
+
+
   locked: true,
 
   init: function lockscreen_init() {
-    var events = ['touchstart', 'touchmove', 'touchend', 'keydown', 'keyup', 'transitionend'];
+    var events = ['touchstart', 'touchmove', 'touchend',
+        'keydown', 'keyup', 'transitionend'];
     AddEventHandlers(LockScreen.overlay, this, events);
     this.update();
 
     this.notification.addEventListener('click', this);
-
-    window.addEventListener('mozChromeEvent', function notificationListener(e) {
-      var detail = e.detail;
-      if (detail.type !== 'desktop-notification')
-        return;
-
-      if (!LockScreen.locked)
-        return;
-      LockScreen.showNotification(detail.title, detail.text);
-    });
+    window.addEventListener('mozChromeEvent', this);
 
     PadLock.init();
+    if (localStorage['passcode-lock'] == 'false')
+      this.unlockPadlock(true);
   },
 
   update: function lockscreen_update() {
@@ -51,13 +58,13 @@ var LockScreen = {
   },
 
   showNotification: function lockscreen_showNotification(title, detail) {
-    this.notification.dataset.visible = true;
-    this.notification.firstChild.textContent = title;
-    this.notification.lastChild.textContent = detail;
+    this.notification.hidden = false;
+    this.notificationTitle.textContent = title;
+    this.notificationDetail.textContent = detail;
   },
 
   hideNotification: function lockscreen_hideNotification() {
-    delete this.notification.dataset.visible;
+    this.notification.hidden = true;
   },
 
   lock: function lockscreen_lock(instant) {
@@ -205,6 +212,14 @@ var LockScreen = {
 
   handleEvent: function lockscreen_handleEvent(e) {
     switch (e.type) {
+      case 'mozChromeEvent':
+        var detail = e.detail;
+        if (!this.locked || detail.type !== 'desktop-notification')
+          return;
+
+        this.showNotification(detail.title, detail.text);
+        break;
+
       case 'click':
         this.hideNotification();
         break;
@@ -222,12 +237,6 @@ var LockScreen = {
       case 'touchstart':
         this.onTouchStart(e.touches[0]);
         this.overlay.setCapture(false);
-
-        // XXX: Put it here because setting value during init()
-        // is not updated for real
-        if (localStorage['passcode-lock'] == 'false') {
-          this.unlockPadlock(true);
-        }
 
         break;
 
@@ -338,7 +347,8 @@ var PadLock = {
       }, this.kTimeout);
     } else {
       this.padlockOverlay.dataset.status = 'error';
-      navigator.mozVibrate([50, 50, 50]);
+      if (navigator.mozVibrate)
+        navigator.mozVibrate([50, 50, 50]);
       var timeout = this.kErrorTimeout;
       this.error++;
       if (this.error === 3) {
@@ -364,14 +374,19 @@ var PadLock = {
     evt.preventDefault();
 
     switch (evt.target.dataset.key) {
+      // Emergency
       case 'e':
         // XXX: TBD
         break;
+      // Back
       case 'b':
+        // Back to lock screen
         if (!this.currentCode) {
           LockScreen.lock();
           break;
         }
+
+        // Back one character
         this.currentCode =
           this.currentCode.substr(0, this.currentCode.length - 1);
         this.updateCodeUI();

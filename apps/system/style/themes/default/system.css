@@ -72,12 +72,6 @@ body {
 
   height: 80px;
   font-weight: bold;
-
-  display: none;
-}
-
-#lockscreenNotification[data-visible] {
-  display: block;
 }
 
 #lockscreenNotification > div:first-child {
