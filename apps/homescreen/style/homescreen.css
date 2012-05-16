@@ -42,21 +42,22 @@ body {
   background-origin: padding-box;
   background-position: center center;
   background-repeat: no-repeat;
+  background-size: 100%;
 }
 
 #apps {
   position: absolute;
   top: 0;
-  margin-top: 40px;
+  margin-top: 20px;
 
-  /* height = -margin-top +100% - dots.height - notifications.height */
-  height: -moz-calc(-40px + 100% - 14px - 80px);
+  /* height = -margin-top +100% - dots.height - shortcuts.height*/
+  height: -moz-calc(-20px + 100% - 14px - 135px);
   width: 100%;
 }
 
 #dots {
   position: absolute;
-  bottom: 90px;
+  bottom: 140px;
   height: 14px;
   line-height: 14px;
   text-align: center;
@@ -65,25 +66,25 @@ body {
 
 .page {
   position: absolute;
-  left: 42px;
+  left: 0px;
   top: 0px;
-  width: -moz-calc(100% - 42px);
+  width: -moz-calc(100%);
+  overflow: hidden;
 }
 
 .icon {
   position: relative;
   float: left;
 
-  width: 128px;
-  height: 192px;
-  background-color: #222;
-  background-position: 8px 8px;
-  background-repeat: no-repeat;
-  background-color: #222;
-  border-radius: 5px;
-  margin-right: 4px;
-  margin-bottom: 4px;
-  overflow: hidden;
+  width: 79px;
+  height: 79px;
+  margin: 30px 20px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+*[dir=rtl] .icon {
+  float: right;
 }
 
 .icon > * {
@@ -93,18 +94,36 @@ body {
 .icon > div {
   display: inline-block;
 
-  width: 120px;
-  height: 120px;
+  width: 79px;
+  height: 79px;
+  text-align: center;
+  color: white;
 }
 
 .icon > .label {
-  padding-top: 36px;
-  padding-left: 8px;
-  color: white;
+  margin-top: 10px;
+}
+
+.icon.hidden {
+  visibility: hidden;
+}
+
+body > .icon {
+  z-index: 100000;
+  box-shadow: 0 0 5px 5px #666;
+}
+
+.edit .icon:before {
+  content: url(icons/close.png);
+  position: absolute;
+  top: -10px;
+  right: -10px;
 }
 
 .dot {
   display: inline-block;
+  height: 5px;
+  background-color: transparent;
 
   width: 10px;
   height: 10px;
@@ -118,59 +137,36 @@ body {
   background-color: white;
 }
 
-/* Horizontal orientation height of our current target phones */
-@media all and (max-height: 600px) {
-  #apps {
-    /* height = -margin-top +100% - dots.height - dots.bottom - notifications.height */
-    height: -moz-calc(-24px + 100% - 14px - 14px - 0px);
-    margin-top: 24px;
-  }
-
-  #dots {
-    bottom: 14px;
-  }
-}
-
-/* Vertical orientation of 320x480 phones */
-@media all and (max-width: 320px) {
-  .page {
-    left: 30px;
-    width: -moz-calc(100% - 30px);
-  }
-}
-
-/* Horizontal orientation height of 800x480 phones */
-@media all and (min-width: 800px) {
-  .page {
-    left: 70px;
-    width: -moz-calc(100% - 70px);
-  }
-}
-
 /*
  * Localization: RTL layout
  */
 
 *[dir=rtl] .page {
   left: auto;
-  right: 42px;
 }
 
-@media all and (max-width: 320px) {
-  .page {
-    left: auto;
-    right: 30px;
-  }
+/* Shortcuts */
+
+#shortcuts {
+  position: absolute;
+  bottom: 0;
+  height: 135px;
+  width: 100%;
+  background: rgba(0,0,0,0.1);
 }
 
-*[dir=rtl] .icon {
-  float: right;
-  margin-left: 4px;
-  margin-right: 0;
+#shortcuts .shortcut {
+  float: left;
+  width: 25%;
+  margin: 5px 0;
+  text-align: center;
 }
 
-*[dir=rtl] .icon > .label {
-  padding-left: 0;
-  padding-right: 8px;
+#shortcuts .shortcut img {
+  display: block;
+  height: 79px;
+  height: 79px;
+  border-radius: 10px;
+  margin: 10px auto 15px auto;
 }
 

@@ -56,5 +56,6 @@
   "hackKillMe": true,
   "icons": {
     "120": "/style/icons/VideoCube.png"
-  }
+  },
+  "orientation": "portrait-primary"
 }

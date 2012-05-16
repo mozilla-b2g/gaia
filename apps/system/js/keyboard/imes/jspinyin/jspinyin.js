@@ -287,7 +287,7 @@ TaskQueue.prototype = {
    */
   processNext: function taskQueue_processNext() {
     if (this._queue.length > 0) {
-      var task = this._queue.pop();
+      var task = this._queue.shift();
       if (typeof task.func == 'function') {
         task.func(this, task.data);
       } else {
@@ -661,8 +661,6 @@ IMEngineBase.prototype = {
      */
     path: '',
 
-    mode: false,
-
     /**
      * Sends candidates to the IMEManager
      */
@@ -683,7 +681,13 @@ IMEngineBase.prototype = {
      * Sends the input string to the IMEManager.
      * @param {String} str The input string.
      */
-    sendString: function(str) {}
+    sendString: function(str) {},
+
+    /**
+     * Change the keyboad
+     * @param {String} keyboard The name of the keyboard.
+     */
+    alterKeyboard: function(keyboard) {}
   },
 
   /**
@@ -719,6 +723,12 @@ IMEngineBase.prototype = {
    */
   select: function engineBase_select(text, data) {
     this._glue.sendString(text);
+  },
+
+  /**
+   * Notifies when the IM is shown
+   */
+  show: function engineBase_show(inputType) {
   }
 };
 
@@ -768,6 +778,9 @@ IMEngine.prototype = {
   _firstCandidate: '',
   _keypressQueue: null,
   _isWorking: false,
+
+  // Current keyboard
+  _keyboard: 'zh-Hans-Pinyin',
 
   _getCurrentDatabaseName: function engine_getCurrentDatabaseName() {
     return this._inputTraditionalChinese ? 'traditional' : 'simplified';
@@ -1089,11 +1102,21 @@ IMEngine.prototype = {
     });
   },
 
+  _alterKeyboard: function engine_changeKeyboard(keyboard) {
+    this._keyboard = keyboard;
+    this.empty();
+    this._glue.alterKeyboard(keyboard);
+  },
+
   /**
    * Override
    */
   init: function engine_init(glue) {
     IMEngineBase.prototype.init.call(this, glue);
+    debug('init.');
+    var keyboard = this._inputTraditionalChinese ?
+      'zh-Hans-Pinyin-tr' : 'zh-Hans-Pinyin';
+    this._alterKeyboard(keyboard);
   },
 
   /**
@@ -1118,12 +1141,42 @@ IMEngine.prototype = {
   click: function engine_click(keyCode) {
     IMEngineBase.prototype.click.call(this, keyCode);
 
-    // Toggle between the modes of tranditioanal Chinese and simplified Chinese
-    // TODO show the current mode on the keyboard.
-    if (keyCode == -10) {
-      this._inputTraditionalChinese = !this._inputTraditionalChinese;
-    } else {
-      this._keypressQueue.push(keyCode);
+    switch (keyCode) {
+      case -10:
+        // Switch to traditional Chinese input mode.
+        this._inputTraditionalChinese = true;
+        this._alterKeyboard('zh-Hans-Pinyin-tr');
+        break;
+      case -11:
+        // Switch to simplified Chinese input mode.
+        this._inputTraditionalChinese = false;
+        this._alterKeyboard('zh-Hans-Pinyin');
+        break;
+      case -12:
+        // Switch to number keyboard.
+        this._alterKeyboard('zh-Hans-Pinyin-number');
+        break;
+      case -13:
+        // Switch to symbol0 keyboard.
+        this._alterKeyboard('zh-Hans-Pinyin-symbol0');
+        break;
+      case -14:
+        // Switch to symbol1 keyboard.
+        this._alterKeyboard('zh-Hans-Pinyin-symbol1');
+        break;
+      case -15:
+        // Switch to symbol2 keyboard.
+        this._alterKeyboard('zh-Hans-Pinyin-symbol2');
+        break;
+      case -20:
+        // Switch back to the basic keyboard.
+        var keyboard = this._inputTraditionalChinese ?
+          'zh-Hans-Pinyin-tr' : 'zh-Hans-Pinyin';
+        this._alterKeyboard(keyboard);
+        break;
+      default:
+        this._keypressQueue.push(keyCode);
+        break;
     }
     this._start();
   },
@@ -1155,6 +1208,8 @@ IMEngine.prototype = {
    * Override
    */
   empty: function engine_empty() {
+    IMEngineBase.prototype.empty.call(this);
+    debug('empty.');
     var name = this._getCurrentDatabaseName();
     this._pendingSymbols = '';
     this._selectedText = '';
@@ -1163,6 +1218,21 @@ IMEngine.prototype = {
     this._isWorking = false;
     if (!this._db[name])
       this._initDB(name);
+  },
+
+  /**
+   * Override
+   */
+  show: function engine_show(inputType) {
+    IMEngineBase.prototype.show.call(this, inputType);
+    debug('Show. Input type: ' + inputType);
+    var keyboard = this._inputTraditionalChinese ?
+      'zh-Hans-Pinyin-tr' : 'zh-Hans-Pinyin';
+    if (inputType == '' || inputType == 'text' || inputType == 'textarea') {
+      keyboard = this._keyboard;
+    }
+
+    this._glue.alterKeyboard(keyboard);
   }
 };
 
@@ -1362,42 +1432,30 @@ JsonStorage.prototype = {
 
       var response;
       if (xhr.responseType == 'json') {
-        response = xhr.response;
-      } else {
         try {
-          response = JSON.parse(xhr.responseText);
-        } catch (e) { }
+          // clone everything under response because it's readonly.
+          self._dataArray = xhr.response.slice();
+        } catch (e) {
+        }
       }
 
-      if (typeof response !== 'object') {
+      if (typeof self._dataArray !== 'object') {
         self._status = DatabaseStorageBase.StatusCode.ERROR;
         doCallback();
         return;
       }
 
-      var toTerms = function init_toTerms(rawTerms) {
-        var terms = [];
-        for (var i = 0; i < rawTerms.length; i++) {
-          var rawTerm = rawTerms[i];
-          terms.push(new Term(rawTerm[0], rawTerm[1]));
-        }
-        return terms;
-      }
-
-      // clone everything under response because it's readonly.
-      for (var s in response) {
-        self._dataArray.push(new Homonyms(s, toTerms(response[s])));
-      }
       xhr = null;
+      setTimeout(performBuildIndices, 100);
+    };
+
+    var performBuildIndices = function init_performBuildIndices() {
       self._buildIndices();
       self._status = DatabaseStorageBase.StatusCode.READY;
       doCallback();
     };
 
-    var perform = function init_perform() {
-      xhr.send(null);
-    }
-    setTimeout(perform, 0);
+    xhr.send(null);
   },
 
   /**
@@ -1667,23 +1725,37 @@ IndexedDBStorage.prototype = {
       debug('IndexedDB opened.');
       self._IDBDatabase = ev.target.result;
 
+      self._status = DatabaseStorageBase.StatusCode.READY;
       self._count = 0;
 
-      // Get the count
-      var transaction = self._IDBDatabase.transaction(['homonyms'], 'readonly');
-      var reqCount = transaction.objectStore('homonyms').count();
+      // Check the integrity of the storage
+      self.getTermsBySyllables('_last_entry_',
+        function getLastEntryCallback(homonymsArray) {
+        if (homonymsArray.length == 0) {
+          debug('IndexedDB is broken.');
+          // Could not find the '_last_entry_' element. The storage is broken
+          // and ignore all the data.
+          doCallback();
+          return;
+        }
 
-      reqCount.onsuccess = function(ev) {
-        debug('IndexedDB count: ' + ev.target.result);
-        self._count = ev.target.result;
-        self._status = DatabaseStorageBase.StatusCode.READY;
-        doCallback();
-      };
+        var transaction =
+          self._IDBDatabase.transaction(['homonyms'], 'readonly');
+        // Get the count
+        var reqCount = transaction.objectStore('homonyms').count();
 
-      reqCount.onerror = function(ev) {
-        self._status = DatabaseStorageBase.StatusCode.ERROR;
-        doCallback();
-      };
+        reqCount.onsuccess = function(ev) {
+          debug('IndexedDB count: ' + ev.target.result);
+          self._count = ev.target.result - 1;
+          self._status = DatabaseStorageBase.StatusCode.READY;
+          doCallback();
+        };
+
+        reqCount.onerror = function(ev) {
+          self._status = DatabaseStorageBase.StatusCode.ERROR;
+          doCallback();
+        };
+      });
     };
   },
 
@@ -1749,7 +1821,9 @@ IndexedDBStorage.prototype = {
       var cursor = ev.target.result;
       if (cursor) {
         var homonyms = cursor.value;
-        homonymsArray.push(homonyms);
+        if (homonyms.syllablesString != '_last_entry_') {
+          homonymsArray.push(homonyms);
+        }
         cursor.continue();
       } else {
         doCallback();
@@ -1766,8 +1840,10 @@ IndexedDBStorage.prototype = {
       }
     }
 
+    var n = homonymsArray.length;
+
     // Check if the storage is ready.
-    if (!this.isReady()) {
+    if (!this.isReady() || n == 0) {
       doCallback();
       return;
     }
@@ -1775,28 +1851,74 @@ IndexedDBStorage.prototype = {
     // Set the status to busy.
     this._status = DatabaseStorageBase.StatusCode.BUSY;
 
-    var doAdd = function() {
+    // Use task queue to add the terms by batch to prevent blocking the main
+    // thread.
+    var taskQueue = new TaskQueue(
+      function taskQueueOnCompleteCallback(queueData) {
+      self._count = n;
+      doCallback();
+    });
+
+    var processNextWithDelay = function setAllTerms_rocessNextWithDelay() {
+      setTimeout(function nextTask() {
+        taskQueue.processNext();
+      }, 0);
+    };
+
+    // Clear all the terms before adding
+    var clearAll = function setAllTerms_clearAll(taskQueue, taskData) {
       var transaction =
         self._IDBDatabase.transaction(['homonyms'], 'readwrite');
       var store = transaction.objectStore('homonyms');
+      var req = store.clear();
+      req.onsuccess = function(ev) {
+        debug('IndexedDB cleared.');
+        processNextWithDelay();
+      };
 
+      req.onerror = function(ev) {
+        debug('Failed to clear IndexedDB.');
+        self._status = DatabaseStorageBase.StatusCode.ERROR;
+        doCallback();
+      };
+
+    };
+
+    // Add a batch of terms
+    var addChunk = function setAllTerms_addChunk(taskQueue, taskData) {
+      var transaction =
+        self._IDBDatabase.transaction(['homonyms'], 'readwrite');
+      var store = transaction.objectStore('homonyms');
       transaction.onerror = function(ev) {
         debug('Database write error.');
         doCallback();
       };
 
       transaction.oncomplete = function() {
-        self._count = homonymsArray.length;
-        doCallback();
+        processNextWithDelay();
       };
 
-      for (var i = 0; i < homonymsArray.length; i++) {
+      var begin = taskData.begin;
+      var end = taskData.end;
+      for (var i = begin; i <= end; i++) {
         var homonyms = homonymsArray[i];
         store.put(homonyms);
       }
+
+      // Add a special element to indicate that all the items are saved.
+      if (end == n - 1) {
+        store.put(new Homonyms('_last_entry_', []));
+      }
+    };
+
+    taskQueue.push(clearAll, null);
+
+    for (var begin = 0; begin < n; begin += 2000) {
+      var end = Math.min(begin + 1999, n - 1);
+      taskQueue.push(addChunk, {begin: begin, end: end});
     }
 
-    setTimeout(doAdd, 0);
+    processNextWithDelay();
   },
 
   /**
@@ -2000,8 +2122,12 @@ var IMEngineDatabase = function imedb(dbName, jsonUrl) {
             'IME is ready to use while inserting data into db ...'
           );
           populateDBFromJSON(function populateDBFromJSONCallback() {
-            debug('IndexedDB ready and switched to indexedDB backend.');
-            jsonStorage.uninit();
+            if (!indexedDBStorage.isEmpty()) {
+              debug('IndexedDB ready and switched to indexedDB backend.');
+              jsonStorage.uninit();
+            } else {
+              debug('Failed to populate IndexedDB from JSON.');
+            }
           });
         });
       }
@@ -2191,8 +2317,9 @@ var IMEngineDatabase = function imedb(dbName, jsonUrl) {
       callback('');
     }
 
-    var taskQueue = new TaskQueue(function taskQueueOnCompleteCallback(data) {
-      var sentences = data.sentences;
+    var taskQueue = new TaskQueue(
+      function taskQueueOnCompleteCallback(queueData) {
+      var sentences = queueData.sentences;
       var sentence = sentences[sentences.length - 1];
       doCallback(sentence);
     });

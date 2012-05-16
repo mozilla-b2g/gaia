@@ -30,6 +30,11 @@
           </a>
         </li>
         <li>
+          <a href="#data">
+            <span data-l10n-id="data">Cellular &amp; Data</span>
+          </a>
+        </li>
+        <li>
           <a data-l10n-id="doNotTrack">Do Not Track</a>
           <label>
             <input type="checkbox" name="dnt.enabled" checked="true" />
@@ -106,6 +111,41 @@
       <ul id="wifi-networks">
         <!-- filled by wifi.js -->
       </ul>
+    </div>
+
+    <!-- 3G/data -->
+    <div id="data" class="view" data-title="data">
+      <ul>
+        <li id="dataNetwork">
+          <span data-l10n-id="dataNetwork">Carrier</span>
+          <small></small>
+        </li>
+        <li>
+          <span data-l10n-id="dataConnection">Data Connection</span>
+          <small data-l10n-id="dataConnection-expl"></small>
+          <label>
+            <input type="checkbox" name="ril.data.enabled"/>
+            <span></span>
+          </label>
+        </li>
+        <li>
+          <span data-l10n-id="dataRoaming">Data Roaming</span>
+          <small data-l10n-id="dataRoaming-expl"></small>
+          <label>
+            <input type="checkbox" name="ril.data.roaming.enabled"/>
+            <span></span>
+          </label>
+        </li>
+      </ul>
+      <h2> Advanced Settings </h2>
+      <form action="#">
+        <p data-l10n-id="apn">APN</p>
+        <input type="text" name="ril.data.apn" />
+        <p data-l10n-id="identity">identity</p>
+        <input type="text" name="ril.data.user" />
+        <p data-l10n-id="password">password</p>
+        <input type="text" name="ril.data.passwd" />
+      </form>
     </div>
 
     <!-- Phone -->
@@ -383,6 +423,14 @@
           <a data-l10n-id="lockScreen">Lock Screen</a>
           <label>
             <input type="checkbox" name="lockscreen.enabled" checked="true"/>
+            <span></span>
+          </label>
+        </li>
+        <li>
+          <a data-l10n-id="passcode-lock">Passcode Lock</a>
+          <small data-l10n-id="passcode-lock-desc">Passcode: 0000</small>
+          <label>
+            <input type="checkbox" name="lockscreen.passcode-lock.enabled" checked="true"/>
             <span></span>
           </label>
         </li>

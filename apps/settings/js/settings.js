@@ -40,6 +40,21 @@ var Settings = {
       })(radios[i]);
     }
 
+    var texts = document.querySelectorAll('input[type="text"]');
+    for (var i = 0; i < texts.length; i++) {
+      (function(text) {
+        var key = text.name;
+        if (!key)
+          return;
+
+        var request = transaction.get(key);
+        request.onsuccess = function() {
+          if (request.result[key] != undefined)
+            text.value = request.result[key];
+        };
+      })(texts[i]);
+    }
+
     var progresses = document.querySelectorAll('progress');
     for (var i = 0; i < progresses.length; i++) {
       (function(progress) {
@@ -66,7 +81,9 @@ var Settings = {
         var value;
         if (input.type === 'checkbox') {
           value = input.checked;
-        } else if (input.type == 'radio') {
+        } else if ((input.type == 'radio') ||
+                   (input.type == 'text') ||
+                   (input.type == 'password')) {
           value = input.value;
         }
         var cset = { }; cset[key] = value;

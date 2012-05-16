@@ -481,10 +481,9 @@ var CallHandler = {
     // Assume we always either onCall or not, and always onCall before
     // not onCall.
     if (this._onCall) {
-      this._screenLock = navigator.requestWakeLock('screen');
+      ProximityHandler.enable();
     } else {
-      this._screenLock.unlock();
-      this._screenLock = null;
+      ProximityHandler.disable();
     }
   },
 

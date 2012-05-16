@@ -8,6 +8,12 @@ var Contacts = {
     return this.view = document.getElementById('contacts-view-scrollable');
   },
 
+  get favoritesContainer() {
+    delete this.favoritesContainer;
+    var id = 'favorites-container';
+    return this.favoritesContainer = document.getElementById(id);
+  },
+
   setup: function contactsSetup() {
     document.getElementById('contacts').addEventListener('change',
       (function contactTabChanged(evt) {
@@ -15,7 +21,7 @@ var Contacts = {
         this.load();
 
         ContactDetails.hide();
-      }).bind(this));
+     }).bind(this));
   },
 
   load: function contactsLoad() {
@@ -23,11 +29,10 @@ var Contacts = {
       return;
     }
 
+    this.findFavorites(this.showFavorites.bind(this));
     this.find(this.show.bind(this));
 
-    this.findFavorites(function(favs) {
-      console.log("favorites contacts are ->" + JSON.stringify(favs));
-    });
+    this._loaded = true;
   },
 
   reload: function contactsReload() {
@@ -78,6 +83,23 @@ var Contacts = {
     };
   },
 
+  showFavorites: function contactsShowFavorites(contacts) {
+    var count = contacts.length;
+
+    if (count == 0)
+      return;
+
+    var content = '<div id="favorites" class="contact-header">' +
+                  '<span>*</span></div>';
+
+    for (var i = 0; i < count; i++) {
+      var contact = contacts[i];
+      content += this._contactFragment(contact);
+    }
+
+    this.favoritesContainer.innerHTML = content;
+  },
+
   show: function contactsShow(contacts) {
     var content = '';
     var currentLetter = '';
@@ -97,21 +119,20 @@ var Contacts = {
                    '</span></div>';
       }
 
-      content += '<div class="contact" id="' + contact.id + '">';
-      content += '<span>' + contact.givenName + '</span> ';
-      content += '<span>' + contact.familyName + '</span>';
-      content += '</div>';
+      content += this._contactFragment(contact);
     }
 
     var contactsContainer = document.getElementById('contacts-container');
     contactsContainer.innerHTML = content;
     this.filter();
-
-    this._loaded = true;
   },
 
   filter: function contactsFilter(value) {
     var pattern = new RegExp(value, 'i');
+
+    var filtered = value.length;
+    this.favoritesContainer.hidden = filtered;
+
     var container = document.getElementById('contacts-container');
     var contacts = container.children;
 
@@ -193,9 +214,18 @@ var Contacts = {
   create: function contactsCreate() {
     // creating an empty contact
     var contact = new mozContact();
-    contact.init({tel: '', email: ''});
+    contact.init({tel: [], email: []});
 
     ContactDetails.show(contact);
+  },
+
+  _contactFragment: function contactFragment(contact) {
+    var fragment = '';
+    fragment += '<div class="contact" id="' + contact.id + '">';
+    fragment += '<span>' + contact.givenName + '</span> ';
+    fragment += '<span>' + contact.familyName + '</span>';
+    fragment += '</div>';
+    return fragment;
   }
 };
 
@@ -420,6 +450,7 @@ var ContactDetails = {
         contact.tel = [{ number: this.contactPhoneField.value,
                         type: ''
                       }];
+
       if (this.contactEmailField.value.length)
         contact.email = [this.contactEmailField.value];
 
@@ -435,11 +466,6 @@ var ContactDetails = {
         this.endEditing();
         Contacts.reload();
       }.bind(this));
-      req.onerror = (function() {
-        console.log("FUCK");
-      });
-    } else {
-      console.log("FORM IS INVALID");
     }
   },
 
@@ -562,7 +588,7 @@ var ContactDetails = {
       '<img src="style/images/contact-placeholder.png" alt="profile" />';
 
     if (contact.tel) {
-      var number = contact.tel[0].number;
+      var number = contact.tel.length ? contact.tel[0].number : '';
       this.contactPhone.querySelector('.value').innerHTML = number;
       this.contactPhone.dataset.number = number;
 
@@ -573,7 +599,8 @@ var ContactDetails = {
       this.contactEmail.querySelector('.value').innerHTML =
         contact.email[0];
 
-      this.contactEmailField.value = contact.email[0];
+      this.contactEmailField.value = contact.email.length ?
+        contact.email[0] : '';
     }
 
     this.favorited.checked = (contact.category &&
