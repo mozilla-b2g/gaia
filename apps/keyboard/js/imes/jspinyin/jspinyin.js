@@ -936,70 +936,25 @@ IMEngine.prototype = {
     this._pendingSymbols += symbol;
   },
 
-  _lookup: function engine_lookup(query, type, callback) {
-    var name = this._getCurrentDatabaseName();
-    switch (type) {
-      case 'sentence':
-        this._db[name].getSentence(query,
-          function getSentencesCallback(sentence) {
-            callback([sentence]);
-          }
-        );
-      break;
-      case 'term':
-        this._db[name].getTerms(query, function getTermsCallback(dbResults) {
-          if (!dbResults) {
-            callback([]);
-            return;
-          }
-          var results = [];
-          dbResults.forEach(function readTerm(term) {
-            results.push(term.phrase);
-          });
-          callback(results);
-        });
-      break;
-      case 'suggestion':
-        this._db[name].getSuggestions(
-          query[0], query[1],
-          function gotSuggestions(dbResults) {
-            if (!dbResults) {
-              callback([]);
-              return;
-            }
-            var results = [];
-            dbResults.forEach(function readTerm(term) {
-              results.push(term.phrase);
-            });
-            callback(results);
-          }
-        );
-      break;
-      default:
-        debug('Error: no such lookup() type.');
-      break;
-    }
-  },
-
   _updateCandidateList: function engine_updateCandidateList(callback) {
     debug('Update Candidate List.');
     var self = this;
-
+    var name = this._getCurrentDatabaseName();
     if (!this._pendingSymbols) {
       if (this._autoSuggestCandidates &&
           this._selectedSyllables.length) {
         debug('Buffer is empty; ' +
           'make suggestions based on select term.');
         var candidates = [];
-        var texts = this._selectedText.split('');
+        var text = this._selectedText;
         var selectedSyllables = this._selectedSyllables;
-        this._lookup([selectedSyllables, texts], 'suggestion',
+        this._db[name].getSuggestions(selectedSyllables, text,
           function(suggestions) {
             suggestions.forEach(
               function suggestions_forEach(suggestion) {
                 candidates.push(
-                  [suggestion.substr(texts.length),
-                   selectedSyllables.join("'")]);
+                  [suggestion.phrase.substr(text.length),
+                   SyllableUtils.arrayToString(selectedSyllables)]);
               }
             );
             self._sendCandidates(candidates);
@@ -1027,10 +982,19 @@ IMEngine.prototype = {
       }
     }
 
+    var syllablesStr = SyllableUtils.arrayToString(syllablesForQuery);
+
+    if (syllablesForQuery.length == 0) {
+      candidates.push([this._pendingSymbols, syllablesStr]);
+      this._sendCandidates(candidates);
+      callback();
+      return;
+    }
+
     debug('Get term candidates for the entire buffer.');
-    this._lookup(syllablesForQuery, 'term', function lookupCallback(terms) {
+    this._db[name].getTerms(syllablesForQuery, function lookupCallback(terms) {
       terms.forEach(function readTerm(term) {
-        candidates.push([term, syllablesForQuery.join("'")]);
+        candidates.push([term.phrase, syllablesStr]);
       });
 
       if (syllablesForQuery.length === 1) {
@@ -1038,7 +1002,7 @@ IMEngine.prototype = {
 
         if (!candidates.length) {
           // candidates unavailable; output symbols
-          candidates.push([self._pendingSymbols, syllablesForQuery.join("'")]);
+          candidates.push([self._pendingSymbols, syllablesStr]);
         }
 
         self._sendCandidates(candidates);
@@ -1048,18 +1012,15 @@ IMEngine.prototype = {
 
       debug('Lookup for sentences that make up from the entire buffer');
       var syllables = syllablesForQuery;
-      self._lookup(syllables, 'sentence', function lookupCallback(sentences) {
-        sentences.forEach(function readSentence(sentence) {
-          // look for candidate that is already in the list
-          var exists = candidates.some(function sentenceExists(candidate) {
-            return (candidate[0] === sentence);
-          });
-
-          if (exists)
-            return;
-
-          candidates.push([sentence, syllables.join("'")]);
+      self._db[name].getSentence(syllables, function getSentenceCallback(sentence) {
+        // look for candidate that is already in the list
+        var exists = candidates.some(function sentenceExists(candidate) {
+          return (candidate[0] === sentence);
         });
+
+        if (!exists) {
+          candidates.push([sentence, syllablesStr]);
+        }
 
         // The remaining candidates doesn't match the entire buffer
         // these candidates helps user find the exact character/term
@@ -1073,16 +1034,17 @@ IMEngine.prototype = {
           debug('Lookup for terms that matches first ' + i + ' syllables.');
 
           var syllables = syllablesForQuery.slice(0, i);
-          self._lookup(syllables, 'term', function lookupCallback(terms) {
+          var syllablesStr = SyllableUtils.arrayToString(syllables);
+          self._db[name].getTerms(syllables, function lookupCallback(terms) {
             terms.forEach(function readTerm(term) {
-              candidates.push([term, syllables.join("'")]);
+              candidates.push([term.phrase, syllablesStr]);
             });
 
             if (i === 1 && !terms.length) {
               debug('The first syllable does not make up a word,' +
                 ' output the symbol.');
               candidates.push(
-                [syllables.join(''), syllables.join("'")]);
+                [syllables.join(''), syllablesStr]);
             }
 
             if (!--i) {
@@ -1187,7 +1149,7 @@ IMEngine.prototype = {
   select: function engine_select(text, data) {
     IMEngineBase.prototype.select.call(this, text, data);
 
-    var syllablesToRemove = data.split("'");
+    var syllablesToRemove = SyllableUtils.arrayFromString(data);
     if (this._pendingSymbols != '') {
       for (var i = 0; i < syllablesToRemove.length; i++) {
         var syllable = syllablesToRemove[i];
@@ -2156,15 +2118,15 @@ var IMEngineDatabase = function imedb(dbName, jsonUrl) {
   /* ==== db lookup functions ==== */
 
   this.getSuggestions =
-    function imedb_getSuggestions(syllables, text, callback) {
+    function imedb_getSuggestions(syllables, textStr, callback) {
     var storage = getUsableStorage();
     if (!storage) {
       debug('Database not ready.');
-      callback(false);
+      callback([]);
       return;
     }
 
-    var syllablesStr = syllables.join("'").replace(/ /g , '');
+    var syllablesStr = SyllableUtils.arrayToString(syllables);
     var result = [];
     var matchTerm = function getSuggestions_matchTerm(term) {
       if (term.phrase.substr(0, textStr.length) !== textStr)
@@ -2188,7 +2150,6 @@ var IMEngineDatabase = function imedb(dbName, jsonUrl) {
       });
       return result;
     };
-    var textStr = text.join('');
     var result = [];
 
     debug('Get suggestion for ' + textStr + '.');
@@ -2208,8 +2169,6 @@ var IMEngineDatabase = function imedb(dbName, jsonUrl) {
       }
       if (result.length) {
         result = processResult(result);
-      } else {
-        result = false;
       }
       cacheSetTimeout();
       iDBCache['SUGGESTION:' + textStr] = result;
@@ -2221,13 +2180,11 @@ var IMEngineDatabase = function imedb(dbName, jsonUrl) {
     var storage = getUsableStorage();
     if (!storage) {
       debug('Database not ready.');
-      callback(false);
+      callback([]);
       return;
     }
 
-    var syllablesStr = syllables.join("'").replace(/ /g , '');
-    var matchRegEx = new RegExp(
-       '^' + syllablesStr.replace(/([^']+)/g, "$1[^']*"));
+    var syllablesStr = SyllableUtils.arrayToString(syllables);
     debug('Get terms for ' + syllablesStr + '.');
 
     var processResult = function processResult(r, limit) {
@@ -2280,7 +2237,7 @@ var IMEngineDatabase = function imedb(dbName, jsonUrl) {
               result =
                 processResult(result, MAX_TERMS_FOR_INCOMPLETE_SYLLABLES);
             } else {
-              result = false;
+              result = [];
             }
             cacheSetTimeout();
             iDBCache[syllablesStr] = result;
@@ -2295,8 +2252,8 @@ var IMEngineDatabase = function imedb(dbName, jsonUrl) {
   this.getTermWithHighestScore =
   function imedb_getTermWithHighestScore(syllables, callback) {
     self.getTerms(syllables, function getTermsCallback(terms) {
-      if (!terms) {
-        callback(false);
+      if (terms == null) {
+        callback(null);
         return;
       }
       callback(terms[0]);
@@ -2348,7 +2305,7 @@ var IMEngineDatabase = function imedb(dbName, jsonUrl) {
         lastPhraseLength, sentenceLength);
       self.getTermWithHighestScore(s,
         function getTermWithHighestScoreCallback(term) {
-          if (!term) {
+          if (term == null) {
             var syllable = s.join('');
             term = {phrase: syllable, freq: 0};
           }
@@ -2389,24 +2346,24 @@ var PinyinDecoderService = {
    * @retrun {Boolean} true if open the decode engine sucessfully.
    */
   open: function decoderService_open() {
-    
+
   },
-  
+
   /**
    * Close the decode engine.
    */
   close: function decoderService_close() {
-    
+
   },
-  
+
   /**
    * Flush cached data to persistent memory. Because at runtime, in order to
    * achieve best performance, some data is only store in memory.
    */
   flushCache: function decoderService_flushCache() {
-    
+
   },
-  
+
   /**
    * Use a spelling string(Pinyin string) to search. The engine will try to do
    * an incremental search based on its previous search result, so if the new
@@ -2419,7 +2376,7 @@ var PinyinDecoderService = {
    * @return {Integer} The number of candidates.
    */
   search: function decoderService_search(spsStr) {
-    
+
   },
 
   /**
@@ -2435,14 +2392,14 @@ var PinyinDecoderService = {
    * @return The number of candidates.
    */
   delSearch: function decoderService_delSearch(pos, isPosInSplid, clearFixed) {
-    
+
   },
 
   /**
    * Reset the previous search result.
    */
   resetSearch: function decoderService_resetSearch() {
-    
+
   },
 
   /**
@@ -2451,7 +2408,7 @@ var PinyinDecoderService = {
    * @return {String} The spelling string kept by the decoder.
    */
   getSpsStr: function decoderService_getSpsStr() {
-    
+
   },
 
   /**
@@ -2462,7 +2419,7 @@ var PinyinDecoderService = {
    * @return {String } The candidate string if succeeds, otherwise null.
    */
   getCandidate: function decoderService_getCandidate(candId) {
-    
+
   },
 
   /**
@@ -2473,7 +2430,7 @@ var PinyinDecoderService = {
    * spellings.
    */
   getSplStartPos: function decoderService_getSplStartPos() {
-    
+
   },
 
   /**
@@ -2488,7 +2445,7 @@ var PinyinDecoderService = {
    * whole result string has been fixed, there will be only one candidate.
    */
   choose: function decoderService_choose(candId) {
-    
+
   },
 
   /**
@@ -2497,19 +2454,19 @@ var PinyinDecoderService = {
    * @return {Integer} The number of fixed spelling ids, of Chinese characters.
    */
   getFixedLen: function decoderService_getFixedLen() {
-    
+
   },
 
   /**
    * Get prediction candiates based on the given fixed Chinese string as the
    * history.
    *
-   * @param {String} history The history string to do the prediction. 
+   * @param {String} history The history string to do the prediction.
    * @param pre_buf Used to return prediction result list.
    * @return {Array} The prediction result list of an string array.
    */
   getPredicts: function decoderService_getPredicts(history) {
-    
+
   }
 };
 
@@ -2518,23 +2475,23 @@ var MatrixSearch = function matrixSearch_constructor() {
 
 MatrixSearch.prototype = {
   /* ==== Public methods ==== */
-  
+
   init: function matrixSearch_init() {
 
   },
-  
+
   uninit: function matrixSearch_uinit() {
-    
+
   },
-  
+
   /**
    * Flush cached data to persistent memory. Because at runtime, in order to
    * achieve best performance, some data is only store in memory.
    */
   flushCache: function matrixSearch_flushCache() {
-    
+
   },
-  
+
   /**
    * Search a Pinyin string.
    *
@@ -2542,7 +2499,7 @@ MatrixSearch.prototype = {
    * @return {Integer} The position successfully parsed.
    */
   search: function matrixSearch_search(py) {
-    
+
   },
 
   /**
@@ -2564,16 +2521,16 @@ MatrixSearch.prototype = {
    * is parsed successfully.
    */
   delSearch: function matrixSearch_delSearch(pos, isPosInSplid, clearFixed) {
-    
+
   },
 
   /**
    * Reset the search space. Equivalent to _reset_search0().
    */
   resetSearch: function matrixSearch_resetSearch() {
-    
+
   },
-  
+
   // Get the number of candiates, called after search().
   getCandidateNum: function matrixSearch_getCandidateNum() {
   },
@@ -2582,7 +2539,7 @@ MatrixSearch.prototype = {
    * Get the Pinyin string stored by the engine.
    */
   getSpsStr: function matrixSearch_getSpsStr() {
-    
+
   },
 
   /**
@@ -2594,7 +2551,7 @@ MatrixSearch.prototype = {
    * @return {String } The candidate string if succeeds, otherwise null.
    */
   getCandidate: function matrixSearch_getCandidate(candId) {
-    
+
   },
 
   /**
@@ -2607,46 +2564,46 @@ MatrixSearch.prototype = {
    * spellings.
    */
   getSplStartPos: function matrixSearch_getSplStartPos() {
-    
+
   },
 
   /**
    * Choose a candidate. The decoder will do a search after the fixed position.
    */
   choose: function matrixSearch_choose(candId) {
-    
+
   },
 
   /**
    * Get the length of fixed Chinese characters.
    */
   getFixedLen: function matrixSearch_getFixedLen() {
-    
+
   },
 
   /**
    * Get prediction candiates based on the given fixed Chinese string as the
    * history.
    *
-   * @param {String} fixed The fixed string to do the prediction. 
+   * @param {String} fixed The fixed string to do the prediction.
    * @param pre_buf Used to return prediction result list.
    * @return {Array} The prediction result list of an string array.
    */
   getPredicts: function matrixSearch_getPredicts(fixed) {
-    
+
   },
-  
+
   /* ==== Private ==== */
-  
+
   // Used to indicate whether this object has been initialized.
   _initilized: false,
-  
+
   // Pinyin string
   _pys: '',
-  
+
   // The length of the string that has been decoded successfully.
-  _pysDecodedLen: 0,
-  
+  _pysDecodedLen: 0
+
 };
 
 /**
@@ -2726,7 +2683,7 @@ var IAtomDictBase = {
    *
    * @param fromStep From which step(included) the MileStoneHandle
    * objects should be reset.
-   * @param fromHandle The ealiest MileStoneHandle object for step from_step
+   * @param fromHandle The ealiest MileStoneHandle object for step from_step.
    */
   resetMilestones: function atomDictBase_resetMilestones(fromStep, fromHandle) {
   },
@@ -2738,7 +2695,7 @@ var IAtomDictBase = {
    * @param fromHandle Its previous returned extended handle without the new
    * spelling id, it can be used to speed up the extending.
    * @param dep The paramter used for extending.
-   * @return {handle: Integer, items: LmaPsbItem[]}. handle is the new mile
+   * @return {handle: Integer, items: LmaPsbItem[]} . handle is the new mile
    * stone for this extending. 0 if fail. items is filled in with the lemmas
    * matched.
    */
@@ -2765,7 +2722,7 @@ var IAtomDictBase = {
    *
    * @param {Integer} lemmaId The lemma id to get the result.
    * @param {Integer[]} splids The buffer of the splids. There may be half ids
-   * in splids to be updated to full ids。
+   * in splids to be updated to full ids。.
    * @return The number of ids in the buffer.
    */
   getLemmaSplids: function atomDictBase_getLemmaSplids(lemmaId, splids) {},
@@ -2799,12 +2756,12 @@ var IAtomDictBase = {
    *
    * @param {Integer} lemmaId The lemma id to update.
    * @param {Integer} deltaCount The frequnecy count to ajust.
-   * @param {Boolean }selected Indicate whether this lemma is selected by user
+   * @param {Boolean } selected Indicate whether this lemma is selected by user
    * and submitted to target edit box.
    * @return {Integer} The id if succeed, 0 if fail.
    */
-  updateLemma: function atomDictBase_updateLemma(lemmaId, deltaCount, selected){
-  },
+  updateLemma: function atomDictBase_updateLemma(lemmaId, deltaCount, selected)
+  {},
 
   /**
    * Get the lemma id for the given lemma.
@@ -2822,7 +2779,7 @@ var IAtomDictBase = {
    * @return {Integer} The score of the lemma, or 0 if fail.
    */
   getLemmaScoreById: function atomDictBase_getLemmaScoreById(lemmaId) {
-    
+
   },
 
   /**
