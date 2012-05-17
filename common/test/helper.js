@@ -2,7 +2,7 @@
 
 (function(window) {
 
-  var Common = window.top.CommonResourceLoader,
+  var Common = window.parent.CommonResourceLoader,
       //mocha test methods we want to provide
       //yield support to.
       testMethods = [
