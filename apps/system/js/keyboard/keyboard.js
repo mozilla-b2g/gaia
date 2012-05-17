@@ -130,7 +130,7 @@ const IMEManager = {
   kHideAccentCharMenuTimeout: 500,
 
   // Taps the space key twice within kSpaceDoubleTapTimeoout
-  // to produce a "."
+  // to produce a "." followed by a space
   kSpaceDoubleTapTimeout: 700,
 
   get ime() {
@@ -244,9 +244,6 @@ const IMEManager = {
     var before = (window.innerWidth / 2 > target.offsetLeft);
     var dataset = target.dataset;
 
-    /* Comment out the following section due to Keyboard recommendations (P.3),
-       Not to show the original char in the accent menu
-
     if (before) {
       content += '<span class="keyboard-key" ' +
         'data-keycode="' + dataset.keycode + '" ' +
@@ -256,7 +253,6 @@ const IMEManager = {
         target.innerHTML +
         '</span>';
     }
-    */
 
     var altChars = target.dataset.alt.split('');
     if (!before)
@@ -271,9 +267,6 @@ const IMEManager = {
         '</span>';
     });
 
-    /* Comment out the following section due to Keyboard recommendations (P.3),
-       Not to show the original char in the accent menu
-
     if (!before) {
       content += '<span class="keyboard-key" ' +
         'data-keycode="' + dataset.keycode + '" ' +
@@ -283,7 +276,6 @@ const IMEManager = {
         target.innerHTML +
         '</span>';
     }
-    */
 
     menu.innerHTML = content;
     menu.className = 'show';
@@ -834,7 +826,7 @@ const IMEManager = {
                 !this.currentKeyboardMode) {
 
                 //TODO: need to define the inteface for double tap handling
-                this.currentEngine.doubleTap(keyCode);
+                //this.currentEngine.doubleTap(keyCode);
                 break;
               }
 
@@ -843,7 +835,7 @@ const IMEManager = {
                                                    0);
 
               // Send the . symbol followed by a space
-              window.navigator.mozKeyboard.sendKey(0, '.'.charCodeAt(0));
+              window.navigator.mozKeyboard.sendKey(0, 46);
               window.navigator.mozKeyboard.sendKey(0, keyCode);
 
               delete this.isWaitingForSpaceSecondTap;
@@ -858,7 +850,6 @@ const IMEManager = {
             window.setTimeout(
               (function removeSpaceDoubleTapTimeout() {
                 delete this.isWaitingForSpaceSecondTap;
-
               }).bind(this),
               this.kSpaceDoubleTapTimeout
             );
@@ -1244,7 +1235,6 @@ const IMEManager = {
           this.updateLayout();
         }
   }
-
 };
 
 window.addEventListener('load', function initIMEManager(evt) {
