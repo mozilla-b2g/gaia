@@ -480,6 +480,12 @@ const IMEManager = {
       sendString: function(str) {
         for (var i = 0; i < str.length; i++)
           this.sendKey(str.charCodeAt(i));
+      },
+      alterKeyboard: function(keyboard) {
+        self.updateLayout(keyboard);
+        if (self.targetWindow) {
+          self.updateTargetWindowHeight();
+        }
       }
     };
 
@@ -716,23 +722,27 @@ const IMEManager = {
               this.isUpperCase = false;
               this.updateLayout();
               this.updateTargetWindowHeight();
+            } else {
+              // If this is the last keyboard in the stack, start
+              // back from the beginning.
+              var keyboards = this.keyboards;
+              var index = keyboards.indexOf(this.currentKeyboard);
+              if (index >= keyboards.length - 1 || index < 0)
+                this.currentKeyboard = keyboards[0];
+              else
+                this.currentKeyboard = keyboards[++index];
 
-              break;
+              this.currentKeyboardMode = '';
+              this.isUpperCase = false;
+              this.updateLayout();
+              this.updateTargetWindowHeight();
             }
 
-            // If this is the last keyboard in the stack, start
-            // back from the beginning.
-            var keyboards = this.keyboards;
-            var index = keyboards.indexOf(this.currentKeyboard);
-            if (index >= keyboards.length - 1 || index < 0)
-              this.currentKeyboard = keyboards[0];
-            else
-              this.currentKeyboard = keyboards[++index];
-
-            this.currentKeyboardMode = '';
-            this.isUpperCase = false;
-            this.updateLayout();
-            this.updateTargetWindowHeight();
+            if (Keyboards[this.currentKeyboard].type == 'ime') {
+              if (this.currentEngine.show) {
+                this.currentEngine.show(this.currentType);
+              }
+            }
 
           break;
 
@@ -891,7 +901,7 @@ const IMEManager = {
 
           var ratio = key.ratio || 1;
 
-          if (this.keyboards.length > 1) {
+          if (this.keyboards.length > 1 && !layout['hidesSwitchKey']) {
             // Switch keyboard key
             ratio -= 1;
             content += buildKey(
@@ -918,69 +928,76 @@ const IMEManager = {
             basicLayoutKey = current['basicLayoutKey'];
           }
 
-          ratio -= 2;
-          if (this.currentKeyboardMode == '') {
-            content += buildKey(
-              this.ALTERNATE_LAYOUT,
-              alternateLayoutKey,
-              'keyboard-key-special',
-              2
-            );
-          } else {
-            content += buildKey(
-              this.BASIC_LAYOUT,
-              basicLayoutKey,
-              'keyboard-key-special',
-              2
-            );
+          if (!layout['disableAlternateLayout']) {
+            ratio -= 2;
+            if (this.currentKeyboardMode == '') {
+              content += buildKey(
+                this.ALTERNATE_LAYOUT,
+                alternateLayoutKey,
+                'keyboard-key-special',
+                2
+              );
+            } else {
+              content += buildKey(
+                this.BASIC_LAYOUT,
+                basicLayoutKey,
+                'keyboard-key-special',
+                2
+              );
+            }
           }
 
-          switch (this.currentType) {
-            case 'url':
-              var size = Math.floor(ratio / 3);
-              ratio -= size * 2;
-              content += buildKey(46, '.', '', size);
-              content += buildKey(47, '/', '', size);
-              content += buildKey(this.DOT_COM, '.com', '', ratio);
-            break;
-            case 'email':
-              ratio -= 2;
-              content += buildKey(
-                KeyboardEvent.DOM_VK_SPACE, key.value, 'spacekey', ratio);
-              content += buildKey(64, '@', '', 1);
-              content += buildKey(46, '.', '', 1);
-            break;
-            case 'text':
-              if (layout.textLayoutOverwrite['.'] !== false)
-                ratio -= 1;
-              if (layout.textLayoutOverwrite[','] !== false)
-                ratio -= 1;
-
-              if (layout.textLayoutOverwrite[',']) {
+          if (!layout['typeInsensitive']) {
+            switch (this.currentType) {
+              case 'url':
+                var size = Math.floor(ratio / 3);
+                ratio -= size * 2;
+                content += buildKey(46, '.', '', size);
+                content += buildKey(47, '/', '', size);
+                content += buildKey(this.DOT_COM, '.com', '', ratio);
+              break;
+              case 'email':
+                ratio -= 2;
                 content += buildKey(
-                  layout.textLayoutOverwrite[','].charCodeAt(0),
-                  layout.textLayoutOverwrite[','],
-                  '',
-                  1
-                );
-              } else if (layout.textLayoutOverwrite[','] !== false) {
-                content += buildKey(44, ',', '', 1);
-              }
-
-              content += buildKey(
-                KeyboardEvent.DOM_VK_SPACE, key.value, 'spacekey', ratio);
-
-              if (layout.textLayoutOverwrite['.']) {
-                content += buildKey(
-                  layout.textLayoutOverwrite['.'].charCodeAt(0),
-                  layout.textLayoutOverwrite['.'],
-                  '',
-                  1
-                );
-              } else if (layout.textLayoutOverwrite['.'] !== false) {
+                  KeyboardEvent.DOM_VK_SPACE, key.value, 'spacekey', ratio);
+                content += buildKey(64, '@', '', 1);
                 content += buildKey(46, '.', '', 1);
-              }
-            break;
+              break;
+              case 'text':
+                if (layout.textLayoutOverwrite['.'] !== false)
+                  ratio -= 1;
+                if (layout.textLayoutOverwrite[','] !== false)
+                  ratio -= 1;
+
+                if (layout.textLayoutOverwrite[',']) {
+                  content += buildKey(
+                    layout.textLayoutOverwrite[','].charCodeAt(0),
+                    layout.textLayoutOverwrite[','],
+                    '',
+                    1
+                  );
+                } else if (layout.textLayoutOverwrite[','] !== false) {
+                  content += buildKey(44, ',', '', 1);
+                }
+
+                content += buildKey(
+                  KeyboardEvent.DOM_VK_SPACE, key.value, 'spacekey', ratio);
+
+                if (layout.textLayoutOverwrite['.']) {
+                  content += buildKey(
+                    layout.textLayoutOverwrite['.'].charCodeAt(0),
+                    layout.textLayoutOverwrite['.'],
+                    '',
+                    1
+                  );
+                } else if (layout.textLayoutOverwrite['.'] !== false) {
+                  content += buildKey(46, '.', '', 1);
+                }
+              break;
+            }
+          } else {
+            content += buildKey(
+              KeyboardEvent.DOM_VK_SPACE, key.value, 'spacekey', ratio);
           }
 
           return;
@@ -1078,15 +1095,20 @@ const IMEManager = {
     if (!this.ime.dataset.hidden) {
       this.updateLayout();
       this.updateTargetWindowHeight();
-      return;
+    } else {
+      this.targetWindow = targetWindow;
+      this.getTargetWindowMetrics();
+      this.updateLayout();
+
+      targetWindow.classList.add('keyboardOn');
+      delete this.ime.dataset.hidden;
     }
 
-    this.targetWindow = targetWindow;
-    this.getTargetWindowMetrics();
-    this.updateLayout();
-
-    targetWindow.classList.add('keyboardOn');
-    delete this.ime.dataset.hidden;
+    if (Keyboards[this.currentKeyboard].type == 'ime') {
+      if (this.currentEngine.show) {
+        this.currentEngine.show(type);
+      }
+    }
   },
 
   hideIME: function km_hideIME(targetWindow, imminent) {

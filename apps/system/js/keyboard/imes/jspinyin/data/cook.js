@@ -38,7 +38,7 @@ var result = [];
 for (syllables in resultMap) {
   var terms = resultMap[syllables].sort(
     function(a, b) {
-      return (b[1] - a[1]);
+      return (b.freq - a.freq);
     }
   );
   result.push({

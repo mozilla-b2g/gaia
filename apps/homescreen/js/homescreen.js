@@ -8,6 +8,22 @@
 var appscreen = null;
 navigator.mozApps.mgmt.getAll().onsuccess = function(e) {
   appscreen = new AppScreen(e.target.result);
+
+  // Appscreen ready, now settings
+  SettingsListener.observe('language.current', 'en-US', function(value) {
+    document.mozL10n.language.code = value;
+    document.documentElement.lang = document.mozL10n.language.code;
+    document.documentElement.dir = document.mozL10n.language.direction;
+
+    appscreen.build(true);
+  });
+
+  SettingsListener.observe('homescreen.wallpaper', 'default.png',
+    function(value) {
+      document.getElementById('home').style.backgroundImage =
+        'url(style/backgrounds/' + value + ')';
+    }
+  );
 };
 
 function AppScreen(apps) {

@@ -156,7 +156,7 @@ body {
 }
 
 #notifications-container .notification > a.close {
-  background: url('images/close.png') center center no-repeat;
+  background: url('images/notifications/close.png') center center no-repeat;
   background-size: 40px 40px;
 }
 
@@ -315,7 +315,6 @@ div.windowSprite {
 }
 
 #volume.visible {
-  pointer-events: auto;
   display: block;
 }
 
@@ -398,15 +397,12 @@ div.windowSprite {
   width: 100%;
   height: 100%;
   z-index: 20002;
-  pointer-events: none;
   background-color: rgba(0,0,0,0.4);
   -moz-transition: opacity 0.5s ease;
-  pointer-events: none;
   display: none;
 }
 
 #sleep.visible {
-  pointer-events: auto;
   display: block;
 }
 
