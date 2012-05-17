@@ -1159,6 +1159,9 @@ const IMEManager = {
     targetWindow.style.height = targetWindow.dataset.cssHeight;
     targetWindow.classList.remove('keyboardOn');
 
+    // Reset the keyboard mode
+    this.currentKeyboardMode = '';
+
     if (imminent) {
       var ime = this.ime;
       ime.classList.add('imminent');
