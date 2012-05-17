@@ -17,16 +17,27 @@
     return {
       PARSE_REGEX: /^(\/?)([\w\d-]+)\/(.*)/,
 
-      resolve: function tur_testUrl(url) {
+      parse: function tur_parse(url) {
         if (addSubdomain) {
           let parsedUrl = this.PARSE_REGEX.exec(url);
           let domain = location.protocol + '//' + parsedUrl[2] + '.';
+
           domain += domainParts.slice(1).join('.') + '/';
-          return domain + parsedUrl[3];
+
+          return {
+            domain: domain,
+            host: parsedUrl[2],
+            url: parsedUrl[3]
+          };
+
         } else {
-          //we are on localhost just add /apps/
-          return '/apps/' + url;
+          throw new Error('you must run tests using real domains on localhost');
         }
+      },
+
+      resolve: function tur_resolve(url) {
+        var parts = this.parse(url);
+        return parts.domain + parts.url;
       }
     };
 
