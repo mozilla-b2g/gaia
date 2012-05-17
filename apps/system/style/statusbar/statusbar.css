@@ -17,7 +17,7 @@
   pointer-events: none;
 }
 
-#screen.fullscreen > :-moz-any(#statusbar,#notifications-screen) {
+#screen.fullscreen:not(.locked) > :-moz-any(#statusbar,#notifications-screen) {
   display: none;
 }
 

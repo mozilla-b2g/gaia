@@ -31,6 +31,10 @@ var LockScreen = {
       document.getElementById('lockscreen-notification-detail');
   },
 
+  get screen() {
+    delete this.screen;
+    return this.screen = document.getElementById('screen');
+  },
 
   locked: true,
 
@@ -46,6 +50,14 @@ var LockScreen = {
     PadLock.init();
     if (localStorage['passcode-lock'] == 'false')
       this.unlockPadlock(true);
+
+    this.padlockOverlay.addEventListener(
+      'transitionend',
+      function padlockTransitionend() {
+        LockScreen.screen.classList.remove('locked');
+      }
+    );
+
   },
 
   update: function lockscreen_update() {
@@ -73,7 +85,6 @@ var LockScreen = {
     if (this.locked) {
       if (instant) {
         style.MozTransition = style.MozTransform = '';
-        this.lockPadlock();
       } else {
         style.MozTransition = '-moz-transform 0.2s linear';
       }
@@ -84,6 +95,7 @@ var LockScreen = {
     var wasAlreadyLocked = this.locked;
 
     this.locked = true;
+    this.screen.classList.add('locked');
     if (instant) {
       style.MozTransition = style.MozTransform = '';
       this.lockPadlock();
@@ -128,19 +140,20 @@ var LockScreen = {
       style.MozTransition = '-moz-transform ' + time + 's linear';
     style.MozTransform = 'translateY(-100%)';
 
-    if (localStorage['passcode-lock'] == 'false') {
+    if (localStorage['passcode-lock'] == 'false')
       this.unlockPadlock(true);
-    }
   },
 
   unlockPadlock: function lockscreen_unlockPadlock(instant) {
     var wasAlreadyUnlocked = !this.locked;
 
     var style = this.padlockOverlay.style;
-    if (instant)
+    if (instant) {
       style.MozTransition = style.MozTransform = '';
-    else
+      this.screen.classList.remove('locked');
+    } else {
       style.MozTransition = '-moz-transform 0.2s linear';
+    }
     style.MozTransform = 'translateY(-100%)';
 
     WindowManager.setOrientationForApp(WindowManager.getDisplayedApp());
@@ -225,12 +238,10 @@ var LockScreen = {
         break;
 
       case 'transitionend':
-        if (localStorage['passcode-lock'] !== 'true')
-          return;
         if (this.locked) {
           this.lockPadlock();
         } else {
-          delete this.padlockOverlay.dataset.status;
+
         }
         break;
 
