@@ -16,19 +16,19 @@ var LockScreen = {
 
   get notification() {
     delete this.notification;
-    return this.notification = document.getElementById('lockscreenNotification');
+    return this.notification = document.getElementById('lockscreen-notification');
   },
 
   get notificationTitle() {
     delete this.notificationTitle;
     return this.notificationTitle =
-      document.getElementById('lockscreenNotificationTitle');
+      document.getElementById('lockscreen-notification-title');
   },
 
   get notificationDetail() {
     delete this.notificationDetail;
     return this.notificationDetail =
-      document.getElementById('lockscreenNotificationDetail');
+      document.getElementById('lockscreen-notification-detail');
   },
 
 

@@ -21,7 +21,7 @@ body {
 }
 
 /* Lock Screen */
-#lockscreenContainer {
+#lockscreen-container {
   background-color: #000;
   background-attachment: fixed;
   background-clip: border-box;
@@ -39,7 +39,7 @@ body {
   font-family: "Open Sans", sans-serif;
 }
 
-#lockscreen #clock > #hourMin {
+#lockscreen #clock > #hour-min {
   color: #fff;
   font-size: 100px;
   font-weight: 600;
@@ -59,7 +59,7 @@ body {
   font-size: 100px;
 }
 
-#lockscreenNotification {
+#lockscreen-notification {
   position: absolute;
   top: 280px;
   margin: 0 80px;
@@ -74,7 +74,7 @@ body {
   font-weight: bold;
 }
 
-#lockscreenNotification > div:first-child {
+#lockscreen-notification > div:first-child {
   margin: 0 0 0 85px;
   padding: 20px 0 0 0;
 
@@ -83,7 +83,7 @@ body {
   color: #111;
 }
 
-#lockscreenNotification > div {
+#lockscreen-notification > div {
   margin: 0 0 0 85px;
   padding: 0;
   width: -moz-calc(100% - 105px);
@@ -97,7 +97,7 @@ body {
 }
 
 @media all and (max-height: 480px) {
-  #lockscreen #clock > #hourMin {
+  #lockscreen #clock > #hour-min {
     font-size: 100px;
   }
 
