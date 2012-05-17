@@ -2412,8 +2412,8 @@ var PinyinDecoderService = {
    * an incremental search based on its previous search result, so if the new
    * string has the same prefix with the previous one stored in the decoder,
    * the decoder will only continue the search from the end of the prefix.
-   * If the caller needs to do a brand new search, please call im_reset_search()
-   * first.
+   * If the caller needs to do a brand new search, please call
+   * im_reset_search() first.
    *
    * @param {String} spsStr The spelling string buffer to decode.
    * @return {Integer} The number of candidates.
@@ -2426,10 +2426,11 @@ var PinyinDecoderService = {
    * Make a delete operation in the current search result, and make research if
    * necessary.
    *
-   * @param {Integer} pos The posistion of char in spelling string to delete, or the
-   * position of spelling id in result string to delete.
-   * @param {Boolean} isPosInSplid Indicate whether the pos parameter is the position
-   * in the spelling string, or the position in the result spelling id string.
+   * @param {Integer} pos The posistion of char in spelling string to delete,
+   * or the position of spelling id in result string to delete.
+   * @param {Boolean} isPosInSplid Indicate whether the pos parameter is the
+   * position in the spelling string, or the position in the result spelling id
+   * string.
    * @param {Boolean} clearFixed If true, the fixed spellings will be cleared.
    * @return The number of candidates.
    */
@@ -2456,8 +2457,8 @@ var PinyinDecoderService = {
   /**
    * Get a candidate(or choice) string.
    *
-   * @param {Integer} candId The id to get a candidate. Started from 0. Usually, id 0
-   * is a sentence-level candidate.
+   * @param {Integer} candId The id to get a candidate. Started from 0.
+   * Usually, id 0 is a sentence-level candidate.
    * @return {String } The candidate string if succeeds, otherwise null.
    */
   getCandidate: function decoderService_getCandidate(candId) {
@@ -2483,8 +2484,8 @@ var PinyinDecoderService = {
    * sentence.
    *
    * @param {Integer} candId The id of candidate to select and make it fixed.
-   * @return {Integer} The number of candidates. If after the selection, the whole result
-   * string has been fixed, there will be only one candidate.
+   * @return {Integer} The number of candidates. If after the selection, the
+   * whole result string has been fixed, there will be only one candidate.
    */
   choose: function decoderService_choose(candId) {
     
@@ -2510,6 +2511,358 @@ var PinyinDecoderService = {
   getPredicts: function decoderService_getPredicts(history) {
     
   }
+};
+
+var MatrixSearch = function matrixSearch_constructor() {
+};
+
+MatrixSearch.prototype = {
+  /* ==== Public methods ==== */
+  
+  init: function matrixSearch_init() {
+
+  },
+  
+  uninit: function matrixSearch_uinit() {
+    
+  },
+  
+  /**
+   * Flush cached data to persistent memory. Because at runtime, in order to
+   * achieve best performance, some data is only store in memory.
+   */
+  flushCache: function matrixSearch_flushCache() {
+    
+  },
+  
+  /**
+   * Search a Pinyin string.
+   *
+   * @param {String} py The Pinyin string.
+   * @return {Integer} The position successfully parsed.
+   */
+  search: function matrixSearch_search(py) {
+    
+  },
+
+  /**
+   * Used to delete something in the Pinyin string kept by the engine, and do
+   * a re-search.
+   *
+   * @param {Integer} pos The posistion of char in spelling string to delete,
+   * or the position of spelling id in result string to delete.
+   * @param {Boolean} isPosInSplid If isPosInSplid is false, pos is used to
+   * indicate that pos-th Pinyin character needs to be deleted. And if the
+   * pos-th character is in the range for the fixed lemmas or composing string,
+   * this function will do nothing and just return the result of the previous
+   * search. If isPosInSplid is true, all Pinyin characters for pos-th spelling
+   * id needs to be deleted.
+   * @param {Boolean} clearFixed If the deleted character(s) is just after a
+   * fixed lemma or sub lemma in composing phrase, clearFixed indicates
+   * whether we needs to unlock the last fixed lemma or sub lemma.
+   * @return {Integer} The new length of Pinyin string kept by the engine which
+   * is parsed successfully.
+   */
+  delSearch: function matrixSearch_delSearch(pos, isPosInSplid, clearFixed) {
+    
+  },
+
+  /**
+   * Reset the search space. Equivalent to _reset_search0().
+   */
+  resetSearch: function matrixSearch_resetSearch() {
+    
+  },
+  
+  // Get the number of candiates, called after search().
+  getCandidateNum: function matrixSearch_getCandidateNum() {
+  },
+
+  /**
+   * Get the Pinyin string stored by the engine.
+   */
+  getSpsStr: function matrixSearch_getSpsStr() {
+    
+  },
+
+  /**
+   * Get a candidate(or choice) string. If full sentence candidate is available, it will
+   * be the first one.
+   *
+   * @param {Integer} candId The id to get a candidate. Started from 0. Usually, id 0
+   * is a sentence-level candidate.
+   * @return {String } The candidate string if succeeds, otherwise null.
+   */
+  getCandidate: function matrixSearch_getCandidate(candId) {
+    
+  },
+
+  /**
+   * Get the spelling boundaries for the first sentence candidate.
+   * The number of valid elements is one more than the return value because the
+   * last one is used to indicate the beginning of the next un-input spelling.
+   * For a Pinyin "women", the returned array is [0, 2, 5].
+   *
+   * @return {Array} An array contains the starting position of all the
+   * spellings.
+   */
+  getSplStartPos: function matrixSearch_getSplStartPos() {
+    
+  },
+
+  /**
+   * Choose a candidate. The decoder will do a search after the fixed position.
+   */
+  choose: function matrixSearch_choose(candId) {
+    
+  },
+
+  /**
+   * Get the length of fixed Chinese characters.
+   */
+  getFixedLen: function matrixSearch_getFixedLen() {
+    
+  },
+
+  /**
+   * Get prediction candiates based on the given fixed Chinese string as the
+   * history.
+   *
+   * @param {String} fixed The fixed string to do the prediction. 
+   * @param pre_buf Used to return prediction result list.
+   * @return {Array} The prediction result list of an string array.
+   */
+  getPredicts: function matrixSearch_getPredicts(fixed) {
+    
+  },
+  
+  /* ==== Private ==== */
+  
+  // Used to indicate whether this object has been initialized.
+  _initilized: false,
+  
+  // Pinyin string
+  _pys: '',
+  
+  // The length of the string that has been decoded successfully.
+  _pysDecodedLen: 0,
+  
+};
+
+/**
+ * This interface defines the essential metods for all atom dictionaries.
+ * Atom dictionaries are managed by the decoder class MatrixSearch.
+ *
+ * When the user appends a new character to the Pinyin string, all enabled atom
+ * dictionaries' extendDict() will be called at least once to get candidates
+ * ended in this step (the information of starting step is also given in the
+ * parameter). Usually, when extendDict() is called, a MileStoneHandle object
+ * returned by a previous calling for a earlier step is given to speed up the
+ * look-up process, and a new MileStoneHandle object will be returned if
+ * the extension is successful.
+ *
+ * A returned MileStoneHandle object should keep alive until Function
+ * resetMilestones() is called and this object is noticed to be reset.
+ *
+ * Usually, the atom dictionary can use step information to manage its
+ * MileStoneHandle objects, or it can make the objects in ascendant order to
+ * make the reset easier.
+ *
+ * When the decoder loads the dictionary, it will give a starting lemma id for
+ * this atom dictionary to map a inner id to a global id. Global ids should be
+ * used when an atom dictionary talks to any component outside.
+ */
+var IAtomDictBase = {
+  /**
+   * Load an atom dictionary from a file.
+   *
+   * @param {String} fileName The file name to load dictionary.
+   * @param {Integer} startId The starting id used for this atom dictionary.
+   * @param {Integer} endId The end id (included) which can be used for this
+   * atom dictionary. User dictionary will always use the last id space, so it
+   * can ignore this paramter. All other atom dictionaries should check this
+   * parameter.
+   * @return {Boolean} true if succeed.
+   */
+  load: function atomDictBase_load(fileName, startId, endId) {},
+
+  /**
+   * Close this atom dictionary.
+   *
+   * @return {Boolean} true if succeed.
+   */
+  close: function atomDictBase_close() {},
+
+  /**
+   * Get the total number of lemmas in this atom dictionary.
+   *
+   * @return {Integer} The total number of lemmas.
+   */
+  getLemmasNumber: function atomDictBase_getLemmasNumber() {},
+
+  /**
+   * This function is called by the decoder when user deletes a character from
+   * the input string, or begins a new input string.
+   *
+   * Different atom dictionaries may implement this function in different way.
+   * an atom dictionary can use one of these two parameters (or both) to reset
+   * its corresponding MileStoneHandle objects according its detailed
+   * implementation.
+   *
+   * For example, if an atom dictionary uses step information to manage its
+   * MileStoneHandle objects, parameter fromStep can be used to identify which
+   * objects should be reset; otherwise, if another atom dictionary does not
+   * use the detailed step information, it only uses ascendant handles
+   * (according to step. For the same step, earlier call, smaller handle), it
+   * can easily reset those MileStoneHandle which are larger than fromHandle.
+   *
+   * The decoder always reset the decoding state by step. So when it begins
+   * resetting, it will call resetMilestones() of its atom dictionaries with
+   * the step information, and the MileStoneHandle objects returned by the
+   * earliest calling of extendDict() for that step.
+   *
+   * If an atom dictionary does not implement incremental search, this function
+   * can be totally ignored.
+   *
+   * @param fromStep From which step(included) the MileStoneHandle
+   * objects should be reset.
+   * @param fromHandle The ealiest MileStoneHandle object for step from_step
+   */
+  resetMilestones: function atomDictBase_resetMilestones(fromStep, fromHandle) {
+  },
+
+  /**
+   * Used to extend in this dictionary. The handle returned should keep valid
+   * until resetMilestones() is called.
+   *
+   * @param fromHandle Its previous returned extended handle without the new
+   * spelling id, it can be used to speed up the extending.
+   * @param dep The paramter used for extending.
+   * @return {handle: Integer, items: LmaPsbItem[]}. handle is the new mile
+   * stone for this extending. 0 if fail. items is filled in with the lemmas
+   * matched.
+   */
+  extendDict: function atomDictBase_extendDict(fromHandle, dep) {},
+
+  /**
+   * Get lemma items with scores according to a spelling id stream.
+   * This atom dictionary does not need to sort the returned items.
+   *
+   * @param {String} splidStr The spelling id stream string.
+   * @return {LmaPsbItem[]} The array of matched items.
+   */
+  getLpis: function atomDictBase_getLpis(splidStr) {},
+
+  /**
+   * Get a lemma string (The Chinese string) by the given lemma id.
+   *
+   * @param {Integer} lemmaId The lemma id to get the string.
+   */
+  getLemmaStr: function atomDictBase_getLemmaStr(lemmaId) {},
+
+  /**
+   * Get the full spelling ids for the given lemma id.
+   *
+   * @param {Integer} lemmaId The lemma id to get the result.
+   * @param {Integer[]} splids The buffer of the splids. There may be half ids
+   * in splids to be updated to full ids。
+   * @return The number of ids in the buffer.
+   */
+  getLemmaSplids: function atomDictBase_getLemmaSplids(lemmaId, splids) {},
+
+  /**
+   * Function used for prediction.
+   * No need to sort the newly added items.
+   *
+   * @param {String} lastHzs The last n Chinese characters(called Hanzi), its
+   * length should be less than or equal to kMaxPredictSize.
+   * @param b4Used Number of prediction result from other atom dictionaries.
+   * An atom dictionary can just ignore it.
+   * @return {NPredictItem[]} The array of prediction result from this atom
+   * dictionary.
+   */
+  predict: function atomDictBase_predict(lastHzs, b4Usedd) {},
+
+  /**
+   * Add a lemma to the dictionary. If the dictionary allows to add new
+   * items and this item does not exist, add it.
+   *
+   * @param {String} lemmaStr The Chinese string of the lemma.
+   * @param {Integer[]} splids The spelling ids of the lemma.
+   * @param {Integer} count The frequency count for this lemma.
+   * @return {Integer} The id if succeed, 0 if fail.
+   */
+  putLemma: function atomDictBase_putLemma(lemmaStr, splids, count) {},
+
+  /**
+   * Update a lemma's occuring count.
+   *
+   * @param {Integer} lemmaId The lemma id to update.
+   * @param {Integer} deltaCount The frequnecy count to ajust.
+   * @param {Boolean }selected Indicate whether this lemma is selected by user
+   * and submitted to target edit box.
+   * @return {Integer} The id if succeed, 0 if fail.
+   */
+  updateLemma: function atomDictBase_updateLemma(lemmaId, deltaCount, selected){
+  },
+
+  /**
+   * Get the lemma id for the given lemma.
+   *
+   * @param {String} lemmaStr The Chinese string of the lemma.
+   * @param {Integer[]} splids The spelling ids of the lemma.
+   * @return {Integer} The matched lemma id, or 0 if fail.
+   */
+  getLemmaId: function atomDictBase_getLemmaId(lemmaStr, splids) {},
+
+  /**
+   * Get the lemma score.
+   *
+   * @param {Integer} lemmaId The lemma id to get score.
+   * @return {Integer} The score of the lemma, or 0 if fail.
+   */
+  getLemmaScoreById: function atomDictBase_getLemmaScoreById(lemmaId) {
+    
+  },
+
+  /**
+   * Get the lemma score.
+   *
+   * @param {String} lemmaStr The Chinese string of the lemma.
+   * @param {Integer[]} splids The spelling ids of the lemma.
+   * @return {Integer} The score of the lamm, or 0 if fail.
+   */
+  getLemmaScoreByContent: function atomDictBase_getLemmaScoreByContent(
+    lemmaStr, splids) {},
+
+  /**
+   * If the dictionary allowed, remove a lemma from it.
+   *
+   * @param {Integer} lemmaId The id of the lemma to remove.
+   * @return True if succeed.
+   */
+  removeLemma: function atomDictBase_removeLemma(lemmaId) {},
+
+  /**
+   * Get the total occuring count of this atom dictionary.
+   *
+   * @return {Integer} The total occuring count of this atom dictionary.
+   */
+  getTotalLemmaCount: function atomDictBase_getTotalLemmaCount() {},
+
+  /**
+   * Set the total occuring count of other atom dictionaries.
+   *
+   * @param {Integer} count The total occuring count of other atom dictionaies.
+   */
+  setTotalLemmaCountOfOthers: function atomDictBase_setTotalLemmaCountOfOthers(
+    count) {},
+
+  /**
+   * Notify this atom dictionary to flush the cached data to persistent storage
+   * if necessary.
+   */
+  flushCache: function atomDictBase_flushCache() {}
 };
 
 var jspinyin = new IMEngine(new PinyinParser());
