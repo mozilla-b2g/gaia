@@ -8,13 +8,9 @@
   overflow: hidden;
 }
 
-#lockscreen > #status {
-  height: 32px;
-  width: 100%;
-}
-
 #lockscreen > #lockscreen-container {
   width: 100%;
+  margin-top: 32px;
   height: -moz-calc(100% - 32px);
 }
 
@@ -27,11 +23,16 @@
 #keypadscreen {
   position: absolute;
   z-index: 19999;
-  left: 0;
-  top: 32px;
+  top: 0;
   width: -moz-calc(100%);
-  height: -moz-calc(100% - 32px);
+  height: -moz-calc(100%);
   overflow: hidden;
+}
+
+#keypadscreen > #keypadscreen-container {
+  width: 100%;
+  margin-top: 32px;
+  height: -moz-calc(100% - 32px);
 }
 
 #keypadscreen-code {
