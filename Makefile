@@ -97,7 +97,7 @@ MARIONETTE_PORT ?= 2828
 TEST_DIRS ?= $(CURDIR)/tests
 
 # Generate profile/
-profile: stamp-commit-hash update-offline-manifests preferences manifests offline extensions test-agent-config
+profile: stamp-commit-hash update-offline-manifests preferences manifests test-agent-config offline extensions
 	@echo "\nProfile Ready: please run [b2g|firefox] -profile $(CURDIR)/profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
