@@ -240,7 +240,7 @@ update-common: common-install
 
 # Create the json config file
 # for use with the test agent GUI
-test-agent-config:
+test-agent-config: test-agent-bootstrap-apps
 	@rm -f $(TEST_AGENT_CONFIG)
 	@touch $(TEST_AGENT_CONFIG)
 	@echo '{\n  "tests": [' >> $(TEST_AGENT_CONFIG)
@@ -255,6 +255,16 @@ test-agent-config:
 	@echo '  ]\n}' >> $(TEST_AGENT_CONFIG);
 	@echo "Built test ui config file: $(TEST_AGENT_CONFIG)"
 
+
+.PHONY: test-agent-bootstrap-apps
+test-agent-bootstrap-apps:
+	for d in `find apps/* -maxdepth 0 -type d` ;\
+	do \
+		  mkdir -p $$d/test/ ; \
+			cp -f ./common/test/boilerplate/_proxy.html $$d/test/_proxy.html; \
+			cp -f ./common/test/boilerplate/_sandbox.html $$d/test/_sandbox.html; \
+	done
+	@echo "Done bootstrapping test proxies/sandboxes";
 
 # Temp make file method until we can switch
 # over everything in test
