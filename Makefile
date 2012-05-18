@@ -260,7 +260,8 @@ test-agent-config: test-agent-bootstrap-apps
 test-agent-bootstrap-apps:
 	for d in `find apps/* -maxdepth 0 -type d` ;\
 	do \
-		  mkdir -p $$d/test/ ; \
+		  mkdir -p $$d/test/unit ; \
+		  mkdir -p $$d/test/integration ; \
 			cp -f ./common/test/boilerplate/_proxy.html $$d/test/_proxy.html; \
 			cp -f ./common/test/boilerplate/_sandbox.html $$d/test/_sandbox.html; \
 	done
