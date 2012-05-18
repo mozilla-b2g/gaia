@@ -220,12 +220,19 @@ var Contacts = {
   },
 
   _contactFragment: function contactFragment(contact) {
-    var fragment = '';
-    fragment += '<div class="contact" id="' + contact.id + '">';
-    fragment += '<span>' + contact.givenName + '</span> ';
-    fragment += '<span>' + contact.familyName + '</span>';
-    fragment += '</div>';
-    return fragment;
+    var fragment = document.createElement('div');
+    fragment.id = contact.id;
+    fragment.className = 'contact';
+
+    var givenName = document.createElement('span');
+    givenName.textContent = contact.givenName + ' ';
+    var familyName = document.createElement('span');
+    familyName.textContent = contact.familyName;
+
+    fragment.appendChild(givenName);
+    fragment.appendChild(familyName);
+
+    return fragment.outerHTML;
   }
 };
 
