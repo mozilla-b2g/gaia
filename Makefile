@@ -97,7 +97,7 @@ MARIONETTE_PORT ?= 2828
 TEST_DIRS ?= $(CURDIR)/tests
 
 # Generate profile/
-profile: stamp-commit-hash update-offline-manifests preferences manifests offline extensions test-agent-config
+profile: stamp-commit-hash update-offline-manifests preferences test-agent-config manifests offline extensions
 	@echo "\nProfile Ready: please run [b2g|firefox] -profile $(CURDIR)/profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
@@ -261,8 +261,8 @@ test-agent-bootstrap-apps:
 	for d in `find apps/* -maxdepth 0 -type d` ;\
 	do \
 		  mkdir -p $$d/test/ ; \
-			cp -f ./common/test/boilerplate/_proxy.html $$d/test/_proxy.html; \
-			cp -f ./common/test/boilerplate/_sandbox.html $$d/test/_sandbox.html; \
+			ln -sf $$PWD/common/test/boilerplate/_proxy.html $$d/test/_proxy.html; \
+			ln -sf $$PWD/common/test/boilerplate/_sandbox.html $$d/test/_sandbox.html; \
 	done
 	@echo "Done bootstrapping test proxies/sandboxes";
 
