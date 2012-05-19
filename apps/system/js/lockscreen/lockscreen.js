@@ -16,7 +16,8 @@ var LockScreen = {
 
   get notification() {
     delete this.notification;
-    return this.notification = document.getElementById('lockscreen-notification');
+    return this.notification =
+      document.getElementById('lockscreen-notification');
   },
 
   get notificationTitle() {
