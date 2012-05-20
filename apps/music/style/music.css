@@ -11,7 +11,24 @@ body {
   padding: 0;
   height: 100%;
   width: 100%;
-  font-size: 1.8mozmm;
+}
+
+body.tiles-mode #views-list,
+body.tiles-mode #views-player,
+body.tiles-mode #title-back {
+  display: none;
+}
+
+body.list-mode #views-tiles,
+body.list-mode #views-player,
+body.list-mode #title-back {
+  display: none;
+}
+
+body.player-mode #views-tiles,
+body.player-mode #views-list,
+body.player-mode #tabs {
+  display: none;
 }
 
 #title {  
@@ -98,6 +115,13 @@ body {
   margin-right: 20%;
 }
 
+#player-cover-title,
+#player-cover-artist {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 #player-cover-title {
   position: absolute;
   top: 0%;
@@ -159,8 +183,12 @@ body {
   background: -moz-linear-gradient(center top , #F47A20, #FAA51A) repeat scroll 0 0 transparent;
   color: #FCD3A5;
 }
+.orange-button:disabled {
+  opacity: 0.3;
+}
 
 #player-album-rating {
+  opacity: 0.3;
   width: 50%;
   text-align: center;
   font-size: 2em;
@@ -168,6 +196,7 @@ body {
 }
 
 #player-seek {
+  opacity: 0.3;
   width: 100%;
   height: 12%;
   background: -moz-linear-gradient(center top , #00ADEE, #0078A5) repeat scroll 0 0 transparent;
@@ -244,6 +273,9 @@ body {
   background: -moz-linear-gradient(center top , #0078A5, #00ADEE) repeat scroll 0 0 transparent;
   color: #80BED6;
 }
+.blue-button:disabled {
+  opacity: 0.3;
+}
 
 .music-symbol {
   width: 100%;
@@ -256,7 +288,6 @@ body {
   left: 0px;
   width: 100%;
   height: 9%;
-  /*background-color: rgba(255, 255, 255, 0.4);*/
 }
 
 #tabs-playlists,
@@ -294,7 +325,7 @@ body {
   display: none;
 }
 
-/*ul#songs {
+ul#songs {
   padding: 0;
   margin: 0;
 }
@@ -306,7 +337,7 @@ li.song {
 li.song a {
   font-size: 1.2em;
   display: block;
-  width: 100%;
+  /*width: 100%;*/
   color: #fff;
   text-decoration: none;
   border-bottom: solid 1px #666;
@@ -317,4 +348,4 @@ li.song a {
 div#player {
   padding: 300px 0;
   text-align: center;
-}*/
+}
