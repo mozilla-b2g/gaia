@@ -9,7 +9,7 @@ rm -f $GAIA_PATH/profile.tar.gz
 
 # Prevent failures from missing dirs
 
-mkdir -p $GAIA_PATH/OfflineCache
+mkdir -p $GAIA_PATH/profile/OfflineCache
 
 cd $B2G_HOME;
 
