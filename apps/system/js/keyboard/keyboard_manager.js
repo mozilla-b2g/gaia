@@ -8,6 +8,7 @@
 		var keyboardWindow = keyboardFrame.contentWindow;
 
 		// Keyboard app notifying resize the screen
+		// TODO Think on a way of doing this without postMessages between Keyboard and System
 		window.addEventListener('message', function receiver(e) {
 			currentApp = WindowManager.getAppFrame(WindowManager.getDisplayedApp());
 			var event = JSON.parse(e.data);
