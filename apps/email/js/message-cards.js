@@ -3,6 +3,3 @@
  * search.
  **/
 
-Cards.cardDefs.messageList = {
-
-};

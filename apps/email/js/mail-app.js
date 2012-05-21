@@ -37,6 +37,13 @@ var App = {
             });
         };
       }
+      // - no accounts, show the setup page!
+      else {
+        Cards.assertNoCards();
+        Cards.pushCard(
+          'setup-pick-service', 'default', 'immediate',
+          {});
+      }
     };
   },
 };

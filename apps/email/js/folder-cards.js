@@ -12,6 +12,8 @@ function FolderPickerCard(domNode, mode, args) {
 
   this.curAccount = args.curAccount;
   this.curFolder = args.curFolder;
+
+
 }
 FolderPickerCard.prototype = {
   onAccountsSplice: function(index, howMany, addedItems,
@@ -19,6 +21,27 @@ FolderPickerCard.prototype = {
   },
   onFoldersSplice: function(index, howMany, addedItems,
                              requested, moreExpected) {
+    var folder;
+    if (howMany) {
+      for (var i = index + howMany - 1; i >= index; i--) {
+        folder = msgSlice.items[i];
+        folder.element.parentNode.removeChild(folder.element);
+      }
+    }
+
+    var insertBuddy = (index >= nodes.folders.childElementCount) ?
+                        null : nodes.folders.children[index];
+    addedItems.forEach(function(folder) {
+      folder.element =
+      nodes.folders.insertBefore(folder.element, insertBuddy);
+      if (folder.selectable) {
+        // (we don't actually need a closure)
+        folder.element.addEventListener('click', function() {
+            nodes.folderScreen.hidden = true;
+            mail.mailScreen(folder);
+          }, false);
+      }
+    });
   },
 
   /**

@@ -41,7 +41,20 @@ function populateTemplateNodes() {
   tngNodes = processTemplNodes('tng');
 }
 
-
+/**
+ * Add an event listener on a container that, when an event is encounted on
+ * a descendent, walks up the tree to find the immediate child of the container
+ * and tells us what the click was on.
+ */
+function bindContainerHandler(containerNode, eventName, func) {
+  containerNode.addEventListener(eventName, function(event) {
+    var node = event.target;
+    while (node && node.parentNode !== containerNode) {
+      node = node.parentNode;
+    }
+    func(node, event);
+  }, false);
+}
 
 /**
  * Fairly simple card abstraction with support for simple horizontal animated
@@ -259,7 +272,7 @@ var Cards = {
     for (iCard = 0; iCard < deadCardInsts.length; iCard++) {
       cardInst = deadCardInsts[iCard];
       try {
-        cardInst.die();
+        cardInst.cardImpl.die();
       }
       catch (ex) {
         console.warn('Problem cleaning up card:', ex, '\n', ex.stack);

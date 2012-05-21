@@ -16,20 +16,23 @@
     var src = 'http://' + domain + '/webapi.js';
     document.write('<script src="' + src + '"><\/script>');
 
-    function consoleHelper() {
-      var msg = arguments[0] + ":";
-      for (var i = 1; i < arguments.length; i++) {
-        msg += " " + arguments[i];
+    // when running in B2G, send output to the console, ANSI-style
+    if ('MozTCPSocket' in window) {
+      function consoleHelper() {
+        var msg = arguments[0] + ":";
+        for (var i = 1; i < arguments.length; i++) {
+          msg += " " + arguments[i];
+        }
+        msg += "\x1b[0m\n";
+        dump(msg);
       }
-      msg += "\x1b[0m\n";
-      dump(msg);
+      window.console = {
+        log:   consoleHelper.bind(null, '\x1b[32mLOG'),
+        error: consoleHelper.bind(null, '\x1b[31mERR'),
+        info:  consoleHelper.bind(null, '\x1b[36mINF'),
+        warn:  consoleHelper.bind(null, '\x1b[33mWAR'),
+      };
     }
-    var console = {
-      log:   consoleHelper.bind(null, '\x1b[32mLOG'),
-      error: consoleHelper.bind(null, '\x1b[31mERR'),
-      info:  consoleHelper.bind(null, '\x1b[36mINF'),
-      warn:  consoleHelper.bind(null, '\x1b[33mWAR'),
-    };
   </script>
   <script type="text/javascript" src="js/mail-common.js"></script>
   <script type="text/javascript" src="js/message-cards.js"></script>
@@ -206,16 +209,56 @@
            some typing during account setup.  This may also result in
            advice on required additional steps (gmail). -->
       <div class="card-setup-pick-service card">
-        
+        <div class="sup-account-header top-header">
+          <h2 class="sup-account-header-label">MaiL</h2>
+        </div>
+        <h2 class="sup-pick-service-label">
+          To SenD and ReceivE email, you will need to setup an account.
+        </h2>
+        <div class="sup-services-container">
+        </div>
       </div>
       <!-- Enter your e-mail address, password, name -->
       <div class="card-setup-account-info card">
+        <div class="sup-account-header top-header">
+          <button class="sup-back-btn back-btn">&lt;</button>
+          <h2 class="sup-account-header-label">NeW MaiL AccounT SetuP</h2>
+        </div>
+        <h2 class="sup-info-label">
+          YouR LogiN InformatioN
+        </h2>
+        <input class="sup-info-name" type="text"
+               placeholder="NamE" />
+        <input class="sup-info-email" type="text"
+               placeholder="EmaiL AddresS" />
+        <input class="sup-info-password" type="password"
+               placeholder="PassworD" />
+        <button class="sup-info-next-btn">NexT</button>
       </div>
       <!-- I am setting up your account, please wait or read errors! -->
       <div class="card-setup-progress card">
+        <div class="sup-account-header top-header">
+          <button class="sup-back-btn back-btn">&lt;</button>
+          <h2 class="sup-account-header-label">NeW MaiL AccounT SetuP</h2>
+        </div>
+        <div class="sup-progress-region">
+          <h2 class="sup-progress-label">
+            PleasE WaiT WhilE I SetuP YouR AccounT
+          </h2>
+          <span class="sup-progress-spinner">(spinner)</span>
+        </div>
+        <div class="sup-error-region collapsed">
+          <span class="sup-error-message"></span>
+        </div>
       </div>
       <!-- Account all setup, add another or read your mail? -->
       <div class="card-setup-done card">
+        <div class="sup-account-header top-header">
+          <h2 class="sup-account-header-label">MaiL AccounT SetuP</h2>
+        </div>
+        <h2 class="sup-account-done-label">AlL DonE!</h2>
+        <button class="sup-add-another-account-btn">AdD AnotheR AccounT</button>
+        <button class="sup-show-mail-btn">ContinuE tO MaiL</button>
       </div>
 
       <!-- Main settings menu, root of all (mail) settings -->
@@ -228,19 +271,37 @@
     </div>
     <!-- Widget nodes for folder cards; styles use the fld prefix -->
     <div id="templ-fld">
-      <div class="">
-      </div>
+      <a class="fld-account-item">
+        <span class="fld-account-name"></span>
+      </a>
+      <a class="fld-folder-item">
+        <span class="fld-folder-name"></span>
+        <span class="fld-folder-unread"></span>
+      </a>
     </div>
     <!-- Widget nodes for the message cards; styles use the msg prefix -->
     <div id="templ-msg">
+      <a class="msg-header-item">
+        <div class="msg-header-unread-section">
+        </div>
+        <div class="msg-header-details-section">
+          <span class="msg-header-author"></span>
+          <span class="msg-header-date"></span>
+          <span class="msg-header-subject"></span>
+          <span class="msg-header-snippet"></span>
+        </div>
+        <div class="msg-header-icons-section">
+          <span class="msg-header-star"></span>
+          <span class="msg-header-attachment"></span>
+        </div>
+      </a>
     </div>
     <!-- Widget nodes for the compose cards; styles use the cmp prefix -->
     <div id="templ-cmp">
     </div>
     <!-- Widget nodes for the setup cards; styles use the sup prefix -->
     <div id="templ-sup">
-      <button class="sup-service-choice">
-      </button>
+      <button class="sup-service-choice"></button>
     </div>
     <!-- Widget nodes for the settings cards; styles use the tng prefix -->
     <div id="templ-tng">
