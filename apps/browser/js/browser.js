@@ -14,8 +14,8 @@ var Browser = {
   STOP: 2,
 
   currentScreen: null,
-  PAGE_SCREEN: 3,
-  TABS_SCREEN: 4,
+  PAGE_SCREEN: 0,
+  TABS_SCREEN: 1,
 
   urlButtonMode: null,
 
@@ -33,9 +33,9 @@ var Browser = {
 
     this.tabsBadge = document.getElementById('tabs-badge');
     this.throbber = document.getElementById('throbber');
-    this.tabsWrapper = document.getElementById('tabs-wrapper');
+    this.frames = document.getElementById('frames');
     this.tabsList = document.getElementById('tabs-list');
-    this.pageScreenWrapper = document.getElementById('page-screen');
+    this.mainScreen = document.getElementById('main-screen');
 
     // Add event listeners
     window.addEventListener('submit', this);
@@ -50,8 +50,7 @@ var Browser = {
     this.history.addEventListener('click', this.followLink.bind(this));
     this.tabsBadge.addEventListener('click', this.handleTabsBadgeClicked.bind(this));
     this.tabsList.addEventListener('click', this.handleTabClicked.bind(this));
-    this.pageScreenWrapper
-      .addEventListener('click', this.handlePageScreenClicked.bind(this));
+    this.mainScreen.addEventListener('click', this.handlePageScreenClicked.bind(this));
 
     this.handleWindowResize();
 
@@ -76,7 +75,7 @@ var Browser = {
   handleWindowResize: function browser_handleWindowResize() {
     var translate = 'translateX(-' + (window.innerWidth - 50) + 'px)';
     if (!this.cssTranslateId) {
-      var css = '.tabs-screen #page-screen { -moz-transform: ' + translate + ';}';
+      var css = '.tabs-screen #main-screen { -moz-transform: ' + translate + ';}';
       var insertId = this.styleSheet.cssRules.length - 1;
       this.cssTranslateId = this.styleSheet.insertRule(css, insertId);
     } else {
@@ -157,6 +156,7 @@ var Browser = {
       case 'mozbrowsertitlechange':
         if (evt.detail) {
           tab.title = evt.detail;
+          GlobalHistory.setPageTitle(tab.url, tab.title);
           if (isCurrentTab && !tab.loading) {
             this.urlInput.value = tab.title;
           }
@@ -220,14 +220,12 @@ var Browser = {
 
   goBack: function browser_goBack() {
     this.currentTab.session.back();
-    this.backButton.disabled = !this.currentTab.session.backLength();
-    this.forwardButton.disabled = !this.currentTab.session.forwardLength();
+    this.refreshButtons();
   },
 
   goForward: function browser_goForward() {
     this.currentTab.session.forward();
-    this.backButton.disabled = !this.currentTab.session.backLength();
-    this.forwardButton.disabled = !this.currentTab.session.forwardLength();
+    this.refreshButtons();
   },
 
   refreshButtons: function() {
@@ -238,8 +236,7 @@ var Browser = {
   updateHistory: function browser_updateHistory(url) {
     this.currentTab.session.pushState(null, '', url);
     GlobalHistory.addVisit(url);
-    this.backButton.disabled = !this.currentTab.session.backLength();
-    this.forwardButton.disabled = !this.currentTab.session.forwardLength();
+    this.refreshButtons();
   },
 
   urlFocus: function browser_urlFocus() {
@@ -310,7 +307,7 @@ var Browser = {
     }).bind(this));
 
     this.tabs[tab.id] = tab;
-    this.tabsWrapper.appendChild(iframe);
+    this.frames.appendChild(iframe);
 
     return tab.id;
   },

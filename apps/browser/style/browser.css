@@ -30,7 +30,7 @@ body {
   pointer-events: none;
 }
 
-.tabs-screen #page-screen {
+.tabs-screen #main-screen {
   opacity: 0.5;
 }
 
@@ -38,14 +38,14 @@ body {
   background: black;
 }
 
-#tabs {
+#tray {
   -moz-transition: 0.2s ease-in-out;
-  position:absolute;
+  position: absolute;
   left: 70px;
   right: 20px;
-  top:0px;
-  bottom: 0px;
-  color:white;
+  top: 0;
+  bottom: 0;
+  color: white;
   z-index: 40;
 }
 
@@ -70,34 +70,34 @@ body {
   right: 0;
 }
 
-#tabs ul {
+#tabs-list ul {
   list-style-type: none;
   margin: 0;
   padding: 0;
 }
 
-#tabs li a {
+#tabs-list li a {
   display: block;
   height: 100%;
   padding: 5px;
   margin-right:50px;
 }
 
-#tabs li {
+#tabs-list li {
   margin: 0;
   height: 80px;
   border-bottom: 1px solid #333;
   font-family: 'Open Sans', sans-serif;
   overflow: hidden;
-  position:relative;
+  position: relative;
 }
 
-#tabs li a:hover {
+#tabs-list li a:hover {
   background: #333;
   cursor: pointer;
 }
 
-#tabs img {
+#tabs-list img {
   display: block;
   width: 90px;
   height: 60px;
@@ -108,30 +108,29 @@ body {
   pointer-events: none;
 }
 
-#tabs span {
+#tabs-list span {
   pointer-events: none;
 }
 
-#tabs .close:hover {
-  color:#666;
+#tabs-list .close:hover {
+  color: #666;
 }
 
-#tabs .close {
+#tabs-list .close {
   font-family: 'Open Sans', sans-serif;
   border: 0px;
   position: absolute;
   right: 0px;
-  height:100%;
-  width:50px;
-  top:0px;
-  background:transparent;
+  height: 100%;
+  width: 50px;
+  top: 0;
+  background: transparent;
   font-size: 28px;
-  color:white;
-  outline:none;
+  color: white;
   padding-bottom: 7px;
 }
 
-#page-screen {
+#main-screen {
  -moz-transition: 0.2s ease-in-out;
   margin: 0;
   display: -moz-box;
@@ -155,7 +154,7 @@ body {
   width: 50px;
   height: 62px;
   line-height: 62px;
-  text-align:center;
+  text-align: center;
   cursor: pointer;
   -moz-user-select: none;
 }
@@ -266,18 +265,18 @@ input::-moz-focus-inner {
   display: none;
 }
 
-#tabs-wrapper {
+#frames {
   -moz-box-flex: 1;
   width: 100%;
-  position:relative;
+  position: relative;
   background: white;
 }
 
-#tabs-wrapper iframe {
-  position:absolute;
+#frames > iframe {
+  position: absolute;
   display: block;
   height: 100%;
-  width:100%;
+  width: 100%;
   border: none;
 }
 
@@ -332,15 +331,6 @@ input::-moz-focus-inner {
 
 #history-list {
   -moz-box-flex: 1;
-}
-
-#shade {
-  position: absolute;
-  bottom: 62px;
-  left: 0;
-  width: 100%;
-  height: -moz-calc(100% - 62px);
-  background-color: rgba(5, 5, 5, 0.5);
 }
 
 #browser-menu {
