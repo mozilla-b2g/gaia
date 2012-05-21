@@ -7,12 +7,33 @@
   display: hidden;
 }
 
+html {
+  width: 100%;
+  height: 100%;
+}
 body {
   width: 100%;
   height: 100%;
   margin: 0;
   padding: 0;
 }
+
+button {
+  background-color: #5e5e5e;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #323232;
+  color: #FFFFFF;
+  font-size: 16px;
+  font-weight: bold;
+  height: 32px;
+
+  -webkit-border-radius: 3px;
+     -moz-border-radius: 3px;
+       -o-border-radius: 3px;
+          border-radius: 3px;
+}
+
 #cardContainer {
   width: 100%;
   height: 100%;
@@ -45,6 +66,33 @@ body {
 
 .card {
   float: left;
+  position: relative;
   overflow-x: hidden;
   overflow-y: auto;
+}
+
+.top-header {
+  background: -moz-linear-gradient(to top, #ffffff 0, #a3a3a3 5px, #992f21 5px, #992f21 6px, #bb492d 6px, #cc6523 100%);
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%,  #cc6523), color-stop(100%, #bb492d));
+  height: 52px;
+  padding: 0;
+  padding-bottom: 6px;
+}
+
+.header-label {
+  color: white;
+  line-height: 52px;
+  margin: 0;
+  text-align: center;
+}
+.header-left-btn {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  height: 48px; 
+
+  border: none;
+  background: none;
+  font-size: 24px;
+  font-weight: bold;
 }

@@ -1,1 +1,24 @@
 
+.sup-form {
+  text-align: center;
+}
+
+.sup-form-label {
+  text-align: center;
+  margin: 20px;
+}
+.sup-form-text {
+  display: block;
+  margin: 10px 30px;
+  width: 300px;
+}
+.sup-form-btn {
+  margin: 10px 60px;
+  width: 240px;
+}
+
+.sup-services-container {
+  text-align: center;
+}
+.sup-service-choice {
+}

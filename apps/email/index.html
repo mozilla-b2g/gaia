@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html manifest="manifest.appcache">
+<!--XXX appcache is a debugging nightmare DISABLED!-->
+<!--<html manifest="manifest.appcache">-->
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1">
   <title>Email</title>
   <link rel="stylesheet" type="text/css" href="style/mail.css">
   <link rel="stylesheet" type="text/css" href="style/message-cards.css">
@@ -44,14 +45,13 @@
   <script type="text/javascript" src="js/mail-app.js"></script>
 </head>
 
-<body class="hidden" role="application">
+<body role="application">
   <!-- All the active cards live (horizontally) in this container.  We leave
        it up to the layout engine to be smart about not painting cards that are
        not visible, but we will revisit that after profiling.  (display: hidden
        should be fairly safe, for example.) -->
   <div id="cardContainer">
-    <div id="cards">
-    </div>
+    <div id="cards"></div>
   </div>
 
   <!-- We have a "card" centric implementation that clones the cards from below.
@@ -210,9 +210,11 @@
            advice on required additional steps (gmail). -->
       <div class="card-setup-pick-service card">
         <div class="sup-account-header top-header">
-          <h2 class="sup-account-header-label">MaiL</h2>
+          <h2 class="sup-account-header-label header-label"
+              data-l10n-id="setup-app-name-header">MaiL</h2>
         </div>
-        <h2 class="sup-pick-service-label">
+        <h2 class="sup-pick-service-label sup-form-label"
+            data-l10n-id="setup-pick-service">
           To SenD and ReceivE email, you will need to setup an account.
         </h2>
         <div class="sup-services-container">
@@ -221,28 +223,35 @@
       <!-- Enter your e-mail address, password, name -->
       <div class="card-setup-account-info card">
         <div class="sup-account-header top-header">
-          <button class="sup-back-btn back-btn">&lt;</button>
-          <h2 class="sup-account-header-label">NeW MaiL AccounT SetuP</h2>
+          <button class="sup-back-btn header-left-btn back-btn">&lt;</button>
+          <h2 class="sup-account-header-label header-label"
+              data-l10n-id="setup-account-header">NeW MaiL AccounT SetuP</h2>
         </div>
-        <h2 class="sup-info-label">
+        <h2 class="sup-info-label sup-form-label"
+            data-l10n-id="setup-info-header">
           YouR LogiN InformatioN
         </h2>
-        <input class="sup-info-name" type="text"
-               placeholder="NamE" />
-        <input class="sup-info-email" type="text"
-               placeholder="EmaiL AddresS" />
-        <input class="sup-info-password" type="password"
-               placeholder="PassworD" />
-        <button class="sup-info-next-btn">NexT</button>
+        <div class="sup-form">
+          <input class="sup-info-name sup-form-text" type="text"
+                 placeholder="NamE" />
+          <input class="sup-info-email sup-form-text" type="text"
+                 placeholder="EmaiL AddresS" />
+          <input class="sup-info-password sup-form-text" type="password"
+                 placeholder="PassworD" />
+          <button class="sup-info-next-btn sup-form-btn"
+                  data-l10n-id="setup-info-next">NexT</button>
+        </div>
       </div>
       <!-- I am setting up your account, please wait or read errors! -->
       <div class="card-setup-progress card">
         <div class="sup-account-header top-header">
-          <button class="sup-back-btn back-btn">&lt;</button>
-          <h2 class="sup-account-header-label">NeW MaiL AccounT SetuP</h2>
+          <button class="sup-back-btn header-left-btn back-btn">&lt;</button>
+          <h2 class="sup-account-header-label header-label"
+              data-l10n-id="setup-account-header"NeW MaiL AccounT SetuP</h2>
         </div>
         <div class="sup-progress-region">
-          <h2 class="sup-progress-label">
+          <h2 class="sup-progress-label sup-form-label"
+              data-l10n-id="setup-progress-wait">
             PleasE WaiT WhilE I SetuP YouR AccounT
           </h2>
           <span class="sup-progress-spinner">(spinner)</span>
@@ -254,11 +263,19 @@
       <!-- Account all setup, add another or read your mail? -->
       <div class="card-setup-done card">
         <div class="sup-account-header top-header">
-          <h2 class="sup-account-header-label">MaiL AccounT SetuP</h2>
+          <h2 class="sup-account-header-label header-label"
+              data-l10n-id="setup-completed-header">MaiL AccounT SetuP</h2>
         </div>
-        <h2 class="sup-account-done-label">AlL DonE!</h2>
-        <button class="sup-add-another-account-btn">AdD AnotheR AccounT</button>
-        <button class="sup-show-mail-btn">ContinuE tO MaiL</button>
+        <h2 class="sup-account-done-label sup-form-label"
+            data-l10n-id="setup-completed-label">AlL DonE!</h2>
+        <button class="sup-add-another-account-btn sup-form-btn"
+                data-l10n-id="setup-add-another-account">
+          AdD AnotheR AccounT
+        </button>
+        <button class="sup-show-mail-btn sup-form-btn"
+                data-l10n-id="setup-show-mail">
+          ContinuE tO MaiL
+        </button>
       </div>
 
       <!-- Main settings menu, root of all (mail) settings -->

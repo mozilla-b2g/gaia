@@ -2,6 +2,8 @@
  * UI infrastructure code and utility code for the gaia email app.
  **/
 
+var mozL10n = document.mozL10n;
+
 function dieOnFatalError(msg) {
   console.error('FATAL:', msg);
   throw new Error(msg);
@@ -124,6 +126,10 @@ var Cards = {
    */
   _init: function() {
     this._containerNode = document.getElementById('cardContainer');
+    if (window.innerWidth > 360)
+      this._containerNode.style.width = '360px';
+    if (window.innerHeight > 480)
+      this._containerNode.style.height = '480px';
     this._cardsNode = document.getElementById('cards');
     this._templateNodes = processTemplNodes('card');
 
@@ -139,8 +145,8 @@ var Cards = {
 
   TRAY_GUTTER_WIDTH: 80,
   _adjustCardSizes: function() {
-    var cardWidth = this._containerNode.offsetWidth,
-        cardHeight = this._containerNode.offsetHeight,
+    var cardWidth = Math.min(360, window.innerWidth), //this._containerNode.offsetWidth,
+        cardHeight = Math.min(480, window.innerHeight), //this._containerNode.offsetHeight,
         totalWidth = 0;
 
     for (var i = 0; i < this._cardStack.length; i++) {
@@ -299,7 +305,8 @@ var Cards = {
   _onTransitionEnd: function(event) {
     if (this._animatingDeadDomNodes.length) {
       this._animatingDeadDomNodes.forEach(function(domNode) {
-        domNode.parentNode.removeChild(domNode);
+        if (domNode.parentNode)
+          domNode.parentNode.removeChild(domNode);
       });
     }
   },

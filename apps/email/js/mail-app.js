@@ -11,9 +11,11 @@ var App = {
    * start the setup process if we have no accounts.
    */
   showMessageViewOrSetup: function() {
+console.log("showMessageViewOrSetup");
     // Get the list of accounts including the unified account (if it exists)
     var acctsSlice = MailAPI.viewAccounts(false);
     acctsSlice.oncomplete = function() {
+console.log("oncomplete");
       // - we have accounts, show the message view!
       if (acctsSlice.items.length) {
         // For now, just use the first one; we do attempt to put unified first
@@ -49,14 +51,32 @@ var App = {
 };
 
 function hookStartup() {
-  var callbacks = makeAllback(['mailapi', 'locale'], function(results) {
-    populateTemplateNodes();
-    Cards._init();
+  var gotLocalized = false, gotMailAPI = false;
+  function doInit() {
+console.log('Initializing mail app');
+    try {
+console.log('- template nodes');
+      populateTemplateNodes();
+console.log('- cards');
+      Cards._init();
+console.log('- account check, initial cards');
+      App.showMessageViewOrSetup();
+    }
+    catch (ex) {
+      console.error('Problem initializing', ex, '\n', ex.stack);
+    }
+  }
 
-    MailAPI = results.mailapi;
-    App.showMessageViewOrSetup();
-  });
-  gimmeMailAPI(callbacks.mailapi);
-  window.addEventListener('localized', callbacks.locale);
+  window.addEventListener('localized', function() {
+    gotLocalized = true;
+    if (gotMailAPI)
+      doInit();
+  }, false);
+  window.addEventListener('mailapi', function(event) {
+    MailAPI = event.mailAPI;
+    gotMailAPI = true;
+    if (gotLocalized)
+      doInit();
+  }, false);
 }
-
+hookStartup();

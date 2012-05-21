@@ -12,8 +12,9 @@
 var MAIL_SERVICES = [
   // XXX fill these in once enough stuff is working...
   {
-    name: "OtheR EmaiL",
-    domain: "",
+    name: 'OtheR EmaiL',
+    l10nId: 'setup-other-email',
+    domain: '',
   },
 ];
 
@@ -31,8 +32,11 @@ SetupPickServiceCard.prototype = {
   _populateServices: function() {
     for (var i = 0; i < MAIL_SERVICES.length; i++) {
       var serviceDef = MAIL_SERVICES[i],
-          serviceNode = supNodes['sup-service-choice'].cloneNode(true);
-      serviceNode.textContent = serviceDef.name;
+          serviceNode = supNodes['service-choice'].cloneNode(true);
+      if (serviceDef.l10nId)
+        serviceNode.textContent = mozL10n.get(serviceDef.l10nId);
+      else
+        serviceNode.textContent = serviceDef.name;
       serviceNode.serviceDef = serviceDef;
 
       this.servicesContainer.appendChild(serviceNode);
@@ -70,6 +74,15 @@ function SetupAccountInfoCard(domNode, mode, args) {
 
   var nextButton = domNode.getElementsByClassName('sup-info-next-btn')[0];
   nextButton.addEventListener('click', this.onNext.bind(this), false);
+
+  // placeholders need to be translated; they aren't automatically done
+  this.domNode.getElementsByClassName('sup-info-name')[0]
+    .setAttribute('placeholder', mozL10n.get('setup-info-name-placeholder'));
+  this.domNode.getElementsByClassName('sup-info-email')[0]
+    .setAttribute('placeholder', mozL10n.get('setup-info-email-placeholder'));
+  this.domNode.getElementsByClassName('sup-info-password')[0]
+    .setAttribute('placeholder',
+                  mozL10n.get('setup-info-password-placeholder'));
 }
 SetupAccountInfoCard.prototype = {
   onBack: function(event) {
