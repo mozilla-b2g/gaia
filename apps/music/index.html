@@ -32,7 +32,10 @@
   	    </div>
   	    <div id="player-seek">
   	      <span class="player-seek-elapsed">00:00</span>
-  	      <div id="player-seek-bar"></div>
+  	      <div id="player-seek-bar">
+  	        <progress id="player-seek-bar-progress" value="50" max="100"></progress>
+  	        <div id="player-seek-bar-indicator"></div>
+  	      </div>
   	      <span class="player-seek-remaining">99:99</span>
   	    </div>
   	    <div id="player-controls">
@@ -44,10 +47,10 @@
   	  </div>
   	</div>
   	<div id="tabs">
+      <button id="tabs-top" class="orange-button" disabled=true>Top</button>
       <button id="tabs-playlists" class="orange-button" disabled=true>Playlists</button>
-      <button id="tabs-artists" class="orange-button" disabled=true>Artists</button>
+      <button id="tabs-artist" class="orange-button" disabled=true>Artist</button>
       <button id="tabs-albums" class="orange-button" disabled=true>Albums</button>
-      <button id="tabs-search" class="orange-button" disabled=true>Search</button>
       <button id="tabs-more" class="orange-button" disabled=true>More</button>
   	</div>
   </body>
