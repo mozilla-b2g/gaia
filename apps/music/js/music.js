@@ -56,8 +56,8 @@ window.addEventListener('DOMContentLoaded', function() {
     if (!target)
       return;
     playSong(target.id); // song url is anchor id
-    playerCoverTitle.innerHTML = target.dataset.title;
-    playerCoverArtist.innerHTML = target.dataset.artist;
+    playerCoverTitle.textContent = target.dataset.title;
+    playerCoverArtist.textContent = target.dataset.artist;
   });
   
   window.addEventListener('keyup', function keyPressHandler(evt) {
