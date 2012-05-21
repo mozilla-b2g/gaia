@@ -82,7 +82,7 @@ ifeq ($(strip $(NPM)),)
 	NPM := `which npm`
 endif
 
-TEST_AGENT_CONFIG="./apps/test-agent/test/config.json"
+TEST_AGENT_CONFIG="./apps/test-agent/config.json"
 
 #Marionette testing variables
 #make sure we're python 2.7.x
