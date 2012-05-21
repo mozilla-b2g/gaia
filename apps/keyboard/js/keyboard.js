@@ -166,6 +166,10 @@ const IMEManager = {
   // after kHideAccentCharMenuTimeout the menu will be removed.
   kHideAccentCharMenuTimeout: 500,
 
+  // Taps the space key twice within kSpaceDoubleTapTimeoout
+  // to produce a "." followed by a space
+  kSpaceDoubleTapTimeout: 700,
+
   get ime() {
     delete this.ime;
     return this.ime = document.getElementById('keyboard');
@@ -276,6 +280,7 @@ const IMEManager = {
 
     var before = (window.innerWidth / 2 > target.offsetLeft);
     var dataset = target.dataset;
+
     if (before) {
       content += '<span class="keyboard-key" ' +
         'data-keycode="' + dataset.keycode + '" ' +
@@ -729,14 +734,19 @@ const IMEManager = {
         if (keyCode == KeyEvent.DOM_VK_BACK_SPACE)
           return;
 
+        // Reset the flag when a non-space key is pressed,
+        // used in space key double tap handling
+        if (keyCode != KeyEvent.DOM_VK_SPACE)
+          delete this.isContinousSpacePressed;
+
         switch (keyCode) {
           case this.BASIC_LAYOUT:
             this.isAlternateLayout = false;
-          break;
+            break;
 
           case this.ALTERNATE_LAYOUT:
             this.isAlternateLayout = true;
-          break;
+            break;
 
           case this.SWITCH_KEYBOARD:
 
@@ -775,7 +785,7 @@ const IMEManager = {
               }
             }
 
-          break;
+            break;
 
           case this.TOGGLE_CANDIDATE_PANEL:
             if (this.ime.classList.contains('candidate-panel')) {
@@ -786,17 +796,17 @@ const IMEManager = {
               this.ime.classList.remove('full-candidate-panel');
             }
             this.updateTargetWindowHeight();
-          break;
+            break;
 
           case this.DOT_COM:
             ('.com').split('').forEach((function sendDotCom(key) {
               window.navigator.mozKeyboard.sendKey(0, key.charCodeAt(0));
             }).bind(this));
-          break;
+            break;
 
           case KeyEvent.DOM_VK_ALT:
             this.isSymbolLayout = !this.isSymbolLayout;
-          break;
+            break;
 
           case KeyEvent.DOM_VK_CAPS_LOCK:
             if (this.isWaitingForSecondTap) {
@@ -826,7 +836,7 @@ const IMEManager = {
             this.isUpperCaseLocked = false;
             this.isUpperCase = !this.isUpperCase;
             this.updateLayout();
-          break;
+            break;
 
           case KeyEvent.DOM_VK_RETURN:
             if (Keyboards[this.currentKeyboard].type == 'ime' &&
@@ -836,23 +846,52 @@ const IMEManager = {
             }
 
             window.navigator.mozKeyboard.sendKey(keyCode, 0);
-          break;
+            break;
 
-          default:
-            if (Keyboards[this.currentKeyboard].type == 'ime' &&
+          // To handle the case when double tapping the space key
+          case KeyEvent.DOM_VK_SPACE:
+            if (this.isWaitingForSpaceSecondTap &&
+                !this.isContinousSpacePressed) {
+
+              if (Keyboards[this.currentKeyboard].type == 'ime' &&
                 !this.currentKeyboardMode) {
-              this.currentEngine.click(keyCode);
+
+                //TODO: need to define the inteface for double tap handling
+                //this.currentEngine.doubleTap(keyCode);
+                break;
+              }
+
+              // Send a delete key to remove the previous space sent
+              window.navigator.mozKeyboard.sendKey(KeyEvent.DOM_VK_BACK_SPACE,
+                                                   0);
+
+              // Send the . symbol followed by a space
+              window.navigator.mozKeyboard.sendKey(0, 46);
+              window.navigator.mozKeyboard.sendKey(0, keyCode);
+
+              delete this.isWaitingForSpaceSecondTap;
+
+              // a flag to prevent continous replacement of space with "."
+              this.isContinousSpacePressed = true;
               break;
             }
 
-            window.navigator.mozKeyboard.sendKey(0, keyCode);
+            this.isWaitingForSpaceSecondTap = true;
 
-            if (this.isUpperCase &&
-                !this.isUpperCaseLocked && !this.currentKeyboardMode) {
-              this.isUpperCase = false;
-              this.updateLayout();
-            }
-          break;
+            window.setTimeout(
+              (function removeSpaceDoubleTapTimeout() {
+                delete this.isWaitingForSpaceSecondTap;
+              }).bind(this),
+              this.kSpaceDoubleTapTimeout
+            );
+
+            this.handleMouseDownEvent(keyCode);
+            break;
+
+          default:
+            this.handleMouseDownEvent(keyCode);
+            break;
+
         }
         break;
 
@@ -1142,6 +1181,9 @@ const IMEManager = {
 
     this.ime.dataset.hidden = 'true';
 
+    // Reset the keyboard mode
+    this.currentKeyboardMode = '';
+
     if (imminent) {
       var ime = this.ime;
       ime.classList.add('imminent');
@@ -1197,6 +1239,22 @@ const IMEManager = {
       span.textContent = candidate[0];
       candidatePanel.appendChild(span);
     });
+  },
+
+  handleMouseDownEvent: function km_handleMouseDownEvent(keyCode) {
+    if (Keyboards[this.currentKeyboard].type == 'ime' &&
+        !this.currentKeyboardMode) {
+          this.currentEngine.click(keyCode);
+          return;
+        }
+
+    window.navigator.mozKeyboard.sendKey(0, keyCode);
+
+    if (this.isUpperCase &&
+        !this.isUpperCaseLocked && !this.currentKeyboardMode) {
+          this.isUpperCase = false;
+          this.updateLayout();
+        }
   }
 };
 

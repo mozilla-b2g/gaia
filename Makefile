@@ -82,6 +82,8 @@ ifeq ($(strip $(NPM)),)
 	NPM := `which npm`
 endif
 
+TEST_AGENT_CONFIG="./apps/test-agent/test/config.json"
+
 #Marionette testing variables
 #make sure we're python 2.7.x
 ifeq ($(strip $(PYTHON_27)),)
@@ -95,7 +97,7 @@ MARIONETTE_PORT ?= 2828
 TEST_DIRS ?= $(CURDIR)/tests
 
 # Generate profile/
-profile: stamp-commit-hash update-offline-manifests preferences manifests offline extensions
+profile: stamp-commit-hash update-offline-manifests preferences manifests offline extensions test-agent-config
 	@echo "\nProfile Ready: please run [b2g|firefox] -profile $(CURDIR)/profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
@@ -176,7 +178,7 @@ settingsdb :
 preferences: install-xulrunner
 	@echo "Generating prefs.js..."
 	@mkdir -p profile
-	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)$(GAIA_PORT)"; const DEBUG = $(DEBUG); const HOMESCREEN = "$(HOMESCREEN)"' build/preferences.js
+	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)$(GAIA_PORT)"; const DEBUG = $(DEBUG); const HOMESCREEN = "$(HOMESCREEN)"; GAIA_PORT = "$(GAIA_PORT)"' build/preferences.js
 	@echo "Done"
 
 
@@ -235,6 +237,24 @@ update-common: common-install
 	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.css common/vendor/test-agent/
 	cp $(TEST_AGENT_DIR)/node_modules/marionette-client/marionette.js common/vendor/marionette-client/
 	cp $(TEST_AGENT_DIR)/node_modules/chai/chai.js common/vendor/chai/
+
+# Create the json config file
+# for use with the test agent GUI
+test-agent-config:
+	@rm -f $(TEST_AGENT_CONFIG)
+	@touch $(TEST_AGENT_CONFIG)
+	@echo '{\n  "tests": [' >> $(TEST_AGENT_CONFIG)
+
+	# Build json array of all test files
+	@(find ./apps -name "*_test.js" | \
+		sed 's:./apps/::' | \
+		sed 's:\(.*\):"\1":' | \
+		sed -e ':a' -e 'N' -e '$$!ba' -e 's/\n/,\
+	/g') >> $(TEST_AGENT_CONFIG)
+
+	@echo '  ]\n}' >> $(TEST_AGENT_CONFIG);
+	@echo "Built test ui config file: $(TEST_AGENT_CONFIG)"
+
 
 # Temp make file method until we can switch
 # over everything in test

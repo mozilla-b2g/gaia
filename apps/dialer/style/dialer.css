@@ -987,7 +987,7 @@ html * {
   background: url(images/call-screen-bg.png) center top no-repeat #575B66;
 
   color: white;
-  z-index: 200;
+  z-index: 500;
 }
 
 #mainKeyset.overlay .keyboard-row .keyboard-key {
@@ -1011,7 +1011,7 @@ html * {
   height: 100%;
 
   background: black;
-  z-index: 100;
+  z-index: 1000;
 
   display: none;
 }

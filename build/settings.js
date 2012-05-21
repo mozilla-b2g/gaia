@@ -14,7 +14,8 @@ dump("Populate settingsdb in:" + PROFILE_DIR + "\n");
 
 // Todo: Get a list of settings
 var settings = [
- new Setting("debug.grid.enabled", false)
+ new Setting("debug.grid.enabled", false),
+ new Setting("lockscreen.passcode-lock.enabled", false)
 ];
 
 function Setting(aName, aValue) {
@@ -63,7 +64,7 @@ let settingsDBService = Cc["@mozilla.org/settingsService;1"].getService(Ci.nsISe
 
 let callback = {
   handle : function handle(name, result)
-  { 
+  {
     Setting.counter--;
   },
 

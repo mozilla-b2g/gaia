@@ -8,19 +8,117 @@
   overflow: hidden;
 }
 
-#lockscreen > #status {
-  height: 32px;
+#lockscreen > #lockscreen-container {
   width: 100%;
-}
-
-#lockscreen > #lockscreenContainer {
-  width: 100%;
+  margin-top: 32px;
   height: -moz-calc(100% - 32px);
 }
 
 @media not all and (width: 480px) and (height: 800px) {
-  #lockscreen > #lockscreenContainer {
+  #lockscreen > #lockscreen-container {
     background-size: cover;
   }
 }
 
+#keypadscreen {
+  position: absolute;
+  z-index: 19999;
+  top: 0;
+  width: -moz-calc(100%);
+  height: -moz-calc(100%);
+  overflow: hidden;
+}
+
+#keypadscreen > #keypadscreen-container {
+  width: 100%;
+  margin-top: 32px;
+  height: -moz-calc(100% - 32px);
+}
+
+#keypadscreen-code {
+  position: absolute;
+  bottom: 400px;
+  height: 120px;
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+}
+
+#keypadscreen-code > span {
+  -moz-box-sizing: border-box;
+  display: block;
+  float: left;
+  width: 25%;
+  height: 100%;
+  text-align: center;
+  border: 10px solid #888;
+  box-shadow: 0 0 10px #fff inset;
+
+  position: relative;
+}
+
+#keypadscreen[data-status="error"] #keypadscreen-code > span {
+  box-shadow: 0 0 10px #f00 inset;
+}
+
+#keypadscreen[data-status="error"] #keypadscreen-code > span[data-dot]::before {
+  background-color: #f00;
+}
+
+#keypadscreen[data-status="success"] #keypadscreen-code > span {
+  box-shadow: 0 0 10px #0c0 inset;
+}
+
+#keypadscreen[data-status="success"] #keypadscreen-code > span[data-dot]::before {
+  background-color: #0c0;
+}
+
+#keypadscreen-code > span[data-dot]::before {
+  content: '';
+  display: block;
+  position: absolute;
+
+  width: 50px;
+  height: 50px;
+  background-color: #000;
+  border-radius: 25px;
+  top: 50%;
+  left: 50%;
+  margin-left: -25px;
+  margin-top: -25px;
+}
+
+#keypadscreen-pad {
+  -moz-box-sizing: border-box;
+  border: 1px solid #fff;
+  position: absolute;
+  bottom: 0;
+  height: 400px;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+#keypadscreen-pad > a {
+  -moz-box-sizing: border-box;
+  display: block;
+  float: left;
+  width: 33.333%;
+  height: 100px;
+  text-align: center;
+  border: 1px solid #fff;
+
+  font-size: 80px;
+  line-height: 100px;
+
+  color: #fff;
+  text-decoration: none;
+}
+
+#keypadscreen-pad > a:active {
+  background-color: rgb(0, 0, 0);
+  color: #ccc;
+}
+
+#keypadscreen-pad > a.keypadscreen-pad-func {
+  font-size: 30px;
+}

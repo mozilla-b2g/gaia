@@ -23,6 +23,10 @@
     <link rel="stylesheet" type="text/css" href="style/statusbar/statusbar.css">
     <script defer src="js/statusbar/statusbar.js"></script>
 
+    <!-- Notifications -->
+    <link rel="stylesheet" type="text/css" href="style/notifications/notifications.css">
+    <script defer src="js/notifications/notifications.js"></script>
+
     <!-- Dialogs -->
     <link rel="stylesheet" type="text/css" href="style/dialogs/request.css">
     <script defer src="js/dialogs/request.js"></script>
@@ -81,13 +85,35 @@
         </div>
       </div>
       <div id="lockscreen">
-        <div id="status"></div>
-        <div id="lockscreenContainer">
+        <div id="lockscreen-container">
           <div id="clock">
-            <div id="hourMin" class="time" data-format="%H:%M"></div>
+            <div id="hour-min" class="time" data-format="%H:%M"></div>
             <div id="date">
               <span class="time" data-format="%A, %d %b"></span>
             </div>
+          </div>
+          <div id="lockscreen-notification" hidden>
+            <div id="lockscreen-notification-title"></div>
+            <div id="lockscreen-notification-detail"></div>
+          </div>
+        </div>
+      </div>
+      <div id="keypadscreen">
+        <div id="keypadscreen-container">
+          <p id="keypadscreen-code"><span></span><span></span><span></span><span></span></p>
+          <div id="keypadscreen-pad">
+            <a href="#" data-key="1">1</a>
+            <a href="#" data-key="2">2</a>
+            <a href="#" data-key="3">3</a>
+            <a href="#" data-key="4">4</a>
+            <a href="#" data-key="5">5</a>
+            <a href="#" data-key="6">6</a>
+            <a href="#" data-key="7">7</a>
+            <a href="#" data-key="8">8</a>
+            <a href="#" data-key="9">9</a>
+            <a href="#" data-key="e" class="keypadscreen-pad-func">Emergency</a>
+            <a href="#" data-key="0">0</a>
+            <a href="#" data-key="b" class="keypadscreen-pad-func">Back</a>
           </div>
         </div>
       </div>
