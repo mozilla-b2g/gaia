@@ -7,6 +7,10 @@ echo "Building Profile";
 
 rm -f $GAIA_PATH/profile.tar.gz
 
+# Prevent failures from missing dirs
+
+mkdir -p $GAIA_PATH/OfflineCache
+
 cd $B2G_HOME;
 
 if [ "$TEST_FAST" -eq '1' ];
