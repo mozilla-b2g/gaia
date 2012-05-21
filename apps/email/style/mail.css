@@ -1,0 +1,50 @@
+/* Common/framework styling */
+
+.collapsed {
+  display: none;
+}
+.hidden {
+  display: hidden;
+}
+
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+#cardContainer {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  left: 0;
+  overflow: hidden;
+}
+#cards {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition-property: left;
+  transition-duration: 300ms;
+  transition-timing-function: linear;
+  -moz-transition-property: left;
+  -moz-transition-duration: 300ms;
+  -moz-transition-timing-function: linear;
+  -webkit-transition-property: left;
+  -webkit-transition-duration: 300ms;
+  -webkit-transition-timing-function: linear;
+  -o-transition-property: left;
+  -o-transition-duration: 300ms;
+  -otransition-timing-function: linear;
+
+  /* To trigger hardward acceleration for webkit:
+     http://www.html5rocks.com/en/tutorials/speed/quick/#toc-hwaccel
+     May need to remove */
+  -webkit-transform: translateZ(0);
+}
+
+.card {
+  float: left;
+  overflow-x: hidden;
+  overflow-y: auto;
+}

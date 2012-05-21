@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html manifest="manifest.appcache">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>Email</title>
+  <link rel="stylesheet" type="text/css" href="style/mail.css">
+  <link rel="stylesheet" type="text/css" href="style/message-cards.css">
+  <link rel="stylesheet" type="text/css" href="style/folder-cards.css">
+  <link rel="stylesheet" type="text/css" href="style/compose-cards.css">
+  <link rel="stylesheet" type="text/css" href="style/setup-cards.css">
+  <link rel="resource" type="application/l10n" href="locale/email.properties">
+  <script>
+    var host = document.location.host;
+    var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+    var src = 'http://' + domain + '/webapi.js';
+    document.write('<script src="' + src + '"><\/script>');
+
+    function consoleHelper() {
+      var msg = arguments[0] + ":";
+      for (var i = 1; i < arguments.length; i++) {
+        msg += " " + arguments[i];
+      }
+      msg += "\x1b[0m\n";
+      dump(msg);
+    }
+    var console = {
+      log:   consoleHelper.bind(null, '\x1b[32mLOG'),
+      error: consoleHelper.bind(null, '\x1b[31mERR'),
+      info:  consoleHelper.bind(null, '\x1b[36mINF'),
+      warn:  consoleHelper.bind(null, '\x1b[33mWAR'),
+    };
+  </script>
+  <script type="text/javascript" src="js/mail-common.js"></script>
+  <script type="text/javascript" src="js/message-cards.js"></script>
+  <script type="text/javascript" src="js/folder-cards.js"></script>
+  <script type="text/javascript" src="js/compose-cards.js"></script>
+  <script type="text/javascript" src="js/setup-cards.js"></script>
+  <!-- This one is an optimized vendor library containing our mail backend. -->
+  <script type="text/javascript" src="js/gaia-email-opt.js"></script>
+  <script type="text/javascript" src="js/mail-app.js"></script>
+</head>
+
+<body class="hidden" role="application">
+  <!-- All the active cards live (horizontally) in this container.  We leave
+       it up to the layout engine to be smart about not painting cards that are
+       not visible, but we will revisit that after profiling.  (display: hidden
+       should be fairly safe, for example.) -->
+  <div id="cardContainer">
+    <div id="cards">
+    </div>
+  </div>
+
+  <!-- We have a "card" centric implementation that clones the cards from below.
+       Widgets/repeated items are defined in the other template hierarchies for
+       the cards to use as appropriate.
+
+       Currently, the usually-present header strip must be defined on each card;
+       cards do not magically get wrapped in nodes or have any nodes injected
+       into them. -->
+  <div id="templates" class="collapsed">
+    <div id="templ-card">
+      <!-- Shows accounts and folders for navigation or move targeting.
+           The navigation mode is less than full-width so we can see the
+           messages display to its right.  -->
+      <div class="card-folder-picker card">
+        <div class="scrollregion">
+          <div class="fld-accounts-container">
+          </div>
+          <div class="fld-folders-container">
+          </div>
+        </div>
+        <div class="fld-nav-toolbar bottom-toolbar">
+          <button class="fld-nav-settings-btn">GEAR</button>
+        </div>
+      </div>
+      <!-- Lists the messages in a folder -->
+      <div class="card-message-list card">
+        <div class="msg-list-header top-header">
+          <button class="msg-folder-list-btn">|||</button>
+        </div>
+        <div class="scrollregion">
+          <!-- The search textbox hides under the lip of the messages. 
+               As soon as any typing happens in it, we push the search
+               controls card. -->
+          <input class="msg-search-text-tease" type="text"
+                 placeholder="SearcH MaiL"/>
+          <div class="msg-messages-container">
+          </div>
+          
+        </div>
+        <!-- Conveys background send, plus undo-able recent actions -->
+        <div class="msg-activity-infobar hidden">
+        </div>
+        <div class="msg-list-action-toolbar bottom-toolbar">
+          <button class="msg-search-btn">SearcH</button>
+          <button class="msg-edit-btn">EdiT</button>
+          <button class="msg-refresh-btn">RefresH</button>
+        </div>
+      </div>
+
+      <!-- Message search UI; variant on the message list -->
+      <div class="card-message-search card">
+        <div class="msg-search-text-bar">
+          <input class="msg-search-text" type="text"
+                 placeholder="SearcH MaiL" />
+          <button class="msg-search-cancel-btn">CanceL</button>
+        </div>
+        <div class="msg-search-controls-bar">
+          <input class="msg-search-from-radio"
+                 type="radio" value="FroM" />
+          <input class="msg-search-to-radio"
+                 type="radio" value="tO" />
+          <input class="msg-search-subject-radio"
+                 type="radio" value="SubjecT" />
+          <input class="msg-search-all-radio"
+                 type="radio" value="AlL" />
+        </div>
+        <div class="scrollregion">
+          <div class="msg-messages-container">
+          </div>
+          <div class="msg-server-upsell-bar">
+            <span>SearcH oN ServeR</span>
+          </div>
+        </div>
+        <div class="msg-list-action-toolbar bottom-toolbar">
+          <button class="msg-edit-btn">EdiT</button>
+        </div>
+      </div>
+
+      <!-- Message Reader -->
+      <div class="card-message-reader card">
+        <div class="msg-reader-header top-header">
+          <button class="msg-back-btn back-btn">&lt;</button>
+          <h2 class="msg-reader-header-label">ReaD</h2>
+          <button class="cmp-reply-btn">ReplY</button>
+        </div>
+        <div class="scrollregion">
+          <div class="msg-envelope-bar">
+            <div class="msg-envelope-timestamp"></div>
+            <div class="msg-envelope-from-line msg-envelope-line">
+              <label>FroM</label>
+            </div>
+            <!-- the details starts out collapsed, but can be toggled -->
+            <div class="msg-envelope-details hidden">
+              <div class="msg-envelope-to-line msg-envelope-line">
+                <label>tO</label>
+              </div>
+              <div class="msg-envelope-cc-line msg-envelope-line">
+                <label>cC</label>
+              </div>
+              <div class="msg-envelope-bcc-line msg-envelope-line">
+                <label>BcC</label>
+              </div>
+            </div>
+            <h3 class="msg-envelope-subject"></h3>
+          </div>
+          <div class="msg-body-container">
+          </div>
+          <div class="msg-attachments-container">
+          </div>
+        </div>
+        <!-- Tells us about remote/not downloaded images, asks to show -->
+        <div class="msg-reader-load-infobar">
+        </div>
+        <div class="msg-reader-action-toolbar bottom-toolbar">
+          <button class="msg-delete-btn">DeletE</button>
+          <button class="msg-star-btn">StaR</button>
+          <button class="msg-unread-btn">MarK UnreaD</button>
+          <button class="msg-move-btn">MovE</button>
+          <button class="msg-forward-btn">ForwarD</button>
+        </div>
+      </div>
+
+      <div class="card-compose-main">
+        <div class="cmp-compose-header top-header">
+          <button class="cmp-back-btn back-btn">&lt;</button>
+          <h2 class="cmp-compose-header-label">ComposE MessagE</h2>
+          <button class="cmp-send-btn">SenD</button>
+        </div>
+        <div class="scrollregion">
+          <div class="cmp-envelope-bar">
+            <div class="cmp-envelope-line">
+              <label>tO:</label>
+              <input class="cmp-to-text" type="text" />
+            </div>
+            <div class="cmp-envelope-line">
+              <label>cC:</label>
+              <input class="cmp-cc-text" type="text" />
+            </div>
+            <div class="cmp-envelope-line">
+              <label>SubjecT:</label>
+              <input class="cmp-subject-text" type="text" />
+            </div>
+          </div>
+          <textarea class="cmp-body-text">
+          </textarea>
+        </div>
+      </div>
+
+      <!-- === Setup === -->
+      <!-- From hyperlink, ask the user if they want to setup now or bail. -->
+      <div class="card-setup-needed card">
+      </div>
+      <!-- Pick your service provider from popular options to save yourself
+           some typing during account setup.  This may also result in
+           advice on required additional steps (gmail). -->
+      <div class="card-setup-pick-service card">
+        
+      </div>
+      <!-- Enter your e-mail address, password, name -->
+      <div class="card-setup-account-info card">
+      </div>
+      <!-- I am setting up your account, please wait or read errors! -->
+      <div class="card-setup-progress card">
+      </div>
+      <!-- Account all setup, add another or read your mail? -->
+      <div class="card-setup-done card">
+      </div>
+
+      <!-- Main settings menu, root of all (mail) settings -->
+      <div class="card-settings-main card">
+      </div>
+
+      <!-- Per-account settings menu; largely read-only for now -->
+      <div class="card-settings-account card">
+      </div>
+    </div>
+    <!-- Widget nodes for folder cards; styles use the fld prefix -->
+    <div id="templ-fld">
+      <div class="">
+      </div>
+    </div>
+    <!-- Widget nodes for the message cards; styles use the msg prefix -->
+    <div id="templ-msg">
+    </div>
+    <!-- Widget nodes for the compose cards; styles use the cmp prefix -->
+    <div id="templ-cmp">
+    </div>
+    <!-- Widget nodes for the setup cards; styles use the sup prefix -->
+    <div id="templ-sup">
+      <button class="sup-service-choice">
+      </button>
+    </div>
+    <!-- Widget nodes for the settings cards; styles use the tng prefix -->
+    <div id="templ-tng">
+    </div>
+  </div>
+</body>
+</html>
