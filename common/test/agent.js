@@ -36,6 +36,18 @@
     defaultMochaReporter: 'HTML'
   });
 
+  var displayTimeout,
+      testsRunning = false;
+
+  function keepScreenAwake() {
+    if(testsRunning) {
+      navigator.mozPower.screenEnabled = true;
+      displayTimeout = setTimeout(function() {
+        keepScreenAwake();
+      }, 800);
+    }
+  }
+
   worker.on({
 
     'sandbox': function() {
@@ -48,12 +60,19 @@
       console.log('run:', arguments);
     },
 
+    'test runner': function() {
+      testsRunning = true;
+      keepScreenAwake();
+    },
+
+    'test runner end': function() {
+      testsRunning = false;
+    },
+
     'open': function() {
-      console.log('socket open');
     },
 
     'close': function() {
-      console.log('lost client trying to reconnect');
     }
 
   });
