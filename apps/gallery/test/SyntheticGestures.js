@@ -390,10 +390,10 @@ var SyntheticGestures = (function() {
     touch(target, duration, [x1, newx1], [y1, newy1]);
 
     // The second touch moves twice as fast and then holds still and
-    // lasts for an extra 100ms to ensure that both moves complete
+    // lasts for an extra 200ms to ensure that both moves complete
     // before either finger lifts up.  Hopefully this means we'll get
     // the full scale effect
-    touch(target, duration + 100,
+    touch(target, duration + 200,
           function(t) {
             if (t < duration / 2)
               return x2 + t * 2 / duration * (newx2 - x2);
@@ -408,7 +408,6 @@ var SyntheticGestures = (function() {
           },
           then);
   }
-
 
   //
   // Dispatch a mousedown, mousemove+, mouseup sequence of events over
