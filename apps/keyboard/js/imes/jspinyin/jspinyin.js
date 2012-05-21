@@ -2341,19 +2341,29 @@ var IMEngineDatabase = function imedb(dbName, jsonUrl) {
 };
 
 var PinyinDecoderService = {
+  // Private instance of the MatrixSearch
+  _matrixSearch: null,
+  
   /**
-   * Open the decoder engine.
+   * Open the decoder engine via the system and user dictionary file names.
+   *
+   * @param {String} sysDict The file name of the system dictionary.
+   * @param {String} usrDict The file name of the user dictionary.
    * @retrun {Boolean} true if open the decode engine sucessfully.
    */
-  open: function decoderService_open() {
-
+  open: function decoderService_open(sysDict, usrDict) {
+    this._matrixSearch = new MatrixSearch();
+    return this._matrixSearch.init(sysDict, usrDict);
   },
 
   /**
    * Close the decode engine.
    */
   close: function decoderService_close() {
-
+    if (this._matrixSearch != null) {
+      this._matrixSearch.uninit();
+      this._matrixSearch = null;
+    }
   },
 
   /**
@@ -2361,7 +2371,9 @@ var PinyinDecoderService = {
    * achieve best performance, some data is only store in memory.
    */
   flushCache: function decoderService_flushCache() {
-
+    if (this._matrixSearch != null) {
+      this._matrixSearch.flushCache();
+    }
   },
 
   /**
@@ -2376,7 +2388,11 @@ var PinyinDecoderService = {
    * @return {Integer} The number of candidates.
    */
   search: function decoderService_search(spsStr) {
-
+    if (this._matrixSearch == null) {
+      return 0;
+    }
+    this._matrixSearch.search(spsStr);
+    return this._matrixSearch.getCandidateNum();
   },
 
   /**
@@ -2392,14 +2408,21 @@ var PinyinDecoderService = {
    * @return The number of candidates.
    */
   delSearch: function decoderService_delSearch(pos, isPosInSplid, clearFixed) {
-
+    if (this._matrixSearch == null) {
+      return 0;
+    }
+    this._matrixSearch.delSearch(pos, isPosInSplid, clearFixed);
+    return this._matrixSearch.getCandidateNum();
   },
 
   /**
    * Reset the previous search result.
    */
   resetSearch: function decoderService_resetSearch() {
-
+    if (this._matrixSearch == null) {
+      return;
+    }
+    this._matrixSearch.resetSearch();
   },
 
   /**
@@ -2408,7 +2431,10 @@ var PinyinDecoderService = {
    * @return {String} The spelling string kept by the decoder.
    */
   getSpsStr: function decoderService_getSpsStr() {
-
+    if (this._matrixSearch == null) {
+      return '';
+    }
+    return this._matrixSearch.getSpsStr();
   },
 
   /**
@@ -2419,7 +2445,10 @@ var PinyinDecoderService = {
    * @return {String } The candidate string if succeeds, otherwise null.
    */
   getCandidate: function decoderService_getCandidate(candId) {
-
+    if (this._matrixSearch == null) {
+      return '';
+    }
+    return this._matrixSearch.getCandidate(candId);
   },
 
   /**
@@ -2430,7 +2459,10 @@ var PinyinDecoderService = {
    * spellings.
    */
   getSplStartPos: function decoderService_getSplStartPos() {
-
+    if (this._matrixSearch == null) {
+      return 0;
+    }
+    return this._matrixSearch.getSplStartPos();
   },
 
   /**
@@ -2445,7 +2477,10 @@ var PinyinDecoderService = {
    * whole result string has been fixed, there will be only one candidate.
    */
   choose: function decoderService_choose(candId) {
-
+    if (this._matrixSearch == null) {
+      return;
+    }
+    this._matrixSearch.choose(candId);
   },
 
   /**
@@ -2454,7 +2489,10 @@ var PinyinDecoderService = {
    * @return {Integer} The number of fixed spelling ids, of Chinese characters.
    */
   getFixedLen: function decoderService_getFixedLen() {
-
+    if (this._matrixSearch == null) {
+      return 0;
+    }
+    return this._matrixSearch.getFixedLen();
   },
 
   /**
@@ -2463,10 +2501,13 @@ var PinyinDecoderService = {
    *
    * @param {String} history The history string to do the prediction.
    * @param pre_buf Used to return prediction result list.
-   * @return {Array} The prediction result list of an string array.
+   * @return {String[]} The prediction result list of an string array.
    */
   getPredicts: function decoderService_getPredicts(history) {
-
+    if (this._matrixSearch == null) {
+      return [];
+    }
+    return this._matrixSearch.getPredicts(history);
   }
 };
 
@@ -2476,7 +2517,7 @@ var MatrixSearch = function matrixSearch_constructor() {
 MatrixSearch.prototype = {
   /* ==== Public methods ==== */
 
-  init: function matrixSearch_init() {
+  init: function matrixSearch_init(sysDict, userDict) {
 
   },
 
