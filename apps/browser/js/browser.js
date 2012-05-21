@@ -13,7 +13,7 @@ var Browser = {
   REFRESH: 1,
   STOP: 2,
 
-  currentScreen: this.PAGE_SCREEN,
+  currentScreen: null,
   PAGE_SCREEN: 3,
   TABS_SCREEN: 4,
 
@@ -59,6 +59,7 @@ var Browser = {
     // (currently homepage is blank)
     GlobalHistory.init((function() {
       this.selectTab(this.createTab());
+      this.showPageScreen();
     }).bind(this));
   },
 
@@ -358,9 +359,8 @@ var Browser = {
 
   showPageScreen: function browser_showPageScreen() {
     document.body.classList.remove('tabs-screen');
-    var numTabs = Object.keys(this.tabs).length;
     this.currentScreen = this.PAGE_SCREEN;
-    this.tabsBadge.innerHTML = (numTabs > 1) ? numTabs : '+';
+    this.tabsBadge.innerHTML = Object.keys(this.tabs).length;
   },
 
   fetchScreenshot: function browser_fetchScreenshot(tab, img) {

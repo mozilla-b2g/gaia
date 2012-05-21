@@ -25,7 +25,6 @@ body {
   position: relative;
 }
 
-
 /* These are only in use when we are current on the tabs screen */
 .tabs-screen iframe {
   pointer-events: none;
