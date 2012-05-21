@@ -4,6 +4,13 @@
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
   <title>Serve the tests</title>
 
+  <style type="text/css" media="all">
+    html,body,iframe {
+      height: 100%;
+      width: 100%;
+    }
+  </style>
+
   <script type="text/javascript" charset="utf-8">
   (function(window){
     var Loader = window.CommonResourceLoader = {},
@@ -29,7 +36,7 @@
   }(this));
 
   CommonResourceLoader.
-    stylesheet('/common/test/style/style.css');
+    stylesheet('/common/vendor/test-agent/test-agent.css');
   </script>
 </head>
 <body>
@@ -38,8 +45,12 @@
 <div id="test-agent-ui">
 </div>
 
+<div id="mocha">
+</div>
+
 <script type="text/javascript" charset="utf-8">
 CommonResourceLoader.
+  script('/common/vendor/mocha/mocha.js').
   script('/common/vendor/test-agent/test-agent.js').
   script('/common/test/test-url-resolver.js').
   script('/common/test/agent.js');

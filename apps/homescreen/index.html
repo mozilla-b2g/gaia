@@ -4,8 +4,14 @@
     <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
 
+    <!-- The helper can be removed once bug 731746 lands -->
+    <script src="js/settings.js"></script>
+
     <link rel="stylesheet" type="text/css" href="style/homescreen.css">
     <script defer src="js/homescreen.js"></script>
+
+    <!-- DragDrop -->
+    <script defer src="js/dragdrop.js"></script>
 
     <!-- This is used only for uninstalling application and can be
          replaced with a simple confirm() once bug 741587 lands
@@ -13,9 +19,6 @@
      -->
     <link rel="stylesheet" type="text/css" href="style/request.css">
     <script defer src="js/request.js"></script>
-
-    <!-- The helper can be removed once bug 731746 lands -->
-    <script defer src="js/settings.js"></script>
 
     <!-- Compatibility -->
     <script>
@@ -27,9 +30,30 @@
   </head>
 
   <body>
-    <div id="home">
-      <div id="apps"></div>
-      <div id="dots"></div>
+    <div id="content">
+      <div id="home">
+        <div id="apps"></div>
+        <div id="dots"></div>
+      </div>
+    </div>
+
+    <div id="shortcuts">
+      <div class="shortcut">
+        <img src="style/icons/Phone.png"></img>
+        <span>Dialer</span>
+      </div>
+      <div class="shortcut">
+        <img src="style/icons/Messages.png"></img>
+        <span>Messages</span>
+      </div>
+      <div class="shortcut">
+        <img src="style/icons/Market.png"></img>
+        <span>Market</span>
+      </div>
+      <div class="shortcut">
+        <img src="style/icons/Browser.png"></img>
+        <span>Browser</span>
+      </div>
     </div>
   </body>
 </html>

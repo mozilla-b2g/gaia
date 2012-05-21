@@ -55,5 +55,6 @@
   "default_locale": "en-US",
   "icons": {
     "120": "/style/icons/Clock.png"
-  }
+  },
+  "orientation": "portrait-primary"
 }

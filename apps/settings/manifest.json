@@ -59,5 +59,6 @@
   "default_locale": "en-US",
   "icons": {
     "120": "/style/icons/Settings.png"
-  }
+  },
+  "orientation": "portrait-primary"
 }

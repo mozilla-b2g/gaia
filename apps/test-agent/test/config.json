@@ -1,6 +1,0 @@
-{
-  "tests": [
-    "gallery/test/SyntheticGestures_test.js",
-    "gallery/test/GestureDetector_test.js"
-  ]
-}

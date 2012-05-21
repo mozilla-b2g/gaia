@@ -1,13 +1,12 @@
-var result = {};
+var resultMap = {};
 
 if (!stringsAreUTF8()) {
   throw 'You need UTF-8 enabled SpiderMonkey to do cook the data.';
   quit();
 }
 
-var line;
-while (line = readline()) {
-
+var line = readline();
+while (line) {
   var fields = line.split(' ');
   if (fields.length < 4)
     continue;
@@ -15,20 +14,40 @@ while (line = readline()) {
   var chinese = fields[0];
   var freq = parseFloat(fields[1]);
 
-  if (!result[pinyin]) result[pinyin] = [];
+  if (!resultMap[pinyin]) resultMap[pinyin] = [];
 
-  result[pinyin].push([chinese, freq]);
+  var duplicated = false;
+  for (var i in resultMap[pinyin]) {
+    if (resultMap[pinyin][i].phrase == chinese) {
+      duplicated = true;
+      break;
+    }
+  }
+  if (!duplicated) {
+    resultMap[pinyin].push({phrase: chinese, freq: freq});
+  }
+  line = readline();
 }
 
-for (syllables in result) {
-  result[syllables] = result[syllables].sort(
+function stringToAbbreviated(str) {
+  return str.replace(/([^'])[^']*/g, '$1');
+}
+
+var result = [];
+
+for (syllables in resultMap) {
+  var terms = resultMap[syllables].sort(
     function(a, b) {
-      return (b[1] - a[1]);
+      return (b.freq - a.freq);
     }
   );
+  result.push({
+    syllablesString: syllables,
+    abbreviatedSyllablesString: stringToAbbreviated(syllables),
+    terms: terms});
 }
 
-var jsonStr = JSON.stringify(result).replace(/\],/g, '],\n');
+var jsonStr = JSON.stringify(result).replace(/}\]},/g, '}]},\n');
 
 print(jsonStr);
 

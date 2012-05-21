@@ -482,9 +482,11 @@ var CallHandler = {
     // not onCall.
     if (this._onCall) {
       this._screenLock = navigator.requestWakeLock('screen');
+      ProximityHandler.enable();
     } else {
       this._screenLock.unlock();
       this._screenLock = null;
+      ProximityHandler.disable();
     }
   },
 

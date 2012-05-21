@@ -55,5 +55,6 @@
   "default_locale": "en-US",
   "icons": {
     "120": "/style/icons/Tasks.png"
-  }
+  },
+  "orientation": "portrait-primary"
 }

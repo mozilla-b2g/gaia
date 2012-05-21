@@ -88,6 +88,10 @@ SettingsListener.observe('lockscreen.enabled', true, function(value) {
   localStorage['lockscreen'] = value;
 });
 
+SettingsListener.observe('lockscreen.passcode-lock.enabled', true, function(value) {
+  localStorage['passcode-lock'] = value;
+});
+
 /* === Language === */
 SettingsListener.observe('language.current', 'en-US', function(value) {
   updateConnection();

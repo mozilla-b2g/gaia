@@ -12,5 +12,6 @@
   },
   "icons": {
     "120": "/style/icons/CutTheRope.png"
-  }
+  },
+  "orientation": "landscape"
 }

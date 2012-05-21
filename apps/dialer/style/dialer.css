@@ -987,7 +987,7 @@ html * {
   background: url(images/call-screen-bg.png) center top no-repeat #575B66;
 
   color: white;
-  z-index: 200;
+  z-index: 500;
 }
 
 #mainKeyset.overlay .keyboard-row .keyboard-key {
@@ -1000,6 +1000,23 @@ html * {
 
 #mainKeyset.overlay .keyboard-key:active {
   background: rgba(255, 255, 255, .3);
+}
+
+/* == Screen turn off hack == */
+#screen-off {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+
+  background: black;
+  z-index: 1000;
+
+  display: none;
+}
+#screen-off.displayed {
+  display: block;
 }
 
 /* === Recents === */
