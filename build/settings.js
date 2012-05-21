@@ -15,7 +15,11 @@ dump("Populate settingsdb in:" + PROFILE_DIR + "\n");
 // Todo: Get a list of settings
 var settings = [
  new Setting("debug.grid.enabled", false),
- new Setting("lockscreen.passcode-lock.enabled", false)
+ new Setting("lockscreen.passcode-lock.enabled", false),
+
+ // To enable English keyboard layout by default
+ // TODO: May need to enable a different layout by the default language setting
+ new Setting("keyboard.layouts.english", true)
 ];
 
 function Setting(aName, aValue) {
