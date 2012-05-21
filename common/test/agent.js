@@ -18,7 +18,7 @@
       var parsed = TestUrlResolver.parse(test);
 
       var result =  {
-        domain: parsed.domain + '/test/_proxy.html',
+        domain: parsed.domain + '/test/unit/_proxy.html',
         test: '/' + parsed.url,
         env: parsed.host
       };
