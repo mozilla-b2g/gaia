@@ -115,8 +115,8 @@ var WindowManager = (function() {
   // orientation could have changed since it was last displayed
   function setAppSize(origin) {
     var app = runningApps[origin];
-		if(!app)
-			return;
+    if(!app)
+      return;
 
     var frame = app.frame;
     var manifest = app.manifest;

@@ -1131,7 +1131,7 @@ const IMEManager = {
   },
 
   updateTargetWindowHeight: function km_updateTargetWindowHeight() {
-		parent.postMessage(JSON.stringify({action: "resize", height: this.ime.scrollHeight+"px"}), "*");
+    parent.postMessage(JSON.stringify({action: "resize", height: this.ime.scrollHeight+"px"}), "http://system.gaiamobile.org");
   },
 
   showIME: function km_showIME(type) {
