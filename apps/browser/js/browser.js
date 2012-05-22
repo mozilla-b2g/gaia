@@ -289,7 +289,8 @@ var Browser = {
   createTab: function browser_createTab() {
     var iframe = document.createElement('iframe');
     var browserEvents = ['loadstart', 'loadend', 'locationchange', 'titlechange'];
-    iframe.mozbrowser = true;
+    iframe.setAttribute('mozbrowser', true);
+    iframe.setAttribute('remote', true);
     iframe.style.display = 'none';
 
     var tab = {
