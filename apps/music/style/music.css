@@ -172,19 +172,19 @@ body.player-mode #tabs {
   font-weight: bold;
 }
 
-.orange-button {
+.orange {
   background: -moz-linear-gradient(center top , #FAA51A, #F47A20) repeat scroll 0 0 transparent;
   border: 0px solid #DA7C0C;
   color: #FEF4E9;
 }
-.orange-button:hover {
+.orange:hover {
   background: -moz-linear-gradient(center top , #F88E11, #F06015) repeat scroll 0 0 transparent;
 }
-.orange-button:active {
+.orange:active {
   background: -moz-linear-gradient(center top , #F47A20, #FAA51A) repeat scroll 0 0 transparent;
   color: #FCD3A5;
 }
-.orange-button:disabled {
+.orange:disabled {
   opacity: 0.3;
 }
 
@@ -273,19 +273,19 @@ body.player-mode #tabs {
   border-bottom-right-radius: 15px;
 }
 
-.blue-button {
+.blue {
   background: -moz-linear-gradient(center top , #00ADEE, #0078A5) repeat scroll 0 0 transparent;
   border: 1px solid #0076A3;
   color: #D9EEF7;
 }
-.blue-button:hover {
+.blue:hover {
   background: -moz-linear-gradient(center top , #0095CC, #00678E) repeat scroll 0 0 transparent;
 }
-.blue-button:active {
+.blue:active {
   background: -moz-linear-gradient(center top , #0078A5, #00ADEE) repeat scroll 0 0 transparent;
   color: #80BED6;
 }
-.blue-button:disabled {
+.blue:disabled {
   opacity: 0.3;
 }
 

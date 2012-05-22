@@ -44,10 +44,12 @@ window.addEventListener('DOMContentLoaded', function() {
   var content = '';
   songs.forEach(function(song) {
     content += '<li class="song">' +
-      '  <a id="' + song.file + '" ' + 'data-title="'+ song.title + '" ' + 'data-artist="'+ song.artist + '" ' + 'href="#">' +
-      '    ' + song.title + ' - ' + song.artist +
-      '  </a>' +
-      '</li>';
+               '  <a href="#" id="' + escapeHTML(song.file, true) + '" ' + 
+               '   data-title="'+ escapeHTML(song.title, true) + '" ' + 
+               '   data-artist="'+ escapeHTML(song.artist, true) + '" ' + '>' +
+               '    ' + escapeHTML(song.title) + ' - ' + escapeHTML(song.artist) +
+               '  </a>' +
+               '</li>';
   });
   songList.innerHTML = content;
 
