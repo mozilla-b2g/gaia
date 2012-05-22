@@ -103,7 +103,9 @@ TestAgent.prototype = {
 
     var cmd = [
       this.bin,
-      'test'
+      'test',
+      '--server',
+      'ws://localhost:' + this.port
     ];
 
     if (reporter) {
@@ -115,7 +117,6 @@ TestAgent.prototype = {
     }
 
     this.execOutput(cmd.join(' '), function(err, out) {
-
       if (this.testOutputFile && out) {
         fs.writeFileSync(this.testOutputFile, out);
       }
