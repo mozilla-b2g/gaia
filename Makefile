@@ -243,7 +243,7 @@ update-common: common-install
 test-agent-config: test-agent-bootstrap-apps
 	@rm -f $(TEST_AGENT_CONFIG)
 	@touch $(TEST_AGENT_CONFIG)
-	@echo '{\n  "tests": [' >> $(TEST_AGENT_CONFIG)
+	@echo '{"tests": [' >> $(TEST_AGENT_CONFIG)
 
 	# Build json array of all test files
 	@(find ./apps -name "*_test.js" | \
@@ -252,7 +252,7 @@ test-agent-config: test-agent-bootstrap-apps
 		sed -e ':a' -e 'N' -e '$$!ba' -e 's/\n/,\
 	/g') >> $(TEST_AGENT_CONFIG)
 
-	@echo '  ]\n}' >> $(TEST_AGENT_CONFIG);
+	@echo '  ]}' >> $(TEST_AGENT_CONFIG);
 	@echo "Built test ui config file: $(TEST_AGENT_CONFIG)"
 
 
