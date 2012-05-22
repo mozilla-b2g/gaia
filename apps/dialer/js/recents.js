@@ -97,7 +97,7 @@ var Recents = {
     if (recent.number) {
       Contacts.findByNumber(recent.number, (function(contact) {
         this.querySelector('.name').textContent = contact.name;
-        this.querySelector('.number').textContent = contact.tel[0];
+        this.querySelector('.number').textContent = contact.tel[0].number;
       }).bind(entry));
     }
 
