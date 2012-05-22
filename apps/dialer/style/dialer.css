@@ -375,6 +375,11 @@ html * {
   height: -moz-calc(100% - 7.5mozmm);
 }
 
+#favorites-container {
+  /* XXX adding 8px to fill the void left by the scrollbar */
+  width: -moz-calc(100% + 8px);
+}
+
 #contacts-container {
   /* XXX adding 8px to fill the void left by the scrollbar */
   width: -moz-calc(100% + 8px);
@@ -632,6 +637,32 @@ html * {
   font-weight: 600;
   line-height: 46px;
   text-align: left;
+}
+
+label.favorite {
+  position: absolute;
+  top: 32px;
+  right: 32px;
+  width: 64px;
+  height: 64px;
+  display: block;
+}
+
+label.favorite > input[type=checkbox] {
+  display: none;
+}
+
+label.favorite > input[type=checkbox] + span {
+  display: block;
+  float: right;
+  width: 30px;
+  height: 30px;
+
+  background: url(images/star-off.png);
+}
+
+#contact-details-edit label.favorite > input[type=checkbox]:checked + span {
+  background: url(images/star-on.png);
 }
 
 #contact-photo {
