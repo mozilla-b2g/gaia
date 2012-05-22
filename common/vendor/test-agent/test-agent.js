@@ -2674,8 +2674,26 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   };
 
   MochaDriver.prototype = {
+    /**
+     * Test interface for mocha use.
+     */
     ui: 'bdd',
+
+    /**
+     * Mocha reporter to use.
+     * If null is given none will be used.
+     */
+    reporter: 'HTML',
+
+    /**
+     * location of test helper.
+     * Will be loaded before any of your tests.
+     */
     testHelperUrl: './test/helper.js',
+
+    /**
+     * Location of the mocha runtime.
+     */
     mochaUrl: './vendor/mocha/mocha.js',
 
     enhance: function enhance(worker) {
@@ -2697,10 +2715,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         TestAgent.Mocha.JsonStreamReporter.testAgentEnvId = this.worker.env;
       }
 
-      return MochaDriver.createMutliReporter(
-        TestAgent.Mocha.JsonStreamReporter,
-        box.mocha.reporters.HTML
-      );
+      if(this.reporter) {
+        return MochaDriver.createMutliReporter(
+          TestAgent.Mocha.JsonStreamReporter,
+          box.mocha.reporters[this.reporter]
+        );
+      } else {
+        return TestAgent.Mocha.JsonStreamReporter;
+      }
     },
 
     _testRunner: function _testRunner(worker, tests, done) {
@@ -2834,11 +2856,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
   TestUi.prototype = {
     HIDDEN: 'hidden',
+    WORKING: 'working',
+    EXECUTE: 'execute',
 
     templates: {
       testList: '<ul class="test-list"></ul>',
       testItem: '<li data-url="%s">%s</li>',
-      testRun: '<button class="run-tests">Execute</button>',
+      testRun: '<button class="run-tests">execute</button>',
       error: [
         '<h1>Critical Error</h1>',
         '<p><span class="error">%0s</span> in file ',
@@ -2849,11 +2873,34 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       ].join('')
     },
 
+    get execButton() {
+      if(!this._execButton){
+        this._execButton = this.element.querySelector('button');
+      }
+      return this._execButton;
+    },
+
     enhance: function enhance(worker) {
       this.worker = worker;
       this.worker.on('config', this.onConfig.bind(this));
       this.worker.on('sandbox', this.onSandbox.bind(this));
       this.worker.on('sandbox error', this.onSandboxError.bind(this));
+      this.worker.on('test runner', this.onTestRunner.bind(this));
+      this.worker.on('test runner end', this.onTestRunnerEnd.bind(this));
+    },
+
+    onTestRunner: function onTestRunner() {
+      this.isRunning = true;
+      this.execButton.textContent = this.WORKING;
+      this.execButton.className += ' ' + this.WORKING
+    },
+
+    onTestRunnerEnd: function onTestRunnerEnd() {
+      var className = this.execButton.className;
+
+      this.isRunning = false;
+      this.execButton.textContent = this.EXECUTE;
+      this.execButton.className = className.replace(' ' + this.WORKING, '');
     },
 
     onSandbox: function onSandbox() {
@@ -2936,6 +2983,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       });
 
       button.addEventListener('click', function onTestClick() {
+
+        if (self.isRunning) {
+          return;
+        }
+
         var tests = [], key;
 
         for (key in self.queue) {
@@ -2943,6 +2995,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             tests.push(key);
           }
         }
+
         self.worker.emit('run tests', {tests: tests});
       });
     }
