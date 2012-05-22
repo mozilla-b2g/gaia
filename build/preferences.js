@@ -4,11 +4,11 @@ const { 'classes': Cc, 'interfaces': Ci, 'results': Cr, } = Components;
 function getDirectories() {
   let appsDir = Cc["@mozilla.org/file/local;1"]
                .createInstance(Ci.nsILocalFile);
-  appsDir.initWithPath(GAIA_DIR);  
+  appsDir.initWithPath(GAIA_DIR);
   appsDir.append('apps');
 
-  let dirs = [];  
-  let files = appsDir.directoryEntries;  
+  let dirs = [];
+  let files = appsDir.directoryEntries;
   while (files.hasMoreElements()) {
     let file = files.getNext().QueryInterface(Ci.nsILocalFile);
     if (file.isDirectory()) {
@@ -19,8 +19,8 @@ function getDirectories() {
 }
 
 function getFileContent(file) {
-  let fileStream = Cc['@mozilla.org/network/file-input-stream;1']  
-                   .createInstance(Ci.nsIFileInputStream);  
+  let fileStream = Cc['@mozilla.org/network/file-input-stream;1']
+                   .createInstance(Ci.nsIFileInputStream);
   fileStream.init(file, 1, 0, false);
 
   let converterStream = Cc["@mozilla.org/intl/converter-input-stream;1"]
@@ -28,12 +28,12 @@ function getFileContent(file) {
   converterStream.init(fileStream, "utf-8", fileStream.available(),
                        Ci.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER);
 
-  let out = {};  
+  let out = {};
   let count = fileStream.available();
-  converterStream.readString(count, out);  
+  converterStream.readString(count, out);
 
-  let content = out.value;  
-  converterStream.close();  
+  let content = out.value;
+  converterStream.close();
   fileStream.close();
 
   return [content, count];
@@ -61,9 +61,9 @@ function writeContent(content) {
   file.append('profile');
   file.append('user.js');
 
-  let stream = Cc["@mozilla.org/network/file-output-stream;1"]  
-                   .createInstance(Ci.nsIFileOutputStream);  
-  stream.init(file, 0x02 | 0x08 | 0x20, 0666, 0);   
+  let stream = Cc["@mozilla.org/network/file-output-stream;1"]
+                   .createInstance(Ci.nsIFileOutputStream);
+  stream.init(file, 0x02 | 0x08 | 0x20, 0666, 0);
   stream.write(content, content.length);
   stream.close();
 }
@@ -113,7 +113,7 @@ let privileges = [];
 
 let directories = getDirectories();
 directories.forEach(function readManifests(dir) {
-  let manifest = getJSON(dir, "manifest.json");
+  let manifest = getJSON(dir, "manifest.webapp");
   if (!manifest)
     return;
 
