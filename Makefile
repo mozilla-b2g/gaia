@@ -82,7 +82,7 @@ ifeq ($(strip $(NPM)),)
 	NPM := `which npm`
 endif
 
-TEST_AGENT_CONFIG="./apps/test-agent/test/config.json"
+TEST_AGENT_CONFIG="./apps/test-agent/config.json"
 
 #Marionette testing variables
 #make sure we're python 2.7.x
@@ -97,7 +97,7 @@ MARIONETTE_PORT ?= 2828
 TEST_DIRS ?= $(CURDIR)/tests
 
 # Generate profile/
-profile: stamp-commit-hash update-offline-manifests preferences webapp-manifests offline extensions test-agent-config
+profile: stamp-commit-hash update-offline-manifests preferences webapp-manifests test-agent-config offline extensions
 	@echo "\nProfile Ready: please run [b2g|firefox] -profile $(CURDIR)/profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
@@ -174,6 +174,15 @@ settingsdb :
 	@echo "B2G pre-populate settings DB."
 	$(XULRUNNER) $(XPCSHELL) -e 'const PROFILE_DIR = "$(CURDIR)/profile"' build/settings.js
 
+DB_PATH = /data/b2g/mozilla/`$(ADB) shell ls -1 /data/b2g/mozilla/ | grep default | tr -d [:cntrl:]`/indexedDB
+.PHONY: install-settingsdb
+install-settingsdb: settingsdb install-xulrunner
+	$(ADB) start-server
+	$(ADB) push profile/indexedDB/chrome/2588645841ssegtnti ${DB_PATH}/chrome/2588645841ssegtnti
+	$(ADB) push profile/indexedDB/chrome/2588645841ssegtnti.sqlite ${DB_PATH}/chrome/2588645841ssegtnti.sqlite
+	$(ADB) shell kill $(shell $(ADB) shell toolbox ps | grep "b2g" | awk '{ print $$2; }')
+	@echo 'Rebooting b2g now. This only works on Mac now!'
+
 # Generate profile/prefs.js
 preferences: install-xulrunner
 	@echo "Generating prefs.js..."
@@ -240,10 +249,10 @@ update-common: common-install
 
 # Create the json config file
 # for use with the test agent GUI
-test-agent-config:
+test-agent-config: test-agent-bootstrap-apps
 	@rm -f $(TEST_AGENT_CONFIG)
 	@touch $(TEST_AGENT_CONFIG)
-	@echo '{\n  "tests": [' >> $(TEST_AGENT_CONFIG)
+	@echo '{"tests": [' >> $(TEST_AGENT_CONFIG)
 
 	# Build json array of all test files
 	@(find ./apps -name "*_test.js" | \
@@ -252,9 +261,20 @@ test-agent-config:
 		sed -e ':a' -e 'N' -e '$$!ba' -e 's/\n/,\
 	/g') >> $(TEST_AGENT_CONFIG)
 
-	@echo '  ]\n}' >> $(TEST_AGENT_CONFIG);
+	@echo '  ]}' >> $(TEST_AGENT_CONFIG);
 	@echo "Built test ui config file: $(TEST_AGENT_CONFIG)"
 
+
+.PHONY: test-agent-bootstrap-apps
+test-agent-bootstrap-apps:
+	for d in `find apps/* -maxdepth 0 -type d` ;\
+	do \
+		  mkdir -p $$d/test/unit ; \
+		  mkdir -p $$d/test/integration ; \
+			cp -f ./common/test/boilerplate/_proxy.html $$d/test/unit/_proxy.html; \
+			cp -f ./common/test/boilerplate/_sandbox.html $$d/test/unit/_sandbox.html; \
+	done
+	@echo "Done bootstrapping test proxies/sandboxes";
 
 # Temp make file method until we can switch
 # over everything in test

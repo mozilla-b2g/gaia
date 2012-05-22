@@ -97,6 +97,10 @@ let permissions = {
   "mozApps": {
     "urls": [],
     "pref": "dom.mozApps.whitelist"
+  },
+  "mobileconnection": {
+    "urls": [],
+    "pref": "dom.mobileconnection.whitelist"
   }
 };
 
