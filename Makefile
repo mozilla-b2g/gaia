@@ -30,12 +30,12 @@ REPORTER=Spec
 ###############################################################################
 # The above rules generate the profile/ folder and all its content.           #
 # The profile folder content depends on different rules:                      #
-#  1. manifests                                                               #
+#  1. webapp manifest                                                         #
 #     A directory structure representing the applications installed using the #
 #     Apps API. In Gaia all applications use this method.                     #
 #     See https://developer.mozilla.org/en/Apps/Apps_JavaScript_API           #
 #                                                                             #
-#   2. offline                                                                #
+#  2. offline                                                                 #
 #     An Application Cache database containing Gaia apps, so the phone can be #
 #     used offline and application can be updated easily. For details about it#
 #     see: https://developer.mozilla.org/en/Using_Application_Cache           #
@@ -97,20 +97,20 @@ MARIONETTE_PORT ?= 2828
 TEST_DIRS ?= $(CURDIR)/tests
 
 # Generate profile/
-profile: stamp-commit-hash update-offline-manifests preferences manifests test-agent-config offline extensions
+profile: stamp-commit-hash update-offline-manifests preferences webapp-manifests test-agent-config offline extensions
 	@echo "\nProfile Ready: please run [b2g|firefox] -profile $(CURDIR)/profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
 
 # Generate profile/webapps/
-manifests:
+webapp-manifests:
 	@echo "Generated webapps"
 	@mkdir -p profile/webapps
 	@echo { > profile/webapps/webapps.json
 	@cd apps; \
 	for d in `find * -maxdepth 0 -type d` ;\
 	do \
-	  if [ -f $$d/manifest.json ]; \
+	  if [ -f $$d/manifest.webapp ]; \
 		then \
 		  mkdir -p ../profile/webapps/$$d; \
 		  cp $$d/manifest.json ../profile/webapps/$$d  ;\
@@ -120,7 +120,7 @@ manifests:
 			echo \"installOrigin\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
 			echo \"receipt\": null, ;\
 			echo \"installTime\": 132333986000, ;\
-			echo \"manifestURL\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.json\" ;\
+			echo \"manifestURL\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp\" ;\
 			echo },) >> ../profile/webapps/webapps.json;\
 		fi \
 	done
@@ -220,7 +220,7 @@ INJECTED_GAIA = "$(MOZ_TESTS)/browser/gaia"
 TEST_PATH=gaia/tests/${TEST_FILE}
 
 .PHONY: tests
-tests: manifests offline
+tests: webapp-manifests offline
 	echo "Checking if the mozilla build has tests enabled..."
 	test -d $(MOZ_TESTS) || (echo "Please ensure you don't have |ac_add_options --disable-tests| in your mozconfig." && exit 1)
 	echo "Checking the injected Gaia..."
@@ -351,7 +351,7 @@ update-offline-manifests:
 	@cd apps; \
 	for d in `find * -maxdepth 0 -type d` ;\
 	do \
-		if [ -f $$d/manifest.json ] ;\
+		if [ -f $$d/manifest.webapp ] ;\
 		then \
 			echo \\t$$d ;\
 			cd $$d ;\
