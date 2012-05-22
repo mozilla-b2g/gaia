@@ -30,7 +30,7 @@ var Contacts = {
     }
 
     this.findFavorites(this.showFavorites.bind(this));
-    this.find(this.show.bind(this));
+    this.findAll(this.show.bind(this));
 
     this._loaded = true;
   },
@@ -40,32 +40,13 @@ var Contacts = {
     this.load();
   },
 
-  find: function contactsFind(callback) {
+  findAll: function contactsFindAll(callback) {
     var options = {
       sortBy: 'familyName',
       sortOrder: 'ascending'
     };
-    var request = window.navigator.mozContacts.find(options);
-    request.onsuccess = function findCallback() {
-      var contacts = request.result;
-      callback(contacts);
-    };
-  },
 
-  findByNumber: function findByNumber(number, callback) {
-    var options = {
-      filterBy: ['tel'],
-      filterOp: 'contains',
-      filterValue: number
-    };
-    var request = window.navigator.mozContacts.find(options);
-    request.onsuccess = function findCallback() {
-      if (request.result.length == 0)
-        return;
-
-      var contacts = request.result;
-      callback(contacts[0]);
-    };
+    this._findMany(options, callback);
   },
 
   findFavorites: function findFavorites(callback) {
@@ -76,11 +57,28 @@ var Contacts = {
       sortBy: 'familyName',
       sortOrder: 'ascending'
     };
-    var request = window.navigator.mozContacts.find(options);
-    request.onsuccess = function findCallback() {
-      var contacts = request.result;
-      callback(contacts);
+
+    this._findMany(options, callback);
+  },
+
+  findByNumber: function findByNumber(number, callback) {
+    var options = {
+      filterBy: ['tel'],
+      filterOp: 'contains',
+      filterValue: number
     };
+
+    this._findOne(options, callback);
+  },
+
+  findByID: function findByID(contactID, callback) {
+    var options = {
+      filterBy: ['id'],
+      filterOp: 'equals',
+      filterValue: contactID
+    };
+
+    this._findOne(options, callback);
   },
 
   showFavorites: function contactsShowFavorites(contacts) {
@@ -130,7 +128,7 @@ var Contacts = {
   filter: function contactsFilter(value) {
     var pattern = new RegExp(value, 'i');
 
-    var filtered = value.length;
+    var filtered = value ? value.length : false;
     this.favoritesContainer.hidden = filtered;
 
     var container = document.getElementById('contacts-container');
@@ -194,21 +192,10 @@ var Contacts = {
   },
 
   showDetails: function contactsShowDetails(evt) {
-    var contactId = evt.target.id;
-
-    var options = {
-      filterBy: ['id'],
-      filterOp: 'equals',
-      filterValue: contactId
-    };
-    var request = window.navigator.mozContacts.find(options);
-    request.onsuccess = function findCallback() {
-      if (request.result == 0)
-        return;
-
-      var contacts = request.result;
-      ContactDetails.show(contacts[0]);
-    };
+    var contactID = evt.target.id;
+    this.findByID(contactID, function(contact) {
+      ContactDetails.show(contact);
+    });
   },
 
   create: function contactsCreate() {
@@ -233,6 +220,35 @@ var Contacts = {
     fragment.appendChild(familyName);
 
     return fragment.outerHTML;
+  },
+
+  _findMany: function findMany(options, callback) {
+    var mozContacts = navigator.mozContacts;
+    if (mozContacts) {
+      var request = mozContacts.find(options);
+      request.onsuccess = function findCallback() {
+        var contacts = request.result;
+        callback(contacts);
+      };
+    } else {
+      callback([]);
+    }
+  },
+
+  _findOne: function findOne(options, callback) {
+    var mozContacts = navigator.mozContacts;
+    if (mozContacts) {
+      var request = mozContacts.find(options, callback);
+      request.onsuccess = function findCallback() {
+        if (request.result.length == 0)
+          return;
+
+        var contacts = request.result;
+        callback(contacts[0]);
+      };
+    } else {
+      callback(null);
+    }
   }
 };
 
