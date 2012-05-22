@@ -113,7 +113,7 @@ webapp-manifests:
 	  if [ -f $$d/manifest.webapp ]; \
 		then \
 		  mkdir -p ../profile/webapps/$$d; \
-		  cp $$d/manifest.json ../profile/webapps/$$d  ;\
+		  cp $$d/manifest.webapp ../profile/webapps/$$d  ;\
                   (\
 			echo \"$$d\": { ;\
 			echo \"origin\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
