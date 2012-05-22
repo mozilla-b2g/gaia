@@ -109,11 +109,11 @@ body.player-mode #tabs {
 
 #player-cover-image {
   position: absolute;
-  width: 60%;
-  height: auto;
-  margin-top: 20%;
-  margin-left: 20%;
-  margin-right: 20%;
+  width: 100%;
+  text-align: center;
+  font-size: 450px;
+  line-height: 420px;
+  color: black;
 }
 
 #player-cover-title,
