@@ -37,10 +37,17 @@ console.log("oncomplete");
               foldersSlice: foldersSlice,
               curFolder: inboxFolder,
             });
+          // Push the message list card
+          Cards.pushCard(
+            'message-list', 'default', 'immediate',
+            {
+              folder: inboxFolder,
+            });
         };
       }
       // - no accounts, show the setup page!
       else {
+        acctsSlice.die();
         Cards.assertNoCards();
         Cards.pushCard(
           'setup-pick-service', 'default', 'immediate',
@@ -53,13 +60,9 @@ console.log("oncomplete");
 function hookStartup() {
   var gotLocalized = false, gotMailAPI = false;
   function doInit() {
-console.log('Initializing mail app');
     try {
-console.log('- template nodes');
       populateTemplateNodes();
-console.log('- cards');
       Cards._init();
-console.log('- account check, initial cards');
       App.showMessageViewOrSetup();
     }
     catch (ex) {

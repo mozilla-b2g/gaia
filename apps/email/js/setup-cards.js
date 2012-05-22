@@ -16,6 +16,11 @@ var MAIL_SERVICES = [
     l10nId: 'setup-other-email',
     domain: '',
   },
+  {
+    name: 'Fake Account',
+    l10nId: null,
+    domain: 'example.com',
+  }
 ];
 
 function SetupPickServiceCard(domNode, mode, args) {
@@ -76,13 +81,25 @@ function SetupAccountInfoCard(domNode, mode, args) {
   nextButton.addEventListener('click', this.onNext.bind(this), false);
 
   // placeholders need to be translated; they aren't automatically done
-  this.domNode.getElementsByClassName('sup-info-name')[0]
-    .setAttribute('placeholder', mozL10n.get('setup-info-name-placeholder'));
-  this.domNode.getElementsByClassName('sup-info-email')[0]
-    .setAttribute('placeholder', mozL10n.get('setup-info-email-placeholder'));
-  this.domNode.getElementsByClassName('sup-info-password')[0]
-    .setAttribute('placeholder',
-                  mozL10n.get('setup-info-password-placeholder'));
+  this.nameNode = this.domNode.getElementsByClassName('sup-info-name')[0];
+  this.nameNode.setAttribute('placeholder',
+                             mozL10n.get('setup-info-name-placeholder'));
+  this.emailNode = this.domNode.getElementsByClassName('sup-info-email')[0];
+  this.emailNode.setAttribute('placeholder',
+                              mozL10n.get('setup-info-email-placeholder'));
+  // XXX this should maybe be a magic separate label?
+  this.emailNode.value = args.serviceDef.domain;
+  this.passwordNode =
+    this.domNode.getElementsByClassName('sup-info-password')[0];
+  this.passwordNode.setAttribute(
+    'placeholder', mozL10n.get('setup-info-password-placeholder'));
+
+  // XXX testing, fake account
+  if (args.serviceDef.domain === 'example.com') {
+    this.nameNode.value = 'John Madeup';
+    this.emailNode.value = 'john@example.com';
+    this.passwordNode.value= 'secret!sosecret!';
+  }
 }
 SetupAccountInfoCard.prototype = {
   onBack: function(event) {
@@ -98,9 +115,9 @@ SetupAccountInfoCard.prototype = {
     Cards.pushCard(
       'setup-progress', 'default', 'animate',
       {
-        name: nameNode.value,
-        emailAddress: emailNode.value,
-        password: passwordNode.value,
+        name: this.nameNode.value,
+        emailAddress: this.emailNode.value,
+        password: this.passwordNode.value,
       });
   },
 
@@ -185,8 +202,29 @@ Cards.defineCard({
 });
 
 function SetupDoneCard() {
+  domNode.getElementsByClassName('sup-add-another-account-btn')[0]
+    .addEventListener('click', this.onAddAnother.bind(this), false);
+  domNode.getElementsByClassName('sup-show-mail-btn')[0]
+    .addEventListener('click', this.onShowMail.bind(this), false);
 }
 SetupDoneCard.prototype = {
+  onAddAnother: function() {
+    // Nuke this card
+    Cards.removeCardAndSuccessors(null, 'none');
+    // Show the first setup card again.
+    // XXX add a mode that makes it possible to escape from account creation
+    // given that the user has an account now.
+    Cards.pushCard(
+      'setup-pick-service', 'default', 'immediate',
+      {});
+  },
+  onShowMail: function() {
+    // Nuke this card
+    Cards.removeCardAndSuccessors(null, 'none');
+    // Trigger the startup logic again; this should show the inbox this time.
+    App.showMessageViewOrSetup();
+  },
+
   die: function() {
   },
 };

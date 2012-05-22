@@ -107,6 +107,7 @@ var Cards = {
    * }
    */
   _cardStack: [],
+  _activeCardIndex: null,
 
   _containerNode: null,
   _cardsNode: null,
@@ -122,6 +123,15 @@ var Cards = {
   _animatingDeadDomNodes: [],
 
   /**
+   * Is a tray card visible, suggesting that we need to intercept clicks in the
+   * tray region so that we can transition back to the thing visible because of
+   * the tray and avoid the click triggering that card's logic.
+   */
+  _trayActive: false,
+
+  TRAY_GUTTER_WIDTH: 80,
+
+  /**
    * Initialize and bind ourselves to the DOM which should now be fully loaded.
    */
   _init: function() {
@@ -133,6 +143,10 @@ var Cards = {
     this._cardsNode = document.getElementById('cards');
     this._templateNodes = processTemplNodes('card');
 
+    this._containerNode.addEventListener('click',
+                                         this._onMaybeTrayIntercept.bind(this),
+                                         true);
+
     this._adjustCardSizes();
     window.addEventListener('resize', this._adjustCardSizes.bind(this), false);
 
@@ -143,7 +157,19 @@ var Cards = {
                                      false);
   },
 
-  TRAY_GUTTER_WIDTH: 80,
+  /**
+   * If the tray is active and a click happens in the tray area, transition
+   * back to the visible thing (which must be to our right currently.)
+   */
+  _onMaybeTrayIntercept: function(event) {
+    if (this._trayActive &&
+        (event.clientX >
+         this._containerNode.offsetWidth - this.TRAY_GUTTER_WIDTH)) {
+      event.stopPropagation();
+      this.moveToCard(this._activeCardIndex + 1);
+    }
+  },
+
   _adjustCardSizes: function() {
     var cardWidth = Math.min(360, window.innerWidth), //this._containerNode.offsetWidth,
         cardHeight = Math.min(480, window.innerHeight), //this._containerNode.offsetHeight,
@@ -170,6 +196,14 @@ var Cards = {
     if (this._cardDefs.hasOwnProperty(cardDef.name))
       throw new Error('Duplicate card name: ' + cardDef.name);
     this._cardDefs[cardDef.name] = cardDef;
+
+    // normalize the modes
+    for (var modeName in cardDef.modes) {
+      var mode = cardDef.modes[modeName];
+      if (!mode.hasOwnProperty('tray'))
+        mode.tray = false;
+      mode.name = modeName;
+    }
   },
 
   /**
@@ -225,7 +259,32 @@ var Cards = {
       // display.  This works with trays on the left side, but not the right
       // side.
       this._cardsNode.style.left = (-cardInst.left) + 'px';
+      this._activeCardIndex = this._cardStack.length - 1;
     }
+  },
+
+  _findCardInstInStack: function(type, mode) {
+    for (var i = 0; i < this._cardStack.length; i++) {
+      var cardInst = this._cardStack[i];
+      if (cardInst.cardDef.name === type &&
+          cardInst.modeDef.name === mode) {
+        return i;
+      }
+    }
+    throw new Error('Unable to find card with type: ' + type + ' mode: ' +
+                    mode);
+  },
+
+  moveToCard: function(maybeType, mode) {
+    if (typeof(type) === 'string')
+      this._activeCardIndex = this._findCardInstInStack(maybeType, mode);
+    else // number, it's the index to move to
+      this._activeCardIndex = maybeType;
+
+    var cardInst = this._cardStack[this._activeCardIndex];
+    this._cardsNode.style.left = (-cardInst.left) + 'px';
+
+    this._trayActive = cardInst.modeDef.tray;
   },
 
   /**
@@ -322,3 +381,64 @@ var Cards = {
                       ' there should be ZERO');
   },
 };
+
+////////////////////////////////////////////////////////////////////////////////
+// Pretty date logic; copied from the SMS app.
+// Based on Resig's pretty date
+
+function prettyDate(time) {
+
+  switch (time.constructor) {
+    case String:
+      time = parseInt(time);
+      break;
+    case Date:
+      time = time.getTime();
+      break;
+  }
+
+  var diff = (Date.now() - time) / 1000;
+  var day_diff = Math.floor(diff / 86400);
+
+  if (isNaN(day_diff))
+    return '(incorrect date)';
+
+  if (day_diff < 0 || diff < 0) {
+    // future time
+    return (new Date(time)).toLocaleFormat('%x %R');
+  }
+
+  return day_diff == 0 && (
+    diff < 60 && 'Just Now' ||
+    diff < 120 && '1 Minute Ago' ||
+    diff < 3600 && Math.floor(diff / 60) + ' Minutes Ago' ||
+    diff < 7200 && '1 Hour Ago' ||
+    diff < 86400 && Math.floor(diff / 3600) + ' Hours Ago') ||
+    day_diff == 1 && 'Yesterday' ||
+    day_diff < 7 && (new Date(time)).toLocaleFormat('%A') ||
+    (new Date(time)).toLocaleFormat('%x');
+}
+
+(function() {
+  var updatePrettyDate = function updatePrettyDate() {
+    var labels = document.querySelectorAll('[data-time]');
+    var i = labels.length;
+    while (i--) {
+      labels[i].textContent = prettyDate(labels[i].dataset.time);
+    }
+  };
+  var timer = setInterval(updatePrettyDate, 60 * 1000);
+
+  window.addEventListener('message', function visibleAppUpdatePrettyDate(evt) {
+    var data = evt.data;
+    if (data.message !== 'visibilitychange')
+      return;
+    clearTimeout(timer);
+    if (!data.hidden) {
+      updatePrettyDate();
+      timer = setInterval(updatePrettyDate, 60 * 1000);
+    }
+  });
+})();
+
+////////////////////////////////////////////////////////////////////////////////
