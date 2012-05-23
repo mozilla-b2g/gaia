@@ -6,12 +6,20 @@
     <title>Dialer</title>
     <link rel="stylesheet" type="text/css" href="style/dialer.css">
     <link rel="resource" type="application/l10n" href="locale/dialer.properties">
+    <!-- Compatibility -->
     <script>
-      var host = document.location.host;
-      var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-      var src = 'http://' + domain + '/webapi.js';
+      if (document.location.protocol === 'file:') {
+        var paths = document.location.pathname.split('/');
+        paths.pop();
+        paths.pop();
+        paths.pop();
+        var src = 'file://' + paths.join('/') + '/webapi.js';
+      } else {
+        var host = document.location.host;
+        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+        var src = 'http://' + domain + '/webapi.js';
+      }
       document.write('<script src="' + src + '"><\/script>');
-    </script>
     </script>
     <script type="application/javascript" src="js/helper.js"></script>
     <script type="application/javascript" src="js/contacts.js"></script>

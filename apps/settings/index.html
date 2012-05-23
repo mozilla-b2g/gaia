@@ -8,10 +8,19 @@
     <link rel="stylesheet" type="text/css" media="screen" href="style/dialogs.css"/>
     <link rel="stylesheet" type="text/css" media="screen" href="style/settings.css"/>
     <link rel="resource" type="application/l10n" href="locale/settings.properties"/>
-    <script type="text/javascript">
-      var host = document.location.host;
-      var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-      var src = 'http://' + domain + '/webapi.js';
+    <!-- Compatibility -->
+    <script>
+      if (document.location.protocol === 'file:') {
+        var paths = document.location.pathname.split('/');
+        paths.pop();
+        paths.pop();
+        paths.pop();
+        var src = 'file://' + paths.join('/') + '/webapi.js';
+      } else {
+        var host = document.location.host;
+        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+        var src = 'http://' + domain + '/webapi.js';
+      }
       document.write('<script src="' + src + '"><\/script>');
     </script>
     <script type="text/javascript" src="js/settings.js"></script>
