@@ -443,7 +443,6 @@ const IMEManager = {
 
     var self = this;
 
-		// Use SettingsListener defined in system.js
     SettingsListener.observe('keyboard.vibration', false, function(value) {
       self.vibrate = !!value;
     });
