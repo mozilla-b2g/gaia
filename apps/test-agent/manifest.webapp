@@ -16,6 +16,9 @@
     "url": "https://github.com/andreasgal/gaia",
     "name": "The Gaia Team"
   },
+  "icons": {
+    "120": "/style/icons/Test-agent.png"
+  },
   "orientation": "portrait-primary"
 }
 
