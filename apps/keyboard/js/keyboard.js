@@ -1124,7 +1124,7 @@ const IMEManager = {
       ime.insertBefore(this.pendingSymbolPanel, ime.firstChild);
       this.showPendingSymbols('');
       this.showCandidates([], true);
-      //this.currentEngine.empty();
+			this.currentEngine.empty();
     }
   },
 
