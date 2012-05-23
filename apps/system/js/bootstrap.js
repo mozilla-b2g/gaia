@@ -5,6 +5,7 @@
 
 function startup() {
   LockScreen.init();
+  PinLock.init();
   StatusBar.init();
   KeyHandler.init();
   SleepMenu.init();
