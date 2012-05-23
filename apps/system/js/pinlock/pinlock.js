@@ -14,16 +14,21 @@ var PinLock = {
     return this.codeUI = document.getElementById('pinkeypadscreen-code');
   },
 
-  // lockPinScreen: false,
   hasPincode: false,
-  pinCode: "3784",
-  conn: window.navigator.mozMobileConnection,
+  pinCode: "1234",
+  conn: undefined,
 
   init: function pl_init() {
-    this.conn.addEventListener('cardstatechange', this);
-    this.pinlockOverlay.addEventListener('click', this);
     this.hideKeypad();
-    this.handleSim();
+    this.conn = window.navigator.mozMobileConnection;
+    if (this.conn != undefined) {
+      this.conn.addEventListener('cardstatechange', this);
+      this.pinlockOverlay.addEventListener('click', this);
+      this.handleSim();
+    } else {
+      console.debug("No mozMobileConnection :(");
+      return;
+    }
   },
 
   hideKeypad: function hideKeypad() {
@@ -36,17 +41,11 @@ var PinLock = {
   },
 
   reset: function reset() {
-    // this.lockPinScreen = false;
     this.hasPincode = false;
     this.pinCode = "";
   },
 
   unlockSim: function unlockSim() {
-    if (!this.conn) {
-      console.debug("No mozMobileConnection :(");
-      return;
-    }
-
     if (this.hasPincode && this.conn.cardState == 'pin_required') {
       var unlock = this.conn.unlockCardLock({lockType: "pin", pin: this.pinCode});
       var pinLock = this;
@@ -66,20 +65,7 @@ var PinLock = {
   },
 
   handleSim: function handleSim() {
-    if (!this.conn) {
-      console.debug("No mozMobileConnection :(");
-      return;
-    }
-
-    /* if (this.lockPinScreen) {
-      console.log("PIN code already asked.");
-      return;
-    } */
-
-    // this.lockPinScreen = true;
-
     console.log("Ready to handle SIM lock.");
-
     if (this.conn.cardState == 'pin_required') {
       console.log("SIM is locked, unlocking ...");
       this.hasPincode = false;
@@ -97,14 +83,12 @@ var PinLock = {
   },
 
   handleEvent: function pinlock_handleEvent(ev) {
-    // console.log("Got event: " + ev.type);
     switch (ev.type) {
       case 'cardstatechange':
         this.handleSim();
         break;
 
       case 'click':
-        // console.log("Got a click on: " + ev.target.dataset.key);
         switch (ev.target.dataset.key) {
           // Emergency
           case 'e':
@@ -124,7 +108,6 @@ var PinLock = {
             break;
 
           case 'o':
-            // console.log("Submitting pincode: " + this.pinCode);
             if (this.pinCode.length > 0) {
               this.hasPincode = true;
               this.unlockSim();
