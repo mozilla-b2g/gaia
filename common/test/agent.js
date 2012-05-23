@@ -10,26 +10,43 @@
     url: './config.json'
   });
 
-  worker.use(TestAgent.BrowserWorker.MochaDriver, {
-    ui: 'tdd',
-    /* path to mocha */
-    mochaUrl: CommonResourceLoader.url('/common/vendor/mocha/mocha.js'),
-    testHelperUrl: CommonResourceLoader.url('/common/test/helper.js')
-  });
+  worker.use(TestAgent.BrowserWorker.Websocket);
 
+  worker.use(TestAgent.BrowserWorker.MultiDomainDriver, {
+    groupTestsByDomain: function(test) {
+
+      var parsed = TestUrlResolver.parse(test);
+
+      var result =  {
+        domain: parsed.domain + '/test/unit/_proxy.html',
+        test: '/' + parsed.url,
+        env: parsed.host
+      };
+
+      console.log(result);
+
+      return result;
+    }
+  });
 
   worker.use(TestAgent.BrowserWorker.TestUi);
   worker.use(TestAgent.BrowserWorker.ErrorReporting);
 
-  //enable let, yield, etc...
-  worker.loader.type = 'application/javascript;version=1.8';
-
-  worker.addTestsProcessor(function(tests) {
-    return tests.map(function(item) {
-      var val = TestUrlResolver.resolve(item);
-      return val;
-    });
+  worker.use(TestAgent.Common.MochaTestEvents, {
+    defaultMochaReporter: 'HTML'
   });
+
+  var displayTimeout,
+      testsRunning = false;
+
+  function keepScreenAwake() {
+    if(testsRunning) {
+      navigator.mozPower.screenEnabled = true;
+      displayTimeout = setTimeout(function() {
+        keepScreenAwake();
+      }, 800);
+    }
+  }
 
   worker.on({
 
@@ -40,14 +57,22 @@
     },
 
     'run tests': function() {
+      console.log('run:', arguments);
+    },
+
+    'test runner': function() {
+      testsRunning = true;
+      keepScreenAwake();
+    },
+
+    'test runner end': function() {
+      testsRunning = false;
     },
 
     'open': function() {
-      console.log('socket open');
     },
 
     'close': function() {
-      console.log('lost client trying to reconnect');
     }
 
   });

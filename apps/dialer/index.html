@@ -33,6 +33,7 @@
 
         <div id="contacts-container-top"></div>
         <div id="contacts-view-scrollable">
+          <div id="favorites-container" onclick="Contacts.showDetails(event)"></div>
           <div id="contacts-container" onclick="Contacts.showDetails(event)"></div>
         </div>
 
@@ -176,7 +177,11 @@
             </div>
             <button data-l10n-id="edit" data-action="edit" onclick="ContactDetails.execute(event)">Edit</button>
           </div>
-          <form id="contact-details-edit" onsubmit="ContactDetails.save(this)" action="#">
+         <form id="contact-details-edit" onsubmit="ContactDetails.save(this)" action="#">
+            <label class="favorite">
+              <input id="favorited" type="checkbox" />
+              <span></span>
+            </label>
             <div class="entry">
               <span data-l10n-id="firstName">First</span>
               <input id="contact-given-name-field" data-action="autoscroll" onfocus="ContactDetails.execute(event)" />

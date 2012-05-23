@@ -30,12 +30,12 @@ REPORTER=Spec
 ###############################################################################
 # The above rules generate the profile/ folder and all its content.           #
 # The profile folder content depends on different rules:                      #
-#  1. manifests                                                               #
+#  1. webapp manifest                                                         #
 #     A directory structure representing the applications installed using the #
 #     Apps API. In Gaia all applications use this method.                     #
 #     See https://developer.mozilla.org/en/Apps/Apps_JavaScript_API           #
 #                                                                             #
-#   2. offline                                                                #
+#  2. offline                                                                 #
 #     An Application Cache database containing Gaia apps, so the phone can be #
 #     used offline and application can be updated easily. For details about it#
 #     see: https://developer.mozilla.org/en/Using_Application_Cache           #
@@ -82,7 +82,7 @@ ifeq ($(strip $(NPM)),)
 	NPM := `which npm`
 endif
 
-TEST_AGENT_CONFIG="./apps/test-agent/test/config.json"
+TEST_AGENT_CONFIG="./apps/test-agent/config.json"
 
 #Marionette testing variables
 #make sure we're python 2.7.x
@@ -97,30 +97,30 @@ MARIONETTE_PORT ?= 2828
 TEST_DIRS ?= $(CURDIR)/tests
 
 # Generate profile/
-profile: stamp-commit-hash update-offline-manifests preferences manifests offline extensions test-agent-config
+profile: stamp-commit-hash update-offline-manifests preferences webapp-manifests test-agent-config offline extensions
 	@echo "\nProfile Ready: please run [b2g|firefox] -profile $(CURDIR)/profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
 
 # Generate profile/webapps/
-manifests:
+webapp-manifests:
 	@echo "Generated webapps"
 	@mkdir -p profile/webapps
 	@echo { > profile/webapps/webapps.json
 	@cd apps; \
 	for d in `find * -maxdepth 0 -type d` ;\
 	do \
-	  if [ -f $$d/manifest.json ]; \
+	  if [ -f $$d/manifest.webapp ]; \
 		then \
 		  mkdir -p ../profile/webapps/$$d; \
-		  cp $$d/manifest.json ../profile/webapps/$$d  ;\
+		  cp $$d/manifest.webapp ../profile/webapps/$$d  ;\
                   (\
 			echo \"$$d\": { ;\
 			echo \"origin\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
 			echo \"installOrigin\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
 			echo \"receipt\": null, ;\
 			echo \"installTime\": 132333986000, ;\
-			echo \"manifestURL\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.json\" ;\
+			echo \"manifestURL\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp\" ;\
 			echo },) >> ../profile/webapps/webapps.json;\
 		fi \
 	done
@@ -174,6 +174,15 @@ settingsdb :
 	@echo "B2G pre-populate settings DB."
 	$(XULRUNNER) $(XPCSHELL) -e 'const PROFILE_DIR = "$(CURDIR)/profile"' build/settings.js
 
+DB_PATH = /data/b2g/mozilla/`$(ADB) shell ls -1 /data/b2g/mozilla/ | grep default | tr -d [:cntrl:]`/indexedDB
+.PHONY: install-settingsdb
+install-settingsdb: settingsdb install-xulrunner
+	$(ADB) start-server
+	$(ADB) push profile/indexedDB/chrome/2588645841ssegtnti ${DB_PATH}/chrome/2588645841ssegtnti
+	$(ADB) push profile/indexedDB/chrome/2588645841ssegtnti.sqlite ${DB_PATH}/chrome/2588645841ssegtnti.sqlite
+	$(ADB) shell kill $(shell $(ADB) shell toolbox ps | grep "b2g" | awk '{ print $$2; }')
+	@echo 'Rebooting b2g now. This only works on Mac now!'
+
 # Generate profile/prefs.js
 preferences: install-xulrunner
 	@echo "Generating prefs.js..."
@@ -211,7 +220,7 @@ INJECTED_GAIA = "$(MOZ_TESTS)/browser/gaia"
 TEST_PATH=gaia/tests/${TEST_FILE}
 
 .PHONY: tests
-tests: manifests offline
+tests: webapp-manifests offline
 	echo "Checking if the mozilla build has tests enabled..."
 	test -d $(MOZ_TESTS) || (echo "Please ensure you don't have |ac_add_options --disable-tests| in your mozconfig." && exit 1)
 	echo "Checking the injected Gaia..."
@@ -240,10 +249,10 @@ update-common: common-install
 
 # Create the json config file
 # for use with the test agent GUI
-test-agent-config:
+test-agent-config: test-agent-bootstrap-apps
 	@rm -f $(TEST_AGENT_CONFIG)
 	@touch $(TEST_AGENT_CONFIG)
-	@echo '{\n  "tests": [' >> $(TEST_AGENT_CONFIG)
+	@echo '{"tests": [' >> $(TEST_AGENT_CONFIG)
 
 	# Build json array of all test files
 	@(find ./apps -name "*_test.js" | \
@@ -252,9 +261,20 @@ test-agent-config:
 		sed -e ':a' -e 'N' -e '$$!ba' -e 's/\n/,\
 	/g') >> $(TEST_AGENT_CONFIG)
 
-	@echo '  ]\n}' >> $(TEST_AGENT_CONFIG);
+	@echo '  ]}' >> $(TEST_AGENT_CONFIG);
 	@echo "Built test ui config file: $(TEST_AGENT_CONFIG)"
 
+
+.PHONY: test-agent-bootstrap-apps
+test-agent-bootstrap-apps:
+	for d in `find apps/* -maxdepth 0 -type d` ;\
+	do \
+		  mkdir -p $$d/test/unit ; \
+		  mkdir -p $$d/test/integration ; \
+			cp -f ./common/test/boilerplate/_proxy.html $$d/test/unit/_proxy.html; \
+			cp -f ./common/test/boilerplate/_sandbox.html $$d/test/unit/_sandbox.html; \
+	done
+	@echo "Done bootstrapping test proxies/sandboxes";
 
 # Temp make file method until we can switch
 # over everything in test
@@ -331,7 +351,7 @@ update-offline-manifests:
 	@cd apps; \
 	for d in `find * -maxdepth 0 -type d` ;\
 	do \
-		if [ -f $$d/manifest.json ] ;\
+		if [ -f $$d/manifest.webapp ] ;\
 		then \
 			echo \\t$$d ;\
 			cd $$d ;\
