@@ -114,6 +114,7 @@ webapp-manifests:
 		then \
 		  mkdir -p ../profile/webapps/$$d; \
 		  cp $$d/manifest.webapp ../profile/webapps/$$d  ;\
+		  cp $$d/manifest.webapp ../profile/webapps/$$d/manifest.json  ;\
                   (\
 			echo \"$$d\": { ;\
 			echo \"origin\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
