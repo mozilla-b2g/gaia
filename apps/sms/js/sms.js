@@ -85,10 +85,10 @@ var ConversationListView = {
         });
 
         contacts.forEach(function(contact, i) {
-          var num = contact.tel[0];
+          var num = contact.tel.length ? contact.tel[0].number : null;
           conversations[num] = {
             'hidden': true,
-            'name': contact.name,
+            'name': contact.name[0],
             'num': num,
             'body': '',
             'timestamp': '',
@@ -324,7 +324,11 @@ var ConversationView = {
     var receiverId = parseInt(num);
 
     var self = this;
-    var options = {filterBy: ['tel'], filterOp: 'contains', filterValue: num};
+    var options = {
+      filterBy: ['tel'],
+      filterOp: 'contains',
+      filterValue: num
+    };
     var request = window.navigator.mozContacts.find(options);
     request.onsuccess = function findCallback() {
       if (request.result.length == 0)
