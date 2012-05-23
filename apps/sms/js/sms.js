@@ -36,9 +36,38 @@ var MessageManager = {
     };
   },
 
-  delete: function mm_delete(id) {
-    navigator.mozSms.delete(id);
-  }
+  delMessage: function mm_delMessage(id, callback) {
+    var req = navigator.mozSms.delete(id);
+    req.onsuccess = function onsuccess() {
+      callback(req.result);
+    };
+
+    req.onerror = function onerror() {
+      callback(null);
+    };
+  },
+
+  /*
+    TODO: If the messages could not be deleted completely,
+    conversation list page will also update withot notification currently.
+    May need more infomation for user that the messages were not
+    removed completely.
+  */  
+  delMessages: function mm_delMessages(list, callback) {
+    var delSum = 0;
+    var reqSum = 0;    
+    for (var i = 0; i < list.length; i++) {
+      this.delMessage(list[i], function(result) {
+        reqSum++;
+        if (result) {
+          delSum++;
+        }
+        if (delSum == list.length || reqSum == list.length) {
+          window.setTimeout(callback, 100);
+        }
+      });
+    }
+  },
 };
 
 var ConversationListView = {
@@ -52,12 +81,39 @@ var ConversationListView = {
     return this.searchInput = document.getElementById('msg-search');
   },
 
+  get msgListview() {
+    delete this.msgListview;
+    return this.msgListview = document.getElementById('msg-conversations-list');
+  },
+  
+  get deleteBtn() {
+    delete this.deleteBtn;
+    return this.deleteBtn = document.getElementById('msg-delete-button');
+  },
+
+  get undoBtn() {
+    delete this.undoBtn;
+    return this.undoBtn = document.getElementById('msg-undo-button');
+  },
+
+  get undoToolbar() {
+    delete this.undoToolbar;
+    return this.undoToolbar = document.getElementById('msg-undo-toolbar');    
+  },
+
+  get undoTitleContainer() {
+    delete this.undoTitleContainer;
+    return this.undoTitleContainer = document.getElementById('msg-undo-title-container');    
+  },
+
   init: function cl_init() {
     if (navigator.mozSms)
       navigator.mozSms.addEventListener('received', this);
 
     this.searchInput.addEventListener('keyup', this);
-
+    this.searchInput.addEventListener('blur', this);
+    this.deleteBtn.addEventListener('mousedown', this.deleteMessageTemp.bind(this));
+    this.undoBtn.addEventListener('mousedown', this.undoDelMessage.bind(this));
     window.addEventListener('hashchange', this);
 
     this.updateConversationList();
@@ -85,10 +141,10 @@ var ConversationListView = {
         });
 
         contacts.forEach(function(contact, i) {
-          var num = contact.tel[0];
+          var num = contact.tel.length ? contact.tel[0].number : null;
           conversations[num] = {
             'hidden': true,
-            'name': contact.name,
+            'name': contact.name[0],
             'num': num,
             'body': '',
             'timestamp': '',
@@ -137,19 +193,25 @@ var ConversationListView = {
   },
 
   createNewConversation: function cl_createNewConversation(conversation) {
-    return '<a href="#num=' + conversation.num + '"' +
+    return '<li href="#num=' + conversation.num + '"' + ' data-num="' + conversation.num + '"' +
            ' data-name="' + escapeHTML(conversation.name || conversation.num, true) + '"' +
            ' data-notempty="' + (conversation.timestamp ? 'true' : '') + '"' +
-           ' class="' + (conversation.hidden ? 'hide' : '') + '">' +
+           ' class="' + (conversation.hidden ? 'hide' : '') + '"' +
+           ' onclick="ConversationListView.onListItemClicked(this)">' +
+           '<input type="checkbox"/>' + '<span></span>' +
+           /* Remove the thumbnail for current stage. 
+            * It may add back when social network integration is ready.
+            * 
            '  <div class="photo">' +
            '    <img src="style/images/contact-placeholder.png" />' +
            '  </div>' +
+           */
            '  <div class="name">' + escapeHTML(conversation.name) + '</div>' +
            '  <div class="msg">' + escapeHTML(conversation.body.split('\n')[0]) + '</div>' +
            (conversation.timestamp ?
              '  <div class="time" data-time="' + conversation.timestamp + '">' +
                  prettyDate(conversation.timestamp) + '</div>' : '') +
-           '</a>';
+           '</li>';
   },
 
   searchConversations: function cl_searchConversations() {
@@ -203,12 +265,103 @@ var ConversationListView = {
         this.searchConversations();
         break;
 
+      case 'blur':
+        window.location.hash = '#';
+        break;
+
       case 'hashchange':
-        if (window.location.hash)
+        this.showEditMode(window.location.hash == '#edit');
+        this.showSearchMode(window.location.hash == '#search');
+        if (window.location.hash) {
+          if (this.undoToolbar.classList.contains('show')) {
+            this.delMessageConfirm();
+          }
           return;
+        }
         document.body.classList.remove('conversation');
     }
-  }
+  },
+  
+  deleteMessageTemp: function cl_deleteMessageTemp() {
+    this.delNumList = [];
+    var cbList = this.msgListview.getElementsByTagName('input');
+    for (var i = 0; i < cbList.length; i++) {
+      if (cbList[i].checked) {
+        cbList[i].parentNode.classList.add('hide');
+        this.delNumList.push(cbList[i].parentNode.dataset.num);
+      }
+    }
+    if (this.delNumList.length > 0) {
+      this.showUndoToolbar(this.delNumList.length);
+    }
+    window.location.hash = '#';
+  },
+
+  undoDelMessage: function cl_undoDelMessage() {
+    var cbList = this.msgListview.getElementsByTagName('input');
+    for (var i = 0; i < cbList.length; i++) {
+      if (cbList[i].checked) {
+        cbList[i].parentNode.classList.remove('hide');
+        cbList[i].checked = false;
+      }
+    }
+    this.delNumList = [];
+    this.undoToolbar.classList.remove('show');
+  },
+
+  showUndoToolbar: function cl_showUndoToolbar(delCount) {
+    var undoTitle = this.undoTitleContainer.innerHTML.replace(/(\d+\s)/g,'');
+    this.undoTitleContainer.innerHTML = delCount + ' ' + undoTitle;
+    this.undoToolbar.classList.add('show');
+    document.body.classList.remove('msg-edit-mode');
+  },
+  
+  delMessageConfirm: function cl_delMessageConfirm() {
+    this.undoToolbar.classList.remove('show');
+    this.deleteMessages(this.delNumList);
+    this.delNumList = [];
+  },
+  
+  deleteMessages: function cl_deleteMessages(numberList) {
+    if (numberList == [])
+      return;
+    
+    var filter = new MozSmsFilter();
+    filter.numbers = numberList;
+    
+    MessageManager.getMessages(function mm_getMessages(messages) {
+      var msgs =[];
+      for (var i = 0; i < messages.length; i++) {
+        msgs.push(messages[i].id);
+      }
+      MessageManager.delMessages(msgs, this.updateConversationList.bind(this));
+    }.bind(this), filter);
+  },
+
+  showSearchMode: function cl_showSearchMode(show) {
+    if (show) {
+      document.body.classList.add('msg-search-mode');
+    } else {
+      document.body.classList.remove('msg-search-mode');
+    }
+  },
+  
+  showEditMode: function cl_showEditMode(show) {
+    if (show) {      
+      document.body.classList.add('msg-edit-mode');  
+    } else {
+      document.body.classList.remove('msg-edit-mode');
+    }
+  },
+  
+  onListItemClicked: function cl_onListItemClicked(obj) {
+    var cb = obj.getElementsByTagName('input')[0];
+    if (document.body.classList.contains('msg-edit-mode')) {
+      cb.checked = !cb.checked;
+    } else {
+      window.location.hash = '#num=' + obj.dataset.num;
+    }
+  },
 };
 
 var ConversationView = {
@@ -324,7 +477,11 @@ var ConversationView = {
     var receiverId = parseInt(num);
 
     var self = this;
-    var options = {filterBy: ['tel'], filterOp: 'contains', filterValue: num};
+    var options = {
+      filterBy: ['tel'],
+      filterOp: 'contains',
+      filterValue: num
+    };
     var request = window.navigator.mozContacts.find(options);
     request.onsuccess = function findCallback() {
       if (request.result.length == 0)
@@ -368,9 +525,13 @@ var ConversationView = {
 
         var body = msg.body.replace(/\n/g, '<br />');
         fragment += '<div ' + className + ' ' + dataNum + ' ' + dataId + '>' +
+                      /*  Remove the thumbnail for current stage. 
+                       * May add back when social network integration is ready.
+                       * 
                       '<div class="photo">' +
                       '  <img src="' + pic + '" />' +
                       '</div>' +
+                      */
                       '<div class="text">' + escapeHTML(body) + '</div>' +
                       '<div class="time" data-time="' + msg.timestamp.getTime() + '">' +
                           prettyDate(msg.timestamp) + '</div>' +
@@ -437,7 +598,7 @@ var ConversationView = {
     }
   },
   close: function cv_close() {
-    if (!document.body.classList.contains('conversation'))
+    if (!document.body.classList.contains('conversation') && !window.location.hash)
       return false;
 
     window.location.hash = '';
