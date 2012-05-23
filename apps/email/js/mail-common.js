@@ -128,16 +128,22 @@ var Cards = {
    * the tray and avoid the click triggering that card's logic.
    */
   _trayActive: false,
+  /**
+   * Are we eating all click events we see until we transition to the next
+   * card (possibly due to a call to pushCard that has not yet occurred?).
+   * Set by calling `eatEventsUntilNextCard`.
+   */
+  _eatingEventsUntilNextCard: false,
 
-  TRAY_GUTTER_WIDTH: 80,
+  TRAY_GUTTER_WIDTH: 60,
 
   /**
    * Initialize and bind ourselves to the DOM which should now be fully loaded.
    */
   _init: function() {
     this._containerNode = document.getElementById('cardContainer');
-    if (window.innerWidth > 360)
-      this._containerNode.style.width = '360px';
+    if (window.innerWidth > 320)
+      this._containerNode.style.width = '320px';
     if (window.innerHeight > 480)
       this._containerNode.style.height = '480px';
     this._cardsNode = document.getElementById('cards');
@@ -162,6 +168,10 @@ var Cards = {
    * back to the visible thing (which must be to our right currently.)
    */
   _onMaybeTrayIntercept: function(event) {
+    if (this._eatingEventsUntilNextCard) {
+      event.stopPropagation();
+      return;
+    }
     if (this._trayActive &&
         (event.clientX >
          this._containerNode.offsetWidth - this.TRAY_GUTTER_WIDTH)) {
@@ -171,7 +181,7 @@ var Cards = {
   },
 
   _adjustCardSizes: function() {
-    var cardWidth = Math.min(360, window.innerWidth), //this._containerNode.offsetWidth,
+    var cardWidth = Math.min(320, window.innerWidth), //this._containerNode.offsetWidth,
         cardHeight = Math.min(480, window.innerHeight), //this._containerNode.offsetHeight,
         totalWidth = 0;
 
@@ -258,7 +268,11 @@ var Cards = {
       // Position the card so its leftmost edge lines up with the left of the
       // display.  This works with trays on the left side, but not the right
       // side.
-      this._cardsNode.style.left = (-cardInst.left) + 'px';
+      var targetLeft = (-cardInst.left) + 'px';
+      if (this._cardsNode.style.left !== targetLeft) {
+        this._cardsNode.style.left = targetLeft;
+        this._eatingEventsUntilNextCard = true;
+      }
       this._activeCardIndex = this._cardStack.length - 1;
     }
   },
@@ -276,7 +290,7 @@ var Cards = {
   },
 
   moveToCard: function(maybeType, mode) {
-    if (typeof(type) === 'string')
+    if (typeof(maybeType) === 'string')
       this._activeCardIndex = this._findCardInstInStack(maybeType, mode);
     else // number, it's the index to move to
       this._activeCardIndex = maybeType;
@@ -285,6 +299,9 @@ var Cards = {
     this._cardsNode.style.left = (-cardInst.left) + 'px';
 
     this._trayActive = cardInst.modeDef.tray;
+  },
+
+  tellCard: function(type, mode, what) {
   },
 
   /**
@@ -357,17 +374,49 @@ var Cards = {
       if (this._cardStack.length)
         targetLeft = (-this._cardStack[this._cardStack.length - 1].left) +
                        'px';
-      this._cardsNode.style.left = targetLeft;
+      if (this._cardsNode.style.left !== targetLeft) {
+        this._eatingEventsUntilNextCard = true;
+        this._cardsNode.style.left = targetLeft;
+      }
     }
   },
 
   _onTransitionEnd: function(event) {
+    if (this._eatingEventsUntilNextCard)
+      this._eatingEventsUntilNextCard = false;
     if (this._animatingDeadDomNodes.length) {
       this._animatingDeadDomNodes.forEach(function(domNode) {
         if (domNode.parentNode)
           domNode.parentNode.removeChild(domNode);
       });
     }
+  },
+
+  /**
+   * Helper that causes (some) events targeted at our cards to be eaten until
+   * we get to the next card.  The idea is to avoid bugs caused by the user
+   * still being able to click things while our cards are transitioning or
+   * while we are performing a (reliable) async wait before we actually initiate
+   * a pushCard in response to user stimulus.
+   *
+   * This is automatically triggered when performing an animated transition;
+   * other code should only call this in the async wait case mentioned above.
+   *
+   * For example, we don't want the user to have 2 message readers happening
+   * at the same time because they managed to click on a second message before
+   * the first reader got displayed.
+   */
+  eatEventsUntilNextCard: function() {
+    this._eatingEventsUntilNextCard = true;
+  },
+
+  /**
+   * Stop eating events, presumably because eatEventsUntilNextCard was used
+   * as a hack for a known-fast async operation to avoid bugs (where we knew
+   * full well that we weren't going to show a card).
+   */
+  stopEatingEvents: function() {
+    this._eatingEventsUntilNextCard = false;
   },
 
   /**

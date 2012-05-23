@@ -10,11 +10,11 @@
 .sup-form-text {
   display: block;
   margin: 10px 30px;
-  width: 300px;
+  width: 260px;
 }
 .sup-form-btn {
   margin: 10px 60px;
-  width: 240px;
+  width: 200px;
 }
 
 .sup-services-container {
@@ -22,5 +22,5 @@
 }
 .sup-service-choice {
   margin: 10px 60px;
-  width: 240px;
+  width: 200px;
 }

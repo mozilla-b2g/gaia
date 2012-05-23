@@ -34,6 +34,10 @@
         warn:  consoleHelper.bind(null, '\x1b[33mWAR'),
       };
     }
+    window.onerror = function errHandler(msg, url, line) {
+      console.error("onerror reporting:", msg, "@", url, ":", line);
+      return false;
+    };
   </script>
   <script type="text/javascript" src="js/mail-common.js"></script>
   <script type="text/javascript" src="js/message-cards.js"></script>
@@ -51,7 +55,7 @@
        not visible, but we will revisit that after profiling.  (display: hidden
        should be fairly safe, for example.) -->
   <div id="cardContainer">
-    <div id="cards"></div>
+    <div id="cards" style="left: 0px;"></div>
   </div>
 
   <!-- We have a "card" centric implementation that clones the cards from below.
@@ -70,17 +74,21 @@
         <div class="scrollregion">
           <div class="fld-accounts-container">
           </div>
+          <h2 class="fld-folders-label" data-l10n-id="folders-label">
+            FolderS</h2>
           <div class="fld-folders-container">
           </div>
         </div>
         <div class="fld-nav-toolbar bottom-toolbar">
-          <button class="fld-nav-settings-btn">GEAR</button>
+          <button class="fld-nav-settings-btn bottom-btn">GEAR</button>
         </div>
       </div>
       <!-- Lists the messages in a folder -->
       <div class="card-message-list card">
         <div class="msg-list-header top-header">
           <button class="msg-folder-list-btn header-left-btn">|||</button>
+          <h2 class="msg-list-header-folder-label header-label"></h2>
+          <button class="msg-compose-btn header-right-btn">+</button>
         </div>
         <div class="scrollregion">
           <!-- The search textbox hides under the lip of the messages. 
@@ -96,9 +104,9 @@
         <div class="msg-activity-infobar hidden">
         </div>
         <div class="msg-list-action-toolbar bottom-toolbar">
-          <button class="msg-search-btn">SearcH</button>
-          <button class="msg-edit-btn">EdiT</button>
-          <button class="msg-refresh-btn">RefresH</button>
+          <button class="msg-search-btn bottom-btn">SearcH</button>
+          <button class="msg-edit-btn bottom-btn">EdiT</button>
+          <button class="msg-refresh-btn bottom-btn">RefresH</button>
         </div>
       </div>
 
@@ -134,51 +142,56 @@
       <!-- Message Reader -->
       <div class="card-message-reader card">
         <div class="msg-reader-header top-header">
-          <button class="msg-back-btn back-btn">&lt;</button>
-          <h2 class="msg-reader-header-label">ReaD</h2>
-          <button class="cmp-reply-btn">ReplY</button>
+          <button class="msg-back-btn back-btn header-left-btn">&lt;</button>
+          <h2 class="msg-reader-header-label header-label"
+              data-l10n-id="reader-header">ReaD</h2>
+          <button class="msg-reply-btn header-right-btn">ReplY</button>
         </div>
         <div class="scrollregion">
           <div class="msg-envelope-bar">
-            <div class="msg-envelope-timestamp"></div>
+            <div class="msg-envelope-date"></div>
             <div class="msg-envelope-from-line msg-envelope-line">
-              <label>FroM</label>
+              <label class="msg-envelope-key"
+                     data-l10n-id="envelope-from">FroM</label>
             </div>
             <!-- the details starts out collapsed, but can be toggled -->
-            <div class="msg-envelope-details hidden">
+            <div class="msg-envelope-details collapsed">
               <div class="msg-envelope-to-line msg-envelope-line">
-                <label>tO</label>
+                <label class="msg-envelope-key"
+                       data-l10n-id="envelope-to">tO</label>
               </div>
               <div class="msg-envelope-cc-line msg-envelope-line">
-                <label>cC</label>
+                <label class="msg-envelope-key"
+                       data-l10n-id="envelope-cc">cC</label>
               </div>
               <div class="msg-envelope-bcc-line msg-envelope-line">
-                <label>BcC</label>
+                <label class="msg-envelope-key"
+                       data-l10n-id="envelope-bcc">BcC</label>
               </div>
             </div>
             <h3 class="msg-envelope-subject"></h3>
           </div>
           <div class="msg-body-container">
           </div>
-          <div class="msg-attachments-container">
-          </div>
+          <ul class="msg-attachments-container">
+          </ul>
         </div>
         <!-- Tells us about remote/not downloaded images, asks to show -->
         <div class="msg-reader-load-infobar">
         </div>
         <div class="msg-reader-action-toolbar bottom-toolbar">
-          <button class="msg-delete-btn">DeletE</button>
-          <button class="msg-star-btn">StaR</button>
-          <button class="msg-unread-btn">MarK UnreaD</button>
-          <button class="msg-move-btn">MovE</button>
-          <button class="msg-forward-btn">ForwarD</button>
+          <button class="msg-delete-btn bottom-btn">DeletE</button>
+          <button class="msg-star-btn bottom-btn">StaR</button>
+          <button class="msg-unread-btn bottom-btn">MarK UnreaD</button>
+          <button class="msg-move-btn bottom-btn">MovE</button>
+          <button class="msg-forward-btn bottom-btn">ForwarD</button>
         </div>
       </div>
 
       <div class="card-compose-main">
         <div class="cmp-compose-header top-header">
           <button class="cmp-back-btn back-btn">&lt;</button>
-          <h2 class="cmp-compose-header-label">ComposE MessagE</h2>
+          <h2 class="cmp-compose-header-label header-label">ComposE MessagE</h2>
           <button class="cmp-send-btn">SenD</button>
         </div>
         <div class="scrollregion">
@@ -290,6 +303,7 @@
     <div id="templ-fld">
       <a class="fld-account-item">
         <span class="fld-account-name"></span>
+        <span class="fld-account-unread"></span>
       </a>
       <a class="fld-folder-item">
         <span class="fld-folder-name"></span>
@@ -311,7 +325,20 @@
           <span class="msg-header-star"></span>
           <span class="msg-header-attachments"></span>
         </div>
+        <div class="msg-header-avatar-section">
+        </div>
       </a>
+
+      <div class="msg-peep-bubble">
+        <span class="msg-peep-name"></span>
+        (<span class="msg-peep-address"></span>)
+      </div>
+
+      <li class="msg-attachment-item">
+        <span class="msg-attachment-icon">&amp;</span>
+        <span class="msg-attachment-filename"></span>
+        <span class="msg-attachment-filetype"></span>
+      </li>
     </div>
     <!-- Widget nodes for the compose cards; styles use the cmp prefix -->
     <div id="templ-cmp">
@@ -323,6 +350,6 @@
     <!-- Widget nodes for the settings cards; styles use the tng prefix -->
     <div id="templ-tng">
     </div>
-  </div>
+  </dpiv>
 </body>
 </html>

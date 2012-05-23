@@ -15,9 +15,10 @@ console.log("showMessageViewOrSetup");
     // Get the list of accounts including the unified account (if it exists)
     var acctsSlice = MailAPI.viewAccounts(false);
     acctsSlice.oncomplete = function() {
-console.log("oncomplete");
+console.log("oncomplete", acctsSlice.items.length);
       // - we have accounts, show the message view!
       if (acctsSlice.items.length) {
+console.log('creating folder cards');
         // For now, just use the first one; we do attempt to put unified first
         // so this should generally do the right thing.
         var account = acctsSlice.items[0];
@@ -25,12 +26,12 @@ console.log("oncomplete");
         foldersSlice.oncomplete = function() {
           var inboxFolder = foldersSlice.getFirstFolderWithType('inbox');
           if (!inboxFolder)
-            dieOnFatalError('We have an account without an inbox!');
+            dieOnFatalError('We have an account without an inbox!', foldersSlice.items);
 
           Cards.assertNoCards();
           // Push the navigation card
           Cards.pushCard(
-            'folders', 'navigation', 'none',
+            'folder-picker', 'navigation', 'none',
             {
               acctsSlice: acctsSlice,
               curAccount: account,

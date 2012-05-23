@@ -4,9 +4,9 @@
  **/
 
 function MessageListCard(domNode, mode, args) {
-  this.messagesContainer = domNode.getElementsByClassName('')[0];
-  this.gestureDetector = new GestureDetector(this.messagesContainer);
-  this.gestureDetector.startDetecting({ holdevents: true });
+  this.domNode = domNode;
+  this.messagesContainer =
+    domNode.getElementsByClassName('msg-messages-container')[0];
 
   domNode.getElementsByClassName('msg-folder-list-btn')[0]
     .addEventListener('click', this.onShowFolders.bind(this), false);
@@ -16,7 +16,7 @@ function MessageListCard(domNode, mode, args) {
                        this.onClickMessage.bind(this));
   // press-and-hold shows the single-message mutation options
   // (gaia/b2g maps a press for 1 second to context menu)
-  bindContainerHandler(this.messageContainer, 'contextmenu',
+  bindContainerHandler(this.messagesContainer, 'contextmenu',
                        this.onHoldMessage.bind(this));
 
   this.messagesSlice = null;
@@ -33,6 +33,9 @@ MessageListCard.prototype = {
       this.messagesSlice = null;
       this.messagesContainer.innerHTML = '';
     }
+
+    this.domNode.getElementsByClassName('msg-list-header-folder-label')[0]
+      .textContent = folder.name;
 
     this.messagesSlice = MailAPI.viewFolderMessages(folder);
     this.messagesSlice.onsplice = this.onMessagesSplice.bind(this);
@@ -54,11 +57,12 @@ MessageListCard.prototype = {
         self = this;
     addedItems.forEach(function(message) {
       var domMessage = message.element =
-        msgNodes['msg-header-item'].cloneNode(true);
+        msgNodes['header-item'].cloneNode(true);
+      domMessage.message = message;
 
       self.updateMessageDom(message, true);
 
-      nodes.messagesList.insertBefore(domMessage, insertBuddy);
+      self.messagesContainer.insertBefore(domMessage, insertBuddy);
     });
   },
 
@@ -72,7 +76,7 @@ MessageListCard.prototype = {
       msgNode.getElementsByClassName('msg-header-author')[0]
         .textContent = message.author.name || message.author.address;
       // date
-      dateNode.dataSet.time = message.date.valueOf();
+      dateNode.dataset.time = message.date.valueOf();
       dateNode.textContent = prettyDate(message.date);
       // subject
       msgNode.getElementsByClassName('msg-header-subject')[0]
@@ -108,18 +112,31 @@ MessageListCard.prototype = {
   },
 
   onClickMessage: function(messageNode, event) {
-    Cards.pushCard(
-      'message-reader', 'default', 'animate',
-      {
-        message: message
-      });
+    // For now, let's do the async load before we trigger the card to try and
+    // avoid reflows during animation or visual popping.
+    Cards.eatEventsUntilNextCard();
+    var header = messageNode.message;
+    header.getBody(function gotBody(body) {
+      Cards.pushCard(
+        'message-reader', 'default', 'animate',
+        {
+          header: header,
+          body: body
+        });
+    });
   },
 
   onHoldMessage: function(messageNode, event) {
   },
 
+  /**
+   * The folder picker is telling us to change the folder we are showing.
+   */
+  told: function(args) {
+    this.showFolder(args.folder);
+  },
+
   die: function() {
-    this.gestureDetector.stopDetecting();
   },
 };
 Cards.defineCard({
@@ -133,8 +150,103 @@ Cards.defineCard({
 });
 
 function MessageReaderCard(domNode, mode, args) {
+  this.domNode = domNode;
+  this.header = args.header;
+  this.body = args.body;
+
+  this.buildBodyDom(domNode);
+
+  domNode.getElementsByClassName('msg-back-btn')[0]
+    .addEventListener('click', this.onBack.bind(this, false));
+  domNode.getElementsByClassName('msg-reply-btn')[0]
+    .addEventListener('click', this.onReply.bind(this, false));
+
+  domNode.getElementsByClassName('msg-envelope-bar')[0]
+    .addEventListener('click', this.onHeaderClick.bind(this), false);
+  bindContainerHandler(
+    domNode.getElementsByClassName('msg-attachments-container')[0],
+    'click', this.onAttachmentClick.bind(this));
 }
 MessageReaderCard.prototype = {
+  onBack: function(event) {
+    Cards.removeCardAndSuccessors(this.domNode, 'animate');
+  },
+
+  onReply: function(event) {
+
+  },
+
+  /**
+   * Distinguish clicks on contacts from clicks on the header to toggle its
+   * expanded state and then do the right thing.
+   */
+  onHeaderClick: function(event) {
+  },
+
+  onAttachmentClick: function(event) {
+  },
+
+  buildBodyDom: function(domNode) {
+    var header = this.header, body = this.body;
+
+    function addHeaderEmails(lineClass, peeps) {
+      var lineNode = domNode.getElementsByClassName(lineClass)[0];
+
+      if (!peeps || !peeps.length) {
+        lineNode.classList.add('collapsed');
+        return;
+      }
+
+      // Because we can avoid having to do multiple selector lookups, we just
+      // mutate the template in-place...
+      var peepTemplate = msgNodes['peep-bubble'],
+          nameTemplate =
+            peepTemplate.getElementsByClassName('msg-peep-name')[0],
+          addressTemplate =
+            peepTemplate.getElementsByClassName('msg-peep-address')[0];
+      for (var i = 0; i < peeps.length; i++) {
+        var peep = peeps[i];
+        nameTemplate.textContent = peep.name || '';
+        addressTemplate.textContent = peep.address;
+        lineNode.appendChild(peepTemplate.cloneNode(true));
+      }
+    }
+
+    addHeaderEmails('msg-envelope-from-line', [header.author]);
+    addHeaderEmails('msg-envelope-to-line', body.to);
+    addHeaderEmails('msg-envelope-cc-line', body.cc);
+    addHeaderEmails('msg-envelope-bcc-line', body.bcc);
+
+    var dateNode = domNode.getElementsByClassName('msg-envelope-date')[0];
+    dateNode.dataset.time = header.date.valueOf();
+    dateNode.textContent = prettyDate(header.date);
+
+    domNode.getElementsByClassName('msg-envelope-subject')[0]
+      .textContent = header.subject;
+    domNode.getElementsByClassName('msg-body-container')[0]
+      .textContent = body.bodyText;
+
+    var attachmentsContainer =
+      domNode.getElementsByClassName('msg-attachments-container')[0];
+    if (body.attachments) {
+      var attTemplate = msgNodes['attachment-item'],
+          filenameTemplate =
+            attTemplate.getElementsByClassName('msg-attachment-filename')[0],
+          filetypeTemplate =
+            attTemplate.getElementsByClassName('msg-attachment-filetype')[0];
+      for (var iAttach = 0; iAttach < body.attachments.length; iAttach++) {
+        var attachment = body.attachments[iAttach];
+        filenameTemplate.textContent = attachment.filename;
+        // XXX perform localized mimetype translation stuff
+        filetypeTemplate.textContent = attachment.mimetype;
+        attachmentsContainer.appendChild(attTemplate.cloneNode(true));
+      }
+    }
+    else {
+      attachmentsContainer.classList.add('collapsed');
+    }
+  },
+
   die: function() {
   },
 };

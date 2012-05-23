@@ -1,0 +1,36 @@
+
+.fld-account-item {
+  display: block;
+  line-height: 24px;
+}
+.fld-account-selected {
+  background-color: #ddf;
+  border: 2px solid #224;
+}
+.fld-account-name {
+  font-size: 20px;
+}
+.fld-account-unread {
+  display: none;
+}
+
+
+.fld-folder-item {
+  display: block;
+  line-height: 20px;
+}
+.fld-folder-item.fld-folder-selected {
+  background-color: #ddf;
+  border: 2px solid #224;
+}
+.fld-folder-unselectable {
+  color: #444;
+  background-color: #eee;
+}
+
+.fld-folder-name {
+  font-size: 16px;
+}
+.fld-folder-unread {
+  display: none;
+}

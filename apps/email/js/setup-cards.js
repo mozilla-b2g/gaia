@@ -201,7 +201,7 @@ Cards.defineCard({
   constructor: SetupProgressCard,
 });
 
-function SetupDoneCard() {
+function SetupDoneCard(domNode, mode, args) {
   domNode.getElementsByClassName('sup-add-another-account-btn')[0]
     .addEventListener('click', this.onAddAnother.bind(this), false);
   domNode.getElementsByClassName('sup-show-mail-btn')[0]

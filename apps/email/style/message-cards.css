@@ -1,0 +1,108 @@
+/* Sections horizontally chop up the item: unread, details, icons, avatar.
+ * We have 320 horizontal pixels to play with.
+ */
+.msg-header-item {
+  display: block;
+  height: 60px;
+  overflow: hidden;
+}
+.msg-header-unread-section {
+  display: inline-block;
+  height: 60px;
+  width: 12px;
+}
+.msg-header-unread-section-unread {
+  background-color: orange;
+}
+.msg-header-details-section {
+  display: inline-block;
+  width: 248px;
+}
+.msg-header-icons-section {
+  display: inline-block;
+  width: 32px;
+}
+.msg-header-avatar-section {
+  display: inline-block;
+  width: 28px;
+}
+
+.msg-header-author {
+  font-size: 110%;
+  color: black;
+}
+.msg-header-date {
+}
+.msg-header-date-unread {
+  color: orange;
+}
+.msg-header-subject {
+  display: block;
+  color: black;
+  font-weight: bold;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+.msg-header-snippet {
+  display: block;
+  color: gray;
+}
+
+
+.msg-envelope-bar {
+  border-bottom: 1px solid gray;
+}
+.msg-envelope-date {
+  float: right;
+}
+.msg-envelope-line {
+  display: block;
+}
+.msg-envelope-key {
+  font-weight: bold;
+}
+.msg-envelope-from-line {
+}
+.msg-envelope-to-line {
+}
+.msg-envelope-cc-line {
+}
+.msg-envelope-bcc-line {
+}
+
+.msg-envelope-subject {
+  font-weight: bold;
+  margin: 0;
+}
+
+.msg-body-container {
+  font-family: monospace;
+  white-space: pre-wrap;
+}
+
+.msg-attachments-container {
+}
+
+.msg-peep-bubble {
+  display: inline-block;
+  background-color: #7a81c3;
+  border: 1px solid #585c8b;
+  border-radius: 6px;
+  color: white;
+  padding: 2px;
+  font-size: 80%;
+}
+.msg-peep-name {
+}
+.msg-peep-address {
+  font-style: italic;
+}
+
+.msg-attachment-item {
+}
+.msg-attachment-icon {
+}
+.msg-attachment-filename {
+}
+.msg-attachment-filetype {
+}
