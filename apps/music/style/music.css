@@ -172,22 +172,6 @@ body.player-mode #tabs {
   font-weight: bold;
 }
 
-.orange {
-  background: -moz-linear-gradient(center top , #FAA51A, #F47A20) repeat scroll 0 0 transparent;
-  border: 0px solid #DA7C0C;
-  color: #FEF4E9;
-}
-.orange:hover {
-  background: -moz-linear-gradient(center top , #F88E11, #F06015) repeat scroll 0 0 transparent;
-}
-.orange:active {
-  background: -moz-linear-gradient(center top , #F47A20, #FAA51A) repeat scroll 0 0 transparent;
-  color: #FCD3A5;
-}
-.orange:disabled {
-  opacity: 0.3;
-}
-
 #player-album-rating {
   opacity: 0.3;
   width: 50%;
@@ -273,27 +257,6 @@ body.player-mode #tabs {
   border-bottom-right-radius: 15px;
 }
 
-.blue {
-  background: -moz-linear-gradient(center top , #00ADEE, #0078A5) repeat scroll 0 0 transparent;
-  border: 1px solid #0076A3;
-  color: #D9EEF7;
-}
-.blue:hover {
-  background: -moz-linear-gradient(center top , #0095CC, #00678E) repeat scroll 0 0 transparent;
-}
-.blue:active {
-  background: -moz-linear-gradient(center top , #0078A5, #00ADEE) repeat scroll 0 0 transparent;
-  color: #80BED6;
-}
-.blue:disabled {
-  opacity: 0.3;
-}
-
-.music-symbol {
-  width: 100%;
-  height: auto;
-}
-
 #tabs {
   position: absolute;
   bottom: 0px;
@@ -309,8 +272,8 @@ body.player-mode #tabs {
 #tabs-more {
   position: relative;
   float: left;
-  width: -moz-calc(20%);
-  height: -moz-calc(100%);
+  width: 20%;
+  height: 100%;
   padding: 0px;
   font-size: 1.5em;
   font-weight: bolder;
@@ -331,6 +294,46 @@ body.player-mode #tabs {
 #tabs-more {
   border-bottom-right-radius: 15px;
   border-left: #F88E11 solid 1px;
+}
+
+.title-back-button,
+.player-cover-button {
+  background: -moz-linear-gradient(center top , #00ADEE, #0078A5) repeat scroll 0 0 transparent;
+  border: 1px solid #0076A3;
+  color: #D9EEF7;
+}
+.title-back-button:hover,
+.player-cover-button:hover {
+  background: -moz-linear-gradient(center top , #0095CC, #00678E) repeat scroll 0 0 transparent;
+}
+.title-back-button:active,
+.player-cover-button:active {
+  background: -moz-linear-gradient(center top , #0078A5, #00ADEE) repeat scroll 0 0 transparent;
+  color: #80BED6;
+}
+.title-back-button:disabled,
+.player-cover-button:disabled {
+  opacity: 0.3;
+}
+
+.tabs-button,
+.player-controls-button {
+  background: -moz-linear-gradient(center top , #FAA51A, #F47A20) repeat scroll 0 0 transparent;
+  border: 0px solid #DA7C0C;
+  color: #FEF4E9;
+}
+.tabs-button:hover,
+.player-controls-button:hover {
+  background: -moz-linear-gradient(center top , #F88E11, #F06015) repeat scroll 0 0 transparent;
+}
+.tabs-button:active,
+.player-controls-button:active {
+  background: -moz-linear-gradient(center top , #F47A20, #FAA51A) repeat scroll 0 0 transparent;
+  color: #FCD3A5;
+}
+.tabs-button:disabled,
+.player-controls-button:disabled {
+  opacity: 0.3;
 }
 
 .hidden {
