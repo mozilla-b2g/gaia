@@ -262,36 +262,36 @@ var LockScreen = {
         break;
 
       case 'keydown':
-        if(navigator.mozPower.screenEnabled) {
-          if(e.keyCode == e.DOM_VK_SLEEP && !SleepMenu.visible) {
+        if (navigator.mozPower.screenEnabled) {
+          if (e.keyCode == e.DOM_VK_SLEEP && !SleepMenu.visible) {
             this._timeout = window.setTimeout(function() {
               SleepMenu.show();
             }, 1500);
           }
         } else {
-          if(e.keyCode == e.DOM_VK_SLEEP || e.keyCode == e.DOM_VK_HOME) {
+          if (e.keyCode == e.DOM_VK_SLEEP || e.keyCode == e.DOM_VK_HOME) {
             window.clearTimeout(this._timeout);
             this._timeout = null;
             this.update();
             ScreenManager.turnScreenOn();
           }
         }
-  
+
         e.preventDefault();
         e.stopPropagation();
         break;
-  
+
       case 'keyup':
-        if(e.keyCode != e.DOM_VK_SLEEP || SleepMenu.visible || !this._timeout)
+        if (e.keyCode != e.DOM_VK_SLEEP || SleepMenu.visible || !this._timeout)
           return;
         window.clearTimeout(this._timeout);
         this._timeout = null;
-  
-        if(navigator.mozPower.screenEnabled) {
+
+        if (navigator.mozPower.screenEnabled) {
           this.update();
           ScreenManager.turnScreenOff();
         }
-  
+
         e.preventDefault();
         e.stopPropagation();
         break;
