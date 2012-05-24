@@ -387,7 +387,7 @@ var Cards = {
       var nextCardIndex = null;
       if (this._cardStack.length)
         nextCardIndex = this._cardStack.length - 1;
-      this._showCard(nextCard, showMethod);
+      this._showCard(nextCardIndex, showMethod);
     }
   },
 
