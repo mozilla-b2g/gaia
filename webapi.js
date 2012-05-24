@@ -892,6 +892,32 @@
   };
 })(this);
 
+
+// If mozApps permission is denied, create a fake list of applications
+(function(window) {
+  if (navigator.mozApps.mgmt.oninstall)
+    return;
+
+  try {
+    navigator.mozApps.mgmt.oninstall = function() {};
+    navigator.mozApps.mgmt.oninstall = null;
+  } catch(e) {
+    if (document.location.protocol === 'file:') {
+      var paths = document.location.pathname.split('/');
+      paths.pop();
+      paths.pop();
+      paths.pop();
+      var src = 'file://' + paths.join('/') + '/webapps.js';
+    } else {
+      var host = document.location.host;
+      var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+      var src = 'http://' + domain + '/webapps.js';
+    }
+    document.write('<script src="' + src + '"><\/script>');
+  }
+})(this);
+
+
 // Register a handler to automatically update apps when the app cache
 // changes.
 (function(window) {

@@ -55,7 +55,7 @@
   "default_locale": "en-US",
   "hackKillMe": true,
   "icons": {
-    "120": "/style/icons/VideoCube.png"
+    "120": "/style/icons/Cubevid.png"
   },
   "orientation": "portrait-primary"
 }
