@@ -9,11 +9,6 @@ var PinLock = {
     return this.pinlockOverlay = document.getElementById('pinkeypadscreen');
   },
 
-  get codeUI() {
-    delete this.codeUI;
-    return this.codeUI = document.getElementById('pinkeypadscreen-code');
-  },
-
   hasPincode: false,
   pinCode: "1234",
   conn: undefined,
