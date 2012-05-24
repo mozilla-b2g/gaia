@@ -51,10 +51,17 @@ var PinLock = {
       var pinLock = this;
       unlock.onsuccess = function () {
         var res = unlock.result;
+        /* whatever happens, we need to reset the status:
+           we got a reponse from the SIM card, so either current
+           PIN code is good and we will clear and exit, or it
+           is not and there is no point in keeping it */
+        pinLock.reset();
         console.log("Unlocking SIM: " + res.result);
         if (res.result == true) {
-          pinLock.reset();
           pinLock.hideKeypad();
+        } else {
+          console.log("Bad PIN code! Number of retries: " + res.retryCount);
+          this.notifyRetryCount(res.retryCount);
         }
       }
     } else {
@@ -73,6 +80,11 @@ var PinLock = {
       this.showKeypad();
     }
   },
+
+  notifyRetryCount: function notifyRetryCount(retryCount) {
+    var desc = document.getElementById('pinkeypadscreen-desc');
+    desc.innerHTML = "Bad PIN, retry (" + retryCount + ")";
+  }
 
   updateCodeUi: function updateCodeUi() {
     var d = document.getElementById('pinkeypadscreen-display');
