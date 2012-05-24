@@ -41,6 +41,7 @@ var SettingsListener = {
 SettingsListener.init();
 
 const IMEManager = {
+/* XXX: Moved to controller.js
   BASIC_LAYOUT: -1,
   ALTERNATE_LAYOUT: -2,
   SWITCH_KEYBOARD: -3,
@@ -55,6 +56,8 @@ const IMEManager = {
 
   currentKeyboard: '',
   currentKeyboardMode: '',
+//*/
+
   // keyboard layouts selected by the user from settings
   keyboards: [],
   // keyboard setting groups selected by the user from settings
@@ -108,14 +111,15 @@ const IMEManager = {
       this.keyboards = [].concat(this.keyboardSettingGroups['english']);
     }
 
-    if (this.keyboards.indexOf(this.currentKeyboard) === -1)
-        this.currentKeyboard = this.keyboards[0];
+    if (this.keyboards.indexOf(IMEController.currentKeyboard) === -1)
+        IMEController.currentKeyboard = this.keyboards[0];
 
     this.keyboards.forEach((function loadIMEngines(name) {
-      this.loadKeyboard(name);
+      IMEController.loadKeyboard(name);
     }).bind(this));
   },
 
+/* XXX; Moved to controller.js
   currentType: 'text',
 
   isUpperCase: false,
@@ -171,6 +175,7 @@ const IMEManager = {
   // Taps the space key twice within kSpaceDoubleTapTimeoout
   // to produce a "." followed by a space
   kSpaceDoubleTapTimeout: 700,
+//*/
 
   get ime() {
     delete this.ime;
@@ -197,7 +202,7 @@ const IMEManager = {
     var toggleButton = document.createElement('span');
     toggleButton.innerHTML = '⇪';
     toggleButton.id = 'keyboard-candidate-panel-toggle-button';
-    toggleButton.dataset.keycode = this.TOGGLE_CANDIDATE_PANEL;
+    toggleButton.dataset.keycode = IMEController.TOGGLE_CANDIDATE_PANEL;
     return this.candidatePanelToggleButton = toggleButton;
   },
 
@@ -244,7 +249,7 @@ const IMEManager = {
     var keyCode = parseInt(this.currentKey.dataset.keycode);
     var content = '';
 
-    if (!target.dataset.alt && keyCode !== this.SWITCH_KEYBOARD)
+    if (!target.dataset.alt && keyCode !== IMEController.SWITCH_KEYBOARD)
       return;
 
     clearTimeout(this._hideMenuTimeout);
@@ -252,7 +257,7 @@ const IMEManager = {
     var cssWidth = target.style.width;
 
     var menu = this.menu;
-    if (keyCode == this.SWITCH_KEYBOARD) {
+    if (keyCode == IMEController.SWITCH_KEYBOARD) {
 
       this.keyHighlight.classList.remove('show');
 
@@ -262,12 +267,12 @@ const IMEManager = {
         var keyboard = this.keyboards[i];
         var className = 'keyboard-key keyboard-key-special';
 
-        if (this.currentKeyboard == keyboard)
+        if (IMEController.currentKeyboard == keyboard)
           className += ' current-keyboard';
 
         content += '<span class="' + className + '" ' +
           'data-keyboard="' + keyboard + '" ' +
-          'data-keycode="' + this.SWITCH_KEYBOARD + '" ' +
+          'data-keycode="' + IMEController.SWITCH_KEYBOARD + '" ' +
           '>' +
           Keyboards[keyboard].menuLabel +
           '</span>';
@@ -429,17 +434,22 @@ const IMEManager = {
     }
   },
 
-  events: ['mouseup', 'unload', 'resize'],
+  events: ['unload', 'resize'],
+/* XXX: Moved to controller.js
   imeEvents: ['mousedown', 'mouseover', 'mouseleave', 'transitionend'],
+//*/
   init: function km_init() {
     this.updateSettings();
     this.events.forEach((function attachEvents(type) {
       window.addEventListener(type, this);
     }).bind(this));
 
+    IMEController.init();
+/* XXX: Moved to controller.js
     this.imeEvents.forEach((function imeEvents(type) {
       this.ime.addEventListener(type, this);
     }).bind(this));
+//*/
 
     var self = this;
 
@@ -478,17 +488,22 @@ const IMEManager = {
       window.removeEventListener(type, this);
     }).bind(this));
 
+    IMEController.uninit();
+/* XXX: Moved to controller.js
     this.imeEvents.forEach((function imeEvents(type) {
       this.ime.removeEventListener(type, this);
     }).bind(this));
+
 
     for (var engine in this.IMEngines) {
       if (this.IMEngines[engine].uninit)
         this.IMEngines[engine].uninit();
       delete this.IMEngines[engine];
     }
+//*/
   },
 
+/* XXX: Moved to controller.js
   loadKeyboard: function km_loadKeyboard(name) {
     var keyboard = Keyboards[name];
     if (keyboard.type !== 'ime')
@@ -545,19 +560,21 @@ const IMEManager = {
   },
 
   hideIMETimer: 0,
+*/
+
   handleEvent: function km_handleEvent(evt) {
 
     var target = evt.target;
     switch (evt.type) {
       case 'showime':
         // cancel hideIME that imminently happen before showIME
-        clearTimeout(this.hideIMETimer);
+        clearTimeout(IMEController.hideIMETimer);
         this.showIME(evt.detail.type);
 
         break;
 
       case 'hideime':
-        this.hideIMETimer = window.setTimeout((function execHideIME() {
+        IMEController.hideIMETimer = window.setTimeout((function execHideIME() {
           this.hideIME();
         }).bind(this), 0);
 
@@ -580,18 +597,19 @@ const IMEManager = {
         // window manager to full size by now.
         this.getTargetWindowMetrics();
         this.updateLayout();
-        this.updateTargetWindowHeight();
+        IMEController.updateTargetWindowHeight();
         break;
 
       case 'transitionend':
         if (!this.ime.dataset.hidden) { // showIME transitionend
-          this.updateTargetWindowHeight();
+          IMEController.updateTargetWindowHeight();
         } else { // hideIME transitionend
 
           this.ime.innerHTML = '';
         }
         break;
 
+/* XXX: Moved to controller.js
       case 'mousedown':
         var keyCode = parseInt(target.dataset.keycode);
         target.dataset.active = 'true';
@@ -895,7 +913,7 @@ const IMEManager = {
 
         }
         break;
-
+//*/
       case 'unload':
         this.uninit();
         break;
@@ -905,7 +923,7 @@ const IMEManager = {
   updateLayout: function km_updateLayout(keyboard) {
     var layout;
 
-    switch (this.currentType) {
+    switch (IMEController.currentType) {
       case 'number':
         layout = Keyboards['numberLayout'];
       break;
@@ -913,7 +931,7 @@ const IMEManager = {
         layout = Keyboards['telLayout'];
       break;
       default:
-        layout = Keyboards[keyboard] || Keyboards[this.currentKeyboard];
+        layout = Keyboards[keyboard] || Keyboards[IMEController.currentKeyboard];
       break;
     }
 
@@ -954,13 +972,13 @@ const IMEManager = {
         // This gives layout author the ability to rewrite toUpperCase()
         // for languages that use special mapping, e.g. Turkish.
         var hasSpecialCode = specialCodes.indexOf(key.keyCode) > -1;
-        if (!(key.keyCode < 0 || hasSpecialCode) && this.isUpperCase)
+        if (!(key.keyCode < 0 || hasSpecialCode) && IMEController.isUpperCase)
           keyChar = layout.upperCase[keyChar] || keyChar.toUpperCase();
 
         // This gives layout author the ability to rewrite AlternateLayoutKeys
         var hasSpecialCode = specialCodes.indexOf(key.keyCode) > -1;
-        if (!(key.keyCode < 0 || hasSpecialCode) && this.isAlternateLayout) {
-          var current = Keyboards[this.currentKeyboard];
+        if (!(key.keyCode < 0 || hasSpecialCode) && IMEController.isAlternateLayout) {
+          var current = Keyboards[IMEController.currentKeyboard];
           if (current['alternateLayoutOverwrite'])
             keyChar = current['alternateLayoutOverwrite'][keyChar];
         }
@@ -976,7 +994,7 @@ const IMEManager = {
             // Switch keyboard key
             ratio -= 1;
             content += buildKey(
-              this.SWITCH_KEYBOARD,
+              IMEController.SWITCH_KEYBOARD,
               '&#x1f310;',
               'keyboard-key-special',
               1
@@ -987,7 +1005,7 @@ const IMEManager = {
           // This gives the author the ability to change the alternate layout
           // key contents
           var alternateLayoutKey = '?123';
-          var current = Keyboards[this.currentKeyboard];
+          var current = Keyboards[IMEController.currentKeyboard];
           if (current['alternateLayoutKey']) {
             alternateLayoutKey = current['alternateLayoutKey'];
           }
@@ -1001,16 +1019,16 @@ const IMEManager = {
 
           if (!layout['disableAlternateLayout']) {
             ratio -= 2;
-            if (this.currentKeyboardMode == '') {
+            if (IMEController.currentKeyboardMode == '') {
               content += buildKey(
-                this.ALTERNATE_LAYOUT,
+                IMEController.ALTERNATE_LAYOUT,
                 alternateLayoutKey,
                 'keyboard-key-special',
                 2
               );
             } else {
               content += buildKey(
-                this.BASIC_LAYOUT,
+                IMEController.BASIC_LAYOUT,
                 basicLayoutKey,
                 'keyboard-key-special',
                 2
@@ -1019,13 +1037,13 @@ const IMEManager = {
           }
 
           if (!layout['typeInsensitive']) {
-            switch (this.currentType) {
+            switch (IMEController.currentType) {
               case 'url':
                 var size = Math.floor(ratio / 3);
                 ratio -= size * 2;
                 content += buildKey(46, '.', '', size);
                 content += buildKey(47, '/', '', size);
-                content += buildKey(this.DOT_COM, '.com', '', ratio);
+                content += buildKey(IMEController.DOT_COM, '.com', '', ratio);
               break;
               case 'email':
                 ratio -= 2;
@@ -1085,7 +1103,7 @@ const IMEManager = {
         var alt = '';
         if (layout.alt[keyChar] != undefined) {
           alt = layout.alt[keyChar];
-        } else if (layout.alt[key.value] != undefined && this.isUpperCase) {
+        } else if (layout.alt[key.value] != undefined && IMEController.isUpperCase) {
           alt = layout.alt[key.value].toUpperCase();
         }
 
@@ -1104,7 +1122,7 @@ const IMEManager = {
 
     this.ime.innerHTML = content;
 
-    if (this.isUpperCaseLocked && this.isUpperCase) {
+    if (IMEController.isUpperCaseLocked && IMEController.isUpperCase) {
       var shiftKey = document.querySelector(
         'span[data-keycode="' + KeyEvent.DOM_VK_CAPS_LOCK + '"]');
       if (shiftKey)
@@ -1123,7 +1141,7 @@ const IMEManager = {
       ime.insertBefore(this.pendingSymbolPanel, ime.firstChild);
       this.showPendingSymbols('');
       this.showCandidates([], true);
-      this.currentEngine.empty();
+      IMEController.currentEngine.empty();
     }
   },
 
@@ -1131,10 +1149,12 @@ const IMEManager = {
 
   },
 
+/* XXX: Moved to controller.js
   updateTargetWindowHeight: function km_updateTargetWindowHeight() {
     var resizeAction = {action: 'resize', height: this.ime.scrollHeight + 'px'};
     parent.postMessage(JSON.stringify(resizeAction), '*');
   },
+*/
 
   showIME: function km_showIME(type) {
     switch (type) {
@@ -1144,36 +1164,36 @@ const IMEManager = {
       case 'email':
       case 'number':
       case 'text':
-        this.currentType = type;
+        IMEController.currentType = type;
       break;
 
       // default fallback and textual types
       case 'password':
       case 'search':
       default:
-        this.currentType = 'text';
+        IMEController.currentType = 'text';
       break;
 
       case 'range': // XXX: should be different from number
-        this.currentType = 'number';
+        IMEController.currentType = 'number';
       break;
     }
 
     if (!this.ime.dataset.hidden) {
       this.updateLayout();
-      this.updateTargetWindowHeight();
+      IMEController.updateTargetWindowHeight();
     } else {
       this.getTargetWindowMetrics();
       this.updateLayout();
       delete this.ime.dataset.hidden;
     }
 
-    if (Keyboards[this.currentKeyboard].type == 'ime') {
-      if (this.currentEngine.show) {
-        this.currentEngine.show(type);
+    if (Keyboards[IMEController.currentKeyboard].type == 'ime') {
+      if (IMEController.currentEngine.show) {
+        IMEController.currentEngine.show(type);
       }
     }
-    this.updateTargetWindowHeight();
+    IMEController.updateTargetWindowHeight();
   },
 
   hideIME: function km_hideIME(imminent) {
@@ -1184,7 +1204,7 @@ const IMEManager = {
     this.ime.dataset.hidden = 'true';
 
     // Reset the keyboard mode
-    this.currentKeyboardMode = '';
+    IMEController.currentKeyboardMode = '';
 
     if (imminent) {
       var ime = this.ime;
@@ -1213,7 +1233,7 @@ const IMEManager = {
       ime.classList.remove('candidate-panel');
       ime.classList.remove('full-candidate-panel');
       if (!noWindowHeightUpdate)
-        this.updateTargetWindowHeight();
+        IMEController.updateTargetWindowHeight();
       this.updateKeyHighlight();
       return;
     }
@@ -1225,7 +1245,7 @@ const IMEManager = {
     candidatePanel.scrollTop = candidatePanel.scrollLeft = 0;
 
     if (!noWindowHeightUpdate)
-      this.updateTargetWindowHeight();
+      IMEController.updateTargetWindowHeight();
 
     // If there were too many candidate
     delete candidatePanel.dataset.truncated;
@@ -1243,6 +1263,7 @@ const IMEManager = {
     });
   },
 
+/* XXX: Moved to controller.js
   handleMouseDownEvent: function km_handleMouseDownEvent(keyCode) {
     if (Keyboards[this.currentKeyboard].type == 'ime' &&
         !this.currentKeyboardMode) {
@@ -1258,6 +1279,7 @@ const IMEManager = {
           this.updateLayout();
         }
   }
+//*/
 };
 
 window.addEventListener('load', function initIMEManager(evt) {
