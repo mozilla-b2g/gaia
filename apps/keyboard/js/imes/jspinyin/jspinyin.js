@@ -3132,6 +3132,11 @@ MatrixSearch.prototype = {
   }
 };
 
+
+// The number of half spelling ids. For Chinese Pinyin, there 30 half ids.
+// See SpellingTrie.h for details.
+var kHalfSpellingIdNum = 29;
+
 /**
  * This interface defines the essential metods for all atom dictionaries.
  * Atom dictionaries are managed by the decoder class MatrixSearch.
@@ -3449,7 +3454,12 @@ SpellingNode.prototype = {
 };
 
 var SpellingTrie = function spellingTrie_constructor() {
+  this.h2f_start_ = [];
+  this.szm_enable_shm(true);
+  this.szm_enable_ym(true);
 };
+
+SpellingTrie.kFullSplIdStart = kHalfSpellingIdNum + 1;
 
 SpellingTrie.kMaxYmNum = 64;
 SpellingTrie.kValidSplCharNum = 26;
@@ -3482,13 +3492,17 @@ SpellingTrie.char_flags_ = [
   0x00, 0x00, 0x01, 0x01, 0x01, 0x01
 ];
 
-SpellingTrie.is_valid_spl_char = function(ch) {
+SpellingTrie.is_valid_spl_char = function is_valid_spl_char(ch) {
   return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z');
 };
 
 // The caller guarantees that the two chars are valid spelling chars.
-SpellingTrie.is_same_spl_char = function(ch1, ch2) {
-  return ch1 == ch2 || ch1 - ch2 == 'a' - 'A' || ch2 - ch1 == 'a' - 'A';
+SpellingTrie.is_same_spl_char = function is_same_spl_char(ch1, ch2) {
+  return ch1.toUpperCase() == ch2.toUpperCase();
+}
+
+SpellingTrie.char_diff = function char_diff(ch1, ch2) {
+  return ch1.charCodeAt(0) - ch2.charCodeAt(0);
 }
 
 SpellingTrie.prototype = {
@@ -3518,23 +3532,56 @@ SpellingTrie.prototype = {
    * it is a valid id, it needs to updated to its corresponding full id.
    */
   if_valid_id_update: function spellingTrie_if_valid_id_update(splid) {
+    if ('' == splid)
+      return {valid: false, splid: splid};
 
+    if (splid >= SpellingTrie.kFullSplIdStart) {
+      return {valid: true, splid: splid};
+    }
+    if (splid < SpellingTrie.kFullSplIdStart) {
+      var ch = SpellingTrie.kHalfId2Sc_[splid];
+      if (ch > 'Z') {
+        return {valid: true, splid: splid};
+      } else {
+        if (this.szm_is_enabled(ch)) {
+          return {valid: true, splid: splid};
+        } else if (this.is_yunmu_char(ch)) {
+          splid = this.h2f_start_[splid];
+          return {valid: true, splid: splid};
+        }
+      }
+    }
+    return {valid: false, splid: splid};
   },
 
 
   // Test if the given id is a half id.
   is_half_id: function spellingTrie_is_half_id(splid) {
+    if (0 == splid || splid >= SpellingTrie.kFullSplIdStart)
+      return false;
 
+    return true;
   },
 
   is_full_id: function spellingTrie_is_full_id(splid) {
-
+    if (splid < kFullSplIdStart || splid >= SpellingTrie.kFullSplIdStart + this.spelling_num_)
+      return false;
+    return true;
   },
 
   // Test if the given id is a one-char Yunmu id (obviously, it is also a half
   // id), such as 'A', 'E' and 'O'.
   is_half_id_yunmu: function spellingTrie_is_half_id_yunmu(splid) {
+    if (0 == splid || splid >= SpellingTrie.kFullSplIdStart)
+      return false;
 
+    var ch = SpellingTrie.kHalfId2Sc_[splid];
+    // If ch >= 'a', that means the half id is one of Zh/Ch/Sh
+    if (ch >= 'a') {
+      return false;
+    }
+
+    return SpellingTrie.char_flags_[ch - 'A'] & SpellingTrie.kHalfIdYunmuMask;
   },
 
   /** Test if this char is a ShouZiMu char. This ShouZiMu char may be not
@@ -3543,35 +3590,68 @@ SpellingTrie.prototype = {
    * The caller should guarantee that ch >= 'A' && ch <= 'Z'
    */
   is_szm_char: function spellingTrie_is_szm_char(ch) {
-
+    return this.is_shengmu_char(ch) || this.is_yunmu_char(ch);
   },
 
   // Test If this char is enabled in ShouZiMu mode.
   // The caller should guarantee that ch >= 'A' && ch <= 'Z'
   szm_is_enabled: function spellingTrie_szm_is_enabled(ch) {
-
+    return SpellingTrie.char_flags_[char_diff(ch, 'A')] &
+      SpellingTrie.kHalfIdSzmMask;
   },
 
   // Enable/disable Shengmus in ShouZiMu mode(using the first char of a spelling
   // to input).
   szm_enable_shm: function spellingTrie_szm_enable_shm(enable) {
-
+    if (enable) {
+      for (var code = 'A'.charCodeAt(0); code <= 'Z'.charCodeAt(0); code++) {
+        var ch = String.fromCharCode(code);
+        if (this.is_shengmu_char(ch)) {
+          SpellingTrie.char_flags_[code - 'A'.charCodeAt(0)] =
+            SpellingTrie.char_flags_[code - 'A'.charCodeAt(0)] |
+            SpellingTrie.kHalfIdSzmMask;
+        }
+      }
+    } else {
+      for (var code = 'A'.charCodeAt(0); code <= 'Z'.charCodeAt(0); code++) {
+        var ch = String.fromCharCode(code);
+        if (this.is_shengmu_char(ch)) {
+          SpellingTrie.char_flags_[code - 'A'.charCodeAt(0)] =
+            SpellingTrie.char_flags_[code - 'A'.charCodeAt(0)] &
+            (SpellingTrie.kHalfIdSzmMask ^ 0xff);
+        }
+      }
+    }
   },
 
   // Enable/disable Yunmus in ShouZiMu mode.
   szm_enable_ym: function spellingTrie_szm_enable_ym(enable) {
-
-  },
-
-  // Test if this char is enabled in ShouZiMu mode.
-  // The caller should guarantee ch >= 'A' && ch <= 'Z'
-  is_szm_enabled: function spellingTrie_is_szm_enabled(ch) {
-
+    if (enable) {
+      for (var code = 'A'.charCodeAt(0); code <= 'Z'.charCodeAt(0); code++) {
+        var ch = String.fromCharCode(code);
+        if (this.is_yunmu_char(ch)) {
+          SpellingTrie.char_flags_[code - 'A'.charCodeAt(0)] =
+            SpellingTrie.char_flags_[code - 'A'.charCodeAt(0)] |
+            SpellingTrie.kHalfIdSzmMask;
+        }
+      }
+    } else {
+      for (var code = 'A'.charCodeAt(0); code <= 'Z'.charCodeAt(0); code++) {
+        var ch = String.fromCharCode(code);
+        if (this.is_yunmu_char(ch)) {
+          SpellingTrie.char_flags_[code - 'A'.charCodeAt(0)] =
+            SpellingTrie.char_flags_[code - 'A'.charCodeAt(0)] &
+            (SpellingTrie.kHalfIdSzmMask ^ 0xff);
+        }
+      }
+    }
   },
 
   // Return the number of full ids for the given half id.
   half2full_num: function spellingTrie_half2full_num(half_id) {
-
+    if (null == this.root_ || half_id >= SpellingTrie.kFullSplIdStart)
+      return 0;
+    return this.h2f_num_[half_id];
   },
 
   /**
@@ -3579,14 +3659,23 @@ SpellingTrie.prototype = {
    * for the given half id, and spl_id_start is the first full id.
    */
   half_to_full: function spellingTrie_half_to_full(half_id) {
+    if (null == this.root_ || half_id >= SpellingTrie.kFullSplIdStart) {
+      return 0;
+    }
 
+    var spl_id_start = this.h2f_start_[half_id];
+    return {num: this.h2f_num_[half_id], spl_id_start: spl_id_start};
   },
 
   // Return the corresponding half id for the given full id.
   // Not frequently used, low efficient.
   // Return 0 if fails.
   full_to_half: function spellingTrie_full_to_half(full_id) {
+    if (null == this.root_ || full_id < SpellingTrie.kFullSplIdStart ||
+        full_id > this.spelling_num_ + SpellingTrie.kFullSplIdStart)
+      return 0;
 
+    return this.f2h_[full_id - SpellingTrie.kFullSplIdStart];
   },
 
   // To test whether a half id is compatible with a full id.
@@ -3595,7 +3684,18 @@ SpellingTrie.prototype = {
   // with a full id like "Zhe". (Fussy mode is not ready).
   half_full_compatible: function spellingTrie_half_full_compatible(
       half_id, full_id) {
+    var half_fr_full = this.full_to_half(full_id);
 
+    if (half_fr_full == half_id)
+      return true;
+
+    // So that Zh/Ch/Sh(whose char is z/c/s) can be matched with Z/C/S.
+    var ch_f = SpellingTrie.kHalfId2Sc_[half_fr_full].toUpperCase();
+    var ch_h = SpellingTrie.kHalfId2Sc_[half_id];
+    if (ch_f == ch_h)
+      return true;
+
+    return false;
   },
 
   // Save to the file stream
@@ -3610,18 +3710,51 @@ SpellingTrie.prototype = {
 
   // Get the number of spellings
   get_spelling_num: function spellingTrie_get_spelling_num() {
-
+    return this.spelling_num_;
   },
 
   // Return the Yunmu id for the given Yunmu string.
   // If the string is not valid, return 0;
   get_ym_id: function spellingTrie_get_ym_id(ym_str) {
+    if ('' == ym_str || '' == this.ym_buf_) {
+      return 0;
+    }
 
+    for (var pos = 0; pos < this.ym_num_; pos++) {
+      if (this.ym_buf_[pos] == ym_str) {
+        return pos + 1;
+      }
+    }
+
+    return 0;
   },
 
   // Get the readonly Pinyin string for a given spelling id
   get_spelling_str: function spellingTrie_get_spelling_str(splid) {
+    this.splstr_queried_ = '';
 
+    if (splid >= SpellingTrie.kFullSplIdStart) {
+      splid -= SpellingTrie.kFullSplIdStart;
+      this.splstr_queried_ = this.spelling_buf_[splid];
+    } else {
+      if (splid == SpellingTrie.char_diff('C', 'A') + 1 + 1) {
+        this.splstr_queried_ = 'Ch';
+      } else if (splid == SpellingTrie.char_diff('S', 'A') + 1 + 2) {
+        this.splstr_queried_ = 'Sh';
+      } else if (splid == SpellingTrie.char_diff('Z', 'A') + 1 + 3) {
+        this.splstr_queried_ = 'Zh';
+      } else {
+        if (splid > SpellingTrie.char_diff('C', 'A') + 1) {
+          splid--;
+        }
+        if (splid > SpellingTrie.char_diff('S', 'A') + 1) {
+          splid--;
+        }
+        this.splstr_queried_ =
+          String.fromCharCode('A'.charCodeAt(0) + splid - 1);
+      }
+    }
+    return this.splstr_queried_;
   },
 
   /* ==== Private ==== */
@@ -3681,8 +3814,8 @@ SpellingTrie.prototype = {
   // A half id can be a ShouZiMu id (id to represent the first char of a full
   // spelling, including Shengmu and Yunmu), or id of zh/ch/sh.
   // [1..kFullSplIdStart-1] is the arrange of half id.
-  h2f_start_: null,          // @type Integer[kFullSplIdStart]
-  h2f_num_: null,            // @type Integer[kFullSplIdStart]
+  h2f_start_: null,          // @type Integer[SpellingTrie.kFullSplIdStart]
+  h2f_num_: null,            // @type Integer[SpellingTrie.kFullSplIdStart]
 
   /** Map from full id to half id.
    * @type Integer[]
@@ -3691,10 +3824,6 @@ SpellingTrie.prototype = {
 
   // How many node used to build the trie.
   node_num_: 0,
-
-  free_son_trie: function spellingTrie_free_son_trie(node) {
-
-  },
 
   // Construct a subtree using a subset of the spelling array (from
   // item_star to item_end).
@@ -3711,23 +3840,149 @@ SpellingTrie.prototype = {
 
   // The caller should guarantee ch >= 'A' && ch <= 'Z'
   is_shengmu_char: function spellingTrie_is_shengmu_char(ch) {
-
+    return SpellingTrie.char_flags_[SpellingTrie.char_diff(ch, 'A')] &
+      SpellingTrie.kHalfIdShengmuMask;
   },
 
   // The caller should guarantee ch >= 'A' && ch <= 'Z'
   is_yunmu_char: function spellingTrie_is_yunmu_char(ch) {
-
+    return SpellingTrie.char_flags_[SpellingTrie.char_diff(ch, 'A')] &
+      SpellingTrie.kHalfIdYunmuMask;
   },
 
   // Given a spelling string, return its Yunmu string.
   // The caller guaratees spl_str is valid.
   get_ym_str: function spellingTrie_get_ym_str(spl_str) {
-
+    var start_ZCS = false;
+    var pos = 0;
+    if (this.is_shengmu_char(spl_str[0])) {
+      pos++;
+      var prefix = spl_str.subString(0, 2);
+      if (prefix == 'Zh' || prefix == 'Ch' || prefix == 'Sh') {
+        pos++;
+      }
+    }
+    return spl_str.substring(pos);
   },
 
   // Build the Yunmu list, and the mapping relation between the full ids and the
   // Yunmu ids. This functin is called after the spelling trie is built.
   build_ym_info: function spellingTrie_build_ym_info() {
+  }
+};
+
+var RawSpelling = function rawSpelling_constructor() {
+};
+
+RawSpelling.prototype = {
+  str: '',
+  freq: 0
+};
+
+/**
+ * This class is used to store the spelling strings
+ * The length of the input spelling string should be less or equal to the
+ * spelling_size_ (set by init_table). If the input string is too long,
+ * we only keep its first spelling_size_ chars.
+ */
+var SpellingTable = function spellingTable_constructor() {
+};
+
+SpellingTable.kMaxSpellingSize = SYLLALBLE_MAX_LENGTH;
+SpellingTable.kNotSupportNum = 3;
+SpellingTable.kNotSupportList[kNotSupportNum][kMaxSpellingSize + 1];
+
+SpellingTable.prototype = {
+  /* ==== Public ==== */
+
+  /**
+   * pure_spl_size is the pure maximum spelling string size. For example,
+   * "zhuang" is the longgest item in Pinyin, so pure_spl_size should be 6.
+   * spl_max_num is the maximum number of spelling strings to store.
+   * need_score is used to indicate whether the caller needs to calculate a
+   * score for each spelling.
+   */
+  init_table: function spellingTable_init_table(
+      pure_spl_size, spl_max_num, need_score) {
+  },
+
+  /**
+   * Put a spelling string to the table.
+   * It always returns false if called after arrange() withtout a new
+   * init_table() operation.
+   * freq is the spelling's occuring count.
+   * If the spelling has been in the table, occuring count will accumulated.
+   */
+  put_spelling: function spellingTable_put_spelling(spelling_str, spl_count) {
+
+  },
+
+  /**
+   * Test whether a spelling string is in the table.
+   * It always returns false, when being called after arrange() withtout a new
+   * init_table() operation.
+   */
+  contain: function spellingTable_contain(spelling_str) {
+
+  },
+
+  /**
+   * Sort the spelling strings and put them from the begin of the buffer.
+   * Return the pointer of the sorted spelling strings.
+   * item_size and spl_num return the item size and number of spelling.
+   * Because each spelling uses a '\0' as terminator, the returned item_size is
+   * at least one char longer than the spl_size parameter specified by
+   * init_table(). If the table is initialized to calculate score, item_size
+   * will be increased by 1, and current_spl_str[item_size - 1] stores an
+   * unsinged char score.
+   * An item with a lower score has a higher probability.
+   * Do not call put_spelling() and contains() after arrange().
+   */
+  arrange: function spellingTable_arrange() {
+
+  },
+
+  get_score_amplifier: function spellingTable_get_score_amplifier() {
+
+  },
+
+  get_average_score: function spellingTable_get_average_score() {
+
+  },
+
+  /* ==== Private ==== */
+
+
+  need_score_: true,
+
+  raw_spellings_: null,
+
+  /**
+   * Used to store spelling strings. If the spelling table needs to calculate
+   * score, an extra char after each spelling string is the score.
+   * An item with a lower score has a higher probability.
+   */
+  spelling_buf_: null,
+  spelling_size_: 0,
+
+  total_freq_: 0,
+
+  spelling_num_: 0,
+
+  score_amplifier_: 0,
+
+  average_score_: 0,
+
+  /**
+   * If frozen is true, put_spelling() and contain() are not allowed to call.
+   */
+  frozen_: false,
+
+  get_hash_pos: function spellingTable_get_hash_pos(spelling_str) {
+
+  },
+
+  hash_pos_next: function spellingTable_hash_pos_next(hash_pos) {
 
   }
 };
