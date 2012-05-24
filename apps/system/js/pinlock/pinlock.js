@@ -40,7 +40,13 @@ var PinLock = {
   },
 
   unlockSim: function unlockSim() {
-    if (this.hasPincode && this.conn.cardState == 'pin_required') {
+    if (!this.conn.cardState == 'pin_required') {
+      console.log("No PIN code required.");
+      this.reset();
+      return;
+    }
+
+    if (this.hasPincode) {
       var unlock = this.conn.unlockCardLock({lockType: "pin", pin: this.pinCode});
       var pinLock = this;
       unlock.onsuccess = function () {
@@ -52,7 +58,7 @@ var PinLock = {
         }
       }
     } else {
-      console.log("No pincode provided, can't unlock.");
+      console.log("No PIN code provided, can't unlock.");
     }
 
     this.reset();
