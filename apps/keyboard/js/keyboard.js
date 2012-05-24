@@ -1165,7 +1165,6 @@ const IMEManager = {
       case 'url':
       case 'tel':
       case 'email':
-      case 'number':
       case 'text':
         IMEController.currentType = type;
       break;
@@ -1177,6 +1176,7 @@ const IMEManager = {
         IMEController.currentType = 'text';
       break;
 
+      case 'number':
       case 'range': // XXX: should be different from number
         IMEController.currentType = 'number';
       break;
