@@ -61,13 +61,26 @@ var BackgroundServiceManager = (function bsm() {
       return false;
 
     var frame = document.createElement('iframe');
-    frame.className = 'backgroundWindow';
-    frame.setAttribute('mozbrowser', 'true');
+    frame.addEventListener('load', function backgroundProcessLoaded() {
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent('background.'+app.manifest.name+'.loaded', true, false, {});
+      window.dispatchEvent(evt);
+    });
+
+    // Temp hack to allow the Keyboard comunicate with the System
+    if(origin == KEYBOARD_URL) {
+      frame.className = 'keyboardFrame';
+    } else {
+      frame.className = 'backgroundWindow';
+      frame.setAttribute('mozbrowser', 'true');
+    }
+
     frame.setAttribute('mozapp', 'true');
     frame.src = origin + app.manifest.background_page;
     frames[origin] = frame;
 
     document.body.appendChild(frame);
+
     return true;
   };
 
@@ -94,11 +107,19 @@ var BackgroundServiceManager = (function bsm() {
     return null;
   };
 
+  // Getting the frame object
+  // Needed to resize the Keyboard
+  var getFrame = function bsm_getFrame(origin) {
+    var frame = frames[origin];
+    return frame || null;
+  };
+
   /* Return the public APIs */
   return {
     'open': open,
     'close': close,
-    'getWindow': getWindow
+    'getWindow': getWindow,
+    'getFrame': getFrame
   };
 }());
 

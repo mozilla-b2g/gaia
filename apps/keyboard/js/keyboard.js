@@ -3,6 +3,43 @@
 
 'use strict';
 
+// Duplicated code in severla places
+// TODO Better settings observe interface?
+
+var SettingsListener = {
+  _callbacks: {},
+
+  init: function sl_init() {
+    if ('mozSettings' in navigator && navigator.mozSettings)
+      navigator.mozSettings.onsettingchange = this.onchange.bind(this);
+  },
+
+  onchange: function sl_onchange(evt) {
+    var callback = this._callbacks[evt.settingName];
+    if (callback) {
+      callback(evt.settingValue);
+    }
+  },
+
+  observe: function sl_observe(name, defaultValue, callback) {
+    var settings = window.navigator.mozSettings;
+    if (!settings) {
+      window.setTimeout(function() { callback(defaultValue); });
+      return;
+    }
+
+    var req = settings.getLock().get(name);
+    req.addEventListener('success', (function onsuccess() {
+      callback(typeof(req.result[name]) != 'undefined' ?
+        req.result[name] : defaultValue);
+    }));
+
+    this._callbacks[name] = callback;
+  }
+};
+
+SettingsListener.init();
+
 const IMEManager = {
   BASIC_LAYOUT: -1,
   ALTERNATE_LAYOUT: -2,
@@ -392,10 +429,10 @@ const IMEManager = {
     }
   },
 
-  events: ['mouseup', 'showime', 'hideime', 'unload', 'appclose',
-           'appwillclose', 'resize'],
+  events: ['mouseup', 'unload', 'resize'],
   imeEvents: ['mousedown', 'mouseover', 'mouseleave', 'transitionend'],
   init: function km_init() {
+		this.updateSettings();
     this.events.forEach((function attachEvents(type) {
       window.addEventListener(type, this);
     }).bind(this));
@@ -406,7 +443,6 @@ const IMEManager = {
 
     var self = this;
 
-    // Use SettingsListener defined in system.js
     SettingsListener.observe('keyboard.vibration', false, function(value) {
       self.vibrate = !!value;
     });
@@ -426,8 +462,15 @@ const IMEManager = {
           }
         );
       })(key);
-    }
+		}
 
+		// Handling showime and hideime events, as they are received only in System
+		// https://bugzilla.mozilla.org/show_bug.cgi?id=754083
+
+		window.addEventListener('message', function receiver(e) {
+			var event = JSON.parse(e.data);
+			IMEManager.handleEvent(event);
+		});
   },
 
   uninit: function km_uninit() {
@@ -451,7 +494,7 @@ const IMEManager = {
     if (keyboard.type !== 'ime')
       return;
 
-    var sourceDir = './js/keyboard/imes/';
+    var sourceDir = './js/imes/';
     var imEngine = keyboard.imEngine;
 
     // Same IME Engine could be load by multiple keyboard layouts
@@ -490,9 +533,6 @@ const IMEManager = {
       },
       alterKeyboard: function(keyboard) {
         self.updateLayout(keyboard);
-        if (self.targetWindow) {
-          self.updateTargetWindowHeight();
-        }
       }
     };
 
@@ -506,31 +546,25 @@ const IMEManager = {
 
   hideIMETimer: 0,
   handleEvent: function km_handleEvent(evt) {
-    var activeWindow =
-      WindowManager.getAppFrame(WindowManager.getDisplayedApp());
-    if (!activeWindow ||
-        (activeWindow == this._closingWindow && evt.type != 'appclose'))
-      return;
 
     var target = evt.target;
     switch (evt.type) {
       case 'showime':
         // cancel hideIME that imminently happen before showIME
         clearTimeout(this.hideIMETimer);
-        this.showIME(activeWindow, evt.detail.type);
+        this.showIME(evt.detail.type);
 
         break;
 
       case 'hideime':
         this.hideIMETimer = window.setTimeout((function execHideIME() {
-          this.hideIME(activeWindow);
+          this.hideIME();
         }).bind(this), 0);
 
         break;
 
       case 'appwillclose':
-        this.hideIME(activeWindow, true);
-        this._closingWindow = activeWindow;
+        this.hideIME(true);
 
         break;
 
@@ -553,10 +587,6 @@ const IMEManager = {
         if (!this.ime.dataset.hidden) { // showIME transitionend
           this.updateTargetWindowHeight();
         } else { // hideIME transitionend
-
-          delete this.targetWindow.dataset.cssHeight;
-          delete this.targetWindow.dataset.rectHeight;
-          delete this.targetWindow;
 
           this.ime.innerHTML = '';
         }
@@ -1093,24 +1123,19 @@ const IMEManager = {
       ime.insertBefore(this.pendingSymbolPanel, ime.firstChild);
       this.showPendingSymbols('');
       this.showCandidates([], true);
-      this.currentEngine.empty();
+			this.currentEngine.empty();
     }
   },
 
   getTargetWindowMetrics: function km_getTargetWindowMetrics() {
-    var targetWindow = this.targetWindow;
-    targetWindow.dataset.cssHeight =
-      targetWindow.style.height;
-    targetWindow.dataset.rectHeight =
-      targetWindow.getBoundingClientRect().height;
+
   },
 
   updateTargetWindowHeight: function km_updateTargetWindowHeight() {
-    this.targetWindow.style.height =
-      (this.targetWindow.dataset.rectHeight - this.ime.scrollHeight) + 'px';
+    parent.postMessage(JSON.stringify({action: "resize", height: this.ime.scrollHeight+"px"}), "http://system.gaiamobile.org");
   },
 
-  showIME: function km_showIME(targetWindow, type) {
+  showIME: function km_showIME(type) {
     switch (type) {
       // basic types
       case 'url':
@@ -1137,11 +1162,8 @@ const IMEManager = {
       this.updateLayout();
       this.updateTargetWindowHeight();
     } else {
-      this.targetWindow = targetWindow;
       this.getTargetWindowMetrics();
       this.updateLayout();
-
-      targetWindow.classList.add('keyboardOn');
       delete this.ime.dataset.hidden;
     }
 
@@ -1150,16 +1172,15 @@ const IMEManager = {
         this.currentEngine.show(type);
       }
     }
+		this.updateTargetWindowHeight();
   },
 
-  hideIME: function km_hideIME(targetWindow, imminent) {
+  hideIME: function km_hideIME(imminent) {
 
     if (this.ime.dataset.hidden)
       return;
 
     this.ime.dataset.hidden = 'true';
-    targetWindow.style.height = targetWindow.dataset.cssHeight;
-    targetWindow.classList.remove('keyboardOn');
 
     // Reset the keyboard mode
     this.currentKeyboardMode = '';
@@ -1170,10 +1191,6 @@ const IMEManager = {
       window.setTimeout(function remoteImminent() {
         ime.classList.remove('imminent');
       }, 0);
-
-      delete this.targetWindow.dataset.cssHeight;
-      delete this.targetWindow.dataset.rectHeight;
-      delete this.targetWindow;
 
       ime.innerHTML = '';
     }
@@ -1246,4 +1263,3 @@ window.addEventListener('load', function initIMEManager(evt) {
   window.removeEventListener('load', initIMEManager);
   IMEManager.init();
 });
-
