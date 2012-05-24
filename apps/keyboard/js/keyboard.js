@@ -241,6 +241,8 @@ const IMEManager = {
     keyHighlight.style.left = left + 'px';
   },
 
+  currentKey: null,
+
   showAccentCharMenu: function km_showAccentCharMenu() {
     var target = this.currentKey;
     if (!target)
@@ -920,6 +922,7 @@ const IMEManager = {
     }
   },
 
+  menu: null,
   updateLayout: function km_updateLayout(keyboard) {
     var layout;
 

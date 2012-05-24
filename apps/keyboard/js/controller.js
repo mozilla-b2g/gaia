@@ -159,7 +159,7 @@ const IMEController = {
       case 'mousedown':
         var keyCode = parseInt(target.dataset.keycode);
         target.dataset.active = 'true';
-        this.currentKey = target;
+        IMEManager.currentKey = target;
         this.isPressing = true;
 
         if (!keyCode && !target.dataset.selection)
@@ -197,7 +197,7 @@ const IMEController = {
         break;
 
       case 'mouseover':
-        if (!this.isPressing || this.currentKey == target)
+        if (!this.isPressing || IMEManager.currentKey == target)
           return;
 
         var keyCode = parseInt(target.dataset.keycode);
@@ -205,18 +205,18 @@ const IMEController = {
         if (!keyCode && !target.dataset.selection)
           return;
 
-        if (this.currentKey)
-          delete this.currentKey.dataset.active;
+        if (IMEManager.currentKey)
+          delete IMEManager.currentKey.dataset.active;
 
         if (keyCode == KeyEvent.DOM_VK_BACK_SPACE) {
-          delete this.currentKey;
+          delete IMEManager.currentKey;
           IMEManager.updateKeyHighlight();
           return;
         }
 
         target.dataset.active = 'true';
 
-        this.currentKey = target;
+        IMEManager.currentKey = target;
 
         IMEManager.updateKeyHighlight();
 
@@ -249,11 +249,11 @@ const IMEController = {
 
       case 'mouseleave':
       case 'scroll': // scrolling IME candidate panel
-        if (!this.isPressing || !this.currentKey)
+        if (!this.isPressing || !IMEManager.currentKey)
           return;
 
-        delete this.currentKey.dataset.active;
-        delete this.currentKey;
+        delete IMEManager.currentKey.dataset.active;
+        delete IMEManager.currentKey;
         IMEManager.updateKeyHighlight();
         this._hideMenuTimeout = window.setTimeout((function hideMenuTimeout() {
             IMEManager.hideAccentCharMenu();
@@ -265,10 +265,9 @@ const IMEController = {
         break;
 
       case 'mouseup':
-        console.log('Mouseup');
         this.isPressing = false;
 
-        if (!this.currentKey)
+        if (!IMEManager.currentKey)
           return;
 
         clearTimeout(this._deleteTimeout);
@@ -277,7 +276,7 @@ const IMEController = {
 
         IMEManager.hideAccentCharMenu();
 
-        var target = this.currentKey;
+        var target = IMEManager.currentKey;
         var keyCode = parseInt(target.dataset.keycode);
         if (!keyCode && !target.dataset.selection)
           return;
@@ -285,15 +284,15 @@ const IMEController = {
         var dataset = target.dataset;
         if (dataset.selection) {
           this.currentEngine.select(target.textContent, dataset.data);
-          delete this.currentKey.dataset.active;
-          delete this.currentKey;
+          delete IMEManager.currentKey.dataset.active;
+          delete IMEManager.currentKey;
 
           IMEManager.updateKeyHighlight();
           return;
         }
 
-        delete this.currentKey.dataset.active;
-        delete this.currentKey;
+        delete IMEManager.currentKey.dataset.active;
+        delete IMEManager.currentKey;
 
         IMEManager.updateKeyHighlight();
 
