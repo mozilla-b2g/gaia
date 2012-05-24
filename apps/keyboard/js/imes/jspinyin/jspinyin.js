@@ -3124,7 +3124,7 @@ MatrixSearch.prototype = {
   _addCharQwerty: function matrixSearch_addCharQwerty(ch) {
 
   },
-  
+
   // Is the character in step pos a splitter character?
   // The caller guarantees that the position is valid.
   _isSplitAt: function matrixSearch_isSplitAt(pos) {
@@ -3218,7 +3218,7 @@ var IAtomDictBase = {
    * Used to extend in this dictionary. The handle returned should keep valid
    * until resetMilestones() is called.
    *
-   * @param fromHandle Its previous returned extended handle without the new
+   * @param {Integer} fromHandle Its previous returned extended handle without the new
    * spelling id, it can be used to speed up the extending.
    * @param dep The paramter used for extending.
    * @return {handle: Integer, items: LmaPsbItem[]} . handle is the new mile
@@ -3249,7 +3249,7 @@ var IAtomDictBase = {
    * @param {Integer} lemmaId The lemma id to get the result.
    * @param {Integer[]} splids The buffer of the splids. There may be half ids
    * in splids to be updated to full ids。.
-   * @return The number of ids in the buffer.
+   * @return {Integer} The number of ids in the buffer.
    */
   getLemmaSplids: function atomDictBase_getLemmaSplids(lemmaId, splids) {},
 
@@ -3259,12 +3259,12 @@ var IAtomDictBase = {
    *
    * @param {String} lastHzs The last n Chinese characters(called Hanzi), its
    * length should be less than or equal to kMaxPredictSize.
-   * @param b4Used Number of prediction result from other atom dictionaries.
+   * @param {Integer} b4Used Number of prediction result from other atom dictionaries.
    * An atom dictionary can just ignore it.
    * @return {NPredictItem[]} The array of prediction result from this atom
    * dictionary.
    */
-  predict: function atomDictBase_predict(lastHzs, b4Usedd) {},
+  predict: function atomDictBase_predict(lastHzs, b4Used) {},
 
   /**
    * Add a lemma to the dictionary. If the dictionary allows to add new
@@ -3320,7 +3320,7 @@ var IAtomDictBase = {
    * If the dictionary allowed, remove a lemma from it.
    *
    * @param {Integer} lemmaId The id of the lemma to remove.
-   * @return True if succeed.
+   * @return {Boolean} true if succeed.
    */
   removeLemma: function atomDictBase_removeLemma(lemmaId) {},
 
@@ -3366,7 +3366,7 @@ var SpellingParser = function spellingParser_constructor() {
 
 SpellingParser.prototype = {
   /* ==== Private ==== */
-  
+
   /**
    * @type SpellingTrie
    */
@@ -3375,7 +3375,7 @@ SpellingParser.prototype = {
   /* ==== Public ==== */
   /** Given a string, parse it into a spelling id stream.
    * @param {String} splstr The given spelling string.
-   * @return {splidx: Integer[], start_pos: Integer[], last_is_pre: Boolean} 
+   * @return {splidx: Integer[], start_pos: Integer[], last_is_pre: Boolean}
    * If the whole string are successfully parsed, last_is_pre will be true;
    * if the whole string is not fully parsed, last_is_pre will return whether
    * the last part of the string is a prefix of a full spelling string. For
@@ -3386,7 +3386,7 @@ SpellingParser.prototype = {
    * Split char can only appear in the middle of the string or at the end.
    */
   splstr_to_idxs: function spellingParser_splstr_to_idxs(splstr) {
-    
+
   },
 
   /**
@@ -3395,7 +3395,7 @@ SpellingParser.prototype = {
    * them into full ids.
    */
   splstr_to_idxs_f: function spellingParser_splstr_to_idxs_f(splstr) {
-    
+
   },
 
   /**
@@ -3409,14 +3409,326 @@ SpellingParser.prototype = {
    * is a prefix of a full spelling string.
    */
   get_splid_by_str: function spellingParser_get_splid_by_str(splstr) {
-    
+
   },
 
   /**
    * Splitter chars are not included.
    */
   is_valid_to_parse: function spellingParser_is_valid_to_parse(ch) {
-    
+
+  }
+};
+
+
+// Node used for the trie of spellings
+var SpellingNode = function spellingNode_constructor() {
+};
+
+SpellingNode.prototype = {
+  /**
+   * @type SpellingNode
+   */
+  first_son: null,
+  /**
+   * The spelling id for each node.
+   * @type Integer
+   */
+  spelling_idx: 0,
+  /**
+   * @type Integer
+   */
+  num_of_son: 5,
+
+  char_this_node: '',
+
+  /**
+   * @type Integer
+   */
+  score: 0
+};
+
+var SpellingTrie = function spellingTrie_constructor() {
+};
+
+SpellingTrie.kMaxYmNum = 64;
+SpellingTrie.kValidSplCharNum = 26;
+SpellingTrie.kHalfIdShengmuMask = 0x01;
+SpellingTrie.kHalfIdYunmuMask = 0x02;
+SpellingTrie.kHalfIdSzmMask = 0x04;
+
+/**
+ * Map from half spelling id to single char.
+ * For half ids of Zh/Ch/Sh, map to z/c/s (low case) respectively.
+ * For example, 1 to 'A', 2 to 'B', 3 to 'C', 4 to 'c', 5 to 'D', ...,
+ * 28 to 'Z', 29 to 'z'.
+ * [0] is not used to achieve better efficiency.
+ */
+SpellingTrie.kHalfId2Sc_ = '0ABCcDEFGHIJKLMNOPQRSsTUVWXYZz';
+
+/**
+ * Bit 0 : is it a Shengmu char?
+ * Bit 1 : is it a Yunmu char? (one char is a Yunmu)
+ * Bit 2 : is it enabled in ShouZiMu(first char) mode?
+ */
+SpellingTrie.char_flags_ = [
+  // a    b      c     d     e     f     g
+  0x02, 0x01, 0x01, 0x01, 0x02, 0x01, 0x01,
+  // h    i     j      k     l     m    n
+  0x01, 0x00, 0x01, 0x01, 0x01, 0x01, 0x01,
+  // o    p     q      r     s     t
+  0x02, 0x01, 0x01, 0x01, 0x01, 0x01,
+  // u    v     w      x     y     z
+  0x00, 0x00, 0x01, 0x01, 0x01, 0x01
+];
+
+SpellingTrie.is_valid_spl_char = function(ch) {
+  return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z');
+};
+
+// The caller guarantees that the two chars are valid spelling chars.
+SpellingTrie.is_same_spl_char = function(ch1, ch2) {
+  return ch1 == ch2 || ch1 - ch2 == 'a' - 'A' || ch2 - ch1 == 'a' - 'A';
+}
+
+SpellingTrie.prototype = {
+ /* ==== Public ==== */
+
+  /**
+   * Construct the tree from the input pinyin array
+   * The given string list should have been sorted.
+   * @param {String} spelling_arr The input pinyin array.
+   * @param {Number} score_amplifier is used to convert a possibility
+   * value into score.
+   * @param {Integer} average_score is the average_score of all spellings.
+   * The dumb node is
+   * assigned with this score.
+   */
+  construct: function spellingTrie_construct(spelling_arr, item_size, item_num,
+                 score_amplifier, average_score) {
+
+  },
+
+  /**
+   * Test if the given id is a valid spelling id.
+   * @return {valid: Boolean, splid: Integer}
+   * If valid is true, the given splid may be updated like this:
+   * When 'A' is not enabled in ShouZiMu mode, the parsing result for 'A' is
+   * first given as a half id 1, but because 'A' is a one-char Yunmu and
+   * it is a valid id, it needs to updated to its corresponding full id.
+   */
+  if_valid_id_update: function spellingTrie_if_valid_id_update(splid) {
+
+  },
+
+
+  // Test if the given id is a half id.
+  is_half_id: function spellingTrie_is_half_id(splid) {
+
+  },
+
+  is_full_id: function spellingTrie_is_full_id(splid) {
+
+  },
+
+  // Test if the given id is a one-char Yunmu id (obviously, it is also a half
+  // id), such as 'A', 'E' and 'O'.
+  is_half_id_yunmu: function spellingTrie_is_half_id_yunmu(splid) {
+
+  },
+
+  /** Test if this char is a ShouZiMu char. This ShouZiMu char may be not
+   * enabled.
+   * For Pinyin, only i/u/v is not a ShouZiMu char.
+   * The caller should guarantee that ch >= 'A' && ch <= 'Z'
+   */
+  is_szm_char: function spellingTrie_is_szm_char(ch) {
+
+  },
+
+  // Test If this char is enabled in ShouZiMu mode.
+  // The caller should guarantee that ch >= 'A' && ch <= 'Z'
+  szm_is_enabled: function spellingTrie_szm_is_enabled(ch) {
+
+  },
+
+  // Enable/disable Shengmus in ShouZiMu mode(using the first char of a spelling
+  // to input).
+  szm_enable_shm: function spellingTrie_szm_enable_shm(enable) {
+
+  },
+
+  // Enable/disable Yunmus in ShouZiMu mode.
+  szm_enable_ym: function spellingTrie_szm_enable_ym(enable) {
+
+  },
+
+  // Test if this char is enabled in ShouZiMu mode.
+  // The caller should guarantee ch >= 'A' && ch <= 'Z'
+  is_szm_enabled: function spellingTrie_is_szm_enabled(ch) {
+
+  },
+
+  // Return the number of full ids for the given half id.
+  half2full_num: function spellingTrie_half2full_num(half_id) {
+
+  },
+
+  /**
+   * @return {num: Integer, spl_id_start: Integer} num is the number of full ids
+   * for the given half id, and spl_id_start is the first full id.
+   */
+  half_to_full: function spellingTrie_half_to_full(half_id) {
+
+  },
+
+  // Return the corresponding half id for the given full id.
+  // Not frequently used, low efficient.
+  // Return 0 if fails.
+  full_to_half: function spellingTrie_full_to_half(full_id) {
+
+  },
+
+  // To test whether a half id is compatible with a full id.
+  // Generally, when half_id == full_to_half(full_id), return true.
+  // But for "Zh, Ch, Sh", if fussy mode is on, half id for 'Z' is compatible
+  // with a full id like "Zhe". (Fussy mode is not ready).
+  half_full_compatible: function spellingTrie_half_full_compatible(
+      half_id, full_id) {
+
+  },
+
+  // Save to the file stream
+  save_spl_trie: function spellingTrie_save_spl_trie(fp) {
+
+  },
+
+  // Load from the file stream
+  load_spl_trie: function spellingTrie_load_spl_trie(fp) {
+
+  },
+
+  // Get the number of spellings
+  get_spelling_num: function spellingTrie_get_spelling_num() {
+
+  },
+
+  // Return the Yunmu id for the given Yunmu string.
+  // If the string is not valid, return 0;
+  get_ym_id: function spellingTrie_get_ym_id(ym_str) {
+
+  },
+
+  // Get the readonly Pinyin string for a given spelling id
+  get_spelling_str: function spellingTrie_get_spelling_str(splid) {
+
+  },
+
+  /* ==== Private ==== */
+
+  // The spelling table
+  spelling_buf_: null,
+
+  // The size of longest spelling string, includes '\0' and an extra char to
+  // store score. For example, "zhuang" is the longgest item in Pinyin list,
+  // so spelling_size_ is 8.
+  // Structure: The string ended with '\0' + score char.
+  // An item with a lower score has a higher probability.
+  spelling_size_: 0,
+
+  // Number of full spelling ids.
+  spelling_num_: 0,
+
+  score_amplifier_: 0.0,
+  average_score_: 0,
+
+  // The Yunmu id list for the spelling ids (for half ids of Shengmu,
+  // the Yunmu id is 0).
+  // The length of the list is spelling_num_ + kFullSplIdStart,
+  // so that spl_ym_ids_[splid] is the Yunmu id of the splid.
+  // @type Integer[]
+  spl_ym_ids_: null,
+
+  // The Yunmu table.
+  // Each Yunmu will be assigned with Yunmu id from 1.
+  ym_buf_: null,
+  ym_size_: 0,  // The size of longest Yunmu string, '\0'included.
+  ym_num_: 0,
+
+  // The spelling string just queried
+  splstr_queried_: '',
+
+  // The root node of the spelling tree
+  // @type SpellingNode
+  root_: null,
+
+  // If a none qwerty key such as a fnction key like ENTER is given, this node
+  // will be used to indicate that this is not a QWERTY node.
+  // @type SpellingNode
+  dumb_node_: null,
+
+  // If a splitter key is pressed, this node will be used to indicate that this
+  // is a splitter key.
+  // @type SpellingNode
+  splitter_node_: null,
+
+  // Used to get the first level sons.
+  // @type SpellingNode[SpellingTrie.kValidSplCharNum]
+  level1_sons_: null,
+
+  // The full spl_id range for specific half id.
+  // h2f means half to full.
+  // A half id can be a ShouZiMu id (id to represent the first char of a full
+  // spelling, including Shengmu and Yunmu), or id of zh/ch/sh.
+  // [1..kFullSplIdStart-1] is the arrange of half id.
+  h2f_start_: null,          // @type Integer[kFullSplIdStart]
+  h2f_num_: null,            // @type Integer[kFullSplIdStart]
+
+  /** Map from full id to half id.
+   * @type Integer[]
+   */
+  f2h_: null,
+
+  // How many node used to build the trie.
+  node_num_: 0,
+
+  free_son_trie: function spellingTrie_free_son_trie(node) {
+
+  },
+
+  // Construct a subtree using a subset of the spelling array (from
+  // item_star to item_end).
+  // Member spelliing_buf_ and spelling_size_ should be valid.
+  // parent is used to update its num_of_son and score.
+  construct_spellings_subset: function spellingTrie_free_son_trie(
+      item_start, item_end, level, parent) {
+
+  },
+
+  build_f2h: function spellingTrie_build_f2h() {
+
+  },
+
+  // The caller should guarantee ch >= 'A' && ch <= 'Z'
+  is_shengmu_char: function spellingTrie_is_shengmu_char(ch) {
+
+  },
+
+  // The caller should guarantee ch >= 'A' && ch <= 'Z'
+  is_yunmu_char: function spellingTrie_is_yunmu_char(ch) {
+
+  },
+
+  // Given a spelling string, return its Yunmu string.
+  // The caller guaratees spl_str is valid.
+  get_ym_str: function spellingTrie_get_ym_str(spl_str) {
+
+  },
+
+  // Build the Yunmu list, and the mapping relation between the full ids and the
+  // Yunmu ids. This functin is called after the spelling trie is built.
+  build_ym_info: function spellingTrie_build_ym_info() {
+
   }
 };
 
