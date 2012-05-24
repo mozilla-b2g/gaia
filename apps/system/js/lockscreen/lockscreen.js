@@ -262,28 +262,30 @@ var LockScreen = {
         break;
 
       case 'keydown':
-        if (e.keyCode != e.DOM_VK_SLEEP || !navigator.mozPower.screenEnabled)
-          return;
+        if (navigator.mozPower.screenEnabled) {
+          if (e.keyCode == e.DOM_VK_SLEEP && !SleepMenu.visible) {
+            this._timeout = window.setTimeout(function() {
+              SleepMenu.show();
+            }, 1500);
+          }
+        } else if (e.keyCode == e.DOM_VK_SLEEP || e.keyCode == e.DOM_VK_HOME) {
+            this.update();
+            ScreenManager.turnScreenOn();
+        }
 
-        this._timeout = window.setTimeout(function() {
-          SleepMenu.show();
-        }, 1500);
+        e.preventDefault();
+        e.stopPropagation();
         break;
 
       case 'keyup':
-        if (e.keyCode != e.DOM_VK_SLEEP || SleepMenu.visible)
+        if (e.keyCode != e.DOM_VK_SLEEP || SleepMenu.visible || !this._timeout)
           return;
         window.clearTimeout(this._timeout);
+        this._timeout = null;
 
         if (navigator.mozPower.screenEnabled) {
           this.update();
           ScreenManager.turnScreenOff();
-        } else {
-          // XXX: screen could be turned off by idle service instead of us.
-          // Update the lockscreen again when turning the screen on.
-          // (home screen would still flash when USB is plugged in)
-          this.update();
-          ScreenManager.turnScreenOn();
         }
 
         e.preventDefault();
