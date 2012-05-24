@@ -275,6 +275,7 @@ var KeyHandler = {
   }
 };
 
+
 /* === Screen Manager === */
 var ScreenManager = {
   preferredBrightness: 0.5,
