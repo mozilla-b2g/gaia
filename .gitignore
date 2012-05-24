@@ -12,3 +12,4 @@ profile/
 xulrunner/
 xulrunner-sdk/
 node_modules
+test-output.xml
