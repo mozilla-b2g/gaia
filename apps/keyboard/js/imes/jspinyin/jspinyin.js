@@ -3123,6 +3123,12 @@ MatrixSearch.prototype = {
   // Called after _prepareAddChar, so the input char has been saved.
   _addCharQwerty: function matrixSearch_addCharQwerty(ch) {
 
+  },
+  
+  // Is the character in step pos a splitter character?
+  // The caller guarantees that the position is valid.
+  _isSplitAt: function matrixSearch_isSplitAt(pos) {
+    return !this._splParser.is_valid_to_parse(this._pys[pos - 1]);
   }
 };
 
@@ -3347,12 +3353,71 @@ DictTrie.prototype = {
   __proto__: IAtomDictBase
 };
 
-
 var UserDict = function userDict_constructor() {
 };
 
 UserDict.prototype = {
   __proto__: IAtomDictBase
+};
+
+var SpellingParser = function spellingParser_constructor() {
+};
+
+
+SpellingParser.prototype = {
+  /* ==== Private ==== */
+  
+  /**
+   * @type SpellingTrie
+   */
+  spl_trie_: null,
+
+  /* ==== Public ==== */
+  /** Given a string, parse it into a spelling id stream.
+   * @param {String} splstr The given spelling string.
+   * @return {splidx: Integer[], start_pos: Integer[], last_is_pre: Boolean} 
+   * If the whole string are successfully parsed, last_is_pre will be true;
+   * if the whole string is not fully parsed, last_is_pre will return whether
+   * the last part of the string is a prefix of a full spelling string. For
+   * example, given string "zhengzhon", "zhon" is not a valid spelling, but it
+   * is the prefix of "zhong".
+   * If splstr starts with a character not in ['a'-z'] (it is a split char),
+   * return empty result.
+   * Split char can only appear in the middle of the string or at the end.
+   */
+  splstr_to_idxs: function spellingParser_splstr_to_idxs(splstr) {
+    
+  },
+
+  /**
+   * Similar to splstr_to_idxs(), the only difference is that splstr_to_idxs()
+   * convert single-character Yunmus into half ids, while this function converts
+   * them into full ids.
+   */
+  splstr_to_idxs_f: function spellingParser_splstr_to_idxs_f(splstr) {
+    
+  },
+
+  /**
+   * Get the spelling id of given string.
+   * @param {String} splstr The spelling string.
+   * @return {splid: Integer, is_pre: Boolean}
+   * If the given string is a spelling, return the id, others, return 0.
+   * If the give string is a single char Yunmus like "A", and the char is
+   * enabled in ShouZiMu mode, the returned spelling id will be a half id.
+   * When the returned spelling id is a half id, is_pre returns whether it
+   * is a prefix of a full spelling string.
+   */
+  get_splid_by_str: function spellingParser_get_splid_by_str(splstr) {
+    
+  },
+
+  /**
+   * Splitter chars are not included.
+   */
+  is_valid_to_parse: function spellingParser_is_valid_to_parse(ch) {
+    
+  }
 };
 
 var jspinyin = new IMEngine(new PinyinParser());
