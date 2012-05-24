@@ -103,6 +103,8 @@ profile: stamp-commit-hash update-offline-manifests preferences webapp-manifests
 LANG=POSIX # Avoiding sort order differences between OSes
 
 # Generate profile/webapps/
+# We duplicate manifest.webapp to manifest.webapp and manifest.json
+# to accommodate Gecko builds without bug 757613. Should be removed someday.
 webapp-manifests:
 	@echo "Generated webapps"
 	@mkdir -p profile/webapps
@@ -113,8 +115,8 @@ webapp-manifests:
 	  if [ -f $$d/manifest.webapp ]; \
 		then \
 		  mkdir -p ../profile/webapps/$$d; \
-		  cp $$d/manifest.webapp ../profile/webapps/$$d  ;\
-		  cp $$d/manifest.webapp ../profile/webapps/$$d/manifest.json  ;\  # For Gecko without bug 757613, should be removed someday.
+		  cp $$d/manifest.webapp ../profile/webapps/$$d/manifest.webapp  ;\
+		  cp $$d/manifest.webapp ../profile/webapps/$$d/manifest.json  ;\
                   (\
 			echo \"$$d\": { ;\
 			echo \"origin\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
