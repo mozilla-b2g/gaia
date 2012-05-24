@@ -16,14 +16,13 @@ var PinLock = {
   init: function pl_init() {
     this.hideKeypad();
     this.conn = window.navigator.mozMobileConnection;
-    if (this.conn != undefined) {
-      this.conn.addEventListener('cardstatechange', this);
-      this.pinlockOverlay.addEventListener('click', this);
-      this.handleSim();
-    } else {
+    if (!this.conn) {
       console.debug("No mozMobileConnection :(");
       return;
     }
+    this.conn.addEventListener('cardstatechange', this);
+    this.pinlockOverlay.addEventListener('click', this);
+    this.handleSim();
   },
 
   hideKeypad: function hideKeypad() {
