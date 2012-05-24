@@ -268,13 +268,11 @@ var LockScreen = {
               SleepMenu.show();
             }, 1500);
           }
-        } else {
-          if (e.keyCode == e.DOM_VK_SLEEP || e.keyCode == e.DOM_VK_HOME) {
+        } else if (e.keyCode == e.DOM_VK_SLEEP || e.keyCode == e.DOM_VK_HOME) {
             window.clearTimeout(this._timeout);
             this._timeout = null;
             this.update();
             ScreenManager.turnScreenOn();
-          }
         }
 
         e.preventDefault();
