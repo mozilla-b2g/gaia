@@ -3,10 +3,19 @@
 
 (function() {
 
+  var KEYBOARD_ID = 'keyboardFrame';
+
+  // TODO: Retrieve it from Settings, allowing 3rd party keyboards
+  var KEYBOARD_URL = 'http://keyboard.' + domain;
+
   // TODO: Compose the event name from settings to allowe 3rd parties IMEs
-  window.addEventListener('background.Keyboard.loaded', function receiver(e) {
-    var keyboardFrame = BackgroundServiceManager.getFrame(KEYBOARD_URL);
+  window.addEventListener('load', function receiver(e) {
+
+    var keyboardFrame = document.getElementById(KEYBOARD_ID);
+    keyboardFrame.src = KEYBOARD_URL;
+
     var keyboardWindow = keyboardFrame.contentWindow;
+
 
     // Keyboard app notifying resize the screen
     // TODO Think on a way of doing this

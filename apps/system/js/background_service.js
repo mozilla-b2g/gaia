@@ -61,28 +61,13 @@ var BackgroundServiceManager = (function bsm() {
       return false;
 
     var frame = document.createElement('iframe');
-    frame.addEventListener('load', function backgroundProcessLoaded() {
-      var evt = document.createEvent('CustomEvent');
-      var appName = app.manifest.name;
-      var evtName = 'background.' + appName + '.loaded';
-      evt.initCustomEvent(evtName, true, false, {});
-      window.dispatchEvent(evt);
-    });
-
-    // Temp hack to allow the Keyboard comunicate with the System
-    if (origin == KEYBOARD_URL) {
-      frame.className = 'keyboardFrame';
-    } else {
-      frame.className = 'backgroundWindow';
-      frame.setAttribute('mozbrowser', 'true');
-    }
-
+    frame.className = 'backgroundWindow';
+    frame.setAttribute('mozbrowser', 'true');
     frame.setAttribute('mozapp', 'true');
     frame.src = origin + app.manifest.background_page;
     frames[origin] = frame;
 
     document.body.appendChild(frame);
-
     return true;
   };
 
@@ -124,4 +109,3 @@ var BackgroundServiceManager = (function bsm() {
     'getFrame': getFrame
   };
 }());
-
