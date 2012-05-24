@@ -432,7 +432,7 @@ const IMEManager = {
   events: ['mouseup', 'unload', 'resize'],
   imeEvents: ['mousedown', 'mouseover', 'mouseleave', 'transitionend'],
   init: function km_init() {
-		this.updateSettings();
+    this.updateSettings();
     this.events.forEach((function attachEvents(type) {
       window.addEventListener(type, this);
     }).bind(this));
@@ -462,15 +462,15 @@ const IMEManager = {
           }
         );
       })(key);
-		}
+    }
 
-		// Handling showime and hideime events, as they are received only in System
-		// https://bugzilla.mozilla.org/show_bug.cgi?id=754083
+    // Handling showime and hideime events, as they are received only in System
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=754083
 
-		window.addEventListener('message', function receiver(e) {
-			var event = JSON.parse(e.data);
-			IMEManager.handleEvent(event);
-		});
+    window.addEventListener('message', function receiver(e) {
+      var event = JSON.parse(e.data);
+      IMEManager.handleEvent(event);
+    });
   },
 
   uninit: function km_uninit() {
@@ -1123,7 +1123,7 @@ const IMEManager = {
       ime.insertBefore(this.pendingSymbolPanel, ime.firstChild);
       this.showPendingSymbols('');
       this.showCandidates([], true);
-			this.currentEngine.empty();
+      this.currentEngine.empty();
     }
   },
 
@@ -1132,7 +1132,8 @@ const IMEManager = {
   },
 
   updateTargetWindowHeight: function km_updateTargetWindowHeight() {
-    parent.postMessage(JSON.stringify({action: "resize", height: this.ime.scrollHeight+"px"}), "http://system.gaiamobile.org");
+    var resizeAction = {action: 'resize', height: this.ime.scrollHeight + 'px'};
+    parent.postMessage(JSON.stringify(resizeAction), '*');
   },
 
   showIME: function km_showIME(type) {
@@ -1172,7 +1173,7 @@ const IMEManager = {
         this.currentEngine.show(type);
       }
     }
-		this.updateTargetWindowHeight();
+    this.updateTargetWindowHeight();
   },
 
   hideIME: function km_hideIME(imminent) {

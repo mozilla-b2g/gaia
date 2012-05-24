@@ -115,7 +115,7 @@ var WindowManager = (function() {
   // orientation could have changed since it was last displayed
   function setAppSize(origin) {
     var app = runningApps[origin];
-    if(!app)
+    if (!app)
       return;
 
     var frame = app.frame;
@@ -356,7 +356,7 @@ var WindowManager = (function() {
     if (manifest.orientation) {
       var rv = screen.mozLockOrientation(manifest.orientation);
       if (rv === false) {
-        console.warn('screen.mozLockOrientation() returned false for', 
+        console.warn('screen.mozLockOrientation() returned false for',
                      origin, 'orientation', manifest.orientation);
       }
     }
@@ -697,7 +697,7 @@ var WindowManager = (function() {
     kill: stop,
     getDisplayedApp: getDisplayedApp,
     setOrientationForApp: setOrientationForApp,
-		setAppSize: setAppSize,
+    setAppSize: setAppSize,
     getAppFrame: function(origin) {
       if (isRunning(origin))
         return runningApps[origin].frame;

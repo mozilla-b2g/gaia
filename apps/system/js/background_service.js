@@ -63,12 +63,14 @@ var BackgroundServiceManager = (function bsm() {
     var frame = document.createElement('iframe');
     frame.addEventListener('load', function backgroundProcessLoaded() {
       var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('background.'+app.manifest.name+'.loaded', true, false, {});
+      var appName = app.manifest.name;
+      var evtName = 'background.' + appName + '.loaded';
+      evt.initCustomEvent(evtName, true, false, {});
       window.dispatchEvent(evt);
     });
 
     // Temp hack to allow the Keyboard comunicate with the System
-    if(origin == KEYBOARD_URL) {
+    if (origin == KEYBOARD_URL) {
       frame.className = 'keyboardFrame';
     } else {
       frame.className = 'backgroundWindow';
