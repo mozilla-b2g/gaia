@@ -94,18 +94,11 @@ var BackgroundServiceManager = (function bsm() {
     return null;
   };
 
-  // Getting the frame object
-  // Needed to resize the Keyboard
-  var getFrame = function bsm_getFrame(origin) {
-    var frame = frames[origin];
-    return frame || null;
-  };
-
   /* Return the public APIs */
   return {
     'open': open,
     'close': close,
-    'getWindow': getWindow,
-    'getFrame': getFrame
+    'getWindow': getWindow
   };
 }());
+
