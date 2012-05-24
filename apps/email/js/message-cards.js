@@ -5,6 +5,8 @@
 
 function MessageListCard(domNode, mode, args) {
   this.domNode = domNode;
+  this.scrollNode = domNode.getElementsByClassName('msg-list-scrollouter')[0];
+
   this.messagesContainer =
     domNode.getElementsByClassName('msg-messages-container')[0];
 
@@ -19,26 +21,47 @@ function MessageListCard(domNode, mode, args) {
   bindContainerHandler(this.messagesContainer, 'contextmenu',
                        this.onHoldMessage.bind(this));
 
+  this.curFolder = null;
   this.messagesSlice = null;
   this.showFolder(args.folder);
 }
 MessageListCard.prototype = {
-  onShowFolders: function() {
-    Cards.moveToCard('folder-picker', 'navigation');
+  postInsert: function() {
+    this._hideSearchBoxByScrolling();
   },
 
+  _hideSearchBoxByScrolling: function() {
+    // scroll the search bit out of the way
+    var searchBar =
+      this.domNode.getElementsByClassName('msg-search-tease-bar')[0];
+    this.scrollNode.scrollTop = searchBar.offsetHeight;
+  },
+
+  onShowFolders: function() {
+    Cards.moveToCard(['folder-picker', 'navigation']);
+  },
+
+  /**
+   * Show a folder, returning true if we actually changed folders or false if
+   * we did nothing because we were already in the folder.
+   */
   showFolder: function(folder) {
+    if (folder === this.curFolder)
+      return false;
+
     if (this.messagesSlice) {
       this.messagesSlice.die();
       this.messagesSlice = null;
       this.messagesContainer.innerHTML = '';
     }
+    this.curFolder = folder;
 
     this.domNode.getElementsByClassName('msg-list-header-folder-label')[0]
       .textContent = folder.name;
 
     this.messagesSlice = MailAPI.viewFolderMessages(folder);
     this.messagesSlice.onsplice = this.onMessagesSplice.bind(this);
+    return true;
   },
 
   onMessagesSplice: function(index, howMany, addedItems,
@@ -133,7 +156,9 @@ MessageListCard.prototype = {
    * The folder picker is telling us to change the folder we are showing.
    */
   told: function(args) {
-    this.showFolder(args.folder);
+    if (this.showFolder(args.folder)) {
+      this._hideSearchBoxByScrolling();
+    }
   },
 
   die: function() {

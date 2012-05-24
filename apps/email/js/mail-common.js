@@ -45,12 +45,15 @@ function populateTemplateNodes() {
 
 /**
  * Add an event listener on a container that, when an event is encounted on
- * a descendent, walks up the tree to find the immediate child of the container
+ * a descendant, walks up the tree to find the immediate child of the container
  * and tells us what the click was on.
  */
 function bindContainerHandler(containerNode, eventName, func) {
   containerNode.addEventListener(eventName, function(event) {
     var node = event.target;
+    // bail if they clicked on the container and not a child...
+    if (node === containerNode)
+      return;
     while (node && node.parentNode !== containerNode) {
       node = node.parentNode;
     }
@@ -257,27 +260,22 @@ var Cards = {
       modeDef: modeDef,
       cardImpl: cardImpl,
     };
+    var cardIndex = this._cardStack.length;
     this._cardStack.push(cardInst);
     this._cardsNode.appendChild(domNode);
     this._adjustCardSizes();
+    if ('postInsert' in cardImpl)
+      cardImpl.postInsert();
 
     // XXX for now, always animate... (Need to disable 'left' as an animatable
     // property, set left, and then re-enable.  Need to trigger one or more
     // reflows for that to work right.)
     if (showMethod !== 'none') {
-      // Position the card so its leftmost edge lines up with the left of the
-      // display.  This works with trays on the left side, but not the right
-      // side.
-      var targetLeft = (-cardInst.left) + 'px';
-      if (this._cardsNode.style.left !== targetLeft) {
-        this._cardsNode.style.left = targetLeft;
-        this._eatingEventsUntilNextCard = true;
-      }
-      this._activeCardIndex = this._cardStack.length - 1;
+      this._showCard(cardIndex, showMethod);
     }
   },
 
-  _findCardInstInStack: function(type, mode) {
+  _findCardUsingTypeAndMode: function(type, mode) {
     for (var i = 0; i < this._cardStack.length; i++) {
       var cardInst = this._cardStack[i];
       if (cardInst.cardDef.name === type &&
@@ -289,19 +287,35 @@ var Cards = {
                     mode);
   },
 
-  moveToCard: function(maybeType, mode) {
-    if (typeof(maybeType) === 'string')
-      this._activeCardIndex = this._findCardInstInStack(maybeType, mode);
-    else // number, it's the index to move to
-      this._activeCardIndex = maybeType;
-
-    var cardInst = this._cardStack[this._activeCardIndex];
-    this._cardsNode.style.left = (-cardInst.left) + 'px';
-
-    this._trayActive = cardInst.modeDef.tray;
+  _findCardUsingImpl: function(impl) {
+    for (var i = 0; i < this._cardStack.length; i++) {
+      var cardInst = this._cardStack[i];
+      if (cardInst.cardImpl === impl)
+        return i;
+    }
+    throw new Error('Unable to find card using impl:', impl);
   },
 
-  tellCard: function(type, mode, what) {
+  _findCard: function(query) {
+    if (Array.isArray(query))
+      return this._findCardUsingTypeAndMode(query[0], query[1]);
+    else if (typeof(query) === 'number') // index number
+      return query;
+    else
+      return this._findCardUsingImpl(query);
+  },
+
+  moveToCard: function(query) {
+    this._showCard(this._findCard(query), 'animate');
+  },
+
+  tellCard: function(query, what) {
+    var cardIndex = this._findCard(query),
+        cardInst = this._cardStack[cardIndex];
+    if (!('told' in cardInst.cardImpl))
+      console.warn("Tried to tell a card that's not listening!", query, what);
+    else
+      cardInst.cardImpl.told(what);
   },
 
   /**
@@ -370,15 +384,53 @@ var Cards = {
       }
     }
     if (showMethod !== 'none') {
-      var targetLeft = '0px';
+      var nextCardIndex = null;
       if (this._cardStack.length)
-        targetLeft = (-this._cardStack[this._cardStack.length - 1].left) +
-                       'px';
-      if (this._cardsNode.style.left !== targetLeft) {
+        nextCardIndex = this._cardStack.length - 1;
+      this._showCard(nextCard, showMethod);
+    }
+  },
+
+  _showCard: function(cardIndex, showMethod) {
+    var cardInst = (cardIndex !== null) ? this._cardStack[cardIndex] : null;
+
+    var targetLeft;
+    if (cardInst)
+      targetLeft = (-cardInst.left) + 'px';
+    else
+      targetLeft = '0px';
+
+    var cardsNode = this._cardsNode;
+    if (cardsNode.style.left !== targetLeft) {
+      if (showMethod === 'immediate') {
+        // XXX cross-platform support.
+        cardsNode.style.MozTransitionProperty = 'none';
+        // make sure the reflow sees the transition is turned off.
+        cardsNode.clientWidth;
+        // explicitly clear since there will be no animation
+        this._eatingEventsUntilNextCard = false;
+      }
+      else {
         this._eatingEventsUntilNextCard = true;
-        this._cardsNode.style.left = targetLeft;
+      }
+
+      cardsNode.style.left = targetLeft;
+
+      if (showMethod === 'immediate') {
+        // make sure the instantaneous transition is seen before we turn
+        // transitions back on.
+        cardsNode.clientWidth;
+        cardsNode.style.MozTransitionProperty = 'left';
       }
     }
+    else {
+      // explicitly clear since there will be no animation
+      this._eatingEventsUntilNextCard = false;
+    }
+
+    this._activeCardIndex = cardIndex;
+    if (cardInst)
+      this._trayActive = cardInst.modeDef.tray;
   },
 
   _onTransitionEnd: function(event) {

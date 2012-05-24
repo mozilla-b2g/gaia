@@ -1,10 +1,46 @@
+.card-message-list {
+}
+.msg-list-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.msg-list-scrollouter {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.msg-list-scrollinner {
+  /* force the card to be tall enough so we can scroll the search bit out of the
+     way by default*/
+  min-height: 536px;
+}
+
+/* Have enough scroll space to have the search bit pull out. */
+.msg-list-scroll-padding-top {
+  height: 56px;
+}
+/* Have enough space at the bottom for the last message to not be under the
+   action bar. */
+.msg-list-scroll-padding-bottom {
+  height: 80px;
+}
+
+.msg-search-tease-bar {
+  height: 24px;
+  background-color: #eee;
+  border-radius: 4px;
+  text-align: center;
+}
+
 /* Sections horizontally chop up the item: unread, details, icons, avatar.
  * We have 320 horizontal pixels to play with.
  */
 .msg-header-item {
   display: block;
-  height: 60px;
+  height: 80px;
   overflow: hidden;
+  border-bottom: 1px solid gray;
 }
 .msg-header-unread-section {
   display: inline-block;
@@ -12,6 +48,7 @@
   width: 12px;
 }
 .msg-header-unread-section-unread {
+  height: 100%;
   background-color: orange;
 }
 .msg-header-details-section {

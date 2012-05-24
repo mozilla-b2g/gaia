@@ -2,31 +2,44 @@
  * Card definitions/logic for the folder navigation / picker for move targets.
  **/
 
-function FolderPickerCard(domNode, mode, args) {
+function AccountPickerCard(domNode, mode, args) {
   this.domNode = domNode;
 
+  this.curAccount = args.curAccount;
   this.acctsSlice = args.acctsSlice;
   this.acctsSlice.onsplice = this.onAccountsSplice.bind(this);
-
-  this.foldersSlice = args.foldersSlice;
-  this.foldersSlice.onsplice = this.onFoldersSplice.bind(this);
-
-  this.curAccount = args.curAccount;
-  this.curFolder = args.curFolder;
 
   this.accountsContainer =
     domNode.getElementsByClassName('fld-accounts-container')[0];
   bindContainerHandler(this.accountsContainer, 'click',
                        this.onClickAccount.bind(this));
 
-  this.foldersContainer =
-    domNode.getElementsByClassName('fld-folders-container')[0];
-  bindContainerHandler(this.foldersContainer, 'click',
-                       this.onClickFolder.bind(this));
+  // since the slice is already populated, generate a fake notification
+  this.onAccountsSplice(0, 0, this.acctsSlice.items, true, false);
 }
-FolderPickerCard.prototype = {
+AccountPickerCard.prototype = {
   onAccountsSplice: function(index, howMany, addedItems,
                              requested, moreExpected) {
+    var accountsContainer = this.accountsContainer;
+
+    var account;
+    if (howMany) {
+      for (var i = index + howMany - 1; i >= index; i--) {
+        account = msgSlice.items[i];
+        accountsContainer.removeChild(account.element);
+      }
+    }
+
+    var insertBuddy = (index >= accountsContainer.childElementCount) ?
+                        null : accountsContainer.children[index],
+        self = this;
+    addedItems.forEach(function(account) {
+      var accountNode = account.element =
+        fldNodes['account-item'].cloneNode(true);
+      accountNode.account = account;
+      self.updateAccountDom(account, true);
+      accountsContainer.insertBefore(accountNode, insertBuddy);
+    });
   },
 
   updateAccountDom: function(account, firstTime) {
@@ -53,31 +66,56 @@ FolderPickerCard.prototype = {
    * UXXX get signoff on this behavior (e-mail out)
    */
   onClickAccount: function(accountNode, event) {
-    if (accountNode.account === this.curAccount)
-      return;
-    var oldAccount = this.curAccount,
-        account = this.curAccount = accountNode;
+   var oldAccount = this.curAccount,
+       account = this.curAccount = accountNode.account;
 
-    // change selection status
-    this.updateAccountDom(oldAccount);
-    this.updateAccountDom(account);
+    if (oldAccount !== account) {
+      // change selection status
+      this.updateAccountDom(oldAccount);
+      this.updateAccountDom(account);
+    }
 
-    // kill the old slice and its related DOM
-    this.foldersSlice.kill();
-    this.foldersContainer.innerHTML = '';
+    Cards.tellCard(['folder-picker', 'navigation'], { account: account });
+  },
 
-    // stop the user from doing anything until we load the folders for the
-    // account
-    Cards.eatEventsUntilNextCard();
+  die: function() {
+  },
+};
+Cards.defineCard({
+  name: 'account-picker',
+  modes: {
+    default: {
+    },
+  },
+  constructor: AccountPickerCard
+});
 
-    // load the folders for the account
-    this.foldersSlice = MailAPI.viewFolders('account', account);
-    this.foldersSlice.onsplice = this.onFoldersSplice.bind(this);
-    // T will cause the splice handler to select the inbox for us; we do
-    // this in the splice handler rather than in oncomplete because the splice
-    // handler happens first and creates the DOM, and so this way it will set
-    // the selection to be reflected in the DOM from the get-go.
-    this.curFolder = null;
+
+function FolderPickerCard(domNode, mode, args) {
+  this.domNode = domNode;
+
+  this.foldersSlice = args.foldersSlice;
+  this.foldersSlice.onsplice = this.onFoldersSplice.bind(this);
+
+  this.curAccount = args.curAccount;
+  this.curFolder = args.curFolder;
+
+  this.foldersContainer =
+    domNode.getElementsByClassName('fld-folders-container')[0];
+  bindContainerHandler(this.foldersContainer, 'click',
+                       this.onClickFolder.bind(this));
+
+  domNode.getElementsByClassName('fld-accounts-btn')[0]
+    .addEventListener('click', this.onShowAccounts.bind(this), false);
+
+  // - DOM!
+  this.updateSelfDom();
+  // since the slice is already populated, generate a fake notification
+  this.onFoldersSplice(0, 0, this.foldersSlice.items, true, false);
+}
+FolderPickerCard.prototype = {
+  onShowAccounts: function() {
+    Cards.moveToCard(['account-picker', 'default']);
   },
 
   onFoldersSplice: function(index, howMany, addedItems,
@@ -85,9 +123,10 @@ FolderPickerCard.prototype = {
     // automatically select the inbox if this is an oncomplete case and we have
     // no selected folder.
     if (!this.curFolder && !moreExpected) {
-      // okay, the user can do things again now that our fast-async query has
-      // completed.
-      Cards.stopEatingEvents();
+      // Now that we can populate ourselves, move to us.
+      Cards.moveToCard(this);
+
+      // Also, get the folder card started because of the tray visibility issue.
       this.curFolder = this.foldersSlice.getFirstFolderWithType('inbox');
       this._showFolder(this.curFolder);
     }
@@ -113,12 +152,17 @@ FolderPickerCard.prototype = {
     });
   },
 
+  updateSelfDom: function() {
+    this.domNode.getElementsByClassName('fld-folders-header-account-label')[0]
+      .textContent = this.curAccount.name;
+  },
+
   updateFolderDom: function(folder, firstTime) {
     var folderNode = folder.element;
 
     if (firstTime) {
       if (!folder.selectable)
-        folder.classList.add('fld-folder-unselectable');
+        folderNode.classList.add('fld-folder-unselectable');
 
       folderNode.getElementsByClassName('fld-folder-name')[0]
         .textContent = folder.name;
@@ -143,13 +187,45 @@ FolderPickerCard.prototype = {
     this.updateFolderDom(folder);
 
     this._showFolder(folder);
+    Cards.moveToCard(['message-list', 'default']);
   },
 
   /**
    * Tell the message-list to show this folder; exists for single code path.
    */
   _showFolder: function(folder) {
-    Cards.tellCard('message-list', 'default', { folder: folder });
+    Cards.tellCard(['message-list', 'default'], { folder: folder });
+  },
+
+  /**
+   * The account picker is telling us to change the account we are showing and
+   * then switch to ourselves.
+   */
+  told: function(args) {
+    var account = args.account;
+    if (this.curAccount === account) {
+      Cards.moveToCard(this);
+      return;
+    }
+    this.curAccount = account;
+    this.updateSelfDom();
+
+    // kill the old slice and its related DOM
+    this.foldersSlice.kill();
+    this.foldersContainer.innerHTML = '';
+
+    // stop the user from doing anything until we load the folders for the
+    // account and then transition to our card.
+    Cards.eatEventsUntilNextCard();
+
+    // load the folders for the account
+    this.foldersSlice = MailAPI.viewFolders('account', account);
+    this.foldersSlice.onsplice = this.onFoldersSplice.bind(this);
+    // T will cause the splice handler to select the inbox for us; we do
+    // this in the splice handler rather than in oncomplete because the splice
+    // handler happens first and creates the DOM, and so this way it will set
+    // the selection to be reflected in the DOM from the get-go.
+    this.curFolder = null;
   },
 
   /**

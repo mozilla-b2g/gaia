@@ -29,11 +29,16 @@ console.log('creating folder cards');
             dieOnFatalError('We have an account without an inbox!', foldersSlice.items);
 
           Cards.assertNoCards();
-          // Push the navigation card
+          // Push the navigation cards
+          Cards.pushCard(
+            'account-picker', 'default', 'none',
+            {
+              acctsSlice: acctsSlice,
+              curAccount: account,
+            });
           Cards.pushCard(
             'folder-picker', 'navigation', 'none',
             {
-              acctsSlice: acctsSlice,
               curAccount: account,
               foldersSlice: foldersSlice,
               curFolder: inboxFolder,
