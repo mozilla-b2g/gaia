@@ -632,7 +632,6 @@ var WindowManager = (function() {
 
       // If the screen was blank, turn it back on as soon as the
       // home key is pressed.
-      ScreenManager.turnScreenOn();
 
       // We don't do anything else until the Home key is released...
       // If there is not a timer running, start one so we can
