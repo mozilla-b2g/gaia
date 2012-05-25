@@ -16,6 +16,7 @@ body {
   height: 100%;
   margin: 0;
   padding: 0;
+  background-color: black;
 }
 
 button {
@@ -68,6 +69,7 @@ button {
   float: left;
   position: relative;
   overflow: hidden;
+  background-color: white;
 }
 
 .top-header {

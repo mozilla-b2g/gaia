@@ -12,6 +12,8 @@ function MessageListCard(domNode, mode, args) {
 
   domNode.getElementsByClassName('msg-folder-list-btn')[0]
     .addEventListener('click', this.onShowFolders.bind(this), false);
+  domNode.getElementsByClassName('msg-compose-btn')[0]
+    .addEventListener('click', this.onCompose.bind(this), false);
 
   // clicking shows the message reader for a message
   bindContainerHandler(this.messagesContainer, 'click',
@@ -39,6 +41,14 @@ MessageListCard.prototype = {
 
   onShowFolders: function() {
     Cards.moveToCard(['folder-picker', 'navigation']);
+  },
+
+  onCompose: function() {
+    var composer = MailAPI.beginMessageComposition(null, this.curFolder, null,
+      function composerReady() {
+        Cards.pushCard('compose', 'default', 'animate',
+                       { composer: composer });
+      });
   },
 
   /**
@@ -186,8 +196,13 @@ function MessageReaderCard(domNode, mode, args) {
   domNode.getElementsByClassName('msg-reply-btn')[0]
     .addEventListener('click', this.onReply.bind(this, false));
 
-  domNode.getElementsByClassName('msg-envelope-bar')[0]
-    .addEventListener('click', this.onHeaderClick.bind(this), false);
+  this.envelopeNode = domNode.getElementsByClassName('msg-envelope-bar')[0];
+  this.envelopeNode.addEventListener('click', this.onEnvelopeClick.bind(this),
+                                     false);
+
+  this.envelopeDetailsNode =
+    domNode.getElementsByClassName('msg-envelope-details')[0];
+
   bindContainerHandler(
     domNode.getElementsByClassName('msg-attachments-container')[0],
     'click', this.onAttachmentClick.bind(this));
@@ -198,14 +213,30 @@ MessageReaderCard.prototype = {
   },
 
   onReply: function(event) {
-
+    var composer = this.header.replyToMessage(null, function() {
+      Cards.pushCard('compose', 'default', 'animate',
+                     { composer: composer });
+    });
   },
 
   /**
-   * Distinguish clicks on contacts from clicks on the header to toggle its
+   * Distinguish clicks on contacts from clicks on the envelope to toggle its
    * expanded state and then do the right thing.
    */
-  onHeaderClick: function(event) {
+  onEnvelopeClick: function(event) {
+    var target = event.target;
+    while (target !== this.envelopeNode &&
+           !target.classList.contains('msg-peep-bubble')) {
+      target = target.parentNode;
+    }
+    // - envelope click
+    if (target === this.envelopeNode) {
+      this.envelopeDetailsNode.classList.toggle('collapsed');
+    }
+    // - peep click
+    else {
+      // XXX view contact...
+    }
   },
 
   onAttachmentClick: function(event) {

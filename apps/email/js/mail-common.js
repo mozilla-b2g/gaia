@@ -483,6 +483,34 @@ var Cards = {
   },
 };
 
+/**
+ * Central tracker of poptart messages; specifically, ongoing message sends,
+ * failed sends, and recently performed undoable mutations.
+ */
+var Toaster = {
+  /**
+   * The list of cards that want to hear about what's up with the toaster.  For
+   * now this will just be the message-list, but it might also be the
+   * message-search card as well.  If it ends up being more, then we probably
+   * want to rejigger things so we can just overlay stuff on most cards...
+   */
+  _listeners: [],
+
+  /**
+   * Tell toaster listeners about our sending message, and return a callback
+   * to appropriately report the error or what not when the send conclusively
+   * fails or succeeds.
+   */
+  trackSendMessage: function() {
+  },
+
+  /**
+   * Tell toaster listeners about a mutation we just made.
+   */
+  logMutation: function(undoableOp) {
+  },
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 // Pretty date logic; copied from the SMS app.
 // Based on Resig's pretty date

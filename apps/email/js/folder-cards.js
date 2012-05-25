@@ -127,7 +127,8 @@ FolderPickerCard.prototype = {
       Cards.moveToCard(this);
 
       // Also, get the folder card started because of the tray visibility issue.
-      this.curFolder = this.foldersSlice.getFirstFolderWithType('inbox');
+      this.curFolder = this.foldersSlice.getFirstFolderWithType('inbox',
+                                                                addedItems);
       this._showFolder(this.curFolder);
     }
 

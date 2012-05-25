@@ -103,6 +103,7 @@
           <button class="msg-compose-btn header-right-btn">+</button>
         </div>
         <div class="msg-list-scrollouter">
+          <!-- exists so we can force a minimum height -->
           <div class="msg-list-scrollinner">
             <div class="msg-list-scroll-padding-top"></div>
             <!-- The search textbox hides under the lip of the messages. 
@@ -205,29 +206,41 @@
         </div>
       </div>
 
-      <div class="card-compose-main">
+      <div class="card-compose card">
         <div class="cmp-compose-header top-header">
-          <button class="cmp-back-btn back-btn">&lt;</button>
-          <h2 class="cmp-compose-header-label header-label">ComposE MessagE</h2>
-          <button class="cmp-send-btn">SenD</button>
+          <button class="cmp-back-btn back-btn header-left-btn">&lt;</button>
+          <h2 class="cmp-compose-header-label header-label"
+              data-l10n-id="compose-header">ComposE MessagE</h2>
+          <button class="cmp-send-btn header-right-btn"
+                  data-l10n-id="compose-send">SenD</button>
         </div>
         <div class="scrollregion">
           <div class="cmp-envelope-bar">
             <div class="cmp-envelope-line">
-              <label>tO:</label>
-              <input class="cmp-to-text" type="text" />
+              <label class="cmp-to-label cmp-addr-label"
+                     data-l10n-id="compose-to">tO:</label>
+              <input class="cmp-to-text cmp-addr-text" type="text" />
+            </div>
+            <!-- XXX: spec calls for showing cc/bcc merged until selected,
+                 but there is also the case where replying itself might need
+                 to expand, so we are deferring that feature -->
+            <div class="cmp-envelope-line">
+              <label class="cmp-cc-label cmp-addr-label"
+                     data-l10n-id="compose-cc">cC:</label>
+              <input class="cmp-cc-text cmp-addr-text" type="text" />
             </div>
             <div class="cmp-envelope-line">
-              <label>cC:</label>
-              <input class="cmp-cc-text" type="text" />
+              <label class="cmp-bcc-label cmp-addr-label"
+                     data-l10n-id="compose-bcc">BcC:</label>
+              <input class="cmp-bcc-text cmp-addr-text" type="text" />
             </div>
             <div class="cmp-envelope-line">
-              <label>SubjecT:</label>
+              <label class="cmp-subject-label"
+                     data-l10n-id="compose-subject">SubjecT:</label>
               <input class="cmp-subject-text" type="text" />
             </div>
           </div>
-          <textarea class="cmp-body-text">
-          </textarea>
+          <textarea class="cmp-body-text"></textarea>
         </div>
       </div>
 
@@ -359,6 +372,10 @@
     </div>
     <!-- Widget nodes for the compose cards; styles use the cmp prefix -->
     <div id="templ-cmp">
+      <div class="cmp-peep-bubble">
+        <span class="cmp-peep-name"></span>
+        (<span class="cmp-peep-address"></span>)
+      </div>
     </div>
     <!-- Widget nodes for the setup cards; styles use the sup prefix -->
     <div id="templ-sup">
