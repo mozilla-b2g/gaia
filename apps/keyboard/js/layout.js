@@ -1,3 +1,5 @@
+'use strict';
+
 const Keyboards = {
   alternateLayout: {
     type: 'keyboard',
