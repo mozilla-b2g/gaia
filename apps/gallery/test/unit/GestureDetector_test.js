@@ -202,14 +202,14 @@ suite('GestureDetector', function() {
 
     if (touchDevice) {
       var pinches = [
-        { x0: 0, y0: 0, x1: 100, y1: 100, scale: 2, duration: 200 },
-        { x0: 0, y0: 0, x1: 100, y1: 100, scale: .5, duration: 150 },
-        { x0: 100, y0: 100, x1: 10, y1: 10, scale: 1.5, duration: 150 },
-        { x0: 200, y0: 200, x1: 10, y1: 10, scale: .75, duration: 100 },
-        { x0: 200, y0: 200, x1: 200, y1: 0, scale: 2, duration: 150 },
-        { x0: 200, y0: 200, x1: 200, y1: 0, scale: .5, duration: 150 },
-        { x0: 200, y0: 200, x1: 0, y1: 200, scale: 3, duration: 150 },
-        { x0: 200, y0: 200, x1: 0, y1: 200, scale: .3, duration: 150 }
+        { x0: 0, y0: 0, x1: 100, y1: 100, scale: 2, duration: 800 },
+        { x0: 0, y0: 0, x1: 100, y1: 100, scale: .5, duration: 700 },
+        { x0: 100, y0: 100, x1: 10, y1: 10, scale: 1.5, duration: 700 },
+        { x0: 200, y0: 200, x1: 10, y1: 10, scale: .75, duration: 600 },
+        { x0: 200, y0: 200, x1: 200, y1: 0, scale: 2, duration: 750 },
+        { x0: 200, y0: 200, x1: 200, y1: 0, scale: .5, duration: 750 },
+        { x0: 200, y0: 200, x1: 0, y1: 200, scale: 3, duration: 750 },
+        { x0: 200, y0: 200, x1: 0, y1: 200, scale: .3, duration: 750 }
       ];
 
       pinches.forEach(function(p, index) {
