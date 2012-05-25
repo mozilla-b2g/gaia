@@ -177,6 +177,7 @@ const IMEManager = {
   kSpaceDoubleTapTimeout: 700,
 //*/
 
+/* XXX: Moved to render.js
   get ime() {
     delete this.ime;
     return this.ime = document.getElementById('keyboard');
@@ -390,6 +391,7 @@ const IMEManager = {
 
     delete this._currentMenuKey;
   },
+//*/
 
   // data URL for keyboard click sound
   kAudio: 'data:audio/x-wav;base64,' +
@@ -592,22 +594,22 @@ const IMEManager = {
         break;
 
       case 'resize':
-        if (this.ime.dataset.hidden)
+        if (IMERender.ime.dataset.hidden)
           return;
 
         // we presume that the targetWindow has been restored by
         // window manager to full size by now.
-        this.getTargetWindowMetrics();
-        this.updateLayout();
+        IMERender.getTargetWindowMetrics();
+        IMERender.updateLayout();
         IMEController.updateTargetWindowHeight();
         break;
 
       case 'transitionend':
-        if (!this.ime.dataset.hidden) { // showIME transitionend
+        if (!IMERender.ime.dataset.hidden) { // showIME transitionend
           IMEController.updateTargetWindowHeight();
         } else { // hideIME transitionend
 
-          this.ime.innerHTML = '';
+          IMERender.ime.innerHTML = '';
         }
         break;
 
@@ -922,6 +924,7 @@ const IMEManager = {
     }
   },
 
+/* XXX: Moved to render.js
   menu: null,
   updateLayout: function km_updateLayout(keyboard) {
     var layout;
@@ -1151,13 +1154,14 @@ const IMEManager = {
   getTargetWindowMetrics: function km_getTargetWindowMetrics() {
 
   },
+//*/
 
 /* XXX: Moved to controller.js
   updateTargetWindowHeight: function km_updateTargetWindowHeight() {
     var resizeAction = {action: 'resize', height: this.ime.scrollHeight + 'px'};
     parent.postMessage(JSON.stringify(resizeAction), '*');
   },
-*/
+//*/
 
   showIME: function km_showIME(type) {
     switch (type) {
@@ -1182,13 +1186,13 @@ const IMEManager = {
       break;
     }
 
-    if (!this.ime.dataset.hidden) {
-      this.updateLayout();
+    if (!IMERender.ime.dataset.hidden) {
+      IMERender.updateLayout();
       IMEController.updateTargetWindowHeight();
     } else {
-      this.getTargetWindowMetrics();
-      this.updateLayout();
-      delete this.ime.dataset.hidden;
+      IMERender.getTargetWindowMetrics();
+      IMERender.updateLayout();
+      delete IMERender.ime.dataset.hidden;
     }
 
     if (Keyboards[IMEController.currentKeyboard].type == 'ime') {
@@ -1201,16 +1205,16 @@ const IMEManager = {
 
   hideIME: function km_hideIME(imminent) {
 
-    if (this.ime.dataset.hidden)
+    if (IMERender.ime.dataset.hidden)
       return;
 
-    this.ime.dataset.hidden = 'true';
+    IMERender.ime.dataset.hidden = 'true';
 
     // Reset the keyboard mode
     IMEController.currentKeyboardMode = '';
 
     if (imminent) {
-      var ime = this.ime;
+      var ime = IMERender.ime;
       ime.classList.add('imminent');
       window.setTimeout(function remoteImminent() {
         ime.classList.remove('imminent');
@@ -1218,8 +1222,9 @@ const IMEManager = {
 
       ime.innerHTML = '';
     }
-  },
+  }
 
+/* XXX: Moved to render.js
   showPendingSymbols: function km_showPendingSymbols(symbols) {
     var pendingSymbolPanel = this.pendingSymbolPanel;
     pendingSymbolPanel.textContent = symbols;
@@ -1265,6 +1270,7 @@ const IMEManager = {
       candidatePanel.appendChild(span);
     });
   },
+//*/
 
 /* XXX: Moved to controller.js
   handleMouseDownEvent: function km_handleMouseDownEvent(keyCode) {

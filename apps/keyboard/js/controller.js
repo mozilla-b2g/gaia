@@ -31,10 +31,10 @@ const IMEController = {
   set isAlternateLayout(isAlternateLayout) {
     if (isAlternateLayout) {
       this.currentKeyboardMode = 'Alternate';
-      IMEManager.updateLayout('alternateLayout');
+      IMERender.updateLayout('alternateLayout');
     } else {
       this.currentKeyboardMode = '';
-      IMEManager.updateLayout();
+      IMERender.updateLayout();
     }
     this.updateTargetWindowHeight();
   },
@@ -46,10 +46,10 @@ const IMEController = {
   set isSymbolLayout(isSymbolLayout) {
     if (isSymbolLayout) {
       this.currentKeyboardMode = 'Symbol';
-      IMEManager.updateLayout('symbolLayout');
+      IMERender.updateLayout('symbolLayout');
     } else {
       this.currentKeyboardMode = 'Alternate';
-      IMEManager.updateLayout('alternateLayout');
+      IMERender.updateLayout('alternateLayout');
     }
     this.updateTargetWindowHeight();
   },
@@ -78,13 +78,13 @@ const IMEController = {
   imeEvents: ['mouseup', 'mousedown', 'mouseover', 'mouseleave', 'transitionend'],
   init: function km_con_init() {
     this.imeEvents.forEach((function imeEvents(type) {
-      IMEManager.ime.addEventListener(type, this);
+      IMERender.ime.addEventListener(type, this);
     }).bind(this));
   },
 
   uninit: function km_con_uninit() {
     this.imeEvents.forEach((function imeEvents(type) {
-      IMEManager.ime.removeEventListener(type, this);
+      IMERender.ime.removeEventListener(type, this);
     }).bind(this));
 
     for (var engine in this.IMEngines) {
@@ -112,7 +112,8 @@ const IMEController = {
 
     var script = document.createElement('script');
     script.src = sourceDir + imEngine + '/' + imEngine + '.js';
-    var self = this;
+    // TODO: Remvoe variable self
+    var self = IMERender;
     var glue = {
       path: sourceDir + imEngine,
       sendCandidates: function(candidates) {
@@ -159,17 +160,17 @@ const IMEController = {
       case 'mousedown':
         var keyCode = parseInt(target.dataset.keycode);
         target.dataset.active = 'true';
-        IMEManager.currentKey = target;
+        IMERender.currentKey = target;
         this.isPressing = true;
 
         if (!keyCode && !target.dataset.selection)
           return;
 
-        IMEManager.updateKeyHighlight();
+        IMERender.updateKeyHighlight();
         IMEManager.triggerFeedback();
 
         this._menuTimeout = window.setTimeout((function menuTimeout() {
-            IMEManager.showAccentCharMenu();
+            IMERender.showAccentCharMenu();
           }).bind(this), this.kAccentCharMenuTimeout);
 
         if (keyCode != KeyEvent.DOM_VK_BACK_SPACE)
@@ -197,7 +198,7 @@ const IMEController = {
         break;
 
       case 'mouseover':
-        if (!this.isPressing || IMEManager.currentKey == target)
+        if (!this.isPressing || IMERender.currentKey == target)
           return;
 
         var keyCode = parseInt(target.dataset.keycode);
@@ -205,32 +206,32 @@ const IMEController = {
         if (!keyCode && !target.dataset.selection)
           return;
 
-        if (IMEManager.currentKey)
-          delete IMEManager.currentKey.dataset.active;
+        if (IMERender.currentKey)
+          delete IMERender.currentKey.dataset.active;
 
         if (keyCode == KeyEvent.DOM_VK_BACK_SPACE) {
-          delete IMEManager.currentKey;
-          IMEManager.updateKeyHighlight();
+          delete IMERender.currentKey;
+          IMERender.updateKeyHighlight();
           return;
         }
 
         target.dataset.active = 'true';
 
-        IMEManager.currentKey = target;
+        IMERender.currentKey = target;
 
-        IMEManager.updateKeyHighlight();
+        IMERender.updateKeyHighlight();
 
         clearTimeout(this._deleteTimeout);
         clearInterval(this._deleteInterval);
         clearTimeout(this._menuTimeout);
 
-        if (target.parentNode === IMEManager.menu) {
+        if (target.parentNode === IMERender.menu) {
           clearTimeout(this._hideMenuTimeout);
         } else {
-          if (IMEManager.menu.className) {
+          if (IMERender.menu.className) {
             this._hideMenuTimeout = window.setTimeout(
               (function hideMenuTimeout() {
-                IMEManager.hideAccentCharMenu();
+                IMERender.hideAccentCharMenu();
               }).bind(this),
               this.kHideAccentCharMenuTimeout
             );
@@ -240,7 +241,7 @@ const IMEController = {
             target.dataset.alt || keyCode === this.SWITCH_KEYBOARD;
           if (needMenu) {
             this._menuTimeout = window.setTimeout((function menuTimeout() {
-                IMEManager.showAccentCharMenu();
+                IMERender.showAccentCharMenu();
               }).bind(this), this.kAccentCharMenuTimeout);
           }
         }
@@ -249,14 +250,14 @@ const IMEController = {
 
       case 'mouseleave':
       case 'scroll': // scrolling IME candidate panel
-        if (!this.isPressing || !IMEManager.currentKey)
+        if (!this.isPressing || !IMERender.currentKey)
           return;
 
-        delete IMEManager.currentKey.dataset.active;
-        delete IMEManager.currentKey;
-        IMEManager.updateKeyHighlight();
+        delete IMERender.currentKey.dataset.active;
+        delete IMERender.currentKey;
+        IMERender.updateKeyHighlight();
         this._hideMenuTimeout = window.setTimeout((function hideMenuTimeout() {
-            IMEManager.hideAccentCharMenu();
+            IMERender.hideAccentCharMenu();
           }).bind(this), this.kHideAccentCharMenuTimeout);
 
         if (evt.type == 'scroll')
@@ -267,16 +268,16 @@ const IMEController = {
       case 'mouseup':
         this.isPressing = false;
 
-        if (!IMEManager.currentKey)
+        if (!IMERender.currentKey)
           return;
 
         clearTimeout(this._deleteTimeout);
         clearInterval(this._deleteInterval);
         clearTimeout(this._menuTimeout);
 
-        IMEManager.hideAccentCharMenu();
+        IMERender.hideAccentCharMenu();
 
-        var target = IMEManager.currentKey;
+        var target = IMERender.currentKey;
         var keyCode = parseInt(target.dataset.keycode);
         if (!keyCode && !target.dataset.selection)
           return;
@@ -284,17 +285,17 @@ const IMEController = {
         var dataset = target.dataset;
         if (dataset.selection) {
           this.currentEngine.select(target.textContent, dataset.data);
-          delete IMEManager.currentKey.dataset.active;
-          delete IMEManager.currentKey;
+          delete IMERender.currentKey.dataset.active;
+          delete IMERender.currentKey;
 
-          IMEManager.updateKeyHighlight();
+          IMERender.updateKeyHighlight();
           return;
         }
 
-        delete IMEManager.currentKey.dataset.active;
-        delete IMEManager.currentKey;
+        delete IMERender.currentKey.dataset.active;
+        delete IMERender.currentKey;
 
-        IMEManager.updateKeyHighlight();
+        IMERender.updateKeyHighlight();
 
         if (keyCode == KeyEvent.DOM_VK_BACK_SPACE)
           return;
@@ -326,7 +327,7 @@ const IMEController = {
 
               this.currentKeyboardMode = '';
               this.isUpperCase = false;
-              IMEManager.updateLayout();
+              IMERender.updateLayout();
               this.updateTargetWindowHeight();
             } else {
               // If this is the last keyboard in the stack, start
@@ -340,7 +341,7 @@ const IMEController = {
 
               this.currentKeyboardMode = '';
               this.isUpperCase = false;
-              IMEManager.updateLayout();
+              IMERender.updateLayout();
               this.updateTargetWindowHeight();
             }
 
@@ -353,12 +354,12 @@ const IMEController = {
             break;
 
           case this.TOGGLE_CANDIDATE_PANEL:
-            if (IMEManager.ime.classList.contains('candidate-panel')) {
-              IMEManager.ime.classList.remove('candidate-panel');
-              IMEManager.ime.classList.add('full-candidate-panel');
+            if (IMERender.ime.classList.contains('candidate-panel')) {
+              IMERender.ime.classList.remove('candidate-panel');
+              IMERender.ime.classList.add('full-candidate-panel');
             } else {
-              IMEManager.ime.classList.add('candidate-panel');
-              IMEManager.ime.classList.remove('full-candidate-panel');
+              IMERender.ime.classList.add('candidate-panel');
+              IMERender.ime.classList.remove('full-candidate-panel');
             }
             this.updateTargetWindowHeight();
             break;
@@ -378,7 +379,7 @@ const IMEController = {
               this.isUpperCaseLocked = true;
               if (!this.isUpperCase) {
                 this.isUpperCase = true;
-                IMEManager.updateLayout();
+                IMERender.updateLayout();
 
                 // XXX: keyboard updated; target is lost.
                 var selector =
@@ -400,7 +401,7 @@ const IMEController = {
 
             this.isUpperCaseLocked = false;
             this.isUpperCase = !this.isUpperCase;
-            IMEManager.updateLayout();
+            IMERender.updateLayout();
             break;
 
           case KeyEvent.DOM_VK_RETURN:
@@ -463,7 +464,7 @@ const IMEController = {
   },
 
   updateTargetWindowHeight: function km_updateTargetWindowHeight() {
-    var resizeAction = {action: 'resize', height: IMEManager.ime.scrollHeight + 'px'};
+    var resizeAction = {action: 'resize', height: IMERender.ime.scrollHeight + 'px'};
     parent.postMessage(JSON.stringify(resizeAction), '*');
   },
 
@@ -479,7 +480,7 @@ const IMEController = {
     if (this.isUpperCase &&
         !this.isUpperCaseLocked && !this.currentKeyboardMode) {
           this.isUpperCase = false;
-          IMEManager.updateLayout();
+          IMERender.updateLayout();
         }
   }
 };
