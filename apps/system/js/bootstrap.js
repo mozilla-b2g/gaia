@@ -106,7 +106,10 @@ var SleepMenu = {
         var action = evt.target.dataset.value;
         switch (action) {
           case 'airplane':
-            // XXX There is no API for that yet
+            var settings = window.navigator.mozSettings;
+            if (settings)
+              settings.getLock().set({ 'ril.radio.disabled': true});
+
             break;
           case 'silent':
             var settings = window.navigator.mozSettings;
