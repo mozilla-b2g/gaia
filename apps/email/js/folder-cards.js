@@ -211,7 +211,7 @@ FolderPickerCard.prototype = {
     this.updateSelfDom();
 
     // kill the old slice and its related DOM
-    this.foldersSlice.kill();
+    this.foldersSlice.die();
     this.foldersContainer.innerHTML = '';
 
     // stop the user from doing anything until we load the folders for the
