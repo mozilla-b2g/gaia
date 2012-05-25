@@ -174,12 +174,15 @@ install-xulrunner :
 endif
 
 settingsdb :
+ifeq ($(SYS),Darwin)
 	@echo "B2G pre-populate settings DB."
 	$(XULRUNNER) $(XPCSHELL) -e 'const PROFILE_DIR = "$(CURDIR)/profile"' build/settings.js
-
+else 
+	@echo "Can't populate on Linux."
+endif
 
 DB_TARGET_PATH = /data/b2g/mozilla/`$(ADB) shell ls -1 /data/b2g/mozilla/ | grep default | tr -d [:cntrl:]`/indexedDB
-ifeq ($(SYS),Darwin)
+ifneq ($(SYS),Darwin)
 DB_SOURCE_PATH = $(CURDIR)/build
 else
 DB_SOURCE_PATH = profile/indexedDB/chrome
