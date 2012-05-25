@@ -393,6 +393,7 @@ const IMEManager = {
   },
 //*/
 
+/* XXX: Moved to feedback.js
   // data URL for keyboard click sound
   kAudio: 'data:audio/x-wav;base64,' +
   'UklGRiADAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YfwCAAAW/Fzsqe9O' +
@@ -437,6 +438,7 @@ const IMEManager = {
       this._audio.cloneNode(false).play();
     }
   },
+//*/
 
   events: ['unload', 'resize'],
 /* XXX: Moved to controller.js
@@ -457,6 +459,8 @@ const IMEManager = {
 
     var self = this;
 
+    IMEFeedback.init();
+/* XXX: Moved to feedback.js
     SettingsListener.observe('keyboard.vibration', false, function(value) {
       self.vibrate = !!value;
     });
@@ -464,6 +468,7 @@ const IMEManager = {
     SettingsListener.observe('keyboard.clicksound', false, function(value) {
       self.clicksound = !!value;
     });
+*/
 
     for (var key in this.keyboardSettingGroups) {
       (function observeSettings(key) {

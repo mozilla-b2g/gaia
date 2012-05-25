@@ -170,7 +170,7 @@ const IMEController = {
           return;
 
         IMERender.updateKeyHighlight();
-        IMEManager.triggerFeedback();
+        IMEFeedback.triggerFeedback();
 
         this._menuTimeout = window.setTimeout((function menuTimeout() {
             IMERender.showAccentCharMenu();
@@ -181,7 +181,7 @@ const IMEController = {
 
         var sendDelete = (function sendDelete(feedback) {
           if (feedback)
-            IMEManager.triggerFeedback();
+            IMEFeedback.triggerFeedback();
           if (Keyboards[this.currentKeyboard].type == 'ime' &&
               !this.currentKeyboardMode) {
             this.currentEngine.click(keyCode);
