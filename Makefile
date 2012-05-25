@@ -193,7 +193,7 @@ install-settingsdb: settingsdb install-xulrunner
 	$(ADB) push $(DB_SOURCE_PATH)/2588645841ssegtnti ${DB_TARGET_PATH}/chrome/2588645841ssegtnti
 	$(ADB) push $(DB_SOURCE_PATH)/2588645841ssegtnti.sqlite ${DB_TARGET_PATH}/chrome/2588645841ssegtnti.sqlite
 	$(ADB) shell kill $(shell $(ADB) shell toolbox ps | grep "b2g" | awk '{ print $$2; }')
-	@echo 'Rebooting b2g now. This only works on Mac now!'
+	@echo 'Rebooting b2g now. '
 
 # Generate profile/prefs.js
 preferences: install-xulrunner
