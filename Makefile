@@ -183,7 +183,7 @@ endif
 
 DB_TARGET_PATH = /data/b2g/mozilla/`$(ADB) shell ls -1 /data/b2g/mozilla/ | grep default | tr -d [:cntrl:]`/indexedDB
 ifneq ($(SYS),Darwin)
-DB_SOURCE_PATH = $(CURDIR)/build
+DB_SOURCE_PATH = $(CURDIR)/build/indexeddb
 else
 DB_SOURCE_PATH = profile/indexedDB/chrome
 endif
