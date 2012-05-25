@@ -4,6 +4,9 @@
 */
 
 const IMEController = {
+  // TODO: IMEngines are other kind of controllers, but now they are like
+  // controller's plugins. Maybe refactor is required as well but not now.
+
   BASIC_LAYOUT: -1,
   ALTERNATE_LAYOUT: -2,
   SWITCH_KEYBOARD: -3,
