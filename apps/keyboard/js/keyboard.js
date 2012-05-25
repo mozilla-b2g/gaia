@@ -102,15 +102,15 @@ const IMEManager = {
     }).bind(this));
   },
 
-  events: ['unload', 'resize'],
+  _events: ['unload', 'resize'],
 
 // TODO: Replce the former when https://bugzilla.mozilla.org/show_bug.cgi?id=754083 is solved
-//  events: ['showime', 'hideime', 'unload', 'resize'],
+//  _events: ['showime', 'hideime', 'unload', 'resize'],
   init: function km_init() {
 
     // Setup the manager
     this.updateSettings();
-    this.events.forEach((function attachEvents(type) {
+    this._events.forEach((function attachEvents(type) {
       window.addEventListener(type, this);
     }).bind(this));
 
@@ -147,7 +147,7 @@ const IMEManager = {
     IMEFeedback.uninit();
 
     // Shutdown the manager
-    this.events.forEach((function attachEvents(type) {
+    this._events.forEach((function attachEvents(type) {
       window.removeEventListener(type, this);
     }).bind(this));
   },
@@ -180,7 +180,7 @@ const IMEManager = {
         var formerWidth = this._formerWidth;
         var formerHeight = this._formerHeight;
 
-        IMEController.updateLayout(
+        IMEController.onResize(
           currentWidth, currentHeight,
           formerWidth, formerHeight
         );

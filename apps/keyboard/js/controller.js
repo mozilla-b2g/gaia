@@ -138,7 +138,7 @@ const IMEController = {
     this.updateTargetWindowHeight();
   },
 
-  updateLayout: function(nWidth, nHeight, fWidth, fHeihgt) {
+  onResize: function(nWidth, nHeight, fWidth, fHeihgt) {
     if (IMERender.ime.dataset.hidden)
       return;
 
