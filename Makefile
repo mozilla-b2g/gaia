@@ -178,7 +178,7 @@ ifeq ($(SYS),Darwin)
 	@echo "B2G pre-populate settings DB."
 	$(XULRUNNER) $(XPCSHELL) -e 'const PROFILE_DIR = "$(CURDIR)/profile"' build/settings.js
 else 
-	@echo "Can't populate on Linux."
+	@echo "Can't populate on Linux. You can still install."
 endif
 
 DB_TARGET_PATH = /data/b2g/mozilla/`$(ADB) shell ls -1 /data/b2g/mozilla/ | grep default | tr -d [:cntrl:]`/indexedDB
