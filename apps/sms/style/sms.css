@@ -192,6 +192,10 @@ input, textarea {
   position: absolute;
 }
 
+.back-button > h2 {
+  display: none;
+}
+
 .button:active {
   background: -moz-linear-gradient(bottom, hsl(39,100%,73%) 0, hsla(35,100%,80%,0.2) 2px, hsla(35,100%,50%,.4) 20%,
                 hsl(32,100%,38%) 98%, hsl(32,100%,38%) 99%, hsl(31,100%,50%) 100%),
@@ -252,7 +256,7 @@ body.msg-search-mode #msg-conversations-list {
   top: 124px;
 }
 
-#msg-conversations-list > li {
+#msg-conversations-list > a {
   -moz-box-sizing: border-box;
   display: block;
   text-decoration: none;
@@ -269,23 +273,23 @@ body.msg-search-mode #msg-conversations-list {
   -moz-transition: -moz-transform 0.3s ease;
 }
 
-body.msg-edit-mode #msg-conversations-list > li {
+body.msg-edit-mode #msg-conversations-list > a {
   -moz-transform: translateX(90px);
 }
 
-#msg-conversations-list > li:active {
+#msg-conversations-list > a:active {
   background: hsla(35,100%,50%,.2);
 }
 
-#msg-conversations-list > li.hide {
+#msg-conversations-list > a.hide {
   display: none;
 }
 
-#msg-conversations-list > li > * {
+#msg-conversations-list > a > * {
   pointer-events: none;
 }
 
-#msg-conversations-list > li:first-child {
+#msg-conversations-list > a:first-child {
   border-top-color: transparent;
 }
 
@@ -298,11 +302,11 @@ body.msg-edit-mode #msg-conversations-list > li {
   height: 100%;
 }
 
-#msg-conversations-list li > input {
+#msg-conversations-list a > input {
   display: none;
 }
 
-#msg-conversations-list li > span {
+#msg-conversations-list a > span {
   position: absolute;
   top: -moz-calc(50% - 34px);
   left: 20px;
@@ -312,7 +316,7 @@ body.msg-edit-mode #msg-conversations-list > li {
   border: none;
 }
 
-#msg-conversations-list li > input[type=checkbox] + span {
+#msg-conversations-list a > input[type=checkbox] + span {
   width: 60px;
   height: 60px;
   border: 4px solid;
@@ -324,7 +328,7 @@ body.msg-edit-mode #msg-conversations-list > li {
   background: -moz-linear-gradient(#eaeae4, #ffffff);
 }
 
-#msg-conversations-list li > input[type=checkbox]:checked + span {
+#msg-conversations-list a > input[type=checkbox]:checked + span {
   background: url("./images/checked.png") no-repeat scroll center center,
     -moz-linear-gradient(#ffffff, #eaeae4);
 }
