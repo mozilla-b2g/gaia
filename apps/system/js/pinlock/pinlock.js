@@ -9,15 +9,14 @@ var PinLock = {
     return this.pinlockOverlay = document.getElementById('pinkeypadscreen');
   },
 
-  hasPincode: false,
-  pinCode: "1234",
+  pinCode: '',
   conn: undefined,
 
   init: function pl_init() {
     this.hideKeypad();
     this.conn = window.navigator.mozMobileConnection;
     if (!this.conn) {
-      console.debug("No mozMobileConnection :(");
+      console.debug('No mozMobileConnection :(');
       return;
     }
     this.conn.addEventListener('cardstatechange', this);
@@ -26,67 +25,63 @@ var PinLock = {
   },
 
   hideKeypad: function hideKeypad() {
-    this.pinlockOverlay.style.display = "none";
+    this.pinlockOverlay.style.display = 'none';
   },
 
   showKeypad: function showKeypad() {
-    this.pinlockOverlay.style.display = "block";
-    this.updateCodeUi();
+    this.pinlockOverlay.style.display = 'block';
+    this.updateCodeUI();
   },
 
   reset: function reset() {
-    this.hasPincode = false;
-    this.pinCode = "";
+    this.pinCode = '';
   },
 
   unlockSim: function unlockSim() {
     if (!this.conn.cardState == 'pin_required') {
-      console.log("No PIN code required.");
+      console.log('No PIN code required.');
       this.reset();
       return;
     }
 
-    if (this.hasPincode) {
-      var unlock = this.conn.unlockCardLock({lockType: "pin", pin: this.pinCode});
-      var pinLock = this;
-      unlock.onsuccess = function () {
-        var res = unlock.result;
-        /* whatever happens, we need to reset the status:
-           we got a reponse from the SIM card, so either current
-           PIN code is good and we will clear and exit, or it
-           is not and there is no point in keeping it */
-        pinLock.reset();
-        console.log("Unlocking SIM: " + res.result);
-        if (res.result == true) {
-          pinLock.hideKeypad();
-        } else {
-          console.log("Bad PIN code! Number of retries: " + res.retryCount);
-          this.notifyRetryCount(res.retryCount);
-        }
-      }
-    } else {
+    if (!this.pinCode.length) {
       console.log("No PIN code provided, can't unlock.");
+      return;
     }
-
+    var unlock = this.conn.unlockCardLock({lockType: 'pin', pin: this.pinCode});
+    var pinLock = this;
+    unlock.onsuccess = function() {
+      var res = unlock.result;
+      /* whatever happens, we need to reset the status:
+         we got a reponse from the SIM card, so either current
+         PIN code is good and we will clear and exit, or it
+         is not and there is no point in keeping it */
+      pinLock.reset();
+      console.log('Unlocking SIM: ' + res.result);
+      if (res.result == true) {
+        pinLock.hideKeypad();
+      } else {
+        console.log('Bad PIN code! Number of retries: ' + res.retryCount);
+        this.notifyRetryCount(res.retryCount);
+      }
+    }
     this.reset();
   },
 
   handleSim: function handleSim() {
-    console.log("Ready to handle SIM lock.");
     if (this.conn.cardState == 'pin_required') {
-      console.log("SIM is locked, unlocking ...");
-      this.hasPincode = false;
-      this.pinCode = "";
+      console.log('SIM is locked, unlocking ...');
+      this.pinCode = '';
       this.showKeypad();
     }
   },
 
   notifyRetryCount: function notifyRetryCount(retryCount) {
     var desc = document.getElementById('pinkeypadscreen-desc');
-    desc.innerHTML = "Bad PIN, retry (" + retryCount + ")";
-  }
+    desc.innerHTML = 'Bad PIN, retry (' + retryCount + ')';
+  },
 
-  updateCodeUi: function updateCodeUi() {
+  updateCodeUI: function updateCodeUI() {
     var d = document.getElementById('pinkeypadscreen-display');
     d.innerHTML = '';
     for (var i = 0; i < this.pinCode.length; i++) {
@@ -111,33 +106,33 @@ var PinLock = {
           case 'b':
             // Back to lock screen
             if (!this.pinCode) {
+              LockScreen.lock();
               break;
             }
 
             // Back one character
             this.pinCode = this.pinCode.substr(0, this.pinCode.length - 1);
-            this.updateCodeUi();
+            this.updateCodeUI();
             break;
 
           case 'o':
-            if (this.pinCode.length > 0) {
-              this.hasPincode = true;
-              this.unlockSim();
-            } else {
-              console.log("Cannot submit empty pincode!");
+            if (!this.pinCode.length) {
+              console.log('Cannot submit empty pincode!');
+              break;
             }
+            this.unlockSim();
             break;
 
           default:
             this.pinCode += ev.target.dataset.key;
-            this.updateCodeUi();
+            this.updateCodeUI();
             break;
         }
         break;
 
       default:
-        console.log("Got unhandled event: " + ev.type);
+        console.log('Got unhandled event: ' + ev.type);
         break;
     }
-  },
+  }
 };
