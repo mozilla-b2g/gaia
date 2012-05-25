@@ -309,7 +309,7 @@ suite('SyntheticGestures', function() {
       });
 
       test('pinch (out)', function(done) {
-        SyntheticGestures.pinch(element, '10%', '10%', '20%', '10%', 2, 200, function() {
+        SyntheticGestures.pinch(element, '10%', '10%', '20%', '10%', 2, 800, function() {
           done(function() {
             assert.match(eventseq(),
                          /touchstart touchstart (touchmove )+touchend touchend/);
@@ -326,7 +326,7 @@ suite('SyntheticGestures', function() {
       });
 
       test('pinch (in)', function(done) {
-        SyntheticGestures.pinch(element, '50%', 100, '0%', 100, .75, 200, function() {
+        SyntheticGestures.pinch(element, '50%', 100, '0%', 100, .75, 800, function() {
           done(function() {
             assert.match(eventseq(),
                          /touchstart touchstart (touchmove )+touchend touchend/);
