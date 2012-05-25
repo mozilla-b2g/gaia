@@ -14,6 +14,7 @@ dump("Populate settingsdb in:" + PROFILE_DIR + "\n");
 
 // Todo: Get a list of settings
 var settings = [
+ new Setting("ril.radio.disabled", false),
  new Setting("debug.grid.enabled", false),
  new Setting("lockscreen.passcode-lock.enabled", false),
  new Setting("keyboard.layouts.english", true),
