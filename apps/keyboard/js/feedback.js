@@ -58,7 +58,9 @@ const IMEFeedback = {
     SettingsListener.observe('keyboard.clicksound', false, function(value) {
       self.clicksound = !!value;
     });
-  }
+  },
+
+  uninit: function kb_fb_uninit() {}
 
 }
 

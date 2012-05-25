@@ -78,7 +78,7 @@ const IMEController = {
   // to produce a "." followed by a space
   kSpaceDoubleTapTimeout: 700,
 
-  imeEvents: ['mouseup', 'mousedown', 'mouseover', 'mouseleave', 'transitionend'],
+  imeEvents: ['mouseup', 'mousedown', 'mouseover', 'mouseleave'],
   init: function km_con_init() {
     this.imeEvents.forEach((function imeEvents(type) {
       IMERender.ime.addEventListener(type, this);
@@ -96,6 +96,57 @@ const IMEController = {
       delete this.IMEngines[engine];
     }
 
+  },
+
+  showIME: function(type) {
+    switch (type) {
+      // basic types
+      case 'url':
+      case 'tel':
+      case 'email':
+      case 'text':
+        this.currentType = type;
+      break;
+
+      // default fallback and textual types
+      case 'password':
+      case 'search':
+      default:
+        this.currentType = 'text';
+      break;
+
+      case 'number':
+      case 'range': // XXX: should be different from number
+        this.currentType = 'number';
+      break;
+    }
+
+    if (!IMERender.ime.dataset.hidden) {
+      IMERender.updateLayout();
+      this.updateTargetWindowHeight();
+    } else {
+      IMERender.getTargetWindowMetrics();
+      IMERender.updateLayout();
+      delete IMERender.ime.dataset.hidden;
+    }
+
+    if (Keyboards[this.currentKeyboard].type == 'ime') {
+      if (this.currentEngine.show) {
+        this.currentEngine.show(type);
+      }
+    }
+    this.updateTargetWindowHeight();
+  },
+
+  updateLayout: function(nWidth, nHeight, fWidth, fHeihgt) {
+    if (IMERender.ime.dataset.hidden)
+      return;
+
+    // we presume that the targetWindow has been restored by
+    // window manager to full size by now.
+    IMERender.getTargetWindowMetrics();
+    IMERender.updateLayout();
+    this.updateTargetWindowHeight();
   },
 
   loadKeyboard: function km_loadKeyboard(name) {
@@ -153,8 +204,6 @@ const IMEController = {
 
     document.body.appendChild(script);
   },
-
-  hideIMETimer: 0,
 
   handleEvent: function km_con_handleEvent(evt) {
 
