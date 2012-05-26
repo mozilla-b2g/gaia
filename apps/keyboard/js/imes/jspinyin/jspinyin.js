@@ -3372,6 +3372,7 @@ UserDict.prototype = {
 };
 
 var SpellingParser = function spellingParser_constructor() {
+  this.spl_trie_ = SpellingTrie.get_instance();
 };
 
 
@@ -3384,9 +3385,10 @@ SpellingParser.prototype = {
   spl_trie_: null,
 
   /* ==== Public ==== */
+  
   /** Given a string, parse it into a spelling id stream.
    * @param {String} splstr The given spelling string.
-   * @return {splidx: Integer[], start_pos: Integer[], last_is_pre: Boolean}
+   * @return {spl_idx: Integer[], start_pos: Integer[], last_is_pre: Boolean}
    * If the whole string are successfully parsed, last_is_pre will be true;
    * if the whole string is not fully parsed, last_is_pre will return whether
    * the last part of the string is a prefix of a full spelling string. For
@@ -3397,7 +3399,116 @@ SpellingParser.prototype = {
    * Split char can only appear in the middle of the string or at the end.
    */
   splstr_to_idxs: function spellingParser_splstr_to_idxs(splstr) {
-
+    var defaultResult = {spl_idx: [], start_pos: [], last_is_pre: false};
+    if (!splstr) {
+      return defaultResult;
+    }
+  
+    if (!SpellingTrie.is_valid_spl_char(splstr[0])) {
+      return defaultResult;
+    }
+  
+    var last_is_pre = false;
+  
+    var node_this = this.spl_trie_.root_;
+  
+    var str_pos = 0;
+    var idx_num = 0;
+    var spl_idx = [];
+    var start_pos = [0];
+    var last_is_splitter = false;
+    var str_len = splstr.length;
+    while (str_pos < str_len) {
+      var char_this = splstr[str_pos];
+      // all characters outside of [a, z] are considered as splitters
+      if (!SpellingTrie.is_valid_spl_char(char_this)) {
+        // test if the current node is endable
+        var id_this = node_this.spelling_idx;
+        var ret = this.spl_trie_.if_valid_id_update(id_this)
+        if (ret.valid) {
+          id_this = ret.splid;
+          spl_idx[idx_num] = id_this;
+  
+          idx_num++;
+          str_pos++;
+          start_pos[idx_num] = str_pos;
+  
+          node_this = this.spl_trie_.root_;
+          last_is_splitter = true;
+          continue;
+        } else {
+          if (last_is_splitter) {
+            str_pos++;
+            start_pos[idx_num] = str_pos;
+            continue;
+          } else {
+            return {spl_idx: spl_idx, start_pos: start_pos, last_is_pre: last_is_pre};
+          }
+        }
+      }
+  
+      last_is_splitter = false;
+  
+      found_son = null;
+  
+      if (0 == str_pos) {
+        if (char_this >= 'a') {
+          found_son = this.spl_trie_.level1_sons_[StringUtils.charDiff(char_this, 'a')];
+        } else {
+          found_son = this.spl_trie_.level1_sons_[StringUtils.charDiff(char_this, 'A')];
+        }
+      } else {
+        var sons = node_this.sons;
+        // Because for Zh/Ch/Sh nodes, they are the last in the buffer and
+        // frequently used, so we scan from the end.
+        for (var i = 0; i < node_this.num_of_son; i++) {
+          var this_son = sons[i];
+          if (SpellingTrie.is_same_spl_char(
+              this_son.char_this_node, char_this)) {
+            found_son = this_son;
+            break;
+          }
+        }
+      }
+  
+      // found, just move the current node pointer to the the son
+      if (null != found_son) {
+        node_this = found_son;
+      } else {
+        // not found, test if it is endable
+        var id_this = node_this.spelling_idx;
+        var ret = this.spl_trie_.if_valid_id_update(id_this)
+        if (ret.valid) {
+          id_this = ret.splid;        
+          // endable, remember the index
+          spl_idx[idx_num] = id_this;
+  
+          idx_num++;
+          start_pos[idx_num] = str_pos;
+          node_this = this.spl_trie_.root_;
+          continue;
+        } else {
+          return {spl_idx: spl_idx, start_pos: start_pos, last_is_pre: last_is_pre};
+        }
+      }
+  
+      str_pos++;
+    }
+  
+    var id_this = node_this.spelling_idx;
+    var ret = this.spl_trie_.if_valid_id_update(id_this)
+    if (ret.valid) {
+      id_this = ret.splid;
+      // endable, remember the index
+      spl_idx[idx_num] = id_this;
+  
+      idx_num++;
+      start_pos[idx_num] = str_pos;
+    }
+  
+    last_is_pre = !last_is_splitter;
+  
+    return {spl_idx: spl_idx, start_pos: start_pos, last_is_pre: last_is_pre};
   },
 
   /**
@@ -3406,7 +3517,22 @@ SpellingParser.prototype = {
    * them into full ids.
    */
   splstr_to_idxs_f: function spellingParser_splstr_to_idxs_f(splstr) {
-
+    var ret = this.splstr_to_idxs(splstr);
+    var spl_idx =  ret.spl_idx;
+    var idx_num = spl_idx.length;
+    
+    for (var pos = 0; pos < idx_num; pos++) {
+      if (this.spl_trie_.is_half_id_yunmu(spl_idx[pos])) {
+        var full = this.spl_trie_.half_to_full(spl_idx[pos]);
+        if (full.num > 0) {
+          spl_idx[pos] = full.spl_id_start;
+        }
+        if (pos == idx_num - 1) {
+          ret.last_is_pre = false;
+        }
+      }
+    }
+    return ret;
   },
 
   /**
@@ -3420,14 +3546,25 @@ SpellingParser.prototype = {
    * is a prefix of a full spelling string.
    */
   get_splid_by_str: function spellingParser_get_splid_by_str(splstr) {
-
+    var spl_idx = [];
+    var start_pos = [];
+  
+    var ret = this.splstr_to_idxs(splstr);
+    if (ret.splidx.length != 1) {
+      return {splid: 0, is_pre: false};
+    }
+  
+    if (ret.start_pos[1] != splstr.length) {
+      return {splid: 0, is_pre: false};
+    }
+    return {splid: ret.splstr[0], is_pre: ret.last_is_pre};
   },
 
   /**
    * Splitter chars are not included.
    */
   is_valid_to_parse: function spellingParser_is_valid_to_parse(ch) {
-
+    return SpellingTrie.is_valid_spl_char(ch);
   }
 };
 
@@ -3507,6 +3644,15 @@ SpellingTrie.is_valid_spl_char = function is_valid_spl_char(ch) {
 // The caller guarantees that the two chars are valid spelling chars.
 SpellingTrie.is_same_spl_char = function is_same_spl_char(ch1, ch2) {
   return ch1.toUpperCase() == ch2.toUpperCase();
+}
+
+SpellingTrie.instance_ = null;
+
+SpellingTrie.get_instance = function get_instance() {
+  if (SpellingTrie.instance_ == null) {
+    SpellingTrie.instance_ = new SpellingTrie();
+  }
+  return SpellingTrie.instance_;
 }
 
 SpellingTrie.prototype = {
@@ -3698,7 +3844,7 @@ SpellingTrie.prototype = {
    */
   half_to_full: function spellingTrie_half_to_full(half_id) {
     if (null == this.root_ || half_id >= SpellingTrie.kFullSplIdStart) {
-      return 0;
+      return {num: 0, spl_id_start: 0};
     }
 
     var spl_id_start = this.h2f_start_[half_id];
