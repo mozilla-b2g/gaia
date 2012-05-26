@@ -26,6 +26,12 @@ if (!KeyEvent) {
   };
 }
 
+var StringUtils = {
+  charDiff: function stringUtils_charDiff(ch1, ch2) {
+    return ch1.charCodeAt(0) - ch2.charCodeAt(0);
+  }  
+}
+
 /**
  * Max terms to match for incomplete or abbreviated syllables
  */
@@ -3432,9 +3438,9 @@ var SpellingNode = function spellingNode_constructor() {
 
 SpellingNode.prototype = {
   /**
-   * @type SpellingNode
+   * @type SpellingNode[]
    */
-  first_son: null,
+  sons: null,
   /**
    * The spelling id for each node.
    * @type Integer
@@ -3443,8 +3449,11 @@ SpellingNode.prototype = {
   /**
    * @type Integer
    */
-  num_of_son: 5,
+  num_of_son: 0,
 
+  /**
+   * @type Char
+   */
   char_this_node: '',
 
   /**
@@ -3460,7 +3469,6 @@ var SpellingTrie = function spellingTrie_constructor() {
 };
 
 SpellingTrie.kFullSplIdStart = kHalfSpellingIdNum + 1;
-
 SpellingTrie.kMaxYmNum = 64;
 SpellingTrie.kValidSplCharNum = 26;
 SpellingTrie.kHalfIdShengmuMask = 0x01;
@@ -3501,26 +3509,54 @@ SpellingTrie.is_same_spl_char = function is_same_spl_char(ch1, ch2) {
   return ch1.toUpperCase() == ch2.toUpperCase();
 }
 
-SpellingTrie.char_diff = function char_diff(ch1, ch2) {
-  return ch1.charCodeAt(0) - ch2.charCodeAt(0);
-}
-
 SpellingTrie.prototype = {
  /* ==== Public ==== */
 
   /**
    * Construct the tree from the input pinyin array
    * The given string list should have been sorted.
-   * @param {String} spelling_arr The input pinyin array.
+   * @param {String[]} spelling_arr The input pinyin array.
    * @param {Number} score_amplifier is used to convert a possibility
    * value into score.
    * @param {Integer} average_score is the average_score of all spellings.
-   * The dumb node is
-   * assigned with this score.
+   * The dumb node is assigned with this score.
    */
-  construct: function spellingTrie_construct(spelling_arr, item_size, item_num,
-                 score_amplifier, average_score) {
-
+  construct: function spellingTrie_construct(spelling_arr, score_amplifier,
+                                             average_score) {
+    if (!spelling_arr)
+      return false;
+  
+    this.h2f_start_ = [];
+    this.h2f_num_ = [];
+  
+    this.spelling_buf_ = spelling_arr.concat();
+    this.spelling_num_ = spelling_arr.length;
+  
+    this.score_amplifier_ = score_amplifier;
+    this.average_score_ = average_score;
+  
+    this.splstr_queried_ = '';
+  
+    this.node_num_ = 1;
+  
+    this.root_ = new SpellingNode();
+    
+    this.level1_sons_ = [];
+  
+    this.root_.sons = this.construct_spellings_subset(0, this.spelling_num_, 0, this.root_);
+  
+    // Root's score should be cleared.
+    this.root_.score = 0;
+  
+    if (this.root_.sons.length == 0)
+      return false;
+  
+    this.h2f_start_[0] = this.h2f_num_[0] = 0;
+  
+    if (!this.build_f2h())
+      return false;
+  
+    return this.build_ym_info();
   },
 
   /**
@@ -3532,7 +3568,7 @@ SpellingTrie.prototype = {
    * it is a valid id, it needs to updated to its corresponding full id.
    */
   if_valid_id_update: function spellingTrie_if_valid_id_update(splid) {
-    if ('' == splid)
+    if (!splid)
       return {valid: false, splid: splid};
 
     if (splid >= SpellingTrie.kFullSplIdStart) {
@@ -3541,6 +3577,7 @@ SpellingTrie.prototype = {
     if (splid < SpellingTrie.kFullSplIdStart) {
       var ch = SpellingTrie.kHalfId2Sc_[splid];
       if (ch > 'Z') {
+        // For half ids of Zh/Ch/Sh, map to z/c/s (low case) 
         return {valid: true, splid: splid};
       } else {
         if (this.szm_is_enabled(ch)) {
@@ -3564,7 +3601,7 @@ SpellingTrie.prototype = {
   },
 
   is_full_id: function spellingTrie_is_full_id(splid) {
-    if (splid < kFullSplIdStart || splid >= SpellingTrie.kFullSplIdStart + this.spelling_num_)
+    if (splid < SpellingTrie.kFullSplIdStart || splid >= SpellingTrie.kFullSplIdStart + this.spelling_num_)
       return false;
     return true;
   },
@@ -3581,7 +3618,8 @@ SpellingTrie.prototype = {
       return false;
     }
 
-    return SpellingTrie.char_flags_[ch - 'A'] & SpellingTrie.kHalfIdYunmuMask;
+    return SpellingTrie.char_flags_[StringUtils.charDiff(ch, 'A')] &
+      SpellingTrie.kHalfIdYunmuMask;
   },
 
   /** Test if this char is a ShouZiMu char. This ShouZiMu char may be not
@@ -3672,8 +3710,9 @@ SpellingTrie.prototype = {
   // Return 0 if fails.
   full_to_half: function spellingTrie_full_to_half(full_id) {
     if (null == this.root_ || full_id < SpellingTrie.kFullSplIdStart ||
-        full_id > this.spelling_num_ + SpellingTrie.kFullSplIdStart)
+        full_id > this.spelling_num_ + SpellingTrie.kFullSplIdStart) {
       return 0;
+    }
 
     return this.f2h_[full_id - SpellingTrie.kFullSplIdStart];
   },
@@ -3686,14 +3725,16 @@ SpellingTrie.prototype = {
       half_id, full_id) {
     var half_fr_full = this.full_to_half(full_id);
 
-    if (half_fr_full == half_id)
+    if (half_fr_full == half_id) {
       return true;
+    }
 
     // So that Zh/Ch/Sh(whose char is z/c/s) can be matched with Z/C/S.
     var ch_f = SpellingTrie.kHalfId2Sc_[half_fr_full].toUpperCase();
     var ch_h = SpellingTrie.kHalfId2Sc_[half_id];
-    if (ch_f == ch_h)
+    if (ch_f == ch_h) {
       return true;
+    }
 
     return false;
   },
@@ -3735,19 +3776,19 @@ SpellingTrie.prototype = {
 
     if (splid >= SpellingTrie.kFullSplIdStart) {
       splid -= SpellingTrie.kFullSplIdStart;
-      this.splstr_queried_ = this.spelling_buf_[splid];
+      this.splstr_queried_ = this.spelling_buf_[splid].str;
     } else {
-      if (splid == SpellingTrie.char_diff('C', 'A') + 1 + 1) {
+      if (splid == StringUtils.charDiff('C', 'A') + 1 + 1) {
         this.splstr_queried_ = 'Ch';
-      } else if (splid == SpellingTrie.char_diff('S', 'A') + 1 + 2) {
+      } else if (splid == StringUtils.charDiff('S', 'A') + 1 + 2) {
         this.splstr_queried_ = 'Sh';
-      } else if (splid == SpellingTrie.char_diff('Z', 'A') + 1 + 3) {
+      } else if (splid == StringUtils.charDiff('Z', 'A') + 1 + 3) {
         this.splstr_queried_ = 'Zh';
       } else {
-        if (splid > SpellingTrie.char_diff('C', 'A') + 1) {
+        if (splid > StringUtils.charDiff('C', 'A') + 1) {
           splid--;
         }
-        if (splid > SpellingTrie.char_diff('S', 'A') + 1) {
+        if (splid > StringUtils.charDiff('S', 'A') + 1) {
           splid--;
         }
         this.splstr_queried_ =
@@ -3759,15 +3800,11 @@ SpellingTrie.prototype = {
 
   /* ==== Private ==== */
 
-  // The spelling table
+  /**
+   * The spelling table
+   * @type RawSpelling[]
+   */
   spelling_buf_: null,
-
-  // The size of longest spelling string, includes '\0' and an extra char to
-  // store score. For example, "zhuang" is the longgest item in Pinyin list,
-  // so spelling_size_ is 8.
-  // Structure: The string ended with '\0' + score char.
-  // An item with a lower score has a higher probability.
-  spelling_size_: 0,
 
   // Number of full spelling ids.
   spelling_num_: 0,
@@ -3785,7 +3822,6 @@ SpellingTrie.prototype = {
   // The Yunmu table.
   // Each Yunmu will be assigned with Yunmu id from 1.
   ym_buf_: null,
-  ym_size_: 0,  // The size of longest Yunmu string, '\0'included.
   ym_num_: 0,
 
   // The spelling string just queried
@@ -3795,16 +3831,6 @@ SpellingTrie.prototype = {
   // @type SpellingNode
   root_: null,
 
-  // If a none qwerty key such as a fnction key like ENTER is given, this node
-  // will be used to indicate that this is not a QWERTY node.
-  // @type SpellingNode
-  dumb_node_: null,
-
-  // If a splitter key is pressed, this node will be used to indicate that this
-  // is a splitter key.
-  // @type SpellingNode
-  splitter_node_: null,
-
   // Used to get the first level sons.
   // @type SpellingNode[SpellingTrie.kValidSplCharNum]
   level1_sons_: null,
@@ -3813,7 +3839,7 @@ SpellingTrie.prototype = {
   // h2f means half to full.
   // A half id can be a ShouZiMu id (id to represent the first char of a full
   // spelling, including Shengmu and Yunmu), or id of zh/ch/sh.
-  // [1..kFullSplIdStart-1] is the arrange of half id.
+  // [1..SpellingTrie.kFullSplIdStart-1] is the range of half id.
   h2f_start_: null,          // @type Integer[SpellingTrie.kFullSplIdStart]
   h2f_num_: null,            // @type Integer[SpellingTrie.kFullSplIdStart]
 
@@ -3827,26 +3853,249 @@ SpellingTrie.prototype = {
 
   // Construct a subtree using a subset of the spelling array (from
   // item_star to item_end).
-  // Member spelliing_buf_ and spelling_size_ should be valid.
   // parent is used to update its num_of_son and score.
   construct_spellings_subset: function spellingTrie_free_son_trie(
       item_start, item_end, level, parent) {
-
+    if (item_end <= item_start || null == parent)
+      return null;
+  
+    var sons = [];
+    var num_of_son = 0;
+    var min_son_score = 255;
+  
+    var spelling_last_start = this.spelling_buf[item_start];
+    var char_for_node = spelling_last_start.str[level];
+  
+    // Scan the array to find how many sons
+    for (var i = item_start + 1; i < item_end; i++) {
+      var spelling_current = this.spelling_buf_[i];
+      var char_current = spelling_current.str[level];
+      if (char_current != char_for_node) {
+        num_of_son++;
+        char_for_node = char_current;
+      }
+    }
+    num_of_son++;
+  
+    this.node_num_ += num_of_son;
+    sons = new Array(num_of_son);
+    for (var i = 0; i < num_of_son; i++) {
+      sons[i] = new SpellingNode();
+    }
+    
+    // Now begin construct tree
+    var son_pos = 0;
+  
+    char_for_node = spelling_last_start.str[level];
+  
+    var spelling_endable = true;
+    if (spelling_last_start.str.length > level + 1) {
+      spelling_endable = false;
+    }
+  
+    var item_start_next = item_start;
+  
+    for (var i = item_start + 1; i < item_end; i++) {
+      var spelling_current = this.spelling_buf_[i];
+      var char_current = spelling_current.str[level];
+  
+      if (char_current != char_for_node) {
+        // Construct a node
+        var node_current = sons[son_pos];
+        node_current.char_this_node = char_for_node;
+  
+        // For quick search in the first level
+        if (0 == level) {
+          this.level1_sons_[StringUtils.charDiff(char_for_node, 'A')] = node_current;
+        }
+  
+        if (spelling_endable) {
+          node_current.spelling_idx = SpellingTrie.kFullSplIdStart + item_start_next;
+        }
+  
+        if (spelling_last_start.str.length > level + 1 || i - item_start_next > 1) {
+          var real_start = item_start_next;
+          if (spelling_last_start.str.length == level + 1) {
+            real_start++;
+          }
+  
+          node_current.sons =
+              this.construct_spellings_subset(real_start, i, level + 1,
+                                         node_current);
+  
+          if (real_start == item_start_next + 1) {
+            var score_this = spelling_last_start.score;
+            if (score_this < node_current.score) {
+              node_current.score = score_this;
+            }
+          }
+        } else {
+          node_current.sons = [];
+          node_current.score = spelling_last_start.score;
+        }
+  
+        if (node_current.score < min_son_score) {
+          min_son_score = node_current.score;
+        }
+  
+        var is_half = false;
+        if (level == 0 && this.is_szm_char(char_for_node)) {
+          node_current.spelling_idx =
+            StringUtils.charDiff(char_for_node, 'A') + 1;
+          if (char_for_node > 'C') {
+            node_current.spelling_idx++;
+          }
+          if (char_for_node > 'S') {
+            node_current.spelling_idx++;
+          }
+  
+          this.h2f_num_[node_current.spelling_idx] = i - item_start_next;
+          is_half = true;
+        } else if (level == 1 && char_for_node == 'h') {
+          var ch_level0 = spelling_last_start.str[0];
+          var part_id = 0;
+          if (ch_level0 == 'C') {
+            part_id = StringUtils.charDiff('C', 'A') + 1 + 1;
+          }
+          else if (ch_level0 == 'S') {
+            part_id = StringUtils.charDiff('S', 'A') + 1 + 2;
+          }
+          else if (ch_level0 == 'Z') {
+            part_id = StringUtils.charDiff('Z', 'A') + 1 + 3;
+          }
+          if (0 != part_id) {
+            node_current.spelling_idx = part_id;
+            this.h2f_num_[node_current.spelling_idx] = i - item_start_next;
+            is_half = true;
+          }
+        }
+  
+        if (is_half) {
+          if (this.h2f_num_[node_current.spelling_idx] > 0) {
+            this.h2f_start_[node_current.spelling_idx] =
+              item_start_next + SpellingTrie.kFullSplIdStart;
+          } else {
+            this.h2f_start_[node_current.spelling_idx] = 0;
+          }
+        }
+  
+        // for next sibling
+        spelling_last_start = spelling_current;
+        char_for_node = char_current;
+        item_start_next = i;
+        spelling_endable = true;
+        if (spelling_current.str.length > level + 1) {
+          spelling_endable = false;
+        }
+        son_pos++;
+      }
+    }
+  
+    // the last one
+    var node_current = sons[son_pos];
+    node_current.char_this_node = char_for_node;
+  
+    // For quick search in the first level
+    if (0 == level) {
+      this.level1_sons_[StringUtils.charDiff(char_for_node, 'A')] = node_current;
+    }
+  
+    if (spelling_endable) {
+      node_current.spelling_idx = SpellingTrie.kFullSplIdStart + item_start_next;
+    }
+  
+    if (spelling_last_start.str.length > level + 1 ||
+        item_end - item_start_next > 1) {
+      var real_start = item_start_next;
+      if (spelling_last_start.str.length == level + 1) {
+        real_start++;
+      }
+  
+      node_current.sons =
+          this.construct_spellings_subset(real_start, item_end, level + 1,
+                                     node_current);
+  
+      if (real_start == item_start_next + 1) {
+        var score_this = spelling_last_start.score;
+        if (score_this < node_current.score) {
+          node_current.score = score_this;
+        }
+      }
+    } else {
+      node_current.sons = [];
+      node_current.score = spelling_last_start.score;
+    }
+  
+    if (node_current.score < min_son_score) {
+      min_son_score = node_current.score;
+    }
+  
+    var is_half = false;
+    if (level == 0 && this.szm_is_enabled(char_for_node)) {
+      node_current.spelling_idx = StringUtils.charDiff(char_for_node, 'A') + 1;
+      if (char_for_node > 'C') {
+        node_current.spelling_idx++;
+      }
+      if (char_for_node > 'S') {
+        node_current.spelling_idx++;
+      }
+  
+      this.h2f_num_[node_current.spelling_idx] = item_end - item_start_next;
+      is_half = true;
+    } else if (level == 1 && char_for_node == 'h') {
+      var ch_level0 = spelling_last_start.str[0];
+      var part_id = 0;
+      if (ch_level0 == 'C') {
+        part_id = StringUtils.charDiff('C', 'A') + 1 + 1;
+      }
+      else if (ch_level0 == 'S') {
+        part_id = StringUtils.charDiff('S', 'A') + 1 + 2;
+      }
+      else if (ch_level0 == 'Z') {
+        part_id = StringUtils.charDiff('Z', 'A') + 1 + 3;
+      }
+      if (0 != part_id) {
+        node_current.spelling_idx = part_id;
+        this.h2f_num_[node_current.spelling_idx] = item_end - item_start_next;
+        is_half = true;
+      }
+    }
+    if (is_half) {
+      if (this.h2f_num_[node_current.spelling_idx] > 0) {
+        this.h2f_start_[node_current.spelling_idx] =
+          item_start_next + SpellingTrie.kFullSplIdStart;
+      } else {
+        this.h2f_start_[node_current.spelling_idx] = 0;
+      }
+    }
+  
+    parent.num_of_son = num_of_son;
+    parent.score = min_son_score;
+    return sons;
   },
 
   build_f2h: function spellingTrie_build_f2h() {
-
+    this.f2h_ = [];
+  
+    for (var hid = 0; hid < SpellingTrie.kFullSplIdStart; hid++) {
+      for (var fid = this.h2f_start_[hid];
+           fid < this.h2f_start_[hid] + this.h2f_num_[hid]; fid++) {
+        this.f2h_[fid - SpellingTrie.kFullSplIdStart] = hid;
+      }
+    }
+  
+    return true;
   },
 
   // The caller should guarantee ch >= 'A' && ch <= 'Z'
   is_shengmu_char: function spellingTrie_is_shengmu_char(ch) {
-    return SpellingTrie.char_flags_[SpellingTrie.char_diff(ch, 'A')] &
+    return SpellingTrie.char_flags_[StringUtils.charDiff(ch, 'A')] &
       SpellingTrie.kHalfIdShengmuMask;
   },
 
   // The caller should guarantee ch >= 'A' && ch <= 'Z'
   is_yunmu_char: function spellingTrie_is_yunmu_char(ch) {
-    return SpellingTrie.char_flags_[SpellingTrie.char_diff(ch, 'A')] &
+    return SpellingTrie.char_flags_[StringUtils.charDiff(ch, 'A')] &
       SpellingTrie.kHalfIdYunmuMask;
   },
 
@@ -3868,6 +4117,37 @@ SpellingTrie.prototype = {
   // Build the Yunmu list, and the mapping relation between the full ids and the
   // Yunmu ids. This functin is called after the spelling trie is built.
   build_ym_info: function spellingTrie_build_ym_info() {
+    var sucess;
+    var spl_table = new SpellingTable();
+  
+    sucess = spl_table.init_table();
+    
+    for (var pos = 0; pos < this.spelling_num_; pos++) {
+      var spl_str = this.spelling_buf_[pos].str;
+      spl_str = this.get_ym_str(spl_str);
+      if (spl_str) {
+        sucess = spl_table.put_spelling(spl_str, 0);
+      }
+    }
+  
+    this.ym_buf_ = spl_table.arrange();
+    this.ym_num_ = this.ym_buf_.length;
+  
+    // Generate the maping from the spelling ids to the Yunmu ids.
+    spl_ym_ids_ = [];
+    
+    for (var id = 1; id < this.spelling_num_ + SpellingTrie.kFullSplIdStart; id++) {
+      var str = this.get_spelling_str(id);
+  
+      str = this.get_ym_str(str);
+      if (str) {
+        var ym_id = this.get_ym_id(str);
+        this.spl_ym_ids_[id] = ym_id;
+      } else {
+        this.spl_ym_ids_[id] = 0;
+      }
+    }
+    return true;    
   }
 };
 
@@ -3884,9 +4164,6 @@ RawSpelling.prototype = {
 
 /**
  * This class is used to store the spelling strings
- * The length of the input spelling string should be less or equal to the
- * spelling_size_ (set by init_table). If the input string is too long,
- * we only keep its first spelling_size_ chars.
  */
 var SpellingTable = function spellingTable_constructor() {
 };
@@ -3896,12 +4173,7 @@ SpellingTable.kNotSupportList = ['HM', 'HNG', 'NG'];
 SpellingTable.prototype = {
   /* ==== Public ==== */
 
-  /**
-   * need_score is used to indicate whether the caller needs to calculate a
-   * score for each spelling.
-   */
-  init_table: function spellingTable_init_table(need_score) {
-    this.need_score_ = need_score;  
+  init_table: function spellingTable_init_table() {
     this.raw_spellings_ = {};
     this.frozen_ = false;
     this.total_freq_ = 0;
@@ -3953,11 +4225,7 @@ SpellingTable.prototype = {
 
   /**
    * Sort the spelling strings in an array.
-   * Return the sorted spelling string array.
-   * If the table is initialized to calculate score, the score will be put at
-   * the end of the corresponding spelling string and seperated by a space. For
-   * example the spelling string "YUAN" with score 200 is expressed as
-   * "YUAN 200".
+   * @return {RawSpelling[]} Return the sorted RawSpelling array.
    * An item with a lower score has a higher probability.
    * Do not call put_spelling() and contains() after arrange().
    */
@@ -3967,42 +4235,44 @@ SpellingTable.prototype = {
       return result;
     }
   
-    if (this.need_score_) { 
-      var min_score = 1;
-      
-      for (var pos in this.raw_spellings_) {
-        this.raw_spellings_[pos].freq /= this.total_freq_;
-        if (this.raw_spellings_[pos].freq < min_score) {
-          min_score = this.raw_spellings_[pos].freq;
-        }
+    var min_score = 1;
+    
+    for (var pos in this.raw_spellings_) {
+      this.raw_spellings_[pos].freq /= this.total_freq_;
+      if (this.raw_spellings_[pos].freq < min_score) {
+        min_score = this.raw_spellings_[pos].freq;
       }
-  
-      min_score = Math.log(min_score);
-  
-      // The absolute value of min_score is bigger than any other scores because
-      // the scores are negative after log function.
-      this.score_amplifier_ = 1.0 * 255 / min_score;
-  
-      var totalScore = 0;
-      var spellingNum = 0;
-      for (var pos in this.raw_spellings_) {
-        var score = Math.floor(Math.log(this.raw_spellings_[pos].freq) * this.score_amplifier_);        
-        this.raw_spellings_[pos].score = score;
-        totalScore += score;
-        spellingNum++;
-      }
-      this.average_score_ = Math.round(totalScore / spellingNum);
     }
+
+    min_score = Math.log(min_score);
+
+    // The absolute value of min_score is bigger than any other scores because
+    // the scores are negative after log function.
+    this.score_amplifier_ = 1.0 * 255 / min_score;
+
+    var totalScore = 0;
+    var spellingNum = 0;
+    for (var pos in this.raw_spellings_) {
+      var score = Math.floor(Math.log(this.raw_spellings_[pos].freq) * this.score_amplifier_);        
+      this.raw_spellings_[pos].score = score;
+      totalScore += score;
+      spellingNum++;
+    }
+    this.average_score_ = Math.round(totalScore / spellingNum);
   
     for (var str in this.raw_spellings_) {
-      if (!this.need_score_) {
-        result.push(str);
-      } else {
-        result.push(str + ' ' + this.raw_spellings_[str].score);
-      }
+      result.push(this.raw_spellings_[str]);
     }
     
-    result.sort();
+    result.sort(function sortRawSpellings(a, b) {
+      if (a > b) {
+        return 1;
+      } else if (a < b) {
+        return -1;
+      } else {
+        return 0;
+      }
+    });
     
     this.frozen_ = true;
     return result;
@@ -4017,8 +4287,6 @@ SpellingTable.prototype = {
   },
 
   /* ==== Private ==== */
-
-  need_score_: true,
 
   /**
    * The map containing all the RawSpelling whose key is the spelling string.
