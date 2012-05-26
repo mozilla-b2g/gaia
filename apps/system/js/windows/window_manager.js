@@ -48,7 +48,7 @@ var WindowManager = (function() {
   var kLongPressInterval = 1000;
 
   // Some document elements we use
-  var screen = document.getElementById('screen');
+  var screenElement = document.getElementById('screen');
   var statusbar = document.getElementById('statusbar');
   var windows = document.getElementById('windows');
   var taskManager = document.getElementById('taskManager');
@@ -115,24 +115,16 @@ var WindowManager = (function() {
   // orientation could have changed since it was last displayed
   function setAppSize(origin) {
     var app = runningApps[origin];
+    if (!app)
+      return;
+
     var frame = app.frame;
     var manifest = app.manifest;
 
-    // FIXME: for now, we support apps (video and cut the rope) that run
-    // in landscape mode and fullscreen. Once we get real orientation
-    // support, this code will have to become more sophisticated.
-    // See https://bugzilla.mozilla.org/show_bug.cgi?id=673922
-    if (manifest.fullscreen && manifest.orientation) {
-      frame.style.width = window.innerHeight + 'px';
-      frame.style.height = window.innerWidth + 'px';
-      frame.classList.add(manifest.orientation);
-    }
-    else {
-      frame.style.width = window.innerWidth + 'px';
-      frame.style.height = manifest.fullscreen ?
-        window.innerHeight + 'px' :
-        (window.innerHeight - statusbar.offsetHeight) + 'px';
-    }
+    frame.style.width = window.innerWidth + 'px';
+    frame.style.height = manifest.fullscreen ?
+      window.innerHeight + 'px' :
+      (window.innerHeight - statusbar.offsetHeight) + 'px';
   }
 
   // Perform an "open" animation for the app's iframe
@@ -148,7 +140,7 @@ var WindowManager = (function() {
 
     if (manifest.fullscreen) {
       sprite.classList.add('fullscreen');
-      screen.classList.add('fullscreen');
+      screenElement.classList.add('fullscreen');
     }
 
     // Make the sprite look like the app that it is animating for.
@@ -243,7 +235,7 @@ var WindowManager = (function() {
 
     // If this was a fullscreen app, leave full-screen mode
     if (manifest.fullscreen)
-      screen.classList.remove('fullscreen');
+      screenElement.classList.remove('fullscreen');
 
     // If we're not doing an animation, then just switch directly
     // to the closed state. Note that we don't handle the hackKillMe
@@ -340,11 +332,40 @@ var WindowManager = (function() {
       });
     }
 
+    // Lock orientation as needed
+    if (newApp == null) {  // going to the homescreen, so force portrait
+      screen.mozLockOrientation('portrait-primary');
+    }
+    else {
+      setOrientationForApp(newApp);
+    }
+
     displayedApp = origin;
   }
 
+  function setOrientationForApp(origin) {
+    if (origin == null) { // homescreen
+      screen.mozLockOrientation('portrait-primary');
+      return;
+    }
 
-  function appendFrame(origin, url, name, manifest) {
+    var app = runningApps[origin];
+    if (!app)
+      return;
+    var manifest = app.manifest;
+    if (manifest.orientation) {
+      var rv = screen.mozLockOrientation(manifest.orientation);
+      if (rv === false) {
+        console.warn('screen.mozLockOrientation() returned false for',
+                     origin, 'orientation', manifest.orientation);
+      }
+    }
+    else {  // If no orientation was requested, then let it rotate
+      screen.mozUnlockOrientation();
+    }
+  }
+
+  function appendFrame(origin, url, name, manifest, manifestURL) {
     var frame = document.createElement('iframe');
     frame.id = 'appframe' + nextAppId++;
     frame.className = 'appWindow';
@@ -365,11 +386,14 @@ var WindowManager = (function() {
     // Note that we don't set the frame size here.  That will happen
     // when we display the app in setDisplayedApp()
 
-    // Most apps currently need to be hosted in a special 'mozbrowser' iframe
+    // Most apps currently need to be hosted in a special 'mozbrowser' iframe.
+    // They also need to be marked as 'mozapp' to be recognized as apps by the
+    // platform.
     // FIXME: a platform fix will come
     var exceptions = ['Camera'];
     if (exceptions.indexOf(manifest.name) == -1) {
       frame.setAttribute('mozbrowser', 'true');
+      frame.setAttribute('mozapp', manifestURL);
     }
 
     // Add the iframe to the document
@@ -437,7 +461,7 @@ var WindowManager = (function() {
       }
 
       var app = Applications.getByOrigin(origin);
-      appendFrame(origin, e.detail.url, app.manifest.name, app.manifest);
+      appendFrame(origin, e.detail.url, app.manifest.name, app.manifest, app.manifestURL);
     }
   });
 
@@ -474,6 +498,9 @@ var WindowManager = (function() {
 
     // Then make the taskManager overlay active
     taskManager.classList.add('active');
+
+    // Make sure we're in portrait mode
+    screen.mozLockOrientation('portrait');
 
     // If there is a displayed app, take keyboard focus away
     if (displayedApp)
@@ -530,8 +557,11 @@ var WindowManager = (function() {
     taskList.textContent = '';
 
     // If there is a displayed app, give the keyboard focus back
-    if (displayedApp)
+    // And switch back to that's apps orientation
+    if (displayedApp) {
       runningApps[displayedApp].frame.focus();
+      setOrientationForApp(displayedApp);
+    }
   }
 
   function taskSwitcherIsShown() {
@@ -602,11 +632,6 @@ var WindowManager = (function() {
 
     function keydownHandler(e) {
       if (e.keyCode !== e.DOM_VK_HOME) return;
-
-      // If the screen was blank, turn it back on as soon as the
-      // home key is pressed.
-      ScreenManager.turnScreenOn();
-
       // We don't do anything else until the Home key is released...
       // If there is not a timer running, start one so we can
       // measure how long the key is held down for.  If there is
@@ -666,6 +691,8 @@ var WindowManager = (function() {
     launch: launch,
     kill: stop,
     getDisplayedApp: getDisplayedApp,
+    setOrientationForApp: setOrientationForApp,
+    setAppSize: setAppSize,
     getAppFrame: function(origin) {
       if (isRunning(origin))
         return runningApps[origin].frame;

@@ -4,19 +4,27 @@
     <meta charset="utf-8" />
     <meta http-equiv="pragma" content="no-cache" />
     <title>Videos</title>
+    <!-- Compatibility -->
     <script>
-      var host = document.location.host;
-      var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-      var src = 'http://' + domain + '/webapi.js';
+      if (document.location.protocol === 'file:') {
+        var paths = document.location.pathname.split('/');
+        paths.pop();
+        paths.pop();
+        paths.pop();
+        var src = 'file://' + paths.join('/') + '/webapi.js';
+      } else {
+        var host = document.location.host;
+        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+        var src = 'http://' + domain + '/webapi.js';
+      }
       document.write('<script src="' + src + '"><\/script>');
-    </script>
     </script>
     <script type="text/javascript" src="js/video.js"></script>
     <link rel="resource" type="application/l10n" href="locale/video.properties" />
     <link rel="stylesheet" type="text/css" href="style/video.css" />
     <link rel="stylesheet" type="text/css" href="style/controls.css" />
     <link rel="stylesheet" type="text/css" href="style/controls-800px.css"
-          media="all and (min-height: 800px)" />
+          media="all and (min-width: 800px)" />
     <style type="text/css">
       html, body { background-color: black; overflow: hidden; }
     </style>
@@ -33,7 +41,7 @@
     </ul>
 
     <!-- 'fullscreen' (maximized) video player -->
-    <div id="videoFrame">
+    <div id="videoFrame" class="hidden">
       <video src="about:blank" id="player"></video>
       <!-- video controls -->
       <div id="videoSubtitles"></div>

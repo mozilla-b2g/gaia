@@ -4,6 +4,8 @@
 # GAIA_DOMAIN : change that if you plan to use a different domain to update   #
 #               your applications or want to use a local domain               #
 #                                                                             #
+# HOMESCREEN  : url of the homescreen to start on                             #
+#                                                                             #
 # ADB         : if you use a device and plan to send update it with your work #
 #               you need to have adb in your path or you can edit this line to#
 #               specify its location.                                         #
@@ -16,25 +18,7 @@
 ###############################################################################
 GAIA_DOMAIN?=gaiamobile.org
 
-ADB?=adb
-
-DEBUG?=0
-
-REPORTER=Spec
-
-
-###############################################################################
-# The above rules generate the profile/ folder and all its content.           #
-# The profile folder content depends on different rules:                      #
-#  1. manifests                                                               #
-#     A directory structure representing the applications installed using the #
-#     Apps API. In Gaia all applications use this method.                     #
-#     See https://developer.mozilla.org/en/Apps/Apps_JavaScript_API           #
-#                                                                             #
-#   2. offline                                                                #
-#     An Application Cache database containing Gaia apps, so the phone can be #
-###############################################################################
-GAIA_DOMAIN?=gaiamobile.org
+HOMESCREEN?=http://system.$(GAIA_DOMAIN)
 
 ADB?=adb
 
@@ -46,12 +30,12 @@ REPORTER=Spec
 ###############################################################################
 # The above rules generate the profile/ folder and all its content.           #
 # The profile folder content depends on different rules:                      #
-#  1. manifests                                                               #
+#  1. webapp manifest                                                         #
 #     A directory structure representing the applications installed using the #
 #     Apps API. In Gaia all applications use this method.                     #
 #     See https://developer.mozilla.org/en/Apps/Apps_JavaScript_API           #
 #                                                                             #
-#   2. offline                                                                #
+#  2. offline                                                                 #
 #     An Application Cache database containing Gaia apps, so the phone can be #
 #     used offline and application can be updated easily. For details about it#
 #     see: https://developer.mozilla.org/en/Using_Application_Cache           #
@@ -76,6 +60,7 @@ endif
 
 # what OS are we on?
 SYS=$(shell uname -s)
+ARCH=$(shell uname -m)
 
 ifeq ($(SYS),Darwin)
 MD5SUM = md5 -r
@@ -97,6 +82,8 @@ ifeq ($(strip $(NPM)),)
 	NPM := `which npm`
 endif
 
+TEST_AGENT_CONFIG="./apps/test-agent/config.json"
+
 #Marionette testing variables
 #make sure we're python 2.7.x
 ifeq ($(strip $(PYTHON_27)),)
@@ -110,30 +97,34 @@ MARIONETTE_PORT ?= 2828
 TEST_DIRS ?= $(CURDIR)/tests
 
 # Generate profile/
-profile: stamp-commit-hash update-offline-manifests preferences manifests offline extensions
+profile: stamp-commit-hash update-offline-manifests preferences webapp-manifests test-agent-config offline extensions
 	@echo "\nProfile Ready: please run [b2g|firefox] -profile $(CURDIR)/profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
 
 # Generate profile/webapps/
-manifests:
+# We duplicate manifest.webapp to manifest.webapp and manifest.json
+# to accommodate Gecko builds without bug 757613. Should be removed someday.
+webapp-manifests:
 	@echo "Generated webapps"
 	@mkdir -p profile/webapps
 	@echo { > profile/webapps/webapps.json
 	@cd apps; \
 	for d in `find * -maxdepth 0 -type d` ;\
 	do \
-	  if [ -f $$d/manifest.json ]; \
+	  if [ -f $$d/manifest.webapp ]; \
 		then \
 		  mkdir -p ../profile/webapps/$$d; \
-		  cp $$d/manifest.json ../profile/webapps/$$d  ;\
+		  cp $$d/manifest.webapp ../profile/webapps/$$d/manifest.webapp  ;\
+		  cp $$d/manifest.webapp ../profile/webapps/$$d/manifest.json  ;\
                   (\
 			echo \"$$d\": { ;\
 			echo \"origin\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
 			echo \"installOrigin\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
 			echo \"receipt\": null, ;\
-			echo \"installTime\": 132333986000 ;\
-                        echo },) >> ../profile/webapps/webapps.json;\
+			echo \"installTime\": 132333986000, ;\
+			echo \"manifestURL\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp\" ;\
+			echo },) >> ../profile/webapps/webapps.json;\
 		fi \
 	done
 	@$(SED_INPLACE_NO_SUFFIX) -e '$$s|,||' profile/webapps/webapps.json
@@ -158,7 +149,7 @@ endif
 # some commands for invoking it. But it is platform dependent
 ifeq ($(SYS),Darwin)
 # We're on a mac
-XULRUNNER_DOWNLOAD=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/11.0/sdk/xulrunner-11.0.en-US.mac-x86_64.sdk.tar.bz2
+XULRUNNER_DOWNLOAD=ftp://ftp.mozilla.org/pub/xulrunner/nightly/2012/05/2012-05-08-03-05-17-mozilla-central/xulrunner-15.0a1.en-US.mac-x86_64.sdk.tar.bz2
 XULRUNNER=./xulrunner-sdk/bin/run-mozilla.sh
 XPCSHELL=./xulrunner-sdk/bin/xpcshell
 
@@ -170,7 +161,11 @@ else
 # Linux only!
 # downloads and installs locally xulrunner to run the xpchsell
 # script that creates the offline cache
+ifeq ($(ARCH),x86_64)
+XULRUNNER_DOWNLOAD=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/11.0/runtimes/xulrunner-11.0.en-US.linux-x86_64.tar.bz2
+else
 XULRUNNER_DOWNLOAD=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/11.0/runtimes/xulrunner-11.0.en-US.linux-i686.tar.bz2
+endif
 XULRUNNER=./xulrunner/run-mozilla.sh
 XPCSHELL=./xulrunner/xpcshell
 
@@ -178,11 +173,24 @@ install-xulrunner :
 	test -d xulrunner || ($(DOWNLOAD_CMD) $(XULRUNNER_DOWNLOAD) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2)
 endif
 
+settingsdb :
+	@echo "B2G pre-populate settings DB."
+	$(XULRUNNER) $(XPCSHELL) -e 'const PROFILE_DIR = "$(CURDIR)/profile"' build/settings.js
+
+DB_PATH = /data/b2g/mozilla/`$(ADB) shell ls -1 /data/b2g/mozilla/ | grep default | tr -d [:cntrl:]`/indexedDB
+.PHONY: install-settingsdb
+install-settingsdb: settingsdb install-xulrunner
+	$(ADB) start-server
+	$(ADB) push profile/indexedDB/chrome/2588645841ssegtnti ${DB_PATH}/chrome/2588645841ssegtnti
+	$(ADB) push profile/indexedDB/chrome/2588645841ssegtnti.sqlite ${DB_PATH}/chrome/2588645841ssegtnti.sqlite
+	$(ADB) shell kill $(shell $(ADB) shell toolbox ps | grep "b2g" | awk '{ print $$2; }')
+	@echo 'Rebooting b2g now. This only works on Mac now!'
+
 # Generate profile/prefs.js
 preferences: install-xulrunner
 	@echo "Generating prefs.js..."
 	@mkdir -p profile
-	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)$(GAIA_PORT)"; const DEBUG = $(DEBUG)' build/preferences.js
+	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)$(GAIA_PORT)"; const DEBUG = $(DEBUG); const HOMESCREEN = "$(HOMESCREEN)"; GAIA_PORT = "$(GAIA_PORT)"' build/preferences.js
 	@echo "Done"
 
 
@@ -215,7 +223,7 @@ INJECTED_GAIA = "$(MOZ_TESTS)/browser/gaia"
 TEST_PATH=gaia/tests/${TEST_FILE}
 
 .PHONY: tests
-tests: manifests offline
+tests: webapp-manifests offline
 	echo "Checking if the mozilla build has tests enabled..."
 	test -d $(MOZ_TESTS) || (echo "Please ensure you don't have |ac_add_options --disable-tests| in your mozconfig." && exit 1)
 	echo "Checking the injected Gaia..."
@@ -241,6 +249,35 @@ update-common: common-install
 	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.css common/vendor/test-agent/
 	cp $(TEST_AGENT_DIR)/node_modules/marionette-client/marionette.js common/vendor/marionette-client/
 	cp $(TEST_AGENT_DIR)/node_modules/chai/chai.js common/vendor/chai/
+
+# Create the json config file
+# for use with the test agent GUI
+test-agent-config: test-agent-bootstrap-apps
+	@rm -f $(TEST_AGENT_CONFIG)
+	@touch $(TEST_AGENT_CONFIG)
+	@echo '{"tests": [' >> $(TEST_AGENT_CONFIG)
+
+	# Build json array of all test files
+	@(find ./apps -name "*_test.js" | \
+		sed 's:./apps/::' | \
+		sed 's:\(.*\):"\1":' | \
+		sed -e ':a' -e 'N' -e '$$!ba' -e 's/\n/,\
+	/g') >> $(TEST_AGENT_CONFIG)
+
+	@echo '  ]}' >> $(TEST_AGENT_CONFIG);
+	@echo "Built test ui config file: $(TEST_AGENT_CONFIG)"
+
+
+.PHONY: test-agent-bootstrap-apps
+test-agent-bootstrap-apps:
+	for d in `find apps/* -maxdepth 0 -type d` ;\
+	do \
+		  mkdir -p $$d/test/unit ; \
+		  mkdir -p $$d/test/integration ; \
+			cp -f ./common/test/boilerplate/_proxy.html $$d/test/unit/_proxy.html; \
+			cp -f ./common/test/boilerplate/_sandbox.html $$d/test/unit/_sandbox.html; \
+	done
+	@echo "Done bootstrapping test proxies/sandboxes";
 
 # Temp make file method until we can switch
 # over everything in test
@@ -284,8 +321,12 @@ endif
 #     let us remove the update-offline-manifests target dependancy of the
 #     default target.
 stamp-commit-hash:
-	git log -1 --format="%H%n%at" HEAD > apps/settings/gaia-commit.txt
-
+	(if [ -d ./.git ]; then \
+	  git log -1 --format="%H%n%at" HEAD > apps/settings/gaia-commit.txt; \
+	else \
+	  echo 'Unknown Git commit; build date shown here.' > apps/settings/gaia-commit.txt; \
+	  date +%s >> apps/settings/gaia-commit.txt; \
+	fi)
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 delete-databases:
@@ -313,7 +354,7 @@ update-offline-manifests:
 	@cd apps; \
 	for d in `find * -maxdepth 0 -type d` ;\
 	do \
-		if [ -f $$d/manifest.json ] ;\
+		if [ -f $$d/manifest.webapp ] ;\
 		then \
 			echo \\t$$d ;\
 			cd $$d ;\

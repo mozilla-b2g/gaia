@@ -5,15 +5,28 @@
     <meta http-equiv="pragma" content="no-cache">
     <!-- System -->
     <script>
-      var host = document.location.host;
-      var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-      var src = 'http://' + domain + '/webapi.js';
+      if (document.location.protocol === 'file:') {
+        var paths = document.location.pathname.split('/');
+        paths.pop();
+        paths.pop();
+        paths.pop();
+        var src = 'file://' + paths.join('/') + '/webapi.js';
+      } else {
+        var host = document.location.host;
+        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+        var src = 'http://' + domain + '/webapi.js';
+      }
       document.write('<script src="' + src + '"><\/script>');
     </script>
     <link rel="stylesheet" type="text/css" href="style/system.css">
     <script defer src="js/background_service.js"></script>
     <script defer src="js/bootstrap.js"></script>
     <script defer src="js/settings.js"></script>
+    <script defer src="js/storage.js"></script>
+
+    <!-- PIN Unlocking -->
+    <link rel="stylesheet" type="text/css" href="style/pinlock/pinlock.css">
+    <script defer src="js/pinlock/pinlock.js"></script>
 
     <!-- LockScreen -->
     <link rel="stylesheet" type="text/css" href="style/lockscreen/lockscreen.css">
@@ -22,6 +35,10 @@
     <!-- Statusbar -->
     <link rel="stylesheet" type="text/css" href="style/statusbar/statusbar.css">
     <script defer src="js/statusbar/statusbar.js"></script>
+
+    <!-- Notifications -->
+    <link rel="stylesheet" type="text/css" href="style/notifications/notifications.css">
+    <script defer src="js/notifications/notifications.js"></script>
 
     <!-- Dialogs -->
     <link rel="stylesheet" type="text/css" href="style/dialogs/request.css">
@@ -33,9 +50,7 @@
     <script defer src="js/windows/window_manager.js"></script>
 
     <!-- Keyboard -->
-    <link rel="stylesheet" type="text/css" href="style/keyboard/keyboard.css">
-    <script defer src="js/keyboard/layout.js"></script>
-    <script defer src="js/keyboard/keyboard.js"></script>
+    <script defer src="js/keyboard/keyboard_manager.js"></script>
 
     <!-- Bookmarks -->
     <script defer src="js/bookmarks/bookmarks.js"></script>
@@ -47,7 +62,9 @@
 
   <body onload="startup()">
     <div id="screen">
-      <div id="keyboard" data-hidden="true" onmousedown="return false;"></div>
+
+      <!-- keyboard -->
+      <iframe id='keyboardFrame' class='keyboardFrame'> </iframe>
 
       <div id="statusbar">
         <div id="state">
@@ -62,6 +79,7 @@
           <span></span>
         </div>
         <div id="wifi"></div>
+        <div id="data"></div>
         <div class="battery">
           <div id="fuel"></div>
           <div id="charging" hidden="true"></div>
@@ -70,7 +88,7 @@
       </div>
 
       <!-- homescreen -->
-      <iframe id="homescreen" mozbrowser></iframe>
+      <iframe id="homescreen" mozbrowser mozapp></iframe>
 
       <div id="windows">
         <!-- application windows are added here -->
@@ -83,16 +101,62 @@
         </div>
       </div>
       <div id="lockscreen">
-        <div id="status"></div>
-        <div id="lockscreenContainer">
+        <div id="lockscreen-container">
           <div id="clock">
-            <div id="hourMin" class="time" data-format="%H:%M"></div>
+            <div id="hour-min" class="time" data-format="%H:%M"></div>
             <div id="date">
               <span class="time" data-format="%A, %d %b"></span>
             </div>
           </div>
+          <div id="lockscreen-notification" hidden>
+            <div id="lockscreen-notification-title"></div>
+            <div id="lockscreen-notification-detail"></div>
+          </div>
         </div>
       </div>
+      <div id="keypadscreen">
+        <div id="keypadscreen-container">
+          <p id="keypadscreen-code"><span></span><span></span><span></span><span></span></p>
+          <div id="keypadscreen-pad">
+            <a href="#" data-key="1">1</a>
+            <a href="#" data-key="2">2</a>
+            <a href="#" data-key="3">3</a>
+            <a href="#" data-key="4">4</a>
+            <a href="#" data-key="5">5</a>
+            <a href="#" data-key="6">6</a>
+            <a href="#" data-key="7">7</a>
+            <a href="#" data-key="8">8</a>
+            <a href="#" data-key="9">9</a>
+            <a href="#" data-key="e" class="keypadscreen-pad-func">Emergency</a>
+            <a href="#" data-key="0">0</a>
+            <a href="#" data-key="b" class="keypadscreen-pad-func">Back</a>
+          </div>
+        </div>
+      </div>
+      <div id="pinkeypadscreen">
+        <div id="pinkeypadscreen-container">
+          <p id="pinkeypadscreen-desc"><span>Enter PIN</span></p>
+          <p id="pinkeypadscreen-code">
+            <span id="pinkeypadscreen-display"></span>
+          </p>
+          <div id="pinkeypadscreen-pad">
+            <a href="#" data-key="1">1</a>
+            <a href="#" data-key="2">2</a>
+            <a href="#" data-key="3">3</a>
+            <a href="#" data-key="4">4</a>
+            <a href="#" data-key="5">5</a>
+            <a href="#" data-key="6">6</a>
+            <a href="#" data-key="7">7</a>
+            <a href="#" data-key="8">8</a>
+            <a href="#" data-key="9">9</a>
+            <a href="#" data-key="o" class="pinkeypadscreen-pad-func">Ok</a>
+            <a href="#" data-key="0">0</a>
+            <a href="#" data-key="b" class="pinkeypadscreen-pad-func">Back</a>
+            <a href="#" data-key="e" class="pinkeypadscreen-pad-func-full">Emergency</a>
+          </div>
+        </div>
+      </div>
+
     </div>
 
     <div id="taskManager">

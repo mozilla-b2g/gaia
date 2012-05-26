@@ -8,12 +8,20 @@
     <link rel="stylesheet" type="text/css" media="screen" href="style/dialogs.css"/>
     <link rel="stylesheet" type="text/css" media="screen" href="style/settings.css"/>
     <link rel="resource" type="application/l10n" href="locale/settings.properties"/>
+    <!-- Compatibility -->
     <script>
-      var host = document.location.host;
-      var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-      var src = 'http://' + domain + '/webapi.js';
+      if (document.location.protocol === 'file:') {
+        var paths = document.location.pathname.split('/');
+        paths.pop();
+        paths.pop();
+        paths.pop();
+        var src = 'file://' + paths.join('/') + '/webapi.js';
+      } else {
+        var host = document.location.host;
+        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+        var src = 'http://' + domain + '/webapi.js';
+      }
       document.write('<script src="' + src + '"><\/script>');
-    </script>
     </script>
     <script type="text/javascript" src="js/settings.js"></script>
     <script type="text/javascript" src="js/wifi.js"></script>
@@ -26,8 +34,20 @@
     <div id="root" class="view" data-title="Settings">
       <ul>
         <li>
+          <a data-l10n-id="airPlaneMode">Air Plane Mode</a>
+          <label>
+            <input type="checkbox" name="ril.radio.disabled"/>
+            <span></span>
+          </label>
+        </li>
+        <li>
           <a href="#wifi">
             <span data-l10n-id="wifi">Wi-Fi</span>
+          </a>
+        </li>
+        <li>
+          <a href="#data">
+            <span data-l10n-id="data">Cellular &amp; Data</span>
           </a>
         </li>
         <li>
@@ -71,6 +91,11 @@
           </a>
         </li>
         <li>
+          <a href="#storage">
+            <span data-l10n-id="storage">Storage</span>
+          </a>
+        </li>
+        <li>
           <a href="#accessibility">
             <span data-l10n-id="accessibility">Accessibility</span>
           </a>
@@ -88,7 +113,7 @@
       <ul>
         <li id="status">
           <span data-l10n-id="wifi">Wi-Fi</span>
-          <small data-l10n-id="offline">offline</small>
+          <small data-l10n-id="disconnected">offline</small>
           <label>
             <input type="checkbox" />
             <span></span>
@@ -107,6 +132,47 @@
       <ul id="wifi-networks">
         <!-- filled by wifi.js -->
       </ul>
+    </div>
+
+    <!-- 3G/data -->
+    <div id="data" class="view" data-title="data">
+      <ul>
+        <li id="dataNetwork">
+          <span data-l10n-id="dataNetwork">Carrier</span>
+          <small></small>
+        </li>
+        <li>
+          <span data-l10n-id="dataConnection">Data Connection</span>
+          <small data-l10n-id="dataConnection-expl"></small>
+          <label>
+            <input type="checkbox" name="ril.data.enabled"/>
+            <span></span>
+          </label>
+        </li>
+        <li>
+          <span data-l10n-id="dataRoaming">Data Roaming</span>
+          <small data-l10n-id="dataRoaming-expl"></small>
+          <label>
+            <input type="checkbox" name="ril.data.roaming.enabled"/>
+            <span></span>
+          </label>
+        </li>
+      </ul>
+      <h2> Advanced Settings </h2>
+      <form action="#">
+        <p data-l10n-id="apn">APN</p>
+        <input type="text" name="ril.data.apn" />
+        <p data-l10n-id="identity">identity</p>
+        <input type="text" name="ril.data.user" />
+        <p data-l10n-id="password">password</p>
+        <input type="text" name="ril.data.passwd" />
+        <p data-l10n-id="mmsproxy">MMS Proxy</p>
+        <input type="text" name="ril.data.mmsproxy" />
+        <p data-l10n-id="mmsport">MMS Port</p>
+        <input type="text" name="ril.data.mmsport" />
+        <p data-l10n-id="mmsc">MMSC</p>
+        <input type="text" name="ril.data.mmsc" />
+      </form>
     </div>
 
     <!-- Phone -->
@@ -140,6 +206,19 @@
           <a data-l10n-id="ring">Ring</a>
           <label>
             <input type="checkbox" name="sms.ring.received" checked="true" />
+            <span></span>
+          </label>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Storage -->
+    <div id="storage" class="view" data-title="Storage">
+      <ul>
+        <li id="ums_enabled">
+          <a data-l10n-id="umsEnabled">USB Mass Storage Enabled</a>
+          <label>
+            <input type="checkbox" name="ums.enabled"/>
             <span></span>
           </label>
         </li>
@@ -211,10 +290,24 @@
             <span></span>
           </label>
         </li>
+        <li id="language-pt-br">
+          <a dir="ltr">Português (do Brasil)</a>
+          <label>
+            <input type="radio" name="language.current" value="pt-BR"/>
+            <span></span>
+          </label>
+        </li>
         <li id="language-ru">
           <a dir="ltr">Русский</a>
           <label>
             <input type="radio" name="language.current" value="ru"/>
+            <span></span>
+          </label>
+        </li>
+        <li id="language-tr">
+          <a dir="ltr">Türkçe</a>
+          <label>
+            <input type="radio" name="language.current" value="tr"/>
             <span></span>
           </label>
         </li>
@@ -377,6 +470,14 @@
           <a data-l10n-id="lockScreen">Lock Screen</a>
           <label>
             <input type="checkbox" name="lockscreen.enabled" checked="true"/>
+            <span></span>
+          </label>
+        </li>
+        <li>
+          <a data-l10n-id="passcode-lock">Passcode Lock</a>
+          <small data-l10n-id="passcode-lock-desc">Passcode: 0000</small>
+          <label>
+            <input type="checkbox" name="lockscreen.passcode-lock.enabled" checked="true"/>
             <span></span>
           </label>
         </li>

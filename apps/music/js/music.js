@@ -21,18 +21,35 @@ var songs = [
   }
 ];
 
-window.addEventListener('DOMContentLoaded', function() {
-  var songList = document.getElementById('songs');
-  var player = document.getElementById('player');
-  var audio = document.getElementById('playerAudio');
+var MODE_TILES = 1;
+var MODE_LIST = 2;
+var MODE_PLAYER = 3;
 
+window.addEventListener('DOMContentLoaded', function() {
+  var body = document.body;
+  var songList = document.getElementById('views-list');
+  var player = document.getElementById('player');
+  var audio = document.getElementById('player-audio');
+  
+  var titleText = document.getElementById('title-text');
+  
+  var playerCoverTitle = document.getElementById('player-cover-title');
+  var playerCoverArtist = document.getElementById('player-cover-artist');
+  var playerControlsPrevious = document.getElementById('player-controls-previous');
+  var playerControlsPlay = document.getElementById('player-controls-play');
+  var playerControlsNext = document.getElementById('player-controls-next');
+  
+  changeMode(MODE_LIST);
+  
   var content = '';
   songs.forEach(function(song) {
     content += '<li class="song">' +
-      '  <a id="' + song.file + '" href="#">' +
-      '    ' + song.title + ' - ' + song.artist +
-      '  </a>' +
-      '</li>';
+               '  <a href="#" id="' + escapeHTML(song.file, true) + '" ' + 
+               '   data-title="'+ escapeHTML(song.title, true) + '" ' + 
+               '   data-artist="'+ escapeHTML(song.artist, true) + '" ' + '>' +
+               '    ' + escapeHTML(song.title) + ' - ' + escapeHTML(song.artist) +
+               '  </a>' +
+               '</li>';
   });
   songList.innerHTML = content;
 
@@ -41,6 +58,8 @@ window.addEventListener('DOMContentLoaded', function() {
     if (!target)
       return;
     playSong(target.id); // song url is anchor id
+    playerCoverTitle.textContent = target.dataset.title;
+    playerCoverArtist.textContent = target.dataset.artist;
   });
   
   window.addEventListener('keyup', function keyPressHandler(evt) {
@@ -54,14 +73,14 @@ window.addEventListener('DOMContentLoaded', function() {
   var playing = false;
   
   function showSongList(songs) {
-    songList.classList.remove('hidden');
-    player.classList.add('hidden');
+    changeMode(MODE_LIST);
+    
     playing = false;
   }
 
   function playSong(url) {
-    songList.classList.add('hidden');
-    player.classList.remove('hidden');
+    changeMode(MODE_PLAYER);
+    
     audio.src = url;
     playing = true;
   }
@@ -69,5 +88,23 @@ window.addEventListener('DOMContentLoaded', function() {
   function stopSong(song) {
     audio.pause();
     playing = false;
+  }
+  
+  function changeMode(mode) {
+    body.classList.remove('tiles-mode');
+    body.classList.remove('list-mode');
+    body.classList.remove('player-mode');
+    
+    switch (mode) {
+      case MODE_TILES:
+        body.classList.add('tiles-mode');
+        break;
+      case MODE_LIST:
+        body.classList.add('list-mode');
+        break;
+      case MODE_PLAYER:
+        body.classList.add('player-mode');
+        break;
+    }
   }
 });

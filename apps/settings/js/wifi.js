@@ -11,9 +11,11 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
   var gStatus = (function wifiStatus(element) {
     var checkbox = element.querySelector('input[type=checkbox]');
     var infoBlock = element.querySelector('small');
+    var switching = false;
 
     // current state
     function updateState() {
+      switching = false;
       var currentNetwork = wifiManager.connection.network;
       if (currentNetwork) {
         infoBlock.textContent = _('connected', { ssid: currentNetwork.ssid });
@@ -29,11 +31,14 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
 
     // toggle wifi on/off
     checkbox.onchange = function toggleWifi() {
+      if (switching)
+        return;
+      switching = true;
       var req;
       if (wifiManager.enabled) {
         // stop wifi
         gNetworkList.clear();
-        gStatus.textContent = '';
+        infoBlock.textContent = '';
         req = wifiManager.setEnabled(false);
         req.onsuccess = updateState;
       } else {
@@ -51,6 +56,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
     return {
       get textContent() { return infoBlock.textContent; },
       set textContent(value) { infoBlock.textContent = value; },
+      get switching() { return switching; },
       update: updateState
     };
   }) (document.getElementById('status'));
@@ -128,8 +134,14 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
 
     // scan wifi networks and display them in the list
     function scan() {
-      if (!wifiManager.enabled || !navigator.mozPower.screenEnabled || scanning)
+      if (scanning)
         return;
+
+      // stop auto-scanning if wifi disabled or power saving mode
+      if (!wifiManager.enabled || !navigator.mozPower.screenEnabled) {
+        scanning = false;
+        return;
+      }
 
       var req = wifiManager.getNetworks();
       scanning = true;
@@ -156,6 +168,8 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
       };
 
       req.onerror = function(error) {
+        scanning = false;
+        console.warn('wifi error: ' + req.error.name);
         gStatus.textContent = req.error.name;
 
         // auto-rescan if requested

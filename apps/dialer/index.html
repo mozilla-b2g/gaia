@@ -6,17 +6,26 @@
     <title>Dialer</title>
     <link rel="stylesheet" type="text/css" href="style/dialer.css">
     <link rel="resource" type="application/l10n" href="locale/dialer.properties">
+    <!-- Compatibility -->
     <script>
-      var host = document.location.host;
-      var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-      var src = 'http://' + domain + '/webapi.js';
+      if (document.location.protocol === 'file:') {
+        var paths = document.location.pathname.split('/');
+        paths.pop();
+        paths.pop();
+        paths.pop();
+        var src = 'file://' + paths.join('/') + '/webapi.js';
+      } else {
+        var host = document.location.host;
+        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+        var src = 'http://' + domain + '/webapi.js';
+      }
       document.write('<script src="' + src + '"><\/script>');
-    </script>
     </script>
     <script type="application/javascript" src="js/helper.js"></script>
     <script type="application/javascript" src="js/contacts.js"></script>
     <script type="application/javascript" src="js/dialer.js"></script>
     <script type="application/javascript" src="js/recents.js"></script>
+    <script type="application/javascript" src="js/proximity.js"></script>
   </head>
 
   <body class="hidden">
@@ -32,6 +41,7 @@
 
         <div id="contacts-container-top"></div>
         <div id="contacts-view-scrollable">
+          <div id="favorites-container" onclick="Contacts.showDetails(event)"></div>
           <div id="contacts-container" onclick="Contacts.showDetails(event)"></div>
         </div>
 
@@ -175,7 +185,11 @@
             </div>
             <button data-l10n-id="edit" data-action="edit" onclick="ContactDetails.execute(event)">Edit</button>
           </div>
-          <form id="contact-details-edit" onsubmit="ContactDetails.save(this)" action="#">
+         <form id="contact-details-edit" onsubmit="ContactDetails.save(this)" action="#">
+            <label class="favorite">
+              <input id="favorited" type="checkbox" />
+              <span></span>
+            </label>
             <div class="entry">
               <span data-l10n-id="firstName">First</span>
               <input id="contact-given-name-field" data-action="autoscroll" onfocus="ContactDetails.execute(event)" />
@@ -234,5 +248,6 @@
         </div>
       </div>
     </div>
+    <div id="screen-off"></div>
   </body>
 </html>

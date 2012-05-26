@@ -4,11 +4,11 @@ const { 'classes': Cc, 'interfaces': Ci, 'results': Cr, } = Components;
 function getDirectories() {
   let appsDir = Cc["@mozilla.org/file/local;1"]
                .createInstance(Ci.nsILocalFile);
-  appsDir.initWithPath(GAIA_DIR);  
+  appsDir.initWithPath(GAIA_DIR);
   appsDir.append('apps');
 
-  let dirs = [];  
-  let files = appsDir.directoryEntries;  
+  let dirs = [];
+  let files = appsDir.directoryEntries;
   while (files.hasMoreElements()) {
     let file = files.getNext().QueryInterface(Ci.nsILocalFile);
     if (file.isDirectory()) {
@@ -19,8 +19,8 @@ function getDirectories() {
 }
 
 function getFileContent(file) {
-  let fileStream = Cc['@mozilla.org/network/file-input-stream;1']  
-                   .createInstance(Ci.nsIFileInputStream);  
+  let fileStream = Cc['@mozilla.org/network/file-input-stream;1']
+                   .createInstance(Ci.nsIFileInputStream);
   fileStream.init(file, 1, 0, false);
 
   let converterStream = Cc["@mozilla.org/intl/converter-input-stream;1"]
@@ -28,12 +28,12 @@ function getFileContent(file) {
   converterStream.init(fileStream, "utf-8", fileStream.available(),
                        Ci.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER);
 
-  let out = {};  
+  let out = {};
   let count = fileStream.available();
-  converterStream.readString(count, out);  
+  converterStream.readString(count, out);
 
-  let content = out.value;  
-  converterStream.close();  
+  let content = out.value;
+  converterStream.close();
   fileStream.close();
 
   return [content, count];
@@ -61,9 +61,9 @@ function writeContent(content) {
   file.append('profile');
   file.append('user.js');
 
-  let stream = Cc["@mozilla.org/network/file-output-stream;1"]  
-                   .createInstance(Ci.nsIFileOutputStream);  
-  stream.init(file, 0x02 | 0x08 | 0x20, 0666, 0);   
+  let stream = Cc["@mozilla.org/network/file-output-stream;1"]
+                   .createInstance(Ci.nsIFileOutputStream);
+  stream.init(file, 0x02 | 0x08 | 0x20, 0666, 0);
   stream.write(content, content.length);
   stream.close();
 }
@@ -97,19 +97,23 @@ let permissions = {
   "mozApps": {
     "urls": [],
     "pref": "dom.mozApps.whitelist"
+  },
+  "mobileconnection": {
+    "urls": [],
+    "pref": "dom.mobileconnection.whitelist"
   }
 };
 
 let content = "";
 
-let homescreen = "http://system." + GAIA_DOMAIN;
+let homescreen = HOMESCREEN + (GAIA_PORT ? GAIA_PORT : '');
 content += "user_pref(\"browser.homescreenURL\",\"" + homescreen + "\");\n\n";
 
 let privileges = [];
 
 let directories = getDirectories();
 directories.forEach(function readManifests(dir) {
-  let manifest = getJSON(dir, "manifest.json");
+  let manifest = getJSON(dir, "manifest.webapp");
   if (!manifest)
     return;
 
@@ -130,6 +134,7 @@ directories.forEach(function readManifests(dir) {
 });
 
 content += "user_pref(\"b2g.privileged.domains\", \"" + privileges.join(",") + "\");\n\n";
+content += "user_pref(\"network.dns.localDomains\", \"" + privileges.join(",") + "\");\n";
 
 for (let name in permissions) {
   let perm = permissions[name];
@@ -148,6 +153,15 @@ if (DEBUG) {
   content += "user_pref(\"dom.report_all_js_exceptions\", true);\n";
   content += "user_pref(\"nglayout.debug.disable_xul_fastload\", true);\n";
   content += "user_pref(\"browser.cache.offline.enable\", false);\n";
+  content += "user_pref(\"extensions.autoDisableScopes\", 0);\n";
+  content += "user_pref(\"browser.startup.homepage\", \"" + homescreen + "\");\n";
+
+  content += "user_pref(\"dom.mozBrowserFramesEnabled\", true);\n";
+  content += "user_pref(\"b2g.ignoreXFrameOptions\", true);\n";
+  content += "user_pref(\"dom.sms.enabled\", true);\n";
+  content += "user_pref(\"dom.mozContacts.enabled\", true);\n";
+  content += "user_pref(\"dom.mozSettings.enabled\", true);\n";
+  content += "user_pref(\"device.storage.enabled\", true);\n";
   content += "\n";
 }
 

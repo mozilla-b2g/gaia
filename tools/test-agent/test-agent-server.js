@@ -7,7 +7,7 @@ var Agent = TestAgent,
     suite = new Suite({
       path: fsPath.resolve(__dirname + '/../../apps/'),
       strictMode: false,
-      testDir: 'test/',
+      testDir: 'test/unit',
       libDir: 'js/',
       testSuffix: '_test.js'
     });

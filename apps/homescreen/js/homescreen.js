@@ -1,123 +1,135 @@
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
 'use strict';
 
 // The appscreen is the main part of the homescreen: the part that
 // displays icons that launch all of the installed apps.
-var appscreen = new AppScreen();
+var appscreen = null;
+navigator.mozApps.mgmt.getAll().onsuccess = function(e) {
+  appscreen = new AppScreen(e.target.result);
 
-/* === AppScreen === */
-function AppScreen() {
-  this.installedApps = {};
+  // Appscreen ready, now settings
+  SettingsListener.observe('language.current', 'en-US', function(value) {
+    document.mozL10n.language.code = value;
+    document.documentElement.lang = document.mozL10n.language.code;
+    document.documentElement.dir = document.mozL10n.language.direction;
 
-  var self = this;
-  navigator.mozApps.mgmt.getAll().onsuccess = function(e) {
-    var apps = e.target.result;
-
-    var lastSlash = new RegExp(/\/$/);
-    var currentHost = document.location.toString().replace(lastSlash, '');
-    apps.forEach(function(app) {
-      if (app.origin.replace(lastSlash, '') == currentHost)
-        return;
-      self.installedApps[app.origin] = app;
-    });
-
-    self.build();
-  };
-
-  window.addEventListener('resize', function resize() {
-    self.grid.update();
+    appscreen.build(true);
   });
 
-  // Listen for app installations and rebuild the appscreen when we get one
-  navigator.mozApps.mgmt.oninstall = function install(event) {
-    var newapp = event.application;
-    self.installedApps[newapp.origin] = newapp;
-    self.build(true);
-  };
-
-  // Do the same for uninstalls
-  navigator.mozApps.mgmt.onuninstall = function uninstall(event) {
-    var newapp = event.application;
-    delete self.installedApps[newapp.origin];
-    self.build(true);
-  };
-}
-
-// Look up the app object for a specified app origin
-AppScreen.prototype.getAppByOrigin = function getAppByOrigin(origin) {
-  return this.installedApps[origin];
+  SettingsListener.observe('homescreen.wallpaper', 'default.png',
+    function(value) {
+      document.getElementById('home').style.backgroundImage =
+        'url(style/backgrounds/' + value + ')';
+    }
+  );
 };
 
-// Populate the appscreen with icons. The constructor automatically calls this.
-// But we also call it when new apps are installed or when the locale changes.
-AppScreen.prototype.build = function(rebuild) {
+function AppScreen(apps) {
+  var installedApps = this.installedApps = {};
 
-  // We can't rebuild the app screen if it hasn't already been build the 
-  // the first time. This happens when we get an initial language setting
-  // observation before we get the initial list of installed apps.
-  if (rebuild && !this.grid)
-    return;
+  // Create an inner built-in list of installed apps
+  var lastSlash = new RegExp(/\/$/);
+  var currentHost = document.location.toString().replace(lastSlash, '');
+  apps.forEach(function(app) {
+    // Ignore the homescreen application itself
+    if (app.origin.replace(lastSlash, '') == currentHost)
+      return;
+    installedApps[app.origin] = app;
+  });
 
-  // If we're rebuilding, remember the page we're on
-  var startpage = rebuild ? this.grid.currentPage : 0;
+  navigator.mozApps.mgmt.oninstall = onInstall.bind(this);
+  navigator.mozApps.mgmt.onuninstall = onUninstall.bind(this);
+  window.addEventListener('resize', this.build.bind(this, true));
 
-  // If we're rebuilding remove the event handlers on the window
-  // since they're going to be re-added when we create the new IconGrid below
-  if (rebuild) {
-    window.removeEventListener('mousemove', this.grid);
-    window.removeEventListener('mouseup', this.grid);
-  }
+  function onInstall(e) {
+    installedApps[e.application.origin] = e.application;
+    this.build(true);
+  };
 
-  // Start with completely fresh elements.
-  // If we're rebuilding, this will remove all old event listeners too.
-  document.getElementById('home').innerHTML = 
-    '<div id="apps"></div><div id="dots"></div>';
+  function onUninstall(e) {
+    delete installedApps[e.application.origin];
+    this.build(true);
+  };
 
-  // Create the widgets
-  this.grid = new IconGrid('apps');
-  this.grid.dots = new Dots('dots', 'apps');
+  this.build();
+}
 
-  // The current language for localizing app names
-  for (var origin in this.installedApps) {
-    var app = this.installedApps[origin];
+AppScreen.prototype = {
+  // Look up the app object for a specified app origin
+  getAppByOrigin: function getAppByOrigin(origin) {
+    return this.installedApps[origin];
+  },
 
-    // Most apps will host their own icons at their own origin.
-    // If no icon is defined we'll get this undefined one.
-    var icon = 'http://' + document.location.host + '/style/icons/Unknown.png';
-    if (app.manifest.icons) {
-      if ('120' in app.manifest.icons) {
-        icon = app.manifest.icons['120'];
-      } else {
-        // Get all sizes
-        var sizes = Object.keys(app.manifest.icons).map(parseInt);
-        // Largest to smallest
-        sizes.sort(function(x, y) { return y - x; });
-        icon = app.manifest.icons[sizes[0]];
+  build: function build(rebuild) {
+    // We can't rebuild the app screen if it hasn't already been build the
+    // the first time. This happens when we get an initial language setting
+    // observation before we get the initial list of installed apps.
+    if (rebuild && !this.grid)
+      return;
+
+    // If we're rebuilding, remember the page we're on
+    var startpage = rebuild ? this.grid.currentPage : 0;
+
+    var className = isInEditMode() ? 'class=\"edit\"' : '';
+    document.getElementById('content').innerHTML =
+      '<div id="home">' +
+      '  <div id="apps" ' + className + '></div>' +
+      '  <div id="dots"></div>' +
+      '</div>';
+
+    var apps = [];
+    for (var origin in this.installedApps) {
+      var app = this.installedApps[origin];
+
+      // Most apps will host their own icons at their own origin.
+      // If no icon is defined we'll get this undefined one.
+      var icon = '';
+      if (app.manifest.icons) {
+        if ('120' in app.manifest.icons) {
+          icon = app.manifest.icons['120'];
+        } else {
+          // Get all sizes
+          var sizes = Object.keys(app.manifest.icons).map(parseInt);
+          // Largest to smallest
+          sizes.sort(function(x, y) { return y - x; });
+          icon = app.manifest.icons[sizes[0]];
+        }
       }
+
+      // If the icons is a fully-qualifed URL, leave it alone
+      // (technically, manifests are not supposed to have those)
+      // Otherwise, prefix with the app origin
+      if (icon.indexOf(':') == -1) {
+        // XXX it looks like the homescreen can't load images from other origins
+        // so use the ones from the url host for now
+        // icon = app.origin + icon;
+        icon = 'http://' + document.location.host + icon;
+      }
+
+      // Translate the application name
+      var name = app.manifest.name;
+      var lang = document.mozL10n.language.code;
+      if (app.manifest.locales && app.manifest.locales[lang])
+        name = app.manifest.locales[lang].name || name;
+
+      if (!icon)
+        icon = 'http://' + document.location.host + '/style/icons/Unknown.png';
+      apps.push({ 'icon': icon, 'name': name, 'origin': origin });
     }
 
-    // If the icons is a fully-qualifed URL, leave it alone
-    // (technically, manifests are not supposed to have those)
-    // Otherwise, prefix with the app origin
-    if (icon.indexOf(':') == -1) {
-      // XXX it looks like the homescreen can't load images from other origins
-      // so use the ones from the url host for now
-      // icon = app.origin + icon;
-      icon = 'http://' + document.location.host + icon;
-    }
+    // Initialize the main grid view
+    var grid = this.grid = new IconGrid('apps');
+    grid.dots = new Dots('dots', this.grid);
 
-    // Localize the app name
-    var name = app.manifest.name;
-    var lang = document.mozL10n.language.code;
-    if (app.manifest.locales &&
-        app.manifest.locales[lang] &&
-        app.manifest.locales[lang].name)
-      name = app.manifest.locales[lang].name;
+    apps.forEach(function(app) {
+      grid.add(app.icon, app.name, app.origin);
+    });
 
-    this.grid.add(icon, name, origin);
+    grid.update();
+    grid.setPage(startpage);
   }
-
-  this.grid.update();
-  this.grid.setPage(startpage);
 };
 
 function DefaultPhysics(iconGrid) {
@@ -132,9 +144,6 @@ function DefaultPhysics(iconGrid) {
   };
 }
 
-// How long do you have to hold your finger still over an icon
-// before triggering an uninstall rather than a launch.
-DefaultPhysics.HOLD_INTERVAL = 1000;
 // How many pixels can you move your finger before a tap becomes
 // a flick or a pan?
 DefaultPhysics.SMALL_MOVE = 20;
@@ -149,29 +158,14 @@ DefaultPhysics.prototype = {
     touchState.startX = e.pageX;
     touchState.startY = e.pageY;
 
-    // If this timer triggers and the user hasn't moved their finger
-    // then this is a hold rather than a tap.
-    touchState.timer = window.setTimeout(this.onHoldTimeout.bind(this),
-                                  DefaultPhysics.HOLD_INTERVAL);
-
-    // For tap and hold gestures, we keep track of what icon
-    // the touch started on. Even if it strays slightly into another
-    // nearby icon, the initial touch is probably what the user wanted.
+    // For tap we keep track of what icon the touch started on.
+    // Even if it strays slightly into another nearby icon, the initial
+    // touch is probably what the user wanted.
     touchState.initialTarget = e.target;
   },
 
   onTouchMove: function(e) {
     var touchState = this.touchState;
-
-    // If we move more than a small amount this is not a hold, so
-    // cancel the timer if it is still running
-    if (touchState.timer &&
-        (Math.abs(touchState.startX - e.pageX) > DefaultPhysics.SMALL_MOVE ||
-         Math.abs(touchState.startX - e.pageX) > DefaultPhysics.SMALL_MOVE)) {
-      clearTimeout(touchState.timer);
-      touchState.timer = null;
-    }
-
     if (!touchState.active)
       return;
 
@@ -181,13 +175,6 @@ DefaultPhysics.prototype = {
 
   onTouchEnd: function(e) {
     var touchState = this.touchState;
-
-    // If the timer hasn't triggered yet, cancel it before it does
-    if (touchState.timer) {
-      clearTimeout(touchState.timer);
-      touchState.timer = null;
-    }
-
     if (!touchState.active)
       return;
     touchState.active = false;
@@ -210,7 +197,7 @@ DefaultPhysics.prototype = {
     var iconGrid = this.iconGrid;
     var currentPage = iconGrid.currentPage;
     if (tap) {
-      iconGrid.tap(touchState.initialTarget);
+      iconGrid.tap(touchState.initialTarget, e.pageX, e.pageY);
       iconGrid.setPage(currentPage, 0);
       return;
     } else if (flick) {
@@ -222,52 +209,41 @@ DefaultPhysics.prototype = {
         iconGrid.setPage(currentPage + dir, 0.2);
     }
     e.stopPropagation();
-  },
-
-  // Triggered if the user holds their finger on the screen for
-  // DefaultPhysics.HOLD_INTERVAL ms without moving more than
-  // DefaultPhyiscs.SMALL_MOVE pixels horizontally or vertically
-  onHoldTimeout: function() {
-    var touchState = this.touchState;
-    touchState.timer = null;
-    touchState.active = false;
-    this.iconGrid.hold(touchState.initialTarget);
   }
 };
 
+
 function IconGrid(containerId) {
-  this.containerId = containerId;
   this.container = document.getElementById(containerId);
   this.icons = [];
   this.currentPage = 0;
   this.physics = new DefaultPhysics(this);
 
-  // install event handlers
   this.container.addEventListener('mousedown', this);
   window.addEventListener('mousemove', this);
   window.addEventListener('mouseup', this);
 }
 
 IconGrid.prototype = {
-  add: function(iconUrl, label, action) {
+  add: function add(iconUrl, label, action) {
     var icons = this.icons;
     var icon = { iconUrl: iconUrl, label: label, action: action };
     icon.index = icons.length;
     icons.push(icon);
   },
 
-  remove: function(icon) {
+  remove: function remove(icon) {
     this.icons.splice(icon.index);
   },
 
   // reflow the icon grid
-  update: function() {
+  update: function update() {
     var container = this.container;
     var icons = this.icons;
 
     // get pages divs
     var pages = [];
-    var rule = '#' + this.containerId + '> .page';
+    var rule = '#' + container.id + '> .page';
     var children = document.querySelectorAll(rule);
     for (var n = 0; n < children.length; n++) {
       var element = children[n];
@@ -277,21 +253,53 @@ IconGrid.prototype = {
     // get icon divs
     var iconDivs = [];
 
-    rule = '#' + this.containerId + '> .page > .icon';
+    rule = '#' + container.id + '> .page > .icon';
     children = document.querySelectorAll(rule);
     for (var n = 0; n < children.length; n++) {
       var element = children[n];
       iconDivs[element.id] = element;
     }
 
-    // issue #723 - The calculation of the width/height of the icons
-    // should be dynamic and not hardcoded like that. The reason why it
-    // it is done like that at this point is because there is no icon
-    // when the application starts and so there is nothing to calculate
-    // against.
     container.style.minHeight = container.style.maxHeight = '';
-    var iconHeight = 196;
-    var iconWidth = 132;
+
+    function getIconSize(icon) {
+      var rect = icon.getBoundingClientRect();
+      var width = rect.width;
+      var height = rect.height;
+
+      var style = window.getComputedStyle(icon, null);
+      height += parseInt(style.marginTop) + parseInt(style.marginBottom);
+      width += parseInt(style.marginLeft) + parseInt(style.marginRight);
+      return { 'width': width, 'height': height };
+    }
+
+    var size = null;
+    if (children.length === 0) {
+      var page = document.createElement('div');
+      page.className = 'page';
+
+      var icon = document.createElement('div');
+      icon.className = 'icon';
+
+      var center = document.createElement('div');
+      center.className = 'img';
+      icon.appendChild(center);
+
+      var label = document.createElement('div');
+      label.className = 'label';
+      label.textContent = 'Foo';
+      icon.appendChild(label);
+      page.appendChild(icon);
+
+      container.appendChild(page);
+      size = getIconSize(icon);
+      container.removeChild(page);
+    } else {
+      size = getIconSize(children[0]);
+    }
+
+    var iconHeight = size.height;
+    var iconWidth = size.width;
 
     var rect = container.getBoundingClientRect();
     var rows = Math.max(1, Math.floor(rect.height / iconHeight));
@@ -309,7 +317,7 @@ IconGrid.prototype = {
         continue;
 
       page = document.createElement('div');
-      page.id = n;
+      page.id = 'page_' + n;
       page.className = 'page';
       container.appendChild(page);
 
@@ -324,7 +332,6 @@ IconGrid.prototype = {
       }
     }
 
-
     // adjust existing icons and create new ones as needed
     var iconsCount = icons.length;
     for (var n = 0; n < iconsCount; ++n) {
@@ -333,7 +340,7 @@ IconGrid.prototype = {
       var iconDiv = iconDivs[n];
       if (!iconDiv) { // missing icon
         iconDiv = document.createElement('div');
-        iconDiv.id = n;
+        iconDiv.id = 'app_' + n;
         iconDiv.className = 'icon';
         iconDiv.style.backgroundImage = 'url("' + icon.iconUrl + '")';
         iconDiv.dataset.url = icon.action;
@@ -370,23 +377,23 @@ IconGrid.prototype = {
       dots.update(this.currentPage);
   },
 
-  pan: function(x, duration) {
+  pan: function pan(x, duration) {
     var pages = this.container.childNodes;
     var currentPage = this.currentPage;
     for (var n = 0; n < pages.length; ++n) {
       var page = pages[n];
 
-      var calc = (document.dir == 'ltr') ?
+      var translate = (document.dir == 'ltr') ?
         (n - currentPage) + '00% + ' + x + 'px' :
         (currentPage - n) + '00% + ' + x + 'px';
 
       var style = page.style;
-      style.MozTransform = 'translateX(-moz-calc(' + calc + '))';
+      style.MozTransform = 'translateX(-moz-calc(' + translate + '))';
       style.MozTransition = duration ? ('all ' + duration + 's ease;') : '';
     }
   },
 
-  setPage: function(number, duration) {
+  setPage: function setPage(number, duration) {
     var pages = this.container.childNodes;
     if (number < 0)
       number = 0;
@@ -404,53 +411,68 @@ IconGrid.prototype = {
     if (dots)
       dots.update(number);
   },
-  tap: function(target) {
-    var app = appscreen.getAppByOrigin(target.dataset.url);
-    app.launch();
-  },
-  hold: function(target) {
-    var app = appscreen.getAppByOrigin(target.dataset.url);
 
-    // FIXME: localize this message
-    // FIXME: This could be a simple confirm() (see bug 741587)
-    requestPermission(
-      'Do you want to uninstall ' + app.manifest.name + '?',
-      function() { app.uninstall(); },
-      function() { }
-    );
+  length: function length() {
+    return this.container.childNodes.length;
   },
-  handleEvent: function(e) {
-    var physics = this.physics;
-    switch (e.type) {
-    case 'mousedown':
-      physics.onTouchStart(e);
-      break;
-    case 'mousemove':
-      physics.onTouchMove(e);
-      break;
-    case 'mouseup':
-      physics.onTouchEnd(e);
-      break;
-    default:
+
+  tap: function tap(target, x, y) {
+    if (!('url' in target.dataset)) {
       return;
     }
-    e.preventDefault();
+
+    var app = appscreen.getAppByOrigin(target.dataset.url);
+    if (!isInEditMode()) {
+      if (!app.launch) {
+        window.open(app.origin);
+        return;
+      }
+
+      app.launch();
+      return;
+    }
+
+    // If the click happens in the top-right corner in edit-mode, this is
+    // to uninstall the application.
+    var rect = target.getBoundingClientRect();
+    if (x > rect.left + rect.width - 20 &&
+        x < rect.left + rect.width + 20 &&
+        y > rect.top - 20 && y < rect.top + 20) {
+      app.uninstall();
+    }
+  },
+  handleEvent: function handleEvent(e) {
+    var physics = this.physics;
+    switch (e.type) {
+      case 'mousedown':
+        physics.onTouchStart(e);
+        break;
+      case 'mousemove':
+        physics.onTouchMove(e);
+        break;
+      case 'mouseup':
+        physics.onTouchEnd(e);
+        break;
+      case 'contextmenu':
+        physics.touchState.active = false;
+        break;
+      default:
+        return;
+    }
   }
 };
 
-function Dots(containerId, gridId) {
-  this.containerId = containerId;
-  this.gridId = gridId;
+
+function Dots(containerId, grid) {
   this.container = document.getElementById(containerId);
-  this.grid = document.getElementById(gridId);
+  this.grid = grid;
 }
 
 Dots.prototype = {
   update: function(current) {
     var container = this.container;
     var grid = this.grid;
-
-    var numPages = grid.childNodes.length;
+    var numPages = grid.length();
 
     // Add additional dots if needed.
     while (container.childNodes.length < numPages) {
@@ -472,7 +494,33 @@ Dots.prototype = {
       } else {
         dot.classList.remove('active');
       }
+
+      dot.addEventListener('click', this);
     }
+  },
+
+  click: function(e) {
+    var childNodes = this.container.childNodes;
+    var length = childNodes.length;
+
+    for (var n = 0; n < length; ++n) {
+      var dot = childNodes[n];
+      if (dot == e.target) {
+        this.grid.setPage(n, 0.2);
+        break;
+      }
+    }
+  },
+
+  handleEvent: function(e) {
+    switch (e.type) {
+    case 'click':
+      this.click(e);
+      break;
+    default:
+      return;
+    }
+    e.preventDefault();
   }
 };
 

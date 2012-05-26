@@ -5,6 +5,7 @@
 
 function startup() {
   LockScreen.init();
+  PinLock.init();
   StatusBar.init();
   KeyHandler.init();
   SleepMenu.init();
@@ -13,13 +14,32 @@ function startup() {
     // FIXME Loop over all the registered activities from the applications
     //       list and start up the first application found registered for
     //       the HOME activity.
-    var host = document.location.host;
-    var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-    var homescreenURL = 'http://homescreen.' + domain;
-    document.getElementById('homescreen').src = homescreenURL;
+    if (document.location.protocol === 'file:') {
+      var paths = document.location.pathname.split('/');
+      paths.pop();
+      paths.pop();
+      var src = 'file://' + paths.join('/') + '/homescreen/index.html';
+    } else {
+      var host = document.location.host;
+      var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+      var src = 'http://homescreen.' + domain;
+    }
+    document.getElementById('homescreen').src = src;
 
     ScreenManager.turnScreenOn();
   });
+
+  // This is code copied from
+  // http://dl.dropbox.com/u/8727858/physical-events/index.html
+  // It appears to workaround the Nexus S bug where we're not
+  // getting orientation data.  See:
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=753245
+  function dumbListener2(event) {}
+  window.addEventListener("devicemotion", dumbListener2, false);
+  
+  window.setTimeout(function() {
+    window.removeEventListener("devicemotion", dumbListener2, false);
+  }, 2000);
 }
 
 var SoundManager = {
@@ -87,7 +107,10 @@ var SleepMenu = {
         var action = evt.target.dataset.value;
         switch (action) {
           case 'airplane':
-            // XXX There is no API for that yet
+            var settings = window.navigator.mozSettings;
+            if (settings)
+              settings.getLock().set({ 'ril.radio.disabled': true});
+
             break;
           case 'silent':
             var settings = window.navigator.mozSettings;

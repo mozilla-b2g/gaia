@@ -17,29 +17,168 @@ html, body {
   height: 100%;
   padding: 0;
   margin: 0;
+  background-color: #575E66;
 }
 
 body {
+  overflow: hidden;
+  position: relative;
+}
+
+/* These are only in use when we are current on the tabs screen */
+.tabs-screen iframe {
+  pointer-events: none;
+}
+
+.tabs-screen #main-screen {
+  opacity: 0.5;
+}
+
+.current {
+  background: black;
+}
+
+#tray {
+  -moz-transition: 0.2s ease-in-out;
+  position: absolute;
+  left: 70px;
+  right: 20px;
+  top: 0;
+  bottom: 0;
+  color: white;
+  z-index: 40;
+}
+
+#new-tab {
+  height: 30px;
+  margin: 18px;
+  border: 0;
+  color: white;
+  background: black;
+  font-size: 16px;
+  padding: 5px;
+  cursor: pointer;
+}
+
+#tabs-list {
+  border-top: 1px solid #333;
+  overflow-y: auto;
+  position:absolute;
+  top: 64px;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+}
+
+#tabs-list ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+#tabs-list li a {
+  display: block;
+  height: 100%;
+  padding: 5px;
+  margin-right:50px;
+}
+
+#tabs-list li {
+  margin: 0;
+  height: 80px;
+  border-bottom: 1px solid #333;
+  font-family: 'Open Sans', sans-serif;
+  overflow: hidden;
+  position: relative;
+}
+
+#tabs-list li a:hover {
+  background: #333;
+  cursor: pointer;
+}
+
+#tabs-list img {
+  display: block;
+  width: 90px;
+  height: 60px;
+  background: grey;
+  float:left;
+  border-radius: 5px;
+  margin: 5px 10px 5px 5px;
+  pointer-events: none;
+}
+
+#tabs-list span {
+  pointer-events: none;
+}
+
+#tabs-list .close:hover {
+  color: #666;
+}
+
+#tabs-list .close {
+  font-family: 'Open Sans', sans-serif;
+  border: 0px;
+  position: absolute;
+  right: 0px;
+  height: 100%;
+  width: 50px;
+  top: 0;
+  background: transparent;
+  font-size: 28px;
+  color: white;
+  padding-bottom: 7px;
+}
+
+#main-screen {
+ -moz-transition: 0.2s ease-in-out;
   margin: 0;
   display: -moz-box;
   -moz-box-orient: vertical;
   width: 100%;
   height: 100%;
-  background-color: #000;
   font-family: 'Open Sans', sans-serif;
+  z-index: 50;
+  position: relative;
+}
+
+#tabs-badge {
+  font-family: 'Open Sans', sans-serif;
+  position: absolute;
+  right: 0px;
+  top: 0;
+  font-size:28px;
+  color:white;
+  z-index: 100;
+  display: block;
+  width: 50px;
+  height: 62px;
+  line-height: 62px;
+  text-align: center;
+  cursor: pointer;
+  -moz-user-select: none;
 }
 
 #toolbar-start {
   display: -moz-box;
   -moz-box-orient: horizontal;
   border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
-  border-bottom: solid 2px #a3a3a3;
+  border-top-right-radius: 20px;
+  margin-right: 50px;
 }
 
-#toolbar-start.loading {
-  border-bottom-width: 4px;
-  -moz-border-image: url('images/progress.gif') 0 1 100% 1;
+#throbber {
+  position: absolute;
+  top: -3px;
+  width: 100%;
+  height: 3px;
+  background-image: -moz-linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.3));
+  z-index: 100;
+}
+
+#throbber.loading {
+  height: 4px;
+  background-image: url('images/progress.gif');
 }
 
 #toolbar-end {
@@ -52,8 +191,9 @@ body {
   -moz-box-orient: horizontal;
   padding: 0;
   margin: 0;
-  border: solid 2px #9ca1a6;
-  border-radius: 22px;
+  border: solid 1px;
+  border-color: #9CA1A6;
+  border-radius: 16px;
   height: 44px;
   margin: 9px 8px;
   padding: 0 0 0 16px;
@@ -78,7 +218,7 @@ body {
 menu[type="toolbar"] {
   height: 62px;
   background-color: #fff;
-  background-image: -moz-linear-gradient(#fff, #eaeae4);
+  background-image: -moz-linear-gradient(#EEE, #C3CED9);
   margin: 0;
   padding: 0;
 }
@@ -125,20 +265,72 @@ input::-moz-focus-inner {
   display: none;
 }
 
-#browser-content {
+#frames {
   -moz-box-flex: 1;
   width: 100%;
-  border: none;
-  background-color: white;
+  position: relative;
+  background: white;
 }
 
-#shade {
+#frames > iframe {
   position: absolute;
-  bottom: 62px;
-  left: 0;
+  display: block;
+  height: 100%;
   width: 100%;
-  height: -moz-calc(100% - 62px);
-  background-color: rgba(5, 5, 5, 0.5);
+  border: none;
+}
+
+#awesomescreen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 60;
+  background-color: #fff;
+}
+
+#awesomescreen.hidden {
+  display: none;
+}
+
+#awesomescreen ul {
+  margin: 0;
+  padding: 0;
+}
+
+#awesomescreen li {
+  list-style-type: none;
+  border-bottom: solid 1px #ccc;
+}
+
+#awesomescreen li:last-child {
+  border-bottom: none;
+}
+
+#awesomescreen li a {
+  display: block;
+  padding: 8px;
+  text-decoration: none;
+  color: #000;
+}
+
+#awesomescreen li span {
+  display: block;
+}
+
+#awesomescreen li small {
+  display: block;
+  color: #666;
+}
+
+#history{
+  height: 100%;
+  overflow-y: auto;
+}
+
+#history-list {
+  -moz-box-flex: 1;
 }
 
 #browser-menu {

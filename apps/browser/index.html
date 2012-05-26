@@ -12,19 +12,40 @@
   </head>
 
   <body>
-    <menu type="toolbar" id="toolbar-start">
-      <form id="url-bar">
-        <input type="url" id="url-input" value="http://www.google.com/m"></input>
-        <input type="image" id="url-button" src="style/images/go.png"></input>
-      </form>
-    </menu>
-    <iframe id="browser-content" mozbrowser>
-    </iframe>
 
-    <div id="shade" class="hidden"></div>
-    <menu type="toolbar" id="toolbar-end">
-      <button type="button" value="" id="back-button" alt="Back" title="" disabled="true"></button>
-      <button type="button" value="" id="forward-button" alt="Forward" title="" disabled="true"></button>
+    <div id="main-screen">
+
+      <menu type="toolbar" id="toolbar-start">
+        <form id="url-bar">
+          <input type="url" id="url-input" placeholder="Enter Address" />
+          <input type="image" id="url-button" value="" />
+        </form>
+      </menu>
+
+      <div id="frames">
+        <div id="throbber"></div>
+        <div id="awesomescreen" class="hidden">
+          <section id="history">
+            <ul id="history-list" role="listbox"></ul>
+          </section>
+        </div>
+      </div>
+
+      <menu type="toolbar" id="toolbar-end">
+        <button type="button" value="" id="back-button" alt="Back"
+                title="" disabled="true"></button>
+        <button type="button" value="" id="forward-button" alt="Forward"
+                title="" disabled="true"></button>
+      </menu>
+
+    </div>
+
+    <div id="tray">
+      <div id="tabs-list"></div>
+    </div>
+
+    <div id="tabs-badge"></div>
+
   </body>
 
 </html>

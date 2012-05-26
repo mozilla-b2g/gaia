@@ -1,6 +1,0 @@
-{
-  "tests": [
-    "test-agent/test/lib_test.js",
-    "test-agent/test/device/drive_test.js"
-  ]
-}
