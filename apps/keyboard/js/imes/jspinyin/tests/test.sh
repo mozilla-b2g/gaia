@@ -4,5 +4,8 @@
 # http://ftp.mozilla.org/pub/mozilla.org/firefox/nightly/latest-trunk/
 
 JSSHELL=js
-
-$JSSHELL -U `dirname $0`/test*.js 
+cwd=`dirname $0`
+for i in `find $cwd/test*.js`
+do
+  $JSSHELL -U $i
+done

@@ -3871,12 +3871,15 @@ SpellingTrie.prototype = {
   }
 };
 
-var RawSpelling = function rawSpelling_constructor() {
+var RawSpelling = function rawSpelling_constructor(str, freq) {
+  this.str = str;
+  this.freq = freq;
 };
 
 RawSpelling.prototype = {
   str: '',
-  freq: 0
+  freq: 0,
+  score: 0
 };
 
 /**
@@ -3888,22 +3891,22 @@ RawSpelling.prototype = {
 var SpellingTable = function spellingTable_constructor() {
 };
 
-SpellingTable.kMaxSpellingSize = SYLLALBLE_MAX_LENGTH;
-SpellingTable.kNotSupportNum = 3;
-SpellingTable.kNotSupportList[kNotSupportNum][kMaxSpellingSize + 1];
+SpellingTable.kNotSupportList = ['HM', 'HNG', 'NG'];
 
 SpellingTable.prototype = {
   /* ==== Public ==== */
 
   /**
-   * pure_spl_size is the pure maximum spelling string size. For example,
-   * "zhuang" is the longgest item in Pinyin, so pure_spl_size should be 6.
-   * spl_max_num is the maximum number of spelling strings to store.
    * need_score is used to indicate whether the caller needs to calculate a
    * score for each spelling.
    */
-  init_table: function spellingTable_init_table(
-      pure_spl_size, spl_max_num, need_score) {
+  init_table: function spellingTable_init_table(need_score) {
+    this.need_score_ = need_score;  
+    this.raw_spellings_ = {};
+    this.frozen_ = false;
+    this.total_freq_ = 0;
+    this.score_amplifier_ = 0;
+    this.average_score_ = 0;
   },
 
   /**
@@ -3913,8 +3916,27 @@ SpellingTable.prototype = {
    * freq is the spelling's occuring count.
    * If the spelling has been in the table, occuring count will accumulated.
    */
-  put_spelling: function spellingTable_put_spelling(spelling_str, spl_count) {
-
+  put_spelling: function spellingTable_put_spelling(spelling_str, freq) {
+    if (this.frozen_ || !spelling_str)
+      return false;
+  
+    var notSupportNum = SpellingTable.kNotSupportList.length;
+    for (var pos = 0; pos < notSupportNum; pos++) {
+      if (spelling_str == SpellingTable.kNotSupportList[pos]) {
+        return false;
+      }
+    }
+  
+    this.total_freq_ += freq;
+    
+    if (!(spelling_str in this.raw_spellings_)) {
+      this.raw_spellings_[spelling_str] = new RawSpelling(spelling_str, 0);
+      this.spelling_num_++;
+    }
+    
+    this.raw_spellings_[spelling_str].freq += freq;
+    
+    return true;
   },
 
   /**
@@ -3923,51 +3945,87 @@ SpellingTable.prototype = {
    * init_table() operation.
    */
   contain: function spellingTable_contain(spelling_str) {
-
+    if (this.frozen_ || !spelling_str)
+      return false;
+    
+    return (spelling_str in this.raw_spellings_);
   },
 
   /**
-   * Sort the spelling strings and put them from the begin of the buffer.
-   * Return the pointer of the sorted spelling strings.
-   * item_size and spl_num return the item size and number of spelling.
-   * Because each spelling uses a '\0' as terminator, the returned item_size is
-   * at least one char longer than the spl_size parameter specified by
-   * init_table(). If the table is initialized to calculate score, item_size
-   * will be increased by 1, and current_spl_str[item_size - 1] stores an
-   * unsinged char score.
+   * Sort the spelling strings in an array.
+   * Return the sorted spelling string array.
+   * If the table is initialized to calculate score, the score will be put at
+   * the end of the corresponding spelling string and seperated by a space. For
+   * example the spelling string "YUAN" with score 200 is expressed as
+   * "YUAN 200".
    * An item with a lower score has a higher probability.
    * Do not call put_spelling() and contains() after arrange().
    */
   arrange: function spellingTable_arrange() {
-
+    var result = [];
+    if (null == this.raw_spellings_) {
+      return result;
+    }
+  
+    if (this.need_score_) { 
+      var min_score = 1;
+      
+      for (var pos in this.raw_spellings_) {
+        this.raw_spellings_[pos].freq /= this.total_freq_;
+        if (this.raw_spellings_[pos].freq < min_score) {
+          min_score = this.raw_spellings_[pos].freq;
+        }
+      }
+  
+      min_score = Math.log(min_score);
+  
+      // The absolute value of min_score is bigger than any other scores because
+      // the scores are negative after log function.
+      this.score_amplifier_ = 1.0 * 255 / min_score;
+  
+      var totalScore = 0;
+      var spellingNum = 0;
+      for (var pos in this.raw_spellings_) {
+        var score = Math.floor(Math.log(this.raw_spellings_[pos].freq) * this.score_amplifier_);        
+        this.raw_spellings_[pos].score = score;
+        totalScore += score;
+        spellingNum++;
+      }
+      this.average_score_ = Math.round(totalScore / spellingNum);
+    }
+  
+    for (var str in this.raw_spellings_) {
+      if (!this.need_score_) {
+        result.push(str);
+      } else {
+        result.push(str + ' ' + this.raw_spellings_[str].score);
+      }
+    }
+    
+    result.sort();
+    
+    this.frozen_ = true;
+    return result;
   },
 
   get_score_amplifier: function spellingTable_get_score_amplifier() {
-
+    return this.score_amplifier_;
   },
 
   get_average_score: function spellingTable_get_average_score() {
-
+    return this.average_score_;
   },
 
   /* ==== Private ==== */
 
-
   need_score_: true,
 
+  /**
+   * The map containing all the RawSpelling whose key is the spelling string.
+   */
   raw_spellings_: null,
 
-  /**
-   * Used to store spelling strings. If the spelling table needs to calculate
-   * score, an extra char after each spelling string is the score.
-   * An item with a lower score has a higher probability.
-   */
-  spelling_buf_: null,
-  spelling_size_: 0,
-
   total_freq_: 0,
-
-  spelling_num_: 0,
 
   score_amplifier_: 0,
 
@@ -3976,15 +4034,7 @@ SpellingTable.prototype = {
   /**
    * If frozen is true, put_spelling() and contain() are not allowed to call.
    */
-  frozen_: false,
-
-  get_hash_pos: function spellingTable_get_hash_pos(spelling_str) {
-
-  },
-
-  hash_pos_next: function spellingTable_hash_pos_next(hash_pos) {
-
-  }
+  frozen_: false
 };
 
 var jspinyin = new IMEngine(new PinyinParser());
@@ -4000,6 +4050,7 @@ if (typeof IMEManager !== 'undefined')
 // For unit tests
 if (typeof Test !== 'undefined') {
   Test.PinyinParser = PinyinParser;
+  Test.SpellingTable = SpellingTable;
 }
 
 })();
