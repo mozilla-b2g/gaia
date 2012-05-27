@@ -78,122 +78,132 @@ suite('SyntheticGestures', function() {
     if (touchDevice) {
       test('tap', function(done) {
         SyntheticGestures.tap(element, function() {
-          assert.equal(eventseq(), 'touchstart touchend');
-          assert.equal(events[0].changedTouches[0].clientX, 10);
-          assert.equal(events[0].changedTouches[0].clientY, 20);
-          assert.equal(events[1].changedTouches[0].clientX, 10);
-          assert.equal(events[1].changedTouches[0].clientY, 20);
-          done();
+          done(function() {
+            assert.equal(eventseq(), 'touchstart touchend');
+            assert.equal(events[0].changedTouches[0].clientX, 10);
+            assert.equal(events[0].changedTouches[0].clientY, 20);
+            assert.equal(events[1].changedTouches[0].clientX, 10);
+            assert.equal(events[1].changedTouches[0].clientY, 20);
+          });
         }, 10, 20);
       });
 
       test('dbltap', function(done) {
         SyntheticGestures.dbltap(element, function() {
-          assert.equal(eventseq(), 'touchstart touchend touchstart touchend');
-          assert.equal(events[0].changedTouches[0].clientX, 10);
-          assert.equal(events[0].changedTouches[0].clientY, 20);
-          assert.equal(events[3].changedTouches[0].clientX, 10);
-          assert.equal(events[3].changedTouches[0].clientY, 20);
-          done();
+          done(function() {
+            assert.equal(eventseq(), 'touchstart touchend touchstart touchend');
+            assert.equal(events[0].changedTouches[0].clientX, 10);
+            assert.equal(events[0].changedTouches[0].clientY, 20);
+            assert.equal(events[3].changedTouches[0].clientX, 10);
+            assert.equal(events[3].changedTouches[0].clientY, 20);
+          });
         }, 10, 20);
       });
 
       test('swipe', function(done) {
         SyntheticGestures.swipe(element, 0, 0, 100, 100, 100, function() {
-          assert.match(eventseq(), /touchstart (touchmove )+touchend/);
-          assert.equal(events[0].changedTouches[0].clientX, 0);
-          assert.equal(events[0].changedTouches[0].clientY, 0);
-          assert.equal(events[events.length - 1].changedTouches[0].clientX, 100);
-          assert.equal(events[events.length - 1].changedTouches[0].clientY, 100);
-          done();
+          done(function() {
+            assert.match(eventseq(), /touchstart (touchmove )+touchend/);
+            assert.equal(events[0].changedTouches[0].clientX, 0);
+            assert.equal(events[0].changedTouches[0].clientY, 0);
+            assert.equal(events[events.length - 1].changedTouches[0].clientX, 100);
+            assert.equal(events[events.length - 1].changedTouches[0].clientY, 100);
+          });
         });
       });
 
       test('hold', function(done) {
         SyntheticGestures.hold(element, 100, 0, 0, 100, 100, 100, function() {
-          assert.match(eventseq(), /touchstart (touchmove )+touchend/);
-          assert.equal(events[0].changedTouches[0].clientX, 0);
-          assert.equal(events[0].changedTouches[0].clientY, 0);
-          assert.equal(events[events.length - 1].changedTouches[0].clientX, 100);
-          assert.equal(events[events.length - 1].changedTouches[0].clientY, 100);
-          done();
+          done(function() {
+            assert.match(eventseq(), /touchstart (touchmove )+touchend/);
+            assert.equal(events[0].changedTouches[0].clientX, 0);
+            assert.equal(events[0].changedTouches[0].clientY, 0);
+            assert.equal(events[events.length - 1].changedTouches[0].clientX, 100);
+            assert.equal(events[events.length - 1].changedTouches[0].clientY, 100);
+          });
         });
       });
 
       test('pinch (out)', function(done) {
-        SyntheticGestures.pinch(element, 100, 100, 200, 100, 2, 200, function() {
-          assert.match(eventseq(),
-                       /touchstart touchstart (touchmove )+touchend touchend/);
-          assert.equal(events[0].touches.length, 1);
-          assert.equal(events[1].touches.length, 2);
-          assert.equal(events[1].targetTouches.length, 2);
-          var e = events[events.length - 3];  // last touchmove event
-          var t1 = e.targetTouches[0];
-          var t2 = e.targetTouches[1];
-          var dx = Math.abs(t1.clientX - t2.clientX);
-          assert.equal(dx, 200); // 100px * 2
-          done();
+        SyntheticGestures.pinch(element, 100, 100, 200, 100, 2, 800, function() {
+          done(function() {
+            assert.match(eventseq(),
+                         /touchstart touchstart (touchmove )+touchend touchend/);
+            assert.equal(events[0].touches.length, 1);
+            assert.equal(events[1].touches.length, 2);
+            assert.equal(events[1].targetTouches.length, 2);
+            var e = events[events.length - 3];  // last touchmove event
+            var t1 = e.targetTouches[0];
+            var t2 = e.targetTouches[1];
+            var dx = Math.abs(t1.clientX - t2.clientX);
+            assert.equal(dx, 200); // 100px * 2
+          });
         });
       });
 
       test('pinch (in)', function(done) {
-        SyntheticGestures.pinch(element, 100, 100, 200, 100, .75, 200, function() {
-          assert.match(eventseq(),
-                       /touchstart touchstart (touchmove )+touchend touchend/);
-          assert.equal(events[0].touches.length, 1);
-          assert.equal(events[1].touches.length, 2);
-          assert.equal(events[1].targetTouches.length, 2);
-          var e = events[events.length - 3];  // last touchmove event
-          var t1 = e.targetTouches[0];
-          var t2 = e.targetTouches[1];
-          var dx = Math.abs(t1.clientX - t2.clientX);
-          assert.equal(dx, 75); // 100px * .75
-          done();
+        SyntheticGestures.pinch(element, 100, 100, 200, 100, .75, 800, function() {
+          done(function() {
+            assert.match(eventseq(),
+                         /touchstart touchstart (touchmove )+touchend touchend/);
+            assert.equal(events[0].touches.length, 1);
+            assert.equal(events[1].touches.length, 2);
+            assert.equal(events[1].targetTouches.length, 2);
+            var e = events[events.length - 3];  // last touchmove event
+            var t1 = e.targetTouches[0];
+            var t2 = e.targetTouches[1];
+            var dx = Math.abs(t1.clientX - t2.clientX);
+            assert.equal(dx, 75); // 100px * .75
+          });
         });
       });
     }
 
     test('mousetap', function(done) {
       SyntheticGestures.mousetap(element, function() {
-        assert.equal(eventseq(), 'mousedown mouseup');
-        assert.equal(events[0].clientX, 10);
-        assert.equal(events[0].clientY, 20);
-        assert.equal(events[1].clientX, 10);
-        assert.equal(events[1].clientY, 20);
-        done();
+        done(function() {
+          assert.equal(eventseq(), 'mousedown mouseup');
+          assert.equal(events[0].clientX, 10);
+          assert.equal(events[0].clientY, 20);
+          assert.equal(events[1].clientX, 10);
+          assert.equal(events[1].clientY, 20);
+        });
       }, 10, 20);
     });
 
     test('mousedbltap', function(done) {
       SyntheticGestures.mousedbltap(element, function() {
-        assert.equal(eventseq(), 'mousedown mouseup mousedown mouseup');
-        assert.equal(events[0].clientX, 10);
-        assert.equal(events[0].clientY, 20);
-        assert.equal(events[3].clientX, 10);
-        assert.equal(events[3].clientY, 20);
-        done();
+        done(function() {
+          assert.equal(eventseq(), 'mousedown mouseup mousedown mouseup');
+          assert.equal(events[0].clientX, 10);
+          assert.equal(events[0].clientY, 20);
+          assert.equal(events[3].clientX, 10);
+          assert.equal(events[3].clientY, 20);
+        });
       },10, 20);
     });
 
     test('mouseswipe', function(done) {
       SyntheticGestures.mouseswipe(element, 0, 0, 100, 100, 100, function() {
-        assert.match(eventseq(), /mousedown (mousemove )+mouseup/);
-        assert.equal(events[0].clientX, 0);
-        assert.equal(events[0].clientY, 0);
-        assert.equal(events[events.length - 1].clientX, 100);
-        assert.equal(events[events.length - 1].clientY, 100);
-        done();
+        done(function() {
+          assert.match(eventseq(), /mousedown (mousemove )+mouseup/);
+          assert.equal(events[0].clientX, 0);
+          assert.equal(events[0].clientY, 0);
+          assert.equal(events[events.length - 1].clientX, 100);
+          assert.equal(events[events.length - 1].clientY, 100);
+        });
       });
     });
 
     test('mousehold', function(done) {
       SyntheticGestures.mousehold(element, 100, 0, 0, 100, 100, 100, function() {
-        assert.match(eventseq(), /mousedown (mousemove )+mouseup/);
-        assert.equal(events[0].clientX, 0);
-        assert.equal(events[0].clientY, 0);
-        assert.equal(events[events.length - 1].clientX, 100);
-        assert.equal(events[events.length - 1].clientY, 100);
-        done();
+        done(function() {
+          assert.match(eventseq(), /mousedown (mousemove )+mouseup/);
+          assert.equal(events[0].clientX, 0);
+          assert.equal(events[0].clientY, 0);
+          assert.equal(events[events.length - 1].clientX, 100);
+          assert.equal(events[events.length - 1].clientY, 100);
+        });
       });
     });
   });
@@ -251,124 +261,134 @@ suite('SyntheticGestures', function() {
     if (touchDevice) {
       test('tap', function(done) {
         SyntheticGestures.tap(element, function() {
-          assert.equal(eventseq(), 'touchstart touchend');
-          assert.equal(events[0].changedTouches[0].clientX, 40);
-          assert.equal(events[0].changedTouches[0].clientY, 200);
-          assert.equal(events[1].changedTouches[0].clientX, 40);
-          assert.equal(events[1].changedTouches[0].clientY, 200);
-          done();
+          done(function() {
+            assert.equal(eventseq(), 'touchstart touchend');
+            assert.equal(events[0].changedTouches[0].clientX, 40);
+            assert.equal(events[0].changedTouches[0].clientY, 200);
+            assert.equal(events[1].changedTouches[0].clientX, 40);
+            assert.equal(events[1].changedTouches[0].clientY, 200);
+          });
         }, '10%');
       });
 
       test('dbltap', function(done) {
         SyntheticGestures.dbltap(element, function() {
-          assert.equal(eventseq(), 'touchstart touchend touchstart touchend');
-          assert.equal(events[0].changedTouches[0].clientX, 40);
-          assert.equal(events[0].changedTouches[0].clientY, 80);
-          assert.equal(events[3].changedTouches[0].clientX, 40);
-          assert.equal(events[3].changedTouches[0].clientY, 80);
-          done();
+          done(function() {
+            assert.equal(eventseq(), 'touchstart touchend touchstart touchend');
+            assert.equal(events[0].changedTouches[0].clientX, 40);
+            assert.equal(events[0].changedTouches[0].clientY, 80);
+            assert.equal(events[3].changedTouches[0].clientX, 40);
+            assert.equal(events[3].changedTouches[0].clientY, 80);
+          });
         }, '10%', '20%');
       });
 
       test('swipe', function(done) {
         SyntheticGestures.swipe(element, '10%', '10%', '50%', '+10%',
                                 100, function() {
-          assert.match(eventseq(), /touchstart (touchmove )+touchend/);
-          assert.equal(events[0].changedTouches[0].clientX, 40);
-          assert.equal(events[0].changedTouches[0].clientY, 40);
-          assert.equal(events[events.length - 1].changedTouches[0].clientX, 200);
-          assert.equal(events[events.length - 1].changedTouches[0].clientY, 80);
-          done();
+          done(function() {
+            assert.match(eventseq(), /touchstart (touchmove )+touchend/);
+            assert.equal(events[0].changedTouches[0].clientX, 40);
+            assert.equal(events[0].changedTouches[0].clientY, 40);
+            assert.equal(events[events.length - 1].changedTouches[0].clientX, 200);
+            assert.equal(events[events.length - 1].changedTouches[0].clientY, 80);
+          });
         });
       });
 
       test('hold', function(done) {
         SyntheticGestures.hold(element, 100, '0%', '10%', '100%', '-1%', 100, function() {
-          assert.match(eventseq(), /touchstart (touchmove )+touchend/);
-          assert.equal(events[0].changedTouches[0].clientX, 0);
-          assert.equal(events[0].changedTouches[0].clientY, 40);
-          assert.equal(events[events.length - 1].changedTouches[0].clientX, 400);
-          assert.equal(events[events.length - 1].changedTouches[0].clientY, 36);
-          done();
+          done(function() {
+            assert.match(eventseq(), /touchstart (touchmove )+touchend/);
+            assert.equal(events[0].changedTouches[0].clientX, 0);
+            assert.equal(events[0].changedTouches[0].clientY, 40);
+            assert.equal(events[events.length - 1].changedTouches[0].clientX, 400);
+            assert.equal(events[events.length - 1].changedTouches[0].clientY, 36);
+          });
         });
       });
 
       test('pinch (out)', function(done) {
-        SyntheticGestures.pinch(element, '10%', '10%', '20%', '10%', 2, 200, function() {
-          assert.match(eventseq(),
-                       /touchstart touchstart (touchmove )+touchend touchend/);
-          assert.equal(events[0].touches.length, 1);
-          assert.equal(events[1].touches.length, 2);
-          assert.equal(events[1].targetTouches.length, 2);
-          var e = events[events.length - 3];  // last touchmove event
-          var t1 = e.targetTouches[0];
-          var t2 = e.targetTouches[1];
-          var dx = Math.abs(t1.clientX - t2.clientX);
-          assert.equal(dx, 80); // 40px * 2
-          done();
+        SyntheticGestures.pinch(element, '10%', '10%', '20%', '10%', 2, 800, function() {
+          done(function() {
+            assert.match(eventseq(),
+                         /touchstart touchstart (touchmove )+touchend touchend/);
+            assert.equal(events[0].touches.length, 1);
+            assert.equal(events[1].touches.length, 2);
+            assert.equal(events[1].targetTouches.length, 2);
+            var e = events[events.length - 3];  // last touchmove event
+            var t1 = e.targetTouches[0];
+            var t2 = e.targetTouches[1];
+            var dx = Math.abs(t1.clientX - t2.clientX);
+            assert.equal(dx, 80); // 40px * 2
+          });
         });
       });
 
       test('pinch (in)', function(done) {
-        SyntheticGestures.pinch(element, '50%', 100, '0%', 100, .75, 200, function() {
-          assert.match(eventseq(),
-                       /touchstart touchstart (touchmove )+touchend touchend/);
-          assert.equal(events[0].touches.length, 1);
-          assert.equal(events[1].touches.length, 2);
-          assert.equal(events[1].targetTouches.length, 2);
-          var e = events[events.length - 3];  // last touchmove event
-          var t1 = e.targetTouches[0];
-          var t2 = e.targetTouches[1];
-          var dx = Math.abs(t1.clientX - t2.clientX);
-          assert.equal(dx, 150); // 200px * .75
-          done();
+        SyntheticGestures.pinch(element, '50%', 100, '0%', 100, .75, 800, function() {
+          done(function() {
+            assert.match(eventseq(),
+                         /touchstart touchstart (touchmove )+touchend touchend/);
+            assert.equal(events[0].touches.length, 1);
+            assert.equal(events[1].touches.length, 2);
+            assert.equal(events[1].targetTouches.length, 2);
+            var e = events[events.length - 3];  // last touchmove event
+            var t1 = e.targetTouches[0];
+            var t2 = e.targetTouches[1];
+            var dx = Math.abs(t1.clientX - t2.clientX);
+            assert.equal(dx, 150); // 200px * .75
+          });
         });
       });
     }
 
     test('mousetap', function(done) {
       SyntheticGestures.mousetap(element, function() {
-        assert.equal(eventseq(), 'mousedown mouseup');
-        assert.equal(events[0].clientX, 200);
-        assert.equal(events[0].clientY, 200);
-        assert.equal(events[1].clientX, 200);
-        assert.equal(events[1].clientY, 200);
-        done();
+        done(function() {
+          assert.equal(eventseq(), 'mousedown mouseup');
+          assert.equal(events[0].clientX, 200);
+          assert.equal(events[0].clientY, 200);
+          assert.equal(events[1].clientX, 200);
+          assert.equal(events[1].clientY, 200);
+        });
       });
     });
 
     test('mousedbltap', function(done) {
       SyntheticGestures.mousedbltap(element, function() {
-        assert.equal(eventseq(), 'mousedown mouseup mousedown mouseup');
-        assert.equal(events[0].clientX, 40);
-        assert.equal(events[0].clientY, 80);
-        assert.equal(events[3].clientX, 40);
-        assert.equal(events[3].clientY, 80);
-        done();
+        done(function() {
+          assert.equal(eventseq(), 'mousedown mouseup mousedown mouseup');
+          assert.equal(events[0].clientX, 40);
+          assert.equal(events[0].clientY, 80);
+          assert.equal(events[3].clientX, 40);
+          assert.equal(events[3].clientY, 80);
+        });
       }, '10%', '20%');
     });
 
     test('mouseswipe', function(done) {
       SyntheticGestures.mouseswipe(element, '50%', '50%', '-100', '-10%',
                                    100, function() {
-        assert.match(eventseq(), /mousedown (mousemove )+mouseup/);
-        assert.equal(events[0].clientX, 200);
-        assert.equal(events[0].clientY, 200);
-        assert.equal(events[events.length - 1].clientX, 100);
-        assert.equal(events[events.length - 1].clientY, 160);
-        done();
+        done(function() {
+          assert.match(eventseq(), /mousedown (mousemove )+mouseup/);
+          assert.equal(events[0].clientX, 200);
+          assert.equal(events[0].clientY, 200);
+          assert.equal(events[events.length - 1].clientX, 100);
+          assert.equal(events[events.length - 1].clientY, 160);
+        });
       });
     });
 
     test('mousehold', function(done) {
       SyntheticGestures.mousehold(element, 100, '1%', '1', 100, '+1%', 100, function() {
-        assert.match(eventseq(), /mousedown (mousemove )+mouseup/);
-        assert.equal(events[0].clientX, 4);
-        assert.equal(events[0].clientY, 1);
-        assert.equal(events[events.length - 1].clientX, 100);
-        assert.equal(events[events.length - 1].clientY, 5);
-        done();
+        done(function() {
+          assert.match(eventseq(), /mousedown (mousemove )+mouseup/);
+          assert.equal(events[0].clientX, 4);
+          assert.equal(events[0].clientY, 1);
+          assert.equal(events[events.length - 1].clientX, 100);
+          assert.equal(events[events.length - 1].clientY, 5);
+        });
       });
     });
   });

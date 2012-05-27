@@ -29,12 +29,32 @@
     overload: function overload(type) {
       var orig = window[type];
 
+      /**
+       * async tests fall off the stack
+       * bring them back by providing the done fn
+       */
+      function wrapDone(done) {
+        return function(val) {
+          if (typeof(val) === 'function') {
+            try {
+              val();
+              return done();
+            } catch (e) {
+              return done(e);
+            }
+          } else {
+            return done.apply(this, arguments);
+          }
+        }
+      }
+
       window[type] = function() {
         var args = Array.prototype.slice.call(arguments),
             cb = args.pop();
 
-        function wrapper(done) {
+        function wrapper(origDone) {
           var gen, useDone = cb.length > 0;
+          var done = wrapDone(origDone);
 
           if (useDone) {
             gen = cb.call(this, done);

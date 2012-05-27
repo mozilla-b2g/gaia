@@ -453,15 +453,14 @@
   window.TestAgent.exportError = function(err) {
     var errorObject = {};
 
-    errorObject.stack = this.formatStack(err);
-    errorObject.message = err.message;
-    errorObject.type = err.type;
-    errorObject.constructorName = err.constructor.name;
-    errorObject.expected = err.expected;
-    errorObject.actual = err.actual;
+    errorObject.stack = this.formatStack(err) || '';
+    errorObject.message = err.message || err.toString();
+    errorObject.type = err.type || 'Error';
+    errorObject.constructorName = err.constructor.name || '';
+    errorObject.expected = err.expected || '';
+    errorObject.actual = err.actual || '';
 
     return errorObject;
-
   };
 
 }(this));
