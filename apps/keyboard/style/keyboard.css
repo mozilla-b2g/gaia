@@ -40,3 +40,19 @@ html, body {
   -moz-box-sizing: border-box;
   padding: 0;
 }
+
+.keyboard-key.highlighted {
+  font-family: 'Keyboard Symbols', 'Open Sans', sans-serif;
+  top: 0; left: 0;
+  z-index: 2;
+  color: #333;
+  background: -moz-linear-gradient(top, rgba(194,197,202,0.9) 10%, rgba(164,164,172,0.9) 90%);
+  font-size: 50px;
+  line-height: 100px;
+  min-width: 70px;
+  padding: 0 5px;
+  height: 100px;
+  margin-top: -110px;
+  text-align: center;
+  border: 1px solid #fff;
+}
