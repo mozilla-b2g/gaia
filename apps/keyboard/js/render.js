@@ -3,7 +3,7 @@ const IMERender = (function() {
   var ime, menu;
 
   var init = function kr_init() {
-    this.ime = document.getElementById("keyboard");
+    this.ime = document.getElementById('keyboard');
   }
 
   var draw = function kr_draw(layoutId) {
@@ -21,23 +21,23 @@ const IMERender = (function() {
         var alt = '';
         if (layout.alt[keyChar] != undefined) {
           alt = layout.alt[keyChar];
-        } else if (layout.alt[key.value] != undefined && IMEController.isUpperCase) {
+        } else if (layout.alt[key.value] && IMEController.isUpperCase) {
           alt = layout.alt[key.value].toUpperCase();
         }
 
         var ratio = key.ratio || 1;
-        var keyWidth =  (ratio * 100) / layoutWidth;
+        var keyWidth = (ratio * 100) / layoutWidth;
         content += buildKey(code, keyChar, className, keyWidth, alt);
       }));
       content += '</div>';
     }));
-    
+
     // Append empty accent char menu and key highlight into content HTML
     content += '<span id="keyboard-accent-char-menu"></span>';
     content += '<span id="keyboard-key-highlight"></span>';
-    
+
     this.ime.innerHTML = content;
-    this.menu = document.getElementById("keyboard-accent-char-menu");
+    this.menu = document.getElementById('keyboard-accent-char-menu');
   };
 
   var highlightKey = function kr_updateKeyHighlight(key) {
@@ -54,9 +54,9 @@ const IMERender = (function() {
     var altChars = target.dataset.alt.split('');
     console.log(this.menu.innerHTML);
 
-    var content = "";
+    var content = '';
     altChars.forEach(function(keyChar) {
-      content += buildKey(keyChar.charCodeAt(0), keyChar, '', cssWidth );
+      content += buildKey(keyChar.charCodeAt(0), keyChar, '', cssWidth);
     });
 
     this.menu.innerHTML = content;
@@ -67,16 +67,16 @@ const IMERender = (function() {
     var left = target.offsetLeft;
 
   };
-  
+
   var hideAccentCharMenu = function km_hideAccentCharMenu() {
     this.menu = document.getElementById('keyboard-accent-char-menu');
     console.log(this.menu);
     console.log(this.menu.innerHTML);
     this.menu.innerHTML = '';
     this.menu.className = '';
-    console.log('hide '+this.menu.innerHTML);
+    console.log('hide ' + this.menu.innerHTML);
   };
-  
+
   var buildKey = function buildKey(code, label, className, width, alt) {
     return '<button class="keyboard-key ' + className + '"' +
       ' data-keycode="' + code + '"' +
@@ -92,6 +92,6 @@ const IMERender = (function() {
     'highlightKey': highlightKey,
     'unHighlightKey': unHighlightKey,
     'showAccentCharMenu': showAccentCharMenu,
-    'hideAccentCharMenu': hideAccentCharMenu,
+    'hideAccentCharMenu': hideAccentCharMenu
   };
 })();
