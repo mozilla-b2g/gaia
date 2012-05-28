@@ -230,8 +230,8 @@ const IMEController = (function() {
           IMEFeedback.triggerFeedback();
 
           this._menuTimeout = window.setTimeout((function menuTimeout() {
-//              IMERender.showAccentCharMenu();
-          }).bind(this), this.kAccentCharMenuTimeout);
+            IMERender.showAccentCharMenu(target);
+          }), this.kAccentCharMenuTimeout);
 
           if (keyCode != KeyEvent.DOM_VK_BACK_SPACE)
             return;
@@ -272,7 +272,7 @@ const IMEController = (function() {
           }
 
           IMERender.unHighlightKey(_currentKey);
-          _highlightKey(target)
+          _highlightKey(target);
           _currentKey = target;
 
           clearTimeout(this._deleteTimeout);
@@ -282,26 +282,19 @@ const IMEController = (function() {
           if (target.parentNode === IMERender.menu) {
             clearTimeout(this._hideMenuTimeout);
           } else {
-/* XXX: Re-enable when new key-options menu is ready
-            if (IMERender.menu.className) {
-              this._hideMenuTimeout = window.setTimeout(
-                (function hideMenuTimeout() {
-                  IMERender.hideAccentCharMenu();
-                }).bind(this),
+            this._hideMenuTimeout = window.setTimeout(
+              (function hideMenuTimeout() {
+                IMERender.hideAccentCharMenu();
+                }),
                 this.kHideAccentCharMenuTimeout
               );
-            }
-
-            var needMenu =
-              target.dataset.alt || keyCode === this.SWITCH_KEYBOARD;
-            if (needMenu) {
-              this._menuTimeout = window.setTimeout((function menuTimeout() {
-                  IMERender.showAccentCharMenu();
-                }).bind(this), this.kAccentCharMenuTimeout);
-            }
-*/
           }
 
+          if (target.dataset.alt) {
+            this._menuTimeout = window.setTimeout((function menuTimeout() {
+              IMERender.showAccentCharMenu(target);
+            }), this.kAccentCharMenuTimeout);
+          }
           break;
 
         case 'mouseleave':
@@ -310,11 +303,9 @@ const IMEController = (function() {
             return;
 
           IMERender.unHighlightKey(_currentKey);
-/* XXX; Not yet implemented
           this._hideMenuTimeout = window.setTimeout((function hideMenuTimeout() {
               IMERender.hideAccentCharMenu();
-          }).bind(this), this.kHideAccentCharMenuTimeout);
-*/
+          }), this.kHideAccentCharMenuTimeout);
 
           if (evt.type == 'scroll')
             _isPressing = false; // cancel the following mouseover event
@@ -331,7 +322,7 @@ const IMEController = (function() {
           clearInterval(this._deleteInterval);
           clearTimeout(this._menuTimeout);
 
-//          IMERender.hideAccentCharMenu();
+          IMERender.hideAccentCharMenu();
 
           var target = _currentKey;
           var keyCode = parseInt(target.dataset.keycode);

@@ -57,3 +57,20 @@ html, body {
   text-align: center;
   border: 1px solid #fff;
 }
+
+#keyboard-accent-char-menu {
+  position: absolute;
+  display: none;
+  background-color: #cac9c5;
+  height: 58px;
+  padding: 5px;
+  margin-top: -84px;
+  border-radius: 5px;
+  border: 1px solid #fff;
+  box-shadow: 0 0 2px #ccc;
+  white-space: nowrap;
+}
+
+#keyboard-accent-char-menu.show {
+  display: block;
+}
