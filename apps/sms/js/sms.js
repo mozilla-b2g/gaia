@@ -76,21 +76,29 @@ var DelayDeleteManager = {
     this.executeDelete = executeDelete;
     //TODO: We may have timer to hide the undo toolbar automatically.
     //window.setTimeout(executeMessageDelete, timer);
-    document.body.addEventListener('DOMAttrModified', this.onViewStatusChanged.bind(this));
+    document.body.addEventListener('DOMAttrModified', this);
   },
   unregistDelayDelete: function dm_unregistDelayDelete() {
     this.executeDelete = null;
     //window.clearTimeout(executeMessageDelete, timer);
-    document.body.removeEventListener('DOMAttrModified', this.onViewStatusChanged.bind(this));
+    document.body.removeEventListener('DOMAttrModified', this);
   },
   onViewStatusChanged: function dm_onViewStatusChanged(evt) {
-     if (evt.attrName == 'class') {
-       // When ConversationListView entering other status.
-       if (!evt.prevValue && evt.newValue) {
-         this.executeDelete();
-       }
-     }
+    if (evt.attrName != 'class')
+      return;
+
+    // When ConversationListView entering other status.
+    if (!evt.prevValue && evt.newValue) {
+      this.executeDelete();
+    }
   },  
+  handleEvent: function dm_handleEvent(evt) {
+    switch (evt.type) {
+      case 'DOMAttrModified':
+        this.onViewStatusChanged(evt);
+        break;      
+    }
+  },
 };
 
 var ConversationListView = {
@@ -131,9 +139,9 @@ var ConversationListView = {
 
     this.searchInput.addEventListener('keyup', this);
     this.searchInput.addEventListener('blur', this);
-    this.deleteButton.addEventListener('mousedown', this.pendMessageDelete.bind(this));
-    this.undoButton.addEventListener('mousedown', this.undoMessageDelete.bind(this));
-    this.view.addEventListener('click', this.onListItemClicked.bind(this));
+    this.deleteButton.addEventListener('mousedown', this);
+    this.undoButton.addEventListener('mousedown', this);
+    this.view.addEventListener('click', this);
     window.addEventListener('hashchange', this);
 
     this.updateConversationList();
@@ -295,6 +303,20 @@ var ConversationListView = {
         }
         document.body.classList.remove('conversation');
         document.body.classList.remove('conversation-new-msg');
+        break;
+
+      case 'mousedown':
+        if (evt.currentTarget == this.deleteButton)
+          this.pendMessageDelete();
+        else if (evt.currentTarget == this.undoButton)
+          this.undoMessageDelete();
+        break;
+
+      case 'click':
+        // When Event listening target is this.view and clicked target has href entry.
+        if (evt.currentTarget == this.view && evt.target.href)
+          this.onListItemClicked(evt);
+        break;
     }
   },
   
@@ -366,6 +388,9 @@ var ConversationListView = {
   
   onListItemClicked: function cl_onListItemClicked(evt) {
     var cb = evt.target.getElementsByTagName('input')[0];
+    if (!cb)
+      return;
+    
     if (document.body.classList.contains('msg-edit-mode')) {
       evt.preventDefault();
       cb.checked = !cb.checked;
