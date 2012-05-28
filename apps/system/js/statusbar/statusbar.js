@@ -105,6 +105,12 @@ function updateConnection(event) {
   var title = '';
   if (conn.cardState == 'absent') {
     title = _('noSimCard');
+  } else if (conn.cardState == 'pin_required') {
+    title = _('pinCodeRequired');
+  } else if (conn.cardState == 'puk_required') {
+    title = _('pukCodeRequired');
+  } else if (conn.cardState == 'network_locked') {
+    title = _('networkLocked');
   } else if (!voice.connected) {
     if (voice.emergencyCallsOnly) {
       title = _('emergencyCallsOnly');

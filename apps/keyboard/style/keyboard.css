@@ -1,6 +1,6 @@
 html, body {
-	margin:0;
-	padding:0;
+  margin:0;
+  padding:0;
 }
 
 #screen.fullscreen #keyboard {
@@ -20,7 +20,6 @@ html, body {
   border-top: 2px solid #a3a3a3;
   border-bottom-left-radius: 8px;
   border-bottom-right-radius: 8px;
-  pointer-events:auto;
 }
 
 #keyboard.imminent {
