@@ -286,8 +286,10 @@
   // pre-defined macros
   var gMacros = {};
   gMacros.plural = function(str, param, key, prop) {
-    if (param === undefined)
+    var n = parseFloat(param);
+    if (isNaN(n))
       return str;
+
     // TODO: support other properties (l20n still doesn't...)
     if (prop != 'textContent')
       return str;
@@ -295,14 +297,14 @@
     // initialize _pluralRules
     if (!gMacros._pluralRules)
       gMacros._pluralRules = getPluralRules(gLanguage);
-    var index = '[' + gMacros._pluralRules(param) + ']';
+    var index = '[' + gMacros._pluralRules(n) + ']';
 
     // try to find a [zero|one|two] key if it's defined
-    if (param == 0 && (key + '[zero]') in gL10nData) {
+    if (n == 0 && (key + '[zero]') in gL10nData) {
       str = gL10nData[key + '[zero]'][prop];
-    } else if (param == 1 && (key + '[one]') in gL10nData) {
+    } else if (n == 1 && (key + '[one]') in gL10nData) {
       str = gL10nData[key + '[one]'][prop];
-    } else if (param == 2 && (key + '[two]') in gL10nData) {
+    } else if (n == 2 && (key + '[two]') in gL10nData) {
       str = gL10nData[key + '[two]'][prop];
     } else if ((key + index) in gL10nData) {
       str = gL10nData[key + index][prop];
@@ -492,7 +494,7 @@
     var macroName = reMatch[1];
     var paramName = reMatch[2];
     var param;
-    if (paramName in args) {
+    if (args && paramName in args) {
       param = args[paramName];
     } else if (paramName in gL10nData) {
       param = gL10nData[paramName];
@@ -549,9 +551,8 @@
     // get the related l10n object
     var key = element.dataset.l10nId;
     var data = getL10nData(key, args);
-    if (!data) {
+    if (!data)
       return;
-    }
 
     // translate element
     // TODO: security check?
