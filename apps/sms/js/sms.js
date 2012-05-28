@@ -288,8 +288,8 @@ var ConversationListView = {
         break;
 
       case 'hashchange':
-        this.showEditMode(window.location.hash == '#edit');
-        this.showSearchMode(window.location.hash == '#search');
+        this.toggleEditMode(window.location.hash == '#edit');
+        this.toggleSearchMode(window.location.hash == '#search');
         if (window.location.hash) {
           return;
         }
@@ -342,13 +342,13 @@ var ConversationListView = {
   },  
 
   showUndoToolbar: function cl_showUndoToolbar() {
-    var undoTitle = this.undoTitleContainer.innerHTML.replace(/(\d+\s)/g,'');
+    var undoTitle = document.mozL10n.get('conversationDeleted');
     this.undoTitleContainer.innerHTML = this.delNumList.length + ' ' + undoTitle;
     this.undoToolbar.classList.add('show');
     DelayDeleteManager.registDelayDelete(this.executeMessageDelete.bind(this));
   },
 
-  showSearchMode: function cl_showSearchMode(show) {
+  toggleSearchMode: function cl_toggleSearchMode(show) {
     if (show) {
       document.body.classList.add('msg-search-mode');
     } else {
@@ -356,7 +356,7 @@ var ConversationListView = {
     }
   },
   
-  showEditMode: function cl_showEditMode(show) {
+  toggleEditMode: function cl_toggleEditMode(show) {
     if (show) {      
       document.body.classList.add('msg-edit-mode');  
     } else {
