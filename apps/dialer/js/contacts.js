@@ -484,11 +484,18 @@ var ContactDetails = {
       }
 
       var req = navigator.mozContacts.save(contact);
-      req.onsuccess = (function() {
-        this.render();
-        this.endEditing();
+      req.onsuccess = function contactSaveSuccess() {
+
+        // Fetching the contact from the backend again since
+        // a mozContact can only be edited once.
+        Contacts.findByID(contact.id, function reFind(newContact) {
+          ContactDetails.contact = newContact;
+          ContactDetails.endEditing();
+        });
+
         Contacts.reload();
-      }.bind(this));
+
+      };
     }
   },
 
