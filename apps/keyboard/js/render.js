@@ -7,19 +7,7 @@ const IMERender = (function() {
   }
 
   var draw = function kr_draw(layoutId) {
-    var layout;
-
-    switch (currentType) {
-      case 'number':
-        layout = Keyboards['numberLayout'];
-      break;
-      case 'tel':
-        layout = Keyboards['telLayout'];
-      break;
-      default:
-        layout = Keyboards[layoutId];
-      break;
-    }
+    var layout = Keyboards[layoutId];
 
     var content = '';
     var layoutWidth = layout.width || 10;

@@ -107,6 +107,9 @@ const IMEManager = {
 // TODO: Replce the former when https://bugzilla.mozilla.org/show_bug.cgi?id=754083 is solved
 //  _events: ['showime', 'hideime', 'unload', 'resize'],
   init: function km_init() {
+    // Setup other modules
+    IMEController.init();
+    IMEFeedback.init();
 
     // Setup the manager
     this.updateSettings();
@@ -130,26 +133,23 @@ const IMEManager = {
 
     // Handling showime and hideime events, as they are received only in System
     // https://bugzilla.mozilla.org/show_bug.cgi?id=754083
+    console.log('attaching');
     window.addEventListener('message', function receiver(e) {
       var event = JSON.parse(e.data);
       IMEManager.handleEvent(event);
     });
 
-    // Setup other modules
-    IMEFeedback.init();
-    IMEController.init();
-
   },
 
   uninit: function km_uninit() {
-    // Shutdown other modules
-    IMEController.uninit();
-    IMEFeedback.uninit();
-
     // Shutdown the manager
     this._events.forEach((function attachEvents(type) {
       window.removeEventListener(type, this);
     }).bind(this));
+
+    // Shutdown other modules
+    IMEFeedback.uninit();
+    IMEController.uninit();
   },
 
   // TODO: Build a closure and convert these to private variables
