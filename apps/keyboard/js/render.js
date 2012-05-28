@@ -51,7 +51,10 @@ const IMERender = (function() {
   var showAccentCharMenu = function km_showAccentCharMenu(key) {
     var target = key;
     var cssWidth = target.style.width;
-    var altChars = target.dataset.alt.split('');
+    var altChars = target.dataset.alt ? target.dataset.alt.split('') : [];
+    if (!altChars.length)
+      return;
+
     console.log(this.menu.innerHTML);
 
     var content = '';
