@@ -43,6 +43,7 @@ html, body {
 
 .keyboard-key.highlighted {
   font-family: 'Keyboard Symbols', 'Open Sans', sans-serif;
+  pointer-events:none;
   top: 0; left: 0;
   z-index: 2;
   color: #333;
