@@ -264,13 +264,22 @@ var LockScreen = {
       case 'keydown':
         if (navigator.mozPower.screenEnabled) {
           if (e.keyCode == e.DOM_VK_SLEEP && !SleepMenu.visible) {
-            this._timeout = window.setTimeout(function() {
+            this._timerSMenuFromScreenOn = null;
+            this._timerSMenuFromScreenOn = window.setTimeout(function() {
               SleepMenu.show();
             }, 1500);
+            this._idCurTimer = this._timerSMenuFromScreenOn;
           }
         } else if (e.keyCode == e.DOM_VK_SLEEP || e.keyCode == e.DOM_VK_HOME) {
             this.update();
             ScreenManager.turnScreenOn();
+            if (e.keyCode == e.DOM_VK_SLEEP && !SleepMenu.visible) {
+              this._timerSMenuFromScreenOff = null;
+              this._timerSMenuFromScreenOff = window.setTimeout(function() {
+                SleepMenu.show();
+              }, 1500);
+              this._idCurTimer = this._timerSMenuFromScreenOff;
+            }
         }
 
         e.preventDefault();
@@ -278,16 +287,29 @@ var LockScreen = {
         break;
 
       case 'keyup':
-        if (e.keyCode != e.DOM_VK_SLEEP || SleepMenu.visible || !this._timeout)
-          return;
-        window.clearTimeout(this._timeout);
-        this._timeout = null;
-
-        if (navigator.mozPower.screenEnabled) {
-          this.update();
-          ScreenManager.turnScreenOff();
+        if (e.keyCode == e.DOM_VK_SLEEP && navigator.mozPower.screenEnabled) {
+          if (SleepMenu.visible && this._idCurTimer) {
+            // Show the current sleep menu and do nothing.
+          } else if (SleepMenu.visible && !this._idCurTimer) {
+            window.clearTimeout(this._timerSMenuFromScreenOn);
+            this._timerSMenuFromScreenOn = null;
+            this.update();
+            ScreenManager.turnScreenOff();
+            SleepMenu.hide();
+          } else if (!SleepMenu.visible && 
+                      this._idCurTimer == this._timerSMenuFromScreenOn) {
+            window.clearTimeout(this._timerSMenuFromScreenOn);
+            this._timerSMenuFromScreenOn = null;
+            this.update();
+            ScreenManager.turnScreenOff();
+          } else if (!SleepMenu.visible && 
+                      this._idCurTimer == this._timerSMenuFromScreenOff) {
+            window.clearTimeout(this._timerSMenuFromScreenOff);
+            this._timerSMenuFromScreenOff = null;
+          }
+          this._idCurTimer = null;
         }
-
+        
         e.preventDefault();
         e.stopPropagation();
         break;
