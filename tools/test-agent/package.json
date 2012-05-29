@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
-    "test-agent": "0.5.1",
+    "test-agent": "0.5.2",
     "marionette-client": "0.3.0",
     "chai": "0.5.3",
     "mocha": "~1.0"
