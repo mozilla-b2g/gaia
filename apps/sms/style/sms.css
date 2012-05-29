@@ -302,7 +302,7 @@ body.msg-edit-mode #msg-conversations-list > a {
   height: 100%;
 }
 
-#msg-conversations-list a > input {
+#msg-conversations-list a > input.fake-checkbox {
   display: none;
 }
 

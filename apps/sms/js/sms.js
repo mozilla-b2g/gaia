@@ -231,7 +231,7 @@ var ConversationListView = {
            ' data-name="' + escapeHTML(conversation.name || conversation.num, true) + '"' +
            ' data-notempty="' + (conversation.timestamp ? 'true' : '') + '"' +
            ' class="' + (conversation.hidden ? 'hide' : '') + '">' +
-           '<input type="checkbox"/>' + '<span></span>' +
+           '<input type="checkbox" class="fake-checkbox"/>' + '<span></span>' +
            '  <div class="name">' + escapeHTML(conversation.name) + '</div>' +
            '  <div class="msg">' + escapeHTML(conversation.body.split('\n')[0]) + '</div>' +
            (conversation.timestamp ?
@@ -387,18 +387,19 @@ var ConversationListView = {
   },
   
   onListItemClicked: function cl_onListItemClicked(evt) {
-    var cb = evt.target.getElementsByTagName('input')[0];
+    var cb = evt.target.getElementsByClassName('fake-checkbox')[0];
     if (!cb)
       return;
     
-    if (document.body.classList.contains('msg-edit-mode')) {
-      evt.preventDefault();
-      cb.checked = !cb.checked;
-      if (cb.checked) {
-        this.delNumList.push(evt.target.dataset.num);
-      } else {
-        this.delNumList.splice(this.delNumList.indexOf(evt.target.dataset.num), 1);
-      }
+    if (!document.body.classList.contains('msg-edit-mode'))
+      return;
+    
+    evt.preventDefault();
+    cb.checked = !cb.checked;
+    if (cb.checked) {
+      this.delNumList.push(evt.target.dataset.num);
+    } else {
+      this.delNumList.splice(this.delNumList.indexOf(evt.target.dataset.num), 1);
     }
   },
 };
