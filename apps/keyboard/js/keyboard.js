@@ -337,9 +337,13 @@ const IMEManager = {
 
     if (need2row) {
       menu.className += ' with2row';
+      menu.style.width = (target.offsetWidth * 6 + 24) + 'px';
       if (!before) {
         menu.className += ' alignRight';
       }
+    } else {
+      // To reset the width for single row case
+      menu.style.width = '';
     }
 
     menu.style.top = target.offsetTop + 'px';

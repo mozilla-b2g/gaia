@@ -300,7 +300,6 @@ html, body {
 
 #keyboard-accent-char-menu.with2row {
   height: 124px;
-  width: 288px;
   margin-top: -146px;
   white-space: normal;   /*to override nowrap set in #keyboard-accent-char-menu */
   padding: 3px;
