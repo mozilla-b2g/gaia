@@ -46,6 +46,7 @@ const IMEManager = {
   SWITCH_KEYBOARD: -3,
   TOGGLE_CANDIDATE_PANEL: -4,
   DOT_COM: -5,
+  BRAZILIAN_REAL: -6,    // special char 'R$' for currency symbol in Brazil
 
   // IME Engines are self registering here.
   IMEngines: {},
@@ -293,17 +294,27 @@ const IMEManager = {
         '</span>';
     }
 
-    var altChars = target.dataset.alt.split('');
+    var altChars;
+    // Special hack for "R$"
+    if (target.dataset.alt === '_R$') {
+      altChars = [{ keyCode: this.BRAZILIAN_REAL, label: 'R$'}];
+    } else {
+      altChars = target.dataset.alt.split('');
+    }
+
     if (!before)
       altChars = altChars.reverse();
 
     altChars.forEach(function(keyChar) {
+      var keyCode = keyChar.keyCode || keyChar.charCodeAt(0);
+      var label = keyChar.label || keyChar;
+
       content += '<span class="keyboard-key" ' +
-        'data-keycode="' + keyChar.charCodeAt(0) + '"' +
-        'style="width:' + cssWidth + '"' +
-        '>' +
-        keyChar +
-        '</span>';
+      'data-keycode="' + keyCode + '"' +
+      'style="width:' + cssWidth + '"' +
+      '>' +
+      label +
+      '</span>';
     });
 
     if (!before) {
@@ -820,6 +831,14 @@ const IMEManager = {
           case this.DOT_COM:
             ('.com').split('').forEach((function sendDotCom(key) {
               window.navigator.mozKeyboard.sendKey(0, key.charCodeAt(0));
+            }).bind(this));
+            break;
+
+          case this.BRAZILIAN_REAL:
+            ('R$').split('').forEach((function sendDotCom(key) {
+              window.navigator.mozKeyboard.sendKey(0, key.charCodeAt(0));
+              if (Keyboards[this.currentKeyboard].suggestionEngine)
+                this.currentSuggestionEngine.click(keyCode);
             }).bind(this));
             break;
 

@@ -58,7 +58,8 @@ const Keyboards = {
       n: 'ñń',
       l: 'ł£',
       y: 'ÿ¥',
-      z: 'žźż'
+      z: 'žźż',
+      r: '_R$'
     },
     keys: [
       [{ value: 'q' }, { value: 'w' }, { value: 'e' } , { value: 'r' }, { value: 't' } , { value: 'y' }, { value: 'u' } , { value: 'i' }, { value: 'o' }, { value: 'p' }],
@@ -455,7 +456,8 @@ const Keyboards = {
       s: '$ßš',
       l: '£',
       n: 'ń',
-      y: '¥'
+      y: '¥',
+      r: '_R$'
     },
     keys: [
       [{ value: 'q' }, { value: 'w' }, { value: 'e' } , { value: 'r' }, { value: 't' } , { value: 'y' }, { value: 'u' } , { value: 'i' }, { value: 'o' }, { value: 'p' }],
@@ -479,7 +481,8 @@ const Keyboards = {
       s: '$ßš',
       l: '£',
       n: 'ñń',
-      y: '¥ÿ'
+      y: '¥ÿ',
+      r: '_R$'
     },
     keys: [
       [{ value: 'q' }, { value: 'w' }, { value: 'e' } , { value: 'r' }, { value: 't' } , { value: 'y' }, { value: 'u' } , { value: 'i' }, { value: 'o' }, { value: 'p' }],
