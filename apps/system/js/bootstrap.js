@@ -289,19 +289,29 @@ var KeyHandler = {
 
 /* === Screen Manager === */
 var ScreenManager = {
+
   preferredBrightness: 0.5,
-  toggleScreen: function lockscreen_toggleScreen() {
-    if (navigator.mozPower.screenEnabled)
+
+  get screenEnabled() {
+    return navigator.mozPower.screenEnabled;
+  },
+
+  set screenEnabled(enabled) {
+    return navigator.mozPower.screenEnabled = enabled;
+  },
+
+  toggleScreen: function scm_toggleScreen() {
+    if (this.screenEnabled)
       this.turnScreenOff();
     else
       this.turnScreenOn();
   },
 
-  turnScreenOff: function lockscreen_turnScreenOff() {
-    if (!navigator.mozPower.screenEnabled)
+  turnScreenOff: function scm_turnScreenOff() {
+    if (!this.screenEnabled)
       return false;
 
-    navigator.mozPower.screenEnabled = false;
+    this.screenEnabled = false;
 
     this.preferredBrightness = navigator.mozPower.screenBrightness;
     navigator.mozPower.screenBrightness = 0.0;
@@ -310,12 +320,11 @@ var ScreenManager = {
     return true;
   },
 
-  turnScreenOn: function lockscreen_turnScreenOn() {
-    if (navigator.mozPower.screenEnabled)
+  turnScreenOn: function scm_turnScreenOn() {
+    if (this.screenEnabled)
       return false;
 
     navigator.mozPower.screenEnabled = true;
-
     navigator.mozPower.screenBrightness = this.preferredBrightness;
 
     StatusBar.refresh();
