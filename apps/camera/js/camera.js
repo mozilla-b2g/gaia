@@ -82,14 +82,8 @@ window.addEventListener('DOMContentLoaded', function CameraInit() {
   Camera.init();
 });
 
-// Bug 690056 implement a visibility API, and it's likely that
-// we want this event to be fire when an app come back to life
-// or is minimized (it does not now).
-window.addEventListener('message', function CameraPause(evt) {
-  if (evt.data.message !== 'visibilitychange')
-    return;
-
-  if (evt.data.hidden) {
+document.addEventListener('mozvisibilitychange', function visibility(e) {
+  if (document.mozHidden) {
     // If we're hidden, stop the video
     Camera.pause();
   } else {

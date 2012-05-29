@@ -172,13 +172,10 @@ var WindowManager = (function() {
         windows.classList.add('active');
         sprite.classList.add('faded');
 
-        // Let the app know that it has become visible
-        frame.contentWindow.postMessage({
-          message: 'visibilitychange',
-          hidden: false
-        }, '*');
-      }
-      else {
+        if ('setVisible' in frame) {
+          frame.setVisible(true);
+        }
+      } else {
         // The second transition has just completed
         // give the app focus and discard the sprite.
         frame.focus();
@@ -224,11 +221,9 @@ var WindowManager = (function() {
     // Take keyboard focus away from the closing window
     frame.blur();
 
-    // Let the app know that it has become hidden
-    frame.contentWindow.postMessage({
-      message: 'visibilitychange',
-      hidden: true
-    }, '*');
+    if ('setVisible' in frame) {
+      frame.setVisible(false);
+    }
 
     // If this was a fullscreen app, leave full-screen mode
     if (manifest.fullscreen)
@@ -386,12 +381,8 @@ var WindowManager = (function() {
     // Most apps currently need to be hosted in a special 'mozbrowser' iframe.
     // They also need to be marked as 'mozapp' to be recognized as apps by the
     // platform.
-    // FIXME: a platform fix will come
-    var exceptions = ['Camera'];
-    if (exceptions.indexOf(manifest.name) == -1) {
-      frame.setAttribute('mozbrowser', 'true');
-      frame.setAttribute('mozapp', manifestURL);
-    }
+    frame.setAttribute('mozbrowser', 'true');
+    frame.setAttribute('mozapp', manifestURL);
 
     // Add the iframe to the document
     // Note that we have not yet set its src property.

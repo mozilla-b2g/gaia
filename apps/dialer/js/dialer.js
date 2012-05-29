@@ -10,21 +10,6 @@ var gTonesFrequencies = {
   '*': [941, 1209], '0': [941, 1336], '#': [941, 1477]
 };
 
-
-// Bug 690056 implement a visibility API, and it's likely that
-// we want this event to be fire when an app come back to life
-// or is minimized (it does not now).
-window.addEventListener('message', function visibleApp(evt) {
-  var data = evt.data;
-  if (data.message == 'visibilitychange') {
-    visibilityChanged(data.url, evt);
-  } else if (data == 'connected') {
-    CallHandler.connected();
-  } else if (data == 'disconnected') {
-    CallHandler.disconnected();
-  }
-});
-
 function visibilityChanged(url, evt) {
   var data = evt.data;
   var params = (function makeURL() {
