@@ -319,6 +319,18 @@ const IMEManager = {
     menu.innerHTML = content;
     menu.className = 'show';
 
+    var need2row = (!before && altChars.length >= 9 &&
+                    target.offsetLeft / target.offsetWidth >= 8) ||
+                   (before && altChars.length >= 8 &&
+                    target.offsetLeft / target.offsetWidth >= 1);
+
+    if (need2row) {
+      menu.className += ' with2row';
+      if (!before) {
+        menu.className += ' alignRight';
+      }
+    }
+
     menu.style.top = target.offsetTop + 'px';
 
     var left = target.offsetLeft;
@@ -347,6 +359,9 @@ const IMEManager = {
       var index = 0;
 
       while (menu.childNodes.item(index)) {
+        if (!sibling)
+          break;
+
         redirectMouseOver.call(sibling, menu.childNodes.item(index));
         sibling = sibling.nextSibling;
         index++;
@@ -355,6 +370,9 @@ const IMEManager = {
       var index = menu.childNodes.length - 1;
 
       while (menu.childNodes.item(index)) {
+        if (!sibling)
+          break;
+
         redirectMouseOver.call(sibling, menu.childNodes.item(index));
         sibling = sibling.previousSibling;
         index--;
