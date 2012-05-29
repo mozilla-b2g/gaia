@@ -62,7 +62,7 @@ const IMEController = (function() {
     }
 
     // Return Key
-    newKeys.push({ value: '↵', ratio: ratio, keyCode: KeyEvent.DOM_VK_RETURN });
+    newKeys.push({ value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN });
 
     return newKeys;
   };
@@ -84,10 +84,9 @@ const IMEController = (function() {
     switch (type) {
       case 'url':
         var size = Math.floor(ratio / 3);
-        ratio -= size * 2;
-        newKeys.push({ value: '.', ratio: size, keyCode: 46 });
-        newKeys.push({ value: '/', ratio: size, keyCode: 47 });
-        newKeys.push({ value: '.com', ratio: ratio, keyCode: IMEController.DOT_COM });
+        newKeys.push({ value: '.', ratio: 2, keyCode: 46 });
+        newKeys.push({ value: '/', ratio: 2, keyCode: 47 });
+        newKeys.push({ value: '.com', ratio: 2, keyCode: IMEController.DOT_COM });
       break;
       case 'email':
         ratio -= 2;
