@@ -52,7 +52,7 @@ const IMEController = (function() {
     // Alternate Keyboards
     if (!layout['disableAlternateLayout']) {
       ratio -=2;
-      var alternateKey = addAlternateKeys(IMEController.currentKeyboardMode);
+      var alternateKey = addAlternateKeys(_currentKeyboardMode);
       newKeys.push(alternateKey);
     }
 
@@ -485,13 +485,21 @@ const IMEController = (function() {
     },
 
     set isAlternateLayout(isAlternateLayout) {
+      // TODO: move all the pop and push stuff to a single place
+      // Think on refactor how the events are handled
+
+      var layout;
       if (isAlternateLayout) {
         _currentKeyboardMode = 'Alternate';
-        IMERender.draw(Keyboards['alternateLayout']);
+        layout = Keyboards['alternateLayout'];
       } else {
         _currentKeyboardMode = '';
-        IMERender.draw(Keyboards[_currentKeyboard]);
+        layout = Keyboards[_currentKeyboard];
       }
+      
+      layout.keys.pop();
+      layout.keys.push(specialKeys(layout));
+      IMERender.draw(layout);
       this.updateTargetWindowHeight();
     },
 
