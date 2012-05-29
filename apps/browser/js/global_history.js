@@ -83,7 +83,7 @@ GlobalHistory.db = {
     console.log("Initialised browser's global history database");
   },
 
-  savePlace: function db_savePlace(place) {
+  savePlace: function db_savePlace(place, callback) {
     var transaction = this._db.transaction(['places'],
       IDBTransaction.READ_WRITE);
     transaction.onerror = function dbTransactionError(e) {
@@ -97,11 +97,20 @@ GlobalHistory.db = {
     request.onsuccess = function onsuccess(e) {
       console.log('Successfully wrote place to global history store: ' +
         place.uri);
+      if (callback)
+        callback();
     };
 
     request.onerror = function onerror(e) {
       console.log('Error while adding place to global history store: ' +
         place.uri);
+    };
+  },
+
+  getPlace: function db_getPlace(uri, callback) {
+    var db = this._db;
+    db.transaction('places').objectStore('places').get(uri).onsuccess = function(event) {
+      callback(event.target.result);
     };
   },
 
@@ -170,6 +179,42 @@ GlobalHistory.db = {
       } else {
         callback(history);
       }
+    };
+  },
+
+  clearPlaces: function db_clearPlaces(callback) {
+    var db = GlobalHistory.db._db;
+    var transaction = db.transaction('places',
+      IDBTransaction.READ_WRITE);
+    transaction.onerror = function dbTransactionError(e) {
+      console.log('Transaction error while trying to clear places');
+    };
+    var objectStore = transaction.objectStore('places');
+    var request = objectStore.clear();
+    request.onsuccess = function() {
+      console.log('places object store cleared');
+      callback();
+    };
+    request.onerror = function(e) {
+      console.log('Error clearing places object store');
+    };
+  },
+
+  clearVisits: function db_clearVisits(callback) {
+    var db = GlobalHistory.db._db;
+    var transaction = db.transaction('visits',
+      IDBTransaction.READ_WRITE);
+    transaction.onerror = function dbTransactionError(e) {
+      console.log('Transaction error while trying to clear visits');
+    };
+    var objectStore = transaction.objectStore('visits');
+    var request = objectStore.clear();
+    request.onsuccess = function() {
+      console.log('visits object store cleared');
+      callback();
+    };
+    request.onerror = function(e) {
+      console.log('Error clearing visits object store');
     };
   }
 
