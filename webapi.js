@@ -338,6 +338,7 @@
     // parse the *.properties file into an associative array
     var currentLang = '*';
     var supportedLang = [];
+    var genericLang = lang.replace(/-[a-z]+$/i, '');
     var skipLang = false;
     var data = [];
     var match = '';
@@ -353,7 +354,8 @@
       if (reSection.test(line)) {
         match = reSection.exec(line);
         currentLang = match[1];
-        skipLang = (currentLang != lang) && (currentLang != '*');
+        skipLang = (currentLang != lang) && (currentLang != genericLang) &&
+          (currentLang != '*');
         continue;
       } else if (skipLang) {
         continue;
@@ -1001,8 +1003,8 @@
   // Public API
   document.mozL10n = {
     // get a localized string
-    get: function(key, args) {
-      var data = getL10nData(key, args);
+    get: function(key, args, fallback) {
+      var data = getL10nData(key, args) || fallback;
       return data ? data.textContent : '{{' + key + '}}';
     },
 
