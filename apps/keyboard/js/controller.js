@@ -577,6 +577,7 @@ const IMEController = (function() {
     showIME: function(type) {
       var computedLayout;
       _currentInputType = _mapType(type); // TODO: this should be unneccesary
+      _layoutMode = LAYOUT_MODE_DEFAULT; // _baseLayout is only set by IMEManager (it should not be mine)
       computedLayout = _buildLayout(_baseLayout, _currentInputType, _layoutMode);
       IMERender.draw(computedLayout);
 
