@@ -252,7 +252,6 @@ const IMEController = (function() {
 
     // to uppercase
     if (_isUpperCase) {
-      console.log('upping');
       for (var i = 0; i < alternatives.length; i += 1) {
         var alt = alternatives[i];
         if (layout.upperCase && layout.upperCase[alt]) {
@@ -465,7 +464,6 @@ const IMEController = (function() {
         break;
 
       case DOT_COM:
-        console.log('dotcom!');
         ('.com').split('').forEach((function sendDotCom(key) {
           window.navigator.mozKeyboard.sendKey(0, key.charCodeAt(0));
         }).bind(this));

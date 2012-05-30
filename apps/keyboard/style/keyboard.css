@@ -68,3 +68,72 @@ html, body {
 #keyboard-accent-char-menu.show {
   display: block;
 }
+
+/* ACCENTS */
+
+
+#keyboard-accent-char-menu {
+  position: absolute;
+  display: none;
+  background-color: #cac9c5;
+  height: 58px;
+  padding: 5px;
+  margin-top: -84px;
+  border-radius: 5px;
+  border: 1px solid #fff;
+  box-shadow: 0 0 2px #ccc;
+  white-space: nowrap;
+}
+
+#keyboard-accent-char-menu.show {
+  display: block;
+}
+
+#keyboard-accent-char-menu.menu {
+  height: auto;
+  margin-top: -5px;
+  border: none;
+  padding: 0;
+  overflow: hidden;
+}
+
+#keyboard-accent-char-menu.menu > .keyboard-key {
+  display: block;
+  padding: 5px;
+  margin: 0;
+  background: url(images/middle-special.png) left top repeat-x;
+}
+
+#keyboard-accent-char-menu.menu > .keyboard-key[data-active] {
+  background: rgb(118, 118, 118);
+}
+
+#keyboard-accent-char-menu > .keyboard-key {
+  background: url(images/middle.png) left top repeat-x;
+}
+#keyboard-accent-char-menu > .keyboard-key[data-active] {
+  color: #fff;
+/*
+ * Disable this for now because it's too slow to repaint.
+ *
+  -moz-box-shadow: inset 0 0 2px 2px #6f6f6f;
+  text-shadow: 0 -1px #909090, 0 1px #9b9b9b;
+  background: rgb(118, 118, 118);
+*/
+  background: url(images/left-active-accent.png) left top no-repeat,
+              url(images/right-active-accent.png) right top no-repeat,
+              rgb(118, 118, 118);
+}
+
+#keyboard-accent-char-menu.menu > .current-keyboard::before {
+  content: '';
+  display: block;
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  background-color: #0c0;
+  box-shadow: 0 0 5px #fff;
+}
