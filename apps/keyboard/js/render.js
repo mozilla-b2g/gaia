@@ -9,7 +9,6 @@ const IMERender = (function() {
   var setUpperCaseLock = function kr_setUpperCaseLock() {
     // TODO: To control render of shift key
   }
-
   //
   // Public method that draws the Keyboard
   //
@@ -86,7 +85,8 @@ const IMERender = (function() {
   // 
 
   var buildKey = function buildKey(row, column, code, label, className, width, alt) {
-    return '<button class="keyboard-key ' + className + '"' +
+    width -= 1;    
+	return '<button class="keyboard-key ' + className + '"' +
       ' data-row="' + row + '"' +
       ' data-column="' + column + '"' +
       ' data-keycode="' + code + '"' +
