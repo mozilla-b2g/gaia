@@ -14,12 +14,10 @@ html, body {
   z-index: 9996;
   bottom: 0;
   overflow: visible;
-  background-color: #f0f1f2;
-  width: 100%;
+  background: -moz-radial-gradient(#b1b1b1, #686868);
+  width: 96%;
   -moz-transition: -moz-transform 0.3s ease;
-  border-top: 2px solid #a3a3a3;
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
+  padding: 2%;
 }
 .keyboard-row {
   margin: 10px 0;
@@ -34,29 +32,25 @@ html, body {
   overflow: hidden;
   text-align: center;
   color: rgb(36, 36, 36);
-  font-size: 33px;
-  height: 58px;
+  border: 1px solid #464646;
   min-width: 0 !important;
-  -moz-box-sizing: border-box;
-  padding: 0;
+  margin:0 0.5%;
+  font-size: 1.5em;
+  border-radius: 5px;
+  height: 1.5em;
+  background: -moz-linear-gradient(#fff, #ebebeb);
 }
 
 .keyboard-key.highlighted {
-  font-family: 'Keyboard Symbols', 'Open Sans', sans-serif;
   pointer-events:none;
   top: 0; left: 0;
   z-index: 2;
-  color: #333;
-  background: -moz-linear-gradient(top, rgba(194,197,202,0.9) 10%, rgba(164,164,172,0.9) 90%);
-  font-size: 50px;
-  line-height: 100px;
-  min-width: 70px;
-  padding: 0 5px;
-  height: 100px;
-  margin-top: -110px;
-  text-align: center;
-  border: 1px solid #fff;
+  height: 2em;
+  margin-top: -1.2em;
+  font-size: 2em;
+  overflow: hidden;
 }
+
 
 #keyboard-accent-char-menu {
   position: absolute;

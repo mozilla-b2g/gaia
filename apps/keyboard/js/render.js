@@ -85,7 +85,8 @@ const IMERender = (function() {
   // 
 
   var buildKey = function buildKey(code, label, className, width, alt) {
-    return '<button class="keyboard-key ' + className + '"' +
+    width -= 1;
+    return '<button class="keyboard-key' + className + '"' +
       ' data-keycode="' + code + '"' +
       ' style="width:' + width + '%"' +
       ((alt) ? ' data-alt=' + alt : '') +
