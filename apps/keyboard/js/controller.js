@@ -4,39 +4,39 @@
 */
 
 const IMEController = (function() {
-  var BASIC_LAYOUT            = -1,
-      ALTERNATE_LAYOUT        = -2,
-      SWITCH_KEYBOARD         = -3,
-      TOGGLE_CANDIDATE_PANEL  = -4,
-      DOT_COM                 = -5;
+  var BASIC_LAYOUT = -1,
+      ALTERNATE_LAYOUT = -2,
+      SWITCH_KEYBOARD = -3,
+      TOGGLE_CANDIDATE_PANEL = -4,
+      DOT_COM = -5;
 
-  var LAYOUT_MODE_DEFAULT     = 'Default',
-      LAYOUT_MODE_SYMBOLS_I   = 'Symbols_1',
-      LAYOUT_MODE_SYMBOLS_II  = 'Symbols_2';
+  var LAYOUT_MODE_DEFAULT = 'Default',
+      LAYOUT_MODE_SYMBOLS_I = 'Symbols_1',
+      LAYOUT_MODE_SYMBOLS_II = 'Symbols_2';
 
   // current state of the keyboard
-  var _isPressing             = null,
-      _isWaitingForSecondTap  = false,
-      _currentKey             = null,
-      _baseLayout             = '',
-      _layoutMode             = LAYOUT_MODE_DEFAULT,
-      _isUpperCase            = false,
-      _currentInputType       = 'text';
+  var _isPressing = null,
+      _isWaitingForSecondTap = false,
+      _currentKey = null,
+      _baseLayout = '',
+      _layoutMode = LAYOUT_MODE_DEFAULT,
+      _isUpperCase = false,
+      _currentInputType = 'text';
 
   // timeout and interval for delete, they could be cancelled on mouse over
-  var _deleteTimeout          = 0,
-      _deleteInterval         = 0;
+  var _deleteTimeout = 0,
+      _deleteInterval = 0;
 
   // backspace repeat delay and repeat rate
-  var _kRepeatRate            = 100,
-      _kRepeatTimeout         = 700;
+  var _kRepeatRate = 100,
+      _kRepeatTimeout = 700;
 
     // Taps the shift key twice within kCapsLockTimeout
     // to lock the keyboard at upper case state.
-  var _kCapsLockTimeout        = 450,
-      _isUpperCaseLocked       = false;
+  var _kCapsLockTimeout = 450,
+      _isUpperCaseLocked = false;
 
-  function _mapType (type) {
+  function _mapType(type) {
     switch (type) {
       // basic types
       case 'url':
@@ -61,7 +61,7 @@ const IMEController = (function() {
   }
 
   // depending on current layout mode, return the next switch ABC/SYMBOLS button
-  function _getSwitchKey (layoutMode) {
+  function _getSwitchKey(layoutMode) {
     var value, keyCode;
 
     // next is SYMBOLS
@@ -83,11 +83,11 @@ const IMEController = (function() {
   };
 
   // add some special keys depending on the input's type
-  function _getTypeSensitiveKeys (inputType, ratio, overwrites) {
+  function _getTypeSensitiveKeys(inputType, ratio, overwrites) {
     var newKeys = [];
     switch (inputType) {
       case 'url':
-        newKeys.push({ value: '.', ratio: 2, keyCode: 46 });
+        newKeys.push({ value: '.', ratio: 1, keyCode: 46 });
         newKeys.push({ value: '/', ratio: 2, keyCode: 47 });
         newKeys.push({ value: '.com', ratio: 2, keyCode: DOT_COM });
       break;
@@ -140,7 +140,7 @@ const IMEController = (function() {
 
     // these types force specific layouts
     if (inputType === 'number' || inputType === 'tel')
-      return deepCopy(Keyboards[inputType+'Layout']);
+      return deepCopy(Keyboards[inputType + 'Layout']);
 
     // Clone the layout
     layout = deepCopy(Keyboards[baseLayout]);
@@ -161,9 +161,20 @@ const IMEController = (function() {
       });
     }
 
+    // Switch Languages button
+    var severalLanguages = IMEManager.keyboards.length > 1 && !layout['hidesSwitchKey'];
+
+    if (severalLanguages) {
+      // Switch keyboard key
+      ratio -= 1;
+      newKeys.push({ value: '&#x1f310;', ratio: 1, keyCode: SWITCH_KEYBOARD });
+    }
+
     // Switch ABC/SYMBOLS button
     if (!layout['disableAlternateLayout']) {
       switchKey = _getSwitchKey(layoutMode);
+      if (severalLanguages === false)
+        switchKey.ratio += 1;
       newKeys.push(switchKey);
       ratio -= switchKey.ratio;
     }
@@ -220,7 +231,7 @@ const IMEController = (function() {
   }
 
   // sends a delete code to remove last character
-  function _sendDelete (feedback) {
+  function _sendDelete(feedback) {
     if (feedback)
       IMEFeedback.triggerFeedback();
     if (Keyboards[_baseLayout].type == 'ime' &&
@@ -295,11 +306,11 @@ const IMEController = (function() {
       _sendDelete(false);
 
       // Second, after a delay (with feedback)
-      _deleteTimeout = window.setTimeout(function () {
+      _deleteTimeout = window.setTimeout(function() {
         _sendDelete(true);
 
         // Third, after shorter delay (with feedback too)
-        _deleteInterval = setInterval(function () {
+        _deleteInterval = setInterval(function() {
           _sendDelete(true);
         }, _kRepeatRate);
 
@@ -424,7 +435,7 @@ const IMEController = (function() {
 
           _layoutMode = LAYOUT_MODE_DEFAULT;
           _isUpperCase = false;
-          IMERender.draw(Keyboards[_baseLayout]);
+          IMERender.draw(_buildLayout(_baseLayout, _currentInputType, _layoutMode, _isUpperCase));
           _updateTargetWindowHeight();
         } else {
           // If this is the last keyboard in the stack, start
@@ -438,11 +449,11 @@ const IMEController = (function() {
 
           _layoutMode = LAYOUT_MODE_DEFAULT;
           _isUpperCase = false;
-          IMERender.draw(Keyboards[_baseLayout]);
+          IMERender.draw(_buildLayout(_baseLayout, _currentInputType, _layoutMode, _isUpperCase));
           _updateTargetWindowHeight();
         }
 
-/* XXX: Not yet implemented 
+/* XXX: Not yet implemented
         if (Keyboards[_baseLayout].type == 'ime') {
           if (this.currentEngine.show) {
             this.currentEngine.show(_currentInputType);
