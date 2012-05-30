@@ -328,7 +328,10 @@
                .replace(/\\'/g, "'");
   }
 
-  function parseProperties(text, lang) {
+  function parseProperties(text, lang, baseURL) {
+    var data = [];
+
+    // token expressions
     var reBlank = /^\s*|\s*$/;
     var reComment = /^\s*#|^\s*$/;
     var reSection = /^\s*\[(.*)\]\s*$/;
@@ -336,41 +339,52 @@
     var reSplit = /\s*=\s*/; // TODO: support backslashes to escape EOLs
 
     // parse the *.properties file into an associative array
-    var currentLang = '*';
-    var supportedLang = [];
-    var genericLang = lang.replace(/-[a-z]+$/i, '');
-    var skipLang = false;
-    var data = [];
-    var match = '';
-    var entries = text.replace(reBlank, '').split(/[\r\n]+/);
-    for (var i = 0; i < entries.length; i++) {
-      var line = entries[i];
+    function parseRawLines(rawText, extendedSyntax) {
+      var entries = rawText.replace(reBlank, '').split(/[\r\n]+/);
+      var currentLang = '*';
+      var genericLang = lang.replace(/-[a-z]+$/i, '');
+      var skipLang = false;
+      var match = '';
 
-      // comment or blank line?
-      if (reComment.test(line))
-        continue;
+      for (var i = 0; i < entries.length; i++) {
+        var line = entries[i];
 
-      // section start?
-      if (reSection.test(line)) {
-        match = reSection.exec(line);
-        currentLang = match[1];
-        skipLang = (currentLang != lang) && (currentLang != genericLang) &&
-          (currentLang != '*');
-        continue;
-      } else if (skipLang) {
-        continue;
+        // comment or blank line?
+        if (reComment.test(line))
+          continue;
+
+        // the extended syntax supports [lang] sections and @import rules
+        if (extendedSyntax) {
+          if (reSection.test(line)) { // section start?
+            match = reSection.exec(line);
+            currentLang = match[1];
+            skipLang = (currentLang != lang) && (currentLang != genericLang) &&
+              (currentLang != '*');
+            continue;
+          } else if (skipLang) {
+            continue;
+          }
+          if (reImport.test(line)) { // @import rule?
+            match = reImport.exec(line);
+            loadImport(baseURL + match[1]); // load the resource synchronously
+          }
+        }
+
+        // key-value pair
+        var tmp = line.split(reSplit);
+        if (tmp.length > 1)
+          data[tmp[0]] = evalString(tmp[1]);
       }
-
-      // @import rule?
-      if (reImport.test(line)) {
-        match = reImport.exec(line);
-      }
-
-      // key-value pair
-      var tmp = line.split(reSplit);
-      if (tmp.length > 1)
-        data[tmp[0]] = evalString(tmp[1]);
     }
+
+    // import another *.properties file
+    function loadImport(href) {
+      loadResource(href, function(content) {
+        parseRawLines(content, false); // don't allow recursive imports
+      }, false, false); // load synchronously
+    }
+
+    parseRawLines(text, true);
 
     // find the attribute descriptions, if any
     for (var key in data) {
@@ -388,23 +402,23 @@
     }
   }
 
-  function parse(text, lang) {
+  function parse(text, lang, baseURL) {
     gTextData += text;
     // we only support *.properties files at the moment
-    return parseProperties(text, lang);
+    return parseProperties(text, lang, baseURL);
   }
 
-  // load and parse the specified resource file
-  function loadResource(href, lang, onSuccess, onFailure) {
+  // load the specified resource file
+  function loadResource(href, onSuccess, onFailure, asynchronous) {
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', href, true);
+    xhr.open('GET', href, asynchronous);
     xhr.overrideMimeType('text/plain; charset=utf-8');
     xhr.onreadystatechange = function() {
       if (xhr.readyState == 4) {
         if (xhr.status == 200 || xhr.status == 0) {
-          parse(xhr.responseText, lang);
+          //parse(xhr.responseText, lang);
           if (onSuccess)
-            onSuccess();
+            onSuccess(xhr.responseText);
         } else {
           if (onFailure)
             onFailure();
@@ -412,6 +426,16 @@
       }
     };
     xhr.send(null);
+  }
+
+  // load and parse the specified resource file
+  function loadAndParse(href, lang, onSuccess, onFailure) {
+    var baseURL = href.replace(/\/[^\/]*$/, '/');
+    loadResource(href, function(response) {
+      parse(response, lang, baseURL);
+      if (onSuccess)
+        onSuccess();
+    }, onFailure, true);
   }
 
   // load and parse all resources for the specified locale
@@ -446,7 +470,7 @@
       var type = link.type;
       this.load = function(lang, callback) {
         var applied = lang;
-        loadResource(href, lang, callback, function() {
+        loadAndParse(href, lang, callback, function() {
           console.warn(href + ' not found.');
           applied = '';
         });
