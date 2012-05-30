@@ -6,10 +6,12 @@
 const IMEController = (function() {
 
   // current state of the keyboard
-  var _currentKey = null,
-      _isPressing = null,
-      _currentKeyboard = '',
-      _currentKeyboardMode = '';
+  var _isPressing = null,
+      _currentKey = null,
+      _baseLayout = '',
+      _layoutMode = '',
+      _currentInputType = 'text',
+      _computedLayout = null;
 
   // timeout and interval for delete, they could be cancelled on mouse over
   var _deleteTimeout = 0,
@@ -42,58 +44,46 @@ const IMEController = (function() {
       break;
     }
   }
-  
-  
-  var specialKeys = function kr_addSpecialKeys(layout) {
-    var newKeys = [];
-    var ratio = 8;
-    var width = layout.width ? layout.width : 10;
 
-    // Alternate Keyboards
-    if (!layout['disableAlternateLayout']) {
-      ratio -=2;
-      var alternateKey = addAlternateKeys(_currentKeyboardMode);
-      newKeys.push(alternateKey);
-    }
+  // depending on current layout mode, return the next switch ABC/SYMBOLS button
+  function _getSwitchKey (layoutMode) {
+    var value, keyCode;
 
-    // Text specific Keys
-    if (!layout['typeInsensitive']) {
-      addTypeSensitiveKeys(IMEController.currentType, ratio, newKeys, layout.textLayoutOverwrite);
-    }
+    // next is SYMBOLS
+    if (layoutMode === '') {
+      value = '?123';
+      keyCode = IMEController.ALTERNATE_LAYOUT;
 
-    // Return Key
-    newKeys.push({ value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN });
-
-    return newKeys;
-  };
-
-
-  var addAlternateKeys = function kr_addAlternateKeys(currentKeyboardMode) {
-    var alternateLayoutKey, alternateKey = '';
-    if (currentKeyboardMode == '') {
-      alternateLayoutKey = '?123';
-      alternateKey = { value: alternateLayoutKey, ratio: 2, keyCode: IMEController.ALTERNATE_LAYOUT };
+    // next is ABC
     } else {
-      alternateLayoutKey = 'ABC';
-      alternateKey = { value: alternateLayoutKey, ratio: 2, keyCode: IMEController.BASIC_LAYOUT };
+      value = 'ABC';
+      keyCode = IMEController.BASIC_LAYOUT;
     }
-    return alternateKey;
+
+    return {
+      value: value,
+      ratio: 2,
+      keyCode: keyCode
+    };
   };
 
-  var addTypeSensitiveKeys = function kr_addTypeSensitiveKeys(type, ratio, newKeys, overwrites) {
-    switch (type) {
+  // add some special keys depending on the input's type
+  function _getTypeSensitiveKeys (inputType, ratio, overwrites) {
+    var newKeys = [];
+    switch (inputType) {
       case 'url':
-        var size = Math.floor(ratio / 3);
         newKeys.push({ value: '.', ratio: 2, keyCode: 46 });
         newKeys.push({ value: '/', ratio: 2, keyCode: 47 });
         newKeys.push({ value: '.com', ratio: 2, keyCode: IMEController.DOT_COM });
       break;
+
       case 'email':
         ratio -= 2;
         newKeys.push({ value: ' ', ratio: ratio, keyCode: KeyboardEvent.DOM_VK_SPACE });
         newKeys.push({ value: '@', ratio: 1, keyCode: 64 });
         newKeys.push({ value: '.', ratio: 1, keyCode: 46 });
       break;
+
       case 'text':
 
         // TODO: Refactor
@@ -115,9 +105,89 @@ const IMEController = (function() {
           }
         }
         newKeys.push({ value: ' ', ratio: ratio, keyCode: KeyboardEvent.DOM_VK_SPACE });
-
       break;
     }
+
+    return newKeys;
+  };
+
+  // build the actual layout depending on baseLayout selected, the input's type and layoutMode
+  function _buildLayout(baseLayout, inputType, layoutMode) {
+    var layout,
+        switchKey,
+        newKeys = [],
+        ratio = 8;
+
+    // these types force specific layouts
+    if (inputType === 'number' || inputType === 'tel')
+      return Keyboards[inputType+'Layout'];
+
+    layout = Keyboards[baseLayout];
+
+    // Switch ABC/SYMBOLS button
+    if (!layout['disableAlternateLayout']) {
+      switchKey = _getSwitchKey(layoutMode);
+      newKeys.push(switchKey);
+      ratio -= switchKey.ratio;
+    }
+    // Text types specific keys
+    if (!layout['typeInsensitive']) {
+      newKeys = newKeys.concat(_getTypeSensitiveKeys(inputType, ratio, layout.textLayoutOverwrite));
+    }
+
+    // Return key
+    newKeys.push({ value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN });
+
+    // TODO: Review this, why to always discard the last row?
+    layout.keys.pop(); // remove last row
+    layout.keys.push(newKeys);
+
+    return layout;
+  }
+
+  // recompute the layout to display
+  function _handleSymbolLayoutRequest(keycode) {
+    var base;
+
+    // request for SYMBOLS (page 1)
+    if (keycode === IMEController.ALTERNATE_LAYOUT) {
+      _layoutMode = 'Alternate';
+      base = 'alternateLayout';
+
+    // altern between pages 1 and 2 of SYMBOLS
+    } else if (keycode === KeyEvent.DOM_VK_ALT) {
+
+      if (_layoutMode === 'Symbol') {
+        _layoutMode = 'Alternate';
+        base = 'alternateLayout';
+
+      } else {
+        _layoutMode = 'Symbol';
+        base = 'symbolLayout';
+      }
+
+    // request for ABC
+    } else {
+      _layoutMode = '';
+      base = _baseLayout;
+    }
+
+    _computedLayout = _buildLayout(base, _currentInputType, _layoutMode);
+    IMEController.updateTargetWindowHeight();
+    IMERender.draw(_computedLayout);
+  }
+
+  // sends a delete code to remove last character
+  function _sendDelete (feedback) {
+    if (feedback)
+      IMEFeedback.triggerFeedback();
+    if (Keyboards[_baseLayout].type == 'ime' &&
+        !_layoutMode) {
+      // XXX: Not yet implemented
+      // this.currentEngine.click(keyCode);
+      return;
+    }
+    window.navigator.mozKeyboard.sendKey(KeyboardEvent.DOM_VK_BACK_SPACE, 0);
   };
 
   function _highlightKey(target) {
@@ -126,17 +196,9 @@ const IMEController = (function() {
     }
   }
 
-  function _sendDelete (feedback) {
-    if (feedback)
-      IMEFeedback.triggerFeedback();
-    if (Keyboards[_currentKeyboard].type == 'ime' &&
-        !_currentKeyboardMode) {
-      // XXX: Not yet implemented
-      // this.currentEngine.click(keyCode);
-      return;
-    }
-    window.navigator.mozKeyboard.sendKey(KeyboardEvent.DOM_VK_BACK_SPACE, 0);
-  };
+  //
+  // EVENTS HANDLERS
+  //
 
   function _onMouseDown(evt) {
     _isPressing = true;
@@ -270,12 +332,10 @@ const IMEController = (function() {
 
     switch (keyCode) {
       case this.BASIC_LAYOUT:
-        this.isAlternateLayout = false;
-        break;
-
       case this.ALTERNATE_LAYOUT:
-        this.isAlternateLayout = true;
-        break;
+      case KeyEvent.DOM_VK_ALT:
+        _handleSymbolLayoutRequest(keyCode);
+      break;
 
       case this.SWITCH_KEYBOARD:
 
@@ -284,35 +344,37 @@ const IMEController = (function() {
         if (target.dataset.keyboard) {
 
           if (IMEManager.keyboards.indexOf(target.dataset.keyboard) === -1)
-            _currentKeyboard = IMEManager.keyboards[0];
+            _baseLayout = IMEManager.keyboards[0];
           else
-            _currentKeyboard = target.dataset.keyboard;
+            _baseLayout = target.dataset.keyboard;
 
-          _currentKeyboardMode = '';
+          _layoutMode = '';
           this.isUpperCase = false;
-          IMERender.draw(Keyboards[_currentKeyboard]);
+          IMERender.draw(Keyboards[_baseLayout]);
           this.updateTargetWindowHeight();
         } else {
           // If this is the last keyboard in the stack, start
           // back from the beginning.
           var keyboards = IMEManager.keyboards;
-          var index = keyboards.indexOf(_currentKeyboard);
+          var index = keyboards.indexOf(_baseLayout);
           if (index >= keyboards.length - 1 || index < 0)
-            _currentKeyboard = keyboards[0];
+            _baseLayout = keyboards[0];
           else
-            _currentKeyboard = keyboards[++index];
+            _baseLayout = keyboards[++index];
 
-          _currentKeyboardMode = '';
+          _layoutMode = '';
           this.isUpperCase = false;
-          IMERender.draw(Keyboards[_currentKeyboard]);
+          IMERender.draw(Keyboards[_baseLayout]);
           this.updateTargetWindowHeight();
         }
 
-        if (Keyboards[_currentKeyboard].type == 'ime') {
+/* XXX: Not yet implemented 
+        if (Keyboards[_baseLayout].type == 'ime') {
           if (this.currentEngine.show) {
-            this.currentEngine.show(this.currentType);
+            this.currentEngine.show(_currentInputType);
           }
         }
+*/
 
         break;
 
@@ -333,16 +395,12 @@ const IMEController = (function() {
         }).bind(this));
         break;
 
-      case KeyEvent.DOM_VK_ALT:
-        this.isSymbolLayout = !this.isSymbolLayout;
-        break;
-
       case KeyEvent.DOM_VK_CAPS_LOCK:
         if (this.isWaitingForSecondTap) {
           this.isUpperCaseLocked = true;
           if (!this.isUpperCase) {
             this.isUpperCase = true;
-            IMERender.draw(Keyboards[_currentKeyboard]);
+            IMERender.draw(Keyboards[_baseLayout]);
 
             // XXX: keyboard updated; target is lost.
             var selector =
@@ -364,12 +422,12 @@ const IMEController = (function() {
 
         this.isUpperCaseLocked = false;
         this.isUpperCase = !this.isUpperCase;
-        IMERender.draw(Keyboards[_currentKeyboard]);
+        IMERender.draw(Keyboards[_baseLayout]);
         break;
 
       case KeyEvent.DOM_VK_RETURN:
-        if (Keyboards[_currentKeyboard].type == 'ime' &&
-            !_currentKeyboardMode) {
+        if (Keyboards[_baseLayout].type == 'ime' &&
+            !_layoutMode) {
           this.currentEngine.click(keyCode);
           break;
         }
@@ -382,8 +440,8 @@ const IMEController = (function() {
         if (this.isWaitingForSpaceSecondTap &&
             !this.isContinousSpacePressed) {
 
-          if (Keyboards[_currentKeyboard].type == 'ime' &&
-            !_currentKeyboardMode) {
+          if (Keyboards[_baseLayout].type == 'ime' &&
+            !_layoutMode) {
 
             //TODO: need to define the inteface for double tap handling
             //this.currentEngine.doubleTap(keyCode);
@@ -471,47 +529,21 @@ const IMEController = (function() {
     // IME Engines are self registering here.
     IMEngines: {},
     get currentEngine() {
-      return this.IMEngines[Keyboards[_currentKeyboard].imEngine];
+      return this.IMEngines[Keyboards[_baseLayout].imEngine];
     },
-
-    currentType: 'text',
 
     isUpperCase: false,
 
-    get isAlternateLayout() {
-      var alternateLayouts = ['Alternate', 'Symbol'];
-      return alternateLayouts.indexOf(_currentKeyboardMode) > -1;
-    },
-
-    set isAlternateLayout(isAlternateLayout) {
-      // TODO: move all the pop and push stuff to a single place
-      // Think on refactor how the events are handled
-
-      var layout;
-      if (isAlternateLayout) {
-        _currentKeyboardMode = 'Alternate';
-        layout = Keyboards['alternateLayout'];
-      } else {
-        _currentKeyboardMode = '';
-        layout = Keyboards[_currentKeyboard];
-      }
-      
-      layout.keys.pop();
-      layout.keys.push(specialKeys(layout));
-      IMERender.draw(layout);
-      this.updateTargetWindowHeight();
-    },
-
     get isSymbolLayout() {
-      return _currentKeyboardMode == 'Symbol';
+      return _layoutMode == 'Symbol';
     },
 
     set isSymbolLayout(isSymbolLayout) {
       if (isSymbolLayout) {
-        _currentKeyboardMode = 'Symbol';
+        _layoutMode = 'Symbol';
         IMERender.draw(Keyboards['symbolLayout']);
       } else {
-        _currentKeyboardMode = 'Alternate';
+        _layoutMode = 'Alternate';
         IMERender.draw(Keyboards['alternateLayout']);
       }
       this.updateTargetWindowHeight();
@@ -535,41 +567,29 @@ const IMEController = (function() {
     kSpaceDoubleTapTimeout: 700,
 
     get currentKeyboard() {
-      return _currentKeyboard;
+      return _baseLayout;
     },
 
     set currentKeyboard(value) {
-      _currentKeyboard = value;
+      _baseLayout = value;
     },
 
     init: _init,
     uninit: _uninit,
 
     showIME: function(type) {
-      this.currentType = _mapType(type);
+      _currentInputType = _mapType(type); // TODO: this should be unneccesary
+      _computedLayout = _buildLayout(_baseLayout, _currentInputType, _layoutMode);
+      IMERender.draw(_computedLayout);
 
-      switch (this.currentType) {
-        case 'number':
-          layout = Keyboards['numberLayout'];
-        break;
-        case 'tel':
-          layout = Keyboards['telLayout'];
-        break;
-        default:
-          layout = Keyboards[keyboard] || Keyboards[_currentKeyboard];
-          // TODO: Only pass the needed parameters to specialKeys instead the whole layout
-          layout.keys.pop();
-          layout.keys.push(specialKeys(layout));
-        break;
-      }
-
-      IMERender.draw(layout);
-
-      if (Keyboards[_currentKeyboard].type == 'ime') {
+/* XXX: Not yet implemented
+      if (Keyboards[_baseLayout].type == 'ime') {
         if (this.currentEngine.show) {
           this.currentEngine.show(type);
         }
       }
+*/
+
       this.updateTargetWindowHeight();
     },
 
@@ -580,7 +600,7 @@ const IMEController = (function() {
       // we presume that the targetWindow has been restored by
       // window manager to full size by now.
       IMERender.getTargetWindowMetrics();
-      IMERender.draw(Keyboards[_currentKeyboard]);
+      IMERender.draw(Keyboards[_baseLayout]);
       this.updateTargetWindowHeight();
     },
 
@@ -646,8 +666,8 @@ const IMEController = (function() {
     },
 
     handleMouseDownEvent: function km_handleMouseDownEvent(keyCode) {
-      if (Keyboards[_currentKeyboard].type == 'ime' &&
-          !_currentKeyboardMode) {
+      if (Keyboards[_baseLayout].type == 'ime' &&
+          !_layoutMode) {
             this.currentEngine.click(keyCode);
             return;
           }
@@ -655,10 +675,10 @@ const IMEController = (function() {
       window.navigator.mozKeyboard.sendKey(0, keyCode);
 
       if (this.isUpperCase &&
-          !this.isUpperCaseLocked && !_currentKeyboardMode) {
+          !this.isUpperCaseLocked && !_layoutMode) {
             this.isUpperCase = false;
             //Do we need to re-draw?
-            IMERender.draw(Keyboards[_currentKeyboard]);
+            IMERender.draw(Keyboards[_baseLayout]);
           }
     }
   };
