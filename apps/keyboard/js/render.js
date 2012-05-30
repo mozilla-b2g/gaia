@@ -6,6 +6,10 @@ const IMERender = (function() {
     this.ime = document.getElementById('keyboard');
   }
 
+  var setUpperCaseLock = function kr_setUpperCaseLock() {
+    // TODO: To control render of shift key
+  }
+
   //
   // Public method that draws the Keyboard
   //
@@ -14,9 +18,9 @@ const IMERender = (function() {
     var content = '';
     var layoutWidth = layout.width || 10;
 
-    layout.keys.forEach((function buildKeyboardRow(row) {
+    layout.keys.forEach((function buildKeyboardRow(row, nrow) {
       content += '<div class="keyboard-row">';
-      row.forEach((function buildKeyboardColumns(key) {
+      row.forEach((function buildKeyboardColumns(key, ncolumn) {
         var keyChar = key.value;
         var code = key.keyCode || keyChar.charCodeAt(0);
         var className = '';
@@ -30,7 +34,7 @@ const IMERender = (function() {
         }
         var ratio = key.ratio || 1;
         var keyWidth = (ratio * 100) / layoutWidth;
-        content += buildKey(code, keyChar, className, keyWidth, alt);
+        content += buildKey(nrow, ncolumn, code, keyChar, className, keyWidth, alt);
 
       }));
       content += '</div>';
@@ -52,16 +56,13 @@ const IMERender = (function() {
     key.classList.remove('highlighted');
   };
 
-  var showAlternativesCharMenu = function km_showAlternativesCharMenu(key) {
+  var showAlternativesCharMenu = function km_showAlternativesCharMenu(key, altChars) {
     var target = key;
     var cssWidth = target.style.width;
-    var altChars = target.dataset.alt ? target.dataset.alt.split('') : [];
-    if (!altChars.length)
-      return;
 
     var content = '';
     altChars.forEach(function(keyChar) {
-      content += buildKey(keyChar.charCodeAt(0), keyChar, '', cssWidth);
+      content += buildKey(-1, -1, keyChar.charCodeAt(0), keyChar, '', cssWidth);
     });
 
     this.menu.innerHTML = content;
@@ -84,11 +85,12 @@ const IMERender = (function() {
   // Private Methods
   // 
 
-  var buildKey = function buildKey(code, label, className, width, alt) {
+  var buildKey = function buildKey(row, column, code, label, className, width, alt) {
     return '<button class="keyboard-key ' + className + '"' +
+      ' data-row="' + row + '"' +
+      ' data-column="' + column + '"' +
       ' data-keycode="' + code + '"' +
       ' style="width:' + width + '%"' +
-      ((alt) ? ' data-alt=' + alt : '') +
     '>' + label + '</button>';
   };
 
@@ -99,6 +101,7 @@ const IMERender = (function() {
     'highlightKey': highlightKey,
     'unHighlightKey': unHighlightKey,
     'showAlternativesCharMenu': showAlternativesCharMenu,
-    'hideAlternativesCharMenu': hideAlternativesCharMenu
+    'hideAlternativesCharMenu': hideAlternativesCharMenu,
+    'setUpperCaseLock': setUpperCaseLock
   };
 })();

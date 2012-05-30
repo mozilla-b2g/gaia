@@ -15,19 +15,26 @@ const IMEController = (function() {
       LAYOUT_MODE_SYMBOLS_II  = 'Symbols_2';
 
   // current state of the keyboard
-  var _isPressing = null,
-      _currentKey = null,
-      _baseLayout = '',
-      _layoutMode = LAYOUT_MODE_DEFAULT,
-      _currentInputType = 'text';
+  var _isPressing             = null,
+      _isWaitingForSecondTap  = false,
+      _currentKey             = null,
+      _baseLayout             = '',
+      _layoutMode             = LAYOUT_MODE_DEFAULT,
+      _isUpperCase            = false,
+      _currentInputType       = 'text';
 
   // timeout and interval for delete, they could be cancelled on mouse over
-  var _deleteTimeout = 0,
-      _deleteInterval = 0;
+  var _deleteTimeout          = 0,
+      _deleteInterval         = 0;
 
   // backspace repeat delay and repeat rate
-  var _kRepeatRate = 100,
-      _kRepeatTimeout = 700;
+  var _kRepeatRate            = 100,
+      _kRepeatTimeout         = 700;
+
+    // Taps the shift key twice within kCapsLockTimeout
+    // to lock the keyboard at upper case state.
+  var _kCapsLockTimeout        = 450,
+      _isUpperCaseLocked       = false;
 
   function _mapType (type) {
     switch (type) {
@@ -120,17 +127,39 @@ const IMEController = (function() {
   };
 
   // build the actual layout depending on baseLayout selected, the input's type and layoutMode
-  function _buildLayout(baseLayout, inputType, layoutMode) {
-    var layout,
+  function _buildLayout(baseLayout, inputType, layoutMode, uppercase) {
+
+    function deepCopy(obj) {
+      return JSON.parse(JSON.stringify(obj));
+    }
+
+    var layout, l,
         switchKey,
         newKeys = [],
         ratio = 8;
 
     // these types force specific layouts
     if (inputType === 'number' || inputType === 'tel')
-      return Keyboards[inputType+'Layout'];
+      return deepCopy(Keyboards[inputType+'Layout']);
 
-    layout = Keyboards[baseLayout];
+    // Clone the layout
+    layout = deepCopy(Keyboards[baseLayout]);
+
+    // Transform to uppercase
+    if (uppercase) {
+      layout.keys.forEach(function(row) {
+        row.forEach(function(key) {
+          var v = key.value;
+
+          if (layout.upperCase && layout.upperCase[v]) {
+            key.value = layout.upperCase[v];
+
+          } else {
+            key.value = key.value.toLocaleUpperCase();
+          }
+        });
+      });
+    }
 
     // Switch ABC/SYMBOLS button
     if (!layout['disableAlternateLayout']) {
@@ -209,6 +238,34 @@ const IMEController = (function() {
     }
   }
 
+  function _showAlternatives(key) {
+    var r = key.dataset.row, c = key.dataset.column;
+    if (r < 0 || c < 0)
+      return;
+
+    // get alternatives from layout
+    var layout = Keyboards[_baseLayout];
+    var value = Keyboards[_baseLayout].keys[r][c].value;
+    var alternatives = layout.alt && layout.alt[value] ? layout.alt[value].split('') : [];
+    if (!alternatives.length)
+      return;
+
+    // to uppercase
+    if (_isUpperCase) {
+      console.log('upping');
+      for (var i = 0; i < alternatives.length; i += 1) {
+        var alt = alternatives[i];
+        if (layout.upperCase && layout.upperCase[alt]) {
+          alternatives[i] = layout.upperCase[alt];
+        } else {
+          alternatives[i] = alternatives[i].toLocaleUpperCase();
+        }
+      }
+    }
+
+    IMERender.showAlternativesCharMenu(key, alternatives);
+  }
+
   //
   // EVENTS HANDLERS
   //
@@ -229,7 +286,7 @@ const IMEController = (function() {
 
     // Per key alternatives
     this._menuTimeout = window.setTimeout((function menuTimeout() {
-      IMERender.showAlternativesCharMenu(_currentKey);
+      _showAlternatives(_currentKey);
     }), this.kAccentCharMenuTimeout);
 
     // Special key: delete
@@ -294,7 +351,7 @@ const IMEController = (function() {
     // control showing alternatives menu
     if (target.dataset.alt) {
       this._menuTimeout = window.setTimeout((function menuTimeout() {
-        IMERender.showAlternativesCharMenu(target);
+        _showAlternatives(target);
       }), this.kAccentCharMenuTimeout);
     }
   }
@@ -367,7 +424,7 @@ const IMEController = (function() {
             _baseLayout = target.dataset.keyboard;
 
           _layoutMode = LAYOUT_MODE_DEFAULT;
-          this.isUpperCase = false;
+          _isUpperCase = false;
           IMERender.draw(Keyboards[_baseLayout]);
           _updateTargetWindowHeight();
         } else {
@@ -381,7 +438,7 @@ const IMEController = (function() {
             _baseLayout = keyboards[++index];
 
           _layoutMode = LAYOUT_MODE_DEFAULT;
-          this.isUpperCase = false;
+          _isUpperCase = false;
           IMERender.draw(Keyboards[_baseLayout]);
           _updateTargetWindowHeight();
         }
@@ -414,33 +471,38 @@ const IMEController = (function() {
         break;
 
       case KeyEvent.DOM_VK_CAPS_LOCK:
-        if (this.isWaitingForSecondTap) {
-          this.isUpperCaseLocked = true;
-          if (!this.isUpperCase) {
-            this.isUpperCase = true;
-            IMERender.draw(Keyboards[_baseLayout]);
 
-            // XXX: keyboard updated; target is lost.
-            var selector =
-              'span[data-keycode="' + KeyEvent.DOM_VK_CAPS_LOCK + '"]';
-            target = document.querySelector(selector);
-          }
-          target.dataset.enabled = 'true';
-          delete this.isWaitingForSecondTap;
-          break;
+        // lock caps
+        if (_isWaitingForSecondTap) {
+          _isWaitingForSecondTap = false;
+
+          _isUpperCase = _isUpperCaseLocked = true;
+          IMERender.setUpperCaseLock(true);
+          IMERender.draw(
+            _buildLayout(_baseLayout, _currentInputType, _layoutMode, _isUpperCase)
+          );
+
+        // normal behavior: set timeut for second tap and toggle caps
+        } else {
+
+          // timout for second tap
+          _isWaitingForSecondTap = true;
+          window.setTimeout(
+            function() {
+              _isWaitingForSecondTap = false;
+            },
+            _kCapsLockTimeout
+          );
+
+          // toggle caps
+          _isUpperCase = !_isUpperCase;
+          _isUpperCaseLocked = false;
+          IMERender.setUpperCaseLock(false);
+          IMERender.draw(
+            _buildLayout(_baseLayout, _currentInputType, _layoutMode, _isUpperCase)
+          );
         }
-        this.isWaitingForSecondTap = true;
 
-        window.setTimeout(
-          (function removeCapsLockTimeout() {
-            delete this.isWaitingForSecondTap;
-          }).bind(this),
-          this.kCapsLockTimeout
-        );
-
-        this.isUpperCaseLocked = false;
-        this.isUpperCase = !this.isUpperCase;
-        IMERender.draw(Keyboards[_baseLayout]);
         break;
 
       case KeyEvent.DOM_VK_RETURN:
@@ -509,6 +571,12 @@ const IMEController = (function() {
     'mouseup': _onMouseUp
   };
 
+  function _reset() {
+    // TODO: _baseLayout is only set by IMEManager (it should not be mine)
+    _layoutMode = LAYOUT_MODE_DEFAULT;
+    _isUpperCase = false;
+  }
+
   function _init() {
     IMERender.init();
     for (event in _imeEvents) {
@@ -544,13 +612,6 @@ const IMEController = (function() {
       return this.IMEngines[Keyboards[_baseLayout].imEngine];
     },
 
-    isUpperCase: false,
-
-    // Taps the shift key twice within kCapsLockTimeout
-    // to lock the keyboard at upper case state.
-    kCapsLockTimeout: 450,
-    isUpperCaseLocked: false,
-
     // show accent char menu (if there is one) after kAccentCharMenuTimeout
     kAccentCharMenuTimeout: 700,
 
@@ -577,7 +638,8 @@ const IMEController = (function() {
     showIME: function(type) {
       var computedLayout;
       _currentInputType = _mapType(type); // TODO: this should be unneccesary
-      _layoutMode = LAYOUT_MODE_DEFAULT; // _baseLayout is only set by IMEManager (it should not be mine)
+      _reset();
+
       computedLayout = _buildLayout(_baseLayout, _currentInputType, _layoutMode);
       IMERender.draw(computedLayout);
 
@@ -668,11 +730,13 @@ const IMEController = (function() {
 
       window.navigator.mozKeyboard.sendKey(0, keyCode);
 
-      if (this.isUpperCase &&
-          !this.isUpperCaseLocked && !_layoutMode) {
-            this.isUpperCase = false;
+      if (_isUpperCase &&
+          !_isUpperCaseLocked && _layoutMode === LAYOUT_MODE_DEFAULT) {
+            _isUpperCase = false;
             //Do we need to re-draw?
-            IMERender.draw(Keyboards[_baseLayout]);
+            IMERender.draw(
+              _buildLayout(_baseLayout, _currentInputType, _layoutMode)
+            );
           }
     }
   };
