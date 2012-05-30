@@ -89,7 +89,7 @@ const IMEController = (function() {
       case 'url':
         newKeys.push({ value: '.', ratio: 2, keyCode: 46 });
         newKeys.push({ value: '/', ratio: 2, keyCode: 47 });
-        newKeys.push({ value: '.com', ratio: 2, keyCode: IMEController.DOT_COM });
+        newKeys.push({ value: '.com', ratio: 2, keyCode: DOT_COM });
       break;
 
       case 'email':
@@ -464,7 +464,8 @@ const IMEController = (function() {
         _updateTargetWindowHeight();
         break;
 
-      case this.DOT_COM:
+      case DOT_COM:
+        console.log('dotcom!');
         ('.com').split('').forEach((function sendDotCom(key) {
           window.navigator.mozKeyboard.sendKey(0, key.charCodeAt(0));
         }).bind(this));
