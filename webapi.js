@@ -282,9 +282,9 @@
   var gL10nData = {};
   var gTextData = '';
   var gLanguage = '';
+  var gMacros = {};
 
   // pre-defined macros
-  var gMacros = {};
   gMacros.plural = function(str, param, key, prop) {
     var n = parseFloat(param);
     if (isNaN(n))
@@ -606,6 +606,7 @@
     gL10nData = {};
     gTextData = '';
     gLanguage = '';
+    gMacros = {};
   }
 
   // rules for plural forms (shared with JetPack)
@@ -786,8 +787,12 @@
     };
 
     // utility functions for plural rules methods
-    function isIn(n, list) list.indexOf(n) !== -1;
-    function isBetween(n, start, end) start <= n && n <= end;
+    function isIn(n, list) {
+      return list.indexOf(n) !== -1;
+    }
+    function isBetween(n, start, end) {
+      return start <= n && n <= end;
+    }
 
     // list of all plural rules methods:
     // map an integer to the plural form name to use
@@ -1010,18 +1015,7 @@
 
   // load the default locale on startup
   window.addEventListener('DOMContentLoaded', function() {
-    var lang = navigator.language;
-    if (navigator.mozSettings) {
-      var req = navigator.mozSettings.getLock().get('language.current');
-      req.onsuccess = function() {
-        loadLocale(req.result['language.current'] || lang, translateFragment);
-      };
-      req.onerror = function() {
-        loadLocale(lang, translateFragment);
-      };
-    } else {
-      loadLocale(lang, translateFragment);
-    }
+    loadLocale(navigator.language, translateFragment);
   });
 
   // Public API
