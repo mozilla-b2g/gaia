@@ -4,14 +4,22 @@
 */
 
 const IMEController = (function() {
+  var BASIC_LAYOUT            = -1,
+      ALTERNATE_LAYOUT        = -2,
+      SWITCH_KEYBOARD         = -3,
+      TOGGLE_CANDIDATE_PANEL  = -4,
+      DOT_COM                 = -5;
+
+  var LAYOUT_MODE_DEFAULT     = 'Default',
+      LAYOUT_MODE_SYMBOLS_I   = 'Symbols_1',
+      LAYOUT_MODE_SYMBOLS_II  = 'Symbols_2';
 
   // current state of the keyboard
   var _isPressing = null,
       _currentKey = null,
       _baseLayout = '',
-      _layoutMode = '',
-      _currentInputType = 'text',
-      _computedLayout = null;
+      _layoutMode = LAYOUT_MODE_DEFAULT,
+      _currentInputType = 'text';
 
   // timeout and interval for delete, they could be cancelled on mouse over
   var _deleteTimeout = 0,
@@ -50,14 +58,14 @@ const IMEController = (function() {
     var value, keyCode;
 
     // next is SYMBOLS
-    if (layoutMode === '') {
+    if (layoutMode === LAYOUT_MODE_DEFAULT) {
       value = '?123';
-      keyCode = IMEController.ALTERNATE_LAYOUT;
+      keyCode = ALTERNATE_LAYOUT;
 
     // next is ABC
     } else {
       value = 'ABC';
-      keyCode = IMEController.BASIC_LAYOUT;
+      keyCode = BASIC_LAYOUT;
     }
 
     return {
@@ -147,34 +155,39 @@ const IMEController = (function() {
 
   // recompute the layout to display
   function _handleSymbolLayoutRequest(keycode) {
-    var base;
+    var base, computedLayout;
 
     // request for SYMBOLS (page 1)
-    if (keycode === IMEController.ALTERNATE_LAYOUT) {
-      _layoutMode = 'Alternate';
+    if (keycode === ALTERNATE_LAYOUT) {
+      _layoutMode = LAYOUT_MODE_SYMBOLS_I;
       base = 'alternateLayout';
 
     // altern between pages 1 and 2 of SYMBOLS
     } else if (keycode === KeyEvent.DOM_VK_ALT) {
 
-      if (_layoutMode === 'Symbol') {
-        _layoutMode = 'Alternate';
-        base = 'alternateLayout';
+      if (_layoutMode === LAYOUT_MODE_SYMBOLS_I) {
+        _layoutMode = LAYOUT_MODE_SYMBOLS_II;
+        base = 'symbolLayout';
 
       } else {
-        _layoutMode = 'Symbol';
-        base = 'symbolLayout';
+        _layoutMode = LAYOUT_MODE_SYMBOLS_I;
+        base = 'alternateLayout';
       }
 
     // request for ABC
     } else {
-      _layoutMode = '';
+      _layoutMode = LAYOUT_MODE_DEFAULT;
       base = _baseLayout;
     }
 
-    _computedLayout = _buildLayout(base, _currentInputType, _layoutMode);
-    IMEController.updateTargetWindowHeight();
-    IMERender.draw(_computedLayout);
+    computedLayout = _buildLayout(base, _currentInputType, _layoutMode);
+    IMERender.draw(computedLayout);
+    _updateTargetWindowHeight();
+  }
+
+  function _updateTargetWindowHeight() {
+    var resizeAction = {action: 'resize', height: IMERender.ime.scrollHeight + 'px'};
+    parent.postMessage(JSON.stringify(resizeAction), '*');
   }
 
   // sends a delete code to remove last character
@@ -182,7 +195,7 @@ const IMEController = (function() {
     if (feedback)
       IMEFeedback.triggerFeedback();
     if (Keyboards[_baseLayout].type == 'ime' &&
-        !_layoutMode) {
+        _layoutMode === LAYOUT_MODE_DEFAULT) {
       // XXX: Not yet implemented
       // this.currentEngine.click(keyCode);
       return;
@@ -216,7 +229,7 @@ const IMEController = (function() {
 
     // Per key alternatives
     this._menuTimeout = window.setTimeout((function menuTimeout() {
-      IMERender.showAccentCharMenu(_currentKey);
+      IMERender.showAlternativesCharMenu(_currentKey);
     }), this.kAccentCharMenuTimeout);
 
     // Special key: delete
@@ -241,41 +254,47 @@ const IMEController = (function() {
 
   function _onMouseOver(evt) {
     var target = evt.target;
+
+    // do nothing if no pressing (mouse events) or same key
     if (!_isPressing || _currentKey == target)
       return;
 
+    // do nothing if no keycode
     var keyCode = parseInt(target.dataset.keycode);
-
     if (!keyCode && !target.dataset.selection)
       return;
 
-    if (keyCode == KeyEvent.DOM_VK_BACK_SPACE) {
-      IMERender.updateKeyHighlight();
-      return;
-    }
-
+    // remove current highlight
     IMERender.unHighlightKey(_currentKey);
+
+    // ignore if moving over del key
+    if (keyCode == KeyEvent.DOM_VK_BACK_SPACE)
+      return;
+
     _highlightKey(target);
     _currentKey = target;
 
+    // reset imminent menus or actions
     clearTimeout(_deleteTimeout);
     clearInterval(_deleteInterval);
     clearTimeout(this._menuTimeout);
 
+    // control hide of alternatives menu
     if (target.parentNode === IMERender.menu) {
       clearTimeout(this._hideMenuTimeout);
     } else {
       this._hideMenuTimeout = window.setTimeout(
         (function hideMenuTimeout() {
-          IMERender.hideAccentCharMenu();
+          IMERender.hideAlternativesCharMenu();
           }),
-          this.kHideAccentCharMenuTimeout
+          this.kHideAlternativesCharMenuTimeout
         );
     }
 
+    // control showing alternatives menu
     if (target.dataset.alt) {
       this._menuTimeout = window.setTimeout((function menuTimeout() {
-        IMERender.showAccentCharMenu(target);
+        IMERender.showAlternativesCharMenu(target);
       }), this.kAccentCharMenuTimeout);
     }
   }
@@ -287,8 +306,8 @@ const IMEController = (function() {
 
     IMERender.unHighlightKey(_currentKey);
     this._hideMenuTimeout = window.setTimeout((function hideMenuTimeout() {
-        IMERender.hideAccentCharMenu();
-    }), this.kHideAccentCharMenuTimeout);
+        IMERender.hideAlternativesCharMenu();
+    }), this.khideAlternativesCharMenuTimeout);
 
     if (evt.type == 'scroll')
       _isPressing = false; // cancel the following mouseover event
@@ -304,7 +323,7 @@ const IMEController = (function() {
     clearInterval(_deleteInterval);
     clearTimeout(this._menuTimeout);
 
-    IMERender.hideAccentCharMenu();
+    IMERender.hideAlternativesCharMenu();
 
     var target = _currentKey;
     var keyCode = parseInt(target.dataset.keycode);
@@ -319,7 +338,6 @@ const IMEController = (function() {
       return;
     }
 
-
     IMERender.unHighlightKey(target);
 
     if (keyCode == KeyEvent.DOM_VK_BACK_SPACE)
@@ -331,13 +349,13 @@ const IMEController = (function() {
       delete this.isContinousSpacePressed;
 
     switch (keyCode) {
-      case this.BASIC_LAYOUT:
-      case this.ALTERNATE_LAYOUT:
+      case BASIC_LAYOUT:
+      case ALTERNATE_LAYOUT:
       case KeyEvent.DOM_VK_ALT:
         _handleSymbolLayoutRequest(keyCode);
       break;
 
-      case this.SWITCH_KEYBOARD:
+      case SWITCH_KEYBOARD:
 
         // If the user has specify a keyboard in the menu,
         // switch to that keyboard.
@@ -348,10 +366,10 @@ const IMEController = (function() {
           else
             _baseLayout = target.dataset.keyboard;
 
-          _layoutMode = '';
+          _layoutMode = LAYOUT_MODE_DEFAULT;
           this.isUpperCase = false;
           IMERender.draw(Keyboards[_baseLayout]);
-          this.updateTargetWindowHeight();
+          _updateTargetWindowHeight();
         } else {
           // If this is the last keyboard in the stack, start
           // back from the beginning.
@@ -362,10 +380,10 @@ const IMEController = (function() {
           else
             _baseLayout = keyboards[++index];
 
-          _layoutMode = '';
+          _layoutMode = LAYOUT_MODE_DEFAULT;
           this.isUpperCase = false;
           IMERender.draw(Keyboards[_baseLayout]);
-          this.updateTargetWindowHeight();
+          _updateTargetWindowHeight();
         }
 
 /* XXX: Not yet implemented 
@@ -378,7 +396,7 @@ const IMEController = (function() {
 
         break;
 
-      case this.TOGGLE_CANDIDATE_PANEL:
+      case TOGGLE_CANDIDATE_PANEL:
         if (IMERender.ime.classList.contains('candidate-panel')) {
           IMERender.ime.classList.remove('candidate-panel');
           IMERender.ime.classList.add('full-candidate-panel');
@@ -386,7 +404,7 @@ const IMEController = (function() {
           IMERender.ime.classList.add('candidate-panel');
           IMERender.ime.classList.remove('full-candidate-panel');
         }
-        this.updateTargetWindowHeight();
+        _updateTargetWindowHeight();
         break;
 
       case this.DOT_COM:
@@ -427,7 +445,7 @@ const IMEController = (function() {
 
       case KeyEvent.DOM_VK_RETURN:
         if (Keyboards[_baseLayout].type == 'ime' &&
-            !_layoutMode) {
+            _layoutMode === LAYOUT_MODE_DEFAULT) {
           this.currentEngine.click(keyCode);
           break;
         }
@@ -441,7 +459,7 @@ const IMEController = (function() {
             !this.isContinousSpacePressed) {
 
           if (Keyboards[_baseLayout].type == 'ime' &&
-            !_layoutMode) {
+            _layoutMode === LAYOUT_MODE_DEFAULT) {
 
             //TODO: need to define the inteface for double tap handling
             //this.currentEngine.doubleTap(keyCode);
@@ -520,12 +538,6 @@ const IMEController = (function() {
     // TODO: IMEngines are other kind of controllers, but now they are like
     // controller's plugins. Maybe refactor is required as well but not now.
 
-    BASIC_LAYOUT: -1,
-    ALTERNATE_LAYOUT: -2,
-    SWITCH_KEYBOARD: -3,
-    TOGGLE_CANDIDATE_PANEL: -4,
-    DOT_COM: -5,
-
     // IME Engines are self registering here.
     IMEngines: {},
     get currentEngine() {
@@ -533,21 +545,6 @@ const IMEController = (function() {
     },
 
     isUpperCase: false,
-
-    get isSymbolLayout() {
-      return _layoutMode == 'Symbol';
-    },
-
-    set isSymbolLayout(isSymbolLayout) {
-      if (isSymbolLayout) {
-        _layoutMode = 'Symbol';
-        IMERender.draw(Keyboards['symbolLayout']);
-      } else {
-        _layoutMode = 'Alternate';
-        IMERender.draw(Keyboards['alternateLayout']);
-      }
-      this.updateTargetWindowHeight();
-    },
 
     // Taps the shift key twice within kCapsLockTimeout
     // to lock the keyboard at upper case state.
@@ -559,8 +556,8 @@ const IMEController = (function() {
 
     // if user leave the original key and did not move to
     // a key within the accent character menu,
-    // after kHideAccentCharMenuTimeout the menu will be removed.
-    kHideAccentCharMenuTimeout: 500,
+    // after khideAlternativesCharMenuTimeout the menu will be removed.
+    khideAlternativesCharMenuTimeout: 500,
 
     // Taps the space key twice within kSpaceDoubleTapTimeoout
     // to produce a "." followed by a space
@@ -578,9 +575,10 @@ const IMEController = (function() {
     uninit: _uninit,
 
     showIME: function(type) {
+      var computedLayout;
       _currentInputType = _mapType(type); // TODO: this should be unneccesary
-      _computedLayout = _buildLayout(_baseLayout, _currentInputType, _layoutMode);
-      IMERender.draw(_computedLayout);
+      computedLayout = _buildLayout(_baseLayout, _currentInputType, _layoutMode);
+      IMERender.draw(computedLayout);
 
 /* XXX: Not yet implemented
       if (Keyboards[_baseLayout].type == 'ime') {
@@ -590,7 +588,7 @@ const IMEController = (function() {
       }
 */
 
-      this.updateTargetWindowHeight();
+      _updateTargetWindowHeight();
     },
 
     onResize: function(nWidth, nHeight, fWidth, fHeihgt) {
@@ -601,7 +599,7 @@ const IMEController = (function() {
       // window manager to full size by now.
       IMERender.getTargetWindowMetrics();
       IMERender.draw(Keyboards[_baseLayout]);
-      this.updateTargetWindowHeight();
+      _updateTargetWindowHeight();
     },
 
     loadKeyboard: function km_loadKeyboard(name) {
@@ -658,11 +656,6 @@ const IMEController = (function() {
       }).bind(this));
 
       document.body.appendChild(script);
-    },
-
-    updateTargetWindowHeight: function km_updateTargetWindowHeight() {
-      var resizeAction = {action: 'resize', height: IMERender.ime.scrollHeight + 'px'};
-      parent.postMessage(JSON.stringify(resizeAction), '*');
     },
 
     handleMouseDownEvent: function km_handleMouseDownEvent(keyCode) {

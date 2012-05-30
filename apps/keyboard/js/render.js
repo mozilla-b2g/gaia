@@ -52,7 +52,7 @@ const IMERender = (function() {
     key.classList.remove('highlighted');
   };
 
-  var showAccentCharMenu = function km_showAccentCharMenu(key) {
+  var showAlternativesCharMenu = function km_showAlternativesCharMenu(key) {
     var target = key;
     var cssWidth = target.style.width;
     var altChars = target.dataset.alt ? target.dataset.alt.split('') : [];
@@ -73,7 +73,7 @@ const IMERender = (function() {
 
   };
 
-  var hideAccentCharMenu = function km_hideAccentCharMenu() {
+  var hideAlternativesCharMenu = function km_hideAlternativesCharMenu() {
     this.menu = document.getElementById('keyboard-accent-char-menu');
     this.menu.innerHTML = '';
     this.menu.className = '';
@@ -98,7 +98,7 @@ const IMERender = (function() {
     'ime': ime,
     'highlightKey': highlightKey,
     'unHighlightKey': unHighlightKey,
-    'showAccentCharMenu': showAccentCharMenu,
-    'hideAccentCharMenu': hideAccentCharMenu
+    'showAlternativesCharMenu': showAlternativesCharMenu,
+    'hideAlternativesCharMenu': hideAlternativesCharMenu
   };
 })();
