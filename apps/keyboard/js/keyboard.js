@@ -295,9 +295,10 @@ const IMEManager = {
     }
 
     var altChars;
-    // Special hack for "R$"
-    if (target.dataset.alt === '_R$') {
-      altChars = [{ keyCode: this.BRAZILIAN_REAL, label: 'R$'}];
+
+    // handle special key set separated by space
+    if (target.dataset.alt.indexOf(' ') != -1) {
+      altChars = target.dataset.alt.split(' ');
     } else {
       altChars = target.dataset.alt.split('');
     }
@@ -306,16 +307,27 @@ const IMEManager = {
       altChars = altChars.reverse();
 
     altChars.forEach(function(keyChar) {
+
+      if (keyChar === '')
+        return;
+
+      // handle composite key
+      var compositeKeyHTML = '';
+      if (keyChar.length > 1) {
+         var compositeKeyHTML = ' data-compositekey="' + keyChar + '" ';
+      }
+
       var keyCode = keyChar.keyCode || keyChar.charCodeAt(0);
       var label = keyChar.label || keyChar;
 
       content += '<span class="keyboard-key" ' +
-      'data-keycode="' + keyCode + '"' +
-      'style="width:' + cssWidth + '"' +
-      '>' +
-      label +
-      '</span>';
-    });
+        'data-keycode="' + keyCode + '"' +
+        'style="width:' + cssWidth + '"' +
+        compositeKeyHTML +
+        '>' +
+        label +
+        '</span>';
+    }.bind(this));
 
     if (!before) {
       content += '<span class="keyboard-key" ' +
@@ -773,6 +785,16 @@ const IMEManager = {
         if (keyCode != KeyEvent.DOM_VK_SPACE)
           delete this.isContinousSpacePressed;
 
+        // Handle composite key
+        var compositekey = target.dataset.compositekey;
+        if (compositekey) {
+            compositekey.split('').forEach((function sendDotCom(key) {
+              window.navigator.mozKeyboard.sendKey(0, key.charCodeAt(0));
+            }).bind(this));
+
+          return;
+        }
+
         switch (keyCode) {
           case this.BASIC_LAYOUT:
             this.isAlternateLayout = false;
@@ -841,8 +863,6 @@ const IMEManager = {
           case this.BRAZILIAN_REAL:
             ('R$').split('').forEach((function sendDotCom(key) {
               window.navigator.mozKeyboard.sendKey(0, key.charCodeAt(0));
-              if (Keyboards[this.currentKeyboard].suggestionEngine)
-                this.currentSuggestionEngine.click(keyCode);
             }).bind(this));
             break;
 
@@ -954,7 +974,12 @@ const IMEManager = {
         layout = Keyboards['telLayout'];
       break;
       default:
-        layout = Keyboards[keyboard] || Keyboards[this.currentKeyboard];
+        // Use the localized version of various keyboard layouts
+        // (symbol, number, etc.) if it is defined
+        if (Keyboards[this.currentKeyboard][keyboard])
+          layout = Keyboards[this.currentKeyboard][keyboard];
+        else
+          layout = Keyboards[keyboard] || Keyboards[this.currentKeyboard];
       break;
     }
 
@@ -976,8 +1001,8 @@ const IMEManager = {
       return '<span class="keyboard-key ' + className + '"' +
         ' data-keycode="' + code + '"' +
         ' style="width:' + (size * ratio - 4) + 'px"' +
-        ((alt) ? ' data-alt=' + alt : '') +
-      '>' + label + '</span>';
+        ((alt) ? ' data-alt="' + alt : '') +
+      '">' + label + '</span>';
     };
 
     layout.keys.forEach((function buildKeyboardRow(row) {
@@ -990,6 +1015,11 @@ const IMEManager = {
           KeyEvent.DOM_VK_RETURN,
           KeyEvent.DOM_VK_ALT
         ];
+
+        var compositeCodes = [
+          this.BRAZILIAN_REAL
+        ];
+
         var keyChar = key.value;
 
         // This gives layout author the ability to rewrite toUpperCase()
@@ -1117,7 +1147,9 @@ const IMEManager = {
 
         var className = '';
 
-        if (code < 0 || specialCodes.indexOf(code) > -1)
+        // Not to highlight composite key (like R$) as special key
+        if ((code < 0 || specialCodes.indexOf(code) > -1) &&
+             compositeCodes.indexOf(code) == -1)
           className += ' keyboard-key-special';
 
         if (code == KeyEvent.DOM_VK_CAPS_LOCK)
