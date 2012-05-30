@@ -127,6 +127,23 @@ webapp-manifests:
 			echo },) >> ../profile/webapps/webapps.json;\
 		fi \
 	done
+	@cd external-apps; \
+	for d in `find * -maxdepth 0 -type d` ;\
+	do \
+	  if [ -f $$d/manifest.webapp ]; \
+		then \
+		  mkdir -p ../profile/webapps/$$d; \
+		  cp $$d/manifest.webapp ../profile/webapps/$$d/manifest.webapp  ;\
+                  (\
+			echo \"$$d\": { ;\
+			echo \"origin\": \"`cat $$d/origin`\", ;\
+			echo \"installOrigin\": \"`cat $$d/origin`\", ;\
+			echo \"receipt\": null, ;\
+			echo \"installTime\": 132333986000, ;\
+			echo \"manifestURL\": \"`cat $$d/origin`/manifest.webapp\" ;\
+			echo },) >> ../profile/webapps/webapps.json;\
+		fi \
+	done
 	@$(SED_INPLACE_NO_SUFFIX) -e '$$s|,||' profile/webapps/webapps.json
 	@echo } >> profile/webapps/webapps.json
 	@cat profile/webapps/webapps.json
