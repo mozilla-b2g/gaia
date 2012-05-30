@@ -24,7 +24,7 @@ const IMERender = (function() {
         var code = key.keyCode || keyChar.charCodeAt(0);
         var className = '';
         var alt = '';
-        if(layout.alt) {
+        if (layout.alt) {
           if (layout.alt[keyChar] != undefined) {
             alt = layout.alt[keyChar];
           } else if (layout.alt[key.value] && IMEController.isUpperCase) {
@@ -40,7 +40,7 @@ const IMERender = (function() {
     }));
 
     // Append empty accent char menu and key highlight into content HTML
-    content += '<span id="keyboard-accent-char-menu"></span>';
+    content += '<span id="keyboard-accent-char-menu-out"><span id="keyboard-accent-char-menu"></span></span>';
     content += '<span id="keyboard-key-highlight"></span>';
 
     this.ime.innerHTML = content;
@@ -58,18 +58,32 @@ const IMERender = (function() {
   var showAlternativesCharMenu = function km_showAlternativesCharMenu(key, altChars) {
     var target = key;
     var cssWidth = target.style.width;
+    var left = (window.innerWidth / 2 > target.offsetLeft);
+    var altCharsCurrent = [];
+
+    if (left === true) {
+      this.menu.style.left = target.offsetLeft + 'px';
+      this.menu.style.right = 'auto';
+      this.menu.style.textAlign = 'center';
+      altCharsCurrent.push(key.innerHTML);
+      altCharsCurrent = altCharsCurrent.concat(altChars);
+    } else {
+      var width = '-moz-calc(' + window.innerWidth + 'px - ' + target.offsetLeft + 'px - ' + target.style.width + ' )';
+      this.menu.style.right = width;
+      this.menu.style.left = 'auto';
+      this.menu.style.textAlign = 'center';
+      altCharsCurrent = altChars.reverse();
+      altCharsCurrent.push(key.innerHTML);
+    }
 
     var content = '';
-    altChars.forEach(function(keyChar) {
+    altCharsCurrent.forEach(function(keyChar) {
       content += buildKey(-1, -1, keyChar.charCodeAt(0), keyChar, '', cssWidth);
     });
 
     this.menu.innerHTML = content;
-    this.menu.className = 'show';
-
-    this.menu.style.top = target.offsetTop + 'px';
-
-    var left = target.offsetLeft;
+    this.menu.style.display = 'block';
+    this.menu.style.top = '-moz-calc(' + target.offsetTop + 'px + 3em)';
 
   };
 
@@ -77,16 +91,17 @@ const IMERender = (function() {
     this.menu = document.getElementById('keyboard-accent-char-menu');
     this.menu.innerHTML = '';
     this.menu.className = '';
+    this.menu.style.display = 'none';
   };
 
 
-  // 
+  //
   // Private Methods
-  // 
+  //
 
   var buildKey = function buildKey(row, column, code, label, className, width, alt) {
-    width -= 1;    
-	return '<button class="keyboard-key ' + className + '"' +
+    width -= 1;
+    return '<button class="keyboard-key ' + className + '"' +
       ' data-row="' + row + '"' +
       ' data-column="' + column + '"' +
       ' data-keycode="' + code + '"' +
