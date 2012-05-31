@@ -15,7 +15,54 @@ var ScreenManager = {
 
   preferredBrightness: 0.5,
 
+  init: function scm_init() {
+    /*
+    * ScreenManager also handle the hardware keys on behalf of SleepMenu
+    * XXX: Should move to the appropriate component.
+    */
+    window.addEventListener('keydown', this);
+    window.addEventListener('keyup', this);
+  },
+
+  handleEvent: function scm_handleEvent(evt) {
+    this._syncScreenEnabledValue();
+    switch (evt.type) {
+      case 'keydown':
+        if (evt.keyCode !== evt.DOM_VK_SLEEP && evt.keyCode !== evt.DOM_VK_HOME)
+          return;
+
+        this._turnOffScreenOnKeyup = true;
+        if (!this.screenEnabled) {
+          this.turnScreenOn();
+          this._turnOffScreenOnKeyup = false;
+        }
+
+        if (evt.keyCode == evt.DOM_VK_SLEEP && !SleepMenu.visible) {
+          this._sleepMenuTimeout = window.setTimeout((function slm_timeout() {
+            SleepMenu.show();
+
+            this._turnOffScreenOnKeyup = false;
+          }).bind(this), 1500);
+        }
+
+        break;
+      case 'keyup':
+        if (evt.keyCode != evt.DOM_VK_SLEEP)
+          return;
+
+        window.clearTimeout(this._sleepMenuTimeout);
+
+        if (this.screenEnabled && this._turnOffScreenOnKeyup) {
+          SleepMenu.hide();
+          this.turnScreenOff();
+        }
+
+        break;
+    }
+  },
+
   toggleScreen: function scm_toggleScreen() {
+    this._syncScreenEnabledValue();
     if (this.screenEnabled)
       this.turnScreenOff();
     else
@@ -23,6 +70,7 @@ var ScreenManager = {
   },
 
   turnScreenOff: function scm_turnScreenOff() {
+    this._syncScreenEnabledValue();
     if (!this.screenEnabled)
       return false;
 
@@ -39,6 +87,7 @@ var ScreenManager = {
   },
 
   turnScreenOn: function scm_turnScreenOn() {
+    this._syncScreenEnabledValue();
     if (this.screenEnabled)
       return false;
 
@@ -47,6 +96,12 @@ var ScreenManager = {
 
     this.sendEvent();
     return true;
+  },
+
+  // XXX: this function is needed here because mozPower.screenEnabled
+  // can be changed by shell.js instead of us.
+  _syncScreenEnabledValue: function scm_syncScreenEnabledValue() {
+    this.screenEnabled = navigator.mozPower.screenEnabled;
   },
 
   sendEvent: function scm_sendEvent() {

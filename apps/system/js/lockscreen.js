@@ -94,13 +94,6 @@ var LockScreen = {
 
     /* Passcode input pad*/
     this.passcodePad.addEventListener('click', this);
-
-    /*
-    * Hardware key handling on behalf of ScreenManager & SleepMenu
-    * XXX: Should move to appropriate components.
-    */
-    window.addEventListener('keydown', this);
-    window.addEventListener('keyup', this);
   },
 
   /*
@@ -170,38 +163,6 @@ var LockScreen = {
         this.overlay.classList.remove('touch');
 
         this.handleGesture(dx, dy);
-        break;
-
-      case 'keydown':
-        if (evt.keyCode !== evt.DOM_VK_SLEEP && evt.keyCode !== evt.DOM_VK_HOME)
-          return;
-
-        this._turnOffScreenOnKeyup = true;
-        if (!ScreenManager.screenEnabled) {
-          ScreenManager.turnScreenOn();
-          this._turnOffScreenOnKeyup = false;
-        }
-
-        if (evt.keyCode == evt.DOM_VK_SLEEP && !SleepMenu.visible) {
-          this._sleepMenuTimeout = window.setTimeout((function slm_timeout() {
-            SleepMenu.show();
-
-            this._turnOffScreenOnKeyup = false;
-          }).bind(this), 1500);
-        }
-
-        break;
-      case 'keyup':
-        if (evt.keyCode != evt.DOM_VK_SLEEP)
-          return;
-
-        window.clearTimeout(this._sleepMenuTimeout);
-
-        if (ScreenManager.screenEnabled && this._turnOffScreenOnKeyup) {
-          SleepMenu.hide();
-          ScreenManager.turnScreenOff();
-        }
-
         break;
     }
   },
