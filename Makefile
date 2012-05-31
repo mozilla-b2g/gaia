@@ -110,7 +110,7 @@ webapp-manifests:
 	@mkdir -p profile/webapps
 	@echo { > profile/webapps/webapps.json
 	@cd apps; \
-	for d in `find * -maxdepth 0 -type d` ;\
+	for d in `cat apps.list` ;\
 	do \
 	  if [ -f $$d/manifest.webapp ]; \
 		then \
