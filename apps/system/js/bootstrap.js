@@ -234,6 +234,7 @@ var Applications = {
 
     var name = app.manifest.name;
     var locales = app.manifest.locales;
+    var lang = navigator.language;
     if (locales && locales[lang] && locales[lang].name)
       name = locales[lang].name;
 
@@ -246,5 +247,3 @@ var Applications = {
 };
 
 window.addEventListener('mozChromeEvent', Applications);
-
-
