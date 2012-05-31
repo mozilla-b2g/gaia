@@ -4,6 +4,7 @@ cd $GAIA_PATH;
 
 # start test agent server put it in the background
 make -C $GAIA_PATH test-agent-server &
+AGENT_PID=`jobs -p | tail -n 1`;
 
 # wait for emulator to connect to ws server
 sleep 4
@@ -31,5 +32,5 @@ fi
 EXIT_STATUS=$?
 
 # kill background server
-kill %1;
+kill $AGENT_PID;
 exit $EXIT_STATUS;

@@ -37,10 +37,6 @@ DOMAIN=http://test-agent.$GAIA_DOMAIN:$GAIA_PORT/index.html#?websocketUrl=$TEST_
 
 echo "Starting Emulator";
 
-Xvfb :89 &
-
-export DISPLAY=:89;
-
 ./gecko/testing/marionette/client/marionette/scripts/runemu.sh \
   python --repo $B2G_HOME \
   --pidfile $B2G_HOME/emulator.pid  \
@@ -56,9 +52,6 @@ PID=`cat $B2G_HOME/emulator.pid`
 
 echo "Running tests";
 $CI_TOOLS/test.sh
-
-# kill xvfb
-kill %1;
 
 echo "Done output file: $TEST_OUTPUT"
 if [ "$EXIT_STATUS" == "0" ];
