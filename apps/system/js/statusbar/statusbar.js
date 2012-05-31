@@ -11,6 +11,12 @@ var StatusBar = {
     ];
     NotificationScreen.init(touchables);
 
+    window.addEventListener('screenchange', this);
+
+    this.refresh();
+  },
+
+  handleEvent: function sb_handleEvent(evt) {
     this.refresh();
   },
 

@@ -36,8 +36,6 @@ var ScreenManager = {
     navigator.mozPower.screenBrightness = 0.0;
 
     this.sendEvent();
-
-    StatusBar.refresh();
     return true;
   },
 
@@ -49,8 +47,6 @@ var ScreenManager = {
     navigator.mozPower.screenBrightness = this.preferredBrightness;
 
     this.sendEvent();
-
-    StatusBar.refresh();
     return true;
   },
 
