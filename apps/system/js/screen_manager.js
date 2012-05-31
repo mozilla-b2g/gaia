@@ -8,14 +8,10 @@ var ScreenManager = {
   * return the current screen status
   * Must not multate directly - use toggleScreen/turnScreenOff/turnScreenOn.
   * Listen to 'screenchange' event to properly handle status changes
+  * This value can be "out of sync" with real mozPower value,
+  * we do this to give screen some time to flash before actual turn off.
   */
-  get screenEnabled() {
-    return navigator.mozPower.screenEnabled;
-  },
-
-  set screenEnabled(enabled) {
-    return navigator.mozPower.screenEnabled = enabled;
-  },
+  screenEnabled: true,
 
   preferredBrightness: 0.5,
 
@@ -30,10 +26,13 @@ var ScreenManager = {
     if (!this.screenEnabled)
       return false;
 
-    this.screenEnabled = false;
-
     this.preferredBrightness = navigator.mozPower.screenBrightness;
     navigator.mozPower.screenBrightness = 0.0;
+
+    this.screenEnabled = false;
+    setTimeout(function realScreenOff() {
+      navigator.mozPower.screenEnabled = false;
+    }, 20);
 
     this.sendEvent();
     return true;
@@ -43,7 +42,7 @@ var ScreenManager = {
     if (this.screenEnabled)
       return false;
 
-    navigator.mozPower.screenEnabled = true;
+    navigator.mozPower.screenEnabled = this.screenEnabled = true;
     navigator.mozPower.screenBrightness = this.preferredBrightness;
 
     this.sendEvent();
