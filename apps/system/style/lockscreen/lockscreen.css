@@ -366,6 +366,7 @@
   text-align: center;
   border: 1px solid #919191;
   border-radius: 8px;
+  outline: none;
 
   font-size: 64px;
   line-height: 84px;
