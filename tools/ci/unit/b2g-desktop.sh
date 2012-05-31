@@ -21,7 +21,9 @@ echo "Starting B2G Desktop";
 $B2G_HOME/dist/bin/b2g -profile $GAIA_PATH/profile &
 PID=`jobs -p | tail -n 1`;
 
-sleep 2
+# Horrible hack need real
+# script in b2g-scripts to wait for a port first..
+sleep 10
 
 if [ "$?" -ne "0" ];
 then
