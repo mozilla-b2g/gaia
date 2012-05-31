@@ -35,7 +35,7 @@ MOCHA_FILE="$GAIA_PATH/mocha-test-results.html"
 ./tools/test-agent/node_modules/b2g-scripts/bin/b2g-scripts \
   cmd \
   executeScript \
-  "return document.getElementByid('mocha').innerHTML;" \
+  "return document.getElementById('mocha').innerHTML;" \
   > $MOCHA_FILE;
 
 # kill background server
