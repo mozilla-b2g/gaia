@@ -223,7 +223,7 @@ var LockScreen = {
     }
 
     if (ratioX > 0.2) {
-      // TBD: Moving right to camera icon
+      this.switchPanel('camera');
     } else if (ratioX < -0.2) {
       // Moving left to unlock icon
       if (!this.passCodeEnabled) {
@@ -237,7 +237,7 @@ var LockScreen = {
   handlePassCodeInput: function ls_handlePassCodeInput(key) {
     switch (key) {
       case 'e': // Emergency Call
-        // XXX: TBD
+        this.switchPanel('emergency-call');
         break;
       case 'b':
         if (!this.passCodeEntered) {

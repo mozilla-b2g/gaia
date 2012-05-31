@@ -33,6 +33,12 @@
   position: absolute;
 }
 
+.lockscreen-panel.tbd {
+  color: #919191;
+  text-align: center;
+  margin-top: 50px;
+}
+
 #lockscreen-header {
   position: absolute:
   top: 0;
@@ -375,4 +381,34 @@
 
 #lockscreen-passcode-pad > a.lockscreen-passcode-pad-func {
   font-size: 20px;
+}
+
+#lockscreen-panel-emergency-call {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: none;
+}
+
+[data-panel="emergency-call"] #lockscreen-panel-emergency-call {
+  display: block;
+}
+
+[data-panel="emergency-call"] .lockscreen-panel:not(#lockscreen-panel-emergency-call) {
+  display: none;
+}
+
+#lockscreen-panel-camera {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: none;
+}
+
+[data-panel="camera"] #lockscreen-panel-camera {
+  display: block;
+}
+
+[data-panel="camera"] .lockscreen-panel:not(#lockscreen-panel-camera) {
+  display: none;
 }
