@@ -31,10 +31,13 @@
   };
 
   var IMEKeyMap = {
-    'あ': 0, 'か': 1, 'さ': 2, 'た': 3, 'な': 4, 'は': 5, 'ま': 6, 'や': 7, 'ら': 8, 'わ': 9, '、': 10,
-    'ア': 0, 'カ': 1, 'サ': 2, 'タ': 3, 'ナ': 4, 'ハ': 5, 'マ': 6, 'ヤ': 7, 'ラ': 8, 'ワ': 9,
-    'ｱ': 0, 'ｶ': 1, 'ｻ': 2, 'ﾀ': 3, 'ﾅ': 4, 'ﾊ': 5, 'ﾏ': 6, 'ﾔ': 7, 'ﾗ': 8, 'ﾜ': 9, '､': 10,
-  }; 
+    'あ': 0, 'か': 1, 'さ': 2, 'た': 3, 'な': 4, 'は': 5, 'ま': 6, 'や': 7,
+    'ら': 8, 'わ': 9, '、': 10,
+    'ア': 0, 'カ': 1, 'サ': 2, 'タ': 3, 'ナ': 4, 'ハ': 5, 'マ': 6, 'ヤ': 7,
+    'ラ': 8, 'ワ': 9,
+    'ｱ': 0, 'ｶ': 1, 'ｻ': 2, 'ﾀ': 3, 'ﾅ': 4, 'ﾊ': 5, 'ﾏ': 6, 'ﾔ': 7, 'ﾗ': 8,
+    'ﾜ': 9, '､': 10
+  };
 
   // Key loop
   // Ex.
@@ -54,57 +57,73 @@
     ['、', '。', '？', '！', '・', '　']
   ];
   var IMEFullKatakanaCycleTable = [
-    ["ア", "イ", "ウ", "エ", "オ", "ァ", "ィ", "ゥ", "ェ", "ォ"],
-    ["カ", "キ", "ク", "ケ", "コ"],
-    ["サ", "シ", "ス", "セ", "ソ"],
-    ["タ", "チ", "ツ", "テ", "ト", "ッ"],
-    ["ナ", "ニ", "ヌ", "ネ", "ノ"],
-    ["ハ", "ヒ", "フ", "ヘ", "ホ"],
-    ["マ", "ミ", "ム", "メ", "モ"],
-    ["ヤ", "ユ", "ヨ", "ャ", "ュ", "ョ"],
-    ["ラ", "リ", "ル", "レ", "ロ"],
-    ["ワ", "ヲ", "ン", "ヮ", "ー"],
-    ["、", "。", "？", "！", "・", "　"]
+    ['ア', 'イ', 'ウ', 'エ', 'オ', 'ァ', 'ィ', 'ゥ', 'ェ', 'ォ'],
+    ['カ', 'キ', 'ク', 'ケ', 'コ'],
+    ['サ', 'シ', 'ス', 'セ', 'ソ'],
+    ['タ', 'チ', 'ツ', 'テ', 'ト', 'ッ'],
+    ['ナ', 'ニ', 'ヌ', 'ネ', 'ノ'],
+    ['ハ', 'ヒ', 'フ', 'ヘ', 'ホ'],
+    ['マ', 'ミ', 'ム', 'メ', 'モ'],
+    ['ヤ', 'ユ', 'ヨ', 'ャ', 'ュ', 'ョ'],
+    ['ラ', 'リ', 'ル', 'レ', 'ロ'],
+    ['ワ', 'ヲ', 'ン', 'ヮ', 'ー'],
+    ['、', '。', '？', '！', '・', '　']
   ];
   var IMEHalfKatakanaCycleTable = [
-    ["ｱ", "ｲ", "ｳ", "ｴ", "ｵ", "ｧ", "ｨ", "ｩ", "ｪ", "ｫ"],
-    ["ｶ", "ｷ", "ｸ", "ｹ", "ｺ"],
-    ["ｻ", "ｼ", "ｽ", "ｾ", "ｿ"],
-    ["ﾀ", "ﾁ", "ﾂ", "ﾃ", "ﾄ", "ｯ"],
-    ["ﾅ", "ﾆ", "ﾇ", "ﾈ", "ﾉ"],
-    ["ﾊ", "ﾋ", "ﾌ", "ﾍ", "ﾎ"],
-    ["ﾏ", "ﾐ", "ﾑ", "ﾒ", "ﾓ"],
-    ["ﾔ", "ﾕ", "ﾖ", "ｬ", "ｭ", "ｮ"],
-    ["ﾗ", "ﾘ", "ﾙ", "ﾚ", "ﾛ"],
-    ["ﾜ", "ｦ", "ﾝ", "ｰ"],
-    ["､", "｡", "?", "!", "･", " "]
+    ['ｱ', 'ｲ', 'ｳ', 'ｴ', 'ｵ', 'ｧ', 'ｨ', 'ｩ', 'ｪ', 'ｫ'],
+    ['ｶ', 'ｷ', 'ｸ', 'ｹ', 'ｺ'],
+    ['ｻ', 'ｼ', 'ｽ', 'ｾ', 'ｿ'],
+    ['ﾀ', 'ﾁ', 'ﾂ', 'ﾃ', 'ﾄ', 'ｯ'],
+    ['ﾅ', 'ﾆ', 'ﾇ', 'ﾈ', 'ﾉ'],
+    ['ﾊ', 'ﾋ', 'ﾌ', 'ﾍ', 'ﾎ'],
+    ['ﾏ', 'ﾐ', 'ﾑ', 'ﾒ', 'ﾓ'],
+    ['ﾔ', 'ﾕ', 'ﾖ', 'ｬ', 'ｭ', 'ｮ'],
+    ['ﾗ', 'ﾘ', 'ﾙ', 'ﾚ', 'ﾛ'],
+    ['ﾜ', 'ｦ', 'ﾝ', 'ｰ'],
+    ['､', '｡', '?', '!', '･', ' ']
   ];
 
   // Hiragana (平假名) case convert table
   var HiraganaCaseTable = {
-    'あ': 'ぁ', 'い': 'ぃ', 'う': 'ぅ', 'え': 'ぇ', 'お': 'ぉ', 'ぁ': 'あ', 'ぃ': 'い', 'ぅ': 'ヴ', 'ぇ': 'え', 'ぉ': 'お', 'か': 'が', 'き': 'ぎ',
-    'く': 'ぐ', 'け': 'げ', 'こ': 'ご', 'が': 'か', 'ぎ': 'き', 'ぐ': 'く', 'げ': 'け', 'ご': 'こ', 'さ': 'ざ', 'し': 'じ', 'す': 'ず', 'せ': 'ぜ',
-    'そ': 'ぞ', 'ざ': 'さ', 'じ': 'し', 'ず': 'す', 'ぜ': 'せ', 'ぞ': 'そ', 'た': 'だ', 'ち': 'ぢ', 'つ': 'っ', 'て': 'で', 'と': 'ど', 'だ': 'た',
-    'ぢ': 'ち', 'っ': 'づ', 'で': 'て', 'ど': 'と', 'づ': 'つ', 'ヴ': 'う', 'は': 'ば', 'ひ': 'び', 'ふ': 'ぶ', 'へ': 'べ', 'ほ': 'ぼ', 'ば': 'ぱ',
-    'び': 'ぴ', 'ぶ': 'ぷ', 'べ': 'ぺ', 'ぼ': 'ぽ', 'ぱ': 'は', 'ぴ': 'ひ', 'ぷ': 'ふ', 'ぺ': 'へ', 'ぽ': 'ほ', 'や': 'ゃ', 'ゆ': 'ゅ', 'よ': 'ょ',
+    'あ': 'ぁ', 'い': 'ぃ', 'う': 'ぅ', 'え': 'ぇ', 'お': 'ぉ', 'ぁ': 'あ', 'ぃ': 'い',
+    'ぅ': 'ヴ', 'ぇ': 'え', 'ぉ': 'お', 'か': 'が', 'き': 'ぎ',
+    'く': 'ぐ', 'け': 'げ', 'こ': 'ご', 'が': 'か', 'ぎ': 'き', 'ぐ': 'く', 'げ': 'け',
+    'ご': 'こ', 'さ': 'ざ', 'し': 'じ', 'す': 'ず', 'せ': 'ぜ',
+    'そ': 'ぞ', 'ざ': 'さ', 'じ': 'し', 'ず': 'す', 'ぜ': 'せ', 'ぞ': 'そ', 'た': 'だ',
+    'ち': 'ぢ', 'つ': 'っ', 'て': 'で', 'と': 'ど', 'だ': 'た',
+    'ぢ': 'ち', 'っ': 'づ', 'で': 'て', 'ど': 'と', 'づ': 'つ', 'ヴ': 'う', 'は': 'ば',
+    'ひ': 'び', 'ふ': 'ぶ', 'へ': 'べ', 'ほ': 'ぼ', 'ば': 'ぱ',
+    'び': 'ぴ', 'ぶ': 'ぷ', 'べ': 'ぺ', 'ぼ': 'ぽ', 'ぱ': 'は', 'ぴ': 'ひ',
+    'ぷ': 'ふ', 'ぺ': 'へ', 'ぽ': 'ほ', 'や': 'ゃ', 'ゆ': 'ゅ', 'よ': 'ょ',
     'ゃ': 'や', 'ゅ': 'ゆ', 'ょ': 'よ', 'わ': 'ゎ', 'ゎ': 'わ', '゛': '゜', '゜': '゛'
   };
   // Katakana (片假名) case convert table
   var IMEFullKatakanaCaseTable = {
-    'ア': 'ァ', 'イ': 'ィ', 'ウ': 'ゥ', 'エ': 'ェ', 'オ': 'ォ', 'ァ': 'ア', 'ィ': 'イ', 'ゥ': 'ヴ', 'ェ': 'エ', 'ォ': 'オ', 'カ': 'ガ', 'キ': 'ギ',
-    'ク': 'グ', 'ケ': 'ゲ', 'コ': 'ゴ', 'ガ': 'カ', 'ギ': 'キ', 'グ': 'ク', 'ゲ': 'ケ', 'ゴ': 'コ', 'サ': 'ザ', 'シ': 'ジ', 'ス': 'ズ', 'セ': 'ゼ',
-    'ソ': 'ゾ', 'ザ': 'サ', 'ジ': 'シ', 'ズ': 'ス', 'ゼ': 'セ', 'ゾ': 'ソ', 'タ': 'ダ', 'チ': 'ヂ', 'ツ': 'ッ', 'テ': 'デ', 'ト': 'ド', 'ダ': 'タ',
-    'ヂ': 'チ', 'ッ': 'ヅ', 'デ': 'テ', 'ド': 'ト', 'ヅ': 'ツ', 'ヴ': 'ウ', 'ハ': 'バ', 'ヒ': 'ビ', 'フ': 'ブ', 'ヘ': 'ベ', 'ホ': 'ボ', 'バ': 'パ',
-    'ビ': 'ピ', 'ブ': 'プ', 'ベ': 'ペ', 'ボ': 'ポ', 'パ': 'ハ', 'ピ': 'ヒ', 'プ': 'フ', 'ペ': 'ヘ', 'ポ': 'ホ', 'ヤ': 'ャ', 'ユ': 'ュ', 'ヨ': 'ョ',
+    'ア': 'ァ', 'イ': 'ィ', 'ウ': 'ゥ', 'エ': 'ェ', 'オ': 'ォ', 'ァ': 'ア', 'ィ': 'イ',
+    'ゥ': 'ヴ', 'ェ': 'エ', 'ォ': 'オ', 'カ': 'ガ', 'キ': 'ギ',
+    'ク': 'グ', 'ケ': 'ゲ', 'コ': 'ゴ', 'ガ': 'カ', 'ギ': 'キ', 'グ': 'ク', 'ゲ': 'ケ',
+    'ゴ': 'コ', 'サ': 'ザ', 'シ': 'ジ', 'ス': 'ズ', 'セ': 'ゼ',
+    'ソ': 'ゾ', 'ザ': 'サ', 'ジ': 'シ', 'ズ': 'ス', 'ゼ': 'セ', 'ゾ': 'ソ',
+    'タ': 'ダ', 'チ': 'ヂ', 'ツ': 'ッ', 'テ': 'デ', 'ト': 'ド', 'ダ': 'タ',
+    'ヂ': 'チ', 'ッ': 'ヅ', 'デ': 'テ', 'ド': 'ト', 'ヅ': 'ツ', 'ヴ': 'ウ', 'ハ': 'バ',
+    'ヒ': 'ビ', 'フ': 'ブ', 'ヘ': 'ベ', 'ホ': 'ボ', 'バ': 'パ',
+    'ビ': 'ピ', 'ブ': 'プ', 'ベ': 'ペ', 'ボ': 'ポ', 'パ': 'ハ', 'ピ': 'ヒ',
+    'プ': 'フ', 'ペ': 'ヘ', 'ポ': 'ホ', 'ヤ': 'ャ', 'ユ': 'ュ', 'ヨ': 'ョ',
     'ャ': 'ヤ', 'ュ': 'ユ', 'ョ': 'ヨ', 'ワ': 'ヮ', 'ヮ': 'ワ'
   };
   var IMEHalfKatakanaCaseTable = {
-    "ｱ": "ｧ",  "ｲ": "ｨ",  "ｳ": "ｩ",  "ｴ": "ｪ",  "ｵ": "ｫ", "ｧ": "ｱ",  "ｨ": "ｲ",  "ｩ": "ｳﾞ",  "ｪ": "ｴ",  "ｫ": "ｵ", "ｶ": "ｶﾞ", 
-    "ｷ": "ｷﾞ", "ｸ": "ｸﾞ", "ｹ": "ｹﾞ", "ｺ": "ｺﾞ", "ｶﾞ": "ｶ", "ｷﾞ": "ｷ", "ｸﾞ": "ｸ", "ｹﾞ": "ｹ", "ｺﾞ": "ｺ", "ｻ": "ｻﾞ", "ｼ": "ｼﾞ",
-    "ｽ": "ｽﾞ", "ｾ": "ｾﾞ", "ｿ": "ｿﾞ", "ｻﾞ": "ｻ", "ｼﾞ": "ｼ", "ｽﾞ": "ｽ", "ｾﾞ": "ｾ", "ｿﾞ": "ｿ", "ﾀ": "ﾀﾞ", "ﾁ": "ﾁﾞ", "ﾂ": "ｯ",
-    "ﾃ": "ﾃﾞ", "ﾄ": "ﾄﾞ", "ﾀﾞ": "ﾀ", "ﾁﾞ": "ﾁ", "ｯ": "ﾂﾞ", "ﾃﾞ": "ﾃ", "ﾄﾞ": "ﾄ", "ﾂﾞ": "ﾂ", "ﾊ": "ﾊﾞ", "ﾋ": "ﾋﾞ", "ﾌ": "ﾌﾞ",
-    "ﾍ": "ﾍﾞ", "ﾎ": "ﾎﾞ", "ﾊﾞ": "ﾊﾟ","ﾋﾞ": "ﾋﾟ","ﾌﾞ": "ﾌﾟ","ﾍﾞ": "ﾍﾟ","ﾎﾞ": "ﾎﾟ", "ﾊﾟ": "ﾊ", "ﾋﾟ": "ﾋ", "ﾌﾟ": "ﾌ", "ﾍﾟ": "ﾍ",
-    "ﾎﾟ": "ﾎ", "ﾔ": "ｬ",  "ﾕ": "ｭ",  "ﾖ": "ｮ", "ｬ": "ﾔ",  "ｭ": "ﾕ",  "ｮ": "ﾖ", "ﾜ": "ﾜ", "ｳﾞ": "ｳ"
+    'ｱ': 'ｧ', 'ｲ': 'ｨ', 'ｳ': 'ｩ', 'ｴ': 'ｪ', 'ｵ': 'ｫ', 'ｧ': 'ｱ', 'ｨ': 'ｲ',
+    'ｩ': 'ｳﾞ', 'ｪ': 'ｴ', 'ｫ': 'ｵ', 'ｶ': 'ｶﾞ',
+    'ｷ': 'ｷﾞ', 'ｸ': 'ｸﾞ', 'ｹ': 'ｹﾞ', 'ｺ': 'ｺﾞ', 'ｶﾞ': 'ｶ', 'ｷﾞ': 'ｷ', 'ｸﾞ': 'ｸ',
+    'ｹﾞ': 'ｹ', 'ｺﾞ': 'ｺ', 'ｻ': 'ｻﾞ', 'ｼ': 'ｼﾞ',
+    'ｽ': 'ｽﾞ', 'ｾ': 'ｾﾞ', 'ｿ': 'ｿﾞ', 'ｻﾞ': 'ｻ', 'ｼﾞ': 'ｼ', 'ｽﾞ': 'ｽ', 'ｾﾞ': 'ｾ',
+    'ｿﾞ': 'ｿ', 'ﾀ': 'ﾀﾞ', 'ﾁ': 'ﾁﾞ', 'ﾂ': 'ｯ',
+    'ﾃ': 'ﾃﾞ', 'ﾄ': 'ﾄﾞ', 'ﾀﾞ': 'ﾀ', 'ﾁﾞ': 'ﾁ', 'ｯ': 'ﾂﾞ', 'ﾃﾞ': 'ﾃ', 'ﾄﾞ': 'ﾄ',
+    'ﾂﾞ': 'ﾂ', 'ﾊ': 'ﾊﾞ', 'ﾋ': 'ﾋﾞ', 'ﾌ': 'ﾌﾞ',
+    'ﾍ': 'ﾍﾞ', 'ﾎ': 'ﾎﾞ', 'ﾊﾞ': 'ﾊﾟ', 'ﾋﾞ': 'ﾋﾟ', 'ﾌﾞ': 'ﾌﾟ', 'ﾍﾞ': 'ﾍﾟ',
+    'ﾎﾞ': 'ﾎﾟ', 'ﾊﾟ': 'ﾊ', 'ﾋﾟ': 'ﾋ', 'ﾌﾟ': 'ﾌ', 'ﾍﾟ': 'ﾍ',
+    'ﾎﾟ': 'ﾎ', 'ﾔ': 'ｬ', 'ﾕ': 'ｭ', 'ﾖ': 'ｮ', 'ｬ': 'ﾔ', 'ｭ': 'ﾕ', 'ｮ': 'ﾖ',
+    'ﾜ': 'ﾜ', 'ｳﾞ': 'ｳ'
   };
 
   // Get key info accoring to previous key and current key
@@ -114,11 +133,11 @@
   // Otherwise, current key returns
   var getNextKeyInfo = function ime_getNextKeyInfo(prevK, currK) {
     var line = IMEHiraganaCycleTable[IMEKeyMap[currK]];
-    var len = line.length; 
+    var len = line.length;
     var i;
-    for (i=0; i < len; i++) {
+    for (i = 0; i < len; i++) {
       if (line[i] === prevK) {
-        return [true, line[(i+1)%len]];
+        return [true, line[(i + 1) % len]];
       }
     }
     return [false, currK];
@@ -131,12 +150,12 @@
     var outer_len = IMEHiraganaCycleTable.length;
     var inner_len;
     var line;
-    for (i=0; i < outer_len; i++) {
+    for (i = 0; i < outer_len; i++) {
       line = IMEHiraganaCycleTable[i];
       inner_len = line.length;
-      for (j=0; j < inner_len; j++) {
-        if (line[j] === currK){
-          return [true, line[(j+inner_len-1)%inner_len]];
+      for (j = 0; j < inner_len; j++) {
+        if (line[j] === currK) {
+          return [true, line[(j + inner_len - 1) % inner_len]];
         }
       }
     }
@@ -184,13 +203,13 @@
 
     // First term info in candidate list
     // used for transforming
-    var _firstKanji = "";
-    var _firstKana = "";
+    var _firstKanji = '';
+    var _firstKana = '';
 
     // Previous selected term info
     // used to generate suggestions
-    var _selectedKanji = "";
-    var _selectedKana = "";
+    var _selectedKanji = '';
+    var _selectedKana = '';
 
     // Code of previous key pressed
     var _previousKeycode = 0;
@@ -241,8 +260,8 @@
       _selectedKana = kana;
 
       if (_inputBuf.length === 0) {
-        _firstKana = "";
-        _firstKanji = "";
+        _firstKana = '';
+        _firstKanji = '';
         _keyMode = KeyMode.NORMAL;
       }
 
@@ -256,8 +275,8 @@
     this.empty = function ime_empty() {
       debug('empty buffer.');
       _inputBuf = [];
-      _selectedKanji = "";
-      _selectedKana = "";
+      _selectedKanji = '';
+      _selectedKana = '';
       _keyMode = KeyMode.NORMAL;
       _keyboardMode = IMEMode.FULL_HIRAGANA;
       _previousKeycode = 0;
@@ -272,11 +291,12 @@
     this.show = function ime_show(inputType) {
       debug('Show. Input type: ' + inputType);
       var layout = 'jp-kanji';
-      if (inputType === '' || inputType === 'text' || inputType === 'textarea') {
+      if (inputType === '' || inputType === 'text' ||
+          inputType === 'textarea') {
         layout = _currLayout;
       }
-  
-      _glue.alterKeyboard(layout);      
+
+      _glue.alterKeyboard(layout);
     };
 
 
@@ -356,11 +376,11 @@
         _inputBuf.push(kana);
 
       } else {
-        var prevKana = _inputBuf[_inputBuf.length-1];
+        var prevKana = _inputBuf[_inputBuf.length - 1];
         var nextKeyInfo = getNextKeyInfo(prevKana, kana);
 
         if (nextKeyInfo[0]) {
-          _inputBuf[_inputBuf.length-1] = nextKeyInfo[1];
+          _inputBuf[_inputBuf.length - 1] = nextKeyInfo[1];
         } else {
           _inputBuf.push(nextKeyInfo[1]);
         }
@@ -383,15 +403,15 @@
           break;
 
         // cycle the IMEHiraganaCycleTable in reversal direction
-        // Ex. 
+        // Ex.
         //   ['あ', 'い', 'う', 'え', 'お', 'ぁ', 'ぃ', 'ぅ', 'ぇ', 'ぉ']
         //   is the cycle table of あ
         //   あ will be displayed when user click BACK
         //   while い is the current char
         case IMESpecialKey.BACK:
-          var info = getPreviousKeyInfo(_inputBuf[_inputBuf.length-1]);
+          var info = getPreviousKeyInfo(_inputBuf[_inputBuf.length - 1]);
           if (info[0]) {
-            _inputBuf[_inputBuf.length-1] = info[1];
+            _inputBuf[_inputBuf.length - 1] = info[1];
           }
           handleInputBuf();
           break;
@@ -401,19 +421,19 @@
             _keyMode = KeyMode.SELECT;
             handlePorN(_inputBuf);
             break;
-          } 
+          }
 
           if (_firstKana.length === 1) {
             _keyMode = KeyMode.NORMAL;
             handleInputBuf();
             break;
           }
-          
+
           if (_keyMode === KeyMode.SELECT || _keyMode === KeyMode.TRANSFORM) {
-            handlePorN(_inputBuf.slice(0, _firstKana.length-1));
+            handlePorN(_inputBuf.slice(0, _firstKana.length - 1));
 
           } else if (_keyMode === KeyMode.H2K) {
-            handleH2K(_inputBuf.slice(0, _firstKana.length-1));
+            handleH2K(_inputBuf.slice(0, _firstKana.length - 1));
           }
           break;
 
@@ -422,7 +442,7 @@
             //_keyMode = KeyMode.SELECT;
             //handlePorN(_inputBuf.slice(0, 1));
             break;
-          } 
+          }
 
           if (_firstKana.length === _inputBuf.length) {
             _keyMode = KeyMode.NORMAL;
@@ -431,15 +451,16 @@
           }
 
           if (_keyMode === KeyMode.SELECT || _keyMode === KeyMode.TRANSFORM) {
-            handlePorN(_inputBuf.slice(0, _firstKana.length+1));
+            handlePorN(_inputBuf.slice(0, _firstKana.length + 1));
           } else if (_keyMode === KeyMode.H2K) {
-            handleH2K(_inputBuf.slice(0, _firstKana.length+1));
+            handleH2K(_inputBuf.slice(0, _firstKana.length + 1));
           }
           break;
 
         // Transform key
         case IMESpecialKey.TRANSFORM:
-          if (_keyMode === KeyMode.TRANSFORM && _previousKeycode !== IMESpecialKey.TRANSFORM) {
+          if (_keyMode === KeyMode.TRANSFORM &&
+              _previousKeycode !== IMESpecialKey.TRANSFORM) {
             break;
           }
           _keyMode = KeyMode.TRANSFORM;
@@ -456,7 +477,8 @@
             _firstKanji = SyllableUtils.arrayToString(_inputBuf);
             _firstKana = _firstKanji;
             handleH2K(_inputBuf.slice(0, _firstKana.length));
-          } else if (_keyMode === KeyMode.TRANSFORM || _keyMode === KeyMode.SELECT) {
+          } else if (_keyMode === KeyMode.TRANSFORM ||
+                     _keyMode === KeyMode.SELECT) {
             _keyMode = KeyMode.H2K;
             handleH2K(_inputBuf.slice(0, _firstKana.length));
           }
@@ -466,7 +488,7 @@
         // 大 <-> 小
         // TODO num and alpha exception
         case IMESpecialKey.CASE_CHANGE:
-          var last = _inputBuf[_inputBuf.length-1];
+          var last = _inputBuf[_inputBuf.length - 1];
           var res = HiraganaCaseTable[last];
           if (!res) {
             res = IMEFullKatakanaCaseTable[last];
@@ -478,20 +500,20 @@
           if (!res) {
             break;
           }
-          _inputBuf[_inputBuf.length-1] = res;
+          _inputBuf[_inputBuf.length - 1] = res;
           handleInputBuf();
           break;
-        
+
         // Switch to basic layout
         case IMESpecialKey.BASIC_LAYOUT:
           alterKeyboard('jp-kanji');
           break;
-        
+
         // Switch to english layout
         case IMESpecialKey.EN_LAYOUT:
           alterKeyboard('jp-kanji-en');
           break;
-        
+
         // Switch to number layout
         case IMESpecialKey.NUM_LAYOUT:
           alterKeyboard('jp-kanji-number');
@@ -506,7 +528,7 @@
         case KeyEvent.DOM_VK_BACK_SPACE:
           handleBackspace();
           break;
-      
+
         default:
           immiReturn = false;
           break;
@@ -539,7 +561,7 @@
     };
 
     var handleH2K = function ime_handleH2K(kanaArr) {
-      debug("handleH2K " + kanaArr);
+      debug('handleH2K ' + kanaArr);
       // Send pending symbols to highlight `_firstKanji`
       _firstKanji = SyllableUtils.arrayToString(kanaArr);
       _firstKana = SyllableUtils.arrayToString(kanaArr);
@@ -549,7 +571,7 @@
     };
 
     var handlePorN = function ime_handlePorN(kanaArr) {
-      debug("handlePorN " + kanaArr);
+      debug('handlePorN ' + kanaArr);
 
       var __getTermsCallback1 = function handlePorN_getTermsCallback1(terms) {
         if (terms.length) {
@@ -585,7 +607,8 @@
       sendPendingSymbols();
 
       // get candidates by _firstKana
-      _dict.getTerms(SyllableUtils.arrayFromString(_firstKana), __getTermsCallback2);
+      _dict.getTerms(SyllableUtils.arrayFromString(_firstKana),
+                     __getTermsCallback2);
 
       updateCandidateList(qNext.bind(self));
     };
@@ -600,10 +623,9 @@
         // select first term
         _glue.sendString(_firstKanji);
         _inputBuf.splice(0, _firstKana.length);
-        debug('_inputBuf is ' + JSON.stringify(_inputBuf));
 
         // query to generate first term
-        queryDict(); 
+        queryDict();
 
         // do exactly like transforming
         handleTransform();
@@ -643,8 +665,8 @@
       debug('Backspace key');
 
       if (_inputBuf.length === 0) {
-        _firstKana = "";
-        _firstKanji = "";
+        _firstKana = '';
+        _firstKanji = '';
         _candidateList = [];
 
         // pass the key to IMEManager for default action
@@ -669,10 +691,12 @@
       // Send pending symbols to highlight `_firstKanji`
       sendPendingSymbols();
 
-      debug('firstTerm  ' + _firstKanji + " " + _firstKana);
+      debug('firstTerm  ' + _firstKanji + ' ' + _firstKana);
 
       // get candidates by _firstKana
-      var __getTermsCallback = function handleTransform_getTermsCallback(terms) {
+      var __getTermsCallback =
+        function handleTransform_getTermsCallback(terms) {
+
         var candidates = [];
 
         terms.forEach(function readTerm(term) {
@@ -691,7 +715,8 @@
       };
 
       // only query `_firstKana`
-      _dict.getTerms(SyllableUtils.arrayFromString(_firstKana), __getTermsCallback);
+      _dict.getTerms(SyllableUtils.arrayFromString(_firstKana),
+                     __getTermsCallback);
 
       updateCandidateList(qNext.bind(self));
     };
@@ -715,12 +740,12 @@
 
           var kana = _selectedKana;
           var kanji = _selectedKanji;
-          _selectedKana = "";
-          _selectedKanji = "";
+          _selectedKana = '';
+          _selectedKanji = '';
           _candidateList = [];
           _keyMode = KeyMode.NORMAL;
 
-          // TODO 
+          // TODO
           _dict.getSuggestions(kana, kanji,
             function(suggestions) {
               suggestions.forEach(
@@ -740,8 +765,8 @@
         }
 
         debug('Buffer is empty; send empty candidate list.');
-        _firstKana = "";
-        _firstKanji = "";
+        _firstKana = '';
+        _firstKanji = '';
         _candidateList = [];
         sendPendingSymbols();
         updateCandidateList(qNext.bind(self));
@@ -749,8 +774,8 @@
       }
 
       // reset
-      _selectedKanji = "";
-      _selectedKana = "";
+      _selectedKanji = '';
+      _selectedKana = '';
 
       debug('Get term candidates for the entire buffer.');
 
@@ -864,7 +889,7 @@
 
     var _getPossibleStrings = function ime_getPossibleStrings(mode) {
 
-      // 
+      //
       var table;
       if (mode === IMEMode.FULL_HIRAGANA) {
         table = IMEFullKatakanaCycleTable;
@@ -878,17 +903,17 @@
       var strFullKatakana = '';
       var strHalfKatakana = '';
       var strFullHiragana = '';
-      var displayStr = "";
+      var displayStr = '';
 
       for (i = 0; i < _firstKana.length; i++) {
         var info = getPosInfoByChar(_firstKana[i]);
-        debug('get info ' + info[0] + "  " + info[1]);
+        debug('get info ' + info[0] + '  ' + info[1]);
         if (info[0] === -1) {
           // FIXME see bug list 1
           return ['', '', '', ''];
         }
         displayStr += table[info[0]][info[1]];
-        
+
         strFullHiragana += IMEHiraganaCycleTable[info[0]][info[1]];
         strFullKatakana += IMEFullKatakanaCycleTable[info[0]][info[1]];
         strHalfKatakana += IMEHalfKatakanaCycleTable[info[0]][info[1]];
@@ -898,7 +923,7 @@
     };
 
     var getDisplayStr = function ime_getDisplayStr() {
-      var displayStr = "";
+      var displayStr = '';
 
       if (_keyMode === KeyMode.NORMAL) {
         displayStr = SyllableUtils.arrayToString(_inputBuf);
@@ -909,8 +934,10 @@
           _keyMode = KeyMode.NORMAL;
 
         } else {
-          displayStr = "<span style='background:#3333aa'>" + _firstKanji + "</span>";
-          displayStr += SyllableUtils.arrayToString(_inputBuf).substr(_firstKana.length);
+          displayStr = "<span style='background:#3333aa'>" +
+            _firstKanji +
+            '</span>' +
+            SyllableUtils.arrayToString(_inputBuf).substr(_firstKana.length);
         }
 
       } else if (_keyMode === KeyMode.SELECT) {
@@ -919,18 +946,22 @@
           _keyMode = KeyMode.NORMAL;
 
         } else {
-          displayStr = "<span style='background:#33aa33'>" + _firstKanji + "</span>";
-          displayStr += SyllableUtils.arrayToString(_inputBuf).substr(_firstKana.length);
+          displayStr = "<span style='background:#33aa33'>" +
+            _firstKanji +
+            '</span>' +
+            SyllableUtils.arrayToString(_inputBuf).substr(_firstKana.length);
         }
 
       } else if (_keyMode === KeyMode.H2K) {
 
         var strs = _getPossibleStrings(_keyboardMode);
         var candidates = [];
-        displayStr = "<span style='background:#aa3333'>" + strs[1] + "</span>";
-        displayStr += SyllableUtils.arrayToString(_inputBuf).substr(strs[1].length);
+        displayStr = "<span style='background:#aa3333'>" +
+          strs[1] +
+          '</span>' +
+          SyllableUtils.arrayToString(_inputBuf).substr(strs[1].length);
 
-        // candidate list is updated here 
+        // candidate list is updated here
         // to avoide loop again in `handleInputBuf`
         // TODO reorder these three candidates
         candidates.push([_firstKana, _firstKana]);
@@ -1107,10 +1138,10 @@
 
     /**
      * Get array indices by given key range.
-     * @param {String} lower The lower bound of the key range. If null, the range
-     * has no lower bound.
-     * @param {String} upper The upper bound of the key range. If null, the range
-     * has no upper bound.
+     * @param {String} lower The lower bound of the key range.
+     * If null, the range has no lower bound.
+     * @param {String} upper The upper bound of the key range.
+     * If null, the range has no upper bound.
      * @param {Boolean} lowerOpen If false, the range includes the lower bound
      * value. If the range has no lower bound, it will be ignored.
      * @param {Boolean} upperOpen If false, the range includes the upper bound
@@ -1171,8 +1202,9 @@
      * @param {Number} right The end position of the array.It should be greater
      * than the left parameter.
      * @return {Number} If success, returns the index of the key.
-     * If the key is between two adjacent keys, returns the average index of the
-     * two keys. If the key is out of bounds, returns Infinity or -Infinity.
+     * If the key is between two adjacent keys, returns the average index
+     * of the two keys. If the key is out of bounds,
+     * returns Infinity or -Infinity.
      */
     _binarySearch: function index_binarySearch(key, left, right) {
       if (key < this._sortedKeys[left]) {
@@ -1230,8 +1262,8 @@
 
   TaskQueue.prototype = {
     /**
-     * Callback Javascript function object that is called when the task queue is
-     * empty. The definition of callback is function oncomplete(queueData).
+     * Callback Javascript function object that is called when the task queue
+     * is empty. The definition of callback is function oncomplete(queueData).
      */
     oncomplete: null,
 
@@ -1247,9 +1279,10 @@
 
     /**
      * Add a new task to the tail of the queue.
-     * @param {Function} taskFunc Task function object. The definition is function
-     * taskFunc(taskQueue, taskData).
-     * The taskQueue parameter is the task queue object itself, while the taskData
+     * @param {Function} taskFunc Task function object. The definition
+     * is function taskFunc(taskQueue, taskData).
+     * The taskQueue parameter is the task queue object itself,
+     * while the taskData
      * parameter is the data property
      * of the task queue object.
      * @param {Object} taskData The task's private data.
@@ -1322,8 +1355,8 @@
 
     /**
      * Initialization.
-     * @param {Function} callback Javascript function object that is called when
-     * the operation is finished. The definition of callback is
+     * @param {Function} callback Javascript function object that is called
+     * when the operation is finished. The definition of callback is
      * function callback(statusCode). The statusCode parameter is of type
      * DatabaseStorageBase.StatusCode that stores the status of the storage
      * after Initialization.
@@ -1333,8 +1366,8 @@
 
     /**
      * Destruction.
-     * @param {Function} callback Javascript function object that is called when
-     * the operation is finished.
+     * @param {Function} callback Javascript function object that is called
+     * when the operation is finished.
      * The definition of callback is function callback().
      */
     uninit: function storagebase_uninit(callback) {
@@ -1583,7 +1616,8 @@
 
        var perform = function() {
          var upperBound = prefix.substr(0, prefix.length - 1) +
-           String.fromCharCode(prefix.substr(prefix.length - 1).charCodeAt(0) + 1);
+           String.fromCharCode(prefix.substr(prefix.length - 1
+                                             ).charCodeAt(0) + 1);
          var indices =
            self._kanaIndex.getRange(prefix, upperBound, false, false);
          for (var i = 0; i < indices.length; i++) {
@@ -1703,13 +1737,15 @@
           function getLastEntryCallback(homonymsArray) {
             if (homonymsArray.length === 0) {
               debug('IndexedDB is broken.');
-              // Could not find the '_last_entry_' element. The storage is broken
+              // Could not find the '_last_entry_' element.
+              // The storage is broken
               // and ignore all the data.
               doCallback();
               return;
             }
 
-            var transaction = self._IDBDatabase.transaction(['homonyms'], 'readonly');
+            var transaction = self._IDBDatabase.transaction(['homonyms'],
+                                                            'readonly');
             // Get the count
             var reqCount = transaction.objectStore('homonyms').count();
 
@@ -1791,7 +1827,8 @@
       };
     },
 
-    setAllTerms: function indexedDBStorage_setAllTerms(homonymsArray, callback) {
+    setAllTerms: function indexedDBStorage_setAllTerms(homonymsArray,
+                                                       callback) {
       var self = this;
       function doCallback() {
         self._status = DatabaseStorageBase.StatusCode.READY;
@@ -1883,7 +1920,8 @@
       processNextWithDelay();
     },
 
-    getTermsByKana: function indexedDBStorage_getTermsByKana(syllablesStr, callback) {
+    getTermsByKana: function indexedDBStorage_getTermsByKana(syllablesStr,
+                                                             callback) {
       var homonymsArray = [];
       function doCallback() {
         if (callback) {
@@ -2069,7 +2107,8 @@
     // syllables kana
     // textStr kanji
     // callback Function
-    this.getSuggestions = function imedb_getSuggestions(kanaStr, kanjiStr, callback) {
+    this.getSuggestions = function imedb_getSuggestions(kanaStr, kanjiStr,
+                                                        callback) {
       debug('getSuggestions ' + kanjiStr + ' ' + kanaStr);
       var storage = _getUsableStorage();
       if (!storage) {
@@ -2170,7 +2209,7 @@
       if (typeof iDBCache[kanaStr] !== 'undefined') {
         debug('Found in iDBCache.');
         cacheSetTimeout();
-        debug("cache " + JSON.stringify(iDBCache[kanaStr]));
+        debug('cache ' + JSON.stringify(iDBCache[kanaStr]));
         callback(iDBCache[kanaStr]);
         return;
       }
@@ -2187,7 +2226,8 @@
           } else {
             result = [];
           }
-          debug('Get terms getTermsByKana homonymsArray ' + JSON.stringify(result));
+          debug('Get terms getTermsByKana homonymsArray ' + JSON.stringify(
+                                                                      result));
           cacheSetTimeout();
           iDBCache[kanaStr] = result;
           callback(result);
@@ -2197,7 +2237,9 @@
     };
     /* end getTerms */
 
-    this.getTermWithHighestScore = function imedb_getTermWithHighestScore(syllables, callback) {
+    this.getTermWithHighestScore =
+      function imedb_getTermWithHighestScore(syllables, callback) {
+
       debug('getTermWithHighestScore ' + syllables);
       self.getTerms(syllables,
         function getTermsCallback(terms) {
@@ -2218,7 +2260,7 @@
       var self = this;
 
       // TODO variable keeps the conposition of the best sentence
-      // var 
+      // var
       var doCallback = function getSentence_doCallback(sentence) {
         if (callback) {
           debug('getSentence result ' + JSON.stringify(sentence));
@@ -2247,7 +2289,8 @@
         lastPhraseLength: 1
       };
 
-      var getSentenceSubTask = function getSentence_subTask(taskQueue, taskData) {
+      var getSentenceSubTask = function getSentence_subTask(taskQueue,
+                                                            taskData) {
         var queueData = taskQueue.data;
         var sentenceLength = queueData.sentenceLength;
         var lastPhraseLength = queueData.lastPhraseLength;
@@ -2274,7 +2317,7 @@
               lastPhraseLength] * term.freq / kDictTotalFreq;
             if (prob > probabilities[sentenceLength]) {
               probabilities[sentenceLength] = prob;
-              sentences[sentenceLength] = 
+              sentences[sentenceLength] =
                 sentences[sentenceLength - lastPhraseLength].concat(term);
             }
 
@@ -2305,5 +2348,5 @@
 })();
 
 // TODO current bugs
-// 1. little case hiragana cannot convert to katakana 
+// 1. little case hiragana cannot convert to katakana
 // 2. getSuggestion
