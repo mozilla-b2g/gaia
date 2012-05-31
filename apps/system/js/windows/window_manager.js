@@ -114,6 +114,9 @@ var WindowManager = (function() {
   // orientation could have changed since it was last displayed
   function setAppSize(origin) {
     var app = runningApps[origin];
+    if (!app)
+      return;
+
     var frame = app.frame;
     var manifest = app.manifest;
 
@@ -596,11 +599,6 @@ var WindowManager = (function() {
 
     function keydownHandler(e) {
       if (e.keyCode !== e.DOM_VK_HOME) return;
-
-      // If the screen was blank, turn it back on as soon as the
-      // home key is pressed.
-      ScreenManager.turnScreenOn();
-
       // We don't do anything else until the Home key is released...
       // If there is not a timer running, start one so we can
       // measure how long the key is held down for.  If there is
@@ -666,6 +664,7 @@ var WindowManager = (function() {
     kill: stop,
     getDisplayedApp: getDisplayedApp,
     setOrientationForApp: setOrientationForApp,
+    setAppSize: setAppSize,
     getAppFrame: function(origin) {
       if (isRunning(origin))
         return runningApps[origin].frame;

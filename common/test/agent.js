@@ -1,5 +1,71 @@
 (function(window) {
 
+  /**
+   * Keep awake utility to ensure device does
+   * not go to sleep before the test completes.
+   */
+  var KeepAwake = (function() {
+
+    var running = false,
+        power = navigator.mozPower;
+
+     return {
+
+      _activate: function ka_activate() {
+        if (running) {
+          try {
+            power.screenEnabled = true;
+          } catch (e) {
+            //during desktop we don't care if this
+            //fails. In app context it will always work.
+          }
+          setTimeout(ka_activate, 800);
+        }
+      },
+
+      start: function ka_start() {
+        running = true;
+        this._activate();
+      },
+
+      stop: function ka_stop() {
+        running = false;
+      }
+    };
+  }());
+
+  /**
+   * For CI (and maybe for other uses)
+   * we want to configure the agent
+   * with url options.
+   *
+   * Options are taken from the hash rather
+   * then the query string for future use
+   * of offline cache.
+   *
+   * http://test-agent.gaiamobile.org/index.html#?key=value
+   */
+  var AgentConfig = (function() {
+    var params = window.location.hash,
+        index = params.indexOf('?'),
+        options = {
+          websocketUrl: null
+        };
+
+    if (index > -1) {
+      params.slice(index + 1).split('&').forEach(function(pair) {
+        var split = pair.split('=');
+        if (split.length === 2) {
+          options[split[0]] = split[1];
+        }
+      });
+    }
+
+    return options;
+  }());
+
+  console.log(AgentConfig);
+
   var worker = new TestAgent.BrowserWorker({
         /* this is where your tests will be loaded into */
         sandbox: './sandbox.html'
@@ -10,20 +76,20 @@
     url: './config.json'
   });
 
-  worker.use(TestAgent.BrowserWorker.Websocket);
+  worker.use(TestAgent.BrowserWorker.Websocket, {
+    url: AgentConfig.websocketUrl
+  });
 
   worker.use(TestAgent.BrowserWorker.MultiDomainDriver, {
     groupTestsByDomain: function(test) {
 
       var parsed = TestUrlResolver.parse(test);
 
-      var result =  {
+      var result = {
         domain: parsed.domain + '/test/unit/_proxy.html',
         test: '/' + parsed.url,
         env: parsed.host
       };
-
-      console.log(result);
 
       return result;
     }
@@ -36,43 +102,14 @@
     defaultMochaReporter: 'HTML'
   });
 
-  var displayTimeout,
-      testsRunning = false;
-
-  function keepScreenAwake() {
-    if(testsRunning) {
-      navigator.mozPower.screenEnabled = true;
-      displayTimeout = setTimeout(function() {
-        keepScreenAwake();
-      }, 800);
-    }
-  }
-
   worker.on({
 
-    'sandbox': function() {
-      /* Load your fav assertion engine */
-      /* expect.js
-      */
-    },
-
-    'run tests': function() {
-      console.log('run:', arguments);
-    },
-
     'test runner': function() {
-      testsRunning = true;
-      keepScreenAwake();
+      KeepAwake.start();
     },
 
     'test runner end': function() {
-      testsRunning = false;
-    },
-
-    'open': function() {
-    },
-
-    'close': function() {
+      KeepAwake.stop();
     }
 
   });

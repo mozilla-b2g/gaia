@@ -2,7 +2,7 @@
 
   var worker = new TestAgent.BrowserWorker({
         /* this is where your tests will be loaded into */
-        sandbox: './unit/_sandbox.html'
+        sandbox: '/test/unit/_sandbox.html'
       });
 
   worker.use(TestAgent.BrowserWorker.PostMessage);

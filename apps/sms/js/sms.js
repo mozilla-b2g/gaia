@@ -36,9 +36,69 @@ var MessageManager = {
     };
   },
 
-  delete: function mm_delete(id) {
-    navigator.mozSms.delete(id);
-  }
+  deleteMessage: function mm_deleteMessage(id, callback) {
+    var req = navigator.mozSms.delete(id);
+    req.onsuccess = function onsuccess() {
+      callback(req.result);
+    };
+
+    req.onerror = function onerror() {
+      var msg = 'Message deleting error in the database. Error: ' + req.errorCode;
+      console.log(msg);      
+      callback(null);
+    };
+  },
+
+  /*
+    TODO: If the messages could not be deleted completely,
+    conversation list page will also update withot notification currently.
+    May need more infomation for user that the messages were not
+    removed completely.
+  */  
+  deleteMessages: function mm_deleteMessages(list, callback) {
+    if (list.length > 0) {
+      this.deleteMessage(list.shift(), function(result) {
+        this.deleteMessages(list, callback);
+      }.bind(this));
+    } else
+      callback();
+  },
+};
+
+/* DelayDeleteManager and execute the delete task when:
+ * 1. A period of time without undo action.
+ * 2. View status change.
+ * 3. Other scenario...
+ * Regist when delete action pending and unregist when delete execute or undo.
+*/
+var DelayDeleteManager = {
+  registDelayDelete: function dm_registDelayDelete(executeDelete) {
+    this.executeDelete = executeDelete;
+    //TODO: We may have timer to hide the undo toolbar automatically.
+    //window.setTimeout(executeMessageDelete, timer);
+    document.body.addEventListener('DOMAttrModified', this);
+  },
+  unregistDelayDelete: function dm_unregistDelayDelete() {
+    this.executeDelete = null;
+    //window.clearTimeout(executeMessageDelete, timer);
+    document.body.removeEventListener('DOMAttrModified', this);
+  },
+  onViewStatusChanged: function dm_onViewStatusChanged(evt) {
+    if (evt.attrName != 'class')
+      return;
+
+    // When ConversationListView entering other status.
+    if (!evt.prevValue && evt.newValue) {
+      this.executeDelete();
+    }
+  },  
+  handleEvent: function dm_handleEvent(evt) {
+    switch (evt.type) {
+      case 'DOMAttrModified':
+        this.onViewStatusChanged(evt);
+        break;      
+    }
+  },
 };
 
 var ConversationListView = {
@@ -51,13 +111,37 @@ var ConversationListView = {
     delete this.searchInput;
     return this.searchInput = document.getElementById('msg-search');
   },
+  
+  get deleteButton() {
+    delete this.deleteButton;
+    return this.deleteButton = document.getElementById('msg-delete-button');
+  },
+
+  get undoButton() {
+    delete this.undoButton;
+    return this.undoButton = document.getElementById('msg-undo-button');
+  },
+
+  get undoToolbar() {
+    delete this.undoToolbar;
+    return this.undoToolbar = document.getElementById('msg-undo-toolbar');    
+  },
+
+  get undoTitleContainer() {
+    delete this.undoTitleContainer;
+    return this.undoTitleContainer = document.getElementById('msg-undo-title-container');    
+  },
 
   init: function cl_init() {
+    this.delNumList = [];
     if (navigator.mozSms)
       navigator.mozSms.addEventListener('received', this);
 
     this.searchInput.addEventListener('keyup', this);
-
+    this.searchInput.addEventListener('blur', this);
+    this.deleteButton.addEventListener('mousedown', this);
+    this.undoButton.addEventListener('mousedown', this);
+    this.view.addEventListener('click', this);
     window.addEventListener('hashchange', this);
 
     this.updateConversationList();
@@ -128,22 +212,26 @@ var ConversationListView = {
 
         var fragment = '';
         for (var num in conversations) {
+           if (self.delNumList.indexOf(num) > -1) {
+             continue;
+           }
           var msg = self.createNewConversation(conversations[num]);
           fragment += msg;
         }
         self.view.innerHTML = fragment;
+        if (self.delNumList.length > 0) {
+          self.showUndoToolbar();
+        }
       };
     }, null);
   },
 
   createNewConversation: function cl_createNewConversation(conversation) {
-    return '<a href="#num=' + conversation.num + '"' +
+    return '<a href="#num=' + conversation.num + '"' + ' data-num="' + conversation.num + '"' +
            ' data-name="' + escapeHTML(conversation.name || conversation.num, true) + '"' +
            ' data-notempty="' + (conversation.timestamp ? 'true' : '') + '"' +
            ' class="' + (conversation.hidden ? 'hide' : '') + '">' +
-           '  <div class="photo">' +
-           '    <img src="style/images/contact-placeholder.png" />' +
-           '  </div>' +
+           '<input type="checkbox" class="fake-checkbox"/>' + '<span></span>' +
            '  <div class="name">' + escapeHTML(conversation.name) + '</div>' +
            '  <div class="msg">' + escapeHTML(conversation.body.split('\n')[0]) + '</div>' +
            (conversation.timestamp ?
@@ -203,12 +291,117 @@ var ConversationListView = {
         this.searchConversations();
         break;
 
+      case 'blur':
+        window.location.hash = '#';
+        break;
+
       case 'hashchange':
-        if (window.location.hash)
+        this.toggleEditMode(window.location.hash == '#edit');
+        this.toggleSearchMode(window.location.hash == '#search');
+        if (window.location.hash) {
           return;
+        }
         document.body.classList.remove('conversation');
+        document.body.classList.remove('conversation-new-msg');
+        break;
+
+      case 'mousedown':
+        if (evt.currentTarget == this.deleteButton)
+          this.pendMessageDelete();
+        else if (evt.currentTarget == this.undoButton)
+          this.undoMessageDelete();
+        break;
+
+      case 'click':
+        // When Event listening target is this.view and clicked target has href entry.
+        if (evt.currentTarget == this.view && evt.target.href)
+          this.onListItemClicked(evt);
+        break;
     }
-  }
+  },
+  
+  /* Message delete scenario:
+   *  Delete button will only trigger pendMessageDelete and reflesh conversation list.
+   *  When list update, undo toolbar will be triggered when deleted item list exist.
+   *  And delayDelete will also regist when undo toolbar show up.
+   *  executeMessageDelete would be set for delayDelete regist.
+  */
+  pendMessageDelete: function cl_pendMessageDelete() {
+    if (this.delNumList.length > 0) {
+      this.updateConversationList();
+    }
+    window.location.hash = '#';
+  },
+
+  executeMessageDelete: function cl_executeMessageDelete() {
+    DelayDeleteManager.unregistDelayDelete();
+    this.undoToolbar.classList.remove('show');
+    this.deleteMessages(this.delNumList);
+    this.delNumList = [];
+  },
+
+  undoMessageDelete: function cl_undoMessageDelete() {
+    DelayDeleteManager.unregistDelayDelete();
+    this.delNumList = [];
+    this.updateConversationList();
+    this.undoToolbar.classList.remove('show');
+  },  
+
+  deleteMessages: function cl_deleteMessages(numberList) {
+    if (numberList == [])
+      return;
+    
+    var filter = new MozSmsFilter();
+    filter.numbers = numberList;
+    
+    MessageManager.getMessages(function mm_getMessages(messages) {
+      var msgs =[];
+      for (var i = 0; i < messages.length; i++) {
+        msgs.push(messages[i].id);
+      }
+      MessageManager.deleteMessages(msgs, this.updateConversationList.bind(this));
+    }.bind(this), filter);
+  },  
+
+  showUndoToolbar: function cl_showUndoToolbar() {
+    var undoTitle = document.mozL10n.get('conversationDeleted');
+    this.undoTitleContainer.innerHTML = this.delNumList.length + ' ' + undoTitle;
+    this.undoToolbar.classList.add('show');
+    DelayDeleteManager.registDelayDelete(this.executeMessageDelete.bind(this));
+  },
+
+  toggleSearchMode: function cl_toggleSearchMode(show) {
+    if (show) {
+      document.body.classList.add('msg-search-mode');
+    } else {
+      document.body.classList.remove('msg-search-mode');
+    }
+  },
+  
+  toggleEditMode: function cl_toggleEditMode(show) {
+    if (show) {      
+      document.body.classList.add('msg-edit-mode');  
+    } else {
+      document.body.classList.remove('msg-edit-mode');
+    }
+  },
+  
+  onListItemClicked: function cl_onListItemClicked(evt) {
+    var cb = evt.target.getElementsByClassName('fake-checkbox')[0];
+    if (!cb)
+      return;
+    
+    if (!document.body.classList.contains('msg-edit-mode'))
+      return;
+    
+    evt.preventDefault();
+    cb.checked = !cb.checked;
+    if (cb.checked) {
+      this.delNumList.push(evt.target.dataset.num);
+    } else {
+      this.delNumList.splice(this.delNumList.indexOf(evt.target.dataset.num), 1);
+    }
+  },
 };
 
 var ConversationView = {
@@ -372,9 +565,6 @@ var ConversationView = {
 
         var body = msg.body.replace(/\n/g, '<br />');
         fragment += '<div ' + className + ' ' + dataNum + ' ' + dataId + '>' +
-                      '<div class="photo">' +
-                      '  <img src="' + pic + '" />' +
-                      '</div>' +
                       '<div class="text">' + escapeHTML(body) + '</div>' +
                       '<div class="time" data-time="' + msg.timestamp.getTime() + '">' +
                           prettyDate(msg.timestamp) + '</div>' +
@@ -441,7 +631,7 @@ var ConversationView = {
     }
   },
   close: function cv_close() {
-    if (!document.body.classList.contains('conversation'))
+    if (!document.body.classList.contains('conversation') && !window.location.hash)
       return false;
 
     window.location.hash = '';

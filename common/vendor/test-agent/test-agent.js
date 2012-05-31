@@ -453,15 +453,14 @@
   window.TestAgent.exportError = function(err) {
     var errorObject = {};
 
-    errorObject.stack = this.formatStack(err);
-    errorObject.message = err.message;
-    errorObject.type = err.type;
-    errorObject.constructorName = err.constructor.name;
-    errorObject.expected = err.expected;
-    errorObject.actual = err.actual;
+    errorObject.stack = this.formatStack(err) || '';
+    errorObject.message = err.message || err.toString();
+    errorObject.type = err.type || 'Error';
+    errorObject.constructorName = err.constructor.name || '';
+    errorObject.expected = err.expected || '';
+    errorObject.actual = err.actual || '';
 
     return errorObject;
-
   };
 
 }(this));
@@ -1092,6 +1091,10 @@
     this.proxyEvents = ['open', 'close', 'message'];
     this._proxiedEvents = {};
 
+
+    this.on('open', this._setConnectionStatus.bind(this, true));
+    this.on('close', this._setConnectionStatus.bind(this, false));
+
     this.on('close', this._incrementRetry.bind(this));
     this.on('message', this._processMessage.bind(this));
     this.on('open', this._clearRetries.bind(this));
@@ -1105,6 +1108,15 @@
 
   Client.prototype = Object.create(Responder.prototype);
   Client.prototype.Native = Native;
+
+  /**
+   * True when connection is opened.
+   * Used to ensure messages are not sent
+   * when connection to server is closed.
+   *
+   * @type Boolean
+   */
+  Client.prototype.connectionOpen = false;
 
   //Retry
   Client.prototype.retry = false;
@@ -1143,7 +1155,9 @@
    * @param {String} data object to send to the server.
    */
   Client.prototype.send = function send(event, data) {
-    this.socket.send(this.stringify(event, data));
+    if (this.connectionOpen) {
+      this.socket.send(this.stringify(event, data));
+    }
   };
 
   /**
@@ -1180,6 +1194,16 @@
   Client.prototype._proxyEvent = function _proxyEvent() {
     this.emit.apply(this, arguments);
   };
+
+  /**
+   * Sets connectionOpen.
+   *
+   * @param {Boolean} type connection status.
+   */
+  Client.prototype._setConnectionStatus = _setConnectionStatus;
+  function _setConnectionStatus(type) {
+    this.connectionOpen = type;
+  }
 
   if (isNode) {
     module.exports = Client;

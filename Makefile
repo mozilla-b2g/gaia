@@ -103,6 +103,8 @@ profile: stamp-commit-hash update-offline-manifests preferences webapp-manifests
 LANG=POSIX # Avoiding sort order differences between OSes
 
 # Generate profile/webapps/
+# We duplicate manifest.webapp to manifest.webapp and manifest.json
+# to accommodate Gecko builds without bug 757613. Should be removed someday.
 webapp-manifests:
 	@echo "Generated webapps"
 	@mkdir -p profile/webapps
@@ -113,7 +115,8 @@ webapp-manifests:
 	  if [ -f $$d/manifest.webapp ]; \
 		then \
 		  mkdir -p ../profile/webapps/$$d; \
-		  cp $$d/manifest.webapp ../profile/webapps/$$d  ;\
+		  cp $$d/manifest.webapp ../profile/webapps/$$d/manifest.webapp  ;\
+		  cp $$d/manifest.webapp ../profile/webapps/$$d/manifest.json  ;\
                   (\
 			echo \"$$d\": { ;\
 			echo \"origin\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
@@ -121,6 +124,23 @@ webapp-manifests:
 			echo \"receipt\": null, ;\
 			echo \"installTime\": 132333986000, ;\
 			echo \"manifestURL\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp\" ;\
+			echo },) >> ../profile/webapps/webapps.json;\
+		fi \
+	done
+	@cd external-apps; \
+	for d in `find * -maxdepth 0 -type d` ;\
+	do \
+	  if [ -f $$d/manifest.webapp ]; \
+		then \
+		  mkdir -p ../profile/webapps/$$d; \
+		  cp $$d/manifest.webapp ../profile/webapps/$$d/manifest.webapp  ;\
+                  (\
+			echo \"$$d\": { ;\
+			echo \"origin\": \"`cat $$d/origin`\", ;\
+			echo \"installOrigin\": \"`cat $$d/origin`\", ;\
+			echo \"receipt\": null, ;\
+			echo \"installTime\": 132333986000, ;\
+			echo \"manifestURL\": \"`cat $$d/origin`/manifest.webapp\" ;\
 			echo },) >> ../profile/webapps/webapps.json;\
 		fi \
 	done
@@ -144,9 +164,10 @@ endif
 
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up
 # some commands for invoking it. But it is platform dependent
+XULRUNNER_BASE_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner
 ifeq ($(SYS),Darwin)
 # We're on a mac
-XULRUNNER_DOWNLOAD=ftp://ftp.mozilla.org/pub/xulrunner/nightly/2012/05/2012-05-08-03-05-17-mozilla-central/xulrunner-15.0a1.en-US.mac-x86_64.sdk.tar.bz2
+XULRUNNER_DOWNLOAD=$(XULRUNNER_BASE_URL)/nightly/2012/05/2012-05-08-03-05-17-mozilla-central/xulrunner-15.0a1.en-US.mac-x86_64.sdk.tar.bz2
 XULRUNNER=./xulrunner-sdk/bin/run-mozilla.sh
 XPCSHELL=./xulrunner-sdk/bin/xpcshell
 
@@ -159,9 +180,9 @@ else
 # downloads and installs locally xulrunner to run the xpchsell
 # script that creates the offline cache
 ifeq ($(ARCH),x86_64)
-XULRUNNER_DOWNLOAD=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/11.0/runtimes/xulrunner-11.0.en-US.linux-x86_64.tar.bz2
+XULRUNNER_DOWNLOAD=$(XULRUNNER_BASE_URL)/releases/11.0/runtimes/xulrunner-11.0.en-US.linux-x86_64.tar.bz2
 else
-XULRUNNER_DOWNLOAD=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/11.0/runtimes/xulrunner-11.0.en-US.linux-i686.tar.bz2
+XULRUNNER_DOWNLOAD=$(XULRUNNER_BASE_URL)/releases/11.0/runtimes/xulrunner-11.0.en-US.linux-i686.tar.bz2
 endif
 XULRUNNER=./xulrunner/run-mozilla.sh
 XPCSHELL=./xulrunner/xpcshell
