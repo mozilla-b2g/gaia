@@ -436,3 +436,19 @@ window.addEventListener('mozfullscreenchange', function onfullscreen(e) {
                          : classes.remove('fullscreen');
 });
 
+window.navigator.mozKeyboard.onfocuschange = function onfocuschange(evt) {
+  switch (evt.detail.type) {
+    case 'blur':
+      var event = document.createEvent('CustomEvent');
+      event.initCustomEvent('hideime', true, true, {});
+      window.dispatchEvent(event);
+      break;
+
+    default:
+      var event = document.createEvent('CustomEvent');
+      event.initCustomEvent('showime', true, true, evt.detail);
+      window.dispatchEvent(event);
+      break;
+  }
+};
+
