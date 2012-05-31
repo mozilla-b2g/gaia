@@ -333,7 +333,7 @@ var WindowManager = (function() {
     if (manifest.orientation) {
       var rv = screen.mozLockOrientation(manifest.orientation);
       if (rv === false) {
-        console.warn('screen.mozLockOrientation() returned false for', 
+        console.warn('screen.mozLockOrientation() returned false for',
                      origin, 'orientation', manifest.orientation);
       }
     }
@@ -424,7 +424,8 @@ var WindowManager = (function() {
       }
 
       var app = Applications.getByOrigin(origin);
-      appendFrame(origin, e.detail.url, app.manifest.name, app.manifest, app.manifestURL);
+      appendFrame(origin, e.detail.url,
+                  app.manifest.name, app.manifest, app.manifestURL);
     }
   });
 
