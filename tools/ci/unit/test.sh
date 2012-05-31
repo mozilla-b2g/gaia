@@ -32,11 +32,15 @@ EXIT_STATUS=$?
 
 MOCHA_FILE="$GAIA_PATH/mocha-test-results.html"
 
+echo "SAVING RESULTS";
+
 ./tools/test-agent/node_modules/b2g-scripts/bin/b2g-scripts \
   cmd \
   executeScript \
   "return document.getElementById('mocha').innerHTML;" \
   > $MOCHA_FILE;
+
+cat $MOCHA_FILE;
 
 # kill background server
 kill $AGENT_PID;
