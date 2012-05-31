@@ -30,6 +30,13 @@ fi
 
 EXIT_STATUS=$?
 
+if [ "$EXIT_STATUS" == "0" ];
+then
+  echo "GAIA: TESTS PASS";
+else
+  echo "GAIA: TESTS FAIL";
+fi
+
 # kill background server
 kill $AGENT_PID;
 exit $EXIT_STATUS;

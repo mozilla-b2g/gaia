@@ -37,13 +37,6 @@ cd $GAIA_PATH;
 echo "Running tests";
 $CI_TOOLS/test.sh
 
-if [ "$EXIT_STATUS" == "0" ];
-then
-  echo "TESTS PASS";
-else
-  echo "TESTS FAIL";
-fi
-
 kill $PID;
 exit $EXIT_STATUS;
 

@@ -53,13 +53,5 @@ PID=`cat $B2G_HOME/emulator.pid`
 echo "Running tests";
 $CI_TOOLS/test.sh
 
-echo "Done output file: $TEST_OUTPUT"
-if [ "$EXIT_STATUS" == "0" ];
-then
-  echo "TESTS PASS";
-else
-  echo "TESTS FAIL";
-fi
-
 kill $PID;
 exit $EXIT_STATUS;
