@@ -40,6 +40,8 @@ echo "SAVING RESULTS";
   "return document.getElementById('mocha').innerHTML;" \
   > $MOCHA_FILE;
 
+sleep 10;
+
 cat $MOCHA_FILE;
 
 # kill background server
