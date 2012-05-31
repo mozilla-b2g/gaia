@@ -26,7 +26,8 @@ var settings = [
  new Setting("keyboard.layouts.hebrew", false),
  new Setting("keyboard.layouts.zhuyin", false),
  new Setting("keyboard.layouts.pinyin", false),
- new Setting("keyboard.layouts.greek", false)
+ new Setting("keyboard.layouts.greek", false),
+ new Setting("ums.enabled", false)
 ];
 
 function Setting(aName, aValue) {
