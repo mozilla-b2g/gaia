@@ -4,11 +4,14 @@
 'use strict';
 
 function startup() {
+  ScreenManager.init();
   LockScreen.init();
   PinLock.init();
   StatusBar.init();
-  KeyHandler.init();
+  SoundManager.init();
   SleepMenu.init();
+  SourceView.init();
+  ReloadManager.init();
 
   Applications.rebuild(function start(apps) {
     // FIXME Loop over all the registered activities from the applications
@@ -36,44 +39,11 @@ function startup() {
   // https://bugzilla.mozilla.org/show_bug.cgi?id=753245
   function dumbListener2(event) {}
   window.addEventListener("devicemotion", dumbListener2, false);
-  
+
   window.setTimeout(function() {
     window.removeEventListener("devicemotion", dumbListener2, false);
   }, 2000);
 }
-
-var SoundManager = {
-  currentVolume: 5,
-  changeVolume: function soundManager_changeVolume(delta) {
-    var volume = this.currentVolume + delta;
-    this.currentVolume = volume = Math.max(0, Math.min(10, volume));
-
-    var notification = document.getElementById('volume');
-    var classes = notification.classList;
-    if (volume == 0) {
-      classes.add('vibration');
-    } else {
-      classes.remove('vibration');
-    }
-
-    var steps = notification.children;
-    for (var i = 0; i < steps.length; i++) {
-      var step = steps[i];
-      if (i < volume)
-        step.classList.add('active');
-      else
-        step.classList.remove('active');
-    }
-
-    classes.add('visible');
-    if (this._timeout)
-      window.clearTimeout(this._timeout);
-
-    this._timeout = window.setTimeout(function hideSound() {
-      classes.remove('visible');
-    }, 3000);
-  }
-};
 
 var SleepMenu = {
   get element() {
@@ -151,175 +121,18 @@ var SleepMenu = {
   }
 };
 
-/* === Source View === */
-var SourceView = {
-  get viewer() {
-    return document.getElementById('appViewsource');
-  },
 
-  get active() {
-    return !this.viewer ? false : this.viewer.style.visibility === 'visible';
-  },
-
-  show: function sv_show() {
-    var viewsource = this.viewer;
-    if (!viewsource) {
-      var style = '#appViewsource { ' +
-                  '  position: absolute;' +
-                  '  top: -moz-calc(10%);' +
-                  '  left: -moz-calc(10%);' +
-                  '  width: -moz-calc(80% - 2 * 15px);' +
-                  '  height: -moz-calc(80% - 2 * 15px);' +
-                  '  visibility: hidden;' +
-                  '  margin: 15px;' +
-                  '  background-color: white;' +
-                  '  opacity: 0.92;' +
-                  '  color: black;' +
-                  '  z-index: 9999;' +
-                  '}';
-      document.styleSheets[0].insertRule(style, 0);
-
-      viewsource = document.createElement('iframe');
-      viewsource.id = 'appViewsource';
-      document.body.appendChild(viewsource);
-
-      window.addEventListener('locked', this);
-    }
-
-    var url = WindowManager.getDisplayedApp();
-    if (!url)
-      // Assume the home screen is the visible app.
-      url = window.location.toString();
-    viewsource.src = 'view-source: ' + url;
-    viewsource.style.visibility = 'visible';
-  },
-
-  hide: function sv_hide() {
-    var viewsource = this.viewer;
-    if (viewsource) {
-      viewsource.style.visibility = 'hidden';
-      viewsource.src = 'about:blank';
-    }
-  },
-
-  toggle: function sv_toggle() {
-    this.active ? this.hide() : this.show();
-  },
-
-  handleEvent: function sv_handleEvent(evt) {
-    switch (evt.type) {
-      case 'locked':
-        this.hide();
-        break;
-    }
-  }
-};
-
-/* === KeyHandler === */
-var KeyHandler = {
-  kRepeatTimeout: 700,
-  kRepeatRate: 100,
-
-  _timer: 0,
-  repeatKey: function kh_repeatKey(actionCallback) {
-    actionCallback();
-
-    clearTimeout(this._timer);
-    this._timer = window.setTimeout((function volumeTimeout() {
-      actionCallback();
-      this._timer = setInterval(function volumeInterval() {
-        actionCallback();
-      }, this.kRepeatRate);
-    }).bind(this), this.kRepeatTimeout);
-  },
-
-  init: function kh_init() {
-    window.addEventListener('keydown', this);
+/* === ReloadManager === */
+var ReloadManager = {
+  init: function rm_init() {
     window.addEventListener('keyup', this);
   },
 
-  handleEvent: function kh_handleEvent(evt) {
-    if (!navigator.mozPower.screenEnabled)
+  handleEvent: function rm_handleEvent(evt) {
+    if (!ScreenManager.screenEnabled || evt.keyCode !== evt.DOM_VK_F6)
       return;
 
-    switch (evt.type) {
-      case 'keydown':
-        switch (evt.keyCode) {
-          case evt.DOM_VK_PAGE_UP:
-            this.repeatKey((function repeatKeyCallback() {
-              if (SoundManager.currentVolume == 10) {
-                clearTimeout(this._timer);
-                return;
-              }
-              SoundManager.changeVolume(1);
-            }).bind(this));
-            break;
-
-          case evt.DOM_VK_PAGE_DOWN:
-            this.repeatKey((function repeatKeyCallback() {
-              if (SoundManager.currentVolume == 0) {
-                clearTimeout(this._timer);
-                return;
-              }
-              SoundManager.changeVolume(-1);
-            }).bind(this));
-            break;
-        }
-        break;
-      case 'keyup':
-        switch (evt.keyCode) {
-          case evt.DOM_VK_PAGE_UP:
-          case evt.DOM_VK_PAGE_DOWN:
-            clearTimeout(this._timer);
-            break;
-
-          case evt.DOM_VK_CONTEXT_MENU:
-            SourceView.toggle();
-            break;
-
-          case evt.DOM_VK_F6:
-            document.location.reload();
-            break;
-        }
-        break;
-    }
-  }
-};
-
-
-/* === Screen Manager === */
-var ScreenManager = {
-  preferredBrightness: 0.5,
-  toggleScreen: function lockscreen_toggleScreen() {
-    if (navigator.mozPower.screenEnabled)
-      this.turnScreenOff();
-    else
-      this.turnScreenOn();
-  },
-
-  turnScreenOff: function lockscreen_turnScreenOff() {
-    if (!navigator.mozPower.screenEnabled)
-      return false;
-
-    navigator.mozPower.screenEnabled = false;
-
-    this.preferredBrightness = navigator.mozPower.screenBrightness;
-    navigator.mozPower.screenBrightness = 0.0;
-
-    StatusBar.refresh();
-    return true;
-  },
-
-  turnScreenOn: function lockscreen_turnScreenOn() {
-    if (navigator.mozPower.screenEnabled)
-      return false;
-
-    navigator.mozPower.screenEnabled = true;
-
-    navigator.mozPower.screenBrightness = this.preferredBrightness;
-
-    StatusBar.refresh();
-    return true;
+    document.location.reload();
   }
 };
 
