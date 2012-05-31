@@ -392,7 +392,7 @@ var WindowManager = (function() {
     setDisplayedApp(origin, function() {
       frame.src = url;
 
-      if (true || manifest.fullscreen) {
+      if (manifest.fullscreen) {
         frame.mozRequestFullScreen();
       }
     });
