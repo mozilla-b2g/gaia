@@ -21,9 +21,9 @@ echo "Starting B2G Desktop";
 $B2G_HOME/dist/bin/b2g -profile $GAIA_PATH/profile &
 PID=`jobs -p | tail -n 1`;
 
-# Horrible hack need real
-# script in b2g-scripts to wait for a port first..
-sleep 10
+cd $GAIA_PATH;
+
+./tools/test-agent/node_modules/b2g-scripts/bin/b2g-scripts wait-for-marionette
 
 if [ "$?" -ne "0" ];
 then
@@ -31,7 +31,6 @@ then
   exit $?
 fi
 
-cd $GAIA_PATH;
 ./tools/test-agent/node_modules/b2g-scripts/bin/b2g-scripts cmd goUrl $DOMAIN
 
 echo "Running tests";
