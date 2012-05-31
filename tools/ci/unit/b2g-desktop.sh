@@ -32,12 +32,11 @@ then
 fi
 
 cd $GAIA_PATH;
-DEBUG=* ./tools/test-agent/node_modules/b2g-scripts/bin/b2g-scripts cmd goUrl $DOMAIN
+./tools/test-agent/node_modules/b2g-scripts/bin/b2g-scripts cmd goUrl $DOMAIN
 
 echo "Running tests";
 $CI_TOOLS/test.sh
 
-echo "Done output file: $TEST_OUTPUT"
 if [ "$EXIT_STATUS" == "0" ];
 then
   echo "TESTS PASS";
