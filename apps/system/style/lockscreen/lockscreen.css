@@ -1,7 +1,7 @@
 
 #lockscreen {
   position: absolute;
-  z-index: 20000;
+  z-index: 2147483647;
   top: 0px;
   width: -moz-calc(100%);
   height: -moz-calc(100%);

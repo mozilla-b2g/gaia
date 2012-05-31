@@ -1,7 +1,3 @@
-#screen.fullscreen #keyboard {
-  z-index: 9999;
-}
-
 #keyboard {
   position: absolute;
   font-family: 'Open Sans', sans-serif;
@@ -15,6 +11,10 @@
   border-top: 2px solid #a3a3a3;
   border-bottom-left-radius: 8px;
   border-bottom-right-radius: 8px;
+}
+
+#screen.fullscreen #keyboard {
+  z-index: 2147483647;
 }
 
 #keyboard.imminent {

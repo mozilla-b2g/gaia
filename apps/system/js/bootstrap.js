@@ -430,4 +430,9 @@ var Applications = {
 
 window.addEventListener('mozChromeEvent', Applications);
 
+window.addEventListener('mozfullscreenchange', function onfullscreen(e) {
+  var classes = document.getElementById('screen').classList;
+  document.mozFullScreen ? classes.add('fullscreen')
+                         : classes.remove('fullscreen');
+});
 

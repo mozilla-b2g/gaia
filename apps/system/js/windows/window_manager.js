@@ -48,7 +48,6 @@ var WindowManager = (function() {
   var kLongPressInterval = 1000;
 
   // Some document elements we use
-  var screenElement = document.getElementById('screen');
   var statusbar = document.getElementById('statusbar');
   var windows = document.getElementById('windows');
   var taskManager = document.getElementById('taskManager');
@@ -119,9 +118,7 @@ var WindowManager = (function() {
     var manifest = app.manifest;
 
     frame.style.width = window.innerWidth + 'px';
-    frame.style.height = manifest.fullscreen ?
-      window.innerHeight + 'px' :
-      (window.innerHeight - statusbar.offsetHeight) + 'px';
+    frame.style.height = window.innerHeight - statusbar.offsetHeight + 'px';
   }
 
   // Perform an "open" animation for the app's iframe
@@ -134,11 +131,6 @@ var WindowManager = (function() {
     // Start it off in its 'closed' state.
     var sprite = document.createElement('div');
     sprite.className = 'closed windowSprite';
-
-    if (manifest.fullscreen) {
-      sprite.classList.add('fullscreen');
-      screenElement.classList.add('fullscreen');
-    }
 
     // Make the sprite look like the app that it is animating for.
     // Animating an image resize is quicker than animating and resizing
@@ -225,10 +217,6 @@ var WindowManager = (function() {
       frame.setVisible(false);
     }
 
-    // If this was a fullscreen app, leave full-screen mode
-    if (manifest.fullscreen)
-      screenElement.classList.remove('fullscreen');
-
     // If we're not doing an animation, then just switch directly
     // to the closed state. Note that we don't handle the hackKillMe
     // flag here. If we bring up the task switcher and switch to another
@@ -246,9 +234,6 @@ var WindowManager = (function() {
     // the app window and transition the sprite down to the closed state.
     var sprite = document.createElement('div');
     sprite.className = 'open windowSprite';
-
-    if (manifest.fullscreen)
-      sprite.classList.add('fullscreen');
 
     // Make the sprite look like the app that it is animating for.
     // Animating an image resize is quicker than animating and resizing
@@ -403,6 +388,10 @@ var WindowManager = (function() {
     // when that is done.
     setDisplayedApp(origin, function() {
       frame.src = url;
+
+      if (true || manifest.fullscreen) {
+        frame.mozRequestFullScreen();
+      }
     });
   }
 
@@ -416,20 +405,6 @@ var WindowManager = (function() {
       return;
 
     var app = Applications.getByOrigin(origin);
-
-    /*
-    // If the application is not a regular application, it can be bookmark.
-    // A bookmark consist in a name, an url and an icon. No manifest.
-    if (!app) {
-      for (var name in bookmarks) {
-        if (bookmarks[name].url == origin)
-          break;
-      }
-
-      appendFrame(origin, origin, name, { 'hackNetworkBound': true });
-      return;
-    }
-    */
 
     // TODO: is the startPoint argument implemented?
     // and is it passed back to us in the webapps-launch method?
@@ -633,6 +608,11 @@ var WindowManager = (function() {
       if (!keydown) {
         timer = window.setTimeout(longPressHandler, kLongPressInterval);
         keydown = true;
+      }
+
+      // Exit fullscreen mode
+      if (document.mozFullScreen) {
+        document.mozCancelFullScreen();
       }
 
       // No one sees the HOME key but us
