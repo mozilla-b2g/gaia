@@ -174,3 +174,7 @@ iframe.keyboardFrame {
 	z-index: 10002;
 }
 
+#screen.fullscreen iframe.keyboardFrame {
+  z-index: 2147483647;
+}
+
