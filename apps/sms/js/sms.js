@@ -101,6 +101,69 @@ var DelayDeleteManager = {
   },
 };
 
+/* Contact Manager for maintaining contact cache and access contact DB:
+ * 1. Maintain a complete contact in contactData object literal.
+ * 2. getAllContactFromCache: get contact data direct from cache.
+ * 3. getAllContactFromDB: get contact data asyncronus from message database,
+ *      update cache and than execute callback.
+ * 4. getContactData: It will have both syncronus and asyncronus callback.
+ *      If contact updated, asyncronus run will update cache than execute callback.
+*/
+var ContactDataManager = {
+  init: function cm_init() {
+    this.contactData = {};
+  },
+  getContactData: function cm_getContactData(options ,callback) {
+    if (options.filterBy.indexOf('tel')> -1 && options.filterOp == 'contains') {
+      var contact = this.contactData[options.filterValue];
+      callback(contact ? [contact]: []);
+    }
+    var self = this;
+    var req = window.navigator.mozContacts.find(options);
+    req.onsuccess = function onsuccess() {
+      // Update the cache before callback.
+      if (options.filterBy.indexOf('tel')> -1 && options.filterOp == 'contains') {
+        if (self.contactData[options.filterValue])
+          delete self.contactData[options.filterValue];
+        if (req.result.length > 0)
+          self.contactData[options.filterValue] = req.result[0];
+      };
+      callback(req.result);    
+    };    
+    req.onerror = function onerror() {
+      var msg = 'Contect finding error. Error: ' + req.errorCode;
+      console.log(msg);      
+    };    
+  },
+  getAllContactFromCache: function cm_getAllContactFromCache() {
+    return this.contactData;
+  },
+  getAllContactFromDB: function cm_getAllContactFromDB(callback) {
+    var self = this;
+    var req = window.navigator.mozContacts.find({});
+    
+    req.onsuccess = function onsuccess() {
+      var contacts = req.result;
+      self.contactData = {};
+
+      contacts.sort(function contactsSort(a, b) {
+        return a.familyName[0].toUpperCase() > b.familyName[0].toUpperCase();
+      });
+
+      contacts.forEach(function(contact, i) {
+        var num = contact.tel.length ? contact.tel[0].number : null;
+        self.contactData[num] = contact;
+      });
+      callback(self.contactData);
+    }
+    
+    req.onerror = function onerror() {
+      var msg = 'Contect finding error. Error: ' + req.errorCode;
+      console.log(msg);      
+    };
+  }
+};
+
 var ConversationListView = {
   get view() {
     delete this.view;
@@ -159,70 +222,79 @@ var ConversationListView = {
           (!messages[0] || messages[0].id !== pendingMsg.id))
         messages.unshift(pendingMsg);
 
+      // Use the contact cache for applying to the list at first. 
+      var allContactData = ContactDataManager.getAllContactFromCache();
       var conversations = {};
-      var request = window.navigator.mozContacts.find({});
-      request.onsuccess = function findCallback() {
-        var contacts = request.result;
+      for (var i = 0; i < messages.length; i++) {
+        var message = messages[i];
 
-        contacts.sort(function contactsSort(a, b) {
-          return a.familyName[0].toUpperCase() > b.familyName[0].toUpperCase();
-        });
+        // XXX why does this happen?
+        if (!message.delivery)
+          continue;
 
-        contacts.forEach(function(contact, i) {
-          var num = contact.tel.length ? contact.tel[0].number : null;
+        var num = message.delivery == 'received' ?
+                  message.sender : message.receiver;
+
+        var conversation = conversations[num];
+        if (conversation && !conversation.hidden)
+          continue;
+
+        if (!conversation) {
           conversations[num] = {
-            'hidden': true,
-            'name': contact.name[0],
+            'hidden': false,
+            'body': message.body,
+            'name': num,
             'num': num,
-            'body': '',
-            'timestamp': '',
-            'id': parseInt(i)
+            'timestamp': message.timestamp.getTime(),
+            'id': i
           };
-        });
+          if (allContactData[num] && allContactData[num].name[0])
+            conversations[num].name = allContactData[num].name[0];
+        } else {
+          conversation.hidden = false;
+          conversation.timestamp = message.timestamp.getTime();
+          conversation.body = message.body;
+        }
+      }
 
-        for (var i = 0; i < messages.length; i++) {
-          var message = messages[i];
+      var fragment = '';
+      for (var num in conversations) {
+        if (self.delNumList.indexOf(num) > -1) {
+          continue;
+        }
+        var msg = self.createNewConversation(conversations[num]);
+        fragment += msg;
+      }
+      self.view.innerHTML = fragment;
 
-          // XXX why does this happen?
-          if (!message.delivery)
-            continue;
+      // Update the contact info after list appended to view.
+      ContactDataManager.getAllContactFromDB(function contactCallback(contacts) {
+        var conversationList = self.view.children;
+        for (var i = 0; i < conversationList.length; i++) {
+          var contactData = contacts[conversationList[i].dataset.num];
+          var nameElement = conversationList[i].getElementsByClassName('name')[0];
+          if (!contactData) {
+            // Update list while the contact delected but name exist.
+            if (conversationList[i].dataset.name == conversationList[i].dataset.num)
+              continue;
 
-          var num = message.delivery == 'received' ?
-                    message.sender : message.receiver;
-
-          var conversation = conversations[num];
-          if (conversation && !conversation.hidden)
-            continue;
-
-          if (!conversation) {
-            conversations[num] = {
-              'hidden': false,
-              'body': message.body,
-              'name': num,
-              'num': num,
-              'timestamp': message.timestamp.getTime(),
-              'id': i
-            };
+            conversationList[i].dataset.name = conversationList[i].dataset.num;
+            nameElement.innerHTML = conversationList[i].dataset.num;
           } else {
-            conversation.hidden = false;
-            conversation.timestamp = message.timestamp.getTime();
-            conversation.body = message.body;
-          }
-        }
+            // Update list while the contact exist but name does not match.
+            var name = escapeHTML(contactData.name);
+            if (conversationList[i].dataset.name == name)
+              continue;
 
-        var fragment = '';
-        for (var num in conversations) {
-           if (self.delNumList.indexOf(num) > -1) {
-             continue;
-           }
-          var msg = self.createNewConversation(conversations[num]);
-          fragment += msg;
+            conversationList[i].dataset.name = name;
+            nameElement.innerHTML = name;    
+          }  
         }
-        self.view.innerHTML = fragment;
-        if (self.delNumList.length > 0) {
-          self.showUndoToolbar();
-        }
-      };
+      });
+
+      if (self.delNumList.length > 0) {
+        self.showUndoToolbar();
+      }
     }, null);
   },
 
@@ -522,21 +594,22 @@ var ConversationView = {
       filterOp: 'contains',
       filterValue: num
     };
-    var request = window.navigator.mozContacts.find(options);
-    request.onsuccess = function findCallback() {
-      if (request.result.length == 0)
-        return;
-
-      var contact = request.result[0];
-      self.title.textContent = contact.name;
+    ContactDataManager.getContactData(options, function getContact(result) {
+      var contactImageSrc = 'style/images/contact-placeholder.png';
+      if (result.length == 0) {
+        self.title.textContent = num;
+      } else {
+        var contact = result[0];
+        self.title.textContent = contact.name[0];
+        //TODO: apply the real contact image:
+        //contactImageSrc = contact.photo;
+      }
       var images = self.view.querySelectorAll('.photo img');
       for (var i = 0; i < images.length; i++)
-        images[i].src = 'style/images/contact-placeholder.png';
-    };
+        images[i].src = contactImageSrc;      
+    });
 
     this.num.value = num;
-
-    this.title.textContent = num;
     this.title.num = num;
 
     MessageManager.getMessages(function mm_getMessages(messages) {
@@ -705,6 +778,7 @@ window.addEventListener('localized', function showBody() {
     var request = navigator.mozSettings.getLock().get('language.current');
     request.onsuccess = function() {
       selectedLocale = request.result['language.current'] || navigator.language;
+      ContactDataManager.init();
       ConversationView.init();
       ConversationListView.init();
     }
