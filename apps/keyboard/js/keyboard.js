@@ -70,7 +70,8 @@ const IMEManager = {
     'zhuyin': ['zh-Hant-Zhuyin'],
     'pinyin': ['zh-Hans-Pinyin'],
     'arabic': ['ar'],
-    'greek': ['el']
+    'greek': ['el'],
+    'japanese': ['jp-kanji']
   },
 
   enableSetting: function km_enableSetting(theKey) {
@@ -1259,7 +1260,7 @@ const IMEManager = {
 
   showPendingSymbols: function km_showPendingSymbols(symbols) {
     var pendingSymbolPanel = this.pendingSymbolPanel;
-    pendingSymbolPanel.textContent = symbols;
+    pendingSymbolPanel.innerHTML = symbols;
   },
 
   showCandidates: function km_showCandidates(candidates, noWindowHeightUpdate) {
