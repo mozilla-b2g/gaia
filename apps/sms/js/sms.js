@@ -131,7 +131,7 @@ var ContactDataManager = {
       callback(req.result);    
     };    
     req.onerror = function onerror() {
-      var msg = 'Contect finding error. Error: ' + req.errorCode;
+      var msg = 'Contact finding error. Error: ' + req.errorCode;
       console.log(msg);      
     };    
   },
@@ -158,7 +158,7 @@ var ContactDataManager = {
     }
     
     req.onerror = function onerror() {
-      var msg = 'Contect finding error. Error: ' + req.errorCode;
+      var msg = 'Contact finding error. Error: ' + req.errorCode;
       console.log(msg);      
     };
   }
