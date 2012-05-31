@@ -212,52 +212,6 @@ var KeyHandler = {
   }
 };
 
-
-/* === Screen Manager === */
-var ScreenManager = {
-
-  preferredBrightness: 0.5,
-
-  get screenEnabled() {
-    return navigator.mozPower.screenEnabled;
-  },
-
-  set screenEnabled(enabled) {
-    return navigator.mozPower.screenEnabled = enabled;
-  },
-
-  toggleScreen: function scm_toggleScreen() {
-    if (this.screenEnabled)
-      this.turnScreenOff();
-    else
-      this.turnScreenOn();
-  },
-
-  turnScreenOff: function scm_turnScreenOff() {
-    if (!this.screenEnabled)
-      return false;
-
-    this.screenEnabled = false;
-
-    this.preferredBrightness = navigator.mozPower.screenBrightness;
-    navigator.mozPower.screenBrightness = 0.0;
-
-    StatusBar.refresh();
-    return true;
-  },
-
-  turnScreenOn: function scm_turnScreenOn() {
-    if (this.screenEnabled)
-      return false;
-
-    navigator.mozPower.screenEnabled = true;
-    navigator.mozPower.screenBrightness = this.preferredBrightness;
-
-    StatusBar.refresh();
-    return true;
-  }
-};
-
 // XXX This crap should live in webapi.js for compatibility
 var Mouse2Touch = {
   'mousedown': 'touchstart',
