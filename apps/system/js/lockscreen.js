@@ -69,7 +69,6 @@ var LockScreen = {
   /* init */
   init: function ls_init() {
     this.getAllElements();
-    this.updateTime();
     this.updateMuteState();
 
     /* copy the settings values from LocalStorage */
@@ -259,6 +258,8 @@ var LockScreen = {
       this.overlay.classList.remove('no-transition');
 
     screen.mozLockOrientation('portrait-primary');
+
+    this.updateTime();
 
     if (!wasAlreadyLocked) {
       var evt = document.createEvent('CustomEvent');
