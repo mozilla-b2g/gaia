@@ -8,6 +8,7 @@ function startup() {
   PinLock.init();
   StatusBar.init();
   KeyHandler.init();
+  SoundManager.init();
   SleepMenu.init();
 
   Applications.rebuild(function start(apps) {
@@ -36,44 +37,11 @@ function startup() {
   // https://bugzilla.mozilla.org/show_bug.cgi?id=753245
   function dumbListener2(event) {}
   window.addEventListener("devicemotion", dumbListener2, false);
-  
+
   window.setTimeout(function() {
     window.removeEventListener("devicemotion", dumbListener2, false);
   }, 2000);
 }
-
-var SoundManager = {
-  currentVolume: 5,
-  changeVolume: function soundManager_changeVolume(delta) {
-    var volume = this.currentVolume + delta;
-    this.currentVolume = volume = Math.max(0, Math.min(10, volume));
-
-    var notification = document.getElementById('volume');
-    var classes = notification.classList;
-    if (volume == 0) {
-      classes.add('vibration');
-    } else {
-      classes.remove('vibration');
-    }
-
-    var steps = notification.children;
-    for (var i = 0; i < steps.length; i++) {
-      var step = steps[i];
-      if (i < volume)
-        step.classList.add('active');
-      else
-        step.classList.remove('active');
-    }
-
-    classes.add('visible');
-    if (this._timeout)
-      window.clearTimeout(this._timeout);
-
-    this._timeout = window.setTimeout(function hideSound() {
-      classes.remove('visible');
-    }, 3000);
-  }
-};
 
 var SleepMenu = {
   get element() {
@@ -217,22 +185,6 @@ var SourceView = {
 
 /* === KeyHandler === */
 var KeyHandler = {
-  kRepeatTimeout: 700,
-  kRepeatRate: 100,
-
-  _timer: 0,
-  repeatKey: function kh_repeatKey(actionCallback) {
-    actionCallback();
-
-    clearTimeout(this._timer);
-    this._timer = window.setTimeout((function volumeTimeout() {
-      actionCallback();
-      this._timer = setInterval(function volumeInterval() {
-        actionCallback();
-      }, this.kRepeatRate);
-    }).bind(this), this.kRepeatTimeout);
-  },
-
   init: function kh_init() {
     window.addEventListener('keydown', this);
     window.addEventListener('keyup', this);
@@ -244,35 +196,9 @@ var KeyHandler = {
 
     switch (evt.type) {
       case 'keydown':
-        switch (evt.keyCode) {
-          case evt.DOM_VK_PAGE_UP:
-            this.repeatKey((function repeatKeyCallback() {
-              if (SoundManager.currentVolume == 10) {
-                clearTimeout(this._timer);
-                return;
-              }
-              SoundManager.changeVolume(1);
-            }).bind(this));
-            break;
-
-          case evt.DOM_VK_PAGE_DOWN:
-            this.repeatKey((function repeatKeyCallback() {
-              if (SoundManager.currentVolume == 0) {
-                clearTimeout(this._timer);
-                return;
-              }
-              SoundManager.changeVolume(-1);
-            }).bind(this));
-            break;
-        }
         break;
       case 'keyup':
         switch (evt.keyCode) {
-          case evt.DOM_VK_PAGE_UP:
-          case evt.DOM_VK_PAGE_DOWN:
-            clearTimeout(this._timer);
-            break;
-
           case evt.DOM_VK_CONTEXT_MENU:
             SourceView.toggle();
             break;
