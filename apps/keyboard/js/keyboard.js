@@ -284,16 +284,9 @@ const IMEManager = {
     var before = (window.innerWidth / 2 > target.offsetLeft);
     var dataset = target.dataset;
 
-    if (before) {
-      content += '<span class="keyboard-key" ' +
-        'data-keycode="' + dataset.keycode + '" ' +
-        'data-active="true"' +
-        'style="width:' + cssWidth + '"' +
-        '>' +
-        target.innerHTML +
-        '</span>';
-    }
-
+    // To store all the accent characters, including the original one
+    var altCharSet = [];
+    var MENU_PADDING = 7;
     var altChars;
 
     // handle special key set separated by space
@@ -320,48 +313,59 @@ const IMEManager = {
       var keyCode = keyChar.keyCode || keyChar.charCodeAt(0);
       var label = keyChar.label || keyChar;
 
-      content += '<span class="keyboard-key" ' +
-        'data-keycode="' + keyCode + '"' +
-        'style="width:' + cssWidth + '"' +
-        compositeKeyHTML +
-        '>' +
-        label +
-        '</span>';
+      altCharSet.push({keyCode: keyCode, label: label});
     }.bind(this));
 
-    if (!before) {
+    function buildAccentKey(key) {
+
+      var activeAttribute = key.active ? 'data-active="true"' : '';
       content += '<span class="keyboard-key" ' +
-        'data-keycode="' + dataset.keycode + '" ' +
-        'data-active="true"' +
+        'data-keycode="' + key.keyCode + '" ' +
+         activeAttribute +
         'style="width:' + cssWidth + '"' +
         '>' +
-        target.innerHTML +
+        key.label +
         '</span>';
     }
+
+    var menuEstimatedWidth = (target.offsetWidth + 4) *
+                             (altCharSet.length + 1) + 12;
+
+    var left = target.offsetLeft;
+    left += (before) ? -MENU_PADDING :
+                       (MENU_PADDING - menuEstimatedWidth + target.offsetWidth);
+
+    // put the original char in the middle
+    var middle = before ? (target.offsetLeft + menuEstimatedWidth >=
+                           window.innerWidth) :
+                          (left <= 0);
+
+    // determine the position to insert the original key
+    var position = 0;
+
+    if (middle)
+      position = Math.ceil(target.offsetLeft / (target.offsetWidth + 2)) - 1;
+    else if (!before)
+      position = altCharSet.length;
+
+    // insert the original key
+    altCharSet.splice(position, 0,
+        {keyCode: dataset.keycode, label: target.innerHTML, active: true});
+
+    altCharSet.forEach(buildAccentKey);
 
     menu.innerHTML = content;
     menu.className = 'show';
 
-    var need2row = (!before && altChars.length >= 9 &&
-                    target.offsetLeft / target.offsetWidth >= 8) ||
-                   (before && altChars.length >= 8 &&
-                    target.offsetLeft / target.offsetWidth >= 1);
+    var left = target.offsetLeft;
 
-    if (need2row) {
-      menu.className += ' with2row';
-      menu.style.width = (target.offsetWidth * 6 + 24) + 'px';
-      if (!before) {
-        menu.className += ' alignRight';
-      }
-    } else {
-      // To reset the width for single row case
-      menu.style.width = '';
-    }
+    if (!middle)
+      left += (before) ? -MENU_PADDING :
+                         (MENU_PADDING - menu.offsetWidth + target.offsetWidth);
+    else
+      left -= position * (target.offsetWidth + 4) + MENU_PADDING;
 
     menu.style.top = target.offsetTop + 'px';
-
-    var left = target.offsetLeft;
-    left += (before) ? -7 : (7 - menu.offsetWidth + target.offsetWidth);
     menu.style.left = left + 'px';
 
     delete target.dataset.active;
@@ -381,34 +385,21 @@ const IMEManager = {
       this.addEventListener('mouseover', this.redirect);
     };
 
-    var sibling = target;
-    if (before) {
-      var index = 0;
+    // Redirect the mouseOver event
+    var eventTargets = target.parentElement.childNodes;
+    var count = menu.childNodes.length;
+    var keyOrder = Math.ceil(target.offsetLeft / (target.offsetWidth + 2)) - 1;
+    var startIndex = (middle) ? 0 :
+                                (before) ? keyOrder : keyOrder - count + 1;
 
-      while (menu.childNodes.item(index)) {
-        if (!sibling)
-          break;
-
-        redirectMouseOver.call(sibling, menu.childNodes.item(index));
-        sibling = sibling.nextSibling;
-        index++;
-      }
-    } else {
-      var index = menu.childNodes.length - 1;
-
-      while (menu.childNodes.item(index)) {
-        if (!sibling)
-          break;
-
-        redirectMouseOver.call(sibling, menu.childNodes.item(index));
-        sibling = sibling.previousSibling;
-        index--;
+    for (var i = 0; i < count; i++, startIndex++) {
+      if (eventTargets[startIndex]) {
+        redirectMouseOver.call(eventTargets[startIndex], menu.childNodes[i]);
       }
     }
 
     this._currentMenuKey = target;
-
-    this.currentKey = (before) ? menu.firstChild : menu.lastChild;
+    this.currentKey = menu.childNodes[position];
 
     this.updateKeyHighlight();
 
