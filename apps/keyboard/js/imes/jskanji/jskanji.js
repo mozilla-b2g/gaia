@@ -239,8 +239,12 @@
       _inputBuf.splice(0, kana.length);
       _selectedKanji = kanji;
       _selectedKana = kana;
-      _firstKana = "";
-      _firstKanji = "";
+
+      if (_inputBuf.length === 0) {
+        _firstKana = "";
+        _firstKanji = "";
+        _keyMode = KeyMode.NORMAL;
+      }
 
       // reset
       _previousKeycode = 0;
@@ -714,6 +718,7 @@
           _selectedKana = "";
           _selectedKanji = "";
           _candidateList = [];
+          _keyMode = KeyMode.NORMAL;
 
           // TODO 
           _dict.getSuggestions(kana, kanji,
