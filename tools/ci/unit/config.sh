@@ -40,9 +40,9 @@ then
   GAIA_PORT=''
 fi
 
-if [ -z "$GAIA_TEST_FAST" ];
+if [ -z "$GAIA_SKIP_HOSTS" ];
 then
-  GAIA_TEST_FAST=0;
+  GAIA_SKIP_HOSTS=0;
 fi
 # File to use for test output
 if [ -z "$TEST_OUTPUT" ];
@@ -58,6 +58,18 @@ else
   EMULATOR_PATH="$EMULATOR_PATH/generic";
 fi
 
+if [ -z "$ADB" ];
+then
+  #TODO: don't hard code it
+  ADB="$B2G_HOME/out/host/linux-x86/bin/adb";
+fi
+
+if [ -z "$B2G_SCRIPTS" ];
+then
+  B2G_SCRIPTS="$GAIA_PATH/tools/test-agent/node_modules/b2g-scripts/bin/b2g-scripts";
+fi
+
+export ADB &&
 export TEST_OUTPUT &&
 export REPORTER &&
 export GAIA_DOMAIN &&
@@ -67,4 +79,5 @@ export B2G_HOME &&
 export TEST_FAST &&
 export EMULATOR_TYPE &&
 export EMULATOR_PATH &&
+export B2G_SCRIPTS &&
 export TEST_AGENT_SERVER;
