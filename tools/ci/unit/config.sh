@@ -58,4 +58,5 @@ export GAIA_PORT &&
 export GAIA_PATH &&
 export B2G_HOME &&
 export TEST_FAST &&
+export EMULATOR_TYPE &&
 export TEST_AGENT_SERVER;
