@@ -420,3 +420,15 @@ window.addEventListener('load', function browserOnLoad(evt) {
   window.removeEventListener('load', browserOnLoad);
   Browser.init();
 });
+
+window.addEventListener('message', function(e) {
+  if (e.data.message === 'visibilitychange'
+    && !e.data.hidden
+    && e.data.params.url) {
+    window.addEventListener('load', function load() {
+      window.removeEventListener('load', load);
+      Browser.urlInput.value = e.data.params.url;
+      Browser.go();
+    })
+  }
+});

@@ -1,0 +1,488 @@
+
+
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: white;
+  color: black;
+  font: normal 14px/15px Arial, Helvetica, sans-serif;
+  overflow: hidden;
+}
+
+.hidden {
+  display: none;
+}
+
+a, a:hover {
+  text-decoration: none;
+  color: white;
+  outline: none;
+}
+
+input, button, textarea {
+  outline: none;
+}
+
+::-moz-focus-inner {
+  border: 0;
+}
+
+.top {
+  width: 100%;
+  border-bottom: 1px solid black;
+  border-top: 1px solid black;
+  overflow: hidden;
+  background: black;
+  color: white;
+  font-size: 16px;
+  line-height: 18px;
+  -moz-user-select: none;
+  height: 58px;
+}
+
+.userbar {
+  overflow: hidden;
+  font-size: 20px;
+  line-height: 28px;
+  position: relative;
+}
+
+.userbar-header {
+  font-size: 24px;
+  line-height: 28px;
+  text-align: center;
+  text-shadow: 1px 0 1px rgba(255, 255, 255, 0.3), 0 1px 1px rgba(255, 255, 255, 0.3);
+  padding: 0 90px;
+}
+
+.userbar-nav {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+}
+
+.userbar-left-button {
+  float: left;
+}
+
+.userbar-right-button {
+  float: right;
+}
+
+.userbar-button {
+  background: white;
+  border: none;
+  outline: none;
+  padding: 2px 4px 3px;
+  margin: 12px 15px;
+  color: black;
+  width: 40px;
+}
+
+.account-bar {
+  float: left;
+  padding: 15px;
+}
+
+.folder {
+  float: right;
+  padding: 15px;
+}
+
+.main {
+  height: -moz-calc(100% - 60px - 50px);
+  overflow: hidden;
+  background: black;
+  -moz-user-select: none;
+}
+
+.message-page {
+  box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+/* Message flags section */
+
+.message-summary-unread .message-summary-subject::before {
+  width: 10px;
+  height: 10px;
+  background: orange;
+  position: absolute;
+  left: -20px;
+  top: 50%;
+  margin-top: -5px;
+  border-radius: 50%;
+  content: '';
+}
+
+.message-summary-unread .message-summary-date {
+  color: orange;
+}
+
+.message-summary-header {
+  line-height: 19px;
+}
+.message-summary {
+  padding: 15px 50px 15px 30px;
+  border-bottom: 1px dotted gray;
+  cursor: default;
+  min-height: 35px;
+  -moz-box-sizing: border-box;
+  -moz-user-select: none;
+}
+
+.message-summary.highlight {
+  background: #EEEEEE;
+}
+
+.message-summary-text {
+  font-size: 16px;
+  margin: 10px 0 0;
+  color: gray;
+  width: 100%;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.message-summary-author {
+  font-weight: normal;
+  line-height: 22px;
+  margin: 0 0 10px;
+  font-size: 22px;
+}
+
+.message-summary-subject {
+  margin: 0;
+  font-size: 17px;
+  position: relative;
+}
+.message-summary-date {
+  color: gray;
+  font-weight: normal;
+  font-size: 14px;
+  padding-left: 10px;
+}
+.message-summary-subject,
+.message-summary-date {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.messages-list {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  background: white;
+}
+
+.message-frame {
+  border: none;
+  padding: 0;
+  margin: 0;
+  background: white;
+}
+
+.actions-bar {
+  width: 100%;
+  font-size: 14px;
+  line-height: 18px;
+  height: 50px;
+  background: black;
+}
+
+.actions-bar-menu {
+  height: 100%;
+  margin: 0 15px;
+  padding: 5px;
+  overflow: hidden;
+  -moz-box-sizing: border-box;
+  list-style: none;
+  text-align: justify;
+}
+
+.actions-bar-menu:after {
+  display: inline-block;
+  width: 100%;
+  height: 0;
+  visibility: hidden;
+  overflow: hidden;
+  content: '';
+}
+
+.actions-bar-item {
+  display: inline-block;
+}
+
+.actions-bar-button {
+  background: white;
+  border: none;
+  outline: none;
+  margin: 3px 5px 0;
+  padding: 2px 4px 3px;
+  color: black;
+  font-size: 26px;
+  line-height: 28px;
+  width: 36px;
+}
+
+.first-screen {
+  background: gray;
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
+}
+
+.login-form {
+  width: 400px;
+  margin: 0 auto;
+  padding: 0 0 5px;
+}
+
+.login-fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.login-fieldset ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.login-fieldset li {
+  margin: 0 0 25px 0;
+}
+
+.login-fieldset input { 
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: 26px;
+  line-height: 30px;
+  font-weight: normal;
+  padding: 10px;
+  width: 100%;
+  -moz-box-sizing: border-box;
+}
+
+input::after {
+  position: relative;
+  z-index: 1;
+  content: 'x';
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.login-field {
+  -moz-box-sizing: border-box;
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 0 0 1px gray, 0 0 0 2px black;
+  border: 2px solid transparent;
+  width: 100%;
+  overflow: hidden;
+}
+
+.login-email-field {
+  width: 100%;
+}
+
+.add-account-button {
+  width: 100%;
+}
+
+button {
+  padding: 12px 32px;
+  font-size: 28px;
+  line-height: 30px;
+  border-radius: 4px;
+  border: 0;
+  background: -moz-linear-gradient(to bottom, #EEEEEE, #BBBBBB);
+  cursor: pointer;
+  outline: none;
+  box-shadow: 0 0 0 1px gray, 0 0 0 2px black;
+}
+
+button:active {
+  background: -moz-linear-gradient(to bottom, #CCCCCC, #AAAAAA);
+}
+
+.login-header {
+  font-weight: normal;
+  text-align: left;
+}
+
+.first-screen-footer {
+  padding: 100px 0 0;
+  text-align: center;
+}
+
+.select-exist-button {
+  padding: 10px 30px;
+  font-size: 28px;
+  line-height: 30px;
+  -moz-box-sizing: border-box;
+}
+
+.pre-select-mail {
+  text-align: center;
+  margin-top: 30px;
+  -moz-transition: all 0.3s;
+}
+
+@media screen and (max-height: 740px) {
+  .pre-select-mail {
+    margin-top: 10px;
+  }
+}
+
+.pre-select-mail a {
+  display: inline-block;
+  margin: 0 10px;
+  background: white;
+  padding: 0 10px;
+  width: 48px;
+  height: 48px;
+  border-radius: 4px;
+  box-shadow: 0 0 0 1px gray, 0 0 0 2px black;
+  border: 2px solid transparent;
+  vertical-align: top;
+}
+.pre-select-mail span {
+  color: black;
+  font-size: 30px;
+  line-height: 48px;
+}
+.pre-mail-selected * {
+  vertical-align: middle;
+}
+.pre-mail-selected {
+  text-align: left;
+  width: 400px;
+  margin: 15px auto;
+  vertical-align: middle;
+  height: 48px;
+  overflow: hidden;
+  font-size: 28px;
+  line-height: 30px;
+}
+
+.pre-mail-selected * {
+  vertical-align: middle;
+}
+
+.field {
+  position: relative;
+}
+
+.field .clean-button {
+  position: absolute;
+  font-size: 32px;
+  line-height: 34px;
+  right: 10px;
+  top: 50%;
+  margin-top: -17px;
+  display: none;
+  cursor: pointer;
+}
+
+.page {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.select-exists-accounts {
+  position: absolute;
+  width: 100%;
+  -moz-box-sizing: padding-box;
+  height: -moz-calc(100% - 58px);
+  margin-top: 58px;
+  padding: 30px;
+  top: 0;
+  left: 0;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.select-exists-box {
+  width: 100%;
+  height: 100%;
+  background: white;
+  border-radius: 30px;
+  overflow: hidden;
+}
+
+.select-exists-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow-y: auto;
+}
+
+.select-exists-list li {
+  padding: 10px 20px;
+  border-bottom: 1px dotted black;
+  cursor: default;
+}
+
+.select-exists-list li:active {
+  background: gray;
+}
+
+.message-frame-header {
+  margin: 15px 0;
+  padding: 0 15px;
+  border-bottom: 1px solid gray;
+}
+
+.message-frame-header-line {
+  font-weight: normal;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  line-height: 22px;
+}
+
+.message-frame-header-line span {
+  float: left;
+  width: 20%;
+}
+
+.message-frame-subject {
+  width: 100%;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  font-size: 22px;
+  line-height: 30px;
+}
+
+.message-frame-body {
+  margin: 15px 0;
+  padding: 0 15px;
+  font-size: 20px;
+  line-height: 22px;
+}
+
+.message-frame-content {
+  margin: 0;
+  padding: 0;
+  border: none;
+  width: 100%;
+  height: 100%;
+}

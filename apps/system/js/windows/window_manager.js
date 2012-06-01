@@ -77,6 +77,27 @@ var WindowManager = (function() {
     localizedLoading = document.mozL10n.get('loading');
   });
 
+  // Requests block
+  // Block provides communication beetwen
+  // applications and permissions for that
+  // The best example of communication is open link
+  // in the browser app from another applaction
+  // Or second same example is starting composing email
+  // from another place like contacts menager or browser
+
+  // Using this window like proxy
+  // Now do not check origin, but it need in future
+  window.addEventListener('message', function(e) {
+
+    // |request| property is the origin of requested app
+    // |params| property is data that wiil be sended to requested origin
+    if (e.data && e.data.request) {
+      launch(e.data.request, e.data.params);
+    }
+
+
+  }, true);
+
   // Public function. Return the origin of the currently displayed app
   // or null if there is none.
   function getDisplayedApp() {
@@ -86,17 +107,22 @@ var WindowManager = (function() {
   // Start the specified app if it is not already running and make it
   // the displayed app.
   // Public function.  Pass null to make the homescreen visible
-  function launch(origin) {
+  function launch(origin, params) {
     // If it is already being displayed, do nothing
     if (displayedApp === origin)
       return;
 
+    var app = Applications.getByOrigin(origin);
+
+    app.transfer = params;
+
     // If the app is already running (or there is no app), just display it
     // Otherwise, start the app
-    if (!origin || isRunning(origin))
+    if (!origin || isRunning(origin)) {
       setDisplayedApp(origin);
-    else
+    } else {
       start(origin);
+    }
 
     // launch() can be called from outside the task switcher
     // hiding it if needed
@@ -128,7 +154,7 @@ var WindowManager = (function() {
   }
 
   // Perform an "open" animation for the app's iframe
-  function openWindow(origin, callback) {
+  function openWindow(origin, params, callback) {
     var app = runningApps[origin];
     var frame = app.frame;
     var manifest = app.manifest;
@@ -176,10 +202,19 @@ var WindowManager = (function() {
         sprite.classList.add('faded');
 
         // Let the app know that it has become visible
-        frame.contentWindow.postMessage({
-          message: 'visibilitychange',
-          hidden: false
-        }, '*');
+        var sendVisibility = function() {
+          frame.contentWindow.postMessage({
+            message: 'visibilitychange',
+            hidden: false,
+            params: params
+          }, '*');
+        };  
+
+        if (app.loaded) {
+          sendVisibility();
+        } else {
+          frame.addEventListener('apploaded', sendVisibility);
+        }
       }
       else {
         // The second transition has just completed
@@ -300,7 +335,16 @@ var WindowManager = (function() {
 
   // Switch to a different app
   function setDisplayedApp(origin, callback) {
-    var currentApp = displayedApp, newApp = origin;
+    var currentApp = displayedApp,
+      newApp = origin,
+      getTransfer = function() {
+        var app = Applications.getByOrigin(newApp),
+          transfer = app.transfer || {};
+
+        app.transfer = null;
+
+        return transfer;
+      };
 
     // There are four cases that we handle in different ways:
     // 1) The new app is already displayed: do nothing
@@ -317,7 +361,7 @@ var WindowManager = (function() {
     // Case 2: homescreen->app
     else if (currentApp == null) {
       setAppSize(newApp);
-      openWindow(newApp, callback);
+      openWindow(newApp, getTransfer(), callback);
     }
     // Case 3: app->homescreen
     else if (newApp == null) {
@@ -327,7 +371,7 @@ var WindowManager = (function() {
     // Case 4: app-to-app transition
     else {
       setAppSize(newApp);
-      openWindow(newApp, function() {
+      openWindow(newApp, getTransfer(), function() {
         closeWindow(currentApp, true, callback);
       });
     }
@@ -406,13 +450,26 @@ var WindowManager = (function() {
     runningApps[origin] = {
       name: name,
       manifest: manifest,
-      frame: frame
+      frame: frame,
+      loaded: false
     };
 
     numRunningApps++;
 
     // Now animate the window opening and actually set the iframe src
     // when that is done.
+    document.addEventListener('DOMFrameContentLoaded', function(e) {
+      // Check that target is out frame
+      if ( e.target === frame
+        // Check if window is active - actualy loaded
+        && e.target.classList.contains('active')
+        // Addition check for real load
+        && e.target.src) {
+        runningApps[origin].loaded = true;
+        frame.dispatchEvent(new CustomEvent('apploaded'));
+      }
+    }, true);
+
     setDisplayedApp(origin, function() {
       frame.src = url;
     });
@@ -454,13 +511,14 @@ var WindowManager = (function() {
   // here to do the actual launching of the app
   window.addEventListener('mozChromeEvent', function(e) {
     if (e.detail.type === 'webapps-launch') {
-      var origin = e.detail.origin;
+      var origin = e.detail.origin,
+        app = Applications.getByOrigin(origin);
+
       if (isRunning(origin)) {
         setDisplayedApp(origin);
         return;
       }
 
-      var app = Applications.getByOrigin(origin);
       appendFrame(origin, e.detail.url, app.manifest.name, app.manifest, app.manifestURL);
     }
   });

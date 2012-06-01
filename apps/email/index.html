@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="pragma" content="no-cache">
+		<link type="text/css" rel="stylesheet" href="style/mail.css">
+		<link rel="resource" type="application/l10n" href="locale/mail.properties">
+		<script>
+			var host = document.location.host;
+			var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+			var src = 'http://' + domain + '/webapi.js';
+			document.write('<script src="' + src + '"><\/script>');
+		</script>
+		<script type="application/javascript;version=1.8" src="js/swipe.js"></script>
+		<script type="application/javascript;version=1.8" src="js/transitions.js"></script>
+		<script type="application/javascript;version=1.8" src="js/paging.js"></script>
+		<script type="application/javascript;version=1.8" src="js/date.js"></script>
+		<script type="application/javascript;version=1.8" src="js/app.js"></script>
+		<script type="application/javascript;version=1.8" src="js/mail.js"></script>
+	</head>
+<body>
+	<div class="mail-screen page" hidden id="mail-screen">
+		<header class="top">
+			<div class="userbar">
+				<h1 class="userbar-header" id="folder-title">Inbox</h1>
+				<div class="userbar-nav">
+					<button class="userbar-left-button userbar-button" id="folders-button">
+						F
+					</button>
+					<button class="userbar-right-button userbar-button">
+						N
+					</button>
+				</div>
+			</div>
+			<div class="userbar-menu">
+
+			</div>
+		</header>
+		<div class="main" id="main">
+		</div>
+		<div class="actions-bar" id="mail-actions">
+			<ul class="actions-bar-menu">
+				<li class="actions-bar-item">
+					<button class="actions-bar-button">C</button></li>
+				<li class="actions-bar-item">
+					<button class="actions-bar-button">F</button></li>
+				<li class="actions-bar-item">
+					<button class="actions-bar-button">D</button></li>
+				<li class="actions-bar-item">
+					<button class="actions-bar-button">M</button></li>
+				<li class="actions-bar-item">
+					<button class="actions-bar-button">A</button></li>
+			</ul>
+		</div>
+	</div>
+	<div class="first-screen page" hidden id="first-screen">
+
+		<header class="top">
+			<div class="userbar">
+				<h1 class="userbar-header">Gaia Mail Client</h1>
+			</div>
+		</header>
+
+		<h2 class="pre-mail-selected" id="pre-mail-selected"></h2>
+
+		<form class="login-form" id="login-form">
+			<fieldset class="login-fieldset">
+				<ul>
+					<li class="login-field">
+						<div class="login-email-field field">
+							<input autocomplete="off" type="email" required id="account-field" name="account" placeholder="Enter your account">
+							<span class="clean-button">✖</span>
+						</div>
+					</li>
+					<li class="login-field">
+						<div class="field">
+							<input type="password" name="password" placeholder="Enter your password">
+							<span class="clean-button">✖</span>
+						</div>
+					</li>
+					<li><button type="submit" class="add-account-button">Add account</button>
+				</ul>
+			</fieldset>
+		</form>
+
+		<div class="pre-select-mail" id="pre-select-mail">
+			<a href="#hotmail" id="hotmail-button">
+				<img src="style/icons/x48/hotmail.png" alt="Hotmail" data-domain="hotmail.com" title="Window Live Hotmail">
+			</a>
+			<a href="#gmail" id="gmail-button">
+				<img src="style/icons/x48/gmail.png" alt="Gmail" data-domain="gmail.com" title="Google Mail">
+			</a>
+			<a href="#yahoo-mail" id="yahoo-mail-button">
+				<img src="style/icons/x48/yahoo-mail.png" alt="Yahoo! Mail" data-domain="yahoo.com" title="Yahoo! Mail">
+			</a>
+			<a href="#yahoo-mail" id="yahoo-mail-button">
+				<span>...</span>
+			</a>
+		</div>
+
+		<footer class="first-screen-footer">
+			<button id="select-exist-button" class="select-exist-button">Select exist account</button>
+		</footer>
+
+		<div class="select-exists-accounts" hidden id="select-account">
+			<div class="select-exists-box">
+				<ul class="select-exists-list" id="select-account-list">
+				</ul>
+			</div>
+		</div>
+
+	</div>
+	<div class="message-screen page" id="message-screen" hidden>
+
+		<header class="top">
+			<div class="userbar">
+				<h1 class="userbar-header">Read</h1>
+				<div class="userbar-nav">
+					<button class="userbar-left-button userbar-button back-button">
+						⬅
+					</button>
+					<button class="userbar-right-button userbar-button">
+						R
+					</button>
+				</div>
+			</div>
+		</header>
+
+		<div class="main message-frame" id="message-frame">
+			<header class="message-frame-header">
+	    </header>
+	    <article class="message-frame-body">
+	      
+	    </article>
+		</div>
+
+	</div>
+</body>
+</html>
