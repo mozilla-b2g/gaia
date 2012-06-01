@@ -20,7 +20,7 @@ else
   echo "Creating new host file."
   LOCALHOST=10.0.2.2
   # hard coding x86
-  HOSTFILE=$B2G_HOME/out/target/product/generic_x86/system/etc/hosts
+  HOSTFILE=$EMULATOR_PATH/system/etc/hosts
 
   rm -f $HOSTFILE;
 

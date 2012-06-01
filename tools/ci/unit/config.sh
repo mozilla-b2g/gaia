@@ -44,11 +44,16 @@ if [ -z "$GAIA_TEST_FAST" ];
 then
   GAIA_TEST_FAST=0;
 fi
-
 # File to use for test output
 if [ -z "$TEST_OUTPUT" ];
 then
   TEST_OUTPUT=$B2G_HOME/test-output.xml;
+fi
+
+EMULATOR_PATH="$B2G_HOME/out/target/product/generic"
+if [ "$EMULATOR_TYPE" == 'x86' ]
+then
+  EMULATOR_PATH="$EMULATOR_PATH/_x86"
 fi
 
 export TEST_OUTPUT &&
@@ -59,4 +64,5 @@ export GAIA_PATH &&
 export B2G_HOME &&
 export TEST_FAST &&
 export EMULATOR_TYPE &&
+export EMULATOR_PATH &&
 export TEST_AGENT_SERVER;
