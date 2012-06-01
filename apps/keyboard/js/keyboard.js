@@ -342,10 +342,11 @@ const IMEManager = {
     // determine the position to insert the original key
     var position = 0;
 
-    if (middle)
+    if (middle) {
       position = Math.ceil(target.offsetLeft / (target.offsetWidth + 2)) - 1;
-    else if (!before)
+    } else if (!before) {
       position = altCharSet.length;
+    }
 
     // insert the original key
     altCharSet.splice(position, 0,
@@ -358,11 +359,12 @@ const IMEManager = {
 
     var left = target.offsetLeft;
 
-    if (!middle)
+    if (!middle) {
       left += (before) ? -MENU_PADDING :
                          (MENU_PADDING - menu.offsetWidth + target.offsetWidth);
-    else
+    } else {
       left -= position * (target.offsetWidth + 4) + MENU_PADDING;
+    }
 
     menu.style.top = target.offsetTop + 'px';
     menu.style.left = left + 'px';
@@ -582,6 +584,12 @@ const IMEManager = {
   hideIMETimer: 0,
   handleEvent: function km_handleEvent(evt) {
 
+    var notNormalKey = function notNormalKey(key) {
+        var keyCode = parseInt(key.dataset.keycode);
+        return (!keyCode && !key.dataset.selection &&
+                !key.dataset.compositekey);
+    }
+
     var target = evt.target;
     switch (evt.type) {
       case 'showime':
@@ -633,7 +641,7 @@ const IMEManager = {
         this.currentKey = target;
         this.isPressing = true;
 
-        if (!keyCode && !target.dataset.selection)
+        if (notNormalKey(target))
           return;
 
         this.updateKeyHighlight();
@@ -672,8 +680,7 @@ const IMEManager = {
           return;
 
         var keyCode = parseInt(target.dataset.keycode);
-
-        if (!keyCode && !target.dataset.selection)
+        if (notNormalKey(target))
           return;
 
         if (this.currentKey)
@@ -749,7 +756,7 @@ const IMEManager = {
 
         var target = this.currentKey;
         var keyCode = parseInt(target.dataset.keycode);
-        if (!keyCode && !target.dataset.selection)
+        if (notNormalKey(target))
           return;
 
         var dataset = target.dataset;
@@ -982,7 +989,7 @@ const IMEManager = {
                                      compositeKey) {
 
       return '<span class="keyboard-key ' + className + '"' +
-        ' data-keycode="' + code + '"' +
+        (code ? ' data-keycode="' + code + '"' : '') +
         ' style="width:' + (size * ratio - 4) + 'px"' +
         ((alt) ? ' data-alt="' + alt + '" ' : '') +
         (compositeKey ? ' data-compositekey="' + compositeKey + '" ' : '') +
@@ -1076,7 +1083,7 @@ const IMEManager = {
                 ratio -= size * 2;
                 content += buildKey(46, '.', '', size);
                 content += buildKey(47, '/', '', size);
-                content += buildKey(46, '.com', '', ratio, '', '.com');
+                content += buildKey(undefined, '.com', '', ratio, '', '.com');
               break;
               case 'email':
                 ratio -= 2;
