@@ -105,6 +105,7 @@ const TRANSITION_SPEED = 1.8;
 const SLIDE_INTERVAL = 3000;      // 3 seconds on each slides
 const SLIDE_TRANSITION = 500;     // 1/2 second transition between slides
 
+/*
 //
 // Right now the set of photos is just hardcoded in the sample_photos directory
 //
@@ -147,6 +148,8 @@ function thumbnailURL(n) {
   return SAMPLE_THUMBNAILS_DIR + SAMPLE_FILENAMES[n];
 }
 
+*/
+
 var currentPhotoIndex = 0;       // What photo is currently displayed
 var thumbnailsDisplayed = true;  // Or is the thumbnail view showing
 var slideshowTimer = null;       // Non-null if we're doing a slide show
@@ -184,22 +187,104 @@ var transitioning = false;
 // This will be set to "ltr" or "rtl" when we get our localized event
 var languageDirection;
 
+
+// When the app starts, we scan device storage for photos.
+// For now, we just do this each time. But we really need to store
+// filenames and image metadata (including thumbnails) in a database.
+var storage = navigator.getDeviceStorage('pictures')[0];
+var cursor = storage.enumerate();
+cursor.onsuccess = function() {
+  if (cursor.result) {
+    var file = cursor.result;
+    console.log(file.name, file.type, file.size);
+    var imagedata = {
+      name: file.name,                  // so we can look it up again
+      size: file.size,                  // for detecting changes
+    };
+
+    // If this isn't a jpeg image, skip it
+    if (file.type !== "image/jpeg") {
+      cursor.continue();
+      return;
+    }
+
+    // Otherwise read its metadata
+    readJPEGMetadata(file, 
+                     function(metadata) {
+                       imagedata.width = metadata.width;
+                       imagedata.height = metadata.height;
+                       imagedata.thumbnail = metadata.thumbnail || null;
+                       imagedata.date = null;
+                       if (metadata.exif) {
+                         imagedata.date =
+                           parseDate(metadata.exif.DateTimeOriginal ||
+                                     metadata.exif.DateTime ||
+                                     null);
+                       }
+
+                       // add this image and its metadata to our list
+                       addImage(imagedata);
+
+                       cursor.continue();
+
+                       // Utility function for converting EXIF date strings
+                       // to ISO date strings to timestamps
+                       function parseDate(s) {
+                         if (!s)
+                           return null;
+                         // Replace the first two colons with dashes and
+                         // replace the first space with a T
+                         return Date.parse(s.replace(':', '-')
+                                           .replace(':', '-')
+                                           .replace(' ','T'));
+                       }
+                     },
+                     function() {
+                       // Error reading jpeg
+                       console.warn("Malformed JPEG image", file.name);
+                       cursor.continue();
+                     });
+  }
+};
+
+
+// An array of image data structures that represents all the photos we
+// found in device storage, along with the metadata we've extracted
+var images = [];
+
+function addImage(imagedata) {
+  images.push(imagedata);          // remember the image
+  addThumbnail(images.length-1);   // display its thumbnail
+}
+
 //
 // Create the <img> elements for the thumbnails
 //
-for (var i = 0; i < NUM_PHOTOS; i++) {
+// XXX: this doesn't work. Need to figure out what the
+// appropriate argumetns are, and store the entire 
+// photo with thumnail, size, etc.
+function addThumbnail(imagenum) {
   var li = document.createElement('li');
-  li.dataset.index = i;
-  li.classList.add('thumbnailHolder');
-
-  var img = document.createElement('img');
-  img.src = thumbnailURL(i);
-  img.classList.add('thumbnail');
-  li.appendChild(img);
-
+  li.dataset.index = imagenum;
+  li.classList.add('thumbnail');
   thumbnails.appendChild(li);
-}
 
+  var imagedata = images[imagenum];
+  if (imagedata.thumbnail) {
+    console.log("using thumbnail image");
+    var url = URL.createObjectURL(imagedata.thumbnail.blob);
+    li.style.backgroundImage = 'url("' + url + '")';
+  }
+  else {
+    console.log("using full-size image for thumbnail");
+    var request = storage.get(imagedata.name);
+    request.onsuccess = function() {
+      var file = request.result;
+      var url = URL.createObjectURL(file);
+      li.style.backgroundImage = 'url("' + url + '")';
+    }
+  }
+}
 
 //
 // Event handlers
@@ -236,8 +321,13 @@ new GestureDetector(photos).startDetecting();
 // Clicking on a thumbnail displays the photo
 // FIXME: add a transition here
 thumbnails.addEventListener('click', function thumbnailsClick(evt) {
+  console.log("click");
   var target = evt.target;
-  if (!target || !target.classList.contains('thumbnailHolder'))
+  console.log(target);
+  console.log(target.className);
+  console.log(target.style.backgroundImage);
+  console.log(target.dataset.index);
+  if (!target || !target.classList.contains('thumbnail'))
     return;
   showPhoto(parseInt(target.dataset.index));
 });
@@ -395,18 +485,22 @@ function showThumbnails() {
 // currentPhotoFrame or nextPhotoFrame.  Used in showPhoto(), nextPhoto()
 // and previousPhoto()
 function displayImageInFrame(n, frame) {
+  console.log("displayImageInFrame");
+  // Make sure n is in range
+  if (n < 0 || n >= images.length)
+    return;
+
   // Remove anything in the frame
   while (frame.firstChild)
     frame.removeChild(frame.firstChild);
 
-  // Get the url of photo n.  If n is out of range, just return now
-  var url = photoURL(n);
-  if (!url)
-    return;
-
   // Create the img element
   var img = document.createElement('img');
-  img.src = url;
+
+  // Asynchronously set the image url
+  storage.get(imagedata.name).onsuccess = function(event) {
+    img.src = URL.createObjectURL(event.target.result);
+  };
 
   // Figure out the size and position of the image
   // FIXME: this code is duplicated in the PhotoState class. Merge?
@@ -432,6 +526,7 @@ function displayImageInFrame(n, frame) {
 // Switch from thumbnail list view to single-picture view
 // and display the specified photo.
 function showPhoto(n) {
+  console.log("showPhoto");
   if (thumbnailsDisplayed) {
     thumbnails.classList.add('hidden');
     header.classList.add('hidden');

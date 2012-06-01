@@ -59,26 +59,25 @@ header h1 {
   background-color: #e0e5ea;
 }
 
-#thumbnails li {
-  width: 160px;
-  height: 140px;
-  overflow: hidden;
-  float: left;
-  margin: 0;
-  list-style-type: none;
-  padding: 0;
-  -moz-user-select: none;
-}
-
 .thumbnail {
-/*
+  /* XXX make this size flexible */
   width: 160px;
   height: 140px;
-*/
+  /* just the content: nothing extra */
   margin: 0;
   padding: 0;
   border: none;
+  overflow: hidden;
+  /* default to left-to-right, but overridden for rtl languages below */
+  float: left;  
+  /* we use <li> elements, but don't want them decorated in any way */
+  list-style-type: none;
+  -moz-user-select: none;
   pointer-events: none;
+  /* thumbnail images will be displayed with background-image */
+  /* these properties scale and position the images correctly */
+  background-size: cover;      /* allow some cropping */
+  background-position: center; /* keep the cropping at the edges */
 }
 
 #photos {
@@ -184,6 +183,6 @@ body.hidden *[data-l10n-id] {
   visibility: hidden;
 }
 
-*[dir=rtl] #thumbnails li {
+*[dir=rtl] .thumbnail {
   float: right;
 }
