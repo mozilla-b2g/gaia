@@ -13,7 +13,9 @@ var ScreenManager = {
   */
   screenEnabled: true,
 
-  preferredBrightness: 0.5,
+  _deviceLightEnabled: true,
+
+  _brightness: 0.5,
 
   init: function scm_init() {
     /*
@@ -22,11 +24,43 @@ var ScreenManager = {
     */
     window.addEventListener('keydown', this);
     window.addEventListener('keyup', this);
+
+    /* Respect the information from DeviceLight sensor */
+    window.addEventListener('devicelight', this);
+
+    var self = this;
+
+    SettingsListener.observe('screen.automatic-brightness', true,
+    function deviceLightSettingChanged(value) {
+      if (typeof value === 'string')
+        value = (value == 'true');
+
+      self.setDeviceLightEnabled(value);
+    });
+
+    SettingsListener.observe('screen.brightness', 0.5,
+    function brightnessSettingChanged(value) {
+      if (typeof value === 'string')
+        value = parseFloat(value);
+
+      self.setBrightness(value);
+    });
   },
 
   handleEvent: function scm_handleEvent(evt) {
     this._syncScreenEnabledValue();
     switch (evt.type) {
+      case 'devicelight':
+        if (!this._deviceLightEnabled || !this.screenEnabled)
+          return;
+
+        // This is a rather naive but pretty effective heuristic
+        var brightness =
+          Math.max(Math.min((evt.value / 1100), this._brightness), 0.2);
+        navigator.mozPower.screenBrightness = brightness;
+
+        break;
+
       case 'keydown':
         if (evt.keyCode !== evt.DOM_VK_SLEEP && evt.keyCode !== evt.DOM_VK_HOME)
           return;
@@ -74,7 +108,6 @@ var ScreenManager = {
     if (!this.screenEnabled)
       return false;
 
-    this.preferredBrightness = navigator.mozPower.screenBrightness;
     navigator.mozPower.screenBrightness = 0.0;
 
     this.screenEnabled = false;
@@ -92,10 +125,24 @@ var ScreenManager = {
       return false;
 
     navigator.mozPower.screenEnabled = this.screenEnabled = true;
-    navigator.mozPower.screenBrightness = this.preferredBrightness;
+    navigator.mozPower.screenBrightness = this._brightness;
 
     this.fireScreenChangeEvent();
     return true;
+  },
+
+  setBrightness: function scm_setBrightness(brightness) {
+    this._brightness = brightness;
+    if (!this._deviceLightEnabled)
+      navigator.mozPower.screenBrightness = this._brightness;
+  },
+
+  setDeviceLightEnabled: function scm_setDeviceLightEnabled(enabled) {
+    if (!enabled && this._deviceLightEnabled) {
+      // Disabled -- set the brightness back to preferred brightness
+      navigator.mozPower.screenBrightness = this._brightness;
+    }
+    this._deviceLightEnabled = enabled;
   },
 
   // XXX: this function is needed here because mozPower.screenEnabled
