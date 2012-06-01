@@ -28,6 +28,7 @@ cd $GAIA_PATH;
 if [ "$?" -ne "0" ];
 then
   echo "B2G Desktop failed to start."
+  kill $PID;
   exit $?
 fi
 
