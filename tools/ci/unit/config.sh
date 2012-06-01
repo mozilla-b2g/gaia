@@ -50,10 +50,12 @@ then
   TEST_OUTPUT=$B2G_HOME/test-output.xml;
 fi
 
-EMULATOR_PATH="$B2G_HOME/out/target/product/generic"
+EMULATOR_PATH="$B2G_HOME/out/target/product"
 if [ "$EMULATOR_TYPE" == 'x86' ]
 then
-  EMULATOR_PATH="$EMULATOR_PATH/_x86"
+  EMULATOR_PATH="$EMULATOR_PATH/generic_x86";
+else
+  EMULATOR_PATH="$EMULATOR_PATH/generic";
 fi
 
 export TEST_OUTPUT &&
