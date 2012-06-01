@@ -6,6 +6,10 @@
 // Duplicated code in severla places
 // TODO Better settings observe interface?
 
+//Set scale
+var deviceW = window.innerWidth;
+
+
 var SettingsListener = {
   _callbacks: {},
 

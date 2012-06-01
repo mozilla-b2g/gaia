@@ -32,7 +32,8 @@ const IMERender = (function() {
           }
         }
         var ratio = key.ratio || 1;
-        var keyWidth = (ratio * 100) / layoutWidth;
+        //key with + key separation in rems 
+        var keyWidth = (ratio * 2.6) + ((ratio - 1) * 0.4);
         content += buildKey(nrow, ncolumn, code, keyChar, className, keyWidth, alt);
 
       }));
@@ -100,13 +101,13 @@ const IMERender = (function() {
   //
 
   var buildKey = function buildKey(row, column, code, label, className, width, alt) {
-    width -= 1;
+    //width -= 1;
     return '<button class="keyboard-key ' + className + '"' +
       ' data-row="' + row + '"' +
       ' data-column="' + column + '"' +
       ' data-keycode="' + code + '"' +
-      ' style="width:' + width + '%"' +
-    '>' + label + '</button>';
+      ' style="width:' + width + 'rem"' +
+    '><span>' + label + '</span></button>';
   };
 
   return {
