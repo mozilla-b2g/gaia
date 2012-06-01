@@ -104,14 +104,23 @@ var LockScreen = {
   * This function will unlock it.
   */
   setEnabled: function ls_setEnabled(val) {
-    this.enabled = val == 'false' ? false : true;
+    if (typeof val === 'string') {
+      this.enabled = val == 'false' ? false : true;
+    } else {
+      this.enabled = val;
+    }
+
     if (!this.enabled && this.locked && !this.isUninit) {
       this.unlock();
     }
   },
 
   setPassCodeEnabled: function ls_setPassCodeEnabled(val) {
-    this.passCodeEnabled = val == 'false' ? false : true;
+    if (typeof val === 'string') {
+      this.passCodeEnabled = val == 'false' ? false : true;
+    } else {
+      this.passCodeEnabled = val;
+    }
   },
 
   handleEvent: function ls_handleEvent(evt) {

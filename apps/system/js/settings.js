@@ -109,10 +109,3 @@ SettingsListener.observe('accessibility.invert', false, function(value) {
   else
     screen.classList.remove('accessibility-invert');
 });
-
-/* === Screen brightness === */
-SettingsListener.observe('screen.brightness', 0.5, function(value) {
-  ScreenManager.preferredBrightness =
-    navigator.mozPower.screenBrightness = parseFloat(value);
-});
-

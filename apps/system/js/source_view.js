@@ -3,7 +3,6 @@
 
 'use strict';
 
-/* === Source View === */
 var SourceView = {
   get viewer() {
     return document.getElementById('appViewsource');
