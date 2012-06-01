@@ -102,11 +102,8 @@ var DelayDeleteManager = {
 };
 
 /* Contact Manager for maintaining contact cache and access contact DB:
- * 1. Maintain a complete contact in contactData object literal.
- * 2. getAllContactFromCache: get contact data direct from cache.
- * 3. getAllContactFromDB: get contact data asyncronus from message database,
- *      update cache and than execute callback.
- * 4. getContactData: It will have both syncronus and asyncronus callback.
+ * 1. Maintain used contacts in contactData object literal.
+ * 2. getContactData: It will have both syncronus and asyncronus callback.
  *      If contact updated, asyncronus run will update cache than execute callback.
 */
 var ContactDataManager = {
@@ -132,36 +129,9 @@ var ContactDataManager = {
     };    
     req.onerror = function onerror() {
       var msg = 'Contact finding error. Error: ' + req.errorCode;
-      console.log(msg);      
+      console.log(msg);  
     };    
   },
-  getAllContactFromCache: function cm_getAllContactFromCache() {
-    return this.contactData;
-  },
-  getAllContactFromDB: function cm_getAllContactFromDB(callback) {
-    var self = this;
-    var req = window.navigator.mozContacts.find({});
-    
-    req.onsuccess = function onsuccess() {
-      var contacts = req.result;
-      self.contactData = {};
-
-      contacts.sort(function contactsSort(a, b) {
-        return a.familyName[0].toUpperCase() > b.familyName[0].toUpperCase();
-      });
-
-      contacts.forEach(function(contact, i) {
-        var num = contact.tel.length ? contact.tel[0].number : null;
-        self.contactData[num] = contact;
-      });
-      callback(self.contactData);
-    }
-    
-    req.onerror = function onerror() {
-      var msg = 'Contact finding error. Error: ' + req.errorCode;
-      console.log(msg);      
-    };
-  }
 };
 
 var ConversationListView = {
@@ -208,8 +178,36 @@ var ConversationListView = {
     window.addEventListener('hashchange', this);
 
     this.updateConversationList();
+    document.addEventListener('mozvisibilitychange', this);
   },
 
+  updateMsgWithContact: function cl_updateMsgWithContact(msg) {
+    var nameElement = msg.getElementsByClassName('name')[0];
+    var options = {
+      filterBy: ['tel'],
+      filterOp: 'contains',
+      filterValue: msg.dataset.num
+    };
+    ContactDataManager.getContactData(options, function contactCallback(result) {
+      if (result.length === 0) {
+        // Update message while the contact delected but name exist.
+        if (msg.dataset.name == msg.dataset.num)
+          return;
+
+        msg.dataset.name = msg.dataset.num;
+        nameElement.innerHTML = msg.dataset.num;
+      } else {
+        // Update message while the contact exist but name does not match.
+        var name = escapeHTML(result[0].name[0]);
+        if (msg.dataset.name == name)
+          return;
+
+        msg.dataset.name = name;
+        nameElement.innerHTML = name;    
+      }
+    });    
+  },
+  
   updateConversationList: function cl_updateCL(pendingMsg) {
     var self = this;
     /*
@@ -222,8 +220,6 @@ var ConversationListView = {
           (!messages[0] || messages[0].id !== pendingMsg.id))
         messages.unshift(pendingMsg);
 
-      // Use the contact cache for applying to the list at first. 
-      var allContactData = ContactDataManager.getAllContactFromCache();
       var conversations = {};
       for (var i = 0; i < messages.length; i++) {
         var message = messages[i];
@@ -248,8 +244,6 @@ var ConversationListView = {
             'timestamp': message.timestamp.getTime(),
             'id': i
           };
-          if (allContactData[num] && allContactData[num].name[0])
-            conversations[num].name = allContactData[num].name[0];
         } else {
           conversation.hidden = false;
           conversation.timestamp = message.timestamp.getTime();
@@ -267,30 +261,12 @@ var ConversationListView = {
       }
       self.view.innerHTML = fragment;
 
-      // Update the contact info after list appended to view.
-      ContactDataManager.getAllContactFromDB(function contactCallback(contacts) {
-        var conversationList = self.view.children;
-        for (var i = 0; i < conversationList.length; i++) {
-          var contactData = contacts[conversationList[i].dataset.num];
-          var nameElement = conversationList[i].getElementsByClassName('name')[0];
-          if (!contactData) {
-            // Update list while the contact delected but name exist.
-            if (conversationList[i].dataset.name == conversationList[i].dataset.num)
-              continue;
-
-            conversationList[i].dataset.name = conversationList[i].dataset.num;
-            nameElement.innerHTML = conversationList[i].dataset.num;
-          } else {
-            // Update list while the contact exist but name does not match.
-            var name = escapeHTML(contactData.name);
-            if (conversationList[i].dataset.name == name)
-              continue;
-
-            conversationList[i].dataset.name = name;
-            nameElement.innerHTML = name;    
-          }  
-        }
-      });
+      var conversationList = self.view.children;
+      
+      // update the conversation sender/receiver name with contact data. 
+      for (var i = 0; i < conversationList.length; i++) {
+        self.updateMsgWithContact(conversationList[i]);
+      }
 
       if (self.delNumList.length > 0) {
         self.showUndoToolbar();
@@ -388,6 +364,14 @@ var ConversationListView = {
         // When Event listening target is this.view and clicked target has href entry.
         if (evt.currentTarget == this.view && evt.target.href)
           this.onListItemClicked(evt);
+        break;
+
+      case 'mozvisibilitychange':
+        if (document.mozHidden)
+          return;
+      
+        // Refresh the view when app return to foreground.
+        this.updateConversationList();
         break;
     }
   },
@@ -516,6 +500,8 @@ var ConversationView = {
     var num = this.getNumFromHash();
     if (num)
       this.showConversation(num);
+    
+    document.addEventListener('mozvisibilitychange', this);
   },
 
   getNumFromHash: function cv_getNumFromHash() {
@@ -700,6 +686,16 @@ var ConversationView = {
 
         this.updateInputHeight();
         this.scrollViewToBottom();
+        break;
+
+      case 'mozvisibilitychange':
+        if (document.mozHidden)
+          return;
+      
+        // Refresh the view when app return to foreground.
+        var num = this.getNumFromHash();
+        if (num)
+          this.showConversation(num);
         break;
     }
   },
