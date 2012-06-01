@@ -45,8 +45,6 @@ const IMEManager = {
   ALTERNATE_LAYOUT: -2,
   SWITCH_KEYBOARD: -3,
   TOGGLE_CANDIDATE_PANEL: -4,
-  DOT_COM: -5,
-  BRAZILIAN_REAL: -6,    // special char 'R$' for currency symbol in Brazil
 
   // IME Engines are self registering here.
   IMEngines: {},
@@ -304,12 +302,6 @@ const IMEManager = {
       if (keyChar === '')
         return;
 
-      // handle composite key
-      var compositeKeyHTML = '';
-      if (keyChar.length > 1) {
-         var compositeKeyHTML = ' data-compositekey="' + keyChar + '" ';
-      }
-
       var keyCode = keyChar.keyCode || keyChar.charCodeAt(0);
       var label = keyChar.label || keyChar;
 
@@ -318,10 +310,17 @@ const IMEManager = {
 
     function buildAccentKey(key) {
 
+      // handle composite key
+      var compositeKeyHTML = '';
+      if (key.label.length > 1) {
+         var compositeKeyHTML = ' data-compositekey="' + key.label + '" ';
+      }
+
       var activeAttribute = key.active ? 'data-active="true"' : '';
       content += '<span class="keyboard-key" ' +
         'data-keycode="' + key.keyCode + '" ' +
          activeAttribute +
+         compositeKeyHTML +
         'style="width:' + cssWidth + '"' +
         '>' +
         key.label +
@@ -776,13 +775,16 @@ const IMEManager = {
         if (keyCode != KeyEvent.DOM_VK_SPACE)
           delete this.isContinousSpacePressed;
 
-        // Handle composite key
-        var compositekey = target.dataset.compositekey;
-        if (compositekey) {
-            compositekey.split('').forEach((function sendDotCom(key) {
+        var sendCompositeKey = function sendCompositeKey(compositeKey) {
+            compositeKey.split('').forEach(function sendEachKey(key) {
               window.navigator.mozKeyboard.sendKey(0, key.charCodeAt(0));
-            }).bind(this));
+            });
+        }
 
+        // Handle composite key
+        var compositeKey = target.dataset.compositekey;
+        if (compositeKey) {
+          sendCompositeKey(compositeKey);
           return;
         }
 
@@ -843,18 +845,6 @@ const IMEManager = {
               this.ime.classList.remove('full-candidate-panel');
             }
             this.updateTargetWindowHeight();
-            break;
-
-          case this.DOT_COM:
-            ('.com').split('').forEach((function sendDotCom(key) {
-              window.navigator.mozKeyboard.sendKey(0, key.charCodeAt(0));
-            }).bind(this));
-            break;
-
-          case this.BRAZILIAN_REAL:
-            ('R$').split('').forEach((function sendDotCom(key) {
-              window.navigator.mozKeyboard.sendKey(0, key.charCodeAt(0));
-            }).bind(this));
             break;
 
           case KeyEvent.DOM_VK_ALT:
@@ -988,12 +978,15 @@ const IMEManager = {
 
     var size = (width / (layout.width || 10));
 
-    var buildKey = function buildKey(code, label, className, ratio, alt) {
+    var buildKey = function buildKey(code, label, className, ratio, alt,
+                                     compositeKey) {
+
       return '<span class="keyboard-key ' + className + '"' +
         ' data-keycode="' + code + '"' +
         ' style="width:' + (size * ratio - 4) + 'px"' +
-        ((alt) ? ' data-alt="' + alt : '') +
-      '">' + label + '</span>';
+        ((alt) ? ' data-alt="' + alt + '" ' : '') +
+        (compositeKey ? ' data-compositekey="' + compositeKey + '" ' : '') +
+      '>' + label + '</span>';
     };
 
     layout.keys.forEach((function buildKeyboardRow(row) {
@@ -1005,10 +998,6 @@ const IMEManager = {
           KeyEvent.DOM_VK_CAPS_LOCK,
           KeyEvent.DOM_VK_RETURN,
           KeyEvent.DOM_VK_ALT
-        ];
-
-        var compositeCodes = [
-          this.BRAZILIAN_REAL
         ];
 
         var keyChar = key.value;
@@ -1087,7 +1076,7 @@ const IMEManager = {
                 ratio -= size * 2;
                 content += buildKey(46, '.', '', size);
                 content += buildKey(47, '/', '', size);
-                content += buildKey(this.DOT_COM, '.com', '', ratio);
+                content += buildKey(46, '.com', '', ratio, '', '.com');
               break;
               case 'email':
                 ratio -= 2;
@@ -1139,8 +1128,7 @@ const IMEManager = {
         var className = '';
 
         // Not to highlight composite key (like R$) as special key
-        if ((code < 0 || specialCodes.indexOf(code) > -1) &&
-             compositeCodes.indexOf(code) == -1)
+        if ((code < 0 || specialCodes.indexOf(code) > -1) && !key.compositeKey)
           className += ' keyboard-key-special';
 
         if (code == KeyEvent.DOM_VK_CAPS_LOCK)
@@ -1153,7 +1141,8 @@ const IMEManager = {
           alt = layout.alt[key.value].toUpperCase();
         }
 
-        content += buildKey(code, keyChar, className, key.ratio || 1, alt);
+        content += buildKey(code, keyChar, className, key.ratio || 1, alt,
+                            key.compositeKey);
 
       }).bind(this));
       content += '</div>';

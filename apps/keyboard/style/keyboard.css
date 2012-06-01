@@ -1,6 +1,7 @@
 html, body {
   margin:0;
   padding:0;
+  overflow: hidden;
 }
 
 #screen.fullscreen #keyboard {
@@ -298,17 +299,6 @@ html, body {
   white-space: nowrap;
 }
 
-#keyboard-accent-char-menu.with2row {
-  height: 124px;
-  margin-top: -146px;
-  white-space: normal;   /*to override nowrap set in #keyboard-accent-char-menu */
-  padding: 3px;
-}
-
-#keyboard-accent-char-menu.with2row.alignRight {
-  text-align: right;
-}
-
 #keyboard-accent-char-menu.show {
   display: block;
 }
@@ -326,10 +316,6 @@ html, body {
   padding: 5px;
   margin: 0;
   background: url(images/middle-special.png) left top repeat-x;
-}
-
-#keyboard-accent-char-menu.with2row > .keyboard-key {
-  margin: 2px 2px;
 }
 
 #keyboard-accent-char-menu.menu > .keyboard-key[data-active] {
