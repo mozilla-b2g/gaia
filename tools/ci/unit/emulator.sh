@@ -33,9 +33,9 @@ else
     DEBUG=1 GAIA_PORT=$GAIA_PORT GAIA_PATH=$GAIA_PATH
 fi
 
-DOMAIN=http://test-agent.$GAIA_DOMAIN:$GAIA_PORT/index.html#?websocketUrl=$TEST_AGENT_SERVER
+DOMAIN=http://test-agent.$GAIA_DOMAIN$GAIA_PORT/index.html#?websocketUrl=$TEST_AGENT_SERVER
 
-echo "Starting Emulator";
+echo "Starting Emulator at: $DOMAIN";
 
 ./gecko/testing/marionette/client/marionette/scripts/runemu.sh \
   python --repo $B2G_HOME \
