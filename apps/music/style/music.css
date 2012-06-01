@@ -45,64 +45,82 @@ body.player-mode #tabs {
  * This is just a workaround: the platform bug should be fixed later.  */
 
 body.tiles-mode #views-tiles {
-  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear;
   -moz-transform: translateX(0%);
+  
+  /* XXX hack */
+  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear;
   width: 100%;
   z-index: 10;
 }
 body.tiles-mode #views-list {
-  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear 500ms;
   -moz-transform: translateX(100%);
+  
+  /* XXX hack */
+  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear 500ms;
   width: 0%;
   overflow: hidden;
   z-index: 1;
 }
 body.tiles-mode #views-player {
-  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear 500ms;
   -moz-transform: translateX(200%);
+  
+  /* XXX hack */
+  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear 500ms;
   width: 0%;
   overflow: hidden;
   z-index: 1;
 }
 
 body.list-mode #views-tiles {
-  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear 500ms;
   -moz-transform: translateX(-100%);
+  
+  /* XXX hack */
+  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear 500ms;
   width: 0%;
   overflow: hidden;
   z-index: 1;
 }
 body.list-mode #views-list {
-  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear;
   -moz-transform: translateX(0%);
+  
+  /* XXX hack */
+  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear;
   width: 100%;
   z-index: 10;
 }
 body.list-mode #views-player {
-  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear 500ms;
   -moz-transform: translateX(100%);
+  
+  /* XXX hack */
+  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear 500ms;
   width: 0%;
   overflow: hidden;
   z-index: 1;
 }
 
 body.player-mode #views-tiles {
-  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear 500ms;
   -moz-transform: translateX(-200%);
+  
+  /* XXX hack */
+  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear 500ms;
   width: 0%;
   overflow: hidden;
   z-index: 1;
 }
 body.player-mode #views-list {
-  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear 500ms;
   -moz-transform: translateX(-100%);
+  
+  /* XXX hack */
+  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear 500ms;
   width: 0%;
   overflow: hidden;
   z-index: 1;
 }
 body.player-mode #views-player {
-  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear;
   -moz-transform: translateX(0%);
+  
+  /* XXX hack */
+  -moz-transition: -moz-transform 500ms ease-in-out, width 0ms linear;
   width: 100%;
   z-index: 10;
 }

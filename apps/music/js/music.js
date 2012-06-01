@@ -230,7 +230,7 @@ var PlayerView = {
       this.title.textContent = target.dataset.title;
       this.artist.textContent = target.dataset.artist;
       this.audio.src = target.id;
-      this.currentIndex = target.dataset.index.valueOf();
+      this.currentIndex = parseInt(target.dataset.index);
     } else {
       this.audio.play();
     }
@@ -304,7 +304,8 @@ var PlayerView = {
   }
 };
 
-// App. start from here after 'DOMContentLoaded' event is fired
+// Application start from here after 'DOMContentLoaded' event is fired.
+// Initialize the view objects and default mode is TILES. 
 window.addEventListener('DOMContentLoaded', function() {
   TitleBar.init();
   TilesView.init();
