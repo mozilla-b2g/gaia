@@ -82,7 +82,7 @@ var ScreenManager = {
       navigator.mozPower.screenEnabled = false;
     }, 20);
 
-    this.sendEvent();
+    this.fireScreenChangeEvent();
     return true;
   },
 
@@ -94,7 +94,7 @@ var ScreenManager = {
     navigator.mozPower.screenEnabled = this.screenEnabled = true;
     navigator.mozPower.screenBrightness = this.preferredBrightness;
 
-    this.sendEvent();
+    this.fireScreenChangeEvent();
     return true;
   },
 
@@ -104,7 +104,7 @@ var ScreenManager = {
     this.screenEnabled = navigator.mozPower.screenEnabled;
   },
 
-  sendEvent: function scm_sendEvent() {
+  fireScreenChangeEvent: function scm_fireScreenChangeEvent() {
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('screenchange',
       /* canBubble */ true, /* cancelable */ false,

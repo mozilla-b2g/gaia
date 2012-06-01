@@ -11,7 +11,7 @@ function startup() {
   SoundManager.init();
   SleepMenu.init();
   SourceView.init();
-  ReloadManager.init();
+  Shortcuts.init();
 
   Applications.rebuild(function start(apps) {
     // FIXME Loop over all the registered activities from the applications
@@ -122,8 +122,9 @@ var SleepMenu = {
 };
 
 
-/* === ReloadManager === */
-var ReloadManager = {
+/* === Shortcuts === */
+/* For hardware key handling that doesn't belong to anywhere */
+var Shortcuts = {
   init: function rm_init() {
     window.addEventListener('keyup', this);
   },
