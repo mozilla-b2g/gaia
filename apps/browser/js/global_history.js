@@ -6,13 +6,13 @@ var GlobalHistory = {
     this.db.open(callback);
   },
 
-  addPlace: function gh_addPlace(uri) {
+  addPlace: function gh_addPlace(uri, callback) {
     var place = {
       uri: uri,
       // Set the title to the URI for now, until a real title is received.
       title: uri
     };
-    this.db.savePlace(place);
+    this.db.savePlace(place, callback);
   },
 
   addVisit: function gh_addVisit(uri) {
@@ -24,12 +24,28 @@ var GlobalHistory = {
     this.db.saveVisit(visit);
   },
 
-  setPageTitle: function gh_setPageTitle(uri, title) {
+  setPageTitle: function gh_setPageTitle(uri, title, callback) {
     var place = {
       uri: uri,
       title: title
     };
-    this.db.updatePlace(place);
+    this.db.updatePlace(place, callback);
+  },
+
+  setPageIcon: function gh_setPageIcon(uri, icon, callback) {
+    this.db.getPlace(uri, function(place) {
+      // if place already exists, just set icon
+      if (place)
+        place.icon = icon;
+      // otherwise create a new place
+      else
+        var place = {
+          uri: uri,
+          title: uri,
+          icon: icon
+        };
+      GlobalHistory.db.updatePlace(place, callback);
+    });
   },
 
   getHistory: function gh_getHistory(callback) {
@@ -109,12 +125,22 @@ GlobalHistory.db = {
 
   getPlace: function db_getPlace(uri, callback) {
     var db = this._db;
-    db.transaction('places').objectStore('places').get(uri).onsuccess = function(event) {
+    var request = db.transaction('places').objectStore('places').get(uri);
+
+    request.onsuccess = function(event) {
       callback(event.target.result);
     };
+
+    request.onerror = function(event) {
+      if (event.target.errorCode ==
+IDBDatabaseException.NOT_FOUND_ERR)
+        callback();
+    };
+
+
   },
 
-  updatePlace: function db_updatePlace(place) {
+  updatePlace: function db_updatePlace(place, callback) {
     var transaction = this._db.transaction(['places'],
       IDBTransaction.READ_WRITE);
     transaction.onerror = function dbTransactionError(e) {
@@ -128,6 +154,8 @@ GlobalHistory.db = {
     request.onsuccess = function onsuccess(e) {
       console.log('Successfully updated place in global history store: ' +
         place.uri);
+      if (callback)
+        callback();
     };
 
     request.onerror = function onerror(e) {
