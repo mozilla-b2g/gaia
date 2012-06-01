@@ -102,6 +102,15 @@ const IMERender = (function() {
 
   var buildKey = function buildKey(row, column, code, label, className, width, alt) {
     //width -= 1;
+
+    //change scale (Our target screen width is 320px)
+    //TODO get document.documentElement.style.fontSize
+    //and use it for multipling changeScale deppending on the value of pixel density
+    //used in media queries
+    
+    var changeScale = window.innerWidth / 32;
+    document.documentElement.style.fontSize = changeScale + 'px';
+
     return '<button class="keyboard-key ' + className + '"' +
       ' data-row="' + row + '"' +
       ' data-column="' + column + '"' +
