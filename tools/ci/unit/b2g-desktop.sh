@@ -23,7 +23,7 @@ PID=`jobs -p | tail -n 1`;
 
 cd $GAIA_PATH;
 
-./tools/test-agent/node_modules/b2g-scripts/bin/b2g-scripts wait-for-marionette --timeout 6000
+./tools/test-agent/node_modules/b2g-scripts/bin/b2g-scripts wait-for-marionette --timeout 20000
 
 if [ "$?" -ne "0" ];
 then
