@@ -15,6 +15,11 @@ then
   exit 1;
 fi
 
+if [ -z "$EMULATOR_TYPE" ];
+then
+  EMULATOR_TYPE="x86";
+fi
+
 if [ -z "$GAIA_PATH" ];
 then
   GAIA_PATH=`cd $CI_TOOLS/../../../; pwd`

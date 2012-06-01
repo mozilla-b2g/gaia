@@ -40,6 +40,7 @@ echo "Starting Emulator at: $DOMAIN";
 ./gecko/testing/marionette/client/marionette/scripts/runemu.sh \
   python --repo $B2G_HOME \
   --pidfile $B2G_HOME/emulator.pid  \
+  --arch $EMULATOR_TYPE \
   --url $DOMAIN;
 
 if [ "$?" -ne "0" ];
