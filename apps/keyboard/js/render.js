@@ -113,8 +113,10 @@ const IMERender = (function() {
     //and use it for multipling changeScale deppending on the value of pixel density
     //used in media queries
 
-    var changeScale = window.innerWidth / 32;
-    document.documentElement.style.fontSize = changeScale + 'px';
+    if(window.innerWidth > 0) {
+      var changeScale = window.innerWidth / 32;
+      document.documentElement.style.fontSize = changeScale + 'px';
+    }
 
     return '<button class="keyboard-key ' + className + '"' +
       ' data-row="' + row + '"' +
