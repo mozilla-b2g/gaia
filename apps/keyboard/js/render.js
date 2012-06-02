@@ -67,7 +67,7 @@ const IMERender = (function() {
       this.menu.style.left = target.offsetLeft + 'px';
       this.menu.style.right = 'auto';
       this.menu.style.textAlign = 'center';
-      altCharsCurrent.push(key.innerHTML);
+      altCharsCurrent.push(key.firstChild.innerHTML);
       altCharsCurrent = altCharsCurrent.concat(altChars);
     } else {
       var width = '-moz-calc(' + window.innerWidth + 'px - ' + target.offsetLeft + 'px - ' + target.style.width + ' )';
@@ -75,17 +75,21 @@ const IMERender = (function() {
       this.menu.style.left = 'auto';
       this.menu.style.textAlign = 'center';
       altCharsCurrent = altChars.reverse();
-      altCharsCurrent.push(key.innerHTML);
+      altCharsCurrent.push(key.firstChild.innerHTML);
     }
 
     var content = '';
+    var auxCount = 0;
     altCharsCurrent.forEach(function(keyChar) {
-      content += buildKey(-1, -1, keyChar.charCodeAt(0), keyChar, '', cssWidth);
+      if ((left && auxCount == 0) || (!left && auxCount == altCharsCurrent.length - 1))
+        content += buildKey(-1, -1, keyChar.charCodeAt(0), keyChar, 'first-char', cssWidth);
+      else
+        content += buildKey(-1, -1, keyChar.charCodeAt(0), keyChar, '', cssWidth);
+      auxCount++;
     });
-
     this.menu.innerHTML = content;
     this.menu.style.display = 'block';
-    this.menu.style.top = '-moz-calc(' + target.offsetTop + 'px + 3em)';
+    this.menu.style.top = '-moz-calc(' + target.offsetTop + 'px + 3rem)';
 
   };
 
@@ -108,7 +112,7 @@ const IMERender = (function() {
     //TODO get document.documentElement.style.fontSize
     //and use it for multipling changeScale deppending on the value of pixel density
     //used in media queries
-    
+
     var changeScale = window.innerWidth / 32;
     document.documentElement.style.fontSize = changeScale + 'px';
 
