@@ -155,7 +155,6 @@ var thumbnailsDisplayed = true;  // Or is the thumbnail view showing
 var slideshowTimer = null;       // Non-null if we're doing a slide show
 
 // UI elements
-var header = document.getElementById('header');
 var thumbnails = document.getElementById('thumbnails');
 var photos = document.getElementById('photos');
 var playerControls = document.getElementById('player-controls');
@@ -191,16 +190,19 @@ var languageDirection;
 // When the app starts, we scan device storage for photos.
 // For now, we just do this each time. But we really need to store
 // filenames and image metadata (including thumbnails) in a database.
-var storage = navigator.getDeviceStorage('pictures')[0];
-var cursor = storage.enumerate();
-cursor.onsuccess = function() {
-  if (cursor.result) {
+var storages = navigator.getDeviceStorage('pictures');
+console.log("storage locations: ", storages.length);
+storages.forEach(function(storage, storageIndex) {
+  var cursor = storage.enumerate();
+  cursor.onerror = function() {
+    console.error("Error in DeviceStorage.enumerate()", cursor.error.name);
+  };
+
+  cursor.onsuccess = function() {
+    if (!cursor.result) 
+      return;
+
     var file = cursor.result;
-    console.log(file.name, file.type, file.size);
-    var imagedata = {
-      name: file.name,                  // so we can look it up again
-      size: file.size,                  // for detecting changes
-    };
 
     // If this isn't a jpeg image, skip it
     if (file.type !== "image/jpeg") {
@@ -208,6 +210,12 @@ cursor.onsuccess = function() {
       return;
     }
 
+    var imagedata = {
+      storageIndex: storageIndex,
+      name: file.name,                  // so we can look it up again
+      size: file.size,                  // for detecting changes
+    };
+    
     // Otherwise read its metadata
     readJPEGMetadata(file, 
                      function(metadata) {
@@ -222,11 +230,17 @@ cursor.onsuccess = function() {
                                      null);
                        }
 
+                       // If this is the first image we've found,
+                       // remove the "no images" message
+                       if (images.length === 0) 
+                         document.getElementById("nophotos")
+                                 .classList.add("hidden");
+
                        // add this image and its metadata to our list
                        addImage(imagedata);
-
+                       
                        cursor.continue();
-
+                       
                        // Utility function for converting EXIF date strings
                        // to ISO date strings to timestamps
                        function parseDate(s) {
@@ -244,8 +258,8 @@ cursor.onsuccess = function() {
                        console.warn("Malformed JPEG image", file.name);
                        cursor.continue();
                      });
-  }
-};
+  };
+});
 
 
 // An array of image data structures that represents all the photos we
@@ -271,13 +285,11 @@ function addThumbnail(imagenum) {
 
   var imagedata = images[imagenum];
   if (imagedata.thumbnail) {
-    console.log("using thumbnail image");
     var url = URL.createObjectURL(imagedata.thumbnail.blob);
     li.style.backgroundImage = 'url("' + url + '")';
   }
   else {
-    console.log("using full-size image for thumbnail");
-    var request = storage.get(imagedata.name);
+    var request = storages[imagedata.storageIndex].get(imagedata.name);
     request.onsuccess = function() {
       var file = request.result;
       var url = URL.createObjectURL(file);
@@ -321,12 +333,7 @@ new GestureDetector(photos).startDetecting();
 // Clicking on a thumbnail displays the photo
 // FIXME: add a transition here
 thumbnails.addEventListener('click', function thumbnailsClick(evt) {
-  console.log("click");
   var target = evt.target;
-  console.log(target);
-  console.log(target.className);
-  console.log(target.style.backgroundImage);
-  console.log(target.dataset.index);
   if (!target || !target.classList.contains('thumbnail'))
     return;
   showPhoto(parseInt(target.dataset.index));
@@ -399,7 +406,7 @@ photos.addEventListener('swipe', function(event) {
 
   // Is there a next or previous photo to transition to?
   var photoexists =
-    (direction === 1 && currentPhotoIndex + 1 < NUM_PHOTOS) ||
+    (direction === 1 && currentPhotoIndex + 1 < images.length) ||
     (direction === -1 && currentPhotoIndex > 0);
 
   // If all of these conditions hold, then we'll transition to the
@@ -472,9 +479,7 @@ photos.addEventListener('transform', function(e) {
 // Switch from single-picture view to thumbnail view
 function showThumbnails() {
   stopSlideshow();
-
   thumbnails.classList.remove('hidden');
-  header.classList.remove('hidden');
   photos.classList.add('hidden');
   playerControls.classList.add('hidden');
   thumbnailsDisplayed = true;
@@ -485,7 +490,6 @@ function showThumbnails() {
 // currentPhotoFrame or nextPhotoFrame.  Used in showPhoto(), nextPhoto()
 // and previousPhoto()
 function displayImageInFrame(n, frame) {
-  console.log("displayImageInFrame");
   // Make sure n is in range
   if (n < 0 || n >= images.length)
     return;
@@ -498,14 +502,14 @@ function displayImageInFrame(n, frame) {
   var img = document.createElement('img');
 
   // Asynchronously set the image url
-  storage.get(imagedata.name).onsuccess = function(event) {
-    img.src = URL.createObjectURL(event.target.result);
+  var imagedata = images[n];
+  storages[imagedata.storageIndex].get(imagedata.name).onsuccess = function(e) {
+    img.src = URL.createObjectURL(e.target.result);
   };
 
   // Figure out the size and position of the image
   // FIXME: this code is duplicated in the PhotoState class. Merge?
-  var size = SAMPLE_SIZES[n];
-  var photoWidth = size[0], photoHeight = size[1];
+  var photoWidth = images[n].width, photoHeight = images[n].height;
   var viewportWidth = photos.offsetWidth, viewportHeight = photos.offsetHeight;
   var scalex = viewportWidth / photoWidth;
   var scaley = viewportHeight / photoHeight;
@@ -526,10 +530,8 @@ function displayImageInFrame(n, frame) {
 // Switch from thumbnail list view to single-picture view
 // and display the specified photo.
 function showPhoto(n) {
-  console.log("showPhoto");
   if (thumbnailsDisplayed) {
     thumbnails.classList.add('hidden');
-    header.classList.add('hidden');
     photos.classList.remove('hidden');
     playerControls.classList.remove('hidden');
     thumbnailsDisplayed = false;
@@ -544,7 +546,7 @@ function showPhoto(n) {
   // Create the PhotoState object that stores the photo pan/zoom state
   // And use it to apply CSS styles to the photo and photo frames.
   // FIXME: these sizes are hardcoded right now.
-  photoState = new PhotoState(SAMPLE_SIZES[n][0], SAMPLE_SIZES[n][1]);
+  photoState = new PhotoState(images[n].width, images[n].height);
   photoState.setPhotoStyles(currentPhoto);
   photoState.setFrameStyles(currentPhotoFrame,
                             previousPhotoFrame,
@@ -555,7 +557,7 @@ function showPhoto(n) {
 // This is used when the user pans and also for the slideshow.
 function nextPhoto(time) {
   // If already displaying the last one, do nothing.
-  if (currentPhotoIndex === NUM_PHOTOS - 1)
+  if (currentPhotoIndex === images.length - 1)
     return;
 
   // Set a flag to ignore pan and zoom gestures during the transition.
@@ -596,8 +598,8 @@ function nextPhoto(time) {
   // Start with default pan and zoom state for the new photo
   // And also reset the translation caused by swiping the photos
   // FIXME: use the real size of the photo
-  var size = SAMPLE_SIZES[currentPhotoIndex];
-  photoState = new PhotoState(size[0], size[1]);
+  photoState = new PhotoState(images[currentPhotoIndex].width,
+                              images[currentPhotoIndex].height);
   photoState.setPhotoStyles(currentPhoto);
   photoState.setFrameStyles(currentPhotoFrame,
                             previousPhotoFrame,
@@ -659,8 +661,8 @@ function previousPhoto(time) {
   var nextPhotoState = photoState;
 
   // Create a new photo state
-  var size = SAMPLE_SIZES[currentPhotoIndex];
-  photoState = new PhotoState(size[0], size[1]);
+  photoState = new PhotoState(images[currentPhotoIndex].width,
+                              images[currentPhotoIndex].height);
   photoState.setPhotoStyles(currentPhoto);
   photoState.setFrameStyles(currentPhotoFrame,
                             previousPhotoFrame,
@@ -682,7 +684,7 @@ function previousPhoto(time) {
 
 function startSlideshow() {
   // If we're already displaying the last slide, then move to the first
-  if (currentPhotoIndex === NUM_PHOTOS - 1)
+  if (currentPhotoIndex === images.length - 1)
     showPhoto(0);
 
   // Now schedule the next slide
@@ -702,7 +704,7 @@ function stopSlideshow() {
 // Note that this is different than nextPhoto().
 function nextSlide() {
   // Move to the next slide if we're not already on the last one
-  if (currentPhotoIndex + 1 < NUM_PHOTOS) {
+  if (currentPhotoIndex + 1 < images.length) {
     nextPhoto(SLIDE_TRANSITION);
   }
 
@@ -721,7 +723,7 @@ function continueSlideshow() {
     clearInterval(slideshowTimer);
 
   // If we're still not on the last one, then schedule another slide.
-  if (currentPhotoIndex + 1 < NUM_PHOTOS) {
+  if (currentPhotoIndex + 1 < images.length) {
     slideshowTimer = setTimeout(nextSlide, SLIDE_INTERVAL);
   }
   // Otherwise, stop the slideshow

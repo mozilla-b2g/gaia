@@ -25,7 +25,6 @@ function readJPEGMetadata(blob, callback, errback) {
     var metadata = {};
     if (data.getUint8(0) !== 0xFF || data.getUint8(1) !== 0xD8) {
       throw Error("Not a JPEG file");
-      return;
     }
 
     var offset = 2;
@@ -83,7 +82,7 @@ function readJPEGMetadata(blob, callback, errback) {
 
     // Once we've exited the loop, we've gathered all the metadata
     return metadata;
-  };
+  }
 
 
   // Parse an EXIF segment from a JPEG file and return an object
@@ -198,8 +197,10 @@ function readJPEGMetadata(blob, callback, errback) {
       return;
 
     var total = count * typesize[type];
-    var offset = total <= 4 ? offset + 8 : data.getUint32(offset+8, byteorder);
-    exif[tagname] = parseValue(data, offset, type, count, byteorder);
+    var valueOffset = total <= 4
+      ? offset + 8
+      : data.getUint32(offset+8, byteorder);
+    exif[tagname] = parseValue(data, valueOffset, type, count, byteorder);
   }
 
   function parseValue(data, offset, type, count, byteorder) {
@@ -253,5 +254,6 @@ function readJPEGMetadata(blob, callback, errback) {
     case 12: // DOUBLE
       return data.getFloat64(offset, byteorder);
     }
+    return null;
   }
 }
