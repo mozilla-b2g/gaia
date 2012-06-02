@@ -16,6 +16,7 @@ const IMERender = (function() {
 
     var content = '';
     var layoutWidth = layout.width || 10;
+    var widthRatio = 10 / layoutWidth;
 
     layout.keys.forEach((function buildKeyboardRow(row, nrow) {
       content += '<div class="keyboard-row">';
@@ -32,8 +33,8 @@ const IMERender = (function() {
           }
         }
         var ratio = key.ratio || 1;
-        //key with + key separation in rems 
-        var keyWidth = (ratio * 2.6) + ((ratio - 1) * 0.4);
+        //key with + key separation in rems
+        var keyWidth = (((widthRatio * ratio) * 2.6) + ((widthRatio * ratio) - 1) * 0.4);
         content += buildKey(nrow, ncolumn, code, keyChar, className, keyWidth, alt);
 
       }));

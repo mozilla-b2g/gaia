@@ -55,7 +55,7 @@ button::-moz-focus-inner{
   border:none 
 }
 
-.keyboard-key {
+.keyboard-key, span.keybaord-key-hold {
   display: inline-block;
   overflow: hidden;
   text-align: center;
@@ -70,6 +70,7 @@ button::-moz-focus-inner{
   overflow: visible;
   height: 4rem;
 }
+
 .keyboard-key span {
   color: #464646;
   font-size: 1.7rem;
@@ -107,7 +108,7 @@ button::-moz-focus-inner{
   border: 1px solid #61646A;
   box-shadow: 0 0 2px rgba(0,0,0,0.5);
   white-space: nowrap;
-  overflow:hidden;
+  overflow:visible;
   pointer-events: all;
   white-space: nowrap;
   padding: 0.7rem 0.5rem;
@@ -118,6 +119,19 @@ button::-moz-focus-inner{
 #keyboard-accent-char-menu .keyboard-key {
   margin: 0 0.2em;
 }
+
+#keyboard-accent-char-menu .first-char:after {
+  background-color: #EBEBEB;
+  content: "";
+  display: block;
+  height: 7px;
+  margin-top: 2.5rem;
+  position: absolute;
+  width: inherit;
+  border-radius: 20px;
+  left: -1px;
+}
+
 #keyboard-accent-char-menu .keyboard-key.highlighted {
   box-shadow: 0 0 0 3px #53B6CC;
   background: -moz-linear-gradient(#fff, #ebebeb);
@@ -137,7 +151,7 @@ button::-moz-focus-inner{
 
 
 @media screen and (max--moz-device-pixel-ratio: 1.5) {
-    html {
-        font-size: 15px;
-    }
+  html {
+    font-size: 15px;
+  }
 }
