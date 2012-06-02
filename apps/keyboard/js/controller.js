@@ -663,6 +663,27 @@ const IMEController = (function() {
 
       _updateTargetWindowHeight();
     },
+    
+    hideIME: function km_hideIME(imminent) {
+
+      if (IMERender.ime.dataset.hidden)
+        return;
+
+      IMERender.ime.dataset.hidden = 'true';
+
+      // Reset the keyboard mode
+      this.currentKeyboardMode = '';
+
+      if (imminent) {
+        var ime = IMERender.ime;
+        ime.classList.add('imminent');
+        window.setTimeout(function remoteImminent() {
+          ime.classList.remove('imminent');
+        }, 0);
+
+        ime.innerHTML = '';
+      }
+    },
 
     onResize: function(nWidth, nHeight, fWidth, fHeihgt) {
       if (IMERender.ime.dataset.hidden)
