@@ -3,6 +3,7 @@
 cd $GAIA_PATH;
 
 # start test agent server put it in the background
+make -C $GAIA_PATH test-agent-config
 make -C $GAIA_PATH test-agent-server &
 AGENT_PID=`jobs -p | tail -n 1`;
 
