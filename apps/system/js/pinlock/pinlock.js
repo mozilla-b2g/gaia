@@ -35,6 +35,7 @@ var PinLock = {
 
   reset: function reset() {
     this.pinCode = '';
+    this.updateCodeUI();
   },
 
   unlockSim: function unlockSim() {
