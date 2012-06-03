@@ -105,12 +105,6 @@ var PinLock = {
 
           // Back
           case 'b':
-            // Back to lock screen
-            if (!this.pinCode) {
-              LockScreen.lock();
-              break;
-            }
-
             // Back one character
             this.pinCode = this.pinCode.substr(0, this.pinCode.length - 1);
             this.updateCodeUI();
