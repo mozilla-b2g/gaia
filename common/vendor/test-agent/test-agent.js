@@ -1046,7 +1046,6 @@
   'use strict';
 
   var isNode = typeof(window) === 'undefined',
-      Native,
       Responder;
 
   if (!isNode) {
@@ -1054,10 +1053,8 @@
       window.TestAgent = {};
     }
 
-    Native = (Native || WebSocket || MozWebSocket);
     Responder = TestAgent.Responder;
   } else {
-    Native = require('ws');
     Responder = require('./responder');
   }
 
@@ -1091,6 +1088,11 @@
     this.proxyEvents = ['open', 'close', 'message'];
     this._proxiedEvents = {};
 
+    if (isNode) {
+      this.Native = require('ws');
+    } else {
+      this.Native = (window.WebSocket || window.MozWebSocket);
+    }
 
     this.on('open', this._setConnectionStatus.bind(this, true));
     this.on('close', this._setConnectionStatus.bind(this, false));
@@ -1107,7 +1109,6 @@
   Client.RetryError.prototype = Object.create(Error.prototype);
 
   Client.prototype = Object.create(Responder.prototype);
-  Client.prototype.Native = Native;
 
   /**
    * True when connection is opened.
