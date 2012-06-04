@@ -103,10 +103,10 @@ const IMERender = (function() {
   };
 
   var hideAlternativesCharMenu = function km_hideAlternativesCharMenu() {
-    // this.menu = document.getElementById('keyboard-accent-char-menu');
-    // this.menu.innerHTML = '';
-    // this.menu.className = '';
-    // this.menu.style.display = 'none';
+    this.menu = document.getElementById('keyboard-accent-char-menu');
+    this.menu.innerHTML = '';
+    this.menu.className = '';
+    this.menu.style.display = 'none';
   };
 
 
