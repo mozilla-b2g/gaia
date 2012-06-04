@@ -83,13 +83,17 @@ SettingsListener.observe('debug.grid.enabled', false, function(value) {
   !!value ? GridView.show() : GridView.hide();
 });
 
-/* === Lockscreen === */
+/* === LockScreen === */
 SettingsListener.observe('lockscreen.enabled', true, function(value) {
   localStorage['lockscreen'] = value;
+  if (LockScreen)
+    LockScreen.setEnabled(value);
 });
 
 SettingsListener.observe('lockscreen.passcode-lock.enabled', true, function(value) {
   localStorage['passcode-lock'] = value;
+  if (LockScreen)
+    LockScreen.setPassCodeEnabled(value);
 });
 
 /* === Language === */
@@ -105,10 +109,3 @@ SettingsListener.observe('accessibility.invert', false, function(value) {
   else
     screen.classList.remove('accessibility-invert');
 });
-
-/* === Screen brightness === */
-SettingsListener.observe('screen.brightness', 0.5, function(value) {
-  ScreenManager.preferredBrightness =
-    navigator.mozPower.screenBrightness = parseFloat(value);
-});
-

@@ -192,23 +192,36 @@ install-xulrunner :
 endif
 
 settingsdb :
+ifeq ($(SYS),Darwin)
 	@echo "B2G pre-populate settings DB."
 	$(XULRUNNER) $(XPCSHELL) -e 'const PROFILE_DIR = "$(CURDIR)/profile"' build/settings.js
+else 
+	@echo "Can't populate on Linux. You can still install."
+endif
 
-DB_PATH = /data/b2g/mozilla/`$(ADB) shell ls -1 /data/b2g/mozilla/ | grep default | tr -d [:cntrl:]`/indexedDB
+DB_TARGET_PATH = /data/b2g/mozilla/`$(ADB) shell ls -1 /data/b2g/mozilla/ | grep default | tr -d [:cntrl:]`/indexedDB
+ifneq ($(SYS),Darwin)
+DB_SOURCE_PATH = $(CURDIR)/build/indexeddb
+else
+DB_SOURCE_PATH = profile/indexedDB/chrome
+endif
 .PHONY: install-settingsdb
 install-settingsdb: settingsdb install-xulrunner
 	$(ADB) start-server
-	$(ADB) push profile/indexedDB/chrome/2588645841ssegtnti ${DB_PATH}/chrome/2588645841ssegtnti
-	$(ADB) push profile/indexedDB/chrome/2588645841ssegtnti.sqlite ${DB_PATH}/chrome/2588645841ssegtnti.sqlite
+	$(ADB) push $(DB_SOURCE_PATH)/2588645841ssegtnti ${DB_TARGET_PATH}/chrome/2588645841ssegtnti
+	$(ADB) push $(DB_SOURCE_PATH)/2588645841ssegtnti.sqlite ${DB_TARGET_PATH}/chrome/2588645841ssegtnti.sqlite
 	$(ADB) shell kill $(shell $(ADB) shell toolbox ps | grep "b2g" | awk '{ print $$2; }')
-	@echo 'Rebooting b2g now. This only works on Mac now!'
+	@echo 'Rebooting b2g now. '
 
 # Generate profile/prefs.js
 preferences: install-xulrunner
 	@echo "Generating prefs.js..."
 	@mkdir -p profile
 	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)$(GAIA_PORT)"; const DEBUG = $(DEBUG); const HOMESCREEN = "$(HOMESCREEN)"; GAIA_PORT = "$(GAIA_PORT)"' build/preferences.js
+	if [ -f custom-prefs.js ]; \
+	  then \
+	    cat custom-prefs.js >> profile/user.js; \
+	  fi
 	@echo "Done"
 
 
@@ -333,6 +346,13 @@ endif
 # Utils                                                                       #
 ###############################################################################
 
+# Lint apps
+lint:
+	# ignore lint on:
+	# cubevid
+	# crystalskull
+	# towerjelly
+	gjslint `find apps -type d \( -name cubevid -o -name crystalskull -o -name towerjelly \) -prune -o -name "*.js" -print`
 
 # Generate a text file containing the current changeset of Gaia
 # XXX I wonder if this should be a replace-in-file hack. This would let us

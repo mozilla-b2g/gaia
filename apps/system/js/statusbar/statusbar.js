@@ -11,6 +11,12 @@ var StatusBar = {
     ];
     NotificationScreen.init(touchables);
 
+    window.addEventListener('screenchange', this);
+
+    this.refresh();
+  },
+
+  handleEvent: function sb_handleEvent(evt) {
     this.refresh();
   },
 
@@ -23,7 +29,7 @@ var StatusBar = {
 
 // Update the clock and schedule a new update if appropriate
 function updateClock() {
-  if (!navigator.mozPower.screenEnabled)
+  if (!ScreenManager.screenEnabled)
     return;
 
   var now = new Date();
@@ -45,7 +51,7 @@ function updateBattery() {
     return;
 
   // If the display is off, there is nothing to do here
-  if (!navigator.mozPower.screenEnabled) {
+  if (!ScreenManager.screenEnabled) {
     battery.removeEventListener('chargingchange', updateBattery);
     battery.removeEventListener('levelchange', updateBattery);
     battery.removeEventListener('statuschange', updateBattery);
@@ -94,7 +100,20 @@ function updateConnection(event) {
     return;
   }
 
-  if (!navigator.mozPower.screenEnabled) {
+  var airplaneMode = false;
+  var settings = window.navigator.mozSettings;
+  if (settings) {
+    var settingName = 'ril.radio.disabled'
+    var req = settings.getLock().get(settingName);
+    req.onsuccess = function() {
+      airplaneMode = req.result[settingName];
+      if (airplaneMode) {
+        document.getElementById('titlebar').textContent = _('airplane');
+      }
+    }
+  }
+
+  if (!ScreenManager.screenEnabled) {
     conn.removeEventListener('cardstatechange', updateConnection);
     conn.removeEventListener('voicechange', updateConnection);
     conn.removeEventListener('datachange', updateConnection);
