@@ -3,7 +3,7 @@
 
 .cmp-addr-label, .cmp-subject-label {
   display: inline-block;
-  width: 50px;
+  width: 60px;
   text-align: right;
 }
 .cmp-addr-text {

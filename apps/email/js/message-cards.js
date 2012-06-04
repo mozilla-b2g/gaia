@@ -23,6 +23,9 @@ function MessageListCard(domNode, mode, args) {
   bindContainerHandler(this.messagesContainer, 'contextmenu',
                        this.onHoldMessage.bind(this));
 
+  domNode.getElementsByClassName('msg-refresh-btn')[0]
+    .addEventListener('click', this.onRefresh.bind(this), false);
+
   this.curFolder = null;
   this.messagesSlice = null;
   this.showFolder(args.folder);
@@ -162,6 +165,10 @@ MessageListCard.prototype = {
   onHoldMessage: function(messageNode, event) {
   },
 
+  onRefresh: function() {
+    this.messagesSlice.refresh();
+  },
+
   /**
    * The folder picker is telling us to change the folder we are showing.
    */
@@ -172,6 +179,10 @@ MessageListCard.prototype = {
   },
 
   die: function() {
+    if (this.messagesSlice) {
+      this.messagesSlice.die();
+      this.messagesSlice = null;
+    }
   },
 };
 Cards.defineCard({
