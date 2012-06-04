@@ -14,7 +14,9 @@ dump("Populate settingsdb in:" + PROFILE_DIR + "\n");
 
 // Todo: Get a list of settings
 var settings = [
+ new Setting("ril.radio.disabled", false),
  new Setting("debug.grid.enabled", false),
+ new Setting("screen.automatic-brightness", true),
  new Setting("lockscreen.passcode-lock.enabled", false),
  new Setting("keyboard.layouts.english", true),
  new Setting("keyboard.layouts.dvorak", false),
@@ -24,7 +26,8 @@ var settings = [
  new Setting("keyboard.layouts.hebrew", false),
  new Setting("keyboard.layouts.zhuyin", false),
  new Setting("keyboard.layouts.pinyin", false),
- new Setting("keyboard.layouts.greek", false)
+ new Setting("keyboard.layouts.greek", false),
+ new Setting("ums.enabled", false)
 ];
 
 function Setting(aName, aValue) {
