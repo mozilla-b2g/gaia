@@ -217,7 +217,11 @@ install-settingsdb: settingsdb install-xulrunner
 preferences: install-xulrunner
 	@echo "Generating prefs.js..."
 	@mkdir -p profile
-	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)$(GAIA_PORT)"; const DEBUG = $(DEBUG); const HOMESCREEN = "$(HOMESCREEN)"; GAIA_PORT = "$(GAIA_PORT)"' build/preferences.js
+	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)"; const DEBUG = $(DEBUG); const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)"' build/preferences.js
+	if [ -f custom-prefs.js ]; \
+	  then \
+	    cat custom-prefs.js >> profile/user.js; \
+	  fi
 	@echo "Done"
 
 
