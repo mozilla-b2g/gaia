@@ -5,21 +5,29 @@
   }
 
   support = window.testSupport;
+
   support.startMarionette = function(cb) {
     var device;
 
     suiteSetup(function() {
+      var driver;
       this.timeout(10000);
 
-      var driver = new Marionette.Drivers.HttpdPolling({
-        //should be an environmental variable
-        proxyUrl: 'http://localhost:8080/marionette'
-      });
+      if (typeof(window.MozTCPSocket) !== 'undefined') {
+        driver = new Marionette.Drivers.MozTcp();
+      } else {
+        driver = new Marionette.Drivers.HttpdPolling({
+          //should be an environmental variable
+          proxyUrl: 'http://localhost:8080/marionette'
+        });
+      }
 
       yield driver.connect(MochaTask.next);
+
       device = new Marionette.Client(driver, {
         defaultCallback: MochaTask.next
       });
+
       yield device.startSession();
 
       cb(device);

@@ -1,8 +1,12 @@
-(function(exports) {
+(function() {
   'use strict';
 
-  if (typeof(exports.TestAgent) === 'undefined') {
-    exports.TestAgent = {};
+  var isNode = typeof(window) === 'undefined';
+
+  if (!isNode) {
+    if (typeof(window.TestAgent) === 'undefined') {
+      window.TestAgent = {};
+    }
   }
 
   /**
@@ -10,8 +14,8 @@
    *
    * @param {Object} list of events to add onto responder.
    */
-  var Responder = exports.TestAgent.Responder = function Responder(events) {
-    this.events = {};
+  function Responder(events) {
+    this._$events = {};
 
     if (typeof(events) !== 'undefined') {
       this.addEventListener(events);
@@ -56,7 +60,7 @@
      *
      * @type Object
      */
-    events: null,
+    _$events: null,
 
     /**
      * Recieves json string event and dispatches an event.
@@ -101,11 +105,11 @@
         return this;
       }
 
-      if (!(type in this.events)) {
-        this.events[type] = [];
+      if (!(type in this._$events)) {
+        this._$events[type] = [];
       }
 
-      this.events[type].push(callback);
+      this._$events[type].push(callback);
 
       return this;
     },
@@ -121,8 +125,8 @@
     once: function once(type, callback) {
       var self = this;
       function onceCb() {
-        callback.apply(this, arguments);
         self.removeEventListener(type, onceCb);
+        callback.apply(this, arguments);
       }
 
       this.addEventListener(type, onceCb);
@@ -145,8 +149,8 @@
           eventList,
           self = this;
 
-      if (event in this.events) {
-        eventList = this.events[event];
+      if (event in this._$events) {
+        eventList = this._$events[event];
 
         eventList.forEach(function(callback) {
           callback.apply(self, args);
@@ -163,9 +167,9 @@
      * @param {String} event event type to remove.
      */
     removeAllEventListeners: function removeAllEventListeners(name) {
-      if (name in this.events) {
+      if (name in this._$events) {
         //reuse array
-        this.events[name].length = 0;
+        this._$events[name].length = 0;
       }
 
       return this;
@@ -182,11 +186,11 @@
     removeEventListener: function removeEventListener(name, callback) {
       var i, length, events;
 
-      if (!(name in this.events)) {
+      if (!(name in this._$events)) {
         return false;
       }
 
-      events = this.events[name];
+      events = this._$events[name];
 
       for (i = 0, length = events.length; i < length; i++) {
         if (events[i] && events[i] === callback) {
@@ -202,29 +206,30 @@
 
   Responder.prototype.on = Responder.prototype.addEventListener;
 
-}(
-  (typeof(window) === 'undefined') ? module.exports : window
-));
+  if (isNode) {
+    module.exports = Responder;
+  } else {
+    window.TestAgent.Responder = Responder;
+  }
+
+}());
 
 //depends on TestAgent.Responder
-(function(exports) {
+(function() {
   'use strict';
 
-  if (typeof(exports.TestAgent) === 'undefined') {
-    exports.TestAgent = {};
+  var isNode = typeof(window) === 'undefined',
+      Responder;
+
+  if (!isNode) {
+    if (typeof(window.TestAgent) === 'undefined') {
+      window.TestAgent = {};
+    }
+
+    Responder = TestAgent.Responder;
+  } else {
+    Responder = require('./responder');
   }
-
-  var Native, Responder, TestAgent;
-
-  //Hack Arounds for node
-  if (typeof(window) === 'undefined') {
-    Native = require('ws');
-    Responder = require('./responder').TestAgent.Responder;
-  }
-
-  TestAgent = exports.TestAgent;
-  Responder = Responder || TestAgent.Responder;
-  Native = (Native || WebSocket || MozWebSocket);
 
   //end
 
@@ -244,7 +249,7 @@
    * @param {Numeric} option.retryTimeout \
    * ( Time between retries 3000ms by default).
    */
-  var Client = TestAgent.WebsocketClient = function WebsocketClient(options) {
+  function Client(options) {
     var key;
     for (key in options) {
       if (options.hasOwnProperty(key)) {
@@ -254,6 +259,16 @@
     Responder.call(this);
 
     this.proxyEvents = ['open', 'close', 'message'];
+    this._proxiedEvents = {};
+
+    if (isNode) {
+      this.Native = require('ws');
+    } else {
+      this.Native = (window.WebSocket || window.MozWebSocket);
+    }
+
+    this.on('open', this._setConnectionStatus.bind(this, true));
+    this.on('close', this._setConnectionStatus.bind(this, false));
 
     this.on('close', this._incrementRetry.bind(this));
     this.on('message', this._processMessage.bind(this));
@@ -267,7 +282,15 @@
   Client.RetryError.prototype = Object.create(Error.prototype);
 
   Client.prototype = Object.create(Responder.prototype);
-  Client.prototype.Native = Native;
+
+  /**
+   * True when connection is opened.
+   * Used to ensure messages are not sent
+   * when connection to server is closed.
+   *
+   * @type Boolean
+   */
+  Client.prototype.connectionOpen = false;
 
   //Retry
   Client.prototype.retry = false;
@@ -276,7 +299,7 @@
   Client.prototype.retryTimeout = 3000;
 
   Client.prototype.start = function start() {
-    var i, event;
+    var i, event, fn;
 
     if (this.retry && this.retries >= this.retryLimit) {
       throw new Client.RetryError(
@@ -284,11 +307,16 @@
       );
     }
 
+    if (this.socket) {
+      this.close();
+    }
+
     this.socket = new this.Native(this.url);
 
     for (i = 0; i < this.proxyEvents.length; i++) {
       event = this.proxyEvents[i];
-      this.socket.addEventListener(event, this._proxyEvent.bind(this, event));
+      fn = this._proxiedEvents[event] = this._proxyEvent.bind(this, event);
+      this.socket.addEventListener(event, fn, false);
     }
 
     this.emit('start', this);
@@ -301,13 +329,21 @@
    * @param {String} data object to send to the server.
    */
   Client.prototype.send = function send(event, data) {
-    this.socket.send(this.stringify(event, data));
+    if (this.connectionOpen) {
+      this.socket.send(this.stringify(event, data));
+    }
   };
 
   /**
    * Closes connection to the server
    */
   Client.prototype.close = function close(event, data) {
+    var event;
+
+    for (event in this._proxiedEvents) {
+      this.socket.removeEventListener(event, this._proxiedEvents[event], false);
+    }
+
     this.socket.close();
   };
 
@@ -333,22 +369,152 @@
     this.emit.apply(this, arguments);
   };
 
-}(
-  (typeof(window) === 'undefined') ? module.exports : window
-));
-(function(exports) {
-  if (typeof(exports.Marionette) === 'undefined') {
-    exports.Marionette = {};
+  /**
+   * Sets connectionOpen.
+   *
+   * @param {Boolean} type connection status.
+   */
+  Client.prototype._setConnectionStatus = _setConnectionStatus;
+  function _setConnectionStatus(type) {
+    this.connectionOpen = type;
   }
 
+  if (isNode) {
+    module.exports = Client;
+  } else {
+    window.TestAgent.WebsocketClient = Client;
+  }
+
+}());
+(function(global, module) {
+
+  /**
+   * Define a list of paths
+   * this will only be used in the browser.
+   */
+  var paths = {};
+
+
+  /**
+   * Exports object is a shim
+   * we use in the browser to
+   * create an object that will behave much
+   * like module.exports
+   */
+  function Exports(path) {
+    this.path = path;
+  }
+
+  Exports.prototype = {
+
+    /**
+     * Unified require between browser/node.
+     * Path is relative to this file so you
+     * will want to use it like this from any depth.
+     *
+     *
+     *   var Leaf = ns.require('sub/leaf');
+     *
+     *
+     * @param {String} path path lookup relative to this file.
+     */
+    require: function exportRequire(path) {
+      if (typeof(window) === 'undefined') {
+        return require(require('path').join(__dirname, path));
+      } else {
+        return paths[path];
+      }
+    },
+
+    /**
+     * Maps exports to a file path.
+     */
+    set exports(val) {
+      return paths[this.path] = val;
+    },
+
+    get exports() {
+      return paths[this.path];
+    }
+  };
+
+  /**
+   * Module object constructor.
+   *
+   *
+   *    var module = Module('sub/leaf');
+   *    module.exports = function Leaf(){}
+   *
+   *
+   * @constructor
+   * @param {String} path file path.
+   */
+  function Module(path) {
+    return new Exports(path);
+  }
+
+  Module.require = Exports.prototype.require;
+  Module.exports = Module;
+  Module._paths = paths;
+
+
+  /**
+   * Reference self as exports
+   * which also happens to be the constructor
+   * so you can assign items to the namespace:
+   *
+   *    //assign to Module.X
+   *    //assume module.exports is Module
+   *    module.exports.X = Foo; //Module.X === Foo;
+   *    Module.exports('foo'); //creates module.exports object.
+   *
+   */
+  module.exports = Module;
+
+  /**
+   * In the browser assign
+   * to a global namespace
+   * obviously 'Module' would
+   * be whatever your global namespace is.
+   */
+  if (this.window)
+    window.Marionette = Module;
+
+}(
+  this,
+  (typeof(module) === 'undefined') ?
+    {} :
+    module
+));
+/**
+@namespace
+*/
+(function(module, ns) {
   var Native;
 
   if (typeof(window) === 'undefined') {
     Native = require('../XMLHttpRequest').XMLHttpRequest;
   } else {
-    Native = XMLHttpRequest;
+    Native = window.XMLHttpRequest;
   }
 
+  /**
+   * Creates a XHR wrapper.
+   * Depending on the platform this is loaded
+   * from the correct wrapper type will be used.
+   *
+   * Options are derived from properties on the prototype.
+   * See each property for its default value.
+   *
+   * @class
+   * @name Marionette.Xhr
+   * @param {Object} options options for xhr.
+   * @param {String} [options.method="GET"] any HTTP verb like 'GET' or 'POST'.
+   * @param {Boolean} [options.async] false will indicate
+   *                   a synchronous request.
+   * @param {Object} [options.headers] full of http headers.
+   * @param {Object} [options.data] post data.
+   */
   function Xhr(options) {
     var key;
     if (typeof(options) === 'undefined') {
@@ -363,6 +529,8 @@
   }
 
   Xhr.prototype = {
+    /** @scope Marionette.Xhr.prototype */
+
     xhrClass: Native,
     method: 'GET',
     async: true,
@@ -429,445 +597,213 @@
     }
   };
 
-  exports.Marionette.Xhr = Xhr;
+  module.exports = Xhr;
 
-}(
-  (typeof(window) === 'undefined') ? module.exports : window
+}.apply(
+  this,
+  (this.Marionette) ?
+    [Marionette('xhr'), Marionette] :
+    [module, require('./marionette')]
 ));
-(function(exports) {
-  if (typeof(exports.Marionette) === 'undefined') {
-    exports.Marionette = {};
-  }
+(function(module, ns) {
 
-  if (typeof(exports.Marionette.Drivers) === 'undefined') {
-    exports.Marionette.Drivers = {};
-  }
-
-  function Abstract(options) {
-    this._sendQueue = [];
-    this._responseQueue = [];
-  }
-
-  Abstract.prototype = {
-
-    /**
-     * Timeout for commands
-     *
-     * @type Numeric
-     */
-    timeout: 10000,
-
-    /**
-     * Waiting for a command to finish?
-     *
-     * @type Boolean
-     */
-    _waiting: true,
-
-    /**
-     * Is system ready for commands?
-     *
-     * @type Boolean
-     */
-    ready: false,
-
-    /**
-     * Connection id for the server.
-     *
-     * @type Numeric
-     */
-    connectionId: null,
-
-    /**
-     * Sends remote command to server.
-     * Each command will be queued while waiting for
-     * any pending commands. This ensures order of
-     * response is correct.
-     *
-     *
-     * @param {Object} command remote command to send to marionette.
-     * @param {Function} callback executed when response comes back.
-     */
-    send: function send(cmd, callback) {
-      if (!this.ready) {
-        throw new Error('connection is not ready');
-      }
-
-      if (typeof(callback) === 'undefined') {
-        throw new Error('callback is required');
-      }
-
-      this._responseQueue.push(callback);
-      this._sendQueue.push(cmd);
-
-      this._nextCommand();
-
-      return this;
-    },
-
-    /**
-     * Connects to a remote server.
-     * Requires a _connect function to be defined.
-     * Example:
-     *
-     *    MyClass.prototype._connect = function _connect(){
-     *      //open a socket to marrionete accept response
-     *      //you *must* call _onDeviceResponse with the first
-     *      //response from marionette it looks like this:
-     *      //{ from: 'root', applicationType: 'gecko', traits: [] }
-     *      this.connectionId = result.id;
-     *    }
-     *
-     * @param {Function} callback \
-     *  executes after successfully connecting to the server.
-     */
-    connect: function connect(callback) {
-      this.ready = true;
-      this._responseQueue.push(function(data) {
-        this.applicationType = data.applicationType;
-        this.traits = data.traits;
-        callback();
-      }.bind(this));
-      this._connect();
-    },
-
-    /**
-     * Destroys connection to server
-     *
-     * Will immediately close connection to server
-     * closing any pending responses.
-     */
-    close: function() {
-      this.ready = false;
-      this._responseQueue.length = 0;
-      if (this._close) {
-        this._close();
-      }
-    },
-
-    /**
-     * Checks queue if not waiting for a response
-     * Sends command to websocket server
-     *
-     * @private
-     */
-    _nextCommand: function _nextCommand() {
-      var nextCmd;
-      if (!this._waiting && this._sendQueue.length) {
-        this._waiting = true;
-        nextCmd = this._sendQueue.shift();
-        this._sendCommand(nextCmd);
-      }
-    },
-
-    /**
-     * Handles responses from devices.
-     * Will only respond to the event if the connectionId
-     * is equal to the event id and the client is ready.
-     *
-     * @param {Object} data response from server.
-     * @private
-     */
-    _onDeviceResponse: function _onDeviceResponse(data) {
-      var cb;
-      if (this.ready && data.id === this.connectionId) {
-        this._waiting = false;
-        cb = this._responseQueue.shift();
-        cb(data.response);
-
-        this._nextCommand();
-      }
-    }
-
-  };
-
-  exports.Marionette.Drivers.Abstract = Abstract;
-
-}(
-  (typeof(window) === 'undefined') ? module.exports : window
-));
-(function(exports) {
-  if (typeof(exports.Marionette) === 'undefined') {
-    exports.Marionette = {};
-  }
-
-  if (typeof(exports.Marionette.Drivers) === 'undefined') {
-    exports.Marionette.Drivers = {};
-  }
-
-  if (typeof(TestAgent) === 'undefined') {
-    TestAgent = require('test-agent/lib/test-agent/websocket-client').TestAgent;
-  }
-
-  var Abstract;
+  var debug = function() {},
+      Responder;
 
   if (typeof(window) === 'undefined') {
-    Abstract = require('./abstract').Marionette.Drivers.Abstract;
+    debug = require('debug')('marionette:command-stream');
+    Responder = require('test-agent/lib/test-agent/responder');
   } else {
-    Abstract = Marionette.Drivers.Abstract;
+    Responder = TestAgent.Responder;
   }
-
-  function Websocket(options) {
-    Abstract.call(this, options);
-
-    this.client = new TestAgent.WebsocketClient(options);
-    this.client.on('device response', this._onDeviceResponse.bind(this));
-  }
-
-  Websocket.prototype = Object.create(Abstract.prototype);
 
   /**
-   * Sends a command to the websocket server.
+   * Command stream accepts a socket or any event
+   * emitter that will emit data events
    *
-   * @param {Object} command remote marionette command.
-   * @private
+   * @class
+   * @param {EventEmitter} socket socket instance.
+   * @constructor
    */
-  Websocket.prototype._sendCommand = function _sendCommand(cmd) {
-    this.client.send('device command', {
-      id: this.connectionId,
-      command: cmd
+  function CommandStream(socket) {
+    this.buffer = '';
+    this.inCommand = false;
+    this.commandLength = 0;
+    this.socket = socket;
+
+    Responder.apply(this);
+
+    socket.on('data', this.add.bind(this));
+    socket.on('error', function(){
+      console.log(arguments);
     });
-  };
+  }
+
+  var proto = CommandStream.prototype = Object.create(
+    Responder.prototype
+  );
 
   /**
-   * Opens a connection to the websocket server and creates
-   * a device connection.
-   *
-   * @param {Function} callback sent when initial response comes back.
-   */
-  Websocket.prototype._connect = function connect() {
-    var self = this;
-
-    this.client.start();
-
-    this.client.once('open', function wsOpen() {
-
-      //because I was lazy and did not implement once
-      function connected(data) {
-        self.connectionId = data.id;
-      }
-
-      self.client.once('device ready', connected);
-      self.client.send('device create');
-
-    });
-
-  };
-
-  /**
-   * Closes connection to marionette.
-   */
-  Websocket.prototype._close = function close() {
-    if (this.client && this.client.close) {
-      this.client.close();
-    }
-  };
-
-  exports.Marionette.Drivers.Websocket = Websocket;
-
-}(
-  (typeof(window) === 'undefined') ? module.exports : window
-));
-(function(exports) {
-
-  var Abstract, Xhr;
-
-  if (typeof(exports.Marionette) === 'undefined') {
-    exports.Marionette = {};
-  }
-
-  if (typeof(exports.Marionette.Drivers) === 'undefined') {
-    exports.Marionette.Drivers = {};
-  }
-
-  if (typeof(window) === 'undefined') {
-    Abstract = require('./abstract').Marionette.Drivers.Abstract;
-    Xhr = require('../xhr').Marionette.Xhr;
-  } else {
-    Abstract = Marionette.Drivers.Abstract;
-    Xhr = Marionette.Xhr;
-  }
-
-  Httpd.Xhr = Xhr;
-
-  function Httpd(options) {
-    var key;
-    if (typeof(options) === 'undefined') {
-      options = options;
-    }
-
-    Abstract.call(this);
-
-    for (key in options) {
-      if (options.hasOwnProperty(key)) {
-        this[key] = options[key];
-      }
-    }
-  }
-
-  var proto = Httpd.prototype = Object.create(Abstract.prototype);
-
-  /**
-   * Location of the http server that will proxy to marionette
+   * Length prefix
    *
    * @type String
    */
-  proto.proxyUrl = '/marionette';
+  proto.prefix = ':';
 
   /**
-   * Port that proxy should connect to.
-   *
-   * @type Numeric
-   */
-  proto.port = 2828;
-
-  /**
-   * Server proxy should connect to.
-   *
+   * name of the event this class
+   * will emit when a response to a
+   * command is received.
    *
    * @type String
    */
-  proto.server = 'localhost';
+  proto.commandEvent = 'command';
 
   /**
-   * Sends command to server for this connection
+   * Parses command into a string to
+   * be sent over a tcp socket to marionette.
+   *
    *
    * @this
-   * @param {Object} command remote marionette command.
+   * @param {Object} command marionette command.
+   * @return {String} command as a string.
    */
-  proto._sendCommand = function _sendCommand(command) {
-    this._request('PUT', command, function() {
-      //error handling?
-    });
-  };
-
-
-  /**
-   * Sends DELETE message to server to close marionette connection.
-   * Aborts all polling operations.
-   */
-  proto._close = function _close() {
-
-    if (this._pollingRequest) {
-      this._pollingRequest.abort();
-      this._pollingRequest = null;
+  proto.stringify = function stringify(command) {
+    var string;
+    if (typeof(command) === 'string') {
+      string = command;
+    } else {
+      string = JSON.stringify(command);
     }
 
-    this._request('DELETE', null, function() {
-      //handle close errors?
-    });
+    return String(string.length) + this.prefix + string;
   };
 
   /**
-   * Opens connection for device.
+   * Accepts raw string command parses it and
+   * emits a commandEvent.
+   *
    * @this
+   * @param {String} string raw response from marionette.
    */
-  proto._connect = function _connect() {
-    var auth = {
-      server: this.server,
-      port: this.port
-    };
+  proto._handleCommand = function _handleCommand(string) {
+    debug('got raw bytes ', string);
+    var data = JSON.parse(string);
+    debug('sending event', data);
+    this.emit(this.commandEvent, data);
+  };
 
-    this._request('POST', auth, function(data, xhr) {
-      var deviceResponse = this._onQueueResponse.bind(this);
-      if (xhr.status === 200) {
-        this.connectionId = data.id;
-        this._pollingRequest = this._request('GET', deviceResponse);
-      } else {
-        //throw error
+
+  /**
+   * Checks if current buffer is ready to read.
+   * @this
+   * @return {Boolean} true when in a command and buffer \
+   *                   is ready to begin reading.
+   */
+  proto._checkBuffer = function _checkBuffer() {
+    var lengthIndex;
+    if (!this.inCommand) {
+      lengthIndex = this.buffer.indexOf(this.prefix);
+      if (lengthIndex !== -1) {
+        this.commandLength = parseInt(this.buffer.slice(0, lengthIndex));
+        this.buffer = this.buffer.slice(lengthIndex + 1);
+        this.inCommand = true;
       }
-    }.bind(this));
+    }
+
+    return this.inCommand;
   };
 
   /**
-   * Creates xhr request
-   *
+   * Read current buffer.
+   * Drain and emit all comands from the buffer.
    *
    * @this
-   * @param {String} method http method like 'POST' or 'GET'.
-   * @param {Object} data optional.
-   * @param {Object} callback after xhr completes \
-   * receives parsed data as first argument and xhr object as second.
-   * @return {Marionette.Xhr} xhr wrapper.
+   * @return {Object} self.
    */
-  proto._request = function _request(method, data, callback) {
-    var request, url;
+  proto._readBuffer = function _readBuffer() {
+    var commandString;
 
-    if (typeof(callback) === 'undefined' && typeof(data) === 'function') {
-      callback = data;
-      data = null;
+    if (this._checkBuffer()) {
+      if (this.buffer.length >= this.commandLength) {
+        commandString = this.buffer.slice(0, this.commandLength);
+        this._handleCommand(commandString);
+        this.buffer = this.buffer.slice(this.commandLength);
+        this.inCommand = false;
+
+        this._readBuffer();
+      }
     }
-
-    url = this.proxyUrl;
-
-    if (this.connectionId !== null) {
-      url += '?' + String(this.connectionId) + '=' + String(Date.now());
-    }
-
-    request = new Xhr({
-      url: url,
-      method: method,
-      data: data || null,
-      callback: callback
-    });
-
-    request.send();
-
-    return request;
+    return this;
   };
 
   /**
-   * Handles response to multiple messages.
-   * Requeues the _pollingRequest on success
-   *
-   *    {
-   *      messages: [
-   *        { id: 1, response: {} },
-   *        ....
-   *      ]
-   *    }
+   * Writes a command to the socket.
+   * Handles conversion and formatting of object.
    *
    * @this
-   * @param {Object} queue list of messages.
-   * @param {Marionette.Xhr} xhr xhr instance.
+   * @param {Object} data marionette command.
    */
-  proto._onQueueResponse = function _onQueueResponse(queue, xhr) {
-    var self = this;
-
-    if (xhr.status !== 200) {
-      throw new Error('XHR responded with code other then 200');
-    }
-
-    //TODO: handle errors
-    if (queue && queue.messages) {
-      queue.messages.forEach(function(response) {
-        self._onDeviceResponse(response);
-      });
-    }
-
-    //when we close the object _pollingRequest is destroyed.
-    if (this._pollingRequest) {
-      this._pollingRequest.send();
+  proto.send = function send(data) {
+    debug('writing ', data, 'to socket');
+    if(this.socket.write) {
+      //nodejs socket
+      this.socket.write(this.stringify(data), 'utf8');
+    } else {
+      //moztcp socket
+      this.socket.send(this.stringify(data));
     }
   };
 
+  /**
+   * Adds a chunk (string or buffer) to the
+   * total buffer of this instance.
+   *
+   * @this
+   * @param {String|Buffer} buffer buffer or string to add.
+   */
+  proto.add = function add(buffer) {
+    var lengthIndex, command;
 
-  exports.Marionette.Drivers.HttpdPolling = Httpd;
+    this.buffer += buffer.toString();
+    this._readBuffer();
+  };
 
-}(
-  (typeof(window) === 'undefined') ? module.exports : window
+  module.exports = exports = CommandStream;
+
+}.apply(
+  this,
+  (this.Marionette) ?
+    [Marionette('command-stream'), Marionette] :
+    [module, require('./marionette')]
 ));
-(function(exports) {
-  if (typeof(exports.Marionette) === 'undefined') {
-    exports.Marionette = {};
-  }
+/**
+@namespace
+*/
+(function(module, ns) {
 
+  /**
+   * Creates an element reference
+   * based on an id and a client instance.
+   * You should never need to manually create
+   * an instance of element.
+   *
+   * Use {@link Marionette.Client#findElement} or
+   * {@link Marionette.Client#findElements} to create
+   * instance(s) of this class.
+   *
+   * @class
+   * @name Marionette.Element
+   * @param {String} id id of element.
+   * @param {Marionette.Client} client client instance.
+   */
   function Element(id, client) {
     this.id = id;
     this.client = client;
   }
 
   Element.prototype = {
+    /** @scope Marionette.Element.prototype */
 
     /**
      * Sends remote command processes the result.
@@ -1079,23 +1015,20 @@
 
   };
 
-  exports.Marionette.Element = Element;
+  module.exports = Element;
 
-}(
-  (typeof(window) === 'undefined') ? module.exports : window
+}.apply(
+  this,
+  (this.Marionette) ?
+    [Marionette('element'), Marionette] :
+    [module, require('../../lib/marionette/marionette')]
 ));
-(function(exports) {
-  if (typeof(exports.Marionette) === 'undefined') {
-    exports.Marionette = {};
-  }
+/**
+@namespace
+*/
+(function(module, ns) {
 
-  var Element;
-
-  if (exports.Marionette.Element) {
-    Element = exports.Marionette.Element;
-  } else if (typeof(window) === 'undefined') {
-    Element = require('./element').Marionette.Element;
-  }
+  var Element = ns.require('element');
 
   var key;
   var searchMethods = {
@@ -1113,6 +1046,21 @@
     return typeof(value) === 'function';
   }
 
+
+  /**
+   * @name Marionette.Client
+   * @class
+   * @constructs
+   * @exports Client as Marionette.Client
+   *
+   * Initializes client.
+   * You must create and initialize
+   * a driver and pass it into the client before
+   * using the client itself.
+   *
+   * @param {Marionette.Drivers.Abstract} driver fully initialized client.
+   * @param {Object} options options for driver.
+   */
   function Client(driver, options) {
     if (typeof(options) === 'undefined') {
       options = {};
@@ -1678,8 +1626,570 @@
     }
   }
 
-  exports.Marionette.Client = Client;
+  module.exports = Client;
 
-}(
-  (typeof(window) === 'undefined') ? module.exports : window
+}.apply(
+  this,
+  (this.Marionette) ?
+    [Marionette('client'), Marionette] :
+    [module, require('./marionette')]
+));
+/**
+ * @namespace
+ */
+(function(module, ns) {
+
+  /**
+   * @class
+   *
+   * Abstract driver that will handle
+   * all common tasks between implementations.
+   * Such as error handling, request/response queuing
+   * and timeouts.
+   *
+   * @name Marionette.Drivers.Abstract
+   * @param {Object} options set options on prototype.
+   */
+  function Abstract(options) {
+    this._sendQueue = [];
+    this._responseQueue = [];
+  }
+
+  Abstract.prototype = {
+    /** @scope Marionette.Drivers.Abstract.prototype */
+
+    /**
+     * Timeout for commands
+     *
+     * @type Numeric
+     */
+    timeout: 10000,
+
+    /**
+     * Waiting for a command to finish?
+     *
+     * @type Boolean
+     */
+    _waiting: true,
+
+    /**
+     * Is system ready for commands?
+     *
+     * @type Boolean
+     */
+    ready: false,
+
+    /**
+     * Connection id for the server.
+     *
+     * @type Numeric
+     */
+    connectionId: null,
+
+    /**
+     * Sends remote command to server.
+     * Each command will be queued while waiting for
+     * any pending commands. This ensures order of
+     * response is correct.
+     *
+     *
+     * @param {Object} command remote command to send to marionette.
+     * @param {Function} callback executed when response comes back.
+     */
+    send: function send(cmd, callback) {
+      if (!this.ready) {
+        throw new Error('connection is not ready');
+      }
+
+      if (typeof(callback) === 'undefined') {
+        throw new Error('callback is required');
+      }
+
+      this._responseQueue.push(callback);
+      this._sendQueue.push(cmd);
+
+      this._nextCommand();
+
+      return this;
+    },
+
+    /**
+     * Connects to a remote server.
+     * Requires a _connect function to be defined.
+     * @example
+     *
+     *  MyClass.prototype._connect = function _connect(){
+     *    //open a socket to marrionete accept response
+     *    //you *must* call _onDeviceResponse with the first
+     *    //response from marionette it looks like this:
+     *    //{ from: 'root', applicationType: 'gecko', traits: [] }
+     *    this.connectionId = result.id;
+     *  }
+     *
+     * @param {Function} callback
+     *  executes after successfully connecting to the server.
+     */
+    connect: function connect(callback) {
+      this.ready = true;
+      this._responseQueue.push(function(data) {
+        this.applicationType = data.applicationType;
+        this.traits = data.traits;
+        callback();
+      }.bind(this));
+      this._connect();
+    },
+
+    /**
+     * Destroys connection to server
+     *
+     * Will immediately close connection to server
+     * closing any pending responses.
+     */
+    close: function() {
+      this.ready = false;
+      this._responseQueue.length = 0;
+      if (this._close) {
+        this._close();
+      }
+    },
+
+    /**
+     * Checks queue if not waiting for a response
+     * Sends command to websocket server
+     *
+     * @private
+     */
+    _nextCommand: function _nextCommand() {
+      var nextCmd;
+      if (!this._waiting && this._sendQueue.length) {
+        this._waiting = true;
+        nextCmd = this._sendQueue.shift();
+        this._sendCommand(nextCmd);
+      }
+    },
+
+    /**
+     * Handles responses from devices.
+     * Will only respond to the event if the connectionId
+     * is equal to the event id and the client is ready.
+     *
+     * @param {Object} data response from server.
+     * @private
+     */
+    _onDeviceResponse: function _onDeviceResponse(data) {
+      var cb;
+      if (this.ready && data.id === this.connectionId) {
+        this._waiting = false;
+        cb = this._responseQueue.shift();
+        cb(data.response);
+
+        this._nextCommand();
+      }
+    }
+
+  };
+
+  module.exports = Abstract;
+
+}.apply(
+  this,
+  (this.Marionette) ?
+    [Marionette('drivers/abstract'), Marionette] :
+    [module, require('../marionette')]
+));
+(function(module, ns) {
+  var WebsocketClient,
+      Abstract = ns.require('drivers/abstract');
+
+  if(!this.TestAgent) {
+    WebsocketClient = require('test-agent/lib/test-agent/websocket-client');
+  } else {
+    WebsocketClient = TestAgent.WebsocketClient;
+  }
+
+  function Websocket(options) {
+    Abstract.call(this, options);
+
+    this.client = new WebsocketClient(options);
+    this.client.on('device response', this._onDeviceResponse.bind(this));
+  }
+
+  Websocket.prototype = Object.create(Abstract.prototype);
+
+  /**
+   * Sends a command to the websocket server.
+   *
+   * @param {Object} command remote marionette command.
+   * @private
+   */
+  Websocket.prototype._sendCommand = function _sendCommand(cmd) {
+    this.client.send('device command', {
+      id: this.connectionId,
+      command: cmd
+    });
+  };
+
+  /**
+   * Opens a connection to the websocket server and creates
+   * a device connection.
+   *
+   * @param {Function} callback sent when initial response comes back.
+   */
+  Websocket.prototype._connect = function connect() {
+    var self = this;
+
+    this.client.start();
+
+    this.client.once('open', function wsOpen() {
+
+      //because I was lazy and did not implement once
+      function connected(data) {
+        self.connectionId = data.id;
+      }
+
+      self.client.once('device ready', connected);
+      self.client.send('device create');
+
+    });
+
+  };
+
+  /**
+   * Closes connection to marionette.
+   */
+  Websocket.prototype._close = function close() {
+    if (this.client && this.client.close) {
+      this.client.close();
+    }
+  };
+
+  module.exports = Websocket;
+
+}.apply(
+  this,
+  (this.Marionette) ?
+    [Marionette('drivers/websocket'), Marionette] :
+    [module, require('../marionette')]
+));
+/**
+@namespace
+*/
+(function(module, ns) {
+
+  if (!this.MozTCPSocket) {
+    return;
+  }
+
+  var Abstract, CommandStream;
+
+  Abstract = ns.require('drivers/abstract');
+  CommandStream = ns.require('command-stream');
+
+
+
+  /** TCP **/
+  Tcp.Socket = MozTCPSocket;
+
+  function Tcp(options) {
+    if (typeof(options)) {
+      options = {};
+    }
+    Abstract.call(this, options);
+
+
+    this.connectionId = 0;
+    this.host = options.host || '127.0.0.1';
+    this.port = options.port || 2828;
+  }
+
+  Tcp.prototype = Object.create(Abstract.prototype);
+
+  /**
+   * Sends a command to the server.
+   *
+   * @param {Object} cmd remote marionette command.
+   */
+  Tcp.prototype._sendCommand = function _sendCommand(cmd) {
+    this.client.send(cmd);
+  };
+
+  /**
+   * Opens TCP socket for marionette client.
+   */
+  Tcp.prototype._connect = function connect() {
+    var client, self = this;
+
+    this.socket = new Tcp.Socket(this.host, this.port);
+    client = this.client = new CommandStream(this.socket);
+    this.client.on('command', this._onClientCommand.bind(this));
+  };
+
+  /**
+   * Receives command from server.
+   *
+   * @param {Object} data response from marionette server.
+   */
+  Tcp.prototype._onClientCommand = function(data) {
+    this._onDeviceResponse({
+      id: this.connectionId,
+      response: data
+    });
+  };
+
+  /**
+   * Closes connection to marionette.
+   */
+  Tcp.prototype._close = function close() {
+    if (this.socket && this.socket.close) {
+      this.socket.close();
+    }
+  };
+
+  /** export */
+  module.exports = exports = Tcp;
+
+}.apply(
+  this,
+  (this.Marionette) ?
+    [Marionette('drivers/moz-tcp'), Marionette] :
+    [module, require('../../lib/marionette/marionette')]
+));
+/** @namespace */
+(function(module, ns) {
+
+  var Abstract = ns.require('drivers/abstract'),
+      Xhr = ns.require('xhr');
+
+  Httpd.Xhr = Xhr;
+
+  /**
+   * Creates instance of http proxy backend.
+   *
+   * @class
+   * @extends Marionette.Drivers.Abstract
+   * @name Marionette.Drivers.Httpd
+   * @param {Object} options key/value pairs to add to prototype.
+   */
+  function Httpd(options) {
+    var key;
+    if (typeof(options) === 'undefined') {
+      options = options;
+    }
+
+    Abstract.call(this);
+
+    for (key in options) {
+      if (options.hasOwnProperty(key)) {
+        this[key] = options[key];
+      }
+    }
+  }
+
+  var proto = Httpd.prototype = Object.create(Abstract.prototype);
+
+  /** @scope Marionette.Drivers.Httpd.prototype */
+
+  /**
+   * Location of the http server that will proxy to marionette
+   * @memberOf Marionette.Drivers.Httpd#
+   * @name proxyUrl
+   * @type String
+   */
+  proto.proxyUrl = '/marionette';
+
+  /**
+   * Port that proxy should connect to.
+   *
+   * @name port
+   * @memberOf Marionette.Drivers.Httpd#
+   * @type Numeric
+   */
+  proto.port = 2828;
+
+  /**
+   * Server proxy should connect to.
+   *
+   *
+   * @name server
+   * @memberOf Marionette.Drivers.Httpd#
+   * @type String
+   */
+  proto.server = 'localhost';
+
+  /**
+   * Sends command to server for this connection
+   *
+   * @name _sendCommand
+   * @memberOf Marionette.Drivers.Httpd#
+   * @param {Object} command remote marionette command.
+   */
+  proto._sendCommand = function _sendCommand(command) {
+    this._request('PUT', command, function() {
+      //error handling?
+    });
+  };
+
+
+  /**
+   * Sends DELETE message to server to close marionette connection.
+   * Aborts all polling operations.
+   *
+   * @name _close
+   * @memberOf Marionette.Drivers.Httpd#
+   */
+  proto._close = function _close() {
+
+    if (this._pollingRequest) {
+      this._pollingRequest.abort();
+      this._pollingRequest = null;
+    }
+
+    this._request('DELETE', null, function() {
+      //handle close errors?
+    });
+  };
+
+  /**
+   * Opens connection for device.
+   *
+   * @name _connect
+   * @memberOf Marionette.Drivers.Httpd#
+   */
+  proto._connect = function _connect() {
+    var auth = {
+      server: this.server,
+      port: this.port
+    };
+
+    this._request('POST', auth, function(data, xhr) {
+      var deviceResponse = this._onQueueResponse.bind(this);
+      if (xhr.status === 200) {
+        this.connectionId = data.id;
+        this._pollingRequest = this._request('GET', deviceResponse);
+      } else {
+        //throw error
+      }
+    }.bind(this));
+  };
+
+  /**
+   * Creates xhr request
+   *
+   * @memberOf Marionette.Drivers.Httpd#
+   * @name _request
+   * @param {String} method http method like 'POST' or 'GET'.
+   * @param {Object} data optional.
+   * @param {Object} callback after xhr completes \
+   * receives parsed data as first argument and xhr object as second.
+   * @return {Marionette.Xhr} xhr wrapper.
+   */
+  proto._request = function _request(method, data, callback) {
+    var request, url;
+
+    if (typeof(callback) === 'undefined' && typeof(data) === 'function') {
+      callback = data;
+      data = null;
+    }
+
+    url = this.proxyUrl;
+
+    if (this.connectionId !== null) {
+      url += '?' + String(this.connectionId) + '=' + String(Date.now());
+    }
+
+    request = new Xhr({
+      url: url,
+      method: method,
+      data: data || null,
+      callback: callback
+    });
+
+    request.send();
+
+    return request;
+  };
+
+  /**
+   * Handles response to multiple messages.
+   * Requeues the _pollingRequest on success
+   *
+   *    {
+   *      messages: [
+   *        { id: 1, response: {} },
+   *        ....
+   *      ]
+   *    }
+   *
+   * @this
+   * @name _onQueueResponse
+   * @memberOf Marionette.Drivers.Httpd#
+   * @param {Object} queue list of messages.
+   * @param {Marionette.Xhr} xhr xhr instance.
+   */
+  proto._onQueueResponse = function _onQueueResponse(queue, xhr) {
+    var self = this;
+
+    if (xhr.status !== 200) {
+      throw new Error('XHR responded with code other then 200');
+    }
+
+    //TODO: handle errors
+    if (queue && queue.messages) {
+      queue.messages.forEach(function(response) {
+        self._onDeviceResponse(response);
+      });
+    }
+
+    //when we close the object _pollingRequest is destroyed.
+    if (this._pollingRequest) {
+      this._pollingRequest.send();
+    }
+  };
+
+
+  module.exports = Httpd;
+
+}.apply(
+  this,
+  (this.Marionette) ?
+    [Marionette('drivers/httpd-polling'), Marionette] :
+    [module, require('../marionette')]
+));
+(function(module, ns) {
+
+  module.exports = {
+    Abstract: ns.require('drivers/abstract'),
+    HttpdPolling: ns.require('drivers/httpd-polling'),
+    Websocket: ns.require('drivers/websocket')
+  };
+
+  if (typeof(window) === 'undefined') {
+    module.exports.Tcp = require('./tcp');
+  } else {
+    if (typeof(window.MozTCPSocket) !== 'undefined') {
+      module.exports.MozTcp = ns.require('drivers/moz-tcp');
+    }
+  }
+
+}.apply(
+  this,
+  (this.Marionette) ?
+    [Marionette('drivers'), Marionette] :
+    [module, require('../marionette')]
+));
+(function(module, ns) {
+
+  var exports = module.exports;
+
+  exports.Element = ns.require('element');
+  exports.Client = ns.require('client');
+  exports.Xhr = ns.require('xhr');
+  exports.Drivers = ns.require('drivers');
+  exports.CommandStream = ns.require('command-stream');
+
+}.apply(
+  this,
+  (this.Marionette) ?
+    [Marionette, Marionette] :
+    [module, require('./marionette')]
 ));
