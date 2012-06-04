@@ -191,73 +191,77 @@ var languageDirection;
 // For now, we just do this each time. But we really need to store
 // filenames and image metadata (including thumbnails) in a database.
 var storages = navigator.getDeviceStorage('pictures');
-console.log("storage locations: ", storages.length);
+
 storages.forEach(function(storage, storageIndex) {
-  var cursor = storage.enumerate();
-  cursor.onerror = function() {
-    console.error("Error in DeviceStorage.enumerate()", cursor.error.name);
-  };
-
-  cursor.onsuccess = function() {
-    if (!cursor.result) 
-      return;
-
-    var file = cursor.result;
-
-    // If this isn't a jpeg image, skip it
-    if (file.type !== "image/jpeg") {
-      cursor.continue();
-      return;
-    }
-
-    var imagedata = {
-      storageIndex: storageIndex,
-      name: file.name,                  // so we can look it up again
-      size: file.size,                  // for detecting changes
+  try {
+    var cursor = storage.enumerate();
+    cursor.onerror = function() {
+      console.error("Error in DeviceStorage.enumerate()", cursor.error.name);
     };
-    
-    // Otherwise read its metadata
-    readJPEGMetadata(file, 
-                     function(metadata) {
-                       imagedata.width = metadata.width;
-                       imagedata.height = metadata.height;
-                       imagedata.thumbnail = metadata.thumbnail || null;
-                       imagedata.date = null;
-                       if (metadata.exif) {
-                         imagedata.date =
-                           parseDate(metadata.exif.DateTimeOriginal ||
-                                     metadata.exif.DateTime ||
-                                     null);
-                       }
 
-                       // If this is the first image we've found,
-                       // remove the "no images" message
-                       if (images.length === 0) 
-                         document.getElementById("nophotos")
-                                 .classList.add("hidden");
+    cursor.onsuccess = function() {
+      if (!cursor.result) 
+        return;
+      var file = cursor.result;
 
-                       // add this image and its metadata to our list
-                       addImage(imagedata);
-                       
-                       cursor.continue();
-                       
-                       // Utility function for converting EXIF date strings
-                       // to ISO date strings to timestamps
-                       function parseDate(s) {
-                         if (!s)
-                           return null;
-                         // Replace the first two colons with dashes and
-                         // replace the first space with a T
-                         return Date.parse(s.replace(':', '-')
-                                           .replace(':', '-')
-                                           .replace(' ','T'));
-                       }
-                     },
-                     function() {
-                       // Error reading jpeg
-                       console.warn("Malformed JPEG image", file.name);
-                       cursor.continue();
-                     });
+      // If this isn't a jpeg image, skip it
+      if (file.type !== "image/jpeg") {
+        cursor.continue();
+        return;
+      }
+
+      var imagedata = {
+        storageIndex: storageIndex,  // XXX Use storage.type instead?
+        name: file.name,                  // so we can look it up again
+        size: file.size,                  // for detecting changes
+      };
+      
+      // Otherwise read its metadata
+      readJPEGMetadata(file, 
+                       function(metadata) {
+                         imagedata.width = metadata.width;
+                         imagedata.height = metadata.height;
+                         imagedata.thumbnail = metadata.thumbnail || null;
+                         imagedata.date = null;
+                         if (metadata.exif) {
+                           imagedata.date =
+                             parseDate(metadata.exif.DateTimeOriginal ||
+                                       metadata.exif.DateTime ||
+                                       null);
+                         }
+
+                         // If this is the first image we've found,
+                         // remove the "no images" message
+                         if (images.length === 0) 
+                           document.getElementById("nophotos")
+                           .classList.add("hidden");
+
+                         // add this image and its metadata to our list
+                         addImage(imagedata);
+                         
+                         cursor.continue();
+                         
+                         // Utility function for converting EXIF date strings
+                         // to ISO date strings to timestamps
+                         function parseDate(s) {
+                           if (!s)
+                             return null;
+                           // Replace the first two colons with dashes and
+                           // replace the first space with a T
+                           return Date.parse(s.replace(':', '-')
+                                             .replace(':', '-')
+                                             .replace(' ','T'));
+                         }
+                       },
+                       function() {
+                         // Error reading jpeg
+                         console.warn("Malformed JPEG image", file.name);
+                         cursor.continue();
+                       });
+    }
+    catch(e) {
+      console.error("Exception while enumerating files:", e);
+    }
   };
 });
 
