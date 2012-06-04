@@ -86,10 +86,6 @@ let permissions = {
     "urls": [],
     "pref": "dom.telephony.app.phone.url"
   },
-  "screen": {
-    "urls": [],
-    "pref": "dom.mozScreenWhiteList"
-  },
   "mozbrowser": {
     "urls": [],
     "pref": "dom.mozBrowserFramesWhitelist"
