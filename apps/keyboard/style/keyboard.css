@@ -112,7 +112,6 @@ button::-moz-focus-inner{
   pointer-events: all;
   white-space: nowrap;
   padding: 0.7rem 0.5rem;
-  margin: -7.6rem -0.7rem 0 -0.7rem;
   z-index: 150;
 }
 

@@ -14,6 +14,16 @@ const IMERender = (function() {
   //
   var draw = function kr_draw(layout) {
 
+    //change scale (Our target screen width is 320px)
+    //TODO get document.documentElement.style.fontSize
+    //and use it for multipling changeScale deppending on the value of pixel density
+    //used in media queries
+
+    if(window.innerWidth > 0) {
+      var changeScale = window.innerWidth / 32;
+      document.documentElement.style.fontSize = changeScale + 'px';
+    }
+
     var content = '';
     var layoutWidth = layout.width || 10;
     var widthRatio = 10 / layoutWidth;
@@ -64,13 +74,13 @@ const IMERender = (function() {
     var altCharsCurrent = [];
 
     if (left === true) {
-      this.menu.style.left = target.offsetLeft + 'px';
+      this.menu.style.left = '-moz-calc(' + target.offsetLeft + 'px - 0.8rem)';
       this.menu.style.right = 'auto';
       this.menu.style.textAlign = 'center';
       altCharsCurrent.push(key.firstChild.innerHTML);
       altCharsCurrent = altCharsCurrent.concat(altChars);
     } else {
-      var width = '-moz-calc(' + window.innerWidth + 'px - ' + target.offsetLeft + 'px - ' + target.style.width + ' )';
+      var width = '-moz-calc(' + window.innerWidth + 'px - ' + target.offsetLeft + 'px - 0.8rem - ' + target.style.width + ' )';
       this.menu.style.right = width;
       this.menu.style.left = 'auto';
       this.menu.style.textAlign = 'center';
@@ -89,15 +99,14 @@ const IMERender = (function() {
     });
     this.menu.innerHTML = content;
     this.menu.style.display = 'block';
-    this.menu.style.top = '-moz-calc(' + target.offsetTop + 'px + 3rem)';
-
+    this.menu.style.top = '-moz-calc(' + target.offsetTop + 'px - 4.6rem)';
   };
 
   var hideAlternativesCharMenu = function km_hideAlternativesCharMenu() {
-    this.menu = document.getElementById('keyboard-accent-char-menu');
-    this.menu.innerHTML = '';
-    this.menu.className = '';
-    this.menu.style.display = 'none';
+    // this.menu = document.getElementById('keyboard-accent-char-menu');
+    // this.menu.innerHTML = '';
+    // this.menu.className = '';
+    // this.menu.style.display = 'none';
   };
 
 
@@ -107,16 +116,6 @@ const IMERender = (function() {
 
   var buildKey = function buildKey(row, column, code, label, className, width, alt) {
     //width -= 1;
-
-    //change scale (Our target screen width is 320px)
-    //TODO get document.documentElement.style.fontSize
-    //and use it for multipling changeScale deppending on the value of pixel density
-    //used in media queries
-
-    if(window.innerWidth > 0) {
-      var changeScale = window.innerWidth / 32;
-      document.documentElement.style.fontSize = changeScale + 'px';
-    }
 
     return '<button class="keyboard-key ' + className + '"' +
       ' data-row="' + row + '"' +
