@@ -11,7 +11,7 @@ function startup() {
   SoundManager.init();
   SleepMenu.init();
   SourceView.init();
-  ReloadManager.init();
+  Shortcuts.init();
 
   Applications.rebuild(function start(apps) {
     // FIXME Loop over all the registered activities from the applications
@@ -78,8 +78,14 @@ var SleepMenu = {
         switch (action) {
           case 'airplane':
             var settings = window.navigator.mozSettings;
-            if (settings)
-              settings.getLock().set({ 'ril.radio.disabled': true});
+            if (settings) {
+              var settingName = 'ril.radio.disabled'
+              var req = settings.getLock().get(settingName);
+              req.onsuccess = function() {
+                var newValue = !req.result[settingName];
+                settings.getLock().set({'ril.radio.disabled': newValue});
+              }
+            }
 
             break;
           case 'silent':
@@ -122,8 +128,9 @@ var SleepMenu = {
 };
 
 
-/* === ReloadManager === */
-var ReloadManager = {
+/* === Shortcuts === */
+/* For hardware key handling that doesn't belong to anywhere */
+var Shortcuts = {
   init: function rm_init() {
     window.addEventListener('keyup', this);
   },
@@ -234,6 +241,7 @@ var Applications = {
 
     var name = app.manifest.name;
     var locales = app.manifest.locales;
+    var lang = navigator.language;
     if (locales && locales[lang] && locales[lang].name)
       name = locales[lang].name;
 
@@ -246,5 +254,3 @@ var Applications = {
 };
 
 window.addEventListener('mozChromeEvent', Applications);
-
-
