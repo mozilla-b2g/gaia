@@ -6,6 +6,25 @@
 'use strict';
 
 const IMEController = (function() {
+
+  function getWindowTop(obj) {
+    var top;
+    top = obj.offsetTop;
+    while (obj = obj.offsetParent) {
+      top += obj.offsetTop;
+    }
+    return top;
+  }
+
+  function getWindowLeft(obj) {
+    var left;
+    left = obj.offsetLeft;
+    while (obj = obj.offsetParent) {
+      left += obj.offsetLeft;
+    }
+    return left;
+  }
+
   var BASIC_LAYOUT = -1,
       ALTERNATE_LAYOUT = -2,
       SWITCH_KEYBOARD = -3,
@@ -20,6 +39,7 @@ const IMEController = (function() {
   var _isPressing = null,
       _isWaitingForSecondTap = false,
       _showingAlternativesMenu = true,
+      _menuLockedArea = null,
       _currentKey = null,
       _keyWithMenu = null,
       _baseLayout = '',
@@ -309,25 +329,19 @@ const IMEController = (function() {
     if (!alternatives.length)
       return;
 
-    // Mouse redirection
-    var redirectMouseOver = function redirectMouseOver(target) {
-      this.redirect = function km_menuRedirection(ev) {
-        ev.stopPropagation();
-
-        var event = document.createEvent('MouseEvent');
-        event.initMouseEvent(
-          'mouseover', true, true, window, 0,
-          ev.screenX, ev.screenY, ev.clientX, ev.clientY,
-          false, false, false, false, 0, null
-        );
-        target.dispatchEvent(event);
-      };
-      this.addEventListener('mouseover', this.redirect);
-    };
-
     IMERender.showAlternativesCharMenu(key, alternatives);
     _showingAlternativesMenu = true;
     _keyWithMenu = key;
+
+    // Locked limits 
+    _menuLockedArea = {
+      top: getWindowTop(_keyWithMenu),
+      bottom: getWindowTop(_keyWithMenu)+_keyWithMenu.scrollHeight,
+      left: getWindowLeft(IMERender.menu),
+      right: getWindowLeft(IMERender.menu) + IMERender.menu.scrollWidth
+    };
+    _menuLockedArea.width = _menuLockedArea.right - _menuLockedArea.left;
+    _menuLockedArea.ratio = _menuLockedArea.width/IMERender.menu.children.length;
   }
 
   function _hideAlternatives() {
@@ -378,6 +392,36 @@ const IMEController = (function() {
       }, _kRepeatTimeout);
 
     }
+  }
+
+  function _onMouseMove(evt) {
+    var altCount, width, menuChildren;
+
+    // Control locked zone for menu
+    if (_showingAlternativesMenu
+        && evt.screenY >= _menuLockedArea.top
+        && evt.screenY <= _menuLockedArea.bottom
+        && evt.screenX >= _menuLockedArea.left
+        && evt.screenX <= _menuLockedArea.right) {
+
+      clearTimeout(_hideMenuTimeout);
+      menuChildren = IMERender.menu.children;
+
+      var event = document.createEvent('MouseEvent');
+      event.initMouseEvent(
+        'mouseover', true, true, window, 0,
+        0, 0, 0, 0,
+        false, false, false, false, 0, null
+      );
+
+      console.log(evt.screenX);
+      console.log(_menuLockedArea.left);
+      console.log(_menuLockedArea.right);
+      console.log(_menuLockedArea.ratio);
+      menuChildren[Math.floor((evt.screenX-_menuLockedArea.left)/_menuLockedArea.ratio)].dispatchEvent(event);
+      return;
+    }
+
   }
 
   function _onMouseOver(evt) {
@@ -636,7 +680,8 @@ const IMEController = (function() {
     'mousedown': _onMouseDown,
     'mouseover': _onMouseOver,
     'mouseleave': _onMouseLeave,
-    'mouseup': _onMouseUp
+    'mouseup': _onMouseUp,
+    'mousemove': _onMouseMove
   };
 
   function _reset() {
