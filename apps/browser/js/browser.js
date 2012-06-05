@@ -122,6 +122,7 @@ var Browser = {
   // Each browser gets their own listener
   handleBrowserEvent: function browser_handleBrowserEvent(tab) {
     return (function(evt) {
+
       var isCurrentTab = this.currentTab.id === tab.id;
       switch (evt.type) {
 
@@ -180,9 +181,12 @@ var Browser = {
           this.getIcon(tab.iconUrl, function(icon) {
             GlobalHistory.setPageIcon(tab.url, icon);
           });
-
         }
+        break;
 
+      case 'mozbrowsercontextmenu':
+        this.showContextMenu(evt);
+        break;
       }
     }).bind(this);
   },
@@ -315,24 +319,113 @@ var Browser = {
     });
   },
 
+  openInNewTab: function(url) {
+    this.createTab(url);
+    //this.navigate(data);
+    this.tabsBadge.innerHTML = Object.keys(this.tabs).length;
+  },
+
+  showContextMenu: function browser_showContextMenu(evt) {
+
+    var ctxDefaults = {
+      'A' : {
+        'open_in_tab': {
+          src: 'default',
+          label: 'Open link in New Tab',
+          selected: this.openInNewTab.bind(this)
+        }
+      }
+    };
+
+    var menuItems = ctxDefaults[evt.detail.nodeName] || {};
+
+    var collectMenuItems = function(menu) {
+      for(var i in menu.items) {
+        if (menu.items[i].type === 'menuitem') {
+          var id = menu.items[i].id;;
+          menuItems[id] = menu.items[i];
+          menuItems[id].src = 'user';
+        } else if (menu.items[i].type === 'menu') {
+          collectMenuItems(menu.items[i]);
+        }
+      }
+    }
+
+    var menuData = evt.detail;
+    var cover = document.createElement('div');
+    var menu = document.createElement('ul');
+
+    if (menuData.menu) {
+      collectMenuItems(menuData.menu);
+    }
+
+    if (Object.keys(menuItems).length === 0) {
+      return;
+    }
+
+    for (var i in menuItems) {
+      var text = document.createTextNode(menuItems[i].label);
+      var li = document.createElement('li');
+      li.setAttribute('data-menusource', menuItems[i].src);
+      li.setAttribute('data-id', i);
+
+      if (menuItems[i].icon) {
+        var img = document.createElement('img');
+        img.setAttribute('src', menuItems[i].icon);
+        li.appendChild(img);
+      }
+
+      li.appendChild(text);
+      menu.appendChild(li);
+    }
+
+    cover.setAttribute('id', 'cover');
+    cover.appendChild(menu);
+
+    menu.addEventListener('click', function(e) {
+      if (e.target.nodeName !== 'LI') {
+        return;
+      }
+      e.stopPropagation();
+      var id = e.target.getAttribute('data-id');
+      var src = e.target.getAttribute('data-menusource');
+      if (src === 'user') {
+        evt.detail.contextMenuItemSelected(id);
+      } else if (src === 'default') {
+        menuItems[id].selected(menuData.href);
+      }
+      document.body.removeChild(cover);
+    });
+
+    cover.addEventListener('click', function() {
+      document.body.removeChild(cover);
+    });
+
+    document.body.appendChild(cover);
+  },
+
   followLink: function browser_followLink(e) {
     e.preventDefault();
     this.navigate(e.target.parentNode.getAttribute('href'));
   },
 
-  createTab: function browser_createTab() {
+  createTab: function browser_createTab(url) {
     var iframe = document.createElement('iframe');
     var browserEvents = ['loadstart', 'loadend', 'locationchange',
-      'titlechange', 'iconchange'];
+                         'titlechange', 'iconchange', 'contextmenu'];
     iframe.mozbrowser = true;
     // FIXME: content shouldn't control this directly
     iframe.setAttribute('remote', 'true');
     iframe.style.display = 'none';
+    if (url) {
+      iframe.setAttribute('src', url);
+    }
+    //iframe.setAttribute('remote', true);
 
     var tab = {
       id: 'tab_' + this.tabCounter++,
       dom: iframe,
-      url: null,
+      url: url || null,
       title: null,
       loading: false,
       session: new SessionHistory(),
