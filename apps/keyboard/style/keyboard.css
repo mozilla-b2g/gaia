@@ -148,6 +148,23 @@ button::-moz-focus-inner{
 }
 
 
+/* KEYS SIZE TYPES */
+.kbr-key-S { min-width: 2.6rem; }
+.kbr-key-L { min-width: 4.1rem }
+.kbr-key-XL { min-width: 5.6rem }
+
+
+/* KEYS STATES */
+/* Active */
+.kbr-key-active { background: #5cc9e1; box-shadow: inset 0 0 12px -4px rgba(0, 0, 0, 0.6); }
+  .kbr-key-active span { opacity: 0.3; }
+
+/* Disabled */
+.kbr-key-disabled span {opacity: 0.3; }
+
+
+
+
 @media screen and (max--moz-device-pixel-ratio: 1.5) {
   html {
     font-size: 15px;
