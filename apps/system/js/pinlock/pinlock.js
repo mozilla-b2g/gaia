@@ -70,21 +70,18 @@ var PinLock = {
   },
 
   handleSim: function handleSim() {
-    switch(this.conn.cardState) {
+    // Currently we handle an unlocked sim and an absent sim in the same way.
+    // This might change in the future.
+    switch (this.conn.cardState) {
       case 'pin_required':
-        console.log('SIM is locked, unlocking ...');
         this.pinCode = '';
         this.showKeypad();
         break;
 
       case 'ready':
-        console.log('SIM card is not locked.');
+      default:
         this.reset();
         this.hideKeypad();
-        break;
-
-      default:
-        console.log("Unhandled SIM cardState:" + this.conn.cardState);
         break;
     }
   },

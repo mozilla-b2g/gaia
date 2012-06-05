@@ -79,8 +79,6 @@
  *   the ability to download photos from the web might be nice, too.
  *   we need to be able to determine the size of a photo, I think.
  *   do we need to read metadata?
- *   need to handle resize/orientationchange events because I'm guessing
- *     that image sizes will have to change.
  *   we should probably have a way to organize photos into albums
  *   How do we localize the slideshow Play button for RTL languages?
  *   Do we want users to be able to rotate photos to tell the
@@ -363,6 +361,16 @@ window.addEventListener('keyup', function keyPressHandler(evt) {
     showThumbnails();
     evt.preventDefault();
   }
+});
+
+//Implement the resize event to let current image to fit the screen
+window.addEventListener('resize', function resizeHandler(evt) {
+  currentPhoto = currentPhotoFrame.firstElementChild;
+  photoState = new PhotoState(SAMPLE_SIZES[currentPhotoIndex][0], SAMPLE_SIZES[currentPhotoIndex][1]);
+  photoState.setPhotoStyles(currentPhoto);
+  photoState.setFrameStyles(currentPhotoFrame,
+                            previousPhotoFrame,
+                            nextPhotoFrame);
 });
 
 
