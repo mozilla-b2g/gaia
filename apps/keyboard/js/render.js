@@ -121,7 +121,7 @@ const IMERender = (function() {
       ' data-row="' + row + '"' +
       ' data-column="' + column + '"' +
       ' data-keycode="' + code + '"' +
-      ' style="width:' + width + 'rem"' +
+      // ' style="width:' + width + 'rem"' +
     '><span>' + label + '</span></button>';
   };
 
