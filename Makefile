@@ -325,6 +325,11 @@ INJECTED_GAIA = "$(MOZ_TESTS)/browser/gaia"
 
 TEST_PATH=gaia/tests/${TEST_FILE}
 
+TESTS := $(shell find apps -name "*_test.js" -type f | grep integration)
+.PHONY: test-integration
+test-integration:
+	common/test/bin/test $(TESTS)
+
 .PHONY: tests
 tests: webapp-manifests offline
 	echo "Checking if the mozilla build has tests enabled..."
