@@ -19,6 +19,7 @@ const IMEController = (function() {
       _isWaitingForSecondTap = false,
       _currentKey = null,
       _baseLayout = '',
+      _currentLayout = null,
       _layoutMode = LAYOUT_MODE_DEFAULT,
       _isUpperCase = false,
       _currentInputType = 'text';
@@ -213,7 +214,7 @@ const IMEController = (function() {
 
   // recompute the layout to display
   function _handleSymbolLayoutRequest(keycode) {
-    var base, computedLayout;
+    var base;
 
     // request for SYMBOLS (page 1)
     if (keycode === ALTERNATE_LAYOUT) {
@@ -238,8 +239,8 @@ const IMEController = (function() {
       base = _baseLayout;
     }
 
-    computedLayout = _buildLayout(base, _currentInputType, _layoutMode);
-    IMERender.draw(computedLayout);
+    _currentLayout = _buildLayout(base, _currentInputType, _layoutMode);
+    IMERender.draw(_currentLayout);
     _updateTargetWindowHeight();
   }
 
@@ -268,28 +269,36 @@ const IMEController = (function() {
   }
 
   function _showAlternatives(key) {
+    var alternatives, altMap, defaultValue, currentValue;
     var r = key.dataset.row, c = key.dataset.column;
     if (r < 0 || c < 0)
       return;
 
     // get alternatives from layout
-    var layout = Keyboards[_baseLayout];
-    var value = Keyboards[_baseLayout].keys[r][c].value;
-    var alternatives = layout.alt && layout.alt[value] ? layout.alt[value].split('') : [];
+    altMap = Keyboards[_baseLayout].alt || {};
+    defaultValue = Keyboards[_baseLayout].keys[r][c].value;
+    currentValue = _currentLayout.keys[r][c].value;
+
+    // in non default layout mode, look for current value
+    if (_layoutMode !== LAYOUT_MODE_DEFAULT) {
+      alternatives = altMap[currentValue] || '';
+
+    // in uppercar, look for current value or the uppercase of the default
+    } else if (_isUpperCase) {
+      if (altMap[currentValue] !== undefined) {
+        alternatives = altMap[currentValue] || '';
+      } else {
+        alternatives = altMap[defaultValue].toUpperCase() || '';
+      }
+
+    // in default mode, look for default value
+    } else {
+      alternatives = altMap[defaultValue] || '';
+    }
+
+    alternatives = alternatives.split('');
     if (!alternatives.length)
       return;
-
-    // to uppercase
-    if (_isUpperCase) {
-      for (var i = 0; i < alternatives.length; i += 1) {
-        var alt = alternatives[i];
-        if (layout.upperCase && layout.upperCase[alt]) {
-          alternatives[i] = layout.upperCase[alt];
-        } else {
-          alternatives[i] = alternatives[i].toLocaleUpperCase();
-        }
-      }
-    }
 
     IMERender.showAlternativesCharMenu(key, alternatives);
   }
@@ -451,10 +460,6 @@ const IMEController = (function() {
           else
             _baseLayout = target.dataset.keyboard;
 
-          _layoutMode = LAYOUT_MODE_DEFAULT;
-          _isUpperCase = false;
-          IMERender.draw(_buildLayout(_baseLayout, _currentInputType, _layoutMode, _isUpperCase));
-          _updateTargetWindowHeight();
         } else {
           // If this is the last keyboard in the stack, start
           // back from the beginning.
@@ -465,11 +470,13 @@ const IMEController = (function() {
           else
             _baseLayout = keyboards[++index];
 
-          _layoutMode = LAYOUT_MODE_DEFAULT;
-          _isUpperCase = false;
-          IMERender.draw(_buildLayout(_baseLayout, _currentInputType, _layoutMode, _isUpperCase));
-          _updateTargetWindowHeight();
         }
+
+        _layoutMode = LAYOUT_MODE_DEFAULT;
+        _isUpperCase = false;
+        _currentLayout = _buildLayout(_baseLayout, _currentInputType, _layoutMode, _isUpperCase);
+        IMERender.draw(_currentLayout);
+        _updateTargetWindowHeight();
 
 /* XXX: Not yet implemented
         if (Keyboards[_baseLayout].type == 'ime') {
@@ -506,9 +513,8 @@ const IMEController = (function() {
 
           _isUpperCase = _isUpperCaseLocked = true;
           IMERender.setUpperCaseLock(true);
-          IMERender.draw(
-            _buildLayout(_baseLayout, _currentInputType, _layoutMode, _isUpperCase)
-          );
+          _currentLayout = _buildLayout(_baseLayout, _currentInputType, _layoutMode, _isUpperCase);
+          IMERender.draw(_currentLayout);
 
         // normal behavior: set timeut for second tap and toggle caps
         } else {
@@ -526,9 +532,8 @@ const IMEController = (function() {
           _isUpperCase = !_isUpperCase;
           _isUpperCaseLocked = false;
           IMERender.setUpperCaseLock(false);
-          IMERender.draw(
-            _buildLayout(_baseLayout, _currentInputType, _layoutMode, _isUpperCase)
-          );
+          _currentLayout = _buildLayout(_baseLayout, _currentInputType, _layoutMode, _isUpperCase);
+          IMERender.draw(_currentLayout);
         }
 
         break;
@@ -668,8 +673,8 @@ const IMEController = (function() {
       _currentInputType = _mapType(type); // TODO: this should be unneccesary
       _reset();
 
-      computedLayout = _buildLayout(_baseLayout, _currentInputType, _layoutMode);
-      IMERender.draw(computedLayout);
+      _currentLayout = _buildLayout(_baseLayout, _currentInputType, _layoutMode);
+      IMERender.draw(_currentLayout);
 
 /* XXX: Not yet implemented
       if (Keyboards[_baseLayout].type == 'ime') {
@@ -783,9 +788,8 @@ const IMEController = (function() {
           !_isUpperCaseLocked && _layoutMode === LAYOUT_MODE_DEFAULT) {
             _isUpperCase = false;
             //Do we need to re-draw?
-            IMERender.draw(
-              _buildLayout(_baseLayout, _currentInputType, _layoutMode)
-            );
+            _currentLayout = _buildLayout(_baseLayout, _currentInputType, _layoutMode);
+            IMERender.draw(_currentLayout);
           }
     }
   };
