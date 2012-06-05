@@ -38,11 +38,12 @@ html, body {
   -moz-transition: -moz-transform 0.3s ease;
 }
 .keyboard-row {
-  margin-top: 1rem;
+  margin: 1rem 0 0;
   white-space: nowrap;
   text-align: center;
   display: -moz-box;
   -moz-box-orient: horizontal;
+  -moz-box-pack: center;
   width: 100%;
 }
 .keyboard-row:first-child { margin-top: 0; }
@@ -53,7 +54,6 @@ button::-moz-focus-inner{
 }
 
 .keyboard-key, span.keybaord-key-hold {
-  -moz-box-flex: 1;
   display: inline-block;
   overflow: hidden;
   text-align: center;
@@ -146,12 +146,6 @@ button::-moz-focus-inner{
 #keyboard-accent-char-menu.show {
   display: block;
 }
-
-
-/* KEYS SIZE TYPES */
-.kbr-key-S { min-width: 2.6rem; }
-.kbr-key-L { min-width: 4.1rem }
-.kbr-key-XL { min-width: 5.6rem }
 
 
 /* KEYS STATES */

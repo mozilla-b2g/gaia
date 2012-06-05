@@ -42,9 +42,10 @@ const IMERender = (function() {
             alt = layout.alt[key.value].toUpperCase();
           }
         }
-        var ratio = key.ratio || 1;
+        var ratio = key.ratio || 0;
+
         //key with + key separation in rems
-        var keyWidth = (((widthRatio * ratio) * 2.6) + ((widthRatio * ratio) - 1) * 0.4);
+        var keyWidth = ratio;
         content += buildKey(nrow, ncolumn, code, keyChar, className, keyWidth, alt);
 
       }));
@@ -121,7 +122,7 @@ const IMERender = (function() {
       ' data-row="' + row + '"' +
       ' data-column="' + column + '"' +
       ' data-keycode="' + code + '"' +
-      // ' style="width:' + width + 'rem"' +
+      ' style="-moz-box-flex:' + width +'"' +
     '><span>' + label + '</span></button>';
   };
 
