@@ -38,11 +38,12 @@ html, body {
   -moz-transition: -moz-transform 0.3s ease;
 }
 .keyboard-row {
-  margin-top: 1rem;
+  margin: 1rem 0 0;
   white-space: nowrap;
   text-align: center;
   display: -moz-box;
   -moz-box-orient: horizontal;
+  -moz-box-pack: center;
   width: 100%;
 }
 .keyboard-row:first-child { margin-top: 0; }
@@ -53,7 +54,6 @@ button::-moz-focus-inner{
 }
 
 .keyboard-key, span.keybaord-key-hold {
-  -moz-box-flex: 1;
   display: inline-block;
   overflow: hidden;
   text-align: center;
@@ -62,7 +62,7 @@ button::-moz-focus-inner{
   border-radius: 0.3rem;
   -moz-background-clip: padding;
   background: -moz-linear-gradient(#fff, #ebebeb);
-  box-shadow: inset 0 1px 0 0 #fff;
+  box-shadow: inset 0 0px 0px 1px #FFF;
   min-width: 2.6rem;
   padding: 0;
   position: relative;
@@ -82,21 +82,34 @@ button::-moz-focus-inner{
 }
 
 .keyboard-key.highlighted {
-  pointer-events:none;
+  pointer-events: none;
   background: #ebebeb;
+  box-shadow: inset 0 0 0 1px #FFF, 0 0 0.4rem 0px rgba(0, 0, 0, 0.4);
 }
 .keyboard-key.highlighted span {
   top: -3rem;
   border-radius: 0.3rem;
   -moz-background-clip: padding;
   background: -moz-linear-gradient(#fff, #ebebeb);
+  /*box-shadow: 0 0 0.8rem 0 rgba(0, 0, 0, 0.6);*/
   border: 1px solid #61646A;
-  border-bottom-width: 0;
   left: -0.8rem;
   right: -0.8rem;
   z-index: 100;
   font-weight: bold;
 }
+  .keyboard-key.highlighted span:after,  .keyboard-key.highlighted span:before {  content: ""; position: absolute; }
+  .keyboard-key.highlighted span:after {
+    top: 100%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    margin: 0 .6rem;
+    background: #ebebeb;
+    border: solid 1px #61646A;
+    border-top: none;
+    border-bottom: none;
+  }
 
 #keyboard-accent-char-menu {
   position: absolute;
@@ -146,6 +159,17 @@ button::-moz-focus-inner{
 #keyboard-accent-char-menu.show {
   display: block;
 }
+
+
+/* KEYS STATES */
+/* Active */
+.kbr-key-active { background: #5cc9e1; box-shadow: inset 0 0 12px -4px rgba(0, 0, 0, 0.6); }
+  .kbr-key-active span { opacity: 0.3; }
+
+/* Disabled */
+.kbr-key-disabled span {opacity: 0.3; }
+
+
 
 
 @media screen and (max--moz-device-pixel-ratio: 1.5) {
