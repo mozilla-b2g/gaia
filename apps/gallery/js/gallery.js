@@ -103,51 +103,6 @@ const TRANSITION_SPEED = 1.8;
 const SLIDE_INTERVAL = 3000;      // 3 seconds on each slides
 const SLIDE_TRANSITION = 500;     // 1/2 second transition between slides
 
-/*
-//
-// Right now the set of photos is just hardcoded in the sample_photos directory
-//
-// We need to use the media storage API here or something similar.
-//
-const SAMPLE_PHOTOS_DIR = 'sample_photos/';
-const SAMPLE_THUMBNAILS_DIR = 'sample_photos/thumbnails/';
-const SAMPLE_FILENAMES = ['DSC_1677.jpg', 'DSC_1701.jpg', 'DSC_1727.jpg',
-'DSC_1729.jpg', 'DSC_1759.jpg', 'DSC_4236.jpg', 'DSC_4767.jpg', 'DSC_4858.jpg',
-'DSC_4861.jpg', 'DSC_4903.jpg', 'DSC_6842.jpg', 'DSC_6859.jpg', 'DSC_6883.jpg',
-'IMG_0546.jpg', 'IMG_0554.jpg', 'IMG_0592.jpg', 'IMG_0610.jpg', 'IMG_0668.jpg',
-'IMG_0676.jpg', 'IMG_1132.jpg', 'IMG_1307.jpg', 'IMG_1706.jpg',
-'IMG_7928.jpg', 'IMG_7990.jpg', 'IMG_8085.jpg', 'IMG_8164.jpg', 'IMG_8631.jpg',
-'IMG_8638.jpg', 'IMG_8648.jpg', 'IMG_8652.jpg', '_MG_0053.jpg', 'P1000115.jpg',
-'P1000404.jpg', 'P1000469.jpg', 'P1000486.jpg',
-'3548856279_a215152cd5_o.jpg', '3549661880_0c5565a518_o.jpg',
-'3549662882_8e41d11d28_o.jpg', '3551599565_db282cf840_o.jpg',
-'6839255446_2f245d8f0c.jpg', '6985376089_db00e0d18c_o.jpg'];
-
-const SAMPLE_SIZES = [
-  [480,726], [480,726], [480,726], [480,726], [480,726], [480,726], [480,726],
-  [480,726], [480,726], [480,726], [480,800], [480,800], [480,800], [480,800],
-  [480,800], [480,800], [480,800], [480,800], [480,800], [480,800], [480,800],
-  [480,800], [480,800], [480,800], [480,800], [480,800], [480,800], [480,800],
-  [480,800], [480,800], [480,800], [480,800], [480,800], [480,800], [480,800],
-  [1024, 704], [1024, 1010], [1018, 826], [817, 1019], [328, 500], [2169, 1613]
-];
-
-const NUM_PHOTOS = SAMPLE_FILENAMES.length;
-
-function photoURL(n) {
-  if (n < 0 || n >= NUM_PHOTOS)
-    return null;
-  return SAMPLE_PHOTOS_DIR + SAMPLE_FILENAMES[n];
-}
-
-function thumbnailURL(n) {
-  if (n < 0 || n >= NUM_PHOTOS)
-    return null;
-  return SAMPLE_THUMBNAILS_DIR + SAMPLE_FILENAMES[n];
-}
-
-*/
-
 var currentPhotoIndex = 0;       // What photo is currently displayed
 var thumbnailsDisplayed = true;  // Or is the thumbnail view showing
 var slideshowTimer = null;       // Non-null if we're doing a slide show
