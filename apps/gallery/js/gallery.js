@@ -149,16 +149,16 @@ storages.forEach(function(storage, storageIndex) {
   try {
     var cursor = storage.enumerate();
     cursor.onerror = function() {
-      console.error("Error in DeviceStorage.enumerate()", cursor.error.name);
+      console.error('Error in DeviceStorage.enumerate()', cursor.error.name);
     };
 
     cursor.onsuccess = function() {
-      if (!cursor.result) 
+      if (!cursor.result)
         return;
       var file = cursor.result;
 
       // If this isn't a jpeg image, skip it
-      if (file.type !== "image/jpeg") {
+      if (file.type !== 'image/jpeg') {
         cursor.continue();
         return;
       }
@@ -166,11 +166,11 @@ storages.forEach(function(storage, storageIndex) {
       var imagedata = {
         storageIndex: storageIndex,  // XXX Use storage.type instead?
         name: file.name,                  // so we can look it up again
-        size: file.size,                  // for detecting changes
+        size: file.size                  // for detecting changes
       };
-      
+
       // Otherwise read its metadata
-      readJPEGMetadata(file, 
+      readJPEGMetadata(file,
                        function(metadata) {
                          imagedata.width = metadata.width;
                          imagedata.height = metadata.height;
@@ -185,15 +185,15 @@ storages.forEach(function(storage, storageIndex) {
 
                          // If this is the first image we've found,
                          // remove the "no images" message
-                         if (images.length === 0) 
-                           document.getElementById("nophotos")
-                           .classList.add("hidden");
+                         if (images.length === 0)
+                           document.getElementById('nophotos')
+                           .classList.add('hidden');
 
                          // add this image and its metadata to our list
                          addImage(imagedata);
-                         
+
                          cursor.continue();
-                         
+
                          // Utility function for converting EXIF date strings
                          // to ISO date strings to timestamps
                          function parseDate(s) {
@@ -203,18 +203,18 @@ storages.forEach(function(storage, storageIndex) {
                            // replace the first space with a T
                            return Date.parse(s.replace(':', '-')
                                              .replace(':', '-')
-                                             .replace(' ','T'));
+                                             .replace(' ', 'T'));
                          }
                        },
                        function() {
                          // Error reading jpeg
-                         console.warn("Malformed JPEG image", file.name);
+                         console.warn('Malformed JPEG image', file.name);
                          cursor.continue();
                        });
     };
   }
-  catch(e) {
-    console.error("Exception while enumerating files:", e);
+  catch (e) {
+    console.error('Exception while enumerating files:', e);
   }
 });
 
@@ -225,14 +225,14 @@ var images = [];
 
 function addImage(imagedata) {
   images.push(imagedata);          // remember the image
-  addThumbnail(images.length-1);   // display its thumbnail
+  addThumbnail(images.length - 1);   // display its thumbnail
 }
 
 //
 // Create the <img> elements for the thumbnails
 //
 // XXX: this doesn't work. Need to figure out what the
-// appropriate argumetns are, and store the entire 
+// appropriate argumetns are, and store the entire
 // photo with thumnail, size, etc.
 function addThumbnail(imagenum) {
   var li = document.createElement('li');
@@ -321,11 +321,11 @@ window.addEventListener('keyup', function keyPressHandler(evt) {
 // We get a resize event when the user rotates the screen
 window.addEventListener('resize', function resizeHandler(evt) {
   // Abandon any current pan or zoom and reset the current photo view
-  photoState.reset()
+  photoState.reset();
 
   // Also reset the size and position of the previous and next photos
-  resetPhoto(currentPhotoIndex-1, previousPhotoFrame.firstElementChild);
-  resetPhoto(currentPhotoIndex+1, nextPhotoFrame.firstElementChild);
+  resetPhoto(currentPhotoIndex - 1, previousPhotoFrame.firstElementChild);
+  resetPhoto(currentPhotoIndex + 1, nextPhotoFrame.firstElementChild);
 
   function resetPhoto(n, img) {
     if (!img || n < 0 || n >= images.length)
@@ -375,7 +375,7 @@ photos.addEventListener('swipe', function(event) {
 
   // Did we pan far enough or swipe fast enough to transition to
   // a different photo?
-  var farenough = (Math.abs(pastEdge) > window.innerWidth*TRANSITION_FRACTION);
+  var farenough = Math.abs(pastEdge) > window.innerWidth * TRANSITION_FRACTION;
   var velocity = event.detail.vx;
   var fastenough = Math.abs(velocity) > TRANSITION_SPEED;
 
@@ -734,7 +734,7 @@ function PhotoState(img, width, height) {
   this.reset();
 }
 
-// An internal method called by reset(), zoom() and pan() to 
+// An internal method called by reset(), zoom() and pan() to
 // set the sie and position of the image element.
 PhotoState.prototype._reposition = function() {
   this.img.style.width = this.width + 'px';
@@ -831,7 +831,7 @@ PhotoState.prototype.zoom = function(scale, centerX, centerY) {
       this.top = this.viewportHeight - this.height;
     }
   }
-  
+
   this._reposition();
 };
 
