@@ -19,36 +19,33 @@
 }
 
 html, body {
-  margin:0;
-  padding:0;
+  margin: 0;
+  padding: 0;
   font-size: 10px;
-  width: 32rem;
+  width: 100%;
+  height: 100%;
 }
 
-#screen.fullscreen #keyboard {
-  z-index: 9999;
-}
+#screen.fullscreen #keyboard { z-index: 9999; }
 
 #keyboard {
   position: absolute;
-  font-weight: 600;
   z-index: 9996;
   bottom: 0;
   overflow: visible;
+  padding: 1rem;
   background: -moz-radial-gradient(#b1b1b1, #686868);
-  width: 100%;
   -moz-transition: -moz-transform 0.3s ease;
 }
 .keyboard-row {
-  margin: 0 1rem 1rem 1rem;
-  /* XXX: 11 key-row layouts add up to 802px when width=800px,
-  need detail fix on key width calculation */
+  margin-top: 1rem;
   white-space: nowrap;
   text-align: center;
+  display: -moz-box;
+  -moz-box-orient: horizontal;
+  width: 100%;
 }
-.keyboard-row:first-child {
-  margin: 1rem;
-}
+.keyboard-row:first-child { margin-top: 0; }
 
 button::-moz-focus-inner{ 
   padding:0;
@@ -56,15 +53,17 @@ button::-moz-focus-inner{
 }
 
 .keyboard-key, span.keybaord-key-hold {
+  -moz-box-flex: 1;
   display: inline-block;
   overflow: hidden;
   text-align: center;
   border: 1px solid #61646A;
-  margin:0 0.2rem;
+  margin: 0 0.2rem;
   border-radius: 0.3rem;
   -moz-background-clip: padding;
   background: -moz-linear-gradient(#fff, #ebebeb);
-  width: 2.6rem;
+  box-shadow: inset 0 1px 0 0 #fff;
+  min-width: 2.6rem;
   padding: 0;
   position: relative;
   overflow: visible;
@@ -74,7 +73,7 @@ button::-moz-focus-inner{
 .keyboard-key span {
   color: #464646;
   font-size: 1.7rem;
-  height: 3.8rem;
+  height: 100%;
   line-height: 3.8rem;
   position: absolute;
   top: 0;
