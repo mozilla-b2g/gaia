@@ -365,12 +365,16 @@ window.addEventListener('keyup', function keyPressHandler(evt) {
 
 //Implement the resize event to let current image to fit the screen
 window.addEventListener('resize', function resizeHandler(evt) {
+/*
+ * This is alive's patch
+ * 
   currentPhoto = currentPhotoFrame.firstElementChild;
   photoState = new PhotoState(SAMPLE_SIZES[currentPhotoIndex][0], SAMPLE_SIZES[currentPhotoIndex][1]);
-  photoState.setPhotoStyles(currentPhoto);
   photoState.setFrameStyles(currentPhotoFrame,
                             previousPhotoFrame,
                             nextPhotoFrame);
+ */
+
 });
 
 
@@ -386,7 +390,6 @@ photos.addEventListener('pan', function(event) {
 
   photoState.pan(event.detail.relative.dx,
                  event.detail.relative.dy);
-  photoState.setPhotoStyles(currentPhoto);
   photoState.setFrameStyles(currentPhotoFrame,
                             previousPhotoFrame,
                             nextPhotoFrame);
@@ -468,13 +471,12 @@ photos.addEventListener('dbltap', function(e) {
   else                           // Otherwise
     scale = 2;                   // Zoom in by a factor of 2
 
-  photoState.zoom(scale, e.detail.clientX, e.detail.clientY);
   currentPhoto.style.MozTransition = 'all 100ms linear';
   currentPhoto.addEventListener('transitionend', function handler() {
     currentPhoto.style.MozTransition = '';
     currentPhoto.removeEventListener('transitionend', handler);
   });
-  photoState.setPhotoStyles(currentPhoto);
+  photoState.zoom(scale, e.detail.clientX, e.detail.clientY);
 });
 
 // We also support pinch-to-zoom
@@ -485,7 +487,6 @@ photos.addEventListener('transform', function(e) {
   photoState.zoom(e.detail.relative.scale,
                   e.detail.midpoint.clientX,
                   e.detail.midpoint.clientY);
-  photoState.setPhotoStyles(currentPhoto);
 });
 
 // Switch from single-picture view to thumbnail view
@@ -520,8 +521,19 @@ function displayImageInFrame(n, frame) {
   };
 
   // Figure out the size and position of the image
-  // FIXME: this code is duplicated in the PhotoState class. Merge?
-  var photoWidth = images[n].width, photoHeight = images[n].height;
+  var fit = fitImageToScreen(images[n].width, images[n].height);
+  var style = img.style;
+  style.width = fit.width + 'px';
+  style.height = fit.height + 'px';
+  style.left = fit.left + 'px';
+  style.top = fit.top + 'px';
+
+  frame.appendChild(img);
+}
+
+// figure out the size and position of an image based on its size
+// and the screen size.
+function fitImageToScreen(photoWidth, photoHeight) {
   var viewportWidth = photos.offsetWidth, viewportHeight = photos.offsetHeight;
   var scalex = viewportWidth / photoWidth;
   var scaley = viewportHeight / photoHeight;
@@ -530,13 +542,14 @@ function displayImageInFrame(n, frame) {
   // Set the image size and position
   var width = Math.floor(photoWidth * scale);
   var height = Math.floor(photoHeight * scale);
-  var style = img.style;
-  style.width = width + 'px';
-  style.height = height + 'px';
-  style.left = Math.floor((viewportWidth - width) / 2) + 'px';
-  style.top = Math.floor((viewportHeight - height) / 2) + 'px';
 
-  frame.appendChild(img);
+  return {
+    width: width,
+    height: height,
+    left: Math.floor((viewportWidth - width) / 2),
+    top: Math.floor((viewportHeight - height) / 2),
+    scale: scale
+  };
 }
 
 // Switch from thumbnail list view to single-picture view
@@ -557,9 +570,7 @@ function showPhoto(n) {
 
   // Create the PhotoState object that stores the photo pan/zoom state
   // And use it to apply CSS styles to the photo and photo frames.
-  // FIXME: these sizes are hardcoded right now.
-  photoState = new PhotoState(images[n].width, images[n].height);
-  photoState.setPhotoStyles(currentPhoto);
+  photoState = new PhotoState(currentPhoto, images[n].width, images[n].height);
   photoState.setFrameStyles(currentPhotoFrame,
                             previousPhotoFrame,
                             nextPhotoFrame);
@@ -609,10 +620,9 @@ function nextPhoto(time) {
 
   // Start with default pan and zoom state for the new photo
   // And also reset the translation caused by swiping the photos
-  // FIXME: use the real size of the photo
-  photoState = new PhotoState(images[currentPhotoIndex].width,
+  photoState = new PhotoState(currentPhoto,
+                              images[currentPhotoIndex].width,
                               images[currentPhotoIndex].height);
-  photoState.setPhotoStyles(currentPhoto);
   photoState.setFrameStyles(currentPhotoFrame,
                             previousPhotoFrame,
                             nextPhotoFrame);
@@ -624,7 +634,6 @@ function nextPhoto(time) {
   previousPhotoFrame.addEventListener('transitionend', function done(e) {
     // Recompute and reposition the photo that just transitioned off the screen
     previousPhotoState.reset();
-    previousPhotoState.setPhotoStyles(previousPhotoFrame.firstElementChild);
 
     // FIXME: I want a jquery-style once() utility for auto removal
     previousPhotoFrame.removeEventListener('transitionend', done);
@@ -673,9 +682,9 @@ function previousPhoto(time) {
   var nextPhotoState = photoState;
 
   // Create a new photo state
-  photoState = new PhotoState(images[currentPhotoIndex].width,
+  photoState = new PhotoState(currentPhoto,
+                              images[currentPhotoIndex].width,
                               images[currentPhotoIndex].height);
-  photoState.setPhotoStyles(currentPhoto);
   photoState.setFrameStyles(currentPhotoFrame,
                             previousPhotoFrame,
                             nextPhotoFrame);
@@ -687,7 +696,6 @@ function previousPhoto(time) {
   nextPhotoFrame.addEventListener('transitionend', function done(e) {
     // Recompute and reposition the photo that just transitioned off the screen
     nextPhotoState.reset();
-    nextPhotoState.setPhotoStyles(nextPhotoFrame.firstElementChild);
 
     // FIXME: I want a jquery-style once() utility for auto removal
     nextPhotoFrame.removeEventListener('transitionend', done);
@@ -751,14 +759,26 @@ function continueSlideshow() {
  * currently displayed photo as well as the transition state (if any)
  * between photos.
  */
-function PhotoState(width, height) {
-  // Remember the actual size of the photograph
+function PhotoState(img, width, height) {
+  // The <img> element that we manipulate
+  this.img = img;
+
+  // The actual size of the photograph
   this.photoWidth = width;
   this.photoHeight = height;
 
   // Do all the calculations
   this.reset();
 }
+
+// An internal method called by reset(), zoom() and pan() to 
+// set the sie and position of the image element.
+PhotoState.prototype._reposition = function() {
+  this.img.style.width = this.width + 'px';
+  this.img.style.height = this.height + 'px';
+  this.img.style.top = this.top + 'px';
+  this.img.style.left = this.left + 'px';
+};
 
 // Compute the default size and position of the photo
 PhotoState.prototype.reset = function() {
@@ -767,20 +787,21 @@ PhotoState.prototype.reset = function() {
   this.viewportWidth = photos.offsetWidth;
   this.viewportHeight = photos.offsetHeight;
 
-  // Figure out the scale to make the photo fit in the window
-  var scalex = this.viewportWidth / this.photoWidth;
-  var scaley = this.viewportHeight / this.photoHeight;
-  this.baseScale = Math.min(Math.min(scalex, scaley), 1);
-  this.scale = 1;
+  // Compute the default size and position of the image
+  var fit = fitImageToScreen(this.photoWidth, this.photoHeight);
+  this.baseScale = fit.scale;
+  this.width = fit.width;
+  this.height = fit.height;
+  this.top = fit.top;
+  this.left = fit.left;
 
-  // Compute photo size and position at that scale
-  this.width = Math.floor(this.photoWidth * this.baseScale);
-  this.height = Math.floor(this.photoHeight * this.baseScale);
-  this.left = (this.viewportWidth - this.width) / 2;
-  this.top = (this.viewportHeight - this.height) / 2;
+  // Start off with no zoom
+  this.scale = 1;
 
   // We start off with no swipe from left to right
   this.swipe = 0;
+
+  this._reposition(); // Apply the computed size and position
 };
 
 // Zoom in by the specified factor, adjusting the pan amount so that
@@ -847,6 +868,8 @@ PhotoState.prototype.zoom = function(scale, centerX, centerY) {
       this.top = this.viewportHeight - this.height;
     }
   }
+  
+  this._reposition();
 };
 
 PhotoState.prototype.pan = function(dx, dy) {
@@ -904,13 +927,8 @@ PhotoState.prototype.pan = function(dx, dy) {
       }
     }
   }
-};
 
-PhotoState.prototype.setPhotoStyles = function(img) {
-  img.style.width = this.width + 'px';
-  img.style.height = this.height + 'px';
-  img.style.top = this.top + 'px';
-  img.style.left = this.left + 'px';
+  this._reposition();
 };
 
 PhotoState.prototype.setFrameStyles = function(/*frames...*/) {
