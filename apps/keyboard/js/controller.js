@@ -292,21 +292,17 @@ const IMEController = (function() {
     defaultKey = Keyboards[_baseLayout].keys[r][c];
     currentKey = _currentLayout.keys[r][c];
 
-    // in non default layout mode, look for current value
-    if (_layoutMode !== LAYOUT_MODE_DEFAULT) {
-      alternatives = altMap[currentKey.value] || '';
-
     // in uppercar, look for current value or the uppercase of the default
-    } else if (_isUpperCase) {
-      if (altMap[currentValue] !== undefined) {
+    if (_isUpperCase) {
+      if (altMap[currentKey.value] !== undefined) {
         alternatives = altMap[currentKey.value] || '';
       } else {
-        alternatives = altMap[defaultKey.value].toUpperCase() || '';
+        alternatives = (altMap[defaultKey.value] || '').toUpperCase();
       }
 
-    // in default mode, look for default value
+    // in other case, look for default value
     } else {
-      alternatives = altMap[defaultKey.value] || '';
+      alternatives = altMap[currentKey.value] || '';
     }
 
     alternatives = alternatives.split('');
@@ -414,7 +410,6 @@ const IMEController = (function() {
 
     // control hide of alternatives menu
     if (target.parentNode === IMERender.menu) {
-      console.log('clearing');
       clearTimeout(_hideMenuTimeout);
     } else {
       clearTimeout(_hideMenuTimeout);
