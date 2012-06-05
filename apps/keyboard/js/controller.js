@@ -414,10 +414,6 @@ const IMEController = (function() {
         false, false, false, false, 0, null
       );
 
-      console.log(evt.screenX);
-      console.log(_menuLockedArea.left);
-      console.log(_menuLockedArea.right);
-      console.log(_menuLockedArea.ratio);
       menuChildren[Math.floor((evt.screenX-_menuLockedArea.left)/_menuLockedArea.ratio)].dispatchEvent(event);
       return;
     }
