@@ -36,6 +36,11 @@ function AppScreen(apps) {
     // Ignore the homescreen application itself
     if (app.origin.replace(lastSlash, '') == currentHost)
       return;
+
+    // XXX: Ignore System Apps
+    if (app.manifest.hackHiddenFromHomescreen)
+      return;
+
     installedApps[app.origin] = app;
   });
 
