@@ -3,6 +3,8 @@
   into KeyEvent as well as control interface's update.
 */
 
+'use strict';
+
 const IMEController = (function() {
   var BASIC_LAYOUT = -1,
       ALTERNATE_LAYOUT = -2,
@@ -24,9 +26,19 @@ const IMEController = (function() {
       _isUpperCase = false,
       _currentInputType = 'text';
 
+  // show accent char menu (if there is one) after kAccentCharMenuTimeout
+  var _kAccentCharMenuTimeout = 700;
+
+  // if user leave the original key and did not move to
+  // a key within the accent character menu,
+  // after khideAlternativesCharMenuTimeout the menu will be removed.
+  var _khideAlternativesCharMenuTimeout = 500;
+
   // timeout and interval for delete, they could be cancelled on mouse over
   var _deleteTimeout = 0,
-      _deleteInterval = 0;
+      _deleteInterval = 0,
+      _menuTiemout = 0,
+      _hideMenuTimeout = 0;
 
   // backspace repeat delay and repeat rate
   var _kRepeatRate = 100,
@@ -182,7 +194,6 @@ const IMEController = (function() {
 
     // Switch Languages button
     var severalLanguages = IMEManager.keyboards.length > 1 && !layout['hidesSwitchKey'];
-
     if (severalLanguages) {
       // Switch keyboard key
       ratio -= 1;
@@ -322,9 +333,9 @@ const IMEController = (function() {
     IMEFeedback.triggerFeedback();
 
     // Per key alternatives
-    this._menuTimeout = window.setTimeout((function menuTimeout() {
+    _menuTimeout = window.setTimeout((function menuTimeout() {
       _showAlternatives(_currentKey);
-    }), this.kAccentCharMenuTimeout);
+    }), _kAccentCharMenuTimeout);
 
     // Special key: delete
     if (keyCode === KeyEvent.DOM_VK_BACK_SPACE) {
@@ -371,25 +382,24 @@ const IMEController = (function() {
     // reset imminent menus or actions
     clearTimeout(_deleteTimeout);
     clearInterval(_deleteInterval);
-    clearTimeout(this._menuTimeout);
+    clearTimeout(_menuTimeout);
 
     // control hide of alternatives menu
     if (target.parentNode === IMERender.menu) {
-      clearTimeout(this._hideMenuTimeout);
+      clearTimeout(_hideMenuTimeout);
     } else {
-      this._hideMenuTimeout = window.setTimeout(
-        (function hideMenuTimeout() {
+      console.log('no mennu as parent: ');
+      _hideMenuTimeout = window.setTimeout(
+        function hideMenuTimeout() {
           IMERender.hideAlternativesCharMenu();
-          }),
-          this.kHideAlternativesCharMenuTimeout
-        );
-    }
+        },
+        _khideAlternativesCharMenuTimeout
+      );
 
-    // control showing alternatives menu
-    if (target.dataset.alt) {
-      this._menuTimeout = window.setTimeout((function menuTimeout() {
+      // control showing alternatives menu
+      _menuTimeout = window.setTimeout((function menuTimeout() {
         _showAlternatives(target);
-      }), this.kAccentCharMenuTimeout);
+      }), _kAccentCharMenuTimeout);
     }
   }
 
@@ -399,9 +409,9 @@ const IMEController = (function() {
       return;
 
     IMERender.unHighlightKey(_currentKey);
-    this._hideMenuTimeout = window.setTimeout((function hideMenuTimeout() {
+    _hideMenuTimeout = window.setTimeout(function hideMenuTimeout() {
         IMERender.hideAlternativesCharMenu();
-    }), this.khideAlternativesCharMenuTimeout);
+    }, _khideAlternativesCharMenuTimeout);
 
     if (evt.type == 'scroll')
       _isPressing = false; // cancel the following mouseover event
@@ -415,7 +425,7 @@ const IMEController = (function() {
 
     clearTimeout(_deleteTimeout);
     clearInterval(_deleteInterval);
-    clearTimeout(this._menuTimeout);
+    clearTimeout(_menuTimeout);
 
     IMERender.hideAlternativesCharMenu();
 
@@ -612,7 +622,7 @@ const IMEController = (function() {
 
   function _init() {
     IMERender.init();
-    for (event in _imeEvents) {
+    for (var event in _imeEvents) {
       var callback = _imeEvents[event] || null;
       if (callback)
         IMERender.ime.addEventListener(event, callback.bind(this));
@@ -644,14 +654,6 @@ const IMEController = (function() {
     get currentEngine() {
       return this.IMEngines[Keyboards[_baseLayout].imEngine];
     },
-
-    // show accent char menu (if there is one) after kAccentCharMenuTimeout
-    kAccentCharMenuTimeout: 700,
-
-    // if user leave the original key and did not move to
-    // a key within the accent character menu,
-    // after khideAlternativesCharMenuTimeout the menu will be removed.
-    khideAlternativesCharMenuTimeout: 500,
 
     // Taps the space key twice within kSpaceDoubleTapTimeoout
     // to produce a "." followed by a space
