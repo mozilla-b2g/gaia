@@ -10,8 +10,8 @@ var gTonesFrequencies = {
   '*': [941, 1209], '0': [941, 1336], '#': [941, 1477]
 };
 
-function visibilityChanged(url, evt) {
-  var data = evt.data;
+document.addEventListener('mozvisibilitychange', function visibility(e) {
+  var url = document.location.href;
   var params = (function makeURL() {
     var a = document.createElement('a');
     a.href = url;
@@ -25,7 +25,9 @@ function visibilityChanged(url, evt) {
     return rv;
   })();
 
-  if (!data.hidden) {
+  if (document.mozHidden) {
+    Recents.stopUpdatingDates();
+  } else {
     Recents.startUpdatingDates();
 
     var choice = params['choice'];
@@ -34,10 +36,8 @@ function visibilityChanged(url, evt) {
       Contacts.load();
       choiceChanged(contacts);
     }
-  } else {
-    Recents.stopUpdatingDates();
   }
-}
+});
 
 function choiceChanged(target) {
   var choice = target.dataset.choice;
