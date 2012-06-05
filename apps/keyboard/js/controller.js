@@ -84,6 +84,7 @@ const IMEController = (function() {
 
   // add some special keys depending on the input's type
   function _getTypeSensitiveKeys(inputType, ratio, overwrites) {
+    overwrites = overwrites || {};
     var newKeys = [];
     switch (inputType) {
       case 'url':
@@ -94,32 +95,49 @@ const IMEController = (function() {
 
       case 'email':
         ratio -= 2;
-        newKeys.push({ value: ' ', ratio: ratio, keyCode: KeyboardEvent.DOM_VK_SPACE });
+        newKeys.push({ value: '&nbsp', ratio: ratio, keyCode: KeyboardEvent.DOM_VK_SPACE });
         newKeys.push({ value: '@', ratio: 1, keyCode: 64 });
         newKeys.push({ value: '.', ratio: 1, keyCode: 46 });
       break;
 
       case 'text':
 
-        // TODO: Refactor
-        if (overwrites) {
-          if (overwrites['.'] !== false)
-            ratio -= 1;
-          if (overwrites[','] !== false)
-            ratio -= 1;
-          if (overwrites[',']) {
-            newKeys.push({ value: overwrites[','], ratio: 1, keyCode: overwrites[','].charCodeAt(0) });
-          } else if (overwrites[','] !== false) {
-            newKeys.push({ value: overwrites[','], ratio: 1, keyCode: 44 });
-          }
+        if (overwrites['.'] !== false)
+          ratio -= 1;
+        if (overwrites[','] !== false)
+          ratio -= 1;
 
-          if (overwrites['.']) {
-            newKeys.push({ value: overwrites['.'], ratio: 1, keyCode: overwrites['.'].charCodeAt(0) });
-          } else if (overwrites['.'] !== false) {
-            newKeys.push({ value: '.', ratio: 1, keyCode: 46 });
-          }
+        if (overwrites[',']) {
+          newKeys.push({
+            value: overwrites[','],
+            ratio: 1,
+            keyCode:
+            overwrites[','].charCodeAt(0)
+          });
+        } else if (overwrites[','] !== false) {
+          newKeys.push({
+            value: ',',
+            ratio: 1,
+            keyCode: 44
+          });
         }
-        newKeys.push({ value: ' ', ratio: ratio, keyCode: KeyboardEvent.DOM_VK_SPACE });
+
+        newKeys.push({ value: '&nbsp', ratio: ratio, keyCode: KeyboardEvent.DOM_VK_SPACE });
+
+        if (overwrites['.']) {
+          newKeys.push({
+            value: overwrites['.'],
+            ratio: 1,
+            keyCode: overwrites['.'].charCodeAt(0)
+          });
+        } else if (overwrites['.'] !== false) {
+          newKeys.push({
+            value: '.',
+            ratio: 1,
+            keyCode: 46
+          });
+        }
+
       break;
     }
 
