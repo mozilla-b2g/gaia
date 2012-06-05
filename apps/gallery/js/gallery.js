@@ -256,11 +256,11 @@ storages.forEach(function(storage, storageIndex) {
                          console.warn("Malformed JPEG image", file.name);
                          cursor.continue();
                        });
-    }
-    catch(e) {
-      console.error("Exception while enumerating files:", e);
-    }
-  };
+    };
+  }
+  catch(e) {
+    console.error("Exception while enumerating files:", e);
+  }
 });
 
 
@@ -363,20 +363,28 @@ window.addEventListener('keyup', function keyPressHandler(evt) {
   }
 });
 
-//Implement the resize event to let current image to fit the screen
+// We get a resize event when the user rotates the screen
 window.addEventListener('resize', function resizeHandler(evt) {
-/*
- * This is alive's patch
- * 
-  currentPhoto = currentPhotoFrame.firstElementChild;
-  photoState = new PhotoState(SAMPLE_SIZES[currentPhotoIndex][0], SAMPLE_SIZES[currentPhotoIndex][1]);
-  photoState.setFrameStyles(currentPhotoFrame,
-                            previousPhotoFrame,
-                            nextPhotoFrame);
- */
+  // Abandon any current pan or zoom and reset the current photo view
+  photoState.reset()
 
+  // Also reset the size and position of the previous and next photos
+  resetPhoto(currentPhotoIndex-1, previousPhotoFrame.firstElementChild);
+  resetPhoto(currentPhotoIndex+1, nextPhotoFrame.firstElementChild);
+
+  function resetPhoto(n, img) {
+    if (!img || n < 0 || n >= images.length)
+      return;
+
+    var imagedata = images[n];
+    var fit = fitImageToScreen(imagedata.width, imagedata.height);
+    var style = img.style;
+    style.width = fit.width + 'px';
+    style.height = fit.height + 'px';
+    style.left = fit.left + 'px';
+    style.top = fit.top + 'px';
+  }
 });
-
 
 // On a tap just show or hide the back and play buttons.
 photos.addEventListener('tap', function(event) {
