@@ -83,6 +83,12 @@ var PinLock = {
         this.hideKeypad();
         break;
 
+      case 'absent':
+        console.log('No SIM card.');
+        this.reset();
+        this.hideKeypad();
+        break;
+
       default:
         console.log("Unhandled SIM cardState:" + this.conn.cardState);
         break;
