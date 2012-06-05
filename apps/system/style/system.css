@@ -175,6 +175,7 @@ iframe.keyboardFrame {
 }
 
 #screen.fullscreen iframe.keyboardFrame {
+  /* Show it above fullscreen - see https://mxr.mozilla.org/mozilla-central/source/layout/style/ua.css#218 */
   z-index: 2147483647;
 }
 
