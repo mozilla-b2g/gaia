@@ -343,6 +343,9 @@ IconGrid.prototype = {
         iconDiv.id = 'app_' + n;
         iconDiv.className = 'icon';
         iconDiv.style.backgroundImage = 'url("' + icon.iconUrl + '")';
+        // The icon size of 79x79 px is hardcoded in homescreen.css
+        // Keep both in sync !
+        iconDiv.style.backgroundSize = "79px, 79px";
         iconDiv.dataset.url = icon.action;
 
         var centerDiv = document.createElement('div');

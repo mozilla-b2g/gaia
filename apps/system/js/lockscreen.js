@@ -75,10 +75,6 @@ var LockScreen = {
     this.getAllElements();
     this.updateMuteState();
 
-    /* copy the settings values from LocalStorage */
-    this.setEnabled(localStorage['lockscreen']);
-    this.setPassCodeEnabled(localStorage['passcode-lock']);
-
     this.lockIfEnabled();
     this.overlay.classList.remove('uninit');
 
@@ -96,6 +92,23 @@ var LockScreen = {
 
     /* Passcode input pad*/
     this.passcodePad.addEventListener('click', this);
+
+    var self = this;
+
+    SettingsListener.observe('lockscreen.enabled', true, function(value) {
+      if (typeof value === 'string')
+        value = (value == 'true');
+
+      self.setEnabled(value);
+    });
+
+    SettingsListener.observe(
+        'lockscreen.passcode-lock.enabled', true, function(value) {
+      if (typeof value === 'string')
+        value = (value == 'true');
+
+      self.setPassCodeEnabled(value);
+    });
   },
 
   /*
