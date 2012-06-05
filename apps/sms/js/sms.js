@@ -110,7 +110,7 @@ var ContactDataManager = {
   init: function cm_init() {
     this.contactData = {};
   },
-  getContactData: function cm_getContactData(options ,callback) {
+  getContactData: function cm_getContactData(options, callback) {
     if (options.filterBy.indexOf('tel')> -1 && options.filterOp == 'contains') {
       var contact = this.contactData[options.filterValue];
       callback(contact ? [contact]: []);
@@ -120,10 +120,11 @@ var ContactDataManager = {
     req.onsuccess = function onsuccess() {
       // Update the cache before callback.
       if (options.filterBy.indexOf('tel')> -1 && options.filterOp == 'contains') {
-        if (self.contactData[options.filterValue])
-          delete self.contactData[options.filterValue];
-        if (req.result.length > 0)
+        if (req.result.length > 0) {
           self.contactData[options.filterValue] = req.result[0];
+        } else {
+          delete self.contactData[options.filterValue];
+        }
       };
       callback(req.result);    
     };    
@@ -195,15 +196,15 @@ var ConversationListView = {
           return;
 
         msg.dataset.name = msg.dataset.num;
-        nameElement.innerHTML = msg.dataset.num;
+        nameElement.textContent = msg.dataset.num;
       } else {
         // Update message while the contact exist but name does not match.
-        var name = escapeHTML(result[0].name[0]);
+        var name = result[0].name[0];
         if (msg.dataset.name == name)
           return;
 
         msg.dataset.name = name;
-        nameElement.innerHTML = name;    
+        nameElement.textContent = name;    
       }
     });    
   },
