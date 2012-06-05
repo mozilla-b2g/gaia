@@ -19,6 +19,7 @@ const IMEController = (function() {
   // current state of the keyboard
   var _isPressing = null,
       _isWaitingForSecondTap = false,
+      _showingAlternativesMenu = true,
       _currentKey = null,
       _baseLayout = '',
       _currentLayout = null,
@@ -32,12 +33,12 @@ const IMEController = (function() {
   // if user leave the original key and did not move to
   // a key within the accent character menu,
   // after khideAlternativesCharMenuTimeout the menu will be removed.
-  var _khideAlternativesCharMenuTimeout = 500;
+  var _kHideAlternativesCharMenuTimeout = 500;
 
   // timeout and interval for delete, they could be cancelled on mouse over
   var _deleteTimeout = 0,
       _deleteInterval = 0,
-      _menuTiemout = 0,
+      _menuTimeout = 0,
       _hideMenuTimeout = 0;
 
   // backspace repeat delay and repeat rate
@@ -280,38 +281,60 @@ const IMEController = (function() {
   }
 
   function _showAlternatives(key) {
-    var alternatives, altMap, defaultValue, currentValue;
-    var r = key.dataset.row, c = key.dataset.column;
+    var alternatives, altMap, defaultKey, currentKey;
+    var r = key.dataset.row || -1, c = key.dataset.column || -1;
     if (r < 0 || c < 0)
       return;
 
     // get alternatives from layout
     altMap = Keyboards[_baseLayout].alt || {};
-    defaultValue = Keyboards[_baseLayout].keys[r][c].value;
-    currentValue = _currentLayout.keys[r][c].value;
+    defaultKey = Keyboards[_baseLayout].keys[r][c];
+    currentKey = _currentLayout.keys[r][c];
 
     // in non default layout mode, look for current value
     if (_layoutMode !== LAYOUT_MODE_DEFAULT) {
-      alternatives = altMap[currentValue] || '';
+      alternatives = altMap[currentKey.value] || '';
 
     // in uppercar, look for current value or the uppercase of the default
     } else if (_isUpperCase) {
       if (altMap[currentValue] !== undefined) {
-        alternatives = altMap[currentValue] || '';
+        alternatives = altMap[currentKey.value] || '';
       } else {
-        alternatives = altMap[defaultValue].toUpperCase() || '';
+        alternatives = altMap[defaultKey.value].toUpperCase() || '';
       }
 
     // in default mode, look for default value
     } else {
-      alternatives = altMap[defaultValue] || '';
+      alternatives = altMap[defaultKey.value] || '';
     }
 
     alternatives = alternatives.split('');
     if (!alternatives.length)
       return;
 
+    // Mouse redirection
+    var redirectMouseOver = function redirectMouseOver(target) {
+      this.redirect = function km_menuRedirection(ev) {
+        ev.stopPropagation();
+
+        var event = document.createEvent('MouseEvent');
+        event.initMouseEvent(
+          'mouseover', true, true, window, 0,
+          ev.screenX, ev.screenY, ev.clientX, ev.clientY,
+          false, false, false, false, 0, null
+        );
+        target.dispatchEvent(event);
+      };
+      this.addEventListener('mouseover', this.redirect);
+    };
+
     IMERender.showAlternativesCharMenu(key, alternatives);
+    _showingAlternativesMenu = true;
+  }
+
+  function _hideAlternatives() {
+    IMERender.hideAlternativesCharMenu();
+    _showingAlternativesMenu = false;
   }
 
   //
@@ -386,14 +409,15 @@ const IMEController = (function() {
 
     // control hide of alternatives menu
     if (target.parentNode === IMERender.menu) {
+      console.log('clearing');
       clearTimeout(_hideMenuTimeout);
-    } else {
-      console.log('no mennu as parent: ');
+    } else if (_showingAlternativesMenu) {
+      clearTimeout(_hideMenuTimeout);
       _hideMenuTimeout = window.setTimeout(
         function hideMenuTimeout() {
           IMERender.hideAlternativesCharMenu();
         },
-        _khideAlternativesCharMenuTimeout
+        _kHideAlternativesCharMenuTimeout
       );
 
       // control showing alternatives menu
@@ -401,6 +425,7 @@ const IMEController = (function() {
         _showAlternatives(target);
       }), _kAccentCharMenuTimeout);
     }
+
   }
 
   function _onMouseLeave(evt) {
@@ -411,7 +436,7 @@ const IMEController = (function() {
     IMERender.unHighlightKey(_currentKey);
     _hideMenuTimeout = window.setTimeout(function hideMenuTimeout() {
         IMERender.hideAlternativesCharMenu();
-    }, _khideAlternativesCharMenuTimeout);
+    }, _kHideAlternativesCharMenuTimeout);
 
     if (evt.type == 'scroll')
       _isPressing = false; // cancel the following mouseover event
