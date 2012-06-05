@@ -21,6 +21,7 @@ const IMEController = (function() {
       _isWaitingForSecondTap = false,
       _showingAlternativesMenu = true,
       _currentKey = null,
+      _keyWithMenu = null,
       _baseLayout = '',
       _currentLayout = null,
       _layoutMode = LAYOUT_MODE_DEFAULT,
@@ -330,10 +331,13 @@ const IMEController = (function() {
 
     IMERender.showAlternativesCharMenu(key, alternatives);
     _showingAlternativesMenu = true;
+    _keyWithMenu = key;
   }
 
   function _hideAlternatives() {
     IMERender.hideAlternativesCharMenu();
+    if (_keyWithMenu)
+      IMERender.unHighlightKey(_keyWithMenu);
     _showingAlternativesMenu = false;
   }
 
@@ -393,7 +397,8 @@ const IMEController = (function() {
       return;
 
     // remove current highlight
-    IMERender.unHighlightKey(_currentKey);
+    if (!(_showingAlternativesMenu && _currentKey === _keyWithMenu))
+      IMERender.unHighlightKey(_currentKey);
 
     // ignore if moving over del key
     if (keyCode == KeyEvent.DOM_VK_BACK_SPACE)
@@ -411,20 +416,20 @@ const IMEController = (function() {
     if (target.parentNode === IMERender.menu) {
       console.log('clearing');
       clearTimeout(_hideMenuTimeout);
-    } else if (_showingAlternativesMenu) {
+    } else {
       clearTimeout(_hideMenuTimeout);
       _hideMenuTimeout = window.setTimeout(
         function hideMenuTimeout() {
-          IMERender.hideAlternativesCharMenu();
+          _hideAlternatives();
         },
         _kHideAlternativesCharMenuTimeout
       );
-
-      // control showing alternatives menu
-      _menuTimeout = window.setTimeout((function menuTimeout() {
-        _showAlternatives(target);
-      }), _kAccentCharMenuTimeout);
     }
+
+    // control showing alternatives menu
+    _menuTimeout = window.setTimeout((function menuTimeout() {
+      _showAlternatives(target);
+    }), _kAccentCharMenuTimeout);
 
   }
 
@@ -435,7 +440,7 @@ const IMEController = (function() {
 
     IMERender.unHighlightKey(_currentKey);
     _hideMenuTimeout = window.setTimeout(function hideMenuTimeout() {
-        IMERender.hideAlternativesCharMenu();
+        _hideAlternatives()
     }, _kHideAlternativesCharMenuTimeout);
 
     if (evt.type == 'scroll')
@@ -452,7 +457,7 @@ const IMEController = (function() {
     clearInterval(_deleteInterval);
     clearTimeout(_menuTimeout);
 
-    IMERender.hideAlternativesCharMenu();
+    _hideAlternatives();
 
     var target = _currentKey;
     var keyCode = parseInt(target.dataset.keycode);
