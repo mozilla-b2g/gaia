@@ -426,3 +426,5 @@ install-gaia: profile
 	$(ADB) shell kill $(shell $(ADB) shell toolbox ps | grep "b2g" | awk '{ print $$2; }')
 	@echo 'Rebooting b2g now'
 
+install-media-samples:
+	$(ADB) push media-samples/DCIM /sdcard/DCIM
