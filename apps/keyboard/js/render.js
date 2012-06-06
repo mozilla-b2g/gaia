@@ -19,9 +19,12 @@ const IMERender = (function() {
     //and use it for multipling changeScale deppending on the value of pixel density
     //used in media queries
 
-    if(window.innerWidth > 0) {
+    if(window.innerWidth > 0 && window.innerWidth < window.innerHeight) {
       var changeScale = window.innerWidth / 32;
       document.documentElement.style.fontSize = changeScale + 'px';
+    } else if (window.innerWidth > window.innerHeight ) {
+      var changeScale = window.innerWidth / 32 / 2;
+      document.documentElement.style.fontSize = changeScale + 'px'
     }
 
     var content = '';
@@ -42,7 +45,7 @@ const IMERender = (function() {
             alt = layout.alt[key.value].toUpperCase();
           }
         }
-        var ratio = key.ratio || 0;
+        var ratio = key.ratio || 1;
 
         //key with + key separation in rems
         var keyWidth = ratio;

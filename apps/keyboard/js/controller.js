@@ -109,7 +109,7 @@ const IMEController = (function() {
       break;
 
       case 'email':
-        ratio -= 2;
+        // ratio -= 2;
         newKeys.push({ value: '&nbsp', ratio: ratio, keyCode: KeyboardEvent.DOM_VK_SPACE });
         newKeys.push({ value: '@', ratio: 1, keyCode: 64 });
         newKeys.push({ value: '.', ratio: 1, keyCode: 46 });
@@ -118,9 +118,9 @@ const IMEController = (function() {
       case 'text':
 
         if (overwrites['.'] !== false)
-          ratio -= 1;
+          // ratio -= 1;
         if (overwrites[','] !== false)
-          ratio -= 1;
+          // ratio -= 1;
 
         if (overwrites[',']) {
           newKeys.push({
@@ -198,7 +198,7 @@ const IMEController = (function() {
     var severalLanguages = IMEManager.keyboards.length > 1 && !layout['hidesSwitchKey'];
     if (severalLanguages) {
       // Switch keyboard key
-      ratio -= 1;
+      // ratio -= 1;
       newKeys.push({ value: '&#x1f310;', ratio: 1, keyCode: SWITCH_KEYBOARD });
     }
 
@@ -206,9 +206,9 @@ const IMEController = (function() {
     if (!layout['disableAlternateLayout']) {
       switchKey = _getSwitchKey(layoutMode);
       if (severalLanguages === false)
-        switchKey.ratio += 1;
+        // switchKey.ratio += 1;
       newKeys.push(switchKey);
-      ratio -= switchKey.ratio;
+      // ratio -= switchKey.ratio;
     }
     // Text types specific keys
     if (!layout['typeInsensitive']) {
