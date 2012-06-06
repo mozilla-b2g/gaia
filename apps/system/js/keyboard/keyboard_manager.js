@@ -26,7 +26,6 @@ var KeyboardManager = (function() {
     // without postMessages between Keyboard and System
     window.addEventListener('message', function receiver(e) {
       var currentApp = WindowManager.getAppFrame(WindowManager.getDisplayedApp());
-      console.log(e.data);
       var event = JSON.parse(e.data);
       if (event.action == 'resize') {
         WindowManager.setAppSize(WindowManager.getDisplayedApp());
@@ -53,6 +52,7 @@ var KeyboardManager = (function() {
     }
 
     window.addEventListener('showime', function showImeListener(evt) {
+      keyboardFrame.style.display = 'block';
       var event = { type: evt.type };
       if (evt.detail) {
         event.detail = { type: evt.detail.type };

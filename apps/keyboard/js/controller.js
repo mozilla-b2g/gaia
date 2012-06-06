@@ -277,7 +277,6 @@ const IMEController = (function() {
 
   function _updateTargetWindowHeight() {
     var resizeAction = {action: 'resize', height: IMERender.ime.scrollHeight + 'px'};
-    console.log('Resizing: '+resizeAction.height);
     parent.postMessage(JSON.stringify(resizeAction), '*');
   }
 
@@ -743,9 +742,8 @@ const IMEController = (function() {
     uninit: _uninit,
 
     showIME: function(type) {
-      var computedLayout;
+      delete IMERender.ime.dataset.hidden;
       _currentInputType = _mapType(type); // TODO: this should be unneccesary
-      _reset();
       _draw(_baseLayout, _currentInputType, _layoutMode);
 
 /* XXX: Not yet implemented
@@ -760,14 +758,13 @@ const IMEController = (function() {
     },
     
     hideIME: function km_hideIME(imminent) {
-
+      console.log('hiding');
       if (IMERender.ime.dataset.hidden)
         return;
 
       IMERender.ime.dataset.hidden = 'true';
-
-      // Reset the keyboard mode
-      this.currentKeyboardMode = '';
+      _reset();
+      _layoutMode = LAYOUT_MODE_DEFAULT;
 
       if (imminent) {
         var ime = IMERender.ime;
@@ -775,8 +772,6 @@ const IMEController = (function() {
         window.setTimeout(function remoteImminent() {
           ime.classList.remove('imminent');
         }, 0);
-
-        ime.innerHTML = '';
       }
     },
 
@@ -786,7 +781,7 @@ const IMEController = (function() {
 
       // we presume that the targetWindow has been restored by
       // window manager to full size by now.
-      IMERender.getTargetWindowMetrics();
+//      IMERender.getTargetWindowMetrics();
       _draw();
     },
 
