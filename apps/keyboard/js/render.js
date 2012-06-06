@@ -19,20 +19,11 @@ const IMERender = (function() {
     //and use it for multipling changeScale deppending on the value of pixel density
     //used in media queries
 
-    if ( window.innerWidth > 0 && window.innerWidth < window.innerHeight ) {
-      var changeScale = window.innerWidth / 32;
-      document.documentElement.style.fontSize = changeScale + 'px';
-     console.log( "portrait");
-    } 
-    if ( window.innerWidth > window.innerHeight) {
-      var changeScale = window.innerWidth / 80;
-      document.documentElement.style.fontSize = changeScale + 'px';
-      console.log( "landscape");
-    }
-
     var content = '';
     var layoutWidth = layout.width || 10;
     var widthRatio = 10 / layoutWidth;
+
+    resizeUI();
 
     layout.keys.forEach((function buildKeyboardRow(row, nrow) {
       content += '<div class="keyboard-row">';
@@ -116,6 +107,20 @@ const IMERender = (function() {
     this.menu.style.display = 'none';
   };
 
+  var resizeUI = function() {
+
+     if ( window.innerWidth > 0 && window.innerWidth < window.innerHeight ) {
+        var changeScale = window.innerWidth / 32;
+        document.documentElement.style.fontSize = changeScale + 'px';
+       console.log( "portrait");
+      } 
+      if ( window.innerWidth > window.innerHeight) {
+        var changeScale = window.innerWidth / 64;
+        document.documentElement.style.fontSize = changeScale + 'px';
+        console.log( "landscape");
+      }
+
+  };
 
   //
   // Private Methods
@@ -140,6 +145,7 @@ const IMERender = (function() {
     'unHighlightKey': unHighlightKey,
     'showAlternativesCharMenu': showAlternativesCharMenu,
     'hideAlternativesCharMenu': hideAlternativesCharMenu,
-    'setUpperCaseLock': setUpperCaseLock
+    'setUpperCaseLock': setUpperCaseLock,
+    'resizeUI': resizeUI
   };
 })();
