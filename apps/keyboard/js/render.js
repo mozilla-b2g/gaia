@@ -19,9 +19,15 @@ const IMERender = (function() {
     //and use it for multipling changeScale deppending on the value of pixel density
     //used in media queries
 
-    if(window.innerWidth > 0 ) {
+    if ( window.innerWidth > 0 && window.innerWidth < window.innerHeight ) {
       var changeScale = window.innerWidth / 32;
       document.documentElement.style.fontSize = changeScale + 'px';
+     console.log( "portrait");
+    } 
+    if ( window.innerWidth > window.innerHeight) {
+      var changeScale = window.innerWidth / 80;
+      document.documentElement.style.fontSize = changeScale + 'px';
+      console.log( "landscape");
     }
 
     var content = '';
