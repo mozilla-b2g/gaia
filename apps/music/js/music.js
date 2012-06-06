@@ -214,6 +214,11 @@ var PlayerView = {
   init: function pv_init() {
     this.title = document.getElementById('player-cover-title');
     this.artist = document.getElementById('player-cover-artist');
+
+    this.seekBar = document.getElementById('player-seek-bar-progress');
+    this.seekElapsed = document.getElementById('player-seek-elapsed');
+    this.seekRemaining = document.getElementById('player-seek-remaining');
+
     this.playControl = document.getElementById('player-controls-play');
 
     this.isPlaying = false;
@@ -221,6 +226,7 @@ var PlayerView = {
     this.currentIndex = 0;
 
     this.view.addEventListener('click', this);
+    this.audio.ontimeupdate = this.updateSeekBar.bind(this);
   },
 
   play: function pv_play(target) {
@@ -266,6 +272,19 @@ var PlayerView = {
     this.currentIndex--;
 
     this.play(songElements[this.currentIndex].firstElementChild);
+  },
+
+  updateSeekBar: function pv_updateSeekBar() {
+    if (this.isPlaying) {
+      var lastBuffered = this.audio.buffered.end(this.audio.buffered.length-1);
+
+      this.seekBar.min = this.audio.startTime;
+      this.seekBar.max = lastBuffered;
+      this.seekBar.value = this.audio.currentTime;
+
+      this.seekElapsed.textContent = formatTime(this.audio.currentTime);
+      this.seekRemaining.textContent = formatTime(lastBuffered - this.audio.currentTime);
+    }
   },
 
   handleEvent: function pv_handleEvent(evt) {
