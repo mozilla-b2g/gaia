@@ -39,8 +39,8 @@ function AppScreen(apps) {
     if (app.origin.replace(lastSlash, '') == currentHost)
       return;
 
-    // XXX: Ignore System Apps
-    if (app.manifest.hackHiddenFromHomescreen)
+    // XXX: Ignoring apps without an icon
+    if (!app.manifest.icons)
       return;
 
     installedApps[app.origin] = app;
@@ -93,16 +93,14 @@ AppScreen.prototype = {
       // Most apps will host their own icons at their own origin.
       // If no icon is defined we'll get this undefined one.
       var icon = '';
-      if (app.manifest.icons) {
-        if ('120' in app.manifest.icons) {
-          icon = app.manifest.icons['120'];
-        } else {
-          // Get all sizes
-          var sizes = Object.keys(app.manifest.icons).map(parseInt);
-          // Largest to smallest
-          sizes.sort(function(x, y) { return y - x; });
-          icon = app.manifest.icons[sizes[0]];
-        }
+      if ('120' in app.manifest.icons) {
+        icon = app.manifest.icons['120'];
+      } else {
+        // Get all sizes
+        var sizes = Object.keys(app.manifest.icons).map(parseInt);
+        // Largest to smallest
+        sizes.sort(function(x, y) { return y - x; });
+        icon = app.manifest.icons[sizes[0]];
       }
 
       // If the icons is a fully-qualifed URL, leave it alone
@@ -121,8 +119,6 @@ AppScreen.prototype = {
       if (app.manifest.locales && app.manifest.locales[lang])
         name = app.manifest.locales[lang].name || name;
 
-      if (!icon)
-        icon = 'http://' + document.location.host + '/style/icons/Unknown.png';
       apps.push({ 'icon': icon, 'name': name, 'origin': origin });
     }
 
