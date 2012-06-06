@@ -176,10 +176,16 @@ var WindowManager = (function() {
         sprite.classList.add('faded');
 
         // Let the app know that it has become visible
-        frame.contentWindow.postMessage({
-          message: 'visibilitychange',
-          hidden: false
-        }, '*');
+        if (!frame.contentWindow) {
+            // visibilitychange for remote content
+            //   https://github.com/mozilla-b2g/gaia/issues/1590
+            console.warn('Failed to send visibilitychange to remote content');
+        } else {
+            frame.contentWindow.postMessage({
+              message: 'visibilitychange',
+              hidden: false
+            }, '*');
+        }
       }
       else {
         // The second transition has just completed
@@ -228,10 +234,16 @@ var WindowManager = (function() {
     frame.blur();
 
     // Let the app know that it has become hidden
-    frame.contentWindow.postMessage({
-      message: 'visibilitychange',
-      hidden: true
-    }, '*');
+    if (!frame.contentWindow) {
+        // visibilitychange for remote content
+        //   https://github.com/mozilla-b2g/gaia/issues/1590
+        console.warn('Failed to send visibilitychange to remote content');
+    } else {
+      frame.contentWindow.postMessage({
+        message: 'visibilitychange',
+        hidden: true
+      }, '*');
+    }
 
     // If this was a fullscreen app, leave full-screen mode
     if (manifest.fullscreen)
@@ -394,6 +406,101 @@ var WindowManager = (function() {
     if (exceptions.indexOf(manifest.name) == -1) {
       frame.setAttribute('mozbrowser', 'true');
       frame.setAttribute('mozapp', manifestURL);
+
+      // Run these apps out of process by default (except when OOP is
+      // forced off).  This is temporary: all apps will be out of
+      // process.
+      //
+      // When we're down to just esoteric bugs here (like edge cases
+      // in telephony API), this needs to become a blacklist.
+      var outOfProcessWhitelist = [
+          // Crash when placing call
+          //   https://bugzilla.mozilla.org/show_bug.cgi?id=761925
+          // Cross-process fullscreen
+          //   https://bugzilla.mozilla.org/show_bug.cgi?id=684620
+          // Cross-process IME
+          //   https://bugzilla.mozilla.org/show_bug.cgi?id=761927
+          // Cross-process MediaStorage
+          //   https://bugzilla.mozilla.org/show_bug.cgi?id=761930
+          // Cross-process settings
+          //   https://bugzilla.mozilla.org/show_bug.cgi?id=743018
+          // Mouse click not delivered
+          //   https://bugzilla.mozilla.org/show_bug.cgi?id=761934
+          // Nested content processes
+          //   https://bugzilla.mozilla.org/show_bug.cgi?id=761935
+          // Stop audio when app dies
+          //   https://bugzilla.mozilla.org/show_bug.cgi?id=761936
+          // WebGL texture sharing:
+          //   https://bugzilla.mozilla.org/show_bug.cgi?id=728524
+
+          //'Browser',
+          //   Cross-process IME
+          //   Nested content processes
+
+          'Calculator',
+
+          //'Camera',
+          //   Cross-process camera control
+          //   Cross-process preview stream
+
+          //'Clock',
+          //   Cross-process IME (to program alarm)
+
+          //'CrystalSkull',
+          //   WebGL texture sharing (for full perf)
+
+          //'CubeVid',
+          //   Stop audio when app dies
+          //   WebGL texture sharing (for full perf)
+
+          //'Cut The Rope',
+          //   Mouse click not delivered
+          //   Stop audio when app dies
+
+          //'Dialer',
+          //   Crash when placing call
+          //   ...
+
+          //'Gallery',
+          //   Cross-process MediaStorage
+
+          //'Keyboard'
+          //   Cross-process IME
+
+          //'Market',
+          //   Cross-process IME
+          //   Cross-process mozApps
+
+          //'Messages',
+          //   Cross-process IME
+
+          //'Music',
+          //   Cross-process MediaStorage
+          //   Stop audio when app dies
+
+          //'PenguinPop',
+          //   Mouse click not delivered
+          //   Stop audio when app dies
+
+          //'Settings',
+          //   Cross-process IME
+          //   Cross-process settings
+
+          //'Tasks',
+          //   Cross-process IME
+
+          //'TowerJelly',
+          //   Mouse click not delivered
+
+          //'Video',
+          //   Cross-process fullscreen
+          //   Cross-process MediaStorage
+          //   Stop audio when app dies
+      ];
+      if (outOfProcessWhitelist.indexOf(manifest.name) >= 0) {
+        // FIXME: content shouldn't control this directly
+        frame.setAttribute('remote', 'true');
+      }
     }
 
     // Add the iframe to the document
