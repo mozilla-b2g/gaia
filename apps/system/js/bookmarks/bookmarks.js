@@ -73,7 +73,7 @@
     }
 
     // In case bug 748896 has not landed, add a timeout
-    timeout= setTimeout(main, kFallbackTimeout);
+    timeout = setTimeout(main, kFallbackTimeout);
 
     installNextBookmark();
   };

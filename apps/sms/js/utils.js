@@ -48,12 +48,9 @@ function prettyDate(time) {
   };
   var timer = setInterval(updatePrettyDate, 60 * 1000);
 
-  window.addEventListener('message', function visibleAppUpdatePrettyDate(evt) {
-    var data = evt.data;
-    if (data.message !== 'visibilitychange')
-      return;
+  document.addEventListener('mozvisibilitychange', function visibility(e) {
     clearTimeout(timer);
-    if (!data.hidden) {
+    if (!document.mozHidden) {
       updatePrettyDate();
       timer = setInterval(updatePrettyDate, 60 * 1000);
     }

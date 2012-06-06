@@ -38,10 +38,10 @@ function startup() {
   // getting orientation data.  See:
   // https://bugzilla.mozilla.org/show_bug.cgi?id=753245
   function dumbListener2(event) {}
-  window.addEventListener("devicemotion", dumbListener2, false);
+  window.addEventListener('devicemotion', dumbListener2);
 
   window.setTimeout(function() {
-    window.removeEventListener("devicemotion", dumbListener2, false);
+    window.removeEventListener('devicemotion', dumbListener2);
   }, 2000);
 }
 
@@ -171,3 +171,28 @@ var Applications = {
 };
 
 window.addEventListener('mozChromeEvent', Applications);
+
+window.addEventListener('mozfullscreenchange', function onfullscreen(e) {
+  var classes = document.getElementById('screen').classList;
+  document.mozFullScreen ?
+    classes.add('fullscreen') : classes.remove('fullscreen');
+});
+
+try {
+  window.navigator.mozKeyboard.onfocuschange = function onfocuschange(evt) {
+    switch (evt.detail.type) {
+      case 'blur':
+        var event = document.createEvent('CustomEvent');
+        event.initCustomEvent('hideime', true, true, {});
+        window.dispatchEvent(event);
+        break;
+
+      default:
+        var event = document.createEvent('CustomEvent');
+        event.initCustomEvent('showime', true, true, evt.detail);
+        window.dispatchEvent(event);
+        break;
+    }
+  };
+} catch(e) {}
+

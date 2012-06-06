@@ -63,7 +63,7 @@ var BackgroundServiceManager = (function bsm() {
     var frame = document.createElement('iframe');
     frame.className = 'backgroundWindow';
     frame.setAttribute('mozbrowser', 'true');
-    frame.setAttribute('mozapp', 'true');
+    frame.setAttribute('mozapp', app.manifestURL);
     frame.src = origin + app.manifest.background_page;
     frames[origin] = frame;
 
