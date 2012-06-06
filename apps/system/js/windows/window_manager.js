@@ -489,6 +489,10 @@ var WindowManager = (function() {
           //'Tasks',
           //   Cross-process IME
 
+          //'Template',
+          //   Run this in or out of process, depending on what you
+          //   want to test.
+
           //'TowerJelly',
           //   Mouse click not delivered
 
