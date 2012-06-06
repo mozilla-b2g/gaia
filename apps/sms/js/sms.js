@@ -101,6 +101,40 @@ var DelayDeleteManager = {
   },
 };
 
+/* Contact Manager for maintaining contact cache and access contact DB:
+ * 1. Maintain used contacts in contactData object literal.
+ * 2. getContactData: It will have both syncronus and asyncronus callback.
+ *      If contact updated, asyncronus run will update cache than execute callback.
+*/
+var ContactDataManager = {
+  init: function cm_init() {
+    this.contactData = {};
+  },
+  getContactData: function cm_getContactData(options, callback) {
+    if (options.filterBy.indexOf('tel')> -1 && options.filterOp == 'contains') {
+      var contact = this.contactData[options.filterValue];
+      callback(contact ? [contact]: []);
+    }
+    var self = this;
+    var req = window.navigator.mozContacts.find(options);
+    req.onsuccess = function onsuccess() {
+      // Update the cache before callback.
+      if (options.filterBy.indexOf('tel')> -1 && options.filterOp == 'contains') {
+        if (req.result.length > 0) {
+          self.contactData[options.filterValue] = req.result[0];
+        } else {
+          delete self.contactData[options.filterValue];
+        }
+      };
+      callback(req.result);    
+    };    
+    req.onerror = function onerror() {
+      var msg = 'Contact finding error. Error: ' + req.errorCode;
+      console.log(msg);  
+    };    
+  },
+};
+
 var ConversationListView = {
   get view() {
     delete this.view;
@@ -145,8 +179,36 @@ var ConversationListView = {
     window.addEventListener('hashchange', this);
 
     this.updateConversationList();
+    document.addEventListener('mozvisibilitychange', this);
   },
 
+  updateMsgWithContact: function cl_updateMsgWithContact(msg) {
+    var nameElement = msg.getElementsByClassName('name')[0];
+    var options = {
+      filterBy: ['tel'],
+      filterOp: 'contains',
+      filterValue: msg.dataset.num
+    };
+    ContactDataManager.getContactData(options, function contactCallback(result) {
+      if (result.length === 0) {
+        // Update message while the contact delected but name exist.
+        if (msg.dataset.name == msg.dataset.num)
+          return;
+
+        msg.dataset.name = msg.dataset.num;
+        nameElement.textContent = msg.dataset.num;
+      } else {
+        // Update message while the contact exist but name does not match.
+        var name = result[0].name[0];
+        if (msg.dataset.name == name)
+          return;
+
+        msg.dataset.name = name;
+        nameElement.textContent = name;    
+      }
+    });    
+  },
+  
   updateConversationList: function cl_updateCL(pendingMsg) {
     var self = this;
     /*
@@ -160,69 +222,56 @@ var ConversationListView = {
         messages.unshift(pendingMsg);
 
       var conversations = {};
-      var request = window.navigator.mozContacts.find({});
-      request.onsuccess = function findCallback() {
-        var contacts = request.result;
+      for (var i = 0; i < messages.length; i++) {
+        var message = messages[i];
 
-        contacts.sort(function contactsSort(a, b) {
-          return a.familyName[0].toUpperCase() > b.familyName[0].toUpperCase();
-        });
+        // XXX why does this happen?
+        if (!message.delivery)
+          continue;
 
-        contacts.forEach(function(contact, i) {
-          var num = contact.tel.length ? contact.tel[0].number : null;
+        var num = message.delivery == 'received' ?
+                  message.sender : message.receiver;
+
+        var conversation = conversations[num];
+        if (conversation && !conversation.hidden)
+          continue;
+
+        if (!conversation) {
           conversations[num] = {
-            'hidden': true,
-            'name': contact.name[0],
+            'hidden': false,
+            'body': message.body,
+            'name': num,
             'num': num,
-            'body': '',
-            'timestamp': '',
-            'id': parseInt(i)
+            'timestamp': message.timestamp.getTime(),
+            'id': i
           };
-        });
-
-        for (var i = 0; i < messages.length; i++) {
-          var message = messages[i];
-
-          // XXX why does this happen?
-          if (!message.delivery)
-            continue;
-
-          var num = message.delivery == 'received' ?
-                    message.sender : message.receiver;
-
-          var conversation = conversations[num];
-          if (conversation && !conversation.hidden)
-            continue;
-
-          if (!conversation) {
-            conversations[num] = {
-              'hidden': false,
-              'body': message.body,
-              'name': num,
-              'num': num,
-              'timestamp': message.timestamp.getTime(),
-              'id': i
-            };
-          } else {
-            conversation.hidden = false;
-            conversation.timestamp = message.timestamp.getTime();
-            conversation.body = message.body;
-          }
+        } else {
+          conversation.hidden = false;
+          conversation.timestamp = message.timestamp.getTime();
+          conversation.body = message.body;
         }
+      }
 
-        var fragment = '';
-        for (var num in conversations) {
-           if (self.delNumList.indexOf(num) > -1) {
-             continue;
-           }
-          var msg = self.createNewConversation(conversations[num]);
-          fragment += msg;
+      var fragment = '';
+      for (var num in conversations) {
+        if (self.delNumList.indexOf(num) > -1) {
+          continue;
         }
-        self.view.innerHTML = fragment;
-        if (self.delNumList.length > 0) {
-          self.showUndoToolbar();
-        }
-      };
+        var msg = self.createNewConversation(conversations[num]);
+        fragment += msg;
+      }
+      self.view.innerHTML = fragment;
+
+      var conversationList = self.view.children;
+      
+      // update the conversation sender/receiver name with contact data. 
+      for (var i = 0; i < conversationList.length; i++) {
+        self.updateMsgWithContact(conversationList[i]);
+      }
+
+      if (self.delNumList.length > 0) {
+        self.showUndoToolbar();
+      }
     }, null);
   },
 
@@ -316,6 +365,14 @@ var ConversationListView = {
         // When Event listening target is this.view and clicked target has href entry.
         if (evt.currentTarget == this.view && evt.target.href)
           this.onListItemClicked(evt);
+        break;
+
+      case 'mozvisibilitychange':
+        if (document.mozHidden)
+          return;
+      
+        // Refresh the view when app return to foreground.
+        this.updateConversationList();
         break;
     }
   },
@@ -444,6 +501,8 @@ var ConversationView = {
     var num = this.getNumFromHash();
     if (num)
       this.showConversation(num);
+    
+    document.addEventListener('mozvisibilitychange', this);
   },
 
   getNumFromHash: function cv_getNumFromHash() {
@@ -522,21 +581,22 @@ var ConversationView = {
       filterOp: 'contains',
       filterValue: num
     };
-    var request = window.navigator.mozContacts.find(options);
-    request.onsuccess = function findCallback() {
-      if (request.result.length == 0)
-        return;
-
-      var contact = request.result[0];
-      self.title.textContent = contact.name;
+    ContactDataManager.getContactData(options, function getContact(result) {
+      var contactImageSrc = 'style/images/contact-placeholder.png';
+      if (result.length == 0) {
+        self.title.textContent = num;
+      } else {
+        var contact = result[0];
+        self.title.textContent = contact.name[0];
+        //TODO: apply the real contact image:
+        //contactImageSrc = contact.photo;
+      }
       var images = self.view.querySelectorAll('.photo img');
       for (var i = 0; i < images.length; i++)
-        images[i].src = 'style/images/contact-placeholder.png';
-    };
+        images[i].src = contactImageSrc;      
+    });
 
     this.num.value = num;
-
-    this.title.textContent = num;
     this.title.num = num;
 
     MessageManager.getMessages(function mm_getMessages(messages) {
@@ -628,6 +688,16 @@ var ConversationView = {
         this.updateInputHeight();
         this.scrollViewToBottom();
         break;
+
+      case 'mozvisibilitychange':
+        if (document.mozHidden)
+          return;
+      
+        // Refresh the view when app return to foreground.
+        var num = this.getNumFromHash();
+        if (num)
+          this.showConversation(num);
+        break;
     }
   },
   close: function cv_close() {
@@ -705,6 +775,7 @@ window.addEventListener('localized', function showBody() {
     var request = navigator.mozSettings.getLock().get('language.current');
     request.onsuccess = function() {
       selectedLocale = request.result['language.current'] || navigator.language;
+      ContactDataManager.init();
       ConversationView.init();
       ConversationListView.init();
     }

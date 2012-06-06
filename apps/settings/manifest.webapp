@@ -7,8 +7,6 @@
     "url": "https://github.com/andreasgal/gaia"
   },
   "permissions": [
-    "screen",
-    "power"
   ],
   "locales": {
     "ar": {

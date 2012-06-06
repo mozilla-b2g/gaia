@@ -35,6 +35,7 @@ var PinLock = {
 
   reset: function reset() {
     this.pinCode = '';
+    this.updateCodeUI();
   },
 
   unlockSim: function unlockSim() {
@@ -69,10 +70,19 @@ var PinLock = {
   },
 
   handleSim: function handleSim() {
-    if (this.conn.cardState == 'pin_required') {
-      console.log('SIM is locked, unlocking ...');
-      this.pinCode = '';
-      this.showKeypad();
+    // Currently we handle an unlocked sim and an absent sim in the same way.
+    // This might change in the future.
+    switch (this.conn.cardState) {
+      case 'pin_required':
+        this.pinCode = '';
+        this.showKeypad();
+        break;
+
+      case 'ready':
+      default:
+        this.reset();
+        this.hideKeypad();
+        break;
     }
   },
 
@@ -104,12 +114,6 @@ var PinLock = {
 
           // Back
           case 'b':
-            // Back to lock screen
-            if (!this.pinCode) {
-              LockScreen.lock();
-              break;
-            }
-
             // Back one character
             this.pinCode = this.pinCode.substr(0, this.pinCode.length - 1);
             this.updateCodeUI();
