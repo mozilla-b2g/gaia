@@ -33,7 +33,7 @@ var KeyboardManager = (function() {
         currentApp.style.height = '-moz-calc(' + currentHeight + ' - ' + event.height + ')';
         currentApp.classList.add('keyboardOn');
         keyboardFrame.style.display = 'block';
-        keyboardFrame.style.height = '100%';
+        keyboardFrame.classList.add('on');
       }
     });
   };
@@ -46,7 +46,7 @@ var KeyboardManager = (function() {
     // https://bugzilla.mozilla.org/show_bug.cgi?id=754083
 
     function hideImeListener(evt) {
-      keyboardFrame.style.height = 0;
+      keyboardFrame.classList.remove('on');
       WindowManager.setAppSize(WindowManager.getDisplayedApp());
     }
 
@@ -63,7 +63,7 @@ var KeyboardManager = (function() {
     window.addEventListener('appwillclose', function appCloseListener(evt) {
       var currentApp = WindowManager.getAppFrame(WindowManager.getDisplayedApp());
       window.removeEventListener('hideime', hideImeListener);
-      keyboardFrame.style.height = 0;
+      keyboardFrame.classList.remove('on');
       currentApp.style.height = 0;
       currentApp.classList.remove('keyboardOn');
     });
