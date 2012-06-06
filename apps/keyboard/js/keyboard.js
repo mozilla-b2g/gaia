@@ -188,7 +188,7 @@ const IMEManager = {
 
         this._formerWidth = currentWidth;
         this._formerHeight = currentHeight;
-
+        IMERender.resizeUI();
         break;
 
       case 'unload':
