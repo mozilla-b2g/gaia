@@ -159,7 +159,7 @@ Shortcuts.prototype = {
   build: function () {
     var shortcuts = document.getElementById('shortcuts');
 
-    this.shortcutApps.forEach(function (app) {
+    this.shortcutApps.forEach(function addShortcut(app) {
       // Most apps will host their own icons at their own origin.
       // If no icon is defined we'll get this undefined one.
       var icon = '';
