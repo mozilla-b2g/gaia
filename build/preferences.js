@@ -134,7 +134,10 @@ directories.forEach(function readManifests(dir) {
 });
 
 content += "user_pref(\"b2g.privileged.domains\", \"" + privileges.join(",") + "\");\n\n";
-content += "user_pref(\"network.dns.localDomains\", \"" + privileges.join(",") + "\");\n";
+
+if (LOCAL_DOMAINS) {
+  content += "user_pref(\"network.dns.localDomains\", \"" + privileges.join(",") + "\");\n";
+}
 
 for (let name in permissions) {
   let perm = permissions[name];

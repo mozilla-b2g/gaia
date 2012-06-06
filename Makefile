@@ -20,6 +20,8 @@ GAIA_DOMAIN?=gaiamobile.org
 
 HOMESCREEN?=http://system.$(GAIA_DOMAIN)
 
+LOCAL_DOMAINS?=1
+
 ADB?=adb
 
 DEBUG?=0
@@ -217,7 +219,7 @@ install-settingsdb: settingsdb install-xulrunner
 preferences: install-xulrunner
 	@echo "Generating prefs.js..."
 	@mkdir -p profile
-	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)$(GAIA_PORT)"; const DEBUG = $(DEBUG); const HOMESCREEN = "$(HOMESCREEN)"; GAIA_PORT = "$(GAIA_PORT)"' build/preferences.js
+	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)$(GAIA_PORT)"; const DEBUG = $(DEBUG); const LOCAL_DOMAINS= $(LOCAL_DOMAINS); const HOMESCREEN = "$(HOMESCREEN)"; GAIA_PORT = "$(GAIA_PORT)"' build/preferences.js
 	@echo "Done"
 
 
