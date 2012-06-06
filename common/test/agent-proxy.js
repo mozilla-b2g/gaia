@@ -2,7 +2,7 @@
 
   var worker = new TestAgent.BrowserWorker({
         /* this is where your tests will be loaded into */
-        sandbox: './sandbox.html'
+        sandbox: '/test/unit/_sandbox.html'
       });
 
   worker.use(TestAgent.BrowserWorker.PostMessage);
@@ -11,7 +11,8 @@
     ui: 'tdd',
     /* path to mocha */
     mochaUrl: CommonResourceLoader.url('/common/vendor/mocha/mocha.js'),
-    testHelperUrl: CommonResourceLoader.url('/common/test/helper.js')
+    testHelperUrl: CommonResourceLoader.url('/common/test/helper.js'),
+    reporter: null
   });
 
   //enable let, yield, etc...

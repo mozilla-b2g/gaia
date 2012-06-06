@@ -181,7 +181,15 @@ iframe.backgroundWindow {
   left: -1px;
   width: 1px;
   height: 1px;
-
   visibility: hidden;
+}
+
+iframe.keyboardFrame {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+	height:0;
+	border: 0;
+	z-index: 10002;
 }
 

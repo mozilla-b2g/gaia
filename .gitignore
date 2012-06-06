@@ -6,7 +6,12 @@
 manifest.appcache
 apps/settings/gaia-commit.txt
 apps/test-agent/test/config.json
+apps/*/test/unit/_sandbox.html
+apps/*/test/unit/_proxy.html
 profile/
 xulrunner/
 xulrunner-sdk/
 node_modules
+test-output.xml
+mocha-test-results.html
+custom-prefs.js

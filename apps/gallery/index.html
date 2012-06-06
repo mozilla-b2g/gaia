@@ -6,24 +6,32 @@
     <title>Gallery</title>
     <link rel="stylesheet" href="style/gallery.css" type="text/css" />
     <link rel="resource" type="application/l10n" href="locale/gallery.properties" />
+    <!-- Compatibility -->
     <script>
-      var host = document.location.host;
-      var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-      var src = 'http://' + domain + '/webapi.js';
+      if (document.location.protocol === 'file:') {
+        var paths = document.location.pathname.split('/');
+        paths.pop();
+        paths.pop();
+        paths.pop();
+        var src = 'file://' + paths.join('/') + '/webapi.js';
+      } else {
+        var host = document.location.host;
+        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+        var src = 'http://' + domain + '/webapi.js';
+      }
       document.write('<script src="' + src + '"><\/script>');
     </script>
-    </script>
     <script defer src="js/GestureDetector.js"></script>
+    <script defer src="js/JPEGMetadata.js"></script>
     <script defer src="js/gallery.js"></script>
   </head>
 
   <body class="hidden">
-    <header id="header">
-      <h1 data-l10n-id="pictures">Pictures</h1>
-    </header>
-
     <!-- Thumbnails inserted here -->
-    <ul id="thumbnails"></ul>
+    <ul id="thumbnails">
+      <!-- We'll hide this as soon as we find a photo -->
+      <h1 id="nophotos" data-l10n-id="nophotos">No Photos</h1>
+    </ul>
 
     <!-- Photos inserted here -->
     <div id="photos" class="hidden">

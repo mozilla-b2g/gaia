@@ -6,7 +6,7 @@
         addSubdomain = false,
         prefix = null;
 
-    if (domainParts.length === 3) {
+    if (domainParts.length > 2) {
       //running from gaiamobile.org subdomain
       addSubdomain = true;
     } else {

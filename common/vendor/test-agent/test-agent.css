@@ -56,6 +56,14 @@ body > iframe {
   font-weight: bold;
 }
 
+#test-agent-ui .working {
+  font-style: italic;
+}
+
+#test-agent-ui .working:after {
+  content: '...';
+}
+
 #test-agent-ui button {
   clear: both;
   font-size: 14px;

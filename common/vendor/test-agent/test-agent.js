@@ -453,15 +453,14 @@
   window.TestAgent.exportError = function(err) {
     var errorObject = {};
 
-    errorObject.stack = this.formatStack(err);
-    errorObject.message = err.message;
-    errorObject.type = err.type;
-    errorObject.constructorName = err.constructor.name;
-    errorObject.expected = err.expected;
-    errorObject.actual = err.actual;
+    errorObject.stack = this.formatStack(err) || '';
+    errorObject.message = err.message || err.toString();
+    errorObject.type = err.type || 'Error';
+    errorObject.constructorName = err.constructor.name || '';
+    errorObject.expected = err.expected || '';
+    errorObject.actual = err.actual || '';
 
     return errorObject;
-
   };
 
 }(this));
@@ -1092,6 +1091,10 @@
     this.proxyEvents = ['open', 'close', 'message'];
     this._proxiedEvents = {};
 
+
+    this.on('open', this._setConnectionStatus.bind(this, true));
+    this.on('close', this._setConnectionStatus.bind(this, false));
+
     this.on('close', this._incrementRetry.bind(this));
     this.on('message', this._processMessage.bind(this));
     this.on('open', this._clearRetries.bind(this));
@@ -1105,6 +1108,15 @@
 
   Client.prototype = Object.create(Responder.prototype);
   Client.prototype.Native = Native;
+
+  /**
+   * True when connection is opened.
+   * Used to ensure messages are not sent
+   * when connection to server is closed.
+   *
+   * @type Boolean
+   */
+  Client.prototype.connectionOpen = false;
 
   //Retry
   Client.prototype.retry = false;
@@ -1143,7 +1155,9 @@
    * @param {String} data object to send to the server.
    */
   Client.prototype.send = function send(event, data) {
-    this.socket.send(this.stringify(event, data));
+    if (this.connectionOpen) {
+      this.socket.send(this.stringify(event, data));
+    }
   };
 
   /**
@@ -1180,6 +1194,16 @@
   Client.prototype._proxyEvent = function _proxyEvent() {
     this.emit.apply(this, arguments);
   };
+
+  /**
+   * Sets connectionOpen.
+   *
+   * @param {Boolean} type connection status.
+   */
+  Client.prototype._setConnectionStatus = _setConnectionStatus;
+  function _setConnectionStatus(type) {
+    this.connectionOpen = type;
+  }
 
   if (isNode) {
     module.exports = Client;
@@ -2674,8 +2698,26 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   };
 
   MochaDriver.prototype = {
+    /**
+     * Test interface for mocha use.
+     */
     ui: 'bdd',
+
+    /**
+     * Mocha reporter to use.
+     * If null is given none will be used.
+     */
+    reporter: 'HTML',
+
+    /**
+     * location of test helper.
+     * Will be loaded before any of your tests.
+     */
     testHelperUrl: './test/helper.js',
+
+    /**
+     * Location of the mocha runtime.
+     */
     mochaUrl: './vendor/mocha/mocha.js',
 
     enhance: function enhance(worker) {
@@ -2697,10 +2739,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         TestAgent.Mocha.JsonStreamReporter.testAgentEnvId = this.worker.env;
       }
 
-      return MochaDriver.createMutliReporter(
-        TestAgent.Mocha.JsonStreamReporter,
-        box.mocha.reporters.HTML
-      );
+      if(this.reporter) {
+        return MochaDriver.createMutliReporter(
+          TestAgent.Mocha.JsonStreamReporter,
+          box.mocha.reporters[this.reporter]
+        );
+      } else {
+        return TestAgent.Mocha.JsonStreamReporter;
+      }
     },
 
     _testRunner: function _testRunner(worker, tests, done) {
@@ -2834,11 +2880,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
   TestUi.prototype = {
     HIDDEN: 'hidden',
+    WORKING: 'working',
+    EXECUTE: 'execute',
 
     templates: {
       testList: '<ul class="test-list"></ul>',
       testItem: '<li data-url="%s">%s</li>',
-      testRun: '<button class="run-tests">Execute</button>',
+      testRun: '<button class="run-tests">execute</button>',
       error: [
         '<h1>Critical Error</h1>',
         '<p><span class="error">%0s</span> in file ',
@@ -2849,11 +2897,34 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       ].join('')
     },
 
+    get execButton() {
+      if(!this._execButton){
+        this._execButton = this.element.querySelector('button');
+      }
+      return this._execButton;
+    },
+
     enhance: function enhance(worker) {
       this.worker = worker;
       this.worker.on('config', this.onConfig.bind(this));
       this.worker.on('sandbox', this.onSandbox.bind(this));
       this.worker.on('sandbox error', this.onSandboxError.bind(this));
+      this.worker.on('test runner', this.onTestRunner.bind(this));
+      this.worker.on('test runner end', this.onTestRunnerEnd.bind(this));
+    },
+
+    onTestRunner: function onTestRunner() {
+      this.isRunning = true;
+      this.execButton.textContent = this.WORKING;
+      this.execButton.className += ' ' + this.WORKING
+    },
+
+    onTestRunnerEnd: function onTestRunnerEnd() {
+      var className = this.execButton.className;
+
+      this.isRunning = false;
+      this.execButton.textContent = this.EXECUTE;
+      this.execButton.className = className.replace(' ' + this.WORKING, '');
     },
 
     onSandbox: function onSandbox() {
@@ -2936,6 +3007,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       });
 
       button.addEventListener('click', function onTestClick() {
+
+        if (self.isRunning) {
+          return;
+        }
+
         var tests = [], key;
 
         for (key in self.queue) {
@@ -2943,6 +3019,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             tests.push(key);
           }
         }
+
         self.worker.emit('run tests', {tests: tests});
       });
     }

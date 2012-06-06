@@ -2,9 +2,16 @@
 
 var Contacts = {
   _loaded: false,
+
   get view() {
     delete this.view;
     return this.view = document.getElementById('contacts-view-scrollable');
+  },
+
+  get favoritesContainer() {
+    delete this.favoritesContainer;
+    var id = 'favorites-container';
+    return this.favoritesContainer = document.getElementById(id);
   },
 
   setup: function contactsSetup() {
@@ -14,7 +21,7 @@ var Contacts = {
         this.load();
 
         ContactDetails.hide();
-      }).bind(this));
+     }).bind(this));
   },
 
   load: function contactsLoad() {
@@ -22,7 +29,10 @@ var Contacts = {
       return;
     }
 
-    this.find(this.show.bind(this));
+    this.findFavorites(this.showFavorites.bind(this));
+    this.findAll(this.show.bind(this));
+
+    this._loaded = true;
   },
 
   reload: function contactsReload() {
@@ -30,16 +40,25 @@ var Contacts = {
     this.load();
   },
 
-  find: function contactsFind(callback) {
+  findAll: function contactsFindAll(callback) {
     var options = {
       sortBy: 'familyName',
       sortOrder: 'ascending'
     };
-    var request = window.navigator.mozContacts.find(options);
-    request.onsuccess = function findCallback() {
-      var contacts = request.result;
-      callback(contacts);
+
+    this._findMany(options, callback);
+  },
+
+  findFavorites: function findFavorites(callback) {
+    var options = {
+      filterBy: ['category'],
+      filterOp: 'contains',
+      filterValue: 'Favorites',
+      sortBy: 'familyName',
+      sortOrder: 'ascending'
     };
+
+    this._findMany(options, callback);
   },
 
   findByNumber: function findByNumber(number, callback) {
@@ -48,14 +67,35 @@ var Contacts = {
       filterOp: 'contains',
       filterValue: number
     };
-    var request = window.navigator.mozContacts.find(options);
-    request.onsuccess = function findCallback() {
-      if (request.result.length == 0)
-        return;
 
-      var contacts = request.result;
-      callback(contacts[0]);
+    this._findOne(options, callback);
+  },
+
+  findByID: function findByID(contactID, callback) {
+    var options = {
+      filterBy: ['id'],
+      filterOp: 'equals',
+      filterValue: contactID
     };
+
+    this._findOne(options, callback);
+  },
+
+  showFavorites: function contactsShowFavorites(contacts) {
+    var count = contacts.length;
+
+    if (count == 0)
+      return;
+
+    var content = '<div id="favorites" class="contact-header">' +
+                  '<span>*</span></div>';
+
+    for (var i = 0; i < count; i++) {
+      var contact = contacts[i];
+      content += this._contactFragment(contact);
+    }
+
+    this.favoritesContainer.innerHTML = content;
   },
 
   show: function contactsShow(contacts) {
@@ -77,21 +117,20 @@ var Contacts = {
                    '</span></div>';
       }
 
-      content += '<div class="contact" id="' + contact.id + '">';
-      content += '<span>' + contact.givenName + '</span> ';
-      content += '<span>' + contact.familyName + '</span>';
-      content += '</div>';
+      content += this._contactFragment(contact);
     }
 
     var contactsContainer = document.getElementById('contacts-container');
     contactsContainer.innerHTML = content;
     this.filter();
-
-    this._loaded = true;
   },
 
   filter: function contactsFilter(value) {
     var pattern = new RegExp(value, 'i');
+
+    var filtered = value ? value.length : false;
+    this.favoritesContainer.hidden = filtered;
+
     var container = document.getElementById('contacts-container');
     var contacts = container.children;
 
@@ -153,29 +192,63 @@ var Contacts = {
   },
 
   showDetails: function contactsShowDetails(evt) {
-    var contactId = evt.target.id;
-
-    var options = {
-      filterBy: ['id'],
-      filterOp: 'equals',
-      filterValue: contactId
-    };
-    var request = window.navigator.mozContacts.find(options);
-    request.onsuccess = function findCallback() {
-      if (request.result == 0)
-        return;
-
-      var contacts = request.result;
-      ContactDetails.show(contacts[0]);
-    };
+    var contactID = evt.target.id;
+    this.findByID(contactID, function(contact) {
+      ContactDetails.show(contact);
+    });
   },
 
   create: function contactsCreate() {
     // creating an empty contact
     var contact = new mozContact();
-    contact.init({tel: '', email: ''});
+    contact.init({tel: [], email: []});
 
     ContactDetails.show(contact);
+  },
+
+  _contactFragment: function contactFragment(contact) {
+    var fragment = document.createElement('div');
+    fragment.id = contact.id;
+    fragment.className = 'contact';
+
+    var givenName = document.createElement('span');
+    givenName.textContent = contact.givenName + ' ';
+    var familyName = document.createElement('span');
+    familyName.textContent = contact.familyName;
+
+    fragment.appendChild(givenName);
+    fragment.appendChild(familyName);
+
+    return fragment.outerHTML;
+  },
+
+  _findMany: function findMany(options, callback) {
+    var mozContacts = navigator.mozContacts;
+    if (mozContacts) {
+      var request = mozContacts.find(options);
+      request.onsuccess = function findCallback() {
+        var contacts = request.result;
+        callback(contacts);
+      };
+    } else {
+      callback([]);
+    }
+  },
+
+  _findOne: function findOne(options, callback) {
+    var mozContacts = navigator.mozContacts;
+    if (mozContacts) {
+      var request = mozContacts.find(options, callback);
+      request.onsuccess = function findCallback() {
+        if (request.result.length == 0)
+          return;
+
+        var contacts = request.result;
+        callback(contacts[0]);
+      };
+    } else {
+      callback(null);
+    }
   }
 };
 
@@ -312,6 +385,11 @@ var ContactDetails = {
     return this.contactEmailField = document.getElementById(id);
   },
 
+  get favorited() {
+    delete this.favorited;
+    return this.favorited = document.getElementById('favorited');
+  },
+
   set contact(contact) {
     delete this._contact;
     this._contact = contact;
@@ -387,21 +465,37 @@ var ContactDetails = {
     if (form.checkValidity()) {
       var contact = this._contact;
 
-      contact.givenName = this.contactGivenNameField.value;
-      contact.familyName = this.contactFamilyNameField.value;
-      contact.name = contact.givenName + ' ' + contact.familyName;
+      contact.givenName = [this.contactGivenNameField.value];
+      contact.familyName = [this.contactFamilyNameField.value];
+      contact.name = [contact.givenName[0] + ' ' + contact.familyName[0]];
 
       if (this.contactPhoneField.value.length)
-        contact.tel = [this.contactPhoneField.value];
+        contact.tel = [{ number: this.contactPhoneField.value,
+                        type: ''
+                      }];
+
       if (this.contactEmailField.value.length)
         contact.email = [this.contactEmailField.value];
 
+      if (this.favorited.checked) {
+        contact.category = ['Favorites'];
+      } else {
+        contact.category = [];
+      }
+
       var req = navigator.mozContacts.save(contact);
-      req.onsuccess = (function() {
-        this.render();
-        this.endEditing();
+      req.onsuccess = function contactSaveSuccess() {
+
+        // Fetching the contact from the backend again since
+        // a mozContact can only be edited once.
+        Contacts.findByID(contact.id, function reFind(newContact) {
+          ContactDetails.contact = newContact;
+          ContactDetails.endEditing();
+        });
+
         Contacts.reload();
-      }.bind(this));
+
+      };
     }
   },
 
@@ -523,20 +617,25 @@ var ContactDetails = {
     document.getElementById('contact-photo').innerHTML =
       '<img src="style/images/contact-placeholder.png" alt="profile" />';
 
-    if (contact.tel) {
-      this.contactPhone.querySelector('.value').innerHTML =
-        contact.tel[0];
-      this.contactPhone.dataset.number = contact.tel[0];
+    this.contactPhoneField.value = '';
+    if (contact.tel.length) {
+      var number = contact.tel[0].number;
+      this.contactPhone.querySelector('.value').innerHTML = number;
+      this.contactPhone.dataset.number = number;
 
-      this.contactPhoneField.value = contact.tel[0];
+      this.contactPhoneField.value = number;
     }
 
-    if (this._contact.email) {
+    this.contactEmailField.value = '';
+    if (this._contact.email.length) {
       this.contactEmail.querySelector('.value').innerHTML =
         contact.email[0];
 
       this.contactEmailField.value = contact.email[0];
     }
+
+    this.favorited.checked = (contact.category &&
+      (contact.category.indexOf('Favorites') != -1));
   }
 };
 

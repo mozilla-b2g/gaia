@@ -916,6 +916,18 @@
     },
 
     /**
+     * Shortcut method to execute
+     * a function with this element as first argument.
+     *
+     *
+     * @param {Function|String} script remote script.
+     * @param {Function} callback callback when script completes.
+     */
+    scriptWith: function scriptWith(script, callback) {
+      this.client.executeScript(script, [this], callback);
+    },
+
+    /**
      * Checks to see if two elements are equal
      *
      * @param {String|Marionette.Element} element element to test.
@@ -1165,9 +1177,12 @@
      * @param {Object} callback wrapped callback.
      */
     _sendCommand: function(command, responseKey, callback) {
+      var self = this;
+
       callback = (callback || this.defaultCallback);
       this.send(command, function(data) {
-        callback(data[responseKey]);
+        var value = self._transformResultValue(data[responseKey]);
+        callback(value);
       });
       return this;
     },
@@ -1564,6 +1579,61 @@
       return this._findElement.apply(this, args);
     },
 
+
+    /**
+     * Converts an function into a string
+     * that can be sent to marionette.
+     *
+     * @param {Function|String} fn function to call on the server.
+     * @return {String} function string.
+     */
+    _convertFunction: function _convertFunction(fn) {
+      if (typeof(fn) === 'function') {
+        var str = fn.toString();
+        return 'return (' + str + '.apply(this, arguments));';
+      }
+      return fn;
+    },
+
+    /**
+     * Processes result of command
+     * if an {'ELEMENT': 'uuid'} combination
+     * is returned a Marionette.Element
+     * instance will be created and returned.
+     *
+     *
+     * @param {Object} value original result from server.
+     * @return {Object|Marionette.Element} processed result.
+     */
+    _transformResultValue: function _transformResultValue(value) {
+      if (value && typeof(value.ELEMENT) === 'string') {
+        return new Element(value.ELEMENT, this);
+      }
+      return value;
+    },
+
+    /**
+     * Prepares arguments for script commands.
+     * Formats Marionette.Element's sod
+     * marionette can use them in script commands.
+     *
+     *
+     * @param {Array} arguments list of args for wrapped function.
+     * @return {Array} processed arguments.
+     */
+    _prepareArguments: function _prepareArguments(args) {
+      if (args.map) {
+        return args.map(function(item) {
+          if (item instanceof Element) {
+            return {'ELEMENT': item.id };
+          }
+          return item;
+        });
+      } else {
+        return args;
+      }
+    },
+
     /**
      * Executes a remote string of javascript.
      * the javascript string will be wrapped in a function
@@ -1579,12 +1649,12 @@
      * @return {Object} self.
      */
     _executeScript: function _executeScript(options, callback) {
-
       var timeout = options.timeout,
+          self = this,
           cmd = {
             type: options.type,
-            value: options.value,
-            args: options.args || []
+            value: this._convertFunction(options.value),
+            args: this._prepareArguments(options.args || [])
           };
 
       if (timeout === true || timeout === false) {

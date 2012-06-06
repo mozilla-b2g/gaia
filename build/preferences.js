@@ -4,11 +4,11 @@ const { 'classes': Cc, 'interfaces': Ci, 'results': Cr, } = Components;
 function getDirectories() {
   let appsDir = Cc["@mozilla.org/file/local;1"]
                .createInstance(Ci.nsILocalFile);
-  appsDir.initWithPath(GAIA_DIR);  
+  appsDir.initWithPath(GAIA_DIR);
   appsDir.append('apps');
 
-  let dirs = [];  
-  let files = appsDir.directoryEntries;  
+  let dirs = [];
+  let files = appsDir.directoryEntries;
   while (files.hasMoreElements()) {
     let file = files.getNext().QueryInterface(Ci.nsILocalFile);
     if (file.isDirectory()) {
@@ -19,8 +19,8 @@ function getDirectories() {
 }
 
 function getFileContent(file) {
-  let fileStream = Cc['@mozilla.org/network/file-input-stream;1']  
-                   .createInstance(Ci.nsIFileInputStream);  
+  let fileStream = Cc['@mozilla.org/network/file-input-stream;1']
+                   .createInstance(Ci.nsIFileInputStream);
   fileStream.init(file, 1, 0, false);
 
   let converterStream = Cc["@mozilla.org/intl/converter-input-stream;1"]
@@ -28,12 +28,12 @@ function getFileContent(file) {
   converterStream.init(fileStream, "utf-8", fileStream.available(),
                        Ci.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER);
 
-  let out = {};  
+  let out = {};
   let count = fileStream.available();
-  converterStream.readString(count, out);  
+  converterStream.readString(count, out);
 
-  let content = out.value;  
-  converterStream.close();  
+  let content = out.value;
+  converterStream.close();
   fileStream.close();
 
   return [content, count];
@@ -61,9 +61,9 @@ function writeContent(content) {
   file.append('profile');
   file.append('user.js');
 
-  let stream = Cc["@mozilla.org/network/file-output-stream;1"]  
-                   .createInstance(Ci.nsIFileOutputStream);  
-  stream.init(file, 0x02 | 0x08 | 0x20, 0666, 0);   
+  let stream = Cc["@mozilla.org/network/file-output-stream;1"]
+                   .createInstance(Ci.nsIFileOutputStream);
+  stream.init(file, 0x02 | 0x08 | 0x20, 0666, 0);
   stream.write(content, content.length);
   stream.close();
 }
@@ -86,10 +86,6 @@ let permissions = {
     "urls": [],
     "pref": "dom.telephony.app.phone.url"
   },
-  "screen": {
-    "urls": [],
-    "pref": "dom.mozScreenWhiteList"
-  },
   "mozbrowser": {
     "urls": [],
     "pref": "dom.mozBrowserFramesWhitelist"
@@ -97,6 +93,10 @@ let permissions = {
   "mozApps": {
     "urls": [],
     "pref": "dom.mozApps.whitelist"
+  },
+  "mobileconnection": {
+    "urls": [],
+    "pref": "dom.mobileconnection.whitelist"
   }
 };
 
@@ -106,31 +106,35 @@ let homescreen = HOMESCREEN + (GAIA_PORT ? GAIA_PORT : '');
 content += "user_pref(\"browser.homescreenURL\",\"" + homescreen + "\");\n\n";
 
 let privileges = [];
+let domains = [];
+domains.push(GAIA_DOMAIN);
 
 let directories = getDirectories();
 directories.forEach(function readManifests(dir) {
-  let manifest = getJSON(dir, "manifest.json");
+  let manifest = getJSON(dir, "manifest.webapp");
   if (!manifest)
     return;
 
-  let domain = "http://" + dir + "." + GAIA_DOMAIN;
-  privileges.push(domain);
+  let rootURL = "http://" + dir + "." + GAIA_DOMAIN + (GAIA_PORT ? GAIA_PORT : '');
+  let domain = dir + "." + GAIA_DOMAIN;
+  privileges.push(rootURL);
+  domains.push(domain);
 
   let perms = manifest.permissions;
   if (perms) {
     for each(let name in perms) {
-      permissions[name].urls.push(domain);
+      permissions[name].urls.push(rootURL);
 
       // special case for the telephony API which needs full URLs
       if (name == 'telephony')
         if (manifest.background_page)
-          permissions[name].urls.push(domain + manifest.background_page);
+          permissions[name].urls.push(rootURL + manifest.background_page);
     }
   }
 });
 
 content += "user_pref(\"b2g.privileged.domains\", \"" + privileges.join(",") + "\");\n\n";
-content += "user_pref(\"network.dns.localDomains\", \"" + privileges.join(",") + "\");\n";
+content += "user_pref(\"network.dns.localDomains\", \"" + domains.join(",") + "\");\n";
 
 for (let name in permissions) {
   let perm = permissions[name];
@@ -150,7 +154,7 @@ if (DEBUG) {
   content += "user_pref(\"nglayout.debug.disable_xul_fastload\", true);\n";
   content += "user_pref(\"browser.cache.offline.enable\", false);\n";
   content += "user_pref(\"extensions.autoDisableScopes\", 0);\n";
-  content += "user_pref(\"browser.startup.homepage\", \"" + HOMESCREEN + "\");\n";
+  content += "user_pref(\"browser.startup.homepage\", \"" + homescreen + "\");\n";
 
   content += "user_pref(\"dom.mozBrowserFramesEnabled\", true);\n";
   content += "user_pref(\"b2g.ignoreXFrameOptions\", true);\n";

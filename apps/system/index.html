@@ -5,19 +5,39 @@
     <meta http-equiv="pragma" content="no-cache">
     <!-- System -->
     <script>
-      var host = document.location.host;
-      var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-      var src = 'http://' + domain + '/webapi.js';
+      if (document.location.protocol === 'file:') {
+        var paths = document.location.pathname.split('/');
+        paths.pop();
+        paths.pop();
+        paths.pop();
+        var src = 'file://' + paths.join('/') + '/webapi.js';
+      } else {
+        var host = document.location.host;
+        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+        var src = 'http://' + domain + '/webapi.js';
+      }
       document.write('<script src="' + src + '"><\/script>');
     </script>
     <link rel="stylesheet" type="text/css" href="style/system.css">
+    <script defer src="js/settings.js"></script>
+    <script defer src="js/screen_manager.js"></script>
     <script defer src="js/background_service.js"></script>
     <script defer src="js/bootstrap.js"></script>
-    <script defer src="js/settings.js"></script>
+    <script defer src="js/sound_manager.js"></script>
+    <script defer src="js/source_view.js"></script>
+    <script defer src="js/storage.js"></script>
+
+    <!-- Sleep Menu -->
+    <link rel="stylesheet" type="text/css" href="style/sleep_menu/sleep_menu.css">
+    <script defer src="js/sleep_menu.js"></script>
+
+    <!-- PIN Unlocking -->
+    <link rel="stylesheet" type="text/css" href="style/pinlock/pinlock.css">
+    <script defer src="js/pinlock/pinlock.js"></script>
 
     <!-- LockScreen -->
     <link rel="stylesheet" type="text/css" href="style/lockscreen/lockscreen.css">
-    <script defer src="js/lockscreen/lockscreen.js"></script>
+    <script defer src="js/lockscreen.js"></script>
 
     <!-- Statusbar -->
     <link rel="stylesheet" type="text/css" href="style/statusbar/statusbar.css">
@@ -37,9 +57,7 @@
     <script defer src="js/windows/window_manager.js"></script>
 
     <!-- Keyboard -->
-    <link rel="stylesheet" type="text/css" href="style/keyboard/keyboard.css">
-    <script defer src="js/keyboard/layout.js"></script>
-    <script defer src="js/keyboard/keyboard.js"></script>
+    <script defer src="js/keyboard/keyboard_manager.js"></script>
 
     <!-- Bookmarks -->
     <script defer src="js/bookmarks/bookmarks.js"></script>
@@ -51,7 +69,9 @@
 
   <body onload="startup()">
     <div id="screen">
-      <div id="keyboard" data-hidden="true" onmousedown="return false;"></div>
+
+      <!-- keyboard -->
+      <iframe id='keyboardFrame' class='keyboardFrame'> </iframe>
 
       <div id="statusbar">
         <div id="state">
@@ -87,38 +107,81 @@
         <div id="grippy">
         </div>
       </div>
-      <div id="lockscreen">
-        <div id="status"></div>
-        <div id="lockscreenContainer">
-          <div id="clock">
-            <div id="hourMin" class="time" data-format="%H:%M"></div>
-            <div id="date">
-              <span class="time" data-format="%A, %d %b"></span>
+      <div id="lockscreen" class="uninit">
+        <div id="lockscreen-container">
+          <div class="lockscreen-panel">
+            <div id="lockscreen-header">
+              <div id="lockscreen-mute" hidden></div>
+              <div id="lockscreen-cal">
+                <span id="lockscreen-cal-day"></span>
+                <span id="lockscreen-cal-date"></span>
+              </div>
+              <div id="lockscreen-clock"></div>
+            </div>
+            <div id="lockscreen-notification" hidden>
+              <div id="lockscreen-notification-time"></div>
+              <div id="lockscreen-notification-title"></div>
+              <div id="lockscreen-notification-detail"></div>
+            </div>
+            <div id="lockscreen-area-start" class="lockscreen-handle"></div>
+            <div id="lockscreen-area-unlock" class="lockscreen-handle"></div>
+            <div id="lockscreen-area-camera" class="lockscreen-handle"></div>
+          </div>
+          <div id="lockscreen-panel-passcode" class="lockscreen-panel">
+            <p id="lockscreen-passcode-code"><span></span><span></span><span></span><span></span></p>
+            <div id="lockscreen-passcode-pad">
+              <a href="#" data-key="1">1</a>
+              <a href="#" data-key="2">2</a>
+              <a href="#" data-key="3">3</a>
+              <a href="#" data-key="4">4</a>
+              <a href="#" data-key="5">5</a>
+              <a href="#" data-key="6">6</a>
+              <a href="#" data-key="7">7</a>
+              <a href="#" data-key="8">8</a>
+              <a href="#" data-key="9">9</a>
+              <a href="#" data-key="e" class="lockscreen-passcode-pad-func">Emergency</a>
+              <a href="#" data-key="0">0</a>
+              <a href="#" data-key="b" class="lockscreen-passcode-pad-func">Back</a>
             </div>
           </div>
-          <div id="lockscreenNotification" hidden>
-            <div id="lockscreenNotificationTitle"></div>
-            <div id="lockscreenNotificationDetail"></div>
+          <div id="lockscreen-panel-emergency-call" class="lockscreen-panel tbd">
+            <h1>Emergency call panel</h1>
+            <p>To be done.</p>
+            <p>Turn off screen to go back.</p>
+          </div>
+          <div id="lockscreen-panel-camera" class="lockscreen-panel tbd">
+            <h1>Camera app placeholder</h1>
+            <p>To be done.</p>
+            <p>Waiting for attention screen / web activities.</p>
+            <p>Turn off screen to go back.</p>
           </div>
         </div>
       </div>
-      <div id="keypadscreen">
-        <p id="keypadscreen-code"><span></span><span></span><span></span><span></span></p>
-        <div id="keypadscreen-pad">
-          <a href="#" data-key="1">1</a>
-          <a href="#" data-key="2">2</a>
-          <a href="#" data-key="3">3</a>
-          <a href="#" data-key="4">4</a>
-          <a href="#" data-key="5">5</a>
-          <a href="#" data-key="6">6</a>
-          <a href="#" data-key="7">7</a>
-          <a href="#" data-key="8">8</a>
-          <a href="#" data-key="9">9</a>
-          <a href="#" data-key="e" class="keypadscreen-pad-func">Emergency</a>
-          <a href="#" data-key="0">0</a>
-          <a href="#" data-key="b" class="keypadscreen-pad-func">Back</a>
+
+      <div id="pinkeypadscreen">
+        <div id="pinkeypadscreen-container">
+          <p id="pinkeypadscreen-desc"><span>Enter PIN</span></p>
+          <p id="pinkeypadscreen-code">
+            <span id="pinkeypadscreen-display"></span>
+          </p>
+          <div id="pinkeypadscreen-pad">
+            <a href="#" data-key="1">1</a>
+            <a href="#" data-key="2">2</a>
+            <a href="#" data-key="3">3</a>
+            <a href="#" data-key="4">4</a>
+            <a href="#" data-key="5">5</a>
+            <a href="#" data-key="6">6</a>
+            <a href="#" data-key="7">7</a>
+            <a href="#" data-key="8">8</a>
+            <a href="#" data-key="9">9</a>
+            <a href="#" data-key="o" class="pinkeypadscreen-pad-func">Ok</a>
+            <a href="#" data-key="0">0</a>
+            <a href="#" data-key="b" class="pinkeypadscreen-pad-func">Back</a>
+            <a href="#" data-key="e" class="pinkeypadscreen-pad-func-full">Emergency</a>
+          </div>
         </div>
       </div>
+
     </div>
 
     <div id="taskManager">
