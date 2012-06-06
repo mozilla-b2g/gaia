@@ -141,10 +141,20 @@ var ConversationListView = {
     return this.view = document.getElementById('msg-conversations-list');
   },
 
+  get searchToolbar() {
+    delete this.searchToolbar;
+    return this.searchToolbar = document.getElementById('msg-search-container');
+  },  
+  
   get searchInput() {
     delete this.searchInput;
     return this.searchInput = document.getElementById('msg-search');
   },
+  
+  get searchCancel() {
+    delete this.searchCancel;
+    return this.searchCancel = document.getElementById('msg-search-cancel');
+  },  
   
   get deleteButton() {
     delete this.deleteButton;
@@ -168,11 +178,13 @@ var ConversationListView = {
 
   init: function cl_init() {
     this.delNumList = [];
+    this.allMessages = [];
     if (navigator.mozSms)
       navigator.mozSms.addEventListener('received', this);
 
     this.searchInput.addEventListener('keyup', this);
-    this.searchInput.addEventListener('blur', this);
+    this.searchInput.addEventListener('focus', this);
+    this.searchCancel.addEventListener('mousedown', this);
     this.deleteButton.addEventListener('mousedown', this);
     this.undoButton.addEventListener('mousedown', this);
     this.view.addEventListener('click', this);
@@ -210,6 +222,10 @@ var ConversationListView = {
   },
   
   updateConversationList: function cl_updateCL(pendingMsg) {
+    if (document.body.classList.contains('msg-search-result-mode')) {
+      this.searchConversations();
+      return;
+    }
     var self = this;
     /*
       TODO: Conversation list is always order by contact family names
@@ -222,6 +238,7 @@ var ConversationListView = {
         messages.unshift(pendingMsg);
 
       var conversations = {};
+      self.allMessages = messages;
       for (var i = 0; i < messages.length; i++) {
         var message = messages[i];
 
@@ -274,15 +291,29 @@ var ConversationListView = {
       }
     }, null);
   },
+  
+  createHighlightStr: function cl_createHighlightStr(text, searchRegExp) {
+    var sliceStrs = text.split(searchRegExp);
+    var patterns = text.match(searchRegExp);
+    var str = [];
+    for (var i = 0; i < patterns.length; i++) {
+      str.push(sliceStrs[i] + '<span class="highlight">' + patterns[i] + '</span>');
+    }
+    str.push(sliceStrs.pop());
+    return str.join('');
+  },
 
-  createNewConversation: function cl_createNewConversation(conversation) {
+  createNewConversation: function cl_createNewConversation(conversation, searchRegExp) {
+    var textContent = escapeHTML(conversation.body.split('\n')[0]);
+    if (searchRegExp)
+      textContent = this.createHighlightStr(textContent, searchRegExp);
     return '<a href="#num=' + conversation.num + '"' + ' data-num="' + conversation.num + '"' +
            ' data-name="' + escapeHTML(conversation.name || conversation.num, true) + '"' +
            ' data-notempty="' + (conversation.timestamp ? 'true' : '') + '"' +
            ' class="' + (conversation.hidden ? 'hide' : '') + '">' +
            '<input type="checkbox" class="fake-checkbox"/>' + '<span></span>' +
            '  <div class="name">' + escapeHTML(conversation.name) + '</div>' +
-           '  <div class="msg">' + escapeHTML(conversation.body.split('\n')[0]) + '</div>' +
+           '  <div class="msg">' + textContent + '</div>' +
            (conversation.timestamp ?
              '  <div class="time" data-time="' + conversation.timestamp + '">' +
                  prettyDate(conversation.timestamp) + '</div>' : '') +
@@ -290,37 +321,52 @@ var ConversationListView = {
   },
 
   searchConversations: function cl_searchConversations() {
-    var conversations = this.view.children;
-
     var str = this.searchInput.value;
     if (!str) {
-      // leaving search view
-      for (var i = 0; i < conversations.length; i++) {
-        var conversation = conversations[i];
-        if (conversation.dataset.notempty === 'true') {
-          conversation.classList.remove('hide');
-        } else {
-          conversation.classList.add('hide');
-        }
-      }
+      // Leave the empty view when no text in the input.
+      this.view.innerHTML = '';
       return;
     }
 
-    var reg = new RegExp(str, 'i');
+    var fragment = '';
+    var searchedNum ={};
+    for (var i = 0; i < this.allMessages.length; i++) {
+      var reg = new RegExp(str, 'ig');
+      var message = this.allMessages[i];
+      try {
+        var textContent = escapeHTML(message.body.split('\n')[0]);
+        var num = message.delivery == 'received' ?
+                  message.sender : message.receiver;
 
-    for (var i = 0; i < conversations.length; i++) {
-      var conversation = conversations[i];
-    try {
-      var dataset = conversation.dataset;
-      if (!reg.test(dataset.num) && !reg.test(dataset.name)) {
-        conversation.classList.add('hide');
-      } else {
-        conversation.classList.remove('hide');
+        if (!reg.test(textContent) || searchedNum[num])
+          continue;
+        //console.log('@@@ matched message = ' + num + ' body = ' + message.body);
+        var msgProperties = {
+          'hidden': false,
+          'body': message.body,
+          'name': num,
+          'num': num,
+          'timestamp': message.timestamp.getTime(),
+          'id': i
+        };
+        searchedNum[num] = true;
+        var msg = this.createNewConversation(msgProperties, reg);
+        fragment += msg;
+         
+      } catch(e) {
+        alert(message);
       }
-  } catch(e) {
-      alert(conversation);
-  }
     }
+    this.view.innerHTML = fragment;
+    
+    // update the conversation sender/receiver name with contact data. 
+    var conversationList = this.view.children;
+    for (var i = 0; i < conversationList.length; i++) {
+      this.updateMsgWithContact(conversationList[i]);
+    }
+    if (this.delNumList.length > 0) {
+      this.showUndoToolbar();
+    }    
   },
 
   openConversationView: function cl_openConversationView(num) {
@@ -330,6 +376,26 @@ var ConversationListView = {
     window.location.hash = '#num=' + num;
   },
 
+  pageStatusController: function cl_pageStatusController() {
+    switch (window.location.hash) {
+      case '':
+        this.toggleEditMode(false);
+        this.toggleSearchMode(false);
+        break;
+      case '#search-edit':
+        this.toggleEditMode(true);
+        break;
+      case '#edit':
+        this.toggleEditMode(true);
+        this.toggleSearchMode(false);
+        break;
+      case '#search':
+        this.toggleEditMode(false);
+        this.toggleSearchMode(true);
+        break;
+    }
+  },
+  
   handleEvent: function cl_handleEvent(evt) {
     switch (evt.type) {
       case 'received':
@@ -340,13 +406,15 @@ var ConversationListView = {
         this.searchConversations();
         break;
 
-      case 'blur':
-        window.location.hash = '#';
+      case 'focus':
+        document.body.classList.remove('msg-search-mode');
+        document.body.classList.add('msg-search-result-mode');
+        if (!this.searchInput.value)
+          this.view.innerHTML = '';
         break;
 
       case 'hashchange':
-        this.toggleEditMode(window.location.hash == '#edit');
-        this.toggleSearchMode(window.location.hash == '#search');
+        this.pageStatusController();
         if (window.location.hash) {
           return;
         }
@@ -359,6 +427,8 @@ var ConversationListView = {
           this.pendMessageDelete();
         else if (evt.currentTarget == this.undoButton)
           this.undoMessageDelete();
+        else if (evt.currentTarget == this.searchCancel)
+          window.location.hash = '#';
         break;
 
       case 'click':
@@ -432,6 +502,9 @@ var ConversationListView = {
       document.body.classList.add('msg-search-mode');
     } else {
       document.body.classList.remove('msg-search-mode');
+      document.body.classList.remove('msg-search-result-mode');
+      this.searchInput.value = '';
+      this.updateConversationList();
     }
   },
   
