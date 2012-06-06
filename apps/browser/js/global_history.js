@@ -35,15 +35,16 @@ var GlobalHistory = {
   setPageIcon: function gh_setPageIcon(uri, icon, callback) {
     this.db.getPlace(uri, function(place) {
       // if place already exists, just set icon
-      if (place)
+      if (place) {
         place.icon = icon;
       // otherwise create a new place
-      else
+      } else {
         var place = {
           uri: uri,
           title: uri,
           icon: icon
         };
+      }
       GlobalHistory.db.updatePlace(place, callback);
     });
   },
@@ -71,7 +72,6 @@ GlobalHistory.db = {
 
     request.onsuccess = (function onSuccess(e) {
       this._db = e.target.result;
-      console.log('Successfully opened browser database');
       callback();
     }).bind(this);
 
@@ -95,8 +95,6 @@ GlobalHistory.db = {
 
     // Index visits by timestamp
     visitStore.createIndex('timestamp', 'timestamp', { unique: false });
-
-    console.log("Initialised browser's global history database");
   },
 
   savePlace: function db_savePlace(place, callback) {
@@ -108,18 +106,22 @@ GlobalHistory.db = {
     };
 
     var objectStore = transaction.objectStore('places');
+    
     var request = objectStore.add(place);
-
+    
     request.onsuccess = function onsuccess(e) {
-      console.log('Successfully wrote place to global history store: ' +
-        place.uri);
       if (callback)
         callback();
     };
 
     request.onerror = function onerror(e) {
-      console.log('Error while adding place to global history store: ' +
-        place.uri);
+      if (e.target.error.name == 'ConstraintError') {
+        e.preventDefault();
+      } else {
+        console.log(e.target.error.name + 
+          ' error while adding place to global history store with URL ' +
+          place.uri);
+      }
     };
   },
 
@@ -132,11 +134,9 @@ GlobalHistory.db = {
     };
 
     request.onerror = function(event) {
-      if (event.target.errorCode ==
-IDBDatabaseException.NOT_FOUND_ERR)
+      if (event.target.errorCode == IDBDatabaseException.NOT_FOUND_ERR)
         callback();
     };
-
 
   },
 
@@ -152,8 +152,6 @@ IDBDatabaseException.NOT_FOUND_ERR)
     var request = objectStore.put(place);
 
     request.onsuccess = function onsuccess(e) {
-      console.log('Successfully updated place in global history store: ' +
-        place.uri);
       if (callback)
         callback();
     };
@@ -173,10 +171,6 @@ IDBDatabaseException.NOT_FOUND_ERR)
 
      var objectStore = transaction.objectStore('visits');
      var request = objectStore.add(visit);
-
-     request.onsuccess = function onsuccess(e) {
-       console.log('Successfully wrote visit to global history store');
-     };
 
      request.onerror = function onerror(e) {
        console.log('Error while adding visit to global history store');
@@ -220,7 +214,6 @@ IDBDatabaseException.NOT_FOUND_ERR)
     var objectStore = transaction.objectStore('places');
     var request = objectStore.clear();
     request.onsuccess = function() {
-      console.log('places object store cleared');
       callback();
     };
     request.onerror = function(e) {
@@ -238,7 +231,6 @@ IDBDatabaseException.NOT_FOUND_ERR)
     var objectStore = transaction.objectStore('visits');
     var request = objectStore.clear();
     request.onsuccess = function() {
-      console.log('visits object store cleared');
       callback();
     };
     request.onerror = function(e) {

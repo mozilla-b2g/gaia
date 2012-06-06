@@ -213,7 +213,6 @@ var Browser = {
       if (xhr.status === 200) {
         var blob = xhr.response;
         callback(blob);
-      } else {
       }
     }, false);
     xhr.send();
