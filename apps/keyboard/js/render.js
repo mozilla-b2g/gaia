@@ -23,10 +23,6 @@ const IMERender = (function() {
       var changeScale = window.innerWidth / 32;
       document.documentElement.style.fontSize = changeScale + 'px';
     }
-    if (window.matchMedia("(orientation: landscape)").matches ) {
-      var changeScale = window.innerWidth / 32 / 2;
-      document.documentElement.style.fontSize = changeScale + 'px'
-    }
 
     var content = '';
     var layoutWidth = layout.width || 10;
