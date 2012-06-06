@@ -1,6 +1,6 @@
 requireApp('calendar/js/gesture_detector.js');
 
-requireApp('calendar/test/helper.js', function() {
+requireApp('calendar/test/unit/helper.js', function() {
   requireApp('calendar/js/gesture_detector.js');
   requireCalendarController();
   requireApp('calendar/js/views/day.js');

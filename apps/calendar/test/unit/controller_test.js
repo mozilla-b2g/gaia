@@ -1,4 +1,4 @@
-requireApp('calendar/test/helper.js', function() {
+requireApp('calendar/test/unit/helper.js', function() {
   requireCalendarController();
 });
 
