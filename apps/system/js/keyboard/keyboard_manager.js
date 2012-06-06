@@ -26,6 +26,7 @@ var KeyboardManager = (function() {
     // without postMessages between Keyboard and System
     window.addEventListener('message', function receiver(e) {
       var currentApp = WindowManager.getAppFrame(WindowManager.getDisplayedApp());
+      console.log(e.data);
       var event = JSON.parse(e.data);
       if (event.action == 'resize') {
         WindowManager.setAppSize(WindowManager.getDisplayedApp());

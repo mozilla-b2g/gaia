@@ -272,13 +272,12 @@ const IMEController = (function() {
       base = _baseLayout;
     }
 
-    _currentLayout = _buildLayout(base, _currentInputType, _layoutMode);
-    IMERender.draw(_currentLayout);
-    _updateTargetWindowHeight();
+    _draw(base, _currentInputType, _layoutMode);
   }
 
   function _updateTargetWindowHeight() {
     var resizeAction = {action: 'resize', height: IMERender.ime.scrollHeight + 'px'};
+    console.log('Resizing: '+resizeAction.height);
     parent.postMessage(JSON.stringify(resizeAction), '*');
   }
 
@@ -549,9 +548,7 @@ const IMEController = (function() {
 
         _layoutMode = LAYOUT_MODE_DEFAULT;
         _isUpperCase = false;
-        _currentLayout = _buildLayout(_baseLayout, _currentInputType, _layoutMode, _isUpperCase);
-        IMERender.draw(_currentLayout);
-        _updateTargetWindowHeight();
+        _draw(_baseLayout, _currentInputType, _layoutMode, _isUpperCase);
 
 /* XXX: Not yet implemented
         if (Keyboards[_baseLayout].type == 'ime') {
@@ -588,8 +585,7 @@ const IMEController = (function() {
 
           _isUpperCase = _isUpperCaseLocked = true;
           IMERender.setUpperCaseLock(true);
-          _currentLayout = _buildLayout(_baseLayout, _currentInputType, _layoutMode, _isUpperCase);
-          IMERender.draw(_currentLayout);
+          _draw(_baseLayout, _currentInputType, _layoutMode, _isUpperCase);
 
         // normal behavior: set timeut for second tap and toggle caps
         } else {
@@ -607,8 +603,7 @@ const IMEController = (function() {
           _isUpperCase = !_isUpperCase;
           _isUpperCaseLocked = false;
           IMERender.setUpperCaseLock(false);
-          _currentLayout = _buildLayout(_baseLayout, _currentInputType, _layoutMode, _isUpperCase);
-          IMERender.draw(_currentLayout);
+          _draw(_baseLayout, _currentInputType, _layoutMode, _isUpperCase);
         }
 
         break;
@@ -711,6 +706,17 @@ const IMEController = (function() {
     }
   }
 
+  function _draw(baseLayout, inputType, layoutMode, uppercase) {
+    baseLayout = baseLayout || _baseLayout;
+    inputType = inputType || _currentInputType;
+    layoutMode = layoutMode || _currentLayout;
+    uppercase = uppercase || false;
+
+    _currentLayout = _buildLayout(baseLayout, inputType, layoutMode, uppercase);
+    IMERender.draw(_currentLayout);
+    _updateTargetWindowHeight();
+  }
+
   return {
     // TODO: IMEngines are other kind of controllers, but now they are like
     // controller's plugins. Maybe refactor is required as well but not now.
@@ -740,9 +746,7 @@ const IMEController = (function() {
       var computedLayout;
       _currentInputType = _mapType(type); // TODO: this should be unneccesary
       _reset();
-
-      _currentLayout = _buildLayout(_baseLayout, _currentInputType, _layoutMode);
-      IMERender.draw(_currentLayout);
+      _draw(_baseLayout, _currentInputType, _layoutMode);
 
 /* XXX: Not yet implemented
       if (Keyboards[_baseLayout].type == 'ime') {
@@ -783,8 +787,7 @@ const IMEController = (function() {
       // we presume that the targetWindow has been restored by
       // window manager to full size by now.
       IMERender.getTargetWindowMetrics();
-      IMERender.draw(Keyboards[_baseLayout]);
-      _updateTargetWindowHeight();
+      _draw();
     },
 
     loadKeyboard: function km_loadKeyboard(name) {
@@ -855,9 +858,7 @@ const IMEController = (function() {
       if (_isUpperCase &&
           !_isUpperCaseLocked && _layoutMode === LAYOUT_MODE_DEFAULT) {
             _isUpperCase = false;
-            //Do we need to re-draw?
-            _currentLayout = _buildLayout(_baseLayout, _currentInputType, _layoutMode);
-            IMERender.draw(_currentLayout);
+            _draw(_baseLayout, _currentInputType, _layoutMode, _isUpperCase);
           }
     }
   };
