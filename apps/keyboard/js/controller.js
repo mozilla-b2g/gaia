@@ -6,6 +6,25 @@
 'use strict';
 
 const IMEController = (function() {
+
+  function getWindowTop(obj) {
+    var top;
+    top = obj.offsetTop;
+    while (obj = obj.offsetParent) {
+      top += obj.offsetTop;
+    }
+    return top;
+  }
+
+  function getWindowLeft(obj) {
+    var left;
+    left = obj.offsetLeft;
+    while (obj = obj.offsetParent) {
+      left += obj.offsetLeft;
+    }
+    return left;
+  }
+
   var BASIC_LAYOUT = -1,
       ALTERNATE_LAYOUT = -2,
       SWITCH_KEYBOARD = -3,
@@ -20,6 +39,7 @@ const IMEController = (function() {
   var _isPressing = null,
       _isWaitingForSecondTap = false,
       _showingAlternativesMenu = true,
+      _menuLockedArea = null,
       _currentKey = null,
       _keyWithMenu = null,
       _baseLayout = '',
@@ -252,9 +272,7 @@ const IMEController = (function() {
       base = _baseLayout;
     }
 
-    _currentLayout = _buildLayout(base, _currentInputType, _layoutMode);
-    IMERender.draw(_currentLayout);
-    _updateTargetWindowHeight();
+    _draw(base, _currentInputType, _layoutMode);
   }
 
   function _updateTargetWindowHeight() {
@@ -309,25 +327,19 @@ const IMEController = (function() {
     if (!alternatives.length)
       return;
 
-    // Mouse redirection
-    var redirectMouseOver = function redirectMouseOver(target) {
-      this.redirect = function km_menuRedirection(ev) {
-        ev.stopPropagation();
-
-        var event = document.createEvent('MouseEvent');
-        event.initMouseEvent(
-          'mouseover', true, true, window, 0,
-          ev.screenX, ev.screenY, ev.clientX, ev.clientY,
-          false, false, false, false, 0, null
-        );
-        target.dispatchEvent(event);
-      };
-      this.addEventListener('mouseover', this.redirect);
-    };
-
     IMERender.showAlternativesCharMenu(key, alternatives);
     _showingAlternativesMenu = true;
     _keyWithMenu = key;
+
+    // Locked limits 
+    _menuLockedArea = {
+      top: getWindowTop(_keyWithMenu),
+      bottom: getWindowTop(_keyWithMenu)+_keyWithMenu.scrollHeight,
+      left: getWindowLeft(IMERender.menu),
+      right: getWindowLeft(IMERender.menu) + IMERender.menu.scrollWidth
+    };
+    _menuLockedArea.width = _menuLockedArea.right - _menuLockedArea.left;
+    _menuLockedArea.ratio = _menuLockedArea.width/IMERender.menu.children.length;
   }
 
   function _hideAlternatives() {
@@ -378,6 +390,32 @@ const IMEController = (function() {
       }, _kRepeatTimeout);
 
     }
+  }
+
+  function _onMouseMove(evt) {
+    var altCount, width, menuChildren;
+
+    // Control locked zone for menu
+    if (_showingAlternativesMenu
+        && evt.screenY >= _menuLockedArea.top
+        && evt.screenY <= _menuLockedArea.bottom
+        && evt.screenX >= _menuLockedArea.left
+        && evt.screenX <= _menuLockedArea.right) {
+
+      clearTimeout(_hideMenuTimeout);
+      menuChildren = IMERender.menu.children;
+
+      var event = document.createEvent('MouseEvent');
+      event.initMouseEvent(
+        'mouseover', true, true, window, 0,
+        0, 0, 0, 0,
+        false, false, false, false, 0, null
+      );
+
+      menuChildren[Math.floor((evt.screenX-_menuLockedArea.left)/_menuLockedArea.ratio)].dispatchEvent(event);
+      return;
+    }
+
   }
 
   function _onMouseOver(evt) {
@@ -509,9 +547,7 @@ const IMEController = (function() {
 
         _layoutMode = LAYOUT_MODE_DEFAULT;
         _isUpperCase = false;
-        _currentLayout = _buildLayout(_baseLayout, _currentInputType, _layoutMode, _isUpperCase);
-        IMERender.draw(_currentLayout);
-        _updateTargetWindowHeight();
+        _draw(_baseLayout, _currentInputType, _layoutMode, _isUpperCase);
 
 /* XXX: Not yet implemented
         if (Keyboards[_baseLayout].type == 'ime') {
@@ -548,8 +584,7 @@ const IMEController = (function() {
 
           _isUpperCase = _isUpperCaseLocked = true;
           IMERender.setUpperCaseLock(true);
-          _currentLayout = _buildLayout(_baseLayout, _currentInputType, _layoutMode, _isUpperCase);
-          IMERender.draw(_currentLayout);
+          _draw(_baseLayout, _currentInputType, _layoutMode, _isUpperCase);
 
         // normal behavior: set timeut for second tap and toggle caps
         } else {
@@ -567,8 +602,7 @@ const IMEController = (function() {
           _isUpperCase = !_isUpperCase;
           _isUpperCaseLocked = false;
           IMERender.setUpperCaseLock(false);
-          _currentLayout = _buildLayout(_baseLayout, _currentInputType, _layoutMode, _isUpperCase);
-          IMERender.draw(_currentLayout);
+          _draw(_baseLayout, _currentInputType, _layoutMode, _isUpperCase);
         }
 
         break;
@@ -636,7 +670,8 @@ const IMEController = (function() {
     'mousedown': _onMouseDown,
     'mouseover': _onMouseOver,
     'mouseleave': _onMouseLeave,
-    'mouseup': _onMouseUp
+    'mouseup': _onMouseUp,
+    'mousemove': _onMouseMove
   };
 
   function _reset() {
@@ -670,6 +705,17 @@ const IMEController = (function() {
     }
   }
 
+  function _draw(baseLayout, inputType, layoutMode, uppercase) {
+    baseLayout = baseLayout || _baseLayout;
+    inputType = inputType || _currentInputType;
+    layoutMode = layoutMode || _currentLayout;
+    uppercase = uppercase || false;
+
+    _currentLayout = _buildLayout(baseLayout, inputType, layoutMode, uppercase);
+    IMERender.draw(_currentLayout);
+    _updateTargetWindowHeight();
+  }
+
   return {
     // TODO: IMEngines are other kind of controllers, but now they are like
     // controller's plugins. Maybe refactor is required as well but not now.
@@ -696,12 +742,9 @@ const IMEController = (function() {
     uninit: _uninit,
 
     showIME: function(type) {
-      var computedLayout;
+      delete IMERender.ime.dataset.hidden;
       _currentInputType = _mapType(type); // TODO: this should be unneccesary
-      _reset();
-
-      _currentLayout = _buildLayout(_baseLayout, _currentInputType, _layoutMode);
-      IMERender.draw(_currentLayout);
+      _draw(_baseLayout, _currentInputType, _layoutMode);
 
 /* XXX: Not yet implemented
       if (Keyboards[_baseLayout].type == 'ime') {
@@ -710,19 +753,15 @@ const IMEController = (function() {
         }
       }
 */
-
-      _updateTargetWindowHeight();
     },
     
     hideIME: function km_hideIME(imminent) {
-
       if (IMERender.ime.dataset.hidden)
         return;
 
       IMERender.ime.dataset.hidden = 'true';
-
-      // Reset the keyboard mode
-      this.currentKeyboardMode = '';
+      _reset();
+      _layoutMode = LAYOUT_MODE_DEFAULT;
 
       if (imminent) {
         var ime = IMERender.ime;
@@ -730,8 +769,6 @@ const IMEController = (function() {
         window.setTimeout(function remoteImminent() {
           ime.classList.remove('imminent');
         }, 0);
-
-        ime.innerHTML = '';
       }
     },
 
@@ -739,11 +776,13 @@ const IMEController = (function() {
       if (IMERender.ime.dataset.hidden)
         return;
 
+/*
       // we presume that the targetWindow has been restored by
       // window manager to full size by now.
       IMERender.getTargetWindowMetrics();
-      IMERender.draw(Keyboards[_baseLayout]);
-      _updateTargetWindowHeight();
+      console.log('onResize');
+      _draw();
+*/
     },
 
     loadKeyboard: function km_loadKeyboard(name) {
@@ -814,9 +853,7 @@ const IMEController = (function() {
       if (_isUpperCase &&
           !_isUpperCaseLocked && _layoutMode === LAYOUT_MODE_DEFAULT) {
             _isUpperCase = false;
-            //Do we need to re-draw?
-            _currentLayout = _buildLayout(_baseLayout, _currentInputType, _layoutMode);
-            IMERender.draw(_currentLayout);
+            _draw(_baseLayout, _currentInputType, _layoutMode, _isUpperCase);
           }
     }
   };

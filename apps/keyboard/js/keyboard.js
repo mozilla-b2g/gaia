@@ -201,9 +201,11 @@ const IMEManager = {
     IMEController.showIME(type);
   },
 
+/*
   hideIME: function km_hideIME(imminent) {
     IMEController.hideIME(imminent);
   }
+*/
 
 };
 
