@@ -14,7 +14,6 @@
 }
 
 * {
-  font-family: 'Open Sans';
   -moz-box-sizing: border-box;
 }
 
@@ -55,6 +54,7 @@ button::-moz-focus-inner{
 }
 
 .keyboard-key, span.keybaord-key-hold {
+  font-family: 'Open Sans';  
   display: inline-block;
   overflow: hidden;
   text-align: center;
@@ -161,16 +161,26 @@ button::-moz-focus-inner{
   display: block;
 }
 
+@font-face {
+  font-family: 'Keyboard Symbols';
+  font-weight: 600;
+  src: url('fonts/Keyboard-Symbols.woff');
+}
+
+.keyboard-key[data-keycode="-3"] span, /* IMEManager.SWITCH_KEYBOARD */
+.keyboard-key[data-keycode="8"] span, /* KeyEvent.DOM_VK_BACK_SPACE */
+.keyboard-key[data-keycode="20"] span, /* KeyEvent.DOM_VK_CAPS_LOCK */
+.keyboard-key[data-keycode="13"] span{ /* KeyEvent.DOM_VK_RETURN */
+  font-family: 'Keyboard Symbols', sans-serif;
+  color: #464646;
+  opacity: 0.3;
+}
+
 
 /* KEYS STATES */
 /* Active */
 .kbr-key-active { background: #5cc9e1; box-shadow: inset 0 0 12px -4px rgba(0, 0, 0, 0.6); }
   .kbr-key-active span { opacity: 0.3; }
-
-/* Disabled */
-.kbr-key-disabled span {opacity: 0.3; }
-
-
 
 
 @media screen and (max--moz-device-pixel-ratio: 1.5) {
