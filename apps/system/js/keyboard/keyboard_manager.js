@@ -47,12 +47,11 @@ var KeyboardManager = (function() {
 
     function hideImeListener(evt) {
       keyboardFrame.style.height = 0;
-      keyboardFrame.style.display = 'none';
       WindowManager.setAppSize(WindowManager.getDisplayedApp());
     }
 
     window.addEventListener('showime', function showImeListener(evt) {
-      keyboardFrame.style.display = 'block';
+      //keyboardFrame.style.display = 'block';
       var event = { type: evt.type };
       if (evt.detail) {
         event.detail = { type: evt.detail.type };

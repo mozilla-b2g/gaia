@@ -753,12 +753,9 @@ const IMEController = (function() {
         }
       }
 */
-
-      _updateTargetWindowHeight();
     },
     
     hideIME: function km_hideIME(imminent) {
-      console.log('hiding');
       if (IMERender.ime.dataset.hidden)
         return;
 
@@ -779,10 +776,13 @@ const IMEController = (function() {
       if (IMERender.ime.dataset.hidden)
         return;
 
+/*
       // we presume that the targetWindow has been restored by
       // window manager to full size by now.
-//      IMERender.getTargetWindowMetrics();
+      IMERender.getTargetWindowMetrics();
+      console.log('onResize');
       _draw();
+*/
     },
 
     loadKeyboard: function km_loadKeyboard(name) {
