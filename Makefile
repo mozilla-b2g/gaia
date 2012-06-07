@@ -15,6 +15,8 @@
 #                                                                             #
 # REPORTER    : Mocha reporter to use for test output.                        #
 #                                                                             #
+# GAIA_APP_SRCDIRS : list of directories to search for web apps               #
+#                                                                             #
 ###############################################################################
 GAIA_DOMAIN?=gaiamobile.org
 
@@ -25,6 +27,8 @@ ADB?=adb
 DEBUG?=0
 
 REPORTER=Spec
+
+GAIA_APP_SRCDIRS?=apps
 
 
 ###############################################################################
@@ -109,22 +113,22 @@ webapp-manifests:
 	@echo "Generated webapps"
 	@mkdir -p profile/webapps
 	@echo { > profile/webapps/webapps.json
-	@cd apps; \
-	for d in `find * -maxdepth 0 -type d` ;\
+	for d in `find ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
 	do \
 	  if [ -f $$d/manifest.webapp ]; \
 		then \
-		  mkdir -p ../profile/webapps/$$d; \
-		  cp $$d/manifest.webapp ../profile/webapps/$$d/manifest.webapp  ;\
-		  cp $$d/manifest.webapp ../profile/webapps/$$d/manifest.json  ;\
-                  (\
-			echo \"$$d\": { ;\
-			echo \"origin\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
-			echo \"installOrigin\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
+			n=$$(basename $$d); \
+			mkdir -p profile/webapps/$$n; \
+			cp $$d/manifest.webapp profile/webapps/$$n/manifest.webapp  ;\
+			cp $$d/manifest.webapp profile/webapps/$$n/manifest.json  ;\
+			(\
+			echo \"$$n\": { ;\
+			echo \"origin\": \"http://$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
+			echo \"installOrigin\": \"http://$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
 			echo \"receipt\": null, ;\
 			echo \"installTime\": 132333986000, ;\
-			echo \"manifestURL\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp\" ;\
-			echo },) >> ../profile/webapps/webapps.json;\
+			echo \"manifestURL\": \"http://$$n.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp\" ;\
+			echo },) >> profile/webapps/webapps.json;\
 		fi \
 	done
 	@cd external-apps; \
@@ -289,11 +293,11 @@ test-agent-config: test-agent-bootstrap-apps
 	@echo '{"tests": [' >> $(TEST_AGENT_CONFIG)
 
 	# Build json array of all test files
-	@(find ./apps -name "*_test.js" | \
-		sed 's:./apps/::' | \
+	(for d in ${GAIA_APP_SRCDIRS} ; do find $$d -name "*_test.js" | \
+		sed "s:$$d/::" | \
 		sed 's:\(.*\):"\1":' | \
 		sed -e ':a' -e 'N' -e '$$!ba' -e 's/\n/,\
-	/g') >> $(TEST_AGENT_CONFIG)
+	/g'; done) >> $(TEST_AGENT_CONFIG)
 
 	@echo '  ]}' >> $(TEST_AGENT_CONFIG);
 	@echo "Built test ui config file: $(TEST_AGENT_CONFIG)"
@@ -301,7 +305,7 @@ test-agent-config: test-agent-bootstrap-apps
 
 .PHONY: test-agent-bootstrap-apps
 test-agent-bootstrap-apps:
-	for d in `find apps/* -maxdepth 0 -type d` ;\
+	for d in `find ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
 	do \
 		  mkdir -p $$d/test/unit ; \
 		  mkdir -p $$d/test/integration ; \
@@ -389,13 +393,12 @@ forward:
 
 # update the manifest.appcache files to match what's actually there
 update-offline-manifests:
-	@cd apps; \
-	for d in `find * -maxdepth 0 -type d` ;\
+	for d in `find ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
 	do \
 		if [ -f $$d/manifest.webapp ] ;\
 		then \
-			echo \\t$$d ;\
-			cd $$d ;\
+			echo \\t$$d ;  \
+			( cd $$d ; \
 			echo "CACHE MANIFEST" > manifest.appcache ;\
 			cat `find * -type f | sort -nfs` | $(MD5SUM) | cut -f 1 -d ' ' | sed 's/^/\#\ Version\ /' >> manifest.appcache ;\
 			find * -type f | grep -v tools | sort >> manifest.appcache ;\
@@ -404,7 +407,7 @@ update-offline-manifests:
 			echo "NETWORK:" >> manifest.appcache ;\
 			echo "http://*" >> manifest.appcache ;\
 			echo "https://*" >> manifest.appcache ;\
-			cd .. ;\
+			) ;\
 		fi \
 	done
 
