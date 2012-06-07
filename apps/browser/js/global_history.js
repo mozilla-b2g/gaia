@@ -1,3 +1,5 @@
+'use strict';
+
 var indexedDB = window.indexedDB || window.webkitIndexedDB ||
   window.mozIndexedDB || window.msIndexedDB;
 
@@ -37,9 +39,8 @@ var GlobalHistory = {
       // if place already exists, just set icon
       if (place) {
         place.icon = icon;
-      // otherwise create a new place
-      } else {
-        var place = {
+      } else { // otherwise create a new place
+        place = {
           uri: uri,
           title: uri,
           icon: icon
