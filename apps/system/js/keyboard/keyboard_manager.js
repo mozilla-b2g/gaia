@@ -1,8 +1,5 @@
 'use strict';
 
-// Handles events from the Keyboard app, in order to
-// resize the current app when needed
-
 var KeyboardManager = (function() {
 
   var KEYBOARD_ID = 'keyboardFrame';
@@ -10,67 +7,93 @@ var KeyboardManager = (function() {
   // TODO: Retrieve it from Settings, allowing 3rd party keyboards
   var KEYBOARD_URL = 'http://keyboard.' + domain;
 
+  var keyboardFrame;
 
   var init = function kbManager_init() {
-    var keyboardFrame = document.getElementById(KEYBOARD_ID);
+    keyboardFrame = document.getElementById(KEYBOARD_ID);
     keyboardFrame.src = KEYBOARD_URL;
 
-    listenResize(keyboardFrame);
-    listenShowHide(keyboardFrame);
-
+    listenUpdateHeight();
+    listenShowHide();
   };
 
-  var listenResize = function(keyboardFrame) {
-    // Keyboard app notifying resize the screen
+  var listenUpdateHeight = function() {
     // TODO Think on a way of doing this
     // without postMessages between Keyboard and System
-    window.addEventListener('message', function receiver(e) {
-      var currentApp = WindowManager.getAppFrame(WindowManager.getDisplayedApp());
-      var event = JSON.parse(e.data);
-      if (event.action == 'resize') {
-        WindowManager.setAppSize(WindowManager.getDisplayedApp());
-        var currentHeight = currentApp.style.height;
-        currentApp.style.height = '-moz-calc(' + currentHeight + ' - ' + event.height + ')';
+    window.addEventListener('message', function receiver(evt) {
+      var message = JSON.parse(evt.data);
+
+      if (message.action !== 'updateHeight')
+        return;
+
+      var app = WindowManager.getDisplayedApp();
+
+      if (!app)
+        return;
+
+      var currentApp = WindowManager.getAppFrame(app);
+      // Reset the height of the app
+      WindowManager.setAppSize(app);
+
+      if (!message.hidden) {
+        currentApp.style.height =
+          (currentApp.offsetHeight - message.keyboardHeight) + 'px';
         currentApp.classList.add('keyboardOn');
-        keyboardFrame.style.display = 'block';
-        keyboardFrame.style.height = '100%';
+      } else {
+        currentApp.classList.remove('keyboardOn');
+        keyboardFrame.classList.add('hide');
       }
     });
   };
 
-  var listenShowHide = function(keyboardFrame) {
-
+  var listenShowHide = function() {
     var keyboardWindow = keyboardFrame.contentWindow;
 
     // Handling showime and hideime events, as they are received only in System
     // https://bugzilla.mozilla.org/show_bug.cgi?id=754083
 
-    function hideImeListener(evt) {
-      keyboardFrame.style.height = 0;
-      keyboardFrame.style.display = 'none';
-      WindowManager.setAppSize(WindowManager.getDisplayedApp());
-    }
+    function kbdEventRelay(evt) {
+      /*
+      * We will trusted keyboard app to send back correct updateHeight message
+      * for us to hide the keyboardFrame when the keyboard transition is finished
+      */
+      switch (evt.type) {
+        case 'showime':
+          // Allow the keyboardFrame to show before the height adjustment
+          keyboardFrame.classList.remove('hide');
+          break;
 
-    window.addEventListener('showime', function showImeListener(evt) {
-      var event = { type: evt.type };
-      if (evt.detail) {
-        event.detail = { type: evt.detail.type };
-        keyboardWindow.postMessage(JSON.stringify(event), KEYBOARD_URL);
+        case 'hideime':
+          // Allow the app to occupy the entire screen behind the keyboard
+          // before the transition
+          var app = WindowManager.getDisplayedApp();
+          if (app)
+            WindowManager.setAppSize(app);
+          break;
+
+        case 'appwillclose':
+          // Hide the keyboardFrame!
+          var app = WindowManager.getDisplayedApp();
+          var currentApp = WindowManager.getAppFrame(app);
+          currentApp.classList.remove('keyboardOn');
+          keyboardFrame.classList.add('hide');
+          break;
       }
-      window.addEventListener('hideime', hideImeListener);
-    });
 
-    window.addEventListener('appwillclose', function appCloseListener(evt) {
-      var currentApp = WindowManager.getAppFrame(WindowManager.getDisplayedApp());
-      window.removeEventListener('hideime', hideImeListener);
-      keyboardFrame.style.height = 0;
-      currentApp.style.height = 0;
-      currentApp.classList.remove('keyboardOn');
-    });
+      var message = { type: evt.type };
+      if (evt.detail)
+        message.detail = evt.detail;
+
+      keyboardWindow.postMessage(JSON.stringify(message), KEYBOARD_URL);
+    };
+
+    window.addEventListener('showime', kbdEventRelay);
+    window.addEventListener('hideime', kbdEventRelay);
+    window.addEventListener('appwillclose', kbdEventRelay);
   };
 
   return {
-    'init': init 
+    'init': init
   };
 
 }());
