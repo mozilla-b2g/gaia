@@ -106,9 +106,9 @@ GlobalHistory.db = {
     };
 
     var objectStore = transaction.objectStore('places');
-    
+
     var request = objectStore.add(place);
-    
+
     request.onsuccess = function onsuccess(e) {
       if (callback)
         callback();
@@ -118,7 +118,7 @@ GlobalHistory.db = {
       if (e.target.error.name == 'ConstraintError') {
         e.preventDefault();
       } else {
-        console.log(e.target.error.name + 
+        console.log(e.target.error.name +
           ' error while adding place to global history store with URL ' +
           place.uri);
       }
