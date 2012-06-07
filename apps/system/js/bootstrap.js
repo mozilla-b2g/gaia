@@ -194,5 +194,5 @@ try {
         break;
     }
   };
-} catch(e) {}
+} catch (e) {}
 

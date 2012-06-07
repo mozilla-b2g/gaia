@@ -72,6 +72,24 @@
       <!-- keyboard -->
       <iframe id="keyboardFrame" class="hide"></iframe>
 
+      <!-- homescreen -->
+      <iframe id="homescreen" mozbrowser mozapp></iframe>
+      <!-- <iframe id="homescreen" mozbrowser mozapp remote="true"></iframe>
+      Crashing on load
+        https://bugzilla.mozilla.org/show_bug.cgi?id=761933
+      -->
+
+      <div id="windows">
+        <!-- application windows are added here -->
+      </div>
+
+      <div id="notifications-screen">
+        <div id="notifications-container">
+        </div>
+        <div id="grippy">
+        </div>
+      </div>
+
       <div id="statusbar">
         <div id="state">
           <div id="state-notifications" class="state"></div>
@@ -93,19 +111,7 @@
         <div class="time" data-format="%H:%M"></div>
       </div>
 
-      <!-- homescreen -->
-      <iframe id="homescreen" mozbrowser mozapp></iframe>
 
-      <div id="windows">
-        <!-- application windows are added here -->
-      </div>
-
-      <div id="notifications-screen">
-        <div id="notifications-container">
-        </div>
-        <div id="grippy">
-        </div>
-      </div>
       <div id="lockscreen" class="uninit">
         <div id="lockscreen-container">
           <div class="lockscreen-panel">

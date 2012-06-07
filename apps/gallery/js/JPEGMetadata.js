@@ -1,21 +1,29 @@
+
+'use strict';
+
 // Asynchronously read a JPEG Blob (or File), extract its metadata,
 // and pass an object containing selected portions of that metadata
 // to the specified callback function.
-function readJPEGMetadata(blob, callback, errback) {
+function readJPEGMetadata(blob, callback, errorCallback) {
+  if (!errorCallback) {
+    errCallback = function(e) {
+      console.error('JPEGMetadata', String(e));
+    };
+  }
+
   var reader = new FileReader();
   reader.readAsArrayBuffer(blob);
-  errback = errback || function(o){ console.error("JPEGMetadata", String(o)); };
-  reader.onerror = function() {
-    errback(reader.error);
+
+  reader.onerror = function onerror() {
+    errorCallback(reader.error);
   };
 
-  reader.onload = function() {
+  reader.onload = function onload() {
     try {
       var data = new DataView(reader.result);
       var metadata = parseJPEGMetadata(data);
-    }
-    catch(e) {
-      errback(e);
+    } catch (e) {
+      errorCallback(e);
       return;
     }
     callback(metadata);
@@ -24,16 +32,17 @@ function readJPEGMetadata(blob, callback, errback) {
   function parseJPEGMetadata(data) {
     var metadata = {};
     if (data.getUint8(0) !== 0xFF || data.getUint8(1) !== 0xD8) {
-      throw Error("Not a JPEG file");
+      throw Error('Not a JPEG file');
     }
 
     var offset = 2;
-    
+
     // Loop through the segments of the JPEG file
-    while(offset < data.byteLength) {
-      if (data.getUint8(offset++) !== 0xFF)
+    while (offset < data.byteLength) {
+      if (data.getUint8(offset++) !== 0xFF) {
         throw Error('malformed JPEG file: missing 0xFF delimiter');
-      
+      }
+
       var segtype = data.getUint8(offset++);
       var segstart = offset;
       var seglen = data.getUint16(offset);
@@ -41,22 +50,23 @@ function readJPEGMetadata(blob, callback, errback) {
       // Basic image segment specifying image size and compression type
       if (segtype == 0xE0) {
         // APP0: probably JFIF metadata, which we ignore for now
-      }
-      else if (segtype == 0xE1) {
+      } else if (segtype == 0xE1) {
         // APP1
-        if (data.getUint8(offset+2) === 0x45 && // E
-            data.getUint8(offset+3) === 0x78 && // x
-            data.getUint8(offset+4) === 0x69 && // i            
-            data.getUint8(offset+5) === 0x66 && // f
-            data.getUint8(offset+6) === 0) {    // NUL
-          metadata.exif = parseEXIFData(new DataView(data.buffer, 
-                                                     data.byteOffset + offset+8,
-                                                     seglen-8));
+        if (data.getUint8(offset + 2) === 0x45 && // E
+            data.getUint8(offset + 3) === 0x78 && // x
+            data.getUint8(offset + 4) === 0x69 && // i
+            data.getUint8(offset + 5) === 0x66 && // f
+            data.getUint8(offset + 6) === 0) {    // NUL
+
+          var dataView = new DataView(data.buffer,
+                                      data.byteOffset + offset + 8,
+                                      seglen - 8);
+          metadata.exif = parseEXIFData(dataView);
 
           if (metadata.exif.THUMBNAIL && metadata.exif.THUMBNAILLENGTH) {
             var start = offset + 8 + metadata.exif.THUMBNAIL;
             var end = start + metadata.exif.THUMBNAILLENGTH;
-            var thumbnailBlob = blob.slice(start, end, "image/jpeg");
+            var thumbnailBlob = blob.slice(start, end, 'image/jpeg');
             var thumbnailData = new DataView(data.buffer,
                                              start,
                                              metadata.exif.THUMBNAILLENGTH);
@@ -66,10 +76,9 @@ function readJPEGMetadata(blob, callback, errback) {
             delete metadata.exif.THUMBNAILLENGTH;
           }
         }
-      }
-      else if (segtype >= 0xC0 && segtype <= 0xC3) {
-        metadata.height = data.getUint16(offset+3);
-        metadata.width = data.getUint16(offset+5);
+      } else if (segtype >= 0xC0 && segtype <= 0xC3) {
+        metadata.height = data.getUint16(offset + 3);
+        metadata.width = data.getUint16(offset + 5);
 
         // Once we've gotten the images size we're done.
         // the APP0 and APP1 metadata will always come first.
@@ -93,16 +102,15 @@ function readJPEGMetadata(blob, callback, errback) {
     var byteorder = data.getUint8(0);
     if (byteorder === 0x4D) {  // big endian
       byteorder = false;
-    }
-    else if (byteorder === 0x49) {  // little endian
+    } else if (byteorder === 0x49) {  // little endian
       byteorder = true;
-    }
-    else {
+    } else {
       throw Error('invalid byteorder in EXIF segment');
     }
 
-    if (data.getUint16(2, byteorder) !== 42)  // magic number
+    if (data.getUint16(2, byteorder) !== 42) { // magic number
       throw Error('bad magic number in EXIF segment');
+    }
 
     var offset = data.getUint32(4, byteorder);
 
@@ -123,10 +131,10 @@ function readJPEGMetadata(blob, callback, errback) {
 
   function parseIFD(data, offset, byteorder, exif) {
     var numentries = data.getUint16(offset, byteorder);
-    for(var i = 0; i < numentries; i++) {
-      parseEntry(data, offset + 2 + 12*i, byteorder, exif);
+    for (var i = 0; i < numentries; i++) {
+      parseEntry(data, offset + 2 + 12 * i, byteorder, exif);
     }
-    
+
     var next = data.getUint32(offset + 2 + 12 * numentries, byteorder);
     if (next !== 0)
       parseIFD(data, next, byteorder, exif);
@@ -139,7 +147,7 @@ function readJPEGMetadata(blob, callback, errback) {
     1,   // ASCII
     2,   // SHORT
     4,   // LONG
-    8,   // RATIONAL 
+    8,   // RATIONAL
     1,   // SBYTE
     1,   // UNDEFINED
     2,   // SSHORT
@@ -184,76 +192,75 @@ function readJPEGMetadata(blob, callback, errback) {
     '34665': 'EXIFIFD',         // Offset of EXIF data
     '34853': 'GPSIFD',          // Offset of GPS data
     '513': 'THUMBNAIL',         // Offset of thumbnail
-    '514': 'THUMBNAILLENGTH',   // Length of thumbnail
+    '514': 'THUMBNAILLENGTH'   // Length of thumbnail
 };
 
   function parseEntry(data, offset, byteorder, exif) {
     var tag = data.getUint16(offset, byteorder);
     var tagname = tagnames[tag];
-    var type = data.getUint16(offset+2, byteorder);
-    var count = data.getUint32(offset+4, byteorder);
+    var type = data.getUint16(offset + 2, byteorder);
+    var count = data.getUint32(offset + 4, byteorder);
 
     if (!tagname) // If we don't know about this tag type, skip it
       return;
 
     var total = count * typesize[type];
-    var valueOffset = total <= 4
-      ? offset + 8
-      : data.getUint32(offset+8, byteorder);
+    var valueOffset = total <= 4 ? offset + 8 :
+                                   data.getUint32(offset + 8, byteorder);
     exif[tagname] = parseValue(data, valueOffset, type, count, byteorder);
   }
 
   function parseValue(data, offset, type, count, byteorder) {
     if (type === 2) { // ASCII string
       var codes = [];
-      for(var i = 0; i < count-1; i++) 
+      for (var i = 0; i < count - 1; i++) {
         codes[i] = data.getUint8(offset + i);
+      }
       return String.fromCharCode.apply(String, codes);
-    }
-    else {
-      if (count == 1) 
+    } else {
+      if (count == 1) {
         return parseOneValue(data, offset, type, byteorder);
-      else {
+      } else {
         var values = [];
         var size = typesize[type];
-        for(var i = 0; i < count; i++) {
-          values[i] = parseOneValue(data, offset + size*i, type, byteorder);
+        for (var i = 0; i < count; i++) {
+          values[i] = parseOneValue(data, offset + size * i, type, byteorder);
         }
         return values;
       }
     }
-
   }
 
   function parseOneValue(data, offset, type, byteorder) {
-    switch(type) {
-    case 1: // BYTE
-    case 7: // UNDEFINED
-      return data.getUint8(offset);
-    case 2: // ASCII
-      // This case is handed in parseValue
-      return null;
-    case 3: // SHORT
-      return data.getUint16(offset, byteorder);
-    case 4: // LONG
-      return data.getUint32(offset, byteorder);
-    case 5: // RATIONAL
-      return data.getUint32(offset, byteorder) /
-        data.getUint32(offset+4, byteorder);
-    case 6: // SBYTE
-      return data.getInt8(offset);
-    case 8: // SSHORT
-      return data.getInt16(offset, byteorder);
-    case 9: // SLONG
-      return data.getInt32(offset, byteorder);
-    case 10: // SRATIONAL
-      return data.getInt32(offset, byteorder) /
-        data.getInt32(offset+4, byteorder);
-    case 11: // FLOAT
-      return data.getFloat32(offset, byteorder);
-    case 12: // DOUBLE
-      return data.getFloat64(offset, byteorder);
+    switch (type) {
+      case 1: // BYTE
+      case 7: // UNDEFINED
+        return data.getUint8(offset);
+      case 2: // ASCII
+        // This case is handed in parseValue
+        return null;
+      case 3: // SHORT
+        return data.getUint16(offset, byteorder);
+      case 4: // LONG
+        return data.getUint32(offset, byteorder);
+      case 5: // RATIONAL
+        return data.getUint32(offset, byteorder) /
+               data.getUint32(offset + 4, byteorder);
+      case 6: // SBYTE
+        return data.getInt8(offset);
+      case 8: // SSHORT
+        return data.getInt16(offset, byteorder);
+      case 9: // SLONG
+        return data.getInt32(offset, byteorder);
+      case 10: // SRATIONAL
+        return data.getInt32(offset, byteorder) /
+               data.getInt32(offset + 4, byteorder);
+      case 11: // FLOAT
+        return data.getFloat32(offset, byteorder);
+      case 12: // DOUBLE
+        return data.getFloat64(offset, byteorder);
     }
     return null;
   }
 }
+

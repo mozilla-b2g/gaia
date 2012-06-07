@@ -163,6 +163,13 @@ var apps = {
     "installTime": 132333986000,
     "manifestURL": "http://tasks.localhost.org:8080/manifest.webapp"
   },
+  "template": {
+    "origin": rootPath.replace('%%%', 'template'),
+    "installOrigin": "http://template.localhost.org:8080",
+    "receipt": null,
+    "installTime": 132333986000,
+    "manifestURL": "http://template.localhost.org:8080/manifest.webapp"
+  },
   "test-agent": {
     "origin": rootPath.replace('%%%', 'test-agent'),
     "installOrigin": "http://test-agent.localhost.org:8080",

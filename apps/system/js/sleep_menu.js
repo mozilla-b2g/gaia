@@ -37,7 +37,7 @@ var SleepMenu = {
           case 'airplane':
             var settings = window.navigator.mozSettings;
             if (settings) {
-              var settingName = 'ril.radio.disabled'
+              var settingName = 'ril.radio.disabled';
               var req = settings.getLock().get(settingName);
               req.onsuccess = function() {
                 var newValue = !req.result[settingName];
