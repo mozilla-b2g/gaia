@@ -103,7 +103,8 @@ let permissions = {
 let content = "";
 
 let homescreen = HOMESCREEN + (GAIA_PORT ? GAIA_PORT : '');
-content += "user_pref(\"browser.homescreenURL\",\"" + homescreen + "\");\n\n";
+content += "user_pref(\"browser.homescreenURL\",\"" + homescreen + "\");\n";
+content += "user_pref(\"browser.manifestURL\",\"" + homescreen + "/manifest.webapp\");\n\n";
 
 let privileges = [];
 let domains = [];
