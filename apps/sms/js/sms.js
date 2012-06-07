@@ -87,10 +87,10 @@ var DelayDeleteManager = {
     if (evt.attrName != 'class')
       return;
 
-    // When ConversationListView entering other status.
-    if (!evt.prevValue && evt.newValue) {
-      this.executeDelete();
-    }
+    // If previous status is not edit mode and class changed, execute delete.
+    if (evt.prevValue.indexOf('edit') > -1)
+      return;
+    this.executeDelete();
   },  
   handleEvent: function dm_handleEvent(evt) {
     switch (evt.type) {
@@ -222,10 +222,6 @@ var ConversationListView = {
   },
   
   updateConversationList: function cl_updateCL(pendingMsg) {
-    if (document.body.classList.contains('msg-search-result-mode')) {
-      this.searchConversations();
-      return;
-    }
     var self = this;
     /*
       TODO: Conversation list is always order by contact family names
@@ -295,12 +291,13 @@ var ConversationListView = {
   createHighlightStr: function cl_createHighlightStr(text, searchRegExp) {
     var sliceStrs = text.split(searchRegExp);
     var patterns = text.match(searchRegExp);
-    var str = [];
+    var str = '';
     for (var i = 0; i < patterns.length; i++) {
-      str.push(sliceStrs[i] + '<span class="highlight">' + patterns[i] + '</span>');
+      str = str + sliceStrs[i] + '<span class="highlight">' + patterns[i] + '</span>';
     }
-    str.push(sliceStrs.pop());
-    return str.join('');
+    str += sliceStrs.pop();
+    return str;
+    
   },
 
   createNewConversation: function cl_createNewConversation(conversation, searchRegExp) {
@@ -338,9 +335,9 @@ var ConversationListView = {
         var num = message.delivery == 'received' ?
                   message.sender : message.receiver;
 
-        if (!reg.test(textContent) || searchedNum[num])
+        if (!reg.test(textContent) || searchedNum[num] || this.delNumList.indexOf(num) > -1)
           continue;
-        //console.log('@@@ matched message = ' + num + ' body = ' + message.body);
+
         var msgProperties = {
           'hidden': false,
           'body': message.body,
@@ -376,22 +373,38 @@ var ConversationListView = {
     window.location.hash = '#num=' + num;
   },
 
+  // Update the body class depends on the current hash and original class list.
   pageStatusController: function cl_pageStatusController() {
+    var bodyclassList = document.body.classList;
     switch (window.location.hash) {
       case '':
-        this.toggleEditMode(false);
-        this.toggleSearchMode(false);
+        bodyclassList.remove('msg-edit-mode');
+        bodyclassList.remove('msg-search-mode');
+        if (!bodyclassList.contains('msg-search-result-mode'))
+          return;
+
+        this.searchInput.value = '';
+        this.updateConversationList();
+        bodyclassList.remove('msg-search-result-mode');
         break;
-      case '#search-edit':
-        this.toggleEditMode(true);
+      case '#_edit':  // Edit mode with all conversations.
+        bodyclassList.add('msg-edit-mode');
+        bodyclassList.remove('msg-search-mode');
         break;
-      case '#edit':
-        this.toggleEditMode(true);
-        this.toggleSearchMode(false);
+      case '#search': // Display search toolbar with all conversations.
+        bodyclassList.remove('msg-edit-mode');
+        bodyclassList.add('msg-search-mode');
         break;
-      case '#search':
-        this.toggleEditMode(false);
-        this.toggleSearchMode(true);
+      case '#searchresult': // Display searched conversations.
+        bodyclassList.remove('msg-search-mode');
+        bodyclassList.remove('msg-edit-mode');
+        bodyclassList.add('msg-search-result-mode');
+        if (!this.searchInput.value)
+          this.view.innerHTML = '';
+        break;
+      case '#searchresult_edit':  // Edit mode with the searched conversations.
+        bodyclassList.add('msg-edit-mode');
+        bodyclassList.add('msg-search-result-mode');
         break;
     }
   },
@@ -407,10 +420,7 @@ var ConversationListView = {
         break;
 
       case 'focus':
-        document.body.classList.remove('msg-search-mode');
-        document.body.classList.add('msg-search-result-mode');
-        if (!this.searchInput.value)
-          this.view.innerHTML = '';
+        window.location.hash = '#searchresult';
         break;
 
       case 'hashchange':
@@ -454,10 +464,14 @@ var ConversationListView = {
    *  executeMessageDelete would be set for delayDelete regist.
   */
   pendMessageDelete: function cl_pendMessageDelete() {
-    if (this.delNumList.length > 0) {
+    window.location.hash = window.location.hash.replace('_edit', '');
+    if (this.delNumList.length == 0)
+      return;
+    
+    if (this.searchInput.value)
+      this.searchConversations();
+    else
       this.updateConversationList();
-    }
-    window.location.hash = '#';
   },
 
   executeMessageDelete: function cl_executeMessageDelete() {
@@ -470,7 +484,10 @@ var ConversationListView = {
   undoMessageDelete: function cl_undoMessageDelete() {
     DelayDeleteManager.unregistDelayDelete();
     this.delNumList = [];
-    this.updateConversationList();
+    if (this.searchInput.value)
+      this.searchConversations();
+    else
+      this.updateConversationList();
     this.undoToolbar.classList.remove('show');
   },  
 
@@ -497,25 +514,6 @@ var ConversationListView = {
     DelayDeleteManager.registDelayDelete(this.executeMessageDelete.bind(this));
   },
 
-  toggleSearchMode: function cl_toggleSearchMode(show) {
-    if (show) {
-      document.body.classList.add('msg-search-mode');
-    } else {
-      document.body.classList.remove('msg-search-mode');
-      document.body.classList.remove('msg-search-result-mode');
-      this.searchInput.value = '';
-      this.updateConversationList();
-    }
-  },
-  
-  toggleEditMode: function cl_toggleEditMode(show) {
-    if (show) {      
-      document.body.classList.add('msg-edit-mode');  
-    } else {
-      document.body.classList.remove('msg-edit-mode');
-    }
-  },
-  
   onListItemClicked: function cl_onListItemClicked(evt) {
     var cb = evt.target.getElementsByClassName('fake-checkbox')[0];
     if (!cb)
