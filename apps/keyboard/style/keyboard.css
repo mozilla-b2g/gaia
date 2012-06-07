@@ -4,10 +4,6 @@ html, body {
   overflow: hidden;
 }
 
-#screen.fullscreen #keyboard {
-  z-index: 9999;
-}
-
 #keyboard {
   position: absolute;
   font-family: 'Open Sans', sans-serif;

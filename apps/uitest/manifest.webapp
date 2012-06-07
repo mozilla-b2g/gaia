@@ -5,5 +5,8 @@
     "name": "The Gaia Team",
     "url": "https://github.com/andreasgal/gaia"
   },
-  "fullscreen": true
+  "fullscreen": true,
+  "icons": {
+    "120": "/style/icons/Uitest.png"
+  }
 }
