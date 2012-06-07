@@ -288,6 +288,7 @@ input::-moz-focus-inner {
   bottom: 0;
   z-index: 60;
   background-color: #fff;
+  padding: 4px;
 }
 
 #awesomescreen.hidden {
@@ -317,16 +318,21 @@ input::-moz-focus-inner {
 
 #awesomescreen li span {
   display: block;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 #awesomescreen li small {
   display: block;
   color: #666;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 #history{
   height: 100%;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 #history-list {
