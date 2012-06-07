@@ -51,6 +51,9 @@
     require(Common.url('/common/' + url), cb);
   }
 
+  //template
+  requireCommon('test/template.js');
+
   //load chai
   window.requireCommon('vendor/chai/chai.js', function() {
     chai.Assertion.includeStack = true;
