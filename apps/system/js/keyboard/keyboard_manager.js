@@ -25,12 +25,14 @@ var KeyboardManager = (function() {
     // TODO Think on a way of doing this
     // without postMessages between Keyboard and System
     window.addEventListener('message', function receiver(e) {
-      var currentApp = WindowManager.getAppFrame(WindowManager.getDisplayedApp());
+      var currentApp =
+        WindowManager.getAppFrame(WindowManager.getDisplayedApp());
+
       var event = JSON.parse(e.data);
       if (event.action == 'resize') {
         WindowManager.setAppSize(WindowManager.getDisplayedApp());
-        var currentHeight = currentApp.style.height;
-        currentApp.style.height = '-moz-calc(' + currentHeight + ' - ' + event.height + ')';
+        var currentHeight = currentApp.style.height - event.height;
+        currentApp.style.height = '-moz-calc(' + currentHeight + ')';
         currentApp.classList.add('keyboardOn');
         keyboardFrame.style.display = 'block';
         keyboardFrame.style.height = '100%';
@@ -61,7 +63,8 @@ var KeyboardManager = (function() {
     });
 
     window.addEventListener('appwillclose', function appCloseListener(evt) {
-      var currentApp = WindowManager.getAppFrame(WindowManager.getDisplayedApp());
+      var currentApp =
+        WindowManager.getAppFrame(WindowManager.getDisplayedApp());
       window.removeEventListener('hideime', hideImeListener);
       keyboardFrame.style.height = 0;
       currentApp.style.height = 0;
@@ -70,7 +73,7 @@ var KeyboardManager = (function() {
   };
 
   return {
-    'init': init 
+    'init': init
   };
 
 }());

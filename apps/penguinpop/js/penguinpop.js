@@ -12,7 +12,7 @@ window.addEventListener('load', function() {
     // Make the game opaque when loaded
     gameframe.style.opacity = 1;
     splash.style.opacity = 0;
-    splash.addEventListener("transitionend", function() {
+    splash.addEventListener('transitionend', function() {
       // When the transition is done, remove the splash image completely
       splash.parentNode.removeChild(splash);
     });

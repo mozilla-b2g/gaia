@@ -12,7 +12,7 @@ var Camera = {
   },
 
   get captureButton() {
-    return document.getElementById('capture-button'); 
+    return document.getElementById('capture-button');
   },
 
   get galleryButton() {
@@ -39,9 +39,9 @@ var Camera = {
 
     width = document.body.clientHeight;
     height = document.body.clientWidth;
-      
-    var top = ((width/2) - ((height)/2));
-    var left = -((width/2) - (height/2));
+
+    var top = ((width / 2) - ((height) / 2));
+    var left = -((width / 2) - (height / 2));
     viewfinder.style.top = top + 'px';
     viewfinder.style.left = left + 'px';
 
@@ -55,11 +55,11 @@ var Camera = {
       height: height,
       width: width,
       camera: camera
-    }
+    };
 
     viewfinder.style.width = width + 'px';
     viewfinder.style.height = height + 'px';
-    if(navigator.mozCamera)
+    if (navigator.mozCamera)
       viewfinder.src = navigator.mozCamera.getCameraURI(config);
   },
 
@@ -74,7 +74,7 @@ var Camera = {
   toggleCamera: function toggleCamera() {
     this._camera = 1 - this._camera;
     this.setSource(this._camera);
-  },
+  }
 
 };
 
@@ -88,7 +88,7 @@ document.addEventListener('mozvisibilitychange', function visibility(e) {
     Camera.pause();
   } else {
     // If we become visible again, first reconfigure the camera
-    // in case the screen has rotated or something, and then 
+    // in case the screen has rotated or something, and then
     // resume the video.
     Camera.setSource(Camera._camera);
     Camera.resume();
