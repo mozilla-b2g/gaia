@@ -10,23 +10,8 @@ var gTonesFrequencies = {
   '*': [941, 1209], '0': [941, 1336], '#': [941, 1477]
 };
 
-
-// Bug 690056 implement a visibility API, and it's likely that
-// we want this event to be fire when an app come back to life
-// or is minimized (it does not now).
-window.addEventListener('message', function visibleApp(evt) {
-  var data = evt.data;
-  if (data.message == 'visibilitychange') {
-    visibilityChanged(data.url, evt);
-  } else if (data == 'connected') {
-    CallHandler.connected();
-  } else if (data == 'disconnected') {
-    CallHandler.disconnected();
-  }
-});
-
-function visibilityChanged(url, evt) {
-  var data = evt.data;
+document.addEventListener('mozvisibilitychange', function visibility(e) {
+  var url = document.location.href;
   var params = (function makeURL() {
     var a = document.createElement('a');
     a.href = url;
@@ -40,7 +25,9 @@ function visibilityChanged(url, evt) {
     return rv;
   })();
 
-  if (!data.hidden) {
+  if (document.mozHidden) {
+    Recents.stopUpdatingDates();
+  } else {
     Recents.startUpdatingDates();
 
     var choice = params['choice'];
@@ -49,10 +36,8 @@ function visibilityChanged(url, evt) {
       Contacts.load();
       choiceChanged(contacts);
     }
-  } else {
-    Recents.stopUpdatingDates();
   }
-}
+});
 
 function choiceChanged(target) {
   var choice = target.dataset.choice;
