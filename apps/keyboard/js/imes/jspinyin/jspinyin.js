@@ -2643,6 +2643,175 @@ DictDef.LemmaEntry.prototype = {
   freq: 0.0
 };
 
+var SearchUtility = {
+  compare: function searchUtility_compare(a, b) {
+    if (a > b) {
+      return 1;
+    }
+    if (a < b) {
+      return -1;
+    }
+    return 0;
+  },
+
+  is_system_lemma: function searchUtility_is_system_lemma(lma_id) {
+    return (0 < lma_id && lma_id <= DictDef.kSysDictIdEnd);
+  },
+
+  is_user_lemma: function searchUtility_is_user_lemma(lma_id) {
+    return (DictDef.kUserDictIdStart <= lma_id &&
+            lma_id <= DictDef.kUserDictIdEnd);
+  },
+
+  is_composing_lemma: function searchUtility_is_composing_lemma(lma_id) {
+    return (DictDef.kLemmaIdComposing == lma_id);
+  },
+
+  cmp_lpi_with_psb: function searchUtility_cmp_lpi_with_psb(p1, p2) {
+    return SearchUtility.compare(p1.psb, p2.psb);
+  },
+
+  cmp_lpi_with_unified_psb:
+      function searchUtility_cmp_lpi_with_unified_psb(p1, p2) {
+    // The real unified psb is psb1 / lma_len1 and psb2 * lma_len2
+    // But we use psb1 * lma_len2 and psb2 * lma_len1 to get better
+    // precision.
+    var up1 = p1.psb * p2.lma_len;
+    var up2 = p2.psb * p1.lma_len;
+    return SearchUtility.compare(up1, up2);
+  },
+
+  cmp_lpi_with_id: function searchUtility_cmp_lpi_with_id(p1, p2) {
+    return SearchUtility.compare(p1.id, p2.id);
+  },
+
+  cmp_lpi_with_hanzi: function searchUtility_cmp_lpi_with_hanzi(p1, p2) {
+    return SearchUtility.compare(p1.hanzi, p2.hanzi);
+  },
+
+  cmp_lpsi_with_str: function searchUtility_cmp_lpsi_with_str(p1, p2) {
+    return SearchUtility.compare(p1.str, p2.str);
+  },
+
+  cmp_hanzis_1: function searchUtility_cmp_hanzis_1(p1, p2) {
+    var len = 1;
+    return SearchUtility.compare(p1.substring(0, len), p2.substring(0, len));
+  },
+
+  cmp_hanzis_2: function searchUtility_cmp_hanzis_1(p1, p2) {
+    var len = 2;
+    return SearchUtility.compare(p1.substring(0, len), p2.substring(0, len));
+  },
+
+  cmp_hanzis_3: function searchUtility_cmp_hanzis_1(p1, p2) {
+    var len = 3;
+    return SearchUtility.compare(p1.substring(0, len), p2.substring(0, len));
+  },
+
+  cmp_hanzis_4: function searchUtility_cmp_hanzis_1(p1, p2) {
+    var len = 4;
+    return SearchUtility.compare(p1.substring(0, len), p2.substring(0, len));
+  },
+
+  cmp_hanzis_5: function searchUtility_cmp_hanzis_1(p1, p2) {
+    var len = 5;
+    return SearchUtility.compare(p1.substring(0, len), p2.substring(0, len));
+  },
+
+  cmp_hanzis_6: function searchUtility_cmp_hanzis_1(p1, p2) {
+    var len = 6;
+    return SearchUtility.compare(p1.substring(0, len), p2.substring(0, len));
+  },
+
+  cmp_hanzis_7: function searchUtility_cmp_hanzis_1(p1, p2) {
+    var len = 7;
+    return SearchUtility.compare(p1.substring(0, len), p2.substring(0, len));
+  },
+
+  cmp_hanzis_8: function searchUtility_cmp_hanzis_1(p1, p2) {
+    var len = 8;
+    return SearchUtility.compare(p1.substring(0, len), p2.substring(0, len));
+  },
+
+  cmp_npre_by_score: function searchUtility_cmp_npre_by_score(p1, p2) {
+    return SearchUtility.compare(p1.psb, p2.psb);
+  },
+
+  cmp_npre_by_hislen_score:
+      function searchUtility_cmp_npre_by_hislen_score(p1, p2) {
+    return SearchUtility.compare(p1.his_len, p2.his_len) ||
+      SearchUtility.compare(p1.psb, p2.psb);
+  },
+
+  cmp_npre_by_hanzi_score:
+      function searchUtility_cmp_npre_by_hanzi_score(p1, p2) {
+    return SearchUtility.compare(p1.pre_hzs, p2.pre_hzs) ||
+      SearchUtility.compare(p1.psb, p2.psb);
+  },
+
+
+  remove_duplicate_npre:
+      function searchUtility_remove_duplicate_npre(npre_items) {
+    if (!npre_items) {
+      return 0;
+    }
+    var npre_num = npre_items.length;
+    if (!npre_num) {
+      return 0;
+    }
+
+    npre_items.sort(this.cmp_npre_by_hanzi_score);
+
+    var remain_num = 1;  // The first one is reserved.
+    for (var pos = 1; pos < npre_num; pos++) {
+      if (npre_items[pos].pre_hzs != npre_items[remain_num - 1].pre_hzs) {
+        if (remain_num != pos) {
+          npre_items[remain_num] = npre_items[pos];
+        }
+        remain_num++;
+      }
+    }
+    return remain_num;
+  }
+};
+
+// Type used to express a lemma and its probability score.
+SearchUtility.LmaPsbItem = function lmaPsbItem_constructor() {
+};
+
+SearchUtility.LmaPsbItem.prototype = {
+  id: 0,
+  lma_len: 0,
+  // The score, the lower psb, the higher possibility.
+  psb: 0,
+  // For single character items, we may also need Hanzi.
+  // For multiple characer items, ignore it.
+  hanzi: ''
+};
+
+// LmaPsbItem extended with string.
+SearchUtility.LmaPsbStrItem = function lmaPsbStrItem_constructor() {
+  this.lpi = new SearchUtility.LmaPsbItem();
+};
+
+SearchUtility.LmaPsbStrItem.prototype = {
+  /**
+   *@type SearchUtility.LmaPsbItem
+   */
+  lpi: null,
+  str: ''
+};
+
+SearchUtility.NPredictItem = function nPredictItem_constructor() {
+};
+
+SearchUtility.NPredictItem.prototype = {
+  psb: 0.0,
+  pre_hzs: '',
+  // The length of the history used to do the prediction.
+  his_len: 0
+};
+
 var MyStdlib = {
 
   /**
