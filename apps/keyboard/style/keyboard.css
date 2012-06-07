@@ -170,7 +170,11 @@ button::-moz-focus-inner{
 .keyboard-key[data-keycode="-3"] span, /* IMEManager.SWITCH_KEYBOARD */
 .keyboard-key[data-keycode="8"] span, /* KeyEvent.DOM_VK_BACK_SPACE */
 .keyboard-key[data-keycode="20"] span, /* KeyEvent.DOM_VK_CAPS_LOCK */
-.keyboard-key[data-keycode="13"] span{ /* KeyEvent.DOM_VK_RETURN */
+.keyboard-key[data-keycode="13"] span,
+.keyboard-key[data-keycode="18"] span,
+.keyboard-key[data-keycode="-1"] span,
+.keyboard-key[data-keycode="-1"] span,
+.keyboard-key[data-keycode="-2"] span { /* KeyEvent.DOM_VK_RETURN */
   font-family: 'Keyboard Symbols', sans-serif;
   color: #464646;
   opacity: 0.3;
