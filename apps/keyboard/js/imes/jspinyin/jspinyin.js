@@ -29,8 +29,8 @@ if (!KeyEvent) {
 var StringUtils = {
   charDiff: function stringUtils_charDiff(ch1, ch2) {
     return ch1.charCodeAt(0) - ch2.charCodeAt(0);
-  }  
-}
+  }
+};
 
 /**
  * Max terms to match for incomplete or abbreviated syllables
@@ -2377,9 +2377,9 @@ var PinyinDecoderService = {
    * Flush cached data to persistent memory. Because at runtime, in order to
    * achieve best performance, some data is only store in memory.
    */
-  flushCache: function decoderService_flushCache() {
+  flush_cache: function decoderService_flush_cache() {
     if (this._matrixSearch != null) {
-      this._matrixSearch.flushCache();
+      this._matrixSearch.flush_cache();
     }
   },
 
@@ -2408,17 +2408,17 @@ var PinyinDecoderService = {
    *
    * @param {Integer} pos The posistion of char in spelling string to delete,
    * or the position of spelling id in result string to delete.
-   * @param {Boolean} isPosInSplid Indicate whether the pos parameter is the
+   * @param {Boolean} isPosInspl_id Indicate whether the pos parameter is the
    * position in the spelling string, or the position in the result spelling id
    * string.
    * @param {Boolean} clearFixed If true, the fixed spellings will be cleared.
    * @return {Integer} The number of candidates.
    */
-  delSearch: function decoderService_delSearch(pos, isPosInSplid, clearFixed) {
+  delSearch: function decoderService_delSearch(pos, isPosInspl_id, clearFixed) {
     if (this._matrixSearch == null) {
       return 0;
     }
-    this._matrixSearch.delSearch(pos, isPosInSplid, clearFixed);
+    this._matrixSearch.delSearch(pos, isPosInspl_id, clearFixed);
     return this._matrixSearch.getCandidateNum();
   },
 
@@ -2517,16 +2517,193 @@ var PinyinDecoderService = {
   }
 };
 
+var DictDef = {
+  // The max length of a lemma.
+  kMaxLemmaSize: 8,
 
-// The last lemma id (included) for the system dictionary. The system
-// dictionary's ids always start from 1.
-var SYS_DICT_ID_END = 500000;
+  // The max length of a Pinyin (spelling).
+  kMaxPinyinSize: 6,
 
-// The first lemma id for the user dictionary.
-var USER_DICT_ID_START = 500001;
+  // The number of half spelling ids. For Chinese Pinyin, there 30 half ids.
+  // See SpellingTrie.h for details.
+  kHalfSpellingIdNum: 29,
 
-// The last lemma id (included) for the user dictionary.
-var USER_DICT_ID_END = 600000;
+  // The maximum number of full spellings. For Chinese Pinyin, there are only
+  // about 410 spellings.
+  // If change this value is bigger(needs more bits), please also update
+  // other structures like SpellingNode, to make sure than a spelling id can be
+  // stored.
+  // -1 is because that 0 is never used.
+  kMaxSpellingNum: 512 - 29 - 1,
+
+  kMaxSearchSteps: 40,
+
+  // One character predicts its following characters.
+  kMaxPredictSize: 8 - 1,
+
+  // Actually, a Id occupies 3 bytes in storage.
+  kLemmaIdSize: 3,
+  kLemmaIdComposing: 0xffffff,
+
+  // Number of items with highest score are kept for prediction purpose.
+  kTopScoreLemmaNum: 10,
+
+  kMaxPredictNumByGt3: 1,
+  kMaxPredictNumBy3: 2,
+  kMaxPredictNumBy2: 2,
+
+  // The last lemma id (included) for the system dictionary. The system
+  // dictionary's ids always start from 1.
+  kSysDictIdEnd: 500000,
+
+  // The first lemma id for the user dictionary.
+  kUserDictIdStart: 500001,
+
+  // The last lemma id (included) for the user dictionary.
+  kUserDictIdEnd: 600000
+};
+
+DictDef.SpellingId = function spellingId_constructor(half_splid, full_splid) {
+  this.half_splid = half_splid;
+  this.full_splid = full_splid;
+};
+
+DictDef.SpellingId.prototype = {
+  half_splid: 0,
+  full_splid: 0
+};
+
+/**
+ * We use different node types for different layers
+ * Statistical data of the building result for a testing dictionary:
+ *                              root,   level 0,   level 1,   level 2,   level 3
+ * max son num of one node:     406        280         41          2          -
+ * max homo num of one node:      0         90         23          2          2
+ * total node num of a layer:     1        406      31766      13516        993
+ * total homo num of a layer:     9       5674      44609      12667        995
+ *
+ * The node number for root and level 0 won't be larger than 500
+ * According to the information above, two kinds of nodes can be used; one for
+ * root and level 0, the other for these layers deeper than 0.
+ *
+ * LE = less and equal,
+ * A node occupies 16 bytes. so, totallly less than 16 * 500 = 8K
+ */
+DictDef.LmaNodeLE0 = function lmaNodeLE0_constructor() {
+};
+
+DictDef.LmaNodeLE0.prototype = {
+  son_1st_off: 0,
+  homo_idx_buf_off: 0,
+  pl_idx: 0,
+  num_of_son: 0,
+  num_of_homo: 0
+};
+
+DictDef.LmaNodeGE1 = function lmaNodeGE1_constructor() {
+};
+
+DictDef.LmaNodeGE1.prototype = {
+  son_1st_off_l: 0,        // Low bits of the son_1st_off
+  homo_idx_buf_off_l: 0,   // Low bits of the homo_idx_buf_off_1
+  spl_idx: 0,
+  num_of_son: 0,            // number of son nodes
+  num_of_homo: 0,           // number of homo words
+  son_1st_off_h: 0,         // high bits of the son_1st_off
+  homo_idx_buf_off_h: 0    // high bits of the homo_idx_buf_off
+};
+
+DictDef.SingleCharItem = function singleCharItem_constructor() {
+  this.splid = new DictDef.SpellingId();
+};
+
+DictDef.SingleCharItem.prototype = {
+  freq: 0.0,
+  hz: '',
+  /**
+   * @type DictDef.SpellingId
+   */
+  splid: null
+};
+
+DictDef.LemmaEntry = function lemmaEntry_constructor() {
+};
+
+DictDef.LemmaEntry.prototype = {
+  idx_by_py: 0,
+  idx_by_hz: 0,
+  hanzi_str: '',
+
+  // The SingleCharItem id for each Hanzi.
+  hanzi_scis_ids: null,
+
+  spl_idx_arr: null,
+  pinyin_str: null,
+  hz_str_len: 0, // TODO remove this field and use hanzi_str.length instead
+  freq: 0.0
+};
+
+var MyStdlib = {
+
+  /**
+   * Binary search of the key position.
+   * @param {String} key The key to search.
+   * @param {String} array The sorted array to be searched.
+   * @param {Integer} start The start position to search.
+   * @param {Integer} count Number of items to search.
+   * @param {String} size The size of the each item of the array.
+   * @param {Function} cmp The comparison function.
+   * @return {Integer} The position of the key if found.
+   * Othersize -1.
+   */
+  mybsearchStr: function index_binarySearchStr(key, array, start, count, size, cmp) {
+    var doCompare = function compare(a, b) {
+      if (cmp) {
+        return cmp(a, b);
+      } else {
+        if (a < b) {
+          return -1;
+        } else if (a > b) {
+          return 1;
+        } else {
+          return 0;
+        }
+      }
+    };
+    var item = function mybsearchStr_item(index) {
+      var pos = start + index * size;
+      return array.substring(pos, pos + size);
+    };
+    var left = 0;
+    var right = count - 1;
+    if (doCompare(key, item(left)) == -1) {
+      return -1;
+    }
+    if (doCompare(key, item(left)) == 1) {
+      return -1;
+    }
+
+    while (right > left) {
+      var mid = Math.floor((left + right) / 2);
+      var midKey = item(mid);
+      if (doCompare(midKey, key) == -1) {
+        left = mid + 1;
+      } else if (doCompare(midKey, key) == 1) {
+        right = mid - 1;
+      } else {
+        return start + mid * size;
+      }
+    }
+
+    // left == right == mid
+    var leftKey = item(left);
+    if (doCompare(leftKey, key) == 0) {
+      return start + left * size;
+    } else {
+      return -1;
+    }
+  }
+};
 
 // System words' total frequency. It is not the real total frequency, instead,
 // It is only used to adjust system lemmas' scores when the user dictionary's
@@ -2538,33 +2715,33 @@ var SYS_DICT_TOTAL_FREQ = 100000000;
 var MAX_SEARCH_STEPS = 40;
 
 var DictMatchInfo = function dmi_constructor() {
-  this.dictHandles = [0, 0];
+  this.dict_handles = [0, 0];
 };
 
 DictMatchInfo.prototype = {
   // MileStoneHandle objects for the system and user dictionaries.
-  dictHandles: null,
+  dict_handles: null,
   // From which DMI node. -1 means it's from root.
-  dmiFr: -1,
+  dmi_fr: -1,
   // The spelling id for the Pinyin string from the previous DMI to this node.
   // If it is a half id like Shengmu, the node pointed by dict_node is the first
   // node with this Shengmu,
-  splId: 0,
+  spl_id: 0,
   // What's the level of the dict node. Level of root is 0, but root is never
   // recorded by dict_node.
-  dictLevel: 0,
+  dict_level: 0,
   // If this node is for composing phrase, its value is true.
-  cPhrase: false,
-  // Whether the splId is parsed with a split character at the end.
-  splidEndSplit: false,
+  c_phrase: false,
+  // Whether the spl_id is parsed with a split character at the end.
+  splid_end_split: false,
   // What's the length of the spelling string for this match, for the whole
   // word.
-  splstrLen: 0,
+  splstr_len: 0,
   // Used to indicate whether all spelling ids from the root are full spelling
   // ids. This information is useful for keymapping mode(not finished). Because
   // in this mode, there is no clear boundaries, we prefer those results which
   // have full spelling ids.
-  allFullId: false
+  all_full_id: false
 };
 
 var MatrixNode = function matrixNode_constructor() {
@@ -2575,7 +2752,7 @@ MatrixNode.prototype = {
   score: 0.0,
   from: null,
   // From which DMI node. Used to trace the spelling segmentation.
-  dmiFr: null,
+  dmi_fr: null,
   step: 0
 };
 
@@ -2585,11 +2762,11 @@ var MatrixRow = function matrixRow_constructor() {
 
 MatrixRow.prototype = {
   // The MatrixNode position in the matrix pool
-  mtrxNdPos: 0,
+  mtrx_nd_pos: 0,
   // The DictMatchInfo position in the DictMatchInfo pool.
-  dmiPos: 0,
-  mtrxNdNum: 0,
-  dmiNum: 15,
+  dmi_pos: 0,
+  mtrx_nd_num: 0,
+  dmi_num: 15,
   // Used to indicate whether there are dmi nodes in this step with full
   // spelling id. This information is used to decide whether a substring of a
   // valid Pinyin should be extended.
@@ -2615,10 +2792,10 @@ MatrixRow.prototype = {
   // always be "xian"; but if the parser uses continue in the loop, "xi an" will
   // also be tried. This behaviour can be set via the function
   // set_xi_an_switch().
-  dmiHasFullId: false,
+  dmi_has_full_id: false,
   // Points to a MatrixNode of the current step to indicate which choice the
   // user selects.
-  mtrxNdFixed: null
+  mtrx_nd_fixed: null
 };
 
 // When user inputs and selects candidates, the fixed lemma ids are stored in
@@ -2634,25 +2811,25 @@ MatrixRow.prototype = {
 // when user deletes Pinyin characters from the end, these sub lemmas can also
 // be unlocked one by one.
 var ComposingPhrase = function composingPhrase_constructor() {
-  this.splIds = new Array(MatrixSearch.MAX_ROW_NUM);
-  this.splStart = new Array(MatrixSearch.MAX_ROW_NUM);
-  this.chnStr = new Array(MatrixSearch.MAX_ROW_NUM);
-  this.sublmaStart = new Array(MatrixSearch.MAX_ROW_NUM);
+  this.spl_ids = new Array(MatrixSearch.MAX_ROW_NUM);
+  this.spl_start = new Array(MatrixSearch.MAX_ROW_NUM);
+  this.chn_str = new Array(MatrixSearch.MAX_ROW_NUM);
+  this.sublma_start = new Array(MatrixSearch.MAX_ROW_NUM);
 };
 ComposingPhrase.prototype = {
-  splIds: null,
-  splStart: null,
-  chnStr: null,      // Chinese string array.
-  sublmaStart: null, // Counted in Chinese characters.
-  sublmaNum: 0,
+  spl_ids: null,
+  spl_start: null,
+  chn_str: null,      // Chinese string array.
+  sublma_start: null, // Counted in Chinese characters.
+  sublma_num: 0,
   length: 0          // Counted in Chinese characters.
 };
 
 var MatrixSearch = function matrixSearch_constructor() {
   var i = 0;
 
-  this._splStart = new Array(MatrixSearch.MAX_ROW_NUM);
-  this._splStart = new Array(MatrixSearch.MAX_ROW_NUM);
+  this._spl_start = new Array(MatrixSearch.MAX_ROW_NUM);
+  this._spl_start = new Array(MatrixSearch.MAX_ROW_NUM);
 
   this._lmaStart = new Array(MatrixSearch.MAX_ROW_NUM);
   this._lmaId = new Array(MatrixSearch.MAX_ROW_NUM);
@@ -2685,22 +2862,22 @@ MatrixSearch.prototype = {
   init: function matrixSearch_init(sysDict, userDict) {
     this._allocResource();
 
-    if (!this._dictTrie.load(sysDict, 1, SYS_DICT_ID_END)) {
+    if (!this._dictTrie.load(sysDict, 1, DictDef.kTopScoreLemmaNum)) {
       return false;
     }
 
-    if (!this._userDict.load(userDict, USER_DICT_ID_START, USER_DICT_ID_END)) {
+    if (!this._userDict.load(userDict, DictDef.kUserDictIdStart, DictDef.kUserDictIdEnd)) {
       return false;
     }
 
-    this._userDict.setTotalLemmaCountOfOthers(SYS_DICT_TOTAL_FREQ);
+    this._userDict.set_total_lemma_count_of_others(SYS_DICT_TOTAL_FREQ);
 
     this._initilized = true;
     return true;
   },
 
   uninit: function matrixSearch_uinit() {
-    this.flushCache();
+    this.flush_cache();
     this._freeResource();
     this._initilized = false;
   },
@@ -2709,9 +2886,9 @@ MatrixSearch.prototype = {
    * Flush cached data to persistent memory. Because at runtime, in order to
    * achieve best performance, some data is only store in memory.
    */
-  flushCache: function matrixSearch_flushCache() {
+  flush_cache: function matrixSearch_flush_cache() {
     if (this._userDict) {
-      this._userDict.flushCache();
+      this._userDict.flush_cache();
     }
   },
 
@@ -2762,7 +2939,7 @@ MatrixSearch.prototype = {
 
     // If there are too many spellings, remove the last letter until the
     // spelling number is acceptable.
-    while (this._splIdNum > 9) {
+    while (this._spl_idNum > 9) {
       pyLen--;
       this._resetSearch(pyLen, false, false, false);
       this._pys = this._pys.substring(0, pyLen);
@@ -2780,11 +2957,11 @@ MatrixSearch.prototype = {
    *
    * @param {Integer} pos The posistion of char in spelling string to delete,
    * or the position of spelling id in result string to delete.
-   * @param {Boolean} isPosInSplid If isPosInSplid is false, pos is used to
+   * @param {Boolean} isPosInspl_id If isPosInspl_id is false, pos is used to
    * indicate that pos-th Pinyin character needs to be deleted. And if the
    * pos-th character is in the range for the fixed lemmas or composing string,
    * this function will do nothing and just return the result of the previous
-   * search. If isPosInSplid is true, all Pinyin characters for pos-th spelling
+   * search. If isPosInspl_id is true, all Pinyin characters for pos-th spelling
    * id needs to be deleted.
    * @param {Boolean} clearFixed If the deleted character(s) is just after a
    * fixed lemma or sub lemma in composing phrase, clearFixed indicates
@@ -2792,7 +2969,7 @@ MatrixSearch.prototype = {
    * @return {Integer} The new length of Pinyin string kept by the engine which
    * is parsed successfully.
    */
-  delSearch: function matrixSearch_delSearch(pos, isPosInSplid, clearFixed) {
+  delSearch: function matrixSearch_delSearch(pos, isPosInspl_id, clearFixed) {
 
   },
 
@@ -2919,7 +3096,7 @@ MatrixSearch.prototype = {
   _fixedLmasNo1: null,
 
   // Composing phrase
-  _cPhrase: null,
+  _c_phrase: null,
 
   // If _dmiCPhrase is true, the decoder will try to match the
   // composing phrase (And definitely it will match successfully). If it
@@ -2928,9 +3105,9 @@ MatrixSearch.prototype = {
 
   // The starting positions and spelling ids for the first full sentence
   // candidate.
-  _splIdNum: 0,       // Number of spelling ids
-  _splStart: null,     // Starting positions
-  _splId: null,        // Spelling ids
+  _spl_idNum: 0,       // Number of spelling ids
+  _spl_start: null,     // Starting positions
+  _spl_id: null,        // Spelling ids
   // Used to remember the last fixed position, counted in Hanzi.
   _fixedHzs: 0,
 
@@ -2983,49 +3160,49 @@ MatrixSearch.prototype = {
   },
 
   // Get spelling start positions and ids. The result will be stored in
-  // _splIdNum, _splStart[], _splId[].
+  // _spl_idNum, _spl_start[], _spl_id[].
   // _fixedHzs will be also assigned.
   _getSplStartId: function matrixSearch_getSplStartId() {
     this._lmaIdNum = 0;
     this._lmaStart[0] = 0;
 
-    this._splIdNum = 0;
-    this._splStart[0] = 0;
+    this._spl_idNum = 0;
+    this._spl_start[0] = 0;
     if (!this._initilized || 0 == this._pysDecodedLen ||
-        0 == this._matrix[this._pysDecodedLen].mtrxNdNum) {
+        0 == this._matrix[this._pysDecodedLen].mtrx_nd_num) {
       return;
     }
 
     // Calculate number of lemmas and spellings
     // Only scan the part which is not fixed.
     this._lmaIdNum = this._fixedLmas;
-    this._splIdNum = this._fixedHzs;
+    this._spl_idNum = this._fixedHzs;
 
-    var ndPos = this._matrix[this._pysDecodedLen].mtrxNdPos;
+    var ndPos = this._matrix[this._pysDecodedLen].mtrx_nd_pos;
     while (ndPos != 0) {
       var mtrxNd = this._mtrxNdPool[ndPos];
       if (this._fixedHzs > 0) {
-        if (mtrxNd.step <= this._splStart[this._fixedHzs])
+        if (mtrxNd.step <= this._spl_start[this._fixedHzs])
           break;
       }
 
       // Update the spelling segamentation information
       var wordSplsStrLen = 0;
-      var dmiFr = mtrxNd.dmiFr;
-      if (-1 != dmiFr) {
-        wordSplsStrLen = this._dmiPool[dmiFr].splstrLen;
+      var dmi_fr = mtrxNd.dmi_fr;
+      if (-1 != dmi_fr) {
+        wordSplsStrLen = this._dmiPool[dmi_fr].splstr_len;
       }
 
-      while (-1 != dmiFr) {
-        this._splStart[this._splIdNum + 1] = mtrxNd.step -
-            (wordSplsStrLen - this._dmiPool[dmiFr].splstrLen);
-        this._splId[this._splIdNum_] = this._dmiPool[dmiFr].splId;
-        this._splIdNum++;
-        dmiFr = this._dmiPool[dmiFr].dmiFr;
+      while (-1 != dmi_fr) {
+        this._spl_start[this._spl_idNum + 1] = mtrxNd.step -
+            (wordSplsStrLen - this._dmiPool[dmi_fr].splstr_len);
+        this._spl_id[this._spl_idNum_] = this._dmiPool[dmi_fr].spl_id;
+        this._spl_idNum++;
+        dmi_fr = this._dmiPool[dmi_fr].dmi_fr;
       }
 
       // Update the lemma segmentation information
-      this._lmaStart[this._lmaIdNum + 1] = this._splIdNum;
+      this._lmaStart[this._lmaIdNum + 1] = this._spl_idNum;
       this._lmaId[this._lmaIdNum] = mtrxNd.id;
       this._lmaIdNum++;
 
@@ -3039,20 +3216,20 @@ MatrixSearch.prototype = {
     var tmp;
 
     // Reverse the result of spelling info
-    endPos = this._fixedHzs + (this._splIdNum - this._fixedHzs + 1) / 2;
+    endPos = this._fixedHzs + (this._spl_idNum - this._fixedHzs + 1) / 2;
     for (pos = this._fixedHzs; pos < endPos; pos++) {
-      if (this._splIdNum_ + this._fixedHzs - pos != pos + 1) {
+      if (this._spl_idNum_ + this._fixedHzs - pos != pos + 1) {
         pos1 = pos + 1;
-        pos2 = this._splIdNum - pos + this._fixedHzs;
-        tmp = this._splStart[pos1];
-        this._splStart[pos1] = this._splStart[pos2];
-        this._splStart[pos2] = tmp;
+        pos2 = this._spl_idNum - pos + this._fixedHzs;
+        tmp = this._spl_start[pos1];
+        this._spl_start[pos1] = this._spl_start[pos2];
+        this._spl_start[pos2] = tmp;
 
         pos1 = pos;
-        pos2 = this._splIdNum + this._fixedHzs - pos - 1;
-        tmp = this._splId[pos1];
-        this._splId[pos1] = this._splId[pos2];
-        this._splId[pos2] = tmp;
+        pos2 = this._spl_idNum + this._fixedHzs - pos - 1;
+        tmp = this._spl_id[pos1];
+        this._spl_id[pos1] = this._spl_id[pos2];
+        this._spl_id[pos2] = tmp;
       }
     }
 
@@ -3088,8 +3265,8 @@ MatrixSearch.prototype = {
 
     // Find the last fixed position
     this._fixedHzs = 0;
-    for (pos = this._splIdNum; pos > 0; pos--) {
-      if (null != this._matrix[this._splStart[pos]].mtrxNdFixed) {
+    for (pos = this._spl_idNum; pos > 0; pos--) {
+      if (null != this._matrix[this._spl_start[pos]].mtrx_nd_fixed) {
         this._fixedHzs = pos;
         break;
       }
@@ -3117,11 +3294,11 @@ MatrixSearch.prototype = {
     this._pysDecodedLen++;
 
     var mtrxRow = this._matrix[this._pysDecodedLen];
-    mtrxRow.mtrxNdPos = this._mtrxNdPoolUsed;
-    mtrxRow.mtrxNdNum = 0;
-    mtrxRow.dmiPos = this._dmiPoolUsed;
-    mtrxRow.dmiNum = 0;
-    mtrxRow.dmiHasFullId = false;
+    mtrxRow.mtrx_nd_pos = this._mtrxNdPoolUsed;
+    mtrxRow.mtrx_nd_num = 0;
+    mtrxRow.dmi_pos = this._dmiPoolUsed;
+    mtrxRow.dmi_num = 0;
+    mtrxRow.dmi_has_full_id = false;
 
     return true;
   },
@@ -3148,15 +3325,15 @@ var kHalfSpellingIdNum = 29;
  * Atom dictionaries are managed by the decoder class MatrixSearch.
  *
  * When the user appends a new character to the Pinyin string, all enabled atom
- * dictionaries' extendDict() will be called at least once to get candidates
+ * dictionaries' extend_dict() will be called at least once to get candidates
  * ended in this step (the information of starting step is also given in the
- * parameter). Usually, when extendDict() is called, a MileStoneHandle object
+ * parameter). Usually, when extend_dict() is called, a MileStoneHandle object
  * returned by a previous calling for a earlier step is given to speed up the
  * look-up process, and a new MileStoneHandle object will be returned if
  * the extension is successful.
  *
  * A returned MileStoneHandle object should keep alive until Function
- * resetMilestones() is called and this object is noticed to be reset.
+ * reset_milestones() is called and this object is noticed to be reset.
  *
  * Usually, the atom dictionary can use step information to manage its
  * MileStoneHandle objects, or it can make the objects in ascendant order to
@@ -3170,15 +3347,15 @@ var IAtomDictBase = {
   /**
    * Load an atom dictionary from a file.
    *
-   * @param {String} fileName The file name to load dictionary.
-   * @param {Integer} startId The starting id used for this atom dictionary.
-   * @param {Integer} endId The end id (included) which can be used for this
+   * @param {String} file_name The file name to load dictionary.
+   * @param {Integer} start_id The starting id used for this atom dictionary.
+   * @param {Integer} end_id The end id (included) which can be used for this
    * atom dictionary. User dictionary will always use the last id space, so it
    * can ignore this paramter. All other atom dictionaries should check this
    * parameter.
    * @return {Boolean} true if succeed.
    */
-  load: function atomDictBase_load(fileName, startId, endId) {},
+  load_dict: function atomDictBase_load(file_name, start_id, end_id) {},
 
   /**
    * Close this atom dictionary.
@@ -3192,7 +3369,7 @@ var IAtomDictBase = {
    *
    * @return {Integer} The total number of lemmas.
    */
-  getLemmasNumber: function atomDictBase_getLemmasNumber() {},
+  number_of_lemmas: function atomDictBase_number_of_lemmas() {},
 
   /**
    * This function is called by the decoder when user deletes a character from
@@ -3211,121 +3388,121 @@ var IAtomDictBase = {
    * can easily reset those MileStoneHandle which are larger than fromHandle.
    *
    * The decoder always reset the decoding state by step. So when it begins
-   * resetting, it will call resetMilestones() of its atom dictionaries with
+   * resetting, it will call reset_milestones() of its atom dictionaries with
    * the step information, and the MileStoneHandle objects returned by the
-   * earliest calling of extendDict() for that step.
+   * earliest calling of extend_dict() for that step.
    *
    * If an atom dictionary does not implement incremental search, this function
    * can be totally ignored.
    *
-   * @param fromStep From which step(included) the MileStoneHandle
+   * @param from_step From which step(included) the MileStoneHandle
    * objects should be reset.
-   * @param fromHandle The ealiest MileStoneHandle object for step from_step.
+   * @param from_handle The ealiest MileStoneHandle object for step from_step.
    */
-  resetMilestones: function atomDictBase_resetMilestones(fromStep, fromHandle) {
+  reset_milestones: function atomDictBase_reset_milestones(from_step, from_handle) {
   },
 
   /**
    * Used to extend in this dictionary. The handle returned should keep valid
-   * until resetMilestones() is called.
+   * until reset_milestones() is called.
    *
-   * @param {Integer} fromHandle Its previous returned extended handle without the new
+   * @param {Integer} from_handle Its previous returned extended handle without the new
    * spelling id, it can be used to speed up the extending.
    * @param dep The paramter used for extending.
    * @return {handle: Integer, items: LmaPsbItem[]} . handle is the new mile
    * stone for this extending. 0 if fail. items is filled in with the lemmas
    * matched.
    */
-  extendDict: function atomDictBase_extendDict(fromHandle, dep) {},
+  extend_dict: function atomDictBase_extend_dict(from_handle, dep) {},
 
   /**
    * Get lemma items with scores according to a spelling id stream.
    * This atom dictionary does not need to sort the returned items.
    *
-   * @param {String} splidStr The spelling id stream string.
+   * @param {String} spl_idStr The spelling id stream string.
    * @return {LmaPsbItem[]} The array of matched items.
    */
-  getLpis: function atomDictBase_getLpis(splidStr) {},
+  get_lpis: function atomDictBase_get_lpis(splid_str) {},
 
   /**
    * Get a lemma string (The Chinese string) by the given lemma id.
    *
    * @param {Integer} lemmaId The lemma id to get the string.
    */
-  getLemmaStr: function atomDictBase_getLemmaStr(lemmaId) {},
+  get_lemma_str: function atomDictBase_get_lemma_str(id_lemma) {},
 
   /**
    * Get the full spelling ids for the given lemma id.
    *
-   * @param {Integer} lemmaId The lemma id to get the result.
-   * @param {Integer[]} splids The buffer of the splids. There may be half ids
-   * in splids to be updated to full ids。.
+   * @param {Integer} id_lemma The lemma id to get the result.
+   * @param {Integer[]} splids The buffer of the spl_ids. There may be half ids
+   * in spl_ids to be updated to full ids。.
    * @return {Integer} The number of ids in the buffer.
    */
-  getLemmaSplids: function atomDictBase_getLemmaSplids(lemmaId, splids) {},
+  get_lemma_splids: function atomDictBase_get_lemma_splids(id_lemma, splids) {},
 
   /**
    * Function used for prediction.
    * No need to sort the newly added items.
    *
-   * @param {String} lastHzs The last n Chinese characters(called Hanzi), its
+   * @param {String} last_hzs The last n Chinese characters(called Hanzi), its
    * length should be less than or equal to kMaxPredictSize.
-   * @param {Integer} b4Used Number of prediction result from other atom dictionaries.
+   * @param {Integer} b4_used Number of prediction result from other atom dictionaries.
    * An atom dictionary can just ignore it.
    * @return {NPredictItem[]} The array of prediction result from this atom
    * dictionary.
    */
-  predict: function atomDictBase_predict(lastHzs, b4Used) {},
+  predict: function atomDictBase_predict(last_hzs, b4_used) {},
 
   /**
    * Add a lemma to the dictionary. If the dictionary allows to add new
    * items and this item does not exist, add it.
    *
-   * @param {String} lemmaStr The Chinese string of the lemma.
+   * @param {String} splids The Chinese string of the lemma.
    * @param {Integer[]} splids The spelling ids of the lemma.
    * @param {Integer} count The frequency count for this lemma.
    * @return {Integer} The id if succeed, 0 if fail.
    */
-  putLemma: function atomDictBase_putLemma(lemmaStr, splids, count) {},
+  put_lemma: function atomDictBase_put_lemma(lemma_str, splids, count) {},
 
   /**
    * Update a lemma's occuring count.
    *
-   * @param {Integer} lemmaId The lemma id to update.
-   * @param {Integer} deltaCount The frequnecy count to ajust.
+   * @param {Integer} lemma_id The lemma id to update.
+   * @param {Integer} delta_count The frequnecy count to ajust.
    * @param {Boolean } selected Indicate whether this lemma is selected by user
    * and submitted to target edit box.
    * @return {Integer} The id if succeed, 0 if fail.
    */
-  updateLemma: function atomDictBase_updateLemma(lemmaId, deltaCount, selected)
+  update_lemma: function atomDictBase_update_lemma(lemma_id, delta_count, selected)
   {},
 
   /**
    * Get the lemma id for the given lemma.
    *
-   * @param {String} lemmaStr The Chinese string of the lemma.
+   * @param {String} lemma_str The Chinese string of the lemma.
    * @param {Integer[]} splids The spelling ids of the lemma.
    * @return {Integer} The matched lemma id, or 0 if fail.
    */
-  getLemmaId: function atomDictBase_getLemmaId(lemmaStr, splids) {},
+  get_lemma_id: function atomDictBase_get_lemma_id(lemma_str, splids) {},
 
   /**
    * Get the lemma score.
    *
-   * @param {Integer} lemmaId The lemma id to get score.
+   * @param {Integer} lemma_id The lemma id to get score.
    * @return {Integer} The score of the lemma, or 0 if fail.
    */
-  getLemmaScoreById: function atomDictBase_getLemmaScoreById(lemmaId) {},
+  get_lemma_score_by_id: function atomDictBase_get_lemma_score_by_id(lemma_id) {},
 
   /**
    * Get the lemma score.
    *
-   * @param {String} lemmaStr The Chinese string of the lemma.
+   * @param {String} lemma_str The Chinese string of the lemma.
    * @param {Integer[]} splids The spelling ids of the lemma.
    * @return {Integer} The score of the lamm, or 0 if fail.
    */
-  getLemmaScoreByContent: function atomDictBase_getLemmaScoreByContent(
-    lemmaStr, splids) {},
+  get_lemma_score_by_content: function atomDictBase_get_lemma_score_by_content(
+    lemma_str, splids) {},
 
   /**
    * If the dictionary allowed, remove a lemma from it.
@@ -3333,35 +3510,85 @@ var IAtomDictBase = {
    * @param {Integer} lemmaId The id of the lemma to remove.
    * @return {Boolean} true if succeed.
    */
-  removeLemma: function atomDictBase_removeLemma(lemmaId) {},
+  remove_lemma: function atomDictBase_remove_lemma(lemma_id) {},
 
   /**
    * Get the total occuring count of this atom dictionary.
    *
    * @return {Integer} The total occuring count of this atom dictionary.
    */
-  getTotalLemmaCount: function atomDictBase_getTotalLemmaCount() {},
+  get_total_lemma_count: function atomDictBase_get_total_lemma_count() {},
 
   /**
    * Set the total occuring count of other atom dictionaries.
    *
    * @param {Integer} count The total occuring count of other atom dictionaies.
    */
-  setTotalLemmaCountOfOthers: function atomDictBase_setTotalLemmaCountOfOthers(
+  set_total_lemma_count_of_others: function atomDictBase_set_total_lemma_count_of_others(
     count) {},
 
   /**
    * Notify this atom dictionary to flush the cached data to persistent storage
    * if necessary.
    */
-  flushCache: function atomDictBase_flushCache() {}
+  flush_cache: function atomDictBase_flush_cache() {}
 };
 
 var DictTrie = function userDict_constructor() {
 };
 
+DictTrie.ParsingMark = function parsingMark_constructor(offset, num) {
+  this.node_offset = offset;
+  this.node_num = num;
+};
+
+DictTrie.ParsingMark.prototype = {
+  node_offset: 0,
+
+ /**
+  * Number of nodes with this spelling id given
+  * by spl_id. If spl_id is a Shengmu, for nodes
+  * in the first layer of DictTrie, it equals to
+  * SpellingTrie::shm2full_num(); but for those
+  * nodes which are not in the first layer,
+  * node_num < SpellingTrie::shm2full_num().
+  * For a full spelling id, node_num = 1;
+  */
+  node_num: 0
+};
+
+/**
+ * Used to indicate an extended mile stone.
+ * An extended mile stone is used to mark a partial match in the dictionary
+ * trie to speed up further potential extending.
+ * For example, when the user inputs "w", a mile stone is created to mark the
+ * partial match status, so that when user inputs another char 'm', it will be
+ * faster to extend search space based on this mile stone.
+ * For partial match status of "wm", there can be more than one sub mile
+ * stone, for example, "wm" can be matched to "wanm", "wom", ..., etc, so
+ * there may be more one parsing mark used to mark these partial matchings.
+ * A mile stone records the starting position in the mark list and number of
+ * marks.
+ */
+DictTrie.MileStone = function mileStone_constructor(start, num) {
+  this.mark_start = start;
+  this.mark_num = num;
+};
+
+DictTrie.MileStone.prototype = {
+  mark_start: 0,
+  mark_num: 0
+};
+
 DictTrie.prototype = {
-  __proto__: IAtomDictBase
+  // Implements IAtomDictBase
+  __proto__: IAtomDictBase,
+
+  /* ==== Public ==== */
+
+  /* ==== Private ==== */
+  DictList: null,
+  spl_trie_: null
 };
 
 var UserDict = function userDict_constructor() {
@@ -3369,6 +3596,313 @@ var UserDict = function userDict_constructor() {
 
 UserDict.prototype = {
   __proto__: IAtomDictBase
+};
+
+var DictList = function dictList_constructor() {
+  this.start_pos_ = [];
+  this.start_id_ = [];
+  this.scis_splid_ = [];
+};
+
+DictList.prototype = {
+  /* ==== Public ==== */
+  save_list: function dictList_save(fp) {
+
+  },
+
+  load_list: function dictList_load(fp) {
+
+  },
+
+  /**
+   * Init the list from the LemmaEntry array.
+   * lemma_arr should have been sorted by the hanzi_str, and have been given
+   * ids from 1
+   */
+  init_list: function dictList_init_list(scis, lemma_arr) {
+    if (!scis || !lemma_arr)
+      return false;
+
+    this.initialized_ = false;
+
+    this.buf_ = [];
+
+    // calculate the size
+    var buf_size = this.calculate_size(lemma_arr);
+    if (0 == buf_size)
+      return false;
+
+    this.fill_scis(scis);
+
+    // Copy the related content from the array to inner buffer
+    this.fill_list(lemma_arr);
+
+    this.initialized_ = true;
+    return true;
+  },
+
+  /**
+   * Get the hanzi string for the given id
+   * @return {String} The hanzi string if successes. Otherwize empty string.
+   */
+  get_lemma_str: function dictList_get_lemma_str(id_lemma) {
+    if (!this.initialized_ ||
+        id_lemma >= this.start_id_[DictDef.kMaxLemmaSize]) {
+      return '';
+    }
+
+    // Find the range
+    for (var i = 0; i < DictDef.kMaxLemmaSize; i++) {
+      if (this.start_id_[i] <= id_lemma && this.start_id_[i + 1] > id_lemma) {
+        var id_span = id_lemma - this.start_id_[i];
+        var pos = this.start_pos_[i] + id_span * (i + 1);
+        return this.buf_.substring(pos, pos + i + 1);
+      }
+    }
+    return '';
+  },
+
+  /**
+   * @param {String} last_hzs stores the last n Chinese characters history,
+   * its length should be less or equal than DictDef.kMaxPredictSize.
+   * @param {NPredictItem[]} npre_items is used to store the result.
+   * @param {Boolean} b4_used specifies how many items before npre_items have been used.
+   * @return {Integer} The number of newly added items.
+   */
+  predict: function dictList_predict(last_hzs, npre_items, b4_used) {
+    // XXXX the issue of b4_used should be solved.
+    // 1. Prepare work
+    var hzs_len = last_hzs.length;
+    var npre_max = npre_items.length;
+    var cmp_func = this.cmp_func_[hzs_len - 1];
+
+    var ngram = NGram.get_instance();
+
+    var item_num = 0;
+
+    // 2. Do prediction
+    for (var pre_len = 1; pre_len <= DictDef.kMaxPredictSize + 1 - hzs_len;
+         pre_len++) {
+      var word_len = hzs_len + pre_len;
+      var w_buf = this.find_pos_startedbyhzs(last_hzs, cmp_func);
+      if (-1 == w_buf)
+        continue;
+      while (w_buf < this.start_pos_[word_len] &&
+             cmp_func(this.buf_[w_buf], last_hzs) == 0 &&
+             item_num < npre_max) {
+        memset(npre_items + item_num, 0, sizeof(NPredictItem));
+        npre_items[item_num] = new SearchUtility.NPredictItem();
+        npre_items[item_num].pre_hzs = this.buf_.substring(w_buf + hzs_len, w_buf + hzs_len + pre_len);
+        npre_items[item_num].psb =
+          ngram.get_uni_psb((size_t)(w_buf - buf_ - start_pos_[word_len - 1]) /
+          word_len + start_id_[word_len - 1]);
+        npre_items[item_num].his_len = hzs_len;
+        item_num++;
+        w_buf += word_len;
+      }
+    }
+
+    var new_num = 0;
+    for (var i = 0; i < item_num; i++) {
+      // Try to find it in the existing items
+      var e_pos;
+      for (e_pos = 1; e_pos <= b4_used; e_pos++) {
+        if (utf16_strncmp((* (npre_items - e_pos)).pre_hzs, npre_items[i].pre_hzs,
+                          kMaxPredictSize) == 0)
+          break;
+      }
+      if (e_pos <= b4_used)
+        continue;
+
+      // If not found, append it to the buffer
+      npre_items[new_num] = npre_items[i];
+      new_num++;
+    }
+
+    return new_num;
+
+  },
+
+  /**
+   * If half_splid is a valid half spelling id, return those full spelling
+   * ids which share this half id.
+   */
+  get_splids_for_hanzi: function dictList_get_splids_for_hanzi(hanzi, half_splid) {
+    var hz_found = MyStdlib.mybsearchStr(hanzi, this.scis_hz_, 0, this.scis_num_, 1, cmp_hanzis_1);
+    var splids = [];
+
+    // Move to the first one.
+    while (hz_found > 0 && hanzi == this.scis_hz_[hz_found - 1]) {
+      hz_found--;
+    }
+
+    // First try to found if strict comparison result is not zero.
+    var hz_f = hz_found;
+    var strict = false;
+    while (hz_f < this.scis_hz_ + this.scis_num_ && hanzi == this.scis_hz_[hz_f]) {
+      var pos = hz_f;
+      if (0 == half_splid || this.scis_splid_[pos].half_splid == half_splid) {
+        strict = true;
+      }
+      hz_f++;
+    }
+
+    var found_num = 0;
+    while (hz_found < this.scis_hz_ + this.scis_num_ && hanzi == this.scis_hz_[hz_found]) {
+      var pos = hz_found;
+      if (0 == half_splid ||
+          (strict && this.scis_splid_[pos].half_splid == half_splid) ||
+          (!strict && this.spl_trie_.half_full_compatible(half_splid,
+          this.scis_splid_[pos].full_splid))) {
+        splids[found_num] = scis_splid_[pos].full_splid;
+        found_num++;
+      }
+      hz_found++;
+    }
+
+    return splids;
+  },
+
+  get_lemma_id: function dictList_get_lemma_id(str) {
+    if (!str) {
+      return 0;
+    }
+    var str_len = str.length;
+    if (str_len > DictDef.kMaxLemmaSize) {
+      return 0;
+    }
+
+    var found = this.find_pos_startedbyhzs(str, this.cmp_func_[str_len - 1]);
+    if (-1 == found)
+      return 0;
+
+    return start_id_[str_len - 1] +
+         (found - this.start_pos_[str_len - 1]) / str_len;
+  },
+
+  /* ==== Private ==== */
+  initialized_: false,
+  spl_trie_: null,
+
+  // Number of SingCharItem. The first is blank, because id 0 is invalid.
+  scis_num_: 0,
+
+  scis_hz_: '',
+
+  scis_splid_: null,
+
+  // The large memory block to store the word list.
+  buf_: '',
+
+  /**
+   * Starting position of those words whose lengths are i+1, counted in char16.
+   * @type Integer[DictDef.kMaxLemmaSize + 1]
+   */
+  start_pos_: null,
+
+  /**
+   * @type Integer[DictDef.kMaxLemmaSize + 1]
+   */
+  start_id_: null,
+
+  cmp_func_: null,
+
+  /**
+   * Calculate the requsted memory, including the start_pos[] buffer.
+   * @param {DictDef.LemmaEntry[]} lemma_arr The lemma array.
+   */
+  calculate_size: function dictList_calculate_size(lemma_arr) {
+    var last_hz_len = 0;
+    var list_size = 0;
+    var id_num = 0;
+    var lemma_num = lemma_arr.length;
+
+    for (var i = 0; i < lemma_num; i++) {
+      if (0 == i) {
+        last_hz_len = lemma_arr[i].hz_str_len;
+
+        id_num++;
+        this.start_pos_[0] = 0;
+        this.start_id_[0] = id_num;
+
+        last_hz_len = 1;
+        list_size += last_hz_len;
+      } else {
+        var current_hz_len = lemma_arr[i].hz_str_len;
+
+        if (current_hz_len == last_hz_len) {
+            list_size += current_hz_len;
+            id_num++;
+        } else {
+          for (var len = last_hz_len; len < current_hz_len - 1; len++) {
+            this.start_pos_[len] = start_pos_[len - 1];
+            this.start_id_[len] = start_id_[len - 1];
+          }
+
+          this.start_pos_[current_hz_len - 1] = list_size;
+
+          id_num++;
+          this.start_id_[current_hz_len - 1] = id_num;
+
+          last_hz_len = current_hz_len;
+          list_size += current_hz_len;
+        }
+      }
+    }
+
+    for (var i = last_hz_len; i <= DictDef.kMaxLemmaSize; i++) {
+      if (0 == i) {
+        this.start_pos_[0] = 0;
+        this.start_id_[0] = 1;
+      } else {
+        this.start_pos_[i] = list_size;
+        this.start_id_[i] = id_num;
+      }
+    }
+
+    return this.start_pos_[DictDef.kMaxLemmaSize];
+  },
+
+  fill_scis: function dictList_fill_scis(scis) {
+    this.scis_hz_ = '';
+    for (var pos = 0; pos < this.scis_num_; pos++) {
+      this.scis_hz_ += scis[pos].hz;
+      this.scis_splid_[pos] = scis[pos].splid;
+    }
+  },
+
+  // Copy the related content to the inner buffer
+  // It should be called after calculate_size()
+  fill_list: function dictList_fill_list(lemma_arr) {
+    this.buf_ = '';
+    for (var i = 0; i < lemma_num; i++) {
+      this.buf_ += lemma_arr[i].hanzi_str;
+    }
+  },
+
+  /**
+   * Find the starting position for those words whose lengths are
+   * the same with last_hzs and have the same prefix. The given parameter
+   * cmp_func decides how many characters from beginning will be used to
+   * compare.
+   */
+  find_pos_startedbyhzs: function dictList_find_pos_startedbyhzs(last_hzs, cmp_func) {
+    var word_len = last_hzs.length;
+    var found_w = MyStdlib.mybsearchStr(last_hzs, this.buf_,
+      this.start_pos_[word_len - 1],
+      (this.start_pos_[word_len] - this.start_pos_[word_len - 1]) / word_len,
+      word_len, cmp_func);
+
+    if (-1 == found_w)
+      return -1;
+
+    while (found_w > this.start_pos_[word_len - 1] &&
+           cmp_func(this.buf_[found_w], this.buf_[found_w - word_len]) == 0) {
+      found_w -= word_len;
+    }
+
+    return found_w;
+  }
 };
 
 var SpellingParser = function spellingParser_constructor() {
@@ -3385,7 +3919,7 @@ SpellingParser.prototype = {
   spl_trie_: null,
 
   /* ==== Public ==== */
-  
+
   /** Given a string, parse it into a spelling id stream.
    * @param {String} splstr The given spelling string.
    * @return {spl_idx: Integer[], start_pos: Integer[], last_is_pre: Boolean}
@@ -3403,15 +3937,15 @@ SpellingParser.prototype = {
     if (!splstr) {
       return defaultResult;
     }
-  
+
     if (!SpellingTrie.is_valid_spl_char(splstr[0])) {
       return defaultResult;
     }
-  
+
     var last_is_pre = false;
-  
+
     var node_this = this.spl_trie_.root_;
-  
+
     var str_pos = 0;
     var idx_num = 0;
     var spl_idx = [];
@@ -3424,15 +3958,15 @@ SpellingParser.prototype = {
       if (!SpellingTrie.is_valid_spl_char(char_this)) {
         // test if the current node is endable
         var id_this = node_this.spelling_idx;
-        var ret = this.spl_trie_.if_valid_id_update(id_this)
+        var ret = this.spl_trie_.if_valid_id_update(id_this);
         if (ret.valid) {
-          id_this = ret.splid;
+          id_this = ret.spl_id;
           spl_idx[idx_num] = id_this;
-  
+
           idx_num++;
           str_pos++;
           start_pos[idx_num] = str_pos;
-  
+
           node_this = this.spl_trie_.root_;
           last_is_splitter = true;
           continue;
@@ -3446,11 +3980,11 @@ SpellingParser.prototype = {
           }
         }
       }
-  
+
       last_is_splitter = false;
-  
+
       found_son = null;
-  
+
       if (0 == str_pos) {
         if (char_this >= 'a') {
           found_son = this.spl_trie_.level1_sons_[StringUtils.charDiff(char_this, 'a')];
@@ -3470,19 +4004,19 @@ SpellingParser.prototype = {
           }
         }
       }
-  
+
       // found, just move the current node pointer to the the son
       if (null != found_son) {
         node_this = found_son;
       } else {
         // not found, test if it is endable
         var id_this = node_this.spelling_idx;
-        var ret = this.spl_trie_.if_valid_id_update(id_this)
+        var ret = this.spl_trie_.if_valid_id_update(id_this);
         if (ret.valid) {
-          id_this = ret.splid;        
+          id_this = ret.spl_id;
           // endable, remember the index
           spl_idx[idx_num] = id_this;
-  
+
           idx_num++;
           start_pos[idx_num] = str_pos;
           node_this = this.spl_trie_.root_;
@@ -3491,23 +4025,23 @@ SpellingParser.prototype = {
           return {spl_idx: spl_idx, start_pos: start_pos, last_is_pre: last_is_pre};
         }
       }
-  
+
       str_pos++;
     }
-  
+
     var id_this = node_this.spelling_idx;
-    var ret = this.spl_trie_.if_valid_id_update(id_this)
+    var ret = this.spl_trie_.if_valid_id_update(id_this);
     if (ret.valid) {
-      id_this = ret.splid;
+      id_this = ret.spl_id;
       // endable, remember the index
       spl_idx[idx_num] = id_this;
-  
+
       idx_num++;
       start_pos[idx_num] = str_pos;
     }
-  
+
     last_is_pre = !last_is_splitter;
-  
+
     return {spl_idx: spl_idx, start_pos: start_pos, last_is_pre: last_is_pre};
   },
 
@@ -3518,9 +4052,9 @@ SpellingParser.prototype = {
    */
   splstr_to_idxs_f: function spellingParser_splstr_to_idxs_f(splstr) {
     var ret = this.splstr_to_idxs(splstr);
-    var spl_idx =  ret.spl_idx;
-    var idx_num = spl_idx.length;
-    
+    var spl_idx = ret.spl_idx;
+    var idx_num = spl_idx.length;mybsearchStr;
+
     for (var pos = 0; pos < idx_num; pos++) {
       if (this.spl_trie_.is_half_id_yunmu(spl_idx[pos])) {
         var full = this.spl_trie_.half_to_full(spl_idx[pos]);
@@ -3538,26 +4072,26 @@ SpellingParser.prototype = {
   /**
    * Get the spelling id of given string.
    * @param {String} splstr The spelling string.
-   * @return {splid: Integer, is_pre: Boolean}
+   * @return {spl_id: Integer, is_pre: Boolean}
    * If the given string is a spelling, return the id, others, return 0.
    * If the give string is a single char Yunmus like "A", and the char is
    * enabled in ShouZiMu mode, the returned spelling id will be a half id.
    * When the returned spelling id is a half id, is_pre returns whether it
    * is a prefix of a full spelling string.
    */
-  get_splid_by_str: function spellingParser_get_splid_by_str(splstr) {
+  get_spl_id_by_str: function spellingParser_get_spl_id_by_str(splstr) {
     var spl_idx = [];
     var start_pos = [];
-  
+
     var ret = this.splstr_to_idxs(splstr);
-    if (ret.splidx.length != 1) {
-      return {splid: 0, is_pre: false};
+    if (ret.spl_idx.length != 1) {
+      return {spl_id: 0, is_pre: false};
     }
-  
+
     if (ret.start_pos[1] != splstr.length) {
-      return {splid: 0, is_pre: false};
+      return {spl_id: 0, is_pre: false};
     }
-    return {splid: ret.splstr[0], is_pre: ret.last_is_pre};
+    return {spl_id: ret.splstr[0], is_pre: ret.last_is_pre};
   },
 
   /**
@@ -3567,7 +4101,6 @@ SpellingParser.prototype = {
     return SpellingTrie.is_valid_spl_char(ch);
   }
 };
-
 
 // Node used for the trie of spellings
 var SpellingNode = function spellingNode_constructor() {
@@ -3605,7 +4138,7 @@ var SpellingTrie = function spellingTrie_constructor() {
   this.szm_enable_ym(true);
 };
 
-SpellingTrie.kFullSplIdStart = kHalfSpellingIdNum + 1;
+SpellingTrie.kFullspl_idStart = kHalfSpellingIdNum + 1;
 SpellingTrie.kMaxYmNum = 64;
 SpellingTrie.kValidSplCharNum = 26;
 SpellingTrie.kHalfIdShengmuMask = 0x01;
@@ -3671,94 +4204,94 @@ SpellingTrie.prototype = {
                                              average_score) {
     if (!spelling_arr)
       return false;
-  
+
     this.h2f_start_ = [];
     this.h2f_num_ = [];
-  
+
     this.spelling_buf_ = spelling_arr.concat();
     this.spelling_num_ = spelling_arr.length;
-  
+
     this.score_amplifier_ = score_amplifier;
     this.average_score_ = average_score;
-  
+
     this.splstr_queried_ = '';
-  
+
     this.node_num_ = 1;
-  
+
     this.root_ = new SpellingNode();
-    
+
     this.level1_sons_ = [];
-  
+
     this.root_.sons = this.construct_spellings_subset(0, this.spelling_num_, 0, this.root_);
-  
+
     // Root's score should be cleared.
     this.root_.score = 0;
-  
+
     if (this.root_.sons.length == 0)
       return false;
-  
+
     this.h2f_start_[0] = this.h2f_num_[0] = 0;
-  
+
     if (!this.build_f2h())
       return false;
-  
+
     return this.build_ym_info();
   },
 
   /**
    * Test if the given id is a valid spelling id.
-   * @return {valid: Boolean, splid: Integer}
-   * If valid is true, the given splid may be updated like this:
+   * @return {valid: Boolean, spl_id: Integer}
+   * If valid is true, the given spl_id may be updated like this:
    * When 'A' is not enabled in ShouZiMu mode, the parsing result for 'A' is
    * first given as a half id 1, but because 'A' is a one-char Yunmu and
    * it is a valid id, it needs to updated to its corresponding full id.
    */
-  if_valid_id_update: function spellingTrie_if_valid_id_update(splid) {
-    if (!splid)
-      return {valid: false, splid: splid};
+  if_valid_id_update: function spellingTrie_if_valid_id_update(spl_id) {
+    if (!spl_id)
+      return {valid: false, spl_id: spl_id};
 
-    if (splid >= SpellingTrie.kFullSplIdStart) {
-      return {valid: true, splid: splid};
+    if (spl_id >= SpellingTrie.kFullspl_idStart) {
+      return {valid: true, spl_id: spl_id};
     }
-    if (splid < SpellingTrie.kFullSplIdStart) {
-      var ch = SpellingTrie.kHalfId2Sc_[splid];
+    if (spl_id < SpellingTrie.kFullspl_idStart) {
+      var ch = SpellingTrie.kHalfId2Sc_[spl_id];
       if (ch > 'Z') {
-        // For half ids of Zh/Ch/Sh, map to z/c/s (low case) 
-        return {valid: true, splid: splid};
+        // For half ids of Zh/Ch/Sh, map to z/c/s (low case)
+        return {valid: true, spl_id: spl_id};
       } else {
         if (this.szm_is_enabled(ch)) {
-          return {valid: true, splid: splid};
+          return {valid: true, spl_id: spl_id};
         } else if (this.is_yunmu_char(ch)) {
-          splid = this.h2f_start_[splid];
-          return {valid: true, splid: splid};
+          spl_id = this.h2f_start_[spl_id];
+          return {valid: true, spl_id: spl_id};
         }
       }
     }
-    return {valid: false, splid: splid};
+    return {valid: false, spl_id: spl_id};
   },
 
 
   // Test if the given id is a half id.
-  is_half_id: function spellingTrie_is_half_id(splid) {
-    if (0 == splid || splid >= SpellingTrie.kFullSplIdStart)
+  is_half_id: function spellingTrie_is_half_id(spl_id) {
+    if (0 == spl_id || spl_id >= SpellingTrie.kFullspl_idStart)
       return false;
 
     return true;
   },
 
-  is_full_id: function spellingTrie_is_full_id(splid) {
-    if (splid < SpellingTrie.kFullSplIdStart || splid >= SpellingTrie.kFullSplIdStart + this.spelling_num_)
+  is_full_id: function spellingTrie_is_full_id(spl_id) {
+    if (spl_id < SpellingTrie.kFullspl_idStart || spl_id >= SpellingTrie.kFullspl_idStart + this.spelling_num_)
       return false;
     return true;
   },
 
   // Test if the given id is a one-char Yunmu id (obviously, it is also a half
   // id), such as 'A', 'E' and 'O'.
-  is_half_id_yunmu: function spellingTrie_is_half_id_yunmu(splid) {
-    if (0 == splid || splid >= SpellingTrie.kFullSplIdStart)
+  is_half_id_yunmu: function spellingTrie_is_half_id_yunmu(spl_id) {
+    if (0 == spl_id || spl_id >= SpellingTrie.kFullspl_idStart)
       return false;
 
-    var ch = SpellingTrie.kHalfId2Sc_[splid];
+    var ch = SpellingTrie.kHalfId2Sc_[spl_id];
     // If ch >= 'a', that means the half id is one of Zh/Ch/Sh
     if (ch >= 'a') {
       return false;
@@ -3833,7 +4366,7 @@ SpellingTrie.prototype = {
 
   // Return the number of full ids for the given half id.
   half2full_num: function spellingTrie_half2full_num(half_id) {
-    if (null == this.root_ || half_id >= SpellingTrie.kFullSplIdStart)
+    if (null == this.root_ || half_id >= SpellingTrie.kFullspl_idStart)
       return 0;
     return this.h2f_num_[half_id];
   },
@@ -3843,7 +4376,7 @@ SpellingTrie.prototype = {
    * for the given half id, and spl_id_start is the first full id.
    */
   half_to_full: function spellingTrie_half_to_full(half_id) {
-    if (null == this.root_ || half_id >= SpellingTrie.kFullSplIdStart) {
+    if (null == this.root_ || half_id >= SpellingTrie.kFullspl_idStart) {
       return {num: 0, spl_id_start: 0};
     }
 
@@ -3855,12 +4388,12 @@ SpellingTrie.prototype = {
   // Not frequently used, low efficient.
   // Return 0 if fails.
   full_to_half: function spellingTrie_full_to_half(full_id) {
-    if (null == this.root_ || full_id < SpellingTrie.kFullSplIdStart ||
-        full_id > this.spelling_num_ + SpellingTrie.kFullSplIdStart) {
+    if (null == this.root_ || full_id < SpellingTrie.kFullspl_idStart ||
+        full_id > this.spelling_num_ + SpellingTrie.kFullspl_idStart) {
       return 0;
     }
 
-    return this.f2h_[full_id - SpellingTrie.kFullSplIdStart];
+    return this.f2h_[full_id - SpellingTrie.kFullspl_idStart];
   },
 
   // To test whether a half id is compatible with a full id.
@@ -3917,28 +4450,28 @@ SpellingTrie.prototype = {
   },
 
   // Get the readonly Pinyin string for a given spelling id
-  get_spelling_str: function spellingTrie_get_spelling_str(splid) {
+  get_spelling_str: function spellingTrie_get_spelling_str(spl_id) {
     this.splstr_queried_ = '';
 
-    if (splid >= SpellingTrie.kFullSplIdStart) {
-      splid -= SpellingTrie.kFullSplIdStart;
-      this.splstr_queried_ = this.spelling_buf_[splid].str;
+    if (spl_id >= SpellingTrie.kFullspl_idStart) {
+      spl_id -= SpellingTrie.kFullspl_idStart;
+      this.splstr_queried_ = this.spelling_buf_[spl_id].str;
     } else {
-      if (splid == StringUtils.charDiff('C', 'A') + 1 + 1) {
+      if (spl_id == StringUtils.charDiff('C', 'A') + 1 + 1) {
         this.splstr_queried_ = 'Ch';
-      } else if (splid == StringUtils.charDiff('S', 'A') + 1 + 2) {
+      } else if (spl_id == StringUtils.charDiff('S', 'A') + 1 + 2) {
         this.splstr_queried_ = 'Sh';
-      } else if (splid == StringUtils.charDiff('Z', 'A') + 1 + 3) {
+      } else if (spl_id == StringUtils.charDiff('Z', 'A') + 1 + 3) {
         this.splstr_queried_ = 'Zh';
       } else {
-        if (splid > StringUtils.charDiff('C', 'A') + 1) {
-          splid--;
+        if (spl_id > StringUtils.charDiff('C', 'A') + 1) {
+          spl_id--;
         }
-        if (splid > StringUtils.charDiff('S', 'A') + 1) {
-          splid--;
+        if (spl_id > StringUtils.charDiff('S', 'A') + 1) {
+          spl_id--;
         }
         this.splstr_queried_ =
-          String.fromCharCode('A'.charCodeAt(0) + splid - 1);
+          String.fromCharCode('A'.charCodeAt(0) + spl_id - 1);
       }
     }
     return this.splstr_queried_;
@@ -3960,8 +4493,8 @@ SpellingTrie.prototype = {
 
   // The Yunmu id list for the spelling ids (for half ids of Shengmu,
   // the Yunmu id is 0).
-  // The length of the list is spelling_num_ + kFullSplIdStart,
-  // so that spl_ym_ids_[splid] is the Yunmu id of the splid.
+  // The length of the list is spelling_num_ + kFullspl_idStart,
+  // so that spl_ym_ids_[spl_id] is the Yunmu id of the spl_id.
   // @type Integer[]
   spl_ym_ids_: null,
 
@@ -3985,9 +4518,9 @@ SpellingTrie.prototype = {
   // h2f means half to full.
   // A half id can be a ShouZiMu id (id to represent the first char of a full
   // spelling, including Shengmu and Yunmu), or id of zh/ch/sh.
-  // [1..SpellingTrie.kFullSplIdStart-1] is the range of half id.
-  h2f_start_: null,          // @type Integer[SpellingTrie.kFullSplIdStart]
-  h2f_num_: null,            // @type Integer[SpellingTrie.kFullSplIdStart]
+  // [1..SpellingTrie.kFullspl_idStart-1] is the range of half id.
+  h2f_start_: null,          // @type Integer[SpellingTrie.kFullspl_idStart]
+  h2f_num_: null,            // @type Integer[SpellingTrie.kFullspl_idStart]
 
   /** Map from full id to half id.
    * @type Integer[]
@@ -4004,14 +4537,14 @@ SpellingTrie.prototype = {
       item_start, item_end, level, parent) {
     if (item_end <= item_start || null == parent)
       return null;
-  
+
     var sons = [];
     var num_of_son = 0;
     var min_son_score = 255;
-  
+
     var spelling_last_start = this.spelling_buf[item_start];
     var char_for_node = spelling_last_start.str[level];
-  
+
     // Scan the array to find how many sons
     for (var i = item_start + 1; i < item_end; i++) {
       var spelling_current = this.spelling_buf_[i];
@@ -4022,53 +4555,53 @@ SpellingTrie.prototype = {
       }
     }
     num_of_son++;
-  
+
     this.node_num_ += num_of_son;
     sons = new Array(num_of_son);
     for (var i = 0; i < num_of_son; i++) {
       sons[i] = new SpellingNode();
     }
-    
+
     // Now begin construct tree
     var son_pos = 0;
-  
+
     char_for_node = spelling_last_start.str[level];
-  
+
     var spelling_endable = true;
     if (spelling_last_start.str.length > level + 1) {
       spelling_endable = false;
     }
-  
+
     var item_start_next = item_start;
-  
+
     for (var i = item_start + 1; i < item_end; i++) {
       var spelling_current = this.spelling_buf_[i];
       var char_current = spelling_current.str[level];
-  
+
       if (char_current != char_for_node) {
         // Construct a node
         var node_current = sons[son_pos];
         node_current.char_this_node = char_for_node;
-  
+
         // For quick search in the first level
         if (0 == level) {
           this.level1_sons_[StringUtils.charDiff(char_for_node, 'A')] = node_current;
         }
-  
+
         if (spelling_endable) {
-          node_current.spelling_idx = SpellingTrie.kFullSplIdStart + item_start_next;
+          node_current.spelling_idx = SpellingTrie.kFullspl_idStart + item_start_next;
         }
-  
+
         if (spelling_last_start.str.length > level + 1 || i - item_start_next > 1) {
           var real_start = item_start_next;
           if (spelling_last_start.str.length == level + 1) {
             real_start++;
           }
-  
+
           node_current.sons =
               this.construct_spellings_subset(real_start, i, level + 1,
                                          node_current);
-  
+
           if (real_start == item_start_next + 1) {
             var score_this = spelling_last_start.score;
             if (score_this < node_current.score) {
@@ -4079,11 +4612,11 @@ SpellingTrie.prototype = {
           node_current.sons = [];
           node_current.score = spelling_last_start.score;
         }
-  
+
         if (node_current.score < min_son_score) {
           min_son_score = node_current.score;
         }
-  
+
         var is_half = false;
         if (level == 0 && this.is_szm_char(char_for_node)) {
           node_current.spelling_idx =
@@ -4094,7 +4627,7 @@ SpellingTrie.prototype = {
           if (char_for_node > 'S') {
             node_current.spelling_idx++;
           }
-  
+
           this.h2f_num_[node_current.spelling_idx] = i - item_start_next;
           is_half = true;
         } else if (level == 1 && char_for_node == 'h') {
@@ -4115,16 +4648,16 @@ SpellingTrie.prototype = {
             is_half = true;
           }
         }
-  
+
         if (is_half) {
           if (this.h2f_num_[node_current.spelling_idx] > 0) {
             this.h2f_start_[node_current.spelling_idx] =
-              item_start_next + SpellingTrie.kFullSplIdStart;
+              item_start_next + SpellingTrie.kFullspl_idStart;
           } else {
             this.h2f_start_[node_current.spelling_idx] = 0;
           }
         }
-  
+
         // for next sibling
         spelling_last_start = spelling_current;
         char_for_node = char_current;
@@ -4136,31 +4669,31 @@ SpellingTrie.prototype = {
         son_pos++;
       }
     }
-  
+
     // the last one
     var node_current = sons[son_pos];
     node_current.char_this_node = char_for_node;
-  
+
     // For quick search in the first level
     if (0 == level) {
       this.level1_sons_[StringUtils.charDiff(char_for_node, 'A')] = node_current;
     }
-  
+
     if (spelling_endable) {
-      node_current.spelling_idx = SpellingTrie.kFullSplIdStart + item_start_next;
+      node_current.spelling_idx = SpellingTrie.kFullspl_idStart + item_start_next;
     }
-  
+
     if (spelling_last_start.str.length > level + 1 ||
         item_end - item_start_next > 1) {
       var real_start = item_start_next;
       if (spelling_last_start.str.length == level + 1) {
         real_start++;
       }
-  
+
       node_current.sons =
           this.construct_spellings_subset(real_start, item_end, level + 1,
                                      node_current);
-  
+
       if (real_start == item_start_next + 1) {
         var score_this = spelling_last_start.score;
         if (score_this < node_current.score) {
@@ -4171,11 +4704,11 @@ SpellingTrie.prototype = {
       node_current.sons = [];
       node_current.score = spelling_last_start.score;
     }
-  
+
     if (node_current.score < min_son_score) {
       min_son_score = node_current.score;
     }
-  
+
     var is_half = false;
     if (level == 0 && this.szm_is_enabled(char_for_node)) {
       node_current.spelling_idx = StringUtils.charDiff(char_for_node, 'A') + 1;
@@ -4185,7 +4718,7 @@ SpellingTrie.prototype = {
       if (char_for_node > 'S') {
         node_current.spelling_idx++;
       }
-  
+
       this.h2f_num_[node_current.spelling_idx] = item_end - item_start_next;
       is_half = true;
     } else if (level == 1 && char_for_node == 'h') {
@@ -4209,12 +4742,12 @@ SpellingTrie.prototype = {
     if (is_half) {
       if (this.h2f_num_[node_current.spelling_idx] > 0) {
         this.h2f_start_[node_current.spelling_idx] =
-          item_start_next + SpellingTrie.kFullSplIdStart;
+          item_start_next + SpellingTrie.kFullspl_idStart;
       } else {
         this.h2f_start_[node_current.spelling_idx] = 0;
       }
     }
-  
+
     parent.num_of_son = num_of_son;
     parent.score = min_son_score;
     return sons;
@@ -4222,14 +4755,14 @@ SpellingTrie.prototype = {
 
   build_f2h: function spellingTrie_build_f2h() {
     this.f2h_ = [];
-  
-    for (var hid = 0; hid < SpellingTrie.kFullSplIdStart; hid++) {
+
+    for (var hid = 0; hid < SpellingTrie.kFullspl_idStart; hid++) {
       for (var fid = this.h2f_start_[hid];
            fid < this.h2f_start_[hid] + this.h2f_num_[hid]; fid++) {
-        this.f2h_[fid - SpellingTrie.kFullSplIdStart] = hid;
+        this.f2h_[fid - SpellingTrie.kFullspl_idStart] = hid;
       }
     }
-  
+
     return true;
   },
 
@@ -4265,9 +4798,9 @@ SpellingTrie.prototype = {
   build_ym_info: function spellingTrie_build_ym_info() {
     var sucess;
     var spl_table = new SpellingTable();
-  
+
     sucess = spl_table.init_table();
-    
+
     for (var pos = 0; pos < this.spelling_num_; pos++) {
       var spl_str = this.spelling_buf_[pos].str;
       spl_str = this.get_ym_str(spl_str);
@@ -4275,16 +4808,16 @@ SpellingTrie.prototype = {
         sucess = spl_table.put_spelling(spl_str, 0);
       }
     }
-  
+
     this.ym_buf_ = spl_table.arrange();
     this.ym_num_ = this.ym_buf_.length;
-  
+
     // Generate the maping from the spelling ids to the Yunmu ids.
     spl_ym_ids_ = [];
-    
-    for (var id = 1; id < this.spelling_num_ + SpellingTrie.kFullSplIdStart; id++) {
+
+    for (var id = 1; id < this.spelling_num_ + SpellingTrie.kFullspl_idStart; id++) {
       var str = this.get_spelling_str(id);
-  
+
       str = this.get_ym_str(str);
       if (str) {
         var ym_id = this.get_ym_id(str);
@@ -4293,7 +4826,7 @@ SpellingTrie.prototype = {
         this.spl_ym_ids_[id] = 0;
       }
     }
-    return true;    
+    return true;
   }
 };
 
@@ -4337,23 +4870,23 @@ SpellingTable.prototype = {
   put_spelling: function spellingTable_put_spelling(spelling_str, freq) {
     if (this.frozen_ || !spelling_str)
       return false;
-  
+
     var notSupportNum = SpellingTable.kNotSupportList.length;
     for (var pos = 0; pos < notSupportNum; pos++) {
       if (spelling_str == SpellingTable.kNotSupportList[pos]) {
         return false;
       }
     }
-  
+
     this.total_freq_ += freq;
-    
+
     if (!(spelling_str in this.raw_spellings_)) {
       this.raw_spellings_[spelling_str] = new RawSpelling(spelling_str, 0);
       this.spelling_num_++;
     }
-    
+
     this.raw_spellings_[spelling_str].freq += freq;
-    
+
     return true;
   },
 
@@ -4365,7 +4898,7 @@ SpellingTable.prototype = {
   contain: function spellingTable_contain(spelling_str) {
     if (this.frozen_ || !spelling_str)
       return false;
-    
+
     return (spelling_str in this.raw_spellings_);
   },
 
@@ -4380,9 +4913,9 @@ SpellingTable.prototype = {
     if (null == this.raw_spellings_) {
       return result;
     }
-  
+
     var min_score = 1;
-    
+
     for (var pos in this.raw_spellings_) {
       this.raw_spellings_[pos].freq /= this.total_freq_;
       if (this.raw_spellings_[pos].freq < min_score) {
@@ -4399,17 +4932,17 @@ SpellingTable.prototype = {
     var totalScore = 0;
     var spellingNum = 0;
     for (var pos in this.raw_spellings_) {
-      var score = Math.floor(Math.log(this.raw_spellings_[pos].freq) * this.score_amplifier_);        
+      var score = Math.floor(Math.log(this.raw_spellings_[pos].freq) * this.score_amplifier_);
       this.raw_spellings_[pos].score = score;
       totalScore += score;
       spellingNum++;
     }
     this.average_score_ = Math.round(totalScore / spellingNum);
-  
+
     for (var str in this.raw_spellings_) {
       result.push(this.raw_spellings_[str]);
     }
-    
+
     result.sort(function sortRawSpellings(a, b) {
       if (a > b) {
         return 1;
@@ -4419,7 +4952,7 @@ SpellingTable.prototype = {
         return 0;
       }
     });
-    
+
     this.frozen_ = true;
     return result;
   },
