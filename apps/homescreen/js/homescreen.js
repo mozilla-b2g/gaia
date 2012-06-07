@@ -52,10 +52,25 @@ function AppScreen(apps) {
 
   function onInstall(e) {
     installedApps[e.application.origin] = e.application;
+
+    // Caching the icon
+    var appCache = window.applicationCache;
+    if (appCache) {
+      var icons = e.application.manifest.icons;
+      if (icons) {
+        Object.getOwnPropertyNames(icons).forEach(function iconIterator(key) {
+          var url = e.application.origin + icons[key];
+          appCache.mozAdd(url);
+        });
+      }
+    }
     this.build(true);
   };
 
   function onUninstall(e) {
+    // TODO: remove the icon of the app from the cache
+    // but currently e.application.manifest is null :/
+
     delete installedApps[e.application.origin];
     this.build(true);
   };
@@ -112,17 +127,12 @@ AppScreen.prototype = {
         icon = app.manifest.icons[sizes[0]];
       }
 
+
       // If the icons is a fully-qualifed URL, leave it alone
       // (technically, manifests are not supposed to have those)
       // Otherwise, prefix with the app origin
       if (icon.indexOf(':') == -1) {
-        // XXX: Homescreen can't load images from other application caches
-        // for these Gaia apps, we get icons from our own domain
-        if (domain && app.origin.indexOf(domain) !== -1) {
-          icon = 'http://' + document.location.host + icon;
-        } else {
-          icon = app.origin + icon;
-        }
+        icon = app.origin + icon;
       }
 
       // Translate the application name
@@ -187,10 +197,7 @@ Shortcuts.prototype = {
       // (technically, manifests are not supposed to have those)
       // Otherwise, prefix with the app origin
       if (icon.indexOf(':') == -1) {
-        // XXX it looks like the homescreen can't load images from other origins
-        // so use the ones from the url host for now
-        // icon = app.origin + icon;
-        icon = 'http://' + document.location.host + icon;
+        icon = app.origin + icon;
       }
 
       // Translate the application name
