@@ -224,9 +224,11 @@ const IMEController = (function() {
 
     // Switch ABC/SYMBOLS button
     if (!layout['disableAlternateLayout']) {
+      console.log('adding layout');
       switchKey = _getSwitchKey(layoutMode);
-      if (severalLanguages === false)
-        // switchKey.ratio += 1;
+/*      if (severalLanguages === false)
+         switchKey.ratio += 1;
+*/
       newKeys.push(switchKey);
       // ratio -= switchKey.ratio;
     }
@@ -397,6 +399,7 @@ const IMEController = (function() {
 
     // Control locked zone for menu
     if (_showingAlternativesMenu
+        && _menuLockedArea
         && evt.screenY >= _menuLockedArea.top
         && evt.screenY <= _menuLockedArea.bottom
         && evt.screenX >= _menuLockedArea.left
