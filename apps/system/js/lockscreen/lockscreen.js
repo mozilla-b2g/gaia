@@ -262,15 +262,18 @@ var LockScreen = {
         break;
 
       case 'keydown':
+        if (e.keyCode !== e.DOM_VK_SLEEP && e.keyCode !== e.DOM_VK_HOME)
+          return;
+
         if (navigator.mozPower.screenEnabled) {
           if (e.keyCode == e.DOM_VK_SLEEP && !SleepMenu.visible) {
             this._timeout = window.setTimeout(function() {
               SleepMenu.show();
             }, 1500);
           }
-        } else if (e.keyCode == e.DOM_VK_SLEEP || e.keyCode == e.DOM_VK_HOME) {
-            this.update();
-            ScreenManager.turnScreenOn();
+        } else {
+          this.update();
+          ScreenManager.turnScreenOn();
         }
 
         e.preventDefault();
@@ -416,3 +419,4 @@ var PadLock = {
     }
   }
 };
+

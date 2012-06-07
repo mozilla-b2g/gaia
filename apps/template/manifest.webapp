@@ -1,0 +1,62 @@
+{
+  "name": "Template",
+  "description": "Web app template",
+  "launch_path": "/",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "permissions": [
+
+  ],
+  "locales": {
+    "ar": {
+      "name": "Template",
+      "description": "Web app template"
+    },
+    "de": {
+      "name": "Template",
+      "description": "Web app template"
+    },
+    "el": {
+      "name": "Template",
+      "description": "Web app template"
+    },
+    "en-US": {
+      "name": "Template",
+      "description": "Web app template"
+    },
+    "es": {
+      "name": "Template",
+      "description": "Web app template"
+    },
+    "fr": {
+      "name": "Template",
+      "description": "Web app template"
+    },
+    "it": {
+      "name": "Template",
+      "description": "Web app template"
+    },
+    "pt-BR": {
+      "name": "Template",
+      "description": "Web app template"
+    },
+    "ru": {
+      "name": "Template",
+      "description": "Web app template"
+    },
+    "tr": {
+      "name": "Template",
+      "description": "Web app template"
+    },
+    "zh-TW": {
+      "name": "Template",
+      "description": "Web app template"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "128": "/style/icons/Blank.png"
+  }
+}
