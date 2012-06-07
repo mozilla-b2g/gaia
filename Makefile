@@ -112,6 +112,7 @@ webapp-manifests:
 	@cd apps; \
 	for d in `find * -maxdepth 0 -type d` ;\
 	do \
+	  echo $(EXCLUDED) | grep -Eq $$d && continue; \
 	  if [ -f $$d/manifest.webapp ]; \
 		then \
 		  mkdir -p ../profile/webapps/$$d; \
@@ -392,6 +393,7 @@ update-offline-manifests:
 	@cd apps; \
 	for d in `find * -maxdepth 0 -type d` ;\
 	do \
+		echo $(EXCLUDED) | grep -Eq $$d && continue; \
 		if [ -f $$d/manifest.webapp ] ;\
 		then \
 			echo \\t$$d ;\
@@ -426,3 +428,5 @@ install-gaia: profile
 	$(ADB) shell kill $(shell $(ADB) shell toolbox ps | grep "b2g" | awk '{ print $$2; }')
 	@echo 'Rebooting b2g now'
 
+install-media-samples:
+	$(ADB) push media-samples/DCIM /sdcard/DCIM
