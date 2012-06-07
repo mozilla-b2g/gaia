@@ -1,8 +1,9 @@
 
 #lockscreen {
   position: absolute;
-  z-index: 20000;
-  top: 0px;
+  /* Show it above fullscreen - see https://mxr.mozilla.org/mozilla-central/source/layout/style/ua.css#218 */
+  z-index: 2147483647;
+  top: 0;
   width: -moz-calc(100%);
   height: -moz-calc(100%);
   overflow: hidden;
@@ -23,8 +24,7 @@
 
 #lockscreen-container {
   width: 100%;
-  margin-top: 32px;
-  height: -moz-calc(100% - 32px);
+  height: 100%;
 }
 
 .lockscreen-panel {
