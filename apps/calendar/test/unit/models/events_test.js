@@ -18,14 +18,33 @@ suite('models/events', function() {
     assert.isObject(subject.ids);
   });
 
-  test('#add', function() {
-    var date = new Date(2012, 0, 1),
-        dateId = Calendar.Calc.getDayId(date);
+  suite('#add', function() {
+    var date, dateId, eventCalled = [];
 
-    subject.add(date, 'uniq1', obj);
+    setup(function(done) {
+      eventCalled.length = 0;
+      date = new Date(2012, 0, 1);
+      dateId = Calendar.Calc.getDayId(date);
 
-    assert.deepEqual(subject.ids['uniq1'], { event: obj, date: date });
-    assert.deepEqual(subject.times[dateId], {'uniq1': true});
+      subject.on('add', function() {
+        eventCalled.push(Array.prototype.slice.call(arguments));
+        done();
+      });
+
+      subject.add(date, 'uniq1', obj);
+    });
+
+    test('storage', function() {
+      assert.deepEqual(subject.ids['uniq1'], { event: obj, date: date });
+      assert.deepEqual(subject.times[dateId], {'uniq1': true});
+    });
+
+    test('event', function() {
+      assert.deepEqual(eventCalled, [
+        ['uniq1', subject.get('uniq1')]
+      ]);
+    });
+
   });
 
   test('#get', function() {
@@ -35,22 +54,43 @@ suite('models/events', function() {
     assert.deepEqual(subject.get('1'), { event: obj, date: date });
   });
 
-  test('#remove', function() {
-    var date = new Date();
-    var dateId = Calendar.Calc.getDayId(date);
-    var expectedTimes = {};
-    expectedTimes[dateId] = {};
+  suite('#remove', function() {
+    var date, dateId, expectedTimes, result,
+        eventCalled = [], getObj;
 
+    setup(function(done) {
+      eventCalled.length = 0;
+      date = new Date();
+      dateId = Calendar.Calc.getDayId(date);
+      expectedTimes = {};
+      expectedTimes[dateId] = {};
 
-    subject.add(date, '2', obj);
-    var result = subject.remove('2');
+      subject.on('remove', function() {
+        eventCalled.push(Array.prototype.slice.call(arguments));
+        done();
+      });
 
-    assert.ok(!subject.get('2'), 'should not have object for removed element');
-    assert.deepEqual(subject.times, expectedTimes);
-    assert.deepEqual(subject.ids, {});
-    assert.isTrue(result);
+      subject.add(date, '2', obj);
+      getObj = subject.get('2');
+      result = subject.remove('2');
+    });
+
+    test('event', function() {
+      assert.deepEqual(eventCalled, [
+        ['2', getObj]
+      ]);
+    });
+
+    test('removal', function() {
+      assert.ok(!subject.get('2'),
+                'should not have object for removed element');
+
+      assert.deepEqual(subject.times, expectedTimes);
+      assert.deepEqual(subject.ids, {});
+      assert.isTrue(result);
+    });
+
   });
-
 
   suite('#eventsForDay', function() {
     var day = new Date(2012, 1, 1),
@@ -75,7 +115,6 @@ suite('models/events', function() {
 
     test('when day has events', function() {
       var result = subject.eventsForDay(day);
-      console.log(expected);
 
       assert.deepEqual(result, expected);
     });

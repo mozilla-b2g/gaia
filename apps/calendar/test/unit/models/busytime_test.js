@@ -15,14 +15,32 @@ suite('models/busytime', function() {
     assert.isObject(subject.ids);
   });
 
-  test('#add', function() {
-    var date = new Date(2012, 0, 1),
-        dateId = Calendar.Calc.getDayId(date);
+  suite('#add', function() {
+    var date, dateId, eventCalled = [];
 
-    subject.add(date, 'uniq1');
+    setup(function(done) {
+      eventCalled.length = 0;
+      date = new Date(2012, 0, 1);
+      dateId = Calendar.Calc.getDayId(date);
 
-    assert.deepEqual(subject.ids['uniq1'], date);
-    assert.deepEqual(subject.times[dateId], {'uniq1': true});
+      subject.on('add', function() {
+        eventCalled.push(Array.prototype.slice.call(arguments));
+        done();
+      });
+
+      subject.add(date, 'uniq1');
+    });
+
+    test('storage', function() {
+      assert.deepEqual(subject.ids['uniq1'], date);
+      assert.deepEqual(subject.times[dateId], {'uniq1': true});
+    });
+
+    test('event', function() {
+      assert.deepEqual(eventCalled, [
+        ['uniq1', subject.get('uniq1')]
+      ]);
+    });
   });
 
   test('#get', function() {
@@ -32,21 +50,39 @@ suite('models/busytime', function() {
     assert.deepEqual(subject.get('1'), date);
   });
 
-  test('#remove', function() {
-    var date = new Date();
-    var dateId = Calendar.Calc.getDayId(date);
-    var expectedTimes = {};
-    expectedTimes[dateId] = {};
+  suite('#remove', function() {
+    var date = new Date(), dateId,
+        expectedTimes, result,
+        eventCalled = [];
 
+    setup(function(done) {
+      eventCalled.length = 0;
+      dateId = Calendar.Calc.getDayId(date);
+      expectedTimes = {};
+      expectedTimes[dateId] = {};
 
-    subject.add(date, '2');
+      subject.on('remove', function(obj, id) {
+        eventCalled.push(Array.prototype.slice.call(arguments));
+        done();
+      });
 
-    var result = subject.remove('2');
+      subject.add(date, '2');
+      result = subject.remove('2');
+    });
 
-    assert.ok(!subject.get('2'), 'should not have object for removed element');
-    assert.deepEqual(subject.times, expectedTimes);
-    assert.deepEqual(subject.ids, {});
-    assert.isTrue(result);
+    test('event', function() {
+      assert.deepEqual(eventCalled,
+        [['2', date]]
+      );
+    });
+
+    test('removal', function() {
+      assert.ok(!subject.get('2'), 'should not have object for removed element');
+      assert.deepEqual(subject.times, expectedTimes);
+      assert.deepEqual(subject.ids, {});
+      assert.isTrue(result);
+    });
+
   });
 
   test('#getHours', function() {

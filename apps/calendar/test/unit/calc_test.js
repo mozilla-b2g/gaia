@@ -182,8 +182,6 @@ suite('calendar/calc', function() {
         new Date(1991, subject.today.getMonth() - 1, 1)
       );
 
-      console.log(state);
-
       assert.include(state, subject.FUTURE);
       assert.include(state, subject.NEXT_MONTH);
     });

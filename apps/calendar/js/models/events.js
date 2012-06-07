@@ -35,6 +35,8 @@
 
     this.times[dateId][id] = true;
     this.ids[id] = { event: object, date: date };
+
+    this.emit('add', id, this.get(id));
   };
 
   /**
@@ -74,6 +76,8 @@
       dateId = Calendar.Calc.getDayId(event.date);
       delete this.times[dateId][id];
       delete this.ids[id];
+
+      this.emit('remove', id, event);
 
       return true;
     }
