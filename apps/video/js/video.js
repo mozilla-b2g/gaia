@@ -5,7 +5,6 @@ window.addEventListener('DOMContentLoaded', function() {
     return document.getElementById(id);
   }
   var player = $('player');
-  var subtitles = null;
 
   // This is the list of sample videos built in to the app
   var samples = [
@@ -13,7 +12,6 @@ window.addEventListener('DOMContentLoaded', function() {
       title: 'Mozilla Manifesto',
       video: 'samples/manifesto.ogv',
       poster: 'samples/manifesto.png',
-      subtitles: 'samples/manifesto.json',
       width: '640',
       height: '360',
       duration: '2:05'
@@ -22,7 +20,6 @@ window.addEventListener('DOMContentLoaded', function() {
       title: 'Meet The Cubs',
       video: 'samples/meetthecubs.webm',
       poster: 'samples/meetthecubs.png',
-      subtitles: 'samples/meetthecubs.json',
       width: '640',
       height: '360',
       duration: '1:18'
@@ -112,35 +109,7 @@ window.addEventListener('DOMContentLoaded', function() {
     $('videoControls').classList.add('hidden');
 //    document.body.classList.add('fullscreen');
     $('videoBar').classList.remove('paused');
-
     $('videoFrame').mozRequestFullScreen();
-
-    //TODO: fetch subtitles from UniversalSubtitles.org
-    var req = new XMLHttpRequest();
-    req.open('GET', sample.subtitles, false);
-    req.send();
-    subtitles = JSON.parse(req.responseText);
-
-    function secs(str) {
-      var t = str.split(':');
-      var h = t[0];
-      var m = t[1];
-      var s = parseFloat(t[2]);
-      return (h * 60 + m) * 60 + s;
-    }
-
-    player.ontimeupdate = function() {
-      var time = player.currentTime;
-
-      for (var s in subtitles) {
-        var subtitle = subtitles[s];
-        if (time > secs(subtitle[0]) &&
-            time <= secs(subtitle[0]) + secs(subtitle[1])) {
-          $('videoSubtitles').innerHTML = subtitle[2];
-          break;
-        }
-      }
-    }
 
     // start player
     player.src = sample.video;
@@ -175,9 +144,6 @@ window.addEventListener('DOMContentLoaded', function() {
     // stop player
     player.pause();
     player.currentTime = 0;
-
-    //clear currently displayed caption
-    $('videoSubtitles').innerHTML = '';
 
     playerShowing = false;
     screenLock.unlock();
