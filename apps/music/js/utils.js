@@ -14,15 +14,15 @@ function formatTime(secs) {
     return;
 
   var formatedTime;
-  var minutes = Math.floor(secs/60);
-  var seconds = Math.floor(secs%60);
+  var minutes = Math.floor(secs / 60);
+  var seconds = Math.floor(secs % 60);
 
   if (minutes.toString().length < 2)
     minutes = '0' + minutes;
   if (seconds.toString().length < 2)
     seconds = '0' + seconds;
 
-  formatedTime = minutes + ":" + seconds;
+  formatedTime = minutes + ':' + seconds;
 
   return formatedTime;
 }

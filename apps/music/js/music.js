@@ -3,6 +3,8 @@
 /*
  * This is Music Application of Gaia
  */
+var pattern = /Mobile/g;
+var isMobile = (pattern.test(navigator.userAgent)) ? true : false;
 
 // Hard-coded ogg files as testing songs
 var songs = [
@@ -226,6 +228,12 @@ var PlayerView = {
     this.currentIndex = 0;
 
     this.view.addEventListener('click', this);
+
+    // Seeking audio causes the Desktop build hangs
+    // Listen to 'mousemove' when platform is Mobile
+    if (isMobile)
+      this.seekBar.addEventListener('mousemove', this);
+
     this.audio.ontimeupdate = this.updateSeekBar.bind(this);
   },
 
@@ -274,27 +282,44 @@ var PlayerView = {
     this.play(songElements[this.currentIndex].firstElementChild);
   },
 
+  seekAudio: function pv_seekAudio(seekTime) {
+    if (seekTime)
+      this.audio.currentTime = seekTime;
+
+    var endTime =
+      Math.floor(this.audio.buffered.end(this.audio.buffered.length - 1));
+    var startTime = Math.floor(this.audio.startTime);
+    var currentTime = Math.floor(this.audio.currentTime);
+
+    this.seekBar.min = startTime;
+    this.seekBar.max = endTime;
+    this.seekBar.value = currentTime;
+
+    this.seekElapsed.textContent = formatTime(currentTime);
+    this.seekRemaining.textContent = '-' + formatTime(endTime - currentTime);
+  },
+
   updateSeekBar: function pv_updateSeekBar() {
     if (this.isPlaying) {
-      var lastBuffered = this.audio.buffered.end(this.audio.buffered.length-1);
-
-      this.seekBar.min = this.audio.startTime;
-      this.seekBar.max = lastBuffered;
-      this.seekBar.value = this.audio.currentTime;
-
-      this.seekElapsed.textContent = formatTime(this.audio.currentTime);
-      this.seekRemaining.textContent = formatTime(lastBuffered - this.audio.currentTime);
+      this.seekAudio();
     }
   },
 
   handleEvent: function pv_handleEvent(evt) {
+    var target = evt.target;
+      if (!target)
+        return;
+
     switch (evt.type) {
       case 'click':
-        var target = evt.target;
-        if (!target)
-          return;
-
         switch (target.id) {
+          case 'player-seek-bar-progress':
+            // target is the seek bar, and evt.layerX is the clicked position
+            var seekTime = evt.layerX / target.clientWidth * target.max;
+            this.seekAudio(seekTime);
+
+            break;
+
           case 'player-controls-previous':
             this.previous();
 
@@ -316,6 +341,11 @@ var PlayerView = {
         }
 
         break;
+      case 'mousemove':
+        // target is the seek bar, and evt.layerX is the moved position
+        var seekTime = evt.layerX / target.clientWidth * target.max;
+        this.seekAudio(seekTime);
+        break;
 
       default:
         return;
@@ -324,7 +354,7 @@ var PlayerView = {
 };
 
 // Application start from here after 'DOMContentLoaded' event is fired.
-// Initialize the view objects and default mode is TILES. 
+// Initialize the view objects and default mode is TILES.
 window.addEventListener('DOMContentLoaded', function() {
   TitleBar.init();
   TilesView.init();
