@@ -104,7 +104,9 @@ AppScreen.prototype = {
         icon = app.manifest.icons['120'];
       } else {
         // Get all sizes
-        var sizes = Object.keys(app.manifest.icons).map(parseInt);
+        var sizes = Object.keys(app.manifest.icons).map(function parse(str) {
+          return parseInt(str, 10);
+        });
         // Largest to smallest
         sizes.sort(function(x, y) { return y - x; });
         icon = app.manifest.icons[sizes[0]];
