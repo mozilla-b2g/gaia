@@ -291,9 +291,7 @@ var Browser = {
     var browserEvents = ['loadstart', 'loadend', 'locationchange', 'titlechange'];
     iframe.mozbrowser = true;
     // FIXME: content shouldn't control this directly
-    //iframe.setAttribute('remote', 'true');
-    //   Cross-process panning
-    //     https://bugzilla.mozilla.org/show_bug.cgi?id=761924
+    iframe.setAttribute('remote', 'true');
     iframe.style.display = 'none';
 
     var tab = {
