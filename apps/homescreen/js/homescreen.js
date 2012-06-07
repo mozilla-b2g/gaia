@@ -8,6 +8,7 @@
 var appscreen = null;
 navigator.mozApps.mgmt.getAll().onsuccess = function(e) {
   appscreen = new AppScreen(e.target.result);
+  shortcuts = new Shortcuts(e.target.result);
 
   // Appscreen ready, now settings
   SettingsListener.observe('language.current', 'en-US', function(value) {
@@ -16,6 +17,7 @@ navigator.mozApps.mgmt.getAll().onsuccess = function(e) {
     document.documentElement.dir = document.mozL10n.language.direction;
 
     appscreen.build(true);
+    shortcuts.build();
   });
 
   SettingsListener.observe('homescreen.wallpaper', 'default.png',
@@ -36,6 +38,11 @@ function AppScreen(apps) {
     // Ignore the homescreen application itself
     if (app.origin.replace(lastSlash, '') == currentHost)
       return;
+
+    // XXX: Ignoring apps without an icon
+    if (!app.manifest.icons)
+      return;
+
     installedApps[app.origin] = app;
   });
 
@@ -86,6 +93,72 @@ AppScreen.prototype = {
       // Most apps will host their own icons at their own origin.
       // If no icon is defined we'll get this undefined one.
       var icon = '';
+      if ('120' in app.manifest.icons) {
+        icon = app.manifest.icons['120'];
+      } else {
+        // Get all sizes
+        var sizes = Object.keys(app.manifest.icons).map(parseInt);
+        // Largest to smallest
+        sizes.sort(function(x, y) { return y - x; });
+        icon = app.manifest.icons[sizes[0]];
+      }
+
+      // If the icons is a fully-qualifed URL, leave it alone
+      // (technically, manifests are not supposed to have those)
+      // Otherwise, prefix with the app origin
+      if (icon.indexOf(':') == -1) {
+        // XXX it looks like the homescreen can't load images from other origins
+        // so use the ones from the url host for now
+        // icon = app.origin + icon;
+        icon = 'http://' + document.location.host + icon;
+      }
+
+      // Translate the application name
+      var name = app.manifest.name;
+      var lang = document.mozL10n.language.code;
+      if (app.manifest.locales && app.manifest.locales[lang])
+        name = app.manifest.locales[lang].name || name;
+
+      apps.push({ 'icon': icon, 'name': name, 'origin': origin });
+    }
+
+    // Initialize the main grid view
+    var grid = this.grid = new IconGrid('apps');
+    grid.dots = new Dots('dots', this.grid);
+
+    apps.forEach(function(app) {
+      grid.add(app.icon, app.name, app.origin);
+    });
+
+    grid.update();
+    grid.setPage(startpage);
+  }
+};
+
+// XXX: Hard-coded selection of apps for shortcuts
+function Shortcuts(apps) {
+  var shortcuts = ['Dialer', 'Messages', 'Market', 'Browser'];
+
+  var shortcutApps = this.shortcutApps = [];
+
+  apps.forEach(function (app) {
+    if (shortcuts.indexOf(app.manifest.name) == -1)
+      return;
+
+    shortcutApps[shortcuts.indexOf(app.manifest.name)] = app;
+  });
+
+  this.build();
+}
+
+Shortcuts.prototype = {
+  build: function () {
+    var shortcuts = document.getElementById('shortcuts');
+
+    this.shortcutApps.forEach(function addShortcut(app) {
+      // Most apps will host their own icons at their own origin.
+      // If no icon is defined we'll get this undefined one.
+      var icon = '';
       if (app.manifest.icons) {
         if ('120' in app.manifest.icons) {
           icon = app.manifest.icons['120'];
@@ -114,21 +187,16 @@ AppScreen.prototype = {
       if (app.manifest.locales && app.manifest.locales[lang])
         name = app.manifest.locales[lang].name || name;
 
-      if (!icon)
-        icon = 'http://' + document.location.host + '/style/icons/Unknown.png';
-      apps.push({ 'icon': icon, 'name': name, 'origin': origin });
-    }
+      var iconDiv = document.createElement('div');
+      iconDiv.className = 'shortcut';
+      iconDiv.onclick = function () {
+        app.launch();
+      };
+      iconDiv.innerHTML = '<img src="' + icon + '" />' +
+        '<span>' + name + '</span>';
 
-    // Initialize the main grid view
-    var grid = this.grid = new IconGrid('apps');
-    grid.dots = new Dots('dots', this.grid);
-
-    apps.forEach(function(app) {
-      grid.add(app.icon, app.name, app.origin);
+      shortcuts.appendChild(iconDiv);
     });
-
-    grid.update();
-    grid.setPage(startpage);
   }
 };
 

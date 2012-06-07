@@ -83,32 +83,13 @@ div.windowSprite {
   -moz-transition: -moz-transform 0.5s ease, opacity 0.5s ease;
 }
 
-div.windowSprite.fullscreen {
-  border-radius: 0;
-  top: 0;
-  height: 100%;
-}
-
 div.windowSprite.closed {
   -moz-transform: scale(0.5);
   opacity: 0;
 }
 
-div.windowSprite.open {
-}
-
 div.windowSprite.faded {
   opacity: 0;
-}
-
-#screen.fullscreen iframe.appWindow.active {
-/*
- * Do not specify height/width here! They should go to
- * Window.prototype.resize() in window_manager.js
- *
- */
-  top: 0;
-  z-index: 9998;
 }
 
 iframe.appWindow.keyboardOn {
@@ -191,5 +172,10 @@ iframe.keyboardFrame {
 	height:0;
 	border: 0;
 	z-index: 10002;
+}
+
+#screen.fullscreen iframe.keyboardFrame {
+  /* Show it above fullscreen - see https://mxr.mozilla.org/mozilla-central/source/layout/style/ua.css#218 */
+  z-index: 2147483647;
 }
 
