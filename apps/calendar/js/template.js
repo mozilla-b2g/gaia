@@ -3,7 +3,7 @@
     Calendar = {};
   }
 
-  var FORMAT_REGEX = /%([0-9]*)?([a-z]){1,1}/g,
+  var FORMAT_REGEX = /\{([a-zA-Z0-9\-\_\.]+)\|?([a-z]{1,1})?\}/g,
       POSSIBLE_HTML = /[&<>"'`]/,
       BAD_CHARS = /&(?!\w+;)|[<>"'`]/g,
       span = document.createElement('span');
@@ -46,25 +46,24 @@
       var i = 0, fnStr, fn;
 
       str = str.replace(/\"/g, '\\"');
-      fn = 'var h, a; h = Calendar.Template.handlers;';
+      fn = 'var h = Calendar.Template.handlers;';
 
 
-      fnStr = str.replace(FORMAT_REGEX, function(match, pos, type) {
-        var index;
-        if (!pos || pos === '') {
-          pos = i++;
+      fnStr = str.replace(FORMAT_REGEX, function(match, name, type) {
+        if (type === '') {
+          type = 'h';
         }
-
-        index = parseInt(pos, 10);
 
         if (type === 's') {
-          return '" + String(arguments[' + index + ']) + "';
+          return '" + String((a["' + name + '"] || "")) + "';
         } else {
-          return '" + h["' + type + '"](arguments[' + index + ']) + "';
+          return '" + h["' + type + '"]((a["' + name + '"] || "")) + "';
         }
+
+
       });
 
-      return new Function(fn + 'return "' + fnStr + '"');
+      return new Function('a', fn + 'return "' + fnStr + '"');
     },
 
     render: function(args) {

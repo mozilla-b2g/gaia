@@ -41,14 +41,14 @@ suite('calendar/template', function() {
     function renderTests(method) {
 
 
-      test('single placeholder', function() {
+      test('single placeholder no flag', function() {
         var tpl = new Template(
-          'z %s foo'
+          'z {a} foo'
         );
 
-        assert.equal(tpl[method]('baz'), 'z baz foo');
-        assert.equal(tpl[method]('baz'), 'z baz foo');
-        assert.equal(tpl[method]('baz'), 'z baz foo');
+        assert.equal(tpl[method]({a: 'baz'}), 'z baz foo');
+        assert.equal(tpl[method]({a: 'baz'}), 'z baz foo');
+        assert.equal(tpl[method]({a: 'baz'}), 'z baz foo');
       });
 
       test('without placeholders', function() {
@@ -58,40 +58,52 @@ suite('calendar/template', function() {
 
       test('multiple placeholders', function() {
         var tpl = new Template(
-          '%s ! %s'
+          '{2} ! {1}'
         );
-        assert.equal(tpl[method]('1', '2'), '1 ! 2');
+        assert.equal(tpl[method]({1: '1', 2: '2'}), '2 ! 1');
       });
 
-      test('fixed positions', function() {
+      test('keys with dashes', function() {
         var tpl = new Template(
-          '%0s %s %0s %1s %s %s %2s %0s %1s'
-        );
-        var result = tpl[method](
-          'foo', 'bar', 'baz'
+          '{foo-bar}'
         );
 
-        assert.equal(
-          result,
-          'foo foo foo bar bar baz baz foo bar'
-        );
+        assert.equal(tpl.render({'foo-bar': 'fo'}), 'fo');
       });
 
       test('html escape', function() {
         var tpl, input, output;
 
         tpl = new Template(
-          '%h'
+          '{html}'
         );
 
         input = '<div class="foo">\'zomg\'</div>';
-        output = tpl.render(input);
+        output = tpl.render({html: input});
 
         assert.equal(
           output,
           '&lt;div class=&quot;foo&quot;&gt;&#x27;zomg&#x27;&lt;/div&gt;'
         );
       });
+
+      test('no html escape', function() {
+        var tpl, input, output;
+
+        tpl = new Template(
+          '{html|s}'
+        );
+
+        input = '<div class="foo">\'zomg\'</div>';
+        output = tpl.render({html: input});
+
+        assert.equal(
+          output,
+          input
+        );
+      });
+
+
     }
 
     renderTests('render');
@@ -125,15 +137,15 @@ suite('calendar/template', function() {
     }
 
     test('tpl vs format - 20000', function() {
-      var tpl = 'My name is %s %s, Thats Mr %1s';
+      var tpl = 'My name is {first} {last}, Thats Mr {last}';
       var template;
 
       var expected = 'My name is Sahaja Lal, Thats Mr Lal';
 
-      var results = vs(5000, {
+      var results = vs(50000, {
         compiled: function() {
           template = template || new Template(tpl);
-          template.render('Sahaja', 'Lal');
+          template.render({first: 'Sahaja', last: 'Lal'});
         },
 
         format: function() {
@@ -147,37 +159,6 @@ suite('calendar/template', function() {
       );
     });
 
-    test('html vs innerHTML', function() {
-      var container = document.createElement('div');
-      container.id = 'containerTest';
-      document.body.appendChild(container);
-
-      var div = document.createElement('div'),
-            span = document.createElement('span');
-
-      div.appendChild(span);
-
-      var results = vs(5000, {
-        html: function() {
-          var myDiv = div.cloneNode(),
-              mySpan = myDiv.querySelector('span');
-
-          myDiv.className = 'dynamic';
-          mySpan.textContent = 'content';
-
-          container.innerHTML = '<span></span>';
-          container.appendChild(myDiv);
-        },
-
-        template: function() {
-          container.innerHTML = '<div class="dynamic"><span>content</span></div>';
-        }
-      });
-
-      container.parentNode.removeChild(container);
-    });
-
-
     test('createElement vs template', function() {
       var container = document.createElement('div'),
           tpl;
@@ -190,7 +171,7 @@ suite('calendar/template', function() {
 
       div.appendChild(span);
 
-      var results = vs(10000, {
+      var results = vs(5000, {
         html: function() {
           var myDiv = div.cloneNode(),
               mySpan = myDiv.querySelector('span');
@@ -199,16 +180,20 @@ suite('calendar/template', function() {
           mySpan.textContent = 'content';
           mySpan.className = 'foo';
 
-          container.innerHTML = '<span></span>';
+          container.innerHTML = '';
           container.appendChild(myDiv);
         },
 
         template: function() {
           tpl = tpl || new Template(
-            '<div class="%h"><span class="%h">%h</span></div>'
+            '<div class="{divClass}"><span class="{spanClass}">{content}</span></div>'
           );
-          container.innerHTML = '<span></span>';
-          container.innerHTML = tpl.render('dynamic', 'foo', 'content');
+          container.innerHTML = '';
+          container.innerHTML = tpl.render({
+            divClass: 'dynamic',
+            spanClass: 'foo',
+            content: 'content'
+          });
         }
       });
 
