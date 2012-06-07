@@ -86,6 +86,13 @@ AppScreen.prototype = {
       '  <div id="dots"></div>' +
       '</div>';
 
+    // domain is used to support XXX below
+    var domain = '';
+    if (document.location.protocol !== 'file:') {
+      var host = document.location.host;
+      var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+    }
+
     var apps = [];
     for (var origin in this.installedApps) {
       var app = this.installedApps[origin];
@@ -107,10 +114,13 @@ AppScreen.prototype = {
       // (technically, manifests are not supposed to have those)
       // Otherwise, prefix with the app origin
       if (icon.indexOf(':') == -1) {
-        // XXX it looks like the homescreen can't load images from other origins
-        // so use the ones from the url host for now
-        // icon = app.origin + icon;
-        icon = 'http://' + document.location.host + icon;
+        // XXX: Homescreen can't load images from other application caches
+        // for these Gaia apps, we get icons from our own domain
+        if (domain && app.origin.indexOf(domain) !== -1) {
+          icon = 'http://' + document.location.host + icon;
+        } else {
+          icon = app.origin + icon;
+        }
       }
 
       // Translate the application name
