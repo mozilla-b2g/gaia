@@ -264,6 +264,8 @@ var LockScreen = {
     else
       this.overlay.classList.remove('no-transition');
 
+    this.mainScreen.classList.remove('locked');
+
     if (!wasAlreadyUnlocked) {
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent('unlocked', true, true, null);
@@ -282,6 +284,8 @@ var LockScreen = {
       this.overlay.classList.add('no-transition');
     else
       this.overlay.classList.remove('no-transition');
+
+    this.mainScreen.classList.add('locked');
 
     screen.mozLockOrientation('portrait-primary');
 
@@ -402,5 +406,6 @@ var LockScreen = {
     }).bind(this));
 
     this.overlay = document.getElementById('lockscreen');
+    this.mainScreen = document.getElementById('screen');
   }
 };
