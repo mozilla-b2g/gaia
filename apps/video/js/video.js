@@ -6,62 +6,124 @@ window.addEventListener('DOMContentLoaded', function() {
   }
   var player = $('player');
 
-  // This is the list of sample videos built in to the app
-  var samples = [
-    {
-      title: 'Mozilla Manifesto',
-      video: 'samples/manifesto.ogv',
-      poster: 'samples/manifesto.png',
-      width: '640',
-      height: '360',
-      duration: '2:05'
-    },
-    {
-      title: 'Meet The Cubs',
-      video: 'samples/meetthecubs.webm',
-      poster: 'samples/meetthecubs.png',
-      width: '640',
-      height: '360',
-      duration: '1:18'
-    }
-  ];
-
-  // Build the thumbnails screen from the list of videos
-  samples.forEach(function(sample) {
-    var poster = document.createElement('img');
-    poster.src = sample.poster;
-
-    var title = document.createElement('p');
-    title.className = 'name';
-    title.textContent = sample.title;
-
-    var duration = document.createElement('p');
-    duration.className = 'time';
-    duration.textContent = sample.duration;
-
-    var thumbnail = document.createElement('li');
-    thumbnail.appendChild(poster);
-    thumbnail.appendChild(title);
-    thumbnail.appendChild(duration);
-    thumbnail.addEventListener('click', function(e) {
-      showPlayer(sample);
-    });
-
-    $('thumbnails').appendChild(thumbnail);
-  });
-
   // if this is true then the video tag is showing
   // if false, then the gallery is showing
   var playerShowing = false;
-
-  // XXX workaround for the appCache bug (see showPlayer())
-  var playerDuration;
 
   // keep the screen on when playing
   var screenLock;
 
   // same thing for the controls
   var controlShowing = false;
+
+  // An array of data about each of the videos we know about.
+  // XXX: for now we rebuild this array each time the app starts,
+  // but ideally we'll store most of it in indexedDB.
+  var videos = [];
+
+  var currentVideo;  // The data for the current video
+
+  //
+  // XXX
+  // We want /sdcard storage. Right now, that will be the last
+  // element in the array returned by getDeviceStorage().  But that is
+  // fragile and may change, so this code needs to evolve with the
+  // device storage API
+  //
+  var storages = navigator.getDeviceStorage('videos');
+  var storage = storages[storages.length-1];
+
+  try {
+    var cursor = storage.enumerate();
+    cursor.onerror = function() {
+      console.error('Error in DeviceStorage.enumerate()', cursor.error.name);
+    };
+    
+    cursor.onsuccess = function() {
+      if (!cursor.result)
+        return;
+      var file = cursor.result;
+
+      // If this isn't a video, skip it
+      if (file.type.substring(0,6) !== 'video/') {
+        cursor.continue();
+        return;
+      }
+      
+      // If it isn't playable, skip it
+      var testplayer = document.createElement('video');
+      if (!testplayer.canPlayType(file.type)) {
+        cursor.continue();
+        return;
+      }
+
+      // Otherwise, collect data about the video.
+      // There are the things we know about it already
+      var videodata = {
+        name: file.name,
+        type: file.type,
+        size: file.size 
+      };
+      
+      // We get metadata asynchronously
+      testplayer.preload = "metadata";
+      var url = URL.createObjectURL(file);
+      testplayer.src = url;
+      testplayer.onloadedmetadata = function() {
+        videodata.duration = testplayer.duration;
+        videodata.width = testplayer.videoWidth;
+        videodata.height = testplayer.videoHeight;
+
+        // XXX try to get a thumbnail from 30 seconds in or something?
+
+        // add this video and its metadata to our list
+        addVideo(videodata);
+
+        URL.revokeObjectURL(url);
+
+        // And move on to the next video
+        cursor.continue();
+      };
+    };
+  }
+  catch (e) {
+    console.error('Exception while enumerating files:', e);
+  }
+  
+  function addVideo(videodata) {
+    // If this is the first video we've found,
+    // remove the "no videos" message
+    if (videos.length === 0)
+      document.getElementById('novideos')
+      .classList.add('hidden');
+    
+    var index = videos.length;
+    videos.push(videodata);
+
+    var poster = document.createElement('img');
+    // poster.src = videodata.poster;
+
+    var title = document.createElement('p');
+    title.className = 'name';
+    title.textContent = videodata.name;
+
+    var duration = document.createElement('p');
+    duration.className = 'time';
+    if (isFinite(videodata.duration)) {
+      var d = Math.round(videodata.duration);
+      duration.textContent = Math.floor(d/60) + ":" + d%60;
+    }
+
+    var thumbnail = document.createElement('li');
+    thumbnail.appendChild(poster);
+    thumbnail.appendChild(title);
+    thumbnail.appendChild(duration);
+    thumbnail.addEventListener('click', function(e) {
+      showPlayer(videodata);
+    });
+
+    $('thumbnails').appendChild(thumbnail);
+  }
 
   // show|hide controls over the player
   $('videoControls').addEventListener('click', function(event) {
@@ -75,63 +137,51 @@ window.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // Make the video fit
+  // Make the video fit the screen
   function setPlayerSize() {
-    // compute a CSS transform that centers & maximizes the <video> element
-    var bWidth = window.innerWidth;
-    var bHeight = window.innerHeight;
+    var xscale = window.innerWidth / currentVideo.width;
+    var yscale = window.innerHeight / currentVideo.height;
+    var scale = Math.min(xscale, yscale);
+    var width = currentVideo.width * scale;
+    var height = currentVideo.height * scale;
+    var left = (window.innerWidth - width) / 2;
+    var top = (window.innerHeight - height) / 2;
 
-    var scale = Math.floor(
-      Math.min(bWidth / player.srcWidth, bHeight / player.srcHeight) * 20
-    ) / 20; // round to the lower 5%
+    console.log("setting video to", width, height, left, top);
 
-    var xOffset = Math.floor((bWidth - scale * player.srcWidth) / 2);
-    var yOffset = Math.floor((bHeight - scale * player.srcHeight) / 2);
-    var transform =
-      ' translate(' + xOffset + 'px, ' + yOffset + 'px)' +
-      ' scale(' + scale + ')';
-    console.log('SETPLAYERSIZE', transform);
-    player.style.MozTransformOrigin = 'top left';
-    player.style.MozTransform = transform;
+    player.style.width = width + "px";
+    player.style.height = height + "px";
+    player.style.left = left + "px";
+    player.style.top = top + "px";
   }
-
-  // Rescale when orientation changes
-  // screen.addEventListener("mozorientationchange", setPlayerSize);
 
   // Rescale when window size changes. This should get called when
   // orientation changes and when we go into fullscreen
   window.addEventListener('resize', setPlayerSize);
 
-  // show|hide video player
-  function showPlayer(sample) {
+  // show video player
+  function showPlayer(data) {
+    currentVideo = data;
+
     // switch to the video player view
     $('videoFrame').classList.remove('hidden');
     $('videoControls').classList.add('hidden');
-//    document.body.classList.add('fullscreen');
     $('videoBar').classList.remove('paused');
     $('videoFrame').mozRequestFullScreen();
 
-    // start player
-    player.src = sample.video;
-    player.srcWidth = sample.width;   // XXX use player.videoWidth instead
-    player.srcHeight = sample.height; // XXX use player.videoHeight instead
-    player.play();
-    setPlayerSize();
-
-    // XXX in appCache mode, player.duration == Infinity
-    // here's a workaround until this bug is fixed on the platform
-    // https://github.com/andreasgal/gaia/issues/1062
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=740124
-    playerDuration = player.duration;
-    if (isNaN(player.duration) || player.duration >= Infinity) {
-      var tmp = sample.duration.split(':');
-      playerDuration = 60 * parseInt(tmp[0], 10) + parseInt(tmp[1], 10);
+    // Get the video file and start the player
+    storage.get(data.name).onsuccess = function(event) {
+      var file = event.target.result;
+      var url = URL.createObjectURL(file);
+      player.src = url;
+      player.play();
+      setPlayerSize();
+      playerShowing = true;
+      controlShowing = false;
+      screenLock = navigator.requestWakeLock('screen');
     }
-
-    playerShowing = true;
-    controlShowing = false;
-    screenLock = navigator.requestWakeLock('screen');
   }
+
   function hidePlayer() {
     if (!playerShowing)
       return;
@@ -148,6 +198,7 @@ window.addEventListener('DOMContentLoaded', function() {
     playerShowing = false;
     screenLock.unlock();
   }
+
   $('close').addEventListener('click', hidePlayer);
   player.addEventListener('ended', function() {
     if (!controlShowing)
@@ -200,14 +251,14 @@ window.addEventListener('DOMContentLoaded', function() {
   }
   function setProgress(event) {
     var progress = isDragging ?
-      getTimePos(event) : player.currentTime / playerDuration;
+      getTimePos(event) : player.currentTime / player.duration;
     var pos = progress * 100 + '%';
     playHead.style.left = pos;
     elapsedTime.style.width = pos;
   }
   function setCurrentTime(event) {
     if (controlShowing)
-      player.currentTime = getTimePos(event) * playerDuration;
+      player.currentTime = getTimePos(event) * player.duration;
   }
   player.addEventListener('timeupdate', setProgress);
   playHead.addEventListener('mousemove', setProgress);
