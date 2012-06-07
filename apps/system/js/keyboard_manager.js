@@ -53,10 +53,11 @@ var KeyboardManager = (function() {
     // https://bugzilla.mozilla.org/show_bug.cgi?id=754083
 
     function kbdEventRelay(evt) {
-      /*
-      * We will trusted keyboard app to send back correct updateHeight message
-      * for us to hide the keyboardFrame when the keyboard transition is finished
-      */
+      //
+      // We will trusted keyboard app to send back correct updateHeight message
+      // for us to hide the keyboardFrame when the keyboard transition is
+      // finished.
+      //
       switch (evt.type) {
         case 'showime':
           // Allow the keyboardFrame to show before the height adjustment
