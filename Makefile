@@ -33,6 +33,7 @@ REPORTER=Spec
 GAIA_APP_SRCDIRS?=apps
 
 ifdef DEMO
+GAIA_DOMAIN=thisdomaindoesnotexist.org
 EXCLUDED=uitest template test-agent
 PREDEMO=install-media-samples
 endif
