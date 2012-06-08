@@ -2,6 +2,8 @@
 
 (function() {
 
+  var MAX_FREQUENCY = 10000;
+
   // IME special key code map
   // see `layout.js`
   var IMESpecialKey = {
@@ -2295,7 +2297,7 @@
         var probabilities = queueData.probabilities;
 
         if (probabilities.length < sentenceLength + 1) {
-          probabilities.push(-1);
+          probabilities.push(Infinity);
         }
         if (sentences.length < sentenceLength + 1) {
           sentences.push(['', '']);
@@ -2308,10 +2310,10 @@
             var syllable = s.join('');
 
             if (!term) {
-              term = {kanji: syllable, freq: 0, kana: syllable};
+              term = {kanji: syllable, freq: MAX_FREQUENCY, kana: syllable};
             }
             var prob = probabilities[sentenceLength -
-              lastPhraseLength] * term.freq / kDictTotalFreq;
+              lastPhraseLength] + term.freq;
             if (prob < probabilities[sentenceLength]) {
               probabilities[sentenceLength] = prob;
               sentences[sentenceLength] =
