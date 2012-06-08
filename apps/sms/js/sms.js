@@ -104,7 +104,8 @@ var DelayDeleteManager = {
 /* Contact Manager for maintaining contact cache and access contact DB:
  * 1. Maintain used contacts in contactData object literal.
  * 2. getContactData: It will have both syncronus and asyncronus callback.
- *      If contact updated, asyncronus run will update cache than execute callback.
+ *      Syncronus callback will be executed when cache data exist.
+ *      Asyncronus callback will be executed except the data in cache and DB is the same.
 */
 var ContactDataManager = {
   init: function cm_init() {
@@ -112,16 +113,21 @@ var ContactDataManager = {
   },
   getContactData: function cm_getContactData(options, callback) {
     if (options.filterBy.indexOf('tel') !== -1 && options.filterOp == 'contains') {
-      var contact = this.contactData[options.filterValue];
-      callback(contact ? [contact]: []);
+      if (options.filterValue in this.contactData)
+        callback([this.contactData[options.filterValue]]);
     }
     var self = this;
     var req = window.navigator.mozContacts.find(options);
     req.onsuccess = function onsuccess() {
       // Update the cache before callback.
       if (options.filterBy.indexOf('tel') !== -1 && options.filterOp == 'contains') {
+        var cacheDAta = self.contactData[options.filterValue];
         if (req.result.length > 0) {
-          self.contactData[options.filterValue] = req.result[0];
+          var dbDAta = req.result[0];
+          if (cacheDAta && cacheDAta.name[0] == dbDAta.name[0])
+            return;
+
+          self.contactData[options.filterValue] = dbDAta;
         } else {
           delete self.contactData[options.filterValue];
         }
@@ -130,7 +136,8 @@ var ContactDataManager = {
     };    
     req.onerror = function onerror() {
       var msg = 'Contact finding error. Error: ' + req.errorCode;
-      console.log(msg);  
+      console.log(msg);
+      callback();
     };    
   },
 };
@@ -202,8 +209,12 @@ var ConversationListView = {
       filterValue: msg.dataset.num
     };
     ContactDataManager.getContactData(options, function contactCallback(result) {
+      // If indexedDB query failed, just leave the previous result. 
+      if (!result)
+        return;
+      
       if (result.length === 0) {
-        // Update message while the contact delected but name exist.
+        // Update message while the contact does not exist in DB.
         if (msg.dataset.name == msg.dataset.num)
           return;
 
@@ -293,17 +304,21 @@ var ConversationListView = {
     var patterns = text.match(searchRegExp);
     var str = '';
     for (var i = 0; i < patterns.length; i++) {
-      str = str + sliceStrs[i] + '<span class="highlight">' + patterns[i] + '</span>';
+      str = str + escapeHTML(sliceStrs[i]) + '<span class="highlight">' +
+                  escapeHTML(patterns[i]) + '</span>';
     }
-    str += sliceStrs.pop();
+    str += escapeHTML(sliceStrs.pop());
     return str;
     
   },
 
   createNewConversation: function cl_createNewConversation(conversation, searchRegExp) {
-    var textContent = escapeHTML(conversation.body.split('\n')[0]);
-    if (searchRegExp)
+    var textContent = conversation.body.split('\n')[0];
+    if (searchRegExp) {
       textContent = this.createHighlightStr(textContent, searchRegExp);
+    }
+    else
+      textContent = escapeHTML(textContent);
     return '<a href="#num=' + conversation.num + '"' + ' data-num="' + conversation.num + '"' +
            ' data-name="' + escapeHTML(conversation.name || conversation.num, true) + '"' +
            ' data-notempty="' + (conversation.timestamp ? 'true' : '') + '"' +
@@ -325,34 +340,31 @@ var ConversationListView = {
       return;
     }
 
+    str = str.replace(/[.*+?^${}()|[\]\/\\]/g, '\\$&');
     var fragment = '';
     var searchedNum ={};
     for (var i = 0; i < this.allMessages.length; i++) {
       var reg = new RegExp(str, 'ig');
       var message = this.allMessages[i];
-      try {
-        var textContent = escapeHTML(message.body.split('\n')[0]);
-        var num = message.delivery == 'received' ?
-                  message.sender : message.receiver;
+      var textContent = message.body.split('\n')[0];
+      var num = message.delivery == 'received' ?
+                message.sender : message.receiver;
 
-        if (!reg.test(textContent) || searchedNum[num] || this.delNumList.indexOf(num) !== -1)
-          continue;
+      if (!reg.test(textContent) || searchedNum[num] || this.delNumList.indexOf(num) !== -1)
+        continue;
 
-        var msgProperties = {
-          'hidden': false,
-          'body': message.body,
-          'name': num,
-          'num': num,
-          'timestamp': message.timestamp.getTime(),
-          'id': i
-        };
-        searchedNum[num] = true;
-        var msg = this.createNewConversation(msgProperties, reg);
-        fragment += msg;
-         
-      } catch(e) {
-        alert(message);
-      }
+      var msgProperties = {
+        'hidden': false,
+        'body': message.body,
+        'name': num,
+        'num': num,
+        'timestamp': message.timestamp.getTime(),
+        'id': i
+      };
+      searchedNum[num] = true;
+      var msg = this.createNewConversation(msgProperties, reg);
+      fragment += msg;
+
     }
     this.view.innerHTML = fragment;
     
@@ -652,11 +664,14 @@ var ConversationView = {
       filterOp: 'contains',
       filterValue: num
     };
+    
+    this.num.value = num;
+    this.title.num = num;
+    this.title.textContent = num;
+    
     ContactDataManager.getContactData(options, function getContact(result) {
       var contactImageSrc = 'style/images/contact-placeholder.png';
-      if (result.length == 0) {
-        self.title.textContent = num;
-      } else {
+      if (result && result.length > 0) {
         var contact = result[0];
         self.title.textContent = contact.name[0];
         //TODO: apply the real contact image:
@@ -666,9 +681,6 @@ var ConversationView = {
       for (var i = 0; i < images.length; i++)
         images[i].src = contactImageSrc;      
     });
-
-    this.num.value = num;
-    this.title.num = num;
 
     MessageManager.getMessages(function mm_getMessages(messages) {
       var lastMessage = messages[messages.length - 1];
