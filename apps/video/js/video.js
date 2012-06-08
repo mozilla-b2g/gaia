@@ -90,7 +90,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
     var xOffset = Math.floor((bWidth - scale * player.srcWidth) / 2);
     var yOffset = Math.floor((bHeight - scale * player.srcHeight) / 2);
-    var transform = 
+    var transform =
       ' translate(' + xOffset + 'px, ' + yOffset + 'px)' +
       ' scale(' + scale + ')';
     console.log('SETPLAYERSIZE', transform);
@@ -99,11 +99,11 @@ window.addEventListener('DOMContentLoaded', function() {
   }
 
   // Rescale when orientation changes
-//  screen.addEventListener("mozorientationchange", setPlayerSize);
+  // screen.addEventListener("mozorientationchange", setPlayerSize);
 
   // Rescale when window size changes. This should get called when
   // orientation changes and when we go into fullscreen
-  window.addEventListener("resize", setPlayerSize);
+  window.addEventListener('resize', setPlayerSize);
 
   // show|hide video player
   function showPlayer(sample) {
@@ -121,20 +121,22 @@ window.addEventListener('DOMContentLoaded', function() {
     req.send();
     subtitles = JSON.parse(req.responseText);
 
-    function secs(str){
-      var t = str.split(":");
+    function secs(str) {
+      var t = str.split(':');
       var h = t[0];
       var m = t[1];
       var s = parseFloat(t[2]);
-      return (h*60+m)*60+s;
+      return (h * 60 + m) * 60 + s;
     }
 
-    player.ontimeupdate = function(){
+    player.ontimeupdate = function() {
       var time = player.currentTime;
 
-      for (var s in subtitles){
-        if (time > secs(subtitles[s][0]) && time <= secs(subtitles[s][0]) + secs(subtitles[s][1])){
-          $('videoSubtitles').innerHTML = subtitles[s][2];
+      for (var s in subtitles) {
+        var subtitle = subtitles[s];
+        if (time > secs(subtitle[0]) &&
+            time <= secs(subtitle[0]) + secs(subtitle[1])) {
+          $('videoSubtitles').innerHTML = subtitle[2];
           break;
         }
       }
@@ -175,7 +177,7 @@ window.addEventListener('DOMContentLoaded', function() {
     player.currentTime = 0;
 
     //clear currently displayed caption
-    $('videoSubtitles').innerHTML = "";
+    $('videoSubtitles').innerHTML = '';
 
     playerShowing = false;
     screenLock.unlock();

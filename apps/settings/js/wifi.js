@@ -137,8 +137,8 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
       if (scanning)
         return;
 
-      // stop auto-scanning if wifi disabled or power saving mode
-      if (!wifiManager.enabled || !navigator.mozPower.screenEnabled) {
+      // stop auto-scanning if wifi disabled or the app is hidden
+      if (!wifiManager.enabled || document.mozHidden) {
         scanning = false;
         return;
       }

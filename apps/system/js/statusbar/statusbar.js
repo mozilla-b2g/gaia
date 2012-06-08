@@ -100,6 +100,19 @@ function updateConnection(event) {
     return;
   }
 
+  var airplaneMode = false;
+  var settings = window.navigator.mozSettings;
+  if (settings) {
+    var settingName = 'ril.radio.disabled';
+    var req = settings.getLock().get(settingName);
+    req.onsuccess = function() {
+      airplaneMode = req.result[settingName];
+      if (airplaneMode) {
+        document.getElementById('titlebar').textContent = _('airplane');
+      }
+    }
+  }
+
   if (!ScreenManager.screenEnabled) {
     conn.removeEventListener('cardstatechange', updateConnection);
     conn.removeEventListener('voicechange', updateConnection);

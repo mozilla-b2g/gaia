@@ -86,10 +86,6 @@ let permissions = {
     "urls": [],
     "pref": "dom.telephony.app.phone.url"
   },
-  "screen": {
-    "urls": [],
-    "pref": "dom.mozScreenWhiteList"
-  },
   "mozbrowser": {
     "urls": [],
     "pref": "dom.mozBrowserFramesWhitelist"
@@ -107,9 +103,12 @@ let permissions = {
 let content = "";
 
 let homescreen = HOMESCREEN + (GAIA_PORT ? GAIA_PORT : '');
-content += "user_pref(\"browser.homescreenURL\",\"" + homescreen + "\");\n\n";
+content += "user_pref(\"browser.homescreenURL\",\"" + homescreen + "\");\n";
+content += "user_pref(\"browser.manifestURL\",\"" + homescreen + "/manifest.webapp\");\n\n";
 
 let privileges = [];
+let domains = [];
+domains.push(GAIA_DOMAIN);
 
 let directories = getDirectories();
 directories.forEach(function readManifests(dir) {
@@ -117,24 +116,29 @@ directories.forEach(function readManifests(dir) {
   if (!manifest)
     return;
 
-  let domain = "http://" + dir + "." + GAIA_DOMAIN;
-  privileges.push(domain);
+  let rootURL = "http://" + dir + "." + GAIA_DOMAIN + (GAIA_PORT ? GAIA_PORT : '');
+  let domain = dir + "." + GAIA_DOMAIN;
+  privileges.push(rootURL);
+  domains.push(domain);
 
   let perms = manifest.permissions;
   if (perms) {
     for each(let name in perms) {
-      permissions[name].urls.push(domain);
+      permissions[name].urls.push(rootURL);
 
       // special case for the telephony API which needs full URLs
       if (name == 'telephony')
         if (manifest.background_page)
-          permissions[name].urls.push(domain + manifest.background_page);
+          permissions[name].urls.push(rootURL + manifest.background_page);
     }
   }
 });
 
 content += "user_pref(\"b2g.privileged.domains\", \"" + privileges.join(",") + "\");\n\n";
-content += "user_pref(\"network.dns.localDomains\", \"" + privileges.join(",") + "\");\n";
+
+if (LOCAL_DOMAINS) {
+  content += "user_pref(\"network.dns.localDomains\", \"" + domains.join(",") + "\");\n";
+}
 
 for (let name in permissions) {
   let perm = permissions[name];

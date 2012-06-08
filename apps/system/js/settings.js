@@ -83,19 +83,6 @@ SettingsListener.observe('debug.grid.enabled', false, function(value) {
   !!value ? GridView.show() : GridView.hide();
 });
 
-/* === LockScreen === */
-SettingsListener.observe('lockscreen.enabled', true, function(value) {
-  localStorage['lockscreen'] = value;
-  if (LockScreen)
-    LockScreen.setEnabled(value);
-});
-
-SettingsListener.observe('lockscreen.passcode-lock.enabled', true, function(value) {
-  localStorage['passcode-lock'] = value;
-  if (LockScreen)
-    LockScreen.setPassCodeEnabled(value);
-});
-
 /* === Language === */
 SettingsListener.observe('language.current', 'en-US', function(value) {
   updateConnection();

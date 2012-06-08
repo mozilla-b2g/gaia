@@ -4,14 +4,14 @@ var Storage = {
   automounterEnable: 1,
   automounterDisableWhenUnplugged: 2,
 
-  umsEnabled:  'ums.enabled',
-  umsMode:     'ums.mode',
+  umsEnabled: 'ums.enabled',
+  umsMode: 'ums.mode',
 
   init: function storageInit() {
     window.addEventListener('unlocked', this);
     window.addEventListener('locked', this);
 
-    SettingsListener.observe(this.umsEnabled, false, function umsEnableChanged(val) {
+    SettingsListener.observe(this.umsEnabled, false, function umsChanged(val) {
       if (LockScreen.locked) {
         // covers startup
         Storage.setMode(Storage.automounterDisable, 'screen locked');
@@ -48,7 +48,8 @@ var Storage = {
         }
         var req = settings.getLock().get(this.umsEnabled);
         req.onsuccess = function umsEnabledFetched() {
-          Storage.setMode(Storage.modeFromBool(req.result[Storage.umsEnabled]), 'screen unlocked');
+          var mode = Storage.modeFromBool(req.result[Storage.umsEnabled]);
+          Storage.setMode(mode, 'screen unlocked');
         };
         break;
       default:

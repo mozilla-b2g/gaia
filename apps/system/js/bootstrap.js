@@ -38,89 +38,12 @@ function startup() {
   // getting orientation data.  See:
   // https://bugzilla.mozilla.org/show_bug.cgi?id=753245
   function dumbListener2(event) {}
-  window.addEventListener("devicemotion", dumbListener2, false);
+  window.addEventListener('devicemotion', dumbListener2);
 
   window.setTimeout(function() {
-    window.removeEventListener("devicemotion", dumbListener2, false);
+    window.removeEventListener('devicemotion', dumbListener2);
   }, 2000);
 }
-
-var SleepMenu = {
-  get element() {
-    delete this.element;
-    return this.element = document.getElementById('sleep');
-  },
-
-  get visible() {
-    return this.element.classList.contains('visible');
-  },
-
-  init: function sm_init() {
-    window.addEventListener('click', SleepMenu, true);
-    window.addEventListener('keyup', SleepMenu, true);
-  },
-
-  show: function sm_show() {
-    this.element.classList.add('visible');
-  },
-
-  hide: function sm_hide() {
-    this.element.classList.remove('visible');
-  },
-
-  handleEvent: function sm_handleEvent(evt) {
-    if (!this.visible)
-      return;
-
-    switch (evt.type) {
-      case 'click':
-        var action = evt.target.dataset.value;
-        switch (action) {
-          case 'airplane':
-            var settings = window.navigator.mozSettings;
-            if (settings)
-              settings.getLock().set({ 'ril.radio.disabled': true});
-
-            break;
-          case 'silent':
-            var settings = window.navigator.mozSettings;
-            if (settings)
-              settings.getLock().set({ 'phone.ring.incoming': false});
-
-            document.getElementById('silent').hidden = true;
-            document.getElementById('normal').hidden = false;
-            break;
-          case 'normal':
-            var settings = window.navigator.mozSettings;
-            if (settings)
-              settings.getLock().set({'phone.ring.incoming': true});
-
-            document.getElementById('silent').hidden = false;
-            document.getElementById('normal').hidden = true;
-            break;
-          case 'restart':
-            navigator.mozPower.reboot();
-            break;
-          case 'power':
-            navigator.mozPower.powerOff();
-            break;
-        }
-        this.hide();
-        break;
-
-      case 'keyup':
-        if (evt.keyCode == evt.DOM_VK_ESCAPE ||
-            evt.keyCode == evt.DOM_VK_HOME) {
-
-            this.hide();
-            evt.preventDefault();
-            evt.stopPropagation();
-         }
-        break;
-    }
-  }
-};
-
 
 /* === Shortcuts === */
 /* For hardware key handling that doesn't belong to anywhere */
@@ -248,3 +171,28 @@ var Applications = {
 };
 
 window.addEventListener('mozChromeEvent', Applications);
+
+window.addEventListener('mozfullscreenchange', function onfullscreen(e) {
+  var classes = document.getElementById('screen').classList;
+  document.mozFullScreen ?
+    classes.add('fullscreen') : classes.remove('fullscreen');
+});
+
+try {
+  window.navigator.mozKeyboard.onfocuschange = function onfocuschange(evt) {
+    switch (evt.detail.type) {
+      case 'blur':
+        var event = document.createEvent('CustomEvent');
+        event.initCustomEvent('hideime', true, true, {});
+        window.dispatchEvent(event);
+        break;
+
+      default:
+        var event = document.createEvent('CustomEvent');
+        event.initCustomEvent('showime', true, true, evt.detail);
+        window.dispatchEvent(event);
+        break;
+    }
+  };
+} catch (e) {}
+

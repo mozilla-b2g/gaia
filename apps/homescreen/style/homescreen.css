@@ -72,6 +72,9 @@ body {
   overflow: hidden;
 }
 
+/* 
+ * When changing the icon size, also update homescreen.js
+ */
 .icon {
   position: relative;
   float: left;
