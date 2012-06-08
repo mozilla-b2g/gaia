@@ -2,9 +2,9 @@
 
 About Dictionary
 
-This IME uses the dictionary in Anthy (anthy-9100).
-Homepage of Anthy is http://en.sourceforge.jp/projects/anthy/
+IPAdic http://sourceforge.jp/projects/ipadic/
 
-The raw dictionary data is in $ANTHY/alt-cannadic/gcanna.ctd
+	形態素解析器 ChaSen 用辞書
+	形態素と品詞などの情報を持つ語彙表であり、
+	ChaSen で用いられるパラメータを含みます。
 
-Go to $jskanji/dict and run make to generate json file.

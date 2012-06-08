@@ -2001,7 +2001,7 @@
     var settings;
 
     // Dictionary words' total frequency.
-    var kDictTotalFreq = 30026625;
+    var kDictTotalFreq = 770216270;
 
     var jsonStorage = new JsonStorage(jsonUrl);
     var indexedDBStorage = new IndexedDBStorage(dbName);
@@ -2130,7 +2130,7 @@
       var _processResult = function getSuggestions_processResult(r) {
         r = r.sort(
             function getSuggestions_sort(a, b) {
-              return (b.freq - a.freq);
+              return (a.freq - b.freq);
             }
             );
         var result = [];
@@ -2190,7 +2190,7 @@
       var _processResult = function processResult(r, limit) {
         r = r.sort(
           function sort_result(a, b) {
-            return (b.freq - a.freq);
+            return (a.freq - b.freq);
           }
         );
         var result = [];
@@ -2259,11 +2259,8 @@
       debug('getSentence ' + kanaStr);
       var self = this;
 
-      // TODO variable keeps the conposition of the best sentence
-      // var
       var doCallback = function getSentence_doCallback(sentence) {
         if (callback) {
-          debug('getSentence result ' + JSON.stringify(sentence));
           callback(sentence);
         }
       };
@@ -2315,7 +2312,7 @@
             }
             var prob = probabilities[sentenceLength -
               lastPhraseLength] * term.freq / kDictTotalFreq;
-            if (prob > probabilities[sentenceLength]) {
+            if (prob < probabilities[sentenceLength]) {
               probabilities[sentenceLength] = prob;
               sentences[sentenceLength] =
                 sentences[sentenceLength - lastPhraseLength].concat(term);
