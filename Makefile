@@ -32,6 +32,11 @@ REPORTER=Spec
 
 GAIA_APP_SRCDIRS?=apps
 
+ifdef DEMO
+EXCLUDED=uitest template test-agent
+PREDEMO=install-media-samples
+endif
+
 
 ###############################################################################
 # The above rules generate the profile/ folder and all its content.           #
@@ -103,7 +108,7 @@ MARIONETTE_PORT ?= 2828
 TEST_DIRS ?= $(CURDIR)/tests
 
 # Generate profile/
-profile: stamp-commit-hash update-offline-manifests preferences webapp-manifests test-agent-config offline extensions
+profile: $(PREDEMO) stamp-commit-hash update-offline-manifests preferences webapp-manifests test-agent-config offline extensions
 	@echo "\nProfile Ready: please run [b2g|firefox] -profile $(CURDIR)/profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
@@ -117,7 +122,7 @@ webapp-manifests:
 	@echo { > profile/webapps/webapps.json
 	for d in `find ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
 	do \
-	  echo $(EXCLUDED) | grep -Eq $$d && continue; \
+	  echo $(EXCLUDED) | grep -Eq $$(basename $$d) && continue; \
 	  if [ -f $$d/manifest.webapp ]; \
 		then \
 			n=$$(basename $$d); \
@@ -398,7 +403,7 @@ forward:
 update-offline-manifests:
 	for d in `find ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
 	do \
-		echo $(EXCLUDED) | grep -Eq $$d && continue; \
+		echo $(EXCLUDED) | grep -Eq $$(basename $$d) && rm -rf $$d/manifest.appcache && continue; \
 		if [ -f $$d/manifest.webapp ] ;\
 		then \
 			echo \\t$$d ;  \
@@ -435,3 +440,4 @@ install-gaia: profile
 
 install-media-samples:
 	$(ADB) push media-samples/DCIM /sdcard/DCIM
+
