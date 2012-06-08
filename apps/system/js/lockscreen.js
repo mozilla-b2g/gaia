@@ -93,6 +93,10 @@ var LockScreen = {
     /* Passcode input pad*/
     this.passcodePad.addEventListener('click', this);
 
+    /* Camera app frame load/unload */
+    this.camera.addEventListener('load', this);
+    this.camera.addEventListener('unload', this);
+
     var self = this;
 
     SettingsListener.observe('lockscreen.enabled', true, function(value) {
@@ -188,6 +192,24 @@ var LockScreen = {
 
         this.handleGesture(dx, dy);
         break;
+
+      case 'load':
+        this.camera.contentWindow.addEventListener(
+          'keydown', (this.redirectKeyEventFromFrame).bind(this));
+        this.camera.contentWindow.addEventListener(
+          'keypress', (this.redirectKeyEventFromFrame).bind(this));
+        this.camera.contentWindow.addEventListener(
+          'keyup', (this.redirectKeyEventFromFrame).bind(this));
+        break;
+
+      case 'unload':
+        this.camera.contentWindow.removeEventListener(
+          'keydown', (this.redirectKeyEventFromFrame).bind(this));
+        this.camera.contentWindow.removeEventListener(
+          'keypress', (this.redirectKeyEventFromFrame).bind(this));
+        this.camera.contentWindow.removeEventListener(
+          'keyup', (this.redirectKeyEventFromFrame).bind(this));
+        break;
     }
   },
 
@@ -257,6 +279,7 @@ var LockScreen = {
     var wasAlreadyUnlocked = !this.locked;
     this.locked = false;
 
+    this.mainScreen.focus();
     this.overlay.classList.add('unlocked');
     if (instant)
       this.overlay.classList.add('no-transition');
@@ -280,6 +303,7 @@ var LockScreen = {
 
     this.switchPanel();
 
+    this.overlay.focus();
     this.overlay.classList.remove('unlocked');
     if (instant)
       this.overlay.classList.add('no-transition');
@@ -442,5 +466,14 @@ var LockScreen = {
 
     this.overlay = document.getElementById('lockscreen');
     this.mainScreen = document.getElementById('screen');
+  },
+
+  redirectKeyEventFromFrame: function ls_redirectKeyEventFromFrame(evt) {
+    var generatedEvent = document.createEvent('KeyboardEvent');
+    generatedEvent.initKeyEvent(evt.type, true, true, evt.view, evt.ctrlKey,
+                                evt.altKey, evt.shiftKey, evt.metaKey,
+                                evt.keyCode, evt.charCode);
+
+    this.camera.dispatchEvent(generatedEvent);
   }
 };
