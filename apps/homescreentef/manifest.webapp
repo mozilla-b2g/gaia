@@ -1,0 +1,61 @@
+{
+  "name": "Homescreen",
+  "description": "Gaia Homescreen",
+  "launch_path": "/",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/andreasgal/gaia"
+  },
+  "permissions": [
+    "mozbrowser",
+    "mozApps"
+  ],
+  "locales": {
+    "ar": {
+      "name": "\u0627\u0644\u0634\u0627\u0634\u0629 \u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629",
+      "description": "Gaia \u0627\u0644\u0634\u0627\u0634\u0629 \u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629 "
+    },
+    "de": {
+      "name": "Startbildschirm",
+      "description": "Gaia Startbildschirm"
+    },
+    "el": {
+      "name": "\u0391\u03c1\u03c7\u03b9\u03ba\u03ae \u039f\u03b8\u03cc\u03bd\u03b7",
+      "description": "\u0391\u03c1\u03c7\u03b9\u03ba\u03ae \u039f\u03b8\u03cc\u03bd\u03b7 Gaia"
+    },
+    "en-US": {
+      "name": "Homescreen",
+      "description": "Gaia Homescreen"
+    },
+    "es": {
+      "name": "Pantalla de inicio",
+      "description": "Pantalla de inicio de Gaia"
+    },
+    "fr": {
+      "name": "\u00c9cran d\u2019accueil",
+      "description": "\u00c9cran d\u2019accueil Gaia"
+    },
+    "it": {
+      "name": "Schermata Iniziale",
+      "description": "Schermata iniziale di Gaia"
+    },
+    "pt-BR": {
+      "name": "Tela inicial",
+      "description": "Tela inicial do Gaia"
+    },
+    "ru": {
+      "name": "\u0413\u043b\u0430\u0432\u043d\u044b\u0439 \u044d\u043a\u0440\u0430\u043d",
+      "description": "\u0413\u043b\u0430\u0432\u043d\u044b\u0439 \u044d\u043a\u0440\u0430\u043d Gaia"
+    },
+    "tr": {
+      "name": "Ana Ekran",
+      "description": "Gaia Ana Ekran"
+    },
+    "zh-TW": {
+      "name": "\u4e3b\u756b\u9762",
+      "description": "Gaia \u4e3b\u756b\u9762"
+    }
+  },
+  "default_locale": "en-US",
+  "orientation": "portrait-primary"
+}

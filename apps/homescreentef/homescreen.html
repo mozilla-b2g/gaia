@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+
+<html manifest="manifest.appcache">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,
+                                user-scalable=no,initial-scale=1.0">
+    <link rel="stylesheet" href="style/request.css">
+    <link rel="stylesheet" href="style/contextualmenu.css">
+    <link rel="stylesheet" href="style/homescreen.css">
+    <link rel="stylesheet" href="style/strip.css">
+    <link rel="stylesheet" href="style/grid.css">
+  </head>
+
+  <body data-state='strip'>
+    <header id="paginatioBar">
+      <div class="paginationScroller"></div>
+    </header>
+
+    <section id="content">
+
+      <section id="strip" class="view">
+        <section id="previews" style="margin:0; padding:0; width:100%;height:72%">
+        </section>
+
+        <footer style="width:100%;">
+          <nav>
+            <ol>
+              <!--li><a href="http://dialer.gaiamobile.org"><img src="style/icons/Dialer.png"></img></a></li>
+              <li><a href="http://camera.gaiamobile.org"><img  src="style/icons/Camera.png"></a></li>
+              <li><a href="http://calculator.gaiamobile.org"><img  src="style/icons/Calculator.png"></a></li>
+              <li><a href="http://facebook.gaiamobile.org"><img  src="style/icons/Facebook.png"><span class="notification">2</span></a></li>
+              <li><a href="http://clock.gaiamobile.org"><img  src="style/icons/Clock.png"></a></li>
+              <li><a href="http://settings.gaiamobile.org"><img  src="style/icons/Settings.png"></a></li>
+              <li><a href="http://gallery.gaiamobile.org"><img  src="style/icons/Gallery.png"></a></li>
+              <li><a href="http://browser.gaiamobile.org"><img  src="style/icons/Browser.png"></a></li>
+              <li><a href="http://sms.gaiamobile.org"><img  src="style/icons/Sms.png"><span class="notification">3</span></a></li-->
+            </ol>
+          </nav>
+        </footer>
+      </section> <!-- strip -->
+
+      <section id="icongrid" class="view">
+        <div class="apps" data-mode="normal"></div>
+      </section>  <!-- icongrid -->
+
+    </section> <!-- content -->
+
+    <footer id="footer">
+      <nav>
+        <ul class="dock">
+          <li class="i-logs" data-origin="http://clock.gaiamobile.org">Logs</li>
+          <li class="i-contacts" data-origin="http://dialer.gaiamobile.org">Contacts</li>
+          <li class="i-messages" data-origin="http://sms.gaiamobile.org">Messages</li>
+          <li class="i-phone" data-origin="http://dialer.gaiamobile.org">Phone</li>
+        </ul>
+      </nav>
+    </footer>
+
+    <script src="js/config.js"></script>
+    <script src="js/settings.js"></script>
+    <script src="js/settingsext.js"></script>
+    <!--script src="js/transformations.js"></script-->
+    <script src="js/appmanager.js"></script>
+    <script src="js/request.js"></script>
+    <!--script src="js/contextualmenu.js"></script-->
+    <script src="js/state.js"></script>
+    <!--script src="js/strip.js"></script-->
+    <script src="js/page.js"></script>
+    <script src="js/pagbar.js"></script>
+    <script src="js/grid.js"></script>
+    <script src="js/homescreen.js"></script>
+
+  </body>
+</html>
