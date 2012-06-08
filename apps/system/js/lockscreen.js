@@ -97,6 +97,9 @@ var LockScreen = {
     this.camera.addEventListener('load', this);
     this.camera.addEventListener('unload', this);
 
+    /* switching panels */
+    window.addEventListener('keyup', this);
+
     var self = this;
 
     SettingsListener.observe('lockscreen.enabled', true, function(value) {
@@ -191,6 +194,13 @@ var LockScreen = {
         this.overlay.classList.remove('touch');
 
         this.handleGesture(dx, dy);
+        break;
+
+      case 'keyup':
+        if (!this.locked || evt.keyCode !== evt.DOM_VK_ESCAPE)
+          break;
+
+        this.switchPanel();
         break;
 
       case 'load':
