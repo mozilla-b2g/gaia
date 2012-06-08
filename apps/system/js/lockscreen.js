@@ -75,7 +75,7 @@ var LockScreen = {
     this.getAllElements();
     this.updateMuteState();
 
-    this.lockIfEnabled();
+    this.lockIfEnabled(true);
     this.overlay.classList.remove('uninit');
 
     /* Status changes */
@@ -150,7 +150,13 @@ var LockScreen = {
         break;
 
       case 'screenchange':
-        this.lockIfEnabled();
+        if (evt.detail.screenEnabled) {
+          // Screen is on: lock the phone according to enable status
+          this.lockIfEnabled(true);
+        } else {
+          // Screen is off: lock the phone and paint the screen black
+          this.lock(true);
+        }
         break;
 
       case 'mozChromeEvent':
@@ -277,11 +283,11 @@ var LockScreen = {
     }
   },
 
-  lockIfEnabled: function ls_lockIfEnabled() {
+  lockIfEnabled: function ls_lockIfEnabled(instant) {
     if (this.enabled) {
-      this.lock(true);
+      this.lock(instant);
     } else {
-      this.unlock(true);
+      this.unlock(instant);
     }
   },
 
@@ -310,6 +316,12 @@ var LockScreen = {
   lock: function ls_lock(instant) {
     var wasAlreadyLocked = this.locked;
     this.locked = true;
+
+    if (!ScreenManager.screenEnabled) {
+      this.overlay.classList.add('screenoff');
+    } else {
+      this.overlay.classList.remove('screenoff');
+    }
 
     this.switchPanel();
 
