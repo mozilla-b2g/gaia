@@ -88,7 +88,7 @@ var DelayDeleteManager = {
       return;
 
     // If previous status is not edit mode and class changed, execute delete.
-    if (evt.prevValue.indexOf('edit') > -1)
+    if (evt.prevValue.indexOf('edit') !== -1)
       return;
     this.executeDelete();
   },  
@@ -111,7 +111,7 @@ var ContactDataManager = {
     this.contactData = {};
   },
   getContactData: function cm_getContactData(options, callback) {
-    if (options.filterBy.indexOf('tel')> -1 && options.filterOp == 'contains') {
+    if (options.filterBy.indexOf('tel') !== -1 && options.filterOp == 'contains') {
       var contact = this.contactData[options.filterValue];
       callback(contact ? [contact]: []);
     }
@@ -119,7 +119,7 @@ var ContactDataManager = {
     var req = window.navigator.mozContacts.find(options);
     req.onsuccess = function onsuccess() {
       // Update the cache before callback.
-      if (options.filterBy.indexOf('tel')> -1 && options.filterOp == 'contains') {
+      if (options.filterBy.indexOf('tel') !== -1 && options.filterOp == 'contains') {
         if (req.result.length > 0) {
           self.contactData[options.filterValue] = req.result[0];
         } else {
@@ -267,7 +267,7 @@ var ConversationListView = {
 
       var fragment = '';
       for (var num in conversations) {
-        if (self.delNumList.indexOf(num) > -1) {
+        if (self.delNumList.indexOf(num) !== -1) {
           continue;
         }
         var msg = self.createNewConversation(conversations[num]);
@@ -335,7 +335,7 @@ var ConversationListView = {
         var num = message.delivery == 'received' ?
                   message.sender : message.receiver;
 
-        if (!reg.test(textContent) || searchedNum[num] || this.delNumList.indexOf(num) > -1)
+        if (!reg.test(textContent) || searchedNum[num] || this.delNumList.indexOf(num) !== -1)
           continue;
 
         var msgProperties = {
