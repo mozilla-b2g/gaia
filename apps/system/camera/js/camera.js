@@ -15,18 +15,8 @@ var Camera = {
     return document.getElementById('capture-button');
   },
 
-  get galleryButton() {
-    return document.getElementById('gallery-button');
-  },
-
   init: function cameraInit() {
     this.switchButton.addEventListener('click', this.toggleCamera.bind(this));
-    this.galleryButton.addEventListener('click', function() {
-      // This is bad. It should eventually become a Web Intent.
-      var host = document.location.host;
-      var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-      window.parent.WindowManager.launch('http://gallery.' + domain);
-    });
 
     this.setSource(this._camera);
   },
@@ -80,17 +70,4 @@ var Camera = {
 
 window.addEventListener('DOMContentLoaded', function CameraInit() {
   Camera.init();
-});
-
-document.addEventListener('mozvisibilitychange', function visibility(e) {
-  if (document.mozHidden) {
-    // If we're hidden, stop the video
-    Camera.pause();
-  } else {
-    // If we become visible again, first reconfigure the camera
-    // in case the screen has rotated or something, and then
-    // resume the video.
-    Camera.setSource(Camera._camera);
-    Camera.resume();
-  }
 });
