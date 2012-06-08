@@ -1,14 +1,15 @@
-.PHONY: all clean
+.PHONY: json clean
 
-all: combine encode py
-
-combine:
-	find . -name '*.dic' -exec cat {} >> dict \;
-
-encode: dict
-	iconv -f euc-jp -t utf-8 dict > dict.tmp
-	rm dict
-
-py:
+json: dict.utf8
 	python conv.py
-	rm dict.tmp
+
+dict:
+	find ipadic -name "*.dic" -exec cat {} >> $@ \;
+
+dict.utf8: dict
+	iconv -f euc-jp -t utf-8 dict > $@
+
+clean:
+	rm dict
+	rm dict.utf8
+	rm *.pyc

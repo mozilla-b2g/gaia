@@ -6,7 +6,7 @@ import codecs
 
 from jcconv import kata2hira
 
-file_list = ['dict.tmp',]
+file_list = ['dict.utf8',]
 
 temp_obj = dict()
 total_freq = 0
@@ -63,7 +63,7 @@ for k, value in temp_obj.iteritems():
     json_obj.append({'kana' : k, 'terms': [{'kanji': v[1], 'freq': v[0],
             'kana': k} for v in value]})
 
-df = codecs.open('dict.json', 'w', 'utf-8')
-df.write(json.dumps(json_obj, ensure_ascii=False))
+df = codecs.open('../dict.json', 'w', 'utf-8')
+df.write(json.dumps(json_obj, ensure_ascii=False).replace(" {\"terms\":", "\n{\"terms\":"))
 df.close()
 
