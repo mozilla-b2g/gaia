@@ -4,7 +4,6 @@ html, body {
   overflow: hidden;
   margin: 0;
 
-  font-size: 2.5mozmm;
   color: white;
   font-family: sans-serif;
 
@@ -58,7 +57,7 @@ html * {
 #tabs label {
   float: left;
   display: block;
-  width: -moz-calc(100% / 2 - 2px);
+  width: -moz-calc(100% / 3 - 2px);
   height: 100%;
   padding: 0;
   margin: 0;
@@ -80,6 +79,13 @@ html * {
 #tabs label:last-child {
   border-right-color: transparent;
   border-radius: 0 3px 3px 0;
+}
+
+#alarm-label {
+  background-image: url(images/alarm.png);
+}
+#alarm-label[data-active] {
+  background: url(images/alarm.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 1px, hsl(0,0%,56%) 100%);
 }
 
 #stopwatch-label {
@@ -251,6 +257,14 @@ html * {
   display: block;
 }
 
+#stopwatch-view {
+  -moz-transform: translateX(-100%);
+}
+#stopwatch-view.active {
+  -moz-transform: none;
+  -moz-transition: none;
+}
+
 /* === Timer === */
 
 #timer-action-button {
@@ -283,6 +297,15 @@ html * {
 
 #timer-ticker-view {
   -moz-animation-direction: alternate;
+}
+
+#timer-view {
+  -moz-transform: translateX(-100%);
+}
+
+#timer-view.active {
+  -moz-transform: none;
+  -moz-transition: none;
 }
 
 #duration-field {
