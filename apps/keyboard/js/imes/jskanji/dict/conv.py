@@ -6,7 +6,7 @@ import codecs
 
 from jcconv import kata2hira
 
-file_list = ['dic.new',]
+file_list = ['dict.tmp',]
 
 temp_obj = dict()
 total_freq = 0

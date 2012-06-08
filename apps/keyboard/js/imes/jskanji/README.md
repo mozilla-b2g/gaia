@@ -2,9 +2,8 @@
 
 About Dictionary
 
-IPAdic http://sourceforge.jp/projects/ipadic/
+IPAdic 
+http://sourceforge.jp/projects/ipadic/
 
-	形態素解析器 ChaSen 用辞書
-	形態素と品詞などの情報を持つ語彙表であり、
-	ChaSen で用いられるパラメータを含みます。
-
+To generate JSON file from IPAdic, copy `conv.py` and `Makefile` in dict/ to IPAdic folder and run
+`make`. Then copy dict.json back to this IME folder.
