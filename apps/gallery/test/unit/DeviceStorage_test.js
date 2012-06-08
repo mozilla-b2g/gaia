@@ -26,12 +26,12 @@ suite('DeviceStorage', function() {
   test('write, read, enumerate and delete a file', function(done) {
     this.timeout(10000);  // Let the emulator take up to 10 seconds
     var directory = 'test';
-    var filename =  Math.random().toString();
+    var filename = Math.random().toString();
     var pathname = directory + '/' + filename;
-    var blob = new Blob(['hello', ' world'], {type:'text/plain'});
+    var blob = new Blob(['hello', ' world'], {type: 'text/plain'});
     var addrequest = storage.addNamed(blob, pathname);
     addrequest.onerror = function() {
-      done(new Error('DeviceStorage.addNamed() onerror ' + 
+      done(new Error('DeviceStorage.addNamed() onerror ' +
                      addrequest.error.name));
     };
     addrequest.onsuccess = function() {
@@ -52,8 +52,8 @@ suite('DeviceStorage', function() {
         reader.onload = function() {
           assert.equal(reader.result, 'hello world');
           // XXX
-          // If I just enumerate the directory and look for the 
-          // filename itself, then the delete() call later on 
+          // If I just enumerate the directory and look for the
+          // filename itself, then the delete() call later on
           // doesn't actually remove the file.
           // Doing it this way still leaves the empty directory around
           // of course.
