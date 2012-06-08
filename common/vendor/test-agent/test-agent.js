@@ -457,8 +457,12 @@
     errorObject.message = err.message || err.toString();
     errorObject.type = err.type || 'Error';
     errorObject.constructorName = err.constructor.name || '';
-    errorObject.expected = err.expected || '';
-    errorObject.actual = err.actual || '';
+    errorObject.expected = err.expected || null;
+    errorObject.actual = err.actual || null;
+
+    if (typeof(err) === 'object' && 'uncaught' in err) {
+      errorObject.uncaught = err.uncaught;
+    }
 
     return errorObject;
   };
@@ -1442,7 +1446,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     'fullTitle',
     'root',
     'duration',
-    'state'
+    'state',
+    'type'
   ];
 
   function jsonExport(object, additional) {
