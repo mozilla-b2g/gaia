@@ -51,15 +51,16 @@ function AppScreen(apps) {
   window.addEventListener('resize', this.build.bind(this, true));
 
   function onInstall(e) {
-    installedApps[e.application.origin] = e.application;
+    var app = e.application;
+    installedApps[app.origin] = app;
 
     // Caching the icon
     var appCache = window.applicationCache;
     if (appCache) {
-      var icons = e.application.manifest.icons;
+      var icons = app.manifest.icons;
       if (icons) {
         Object.getOwnPropertyNames(icons).forEach(function iconIterator(key) {
-          var url = e.application.origin + icons[key];
+          var url = app.origin + icons[key];
           appCache.mozAdd(url);
         });
       }
