@@ -3,8 +3,6 @@
 /*
  * This is Music Application of Gaia
  */
-var pattern = /Mobile/g;
-var isMobile = (pattern.test(navigator.userAgent)) ? true : false;
 
 // Hard-coded ogg files as testing songs
 var songs = [
@@ -229,12 +227,11 @@ var PlayerView = {
 
     this.view.addEventListener('click', this);
 
-    // Seeking audio causes the Desktop build hangs
-    // Listen to 'mousemove' when platform is Mobile
-    if (isMobile)
-      this.seekBar.addEventListener('mousemove', this);
+    // Seeking audio too frequently causes the Desktop build hangs
+    // A related Bug 739094 in Bugzilla
+    this.seekBar.addEventListener('mousemove', this);
 
-    this.audio.ontimeupdate = this.updateSeekBar.bind(this);
+    this.audio.addEventListener('timeupdate', this);
   },
 
   play: function pv_play(target) {
@@ -345,6 +342,9 @@ var PlayerView = {
         // target is the seek bar, and evt.layerX is the moved position
         var seekTime = evt.layerX / target.clientWidth * target.max;
         this.seekAudio(seekTime);
+        break;
+      case 'timeupdate':
+        this.updateSeekBar();
         break;
 
       default:

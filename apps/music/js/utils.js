@@ -14,15 +14,21 @@ function formatTime(secs) {
     return;
 
   var formatedTime;
-  var minutes = Math.floor(secs / 60);
-  var seconds = Math.floor(secs % 60);
+  var seconds = parseInt(secs % 60, 10);
+  var minutes = parseInt(secs / 60) % 60;
+  var hours = parseInt(secs / 3600) % 24;
 
-  if (minutes.toString().length < 2)
-    minutes = '0' + minutes;
-  if (seconds.toString().length < 2)
-    seconds = '0' + seconds;
+  if (hours === 0) {
+    formatedTime =
+      (minutes < 10 ? '0' + minutes : minutes) + ':' +
+      (seconds < 10 ? '0' + seconds : seconds);
+  } else {
 
-  formatedTime = minutes + ':' + seconds;
+    formatedTime =
+      (hours < 10 ? '0' + hours : hours) + ':' +
+      (minutes < 10 ? '0' + minutes : minutes) + ':' +
+      (seconds < 10 ? '0' + seconds : seconds);
+  }
 
   return formatedTime;
 }
