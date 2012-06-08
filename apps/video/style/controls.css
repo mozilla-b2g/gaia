@@ -44,12 +44,13 @@
   border-radius: 16px;
   background-color: rgba(0, 0, 0, 0.3);
 }
+
 #videoBar button {
   width: 96px;
   height: 96px;
   padding: 0;
   margin: 0;
-  top: -moz-calc(100%-112px);
+  top: -moz-calc(100% - 112px);
 }
 
 /* rwd/fwd buttons */
