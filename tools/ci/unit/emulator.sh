@@ -27,6 +27,7 @@ PID=`cat $B2G_HOME/emulator.pid`
 $ADB shell setprop net.dns1 10.0.2.3
 $ADB forward tcp:2828 tcp:2828
 
+
 if [ "$GAIA_SKIP_HOSTS" -eq 0 ];
 then
   echo "Creating new host file."
@@ -45,6 +46,10 @@ then
   $ADB remount
   $ADB push $HOSTFILE /system/etc/hosts
 fi
+
+cd $GAIA_PATH;
+make install-gaia LOCAL_DOMAINS=0 DEBUG=1 && sleep 10
+cd $B2G_HOME
 
 $B2G_SCRIPTS wait-for-marionette --timeout 20000;
 if [ "$?" -ne "0" ];
