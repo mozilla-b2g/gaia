@@ -1,0 +1,63 @@
+html, body {
+  height: 100%;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  background-color: black;
+}
+
+#viewfinder {
+  position: absolute;
+}
+
+#controls {
+  position: absolute;
+  bottom: 0;
+  height: 128px;
+  background-color: #555e64;
+  width: 100%;
+  text-align: center;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+#switch-button {
+  display: block;
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  width: 113px;
+  height: 112px;
+  background-image: url('images/switch.png');
+}
+
+#switch-button:active {
+  background-image: url('images/switch-pressed.png');
+}
+
+#capture-button {
+  display: block;
+  margin: 8px auto;
+  width: 192px;
+  height: 112px;
+  background-image: url('images/capture.png');
+}
+
+#capture-button:active {
+  background-image: url('images/capture-pressed.png');
+}
+
+#gallery-button {
+  display: block;
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: 113px;
+  height: 112px;
+  background-image: url('images/gallery.png');
+}
+
+#gallery-button:active {
+  background-image: url('images/gallery-pressed.png');
+}
