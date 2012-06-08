@@ -924,11 +924,17 @@
       return [displayStr, strFullHiragana, strFullKatakana, strHalfKatakana];
     };
 
-    var getDisplayStr = function ime_getDisplayStr() {
-      var displayStr = '';
+    // Send pending symbols to display
+    var sendPendingSymbols = function ime_sendPendingSymbols() {
+
+
+      var bufStr = SyllableUtils.arrayToString(_inputBuf);
+
+      debug('sending pending symbols: ' + bufStr);
 
       if (_keyMode === KeyMode.NORMAL) {
-        displayStr = SyllableUtils.arrayToString(_inputBuf);
+        _glue.sendPendingSymbols(bufStr);
+        return;
 
       } else if (_keyMode === KeyMode.TRANSFORM) {
 
@@ -936,32 +942,25 @@
           _keyMode = KeyMode.NORMAL;
 
         } else {
-          displayStr = "<span style='background:#3333aa'>" +
-            _firstKanji +
-            '</span>' +
-            SyllableUtils.arrayToString(_inputBuf).substr(_firstKana.length);
+          _glue.sendPendingSymbols(bufStr, 0, _firstKanji.length, 'blue');
         }
 
+        return;
       } else if (_keyMode === KeyMode.SELECT) {
 
         if (_firstKanji.length === 0) {
           _keyMode = KeyMode.NORMAL;
 
         } else {
-          displayStr = "<span style='background:#33aa33'>" +
-            _firstKanji +
-            '</span>' +
-            SyllableUtils.arrayToString(_inputBuf).substr(_firstKana.length);
+          _glue.sendPendingSymbols(bufStr, 0, _firstKanji.length, 'green');
         }
 
+        return;
       } else if (_keyMode === KeyMode.H2K) {
 
         var strs = _getPossibleStrings(_keyboardMode);
         var candidates = [];
-        displayStr = "<span style='background:#aa3333'>" +
-          strs[1] +
-          '</span>' +
-          SyllableUtils.arrayToString(_inputBuf).substr(strs[1].length);
+        _glue.sendPendingSymbols(bufStr, 0, strs[1].length, 'red');
 
         // candidate list is updated here
         // to avoide loop again in `handleInputBuf`
@@ -971,19 +970,10 @@
         candidates.push([strs[3], _firstKana]);
 
         _candidateList = candidates.slice();
+        return;
       }
 
-      return displayStr;
-
-    };
-
-    // Send pending symbols to display
-    var sendPendingSymbols = function ime_sendPendingSymbols() {
-
-      var displayStr = getDisplayStr();
-      debug('sending pending symbols: ' + displayStr);
-
-      _glue.sendPendingSymbols(displayStr);
+      _glue.sendPendingSymbols(bufStr);
     };
 
     // Update candidate list
