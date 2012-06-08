@@ -3,7 +3,7 @@
 
 'use strict';
 
-// Duplicated code in severla places
+// Duplicated code in several places
 // TODO Better settings observe interface?
 
 var SettingsListener = {
@@ -503,9 +503,8 @@ const IMEManager = {
 
     // Handling showime and hideime events, as they are received only in System
     // https://bugzilla.mozilla.org/show_bug.cgi?id=754083
-
-    window.addEventListener('message', function receiver(e) {
-      var event = JSON.parse(e.data);
+    window.addEventListener('message', function receiver(evt) {
+      var event = JSON.parse(evt.data);
       IMEManager.handleEvent(event);
     });
   },
@@ -611,10 +610,6 @@ const IMEManager = {
 
         break;
 
-      case 'appclose':
-        this._closingWindow = null;
-        break;
-
       case 'resize':
         if (this.ime.dataset.hidden)
           return;
@@ -627,12 +622,9 @@ const IMEManager = {
         break;
 
       case 'transitionend':
-        if (!this.ime.dataset.hidden) { // showIME transitionend
-          this.updateTargetWindowHeight();
-        } else { // hideIME transitionend
-
+        if (this.ime.dataset.hidden)
           this.ime.innerHTML = '';
-        }
+        this.updateTargetWindowHeight();
         break;
 
       case 'mousedown':
@@ -1192,8 +1184,16 @@ const IMEManager = {
   },
 
   updateTargetWindowHeight: function km_updateTargetWindowHeight() {
-    var resizeAction = {action: 'resize', height: this.ime.scrollHeight + 'px'};
-    parent.postMessage(JSON.stringify(resizeAction), '*');
+    var height;
+    if (this.ime.dataset.hidden) {
+      height = 0;
+    } else {
+      height = this.ime.scrollHeight;
+    }
+
+    var message = {action: 'updateHeight',
+      keyboardHeight: height, hidden: !!this.ime.dataset.hidden};
+    parent.postMessage(JSON.stringify(message), '*');
   },
 
   showIME: function km_showIME(type) {
@@ -1233,7 +1233,6 @@ const IMEManager = {
         this.currentEngine.show(type);
       }
     }
-    this.updateTargetWindowHeight();
   },
 
   hideIME: function km_hideIME(imminent) {
@@ -1254,6 +1253,7 @@ const IMEManager = {
       }, 0);
 
       ime.innerHTML = '';
+      this.updateTargetWindowHeight();
     }
   },
 

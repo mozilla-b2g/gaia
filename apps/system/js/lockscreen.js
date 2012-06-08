@@ -68,12 +68,15 @@ var LockScreen = {
 
   /* init */
   init: function ls_init() {
+    if (!this.isUninit)
+      return;
+    this.isUninit = false;
+
     this.getAllElements();
     this.updateMuteState();
 
     this.lockIfEnabled();
     this.overlay.classList.remove('uninit');
-    delete this.isUninit;
 
     /* Status changes */
     window.addEventListener('volumechange', this);
@@ -114,13 +117,23 @@ var LockScreen = {
   * This function will unlock it.
   */
   setEnabled: function ls_setEnabled(val) {
-    this.enabled = !!val;
-    if (!this.enabled && this.locked && !this.isUninit)
+    if (typeof val === 'string') {
+      this.enabled = val == 'false' ? false : true;
+    } else {
+      this.enabled = val;
+    }
+
+    if (!this.enabled && this.locked && !this.isUninit) {
       this.unlock();
+    }
   },
 
   setPassCodeEnabled: function ls_setPassCodeEnabled(val) {
-    this.passCodeEnabled = !!val;
+    if (typeof val === 'string') {
+      this.passCodeEnabled = val == 'false' ? false : true;
+    } else {
+      this.passCodeEnabled = val;
+    }
   },
 
   handleEvent: function ls_handleEvent(evt) {
@@ -251,6 +264,8 @@ var LockScreen = {
     else
       this.overlay.classList.remove('no-transition');
 
+    this.mainScreen.classList.remove('locked');
+
     if (!wasAlreadyUnlocked) {
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent('unlocked', true, true, null);
@@ -269,6 +284,8 @@ var LockScreen = {
       this.overlay.classList.add('no-transition');
     else
       this.overlay.classList.remove('no-transition');
+
+    this.mainScreen.classList.add('locked');
 
     screen.mozLockOrientation('portrait-primary');
 
@@ -389,5 +406,6 @@ var LockScreen = {
     }).bind(this));
 
     this.overlay = document.getElementById('lockscreen');
+    this.mainScreen = document.getElementById('screen');
   }
 };

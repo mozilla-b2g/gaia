@@ -103,7 +103,8 @@ let permissions = {
 let content = "";
 
 let homescreen = HOMESCREEN + (GAIA_PORT ? GAIA_PORT : '');
-content += "user_pref(\"browser.homescreenURL\",\"" + homescreen + "\");\n\n";
+content += "user_pref(\"browser.homescreenURL\",\"" + homescreen + "\");\n";
+content += "user_pref(\"browser.manifestURL\",\"" + homescreen + "/manifest.webapp\");\n\n";
 
 let privileges = [];
 let domains = [];
@@ -134,7 +135,10 @@ directories.forEach(function readManifests(dir) {
 });
 
 content += "user_pref(\"b2g.privileged.domains\", \"" + privileges.join(",") + "\");\n\n";
-content += "user_pref(\"network.dns.localDomains\", \"" + domains.join(",") + "\");\n";
+
+if (LOCAL_DOMAINS) {
+  content += "user_pref(\"network.dns.localDomains\", \"" + domains.join(",") + "\");\n";
+}
 
 for (let name in permissions) {
   let perm = permissions[name];
