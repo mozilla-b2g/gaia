@@ -70,6 +70,10 @@ const IMEController = (function() {
     // to lock the keyboard at upper case state.
   var _kCapsLockTimeout = 450,
       _isUpperCaseLocked = false;
+      
+  var _severalLanguages = function() {
+    return IMEManager.keyboards.length > 1;
+  };
 
   function _mapType(type) {
     switch (type) {
@@ -214,9 +218,7 @@ const IMEController = (function() {
       });
     }
 
-    // Switch Languages button
-    var severalLanguages = IMEManager.keyboards.length > 1 && !layout['hidesSwitchKey'];
-    if (severalLanguages) {
+    if (_severalLanguages() && !layout['hidesSwitchKey']) {
       // Switch keyboard key
       // ratio -= 1;
       newKeys.push({ value: '&#x1f310;', ratio: 1, keyCode: SWITCH_KEYBOARD });
@@ -224,7 +226,6 @@ const IMEController = (function() {
 
     // Switch ABC/SYMBOLS button
     if (!layout['disableAlternateLayout']) {
-      console.log('adding layout');
       switchKey = _getSwitchKey(layoutMode);
 /*      if (severalLanguages === false)
          switchKey.ratio += 1;
@@ -288,8 +289,7 @@ const IMEController = (function() {
       IMEFeedback.triggerFeedback();
     if (Keyboards[_baseLayout].type == 'ime' &&
         _layoutMode === LAYOUT_MODE_DEFAULT) {
-      // XXX: Not yet implemented
-      // this.currentEngine.click(keyCode);
+      IMEController.currentEngine.click(KeyboardEvent.DOM_VK_BACK_SPACE);
       return;
     }
     window.navigator.mozKeyboard.sendKey(KeyboardEvent.DOM_VK_BACK_SPACE, 0);
@@ -360,10 +360,8 @@ const IMEController = (function() {
     _currentKey = evt.target;
     var keyCode = parseInt(_currentKey.dataset.keycode);
 
-/* XXX: I dont know what is selection
-    if (!keyCode && !target.dataset.selection)
+    if (!keyCode && !_currentKey.dataset.selection)
       return;
-*/
 
     // Feedback
     _highlightKey(_currentKey);
@@ -501,10 +499,11 @@ const IMEController = (function() {
       return;
 
     var dataset = target.dataset;
+
+    // IME candidate selected
     if (dataset.selection) {
       this.currentEngine.select(target.textContent, dataset.data);
-
-      IMERender.updateKeyHighlight();
+      _updateTargetWindowHeight();
       return;
     }
 
@@ -529,36 +528,21 @@ const IMEController = (function() {
 
         // If the user has specify a keyboard in the menu,
         // switch to that keyboard.
-        if (target.dataset.keyboard) {
-
-          if (IMEManager.keyboards.indexOf(target.dataset.keyboard) === -1)
-            _baseLayout = IMEManager.keyboards[0];
-          else
-            _baseLayout = target.dataset.keyboard;
-
-        } else {
-          // If this is the last keyboard in the stack, start
-          // back from the beginning.
-          var keyboards = IMEManager.keyboards;
-          var index = keyboards.indexOf(_baseLayout);
-          if (index >= keyboards.length - 1 || index < 0)
-            _baseLayout = keyboards[0];
-          else
-            _baseLayout = keyboards[++index];
-
-        }
+        var language = target.dataset.keyboard ? target.dataset.keyboard : _baseLayout;
+        var keyboards = IMEManager.keyboards;
+        var index = keyboards.indexOf(language);
+        index = (index+1) % keyboards.length;
+        _baseLayout = IMEManager.keyboards[index];
 
         _layoutMode = LAYOUT_MODE_DEFAULT;
         _isUpperCase = false;
         _draw(_baseLayout, _currentInputType, _layoutMode, _isUpperCase);
 
-/* XXX: Not yet implemented
         if (Keyboards[_baseLayout].type == 'ime') {
           if (this.currentEngine.show) {
             this.currentEngine.show(_currentInputType);
           }
         }
-*/
 
         break;
 
@@ -715,7 +699,11 @@ const IMEController = (function() {
     uppercase = uppercase || false;
 
     _currentLayout = _buildLayout(baseLayout, inputType, layoutMode, uppercase);
-    IMERender.draw(_currentLayout);
+
+    if(_severalLanguages())
+      IMERender.draw(_currentLayout, baseLayout);
+    else
+      IMERender.draw(_currentLayout);
     _updateTargetWindowHeight();
   }
 
@@ -749,13 +737,11 @@ const IMEController = (function() {
       _currentInputType = _mapType(type); // TODO: this should be unneccesary
       _draw(_baseLayout, _currentInputType, _layoutMode);
 
-/* XXX: Not yet implemented
       if (Keyboards[_baseLayout].type == 'ime') {
         if (this.currentEngine.show) {
           this.currentEngine.show(type);
         }
       }
-*/
     },
     
     hideIME: function km_hideIME(imminent) {
@@ -778,7 +764,6 @@ const IMEController = (function() {
     onResize: function(nWidth, nHeight, fWidth, fHeihgt) {
       if (IMERender.ime.dataset.hidden)
         return;
-
 /*
       // we presume that the targetWindow has been restored by
       // window manager to full size by now.
@@ -810,10 +795,10 @@ const IMEController = (function() {
       var glue = {
         path: sourceDir + imEngine,
         sendCandidates: function(candidates) {
-          self.showCandidates(candidates);
+          IMERender.showCandidates(candidates);
         },
         sendPendingSymbols: function(symbols) {
-          self.showPendingSymbols(symbols);
+          IMERender.showPendingSymbols(symbols);
         },
         sendKey: function(keyCode) {
           switch (keyCode) {
@@ -846,8 +831,9 @@ const IMEController = (function() {
 
     handleMouseDownEvent: function km_handleMouseDownEvent(keyCode) {
       if (Keyboards[_baseLayout].type == 'ime' &&
-          !_layoutMode) {
+          _layoutMode == LAYOUT_MODE_DEFAULT) {
             this.currentEngine.click(keyCode);
+            window.setTimeout(_updateTargetWindowHeight, 100);
             return;
           }
 

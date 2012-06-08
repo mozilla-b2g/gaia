@@ -1,6 +1,6 @@
 const IMERender = (function() {
 
-  var ime, menu;
+  var ime, menu, pendingSymbolPanel, candidatePanel, candidatePanelToggleButton;
 
   var init = function kr_init() {
     this.ime = document.getElementById('keyboard');
@@ -12,7 +12,7 @@ const IMERender = (function() {
   //
   // Public method that draws the Keyboard
   //
-  var draw = function kr_draw(layout) {
+  var draw = function kr_draw(layout, language) {
 
     //change scale (Our target screen width is 320px)
     //TODO get document.documentElement.style.fontSize
@@ -43,7 +43,15 @@ const IMERender = (function() {
 
         //key with + key separation in rems
         var keyWidth = ratio;
-        content += buildKey(nrow, ncolumn, code, keyChar, className, keyWidth, alt);
+        var dataset = [ {'key': 'row', 'value': nrow} ];
+        dataset.push({'key': 'column', 'value': ncolumn});
+        dataset.push({'key': 'keycode', 'value': code});
+
+        if ( language && code == -3) {
+          dataset.push({'key': 'keyboard', 'value': language});
+        }
+
+        content += buildKey(keyChar, className, keyWidth, dataset);
 
       }));
       content += '</div>';
@@ -55,6 +63,15 @@ const IMERender = (function() {
 
     this.ime.innerHTML = content;
     this.menu = document.getElementById('keyboard-accent-char-menu');
+
+    if (layout.needsCandidatePanel) {
+      this.ime.insertBefore(candidatePanelToggleButtonCode(), this.ime.firstChild);
+      this.ime.insertBefore(candidatePanelCode(), this.ime.firstChild);
+      this.ime.insertBefore(pendingSymbolPanelCode(), this.ime.firstChild);
+      showPendingSymbols('');
+      showCandidates([], true);
+      // currentEngine.empty();
+    }
   };
 
   var highlightKey = function kr_updateKeyHighlight(key) {
@@ -63,6 +80,54 @@ const IMERender = (function() {
 
   var unHighlightKey = function kr_unHighlightKey(key) {
     key.classList.remove('highlighted');
+  };
+  
+  var showPendingSymbols = function km_showPendingSymbols(symbols) {
+    // TODO: Save the element
+    var pendingSymbolPanel = document.getElementById('keyboard-pending-symbol-panel');
+    pendingSymbolPanel.textContent = symbols;
+  };
+
+  var showCandidates = function km_showCandidates(candidates, noWindowHeightUpdate) {
+    this.ime = document.getElementById('keyboard');
+    var ime = this.ime;
+    // TODO: Save the element
+    var candidatePanel = document.getElementById('keyboard-candidate-panel');
+    var isFullView = this.ime.classList.contains('full-candidate-panel');
+
+    candidatePanel.innerHTML = '';
+
+    if (!candidates.length) {
+      ime.classList.remove('candidate-panel');
+      ime.classList.remove('full-candidate-panel');
+      // if (!noWindowHeightUpdate)
+      //   updateTargetWindowHeight();
+      return;
+    }
+
+    if (!isFullView) {
+      ime.classList.add('candidate-panel');
+    }
+
+    candidatePanel.scrollTop = candidatePanel.scrollLeft = 0;
+
+    // if (!noWindowHeightUpdate)
+    //   updateTargetWindowHeight();
+
+    // If there were too many candidate
+    delete candidatePanel.dataset.truncated;
+    if (candidates.length > 74) {
+      candidates = candidates.slice(0, 74);
+      candidatePanel.dataset.truncated = true;
+    }
+
+    candidates.forEach(function buildCandidateEntry(candidate) {
+      var span = document.createElement('span');
+      span.dataset.data = candidate[1];
+      span.dataset.selection = true;
+      span.textContent = candidate[0];
+      candidatePanel.appendChild(span);
+    });
   };
 
   var showAlternativesCharMenu = function km_showAlternativesCharMenu(key, altChars) {
@@ -89,11 +154,8 @@ const IMERender = (function() {
     var content = '';
     var auxCount = 0;
     altCharsCurrent.forEach(function(keyChar) {
-      if ((left && auxCount == 0) || (!left && auxCount == altCharsCurrent.length - 1))
-        content += buildKey(-1, -1, keyChar.charCodeAt(0), keyChar, 'first-char', cssWidth);
-      else
-        content += buildKey(-1, -1, keyChar.charCodeAt(0), keyChar, '', cssWidth);
-      auxCount++;
+      var dataset = [{'key':'keycode', 'value': keyChar}];
+      content += buildKey(keyChar.charCodeAt(0), '', cssWidth, dataset);
     });
     this.menu.innerHTML = content;
     this.menu.style.display = 'block';
@@ -112,12 +174,10 @@ const IMERender = (function() {
      if ( window.innerWidth > 0 && window.innerWidth < window.innerHeight ) {
         var changeScale = window.innerWidth / 32;
         document.documentElement.style.fontSize = changeScale + 'px';
-       console.log( "portrait");
       } 
       if ( window.innerWidth > window.innerHeight) {
         var changeScale = window.innerWidth / 64;
         document.documentElement.style.fontSize = changeScale + 'px';
-        console.log( "landscape");
       }
 
   };
@@ -125,16 +185,47 @@ const IMERender = (function() {
   //
   // Private Methods
   //
+  
+  //*
+  // Method that generates the HTML markup for each key
+  // @label: String inside the key
+  // @className: String representing a className to be added to the key
+  // @width: Int to be applied as moz-box-flex
+  // @dataset: Array of Hash with every { 'key': KEY, 'value': VALUE} to be applied as dataset
+  //*
+  
+  var pendingSymbolPanelCode = function() {
+    this.pendingSymbolPanel = document.createElement('div');
+    this.pendingSymbolPanel.id = 'keyboard-pending-symbol-panel';
+    return this.pendingSymbolPanel;
+  };
 
-  var buildKey = function buildKey(row, column, code, label, className, width, alt) {
+  var candidatePanelCode = function() {
+    this.candidatePanel = document.createElement('div');
+    this.candidatePanel.id = 'keyboard-candidate-panel';
+    return this.candidatePanel;
+  };
+
+  var candidatePanelToggleButtonCode = function() {
+    this.toggleButton = document.createElement('span');
+    this.toggleButton.innerHTML = '⇪';
+    this.toggleButton.id = 'keyboard-candidate-panel-toggle-button';
+    this.toggleButton.dataset.keycode = -4;
+    return this.toggleButton;
+  };
+
+  var buildKey = function buildKey(label, className, width, dataset) {
     //width -= 1;
-
-    return '<button class="keyboard-key ' + className + '"' +
-      ' data-row="' + row + '"' +
-      ' data-column="' + column + '"' +
-      ' data-keycode="' + code + '"' +
-      ' style="-moz-box-flex:' + width +'"' +
-    '><span>' + label + '</span></button>';
+    
+    var content = '<button class="keyboard-key ' + className + '"';
+    dataset.forEach( function(data){
+        content += ' data-' + data.key + '="' + data.value + '" '; 
+      }
+    );
+    content += ' style="-moz-box-flex:' + width +'"';
+    content += '><span>' + label + '</span></button>';
+    return content;
+    
   };
 
   return {
@@ -146,6 +237,8 @@ const IMERender = (function() {
     'showAlternativesCharMenu': showAlternativesCharMenu,
     'hideAlternativesCharMenu': hideAlternativesCharMenu,
     'setUpperCaseLock': setUpperCaseLock,
-    'resizeUI': resizeUI
+    'resizeUI': resizeUI,
+    'showCandidates': showCandidates,
+    'showPendingSymbols': showPendingSymbols
   };
 })();

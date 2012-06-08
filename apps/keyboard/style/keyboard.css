@@ -192,3 +192,120 @@ button::-moz-focus-inner{
     font-size: 15px;
   }
 }
+
+/* IMES */
+
+#keyboard-pending-symbol-panel {
+  position: absolute;
+  top: -35px;
+  left: 0;
+  height: 32px;
+  line-height: 32px;
+  font-size: 24px;
+  width: auto;
+  padding: 0 8px;
+  background: rgba(245, 245, 245, 0.7);
+  color: rgb(36, 36, 36);
+  border-top-right-radius: 8px;
+  border-top: 1px solid #d5d5d5;
+  border-right: 1px solid #d5d5d5;
+  white-space: nowrap;
+}
+
+#keyboard-pending-symbol-panel:empty {
+  display: none;
+}
+
+#keyboard-candidate-panel {
+  height: 64px;
+  overflow: auto;
+  white-space: nowrap;
+  color: black;
+  background: rgb(176, 174, 168);
+  border-top: 1px solid #e8e8ff;
+  border-bottom: 1px solid #808098;
+  display: none;
+}
+#keyboard.candidate-panel #keyboard-candidate-panel {
+  display: block;
+  width: -moz-calc(100% - 62px);
+  overflow-y: hidden;
+}
+
+#keyboard.full-candidate-panel {
+  padding-top: 66px;
+}
+
+#keyboard.full-candidate-panel #keyboard-candidate-panel {
+  display: block;
+  position: absolute;
+  white-space: normal;
+  top: -2px;
+  bottom: 0;
+  height: 100%;
+  width: 100%;
+  border: none;
+  border-top: 2px solid #a3a3a3;
+  z-index: 1;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+#keyboard.full-candidate-panel #keyboard-candidate-panel span {
+  border-top: 1px solid #e8e8ff;
+  border-bottom: 1px solid #808098;
+}
+
+#keyboard-candidate-panel[data-truncated]::after {
+  content: '…';
+  background: none ! important;
+  border-color: transparent ! important;
+  color: #666;
+}
+
+#keyboard-candidate-panel span,
+#keyboard-candidate-panel[data-truncated]::after {
+  border-left: 1px solid #e8e8ff;
+  border-right: 1px solid #808098;
+  font-size: 32px;
+  line-height: 60px;
+  min-width: 60px;
+  display: inline-block;
+  height: 64px;
+  padding: 0 10px;
+  text-align: center;
+  background: -moz-linear-gradient(top, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
+}
+
+#keyboard-candidate-panel-toggle-button {
+  border-left: 1px solid #e8e8ff;
+  border-right: 1px solid #808098;
+  border-bottom: 1px solid #808098;
+  position: absolute;
+  font-size: 32px;
+  line-height: 60px;
+  right: 0;
+  top: 1px;
+  text-align: center;
+  box-shadow: -4px 0 5px -5px black;
+  width: 60px;
+  height: 64px;
+  color: black;
+  background: -moz-linear-gradient(top, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
+  display: none;
+}
+
+#keyboard.full-candidate-panel #keyboard-candidate-panel-toggle-button {
+  display: block;
+  border-top: 1px solid #e8e8ff;
+  top: 0;
+  z-index: 1;
+}
+
+#keyboard.candidate-panel #keyboard-candidate-panel-toggle-button {
+  display: block;
+}
+
+#keyboard-candidate-panel span[data-active],
+#keyboard-candidate-panel-toggle-button[data-active] {
+  background: -moz-linear-gradient(bottom, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
+}
