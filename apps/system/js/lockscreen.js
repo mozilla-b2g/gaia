@@ -144,7 +144,6 @@ var LockScreen = {
 
       case 'screenchange':
         this.lockIfEnabled();
-        this.switchPanel();
         break;
 
       case 'mozChromeEvent':
@@ -279,6 +278,8 @@ var LockScreen = {
     var wasAlreadyLocked = this.locked;
     this.locked = true;
 
+    this.switchPanel();
+
     this.overlay.classList.remove('unlocked');
     if (instant)
       this.overlay.classList.add('no-transition');
@@ -298,16 +299,50 @@ var LockScreen = {
     }
   },
 
+  loadPanel: function ls_loadPanel(panel) {
+    switch (panel) {
+      case 'passcode':
+        break;
+
+      case 'camera':
+        // load the camera iframe
+        this.camera.src = './camera/';
+        break;
+
+      case 'emergency':
+        break;
+    }
+  },
+
+  unloadPanel: function ls_loadPanel(panel) {
+    switch (panel) {
+      case 'passcode':
+        // Reset passcode panel
+        this.passCodeEntered = '';
+        this.updatePassCodeUI();
+        break;
+
+      case 'camera':
+        // unload the camera iframe
+        this.camera.src = './blank.html';
+        break;
+
+      case 'emergency':
+        break;
+    }
+  },
+
   switchPanel: function ls_switchPanel(panel) {
+    if (panel == this.overlay.dataset.panel)
+      return;
+
+    this.unloadPanel(this.overlay.dataset.panel);
     if (panel) {
       this.overlay.dataset.panel = panel;
+      this.loadPanel(panel);
     } else {
       delete this.overlay.dataset.panel;
     }
-
-    // Reset passcode panel
-    this.passCodeEntered = '';
-    this.updatePassCodeUI();
   },
 
   updateTime: function ls_updateTime() {
@@ -393,7 +428,7 @@ var LockScreen = {
     var elements = ['mute', 'clock', 'cal-day', 'cal-date',
         'notification', 'notification-title', 'notification-detail',
         'notification-time', 'area-unlock', 'area-start', 'area-camera',
-        'passcode-code', 'passcode-pad'];
+        'passcode-code', 'passcode-pad', 'camera'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
