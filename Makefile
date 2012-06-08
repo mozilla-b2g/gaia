@@ -17,6 +17,14 @@
 #                                                                             #
 # GAIA_APP_SRCDIRS : list of directories to search for web apps               #
 #                                                                             #
+# DEMO        : define DEMO will do three things. First, redirect GAIA_DOMAIN #
+#               . Second, define PREDEMO to do what demo needs to do, now is  #		
+#               installing sample media. Third, define EXCLUDED to filter     #
+#               unneeded apps.                                                #
+#                                                                             #
+# PREDEMO     : define rules before you build profile for demo purpose.       #
+#                                                                             #
+# EXCLUEDED   : define apps which are not needed in demo.                     #
 ###############################################################################
 GAIA_DOMAIN?=gaiamobile.org
 
