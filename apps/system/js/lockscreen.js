@@ -151,7 +151,7 @@ var LockScreen = {
         if (!this.locked || evt.detail.type !== 'desktop-notification')
           return;
 
-        this.showNotification(evt.detail.title, evt.detail.text);
+        this.showNotification(evt.detail.title, evt.detail.text, evt.detail.icon);
         break;
 
       case 'click':
@@ -332,11 +332,12 @@ var LockScreen = {
     this.mute.hidden = !!SoundManager.currentVolume;
   },
 
-  showNotification: function lockscreen_showNotification(title, detail) {
+  showNotification: function lockscreen_showNotification(title, detail, icon) {
     this.notification.hidden = false;
 
     // XXX: pretty date, respect clock format in Settings
     this.notificationTime.textContent = (new Date()).toLocaleFormat('%R');
+    this.notificationIcon.src = icon;
     this.notificationTitle.textContent = title;
     this.notificationDetail.textContent = detail;
   },
@@ -391,9 +392,9 @@ var LockScreen = {
   getAllElements: function ls_getAllElements() {
     // ID of elements to create references
     var elements = ['mute', 'clock', 'cal-day', 'cal-date',
-        'notification', 'notification-title', 'notification-detail',
-        'notification-time', 'area-unlock', 'area-start', 'area-camera',
-        'passcode-code', 'passcode-pad'];
+        'notification', 'notification-icon', 'notification-title',
+        'notification-detail', 'notification-time', 'area-unlock',
+        'area-start', 'area-camera', 'passcode-code', 'passcode-pad'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {

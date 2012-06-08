@@ -32,7 +32,7 @@ var NotificationScreen = {
         case 'desktop-notification':
           NotificationScreen.addNotification('desktop-notification',
                                               detail.title, detail.text,
-                                              detail.id);
+                                              detail.id, detail.icon);
 
           var hasNotifications = document.getElementById('state-notifications');
           hasNotifications.dataset.visible = 'true';
@@ -165,7 +165,7 @@ var NotificationScreen = {
     evt.preventDefault();
   },
 
-  addNotification: function ns_addNotification(type, nTitle, body, nID) {
+  addNotification: function ns_addNotification(type, nTitle, body, nID, iconURL) {
     var notifications = this.container;
 
     var notification = document.createElement('div');
@@ -174,6 +174,12 @@ var NotificationScreen = {
 
     if (type == 'desktop-notification') {
       notification.dataset.notificationID = nID;
+    }
+
+    if (iconURL) {
+      var icon = document.createElement('img');
+      icon.src = iconURL;
+      notification.appendChild(icon);
     }
 
     var title = document.createElement('div');

@@ -37,6 +37,18 @@ var BackgroundServiceManager = (function bsm() {
     var newapp = evt.application;
     installedApps[newapp.origin] = newapp;
 
+    // Caching the icon
+    var appCache = window.applicationCache;
+    if (appCache) {
+      var icons = newapp.manifest.icons;
+      if (icons) {
+        Object.getOwnPropertyNames(icons).forEach(function iconIterator(key) {
+          var url = newapp.origin + icons[key];
+          appCache.mozAdd(url);
+        });
+      }
+    }
+
     open(newapp.origin);
 
     if (OriginalOninstall)
