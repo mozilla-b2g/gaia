@@ -402,7 +402,7 @@ var WindowManager = (function() {
       //   Cross-process IME
       //   Nested content processes
 
-      'Calculator'
+      'Calculator',
 
       //'Camera',
       //   Cross-process camera control
