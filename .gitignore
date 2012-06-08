@@ -13,3 +13,6 @@ xulrunner/
 xulrunner-sdk/
 node_modules
 test-output.xml
+mocha-test-results.html
+custom-prefs.js
+local.mk

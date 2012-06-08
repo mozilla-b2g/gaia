@@ -3,7 +3,7 @@
 var UITest = {
   get testList() {
     delete this.testList;
-    return this.testList = document.getElementById('test-list');;
+    return this.testList = document.getElementById('test-list');
   },
   get iframe() {
     delete this.iframe;
@@ -66,7 +66,7 @@ var UITest = {
           this.iframe.src = 'about:blank';
         }
         break;
-    };
+    }
   },
   openTest: function ut_openTest() {
     document.body.classList.add('test');

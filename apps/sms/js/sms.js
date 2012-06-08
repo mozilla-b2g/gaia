@@ -20,7 +20,7 @@ var MessageManager = {
     };
 
     request.onerror = function onerror() {
-      var msg = 'Error reading the database. Error: ' + request.errorCode;
+      var msg = 'Reading the database. Error: ' + request.errorCode;
       console.log(msg);
     };
   },
@@ -43,8 +43,8 @@ var MessageManager = {
     };
 
     req.onerror = function onerror() {
-      var msg = 'Message deleting error in the database. Error: ' + req.errorCode;
-      console.log(msg);      
+      var msg = 'Deleting in the database. Error: ' + req.errorCode;
+      console.log(msg);
       callback(null);
     };
   },
@@ -54,7 +54,7 @@ var MessageManager = {
     conversation list page will also update withot notification currently.
     May need more infomation for user that the messages were not
     removed completely.
-  */  
+  */
   deleteMessages: function mm_deleteMessages(list, callback) {
     if (list.length > 0) {
       this.deleteMessage(list.shift(), function(result) {
@@ -62,7 +62,7 @@ var MessageManager = {
       }.bind(this));
     } else
       callback();
-  },
+  }
 };
 
 /* DelayDeleteManager and execute the delete task when:
@@ -88,58 +88,61 @@ var DelayDeleteManager = {
       return;
 
     // If previous status is not edit mode and class changed, execute delete.
-    if (evt.prevValue.indexOf('edit') !== -1)
-      return;
-    this.executeDelete();
-  },  
+    if (evt.prevValue.indexOf('edit') === -1) {
+      this.executeDelete();
+    }
+  },
   handleEvent: function dm_handleEvent(evt) {
     switch (evt.type) {
       case 'DOMAttrModified':
         this.onViewStatusChanged(evt);
-        break;      
+        break;
     }
-  },
+  }
 };
 
 /* Contact Manager for maintaining contact cache and access contact DB:
  * 1. Maintain used contacts in contactData object literal.
  * 2. getContactData: It will have both syncronus and asyncronus callback.
- *      Syncronus callback will be executed when cache data exist.
- *      Asyncronus callback will be executed except the data in cache and DB is the same.
+ *  Syncronus callback will be executed when cache data exist.
+ *  Asyncronus callback will be executed except the data in cache and DB is the same.
 */
 var ContactDataManager = {
   init: function cm_init() {
     this.contactData = {};
   },
   getContactData: function cm_getContactData(options, callback) {
-    if (options.filterBy.indexOf('tel') !== -1 && options.filterOp == 'contains') {
+    var hasTel = options.filterBy.indexOf('tel') !== -1;
+    if (hasTel && options.filterOp == 'contains') {
       if (options.filterValue in this.contactData)
         callback([this.contactData[options.filterValue]]);
     }
+
     var self = this;
     var req = window.navigator.mozContacts.find(options);
     req.onsuccess = function onsuccess() {
       // Update the cache before callback.
-      if (options.filterBy.indexOf('tel') !== -1 && options.filterOp == 'contains') {
-        var cacheDAta = self.contactData[options.filterValue];
+      if (hasTel && options.filterOp == 'contains') {
+        var cacheData = self.contactData[options.filterValue];
         if (req.result.length > 0) {
-          var dbDAta = req.result[0];
-          if (cacheDAta && cacheDAta.name[0] == dbDAta.name[0])
+          var dbData = req.result[0];
+          if (cacheData && cacheData.name[0] == dbData.name[0])
             return;
 
-          self.contactData[options.filterValue] = dbDAta;
+          self.contactData[options.filterValue] = dbData;
         } else {
           delete self.contactData[options.filterValue];
         }
-      };
-      callback(req.result);    
-    };    
+      }
+      callback(req.result);
+    };
+
     req.onerror = function onerror() {
       var msg = 'Contact finding error. Error: ' + req.errorCode;
       console.log(msg);
       callback();
-    };    
-  },
+    };
+  }
 };
 
 var ConversationListView = {
@@ -152,17 +155,17 @@ var ConversationListView = {
     delete this.searchToolbar;
     return this.searchToolbar = document.getElementById('msg-search-container');
   },  
-  
+
   get searchInput() {
     delete this.searchInput;
     return this.searchInput = document.getElementById('msg-search');
   },
-  
+
   get searchCancel() {
     delete this.searchCancel;
     return this.searchCancel = document.getElementById('msg-search-cancel');
   },  
-  
+
   get deleteButton() {
     delete this.deleteButton;
     return this.deleteButton = document.getElementById('msg-delete-button');
@@ -175,12 +178,13 @@ var ConversationListView = {
 
   get undoToolbar() {
     delete this.undoToolbar;
-    return this.undoToolbar = document.getElementById('msg-undo-toolbar');    
+    return this.undoToolbar = document.getElementById('msg-undo-toolbar');
   },
 
   get undoTitleContainer() {
     delete this.undoTitleContainer;
-    return this.undoTitleContainer = document.getElementById('msg-undo-title-container');    
+    return this.undoTitleContainer =
+      document.getElementById('msg-undo-title-container');
   },
 
   init: function cl_init() {
@@ -208,11 +212,11 @@ var ConversationListView = {
       filterOp: 'contains',
       filterValue: msg.dataset.num
     };
-    ContactDataManager.getContactData(options, function contactCallback(result) {
+    ContactDataManager.getContactData(options, function get(result) {
       // If indexedDB query failed, just leave the previous result. 
       if (!result)
         return;
-      
+
       if (result.length === 0) {
         // Update message while the contact does not exist in DB.
         if (msg.dataset.name == msg.dataset.num)
@@ -227,11 +231,11 @@ var ConversationListView = {
           return;
 
         msg.dataset.name = name;
-        nameElement.textContent = name;    
+        nameElement.textContent = name;
       }
-    });    
+    });
   },
-  
+
   updateConversationList: function cl_updateCL(pendingMsg) {
     var self = this;
     /*
@@ -287,8 +291,8 @@ var ConversationListView = {
       self.view.innerHTML = fragment;
 
       var conversationList = self.view.children;
-      
-      // update the conversation sender/receiver name with contact data. 
+
+      // update the conversation sender/receiver name with contact data.
       for (var i = 0; i < conversationList.length; i++) {
         self.updateMsgWithContact(conversationList[i]);
       }
@@ -312,24 +316,26 @@ var ConversationListView = {
     
   },
 
-  createNewConversation: function cl_createNewConversation(conversation, searchRegExp) {
+  createNewConversation: function cl_createNewConversation(conversation, reg) {
+    var dataName = escapeHTML(conversation.name || conversation.num, true);
+    var name = escapeHTML(conversation.name);
     var textContent = conversation.body.split('\n')[0];
-    if (searchRegExp) {
-      textContent = this.createHighlightStr(textContent, searchRegExp);
+    if (reg) {
+      textContent = this.createHighlightStr(textContent, reg);
     }
     else
       textContent = escapeHTML(textContent);
-    return '<a href="#num=' + conversation.num + '"' + ' data-num="' + conversation.num + '"' +
-           ' data-name="' + escapeHTML(conversation.name || conversation.num, true) + '"' +
+    return '<a href="#num=' + conversation.num + '"' +
+           ' data-num="' + conversation.num + '"' +
+           ' data-name="' + dataName + '"' +
            ' data-notempty="' + (conversation.timestamp ? 'true' : '') + '"' +
            ' class="' + (conversation.hidden ? 'hide' : '') + '">' +
            '<input type="checkbox" class="fake-checkbox"/>' + '<span></span>' +
-           '  <div class="name">' + escapeHTML(conversation.name) + '</div>' +
+           '  <div class="name">' + name + '</div>' +
            '  <div class="msg">' + textContent + '</div>' +
-           (conversation.timestamp ?
-             '  <div class="time" data-time="' + conversation.timestamp + '">' +
-                 prettyDate(conversation.timestamp) + '</div>' : '') +
-           '</a>';
+           (!conversation.timestamp ? '' :
+           '  <div class="time" data-time="' + conversation.timestamp + '">' +
+             prettyDate(conversation.timestamp) + '</div>') + '</a>';
   },
 
   searchConversations: function cl_searchConversations() {
@@ -454,7 +460,8 @@ var ConversationListView = {
         break;
 
       case 'click':
-        // When Event listening target is this.view and clicked target has href entry.
+        // When Event listening target is this.view and clicked target
+        // has href entry.
         if (evt.currentTarget == this.view && evt.target.href)
           this.onListItemClicked(evt);
         break;
@@ -462,19 +469,21 @@ var ConversationListView = {
       case 'mozvisibilitychange':
         if (document.mozHidden)
           return;
-      
+
         // Refresh the view when app return to foreground.
         this.updateConversationList();
         break;
     }
   },
-  
-  /* Message delete scenario:
-   *  Delete button will only trigger pendMessageDelete and reflesh conversation list.
-   *  When list update, undo toolbar will be triggered when deleted item list exist.
-   *  And delayDelete will also regist when undo toolbar show up.
-   *  executeMessageDelete would be set for delayDelete regist.
-  */
+
+  // Message delete scenario:
+  //  Delete button will only trigger pendMessageDelete and refresh
+  //  conversation list.
+  //  When list update, undo toolbar will be triggered when deleted item list
+  // exist.
+  //  And delayDelete will also regist when undo toolbar show up.
+  //  executeMessageDelete would be set for delayDelete regist.
+  //
   pendMessageDelete: function cl_pendMessageDelete() {
     window.location.hash = window.location.hash.replace('_edit', '');
     if (this.delNumList.length == 0)
@@ -501,27 +510,30 @@ var ConversationListView = {
     else
       this.updateConversationList();
     this.undoToolbar.classList.remove('show');
-  },  
+  },
 
   deleteMessages: function cl_deleteMessages(numberList) {
     if (numberList == [])
       return;
-    
+
     var filter = new MozSmsFilter();
     filter.numbers = numberList;
-    
+
     MessageManager.getMessages(function mm_getMessages(messages) {
-      var msgs =[];
+      var msgs = [];
       for (var i = 0; i < messages.length; i++) {
         msgs.push(messages[i].id);
       }
-      MessageManager.deleteMessages(msgs, this.updateConversationList.bind(this));
+      MessageManager.deleteMessages(msgs,
+                                    this.updateConversationList.bind(this));
     }.bind(this), filter);
-  },  
+  },
 
   showUndoToolbar: function cl_showUndoToolbar() {
     var undoTitle = document.mozL10n.get('conversationDeleted');
-    this.undoTitleContainer.innerHTML = this.delNumList.length + ' ' + undoTitle;
+    this.undoTitleContainer.innerHTML =
+      this.delNumList.length + ' ' + undoTitle;
+
     this.undoToolbar.classList.add('show');
     DelayDeleteManager.registDelayDelete(this.executeMessageDelete.bind(this));
   },
@@ -530,18 +542,20 @@ var ConversationListView = {
     var cb = evt.target.getElementsByClassName('fake-checkbox')[0];
     if (!cb)
       return;
-    
+
     if (!document.body.classList.contains('msg-edit-mode'))
       return;
-    
+
     evt.preventDefault();
     cb.checked = !cb.checked;
+
+    var list = this.delNumList;
     if (cb.checked) {
-      this.delNumList.push(evt.target.dataset.num);
+      list.push(evt.target.dataset.num);
     } else {
-      this.delNumList.splice(this.delNumList.indexOf(evt.target.dataset.num), 1);
+      list.splice(list.indexOf(evt.target.dataset.num), 1);
     }
-  },
+  }
 };
 
 var ConversationView = {
@@ -584,7 +598,7 @@ var ConversationView = {
     var num = this.getNumFromHash();
     if (num)
       this.showConversation(num);
-    
+
     document.addEventListener('mozvisibilitychange', this);
   },
 
@@ -679,7 +693,7 @@ var ConversationView = {
       }
       var images = self.view.querySelectorAll('.photo img');
       for (var i = 0; i < images.length; i++)
-        images[i].src = contactImageSrc;      
+        images[i].src = contactImageSrc;
     });
 
     MessageManager.getMessages(function mm_getMessages(messages) {
@@ -708,9 +722,11 @@ var ConversationView = {
 
         var body = msg.body.replace(/\n/g, '<br />');
         fragment += '<div ' + className + ' ' + dataNum + ' ' + dataId + '>' +
-                      '<div class="text">' + escapeHTML(body) + '</div>' +
-                      '<div class="time" data-time="' + msg.timestamp.getTime() + '">' +
-                          prettyDate(msg.timestamp) + '</div>' +
+                    '  <div class="text">' + escapeHTML(body) + '</div>' +
+                    '  <div class="time" data-time="' +
+                      msg.timestamp.getTime() + '">' +
+                      prettyDate(msg.timestamp) +
+                    '  </div>' +
                     '</div>';
       }
 
@@ -775,16 +791,18 @@ var ConversationView = {
       case 'mozvisibilitychange':
         if (document.mozHidden)
           return;
-      
+
         // Refresh the view when app return to foreground.
         var num = this.getNumFromHash();
-        if (num)
+        if (num) {
           this.showConversation(num);
+        }
         break;
     }
   },
   close: function cv_close() {
-    if (!document.body.classList.contains('conversation') && !window.location.hash)
+    if (!document.body.classList.contains('conversation') &&
+        !window.location.hash)
       return false;
 
     window.location.hash = '';

@@ -23,25 +23,3 @@ function prettyDate(time) {
     day_diff < 7 && (new Date(time)).toLocaleFormat('%A') ||
     (new Date(time)).toLocaleFormat('%x');
 }
-
-(function() {
-  var updatePrettyDate = function updatePrettyDate() {
-    var labels = document.querySelectorAll('[data-time]');
-    var i = labels.length;
-    while (i--) {
-      labels[i].textContent = prettyDate(labels[i].dataset.time);
-    }
-  };
-  var timer = setInterval(updatePrettyDate, 60 * 1000);
-
-  window.addEventListener('message', function visibleAppUpdatePrettyDate(evt) {
-    var data = evt.data;
-    if (data.message !== 'visibilitychange')
-      return;
-    clearTimeout(timer);
-    if (!data.hidden) {
-      updatePrettyDate();
-      timer = setInterval(updatePrettyDate, 60 * 1000);
-    }
-  });
-})();

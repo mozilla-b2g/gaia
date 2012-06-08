@@ -34,6 +34,13 @@
     <div id="root" class="view" data-title="Settings">
       <ul>
         <li>
+          <a data-l10n-id="airPlaneMode">Air Plane Mode</a>
+          <label>
+            <input type="checkbox" name="ril.radio.disabled"/>
+            <span></span>
+          </label>
+        </li>
+        <li>
           <a href="#wifi">
             <span data-l10n-id="wifi">Wi-Fi</span>
           </a>
@@ -81,6 +88,11 @@
         <li>
           <a href="#phone">
             <span data-l10n-id="phone">Phone</span>
+          </a>
+        </li>
+        <li>
+          <a href="#storage">
+            <span data-l10n-id="storage">Storage</span>
           </a>
         </li>
         <li>
@@ -194,6 +206,19 @@
           <a data-l10n-id="ring">Ring</a>
           <label>
             <input type="checkbox" name="sms.ring.received" checked="true" />
+            <span></span>
+          </label>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Storage -->
+    <div id="storage" class="view" data-title="Storage">
+      <ul>
+        <li id="ums_enabled">
+          <a data-l10n-id="umsEnabled">USB Mass Storage Enabled</a>
+          <label>
+            <input type="checkbox" name="ums.enabled"/>
             <span></span>
           </label>
         </li>
@@ -440,6 +465,13 @@
         <li id="brightness">
           <a data-l10n-id="brightness">Brightness level</a>
           <progress id="brightness-level" data-name="screen.brightness" value="5" max="10"></progress>
+        </li>
+        <li id="automatic-brightness">
+          <a data-l10n-id="automatic-brightness">Automatic Brightness</a>
+          <label>
+            <input type="checkbox" name="screen.automatic-brightness" checked="true"/>
+            <span></span>
+          </label>
         </li>
         <li>
           <a data-l10n-id="lockScreen">Lock Screen</a>

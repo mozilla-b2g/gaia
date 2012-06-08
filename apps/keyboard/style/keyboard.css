@@ -1,10 +1,7 @@
 html, body {
   margin:0;
   padding:0;
-}
-
-#screen.fullscreen #keyboard {
-  z-index: 9999;
+  overflow: hidden;
 }
 
 #keyboard {
