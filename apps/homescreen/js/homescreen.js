@@ -613,4 +613,3 @@ Dots.prototype = {
     e.preventDefault();
   }
 };
-
