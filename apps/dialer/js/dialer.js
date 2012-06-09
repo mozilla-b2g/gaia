@@ -305,6 +305,8 @@ var CallHandler = {
   },
 
   answer: function ch_answer() {
+    // Force to unmute, since some phones are muted by default.
+    window.navigator.mozTelephony.muted = false;
     this.currentCall.answer();
   },
 
