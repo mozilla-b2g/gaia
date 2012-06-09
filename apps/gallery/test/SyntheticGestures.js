@@ -121,12 +121,15 @@ var SyntheticGestures = (function() {
     var win = doc.defaultView;
     var touchId = nextTouchId++;
 
-    var x = typeof xt === 'function'
-      ? xt
-      : function(t) { return xt[0] + t / duration * (xt[1] - xt[0]); };
-    var y = typeof yt === 'function'
-      ? yt
-      : function(t) { return yt[0] + t / duration * (yt[1] - yt[0]); };
+    var x = xt;
+    if (typeof xt !== 'function') {
+      x = function(t) { return xt[0] + t / duration * (xt[1] - xt[0]); };
+    }
+
+    var y = yt;
+    if (typeof yt !== 'function') {
+      y = function(t) { return yt[0] + t / duration * (yt[1] - yt[0]); };
+    }
 
     // viewport coordinates
     var clientX = Math.round(x(0)), clientY = Math.round(y(0));
@@ -431,12 +434,15 @@ var SyntheticGestures = (function() {
     detail = detail || 1;
     button = button || 0;
 
-    var x = typeof xt === 'function'
-      ? xt
-      : function(t) { return xt[0] + t / duration * (xt[1] - xt[0]); };
-    var y = typeof yt === 'function'
-      ? yt
-      : function(t) { return yt[0] + t / duration * (yt[1] - yt[0]); };
+    var x = xt;
+    if (typeof xt !== 'function') {
+      x = function(t) { return xt[0] + t / duration * (xt[1] - xt[0]); };
+    }
+
+    var y = yt;
+    if (typeof yt !== 'function') {
+      y = function(t) { return yt[0] + t / duration * (yt[1] - yt[0]); };
+    }
 
     // viewport coordinates
     var clientX = Math.round(x(0)), clientY = Math.round(y(0));

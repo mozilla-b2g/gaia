@@ -3,7 +3,7 @@
 
 'use strict';
 
-// Duplicated code in severla places
+// Duplicated code in several places
 // TODO Better settings observe interface?
 
 
@@ -134,9 +134,9 @@ const IMEManager = {
 
     // Handling showime and hideime events, as they are received only in System
     // https://bugzilla.mozilla.org/show_bug.cgi?id=754083
-    console.log('attaching');
-    window.addEventListener('message', function receiver(e) {
-      var event = JSON.parse(e.data);
+
+    window.addEventListener('message', function receiver(evt) {
+      var event = JSON.parse(evt.data);
       IMEManager.handleEvent(event);
     });
 
@@ -168,12 +168,12 @@ const IMEManager = {
 
         break;
 
-      case 'hideime':
-        this._hideIMETimer = window.setTimeout((function execHideIME() {
-          this.hideIME();
-        }).bind(this), 0);
-
-        break;
+      // case 'hideime':
+      //   this._hideIMETimer = window.setTimeout((function execHideIME() {
+      //     this.hideIME();
+      //   }).bind(this), 0);
+      // 
+      //   break;
 
       case 'resize':
         var currentWidth = window.innerWidth;

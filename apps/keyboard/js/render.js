@@ -43,11 +43,11 @@ const IMERender = (function() {
 
         //key with + key separation in rems
         var keyWidth = ratio;
-        var dataset = [ {'key': 'row', 'value': nrow} ];
+        var dataset = [{'key': 'row', 'value': nrow}];
         dataset.push({'key': 'column', 'value': ncolumn});
         dataset.push({'key': 'keycode', 'value': code});
 
-        if ( language && code == -3) {
+        if (language && code == -3) {
           dataset.push({'key': 'keyboard', 'value': language});
         }
 
@@ -74,6 +74,24 @@ const IMERender = (function() {
     }
   };
 
+  var hideIME = function km_hideIME(imminent) {
+
+    if (this.ime.dataset.hidden)
+    return;
+
+    this.ime.dataset.hidden = 'true';
+
+    if (imminent) {
+      var ime = this.ime;
+      ime.classList.add('imminent');
+      window.setTimeout(function remoteImminent() {
+        ime.classList.remove('imminent');
+        }, 0);
+
+        ime.innerHTML = '';
+      }
+    };
+
   var highlightKey = function kr_updateKeyHighlight(key) {
     key.classList.add('highlighted');
   }
@@ -81,7 +99,7 @@ const IMERender = (function() {
   var unHighlightKey = function kr_unHighlightKey(key) {
     key.classList.remove('highlighted');
   };
-  
+
   var showPendingSymbols = function km_showPendingSymbols(symbols) {
     // TODO: Save the element
     var pendingSymbolPanel = document.getElementById('keyboard-pending-symbol-panel');
@@ -154,7 +172,7 @@ const IMERender = (function() {
     var content = '';
     var auxCount = 0;
     altCharsCurrent.forEach(function(keyChar) {
-      var dataset = [{'key':'keycode', 'value': keyChar}];
+      var dataset = [{'key': 'keycode', 'value': keyChar}];
       content += buildKey(keyChar.charCodeAt(0), '', cssWidth, dataset);
     });
     this.menu.innerHTML = content;
@@ -171,11 +189,11 @@ const IMERender = (function() {
 
   var resizeUI = function() {
 
-     if ( window.innerWidth > 0 && window.innerWidth < window.innerHeight ) {
+     if (window.innerWidth > 0 && window.innerWidth < window.innerHeight) {
         var changeScale = window.innerWidth / 32;
         document.documentElement.style.fontSize = changeScale + 'px';
-      } 
-      if ( window.innerWidth > window.innerHeight) {
+      }
+      if (window.innerWidth > window.innerHeight) {
         var changeScale = window.innerWidth / 64;
         document.documentElement.style.fontSize = changeScale + 'px';
       }
@@ -185,7 +203,7 @@ const IMERender = (function() {
   //
   // Private Methods
   //
-  
+
   //*
   // Method that generates the HTML markup for each key
   // @label: String inside the key
@@ -193,7 +211,7 @@ const IMERender = (function() {
   // @width: Int to be applied as moz-box-flex
   // @dataset: Array of Hash with every { 'key': KEY, 'value': VALUE} to be applied as dataset
   //*
-  
+
   var pendingSymbolPanelCode = function() {
     this.pendingSymbolPanel = document.createElement('div');
     this.pendingSymbolPanel.id = 'keyboard-pending-symbol-panel';
@@ -216,22 +234,23 @@ const IMERender = (function() {
 
   var buildKey = function buildKey(label, className, width, dataset) {
     //width -= 1;
-    
+
     var content = '<button class="keyboard-key ' + className + '"';
-    dataset.forEach( function(data){
-        content += ' data-' + data.key + '="' + data.value + '" '; 
+    dataset.forEach(function(data) {
+        content += ' data-' + data.key + '="' + data.value + '" ';
       }
     );
-    content += ' style="-moz-box-flex:' + width +'"';
+    content += ' style="-moz-box-flex:' + width + '"';
     content += '><span>' + label + '</span></button>';
     return content;
-    
+
   };
 
   return {
     'init': init,
     'draw': draw,
     'ime': ime,
+    'hideIME': hideIME,
     'highlightKey': highlightKey,
     'unHighlightKey': unHighlightKey,
     'showAlternativesCharMenu': showAlternativesCharMenu,

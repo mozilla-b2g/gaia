@@ -70,7 +70,7 @@ const IMEController = (function() {
     // to lock the keyboard at upper case state.
   var _kCapsLockTimeout = 450,
       _isUpperCaseLocked = false;
-      
+
   var _severalLanguages = function() {
     return IMEManager.keyboards.length > 1;
   };
@@ -279,8 +279,16 @@ const IMEController = (function() {
   }
 
   function _updateTargetWindowHeight() {
-    var resizeAction = {action: 'resize', height: IMERender.ime.scrollHeight + 'px'};
-    parent.postMessage(JSON.stringify(resizeAction), '*');
+    var height;
+    if (IMERender.ime.dataset.hidden) {
+      height = 0;
+    } else {
+      height = IMERender.ime.scrollHeight;
+    }
+
+    var message = {action: 'updateHeight',
+      keyboardHeight: height, hidden: !!IMERender.ime.dataset.hidden};
+    parent.postMessage(JSON.stringify(message), '*');
   }
 
   // sends a delete code to remove last character
@@ -333,15 +341,15 @@ const IMEController = (function() {
     _showingAlternativesMenu = true;
     _keyWithMenu = key;
 
-    // Locked limits 
+    // Locked limits
     _menuLockedArea = {
       top: getWindowTop(_keyWithMenu),
-      bottom: getWindowTop(_keyWithMenu)+_keyWithMenu.scrollHeight,
+      bottom: getWindowTop(_keyWithMenu) + _keyWithMenu.scrollHeight,
       left: getWindowLeft(IMERender.menu),
       right: getWindowLeft(IMERender.menu) + IMERender.menu.scrollWidth
     };
     _menuLockedArea.width = _menuLockedArea.right - _menuLockedArea.left;
-    _menuLockedArea.ratio = _menuLockedArea.width/IMERender.menu.children.length;
+    _menuLockedArea.ratio = _menuLockedArea.width / IMERender.menu.children.length;
   }
 
   function _hideAlternatives() {
@@ -351,6 +359,12 @@ const IMEController = (function() {
     _showingAlternativesMenu = false;
   }
 
+  function _notNormalKey(key) {
+    var keyCode = parseInt(key.dataset.keycode);
+    return (!keyCode && !key.dataset.selection);
+            // && !key.dataset.compositekey); ??
+  }
+
   //
   // EVENTS HANDLERS
   //
@@ -358,9 +372,8 @@ const IMEController = (function() {
   function _onMouseDown(evt) {
     _isPressing = true;
     _currentKey = evt.target;
-    var keyCode = parseInt(_currentKey.dataset.keycode);
-
-    if (!keyCode && !_currentKey.dataset.selection)
+    var keyCode = parseInt(_currentKey);
+    if (_notNormalKey(_currentKey))
       return;
 
     // Feedback
@@ -413,7 +426,7 @@ const IMEController = (function() {
         false, false, false, false, 0, null
       );
 
-      menuChildren[Math.floor((evt.screenX-_menuLockedArea.left)/_menuLockedArea.ratio)].dispatchEvent(event);
+      menuChildren[Math.floor((evt.screenX - _menuLockedArea.left) / _menuLockedArea.ratio)].dispatchEvent(event);
       return;
     }
 
@@ -421,14 +434,14 @@ const IMEController = (function() {
 
   function _onMouseOver(evt) {
     var target = evt.target;
+    var keyCode = parseInt(target.dataset.keycode);
 
     // do nothing if no pressing (mouse events) or same key
     if (!_isPressing || _currentKey == target)
       return;
 
     // do nothing if no keycode
-    var keyCode = parseInt(target.dataset.keycode);
-    if (!keyCode && !target.dataset.selection)
+    if (_notNormalKey(target))
       return;
 
     // remove current highlight
@@ -474,7 +487,7 @@ const IMEController = (function() {
 
     IMERender.unHighlightKey(_currentKey);
     _hideMenuTimeout = window.setTimeout(function hideMenuTimeout() {
-        _hideAlternatives()
+        _hideAlternatives();
     }, _kHideAlternativesCharMenuTimeout);
 
     if (evt.type == 'scroll')
@@ -495,9 +508,8 @@ const IMEController = (function() {
 
     var target = _currentKey;
     var keyCode = parseInt(target.dataset.keycode);
-    if (!keyCode && !target.dataset.selection)
+    if (_notNormalKey(target))
       return;
-
     var dataset = target.dataset;
 
     // IME candidate selected
@@ -531,7 +543,7 @@ const IMEController = (function() {
         var language = target.dataset.keyboard ? target.dataset.keyboard : _baseLayout;
         var keyboards = IMEManager.keyboards;
         var index = keyboards.indexOf(language);
-        index = (index+1) % keyboards.length;
+        index = (index + 1) % keyboards.length;
         _baseLayout = IMEManager.keyboards[index];
 
         _layoutMode = LAYOUT_MODE_DEFAULT;
@@ -700,7 +712,7 @@ const IMEController = (function() {
 
     _currentLayout = _buildLayout(baseLayout, inputType, layoutMode, uppercase);
 
-    if(_severalLanguages())
+    if (_severalLanguages())
       IMERender.draw(_currentLayout, baseLayout);
     else
       IMERender.draw(_currentLayout);
@@ -743,22 +755,10 @@ const IMEController = (function() {
         }
       }
     },
-    
+
     hideIME: function km_hideIME(imminent) {
-      if (IMERender.ime.dataset.hidden)
-        return;
-
-      IMERender.ime.dataset.hidden = 'true';
-      _reset();
-      _layoutMode = LAYOUT_MODE_DEFAULT;
-
-      if (imminent) {
-        var ime = IMERender.ime;
-        ime.classList.add('imminent');
-        window.setTimeout(function remoteImminent() {
-          ime.classList.remove('imminent');
-        }, 0);
-      }
+      console.log('hideIME');
+      IMERender.hideIME(imminent);
     },
 
     onResize: function(nWidth, nHeight, fWidth, fHeihgt) {

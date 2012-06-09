@@ -93,11 +93,6 @@ div.windowSprite.faded {
   opacity: 0;
 }
 
-iframe.appWindow.keyboardOn {
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-}
-
 #taskManager {
   opacity: 0;
   position: absolute;
@@ -166,22 +161,20 @@ iframe.backgroundWindow {
   visibility: hidden;
 }
 
-iframe.keyboardFrame {
+#keyboardFrame {
   position: absolute;
   bottom: 0;
   width: 100%;
-  height:100%;
-  border: 0;
-  z-index: 10002;
-  -moz-transform: translateY(100%);
-  -moz-transition: all 0.4s ease;
+	height: 100%;
+	border: 0;
+	z-index: 10002;
 }
 
-iframe.keyboardFrame.on {
-  -moz-transform: translateY(0);
+#keyboardFrame.hide {
+  bottom: 100%;
 }
 
-#screen.fullscreen iframe.keyboardFrame {
+#screen.fullscreen #keyboardFrame {
   /* Show it above fullscreen - see https://mxr.mozilla.org/mozilla-central/source/layout/style/ua.css#218 */
   z-index: 2147483647;
 }

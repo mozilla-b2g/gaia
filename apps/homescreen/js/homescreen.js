@@ -153,7 +153,7 @@ function Shortcuts(apps) {
 
   var shortcutApps = this.shortcutApps = [];
 
-  apps.forEach(function (app) {
+  apps.forEach(function(app) {
     if (shortcuts.indexOf(app.manifest.name) == -1)
       return;
 
@@ -164,7 +164,7 @@ function Shortcuts(apps) {
 }
 
 Shortcuts.prototype = {
-  build: function () {
+  build: function() {
     var shortcuts = document.getElementById('shortcuts');
 
     this.shortcutApps.forEach(function addShortcut(app) {
@@ -201,7 +201,7 @@ Shortcuts.prototype = {
 
       var iconDiv = document.createElement('div');
       iconDiv.className = 'shortcut';
-      iconDiv.onclick = function () {
+      iconDiv.onclick = function() {
         app.launch();
       };
       iconDiv.innerHTML = '<img src="' + icon + '" />' +
@@ -425,7 +425,7 @@ IconGrid.prototype = {
         iconDiv.style.backgroundImage = 'url("' + icon.iconUrl + '")';
         // The icon size of 79x79 px is hardcoded in homescreen.css
         // Keep both in sync !
-        iconDiv.style.backgroundSize = "79px, 79px";
+        iconDiv.style.backgroundSize = '79px, 79px';
         iconDiv.dataset.url = icon.action;
 
         var centerDiv = document.createElement('div');
