@@ -332,8 +332,11 @@ const IMEController = (function() {
     } else {
       alternatives = altMap[currentKey.value] || '';
     }
+    if(alternatives.indexOf(' ') != -1)
+      alternatives = alternatives.split(' ');
+    else
+      alternatives = alternatives.split('');
 
-    alternatives = alternatives.split('');
     if (!alternatives.length)
       return;
 
@@ -757,7 +760,6 @@ const IMEController = (function() {
     },
 
     hideIME: function km_hideIME(imminent) {
-      console.log('hideIME');
       IMERender.hideIME(imminent);
     },
 

@@ -149,6 +149,8 @@ const IMERender = (function() {
   };
 
   var showAlternativesCharMenu = function km_showAlternativesCharMenu(key, altChars) {
+    // TODO: !!! Fix alternateLayout alt keys
+
     var target = key;
     var cssWidth = target.style.width;
     var left = (window.innerWidth / 2 > target.offsetLeft);
@@ -172,8 +174,10 @@ const IMERender = (function() {
     var content = '';
     var auxCount = 0;
     altCharsCurrent.forEach(function(keyChar) {
-      var dataset = [{'key': 'keycode', 'value': keyChar}];
-      content += buildKey(keyChar.charCodeAt(0), '', cssWidth, dataset);
+      var keyCode = keyChar.keyCode || keyChar.charCodeAt(0);
+      var dataset = [{'key': 'keycode', 'value': keyCode}];
+      var label = keyChar.label || keyChar;
+      content += buildKey(label, '', cssWidth, dataset);
     });
     this.menu.innerHTML = content;
     this.menu.style.display = 'block';
