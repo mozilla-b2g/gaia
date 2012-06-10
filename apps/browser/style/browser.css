@@ -204,6 +204,11 @@ body {
   font-weight: 600;
 }
 
+#url-button {
+  display:none;
+  height:18px;
+}
+
 #url-input {
   font-family: 'Open Sans';
   font-size: 18px;
