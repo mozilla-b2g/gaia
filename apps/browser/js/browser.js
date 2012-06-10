@@ -149,6 +149,13 @@ var Browser = {
           this.throbber.classList.remove('loading');
           this.urlInput.value = tab.title;
           this.setUrlButtonMode(this.REFRESH);
+        } else if (tab.dom.getScreenshot) {
+          // Take screenshot of background tab then hide
+          tab.dom.getScreenshot().onsuccess = function(e) {
+            tab.dom.style.display = 'none';
+            tab.dom.style.top = '0px';
+            tab.screenshot = e.target.result;
+          }
         }
         break;
 
@@ -416,11 +423,10 @@ var Browser = {
     iframe.mozbrowser = true;
     // FIXME: content shouldn't control this directly
     iframe.setAttribute('remote', 'true');
-    iframe.style.display = 'none';
+    iframe.style.top = '-999px';
     if (url) {
       iframe.setAttribute('src', url);
     }
-    //iframe.setAttribute('remote', true);
 
     var tab = {
       id: 'tab_' + this.tabCounter++,
