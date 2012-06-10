@@ -29,7 +29,7 @@
     'h': function(arg) {
       //only escape bad looking stuff saves
       //a ton of time
-      if (arg.match(POSSIBLE_HTML)) {
+      if (POSSIBLE_HTML.test(arg)) {
         span.textContent = arg;
         return span.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
       } else {
@@ -40,14 +40,20 @@
   };
 
   Template.prototype = {
+    DEFAULT_KEY: 'value',
+    QUOTE: /"/g,
+
     _compiled: null,
 
     compile: function(str) {
-      var i = 0, fnStr, fn;
+      var i = 0, fnStr, fn,
+          fnInst = '';
 
-      str = str.replace(/\"/g, '\\"');
+      str = str.replace(this.QUOTE, '\\"');
       fn = 'var h = Calendar.Template.handlers;';
-
+      fn += 'if (typeof(a) !== "object" && typeof(a) !== "undefined") {';
+        fn += 'a = {"' + this.DEFAULT_KEY + '": a };';
+      fn += '}';
 
       fnStr = str.replace(FORMAT_REGEX, function(match, name, type) {
         if (type === '') {
@@ -60,7 +66,6 @@
           return '" + h["' + type + '"]((a["' + name + '"] || "")) + "';
         }
 
-
       });
 
       return new Function('a', fn + 'return "' + fnStr + '"');
@@ -68,7 +73,19 @@
 
     render: function(args) {
       this.render = this.compile(this.template);
+      //console.log(this.render.toString());
       return this.render.apply(this, arguments);
+    },
+
+    renderEach: function(args) {
+      var i = 0, len = args.length,
+          result = [];
+
+      for (; i < len; i++) {
+        result.push(this.render(args[i]));
+      }
+
+      return result;
     }
 
   };

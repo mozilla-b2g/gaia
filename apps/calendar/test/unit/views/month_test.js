@@ -1,6 +1,8 @@
 requireApp('calendar/test/unit/helper.js', function() {
   requireApp('calendar/js/gesture_detector.js');
   requireCalendarController();
+  requireApp('calendar/js/template.js');
+  requireApp('calendar/js/templates/month.js');
   requireApp('calendar/js/views/month.js');
 });
 
@@ -29,7 +31,7 @@ suite('views/month', function() {
     div.innerHTML = [
       '<div class="monthView"></div>',
       '<div class="monthHeader"></div>'
-    ];
+    ].join('');
 
     document.body.appendChild(div);
 

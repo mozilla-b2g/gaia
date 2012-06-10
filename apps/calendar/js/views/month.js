@@ -8,8 +8,6 @@
     Calendar.Views = {};
   }
 
-  var format = Calendar.format;
-
   /**
    * Creates an instance of a month.
    */
@@ -27,6 +25,7 @@
       }
     }
 
+    this.templates = new Calendar.Templates.Month;
     this.selectedDay = null;
     this.renderedMonths = {};
 
@@ -53,49 +52,6 @@
    * @type {String}
    */
   proto.currentMonthSelector = '#current-month-year';
-
-  proto.templates = {
-
-    currentMonth: [
-      '<span class="month">%s</span>',
-      '<span class="year">%s</span>'
-    ].join(' '),
-
-    monthDaysHeader: [
-      '<header id="month-days" role="row">',
-        '<ol role="row">',
-          '%s',
-        '</ol>',
-      '</header>'
-    ].join(''),
-
-    monthDaysHeaderDay: [
-      '<li role="column">',
-        '%s',
-      '</li>'
-    ].join(''),
-
-    monthSection: [
-      '<section id="%s" class="month">',
-        '%s',
-      '</section>'
-    ].join(''),
-
-    monthSectionRow: [
-      '<ol role="row">',
-        '%s',
-      '</ol>'
-    ].join(''),
-
-    monthSectionDay: [
-      '<li id="%s" data-date="%s" class="%s">',
-        '<span class="day">%s</span>',
-        '<div class="busy-indicator">%s</div>',
-      '</li>'
-    ].join(''),
-
-    busyIndicator: '<span class="busy-%s">&nbsp;</span>'
-  };
 
   /**
    * Hack this should be localized.
@@ -128,8 +84,7 @@
     'December'
   ];
 
-  proto.INACTIVE = ' inactive';
-
+  proto.INACTIVE = 'inactive';
   proto.SELECTED = 'selected';
 
   proto.busyPercision = (24 / 12);
@@ -137,7 +92,7 @@
   proto._clearSelectedDay = function() {
     var li = this.monthsDisplayElement().querySelector('li.selected');
     if (li) {
-      li.className = li.className.replace(' selected', '');
+      li.classList.remove('selected');
     }
   };
 
@@ -155,7 +110,7 @@
 
 
       if (el) {
-        el.className += ' selected';
+        el.classList.add('selected');
       }
     });
 
@@ -163,7 +118,6 @@
       self.updateCurrentMonth();
       self.activateMonth(value);
       self._clearSelectedDay();
-
     });
 
     new GestureDetector(months).startDetecting();
@@ -175,9 +129,7 @@
     months.addEventListener('tap', function(data) {
       self._onTap.apply(self, arguments);
     }, false);
-
   };
-
 
   proto._onTap = function(event) {
     var target = event.target,
@@ -236,15 +188,9 @@
   };
 
   proto._renderBusyUnits = function(units) {
-    var i = 0,
-        units = this._getBusyUnits(units),
-        busyUnits = [];
-
-    for (i; i < units.length; i++) {
-      busyUnits.push(format(this.templates.busyIndicator, units[i]));
-    }
-
-    return busyUnits.join('');
+    return this.templates.busy.renderEach(
+      this._getBusyUnits(units)
+    ).join('');
   };
 
   /**
@@ -256,11 +202,10 @@
     var month = this.controller.currentMonth.getMonth(),
         year = this.controller.currentMonth.getFullYear();
 
-    return format(
-      this.templates.currentMonth,
-      this.monthNames[month],
-      year
-    );
+    return this.templates.currentMonth.render({
+      year: year,
+      month: this.monthNames[month]
+    });
   };
 
   /**
@@ -284,6 +229,7 @@
         state,
         busytimes = this.controller.busytime;
 
+    // rework state
     if (this.controller.currentMonth.getMonth() != Calendar.Calc.today.getMonth()) {
       state = Calendar.Calc.relativeState(day, this.controller.currentMonth);
     } else {
@@ -293,14 +239,13 @@
     hours = busytimes.getHours(day);
     busyHtml = this._renderBusyUnits(hours);
 
-    return format(
-      this.templates.monthSectionDay,
-      'month-view-' + id,
-      id,
-      state,
-      day.getDate(),
-      busyHtml
-    );
+    return this.templates.day.render({
+      id: 'month-view-' + id,
+      dateString: id,
+      state: state,
+      date: day.getDate(),
+      busy: busyHtml
+    });
   };
 
   /**
@@ -318,7 +263,7 @@
       output.push(this._renderDay(days[i]));
     }
 
-    return format(this.templates.monthSectionRow, output.join(''));
+    return this.templates.week.render(output.join(''));
   };
 
   /**
@@ -327,23 +272,15 @@
    * @return {String} returns a list of headers.
    */
   proto._renderDayHeaders = function() {
-    var headerList = [],
-        i;
+    var days;
 
-    for (i = 0; i < this.dayNames.length; i++) {
-      headerList.push(
-        format(
-          this.templates.monthDaysHeaderDay,
-          this.dayNames[i]
-        )
-      );
-    }
-
-    return format(
-      this.templates.monthDaysHeader,
-      headerList.join('')
+    days = this.templates.weekDaysHeaderDay.renderEach(
+      this.dayNames
     );
 
+    return this.templates.weekDaysHeader.render(
+      days.join('')
+    );
   };
 
   /**
@@ -369,11 +306,10 @@
       );
     }
 
-    return format(
-      this.templates.monthSection,
-      id,
-      weekList.join('\n')
-    );
+    return this.templates.month.render({
+      id: id,
+      content: weekList.join('\n')
+    });
   };
 
   function getEl(selectorName, elName) {
@@ -402,7 +338,6 @@
   proto.currentMonthElement = function() {
     return getEl.call(this, 'currentMonthSelector', '_headerEl');
   };
-
 
   /**
    * Moves calendar to the next month.
@@ -442,26 +377,30 @@
   proto.activateMonth = function(date) {
     var id = Calendar.Calc.getMonthId(date),
         el,
-        currentEl,
-        className;
+        currentEl;
 
     if (id in this.renderedMonths) {
-      this.displayedMonthEl.className += this.INACTIVE;
+      this.displayedMonthEl.classList.add(this.INACTIVE);
 
       currentEl = this.renderedMonths[id];
-      className = currentEl.className;
-      currentEl.className = className.replace(this.INACTIVE, '');
+      currentEl.classList.remove(this.INACTIVE);
+
       this.displayedMonthEl = currentEl;
+
     } else {
+      var display = this.monthsDisplayElement();
+
       if (this.displayedMonthEl) {
-        this.displayedMonthEl.className += this.INACTIVE;
+        this.displayedMonthEl.classList.add(this.INACTIVE);
       }
 
-      el = document.createElement('div');
-      el.innerHTML = this._renderMonth(date);
-      this.displayedMonthEl = currentEl = el.firstChild;
-      this.monthsDisplayElement().appendChild(currentEl);
+      display.insertAdjacentHTML(
+        'beforeend', this._renderMonth(date)
+      );
 
+      currentEl = display.children[display.children.length - 1];
+
+      this.displayedMonthEl = currentEl;
       this.renderedMonths[id] = currentEl;
     }
   };

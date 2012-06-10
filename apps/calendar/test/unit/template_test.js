@@ -36,6 +36,19 @@ suite('calendar/template', function() {
     });
   });
 
+  test('#renderEach', function() {
+    var tpl = new Template('{x}x{y}');
+    var result = tpl.renderEach([
+      { x: 1, y: 2 },
+      { x: 7, y: 7 }
+    ]);
+
+    assert.deepEqual(result, [
+      '1x2',
+      '7x7'
+    ]);
+  });
+
   suite('#render', function() {
 
     function renderTests(method) {
@@ -49,6 +62,13 @@ suite('calendar/template', function() {
         assert.equal(tpl[method]({a: 'baz'}), 'z baz foo');
         assert.equal(tpl[method]({a: 'baz'}), 'z baz foo');
         assert.equal(tpl[method]({a: 'baz'}), 'z baz foo');
+      });
+
+      test('when input is not an object', function() {
+        var tpl = new Template('foo {value}!');
+        var result = tpl.render(1);
+
+        assert.equal(result, 'foo 1!');
       });
 
       test('without placeholders', function() {
@@ -103,7 +123,6 @@ suite('calendar/template', function() {
         );
       });
 
-
     }
 
     renderTests('render');
@@ -113,14 +132,14 @@ suite('calendar/template', function() {
   suite('benchmarks', function() {
 
     function bench(iter, cb) {
-      var start = Date.now(),
+      var start = window.performance.now(),
           i = 0;
 
       for (; i < iter; i++) {
         cb();
       }
 
-      return Date.now() - start;
+      return window.performance.now() - start;
     }
 
     function vs(iter, cmds) {
@@ -136,13 +155,13 @@ suite('calendar/template', function() {
       return results;
     }
 
-    test('tpl vs format - 20000', function() {
+    test('tpl vs format', function() {
       var tpl = 'My name is {first} {last}, Thats Mr {last}';
       var template;
 
       var expected = 'My name is Sahaja Lal, Thats Mr Lal';
 
-      var results = vs(50000, {
+      var results = vs(5000, {
         compiled: function() {
           template = template || new Template(tpl);
           template.render({first: 'Sahaja', last: 'Lal'});
@@ -154,7 +173,7 @@ suite('calendar/template', function() {
       });
 
       assert.ok(
-        (results.compiled < results.format),
+        (results.compiled <= results.format),
         'compiled template should be faster then format'
       );
     });
@@ -186,7 +205,9 @@ suite('calendar/template', function() {
 
         template: function() {
           tpl = tpl || new Template(
-            '<div class="{divClass}"><span class="{spanClass}">{content}</span></div>'
+            '<div class="{divClass}">' +
+              '<span class="{spanClass}">{content}</span>' +
+            '</div>'
           );
           container.innerHTML = '';
           container.innerHTML = tpl.render({
