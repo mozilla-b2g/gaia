@@ -109,8 +109,13 @@ var Browser = {
     if (e.target.nodeName === 'INPUT') {
       var tabs = Object.keys(this.tabs);
       if (tabs.length > 1) {
+        // The tab to be selected when the current one is deleted
+        var newTab = tabs.indexOf(id);
+        if (newTab === tabs.length - 1) {
+          newTab -= 1;
+        }
         this.deleteTab(id);
-        this.selectTab(Object.keys(this.tabs)[0]);
+        this.selectTab(Object.keys(this.tabs)[newTab]);
         this.showTabScreen();
       }
     } else if (e.target.nodeName === 'A') {
