@@ -92,7 +92,7 @@ body {
   position: relative;
 }
 
-#tabs-list li a:hover {
+#tabs-list li a:hover, #tabs-list li a:active {
   background: #333;
   cursor: pointer;
 }
@@ -112,7 +112,7 @@ body {
   pointer-events: none;
 }
 
-#tabs-list .close:hover {
+#tabs-list .close:hover, #tabs-list .close:active {
   color: #666;
 }
 
@@ -148,7 +148,7 @@ body {
   right: 0px;
   top: 0;
   font-size:28px;
-  color:white;
+  color: white;
   z-index: 100;
   display: block;
   width: 50px;
@@ -157,6 +157,9 @@ body {
   text-align: center;
   cursor: pointer;
   -moz-user-select: none;
+}
+#tabs-badge:active, #tabs-badge:hover {
+  color: #AAA;
 }
 
 #toolbar-start {
@@ -432,7 +435,7 @@ input::-moz-focus-inner {
   cursor: pointer;
 }
 
-#cover ul li:hover {
+#cover ul li:hover, #cover ul li:active {
   background: #EEE;
 }
 
