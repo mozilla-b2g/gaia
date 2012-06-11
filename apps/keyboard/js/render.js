@@ -1,3 +1,5 @@
+'use strict';
+
 const IMERender = (function() {
 
   var ime, menu, pendingSymbolPanel, candidatePanel, candidatePanelToggleButton;
@@ -103,7 +105,8 @@ const IMERender = (function() {
   var showPendingSymbols = function km_showPendingSymbols(symbols) {
     // TODO: Save the element
     var pendingSymbolPanel = document.getElementById('keyboard-pending-symbol-panel');
-    pendingSymbolPanel.textContent = symbols;
+    if (pendingSymbolPanel)
+      pendingSymbolPanel.textContent = symbols;
   };
 
   var showCandidates = function km_showCandidates(candidates, noWindowHeightUpdate) {
@@ -217,24 +220,24 @@ const IMERender = (function() {
   //*
 
   var pendingSymbolPanelCode = function() {
-    this.pendingSymbolPanel = document.createElement('div');
-    this.pendingSymbolPanel.id = 'keyboard-pending-symbol-panel';
-    return this.pendingSymbolPanel;
+    var pendingSymbolPanel = document.createElement('div');
+    pendingSymbolPanel.id = 'keyboard-pending-symbol-panel';
+    return pendingSymbolPanel;
   };
 
   var candidatePanelCode = function(scrollHandler) {
-    this.candidatePanel = document.createElement('div');
-    this.candidatePanel.id = 'keyboard-candidate-panel';
-    this.candidatePanel.addEventListener('scroll', scrollHandler);
-    return this.candidatePanel;
+    var candidatePanel = document.createElement('div');
+    candidatePanel.id = 'keyboard-candidate-panel';
+    candidatePanel.addEventListener('scroll', scrollHandler);
+    return candidatePanel;
   };
 
   var candidatePanelToggleButtonCode = function() {
-    this.toggleButton = document.createElement('span');
-    this.toggleButton.innerHTML = '⇪';
-    this.toggleButton.id = 'keyboard-candidate-panel-toggle-button';
-    this.toggleButton.dataset.keycode = -4;
-    return this.toggleButton;
+    var toggleButton = document.createElement('span');
+    toggleButton.innerHTML = '⇪';
+    toggleButton.id = 'keyboard-candidate-panel-toggle-button';
+    toggleButton.dataset.keycode = -4;
+    return toggleButton;
   };
 
   var buildKey = function buildKey(label, className, width, dataset) {
