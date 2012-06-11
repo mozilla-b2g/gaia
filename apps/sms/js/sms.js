@@ -16,6 +16,12 @@ var MessageManager = {
     for (var i = 0; i < dbData.length; i++) {
       if (cacheData[i].id !== dbData[i].id)
         return true;
+      
+      // Since we could only change read property in message,
+      // Add read property checking for cache.
+      if (cacheData[i].read !== dbData[i].read)
+        return true;
+
     }
     return false;
   },
@@ -89,6 +95,28 @@ var MessageManager = {
     if (list.length > 0) {
       this.deleteMessage(list.shift(), function(result) {
         this.deleteMessages(list, callback);
+      }.bind(this));
+    } else
+      callback();
+  },
+  
+  markMessageRead: function mm_markMessageRead(id, value, callback) {
+    var req = navigator.mozSms.markMessageRead(id, value);
+    req.onsuccess = function onsuccess() {
+      callback(req.result);
+    };
+
+    req.onerror = function onerror() {
+      var msg = 'Mark message read property error in the database. Error: ' + req.errorCode;
+      console.log(msg);      
+      callback(null);
+    };
+  },
+  
+  markMessagesRead: function mm_markMessagesRead(list, value, callback) {
+    if (list.length > 0) {
+      this.markMessageRead(list.shift(), value, function(result) {
+        this.markMessagesRead(list, value, callback);
       }.bind(this));
     } else
       callback();
@@ -297,9 +325,12 @@ var ConversationListView = {
         var num = message.delivery == 'received' ?
                   message.sender : message.receiver;
 
+        var read = message.read;
         var conversation = conversations[num];
-        if (conversation && !conversation.hidden)
+        if (conversation && !conversation.hidden) {
+          conversation.unread += !read? 1: 0;
           continue;
+        }
 
         if (!conversation) {
           conversations[num] = {
@@ -308,6 +339,7 @@ var ConversationListView = {
             'name': num,
             'num': num,
             'timestamp': message.timestamp.getTime(),
+            'unread': !read? 1: 0,
             'id': i
           };
         } else {
@@ -370,7 +402,10 @@ var ConversationListView = {
            '  <div class="msg">' + msgContent + '</div>' +
            (!conversation.timestamp ? '' :
            '  <div class="time" data-time="' + conversation.timestamp + '">' +
-             prettyDate(conversation.timestamp) + '</div>') + '</a>';
+             prettyDate(conversation.timestamp) + '</div>') +
+           (conversation.unread ? 
+           '<div class="unread">' + conversation.unread + '</div>' : '') +
+           '</a>';
   },
 
   searchConversations: function cl_searchConversations() {
@@ -392,6 +427,10 @@ var ConversationListView = {
         var htmlContent = message.body.split('\n')[0];
         var num = message.delivery == 'received' ?
                   message.sender : message.receiver;
+        var read = message.read;
+
+        if (searchedNum[num])
+          searchedNum[num].unread += !message.read? 1: 0;
 
         if (!reg.test(htmlContent) || searchedNum[num] ||
             self.delNumList.indexOf(num) !== -1)
@@ -403,9 +442,10 @@ var ConversationListView = {
           'name': num,
           'num': num,
           'timestamp': message.timestamp.getTime(),
+          'unread': !read? 1: 0,
           'id': i
         };
-        searchedNum[num] = true;
+        searchedNum[num] = msgProperties;
         var msg = self.createNewConversation(msgProperties, reg);
         fragment += msg;
 
@@ -437,12 +477,15 @@ var ConversationListView = {
       case '':
         bodyclassList.remove('msg-edit-mode');
         bodyclassList.remove('msg-search-mode');
-        if (!bodyclassList.contains('msg-search-result-mode'))
+        if (!bodyclassList.contains('msg-search-result-mode') &&
+            !bodyclassList.contains('conversation'))
           return;
 
         this.searchInput.value = '';
         this.updateConversationList();
         bodyclassList.remove('msg-search-result-mode');
+        bodyclassList.remove('conversation');
+        bodyclassList.remove('conversation-new-msg');          
         break;
       case '#_edit':  // Edit mode with all conversations.
         bodyclassList.add('msg-edit-mode');
@@ -482,11 +525,6 @@ var ConversationListView = {
 
       case 'hashchange':
         this.pageStatusController();
-        if (window.location.hash) {
-          return;
-        }
-        document.body.classList.remove('conversation');
-        document.body.classList.remove('conversation-new-msg');
         break;
 
       case 'mousedown':
@@ -742,9 +780,13 @@ var ConversationView = {
         messages.push(pendingMsg);
 
       var fragment = '';
+      var unreadList = [];
 
       for (var i = 0; i < messages.length; i++) {
         var msg = messages[i];
+
+        if (!msg.read)
+          unreadList.push(msg.id);
 
         var uuid = msg.hasOwnProperty('uuid') ? msg.uuid : '';
         var dataId = 'data-id="' + uuid + '"';
@@ -773,6 +815,10 @@ var ConversationView = {
       self.scrollViewToBottom(currentScrollTop);
 
       bodyclassList.add('conversation');
+
+      MessageManager.markMessagesRead(unreadList, true, function markMsgcallback() {
+        // Update the conversationList view page.
+      });
     }, filter, true);
   },
 

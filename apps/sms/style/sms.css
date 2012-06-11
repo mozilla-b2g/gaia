@@ -392,6 +392,18 @@ body.msg-edit-mode #msg-conversations-list > a {
   font-size: 18px;
 }
 
+#msg-conversations-list .unread {
+  position: absolute;
+  top: 45px;
+  right: 26px;
+  padding: 0 16px;
+  text-align: center;
+  color: rgb(255, 255, 255);
+  font-size: 18px;
+  background: -moz-linear-gradient(top, #00ADEE, #0078A5);
+  border-radius: 9px;
+}
+
 body.msg-edit-mode #msg-conversations-list .name {
   width: -moz-calc(100% - 190px);
 }
