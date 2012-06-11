@@ -71,6 +71,7 @@ var Browser = {
   // that page
   handlePageScreenClicked: function browser_handlePageScreenClicked(e) {
     if (this.currentScreen === this.TABS_SCREEN) {
+      this.setTabVisibility(this.currentTab, true);
       this.showPageScreen();
     }
   },
@@ -165,12 +166,15 @@ var Browser = {
         // We capture screenshots for everything when loading is
         // completed, but set background tabs inactive
         if (tab.dom.getScreenshot) {
-          tab.dom.getScreenshot().onsuccess = function(e) {
+          tab.dom.getScreenshot().onsuccess = (function(e) {
             tab.screenshot = e.target.result;
             if (!isCurrentTab) {
-              tab.dom.setActive(false);
+              this.setTabVisibility(tab, false);
             }
-          }
+            if (this.currentScreen === this.TABS_SCREEN) {
+              this.showTabScreen();
+            }
+          }).bind(this);
         }
         break;
 
@@ -430,6 +434,20 @@ var Browser = {
     this.navigate(e.target.getAttribute('href'));
   },
 
+  setTabVisibility: function(tab, visible) {
+    // We put loading tabs off screen as we want to screenshot
+    // them when loaded
+    if (tab.loading) {
+      tab.dom.style.top = visible ? '0px' : '-999px';
+      return;
+    }
+
+    if (tab.dom.setActive) {
+      tab.dom.setActive(visible);
+    }
+    tab.dom.style.display = visible ? 'block' : 'none';
+  },
+
   createTab: function browser_createTab(url) {
     var iframe = document.createElement('iframe');
     var browserEvents = ['loadstart', 'loadend', 'locationchange',
@@ -452,12 +470,6 @@ var Browser = {
       screenshot: null
     };
 
-    if (!iframe.setActive) {
-      iframe.setActive = function(active) {
-        iframe.style.display = active ? 'block' : 'none';
-      }
-    }
-
     browserEvents.forEach((function attachBrowserEvent(type) {
       iframe.addEventListener('mozbrowser' +
         type, this.handleBrowserEvent(tab));
@@ -479,18 +491,13 @@ var Browser = {
 
   hideCurrentTab: function browser_hideCurrentTab() {
     var tab = this.currentTab;
-    tab.dom.setActive(false);
+    this.setTabVisibility(tab, false);
     this.throbber.classList.remove('loading');
-    this.currentTab = null;
   },
 
   selectTab: function browser_selectTab(id) {
-    if (this.currentTab !== null && this.currentTab.id !== id) {
-      this.hideCurrentTab();
-    }
-
     this.currentTab = this.tabs[id];
-    this.currentTab.dom.setActive(true);
+    this.setTabVisibility(this.currentTab, true);
     // We may have picked a currently loading background tab
     // that was positioned off screen
     this.currentTab.dom.style.top = '0px';
@@ -522,8 +529,8 @@ var Browser = {
   },
 
   showTabScreen: function browser_showTabScreen() {
+    this.hideCurrentTab();
     this.tabsBadge.innerHTML = '+';
-    this.urlInput.blur();
 
     var multipleTabs = Object.keys(this.tabs).length > 1;
     var ul = document.createElement('ul');
