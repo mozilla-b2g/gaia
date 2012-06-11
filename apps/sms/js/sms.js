@@ -137,6 +137,10 @@ var DelayDeleteManager = {
  * If cache return "undefined". There will be no callback from cache.
  * Callback will be called twice if cached data turned out to be different than
  * the data from db.
+ * Contact return data type:
+ *   a) null : Request indexedDB error.
+ *   b) Empty array : Request success with no matched result.
+ *   c) Array with objects : Request success with matched contacts.
 */
 var ContactDataManager = {
   contactData: {},
@@ -145,7 +149,9 @@ var ContactDataManager = {
                       options.filterOp == 'contains';
     if (isCacheable &&
         typeof this.contactData[options.filterValue] !== 'undefined') {
-      callback([this.contactData[options.filterValue]]);
+      var cacheResult = this.contactData[options.filterValue] ?
+             [this.contactData[options.filterValue]] : [];
+      callback(cacheResult);
     }
 
     var self = this;
