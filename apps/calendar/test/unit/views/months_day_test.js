@@ -4,7 +4,7 @@ requireApp('calendar/test/unit/helper.js', function() {
   requireApp('calendar/js/gesture_detector.js');
   requireCalendarController();
   requireApp('calendar/js/templates/day.js');
-  requireApp('calendar/js/views/day.js');
+  requireApp('calendar/js/views/months_day.js');
 });
 
 suite('calendar/views/day', function() {
@@ -31,7 +31,7 @@ suite('calendar/views/day', function() {
     events = controller.eventList;
 
 
-    subject = new Calendar.Views.Day({
+    subject = new Calendar.Views.MonthsDay({
       controller: controller,
       headerSelector: '#test .dayHeader',
       eventsSelector: '#test .eventList'

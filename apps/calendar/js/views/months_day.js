@@ -205,6 +205,6 @@
 
   };
 
-  Calendar.Views.Day = Day;
+  Calendar.Views.MonthsDay = Day;
 
 }(this));

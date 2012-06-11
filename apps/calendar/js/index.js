@@ -8,7 +8,7 @@
     controller: controller
   });
 
-  var dayView = new Calendar.Views.Day({
+  var dayView = new Calendar.Views.MonthsDay({
     controller: controller
   });
 

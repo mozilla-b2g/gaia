@@ -82,7 +82,6 @@
 
     render: function(args) {
       this.render = this.compile(this.template);
-      //console.log(this.render.toString());
       return this.render.apply(this, arguments);
     },
 

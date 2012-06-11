@@ -228,8 +228,6 @@ suite('calendar/template', function() {
         }
       });
 
-      console.log(results);
-
       container.parentNode.removeChild(container);
     });
 

@@ -18,7 +18,6 @@ suite('templates/month', function() {
 
   test('#busy', function() {
     var result = renderHTML('busy', 5);
-    console.log(subject.busy.render.toString());
 
     assert.ok(result);
     assert.include(result, 'busy-5');
