@@ -1,4 +1,5 @@
 function requireCalendarController() {
+  requireApp('calendar/js/template.js');
   requireApp('calendar/js/format.js');
   requireApp('calendar/js/responder.js');
   requireApp('calendar/js/models/busytime.js');

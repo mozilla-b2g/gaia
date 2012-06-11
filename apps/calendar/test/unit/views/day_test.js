@@ -3,10 +3,11 @@ requireApp('calendar/js/gesture_detector.js');
 requireApp('calendar/test/unit/helper.js', function() {
   requireApp('calendar/js/gesture_detector.js');
   requireCalendarController();
+  requireApp('calendar/js/templates/day.js');
   requireApp('calendar/js/views/day.js');
 });
 
-suite('calendar/views/calendar', function() {
+suite('calendar/views/day', function() {
   var subject,
       controller,
       events;

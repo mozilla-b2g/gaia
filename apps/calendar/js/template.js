@@ -42,6 +42,7 @@
   Template.prototype = {
     DEFAULT_KEY: 'value',
     QUOTE: /"/g,
+    NEWLINES: /\n/g,
 
     _compiled: null,
 
@@ -50,8 +51,14 @@
           fnInst = '';
 
       str = str.replace(this.QUOTE, '\\"');
+      str = str.replace(this.NEWLINES, '\\n');
+
+
       fn = 'var h = Calendar.Template.handlers;';
-      fn += 'if (typeof(a) !== "object" && typeof(a) !== "undefined") {';
+
+      fn += 'if (typeof(a) === "undefined") {';
+        fn += 'a = {};';
+      fn += '} else if(typeof(a) !== "object") {';
         fn += 'a = {"' + this.DEFAULT_KEY + '": a };';
       fn += '}';
 
@@ -68,7 +75,9 @@
 
       });
 
-      return new Function('a', fn + 'return "' + fnStr + '"');
+      fnStr = fn + 'return "' + fnStr + '";';
+
+      return new Function('a', fnStr);
     },
 
     render: function(args) {

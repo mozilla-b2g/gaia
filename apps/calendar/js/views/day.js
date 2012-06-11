@@ -7,7 +7,7 @@
     Calendar.Views = {};
   }
 
-  var format = Calendar.format;
+  var template = Calendar.Templates.Day;
 
   function Day(options) {
     var key;
@@ -63,34 +63,6 @@
       'December'
     ],
 
-    templates: {
-      eventHour: [
-        '<section>',
-          '<h4>%s</h4>',
-          '<ol class="events">',
-            '%s',
-          '</ol>',
-        '</section>'
-      ].join(''),
-
-      eventAttendee: [
-        '<span class="attendee">%s</span>'
-      ].join(' '),
-
-      eventItem: [
-        '<li class="event">',
-          '<h5>%s</h5>',
-          '<span class="details">',
-            '<span class="location">',
-              '%s',
-            '</span>',
-            '\n-\n',
-            '%s',
-          '</span>',
-        '</li>'
-      ].join(' ')
-    },
-
     headerSelector: '#selected-day-title',
     eventsSelector: '#event-list',
 
@@ -119,8 +91,7 @@
         date.getDate()
       ].join(' ');
 
-      //really should not be innerHTML
-      this.headerElement().innerHTML = header;
+      this.headerElement().textContent = header;
     },
 
     _renderDay: function(date) {
@@ -178,7 +149,7 @@
         var newHour = (hour - 12) || 12;
         return String(newHour) + ' pm';
       } else {
-        if(hour == 0){
+        if (hour == 0) {
           hour = 12;
         }
         return String(hour) + 'am';
@@ -193,37 +164,30 @@
         eventHtml.push(this._renderEventDetails(item.event));
       }.bind(this));
 
-      return format(
-        this.templates.eventHour,
-        this._formatHour(hour),
-        eventHtml.join('')
-      );
+      return template.hour.render({
+        hour: hour,
+        items: eventHtml.join('')
+      });
     },
 
     _renderEventDetails: function(object) {
       var name = object.name,
           location = object.location,
-          attendees = object.attendees,
-          tpl = this.templates.eventItem;
+          attendees = object.attendees;
 
-      return format(
-        tpl,
-        name,
-        location || '',
-        this._renderAttendees(attendees) || ''
-      );
+      return template.event.render({
+        title: name,
+        location: location,
+        attendees: this._renderAttendees(attendees)
+      });
     },
 
     _renderAttendees: function(list) {
-      var tpl = this.templates.eventAttendee;
-
       if (!(list instanceof Array)) {
         list = [list];
       }
 
-      return list.map(function(item) {
-        return format(tpl, item);
-      }).join(',');
+      return template.attendee.renderEach(list).join(',');
     },
 
     _updateEvents: function(date) {

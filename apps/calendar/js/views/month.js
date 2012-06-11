@@ -8,6 +8,8 @@
     Calendar.Views = {};
   }
 
+  var template = Calendar.Templates.Month;
+
   /**
    * Creates an instance of a month.
    */
@@ -25,7 +27,6 @@
       }
     }
 
-    this.templates = new Calendar.Templates.Month;
     this.selectedDay = null;
     this.renderedMonths = {};
 
@@ -188,7 +189,7 @@
   };
 
   proto._renderBusyUnits = function(units) {
-    return this.templates.busy.renderEach(
+    return template.busy.renderEach(
       this._getBusyUnits(units)
     ).join('');
   };
@@ -202,7 +203,7 @@
     var month = this.controller.currentMonth.getMonth(),
         year = this.controller.currentMonth.getFullYear();
 
-    return this.templates.currentMonth.render({
+    return template.currentMonth.render({
       year: year,
       month: this.monthNames[month]
     });
@@ -239,7 +240,7 @@
     hours = busytimes.getHours(day);
     busyHtml = this._renderBusyUnits(hours);
 
-    return this.templates.day.render({
+    return template.day.render({
       id: 'month-view-' + id,
       dateString: id,
       state: state,
@@ -263,7 +264,7 @@
       output.push(this._renderDay(days[i]));
     }
 
-    return this.templates.week.render(output.join(''));
+    return template.week.render(output.join(''));
   };
 
   /**
@@ -274,11 +275,11 @@
   proto._renderDayHeaders = function() {
     var days;
 
-    days = this.templates.weekDaysHeaderDay.renderEach(
+    days = template.weekDaysHeaderDay.renderEach(
       this.dayNames
     );
 
-    return this.templates.weekDaysHeader.render(
+    return template.weekDaysHeader.render(
       days.join('')
     );
   };
@@ -306,7 +307,7 @@
       );
     }
 
-    return this.templates.month.render({
+    return template.month.render({
       id: id,
       content: weekList.join('\n')
     });

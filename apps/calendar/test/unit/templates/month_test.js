@@ -5,7 +5,7 @@ suite('templates/month', function() {
   var subject;
 
   suiteSetup(function() {
-    subject = new Calendar.Templates.Month();
+    subject = Calendar.Templates.Month;
   });
 
   function a() {

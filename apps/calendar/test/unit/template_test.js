@@ -107,6 +107,16 @@ suite('calendar/template', function() {
         );
       });
 
+      test('without arguments', function() {
+        var tpl = new Template('foo {value}');
+        assert.equal(tpl.render(), 'foo ');
+      });
+
+      test('with newlines in tpl', function() {
+        var tpl = new Template('\nfoo {value}');
+        assert.equal(tpl.render('bar'), '\nfoo bar');
+      });
+
       test('no html escape', function() {
         var tpl, input, output;
 
