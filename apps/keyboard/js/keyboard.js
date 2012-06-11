@@ -548,8 +548,10 @@ const IMEManager = {
       sendCandidates: function(candidates) {
         self.showCandidates(candidates);
       },
-      sendPendingSymbols: function(symbols) {
-        self.showPendingSymbols(symbols);
+      sendPendingSymbols: function(symbols, highlightStart,
+                                   highlightEnd, highlightState)  {
+        self.showPendingSymbols(symbols, highlightStart,
+                                highlightEnd, highlightState);
       },
       sendKey: function(keyCode) {
         switch (keyCode) {
