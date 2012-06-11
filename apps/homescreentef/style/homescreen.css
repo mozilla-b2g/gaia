@@ -40,22 +40,12 @@ section,footer,nav,a,img {
     border-radius: .25rem;
   }
 
-#content {
-  width:100%;
-  height: 90%;
-  overflow: hidden;
-}
-
-#content > section {
+#icongrid {
   width: 100%;
   height: 90%;
   position: fixed;
   top: 0;
   left: 0;
-}
-
-#icongrid {
-  -moz-transform: translateX(100%);
   background-image: url('../resources/images/background.jpg');
   background-size: cover;
   z-index: 2;

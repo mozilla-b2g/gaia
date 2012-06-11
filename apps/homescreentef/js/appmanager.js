@@ -28,6 +28,7 @@ if(typeof owdAppManager === 'undefined') {
                           'http://homescreentef.gaiamobile.org',
                           'http://test-agent.gaiamobile.org',
                           'http://uitest.gaiamobile.org',
+                          'http://template.gaiamobile.org',
                           'http://keyboard.gaiamobile.org'];
 
   navigator.mozApps.mgmt.getAll().onsuccess = function(e) {
@@ -157,6 +158,11 @@ if(typeof owdAppManager === 'undefined') {
   owdAppManager.getIcon = function(origin) {
 
     var manifest = this.getManifest(origin);
+
+    if (!manifest) {
+      console.log(origin + ' has not defined its manifest');
+      return 'http://' + document.location.host + '/resources/images/Unknown.png';
+    }
 
     var ret = manifest.targetIcon;
 

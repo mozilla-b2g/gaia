@@ -298,7 +298,7 @@ if (!owd.Page) {
       if (owd.GridManager.isEditMode()) {
         if (elem.className === 'options') {
           // <li> parent element defines the origin
-          owd.Homescreen.showContextualMenu(elem.parentNode.dataset.origin);
+          owd.Homescreen.showAppDialog(elem.parentNode.dataset.origin);
         }
       } else if (elem.className === 'icon') {
         owdAppManager.getByOrigin(elem.dataset.origin).launch();

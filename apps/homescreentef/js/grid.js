@@ -17,8 +17,6 @@ if (!owd.GridManager) {
   (function(doc) {
     'use strict';
 
-    const HOMESCREEN_TEF = owdConfig.homescreen === 'TEF';
-
     var container, counter, pages, startEvent = 'mousedown',
         moveEvent = 'mousemove', endEvent = 'mouseup', elementTarget, iniPosX, curPosX,
         winInnerWidth = window.innerWidth, threshold = window.innerWidth / 4,
@@ -88,11 +86,11 @@ if (!owd.GridManager) {
 
       pageHelper.getCurrent().moveTo(movementX + px);
 
-      if (movementX > 0 && currentPage > 0) {
+      if (currentPage > 0) {
         pageHelper.getPrevious().moveTo('-100% + ' + movementX + px);
       }
 
-      if (movementX < 0 && currentPage < pages.total - 1) {
+      if (currentPage < pages.total - 1) {
         pageHelper.getNext().moveTo('100% + ' + movementX + px);
       }
     }
@@ -107,9 +105,11 @@ if (!owd.GridManager) {
       if (ix !== cx) {
         var currentPage = pages.current;
 
-        if (ix < cx && currentPage > 0) {
+        if (currentPage > 0) {
           pageHelper.getPrevious().moveToLeft();
-        } else if (ix > cx && currentPage < pages.total - 1) {
+        }
+
+        if (currentPage < pages.total - 1) {
           pageHelper.getNext().moveToRight();
         }
 
@@ -194,50 +194,17 @@ if (!owd.GridManager) {
         dragger.move(evt.target);
       } else {
         var difX = -(status.iCoords.x - status.cCoords.x);
-        if (swipingToCarousel(difX)) {
+        if (!canceledTapHoldObserver && !isTapEvent(difX)) {
           removeTapHoldObserver();
-          window.removeEventListener(moveEvent, owd.GridManager);
-          window.removeEventListener(endEvent, owd.GridManager);
-          dispatchGestureToCarousel();
-        } else {
-          if (!canceledTapHoldObserver && !isTapEvent(difX)) {
-            removeTapHoldObserver();
-          }
-          pan(difX);
         }
+        pan(difX);
       }
-    }
-
-    /*
-     * Homescreen will dispatch the gesture
-     *
-     */
-    function dispatchGestureToCarousel() {
-      var ev = document.createEvent('Event');
-      ev.initEvent(startEvent, true, true);
-      ev.pageX = status.cCoords.x;
-      container.parentNode.dispatchEvent(ev);
     }
 
     /*
      * Clicks on icons fires touchmove events for poor devices
      */
     var thresholdForTapping = 10;
-
-    /*
-     * Returns true if it's the first page and swipe from left to
-     * right and not edit mode
-     *
-     * @param{int} horizontal movement from start and current position
-     */
-    function swipingToCarousel(difX) {
-      if (HOMESCREEN_TEF) {
-        return (!owd.GridManager.isEditMode() &&
-              pages.current === 0 && difX > thresholdForTapping);
-      } else {
-        return false;
-      }
-    }
 
     /*
      * Returns true if it's a tap event

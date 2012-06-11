@@ -55,14 +55,5 @@ if (!owd.PaginationBar) {
       }
     }
 
-    /* One more page when the carousel is displayed */
-    if (owdConfig.homescreen === 'TEF') {
-      owd.PaginationBar.oldUpdate = owd.PaginationBar.update;
-
-      owd.PaginationBar.update = function(current, total) {
-        owd.PaginationBar.oldUpdate(current + 1, total + 1);
-      }
-    }
-
   }(document));
 }
