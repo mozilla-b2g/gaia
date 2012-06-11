@@ -356,11 +356,11 @@ endif
 
 # Lint apps
 lint:
-	# ignore lint on:
-	# cubevid
-	# crystalskull
-	# towerjelly
-	gjslint --nojsdoc -r apps -e 'cubevid,crystalskull,towerjelly'
+	@# ignore lint on:
+	@# cubevid
+	@# crystalskull
+	@# towerjelly
+	@gjslint --nojsdoc -r apps -e 'cubevid,crystalskull,towerjelly'
 
 # Generate a text file containing the current changeset of Gaia
 # XXX I wonder if this should be a replace-in-file hack. This would let us
