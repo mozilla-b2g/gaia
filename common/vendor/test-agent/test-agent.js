@@ -457,8 +457,12 @@
     errorObject.message = err.message || err.toString();
     errorObject.type = err.type || 'Error';
     errorObject.constructorName = err.constructor.name || '';
-    errorObject.expected = err.expected || '';
-    errorObject.actual = err.actual || '';
+    errorObject.expected = err.expected || null;
+    errorObject.actual = err.actual || null;
+
+    if (typeof(err) === 'object' && 'uncaught' in err) {
+      errorObject.uncaught = err.uncaught;
+    }
 
     return errorObject;
   };
@@ -1046,7 +1050,6 @@
   'use strict';
 
   var isNode = typeof(window) === 'undefined',
-      Native,
       Responder;
 
   if (!isNode) {
@@ -1054,10 +1057,8 @@
       window.TestAgent = {};
     }
 
-    Native = (Native || WebSocket || MozWebSocket);
     Responder = TestAgent.Responder;
   } else {
-    Native = require('ws');
     Responder = require('./responder');
   }
 
@@ -1091,6 +1092,11 @@
     this.proxyEvents = ['open', 'close', 'message'];
     this._proxiedEvents = {};
 
+    if (isNode) {
+      this.Native = require('ws');
+    } else {
+      this.Native = (window.WebSocket || window.MozWebSocket);
+    }
 
     this.on('open', this._setConnectionStatus.bind(this, true));
     this.on('close', this._setConnectionStatus.bind(this, false));
@@ -1107,7 +1113,6 @@
   Client.RetryError.prototype = Object.create(Error.prototype);
 
   Client.prototype = Object.create(Responder.prototype);
-  Client.prototype.Native = Native;
 
   /**
    * True when connection is opened.
@@ -1441,7 +1446,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     'fullTitle',
     'root',
     'duration',
-    'state'
+    'state',
+    'type'
   ];
 
   function jsonExport(object, additional) {
