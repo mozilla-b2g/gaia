@@ -4,13 +4,43 @@
 'use strict';
 
 var MessageManager = {
+  allMessagesCache: [],
+  
+  // Compare the cache and data return from indexedDB to determine
+  // whether we need to update the cache and callback with latest messages.
+  needUpdateCache: function mm_needUpdateCache(dbData) {
+    var cacheData = this.allMessagesCache;
+    if (cacheData.length !== dbData.length)
+      return true;
+    
+    for (var i = 0; i < dbData.length; i++) {
+      if (cacheData[i].id !== dbData[i].id)
+        return true;
+    }
+    return false;
+  },
+  
+  // Cache all messages for improving the conversation lists update.
+  // getMessages will return cache data syncronusly and query indexedDB
+  // asyncronusly. If message data changed, getMessages will callback again
+  // with latest messages.
   getMessages: function mm_getMessages(callback, filter, invert) {
+    if (!filter)
+      callback(this.allMessagesCache);
+    
     var request = navigator.mozSms.getMessages(filter, !invert);
-
+    var self = this;
     var messages = [];
     request.onsuccess = function onsuccess() {
       var cursor = request.result;
       if (!cursor.message) {
+        if (!filter) {
+          if (!self.needUpdateCache(messages))
+            return;
+
+          self.allMessagesCache = messages;
+        }
+
         callback(messages);
         return;
       }
@@ -103,44 +133,47 @@ var DelayDeleteManager = {
 
 /* Contact Manager for maintaining contact cache and access contact DB:
  * 1. Maintain used contacts in contactData object literal.
- * 2. getContactData: It will have both syncronus and asyncronus callback.
- *  Syncronus callback will be executed when cache data exist.
- *  Asyncronus callback will be executed except the data in cache and DB is the same.
+ * 2. getContactData: Callback with contact data from 1)cache 2)indexedDB.
+ * If cache return "undefined". There will be no callback from cache.
+ * Callback will be called twice if cached data turned out to be different than
+ * the data from db.
 */
 var ContactDataManager = {
-  init: function cm_init() {
-    this.contactData = {};
-  },
+  contactData: {},
   getContactData: function cm_getContactData(options, callback) {
-    var hasTel = options.filterBy.indexOf('tel') !== -1;
-    if (hasTel && options.filterOp == 'contains') {
-      if (options.filterValue in this.contactData)
-        callback([this.contactData[options.filterValue]]);
+    var isCacheable = options.filterBy.indexOf('tel') !== -1 &&
+                      options.filterOp == 'contains';
+    if (isCacheable &&
+        typeof this.contactData[options.filterValue] !== 'undefined') {
+      callback([this.contactData[options.filterValue]]);
     }
 
     var self = this;
     var req = window.navigator.mozContacts.find(options);
     req.onsuccess = function onsuccess() {
       // Update the cache before callback.
-      if (hasTel && options.filterOp == 'contains') {
+      if (isCacheable) {
         var cacheData = self.contactData[options.filterValue];
-        if (req.result.length > 0) {
-          var dbData = req.result[0];
-          if (cacheData && cacheData.name[0] == dbData.name[0])
+        var result = req.result;
+        if (result.length > 0) {
+          if (cacheData && (cacheData.name[0] == dbData.name[0]))
             return;
 
-          self.contactData[options.filterValue] = dbData;
+          self.contactData[options.filterValue] = result[0];
         } else {
-          delete self.contactData[options.filterValue];
+          if (cacheData === null)
+            return;
+
+          self.contactData[options.filterValue] = null;
         }
       }
-      callback(req.result);
+      callback(result);
     };
 
     req.onerror = function onerror() {
       var msg = 'Contact finding error. Error: ' + req.errorCode;
       console.log(msg);
-      callback();
+      callback(null);
     };
   }
 };
@@ -189,7 +222,6 @@ var ConversationListView = {
 
   init: function cl_init() {
     this.delNumList = [];
-    this.allMessages = [];
     if (navigator.mozSms)
       navigator.mozSms.addEventListener('received', this);
 
@@ -249,7 +281,6 @@ var ConversationListView = {
         messages.unshift(pendingMsg);
 
       var conversations = {};
-      self.allMessages = messages;
       for (var i = 0; i < messages.length; i++) {
         var message = messages[i];
 
@@ -303,7 +334,7 @@ var ConversationListView = {
     }, null);
   },
   
-  createHighlightStr: function cl_createHighlightStr(text, searchRegExp) {
+  createHighlightHTML: function cl_createHighlightHTML(text, searchRegExp) {
     var sliceStrs = text.split(searchRegExp);
     var patterns = text.match(searchRegExp);
     var str = '';
@@ -319,12 +350,10 @@ var ConversationListView = {
   createNewConversation: function cl_createNewConversation(conversation, reg) {
     var dataName = escapeHTML(conversation.name || conversation.num, true);
     var name = escapeHTML(conversation.name);
-    var textContent = conversation.body.split('\n')[0];
-    if (reg) {
-      textContent = this.createHighlightStr(textContent, reg);
-    }
-    else
-      textContent = escapeHTML(textContent);
+    var htmlContent = conversation.body.split('\n')[0];
+    var msgContent = reg ? this.createHighlightHTML(htmlContent, reg):
+                           escapeHTML(htmlContent);
+
     return '<a href="#num=' + conversation.num + '"' +
            ' data-num="' + conversation.num + '"' +
            ' data-name="' + dataName + '"' +
@@ -332,7 +361,7 @@ var ConversationListView = {
            ' class="' + (conversation.hidden ? 'hide' : '') + '">' +
            '<input type="checkbox" class="fake-checkbox"/>' + '<span></span>' +
            '  <div class="name">' + name + '</div>' +
-           '  <div class="msg">' + textContent + '</div>' +
+           '  <div class="msg">' + msgContent + '</div>' +
            (!conversation.timestamp ? '' :
            '  <div class="time" data-time="' + conversation.timestamp + '">' +
              prettyDate(conversation.timestamp) + '</div>') + '</a>';
@@ -346,42 +375,46 @@ var ConversationListView = {
       return;
     }
 
-    str = str.replace(/[.*+?^${}()|[\]\/\\]/g, '\\$&');
-    var fragment = '';
-    var searchedNum ={};
-    for (var i = 0; i < this.allMessages.length; i++) {
-      var reg = new RegExp(str, 'ig');
-      var message = this.allMessages[i];
-      var textContent = message.body.split('\n')[0];
-      var num = message.delivery == 'received' ?
-                message.sender : message.receiver;
+    var self = this;
+    MessageManager.getMessages(function getMessagesCallback(messages) {
+      str = str.replace(/[.*+?^${}()|[\]\/\\]/g, '\\$&');
+      var fragment = '';
+      var searchedNum ={};
+      for (var i = 0; i < messages.length; i++) {
+        var reg = new RegExp(str, 'ig');
+        var message = messages[i];
+        var htmlContent = message.body.split('\n')[0];
+        var num = message.delivery == 'received' ?
+                  message.sender : message.receiver;
 
-      if (!reg.test(textContent) || searchedNum[num] || this.delNumList.indexOf(num) !== -1)
-        continue;
+        if (!reg.test(htmlContent) || searchedNum[num] ||
+            self.delNumList.indexOf(num) !== -1)
+          continue;
 
-      var msgProperties = {
-        'hidden': false,
-        'body': message.body,
-        'name': num,
-        'num': num,
-        'timestamp': message.timestamp.getTime(),
-        'id': i
-      };
-      searchedNum[num] = true;
-      var msg = this.createNewConversation(msgProperties, reg);
-      fragment += msg;
+        var msgProperties = {
+          'hidden': false,
+          'body': message.body,
+          'name': num,
+          'num': num,
+          'timestamp': message.timestamp.getTime(),
+          'id': i
+        };
+        searchedNum[num] = true;
+        var msg = self.createNewConversation(msgProperties, reg);
+        fragment += msg;
 
-    }
-    this.view.innerHTML = fragment;
-    
-    // update the conversation sender/receiver name with contact data. 
-    var conversationList = this.view.children;
-    for (var i = 0; i < conversationList.length; i++) {
-      this.updateMsgWithContact(conversationList[i]);
-    }
-    if (this.delNumList.length > 0) {
-      this.showUndoToolbar();
-    }    
+      }
+      self.view.innerHTML = fragment;
+
+      // update the conversation sender/receiver name with contact data. 
+      var conversationList = self.view.children;
+      for (var i = 0; i < conversationList.length; i++) {
+        self.updateMsgWithContact(conversationList[i]);
+      }
+      if (self.delNumList.length > 0) {
+        self.showUndoToolbar();
+      }
+    }, null);
   },
 
   openConversationView: function cl_openConversationView(num) {
@@ -876,7 +909,6 @@ window.addEventListener('localized', function showBody() {
     var request = navigator.mozSettings.getLock().get('language.current');
     request.onsuccess = function() {
       selectedLocale = request.result['language.current'] || navigator.language;
-      ContactDataManager.init();
       ConversationView.init();
       ConversationListView.init();
     }
