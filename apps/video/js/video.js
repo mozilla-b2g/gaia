@@ -23,6 +23,9 @@ window.addEventListener('DOMContentLoaded', function() {
 
   var currentVideo;  // The data for the current video
 
+  var THUMBNAIL_WIDTH = 160;  // Just a guess at a size for now
+  var THUMBNAIL_HEIGHT = 160;
+
   //
   // XXX
   // We want /sdcard storage. Right now, that will be the last
@@ -68,16 +71,40 @@ window.addEventListener('DOMContentLoaded', function() {
       // We get metadata asynchronously
       testplayer.preload = 'metadata';
       var url = URL.createObjectURL(file);
+      testplayer.style.width = THUMBNAIL_WIDTH + 'px';
+      testplayer.style.height = THUMBNAIL_HEIGHT + 'px';
       testplayer.src = url;
       testplayer.onloadedmetadata = function() {
         videodata.duration = testplayer.duration;
         videodata.width = testplayer.videoWidth;
         videodata.height = testplayer.videoHeight;
 
-        // XXX try to get a thumbnail from 30 seconds in or something?
+        testplayer.currentTime = 20;  // Skip ahead 20 seconds
+        if (testplayer.seeking) {
+          testplayer.onseeked = doneSeeking;
+        }
+        else
+          doneSeeking();
 
-        // add this video and its metadata to our list
-        addVideo(videodata);
+        // After we've skiped ahead, try go get a poster image for the movie
+        // XXX Because of https://bugzilla.mozilla.org/show_bug.cgi?id=730765
+        // Its not clear whether this is working right. But it does
+        // end up producing an image for each video.
+        function doneSeeking() {
+          try {
+            var canvas = document.createElement('canvas');
+            canvas.width = THUMBNAIL_WIDTH;
+            canvas.height = THUMBNAIL_HEIGHT;
+            var ctx = canvas.getContext('2d');
+            ctx.drawImage(testplayer, 0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
+            videodata.poster = canvas.mozGetAsFile('poster', 'image/jpeg');
+          }
+          catch (e) {
+            console.error('Failed to create a poster image:', e);
+          }
+
+          addVideo(videodata);
+        }
 
         URL.revokeObjectURL(url);
 
@@ -101,7 +128,10 @@ window.addEventListener('DOMContentLoaded', function() {
     videos.push(videodata);
 
     var poster = document.createElement('img');
-    // poster.src = videodata.poster;
+    poster.src = URL.createObjectURL(videodata.poster);
+    poster.onload = function() {
+      URL.revokeObjectURL(poster.src);
+    };
 
     var title = document.createElement('p');
     title.className = 'name';
