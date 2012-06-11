@@ -72,27 +72,27 @@ const IMERender = (function() {
       this.ime.insertBefore(pendingSymbolPanelCode(), this.ime.firstChild);
       showPendingSymbols('');
       showCandidates([], true);
-      // currentEngine.empty();
     }
   };
 
   var hideIME = function km_hideIME(imminent) {
-
     if (this.ime.dataset.hidden)
-    return;
+      return;
 
     this.ime.dataset.hidden = 'true';
+    var ime = this.ime;
 
     if (imminent) {
-      var ime = this.ime;
       ime.classList.add('imminent');
       window.setTimeout(function remoteImminent() {
         ime.classList.remove('imminent');
-        }, 0);
+      }, 0);
 
-        ime.innerHTML = '';
-      }
-    };
+      ime.innerHTML = '';
+    } else {
+      ime.classList.add('hide');
+    }
+  };
 
   var highlightKey = function kr_updateKeyHighlight(key) {
     key.classList.add('highlighted');

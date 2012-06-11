@@ -135,11 +135,13 @@ const IMEManager = {
     // Handling showime and hideime events, as they are received only in System
     // https://bugzilla.mozilla.org/show_bug.cgi?id=754083
 
-    window.addEventListener('message', function receiver(evt) {
-      var event = JSON.parse(evt.data);
-      IMEManager.handleEvent(event);
-    });
-
+    window.navigator.mozKeyboard.onfocuschange = function(e) {
+      if(e.detail.type === 'blur') {
+        IMEController.hideIME();
+      } else {
+        IMEController.showIME(e.detail.type);
+      }
+    };
   },
 
   uninit: function km_uninit() {

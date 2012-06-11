@@ -768,6 +768,7 @@ const IMEController = (function() {
 
     showIME: function(type) {
       delete IMERender.ime.dataset.hidden;
+      IMERender.ime.classList.remove('hide');
       _currentInputType = _mapType(type); // TODO: this should be unneccesary
       _draw(_baseLayout, _currentInputType, _layoutMode);
 
@@ -779,6 +780,7 @@ const IMEController = (function() {
     },
 
     hideIME: function km_hideIME(imminent) {
+      IMERender.ime.classList.add('hide');
       IMERender.hideIME(imminent);
     },
 

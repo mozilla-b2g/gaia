@@ -36,7 +36,13 @@ html, body {
   padding: 1rem;
   background: -moz-radial-gradient(#b1b1b1, #686868);
   -moz-transition: -moz-transform 0.3s ease;
+  -moz-transform: translateY(0);
 }
+
+#keyboard.hide {
+  -moz-transform: translateY(100%);
+}
+
 .keyboard-row {
   margin: 1rem 0 0;
   white-space: nowrap;
@@ -48,7 +54,7 @@ html, body {
 }
 .keyboard-row:first-child { margin-top: 0; }
 
-button::-moz-focus-inner{ 
+button:-moz-focus-inner{ 
   padding:0;
   border:none 
 }
