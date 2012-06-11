@@ -70,7 +70,8 @@ var ScreenManager = {
 
         break;
       case 'keyup':
-        if (this.screenEnabled && this._turnOffScreenOnKeyup)
+        if (this.screenEnabled && this._turnOffScreenOnKeyup &&
+            evt.keyCode == evt.DOM_VK_SLEEP)
           this.turnScreenOff();
 
         break;
