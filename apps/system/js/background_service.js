@@ -67,9 +67,8 @@ var BackgroundServiceManager = (function bsm() {
     if (!frame)
       return false;
 
-    frame.parentNode.removeChild(frame);
+    document.body.removeChild(frame);
 
-    frame = undefined;
     delete frames[origin];
     return true;
   };
