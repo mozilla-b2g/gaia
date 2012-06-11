@@ -106,7 +106,7 @@ var Browser = {
     if (!id) {
       return;
     }
-    if (e.target.nodeName === 'INPUT') {
+    if (e.target.nodeName === 'BUTTON') {
       var tabs = Object.keys(this.tabs);
       if (tabs.length > 1) {
         // The tab to be selected when the current one is deleted
@@ -524,20 +524,19 @@ var Browser = {
       var li = document.createElement('li');
       var span = document.createElement('span');
       var img = document.createElement('img');
-      var input = document.createElement('input');
+      var close = document.createElement('button');
       var text = document.createTextNode(title);
 
-      input.value = '✕';
-      input.type = 'button';
-      input.classList.add('close');
-      input.setAttribute('data-id', this.tabs[tab].id);
+      close.appendChild(document.createTextNode('✕'));
+      close.classList.add('close');
+      close.setAttribute('data-id', this.tabs[tab].id);
       a.setAttribute('data-id', this.tabs[tab].id);
 
       span.appendChild(text);
       a.appendChild(img);
       a.appendChild(span);
       li.appendChild(a);
-      li.appendChild(input);
+      li.appendChild(close);
       ul.appendChild(li);
 
       // Inactive tabs will have stored screenshots, current active tab
