@@ -1,4 +1,4 @@
-requireApp('gallery/test/SyntheticGestures.js');
+requireCommon('test/synthetic_gestures.js');
 
 // Tests for the SyntheticGestures library which is used for
 // writing tests for the GestureDetector library.
