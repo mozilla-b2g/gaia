@@ -517,26 +517,31 @@ var Browser = {
     this.awesomescreen.classList.add('hidden');
     this.urlInput.blur();
 
+    var multipleTabs = Object.keys(this.tabs) > 1;
     var ul = document.createElement('ul');
+
     for (var tab in this.tabs) {
       var title = this.tabs[tab].title || this.tabs[tab].url || 'New Tab';
       var a = document.createElement('a');
       var li = document.createElement('li');
       var span = document.createElement('span');
       var img = document.createElement('img');
-      var close = document.createElement('button');
       var text = document.createTextNode(title);
 
-      close.appendChild(document.createTextNode('✕'));
-      close.classList.add('close');
-      close.setAttribute('data-id', this.tabs[tab].id);
+      if (multipleTabs) {
+        var close = document.createElement('button');
+        close.appendChild(document.createTextNode('✕'));
+        close.classList.add('close');
+        close.setAttribute('data-id', this.tabs[tab].id);
+        li.appendChild(close);
+      }
+
       a.setAttribute('data-id', this.tabs[tab].id);
 
       span.appendChild(text);
       a.appendChild(img);
       a.appendChild(span);
       li.appendChild(a);
-      li.appendChild(close);
       ul.appendChild(li);
 
       // Inactive tabs will have stored screenshots, current active tab
