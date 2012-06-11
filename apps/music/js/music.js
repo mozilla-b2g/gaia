@@ -3,30 +3,65 @@
 /*
  * This is Music Application of Gaia
  */
+var songs = [];
 
-// Hard-coded ogg files as testing songs
-var songs = [
-  {
-    file: 'audio/jonobacon-freesoftwaresong2.ogg',
-    title: 'The Free Software Song',
-    artist: 'Jono Bacon'
-  },
-  {
-    file: 'audio/b2g.ogg',
-    title: 'Boot to Gecko',
-    artist: 'Brendan Eich'
-  },
-  {
-    file: 'audio/Salt_Creek.ogg',
-    title: 'Salt Creek',
-    artist: 'The Rogue Bluegrass Band'
-  },
-  {
-    file: 'audio/treasure_island_01-02_stevenson.ogg',
-    title: 'Treasure Island',
-    artist: 'Read by Adrian Praetzellis'
+// When the app starts, we scan device storage for musics.
+// For now, we just do this each time. But we really need to store
+// filenames and audio metadata in a database.
+var storages = navigator.getDeviceStorage('music');
+
+storages.forEach(function(storage, storageIndex, test) {
+  try {
+    var cursor = storage.enumerate();
+    cursor.onerror = function() {
+      console.error('Error in DeviceStorage.enumerate()', cursor.error.name);
+    };
+
+    cursor.onsuccess = function() {
+      console.log('Success: ' + storageIndex);
+      if (!cursor.result)
+        return;
+      var file = cursor.result;
+
+      var songData = {
+        storageIndex: storageIndex,
+        name: file.name
+      }
+      
+      // Meta-data parsing of mp3 and ogg files
+      var extension = file.name.slice(-4);
+
+      if(extension === ".mp3") {
+
+        ID3.loadTags(file.name, function() {
+          var tags = ID3.getAllTags(file.name);
+          
+          songData.album = tags.album;
+          songData.artist = tags.artist;
+          songData.title = tags.title;
+          
+          songs.push(songData);
+          ListView.updateList(songData);
+
+          cursor.continue();
+        }, {
+          dataReader : FileAPIReader(file)
+        });
+
+      } else if(extension === ".ogg") {
+
+        var oggfile = new OggFile(file, function() {
+          console.log("ogg " + file.name, JSON.stringify(oggfile.metadata));
+        });
+        oggfile.parse();
+
+      }
+    };
   }
-];
+  catch (e) {
+    console.error('Exception while enumerating files:', e);
+  }
+});
 
 // This App. has three modes, TILES, LIST and PLAYER
 var MODE_TILES = 1;
@@ -136,31 +171,29 @@ var ListView = {
 
   init: function lv_init() {
     this.dataSource = [];
+    this.index = 0;
 
     this.view.addEventListener('click', this);
 
-    this.updateList(songs);
+    this.dataSource = songs;
   },
-
-  updateList: function lv_updateList(source) {
-    var content = '';
-    var index = 0;
-
-    source.forEach(function(song) {
-      content += '<li class="song">' +
-                 '  <a href="#" id="' + escapeHTML(song.file, true) + '" ' +
-                 '   data-title="' + escapeHTML(song.title, true) + '" ' +
-                 '   data-artist="' + escapeHTML(song.artist, true) + '" ' +
-                 '   data-index="' + index + '" ' + '>' +
-                 '    ' + escapeHTML(song.title) + ' - ' +
-                          escapeHTML(song.artist) +
-                 '  </a>' +
-                 '</li>';
-      index++;
-    });
-    this.view.innerHTML = content;
-
-    this.dataSource = source;
+  
+  updateList: function lv_updateList(song) {
+    var a = document.createElement('a')
+    a.href = '#';
+    a.id = escapeHTML(song.file, true)
+    a.dataset.title = escapeHTML(song.title, true);
+    a.dataset.artist = escapeHTML(song.artist, true);
+    a.dataset.index = this.index;
+    a.textContent = escapeHTML(song.title) + ' - ' + escapeHTML(song.artist);
+    
+    var content = document.createElement('li');
+    content.className = 'song';
+    
+    content.appendChild(a);
+    this.view.appendChild(content);
+    
+    this.index++;
   },
 
   handleEvent: function lv_handleEvent(evt) {
@@ -238,10 +271,15 @@ var PlayerView = {
     this.isPlaying = true;
 
     if (target) {
+      var songData = songs[target.dataset.index];
+      
       this.title.textContent = target.dataset.title;
       this.artist.textContent = target.dataset.artist;
-      this.audio.src = target.id;
       this.currentIndex = parseInt(target.dataset.index);
+      
+      storages[songData.storageIndex].get(songData.name).onsuccess = function(e) {
+        this.audio.src = URL.createObjectURL(e.target.result);
+      }.bind(this);
     } else {
       this.audio.play();
     }

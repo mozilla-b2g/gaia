@@ -197,7 +197,8 @@ body.player-mode #views-player {
 
 #views-list {
   width: 100%;
-  height: auto;
+  height: 91%;
+  overflow-y: auto;
 }
 
 #views-player {
