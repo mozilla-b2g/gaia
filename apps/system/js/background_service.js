@@ -8,67 +8,44 @@
   as the phone starts.
 */
 var BackgroundServiceManager = (function bsm() {
-  /* We keep information about the installed Apps here */
-  var installedApps = {};
-
   /* We keep the references to background page iframes here.
     The iframes will be append to body */
   var frames = {};
 
-  var apps = navigator.mozApps;
-
   /* Init */
-  window.addEventListener('load', function bsm_init() {
-    apps.mgmt.getAll().onsuccess = function mgmt_getAll(evt) {
-      evt.target.result.forEach(function app_forEach(app) {
-        installedApps[app.origin] = app;
-        open(app.origin);
-      });
-    };
+  window.addEventListener('applicationready', function bsm_init(evt) {
+    var applications = evt.detail.applications;
+    Object.keys(applications).forEach(open);
   });
 
-  /* XXX: https://bugzilla.mozilla.org/show_bug.cgi?id=731746
-  addEventListener does't work for now (workaround follows) */
-
-  var OriginalOninstall = apps.mgmt.oninstall;
-  var OriginalOnuninstall = apps.mgmt.onuninstall;
-
-  apps.mgmt.oninstall = function bsm_install(evt) {
-    var newapp = evt.application;
-    installedApps[newapp.origin] = newapp;
+  /* OnInstall */
+  window.addEventListener('applicationinstall', function bsm_oninstall(evt) {
+    var origin = evt.detail.application.origin;
+    open(origin);
 
     // Caching the icon
+    // XXX: move somewhere else
     var appCache = window.applicationCache;
     if (appCache) {
-      var icons = newapp.manifest.icons;
+      var icons = evt.detail.application.manifest.icons;
       if (icons) {
         Object.keys(icons).forEach(function iconIterator(key) {
-          var url = newapp.origin + icons[key];
+          var url = evt.detail.application.origin + icons[key];
           appCache.mozAdd(url);
         });
       }
     }
+  });
 
-    open(newapp.origin);
-
-    if (OriginalOninstall)
-      OriginalOninstall.apply(this, arguments);
-  };
-
-  apps.mgmt.onuninstall = function bsm_uninstall(evt) {
-    var newapp = evt.application;
-    delete installedApps[newapp.origin];
-
-    close(newapp.origin);
-
-    if (OriginalOninstall)
-      OriginalOnuninstall.apply(this, arguments);
-  };
-  /* // workaround */
+  /* OnUninstall */
+  window.addEventListener('applicationuninstall', function bsm_oninstall(evt) {
+    var origin = evt.detail.application.origin;
+    close(origin);
+  });
 
   /* The open function is responsible of containing the iframe */
   var open = function bsm_open(origin) {
-    var app = installedApps[origin];
+    var app = Applications.getByOrigin(origin);
     if (!app || !app.manifest.background_page)
       return false;
 
