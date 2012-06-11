@@ -266,6 +266,8 @@ var LockScreen = {
 
     this.mainScreen.classList.remove('locked');
 
+    WindowManager.setOrientationForApp(WindowManager.getDisplayedApp());
+
     if (!wasAlreadyUnlocked) {
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent('unlocked', true, true, null);
