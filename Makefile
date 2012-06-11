@@ -360,7 +360,7 @@ lint:
 	# cubevid
 	# crystalskull
 	# towerjelly
-	gjslint `find apps -type d \( -name cubevid -o -name crystalskull -o -name towerjelly \) -prune -o -name "*.js" -print`
+	gjslint --nojsdoc -r apps -e 'cubevid,crystalskull,towerjelly'
 
 # Generate a text file containing the current changeset of Gaia
 # XXX I wonder if this should be a replace-in-file hack. This would let us
