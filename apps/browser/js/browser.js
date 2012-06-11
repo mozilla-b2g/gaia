@@ -38,6 +38,7 @@ var Browser = {
     this.frames = document.getElementById('frames');
     this.tabsList = document.getElementById('tabs-list');
     this.mainScreen = document.getElementById('main-screen');
+    this.tabCover = document.getElementById('tab-cover');
 
     // Add event listeners
     window.addEventListener('submit', this);
@@ -436,12 +437,10 @@ var Browser = {
   setTabVisibility: function(tab, visible) {
     // We put loading tabs off screen as we want to screenshot
     // them when loaded
-    console.log('setvisible', visible);
     if (tab.loading && !visible) {
       tab.dom.style.top = '-999px';
       return;
     }
-
     if (tab.dom.setActive) {
       tab.dom.setActive(visible);
     }
@@ -524,22 +523,34 @@ var Browser = {
 
   showPageScreen: function browser_showPageScreen() {
     if (this.currentScreen === this.TABS_SCREEN) {
+
+      var hideCover = (function() {
+        this.tabCover.removeAttribute('src');
+        this.tabCover.style.display = 'none';
+      }).bind(this);
+
       var switchToLive = (function() {
-        this.setTabVisibility(this.currentTab, true);
         this.mainScreen.removeEventListener('transitionend', switchToLive, true);
+        this.setTabVisibility(this.currentTab, true);
+        // Give the page time to render to avoid a flash when switching
+        // TODO: remove
+        setTimeout(hideCover, 250);
       }).bind(this);
       this.mainScreen.addEventListener('transitionend', switchToLive, true);
     } else {
       this.setTabVisibility(this.currentTab, true);
     }
-
     this.switchScreen(this.PAGE_SCREEN);
     this.tabsBadge.innerHTML = Object.keys(this.tabs).length;
   },
 
   showTabScreen: function browser_showTabScreen() {
+
     this.hideCurrentTab();
     this.tabsBadge.innerHTML = '+';
+
+    this.tabCover.setAttribute('src', this.currentTab.screenshot);
+    this.tabCover.style.display = 'block';
 
     var multipleTabs = Object.keys(this.tabs).length > 1;
     var ul = document.createElement('ul');

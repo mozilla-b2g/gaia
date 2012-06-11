@@ -282,12 +282,16 @@ input::-moz-focus-inner {
   background: white;
 }
 
-#frames > iframe {
+#frames > iframe, #tab-cover {
   position: absolute;
   display: block;
   height: 100%;
   width: 100%;
   border: none;
+}
+#tab-cover {
+  display: none;
+  z-index: 100;
 }
 
 #awesomescreen {
