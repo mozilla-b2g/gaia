@@ -286,8 +286,12 @@ const IMEController = (function() {
       height = IMERender.ime.scrollHeight;
     }
 
-    var message = {action: 'updateHeight',
-      keyboardHeight: height, hidden: !!IMERender.ime.dataset.hidden};
+    var message = {
+      action: 'updateHeight',
+      keyboardHeight: height,
+      hidden: !!IMERender.ime.dataset.hidden
+    };
+
     parent.postMessage(JSON.stringify(message), '*');
   }
 
@@ -731,6 +735,7 @@ const IMEController = (function() {
       IMERender.draw(_currentLayout, baseLayout, _onScroll);
     else
       IMERender.draw(_currentLayout, undefined, _onScroll);
+
     _updateTargetWindowHeight();
   }
 
@@ -810,6 +815,7 @@ const IMEController = (function() {
         path: sourceDir + imEngine,
         sendCandidates: function(candidates) {
           IMERender.showCandidates(candidates);
+          _updateTargetWindowHeight();
         },
         sendPendingSymbols: function(symbols) {
           IMERender.showPendingSymbols(symbols);
@@ -847,7 +853,6 @@ const IMEController = (function() {
       if (Keyboards[_baseLayout].type == 'ime' &&
           _layoutMode == LAYOUT_MODE_DEFAULT) {
             this.currentEngine.click(keyCode);
-            window.setTimeout(_updateTargetWindowHeight, 100);
             return;
           }
 

@@ -110,11 +110,10 @@ const IMERender = (function() {
   };
 
   var showCandidates = function km_showCandidates(candidates, noWindowHeightUpdate) {
-    this.ime = document.getElementById('keyboard');
-    var ime = this.ime;
+    var ime = document.getElementById('keyboard');
     // TODO: Save the element
     var candidatePanel = document.getElementById('keyboard-candidate-panel');
-    var isFullView = this.ime.classList.contains('full-candidate-panel');
+    var isFullView = ime.classList.contains('full-candidate-panel');
 
     candidatePanel.innerHTML = '';
 

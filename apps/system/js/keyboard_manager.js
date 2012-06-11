@@ -31,13 +31,13 @@ var KeyboardManager = (function() {
       if (!app)
         return;
 
-      var currentApp = WindowManager.getAppFrame(app);
       // Reset the height of the app
       WindowManager.setAppSize(app);
+      var currentApp = WindowManager.getAppFrame(app);
 
       if (!message.hidden) {
         currentApp.style.height =
-          (currentApp.offsetHeight - message.keyboardHeight) + 'px';
+          (parseInt(currentApp.style.height) - message.keyboardHeight) + 'px';
         currentApp.classList.add('keyboardOn');
       } else {
         currentApp.classList.remove('keyboardOn');
