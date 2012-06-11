@@ -160,12 +160,16 @@ var Browser = {
           this.throbber.classList.remove('loading');
           this.urlInput.value = tab.title;
           this.setUrlButtonMode(this.REFRESH);
-        } else if (tab.dom.getScreenshot) {
-          // Take screenshot of background tab then hide
+        }
+
+        // We capture screenshots for everything when loading is
+        // completed, but set background tabs inactive
+        if (tab.dom.getScreenshot) {
           tab.dom.getScreenshot().onsuccess = function(e) {
-            tab.dom.style.display = 'none';
-            tab.dom.style.top = '0px';
             tab.screenshot = e.target.result;
+            if (!isCurrentTab) {
+              tab.dom.setActive(false);
+            }
           }
         }
         break;
@@ -451,6 +455,12 @@ var Browser = {
       screenshot: null
     };
 
+    if (!iframe.setActive) {
+      iframe.setActive = function(active) {
+        iframe.style.display = active ? 'block' : 'none';
+      }
+    }
+
     browserEvents.forEach((function attachBrowserEvent(type) {
       iframe.addEventListener('mozbrowser' +
         type, this.handleBrowserEvent(tab));
@@ -472,19 +482,7 @@ var Browser = {
 
   hideCurrentTab: function browser_hideCurrentTab() {
     var tab = this.currentTab;
-    if (tab.dom.getScreenshot) {
-      // We move the page offscreen so we can take a screenshot while the
-      // layout is still active
-      tab.dom.style.top = '-999px';
-      tab.dom.getScreenshot().onsuccess = function(e) {
-        tab.dom.style.display = 'none';
-        tab.dom.style.top = '0px';
-        tab.screenshot = e.target.result;
-        img.src = e.target.result;
-      }
-    } else {
-      tab.dom.style.display = 'none';
-    }
+    tab.dom.setActive(false);
     this.throbber.classList.remove('loading');
     this.currentTab = null;
   },
@@ -495,7 +493,9 @@ var Browser = {
     }
 
     this.currentTab = this.tabs[id];
-    this.currentTab.dom.style.display = 'block';
+    this.currentTab.dom.setActive(true);
+    // We may have picked a currently loading background tab
+    // that was positioned off screen
     this.currentTab.dom.style.top = '0px';
     this.urlInput.value = this.currentTab.title;
 
@@ -503,14 +503,6 @@ var Browser = {
       this.throbber.classList.add('loading');
     }
     this.refreshButtons();
-  },
-
-  fetchScreenshot: function browser_fetchScreenshot(tab, img) {
-    if (tab.dom.getScreenshot) {
-      tab.dom.getScreenshot().onsuccess = function(e) {
-        img.src = e.target.result;
-      }
-    }
   },
 
   switchScreen: function(screen) {
@@ -562,15 +554,12 @@ var Browser = {
       li.appendChild(a);
       ul.appendChild(li);
 
-      // Inactive tabs will have stored screenshots, current active tab
-      // has screenshot captured on display
-      if (this.tabs[tab].screenshot && tab !== this.currentTab.id) {
+      if (this.tabs[tab].screenshot) {
         img.setAttribute('src', this.tabs[tab].screenshot);
       }
 
       if (tab === this.currentTab.id) {
         li.classList.add('current');
-        this.fetchScreenshot(this.tabs[tab], img);
       }
 
     }
