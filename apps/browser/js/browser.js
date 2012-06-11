@@ -195,7 +195,7 @@ var Browser = {
         break;
 
       case 'keyup':
-        if (!this.currentTab.session.backLength() ||
+        if (!this.currentTab || !this.currentTab.session.backLength() ||
           evt.keyCode != evt.DOM_VK_ESCAPE)
           break;
 
@@ -227,8 +227,9 @@ var Browser = {
   },
 
   go: function browser_go(e) {
-    if (e)
+    if (e) {
       e.preventDefault();
+    }
 
     if (this.urlButtonMode == this.REFRESH) {
       this.navigate(this.currentTab.url);
@@ -238,12 +239,15 @@ var Browser = {
     var url = this.urlInput.value.trim();
     var protocolRegexp = /^([a-z]+:)(\/\/)?/i;
     var protocol = protocolRegexp.exec(url);
-    if (!protocol)
+    if (!protocol) {
       url = 'http://' + url;
+    }
+
     if (url != this.currentTab.url) {
       this.urlInput.value = url;
       this.currentTab.url = url;
     }
+
     this.navigate(url);
     this.urlInput.blur();
   },
@@ -322,9 +326,7 @@ var Browser = {
       'titlechange', 'iconchange'];
     iframe.mozbrowser = true;
     // FIXME: content shouldn't control this directly
-    //iframe.setAttribute('remote', 'true');
-    //   Cross-process panning
-    //     https://bugzilla.mozilla.org/show_bug.cgi?id=761924
+    iframe.setAttribute('remote', 'true');
     iframe.style.display = 'none';
 
     var tab = {
@@ -379,6 +381,7 @@ var Browser = {
     if (this.currentTab !== null && this.currentTab.id !== id) {
       this.hideCurrentTab();
     }
+
     this.currentTab = this.tabs[id];
     this.currentTab.dom.style.display = 'block';
     this.currentTab.dom.style.top = '0px';

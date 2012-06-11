@@ -110,7 +110,7 @@ var SoundManager = {
 
     this._timeout = window.setTimeout(function hideSound() {
       classes.remove('visible');
-    }, 3000);
+    }, 1500);
 
     this.fireVolumeChangeEvent();
   },

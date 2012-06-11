@@ -103,7 +103,7 @@ function updateConnection(event) {
   var airplaneMode = false;
   var settings = window.navigator.mozSettings;
   if (settings) {
-    var settingName = 'ril.radio.disabled'
+    var settingName = 'ril.radio.disabled';
     var req = settings.getLock().get(settingName);
     req.onsuccess = function() {
       airplaneMode = req.result[settingName];

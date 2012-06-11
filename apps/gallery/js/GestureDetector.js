@@ -123,7 +123,7 @@ var GestureDetector = (function() {
 
   GD.prototype.emitEvent = function(type, detail) {
     if (!this.target) {
-      console.error("Attempt to emit event with no target");
+      console.error('Attempt to emit event with no target');
       return;
     }
 

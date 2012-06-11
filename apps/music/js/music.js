@@ -305,7 +305,7 @@ var PlayerView = {
 };
 
 // Application start from here after 'DOMContentLoaded' event is fired.
-// Initialize the view objects and default mode is TILES. 
+// Initialize the view objects and default mode is TILES.
 window.addEventListener('DOMContentLoaded', function() {
   TitleBar.init();
   TilesView.init();

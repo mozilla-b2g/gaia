@@ -1,6 +1,6 @@
 'use strict';
 
-(function () {
+(function() {
 
 var mozSms = navigator.mozSms;
 var mozNotification = navigator.mozNotification;
