@@ -1,8 +1,6 @@
-var owd = window.owd || {};
+if (!HomeState) {
 
-if (!owd.HomeState) {
-
-  (function() {
+  const HomeState = (function() {
     'use strict';
 
     const DB_NAME = 'OWD';
@@ -63,7 +61,7 @@ if (!owd.HomeState) {
       };
     }
 
-    owd.HomeState = {
+    return {
 
       init: function(success, error) {
         openDB(success, error);

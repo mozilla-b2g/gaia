@@ -1,8 +1,6 @@
-var owd = window.owd || {};
+if (!GridManager) {
 
-if (!owd.GridManager) {
-
-  (function(doc) {
+  const GridManager = (function(doc) {
     'use strict';
 
     var container, counter, pages, startEvent = 'mousedown',
@@ -142,8 +140,8 @@ if (!owd.GridManager) {
       canceledTapHoldObserver = false;
       addTapHoldObserver(evt);
       status.pCoords = status.cCoords = status.iCoords = getCoordinates(evt);
-      window.addEventListener(moveEvent, owd.GridManager);
-      window.addEventListener(endEvent, owd.GridManager);
+      window.addEventListener(moveEvent, GridManager);
+      window.addEventListener(endEvent, GridManager);
     }
 
     /*
@@ -154,7 +152,7 @@ if (!owd.GridManager) {
     function addTapHoldObserver(evt) {
       tapHoldTimer = setTimeout(function() {
         keepPosition(); // Sadly clicking on icons could fire touchmove events
-        owd.GridManager.setMode('edit');
+        GridManager.setMode('edit');
         if ('origin' in evt.target.dataset) {
           dragger.start(evt.target);
         }
@@ -217,8 +215,8 @@ if (!owd.GridManager) {
         removeTapHoldObserver();
       }
       evt.stopPropagation();
-      window.removeEventListener(moveEvent, owd.GridManager);
-      window.removeEventListener(endEvent, owd.GridManager);
+      window.removeEventListener(moveEvent, GridManager);
+      window.removeEventListener(endEvent, GridManager);
 
       if (dragger.dragging) {
         dragger.stop();
@@ -283,7 +281,7 @@ if (!owd.GridManager) {
      * Renders the homescreen from the database
      */
     function renderFromDB() {
-      owd.HomeState.getAppsByPage(
+      HomeState.getAppsByPage(
         function iterate(apps) {
           console.log('Iterating saved pages');
           pageHelper.push(apps, true);
@@ -306,7 +304,7 @@ if (!owd.GridManager) {
     function render() {
       initialize();
       owdAppManager.addEventListener('appsready', function() {
-        owd.HomeState.init(renderFromDB, renderFromMozApps);
+        HomeState.init(renderFromDB, renderFromMozApps);
       });
     }
 
@@ -344,7 +342,7 @@ if (!owd.GridManager) {
       }
     }
 
-    var pagBar = owd.PaginationBar;
+    var pagBar = PaginationBar;
 
     function updatePaginationBar(show) {
       pagBar.update(pages.current, pageHelper.total());
@@ -410,7 +408,7 @@ if (!owd.GridManager) {
        */
       push: function(lapps, notUpdatePagBar) {
         var index = this.total() + 1;
-        var page = new owd.Page(index - 1);
+        var page = new Page(index - 1);
         page.render(lapps, createPageMarkup());
         if (index === 1) {
           page.moveToCenter();
@@ -462,7 +460,7 @@ if (!owd.GridManager) {
        */
       save: function(index) {
         var dummy = function() {};
-        owd.HomeState.save({
+        HomeState.save({
           id: index,
           apps: pages.list[index].getAppsList()
         }, dummy, dummy);
@@ -473,7 +471,7 @@ if (!owd.GridManager) {
        */
       saveAll: function() {
         var dummy = function() {};
-        owd.HomeState.save(pages.list, dummy, dummy);
+        HomeState.save(pages.list, dummy, dummy);
       },
 
       /*
@@ -655,7 +653,7 @@ if (!owd.GridManager) {
       }
     };
 
-    owd.GridManager = {
+    return {
 
       /*
        * Initializes the grid manager

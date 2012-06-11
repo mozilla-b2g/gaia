@@ -1,18 +1,14 @@
-var owd = window.owd || {};
+if (!Homescreen) {
 
-if (!owd.Homescreen) {
-
-  (function(doc) {
+  const Homescreen = (function(doc) {
     'use strict';
 
-    var grid = owd.GridManager;
-
-    owd.PaginationBar.init('.paginationScroller');
-    grid.init('.apps');
+    PaginationBar.init('.paginationScroller');
+    GridManager.init('.apps');
 
     var mode = 'normal';
     var footer = doc.querySelector('#footer');
-    grid.onEditModeChange = function (value) {
+    GridManager.onEditModeChange = function (value) {
       footer.dataset.mode = mode = value;
     }
 
@@ -21,18 +17,18 @@ if (!owd.Homescreen) {
       // Click on the Home button to reset the mode of the grid
       if (e.keyCode === e.DOM_VK_HOME) {
         permission.destroy();
-        owd.GridManager.setMode('normal');
+        GridManager.setMode('normal');
       }
     }, true);
 
     // Listening for installed apps
     owdAppManager.addEventListener('oninstall', function(app) {
-      owd.GridManager.install(app);
+      GridManager.install(app);
     });
 
     // Listening for uninstalled apps
     navigator.mozApps.mgmt.onuninstall = function uninstall(event) {
-      owd.GridManager.uninstall(event.application);
+      GridManager.uninstall(event.application);
     };
 
     // Listening for clicks on the footer
@@ -45,7 +41,7 @@ if (!owd.Homescreen) {
       }
     });
 
-    owd.Homescreen = {
+    return {
 
       /*
        * Displays the contextual menu given an origin

@@ -1,15 +1,13 @@
 'use strict';
 
-var owd = window.owd || {};
-
-if (!owd.Icon) {
+if (!Icon) {
 
  /*
   * Icon constructor
   *
   * @param{Object} moz app object
   */
-  owd.Icon = function(app) {
+  var Icon = function(app) {
     var origin = owdAppManager.getOrigin(app);
 
     this.descriptor = {
@@ -18,10 +16,10 @@ if (!owd.Icon) {
       icon: owdAppManager.getIcon(origin)
     };
 
-    this.type = 'owd.Icon';
+    this.type = 'owdIcon';
   };
 
-  owd.Icon.prototype = {
+  Icon.prototype = {
 
    /*
     * Renders the icon into the page
@@ -143,16 +141,16 @@ if (!owd.Icon) {
   };
 }
 
-if (!owd.Page) {
+if (!Page) {
 
  /*
   * Page constructor
   */
-  owd.Page = function() {
+  var Page = function() {
     this.licons = {};
   };
 
-  owd.Page.prototype = {
+  Page.prototype = {
 
     vars: {
       transitionend: 'transitionend',
@@ -283,10 +281,10 @@ if (!owd.Page) {
     * @param{Object} DOM element
     */
     tap: function(elem) {
-      if (owd.GridManager.isEditMode()) {
+      if (GridManager.isEditMode()) {
         if (elem.className === 'options') {
           // <li> parent element defines the origin
-          owd.Homescreen.showAppDialog(elem.parentNode.dataset.origin);
+          Homescreen.showAppDialog(elem.parentNode.dataset.origin);
         }
       } else if (elem.className === 'icon') {
         owdAppManager.getByOrigin(elem.dataset.origin).launch();
@@ -343,12 +341,12 @@ if (!owd.Page) {
     * @param{Object} moz app or icon object
     */
     append: function(app) {
-      if (app.type && app.type === 'owd.Icon') {
+      if (app.type && app.type === 'owdIcon') {
         this.olist.appendChild(app.getListItem());
         this.licons[app.descriptor.origin] = app;
       } else {
         // This is a moz app
-        var icon = new owd.Icon(app);
+        var icon = new Icon(app);
         icon.render(this.olist, this.container);
         this.licons[app.origin] = icon;
       }
@@ -361,7 +359,7 @@ if (!owd.Page) {
     */
     remove: function(app) {
       var icon = app;
-      if ('owd.Icon' !== app.type) {
+      if ('owdIcon' !== app.type) {
         // This is a moz app
         icon = this.licons[app.origin];
       }

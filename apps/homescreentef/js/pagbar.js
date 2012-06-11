@@ -1,13 +1,11 @@
-var owd = window.owd || {};
+if (!PaginationBar) {
 
-if (!owd.PaginationBar) {
-
-  (function(doc) {
+  const PaginationBar = (function(doc) {
     'use strict';
 
     var style, percentage = '%';
 
-    owd.PaginationBar = {
+    return {
 
      /*
       * Initializes the pagination bar
