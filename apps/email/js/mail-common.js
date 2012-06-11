@@ -61,6 +61,8 @@ function bindContainerHandler(containerNode, eventName, func) {
   }, false);
 }
 
+const UI_WIDTH = 320, UI_HEIGHT = 480;
+
 /**
  * Fairly simple card abstraction with support for simple horizontal animated
  * transitions.  We are cribbing from deuxdrop's mobile UI's cards.js
@@ -112,7 +114,22 @@ var Cards = {
   _cardStack: [],
   _activeCardIndex: null,
 
+  /**
+   * The DOM node that contains the _containerNode ("#cardContainer") and which
+   * we inject popup and masking layers into.  The choice of doing the popup
+   * stuff at this layer is arbitrary.
+   */
+  _rootNode: null,
+  /**
+   * The "#cardContainer" node which serves as the scroll container for the
+   * contained _cardsNode ("#cards").  It is as wide as the viewport.
+   */
   _containerNode: null,
+  /**
+   * The "#cards" node that holds the cards; it is as wide as all of the cards
+   * it contains and has its left offset changed in order to change what card
+   * is visible.
+   */
   _cardsNode: null,
   /**
    * DOM template nodes for the cards.
@@ -132,6 +149,12 @@ var Cards = {
    */
   _trayActive: false,
   /**
+   * Is a popup visible, suggesting that any click that is not on the popup
+   * should be taken as a desire to close the popup?  This is not a boolean,
+   * but rather info on the active popup.
+   */
+  _popupActive: null,
+  /**
    * Are we eating all click events we see until we transition to the next
    * card (possibly due to a call to pushCard that has not yet occurred?).
    * Set by calling `eatEventsUntilNextCard`.
@@ -144,16 +167,20 @@ var Cards = {
    * Initialize and bind ourselves to the DOM which should now be fully loaded.
    */
   _init: function() {
+    this._rootNode = document.body;
     this._containerNode = document.getElementById('cardContainer');
-    if (window.innerWidth > 320)
-      this._containerNode.style.width = '320px';
-    if (window.innerHeight > 480)
-      this._containerNode.style.height = '480px';
+    if (window.innerWidth > UI_WIDTH)
+      this._containerNode.style.width = UI_WIDTH + 'px';
+    if (window.innerHeight > UI_HEIGHT)
+      this._containerNode.style.height = UI_HEIGHT + 'px';
     this._cardsNode = document.getElementById('cards');
     this._templateNodes = processTemplNodes('card');
 
     this._containerNode.addEventListener('click',
-                                         this._onMaybeTrayIntercept.bind(this),
+                                         this._onMaybeIntercept.bind(this),
+                                         true);
+    this._containerNode.addEventListener('contextmenu',
+                                         this._onMaybeIntercept.bind(this),
                                          true);
 
     this._adjustCardSizes();
@@ -170,9 +197,14 @@ var Cards = {
    * If the tray is active and a click happens in the tray area, transition
    * back to the visible thing (which must be to our right currently.)
    */
-  _onMaybeTrayIntercept: function(event) {
+  _onMaybeIntercept: function(event) {
     if (this._eatingEventsUntilNextCard) {
       event.stopPropagation();
+      return;
+    }
+    if (this._popupActive) {
+      event.stopPropagation();
+      this._popupActive.close();
       return;
     }
     if (this._trayActive &&
@@ -184,8 +216,8 @@ var Cards = {
   },
 
   _adjustCardSizes: function() {
-    var cardWidth = Math.min(320, window.innerWidth), //this._containerNode.offsetWidth,
-        cardHeight = Math.min(480, window.innerHeight), //this._containerNode.offsetHeight,
+    var cardWidth = Math.min(UI_WIDTH, window.innerWidth), //this._containerNode.offsetWidth,
+        cardHeight = Math.min(UI_HEIGHT, window.innerHeight), //this._containerNode.offsetHeight,
         totalWidth = 0;
 
     for (var i = 0; i < this._cardStack.length; i++) {
@@ -316,6 +348,106 @@ var Cards = {
       console.warn("Tried to tell a card that's not listening!", query, what);
     else
       cardInst.cardImpl.told(what);
+  },
+
+  /**
+   * Create a mask that shows only the given node by creating 2 or 4 div's,
+   * returning the container that holds those divs.  It's not clear if a single
+   * div with some type of fancy clipping would be better.
+   */
+  _createMaskForNode: function(domNode, bounds) {
+    var anchorIn = this._rootNode, cleanupDivs = [];
+    // TODO: use the sizing values from the cards container rather than our
+    // constants.
+
+    // inclusive pixel coverage
+    function addMask(left, top, right, bottom) {
+      var node = document.createElement('div');
+      node.classList.add('popup-mask');
+      node.style.left = left + 'px';
+      node.style.top = top + 'px';
+      node.style.width = (right - left + 1) + 'px';
+      node.style.height = (bottom - top + 1) + 'px';
+      cleanupDivs.push(node);
+      anchorIn.appendChild(node);
+    }
+    if (bounds.left > 1)
+      addMask(0, bounds.top, bounds.left - 1, bounds.bottom);
+    if (bounds.top > 0)
+      addMask(0, 0, UI_WIDTH - 1, bounds.top - 1);
+    if (bounds.right < UI_WIDTH - 1)
+      addMask(bounds.right + 1, bounds.top, UI_WIDTH - 1, bounds.bottom);
+    if (bounds.bottom < UI_HEIGHT - 1)
+      addMask(0, bounds.bottom + 1, UI_WIDTH - 1, UI_HEIGHT - 1);
+    return function() {
+      for (var i = 0; i < cleanupDivs.length; i++) {
+        anchorIn.removeChild(cleanupDivs[i]);
+      }
+    };
+  },
+
+  /**
+   * Create a popup associated with a given node.  We mask out the part of the
+   * screen that is not the node, helping make it obvious what the menu is
+   * related to.  We currently do not try to show an arrow thing, although it
+   * would be friendly of us if we did.
+   *
+   * https://wiki.mozilla.org/Gaia/Design/Patterns#Dialogues:_Popups
+   */
+  popupMenuForNode: function(menuDomTree, domNode, legalClickTargets, callback) {
+    var self = this,
+        bounds = domNode.getBoundingClientRect();
+
+    var popupInfo = this._popupActive = {
+      popupNode: menuDomTree,
+      maskNodeCleanup: this._createMaskForNode(domNode, bounds),
+      close: function(result) {
+        self._popupActive = false;
+        self._rootNode.removeChild(popupInfo.popupNode);
+        popupInfo.maskNodeCleanup();
+        callback(result);
+      }
+    };
+    popupInfo.popupNode.classList.add('popup');
+    this._rootNode.appendChild(popupInfo.popupNode);
+    // now we need to position the popup...
+    var menuWidth = popupInfo.popupNode.offsetWidth,
+        menuHeight = popupInfo.popupNode.offsetHeight,
+        nodeCenter = bounds.top + (bounds.bottom - bounds.top) / 2,
+        menuTop, menuLeft;
+
+    const MARGIN = 4;
+
+    // - Menu goes below item
+    if (nodeCenter < UI_HEIGHT / 2) {
+      menuTop = bounds.bottom + MARGIN;
+      if (menuTop + menuHeight >= UI_HEIGHT)
+        menuTop = UI_HEIGHT - menuHeight - MARGIN;
+    }
+    // - Menu goes above item
+    else {
+      menuTop = bounds.top - menuHeight - MARGIN;
+
+      if (menuTop < MARGIN)
+        menuTop = MARGIN;
+    }
+
+    menuLeft = (UI_WIDTH - menuWidth) / 2;
+
+    popupInfo.popupNode.style.top = menuTop + 'px';
+    popupInfo.popupNode.style.left = menuLeft + 'px';
+
+    popupInfo.popupNode.addEventListener('click', function(event) {
+      var node = event.target;
+      while (node !== popupInfo.popupNode) {
+        for (var i = 0; i < legalClickTargets.length; i++) {
+          if (node.classList.contains(legalClickTargets[i])) {
+            popupInfo.close(node);
+            return;
+          }
+        }
+      }
+    }, false);
   },
 
   /**

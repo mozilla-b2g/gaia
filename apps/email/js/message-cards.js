@@ -29,6 +29,10 @@ function MessageListCard(domNode, mode, args) {
   this.curFolder = null;
   this.messagesSlice = null;
   this.showFolder(args.folder);
+
+  // Right now, the contextmenu event does not suppress the subsequent click,
+  // so we set this flag when we see contextmenu.
+  this._suppressClick = false;
 }
 MessageListCard.prototype = {
   postInsert: function() {
@@ -148,6 +152,12 @@ MessageListCard.prototype = {
   },
 
   onClickMessage: function(messageNode, event) {
+    // hack while contextmenu still generates a click as well...
+    if (this._suppressClick) {
+      this._suppressClick = false;
+      return;
+    }
+
     // For now, let's do the async load before we trigger the card to try and
     // avoid reflows during animation or visual popping.
     Cards.eatEventsUntilNextCard();
@@ -163,10 +173,56 @@ MessageListCard.prototype = {
   },
 
   onHoldMessage: function(messageNode, event) {
+    // suppress the subsequent click if this was actually a left click
+    if (event.button === 0)
+      this._suppressClick = true;
+    else
+      event.preventDefault();
+
+    var header = messageNode.message;
+    Cards.popupMenuForNode(
+      this.buildEditMenuForMessage(header), messageNode,
+      ['menu-item'],
+      function(clickedNode) {
+        if (!clickedNode)
+          return;
+
+        switch (clickedNode.classList[0]) {
+          case 'msg-edit-menu-star':
+            header.setStarred(true);
+            break;
+          case 'msg-edit-menu-unstar':
+            header.setStarred(false);
+            break;
+          case 'msg-edit-menu-mark-read':
+            header.setRead(true);
+            break;
+          case 'msg-edit-menu-mark-unread':
+            header.setRead(false);
+            break;
+        }
+      });
   },
 
   onRefresh: function() {
     this.messagesSlice.refresh();
+  },
+
+  buildEditMenuForMessage: function(header) {
+    var contents = msgNodes['edit-menu'].cloneNode(true);
+
+    // Remove the elements that are not relevant (versus collapsing because
+    // collapsing does not make :last-child work right).
+    contents.removeChild(
+      contents.getElementsByClassName(
+        header.isStarred ? 'msg-edit-menu-star'
+                         : 'msg-edit-menu-unstar')[0]);
+    contents.removeChild(
+      contents.getElementsByClassName(
+        header.isRead ? 'msg-edit-menu-mark-read'
+                      : 'msg-edit-menu-mark-unread')[0]);
+
+    return contents;
   },
 
   /**
@@ -217,6 +273,10 @@ function MessageReaderCard(domNode, mode, args) {
   bindContainerHandler(
     domNode.getElementsByClassName('msg-attachments-container')[0],
     'click', this.onAttachmentClick.bind(this));
+
+  // - mark message read (if it is not already)
+  if (!this.header.isRead)
+    this.header.setRead(true);
 }
 MessageReaderCard.prototype = {
   onBack: function(event) {

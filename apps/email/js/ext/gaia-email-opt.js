@@ -2,7 +2,7 @@
  * This is an "optimized" JS file from the gaia-email-libs-and-more project that
  * is checked-in as a vendor artifact.  The repo is at:
  * https://github.com/mozilla-b2g/gaia-email-libs-and-more
- * 
+ *
  * It is created by the gaia-email-opt.js Makefile target.
  *
  * Right now the file is concatenated (with comments left intact) as opposed to
@@ -5639,6 +5639,13 @@ function filterOutBuiltinFlags(flags) {
 }
 
 /**
+ * Extract the canonical naming attributes out of the MailHeader instance.
+ */
+function serializeMessageName(x) {
+  return { date: x.date.valueOf(), suid: x.id };
+}
+
+/**
  * Email overview information for displaying the message in the list as planned
  * for the current UI.  Things that we don't need (ex: to/cc/bcc) for the list
  * end up on the body, currently.  They will probably migrate to the header in
@@ -5860,7 +5867,9 @@ MailAttachment.prototype = {
  * get a list of recently performed actions, the goal is to make it feasible
  * in the future.
  */
-function UndoableOperation(operation, affectedCount, _tempHandle, _longtermId) {
+function UndoableOperation(_api, operation, affectedCount,
+                           _tempHandle, _longtermIds) {
+  this._api = _api;
   /**
    * @oneof[
    *   @case['read']{
@@ -5901,13 +5910,16 @@ function UndoableOperation(operation, affectedCount, _tempHandle, _longtermId) {
   /**
    * The temporary handle we use to refer to the operation immediately after
    * issuing it until we hear back from the mail bridge about its more permanent
-   * _longtermId.
+   * _longtermIds.
    */
   this._tempHandle = _tempHandle;
   /**
-   * The name that this mutation is know to the back-end as.
+   * The names of the per-account operations that this operation was mapped
+   * to.
    */
-  this._longtermId = null;
+  this._longtermIds = null;
+
+  this._undoRequested = false;
 }
 UndoableOperation.prototype = {
   toString: function() {
@@ -5917,8 +5929,18 @@ UndoableOperation.prototype = {
     return {
       type: 'UndoableOperation',
       handle: this._tempHandle,
-      id: this._longtermId,
+      longtermIds: this._longtermIds,
     };
+  },
+
+  undo: function() {
+    // We can't issue the undo until we've heard the longterm id, so just flag
+    // it to be processed when we do.
+    if (!this._longtermIds) {
+      this._undoRequested = true;
+      return;
+    }
+    this._api.__undo(this);
   },
 };
 
@@ -6566,8 +6588,8 @@ MailAPI.prototype = {
     // XXX for now, just pose this as a flag change rather than any moving
     // to trash semantics.  We just want to be able to make our sync logic
     // perceive a deletion.  Obviously, DO NOT HOOK THIS UP TO THE UI YET.
-    this.modifyMessageTags(messages,
-                           ['\\Deleted'], null, 'delete');
+    return this.modifyMessageTags(messages,
+                                  ['\\Deleted'], null, 'delete');
   },
 
   copyMessages: function ma_copyMessages(messages, targetFolder) {
@@ -6577,17 +6599,17 @@ MailAPI.prototype = {
   },
 
   markMessagesRead: function ma_markMessagesRead(messages, beRead) {
-    this.modifyMessageTags(messages,
-                           beRead ? ['\\Seen'] : null,
-                           beRead ? null : ['\\Seen'],
-                           beRead ? 'read' : 'unread');
+    return this.modifyMessageTags(messages,
+                                  beRead ? ['\\Seen'] : null,
+                                  beRead ? null : ['\\Seen'],
+                                  beRead ? 'read' : 'unread');
   },
 
   markMessagesStarred: function ma_markMessagesStarred(messages, beStarred) {
-    this.modifyMessageTags(messages,
-                           beStarred ? ['\\Flagged'] : null,
-                           beStarred ? null : ['\\Flagged'],
-                           beStarred ? 'star' : 'unstar');
+    return this.modifyMessageTags(messages,
+                                  beStarred ? ['\\Flagged'] : null,
+                                  beStarred ? null : ['\\Flagged'],
+                                  beStarred ? 'star' : 'unstar');
   },
 
   modifyMessageTags: function ma_modifyMessageTags(messages, addTags,
@@ -6602,15 +6624,18 @@ MailAPI.prototype = {
       else if (removeTags && removeTags.length)
         _opcode = 'removetag';
     }
-    var undoableOp = new UndoableOperation(_opcode, messages.length),
-        msgSuids = messages.map(function(x) { return x.id; });
+    var undoableOp = new UndoableOperation(this, _opcode, messages.length,
+                                           handle),
+        msgSuids = messages.map(serializeMessageName);
 
     this._pendingRequests[handle] = {
       type: 'mutation',
+      handle: handle,
       undoableOp: undoableOp
     };
     this.__bridgeSend({
       type: 'modifyMessageTags',
+      handle: handle,
       opcode: _opcode,
       addTags: addTags,
       removeTags: removeTags,
@@ -6620,14 +6645,24 @@ MailAPI.prototype = {
     return undoableOp;
   },
 
-  _recv_mutationConfirmed: function() {
+  _recv_mutationConfirmed: function(msg) {
     var req = this._pendingRequests[msg.handle];
     if (!req) {
       unexpectedBridgeDataError('Bad handle for mutation:', msg.handle);
       return;
     }
 
+    req.undoableOp._tempHandle = null;
+    req.undoableOp._longtermIds = msg.longtermIds;
+    if (req.undoableOp._undoRequested)
+      req.undoableOp.undo();
+  },
 
+  __undo: function undo(undoableOp) {
+    this.__bridgeSend({
+      type: 'undo',
+      longtermIds: undoableOp._longtermIds,
+    });
   },
 
   //////////////////////////////////////////////////////////////////////////////
@@ -10432,13 +10467,14 @@ var bsearchMaybeExists = exports.bsearchMaybeExists =
 };
 
 exports.partitionMessagesByFolderId =
-    function partitionMessagesByFolderId(messageSuids, onlyKeepMsgId) {
+    function partitionMessagesByFolderId(messageNamers, onlyKeepMsgId) {
   var results = [], foldersToMsgs = {};
-  for (var i = 0; i < messageSuids.length; i++) {
-    var messageSuid = messageSuids[i],
+  for (var i = 0; i < messageNamers.length; i++) {
+    var messageSuid = messageNamers[i].suid,
         idxLastSlash = messageSuid.lastIndexOf('/'),
         folderId = messageSuid.substring(0, idxLastSlash),
-        useId = onlyKeepMsgId ? messageSuid.substring(idxLastSlash+1)
+        // if we only want the UID, do so, but make sure to parse it as a #!
+        useId = onlyKeepMsgId ? parseInt(messageSuid.substring(idxLastSlash+1))
                               : messageSuid;
 
     if (!foldersToMsgs.hasOwnProperty(folderId)) {
@@ -10691,8 +10727,17 @@ MailBridge.prototype = {
     //   know enough to reverse the operation.
     // - Speculative changes are made to the headers in the database locally.
 
-    this.universe.modifyMessageTags(
+    var longtermIds = this.universe.modifyMessageTags(
       msg.opcode, msg.messages, msg.addTags, msg.removeTags);
+    this.__sendMessage({
+      type: 'mutationConfirmed',
+      handle: msg.handle,
+      longtermIds: longtermIds,
+    });
+  },
+
+  _cmd_undo: function mb__cmd_undo(msg) {
+    this.universe.undoMutation(msg.longtermIds);
   },
 
   //////////////////////////////////////////////////////////////////////////////
@@ -11279,6 +11324,13 @@ function ImapDB() {
 }
 exports.ImapDB = ImapDB;
 ImapDB.prototype = {
+  close: function() {
+    if (this._db) {
+      this._db.close();
+      this._db = null;
+    }
+  },
+
   getConfig: function(configCallback) {
     if (!this._db) {
       this._onDB.push(this.getConfig.bind(this, configCallback));
@@ -11321,6 +11373,7 @@ ImapDB.prototype = {
 
   saveConfig: function(config) {
     var req = this._db.transaction(TBL_CONFIG, 'readwrite')
+                        .objectStore(TBL_CONFIG)
                         .put(config, 'config');
     req.onerror = this._fatalError;
   },
@@ -11329,13 +11382,15 @@ ImapDB.prototype = {
    * Save the addition of a new account or when changing account settings.  Only
    * pass `folderInfo` for the new account case; omit it for changing settings
    * so it doesn't get updated.  For coherency reasons it should only be updated
-   * using saveFolderStates.
+   * using saveAccountFolderStates.
    */
-  saveAccountDef: function(accountDef, folderInfo) {
+  saveAccountDef: function(config, accountDef, folderInfo) {
     var trans = this._db.transaction([TBL_CONFIG, TBL_FOLDER_INFO],
                                      'readwrite');
-    trans.objectStore(TBL_CONFIG)
-         .put(accountDef, CONFIG_KEYPREFIX_ACCOUNT_DEF + accountDef.id);
+
+    var configStore = trans.objectStore(TBL_CONFIG);
+    configStore.put(config, 'config');
+    configStore.put(accountDef, CONFIG_KEYPREFIX_ACCOUNT_DEF + accountDef.id);
     if (folderInfo) {
       trans.objectStore(TBL_FOLDER_INFO)
            .put(folderInfo, accountDef.id);
@@ -11370,7 +11425,7 @@ ImapDB.prototype = {
    * instead of per-account.  Revisit if performance data shows stupidity.
    *
    * @args[
-   *   @param[accountDef]
+   *   @param[accountId]
    *   @param[folderInfo]
    *   @param[perFolderStuff @listof[@dict[
    *     @key[id FolderId]
@@ -11379,30 +11434,52 @@ ImapDB.prototype = {
    *   ]]]
    * ]
    */
-  saveAccountFolderStates: function(accountDef, folderInfo, perFolderStuff,
-                                    callback) {
-    var trans = this._db.transaction([TBL_FOLDER_INFO, TBL_HEADER_BLOCKS,
-                                      TBL_BODY_BLOCKS],
-                                      'readwrite');
-    trans.objectStore(TBL_FOLDER_INFO).put(folderInfo, accountDef.id);
+  saveAccountFolderStates: function(accountId, folderInfo, perFolderStuff,
+                                    deletedFolderIds,
+                                    callback, reuseTrans) {
+    var trans = reuseTrans ||
+      this._db.transaction([TBL_FOLDER_INFO, TBL_HEADER_BLOCKS,
+                           TBL_BODY_BLOCKS],
+                           'readwrite');
+    trans.objectStore(TBL_FOLDER_INFO).put(folderInfo, accountId);
     var headerStore = trans.objectStore(TBL_HEADER_BLOCKS),
-        bodyStore = trans.objectStore(TBL_BODY_BLOCKS);
-    for (var i = 0; i < perFolderStuff.length; i++) {
-      var pfs = perFolderStuff[i];
+        bodyStore = trans.objectStore(TBL_BODY_BLOCKS), i;
+
+    for (i = 0; i < perFolderStuff.length; i++) {
+      var pfs = perFolderStuff[i], block;
 
       for (var headerBlockId in pfs.headerBlocks) {
-        headerStore.put(pfs.headersBlocks[headerBlockId],
-                        pfs.id + ':' + headerBlockId);
+        block = pfs.headerBlocks[headerBlockId];
+        if (block)
+          headerStore.put(block, pfs.id + ':' + headerBlockId);
+        else
+          headerStore.delete(pfs.id + ':' + headerBlockId);
       }
 
       for (var bodyBlockId in pfs.bodyBlocks) {
-        bodyStore.put(pfs.bodyBlocks[bodyBlockId],
-                      pfs.id + ':' + bodyBlockId);
+        block = pfs.bodyBlocks[bodyBlockId];
+        if (block)
+          bodyStore.put(block, pfs.id + ':' + bodyBlockId);
+        else
+          bodyStore.delete(pfs.id + ':' + bodyBlockId);
+      }
+    }
+
+    if (deletedFolderIds) {
+      for (i = 0; i < deletedFolderIds.length; i++) {
+        var folderId = deletedFolderIds[i],
+            range = IDBKeyRange.bound(folderId + ':',
+                                      folderId + ':\ufffe',
+                                      false, false)
+        headerStore.delete(range);
+        bodyStore.delete(range);
       }
     }
 
     if (callback)
-      trans.onsuccess = callback;
+      trans.addEventListener('complete', callback);
+
+    return trans;
   },
 };
 
@@ -13290,7 +13367,6 @@ ImapConnection.prototype.connect = function(loginCb) {
                                    this._options.connTimeout, loginCb);
 
   this._state.conn.onopen = function(evt) {
-console.log("ONOPEN fired", self._options.port);
     if (this._LOG) this._LOG.connected();
     clearTimeout(self._state.tmrConn);
     self._state.status = STATES.NOAUTH;
@@ -13758,9 +13834,7 @@ console.log("ONOPEN fired", self._options.port);
     if (this._LOG) this._LOG.closed();
     self.emit('close');
   };
-console.log('connection.onerror added');
   this._state.conn.onerror = function(evt) {
-console.log('IMAP onerror!', evt.data, self._state.status);
     try {
       var err = evt.data;
       clearTimeout(self._state.tmrConn);
@@ -13774,6 +13848,22 @@ console.log('IMAP onerror!', evt.data, self._state.status);
       throw ex;
     }
   };
+};
+
+/**
+ * Aggressively shutdown the connection, ideally so that no further callbacks
+ * are invoked.
+ */
+ImapConnection.prototype.die = function() {
+  // NB: there's still a lot of events that could happen, but this is only
+  // being used by unit tests right now.
+  if (this._state.conn) {
+    this._state.conn.onclose = null;
+    this._state.conn.onerror = null;
+    this._state.conn.close();
+  }
+  this._reset();
+  this._LOG.__die();
 };
 
 ImapConnection.prototype.isAuthenticated = function() {
@@ -14673,8 +14763,11 @@ function parseFetch(str, literalData, fetchData) {
       fetchData.id = parseInt(result[i+1], 10);
     else if (result[i] === 'INTERNALDATE')
       fetchData.date = parseImapDateTime(result[i+1]);
-    else if (result[i] === 'FLAGS')
+    else if (result[i] === 'FLAGS') {
       fetchData.flags = result[i+1].filter(isNotEmpty);
+      // simplify comparison for downstream logic by sorting.
+      fetchData.flags.sort();
+    }
     // MODSEQ (####)
     else if (result[i] === 'MODSEQ')
       fetchData.modseq = result[i+1].slice(1, -1);
@@ -15215,6 +15308,409 @@ ImapProber.prototype = {
 
     if (this.onresult)
       this.onresult(this.accountGood, conn);
+  },
+};
+
+}); // end define
+;
+/**
+ * Abstractions for dealing with the various mutation operations.
+ *
+ * NB: Moves discussion is speculative at this point; we are just thinking
+ * things through for architectural implications.
+ *
+ * == Speculative Operations ==
+ *
+ * We want our UI to update as soon after requesting an operation as possible.
+ * To this end, we have logic to locally apply queued mutation operations.
+ * Because we may want to undo operations when we are offline (and have not
+ * been able to talk to the server), we also need to be able to reflect these
+ * changes locally independent of telling the server.
+ *
+ * In the case of moves/copies, we issue temporary UIDs like Thunderbird.  We
+ * use negative values since IMAP servers can never use them so collisions are
+ * impossible and it's a simple check.  This differs from Thunderbird's attempt
+ * to guess the next UID; we don't try to do that because the chances are good
+ * that our information is out-of-date and it would just make debugging more
+ * confusing.
+ *
+ * == Data Integrity ==
+ *
+ * Our strategy is always to avoid data-loss, so data-destruction actions
+ * must always take place after successful confirmation of persistence actions.
+ * (Just keeping the data in-memory is not acceptable because we could crash,
+ * etc.)
+ *
+ * It is also our strategy to avoid cluttering up the place as a side-effect
+ * of half-done things.  For example, if we are trying to move N messages,
+ * but only copy N/2 because of a timeout, we want to make sure that we
+ * don't naively retry and then copy those first N/2 messages a second time.
+ * This means that we track sub-steps explicitly, and that operations that we
+ * have issued and may or may not have been performed by the server will be
+ * checked before they are re-attempted.
+ **/
+
+define('rdimap/imapclient/imapjobs',[
+    './util',
+    'exports'
+  ],
+  function(
+    $imaputil,
+    exports
+  ) {
+
+/**
+ * The evidence suggests the job has not yet been performed.
+ */
+const CHECKED_NOTYET = 1;
+/**
+ * The operation is idempotent and atomic; no checking was performed.
+ */
+const UNCHECKED_IDEMPOTENT = 2;
+/**
+ * The evidence suggests that the job has already happened.
+ */
+const CHECKED_HAPPENED = 3;
+/**
+ * The job is no longer relevant because some other sequence of events
+ * have mooted it.  For example, we can't change tags on a deleted message
+ * or move a message between two folders if it's in neither folder.
+ */
+const CHECKED_MOOT = 4;
+/**
+ * A transient error (from the checker's perspective) made it impossible to
+ * check.
+ */
+const UNCHECKED_BAILED = 5;
+
+function ImapJobDriver(account) {
+  this.account = account;
+}
+exports.ImapJobDriver = ImapJobDriver;
+ImapJobDriver.prototype = {
+  /**
+   * Request access to an IMAP folder to perform a mutation on it.  This
+   * compels the ImapFolderConn in question to acquire an IMAP connection
+   * if it does not already have one.  It will also XXX EVENTUALLY provide
+   * mututal exclusion guarantees that there are no other active requests
+   * in the folder.
+   *
+   * The callback will be invoked with the folder and raw connections once
+   * they are available.  The raw connection will be actively in the folder.
+   *
+   * This will ideally be migrated to whatever mechanism we end up using for
+   * mailjobs.
+   */
+  _accessFolderForMutation: function(folderId, callback) {
+    var storage = this.account.getFolderStorageForFolderId(folderId);
+    // XXX have folder storage be in charge of this / don't violate privacy
+    storage._pendingMutationCount++;
+    if (!storage.folderConn._conn) {
+      storage.folderConn.acquireConn(callback);
+    }
+    else {
+      callback(storage.folderConn);
+    }
+  },
+
+  _doneMutatingFolder: function(folderId, folderConn) {
+    var storage = this.account.getFolderStorageForFolderId(folderId);
+    // XXX have folder storage be in charge of this / don't violate privacy
+    storage._pendingMutationCount--;
+    if (!storage._slices.length && !storage._pendingMutationCount)
+      storage.folderConn.relinquishConn();
+  },
+
+  local_do_modtags: function(op, ignoredCallback, undo) {
+    var addTags = undo ? op.removeTags : op.addTags,
+        removeTags = undo ? op.addTags : op.removeTags;
+    function modifyHeader(header) {
+      var iTag, tag, existing, modified = false;
+      if (addTags) {
+        for (iTag = 0; iTag < addTags.length; iTag++) {
+          tag = addTags[iTag];
+          // The list should be small enough that native stuff is better than
+          // JS bsearch.
+          existing = header.flags.indexOf(tag);
+          if (existing !== -1)
+            continue;
+          header.flags.push(tag);
+          header.flags.sort(); // (maintain sorted invariant)
+          modified = true;
+        }
+      }
+      if (removeTags) {
+        for (iTag = 0; iTag < removeTags.length; iTag++) {
+          tag = removeTags[iTag];
+          existing = header.flags.indexOf(tag);
+          if (existing === -1)
+            continue;
+          header.flags.splice(existing, 1);
+          modified = true;
+        }
+      }
+      return modified;
+    }
+
+    var lastFolderId = null, lastStorage;
+    for (var i = 0; i < op.messages.length; i++) {
+      var msgNamer = op.messages[i],
+          lslash = msgNamer.suid.lastIndexOf('/'),
+          // folder id's are strings!
+          folderId = msgNamer.suid.substring(0, lslash),
+          // uid's are not strings!
+          uid = parseInt(msgNamer.suid.substring(lslash + 1)),
+          storage;
+      if (folderId === lastFolderId) {
+        storage = lastStorage;
+      }
+      else {
+        storage = lastStorage =
+          this.account.getFolderStorageForFolderId(folderId);
+        lastFolderId = folderId;
+      }
+      storage.updateMessageHeader(msgNamer.date, uid, false, modifyHeader);
+    }
+
+    return null;
+  },
+
+  do_modtags: function(op, callback, undo) {
+    var partitions = $imaputil.partitionMessagesByFolderId(op.messages, true);
+    var folderConn, self = this,
+        folderId = null, messages = null,
+        iNextPartition = 0, curPartition = null, modsToGo = 0;
+
+    var addTags = undo ? op.removeTags : op.addTags,
+        removeTags = undo ? op.addTags : op.removeTags;
+
+    // Perform the 'undo' in the opposite order of the 'do' so that our progress
+    // count is always relative to the normal order.
+    if (undo)
+      partitions.reverse();
+
+    function openNextFolder() {
+      if (iNextPartition >= partitions.length) {
+        done(null);
+        return;
+      }
+
+      curPartition = partitions[iNextPartition++];
+      messages = curPartition.messages;
+      if (curPartition.folderId !== folderId) {
+        if (folderConn) {
+          self._doneMutatingFolder(folderId, folderConn);
+          folderConn = null;
+        }
+        folderId = curPartition.folderId;
+        self._accessFolderForMutation(folderId, gotFolderConn);
+      }
+    }
+    function gotFolderConn(_folderConn) {
+      folderConn = _folderConn;
+      if (addTags) {
+        modsToGo++;
+        folderConn._conn.addFlags(messages, addTags, tagsModded);
+      }
+      if (removeTags) {
+        modsToGo++;
+        folderConn._conn.delFlags(messages, removeTags, tagsModded);
+      }
+    }
+    function tagsModded(err) {
+      if (err) {
+        console.error('failure modifying tags', err);
+        done('unknown');
+        return;
+      }
+      op.progress += (undo ? -curPartition.messages.length
+                           : curPartition.messages.length);
+      if (--modsToGo === 0)
+        openNextFolder();
+    }
+    function done(errString) {
+      if (folderConn) {
+        self._doneMutatingFolder(folderId, folderConn);
+        folderConn = null;
+      }
+      callback(errString);
+    }
+    openNextFolder();
+  },
+
+  check_modtags: function() {
+    return UNCHECKED_IDEMPOTENT;
+  },
+
+  local_undo_modtags: function(op, callback) {
+    // Undoing is just a question of flipping the add and remove lists.
+    return this.local_do_modtags(op, callback, true);
+  },
+
+  undo_modtags: function(op, callback) {
+    // Undoing is just a question of flipping the add and remove lists.
+    return this.do_modtags(op, callback, true);
+  },
+
+  /**
+   * Move the message to the trash folder.  In Gmail, there is no move target,
+   * we just delete it and gmail will (by default) expunge it immediately.
+   */
+  do_delete: function() {
+    // set the deleted flag on the message
+  },
+
+  check_delete: function() {
+    // deleting on IMAP is effectively idempotent
+    return UNCHECKED_IDEMPOTENT;
+  },
+
+  undo_delete: function() {
+  },
+
+  do_move: function() {
+    // get a connection in the source folder, uid validity is asserted
+    // issue the (potentially bulk) copy
+    // wait for copy success
+    // mark the source messages deleted
+  },
+
+  check_move: function() {
+    // get a connection in the target/source folder
+    // do a search to check if the messages got copied across.
+  },
+
+  /**
+   * Move the message back to its original folder.
+   *
+   * - If the source message has not been expunged, remove the Deleted flag from
+   *   the source folder.
+   * - If the source message was expunged, copy the message back to the source
+   *   folder.
+   * - Delete the message from the target folder.
+   */
+  undo_move: function() {
+  },
+
+  do_copy: function() {
+  },
+
+  check_copy: function() {
+    // get a connection in the target folder
+    // do a search to check if the message got copied across
+  },
+
+  /**
+   * Delete the message from the target folder if it exists.
+   */
+  undo_copy: function() {
+  },
+
+  /**
+   * Append a message to a folder.
+   *
+   * XXX update
+   */
+  do_append: function(op, callback) {
+    var folderConn, self = this,
+        storage = this.account.getFolderStorageForFolderId(op.folderId),
+        folderMeta = storage.folderMeta,
+        iNextMessage = 0;
+
+    function gotFolderConn(_folderConn) {
+      if (!_folderConn) {
+        done('unknown');
+        return;
+      }
+      folderConn = _folderConn;
+      if (folderConn._conn.hasCapability('MULTIAPPEND'))
+        multiappend();
+      else
+        append();
+    }
+    function multiappend() {
+      iNextMessage = op.messages.length;
+      folderConn._conn.multiappend(op.messages, appended);
+    }
+    function append() {
+      var message = op.messages[iNextMessage++];
+      folderConn._conn.append(
+        message.messageText,
+        message, // (it will ignore messageText)
+        appended);
+    }
+    function appended(err) {
+      if (err) {
+        console.error('failure appending message', err);
+        done('unknown');
+        return;
+      }
+      if (iNextMessage < op.messages.length)
+        append();
+      else
+        done(null);
+    }
+    function done(errString) {
+      if (folderConn) {
+        self._doneMutatingFolder(op.folderId, folderConn);
+        folderConn = null;
+      }
+      callback(errString);
+    }
+
+    this._accessFolderForMutation(op.folderId, gotFolderConn);
+  },
+
+  /**
+   * Check if the message ended up in the folder.
+   */
+  check_append: function() {
+  },
+
+  undo_append: function() {
+  },
+};
+
+function HighLevelJobDriver() {
+}
+HighLevelJobDriver.prototype = {
+  /**
+   * Perform a cross-folder move:
+   *
+   * - Fetch the entirety of a message from the source location.
+   * - Append the entirety of the message to the target location.
+   * - Delete the message from the source location.
+   */
+  do_xmove: function() {
+  },
+
+  check_xmove: function() {
+
+  },
+
+  /**
+   * Undo a cross-folder move.  Same idea as for normal undo_move; undelete
+   * if possible, re-copy if not.  Delete the target once we're confident
+   * the message made it back into the folder.
+   */
+  undo_xmove: function() {
+  },
+
+  /**
+   * Perform a cross-folder copy:
+   * - Fetch the entirety of a message from the source location.
+   * - Append the message to the target location.
+   */
+  do_xcopy: function() {
+  },
+
+  check_xcopy: function() {
+  },
+
+  /**
+   * Just delete the message from the target location.
+   */
+  undo_xcopy: function() {
   },
 };
 
@@ -16160,8 +16656,7 @@ function SmtpProber(credentials, connInfo) {
       secureConnection: connInfo.crypto === true,
       ignoreTLS: connInfo.crypto === false,
       auth: { user: credentials.username, pass: credentials.password },
-      // XXX debug is on
-      debug: true,
+      debug: false,
     });
   this._conn.on('idle', this.onIdle.bind(this));
   this._conn.on('error', this.onBadness.bind(this));
@@ -16217,6 +16712,10 @@ function SmtpAccount(universe, accountId, credentials, connInfo, _parentLog) {
   this.accountId = accountId;
   this.credentials = credentials;
   this.connInfo = connInfo;
+
+  this._LOG = LOGFAB.SmtpAccount(this, _parentLog, accountId);
+
+  this._activeConnections = [];
 }
 exports.SmtpAccount = SmtpAccount;
 SmtpAccount.prototype = {
@@ -16235,10 +16734,15 @@ SmtpAccount.prototype = {
           user: this.credentials.username,
           pass: this.credentials.password
         },
-        // XXX debug is on
-        debug: true,
+        debug: false,
       });
     return conn;
+  },
+
+  shutdown: function(callback) {
+    // (there should be no live connections during a unit-test initiated
+    // shutdown.)
+    this._LOG.__die();
   },
 
   /**
@@ -16968,6 +17472,9 @@ function FakeAccount(universe, accountDef, folderInfo, receiveProtoConn, _LOG) {
       sentFolder,
       generator.makeMessages(
         { folderId: sentFolder.id, count: 4, from: ourNameAndAddress }));
+
+  this.meta = folderInfo.$meta;
+  this.mutations = folderInfo.$mutations;
 }
 exports.FakeAccount = FakeAccount;
 FakeAccount.prototype = {
@@ -16994,6 +17501,13 @@ FakeAccount.prototype = {
         },
       ]
     };
+  },
+
+  saveAccountState: function(reuseTrans) {
+    return reuseTrans;
+  },
+
+  shutdown: function() {
   },
 
   createFolder: function() {
@@ -17518,6 +18032,28 @@ ImapSlice.prototype = {
     this._bridgeHandle.sendSplice(this.headers.length, 0, headers,
                                   true, moreComing);
     this.headers = this.headers.concat(headers);
+
+    for (var i = 0; i < headers.length; i++) {
+      var header = headers[i];
+      if (this.startTS === null ||
+          BEFORE(header.date, this.startTS)) {
+        this.startTS = header.date;
+        this.startUID = header.id;
+      }
+      else if (header.date === this.startTS &&
+               header.id < this.startUID) {
+        this.startUID = header.id;
+      }
+      if (this.endTS === null ||
+          STRICTLY_AFTER(header.date, this.endTS)) {
+        this.endTS = header.date;
+        this.endUID = header.id;
+      }
+      else if (header.date === this.endTS &&
+               header.id > this.endUID) {
+        this.endUID = header.id;
+      }
+    }
   },
 
   /**
@@ -17887,7 +18423,7 @@ const FLAG_FETCH_PARAMS = {
 function ImapFolderConn(account, storage, _parentLog) {
   this._account = account;
   this._storage = storage;
-  this._LOG = LOGFAB.ImapFolderConn(this, _parentLog, [storage.folderId, storage.folderMeta.path]);
+  this._LOG = LOGFAB.ImapFolderConn(this, _parentLog, storage.folderId);
 
   this._conn = null;
   this.box = null;
@@ -17990,7 +18526,8 @@ ImapFolderConn.prototype = {
       ['search', 'db'],
       function syncDateRangeLogic(results) {
         var serverUIDs = results.search, headers = results.db,
-            knownUIDs = [], uid, numDeleted = 0;
+            knownUIDs = [], uid, numDeleted = 0,
+            modseq = self._conn._state.box.highestModSeq || '';
 
         // -- infer deletion, flag to distinguish known messages
         // rather than splicing lists and causing shifts, we null out values.
@@ -18020,6 +18557,7 @@ ImapFolderConn.prototype = {
           function(newCount, knownCount) {
             self._LOG.syncDateRange_end(newCount, knownCount, numDeleted,
                                         startTS, endTS);
+            self._storage.markSyncRange(startTS, endTS, modseq, Date.now());
             doneCallback();
           });
       });
@@ -18181,10 +18719,10 @@ ImapFolderConn.prototype = {
               }
             }
             var header = knownHeaders[i];
-
+            // (msg.flags comes sorted and we maintain that invariant)
             if (header.flags.toString() !== msg.flags.toString()) {
               header.flags = msg.flags;
-              storage.updateMessageHeader(header);
+              storage.updateMessageHeader(header.date, header.id, true, header);
             }
             else {
               storage.unchangedMessageHeader(header);
@@ -18207,6 +18745,10 @@ ImapFolderConn.prototype = {
     if (!knownUIDs.length && !newUIDs.length) {
       doneCallback(newUIDs.length, knownUIDs.length);
     }
+  },
+
+  shutdown: function() {
+    this._LOG.__die();
   },
 };
 
@@ -18396,7 +18938,7 @@ function ImapFolderStorage(account, folderId, persistedFolderInfo, dbConn,
   this._folderImpl = persistedFolderInfo.$impl;
 
   this._LOG = LOGFAB.ImapFolderStorage(
-    this, _parentLog, [folderId, this.folderMeta.path]);
+    this, _parentLog, folderId);
 
   /**
    * @listof[AccuracyRangeInfo]{
@@ -18494,6 +19036,20 @@ function ImapFolderStorage(account, folderId, persistedFolderInfo, dbConn,
 }
 exports.ImapFolderStorage = ImapFolderStorage;
 ImapFolderStorage.prototype = {
+  generatePersistenceInfo: function() {
+    if (!this._dirty)
+      return null;
+    var pinfo = {
+      id: this.folderId,
+      headerBlocks: this._dirtyHeaderBlocks,
+      bodyBlocks: this._dirtyBodyBlocks,
+    };
+    this._dirtyHeaderBlocks = {};
+    this._dirtyBodyBlocks = {};
+    this._dirty = false;
+    return pinfo;
+  },
+
   /**
    * Create an empty header `FolderBlockInfo` and matching `HeaderBlock`.  The
    * `HeaderBlock` will be inserted into the block map, but it's up to the
@@ -18526,6 +19082,7 @@ ImapFolderStorage.prototype = {
     var idx = bsearchForInsert(block.headers, header, cmpHeaderYoungToOld);
     block.uids.splice(idx, 0, header.id);
     block.headers.splice(idx, 0, header);
+    this._dirty = true;
     this._dirtyHeaderBlocks[info.blockId] = block;
     // Insertion does not need to update start/end TS/UID because the calling
     // logic is able to handle it.
@@ -18628,6 +19185,7 @@ ImapFolderStorage.prototype = {
     var idx = bsearchForInsert(block.uids, uid, cmpBodyByUID);
     block.uids.splice(idx, 0, uid);
     block.bodies[uid] = body;
+    this._dirty = true;
     this._dirtyBodyBlocks[info.blockId] = block;
     // Insertion does not need to update start/end TS/UID because the calling
     // logic is able to handle it.
@@ -19084,8 +19642,14 @@ ImapFolderStorage.prototype = {
 
     var self = this;
     function onLoaded(block) {
-      self._LOG.loadBlock_end(type, blockId);
-      self._pendingLoads.splice(index, 1);
+      if (!block)
+        self._LOG.badBlockLoad(type, blockId);
+      self._LOG.loadBlock_end(type, blockId, block);
+      if (type === 'header')
+        self._headerBlocks[blockId] = block;
+      else
+        self._bodyBlocks[blockId] = block;
+      self._pendingLoads.splice(self._pendingLoads.indexOf(aggrId), 1);
       var listeners = self._pendingLoadListeners[aggrId];
       delete self._pendingLoadListeners[aggrId];
       for (var i = 0; i < listeners.length; i++) {
@@ -19133,6 +19697,7 @@ ImapFolderStorage.prototype = {
         blockInfoList.splice(iInfo, 1);
         delete blockMap[info.blockId];
 
+        this._dirty = true;
         if (type === 'header')
           this._dirtyHeaderBlocks[info.blockId] = null;
         else
@@ -19423,6 +19988,9 @@ ImapFolderStorage.prototype = {
    * ]
    */
   markSyncRange: function(startTS, endTS, modseq, updated) {
+    // If our range was marked open-ended, it's really accurate through now.
+    if (!endTS)
+      endTS = Date.now();
     var aranges = this._accuracyRanges;
     function makeRange(start, end, modseq, updated) {
       return {
@@ -19434,7 +20002,6 @@ ImapFolderStorage.prototype = {
             updated: modseq.fullSync.updated },
       };
     }
-
 
     var newInfo = this._findFirstObjIndexForDateRange(aranges, startTS, endTS),
         oldInfo = this._findLastObjIndexForDateRange(aranges, startTS, endTS),
@@ -19526,42 +20093,61 @@ ImapFolderStorage.prototype = {
    * A message header gets updated ONLY because of a change in its flags.  We
    * don't consider this change large enough to cause us to need to split a
    * block.
+   *
+   * This function can either be used to replace the header or to look it up
+   * and then call a function to manipulate the header.
    */
-  updateMessageHeader: function ifs_updateMessageHeader(header) {
+  updateMessageHeader: function ifs_updateMessageHeader(date, uid, partOfSync,
+                                                        headerOrMutationFunc) {
+    // (While this method can complete synchronously, we want to maintain its
+    // perceived ordering relative to those that cannot be.)
     if (this._pendingLoads.length) {
-      this._deferredCalls.push(this.updateMessageHeader.bind(this, header));
+      this._deferredCalls.push(this.updateMessageHeader.bind(
+                                 this, date, uid, partOfSync,
+                                 headerOrMutationFunc));
       return;
     }
 
-    if (this._curSyncSlice)
-      this._curSyncSlice.onHeaderAdded(header);
-    if (this._slices.length > (this._curSyncSlice ? 1 : 0)) {
-      for (var iSlice = 0; iSlice < this._slices.length; iSlice++) {
-        var slice = this._slices[iSlice];
-        if (slice === this._curSyncSlice)
-          continue;
-        if (BEFORE(header.date, slice.startTS) ||
-            STRICTLY_AFTER(header.date, slice.endTS))
-          continue;
-        if ((header.date === slice.startTS &&
-             header.id < slice.startUID) ||
-            (header.date === slice.endTS &&
-             header.id > slice.endUID))
-          continue;
-        slice.onHeaderModified(header);
-      }
-    }
-
-    // NB: This is potentially overkill since we probably will try and avoid
-    // evicting header blocks while the headers are in use, but let's wait
-    // before we go declaring/assuming that invariant.
+    // We need to deal with the potential for the block having been discarded
+    // from memory thanks to the potential asynchrony due to pending loads or
+    // on the part of the caller.
     var infoTuple = this._findRangeObjIndexForDateAndUID(
-                      this._headerBlockInfos, header.date, header.id),
+                      this._headerBlockInfos, date, uid),
         iInfo = infoTuple[0], info = infoTuple[1], self = this;
     function doUpdateHeader(block) {
-      var idx = block.uids.indexOf(header.id);
-      block.headers[idx] = header;
-      self._dirtyHeaderBlocks = block;
+      var idx = block.uids.indexOf(uid), header;
+      if (idx === -1)
+        throw new Error("Failed to find UID " + uid + "!");
+      if (headerOrMutationFunc instanceof Function) {
+        // If it returns false it means that the header did not change and so
+        // there is no need to mark anything dirty and we can leave without
+        // notifying anyone.
+        if (!headerOrMutationFunc((header = block.headers[idx])))
+          return;
+      }
+      else
+        header = block.headers[idx] = headerOrMutationFunc;
+      self._dirty = true;
+      self._dirtyHeaderBlocks[info.blockId] = block;
+
+      if (partOfSync && self._curSyncSlice)
+        self._curSyncSlice.onHeaderAdded(header);
+      if (self._slices.length > (self._curSyncSlice ? 1 : 0)) {
+        for (var iSlice = 0; iSlice < self._slices.length; iSlice++) {
+          var slice = self._slices[iSlice];
+          if (partOfSync && slice === self._curSyncSlice)
+            continue;
+          if (BEFORE(date, slice.startTS) ||
+              STRICTLY_AFTER(date, slice.endTS))
+            continue;
+          if ((date === slice.startTS &&
+               uid < slice.startUID) ||
+              (date === slice.endTS &&
+               uid > slice.endUID))
+            continue;
+          slice.onHeaderModified(header);
+        }
+      }
     }
     if (!this._headerBlocks.hasOwnProperty(info.blockId))
       this._loadBlock('header', info.blockId, doUpdateHeader);
@@ -19651,6 +20237,15 @@ ImapFolderStorage.prototype = {
     callback(bodyInfo);
   },
 
+  shutdown: function() {
+    // reverse iterate since they will remove themselves as we kill them
+    for (var i = this._slices.length - 1; i >= 0; i--) {
+      this._slices[i].die();
+    }
+    this.folderConn.shutdown();
+    this._LOG.__die();
+  },
+
   /**
    * The folder is no longer known on the server or we are just deleting the
    * account; close out any live connections or processing.  Database cleanup
@@ -19723,7 +20318,11 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
     asyncJobs: {
       loadBlock: { type: false, blockId: false },
     },
+    TEST_ONLY_asyncJobs: {
+      loadBlock: { block: false },
+    },
     errors: {
+      badBlockLoad: { type: false, blockId: false },
     }
   },
 }); // end LOGFAB
@@ -19740,6 +20339,7 @@ define('rdimap/imapclient/imapacct',[
     './a64',
     './imapdb',
     './imapslice',
+    './imapjobs',
     './util',
     'module',
     'exports'
@@ -19750,6 +20350,7 @@ define('rdimap/imapclient/imapacct',[
     $a64,
     $imapdb,
     $imapslice,
+    $imapjobs,
     $imaputil,
     $module,
     exports
@@ -19781,6 +20382,8 @@ function ImapAccount(universe, accountId, credentials, connInfo, folderInfos,
   this._ownedConns = [];
   this._LOG = LOGFAB.ImapAccount(this, _parentLog, this.id);
 
+  this._jobDriver = new $imapjobs.ImapJobDriver(this);
+
   if (existingProtoConn) {
     this._LOG.reuseConnection();
     this._ownedConns.push({
@@ -19811,12 +20414,15 @@ function ImapAccount(universe, accountId, credentials, connInfo, folderInfos,
    *   @param[nextFolderNum Number]{
    *     The next numeric folder number to be allocated.
    *   }
+   *   @param[nextMutationNum Number]{
+   *     The next mutation id to be allocated.
+   *   }
    *   @param[lastFullFolderProbeAt DateMS]{
    *     When was the last time we went through our list of folders and got the
    *     unread count in each folder.
    *   }
-   *   @param[capability String]{
-   *     The post-login capability string from the server.
+   *   @param[capability @listof[String]]{
+   *     The post-login capabilities from the server.
    *   }
    *   @param[rootDelim String]{
    *     The root hierarchy delimiter.  It is possible for servers to not
@@ -19828,7 +20434,21 @@ function ImapAccount(universe, accountId, credentials, connInfo, folderInfos,
    *   This information gets flushed on database upgrades.
    * }
    */
-  this._meta = this._folderInfos.$meta;
+  this.meta = this._folderInfos.$meta;
+  /**
+   * @listof[SerializedMutation]{
+   *   The list of recently issued mutations against us.  Mutations are added
+   *   as soon as they are requested and remain until evicted based on a hard
+   *   numeric limit.  The limit is driven by our unit tests rather than our
+   *   UI which currently only allows a maximum of 1 (high-level) undo.  The
+   *   status of whether the mutation has been run is tracked on the mutation
+   *   but does not affect its presence or position in the list.
+   *
+   *   Right now, the `MailUniverse` is in charge of this and we just are a
+   *   convenient place to stash the data.
+   * }
+   */
+  this.mutations = this._folderInfos.$mutations;
   for (var folderId in folderInfos) {
     if (folderId[0] === '$')
       continue;
@@ -19851,8 +20471,7 @@ ImapAccount.prototype = {
    * Make a given folder known to us, creating state tracking instances, etc.
    */
   _learnAboutFolder: function(name, path, type, delim) {
-    var folderId = this.id + '/' + $a64.encodeInt(this._meta.nextFolderNum++);
-    console.log('FOLDER', name, path, type);
+    var folderId = this.id + '/' + $a64.encodeInt(this.meta.nextFolderNum++);
     var folderInfo = this._folderInfos[folderId] = {
       $meta: {
         id: folderId,
@@ -19887,12 +20506,45 @@ ImapAccount.prototype = {
     delete this._folderInfos[folderId];
     var folderStorage = this._folderStorages[folderId];
     delete this._folderStorages[folderId];
+    var idx = this.folders.indexOf(folderMeta);
+    this.folders.splice(idx, 1);
     if (this._deadFolderIds === null)
       this._deadFolderIds = [];
     this._deadFolderIds.push(folderId);
     folderStorage.youAreDeadCleanupAfterYourself();
 
     this.universe.__notifyRemovedFolder(this.id, folderMeta);
+  },
+
+  /**
+   * Save the state of this account to the database.  This entails updating all
+   * of our highly-volatile state (folderInfos which contains counters, accuracy
+   * structures, and our block info structures) as well as any dirty blocks.
+   *
+   * This should be entirely coherent because the structured clone should occur
+   * synchronously during this call, but it's important to keep in mind that if
+   * that ever ends up not being the case that we need to cause mutating
+   * operations to defer until after that snapshot has occurred.
+   */
+  saveAccountState: function(reuseTrans) {
+    var perFolderStuff = [], self = this;
+    for (var iFolder = 0; iFolder < this.folders.length; iFolder++) {
+      var folderPub = this.folders[iFolder],
+          folderStorage = this._folderStorages[folderPub.id],
+          folderStuff = folderStorage.generatePersistenceInfo();
+      if (folderStuff)
+        perFolderStuff.push(folderStuff);
+    }
+    this._LOG.saveAccountState_begin();
+    var trans = this._db.saveAccountFolderStates(
+      this.id, this._folderInfos, perFolderStuff,
+      this._deadFolderIds,
+      function stateSaved() {
+        self._LOG.saveAccountState_end();
+      },
+      reuseTrans);
+    this._deadFolderIds = null;
+    return trans;
   },
 
   /**
@@ -19943,7 +20595,7 @@ ImapAccount.prototype = {
     }
     else {
       path = '';
-      delim = this._meta.rootDelim;
+      delim = this.meta.rootDelim;
     }
     if (typeof(folderName) === 'string')
       path += folderName;
@@ -20060,6 +20712,13 @@ ImapAccount.prototype = {
     throw new Error('No folder with id: ' + folderId);
   },
 
+  getFolderStorageForMessageSuid: function(messageSuid) {
+    var folderId = messageSuid.substring(0, messageSuid.lastIndexOf('/'));
+    if (this._folderStorages.hasOwnProperty(folderId))
+      return this._folderStorages[folderId];
+    throw new Error('No folder with id: ' + folderId);
+  },
+
   /**
    * Create a view slice on the messages in a folder, starting from the most
    * recent messages and synchronizing further as needed.
@@ -20069,6 +20728,23 @@ ImapAccount.prototype = {
         slice = new $imapslice.ImapSlice(bridgeHandle, storage, this._LOG);
 
     storage.sliceOpenFromNow(slice);
+  },
+
+  shutdown: function() {
+    // - kill all folder storages (for their loggers)
+    for (var iFolder = 0; iFolder < this.folders.length; iFolder++) {
+      var folderPub = this.folders[iFolder],
+          folderStorage = this._folderStorages[folderPub.id];
+      folderStorage.shutdown();
+    }
+
+    // - close all connections
+    for (var i = 0; i < this._ownedConns.length; i++) {
+      var connInfo = this._ownedConns[i];
+      connInfo.conn.die();
+    }
+
+    this._LOG.__die();
   },
 
   /**
@@ -20318,156 +20994,66 @@ ImapAccount.prototype = {
     callback();
   },
 
-  runOp: function(op, callback) {
-    var methodName = '_do_' + op.type, self = this;
-    if (!(methodName in this))
-      throw new Error("Unsupported op: '" + op.type + "'");
-    this._LOG.runOp_begin(op.type);
-    this[methodName](op, function() {
-      self._LOG.runOp_end(op.type);
-      callback.apply(null, arguments);
-    });
-  },
-
   /**
-   * Request access to an IMAP folder to perform a mutation on it.  This
-   * compels the ImapFolderConn in question to acquire an IMAP connection
-   * if it does not already have one.  It will also XXX EVENTUALLY provide
-   * mututal exclusion guarantees that there are no other active requests
-   * in the folder.
-   *
-   * The callback will be invoked with the folder and raw connections once
-   * they are available.  The raw connection will be actively in the folder.
-   *
-   * This will ideally be migrated to whatever mechanism we end up using for
-   * mailjobs.
+   * @args[
+   *   @param[op MailOp]
+   *   @param[mode @oneof[
+   *     @case['local_do']{
+   *       Apply the mutation locally to our database rep.
+   *     }
+   *     @case['check']{
+   *       Check if the manipulation has been performed on the server.  There
+   *       is no need to perform a local check because there is no way our
+   *       database can be inconsistent in its view of this.
+   *     }
+   *     @case['do']{
+   *       Perform the manipulation on the server.
+   *     }
+   *     @case['local_undo']{
+   *       Undo the mutation locally.
+   *     }
+   *     @case['undo']{
+   *       Undo the mutation on the server.
+   *     }
+   *   ]]
+   *   @param[callback @func[
+   *     @args[
+   *       @param[error @oneof[String null]]
+   *     ]
+   *   ]]
+   *   }
+   * ]
    */
-  _accessFolderForMutation: function(folderId, callback) {
-    var storage = this._folderStorages[folderId];
-    // XXX have folder storage be in charge of this / don't violate privacy
-    storage._pendingMutationCount++;
-    if (!storage.folderConn._conn) {
-      storage.folderConn.acquireConn(callback);
+  runOp: function(op, mode, callback) {
+    var methodName = mode + '_' + op.type, self = this,
+        isLocal = (mode === 'local_do' || mode === 'local_undo');
+
+    if (!(methodName in this._jobDriver))
+      throw new Error("Unsupported op: '" + op.type + "' (mode: " + mode + ")");
+
+    if (!isLocal)
+      op.status = mode + 'ing';
+
+    if (callback) {
+      this._LOG.runOp_begin(mode, op.type, null);
+      this._jobDriver[methodName](op, function(error) {
+        self._LOG.runOp_end(mode, op.type, error);
+        if (!isLocal)
+          op.status = mode + 'ne';
+        callback(error);
+      });
     }
     else {
-      callback(storage.folderConn);
+      this._LOG.runOp_begin(mode, op.type, null);
+      var rval = this._jobDriver[methodName](op);
+      if (!isLocal)
+        op.status = mode + 'ne';
+      this._LOG.runOp_end(mode, op.type, rval);
     }
-  },
-
-  _doneMutatingFolder: function(folderId, folderConn) {
-    var storage = this._folderStorages[folderId];
-    // XXX have folder storage be in charge of this / don't violate privacy
-    storage._pendingMutationCount--;
-    if (!storage._slices.length && !storage._pendingMutationCount)
-      storage.folderConn.relinquishConn();
   },
 
   // NB: this is not final mutation logic; it needs to be more friendly to
   // ImapFolderConn's.  See _do_modtags which is being cleaned up...
-  _do_append: function(op, callback) {
-    var rawConn, self = this,
-        folderMeta = this._folderInfos[op.folderId].$meta,
-        iNextMessage = 0;
-    function gotConn(conn) {
-      rawConn = conn;
-      rawConn.openBox(folderMeta.path, openedBox);
-    }
-    function openedBox(err, box) {
-      if (err) {
-        console.error('failure opening box to append message');
-        done('unknown');
-        return;
-      }
-      if (rawConn.hasCapability('MULTIAPPEND'))
-        multiappend();
-      else
-        append();
-    }
-    function multiappend() {
-      iNextMessage = op.messages.length;
-      rawConn.multiappend(op.messages, appended);
-    }
-    function append() {
-      var message = op.messages[iNextMessage++];
-      rawConn.append(
-        message.messageText,
-        message, // (it will ignore messageText)
-        appended);
-    }
-    function appended(err) {
-      if (err) {
-        console.error('failure appending message', err);
-        done('unknown');
-        return;
-      }
-      if (iNextMessage < op.messages.length)
-        append();
-      else
-        done(null);
-    }
-    function done(errString) {
-      if (rawConn) {
-        self.__folderDoneWithConnection(op.folderId, rawConn);
-        rawConn = null;
-      }
-      callback(errString);
-    }
-
-    this.__folderDemandsConnection(op.folderId, gotConn);
-  },
-
-  _do_modtags: function(op, callback) {
-    var partitions = $imaputil.partitionMessagesByFolderId(op.messages, true);
-    var folderConn, self = this,
-        folderId = null, messages = null,
-        iNextPartition = 0, modsToGo = 0;
-
-    function openNextFolder() {
-      if (iNextPartition >= partitions.length) {
-        done(null);
-        return;
-      }
-
-      var partition = partitions[iNextPartition++];
-      messages = partition.messages;
-      if (partition.folderId !== folderId) {
-        if (folderConn) {
-          self._doneMutatingFolder(folderId, folderConn);
-          folderConn = null;
-        }
-        folderId = partition.folderId;
-        self._accessFolderForMutation(folderId, gotFolderConn);
-      }
-    }
-    function gotFolderConn(_folderConn) {
-      folderConn = _folderConn;
-      if (op.addTags) {
-        modsToGo++;
-        folderConn._conn.addFlags(messages, op.addTags, tagsModded);
-      }
-      if (op.removeTags) {
-        modsToGo++;
-        folderConn._conn.removeFlags(messages, op.removeTags, tagsModded);
-      }
-    }
-    function tagsModded(err) {
-      if (err) {
-        console.error('failure modifying tags', err);
-        done('unknown');
-        return;
-      }
-      if (--modsToGo === 0)
-        openNextFolder();
-    }
-    function done(errString) {
-      if (folderConn) {
-        self._doneMutatingFolder(folderId, folderConn);
-        folderConn = null;
-      }
-      callback(errString);
-    }
-    openNextFolder();
-  },
 };
 
 /**
@@ -20504,7 +21090,8 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
       folderAlreadyHasConn: { folderId: false },
     },
     asyncJobs: {
-      runOp: { type: false },
+      runOp: { mode: true, type: true, error: false, op: false },
+      saveAccountState: {},
     },
   },
 });
@@ -20542,6 +21129,17 @@ define('rdimap/imapclient/mailuniverse',[
     exports
   ) {
 const allbackMaker = $allback.allbackMaker;
+
+/**
+ * How many operations per account should we track to allow for undo operations?
+ * The B2G email app only demands a history of 1 high-level op for undoing, but
+ * we are supporting somewhat more for unit tests, potential fancier UIs, and
+ * because high-level ops may end up decomposing into multiple lower-level ops
+ * someday.
+ *
+ * This limit obviously is not used to discard operations not yet performed!
+ */
+const MAX_MUTATIONS_FOR_UNDO = 10;
 
 const PIECE_ACCOUNT_TYPE_TO_CLASS = {
   'imap': $imapacct.ImapAccount,
@@ -20593,6 +21191,8 @@ function CompositeAccount(universe, accountDef, folderInfo, dbConn,
 
   // expose public lists that are always manipulated in place.
   this.folders = this._receivePiece.folders;
+  this.meta = this._receivePiece.meta;
+  this.mutations = this._receivePiece.mutations;
 }
 CompositeAccount.prototype = {
   toString: function() {
@@ -20625,6 +21225,18 @@ CompositeAccount.prototype = {
     };
   },
 
+  saveAccountState: function(reuseTrans) {
+    return this._receivePiece.saveAccountState(reuseTrans);
+  },
+
+  /**
+   * Shutdown the account; see `MailUniverse.shutdown` for semantics.
+   */
+  shutdown: function() {
+    this._sendPiece.shutdown();
+    this._receivePiece.shutdown();
+  },
+
   createFolder: function(parentFolderId, folderName, containOnlyOtherFolders,
                          callback) {
     return this._receivePiece.createFolder(
@@ -20651,8 +21263,8 @@ CompositeAccount.prototype = {
     return this._receivePiece.getFolderStorageForFolderId(folderId);
   },
 
-  runOp: function(op, callback) {
-    return this._receivePiece.runOp(op, callback);
+  runOp: function(op, mode, callback) {
+    return this._receivePiece.runOp(op, mode, callback);
   },
 };
 
@@ -20664,6 +21276,17 @@ const COMPOSITE_ACCOUNT_TYPE_TO_CLASS = {
 
 // Simple hard-coded autoconfiguration by domain...
 var autoconfigByDomain = {
+  // this is for testing, and won't work because of bad certs.
+  'asutherland.org': {
+    type: 'imap+smtp',
+    imapHost: 'mail.asutherland.org',
+    imapPort: 993,
+    imapCrypto: true,
+    smtpHost: 'mail.asutherland.org',
+    smtpPort: 465,
+    smtpCrypto: true,
+    usernameIsFullEmail: true,
+  },
   'yahoo.com': {
     type: 'imap+smtp',
     imapHost: 'imap.mail.yahoo.com',
@@ -20795,10 +21418,14 @@ Configurators['imap+smtp'] = {
     var folderInfo = {
       $meta: {
         nextFolderNum: 0,
+        nextMutationNum: 0,
+        lastFullFolderProbeAt: 0,
+        capability: imapProtoConn.capabilities,
+        rootDelim: imapProtoConn.delim,
       },
       $mutations: [],
     };
-    universe._db.saveAccountDef(accountDef, folderInfo);
+    universe.saveAccountDef(accountDef, folderInfo);
     return universe._loadAccount(accountDef, folderInfo, imapProtoConn);
   },
 };
@@ -20836,9 +21463,12 @@ Configurators['fake'] = {
     };
 
     var folderInfo = {
+      $meta: {
+        nextMutationNum: 0,
+      },
       $mutations: [],
     };
-    universe._db.saveAccountDef(accountDef, folderInfo);
+    universe.saveAccountDef(accountDef, folderInfo);
     var account = universe._loadAccount(accountDef, folderInfo, null);
     callback(true, account);
   },
@@ -20918,16 +21548,15 @@ Configurators['fake'] = {
  *   @key[receiveConnInfo ConnInfo]
  *   @key[sendConnInfo ConnInfo]
  * ]]
+ * @typedef[MessageNamer @dict[
+ *   @key[date DateMS]
+ *   @key[suid SUID]
+ * ]]{
+ *   The information we need to locate a message within our storage.  When the
+ *   MailAPI tells the back-end things, it uses this representation.
+ * }
  * @typedef[SerializedMutation @dict[
- *   @key[id]{
- *     Unique-ish identifier for the mutation.  Just needs to be unique enough
- *     to not refer to any pending or still undoable-operation.
- *   }
- *   @key[friendlyOp String]{
- *     The user friendly opcode where flag manipulations like starring have
- *     their own opcode.
- *   }
- *   @key[realOp @oneof[
+ *   @key[type @oneof[
  *     @case['modtags']{
  *       Modify tags by adding and/or removing them.
  *     }
@@ -20942,8 +21571,23 @@ Configurators['fake'] = {
  *   ]]{
  *     The implementation opcode used to determine what functions to call.
  *   }
- *   @key[messages @listof[SUID]]
- *   @key[targetFolder #:optional FolderId]{
+ *   @key[longtermId]{
+ *     Unique-ish identifier for the mutation.  Just needs to be unique enough
+ *     to not refer to any pending or still undoable-operation.
+ *   }
+ *   @key[status @oneof[
+ *     @case[null]
+ *     @case['running']
+ *     @case['done']
+ *   ]]{
+ *   }
+ *   @key[humanOp String]{
+ *     The user friendly opcode where flag manipulations like starring have
+ *     their own opcode.
+ *   }
+ *   @key[messages @listof[MessageNamer]]
+ *
+ *   @key[folderId #:optional FolderId]{
  *     If this is a move/copy, the target folder
  *   }
  * ]]
@@ -20966,8 +21610,11 @@ function MailUniverse(testingModeLogData, callAfterBigBang) {
   var connection = window.navigator.connection ||
                      window.navigator.mozConnection ||
                      window.navigator.webkitConnection;
+  this.online = true; // just so we don't cause an offline->online transition
   this._onConnectionChange();
   connection.addEventListener('change', this._onConnectionChange.bind(this));
+
+  this._testModeDisablingLocalOps = false;
 
   /**
    * @dictof[
@@ -20994,7 +21641,7 @@ function MailUniverse(testingModeLogData, callAfterBigBang) {
   this._db = new $imapdb.ImapDB();
   var self = this;
   this._db.getConfig(function(configObj, accountInfos) {
-    self._LOG.configLoaded(configObj);
+    self._LOG.configLoaded(configObj, accountInfos);
     if (configObj) {
       self.config = configObj;
       for (var i = 0; i < accountInfos.length; i++) {
@@ -21004,9 +21651,13 @@ function MailUniverse(testingModeLogData, callAfterBigBang) {
     }
     else {
       self.config = {
+        // We need to put the id in here because our startup query can't
+        // efficiently get both the key name and the value, just the values.
+        id: 'config',
         nextAccountNum: 0,
         nextIdentityNum: 0,
       };
+      self._db.saveConfig(self.config);
     }
     callAfterBigBang();
   });
@@ -21017,6 +21668,7 @@ MailUniverse.prototype = {
     var connection = window.navigator.connection ||
                        window.navigator.mozConnection ||
                        window.navigator.webkitConnection;
+    var wasOnline = this.online;
     /**
      * Are we online?  AKA do we have actual internet network connectivity.
      * This should ideally be false behind a captive portal.
@@ -21036,6 +21688,22 @@ MailUniverse.prototype = {
      * infinite wi-fi.
      */
     this.networkCostsMoney = connection.metered;
+
+    if (!wasOnline && this.online) {
+      // - check if we have any pending actions to run and run them if so.
+      for (var iAcct = 0; iAcct < this.accounts.length; iAcct++) {
+        var account = this.accounts[iAcct],
+            queue = this._opsByAccount[account.id];
+        if (queue.length &&
+            // (it's possible there is still an active job right now)
+            (queue[0].status !== 'doing' && queue[0].status !== 'undoing')) {
+          var op = queue[0];
+          account.runOp(
+            op, op.desire,
+            this._opCompleted.bind(this, account, op));
+        }
+      }
+    }
   },
 
   registerBridge: function(mailBridge) {
@@ -21065,6 +21733,10 @@ MailUniverse.prototype = {
                                            callback, this._LOG);
   },
 
+  saveAccountDef: function(accountDef, folderInfo) {
+    this._db.saveAccountDef(this.config, accountDef, folderInfo);
+  },
+
   /**
    * Instantiate an account from the persisted representation.
    */
@@ -21089,6 +21761,13 @@ MailUniverse.prototype = {
       this._identitiesById[identity.id] = identity;
     }
 
+    // - check for mutations that still need to be processed
+    for (var i = 0; i < account.mutations.length; i++) {
+      var op = account.mutations[i];
+      if (op.desire)
+        this._queueAccountOp(account, op);
+    }
+
     return account;
   },
 
@@ -21104,6 +21783,37 @@ MailUniverse.prototype = {
       var bridge = this._bridges[iBridge];
       bridge.notifyFolderRemoved(accountId, folderMeta);
     }
+  },
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Lifetime Stuff
+
+  /**
+   * Write the current state of the universe to the database.
+   */
+  saveUniverseState: function() {
+    var curTrans = null;
+
+    for (var iAcct = 0; iAcct < this.accounts.length; iAcct++) {
+      var account = this.accounts[iAcct];
+      curTrans = account.saveAccountState(curTrans);
+    }
+  },
+
+  /**
+   * Shutdown all accounts; this is currently for the benefit of unit testing.
+   * We expect our app to operate in a crash-only mode of operation where a
+   * clean shutdown means we get a heads-up, put ourselves offline, and trigger a
+   * state save before we just demand that our page be closed.  That's future
+   * work, of course.
+   */
+  shutdown: function() {
+    for (var iAcct = 0; iAcct < this.accounts.length; iAcct++) {
+      var account = this.accounts[iAcct];
+      account.shutdown();
+    }
+    this._db.close();
+    this._LOG.__die();
   },
 
   //////////////////////////////////////////////////////////////////////////////
@@ -21158,14 +21868,15 @@ MailUniverse.prototype = {
    * may require it.  (Ex: activesync and gmail may be able to do things
    * that way.)
    */
-  _partitionMessagesByAccount: function(messageSuids, targetAccountId) {
+  _partitionMessagesByAccount: function(messageNamers, targetAccountId) {
     var results = [], acctToMsgs = {};
 
-    for (var i = 0; i < messageSuids.length; i++) {
-      var messageSuid = messageSuids[i],
+    for (var i = 0; i < messageNamers.length; i++) {
+      var messageNamer = messageNamers[i],
+          messageSuid = messageNamer.suid,
           accountId = messageSuid.substring(0, messageSuid.indexOf('/'));
       if (!acctToMsgs.hasOwnProperty(accountId)) {
-        var messages = [messageSuid];
+        var messages = [messageNamer];
         results.push({
           account: this._accountsById[accountId],
           messages: messages,
@@ -21174,7 +21885,7 @@ MailUniverse.prototype = {
         acctToMsgs[accountId] = messages;
       }
       else {
-        acctToMsgs[accountId].push(messageSuid);
+        acctToMsgs[accountId].push(messageNamer);
       }
     }
 
@@ -21182,13 +21893,22 @@ MailUniverse.prototype = {
   },
 
   _opCompleted: function(account, op, err) {
+    // Clear the desire if it is satisfied.  It's possible the desire is now
+    // to undo it, in which case we don't want to clobber the undo desire with
+    // the completion of the do desire.
+    if (op.status === 'done' && op.desire === 'do')
+      op.desire = null;
+    else if (op.status === 'undone' && op.desire === 'undo')
+      op.desire = null;
     var queue = this._opsByAccount[account.id];
     // shift the running op off.
     queue.shift();
 
     if (queue.length) {
       op = queue[0];
-      account.runOp(op, this._opCompleted.bind(this, account, op));
+      account.runOp(
+        op, op.desire,
+        this._opCompleted.bind(this, account, op));
     }
     else if (this._opCompletionListenersByAccount[account.id]) {
       this._opCompletionListenersByAccount[account.id](account);
@@ -21196,11 +21916,38 @@ MailUniverse.prototype = {
     }
   },
 
+  /**
+   * Immediately run the local mutation (synchronously) for an operation and
+   * enqueue its server operation for asynchronous operation.
+   *
+   * (nb: Header updates' execution may actually be deferred into the future if
+   * block loads are required, but they will maintain their apparent ordering
+   * on the folder in question.)
+   */
   _queueAccountOp: function(account, op) {
     var queue = this._opsByAccount[account.id];
     queue.push(op);
-    if (queue.length === 1)
-      account.runOp(op, this._opCompleted.bind(this, account, op));
+
+    if (op.longtermId === null) {
+      op.longtermId = account.id + '/' +
+                        $a64.encodeInt(account.meta.nextMutationNum++);
+      account.mutations.push(op);
+      while (account.mutations.length > MAX_MUTATIONS_FOR_UNDO &&
+             account.mutations[0].desire === null) {
+        account.mutations.shift();
+      }
+    }
+
+    // - run the local manipulation immediately
+    if (!this._testModeDisablingLocalOps)
+      account.runOp(op, op.desire === 'do' ? 'local_do' : 'local_undo');
+
+    // - initiate async execution if this is the first op
+    if (this.online && queue.length === 1)
+      account.runOp(
+        op, op.desire,
+        this._opCompleted.bind(this, account, op));
+    return op.longtermId;
   },
 
   waitForAccountOps: function(account, callback) {
@@ -21211,35 +21958,89 @@ MailUniverse.prototype = {
   },
 
   modifyMessageTags: function(humanOp, messageSuids, addTags, removeTags) {
-    var self = this;
+    var self = this, longtermIds = [];
     this._partitionMessagesByAccount(messageSuids, null).forEach(function(x) {
-      self._queueAccountOp(
+      var longtermId = self._queueAccountOp(
         x.account,
         {
           type: 'modtags',
+          longtermId: null,
+          status: null,
+          desire: 'do',
           humanOp: humanOp,
-          messages: messageSuids,
+          messages: x.messages,
           addTags: addTags,
           removeTags: removeTags,
+          // how many messages have had their tags changed already.
+          progress: 0,
         });
+      longtermIds.push(longtermId);
     });
+    return longtermIds;
   },
 
   moveMessages: function(messageSuids, targetFolderId) {
   },
 
-  undoMutation: function(mutationId) {
-  },
-
   appendMessages: function(folderId, messages) {
     var account = this.getAccountForFolderId(folderId);
-    this._queueAccountOp(
+    var longtermId = this._queueAccountOp(
       account,
       {
         type: 'append',
-        folderId: folderId,
+        longtermId: null,
+        status: null,
+        desire: 'do',
+        humanOp: 'append',
         messages: messages,
+        folderId: folderId,
       });
+    return [longtermId];
+  },
+
+  undoMutation: function(longtermIds) {
+    for (var i = 0; i < longtermIds.length; i++) {
+      var longtermId = longtermIds[i],
+          account = this.getAccountForFolderId(longtermId); // (it's fine)
+
+      for (var iOp = 0; iOp < account.mutations.length; iOp++) {
+        var op = account.mutations[iOp];
+        if (op.longtermId === longtermId) {
+          switch (op.status) {
+            // if we haven't started doing the operation, we can cancel it
+            case null:
+            case 'undone':
+              var queue = this._opsByAccount[account.id],
+                  idx = queue.indexOf(op);
+              if (idx !== -1) {
+                queue.splice(idx, 1);
+                // we still need to trigger the local_undo, of course
+                account.runOp(op, 'local_undo');
+                op.desire = null;
+              }
+              // If it somehow didn't exist, enqueue it.  Presumably this is
+              // something odd like a second undo request, which is logically
+              // a 'do' request, which is unsupported, but hey.
+              else {
+                op.desire = 'do';
+                this._queueAccountOp(account, op);
+              }
+              break;
+            // If it has been completed or is in the processing of happening, we
+            // should just enqueue it again to trigger its undoing/doing.
+            case 'done':
+            case 'doing':
+              op.desire = 'undo';
+              this._queueAccountOp(account, op);
+              break;
+            case 'undoing':
+              op.desire = 'do';
+              this._queueAccountOp(account, op);
+              break;
+          }
+        }
+      }
+    }
   },
 
   //////////////////////////////////////////////////////////////////////////////
@@ -21253,7 +22054,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
       createAccount: { type: true, id: false },
     },
     TEST_ONLY_events: {
-      configLoaded: { config: false },
+      configLoaded: { config: false, accounts: false },
       createAccount: { name: false },
     },
     errors: {
