@@ -39,7 +39,7 @@ if (!PaginationBar) {
         style.width = div + percentage;
         style.marginLeft = current * div + percentage;
       }
-    }
+    };
 
   }(document));
 }

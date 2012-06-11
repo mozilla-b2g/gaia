@@ -4,9 +4,10 @@ if (!GridManager) {
     'use strict';
 
     var container, counter, pages, startEvent = 'mousedown',
-        moveEvent = 'mousemove', endEvent = 'mouseup', elementTarget, iniPosX, curPosX,
-        winInnerWidth = window.innerWidth, threshold = window.innerWidth / 4,
-        tapHoldTimeout = 400, tapHoldTimer, status, draggableIcon, draggableIconOrigin,
+        moveEvent = 'mousemove', endEvent = 'mouseup', elementTarget, iniPosX,
+        curPosX, winInnerWidth = window.innerWidth,
+        threshold = window.innerWidth / 4, tapHoldTimeout = 400, tapHoldTimer,
+        status, draggableIcon, draggableIconOrigin,
         limits, canceledTapHoldObserver = false, wmode, px = 'px';
 
     /*
@@ -612,7 +613,8 @@ if (!GridManager) {
         this.isTranslatingPages = false;
         this.dragging = false;
         draggableIcon.onDragStop();
-        // When the drag&drop is finished we need to check empty pages and overflows
+        // When the drag&drop is finished we need to check empty pages
+        // and overflows
         checkOverflowPages();
         checkEmptyPages();
       },
@@ -635,7 +637,8 @@ if (!GridManager) {
                 // Changing positions when:
                 // 1) User change the direction of the gesture or...
                 // 2) It's another element different than previously dropped
-                pageHelper.getCurrent().drop(draggableIconOrigin, overlapElemOrigin, dir);
+                pageHelper.getCurrent().drop(draggableIconOrigin,
+                                             overlapElemOrigin, dir);
                 status.dropped = overlapElemOrigin;
               }
               status.pDir = dir;
@@ -662,7 +665,8 @@ if (!GridManager) {
        *
        */
       init: function(tApps) {
-        container = typeof tApps === 'object' ? tApps : doc.querySelector(tApps);
+        container = typeof tApps === 'object' ?
+          tApps : doc.querySelector(tApps);
         render();
         container.addEventListener(startEvent, this, true);
         container.addEventListener('contextmenu', this);

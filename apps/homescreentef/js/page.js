@@ -53,12 +53,14 @@ if (!Icon) {
       icon.appendChild(img);
 
       img.onerror = function() {
-        img.src = 'http://' + document.location.host + '/resources/images/Unknown.png';
+        img.src = 'http://' + document.location.host +
+                  '/resources/images/Unknown.png';
       }
 
       // Label
 
-      // wrapper of the label -> overflow text should be centered in draggable mode
+      // wrapper of the label -> overflow text should be centered
+      // in draggable mode
       var wrapper = document.createElement('span');
       wrapper.className = 'labelWrapper';
       var label = this.label = document.createElement('span');
@@ -125,9 +127,8 @@ if (!Icon) {
     * @param{int} y-coordinate
     */
     onDragMove: function(x, y) {
-      this.draggableElem.style.MozTransform = 'translate('
-        + (x - this.initX) + 'px,'
-        + (y - this.initY) + 'px)';
+      this.draggableElem.style.MozTransform = 'translate(' +
+          (x - this.initX) + 'px,' + (y - this.initY) + 'px)';
     },
 
    /*
@@ -176,7 +177,8 @@ if (!Page) {
           // We receive an origin here else it's an app or icon
           app = owdAppManager.getByOrigin(app);
         }
-        // We have to check if the app is installed just in case (DB could is corrupted)
+        // We have to check if the app is installed just in case
+        // (DB could is corrupted)
         if (app) {
           this.append(app);
         }

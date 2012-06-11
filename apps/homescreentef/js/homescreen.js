@@ -8,7 +8,7 @@ if (!Homescreen) {
 
     var mode = 'normal';
     var footer = doc.querySelector('#footer');
-    GridManager.onEditModeChange = function (value) {
+    GridManager.onEditModeChange = function(value) {
       footer.dataset.mode = mode = value;
     }
 
@@ -61,7 +61,7 @@ if (!Homescreen) {
           );
         }
       }
-    }
+    };
 
   })(document);
 }

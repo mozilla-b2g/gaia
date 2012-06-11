@@ -27,7 +27,7 @@ var permission = (function(doc) {
       }
     },
 
-    request: function (tit, msg, yescallback, nocallback) {
+    request: function(tit, msg, yescallback, nocallback) {
       if (screen === null) {
         screen = doc.createElement('div');
         screen.id = 'permission-screen';
@@ -111,5 +111,5 @@ var permission = (function(doc) {
       yes.addEventListener('click', clickHandler);
       no.addEventListener('click', clickHandler);
     }
-  }
+  };
 }(document));

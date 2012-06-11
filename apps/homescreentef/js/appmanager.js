@@ -1,4 +1,4 @@
-if(typeof owdAppManager === 'undefined') {
+if (typeof owdAppManager === 'undefined') {
   (function() {
   'use strict';
 
@@ -67,14 +67,14 @@ if(typeof owdAppManager === 'undefined') {
   };
 
   // Look up the app object for a specified app origin
-  owdAppManager.getByOrigin = function (origin) {
+  owdAppManager.getByOrigin = function(origin) {
     var ret = installedApps[origin];
 
     // Trailing '/'
-    if(typeof ret === 'undefined') {
-      var theor = origin.slice(0,origin.length - 1);
+    if (typeof ret === 'undefined') {
+      var theor = origin.slice(0, origin.length - 1);
 
-      window.console.log('The origin: ',theor);
+      window.console.log('The origin: ', theor);
 
       ret = installedApps[theor];
     }
@@ -146,13 +146,15 @@ if(typeof owdAppManager === 'undefined') {
 
     if (!manifest) {
       console.log(origin + ' has not defined its manifest');
-      return 'http://' + document.location.host + '/resources/images/Unknown.png';
+      return 'http://' + document.location.host +
+             '/resources/images/Unknown.png';
     }
 
     var ret = manifest.targetIcon;
 
     if (!ret) {
-      ret = 'http://' + document.location.host + '/resources/images/Unknown.png';
+      ret = 'http://' + document.location.host +
+            '/resources/images/Unknown.png';
 
       var icons = manifest.icons;
 
@@ -200,7 +202,7 @@ if(typeof owdAppManager === 'undefined') {
 
       var locales = manifest.locales;
       if (locales) {
-        var locale = locales[document.documentElement.lang]
+        var locale = locales[document.documentElement.lang];
         if (locale && locale.name) {
           ret = locale.name;
         }
@@ -213,23 +215,23 @@ if(typeof owdAppManager === 'undefined') {
   function paramsAsString(params) {
     var output = [];
 
-    for(var x in params) {
+    for (var x in params) {
       output.push(x + '=' + params[x]);
     }
 
-    return '?' + output.join('&')
+    return '?' + output.join('&');
   }
 
-  owdAppManager.launch = function(origin,params) {
+  owdAppManager.launch = function(origin, params) {
     var app = this.getByOrigin(origin);
 
-    if(app) {
+    if (app) {
       app.launch(paramsAsString(params));
     }
   }
 
   owdAppManager.close = function(origin) {
-    owdAppManager.launch(origin,{close:'1'});
+    owdAppManager.launch(origin, {close: '1'});
   }
 
   })();
