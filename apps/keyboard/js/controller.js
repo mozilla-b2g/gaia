@@ -46,7 +46,8 @@ const IMEController = (function() {
       _currentLayout = null,
       _layoutMode = LAYOUT_MODE_DEFAULT,
       _isUpperCase = false,
-      _currentInputType = 'text';
+      _currentInputType = 'text',
+      _lastHeight = 0;
 
   // show accent char menu (if there is one) after kAccentCharMenuTimeout
   var _kAccentCharMenuTimeout = 700;
@@ -285,7 +286,10 @@ const IMEController = (function() {
     } else {
       height = IMERender.ime.scrollHeight;
     }
+    if (_lastHeight === height)
+      return;
 
+    _lastHeight = height;
     var message = {
       action: 'updateHeight',
       keyboardHeight: height,
@@ -585,7 +589,6 @@ const IMEController = (function() {
           IMERender.ime.classList.add('candidate-panel');
           IMERender.ime.classList.remove('full-candidate-panel');
         }
-        _updateTargetWindowHeight();
         break;
 
       case DOT_COM:
@@ -689,7 +692,8 @@ const IMEController = (function() {
     'mouseover': _onMouseOver,
     'mouseleave': _onMouseLeave,
     'mouseup': _onMouseUp,
-    'mousemove': _onMouseMove
+    'mousemove': _onMouseMove,
+    'DOMSubtreeModified': _updateTargetWindowHeight
   };
 
   function _reset() {
@@ -735,8 +739,6 @@ const IMEController = (function() {
       IMERender.draw(_currentLayout, baseLayout, _onScroll);
     else
       IMERender.draw(_currentLayout, undefined, _onScroll);
-
-    _updateTargetWindowHeight();
   }
 
   return {
@@ -815,7 +817,6 @@ const IMEController = (function() {
         path: sourceDir + imEngine,
         sendCandidates: function(candidates) {
           IMERender.showCandidates(candidates);
-          _updateTargetWindowHeight();
         },
         sendPendingSymbols: function(symbols) {
           IMERender.showPendingSymbols(symbols);
