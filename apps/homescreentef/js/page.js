@@ -1,17 +1,5 @@
-/*
- *  Module: Page and Icon modules
- *
- *  Product: Open Web Device
- *
- *  Copyright(c) 2012 Telef—nica I+D S.A.U.
- *
- *  LICENSE: Apache 2.0
- *
- *  @author Cristian Rodriguez
- *
- */
-
 'use strict';
+
 var owd = window.owd || {};
 
 if (!owd.Icon) {

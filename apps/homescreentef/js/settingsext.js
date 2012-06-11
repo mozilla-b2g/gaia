@@ -1,4 +1,3 @@
-
 SettingsListener.getPropertyValue = function(name, callback) {
   var settings = window.navigator.mozSettings;
   if (!settings) {

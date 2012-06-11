@@ -1,4 +1,3 @@
-
 var SettingsListener = {
   _callbacks: {},
 
@@ -51,4 +50,3 @@ SettingsListener.observe('homescreen.wallpaper', 'default.png',
       'url(style/backgrounds/' + value + ')';
   }
 );
-
