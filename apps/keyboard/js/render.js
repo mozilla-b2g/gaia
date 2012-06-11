@@ -12,7 +12,7 @@ const IMERender = (function() {
   //
   // Public method that draws the Keyboard
   //
-  var draw = function kr_draw(layout, language) {
+  var draw = function kr_draw(layout, language, scrollHandler) {
 
     //change scale (Our target screen width is 320px)
     //TODO get document.documentElement.style.fontSize
@@ -66,7 +66,7 @@ const IMERender = (function() {
 
     if (layout.needsCandidatePanel) {
       this.ime.insertBefore(candidatePanelToggleButtonCode(), this.ime.firstChild);
-      this.ime.insertBefore(candidatePanelCode(), this.ime.firstChild);
+      this.ime.insertBefore(candidatePanelCode(scrollHandler), this.ime.firstChild);
       this.ime.insertBefore(pendingSymbolPanelCode(), this.ime.firstChild);
       showPendingSymbols('');
       showCandidates([], true);
@@ -222,9 +222,10 @@ const IMERender = (function() {
     return this.pendingSymbolPanel;
   };
 
-  var candidatePanelCode = function() {
+  var candidatePanelCode = function(scrollHandler) {
     this.candidatePanel = document.createElement('div');
     this.candidatePanel.id = 'keyboard-candidate-panel';
+    this.candidatePanel.addEventListener('scroll', scrollHandler);
     return this.candidatePanel;
   };
 

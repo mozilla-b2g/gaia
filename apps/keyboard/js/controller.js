@@ -362,10 +362,10 @@ const IMEController = (function() {
     _showingAlternativesMenu = false;
   }
 
-  function _notNormalKey(key) {
+  function _isKey(key) {
     var keyCode = parseInt(key.dataset.keycode);
-    return (!keyCode && !key.dataset.selection);
-            // && !key.dataset.compositekey); ??
+    return (keyCode || key.dataset.selection);
+            // || key.dataset.compositekey); ??
   }
 
   //
@@ -377,7 +377,7 @@ const IMEController = (function() {
 
     _isPressing = true;
     _currentKey = evt.target;
-    if (_notNormalKey(_currentKey))
+    if (!_isKey(_currentKey))
       return;
     keyCode = parseInt(_currentKey.dataset.keycode);
 
@@ -446,7 +446,7 @@ const IMEController = (function() {
       return;
 
     // do nothing if no keycode
-    if (_notNormalKey(target))
+    if (!_isKey(target))
       return;
 
     // remove current highlight
@@ -454,8 +454,10 @@ const IMEController = (function() {
       IMERender.unHighlightKey(_currentKey);
 
     // ignore if moving over del key
-    if (keyCode == KeyEvent.DOM_VK_BACK_SPACE)
+    if (keyCode == KeyEvent.DOM_VK_BACK_SPACE) {
+      _currentKey = null;
       return;
+    }
 
     _highlightKey(target);
     _currentKey = target;
@@ -485,8 +487,15 @@ const IMEController = (function() {
 
   }
 
+  function _onScroll(evt) {
+    if (!_isPressing || !_currentKey)
+      return;
+
+    _onMouseLeave(evt);
+    _isPressing = false; // cancel the following mouseover event
+  }
+
   function _onMouseLeave(evt) {
-    var target = evt.target;
     if (!_isPressing || !_currentKey)
       return;
 
@@ -495,8 +504,7 @@ const IMEController = (function() {
         _hideAlternatives();
     }, _kHideAlternativesCharMenuTimeout);
 
-    if (evt.type == 'scroll')
-      _isPressing = false; // cancel the following mouseover event
+    _currentKey = null;
   }
 
   function _onMouseUp(evt) {
@@ -513,18 +521,20 @@ const IMEController = (function() {
 
     var target = _currentKey;
     var keyCode = parseInt(target.dataset.keycode);
-    if (_notNormalKey(target))
+    if (!_isKey(target))
       return;
-    var dataset = target.dataset;
 
     // IME candidate selected
+    var dataset = target.dataset;
     if (dataset.selection) {
       this.currentEngine.select(target.textContent, dataset.data);
-      _updateTargetWindowHeight();
+      _highlightKey(target);
+      _currentKey = null;
       return;
     }
 
     IMERender.unHighlightKey(target);
+    _currentKey = null;
 
     if (keyCode == KeyEvent.DOM_VK_BACK_SPACE)
       return;
@@ -718,9 +728,9 @@ const IMEController = (function() {
     _currentLayout = _buildLayout(baseLayout, inputType, layoutMode, uppercase);
 
     if (_severalLanguages())
-      IMERender.draw(_currentLayout, baseLayout);
+      IMERender.draw(_currentLayout, baseLayout, _onScroll);
     else
-      IMERender.draw(_currentLayout);
+      IMERender.draw(_currentLayout, undefined, _onScroll);
     _updateTargetWindowHeight();
   }
 
