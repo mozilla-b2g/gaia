@@ -273,7 +273,6 @@ var Browser = {
       this.urlInput.value = url;
       this.currentTab.url = url;
     }
-
     this.navigate(url);
     this.urlInput.blur();
   },
@@ -303,7 +302,6 @@ var Browser = {
     if (this.currentScreen === this.PAGE_SCREEN) {
       this.urlInput.value = this.currentTab.url;
       this.urlInput.select();
-      this.setUrlButtonMode(this.GO);
       GlobalHistory.getHistory(this.showGlobalHistory.bind(this));
       this.showAwesomeScreen();
     }
@@ -345,7 +343,6 @@ var Browser = {
 
   openInNewTab: function(url) {
     this.createTab(url);
-    //this.navigate(data);
     this.tabsBadge.innerHTML = Object.keys(this.tabs).length;
   },
 
@@ -514,6 +511,7 @@ var Browser = {
 
   showAwesomeScreen: function browser_showAwesomeScreen() {
     this.urlInput.focus();
+    this.setUrlButtonMode(this.GO);
     this.tabsBadge.innerHTML = '×';
     this.switchScreen(this.AWESOME_SCREEN);
   },
