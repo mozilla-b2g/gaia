@@ -54,6 +54,8 @@
       /* icon */
       .apps ol > li > div > img {
         margin-bottom: 1%;
+        width: 6.5rem;
+        height: 6.5rem;
       }
 
       /* label wrapper */
@@ -90,8 +92,9 @@
     .apps .draggable > img {
       margin-bottom: 2.5%;
       box-shadow: 0 0 5px 5px #666;
-      border-radius: 50%; /* Box shadow around icon */
       -moz-transform: scale(1.1);
+      width: 6.5rem;
+      height: 6.5rem;
     }
 
     /* label wrapper */

@@ -38,6 +38,18 @@ if (typeof owdAppManager === 'undefined') {
 
     installedApps[newapp.origin] = newapp;
 
+    // Caching the icon
+    var appCache = window.applicationCache;
+    if (appCache) {
+      var icons = app.manifest.icons;
+      if (icons) {
+        Object.getOwnPropertyNames(icons).forEach(function iconIterator(key) {
+          var url = app.origin + icons[key];
+          appCache.mozAdd(url);
+        });
+      }
+    }
+
     callbacksOnInstall.forEach(function(callback) {
       callback(newapp);
     });
@@ -163,7 +175,9 @@ if (typeof owdAppManager === 'undefined') {
           ret = icons['120'];
         } else {
           // Get all sizes
-          var sizes = Object.keys(icons).map(parseInt);
+          var sizes = Object.keys(icons).map(function parse(str) {
+            return parseInt(str, 10);
+          });
           // Largest to smallest
           sizes.sort(function(x, y) { return y - x; });
           ret = icons[sizes[0]];
@@ -174,10 +188,7 @@ if (typeof owdAppManager === 'undefined') {
       // (technically, manifests are not supposed to have those)
       // Otherwise, prefix with the app origin
       if (ret.indexOf(':') === -1) {
-        // XXX it looks like the homescreen can't load images from other origins
-        // so use the ones from the url host for now
-        // icon = app.origin + icon;
-        ret = 'http://' + document.location.host + ret;
+        ret = origin + ret;
       }
 
       manifest.targetIcon = ret;
