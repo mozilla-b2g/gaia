@@ -62,8 +62,8 @@
   });
 
   //mocha helpers
-  window.requireCommon('test/mocha-task.js');
-  window.requireCommon('test/mocha-generators.js', function() {
+  window.requireCommon('test/mocha_task.js');
+  window.requireCommon('test/mocha_generators.js', function() {
     testMethods.forEach(function(method) {
       testSupport.mochaGenerators.overload(method);
     });
@@ -73,7 +73,7 @@
   window.requireCommon('test/marionette.js');
 
   //url utilities
-  window.requireCommon('test/test-url-resolver.js');
+  window.requireCommon('test/test_url_resolver.js');
 
 }(this));
 
