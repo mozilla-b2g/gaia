@@ -203,7 +203,8 @@ var LockScreen = {
         break;
 
       case 'keyup':
-        if (!this.locked || evt.keyCode !== evt.DOM_VK_ESCAPE)
+        if (!this.locked || evt.keyCode !== evt.DOM_VK_ESCAPE ||
+            evt.keyCode !== evt.DOM_VK_HOME)
           break;
 
         this.switchPanel();
