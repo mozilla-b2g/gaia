@@ -3,21 +3,40 @@
 
 'use strict';
 
-var Applications = {
-  installedApps: [],
-  init: function a_init() {
-    this.rebuild();
-  },
+// Application module handles the information of apps on behalf of other
+// modules.
 
-  rebuild: function a_rebuild() {
+var Applications = {
+  installedApps: {},
+  init: function a_init() {
+    // XXX: handle webapps-ask-install on behalf of permission manager
+    // need relocate.
+    window.addEventListener('mozChromeEvent', this);
+
     var self = this;
-    navigator.mozApps.mgmt.getAll().onsuccess = function(evt) {
+    var apps = navigator.mozApps;
+
+    apps.mgmt.oninstall = function a_install(evt) {
+      var newapp = evt.application;
+      self.installedApps[newapp.origin] = newapp;
+
+      self.fireApplicationInstallEvent(newapp);
+    };
+
+    apps.mgmt.onuninstall = function a_uninstall(evt) {
+      var deletedapp = evt.application;
+      delete installedApps[deletedapp.origin];
+
+      self.fireApplicationUninstallEvent(newapp);
+    }
+
+    apps.mgmt.getAll().onsuccess = function(evt) {
       var apps = evt.target.result;
       apps.forEach(function(app) {
         self.installedApps[app.origin] = app;
       });
 
-      self.fireApplicationChangeEvent();
+      self.fireApplicationReadyEvent();
     };
   },
 
@@ -33,7 +52,6 @@ var Applications = {
     // This is how we say yes or no to the request after the user decides
     var self = this;
     function sendResponse(id, allow) {
-      self.rebuild();
 
       var event = document.createEvent('CustomEvent');
       event.initCustomEvent('mozContentEvent', true, true, {
@@ -62,14 +80,33 @@ var Applications = {
                            function() { sendResponse(detail.id, false); });
   },
 
-  fireApplicationChangeEvent: function scm_fireScreenChangeEvent() {
+  fireApplicationReadyEvent: function a_fireAppReadyEvent() {
     var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('applicationchange',
-      /* canBubble */ true, /* cancelable */ false);
+    evt.initCustomEvent('applicationready',
+      /* canBubble */ true, /* cancelable */ false,
+      { applications: this.installedApps });
+    window.dispatchEvent(evt);
+  },
+
+  // We need to dispatch the following events because
+  // mozApps is not doing so right now.
+  // ref: https://bugzilla.mozilla.org/show_bug.cgi?id=731746
+
+  fireApplicationInstallEvent: function a_fireApplicationInstallEvent(app) {
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent('applicationinstall',
+      /* canBubble */ true, /* cancelable */ false,
+      { application: app });
+    window.dispatchEvent(evt);
+  },
+
+  fireApplicationUninstallEvent: function a_fireApplicationUninstallEvent(app) {
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent('applicationuninstall',
+      /* canBubble */ true, /* cancelable */ false,
+      { application: app });
     window.dispatchEvent(evt);
   }
 };
 
 Applications.init();
-
-window.addEventListener('mozChromeEvent', Applications);
