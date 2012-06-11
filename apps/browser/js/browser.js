@@ -16,6 +16,7 @@ var Browser = {
   currentScreen: null,
   PAGE_SCREEN: 0,
   TABS_SCREEN: 1,
+  AWESOME_SCREEN: 2,
 
   urlButtonMode: null,
 
@@ -235,7 +236,9 @@ var Browser = {
   },
 
   navigate: function browser_navigate(url) {
-    this.awesomescreen.classList.add('hidden');
+    if (this.currentScreen === this.AWESOME_SCREEN) {
+      document.body.classList.remove('awesome-screen');
+    }
     this.currentTab.title = null;
     this.currentTab.url = url;
     this.currentTab.dom.setAttribute('src', url);
@@ -293,7 +296,8 @@ var Browser = {
     this.urlInput.value = this.currentTab.url;
     this.urlInput.select();
     this.setUrlButtonMode(this.GO);
-    this.awesomescreen.classList.remove('hidden');
+    this.currentScreen = this.AWESOME_SCREEN;
+    document.body.classList.add('awesome-screen');
     GlobalHistory.getHistory(this.showGlobalHistory.bind(this));
   },
 
@@ -512,9 +516,11 @@ var Browser = {
   },
 
   showTabScreen: function browser_showTabScreen() {
+    if (this.currentScreen === this.AWESOME_SCREEN) {
+      document.body.classList.remove('awesome-screen');
+    }
     this.currentScreen = this.TABS_SCREEN;
     this.tabsBadge.innerHTML = '+';
-    this.awesomescreen.classList.add('hidden');
     this.urlInput.blur();
 
     var multipleTabs = Object.keys(this.tabs) > 1;
