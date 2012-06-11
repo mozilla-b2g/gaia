@@ -66,8 +66,8 @@ const IMEController = (function() {
   var _kRepeatRate = 100,
       _kRepeatTimeout = 700;
 
-    // Taps the shift key twice within kCapsLockTimeout
-    // to lock the keyboard at upper case state.
+  // Taps the shift key twice within kCapsLockTimeout
+  // to lock the keyboard at upper case state.
   var _kCapsLockTimeout = 450,
       _isUpperCaseLocked = false;
 
@@ -373,11 +373,13 @@ const IMEController = (function() {
   //
 
   function _onMouseDown(evt) {
+    var keyCode;
+
     _isPressing = true;
     _currentKey = evt.target;
-    var keyCode = parseInt(_currentKey);
     if (_notNormalKey(_currentKey))
       return;
+    keyCode = parseInt(_currentKey.dataset.keycode);
 
     // Feedback
     _highlightKey(_currentKey);
