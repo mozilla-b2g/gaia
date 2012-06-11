@@ -465,12 +465,20 @@
               _previousKeycode !== IMESpecialKey.TRANSFORM) {
             break;
           }
+          if (_inputBuf.length === 0){
+            break;
+          }
+
           _keyMode = KeyMode.TRANSFORM;
           handleTransform();
           break;
 
         // Hiragana, full-width katakana and half-width katakana convertor
         case IMESpecialKey.H2K:
+          if (_inputBuf.length === 0){
+            break;
+          }
+
           if (_keyMode === KeyMode.H2K) {
             _keyMode = KeyMode.SELECT;
             handlePorN(_inputBuf.slice(0, _firstKana.length));
