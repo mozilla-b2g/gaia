@@ -225,14 +225,15 @@
   proto._renderDay = function(day) {
     var busyHtml,
         hours,
-        day = day,
+        month = Calendar.Calc.today.getMonth(),
+        currentMonth = this.controller.currentMonth,
         id = Calendar.Calc.getDayId(day),
         state,
         busytimes = this.controller.busytime;
 
     // rework state
-    if (this.controller.currentMonth.getMonth() != Calendar.Calc.today.getMonth()) {
-      state = Calendar.Calc.relativeState(day, this.controller.currentMonth);
+    if (currentMonth.getMonth() != month) {
+      state = Calendar.Calc.relativeState(day, currentMonth);
     } else {
       state = Calendar.Calc.relativeState(day);
     }
