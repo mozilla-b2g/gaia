@@ -418,7 +418,7 @@ var Browser = {
 
   followLink: function browser_followLink(e) {
     e.preventDefault();
-    this.navigate(e.target.parentNode.getAttribute('href'));
+    this.navigate(e.target.getAttribute('href'));
   },
 
   createTab: function browser_createTab(url) {

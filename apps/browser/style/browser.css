@@ -297,7 +297,6 @@ input::-moz-focus-inner {
   bottom: 0;
   z-index: 60;
   background-color: #fff;
-  padding: 4px;
 }
 
 #awesomescreen.hidden {
@@ -311,10 +310,9 @@ input::-moz-focus-inner {
 
 #awesomescreen li {
   list-style-type: none;
-  border-bottom: solid 1px #ccc;
 }
 
-#awesomescreen li:last-child {
+#awesomescreen li:last-child a {
   border-bottom: none;
 }
 
@@ -323,12 +321,17 @@ input::-moz-focus-inner {
   padding: 8px;
   text-decoration: none;
   color: #000;
+  border-bottom: solid 1px #ccc;
+}
+#awesomescreen li a:hover, #awesomescreen li a:active {
+  background: #EEE;
 }
 
 #awesomescreen li span {
   display: block;
   overflow: hidden;
   white-space: nowrap;
+  pointer-events: none;
 }
 
 #awesomescreen li small {
@@ -336,6 +339,7 @@ input::-moz-focus-inner {
   color: #666;
   overflow: hidden;
   white-space: nowrap;
+  pointer-events: none;
 }
 
 #history{
