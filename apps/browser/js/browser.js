@@ -13,10 +13,11 @@ var Browser = {
   REFRESH: 1,
   STOP: 2,
 
+  previousScreen: null,
   currentScreen: null,
-  PAGE_SCREEN: 0,
-  TABS_SCREEN: 1,
-  AWESOME_SCREEN: 2,
+  PAGE_SCREEN: 'page-screen',
+  TABS_SCREEN: 'tabs-screen',
+  AWESOME_SCREEN: 'awesome-screen',
 
   urlButtonMode: null,
 
@@ -95,7 +96,11 @@ var Browser = {
     if (this.currentScreen === this.TABS_SCREEN) {
       var tabId = this.createTab();
       this.selectTab(tabId);
-      this.urlInput.focus();
+      this.showAwesomeScreen();
+      return;
+    }
+    if (this.currentScreen === this.AWESOME_SCREEN &&
+        this.previousScreen === this.PAGE_SCREEN) {
       this.showPageScreen();
       return;
     }
@@ -236,9 +241,7 @@ var Browser = {
   },
 
   navigate: function browser_navigate(url) {
-    if (this.currentScreen === this.AWESOME_SCREEN) {
-      document.body.classList.remove('awesome-screen');
-    }
+    this.showPageScreen();
     this.currentTab.title = null;
     this.currentTab.url = url;
     this.currentTab.dom.setAttribute('src', url);
@@ -293,12 +296,13 @@ var Browser = {
   },
 
   urlFocus: function browser_urlFocus() {
-    this.urlInput.value = this.currentTab.url;
-    this.urlInput.select();
-    this.setUrlButtonMode(this.GO);
-    this.currentScreen = this.AWESOME_SCREEN;
-    document.body.classList.add('awesome-screen');
-    GlobalHistory.getHistory(this.showGlobalHistory.bind(this));
+    if (this.currentScreen === this.PAGE_SCREEN) {
+      this.urlInput.value = this.currentTab.url;
+      this.urlInput.select();
+      this.setUrlButtonMode(this.GO);
+      GlobalHistory.getHistory(this.showGlobalHistory.bind(this));
+      this.showAwesomeScreen();
+    }
   },
 
   urlBlur: function browser_urlBlur() {
@@ -501,12 +505,6 @@ var Browser = {
     this.refreshButtons();
   },
 
-  showPageScreen: function browser_showPageScreen() {
-    document.body.classList.remove('tabs-screen');
-    this.currentScreen = this.PAGE_SCREEN;
-    this.tabsBadge.innerHTML = Object.keys(this.tabs).length;
-  },
-
   fetchScreenshot: function browser_fetchScreenshot(tab, img) {
     if (tab.dom.getScreenshot) {
       tab.dom.getScreenshot().onsuccess = function(e) {
@@ -515,15 +513,29 @@ var Browser = {
     }
   },
 
+  switchScreen: function(screen) {
+    document.body.classList.remove(this.currentScreen);
+    this.previousScreen = this.currentScreen;
+    this.currentScreen = screen;
+    document.body.classList.add(this.currentScreen);
+  },
+
+  showAwesomeScreen: function browser_showAwesomeScreen() {
+    this.urlInput.focus();
+    this.tabsBadge.innerHTML = '×';
+    this.switchScreen(this.AWESOME_SCREEN);
+  },
+
+  showPageScreen: function browser_showPageScreen() {
+    this.switchScreen(this.PAGE_SCREEN);
+    this.tabsBadge.innerHTML = Object.keys(this.tabs).length;
+  },
+
   showTabScreen: function browser_showTabScreen() {
-    if (this.currentScreen === this.AWESOME_SCREEN) {
-      document.body.classList.remove('awesome-screen');
-    }
-    this.currentScreen = this.TABS_SCREEN;
     this.tabsBadge.innerHTML = '+';
     this.urlInput.blur();
 
-    var multipleTabs = Object.keys(this.tabs) > 1;
+    var multipleTabs = Object.keys(this.tabs).length > 1;
     var ul = document.createElement('ul');
 
     for (var tab in this.tabs) {
@@ -564,8 +576,7 @@ var Browser = {
     }
     this.tabsList.innerHTML = '';
     this.tabsList.appendChild(ul);
-
-    document.body.classList.add('tabs-screen');
+    this.switchScreen(this.TABS_SCREEN);
   }
 };
 
