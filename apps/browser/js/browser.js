@@ -71,7 +71,6 @@ var Browser = {
   // that page
   handlePageScreenClicked: function browser_handlePageScreenClicked(e) {
     if (this.currentScreen === this.TABS_SCREEN) {
-      this.setTabVisibility(this.currentTab, true);
       this.showPageScreen();
     }
   },
@@ -437,8 +436,9 @@ var Browser = {
   setTabVisibility: function(tab, visible) {
     // We put loading tabs off screen as we want to screenshot
     // them when loaded
-    if (tab.loading) {
-      tab.dom.style.top = visible ? '0px' : '-999px';
+    console.log('setvisible', visible);
+    if (tab.loading && !visible) {
+      tab.dom.style.top = '-999px';
       return;
     }
 
@@ -446,6 +446,7 @@ var Browser = {
       tab.dom.setActive(visible);
     }
     tab.dom.style.display = visible ? 'block' : 'none';
+    tab.dom.style.top = '0px';
   },
 
   createTab: function browser_createTab(url) {
@@ -497,10 +498,8 @@ var Browser = {
 
   selectTab: function browser_selectTab(id) {
     this.currentTab = this.tabs[id];
-    this.setTabVisibility(this.currentTab, true);
     // We may have picked a currently loading background tab
     // that was positioned off screen
-    this.currentTab.dom.style.top = '0px';
     this.urlInput.value = this.currentTab.title;
 
     if (this.currentTab.loading) {
@@ -524,6 +523,16 @@ var Browser = {
   },
 
   showPageScreen: function browser_showPageScreen() {
+    if (this.currentScreen === this.TABS_SCREEN) {
+      var switchToLive = (function() {
+        this.setTabVisibility(this.currentTab, true);
+        this.mainScreen.removeEventListener('transitionend', switchToLive, true);
+      }).bind(this);
+      this.mainScreen.addEventListener('transitionend', switchToLive, true);
+    } else {
+      this.setTabVisibility(this.currentTab, true);
+    }
+
     this.switchScreen(this.PAGE_SCREEN);
     this.tabsBadge.innerHTML = Object.keys(this.tabs).length;
   },
