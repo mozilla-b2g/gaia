@@ -53,8 +53,17 @@ var Browser = {
     this.history.addEventListener('click', this.followLink.bind(this));
     this.tabsBadge.addEventListener('click',
       this.handleTabsBadgeClicked.bind(this));
-    this.tabsList.addEventListener('click',
-      this.handleTabClicked.bind(this));
+
+    this.swipeManager.browser = this;
+    this.tabsList.addEventListener('mousedown',
+      this.swipeManager.mousedown.bind(this.swipeManager));
+    this.tabsList.addEventListener('pan',
+      this.swipeManager.pan.bind(this.swipeManager));
+    this.tabsList.addEventListener('tap',
+      this.swipeManager.tap.bind(this.swipeManager));
+    this.tabsList.addEventListener('swipe',
+      this.swipeManager.swipe.bind(this.swipeManager));
+
     this.mainScreen.addEventListener('click',
       this.handlePageScreenClicked.bind(this));
 
@@ -106,29 +115,6 @@ var Browser = {
       return;
     }
     this.showTabScreen();
-  },
-
-  handleTabClicked: function browser_handleTabClicked(e) {
-    var id = e.target.getAttribute('data-id');
-    if (!id) {
-      return;
-    }
-    if (e.target.nodeName === 'BUTTON') {
-      var tabs = Object.keys(this.tabs);
-      if (tabs.length > 1) {
-        // The tab to be selected when the current one is deleted
-        var newTab = tabs.indexOf(id);
-        if (newTab === tabs.length - 1) {
-          newTab -= 1;
-        }
-        this.deleteTab(id);
-        this.selectTab(Object.keys(this.tabs)[newTab]);
-        this.showTabScreen();
-      }
-    } else if (e.target.nodeName === 'A') {
-      this.selectTab(id);
-      this.showPageScreen();
-    }
   },
 
   // Each browser gets their own listener
@@ -291,7 +277,7 @@ var Browser = {
     this.refreshButtons();
   },
 
-  refreshButtons: function() {
+  refreshButtons: function browser_refreshButtons() {
     this.backButton.disabled = !this.currentTab.session.backLength();
     this.forwardButton.disabled = !this.currentTab.session.forwardLength();
   },
@@ -345,7 +331,7 @@ var Browser = {
     });
   },
 
-  openInNewTab: function(url) {
+  openInNewTab: function browser_openInNewTab(url) {
     this.createTab(url);
     this.tabsBadge.innerHTML = Object.keys(this.tabs).length;
   },
@@ -484,7 +470,7 @@ var Browser = {
   deleteTab: function browser_deleteTab(id) {
     this.tabs[id].dom.parentNode.removeChild(this.tabs[id].dom);
     delete this.tabs[id];
-    if (this.currentTab.id === id) {
+    if (this.currentTab && this.currentTab.id === id) {
       this.currentTab = null;
     }
   },
@@ -500,6 +486,7 @@ var Browser = {
     // We may have picked a currently loading background tab
     // that was positioned off screen
     this.urlInput.value = this.currentTab.title;
+    this.tabCover.setAttribute('src', this.currentTab.screenshot);
 
     if (this.currentTab.loading) {
       this.throbber.classList.add('loading');
@@ -507,7 +494,7 @@ var Browser = {
     this.refreshButtons();
   },
 
-  switchScreen: function(screen) {
+  switchScreen: function browser_switchScreen(screen) {
     document.body.classList.remove(this.currentScreen);
     this.previousScreen = this.currentScreen;
     this.currentScreen = screen;
@@ -519,17 +506,17 @@ var Browser = {
     this.setUrlButtonMode(this.GO);
     this.tabsBadge.innerHTML = '×';
     this.switchScreen(this.AWESOME_SCREEN);
+    this.tabCover.style.display = 'none';
   },
 
   showPageScreen: function browser_showPageScreen() {
     if (this.currentScreen === this.TABS_SCREEN) {
-
-      var hideCover = (function() {
+      var hideCover = (function browser_hideCover() {
         this.tabCover.removeAttribute('src');
         this.tabCover.style.display = 'none';
       }).bind(this);
 
-      var switchToLive = (function() {
+      var switchToLive = (function browser_switchToLive() {
         this.mainScreen.removeEventListener('transitionend', switchToLive, true);
         this.setTabVisibility(this.currentTab, true);
         // Give the page time to render to avoid a flash when switching
@@ -563,14 +550,6 @@ var Browser = {
       var img = document.createElement('img');
       var text = document.createTextNode(title);
 
-      if (multipleTabs) {
-        var close = document.createElement('button');
-        close.appendChild(document.createTextNode('✕'));
-        close.classList.add('close');
-        close.setAttribute('data-id', this.tabs[tab].id);
-        li.appendChild(close);
-      }
-
       a.setAttribute('data-id', this.tabs[tab].id);
 
       span.appendChild(text);
@@ -582,15 +561,102 @@ var Browser = {
       if (this.tabs[tab].screenshot) {
         img.setAttribute('src', this.tabs[tab].screenshot);
       }
-
-      if (tab === this.currentTab.id) {
-        li.classList.add('current');
-      }
-
     }
     this.tabsList.innerHTML = '';
     this.tabsList.appendChild(ul);
+    new GestureDetector(ul).startDetecting();
     this.switchScreen(this.TABS_SCREEN);
+  },
+
+  swipeManager: {
+
+    TRANSITION_SPEED: 1.8,
+    TRANSITION_FRACTION: 0.50,
+
+    browser: null,
+    tab: null,
+    id: null,
+    containerWidth: null,
+
+    mousedown: function swipe_mousedown(e) {
+      e.preventDefault();
+      this.tab = e.target;
+      this.id = this.tab.getAttribute('data-id');
+      this.containerWidth = this.tab.parentNode.clientWidth;
+      // We cant delete the last tab
+      this.deleteable = Object.keys(this.browser.tabs).length > 1;
+      if (!this.deleteable) {
+        return;
+      }
+      this.tab.classList.add('active');
+      this.tab.style.MozTransition = '';
+      this.tab.style.position = 'absolute';
+      this.tab.style.width = e.target.parentNode.clientWidth + 'px';
+    },
+
+    pan: function swipe_pan(e) {
+      if (!this.deleteable) {
+        return;
+      }
+      var movement = Math.min(this.containerWidth, Math.abs(e.detail.absolute.dx));
+      if (movement > 0) {
+        this.tab.style.opacity = 1 - (movement / this.containerWidth);
+      }
+      this.tab.style.left = e.detail.absolute.dx + 'px';
+    },
+
+    tap: function swipe_tap() {
+      this.browser.selectTab(this.id);
+      this.browser.showPageScreen();
+    },
+
+    swipe: function swipe_swipe(e) {
+      if (!this.deleteable) {
+        return;
+      }
+
+      var distance = e.detail.start.screenX - e.detail.end.screenX;
+      var fastenough = Math.abs(e.detail.vx) > this.TRANSITION_SPEED;
+      var farenough = Math.abs(distance) >
+        this.containerWidth * this.TRANSITION_FRACTION;
+
+      if (!(farenough || fastenough)) {
+        // Werent far or fast enough to delete, restore
+        var time = Math.abs(distance) / this.TRANSITION_SPEED;
+        var transition = 'left ' + time + 'ms linear';
+        this.tab.style.MozTransition = transition;
+        this.tab.style.left = '0px';
+        this.tab.style.opacity = 1;
+        this.tab.classList.remove('active');
+        return;
+      }
+
+      var speed = Math.max(Math.abs(e.detail.vx), 1.8);
+      var time = (this.containerWidth - Math.abs(distance)) / speed;
+      var offset = e.detail.direction === 'right'
+        ? this.containerWidth : -this.containerWidth;
+
+      this.deleteTab(time, offset);
+    },
+
+    deleteTab: function swipe_deleteTab(time, offset) {
+      var browser = this.browser;
+      var id = this.id;
+      var li = this.tab.parentNode;
+      // First animate the tab offscreen
+      this.tab.addEventListener('transitionend', function() {
+        // Then animate the space dissapearing
+        li.addEventListener('transitionend', function(e) {
+          // Then delete everything
+          browser.deleteTab(id);
+          li.parentNode.removeChild(li);
+        }, true);
+        li.style.MozTransition = 'height ' + 100 + 'ms linear';
+        li.style.height = '0px';
+      }, true);
+      this.tab.style.MozTransition = 'left ' + time + 'ms linear';
+      this.tab.style.left = offset + 'px';
+    }
   }
 };
 

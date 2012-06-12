@@ -79,23 +79,20 @@ body {
 #tabs-list li a {
   display: block;
   height: 100%;
-  padding: 5px;
-  margin-right:50px;
   -moz-user-select: none;
 }
 
 #tabs-list li {
   margin: 0;
-  height: 80px;
+  height: 70px;
   border-bottom: 1px solid #333;
   font-family: 'Open Sans', sans-serif;
   overflow: hidden;
   position: relative;
 }
 
-#tabs-list li a:hover, #tabs-list li a:active {
+#tabs-list li a.active {
   background: #333;
-  cursor: pointer;
 }
 
 #tabs-list img {
