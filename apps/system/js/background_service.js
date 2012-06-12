@@ -42,7 +42,7 @@ var BackgroundServiceManager = (function bsm() {
     if (appCache) {
       var icons = newapp.manifest.icons;
       if (icons) {
-        Object.getOwnPropertyNames(icons).forEach(function iconIterator(key) {
+        Object.keys(icons).forEach(function iconIterator(key) {
           var url = newapp.origin + icons[key];
           appCache.mozAdd(url);
         });

@@ -11,9 +11,8 @@ var NotificationHelper = {
     if (!('mozNotification' in navigator))
       return;
 
-    var notification = navigator.mozNotification.createNotification(
-      title, body, icon
-    );
+    var notification = navigator.mozNotification.createNotification(title,
+                                                                    body, icon);
 
     notification.onclick = (function() {
       if (clickCB)

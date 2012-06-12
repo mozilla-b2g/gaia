@@ -370,9 +370,7 @@ var CallHandler = {
           var title = 'Missed call';
           var body = 'From ' + number;
 
-          NotificationHelper.send(
-            title, body, iconURL, notiClick
-          );
+          NotificationHelper.send(title, body, iconURL, notiClick);
         };
       }
 

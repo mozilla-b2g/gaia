@@ -151,7 +151,7 @@ var LockScreen = {
         if (!this.locked || evt.detail.type !== 'desktop-notification')
           return;
 
-        this.showNotification(evt.detail.title, evt.detail.text, evt.detail.icon);
+        this.showNotification(evt.detail);
         break;
 
       case 'click':
@@ -332,14 +332,14 @@ var LockScreen = {
     this.mute.hidden = !!SoundManager.currentVolume;
   },
 
-  showNotification: function lockscreen_showNotification(title, detail, icon) {
+  showNotification: function lockscreen_showNotification(detail) {
     this.notification.hidden = false;
 
     // XXX: pretty date, respect clock format in Settings
     this.notificationTime.textContent = (new Date()).toLocaleFormat('%R');
-    this.notificationIcon.src = icon;
-    this.notificationTitle.textContent = title;
-    this.notificationDetail.textContent = detail;
+    this.notificationIcon.src = detail.icon;
+    this.notificationTitle.textContent = detail.title;
+    this.notificationDetail.textContent = detail.text;
   },
 
   hideNotification: function lockscreen_hideNotification() {

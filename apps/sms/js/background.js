@@ -74,9 +74,7 @@ mozSms.addEventListener('received', function received(evt) {
       app.launch();
     };
 
-    NotificationHelper.send(
-      message.sender, message.body, iconURL, notiClick
-    );
+    NotificationHelper.send(message.sender, message.body, iconURL, notiClick);
   };
 });
 

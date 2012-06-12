@@ -30,9 +30,7 @@ var NotificationScreen = {
       var detail = e.detail;
       switch (detail.type) {
         case 'desktop-notification':
-          NotificationScreen.addNotification('desktop-notification',
-                                              detail.title, detail.text,
-                                              detail.id, detail.icon);
+          NotificationScreen.addNotification(detail);
 
           var hasNotifications = document.getElementById('state-notifications');
           hasNotifications.dataset.visible = 'true';
@@ -63,10 +61,6 @@ var NotificationScreen = {
       }
 
       self.removeNotification(target);
-
-      var type = target.dataset.type;
-      if (type != 'desktop-notification')
-        return;
 
       var event = document.createEvent('CustomEvent');
       event.initCustomEvent('mozContentEvent', true, true, {
@@ -165,30 +159,27 @@ var NotificationScreen = {
     evt.preventDefault();
   },
 
-  addNotification: function ns_addNotification(type, nTitle, body, nID, iconURL) {
+  addNotification: function ns_addNotification(detail) {
     var notifications = this.container;
 
     var notification = document.createElement('div');
     notification.className = 'notification';
-    notification.dataset.type = type;
 
-    if (type == 'desktop-notification') {
-      notification.dataset.notificationID = nID;
-    }
+    notification.dataset.notificationID = detail.id;
 
-    if (iconURL) {
+    if (detail.icon) {
       var icon = document.createElement('img');
-      icon.src = iconURL;
+      icon.src = detail.icon;
       notification.appendChild(icon);
     }
 
     var title = document.createElement('div');
-    title.textContent = nTitle;
+    title.textContent = detail.title;
     notification.appendChild(title);
 
     var message = document.createElement('div');
     message.classList.add('detail');
-    message.textContent = body;
+    message.textContent = detail.text;
     notification.appendChild(message);
 
     var close = document.createElement('a');
@@ -208,16 +199,6 @@ var NotificationScreen = {
     if (desktopNotifications.length == 0) {
       var hasNotifications = document.getElementById('state-notifications');
       delete hasNotifications.dataset.visible;
-    }
-  },
-
-  removeNotifications: function ns_removeNotifications(type) {
-    var notifications = this.container;
-    var typeSelector = 'div[data-type="' + type + '"]';
-    var children = notifications.querySelectorAll(typeSelector);
-    for (var i = children.length - 1; i >= 0; i--) {
-      var notification = children[i];
-      notification.parentNode.removeChild(notification);
     }
   }
 };
