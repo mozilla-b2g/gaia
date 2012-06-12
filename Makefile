@@ -33,7 +33,7 @@ REPORTER=Spec
 
 GAIA_APP_SRCDIRS?=apps test_apps
 
-ifeq ($(MAKECMDGOALS), DEMO)
+ifeq ($(MAKECMDGOALS), demo)
 GAIA_DOMAIN=thisdomaindoesnotexist.org
 GAIA_APP_SRCDIRS=apps
 endif
@@ -94,7 +94,7 @@ ifeq ($(strip $(NPM)),)
 	NPM := `which npm`
 endif
 
-TEST_AGENT_CONFIG="./apps/test-agent/config.json"
+TEST_AGENT_CONFIG="./test_apps/test-agent/config.json"
 
 #Marionette testing variables
 #make sure we're python 2.7.x
@@ -442,4 +442,4 @@ install-gaia: profile
 install-media-samples:
 	$(ADB) push media-samples/DCIM /sdcard/DCIM
 
-demo: install-media-samples profile
+demo: install-media-samples install-gaia
