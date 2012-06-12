@@ -465,7 +465,7 @@
               _previousKeycode !== IMESpecialKey.TRANSFORM) {
             break;
           }
-          if (_inputBuf.length === 0){
+          if (_inputBuf.length === 0) {
             break;
           }
 
@@ -475,7 +475,7 @@
 
         // Hiragana, full-width katakana and half-width katakana convertor
         case IMESpecialKey.H2K:
-          if (_inputBuf.length === 0){
+          if (_inputBuf.length === 0) {
             break;
           }
 
@@ -608,6 +608,7 @@
         return;
       };
 
+      // TODO
       // update _firstKana and _firstKanji
       _dict.getTerms(kanaArr, __getTermsCallback1);
 
@@ -2209,7 +2210,6 @@
       if (typeof iDBCache[kanaStr] !== 'undefined') {
         debug('Found in iDBCache.');
         cacheSetTimeout();
-        debug('cache ' + JSON.stringify(iDBCache[kanaStr]));
         callback(iDBCache[kanaStr]);
         return;
       }
@@ -2226,8 +2226,6 @@
           } else {
             result = [];
           }
-          debug('Get terms getTermsByKana homonymsArray ' + JSON.stringify(
-                                                                      result));
           cacheSetTimeout();
           iDBCache[kanaStr] = result;
           callback(result);
@@ -2255,8 +2253,8 @@
     /* end getTermWithHighestScore */
 
     // sentence is a list of terms
-    this.getSentence = function imedb_getSentence(kanaStr, callback) {
-      debug('getSentence ' + kanaStr);
+    this.getSentence = function imedb_getSentence(kanaArr, callback) {
+      debug('getSentence ' + kanaArr);
       var self = this;
 
       var doCallback = function getSentence_doCallback(sentence) {
@@ -2265,7 +2263,7 @@
         }
       };
 
-      var n = kanaStr.length;
+      var n = kanaArr.length;
 
       if (n == 0) {
         callback([]);
@@ -2281,7 +2279,7 @@
 
       taskQueue.data = {
         sentences: [[], []],
-        probabilities: [1, 0],
+        probabilities: [0, MAX_FREQUENCY],
         sentenceLength: 1,
         lastPhraseLength: 1
       };
@@ -2295,14 +2293,15 @@
         var probabilities = queueData.probabilities;
 
         if (probabilities.length < sentenceLength + 1) {
-          probabilities.push(Infinity);
+          probabilities.push(MAX_FREQUENCY);
         }
         if (sentences.length < sentenceLength + 1) {
-          sentences.push(['', '']);
+          sentences.push([]);
         }
         var maxProb = probabilities[sentenceLength];
-        var s = kanaStr.slice(sentenceLength -
+        var s = kanaArr.slice(sentenceLength -
             lastPhraseLength, sentenceLength);
+
         self.getTermWithHighestScore(s,
           function getTermWithHighestScoreCallback(term) {
             var syllable = s.join('');
@@ -2310,6 +2309,7 @@
             if (!term) {
               term = {kanji: syllable, freq: MAX_FREQUENCY, kana: syllable};
             }
+
             var prob = probabilities[sentenceLength -
               lastPhraseLength] + term.freq;
             if (prob < probabilities[sentenceLength]) {
