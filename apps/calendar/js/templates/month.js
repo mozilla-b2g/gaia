@@ -9,7 +9,7 @@
     currentMonth: [
       '<span class="month">{month}</span>',
       '<span class="year">{year}</span>'
-    ].join(' '),
+    ].join(''),
 
     weekDaysHeader: [
       '<header id="month-days" role="row">',
@@ -42,7 +42,7 @@
         '<span class="day">{date}</span>',
         '<div class="busy-indicator">{busy|s}</div>',
       '</li>'
-    ].join(''),
+    ].join('')
   });
 
   Calendar.Templates.Month = Month;
