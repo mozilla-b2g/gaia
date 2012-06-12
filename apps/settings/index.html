@@ -7,7 +7,7 @@
     <link rel="stylesheet" type="text/css" media="screen" href="style/ui.css"/>
     <link rel="stylesheet" type="text/css" media="screen" href="style/dialogs.css"/>
     <link rel="stylesheet" type="text/css" media="screen" href="style/settings.css"/>
-    <link rel="resource" type="application/l10n" href="locale/settings.properties"/>
+    <link type="application/l10n" href="locale/settings.properties"/>
     <!-- Compatibility -->
     <script>
       if (document.location.protocol === 'file:') {
@@ -32,59 +32,136 @@
     </header>
 
     <div id="root" class="view" data-title="Settings">
+      <h2 data-l10n-id="networkAndConnectivity">Network &amp; Connectivity</h2>
       <ul>
         <li>
-          <a data-l10n-id="airPlaneMode">Air Plane Mode</a>
+          <span data-l10n-id="airplaneMode">Airplane Mode</span>
           <label>
-            <input type="checkbox" name="ril.radio.disabled"/>
+            <input type="checkbox" name="airplane.enabled" checked="true" />
             <span></span>
           </label>
         </li>
         <li>
           <a href="#wifi">
+            <small id="wifi-desc"></small>
             <span data-l10n-id="wifi">Wi-Fi</span>
           </a>
         </li>
         <li>
           <a href="#data">
-            <span data-l10n-id="data">Cellular &amp; Data</span>
+            <small id="data-desc"></small>
+            <span data-l10n-id="cellularAndData">Cellular &amp; Data</span>
           </a>
         </li>
         <li>
-          <a data-l10n-id="doNotTrack">Do Not Track</a>
-          <label>
-            <input type="checkbox" name="dnt.enabled" checked="true" />
-            <span></span>
-          </label>
+          <a href="#bluetooth">
+            <small id="bluetooth-desc"></small>
+            <span data-l10n-id="bluetooth">Bluetooth</span>
+          </a>
         </li>
       </ul>
-      <h2 data-l10n-id="settings">Settings</h2>
+      <h2 data-l10n-id="personalization">Personalization</h2>
       <ul>
         <li>
+          <a href="#sound">
+            <span data-l10n-id="sound">Sound</span>
+          </a>
+        </li>
+        <li>
+          <a href="brightness">
+            <span data-l10n-id="brightness">Brightness</span>
+          </a>
+        </li>
+        <li>
+          <a href="#wallpaper">
+            <span data-l10n-id="wallpaper">Wallpaper</span>
+          </a>
+        </li>
+        <li>
+          <a href="#time">
+            <small id="time-desc"></small>
+            <span data-l10n-id="timeAndDate">Time &amp; Date</span>
+          </a>
+        </li>
+        <li>
           <a href="#languages">
-            <span data-l10n-id="languages">Languages</span>
-          </a>
-        </li>
-        <li>
-          <a href="#wallpapers">
-            <span data-l10n-id="wallpapers">Wallpapers</span>
-          </a>
-        </li>
-        <li>
-          <a href="#display">
-            <span data-l10n-id="display">Display</span>
+            <small id="language-desc"></small>
+            <span data-l10n-id="languageAndRegion">Language &amp; Region</span>
           </a>
         </li>
         <li>
           <a href="#keyboard">
+            <small id="keyboard-desc"></small>
             <span data-l10n-id="keyboard">Keyboard</span>
           </a>
         </li>
+      </ul>
+      <h2 data-l10n-id="accounts">Accounts</h2>
+      <ul>
         <li>
-          <a href="#sounds">
-            <span data-l10n-id="sounds">Sounds</span>
+          <a href="#persona">
+            <span data-l10n-id="persona">Persona</span>
           </a>
         </li>
+        <li>
+          <a href="#mail">
+            <span data-l10n-id="mail">Mail</span>
+          </a>
+        </li>
+      </ul>
+      <h2 data-l10n-id="securityAndPrivacy">Security &amp; Privacy</h2>
+      <ul>
+        <li>
+          <a href="#phoneLock">
+            <small id="phoneLock-desc"></small>
+            <span data-l10n-id="phoneLock">Phone Lock</span>
+          </a>
+        </li>
+        <li>
+          <a href="#simCardLock">
+            <small id="simCardLock-desc"></small>
+            <span data-l10n-id="simCardLock">SIM Card Lock</span>
+          </a>
+        </li>
+        <li>
+          <a href="#appPermissions">
+            <span data-l10n-id="appPermissions">App Permissions</span>
+          </a>
+        </li>
+        <li>
+          <a href="#doNotTrack">
+            <small id="doNotTrack-desc"></small>
+            <span data-l10n-id="doNotTrack">Do Not Track</span>
+          </a>
+        </li>
+      </ul>
+      <h2 data-l10n-id="device">Device</h2>
+      <ul>
+        <li>
+          <a href="#about">
+            <span data-l10n-id="aboutPhone">About Phone</span>
+          </a>
+        </li>
+        <li>
+          <a href="#helpAndFeedback">
+            <span data-l10n-id="helpAndFeedback">Help &amp; Feedback</span>
+          </a>
+        </li>
+        <li>
+          <a href="#storage">
+            <small id="storage-desc"></small>
+            <span data-l10n-id="storage">Storage</span>
+          </a>
+        </li>
+        <li>
+          <a href="#battery">
+            <small id="battery-desc"></small>
+            <span data-l10n-id="battery">Battery</span>
+          </a>
+        </li>
+      </ul>
+
+      <!-- <ul>
         <li>
           <a href="#phone">
             <span data-l10n-id="phone">Phone</span>
@@ -105,7 +182,7 @@
             <span data-l10n-id="about">About</span>
           </a>
         </li>
-      </ul>
+      </ul> -->
     </div>
 
     <!-- Wi-Fi -->
