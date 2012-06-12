@@ -109,7 +109,6 @@
       id = 'month-view-' + id;
       el = document.getElementById(id);
 
-
       if (el) {
         el.classList.add('selected');
       }
@@ -221,25 +220,24 @@
    * @param {Date} day representing a day.
    */
   proto._renderDay = function(day) {
-    var busyHtml,
-        hours,
+    var hours,
         month = Calendar.Calc.today.getMonth(),
-        currentMonth = this.controller.currentMonth,
         id = Calendar.Calc.getDayId(day),
         state,
         busytimes = this.controller.busytime;
 
-    state = Calendar.Calc.relativeState(day, currentMonth);
-
     hours = busytimes.getHours(day);
-    busyHtml = this._renderBusyUnits(hours);
+    state = Calendar.Calc.relativeState(
+      day,
+      this.controller.currentMonth
+    );
 
     return template.day.render({
       id: 'month-view-' + id,
       dateString: id,
       state: state,
       date: day.getDate(),
-      busy: busyHtml
+      busy: this._renderBusyUnits(hours)
     });
   };
 
