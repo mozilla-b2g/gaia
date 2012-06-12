@@ -698,7 +698,7 @@ var WindowManager = (function() {
 
     // The screenshot module also listens for the HOME key.
     // If it is pressed along with SLEEP, then it will call preventDefault()
-    // on the keyup event and possibly also on the keydown event.  
+    // on the keyup event and possibly also on the keydown event.
     // So we try to ignore these already handled events, but have to
     // pay attention if a timer has already been set, we can't just ignore
     // a handled keyup, we've got to clear the timer.
@@ -733,7 +733,7 @@ var WindowManager = (function() {
       if (e.keyCode !== e.DOM_VK_HOME)
         return;
 
-      if (!keydown) // the keydown event was defaultPrevented, so 
+      if (!keydown) // the keydown event was defaultPrevented, so
         return;     // we can ignore this keyup
 
       keydown = false;

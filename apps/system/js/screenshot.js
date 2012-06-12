@@ -23,9 +23,9 @@
   var preventDefaultOnSleepKeyUp = false;
 
   function keyDownHandler(e) {
-    if (e.keyCode === e.DOM_VK_HOME) 
+    if (e.keyCode === e.DOM_VK_HOME)
       homeKeyDown = true;
-    if (e.keyCode === e.DOM_VK_SLEEP) 
+    if (e.keyCode === e.DOM_VK_SLEEP)
       sleepKeyDown = true;
 
     if (homeKeyDown && sleepKeyDown) {
@@ -67,20 +67,20 @@
       var screenshotRequest = frame.getScreenshot();
 
       screenshotRequest.onerror = function() {
-        console.error("screenshot error", screenshotRequest.error);
+        console.error('screenshot error', screenshotRequest.error);
       };
 
       screenshotRequest.onsuccess = function(e) {
         try {
           // Feedback that the screenshot was taken
           // TODO: play a sound instead?
-          navigator.mozVibrate([0, 100, 150, 100]);  // buzz pause buzz
-          
+          navigator.mozVibrate(100);
+
           // Here is the result of the screenshot
           var dataurl = e.target.result;
-          
-          // Annoyingly, the screenshot API gives us a data url 
-          // instead of the blob that we really want. So we have to 
+
+          // Annoyingly, the screenshot API gives us a data url
+          // instead of the blob that we really want. So we have to
           // render it to an image, and then copy that image into a canvas
           // to convert it to a file that we can save
           var img = document.createElement('img');
@@ -94,7 +94,7 @@
               context.drawImage(img, 0, 0, img.width, img.height);
               var blob = canvas.mozGetAsFile('', 'image/png');
               var storages = navigator.getDeviceStorage('pictures');
-              var storage = storages[storages.length-1];
+              var storage = storages[storages.length - 1];
 
               var origin = app ? app : 'homescreen';
               origin = origin.replace('http://', '');
@@ -110,10 +110,10 @@
               timestamp = timestamp.replace('T', '-');
 
               var filename = 'screenshots/' + origin + '-' + timestamp + '.png';
-              
+
               var storageRequest = storage.addNamed(blob, filename);
               storageRequest.onerror = function() {
-                console.error("addNamed() error",
+                console.error('addNamed() error',
                               storageRequest.error,
                               storageRequest.error.name);
               }
@@ -121,28 +121,28 @@
                 try {
                   // Vibrate again when the screenshot is saved
                   navigator.mozVibrate([100, 100]);  // pause buzz
-                  
+
                   // Display filename in a notification
                   navigator.mozNotification
                     .createNotification('Screenshot saved', filename)
                     .show();
                 }
-                catch(e) {
+                catch (e) {
                   console.error(e);
                 }
               };
             }
-            catch(e) {
+            catch (e) {
               console.error(e);
             }
           }
         }
-        catch(e) {
+        catch (e) {
           console.error(e);
         }
       }
     }
-    catch(e) {
+    catch (e) {
       console.error(e);
     }
   }

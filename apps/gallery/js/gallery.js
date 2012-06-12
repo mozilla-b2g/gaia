@@ -181,7 +181,7 @@ storages.forEach(function(storage, storageIndex) {
             imagedata.height = testimg.height;
             addImage(imagedata);
           }
-          catch(e) {
+          catch (e) {
             console.error(e);
           }
           finally {
@@ -210,11 +210,11 @@ storages.forEach(function(storage, storageIndex) {
                                            metadata.exif.DateTime ||
                                            null);
                              }
-                             
+
                              // add this image and its metadata to our list
                              addImage(imagedata);
                            }
-                           catch(e) {
+                           catch (e) {
                              console.log(e);
                            }
                            finally {

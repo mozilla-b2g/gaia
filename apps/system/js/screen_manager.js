@@ -64,7 +64,7 @@ var ScreenManager = {
         if (evt.keyCode !== evt.DOM_VK_SLEEP && evt.keyCode !== evt.DOM_VK_HOME)
           return;
 
-        if (!evt.defaultPrevented) 
+        if (!evt.defaultPrevented)
           this._turnOffScreenOnKeyup = true;
         if (!this.screenEnabled) {
           this.turnScreenOn();
