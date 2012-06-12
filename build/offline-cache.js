@@ -331,7 +331,7 @@ directories.forEach(function generateAppCache(dir) {
   }
 });
 
-let appsNeedingIcons = ["homescreen"]; // Soon there will be the system app too.
+let appsNeedingIcons = ["homescreen", "system"];
 appsNeedingIcons.forEach(function appIterator(appName) {
   let domain = "http://" + appName + "." + GAIA_DOMAIN;
   let applicationCache =
