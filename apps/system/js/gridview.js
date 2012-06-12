@@ -1,8 +1,10 @@
-/* === Debug Grid === */
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
+'use strict';
+
 var GridView = {
-  get grid() {
-    return document.getElementById('debug-grid');
-  },
+  grid: document.getElementById('debug-grid'),
 
   get visible() {
     return this.grid && this.grid.style.display === 'block';
