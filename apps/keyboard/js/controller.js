@@ -28,8 +28,7 @@ const IMEController = (function() {
   var BASIC_LAYOUT = -1,
       ALTERNATE_LAYOUT = -2,
       SWITCH_KEYBOARD = -3,
-      TOGGLE_CANDIDATE_PANEL = -4,
-      DOT_COM = -5;
+      TOGGLE_CANDIDATE_PANEL = -4;
 
   var LAYOUT_MODE_DEFAULT = 'Default',
       LAYOUT_MODE_SYMBOLS_I = 'Symbols_1',
@@ -109,7 +108,7 @@ const IMEController = (function() {
         row.splice(where, 1, // delete space
           { value: '.', ratio: 1, keyCode: 46 },
           { value: '/', ratio: 2, keyCode: 47 },
-          { value: '.com', ratio: 2, keyCode: DOT_COM }
+          { value: '.com', ratio: 2, compositeKey:'.com' }
         );
       break;
 
@@ -404,10 +403,9 @@ const IMEController = (function() {
     _showingAlternativesMenu = false;
   }
 
-  function _isKey(key) {
+  function _isNormalKey(key) {
     var keyCode = parseInt(key.dataset.keycode);
-    return (keyCode || key.dataset.selection);
-            // || key.dataset.compositekey); ??
+    return keyCode || key.dataset.selection || key.dataset.compositekey;
   }
 
   //
@@ -419,7 +417,7 @@ const IMEController = (function() {
 
     _isPressing = true;
     _currentKey = evt.target;
-    if (!_isKey(_currentKey))
+    if (!_isNormalKey(_currentKey))
       return;
     keyCode = parseInt(_currentKey.dataset.keycode);
 
@@ -488,7 +486,7 @@ const IMEController = (function() {
       return;
 
     // do nothing if no keycode
-    if (!_isKey(target))
+    if (!_isNormalKey(target))
       return;
 
     // remove current highlight
@@ -563,7 +561,7 @@ const IMEController = (function() {
 
     var target = _currentKey;
     var keyCode = parseInt(target.dataset.keycode);
-    if (!_isKey(target))
+    if (!_isNormalKey(target))
       return;
 
     // IME candidate selected
@@ -586,6 +584,20 @@ const IMEController = (function() {
     if (keyCode != KeyEvent.DOM_VK_SPACE)
       delete this.isContinousSpacePressed;
 
+    // Handle composite key
+    var sendCompositeKey = function sendCompositeKey(compositeKey) {
+        compositeKey.split('').forEach(function sendEachKey(key) {
+          window.navigator.mozKeyboard.sendKey(0, key.charCodeAt(0));
+        });
+    }
+
+    var compositeKey = target.dataset.compositekey;
+    if (compositeKey) {
+      sendCompositeKey(compositeKey);
+      return;
+    }
+
+    // Handle normal key
     switch (keyCode) {
       case BASIC_LAYOUT:
       case ALTERNATE_LAYOUT:
@@ -623,12 +635,6 @@ const IMEController = (function() {
           IMERender.ime.classList.add('candidate-panel');
           IMERender.ime.classList.remove('full-candidate-panel');
         }
-        break;
-
-      case DOT_COM:
-        ('.com').split('').forEach((function sendDotCom(key) {
-          window.navigator.mozKeyboard.sendKey(0, key.charCodeAt(0));
-        }).bind(this));
         break;
 
       case KeyEvent.DOM_VK_CAPS_LOCK:
@@ -802,10 +808,18 @@ const IMEController = (function() {
     uninit: _uninit,
 
     showIME: function(type) {
+      // TODO: to start in uppercase but we need to access input field to check
+      // if empty
+      /*
+      if (type === 'text')
+        _isUpperCase = true;
+      */
+
       delete IMERender.ime.dataset.hidden;
       IMERender.ime.classList.remove('hide');
       _currentInputType = _mapType(type); // TODO: this should be unneccesary
-      _draw(_baseLayout, _currentInputType, _layoutMode);
+
+      _draw(_baseLayout, _currentInputType, _layoutMode, _isUpperCase);
 
       if (Keyboards[_baseLayout].type == 'ime') {
         if (this.currentEngine.show) {
@@ -843,8 +857,6 @@ const IMEController = (function() {
 
       var script = document.createElement('script');
       script.src = sourceDir + imEngine + '/' + imEngine + '.js';
-      // TODO: Remvoe variable self
-      var self = IMERender;
       var glue = {
         path: sourceDir + imEngine,
         sendCandidates: function(candidates) {

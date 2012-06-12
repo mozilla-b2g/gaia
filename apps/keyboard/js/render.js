@@ -46,6 +46,9 @@ const IMERender = (function() {
         var dataset = [{'key': 'row', 'value': nrow}];
         dataset.push({'key': 'column', 'value': ncolumn});
         dataset.push({'key': 'keycode', 'value': code});
+        if (key.compositeKey) {
+          dataset.push({'key': 'compositekey', 'value': key.compositeKey});
+        }
 
         if (language && code == -3) {
           dataset.push({'key': 'keyboard', 'value': language});
@@ -177,6 +180,8 @@ const IMERender = (function() {
       var keyCode = keyChar.keyCode || keyChar.charCodeAt(0);
       var dataset = [{'key': 'keycode', 'value': keyCode}];
       var label = keyChar.label || keyChar;
+      if (label.length > 1)
+        dataset.push({'key': 'compositekey', 'value':label});
       content += buildKey(label, '', cssWidth, dataset);
     });
     this.menu.innerHTML = content;
@@ -242,9 +247,8 @@ const IMERender = (function() {
 
     var content = '<button class="keyboard-key ' + className + '"';
     dataset.forEach(function(data) {
-        content += ' data-' + data.key + '="' + data.value + '" ';
-      }
-    );
+      content += ' data-' + data.key + '="' + data.value + '" ';
+    });
     content += ' style="-moz-box-flex:' + width + '"';
     content += '><span>' + label + '</span></button>';
     return content;
