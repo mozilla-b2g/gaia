@@ -254,6 +254,8 @@ var CallHandler = {
     this.lookupContact(number);
 
     var sanitizedNumber = number.replace(/-/g, '');
+    // Force to unmute, since some phones are muted by default.
+    window.navigator.mozTelephony.muted = false;
     var call = window.navigator.mozTelephony.dial(sanitizedNumber);
     call.addEventListener('statechange', this);
     this.currentCall = call;
@@ -303,6 +305,8 @@ var CallHandler = {
   },
 
   answer: function ch_answer() {
+    // Force to unmute, since some phones are muted by default.
+    window.navigator.mozTelephony.muted = false;
     this.currentCall.answer();
   },
 

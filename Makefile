@@ -1,5 +1,5 @@
 ###############################################################################
-# Global configurations                                                       #
+# Global configurations.  Protip: set your own overrides in a local.mk file.  #
 #                                                                             #
 # GAIA_DOMAIN : change that if you plan to use a different domain to update   #
 #               your applications or want to use a local domain               #
@@ -17,6 +17,8 @@
 #                                                                             #
 # GAIA_APP_SRCDIRS : list of directories to search for web apps               #
 ###############################################################################
+-include local.mk
+
 GAIA_DOMAIN?=gaiamobile.org
 
 HOMESCREEN?=http://system.$(GAIA_DOMAIN)
@@ -359,11 +361,11 @@ endif
 
 # Lint apps
 lint:
-	# ignore lint on:
-	# cubevid
-	# crystalskull
-	# towerjelly
-	gjslint `find apps -type d \( -name cubevid -o -name crystalskull -o -name towerjelly \) -prune -o -name "*.js" -print`
+	@# ignore lint on:
+	@# cubevid
+	@# crystalskull
+	@# towerjelly
+	@gjslint --nojsdoc -r apps -e 'cubevid,crystalskull,towerjelly'
 
 # Generate a text file containing the current changeset of Gaia
 # XXX I wonder if this should be a replace-in-file hack. This would let us
