@@ -77,7 +77,10 @@ suite('models/busytime', function() {
     });
 
     test('removal', function() {
-      assert.ok(!subject.get('2'), 'should not have object for removed element');
+      assert.ok(
+        !subject.get('2'),
+        'should not have object for removed element'
+      );
       assert.deepEqual(subject.times, expectedTimes);
       assert.deepEqual(subject.ids, {});
       assert.isTrue(result);
