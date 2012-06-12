@@ -351,7 +351,7 @@ var Browser = {
     var menuItems = ctxDefaults[evt.detail.nodeName] || {};
 
     var collectMenuItems = function(menu) {
-      for(var i in menu.items) {
+      for (var i in menu.items) {
         if (menu.items[i].type === 'menuitem') {
           var id = menu.items[i].id;;
           menuItems[id] = menu.items[i];
@@ -516,14 +516,14 @@ var Browser = {
         this.tabCover.style.display = 'none';
       }).bind(this);
 
-      var switchToLive = (function browser_switchToLive() {
-        this.mainScreen.removeEventListener('transitionend', switchToLive, true);
+      var switchLive = (function browser_switchLive() {
+        this.mainScreen.removeEventListener('transitionend', switchLive, true);
         this.setTabVisibility(this.currentTab, true);
         // Give the page time to render to avoid a flash when switching
         // TODO: remove
         setTimeout(hideCover, 250);
       }).bind(this);
-      this.mainScreen.addEventListener('transitionend', switchToLive, true);
+      this.mainScreen.addEventListener('transitionend', switchLive, true);
     } else {
       this.setTabVisibility(this.currentTab, true);
     }
@@ -598,7 +598,8 @@ var Browser = {
       if (!this.deleteable) {
         return;
       }
-      var movement = Math.min(this.containerWidth, Math.abs(e.detail.absolute.dx));
+      var movement = Math.min(this.containerWidth,
+                              Math.abs(e.detail.absolute.dx));
       if (movement > 0) {
         this.tab.style.opacity = 1 - (movement / this.containerWidth);
       }
@@ -633,8 +634,8 @@ var Browser = {
 
       var speed = Math.max(Math.abs(e.detail.vx), 1.8);
       var time = (this.containerWidth - Math.abs(distance)) / speed;
-      var offset = e.detail.direction === 'right'
-        ? this.containerWidth : -this.containerWidth;
+      var offset = e.detail.direction === 'right' ?
+        this.containerWidth : -this.containerWidth;
 
       this.deleteTab(time, offset);
     },
