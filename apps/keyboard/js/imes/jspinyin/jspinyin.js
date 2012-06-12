@@ -3780,11 +3780,11 @@ var DictList = function dictList_constructor() {
 DictList.prototype = {
   /* ==== Public ==== */
   save_list: function dictList_save(fp) {
-
+    return false;
   },
 
   load_list: function dictList_load(fp) {
-
+    return false;
   },
 
   /**
@@ -3816,7 +3816,7 @@ DictList.prototype = {
 
   /**
    * Get the hanzi string for the given id
-   * @return {String} The hanzi string if successes. Otherwize empty string.
+   * @return {string} The hanzi string if successes. Otherwize empty string.
    */
   get_lemma_str: function dictList_get_lemma_str(id_lemma) {
     if (!this.initialized_ ||
@@ -3839,12 +3839,11 @@ DictList.prototype = {
    * @param {string} last_hzs stores the last n Chinese characters history,
    * its length should be less or equal than DictDef.kMaxPredictSize.
    * @param {Array.<NPredictItem>} npre_items is used to store the result.
-   * @param {boolean} b4_used specifies how many items before npre_items have
-   * been used.
+   * @param {number} used specifies how many items have been used from the
+   * beiginning of npre_items.
    * @return {number} The number of newly added items.
    */
-  predict: function dictList_predict(last_hzs, npre_items, b4_used) {
-    // XXXX the issue of b4_used should be solved.
+  predict: function dictList_predict(last_hzs, npre_items, used) {
     // 1. Prepare work
     var hzs_len = last_hzs.length;
     var npre_max = npre_items.length;
@@ -3852,7 +3851,7 @@ DictList.prototype = {
 
     var ngram = NGram.get_instance();
 
-    var item_num = 0;
+    var item_num = used;
 
     // 2. Do prediction
     for (var pre_len = 1; pre_len <= DictDef.kMaxPredictSize + 1 - hzs_len;
@@ -3864,39 +3863,35 @@ DictList.prototype = {
       while (w_buf < this.start_pos_[word_len] &&
              cmp_func(this.buf_[w_buf], last_hzs) == 0 &&
              item_num < npre_max) {
-        memset(npre_items + item_num, 0, sizeof(NPredictItem));
         npre_items[item_num] = new SearchUtility.NPredictItem();
         npre_items[item_num].pre_hzs =
           this.buf_.substring(w_buf + hzs_len, w_buf + hzs_len + pre_len);
         npre_items[item_num].psb =
-          ngram.get_uni_psb((size_t)(w_buf - buf_ - start_pos_[word_len - 1]) /
-          word_len + start_id_[word_len - 1]);
+          ngram.get_uni_psb((w_buf - this.start_pos_[word_len - 1]) /
+          word_len + this.start_id_[word_len - 1]);
         npre_items[item_num].his_len = hzs_len;
         item_num++;
         w_buf += word_len;
       }
     }
 
-    var new_num = 0;
-    for (var i = 0; i < item_num; i++) {
+    var new_num = used;
+    for (var i = used; i < item_num; i++) {
       // Try to find it in the existing items
       var e_pos;
-      for (e_pos = 1; e_pos <= b4_used; e_pos++) {
-        if (utf16_strncmp((* (npre_items - e_pos)).pre_hzs,
-                          npre_items[i].pre_hzs,
-                          kMaxPredictSize) == 0)
+      for (e_pos = 0; e_pos < used; e_pos++) {
+        if (npre_items[e_pos].pre_hzs == npre_items[i].pre_hzs) {
           break;
+        }
       }
-      if (e_pos <= b4_used)
+      if (e_pos < used)
         continue;
 
       // If not found, append it to the buffer
       npre_items[new_num] = npre_items[i];
       new_num++;
     }
-
     return new_num;
-
   },
 
   /**
@@ -3976,12 +3971,12 @@ DictList.prototype = {
 
   /**
    * Starting position of those words whose lengths are i+1, counted in char16.
-   * @type Integer[DictDef.kMaxLemmaSize + 1]
+   * @type Array.<number>
    */
   start_pos_: null,
 
   /**
-   * @type Integer[DictDef.kMaxLemmaSize + 1]
+   * @type Array.<number>
    */
   start_id_: null,
 
@@ -3989,7 +3984,7 @@ DictList.prototype = {
 
   /**
    * Calculate the requsted memory, including the start_pos[] buffer.
-   * @param {DictDef.LemmaEntry[]} lemma_arr The lemma array.
+   * @param {Array.<DictDef.LemmaEntry>} lemma_arr The lemma array.
    */
   calculate_size: function dictList_calculate_size(lemma_arr) {
     var last_hz_len = 0;
