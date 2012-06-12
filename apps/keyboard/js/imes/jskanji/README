@@ -1,0 +1,16 @@
+# Japanese IME
+
+About Dictionary
+
+The IME dictionary is converted from IPAdic project with following steps:
+1. Get a copy of IPAdic at 
+http://sourceforge.jp/projects/ipadic/.
+
+2. Extract all .dic files to dict/ipadic/.
+
+3. run `make` under the `dict` directory to generate dict.json.
+
+
+The tool of `dict/jcconv.py` is getting from https://github.com/taichino/jcconv.
+
+

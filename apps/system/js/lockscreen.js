@@ -151,7 +151,7 @@ var LockScreen = {
         if (!this.locked || evt.detail.type !== 'desktop-notification')
           return;
 
-        this.showNotification(evt.detail.title, evt.detail.text);
+        this.showNotification(evt.detail);
         break;
 
       case 'click':
@@ -266,6 +266,8 @@ var LockScreen = {
 
     this.mainScreen.classList.remove('locked');
 
+    WindowManager.setOrientationForApp(WindowManager.getDisplayedApp());
+
     if (!wasAlreadyUnlocked) {
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent('unlocked', true, true, null);
@@ -332,13 +334,14 @@ var LockScreen = {
     this.mute.hidden = !!SoundManager.currentVolume;
   },
 
-  showNotification: function lockscreen_showNotification(title, detail) {
+  showNotification: function lockscreen_showNotification(detail) {
     this.notification.hidden = false;
 
     // XXX: pretty date, respect clock format in Settings
     this.notificationTime.textContent = (new Date()).toLocaleFormat('%R');
-    this.notificationTitle.textContent = title;
-    this.notificationDetail.textContent = detail;
+    this.notificationIcon.src = detail.icon;
+    this.notificationTitle.textContent = detail.title;
+    this.notificationDetail.textContent = detail.text;
   },
 
   hideNotification: function lockscreen_hideNotification() {
@@ -391,9 +394,9 @@ var LockScreen = {
   getAllElements: function ls_getAllElements() {
     // ID of elements to create references
     var elements = ['mute', 'clock', 'cal-day', 'cal-date',
-        'notification', 'notification-title', 'notification-detail',
-        'notification-time', 'area-unlock', 'area-start', 'area-camera',
-        'passcode-code', 'passcode-pad'];
+        'notification', 'notification-icon', 'notification-title',
+        'notification-detail', 'notification-time', 'area-unlock',
+        'area-start', 'area-camera', 'passcode-code', 'passcode-pad'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {

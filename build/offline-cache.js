@@ -155,11 +155,45 @@ function getFileContent(file) {
   return [inputStream, count];
 }
 
+function getJSON(dir, name) {
+  let file = Cc["@mozilla.org/file/local;1"]
+               .createInstance(Ci.nsILocalFile);
+  file.initWithPath(GAIA_DIR);
+  file.append('apps');
+  file.append(dir);
+  file.append(name);
+
+  if (!file.exists())
+    return null;
+
+  let fileStream = Cc['@mozilla.org/network/file-input-stream;1']
+                   .createInstance(Ci.nsIFileInputStream);
+  fileStream.init(file, 1, 0, false);
+
+  let converterStream = Cc["@mozilla.org/intl/converter-input-stream;1"]
+                          .createInstance(Ci.nsIConverterInputStream);
+  converterStream.init(fileStream, "utf-8", fileStream.available(),
+                       Ci.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER);
+
+  let out = {};
+  let count = fileStream.available();
+  converterStream.readString(count, out);
+
+  let content = out.value;
+  converterStream.close();
+  fileStream.close();
+
+  return JSON.parse(content);
+}
+
 let applicationCacheService = Cc["@mozilla.org/network/application-cache-service;1"]
                                 .getService(Ci.nsIApplicationCacheService);
 
 let directories = getDirectories();
+let iconsToInject = [];
+
 directories.forEach(function generateAppCache(dir) {
+  let iconsURL = [];
   let domain = "http://" + dir + "." + GAIA_DOMAIN;
   let manifest = Cc["@mozilla.org/file/local;1"]
                    .createInstance(Ci.nsILocalFile);
@@ -174,6 +208,19 @@ directories.forEach(function generateAppCache(dir) {
 
   if (!manifest.exists())
     return;
+
+  // Get the icons url for pre-caching in homescreen
+  // and system app.
+  let webappManifest = getJSON(dir, "manifest.webapp");
+  if (webappManifest) {
+    if (webappManifest.icons) {
+      let sizes = Object.keys(webappManifest.icons);
+      sizes.forEach(function iconIterator(size) {
+        let iconURL = domain + webappManifest.icons[size];
+        iconsURL.push(iconURL);
+      });
+    }
+  }
 
   // Get the url for the manifest. At some points the root
   // domain should be extracted from manifest.webapp
@@ -226,6 +273,12 @@ directories.forEach(function generateAppCache(dir) {
     print (file.path + " -> " + documentSpec + " (" + itemType + ")");
 
     applicationCache.markEntry(documentSpec, itemType);
+
+    // If the file is declared as an icon we keep
+    // for a later injection.
+    if (iconsURL.indexOf(documentSpec) !== -1) {
+      iconsToInject.push([documentSpec, file.path]);
+    }
   });
 
   // NETWORK:
@@ -276,4 +329,31 @@ directories.forEach(function generateAppCache(dir) {
     storeCache(applicationCache.clientID, documentSpec, content, length);
     applicationCache.markEntry(documentSpec, Ci.nsIApplicationCache.ITEM_FOREIGN);
   }
+});
+
+let appsNeedingIcons = ["homescreen", "system"];
+appsNeedingIcons.forEach(function appIterator(appName) {
+  let domain = "http://" + appName + "." + GAIA_DOMAIN;
+  let applicationCache =
+    applicationCacheService.getActiveCache(domain + "/manifest.appcache");
+
+  iconsToInject.forEach(function iconsIterator(iconDescriptor) {
+    print ("Caching icon " + iconDescriptor[0] + " in " + appName);
+
+    let file = Cc["@mozilla.org/file/local;1"]
+                 .createInstance(Ci.nsILocalFile);
+    file.initWithPath(iconDescriptor[1]);
+
+    if (!file.exists()) {
+      let msg = "Icon " + file.path + " exists in the app manifest but does not " +
+                "points to a real file.";
+      throw new Error(msg);
+    }
+
+    let documentSpec = iconDescriptor[0];
+
+    let [content, length] = getFileContent(file);
+    storeCache(applicationCache.clientID, documentSpec, content, length);
+    applicationCache.markEntry(documentSpec, Ci.nsIApplicationCache.ITEM_FOREIGN);
+  });
 });
