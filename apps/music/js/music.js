@@ -10,7 +10,7 @@ var songs = [];
 // filenames and audio metadata in a database.
 var storages = navigator.getDeviceStorage('music');
 
-storages.forEach(function(storage, storageIndex, test) {
+storages.forEach(function(storage, storageIndex) {
   try {
     var cursor = storage.enumerate();
     cursor.onerror = function() {
@@ -31,7 +31,7 @@ storages.forEach(function(storage, storageIndex, test) {
       // Meta-data parsing of mp3 and ogg files
       var extension = file.name.slice(-4);
 
-      if(extension === ".mp3") {
+      if(extension === '.mp3') {
 
         ID3.loadTags(file.name, function() {
           var tags = ID3.getAllTags(file.name);
@@ -48,13 +48,19 @@ storages.forEach(function(storage, storageIndex, test) {
           dataReader : FileAPIReader(file)
         });
 
-      } else if(extension === ".ogg") {
-
+      } else if(extension === '.ogg') {
         var oggfile = new OggFile(file, function() {
-          console.log("ogg " + file.name, JSON.stringify(oggfile.metadata));
+
+          songData.album = oggfile.metadata.ALBUM;
+          songData.artist = oggfile.metadata.ARTIST;
+          songData.title = oggfile.metadata.TITLE;
+          
+          songs.push(songData);
+          ListView.updateList(songData);
+          
+          cursor.continue();
         });
         oggfile.parse();
-
       }
     };
   }
@@ -255,6 +261,7 @@ var PlayerView = {
     this.playControl = document.getElementById('player-controls-play');
 
     this.isPlaying = false;
+    this.playingFormat = '';
     this.dataSource = [];
     this.currentIndex = 0;
 
@@ -278,6 +285,8 @@ var PlayerView = {
       this.currentIndex = parseInt(target.dataset.index);
       
       storages[songData.storageIndex].get(songData.name).onsuccess = function(e) {
+        this.playingFormat = e.target.result.name.slice(-4);
+        
         this.audio.src = URL.createObjectURL(e.target.result);
       }.bind(this);
     } else {
@@ -321,7 +330,8 @@ var PlayerView = {
     if (seekTime)
       this.audio.currentTime = seekTime;
 
-    var endTime =
+    var endTime = (this.playingFormat === '.mp3') ?
+      Math.floor(this.audio.buffered.end(this.audio.buffered.length - 1)/1000000) :
       Math.floor(this.audio.buffered.end(this.audio.buffered.length - 1));
     var startTime = Math.floor(this.audio.startTime);
     var currentTime = Math.floor(this.audio.currentTime);
