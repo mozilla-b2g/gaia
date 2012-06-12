@@ -100,7 +100,6 @@ const IMEController = (function() {
     }
   }
 
-
   // add some special keys depending on the input's type
   function _addTypeSensitiveKeys(inputType, row, space, where, overwrites) {
     overwrites = overwrites || {};
@@ -143,7 +142,6 @@ const IMEController = (function() {
             keyCode: 44
           });
         }
-
 
         if (overwrites['.']) {
           row.splice(next, 0, {
@@ -209,7 +207,7 @@ const IMEController = (function() {
           keyCode: SWITCH_KEYBOARD
         });
         c += 1;
-    }
+      }
 
       // Alternate layout key
       // This gives the author the ability to change the alternate layout
@@ -217,7 +215,7 @@ const IMEController = (function() {
       var alternateLayoutKey = '?123';
       if (layout['alternateLayoutKey']) {
         alternateLayoutKey = layout['alternateLayoutKey'];
-    }
+      }
 
       // This gives the author the ability to change the basic layout
       // key contents
@@ -225,7 +223,8 @@ const IMEController = (function() {
       if (layout['basicLayoutKey']) {
         basicLayoutKey = layout['basicLayoutKey'];
       }
-    if (!layout['disableAlternateLayout']) {
+
+      if (!layout['disableAlternateLayout']) {
         space.ratio -= 2;
         if (_layoutMode === LAYOUT_MODE_DEFAULT) {
           row.splice(c, 0, {
@@ -233,18 +232,20 @@ const IMEController = (function() {
             value: alternateLayoutKey,
             ratio: 2
           });
+
         } else {
           row.splice(c, 0, {
             keyCode: BASIC_LAYOUT,
             value: basicLayoutKey,
             ratio: 2
           });
-    }
+        }
         c += 1;
       }
-    // Text types specific keys
+
+      // Text types specific keys
       var spliceArgs;
-    if (!layout['typeInsensitive']) {
+      if (!layout['typeInsensitive']) {
         _addTypeSensitiveKeys(
           inputType,
           row,
@@ -252,8 +253,7 @@ const IMEController = (function() {
           c,
           layout.textLayoutOverwrite
         );
-    }
-
+      }
 
     } else {
       console.warn('No space key found. No special keys will be added.');
@@ -330,36 +330,51 @@ const IMEController = (function() {
     }
   }
 
+  // given a key object, return the upper value taking in count
+  // if it is a special key of it has been overwrote
+  function _getUpperCaseValue(key) {
+    var specialCodes = [
+      KeyEvent.DOM_VK_BACK_SPACE,
+      KeyEvent.DOM_VK_CAPS_LOCK,
+      KeyEvent.DOM_VK_RETURN,
+      KeyEvent.DOM_VK_ALT,
+      KeyEvent.DOM_VK_SPACE
+    ];
+    var hasSpecialCode = specialCodes.indexOf(key.keyCode) > -1;
+    if (key.keyCode < 0 || hasSpecialCode)
+      return key.value;
+
+    var upperCase = _currentLayout.upperCase || {};
+    var v = upperCase[key.value] || key.value.toUpperCase();
+    return v;
+  }
+
   function _showAlternatives(key) {
-    var alternatives, altMap, defaultKey, currentKey;
+    var alternatives, altMap, value, keyObj, uppercaseValue;
     var r = key ? key.dataset.row : -1, c = key ? key.dataset.column : -1;
     if (r < 0 || c < 0)
       return;
 
     // get alternatives from layout
-    altMap = Keyboards[_baseLayout].alt || {};
-    defaultKey = Keyboards[_baseLayout].keys[r][c];
-    currentKey = _currentLayout.keys[r][c];
+    altMap = _currentLayout.alt || {};
+    keyObj = _currentLayout.keys[r][c]; 
+    value = keyObj.value;
+    alternatives = altMap[value];
 
-    // in uppercase, look for current value or the uppercase of the default
+    // in uppercase, look for other alternatives or use default's
     if (_isUpperCase) {
-      if (altMap[currentKey.value]) {
-        console.log('upper + current');
-        alternatives = altMap[currentKey.value] || '';
-      } else {
-        console.log('upper + default');
-        alternatives = (altMap[defaultKey.value] || '').toUpperCase();
-      }
-
-    // in other case, look for default value
-    } else {
-      alternatives = altMap[currentKey.value] || '';
+      uppercaseValue = _getUpperCaseValue(keyObj);
+      alternatives = altMap[uppercaseValue] || alternatives.toUpperCase();
     }
-    console.log(alternatives);
-    if(alternatives.indexOf(' ') != -1)
+
+    if(alternatives.indexOf(' ') != -1) {
       alternatives = alternatives.split(' ');
-    else
+      // check just one item
+      if (alternatives.length === 2 && alternatives[1] === '')
+        alternatives.pop();
+    } else {
       alternatives = alternatives.split('');
+    }
 
     if (!alternatives.length)
       return;
@@ -752,9 +767,9 @@ const IMEController = (function() {
     _currentLayout = _buildLayout(baseLayout, inputType, layoutMode);
 
     if (_severalLanguages())
-      IMERender.draw(_currentLayout, baseLayout, _onScroll, {uppercase:uppercase});
+      IMERender.draw(_currentLayout, baseLayout, _onScroll, {uppercase:uppercase, getUpperCaseValue:_getUpperCaseValue});
     else
-      IMERender.draw(_currentLayout, undefined, _onScroll, {uppercase:uppercase});
+      IMERender.draw(_currentLayout, undefined, _onScroll, {uppercase:uppercase, getUpperCaseValue:_getUpperCaseValue});
   }
 
   return {
