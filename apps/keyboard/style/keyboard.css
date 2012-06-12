@@ -49,6 +49,18 @@ html, body {
   display: none;
 }
 
+#keyboard-pending-symbol-panel .keyboard-pending-symbols-highlight-green {
+  background:#33aa33;
+}
+
+#keyboard-pending-symbol-panel .keyboard-pending-symbols-highlight-red {
+  background:#aa3333;
+}
+
+#keyboard-pending-symbol-panel .keyboard-pending-symbols-highlight-blue {
+  background:#3333aa;
+}
+
 #keyboard-candidate-panel {
   height: 64px;
   overflow: auto;
@@ -347,5 +359,3 @@ html, body {
   background-color: #0c0;
   box-shadow: 0 0 5px #fff;
 }
-
-

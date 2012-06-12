@@ -548,8 +548,10 @@ const IMEManager = {
       sendCandidates: function(candidates) {
         self.showCandidates(candidates);
       },
-      sendPendingSymbols: function(symbols) {
-        self.showPendingSymbols(symbols);
+      sendPendingSymbols: function(symbols, highlightStart,
+                                   highlightEnd, highlightState)  {
+        self.showPendingSymbols(symbols, highlightStart,
+                                highlightEnd, highlightState);
       },
       sendKey: function(keyCode) {
         switch (keyCode) {
@@ -1257,9 +1259,34 @@ const IMEManager = {
     }
   },
 
-  showPendingSymbols: function km_showPendingSymbols(symbols) {
+  showPendingSymbols: function km_showPendingSymbols(symbols,
+                                                     highlightStart,
+                                                     highlightEnd,
+                                                     highlightState) {
     var pendingSymbolPanel = this.pendingSymbolPanel;
-    pendingSymbolPanel.textContent = symbols;
+
+    var HIGHLIGHT_COLORS = {
+      'red': 'keyboard-pending-symbols-highlight-red',
+      'green': 'keyboard-pending-symbols-highlight-green',
+      'blue': 'keyboard-pending-symbols-highlight-blue'
+    };
+
+    if (typeof highlightStart === 'undefined' ||
+        typeof highlightEnd === 'undefined' ||
+        typeof highlightState === 'undefined') {
+      pendingSymbolPanel.textContent = symbols;
+      return;
+    }
+
+    pendingSymbolPanel.innerHTML = '';
+    pendingSymbolPanel.append(
+      document.createTextNode(symbols.substr(0, highlightStart)));
+    var span = document.createElement('span');
+    span.textContent = symbols.slice(highlightStart, highlightEnd);
+    span.className = HIGHLIGHT_COLORS[highlightState];
+    pendingSymbolPanel.append(span);
+    pendingSymbolPanel.append(
+      document.createTextNode(symbols.substr(highlightEnd)));
   },
 
   showCandidates: function km_showCandidates(candidates, noWindowHeightUpdate) {
