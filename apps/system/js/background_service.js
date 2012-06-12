@@ -22,19 +22,6 @@ var BackgroundServiceManager = (function bsm() {
   window.addEventListener('applicationinstall', function bsm_oninstall(evt) {
     var origin = evt.detail.application.origin;
     open(origin);
-
-    // Caching the icon
-    // XXX: move somewhere else
-    var appCache = window.applicationCache;
-    if (appCache) {
-      var icons = evt.detail.application.manifest.icons;
-      if (icons) {
-        Object.keys(icons).forEach(function iconIterator(key) {
-          var url = evt.detail.application.origin + icons[key];
-          appCache.mozAdd(url);
-        });
-      }
-    }
   });
 
   /* OnUninstall */
