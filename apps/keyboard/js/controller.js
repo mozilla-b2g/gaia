@@ -299,10 +299,7 @@ const IMEController = (function() {
     } else {
       height = IMERender.ime.scrollHeight;
     }
-    if (_lastHeight === height)
-      return;
 
-    _lastHeight = height;
     var message = {
       action: 'updateHeight',
       keyboardHeight: height,
@@ -311,6 +308,12 @@ const IMEController = (function() {
 
     parent.postMessage(JSON.stringify(message), '*');
   }
+
+  var _dimensionsObserver = new MutationObserver(_updateTargetWindowHeight);
+  var _dimensionsObserverConfig = {
+    childList:true, // to detect changes in IMEngine
+    attributes:true, attributeFilter:['class', 'style', 'data-hidden']
+  };
 
   // sends a delete code to remove last character
   function _sendDelete(feedback) {
@@ -724,7 +727,6 @@ const IMEController = (function() {
     'mouseleave': _onMouseLeave,
     'mouseup': _onMouseUp,
     'mousemove': _onMouseMove,
-    'DOMSubtreeModified': _updateTargetWindowHeight
   };
 
   function _reset() {
@@ -740,9 +742,11 @@ const IMEController = (function() {
       if (callback)
         IMERender.ime.addEventListener(event, callback.bind(this));
     }
+    _dimensionsObserver.observe(IMERender.ime, _dimensionsObserverConfig);
   }
 
   function _uninit() {
+    _dimensionsObserver.disconnect();
     for (event in _imeEvents) {
       var callback = _imeEvents[event] || null;
       if (callback)
@@ -818,13 +822,8 @@ const IMEController = (function() {
     onResize: function(nWidth, nHeight, fWidth, fHeihgt) {
       if (IMERender.ime.dataset.hidden)
         return;
-/*
-      // we presume that the targetWindow has been restored by
-      // window manager to full size by now.
-      IMERender.getTargetWindowMetrics();
-      console.log('onResize');
+
       _draw();
-*/
     },
 
     loadKeyboard: function km_loadKeyboard(name) {
