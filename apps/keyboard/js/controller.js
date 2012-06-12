@@ -362,7 +362,7 @@ const IMEController = (function() {
     altMap = _currentLayout.alt || {};
     keyObj = _currentLayout.keys[r][c]; 
     value = keyObj.value;
-    alternatives = altMap[value];
+    alternatives = altMap[value] || '';
 
     // in uppercase, look for other alternatives or use default's
     if (_isUpperCase) {
@@ -870,7 +870,7 @@ const IMEController = (function() {
             this.sendKey(str.charCodeAt(i));
         },
         alterKeyboard: function(keyboard) {
-          self.updateLayout(keyboard);
+          _draw(keyboard, _currentInputType, _layoutMode, _isUpperCase);
         }
       };
 
