@@ -29,6 +29,7 @@
       sleepKeyDown = true;
 
     if (homeKeyDown && sleepKeyDown) {
+      e.preventDefault();
       takeScreenshot();
       preventDefaultOnHomeKeyUp = true;
       preventDefaultOnSleepKeyUp = true;
