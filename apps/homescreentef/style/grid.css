@@ -54,6 +54,9 @@
       /* icon */
       .apps ol > li > div > img {
         margin-bottom: 1%;
+        width: 6rem;
+        height: 6rem;
+        border-radius: 1rem;
       }
 
       /* label wrapper */
@@ -90,8 +93,10 @@
     .apps .draggable > img {
       margin-bottom: 2.5%;
       box-shadow: 0 0 5px 5px #666;
-      border-radius: 50%; /* Box shadow around icon */
       -moz-transform: scale(1.1);
+      border-radius: 1rem;
+      width: 6rem;
+      height: 6rem;
     }
 
     /* label wrapper */
@@ -130,24 +135,24 @@
   @-moz-keyframes none {}
 
   /* Image and label have shaking effect */
-  /*.apps[data-mode = 'edit'] ol > li > div {
+  .apps[data-mode = 'edit'] ol > li > div {
     -moz-animation-name: shake;
     -moz-animation-duration: 2s;
     -moz-transform-origin:50% 50%;
     -moz-animation-iteration-count: infinite;
     -moz-animation-timing-function: linear;
     opacity: .8;
-  }*/
+  }
 
   /* We rotate only the image */
-  .apps[data-mode = 'edit'] ol > li > div > img {
+  /*.apps[data-mode = 'edit'] ol > li > div > img {
     -moz-animation-name: rotation;
     -moz-animation-duration: 2s;
     -moz-transform-origin: 50% 50%;
     -moz-animation-iteration-count: infinite;
     -moz-animation-timing-function: linear;
     opacity: .8;
-  }
+  }*/
 
   .apps[data-transitioning] ol > li > div > img, .apps[data-transitioning] ol > li > div {
     -moz-animation-name: none;
