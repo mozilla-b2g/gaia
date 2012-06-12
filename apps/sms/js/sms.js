@@ -147,11 +147,10 @@ var ContactDataManager = {
   getContactData: function cm_getContactData(options, callback) {
     var isCacheable = options.filterBy.indexOf('tel') !== -1 &&
                       options.filterOp == 'contains';
-    if (isCacheable &&
-        typeof this.contactData[options.filterValue] !== 'undefined') {
-      var cacheResult = this.contactData[options.filterValue] ?
-             [this.contactData[options.filterValue]] : [];
-      callback(cacheResult);
+    var cacheResult = this.contactData[options.filterValue];
+    if (isCacheable && typeof cacheResult !== 'undefined') {
+      var cacheArray = cacheResult ? [cacheResult] : [];
+      callback(cacheArray);
     }
 
     var self = this;
