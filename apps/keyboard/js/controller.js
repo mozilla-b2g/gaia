@@ -319,7 +319,7 @@ const IMEController = (function() {
 
   function _showAlternatives(key) {
     var alternatives, altMap, defaultKey, currentKey;
-    var r = key.dataset.row || -1, c = key.dataset.column || -1;
+    var r = key ? key.dataset.row : -1, c = key ? key.dataset.column : -1;
     if (r < 0 || c < 0)
       return;
 
