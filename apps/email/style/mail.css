@@ -109,6 +109,13 @@ button {
   overflow-y: auto;
   overflow-x: hidden;
 }
+.scrollregion-below-header {
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: -moz-calc(100% - 58px);
+  height: -webkit-calc(100% - 58px);
+  height: calc(100% - 58px);
+}
 
 .bottom-toolbar {
   position: absolute;
@@ -119,6 +126,11 @@ button {
   background-color: rgba(0, 0, 0, 0.4);
 }
 .bottom-btn {
+  height: 48px;
+}
+/* create a space the size of the toolbar since it is absolute...*/
+.bottom-toolbar-spacer {
+  display: block;
   height: 48px;
 }
 
