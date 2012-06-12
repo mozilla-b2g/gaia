@@ -139,7 +139,8 @@ const IMEManager = {
       if(e.detail.type === 'blur') {
         IMEController.hideIME();
       } else {
-        IMEController.showIME(e.detail.type);
+        if(e.detail.type != 'submit')
+          IMEController.showIME(e.detail.type);
       }
     };
   },
