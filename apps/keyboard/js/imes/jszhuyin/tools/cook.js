@@ -1,7 +1,7 @@
 var result = {};
 
 if (!stringsAreUTF8()) {
-  throw "You need UTF-8 enabled SpiderMonkey to do cook the data.";
+  throw 'You need UTF-8 enabled SpiderMonkey to do cook the data.';
   quit();
 }
 
@@ -29,7 +29,7 @@ while (line = readline()) {
 
 for (syllables in result) {
   result[syllables] = result[syllables].sort(
-    function (a, b) {
+    function(a, b) {
       return (b[1] - a[1]);
     }
   );
