@@ -55,8 +55,6 @@
 
   function takeScreenshot() {
     try {
-      console.log('takeScreenshot');
-
       var app = WindowManager.getDisplayedApp();
       var frame;
       if (app) {
@@ -66,20 +64,14 @@
         frame = document.getElementById('homescreen');
       }
 
-      console.log("app, frame", app, frame);
-
       var screenshotRequest = frame.getScreenshot();
 
       screenshotRequest.onerror = function() {
-        console.log("screenshot error", screenshotRequest.error);
+        console.error("screenshot error", screenshotRequest.error);
       };
 
       screenshotRequest.onsuccess = function(e) {
         try {
-          console.log("getScreenshot() success");
-          console.log("url prefix", screenshotRequest.result.substring(0,50));
-          
-          
           // Feedback that the screenshot was taken
           // TODO: play a sound instead?
           navigator.mozVibrate([0, 100, 150, 100]);  // buzz pause buzz
@@ -95,15 +87,12 @@
           img.src = dataurl;
           img.onload = function() {
             try {
-              console.log("img.onload");
-              
               var canvas = document.createElement('canvas');
               var context = canvas.getContext('2d');
-              canvas.width = window.innerWidth;
-              canvas.height = window.innerHeight;
-              context.drawImage(img, 0, 0, window.innerWidth, window.innerHeight);
+              canvas.width = img.width;
+              canvas.height = img.height;
+              context.drawImage(img, 0, 0, img.width, img.height);
               var blob = canvas.mozGetAsFile('', 'image/png');
-              console.log("got blob", blob.size, blob.type);
               var storages = navigator.getDeviceStorage('pictures');
               var storage = storages[storages.length-1];
 
@@ -122,18 +111,14 @@
 
               var filename = 'screenshots/' + origin + '-' + timestamp + '.png';
               
-              console.log("Saving", filename, storage);
-
               var storageRequest = storage.addNamed(blob, filename);
               storageRequest.onerror = function() {
-                console.log("addNamed() error",
-                            storageRequest.error,
-                            storageRequest.error.name);
+                console.error("addNamed() error",
+                              storageRequest.error,
+                              storageRequest.error.name);
               }
               storageRequest.onsuccess = function() {
                 try {
-                  console.log("Saved", filename);
-                  
                   // Vibrate again when the screenshot is saved
                   navigator.mozVibrate([100, 100]);  // pause buzz
                   
@@ -143,22 +128,22 @@
                     .show();
                 }
                 catch(e) {
-                  console.log(e);
+                  console.error(e);
                 }
               };
             }
             catch(e) {
-              console.log("exception in onload", e);
+              console.error(e);
             }
           }
         }
         catch(e) {
-          console.log("exception in onsuccess", e);
+          console.error(e);
         }
       }
     }
     catch(e) {
-      console.log("exception in takeScreenshot", e);
+      console.error(e);
     }
   }
 }());
