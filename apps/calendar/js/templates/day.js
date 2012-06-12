@@ -13,9 +13,7 @@
       '</section>'
     ].join(''),
 
-    attendee: [
-      '<span class="attendee">{value}</span>'
-    ].join(' '),
+    attendee: '<span class="attendee">{value}</span>',
 
     event: [
       '<li class="event">',
@@ -28,7 +26,7 @@
           '{attendees|s}',
         '</span>',
       '</li>'
-    ].join(' ')
+    ].join('')
   });
 
   Calendar.Templates.Day = Day;
