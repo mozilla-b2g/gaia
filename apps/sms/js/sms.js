@@ -5,21 +5,21 @@
 
 var MessageManager = {
   allMessagesCache: [],
-  
+
   // Compare the cache and data return from indexedDB to determine
   // whether we need to update the cache and callback with latest messages.
   needUpdateCache: function mm_needUpdateCache(dbData) {
     var cacheData = this.allMessagesCache;
     if (cacheData.length !== dbData.length)
       return true;
-    
+
     for (var i = 0; i < dbData.length; i++) {
       if (cacheData[i].id !== dbData[i].id)
         return true;
     }
     return false;
   },
-  
+
   // Cache all messages for improving the conversation lists update.
   // getMessages will return cache data syncronusly and query indexedDB
   // asyncronusly. If message data changed, getMessages will callback again
@@ -27,7 +27,7 @@ var MessageManager = {
   getMessages: function mm_getMessages(callback, filter, invert) {
     if (!filter)
       callback(this.allMessagesCache);
-    
+
     var request = navigator.mozSms.getMessages(filter, !invert);
     var self = this;
     var messages = [];
@@ -193,7 +193,7 @@ var ConversationListView = {
   get searchToolbar() {
     delete this.searchToolbar;
     return this.searchToolbar = document.getElementById('msg-search-container');
-  },  
+  },
 
   get searchInput() {
     delete this.searchInput;
@@ -203,7 +203,7 @@ var ConversationListView = {
   get searchCancel() {
     delete this.searchCancel;
     return this.searchCancel = document.getElementById('msg-search-cancel');
-  },  
+  },
 
   get deleteButton() {
     delete this.deleteButton;
@@ -251,7 +251,7 @@ var ConversationListView = {
       filterValue: msg.dataset.num
     };
     ContactDataManager.getContactData(options, function get(result) {
-      // If indexedDB query failed, just leave the previous result. 
+      // If indexedDB query failed, just leave the previous result.
       if (!result)
         return;
 
@@ -339,7 +339,7 @@ var ConversationListView = {
       }
     }, null);
   },
-  
+
   createHighlightHTML: function cl_createHighlightHTML(text, searchRegExp) {
     var sliceStrs = text.split(searchRegExp);
     var patterns = text.match(searchRegExp);
@@ -350,14 +350,13 @@ var ConversationListView = {
     }
     str += escapeHTML(sliceStrs.pop());
     return str;
-    
   },
 
   createNewConversation: function cl_createNewConversation(conversation, reg) {
     var dataName = escapeHTML(conversation.name || conversation.num, true);
     var name = escapeHTML(conversation.name);
     var htmlContent = conversation.body.split('\n')[0];
-    var msgContent = reg ? this.createHighlightHTML(htmlContent, reg):
+    var msgContent = reg ? this.createHighlightHTML(htmlContent, reg) :
                            escapeHTML(htmlContent);
 
     return '<a href="#num=' + conversation.num + '"' +
@@ -385,7 +384,7 @@ var ConversationListView = {
     MessageManager.getMessages(function getMessagesCallback(messages) {
       str = str.replace(/[.*+?^${}()|[\]\/\\]/g, '\\$&');
       var fragment = '';
-      var searchedNum ={};
+      var searchedNum = {};
       for (var i = 0; i < messages.length; i++) {
         var reg = new RegExp(str, 'ig');
         var message = messages[i];
@@ -412,7 +411,7 @@ var ConversationListView = {
       }
       self.view.innerHTML = fragment;
 
-      // update the conversation sender/receiver name with contact data. 
+      // update the conversation sender/receiver name with contact data.
       var conversationList = self.view.children;
       for (var i = 0; i < conversationList.length; i++) {
         self.updateMsgWithContact(conversationList[i]);
@@ -465,7 +464,7 @@ var ConversationListView = {
         break;
     }
   },
-  
+
   handleEvent: function cl_handleEvent(evt) {
     switch (evt.type) {
       case 'received':
@@ -527,7 +526,7 @@ var ConversationListView = {
     window.location.hash = window.location.hash.replace('_edit', '');
     if (this.delNumList.length == 0)
       return;
-    
+
     if (this.searchInput.value)
       this.searchConversations();
     else
@@ -717,11 +716,11 @@ var ConversationView = {
       filterOp: 'contains',
       filterValue: num
     };
-    
+
     this.num.value = num;
     this.title.num = num;
     this.title.textContent = num;
-    
+
     ContactDataManager.getContactData(options, function getContact(result) {
       var contactImageSrc = 'style/images/contact-placeholder.png';
       if (result && result.length > 0) {
