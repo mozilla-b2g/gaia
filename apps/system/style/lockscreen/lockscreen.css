@@ -113,16 +113,13 @@
   overflow: hidden;
 }
 
-#lockscreen-notification::before {
-  /* TBD: notification icon. This is a place holder */
-  content: '';
-  display: block;
+#lockscreen-notification-icon {
   float: left;
+  display: block;
   width: 64px;
   height: 64px;
   -moz-box-sizing: border-box;
   margin-right: 8px;
-  border: 1px solid #919191;
 }
 
 #lockscreen-notification-title {
