@@ -4198,7 +4198,8 @@ var TestActorProtoBase = {
           expy = this._expectations[iExp];
 
           // - on matches, reorder the expectation and bump our pointer
-          if (this['_verify_' + expy[0]](expy, entry)) {
+          if (expy[0] === entry[0] &&
+              this['_verify_' + expy[0]](expy, entry)) {
             if (iExp !== this._iExpectation) {
               this._expectations[iExp] = this._expectations[this._iExpectation];
               this._expectations[this._iExpectation] = expy;
@@ -5811,17 +5812,21 @@ MailHeader.prototype = {
  * management to worry about.  However, you should keep the `MailHeader` alive
  * and worry about its lifetime since the message can get deleted, etc.
  */
-function MailBody(api, id) {
+function MailBody(api, suid, wireRep) {
   this._api = api;
-  this.id = id;
+  this.id = suid;
 
-  this.to = null;
-  this.cc = null;
-  this.bcc = null;
-  this.attachments = null;
+  this.to = wireRep.to;
+  this.cc = wireRep.cc;
+  this.bcc = wireRep.bcc;
+  this.replyTo = wireRep.replyTo;
+  this.attachments = [];
+  for (var iAtt = 0; iAtt < wireRep.attachments.length; iAtt++) {
+    this.attachments.push(new MailAttachment(wireRep.attachments[iAtt]));
+  }
   // for the time being, we only provide text/plain contents, and we provide
   // those flattened.
-  this.bodyText = null;
+  this.bodyText = wireRep.bodyText;
 }
 MailBody.prototype = {
   toString: function() {
@@ -5840,9 +5845,11 @@ MailBody.prototype = {
  * In the future this will also be the means for requesting the download of
  * an attachment or for attachment-forwarding semantics.
  */
-function MailAttachment() {
-  this.filename = null;
-  this.mimetype = null;
+function MailAttachment(wireRep) {
+  this.partId = wireRep.part;
+  this.filename = wireRep.name;
+  this.mimetype = wireRep.type;
+  this.sizeEstimateInBytes = wireRep.sizeEstimate;
 
   // build a place for the DOM element and arbitrary data into our shape
   this.element = null;
@@ -6384,7 +6391,8 @@ MailAPI.prototype = {
     }
     delete this._pendingRequests[msg.handle];
 
-    req.callback.call(null, msg.bodyInfo);
+    var body = new MailBody(this, req.suid, msg.bodyInfo);
+    req.callback.call(null, body);
   },
 
   /**
@@ -17833,7 +17841,7 @@ exports.chewBodyParts = function chewBodyParts(rep, bodyPartContents,
     for (var i = 0; i < atts.length; i++) {
       var att = atts[i];
       sizeEst += OBJ_OVERHEAD_EST + 2 * STR_ATTR_OVERHEAD_EST +
-                   att.name.length +  att.type.length +
+                   att.name.length + att.type.length +
                    NUM_ATTR_OVERHEAD_EST;
     }
     return atts;
@@ -17981,7 +17989,7 @@ function ImapSlice(bridgeHandle, storage, _parentLog) {
   this._bridgeHandle = bridgeHandle;
   bridgeHandle.__listener = this;
   this._storage = storage;
-  this._LOG = LOGFAB.ImapSlice(this, _parentLog, bridgeHandle.id);
+  this._LOG = LOGFAB.ImapSlice(this, _parentLog, bridgeHandle._handle);
 
   // The time range of the headers we are looking at right now.
   this.startTS = null;
@@ -18157,7 +18165,13 @@ ImapSlice.prototype = {
   },
 };
 
-const BASELINE_SEARCH_OPTIONS = ['!DRAFT', '!DELETED'];
+/**
+ * We don't care about deleted messages, it's best that we're not aware of them.
+ * However, it's important to keep in mind that this means that EXISTS provides
+ * us with an upper bound on the messages in the folder since we are blinding
+ * ourselves to deleted messages.
+ */
+const BASELINE_SEARCH_OPTIONS = ['!DELETED'];
 
 /**
  * What is the maximum number of bytes a block should store before we split
@@ -18309,7 +18323,8 @@ exports.TEST_LetsDoTheTimewarpAgain = function(fakeNow) {
 function makeDaysAgo(numDays) {
   var //now = quantizeDate(TIME_WARPED_NOW || Date.now()),
       //past = now - numDays * DAY_MILLIS;
-      past = FUTURE_TIME_WARPED_NOW - (numDays + 1) * DAY_MILLIS;
+      past = (FUTURE_TIME_WARPED_NOW || quantizeDate(Date.now())) -
+               (numDays + 1) * DAY_MILLIS;
   return past;
 }
 function makeDaysBefore(date, numDaysBefore) {
@@ -18346,6 +18361,22 @@ const INITIAL_SYNC_DAYS = 7;
  * take?
  */
 const INCREMENTAL_SYNC_DAYS = 14;
+/**
+ * What is the furthest back in time we are willing to go?  This is an
+ * arbitrary choice to avoid our logic going crazy, not to punish people with
+ * comprehensive mail collections.
+ */
+const OLDEST_SYNC_DATE = (new Date(1990, 0, 1)).valueOf();
+
+/**
+ * If we issued a search for a date range and we are getting told about more
+ * than the following number of messages, we will try and reduce the date
+ * range proportionately (assuming a linear distribution) so that we sync
+ * a smaller number of messages.  This will result in some wasted traffic
+ * but better a small wasted amount (for UIDs) than a larger wasted amount
+ * (to get the dates for all the messages.)
+ */
+const SYNC_BISECT_DATE_AT_N_MESSAGES = 50;
 
 /**
  * What's the maximum number of messages we should ever handle in a go and
@@ -18529,6 +18560,27 @@ ImapFolderConn.prototype = {
             knownUIDs = [], uid, numDeleted = 0,
             modseq = self._conn._state.box.highestModSeq || '';
 
+        if (serverUIDs.length > SYNC_BISECT_DATE_AT_N_MESSAGES) {
+          var effEndTS = endTS || FUTURE_TIME_WARPED_NOW ||
+                           quantizeDate(Date.now() + DAY_MILLIS),
+              curDaysDelta = effEndTS - startTS / DAY_MILLIS;
+          // We are searching more than one day, we can shrink our search.
+
+          if (curDaysDelta > 1) {
+            // Assume a linear distribution of messages, but overestimated by
+            // a factor of two so we undershoot.
+            var shrinkScale = SYNC_BISECT_DATE_AT_N_MESSAGES /
+                                (serverUIDs.length * 2),
+                backDays = Main.max(1,
+                                    Math.ceil(shrinkScale * curDaysDelta));
+            self._curSyncDoNotGrowWindowBefore = startTS;
+            self._curSyncDayStep = backDays;
+            self._curSyncStartTS = startTS = makeDaysBefore(endTS, backDays);
+            return self.syncDateRange(startTS, endTS,
+                                      newToOld, doneCallback);
+          }
+        }
+
         // -- infer deletion, flag to distinguish known messages
         // rather than splicing lists and causing shifts, we null out values.
         for (var iMsg = 0; iMsg < headers.length; iMsg++) {
@@ -18558,7 +18610,7 @@ ImapFolderConn.prototype = {
             self._LOG.syncDateRange_end(newCount, knownCount, numDeleted,
                                         startTS, endTS);
             self._storage.markSyncRange(startTS, endTS, modseq, Date.now());
-            doneCallback();
+            doneCallback(newCount + knownCount);
           });
       });
 
@@ -18892,9 +18944,10 @@ ImapFolderConn.prototype = {
  *   }
  * ]]
  * @typedef[AttachmentInfo @dict[
- *   @key[filename String]
- *   @key[mimetype String]
- *   @key[size Number]{
+ *   @key[name String]
+ *   @key[type String]
+ *   @key[part String]
+ *   @key[sizeEstimate Number]{
  *     Estimated file size in bytes.
  *   }
  * ]]
@@ -19031,6 +19084,18 @@ function ImapFolderStorage(account, folderId, persistedFolderInfo, dbConn,
    * The start range of the (backward-moving) sync time range.
    */
   this._curSyncStartTS = null;
+  /**
+   * The number of days we are looking into the past in the current sync step.
+   */
+  this._curSyncDayStep = null;
+  /**
+   * If non-null, then we must reach a sync start date of the provided date
+   * before we begin increasing _curSyncDayStep.  This helps us avoid
+   * oscillation where we make the window too large, shrink it, but then find
+   * find nothing.  Since we know that there are going to be a lot of messages
+   * before we hit this date, it makes sense to keep taking smaller sync steps.
+   */
+  this._curSyncDoNotGrowWindowBefore = null;
 
   this.folderConn = new ImapFolderConn(account, this, this._LOG);
 }
@@ -19773,12 +19838,14 @@ ImapFolderStorage.prototype = {
     slice.waitingOnData = 'sync';
     this._curSyncSlice = slice;
     this._curSyncStartTS = pastDate;
+    this._curSyncDayStep = INITIAL_SYNC_DAYS;
+    this._curSyncDoNotGrowWindowBefore = null;
     this.folderConn.syncDateRange(pastDate, futureNow, true,
                                   this.onSyncCompleted.bind(this));
   },
 
   refreshSlice: function ifs_refreshSlice(slice) {
-    var startTS = slice.startTS, endTS = slice.endTS;
+    var startTS = slice.startTS, endTS = slice.endTS, self = this;
     // If the endTS lines up with the most recent know message for the folder,
     // then remove the timestamp constraint so it goes all the way to now.
     if (this._headerBlockInfos.length &&
@@ -19796,6 +19863,7 @@ ImapFolderStorage.prototype = {
     if (this._curSyncSlice)
       throw new Error("Can't refresh a slice when there is an existing sync");
     this.folderConn.syncDateRange(startTS, endTS, true, function() {
+      self._account.__checkpointSyncCompleted();
       slice.setStatus('synced');
     });
   },
@@ -19813,10 +19881,18 @@ ImapFolderStorage.prototype = {
    * either trigger another sync if we still want more data, or close out the
    * current sync.
    */
-  onSyncCompleted: function ifs_onSyncCompleted() {
-    console.log("Sync Completed!");
+  onSyncCompleted: function ifs_onSyncCompleted(messagesSeen) {
+    console.log("Sync Completed!", this._curSyncDayStep, "days",
+                messagesSeen, "messages synced");
     // If the slice already knows about all the messages in the folder, make
-    // sure it doesn't want additional messages that don't exist.
+    // sure it doesn't want additional messages that don't exist.  NB: if there
+    // are any deleted messages, this logic will not save us because we ignored
+    // those messages.  This is made less horrible by issuing a time-date that
+    // expands as we go further back in time.
+    //
+    // (I have considered asking to see deleted messages too and ignoring them;
+    // that might be suitable.  We could also just be a jerk and force an
+    // expunge.)
     if (this.folderConn && this.folderConn.box &&
         (this._curSyncSlice.desiredHeaders >
          this.folderConn.box.messages.total))
@@ -19825,16 +19901,73 @@ ImapFolderStorage.prototype = {
     // - Done if we don't want any more headers.
     // XXX prefetch may need a different success heuristic
     if ((this._curSyncSlice.headers.length >=
-         this._curSyncSlice.desiredHeaders)) {
-      console.log("SYNCDONE Enough headers retrieved.");
+         this._curSyncSlice.desiredHeaders) ||
+    // - Done if we've already looked far enough back in time.
+        (BEFORE(this._curSyncStartTS, OLDEST_SYNC_DATE))) {
+      console.log("SYNCDONE Enough headers retrieved.",
+                  "have", this._curSyncSlice.headers.length,
+                  "want", this._curSyncSlice.desiredHeaders,
+                  "box knows about", this.folderConn.box.messages.total,
+                  "sync date", this._curSyncStartTS,
+                  "oldest", OLDEST_SYNC_DATE);
       this._curSyncSlice.waitingOnData = false;
       this._curSyncSlice.setStatus('synced');
       this._curSyncSlice = null;
+
+      this._account.__checkpointSyncCompleted();
       return;
     }
 
+    // - Increase our search window size if we aren't finding anything
+    // Our goal is that if we are going backwards in time and aren't finding
+    // anything, we want to keep expanding our window
+    var daysToSearch, lastSyncDaysInPast;
+    // If we saw messages, there is no need to increase the window size.  We
+    // also should not increase the size if we explicitly shrank the window and
+    // left a do-not-expand-until marker.
+    if (messagesSeen ||
+        (this._curSyncDoNotGrowWindowBefore !== null &&
+         SINCE(this._curSyncStartTS, this._curSyncDoNotGrowWindowBefore))) {
+      daysToSearch = this._curSyncDayStep;
+    }
+    else {
+      // This may be a fractional value because of DST
+      lastSyncDaysInPast = ((TIME_WARPED_NOW || quantizeDate(Date.now())) -
+                            this._curSyncStartTS) / DAY_MILLIS;
+      daysToSearch = Math.ceil(this._curSyncDayStep * 1.6);
+
+      if (lastSyncDaysInPast < 180) {
+        if (daysToSearch > 14)
+          daysToSearch = 14;
+      }
+      else if (lastSyncDaysInPast < 365) {
+        if (daysToSearch > 30)
+          daysToSearch = 30;
+      }
+      else if (lastSyncDaysInPast < 730) {
+        if (daysToSearch > 60)
+          daysToSearch = 60;
+      }
+      else if (lastSyncDaysInPast < 1095) {
+        if (daysToSearch > 90)
+          daysToSearch = 90;
+      }
+      else if (lastSyncDaysInPast < 1825) { // 5 years
+        if (daysToSearch > 120)
+          daysToSearch = 120;
+      }
+      else if (lastSyncDaysInPast < 3650) {
+        if (daysToSearch > 365)
+          daysToSearch = 365;
+      }
+      else if (daysToSearch > 730) {
+        daysToSearch = 730;
+      }
+      this._curSyncDayStep = daysToSearch;
+    }
+
     // - Move the time range back in time more.
-    var startTS = makeDaysBefore(this._curSyncStartTS, INCREMENTAL_SYNC_DAYS),
+    var startTS = makeDaysBefore(this._curSyncStartTS, daysToSearch),
         endTS = this._curSyncStartTS;
     this._curSyncStartTS = startTS;
     this.folderConn.syncDateRange(startTS, endTS, true,
@@ -20170,7 +20303,8 @@ ImapFolderStorage.prototype = {
 
   deleteMessageHeaderAndBody: function(header) {
     if (this._pendingLoads.length) {
-      this._deferredCalls.push(this.deleteMessageHeader.bind(this, header));
+      this._deferredCalls.push(this.deleteMessageHeaderAndBody.bind(this,
+                                                                    header));
       return;
     }
 
@@ -20385,7 +20519,6 @@ function ImapAccount(universe, accountId, credentials, connInfo, folderInfos,
   this._jobDriver = new $imapjobs.ImapJobDriver(this);
 
   if (existingProtoConn) {
-    this._LOG.reuseConnection();
     this._ownedConns.push({
         conn: existingProtoConn,
         inUse: false,
@@ -20514,6 +20647,14 @@ ImapAccount.prototype = {
     folderStorage.youAreDeadCleanupAfterYourself();
 
     this.universe.__notifyRemovedFolder(this.id, folderMeta);
+  },
+
+  /**
+   * We are being told that a synchronization pass completed, and that we may
+   * want to consider persisting our state.
+   */
+  __checkpointSyncCompleted: function() {
+    this.saveAccountState();
   },
 
   /**
@@ -20991,6 +21132,8 @@ ImapAccount.prototype = {
     }
 
     this.__folderDoneWithConnection(null, conn);
+    // be sure to save our state now that we are up-to-date on this.
+    this.saveAccountState();
     callback();
   },
 
