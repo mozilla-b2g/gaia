@@ -4074,6 +4074,91 @@ DictList.prototype = {
   }
 };
 
+var NGram = function ngram_constructor() {
+
+};
+
+NGram.get_instance = function ngram_get_instance() {
+  
+};
+
+/**
+ * Convert a probability to score. Actually, the score will be limited to
+ * kMaxScore, but at runtime, we also need float expression to get accurate
+ * value of the score.
+ * After the conversion, a lower score indicates a higher probability of the
+ * item.
+ */
+NGram.convert_psb_to_score = function ngram_convert_psb_to_score(psb) {
+  
+};
+
+NGram.instance_ = null;
+
+NGram.kCodeBookSize = 256;
+
+// The maximum score of a lemma item.
+NGram.kMaxScore = 0x3fff;
+
+/**
+ * In order to reduce the storage size, the original log value is amplified by
+ * kScoreAmplifier, and we use LmaScoreType to store.
+ * After this process, an item with a lower score has a higher frequency.
+ */
+NGram.kLogValueAmplifier = -800;
+
+/** System words' total frequency. It is not the real total frequency, instead,
+ * It is only used to adjust system lemmas' scores when the user dictionary's
+ * total frequency changes.
+ * In this version, frequencies of system lemmas are fixed. We are considering
+ * to make them changable in next version.
+ */
+NGram.kSysDictTotalFreq = 100000000;
+
+NGram.prototype = {
+  /* ==== Public ==== */
+  save_ngram: function ngram_save_ngram(fp) {
+    
+  },
+  
+  load_ngram: function ngram_load_ngram(fp) {
+    
+  },
+
+  // Set the total frequency of all none system dictionaries.
+  set_total_freq_none_sys:
+      function ngram_set_total_freq_none_sys(freq_none_sys) {
+    
+  },
+
+  get_uni_psb: function ngram_get_uni_psb(lma_id) {
+    
+  },
+
+  // For constructing the unigram mode model.
+  build_unigram: function ngram_build_unigram(lemma_arr, next_idx_unused) {
+    
+  },
+
+  /* ==== Private ==== */
+  initialized_: false,
+  
+  idx_num_: 0,
+
+  total_freq_none_sys_: 0,
+
+  // Score compensation for system dictionary lemmas.
+  // Because after user adds some user lemmas, the total frequency changes, and
+  // we use this value to normalize the score.
+  sys_score_compensation_: 0,
+
+  freq_codes_df_: null,
+ 
+  freq_codes_: null,
+  
+  lma_freq_idx_: null
+};
+
 var SpellingParser = function spellingParser_constructor() {
   this.spl_trie_ = SpellingTrie.get_instance();
 };
