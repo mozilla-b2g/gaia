@@ -5820,9 +5820,12 @@ function MailBody(api, suid, wireRep) {
   this.cc = wireRep.cc;
   this.bcc = wireRep.bcc;
   this.replyTo = wireRep.replyTo;
-  this.attachments = [];
-  for (var iAtt = 0; iAtt < wireRep.attachments.length; iAtt++) {
-    this.attachments.push(new MailAttachment(wireRep.attachments[iAtt]));
+  this.attachments = null;
+  if (wireRep.attachments) {
+    this.attachments = [];
+    for (var iAtt = 0; iAtt < wireRep.attachments.length; iAtt++) {
+      this.attachments.push(new MailAttachment(wireRep.attachments[iAtt]));
+    }
   }
   // for the time being, we only provide text/plain contents, and we provide
   // those flattened.
