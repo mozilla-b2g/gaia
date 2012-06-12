@@ -78,6 +78,7 @@ MessageListCard.prototype = {
 
     this.messagesSlice = MailAPI.viewFolderMessages(folder);
     this.messagesSlice.onsplice = this.onMessagesSplice.bind(this);
+    this.messagesSlice.onchange = this.updateMessageDom.bind(this, false);
     return true;
   },
 
@@ -86,7 +87,7 @@ MessageListCard.prototype = {
     // - removed messages
     if (howMany) {
       for (var i = index + howMany - 1; i >= index; i--) {
-        var message = msgSlice.items[i];
+        var message = this.messagesSlice.items[i];
         message.element.parentNode.removeChild(message.element);
       }
     }
@@ -100,13 +101,13 @@ MessageListCard.prototype = {
         msgNodes['header-item'].cloneNode(true);
       domMessage.message = message;
 
-      self.updateMessageDom(message, true);
+      self.updateMessageDom(true, message);
 
       self.messagesContainer.insertBefore(domMessage, insertBuddy);
     });
   },
 
-  updateMessageDom: function(message, firstTime) {
+  updateMessageDom: function(firstTime, message) {
     var msgNode = message.element;
 
     // some things only need to be done once
@@ -127,8 +128,8 @@ MessageListCard.prototype = {
 
       // attachments
       if (message.hasAttachments)
-        msgNode.getElementsByClassName('msg-head-attachments')[0]
-          .classList.add('msg-head-attachments-yes');
+        msgNode.getElementsByClassName('msg-header-attachments')[0]
+          .classList.add('msg-header-attachments-yes');
     }
 
     // unread (we use very specific classes directly on the nodes rather than
@@ -355,7 +356,7 @@ MessageReaderCard.prototype = {
 
     var attachmentsContainer =
       domNode.getElementsByClassName('msg-attachments-container')[0];
-    if (body.attachments) {
+    if (body.attachments && body.attachments.length) {
       var attTemplate = msgNodes['attachment-item'],
           filenameTemplate =
             attTemplate.getElementsByClassName('msg-attachment-filename')[0],
