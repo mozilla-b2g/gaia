@@ -16,15 +16,6 @@
 # REPORTER    : Mocha reporter to use for test output.                        #
 #                                                                             #
 # GAIA_APP_SRCDIRS : list of directories to search for web apps               #
-#                                                                             #
-# DEMO        : define DEMO will do three things. First, redirect GAIA_DOMAIN #
-#               . Second, define PREDEMO to do what demo needs to do, now is  #		
-#               installing sample media. Third, define EXCLUDED to filter     #
-#               unneeded apps.                                                #
-#                                                                             #
-# PREDEMO     : define rules before you build profile for demo purpose.       #
-#                                                                             #
-# EXCLUEDED   : define apps which are not needed in demo.                     #
 ###############################################################################
 GAIA_DOMAIN?=gaiamobile.org
 
@@ -38,12 +29,11 @@ DEBUG?=0
 
 REPORTER=Spec
 
-GAIA_APP_SRCDIRS?=apps
+GAIA_APP_SRCDIRS?=apps test_apps
 
-ifdef DEMO
+ifeq ($(MAKECMDGOALS), DEMO)
 GAIA_DOMAIN=thisdomaindoesnotexist.org
-EXCLUDED=uitest template test-agent
-PREDEMO=install-media-samples
+GAIA_APP_SRCDIRS=apps
 endif
 
 
@@ -117,7 +107,7 @@ MARIONETTE_PORT ?= 2828
 TEST_DIRS ?= $(CURDIR)/tests
 
 # Generate profile/
-profile: $(PREDEMO) stamp-commit-hash update-offline-manifests preferences webapp-manifests test-agent-config offline extensions
+profile: stamp-commit-hash update-offline-manifests preferences webapp-manifests test-agent-config offline extensions
 	@echo "\nProfile Ready: please run [b2g|firefox] -profile $(CURDIR)/profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
@@ -449,3 +439,5 @@ install-gaia: profile
 
 install-media-samples:
 	$(ADB) push media-samples/DCIM /sdcard/DCIM
+
+demo: install-media-samples profile
