@@ -2812,6 +2812,87 @@ SearchUtility.NPredictItem.prototype = {
   his_len: 0
 };
 
+ /**
+  * Parameter structure used to extend in a dictionary. All dictionaries
+  * receives the same DictExtPara and a dictionary specific MileStoneHandle for
+  * extending.
+  *
+  * When the user inputs a new character, AtomDictBase::extend_dict() will be
+  * called at least once for each dictionary.
+  *
+  * For example, when the user inputs "wm", extend_dict() will be called twice,
+  * and the DictExtPara parameter are as follows respectively:
+  * 1. splids = {w, m}; splids_extended = 1; ext_len = 1; step_no = 1;
+  * splid_end_split = false; id_start = wa(the first id start with 'w');
+  * id_num = number of ids starting with 'w'.
+  * 2. splids = {m}; splids_extended = 0; ext_len = 1; step_no = 1;
+  * splid_end_split = false; id_start = wa; id_num = number of ids starting with
+  * 'w'.
+  *
+  * For string "women", one of the cases of the DictExtPara parameter is:
+  * splids = {wo, men}, splids_extended = 1, ext_len = 3 (length of "men"),
+  * step_no = 4; splid_end_split = false; id_start = men, id_num = 1.
+  */
+SearchUtility.DictExtPara = function dictExtPara_constructor() {
+  this.splids = [];
+  for (var i = 0; i < DictDef.kMaxSearchSteps; i++) {
+    this.splids[i] = 0;
+  }
+};
+
+SearchUtility.DictExtPara.prototype = {
+  /**
+   * Spelling ids for extending, there are splids_extended + 1 ids in the
+   * buffer.
+   * For a normal lemma, there can only be kMaxLemmaSize spelling ids in max,
+   * but for a composing phrase, there can kMaxSearchSteps spelling ids.
+   * @type Array.<number>
+   */
+  splids: null,
+
+  /**
+   * Number of ids that have been used before. splids[splids_extended] is the
+   * newly added id for the current extension.
+   */
+  splids_extended: 0,
+
+  /**
+   * The step span of the extension. It is also the size of the string for
+   * the newly added spelling id.
+   */
+  ext_len: 0,
+
+  /**
+   * The step number for the current extension. It is also the ending position
+   * in the input Pinyin string for the substring of spelling ids in splids[].
+   * For example, when the user inputs "women", step_no = 4.
+   * This parameter may useful to manage the MileStoneHandle list for each
+   * step. When the user deletes a character from the string, MileStoneHandle
+   * objects for the the steps after that character should be reset; when the
+   * user begins a new string, all MileStoneHandle objects should be reset.
+   */
+  step_no: 0,
+
+  /**
+   * Indicate whether the newly added spelling ends with a splitting character
+   * @type boolean
+   */
+  splid_end_split: 0,
+
+  /**
+   * If the newly added id is a half id, id_start is the first id of the
+   * corresponding full ids; if the newly added id is a full id, id_start is
+   * that id.
+   */
+  id_star: 0,
+
+  /**
+   * If the newly added id is a half id, id_num is the number of corresponding
+   * ids; if it is a full id, id_num == 1.
+   */
+  id_num: 0
+};
+
 var MyStdlib = {
 
   /**
@@ -3302,7 +3383,7 @@ MatrixSearch.prototype = {
     for (i = 0; i < MatrixSearch.MAX_ROW_NUM; i++) {
       this._matrix[i] = new MatrixRow();
     }
-    this._dep = new DictExtPara();
+    this._dep = new SearchUtility.DictExtPara();
 
     // The prediction buffer
     this._npreItems = new Array(MatrixSearch.MAX_PRE_ITEMS);
@@ -3566,13 +3647,13 @@ var IAtomDictBase = {
    * If an atom dictionary does not implement incremental search, this function
    * can be totally ignored.
    *
-   * @param from_step From which step(included) the MileStoneHandle
+   * @param {number} from_step From which step(included) the MileStoneHandle
    * objects should be reset.
-   * @param from_handle The ealiest MileStoneHandle object for step from_step.
+   * @param {number} from_handle The ealiest MileStoneHandle object for step
+   * from_step.
    */
   reset_milestones:
-      function atomDictBase_reset_milestones(from_step, from_handle) {
-  },
+      function atomDictBase_reset_milestones(from_step, from_handle) {},
 
   /**
    * Used to extend in this dictionary. The handle returned should keep valid
@@ -3580,7 +3661,7 @@ var IAtomDictBase = {
    *
    * @param {Integer} from_handle Its previous returned extended handle without
    * the new spelling id, it can be used to speed up the extending.
-   * @param dep The paramter used for extending.
+   * @param {SearchUtility.DictExtPara} dep The paramter used for extending.
    * @return {handle: Integer, items: LmaPsbItem[]} . handle is the new mile
    * stone for this extending. 0 if fail. items is filled in with the lemmas
    * matched.
@@ -3619,12 +3700,12 @@ var IAtomDictBase = {
    *
    * @param {String} last_hzs The last n Chinese characters(called Hanzi), its
    * length should be less than or equal to kMaxPredictSize.
-   * @param {number} b4_used Number of prediction result from other atom
-   * dictionaries. An atom dictionary can just ignore it.
+   * @param {number} used The number of items have been used from the
+   * beiginning of buffer. An atom dictionary can just ignore it.
    * @return {NPredictItem[]} The array of prediction result from this atom
    * dictionary.
    */
-  predict: function atomDictBase_predict(last_hzs, b4_used) {},
+  predict: function atomDictBase_predict(last_hzs, used) {},
 
   /**
    * Add a lemma to the dictionary. If the dictionary allows to add new
@@ -3647,7 +3728,7 @@ var IAtomDictBase = {
    * @return {integer} The id if succeed, 0 if fail.
    */
   update_lemma:
-  function atomDictBase_update_lemma(lemma_id, delta_count, selected) {},
+      function atomDictBase_update_lemma(lemma_id, delta_count, selected) {},
 
   /**
    * Get the lemma id for the given lemma.
@@ -3674,8 +3755,8 @@ var IAtomDictBase = {
    * @param {Integer[]} splids The spelling ids of the lemma.
    * @return {Integer} The score of the lamm, or 0 if fail.
    */
-  get_lemma_score_by_content: function atomDictBase_get_lemma_score_by_content(
-    lemma_str, splids) {},
+  get_lemma_score_by_content:
+      function atomDictBase_get_lemma_score_by_content(lemma_str, splids) {},
 
   /**
    * If the dictionary allowed, remove a lemma from it.
@@ -3707,8 +3788,12 @@ var IAtomDictBase = {
   flush_cache: function atomDictBase_flush_cache() {}
 };
 
-var DictTrie = function userDict_constructor() {
+var DictTrie = function dictTrie_constructor() {
 };
+
+DictTrie.kMaxMileStone = 100;
+DictTrie.kMaxParsingMark = 600;
+DictTrie.kFirstValidMileStoneHandle = 1;
 
 DictTrie.ParsingMark = function parsingMark_constructor(offset, num) {
   this.node_offset = offset;
@@ -3759,9 +3844,356 @@ DictTrie.prototype = {
 
   /* ==== Public ==== */
 
+  /**
+   * Construct the tree from the file fn_raw.
+   * fn_validhzs provide the valid hanzi list. If fn_validhzs is
+   * NULL, only chars in GB2312 will be included.
+   */
+  build_dict: function dictTrie_build_dict(fn_raw, fn_validhzs) {
+    return false;
+  },
+
+  /**
+   * Save the binary dictionary
+   * Actually, the SpellingTrie/DictList instance will be also saved.
+   */
+  save_dict: function dictTrie_save_dict(filename) {
+    return false;
+  },
+
+  convert_to_hanzis: function dictTrie_convert_to_hanzis(str) {
+
+  },
+
+  /**
+   * Load a binary dictionary
+   * The SpellingTrie instance/DictList will be also loaded
+   * @override
+   */
+  load_dict: function dictTrie_load(file_name, start_id, end_id) {
+  },
+
+  /**
+   * @override
+   */
+  close_dict: function dictTrie_close_dict() {
+    return true;
+  },
+
+  /**
+   * @override
+   */
+  number_of_lemmas: function dictTrie_number_of_lemmas() {
+    return 0;
+  },
+
+  /**
+   * @override
+   */
+  reset_milestones:
+      function dictTrie_reset_milestones(from_step, from_handle) {
+  },
+
+  /**
+   * @override
+   */
+  extend_dict: function dictTrie_extend_dict(from_handle, dep) {},
+
+  /**
+   * @override
+   */
+  get_lpis: function dictTrie_get_lpis(splid_str) {},
+
+  /**
+   * @override
+   */
+  get_lemma_str: function dictTrie_get_lemma_str(id_lemma) {},
+
+  /**
+   * @override
+   */
+  get_lemma_splids: function dictTrie_get_lemma_splids(id_lemma, splids) {},
+
+  /**
+   * @override
+   */
+  predict: function dictTrie_predict(last_hzs, used) {},
+
+  /**
+   * @override
+   */
+  put_lemma: function dictTrie_put_lemma(lemma_str, splids, count) {
+    return 0;
+  },
+
+  /**
+   * @override
+   */
+  update_lemma:
+      function dictTrie_update_lemma(lemma_id, delta_count, selected) {
+    return 0;
+  },
+
+  /**
+   * @override
+   */
+  get_lemma_id: function dictTrie_get_lemma_id(lemma_str, splids) {
+    return 0;
+  },
+
+  /**
+   * @override
+   */
+  get_lemma_score_by_id:
+      function dictTrie_get_lemma_score_by_id(lemma_id) {
+    return 0;
+  },
+
+  /**
+   * @override
+   */
+  get_lemma_score_by_content:
+      function dictTrie_get_lemma_score_by_content(lemma_str, splids) {
+    return 0;
+  },
+
+  /**
+   * @override
+   */
+  remove_lemma: function dictTrie_remove_lemma(lemma_id) {
+    return false;
+  },
+
+  /**
+   * @override
+   */
+  get_total_lemma_count: function dictTrie_get_total_lemma_count() {
+    return 0;
+  },
+
+  /**
+   * @override
+   */
+  set_total_lemma_count_of_others:
+      function dictTrie_set_total_lemma_count_of_others(count) {},
+
+  /**
+   * @override
+   */
+  flush_cache: function dictTrie_flush_cache() {},
+
+  get_lemma_id_by_str: function dictTrie_get_lemma_id_by_str(lemma_str) {
+
+  },
+
+  /**
+   * Fill the lemmas with highest scores to the prediction buffer.
+   * his_len is the history length to fill in the prediction buffer.
+   * @param {Array.<NPredictItem>} npre_items The buffer to be filled.
+   * @param {number} used The number of items have been used from the
+   * beiginning of buffer.
+   * @param {number} The number of lemmas filled.
+   */
+  predict_top_lmas:
+      function dictTrie_predict_top_lmas(his_len, npre_items, used) {
+
+  },
+
   /* ==== Private ==== */
-  DictList: null,
-  spl_trie_: null
+  /**
+   * @type DictList
+   */
+  dict_list_: null,
+
+  /**
+   * @type SpellingTrie
+   */
+  spl_trie_: null,
+
+  /**
+   * Nodes for root and the first layer.
+   * @type Array.<DictDef.LmaNodeLE0>
+   */
+  root_: null,
+
+  /**
+   * Nodes for other layers.
+   * @type Array.<DictDef.LmaNodeGE1>
+   */
+  nodes_ge1_: null,
+
+  /**
+   * An quick index from spelling id to the LmaNodeLE0 node buffer, or
+   * to the root_ buffer.
+   * Index length:
+   * SpellingTrie::get_instance().get_spelling_num() + 1. The last one is used
+   * to get the end.
+   * All Shengmu ids are not indexed because they will be converted into
+   * corresponding full ids.
+   * So, given an id splid, the son is:
+   * root_[splid_le0_index_[splid - kFullSplIdStart]]
+   * @type Array.<number>
+   */
+  splid_le0_index_: null,
+
+  lma_node_num_le0_: 0,
+  lma_node_num_ge1_: 0,
+
+  /**
+   * The first part is for homophnies, and the last top_lma_num_ items are
+   * lemmas with highest scores.
+   * @type Array
+   */
+  lma_idx_buf_: null,
+  // The total size of lma_idx_buf_ in byte.
+  lma_idx_buf_len_: 0,
+  // Total number of lemmas in this dictionary.
+  total_lma_num_: 0,
+  // Number of lemma with highest scores.
+  top_lmas_num_: 0,
+
+  /**
+   * Parsing mark list used to mark the detailed extended statuses.
+   * @type Array.<ParsingMark>
+   */
+  parsing_marks_: null,
+
+  /**
+   * The position for next available mark.
+   */
+  parsing_marks_pos_: 0,
+
+  /**
+   * Mile stone list used to mark the extended status.
+   * @type Array.<MileStone>
+   */
+  mile_stones_: null,
+
+  /**
+   * The position for the next available mile stone. We use positions (except 0)
+   * as handles.
+   * @type number
+   */
+  mile_stones_pos_: null,
+
+  /**
+   * Get the offset of sons for a node.
+   * @param {LmaNodeGE1} node The given node.
+   * @return {number} The offset of the sons.
+   */
+  get_son_offset: function dictTrie_get_son_offset(node) {
+
+  },
+
+  /**
+   * Get the offset of homonious ids for a node.
+   * @param {LmaNodeGE1} node The given node.
+   * @return {number} The offset.
+   */
+  get_homo_idx_buf_offset: function dictTrie_get_homo_idx_buf_offset(node) {
+
+  },
+
+  /**
+   * Get the lemma id by the offset.
+   */
+  get_lemma_id_by_offset: function dictTrie_get_lemma_id_by_offset(id_offset) {
+
+  },
+
+  load_dict_by_fp: function dictTrie_load_dict_by_fp(fp) {
+    return false;
+  },
+
+  /**
+   * Given a LmaNodeLE0 node, extract the lemmas specified by it, and fill
+   * them into the lpi_items buffer.
+   * @param {Array.<LmaPsbItem>} lpi_items The buffer to be filled.
+   * @param {number} start The position to start filling.
+   * @param {number} max_size The maximum number of items which can be filled.
+   * @param {LmaNodeLE0} node The given LmaNodeLE0 node.
+   * @return {number} The number of lemmas.
+   */
+  fill_lpi_buffer_le0:
+      function dictTrie_fill_lpi_buffer_le0(lpi_items, start, max_size, node) {
+
+  },
+
+  /**
+   * Given a LmaNodeGE1 node, extract the lemmas specified by it, and fill
+   * them into the lpi_items buffer.
+   * This function is called by inner functions extend_dict0(), extend_dict1()
+   * and extend_dict2().
+   * @param {Array.<LmaPsbItem>} lpi_items The lemmas buffer.
+   * @param {number} start The position to start filling.
+   * @param {number} max_size The maximum number of items which can be filled.
+   * @param {LmaNodeGE1} node The given LmaNodeGE1 node.
+   * @return {number} The number of lemmas.
+   */
+  fill_lpi_buffer_ge1:
+    function dictTrie_fill_lpi_buffer_ge1(lpi_items, start, max_size,
+                                          homo_buf_off, node, lma_len) {
+  },
+
+  /**
+   * Extend in the trie from level 0.
+   * @param {number} from_handle The mile stone handle from which we extend.
+   * @param {SearchUtility.DictExtPara} dep Extra dictionary parameters.
+   * @param {Array.<LmaPsbItem>} lpi_items The buffer to save the result.
+   * @param {number} start The start position of the buffer.
+   * @param {number} lpi_max The maximum number of items to save.
+   * @return {{handle: number, lpi_num: number}} handle - The mile stone handle,
+   *    lpi_num - The number of items saved.
+   */
+  extend_dict0: function dictTrie_extend_dict0(from_handle, dep, lpi_items,
+                                               start, lpi_max) {
+
+  },
+
+  /**
+   * Extend in the trie from level 1.
+   * @param {number} from_handle The mile stone handle from which we extend.
+   * @param {SearchUtility.DictExtPara} dep Extra dictionary parameters.
+   * @param {Array.<LmaPsbItem>} lpi_items The buffer to save the result.
+   * @param {number} start The start position of the buffer.
+   * @param {number} lpi_max The maximum number of items to save.
+   * @return {{handle: number, lpi_num: number}} handle - The mile stone handle,
+   *    pi_num - The number of items saved.
+   */
+  extend_dict1: function dictTrie_extend_dict1(from_handle, dep, lpi_items,
+                                               start, lpi_max) {
+
+  },
+
+
+  /**
+   * Extend in the trie from level 2.
+   * @param {number} from_handle The mile stone handle from which we extend.
+   * @param {DictDef.DictExtPara} dep Extra dictionary parameters.
+   * @param {Array.<LmaPsbItem>} lpi_items The buffer to save the result.
+   * @param {number} start The start position of the buffer.
+   * @param {number} lpi_max The maximum number of items to save.
+   * @return {{handle: number, lpi_num: number}} handle - The mile stone handle,
+   *    lpi_num - The number of items saved.
+   */
+  extend_dict2: function dictTrie_extend_dict2(from_handle, dep, lpi_items,
+                                               start, lpi_max) {
+
+  },
+
+  /**
+   * Try to extend the given spelling id buffer, and if the given id_lemma can
+   * be successfully gotten, return true;
+   * The given spelling ids are all valid full ids.
+   * @param {Array.<number>} splids The given spelling id buffer.
+   */
+  try_extend: function dictTrie_try_extend(splids, id_lemma) {
+
+  },
+
+  save_dict_by_fp: function dictTrie_save_dict_by_fp(fp) {
+    return false;
+  }
 };
 
 var UserDict = function userDict_constructor() {
