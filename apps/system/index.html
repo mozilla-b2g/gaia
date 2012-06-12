@@ -27,6 +27,7 @@
     <script defer src="js/sound_manager.js"></script>
     <script defer src="js/source_view.js"></script>
     <script defer src="js/storage.js"></script>
+    <script defer src="js/gridview.js"></script>
 
     <!-- Sleep Menu -->
     <link rel="stylesheet" type="text/css" href="style/sleep_menu/sleep_menu.css">
@@ -113,7 +114,7 @@
       </div>
 
 
-      <div id="lockscreen" class="uninit">
+      <div id="lockscreen" class="uninit screenoff">
         <div id="lockscreen-container">
           <div class="lockscreen-panel">
             <div id="lockscreen-header">
@@ -126,6 +127,7 @@
             </div>
             <div id="lockscreen-notification" hidden>
               <div id="lockscreen-notification-time"></div>
+              <img id="lockscreen-notification-icon" />
               <div id="lockscreen-notification-title"></div>
               <div id="lockscreen-notification-detail"></div>
             </div>
@@ -155,11 +157,8 @@
             <p>To be done.</p>
             <p>Turn off screen to go back.</p>
           </div>
-          <div id="lockscreen-panel-camera" class="lockscreen-panel tbd">
-            <h1>Camera app placeholder</h1>
-            <p>To be done.</p>
-            <p>Waiting for attention screen / web activities.</p>
-            <p>Turn off screen to go back.</p>
+          <div id="lockscreen-panel-camera" class="lockscreen-panel">
+            <iframe id="lockscreen-camera" src="blank.html"></iframe>
           </div>
         </div>
       </div>
