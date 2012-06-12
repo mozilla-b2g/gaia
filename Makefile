@@ -16,6 +16,7 @@
 # REPORTER    : Mocha reporter to use for test output.                        #
 #                                                                             #
 # GAIA_APP_SRCDIRS : list of directories to search for web apps               #
+#                                                                             #
 ###############################################################################
 -include local.mk
 
