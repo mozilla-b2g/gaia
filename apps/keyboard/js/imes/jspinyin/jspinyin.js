@@ -2825,7 +2825,8 @@ var MyStdlib = {
    * @return {Integer} The position of the key if found.
    * Othersize -1.
    */
-  mybsearchStr: function index_binarySearchStr(key, array, start, count, size, cmp) {
+  mybsearchStr:
+      function index_binarySearchStr(key, array, start, count, size, cmp) {
     var doCompare = function compare(a, b) {
       if (cmp) {
         return cmp(a, b);
@@ -3035,7 +3036,8 @@ MatrixSearch.prototype = {
       return false;
     }
 
-    if (!this._userDict.load(userDict, DictDef.kUserDictIdStart, DictDef.kUserDictIdEnd)) {
+    if (!this._userDict.load(userDict, DictDef.kUserDictIdStart,
+                             DictDef.kUserDictIdEnd)) {
       return false;
     }
 
@@ -3568,15 +3570,16 @@ var IAtomDictBase = {
    * objects should be reset.
    * @param from_handle The ealiest MileStoneHandle object for step from_step.
    */
-  reset_milestones: function atomDictBase_reset_milestones(from_step, from_handle) {
+  reset_milestones:
+      function atomDictBase_reset_milestones(from_step, from_handle) {
   },
 
   /**
    * Used to extend in this dictionary. The handle returned should keep valid
    * until reset_milestones() is called.
    *
-   * @param {Integer} from_handle Its previous returned extended handle without the new
-   * spelling id, it can be used to speed up the extending.
+   * @param {Integer} from_handle Its previous returned extended handle without
+   * the new spelling id, it can be used to speed up the extending.
    * @param dep The paramter used for extending.
    * @return {handle: Integer, items: LmaPsbItem[]} . handle is the new mile
    * stone for this extending. 0 if fail. items is filled in with the lemmas
@@ -3616,8 +3619,8 @@ var IAtomDictBase = {
    *
    * @param {String} last_hzs The last n Chinese characters(called Hanzi), its
    * length should be less than or equal to kMaxPredictSize.
-   * @param {Integer} b4_used Number of prediction result from other atom dictionaries.
-   * An atom dictionary can just ignore it.
+   * @param {number} b4_used Number of prediction result from other atom
+   * dictionaries. An atom dictionary can just ignore it.
    * @return {NPredictItem[]} The array of prediction result from this atom
    * dictionary.
    */
@@ -3637,31 +3640,32 @@ var IAtomDictBase = {
   /**
    * Update a lemma's occuring count.
    *
-   * @param {Integer} lemma_id The lemma id to update.
-   * @param {Integer} delta_count The frequnecy count to ajust.
-   * @param {Boolean } selected Indicate whether this lemma is selected by user
+   * @param {number} lemma_id The lemma id to update.
+   * @param {number} delta_count The frequnecy count to ajust.
+   * @param {boolean} selected Indicate whether this lemma is selected by user
    * and submitted to target edit box.
-   * @return {Integer} The id if succeed, 0 if fail.
+   * @return {integer} The id if succeed, 0 if fail.
    */
-  update_lemma: function atomDictBase_update_lemma(lemma_id, delta_count, selected)
-  {},
+  update_lemma:
+  function atomDictBase_update_lemma(lemma_id, delta_count, selected) {},
 
   /**
    * Get the lemma id for the given lemma.
    *
-   * @param {String} lemma_str The Chinese string of the lemma.
-   * @param {Integer[]} splids The spelling ids of the lemma.
-   * @return {Integer} The matched lemma id, or 0 if fail.
+   * @param {string} lemma_str The Chinese string of the lemma.
+   * @param {Array.<number>} splids The spelling ids of the lemma.
+   * @return {number} The matched lemma id, or 0 if fail.
    */
   get_lemma_id: function atomDictBase_get_lemma_id(lemma_str, splids) {},
 
   /**
    * Get the lemma score.
    *
-   * @param {Integer} lemma_id The lemma id to get score.
-   * @return {Integer} The score of the lemma, or 0 if fail.
+   * @param {number} lemma_id The lemma id to get score.
+   * @return {number} The score of the lemma, or 0 if fail.
    */
-  get_lemma_score_by_id: function atomDictBase_get_lemma_score_by_id(lemma_id) {},
+  get_lemma_score_by_id:
+      function atomDictBase_get_lemma_score_by_id(lemma_id) {},
 
   /**
    * Get the lemma score.
@@ -3693,8 +3697,8 @@ var IAtomDictBase = {
    *
    * @param {Integer} count The total occuring count of other atom dictionaies.
    */
-  set_total_lemma_count_of_others: function atomDictBase_set_total_lemma_count_of_others(
-    count) {},
+  set_total_lemma_count_of_others:
+      function atomDictBase_set_total_lemma_count_of_others(count) {},
 
   /**
    * Notify this atom dictionary to flush the cached data to persistent storage
@@ -3832,11 +3836,12 @@ DictList.prototype = {
   },
 
   /**
-   * @param {String} last_hzs stores the last n Chinese characters history,
+   * @param {string} last_hzs stores the last n Chinese characters history,
    * its length should be less or equal than DictDef.kMaxPredictSize.
-   * @param {NPredictItem[]} npre_items is used to store the result.
-   * @param {Boolean} b4_used specifies how many items before npre_items have been used.
-   * @return {Integer} The number of newly added items.
+   * @param {Array.<NPredictItem>} npre_items is used to store the result.
+   * @param {boolean} b4_used specifies how many items before npre_items have
+   * been used.
+   * @return {number} The number of newly added items.
    */
   predict: function dictList_predict(last_hzs, npre_items, b4_used) {
     // XXXX the issue of b4_used should be solved.
@@ -3861,7 +3866,8 @@ DictList.prototype = {
              item_num < npre_max) {
         memset(npre_items + item_num, 0, sizeof(NPredictItem));
         npre_items[item_num] = new SearchUtility.NPredictItem();
-        npre_items[item_num].pre_hzs = this.buf_.substring(w_buf + hzs_len, w_buf + hzs_len + pre_len);
+        npre_items[item_num].pre_hzs =
+          this.buf_.substring(w_buf + hzs_len, w_buf + hzs_len + pre_len);
         npre_items[item_num].psb =
           ngram.get_uni_psb((size_t)(w_buf - buf_ - start_pos_[word_len - 1]) /
           word_len + start_id_[word_len - 1]);
@@ -3876,7 +3882,8 @@ DictList.prototype = {
       // Try to find it in the existing items
       var e_pos;
       for (e_pos = 1; e_pos <= b4_used; e_pos++) {
-        if (utf16_strncmp((* (npre_items - e_pos)).pre_hzs, npre_items[i].pre_hzs,
+        if (utf16_strncmp((* (npre_items - e_pos)).pre_hzs,
+                          npre_items[i].pre_hzs,
                           kMaxPredictSize) == 0)
           break;
       }
@@ -3896,8 +3903,10 @@ DictList.prototype = {
    * If half_splid is a valid half spelling id, return those full spelling
    * ids which share this half id.
    */
-  get_splids_for_hanzi: function dictList_get_splids_for_hanzi(hanzi, half_splid) {
-    var hz_found = MyStdlib.mybsearchStr(hanzi, this.scis_hz_, 0, this.scis_num_, 1, cmp_hanzis_1);
+  get_splids_for_hanzi:
+      function dictList_get_splids_for_hanzi(hanzi, half_splid) {
+    var hz_found = MyStdlib.mybsearchStr(hanzi, this.scis_hz_, 0,
+                                         his.scis_num_, 1, cmp_hanzis_1);
     var splids = [];
 
     // Move to the first one.
@@ -3908,7 +3917,8 @@ DictList.prototype = {
     // First try to found if strict comparison result is not zero.
     var hz_f = hz_found;
     var strict = false;
-    while (hz_f < this.scis_hz_ + this.scis_num_ && hanzi == this.scis_hz_[hz_f]) {
+    while (hz_f < this.scis_hz_ + this.scis_num_ &&
+           hanzi == this.scis_hz_[hz_f]) {
       var pos = hz_f;
       if (0 == half_splid || this.scis_splid_[pos].half_splid == half_splid) {
         strict = true;
@@ -3917,7 +3927,8 @@ DictList.prototype = {
     }
 
     var found_num = 0;
-    while (hz_found < this.scis_hz_ + this.scis_num_ && hanzi == this.scis_hz_[hz_found]) {
+    while (hz_found < this.scis_hz_ + this.scis_num_ &&
+           hanzi == this.scis_hz_[hz_found]) {
       var pos = hz_found;
       if (0 == half_splid ||
           (strict && this.scis_splid_[pos].half_splid == half_splid) ||
@@ -4055,7 +4066,8 @@ DictList.prototype = {
    * cmp_func decides how many characters from beginning will be used to
    * compare.
    */
-  find_pos_startedbyhzs: function dictList_find_pos_startedbyhzs(last_hzs, cmp_func) {
+  find_pos_startedbyhzs:
+      function dictList_find_pos_startedbyhzs(last_hzs, cmp_func) {
     var word_len = last_hzs.length;
     var found_w = MyStdlib.mybsearchStr(last_hzs, this.buf_,
       this.start_pos_[word_len - 1],
@@ -4075,12 +4087,19 @@ DictList.prototype = {
 };
 
 var NGram = function ngram_constructor() {
-
+  this.freq_codes_df_ = [];
+  this.freq_codes_ = [];
+  this.lma_freq_idx_ = [];
 };
 
 NGram.get_instance = function ngram_get_instance() {
-  
+  if (NGram.instance_ == null) {
+    NGram.instance_ = new NGram();
+  }
+  return NGram.instance_;
 };
+
+NGram.instance_ = null;
 
 /**
  * Convert a probability to score. Actually, the score will be limited to
@@ -4090,10 +4109,12 @@ NGram.get_instance = function ngram_get_instance() {
  * item.
  */
 NGram.convert_psb_to_score = function ngram_convert_psb_to_score(psb) {
-  
+  var score = Math.log(psb) * NGram.kLogValueAmplifier;
+  if (score > NGram.kMaxScore) {
+    score = NGram.kMaxScore;
+  }
+  return score;
 };
-
-NGram.instance_ = null;
 
 NGram.kCodeBookSize = 256;
 
@@ -4118,31 +4139,128 @@ NGram.kSysDictTotalFreq = 100000000;
 NGram.prototype = {
   /* ==== Public ==== */
   save_ngram: function ngram_save_ngram(fp) {
-    
+    return false;
   },
-  
+
   load_ngram: function ngram_load_ngram(fp) {
-    
+    return false;
   },
 
   // Set the total frequency of all none system dictionaries.
   set_total_freq_none_sys:
       function ngram_set_total_freq_none_sys(freq_none_sys) {
-    
+    this.total_freq_none_sys_ = freq_none_sys;
+    if (0 == this.total_freq_none_sys_) {
+      this.sys_score_compensation_ = 0;
+    } else {
+      var factor = NGram.kSysDictTotalFreq / (NGram.kSysDictTotalFreq +
+        this.total_freq_none_sys_);
+      this.sys_score_compensation_ = Math.log(factor) *
+        NGram.kLogValueAmplifier;
+    }
   },
 
   get_uni_psb: function ngram_get_uni_psb(lma_id) {
-    
+    return this.freq_codes_[this.lma_freq_idx_[lma_id]] +
+      this.sys_score_compensation_;
   },
 
-  // For constructing the unigram mode model.
-  build_unigram: function ngram_build_unigram(lemma_arr, next_idx_unused) {
-    
+  /**
+   * For constructing the unigram mode model.
+   * @param {Array.<LemmaEntry>} lemma_arr Lemma array.
+   */
+  build_unigram: function ngram_build_unigram(lemma_arr) {
+    if (!lemma_arr) {
+      return false;
+    }
+
+    var lemma_num = lemma_arr.length;
+    if (lemma_num == 0) {
+      return false;
+    }
+
+    var total_freq = 0;
+    var freqs = [];
+
+    freqs[0] = 0.3;
+    total_freq += freqs[0];
+    var idx_now = 0;
+    for (var pos = 0; pos < lemma_num; pos++) {
+      if (lemma_arr[pos].idx_by_hz == idx_now)
+        continue;
+      idx_now++;
+
+      freqs[idx_now] = lemma_arr[pos].freq;
+      if (freqs[idx_now] <= 0) {
+        freqs[idx_now] = 0.3;
+      }
+
+      total_freq += freqs[idx_now];
+    }
+
+    var max_freq = 0;
+    this.idx_num_ = idx_now + 1;
+
+    for (var pos = 0; pos < this.idx_num_; pos++) {
+      freqs[pos] = freqs[pos] / total_freq;
+      if (freqs[pos] > max_freq) {
+        max_freq = freqs[pos];
+      }
+    }
+
+    // calculate the code book
+    this.freq_codes_df_ = [];
+    this.freq_codes_ = [];
+    for (var pos = 0; pos < NGram.kCodeBookSize; pos++) {
+      this.freq_codes_df_[pos] = 0;
+      this.freq_codes_[pos] = 0;
+    }
+
+    var freq_pos = 0;
+    for (var code_pos = 0; code_pos < NGram.kCodeBookSize; code_pos++) {
+      var found = true;
+      while (found) {
+        found = false;
+        var cand = freqs[freq_pos];
+        for (var i = 0; i < code_pos; i++) {
+          if (this.freq_codes_df_[i] == cand) {
+            found = true;
+            break;
+          }
+        }
+        if (found) {
+          freq_pos++;
+        }
+      }
+
+      this.freq_codes_df_[code_pos] = freqs[freq_pos];
+      freq_pos++;
+    }
+
+    this.freq_codes_df_.sort();
+
+    this.lma_freq_idx_ = [];
+    for (var pos = 0; pos < this.idx_num_; pos++) {
+      this.lma_freq_idx_[pos] = 0;
+    }
+
+    this.iterate_codes(freqs, this.freq_codes_df_,
+                       this.lma_freq_idx_);
+
+    for (var code_pos = 0; code_pos < NGram.kCodeBookSize; code_pos++) {
+      var log_score = Math.log(this.freq_codes_df_[code_pos]);
+      var final_score =
+        NGram.convert_psb_to_score(this.freq_codes_df_[code_pos]);
+      this.freq_codes_[code_pos] = final_score;
+    }
+
+    this.initialized_ = true;
+    return true;
   },
 
   /* ==== Private ==== */
   initialized_: false,
-  
+
   idx_num_: 0,
 
   total_freq_none_sys_: 0,
@@ -4153,10 +4271,97 @@ NGram.prototype = {
   sys_score_compensation_: 0,
 
   freq_codes_df_: null,
- 
+
   freq_codes_: null,
-  
-  lma_freq_idx_: null
+
+  lma_freq_idx_: null,
+
+  iterate_codes: function ngram_iterate_codes(freqs, code_book, code_idx) {
+    var iter_num = 0;
+    var delta_last = 0;
+    do {
+      var changed = this.update_code_idx(freqs, code_book, code_idx);
+
+      var delta = this.recalculate_kernel(freqs, code_book, code_idx);
+
+      iter_num++;
+
+      if (iter_num > 1 &&
+          (delta == 0 ||
+          Math.abs(delta_last - delta) / Math.abs(delta) < 0.000000001)) {
+        break;
+      }
+      delta_last = delta;
+    } while (true);
+  },
+
+  update_code_idx: function ngram_update_code_idx(freqs, code_book, code_idx) {
+    var num = freqs.length;
+    var changed = 0;
+    for (var pos = 0; pos < num; pos++) {
+      var idx = this.qsearch_nearest(code_book, freqs[pos], 0,
+                                 NGram.kCodeBookSize - 1);
+      if (idx != code_idx[pos]) {
+        changed++;
+      }
+      code_idx[pos] = idx;
+    }
+    return changed;
+  },
+
+  // Find the index of the code value which is nearest to the given freq
+  qsearch_nearest:
+    function ngram_qsearch_nearest(code_book, freq, start, end) {
+    if (start == end)
+      return start;
+
+    if (start + 1 == end) {
+      if (this.distance(freq, code_book[end]) >
+          this.distance(freq, code_book[start])) {
+        return start;
+      }
+      return end;
+    }
+
+    var mid = (start + end) / 2;
+
+    if (code_book[mid] > freq) {
+      return this.qsearch_nearest(code_book, freq, start, mid);
+    }
+    else {
+      return this.qsearch_nearest(code_book, freq, mid, end);
+    }
+  },
+
+  distance: function ngram_distance(freq, code) {
+    return freq * Math.abs(Math.log(freq) - Math.log(code));
+  },
+
+  recalculate_kernel:
+      function ngram_recalculate_kernel(freqs, code_book, code_idx) {
+    var num = freqs.length;
+    var ret = 0;
+
+    var item_num = [];
+    var cb_new = [];
+    for (var pos = 0; pos < NGram.kCodeBookSize; pos++) {
+      item_num[pos] = 0;
+      cb_new[pos] = 0;
+    }
+
+    for (var pos = 0; pos < num; pos++) {
+      ret += this.distance(freqs[pos], code_book[code_idx[pos]]);
+
+      cb_new[code_idx[pos]] += freqs[pos];
+      item_num[code_idx[pos]] += 1;
+    }
+
+    for (var code = 0; code < NGram.kCodeBookSize; code++) {
+      code_book[code] = cb_new[code] / item_num[code];
+    }
+
+    return ret;
+  }
 };
 
 var SpellingParser = function spellingParser_constructor() {
@@ -4230,7 +4435,11 @@ SpellingParser.prototype = {
             start_pos[idx_num] = str_pos;
             continue;
           } else {
-            return {spl_idx: spl_idx, start_pos: start_pos, last_is_pre: last_is_pre};
+            return {
+              spl_idx: spl_idx,
+              start_pos: start_pos,
+              last_is_pre: last_is_pre
+            };
           }
         }
       }
@@ -4241,9 +4450,11 @@ SpellingParser.prototype = {
 
       if (0 == str_pos) {
         if (char_this >= 'a') {
-          found_son = this.spl_trie_.level1_sons_[StringUtils.charDiff(char_this, 'a')];
+          found_son =
+            this.spl_trie_.level1_sons_[StringUtils.charDiff(char_this, 'a')];
         } else {
-          found_son = this.spl_trie_.level1_sons_[StringUtils.charDiff(char_this, 'A')];
+          found_son =
+            this.spl_trie_.level1_sons_[StringUtils.charDiff(char_this, 'A')];
         }
       } else {
         var sons = node_this.sons;
@@ -4276,7 +4487,11 @@ SpellingParser.prototype = {
           node_this = this.spl_trie_.root_;
           continue;
         } else {
-          return {spl_idx: spl_idx, start_pos: start_pos, last_is_pre: last_is_pre};
+          return {
+            spl_idx: spl_idx,
+            start_pos: start_pos,
+            last_is_pre: last_is_pre
+          };
         }
       }
 
@@ -4476,7 +4691,8 @@ SpellingTrie.prototype = {
 
     this.level1_sons_ = [];
 
-    this.root_.sons = this.construct_spellings_subset(0, this.spelling_num_, 0, this.root_);
+    this.root_.sons =
+      this.construct_spellings_subset(0, this.spelling_num_, 0, this.root_);
 
     // Root's score should be cleared.
     this.root_.score = 0;
@@ -4534,7 +4750,8 @@ SpellingTrie.prototype = {
   },
 
   is_full_id: function spellingTrie_is_full_id(spl_id) {
-    if (spl_id < SpellingTrie.kFullspl_idStart || spl_id >= SpellingTrie.kFullspl_idStart + this.spelling_num_)
+    if (spl_id < SpellingTrie.kFullspl_idStart ||
+        spl_id >= SpellingTrie.kFullspl_idStart + this.spelling_num_)
       return false;
     return true;
   },
@@ -4839,14 +5056,17 @@ SpellingTrie.prototype = {
 
         // For quick search in the first level
         if (0 == level) {
-          this.level1_sons_[StringUtils.charDiff(char_for_node, 'A')] = node_current;
+          this.level1_sons_[StringUtils.charDiff(char_for_node, 'A')] =
+            node_current;
         }
 
         if (spelling_endable) {
-          node_current.spelling_idx = SpellingTrie.kFullspl_idStart + item_start_next;
+          node_current.spelling_idx =
+            SpellingTrie.kFullspl_idStart + item_start_next;
         }
 
-        if (spelling_last_start.str.length > level + 1 || i - item_start_next > 1) {
+        if (spelling_last_start.str.length > level + 1 ||
+            i - item_start_next > 1) {
           var real_start = item_start_next;
           if (spelling_last_start.str.length == level + 1) {
             real_start++;
@@ -4930,11 +5150,13 @@ SpellingTrie.prototype = {
 
     // For quick search in the first level
     if (0 == level) {
-      this.level1_sons_[StringUtils.charDiff(char_for_node, 'A')] = node_current;
+      this.level1_sons_[StringUtils.charDiff(char_for_node, 'A')] =
+        node_current;
     }
 
     if (spelling_endable) {
-      node_current.spelling_idx = SpellingTrie.kFullspl_idStart + item_start_next;
+      node_current.spelling_idx =
+        SpellingTrie.kFullspl_idStart + item_start_next;
     }
 
     if (spelling_last_start.str.length > level + 1 ||
@@ -5069,7 +5291,8 @@ SpellingTrie.prototype = {
     // Generate the maping from the spelling ids to the Yunmu ids.
     spl_ym_ids_ = [];
 
-    for (var id = 1; id < this.spelling_num_ + SpellingTrie.kFullspl_idStart; id++) {
+    for (var id = 1; id < this.spelling_num_ + SpellingTrie.kFullspl_idStart;
+         id++) {
       var str = this.get_spelling_str(id);
 
       str = this.get_ym_str(str);
@@ -5186,7 +5409,8 @@ SpellingTable.prototype = {
     var totalScore = 0;
     var spellingNum = 0;
     for (var pos in this.raw_spellings_) {
-      var score = Math.floor(Math.log(this.raw_spellings_[pos].freq) * this.score_amplifier_);
+      var score = Math.floor(Math.log(this.raw_spellings_[pos].freq) *
+                             this.score_amplifier_);
       this.raw_spellings_[pos].score = score;
       totalScore += score;
       spellingNum++;
