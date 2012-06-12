@@ -10,13 +10,14 @@
     }
   },
   "developer": {
-    "url": "https://github.com/andreasgal/gaia",
+    "url": "https://github.com/mozilla-b2g/gaia",
     "name": "The Gaia Team"
   },
+  "orientation": "portrait-primary",
+  "default_locale": "en-US",
   "icons": {
     "120": "/style/icons/Calendar.png"
-  },
-  "orientation": "portrait-primary"
+  }
 }
 
 
