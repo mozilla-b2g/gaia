@@ -1,3 +1,5 @@
+requireCommon('test/synthetic_gestures.js');
+
 requireApp('calendar/test/unit/helper.js', function() {
   requireApp('calendar/js/gesture_detector.js');
   requireCalendarController();

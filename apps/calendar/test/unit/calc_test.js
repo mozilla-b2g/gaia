@@ -162,29 +162,47 @@ suite('calendar/calc', function() {
 
     test('when in the past', function() {
       mock('isPast', true);
-      var state = subject.relativeState(new Date(1991, 1, 1));
+      var state = subject.relativeState(
+        new Date(1991, 1, 1),
+        new Date(1991, 1, 1)
+      );
 
       assert.equal(state, subject.PAST);
     });
 
-
     test('when in the future', function() {
       mock('isPast', false);
       var state = subject.relativeState(
+        new Date(1991, subject.today.getMonth(), 1),
         new Date(1991, subject.today.getMonth(), 1)
       );
       assert.equal(state, subject.FUTURE);
     });
 
-    test('when is in the future but another month', function() {
-      mock('isPast', false);
+    test('when is in a different month in the past', function() {
+      mock('isPast', true);
+
       var state = subject.relativeState(
-        new Date(1991, subject.today.getMonth() - 1, 1)
+        new Date(1991, subject.today.getMonth() - 1, 1),
+        new Date(1991, subject.today.getMonth(), 1)
+      );
+
+      assert.include(state, subject.PAST);
+      assert.include(state, subject.OTHER_MONTH);
+    });
+
+    test('when is in a different month in the future', function() {
+      mock('isPast', false);
+
+      var state = subject.relativeState(
+        new Date(1991, subject.today.getMonth() + 1, 1),
+        new Date(1991, subject.today.getMonth(), 1)
       );
 
       assert.include(state, subject.FUTURE);
-      assert.include(state, subject.NEXT_MONTH);
+      assert.include(state, subject.OTHER_MONTH);
     });
+
 
     test('when is today', function() {
       mock('isToday', true);

@@ -9,6 +9,8 @@
 
     NEXT_MONTH: 'next-month',
 
+    OTHER_MONTH: 'other-month',
+
     PRESENT: 'present',
 
     FUTURE: 'future',
@@ -18,6 +20,12 @@
       return new Date();
     },
 
+    /**
+     * Checks is given date is today.
+     *
+     * @param {Date} date compare.
+     * @return {Boolean} true when today.
+     */
     isToday: function(date) {
       var today = this.today,
           month = date.getMonth() == today.getMonth(),
@@ -142,20 +150,21 @@
     /**
      * Checks if date is in the past
      *
+     * @param {Date} value date to check.
      * @return {Boolean} true when date is in the past.
      */
-    isPast: function(date, today) {
-      today = today || this.today;
-      return (date.valueOf() < today.valueOf());
+    isPast: function(date) {
+      return (date.valueOf() < this.today.valueOf());
     },
 
     /**
      * Checks if date is in the future
      *
+     * @param {Date} value date to check.
      * @return {Boolean} true when date is in the future.
      */
-    isFuture: function(value, today) {
-      return !this.isPast(value, today);
+    isFuture: function(value) {
+      return !this.isPast(value);
     },
 
     /**
@@ -164,26 +173,34 @@
      *
      *  past, present, future
      *
-     * @param {Date} date for compare.
-     * @param {Date} today today's date.
+     * @param {Date} day for compare.
+     * @param {Date} month today's date.
      * @return {String} state.
      */
-    relativeState: function(date, today) {
-      today = today || this.today;
+    relativeState: function(day, month) {
+      var states;
 
-      if (this.isToday(date, today)) {
+      // 1. the date is today (real time)
+      if (this.isToday(day)) {
         return this.PRESENT;
       }
 
-      if (this.isPast(date, today)) {
-        return this.PAST;
+      states = '';
+
+      // 2. the date is in the past (real time)
+      if (this.isPast(day)) {
+        states += this.PAST;
+      // 3. the date is in the future (real time)
+      } else {
+        states += this.FUTURE;
       }
 
-      if (date.getMonth() != today.getMonth()) {
-        return this.FUTURE + ' ' + this.NEXT_MONTH;
+      // 4. the date is not in the current month (relative time)
+      if (day.getMonth() !== month.getMonth()) {
+        states += ' ' + this.OTHER_MONTH;
       }
 
-      return this.FUTURE;
+      return states;
     }
 
   };

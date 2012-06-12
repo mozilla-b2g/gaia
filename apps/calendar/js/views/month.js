@@ -155,13 +155,11 @@
 
   proto._onSwipe = function(event) {
     var direction = event.detail.direction;
-
     if (direction === 'right') {
       this.previous();
     } else {
       this.next();
     }
-
   };
 
   /**
@@ -231,12 +229,7 @@
         state,
         busytimes = this.controller.busytime;
 
-    // rework state
-    if (currentMonth.getMonth() != month) {
-      state = Calendar.Calc.relativeState(day, currentMonth);
-    } else {
-      state = Calendar.Calc.relativeState(day);
-    }
+    state = Calendar.Calc.relativeState(day, currentMonth);
 
     hours = busytimes.getHours(day);
     busyHtml = this._renderBusyUnits(hours);
@@ -372,7 +365,7 @@
   /**
    * Appends given month to display area.
    *
-   * @param {Date} date current month this should \
+   * @param {Date} date current month this should
    *                    usually be the starting date of
    *                    a given month.
    */
