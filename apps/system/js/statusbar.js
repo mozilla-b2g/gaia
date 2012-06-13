@@ -257,10 +257,15 @@ var StatusBar = {
     this.mute.hidden = !!SoundManager.currentVolume;
   },
 
+  updateNotification: function sb_updateNotification(show) {
+    this.notification.hidden = !show;
+  },
+
   getAllElements: function ls_getAllElements() {
     // ID of elements to create references
     var elements = ['signal', 'conn', 'data', 'wifi',
-      'mute', 'battery', 'battery-fuel', 'battery-charging', 'time'];
+      'notification', 'mute', 'battery', 'battery-fuel',
+      'battery-charging', 'time'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {

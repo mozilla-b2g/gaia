@@ -39,14 +39,10 @@
   background: url("images/mute.png") no-repeat 50% 50%;
 }
 
-.state {
-  float: left;
-  background-repeat: no-repeat;
-  background-position: center center;
-}
-
-#state-notifications[data-visible] {
-  background-image: url("images/notifications/desktop-notification.png");
+#statusbar-notification {
+  width: 20px;
+  margin: 2px 4px;
+  background: url("images/notification-dot.png") no-repeat 50% 50%;
 }
 
 #statusbar-conn {

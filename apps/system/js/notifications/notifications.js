@@ -69,8 +69,7 @@ var NotificationScreen = {
         case 'desktop-notification':
           NotificationScreen.addNotification(detail);
 
-          var hasNotifications = document.getElementById('state-notifications');
-          hasNotifications.dataset.visible = 'true';
+          StatusBar.updateNotification(true);
           break;
 
         case 'permission-prompt':
@@ -246,8 +245,7 @@ var NotificationScreen = {
     var notifSelector = 'div[data-type="desktop-notification"]';
     var desktopNotifications = this.container.querySelectorAll(notifSelector);
     if (desktopNotifications.length == 0) {
-      var hasNotifications = document.getElementById('state-notifications');
-      delete hasNotifications.dataset.visible;
+      StatusBar.updateNotification(false);
     }
   }
 };
