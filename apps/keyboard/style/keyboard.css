@@ -370,7 +370,7 @@ html, body {
     margin: 0 2px;
     line-height: 34px;
     border: 1px solid #d5d5d5;
-    -moz-box-shadow: inset 0 0 2px 2px #fff;
+    box-shadow: inset 0 0 2px 2px #fff;
     border-radius: 5px;
     background: -moz-linear-gradient(top, #fff 10%, #fff 70%, #f6f6f6 100%);
   }
@@ -384,7 +384,7 @@ html, body {
     font-size: 14px;
     text-shadow: 0 -1px #848d96, 0 1px #bac2cb;
     background: -moz-linear-gradient(top, #a3aeb9 10%, #a3aeb9 70%, #929ca6 100%);
-    -moz-box-shadow: none;
+    box-shadow: none;
     border: 1px solid #8a949d;
   }
 
