@@ -312,11 +312,11 @@ body.msg-edit-mode #msg-conversations-list > a {
   height: 100%;
 }
 
-#msg-conversations-list a > input.fake-checkbox {
+#msg-conversations-list > a > input.fake-checkbox {
   display: none;
 }
 
-#msg-conversations-list a > span {
+#msg-conversations-list > a > span {
   position: absolute;
   top: -moz-calc(50% - 34px);
   left: 20px;
@@ -327,13 +327,13 @@ body.msg-edit-mode #msg-conversations-list > a {
   -moz-transition: width 0.3s ease;
 }
 
-#msg-conversations-list a > input[type=checkbox] + span {
+#msg-conversations-list > a > input[type=checkbox] + span {
   width: 0px;
   height: 60px;
   border-radius: 5px;
 }
 
-body.msg-edit-mode #msg-conversations-list a > input[type=checkbox]:checked + span {
+body.msg-edit-mode #msg-conversations-list > a > input[type=checkbox]:checked + span {
   background: url("./images/checked.png") no-repeat scroll center center,
     -moz-linear-gradient(#ffffff, #eaeae4);
 }
