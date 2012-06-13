@@ -32,11 +32,8 @@
   <body class="hidden">
 
     <!-- title bar + thumbnail list -->
-    <header>
-      <button id="menu"></button>
-      <h1 data-l10n-id="videos">Videos</h1>
-    </header>
     <ul id="thumbnails">
+      <h1 id="novideos" data-l10n-id="novideos">No Videos</h1>
       <!-- Thumbnails inserted here -->
     </ul>
 
@@ -44,7 +41,6 @@
     <div id="videoFrame" class="hidden">
       <video src="about:blank" id="player"></video>
       <!-- video controls -->
-      <div id="videoSubtitles"></div>
       <div id="videoControls" class="hidden">
         <button id="close"></button>
         <div id="videoBar">
