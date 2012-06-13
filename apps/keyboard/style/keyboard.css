@@ -348,4 +348,12 @@ html, body {
   box-shadow: 0 0 5px #fff;
 }
 
-
+.keyboard-pending-symbols-highlight-green {
+	background:#33aa33;
+}
+.keyboard-pending-symbols-highlight-red {
+	background:#aa3333;
+}
+.keyboard-pending-symbols-highlight-blue {
+	background:#3333aa;
+}

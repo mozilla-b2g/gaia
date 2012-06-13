@@ -1,6 +1,8 @@
 //put stuff here to help you tests out...
 
 (function(window) {
+  //register the global
+  window.navigator;
 
   var Common = window.parent.CommonResourceLoader,
       //mocha test methods we want to provide
@@ -49,6 +51,9 @@
     require(Common.url('/common/' + url), cb);
   }
 
+  //template
+  requireCommon('test/template.js');
+
   //load chai
   window.requireCommon('vendor/chai/chai.js', function() {
     chai.Assertion.includeStack = true;
@@ -57,8 +62,8 @@
   });
 
   //mocha helpers
-  window.requireCommon('test/mocha-task.js');
-  window.requireCommon('test/mocha-generators.js', function() {
+  window.requireCommon('test/mocha_task.js');
+  window.requireCommon('test/mocha_generators.js', function() {
     testMethods.forEach(function(method) {
       testSupport.mochaGenerators.overload(method);
     });
@@ -68,7 +73,7 @@
   window.requireCommon('test/marionette.js');
 
   //url utilities
-  window.requireCommon('test/test-url-resolver.js');
+  window.requireCommon('test/test_url_resolver.js');
 
 }(this));
 
