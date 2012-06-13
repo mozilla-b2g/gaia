@@ -137,10 +137,15 @@ function updateConnection(event) {
       title = _('searching');
     }
   } else {
+    var networkName = '';
+    if (voice.network) {
+      networkName = voice.network.shortName || '';
+    }
+
     if (voice.roaming) {
-      title = _('roaming', { operator: (voice.operator || '') });
+      title = _('roaming', { operator: networkName });
     } else {
-      title = voice.operator || '';
+      title = networkName;
     }
   }
   document.getElementById('titlebar').textContent = title;
