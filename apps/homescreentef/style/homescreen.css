@@ -24,7 +24,7 @@ section,footer,nav,a,img {
 
 #paginationBar {
   width: 100%;
-  height: .5rem;
+  height: .3rem;
   position: fixed;
   top: 0;
   left: 0;
@@ -34,19 +34,19 @@ section,footer,nav,a,img {
 #paginationBar > .paginationScroller {
   width: 100%;
   height: 100%;
-  background-color: #ff7f02;
+  background-color: #ff4e00;
   -moz-transition: all 0.2s ease;
   visibility: hidden;
-  border-radius: .25rem;
+  border-radius: .15rem;
 }
 
 #icongrid {
   width: 100%;
-  height: 90%;
+  height: -moz-calc(100% - 4rem);
   position: fixed;
   top: 0;
   left: 0;
-  background-image: url('../resources/images/backgrounds/default.png');
+  background-image: url('../resources/images/background.jpg');
   background-size: cover;
   z-index: 2;
 }
@@ -54,7 +54,7 @@ section,footer,nav,a,img {
 /* START footer */
 
 #footer {
-  height: 10%;
+  height: 4rem;
   width: 100%;
   position: fixed;
   bottom: 0;
@@ -90,19 +90,19 @@ section,footer,nav,a,img {
   font: 0/0 a;
 }
 
-#footer .dock > .logs {
+#footer .dock > li.i-logs {
   background-image: url('../resources/images/footer/1.png');
 }
 
-#footer .dock > .contacts {
+#footer .dock > li.i-contacts {
   background-image: url('../resources/images/footer/2.png');
 }
 
-#footer .dock > .messages {
+#footer .dock > li.i-messages {
   background-image: url('../resources/images/footer/3.png');
 }
 
-#footer .dock > .phone {
+#footer .dock > li.i-phone {
   background-image: url('../resources/images/footer/4.png');
 }
 
