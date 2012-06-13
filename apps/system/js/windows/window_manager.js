@@ -1,3 +1,6 @@
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
 //
 // This file calls getElementById without waiting for an onload event, so it
 // must have a defer attribute or be included at the end of the <body>.
@@ -63,7 +66,7 @@ var WindowManager = (function() {
   // }
   //
   var runningApps = {};
-  var numRunningApps = 0; // start() and stop() maintain this count
+  var numRunningApps = 0; // start() and kill() maintain this count
   var nextAppId = 0;      // to give each app's iframe a unique id attribute
 
   // The origin of the currently displayed app, or null if there isn't one
@@ -272,7 +275,7 @@ var WindowManager = (function() {
       sprite.removeEventListener('transitionend', transitionListener);
       document.body.removeChild(sprite);
       if (manifest.hackKillMe)
-        stop(origin);
+        kill(origin);
       if (callback)
         callback();
     });
@@ -532,7 +535,7 @@ var WindowManager = (function() {
   });
 
   // Stop running the app with the specified origin
-  function stop(origin) {
+  function kill(origin) {
     if (!isRunning(origin))
       return;
 
@@ -673,7 +676,7 @@ var WindowManager = (function() {
   // Return the object that holds the public API
   return {
     launch: launch,
-    kill: stop,
+    kill: kill,
     getDisplayedApp: getDisplayedApp,
     setOrientationForApp: setOrientationForApp,
     setAppSize: setAppSize,
