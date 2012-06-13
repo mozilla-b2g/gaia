@@ -7,7 +7,7 @@ requireApp('calendar/test/unit/helper.js', function() {
   requireApp('calendar/js/views/months_day.js');
 });
 
-suite('calendar/views/day', function() {
+suite('views/months_day', function() {
   var subject,
       controller,
       events;
