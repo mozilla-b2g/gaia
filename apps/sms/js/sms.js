@@ -16,7 +16,7 @@ var MessageManager = {
     for (var i = 0; i < dbData.length; i++) {
       if (cacheData[i].id !== dbData[i].id)
         return true;
-      
+
       // Since we could only change read property in message,
       // Add read property checking for cache.
       if (cacheData[i].read !== dbData[i].read)
@@ -99,7 +99,7 @@ var MessageManager = {
     } else
       callback();
   },
-  
+
   markMessageRead: function mm_markMessageRead(id, value, callback) {
     var req = navigator.mozSms.markMessageRead(id, value);
     req.onsuccess = function onsuccess() {
@@ -107,12 +107,12 @@ var MessageManager = {
     };
 
     req.onerror = function onerror() {
-      var msg = 'Mark message read property error in the database. Error: ' + req.errorCode;
-      console.log(msg);      
+      var msg = 'Mark message error in the database. Error: ' + req.errorCode;
+      console.log(msg);
       callback(null);
     };
   },
-  
+
   markMessagesRead: function mm_markMessagesRead(list, value, callback) {
     if (list.length > 0) {
       this.markMessageRead(list.shift(), value, function(result) {
@@ -329,7 +329,7 @@ var ConversationListView = {
         var read = message.read;
         var conversation = conversations[num];
         if (conversation && !conversation.hidden) {
-          conversation.unread += !read? 1: 0;
+          conversation.unread += !read ? 1 : 0;
           continue;
         }
 
@@ -340,7 +340,7 @@ var ConversationListView = {
             'name': num,
             'num': num,
             'timestamp': message.timestamp.getTime(),
-            'unread': !read? 1: 0,
+            'unread': !read ? 1 : 0,
             'id': i
           };
         } else {
@@ -400,7 +400,7 @@ var ConversationListView = {
            (!conversation.timestamp ? '' :
            '  <div class="time" data-time="' + conversation.timestamp + '">' +
              prettyDate(conversation.timestamp) + '</div>') +
-           (conversation.unread ? 
+           (conversation.unread ?
            '<div class="unread">' + conversation.unread + '</div>' : '') +
            '</a>';
   },
@@ -427,7 +427,7 @@ var ConversationListView = {
         var read = message.read;
 
         if (searchedNum[num])
-          searchedNum[num].unread += !message.read? 1: 0;
+          searchedNum[num].unread += !message.read ? 1 : 0;
 
         if (!reg.test(htmlContent) || searchedNum[num] ||
             self.delNumList.indexOf(num) !== -1)
@@ -439,7 +439,7 @@ var ConversationListView = {
           'name': num,
           'num': num,
           'timestamp': message.timestamp.getTime(),
-          'unread': !read? 1: 0,
+          'unread': !read ? 1 : 0,
           'id': i
         };
         searchedNum[num] = msgProperties;
@@ -479,7 +479,7 @@ var ConversationListView = {
         this.updateConversationList();
         bodyclassList.remove('msg-search-result-mode');
         bodyclassList.remove('conversation');
-        bodyclassList.remove('conversation-new-msg');          
+        bodyclassList.remove('conversation-new-msg');
         break;
       case '#_edit':  // Edit mode with all conversations.
         bodyclassList.add('msg-edit-mode');
@@ -819,8 +819,9 @@ var ConversationView = {
 
       bodyclassList.add('conversation');
 
-      MessageManager.markMessagesRead(unreadList, true, function markMsgcallback() {
-        // Update the conversationList view page.
+      MessageManager.markMessagesRead(unreadList, true, function markMsg() {
+        // TODO : Since spec do not specify the behavior after mark success or
+        //        error, we do nothing currently.
       });
     }, filter, true);
   },
