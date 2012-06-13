@@ -97,6 +97,10 @@ let permissions = {
   "mobileconnection": {
     "urls": [],
     "pref": "dom.mobileconnection.whitelist"
+  },
+  "mozFM": {
+    "urls": [],
+    "pref": "dom.mozFMRadio.whitelist"
   }
 };
 
