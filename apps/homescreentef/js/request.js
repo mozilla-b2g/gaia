@@ -1,66 +1,67 @@
-var permission = (function(doc) {
 
-  'use strict';
+'use strict';
 
+var Permissions = (function() {
   // A queue of pending requests.
   // Callers must be careful not to create an infinite loop!
   var pending = [];
 
   var screen = null;
   var dialog = null;
-  var title = null;
+  var header = null;
   var message = null;
   var yes = null;
   var no = null;
 
   return {
-    destroy: function() {
-      if (screen !== null) {
-        doc.body.removeChild(screen);
-        screen = null;
-        dialog = null;
-        title = null;
-        message = null;
-        yes = null;
-        no = null;
-        pending = [];
-      }
+    hide: function permissions_hide() {
+      if (screen === null)
+        return;
+
+      document.body.removeChild(screen);
+      screen = null;
+      dialog = null;
+      header = null;
+      message = null;
+      yes = null;
+      no = null;
+      pending = [];
     },
 
-    request: function(tit, msg, yescallback, nocallback) {
+    show: function permissions_show(title, msg, yescallback, nocallback) {
       if (screen === null) {
-        screen = doc.createElement('div');
+        screen = document.createElement('div');
         screen.id = 'permission-screen';
 
-        dialog = doc.createElement('div');
+        dialog = document.createElement('div');
         dialog.id = 'permission-dialog';
         screen.appendChild(dialog);
 
-        title = doc.createElement('p');
-        title.id = 'permission-title';
-        dialog.appendChild(title);
+        header = document.createElement('p');
+        header.id = 'permission-title';
+        dialog.appendChild(header);
 
-        message = doc.createElement('p');
+        message = document.createElement('p');
         message.id = 'permission-message';
         dialog.appendChild(message);
 
-        no = doc.createElement('button');
-        no.appendChild(doc.createTextNode('Cancel'));
+        no = document.createElement('button');
+        no.appendChild(document.createTextNode('Cancel'));
         no.id = 'permission-no';
         dialog.appendChild(no);
 
-        yes = doc.createElement('button');
-        yes.appendChild(doc.createTextNode('Remove'));
+        yes = document.createElement('button');
+        yes.appendChild(document.createTextNode('Remove'));
         yes.id = 'permission-yes';
         dialog.appendChild(yes);
 
-        doc.body.appendChild(screen);
+        document.body.appendChild(screen);
       }
 
       // If there is already a pending permission request, queue this one
       if (screen.classList.contains('visible')) {
         pending.push({
-          title: tit,
+          header: title,
           message: msg,
           yescallback: yescallback,
           nocallback: nocallback
@@ -71,7 +72,7 @@ var permission = (function(doc) {
       // Put the message in the dialog.
       // Note plain text since this may include text from
       // untrusted app manifests, for example.
-      title.textContent = tit;
+      header.textContent = title;
       message.textContent = msg;
 
       // Make the screen visible
@@ -99,10 +100,10 @@ var permission = (function(doc) {
         if (pending.length > 0) {
           var request = pending.shift();
           window.setTimeout(function() {
-            requestPermission(request.title,
-                              request.message,
-                              request.yescallback,
-                              request.nocallback);
+            Permissions.show(request.header,
+                            request.message,
+                            request.yescallback,
+                            request.nocallback);
           });
         }
       }
@@ -112,4 +113,5 @@ var permission = (function(doc) {
       no.addEventListener('click', clickHandler);
     }
   };
-}(document));
+}());
+

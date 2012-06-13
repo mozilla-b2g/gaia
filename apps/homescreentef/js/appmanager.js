@@ -1,63 +1,57 @@
-if (typeof owdAppManager === 'undefined') {
-  (function() {
-  'use strict';
 
-  window.owdAppManager = {};
+'use strict';
 
+var Applications = (function() {
   var installedApps = {};
 
-  var callbacksOnAppsReady = [], callbacksOnInstall = [];
+  var callbacks = [];
 
-  var nonInstalledApps = ['http://system.gaiamobile.org',
-                          'http://homescreen.gaiamobile.org',
-                          'http://homescreentef.gaiamobile.org',
-                          'http://test-agent.gaiamobile.org',
-                          'http://uitest.gaiamobile.org',
-                          'http://template.gaiamobile.org',
-                          'http://keyboard.gaiamobile.org'];
+  var installer = navigator.mozApps.mgmt;
+  installer.getAll().onsuccess = function onSuccess(e) {
+    var apps = e.target.result;
+    apps.forEach(function parseApp(app) {
+      if (app.manifest.icons) {
+        installedApps[app.origin] = app;
+      }
+    });
 
-  navigator.mozApps.mgmt.getAll().onsuccess = function(e) {
-      var apps = e.target.result;
-      apps.forEach(function(app) {
-        if (nonInstalledApps.indexOf(app.origin) === -1) {
-          installedApps[app.origin] = app;
-        }
-      });
-      callbacksOnAppsReady.forEach(function(callback) {
-        callback(installedApps);
-      });
-    };
+    callbacks.forEach(function(callback) {
+      if (callback.type == 'ready') {
+        callback.callback(installedApps);
+      }
+    });
+  };
 
-  navigator.mozApps.mgmt.onuninstall = function uninstall(event) {
-      var newapp = event.application;
-      delete installedApps[newapp.origin];
+  installer.onuninstall = function uninstall(event) {
+    var app = event.application;
+    delete installedApps[app.origin];
+
+    callbacks.forEach(function(callback) {
+      if (callback.type == 'uninstall') {
+        callback.callback(app);
+      }
+    });
    };
 
-  navigator.mozApps.mgmt.oninstall = function install(event) {
-    var newapp = event.application;
+  installer.oninstall = function install(event) {
+    var app = event.application;
+    installedApps[app.origin] = app;
 
-    installedApps[newapp.origin] = newapp;
-
-    // Caching the icon
-    var appCache = window.applicationCache;
-    if (appCache) {
-      var icons = app.manifest.icons;
-      if (icons) {
-        Object.getOwnPropertyNames(icons).forEach(function iconIterator(key) {
-          var url = app.origin + icons[key];
-          appCache.mozAdd(url);
-        });
-      }
+    var icon = getIcon(app.origin);
+    if (icon) {
+      window.applicationCache.mozAdd(icon);
     }
 
-    callbacksOnInstall.forEach(function(callback) {
-      callback(newapp);
+    callbacks.forEach(function(callback) {
+      if (callback.type == 'install') {
+        callback.callback(app);
+      }
     });
   };
 
   document.documentElement.lang = 'en-US';
 
-  SettingsListener.getPropertyValue('language.current', function(lang) {
+  SettingsListener.getValue('language.current', function(lang) {
     if (lang && lang.length > 0) {
       document.documentElement.lang = lang;
     }
@@ -66,32 +60,26 @@ if (typeof owdAppManager === 'undefined') {
   /*
    * Returns all installed applications
    */
-  owdAppManager.getAll = function() {
+  function getAll() {
     return installedApps;
   };
 
-  owdAppManager.addEventListener = function(type, callback) {
-    if (type === 'appsready') {
-      callbacksOnAppsReady.push(callback);
-    } else if (type === 'oninstall') {
-      callbacksOnInstall.push(callback);
-    }
+  function addEventListener(type, callback) {
+    callbacks.push({ type: type, callback: callback });
   };
 
   // Look up the app object for a specified app origin
-  owdAppManager.getByOrigin = function(origin) {
-    var ret = installedApps[origin];
-
-    // Trailing '/'
-    if (typeof ret === 'undefined') {
-      var theor = origin.slice(0, origin.length - 1);
-
-      window.console.log('The origin: ', theor);
-
-      ret = installedApps[theor];
+  function getByOrigin(origin) {
+    var app = installedApps[origin];
+    if (app) {
+      return app;
     }
 
-    return ret;
+    // XXX We are affected by the port!
+
+    // Trailing '/'
+    var trimmedOrigin = origin.slice(0, origin.length - 1);
+    return installedApps[trimmedOrigin];
   };
 
   /*
@@ -100,7 +88,7 @@ if (typeof owdAppManager === 'undefined') {
    *  {Object} Moz application
    *
    */
-  owdAppManager.getOrigin = function(app) {
+  function getOrigin(app) {
     return app.origin;
   };
 
@@ -110,26 +98,24 @@ if (typeof owdAppManager === 'undefined') {
    *  {String} App origin
    *
    */
-  owdAppManager.getManifest = function(origin) {
-    var ret = null;
-
-    var app = this.getByOrigin(origin);
-
-    if (app) {
-      ret = app.manifest;
-    }
-
-    return ret;
+  function getManifest(origin) {
+    var app = getByOrigin(origin);
+    return app ? app.manifest : null;
   };
 
   // This is a cool hack ;) The idea is to set this info in the manifest
-  var aux = ['dialer', 'sms', 'settings', 'camera', 'gallery', 'browser',
-             'market', 'comms', 'music', 'clock', 'email'];
-  var coreApps = [];
-  for (var i = 0; i < aux.length; i++) {
-    coreApps.push('http://' + aux[i] + '.gaiamobile.org');
-  }
-  aux = [];
+  // vn: I'm worried about adding that in the manifest because any
+  // application will be able to said that it is a core application.
+  var host = document.location.host;
+  var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+
+  var coreApplications = [
+    'dialer', 'sms', 'settings', 'camera', 'gallery', 'browser',
+    'market', 'comms', 'music', 'clock', 'email'
+  ];
+  coreApplications = coreApplications.map(function mapCoreApp(name) {
+    return 'http://' + name + '.' + domain;
+  });
 
   /*
    *  Returns true if it's a core application
@@ -137,13 +123,8 @@ if (typeof owdAppManager === 'undefined') {
    *  {String} App origin
    *
    */
-  owdAppManager.isCore = function(origin) {
-    /*return this.getManifest(origin).core;*/
-    if (coreApps.indexOf(origin) !== -1) {
-      return true;
-    } else {
-      return false;
-    }
+  function isCore(origin) {
+    return coreApplications.indexOf(origin) !== -1;
   };
 
   /*
@@ -152,49 +133,33 @@ if (typeof owdAppManager === 'undefined') {
    *  {String} App origin
    *
    */
-  owdAppManager.getIcon = function(origin) {
-
-    var manifest = this.getManifest(origin);
-
+  function getIcon(origin) {
+    var manifest = getManifest(origin);
     if (!manifest) {
-      console.log(origin + ' has not defined its manifest');
-      return 'http://' + document.location.host +
-             '/resources/images/Unknown.png';
+      return null;
     }
 
-    var ret = manifest.targetIcon;
-
-    if (!ret) {
-      ret = 'http://' + document.location.host +
-            '/resources/images/Unknown.png';
-
-      var icons = manifest.icons;
-
-      if (icons) {
-        if ('120' in icons) {
-          ret = icons['120'];
-        } else {
-          // Get all sizes
-          var sizes = Object.keys(icons).map(function parse(str) {
-            return parseInt(str, 10);
-          });
-          // Largest to smallest
-          sizes.sort(function(x, y) { return y - x; });
-          ret = icons[sizes[0]];
-        }
-      }
-
-      // If the icons is a fully-qualifed URL, leave it alone
-      // (technically, manifests are not supposed to have those)
-      // Otherwise, prefix with the app origin
-      if (ret.indexOf(':') === -1) {
-        ret = origin + ret;
-      }
-
-      manifest.targetIcon = ret;
+    if ('_icon' in manifest) {
+      return manifest._icon;
     }
 
-    return ret;
+    // Get all sizes orderer largest to smallest
+    var icons = manifest.icons;
+    var sizes = Object.keys(icons).map(function parse(str) {
+      return parseInt(str, 10);
+    });
+    sizes.sort(function(x, y) { return y - x; });
+
+    // If the icons is not fully-qualifed URL, add the origin of the
+    // application to it (technically, manifests are supposed to
+    // have those). Otherwise return the url directly as it could be
+    // a data: url.
+    var icon = icons[sizes[0]];
+    if (icon.indexOf('data:') !== 0) {
+      icon = origin + icon;
+    }
+
+    return manifest._icon = icon;
   }
 
   /*
@@ -203,47 +168,41 @@ if (typeof owdAppManager === 'undefined') {
    *  {String} App origin
    *
    */
-  owdAppManager.getName = function(origin) {
-    var ret = null;
+  function getName(origin) {
+    var manifest = getManifest(origin);
+    if (!manifest) {
+      return null;
+    }
 
-    var manifest = this.getManifest(origin);
-
-    if (manifest) {
-      ret = manifest.name;
-
-      var locales = manifest.locales;
-      if (locales) {
-        var locale = locales[document.documentElement.lang];
-        if (locale && locale.name) {
-          ret = locale.name;
-        }
+    if ('locales' in manifest) {
+      var locale = manifest.locales[document.documentElement.lang];
+      if (locale && locale.name) {
+        return locale.name;
       }
     }
 
-    return ret;
+    return manifest.name;
   }
 
-  function paramsAsString(params) {
-    var output = [];
-
-    for (var x in params) {
-      output.push(x + '=' + params[x]);
+  function launch(origin, params) {
+    var app = getByOrigin(origin);
+    if (!app) {
+      return;
     }
 
-    return '?' + output.join('&');
+    app.launch(params);
   }
 
-  owdAppManager.launch = function(origin, params) {
-    var app = this.getByOrigin(origin);
+  return {
+    launch: launch,
+    isCore: isCore,
+    addEventListener: addEventListener,
+    getAll: getAll,
+    getByOrigin: getByOrigin,
+    getOrigin: getOrigin,
+    getName: getName,
+    getIcon: getIcon,
+    getManifest: getManifest
+  };
+})();
 
-    if (app) {
-      app.launch(paramsAsString(params));
-    }
-  }
-
-  owdAppManager.close = function(origin) {
-    owdAppManager.launch(origin, {close: '1'});
-  }
-
-  })();
-}

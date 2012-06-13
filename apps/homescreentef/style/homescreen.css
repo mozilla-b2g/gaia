@@ -22,7 +22,7 @@ section,footer,nav,a,img {
   border:none;
 }
 
-#paginatioBar {
+#paginationBar {
   width: 100%;
   height: .3rem;
   position: fixed;
@@ -31,14 +31,14 @@ section,footer,nav,a,img {
   z-index: 3;
 }
 
-  #paginatioBar > .paginationScroller {
-    width: 100%;
-    height: 100%;
-    background-color: #ff4e00;
-    -moz-transition: all 0.2s ease;
-    visibility: hidden;
-    border-radius: .15rem;
-  }
+#paginationBar > .paginationScroller {
+  width: 100%;
+  height: 100%;
+  background-color: #ff4e00;
+  -moz-transition: all 0.2s ease;
+  visibility: hidden;
+  border-radius: .15rem;
+}
 
 #icongrid {
   width: 100%;
@@ -62,49 +62,49 @@ section,footer,nav,a,img {
   background-color: black;
 }
 
-  #footer[data-mode = 'edit'] .dock > li {
-    opacity: 0.2;
-  }
+#footer[data-mode = 'edit'] .dock > li {
+  opacity: 0.2;
+}
 
-  #footer nav {
-    height: 100%;
-    width: 100%;
-  }
+#footer nav {
+  height: 100%;
+  width: 100%;
+}
 
-  #footer .dock {
-    height: 100%;
-    width: 100%;
-    max-width: 32rem;
-    padding: 0;
-    margin: 0 auto;
-    list-style: none;
-  }
+#footer .dock {
+  height: 100%;
+  width: 100%;
+  max-width: 32rem;
+  padding: 0;
+  margin: 0 auto;
+  list-style: none;
+}
 
-    #footer .dock > li {
-      height: 100%;
-      width: 25%;
-      float: left;
-      background-repeat: no-repeat;
-      background-position: center;
-      background-size: auto;
-      font: 0/0 a;
-    }
+#footer .dock > li {
+  height: 100%;
+  width: 25%;
+  float: left;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: auto;
+  font: 0/0 a;
+}
 
-    #footer .dock > li.i-logs {
-      background-image: url('../resources/images/footer/1.png');
-    }
+#footer .dock > .logs {
+  background-image: url('../resources/images/footer/1.png');
+}
 
-    #footer .dock > li.i-contacts {
-      background-image: url('../resources/images/footer/2.png');
-    }
+#footer .dock > .contacts {
+  background-image: url('../resources/images/footer/2.png');
+}
 
-    #footer .dock > li.i-messages {
-      background-image: url('../resources/images/footer/3.png');
-    }
+#footer .dock > .messages {
+  background-image: url('../resources/images/footer/3.png');
+}
 
-    #footer .dock > li.i-phone {
-      background-image: url('../resources/images/footer/4.png');
-    }
+#footer .dock > .phone {
+  background-image: url('../resources/images/footer/4.png');
+}
 
 /* END footer */
 
@@ -121,8 +121,3 @@ button {
    outline: none;
 }
 
-@media screen and (min-device-width: 480px) {
-  html {
-    font-size: 13.3px;
-  }
-}

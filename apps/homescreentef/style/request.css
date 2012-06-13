@@ -21,7 +21,6 @@
   background-color: rgba(0,0,0,0.9);
   border-top: 0.1rem solid rgba(256,256,256,0.9);
   -moz-box-sizing: border-box;
-  box-sizing: border-box;
   padding: 1rem 1.5rem;
   box-shadow:0 1rem 2rem #000;
 }
