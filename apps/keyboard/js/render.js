@@ -117,12 +117,34 @@ const IMERender = (function() {
     key.classList.remove('highlighted');
   };
 
-  var showPendingSymbols = function km_showPendingSymbols(symbols) {
+  var showPendingSymbols = function km_showPendingSymbols(symbols, highlightStart, highlightEnd, highlightState) {
+    var HIGHLIGHT_COLOR_TABLE = {
+      'red': 'keyboard-pending-symbols-highlight-red',
+      'green': 'keyboard-pending-symbols-highlight-green',
+      'blue': 'keyboard-pending-symbols-highlight-blue'
+    };
+
     // TODO: Save the element
     var pendingSymbolPanel =
       document.getElementById('keyboard-pending-symbol-panel');
-    if (pendingSymbolPanel)
-      pendingSymbolPanel.textContent = symbols;
+
+    if (pendingSymbolPanel) {
+
+      if (typeof highlightStart === 'undefined' 
+          || typeof highlightEnd === 'undefined' 
+          || typeof highlightState === 'undefined') {
+        pendingSymbolPanel.textContent = symbols;
+        return;
+      }
+
+      pendingSymbolPanel.innerHTML = "<span class='" +
+                                     HIGHLIGHT_COLOR_TABLE[highlightState] +
+                                     "'>" +
+                                     symbols.slice(
+                                       highlightStart, highlightEnd) +
+                                     '</span>' +
+                                     symbols.substr(highlightEnd);
+    }
   };
 
   var showCandidates = function(candidates, noWindowHeightUpdate) {
@@ -132,39 +154,37 @@ const IMERender = (function() {
     var candidatePanel = document.getElementById('keyboard-candidate-panel');
     var isFullView = ime.classList.contains('full-candidate-panel');
 
-    candidatePanel.innerHTML = '';
 
-    if (!candidates.length) {
-      ime.classList.remove('candidate-panel');
-      ime.classList.remove('full-candidate-panel');
-      // if (!noWindowHeightUpdate)
-      //   updateTargetWindowHeight();
-      return;
+    if (candidatePanel) {
+      candidatePanel.innerHTML = '';
+
+      if (!candidates.length) {
+        ime.classList.remove('candidate-panel');
+        ime.classList.remove('full-candidate-panel');
+        return;
+      }
+
+      if (!isFullView) {
+        ime.classList.add('candidate-panel');
+      }
+
+      candidatePanel.scrollTop = candidatePanel.scrollLeft = 0;
+
+      // If there were too many candidate
+      delete candidatePanel.dataset.truncated;
+      if (candidates.length > 74) {
+        candidates = candidates.slice(0, 74);
+        candidatePanel.dataset.truncated = true;
+      }
+
+      candidates.forEach(function buildCandidateEntry(candidate) {
+        var span = document.createElement('span');
+        span.dataset.data = candidate[1];
+        span.dataset.selection = true;
+        span.textContent = candidate[0];
+        candidatePanel.appendChild(span);
+      });
     }
-
-    if (!isFullView) {
-      ime.classList.add('candidate-panel');
-    }
-
-    candidatePanel.scrollTop = candidatePanel.scrollLeft = 0;
-
-    // if (!noWindowHeightUpdate)
-    //   updateTargetWindowHeight();
-
-    // If there were too many candidate
-    delete candidatePanel.dataset.truncated;
-    if (candidates.length > 74) {
-      candidates = candidates.slice(0, 74);
-      candidatePanel.dataset.truncated = true;
-    }
-
-    candidates.forEach(function buildCandidateEntry(candidate) {
-      var span = document.createElement('span');
-      span.dataset.data = candidate[1];
-      span.dataset.selection = true;
-      span.textContent = candidate[0];
-      candidatePanel.appendChild(span);
-    });
   };
 
   var showAlternativesCharMenu = function(key, altChars) {

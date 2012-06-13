@@ -18,11 +18,8 @@ var ScreenManager = {
   _brightness: 0.5,
 
   init: function scm_init() {
-    /*
-    * ScreenManager also handle the hardware keys on behalf of SleepMenu
-    * XXX: Should move to the appropriate component.
-    */
-    window.addEventListener('keydown', this);
+    /* Allow others to cancel the keyup event but not the keydown event */
+    window.addEventListener('keydown', this, true);
     window.addEventListener('keyup', this);
 
     /* Respect the information from DeviceLight sensor */
@@ -71,25 +68,11 @@ var ScreenManager = {
           this._turnOffScreenOnKeyup = false;
         }
 
-        if (evt.keyCode == evt.DOM_VK_SLEEP && !SleepMenu.visible) {
-          this._sleepMenuTimeout = window.setTimeout((function slm_timeout() {
-            SleepMenu.show();
-
-            this._turnOffScreenOnKeyup = false;
-          }).bind(this), 1500);
-        }
-
         break;
       case 'keyup':
-        if (evt.keyCode != evt.DOM_VK_SLEEP)
-          return;
-
-        window.clearTimeout(this._sleepMenuTimeout);
-
-        if (this.screenEnabled && this._turnOffScreenOnKeyup) {
-          SleepMenu.hide();
+        if (this.screenEnabled && this._turnOffScreenOnKeyup &&
+            evt.keyCode == evt.DOM_VK_SLEEP)
           this.turnScreenOff();
-        }
 
         break;
     }

@@ -819,6 +819,9 @@ const IMEController = (function() {
         _onScroll,
         {uppercase: uppercase, getUpperCaseValue: _getUpperCaseValue}
       );
+
+    if (_currentLayout.needsCandidatePanel)
+      _currentEngine().empty();
   }
 
   function _handleMouseDownEvent(keyCode) {
@@ -904,8 +907,15 @@ const IMEController = (function() {
         sendCandidates: function(candidates) {
           IMERender.showCandidates(candidates);
         },
-        sendPendingSymbols: function(symbols) {
-          IMERender.showPendingSymbols(symbols);
+        sendPendingSymbols: function(symbols,
+                                      highlightStart,
+                                      highlightEnd,
+                                      highlightState) {
+
+          IMERender.showPendingSymbols(
+            symbols,
+            highlightStart, highlightEnd, highlightState
+          );
         },
         sendKey: function(keyCode) {
           switch (keyCode) {
