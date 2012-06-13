@@ -93,12 +93,15 @@ MessageListCard.prototype = {
     }
 
     // - added/existing accounts
-    var insertBuddy = (index >= this.messagesContainer.childElementCount) ?
-                        null : this.messagesContainer.children[index],
-        self = this;
+    var insertBuddy, self = this;
+    if (index >= this.messagesContainer.childElementCount)
+      insertBuddy = null;
+    else
+      insertBuddy = this.messagesContainer.children[index];
+
     addedItems.forEach(function(message) {
-      var domMessage = message.element =
-        msgNodes['header-item'].cloneNode(true);
+      var domMessage;
+      domMessage = message.element = msgNodes['header-item'].cloneNode(true);
       domMessage.message = message;
 
       self.updateMessageDom(true, message);
@@ -265,8 +268,8 @@ function MessageReaderCard(domNode, mode, args) {
     .addEventListener('click', this.onReply.bind(this, false));
 
   this.envelopeNode = domNode.getElementsByClassName('msg-envelope-bar')[0];
-  this.envelopeNode.addEventListener('click', this.onEnvelopeClick.bind(this),
-                                     false);
+  this.envelopeNode
+    .addEventListener('click', this.onEnvelopeClick.bind(this), false);
 
   this.envelopeDetailsNode =
     domNode.getElementsByClassName('msg-envelope-details')[0];
