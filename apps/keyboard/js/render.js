@@ -3,8 +3,11 @@
 const IMERender = (function() {
 
   var ime, menu, pendingSymbolPanel, candidatePanel, candidatePanelToggleButton;
+  var getUpperCaseValue, isSpecialKey;
 
-  var init = function kr_init() {
+  var init = function kr_init(uppercaseFunction, keyTest) {
+    getUpperCaseValue = uppercaseFunction;
+    isSpecialKey = keyTest;
     this.ime = document.getElementById('keyboard');
   }
 
@@ -46,10 +49,10 @@ const IMERender = (function() {
 
         var keyChar = key.value;
         if (flags.uppercase)
-          keyChar = flags.getUpperCaseValue(key);
+          keyChar = getUpperCaseValue(key);
 
         var code = key.keyCode || keyChar.charCodeAt(0);
-        var className = '';
+        var className = isSpecialKey(key) ? 'special-key' : '';
         var ratio = key.ratio || 1;
 
         //key with + key separation in rems

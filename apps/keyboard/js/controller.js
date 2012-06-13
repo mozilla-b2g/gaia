@@ -30,6 +30,14 @@ const IMEController = (function() {
       SWITCH_KEYBOARD = -3,
       TOGGLE_CANDIDATE_PANEL = -4;
 
+  var specialCodes = [
+    KeyEvent.DOM_VK_BACK_SPACE,
+    KeyEvent.DOM_VK_CAPS_LOCK,
+    KeyEvent.DOM_VK_RETURN,
+    KeyEvent.DOM_VK_ALT,
+    KeyEvent.DOM_VK_SPACE
+  ];
+
   var LAYOUT_MODE_DEFAULT = 'Default',
       LAYOUT_MODE_SYMBOLS_I = 'Symbols_1',
       LAYOUT_MODE_SYMBOLS_II = 'Symbols_2';
@@ -344,13 +352,6 @@ const IMEController = (function() {
   // given a key object, return the upper value taking in count
   // if it is a special key of it has been overwrote
   function _getUpperCaseValue(key) {
-    var specialCodes = [
-      KeyEvent.DOM_VK_BACK_SPACE,
-      KeyEvent.DOM_VK_CAPS_LOCK,
-      KeyEvent.DOM_VK_RETURN,
-      KeyEvent.DOM_VK_ALT,
-      KeyEvent.DOM_VK_SPACE
-    ];
     var hasSpecialCode = specialCodes.indexOf(key.keyCode) > -1;
     if (key.keyCode < 0 || hasSpecialCode || key.compositeKey)
       return key.value;
@@ -773,7 +774,15 @@ const IMEController = (function() {
   }
 
   function _init() {
-    IMERender.init();
+
+    function _isSpecialKeyObj(key) {
+      var hasSpecialCode = !KeyEvent.DOM_VK_SPACE &&
+                           key.keyCode &&
+                           specialCodes.indexOf(key.keyCode) !== -1;
+      return hasSpecialCode || key.keyCode <= 0;
+    }
+
+    IMERender.init(_getUpperCaseValue, _isSpecialKeyObj);
     for (var event in _imeEvents) {
       var callback = _imeEvents[event] || null;
       if (callback)
@@ -811,13 +820,13 @@ const IMEController = (function() {
       IMERender.draw(
         _currentLayout, baseLayout,
         _onScroll,
-        {uppercase: uppercase, getUpperCaseValue: _getUpperCaseValue}
+        {uppercase: uppercase}
       );
     else
       IMERender.draw(
         _currentLayout, undefined,
         _onScroll,
-        {uppercase: uppercase, getUpperCaseValue: _getUpperCaseValue}
+        {uppercase: uppercase}
       );
 
     if (_currentLayout.needsCandidatePanel)
