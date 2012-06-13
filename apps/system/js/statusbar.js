@@ -170,10 +170,15 @@ var StatusBar = {
         title = _('searching');
       }
     } else {
+      // voice.network will be introduced by bug 761482
+      // Before that, get operator name from voice.operator.
+      var networkName = (voice.network) ?
+        voice.network.shortName : voice.operator;
+
       if (voice.roaming) {
-        title = _('roaming', { operator: (voice.operator || '') });
+        title = _('roaming', { operator: (networkName || '') });
       } else {
-        title = voice.operator || '';
+        title = networkName || '';
       }
     }
     document.getElementById('titlebar').textContent = title;
