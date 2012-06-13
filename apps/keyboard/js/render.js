@@ -8,11 +8,19 @@ const IMERender = (function() {
     this.ime = document.getElementById('keyboard');
   }
 
-  var setUpperCaseLock = function kr_setUpperCaseLock(key, value) {
-    if (value)
+  var setUpperCaseLock = function kr_setUpperCaseLock(key, state) {
+    if (state === 'locked') {
+      key.classList.remove('kbr-key-active');
       key.classList.add('kbr-key-hold');
-    else
+
+    } else if (state) {
+      key.classList.add('kbr-key-active');
       key.classList.remove('kbr-key-hold');
+
+    } else {
+      key.classList.remove('kbr-key-active');
+      key.classList.remove('kbr-key-hold');
+    }
   }
   //
   // Public method that draws the Keyboard

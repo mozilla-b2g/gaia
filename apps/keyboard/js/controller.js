@@ -352,7 +352,7 @@ const IMEController = (function() {
       KeyEvent.DOM_VK_SPACE
     ];
     var hasSpecialCode = specialCodes.indexOf(key.keyCode) > -1;
-    if (key.keyCode < 0 || hasSpecialCode)
+    if (key.keyCode < 0 || hasSpecialCode || key.compositeKey)
       return key.value;
 
     var upperCase = _currentLayout.upperCase || {};
@@ -662,7 +662,6 @@ const IMEController = (function() {
           _isWaitingForSecondTap = false;
 
           _isUpperCase = _isUpperCaseLocked = true;
-          IMERender.setUpperCaseLock(target, true);
           _draw(
             _baseLayoutName, _currentInputType,
             _currentLayoutMode, _isUpperCase
@@ -683,12 +682,20 @@ const IMEController = (function() {
           // toggle caps
           _isUpperCase = !_isUpperCase;
           _isUpperCaseLocked = false;
-          IMERender.setUpperCaseLock(target, false);
           _draw(
             _baseLayoutName, _currentInputType,
             _currentLayoutMode, _isUpperCase
           );
         }
+
+        // keyboard updated: all buttons recreated so event target is lost.
+        var capsLockKey = document.querySelector(
+          'button[data-keycode="'+KeyboardEvent.DOM_VK_CAPS_LOCK+'"]'
+        );
+        IMERender.setUpperCaseLock(
+          capsLockKey,
+          _isUpperCaseLocked ? 'locked' : _isUpperCase
+        );
 
         break;
 
@@ -836,37 +843,20 @@ const IMEController = (function() {
   }
 
   return {
-    // TODO: IMEngines are other kind of controllers, but now they are like
-    // controller's plugins. Maybe refactor is required as well but not now.
-
     // IME Engines are self registering here.
-    get IMEngines() {
-      return _IMEngines;
-    },
+    get IMEngines() { return _IMEngines; },
 
-    get currentKeyboard() {
-      return _baseLayoutName;
-    },
-
-    set currentKeyboard(value) {
-      _baseLayoutName = value;
-    },
+    get currentKeyboard() { return _baseLayoutName; },
+    set currentKeyboard(value) { _baseLayoutName = value; },
 
     init: _init,
     uninit: _uninit,
 
     showIME: function(type) {
-      // TODO: to start in uppercase but we need to access input field to check
-      // if empty
-      /*
-      if (type === 'text')
-        _isUpperCase = true;
-      */
-
       delete IMERender.ime.dataset.hidden;
       IMERender.ime.classList.remove('hide');
-      _currentInputType = _mapType(type); // TODO: this should be unneccesary
 
+      _currentInputType = _mapType(type);
       _draw(
         _baseLayoutName, _currentInputType,
         _currentLayoutMode, _isUpperCase
