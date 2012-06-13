@@ -6394,7 +6394,7 @@ MailAPI.prototype = {
     }
     delete this._pendingRequests[msg.handle];
 
-    var body = new MailBody(this, req.suid, msg.bodyInfo);
+    var body = msg.bodyInfo ? new MailBody(this, req.suid, msg.bodyInfo) : null;
     req.callback.call(null, body);
   },
 
@@ -17306,7 +17306,19 @@ MessageGenerator.prototype = {
     bodyInfo.bodyText = headerInfo.snippet + '\n' +
       'This message is automatically created for you by robots.\n' +
       '\nThe robots may or may not be friendly.\n' +
-      'They definitely do not know latin, which is why no lorax gypsum.';
+      'They definitely do not know latin, which is why no lorax gypsum.\n' +
+      '\nI am endeavouring to write more words now because scrolling turns' +
+      ' out to be something important to test.  I know, I know.  You also' +
+      ' are surprised that scrolling is important?  Who would have thunk?\n' +
+      '\nI actually have some synthetic markov chain stuff lying around, do' +
+      ' you think that would go better?  Perhaps?  Possibly?  Potentially?' +
+      ' Pertinent?\n' +
+      '\nTo-do:\n' +
+      '1: Write more made-up text.\n' +
+      '2: Cheat and just add more lines...\n' +
+      '\n\n\n\n' +
+      '3: ...\n' +
+      '\nIt is a tiny screen we target, thank goodness!';
 
     if (this._mode === 'info') {
       return {
@@ -18372,17 +18384,22 @@ const RECENT_ENOUGH_TIME_THRESH = 6 * 60 * 60 * 1000;
 /**
  * How many messages should we send to the UI in the first go?
  */
-const INITIAL_FILL_SIZE = 15;
+var INITIAL_FILL_SIZE = 15;
 
 /**
  * How many days in the past should we first look for messages.
  */
-const INITIAL_SYNC_DAYS = 7;
+var INITIAL_SYNC_DAYS = 3;
+
 /**
- * When looking further into the past, how big a bite of the past should we
- * take?
+ * Testing support to adjust the value we use for the number of initial sync
+ * days.  The tests are written with a value in mind (7), but 7 turns out to
+ * be too high an initial value for actual use, but is fine for tests.
  */
-const INCREMENTAL_SYNC_DAYS = 14;
+exports.TEST_adjustSyncValues = function TEST_adjustSyncValues(syncDays) {
+  INITIAL_SYNC_DAYS = syncDays;
+};
+
 /**
  * What is the furthest back in time we are willing to go?  This is an
  * arbitrary choice to avoid our logic going crazy, not to punish people with
@@ -18585,7 +18602,7 @@ ImapFolderConn.prototype = {
         if (serverUIDs.length > SYNC_BISECT_DATE_AT_N_MESSAGES) {
           var effEndTS = endTS || FUTURE_TIME_WARPED_NOW ||
                            quantizeDate(Date.now() + DAY_MILLIS),
-              curDaysDelta = effEndTS - startTS / DAY_MILLIS;
+              curDaysDelta = (effEndTS - startTS) / DAY_MILLIS;
           // We are searching more than one day, we can shrink our search.
 
           if (curDaysDelta > 1) {
@@ -18593,11 +18610,13 @@ ImapFolderConn.prototype = {
             // a factor of two so we undershoot.
             var shrinkScale = SYNC_BISECT_DATE_AT_N_MESSAGES /
                                 (serverUIDs.length * 2),
-                backDays = Main.max(1,
+                backDays = Math.max(1,
                                     Math.ceil(shrinkScale * curDaysDelta));
             self._curSyncDoNotGrowWindowBefore = startTS;
             self._curSyncDayStep = backDays;
-            self._curSyncStartTS = startTS = makeDaysBefore(endTS, backDays);
+            self._curSyncStartTS = startTS = makeDaysBefore(effEndTS, backDays);
+console.log("backoff! had", serverUIDs.length, "from", curDaysDelta,
+            "startTS", startTS, "endTS", endTS, "backDays", backDays);
             return self.syncDateRange(startTS, endTS,
                                       newToOld, doneCallback);
           }
@@ -18626,7 +18645,7 @@ ImapFolderConn.prototype = {
         if (numDeleted)
           compactArray(headers);
 
-        self._commonSync(
+        return self._commonSync(
           newUIDs, knownUIDs, headers,
           function(newCount, knownCount) {
             self._LOG.syncDateRange_end(newCount, knownCount, numDeleted,
@@ -21448,6 +21467,16 @@ var autoconfigByDomain = {
     imapPort: 993,
     imapCrypto: true,
     smtpHost: 'mail.asutherland.org',
+    smtpPort: 465,
+    smtpCrypto: true,
+    usernameIsFullEmail: true,
+  },
+  'mozilla.com': {
+    type: 'imap+smtp',
+    imapHost: 'mail.mozilla.com',
+    imapPort: 993,
+    imapCrypto: true,
+    smtpHost: 'smtp.mozilla.org',
     smtpPort: 465,
     smtpCrypto: true,
     usernameIsFullEmail: true,
