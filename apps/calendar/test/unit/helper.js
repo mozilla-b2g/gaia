@@ -12,8 +12,6 @@ function createController(fn) {
   var busytime = new Calendar.Models.Busytime();
   var events = new Calendar.Models.Events();
 
-  console.lg('create', events.add);
-
   var controller = new Calendar.Controller({
     eventList: events,
     busytime: busytime
