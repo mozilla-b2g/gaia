@@ -190,14 +190,14 @@ body.player-mode #views-player {
 
 #views-tiles {
   width: 100%;
-  height: 91%;
+  height: 82%;
   overflow: hidden;
   background-color: rgba(0, 0, 0, 0.2);
 }
 
 #views-list {
   width: 100%;
-  height: 91%;
+  height: 82%;
   overflow-y: auto;
 }
 

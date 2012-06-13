@@ -13,54 +13,57 @@ var storages = navigator.getDeviceStorage('music');
 storages.forEach(function(storage, storageIndex) {
   try {
     var cursor = storage.enumerate();
+
     cursor.onerror = function() {
       console.error('Error in DeviceStorage.enumerate()', cursor.error.name);
     };
 
     cursor.onsuccess = function() {
-      console.log('Success: ' + storageIndex);
       if (!cursor.result)
         return;
+
       var file = cursor.result;
 
       var songData = {
         storageIndex: storageIndex,
         name: file.name
-      }
-      
+      };
+
       // Meta-data parsing of mp3 and ogg files
       var extension = file.name.slice(-4);
 
-      if(extension === '.mp3') {
+      if (extension === '.mp3') {
 
         ID3.loadTags(file.name, function() {
           var tags = ID3.getAllTags(file.name);
-          
+
           songData.album = tags.album;
           songData.artist = tags.artist;
           songData.title = tags.title;
-          
+
           songs.push(songData);
           ListView.updateList(songData);
 
           cursor.continue();
         }, {
-          dataReader : FileAPIReader(file)
+          dataReader: FileAPIReader(file)
         });
 
-      } else if(extension === '.ogg') {
+      } else if (extension === '.ogg') {
         var oggfile = new OggFile(file, function() {
 
           songData.album = oggfile.metadata.ALBUM;
           songData.artist = oggfile.metadata.ARTIST;
           songData.title = oggfile.metadata.TITLE;
-          
+
           songs.push(songData);
           ListView.updateList(songData);
-          
+
           cursor.continue();
         });
         oggfile.parse();
+      } else {
+        cursor.continue();
       }
     };
   }
@@ -183,22 +186,18 @@ var ListView = {
 
     this.dataSource = songs;
   },
-  
-  updateList: function lv_updateList(song) {
-    var a = document.createElement('a')
-    a.href = '#';
-    a.id = escapeHTML(song.file, true)
-    a.dataset.title = escapeHTML(song.title, true);
-    a.dataset.artist = escapeHTML(song.artist, true);
-    a.dataset.index = this.index;
-    a.textContent = escapeHTML(song.title) + ' - ' + escapeHTML(song.artist);
-    
-    var content = document.createElement('li');
-    content.className = 'song';
-    
-    content.appendChild(a);
-    this.view.appendChild(content);
-    
+
+  updateList: function lv_updateList(songData) {
+    var songTitle = (songData.title) ? escapeHTML(songData.title) : 'Unknown';
+
+    this.view.innerHTML += '<li class="song">' +
+                           '  <a href="#" ' +
+                           '   data-index="' + this.index + '" ' + '>' +
+                           '    ' + (this.index + 1) + '. ' +
+                                    songTitle +
+                           '  </a>' +
+                           '</li>';
+
     this.index++;
   },
 
@@ -278,17 +277,19 @@ var PlayerView = {
     this.isPlaying = true;
 
     if (target) {
-      var songData = songs[target.dataset.index];
-      
-      this.title.textContent = target.dataset.title;
-      this.artist.textContent = target.dataset.artist;
-      this.currentIndex = parseInt(target.dataset.index);
-      
-      storages[songData.storageIndex].get(songData.name).onsuccess = function(e) {
-        this.playingFormat = e.target.result.name.slice(-4);
-        
-        this.audio.src = URL.createObjectURL(e.target.result);
-      }.bind(this);
+      var targetIndex = target.dataset.index;
+      var songData = songs[targetIndex];
+
+      this.title.textContent = (songData.title) ? songData.title : 'Unknown';
+      this.artist.textContent = (songData.artist) ? songData.artist : 'Unknown';
+      this.currentIndex = parseInt(targetIndex);
+
+      storages[songData.storageIndex].get(songData.name).onsuccess =
+        function(evt) {
+          this.playingFormat = evt.target.result.name.slice(-4);
+
+          this.audio.src = URL.createObjectURL(evt.target.result);
+        }.bind(this);
     } else {
       this.audio.play();
     }
@@ -330,11 +331,14 @@ var PlayerView = {
     if (seekTime)
       this.audio.currentTime = seekTime;
 
-    var endTime = (this.playingFormat === '.mp3') ?
-      Math.floor(this.audio.buffered.end(this.audio.buffered.length - 1)/1000000) :
-      Math.floor(this.audio.buffered.end(this.audio.buffered.length - 1));
-    var startTime = Math.floor(this.audio.startTime);
-    var currentTime = Math.floor(this.audio.currentTime);
+    // c for conversion
+    // mp3 returns in microseconds
+    // ogg returns in seconds
+    var c = (this.playingFormat === '.mp3') ? 1000000 : 1;
+
+    var startTime = this.audio.startTime;
+    var endTime = this.audio.buffered.end(this.audio.buffered.length - 1) / c;
+    var currentTime = this.audio.currentTime;
 
     this.seekBar.min = startTime;
     this.seekBar.max = endTime;
