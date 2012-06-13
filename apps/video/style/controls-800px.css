@@ -10,7 +10,7 @@
 /* rwd/fwd and play/pause buttons */
 #rwd { left: 588px; }
 #fwd { left: 688px; }
-#play { bottom: 16px; }
+#play { left: 16px; }
 
 /* time slider */
 #timeSlider {
