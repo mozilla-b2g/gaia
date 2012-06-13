@@ -1,6 +1,8 @@
 //put stuff here to help you tests out...
 
 (function(window) {
+  //register the global
+  window.navigator;
 
   var Common = window.parent.CommonResourceLoader,
       //mocha test methods we want to provide
@@ -48,6 +50,9 @@
   window.requireCommon = function(url, cb) {
     require(Common.url('/common/' + url), cb);
   }
+
+  //template
+  requireCommon('test/template.js');
 
   //load chai
   window.requireCommon('vendor/chai/chai.js', function() {

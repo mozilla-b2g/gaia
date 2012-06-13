@@ -19,37 +19,20 @@ html, body {
   src: url("fonts/Open-Sans-Semibold.woff");
 }
 
-/* title bar */
-header {
-  background-color: #fff;
-  background-image: -moz-linear-gradient(#fff, #eaeae4);
-  border-bottom: solid 2px #a3a3a3;
-  border-radius: 8px 8px 0 0;
-  height: 62px;
-  position: relative;
-}
-header h1 {
+
+#novideos {
   margin: 0;
+  margin-top: 40%;
   padding: 0;
-  line-height: 64px;
+  width: 100%;
   text-align: center;
   font-family: "Open Sans", sans-serif;
   font-weight: bold;
   font-size: 26px;
+  color: #fff;
+  -moz-user-select: none;
 }
-header button {
-  display: none; /* disabled atm */
-  background: url("images/grippy.png") repeat scroll -16px -16px transparent;
-  position: absolute;
-  right: 0;
-  top: 0;
-  width: 64px;
-  height: 64px;
-  border: none;
-}
-header button:active {
-  background-position: -16px -116px;
-}
+
 
 /* git nail list */
 ul {
@@ -57,7 +40,7 @@ ul {
   width: -moz-calc(100% + 8px);
   margin: 0 auto;
   padding: 0;
-  height: -moz-calc(100% - 70px);
+  height: 100%;
   overflow-y: scroll;
   background-color: #e0e5ea;
 }
@@ -116,18 +99,15 @@ p.time {
   height: 100%;
 }
 
-#videoFrame.hidden {
+#videoFrame.hidden, #novideos.hidden {
   display: none;
 }
 
-/*
-body.fullscreen > * {
-  display: none;
+#player {
+  /* size and position are set in JS depending on*/
+  /* video size and screen orientation */
+  position: absolute; 
 }
-body.fullscreen #videoFrame {
-  display: block;
-}
-*/
 
 /* localization */
 body.hidden *[data-l10n-id] {
