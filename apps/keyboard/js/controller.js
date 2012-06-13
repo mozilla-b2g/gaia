@@ -861,7 +861,8 @@ const IMEController = (function() {
       if (IMERender.ime.dataset.hidden)
         return;
 
-      _draw();
+      IMERender.resizeUI();
+      _updateTargetWindowHeight();
     },
 
     loadKeyboard: function km_loadKeyboard(name) {

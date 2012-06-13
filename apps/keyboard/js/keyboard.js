@@ -6,7 +6,6 @@
 // Duplicated code in several places
 // TODO Better settings observe interface?
 
-
 var SettingsListener = {
   _callbacks: {},
 
@@ -41,7 +40,9 @@ var SettingsListener = {
 
 SettingsListener.init();
 
+// in charge of initiate the controller and be aware about settings changes
 const IMEManager = {
+
   // keyboard layouts selected by the user from settings
   keyboards: [],
   // keyboard setting groups selected by the user from settings
@@ -105,14 +106,10 @@ const IMEManager = {
 
   _events: ['unload', 'resize'],
 
-// TODO: Replce the former when https://bugzilla.mozilla.org/show_bug.cgi?id=754083 is solved
-//  _events: ['showime', 'hideime', 'unload', 'resize'],
   init: function km_init() {
-    // Setup other modules
     IMEController.init();
     IMEFeedback.init();
 
-    // Setup the manager
     this.updateSettings();
     this._events.forEach((function attachEvents(type) {
       window.addEventListener(type, this);
@@ -132,14 +129,11 @@ const IMEManager = {
       })(key);
     }
 
-    // Handling showime and hideime events, as they are received only in System
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=754083
-
     window.navigator.mozKeyboard.onfocuschange = function(e) {
-      if(e.detail.type === 'blur') {
+      if (e.detail.type === 'blur') {
         IMEController.hideIME();
       } else {
-        if(e.detail.type != 'submit')
+        if (e.detail.type != 'submit')
           IMEController.showIME(e.detail.type);
       }
     };
@@ -165,18 +159,10 @@ const IMEManager = {
     var target = evt.target;
     switch (evt.type) {
       case 'showime':
-        // cancel hideIME that imminently happen before showIME
         clearTimeout(this._hideIMETimer);
         this.showIME(evt.detail.type);
 
         break;
-
-      // case 'hideime':
-      //   this._hideIMETimer = window.setTimeout((function execHideIME() {
-      //     this.hideIME();
-      //   }).bind(this), 0);
-      // 
-      //   break;
 
       case 'resize':
         var currentWidth = window.innerWidth;
@@ -191,25 +177,17 @@ const IMEManager = {
 
         this._formerWidth = currentWidth;
         this._formerHeight = currentHeight;
-        IMERender.resizeUI();
-        break;
+      break;
 
       case 'unload':
         this.uninit();
-        break;
+      break;
     }
   },
 
   showIME: function km_showIME(type) {
     IMEController.showIME(type);
-  },
-
-/*
-  hideIME: function km_hideIME(imminent) {
-    IMEController.hideIME(imminent);
   }
-*/
-
 };
 
 window.addEventListener('load', function initIMEManager(evt) {

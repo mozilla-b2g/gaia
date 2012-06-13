@@ -3,6 +3,8 @@
   sound or vibration.
 */
 
+'use strict';
+
 const IMEFeedback = {
   // data URL for keyboard click sound
   kAudio: 'data:audio/x-wav;base64,' +
@@ -62,5 +64,4 @@ const IMEFeedback = {
 
   uninit: function kb_fb_uninit() {}
 
-}
-
+};
