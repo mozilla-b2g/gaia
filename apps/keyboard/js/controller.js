@@ -48,6 +48,15 @@ const IMEController = (function() {
       _currentInputType = 'text',
       _lastHeight = 0;
 
+  var _IMEngines = {};
+  var _currentEngine = function () {
+      return _IMEngines[Keyboards[_baseLayout].imEngine];
+  };
+
+  // Taps the space key twice within kSpaceDoubleTapTimeoout
+  // to produce a "." followed by a space
+  var _kSpaceDoubleTapTimeout = 700;
+
   // show accent char menu (if there is one) after kAccentCharMenuTimeout
   var _kAccentCharMenuTimeout = 700;
 
@@ -320,7 +329,7 @@ const IMEController = (function() {
       IMEFeedback.triggerFeedback();
     if (Keyboards[_baseLayout].type == 'ime' &&
         _layoutMode === LAYOUT_MODE_DEFAULT) {
-      IMEController.currentEngine.click(KeyboardEvent.DOM_VK_BACK_SPACE);
+      _currentEngine().click(KeyboardEvent.DOM_VK_BACK_SPACE);
       return;
     }
     window.navigator.mozKeyboard.sendKey(KeyboardEvent.DOM_VK_BACK_SPACE, 0);
@@ -567,7 +576,7 @@ const IMEController = (function() {
     // IME candidate selected
     var dataset = target.dataset;
     if (dataset.selection) {
-      this.currentEngine.select(target.textContent, dataset.data);
+      _currentEngine().select(target.textContent, dataset.data);
       _highlightKey(target);
       _currentKey = null;
       return;
@@ -620,8 +629,8 @@ const IMEController = (function() {
         _draw(_baseLayout, _currentInputType, _layoutMode, _isUpperCase);
 
         if (Keyboards[_baseLayout].type == 'ime') {
-          if (this.currentEngine.show) {
-            this.currentEngine.show(_currentInputType);
+          if (_currentEngine().show) {
+            _currentEngine().show(_currentInputType);
           }
         }
 
@@ -671,7 +680,7 @@ const IMEController = (function() {
       case KeyEvent.DOM_VK_RETURN:
         if (Keyboards[_baseLayout].type == 'ime' &&
             _layoutMode === LAYOUT_MODE_DEFAULT) {
-          this.currentEngine.click(keyCode);
+          _currentEngine().click(keyCode);
           break;
         }
 
@@ -687,7 +696,7 @@ const IMEController = (function() {
             _layoutMode === LAYOUT_MODE_DEFAULT) {
 
             //TODO: need to define the inteface for double tap handling
-            //this.currentEngine.doubleTap(keyCode);
+            //_currentEngine().doubleTap(keyCode);
             break;
           }
 
@@ -712,7 +721,7 @@ const IMEController = (function() {
           (function removeSpaceDoubleTapTimeout() {
             delete this.isWaitingForSpaceSecondTap;
           }).bind(this),
-          this.kSpaceDoubleTapTimeout
+          _kSpaceDoubleTapTimeout
         );
 
         this.handleMouseDownEvent(keyCode);
@@ -787,14 +796,9 @@ const IMEController = (function() {
     // controller's plugins. Maybe refactor is required as well but not now.
 
     // IME Engines are self registering here.
-    IMEngines: {},
-    get currentEngine() {
-      return this.IMEngines[Keyboards[_baseLayout].imEngine];
+    get IMEngines() {
+      return _IMEngines;
     },
-
-    // Taps the space key twice within kSpaceDoubleTapTimeoout
-    // to produce a "." followed by a space
-    kSpaceDoubleTapTimeout: 700,
 
     get currentKeyboard() {
       return _baseLayout;
@@ -822,8 +826,8 @@ const IMEController = (function() {
       _draw(_baseLayout, _currentInputType, _layoutMode, _isUpperCase);
 
       if (Keyboards[_baseLayout].type == 'ime') {
-        if (this.currentEngine.show) {
-          this.currentEngine.show(type);
+        if (_currentEngine().show) {
+          _currentEngine().show(type);
         }
       }
     },
@@ -897,7 +901,7 @@ const IMEController = (function() {
     handleMouseDownEvent: function km_handleMouseDownEvent(keyCode) {
       if (Keyboards[_baseLayout].type == 'ime' &&
           _layoutMode == LAYOUT_MODE_DEFAULT) {
-            this.currentEngine.click(keyCode);
+            _currentEngine().click(keyCode);
             return;
           }
 
