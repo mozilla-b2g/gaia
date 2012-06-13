@@ -196,8 +196,12 @@ button:-moz-focus-inner{
 
 
 /* KEYS STATES */
+/* Press */
+.keyboard-key.kbr-key-press span { box-shadow: 0 0 0 2px #4495A8; }
+
 /* Active */
-.keyboard-key.kbr-key-active span { box-shadow: 0 0 0 2px #4495A8; }
+.keyboard-key.kbr-key-active span { color: #4495A8; text-shadow: none; }
+
 
 /* Hold */
 .keyboard-key.kbr-key-hold span {
