@@ -16,7 +16,7 @@
 //
 // This script probably needs to run before the window_manager.js script
 // which tries to prevent propagation of the HOME key to other modules.
-// 
+//
 (function() {
   // Register capturing handlers for both keydown and keyup
   window.addEventListener('keydown', keyDownHandler, true);
@@ -33,7 +33,6 @@
       homeKeyDown = true;
     if (e.keyCode === e.DOM_VK_SLEEP)
       sleepKeyDown = true;
-    console.log("Key down", homeKeyDown, sleepKeyDown);
     if (homeKeyDown && sleepKeyDown) {
       e.preventDefault();
       takeScreenshot();
@@ -60,8 +59,6 @@
   }
 
   function takeScreenshot() {
-    console.log("takeScreenshot()");
-
     // Give feedback that the screenshot request was received
     navigator.mozVibrate(100);
 
@@ -71,21 +68,19 @@
     window.dispatchEvent(new CustomEvent('mozContentEvent',
                                          {
                                            detail: {
-                                             type: 'save-screenshot',
+                                             type: 'save-screenshot'
                                            }
                                          }));
-    console.log("takeScreenshot() done");
   }
+
+  var _ = document.mozL10n.get;
 
   // Handle notifications that screenshots have been taken
   window.addEventListener('mozChromeEvent', function(e) {
-    console.log("mozChromeEvent", e.detail.type);
-    var _ = document.mozL10n.get;
-  
     if (e.detail.type === 'save-screenshot-success') {
       // Vibrate again when the screenshot is saved
       navigator.mozVibrate([100, 100]);  // pause buzz
-      
+
       // Display filename in a notification
       navigator.mozNotification
         .createNotification(_('screenshotSaved'), e.detail.filename)
