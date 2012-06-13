@@ -612,8 +612,19 @@ var WindowManager = (function() {
     window.addEventListener('keydown', keydownHandler, true);
     window.addEventListener('keyup', keyupHandler, true);
 
+    // The screenshot module also listens for the HOME key.
+    // If it is pressed along with SLEEP, then it will call preventDefault()
+    // on the keyup event and possibly also on the keydown event.
+    // So we try to ignore these already handled events, but have to
+    // pay attention if a timer has already been set, we can't just ignore
+    // a handled keyup, we've got to clear the timer.
+
     function keydownHandler(e) {
       if (e.keyCode !== e.DOM_VK_HOME) return;
+
+      if (e.defaultPrevented)
+        return;
+
       // We don't do anything else until the Home key is released...
       // If there is not a timer running, start one so we can
       // measure how long the key is held down for.  If there is
@@ -638,6 +649,9 @@ var WindowManager = (function() {
       if (e.keyCode !== e.DOM_VK_HOME)
         return;
 
+      if (!keydown) // the keydown event was defaultPrevented, so
+        return;     // we can ignore this keyup
+
       keydown = false;
 
       // If the key was released before the timer, then this was
@@ -649,9 +663,11 @@ var WindowManager = (function() {
         timer = null;
 
         // If the screen is locked, ignore the home button.
+        // If the event has defualtPrevented (from the screenshot module)
+        // the we also itnore it
         // Otherwise, make the homescreen visible.
         // Also, if the task switcher is visible, then hide it.
-        if (!LockScreen.locked) {
+        if (!LockScreen.locked && !e.defaultPrevented) {
           setDisplayedApp(null);
           if (TaskManager.taskSwitcherIsShown())
             TaskManager.hideTaskSwitcher();
