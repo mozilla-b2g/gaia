@@ -26,7 +26,7 @@ html * {
   position: absolute;
   width: 100%;
   bottom: 0;
-  padding: 20px 0px 15px 0px;
+  padding: 15px 0px 10px 0px;
 
   -moz-transition: bottom 0.3s ease;
 }
@@ -43,7 +43,8 @@ html * {
 #tabs fieldset {
   list-style: none;
   width: -moz-calc(100% - 2px);
-  height: 66px;
+/*  height: 60px;*/
+  height: 10mozmm;
   padding: 0;
   margin: 0;
 
@@ -101,7 +102,7 @@ html * {
   top: 0;
   left: 0;
   width: 100%;
-  height: -moz-calc(100% - 120px);
+  height: -moz-calc(100% - 41px - 10mozmm);
 }
 
 .view {
@@ -111,7 +112,7 @@ html * {
 
 .chrono-view-container {
   width: -moz-calc(100% - 38px);
-  height: -moz-calc(100% - 20px - 30mozmm - 94px);
+  height: -moz-calc(100% - 20px - 26mozmm - 76px);
   margin: 20px auto;
   padding: 9px;
 
@@ -201,13 +202,13 @@ html * {
 .button-container > div > span {
   display: block;
   width: -moz-calc(100% - 2px);
-  height: 15mozmm;
+  height: 13mozmm;
 
   border-radius: 3px;
 
   background: -moz-linear-gradient(center top , #A5A5A5 0pt, #878787 1px, #545454 100%) repeat scroll 0 0 transparent;
 
-  line-height: 15mozmm;
+  line-height: 13mozmm;
   font-size: 2em;
   font-weight: bold;
   text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
@@ -220,7 +221,7 @@ html * {
 /* === Stop watch === */
 
 #reset-button {
-  bottom: -moz-calc(15mozmm + 38px);
+  bottom: -moz-calc(13mozmm + 28px);
 }
 
 #stopwatch-action-button {
@@ -285,8 +286,12 @@ html * {
   -moz-animation-direction: alternate;
 }
 
+#duration-button {
+  bottom: -moz-calc(13mozmm + 28px);
+}
+
 #duration-field {
-  height: 15mozmm;
+  height: 13mozmm;
   border: none;
   background: none;
 
@@ -295,6 +300,7 @@ html * {
   font-size: 2em;
   font-weight: bold;
   text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+  width: 100%;
 }
 
 #duration-field:invalid {
@@ -305,4 +311,72 @@ html * {
 /* localization */
 body.hidden *[data-l10n-id] {
   visibility: hidden;
+}
+
+/* 480x800 phones landscape */
+@media (orientation: landscape) and (width: 800px) {
+  .button-container > div > span {
+    height: 6mozmm;
+    line-height: 6mozmm;
+  }
+  
+  #tabs fieldset {
+    height: 6mozmm;
+  }
+  
+  #reset-button {
+    bottom: -moz-calc(6mozmm + 28px);
+  }
+
+  #duration-button {
+    bottom: -moz-calc(6mozmm + 28px);
+  }
+
+  #duration-field {
+    height: 6mozmm;
+  }
+
+  #views {
+    height: -moz-calc(100% - 41px - 6mozmm);
+  }
+  
+  .chrono-view-container {
+    height: -moz-calc(100% - 20px - 12mozmm - 76px);
+  }
+}
+
+/* 320x480 phones landscape */
+@media (orientation: landscape) and (width: 480px) {
+  .button-container > div > span {
+    height: 5mozmm;
+    line-height: 5mozmm;
+  }
+  
+  #tabs fieldset {
+    height: 5mozmm;
+  }
+  
+  #reset-button {
+    bottom: -moz-calc(5mozmm + 28px);
+  }
+
+  #duration-button {
+    bottom: -moz-calc(5mozmm + 28px);
+  }
+
+  #duration-field {
+    height: 5mozmm;
+  }
+
+  #views {
+    height: -moz-calc(100% - 41px - 5mozmm);
+  }
+  
+  .chrono-view-container {
+    height: -moz-calc(100% - 20px - 10mozmm - 76px);
+  }
+  
+  .chrono-view-container > div:first-child {
+    font-size: 3em;
+  }
 }
