@@ -124,32 +124,30 @@ var StatusBar = {
   },
 
   updateBattery: function sb_updateBattery() {
-    var battery = window.navigator.mozBattery;
-    if (!battery)
+    var mozBattery = window.navigator.mozBattery;
+    if (!mozBattery)
       return;
-    var elements = document.getElementsByClassName('battery');
 
-    for (var n = 0; n < elements.length; ++n) {
-      var element = elements[n];
-      var fuel = element.children[0];
-      var level = battery.level * 100;
+    var battery = this.battery;
+    var fuel = this.batteryFuel;
+    var charging = this.batteryCharging;
 
-      var charging = element.children[1];
-      if (battery.charging) {
-        charging.hidden = false;
-        fuel.className = 'charging';
-        fuel.style.minWidth = (level / 5.88) + 'px';
-      } else {
-        charging.hidden = true;
+    var level = mozBattery.level * 100;
 
-        fuel.style.minWidth = fuel.style.width = (level / 5.88) + 'px';
-        if (level <= 10)
-          fuel.className = 'critical';
-        else if (level <= 30)
-          fuel.className = 'low';
-        else
-          fuel.className = '';
-      }
+    if (mozBattery.charging) {
+      charging.hidden = false;
+      fuel.className = 'charging';
+      fuel.style.minWidth = (level / 5.88) + 'px';
+    } else {
+      charging.hidden = true;
+
+      fuel.style.minWidth = fuel.style.width = (level / 5.88) + 'px';
+      if (level <= 10)
+        fuel.className = 'critical';
+      else if (level <= 30)
+        fuel.className = 'low';
+      else
+        fuel.className = '';
     }
   },
 
@@ -262,7 +260,7 @@ var StatusBar = {
   getAllElements: function ls_getAllElements() {
     // ID of elements to create references
     var elements = ['signal', 'conn', 'data', 'wifi',
-      'mute', 'time'];
+      'mute', 'battery', 'battery-fuel', 'battery-charging', 'time'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {

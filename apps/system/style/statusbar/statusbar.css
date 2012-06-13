@@ -151,7 +151,7 @@
   display: none;
 }
 
-.battery {
+#statusbar-battery {
   float:right;
   margin: 8px 3px;
   padding: 5px 7px 5px 5px;
@@ -162,12 +162,22 @@
   position: relative;
 }
 
-.battery > #fuel {
+#statusbar-battery-fuel {
   height: 6px;
   background-color: #999999;
 }
 
-.battery > #charging {
+#statusbar-battery-fuel.low { /* < 30% */
+}
+
+#statusbar-battery-fuel.critical { /* < 10% */
+  background-color: #c00;
+}
+
+#statusbar-battery-fuel.charging {
+}
+
+#statusbar-battery-charging {
   height: 8px;
   width: 18px;
   background: transparent url("images/battery/battery-charging.png") center center no-repeat;
