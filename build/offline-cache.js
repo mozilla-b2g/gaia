@@ -189,9 +189,10 @@ function getJSON(dir, name) {
 let applicationCacheService = Cc["@mozilla.org/network/application-cache-service;1"]
                                 .getService(Ci.nsIApplicationCacheService);
 
+let iconsToInject = [];
+
 ['apps', 'test_apps'].forEach(function parseDirectory(directoryName) {
   let directories = getSubDirectories(directoryName);
-  let iconsToInject = [];
 
   directories.forEach(function generateAppCache(dir) {
     let iconsURL = [];
