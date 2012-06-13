@@ -480,11 +480,19 @@ body.msg-edit-mode #msg-conversations-list .time {
   display: none;
 }
 
-body.msg-edit-mode .edit-hide, body.msg-search-result-mode .search-hide {
+body.msg-search-result-mode .search-hide {
   display: none;
 }
 
-body.msg-edit-mode .edit-show, body.msg-search-result-mode .search-show {
+body.msg-search-result-mode .search-show {
+  display: block;
+}
+
+body.msg-edit-mode .edit-hide {
+  display: none;
+}
+
+body.msg-edit-mode .edit-show {
   display: block;
 }
 
