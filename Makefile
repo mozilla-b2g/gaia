@@ -124,7 +124,6 @@ webapp-manifests:
 	@echo { > profile/webapps/webapps.json
 	for d in `find ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
 	do \
-	  echo $(EXCLUDED) | grep -Eq $$(basename $$d) && continue; \
 	  if [ -f $$d/manifest.webapp ]; \
 		then \
 			n=$$(basename $$d); \
@@ -405,7 +404,6 @@ forward:
 update-offline-manifests:
 	for d in `find ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
 	do \
-		echo $(EXCLUDED) | grep -Eq $$(basename $$d) && rm -rf $$d/manifest.appcache && continue; \
 		if [ -f $$d/manifest.webapp ] ;\
 		then \
 			echo \\t$$d ;  \
