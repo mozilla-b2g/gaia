@@ -139,10 +139,7 @@ button:-moz-focus-inner{
   z-index: 150;
 }
 
-#keyboard-accent-char-menu .keyboard-key {
-  margin: 0 0.2em;
-}
-
+#keyboard-accent-char-menu .keyboard-key { margin: 0 0.2em; }
 #keyboard-accent-char-menu .first-char:after {
   background-color: #EBEBEB;
   content: "";
@@ -178,21 +175,51 @@ button:-moz-focus-inner{
   src: url('fonts/Keyboard-Symbols.woff');
 }
 
-.keyboard-key[data-keycode="-3"] span , .keyboard-key.highlighted[data-keycode="-3"] span , /* IMEManager.SWITCH_KEYBOARD */
-.keyboard-key[data-keycode="8"] span , .keyboard-key.highlighted[data-keycode="8"] span , /* KeyEvent.DOM_VK_BACK_SPACE */
-.keyboard-key[data-keycode="20"] span , .keyboard-key.highlighted[data-keycode="20"] span , /* KeyEvent.DOM_VK_CAPS_LOCK */
-.keyboard-key[data-keycode="13"] span , .keyboard-key.highlighted[data-keycode="13"] span ,
-.keyboard-key[data-keycode="18"] span , .keyboard-key.highlighted[data-keycode="18"] span ,
-.keyboard-key[data-keycode="-1"] span , .keyboard-key.highlighted[data-keycode="-1"] span ,
-.keyboard-key[data-keycode="-1"] span , .keyboard-key.highlighted[data-keycode="-1"] span ,
-.keyboard-key[data-keycode="-2"] span , .keyboard-key.highlighted[data-keycode="-2"] span
-  { /* KeyEvent.DOM_VK_RETURN */
-    font-family: 'Keyboard Symbols', sans-serif;
-    color: #5B6574;
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
-    background: -moz-linear-gradient(bottom, #B3B3B3, #EDEDED);
-    box-shadow: inset 0 0px 0px 1px rgba(255, 255, 255, 0.5);
-  }
+/* This must be controlled in the keyboard trying to not add highlighted classnames to this keys
+    As we can not do this right now, we redefine the states by this selectors:
+ */
+.keyboard-key.highlighted[data-keycode="-3"],
+.keyboard-key.highlighted[data-keycode="8"],
+.keyboard-key.highlighted[data-keycode="20"],
+.keyboard-key.highlighted[data-keycode="13"],
+.keyboard-key.highlighted[data-keycode="18"],
+.keyboard-key.highlighted[data-keycode="-1"],
+.keyboard-key.highlighted[data-keycode="-1"],
+.keyboard-key.highlighted[data-keycode="-2"]
+  {  box-shadow: 0 0 0 2px #4495A8; }
+
+    .keyboard-key[data-keycode="-3"] span , .keyboard-key.highlighted[data-keycode="-3"] span , /* IMEManager.SWITCH_KEYBOARD */
+    .keyboard-key[data-keycode="8"] span , .keyboard-key.highlighted[data-keycode="8"] span , /* KeyEvent.DOM_VK_BACK_SPACE */
+    .keyboard-key[data-keycode="20"] span , .keyboard-key.highlighted[data-keycode="20"] span , /* KeyEvent.DOM_VK_CAPS_LOCK */
+    .keyboard-key[data-keycode="13"] span , .keyboard-key.highlighted[data-keycode="13"] span ,
+    .keyboard-key[data-keycode="18"] span , .keyboard-key.highlighted[data-keycode="18"] span ,
+    .keyboard-key[data-keycode="-1"] span , .keyboard-key.highlighted[data-keycode="-1"] span ,
+    .keyboard-key[data-keycode="-1"] span , .keyboard-key.highlighted[data-keycode="-1"] span ,
+    .keyboard-key[data-keycode="-2"] span , .keyboard-key.highlighted[data-keycode="-2"] span
+      { /* KeyEvent.DOM_VK_RETURN */
+        font-size: 1.8rem;
+        font-family: 'Keyboard Symbols', sans-serif;
+        color: #5B6574;
+        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
+        background: -moz-linear-gradient(bottom, #B3B3B3, #EDEDED);
+        box-shadow: inset 0 0px 0px 1px rgba(255, 255, 255, 0.5);
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 100%
+      }
+
+          .keyboard-key.highlighted[data-keycode="-3"] span:after,
+          .keyboard-key.highlighted[data-keycode="8"] span:after,
+          .keyboard-key.highlighted[data-keycode="20"] span:after,
+          .keyboard-key.highlighted[data-keycode="13"] span:after,
+          .keyboard-key.highlighted[data-keycode="18"] span:after,
+          .keyboard-key.highlighted[data-keycode="-1"] span:after,
+          .keyboard-key.highlighted[data-keycode="-1"] span:after,
+          .keyboard-key.highlighted[data-keycode="-2"] span:after 
+            { display: none; }
 
 
 /* KEYS STATES */
