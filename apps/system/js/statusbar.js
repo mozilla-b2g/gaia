@@ -72,9 +72,11 @@ var StatusBar = {
       conn.addEventListener('datachange', this);
     }
 
-    var wifi = window.navigator.mozWifiManager;
-    if (wifi)
-      wifi.connectionInfoUpdate = (this.updateWifi).bind(this);
+    var wifiManager = window.navigator.mozWifiManager;
+    if (wifiManager) {
+      wifiManager.onstatuschange =
+        wifiManager.connectionInfoUpdate = (this.updateWifi).bind(this);
+    }
   },
 
   removeListeners: function sb_removeListeners(evt) {
@@ -92,9 +94,11 @@ var StatusBar = {
       conn.removeEventListener('datachange', this);
     }
 
-    var wifi = window.navigator.mozWifiManager;
-    if (wifi)
-      wifi.connectionInfoUpdate = null;
+    var wifiManager = window.navigator.mozWifiManager;
+    if (wifiManager) {
+      wifiManager.onstatuschange =
+        wifiManager.connectionInfoUpdate = null;
+    }
 
     clearTimeout(this._clockTimer);
   },
@@ -147,7 +151,10 @@ var StatusBar = {
       return;
 
     var _ = document.mozL10n.get;
+    /* Information about voice connection */
     var voice = conn.voice;
+    /* Information about data connection */
+    var data = conn.data;
 
     if (this.radioDisabled) {
       this.conn.textContent = _('airplane');
@@ -195,8 +202,13 @@ var StatusBar = {
     this.conn.textContent = title;
 
     // Update the 3G/data status.
-    var dataType = conn.data.connected ? conn.data.type : '';
-    document.getElementById('data').textContent = dataType;
+    // XXX: need icon for 3G/EDGE/etc instead of expose the type text
+    if (data) {
+      this.data.textContent =
+        data.connected ? data.type.toUpperCase() : '';
+    } else {
+      this.data.textContent = '';
+    }
 
     // Update the signal strength bars.
     var signalElements = this.signal.children;
@@ -212,19 +224,32 @@ var StatusBar = {
   },
 
   updateWifi: function sb_updateWifi(evt) {
-    var wifi = window.navigator.mozWifiManager;
-    if (!wifi)
+    var wifiManager = window.navigator.mozWifiManager;
+    if (!wifiManager)
       return;
-    var wifiIndicator = document.getElementById('wifi');
+    var network = wifiManager.connection.network;
 
-    // relSignalStrength should be between 0 and 100
-    var level = Math.min(Math.floor(evt.relSignalStrength / 20), 4);
-    wifiIndicator.className = 'signal-level' + level;
+    // We'll hide the data status icon here since all traffic is
+    // going through Wifi when it's connected
+    this.wifi.hidden = !network;
+    this.data.hidden = !!network;
+
+    if (network && evt.relSignalStrength) {
+      // relSignalStrength should be between 0 and 100
+      var relSignalStrength = evt.relSignalStrength || 0;
+      if (wifiManager.connectionInformation) {
+        relSignalStrength =
+          wifiManager.connectionInformation.relSignalStrength;
+      }
+
+      var level = Math.min(Math.floor(relSignalStrength / 20), 4);
+      this.wifi.className = 'signal-level' + level;
+    }
   },
 
   getAllElements: function ls_getAllElements() {
     // ID of elements to create references
-    var elements = ['signal', 'conn'];
+    var elements = ['signal', 'conn', 'data', 'wifi'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {

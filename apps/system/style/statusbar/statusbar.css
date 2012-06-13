@@ -85,35 +85,48 @@
   float: right;
 }
 
-#wifi {
+#statusbar-wifi {
   width: 30px;
   background: url("images/wifi/wifi-0.png") 50% 8px no-repeat;
 }
 
-#wifi.signal-level0 {
+#statusbar-wifi.signal-level0 {
   background-image: url("images/wifi/wifi-0.png");
 }
 
-#wifi.signal-level1 {
+#statusbar-wifi.signal-level1 {
   background-image: url("images/wifi/wifi-1.png");
 }
 
-#wifi.signal-level2 {
+#statusbar-wifi.signal-level2 {
   background-image: url("images/wifi/wifi-2.png");
 }
 
-#wifi.signal-level3 {
+#statusbar-wifi.signal-level3 {
   background-image: url("images/wifi/wifi-3.png");
 }
 
-#wifi.signal-level4 {
+#statusbar-wifi.signal-level4 {
   background-image: url("images/wifi/wifi-4.png");
 }
 
-#data, #statusbar-time {
+#statusbar-time {
   text-shadow: 0 0 3px hsla(0,0%,0%,.5);
   line-height: 31px;
   margin: 0 4px;
+}
+
+#statusbar-data {
+  font-size: 10px;
+  line-height: 16px;
+  text-align: center;
+  padding: 0 2px;
+  margin: 6px 4px 8px 4px;
+  border: 1px solid #999;
+}
+
+#statusbar-data:empty {
+  display: none;
 }
 
 .battery {
