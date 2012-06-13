@@ -195,8 +195,7 @@ button:-moz-focus-inner{
 .keyboard-key.highlighted[data-keycode="13"],
 .keyboard-key.highlighted[data-keycode="18"],
 .keyboard-key.highlighted[data-keycode="-1"],
-.keyboard-key.highlighted[data-keycode="-1"],
-.keyboard-key.highlighted[data-keycode="-2"]
+.keyboard-key.highlighted[data-keycode="-2"],
 .keyboard-key.special-key.highlighted
   {  box-shadow: 0 0 0 2px #4495A8; margin-top: 0; }
 
@@ -206,8 +205,7 @@ button:-moz-focus-inner{
     .keyboard-key[data-keycode="13"] span , .keyboard-key.highlighted[data-keycode="13"] span ,
     .keyboard-key[data-keycode="18"] span , .keyboard-key.highlighted[data-keycode="18"] span ,
     .keyboard-key[data-keycode="-1"] span , .keyboard-key.highlighted[data-keycode="-1"] span ,
-    .keyboard-key[data-keycode="-1"] span , .keyboard-key.highlighted[data-keycode="-1"] span ,
-    .keyboard-key[data-keycode="-2"] span , .keyboard-key.highlighted[data-keycode="-2"] span
+    .keyboard-key[data-keycode="-2"] span , .keyboard-key.highlighted[data-keycode="-2"] span,
     .keyboard-key.special-key span, .keyboard-key.special-key.highlighted span
       { 
         font-size: 1.8rem;
@@ -231,8 +229,7 @@ button:-moz-focus-inner{
           .keyboard-key.highlighted[data-keycode="13"] span:after,
           .keyboard-key.highlighted[data-keycode="18"] span:after,
           .keyboard-key.highlighted[data-keycode="-1"] span:after,
-          .keyboard-key.highlighted[data-keycode="-1"] span:after,
-          .keyboard-key.highlighted[data-keycode="-2"] span:after 
+          .keyboard-key.highlighted[data-keycode="-2"] span:after,
           .keyboard-key.special-key.highlighted span:after 
             { display: none; }
 

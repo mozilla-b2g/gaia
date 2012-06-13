@@ -775,14 +775,14 @@ const IMEController = (function() {
 
   function _init() {
 
-    function _isSpecialKeyObj(key) {
+    function isSpecialKeyObj(key) {
       var hasSpecialCode = !KeyEvent.DOM_VK_SPACE &&
                            key.keyCode &&
                            specialCodes.indexOf(key.keyCode) !== -1;
       return hasSpecialCode || key.keyCode <= 0;
     }
 
-    IMERender.init(_getUpperCaseValue, _isSpecialKeyObj);
+    IMERender.init(_getUpperCaseValue, isSpecialKeyObj);
     for (var event in _imeEvents) {
       var callback = _imeEvents[event] || null;
       if (callback)
