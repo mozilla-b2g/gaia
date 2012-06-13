@@ -1,3 +1,6 @@
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
 //
 // This file calls getElementById without waiting for an onload event, so it
 // must have a defer attribute or be included at the end of the <body>.
@@ -24,10 +27,12 @@
 // with these methods:
 //
 //    launch(origin): start, or switch to the specified app
+//    kill(origin): stop specified app
 //    getDisplayedApp: return the origin of the currently displayed app
 //    getAppFrame(origin): returns the iframe element for the specified origin
 //      which is assumed to be running.  This is only currently used
 //      for tests and chrome stuff: see the end of the file
+//
 //
 // This module does not (at least not currently) have anything to do
 // with the homescreen.  It simply assumes that if it hides all running
@@ -50,8 +55,6 @@ var WindowManager = (function() {
   // Some document elements we use
   var statusbar = document.getElementById('statusbar');
   var windows = document.getElementById('windows');
-  var taskManager = document.getElementById('taskManager');
-  var taskList = taskManager.getElementsByTagName('ul')[0];
 
   //
   // The set of running apps.
@@ -63,7 +66,7 @@ var WindowManager = (function() {
   // }
   //
   var runningApps = {};
-  var numRunningApps = 0; // start() and stop() maintain this count
+  var numRunningApps = 0; // start() and kill() maintain this count
   var nextAppId = 0;      // to give each app's iframe a unique id attribute
 
   // The origin of the currently displayed app, or null if there isn't one
@@ -99,7 +102,7 @@ var WindowManager = (function() {
 
     // launch() can be called from outside the task switcher
     // hiding it if needed
-    if (taskSwitcherIsShown())
+    if (TaskManager.taskSwitcherIsShown())
       hideTaskSwitcher();
   }
 
@@ -272,7 +275,7 @@ var WindowManager = (function() {
       sprite.removeEventListener('transitionend', transitionListener);
       document.body.removeChild(sprite);
       if (manifest.hackKillMe)
-        stop(origin);
+        kill(origin);
       if (callback)
         callback();
     });
@@ -532,7 +535,7 @@ var WindowManager = (function() {
   });
 
   // Stop running the app with the specified origin
-  function stop(origin) {
+  function kill(origin) {
     if (!isRunning(origin))
       return;
 
@@ -545,93 +548,6 @@ var WindowManager = (function() {
     delete runningApps[origin];
     numRunningApps--;
 
-  }
-
-  // Build and display the task switcher overlay
-  // Note that we rebuild the switcher each time we need it rather
-  // than trying to keep it in sync with app launches.  Performance is
-  // not an issue here given that the user has to hold the HOME button down
-  // for one second before the switcher will appear.
-  //
-  // FIXME: Currently tasks are displayed in the order in which
-  // they were launched. We might want to change this to most recently
-  // used order. Or, we might want to keep the apps in launch order, but
-  // scroll so that the current task is always shown
-  function showTaskSwitcher() {
-    // First add an item to the taskList for each running app
-    for (var origin in runningApps)
-      addTaskIcon(origin, runningApps[origin]);
-
-    // Then make the taskManager overlay active
-    taskManager.classList.add('active');
-
-    // Make sure we're in portrait mode
-    screen.mozLockOrientation('portrait');
-
-    // If there is a displayed app, take keyboard focus away
-    if (displayedApp)
-      runningApps[displayedApp].frame.blur();
-
-    function addTaskIcon(origin, app) {
-      // Build an icon representation of each window.
-      // And add it to the task switcher
-      var icon = document.createElement('li');
-      icon.style.background = '-moz-element(#' + app.frame.id + ') no-repeat';
-      var close_button = document.createElement('a');
-      icon.appendChild(close_button);
-      var title = document.createElement('h1');
-      title.textContent = app.name;
-      icon.appendChild(title);
-      taskList.appendChild(icon);
-
-      // Set up event handling
-
-      // A click on the close button ends that task. And if it is the
-      // last task, it dismisses the task switcher overlay
-      close_button.addEventListener('click', function(e) {
-        // Don't trigger a click on our ancestors
-        e.stopPropagation();
-
-        // Remove the icon from the task list
-        taskList.removeChild(icon);
-
-        // Stop the app itself
-        // If the app is the currently displayed one,
-        // this will also switch back to the homescreen
-        // (though the task switcher will still be displayed over it)
-        stop(origin);
-
-        // if there are no more running apps, then dismiss
-        // the task switcher
-        if (numRunningApps === 0)
-          hideTaskSwitcher();
-      });
-
-      // A click elsewhere in the icon switches to that task
-      icon.addEventListener('click', function() {
-        hideTaskSwitcher();
-        setDisplayedApp(origin);
-      });
-    }
-  }
-
-  function hideTaskSwitcher() {
-    // Make the taskManager overlay inactive
-    taskManager.classList.remove('active');
-
-    // And remove all the task icons from the document.
-    taskList.textContent = '';
-
-    // If there is a displayed app, give the keyboard focus back
-    // And switch back to that's apps orientation
-    if (displayedApp) {
-      runningApps[displayedApp].frame.focus();
-      setOrientationForApp(displayedApp);
-    }
-  }
-
-  function taskSwitcherIsShown() {
-    return taskManager.classList.contains('active');
   }
 
   // When a resize event occurs, resize the running app, if there is one
@@ -666,8 +582,8 @@ var WindowManager = (function() {
   // there might be other things that it needs to be able to dismiss
   //
   window.addEventListener('keyup', function(e) {
-    if (e.keyCode === e.DOM_VK_ESCAPE && taskSwitcherIsShown()) {
-      hideTaskSwitcher();
+    if (e.keyCode === e.DOM_VK_ESCAPE && TaskManager.taskSwitcherIsShown()) {
+      TaskManager.hideTaskSwitcher();
       e.preventDefault();
       e.stopPropagation();
     }
@@ -737,8 +653,8 @@ var WindowManager = (function() {
         // Also, if the task switcher is visible, then hide it.
         if (!LockScreen.locked) {
           setDisplayedApp(null);
-          if (taskSwitcherIsShown())
-            hideTaskSwitcher();
+          if (TaskManager.taskSwitcherIsShown())
+            TaskManager.hideTaskSwitcher();
         }
       }
 
@@ -752,15 +668,15 @@ var WindowManager = (function() {
       // and if the task switcher is not already shown
       timer = null;
 
-      if (!LockScreen.locked && !taskSwitcherIsShown())
-        showTaskSwitcher();
+      if (!LockScreen.locked && !TaskManager.taskSwitcherIsShown())
+        TaskManager.showTaskSwitcher();
     }
   }());
 
   // Return the object that holds the public API
   return {
     launch: launch,
-    kill: stop,
+    kill: kill,
     getDisplayedApp: getDisplayedApp,
     setOrientationForApp: setOrientationForApp,
     setAppSize: setAppSize,
@@ -769,7 +685,13 @@ var WindowManager = (function() {
         return runningApps[origin].frame;
       else
         return null;
-    }
+    },
+    getNumberOfRunningApps: function() {
+      return numRunningApps;
+    },
+    getRunningApps: function() {
+       return runningApps;
+     }
   };
 }());
 
