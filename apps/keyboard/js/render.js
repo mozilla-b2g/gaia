@@ -8,8 +8,11 @@ const IMERender = (function() {
     this.ime = document.getElementById('keyboard');
   }
 
-  var setUpperCaseLock = function kr_setUpperCaseLock() {
-    // TODO: To control render of shift key
+  var setUpperCaseLock = function kr_setUpperCaseLock(key, value) {
+    if (value)
+      key.classList.add('kbr-key-hold');
+    else
+      key.classList.remove('kbr-key-hold');
   }
   //
   // Public method that draws the Keyboard

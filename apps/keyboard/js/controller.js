@@ -186,7 +186,7 @@ const IMEController = (function() {
     if (inputType === 'number' || inputType === 'tel')
       baseLayout = inputType + 'Layout';
 
-    var layout = Keyboards[baseLayout];
+    var layout = Keyboards[_baseLayoutName][baseLayout] || Keyboards[baseLayout];
 
     // look for keyspace (it behaves as the placeholder for special keys)
     var where = false;
@@ -338,9 +338,7 @@ const IMEController = (function() {
   };
 
   function _highlightKey(target) {
-    if (target.dataset.keycode != KeyboardEvent.DOM_VK_SPACE) {
-      IMERender.highlightKey(target);
-    }
+    IMERender.highlightKey(target);
   }
 
   // given a key object, return the upper value taking in count
@@ -664,7 +662,7 @@ const IMEController = (function() {
           _isWaitingForSecondTap = false;
 
           _isUpperCase = _isUpperCaseLocked = true;
-          IMERender.setUpperCaseLock(true);
+          IMERender.setUpperCaseLock(target, true);
           _draw(
             _baseLayoutName, _currentInputType,
             _currentLayoutMode, _isUpperCase
@@ -685,7 +683,7 @@ const IMEController = (function() {
           // toggle caps
           _isUpperCase = !_isUpperCase;
           _isUpperCaseLocked = false;
-          IMERender.setUpperCaseLock(false);
+          IMERender.setUpperCaseLock(target, false);
           _draw(
             _baseLayoutName, _currentInputType,
             _currentLayoutMode, _isUpperCase
