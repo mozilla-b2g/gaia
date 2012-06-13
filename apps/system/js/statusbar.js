@@ -95,11 +95,8 @@ var StatusBar = {
       window.setTimeout((this.updateClock).bind(this), (59 - sec) * 1000);
 
     // Update time
-    var match = document.getElementsByClassName('time');
-    for (var n = 0; n < match.length; ++n) {
-      var element = match[n];
-      element.textContent = now.toLocaleFormat(element.dataset.format);
-    }
+    var element = document.getElementById('statusbar-time');
+    element.textContent = now.toLocaleFormat(element.dataset.format);
   },
 
   updateBattery: function sb_updateBattery() {

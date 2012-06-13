@@ -14,6 +14,9 @@
   -moz-box-sizing: border-box;
   height: 32px;
   padding: 2px;
+
+  color: #999;
+  background-color: #000;
 }
 
 #statusbar > * {
@@ -25,12 +28,115 @@
   -moz-box-flex: 1;
 }
 
+.state {
+  float: left;
+  background-repeat: no-repeat;
+  background-position: center center;
+}
+
+#state-notifications[data-visible] {
+  background-image: url("images/notifications/desktop-notification.png");
+}
+
+#titlebar {
+  text-shadow: 0 0 3px hsla(0,0%,0%,.5);
+  line-height: 31px;
+  font-size: 18px;
+  margin: 0 4px;
+}
+
 #signal {
   width: 20px;
   margin-top: 2px;
+}
+
+#signal span {
+  background: #333333;
+  float: left;
+  width: 3px;
+  margin: 1px;
+}
+
+#signal span.haveSignal {
+  background: #999999;
+}
+
+#signal span:nth-child(1) { /* poor signal */
+  margin-top: 17px;
+  height: 3px;
+}
+
+#signal span:nth-child(2) { /* medium signal */
+  margin-top: 13px;
+  height: 7px;
+}
+
+#signal span:nth-child(3) { /* good signal */
+  margin-top: 10px;
+  height: 10px;
+}
+
+#signal span:nth-child(4) { /* awesome signal */
+  margin-top: 6px;
+  height: 14px;
 }
 
 *[dir=rtl] #signal span {
   float: right;
 }
 
+#wifi {
+  width: 30px;
+  background: url("images/wifi/wifi-0.png") 50% 8px no-repeat;
+}
+
+#wifi.signal-level0 {
+  background-image: url("images/wifi/wifi-0.png");
+}
+
+#wifi.signal-level1 {
+  background-image: url("images/wifi/wifi-1.png");
+}
+
+#wifi.signal-level2 {
+  background-image: url("images/wifi/wifi-2.png");
+}
+
+#wifi.signal-level3 {
+  background-image: url("images/wifi/wifi-3.png");
+}
+
+#wifi.signal-level4 {
+  background-image: url("images/wifi/wifi-4.png");
+}
+
+#data, #statusbar-time {
+  text-shadow: 0 0 3px hsla(0,0%,0%,.5);
+  line-height: 31px;
+  margin: 0 4px;
+}
+
+.battery {
+  float:right;
+  margin: 8px 3px;
+  padding: 5px 7px 5px 5px;
+  width: 29px;
+  background: url("images/battery/battery-main.png");
+  background-repeat: no-repeat;
+  background-size: 29px 16px;
+  position: relative;
+}
+
+.battery > #fuel {
+  height: 6px;
+  background-color: #999999;
+}
+
+.battery > #charging {
+  height: 8px;
+  width: 18px;
+  background: transparent url("images/battery/battery-charging.png") center center no-repeat;
+  position: absolute;
+  top: 4px;
+  left: 5px;
+}
