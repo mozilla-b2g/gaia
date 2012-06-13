@@ -3,6 +3,41 @@
 
 'use strict';
 
+(function appCacheIcons() {
+  // Caching the icon for notification if appCache is in effect
+  var appCache = window.applicationCache;
+  if (!appCache)
+    return;
+
+  var addIcons = function addIcons(app) {
+    var icons = app.manifest.icons;
+    if (icons) {
+      Object.keys(icons).forEach(function iconIterator(key) {
+        var url = app.origin + icons[key];
+        appCache.mozAdd(url);
+      });
+    }
+  };
+
+  var removeIcons = function removeIcons(app) {
+    var icons = app.manifest.icons;
+    if (icons) {
+      Object.keys(icons).forEach(function iconIterator(key) {
+        var url = app.origin + icons[key];
+        appCache.mozRemove(url);
+      });
+    }
+  };
+
+  window.addEventListener('applicationinstall', function bsm_oninstall(evt) {
+    addIcons(evt.detail.application);
+  });
+
+  window.addEventListener('applicationuninstall', function bsm_oninstall(evt) {
+    removeIcons(evt.detail.application);
+  });
+}());
+
 var NotificationScreen = {
   get touchable() {
     return this.touchables[this.locked ? 0 : 1];
