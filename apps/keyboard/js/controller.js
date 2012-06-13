@@ -46,7 +46,9 @@ const IMEController = (function() {
       _layoutMode = LAYOUT_MODE_DEFAULT,
       _isUpperCase = false,
       _currentInputType = 'text',
-      _lastHeight = 0;
+      _lastHeight = 0,
+      _isContinousSpacePressed = false,
+      _isWaitingForSpaceSecondTap = false;
 
   var _IMEngines = {};
   var _currentEngine = function () {
@@ -591,7 +593,7 @@ const IMEController = (function() {
     // Reset the flag when a non-space key is pressed,
     // used in space key double tap handling
     if (keyCode != KeyEvent.DOM_VK_SPACE)
-      delete this.isContinousSpacePressed;
+      _isContinousSpacePressed = false;
 
     // Handle composite key
     var sendCompositeKey = function sendCompositeKey(compositeKey) {
@@ -689,8 +691,8 @@ const IMEController = (function() {
 
       // To handle the case when double tapping the space key
       case KeyEvent.DOM_VK_SPACE:
-        if (this.isWaitingForSpaceSecondTap &&
-            !this.isContinousSpacePressed) {
+        if (_isWaitingForSpaceSecondTap &&
+            !_isContinousSpacePressed) {
 
           if (Keyboards[_baseLayout].type == 'ime' &&
             _layoutMode === LAYOUT_MODE_DEFAULT) {
@@ -708,18 +710,18 @@ const IMEController = (function() {
           window.navigator.mozKeyboard.sendKey(0, 46);
           window.navigator.mozKeyboard.sendKey(0, keyCode);
 
-          delete this.isWaitingForSpaceSecondTap;
+          _isWaitingForSpaceSecondTap = false;
 
           // a flag to prevent continous replacement of space with "."
-          this.isContinousSpacePressed = true;
+          _isContinousSpacePressed = true;
           break;
         }
 
-        this.isWaitingForSpaceSecondTap = true;
+        _isWaitingForSpaceSecondTap = true;
 
         window.setTimeout(
           (function removeSpaceDoubleTapTimeout() {
-            delete this.isWaitingForSpaceSecondTap;
+            _isWaitingForSpaceSecondTap = false;
           }).bind(this),
           _kSpaceDoubleTapTimeout
         );
