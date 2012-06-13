@@ -1,10 +1,12 @@
 requireApp('calendar/js/gesture_detector.js');
 
 requireApp('calendar/test/unit/helper.js', function() {
+
   requireApp('calendar/js/gesture_detector.js');
   requireCalendarController();
   requireApp('calendar/js/templates/day.js');
   requireApp('calendar/js/views/months_day.js');
+
 });
 
 suite('views/months_day', function() {
@@ -104,10 +106,6 @@ suite('views/months_day', function() {
     assert.include(result, 'Paris');
     assert.include(result, '>zoo<');
     assert.include(result, '>barr<');
-  });
-
-  suite('events', function() {
-
   });
 
   test('#_updateHeader', function() {
