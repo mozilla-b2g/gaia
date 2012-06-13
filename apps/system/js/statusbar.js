@@ -54,6 +54,10 @@ var StatusBar = {
       case 'datachange':
         this.updateConnection();
         break;
+
+      case 'volumechange':
+        this.updateMuteState();
+        break;
     }
   },
 
@@ -77,6 +81,8 @@ var StatusBar = {
       wifiManager.onstatuschange =
         wifiManager.connectionInfoUpdate = (this.updateWifi).bind(this);
     }
+
+    window.addEventListener('volumechange', this);
   },
 
   removeListeners: function sb_removeListeners(evt) {
@@ -101,6 +107,8 @@ var StatusBar = {
     }
 
     clearTimeout(this._clockTimer);
+
+    window.removeEventListener('volumechange', this);
   },
 
   updateClock: function sb_updateClock() {
@@ -247,9 +255,14 @@ var StatusBar = {
     }
   },
 
+  updateMuteState: function sb_updateMuteState() {
+    this.mute.hidden = !!SoundManager.currentVolume;
+  },
+
   getAllElements: function ls_getAllElements() {
     // ID of elements to create references
-    var elements = ['signal', 'conn', 'data', 'wifi', 'time'];
+    var elements = ['signal', 'conn', 'data', 'wifi',
+      'mute', 'time'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {

@@ -33,6 +33,12 @@
   -moz-box-flex: 1;
 }
 
+#statusbar-mute {
+  width: 20px;
+  margin: 2px 4px;
+  background: url("images/mute.png") no-repeat 50% 50%;
+}
+
 .state {
   float: left;
   background-repeat: no-repeat;
