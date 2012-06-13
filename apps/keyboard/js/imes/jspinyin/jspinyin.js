@@ -4,17 +4,30 @@
 'use strict';
 
 (function() {
-var debugging = false;
+var debugging = true;
 var debug = function(str) {
   if (!debugging)
     return;
 
-  if (window.dump)
+  if (window.dump) {
     window.dump('jspinyin: ' + str + '\n');
-  if (console && console.log) {
+  }
+  if (typeof console != 'undefined' && console.log) {
     console.log('jspinyin: ' + str);
-    if (arguments.length > 1)
+    if (arguments.length > 1) {
       console.log.apply(this, arguments);
+    }
+  }
+  if (typeof print == 'function') {
+    print('jspinyin: ' + str + '\n');
+  }
+};
+
+var assert = function(condition, msg) {
+  if (!debugging)
+    return;
+  if (!condition) {
+    throw msg;
   }
 };
 
@@ -29,6 +42,25 @@ if (!KeyEvent) {
 var StringUtils = {
   charDiff: function stringUtils_charDiff(ch1, ch2) {
     return ch1.charCodeAt(0) - ch2.charCodeAt(0);
+  },
+
+  /**
+   * Format a string. Use {0}, {1} and {nth} to represent the 1st, 2nd
+   * and (n+1)th arguments respectively.
+   * For example:
+   * var str= StringUtils.format('{0} has {1} bags', 'Ben', 4);
+   * The result is 'Ben has 4 bags'.
+   */
+  format: function(src) {
+      if (arguments.length == 0) return null;
+      var args = Array.prototype.slice.call(arguments, 1);
+      return src.replace(/\{(\d+)\}/g, function(m, i) {
+        var arg = args[i];
+        if (typeof arg == 'object') {
+          arg = JSON.stringify(arg);
+        }
+        return arg;
+      });
   }
 };
 
@@ -112,14 +144,14 @@ var Index = function index_constructor(targetArray, keyPath) {
     }
     this._keyMap[key].push(i);
   }
-  this._sortedKeys.sort();
+  this._sortedKeys.sort(SearchUtility.compare);
 };
 
 Index.prototype = {
   // Map the key to the index of the storage array
   _keyMap: null,
 
-  // Keys array in ascending order.
+  // Keys array in ascendingrt order.
   _sortedKeys: null,
 
   /**
@@ -1652,7 +1684,7 @@ IndexedDBStorage.prototype = {
     }
 
     // Check if we could initilize.
-    if (IndexedDB.isReady() &&
+    if (!IndexedDB.isReady() ||
         this._status != DatabaseStorageBase.StatusCode.UNINITIALIZED) {
       doCallback();
       return;
@@ -2143,7 +2175,7 @@ var IMEngineDatabase = function imedb(dbName, jsonUrl) {
       result.push(term);
     };
     var processResult = function getSuggestions_processResult(r) {
-      r = r.sort(
+      r.sort(
         function getSuggestions_sort(a, b) {
           return (b.freq - a.freq);
         }
@@ -2195,8 +2227,8 @@ var IMEngineDatabase = function imedb(dbName, jsonUrl) {
     debug('Get terms for ' + syllablesStr + '.');
 
     var processResult = function processResult(r, limit) {
-      r = r.sort(
-        function sort_result(a, b) {
+      r.sort(
+        function rtrt_result(a, b) {
           return (b.freq - a.freq);
         }
       );
@@ -2517,6 +2549,544 @@ var PinyinDecoderService = {
   }
 };
 
+var FileSystemService = {
+  Type: {
+    IndexedDB: 0,
+    SpiderMonkey: 1
+  },
+
+  /**
+   * Initialization.
+   * @param {function(): void} callback
+   * Javascript function object that is called
+   * when the operation is finished.
+   */
+  init: function fileSystemService_init(callback) {
+    var self = this;
+    function doCallback() {
+      if (callback) {
+        callback();
+      }
+    }
+
+    var taskQueue = new TaskQueue(
+        function taskQueueOnCompleteCallback(queueData) {
+      doCallback();
+    });
+
+    var processNextWithDelay =
+        function fileSystemService_rocessNextWithDelay() {
+      if (typeof setTimeout != 'undefined') {
+        setTimeout(function nextTask() {
+          taskQueue.processNext();
+        }, 0);
+      } else {
+        taskQueue.processNext();
+      }
+    };
+
+    taskQueue.push(function initIdb(taskQueue, taskData) {
+      var store = new IndexedDBFileSystemStorage();
+      FileSystemService._storages[0] = store;
+      store.init(function idbCallback(statusCode) {
+        processNextWithDelay();
+      });
+    });
+
+    taskQueue.push(function initIdb(taskQueue, taskData) {
+      var store = new SpiderMonkeyFileSystemStorage();
+      FileSystemService._storages[1] = store;
+      store.init(function idbCallback(statusCode) {
+        processNextWithDelay();
+      });
+    });
+
+    taskQueue.processNext();
+  },
+
+  /**
+   * Destruction.
+   */
+  uninit: function fileSystemService_uninit() {
+    if (FileSystemService._idb) {
+      FileSystemService._idb.uninit();
+      FileSystemService._idb = null;
+    }
+    if (FileSystemService._sm) {
+      FileSystemService._sm.uninit();
+      FileSystemService._sm = null;
+    }
+  },
+  /**
+   * @param {FileSystemService.Type} type The type code of the file system.
+   */
+  isFileSystemReady: function fileSystemService_isFileSystemReady(type) {
+    if (type < 0 || type >= FileSystemService.PROTOCOLS.length) {
+      return false;
+    }
+    if (FileSystemService._storages[type] &&
+        FileSystemService._storages[type].isReady()) {
+      return true;
+    }
+    return false;
+  },
+
+  /**
+   * Read the entire contents of a file.
+   * @param {string} uri The file path.
+   * @param {function(string): void} callback The function object that is
+   *    called when the operation is finished. The definition of callback is
+   *    function callback(str). The str parameter is the content of the file,
+   *    which will be an empty string if the file is empty or does not exist.
+   */
+  read: function fileSystemService_read(uri, callback) {
+    var ret = FileSystemService._parse(uri);
+    FileSystemService._storages[ret.type].read(ret.path, callback);
+  },
+
+  /**
+   * Save a file.
+   * @param {string} uri The file uri.
+   * @param {string} str The file content.
+   * @param {function(boolean): void} callback The function object that is
+   *    called when the operation is finished. The boolean parameter indicates
+   *    whether the file is saved successfully.
+   */
+  write: function fileSystemService_write(uri, str, callback) {
+    var ret = FileSystemService._parse(uri);
+    FileSystemService._storages[ret.type].write(ret.path, str, callback);
+  },
+
+  /**
+   * Delete a file.
+   * @param {string} uri The file uri.
+   * @param {function(boolean): void} callback The function object that is
+   *    called when the operation is finished. The boolean parameter indicates
+   *    whether the file is deleted successfully.
+   */
+  del: function fileSystemService_del(uri, callback) {
+    var ret = FileSystemService._parse(uri);
+    FileSystemService._storages[ret.type].del(ret.path, callback);
+  },
+
+  _storages: [null, null],
+
+  PROTOCOLS: ['idb', 'sm'],
+
+  /**
+   * Parse the file uri to get the file system type code and file path.
+   * For example, if the uri is 'idb://rawdict.txt', the type code
+   * Type.IndexedDB and the path is 'rawdict.txt'.
+   * @return {type: FileSystemService.Type, path: string} Returns the type and
+   * path. If the type cannot be determined, the default type Type.IndexedDB is
+   * returned.
+   */
+  _parse: function fileSystemService_parse(uri) {
+    var type = FileSystemService.Type.IndexedDB;
+    var path = uri.trim();
+    var n = FileSystemService.PROTOCOLS.length;
+    for (var i = 0; i < n; i++) {
+      var pro = FileSystemService.PROTOCOLS[i];
+      if (uri.indexOf(pro) != -1) {
+        type = i;
+        path = path.substring(pro.length + 3);
+      }
+    }
+    return {type: type, path: path};
+  }
+};
+
+var File = function file_constructor(name, str) {
+  this.name = name;
+  this.content = str;
+};
+
+File.prototype = {
+  name: '',
+  content: ''
+};
+
+var FileSystemStorage = function fileSystemStorage_constructor() {
+};
+
+/**
+ * FileSystemStorage status code enumeration.
+ */
+FileSystemStorage.StatusCode = {
+  /* The storage isn't initilized.*/
+  UNINITIALIZED: 0,
+  /* The storage is busy.*/
+  BUSY: 1,
+  /* The storage has been successfully initilized and is ready to use.*/
+  READY: 2,
+  /* The storage is failed to initilized and cannot be used.*/
+  ERROR: 3
+};
+
+FileSystemStorage.prototype = {
+  /**
+   * @type FileSystemStorage.StatusCode
+   */
+  _status: FileSystemStorage.StatusCode.UNINITIALIZED,
+
+  /**
+   * Initialization.
+   * @param {function(FileSystemStorage.StatusCode): void} callback
+   * Javascript function object that is called
+   * when the operation is finished. The definition of callback is
+   * function callback(statusCode). The statusCode parameter is of type
+   * DatabaseStorageBase.StatusCode that stores the status of the storage
+   * after Initialization.
+   */
+  init: function fileSystemStorage_init(callback) {},
+
+  /**
+   * Destruction.
+   */
+  uninit: function fileSystemStorage_uninit() {},
+
+  /**
+   * Whether the database is ready to use.
+   */
+  isReady: function storagebase_isReady() {
+    return this._status == FileSystemStorage.StatusCode.READY;
+  },
+
+  /**
+   * Read the entire contents of a file.
+   * @param {string} name The file name.
+   * @param {function(string): void} callback The function object that is
+   *    called when the operation is finished. The definition of callback is
+   *    function callback(str). The str parameter is the content of the file,
+   *    which will be an empty string if the file is empty or does not exist.
+   */
+  read: function fileSystemStorage_read(name, callback) {},
+
+  /**
+   * Save a file.
+   * @param {string} name The file name.
+   * @param {string} str The file content.
+   * @param {function(boolean): void} callback The function object that is
+   *    called when the operation is finished. The boolean parameter indicates
+   *    whether the file is saved successfully.
+   */
+  write: function fileSystemStorage_write(name, str, callback) {},
+
+  /**
+   * Delete a file.
+   * @param {string} name The file name.
+   * @param {function(boolean): void} callback The function object that is
+   *    called when the operation is finished. The boolean parameter indicates
+   *    whether the file is deleted successfully.
+   */
+  del: function fileSystemStorage_del(name, callback) {}
+};
+
+/**
+ * Simulate file system with indexedDB
+ * @constructor
+ */
+var IndexedDBFileSystemStorage = function idbFileSystemStorage_constructor() {
+  this._dbName = IndexedDBFileSystemStorage.DB_NAME;
+  this._dbVersion = IndexedDBFileSystemStorage.DB_VERSION;
+  this._dbStoreName = IndexedDBFileSystemStorage.STORE_NAME;
+};
+
+IndexedDBFileSystemStorage.DB_VERSION = 1.0;
+IndexedDBFileSystemStorage.DB_NAME = 'fileSystem';
+IndexedDBFileSystemStorage.STORE_NAME = 'files';
+
+IndexedDBFileSystemStorage.prototype = {
+  // Inherits FileSystemStorage
+  __proto__: new FileSystemStorage(),
+
+  // IDBDatabase interface
+  _IDBDatabase: null,
+
+  _dbName: '',
+
+  _dbVersion: 0,
+
+  _dbStoreName: '',
+
+  /**
+   * @override
+   */
+  init: function idbFileSystemStorage_init(callback) {
+    var self = this;
+    function doCallback() {
+      if (callback) {
+        callback(self._status);
+      }
+    }
+
+    // Check if we could initilize.
+    if (!IndexedDB.isReady() ||
+        this._status != FileSystemStorage.StatusCode.UNINITIALIZED) {
+      doCallback();
+      return;
+    }
+
+    // Set the status to busy.
+    this._status = FileSystemStorage.StatusCode.BUSY;
+
+    // Open the database
+    var req = IndexedDB.indexedDB.open(this._dbName, this._dbVersion);
+    req.onerror = function dbopenError(ev) {
+      debug('Encounter error while opening IndexedDB: ' + this._dbName);
+      self._status = FileSystemStorage.StatusCode.ERROR;
+      doCallback();
+    };
+
+    req.onupgradeneeded = function dbopenUpgradeneeded(ev) {
+      debug('IndexedDB upgradeneeded.');
+      self._IDBDatabase = ev.target.result;
+
+      // delete the old ObjectStore if present
+      if (self._IDBDatabase.objectStoreNames.length !== 0) {
+        self._IDBDatabase.deleteObjectStore(this._dbStoreName);
+      }
+
+      // create ObjectStore
+      var store = self._IDBDatabase.createObjectStore(this._dbStoreName,
+                                                      { keyPath: 'name' });
+
+      // no callback() here
+      // onupgradeneeded will follow by onsuccess event
+    };
+
+    req.onsuccess = function dbopenSuccess(ev) {
+      debug('IndexedDB opened.');
+      self._IDBDatabase = ev.target.result;
+      self._status = FileSystemStorage.StatusCode.READY;
+      doCallback();
+    };
+  },
+
+  /**
+   * @override
+   */
+  uninit: function idbFileSystemStorage_uninit() {
+    // Check if we need uninitilize the storage
+    if (this._status == FileSystemStorage.StatusCode.UNINITIALIZED) {
+      return;
+    }
+
+    // Perform destruction operation
+    if (this._IDBDatabase) {
+      this._IDBDatabase.close();
+    }
+
+    this._status = FileSystemStorage.StatusCode.UNINITIALIZED;
+  },
+
+  /**
+   * @override
+   */
+  read: function idbFileSystemStorage_read(name, callback) {
+    var content = '';
+    function doCallback() {
+      if (callback) {
+        callback(content);
+      }
+    }
+
+    // Check if the storage is ready.
+    if (!this.isReady()) {
+      doCallback();
+      return;
+    }
+
+    var store = this._IDBDatabase.transaction([this._dbStoreName], 'readonly')
+      .objectStore(this._dbStoreName);
+    var req = store.get(name);
+
+    req.onerror = function(ev) {
+      debug('Database read error.');
+      doCallback();
+    };
+
+    req.onsuccess = function(ev) {
+      var file = ev.target.result;
+      if (file) {
+        content = file.content;
+      }
+      doCallback();
+    };
+  },
+
+  /**
+   * @override
+   */
+  write: function idbFileSystemStorage_write(name, str, callback) {
+    var self = this;
+    var isOk = false;
+    function doCallback() {
+      self._status = FileSystemStorage.StatusCode.READY;
+      if (callback) {
+        callback(isOk);
+      }
+    }
+
+    // Check if the storage is ready.
+    if (!this.isReady()) {
+      doCallback();
+      return;
+    }
+
+    // Set the status to busy.
+    this._status = FileSystemStorage.StatusCode.BUSY;
+
+    var transaction =
+      self._IDBDatabase.transaction([this._dbStoreName], 'readwrite');
+    var store = transaction.objectStore(this._dbStoreName);
+    transaction.onerror = function(ev) {
+      debug('Database write error.');
+      doCallback();
+    };
+
+    transaction.oncomplete = function() {
+      isOk = true;
+      doCallback();
+    };
+
+    store.put(new File(name, str));
+  },
+
+  /**
+   * @override
+   */
+  del: function idbFileSystemStorage_del(name, callback) {
+    var self = this;
+    var isOk = false;
+    function doCallback() {
+      self._status = FileSystemStorage.StatusCode.READY;
+      if (callback) {
+        callback(isOk);
+      }
+    }
+
+    // Check if the storage is ready.
+    if (!this.isReady()) {
+      doCallback();
+      return;
+    }
+
+    // Set the status to busy.
+    this._status = FileSystemStorage.StatusCode.BUSY;
+
+    var transaction =
+      self._IDBDatabase.transaction([this._dbStoreName], 'readwrite');
+    var store = transaction.objectStore(this._dbStoreName);
+    transaction.onerror = function(ev) {
+      debug('Database write error.');
+      doCallback();
+    };
+
+    transaction.oncomplete = function() {
+      isOk = true;
+      doCallback();
+    };
+
+    store.delete(name);
+  }
+};
+
+/**
+ * Implement file system storage with SpiderMonkey file api.
+ * @param {string} dir The base directory of the file system.
+ */
+var SpiderMonkeyFileSystemStorage =
+    function spiderMonkeyFileSystemStorage_constructor(dir) {
+  this._baseDir = dir;
+};
+
+SpiderMonkeyFileSystemStorage.prototype = {
+  // Inherits FileSystemStorage
+  __proto__: new FileSystemStorage(),
+
+  _baseDir: '',
+
+  /**
+   * @override
+   */
+  init: function spiderMonkeyFileSystemStorage_init(callback) {
+    debug('SpiderMonkeyFileSystemStorage init');
+    var self = this;
+    function doCallback() {
+      if (callback) {
+        callback(self._status);
+      }
+    }
+
+    // Check if we could initilize.
+    if (this._status != FileSystemStorage.StatusCode.UNINITIALIZED) {
+      doCallback();
+      return;
+    }
+
+    // Set the status to busy.
+    this._status = FileSystemStorage.StatusCode.BUSY;
+
+    // Perform initialization operation
+    if (typeof read == 'function') {
+      self._status = FileSystemStorage.StatusCode.READY;
+    } else {
+      self._status = FileSystemStorage.StatusCode.ERROR;
+    }
+
+    doCallback();
+  },
+
+  /**
+   * @override
+   */
+  uninit: function spiderMonkeyFileSystemStorage_uninit(callback) {
+    function doCallback() {
+      if (callback) {
+        callback();
+      }
+    }
+
+    // Check if we could uninitilize the storage
+    if (this._status == FileSystemStorage.StatusCode.UNINITIALIZED) {
+      doCallback();
+      return;
+    }
+
+    // Perform destruction operation
+    this._status = FileSystemStorage.StatusCode.UNINITIALIZED;
+    doCallback();
+  },
+
+  /**
+   * @override
+   */
+  read: function spiderMonkeyFileSystemStorage_read(name, callback) {
+    debug('SpiderMonkeyFileSystemStorage read file: ' + name);
+    var content = '';
+    function doCallback() {
+      if (callback) {
+        callback(content);
+      }
+    }
+
+    // Check if the storage is ready.
+    if (!this.isReady()) {
+      doCallback();
+      return;
+    }
+
+    try {
+      content = read(name);
+    } catch (ex) {
+      debug(ex);
+    }
+
+    doCallback();
+  }
+};
+
 var DictDef = {
   // The max length of a lemma.
   kMaxLemmaSize: 8,
@@ -2600,6 +3170,9 @@ DictDef.LmaNodeLE0.prototype = {
   num_of_homo: 0
 };
 
+/**
+ * GE = great and equal
+ */
 DictDef.LmaNodeGE1 = function lmaNodeGE1_constructor() {
 };
 
@@ -2627,6 +3200,9 @@ DictDef.SingleCharItem.prototype = {
 };
 
 DictDef.LemmaEntry = function lemmaEntry_constructor() {
+  this.hanzi_scis_ids = [];
+  this.spl_idx_arr = [];
+  this.pinyin_str = [];
 };
 
 DictDef.LemmaEntry.prototype = {
@@ -2638,12 +3214,21 @@ DictDef.LemmaEntry.prototype = {
   hanzi_scis_ids: null,
 
   spl_idx_arr: null,
+  /**
+   * @type Array.<string>
+   */
   pinyin_str: null,
   hz_str_len: 0, // TODO remove this field and use hanzi_str.length instead
   freq: 0.0
 };
 
 var SearchUtility = {
+  /**
+   * Compare two item.
+   * @param {number | string | Array} a The first item to be compare.
+   * @param {number | string | Array} b The second item to be compare.
+   * @return {number} -1: a < b; 0: a = b; 1: a > b.
+   */
   compare: function searchUtility_compare(a, b) {
     if (a > b) {
       return 1;
@@ -2897,17 +3482,17 @@ var MyStdlib = {
 
   /**
    * Binary search of the key position.
-   * @param {String} key The key to search.
-   * @param {String} array The sorted array to be searched.
-   * @param {Integer} start The start position to search.
-   * @param {Integer} count Number of items to search.
-   * @param {String} size The size of the each item of the array.
-   * @param {Function} cmp The comparison function.
-   * @return {Integer} The position of the key if found.
-   * Othersize -1.
+   * @param {string} key The key to search.
+   * @param {string} array The sorted char array to be searched.
+   * @param {number} start The start position to search.
+   * @param {number} count Number of items to search.
+   * @param {number} size The size of the each item of the array.
+   * @param {function(string, string): number} cmp The comparison function.
+   * @return {number} The position of the key if found.
+   * Othersize -1.i.
    */
   mybsearchStr:
-      function index_binarySearchStr(key, array, start, count, size, cmp) {
+      function myStdlib_binarySearchStr(key, array, start, count, size, cmp) {
     var doCompare = function compare(a, b) {
       if (cmp) {
         return cmp(a, b);
@@ -2923,14 +3508,14 @@ var MyStdlib = {
     };
     var item = function mybsearchStr_item(index) {
       var pos = start + index * size;
-      return array.substring(pos, pos + size);
+      var ret = array.substring(pos, pos + size);
+      return ret;
     };
     var left = 0;
     var right = count - 1;
     if (doCompare(key, item(left)) == -1) {
       return -1;
-    }
-    if (doCompare(key, item(left)) == 1) {
+    } else if (doCompare(key, item(right)) == 1) {
       return -1;
     }
 
@@ -2950,6 +3535,63 @@ var MyStdlib = {
     var leftKey = item(left);
     if (doCompare(leftKey, key) == 0) {
       return start + left * size;
+    } else {
+      return -1;
+    }
+  },
+
+  /**
+   * Binary search of the key position.
+   * @param {*} key The key to search.
+   * @param {Array.<*>} array The sorted array to be searched.
+   * @param {number} start The start position to search.
+   * @param {number} count Number of items to search.
+   * @param {function(string, string): number} cmp The comparison function.
+   * @return {number} The position of the key if found.
+   * Othersize -1.
+   */
+  mybsearchArray:
+      function myStdlib_binarySearchArray(key, array, start, count, cmp) {
+    var doCompare = function compare(a, b) {
+      if (cmp) {
+        return cmp(a, b);
+      } else {
+        if (a < b) {
+          return -1;
+        } else if (a > b) {
+          return 1;
+        } else {
+          return 0;
+        }
+      }
+    };
+    var item = function mybsearchStr_item(index) {
+      return array[index];
+    };
+    var left = 0;
+    var right = count - 1;
+    if (doCompare(key, item(left)) == -1) {
+      return -1;
+    } else if (doCompare(key, item(right)) == 1) {
+      return -1;
+    }
+
+    while (right > left) {
+      var mid = Math.floor((left + right) / 2);
+      var midKey = item(mid);
+      if (doCompare(midKey, key) == -1) {
+        left = mid + 1;
+      } else if (doCompare(midKey, key) == 1) {
+        right = mid - 1;
+      } else {
+        return start + mid;
+      }
+    }
+
+    // left == right == mid
+    var leftKey = item(left);
+    if (doCompare(leftKey, key) == 0) {
+      return start + left;
     } else {
       return -1;
     }
@@ -4000,6 +4642,7 @@ DictTrie.prototype = {
   },
 
   /* ==== Private ==== */
+
   /**
    * @type DictList
    */
@@ -4196,6 +4839,1062 @@ DictTrie.prototype = {
   }
 };
 
+var DictBuilder = function dictBuilder_constructor() {
+};
+
+DictBuilder.prototype = {
+  /* ==== Public ==== */
+
+  /**
+   * Build dictionary trie from the file fn_raw. File fn_validhzs provides
+   * valid chars. If fn_validhzs is NULL, only chars in GB2312 will be
+   * included.
+   * @param {string} fn_raw The raw data file name.
+   * @param {string} fn_validhzs The valid hanzi file name.
+   * @param {DictTrie} dict_trie The DictTrie to be built.
+   * @param {function(boolean)} callback The function object that is
+   *    called when the operation is finished. The boolean parameter indicates
+   *    whether the dict is built successfully.
+   */
+  build_dict: function dictBuilder_build_dict(fn_raw, fn_validhzs, dict_trie,
+                                              callback) {
+    var self = this;
+    var isOk = false;
+    function doCallback() {
+      if (callback) {
+        callback(isOk);
+      }
+    }
+    if (!fn_raw) {
+      doCallback();
+      return;
+    }
+
+    // Open the raw dict files
+
+    var rawStr = '';
+    var validhzsStr = '';
+
+    var taskQueue = new TaskQueue(
+        function taskQueueOnCompleteCallback(queueData) {
+      isOk = self.build_dict_internal(rawStr, validhzsStr, dict_trie);
+      doCallback();
+    });
+
+    var processNextWithDelay =
+        function dictBuilder_rocessNextWithDelay() {
+      if (typeof setTimeout != 'undefined') {
+        setTimeout(function nextTask() {
+          taskQueue.processNext();
+        }, 0);
+      } else {
+        taskQueue.processNext();
+      }
+    };
+
+    taskQueue.push(function initIdb(taskQueue, taskData) {
+      FileSystemService.read(fn_raw, function rawReadCallback(str) {
+        rawStr = str;
+        processNextWithDelay();
+      });
+    });
+
+    if (fn_validhzs) {
+      taskQueue.push(function initIdb(taskQueue, taskData) {
+        FileSystemService.read(fn_validhzs, function validhzsReadCallback(str) {
+          validhzsStr = str;
+          processNextWithDelay();
+        });
+      });
+    }
+
+    taskQueue.processNext();
+  },
+
+  /* ==== Private ==== */
+
+  /**
+   * The raw lemma array buffer.
+   * @type Array.<DictDef.LemmaEntry>
+   */
+  lemma_arr_: null,
+
+  /**
+   * Used to store all possible single char items.
+   * Two items may have the same Hanzi while their spelling ids are different.
+   * @type Array.<DictDef.SingleCharItem>
+   */
+  scis_: null,
+
+  /**
+   * In the tree, root's level is -1.
+   * Lemma nodes for root, and level 0
+   * @type Array.<DictDef.LmaNodeLE0>
+   */
+  lma_nodes_le0_: null,
+
+  /**
+   * Lemma nodes for layers whose levels are deeper than 0.
+   * @type Array.<DictDef.LmaNodeGE1>
+   */
+  lma_nodes_ge1_: null,
+
+  // Number of used lemma nodes
+  lma_nds_used_num_le0_: 0,
+  lma_nds_used_num_ge1_: 0,
+
+  /**
+   * Used to store homophonies' ids.
+   * @type Array.<number>
+   */
+  homo_idx_buf_: null,
+
+  // Number of homophonies each of which only contains one Chinese character.
+  homo_idx_num_eq1_: 0,
+
+  // Number of homophonies each of which contains more than one character.
+  homo_idx_num_gt1_: 0,
+
+  /**
+   * The items with highest scores.
+   * @type Array.<LemmaEntry>
+   */
+  top_lmas_: null,
+  top_lmas_num_: 0,
+
+  /**
+   * @type SpellingTable
+   */
+  spl_table_: null,
+
+  /**
+   * @type SpellingParser
+   */
+  spl_parser_: null,
+
+  // Used for statistics
+
+  /**
+   * @type Array.<number>
+   */
+  max_sonbuf_len_: null,
+
+  /**
+   * @type Array.<number>
+   */
+  max_homobuf_len_: null,
+
+  /**
+   * @type Array.<number>
+   */
+  total_son_num_: null,
+
+  /**
+   * @type Array.<number>
+   */
+  total_node_hasson_: null,
+
+  /**
+   * @type Array.<number>
+   */
+  total_sonbuf_num_: null,
+
+  /**
+   * @type Array.<number>
+   */
+  total_sonbuf_allnoson_: null,
+
+  /**
+   * @type Array.<number>
+   */
+  total_node_in_sonbuf_allnoson_: null,
+
+  /**
+   * @type Array.<number>
+   */
+  total_homo_num_: null,
+
+  // Number of son buffer with only 1 son
+  sonbufs_num1_: 0,
+
+  // Number of son buffer with more 1 son;
+  sonbufs_numgt1_: 0,
+
+  total_lma_node_num_: 0,
+
+  stat_init: function dictBuilder_stat_init() {
+    this.max_sonbuf_len_ = [];
+    this.max_homobuf_len_ = [];
+    this.total_son_num_ = [];
+    this.total_node_hasson_ = [];
+    this.total_sonbuf_num_ = [];
+    this.total_sonbuf_allnoson_ = [];
+    this.total_node_in_sonbuf_allnoson_ = [];
+    this.total_homo_num_ = [];
+    for (var pos = 0; pos < DictDef.kMaxLemmaSize; pos++) {
+      this.max_sonbuf_len_[pos] = 0;
+      this.max_homobuf_len_[pos] = 0;
+      this.total_son_num_[pos] = 0;
+      this.total_node_hasson_[pos] = 0;
+      this.total_sonbuf_num_[pos] = 0;
+      this.total_sonbuf_allnoson_[pos] = 0;
+      this.total_node_in_sonbuf_allnoson_[pos] = 0;
+      this.total_homo_num_[pos] = 0;
+    }
+
+    this.sonbufs_num1_ = 0;
+    this.sonbufs_numgt1_ = 0;
+    this.total_lma_node_num_ = 0;
+  },
+
+  stat_print: function dictBuilder_stat_print() {
+    var line = '';
+    debug('\n------------STAT INFO-------------');
+    debug('[root is layer -1]');
+    debug('.. max_sonbuf_len per layer(from layer 0):');
+    line = '';
+    for (var i = 0; i < DictDef.kMaxLemmaSize; i++) {
+      line += this.max_sonbuf_len_[i] + ', ';
+    }
+    debug(line + '-,');
+
+    debug('.. max_homobuf_len per layer:\n   -, ');
+    line = '';
+    for (var i = 0; i < DictDef.kMaxLemmaSize; i++) {
+      line += this.max_homobuf_len_[i] + ', ';
+    }
+    debug(line);
+
+    debug('.. total_son_num per layer:\n   ');
+    line = '';
+    for (var i = 0; i < DictDef.kMaxLemmaSize; i++) {
+      line += this.total_son_num_[i] + ', ';
+    }
+    debug(line + '-,');
+
+    debug('.. total_node_hasson per layer:\n   1, ');
+    line = '';
+    for (var i = 0; i < DictDef.kMaxLemmaSize; i++) {
+      line += this.total_node_hasson_[i] + ', ';
+    }
+    debug(line);
+
+    debug('.. total_sonbuf_num per layer:\n   ');
+    line = '';
+    for (var i = 0; i < DictDef.kMaxLemmaSize; i++) {
+      line += this.total_sonbuf_num_[i] + ', ';
+    }
+    debug(line + '-,');
+
+    debug('.. total_sonbuf_allnoson per layer:\n   ');
+    line = '';
+    for (var i = 0; i < DictDef.kMaxLemmaSize; i++) {
+      line += this.total_sonbuf_allnoson_[i] + ', ';
+    }
+    debug(line + '-,');
+
+    debug('.. total_node_in_sonbuf_allnoson per layer:\n   ');
+    line = '';
+    for (var i = 0; i < DictDef.kMaxLemmaSize; i++) {
+      line += this.total_node_in_sonbuf_allnoson_[i] + ', ';
+    }
+    debug(line + '-,');
+
+    debug('.. total_homo_num per layer:\n   0, ');
+    line = '';
+    for (var i = 0; i < DictDef.kMaxLemmaSize; i++) {
+      line += this.total_homo_num_[i] + ', ';
+    }
+    debug(line);
+
+    debug('.. son buf allocation number with only 1 son: ' +
+          this.sonbufs_num1_);
+    debug('.. son buf allocation number with more than 1 son: ' +
+          this.sonbufs_numgt1_);
+    debug('.. total lemma node number: ' + (this.total_lma_node_num_ + 1));
+  },
+
+  /**
+   * Build dictionary trie from raw dict string. String validhzs provides
+   * valid chars. If validhzs is empty, only chars in GB2312 will be
+   * included.
+   * @param {string} raw The raw dict data string.
+   * @param {string} validhzs The valid hanzi string.
+   * @param {DictTrie} dict_trie The DictTrie to be built.
+   * @return {boolean} true if succeed.
+   */
+  build_dict_internal:
+      function dictBuilder_build_dict(raw, validhzs, dict_trie) {
+    if (!raw) {
+      return false;
+    }
+
+    var lemma_num = this.read_raw_dict(raw, validhzs, 240000);
+    if (0 == lemma_num)
+      return false;
+
+    // Arrange the spelling table, and build a spelling tree
+    var spl_buf = this.spl_table_.arrange();
+
+    var spl_trie = SpellingTrie.get_instance();
+
+    if (!spl_trie.construct(spl_buf,
+                            this.spl_table_.get_score_amplifier(),
+                            this.spl_table_.get_average_score())) {
+      return false;
+    }
+
+    debug('spelling tree construct successfully.\n');
+
+    // Convert the spelling string to idxs
+    for (var i = 0; i < lemma_num; i++) {
+      var lemma = this.lemma_arr_[i];
+      var hz_str_len = lemma.hanzi_str.length;
+      for (var hz_pos = 0; hz_pos < hz_str_len; hz_pos++) {
+        var spl_idxs = [0, 0];
+        var spl_start_pos = [0, 0, 0];
+        var is_pre = true;
+        var spl_idx_num = 0;
+        var ret = this.spl_parser_.splstr_to_idxs(
+          lemma.pinyin_str[hz_pos]);
+        is_pre = ret.last_is_pre;
+        spl_idxs = ret.spl_idx;
+        spl_start_pos = ret.start_pos;
+
+        if (spl_trie.is_half_id(spl_idxs[0])) {
+          var ret = spl_trie.half_to_full(spl_idxs[0]);
+          var num = ret.num;
+          spl_idxs[0] = ret.spl_id_start;
+        }
+
+        lemma.spl_idx_arr[hz_pos] = spl_idxs[0];
+      }
+    }
+
+    // Sort the lemma items according to the hanzi, and give each unique item a
+    // id
+    this.sort_lemmas_by_hz();
+
+    var scis_num = this.build_scis();
+
+    // Construct the dict list
+    dict_trie.dict_list_ = new DictList();
+    var dl_success =
+      dict_trie.dict_list_.init_list(this.scis_, this.lemma_arr_);
+    assert(dl_success, 'build_dict_internal assertion error.' +
+           'Failed to initialize DictList');
+
+    // Construct the NGram information
+    var ngram = NGram.get_instance();
+    ngram.build_unigram(this.lemma_arr_);
+
+    // sort the lemma items according to the spelling idx string
+    this.lemma_arr_.sort(function compare_py(p1, p2) {
+      return SearchUtility.compare(p1.spl_idx_arr, p2.spl_idx_arr) ||
+        SearchUtility.compare(p1.freq, p2.freq);
+    });
+
+    this.get_top_lemmas();
+
+    this.stat_init();
+
+    this.lma_nds_used_num_le0_ = 1;  // The root node
+    var dt_success = this.construct_subset(this.lma_nodes_le0_[0],
+                                       this.lemma_arr_, 0, lemma_num, 0);
+    if (!dt_success) {
+      free_resource();
+      return false;
+    }
+
+    this.stat_print();
+
+    // Remove empty nodes.
+    this.lma_nodes_le0_.length = this.lma_nds_used_num_le0_;
+    this.lma_nodes_ge1_.length = this.lma_nds_used_num_ge1_;
+    this.homo_idx_buf_.length = this.homo_idx_num_eq1_ + this.homo_idx_num_gt1_;
+
+    // Move the node data and homo data to the DictTrie
+    dict_trie.root_ = this.lma_nodes_le0_;
+    dict_trie.nodes_ge1_ = this.lma_nodes_ge1_;
+    var lma_idx_num = this.homo_idx_num_eq1_ + this.homo_idx_num_gt1_ +
+      this.top_lmas_num_;
+    dict_trie.lma_idx_buf_ = '';
+    dict_trie.lma_node_num_le0_ = this.lma_nds_used_num_le0_;
+    dict_trie.lma_node_num_ge1_ = this.lma_nds_used_num_ge1_;
+    dict_trie.lma_idx_buf_len_ = lma_idx_num * DictDef.kLemmaIdSize;
+    dict_trie.top_lmas_num_ = this.top_lmas_num_;
+
+    dict_trie.root_ = this.lma_nodes_le0_;
+    dict_trie.nodes_ge1_ = this.lma_nodes_ge1_;
+
+    var n = this.homo_idx_buf_.length;
+    for (var pos = 0; pos < n; pos++) {
+      dict_trie.lma_idx_buf_ += this.id_to_charbuf(this.homo_idx_buf_[pos]);
+    }
+
+    n = this.top_lmas_num_;
+    for (var pos = 0; pos < n; pos++) {
+      var idx = this.top_lmas_[pos].idx_by_hz;
+      dict_trie.lma_idx_buf_ += this.id_to_charbuf(idx);
+    }
+
+    debug('homo_idx_num_eq1_: ' + this.homo_idx_num_eq1_);
+    debug('homo_idx_num_gt1_: ' + this.homo_idx_num_gt1_);
+    debug('top_lmas_num_: ' + this.top_lmas_num_);
+
+    debug('Building dict succeds');
+    return dt_success;
+  },
+
+  /**
+   * Convert id to char array.
+   */
+  id_to_charbuf: function dictBuilder_id_to_charbuf(buf, start, id) {
+    var str = '';
+    for (var pos = 0; pos < DictDef.kLemmaIdSize; pos++) {
+      str += String.fromCharCode((id >> (pos * 8)) & 0xff);
+    }
+    return str;
+  },
+
+  /**
+   * Update the offset of sons for a node.
+   * @param {DictDef.LmaNodeGE1} node The node to be updated.
+   * @param {number} offset The offset.
+   */
+  set_son_offset: function dictBuilder_set_son_offset(node, offset) {
+    node.son_1st_off_l = offset;
+    node.son_1st_off_h = offset >> 16;
+  },
+
+  /**
+   * Update the offset of homophonies' ids for a node.
+   * @param {DictDef.LmaNodeGE1} node The node to be updated.
+   * @param {number} offset The offset.
+   */
+  set_homo_id_buf_offset:
+      function dictBuilder_set_homo_id_buf_offset(node, offset) {
+    node.homo_idx_buf_off_l = offset;
+    node.homo_idx_buf_off_h = offset >> 16;
+  },
+
+  /**
+   * Format a speling string.
+   * All spelling strings will be converted to upper case, except that
+   * spellings started with "ZH"/"CH"/"SH" will be converted to
+   * "Zh"/"Ch"/"Sh"
+   */
+  format_spelling_str: function dictBuilder_format_spelling_str(spl_str) {
+    if (!spl_str) {
+      return '';
+    }
+    var formatted = spl_str.trim().toUpperCase().replace(/^([CSZ])H/, '$1h');
+    return formatted;
+  },
+
+  /**
+   * Sort the lemma_arr by the hanzi string, and give each of unique items
+   * a id. Why we need to sort the lemma list according to their Hanzi string
+   * is to find items started by a given prefix string to do prediction.
+   * Actually, the single char items are be in other order, for example,
+   * in spelling id order, etc.
+   * @return {number} Return value is next un-allocated idx available.
+   */
+  sort_lemmas_by_hz: function dictBuilder_sort_lemmas_by_hz() {
+    if (null === this.lemma_arr_) {
+      return 0;
+    }
+
+    var lemma_num = this.lemma_arr_.length;
+    if (0 == lemma_num) {
+      return 0;
+    }
+
+    this.lemma_arr_.sort(function cmp_lemma_entry_hzs(a, b) {
+      var strA = a.hanzi_str;
+      var strB = b.hanzi_str;
+      return SearchUtility.compare(strA.length, strB.length) ||
+        SearchUtility.compare(strA, strB);
+    });
+
+    this.lemma_arr_[0].idx_by_hz = 1;
+    var idx_max = 1;
+    for (var i = 1; i < lemma_num; i++) {
+      idx_max++;
+      this.lemma_arr_[i].idx_by_hz = idx_max;
+    }
+    return idx_max + 1;
+  },
+
+
+  /**
+   * Build the SingleCharItem list, and fill the hanzi_scis_ids in the
+   * lemma buffer lemma_arr_.
+   * This function should be called after the lemma array is ready.
+   * @return {number} Return the number of unique SingleCharItem elements.
+   */
+  build_scis: function dictBuilder_build_scis() {
+    debug('build_scis');
+    var lemma_num = this.lemma_arr_ === null ? 0 : this.lemma_arr_.length;
+    var scis_num = this.scis_ === null ? 0 : this.scis_.length;
+    if (null === this.scis_ || lemma_num * DictDef.kMaxLemmaSize > scis_num)
+      return 0;
+
+    var spl_trie = SpellingTrie.get_instance();
+    var sci = null;
+
+    // This first one is blank, because id 0 is invalid.
+    sci = new DictDef.SingleCharItem();
+    sci.freq = 0;
+    sci.hz = 0;
+    sci.splid.full_splid = 0;
+    sci.splid.half_splid = 0;
+    this.scis_[0] = sci;
+    scis_num = 1;
+
+    // Copy the hanzis to the buffer
+    for (var pos = 0; pos < lemma_num; pos++) {
+      var lemma = this.lemma_arr_[pos];
+      var hz_num = lemma.hanzi_str.length;
+      for (var hzpos = 0; hzpos < hz_num; hzpos++) {
+        sci = new DictDef.SingleCharItem();
+        sci.hz = lemma.hanzi_str[hzpos];
+        sci.splid.full_splid = lemma.spl_idx_arr[hzpos];
+        sci.splid.half_splid =
+            spl_trie.full_to_half(lemma.spl_idx_arr[hzpos]);
+        if (1 == hz_num) {
+          sci.freq = lemma.freq;
+        } else {
+          sci.freq = 0.000001;
+        }
+        this.scis_[scis_num] = sci;
+        scis_num++;
+      }
+    }
+
+    // remove empty elements
+    this.scis_.length = scis_num;
+
+    this.scis_.sort(function cmp_scis_hz_splid_freq(s1, s2) {
+      return SearchUtility.compare(s1.hz, s2.hz) ||
+        SearchUtility.compare(s1.splid.half_splid, s2.splid.half_splid) ||
+        SearchUtility.compare(s1.splid.full_splid, s2.splid.full_splid) ||
+        SearchUtility.compare(s2.freq, s1.freq);
+    });
+
+    // Remove repeated items
+    var unique_scis_num = 1;
+    for (var pos = 1; pos < scis_num; pos++) {
+      if (this.scis_[pos].hz == this.scis_[pos - 1].hz &&
+          this.scis_[pos].splid.full_splid ==
+          this.scis_[pos - 1].splid.full_splid) {
+        continue;
+      }
+      this.scis_[unique_scis_num] = this.scis_[pos];
+      unique_scis_num++;
+    }
+    this.scis_.length = unique_scis_num;
+    scis_num = unique_scis_num;
+
+    // Update the lemma list.
+    for (var pos = 0; pos < lemma_num; pos++) {
+      var lemma = this.lemma_arr_[pos];
+      var hz_num = lemma.hanzi_str.length;
+      for (var hzpos = 0; hzpos < hz_num; hzpos++) {
+        var key = new DictDef.SingleCharItem();
+        key.hz = lemma.hanzi_str[hzpos];
+        key.splid.full_splid = lemma.spl_idx_arr[hzpos];
+        key.splid.half_splid = spl_trie.full_to_half(key.splid.full_splid);
+
+        var found = MyStdlib.mybsearchArray(key, this.scis_, 0, unique_scis_num,
+          function cmp_scis_hz_splid(s1, s2) {
+            return SearchUtility.compare(s1.hz, s2.hz) ||
+            SearchUtility.compare(s1.splid.half_splid, s2.splid.half_splid) ||
+            SearchUtility.compare(s1.splid.full_splid, s2.splid.full_splid);
+          });
+
+        assert(found != -1, 'build_scis assertion error. Cannot find ' +
+               JSON.stringify(key));
+
+        this.lemma_arr_[pos].hanzi_scis_ids[hzpos] = found;
+        this.lemma_arr_[pos].spl_idx_arr[hzpos] =
+          this.scis_[found].splid.full_splid;
+      }
+    }
+
+    return scis_num;
+  },
+
+  /** Construct a subtree using a subset of the spelling array (from
+   * item_star to item_end)
+   * @param {DictDef.LmaNodeLE0 | DictDef.LmaNodeGE1} parent
+   *    The parent node to update the necessary information.
+   * @param {Array.<LemmaEntry>} lemma_arr The lemma array.
+   * @param {number} item_start The start position of the lemma array.
+   * @param {number} item_end The stop position of the lemma arry.
+   * @param {number} level The tree level.
+   */
+  construct_subset: function dictBuilder_construct_subset(parent, lemma_arr,
+                        item_start, item_end, level) {
+    if (level >= DictDef.kMaxLemmaSize || item_end <= item_start) {
+      return false;
+    }
+
+    // 1. Scan for how many sons
+    var parent_son_num = 0;
+
+    var lma_last_start = item_start;
+    var spl_idx_node = lemma_arr[lma_last_start].spl_idx_arr[level];
+
+    // Scan for how many sons to be allocaed
+    for (var i = item_start + 1; i < item_end; i++) {
+      var lma_current = lemma_arr[i];
+      var spl_idx_current = lma_current.spl_idx_arr[level];
+      if (spl_idx_current != spl_idx_node) {
+        parent_son_num++;
+        spl_idx_node = spl_idx_current;
+      }
+    }
+    parent_son_num++;
+
+    // Use to indicate whether all nodes of this layer have no son.
+    var allson_noson = true;
+
+    assert(level < DictDef.kMaxLemmaSize,
+           'construct_subset assertion error.' + 'Invliad level: ' + level);
+    if (parent_son_num > this.max_sonbuf_len_[level]) {
+      this.max_sonbuf_len_[level] = parent_son_num;
+    }
+
+    this.total_son_num_[level] += parent_son_num;
+    this.total_sonbuf_num_[level] += 1;
+
+    if (parent_son_num == 1) {
+      this.sonbufs_num1_++;
+    } else {
+      this.sonbufs_numgt1_++;
+    }
+    this.total_lma_node_num_ += parent_son_num;
+
+    // 2. Update the parent's information
+    //    Update the parent's son list;
+    var son_1st_le0 = 0;  // only one of le0 or ge1 is used
+    var son_1st_ge1 = 0;  // only one of le0 or ge1 is used.
+    if (0 == level) {
+      // the parent is root and of type DictDef.LmaNodeLE0
+      parent.son_1st_off =
+        this.lma_nds_used_num_le0_;
+      son_1st_le0 = this.lma_nds_used_num_le0_;
+      this.lma_nds_used_num_le0_ += parent_son_num;
+
+      assert(parent_son_num <= 65535);
+      parent.num_of_son = parent_son_num;
+    } else if (1 == level) {
+      // the parent is a son of root and of type DictDef.LmaNodeLE0
+      parent.son_1st_off =
+        this.lma_nds_used_num_ge1_;
+      son_1st_ge1 = this.lma_nds_used_num_ge1_;
+      this.lma_nds_used_num_ge1_ += parent_son_num;
+
+      assert(parent_son_num <= 65535);
+      parent.num_of_son = parent_son_num;
+    } else {
+      // The parent of type DictDef.LmaNodeGE1
+      this.set_son_offset(parent, this.lma_nds_used_num_ge1_);
+      son_1st_ge1 = this.lma_nds_used_num_ge1_;
+      this.lma_nds_used_num_ge1_ += parent_son_num;
+
+      assert(parent_son_num <= 255);
+      parent.num_of_son = parent_son_num;
+    }
+
+    // 3. Now begin to construct the son one by one
+    var son_pos = 0;
+
+    lma_last_start = item_start;
+    spl_idx_node = lemma_arr[lma_last_start].spl_idx_arr[level];
+
+    var homo_num = 0;
+    if (lemma_arr[lma_last_start].spl_idx_arr.length <= level + 1) {
+      homo_num = 1;
+    }
+
+    var item_start_next = item_start;
+
+    for (var i = item_start + 1; i < item_end; i++) {
+      var lma_current = lemma_arr[i];
+      var spl_idx_current = lma_current.spl_idx_arr[level];
+
+      if (spl_idx_current == spl_idx_node) {
+        if (lma_current.spl_idx_arr.length <= level + 1) {
+          homo_num++;
+        }
+      } else {
+        // Construct a node
+        var node_cur_le0 = null;  // only one of them is valid
+        var node_cur_ge1 = null;
+        if (0 == level) {
+          node_cur_le0 = this.lma_nodes_le0_[son_1st_le0 + son_pos];
+          node_cur_le0.spl_idx = spl_idx_node;
+          node_cur_le0.homo_idx_buf_off =
+            this.homo_idx_num_eq1_ + this.homo_idx_num_gt1_;
+          node_cur_le0.son_1st_off = 0;
+          this.homo_idx_num_eq1_ += homo_num;
+        } else {
+          node_cur_ge1 = this.lma_nodes_ge1_[son_1st_ge1 + son_pos];
+          node_cur_ge1.spl_idx = spl_idx_node;
+
+          this.set_homo_id_buf_offset(node_cur_ge1,
+              (this.homo_idx_num_eq1_ + this.homo_idx_num_gt1_));
+          this.set_son_offset(node_cur_ge1, 0);
+          this.homo_idx_num_gt1_ += homo_num;
+        }
+
+        if (homo_num > 0) {
+          var idx_offset = this.homo_idx_num_eq1_ + this.homo_idx_num_gt1_ -
+            homo_num;
+          if (0 == level) {
+            assert(homo_num <= 65535);
+            node_cur_le0.num_of_homo = homo_num;
+          } else {
+            assert(homo_num <= 255);
+            node_cur_ge1.num_of_homo = homo_num;
+          }
+
+          for (var homo_pos = 0; homo_pos < homo_num; homo_pos++) {
+            this.homo_idx_buf_[homo_pos + idx_offset] =
+              lemma_arr[item_start_next + homo_pos].idx_by_hz;
+          }
+
+          if (homo_num > this.max_homobuf_len_[level]) {
+            this.max_homobuf_len_[level] = homo_num;
+          }
+
+          this.total_homo_num_[level] += homo_num;
+        }
+
+        if (i - item_start_next > homo_num) {
+          var next_parent;
+          if (0 == level) {
+            next_parent = node_cur_le0;
+          } else {
+            next_parent = node_cur_ge1;
+          }
+          this.construct_subset(next_parent, lemma_arr,
+                           item_start_next + homo_num, i, level + 1);
+
+          this.total_node_hasson_[level] += 1;
+          allson_noson = false;
+
+        }
+
+        // for the next son
+        lma_last_start = i;
+        spl_idx_node = spl_idx_current;
+        item_start_next = i;
+        homo_num = 0;
+        if (lma_current.spl_idx_arr.length <= level + 1) {
+          homo_num = 1;
+        }
+
+        son_pos++;
+      }
+    }
+
+    // 4. The last one to construct
+    var node_cur_le0 = null;  // only one of them is valid
+    var node_cur_ge1 = null;
+    if (0 == level) {
+      node_cur_le0 = this.lma_nodes_le0_[son_1st_le0 + son_pos];
+      node_cur_le0.spl_idx = spl_idx_node;
+      node_cur_le0.homo_idx_buf_off =
+        this.homo_idx_num_eq1_ + this.homo_idx_num_gt1_;
+      node_cur_le0.son_1st_off = 0;
+      this.homo_idx_num_eq1_ += homo_num;
+    } else {
+      node_cur_ge1 = this.lma_nodes_ge1_[son_1st_ge1 + son_pos];
+      node_cur_ge1.spl_idx = spl_idx_node;
+
+      this.set_homo_id_buf_offset(node_cur_ge1,
+                             (this.homo_idx_num_eq1_ + this.homo_idx_num_gt1_));
+      this.set_son_offset(node_cur_ge1, 0);
+      this.homo_idx_num_gt1_ += homo_num;
+    }
+
+    if (homo_num > 0) {
+      var idx_offset = this.homo_idx_num_eq1_ + this.homo_idx_num_gt1_ -
+        homo_num;
+      if (0 == level) {
+        assert(homo_num <= 65535);
+        node_cur_le0.num_of_homo = homo_num;
+      } else {
+        assert(homo_num <= 255);
+        node_cur_ge1.num_of_homo = homo_num;
+      }
+
+      for (var homo_pos = 0; homo_pos < homo_num; homo_pos++) {
+        this.homo_idx_buf_[idx_offset + homo_pos] =
+          lemma_arr[item_start_next + homo_pos].idx_by_hz;
+      }
+
+      if (homo_num > this.max_homobuf_len_[level]) {
+        this.max_homobuf_len_[level] = homo_num;
+      }
+
+      this.total_homo_num_[level] += homo_num;
+    }
+
+    if (item_end - item_start_next > homo_num) {
+      var next_parent;
+      if (0 == level) {
+        next_parent = node_cur_le0;
+      } else {
+        next_parent = node_cur_ge1;
+      }
+      this.construct_subset(next_parent, lemma_arr,
+                       item_start_next + homo_num, item_end, level + 1);
+
+      this.total_node_hasson_[level] += 1;
+      allson_noson = false;
+
+    }
+
+    if (allson_noson) {
+      this.total_sonbuf_allnoson_[level] += 1;
+      this.total_node_in_sonbuf_allnoson_[level] += parent_son_num;
+    }
+
+    assert(son_pos + 1 == parent_son_num);
+    return true;
+  },
+
+  /**
+   * Read valid Chinese Hanzis list from the given file content.
+   * num is used to return number of chars.
+   * @return {string} The sorted valid Hanzis string.
+   */
+  read_valid_hanzis: function dictBuilder_read_valid_hanzis(validhzs) {
+    if (!validhzs) {
+      return '';
+    }
+    return validhzs.split('').sort().join('');
+  },
+
+  /**
+   * Read a raw dictionary. max_item is the maximum number of items. If there
+   * are more items in the ditionary, only the first max_item will be read.
+   * @return {number} The number of items successfully read from the file.
+   */
+  read_raw_dict: function dictBuilder_read_raw_dict(raw, validhzs,
+                                                           max_item) {
+    if (!raw) return 0;
+
+    // Read the number of lemmas in the file
+    var lemma_num = 240000;
+
+    // allocate resource required
+    this.alloc_resource(lemma_num);
+
+    // Read the valid Hanzi list.
+    var valid_hzs = this.read_valid_hanzis(validhzs);
+
+    // Split raw into lines
+    var lines = raw.match(/^.*([\r\n]+|$)/gm);
+    var line_num = lines.length;
+
+    lemma_num = 0;
+
+    // Begin parsing the lemma entries
+    for (var i = 0; i < line_num; i++) {
+
+      // The tokens of each line are seperated by white spaces.
+      var tokens = lines[i].split(/\s+/g);
+      var lemma = new DictDef.LemmaEntry();
+
+      // Get the Hanzi string
+      var hanzi = tokens[0].trim();
+      var lemma_size = hanzi.length;
+      if (lemma_size > DictDef.kMaxLemmaSize) {
+        debug('Drop the lemma whose size exceeds the limit: ' + hanzi);
+        continue;
+      }
+
+      lemma.hanzi_str = hanzi;
+
+      // Get the freq
+      var freq = parseFloat(tokens[1]);
+      lemma.freq = freq;
+
+      if (lemma_size > 1 && freq < 60) {
+        debug('Drop ' + hanzi + ' whose freq < 60 and length > 1.');
+        continue;
+      }
+
+      // Get GBK mark. If no valid Hanzi list available, all items which
+      // contains GBK characters will be discarded. Otherwise, all items
+      // which contains characters outside of the valid Hanzi list will
+      // be discarded.
+      var gbk_flag = parseInt(tokens[2]);
+
+      if (!valid_hzs) {
+        if (0 != gbk_flag) {
+          debug('Drop lemma containing non-gbk characters: ' + hanzi);
+          continue;
+        }
+      } else {
+        if (!this.str_in_hanzis_list(valid_hzs, hanzi)) {
+          debug('Drop lemma containing invalid characters: ' + hanzi);
+          continue;
+        }
+      }
+
+      // Get spelling String
+      if (tokens.length < 3 + lemma_size) {
+        debug('Invalid spelling string ' + tokens + ' for ' + hanzi);
+        continue;
+      }
+      var spelling_not_support = false;
+      for (var hz_pos = 0; hz_pos < lemma_size;
+           hz_pos++) {
+        // Get a Pinyin
+        var pinyin_str = this.format_spelling_str(tokens[3 + hz_pos].trim());
+        lemma.pinyin_str[hz_pos] = pinyin_str;
+        // Put the pinyin to the spelling table
+        if (!this.spl_table_.put_spelling(pinyin_str, freq)) {
+          spelling_not_support = true;
+          break;
+        }
+      }
+
+      if (spelling_not_support) {
+        debug('The spelling string of ' + hanzi + ' isn\'t valid: ' + tokens);
+        continue;
+      }
+      this.lemma_arr_[lemma_num] = lemma;
+      lemma_num++;
+    }
+
+    debug('read succesfully, lemma num: ' + lemma_num);
+
+    return lemma_num;
+  },
+
+  // Try to find if a character is in hzs buffer.
+  hz_in_hanzis_list: function dictBuilder_hz_in_hanzis_list(hzs, hz) {
+    if (!hzs) {
+      return false;
+    }
+
+    var found = MyStdlib.mybsearchStr(hz, hzs, 0, hzs.length, 1, null);
+    if (-1 == found) {
+      return false;
+    }
+
+    return true;
+  },
+
+  // Try to find if all characters in str are in hzs buffer.
+  str_in_hanzis_list: function dictBuilder_str_in_hanzis_list(hzs, str) {
+    if (!hzs || !str) {
+      return false;
+    }
+
+    var str_len = str.length;
+    for (var pos = 0; pos < str_len; pos++) {
+      if (!this.hz_in_hanzis_list(hzs, str.charAt(pos))) {
+        return false;
+      }
+    }
+    return true;
+  },
+
+  // Get these lemmas with toppest scores.
+  get_top_lemmas: function dictBuilder_get_top_lemmas() {
+    this.top_lmas_num_ = 0;
+    if (null === this.lemma_arr_)
+      return;
+    var lemma_num = this.lemma_arr_.length;
+
+    for (var pos = 0; pos < lemma_num; pos++) {
+      if (0 == this.top_lmas_num_) {
+        this.top_lmas_[0] = this.lemma_arr_[pos];
+        this.top_lmas_num_ = 1;
+        continue;
+      }
+
+      if (this.lemma_arr_[pos].freq >
+          this.top_lmas_[this.top_lmas_num_ - 1].freq) {
+        if (DictDef.kTopScoreLemmaNum > this.top_lmas_num_) {
+          this.top_lmas_num_ += 1;
+        }
+
+        var move_pos;
+        for (move_pos = this.top_lmas_num_ - 1; move_pos > 0; move_pos--) {
+          this.top_lmas_[move_pos] = this.top_lmas_[move_pos - 1];
+          if (0 == move_pos - 1 ||
+              (move_pos - 1 > 0 &&
+               this.top_lmas_[move_pos - 2].freq > this.lemma_arr_[pos].freq)) {
+            break;
+          }
+        }
+        assert(move_pos > 0,
+               'get_top_lemmas assert error. move_pos:' + move_pos);
+        this.top_lmas_[move_pos - 1] = this.lemma_arr_[pos];
+      } else if (DictDef.kTopScoreLemmaNum > this.top_lmas_num_) {
+        this.top_lmas_[this.top_lmas_num_] = this.lemma_arr_[pos];
+        this.top_lmas_num_ += 1;
+      }
+    }
+
+    debug('\n------Top Lemmas------------------\n');
+    for (var pos = 0; pos < this.top_lmas_num_; pos++) {
+      debug(StringUtils.format('--{0}, idx:{1}, score:{2}', pos,
+                               this.top_lmas_[pos].idx_by_hz,
+                               this.top_lmas_[pos].freq));
+    }
+  },
+
+  /**
+   * Allocate resource to build dictionary.
+   * lma_num is the number of items to be loaded.
+   */
+  alloc_resource: function dictBuilder_alloc_resource(lma_num) {
+    if (0 == lma_num)
+      return;
+
+    var lemma_num = lma_num;
+    this.lemma_arr_ = [];
+
+    this.top_lmas_num_ = 0;
+    this.top_lmas_ = [];
+    for (var i = 0; i < DictDef.kTopScoreLemmaNum; i++) {
+      this.top_lmas_[i] = new DictDef.LemmaEntry();
+    }
+
+    this.scis_ = [];
+
+    // The root and first level nodes is less than DictDef.kMaxSpellingNum + 1
+    this.lma_nds_used_num_le0_ = 0;
+    this.lma_nodes_le0_ = [];
+    for (var i = 0; i < DictDef.kMaxSpellingNum; i++) {
+      this.lma_nodes_le0_[i] = new DictDef.LmaNodeLE0();
+    }
+
+    // Other nodes is less than lemma_num
+    this.lma_nds_used_num_ge1_ = 0;
+    this.lma_nodes_ge1_ = [];
+    for (var i = 0; i < lemma_num; i++) {
+      this.lma_nodes_ge1_[i] = new DictDef.LmaNodeGE1();
+    }
+
+    this.homo_idx_buf_ = [];
+    this.spl_table_ = new SpellingTable();
+    this.spl_parser_ = new SpellingParser();
+    this.spl_table_.init_table(DictDef.kMaxPinyinSize,
+                               DictDef.kSplTableHashLen, true);
+  }
+};
+
 var UserDict = function userDict_constructor() {
 };
 
@@ -4220,9 +5919,10 @@ DictList.prototype = {
   },
 
   /**
-   * Init the list from the LemmaEntry array.
-   * lemma_arr should have been sorted by the hanzi_str, and have been given
-   * ids from 1
+   * Init the list from the DictDef.LemmaEntry array.
+   * @param {Array.<DictDef.SingleCharItem>} scis All single char items.
+   * @param {Array.<DictDef.LemmaEntry>} lemma_arr The lemma array. It should
+   *    have been sorted by the hanzi_str, and have been given ids from 1.
    */
   init_list: function dictList_init_list(scis, lemma_arr) {
     if (!scis || !lemma_arr)
@@ -4481,6 +6181,7 @@ DictList.prototype = {
   // Copy the related content to the inner buffer
   // It should be called after calculate_size()
   fill_list: function dictList_fill_list(lemma_arr) {
+    var lemma_num = lemma_arr.length;
     this.buf_ = '';
     for (var i = 0; i < lemma_num; i++) {
       this.buf_ += lemma_arr[i].hanzi_str;
@@ -4513,12 +6214,18 @@ DictList.prototype = {
   }
 };
 
+/***
+ * @private
+ */
 var NGram = function ngram_constructor() {
   this.freq_codes_df_ = [];
   this.freq_codes_ = [];
   this.lma_freq_idx_ = [];
 };
 
+/**
+ * @return {NGram} The NGram instance.
+ */
 NGram.get_instance = function ngram_get_instance() {
   if (NGram.instance_ == null) {
     NGram.instance_ = new NGram();
@@ -4594,9 +6301,10 @@ NGram.prototype = {
 
   /**
    * For constructing the unigram mode model.
-   * @param {Array.<LemmaEntry>} lemma_arr Lemma array.
+   * @param {Array.<DictDef.LemmaEntry>} lemma_arr Lemma array.
    */
   build_unigram: function ngram_build_unigram(lemma_arr) {
+    debug('build_unigram');
     if (!lemma_arr) {
       return false;
     }
@@ -4648,6 +6356,8 @@ NGram.prototype = {
       var found = true;
       while (found) {
         found = false;
+        assert(freq_pos < freqs.length, 'build_unigram assertion error.' +
+               'Not enough data to create code book.');
         var cand = freqs[freq_pos];
         for (var i = 0; i < code_pos; i++) {
           if (this.freq_codes_df_[i] == cand) {
@@ -4664,7 +6374,7 @@ NGram.prototype = {
       freq_pos++;
     }
 
-    this.freq_codes_df_.sort();
+    this.freq_codes_df_.sort(SearchUtility.compare);
 
     this.lma_freq_idx_ = [];
     for (var pos = 0; pos < this.idx_num_; pos++) {
@@ -4738,9 +6448,10 @@ NGram.prototype = {
 
   // Find the index of the code value which is nearest to the given freq
   qsearch_nearest:
-    function ngram_qsearch_nearest(code_book, freq, start, end) {
-    if (start == end)
+      function ngram_qsearch_nearest(code_book, freq, start, end) {
+    if (start == end) {
       return start;
+    }
 
     if (start + 1 == end) {
       if (this.distance(freq, code_book[end]) >
@@ -4750,12 +6461,11 @@ NGram.prototype = {
       return end;
     }
 
-    var mid = (start + end) / 2;
+    var mid = Math.floor((start + end) / 2);
 
     if (code_book[mid] > freq) {
       return this.qsearch_nearest(code_book, freq, start, mid);
-    }
-    else {
+    } else {
       return this.qsearch_nearest(code_book, freq, mid, end);
     }
   },
@@ -4807,8 +6517,9 @@ SpellingParser.prototype = {
   /* ==== Public ==== */
 
   /** Given a string, parse it into a spelling id stream.
-   * @param {String} splstr The given spelling string.
-   * @return {spl_idx: Integer[], start_pos: Integer[], last_is_pre: Boolean}
+   * @param {string} splstr The given spelling string.
+   * @return
+   * {spl_idx: Array.<number>, start_pos: Array.<number>, last_is_pre: boolean}
    * If the whole string are successfully parsed, last_is_pre will be true;
    * if the whole string is not fully parsed, last_is_pre will return whether
    * the last part of the string is a prefix of a full spelling string. For
@@ -4873,7 +6584,7 @@ SpellingParser.prototype = {
 
       last_is_splitter = false;
 
-      found_son = null;
+      var found_son = null;
 
       if (0 == str_pos) {
         if (char_this >= 'a') {
@@ -4949,7 +6660,7 @@ SpellingParser.prototype = {
   splstr_to_idxs_f: function spellingParser_splstr_to_idxs_f(splstr) {
     var ret = this.splstr_to_idxs(splstr);
     var spl_idx = ret.spl_idx;
-    var idx_num = spl_idx.length;mybsearchStr;
+    var idx_num = spl_idx.length;
 
     for (var pos = 0; pos < idx_num; pos++) {
       if (this.spl_trie_.is_half_id_yunmu(spl_idx[pos])) {
@@ -4987,7 +6698,7 @@ SpellingParser.prototype = {
     if (ret.start_pos[1] != splstr.length) {
       return {spl_id: 0, is_pre: false};
     }
-    return {spl_id: ret.splstr[0], is_pre: ret.last_is_pre};
+    return {spl_id: ret.spl_idx[0], is_pre: ret.last_is_pre};
   },
 
   /**
@@ -5000,11 +6711,12 @@ SpellingParser.prototype = {
 
 // Node used for the trie of spellings
 var SpellingNode = function spellingNode_constructor() {
+  this.sons = [];
 };
 
 SpellingNode.prototype = {
   /**
-   * @type SpellingNode[]
+   * @type Array.<SpellingNode>
    */
   sons: null,
   /**
@@ -5013,17 +6725,17 @@ SpellingNode.prototype = {
    */
   spelling_idx: 0,
   /**
-   * @type Integer
+   * @type number
    */
   num_of_son: 0,
 
   /**
-   * @type Char
+   * @type string
    */
   char_this_node: '',
 
   /**
-   * @type Integer
+   * @type number
    */
   score: 0
 };
@@ -5032,6 +6744,15 @@ var SpellingTrie = function spellingTrie_constructor() {
   this.h2f_start_ = [];
   this.szm_enable_shm(true);
   this.szm_enable_ym(true);
+};
+
+SpellingTrie.instance_ = null;
+
+SpellingTrie.get_instance = function get_instance() {
+  if (SpellingTrie.instance_ == null) {
+    SpellingTrie.instance_ = new SpellingTrie();
+  }
+  return SpellingTrie.instance_;
 };
 
 SpellingTrie.kFullspl_idStart = kHalfSpellingIdNum + 1;
@@ -5073,16 +6794,7 @@ SpellingTrie.is_valid_spl_char = function is_valid_spl_char(ch) {
 // The caller guarantees that the two chars are valid spelling chars.
 SpellingTrie.is_same_spl_char = function is_same_spl_char(ch1, ch2) {
   return ch1.toUpperCase() == ch2.toUpperCase();
-}
-
-SpellingTrie.instance_ = null;
-
-SpellingTrie.get_instance = function get_instance() {
-  if (SpellingTrie.instance_ == null) {
-    SpellingTrie.instance_ = new SpellingTrie();
-  }
-  return SpellingTrie.instance_;
-}
+};
 
 SpellingTrie.prototype = {
  /* ==== Public ==== */
@@ -5091,9 +6803,9 @@ SpellingTrie.prototype = {
    * Construct the tree from the input pinyin array
    * The given string list should have been sorted.
    * @param {String[]} spelling_arr The input pinyin array.
-   * @param {Number} score_amplifier is used to convert a possibility
+   * @param {number} score_amplifier is used to convert a possibility
    * value into score.
-   * @param {Integer} average_score is the average_score of all spellings.
+   * @param {number} average_score is the average_score of all spellings.
    * The dumb node is assigned with this score.
    */
   construct: function spellingTrie_construct(spelling_arr, score_amplifier,
@@ -5211,7 +6923,7 @@ SpellingTrie.prototype = {
   // Test If this char is enabled in ShouZiMu mode.
   // The caller should guarantee that ch >= 'A' && ch <= 'Z'
   szm_is_enabled: function spellingTrie_szm_is_enabled(ch) {
-    return SpellingTrie.char_flags_[char_diff(ch, 'A')] &
+    return SpellingTrie.char_flags_[StringUtils.charDiff(ch, 'A')] &
       SpellingTrie.kHalfIdSzmMask;
   },
 
@@ -5379,7 +7091,7 @@ SpellingTrie.prototype = {
 
   /**
    * The spelling table
-   * @type RawSpelling[]
+   * @type Array.<RawSpelling>
    */
   spelling_buf_: null,
 
@@ -5440,8 +7152,12 @@ SpellingTrie.prototype = {
     var num_of_son = 0;
     var min_son_score = 255;
 
-    var spelling_last_start = this.spelling_buf[item_start];
+    var spelling_last_start = this.spelling_buf_[item_start];
     var char_for_node = spelling_last_start.str[level];
+    assert(char_for_node >= 'A' && char_for_node <= 'Z' ||
+         'h' == char_for_node,
+         'construct_spellings_subset assertion error.' +
+         'Invalid char_for_node.');
 
     // Scan the array to find how many sons
     for (var i = item_start + 1; i < item_end; i++) {
@@ -5455,7 +7171,6 @@ SpellingTrie.prototype = {
     num_of_son++;
 
     this.node_num_ += num_of_son;
-    sons = new Array(num_of_son);
     for (var i = 0; i < num_of_son; i++) {
       sons[i] = new SpellingNode();
     }
@@ -5475,12 +7190,17 @@ SpellingTrie.prototype = {
     for (var i = item_start + 1; i < item_end; i++) {
       var spelling_current = this.spelling_buf_[i];
       var char_current = spelling_current.str[level];
+      assert(SpellingTrie.is_valid_spl_char(char_current),
+        'construct_spellings_subset assertion error. Invalid char_current: ' +
+        char_current);
 
       if (char_current != char_for_node) {
         // Construct a node
         var node_current = sons[son_pos];
         node_current.char_this_node = char_for_node;
-
+        if (!char_for_node) {
+          assertEq(true, false, 'char_this_node');
+        }
         // For quick search in the first level
         if (0 == level) {
           this.level1_sons_[StringUtils.charDiff(char_for_node, 'A')] =
@@ -5574,7 +7294,9 @@ SpellingTrie.prototype = {
     // the last one
     var node_current = sons[son_pos];
     node_current.char_this_node = char_for_node;
-
+    if (!char_for_node) {
+      assertEq(true, false, 'char_this_node' + char_for_node);
+    }
     // For quick search in the first level
     if (0 == level) {
       this.level1_sons_[StringUtils.charDiff(char_for_node, 'A')] =
@@ -5688,7 +7410,7 @@ SpellingTrie.prototype = {
     var pos = 0;
     if (this.is_shengmu_char(spl_str[0])) {
       pos++;
-      var prefix = spl_str.subString(0, 2);
+      var prefix = spl_str.substring(0, 2);
       if (prefix == 'Zh' || prefix == 'Ch' || prefix == 'Sh') {
         pos++;
       }
@@ -5716,7 +7438,7 @@ SpellingTrie.prototype = {
     this.ym_num_ = this.ym_buf_.length;
 
     // Generate the maping from the spelling ids to the Yunmu ids.
-    spl_ym_ids_ = [];
+    this.spl_ym_ids_ = [];
 
     for (var id = 1; id < this.spelling_num_ + SpellingTrie.kFullspl_idStart;
          id++) {
@@ -5848,14 +7570,15 @@ SpellingTable.prototype = {
       result.push(this.raw_spellings_[str]);
     }
 
-    result.sort(function sortRawSpellings(a, b) {
-      if (a > b) {
+    result.sort(function compare_raw_spl_eb(p1, p2) {
+      // "" is the biggest, so that all empty strings will be moved to the end
+      if (!p1.str) {
         return 1;
-      } else if (a < b) {
-        return -1;
-      } else {
-        return 0;
       }
+      if (!p2.str) {
+        return -1;
+      }
+      return SearchUtility.compare(p1.str, p2.str);
     });
 
     this.frozen_ = true;
@@ -5903,6 +7626,11 @@ if (typeof IMEManager !== 'undefined')
 if (typeof Test !== 'undefined') {
   Test.PinyinParser = PinyinParser;
   Test.SpellingTable = SpellingTable;
+  Test.SpellingTrie = SpellingTrie;
+  Test.FileSystemService = FileSystemService;
+  Test.DictBuilder = DictBuilder;
+  Test.MyStdlib = MyStdlib;
+  Test.SearchUtility = SearchUtility;
 }
 
 })();
