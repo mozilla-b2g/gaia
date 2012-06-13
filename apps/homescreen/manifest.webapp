@@ -4,9 +4,10 @@
   "launch_path": "/",
   "developer": {
     "name": "The Gaia Team",
-    "url": "https://github.com/mozilla-b2g/gaia"
+    "url": "https://github.com/andreasgal/gaia"
   },
   "permissions": [
+    "mozbrowser",
     "mozApps"
   ],
   "locales": {
@@ -55,5 +56,6 @@
       "description": "Gaia \u4e3b\u756b\u9762"
     }
   },
-  "default_locale": "en-US"
+  "default_locale": "en-US",
+  "orientation": "portrait-primary"
 }
