@@ -193,7 +193,7 @@ function dumpn(str)
         prefix += min + ":" + sec.toFixed(3) + " | ";
     }
 
-    dumpn(prefix + str + "\n");
+    dump(prefix + str + "\n");
   }
 }
 
@@ -1420,9 +1420,16 @@ RequestReader.prototype =
           var hostPort = request._headers.getHeader("Host");
           var colon = hostPort.indexOf(":");
           var host = (colon < 0) ? hostPort : hostPort.substring(0, colon);
-          if (host != '@GAIA_DOMAIN@' && host.indexOf('.') != -1) {
+          if (host != "@GAIA_DOMAIN@" && host.indexOf(".") != -1) {
             var oldPath = request._path;
-            request._path = '/apps/' + host.split('.')[0] + oldPath;
+
+            var applicationName = host.split(".")[0];
+            var testsApps = ["template", "test-agent", "uitest"];
+            if (testsApps.indexOf(applicationName) != -1) {
+              request._path = "/test_apps/" + applicationName + oldPath;
+            } else {
+              request._path = "/apps/" + applicationName + oldPath;
+            }
             dumpn(request._path + '\n');
           }
         } catch (e) {
