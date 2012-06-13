@@ -382,15 +382,19 @@ var LockScreen = {
   },
 
   switchPanel: function ls_switchPanel(panel) {
-    if (panel == this.overlay.dataset.panel)
+    var overlay = this.overlay;
+    if (('panel' in overlay.dataset) && panel == overlay.dataset.panel)
       return;
 
-    this.unloadPanel(this.overlay.dataset.panel);
+    if ('panel' in overlay.dataset) {
+      this.unloadPanel(overlay.dataset.panel);
+    }
+
     if (panel) {
-      this.overlay.dataset.panel = panel;
+      overlay.dataset.panel = panel;
       this.loadPanel(panel);
     } else {
-      delete this.overlay.dataset.panel;
+      delete overlay.dataset.panel;
     }
   },
 
