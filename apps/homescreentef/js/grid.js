@@ -3,7 +3,7 @@
 
 const GridManager = (function() {
   var container, draggableIcon, draggableIconOrigin;
-  
+
   // Mode can be:
   //   - normal: the mode used to navigate and launch applications
   //   - edit: the mode used after a long press to manage applications
@@ -621,7 +621,7 @@ const GridManager = (function() {
     init: function gm_init(selector) {
       container = document.querySelector(selector);
       container.innerHTML = '';
-      
+
       limits.left = container.offsetWidth * 0.08;
       limits.right = container.offsetWidth * 0.92;
 
