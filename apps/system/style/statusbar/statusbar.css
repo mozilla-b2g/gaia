@@ -16,7 +16,12 @@
   padding: 2px;
 
   color: #999;
-  background-color: #000;
+  background: #000 url('images/grippy.png') no-repeat 50% 50%;
+}
+
+#screen.locked > #statusbar,
+#screen.utility-tray > #statusbar {
+  background: #000;
 }
 
 #statusbar > * {
@@ -24,7 +29,7 @@
   pointer-events: none;
 }
 
-#statusbar > #padding {
+#statusbar-padding {
   -moz-box-flex: 1;
 }
 
