@@ -5,6 +5,15 @@ const Homescreen = (function() {
   PaginationBar.init('.paginationScroller');
   GridManager.init('.apps');
 
+  var host = document.location.host;
+  var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+
+  var shortcuts = document.querySelectorAll('#footer li');
+  for (var i = 0; i < shortcuts.length; i++) {
+    var dataset = shortcuts[i].dataset;
+    dataset.origin = dataset.origin.replace('$DOMAIN$', domain);
+  }
+
   var mode = 'normal';
   var footer = document.querySelector('#footer');
   GridManager.onEditModeChange = function onEditModeChange(value) {

@@ -385,7 +385,9 @@ Page.prototype = {
   */
   getAppsList: function() {
     var nodes = this.olist.childNodes;
-    return nodes.map(function(node) { return node.dataset.origin });
+    return Array.prototype.map.call(nodes, function extractOrigin(node) {
+      return node.dataset.origin;
+    });
   }
 };
 

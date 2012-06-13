@@ -104,12 +104,17 @@ var Applications = (function() {
   };
 
   // This is a cool hack ;) The idea is to set this info in the manifest
+  // vn: I'm worried about adding that in the manifest because any
+  // application will be able to said that it is a core application.
+  var host = document.location.host;
+  var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+
   var coreApplications = [
     'dialer', 'sms', 'settings', 'camera', 'gallery', 'browser',
     'market', 'comms', 'music', 'clock', 'email'
   ];
   coreApplications = coreApplications.map(function mapCoreApp(name) {
-    return 'http://' + name + '.gaiamobile.org';
+    return 'http://' + name + '.' + domain;
   });
 
   /*

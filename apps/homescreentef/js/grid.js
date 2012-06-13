@@ -243,18 +243,22 @@ const GridManager = (function() {
   function renderFromDB() {
     HomeState.getAppsByPage(
       function iterate(apps) {
-        console.log('Iterating saved pages');
         pageHelper.push(apps);
-       }, function(results) {
+      },
+      function onsuccess(results) {
         if (results === 0) {
-          console.log('Empty database -> This is the first time');
           renderFromMozApps();
-        } else {
-          // Grid was loaded from DB
-          updatePaginationBar(true);
-          addLanguageListener();
+          return;
         }
-      }, renderFromMozApps // Error recovering info about apps
+
+        // Grid was loaded from DB
+        updatePaginationBar(true);
+        addLanguageListener();
+      },
+      function onerror() {
+        // Error recovering info about apps
+        renderFromMozApps();
+      }
     );
   }
 

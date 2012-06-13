@@ -90,19 +90,19 @@ section,footer,nav,a,img {
   font: 0/0 a;
 }
 
-#footer .dock > li.i-logs {
+#footer .dock > .logs {
   background-image: url('../resources/images/footer/1.png');
 }
 
-#footer .dock > li.i-contacts {
+#footer .dock > .contacts {
   background-image: url('../resources/images/footer/2.png');
 }
 
-#footer .dock > li.i-messages {
+#footer .dock > .messages {
   background-image: url('../resources/images/footer/3.png');
 }
 
-#footer .dock > li.i-phone {
+#footer .dock > .phone {
   background-image: url('../resources/images/footer/4.png');
 }
 
