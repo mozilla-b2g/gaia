@@ -17,10 +17,10 @@ const IMERender = (function() {
   var draw = function kr_draw(layout, language, scrollHandler, flags) {
     flags = flags || {};
 
-    //change scale (Our target screen width is 320px)
-    //TODO get document.documentElement.style.fontSize
-    //and use it for multipling changeScale deppending on the value of pixel density
-    //used in media queries
+    // change scale (Our target screen width is 320px)
+    // TODO get document.documentElement.style.fontSize
+    // and use it for multipling changeScale deppending on the value of pixel
+    // density used in media queries
 
     var content = '';
     var layoutWidth = layout.width || 10;
@@ -61,15 +61,18 @@ const IMERender = (function() {
     }));
 
     // Append empty accent char menu and key highlight into content HTML
-    content += '<span id="keyboard-accent-char-menu-out"><span id="keyboard-accent-char-menu"></span></span>';
+    content += '<span id="keyboard-accent-char-menu-out">' +
+               '<span id="keyboard-accent-char-menu"></span></span>';
     content += '<span id="keyboard-key-highlight"></span>';
 
     this.ime.innerHTML = content;
     this.menu = document.getElementById('keyboard-accent-char-menu');
 
     if (layout.needsCandidatePanel) {
-      this.ime.insertBefore(candidatePanelToggleButtonCode(), this.ime.firstChild);
-      this.ime.insertBefore(candidatePanelCode(scrollHandler), this.ime.firstChild);
+      this.ime.insertBefore(
+        candidatePanelToggleButtonCode(), this.ime.firstChild);
+      this.ime.insertBefore(
+        candidatePanelCode(scrollHandler), this.ime.firstChild);
       this.ime.insertBefore(pendingSymbolPanelCode(), this.ime.firstChild);
       showPendingSymbols('');
       showCandidates([], true);
@@ -105,12 +108,14 @@ const IMERender = (function() {
 
   var showPendingSymbols = function km_showPendingSymbols(symbols) {
     // TODO: Save the element
-    var pendingSymbolPanel = document.getElementById('keyboard-pending-symbol-panel');
+    var pendingSymbolPanel =
+      document.getElementById('keyboard-pending-symbol-panel');
     if (pendingSymbolPanel)
       pendingSymbolPanel.textContent = symbols;
   };
 
-  var showCandidates = function km_showCandidates(candidates, noWindowHeightUpdate) {
+  var showCandidates = function(candidates, noWindowHeightUpdate) {
+
     var ime = document.getElementById('keyboard');
     // TODO: Save the element
     var candidatePanel = document.getElementById('keyboard-candidate-panel');
@@ -151,7 +156,7 @@ const IMERender = (function() {
     });
   };
 
-  var showAlternativesCharMenu = function km_showAlternativesCharMenu(key, altChars) {
+  var showAlternativesCharMenu = function(key, altChars) {
     // TODO: !!! Fix alternateLayout alt keys
 
     var target = key;
@@ -166,7 +171,9 @@ const IMERender = (function() {
       altCharsCurrent.push(key.firstChild.innerHTML);
       altCharsCurrent = altCharsCurrent.concat(altChars);
     } else {
-      var width = '-moz-calc(' + window.innerWidth + 'px - ' + target.offsetLeft + 'px - 0.8rem - ' + target.style.width + ' )';
+      var width = '-moz-calc(' + window.innerWidth + 'px - ' +
+                   target.offsetLeft + 'px - 0.8rem - ' +
+                   target.style.width + ' )';
       this.menu.style.right = width;
       this.menu.style.left = 'auto';
       this.menu.style.textAlign = 'center';
@@ -181,7 +188,7 @@ const IMERender = (function() {
       var dataset = [{'key': 'keycode', 'value': keyCode}];
       var label = keyChar.label || keyChar;
       if (label.length > 1)
-        dataset.push({'key': 'compositekey', 'value':label});
+        dataset.push({'key': 'compositekey', 'value': label});
       content += buildKey(label, '', cssWidth, dataset);
     });
     this.menu.innerHTML = content;
@@ -218,7 +225,8 @@ const IMERender = (function() {
   // @label: String inside the key
   // @className: String representing a className to be added to the key
   // @width: Int to be applied as moz-box-flex
-  // @dataset: Array of Hash with every { 'key': KEY, 'value': VALUE} to be applied as dataset
+  // @dataset: Array of Hash with every { 'key': KEY, 'value': VALUE}
+  // to be applied as dataset
   //*
 
   var pendingSymbolPanelCode = function() {

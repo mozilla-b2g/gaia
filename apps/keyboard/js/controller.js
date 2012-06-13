@@ -51,7 +51,7 @@ const IMEController = (function() {
       _lastHeight = 0;
 
   var _IMEngines = {};
-  var _currentEngine = function () {
+  var _currentEngine = function() {
       return _IMEngines[Keyboards[_baseLayoutName].imEngine];
   };
 
@@ -119,7 +119,7 @@ const IMEController = (function() {
         row.splice(where, 1, // delete space
           { value: '.', ratio: 1, keyCode: 46 },
           { value: '/', ratio: 2, keyCode: 47 },
-          { value: '.com', ratio: 2, compositeKey:'.com' }
+          { value: '.com', ratio: 2, compositeKey: '.com' }
         );
       break;
 
@@ -172,19 +172,19 @@ const IMEController = (function() {
 
   };
 
-  // build the actual layout depending on baseLayout selected, the input's type and layoutMode
+  // mainly, compute the input sensitive row and add it to the layout
   function _buildLayout(baseLayout, inputType, layoutMode) {
 
     function copy(obj) {
       var newObj = {};
       for (var prop in obj) if (obj.hasOwnProperty(prop)) {
-        newObj[prop] = obj[prop]
+        newObj[prop] = obj[prop];
       }
       return newObj;
     }
 
     if (inputType === 'number' || inputType === 'tel')
-      baseLayout = inputType+'Layout';
+      baseLayout = inputType + 'Layout';
 
     var layout = Keyboards[baseLayout];
 
@@ -321,8 +321,8 @@ const IMEController = (function() {
 
   var _dimensionsObserver = new MutationObserver(_updateTargetWindowHeight);
   var _dimensionsObserverConfig = {
-    childList:true, // to detect changes in IMEngine
-    attributes:true, attributeFilter:['class', 'style', 'data-hidden']
+    childList: true, // to detect changes in IMEngine
+    attributes: true, attributeFilter: ['class', 'style', 'data-hidden']
   };
 
   // sends a delete code to remove last character
@@ -370,7 +370,7 @@ const IMEController = (function() {
 
     // get alternatives from layout
     altMap = _currentLayout.alt || {};
-    keyObj = _currentLayout.keys[r][c]; 
+    keyObj = _currentLayout.keys[r][c];
     value = keyObj.value;
     alternatives = altMap[value] || '';
 
@@ -380,7 +380,7 @@ const IMEController = (function() {
       alternatives = altMap[uppercaseValue] || alternatives.toUpperCase();
     }
 
-    if(alternatives.indexOf(' ') != -1) {
+    if (alternatives.indexOf(' ') != -1) {
       alternatives = alternatives.split(' ');
       // check just one item
       if (alternatives.length === 2 && alternatives[1] === '')
@@ -404,7 +404,8 @@ const IMEController = (function() {
       right: getWindowLeft(IMERender.menu) + IMERender.menu.scrollWidth
     };
     _menuLockedArea.width = _menuLockedArea.right - _menuLockedArea.left;
-    _menuLockedArea.ratio = _menuLockedArea.width / IMERender.menu.children.length;
+    _menuLockedArea.ratio =
+      _menuLockedArea.width / IMERender.menu.children.length;
   }
 
   function _hideAlternatives() {
@@ -465,12 +466,12 @@ const IMEController = (function() {
     var altCount, width, menuChildren;
 
     // Control locked zone for menu
-    if (_isShowingAlternativesMenu
-        && _menuLockedArea
-        && evt.screenY >= _menuLockedArea.top
-        && evt.screenY <= _menuLockedArea.bottom
-        && evt.screenX >= _menuLockedArea.left
-        && evt.screenX <= _menuLockedArea.right) {
+    if (_isShowingAlternativesMenu &&
+        _menuLockedArea &&
+        evt.screenY >= _menuLockedArea.top &&
+        evt.screenY <= _menuLockedArea.bottom &&
+        evt.screenX >= _menuLockedArea.left &&
+        evt.screenX <= _menuLockedArea.right) {
 
       clearTimeout(_hideMenuTimeout);
       menuChildren = IMERender.menu.children;
@@ -482,7 +483,9 @@ const IMEController = (function() {
         false, false, false, false, 0, null
       );
 
-      menuChildren[Math.floor((evt.screenX - _menuLockedArea.left) / _menuLockedArea.ratio)].dispatchEvent(event);
+      menuChildren[Math.floor(
+        (evt.screenX - _menuLockedArea.left) / _menuLockedArea.ratio
+      )].dispatchEvent(event);
       return;
     }
 
@@ -620,7 +623,10 @@ const IMEController = (function() {
 
         // If the user has specify a keyboard in the menu,
         // switch to that keyboard.
-        var language = target.dataset.keyboard ? target.dataset.keyboard : _baseLayoutName;
+        var language = target.dataset.keyboard ?
+          target.dataset.keyboard :
+          _baseLayoutName;
+
         var keyboards = IMEManager.keyboards;
         var index = keyboards.indexOf(language);
         index = (index + 1) % keyboards.length;
@@ -628,7 +634,10 @@ const IMEController = (function() {
 
         _currentLayoutMode = LAYOUT_MODE_DEFAULT;
         _isUpperCase = false;
-        _draw(_baseLayoutName, _currentInputType, _currentLayoutMode, _isUpperCase);
+        _draw(
+          _baseLayoutName, _currentInputType,
+          _currentLayoutMode, _isUpperCase
+        );
 
         if (Keyboards[_baseLayoutName].type == 'ime') {
           if (_currentEngine().show) {
@@ -656,7 +665,10 @@ const IMEController = (function() {
 
           _isUpperCase = _isUpperCaseLocked = true;
           IMERender.setUpperCaseLock(true);
-          _draw(_baseLayoutName, _currentInputType, _currentLayoutMode, _isUpperCase);
+          _draw(
+            _baseLayoutName, _currentInputType,
+            _currentLayoutMode, _isUpperCase
+          );
 
         // normal behavior: set timeut for second tap and toggle caps
         } else {
@@ -674,7 +686,10 @@ const IMEController = (function() {
           _isUpperCase = !_isUpperCase;
           _isUpperCaseLocked = false;
           IMERender.setUpperCaseLock(false);
-          _draw(_baseLayoutName, _currentInputType, _currentLayoutMode, _isUpperCase);
+          _draw(
+            _baseLayoutName, _currentInputType,
+            _currentLayoutMode, _isUpperCase
+          );
         }
 
         break;
@@ -743,7 +758,7 @@ const IMEController = (function() {
     'mouseover': _onMouseOver,
     'mouseleave': _onMouseLeave,
     'mouseup': _onMouseUp,
-    'mousemove': _onMouseMove,
+    'mousemove': _onMouseMove
   };
 
   function _reset() {
@@ -788,9 +803,17 @@ const IMEController = (function() {
     _currentLayout = _buildLayout(baseLayout, inputType, layoutMode);
 
     if (_severalLanguages())
-      IMERender.draw(_currentLayout, baseLayout, _onScroll, {uppercase:uppercase, getUpperCaseValue:_getUpperCaseValue});
+      IMERender.draw(
+        _currentLayout, baseLayout,
+        _onScroll,
+        {uppercase: uppercase, getUpperCaseValue: _getUpperCaseValue}
+      );
     else
-      IMERender.draw(_currentLayout, undefined, _onScroll, {uppercase:uppercase, getUpperCaseValue:_getUpperCaseValue});
+      IMERender.draw(
+        _currentLayout, undefined,
+        _onScroll,
+        {uppercase: uppercase, getUpperCaseValue: _getUpperCaseValue}
+      );
   }
 
   function _handleMouseDownEvent(keyCode) {
@@ -807,7 +830,10 @@ const IMEController = (function() {
         !_isUpperCaseLocked && _currentLayoutMode === LAYOUT_MODE_DEFAULT) {
 
       _isUpperCase = false;
-      _draw(_baseLayoutName, _currentInputType, _currentLayoutMode, _isUpperCase);
+      _draw(
+        _baseLayoutName, _currentInputType,
+        _currentLayoutMode, _isUpperCase
+      );
     }
   }
 
@@ -843,7 +869,10 @@ const IMEController = (function() {
       IMERender.ime.classList.remove('hide');
       _currentInputType = _mapType(type); // TODO: this should be unneccesary
 
-      _draw(_baseLayoutName, _currentInputType, _currentLayoutMode, _isUpperCase);
+      _draw(
+        _baseLayoutName, _currentInputType,
+        _currentLayoutMode, _isUpperCase
+      );
 
       if (Keyboards[_baseLayoutName].type == 'ime') {
         if (_currentEngine().show) {
