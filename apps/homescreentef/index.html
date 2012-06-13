@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+
+<html manifest="manifest.appcache">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1.0">
+    <link rel="stylesheet" href="style/request.css">
+    <link rel="stylesheet" href="style/homescreen.css">
+    <link rel="stylesheet" href="style/grid.css">
+
+    <script defer src="js/request.js"></script>
+    <script defer src="js/settings.js"></script>
+    <script defer src="js/appmanager.js"></script>
+    <script defer src="js/state.js"></script>
+    <script defer src="js/page.js"></script>
+    <script defer src="js/pagbar.js"></script>
+    <script defer src="js/grid.js"></script>
+    <script defer src="js/homescreen.js"></script>
+  </head>
+
+  <body>
+    <header id="paginationBar">
+      <div class="paginationScroller"></div>
+    </header>
+
+    <section id="icongrid">
+      <div class="apps" data-mode="normal"></div>
+    </section>  <!-- icongrid -->
+
+    <footer id="footer">
+      <nav>
+        <ul class="dock">
+          <li class="logs" data-origin="http://clock.$DOMAIN$">Logs</li>
+          <li class="contacts" data-origin="http://dialer.$DOMAIN$">Contacts</li>
+          <li class="messages" data-origin="http://sms.$DOMAIN$">Messages</li>
+          <li class="phone" data-origin="http://dialer.$DOMAIN$">Phone</li>
+        </ul>
+      </nav>
+    </footer>
+  </body>
+</html>
