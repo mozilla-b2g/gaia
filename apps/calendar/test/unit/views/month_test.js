@@ -1,3 +1,5 @@
+var it_does_not_work = true;
+
 requireCommon('test/synthetic_gestures.js');
 
 requireApp('calendar/test/unit/helper.js', function() {
@@ -6,6 +8,7 @@ requireApp('calendar/test/unit/helper.js', function() {
   requireApp('calendar/js/templates/month.js');
   requireApp('calendar/js/views/month.js', function(){
     console.log('IT LOADED!!!');
+    it_does_not_work = false;
   });
 });
 
@@ -37,7 +40,7 @@ suite('views/month', function() {
     ].join('');
 
     document.body.appendChild(div);
-    console.log('SETUP!');
+    console.log(it_does_not_work, 'SETUP!');
 
     controller = createController();
 
