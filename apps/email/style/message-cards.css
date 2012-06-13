@@ -1,0 +1,176 @@
+.card-message-list {
+}
+.msg-list-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.msg-list-scrollouter {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.msg-list-scrollinner {
+  /* force the card to be tall enough so we can scroll the search bit out of the
+     way by default*/
+  min-height: 536px;
+}
+
+/* Have enough scroll space to have the search bit pull out. */
+.msg-list-scroll-padding-top {
+  height: 56px;
+}
+/* Have enough space at the bottom for the last message to not be under the
+   action bar. */
+.msg-list-scroll-padding-bottom {
+  height: 80px;
+}
+
+.msg-search-tease-bar {
+  height: 24px;
+  background-color: #eee;
+  border-radius: 4px;
+  text-align: center;
+}
+
+/* Sections horizontally chop up the item: unread, details, icons, avatar.
+ * We have 320 horizontal pixels to play with.
+ */
+.msg-header-item {
+  display: block;
+  position: relative;
+  height: 80px;
+  overflow: hidden;
+  border-bottom: 1px solid gray;
+  vertical-align: 0%;
+}
+.msg-header-unread-section {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  display: inline-block;
+  height: 100%;
+  width: 12px;
+}
+.msg-header-unread-section-unread {
+  background-color: orange;
+}
+.msg-header-details-section {
+  display: block;
+  position: absolute;
+  top: 0px;
+  left: 12px;
+  width: 248px;
+  height: 100%;
+}
+.msg-header-icons-section {
+  display: block;
+  position: absolute;
+  top: 0px;
+  left: 260px;
+  width: 32px;
+  height: 100%;
+}
+.msg-header-avatar-section {
+  display: block;
+  position: absolute;
+  top: 0px;
+  left: 292px;
+  width: 28px;
+  height: 100%;
+}
+
+.msg-header-author {
+  font-size: 110%;
+  color: black;
+}
+.msg-header-date {
+}
+.msg-header-date-unread {
+  color: orange;
+}
+.msg-header-subject {
+  display: block;
+  color: black;
+  font-weight: bold;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+.msg-header-snippet {
+  display: block;
+  color: gray;
+}
+
+.msg-header-star {
+  display: block;
+  color: #888844;
+  font-size: 150%;
+}
+.msg-header-star-starred:after {
+  content: "*";
+}
+.msg-header-attachments {
+  display: block;
+}
+.msg-header-attachments-yes:after {
+ content: "&";
+}
+
+
+.msg-envelope-bar {
+  border-bottom: 1px solid gray;
+}
+.msg-envelope-date {
+  float: right;
+}
+.msg-envelope-line {
+  display: block;
+}
+.msg-envelope-key {
+  font-weight: bold;
+}
+.msg-envelope-from-line {
+}
+.msg-envelope-to-line {
+}
+.msg-envelope-cc-line {
+}
+.msg-envelope-bcc-line {
+}
+
+.msg-envelope-subject {
+  font-weight: bold;
+  margin: 0;
+}
+
+.msg-body-container {
+  font-family: monospace;
+  white-space: pre-wrap;
+}
+
+.msg-attachments-container {
+}
+
+.msg-peep-bubble {
+  display: inline-block;
+  background-color: #7a81c3;
+  border: 1px solid #585c8b;
+  border-radius: 6px;
+  color: white;
+  padding: 2px;
+  font-size: 80%;
+}
+.msg-peep-name {
+}
+.msg-peep-address {
+  font-style: italic;
+}
+
+.msg-attachment-item {
+}
+.msg-attachment-icon {
+}
+.msg-attachment-filename {
+}
+.msg-attachment-filetype {
+}

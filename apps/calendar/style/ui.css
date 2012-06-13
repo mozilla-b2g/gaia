@@ -1,0 +1,343 @@
+/*
+COLORS
+
+BUSY BACKGROUND: #CCC
+BORDER: #AAA;
+CALENDER BORDER: #B0B0B0
+MONTH DAY BG: #FFF
+MONTH DAY PAST BG: #A8A8A8
+MONTH DAY PAST COLOR: #666
+MONTH DAY TODAY BORDER COLOR: #444
+MONTH DAY SELECTED BG: #444
+MONTH DAY SELECTED COLOR: white
+
+MONTHS DAY TOOLBAR BG: #E2E2E2
+MONTHS DAY EVENT: #CACACA 
+
+EVENT TIME COLOR: #333
+*/
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-size: 2.7mozmm;
+  height: 100%;
+  background: white;
+  line-height: 100%;
+}
+
+#views {
+  height: -moz-calc(100% - 18mozmm);
+}
+
+#views > section {
+  height: 100%;
+}
+
+/* month view */
+/* sub: toolbar  */
+
+#top-toolbar {
+  /*height: 8mozmm;*/
+}
+
+#top-toolbar header.toolbar {
+  width: 100%;
+  overflow: hidden;
+  padding: 2.5mozmm 1.5mozmm;
+  border-bottom: 2px solid black;
+}
+
+#top-toolbar header.toolbar h3,
+#top-toolbar header.toolbar a {
+  display: block;
+  float: left;
+  width: 33%;
+}
+
+.rtl #top-toolbar header.toolbar h3,
+.rtl #top-toolbar header.toolbar a {
+  float: right;
+}
+
+#top-toolbar header.toolbar h3 {
+  text-align: center;
+}
+
+.rtl #top-toolbar header.toolbar a.new-event,
+.ltr #top-toolbar header.toolbar a.accounts {
+  text-align: left;
+}
+
+.rtl #top-toolbar header.toolbar a.accounts,
+.ltr #top-toolbar header.toolbar a.new-event {
+  text-align: right;
+}
+
+/* sub common: day headers, day boxes */
+
+#month-days {
+  overflow: hidden;
+  /*height: 3.6mozmm;*/
+}
+
+#month .month li,
+#month-days li {
+  width: 14.28%;
+  line-height: 120%;
+  font-weight: bold;
+}
+
+.rtl #month-days li,
+.rtl #month .month li {
+  float: right;
+}
+
+.ltr #month-days li,
+.ltr #month .month li {
+  float: left;
+}
+
+/* sub: day header row */
+
+#month-days {
+  clear: both;
+}
+
+#month-days li {
+  color: white;
+  text-align: center;
+  background-color: #AAA;
+  text-transform: uppercase;
+  font-size: 90%;
+  padding: 0.5mozmm 0;
+}
+
+#month-displays {
+  height: 50%;
+}
+
+section.month {
+  height: 100%;
+  clear: both;
+}
+
+/* sub: day rows */
+
+section.month.inactive {
+  display: none
+}
+
+section.month {
+  overflow: hidden;
+  border-left: 1px solid #AAA;
+  border-right: 1px solid #AAA;
+}
+
+.rtl section.month li {
+  text-align: left;
+}
+
+.rtl section.month li > .day {
+  padding-left: 0.8mozmm;
+}
+
+.ltr section.month li {
+  text-align: right;
+}
+
+.ltr section.month li > .day {
+  padding-right: 0.8mozmm;
+}
+
+section.month ol {
+  height: 20%;
+}
+
+section.month li {
+  padding-top: 0.3%;
+  border-bottom: 1px solid #AAA;
+  border-left: 1px solid #AAA;
+  height: 100%;
+  position: relative;
+  background-color: white;
+}
+
+section.month ol:last-child li {
+  border-bottom: none;
+}
+
+section.month li.present {
+  border: 3px solid #444;
+}
+
+section.month li.selected {
+  background-color: #444 !important;
+  color: white;
+}
+
+section.month li.past {
+  background-color: #E7E7E7;
+  color: #9A9A9A;
+}
+
+section.month li.other-month {
+  color: #9A9A9A;
+}
+
+/* sub day rows: busy indicators */
+
+section.month li .busy-indicator,
+section.month li .busy-indicator > span{
+  height: 1.2mozmm;
+  padding-top: 1mozmm;
+}
+
+section.month li .busy-indicator {
+  overflow: hidden;
+  clear: both;
+  bottom: 0px;
+  position: absolute;
+  width: 100%;
+}
+
+section.month li .busy-indicator:before {
+  /* &nsbp; */
+  content:"\00a0";
+}
+
+section.month li .busy-indicator > span {
+  top: 0px;
+  width: 8.33%;
+  background-color: #CCC;
+  position: absolute;
+  text-indent: -1000em;
+}
+
+/**
+Indicators are in units of 12
+*/
+/* ltr busy units */
+.ltr .busy-indicator .busy-1 { left: 0%; }
+.ltr .busy-indicator .busy-2 { left: 8.33%; }
+.ltr .busy-indicator .busy-3 { left: 16.66%; }
+.ltr .busy-indicator .busy-4 { left: 24.990000000000002%; }
+.ltr .busy-indicator .busy-5 { left: 33.32%; }
+.ltr .busy-indicator .busy-6 { left: 41.65%; }
+.ltr .busy-indicator .busy-7 { left: 49.980000000000004%; }
+.ltr .busy-indicator .busy-8 { left: 58.31%; }
+.ltr .busy-indicator .busy-9 { left: 66.64%; }
+.ltr .busy-indicator .busy-10 { left: 74.97%; }
+.ltr .busy-indicator .busy-11 { left: 83.3%; }
+.ltr .busy-indicator .busy-12 { left: 91.63%; }
+
+
+/* rtl busy units */
+.rtl .busy-indicator .busy-1 { right: 0%; }
+.rtl .busy-indicator .busy-2 { right: 8.33%; }
+.rtl .busy-indicator .busy-3 { right: 16.66%; }
+.rtl .busy-indicator .busy-4 { right: 24.990000000000002%; }
+.rtl .busy-indicator .busy-5 { right: 33.32%; }
+.rtl .busy-indicator .busy-6 { right: 41.65%; }
+.rtl .busy-indicator .busy-7 { right: 49.980000000000004%; }
+.rtl .busy-indicator .busy-8 { right: 58.31%; }
+.rtl .busy-indicator .busy-9 { right: 66.64%; }
+.rtl .busy-indicator .busy-10 { right: 74.97%; }
+.rtl .busy-indicator .busy-11 { right: 83.3%; }
+.rtl .busy-indicator .busy-12 { right: 91.63%; }
+
+/* sub: months day view */
+
+#months-day-view {
+  border-top: 2px solid #B0B0B0;
+  background-color: white;
+  height: -moz-calc(50% - 3.5mozmm);
+}
+
+#months-day-view .day-events {
+  height: -moz-calc(100% - 4.3mozmm);
+  overflow-y: auto;
+}
+
+#months-day-view  header.toolbar {
+  background-color: #E2E2E2;
+  border-bottom: 1px solid #CCC;
+  text-align: center;
+  padding: 1mozmm;
+}
+
+/** sub: view selector **/
+
+#bottom-toolbar {
+  height: 9mozmm;
+  background: #EFEFEF;
+}
+
+#view-selector {
+  margin-top: 1mozmm;
+  border-top: 1px solid black;
+  padding: 1.5mozmm 1.5mozmm;
+  overflow: hidden;
+}
+
+#view-selector a {
+  text-decoration: none;
+  color: black;
+}
+
+.rtl #view-selector li {
+  float: right;
+}
+
+.ltr #view-selector li {
+  float: left;
+}
+
+#view-selector > li.today {
+  width: -moz-calc(30% - 2mozmm);
+  margin-right: 2mozmm;
+}
+
+#view-selector menu li.week {
+  border-right: 1px solid #9B9B9B;
+  border-left: 1px solid #9B9B9B;
+}
+
+#view-selector > li.time-selection {
+  width: 70%;
+}
+
+#view-selector > li a {
+  padding: 1.5mozmm 2mozmm;
+  display: block;
+}
+
+#view-selector > li {
+  height: 5.9mozmm;
+  text-align: center;
+  font-weight: bold;
+  color: black;
+  display: block;
+  border-radius: 5px;
+  border: 1px solid #656565;
+  background-color: #DDD;
+  width: 100%;
+}
+
+
+#view-selector menu li {
+  width: 33%;
+}
+
+/* DEVICE SETTINGS */
+
+@media screen and (max-width: 480px) {
+  html, body {
+    font-size: 2mozmm;
+  }
+
+  #months-day-view .day-events {
+    height: -moz-calc(100% - 3mozmm);
+  }
+}
+
