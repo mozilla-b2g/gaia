@@ -290,6 +290,13 @@
   text-shadow: 0 0 10px rgba(255, 255, 255, .4), 0 0 3px rgba(255, 255, 255, .3);
 }
 
+@media screen and (height: 800px) {
+  #lockscreen-panel-passcode::before {
+    top: 80px;
+    font-size: 100px;
+  }
+}
+
 [data-passcode-status="error"] #lockscreen-panel-passcode::before {
   content: ":'(";
 }
@@ -307,6 +314,13 @@
   margin: 0;
 }
 
+@media screen and (height: 800px) {
+  #lockscreen-passcode-code {
+    bottom: 400px;
+    height: 120px;
+  }
+}
+
 #lockscreen-passcode-code > span {
   -moz-box-sizing: border-box;
   display: block;
@@ -319,6 +333,13 @@
 
   position: relative;
 }
+
+@media screen and (height: 800px) {
+  #lockscreen-passcode-code > span {
+    border: 20px solid #919191;
+  }
+}
+
 
 [data-passcode-status="error"] #keypadscreen-code > span {
   box-shadow: 0 0 10px #f00 inset;
@@ -351,6 +372,16 @@
   margin-top: -15px;
 }
 
+@media screen and (height: 800px) {
+  #lockscreen-passcode-code > span[data-dot]::before {
+    width: 50px;
+    height: 50px;
+    border-radius: 25px;
+    margin-left: -25px;
+    margin-top: -25px;
+  }
+}
+
 #lockscreen-passcode-pad {
   -moz-box-sizing: border-box;
   border: 1px solid #919191;
@@ -359,6 +390,13 @@
   height: 240px;
   width: 100%;
 }
+
+@media screen and (height: 800px) {
+  #lockscreen-passcode-pad {
+    height: 400px;
+  }
+}
+
 
 #lockscreen-passcode-pad > a {
   -moz-box-sizing: border-box;
@@ -379,6 +417,17 @@
   text-decoration: none;
 }
 
+@media screen and (height: 800px) {
+  #lockscreen-passcode-pad > a {
+    width: -moz-calc(33.333% - 16px);
+    height: 84px;
+    margin: 8px;
+
+    font-size: 64px;
+    line-height: 84px;
+  }
+}
+
 #lockscreen-passcode-pad > a:active {
   background-color: rgb(0, 0, 0);
   color: #ccc;
@@ -386,6 +435,12 @@
 
 #lockscreen-passcode-pad > a.lockscreen-passcode-pad-func {
   font-size: 16px;
+}
+
+@media screen and (height: 800px) {
+  #lockscreen-passcode-pad > a.lockscreen-passcode-pad-func {
+    font-size: 20px;
+  }
 }
 
 #lockscreen-panel-emergency-call {
