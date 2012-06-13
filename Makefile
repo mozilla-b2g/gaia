@@ -440,5 +440,6 @@ install-gaia: profile
 
 install-media-samples:
 	$(ADB) push media-samples/DCIM /sdcard/DCIM
+	$(ADB) push media-samples/videos /sdcard/videos
 
 demo: install-media-samples install-gaia
