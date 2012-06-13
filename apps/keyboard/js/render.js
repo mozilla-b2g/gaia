@@ -199,18 +199,21 @@ const IMERender = (function() {
     var altCharsCurrent = [];
 
     if (left === true) {
-      this.menu.style.left = '-moz-calc(' + target.offsetLeft + 'px - 0.8rem)';
-      this.menu.style.right = 'auto';
-      this.menu.style.textAlign = 'center';
+      this.menu.classList.add("kbr-menu-left");
+      // this.menu.style.left = '-moz-calc(' + target.offsetLeft + 'px - 0.8rem)';
+      // this.menu.style.right = 'auto';
+      // this.menu.style.textAlign = 'center';
       altCharsCurrent.push(key.firstChild.innerHTML);
       altCharsCurrent = altCharsCurrent.concat(altChars);
     } else {
-      var width = '-moz-calc(' + window.innerWidth + 'px - ' +
-                   target.offsetLeft + 'px - 0.8rem - ' +
-                   target.style.width + ' )';
-      this.menu.style.right = width;
-      this.menu.style.left = 'auto';
-      this.menu.style.textAlign = 'center';
+      this.menu.classList.add("kbr-menu-right");
+
+      // var width = '-moz-calc(' + window.innerWidth + 'px - ' +
+                   // target.offsetLeft + 'px - 0.8rem - ' +
+                   // target.style.width + ' )';
+      // this.menu.style.right = width;
+      // this.menu.style.left = 'auto';
+      // this.menu.style.textAlign = 'center';
       altCharsCurrent = altChars.reverse();
       altCharsCurrent.push(key.firstChild.innerHTML);
     }
@@ -226,8 +229,9 @@ const IMERender = (function() {
       content += buildKey(label, '', cssWidth, dataset);
     });
     this.menu.innerHTML = content;
+    target.querySelectorAll("span")[0].appendChild(this.menu);
     this.menu.style.display = 'block';
-    this.menu.style.top = '-moz-calc(' + target.offsetTop + 'px - 4.6rem)';
+    // this.menu.style.top = '-moz-calc(' + target.offsetTop + 'px - 4.6rem)';
   };
 
   var hideAlternativesCharMenu = function km_hideAlternativesCharMenu() {
