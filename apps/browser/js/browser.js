@@ -54,18 +54,20 @@ var Browser = {
     this.tabsBadge.addEventListener('click',
       this.handleTabsBadgeClicked.bind(this));
 
-    this.swipeManager.browser = this;
-    this.tabsList.addEventListener('mousedown',
-      this.swipeManager.mousedown.bind(this.swipeManager));
-    this.tabsList.addEventListener('pan',
-      this.swipeManager.pan.bind(this.swipeManager));
-    this.tabsList.addEventListener('tap',
-      this.swipeManager.tap.bind(this.swipeManager));
-    this.tabsList.addEventListener('swipe',
-      this.swipeManager.swipe.bind(this.swipeManager));
+    this.tabsSwipeMngr.browser = this;
+    ['mousedown', 'pan', 'tap', 'swipe'].forEach((function(evt) {
+      this.tabsList.addEventListener(evt,
+        this.tabsSwipeMngr[evt].bind(this.tabsSwipeMngr));
+    }).bind(this));
 
-    this.mainScreen.addEventListener('click',
-      this.handlePageScreenClicked.bind(this));
+    this.screenSwipeMngr.browser = this;
+    this.screenSwipeMngr.screen = this.mainScreen;
+    this.screenSwipeMngr.gestureDetector = new GestureDetector(this.mainScreen);
+
+    ['mousedown', 'pan', 'tap', 'swipe'].forEach((function(evt) {
+      this.mainScreen.addEventListener(evt,
+        this.screenSwipeMngr[evt].bind(this.screenSwipeMngr));
+    }).bind(this));
 
     this.handleWindowResize();
 
@@ -88,15 +90,14 @@ var Browser = {
   // We want to ensure the current page preview on the tabs screen is in
   // a consistently sized gutter on the left
   handleWindowResize: function browser_handleWindowResize() {
-    var translate = 'translateX(-' + (window.innerWidth - 50) + 'px)';
-    if (!this.cssTranslateId) {
-      var css = '.tabs-screen #main-screen { -moz-transform: ' +
-        translate + ';}';
+    var leftPos = -(window.innerWidth - 50) + 'px';
+    if (!this.gutterPosRule) {
+      var css = '.tabs-screen #main-screen { left: ' + leftPos + ' }';
       var insertId = this.styleSheet.cssRules.length - 1;
-      this.cssTranslateId = this.styleSheet.insertRule(css, insertId);
+      this.gutterPosRule = this.styleSheet.insertRule(css, insertId);
     } else {
-      var rule = this.styleSheet.cssRules[this.cssTranslateId];
-      rule.style.MozTransform = translate;
+      var rule = this.styleSheet.cssRules[this.gutterPosRule];
+      rule.style.left = leftPos;
     }
   },
 
@@ -292,7 +293,6 @@ var Browser = {
     if (this.currentScreen === this.PAGE_SCREEN) {
       this.urlInput.value = this.currentTab.url;
       this.urlInput.select();
-      GlobalHistory.getHistory(this.showGlobalHistory.bind(this));
       this.showAwesomeScreen();
     }
   },
@@ -468,10 +468,16 @@ var Browser = {
   },
 
   deleteTab: function browser_deleteTab(id) {
+    var tabIds = Object.keys(this.tabs);
     this.tabs[id].dom.parentNode.removeChild(this.tabs[id].dom);
     delete this.tabs[id];
     if (this.currentTab && this.currentTab.id === id) {
-      this.currentTab = null;
+      // The tab to be selected when the current one is deleted
+      var newTab = tabIds.indexOf(id);
+      if (newTab === tabIds.length - 1) {
+        newTab -= 1;
+      }
+      this.selectTab(Object.keys(this.tabs)[newTab]);
     }
   },
 
@@ -495,6 +501,9 @@ var Browser = {
   },
 
   switchScreen: function browser_switchScreen(screen) {
+    if (this.currentScreen === this.TABS_SCREEN) {
+      this.screenSwipeMngr.gestureDetector.stopDetecting();
+    }
     document.body.classList.remove(this.currentScreen);
     this.previousScreen = this.currentScreen;
     this.currentScreen = screen;
@@ -502,6 +511,7 @@ var Browser = {
   },
 
   showAwesomeScreen: function browser_showAwesomeScreen() {
+    GlobalHistory.getHistory(this.showGlobalHistory.bind(this));
     this.urlInput.focus();
     this.setUrlButtonMode(this.GO);
     this.tabsBadge.innerHTML = '×';
@@ -564,11 +574,62 @@ var Browser = {
     }
     this.tabsList.innerHTML = '';
     this.tabsList.appendChild(ul);
-    new GestureDetector(ul).startDetecting();
     this.switchScreen(this.TABS_SCREEN);
+    this.screenSwipeMngr.gestureDetector.startDetecting();
+    new GestureDetector(ul).startDetecting();
   },
 
-  swipeManager: {
+  screenSwipeMngr: {
+
+    TRANSITION_SPEED: 1.8,
+    TRANSITION_FRACTION: 0.75,
+    DEFAULT_TRANSITION: '0.2s ease-in-out',
+
+    gestureDetector: null,
+    browser: null,
+    screen: null,
+    winWidth: null,
+
+    mousedown: function screenSwipe_mousedown(e) {
+      // The mousedown event can be fired at any time, the other
+      // events are only fired when tabs screen is active
+      if (this.browser.currentScreen !== this.browser.TABS_SCREEN) {
+        return;
+      }
+      e.preventDefault();
+      this.winWidth = window.innerWidth;
+      this.screen.style.MozTransition = 'none';
+    },
+
+    pan: function screenSwipe_pan(e) {
+      if (e.detail.absolute.dx < 0) {
+        return;
+      }
+      this.screen.style.left = -(this.winWidth - 50) +
+        e.detail.absolute.dx + 'px';
+    },
+
+    tap: function screenSwipe_tap(e) {
+      this.screen.style.MozTransition = this.DEFAULT_TRANSITION;
+      this.browser.showPageScreen();
+    },
+
+    swipe: function screenSwipe_swipe(e) {
+      // We only want to deal with left to right swipes
+      var fastenough = e.detail.vx > this.TRANSITION_SPEED;
+      var distance = e.detail.start.screenX - e.detail.end.screenX;
+      var farenough = Math.abs(distance) >
+        this.winWidth * this.TRANSITION_FRACTION;
+      this.screen.style.MozTransition = this.DEFAULT_TRANSITION;
+      this.screen.style.left = '';
+      if (farenough || fastenough) {
+        this.browser.showPageScreen();
+        return;
+      }
+    }
+  },
+
+  tabsSwipeMngr: {
 
     TRANSITION_SPEED: 1.8,
     TRANSITION_FRACTION: 0.50,
@@ -578,7 +639,7 @@ var Browser = {
     id: null,
     containerWidth: null,
 
-    mousedown: function swipe_mousedown(e) {
+    mousedown: function tabSwipe_mousedown(e) {
       e.preventDefault();
       this.tab = e.target;
       this.id = this.tab.getAttribute('data-id');
@@ -594,7 +655,7 @@ var Browser = {
       this.tab.style.width = e.target.parentNode.clientWidth + 'px';
     },
 
-    pan: function swipe_pan(e) {
+    pan: function tabSwipe_pan(e) {
       if (!this.deleteable) {
         return;
       }
@@ -606,12 +667,12 @@ var Browser = {
       this.tab.style.left = e.detail.absolute.dx + 'px';
     },
 
-    tap: function swipe_tap() {
+    tap: function tabSwipe_tap() {
       this.browser.selectTab(this.id);
       this.browser.showPageScreen();
     },
 
-    swipe: function swipe_swipe(e) {
+    swipe: function tabSwipe_swipe(e) {
       if (!this.deleteable) {
         return;
       }
@@ -640,7 +701,7 @@ var Browser = {
       this.deleteTab(time, offset);
     },
 
-    deleteTab: function swipe_deleteTab(time, offset) {
+    deleteTab: function tabSwipe_deleteTab(time, offset) {
       var browser = this.browser;
       var id = this.id;
       var li = this.tab.parentNode;

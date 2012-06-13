@@ -129,7 +129,7 @@ body {
 }
 
 #main-screen {
- -moz-transition: 0.2s ease-in-out;
+  -moz-transition: 0.2s ease-in-out;
   margin: 0;
   display: -moz-box;
   -moz-box-orient: vertical;
@@ -138,6 +138,7 @@ body {
   font-family: 'Open Sans', sans-serif;
   z-index: 50;
   position: relative;
+  left: 0px;
 }
 
 #tabs-badge {
