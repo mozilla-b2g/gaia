@@ -278,12 +278,12 @@
   position: absolute;
   display: block;
 
-  top: 80px;
+  top: 16px;
   width: 100%;
   text-align: center;
 
   color: #ccc;
-  font-size: 100px;
+  font-size: 80px;
   font-weight: 600;
   letter-spacing: -2px;
   line-height: 1.1em;
@@ -300,8 +300,8 @@
 
 #lockscreen-passcode-code {
   position: absolute;
-  bottom: 400px;
-  height: 120px;
+  bottom: 240px;
+  height: 80px;
   width: 100%;
   background-color: rgba(255, 255, 255, 0.5);
   margin: 0;
@@ -314,7 +314,7 @@
   width: 25%;
   height: 100%;
   text-align: center;
-  border: 20px solid #919191;
+  border: 15px solid #919191;
   box-shadow: 0 0 10px #fff inset;
 
   position: relative;
@@ -356,7 +356,7 @@
   border: 1px solid #919191;
   position: absolute;
   bottom: 0;
-  height: 400px;
+  height: 240px;
   width: 100%;
 }
 
@@ -364,16 +364,16 @@
   -moz-box-sizing: border-box;
   display: block;
   float: left;
-  width: -moz-calc(33.333% - 16px);
-  height: 84px;
-  margin: 8px;
+  width: -moz-calc(33.333% - 8px);
+  height: 52px;
+  margin: 4px;
   text-align: center;
   border: 1px solid #919191;
   border-radius: 8px;
   outline: none;
 
-  font-size: 64px;
-  line-height: 84px;
+  font-size: 40px;
+  line-height: 52px;
 
   color: #919191;
   text-decoration: none;
@@ -385,7 +385,7 @@
 }
 
 #lockscreen-passcode-pad > a.lockscreen-passcode-pad-func {
-  font-size: 20px;
+  font-size: 16px;
 }
 
 #lockscreen-panel-emergency-call {
