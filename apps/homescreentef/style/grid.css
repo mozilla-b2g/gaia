@@ -31,8 +31,6 @@
   /* It SHOULD be 2.5rem but status bar is 32px instead of 20px */
   padding-bottom: -moz-calc(2.5rem - 0.3rem);
   font-family:'Open Sans';
-
-  max-height: 80px;
 }
 
 /* Maximum 16 icons for page */
