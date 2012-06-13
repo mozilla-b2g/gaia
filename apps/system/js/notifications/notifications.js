@@ -237,3 +237,11 @@ var NotificationScreen = {
     }
   }
 };
+
+(function init_NotificationScreen() {
+  var touchables = [
+    document.getElementById('notifications-screen'),
+    document.getElementById('statusbar')
+  ];
+  NotificationScreen.init(touchables);
+}());

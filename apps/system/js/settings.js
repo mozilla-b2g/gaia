@@ -32,8 +32,3 @@ var SettingsListener = {
 };
 
 SettingsListener.init();
-
-/* === Language === */
-SettingsListener.observe('language.current', 'en-US', function(value) {
-  updateConnection();
-});
