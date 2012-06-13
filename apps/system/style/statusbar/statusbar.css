@@ -38,10 +38,10 @@
   background-image: url("images/notifications/desktop-notification.png");
 }
 
-#titlebar {
+#statusbar-conn {
   text-shadow: 0 0 3px hsla(0,0%,0%,.5);
-  line-height: 31px;
-  font-size: 18px;
+  line-height: 30px;
+  font-size: 14px;
   margin: 0 4px;
 }
 

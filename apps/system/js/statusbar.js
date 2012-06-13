@@ -4,11 +4,21 @@
 'use strict';
 
 var StatusBar = {
+  radioDisabled: false,
+
   init: function sb_init() {
     // XXX: is this the correct way to probe language changes?
     SettingsListener.observe('language.current', 'en-US',
       (function localeChanged(value) {
         this.updateConnection();
+      }).bind(this)
+    );
+
+    SettingsListener.observe('ril.radio.disabled', false,
+      (function rilDisable(value) {
+        this.radioDisabled = value;
+        this.updateConnection();
+        this.updateWifi();
       }).bind(this)
     );
 
@@ -139,48 +149,50 @@ var StatusBar = {
     var _ = document.mozL10n.get;
     var voice = conn.voice;
 
-    var airplaneMode = false;
-    var settings = window.navigator.mozSettings;
-    if (settings) {
-      var settingName = 'ril.radio.disabled';
-      var req = settings.getLock().get(settingName);
-      req.onsuccess = function() {
-        airplaneMode = req.result[settingName];
-        if (airplaneMode) {
-          document.getElementById('titlebar').textContent = _('airplane');
-        }
-      }
+    if (this.radioDisabled) {
+      this.conn.textContent = _('airplane');
+      return;
     }
 
     // Update the operator name / SIM status.
     var title = '';
-    if (conn.cardState == 'absent') {
-      title = _('noSimCard');
-    } else if (conn.cardState == 'pin_required') {
-      title = _('pinCodeRequired');
-    } else if (conn.cardState == 'puk_required') {
-      title = _('pukCodeRequired');
-    } else if (conn.cardState == 'network_locked') {
-      title = _('networkLocked');
-    } else if (!voice.connected) {
-      if (voice.emergencyCallsOnly) {
-        title = _('emergencyCallsOnly');
-      } else {
-        title = _('searching');
-      }
-    } else {
-      // voice.network will be introduced by bug 761482
-      // Before that, get operator name from voice.operator.
-      var networkName = (voice.network) ?
-        voice.network.shortName : voice.operator;
+    switch (conn.cardState) {
+      case 'absent':
+        title = _('noSimCard');
+        break;
+      case 'pin_required':
+        title = _('pinCodeRequired');
+        break;
+      case 'puk_required':
+        title = _('pukCodeRequired');
+        break;
+      case 'network_locked':
+        title = _('networkLocked');
+        break;
+    }
 
-      if (voice.roaming) {
-        title = _('roaming', { operator: (networkName || '') });
+    if (!title) {
+      if (!voice.connected) {
+        if (voice.emergencyCallsOnly) {
+          title = _('emergencyCallsOnly');
+        } else {
+          title = _('searching');
+        }
       } else {
-        title = networkName || '';
+        // voice.network will be introduced by bug 761482
+        // Before that, get operator name from voice.operator.
+        var networkName = (voice.network) ?
+          voice.network.shortName : voice.operator;
+
+        if (voice.roaming) {
+          title = _('roaming', { operator: (networkName || '') });
+        } else {
+          title = networkName || '';
+        }
       }
     }
-    document.getElementById('titlebar').textContent = title;
+
+    this.conn.textContent = title;
 
     // Update the 3G/data status.
     var dataType = conn.data.connected ? conn.data.type : '';
@@ -212,7 +224,7 @@ var StatusBar = {
 
   getAllElements: function ls_getAllElements() {
     // ID of elements to create references
-    var elements = ['signal'];
+    var elements = ['signal', 'conn'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
