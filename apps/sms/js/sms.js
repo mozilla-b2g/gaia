@@ -400,8 +400,8 @@ var ConversationListView = {
            (!conversation.timestamp ? '' :
            '  <div class="time" data-time="' + conversation.timestamp + '">' +
              prettyDate(conversation.timestamp) + '</div>') +
-           (conversation.unread ?
-           '<div class="unread">' + conversation.unread + '</div>' : '') +
+           (conversation.unread ? '<div class="unread-highlight"></div>' +
+           '<div class="unread-tag">' + conversation.unread + '</div>' : '') +
            '</a>';
   },
 

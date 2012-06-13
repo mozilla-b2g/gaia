@@ -276,16 +276,15 @@ body.msg-search-mode #msg-conversations-list {
   position: relative;
   /* Remove the thumbnail for current stage.
    *padding need to 112px + img width when social network integration is ready*/
-  padding: 13px 16px 0 112px;
+  padding: 13px 16px 0 22px;
   border-top: 1px solid hsla(207,22%,92%,1);
   border-bottom: 1px solid hsla(223,7%,81%,1);
-  width: -moz-calc(100% + 90px);
-  right: 90px;
-  -moz-transition: -moz-transform 0.3s ease;
+  width: 100%;
+  -moz-transition: width 0.3s ease;
 }
 
 body.msg-edit-mode #msg-conversations-list > a {
-  -moz-transform: translateX(90px);
+  padding: 13px 16px 0 112px;
 }
 
 #msg-conversations-list > a:active {
@@ -325,23 +324,28 @@ body.msg-edit-mode #msg-conversations-list > a {
   width: 64px;
   height: 64px;
   border: none;
+  -moz-transition: width 0.3s ease;
 }
 
 #msg-conversations-list a > input[type=checkbox] + span {
-  width: 60px;
+  width: 0px;
   height: 60px;
-  border: 4px solid;
   border-radius: 5px;
+}
+
+body.msg-edit-mode #msg-conversations-list a > input[type=checkbox]:checked + span {
+  background: url("./images/checked.png") no-repeat scroll center center,
+    -moz-linear-gradient(#ffffff, #eaeae4);
+}
+
+body.msg-edit-mode #msg-conversations-list > a > span {
+  width: 60px;
+  border: 4px solid;
   -moz-border-top-colors: #c3c9cb #c3c9cb #fff #fff;
   -moz-border-right-colors: #c3c9cb #c3c9cb #fff #fff;
   -moz-border-bottom-colors: #c3c9cb #c3c9cb #fff #fff;
   -moz-border-left-colors: #c3c9cb #c3c9cb #fff #fff;
-  background: -moz-linear-gradient(#eaeae4, #ffffff);
-}
-
-#msg-conversations-list a > input[type=checkbox]:checked + span {
-  background: url("./images/checked.png") no-repeat scroll center center,
-    -moz-linear-gradient(#ffffff, #eaeae4);
+  background: -moz-linear-gradient(#eaeae4, #ffffff);  
 }
 
 #msg-conversations-list .photo {
@@ -366,7 +370,7 @@ body.msg-edit-mode #msg-conversations-list > a {
   font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
-  width: -moz-calc(100% - 100px);
+  width: -moz-calc(100% - 110px);
 }
 
 #msg-conversations-list .msg {
@@ -374,6 +378,7 @@ body.msg-edit-mode #msg-conversations-list > a {
   text-shadow: 0 1px 0 #ddd;
   font-size: 22px;
   height: 32px;
+  width: -moz-calc(100% - 70px);
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -392,7 +397,17 @@ body.msg-edit-mode #msg-conversations-list > a {
   font-size: 18px;
 }
 
-#msg-conversations-list .unread {
+#msg-conversations-list .unread-highlight {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 10px;
+  height: 100%;
+  padding-top: -2px;
+  background: -moz-linear-gradient(45deg, gray, #EDEDED);
+}
+
+#msg-conversations-list .unread-tag {
   position: absolute;
   top: 45px;
   right: 26px;
@@ -402,18 +417,6 @@ body.msg-edit-mode #msg-conversations-list > a {
   font-size: 18px;
   background: -moz-linear-gradient(top, #00ADEE, #0078A5);
   border-radius: 9px;
-}
-
-body.msg-edit-mode #msg-conversations-list .name {
-  width: -moz-calc(100% - 190px);
-}
-
-body.msg-edit-mode #msg-conversations-list .msg {
-  width: -moz-calc(100% - 90px);
-}
-
-body.msg-edit-mode #msg-conversations-list .time {
-  right: 106px;
 }
 
 #msg-undo-toolbar {
