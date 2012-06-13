@@ -12,6 +12,8 @@ var StatusBar = {
       }).bind(this)
     );
 
+    this.getAllElements();
+
     window.addEventListener('screenchange', this);
     this.addListeners();
 
@@ -185,14 +187,14 @@ var StatusBar = {
     document.getElementById('data').textContent = dataType;
 
     // Update the signal strength bars.
-    var signalElements = document.querySelectorAll('#signal > span');
+    var signalElements = this.signal.children;
     for (var i = 0; i < 4; i++) {
       var haveSignal = (i < voice.relSignalStrength / 25);
       var el = signalElements[i];
       if (haveSignal) {
-        el.classList.add('haveSignal');
+        el.classList.add('have-signal');
       } else {
-        el.classList.remove('haveSignal');
+        el.classList.remove('have-signal');
       }
     }
   },
@@ -206,6 +208,21 @@ var StatusBar = {
     // relSignalStrength should be between 0 and 100
     var level = Math.min(Math.floor(evt.relSignalStrength / 20), 4);
     wifiIndicator.className = 'signal-level' + level;
+  },
+
+  getAllElements: function ls_getAllElements() {
+    // ID of elements to create references
+    var elements = ['signal'];
+
+    var toCamelCase = function toCamelCase(str) {
+      return str.replace(/\-(.)/g, function replacer(str, p1) {
+        return p1.toUpperCase();
+      });
+    }
+
+    elements.forEach((function createElementRef(name) {
+      this[toCamelCase(name)] = document.getElementById('statusbar-' + name);
+    }).bind(this));
   }
 };
 

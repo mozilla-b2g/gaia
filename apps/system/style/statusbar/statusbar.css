@@ -45,43 +45,43 @@
   margin: 0 4px;
 }
 
-#signal {
+#statusbar-signal {
   width: 20px;
   margin-top: 2px;
 }
 
-#signal span {
+#statusbar-signal > span {
   background: #333333;
   float: left;
   width: 3px;
   margin: 1px;
 }
 
-#signal span.haveSignal {
+#statusbar-signal > span.have-signal {
   background: #999999;
 }
 
-#signal span:nth-child(1) { /* poor signal */
+#statusbar-signal > span:nth-child(1) { /* poor signal */
   margin-top: 17px;
   height: 3px;
 }
 
-#signal span:nth-child(2) { /* medium signal */
+#statusbar-signal > span:nth-child(2) { /* medium signal */
   margin-top: 13px;
   height: 7px;
 }
 
-#signal span:nth-child(3) { /* good signal */
+#statusbar-signal span:nth-child(3) { /* good signal */
   margin-top: 10px;
   height: 10px;
 }
 
-#signal span:nth-child(4) { /* awesome signal */
+#statusbar-signal > span:nth-child(4) { /* awesome signal */
   margin-top: 6px;
   height: 14px;
 }
 
-*[dir=rtl] #signal span {
+*[dir=rtl] #statusbar-signal > span {
   float: right;
 }
 
