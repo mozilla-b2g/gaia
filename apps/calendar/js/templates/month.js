@@ -8,6 +8,7 @@
 
     currentMonth: [
       '<span class="month">{month}</span>',
+      ' ',
       '<span class="year">{year}</span>'
     ].join(''),
 
