@@ -35,43 +35,47 @@ input {
 
 #calc-wrapper {
   -moz-box-orient: vertical;
+  -webkit-box-orient: vertical;
   display: -moz-box;
+  display: -webkit-box;
   height: 100%;
   width: 100%;
-  padding: 0 0 5px 5px;
+  padding: 5px;
 }
 
 .row {
-  display: -moz-box;
-  display: -webkit-box;
   -moz-box-flex: 1;
   -webkit-box-flex: 1;
   overflow: hidden;
+  position: relative;
+  padding-bottom: 5px;
 }
 
 input {
-  font-family: monospace;
-  -moz-box-flex: 1;
-  -webkit-box-flex: 1;
+  /*font-family: monospace;*/
   font-size: 300%;
-  width: 50px;
   display: block;
-  margin: 5px 5px 0 0;
-  -moz-box-align: stretch;
-  -webkit-box-align: stretch;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  width: 24.25%;
+  height: 100%;
+  margin-left: 1%;
+  float: left;
+}
+input:first-child {
+  margin-left: 0%;
 }
 
 #display {
-  -moz-box-flex: 1;
   position: relative;
   border-radius: 5px;
   padding: 0 9px;
-  margin: 5px 5px 0 0;
   height: 150px;
   background: rgba(0, 0, 0, 0.3);
   border: 0;
   overflow: hidden;
   word-spacing:-15px;
+  margin-bottom: 5px;
 }
 #display b {
   position: absolute;
@@ -84,7 +88,7 @@ input {
 
 #tip-window {
   position: absolute;
-  top: -60%;
+  top: -100%;
   width: 90%;
   left: 5%;
   padding: 5%;
@@ -115,9 +119,10 @@ input {
 }
 #tip-window input {
   display: block;
-  width: auto;
+  width: 100%;
   font-size: 150%;
   padding: 10px;
+  float: none;
   margin: 5% auto 0 auto;
 }
 
@@ -137,6 +142,13 @@ input:active {
   background: -moz-linear-gradient(center bottom , #A5A5A5 0pt, #878787 1px, #545454 100%) repeat scroll 0 0 transparent;
 }
 
+[value='TIP'] {
+  font-size: 150%;
+}
+
+[value='='], [value='C'] {
+  width: 49.5%;
+}
 
 [value='='] {
   background: -moz-linear-gradient(center top , #B1D600 1px, #8FC300 2px, #526B17 100%) repeat scroll 0 0 transparent;

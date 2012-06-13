@@ -17,11 +17,11 @@ var Calculator = {
   stack: [],
 
   updateDisplay: function calculator_updateDisplay() {
-    if (this.stack.length === 0) {
-      this.display.innerHTML = '0';
-      return;
-    }
     var outval = this.stack.join('');
+    outval = this.stack.join('');
+    if (this.stack.length === 0) {
+      outval = '0';
+    }
     this.display.innerHTML = outval;
     var valWidth = this.display.offsetWidth;
     var screenWidth = this.display.parentNode.offsetWidth;
@@ -100,6 +100,9 @@ var Calculator = {
     }
     if (key === '÷') {
       return '/';
+    }
+    if (key === '−') {
+      return '-';
     }
     return key;
   },
@@ -231,14 +234,14 @@ var Calculator = {
   },
 
   init: function calculator_init() {
-    document.addEventListener('mousedown', this);
-    document.addEventListener('mouseup', this);
+    document.addEventListener('touchstart', this);
+    document.addEventListener('touchend', this);
     this.updateDisplay();
   },
 
   handleEvent: function calculator_handleEvent(evt) {
     switch (evt.type) {
-      case 'mousedown':
+      case 'touchstart':
         var value = evt.target.value;
         switch (evt.target.dataset.type) {
           case 'value':
@@ -262,7 +265,7 @@ var Calculator = {
         }
         break;
 
-      case 'mouseup':
+      case 'touchend':
         this.clearBackspaceTimeout();
         break;
     }
