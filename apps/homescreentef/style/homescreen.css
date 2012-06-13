@@ -24,7 +24,7 @@ section,footer,nav,a,img {
 
 #paginatioBar {
   width: 100%;
-  height: .5rem;
+  height: .3rem;
   position: fixed;
   top: 0;
   left: 0;
@@ -34,15 +34,15 @@ section,footer,nav,a,img {
   #paginatioBar > .paginationScroller {
     width: 100%;
     height: 100%;
-    background-color: #ff7f02;
+    background-color: #ff4e00;
     -moz-transition: all 0.2s ease;
     visibility: hidden;
-    border-radius: .25rem;
+    border-radius: .15rem;
   }
 
 #icongrid {
   width: 100%;
-  height: 90%;
+  height: -moz-calc(100% - 4rem);
   position: fixed;
   top: 0;
   left: 0;
@@ -54,7 +54,7 @@ section,footer,nav,a,img {
 /* START footer */
 
 #footer {
-  height: 10%;
+  height: 4rem;
   width: 100%;
   position: fixed;
   bottom: 0;
