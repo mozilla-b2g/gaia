@@ -1,3 +1,5 @@
+console.log("********* Dialer Gaia -> settings_listener *********");
+
 var SettingsListener = {
   _callbacks: {},
 
