@@ -155,11 +155,11 @@ function getFileContent(file) {
   return [inputStream, count];
 }
 
-function getJSON(dir, name) {
+function getJSON(root, dir, name) {
   let file = Cc["@mozilla.org/file/local;1"]
                .createInstance(Ci.nsILocalFile);
   file.initWithPath(GAIA_DIR);
-  file.append('apps');
+  file.append(root);
   file.append(dir);
   file.append(name);
 
@@ -213,7 +213,7 @@ let iconsToInject = [];
 
     // Get the icons url for pre-caching in homescreen
     // and system app.
-    let webappManifest = getJSON(dir, "manifest.webapp");
+    let webappManifest = getJSON(directoryName, dir, "manifest.webapp");
     if (webappManifest) {
       if (webappManifest.icons) {
         let sizes = Object.keys(webappManifest.icons);
