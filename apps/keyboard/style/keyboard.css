@@ -373,3 +373,13 @@ button:-moz-focus-inner{
 #keyboard-candidate-panel-toggle-button[data-active] {
   background: -moz-linear-gradient(bottom, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
 }
+
+.keyboard-pending-symbols-highlight-green {
+	background:#33aa33;
+}
+.keyboard-pending-symbols-highlight-red {
+	background:#aa3333;
+}
+.keyboard-pending-symbols-highlight-blue {
+	background:#3333aa;
+}
