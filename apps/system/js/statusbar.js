@@ -110,9 +110,9 @@ var StatusBar = {
     this._clockTimer =
       window.setTimeout((this.updateClock).bind(this), (59 - sec) * 1000);
 
-    // Update time
-    var element = document.getElementById('statusbar-time');
-    element.textContent = now.toLocaleFormat(element.dataset.format);
+    // XXX: respect clock format in Settings,
+    // but drop the AM/PM part according to spec
+    this.time.textContent = now.toLocaleFormat('%R');
   },
 
   updateBattery: function sb_updateBattery() {
@@ -249,7 +249,7 @@ var StatusBar = {
 
   getAllElements: function ls_getAllElements() {
     // ID of elements to create references
-    var elements = ['signal', 'conn', 'data', 'wifi'];
+    var elements = ['signal', 'conn', 'data', 'wifi', 'time'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
