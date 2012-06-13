@@ -333,9 +333,6 @@ var ConversationListView = {
         self.updateMsgWithContact(conversationList[i]);
       }
 
-      if (self.delNumList.length > 0) {
-        self.showUndoToolbar();
-      }
     }, null);
   },
 
@@ -414,9 +411,6 @@ var ConversationListView = {
       var conversationList = self.view.children;
       for (var i = 0; i < conversationList.length; i++) {
         self.updateMsgWithContact(conversationList[i]);
-      }
-      if (self.delNumList.length > 0) {
-        self.showUndoToolbar();
       }
     }, null);
   },
@@ -523,9 +517,20 @@ var ConversationListView = {
   //
   pendMessageDelete: function cl_pendMessageDelete() {
     window.location.hash = window.location.hash.replace('_edit', '');
+    var list = this.view.children;
+    this.delNumList = [];
+    for (var i = 0; i < list.length; i++) {
+      var cb = list[i].getElementsByClassName('fake-checkbox')[0];
+      if (!cb.checked)
+        continue;
+
+      this.delNumList.push(list[i].dataset.num);
+    }
+
     if (this.delNumList.length == 0)
       return;
 
+    this.showUndoToolbar();
     if (this.searchInput.value)
       this.searchConversations();
     else
@@ -553,6 +558,7 @@ var ConversationListView = {
     if (numberList == [])
       return;
 
+    var self = this;
     var filter = new MozSmsFilter();
     filter.numbers = numberList;
 
@@ -561,9 +567,13 @@ var ConversationListView = {
       for (var i = 0; i < messages.length; i++) {
         msgs.push(messages[i].id);
       }
-      MessageManager.deleteMessages(msgs,
-                                    this.updateConversationList.bind(this));
-    }.bind(this), filter);
+      MessageManager.deleteMessages(msgs, function deleteCallback() {
+        if (document.body.classList.contains('msg-search-result-mode'))
+          self.searchConversations();
+        else
+          self.updateConversationList();
+      });
+    }, filter);
   },
 
   showUndoToolbar: function cl_showUndoToolbar() {
@@ -585,13 +595,6 @@ var ConversationListView = {
 
     evt.preventDefault();
     cb.checked = !cb.checked;
-
-    var list = this.delNumList;
-    if (cb.checked) {
-      list.push(evt.target.dataset.num);
-    } else {
-      list.splice(list.indexOf(evt.target.dataset.num), 1);
-    }
   }
 };
 
