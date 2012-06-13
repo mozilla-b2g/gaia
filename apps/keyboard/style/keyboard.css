@@ -34,7 +34,7 @@ html, body {
   width: 100%;
   overflow: visible;
   padding: 1rem;
-  background: -moz-radial-gradient(#b1b1b1, #686868);
+  background: -moz-radial-gradient(#9BACC4, #454D58);
   -moz-transition: -moz-transform 0.3s ease;
   -moz-transform: translateY(0);
 }
@@ -61,6 +61,9 @@ button:-moz-focus-inner{
 
 .keyboard-key, span.keybaord-key-hold {
   font-family: 'Open Sans';  
+  font-size: 1.8rem;
+  line-height: 3.8rem;
+  color: #333;
   display: inline-block;
   overflow: hidden;
   text-align: center;
@@ -69,19 +72,16 @@ button:-moz-focus-inner{
   border-radius: 0.3rem;
   -moz-background-clip: padding;
   background: -moz-linear-gradient(#fff, #ebebeb);
-  box-shadow: inset 0 0px 0px 1px #FFF;
-  min-width: 2.5rem; /* Must be 2.6 from design guidelines but in chineese keyboard we have one more key per row */
+  box-shadow: inset 0 0px 0px 1px rgba(255, 255, 255, 0.9);
+  min-width: 2.6rem; /* Must be 2.6 from design guidelines but in chineese keyboard we have one more key per row */
   padding: 0;
   position: relative;
   overflow: visible;
   height: 4rem;
 }
 
-.keyboard-key span {
-  color: #464646;
-  font-size: 1.7rem;
+.keyboard-key > span {
   height: 100%;
-  line-height: 3.8rem;
   position: absolute;
   top: 0;
   left: 0;
@@ -90,28 +90,31 @@ button:-moz-focus-inner{
 
 .keyboard-key.highlighted {
   pointer-events: none;
+  font: 2.8rem/1em Open Sans Semibold, Sans-serif;
   background: #ebebeb;
   box-shadow: inset 0 0 0 1px #FFF, 0 0 0.4rem 0px rgba(0, 0, 0, 0.4);
 }
-.keyboard-key.highlighted span {
-  top: -3rem;
-  border-radius: 0.3rem;
+.keyboard-key.highlighted > span {
+  line-height: 4rem;
   -moz-background-clip: padding;
   background: -moz-linear-gradient(#fff, #ebebeb);
   /*box-shadow: 0 0 0.8rem 0 rgba(0, 0, 0, 0.6);*/
+  border-radius: 0.3rem;
   border: 1px solid #61646A;
+  height: 4.5rem;
+  top: -4.4rem;
   left: -0.8rem;
   right: -0.8rem;
   z-index: 100;
-  font-weight: bold;
 }
-  .keyboard-key.highlighted span:after,  .keyboard-key.highlighted span:before {  content: ""; position: absolute; }
-  .keyboard-key.highlighted span:after {
+  .keyboard-key.highlighted > span:after {
+    content: "";
+    position: absolute;
+    margin: 0 0.5rem;
     top: 100%;
     left: 0;
     right: 0;
     height: 1px;
-    margin: 0 .6rem;
     background: #ebebeb;
     border: solid 1px #61646A;
     border-top: none;
@@ -173,18 +176,21 @@ button:-moz-focus-inner{
   src: url('fonts/Keyboard-Symbols.woff');
 }
 
-.keyboard-key[data-keycode="-3"] span, /* IMEManager.SWITCH_KEYBOARD */
-.keyboard-key[data-keycode="8"] span, /* KeyEvent.DOM_VK_BACK_SPACE */
-.keyboard-key[data-keycode="20"] span, /* KeyEvent.DOM_VK_CAPS_LOCK */
-.keyboard-key[data-keycode="13"] span,
-.keyboard-key[data-keycode="18"] span,
-.keyboard-key[data-keycode="-1"] span,
-.keyboard-key[data-keycode="-1"] span,
-.keyboard-key[data-keycode="-2"] span { /* KeyEvent.DOM_VK_RETURN */
-  font-family: 'Keyboard Symbols', sans-serif;
-  color: #464646;
-  opacity: 0.3;
-}
+.keyboard-key[data-keycode="-3"], .keyboard-key.highlighted[data-keycode="-3"], /* IMEManager.SWITCH_KEYBOARD */
+.keyboard-key[data-keycode="8"], .keyboard-key.highlighted[data-keycode="8"], /* KeyEvent.DOM_VK_BACK_SPACE */
+.keyboard-key[data-keycode="20"], .keyboard-key.highlighted[data-keycode="20"], /* KeyEvent.DOM_VK_CAPS_LOCK */
+.keyboard-key[data-keycode="13"], .keyboard-key.highlighted[data-keycode="13"],
+.keyboard-key[data-keycode="18"], .keyboard-key.highlighted[data-keycode="18"],
+.keyboard-key[data-keycode="-1"], .keyboard-key.highlighted[data-keycode="-1"],
+.keyboard-key[data-keycode="-1"], .keyboard-key.highlighted[data-keycode="-1"],
+.keyboard-key[data-keycode="-2"], .keyboard-key.highlighted[data-keycode="-2"]
+  { /* KeyEvent.DOM_VK_RETURN */
+    font-family: 'Keyboard Symbols', sans-serif;
+    color: #5B6574;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9);
+    background: -moz-linear-gradient(bottom, #B3B3B3, #EDEDED);
+    box-shadow: inset 0 0px 0px 1px rgba(255, 255, 255, 0.5);
+  }
 
 
 /* KEYS STATES */
