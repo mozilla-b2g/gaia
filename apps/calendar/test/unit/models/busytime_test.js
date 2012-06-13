@@ -3,10 +3,11 @@ requireApp('calendar/js/calc.js');
 requireApp('calendar/js/models/busytime.js');
 
 suite('models/busytime', function() {
-  var subject;
+  var subject, events;
 
   setup(function() {
     subject = new Calendar.Models.Busytime();
+    events = {};
   });
 
   test('initialize', function() {
@@ -15,18 +16,23 @@ suite('models/busytime', function() {
     assert.isObject(subject.ids);
   });
 
-  suite('#add', function() {
-    var date, dateId, eventCalled = [];
+  function watchEvent(type) {
+    events[type] = [];
 
-    setup(function(done) {
-      eventCalled.length = 0;
+    subject.on(type, function() {
+      events[type].push(Array.prototype.slice.call(arguments));
+    });
+  }
+
+  suite('#add', function() {
+    var date, dateId;
+
+    setup(function() {
       date = new Date(2012, 0, 1);
       dateId = Calendar.Calc.getDayId(date);
 
-      subject.on('add', function() {
-        eventCalled.push(Array.prototype.slice.call(arguments));
-        done();
-      });
+      watchEvent('add');
+      watchEvent('add ' + dateId);
 
       subject.add(date, 'uniq1');
     });
@@ -36,10 +42,15 @@ suite('models/busytime', function() {
       assert.deepEqual(subject.times[dateId], {'uniq1': true});
     });
 
-    test('event', function() {
-      assert.deepEqual(eventCalled, [
-        ['uniq1', subject.get('uniq1')]
-      ]);
+    test('events', function() {
+      var expected = [['uniq1', subject.get('uniq1')]];
+
+      assert.deepEqual(events['add'], expected, 'should fire add');
+      assert.deepEqual(
+        events['add ' + dateId],
+        expected,
+       'should fire add-dateid'
+      );
     });
   });
 
@@ -52,27 +63,33 @@ suite('models/busytime', function() {
 
   suite('#remove', function() {
     var date = new Date(), dateId,
-        expectedTimes, result,
-        eventCalled = [];
+        expectedTimes, result;
 
-    setup(function(done) {
-      eventCalled.length = 0;
+    setup(function() {
       dateId = Calendar.Calc.getDayId(date);
       expectedTimes = {};
       expectedTimes[dateId] = {};
 
-      subject.on('remove', function(obj, id) {
-        eventCalled.push(Array.prototype.slice.call(arguments));
-        done();
-      });
+      watchEvent('remove');
+      watchEvent('remove ' + dateId);
 
       subject.add(date, '2');
       result = subject.remove('2');
     });
 
     test('event', function() {
-      assert.deepEqual(eventCalled,
-        [['2', date]]
+      var expected = [['2', date]];
+
+      assert.deepEqual(
+        events['remove'],
+        expected,
+        'should fire remove event'
+      );
+
+      assert.deepEqual(
+        events['remove ' + dateId],
+        expected,
+        'should fire remove dateid event'
       );
     });
 

@@ -36,6 +36,7 @@
     this.ids[id] = date;
 
     this.emit('add', id, date);
+    this.emit('add ' + dateId, id, date);
   };
 
   /**
@@ -87,6 +88,7 @@
       delete this.ids[id];
 
       this.emit('remove', id, date);
+      this.emit('remove ' + dateId, id, date);
 
       return true;
     }
