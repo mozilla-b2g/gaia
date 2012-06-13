@@ -25,14 +25,17 @@ suite('models/busytime', function() {
   }
 
   suite('#add', function() {
-    var date, dateId;
+    var date,
+        monthId,
+        dateId;
 
     setup(function() {
       date = new Date(2012, 0, 1);
       dateId = Calendar.Calc.getDayId(date);
+      monthId = Calendar.Calc.getMonthId(date);
 
       watchEvent('add');
-      watchEvent('add ' + dateId);
+      watchEvent('add ' + monthId);
 
       subject.add(date, 'uniq1');
     });
@@ -47,7 +50,7 @@ suite('models/busytime', function() {
 
       assert.deepEqual(events['add'], expected, 'should fire add');
       assert.deepEqual(
-        events['add ' + dateId],
+        events['add ' + monthId],
         expected,
        'should fire add-dateid'
       );
@@ -62,16 +65,21 @@ suite('models/busytime', function() {
   });
 
   suite('#remove', function() {
-    var date = new Date(), dateId,
-        expectedTimes, result;
+    var date = new Date(),
+        dateId,
+        monthId,
+        expectedTimes,
+        result;
 
     setup(function() {
       dateId = Calendar.Calc.getDayId(date);
+      monthId = Calendar.Calc.getMonthId(date);
+
       expectedTimes = {};
       expectedTimes[dateId] = {};
 
       watchEvent('remove');
-      watchEvent('remove ' + dateId);
+      watchEvent('remove ' + monthId);
 
       subject.add(date, '2');
       result = subject.remove('2');
@@ -87,7 +95,7 @@ suite('models/busytime', function() {
       );
 
       assert.deepEqual(
-        events['remove ' + dateId],
+        events['remove ' + monthId],
         expected,
         'should fire remove dateid event'
       );

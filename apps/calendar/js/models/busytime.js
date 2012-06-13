@@ -26,7 +26,8 @@
    */
   proto.add = function(date, id) {
     //don't check for uniqueness
-    var dateId = Calendar.Calc.getDayId(date);
+    var dateId = Calendar.Calc.getDayId(date),
+        monthId = Calendar.Calc.getMonthId(date);
 
     if (!(dateId in this.times)) {
       this.times[dateId] = {};
@@ -36,7 +37,7 @@
     this.ids[id] = date;
 
     this.emit('add', id, date);
-    this.emit('add ' + dateId, id, date);
+    this.emit('add ' + monthId, id, date);
   };
 
   /**
@@ -80,15 +81,17 @@
    * @param {String} id busy time id.
    */
   proto.remove = function(id) {
-    var dateId, date;
+    var dateId, monthId, date;
     if (id in this.ids) {
       date = this.ids[id];
       dateId = Calendar.Calc.getDayId(date);
+      monthId = Calendar.Calc.getMonthId(date);
+
       delete this.times[dateId][id];
       delete this.ids[id];
 
       this.emit('remove', id, date);
-      this.emit('remove ' + dateId, id, date);
+      this.emit('remove ' + monthId, id, date);
 
       return true;
     }
