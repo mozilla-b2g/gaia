@@ -472,6 +472,24 @@ body.player-mode #views-player {
   opacity: 1;
 }
 
+#message {
+  position: absolute;
+  top: 0px;
+  display: table;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.75);
+  z-index: 100;
+}
+
+#message-text {
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
+  font-size: 3em;
+  font-weight: bold;
+}
+
 .hidden {
   display: none;
 }

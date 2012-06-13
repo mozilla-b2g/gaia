@@ -22,6 +22,12 @@ storages.forEach(function(storage, storageIndex) {
       if (!cursor.result)
         return;
 
+      // If this is the first song we've found,
+      // remove the "no songs" message
+      if (songs.length === 0) {
+        document.body.removeChild(document.getElementById('message'));
+      }
+
       var file = cursor.result;
 
       var songData = {
