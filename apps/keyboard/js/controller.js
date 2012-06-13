@@ -391,6 +391,12 @@ const IMEController = (function() {
     if (!alternatives.length)
       return;
 
+    // the first alternative is ALWAYS the original key
+    alternatives.splice(
+      0, 0,
+      _isUpperCase ? uppercaseValue : value
+    );
+
     IMERender.showAlternativesCharMenu(key, alternatives);
     _isShowingAlternativesMenu = true;
     _currentMenuKey = key;

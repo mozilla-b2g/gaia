@@ -192,10 +192,13 @@ const IMERender = (function() {
 
   var showAlternativesCharMenu = function(key, altChars) {
     // TODO: !!! Fix alternateLayout alt keys
+    console.log(key.firstChild.innerHTML);
 
     var target = key;
+    var original = altChars[0];
     var cssWidth = target.style.width;
     var left = (window.innerWidth / 2 > target.offsetLeft);
+    altChars = altChars.slice(1);
     var altCharsCurrent = [];
 
     if (left === true) {
@@ -203,7 +206,7 @@ const IMERender = (function() {
       // this.menu.style.left = '-moz-calc(' + target.offsetLeft + 'px - 0.8rem)';
       // this.menu.style.right = 'auto';
       // this.menu.style.textAlign = 'center';
-      altCharsCurrent.push(key.firstChild.innerHTML);
+      altCharsCurrent.push(original);
       altCharsCurrent = altCharsCurrent.concat(altChars);
     } else {
       this.menu.classList.add("kbr-menu-right");
@@ -215,7 +218,7 @@ const IMERender = (function() {
       // this.menu.style.left = 'auto';
       // this.menu.style.textAlign = 'center';
       altCharsCurrent = altChars.reverse();
-      altCharsCurrent.push(key.firstChild.innerHTML);
+      altCharsCurrent.push(original);
     }
 
     var content = '';
