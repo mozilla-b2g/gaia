@@ -55,19 +55,19 @@ var Browser = {
       this.handleTabsBadgeClicked.bind(this));
 
     this.tabsSwipeMngr.browser = this;
-    ['mousedown', 'pan', 'tap', 'swipe'].forEach((function(evt) {
+    ['mousedown', 'pan', 'tap', 'swipe'].forEach(function(evt) {
       this.tabsList.addEventListener(evt,
         this.tabsSwipeMngr[evt].bind(this.tabsSwipeMngr));
-    }).bind(this));
+    }, this);
 
     this.screenSwipeMngr.browser = this;
     this.screenSwipeMngr.screen = this.mainScreen;
     this.screenSwipeMngr.gestureDetector = new GestureDetector(this.mainScreen);
 
-    ['mousedown', 'pan', 'tap', 'swipe'].forEach((function(evt) {
+    ['mousedown', 'pan', 'tap', 'swipe'].forEach(function(evt) {
       this.mainScreen.addEventListener(evt,
         this.screenSwipeMngr[evt].bind(this.screenSwipeMngr));
-    }).bind(this));
+    }, this);
 
     this.handleWindowResize();
 
@@ -456,10 +456,10 @@ var Browser = {
       screenshot: null
     };
 
-    browserEvents.forEach((function attachBrowserEvent(type) {
+    browserEvents.forEach(function attachBrowserEvent(type) {
       iframe.addEventListener('mozbrowser' +
         type, this.handleBrowserEvent(tab));
-    }).bind(this));
+    }, this);
 
     this.tabs[tab.id] = tab;
     this.frames.appendChild(iframe);
