@@ -500,3 +500,5 @@ var LockScreen = {
     this.camera.dispatchEvent(generatedEvent);
   }
 };
+
+LockScreen.init();

@@ -154,3 +154,5 @@ var ScreenManager = {
     window.dispatchEvent(evt);
   }
 };
+
+ScreenManager.init();
