@@ -3,7 +3,7 @@ function $(id) {
 }
 
 function log(msg) {
-  $("log").innerHTML = msg;
+  $('log').innerHTML = msg;
 }
 
 var mozFMRadio = navigator.mozFMRadio;
@@ -17,11 +17,11 @@ function turnOnFM(callback) {
   }
 
   request.onsuccess = function() {
-    log("Turn on FM successfully");
+    log('Turn on FM successfully');
   };
 
   request.onerror = function() {
-    log("Failed to turn on FM!");
+    log('Failed to turn on FM!');
   };
 }
 
@@ -34,33 +34,33 @@ function turnOffFM(callback) {
   }
 
   request.onsuccess = function() {
-    log("Turn off FM successfully");
+    log('Turn off FM successfully');
   };
 
   request.onerror = function() {
-    log("Failed to turn off FM!");
+    log('Failed to turn off FM!');
   };
 }
 
 function setFreq() {
   var request = null;
   try {
-    request = mozFMRadio.setFrequency(parseFloat($("freq").value));
+    request = mozFMRadio.setFrequency(parseFloat($('freq').value));
   } catch (e) {
     log(e);
   }
 
   request.onsuccess = function() {
-    log("Set freq successfully!" + parseInt($("freq").value));
+    log('Set freq successfully!' + parseInt($('freq').value));
   };
 
   request.onerror = function() {
-    log("Fail to set fm freq");
+    log('Fail to set fm freq');
   };
 }
 
 function getFreq() {
-  $("current_freq").innerHTML = mozFMRadio.frequency;
+  $('current_freq').innerHTML = mozFMRadio.frequency;
 }
 
 function seekUp() {
@@ -72,12 +72,12 @@ function seekUp() {
   }
 
   request.onsuccess = function() {
-    $("current_freq").innerHTML = mozFMRadio.frequency;
-    log("Seek up complete, and got new program.");
+    $('current_freq').innerHTML = mozFMRadio.frequency;
+    log('Seek up complete, and got new program.');
   };
 
   request.onerror = function() {
-    log("Failed to seek up.");
+    log('Failed to seek up.');
   };
 }
 
@@ -90,12 +90,12 @@ function seekDown() {
   }
 
   request.onsuccess = function() {
-    $("current_freq").innerHTML = mozFMRadio.frequency;
-    log("Seek down complete, and got new program.");
+    $('current_freq').innerHTML = mozFMRadio.frequency;
+    log('Seek down complete, and got new program.');
   };
 
   request.onerror = function() {
-    log("Failed to seek down.");
+    log('Failed to seek down.');
   };
 }
 
@@ -108,16 +108,16 @@ function cancelSeek() {
   }
 
   request.onsuccess = function() {
-    log("Seeking is canceled.");
+    log('Seeking is canceled.');
   };
 
   request.onerror = function() {
-    log("Failed to cancel seek.");
+    log('Failed to cancel seek.');
   };
 }
 
 function checkAntenna() {
-  log("Antenna: " + mozFMRadio.antennaAvailable);
+  log('Antenna: ' + mozFMRadio.antennaAvailable);
 }
 
 function enumNavigator() {
@@ -126,29 +126,31 @@ function enumNavigator() {
     names.push(n);
   }
   names.push(mozFMRadio);
-  log(names.join("<br/>"));
+  log(names.join('<br/>'));
 }
 
 mozFMRadio.onantennachanged = function() {
-  $("antenna_state").innerHTML = mozFMRadio.antennaAvailable ? "available" : "unavailable";
+  $('antenna_state').innerHTML = mozFMRadio.antennaAvailable ?
+                                   'available' : 'unavailable';
 };
 
 mozFMRadio.onfrequencychanged = function(event) {
-  $("current_freq").innerHTML = mozFMRadio.frequency;
+  $('current_freq').innerHTML = mozFMRadio.frequency;
 };
 
 mozFMRadio.onpowerchanged = function() {
-  $("power_state").innerHTML = mozFMRadio.enabled ? "on" : "off";
+  $('power_state').innerHTML = mozFMRadio.enabled ? 'on' : 'off';
 };
 
-window.addEventListener("load", function(e) {
-  $("antenna_state").innerHTML = mozFMRadio.antennaAvailable ? "available" : "unavailable";
-  $("power_state").innerHTML = mozFMRadio.enabled ? "on" : "off";
+window.addEventListener('load', function(e) {
+  $('antenna_state').innerHTML = mozFMRadio.antennaAvailable ?
+                                   'available' : 'unavailable';
+  $('power_state').innerHTML = mozFMRadio.enabled ? 'on' : 'off';
   getFreq();
 }, false);
 
 // Turn off radio immediately when window is unloaded.
-window.addEventListener("unload", function(e) {
+window.addEventListener('unload', function(e) {
   turnOffFM();
 }, false);
 
