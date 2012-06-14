@@ -50,9 +50,6 @@ suite('batch', function() {
     test('with timer', function(done) {
       var expected = {}, i = 0;
 
-
-      this.timeout(200);
-
       expected.one = {
         g1: {
           add: [1, 2]
