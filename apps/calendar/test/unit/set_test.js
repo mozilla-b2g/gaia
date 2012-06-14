@@ -40,6 +40,24 @@ suite('set', function() {
   });
 
   suite('benchmarks', function() {
+    var iter = 5000;
+
+    test('add', function() {
+      var set = new Set(),
+          obj = Object.create(null),
+          setI = 0,
+          objI = 0;
+
+      var results = support.vs(iter, {
+        set: function() {
+          set.add(setI++);
+        },
+
+        object: function() {
+          obj[objI++] = true;
+        }
+      });
+    });
 
     test('lookup', function() {
       var items = 10000,
@@ -54,11 +72,13 @@ suite('set', function() {
         set.add(i);
       }
 
-      var results = support.vs(1000000, {
+      //oddly enough obj is faster then set
+
+      var results = support.vs(iter, {
         object: function() {
-          obj[99];
-          obj[777];
-          obj[9999];
+          (99 in obj);
+          (777 in obj);
+          (9999 in obj);
         },
 
         set: function() {
@@ -68,9 +88,9 @@ suite('set', function() {
         },
 
         array: function() {
-          arr[99];
-          arr[777];
-          arr[9999];
+          (99 in arr);
+          (7777 in arr);
+          (9999 in arr);
         }
       });
 
