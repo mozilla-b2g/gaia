@@ -23,9 +23,9 @@ storages.forEach(function(storage, storageIndex) {
         return;
 
       // If this is the first song we've found,
-      // remove the "no songs" message
+      // hide the "no songs" message
       if (songs.length === 0) {
-        document.body.removeChild(document.getElementById('message'));
+        document.getElementById('nosongs').style.display = 'none';
       }
 
       var file = cursor.result;
@@ -36,6 +36,8 @@ storages.forEach(function(storage, storageIndex) {
       };
 
       // Meta-data parsing of mp3 and ogg files
+      // On B2G devices, file.type of mp3 format is missing
+      // use file extension instead of file.type
       var extension = file.name.slice(-4);
 
       if (extension === '.mp3') {
@@ -194,15 +196,19 @@ var ListView = {
   },
 
   updateList: function lv_updateList(songData) {
-    var songTitle = (songData.title) ? escapeHTML(songData.title) : 'Unknown';
+    var songTitle = (songData.title) ? songData.title : 'Unknown';
 
-    this.view.innerHTML += '<li class="song">' +
-                           '  <a href="#" ' +
-                           '   data-index="' + this.index + '" ' + '>' +
-                           '    ' + (this.index + 1) + '. ' +
-                                    songTitle +
-                           '  </a>' +
-                           '</li>';
+    var li = document.createElement('li');
+    li.className = 'song';
+
+    var a = document.createElement('a');
+    a.href = '#';
+    a.dataset.index = this.index;
+    a.textContent = (this.index + 1) + '. ' + songTitle;
+
+    li.appendChild(a);
+
+    this.view.appendChild(li);
 
     this.index++;
   },
@@ -283,18 +289,26 @@ var PlayerView = {
     this.isPlaying = true;
 
     if (target) {
-      var targetIndex = target.dataset.index;
+      var targetIndex = parseInt(target.dataset.index);
       var songData = songs[targetIndex];
 
       this.title.textContent = (songData.title) ? songData.title : 'Unknown';
       this.artist.textContent = (songData.artist) ? songData.artist : 'Unknown';
-      this.currentIndex = parseInt(targetIndex);
+      this.currentIndex = targetIndex;
+
+      // An object URL must be released by calling window.URL.revokeObjectURL()
+      // when we no longer need them
+      this.audio.onloadeddata = function(evt) {
+        window.URL.revokeObjectURL(this.src);
+      }
 
       storages[songData.storageIndex].get(songData.name).onsuccess =
         function(evt) {
+          // On B2G devices, file.type of mp3 format is missing
+          // use file extension instead of file.type
           this.playingFormat = evt.target.result.name.slice(-4);
 
-          this.audio.src = URL.createObjectURL(evt.target.result);
+          this.audio.src = window.URL.createObjectURL(evt.target.result);
         }.bind(this);
     } else {
       this.audio.play();
@@ -337,13 +351,18 @@ var PlayerView = {
     if (seekTime)
       this.audio.currentTime = seekTime;
 
-    // c for conversion
     // mp3 returns in microseconds
     // ogg returns in seconds
-    var c = (this.playingFormat === '.mp3') ? 1000000 : 1;
-
+    // note this may be a bug cause mp3 shows wrong duration in
+    // gecko's native audio player
     var startTime = this.audio.startTime;
-    var endTime = this.audio.buffered.end(this.audio.buffered.length - 1) / c;
+    
+    var originalEndTime =
+      this.audio.buffered.end(this.audio.buffered.length - 1);
+    var endTime = (originalEndTime > 1000000) ?
+      originalEndTime / 1000000 :
+      originalEndTime
+      
     var currentTime = this.audio.currentTime;
 
     this.seekBar.min = startTime;

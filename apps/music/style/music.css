@@ -472,7 +472,7 @@ body.player-mode #views-player {
   opacity: 1;
 }
 
-#message {
+#nosongs {
   position: absolute;
   top: 0px;
   display: table;
@@ -482,7 +482,7 @@ body.player-mode #views-player {
   z-index: 100;
 }
 
-#message-text {
+#nosongs-text {
   display: table-cell;
   vertical-align: middle;
   text-align: center;
