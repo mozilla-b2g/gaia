@@ -1,0 +1,11 @@
+Sources of the external libraries
+
+Mp3(ID3):
+
+  https://github.com/aadsm/JavaScript-ID3-Reader/blob/master/src/id3.js
+
+Ogg:
+
+  http://paul.cx/public/ogg.js
+
+For details of copyright and license, please reference to the source links.
