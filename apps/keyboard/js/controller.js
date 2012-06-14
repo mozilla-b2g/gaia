@@ -31,7 +31,7 @@ const IMEController = (function() {
   // Current state of the keyboard
   var _isPressing = null,
       _isWaitingForSecondTap = false,
-      _isShowingAlternativesMenu = true,
+      _isShowingAlternativesMenu = false,
       _isContinousSpacePressed = false,
       _isWaitingForSpaceSecondTap = false,
       _isUpperCase = false,
@@ -517,7 +517,6 @@ const IMEController = (function() {
     IMEFeedback.triggerFeedback();
 
     // Key alternatives when long press
-    console.log('programming');
     _menuTimeout = window.setTimeout((function menuTimeout() {
       _showAlternatives(_currentKey);
     }), _kAccentCharMenuTimeout);
