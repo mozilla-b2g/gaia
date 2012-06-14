@@ -7,7 +7,6 @@ function startup() {
   ScreenManager.init();
   LockScreen.init();
   PinLock.init();
-  StatusBar.init();
   SoundManager.init();
   SleepMenu.init();
   SourceView.init();
