@@ -5,6 +5,7 @@ requireApp('calendar/test/unit/helper.js', function() {
   requireApp('calendar/js/gesture_detector.js');
   requireCalendarController();
   requireApp('calendar/js/templates/month.js');
+  requireApp('calendar/js/batch.js');
   requireApp('calendar/js/views/month_child.js');
 
 });
@@ -25,6 +26,15 @@ suite('views/month_child', function() {
       list.push(start);
     }
     return list;
+  }
+
+  function createHour(hour) {
+    return new Date(
+      month.getFullYear(),
+      month.getMonth(),
+      month.getDate(),
+      hour
+    );
   }
 
   teardown(function() {
@@ -60,6 +70,222 @@ suite('views/month_child', function() {
     assert.equal(subject._hourToBusyUnit(24), 12);
   });
 
+  test('#_handleBatch', function() {
+    var called, data;
+
+    called = {
+      add: [],
+      remove: []
+    };
+
+    data = {
+      'a': {
+        add: [1],
+        remove: [7]
+      },
+      'b': {
+        remove: [8]
+      }
+    };
+
+    subject._appendBusyUnits = function() {
+      called.add.push(arguments);
+    };
+
+    subject._removeBusyUnits = function() {
+      called.remove.push(arguments);
+    };
+
+    subject._handleBatch(data);
+
+    assert.deepEqual(called.add, [
+      ['a', [1]]
+    ]);
+
+    assert.deepEqual(called.remove, [
+      ['a', [7]],
+      ['b', [8]]
+    ]);
+  });
+
+  suite('#_verifyBatchItem', function() {
+    var hour, id, result;
+
+    setup(function() {
+      hour = createHour(2);
+      id = Calendar.Calc.getDayId(hour);
+    });
+
+    suite('action: add', function() {
+
+      test('add new item', function() {
+        result = subject._verifyBatchItem(id, 'add', 1);
+
+        assert.ok(result);
+        assert.ok(subject._busytimes[id].has(1));
+      });
+
+      test('adding existing item', function() {
+        var set = subject._busytimes[id] = new Calendar.Set();
+        set.add(1);
+
+        assert.isFalse(subject._verifyBatchItem(id, 'add', 1));
+      });
+
+    });
+
+    suite('action: remove', function() {
+
+      test('on existing item', function() {
+        var set = subject._busytimes[id] = new Calendar.Set();
+        set.add(1);
+
+        assert.isTrue(
+          subject._verifyBatchItem(id, 'remove', 1)
+        );
+      });
+
+      test('on non-existant item', function() {
+        //for now we are not doing anything
+        //clever to resolve an add and remove
+        //in the same queue, we will simply always add before
+        //removing.
+        assert.isTrue(
+          subject._verifyBatchItem(id, 'remove', 1)
+        );
+      });
+    });
+  });
+
+  test('#_initEvents', function() {
+    var events;
+
+    subject._initEvents();
+    events = busytimes._$events;
+
+    assert.equal(
+      events['add ' + subject.monthId][0],
+      subject._onBusyAdd
+    );
+
+    assert.equal(
+      events['remove ' + subject.monthId][0],
+      subject._onBusyRemove
+    );
+  });
+
+  test('#_destroyEvents', function() {
+    var events;
+
+    subject._initEvents();
+    subject._destroyEvents();
+
+    events = busytimes._$events;
+
+    assert.equal(
+      events['add ' + subject.monthId].length,
+      0
+    );
+
+    assert.equal(
+      events['remove ' + subject.monthId].length,
+      0
+    );
+  });
+
+  suite('busy events', function() {
+    var calledWith, id;
+
+    setup(function() {
+      calledWith = [];
+      id = Calendar.Calc.getDayId(month);
+
+      subject.batch.action = function() {
+        calledWith.push(
+          Array.prototype.slice.call(arguments)
+        );
+      }
+
+      subject._initEvents();
+    });
+
+    test('#_onBusyAdd', function() {
+      busytimes.add(createHour(23), 1);
+
+      assert.deepEqual(
+        calledWith,
+        [[id, 'add', 12]]
+      );
+    });
+
+    test('#_onBusyRemove', function() {
+      busytimes.add(createHour(23), 1);
+      calledWith.length = 0;
+      busytimes.remove(1);
+
+      assert.deepEqual(
+        calledWith,
+        [[id, 'remove', 12]]
+      );
+    });
+
+  });
+
+  test('#_appendBusyUnits', function() {
+    var id = Calendar.Calc.getDayId(month);
+
+    controller.currentMonth = month;
+    testEl.innerHTML = subject._renderDay(month);
+
+    assert.ok(!testEl.querySelector('.busy-1'));
+
+    subject._appendBusyUnits(id, [1, 12]);
+
+    assert.ok(testEl.querySelector('.busy-1'));
+    assert.ok(testEl.querySelector('.busy-12'));
+  });
+
+  suite('#_removeBusyUnits', function() {
+    var id;
+
+    setup(function() {
+      busytimes.add(createHour(1), 1);
+      busytimes.add(createHour(23), 2);
+
+      controller.currentMonth = month;
+      testEl.innerHTML = subject._renderDay(month);
+
+      assert.ok(testEl.querySelector('.busy-1'));
+      assert.ok(testEl.querySelector('.busy-12'));
+
+
+      id = Calendar.Calc.getDayId(month);
+    });
+
+    test('when elements exist', function() {
+      subject._removeBusyUnits(id, [12, 1]);
+
+      assert.ok(
+        !testEl.querySelector('.busy-12'),
+        'should remove busy selector 12'
+      );
+
+      assert.ok(
+        !testEl.querySelector('.busy-1'),
+        'should remove busy selector 1'
+      );
+
+      assert.equal(subject._busytimes[id].size(), 0);
+    });
+
+    test('when elements are missing', function() {
+      assert.ok(!testEl.querySelector('.busy-6'), 'should not have busy-6');
+      subject._removeBusyUnits(id, [6]);
+    });
+
+
+  });
+
   suite('#_getBusyUnits', function() {
     var all = range(1, 23);
 
@@ -79,12 +305,12 @@ suite('views/month_child', function() {
   });
 
   suite('#_renderBusyUnits', function() {
+    var units = [1, 12];
 
     test('without register', function() {
-      var hours = [1, 24],
-          result = subject._renderBusyUnits(hours);
+      var result = subject._renderBusyUnits(null, units);
 
-      assert.ok(hours);
+      assert.ok(result);
       assert.include(result, 'busy-1');
       assert.include(result, 'busy-12');
 
@@ -92,8 +318,7 @@ suite('views/month_child', function() {
     });
 
     test('with register', function() {
-      var hours = [1, 24],
-          result = subject._renderBusyUnits(hours, 'fooz');
+      var result = subject._renderBusyUnits('fooz', units);
 
       assert.equal(Object.keys(subject._busytimes).length, 1);
       assert.setHas(subject._busytimes['fooz'], [1, 12]);

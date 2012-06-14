@@ -2,6 +2,7 @@
 
   function requireCalendarController() {
     requireApp('calendar/js/set.js');
+    requireApp('calendar/js/batch.js');
     requireApp('calendar/js/template.js');
     requireApp('calendar/js/format.js');
     requireApp('calendar/js/responder.js');

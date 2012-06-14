@@ -17,7 +17,7 @@ suite('templates/month', function() {
   }
 
   test('#busy', function() {
-    var result = renderHTML('busy', 5);
+    var result = renderHTML('busy', 'busy-5');
 
     assert.ok(result);
     assert.include(result, 'busy-5');

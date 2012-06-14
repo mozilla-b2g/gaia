@@ -105,7 +105,7 @@
       self._clearSelectedDay();
 
       id = Calendar.Calc.getDayId(newVal);
-      id = 'month-view-' + id;
+      id = self.currentChild._dayId(id);
       el = document.getElementById(id);
 
       if (el) {
