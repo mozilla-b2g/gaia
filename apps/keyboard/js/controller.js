@@ -5,26 +5,11 @@
 
 'use strict';
 
+// The controller is in charge of capture events and translate them into 
+// keyboard interactions, send keys and coordinate rendering.
 const IMEController = (function() {
 
-  function getWindowTop(obj) {
-    var top;
-    top = obj.offsetTop;
-    while (obj = obj.offsetParent) {
-      top += obj.offsetTop;
-    }
-    return top;
-  }
-
-  function getWindowLeft(obj) {
-    var left;
-    left = obj.offsetLeft;
-    while (obj = obj.offsetParent) {
-      left += obj.offsetLeft;
-    }
-    return left;
-  }
-
+  // Special key codes
   var BASIC_LAYOUT = -1,
       ALTERNATE_LAYOUT = -2,
       SWITCH_KEYBOARD = -3,
@@ -38,11 +23,12 @@ const IMEController = (function() {
     KeyEvent.DOM_VK_SPACE
   ];
 
+  // Layout modes
   var LAYOUT_MODE_DEFAULT = 'Default',
       LAYOUT_MODE_SYMBOLS_I = 'Symbols_1',
       LAYOUT_MODE_SYMBOLS_II = 'Symbols_2';
 
-  // current state of the keyboard
+  // Current state of the keyboard
   var _isPressing = null,
       _isWaitingForSecondTap = false,
       _isShowingAlternativesMenu = true,
@@ -67,10 +53,10 @@ const IMEController = (function() {
   // to produce a "." followed by a space
   var _kSpaceDoubleTapTimeout = 700;
 
-  // show accent char menu (if there is one) after kAccentCharMenuTimeout
+  // Show accent char menu (if there is one) after kAccentCharMenuTimeout
   var _kAccentCharMenuTimeout = 700;
 
-  // if user leave the original key and did not move to
+  // If user leave the original key and did not move to
   // a key within the accent character menu,
   // after khideAlternativesCharMenuTimeout the menu will be removed.
   var _kHideAlternativesCharMenuTimeout = 500;
@@ -81,7 +67,7 @@ const IMEController = (function() {
       _menuTimeout = 0,
       _hideMenuTimeout = 0;
 
-  // backspace repeat delay and repeat rate
+  // Backspace repeat delay and repeat rate
   var _kRepeatRate = 100,
       _kRepeatTimeout = 700;
 
@@ -90,10 +76,12 @@ const IMEController = (function() {
   var _kCapsLockTimeout = 450,
       _isUpperCaseLocked = false;
 
-  var _severalLanguages = function() {
+  // Return true if several languages are enabled
+  function _severalLanguages() {
     return IMEManager.keyboards.length > 1;
   };
 
+  // Map the input type to another type
   function _mapType(type) {
     switch (type) {
       // basic types
@@ -118,10 +106,12 @@ const IMEController = (function() {
     }
   }
 
-  // add some special keys depending on the input's type
+  // Add some special keys depending on the input's type
   function _addTypeSensitiveKeys(inputType, row, space, where, overwrites) {
     overwrites = overwrites || {};
+
     switch (inputType) {
+      // adds . / and .com
       case 'url':
         space.ratio -= 5;
         row.splice(where, 1, // delete space
@@ -131,12 +121,14 @@ const IMEController = (function() {
         );
       break;
 
+      // adds @ and .
       case 'email':
         space.ratio -= 2;
         row.splice(where, 0, { value: '@', ratio: 1, keyCode: 64 });
         row.splice(where + 2, 0, { value: '.', ratio: 1, keyCode: 46 });
       break;
 
+      // adds . and , to both sides of the space bar
       case 'text':
 
         var next = where + 1;
@@ -177,12 +169,12 @@ const IMEController = (function() {
 
       break;
     }
-
   };
 
-  // mainly, compute the input sensitive row and add it to the layout
-  function _buildLayout(baseLayout, inputType, layoutMode) {
+  // Build the "input sensitive" row and add it to the layout
+  function _buildLayout(layoutName, inputType, layoutMode) {
 
+    // One level copy
     function copy(obj) {
       var newObj = {};
       for (var prop in obj) if (obj.hasOwnProperty(prop)) {
@@ -192,9 +184,10 @@ const IMEController = (function() {
     }
 
     if (inputType === 'number' || inputType === 'tel')
-      baseLayout = inputType + 'Layout';
+      layoutName = inputType + 'Layout';
 
-    var layout = Keyboards[_baseLayoutName][baseLayout] || Keyboards[baseLayout];
+    // let look for a layout overriding or fallback to defaults
+    var layout = Keyboards[_baseLayoutName][layoutName] || Keyboards[layoutName];
 
     // look for keyspace (it behaves as the placeholder for special keys)
     var where = false;
@@ -280,7 +273,46 @@ const IMEController = (function() {
     return layout;
   }
 
-  // recompute the layout to display
+  // Manage how to draw a keyboard. In short:
+  //  1- Take in count the current layout (current language / current keyboard),
+  //     the input type, the layout mode and if uppercase
+  //  2- Compute the input type sensitive row.
+  //  3- Setup rendering flags
+  //  4- Draw the keyboard via IMERender
+  //  5- If needed, empty the candidate panel
+  function _draw(layoutName, inputType, layoutMode, uppercase) {
+
+    // When user scrolls over candidate panels on IME
+    function _onScroll(evt) {
+      if (!_isPressing || !_currentKey)
+        return;
+
+      _onMouseLeave(evt);
+      _isPressing = false; // cancel the following mouseover event
+    }
+
+    layoutName = layoutName || _baseLayoutName;
+    inputType = inputType || _currentInputType;
+    layoutMode = layoutMode || _currentLayout;
+    uppercase = uppercase || false;
+
+    // 2- Compute the input type sensitive row
+    _currentLayout = _buildLayout(layoutName, inputType, layoutMode);
+
+    // 4- Draw the keyboard via IMERender
+    IMERender.draw(
+      _currentLayout,
+      _onScroll,
+      {uppercase: uppercase} // 3- Setup rendering flags
+    );
+
+    // 5- If needed, empty the candidate panel
+    if (_currentLayout.needsCandidatePanel)
+      _currentEngine().empty();
+  }
+
+
+  // Cycle layout modes
   function _handleSymbolLayoutRequest(keycode) {
     var base;
 
@@ -310,6 +342,8 @@ const IMEController = (function() {
     _draw(base, _currentInputType, _currentLayoutMode);
   }
 
+  // Inform about a change in the displayed application via mutation observer
+  // http://hacks.mozilla.org/2012/05/dom-mutationobserver-reacting-to-dom-changes-without-killing-browser-performance/
   function _updateTargetWindowHeight() {
     var height;
     if (IMERender.ime.dataset.hidden) {
@@ -333,7 +367,7 @@ const IMEController = (function() {
     attributes: true, attributeFilter: ['class', 'style', 'data-hidden']
   };
 
-  // sends a delete code to remove last character
+  // Sends a delete code to remove last character
   function _sendDelete(feedback) {
     if (feedback)
       IMEFeedback.triggerFeedback();
@@ -345,12 +379,7 @@ const IMEController = (function() {
     window.navigator.mozKeyboard.sendKey(KeyboardEvent.DOM_VK_BACK_SPACE, 0);
   };
 
-  function _highlightKey(target) {
-    IMERender.highlightKey(target);
-  }
-
-  // given a key object, return the upper value taking in count
-  // if it is a special key of it has been overwrote
+  // Return the upper value for a key object
   function _getUpperCaseValue(key) {
     var hasSpecialCode = specialCodes.indexOf(key.keyCode) > -1;
     if (key.keyCode < 0 || hasSpecialCode || key.compositeKey)
@@ -361,18 +390,23 @@ const IMEController = (function() {
     return v;
   }
 
+  // Show alternatives for the HTML node key
   function _showAlternatives(key) {
-    // avoid alternatives of alternatives
+
+    // Avoid alternatives of alternatives
     if (_isShowingAlternativesMenu)
       return;
 
+    // Get the key object from layout
     var alternatives, altMap, value, keyObj, uppercaseValue;
     var r = key ? key.dataset.row : -1, c = key ? key.dataset.column : -1;
     if (r < 0 || c < 0)
       return;
     keyObj = _currentLayout.keys[r][c];
 
-    // switch keyboard menu
+    console.log('showing alternatives');
+
+    // Handle languages alternatives
     if (keyObj.keyCode === SWITCH_KEYBOARD) {
       IMERender.showKeyboardAlternatives(
         key,
@@ -383,22 +417,25 @@ const IMEController = (function() {
       return;
     }
 
-    // get alternatives from layout
+    // Handle key alternatives
     altMap = _currentLayout.alt || {};
     value = keyObj.value;
     alternatives = altMap[value] || '';
 
-    // in uppercase, look for other alternatives or use default's
+    // If in uppercase, look for other alternatives or use default's
     if (_isUpperCase) {
       uppercaseValue = _getUpperCaseValue(keyObj);
       alternatives = altMap[uppercaseValue] || alternatives.toUpperCase();
     }
 
+    // Split alternatives
     if (alternatives.indexOf(' ') != -1) {
       alternatives = alternatives.split(' ');
-      // check just one item
+
+      // Check just one item
       if (alternatives.length === 2 && alternatives[1] === '')
         alternatives.pop();
+
     } else {
       alternatives = alternatives.split('');
     }
@@ -406,7 +443,7 @@ const IMEController = (function() {
     if (!alternatives.length)
       return;
 
-    // the first alternative is ALWAYS the original key
+    // The first alternative is ALWAYS the original key
     alternatives.splice(
       0, 0,
       _isUpperCase ? uppercaseValue : value
@@ -417,6 +454,25 @@ const IMEController = (function() {
     _currentMenuKey = key;
 
     // Locked limits
+    // TODO: look for [LOCKED_AREA]
+    function getWindowTop(obj) {
+      var top;
+      top = obj.offsetTop;
+      while (obj = obj.offsetParent) {
+        top += obj.offsetTop;
+      }
+      return top;
+    }
+
+    function getWindowLeft(obj) {
+      var left;
+      left = obj.offsetLeft;
+      while (obj = obj.offsetParent) {
+        left += obj.offsetLeft;
+      }
+      return left;
+    }
+
     _menuLockedArea = {
       top: getWindowTop(_currentMenuKey),
       bottom: getWindowTop(_currentMenuKey) + _currentMenuKey.scrollHeight,
@@ -428,6 +484,7 @@ const IMEController = (function() {
       _menuLockedArea.width / IMERender.menu.children.length;
   }
 
+  // Hide alternatives.
   function _hideAlternatives() {
     IMERender.hideAlternativesCharMenu();
     if (_currentMenuKey)
@@ -435,6 +492,7 @@ const IMEController = (function() {
     _isShowingAlternativesMenu = false;
   }
 
+  // Test if an HTML node is a normal key
   function _isNormalKey(key) {
     var keyCode = parseInt(key.dataset.keycode);
     return keyCode || key.dataset.selection || key.dataset.compositekey;
@@ -444,6 +502,7 @@ const IMEController = (function() {
   // EVENTS HANDLERS
   //
 
+  // When user touches the keyboard
   function _onMouseDown(evt) {
     var keyCode;
 
@@ -454,15 +513,16 @@ const IMEController = (function() {
     keyCode = parseInt(_currentKey.dataset.keycode);
 
     // Feedback
-    _highlightKey(_currentKey);
+    IMERender.highlightKey(_currentKey);
     IMEFeedback.triggerFeedback();
 
-    // Per key alternatives
+    // Key alternatives when long press
     _menuTimeout = window.setTimeout((function menuTimeout() {
       _showAlternatives(_currentKey);
     }), _kAccentCharMenuTimeout);
 
-    // Special key: delete
+    // Special keys (such as delete) response when pressing (not releasing)
+    // Furthermore, delete key has a repetition behavior
     if (keyCode === KeyEvent.DOM_VK_BACK_SPACE) {
 
       // First, just pressing (without feedback)
@@ -482,6 +542,11 @@ const IMEController = (function() {
     }
   }
 
+  // [LOCKED_AREA] TODO:
+  // This is an agnostic way to improve the usability of the alternatives.
+  // It consists into compute an area where the user movement is redirected
+  // to the alternative menu keys but I would prefer another alternative
+  // with better performance.
   function _onMouseMove(evt) {
     var altCount, width, menuChildren;
 
@@ -511,37 +576,35 @@ const IMEController = (function() {
 
   }
 
+  // When user changes to another button (it handle what happend if the user
+  // keeps pressing the same area. Similar to _onMouseDown)
   function _onMouseOver(evt) {
     var target = evt.target;
     var keyCode = parseInt(target.dataset.keycode);
 
-    // do nothing if no pressing (mouse events) or same key
-    if (!_isPressing || _currentKey == target)
+    // Do nothing if no pressing (mouse events), same key or not a normal key
+    if (!_isPressing || _currentKey == target || !_isNormalKey(target))
       return;
 
-    // do nothing if no keycode
-    if (!_isNormalKey(target))
-      return;
-
-    // remove current highlight
+    // Update highlight: remove from older
     if (!(_isShowingAlternativesMenu && _currentKey === _currentMenuKey))
       IMERender.unHighlightKey(_currentKey);
 
-    // ignore if moving over del key
+    // Ignore if moving over delete key
     if (keyCode == KeyEvent.DOM_VK_BACK_SPACE) {
       _currentKey = null;
       return;
     }
 
-    _highlightKey(target);
+    // Update highlight: add to the new
+    IMERender.highlightKey(target);
     _currentKey = target;
 
-    // reset imminent menus or actions
     clearTimeout(_deleteTimeout);
     clearInterval(_deleteInterval);
     clearTimeout(_menuTimeout);
 
-    // control hide of alternatives menu
+    // Control hide of alternatives menu
     if (target.parentNode === IMERender.menu) {
       clearTimeout(_hideMenuTimeout);
     } else {
@@ -554,26 +617,21 @@ const IMEController = (function() {
       );
     }
 
-    // control showing alternatives menu
+    // Control showing alternatives menu
     _menuTimeout = window.setTimeout((function menuTimeout() {
       _showAlternatives(target);
     }), _kAccentCharMenuTimeout);
 
   }
 
-  function _onScroll(evt) {
-    if (!_isPressing || !_currentKey)
-      return;
-
-    _onMouseLeave(evt);
-    _isPressing = false; // cancel the following mouseover event
-  }
-
+  // When user leaves the keyboard
   function _onMouseLeave(evt) {
     if (!_isPressing || !_currentKey)
       return;
 
     IMERender.unHighlightKey(_currentKey);
+
+    // Program alternatives to hide
     _hideMenuTimeout = window.setTimeout(function hideMenuTimeout() {
         _hideAlternatives();
     }, _kHideAlternativesCharMenuTimeout);
@@ -581,6 +639,33 @@ const IMEController = (function() {
     _currentKey = null;
   }
 
+  // Handle the default behavior for a pressed key
+  function _handleMouseDownEvent(keyCode) {
+
+    // Redirects to IME
+    if (Keyboards[_baseLayoutName].type == 'ime' &&
+        _currentLayoutMode == LAYOUT_MODE_DEFAULT) {
+
+      _currentEngine().click(keyCode);
+      return;
+    }
+
+    // Send the key
+    window.navigator.mozKeyboard.sendKey(0, keyCode);
+
+    // Return to default layout after pressinf an uppercase
+    if (_isUpperCase &&
+        !_isUpperCaseLocked && _currentLayoutMode === LAYOUT_MODE_DEFAULT) {
+
+      _isUpperCase = false;
+      _draw(
+        _baseLayoutName, _currentInputType,
+        _currentLayoutMode, _isUpperCase
+      );
+    }
+  }
+
+  // The user is releasing a key so the key has been pressed. The meat is here.
   function _onMouseUp(evt) {
     _isPressing = false;
 
@@ -602,7 +687,7 @@ const IMEController = (function() {
     var dataset = target.dataset;
     if (dataset.selection) {
       _currentEngine().select(target.textContent, dataset.data);
-      _highlightKey(target);
+      IMERender.highlightKey(target);
       _currentKey = null;
       return;
     }
@@ -610,6 +695,7 @@ const IMEController = (function() {
     IMERender.unHighlightKey(target);
     _currentKey = null;
 
+    // Delete is a special key, it reacts when pressed not released
     if (keyCode == KeyEvent.DOM_VK_BACK_SPACE)
       return;
 
@@ -618,7 +704,7 @@ const IMEController = (function() {
     if (keyCode != KeyEvent.DOM_VK_SPACE)
       _isContinousSpacePressed = false;
 
-    // Handle composite key
+    // Handle composite key (key that sends more than one code)
     var sendCompositeKey = function sendCompositeKey(compositeKey) {
         compositeKey.split('').forEach(function sendEachKey(key) {
           window.navigator.mozKeyboard.sendKey(0, key.charCodeAt(0));
@@ -633,12 +719,15 @@ const IMEController = (function() {
 
     // Handle normal key
     switch (keyCode) {
+
+      // Layout mode change
       case BASIC_LAYOUT:
       case ALTERNATE_LAYOUT:
       case KeyEvent.DOM_VK_ALT:
         _handleSymbolLayoutRequest(keyCode);
       break;
 
+      // Switch language (keyboard)
       case SWITCH_KEYBOARD:
 
         // If the user has specify a keyboard in the menu,
@@ -646,16 +735,15 @@ const IMEController = (function() {
         if (target.dataset.keyboard) {
           _baseLayoutName = target.dataset.keyboard;
 
+        // Cycle between languages (keyboard)
         } else {
           var keyboards = IMEManager.keyboards;
           var index = keyboards.indexOf(_baseLayoutName);
-          console.log(index);
           index = (index + 1) % keyboards.length;
           _baseLayoutName = IMEManager.keyboards[index];
         }
 
-        _currentLayoutMode = LAYOUT_MODE_DEFAULT;
-        _isUpperCase = false;
+        _reset();
         _draw(
           _baseLayoutName, _currentInputType,
           _currentLayoutMode, _isUpperCase
@@ -669,6 +757,7 @@ const IMEController = (function() {
 
         break;
 
+      // Expand / shrink the candidate panel
       case TOGGLE_CANDIDATE_PANEL:
         if (IMERender.ime.classList.contains('candidate-panel')) {
           IMERender.ime.classList.remove('candidate-panel');
@@ -679,9 +768,10 @@ const IMEController = (function() {
         }
         break;
 
+      // Shift or caps lock
       case KeyEvent.DOM_VK_CAPS_LOCK:
 
-        // lock caps
+        // Already waiting for caps lock
         if (_isWaitingForSecondTap) {
           _isWaitingForSecondTap = false;
 
@@ -691,10 +781,9 @@ const IMEController = (function() {
             _currentLayoutMode, _isUpperCase
           );
 
-        // normal behavior: set timeut for second tap and toggle caps
+        // Normal behavior: set timeout for second tap and toggle caps
         } else {
 
-          // timout for second tap
           _isWaitingForSecondTap = true;
           window.setTimeout(
             function() {
@@ -703,7 +792,7 @@ const IMEController = (function() {
             _kCapsLockTimeout
           );
 
-          // toggle caps
+          // Toggle caps
           _isUpperCase = !_isUpperCase;
           _isUpperCaseLocked = false;
           _draw(
@@ -712,7 +801,7 @@ const IMEController = (function() {
           );
         }
 
-        // keyboard updated: all buttons recreated so event target is lost.
+        // Keyboard updated: all buttons recreated so event target is lost.
         var capsLockKey = document.querySelector(
           'button[data-keycode="'+KeyboardEvent.DOM_VK_CAPS_LOCK+'"]'
         );
@@ -721,8 +810,9 @@ const IMEController = (function() {
           _isUpperCaseLocked ? 'locked' : _isUpperCase
         );
 
-        break;
+      break;
 
+      // Return key
       case KeyEvent.DOM_VK_RETURN:
         if (Keyboards[_baseLayoutName].type == 'ime' &&
             _currentLayoutMode === LAYOUT_MODE_DEFAULT) {
@@ -731,9 +821,10 @@ const IMEController = (function() {
         }
 
         window.navigator.mozKeyboard.sendKey(keyCode, 0);
-        break;
+      break;
 
-      // To handle the case when double tapping the space key
+      // Space key need a special treatmen due to the point added when double
+      // tapped.
       case KeyEvent.DOM_VK_SPACE:
         if (_isWaitingForSpaceSecondTap &&
             !_isContinousSpacePressed) {
@@ -756,13 +847,13 @@ const IMEController = (function() {
 
           _isWaitingForSpaceSecondTap = false;
 
-          // a flag to prevent continous replacement of space with "."
+          // A flag to prevent continous replacement of space with "."
           _isContinousSpacePressed = true;
           break;
         }
 
+        // Program timeout for second tap
         _isWaitingForSpaceSecondTap = true;
-
         window.setTimeout(
           (function removeSpaceDoubleTapTimeout() {
             _isWaitingForSpaceSecondTap = false;
@@ -770,18 +861,23 @@ const IMEController = (function() {
           _kSpaceDoubleTapTimeout
         );
 
+        // After all: treat as a normal key
         _handleMouseDownEvent(keyCode);
         break;
 
+      // Normal key
       default:
         _handleMouseDownEvent(keyCode);
         break;
-
     }
   }
 
-  // when attached as event listeners, this will be bound to current this object
-  // you can add a closure to add support methods
+  // Turn to default values
+  function _reset() {
+    _currentLayoutMode = LAYOUT_MODE_DEFAULT;
+    _isUpperCase = false;
+  }
+
   var _imeEvents = {
     'mousedown': _onMouseDown,
     'mouseover': _onMouseOver,
@@ -790,22 +886,19 @@ const IMEController = (function() {
     'mousemove': _onMouseMove
   };
 
-  function _reset() {
-    // TODO: _baseLayoutName is only set by IMEManager (it should not be mine)
-    _currentLayoutMode = LAYOUT_MODE_DEFAULT;
-    _isUpperCase = false;
-  }
-
+  // Initialize the keyboard (exposed, controlled by IMEManager)
   function _init() {
 
+    // Support function for render
     function isSpecialKeyObj(key) {
       var hasSpecialCode = !KeyEvent.DOM_VK_SPACE &&
                            key.keyCode &&
                            specialCodes.indexOf(key.keyCode) !== -1;
       return hasSpecialCode || key.keyCode <= 0;
     }
-
     IMERender.init(_getUpperCaseValue, isSpecialKeyObj);
+
+    // Attach event listeners
     for (var event in _imeEvents) {
       var callback = _imeEvents[event] || null;
       if (callback)
@@ -814,7 +907,10 @@ const IMEController = (function() {
     _dimensionsObserver.observe(IMERender.ime, _dimensionsObserverConfig);
   }
 
+  // Finalizes the keyboard (exposed, controlled by IMEManager)
   function _uninit() {
+
+    // Detach event listeners
     _dimensionsObserver.disconnect();
     for (event in _imeEvents) {
       var callback = _imeEvents[event] || null;
@@ -831,62 +927,20 @@ const IMEController = (function() {
     }
   }
 
-  function _draw(baseLayout, inputType, layoutMode, uppercase) {
-    baseLayout = baseLayout || _baseLayoutName;
-    inputType = inputType || _currentInputType;
-    layoutMode = layoutMode || _currentLayout;
-    uppercase = uppercase || false;
-
-    _currentLayout = _buildLayout(baseLayout, inputType, layoutMode);
-
-    if (_severalLanguages())
-      IMERender.draw(
-        _currentLayout, baseLayout,
-        _onScroll,
-        {uppercase: uppercase}
-      );
-    else
-      IMERender.draw(
-        _currentLayout, undefined,
-        _onScroll,
-        {uppercase: uppercase}
-      );
-
-    if (_currentLayout.needsCandidatePanel)
-      _currentEngine().empty();
-  }
-
-  function _handleMouseDownEvent(keyCode) {
-    if (Keyboards[_baseLayoutName].type == 'ime' &&
-        _currentLayoutMode == LAYOUT_MODE_DEFAULT) {
-
-      _currentEngine().click(keyCode);
-      return;
-    }
-
-    window.navigator.mozKeyboard.sendKey(0, keyCode);
-
-    if (_isUpperCase &&
-        !_isUpperCaseLocked && _currentLayoutMode === LAYOUT_MODE_DEFAULT) {
-
-      _isUpperCase = false;
-      _draw(
-        _baseLayoutName, _currentInputType,
-        _currentLayoutMode, _isUpperCase
-      );
-    }
-  }
-
+  // Expose pattern
   return {
     // IME Engines are self registering here.
     get IMEngines() { return _IMEngines; },
 
+    // Current keyboard as the name of the layout
     get currentKeyboard() { return _baseLayoutName; },
     set currentKeyboard(value) { _baseLayoutName = value; },
 
+    // Exposed methods
     init: _init,
     uninit: _uninit,
 
+    // Show IME, receives the input's type
     showIME: function(type) {
       delete IMERender.ime.dataset.hidden;
       IMERender.ime.classList.remove('hide');
@@ -904,19 +958,24 @@ const IMEController = (function() {
       }
     },
 
+    // Hide IME
     hideIME: function km_hideIME(imminent) {
       IMERender.ime.classList.add('hide');
       IMERender.hideIME(imminent);
     },
 
+    // Controlled by IMEManager, i.e. when orientation change
     onResize: function(nWidth, nHeight, fWidth, fHeihgt) {
       if (IMERender.ime.dataset.hidden)
         return;
 
       IMERender.resizeUI();
-      _updateTargetWindowHeight();
+      _updateTargetWindowHeight(); // this case is not captured by the mutation
+                                   // observer so we handle it apart
     },
 
+    // Load a special IMEngine (not a usual keyboard but a special IMEngine such
+    // as Chinese or Japanese)
     loadKeyboard: function km_loadKeyboard(name) {
       var keyboard = Keyboards[name];
       if (keyboard.type !== 'ime')
@@ -934,6 +993,9 @@ const IMEController = (function() {
 
       var script = document.createElement('script');
       script.src = sourceDir + imEngine + '/' + imEngine + '.js';
+
+      // glue is a special object acting like the interface to let
+      // the engine use methods from the controller.
       var glue = {
         path: sourceDir + imEngine,
         sendCandidates: function(candidates) {
