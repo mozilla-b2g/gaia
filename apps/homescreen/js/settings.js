@@ -1,3 +1,6 @@
+
+'use strict';
+
 var SettingsListener = {
   _callbacks: {},
 
@@ -27,7 +30,29 @@ var SettingsListener = {
     }));
 
     this._callbacks[name] = callback;
+  },
+
+  getValue: function sl_getValue(name, callback) {
+    var settings = window.navigator.mozSettings;
+    if (!settings) {
+      window.setTimeout(function() { callback(''); });
+      return;
+    }
+
+    var req = settings.getLock().get(name);
+    req.addEventListener('success', (function onsuccess() {
+      callback(req.result[name]);
+    }));
   }
 };
 
 SettingsListener.init();
+
+/* === Wallpapers === */
+
+SettingsListener.observe('homescreen.wallpaper', 'default.png',
+  function(value) {
+    document.getElementById('icongrid').style.backgroundImage =
+      'url(resources/images/backgrounds/' + value + ')';
+  }
+);

@@ -3,6 +3,41 @@
 
 'use strict';
 
+(function appCacheIcons() {
+  // Caching the icon for notification if appCache is in effect
+  var appCache = window.applicationCache;
+  if (!appCache)
+    return;
+
+  var addIcons = function addIcons(app) {
+    var icons = app.manifest.icons;
+    if (icons) {
+      Object.keys(icons).forEach(function iconIterator(key) {
+        var url = app.origin + icons[key];
+        appCache.mozAdd(url);
+      });
+    }
+  };
+
+  var removeIcons = function removeIcons(app) {
+    var icons = app.manifest.icons;
+    if (icons) {
+      Object.keys(icons).forEach(function iconIterator(key) {
+        var url = app.origin + icons[key];
+        appCache.mozRemove(url);
+      });
+    }
+  };
+
+  window.addEventListener('applicationinstall', function bsm_oninstall(evt) {
+    addIcons(evt.detail.application);
+  });
+
+  window.addEventListener('applicationuninstall', function bsm_oninstall(evt) {
+    removeIcons(evt.detail.application);
+  });
+}());
+
 var NotificationScreen = {
   get touchable() {
     return this.touchables[this.locked ? 0 : 1];
@@ -26,16 +61,15 @@ var NotificationScreen = {
     this.touchables = touchables;
     this.attachEvents(touchables);
 
+    this.screen = document.getElementById('screen');
+
     window.addEventListener('mozChromeEvent', function notificationListener(e) {
       var detail = e.detail;
       switch (detail.type) {
         case 'desktop-notification':
-          NotificationScreen.addNotification('desktop-notification',
-                                              detail.title, detail.text,
-                                              detail.id);
+          NotificationScreen.addNotification(detail);
 
-          var hasNotifications = document.getElementById('state-notifications');
-          hasNotifications.dataset.visible = 'true';
+          StatusBar.updateNotification(true);
           break;
 
         case 'permission-prompt':
@@ -64,10 +98,6 @@ var NotificationScreen = {
 
       self.removeNotification(target);
 
-      var type = target.dataset.type;
-      if (type != 'desktop-notification')
-        return;
-
       var event = document.createEvent('CustomEvent');
       event.initCustomEvent('mozContentEvent', true, true, {
         type: closing ?
@@ -85,6 +115,7 @@ var NotificationScreen = {
   onTouchStart: function ns_onTouchStart(e) {
     this.startX = e.pageX;
     this.startY = e.pageY;
+    this.screen.classList.add('utility-tray');
     this.onTouchMove({ pageY: e.pageY + 32 });
   },
 
@@ -114,6 +145,8 @@ var NotificationScreen = {
     style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
     style.MozTransform = 'translateY(0)';
     this.locked = false;
+    if (instant)
+      this.screen.classList.remove('utility-tray');
   },
 
   lock: function ns_lock(dy) {
@@ -121,14 +154,17 @@ var NotificationScreen = {
     style.MozTransition = '-moz-transform 0.2s linear';
     style.MozTransform = 'translateY(100%)';
     this.locked = true;
+    this.screen.classList.add('utility-tray');
   },
 
   attachEvents: function ns_attachEvents(view) {
     AddEventHandlers(window, this, ['touchstart', 'touchmove', 'touchend']);
+    this.touchables[0].addEventListener('transitionend', this);
   },
 
   detachEvents: function ns_detachEvents() {
     RemoveEventHandlers(window, this, ['touchstart', 'touchmove', 'touchend']);
+    this.touchables[0].removeEventListener('transitionend', this);
   },
 
   handleEvent: function(evt) {
@@ -158,6 +194,12 @@ var NotificationScreen = {
       document.releaseCapture();
       this.onTouchEnd(evt.changedTouches[0]);
       break;
+
+    case 'transitionend':
+      if (!this.locked)
+        this.screen.classList.remove('utility-tray');
+      break;
+
     default:
       return;
     }
@@ -165,24 +207,27 @@ var NotificationScreen = {
     evt.preventDefault();
   },
 
-  addNotification: function ns_addNotification(type, nTitle, body, nID) {
+  addNotification: function ns_addNotification(detail) {
     var notifications = this.container;
 
     var notification = document.createElement('div');
     notification.className = 'notification';
-    notification.dataset.type = type;
 
-    if (type == 'desktop-notification') {
-      notification.dataset.notificationID = nID;
+    notification.dataset.notificationID = detail.id;
+
+    if (detail.icon) {
+      var icon = document.createElement('img');
+      icon.src = detail.icon;
+      notification.appendChild(icon);
     }
 
     var title = document.createElement('div');
-    title.textContent = nTitle;
+    title.textContent = detail.title;
     notification.appendChild(title);
 
     var message = document.createElement('div');
     message.classList.add('detail');
-    message.textContent = body;
+    message.textContent = detail.text;
     notification.appendChild(message);
 
     var close = document.createElement('a');
@@ -200,18 +245,15 @@ var NotificationScreen = {
     var notifSelector = 'div[data-type="desktop-notification"]';
     var desktopNotifications = this.container.querySelectorAll(notifSelector);
     if (desktopNotifications.length == 0) {
-      var hasNotifications = document.getElementById('state-notifications');
-      delete hasNotifications.dataset.visible;
-    }
-  },
-
-  removeNotifications: function ns_removeNotifications(type) {
-    var notifications = this.container;
-    var typeSelector = 'div[data-type="' + type + '"]';
-    var children = notifications.querySelectorAll(typeSelector);
-    for (var i = children.length - 1; i >= 0; i--) {
-      var notification = children[i];
-      notification.parentNode.removeChild(notification);
+      StatusBar.updateNotification(false);
     }
   }
 };
+
+(function init_NotificationScreen() {
+  var touchables = [
+    document.getElementById('notifications-screen'),
+    document.getElementById('statusbar')
+  ];
+  NotificationScreen.init(touchables);
+}());

@@ -1,0 +1,5 @@
+#top-toolbar .accounts,
+#top-toolbar .new-event,
+#view-selector .time-selection {
+  visibility: hidden;
+}

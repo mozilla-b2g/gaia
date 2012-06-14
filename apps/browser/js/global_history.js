@@ -1,3 +1,5 @@
+'use strict';
+
 var indexedDB = window.indexedDB || window.webkitIndexedDB ||
   window.mozIndexedDB || window.msIndexedDB;
 
@@ -37,9 +39,8 @@ var GlobalHistory = {
       // if place already exists, just set icon
       if (place) {
         place.icon = icon;
-      // otherwise create a new place
-      } else {
-        var place = {
+      } else { // otherwise create a new place
+        place = {
           uri: uri,
           title: uri,
           icon: icon
@@ -106,9 +107,9 @@ GlobalHistory.db = {
     };
 
     var objectStore = transaction.objectStore('places');
-    
+
     var request = objectStore.add(place);
-    
+
     request.onsuccess = function onsuccess(e) {
       if (callback)
         callback();
@@ -118,7 +119,7 @@ GlobalHistory.db = {
       if (e.target.error.name == 'ConstraintError') {
         e.preventDefault();
       } else {
-        console.log(e.target.error.name + 
+        console.log(e.target.error.name +
           ' error while adding place to global history store with URL ' +
           place.uri);
       }

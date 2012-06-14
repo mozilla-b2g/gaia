@@ -7,30 +7,10 @@ function startup() {
   ScreenManager.init();
   LockScreen.init();
   PinLock.init();
-  StatusBar.init();
   SoundManager.init();
   SleepMenu.init();
   SourceView.init();
   Shortcuts.init();
-
-  Applications.rebuild(function start(apps) {
-    // FIXME Loop over all the registered activities from the applications
-    //       list and start up the first application found registered for
-    //       the HOME activity.
-    if (document.location.protocol === 'file:') {
-      var paths = document.location.pathname.split('/');
-      paths.pop();
-      paths.pop();
-      var src = 'file://' + paths.join('/') + '/homescreen/index.html';
-    } else {
-      var host = document.location.host;
-      var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-      var src = 'http://homescreen.' + domain;
-    }
-    document.getElementById('homescreen').src = src;
-
-    ScreenManager.turnScreenOn();
-  });
 
   // This is code copied from
   // http://dl.dropbox.com/u/8727858/physical-events/index.html
@@ -44,6 +24,22 @@ function startup() {
     window.removeEventListener('devicemotion', dumbListener2);
   }, 2000);
 }
+
+// XXX: homescreen should be an app launched and managed by window manager,
+// instead of living in it's own frame.
+(function homescreenLauncher() {
+  if (document.location.protocol === 'file:') {
+    var paths = document.location.pathname.split('/');
+    paths.pop();
+    paths.pop();
+    var src = 'file://' + paths.join('/') + '/homescreen/index.html';
+  } else {
+    var host = document.location.host;
+    var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+    var src = 'http://homescreen.' + domain;
+  }
+  document.getElementById('homescreen').src = src;
+}());
 
 /* === Shortcuts === */
 /* For hardware key handling that doesn't belong to anywhere */
@@ -112,66 +108,6 @@ function RemoveEventHandlers(target, listener, eventNames) {
   }
 }
 
-
-var Applications = {
-  installedApps: [],
-  rebuild: function a_rebuild(callback) {
-    var self = this;
-    navigator.mozApps.mgmt.getAll().onsuccess = function(evt) {
-      var apps = evt.target.result;
-      apps.forEach(function(app) {
-        self.installedApps[app.origin] = app;
-      });
-
-      if (callback)
-        callback();
-    };
-  },
-
-  getByOrigin: function a_getByOrigin(origin) {
-    return this.installedApps[origin];
-  },
-
-  handleEvent: function a_handleEvent(evt) {
-    var detail = evt.detail;
-    if (detail.type !== 'webapps-ask-install')
-      return;
-
-    // This is how we say yes or no to the request after the user decides
-    var self = this;
-    function sendResponse(id, allow) {
-      self.rebuild();
-
-      var event = document.createEvent('CustomEvent');
-      event.initCustomEvent('mozContentEvent', true, true, {
-        id: id,
-        type: allow ? 'webapps-install-granted' : 'webapps-install-denied'
-      });
-      window.dispatchEvent(event);
-    }
-
-    var app = detail.app;
-    if (document.location.toString().indexOf(app.installOrigin) == 0) {
-      sendResponse(detail.id, true);
-      return;
-    }
-
-    var name = app.manifest.name;
-    var locales = app.manifest.locales;
-    var lang = navigator.language;
-    if (locales && locales[lang] && locales[lang].name)
-      name = locales[lang].name;
-
-    var str = document.mozL10n.get('install', {
-      'name': name, 'origin': app.origin
-    });
-    requestPermission(str, function() { sendResponse(detail.id, true); },
-                           function() { sendResponse(detail.id, false); });
-  }
-};
-
-window.addEventListener('mozChromeEvent', Applications);
-
 window.addEventListener('mozfullscreenchange', function onfullscreen(e) {
   var classes = document.getElementById('screen').classList;
   document.mozFullScreen ?
@@ -194,5 +130,5 @@ try {
         break;
     }
   };
-} catch(e) {}
+} catch (e) {}
 

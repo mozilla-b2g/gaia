@@ -4,13 +4,49 @@
 'use strict';
 
 var MessageManager = {
-  getMessages: function mm_getMessages(callback, filter, invert) {
-    var request = navigator.mozSms.getMessages(filter, !invert);
+  allMessagesCache: [],
 
+  // Compare the cache and data return from indexedDB to determine
+  // whether we need to update the cache and callback with latest messages.
+  needUpdateCache: function mm_needUpdateCache(dbData) {
+    var cacheData = this.allMessagesCache;
+    if (cacheData.length !== dbData.length)
+      return true;
+
+    for (var i = 0; i < dbData.length; i++) {
+      if (cacheData[i].id !== dbData[i].id)
+        return true;
+
+      // Since we could only change read property in message,
+      // Add read property checking for cache.
+      if (cacheData[i].read !== dbData[i].read)
+        return true;
+
+    }
+    return false;
+  },
+
+  // Cache all messages for improving the conversation lists update.
+  // getMessages will return cache data syncronusly and query indexedDB
+  // asyncronusly. If message data changed, getMessages will callback again
+  // with latest messages.
+  getMessages: function mm_getMessages(callback, filter, invert) {
+    if (!filter)
+      callback(this.allMessagesCache);
+
+    var request = navigator.mozSms.getMessages(filter, !invert);
+    var self = this;
     var messages = [];
     request.onsuccess = function onsuccess() {
       var cursor = request.result;
       if (!cursor.message) {
+        if (!filter) {
+          if (!self.needUpdateCache(messages))
+            return;
+
+          self.allMessagesCache = messages;
+        }
+
         callback(messages);
         return;
       }
@@ -20,7 +56,7 @@ var MessageManager = {
     };
 
     request.onerror = function onerror() {
-      var msg = 'Error reading the database. Error: ' + request.errorCode;
+      var msg = 'Reading the database. Error: ' + request.errorCode;
       console.log(msg);
     };
   },
@@ -43,8 +79,8 @@ var MessageManager = {
     };
 
     req.onerror = function onerror() {
-      var msg = 'Message deleting error in the database. Error: ' + req.errorCode;
-      console.log(msg);      
+      var msg = 'Deleting in the database. Error: ' + req.errorCode;
+      console.log(msg);
       callback(null);
     };
   },
@@ -54,7 +90,7 @@ var MessageManager = {
     conversation list page will also update withot notification currently.
     May need more infomation for user that the messages were not
     removed completely.
-  */  
+  */
   deleteMessages: function mm_deleteMessages(list, callback) {
     if (list.length > 0) {
       this.deleteMessage(list.shift(), function(result) {
@@ -63,6 +99,29 @@ var MessageManager = {
     } else
       callback();
   },
+
+  markMessageRead: function mm_markMessageRead(id, value, callback) {
+    var req = navigator.mozSms.markMessageRead(id, value);
+    req.onsuccess = function onsuccess() {
+      callback(req.result);
+    };
+
+    req.onerror = function onerror() {
+      var msg = 'Mark message error in the database. Error: ' + req.errorCode;
+      console.log(msg);
+      callback(null);
+    };
+  },
+
+  markMessagesRead: function mm_markMessagesRead(list, value, callback) {
+    if (list.length > 0) {
+      this.markMessageRead(list.shift(), value, function markReadCb(result) {
+        this.markMessagesRead(list, value, callback);
+      }.bind(this));
+    } else {
+      callback();
+    }
+  }
 };
 
 /* DelayDeleteManager and execute the delete task when:
@@ -87,52 +146,72 @@ var DelayDeleteManager = {
     if (evt.attrName != 'class')
       return;
 
-    // When ConversationListView entering other status.
-    if (!evt.prevValue && evt.newValue) {
+    // If previous status is not edit mode and class changed, execute delete.
+    if (evt.prevValue.indexOf('edit') === -1) {
       this.executeDelete();
     }
-  },  
+  },
   handleEvent: function dm_handleEvent(evt) {
     switch (evt.type) {
       case 'DOMAttrModified':
         this.onViewStatusChanged(evt);
-        break;      
+        break;
     }
-  },
+  }
 };
 
 /* Contact Manager for maintaining contact cache and access contact DB:
  * 1. Maintain used contacts in contactData object literal.
- * 2. getContactData: It will have both syncronus and asyncronus callback.
- *      If contact updated, asyncronus run will update cache than execute callback.
+ * 2. getContactData: Callback with contact data from 1)cache 2)indexedDB.
+ * If cache return "undefined". There will be no callback from cache.
+ * Callback will be called twice if cached data turned out to be different than
+ * the data from db.
+ * Contact return data type:
+ *   a) null : Request indexedDB error.
+ *   b) Empty array : Request success with no matched result.
+ *   c) Array with objects : Request success with matched contacts.
+ *
+ * XXX Note: We presume that contact.name has only one entry.
 */
 var ContactDataManager = {
-  init: function cm_init() {
-    this.contactData = {};
-  },
+  contactData: {},
   getContactData: function cm_getContactData(options, callback) {
-    if (options.filterBy.indexOf('tel')> -1 && options.filterOp == 'contains') {
-      var contact = this.contactData[options.filterValue];
-      callback(contact ? [contact]: []);
+    var isCacheable = options.filterBy.indexOf('tel') !== -1 &&
+                      options.filterOp == 'contains';
+    var cacheResult = this.contactData[options.filterValue];
+    if (isCacheable && typeof cacheResult !== 'undefined') {
+      var cacheArray = cacheResult ? [cacheResult] : [];
+      callback(cacheArray);
     }
+
     var self = this;
     var req = window.navigator.mozContacts.find(options);
     req.onsuccess = function onsuccess() {
       // Update the cache before callback.
-      if (options.filterBy.indexOf('tel')> -1 && options.filterOp == 'contains') {
-        if (req.result.length > 0) {
-          self.contactData[options.filterValue] = req.result[0];
+      if (isCacheable) {
+        var cacheData = self.contactData[options.filterValue];
+        var result = req.result;
+        if (result.length > 0) {
+          if (cacheData && (cacheData.name[0] == dbData.name[0]))
+            return;
+
+          self.contactData[options.filterValue] = result[0];
         } else {
-          delete self.contactData[options.filterValue];
+          if (cacheData === null)
+            return;
+
+          self.contactData[options.filterValue] = null;
         }
-      };
-      callback(req.result);    
-    };    
+      }
+      callback(result);
+    };
+
     req.onerror = function onerror() {
       var msg = 'Contact finding error. Error: ' + req.errorCode;
-      console.log(msg);  
-    };    
-  },
+      console.log(msg);
+      callback(null);
+    };
+  }
 };
 
 var ConversationListView = {
@@ -141,11 +220,21 @@ var ConversationListView = {
     return this.view = document.getElementById('msg-conversations-list');
   },
 
+  get searchToolbar() {
+    delete this.searchToolbar;
+    return this.searchToolbar = document.getElementById('msg-search-container');
+  },
+
   get searchInput() {
     delete this.searchInput;
     return this.searchInput = document.getElementById('msg-search');
   },
-  
+
+  get searchCancel() {
+    delete this.searchCancel;
+    return this.searchCancel = document.getElementById('msg-search-cancel');
+  },
+
   get deleteButton() {
     delete this.deleteButton;
     return this.deleteButton = document.getElementById('msg-delete-button');
@@ -158,12 +247,13 @@ var ConversationListView = {
 
   get undoToolbar() {
     delete this.undoToolbar;
-    return this.undoToolbar = document.getElementById('msg-undo-toolbar');    
+    return this.undoToolbar = document.getElementById('msg-undo-toolbar');
   },
 
   get undoTitleContainer() {
     delete this.undoTitleContainer;
-    return this.undoTitleContainer = document.getElementById('msg-undo-title-container');    
+    return this.undoTitleContainer =
+      document.getElementById('msg-undo-title-container');
   },
 
   init: function cl_init() {
@@ -172,7 +262,8 @@ var ConversationListView = {
       navigator.mozSms.addEventListener('received', this);
 
     this.searchInput.addEventListener('keyup', this);
-    this.searchInput.addEventListener('blur', this);
+    this.searchInput.addEventListener('focus', this);
+    this.searchCancel.addEventListener('mousedown', this);
     this.deleteButton.addEventListener('mousedown', this);
     this.undoButton.addEventListener('mousedown', this);
     this.view.addEventListener('click', this);
@@ -189,9 +280,13 @@ var ConversationListView = {
       filterOp: 'contains',
       filterValue: msg.dataset.num
     };
-    ContactDataManager.getContactData(options, function contactCallback(result) {
+    ContactDataManager.getContactData(options, function get(result) {
+      // If indexedDB query failed, just leave the previous result.
+      if (!result)
+        return;
+
       if (result.length === 0) {
-        // Update message while the contact delected but name exist.
+        // Update message while the contact does not exist in DB.
         if (msg.dataset.name == msg.dataset.num)
           return;
 
@@ -204,11 +299,11 @@ var ConversationListView = {
           return;
 
         msg.dataset.name = name;
-        nameElement.textContent = name;    
+        nameElement.textContent = name;
       }
-    });    
+    });
   },
-  
+
   updateConversationList: function cl_updateCL(pendingMsg) {
     var self = this;
     /*
@@ -232,9 +327,12 @@ var ConversationListView = {
         var num = message.delivery == 'received' ?
                   message.sender : message.receiver;
 
+        var read = message.read;
         var conversation = conversations[num];
-        if (conversation && !conversation.hidden)
+        if (conversation && !conversation.hidden) {
+          conversation.unreadCount += !read ? 1 : 0;
           continue;
+        }
 
         if (!conversation) {
           conversations[num] = {
@@ -243,6 +341,7 @@ var ConversationListView = {
             'name': num,
             'num': num,
             'timestamp': message.timestamp.getTime(),
+            'unreadCount': !read ? 1 : 0,
             'id': i
           };
         } else {
@@ -254,7 +353,7 @@ var ConversationListView = {
 
       var fragment = '';
       for (var num in conversations) {
-        if (self.delNumList.indexOf(num) > -1) {
+        if (self.delNumList.indexOf(num) !== -1) {
           continue;
         }
         var msg = self.createNewConversation(conversations[num]);
@@ -263,64 +362,104 @@ var ConversationListView = {
       self.view.innerHTML = fragment;
 
       var conversationList = self.view.children;
-      
-      // update the conversation sender/receiver name with contact data. 
+
+      // update the conversation sender/receiver name with contact data.
       for (var i = 0; i < conversationList.length; i++) {
         self.updateMsgWithContact(conversationList[i]);
       }
 
-      if (self.delNumList.length > 0) {
-        self.showUndoToolbar();
-      }
     }, null);
   },
 
-  createNewConversation: function cl_createNewConversation(conversation) {
-    return '<a href="#num=' + conversation.num + '"' + ' data-num="' + conversation.num + '"' +
-           ' data-name="' + escapeHTML(conversation.name || conversation.num, true) + '"' +
+  createHighlightHTML: function cl_createHighlightHTML(text, searchRegExp) {
+    var sliceStrs = text.split(searchRegExp);
+    var patterns = text.match(searchRegExp);
+    var str = '';
+    for (var i = 0; i < patterns.length; i++) {
+      str = str + escapeHTML(sliceStrs[i]) + '<span class="highlight">' +
+                  escapeHTML(patterns[i]) + '</span>';
+    }
+    str += escapeHTML(sliceStrs.pop());
+    return str;
+  },
+
+  createNewConversation: function cl_createNewConversation(conversation, reg) {
+    var dataName = escapeHTML(conversation.name || conversation.num, true);
+    var name = escapeHTML(conversation.name);
+    var bodyText = conversation.body.split('\n')[0];
+    var bodyHTML = reg ? this.createHighlightHTML(bodyText, reg) :
+                           escapeHTML(bodyText);
+    var listClass = '';
+    if (conversation.hidden) {
+      listClass = 'hide';
+    } else if (conversation.unreadCount > 0) {
+      listClass = 'unread';
+    }
+
+    return '<a href="#num=' + conversation.num + '"' +
+           ' data-num="' + conversation.num + '"' +
+           ' data-name="' + dataName + '"' +
            ' data-notempty="' + (conversation.timestamp ? 'true' : '') + '"' +
-           ' class="' + (conversation.hidden ? 'hide' : '') + '">' +
+           ' class="' + listClass + '">' +
            '<input type="checkbox" class="fake-checkbox"/>' + '<span></span>' +
-           '  <div class="name">' + escapeHTML(conversation.name) + '</div>' +
-           '  <div class="msg">' + escapeHTML(conversation.body.split('\n')[0]) + '</div>' +
-           (conversation.timestamp ?
-             '  <div class="time" data-time="' + conversation.timestamp + '">' +
-                 prettyDate(conversation.timestamp) + '</div>' : '') +
-           '</a>';
+           '  <div class="name">' + name + '</div>' +
+           '  <div class="msg">' + bodyHTML + '</div>' +
+           (!conversation.timestamp ? '' :
+           '  <div class="time" data-time="' + conversation.timestamp + '">' +
+             prettyDate(conversation.timestamp) + '</div>') +
+           '<div class="unread-tag">' + conversation.unreadCount + '</div></a>';
   },
 
   searchConversations: function cl_searchConversations() {
-    var conversations = this.view.children;
-
     var str = this.searchInput.value;
     if (!str) {
-      // leaving search view
-      for (var i = 0; i < conversations.length; i++) {
-        var conversation = conversations[i];
-        if (conversation.dataset.notempty === 'true') {
-          conversation.classList.remove('hide');
-        } else {
-          conversation.classList.add('hide');
-        }
-      }
+      // Leave the empty view when no text in the input.
+      this.view.innerHTML = '';
       return;
     }
 
-    var reg = new RegExp(str, 'i');
+    var self = this;
+    MessageManager.getMessages(function getMessagesCallback(messages) {
+      str = str.replace(/[.*+?^${}()|[\]\/\\]/g, '\\$&');
+      var fragment = '';
+      var searchedNum = {};
+      for (var i = 0; i < messages.length; i++) {
+        var reg = new RegExp(str, 'ig');
+        var message = messages[i];
+        var htmlContent = message.body.split('\n')[0];
+        var num = message.delivery == 'received' ?
+                  message.sender : message.receiver;
+        var read = message.read;
 
-    for (var i = 0; i < conversations.length; i++) {
-      var conversation = conversations[i];
-    try {
-      var dataset = conversation.dataset;
-      if (!reg.test(dataset.num) && !reg.test(dataset.name)) {
-        conversation.classList.add('hide');
-      } else {
-        conversation.classList.remove('hide');
+        if (searchedNum[num])
+          searchedNum[num].unreadCount += !message.read ? 1 : 0;
+
+        if (!reg.test(htmlContent) || searchedNum[num] ||
+            self.delNumList.indexOf(num) !== -1)
+          continue;
+
+        var msgProperties = {
+          'hidden': false,
+          'body': message.body,
+          'name': num,
+          'num': num,
+          'timestamp': message.timestamp.getTime(),
+          'unreadCount': !read ? 1 : 0,
+          'id': i
+        };
+        searchedNum[num] = msgProperties;
+        var msg = self.createNewConversation(msgProperties, reg);
+        fragment += msg;
+
       }
-  } catch(e) {
-      alert(conversation);
-  }
-    }
+      self.view.innerHTML = fragment;
+
+      // update the conversation sender/receiver name with contact data.
+      var conversationList = self.view.children;
+      for (var i = 0; i < conversationList.length; i++) {
+        self.updateMsgWithContact(conversationList[i]);
+      }
+    }, null);
   },
 
   openConversationView: function cl_openConversationView(num) {
@@ -328,6 +467,45 @@ var ConversationListView = {
       return;
 
     window.location.hash = '#num=' + num;
+  },
+
+  // Update the body class depends on the current hash and original class list.
+  pageStatusController: function cl_pageStatusController() {
+    var bodyclassList = document.body.classList;
+    switch (window.location.hash) {
+      case '':
+        bodyclassList.remove('msg-edit-mode');
+        bodyclassList.remove('msg-search-mode');
+        if (!bodyclassList.contains('msg-search-result-mode') &&
+            !bodyclassList.contains('conversation'))
+          return;
+
+        this.searchInput.value = '';
+        this.updateConversationList();
+        bodyclassList.remove('msg-search-result-mode');
+        bodyclassList.remove('conversation');
+        bodyclassList.remove('conversation-new-msg');
+        break;
+      case '#_edit':  // Edit mode with all conversations.
+        bodyclassList.add('msg-edit-mode');
+        bodyclassList.remove('msg-search-mode');
+        break;
+      case '#search': // Display search toolbar with all conversations.
+        bodyclassList.remove('msg-edit-mode');
+        bodyclassList.add('msg-search-mode');
+        break;
+      case '#searchresult': // Display searched conversations.
+        bodyclassList.remove('msg-search-mode');
+        bodyclassList.remove('msg-edit-mode');
+        bodyclassList.add('msg-search-result-mode');
+        if (!this.searchInput.value)
+          this.view.innerHTML = '';
+        break;
+      case '#searchresult_edit':  // Edit mode with the searched conversations.
+        bodyclassList.add('msg-edit-mode');
+        bodyclassList.add('msg-search-result-mode');
+        break;
+    }
   },
 
   handleEvent: function cl_handleEvent(evt) {
@@ -340,18 +518,12 @@ var ConversationListView = {
         this.searchConversations();
         break;
 
-      case 'blur':
-        window.location.hash = '#';
+      case 'focus':
+        window.location.hash = '#searchresult';
         break;
 
       case 'hashchange':
-        this.toggleEditMode(window.location.hash == '#edit');
-        this.toggleSearchMode(window.location.hash == '#search');
-        if (window.location.hash) {
-          return;
-        }
-        document.body.classList.remove('conversation');
-        document.body.classList.remove('conversation-new-msg');
+        this.pageStatusController();
         break;
 
       case 'mousedown':
@@ -359,10 +531,13 @@ var ConversationListView = {
           this.pendMessageDelete();
         else if (evt.currentTarget == this.undoButton)
           this.undoMessageDelete();
+        else if (evt.currentTarget == this.searchCancel)
+          window.location.hash = '#';
         break;
 
       case 'click':
-        // When Event listening target is this.view and clicked target has href entry.
+        // When Event listening target is this.view and clicked target
+        // has href entry.
         if (evt.currentTarget == this.view && evt.target.href)
           this.onListItemClicked(evt);
         break;
@@ -370,24 +545,41 @@ var ConversationListView = {
       case 'mozvisibilitychange':
         if (document.mozHidden)
           return;
-      
+
         // Refresh the view when app return to foreground.
         this.updateConversationList();
         break;
     }
   },
-  
-  /* Message delete scenario:
-   *  Delete button will only trigger pendMessageDelete and reflesh conversation list.
-   *  When list update, undo toolbar will be triggered when deleted item list exist.
-   *  And delayDelete will also regist when undo toolbar show up.
-   *  executeMessageDelete would be set for delayDelete regist.
-  */
+
+  // Message delete scenario:
+  //  Delete button will only trigger pendMessageDelete and refresh
+  //  conversation list.
+  //  When list update, undo toolbar will be triggered when deleted item list
+  // exist.
+  //  And delayDelete will also regist when undo toolbar show up.
+  //  executeMessageDelete would be set for delayDelete regist.
+  //
   pendMessageDelete: function cl_pendMessageDelete() {
-    if (this.delNumList.length > 0) {
-      this.updateConversationList();
+    window.location.hash = window.location.hash.replace('_edit', '');
+    var list = this.view.children;
+    this.delNumList = [];
+    for (var i = 0; i < list.length; i++) {
+      var cb = list[i].getElementsByClassName('fake-checkbox')[0];
+      if (!cb.checked)
+        continue;
+
+      this.delNumList.push(list[i].dataset.num);
     }
-    window.location.hash = '#';
+
+    if (this.delNumList.length == 0)
+      return;
+
+    this.showUndoToolbar();
+    if (this.searchInput.value)
+      this.searchConversations();
+    else
+      this.updateConversationList();
   },
 
   executeMessageDelete: function cl_executeMessageDelete() {
@@ -400,65 +592,55 @@ var ConversationListView = {
   undoMessageDelete: function cl_undoMessageDelete() {
     DelayDeleteManager.unregistDelayDelete();
     this.delNumList = [];
-    this.updateConversationList();
+    if (this.searchInput.value)
+      this.searchConversations();
+    else
+      this.updateConversationList();
     this.undoToolbar.classList.remove('show');
-  },  
+  },
 
   deleteMessages: function cl_deleteMessages(numberList) {
     if (numberList == [])
       return;
-    
+
+    var self = this;
     var filter = new MozSmsFilter();
     filter.numbers = numberList;
-    
+
     MessageManager.getMessages(function mm_getMessages(messages) {
-      var msgs =[];
+      var msgs = [];
       for (var i = 0; i < messages.length; i++) {
         msgs.push(messages[i].id);
       }
-      MessageManager.deleteMessages(msgs, this.updateConversationList.bind(this));
-    }.bind(this), filter);
-  },  
+      MessageManager.deleteMessages(msgs, function deleteCallback() {
+        if (document.body.classList.contains('msg-search-result-mode'))
+          self.searchConversations();
+        else
+          self.updateConversationList();
+      });
+    }, filter);
+  },
 
   showUndoToolbar: function cl_showUndoToolbar() {
     var undoTitle = document.mozL10n.get('conversationDeleted');
-    this.undoTitleContainer.innerHTML = this.delNumList.length + ' ' + undoTitle;
+    this.undoTitleContainer.innerHTML =
+      this.delNumList.length + ' ' + undoTitle;
+
     this.undoToolbar.classList.add('show');
     DelayDeleteManager.registDelayDelete(this.executeMessageDelete.bind(this));
   },
 
-  toggleSearchMode: function cl_toggleSearchMode(show) {
-    if (show) {
-      document.body.classList.add('msg-search-mode');
-    } else {
-      document.body.classList.remove('msg-search-mode');
-    }
-  },
-  
-  toggleEditMode: function cl_toggleEditMode(show) {
-    if (show) {      
-      document.body.classList.add('msg-edit-mode');  
-    } else {
-      document.body.classList.remove('msg-edit-mode');
-    }
-  },
-  
   onListItemClicked: function cl_onListItemClicked(evt) {
     var cb = evt.target.getElementsByClassName('fake-checkbox')[0];
     if (!cb)
       return;
-    
+
     if (!document.body.classList.contains('msg-edit-mode'))
       return;
-    
+
     evt.preventDefault();
     cb.checked = !cb.checked;
-    if (cb.checked) {
-      this.delNumList.push(evt.target.dataset.num);
-    } else {
-      this.delNumList.splice(this.delNumList.indexOf(evt.target.dataset.num), 1);
-    }
-  },
+  }
 };
 
 var ConversationView = {
@@ -501,7 +683,7 @@ var ConversationView = {
     var num = this.getNumFromHash();
     if (num)
       this.showConversation(num);
-    
+
     document.addEventListener('mozvisibilitychange', this);
   },
 
@@ -581,11 +763,14 @@ var ConversationView = {
       filterOp: 'contains',
       filterValue: num
     };
+
+    this.num.value = num;
+    this.title.num = num;
+    this.title.textContent = num;
+
     ContactDataManager.getContactData(options, function getContact(result) {
       var contactImageSrc = 'style/images/contact-placeholder.png';
-      if (result.length == 0) {
-        self.title.textContent = num;
-      } else {
+      if (result && result.length > 0) {
         var contact = result[0];
         self.title.textContent = contact.name[0];
         //TODO: apply the real contact image:
@@ -593,11 +778,8 @@ var ConversationView = {
       }
       var images = self.view.querySelectorAll('.photo img');
       for (var i = 0; i < images.length; i++)
-        images[i].src = contactImageSrc;      
+        images[i].src = contactImageSrc;
     });
-
-    this.num.value = num;
-    this.title.num = num;
 
     MessageManager.getMessages(function mm_getMessages(messages) {
       var lastMessage = messages[messages.length - 1];
@@ -606,9 +788,13 @@ var ConversationView = {
         messages.push(pendingMsg);
 
       var fragment = '';
+      var unreadList = [];
 
       for (var i = 0; i < messages.length; i++) {
         var msg = messages[i];
+
+        if (!msg.read)
+          unreadList.push(msg.id);
 
         var uuid = msg.hasOwnProperty('uuid') ? msg.uuid : '';
         var dataId = 'data-id="' + uuid + '"';
@@ -625,9 +811,11 @@ var ConversationView = {
 
         var body = msg.body.replace(/\n/g, '<br />');
         fragment += '<div ' + className + ' ' + dataNum + ' ' + dataId + '>' +
-                      '<div class="text">' + escapeHTML(body) + '</div>' +
-                      '<div class="time" data-time="' + msg.timestamp.getTime() + '">' +
-                          prettyDate(msg.timestamp) + '</div>' +
+                    '  <div class="text">' + escapeHTML(body) + '</div>' +
+                    '  <div class="time" data-time="' +
+                      msg.timestamp.getTime() + '">' +
+                      prettyDate(msg.timestamp) +
+                    '  </div>' +
                     '</div>';
       }
 
@@ -635,6 +823,11 @@ var ConversationView = {
       self.scrollViewToBottom(currentScrollTop);
 
       bodyclassList.add('conversation');
+
+      MessageManager.markMessagesRead(unreadList, true, function markMsg() {
+        // TODO : Since spec do not specify the behavior after mark success or
+        //        error, we do nothing currently.
+      });
     }, filter, true);
   },
 
@@ -692,16 +885,18 @@ var ConversationView = {
       case 'mozvisibilitychange':
         if (document.mozHidden)
           return;
-      
+
         // Refresh the view when app return to foreground.
         var num = this.getNumFromHash();
-        if (num)
+        if (num) {
           this.showConversation(num);
+        }
         break;
     }
   },
   close: function cv_close() {
-    if (!document.body.classList.contains('conversation') && !window.location.hash)
+    if (!document.body.classList.contains('conversation') &&
+        !window.location.hash)
       return false;
 
     window.location.hash = '';
@@ -775,7 +970,6 @@ window.addEventListener('localized', function showBody() {
     var request = navigator.mozSettings.getLock().get('language.current');
     request.onsuccess = function() {
       selectedLocale = request.result['language.current'] || navigator.language;
-      ContactDataManager.init();
       ConversationView.init();
       ConversationListView.init();
     }

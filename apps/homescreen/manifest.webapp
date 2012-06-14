@@ -7,9 +7,7 @@
     "url": "https://github.com/andreasgal/gaia"
   },
   "permissions": [
-    "telephony",
     "mozbrowser",
-    "power",
     "mozApps"
   ],
   "locales": {
@@ -58,5 +56,6 @@
       "description": "Gaia \u4e3b\u756b\u9762"
     }
   },
-  "default_locale": "en-US"
+  "default_locale": "en-US",
+  "orientation": "portrait-primary"
 }
