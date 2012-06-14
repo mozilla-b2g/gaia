@@ -20,12 +20,19 @@
     </script>
     <link rel="stylesheet" type="text/css" href="style/system.css">
     <script defer src="js/settings.js"></script>
+    <script defer src="js/applications.js"></script>
     <script defer src="js/screen_manager.js"></script>
     <script defer src="js/background_service.js"></script>
     <script defer src="js/bootstrap.js"></script>
+    <script defer src="js/screenshot.js"></script>
     <script defer src="js/sound_manager.js"></script>
     <script defer src="js/source_view.js"></script>
     <script defer src="js/storage.js"></script>
+    <script defer src="js/gridview.js"></script>
+
+    <!-- Accessibility -->
+    <link rel="stylesheet" type="text/css" href="style/accessibility/accessibility.css">
+    <script defer src="js/accessibility.js"></script>
 
     <!-- Sleep Menu -->
     <link rel="stylesheet" type="text/css" href="style/sleep_menu/sleep_menu.css">
@@ -47,19 +54,19 @@
     <link rel="stylesheet" type="text/css" href="style/notifications/notifications.css">
     <script defer src="js/notifications/notifications.js"></script>
 
-    <!-- Dialogs -->
-    <link rel="stylesheet" type="text/css" href="style/dialogs/request.css">
-    <script defer src="js/dialogs/request.js"></script>
+    <!-- Permission Manager -->
+    <link rel="stylesheet" type="text/css" href="style/permission_manager/permission_manager.css">
+    <script defer src="js/permission_manager.js"></script>
 
+    <!-- Task Manager -->
+    <link rel="stylesheet" type="text/css" href="style/task_manager/task_manager.css">
+    <script defer src="js/windows/task_manager.js"></script>
+	
     <!-- Windows -->
-    <link rel="stylesheet" type="text/css" href="style/windows/windows.css">
     <script defer src="js/windows/window_manager.js"></script>
-
+	
     <!-- Keyboard -->
     <script defer src="js/keyboard_manager.js"></script>
-
-    <!-- Bookmarks -->
-    <script defer src="js/bookmarks/bookmarks.js"></script>
 
     <!-- Theme and localization -->
     <link rel="stylesheet" type="text/css" href="style/themes/default/system.css">
@@ -112,7 +119,7 @@
       </div>
 
 
-      <div id="lockscreen" class="uninit">
+      <div id="lockscreen" class="uninit screenoff">
         <div id="lockscreen-container">
           <div class="lockscreen-panel">
             <div id="lockscreen-header">
@@ -125,6 +132,7 @@
             </div>
             <div id="lockscreen-notification" hidden>
               <div id="lockscreen-notification-time"></div>
+              <img id="lockscreen-notification-icon" />
               <div id="lockscreen-notification-title"></div>
               <div id="lockscreen-notification-detail"></div>
             </div>
@@ -154,11 +162,8 @@
             <p>To be done.</p>
             <p>Turn off screen to go back.</p>
           </div>
-          <div id="lockscreen-panel-camera" class="lockscreen-panel tbd">
-            <h1>Camera app placeholder</h1>
-            <p>To be done.</p>
-            <p>Waiting for attention screen / web activities.</p>
-            <p>Turn off screen to go back.</p>
+          <div id="lockscreen-panel-camera" class="lockscreen-panel">
+            <iframe id="lockscreen-camera" src="blank.html"></iframe>
           </div>
         </div>
       </div>

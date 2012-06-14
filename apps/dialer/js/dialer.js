@@ -350,27 +350,30 @@ var CallHandler = {
           (this.recentsEntry.type.indexOf('-refused') == -1) &&
           (this.recentsEntry.type.indexOf('-connected') == -1)) {
 
-        var mozNotif = navigator.mozNotification;
-        if (mozNotif) {
-          var notification = mozNotif.createNotification(
-            'Missed call', 'From ' + this.recentsEntry.number
-          );
+        var number = this.recentsEntry.number;
+        navigator.mozApps.getSelf().onsuccess = function(evt) {
+          var app = evt.target.result;
 
-          notification.onclick = function ch_notificationClick() {
-            var recents = document.getElementById('recents-label');
-            choiceChanged(recents);
-            Recents.showLast();
+          // Taking the first icon for now
+          // TODO: define the size
+          var icons = app.manifest.icons;
+          var iconURL = null;
+          if (icons) {
+            iconURL = app.installOrigin + icons[Object.keys(icons)[0]];
+          }
 
+          var notiClick = function() {
             // Asking to launch itself
-            navigator.mozApps.getSelf().onsuccess = function(e) {
-              var app = e.target.result;
-              app.launch();
-            };
+            app.launch();
           };
 
-          notification.show();
-        }
+          var title = 'Missed call';
+          var body = 'From ' + number;
+
+          NotificationHelper.send(title, body, iconURL, notiClick);
+        };
       }
+
       this.recentsEntry = null;
     }
   },

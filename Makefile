@@ -32,7 +32,12 @@ DEBUG?=0
 
 REPORTER=Spec
 
-GAIA_APP_SRCDIRS?=apps
+GAIA_APP_SRCDIRS?=apps test_apps
+
+ifeq ($(MAKECMDGOALS), demo)
+GAIA_DOMAIN=thisdomaindoesnotexist.org
+GAIA_APP_SRCDIRS=apps
+endif
 
 
 ###############################################################################
@@ -90,7 +95,7 @@ ifeq ($(strip $(NPM)),)
 	NPM := `which npm`
 endif
 
-TEST_AGENT_CONFIG="./apps/test-agent/config.json"
+TEST_AGENT_CONFIG="./test_apps/test-agent/config.json"
 
 #Marionette testing variables
 #make sure we're python 2.7.x
@@ -360,7 +365,7 @@ lint:
 	@# cubevid
 	@# crystalskull
 	@# towerjelly
-	@gjslint --nojsdoc -r apps -e 'cubevid,crystalskull,towerjelly'
+	@gjslint --nojsdoc -r apps -e 'cubevid,crystalskull,towerjelly,email'
 
 # Generate a text file containing the current changeset of Gaia
 # XXX I wonder if this should be a replace-in-file hack. This would let us
@@ -435,3 +440,6 @@ install-gaia: profile
 
 install-media-samples:
 	$(ADB) push media-samples/DCIM /sdcard/DCIM
+	$(ADB) push media-samples/videos /sdcard/videos
+
+demo: install-media-samples install-gaia

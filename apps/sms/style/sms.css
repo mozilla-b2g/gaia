@@ -153,7 +153,7 @@ input, textarea {
   border: solid 3px #7d8389;
   border-radius: 20px;
   height: 40px;
-  margin: 10px 15px;
+  margin: 13px 15px;
   font-size: 20px;
   line-height: 25px;
   font-family: 'Open Sans', sans-serif;
@@ -217,18 +217,25 @@ input, textarea {
 }
 
 #msg-search-container {
-  padding: 0;
+  padding-right: 16px;
   margin: 0;
-  top: 4px;
+  top: 0px;
   width: 100%;
-  height: 60px;
+  height: 64px;
   border-bottom: solid 3px #9b9b9b;
-  position: absolute;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;  
   z-index: 1;
   -moz-transition: -moz-transform 0.3s ease;
 }
+
 body.msg-search-mode #msg-search-container {
-  -moz-transform: translateY(60px);
+  -moz-transform: translateY(58px);
+}
+
+body.msg-search-result-mode #msg-search-container {
+  -moz-transform: translateY(0px);
+  z-index: 6;
 }
 
 #msg-title-container {
@@ -246,6 +253,10 @@ body.msg-search-mode #msg-search-container {
   width: -moz-calc(100% - 15px - 15px);
 }
 
+#msg-search-cancel {
+  margin-top: 6px;
+}
+
 #msg-conversations-list {
   background: url("images/app-texture.png") repeat scroll 50% 50%, rgb(243, 243, 243);
   top: 64px;
@@ -253,7 +264,7 @@ body.msg-search-mode #msg-search-container {
 }
 
 body.msg-search-mode #msg-conversations-list {
-  top: 124px;
+  top: 122px;
 }
 
 #msg-conversations-list > a {
@@ -368,6 +379,10 @@ body.msg-edit-mode #msg-conversations-list > a {
   text-overflow: ellipsis;
 }
 
+#msg-conversations-list .msg .highlight{
+  background: rgb(255, 255, 0);
+}
+
 #msg-conversations-list .time {
   position: absolute;
   top: 9px;
@@ -428,7 +443,7 @@ body.msg-edit-mode #msg-conversations-list .time {
   position: absolute;
 }
 
-#msg-edit-button { 
+#msg-edit-button, #msg-search-edit-button { 
   left: 0px;
   margin-top: 14px;
   margin-left: 24px; 
@@ -445,12 +460,20 @@ body.msg-edit-mode #msg-conversations-list .time {
   min-width: 120px;
 }
 
-.edit-hide {
+.edit-hide, .search-hide {
   display: block;
 }
 
-.edit-show {
+.edit-show, .search-show {
   display: none;
+}
+
+body.msg-search-result-mode .search-hide {
+  display: none;
+}
+
+body.msg-search-result-mode .search-show {
+  display: block;
 }
 
 body.msg-edit-mode .edit-hide {
@@ -652,6 +675,9 @@ body.conversation-new-msg #view-num {
   min-width: 96px;
 }
 
+#view-image-button {
+  margin: 14px 0 0 10px;
+}
 /* localization */
 body.hidden *[data-l10n-id] {
   visibility: hidden;

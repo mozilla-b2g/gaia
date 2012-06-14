@@ -25,7 +25,7 @@
   pointer-events: none;
 }
 
-#notifications-container .notification > div:first-child {
+#notifications-container .notification > div:first-of-type {
   margin: 0 0 0 85px;
   padding: 20px 0 0 0;
 
@@ -54,6 +54,14 @@
   right: 0px;
   width: 80px;
   height: 80px;
+}
+
+#notifications-container .notification > img {
+  float: left;
+  display: block;
+  width: 64px;
+  height: 64px;
+  margin: 8px;
 }
 
 #grippy {
