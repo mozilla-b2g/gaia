@@ -355,6 +355,7 @@ var PlayerView = {
     // ogg returns in seconds
     // note this may be a bug cause mp3 shows wrong duration in
     // gecko's native audio player
+    // A related Bug 740124 in Bugzilla
     var startTime = this.audio.startTime;
 
     var originalEndTime =
