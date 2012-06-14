@@ -115,11 +115,12 @@ var MessageManager = {
 
   markMessagesRead: function mm_markMessagesRead(list, value, callback) {
     if (list.length > 0) {
-      this.markMessageRead(list.shift(), value, function(result) {
+      this.markMessageRead(list.shift(), value, function markReadCb(result) {
         this.markMessagesRead(list, value, callback);
       }.bind(this));
-    } else
+    } else {
       callback();
+    }
   }
 };
 
@@ -329,7 +330,7 @@ var ConversationListView = {
         var read = message.read;
         var conversation = conversations[num];
         if (conversation && !conversation.hidden) {
-          conversation.unread += !read ? 1 : 0;
+          conversation.unreadCount += !read ? 1 : 0;
           continue;
         }
 
@@ -340,7 +341,7 @@ var ConversationListView = {
             'name': num,
             'num': num,
             'timestamp': message.timestamp.getTime(),
-            'unread': !read ? 1 : 0,
+            'unreadCount': !read ? 1 : 0,
             'id': i
           };
         } else {
@@ -388,21 +389,25 @@ var ConversationListView = {
     var bodyText = conversation.body.split('\n')[0];
     var bodyHTML = reg ? this.createHighlightHTML(bodyText, reg) :
                            escapeHTML(bodyText);
+    var listClass = '';
+    if (conversation.hidden) {
+      listClass = 'hide';
+    } else if (conversation.unreadCount > 0) {
+      listClass = 'unread';
+    }
 
     return '<a href="#num=' + conversation.num + '"' +
            ' data-num="' + conversation.num + '"' +
            ' data-name="' + dataName + '"' +
            ' data-notempty="' + (conversation.timestamp ? 'true' : '') + '"' +
-           ' class="' + (conversation.hidden ? 'hide' : '') + '">' +
+           ' class="' + listClass + '">' +
            '<input type="checkbox" class="fake-checkbox"/>' + '<span></span>' +
            '  <div class="name">' + name + '</div>' +
            '  <div class="msg">' + bodyHTML + '</div>' +
            (!conversation.timestamp ? '' :
            '  <div class="time" data-time="' + conversation.timestamp + '">' +
              prettyDate(conversation.timestamp) + '</div>') +
-           (conversation.unread ? '<div class="unread-highlight"></div>' +
-           '<div class="unread-tag">' + conversation.unread + '</div>' : '') +
-           '</a>';
+           '<div class="unread-tag">' + conversation.unreadCount + '</div></a>';
   },
 
   searchConversations: function cl_searchConversations() {
@@ -427,7 +432,7 @@ var ConversationListView = {
         var read = message.read;
 
         if (searchedNum[num])
-          searchedNum[num].unread += !message.read ? 1 : 0;
+          searchedNum[num].unreadCount += !message.read ? 1 : 0;
 
         if (!reg.test(htmlContent) || searchedNum[num] ||
             self.delNumList.indexOf(num) !== -1)
@@ -439,7 +444,7 @@ var ConversationListView = {
           'name': num,
           'num': num,
           'timestamp': message.timestamp.getTime(),
-          'unread': !read ? 1 : 0,
+          'unreadCount': !read ? 1 : 0,
           'id': i
         };
         searchedNum[num] = msgProperties;

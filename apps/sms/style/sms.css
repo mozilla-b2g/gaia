@@ -280,11 +280,12 @@ body.msg-search-mode #msg-conversations-list {
   border-top: 1px solid hsla(207,22%,92%,1);
   border-bottom: 1px solid hsla(223,7%,81%,1);
   width: 100%;
-  -moz-transition: width 0.3s ease;
+  -moz-transition: padding 0.3s ease-out;
 }
 
 body.msg-edit-mode #msg-conversations-list > a {
   padding: 13px 16px 0 112px;
+  -moz-transition: padding 0.3s ease-out;
 }
 
 #msg-conversations-list > a:active {
@@ -301,6 +302,18 @@ body.msg-edit-mode #msg-conversations-list > a {
 
 #msg-conversations-list > a:first-child {
   border-top-color: transparent;
+}
+
+#msg-conversations-list > a.unread::before {
+  position: absolute;
+  content: "";
+  display: block;
+  top: 0px;
+  left: 0px;
+  width: 10px;
+  height: 100%;
+  padding-top: -2px;
+  background: -moz-linear-gradient(45deg, gray, #EDEDED);
 }
 
 /* fake input boxes for checkboxes*/
@@ -324,11 +337,12 @@ body.msg-edit-mode #msg-conversations-list > a {
   width: 64px;
   height: 64px;
   border: none;
-  -moz-transition: width 0.3s ease;
+  -moz-transition: opacity 0.3s ease-in;
 }
 
 #msg-conversations-list > a > input[type=checkbox] + span {
-  width: 0px;
+  opacity: 0.0;
+  visibility: hidden;
   height: 60px;
   border-radius: 5px;
 }
@@ -339,7 +353,8 @@ body.msg-edit-mode #msg-conversations-list > a > input[type=checkbox]:checked + 
 }
 
 body.msg-edit-mode #msg-conversations-list > a > span {
-  width: 60px;
+  opacity: 1.0;
+  visibility: visible;
   border: 4px solid;
   -moz-border-top-colors: #c3c9cb #c3c9cb #fff #fff;
   -moz-border-right-colors: #c3c9cb #c3c9cb #fff #fff;
@@ -397,18 +412,9 @@ body.msg-edit-mode #msg-conversations-list > a > span {
   font-size: 18px;
 }
 
-#msg-conversations-list .unread-highlight {
-  position: absolute;
-  top: 0px;
-  left: 0px;
-  width: 10px;
-  height: 100%;
-  padding-top: -2px;
-  background: -moz-linear-gradient(45deg, gray, #EDEDED);
-}
-
 #msg-conversations-list .unread-tag {
   position: absolute;
+  visibility : hidden;
   top: 45px;
   right: 26px;
   padding: 0 16px;
@@ -417,6 +423,10 @@ body.msg-edit-mode #msg-conversations-list > a > span {
   font-size: 18px;
   background: -moz-linear-gradient(top, #00ADEE, #0078A5);
   border-radius: 9px;
+}
+
+#msg-conversations-list > a.unread .unread-tag {
+  visibility : visible;
 }
 
 #msg-undo-toolbar {
