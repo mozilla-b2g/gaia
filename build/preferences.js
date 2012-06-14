@@ -142,6 +142,8 @@ domains.push(GAIA_DOMAIN);
   });
 });
 
+//XXX: only here while waiting for https://bugzilla.mozilla.org/show_bug.cgi?id=764718 to be fixed
+content += "user_pref(\"dom.allow_scripts_to_close_windows\", true);\n\n";
 content += "user_pref(\"b2g.privileged.domains\", \"" + privileges.join(",") + "\");\n\n";
 
 if (LOCAL_DOMAINS) {
