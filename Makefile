@@ -124,7 +124,6 @@ webapp-manifests:
 	@echo { > profile/webapps/webapps.json
 	for d in `find ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
 	do \
-	  echo $(EXCLUDED) | grep -Eq $$d && continue; \
 	  if [ -f $$d/manifest.webapp ]; \
 		then \
 			n=$$(basename $$d); \
@@ -171,7 +170,7 @@ ifneq ($(DEBUG),1)
 	@rm -rf profile/OfflineCache
 	@mkdir -p profile/OfflineCache
 	@cd ..
-	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)$(GAIA_PORT)"' build/offline-cache.js
+	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)$(GAIA_PORT)"; const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)"' build/offline-cache.js
 	@echo "Done"
 endif
 
@@ -405,7 +404,7 @@ forward:
 update-offline-manifests:
 	for d in `find ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
 	do \
-		echo $(EXCLUDED) | grep -Eq $$d && continue; \
+		rm -rf $$d/manifest.appcache ; \
 		if [ -f $$d/manifest.webapp ] ;\
 		then \
 			echo \\t$$d ;  \
