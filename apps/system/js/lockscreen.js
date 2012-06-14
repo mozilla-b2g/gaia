@@ -294,7 +294,6 @@ var LockScreen = {
     this.locked = false;
 
     this.mainScreen.focus();
-    this.overlay.classList.add('unlocked');
     if (instant)
       this.overlay.classList.add('no-transition');
     else
@@ -320,7 +319,6 @@ var LockScreen = {
     this.switchPanel();
 
     this.overlay.focus();
-    this.overlay.classList.remove('unlocked');
     if (instant)
       this.overlay.classList.add('no-transition');
     else
