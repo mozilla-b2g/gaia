@@ -191,7 +191,9 @@ let applicationCacheService = Cc["@mozilla.org/network/application-cache-service
 
 let iconsToInject = [];
 
-['apps', 'test_apps'].forEach(function parseDirectory(directoryName) {
+let appSrcDirs = GAIA_APP_SRCDIRS.split(' ');
+
+appSrcDirs.forEach(function parseDirectory(directoryName) {
   let directories = getSubDirectories(directoryName);
 
   directories.forEach(function generateAppCache(dir) {
