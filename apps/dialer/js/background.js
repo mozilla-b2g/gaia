@@ -1,9 +1,6 @@
 'use strict';
 
 (function() {
-
-console.log("********* Dialer Gaia -> background.sj *********");
-
   var telephony = navigator.mozTelephony;
   if (!telephony) {
     return;

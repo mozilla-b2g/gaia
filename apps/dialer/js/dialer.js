@@ -299,16 +299,15 @@ var CallHandler = {
   },
 
   connected: function ch_connected() {
-    var callDirectionChar = "";
-    if(this.callScreen.classList.contains('incoming')) {
+    var callDirectionChar = '';
+    if (this.callScreen.classList.contains('incoming')) {
       this.callScreen.classList.remove('incoming');
-      callDirectionChar = "&#8618";
-    } else 
-    if(this.callScreen.classList.contains('calling')) {
+      callDirectionChar = '&#8618';
+    } else if (this.callScreen.classList.contains('calling')) {
       this.callScreen.classList.remove('calling');
-      callDirectionChar = "&#8617";
+      callDirectionChar = '&#8617';
     }
-    this.callScreen.classList.add("in-call");
+    this.callScreen.classList.add('in-call');
     // hardening against rapid ending
     if (!this._onCall)
       return;
