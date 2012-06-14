@@ -27,7 +27,6 @@ var StatusBar = {
     window.addEventListener('screenchange', this);
     this.addListeners();
 
-    this.updateClock();
     this.updateBattery();
     this.updateConnection();
     this.updateWifi();
@@ -81,6 +80,8 @@ var StatusBar = {
       wifiManager.onstatuschange =
         wifiManager.connectionInfoUpdate = (this.updateWifi).bind(this);
     }
+
+    this.updateClock();
 
     window.addEventListener('volumechange', this);
   },
