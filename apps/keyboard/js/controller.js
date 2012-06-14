@@ -362,14 +362,28 @@ const IMEController = (function() {
   }
 
   function _showAlternatives(key) {
+    // avoid alternatives of alternatives
+    if (_isShowingAlternativesMenu)
+      return;
+
     var alternatives, altMap, value, keyObj, uppercaseValue;
     var r = key ? key.dataset.row : -1, c = key ? key.dataset.column : -1;
     if (r < 0 || c < 0)
       return;
+    keyObj = _currentLayout.keys[r][c];
+
+    // switch keyboard menu
+    if (keyObj.keyCode === SWITCH_KEYBOARD) {
+      IMERender.showKeyboardAlternatives(
+        IMEManager.keyboards,
+        _baseLayoutName,
+        SWITCH_KEYBOARD
+      );
+      return;
+    }
 
     // get alternatives from layout
     altMap = _currentLayout.alt || {};
-    keyObj = _currentLayout.keys[r][c];
     value = keyObj.value;
     alternatives = altMap[value] || '';
 
@@ -628,14 +642,16 @@ const IMEController = (function() {
 
         // If the user has specify a keyboard in the menu,
         // switch to that keyboard.
-        var language = target.dataset.keyboard ?
-          target.dataset.keyboard :
-          _baseLayoutName;
+        if (target.dataset.keyboard) {
+          _baseLayoutName = target.dataset.keyboard;
 
-        var keyboards = IMEManager.keyboards;
-        var index = keyboards.indexOf(language);
-        index = (index + 1) % keyboards.length;
-        _baseLayoutName = IMEManager.keyboards[index];
+        } else {
+          var keyboards = IMEManager.keyboards;
+          var index = keyboards.indexOf(_baseLayoutName);
+          console.log(index);
+          index = (index + 1) % keyboards.length;
+          _baseLayoutName = IMEManager.keyboards[index];
+        }
 
         _currentLayoutMode = LAYOUT_MODE_DEFAULT;
         _isUpperCase = false;

@@ -64,10 +64,6 @@ const IMERender = (function() {
           dataset.push({'key': 'compositekey', 'value': key.compositeKey});
         }
 
-        if (language && code == -3) {
-          dataset.push({'key': 'keyboard', 'value': language});
-        }
-
         content += buildKey(keyChar, className, keyWidth, dataset);
 
       }));
@@ -120,7 +116,10 @@ const IMERender = (function() {
     key.classList.remove('highlighted');
   };
 
-  var showPendingSymbols = function km_showPendingSymbols(symbols, highlightStart, highlightEnd, highlightState) {
+  var showPendingSymbols = function km_showPendingSymbols(symbols,
+                                                            highlightStart,
+                                                            highlightEnd,
+                                                            highlightState) {
     var HIGHLIGHT_COLOR_TABLE = {
       'red': 'keyboard-pending-symbols-highlight-red',
       'green': 'keyboard-pending-symbols-highlight-green',
@@ -188,6 +187,32 @@ const IMERender = (function() {
         candidatePanel.appendChild(span);
       });
     }
+  };
+
+  var showKeyboardAlternatives = function(keyboards, current, switchCode) {
+    var dataset, className, content = '';
+    var menu = this.menu;
+
+    for (var i = 0, kbr; kbr = keyboards[i]; i += 1) {
+      className = 'keyboard-key special-key';
+
+      if (kbr === current)
+        className += ' current-keyboard';
+
+      dataset = [
+        {key: 'keyboard', value: kbr},
+        {key: 'keycode', value: switchCode}
+      ];
+      content += buildKey(
+        Keyboards[kbr].menuLabel,
+        className, '100px',
+        dataset
+      );
+    }
+
+    menu.innerHTML = content;
+    menu.classList.add("kbr-menu-left");
+    menu.style.display = 'block';
   };
 
   var showAlternativesCharMenu = function(key, altChars) {
@@ -312,6 +337,7 @@ const IMERender = (function() {
     'highlightKey': highlightKey,
     'unHighlightKey': unHighlightKey,
     'showAlternativesCharMenu': showAlternativesCharMenu,
+    'showKeyboardAlternatives': showKeyboardAlternatives,
     'hideAlternativesCharMenu': hideAlternativesCharMenu,
     'setUpperCaseLock': setUpperCaseLock,
     'resizeUI': resizeUI,

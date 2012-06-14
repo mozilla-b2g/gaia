@@ -142,7 +142,7 @@ button:-moz-focus-inner{
   /*box-shadow: 0 0 2px rgba(0,0,0,0.5);*/
   white-space: nowrap;
   overflow:visible;
-  pointer-events: all;
+  pointer-events: auto;
   white-space: nowrap;
   padding: 0 0.5rem;
 }
