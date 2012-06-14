@@ -83,7 +83,7 @@ button:-moz-focus-inner{
   -moz-background-clip: padding;
   background: -moz-linear-gradient(#fff, #ebebeb);
   box-shadow: inset 0 0px 0px 1px rgba(255, 255, 255, 0.9);
-  font-family: 'Open Sans';  
+  font-family: 'Open Sans Semibold';  
   font-size: 1.8rem;
   line-height: 3.8rem;
   color: #333;
@@ -142,7 +142,7 @@ button:-moz-focus-inner{
   /*box-shadow: 0 0 2px rgba(0,0,0,0.5);*/
   white-space: nowrap;
   overflow:visible;
-  pointer-events: auto;
+  /*pointer-events: all;*/
   white-space: nowrap;
   padding: 0 0.5rem;
 }
@@ -195,17 +195,18 @@ button:-moz-focus-inner{
 .keyboard-key.highlighted[data-keycode="13"],
 .keyboard-key.highlighted[data-keycode="18"],
 .keyboard-key.highlighted[data-keycode="-1"],
+.keyboard-key.highlighted[data-keycode="32"],
 .keyboard-key.highlighted[data-keycode="-2"],
 .keyboard-key.special-key.highlighted
   {  box-shadow: 0 0 0 2px #4495A8; margin-top: 0; }
 
-    .keyboard-key[data-keycode="-3"] span , .keyboard-key.highlighted[data-keycode="-3"] span , /* IMEManager.SWITCH_KEYBOARD */
-    .keyboard-key[data-keycode="8"] span , .keyboard-key.highlighted[data-keycode="8"] span , /* KeyEvent.DOM_VK_BACK_SPACE */
-    .keyboard-key[data-keycode="20"] span , .keyboard-key.highlighted[data-keycode="20"] span , /* KeyEvent.DOM_VK_CAPS_LOCK */
-    .keyboard-key[data-keycode="13"] span , .keyboard-key.highlighted[data-keycode="13"] span ,
-    .keyboard-key[data-keycode="18"] span , .keyboard-key.highlighted[data-keycode="18"] span ,
-    .keyboard-key[data-keycode="-1"] span , .keyboard-key.highlighted[data-keycode="-1"] span ,
-    .keyboard-key[data-keycode="-2"] span , .keyboard-key.highlighted[data-keycode="-2"] span,
+    .keyboard-key[data-keycode="-3"] > span , .keyboard-key.highlighted[data-keycode="-3"] > span, /* IMEManager.SWITCH_KEYBOARD */
+    .keyboard-key[data-keycode="8"] > span , .keyboard-key.highlighted[data-keycode="8"] > span, /* KeyEvent.DOM_VK_BACK_SPACE */
+    .keyboard-key[data-keycode="20"] > span , .keyboard-key.highlighted[data-keycode="20"] > span, /* KeyEvent.DOM_VK_CAPS_LOCK */
+    .keyboard-key[data-keycode="13"] > span , .keyboard-key.highlighted[data-keycode="13"] > span,
+    .keyboard-key[data-keycode="18"] > span , .keyboard-key.highlighted[data-keycode="18"] > span,
+    .keyboard-key[data-keycode="-1"] > span , .keyboard-key.highlighted[data-keycode="-1"] > span,
+    .keyboard-key[data-keycode="-2"] > span , .keyboard-key.highlighted[data-keycode="-2"] > span,
     .keyboard-key.special-key span, .keyboard-key.special-key.highlighted span
       { 
         font-size: 1.8rem;
@@ -223,13 +224,24 @@ button:-moz-focus-inner{
         height: 100%
       }
 
-          .keyboard-key.highlighted[data-keycode="-3"] span:after,
-          .keyboard-key.highlighted[data-keycode="8"] span:after,
-          .keyboard-key.highlighted[data-keycode="20"] span:after,
-          .keyboard-key.highlighted[data-keycode="13"] span:after,
-          .keyboard-key.highlighted[data-keycode="18"] span:after,
-          .keyboard-key.highlighted[data-keycode="-1"] span:after,
-          .keyboard-key.highlighted[data-keycode="-2"] span:after,
+    /* SPACEBAR without highlight */
+    .keyboard-key.highlighted[data-keycode="32"] > span  {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 100%
+      }
+
+          .keyboard-key.highlighted[data-keycode="-3"] > span:after,
+          .keyboard-key.highlighted[data-keycode="8"] > span:after,
+          .keyboard-key.highlighted[data-keycode="20"] > span:after,
+          .keyboard-key.highlighted[data-keycode="13"] > span:after,
+          .keyboard-key.highlighted[data-keycode="18"] > span:after,
+          .keyboard-key.highlighted[data-keycode="-1"] > span:after,
+          .keyboard-key.highlighted[data-keycode="32"] > span:after,
+          .keyboard-key.highlighted[data-keycode="-2"] > span:after,
           .keyboard-key.special-key.highlighted span:after 
             { display: none; }
 
