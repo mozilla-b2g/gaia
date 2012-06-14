@@ -150,13 +150,10 @@ var LockScreen = {
         break;
 
       case 'screenchange':
-        if (evt.detail.screenEnabled) {
-          // Screen is on: lock the phone according to enable status
-          this.lockIfEnabled(true);
-        } else {
-          // Screen is off: lock the phone and paint the screen black
-          this.lock(true);
-        }
+        // XXX: If the screen is not turned off by ScreenManager
+        // we would need to lock the screen again
+        // when it's being turned back on
+        this.lockIfEnabled(true);
         break;
 
       case 'mozChromeEvent':
@@ -319,12 +316,6 @@ var LockScreen = {
   lock: function ls_lock(instant) {
     var wasAlreadyLocked = this.locked;
     this.locked = true;
-
-    if (!ScreenManager.screenEnabled) {
-      this.overlay.classList.add('screenoff');
-    } else {
-      this.overlay.classList.remove('screenoff');
-    }
 
     this.switchPanel();
 

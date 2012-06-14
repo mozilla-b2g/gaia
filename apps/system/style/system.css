@@ -14,6 +14,14 @@ body {
   height: 100%;
 }
 
+#screen.screenoff {
+  background: #000;
+}
+
+#screen.screenoff > * {
+  visibility: hidden;
+}
+
 #homescreen {
   position: absolute;
   left: 0px;
