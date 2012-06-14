@@ -474,7 +474,7 @@ const IMEController = (function() {
     }
 
     _menuLockedArea = {
-      top: getWindowTop(_currentMenuKey),
+      top: getWindowTop(_currentMenuKey) - _currentMenuKey.scrollHeight,
       bottom: getWindowTop(_currentMenuKey) + _currentMenuKey.scrollHeight,
       left: getWindowLeft(IMERender.menu),
       right: getWindowLeft(IMERender.menu) + IMERender.menu.scrollWidth

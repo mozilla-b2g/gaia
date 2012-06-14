@@ -149,10 +149,9 @@ button:-moz-focus-inner{
 
 /* Lang menu */
 #keyboard-accent-char-menu.kbr-menu-lang {
-
   position: absolute;
   bottom: 100%;
-  left: -0.4rem;
+  left: -0.8rem;
   right: auto;
   top: auto;
   padding: 0;
