@@ -49,6 +49,8 @@ suite('views/month_child', function() {
   test('initialization', function() {
     assert.equal(subject.controller, controller);
     assert.equal(subject.month, month);
+    assert.equal(subject.monthId, Calendar.Calc.getMonthId(month));
+    assert.deepEqual(subject._busytimes, subject._busytimes);
   });
 
   suite('#_getBusyUnits', function() {
@@ -69,15 +71,28 @@ suite('views/month_child', function() {
 
   });
 
-  test('#_renderBusyUnits', function() {
-    var hours = [1, 24],
-        result = subject._renderBusyUnits(hours);
+  suite('#_renderBusyUnits', function() {
 
-    assert.ok(hours);
-    assert.include(result, 'busy-1');
-    assert.include(result, 'busy-12');
+    test('without register', function() {
+      var hours = [1, 24],
+          result = subject._renderBusyUnits(hours);
+
+      assert.ok(hours);
+      assert.include(result, 'busy-1');
+      assert.include(result, 'busy-12');
+
+      assert.equal(Object.keys(subject._busytimes).length, 0);
+    });
+
+    test('with register', function() {
+      var hours = [1, 24],
+          result = subject._renderBusyUnits(hours, 'fooz');
+
+      assert.equal(Object.keys(subject._busytimes).length, 1);
+      assert.setHas(subject._busytimes['fooz'], [1, 12]);
+    });
+
   });
-
 
   suite('#_renderDay', function() {
 
@@ -148,6 +163,11 @@ suite('views/month_child', function() {
       assert.include(result, 'busy-1');
       assert.include(result, 'busy-6');
       assert.include(result, 'busy-12');
+
+      assert.setHas(
+        subject._busytimes[id],
+        [1, 6, 12]
+      );
     });
 
   });

@@ -23,6 +23,9 @@
         this[key] = options[key];
       }
     }
+
+    this._busytimes = {};
+    this.monthId = Calendar.Calc.getMonthId(this.month);
   }
 
   Child.prototype = {
@@ -86,11 +89,31 @@
      * Returns an html blob of busy units.
      *
      * @param {Array} hours list of hours.
+     * @param {String} regId register id
+     *                       if given will register busy units.
      */
-    _renderBusyUnits: function _renderBusyUnits(hours) {
-      return template.busy.renderEach(
-        this._getBusyUnits(hours)
-      ).join('');
+    _renderBusyUnits: function _renderBusyUnits(hours, regId) {
+      var units = this._getBusyUnits(hours),
+          output = '',
+          set;
+
+
+      if (regId) {
+        if (!this._busytimes[regId]) {
+          this._busytimes[regId] = new Calendar.Set();
+        }
+
+        set = this._busytimes[regId];
+      }
+
+      units.forEach(function(unit) {
+        output += template.busy.render(unit);
+        if (set) {
+          set.add(unit);
+        }
+      });
+
+      return output;
     },
 
     /**
@@ -116,7 +139,7 @@
         dateString: id,
         state: state,
         date: date.getDate(),
-        busy: this._renderBusyUnits(hours)
+        busy: this._renderBusyUnits(hours, id)
       });
     },
 
