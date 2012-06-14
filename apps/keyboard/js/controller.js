@@ -517,6 +517,7 @@ const IMEController = (function() {
     IMEFeedback.triggerFeedback();
 
     // Key alternatives when long press
+    console.log('programming');
     _menuTimeout = window.setTimeout((function menuTimeout() {
       _showAlternatives(_currentKey);
     }), _kAccentCharMenuTimeout);
