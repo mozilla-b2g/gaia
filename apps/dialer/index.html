@@ -23,6 +23,9 @@
     </script>
     <script type="application/javascript" src="js/helper.js"></script>
     <script type="application/javascript" src="js/contacts.js"></script>
+    
+    <script type="application/javascript" src="js/CallManager.js"></script>
+    <script type="application/javascript" src="js/KeypadManager.js"></script>
     <script type="application/javascript" src="js/dialer.js"></script>
     <script type="application/javascript" src="js/recents.js"></script>
     <script type="application/javascript" src="js/proximity.js"></script>
@@ -31,194 +34,233 @@
   <body class="hidden">
     <article id="views">
       <article id="keyboard-view" class="view">
-        <input type="hidden" id="phone-number"></input>
-        <div id="fake-phone-number-view"></div>
+        <!-- <input type="hidden" id="phone-number"></input>
+        <div id="fake-phone-number-view"></div> -->
         <div id="phone-number-view-container">
-        <div id="phone-number-view" class="phone-number-font"></div>
+          <!-- <div id="phone-number-view" class="phone-number-font"></div> -->
+          <div class="grid-cell grid-v-align">
+            <div class="grid-wrapper">
+              <input id="phone-number-view" type="text" class="phone-number-font" readonly="readonly">
+            </div>
+          </div>
+          
+          <div id="kb-delete" class="grid-cell grid-v-align">
+            <div class="i-delete">
+            </div>
+             <!--  <img class="i-delete" src="style/images/dialer_icon_delete.png" width="2.5rem" height="2.5rem"> -->
+          </div>
         </div>
-
-      <article id="keyboard-container">
-        <section id="kb-keypad" onmousedown="KeyHandler.keyDown(event);" onmouseup="KeyHandler.keyUp(event);">
-          <div class="kb-keypad-cell">
-            <div class="kb-keypad-key">
-              <div class="kb-keypad-key-label-container">
-                <div class="kb-keypad-key-label" data-value="1">
-                  <span class="kb-keypad-number">
-                    1
-                  </span>
-                  <span  class="kb-keypad-text">
-                    .
-                  </span>  
+        <article id="keyboard-container">
+          <section id="kb-keypad">
+            <div class="kb-keypad-cell">
+              <div class="kb-keypad-key">
+                <div class="kb-keypad-key-label-container">
+                  <div class="kb-keypad-key-label" data-value="1">
+                    <span class="kb-keypad-number font-light">1</span>
+                    <span  class="kb-keypad-text font-semibold"></span>  
+                  </div>
+                </div>
+              </div>
+              <div class="kb-keypad-key">
+                <div class="kb-keypad-key-label-container">
+                  <div class="kb-keypad-key-label"  data-value="4">
+                    <span class="kb-keypad-number  font-light">4</span>
+                    <span  class="kb-keypad-text font-semibold">GHI</span>  
+                  </div>
+                </div>
+              </div>
+              <div class="kb-keypad-key">
+                <div class="kb-keypad-key-label-container">
+                  <div class="kb-keypad-key-label" data-value="7">
+                    <span class="kb-keypad-number  font-light">7</span>
+                    <span class="kb-keypad-text font-semibold">PQRS</span>  
+                  </div>
+                </div>
+              </div>
+              <div class="kb-keypad-key">
+                <div class="kb-keypad-key-label-container">
+                  <div class="kb-keypad-key-label kb-keypad-key-label-centered" data-value="*">
+                    <span class="kb-keypad-number font-light kb-keypad-delete-asterisc ">*</span>
+                    <span class="kb-keypad-text font-semibold"></span>  
+                  </div>
                 </div>
               </div>
             </div>
-            <div class="kb-keypad-key">
-              <div class="kb-keypad-key-label-container">
-                <div class="kb-keypad-key-label" data-value="4">
-                  <span class="kb-keypad-number">
-                    4
-                  </span>
-                  <span  class="kb-keypad-text">
-                    GHI
-                  </span>  
+            <div class="kb-keypad-cell">
+              <div class="kb-keypad-key">
+                <div class="kb-keypad-key-label-container">
+                  <div class="kb-keypad-key-label" data-value="2">
+                    <span class="kb-keypad-number font-light">2</span>
+                    <span class="kb-keypad-text font-semibold font-semibold">ABC</span>  
+                  </div>
+                </div>
+              </div>
+              <div class="kb-keypad-key">
+                <div class="kb-keypad-key-label-container">
+                  <div class="kb-keypad-key-label" data-value="5">
+                    <span class="kb-keypad-number font-light">5</span>
+                    <span class="kb-keypad-text font-semibold">JKL</span>  
+                  </div>
+                </div>
+              </div>
+              <div class="kb-keypad-key">
+                <div class="kb-keypad-key-label-container">
+                  <div class="kb-keypad-key-label" data-value="8">
+                    <span class="kb-keypad-number font-light">8</span>
+                    <span  class="kb-keypad-text font-semibold">TUV</span>  
+                  </div>
+                </div>
+              </div>
+              <div class="kb-keypad-key">
+                <div class="kb-keypad-key-label-container">
+                  <div class="kb-keypad-key-label" data-value="0">
+                    <span class="kb-keypad-number font-light">0</span>
+                    <span class="kb-keypad-text font-semibold">+</span>  
+                  </div>
                 </div>
               </div>
             </div>
-            <div class="kb-keypad-key">
-              <div class="kb-keypad-key-label-container">
-                <div class="kb-keypad-key-label" data-value="7">
-                  <span class="kb-keypad-number">
-                    7
-                  </span>
-                  <span  class="kb-keypad-text">
-                    PQRS
-                  </span>  
+            <div class="kb-keypad-cell">
+              <div class="kb-keypad-key">
+                <div class="kb-keypad-key-label-container">
+                  <div class="kb-keypad-key-label" data-value="3">
+                    <span class="kb-keypad-number font-light">3</span>
+                    <span  class="kb-keypad-text font-semibold">DEF</span>  
+                  </div>
                 </div>
               </div>
-            </div>
-            <div class="kb-keypad-key">
-              <div class="kb-keypad-key-label-container">
-                <div class="kb-keypad-key-label" data-value="*">
-                  <span class="kb-keypad-number">
-                    *
-                  </span>
-                  <span  class="kb-keypad-text">
-                    #
-                  </span>  
+              <div class="kb-keypad-key">
+                <div class="kb-keypad-key-label-container">
+                  <div class="kb-keypad-key-label" data-value="6">
+                    <span class="kb-keypad-number font-light">6</span>
+                    <span  class="kb-keypad-text font-semibold">MNO</span>  
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-          <div class="kb-keypad-cell">
-            <div class="kb-keypad-key">
-              <div class="kb-keypad-key-label-container">
-                <div class="kb-keypad-key-label" data-value="2">
-                  <span class="kb-keypad-number">
-                    2
-                  </span>
-                  <span  class="kb-keypad-text">
-                    ABC
-                  </span>  
+              <div class="kb-keypad-key">
+                <div class="kb-keypad-key-label-container">
+                  <div class="kb-keypad-key-label" data-value="9">
+                    <span class="kb-keypad-number font-light">9</span>
+                    <span  class="kb-keypad-text font-semibold">WXYZ</span>  
+                  </div>
                 </div>
               </div>
-            </div>
-            <div class="kb-keypad-key">
-              <div class="kb-keypad-key-label-container">
-                <div class="kb-keypad-key-label" data-value="5">
-                  <span class="kb-keypad-number">
-                    5
-                  </span>
-                  <span  class="kb-keypad-text">
-                    JKL
-                  </span>  
-                </div>
-              </div>
-            </div>
-            <div class="kb-keypad-key">
-              <div class="kb-keypad-key-label-container">
-                <div class="kb-keypad-key-label" data-value="8">
-                  <span class="kb-keypad-number">
-                    8
-                  </span>
-                  <span  class="kb-keypad-text">
-                    TUV
-                  </span>  
-                </div>
-              </div>
-            </div>
-            <div class="kb-keypad-key">
-              <div class="kb-keypad-key-label-container">
-                <div class="kb-keypad-key-label" data-value="0">
-                  <span class="kb-keypad-number">
-                    0
-                  </span>
-                  <span  class="kb-keypad-text">
-                    +
-                  </span>  
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="kb-keypad-cell">
-            <div class="kb-keypad-key">
-              <div class="kb-keypad-key-label-container">
-                <div class="kb-keypad-key-label" data-value="3">
-                  <span class="kb-keypad-number">
-                    3
-                  </span>
-                  <span  class="kb-keypad-text">
-                    DEF
-                  </span>  
-                </div>
-              </div>
-            </div>
-            <div class="kb-keypad-key">
-              <div class="kb-keypad-key-label-container">
-                <div class="kb-keypad-key-label" data-value="6">
-                  <span class="kb-keypad-number">
-                    6
-                  </span>
-                  <span  class="kb-keypad-text">
-                    MNO
-                  </span>  
-                </div>
-              </div>
-            </div>
-            <div class="kb-keypad-key">
-              <div class="kb-keypad-key-label-container">
-                <div class="kb-keypad-key-label" data-value="9">
-                  <span class="kb-keypad-number">
-                    9
-                  </span>
-                  <span  class="kb-keypad-text">
-                    WXYZ
-                  </span>  
-                </div>
-              </div>
-            </div>
-            <div class="kb-keypad-key">
-              <div class="kb-keypad-key-label-container">
-                <div class="kb-keypad-key-label del-digit" data-value="del-digit">
-                    <span class="kb-keypad-number">
-                    </span>
-                    <span  class="kb-keypad-text">
-                    </span>  
+              <div class="kb-keypad-key">
+                <div class="kb-keypad-key-label-container">
+                  <div class="kb-keypad-key-label  kb-keypad-key-label-centered" data-type="dial" data-value="#">
+                    <span class="kb-keypad-number font-light">#</span>
+                    <span  class="kb-keypad-text font-semibold"></span>  
                   </div>
                 </div>
               </div>
             </div>
           </section>
           <section id="kb-callbar">
-            <button id="kb-callbar-add-contact" onmousedown="KeyHandler.keyDown(event);" onmouseup="KeyHandler.keyUp(event);">
-              <div class="i-add-contact">
+            <span role="button" id="kb-callbar-add-contact"  data-type="action" data-value="add-contact" >
+              <div class="i-add-contact"></div>  
+            </span>
+            <span role="button" id="kb-callbar-call-action"  data-type="action" data-value="make-call">
+              <div class="i-call"></div>  
+            </span>
+            <span role="button" id="kb-callbar-back-action"  data-type="action" data-value="back"  class="hide">
+              <div class="i-back">
+                
               </div>  
-            </button>
-            <button id="kb-callbar-call-action"  data-value="make-call" onmousedown="KeyHandler.keyDown(event);" onmouseup="KeyHandler.keyUp(event);">
-              <div class="i-call">
-              </div>  
-            </button>
+            </span>
+            <!-- <span id="kb-delete"  data-type="action" data-value="del-digit" class="hide">
+              <img class="i-delete" src="style/images/dialer_icon_delete.png" width="2.5rem" height="2.5rem">
+            </span> -->
+
           </section>
         </article>
       </article>
     </article>
-
-    <div id="call-screen">
-      <div id="call-screen-top">
-        <div id="call-status-view">
+    <article id="call-screen" class="grid">
+      <header id="cs-header" class="grid-row">
+        <div class="grid-wrapper grid">
+          <article id="cs-h-info" class="grid-cell grid-v-align">
+            <section id="cs-h-info-primary" class="contact-primary-info font-light cs-h-info">
+                
+            </section>
+            <section id="cs-h-info-secondary" class="contact-secondary-info font-light cs-h-info">
+              Mobile,Movistar
+            </section>
+          </article>
+           
         </div>
-        <div id="call-number-view-container">
-          <span id="call-number-view"></span>
+      </header> 
+      <article id="call-container" class="grid-row">
+        <div class="grid-wrapper grid">
+          <section id="call-info" class="grid-row">
+             <div class="grid-wrapper grid">
+                <div id="call-duration" class="grid-cell grid-v-align call-duration-style font-light">
+                   10:24 
+                </div> 
+             </div>            
+          </section>
+          <footer id="call-options" class="grid-row">
+            <div class="grid-wrapper grid">
+              <section id="co-advanced" class="grid-row">
+                <div class="grid-wrapper grid">
+                  <span class="grid-cell options-column">
+                    <button id="mute" class="co-advanced-option grid-wraper grid center">
+                      <span class="i-mute">
+                        
+                      </span>  
+                    </button>
+                    <button class="co-advanced-option grid-wraper grid center" disabled="disabled">
+                      <span class="i-contacts">
+                        
+                      </span> 
+                    </button>
+                  </span>
+                  <span class="grid-cell options-column">
+                    <button id="keypad-visibility" class="co-advanced-option grid-wraper grid center">
+                      <span class="i-keypad">
+                        
+                      </span> 
+                    </button>
+                    <button class="co-advanced-option grid-wraper grid" disabled="disabled">
+                      <span class="i-timeline">
+                        
+                      </span>
+                    </button>
+                  </span>
+                  <span class="grid-cell options-column">
+                    <button id="speaker" class="co-advanced-option grid-wraper grid">
+                      <span class="i-speaker">
+                        
+                      </span>
+                    </button>
+                    <button class="co-advanced-option grid-wraper grid" disabled="disabled">
+                      <span class="i-message">
+                        
+                      </span>
+                    </button>
+                  </span>
+              </section>
+              <footer id="co-basic" class="grid-row">
+                <div id="co-basic-wrapper" class="grid-wrapper grid">
+                  
+                  <section id="co-basic-answer" class="grid-cell  co-basic-option co-basic-botton-start">
+                    <div class="grid-wrapper">
+                      <div class="i-hangup">
+                      </div>
+                    </div> 
+                  </section>
+                  <section id="co-basic-reject" class="grid-cell co-basic-option co-basic-botton-hangup">
+                    <div class="grid-wrapper">
+                      <div class="i-start-call">
+                      </div>
+                    </div> 
+                  </section>
+                </div>
+              </footer>
+            </div>
+          </footer>
+        
         </div>
-        <div id="call-picture">
-          <img src="style/images/unknown-contact.png" alt="profile" />
-        </div>
-        <div id="call-duration-view-container">
-          <span id="call-duration-view">
-          </span>
-        </div>
-      </div>
-      <div id="call-actions-container">
-        <div id="call-actions-top">
+        <!-- <div id="call-actions-top">
           <div id="call-actions">
             <div data-action="toggleMute" onclick="CallHandler.execute(this.dataset.action);">
               <div id="mute-button"></div>
@@ -251,9 +293,12 @@
         <div id="call-button">
           <div id="end-call" onclick="CallHandler.execute('end');"><span data-l10n-id="end"> End </span></div>
           <div id="accept-call" onclick="CallHandler.execute('answer');"><span data-l10n-id="answer"> Answer </span></div>
-        </div>
-      </div>
-    </div>
+        </div> -->
+        
+      </article>
+     
+
+    </article>
     <div id="screen-off"></div>
   </body>
 </html>

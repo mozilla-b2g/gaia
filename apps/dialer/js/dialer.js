@@ -97,130 +97,130 @@ var TonePlayer = {
   }
 };
 
-var KeyHandler = {
-  get phoneNumber() {
-    delete this.phoneNumber;
-    return this.phoneNumber = document.getElementById('phone-number');
-  },
+// var KeyHandler = {
+//   get phoneNumber() {
+//     delete this.phoneNumber;
+//     return this.phoneNumber = document.getElementById('phone-number');
+//   },
 
-  get fakePhoneNumberView() {
-    delete this.fakePhoneNumberView;
-    return this.fakePhoneNumberView =
-      document.getElementById('fake-phone-number-view');
-  },
+//   get fakePhoneNumberView() {
+//     delete this.fakePhoneNumberView;
+//     return this.fakePhoneNumberView =
+//       document.getElementById('fake-phone-number-view');
+//   },
 
-  get phoneNumberView() {
-    delete this.phoneNumberView;
-    return this.phoneNumberView = document.getElementById('phone-number-view');
-  },
+//   get phoneNumberView() {
+//     delete this.phoneNumberView;
+//     return this.phoneNumberView = document.getElementById('phone-number-view');
+//   },
 
-  init: function kh_init() {
-    this.phoneNumber.value = '';
+//   init: function kh_init() {
+//     this.phoneNumber.value = '';
 
-    TonePlayer.init();
-  },
+//     TonePlayer.init();
+//   },
 
-  isContactShortcut: function kh_isContactShortcut(key) {
-    // TODO implement key shortcuts
-    return false;
-  },
+//   isContactShortcut: function kh_isContactShortcut(key) {
+//     // TODO implement key shortcuts
+//     return false;
+//   },
 
-  formatPhoneNumber: function kh_formatPhoneNumber(phoneNumber) {
-    // TODO implement formatting depending on locale
-    return phoneNumber;
-  },
+//   formatPhoneNumber: function kh_formatPhoneNumber(phoneNumber) {
+//     // TODO implement formatting depending on locale
+//     return phoneNumber;
+//   },
 
-  updateFontSize: function kh_updateFontSize() {
-    var self = this;
-    function getNextFontSize(fontSize, text) {
-      var div = self.fakePhoneNumberView;
-      div.style.fontSize = fontSize + 'px';
-      div.innerHTML = text;
+//   updateFontSize: function kh_updateFontSize() {
+//     var self = this;
+//     function getNextFontSize(fontSize, text) {
+//       var div = self.fakePhoneNumberView;
+//       div.style.fontSize = fontSize + 'px';
+//       div.innerHTML = text;
 
-      var viewWidth = self.phoneNumberView.getBoundingClientRect().width;
-      var rect = div.getBoundingClientRect();
-      if (rect.width > viewWidth) {
-        fontSize = Math.max(fontSize - kFontStep, kMinFontSize);
-      } else if (fontSize < self._initialFontSize) {
-        div.style.fontSize = (fontSize + kFontStep) + 'px';
-        rect = div.getBoundingClientRect();
-        if (rect.width <= viewWidth)
-          fontSize += kFontStep;
-      }
+//       var viewWidth = self.phoneNumberView.getBoundingClientRect().width;
+//       var rect = div.getBoundingClientRect();
+//       if (rect.width > viewWidth) {
+//         fontSize = Math.max(fontSize - kFontStep, kMinFontSize);
+//       } else if (fontSize < self._initialFontSize) {
+//         div.style.fontSize = (fontSize + kFontStep) + 'px';
+//         rect = div.getBoundingClientRect();
+//         if (rect.width <= viewWidth)
+//           fontSize += kFontStep;
+//       }
 
-      return fontSize;
-    }
+//       return fontSize;
+//     }
 
-    var view = this.phoneNumberView;
-    var computedStyle = window.getComputedStyle(view, null);
-    var fontSize = computedStyle.getPropertyValue('font-size');
-    if (!this._initialFontSize) {
-      this._initialFontSize = parseInt(fontSize);
-    }
+//     var view = this.phoneNumberView;
+//     var computedStyle = window.getComputedStyle(view, null);
+//     var fontSize = computedStyle.getPropertyValue('font-size');
+//     if (!this._initialFontSize) {
+//       this._initialFontSize = parseInt(fontSize);
+//     }
 
-    var text = this.formatPhoneNumber(this.phoneNumber.value);
-    view.innerHTML = text;
+//     var text = this.formatPhoneNumber(this.phoneNumber.value);
+//     view.innerHTML = text;
 
-    var newFontSize =
-      text ? getNextFontSize(parseInt(fontSize), text) : this._initialFontSize;
-    if (newFontSize != fontSize)
-    view.style.fontSize = newFontSize + 'px';
-  },
+//     var newFontSize =
+//       text ? getNextFontSize(parseInt(fontSize), text) : this._initialFontSize;
+//     if (newFontSize != fontSize)
+//     view.style.fontSize = newFontSize + 'px';
+//   },
 
-  keyDown: function kh_keyDown(event) {
-    var key = event.target.getAttribute('data-value');
-    if (!key)
-      return;
+//   keyDown: function kh_keyDown(event) {
+//     var key = event.target.getAttribute('data-value');
+//     if (!key)
+//       return;
 
-    var callback = function(self) {
-      switch (key) {
-        case '0':
-          self.phoneNumber.value = self.phoneNumber.value.slice(0, -1) + '+';
-          break;
-        case '*':
-          self.phoneNumber.value = self.phoneNumber.value.slice(0, -1) + '#';
-          break;
-        case 'del':
-          self.phoneNumber.value = '';
-          break;
-        default:
-          if (self.isContactShortcut(key))
-            return;
-          break;
-      }
-      self.updateFontSize();
-    };
+//     var callback = function(self) {
+//       switch (key) {
+//         case '0':
+//           self.phoneNumber.value = self.phoneNumber.value.slice(0, -1) + '+';
+//           break;
+//         case '*':
+//           self.phoneNumber.value = self.phoneNumber.value.slice(0, -1) + '#';
+//           break;
+//         case 'del':
+//           self.phoneNumber.value = '';
+//           break;
+//         default:
+//           if (self.isContactShortcut(key))
+//             return;
+//           break;
+//       }
+//       self.updateFontSize();
+//     };
 
-    if (key == 'del-digit') {
-      this.phoneNumber.value = KeyHandler.phoneNumber.value.slice(0, -1);
-      this.updateFontSize();
-    } else if (key == 'make-call') {
-      // TODO: update the call button style to show his availability
-      if (this.phoneNumber.value != '') {
-        CallHandler.call(this.phoneNumber.value);
-      }
-    } else {
-      this.phoneNumber.value += key;
-      this.updateFontSize();
-      TonePlayer.play(gTonesFrequencies[key]);
+//     if (key == 'del' || key == 'del-digit') {
+//       this.phoneNumber.value = KeyHandler.phoneNumber.value.slice(0, -1);
+//       this.updateFontSize();
+//     } else if (key == 'call' || key == 'make-call') {
+//       // TODO: update the call button style to show his availability
+//       if (this.phoneNumber.value != '') {
+//         CallHandler.call(this.phoneNumber.value);
+//       }
+//     } else {
+//       this.phoneNumber.value += key;
+//       this.updateFontSize();
+//       TonePlayer.play(gTonesFrequencies[key]);
 
-      // Sending the DTMF tone
-      var telephony = navigator.mozTelephony;
-      if (telephony) {
-        telephony.startTone(key);
-        window.setTimeout(function ch_stopTone() {
-          telephony.stopTone();
-        }, 100);
-      }
-    }
+//       // Sending the DTMF tone
+//       var telephony = navigator.mozTelephony;
+//       if (telephony) {
+//         telephony.startTone(key);
+//         window.setTimeout(function ch_stopTone() {
+//           telephony.stopTone();
+//         }, 100);
+//       }
+//     }
 
-    this._timeout = window.setTimeout(callback, 400, this);
-  },
+//     this._timeout = window.setTimeout(callback, 400, this);
+//   },
 
-  keyUp: function kh_keyUp(event) {
-    clearTimeout(this._timeout);
-  }
-};
+//   keyUp: function kh_keyUp(event) {
+//     clearTimeout(this._timeout);
+//   }
+// };
 
 var CallHandler = {
   currentCall: null,
@@ -228,6 +228,9 @@ var CallHandler = {
   _screenLock: null,
 
   setupTelephony: function ch_setupTelephony() {
+
+    // CallUI.ui.show();
+    // document.getElementById('cs-h-info-primary').innerHTML+="ST ";
     if (this._telephonySetup)
       return;
 
@@ -253,148 +256,181 @@ var CallHandler = {
 
   // callbacks
   call: function ch_call(number) {
-    this.callScreen.classList.remove('incoming');
-    this.callScreen.classList.remove('in-call');
-    this.callScreen.classList.add('calling');
-    this.numberView.innerHTML = number;
-    this.statusView.innerHTML = 'Calling...';
+    
+    // this.callScreen.classList.remove('incoming');
+    // this.callScreen.classList.remove('in-call');
+    // this.callScreen.classList.add('calling');
+    // this.numberView.innerHTML = number;
+    // this.statusView.innerHTML = 'Calling...';
 
-    this.lookupContact(number);
+    // this.lookupContact(number);
 
-    var sanitizedNumber = number.replace(/-/g, '');
+    // var sanitizedNumber = number.replace(/-/g, '');
     // Force to unmute, since some phones are muted by default.
     // window.navigator.mozTelephony.muted = false;
     // The previous code has been moved to CallHandler.setupTelephony to avoid
     // receiving a call and starting it in mute mode.
-    var call = window.navigator.mozTelephony.dial(sanitizedNumber);
+    var call = window.navigator.mozTelephony.dial(number);
     call.addEventListener('statechange', this);
-    this.currentCall = call;
+    
+    CallHandler.currentCall = call;
 
-    this.recentsEntry = {date: Date.now(), type: 'outgoing', number: number};
+    // this.recentsEntry = {date: Date.now(), type: 'outgoing', number: number};
 
-    this.toggleCallScreen();
+    // this.toggleCallScreen();
+
+    CallUI.update(number);
+    CallUI.render(0);
+    CallUI.ui.show();
   },
 
   incoming: function ch_incoming(call) {
-    this.callScreen.classList.remove('calling');
-    this.callScreen.classList.remove('in-call');
-    this.callScreen.classList.add('incoming');
+    
+    // this.callScreen.classList.remove('calling');
+    // this.callScreen.classList.remove('in-call');
+    // this.callScreen.classList.add('incoming');
 
-    this.currentCall = call;
+    // Force to unmute, since some phones are muted by default.
+    // window.navigator.mozTelephony.muted = false;
+    // The previous code has been moved to CallHandler.setupTelephony to avoid
+    // receiving a call and starting it in mute mode.
+
+    CallHandler.currentCall = call;
     call.addEventListener('statechange', this);
 
-    this.recentsEntry = {
-      date: Date.now(),
-      type: 'incoming',
-      number: call.number
-    };
+    CallUI.update(call.number);
+    CallUI.render(2);
+    CallUI.ui.show();
 
-    this.numberView.innerHTML = call.number || 'Anonymous';
-    this.statusView.innerHTML = 'Call from...';
+    // this.recentsEntry = {
+    //   date: Date.now(),
+    //   type: 'incoming',
+    //   number: call.number
+    // };
 
-    if (call.number)
-      this.lookupContact(call.number);
+    // this.numberView.innerHTML = call.number || 'Anonymous';
+    // this.statusView.innerHTML = 'Call from...';
 
-    this.toggleCallScreen();
+    // if (call.number)
+    //   this.lookupContact(call.number);
+
+    // this.toggleCallScreen();
   },
 
   connected: function ch_connected() {
-    var callDirectionChar = "";
-    if(this.callScreen.classList.contains('incoming')) {
-      this.callScreen.classList.remove('incoming');
-      callDirectionChar = "&#8618";
-    } else 
-    if(this.callScreen.classList.contains('calling')) {
-      this.callScreen.classList.remove('calling');
-      callDirectionChar = "&#8617";
-    }
-    this.callScreen.classList.add("in-call");
-    // hardening against rapid ending
-    if (!this._onCall)
-      return;
+    CallUI.render(1);
+    // this.callScreen.classList.remove('incoming');
+    // this.callScreen.classList.add('calling');
+    // var callDirectionChar = "";
+    // if(this.callScreen.classList.contains('incoming')) {
+    //   this.callScreen.classList.remove('incoming');
+    //   callDirectionChar = "&#8618";
+    // } else 
+    // if(this.callScreen.classList.contains('calling')) {
+    //   this.callScreen.classList.remove('calling');
+    //   callDirectionChar = "&#8617";
+    // }
+    // this.callScreen.classList.add("in-call");
+    // // hardening against rapid ending
+    // if (!this._onCall)
+    //   return;
 
-    this.callDurationView.innerHTML = callDirectionChar + ' ' + '00:00';
+    // this.statusView.innerHTML = '00:00';
+    // this.callDurationView.innerHTML = callDirectionChar + ' ' + '00:00';
 
-    this.recentsEntry.type += '-connected';
+    // this.recentsEntry.type += '-connected';
 
-    this._ticker = setInterval(function ch_updateTimer(self, startTime) {
-      var elapsed = new Date(Date.now() - startTime);
-      self.statusView.innerHTML = elapsed.toLocaleFormat('%M:%S');
-    }, 1000, this, Date.now());
+    // this._ticker = setInterval(function ch_updateTimer(self, startTime) {
+    //   var elapsed = new Date(Date.now() - startTime);
+    //   self.statusView.innerHTML = elapsed.toLocaleFormat('%M:%S');
+    //   self.callDurationView.innerHTML = callDirectionChar + ' ' + elapsed.toLocaleFormat('%M:%S');
+    // }, 1000, this, Date.now());
   },
 
   answer: function ch_answer() {
+    
     // Force to unmute, since some phones are muted by default.
-    window.navigator.mozTelephony.muted = false;
-    this.currentCall.answer();
+    // window.navigator.mozTelephony.muted = false;
+    // The previous code has been moved to CallHandler.setupTelephony to avoid
+    // receiving a call and starting it in mute mode.
+
+    CallHandler.currentCall.answer();
+    
   },
 
   end: function ch_end() {
-    if (this.recentsEntry &&
-       (this.recentsEntry.type.indexOf('-connected') == -1)) {
-      this.recentsEntry.type += '-refused';
-    }
+    
+    // if (this.recentsEntry &&
+    //    (this.recentsEntry.type.indexOf('-connected') == -1)) {
+    //   this.recentsEntry.type += '-refused';
+    // }
 
-    if (this.currentCall) {
-      this.currentCall.hangUp();
-    }
+    // if (this.currentCall) {
+    //   this.currentCall.hangUp();
+    // }
 
-    // We're not waiting for a disconnected statechange
-    // If the user touch the 'end' button we wants to get
-    // out of the call-screen right away.
-    this.disconnected();
+    // // We're not waiting for a disconnected statechange
+    // // If the user touch the 'end' button we wants to get
+    // // out of the call-screen right away.
+    // this.disconnected();
+    CallHandler.currentCall.hangUp();
+    // CallUI.cleanTimer();
   },
 
   disconnected: function ch_disconnected() {
-    if (this.currentCall) {
-      this.currentCall.removeEventListener('statechange', this);
-      this.currentCall = null;
-    }
+    KeypadManager.render(0);
+    CallUI.ui.hide();
+    // CallUI.cleanTimer();
 
-    if (this.muteButton.classList.contains('mute'))
-      this.toggleMute();
-    if (this.speakerButton.classList.contains('speak'))
-      this.toggleSpeaker();
-    if (this.keypadButton.classList.contains('displayed'))
-      this.toggleKeypad();
+    // if (this.currentCall) {
+    //   this.currentCall.removeEventListener('statechange', this);
+    //   this.currentCall = null;
+    // }
 
-    clearInterval(this._ticker);
+    // if (this.muteButton.classList.contains('mute'))
+    //   this.toggleMute();
+    // if (this.speakerButton.classList.contains('speak'))
+    //   this.toggleSpeaker();
+    // if (this.keypadButton.classList.contains('displayed'))
+    //   this.toggleKeypad();
 
-    this.toggleCallScreen();
+    // clearInterval(this._ticker);
 
-    if (this.recentsEntry) {
-      Recents.add(this.recentsEntry);
+    // this.toggleCallScreen();
 
-      if ((this.recentsEntry.type.indexOf('outgoing') == -1) &&
-          (this.recentsEntry.type.indexOf('-refused') == -1) &&
-          (this.recentsEntry.type.indexOf('-connected') == -1)) {
+    // if (this.recentsEntry) {
+    //   Recents.add(this.recentsEntry);
 
-        var number = this.recentsEntry.number;
-        navigator.mozApps.getSelf().onsuccess = function(evt) {
-          var app = evt.target.result;
+    //   if ((this.recentsEntry.type.indexOf('outgoing') == -1) &&
+    //       (this.recentsEntry.type.indexOf('-refused') == -1) &&
+    //       (this.recentsEntry.type.indexOf('-connected') == -1)) {
 
-          // Taking the first icon for now
-          // TODO: define the size
-          var icons = app.manifest.icons;
-          var iconURL = null;
-          if (icons) {
-            iconURL = app.installOrigin + icons[Object.keys(icons)[0]];
-          }
+    //     var number = this.recentsEntry.number;
+    //     navigator.mozApps.getSelf().onsuccess = function(evt) {
+    //       var app = evt.target.result;
 
-          var notiClick = function() {
-            // Asking to launch itself
-            app.launch();
-          };
+    //       // Taking the first icon for now
+    //       // TODO: define the size
+    //       var icons = app.manifest.icons;
+    //       var iconURL = null;
+    //       if (icons) {
+    //         iconURL = app.installOrigin + icons[Object.keys(icons)[0]];
+    //       }
 
-          var title = 'Missed call';
-          var body = 'From ' + number;
+    //       var notiClick = function() {
+    //         // Asking to launch itself
+    //         app.launch();
+    //       };
 
-          NotificationHelper.send(title, body, iconURL, notiClick);
-        };
-      }
+    //       var title = 'Missed call';
+    //       var body = 'From ' + number;
 
-      this.recentsEntry = null;
-    }
+    //       NotificationHelper.send(title, body, iconURL, notiClick);
+    //     };
+    //   }
+
+    //   this.recentsEntry = null;
+    // }
   },
 
   handleEvent: function fm_handleEvent(evt) {
@@ -411,127 +447,136 @@ var CallHandler = {
   },
 
   // properties / methods
-  get callScreen() {
-    delete this.callScreen;
-    return this.callScreen = document.getElementById('call-screen');
-  },
-  get numberView() {
-    delete this.numberView;
-    return this.numberView = document.getElementById('call-number-view');
-  },
-  get statusView() {
-    delete this.statusView;
-    return this.statusView = document.getElementById('call-status-view');
-  },
-  get callDurationView() {
-    delete this.statusView;
-    return this.statusView = document.getElementById('call-duration-view');
-  },
-  get actionsView() {
-    delete this.actionsView;
-    return this.actionsView = document.getElementById('call-actions-container');
-  },
-  get muteButton() {
-    delete this.muteButton;
-    return this.muteButton = document.getElementById('mute-button');
-  },
-  get speakerButton() {
-    delete this.speakerButton;
-    return this.speakerButton = document.getElementById('speaker-button');
-  },
-  get keypadButton() {
-    delete this.keypadButton;
-    return this.keypadButton = document.getElementById('keypad-button');
-  },
-  get keypadView() {
-    delete this.keypadView;
-    return this.keypadView = document.getElementById('kb-keypad');
-  },
+  // get callScreen() {
+  //   delete this.callScreen;
+  //   return this.callScreen = document.getElementById('call-screen');
+  // },
+  // get numberView() {
+  //   delete this.numberView;
+  //   return this.numberView = document.getElementById('call-number-view');
+  // },
+  // get statusView() {
+  //   delete this.statusView;
+  //   return this.statusView = document.getElementById('call-status-view');
+  // },
+  // get callDurationView() {
+  //   delete this.statusView;
+  //   return this.statusView = document.getElementById('call-duration-view');
+  // },
+  // get actionsView() {
+  //   delete this.actionsView;
+  //   return this.actionsView = document.getElementById('call-actions-container');
+  // },
+  // get muteButton() {
+  //   delete this.muteButton;
+  //   return this.muteButton = document.getElementById('mute-button');
+  // },
+  // get speakerButton() {
+  //   delete this.speakerButton;
+  //   return this.speakerButton = document.getElementById('speaker-button');
+  // },
+  // get keypadButton() {
+  //   delete this.keypadButton;
+  //   return this.keypadButton = document.getElementById('keypad-button');
+  // },
+  // get keypadView() {
+  //   delete this.keypadView;
+  //   // return this.keypadView = document.getElementById('mainKeyset');
+  //   return this.keypadView = document.getElementById('kb-keypad');
+  // },
 
-  execute: function ch_execute(action) {
-    if (!this[action]) {
-      this.end();
-      return;
-    }
+  // execute: function ch_execute(action) {
+    // if (!this[action]) {
+    //   this.end();
+    //   return;
+    // }
 
-    this[action]();
-  },
+    // this[action]();
+  // },
 
-  toggleCallScreen: function ch_toggleScreen() {
-    var callScreen = document.getElementById('call-screen');
-    callScreen.classList.remove('animate');
+  // toggleCallScreen: function ch_toggleScreen() {
 
-    var onCall = this._onCall;
-    callScreen.classList.toggle('prerender');
 
-    // hardening against the unavailability of MozAfterPaint
-    var finished = false;
 
-    var finishTransition = function ch_finishTransition() {
-      if (finished)
-        return;
+    // var callScreen = document.getElementById('call-screen');
+    // callScreen.classList.remove('animate');
 
-      if (securityTimeout) {
-        clearTimeout(securityTimeout);
-        securityTimeout = null;
-      }
+    // var onCall = this._onCall;
+    // callScreen.classList.toggle('prerender');
 
-      finished = true;
+    // // hardening against the unavailability of MozAfterPaint
+    // var finished = false;
 
-      window.setTimeout(function cs_transitionNextLoop() {
-        callScreen.classList.add('animate');
-        callScreen.classList.toggle('oncall');
-        callScreen.classList.toggle('prerender');
-      });
-    };
+    // var finishTransition = function ch_finishTransition() {
+    //   if (finished)
+    //     return;
 
-    window.addEventListener('MozAfterPaint', function ch_finishAfterPaint() {
-      window.removeEventListener('MozAfterPaint', ch_finishAfterPaint);
-      finishTransition();
-    });
-    var securityTimeout = window.setTimeout(finishTransition, 100);
+    //   if (securityTimeout) {
+    //     clearTimeout(securityTimeout);
+    //     securityTimeout = null;
+    //   }
 
-    this._onCall = !this._onCall;
+    //   finished = true;
 
-    // Assume we always either onCall or not, and always onCall before
-    // not onCall.
-    if (this._onCall) {
-      this._screenLock = navigator.requestWakeLock('screen');
-      ProximityHandler.enable();
-    } else {
-      this._screenLock.unlock();
-      this._screenLock = null;
-      ProximityHandler.disable();
-    }
-  },
+    //   window.setTimeout(function cs_transitionNextLoop() {
+    //     callScreen.classList.add('animate');
+    //     callScreen.classList.toggle('oncall');
+    //     callScreen.classList.toggle('prerender');
+    //   });
+    // };
+
+    // window.addEventListener('MozAfterPaint', function ch_finishAfterPaint() {
+    //   window.removeEventListener('MozAfterPaint', ch_finishAfterPaint);
+    //   finishTransition();
+    // });
+    // var securityTimeout = window.setTimeout(finishTransition, 100);
+
+    // this._onCall = !this._onCall;
+
+    // // Assume we always either onCall or not, and always onCall before
+    // // not onCall.
+    // if (this._onCall) {
+    //   this._screenLock = navigator.requestWakeLock('screen');
+    //   ProximityHandler.enable();
+    // } else {
+    //   this._screenLock.unlock();
+    //   this._screenLock = null;
+    //   ProximityHandler.disable();
+    // }
+  // },
 
   toggleMute: function ch_toggleMute() {
-    this.muteButton.classList.toggle('mute');
+
+    // this.muteButton.classList.toggle('mute');
     navigator.mozTelephony.muted = !navigator.mozTelephony.muted;
   },
 
   toggleKeypad: function ch_toggleKeypad() {
-    this.keypadButton.classList.toggle('displayed');
-    this.keypadView.classList.toggle('overlay');
+    KeypadManager.render(1);
+    CallUI.ui.hide();
+    // Do nothing.
+    // this.keypadButton.classList.toggle('displayed');
+    // this.keypadView.classList.toggle('overlay');
   },
 
   toggleSpeaker: function ch_toggleSpeaker() {
-    this.speakerButton.classList.toggle('speak');
-    navigator.mozTelephony.speakerEnabled =
-      !navigator.mozTelephony.speakerEnabled;
+    // this.speakerButton.classList.toggle('speak');
+
+    navigator.mozTelephony.speakerEnabled = !navigator.mozTelephony.speakerEnabled;
   },
 
   lookupContact: function ch_lookupContact(number) {
-    Contacts.findByNumber(number, (function(contact) {
-      this.numberView.innerHTML = contact.name;
-    }).bind(this));
+    // Contacts.findByNumber(number, (function(contact) {
+    //   this.numberView.innerHTML = contact.name;
+    // }).bind(this));
   }
 };
 
 window.addEventListener('localized', function startup(evt) {
   window.removeEventListener('localized', startup);
 
-  KeyHandler.init();
+  KeypadManager.init();
+  CallUI.init();
   CallHandler.setupTelephony();
 
   // Set the 'lang' and 'dir' attributes to <html> when the page is translated
