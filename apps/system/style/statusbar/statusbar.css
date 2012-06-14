@@ -1,83 +1,5 @@
-#screen.fullscreen:not(.locked) > :-moz-any(#statusbar,#notifications-screen) {
+#screen.fullscreen:not(.locked) > #statusbar {
   display: none;
-}
-
-#notifications-screen {
-  position: absolute;
-  z-index: 9996;
-  top: -moz-calc(-100% + 64px);
-  width: -moz-calc(100%);
-  height: -moz-calc(100% - 32px);
-  background-color: #222;
-}
-
-#notifications-container .notification {
-  position: relative;
-  background-image: url(notifications.png);
-  background-repeat: no-repeat;
-  background-size: 100% 100%;
-
-  height: 80px;
-  font-weight: bold;
-}
-
-#notifications-container .notification div {
-  pointer-events: none;
-}
-
-#notifications-container .notification > div:first-of-type {
-  margin: 0 0 0 85px;
-  padding: 20px 0 0 0;
-
-  font-size: 2.5mozmm;
-  line-height: 2.5mozmm;
-  color: #111;
-}
-
-#notifications-container .notification > div {
-  margin: 0 0 0 85px;
-  padding: 0;
-  width: -moz-calc(100% - 105px);
-  height: 25px;
-
-  font-size: 2mozmm;
-  color: #666;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-#notifications-container .notification > a.close {
-  display: block;
-  position: absolute;
-  top: 0px;
-  right: 0px;
-  width: 80px;
-  height: 80px;
-}
-
-#notifications-container .notification > img {
-  float: left;
-  display: block;
-  width: 64px;
-  height: 64px;
-  margin: 8px;
-}
-
-#grippy {
-  pointer-events: none;
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  height: 30px;
-
-  border-bottom: 1px solid #111;
-  border-top: 1px solid #111;
-}
-
-#state-notifications[data-visible] {
-  width: 32px;
-  height: 32px;
 }
 
 #statusbar {
@@ -92,6 +14,14 @@
   -moz-box-sizing: border-box;
   height: 32px;
   padding: 2px;
+
+  color: #999;
+  background: #000 url('images/grippy.png') no-repeat 50% 50%;
+}
+
+#screen.locked > #statusbar,
+#screen.utility-tray > #statusbar {
+  background: #000;
 }
 
 #statusbar > * {
@@ -99,16 +29,155 @@
   pointer-events: none;
 }
 
-#statusbar > #padding {
+#statusbar-padding {
   -moz-box-flex: 1;
 }
 
-#signal {
+#statusbar-mute {
   width: 20px;
-  margin-top: 2px;
+  margin: 2px 4px;
+  background: url("images/mute.png") no-repeat 50% 50%;
 }
 
-*[dir=rtl] #signal span {
+#statusbar-notification {
+  width: 20px;
+  margin: 2px 4px;
+  background: url("images/notification-dot.png") no-repeat 50% 50%;
+}
+
+#statusbar-conn {
+  text-shadow: 0 0 3px hsla(0,0%,0%,.5);
+  line-height: 30px;
+  font-size: 14px;
+  margin: 0 4px;
+}
+
+#statusbar-signal {
+  width: 20px;
+  margin: 2px 4px;
+}
+
+#statusbar-signal.roaming::before {
+  position: absolute;
+  content: 'R';
+  display: block;
+  font-size: 10px;
+  line-height: 10px;
+  top: 6px;
+  left: 6px;
+}
+
+#statusbar-signal > span {
+  background: #333333;
+  float: left;
+  width: 3px;
+  margin: 1px;
+}
+
+#statusbar-signal > span.have-signal {
+  background: #999999;
+}
+
+#statusbar-signal > span:nth-child(1) { /* poor signal */
+  margin-top: 17px;
+  height: 3px;
+}
+
+#statusbar-signal > span:nth-child(2) { /* medium signal */
+  margin-top: 13px;
+  height: 7px;
+}
+
+#statusbar-signal span:nth-child(3) { /* good signal */
+  margin-top: 10px;
+  height: 10px;
+}
+
+#statusbar-signal > span:nth-child(4) { /* awesome signal */
+  margin-top: 6px;
+  height: 14px;
+}
+
+*[dir=rtl] #statusbar-signal > span {
   float: right;
 }
 
+#statusbar-wifi {
+  width: 30px;
+  background: url("images/wifi/wifi-0.png") 50% 8px no-repeat;
+}
+
+#statusbar-wifi.signal-level0 {
+  background-image: url("images/wifi/wifi-0.png");
+}
+
+#statusbar-wifi.signal-level1 {
+  background-image: url("images/wifi/wifi-1.png");
+}
+
+#statusbar-wifi.signal-level2 {
+  background-image: url("images/wifi/wifi-2.png");
+}
+
+#statusbar-wifi.signal-level3 {
+  background-image: url("images/wifi/wifi-3.png");
+}
+
+#statusbar-wifi.signal-level4 {
+  background-image: url("images/wifi/wifi-4.png");
+}
+
+#statusbar-time {
+  text-shadow: 0 0 3px hsla(0,0%,0%,.5);
+  line-height: 30px;
+  font-size: 14px;
+  margin: 0 4px;
+}
+
+#statusbar-data {
+  font-size: 10px;
+  line-height: 16px;
+  text-align: center;
+  padding: 0 2px;
+  margin: 6px 4px 8px 4px;
+  border: 1px solid #999;
+}
+
+#statusbar-data:empty {
+  display: none;
+}
+
+#statusbar-battery {
+  float:right;
+  margin: 8px 3px;
+  padding: 5px 7px 5px 5px;
+  width: 29px;
+  background: url("images/battery/battery-main.png");
+  background-repeat: no-repeat;
+  background-size: 29px 16px;
+  position: relative;
+}
+
+#statusbar-battery-fuel {
+  height: 6px;
+  background-color: #999999;
+}
+
+#statusbar-battery-fuel.low { /* < 30% */
+}
+
+#statusbar-battery-fuel.critical { /* < 10% */
+  background-color: #c00;
+}
+
+#statusbar-battery-fuel.charging {
+}
+
+#statusbar-battery-charging {
+  height: 8px;
+  width: 18px;
+  background: transparent url("images/battery/battery-charging.png") center center no-repeat;
+  position: absolute;
+  top: 4px;
+  left: 5px;
+}

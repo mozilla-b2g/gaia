@@ -19,7 +19,8 @@
       document.write('<script src="' + src + '"><\/script>');
     </script>
     <link rel="stylesheet" type="text/css" href="style/system.css">
-    <script defer src="js/settings.js"></script>
+    <script defer src="js/settings_listener.js"></script>
+    <script defer src="js/applications.js"></script>
     <script defer src="js/screen_manager.js"></script>
     <script defer src="js/background_service.js"></script>
     <script defer src="js/bootstrap.js"></script>
@@ -47,28 +48,25 @@
 
     <!-- Statusbar -->
     <link rel="stylesheet" type="text/css" href="style/statusbar/statusbar.css">
-    <script defer src="js/statusbar/statusbar.js"></script>
+    <script defer src="js/statusbar.js"></script>
 
     <!-- Notifications -->
     <link rel="stylesheet" type="text/css" href="style/notifications/notifications.css">
     <script defer src="js/notifications/notifications.js"></script>
 
-    <!-- Dialogs -->
-    <link rel="stylesheet" type="text/css" href="style/dialogs/request.css">
-    <script defer src="js/dialogs/request.js"></script>
+    <!-- Permission Manager -->
+    <link rel="stylesheet" type="text/css" href="style/permission_manager/permission_manager.css">
+    <script defer src="js/permission_manager.js"></script>
 
     <!-- Task Manager -->
     <link rel="stylesheet" type="text/css" href="style/task_manager/task_manager.css">
     <script defer src="js/windows/task_manager.js"></script>
-	
+
     <!-- Windows -->
     <script defer src="js/windows/window_manager.js"></script>
-	
+
     <!-- Keyboard -->
     <script defer src="js/keyboard_manager.js"></script>
-
-    <!-- Bookmarks -->
-    <script defer src="js/bookmarks/bookmarks.js"></script>
 
     <!-- Theme and localization -->
     <link rel="stylesheet" type="text/css" href="style/themes/default/system.css">
@@ -100,24 +98,23 @@
       </div>
 
       <div id="statusbar">
-        <div id="state">
-          <div id="state-notifications" class="state"></div>
-        </div>
-        <div id="titlebar"></div>
-        <div id="padding"></div>
-        <div id="signal">
+        <div id="statusbar-signal">
           <span></span>
           <span></span>
           <span></span>
           <span></span>
         </div>
-        <div id="wifi"></div>
-        <div id="data"></div>
-        <div class="battery">
-          <div id="fuel"></div>
-          <div id="charging" hidden="true"></div>
+        <div id="statusbar-conn"></div>
+        <div id="statusbar-data"></div>
+        <div id="statusbar-wifi" hidden></div>
+        <div id="statusbar-padding"></div>
+        <div id="statusbar-notification" hidden></div>
+        <div id="statusbar-mute" hidden></div>
+        <div id="statusbar-battery">
+          <div id="statusbar-battery-fuel"></div>
+          <div id="statusbar-battery-charging" hidden></div>
         </div>
-        <div class="time" data-format="%H:%M"></div>
+        <div id="statusbar-time"></div>
       </div>
 
 

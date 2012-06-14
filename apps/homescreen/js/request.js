@@ -1,93 +1,117 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
 
-var requestPermission = (function() {
+var Permissions = (function() {
   // A queue of pending requests.
   // Callers must be careful not to create an infinite loop!
   var pending = [];
 
   var screen = null;
   var dialog = null;
+  var header = null;
   var message = null;
   var yes = null;
   var no = null;
 
-  return function requestPermission(msg, yescallback, nocallback) {
-    if (screen === null) {
-      screen = document.createElement('div');
-      screen.id = 'permission-screen';
+  return {
+    hide: function permissions_hide() {
+      if (screen === null)
+        return;
 
-      dialog = document.createElement('div');
-      dialog.id = 'permission-dialog';
-      screen.appendChild(dialog);
+      document.body.removeChild(screen);
+      screen = null;
+      dialog = null;
+      header = null;
+      message = null;
+      yes = null;
+      no = null;
+      pending = [];
+    },
 
-      message = document.createElement('div');
-      message.id = 'permission-message';
-      dialog.appendChild(message);
+    show: function permissions_show(title, msg, yescallback, nocallback) {
+      if (screen === null) {
+        screen = document.createElement('div');
+        screen.id = 'permission-screen';
 
-      yes = document.createElement('button');
-      yes.appendChild(document.createTextNode('Yes'));
-      yes.id = 'permission-yes';
-      dialog.appendChild(yes);
+        dialog = document.createElement('div');
+        dialog.id = 'permission-dialog';
+        screen.appendChild(dialog);
 
-      no = document.createElement('button');
-      no.appendChild(document.createTextNode('No'));
-      no.id = 'permission-no';
-      dialog.appendChild(no);
+        header = document.createElement('p');
+        header.id = 'permission-title';
+        dialog.appendChild(header);
 
-      document.body.appendChild(screen);
-    }
+        message = document.createElement('p');
+        message.id = 'permission-message';
+        dialog.appendChild(message);
 
-    // If there is already a pending permission request, queue this one
-    if (screen.classList.contains('visible')) {
-      pending.push({
-        message: msg,
-        yescallback: yescallback,
-        nocallback: nocallback
-      });
-      return;
-    }
+        no = document.createElement('button');
+        no.appendChild(document.createTextNode('Cancel'));
+        no.id = 'permission-no';
+        dialog.appendChild(no);
 
-    // Put the message in the dialog.
-    // Note plain text since this may include text from
-    // untrusted app manifests, for example.
-    message.textContent = msg;
+        yes = document.createElement('button');
+        yes.appendChild(document.createTextNode('Remove'));
+        yes.id = 'permission-yes';
+        dialog.appendChild(yes);
 
-    // Make the screen visible
-    screen.classList.add('visible');
-
-    // This is the event listener function for the buttons
-    function clickHandler(evt) {
-      // cleanup the event handlers
-      yes.removeEventListener('click', clickHandler);
-      no.removeEventListener('click', clickHandler);
-
-      // Hide the dialog
-      screen.classList.remove('visible');
-
-      // Call the appropriate callback, if it is defined
-      if (evt.target === yes && yescallback) {
-        yescallback();
-      } else if (evt.target === no && nocallback) {
-        nocallback();
+        document.body.appendChild(screen);
       }
 
-      // And if there are pending permission requests, trigger the next one
-      if (pending.length > 0) {
-        var request = pending.shift();
-        window.setTimeout(function() {
-          requestPermission(request.message,
+      // If there is already a pending permission request, queue this one
+      if (screen.classList.contains('visible')) {
+        pending.push({
+          header: title,
+          message: msg,
+          yescallback: yescallback,
+          nocallback: nocallback
+        });
+        return;
+      }
+
+      // Put the message in the dialog.
+      // Note plain text since this may include text from
+      // untrusted app manifests, for example.
+      header.textContent = title;
+      message.textContent = msg;
+
+      // Make the screen visible
+      screen.classList.add('visible');
+      // Put the dialog in the middle of the screen
+      dialog.style.marginTop = -dialog.offsetHeight / 2 + 'px';
+
+      // This is the event listener function for the buttons
+      function clickHandler(evt) {
+        // cleanup the event handlers
+        yes.removeEventListener('click', clickHandler);
+        no.removeEventListener('click', clickHandler);
+
+        // Hide the dialog
+        screen.classList.remove('visible');
+
+        // Call the appropriate callback, if it is defined
+        if (evt.target === yes && yescallback) {
+          yescallback();
+        } else if (evt.target === no && nocallback) {
+          nocallback();
+        }
+
+        // And if there are pending permission requests, trigger the next one
+        if (pending.length > 0) {
+          var request = pending.shift();
+          window.setTimeout(function() {
+            Permissions.show(request.header,
+                            request.message,
                             request.yescallback,
                             request.nocallback);
-        });
+          });
+        }
       }
-    }
 
-    // Set event listeners for the yes and no buttons
-    yes.addEventListener('click', clickHandler);
-    no.addEventListener('click', clickHandler);
+      // Set event listeners for the yes and no buttons
+      yes.addEventListener('click', clickHandler);
+      no.addEventListener('click', clickHandler);
+    }
   };
 }());
 

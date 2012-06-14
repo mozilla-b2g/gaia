@@ -68,11 +68,11 @@ function storeCache(id, url, content, count) {
   cacheEntry.close();
 }
 
-function getDirectories() {
+function getSubDirectories(directory) {
   let appsDir = Cc["@mozilla.org/file/local;1"]
                .createInstance(Ci.nsILocalFile);
   appsDir.initWithPath(GAIA_DIR);  
-  appsDir.append('apps');
+  appsDir.append(directory);
 
   let dirs = [];  
   let files = appsDir.directoryEntries;  
@@ -155,11 +155,11 @@ function getFileContent(file) {
   return [inputStream, count];
 }
 
-function getJSON(dir, name) {
+function getJSON(root, dir, name) {
   let file = Cc["@mozilla.org/file/local;1"]
                .createInstance(Ci.nsILocalFile);
   file.initWithPath(GAIA_DIR);
-  file.append('apps');
+  file.append(root);
   file.append(dir);
   file.append(name);
 
@@ -189,146 +189,151 @@ function getJSON(dir, name) {
 let applicationCacheService = Cc["@mozilla.org/network/application-cache-service;1"]
                                 .getService(Ci.nsIApplicationCacheService);
 
-let directories = getDirectories();
 let iconsToInject = [];
 
-directories.forEach(function generateAppCache(dir) {
-  let iconsURL = [];
-  let domain = "http://" + dir + "." + GAIA_DOMAIN;
-  let manifest = Cc["@mozilla.org/file/local;1"]
+let appSrcDirs = GAIA_APP_SRCDIRS.split(' ');
+
+appSrcDirs.forEach(function parseDirectory(directoryName) {
+  let directories = getSubDirectories(directoryName);
+
+  directories.forEach(function generateAppCache(dir) {
+    let iconsURL = [];
+    let domain = "http://" + dir + "." + GAIA_DOMAIN;
+    let manifest = Cc["@mozilla.org/file/local;1"]
                    .createInstance(Ci.nsILocalFile);
-  manifest.initWithPath(GAIA_DIR);
-  manifest.append('apps');
+    manifest.initWithPath(GAIA_DIR);
+    manifest.append(directoryName);
 
-  const base = manifest.path;
-  manifest.append(dir);
+    const base = manifest.path;
+    manifest.append(dir);
 
-  const root = manifest.path;
-  manifest.append("manifest.appcache");
+    const root = manifest.path;
+    manifest.append("manifest.appcache");
 
-  if (!manifest.exists())
-    return;
+    if (!manifest.exists())
+      return;
 
-  // Get the icons url for pre-caching in homescreen
-  // and system app.
-  let webappManifest = getJSON(dir, "manifest.webapp");
-  if (webappManifest) {
-    if (webappManifest.icons) {
-      let sizes = Object.keys(webappManifest.icons);
-      sizes.forEach(function iconIterator(size) {
-        let iconURL = domain + webappManifest.icons[size];
-        iconsURL.push(iconURL);
-      });
+    // Get the icons url for pre-caching in homescreen
+    // and system app.
+    let webappManifest = getJSON(directoryName, dir, "manifest.webapp");
+    if (webappManifest) {
+      if (webappManifest.icons) {
+        let sizes = Object.keys(webappManifest.icons);
+        sizes.forEach(function iconIterator(size) {
+          let iconURL = domain + webappManifest.icons[size];
+          iconsURL.push(iconURL);
+        });
+      }
     }
-  }
 
-  // Get the url for the manifest. At some points the root
-  // domain should be extracted from manifest.webapp
-  let applicationCache =
-    applicationCacheService.createApplicationCache(domain + "/manifest.appcache");
-  applicationCache.activate();
+    // Get the url for the manifest. At some points the root
+    // domain should be extracted from manifest.webapp
+    let applicationCache =
+      applicationCacheService.createApplicationCache(domain + "/manifest.appcache");
+    applicationCache.activate();
 
-  print ("\nCompiling " + dir + " (" + domain + ")");
+    print ("\nCompiling " + dir + " (" + domain + ")");
 
-  let hasWebapi = false;
+    let hasWebapi = false;
 
-  let files = getCachedFiles(manifest);
-  files.forEach(function appendFile(name) {
-    // Check that the file exists
+    let files = getCachedFiles(manifest);
+    files.forEach(function appendFile(name) {
+      // Check that the file exists
+      let file = Cc["@mozilla.org/file/local;1"]
+                   .createInstance(Ci.nsILocalFile);
+      file.initWithPath(root);
+
+      if (name == ("http://" + GAIA_DOMAIN + "/webapi.js")) {
+        hasWebapi = true;
+        return;
+      }
+
+      let paths = name.split("/");
+      for (let i = 0; i < paths.length; i++) {
+        file.append(paths[i]);
+      }
+
+      if (!file.exists()) {
+        let msg = "File " + file.path + " exists in the manifest but does not " +
+                  "points to a real file.";
+        throw new Error(msg);
+      }
+
+      let documentSpec = domain;
+      for (let i = 0; i < paths.length; i++) {
+        documentSpec += "/";
+        if (paths[i] != "index.html")
+           documentSpec += paths[i];
+      }
+  
+      let [content, length] = getFileContent(file);
+      storeCache(applicationCache.clientID, documentSpec, content, length);
+
+      // Set the item type
+      let itemType = Ci.nsIApplicationCache.ITEM_EXPLICIT;
+      if (file.leafName == "index.html")
+        itemType = Ci.nsIApplicationCache.ITEM_IMPLICIT;
+
+      print (file.path + " -> " + documentSpec + " (" + itemType + ")");
+
+      applicationCache.markEntry(documentSpec, itemType);
+
+      // If the file is declared as an icon we keep
+      // for a later injection.
+      if (iconsURL.indexOf(documentSpec) !== -1) {
+        iconsToInject.push([documentSpec, file.path]);
+      }
+    });
+
+    // NETWORK:
+    // http://*
+    // https://*
+    let array = Cc["@mozilla.org/array;1"]
+                  .createInstance(Ci.nsIArray);
+    array.QueryInterface(Ci.nsIMutableArray);
+
+    let bypass = Ci.nsIApplicationCacheNamespace.NAMESPACE_BYPASS;
+    array.appendElement(new Namespace(bypass, 'http://*', ''), false);
+    array.appendElement(new Namespace(bypass, 'https://*', ''), false);
+    applicationCache.addNamespaces(array);
+
+    // Store the appcache file
+    let documentSpec = domain + '/manifest.appcache';
+
     let file = Cc["@mozilla.org/file/local;1"]
                  .createInstance(Ci.nsILocalFile);
     file.initWithPath(root);
+    file.append('manifest.appcache');
 
-    if (name == ("http://" + GAIA_DOMAIN + "/webapi.js")) {
-      hasWebapi = true;
-      return;
+    if (file.exists()) {
+      let [content, length] = getFileContent(file);
+      storeCache(applicationCache.clientID, documentSpec, content, length);
+      itemType = Ci.nsIApplicationCache.ITEM_MANIFEST;
+      applicationCache.markEntry(documentSpec, itemType);
+
+      print (file.path + " -> " + documentSpec + " (" + itemType + ")");
     }
 
-    let paths = name.split("/");
-    for (let i = 0; i < paths.length; i++) {
-      file.append(paths[i]);
-    }
+    if (hasWebapi) {
+      let file = Cc["@mozilla.org/file/local;1"]
+                   .createInstance(Ci.nsILocalFile);
+      file.initWithPath(GAIA_DIR);
+      file.append("webapi.js");
 
-    if (!file.exists()) {
-      let msg = "File " + file.path + " exists in the manifest but does not " +
-                "points to a real file.";
-      throw new Error(msg);
-    }
+      if (!file.exists()) {
+        let msg = "File " + file.path + " exists in the manifest but does not " +
+                  "points to a real file.";
+        throw new Error(msg);
+      }
 
-    let documentSpec = domain;
-    for (let i = 0; i < paths.length; i++) {
-      documentSpec += "/";
-      if (paths[i] != "index.html")
-         documentSpec += paths[i];
-    }
-  
-    let [content, length] = getFileContent(file);
-    storeCache(applicationCache.clientID, documentSpec, content, length);
+      let documentSpec = "http://" + GAIA_DOMAIN + "/webapi.js"
+      print (file.path + " -> " + documentSpec);
 
-    // Set the item type
-    let itemType = Ci.nsIApplicationCache.ITEM_EXPLICIT;
-    if (file.leafName == "index.html")
-      itemType = Ci.nsIApplicationCache.ITEM_IMPLICIT;
-
-    print (file.path + " -> " + documentSpec + " (" + itemType + ")");
-
-    applicationCache.markEntry(documentSpec, itemType);
-
-    // If the file is declared as an icon we keep
-    // for a later injection.
-    if (iconsURL.indexOf(documentSpec) !== -1) {
-      iconsToInject.push([documentSpec, file.path]);
+      let [content, length] = getFileContent(file);
+      storeCache(applicationCache.clientID, documentSpec, content, length);
+      applicationCache.markEntry(documentSpec, Ci.nsIApplicationCache.ITEM_FOREIGN);
     }
   });
-
-  // NETWORK:
-  // http://*
-  // https://*
-  let array = Cc["@mozilla.org/array;1"]
-                .createInstance(Ci.nsIArray);
-  array.QueryInterface(Ci.nsIMutableArray);
-
-  let bypass = Ci.nsIApplicationCacheNamespace.NAMESPACE_BYPASS;
-  array.appendElement(new Namespace(bypass, 'http://*', ''), false);
-  array.appendElement(new Namespace(bypass, 'https://*', ''), false);
-  applicationCache.addNamespaces(array);
-
-  // Store the appcache file
-  let documentSpec = domain + '/manifest.appcache';
-
-  let file = Cc["@mozilla.org/file/local;1"]
-               .createInstance(Ci.nsILocalFile);
-  file.initWithPath(root);
-  file.append('manifest.appcache');
-
-  if (file.exists()) {
-    let [content, length] = getFileContent(file);
-    storeCache(applicationCache.clientID, documentSpec, content, length);
-    itemType = Ci.nsIApplicationCache.ITEM_MANIFEST;
-    applicationCache.markEntry(documentSpec, itemType);
-
-    print (file.path + " -> " + documentSpec + " (" + itemType + ")");
-  }
-
-  if (hasWebapi) {
-    let file = Cc["@mozilla.org/file/local;1"]
-                 .createInstance(Ci.nsILocalFile);
-    file.initWithPath(GAIA_DIR);
-    file.append("webapi.js");
-
-    if (!file.exists()) {
-      let msg = "File " + file.path + " exists in the manifest but does not " +
-                "points to a real file.";
-      throw new Error(msg);
-    }
-
-    let documentSpec = "http://" + GAIA_DOMAIN + "/webapi.js"
-    print (file.path + " -> " + documentSpec);
-
-    let [content, length] = getFileContent(file);
-    storeCache(applicationCache.clientID, documentSpec, content, length);
-    applicationCache.markEntry(documentSpec, Ci.nsIApplicationCache.ITEM_FOREIGN);
-  }
 });
 
 let appsNeedingIcons = ["homescreen", "system"];
