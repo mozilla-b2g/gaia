@@ -96,6 +96,8 @@ button:-moz-focus-inner{
   background: #ebebeb;
   box-shadow: inset 0 0 0 1px #FFF, 0 0 0.4rem 0px rgba(0, 0, 0, 0.4);
   border-radius: 0.3rem;
+  border: solid 1px rgba(0, 0, 0, 0.6);
+  border-top: none;
   margin-top: -0.5rem;
 }
 .keyboard-key.highlighted > span {
@@ -221,7 +223,7 @@ button:-moz-focus-inner{
 .keyboard-key.highlighted[data-keycode="32"],
 .keyboard-key.highlighted[data-keycode="-2"],
 .keyboard-key.special-key.highlighted
-  {  box-shadow: 0 0 0 2px #4495A8; margin-top: 0; }
+  {  box-shadow: 0 0 0 2px #4495A8; margin-top: 0; border: none; }
 
     .keyboard-key[data-keycode="-3"] > span , .keyboard-key.highlighted[data-keycode="-3"] > span, /* IMEManager.SWITCH_KEYBOARD */
     .keyboard-key[data-keycode="8"] > span , .keyboard-key.highlighted[data-keycode="8"] > span, /* KeyEvent.DOM_VK_BACK_SPACE */
