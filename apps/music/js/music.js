@@ -356,13 +356,13 @@ var PlayerView = {
     // note this may be a bug cause mp3 shows wrong duration in
     // gecko's native audio player
     var startTime = this.audio.startTime;
-    
+
     var originalEndTime =
       this.audio.buffered.end(this.audio.buffered.length - 1);
     var endTime = (originalEndTime > 1000000) ?
       originalEndTime / 1000000 :
-      originalEndTime
-      
+      originalEndTime;
+
     var currentTime = this.audio.currentTime;
 
     this.seekBar.min = startTime;
