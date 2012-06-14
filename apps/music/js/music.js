@@ -214,6 +214,11 @@ var PlayerView = {
   init: function pv_init() {
     this.title = document.getElementById('player-cover-title');
     this.artist = document.getElementById('player-cover-artist');
+
+    this.seekBar = document.getElementById('player-seek-bar-progress');
+    this.seekElapsed = document.getElementById('player-seek-elapsed');
+    this.seekRemaining = document.getElementById('player-seek-remaining');
+
     this.playControl = document.getElementById('player-controls-play');
 
     this.isPlaying = false;
@@ -221,6 +226,12 @@ var PlayerView = {
     this.currentIndex = 0;
 
     this.view.addEventListener('click', this);
+
+    // Seeking audio too frequently causes the Desktop build hangs
+    // A related Bug 739094 in Bugzilla
+    this.seekBar.addEventListener('mousemove', this);
+
+    this.audio.addEventListener('timeupdate', this);
   },
 
   play: function pv_play(target) {
@@ -268,14 +279,44 @@ var PlayerView = {
     this.play(songElements[this.currentIndex].firstElementChild);
   },
 
+  seekAudio: function pv_seekAudio(seekTime) {
+    if (seekTime)
+      this.audio.currentTime = seekTime;
+
+    var endTime =
+      Math.floor(this.audio.buffered.end(this.audio.buffered.length - 1));
+    var startTime = Math.floor(this.audio.startTime);
+    var currentTime = Math.floor(this.audio.currentTime);
+
+    this.seekBar.min = startTime;
+    this.seekBar.max = endTime;
+    this.seekBar.value = currentTime;
+
+    this.seekElapsed.textContent = formatTime(currentTime);
+    this.seekRemaining.textContent = '-' + formatTime(endTime - currentTime);
+  },
+
+  updateSeekBar: function pv_updateSeekBar() {
+    if (this.isPlaying) {
+      this.seekAudio();
+    }
+  },
+
   handleEvent: function pv_handleEvent(evt) {
+    var target = evt.target;
+      if (!target)
+        return;
+
     switch (evt.type) {
       case 'click':
-        var target = evt.target;
-        if (!target)
-          return;
-
         switch (target.id) {
+          case 'player-seek-bar-progress':
+            // target is the seek bar, and evt.layerX is the clicked position
+            var seekTime = evt.layerX / target.clientWidth * target.max;
+            this.seekAudio(seekTime);
+
+            break;
+
           case 'player-controls-previous':
             this.previous();
 
@@ -297,6 +338,14 @@ var PlayerView = {
         }
 
         break;
+      case 'mousemove':
+        // target is the seek bar, and evt.layerX is the moved position
+        var seekTime = evt.layerX / target.clientWidth * target.max;
+        this.seekAudio(seekTime);
+        break;
+      case 'timeupdate':
+        this.updateSeekBar();
+        break;
 
       default:
         return;
@@ -305,7 +354,7 @@ var PlayerView = {
 };
 
 // Application start from here after 'DOMContentLoaded' event is fired.
-// Initialize the view objects and default mode is TILES. 
+// Initialize the view objects and default mode is TILES.
 window.addEventListener('DOMContentLoaded', function() {
   TitleBar.init();
   TilesView.init();

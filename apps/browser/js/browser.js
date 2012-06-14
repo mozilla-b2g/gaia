@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 var Browser = {
 
@@ -48,9 +48,12 @@ var Browser = {
     this.urlInput.addEventListener('focus', this.urlFocus.bind(this));
     this.urlInput.addEventListener('blur', this.urlBlur.bind(this));
     this.history.addEventListener('click', this.followLink.bind(this));
-    this.tabsBadge.addEventListener('click', this.handleTabsBadgeClicked.bind(this));
-    this.tabsList.addEventListener('click', this.handleTabClicked.bind(this));
-    this.mainScreen.addEventListener('click', this.handlePageScreenClicked.bind(this));
+    this.tabsBadge.addEventListener('click',
+      this.handleTabsBadgeClicked.bind(this));
+    this.tabsList.addEventListener('click',
+      this.handleTabClicked.bind(this));
+    this.mainScreen.addEventListener('click',
+      this.handlePageScreenClicked.bind(this));
 
     this.handleWindowResize();
 
@@ -75,7 +78,8 @@ var Browser = {
   handleWindowResize: function browser_handleWindowResize() {
     var translate = 'translateX(-' + (window.innerWidth - 50) + 'px)';
     if (!this.cssTranslateId) {
-      var css = '.tabs-screen #main-screen { -moz-transform: ' + translate + ';}';
+      var css = '.tabs-screen #main-screen { -moz-transform: ' +
+        translate + ';}';
       var insertId = this.styleSheet.cssRules.length - 1;
       this.cssTranslateId = this.styleSheet.insertRule(css, insertId);
     } else {
@@ -131,6 +135,8 @@ var Browser = {
           this.throbber.classList.add('loading');
           this.setUrlButtonMode(this.STOP);
         }
+        tab.title = null;
+        tab.iconUrl = null;
         break;
 
       case 'mozbrowserloadend':
@@ -167,6 +173,16 @@ var Browser = {
           }
         }
         break;
+
+      case 'mozbrowsericonchange':
+        if (evt.detail && evt.detail != tab.iconUrl) {
+          tab.iconUrl = evt.detail;
+          this.getIcon(tab.iconUrl, function(icon) {
+            GlobalHistory.setPageIcon(tab.url, icon);
+          });
+
+        }
+
       }
     }).bind(this);
   },
@@ -179,13 +195,27 @@ var Browser = {
         break;
 
       case 'keyup':
-        if (!this.currentTab.session.backLength() || evt.keyCode != evt.DOM_VK_ESCAPE)
+        if (!this.currentTab || !this.currentTab.session.backLength() ||
+          evt.keyCode != evt.DOM_VK_ESCAPE)
           break;
 
         this.goBack();
         evt.preventDefault();
         break;
     }
+  },
+
+  getIcon: function browser_getIcon(iconUrl, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', iconUrl, true);
+    xhr.responseType = 'blob';
+    xhr.addEventListener('load', function() {
+      if (xhr.status === 200) {
+        var blob = xhr.response;
+        callback(blob);
+      }
+    }, false);
+    xhr.send();
   },
 
   navigate: function browser_navigate(url) {
@@ -197,8 +227,9 @@ var Browser = {
   },
 
   go: function browser_go(e) {
-    if (e)
+    if (e) {
       e.preventDefault();
+    }
 
     if (this.urlButtonMode == this.REFRESH) {
       this.navigate(this.currentTab.url);
@@ -208,12 +239,15 @@ var Browser = {
     var url = this.urlInput.value.trim();
     var protocolRegexp = /^([a-z]+:)(\/\/)?/i;
     var protocol = protocolRegexp.exec(url);
-    if (!protocol)
+    if (!protocol) {
       url = 'http://' + url;
+    }
+
     if (url != this.currentTab.url) {
       this.urlInput.value = url;
       this.currentTab.url = url;
     }
+
     this.navigate(url);
     this.urlInput.blur();
   },
@@ -288,8 +322,11 @@ var Browser = {
 
   createTab: function browser_createTab() {
     var iframe = document.createElement('iframe');
-    var browserEvents = ['loadstart', 'loadend', 'locationchange', 'titlechange'];
+    var browserEvents = ['loadstart', 'loadend', 'locationchange',
+      'titlechange', 'iconchange'];
     iframe.mozbrowser = true;
+    // FIXME: content shouldn't control this directly
+    iframe.setAttribute('remote', 'true');
     iframe.style.display = 'none';
 
     var tab = {
@@ -303,7 +340,8 @@ var Browser = {
     };
 
     browserEvents.forEach((function attachBrowserEvent(type) {
-      iframe.addEventListener('mozbrowser' + type, this.handleBrowserEvent(tab));
+      iframe.addEventListener('mozbrowser' +
+        type, this.handleBrowserEvent(tab));
     }).bind(this));
 
     this.tabs[tab.id] = tab;
@@ -343,6 +381,7 @@ var Browser = {
     if (this.currentTab !== null && this.currentTab.id !== id) {
       this.hideCurrentTab();
     }
+
     this.currentTab = this.tabs[id];
     this.currentTab.dom.style.display = 'block';
     this.currentTab.dom.style.top = '0px';
@@ -375,7 +414,7 @@ var Browser = {
     this.urlInput.blur();
 
     var ul = document.createElement('ul');
-    for(var tab in this.tabs) {
+    for (var tab in this.tabs) {
       var title = this.tabs[tab].title || this.tabs[tab].url || 'New Tab';
       var a = document.createElement('a');
       var li = document.createElement('li');
@@ -413,7 +452,7 @@ var Browser = {
     this.tabsList.appendChild(ul);
 
     document.body.classList.add('tabs-screen');
-  },
+  }
 };
 
 window.addEventListener('load', function browserOnLoad(evt) {

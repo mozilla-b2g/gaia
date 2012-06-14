@@ -25,7 +25,7 @@
   pointer-events: none;
 }
 
-#notifications-container .notification > div:first-child {
+#notifications-container .notification > div:first-of-type {
   margin: 0 0 0 85px;
   padding: 20px 0 0 0;
 
@@ -56,6 +56,14 @@
   height: 80px;
 }
 
+#notifications-container .notification > img {
+  float: left;
+  display: block;
+  width: 64px;
+  height: 64px;
+  margin: 8px;
+}
+
 #grippy {
   pointer-events: none;
   position: absolute;
@@ -70,6 +78,25 @@
 #state-notifications[data-visible] {
   width: 32px;
   height: 32px;
+}
+
+#statusbar {
+  display: -moz-box;
+  overflow: hidden;
+  position: relative;
+  /* Show it above fullscreen - see https://mxr.mozilla.org/mozilla-central/source/layout/style/ua.css#218 */
+  z-index: 2147483647;
+  -moz-box-orient: horizontal;
+
+  width: 100%;
+  -moz-box-sizing: border-box;
+  height: 32px;
+  padding: 2px;
+}
+
+#statusbar > * {
+  -moz-box-flex: 0;
+  pointer-events: none;
 }
 
 #statusbar > #padding {

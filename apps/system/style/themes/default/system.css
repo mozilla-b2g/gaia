@@ -179,7 +179,8 @@ div.windowSprite {
   margin: -100px 0 0 -110px;
   background: url(images/volume/volume-on.png) no-repeat 50% 10%, hsla(0,0%,0%,.8);
   border-radius: 10px;
-  z-index: 20003;
+  /* Show it above fullscreen - see https://mxr.mozilla.org/mozilla-central/source/layout/style/ua.css#218 */
+  z-index: 2147483647;
   -moz-transition: opacity 0.5s ease;
   pointer-events: none;
   display: none;

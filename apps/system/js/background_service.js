@@ -8,62 +8,38 @@
   as the phone starts.
 */
 var BackgroundServiceManager = (function bsm() {
-  /* We keep information about the installed Apps here */
-  var installedApps = {};
-
   /* We keep the references to background page iframes here.
     The iframes will be append to body */
   var frames = {};
 
-  var apps = navigator.mozApps;
-
   /* Init */
-  window.addEventListener('load', function bsm_init() {
-    apps.mgmt.getAll().onsuccess = function mgmt_getAll(evt) {
-      evt.target.result.forEach(function app_forEach(app) {
-        installedApps[app.origin] = app;
-        open(app.origin);
-      });
-    };
+  window.addEventListener('applicationready', function bsm_init(evt) {
+    var applications = evt.detail.applications;
+    Object.keys(applications).forEach(open);
   });
 
-  /* XXX: https://bugzilla.mozilla.org/show_bug.cgi?id=731746
-  addEventListener does't work for now (workaround follows) */
+  /* OnInstall */
+  window.addEventListener('applicationinstall', function bsm_oninstall(evt) {
+    var origin = evt.detail.application.origin;
+    open(origin);
+  });
 
-  var OriginalOninstall = apps.mgmt.oninstall;
-  var OriginalOnuninstall = apps.mgmt.onuninstall;
-
-  apps.mgmt.oninstall = function bsm_install(evt) {
-    var newapp = evt.application;
-    installedApps[newapp.origin] = newapp;
-
-    open(newapp.origin);
-
-    if (OriginalOninstall)
-      OriginalOninstall.apply(this, arguments);
-  };
-
-  apps.mgmt.onuninstall = function bsm_uninstall(evt) {
-    var newapp = evt.application;
-    delete installedApps[newapp.origin];
-
-    close(newapp.origin);
-
-    if (OriginalOninstall)
-      OriginalOnuninstall.apply(this, arguments);
-  };
-  /* // workaround */
+  /* OnUninstall */
+  window.addEventListener('applicationuninstall', function bsm_oninstall(evt) {
+    var origin = evt.detail.application.origin;
+    close(origin);
+  });
 
   /* The open function is responsible of containing the iframe */
   var open = function bsm_open(origin) {
-    var app = installedApps[origin];
+    var app = Applications.getByOrigin(origin);
     if (!app || !app.manifest.background_page)
       return false;
 
     var frame = document.createElement('iframe');
     frame.className = 'backgroundWindow';
     frame.setAttribute('mozbrowser', 'true');
-    frame.setAttribute('mozapp', 'true');
+    frame.setAttribute('mozapp', app.manifestURL);
     frame.src = origin + app.manifest.background_page;
     frames[origin] = frame;
 
@@ -78,9 +54,8 @@ var BackgroundServiceManager = (function bsm() {
     if (!frame)
       return false;
 
-    frame.parentNode.removeChild(frame);
+    document.body.removeChild(frame);
 
-    frame = undefined;
     delete frames[origin];
     return true;
   };
