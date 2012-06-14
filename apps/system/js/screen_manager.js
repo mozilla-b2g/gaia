@@ -58,11 +58,14 @@ var ScreenManager = {
 
         break;
 
+        // The screenshot module also listens for the SLEEP key and
+        // may call preventDefault() on the keyup and keydown events.
       case 'keydown':
         if (evt.keyCode !== evt.DOM_VK_SLEEP && evt.keyCode !== evt.DOM_VK_HOME)
           return;
 
-        this._turnOffScreenOnKeyup = true;
+        if (!evt.defaultPrevented)
+          this._turnOffScreenOnKeyup = true;
         if (!this.screenEnabled) {
           this.turnScreenOn();
           this._turnOffScreenOnKeyup = false;
@@ -71,7 +74,7 @@ var ScreenManager = {
         break;
       case 'keyup':
         if (this.screenEnabled && this._turnOffScreenOnKeyup &&
-            evt.keyCode == evt.DOM_VK_SLEEP)
+            evt.keyCode == evt.DOM_VK_SLEEP && !evt.defaultPrevented)
           this.turnScreenOff();
 
         break;
