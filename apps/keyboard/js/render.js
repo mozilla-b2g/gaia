@@ -194,10 +194,10 @@ const IMERender = (function() {
     var menu = this.menu;
 
     for (var i = 0, kbr; kbr = keyboards[i]; i += 1) {
-      className = 'keyboard-key special-key';
+      className = 'keyboard-key special-key kbr-menu-on';
 
       if (kbr === current)
-        className += ' current-keyboard';
+        className += ' kbr-key-hold';
 
       dataset = [
         {key: 'keyboard', value: kbr},
