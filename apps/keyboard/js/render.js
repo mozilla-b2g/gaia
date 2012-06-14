@@ -189,12 +189,16 @@ const IMERender = (function() {
     }
   };
 
-  var showKeyboardAlternatives = function(keyboards, current, switchCode) {
+  var showKeyboardAlternatives = function(key, keyboards, current, switchCode) {
     var dataset, className, content = '';
     var menu = this.menu;
+    
+    var cssWidth = key.style.width;
+    var left = (window.innerWidth / 2 > key.offsetLeft);
+    menu.classList.add("kbr-menu-lang");
 
     for (var i = 0, kbr; kbr = keyboards[i]; i += 1) {
-      className = 'keyboard-key special-key kbr-menu-on';
+      className = 'keyboard-key';
 
       if (kbr === current)
         className += ' kbr-key-hold';
@@ -205,43 +209,33 @@ const IMERender = (function() {
       ];
       content += buildKey(
         Keyboards[kbr].menuLabel,
-        className, '100px',
+        className, cssWidth,
         dataset
       );
     }
 
     menu.innerHTML = content;
-    menu.classList.add("kbr-menu-left");
+    key.querySelectorAll("span")[0].appendChild(menu);
     menu.style.display = 'block';
   };
 
   var showAlternativesCharMenu = function(key, altChars) {
     // TODO: !!! Fix alternateLayout alt keys
-    console.log(key.firstChild.innerHTML);
 
     var target = key;
     var original = altChars[0];
+    altChars = altChars.slice(1);
     var cssWidth = target.style.width;
     var left = (window.innerWidth / 2 > target.offsetLeft);
-    altChars = altChars.slice(1);
     var altCharsCurrent = [];
 
-    if (left === true) {
+    if (left) {
       this.menu.classList.add("kbr-menu-left");
-      // this.menu.style.left = '-moz-calc(' + target.offsetLeft + 'px - 0.8rem)';
-      // this.menu.style.right = 'auto';
-      // this.menu.style.textAlign = 'center';
       altCharsCurrent.push(original);
       altCharsCurrent = altCharsCurrent.concat(altChars);
+
     } else {
       this.menu.classList.add("kbr-menu-right");
-
-      // var width = '-moz-calc(' + window.innerWidth + 'px - ' +
-                   // target.offsetLeft + 'px - 0.8rem - ' +
-                   // target.style.width + ' )';
-      // this.menu.style.right = width;
-      // this.menu.style.left = 'auto';
-      // this.menu.style.textAlign = 'center';
       altCharsCurrent = altChars.reverse();
       altCharsCurrent.push(original);
     }
@@ -259,7 +253,6 @@ const IMERender = (function() {
     this.menu.innerHTML = content;
     target.querySelectorAll("span")[0].appendChild(this.menu);
     this.menu.style.display = 'block';
-    // this.menu.style.top = '-moz-calc(' + target.offsetTop + 'px - 4.6rem)';
   };
 
   var hideAlternativesCharMenu = function km_hideAlternativesCharMenu() {

@@ -375,6 +375,7 @@ const IMEController = (function() {
     // switch keyboard menu
     if (keyObj.keyCode === SWITCH_KEYBOARD) {
       IMERender.showKeyboardAlternatives(
+        key,
         IMEManager.keyboards,
         _baseLayoutName,
         SWITCH_KEYBOARD
