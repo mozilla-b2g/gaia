@@ -4,6 +4,8 @@
     <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
     <title>Dialer</title>
+    <link rel="stylesheet" type="text/css" href="style/typography.css">
+    <link rel="stylesheet" type="text/css" href="style/common.css">
     <link rel="stylesheet" type="text/css" href="style/dialer.css">
     <link rel="resource" type="application/l10n" href="locale/dialer.properties">
     <!-- Compatibility -->
@@ -34,10 +36,7 @@
   <body class="hidden">
     <article id="views">
       <article id="keyboard-view" class="view">
-        <!-- <input type="hidden" id="phone-number"></input>
-        <div id="fake-phone-number-view"></div> -->
         <div id="phone-number-view-container">
-          <!-- <div id="phone-number-view" class="phone-number-font"></div> -->
           <div class="grid-cell grid-v-align">
             <div class="grid-wrapper">
               <input id="phone-number-view" type="text" class="phone-number-font" readonly="readonly">
@@ -47,7 +46,7 @@
           <div id="kb-delete" class="grid-cell grid-v-align">
             <div class="i-delete">
             </div>
-             <!--  <img class="i-delete" src="style/images/dialer_icon_delete.png" width="2.5rem" height="2.5rem"> -->
+             
           </div>
         </div>
         <article id="keyboard-container">
@@ -167,10 +166,6 @@
                 
               </div>  
             </span>
-            <!-- <span id="kb-delete"  data-type="action" data-value="del-digit" class="hide">
-              <img class="i-delete" src="style/images/dialer_icon_delete.png" width="2.5rem" height="2.5rem">
-            </span> -->
-
           </section>
         </article>
       </article>
@@ -183,7 +178,7 @@
                 
             </section>
             <section id="cs-h-info-secondary" class="contact-secondary-info font-light cs-h-info">
-              Mobile,Movistar
+              Unknown carrier
             </section>
           </article>
            
@@ -194,7 +189,7 @@
           <section id="call-info" class="grid-row">
              <div class="grid-wrapper grid">
                 <div id="call-duration" class="grid-cell grid-v-align call-duration-style font-light">
-                   10:24 
+                   
                 </div> 
              </div>            
           </section>
@@ -241,7 +236,6 @@
               </section>
               <footer id="co-basic" class="grid-row">
                 <div id="co-basic-wrapper" class="grid-wrapper grid">
-                  
                   <section id="co-basic-answer" class="grid-cell  co-basic-option co-basic-botton-start">
                     <div class="grid-wrapper">
                       <div class="i-hangup">
@@ -258,46 +252,8 @@
               </footer>
             </div>
           </footer>
-        
         </div>
-        <!-- <div id="call-actions-top">
-          <div id="call-actions">
-            <div data-action="toggleMute" onclick="CallHandler.execute(this.dataset.action);">
-              <div id="mute-button"></div>
-              <span data-l10n-id="mute">Mute</span>
-            </div>
-            <div data-action="toggleKeypad" onclick="CallHandler.execute(this.dataset.action);">
-              <div id="keypad-button"></div>
-              <span data-l10n-id="keypad">Keypad</span>
-            </div>
-            <div data-action="toggleSpeaker" onclick="CallHandler.execute(this.dataset.action);">
-              <div id="speaker-button"></div>
-              <span data-l10n-id="speaker">Speaker</span>
-            </div>
-          </div>
-          <div id="call-actions-2">
-            <div>
-              <div id="contacts-button"></div>
-              <span data-l10n-id="mute"> Mute </span>
-            </div>
-            <div>
-              <div id="recents-button"></div>
-              <span data-l10n-id="keypad">Keypad</span>
-            </div>
-            <div>
-              <div id="write-msg-button"></div>
-              <span data-l10n-id="speaker">Speaker</span>
-            </div>
-          </div>
-        </div>
-        <div id="call-button">
-          <div id="end-call" onclick="CallHandler.execute('end');"><span data-l10n-id="end"> End </span></div>
-          <div id="accept-call" onclick="CallHandler.execute('answer');"><span data-l10n-id="answer"> Answer </span></div>
-        </div> -->
-        
       </article>
-     
-
     </article>
     <div id="screen-off"></div>
   </body>

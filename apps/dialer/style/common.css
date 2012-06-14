@@ -1,0 +1,52 @@
+/*
+  Class for creating the structure
+*/
+.grid-wrapper{
+  width:100%;
+  height:100%;
+}
+
+.grid-v-align{
+  vertical-align:middle;
+}
+
+.grid-row{
+  display:table-row;
+}
+
+.grid-cell{
+  display:table-cell;
+}
+
+.grid{
+  display:table;
+  table-layout:fixed;
+}
+
+.hide{
+  display:none !important;
+}
+
+.transparent{
+  visibility: hidden !important;
+  /*background:transparent !important;*/
+}
+
+
+.layout-row{
+
+  display:table-row;
+}
+.layout-cell{
+
+  display:table-cell;
+}
+
+.layout-centered{
+
+  vertical-align:middle;
+}
+
+.center{
+  text-align:center;
+}

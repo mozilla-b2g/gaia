@@ -8,10 +8,7 @@ var KeypadManager = {
   phoneNumber:'',
   init: function kh_init() {
 
-    //TODO Check when this method is called, every time you launch the app?
-    
     //Clean previous values in phone number
-    // document.getElementById('phone-number').value = '';
     document.getElementById('phone-number-view').value = '';
     KeypadManager.phoneNumber='';
 
@@ -30,9 +27,11 @@ var KeypadManager = {
     //Start Player of sounds in dialer
     TonePlayer.init();
 
+    //Update UI properly
     this.render(0);
   },
   util:{
+    //Method which manage caret to last position
     moveCaretToEnd:function hk_util_moveCaretToEnd(el) {
         if (typeof el.selectionStart == "number") {
             el.selectionStart = el.selectionEnd = el.value.length;
@@ -112,8 +111,6 @@ var KeypadManager = {
       
         CallHandler.call(KeypadManager.phoneNumber);
 
-        //Hide dialer and show call screen
-        //CallManager.screen.show();
     }
 
     
@@ -131,9 +128,7 @@ var KeypadManager = {
    */
   keyHandler:function hk_keyHandler(event){
    
-    // event.stopPropagation();
     
-      // this.style.background='red';
       if(event.target.getAttribute('data-value')!=null){
         var key=event.target.getAttribute('data-value');
       }else if(event.target.parentNode.getAttribute('data-value')!=null){
@@ -174,68 +169,7 @@ var KeypadManager = {
         } 
 
       }
-      
-    
-    
-    //Stop bubbling propagation 
-    // event.stopPropagation();
-
-    // //Depending on event type
-    // if(event.type=='mousedown'){
-    //   //If is a dial action in keypad
-    //   if(event.target.getAttribute('data-type')=='dial'){
-    //     //Retrieve key pressed
-    //     var key=event.target.getAttribute('data-value');
-
-    //     //Play key sound
-    //     // TonePlayer.play(gTonesFrequencies[key]);
-
-    //     //Manage "Hold action" in "0" key
-    //     if(key=='0'){
-    //       KeypadManager.hold_timer=setTimeout(function(){
-    //         DialerManager.hold_active=true;
-    //       },400);
-    //     }
-    //   }
-    // }else if(event.type=='click'){
-    //   //Retrieve type of button which produces event
-    //   var data_type=event.target.getAttribute('data-type');
-    //   if(data_type=='dial'){
-    //     //If is a dial action in keypad retrieve key value
-    //     var key=event.target.getAttribute('data-value');
-        
-    //     //If key is "0", has a "Hold action"?
-    //     if(key=='0'){
-    //       if(DialerManager.hold_active){
-    //         // document.getElementById('phone-number').value+='+';
-    //         document.getElementById('phone-number-view').value+='+';
-    //       }else{
-    //         // document.getElementById('phone-number').value+=key;
-    //         document.getElementById('phone-number-view').value+=key;
-    //       }
-    //     }else{
-    //       // document.getElementById('phone-number').value+=key;
-    //       // document.getElementById('phone-number-view').innerHTML+=key;
-    //       document.getElementById('phone-number-view').value+=key;
-    //       // DialerManager.util.moveCaretToEnd(document.getElementById('phone-number-view'));
-    //       // moveCaretToEnd(document.getElementById('phone-number-view'));
-    //     }
-
-    //     //We set to default var involved in "Hold event" management
-    //     clearTimeout(DialerManager.hold_timer);
-    //     DialerManager.hold_active=false;
-
-        
-    //     // Sending the DTMF tone
-    //     var telephony = navigator.mozTelephony;
-    //     if (telephony) {
-    //       telephony.startTone(key);
-    //       window.setTimeout(function ch_stopTone() {
-    //         telephony.stopTone();
-    //       }, 100);
-    //     }
-    //   }
-    // }
+  
   },
   handleEvent: function kh_handleEvent(event){
     //TODO Use it if is necessary to control more events

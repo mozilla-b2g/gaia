@@ -1,27 +1,3 @@
-/* === Fonts === */
-
-
-@font-face {
-  font-family: 'FontLight';
-  src: url('fonts/opensans-light-webfont.woff');
-}
-
-@font-face {
-  font-family: 'FontRegular';
-  src: url('fonts/opensans-regular-webfont.woff');
-}
-
-@font-face {
-  font-family: 'FontSemibold';
-  font-weight: 600;
-  src: url('fonts/opensans-semibold-webfont.woff');
-}
-
-@font-face {
-  font-family: 'FontBold';
-  font-weight: bold;
-  src: url('fonts/opensans-bold-webfont.woff');
-}
 
 
 
@@ -72,49 +48,9 @@ html * {
   width: 100%;
 }
 
-/* === Keyboard View === */
-@font-face {
-  font-family: 'Keyboard Symbols';
-  font-weight: 600;
-  src: url('fonts/Keyboard-Symbols.woff');
-}
 
 
-.font-light{
-  font-family:'FontLight';
-}
 
-.font-regular{
-  font-family:'FontRegular';
-}
-
-.font-semibold{
-  font-family:'FontSemibold';
-}
-
-.font-bold{
-  font-family:'FontBold';
-}
-
-
-.phone-number-font{
-  font-size:-moz-calc(18*0.226rem);
-  color:white;
-  font-family:'FontRegular';
-}
-
-.kb-keypad-number{
-  font-size:-moz-calc(25*0.226rem);
-  color:white;
-
-}
-
-.kb-keypad-text{
-  font-size:-moz-calc(6*0.226rem);
-  color:#96AAB4;
-  
- 
-}
 
 
 
@@ -357,73 +293,9 @@ html * {
 }
 
 
-/*
-  Class for creating the structure
-*/
-.grid-wrapper{
-  width:100%;
-  height:100%;
-}
-
-.grid-v-align{
-  vertical-align:middle;
-}
-
-.grid-row{
-  display:table-row;
-}
-
-.grid-cell{
-  display:table-cell;
-}
-
-.grid{
-  display:table;
-  table-layout:fixed;
-}
-
-.hide{
-  display:none !important;
-}
-
-.transparent{
-  visibility: hidden !important;
-  /*background:transparent !important;*/
-}
 
 
-.layout-row{
 
-  display:table-row;
-}
-.layout-cell{
-
-  display:table-cell;
-}
-
-.layout-centered{
-
-  vertical-align:middle;
-}
-
-.center{
-  text-align:center;
-}
-
-
-/*
-  Class for fonts
-*/
-
-.contact-primary-info{
-  font-size:-moz-calc(15*0.226rem);
-  color:black;
-}
-
-.contact-secondary-info{
-  font-size:-moz-calc(6*0.226rem);
-  color:white;
-}
 
   #cs-header{
     height:10rem;
@@ -591,87 +463,7 @@ html * {
            
         
 
-        
-
-/*
-    #cs-h-contact-info-wrapper{
-      display:block;
-      width:100%;
-      height:10rem;
-      
-      display:table;
-      table-layout:fixed;
-      
-    }
-
-      #cs-h-contact-info{
-        display:table-cell;
-        vertical-align:middle;
-      }
-        #cs-h-contact-info-primary{
-          padding:0 3rem;
-          box-sizing:border-box;
-          font-size:-moz-calc(15*0.226rem);
-          overflow: hidden;
-          text-overflow:ellipsis;
-          white-space:nowrap;
-          color:black;
-        }
-
-        #cs-h-contact-info-secondary{
-          padding:0 3rem;
-          box-sizing:border-box;
-          font-size:-moz-calc(6*0.226rem);
-          overflow: hidden;
-          text-overflow:ellipsis;
-          white-space:nowrap;
-        }
-
-  #call-container{
-    background: #DADADA;
-    overflow: hidden;
-    text-align:center;
-  }
-
-    #call-container-wrapper{
-      
-      width:100%;
-      height:100%;
-      display:table;
-      table-layout:fixed;
-    }
-
-        #call-info-wrapper{
-          
-          width:100%;
-          height:100%;
-          display: table;
-          table-layout:fixed;
-        }    
-            #call-duration{
-              overflow: hidden;
-              text-overflow:ellipsis;
-              white-space:nowrap;
-              text-align:left;
-              padding:0 3rem;
-              box-sizing:border-box;
-              font-size: -moz-calc(25*0.226rem);
-            }          
-        
-      #call-actions-container{
-        background: rgba(0,0,0,.3);
-
-        height:28.5rem;
-        
-      }
-*/
-
   
-    
-
-
- 
-
 
 
 /* localization */
