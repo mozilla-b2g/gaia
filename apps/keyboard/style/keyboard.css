@@ -147,6 +147,26 @@ button:-moz-focus-inner{
   padding: 0 0.5rem;
 }
 
+/* Lang menu */
+#keyboard-accent-char-menu.kbr-menu-lang {
+
+  position: absolute;
+  bottom: 100%;
+  left: -0.4rem;
+  right: auto;
+  top: auto;
+  padding: 0;
+  height: auto;
+  max-height: 30rem;
+  overflow: auto;
+  white-space: normal;
+  padding: 0 0.5rem 0.5rem;
+}
+  #keyboard-accent-char-menu.kbr-menu-lang .keyboard-key {
+    width: 10rem;
+    -moz-box-sizing: border-box;
+  }
+
 /* menu from right */
 #keyboard-accent-char-menu.kbr-menu-right { left: auto; right: -1px; }
 
@@ -167,7 +187,7 @@ button:-moz-focus-inner{
   box-shadow: 0 0 0 3px #53B6CC;
   background: -moz-linear-gradient(#fff, #ebebeb);
 }
-#keyboard-accent-char-menu .keyboard-key.highlighted span {
+#keyboard-accent-char-menu .keyboard-key.highlighted > span {
   top: 0;
   left: 0;
   right: 0;
@@ -176,9 +196,13 @@ button:-moz-focus-inner{
   border: 0;
   font-weight: 600;
 }
+#keyboard-accent-char-menu .keyboard-key.highlighted > span:after {
+  display: none;
+}
 #keyboard-accent-char-menu.show {
   display: block;
 }
+
 
 @font-face {
   font-family: 'Keyboard Symbols';
