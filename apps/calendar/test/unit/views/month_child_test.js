@@ -53,6 +53,13 @@ suite('views/month_child', function() {
     assert.deepEqual(subject._busytimes, subject._busytimes);
   });
 
+  test('#_hourToBusyUnit', function() {
+    assert.equal(subject._hourToBusyUnit(1), 1);
+    assert.equal(subject._hourToBusyUnit(12), 6);
+    assert.equal(subject._hourToBusyUnit(14), 7);
+    assert.equal(subject._hourToBusyUnit(24), 12);
+  });
+
   suite('#_getBusyUnits', function() {
     var all = range(1, 23);
 

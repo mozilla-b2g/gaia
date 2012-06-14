@@ -25,6 +25,8 @@
     }
 
     this._busytimes = {};
+    this._busytimeQueue = {};
+
     this.monthId = Calendar.Calc.getMonthId(this.month);
   }
 
@@ -32,6 +34,8 @@
     INACTIVE: 'inactive',
 
     busyPercision: (24 / 12),
+
+    queueTime: 1,
 
     /**
      * Hack this should be localized.
@@ -62,6 +66,17 @@
     ],
 
     /**
+     * Calculates busy time unit based on an hour
+     * of the day.
+     *
+     * @param {Numeric} hour integer hour.
+     * @return {Numeric} integer busy unit.
+     */
+    _hourToBusyUnit: function(hour) {
+      return Math.ceil(hour / this.busyPercision) || 1;
+    },
+
+    /**
      * Returns a list of busy units based
      * on an array of hours.
      *
@@ -69,16 +84,16 @@
      * @return {Array} list of busy units.
      */
     _getBusyUnits: function _getBusyUnits(hours) {
-      var set = {},
+      var set = new Calendar.Set(),
           result = [],
           i = 0,
           unit;
 
       for (; i < hours.length; i++) {
-        unit = Math.ceil(hours[i] / this.busyPercision) || 1;
-        if (!(unit in set)) {
+        unit = this._hourToBusyUnit(hours[i]);
+        if (!set.has(unit)) {
           result.push(unit);
-          set[unit] = true;
+          set.add(unit);
         }
       }
 
