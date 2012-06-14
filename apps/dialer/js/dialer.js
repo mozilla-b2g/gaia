@@ -257,7 +257,6 @@ var CallHandler = {
     this.callScreen.classList.remove('in-call');
     this.callScreen.classList.add('calling');
     this.numberView.innerHTML = number;
-    this.statusView.innerHTML = 'Calling...';
 
     this.lookupContact(number);
 
@@ -290,7 +289,6 @@ var CallHandler = {
     };
 
     this.numberView.innerHTML = call.number || 'Anonymous';
-    this.statusView.innerHTML = 'Call from...';
 
     if (call.number)
       this.lookupContact(call.number);
@@ -312,13 +310,14 @@ var CallHandler = {
     if (!this._onCall)
       return;
 
-    this.callDurationView.innerHTML = callDirectionChar + ' ' + '00:00';
+    this.durationView.innerHTML = callDirectionChar + ' ' + '00:00';
 
     this.recentsEntry.type += '-connected';
 
     this._ticker = setInterval(function ch_updateTimer(self, startTime) {
       var elapsed = new Date(Date.now() - startTime);
-      self.statusView.innerHTML = elapsed.toLocaleFormat('%M:%S');
+      self.durationView.innerHTML = callDirectionChar + ' ' +
+        elapsed.toLocaleFormat('%M:%S');
     }, 1000, this, Date.now());
   },
 
@@ -418,13 +417,9 @@ var CallHandler = {
     delete this.numberView;
     return this.numberView = document.getElementById('call-number-view');
   },
-  get statusView() {
-    delete this.statusView;
-    return this.statusView = document.getElementById('call-status-view');
-  },
-  get callDurationView() {
-    delete this.statusView;
-    return this.statusView = document.getElementById('call-duration-view');
+  get durationView() {
+    delete this.durationView;
+    return this.durationView = document.getElementById('call-duration-view');
   },
   get actionsView() {
     delete this.actionsView;

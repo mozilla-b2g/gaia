@@ -265,18 +265,6 @@ html * {
   height: 86%;
 }
 
-#call-screen.calling #call-status-view {
-  display: none;
-}
-
-#call-screen.in-call #call-status-view {
-  display: none;
-}
-
-#call-screen.incoming #call-status-view {
-  display: none;
-}
-
 #call-screen.calling #call-number-view-container {
   color: DarkGray;
   height: 20%;
