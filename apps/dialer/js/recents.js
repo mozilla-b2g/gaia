@@ -31,7 +31,8 @@ var Recents = {
       db.createObjectStore(self.STORENAME, { keyPath: 'date' });
     };
 
-    this.startUpdatingDates();
+    if (this.view)
+      this.startUpdatingDates();
   },
 
   cleanup: function re_cleanup() {
@@ -63,10 +64,12 @@ var Recents = {
       var setreq = store.put(recentCall);
 
       setreq.onsuccess = (function() {
-        var entry = this.createEntry(recentCall);
+        if (this.view) {
+          var entry = this.createEntry(recentCall);
 
-        var firstEntry = this.view.firstChild;
-        this.view.insertBefore(entry, firstEntry);
+          var firstEntry = this.view.firstChild;
+          this.view.insertBefore(entry, firstEntry);
+        }
       }).bind(this);
 
       setreq.onerror = function(e) {
@@ -105,6 +108,9 @@ var Recents = {
   },
 
   render: function re_render() {
+    if (!this.view)
+      return;
+
     this.view.innerHTML = '';
 
     this.history((function(history) {
