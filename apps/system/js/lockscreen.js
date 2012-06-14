@@ -446,7 +446,6 @@ var LockScreen = {
         delete this.overlay.dataset.passcodeStatus;
         this.unlock();
         this.passCodeEntered = '';
-        this.updatePassCodeUI();
       }).bind(this), this.kPassCodeSuccessTimeout);
     } else {
       this.overlay.dataset.passcodeStatus = 'error';
