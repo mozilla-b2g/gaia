@@ -295,6 +295,13 @@ input::-moz-focus-inner {
   display: none;
 }
 
+#awesomescreen h3 {
+  font-size: 1em;
+  margin: 0;
+  background-color: #ccc;
+  padding: 4px;
+}
+
 #awesomescreen ul {
   margin: 0;
   padding: 0;

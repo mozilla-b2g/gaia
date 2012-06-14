@@ -27,7 +27,7 @@ var Browser = {
     this.urlButton = document.getElementById('url-button');
     this.content = document.getElementById('browser-content');
     this.awesomescreen = document.getElementById('awesomescreen');
-    this.history = document.getElementById('history-list');
+    this.history = document.getElementById('history');
     this.backButton = document.getElementById('back-button');
     this.forwardButton = document.getElementById('forward-button');
 
@@ -304,15 +304,92 @@ var Browser = {
   },
 
   showGlobalHistory: function browser_showGlobalHistory(visits) {
-    var history = this.history;
-    history.innerHTML = '';
-    visits.forEach(function browser_populateHistory(visit) {
+    this.history.innerHTML = '';
+    var thresholds = [
+      new Date().valueOf(),              // 0. Now
+      DateHelper.todayStarted(),         // 1. Today
+      DateHelper.yesterdayStarted(),     // 2. Yesterday
+      DateHelper.thisWeekStarted(),      // 3. This week
+      DateHelper.thisMonthStarted(),     // 4. This month
+      DateHelper.lastSixMonthsStarted(), // 5. Six months
+      0                                  // 6. Epoch!
+    ];
+    var threshold = 0;
+    var month = null;
+    var year = null;
+
+    visits.forEach(function browser_processVisit(visit) {
+       var timestamp = visit.timestamp;
+       // Draw new heading if new threshold reached
+       if (timestamp > 0 && timestamp < thresholds[threshold]) {
+         threshold = this.incrementHistoryThreshold(timestamp, threshold,
+           thresholds);
+         // Special case for month headings
+         if (threshold != 5)
+           this.drawHistoryHeading(threshold);
+       }
+       if (threshold == 5) {
+         var timestampDate = new Date(timestamp);
+         if (timestampDate.getMonth() != month ||
+           timestampDate.getFullYear() != year) {
+           month = timestampDate.getMonth();
+           year = timestampDate.getFullYear();
+           this.drawHistoryHeading(threshold, timestamp);
+         }
+      }
+      this.drawHistoryEntry(visit);
+    }, this);
+  },
+
+  incrementHistoryThreshold: function browser_incrementHistoryThreshold(
+    timestamp, currentThreshold, thresholds) {
+    var newThreshold = currentThreshold += 1;
+    if (timestamp < thresholds[newThreshold])
+      return browser_incrementHistoryThreshold(timestamp, newThreshold,
+        thresholds);
+    return newThreshold;
+  },
+
+  drawHistoryEntry: function browser_drawHistoryEntry(visit) {
       var li = document.createElement('li');
       li.innerHTML = '<a href="' + visit.uri + '"><span>' +
         (visit.title ? visit.title : visit.uri) +
         '</span><small>' + visit.uri + '</small></a>';
-      history.appendChild(li);
-    });
+      this.history.lastChild.appendChild(li);
+  },
+
+  drawHistoryHeading: function browser_drawHistoryHeading(threshold,
+    timestamp) {
+    //TODO: localise
+    const LABELS = [
+      'Future',
+      'Today',
+      'Yesterday',
+      'Last 7 Days',
+      'This Month',
+      'Last 6 Months',
+      'Older than 6 Months'
+    ];
+
+    var text = '';
+    var h3 = document.createElement('h3');
+
+    // Special case for month headings
+    if (threshold == 5 && timestamp) {
+      var date = new Date(timestamp);
+      var now = new Date();
+      text = DateHelper.MONTHS[date.getMonth()];
+      if (date.getFullYear() != now.getFullYear())
+        text += ' ' + date.getFullYear();
+    } else {
+      text = LABELS[threshold];
+    }
+
+    var textNode = document.createTextNode(text);
+    h3.appendChild(textNode);
+    var ul = document.createElement('ul');
+    this.history.appendChild(h3);
+    this.history.appendChild(ul);
   },
 
   followLink: function browser_followLink(e) {

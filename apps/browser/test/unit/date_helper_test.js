@@ -16,7 +16,7 @@ suite('Date Helper', function() {
       assert.equal(todayStarted.getSeconds(), 0);
       assert.equal(todayStarted.getMilliseconds(), 0);
 
-    }),
+    });
 
     test('yesterdayStarted', function() {
       var now = new Date();
@@ -28,7 +28,7 @@ suite('Date Helper', function() {
       assert.equal(yesterdayStarted.getSeconds(), 0);
       assert.equal(yesterdayStarted.getMilliseconds(), 0);
 
-    }),
+    });
 
     test('thisWeekStarted', function() {
       var now = new Date();
@@ -40,7 +40,7 @@ suite('Date Helper', function() {
       assert.equal(weekStarted.getMinutes(), 0);
       assert.equal(weekStarted.getSeconds(), 0);
       assert.equal(weekStarted.getMilliseconds(), 0);
-    }),
+    });
 
     test('thisMonthStarted', function() {
       var now = new Date();
@@ -54,7 +54,15 @@ suite('Date Helper', function() {
       assert.equal(monthStarted.getMinutes(), 0);
       assert.equal(monthStarted.getSeconds(), 0);
       assert.equal(monthStarted.getMilliseconds(), 0);
-    }),
+    });
+
+    test('lastSixMonthsStarted', function() {
+      var sixMonthsStarted = DateHelper.lastSixMonthsStarted();
+      var now = new Date().valueOf();
+      var delta = now - sixMonthsStarted;
+      assert.equal(true, delta >= 2629743830 * 6);
+      assert.equal(true, delta < 2629743830 * 7);
+    });
 
     test('thisYearStarted', function() {
       var now = new Date();
@@ -68,7 +76,7 @@ suite('Date Helper', function() {
       assert.equal(yearStarted.getMinutes(), 0);
       assert.equal(yearStarted.getSeconds(), 0);
       assert.equal(yearStarted.getMilliseconds(), 0);
-    })
+    });
 
   });
 
