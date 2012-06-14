@@ -457,8 +457,12 @@
     errorObject.message = err.message || err.toString();
     errorObject.type = err.type || 'Error';
     errorObject.constructorName = err.constructor.name || '';
-    errorObject.expected = err.expected || '';
-    errorObject.actual = err.actual || '';
+    errorObject.expected = err.expected || null;
+    errorObject.actual = err.actual || null;
+
+    if (typeof(err) === 'object' && 'uncaught' in err) {
+      errorObject.uncaught = err.uncaught;
+    }
 
     return errorObject;
   };
@@ -692,8 +696,11 @@
     var key;
 
     this._cached = {};
+
+    //queue stuff
+    this._queue = [];
+
     this.doneCallbacks = [];
-    this.pending = 0;
 
     if (typeof(options) === 'undefined') {
       options = {};
@@ -709,12 +716,21 @@
   Loader.prototype = {
 
     /**
+     * Queue for script loads.
+     */
+    _queue: null,
+
+    /**
+     * Used for queue identification.
+     */
+    _currentId: null,
+
+    /**
      * Prefix for all loaded files
      *
      * @type String
      */
     prefix: '',
-
 
     /**
      * javascript content type.
@@ -756,19 +772,6 @@
       this._cached = {};
     },
 
-    /**
-     * _decrements pending and fires done callbacks
-     */
-    _decrementPending: function _decrementPending() {
-      if (this.pending > 0) {
-        this.pending--;
-      }
-
-      if (this.pending <= 0) {
-        this._fireCallbacks();
-      }
-    },
-
     _fireCallbacks: function _fireCallbacks() {
       var callback;
       while ((callback = this.doneCallbacks.shift())) {
@@ -788,6 +791,27 @@
     },
 
     /**
+     * Begins an item in the queue.
+     */
+    _begin: function() {
+      var item = this._queue[0];
+
+      if (item) {
+        item();
+      } else {
+        this._fireCallbacks();
+      }
+    },
+
+    /**
+     * Moves to the next item in the queue.
+     */
+    _next: function() {
+      this._queue.shift();
+      this._begin();
+    },
+
+    /**
      * Loads given script into current target window.
      * If file has been previously loaded it will not
      * be loaded again.
@@ -795,7 +819,24 @@
      * @param {String} url location to load script from.
      * @param {String} callback callback when script loading is complete.
      */
-    require: function require(url, callback) {
+    require: function(url, callback) {
+      this._queue.push(
+        this._require.bind(this, url, callback)
+      );
+
+      if (this._queue.length === 1) {
+        this._begin();
+      }
+    },
+
+    /**
+     * Function that does the actual require work work.
+     * Handles calling ._next on cached file or on onload
+     * success.
+     *
+     * @private
+     */
+    _require: function require(url, callback) {
       var prefix = this.prefix,
           suffix = '',
           self = this,
@@ -804,13 +845,9 @@
 
       if (url in this._cached) {
         if (callback) {
-          if (this.pending) {
-            this.done(callback);
-          } else {
-            callback();
-          }
+          callback();
         }
-        return;
+        return this._next();
       }
 
       if (this.bustCache) {
@@ -826,14 +863,12 @@
       element.src = url;
       element.async = false;
       element.type = this.type;
-      element.onload = function scriptOnLoad() {
+      element.onload = function onload() {
         if (callback) {
           callback();
         }
-        self._decrementPending();
-      };
-
-      this.pending++;
+        self._next();
+      }
 
       document.getElementsByTagName('head')[0].appendChild(element);
     }
@@ -1046,7 +1081,6 @@
   'use strict';
 
   var isNode = typeof(window) === 'undefined',
-      Native,
       Responder;
 
   if (!isNode) {
@@ -1054,10 +1088,8 @@
       window.TestAgent = {};
     }
 
-    Native = (Native || WebSocket || MozWebSocket);
     Responder = TestAgent.Responder;
   } else {
-    Native = require('ws');
     Responder = require('./responder');
   }
 
@@ -1091,6 +1123,11 @@
     this.proxyEvents = ['open', 'close', 'message'];
     this._proxiedEvents = {};
 
+    if (isNode) {
+      this.Native = require('ws');
+    } else {
+      this.Native = (window.WebSocket || window.MozWebSocket);
+    }
 
     this.on('open', this._setConnectionStatus.bind(this, true));
     this.on('close', this._setConnectionStatus.bind(this, false));
@@ -1107,7 +1144,6 @@
   Client.RetryError.prototype = Object.create(Error.prototype);
 
   Client.prototype = Object.create(Responder.prototype);
-  Client.prototype.Native = Native;
 
   /**
    * True when connection is opened.
@@ -1441,7 +1477,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     'fullTitle',
     'root',
     'duration',
-    'state'
+    'state',
+    'type'
   ];
 
   function jsonExport(object, additional) {

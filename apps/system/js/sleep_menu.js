@@ -14,8 +14,10 @@ var SleepMenu = {
   },
 
   init: function sm_init() {
-    window.addEventListener('click', SleepMenu, true);
-    window.addEventListener('keyup', SleepMenu, true);
+    window.addEventListener('screenchange', this);
+    window.addEventListener('click', this, true);
+    window.addEventListener('keydown', this, true);
+    window.addEventListener('keyup', this, true);
   },
 
   show: function sm_show() {
@@ -27,10 +29,12 @@ var SleepMenu = {
   },
 
   handleEvent: function sm_handleEvent(evt) {
-    if (!this.visible)
-      return;
-
     switch (evt.type) {
+      case 'screenchange':
+        if (!evt.detail.screenEnabled)
+          this.hide();
+        break;
+
       case 'click':
         var action = evt.target.dataset.value;
         switch (action) {
@@ -72,14 +76,44 @@ var SleepMenu = {
         this.hide();
         break;
 
-      case 'keyup':
-        if (evt.keyCode == evt.DOM_VK_ESCAPE ||
-            evt.keyCode == evt.DOM_VK_HOME) {
+      case 'keydown':
+        // The screenshot module also listens for the SLEEP key and
+        // can call defaultPrevented() on keydown and key up events.
+        if (evt.keyCode == evt.DOM_VK_SLEEP &&
+            !evt.defultPrevented && !this.visible) {
+          this._longpressTriggered = false;
+          this._sleepMenuTimeout = window.setTimeout((function sm_timeout() {
+            this.show();
+            this._longpressTriggered = true;
+            this._sleepMenuTimeout = null;
+          }).bind(this), 1500);
+        }
+        break;
 
-            this.hide();
-            evt.preventDefault();
+      case 'keyup':
+        if (this.visible) {
+          if (evt.keyCode == evt.DOM_VK_ESCAPE ||
+              evt.keyCode == evt.DOM_VK_HOME) {
+
+              this.hide();
+              evt.stopPropagation();
+          }
+
+          if (evt.keyCode == evt.DOM_VK_SLEEP &&
+              this._longpressTriggered) {
             evt.stopPropagation();
-         }
+            this._longpressTriggered = false;
+          }
+
+          return;
+        }
+
+        if (!this._sleepMenuTimeout || evt.keyCode != evt.DOM_VK_SLEEP)
+          return;
+
+        window.clearTimeout(this._sleepMenuTimeout);
+        this._sleepMenuTimeout = null;
+
         break;
     }
   }

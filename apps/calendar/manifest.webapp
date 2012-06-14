@@ -1,0 +1,23 @@
+{
+  "name": "Calendar",
+  "default_locale": "en-US",
+  "description": "Gaia Calendar",
+  "launch_path": "/",
+  "locales": {
+    "en-US": {
+      "name": "Calendar",
+      "description": "Gaia Calendar"
+    }
+  },
+  "developer": {
+    "url": "https://github.com/mozilla-b2g/gaia",
+    "name": "The Gaia Team"
+  },
+  "orientation": "portrait-primary",
+  "default_locale": "en-US",
+  "icons": {
+    "120": "/style/icons/Calendar.png"
+  }
+}
+
+
