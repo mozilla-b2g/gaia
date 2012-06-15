@@ -53,7 +53,6 @@ var ScreenManager = {
   },
 
   handleEvent: function scm_handleEvent(evt) {
-    this._syncScreenEnabledValue();
     switch (evt.type) {
       case 'devicelight':
         if (!this._deviceLightEnabled || !this.screenEnabled)
@@ -90,7 +89,6 @@ var ScreenManager = {
   },
 
   toggleScreen: function scm_toggleScreen() {
-    this._syncScreenEnabledValue();
     if (this.screenEnabled)
       this.turnScreenOff();
     else
@@ -98,7 +96,6 @@ var ScreenManager = {
   },
 
   turnScreenOff: function scm_turnScreenOff() {
-    this._syncScreenEnabledValue();
     if (!this.screenEnabled)
       return false;
 
@@ -115,7 +112,6 @@ var ScreenManager = {
   },
 
   turnScreenOn: function scm_turnScreenOn() {
-    this._syncScreenEnabledValue();
     if (this.screenEnabled)
       return false;
 
@@ -170,13 +166,6 @@ var ScreenManager = {
     };
 
     navigator.addIdleObserver();
-  },
-
-  // XXX: this function is needed here because mozPower.screenEnabled
-  // can be changed by shell.js instead of us.
-  // See https://bugzilla.mozilla.org/show_bug.cgi?id=738530
-  _syncScreenEnabledValue: function scm_syncScreenEnabledValue() {
-    this.screenEnabled = navigator.mozPower.screenEnabled;
   },
 
   fireScreenChangeEvent: function scm_fireScreenChangeEvent() {
