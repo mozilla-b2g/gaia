@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="pragma" content="no-cache">
+    <title>FM Raio</title>
+    <script src="js/fm.js"></script>
+  </head>
+
+  <body>
+    <div id="log"></div>
+    <h1>Power:<label id="power_state">off</label></h1>
+    <h1>Antenna:<label id="antenna_state">unavailable</label></h1>
+    <h1>Current Frequency: <label id="current_freq"></label>MHZ</h1>
+    <h1><a href="javascript: checkAntenna()">Check Antenna</a></h1>
+    <h1><a href="javascript: turnOnFM();">Turn on</a>&nbsp;&nbsp;<a href="javascript: turnOffFM();">Turn off</a></h1>
+    <h1><a href="javascript: getFreq();">Get freq</a>&nbsp;&nbsp;<a href="javascript: setFreq();">Set freq</a><input id="freq" type="number" value="91.5"></input></h1>
+    <h1><a href="javascript: seekUp();">Seek up</a>&nbsp;&nbsp;<a href="javascript: seekDown();">Seek Down</a></h1>
+    <h1><a href="javascript: cancelSeek();">cancel seek</a></h1>
+  </body>
+</html>
