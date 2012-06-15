@@ -64,17 +64,17 @@ html * {
   src: url('fonts/Keyboard-Symbols.woff');
 }
 
-.phone-number-font{
+.phone-number-font {
   font-size:18pt;
   color:white;
 }
 
-.kb-keypad-number{
+.kb-keypad-number {
   font-size:25pt;
   color:white;
 }
 
-.kb-keypad-text{
+.kb-keypad-text {
   font-size:6pt;
   color:white;
 }
@@ -101,20 +101,19 @@ html * {
   table-layout: fixed;
 }
 
-#phone-number-view{
+#phone-number-view {
   display:table-cell;
   vertical-align:middle;
   width: -moz-calc(100% - 3rem);
 }
 
 #keyboard-container {
- /* display:table-row;*/
   width:100%;
   background: green;
   height:34.5rem;
 }
 
-#kb-keypad{
+#kb-keypad {
   background:yellow;
   height:-moz-calc(100% - 6.5rem);
   width:100%;
@@ -123,20 +122,20 @@ html * {
   background:red;  
 }
 
-.kb-keypad-cell{
+.kb-keypad-cell {
   display:table-cell;
   border-right:1px solid black;
 }
 
-.kb-keypad-cell:last-child{
+.kb-keypad-cell:last-child {
   border:0;
 }
 
-.kb-keypad-cell-small{
+.kb-keypad-cell-small {
   width:10rem;
-} 
-      
-.kb-keypad-key{
+}
+
+.kb-keypad-key {
   background: #2d2642; /* Old browsers */
   background: -moz-linear-gradient(top, #2d2642 0%, #0f1214 100%); /* FF3.6+ */
   /* background: linear-gradient(top, #2d2642 0%,#0f1214 100%); /* W3C */
@@ -147,18 +146,18 @@ html * {
   vertical-align:middle;
 }
 
-.kb-keypad-key:last-child{
+.kb-keypad-key:last-child {
   border-right:0;
   border-bottom:0;
 }
 
-.kb-keypad-key-label-container{
+.kb-keypad-key-label-container {
   width:100%;
   height:100%;
   display:table;
-}  
+}
 
-.kb-keypad-key-label{
+.kb-keypad-key-label {
   display:table-cell;
   text-align:center;
   vertical-align:middle;
@@ -167,44 +166,40 @@ html * {
 .kb-keypad-key-label > span {
   pointer-events: none;
 }
-        
+
 .del-digit {
   margin:0 auto;
   background:url(images/dialer_icon_delete.png) 50% 50% no-repeat;
   background-size: 3.8rem 2.8rem;
 }
-          
-#kb-callbar{
+
+#kb-callbar {
   background:black;
   height:6.5rem;
   padding:1rem 1.5rem;
-  /* box-sizing:border-box; */
 }
 
-#kb-callbar-add-contact{
+#kb-callbar-add-contact {
   float:left;
   display:inline-block;
   height:4.5rem;
   width:9rem;
-  background: #19191a; /* Old browsers */
   background: -moz-linear-gradient(top, #19191a 0%, #242b36 100%); /* FF3.6+ */
-  /* background: linear-gradient(top, #19191a 0%,#242b36 100%); /* W3C */
   border:.1rem solid #242B36;
   border-radius:.5rem;
 }
 
-#kb-callbar-call-action{
+#kb-callbar-call-action {
   float:right;
   display:inline-block;
   height:4.5rem;
-  width:19rem;background: #84c82c; /* Old browsers */
+  width:19rem;
   border:0;
   border-radius:.5rem;
   background: -moz-linear-gradient(top, #84c82c 0%, #5f9b0a 100%); /* FF3.6+ */
-  /* background: linear-gradient(top, #84c82c 0%,#5f9b0a 100%); /* W3C */
 }
 
-.i-add-contact{
+.i-add-contact {
   margin: auto;
   width: 2.6rem;
   height: 2.5rem;
@@ -212,7 +207,7 @@ html * {
   background-size: 2.6rem 2.5rem;
 }
 
-.i-call{
+.i-call {
   margin:0 auto;
   background-image:url("images/dialer_icon_call.png");
   width:2.6rem;
@@ -376,17 +371,17 @@ html * {
   display: none;
 }
 
-#call-screen.calling #call-actions, #call-screen.calling #call-actions-2 {
+#call-screen.calling #call-actions {
   width: 90%;
   height: 50%;
 }
 
-#call-screen.in-call #call-actions, #call-screen.in-call #call-actions-2 {
+#call-screen.in-call #call-actions {
   width: 90%;
   height: 50%;
 }
 
-#call-actions > div, #call-actions-2 > div {
+#call-actions > div {
   float: left;
   width: -moz-calc(100% / 3 - 2px);
   height: -moz-calc(100% - 1px);
@@ -394,15 +389,15 @@ html * {
   border-bottom: solid 1px LightGray;
 }
 
-#call-actions > div:last-child, #call-actions-2 > div:last-child{
+#call-actions > div:last-child {
   border-right: none;
 }
 
-#call-actions > div > span, #call-actions-2 > div > span {
+#call-actions > div > span {
   display: none;
 }
 
-#call-actions > div > div, #call-actions-2 > div > div {
+#call-actions > div > div {
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.1);
