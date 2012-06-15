@@ -218,7 +218,10 @@ var KeyHandler = {
   },
 
   keyUp: function kh_keyUp(event) {
-    clearTimeout(this._timeout);
+    if (this._timeout) {
+      clearTimeout(this._timeout);
+      this._timeout = null;
+    }
   }
 };
 
@@ -261,10 +264,7 @@ var CallHandler = {
     this.lookupContact(number);
 
     var sanitizedNumber = number.replace(/-/g, '');
-    // Force to unmute, since some phones are muted by default.
-    // window.navigator.mozTelephony.muted = false;
-    // The previous code has been moved to CallHandler.setupTelephony to avoid
-    // receiving a call and starting it in mute mode.
+
     var call = window.navigator.mozTelephony.dial(sanitizedNumber);
     call.addEventListener('statechange', this);
     this.currentCall = call;
@@ -306,6 +306,7 @@ var CallHandler = {
       callDirectionChar = '&#8617';
     }
     this.callScreen.classList.add('in-call');
+
     // hardening against rapid ending
     if (!this._onCall)
       return;
@@ -322,8 +323,6 @@ var CallHandler = {
   },
 
   answer: function ch_answer() {
-    // Force to unmute, since some phones are muted by default.
-    window.navigator.mozTelephony.muted = false;
     this.currentCall.answer();
   },
 
@@ -356,7 +355,10 @@ var CallHandler = {
     if (this.keypadButton.classList.contains('displayed'))
       this.toggleKeypad();
 
-    clearInterval(this._ticker);
+    if (this._ticker) {
+      clearInterval(this._ticker);
+      this._ticker = null;
+    }
 
     this.toggleCallScreen();
 
