@@ -33,6 +33,11 @@ var ScreenManager = {
 
     var self = this;
 
+    SettingsListener.observe('screen.timeout', 60,
+    function screenTimeoutChanged(value) {
+      self.setIdleTimeout(value);
+    });
+
     SettingsListener.observe('screen.automatic-brightness', true,
     function deviceLightSettingChanged(value) {
       if (typeof value === 'string')
@@ -150,6 +155,33 @@ var ScreenManager = {
       navigator.mozPower.screenBrightness = this._brightness;
     }
     this._deviceLightEnabled = enabled;
+  },
+
+  // The idleObserver that we will pass to IdleAPI
+  idleObserver: {
+    time: 60,
+    onidle: null,
+    onactive: null,
+  },
+
+  setIdleTimeout: function scm_setIdleTimeout(time) {
+    if (!navigator.addIdleObserver)
+      return;
+
+    // Remove the original observer.
+    navigator.removeIdleObserver();
+
+    // If time = 0, then there is no idle timeout to set.
+    if (!time)
+      return;
+
+    var self = this;
+    this.idleObserver.time = time;
+    this.idleObserver.onidle = function scm_onidle() {
+      self.turnScreenOff();
+    };
+
+    navigator.addIdleObserver();
   },
 
   // XXX: this function is needed here because mozPower.screenEnabled
