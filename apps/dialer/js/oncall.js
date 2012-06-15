@@ -19,6 +19,7 @@ var OnCallHandler = {
     this.toggleScreen();
 
     this._screenLock = navigator.requestWakeLock('screen');
+    ProximityHandler.enable();
 
     var self = this;
     var telephony = window.navigator.mozTelephony;
@@ -115,6 +116,8 @@ var OnCallHandler = {
       this._screenLock.unlock();
       this._screenLock = null;
     }
+
+    ProximityHandler.disable();
 
     // Out animation before closing the window
     this.toggleScreen();
