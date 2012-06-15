@@ -58,6 +58,7 @@
     }
   }
 
+
   function takeScreenshot() {
     // Give feedback that the screenshot request was received
     navigator.mozVibrate(100);
@@ -65,18 +66,18 @@
     // Let chrome know we'd like a screenshot.
     // This is a completely non-standard undocumented API
     // for communicating with our chrome code.
-    window.dispatchEvent(new CustomEvent('mozContentEvent',
-                                         {
-                                           detail: {
-                                             type: 'save-screenshot'
-                                           }
-                                         }));
+    var screenshotProps = {
+      detail: {
+        type: 'save-screenshot'
+      }
+    };
+    window.dispatchEvent(new CustomEvent('mozContentEvent', screenshotProps));
   }
 
   var _ = document.mozL10n.get;
 
   // Handle notifications that screenshots have been taken
-  window.addEventListener('mozChromeEvent', function(e) {
+  window.addEventListener('mozChromeEvent', function ss_onMozChromeEvent(e) {
     if (e.detail.type === 'save-screenshot-success') {
       // Vibrate again when the screenshot is saved
       navigator.mozVibrate([100, 100]);  // pause buzz
