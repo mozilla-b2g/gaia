@@ -64,7 +64,7 @@ button:-moz-focus-inner{
   overflow: hidden;
   text-align: center;
   margin: 0 0.2rem;
-  min-width: 2.6rem; /* Must be 2.6 from design guidelines but in chineese keyboard we have one more key per row */
+  min-width: 2.5rem; /* Must be 2.6 from design guidelines but in chineese keyboard we have one more key per row */
   padding: 0;
   position: relative;
   overflow: visible;
