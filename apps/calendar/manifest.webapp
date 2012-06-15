@@ -16,8 +16,7 @@
   "orientation": "portrait-primary",
   "default_locale": "en-US",
   "icons": {
-    "120": "/style/icons/Calendar.png"
+    "120": "/style/icons/Calendar.png",
+    "60": "/style/icons/60/Calendar.png"
   }
 }
-
-
