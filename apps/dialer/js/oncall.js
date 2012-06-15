@@ -24,7 +24,7 @@ var OnCallHandler = {
     var telephony = window.navigator.mozTelephony;
     if (telephony) {
       telephony.oncallschanged = function och_callsChanged(evt) {
-        telephony.calls.forEach(function(call) {
+        telephony.calls.forEach(function callIterator(call) {
           self.currentCall = call;
           call.addEventListener('statechange', self);
 

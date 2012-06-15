@@ -65,7 +65,7 @@
     window.open('http://' + host + '/oncall.html#incoming',
                 '_attention');
 
-    call.onstatechange = function() {
+    call.onstatechange = function callStateChange() {
       call.onstatechange = null;
 
       ringtonePlayer.pause();
@@ -73,7 +73,7 @@
 
       // The call wasn't picked up
       if (call.state == 'disconnected') {
-        navigator.mozApps.getSelf().onsuccess = function(evt) {
+        navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
           var app = evt.target.result;
 
           // Taking the first icon for now
