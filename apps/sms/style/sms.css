@@ -98,19 +98,19 @@ body.conversation #msg-conversations {
 
 .toolbar-top {
   top: 0;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
-  height: 64px;
-  border-bottom: solid 3px #9b9b9b;
+  border-top-left-radius: 0.8rem;
+  border-top-right-radius: 0.8rem;
+  height: 6.4rem;
+  border-bottom: solid 0.3rem #9b9b9b;
   z-index: 5;
 }
 
 .toolbar-bottom {
   bottom: 0;
-  height: 80px;
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
-  border-top: solid 3px #9b9b9b;
+  height: 8rem;
+  border-bottom-left-radius: 0.8rem;
+  border-bottom-right-radius: 0.8rem;
+  border-top: solid 0.3rem #9b9b9b;
 }
 
 .toolbar-panel {
@@ -127,20 +127,10 @@ body.conversation #msg-conversations {
   -moz-box-flex: 0;
 }
 
-/* media queries for removing rounded border when keyboard is shown */
-@media screen and (max-height: 700px) {
-  .toolbar-bottom {
-    bottom: 0;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-    border-top: solid 3px #9b9b9b;
-  }
-}
-
 .list {
   position: absolute;
-  top: 64px;
-  bottom: 80px;
+  top: 6.4rem;
+  bottom: 8rem;
   left: 0;
   right: 0;
   overflow-x: hidden;
@@ -150,45 +140,45 @@ body.conversation #msg-conversations {
 
 input, textarea {
   -moz-box-sizing: border-box;
-  border: solid 3px #7d8389;
-  border-radius: 20px;
-  height: 40px;
-  margin: 13px 15px;
-  font-size: 20px;
-  line-height: 25px;
+  border: solid 0.3rem #7d8389;
+  border-radius: 2rem;
+  height: 4rem;
+  margin: 1.3rem 1.5rem;
+  font-size: 2rem;
+  line-height: 2.5rem;
   font-family: 'Open Sans', sans-serif;
   padding: 0;
-  background: -moz-linear-gradient(center top , rgba(0, 0, 0, 0.2) 0px, rgba(255, 255, 255, 0) 20px, rgb(255, 255, 255) 100%) repeat scroll 0% 0% rgb(255, 255, 255);
+  background: -moz-linear-gradient(center top , rgba(0, 0, 0, 0.2) 0rem, rgba(255, 255, 255, 0) 2rem, rgb(255, 255, 255) 100%) repeat scroll 0% 0% rgb(255, 255, 255);
 }
 
 .button {
   -moz-box-sizing: border-box;
   text-align: center;
-  border-radius: 20px;
+  border-radius: 2rem;
   color: #fff;
-  text-shadow: 0pt -1px 1px rgba(0, 0, 0, 0.5);
+  text-shadow: 0pt -0.1rem 0.1rem rgba(0, 0, 0, 0.5);
   border: none;
-  padding: 0 16px;
+  padding: 0 1.6rem;
   outline: medium none;  
-  background: -moz-linear-gradient(top, hsl(39,100%,73%) 0, hsla(35,100%,80%,0.2) 2px, hsla(35,100%,50%,.4) 20%,
+  background: -moz-linear-gradient(top, hsl(39,100%,73%) 0, hsla(35,100%,80%,0.2) 0.2rem, hsla(35,100%,50%,.4) 20%,
                 hsl(32,100%,38%) 98%, hsl(32,100%,38%) 99%, hsl(31,100%,50%) 100%),
-              -moz-linear-gradient(top, hsl(39,100%,73%) 0, hsla(35,100%,50%,1) 2px, hsl(32,100%,38%) 98%,
+              -moz-linear-gradient(top, hsl(39,100%,73%) 0, hsla(35,100%,50%,1) 0.2rem, hsl(32,100%,38%) 98%,
                 hsl(32,100%,38%) 99%, hsl(31,100%,50%) 100%);
 }
 
 .back-button {
-  width: 80px;
-  height: 48px;
+  width: 8rem;
+  height: 4.8rem;
   position: absolute;
-  margin: 6px 0 0 24px;
+  margin: 0.6rem 0 0 2.4rem;
 }
 
 .back-button-img {
-  background: url("./images/top-navibar-left-arrow.png") no-repeat scroll 30px 50% transparent;
-  left: 0px;
-  top: 0px;
-  width: 80px;
-  height: 48px;
+  background: url("./images/top-navibar-left-arrow.png") no-repeat scroll 3rem 50% transparent;
+  left: 0rem;
+  top: 0rem;
+  width: 8rem;
+  height: 4.8rem;
   position: absolute;
 }
 
@@ -197,9 +187,9 @@ input, textarea {
 }
 
 .button:active {
-  background: -moz-linear-gradient(bottom, hsl(39,100%,73%) 0, hsla(35,100%,80%,0.2) 2px, hsla(35,100%,50%,.4) 20%,
+  background: -moz-linear-gradient(bottom, hsl(39,100%,73%) 0, hsla(35,100%,80%,0.2) 0.2rem, hsla(35,100%,50%,.4) 20%,
                 hsl(32,100%,38%) 98%, hsl(32,100%,38%) 99%, hsl(31,100%,50%) 100%),
-              -moz-linear-gradient(bottom, hsl(39,100%,73%) 0, hsla(35,100%,50%,1) 2px, hsl(32,100%,38%) 98%,
+              -moz-linear-gradient(bottom, hsl(39,100%,73%) 0, hsla(35,100%,50%,1) 0.2rem, hsl(32,100%,38%) 98%,
                 hsl(32,100%,38%) 99%, hsl(31,100%,50%) 100%);
 }
 
@@ -209,32 +199,32 @@ input, textarea {
 }
 
 .text-button {
-  font-size: 24px;
+  font-size: 2.4rem;
   font-weight: bold;
-  height: 48px;
-  line-height: 48px;
+  height: 4.8rem;
+  line-height: 4.8rem;
   text-decoration: none;
 }
 
 #msg-search-container {
-  padding-right: 16px;
+  padding-right: 1.6rem;
   margin: 0;
-  top: 0px;
+  top: 0rem;
   width: 100%;
-  height: 64px;
-  border-bottom: solid 3px #9b9b9b;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;  
+  height: 6.4rem;
+  border-bottom: solid 0.3rem #9b9b9b;
+  border-top-left-radius: 0.8rem;
+  border-top-right-radius: 0.8rem;  
   z-index: 1;
   -moz-transition: -moz-transform 0.3s ease;
 }
 
 body.msg-search-mode #msg-search-container {
-  -moz-transform: translateY(58px);
+  -moz-transform: translateY(5.8rem);
 }
 
 body.msg-search-result-mode #msg-search-container {
-  -moz-transform: translateY(0px);
+  -moz-transform: translateY(0rem);
   z-index: 6;
 }
 
@@ -242,29 +232,29 @@ body.msg-search-result-mode #msg-search-container {
   padding: 0;
   margin: 0;
   text-align: center;
-  line-height: 60px;
-  font-size: 24px;
+  line-height: 6rem;
+  font-size: 2.4rem;
   font-weight: bold;  
 }
 
 #msg-search {
-  padding: 0 0 0 32px;
-  background: url("images/input-icon-search.png") no-repeat scroll 8px 50%, -moz-linear-gradient(center top , rgba(0, 0, 0, 0.2) 0px, rgba(255, 255, 255, 0) 20px, #FFFFFF 100%) repeat scroll 0 0 #FFFFFF;
-  width: -moz-calc(100% - 15px - 15px);
+  padding: 0 0 0 3.2rem;
+  background: url("images/input-icon-search.png") no-repeat scroll 0.8rem 50%, -moz-linear-gradient(center top , rgba(0, 0, 0, 0.2) 0rem, rgba(255, 255, 255, 0) 2rem, #FFFFFF 100%) repeat scroll 0 0 #FFFFFF;
+  width: -moz-calc(100% - 1.5rem - 1.5rem);
 }
 
 #msg-search-cancel {
-  margin-top: 6px;
+  margin-top: 0.6rem;
 }
 
 #msg-conversations-list {
   background: url("images/app-texture.png") repeat scroll 50% 50%, rgb(243, 243, 243);
-  top: 64px;
+  top: 6.4rem;
   -moz-transition: top 0.3s ease;
 }
 
 body.msg-search-mode #msg-conversations-list {
-  top: 122px;
+  top: 12.2rem;
 }
 
 #msg-conversations-list > a {
@@ -272,19 +262,19 @@ body.msg-search-mode #msg-conversations-list {
   display: block;
   text-decoration: none;
   outline: none;
-  height: 96px;
+  height: 9.6rem;
   position: relative;
   /* Remove the thumbnail for current stage.
-   *padding need to 112px + img width when social network integration is ready*/
-  padding: 13px 16px 0 22px;
-  border-top: 1px solid hsla(207,22%,92%,1);
-  border-bottom: 1px solid hsla(223,7%,81%,1);
+   *padding need to 11.2rem + img width when social network integration is ready*/
+  padding: 1.3rem 1.6rem 0 2.2rem;
+  border-top: 0.1rem solid hsla(207,22%,92%,1);
+  border-bottom: 0.1rem solid hsla(223,7%,81%,1);
   width: 100%;
   -moz-transition: padding 0.3s ease-out;
 }
 
 body.msg-edit-mode #msg-conversations-list > a {
-  padding: 13px 16px 0 112px;
+  padding: 1.3rem 1.6rem 0 11.2rem;
   -moz-transition: padding 0.3s ease-out;
 }
 
@@ -308,11 +298,11 @@ body.msg-edit-mode #msg-conversations-list > a {
   position: absolute;
   content: "";
   display: block;
-  top: 0px;
-  left: 0px;
-  width: 10px;
+  top: 0rem;
+  left: 0rem;
+  width: 1rem;
   height: 100%;
-  padding-top: -2px;
+  padding-top: -0.2rem;
   background: -moz-linear-gradient(45deg, gray, #EDEDED);
 }
 
@@ -331,11 +321,11 @@ body.msg-edit-mode #msg-conversations-list > a {
 
 #msg-conversations-list > a > span {
   position: absolute;
-  top: -moz-calc(50% - 34px);
-  left: 20px;
+  top: -moz-calc(50% - 3.4rem);
+  left: 2rem;
   display: block;
-  width: 64px;
-  height: 64px;
+  width: 6.4rem;
+  height: 6.4rem;
   border: none;
   -moz-transition: opacity 0.3s ease-in;
 }
@@ -343,8 +333,8 @@ body.msg-edit-mode #msg-conversations-list > a {
 #msg-conversations-list > a > input[type=checkbox] + span {
   opacity: 0.0;
   visibility: hidden;
-  height: 60px;
-  border-radius: 5px;
+  height: 6rem;
+  border-radius: 0.5rem;
 }
 
 body.msg-edit-mode #msg-conversations-list > a > input[type=checkbox]:checked + span {
@@ -355,7 +345,7 @@ body.msg-edit-mode #msg-conversations-list > a > input[type=checkbox]:checked + 
 body.msg-edit-mode #msg-conversations-list > a > span {
   opacity: 1.0;
   visibility: visible;
-  border: 4px solid;
+  border: 0.4rem solid;
   -moz-border-top-colors: #c3c9cb #c3c9cb #fff #fff;
   -moz-border-right-colors: #c3c9cb #c3c9cb #fff #fff;
   -moz-border-bottom-colors: #c3c9cb #c3c9cb #fff #fff;
@@ -365,13 +355,13 @@ body.msg-edit-mode #msg-conversations-list > a > span {
 
 #msg-conversations-list .photo {
   position: absolute;
-  top: -1px;
+  top: -0.1rem;
   left: 0;
-  width: 95px;
-  height: 95px;
+  width: 9.5rem;
+  height: 9.5rem;
   overflow: hidden;
   background-color: #ccc;
-  box-shadow: inset 0 1px 0 #ddd;
+  box-shadow: inset 0 0.1rem 0 #ddd;
 }
 
 #msg-conversations-list .photo img {
@@ -379,21 +369,21 @@ body.msg-edit-mode #msg-conversations-list > a > span {
 }
 
 #msg-conversations-list .name {
-  font-size: 26px;
+  font-size: 2.6rem;
   color: rgb(18, 47, 64);
-  line-height: 32px;
+  line-height: 3.2rem;
   font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
-  width: -moz-calc(100% - 110px);
+  width: -moz-calc(100% - 11rem);
 }
 
 #msg-conversations-list .msg {
   color: #666;
-  text-shadow: 0 1px 0 #ddd;
-  font-size: 22px;
-  height: 32px;
-  width: -moz-calc(100% - 70px);
+  text-shadow: 0 0.1rem 0 #ddd;
+  font-size: 2.2rem;
+  height: 3.2rem;
+  width: -moz-calc(100% - 7rem);
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -405,24 +395,24 @@ body.msg-edit-mode #msg-conversations-list > a > span {
 
 #msg-conversations-list .time {
   position: absolute;
-  top: 9px;
-  right: 16px;
+  top: 0.9rem;
+  right: 1.6rem;
   text-align: right;
   color: hsla(0,0%,0%,.5);
-  font-size: 18px;
+  font-size: 1.8rem;
 }
 
 #msg-conversations-list .unread-tag {
   position: absolute;
   visibility : hidden;
-  top: 45px;
-  right: 26px;
-  padding: 0 16px;
+  top: 4.5rem;
+  right: 2.6rem;
+  padding: 0 1.6rem;
   text-align: center;
   color: rgb(255, 255, 255);
-  font-size: 18px;
+  font-size: 1.8rem;
   background: -moz-linear-gradient(top, #00ADEE, #0078A5);
-  border-radius: 9px;
+  border-radius: 0.9rem;
 }
 
 #msg-conversations-list > a.unread .unread-tag {
@@ -430,8 +420,8 @@ body.msg-edit-mode #msg-conversations-list > a > span {
 }
 
 #msg-undo-toolbar {
-  height: 80px;
-  bottom: 80px;
+  height: 8rem;
+  bottom: 8rem;
   background: url("images/app-texture.png") repeat scroll 50% 50%, -moz-linear-gradient(center top , #000, #444) repeat scroll 0% 0% transparent;
   visibility: hidden;
 }
@@ -442,8 +432,8 @@ body.msg-edit-mode #msg-conversations-list > a > span {
 
 #msg-undo-title-container {
   text-align: center;
-  line-height: 80px;
-  font-size: 16px;
+  line-height: 8rem;
+  font-size: 1.6rem;
   font-weight: bold;
   color: white;
 }
@@ -454,35 +444,35 @@ body.msg-edit-mode #msg-conversations-list > a > span {
 }
 
 #msg-new-message {
-  margin-top: 6px;
-  margin-right: 24px;
-  top: 0px;
-  right: 0px;
-  height: 48px;
-  line-height: 48px;
-  font-size: 24px;
+  margin-top: 0.6rem;
+  margin-right: 2.4rem;
+  top: 0rem;
+  right: 0rem;
+  height: 4.8rem;
+  line-height: 4.8rem;
+  font-size: 2.4rem;
   font-weight: bold;
-  min-width: 100px;
+  min-width: 10rem;
   text-decoration: none;
   outline: none;
   position: absolute;
 }
 
 #msg-edit-button, #msg-search-edit-button { 
-  left: 0px;
-  margin-top: 14px;
-  margin-left: 24px; 
+  left: 0rem;
+  margin-top: 1.4rem;
+  margin-left: 2.4rem; 
   position: absolute;
-  min-width: 120px;
+  min-width: 12rem;
 }
 
 #msg-search-button, #msg-delete-button, #msg-undo-button{ 
-  right: 0px;
-  top: 0px;
-  margin-top: 14px;
-  margin-right: 24px;  
+  right: 0rem;
+  top: 0rem;
+  margin-top: 1.4rem;
+  margin-right: 2.4rem;  
   position: absolute;
-  min-width: 120px;
+  min-width: 12rem;
 }
 
 .edit-hide, .search-hide {
@@ -510,11 +500,11 @@ body.msg-edit-mode .edit-show {
 }
 
 #view-name {
-  font-size: 26px;
+  font-size: 2.6rem;
   font-weight: bold;
-  margin: 0 96px;
+  margin: 0 9.6rem;
   padding: 0;
-  line-height: 64px;
+  line-height: 6.4rem;
   text-align: center;
   color: rgb(51, 51, 51);
   text-overflow: ellipsis;
@@ -528,10 +518,10 @@ body.conversation-new-msg #view-name {
 
 #view-num {
   display: none;
-  margin: 10px 152px;
-  padding: 0 20px;
+  margin: 1rem 15.2rem;
+  padding: 0 2rem;
   -moz-box-sizing: border-box;
-  width: -moz-calc(100% - 300px);
+  width: -moz-calc(100% - 30rem);
 }
 
 body.conversation-new-msg #view-num {
@@ -541,31 +531,31 @@ body.conversation-new-msg #view-num {
 #view-edit-container {
   position: absolute;
   top: 0; right: 0;
-  height: 60px;
-  width: 96px;
+  height: 6rem;
+  width: 9.6rem;
 }
 
 #view-edit {
   position: absolute;
   -moz-box-sizing: border-box;
-  top: 16px;
-  right: 16px;
-  height: 32px;
-  line-height: 32px;
-  width: 64px;
-  padding: 0 8px;
-  border-radius: 5px;
-  border: 1px solid hsl(60,2%,62%);
+  top: 1.6rem;
+  right: 1.6rem;
+  height: 3.2rem;
+  line-height: 3.2rem;
+  width: 6.4rem;
+  padding: 0 0.8rem;
+  border-radius: 0.5rem;
+  border: 0.1rem solid hsl(60,2%,62%);
   text-align: center;
-  font-size: 18px;
+  font-size: 1.8rem;
   font-weight: bold;
   color: #666;
-  text-shadow: 1px 1px 1px hsla(0,0%,100%,.5);
-  background: -moz-linear-gradient(top, hsla(0,0%,97%,1) 0, hsla(280,8%,93%,1) 1px, hsla(0,0%,87%,1) 100%);
+  text-shadow: 0.1rem 0.1rem 0.1rem hsla(0,0%,100%,.5);
+  background: -moz-linear-gradient(top, hsla(0,0%,97%,1) 0, hsla(280,8%,93%,1) 0.1rem, hsla(0,0%,87%,1) 100%);
 }
 
 #view-edit:active {
-  background: -moz-linear-gradient(top, hsla(0,0%,97%,1) 0, hsla(0,0%,87%,1) 1px, hsla(280,8%,93%,1) 100%);
+  background: -moz-linear-gradient(top, hsla(0,0%,97%,1) 0, hsla(0,0%,87%,1) 0.1rem, hsla(280,8%,93%,1) 100%);
 }
 
 #view-list {
@@ -574,24 +564,24 @@ body.conversation-new-msg #view-num {
 
 #view-list > div {
   background: url("images/app-texture.png") repeat scroll 50% 50%, rgb(191, 204, 215);
-  margin: 8px;
-  min-height: 64px;
-  border-radius: 8px;
+  margin: 0.8rem;
+  min-height: 6.4rem;
+  border-radius: 0.8rem;
   position: relative;
-  padding: 16px;
+  padding: 1.6rem;
   -moz-box-sizing: border-box;
 }
 
 #view-list > div.sender {
   /* Remove the thumbnail for current stage.
-   *padding need shit back to 96px when social network integration is ready*/  
-  padding-left: 16px;
+   *padding need shit back to 9.6rem when social network integration is ready*/  
+  padding-left: 1.6rem;
 }
 
 #view-list > div.receiver {
   /* Remove the thumbnail for current stage.
-   *padding need shit back to 96px when social network integration is ready*/  
-  padding-right: 16px;
+   *padding need shit back to 9.6rem when social network integration is ready*/  
+  padding-right: 1.6rem;
   text-align: right;
 }
 
@@ -612,11 +602,11 @@ body.conversation-new-msg #view-num {
 #view-list .photo {
   position: absolute;
   top: 0;
-  width: 80px;
-  height: 80px;
-  margin: 8px;
-  border-radius: 5px;
-  box-shadow: inset 0 1px 0 #ddd, 0 1px 0 #999;
+  width: 8rem;
+  height: 8rem;
+  margin: 0.8rem;
+  border-radius: 0.5rem;
+  box-shadow: inset 0 0.1rem 0 #ddd, 0 0.1rem 0 #999;
   overflow: hidden;
   background-color: #ccc;
   z-index: 2;
@@ -635,73 +625,73 @@ body.conversation-new-msg #view-num {
 }
 
 #view-list > div .text {
-  font-size: 24px;
+  font-size: 2.4rem;
   font-weight: 600;
   color: rgb(18, 47, 64);
-  text-shadow: 0 1px 0 #ddd;
-  line-height: 32px;
+  text-shadow: 0 0.1rem 0 #ddd;
+  line-height: 3.2rem;
 }
 
 #view-list > div .time {
-  font-size: 18px;
-  line-height: 23px;
+  font-size: 1.8rem;
+  line-height: 2.3rem;
   color: rgb(62, 86, 106);
-  text-shadow: 0 1px 0 #ddd;
+  text-shadow: 0 0.1rem 0 #ddd;
 }
 
 #view-list > div::before {
   content: '';
   display: block;
-  width: 11.2px; /* 8px * sqrt(2) */
-  height: 11.2px;
+  width: 1.12rem; /* 0.8rem * sqrt(2) */
+  height: 1.12rem;
   position: absolute;
-  top: 20px;
+  top: 2rem;
   background: url("images/app-texture.png") repeat scroll 50% 50%, rgb(191, 204, 215);
   -moz-transform: rotate(45deg);
 }
 
 #view-list > div.sender::before {
-  left: -5.6px;
+  left: -0.56rem;
 }
 
 #view-list > div.receiver::before {
-  right: -5.6px;
+  right: -0.56rem;
 }
 
 #view-bottom-toolbar {
   background: url('images/diagonal-gray-pattern.png'),
   -moz-linear-gradient(center top , rgb(244, 244, 244), rgb(234, 234, 234)) repeat scroll 0% 0% transparent;
-  padding-right: 16px;
+  padding-right: 1.6rem;
 }
 
 #view-msg-text-container {
 }
 
 #view-msg-text {
-  padding: 0 10px;
-  width: -moz-calc(100% - 16px);
+  padding: 0 1rem;
+  width: -moz-calc(100% - 1.6rem);
   display: block;
   resize: none;
-  font-size: 24px;
+  font-size: 2.4rem;
   font-weight: bold;
-  line-height: 44px;
-  margin: 14px 0 0 16px;
+  line-height: 4.4rem;
+  margin: 1.4rem 0 0 1.6rem;
   overflow: auto;
   overflow-x: auto;
-  min-height: 50px;
-  max-height: 200px;
+  min-height: 5rem;
+  max-height: 20rem;
 }
 
 #view-msg-send-container {
 }
 
 #view-msg-send {
-  margin: 14px 0 0 16px;
-  min-width: 96px;
+  margin: 1.4rem 0 0 1.6rem;
+  min-width: 9.6rem;
 }
 
 #view-image-button {
-  margin: 14px 0 0 10px;
+  margin: 1.4rem 0 0 1rem;
 }
 /* localization */
 body.hidden *[data-l10n-id] {
