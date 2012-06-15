@@ -32,7 +32,12 @@ DEBUG?=0
 
 REPORTER=Spec
 
-GAIA_APP_SRCDIRS?=apps
+GAIA_APP_SRCDIRS?=apps test_apps
+
+ifeq ($(MAKECMDGOALS), demo)
+GAIA_DOMAIN=thisdomaindoesnotexist.org
+GAIA_APP_SRCDIRS=apps
+endif
 
 
 ###############################################################################
@@ -90,7 +95,7 @@ ifeq ($(strip $(NPM)),)
 	NPM := `which npm`
 endif
 
-TEST_AGENT_CONFIG="./apps/test-agent/config.json"
+TEST_AGENT_CONFIG="./test_apps/test-agent/config.json"
 
 #Marionette testing variables
 #make sure we're python 2.7.x
@@ -165,7 +170,7 @@ ifneq ($(DEBUG),1)
 	@rm -rf profile/OfflineCache
 	@mkdir -p profile/OfflineCache
 	@cd ..
-	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)$(GAIA_PORT)"' build/offline-cache.js
+	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)$(GAIA_PORT)"; const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)"' build/offline-cache.js
 	@echo "Done"
 endif
 
@@ -360,7 +365,7 @@ lint:
 	@# cubevid
 	@# crystalskull
 	@# towerjelly
-	@gjslint --nojsdoc -r apps -e 'cubevid,crystalskull,towerjelly'
+	@gjslint --nojsdoc -r apps -e 'cubevid,crystalskull,towerjelly,email'
 
 # Generate a text file containing the current changeset of Gaia
 # XXX I wonder if this should be a replace-in-file hack. This would let us
@@ -399,6 +404,7 @@ forward:
 update-offline-manifests:
 	for d in `find ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
 	do \
+		rm -rf $$d/manifest.appcache ;\
 		if [ -f $$d/manifest.webapp ] ;\
 		then \
 			echo \\t$$d ;  \
@@ -436,3 +442,5 @@ install-gaia: profile
 install-media-samples:
 	$(ADB) push media-samples/DCIM /sdcard/DCIM
 	$(ADB) push media-samples/videos /sdcard/videos
+
+demo: install-media-samples install-gaia

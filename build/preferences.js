@@ -1,11 +1,11 @@
 
 const { 'classes': Cc, 'interfaces': Ci, 'results': Cr, } = Components;
 
-function getDirectories() {
+function getSubDirectories(directory) {
   let appsDir = Cc["@mozilla.org/file/local;1"]
                .createInstance(Ci.nsILocalFile);
   appsDir.initWithPath(GAIA_DIR);
-  appsDir.append('apps');
+  appsDir.append(directory);
 
   let dirs = [];
   let files = appsDir.directoryEntries;
@@ -39,11 +39,11 @@ function getFileContent(file) {
   return [content, count];
 }
 
-function getJSON(dir, name) {
+function getJSON(root, dir, name) {
   let file = Cc["@mozilla.org/file/local;1"]
                .createInstance(Ci.nsILocalFile);
   file.initWithPath(GAIA_DIR);
-  file.append('apps');
+  file.append(root);
   file.append(dir);
   file.append(name);
 
@@ -97,6 +97,10 @@ let permissions = {
   "mobileconnection": {
     "urls": [],
     "pref": "dom.mobileconnection.whitelist"
+  },
+  "mozFM": {
+    "urls": [],
+    "pref": "dom.mozFMRadio.whitelist"
   }
 };
 
@@ -110,28 +114,30 @@ let privileges = [];
 let domains = [];
 domains.push(GAIA_DOMAIN);
 
-let directories = getDirectories();
-directories.forEach(function readManifests(dir) {
-  let manifest = getJSON(dir, "manifest.webapp");
-  if (!manifest)
-    return;
+['apps', 'test_apps'].forEach(function parseDirectory(directoryName) {
+  let directories = getSubDirectories(directoryName);
+  directories.forEach(function readManifests(dir) {
+    let manifest = getJSON(directoryName, dir, "manifest.webapp");
+    if (!manifest)
+      return;
 
-  let rootURL = "http://" + dir + "." + GAIA_DOMAIN + (GAIA_PORT ? GAIA_PORT : '');
-  let domain = dir + "." + GAIA_DOMAIN;
-  privileges.push(rootURL);
-  domains.push(domain);
+    let rootURL = "http://" + dir + "." + GAIA_DOMAIN + (GAIA_PORT ? GAIA_PORT : '');
+    let domain = dir + "." + GAIA_DOMAIN;
+    privileges.push(rootURL);
+    domains.push(domain);
 
-  let perms = manifest.permissions;
-  if (perms) {
-    for each(let name in perms) {
-      permissions[name].urls.push(rootURL);
+    let perms = manifest.permissions;
+    if (perms) {
+      for each(let name in perms) {
+        permissions[name].urls.push(rootURL);
 
-      // special case for the telephony API which needs full URLs
-      if (name == 'telephony')
-        if (manifest.background_page)
-          permissions[name].urls.push(rootURL + manifest.background_page);
+        // special case for the telephony API which needs full URLs
+        if (name == 'telephony')
+          if (manifest.background_page)
+            permissions[name].urls.push(rootURL + manifest.background_page);
+      }
     }
-  }
+  });
 });
 
 content += "user_pref(\"b2g.privileged.domains\", \"" + privileges.join(",") + "\");\n\n";

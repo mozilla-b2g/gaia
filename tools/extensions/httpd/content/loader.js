@@ -47,19 +47,22 @@ function startupHttpd(baseDir, port) {
 }
 
 function getDirectories(dir) {
-  let appsDir = Cc['@mozilla.org/file/local;1']
-               .createInstance(Ci.nsILocalFile);
-  appsDir.initWithPath(dir);
-  appsDir.append('apps');
-
   let dirs = [];
-  let files = appsDir.directoryEntries;
-  while (files.hasMoreElements()) {
-    let file = files.getNext().QueryInterface(Ci.nsILocalFile);
-    if (file.isDirectory()) {
-      dirs.push(file.leafName);
+
+  ['apps', 'test_apps'].forEach(function addDirectory(name) {
+    let appsDir = Cc['@mozilla.org/file/local;1']
+                 .createInstance(Ci.nsILocalFile);
+    appsDir.initWithPath(dir);
+    appsDir.append(name);
+
+    let files = appsDir.directoryEntries;
+    while (files.hasMoreElements()) {
+      let file = files.getNext().QueryInterface(Ci.nsILocalFile);
+      if (file.isDirectory()) {
+        dirs.push(file.leafName);
+      }
     }
-  }
+  });
   return dirs;
 }
 
