@@ -174,6 +174,7 @@ var ScreenManager = {
 
   // XXX: this function is needed here because mozPower.screenEnabled
   // can be changed by shell.js instead of us.
+  // See https://bugzilla.mozilla.org/show_bug.cgi?id=738530
   _syncScreenEnabledValue: function scm_syncScreenEnabledValue() {
     this.screenEnabled = navigator.mozPower.screenEnabled;
   },
