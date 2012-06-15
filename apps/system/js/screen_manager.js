@@ -30,6 +30,10 @@ var ScreenManager = {
 
     var self = this;
 
+    this.idleObserver.onidle = function scm_onidle() {
+      self.turnScreenOff();
+    };
+
     SettingsListener.observe('screen.timeout', 60,
     function screenTimeoutChanged(value) {
       self.setIdleTimeout(value);
@@ -161,9 +165,6 @@ var ScreenManager = {
 
     var self = this;
     this.idleObserver.time = time;
-    this.idleObserver.onidle = function scm_onidle() {
-      self.turnScreenOff();
-    };
 
     navigator.addIdleObserver();
   },
