@@ -1,6 +1,6 @@
 'use strict';
 
-var kFontStep = 8;
+var kFontStep = 4;
 var kMinFontSize = 12;
 // Frequencies comming from http://en.wikipedia.org/wiki/Telephone_keypad
 var gTonesFrequencies = {
@@ -177,6 +177,9 @@ var KeyHandler = {
         case '0':
           self.phoneNumber.value = self.phoneNumber.value.slice(0, -1) + '+';
           break;
+        case '*':
+          self.phoneNumber.value = self.phoneNumber.value.slice(0, -1) + '#';
+          break;
         case 'del':
           self.phoneNumber.value = '';
           break;
@@ -188,10 +191,10 @@ var KeyHandler = {
       self.updateFontSize();
     };
 
-    if (key == 'del') {
+    if (key == 'del-digit') {
       this.phoneNumber.value = KeyHandler.phoneNumber.value.slice(0, -1);
       this.updateFontSize();
-    } else if (key == 'call') {
+    } else if (key == 'make-call') {
       // TODO: update the call button style to show his availability
       if (this.phoneNumber.value != '') {
         CallHandler.call(this.phoneNumber.value);
@@ -215,7 +218,10 @@ var KeyHandler = {
   },
 
   keyUp: function kh_keyUp(event) {
-    clearTimeout(this._timeout);
+    if (this._timeout) {
+      clearTimeout(this._timeout);
+      this._timeout = null;
+    }
   }
 };
 
@@ -229,6 +235,10 @@ var CallHandler = {
       return;
 
     this._telephonySetup = true;
+
+    // Somehow the muted property appears to true after initialization.
+    // Set it to false.
+    navigator.mozTelephony.muted = false;
 
     var telephony = navigator.mozTelephony;
     if (telephony.calls.length > 0) {
@@ -247,15 +257,14 @@ var CallHandler = {
   // callbacks
   call: function ch_call(number) {
     this.callScreen.classList.remove('incoming');
+    this.callScreen.classList.remove('in-call');
     this.callScreen.classList.add('calling');
     this.numberView.innerHTML = number;
-    this.statusView.innerHTML = 'Calling...';
 
     this.lookupContact(number);
 
     var sanitizedNumber = number.replace(/-/g, '');
-    // Force to unmute, since some phones are muted by default.
-    window.navigator.mozTelephony.muted = false;
+
     var call = window.navigator.mozTelephony.dial(sanitizedNumber);
     call.addEventListener('statechange', this);
     this.currentCall = call;
@@ -267,6 +276,7 @@ var CallHandler = {
 
   incoming: function ch_incoming(call) {
     this.callScreen.classList.remove('calling');
+    this.callScreen.classList.remove('in-call');
     this.callScreen.classList.add('incoming');
 
     this.currentCall = call;
@@ -279,7 +289,6 @@ var CallHandler = {
     };
 
     this.numberView.innerHTML = call.number || 'Anonymous';
-    this.statusView.innerHTML = 'Call from...';
 
     if (call.number)
       this.lookupContact(call.number);
@@ -288,25 +297,32 @@ var CallHandler = {
   },
 
   connected: function ch_connected() {
-    this.callScreen.classList.remove('incoming');
-    this.callScreen.classList.add('calling');
+    var callDirectionChar = '';
+    if (this.callScreen.classList.contains('incoming')) {
+      this.callScreen.classList.remove('incoming');
+      callDirectionChar = '&#8618';
+    } else if (this.callScreen.classList.contains('calling')) {
+      this.callScreen.classList.remove('calling');
+      callDirectionChar = '&#8617';
+    }
+    this.callScreen.classList.add('in-call');
+
     // hardening against rapid ending
     if (!this._onCall)
       return;
 
-    this.statusView.innerHTML = '00:00';
+    this.durationView.innerHTML = callDirectionChar + ' ' + '00:00';
 
     this.recentsEntry.type += '-connected';
 
     this._ticker = setInterval(function ch_updateTimer(self, startTime) {
       var elapsed = new Date(Date.now() - startTime);
-      self.statusView.innerHTML = elapsed.toLocaleFormat('%M:%S');
+      self.durationView.innerHTML = callDirectionChar + ' ' +
+        elapsed.toLocaleFormat('%M:%S');
     }, 1000, this, Date.now());
   },
 
   answer: function ch_answer() {
-    // Force to unmute, since some phones are muted by default.
-    window.navigator.mozTelephony.muted = false;
     this.currentCall.answer();
   },
 
@@ -339,7 +355,10 @@ var CallHandler = {
     if (this.keypadButton.classList.contains('displayed'))
       this.toggleKeypad();
 
-    clearInterval(this._ticker);
+    if (this._ticker) {
+      clearInterval(this._ticker);
+      this._ticker = null;
+    }
 
     this.toggleCallScreen();
 
@@ -400,9 +419,9 @@ var CallHandler = {
     delete this.numberView;
     return this.numberView = document.getElementById('call-number-view');
   },
-  get statusView() {
-    delete this.statusView;
-    return this.statusView = document.getElementById('call-status-view');
+  get durationView() {
+    delete this.durationView;
+    return this.durationView = document.getElementById('call-duration-view');
   },
   get actionsView() {
     delete this.actionsView;
@@ -422,7 +441,7 @@ var CallHandler = {
   },
   get keypadView() {
     delete this.keypadView;
-    return this.keypadView = document.getElementById('mainKeyset');
+    return this.keypadView = document.getElementById('kb-keypad');
   },
 
   execute: function ch_execute(action) {
