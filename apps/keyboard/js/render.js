@@ -223,9 +223,6 @@ const IMERender = (function() {
     for (var i = 0, kbr; kbr = keyboards[i]; i += 1) {
       className = 'keyboard-key';
 
-      if (kbr === current)
-        className += ' kbr-key-hold';
-
       dataset = [
         {key: 'keyboard', value: kbr},
         {key: 'keycode', value: switchCode}
@@ -240,7 +237,7 @@ const IMERender = (function() {
 
     // Replace with the container
     _altContainer = document.createElement('div');
-    _altContainer.style.display = 'inline-block';
+    _altContainer.style.MozBoxFlex = '1';
     _altContainer.innerHTML = key.innerHTML;
     _altContainer.className = key.className;
     _menuKey = key;
@@ -287,7 +284,7 @@ const IMERender = (function() {
 
     // Replace with the container
     _altContainer = document.createElement('div');
-    _altContainer.style.display = 'inline-block';
+    _altContainer.style.MozBoxFlex = '1';
     _altContainer.innerHTML = key.innerHTML;
     _altContainer.className = key.className;
     _menuKey = key;
