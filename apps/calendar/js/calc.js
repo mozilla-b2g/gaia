@@ -1,6 +1,6 @@
 (function(window) {
   if (typeof(Calendar) === 'undefined') {
-    Calendar = {};
+    window.Calendar = {};
   }
 
   Calendar.Calc = {
