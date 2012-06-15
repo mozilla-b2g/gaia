@@ -4,6 +4,9 @@ html, body {
   margin: 0;
   overflow-x: hidden;
   overflow-y: hidden;
+
+  font-size: 7.3px; /** 10px aiming at devices with 219dpi, 7.3px for 160dpi, change when needed */
+
 }
 
 body {
@@ -84,6 +87,7 @@ body.conversation #msg-conversations {
   -moz-transition: -moz-transform 0.3s ease, width 0s linear 0.5s;
 }
 
+
 .toolbar {
   -moz-box-sizing: border-box;
   position: absolute;
@@ -140,7 +144,7 @@ body.conversation #msg-conversations {
 .list {
   position: absolute;
   top: 64px;
-  bottom: 80px;
+  bottom: 0px;
   left: 0;
   right: 0;
   overflow-x: hidden;
@@ -177,8 +181,6 @@ input, textarea {
 }
 
 .back-button {
-  width: 80px;
-  height: 48px;
   position: absolute;
   margin: 6px 0 0 24px;
 }
@@ -216,6 +218,8 @@ input, textarea {
   text-decoration: none;
 }
 
+/* Search (hidden for now)
+ * 
 #msg-search-container {
   padding-right: 16px;
   margin: 0;
@@ -238,15 +242,6 @@ body.msg-search-result-mode #msg-search-container {
   z-index: 6;
 }
 
-#msg-title-container {
-  padding: 0;
-  margin: 0;
-  text-align: center;
-  line-height: 60px;
-  font-size: 24px;
-  font-weight: bold;  
-}
-
 #msg-search {
   padding: 0 0 0 32px;
   background: url("images/input-icon-search.png") no-repeat scroll 8px 50%, -moz-linear-gradient(center top , rgba(0, 0, 0, 0.2) 0px, rgba(255, 255, 255, 0) 20px, #FFFFFF 100%) repeat scroll 0 0 #FFFFFF;
@@ -257,14 +252,23 @@ body.msg-search-result-mode #msg-search-container {
   margin-top: 6px;
 }
 
-#msg-conversations-list {
-  background: url("images/app-texture.png") repeat scroll 50% 50%, rgb(243, 243, 243);
-  top: 64px;
-  -moz-transition: top 0.3s ease;
-}
-
 body.msg-search-mode #msg-conversations-list {
   top: 122px;
+}
+*/
+
+#msg-title-container {
+  padding: 0;
+  margin: 0;
+  text-align: center;
+  line-height: 60px;
+  font-size: 24px;
+  font-weight: bold;  
+}
+
+#msg-conversations-list {
+  background: url("images/app-texture.png") repeat scroll 50% 50%, rgb(243, 243, 243);
+  -moz-transition: top 0.3s ease;
 }
 
 #msg-conversations-list > a {
@@ -283,9 +287,11 @@ body.msg-search-mode #msg-conversations-list {
   -moz-transition: padding 0.3s ease-out;
 }
 
-body.msg-edit-mode #msg-conversations-list > a {
+
+body.edit-mode #msg-conversations-list > a {
   padding: 13px 16px 0 112px;
   -moz-transition: padding 0.3s ease-out;
+/** -moz-transform: translateX(9rem); **/
 }
 
 #msg-conversations-list > a:active {
@@ -347,12 +353,12 @@ body.msg-edit-mode #msg-conversations-list > a {
   border-radius: 5px;
 }
 
-body.msg-edit-mode #msg-conversations-list > a > input[type=checkbox]:checked + span {
+body.edit-mode #msg-conversations-list > a > input[type=checkbox]:checked + span {
   background: url("./images/checked.png") no-repeat scroll center center,
     -moz-linear-gradient(#ffffff, #eaeae4);
 }
 
-body.msg-edit-mode #msg-conversations-list > a > span {
+body.edit-mode #msg-conversations-list > a > span {
   opacity: 1.0;
   visibility: visible;
   border: 4px solid;
@@ -360,7 +366,7 @@ body.msg-edit-mode #msg-conversations-list > a > span {
   -moz-border-right-colors: #c3c9cb #c3c9cb #fff #fff;
   -moz-border-bottom-colors: #c3c9cb #c3c9cb #fff #fff;
   -moz-border-left-colors: #c3c9cb #c3c9cb #fff #fff;
-  background: -moz-linear-gradient(#eaeae4, #ffffff);  
+  background: -moz-linear-gradient(#eaeae4, #ffffff);
 }
 
 #msg-conversations-list .photo {
@@ -429,24 +435,18 @@ body.msg-edit-mode #msg-conversations-list > a > span {
   visibility : visible;
 }
 
-#msg-undo-toolbar {
-  height: 80px;
-  bottom: 80px;
-  background: url("images/app-texture.png") repeat scroll 50% 50%, -moz-linear-gradient(center top , #000, #444) repeat scroll 0% 0% transparent;
-  visibility: hidden;
+body.edit-mode #msg-conversations-list .name {
+  width: -moz-calc(100% - 19rem);
 }
 
-#msg-undo-toolbar.show {
-  visibility: visible;
+body.edit-mode #msg-conversations-list .msg {
+  width: -moz-calc(100% - 9rem);
 }
 
-#msg-undo-title-container {
-  text-align: center;
-  line-height: 80px;
-  font-size: 16px;
-  font-weight: bold;
-  color: white;
-}
+/*body.edit-mode #msg-conversations-list .time {
+  right: 10.6rem;
+}*/
+
 
 #msg-new-message-container {
   padding: 0;
@@ -454,29 +454,29 @@ body.msg-edit-mode #msg-conversations-list > a > span {
 }
 
 #msg-new-message {
-  margin-top: 6px;
-  margin-right: 24px;
-  top: 0px;
-  right: 0px;
-  height: 48px;
-  line-height: 48px;
-  font-size: 24px;
-  font-weight: bold;
-  min-width: 100px;
-  text-decoration: none;
+  margin-top: 0.6rem;
+  margin-left: 2.4rem;
+  top: 0rem;
+  left: 0rem;
+  min-width: 10rem;
   outline: none;
   position: absolute;
 }
 
-#msg-edit-button, #msg-search-edit-button { 
-  left: 0px;
-  margin-top: 14px;
-  margin-left: 24px; 
+#msg-edit-button { /** , #msg-search-edit-button {  **/
+  right: 0rem;
+  margin-top: 0.6rem;
+  margin-right: 2.4rem; 
   position: absolute;
-  min-width: 120px;
+  min-width: 10rem;
 }
 
-#msg-search-button, #msg-delete-button, #msg-undo-button{ 
+#msg-conversations-back {
+  position: absolute;
+  margin: 0.6rem 0 0 2.4rem;
+}
+
+#msg-delete-button { /** , #msg-search-edit-button {  **/
   right: 0px;
   top: 0px;
   margin-top: 14px;
@@ -485,14 +485,24 @@ body.msg-edit-mode #msg-conversations-list > a > span {
   min-width: 120px;
 }
 
-.edit-hide, .search-hide {
+#msg-delete-all-button {
+  left: 0rem;
+  top: 0rem;
+  margin-top: 1.4rem;
+  margin-left: 2.4rem;  
+  position: absolute;
+  min-width: 15rem;
+}
+
+.edit-hide { /** .search-hide { **/
   display: block;
 }
 
-.edit-show, .search-show {
+.edit-show { /** .search-show { **/
   display: none;
 }
 
+/**
 body.msg-search-result-mode .search-hide {
   display: none;
 }
@@ -500,14 +510,53 @@ body.msg-search-result-mode .search-hide {
 body.msg-search-result-mode .search-show {
   display: block;
 }
+ */
 
-body.msg-edit-mode .edit-hide {
+body.edit-mode .edit-hide {
   display: none;
 }
 
-body.msg-edit-mode .edit-show {
+body.edit-mode .edit-show {
   display: block;
 }
+
+#view-back {
+  position: absolute;
+  margin: 0.6rem 0 0 2.4rem;
+}
+#view-done-button {
+  position: absolute;
+  margin: 0.6rem 0 0 2.4rem;
+}
+
+#view-edit-button { 
+  right: 0rem;
+  margin-top: 0.6rem;
+  margin-right: 2.4rem; 
+  position: absolute;
+  min-width: 10rem;
+}
+
+body.conversation-new-msg #view-edit-button #view-name {
+  display: none;
+}
+body.edit-mode #view-edit-button {
+  display: none;
+}
+
+#view-add-button {
+  right: 0rem;
+  margin-top: 0.6rem;
+  margin-right: 2.4rem; 
+  position: absolute;
+  min-width: 10rem;
+  display: none;
+}
+
+body.edit-mode #view-add-button {
+  display: none;
+}
+
 
 #view-name {
   font-size: 26px;
@@ -570,9 +619,11 @@ body.conversation-new-msg #view-num {
 
 #view-list {
   background: url('images/conversation-view-list-bg.png');
+  bottom: 8rem;
 }
 
-#view-list > div {
+
+#view-list > div .message-container {
   background: url("images/app-texture.png") repeat scroll 50% 50%, rgb(191, 204, 215);
   margin: 8px;
   min-height: 64px;
@@ -595,7 +646,7 @@ body.conversation-new-msg #view-num {
   text-align: right;
 }
 
-#view-list > div.pending {
+#view-list > div .pending {
   -moz-animation: fadeIn 2s ease;
   opacity: 0.5;
 }
@@ -640,6 +691,7 @@ body.conversation-new-msg #view-num {
   color: rgb(18, 47, 64);
   text-shadow: 0 1px 0 #ddd;
   line-height: 32px;
+  text-overflow: ellipsis;
 }
 
 #view-list > div .time {
@@ -649,7 +701,16 @@ body.conversation-new-msg #view-num {
   text-shadow: 0 1px 0 #ddd;
 }
 
-#view-list > div::before {
+
+body.edit-mode #view-list .text {
+  width: -moz-calc(100% - 9rem);
+}
+
+body.edit-mode #view-list .time {
+  right: 10.6rem;
+}
+
+#view-list > div .message-container::before {
   content: '';
   display: block;
   width: 11.2px; /* 8px * sqrt(2) */
@@ -660,13 +721,109 @@ body.conversation-new-msg #view-num {
   -moz-transform: rotate(45deg);
 }
 
-#view-list > div.sender::before {
-  left: -5.6px;
+
+#view-list > div .sender {
+    margin-right: 4rem;
+    margin-left: 1.5rem;
+}
+#view-list > div .sender::before {
+  left: -0.56rem;
 }
 
-#view-list > div.receiver::before {
-  right: -5.6px;
+#view-list > div .receiver {
+    margin-left: 4rem;
+    margin-right: 1.5rem;
 }
+#view-list > div .receiver::before {
+  right: -0.56rem;
+}
+
+body.edit-mode #view-list > div.message-block {
+  -moz-transform: translateX(9rem);
+}
+
+
+#view-list > div.message-block {
+  -moz-box-sizing: border-box;
+  display: block;
+  text-decoration: none;
+  outline: none;
+  position: relative;
+  padding: 1.3rem 1.6rem 0 11.2rem;
+  width: -moz-calc(100% + 9rem);
+  right: 9rem;
+  -moz-transition: -moz-transform 0.3s ease;
+}
+
+
+#view-list > div.message-block:active > div.message-container{
+  background: rgba(183,214,54,.6);
+}
+
+#view-list > div.message-block > * {
+  pointer-events: none;
+}
+
+#view-list > div.message-block:first-child {
+  border-top-color: transparent;
+}
+
+/* fake input boxes for checkboxes*/
+#view-list label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#view-list div.message-block > input.fake-checkbox {
+  display: none;
+}
+
+#view-list div.message-block > span {
+  position: absolute;
+  top: -moz-calc(50% - 3.4rem);
+  left: 2rem;
+  display: block;
+  width: 6.4rem;
+  height: 6.4rem;
+  border: none;
+}
+
+
+#view-list div.message-block > input.fake-checkbox {
+  display: none;
+}
+
+#view-list div.message-block > span {
+  position: absolute;
+  top: -moz-calc(50% - 3.4rem);
+  left: 2rem;
+  display: block;
+  width: 6.4rem;
+  height: 6.4rem;
+  border: none;
+}
+
+#view-list div.message-block > input[type=checkbox] + span {
+  width: 6rem;
+  height: 6rem;
+  border: 0.4rem solid;
+  border-radius: 0.5rem;
+  -moz-border-top-colors: #c3c9cb #c3c9cb #fff #fff;
+  -moz-border-right-colors: #c3c9cb #c3c9cb #fff #fff;
+  -moz-border-bottom-colors: #c3c9cb #c3c9cb #fff #fff;
+  -moz-border-left-colors: #c3c9cb #c3c9cb #fff #fff;
+  background: -moz-linear-gradient(#eaeae4, #ffffff);
+}
+
+#view-list div.message-block > input[type=checkbox]:checked + span {
+  background: url("./images/checked.png") no-repeat scroll center center,
+  -moz-linear-gradient(#ffffff, #eaeae4);
+}
+/** end fake checkboxes **/
+  
 
 #view-bottom-toolbar {
   background: url('images/diagonal-gray-pattern.png'),
@@ -700,11 +857,79 @@ body.conversation-new-msg #view-num {
   min-width: 96px;
 }
 
-#view-image-button {
-  margin: 14px 0 0 10px;
+#view-delete-button { 
+  right: 0rem;
+  top: 0rem;
+  margin-top: 1.4rem;
+  margin-right: 2.4rem;  
+  position: absolute;
+  min-width: 12rem;
 }
+
+#view-delete-all-button {
+  left: 0rem;
+  top: 0rem;
+  margin-top: 1.4rem;
+  margin-left: 2.4rem;  
+  position: absolute;
+  min-width: 15rem;
+}
+
 /* localization */
 body.hidden *[data-l10n-id] {
   visibility: hidden;
+}
+
+.confirmation-panel {
+    text-align: center;
+    background: rgba(0,0,0,0.4);
+    -moz-transition: -moz-transform 0.3s ease, width 0s linear 0.5s;
+    width: 0rem;
+    z-index: 1;   
+}
+
+#msg-confirmation-panel {
+  -moz-transform: translateX(-100%);  
+}
+
+#view-confirmation-panel {
+  -moz-transform: translateX(100%);  
+}
+
+body.view-confirmation-pending #view-confirmation-panel {
+    -moz-transform: translateX(0);
+    -moz-transition: -moz-transform 0.3s ease;
+    width: 100%;
+    z-index: 10;
+}
+
+body.msg-confirmation-pending #msg-confirmation-panel {
+    -moz-transform: translateX(0);
+    -moz-transition: -moz-transform 0.3s ease;
+    width: 100%;
+    z-index: 10;
+}
+
+.confirmation-dialog {
+    background: rgb(255,255,255);
+    opacity: 1; 
+    border-radius: 0.8rem;
+    margin: 10rem 2rem 0rem;
+    display: block;
+    padding: 3rem 7rem;
+}
+.confirmation-dialog p {
+    font-size: 2rem;
+}
+.confirmation-dialog h2 {
+    font-size: 2rem;
+}
+.confirmation-dialog .button {
+    margin: 2rem 1.5rem 0rem;
+}
+
+.groupHeader {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 10px;
 }
 
