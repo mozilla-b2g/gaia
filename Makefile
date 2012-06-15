@@ -170,7 +170,7 @@ ifneq ($(DEBUG),1)
 	@rm -rf profile/OfflineCache
 	@mkdir -p profile/OfflineCache
 	@cd ..
-	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)$(GAIA_PORT)"' build/offline-cache.js
+	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)$(GAIA_PORT)"; const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)"' build/offline-cache.js
 	@echo "Done"
 endif
 
@@ -404,6 +404,7 @@ forward:
 update-offline-manifests:
 	for d in `find ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
 	do \
+		rm -rf $$d/manifest.appcache ;\
 		if [ -f $$d/manifest.webapp ] ;\
 		then \
 			echo \\t$$d ;  \
@@ -441,5 +442,6 @@ install-gaia: profile
 install-media-samples:
 	$(ADB) push media-samples/DCIM /sdcard/DCIM
 	$(ADB) push media-samples/videos /sdcard/videos
+	$(ADB) push media-samples/music /sdcard/music
 
 demo: install-media-samples install-gaia

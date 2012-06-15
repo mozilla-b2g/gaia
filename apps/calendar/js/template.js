@@ -5,7 +5,6 @@
 
   var FORMAT_REGEX = /\{([a-zA-Z0-9\-\_\.]+)\|?([a-z]{1,1})?\}/g,
       POSSIBLE_HTML = /[&<>"'`]/,
-      BAD_CHARS = /&(?!\w+;)|[<>"'`]/g,
       span = document.createElement('span');
 
   function create(templates) {
@@ -80,17 +79,34 @@
       return new Function('a', fnStr);
     },
 
-    render: function(args) {
+
+    /**
+     * Renders template with given slots.
+     *
+     * @param {Object} object key, value pairs for template.
+     */
+    render: function() {
       this.render = this.compile(this.template);
       return this.render.apply(this, arguments);
     },
 
-    renderEach: function(args) {
-      var i = 0, len = args.length,
+    /**
+     * Renders template multiple times
+     *
+     * @param {Array} objects object details to render.
+     * @param {String} [join] optional join argument will join the array.
+     * @return {String|Array} String if join argument is given array otherwise.
+     */
+    renderEach: function(objects, join) {
+      var i = 0, len = objects.length,
           result = [];
 
       for (; i < len; i++) {
-        result.push(this.render(args[i]));
+        result.push(this.render(objects[i]));
+      }
+
+      if (typeof(join) !== 'undefined') {
+        return result.join(join);
       }
 
       return result;

@@ -5,9 +5,11 @@
 *~
 manifest.appcache
 apps/settings/gaia-commit.txt
-apps/test-agent/test/config.json
+test_apps/test-agent/test/config.json
 apps/*/test/unit/_sandbox.html
 apps/*/test/unit/_proxy.html
+test_apps/*/test/unit/_sandbox.html
+test_apps/*/test/unit/_proxy.html
 profile/
 xulrunner/
 xulrunner-sdk/

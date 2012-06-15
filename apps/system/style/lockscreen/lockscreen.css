@@ -13,14 +13,6 @@
   -moz-transition: -moz-transform 0.3s ease;
 }
 
-#lockscreen.screenoff > * {
-  display: none;
-}
-
-#lockscreen.screenoff {
-  background-color: #000;
-}
-
 #lockscreen.unlocked {
   -moz-transform: translateY(-moz-calc(-100% - 32px));
 }
