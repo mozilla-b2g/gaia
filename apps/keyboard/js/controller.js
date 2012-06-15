@@ -39,7 +39,6 @@ const IMEController = (function() {
       _currentLayout = null,
       _currentLayoutMode = LAYOUT_MODE_DEFAULT,
       _currentKey = null,
-      _currentMenuKey = null,
       _currentInputType = 'text',
       _menuLockedArea = null,
       _lastHeight = 0;
@@ -449,9 +448,13 @@ const IMEController = (function() {
       _isUpperCase ? uppercaseValue : value
     );
 
+    // Locked limits
+    // TODO: look for [LOCKED_AREA]
+    var top = getWindowTop(key);
+    var bottom = getWindowTop(key) + key.scrollHeight;
+
     IMERender.showAlternativesCharMenu(key, alternatives);
     _isShowingAlternativesMenu = true;
-    _currentMenuKey = key;
 
     // Locked limits
     // TODO: look for [LOCKED_AREA]
@@ -474,21 +477,25 @@ const IMEController = (function() {
     }
 
     _menuLockedArea = {
-      top: getWindowTop(_currentMenuKey) - _currentMenuKey.scrollHeight,
-      bottom: getWindowTop(_currentMenuKey) + _currentMenuKey.scrollHeight,
+      top: top,
+      bottom: bottom,
       left: getWindowLeft(IMERender.menu),
       right: getWindowLeft(IMERender.menu) + IMERender.menu.scrollWidth
     };
     _menuLockedArea.width = _menuLockedArea.right - _menuLockedArea.left;
     _menuLockedArea.ratio =
       _menuLockedArea.width / IMERender.menu.children.length;
+    for (var prop in _menuLockedArea)
+      console.log(prop + ': ' + _menuLockedArea[prop]);
+
   }
 
   // Hide alternatives.
   function _hideAlternatives() {
+    if (!_isShowingAlternativesMenu)
+      return;
+
     IMERender.hideAlternativesCharMenu();
-    if (_currentMenuKey)
-      IMERender.unHighlightKey(_currentMenuKey);
     _isShowingAlternativesMenu = false;
   }
 
@@ -587,8 +594,7 @@ const IMEController = (function() {
       return;
 
     // Update highlight: remove from older
-    if (!(_isShowingAlternativesMenu && _currentKey === _currentMenuKey))
-      IMERender.unHighlightKey(_currentKey);
+    IMERender.unHighlightKey(_currentKey);
 
     // Ignore if moving over delete key
     if (keyCode == KeyEvent.DOM_VK_BACK_SPACE) {

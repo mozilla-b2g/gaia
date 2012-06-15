@@ -9,6 +9,8 @@ const IMERender = (function() {
   var ime, menu, pendingSymbolPanel, candidatePanel, candidatePanelToggleButton;
   var getUpperCaseValue, isSpecialKey;
 
+  var _menuKey, _altContainer;
+
   // Initiaze the render. It needs some business logic to determine:
   //   1- The uppercase for a key object
   //   2- When a key is a special key
@@ -271,8 +273,16 @@ const IMERender = (function() {
     });
     this.menu.innerHTML = content;
 
+    // Replace with the container
+    _altContainer = document.createElement('div');
+    _altContainer.style.display = 'inline-block';
+    _altContainer.innerHTML = key.innerHTML;
+    _altContainer.className = key.className;
+    _menuKey = key;
+    key.parentNode.replaceChild(_altContainer, key);
+
     // Adjust menu style
-    key.querySelectorAll("span")[0].appendChild(this.menu);
+    _altContainer .querySelectorAll("span")[0].appendChild(this.menu);
     this.menu.style.display = 'block';
   };
 
@@ -282,6 +292,9 @@ const IMERender = (function() {
     this.menu.innerHTML = '';
     this.menu.className = '';
     this.menu.style.display = 'none';
+
+    if (_altContainer)
+      _altContainer.parentNode.replaceChild(_menuKey, _altContainer);
   };
 
   // Recalculate dimensions for the current render
