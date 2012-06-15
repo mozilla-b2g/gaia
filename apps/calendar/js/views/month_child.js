@@ -38,7 +38,7 @@
   Child.prototype = {
     INACTIVE: 'inactive',
 
-    busyPercision: (24 / 12),
+    busyPrecision: (24 / 12),
 
     queueTime: 1,
 
@@ -186,7 +186,7 @@
      * @return {Numeric} integer busy unit.
      */
     _hourToBusyUnit: function(hour) {
-      return Math.ceil(hour / this.busyPercision) || 1;
+      return Math.ceil(hour / this.busyPrecision) || 1;
     },
 
     /**

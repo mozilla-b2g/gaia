@@ -17,8 +17,7 @@
 
   //quick hack for today button
 
-  var today = document.querySelector('#view-selector .today'),
-      now = new Date();
+  var today = document.querySelector('#view-selector .today');
 
   today.addEventListener('click', function() {
     monthView.render();

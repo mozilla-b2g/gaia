@@ -80,7 +80,7 @@ suite('batch', function() {
         }
       };
 
-      subject.waitTime = 10;
+      subject.waitTime = 1;
       assert.isFalse(subject.willRun());
 
       subject.action('g1', 'add', 1);
@@ -107,9 +107,9 @@ suite('batch', function() {
     test('with timer', function(done) {
       setTimeout(function() {
         done();
-      }, 100);
+      }, 10);
 
-      subject.waitTime = 50;
+      subject.waitTime = 1;
       subject.handler = function() {
         throw new Error('should not fire handler');
       }

@@ -82,7 +82,7 @@
     handler: function() {},
 
     /**
-     * Actions an action to the queue.
+     * Adds an action to the queue.
      * Groups items into a structure like
      * this:
      *

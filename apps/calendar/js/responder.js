@@ -13,7 +13,7 @@
    * @param {Object} list of events to add onto responder.
    */
   var Responder = exports.Calendar.Responder = function Responder(events) {
-    this._$events = {};
+    this._$events = Object.create(null);
 
     if (typeof(events) !== 'undefined') {
       this.addEventListener(events);
