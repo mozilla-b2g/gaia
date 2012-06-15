@@ -14,6 +14,7 @@ var SleepMenu = {
   },
 
   init: function sm_init() {
+    ListMenu.init({items: []});
     window.addEventListener('screenchange', this);
     window.addEventListener('click', this, true);
     window.addEventListener('keydown', this, true);
