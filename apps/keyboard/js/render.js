@@ -4,6 +4,10 @@
 // of the IMEController. IMERender is able to read from the layout to improve
 // its performance but is not allowed to communicate with the controller nor
 // manager.
+//
+// XXX: The only thing worth to be remebered is the KEY element must be the 
+// deepest interactive HTML element on the hierarchy or, if none, simply the 
+// deepest element. This element must contain dataset attributes.
 const IMERender = (function() {
 
   var ime, menu, pendingSymbolPanel, candidatePanel, candidatePanelToggleButton;
@@ -232,9 +236,17 @@ const IMERender = (function() {
         dataset
       );
     }
-
     menu.innerHTML = content;
-    key.querySelectorAll("span")[0].appendChild(menu);
+
+    // Replace with the container
+    _altContainer = document.createElement('div');
+    _altContainer.style.display = 'inline-block';
+    _altContainer.innerHTML = key.innerHTML;
+    _altContainer.className = key.className;
+    _menuKey = key;
+    key.parentNode.replaceChild(_altContainer, key);
+
+    _altContainer.querySelectorAll("span")[0].appendChild(menu);
     menu.style.display = 'block';
   };
 
