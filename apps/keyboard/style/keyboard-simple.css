@@ -1,0 +1,419 @@
+@font-face {
+  font-family: 'Open Sans';
+  src: url('fonts/Open-Sans.woff');
+}
+@font-face {
+  font-family: 'Open Sans Bold';
+  font-weight: bold;
+  src: url('fonts/Open-Sans-Bold.woff');
+}
+@font-face {
+  font-family: 'Open Sans Semibold';
+  font-weight: 600;
+  src: url('fonts/Open-Sans-Semibold.woff');
+}
+
+* {
+  -moz-box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-size: 10px;
+  width: 100%;
+  height: 100%;
+}
+
+#screen.fullscreen #keyboard { z-index: 9999; }
+
+#keyboard {
+  position: absolute;
+  z-index: 9996;
+  bottom: 0;
+  width: 100%;
+  overflow: visible;
+  padding: 1rem;
+  background: #454D58;
+/*  -moz-transition: -moz-transform 0.3s ease;*/
+  -moz-transform: translateY(0);
+}
+
+#keyboard.hide {
+  -moz-transform: translateY(100%);
+}
+
+.keyboard-row {
+  margin: 1rem 0 0;
+  white-space: nowrap;
+  text-align: center;
+  display: -moz-box;
+  -moz-box-orient: horizontal;
+  -moz-box-pack: center;
+  width: 100%;
+}
+.keyboard-row:first-child { margin-top: 0; }
+
+button:-moz-focus-inner{ 
+  padding:0;
+  border:none 
+}
+
+.keyboard-key, span.keybaord-key-hold {
+  display: inline-block;
+  overflow: hidden;
+  text-align: center;
+  margin: 0 0.2rem;
+  min-width: 2.5rem; /* Must be 2.6 from design guidelines but in chineese keyboard we have one more key per row */
+  padding: 0;
+  position: relative;
+  overflow: visible;
+  height: 4rem;
+  border: none;
+  background: none;
+}
+
+.keyboard-key > span {
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%
+  -moz-background-clip: padding;
+  background: #ebebeb;
+  font-family: 'Open Sans Semibold';  
+  font-size: 1.8rem;
+  line-height: 3.8rem;
+  color: #333;
+  border: 1px solid rgba(0, 0, 0, 0.6);
+  border-radius: 0.3rem;
+}
+
+.keyboard-key.highlighted {
+  /*pointer-events: none;*/
+  background: #ebebeb;
+/*  box-shadow: inset 0 0 0 1px #FFF, 0 0 0.4rem 0px rgba(0, 0, 0, 0.4);*/
+  border-radius: 0.3rem;
+  border: solid 1px rgba(0, 0, 0, 0.6);
+  border-top: none;
+  margin-top: -0.5rem;
+}
+.keyboard-key.highlighted > span {
+  font: 2.8rem/4rem Open Sans Semibold, Sans-serif;
+  -moz-background-clip: padding;
+  background: #ebebeb;
+  /*box-shadow: 0 0 0.8rem 0 rgba(0, 0, 0, 0.6);*/
+  border-radius: 0.3rem;
+  border: 1px solid rgba(0, 0, 0, 0.6);
+  box-shadow: none;
+  height: 5.2rem;
+  top: -5rem;
+  left: -0.8rem;
+  right: -0.8rem;
+  z-index: 100;
+}
+  .keyboard-key.highlighted > span:after {
+    content: "";
+    position: absolute;
+    margin: 0 0.5rem;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 200;
+    height: 1px;
+    background: #ebebeb;
+    border: solid 1px #61646A;
+    border-top: none;
+    border-bottom: none;
+  }
+
+#keyboard-accent-char-menu {
+  position: absolute;
+  bottom: 0;
+  left: -1px;
+  z-index: 150;
+  margin-bottom: -1px;
+  height: 6rem;
+  display: none;
+  border-radius: 0.3rem;
+  -moz-background-clip: padding;
+  background: #ebebeb;
+  border: 1px solid #61646A;
+  /*box-shadow: 0 0 2px rgba(0,0,0,0.5);*/
+  white-space: nowrap;
+  overflow:visible;
+  /*pointer-events: all;*/
+  white-space: nowrap;
+  padding: 0 0.5rem;
+}
+
+/* Lang menu */
+#keyboard-accent-char-menu.kbr-menu-lang {
+  position: absolute;
+  bottom: 100%;
+  left: -0.8rem;
+  right: auto;
+  top: auto;
+  padding: 0;
+  height: auto;
+  max-height: 30rem;
+  overflow: auto;
+  white-space: normal;
+  padding: 0 0.5rem 0.5rem;
+}
+  #keyboard-accent-char-menu.kbr-menu-lang .keyboard-key {
+    width: 10rem;
+    -moz-box-sizing: border-box;
+  }
+
+/* menu from right */
+#keyboard-accent-char-menu.kbr-menu-right { left: auto; right: -1px; }
+
+#keyboard-accent-char-menu .keyboard-key { margin: 0 0.2em; }
+#keyboard-accent-char-menu .first-char:after {
+  background-color: #EBEBEB;
+  content: "";
+  display: block;
+  height: 7px;
+  margin-top: 2.5rem;
+  position: absolute;
+  width: inherit;
+  border-radius: 20px;
+  left: -1px;
+}
+
+#keyboard-accent-char-menu .keyboard-key.highlighted {
+/*  box-shadow: 0 0 0 3px #53B6CC;*/
+  background: #ebebeb;
+}
+#keyboard-accent-char-menu .keyboard-key.highlighted > span {
+  top: 0;
+  left: 0;
+  right: 0;
+  background: none;
+  border-radius: 0;
+  border: 0;
+  font-weight: 600;
+}
+#keyboard-accent-char-menu .keyboard-key.highlighted > span:after {
+  display: none;
+}
+#keyboard-accent-char-menu.show {
+  display: block;
+}
+
+
+@font-face {
+  font-family: 'Keyboard Symbols';
+  font-weight: 600;
+  src: url('fonts/Keyboard-Symbols.woff');
+}
+
+/* This must be controlled in the keyboard trying to not add highlighted classnames to this keys
+    As we can not do this right now, we redefine the states by this selectors:
+ */
+.keyboard-key.highlighted[data-keycode="-3"],
+.keyboard-key.highlighted[data-keycode="8"],
+.keyboard-key.highlighted[data-keycode="20"],
+.keyboard-key.highlighted[data-keycode="13"],
+.keyboard-key.highlighted[data-keycode="18"],
+.keyboard-key.highlighted[data-keycode="-1"],
+.keyboard-key.highlighted[data-keycode="32"],
+.keyboard-key.highlighted[data-keycode="-2"],
+.keyboard-key.special-key.highlighted
+  {  box-shadow: 0 0 0 2px #4495A8; margin-top: 0; border: none; }
+
+    .keyboard-key[data-keycode="-3"] > span , .keyboard-key.highlighted[data-keycode="-3"] > span, /* IMEManager.SWITCH_KEYBOARD */
+    .keyboard-key[data-keycode="8"] > span , .keyboard-key.highlighted[data-keycode="8"] > span, /* KeyEvent.DOM_VK_BACK_SPACE */
+    .keyboard-key[data-keycode="20"] > span , .keyboard-key.highlighted[data-keycode="20"] > span, /* KeyEvent.DOM_VK_CAPS_LOCK */
+    .keyboard-key[data-keycode="13"] > span , .keyboard-key.highlighted[data-keycode="13"] > span,
+    .keyboard-key[data-keycode="18"] > span , .keyboard-key.highlighted[data-keycode="18"] > span,
+    .keyboard-key[data-keycode="-1"] > span , .keyboard-key.highlighted[data-keycode="-1"] > span,
+    .keyboard-key[data-keycode="-2"] > span , .keyboard-key.highlighted[data-keycode="-2"] > span,
+    .keyboard-key.special-key span, .keyboard-key.special-key.highlighted span
+      { 
+        font-size: 1.8rem;
+        line-height: 4rem;
+        font-family: 'Keyboard Symbols', sans-serif;
+        color: #5B6574;
+        background: #EDEDED;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 100%
+      }
+
+    /* SPACEBAR without highlight */
+    .keyboard-key.highlighted[data-keycode="32"] > span  {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 100%
+      }
+
+          .keyboard-key.highlighted[data-keycode="-3"] > span:after,
+          .keyboard-key.highlighted[data-keycode="8"] > span:after,
+          .keyboard-key.highlighted[data-keycode="20"] > span:after,
+          .keyboard-key.highlighted[data-keycode="13"] > span:after,
+          .keyboard-key.highlighted[data-keycode="18"] > span:after,
+          .keyboard-key.highlighted[data-keycode="-1"] > span:after,
+          .keyboard-key.highlighted[data-keycode="32"] > span:after,
+          .keyboard-key.highlighted[data-keycode="-2"] > span:after,
+          .keyboard-key.special-key.highlighted span:after 
+            { display: none; }
+
+
+/* KEYS STATES */
+/* Press */
+.keyboard-key.kbr-key-press span { box-shadow: 0 0 0 2px #4495A8; }
+
+/* Active */
+.keyboard-key.kbr-key-active span { color: #4495A8; text-shadow: none; }
+
+
+/* Hold */
+.keyboard-key.kbr-key-hold span {
+  background: #5cc9e1; 
+  color: #295B65;
+  box-shadow: inset 0 0 12px -4px rgba(0, 0, 0, 0.6);
+  text-shadow: none;
+}
+
+
+@media screen and (max--moz-device-pixel-ratio: 1.5) {
+  html {
+    font-size: 15px;
+  }
+}
+
+/* IMES */
+
+#keyboard-pending-symbol-panel {
+  position: absolute;
+  top: -35px;
+  left: 0;
+  height: 32px;
+  line-height: 32px;
+  font-size: 24px;
+  width: auto;
+  padding: 0 8px;
+  background: rgba(245, 245, 245, 0.7);
+  color: rgb(36, 36, 36);
+  border-top-right-radius: 8px;
+  border-top: 1px solid #d5d5d5;
+  border-right: 1px solid #d5d5d5;
+  white-space: nowrap;
+}
+
+#keyboard-pending-symbol-panel:empty {
+  display: none;
+}
+
+#keyboard-candidate-panel {
+  height: 64px;
+  overflow: auto;
+  white-space: nowrap;
+  color: black;
+  background: rgb(176, 174, 168);
+  border-top: 1px solid #e8e8ff;
+  border-bottom: 1px solid #808098;
+  display: none;
+}
+#keyboard.candidate-panel #keyboard-candidate-panel {
+  display: block;
+  width: -moz-calc(100% - 62px);
+  overflow-y: hidden;
+}
+
+#keyboard.full-candidate-panel {
+  padding-top: 66px;
+}
+
+#keyboard.full-candidate-panel #keyboard-candidate-panel {
+  display: block;
+  position: absolute;
+  white-space: normal;
+  top: -2px;
+  bottom: 0;
+  height: 100%;
+  width: 100%;
+  border: none;
+  border-top: 2px solid #a3a3a3;
+  z-index: 1;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+#keyboard.full-candidate-panel #keyboard-candidate-panel span {
+  border-top: 1px solid #e8e8ff;
+  border-bottom: 1px solid #808098;
+}
+
+#keyboard-candidate-panel[data-truncated]::after {
+  content: '…';
+  background: none ! important;
+  border-color: transparent ! important;
+  color: #666;
+}
+
+#keyboard-candidate-panel span,
+#keyboard-candidate-panel[data-truncated]::after {
+  border-left: 1px solid #e8e8ff;
+  border-right: 1px solid #808098;
+  font-size: 32px;
+  line-height: 60px;
+  min-width: 60px;
+  display: inline-block;
+  height: 64px;
+  padding: 0 10px;
+  text-align: center;
+  background: rgb(161,158,153);
+}
+
+#keyboard-candidate-panel-toggle-button {
+  border-left: 1px solid #e8e8ff;
+  border-right: 1px solid #808098;
+  border-bottom: 1px solid #808098;
+  position: absolute;
+  font-size: 32px;
+  line-height: 60px;
+  right: 0;
+  top: 1px;
+  text-align: center;
+  box-shadow: -4px 0 5px -5px black;
+  width: 60px;
+  height: 64px;
+  color: black;
+  background: rgb(191,191,183);
+  display: none;
+}
+
+#keyboard.full-candidate-panel #keyboard-candidate-panel-toggle-button {
+  display: block;
+  border-top: 1px solid #e8e8ff;
+  top: 0;
+  z-index: 1;
+}
+
+#keyboard.candidate-panel #keyboard-candidate-panel-toggle-button {
+  display: block;
+}
+
+#keyboard-candidate-panel span[data-active],
+#keyboard-candidate-panel-toggle-button[data-active] {
+  background: rgb(161,158,153);
+}
+
+.keyboard-pending-symbols-highlight-green {
+	background:#33aa33;
+}
+.keyboard-pending-symbols-highlight-red {
+	background:#aa3333;
+}
+.keyboard-pending-symbols-highlight-blue {
+	background:#3333aa;
+}
