@@ -60,19 +60,6 @@ var KeyboardManager = (function() {
       // finished.
       //
       switch (evt.type) {
-        // case 'showime':
-        //   // Allow the keyboardFrame to show before the height adjustment
-        //   keyboardFrame.classList.remove('hide');
-        //   break;
-        //
-        // case 'hideime':
-        //   // Allow the app to occupy the entire screen behind the keyboard
-        //   // before the transition
-        //   keyboardFrame.classList.add('hide');
-        //   var app = WindowManager.getDisplayedApp();
-        //   if (app)
-        //     WindowManager.setAppSize(app);
-        //   break;
 
         case 'appwillclose':
           // Hide the keyboardFrame!
