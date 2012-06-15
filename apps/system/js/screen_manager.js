@@ -25,6 +25,9 @@ var ScreenManager = {
     /* Respect the information from DeviceLight sensor */
     window.addEventListener('devicelight', this);
 
+    this.screen = document.getElementById('screen');
+    this.screen.classList.remove('screenoff');
+
     var self = this;
 
     SettingsListener.observe('screen.automatic-brightness', true,
@@ -58,11 +61,14 @@ var ScreenManager = {
 
         break;
 
+        // The screenshot module also listens for the SLEEP key and
+        // may call preventDefault() on the keyup and keydown events.
       case 'keydown':
         if (evt.keyCode !== evt.DOM_VK_SLEEP && evt.keyCode !== evt.DOM_VK_HOME)
           return;
 
-        this._turnOffScreenOnKeyup = true;
+        if (!evt.defaultPrevented)
+          this._turnOffScreenOnKeyup = true;
         if (!this.screenEnabled) {
           this.turnScreenOn();
           this._turnOffScreenOnKeyup = false;
@@ -71,7 +77,7 @@ var ScreenManager = {
         break;
       case 'keyup':
         if (this.screenEnabled && this._turnOffScreenOnKeyup &&
-            evt.keyCode == evt.DOM_VK_SLEEP)
+            evt.keyCode == evt.DOM_VK_SLEEP && !evt.defaultPrevented)
           this.turnScreenOff();
 
         break;
@@ -94,6 +100,7 @@ var ScreenManager = {
     navigator.mozPower.screenBrightness = 0.0;
 
     this.screenEnabled = false;
+    this.screen.classList.add('screenoff');
     setTimeout(function realScreenOff() {
       navigator.mozPower.screenEnabled = false;
     }, 20);
@@ -109,6 +116,7 @@ var ScreenManager = {
 
     navigator.mozPower.screenEnabled = this.screenEnabled = true;
     navigator.mozPower.screenBrightness = this._brightness;
+    this.screen.classList.remove('screenoff');
 
     this.fireScreenChangeEvent();
     return true;

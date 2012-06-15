@@ -93,7 +93,6 @@ const IMEManager = {
     }
 
     if (!this.keyboards.length) {
-      console.warn('[keyboard] no keyboard layouts present');
       this.keyboards = [].concat(this.keyboardSettingGroups['english']);
     }
 
