@@ -212,6 +212,7 @@ const IMERender = (function() {
     
     var cssWidth = key.style.width;
     menu.classList.add("kbr-menu-lang");
+    key.classList.add("kbr-menu-on");
 
     for (var i = 0, kbr; kbr = keyboards[i]; i += 1) {
       className = 'keyboard-key';

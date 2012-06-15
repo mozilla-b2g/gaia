@@ -259,6 +259,31 @@ button:-moz-focus-inner{
         height: 100%
       }
 
+
+       .keyboard-key.special-key.highlighted.kbr-menu-on {
+        /*pointer-events: none;*/
+        background: #ebebeb;
+        box-shadow: inset 0 0 0 1px #FFF, 0 0 0.4rem 0px rgba(0, 0, 0, 0.4);
+        border-radius: 0.3rem;
+      }
+       .keyboard-key.special-key.highlighted.kbr-menu-on > span {
+        -moz-background-clip: padding;
+        background: -moz-linear-gradient(#fff, #ebebeb);
+        /*box-shadow: 0 0 0.8rem 0 rgba(0, 0, 0, 0.6);*/
+        border-radius: 0.3rem;
+        border: 1px solid rgba(0, 0, 0, 0.6);
+        box-shadow: none;
+        z-index: 100;
+        color: #333;
+      }
+         .keyboard-key.special-key.highlighted.kbr-menu-on > span:after {
+          content: "";
+           display: block;
+           bottom: 100%;
+           top: auto;
+           margin: 0 -2px -1px;
+        }
+
           .keyboard-key.highlighted[data-keycode="-3"] > span:after,
           .keyboard-key.highlighted[data-keycode="8"] > span:after,
           .keyboard-key.highlighted[data-keycode="20"] > span:after,
