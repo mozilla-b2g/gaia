@@ -220,7 +220,6 @@ button:-moz-focus-inner{
 .keyboard-key.highlighted[data-keycode="13"],
 .keyboard-key.highlighted[data-keycode="18"],
 .keyboard-key.highlighted[data-keycode="-1"],
-.keyboard-key.highlighted[data-keycode="32"],
 .keyboard-key.highlighted[data-keycode="-2"],
 .keyboard-key.special-key.highlighted
   {  box-shadow: 0 0 0 2px #4495A8; margin-top: 0; border: none; }
@@ -250,16 +249,23 @@ button:-moz-focus-inner{
       }
 
     /* SPACEBAR without highlight */
-    .keyboard-key.highlighted[data-keycode="32"] > span  {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        height: 100%
-      }
+  .keyboard-key.highlighted[data-keycode="32"] {
+    margin-top: 0;
+    border: none;
+    opacity: 0.7;
+    box-shadow: none;
+  }     
+        .keyboard-key.highlighted[data-keycode="32"] > span  {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 100%;
+          }
 
 
+      /* Special key with menu */
        .keyboard-key.special-key.highlighted.kbr-menu-on {
         /*pointer-events: none;*/
         background: #ebebeb;
