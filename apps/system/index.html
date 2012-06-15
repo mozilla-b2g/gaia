@@ -19,6 +19,7 @@
       document.write('<script src="' + src + '"><\/script>');
     </script>
     <link rel="stylesheet" type="text/css" href="style/system.css">
+    <link rel="stylesheet" type="text/css" href="style/prompt.css">
     <script defer src="js/settings_listener.js"></script>
     <script defer src="js/applications.js"></script>
     <script defer src="js/screen_manager.js"></script>
@@ -29,6 +30,7 @@
     <script defer src="js/source_view.js"></script>
     <script defer src="js/storage.js"></script>
     <script defer src="js/gridview.js"></script>
+    <script defer src="js/prompt.js"></script>
 
     <!-- Accessibility -->
     <link rel="stylesheet" type="text/css" href="style/accessibility/accessibility.css">
@@ -88,6 +90,37 @@
 
       <div id="windows">
         <!-- application windows are added here -->
+      </div>
+
+      <div id="alert">
+        <div class="alert">
+          <div class="message-container">
+            <span id="alert-message"></span>
+          </div>  
+          <button id="alert-ok" data-i10n-id="ok">OK</button>
+        </div>
+      </div>
+
+      <div id="confirm">
+        <div class="confirm">
+          <div class="message-container">
+            <span id="confirm-message"></span>
+          </div>  
+          <button id="confirm-ok" data-i10n-id="ok">OK</button>
+          <button id="confirm-cancel" data-i10n-id="cancel">Cancel</button>
+        </div>
+      </div>
+
+      <div id="prompt">
+        <div class="prompt">
+          <div class="message-container">
+            <span id="prompt-message"></span>
+            <br/>
+            <input id="prompt-input"></input>
+          </div>  
+          <button id="prompt-ok" data-i10n-id="ok">OK</button>
+          <button id="prompt-cancel" data-i10n-id="cancel">Cancel</button>
+        </div>
       </div>
 
       <div id="notifications-screen">

@@ -4,22 +4,10 @@
   <meta charset="utf-8">
   <title>UI tests</title>
   <!-- We don't need localization in this app -->
-  <link rel="stylesheet" type="text/css" href="style/uitest.css">
-  <script type="text/javascript" src="js/uitest.js"></script>
 </head>
 <body>
-  <div id="tests" class="panel">
-    <div class="toolbar toolbar-top">
-      <p class="toolbar-title">UI Tests</p>
-    </div>
-    <ul class="list" id="test-list">
-      <li><a href="#test=empty">Empty test</a></li>
-      <li><a href="#test=keyboard">Keyboard test</a></li>
-      <li><a href="#test=contacts">Contacts tests</a></li>
-    </ul>
-  </div>
-  <div id="test-panel" class="panel">
-    <iframe id="test-iframe"></iframe>
-  </div>
+  <button onclick=alert('hi')>press me!</button>
+  <button onclick=confirm('lol')>press me!</button>
+  <button onclick=prompt('zzzz','1111')>press me!</button>
 </body>
 </html>

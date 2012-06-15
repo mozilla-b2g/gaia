@@ -1,0 +1,46 @@
+
+#alert, #confirm, #prompt {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: ;
+  background-color: rgba(0,0,0,0.4);
+  -moz-transition: opacity 0.5s ease;
+  display: none;
+}
+
+.alert, .confirm, .prompt {
+  width: 320px;
+  background: black;
+  color: white;
+  z-index: 10000;
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  margin-left: -160px;
+  border-radius: 6px 6px 6px 6px;
+  text-align: center;
+}
+
+.message-container {
+  background: gray;
+  color: black;
+  padding: 1em;
+  min-height: 30px;
+}
+
+#alert button, #confirm button, #prompt button {
+  width: 100px;
+  height: 30px;
+  background: black;
+  color: white;
+  font-size: 20px;
+  border-radius: 6px 6px 6px 6px;
+  margin: 6px;
+}
+
+#alert.visible, #confirm.visible, #prompt.visible {
+  display: block;
+}
