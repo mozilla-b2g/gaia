@@ -299,18 +299,20 @@ update-common: common-install
 test-agent-config: test-agent-bootstrap-apps
 	@rm -f $(TEST_AGENT_CONFIG)
 	@touch $(TEST_AGENT_CONFIG)
-	@echo '{"tests": [' >> $(TEST_AGENT_CONFIG)
-
+	@rm -f /tmp/test-agent-config;
 	# Build json array of all test files
-	(for d in ${GAIA_APP_SRCDIRS} ; do find $$d -name "*_test.js" | \
-		sed "s:$$d/::" | \
+	for d in ${GAIA_APP_SRCDIRS}; \
+	do \
+		find $$d -name '*_test.js' | sed "s:$$d/::g"  >> /tmp/test-agent-config; \
+	done;
+	@echo '{"tests": [' >> $(TEST_AGENT_CONFIG)
+	@cat /tmp/test-agent-config |  \
 		sed 's:\(.*\):"\1":' | \
 		sed -e ':a' -e 'N' -e '$$!ba' -e 's/\n/,\
-	/g'; done) >> $(TEST_AGENT_CONFIG)
-
+	/g' >> $(TEST_AGENT_CONFIG);
 	@echo '  ]}' >> $(TEST_AGENT_CONFIG);
 	@echo "Built test ui config file: $(TEST_AGENT_CONFIG)"
-
+	@rm -f /tmp/test-agent-config
 
 .PHONY: test-agent-bootstrap-apps
 test-agent-bootstrap-apps:
@@ -322,7 +324,6 @@ test-agent-bootstrap-apps:
 			cp -f ./common/test/boilerplate/_sandbox.html $$d/test/unit/_sandbox.html; \
 	done
 	@echo "Done bootstrapping test proxies/sandboxes";
-
 # Temp make file method until we can switch
 # over everything in test
 .PHONY: test-agent-test
