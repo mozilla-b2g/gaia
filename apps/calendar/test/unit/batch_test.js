@@ -80,7 +80,7 @@ suite('batch', function() {
         }
       };
 
-      subject.waitTime = 1;
+      subject.waitTime = 10;
       assert.isFalse(subject.willRun());
 
       subject.action('g1', 'add', 1);
