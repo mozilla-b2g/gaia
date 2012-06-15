@@ -9,6 +9,10 @@
 
 var TaskManager = (function() {
 
+  //config
+  //display icon of an app on top of app's tab
+  var DISPLAY_APP_ICON = true;
+
   var taskManager = document.getElementById('taskManager');
   var taskList = taskManager.getElementsByTagName('ul')[0];
   var displayedApp,
@@ -51,6 +55,17 @@ var TaskManager = (function() {
       icon.style.background = '-moz-element(#' + app.frame.id + ') no-repeat';
       var close_button = document.createElement('a');
       icon.appendChild(close_button);
+
+      //display app icon on the tab
+      if (DISPLAY_APP_ICON) {
+          var icons = runningApps[origin].manifest.icons;
+          var iconSrc = origin + icons[Object.keys(icons)[0]];
+          var appIcon = document.createElement('img');
+
+          appIcon.src = iconSrc;
+          icon.appendChild(appIcon);
+      }
+
       var title = document.createElement('h1');
       title.textContent = app.name;
       icon.appendChild(title);
