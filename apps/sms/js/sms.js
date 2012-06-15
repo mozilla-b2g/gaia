@@ -329,26 +329,19 @@ var ConversationListView = {
 
         var read = message.read;
         var conversation = conversations[num];
-        if (conversation && !conversation.hidden) {
+        if (conversation) {
           conversation.unreadCount += !read ? 1 : 0;
           continue;
         }
 
-        if (!conversation) {
-          conversations[num] = {
-            'hidden': false,
-            'body': message.body,
-            'name': num,
-            'num': num,
-            'timestamp': message.timestamp.getTime(),
-            'unreadCount': !read ? 1 : 0,
-            'id': i
-          };
-        } else {
-          conversation.hidden = false;
-          conversation.timestamp = message.timestamp.getTime();
-          conversation.body = message.body;
-        }
+        conversations[num] = {
+          'body': message.body,
+          'name': num,
+          'num': num,
+          'timestamp': message.timestamp.getTime(),
+          'unreadCount': !read ? 1 : 0,
+          'id': i
+        };
       }
 
       var fragment = '';
@@ -389,18 +382,12 @@ var ConversationListView = {
     var bodyText = conversation.body.split('\n')[0];
     var bodyHTML = reg ? this.createHighlightHTML(bodyText, reg) :
                            escapeHTML(bodyText);
-    var listClass = '';
-    if (conversation.hidden) {
-      listClass = 'hide';
-    } else if (conversation.unreadCount > 0) {
-      listClass = 'unread';
-    }
 
     return '<a href="#num=' + conversation.num + '"' +
            ' data-num="' + conversation.num + '"' +
            ' data-name="' + dataName + '"' +
            ' data-notempty="' + (conversation.timestamp ? 'true' : '') + '"' +
-           ' class="' + listClass + '">' +
+           ' class="' + (conversation.unreadCount > 0 ? 'unread' : '') + '">' +
            '<input type="checkbox" class="fake-checkbox"/>' + '<span></span>' +
            '  <div class="name">' + name + '</div>' +
            '  <div class="msg">' + bodyHTML + '</div>' +
@@ -439,7 +426,6 @@ var ConversationListView = {
           continue;
 
         var msgProperties = {
-          'hidden': false,
           'body': message.body,
           'name': num,
           'num': num,

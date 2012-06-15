@@ -1,0 +1,40 @@
+/* Here we reset rem size for different device resolution. */
+
+/* Resolution for WVGA (800 x 480) or width/height between 480px~800px */
+@media screen and (max-device-width: 800px) and (max-device-height: 800px) and
+             (min-device-width: 480px) and (min-device-height: 480px) {
+  html {
+    font-size: 10px;
+  }
+  
+  /* media queries for removing rounded border when keyboard is shown */
+  /* XXX Note: Since rem (or other relative unit) in media query could not be
+               applied with changed vaule now (alway map to 16px), we use px and
+               set bottom toolbar style in every resolution temporary.*/
+  @media screen and (max-height: 700px) and (orientation: portrait),
+         screen and (max-height: 400px) and (orientation: landscape) {
+    .toolbar-bottom {
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+  }
+
+}
+
+/* Resolution for HVGA (480 x 320) or width/height under 480px */
+@media screen and (max-device-width: 480px) and (max-device-height: 480px) {
+  html {
+    font-size: 6px;
+  }
+
+  /* media queries for removing rounded border when keyboard is shown */
+  @media screen and (max-height: 400px) and (orientation: portrait),
+         screen and (max-height: 240px) and (orientation: landscape) {
+    .toolbar-bottom {
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+  }
+
+}
+
