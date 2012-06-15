@@ -1,0 +1,82 @@
+#screen.fullscreen:not(.locked) > #notifications-screen {
+  display: none;
+}
+
+#notifications-screen {
+  position: absolute;
+  z-index: 9996;
+  top: -moz-calc(-100% + 64px);
+  width: -moz-calc(100%);
+  height: -moz-calc(100% - 32px);
+  background-color: #222;
+}
+
+#notifications-container .notification {
+  position: relative;
+  background-image: url("images/notifications.png");
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+
+  height: 80px;
+  font-weight: bold;
+}
+
+#notifications-container .notification div {
+  pointer-events: none;
+}
+
+#notifications-container .notification > div:first-of-type {
+  margin: 0 0 0 85px;
+  padding: 20px 0 0 0;
+
+  font-size: 2.5mozmm;
+  line-height: 2.5mozmm;
+  color: #111;
+}
+
+#notifications-container .notification > div {
+  margin: 0 0 0 85px;
+  padding: 0;
+  width: -moz-calc(100% - 105px);
+  height: 25px;
+
+  font-size: 2mozmm;
+  color: #666;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#notifications-container .notification > a.close {
+  display: block;
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  width: 80px;
+  height: 80px;
+}
+
+#notifications-container .notification > img {
+  float: left;
+  display: block;
+  width: 64px;
+  height: 64px;
+  margin: 8px;
+}
+
+#grippy {
+  pointer-events: none;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 30px;
+
+  border-bottom: 1px solid #111;
+  border-top: 1px solid #111;
+}
+
+#state-notifications[data-visible] {
+  width: 32px;
+  height: 32px;
+}
+

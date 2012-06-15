@@ -1,9 +1,16 @@
 requireApp('calendar/js/format.js');
 requireApp('calendar/js/template.js');
+requireApp('calendar/test/unit/helper.js');
 
 suite('calendar/template', function() {
   var Template, subject,
-      tplStr = '%s foo %h';
+      tplStr = '%s foo %h',
+      support;
+
+
+  suiteSetup(function() {
+    support = testSupport.calendar;
+  });
 
   suiteSetup(function() {
     Template = Calendar.Template;
@@ -37,16 +44,30 @@ suite('calendar/template', function() {
   });
 
   test('#renderEach', function() {
-    var tpl = new Template('{x}x{y}');
-    var result = tpl.renderEach([
+    var tpl,
+        result,
+        objects;
+
+    objects = [
       { x: 1, y: 2 },
       { x: 7, y: 7 }
-    ]);
+    ];
+
+    tpl = new Template('{x}x{y}');
+    result = tpl.renderEach(objects);
 
     assert.deepEqual(result, [
       '1x2',
       '7x7'
-    ]);
+    ], 'should return array of rendered results');
+
+    result = tpl.renderEach(objects, '--');
+
+    assert.equal(
+      result,
+      '1x2--7x7',
+      'should return string joined by ","'
+    );
   });
 
   suite('#render', function() {
@@ -141,37 +162,13 @@ suite('calendar/template', function() {
 
   suite('benchmarks', function() {
 
-    function bench(iter, cb) {
-      var start = window.performance.now(),
-          i = 0;
-
-      for (; i < iter; i++) {
-        cb();
-      }
-
-      return window.performance.now() - start;
-    }
-
-    function vs(iter, cmds) {
-      var results = {},
-          key;
-
-      for (key in cmds) {
-        if (cmds.hasOwnProperty(key)) {
-          results[key] = bench(iter, cmds[key]);
-        }
-      }
-
-      return results;
-    }
-
     test('tpl vs format', function() {
       var tpl = 'My name is {first} {last}, Thats Mr {last}';
       var template;
 
       var expected = 'My name is Sahaja Lal, Thats Mr Lal';
 
-      var results = vs(5000, {
+      var results = support.vs(5000, {
         compiled: function() {
           template = template || new Template(tpl);
           template.render({first: 'Sahaja', last: 'Lal'});
@@ -200,7 +197,7 @@ suite('calendar/template', function() {
 
       div.appendChild(span);
 
-      var results = vs(5000, {
+      var results = support.vs(5000, {
         html: function() {
           var myDiv = div.cloneNode(),
               mySpan = myDiv.querySelector('span');

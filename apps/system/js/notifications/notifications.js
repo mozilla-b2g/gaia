@@ -61,14 +61,15 @@ var NotificationScreen = {
     this.touchables = touchables;
     this.attachEvents(touchables);
 
+    this.screen = document.getElementById('screen');
+
     window.addEventListener('mozChromeEvent', function notificationListener(e) {
       var detail = e.detail;
       switch (detail.type) {
         case 'desktop-notification':
           NotificationScreen.addNotification(detail);
 
-          var hasNotifications = document.getElementById('state-notifications');
-          hasNotifications.dataset.visible = 'true';
+          StatusBar.updateNotification(true);
           break;
 
         case 'permission-prompt':
@@ -114,6 +115,7 @@ var NotificationScreen = {
   onTouchStart: function ns_onTouchStart(e) {
     this.startX = e.pageX;
     this.startY = e.pageY;
+    this.screen.classList.add('utility-tray');
     this.onTouchMove({ pageY: e.pageY + 32 });
   },
 
@@ -143,6 +145,8 @@ var NotificationScreen = {
     style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
     style.MozTransform = 'translateY(0)';
     this.locked = false;
+    if (instant)
+      this.screen.classList.remove('utility-tray');
   },
 
   lock: function ns_lock(dy) {
@@ -150,14 +154,17 @@ var NotificationScreen = {
     style.MozTransition = '-moz-transform 0.2s linear';
     style.MozTransform = 'translateY(100%)';
     this.locked = true;
+    this.screen.classList.add('utility-tray');
   },
 
   attachEvents: function ns_attachEvents(view) {
     AddEventHandlers(window, this, ['touchstart', 'touchmove', 'touchend']);
+    this.touchables[0].addEventListener('transitionend', this);
   },
 
   detachEvents: function ns_detachEvents() {
     RemoveEventHandlers(window, this, ['touchstart', 'touchmove', 'touchend']);
+    this.touchables[0].removeEventListener('transitionend', this);
   },
 
   handleEvent: function(evt) {
@@ -187,6 +194,12 @@ var NotificationScreen = {
       document.releaseCapture();
       this.onTouchEnd(evt.changedTouches[0]);
       break;
+
+    case 'transitionend':
+      if (!this.locked)
+        this.screen.classList.remove('utility-tray');
+      break;
+
     default:
       return;
     }
@@ -232,8 +245,15 @@ var NotificationScreen = {
     var notifSelector = 'div[data-type="desktop-notification"]';
     var desktopNotifications = this.container.querySelectorAll(notifSelector);
     if (desktopNotifications.length == 0) {
-      var hasNotifications = document.getElementById('state-notifications');
-      delete hasNotifications.dataset.visible;
+      StatusBar.updateNotification(false);
     }
   }
 };
+
+(function init_NotificationScreen() {
+  var touchables = [
+    document.getElementById('notifications-screen'),
+    document.getElementById('statusbar')
+  ];
+  NotificationScreen.init(touchables);
+}());

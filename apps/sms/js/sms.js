@@ -16,6 +16,12 @@ var MessageManager = {
     for (var i = 0; i < dbData.length; i++) {
       if (cacheData[i].id !== dbData[i].id)
         return true;
+
+      // Since we could only change read property in message,
+      // Add read property checking for cache.
+      if (cacheData[i].read !== dbData[i].read)
+        return true;
+
     }
     return false;
   },
@@ -92,6 +98,29 @@ var MessageManager = {
       }.bind(this));
     } else
       callback();
+  },
+
+  markMessageRead: function mm_markMessageRead(id, value, callback) {
+    var req = navigator.mozSms.markMessageRead(id, value);
+    req.onsuccess = function onsuccess() {
+      callback(req.result);
+    };
+
+    req.onerror = function onerror() {
+      var msg = 'Mark message error in the database. Error: ' + req.errorCode;
+      console.log(msg);
+      callback(null);
+    };
+  },
+
+  markMessagesRead: function mm_markMessagesRead(list, value, callback) {
+    if (list.length > 0) {
+      this.markMessageRead(list.shift(), value, function markReadCb(result) {
+        this.markMessagesRead(list, value, callback);
+      }.bind(this));
+    } else {
+      callback();
+    }
   }
 };
 
@@ -298,9 +327,12 @@ var ConversationListView = {
         var num = message.delivery == 'received' ?
                   message.sender : message.receiver;
 
+        var read = message.read;
         var conversation = conversations[num];
-        if (conversation && !conversation.hidden)
+        if (conversation && !conversation.hidden) {
+          conversation.unreadCount += !read ? 1 : 0;
           continue;
+        }
 
         if (!conversation) {
           conversations[num] = {
@@ -309,6 +341,7 @@ var ConversationListView = {
             'name': num,
             'num': num,
             'timestamp': message.timestamp.getTime(),
+            'unreadCount': !read ? 1 : 0,
             'id': i
           };
         } else {
@@ -356,18 +389,25 @@ var ConversationListView = {
     var bodyText = conversation.body.split('\n')[0];
     var bodyHTML = reg ? this.createHighlightHTML(bodyText, reg) :
                            escapeHTML(bodyText);
+    var listClass = '';
+    if (conversation.hidden) {
+      listClass = 'hide';
+    } else if (conversation.unreadCount > 0) {
+      listClass = 'unread';
+    }
 
     return '<a href="#num=' + conversation.num + '"' +
            ' data-num="' + conversation.num + '"' +
            ' data-name="' + dataName + '"' +
            ' data-notempty="' + (conversation.timestamp ? 'true' : '') + '"' +
-           ' class="' + (conversation.hidden ? 'hide' : '') + '">' +
+           ' class="' + listClass + '">' +
            '<input type="checkbox" class="fake-checkbox"/>' + '<span></span>' +
            '  <div class="name">' + name + '</div>' +
            '  <div class="msg">' + bodyHTML + '</div>' +
            (!conversation.timestamp ? '' :
            '  <div class="time" data-time="' + conversation.timestamp + '">' +
-             prettyDate(conversation.timestamp) + '</div>') + '</a>';
+             prettyDate(conversation.timestamp) + '</div>') +
+           '<div class="unread-tag">' + conversation.unreadCount + '</div></a>';
   },
 
   searchConversations: function cl_searchConversations() {
@@ -389,6 +429,10 @@ var ConversationListView = {
         var htmlContent = message.body.split('\n')[0];
         var num = message.delivery == 'received' ?
                   message.sender : message.receiver;
+        var read = message.read;
+
+        if (searchedNum[num])
+          searchedNum[num].unreadCount += !message.read ? 1 : 0;
 
         if (!reg.test(htmlContent) || searchedNum[num] ||
             self.delNumList.indexOf(num) !== -1)
@@ -400,9 +444,10 @@ var ConversationListView = {
           'name': num,
           'num': num,
           'timestamp': message.timestamp.getTime(),
+          'unreadCount': !read ? 1 : 0,
           'id': i
         };
-        searchedNum[num] = true;
+        searchedNum[num] = msgProperties;
         var msg = self.createNewConversation(msgProperties, reg);
         fragment += msg;
 
@@ -431,12 +476,15 @@ var ConversationListView = {
       case '':
         bodyclassList.remove('msg-edit-mode');
         bodyclassList.remove('msg-search-mode');
-        if (!bodyclassList.contains('msg-search-result-mode'))
+        if (!bodyclassList.contains('msg-search-result-mode') &&
+            !bodyclassList.contains('conversation'))
           return;
 
         this.searchInput.value = '';
         this.updateConversationList();
         bodyclassList.remove('msg-search-result-mode');
+        bodyclassList.remove('conversation');
+        bodyclassList.remove('conversation-new-msg');
         break;
       case '#_edit':  // Edit mode with all conversations.
         bodyclassList.add('msg-edit-mode');
@@ -476,11 +524,6 @@ var ConversationListView = {
 
       case 'hashchange':
         this.pageStatusController();
-        if (window.location.hash) {
-          return;
-        }
-        document.body.classList.remove('conversation');
-        document.body.classList.remove('conversation-new-msg');
         break;
 
       case 'mousedown':
@@ -745,9 +788,13 @@ var ConversationView = {
         messages.push(pendingMsg);
 
       var fragment = '';
+      var unreadList = [];
 
       for (var i = 0; i < messages.length; i++) {
         var msg = messages[i];
+
+        if (!msg.read)
+          unreadList.push(msg.id);
 
         var uuid = msg.hasOwnProperty('uuid') ? msg.uuid : '';
         var dataId = 'data-id="' + uuid + '"';
@@ -776,6 +823,11 @@ var ConversationView = {
       self.scrollViewToBottom(currentScrollTop);
 
       bodyclassList.add('conversation');
+
+      MessageManager.markMessagesRead(unreadList, true, function markMsg() {
+        // TODO : Since spec do not specify the behavior after mark success or
+        //        error, we do nothing currently.
+      });
     }, filter, true);
   },
 

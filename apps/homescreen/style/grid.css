@@ -29,7 +29,7 @@
   float: left;
   text-align: center;
   /* It SHOULD be 2.5rem but status bar is 32px instead of 20px */
-  padding-bottom: -moz-calc(2.5rem - 0.3rem);
+  padding-bottom: 2.3rem;
   font-family:'Open Sans';
 }
 
@@ -60,7 +60,6 @@
 .apps ol > li > div > img {
   width: 6rem;
   height: 6rem;
-  border-radius: .6rem;
 }
 
 /* label wrapper */
@@ -72,7 +71,6 @@
 /* text label */
 .apps ol > li > div > span > span {
   font-size: -moz-calc(6 * 0.226rem); /* 6pt */
-  text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
 }
 
 .labelWrapper {
@@ -161,4 +159,3 @@
 .apps ol > li[data-dragging] {
   opacity: 0;
 }
-
