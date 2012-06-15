@@ -114,12 +114,11 @@ html * {
 }
 
 #kb-keypad {
-  background:yellow;
   height:-moz-calc(100% - 6.5rem);
   width:100%;
   display:table;
   table-layout:fixed;
-  background:red;  
+  background:red;
 }
 
 .kb-keypad-cell {
@@ -138,7 +137,6 @@ html * {
 .kb-keypad-key {
   background: #2d2642; /* Old browsers */
   background: -moz-linear-gradient(top, #2d2642 0%, #0f1214 100%); /* FF3.6+ */
-  /* background: linear-gradient(top, #2d2642 0%,#0f1214 100%); /* W3C */
   border:0;
   border-right:1px solid #313A47;
   border-bottom:1px solid #313A47;
@@ -515,25 +513,11 @@ html * {
   width: -moz-calc(90% / 2 - 1px);
 }
 
-#mainKeyset.overlay {
+#kb-keypad.overlay {
   position: absolute;
   top: 0;
-  height: 72%;
-  background: url(images/call-screen-bg.png) center top no-repeat #575B66;
-  color: white;
+  height: 40%;
   z-index: 500;
-}
-
-#mainKeyset.overlay .keyboard-row .keyboard-key {
-  border: 1px solid #bcbcbc;
-}
-
-#mainKeyset.overlay .keyboard-key > span {
-  color: white;
-}
-
-#mainKeyset.overlay .keyboard-key:active {
-  background: rgba(255, 255, 255, .3);
 }
 
 /* == Screen turn off hack == */
