@@ -8,9 +8,20 @@
 
 @media screen and (max-device-width: 480px) and (max-device-height: 480px) {
   html {
-    font-size: 6px;
+    font-size: 6px;  
+    /** font-size: 7.3px; 10px aiming at devices with 219dpi, 7.3px for 160dpi, 6px for?? */
   }
 }
+
+/* media queries for removing rounded border when keyboard is shown */
+@media screen and (max-height: 70rem) {
+  .toolbar-bottom {
+    bottom: 0;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-top: solid 0.3rem #9b9b9b;
+}
+
 
 html, body {
   height: 100%;
@@ -18,9 +29,6 @@ html, body {
   margin: 0;
   overflow-x: hidden;
   overflow-y: hidden;
-
-  font-size: 7.3px; /** 10px aiming at devices with 219dpi, 7.3px for 160dpi, change when needed */
-
 }
 
 body {
@@ -145,14 +153,7 @@ body.conversation #msg-conversations {
   -moz-box-flex: 0;
 }
 
-/* media queries for removing rounded border when keyboard is shown */
-@media screen and (max-height: 70rem) {
-  .toolbar-bottom {
-    bottom: 0;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-    border-top: solid 0.3rem #9b9b9b;
-  }
+
 }
 
 .list {
