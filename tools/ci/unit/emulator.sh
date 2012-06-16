@@ -58,7 +58,6 @@ then
   echo $?;
 fi
 
-
 $B2G_SCRIPTS cmd goUrl $DOMAIN;
 
 echo "Running tests";
