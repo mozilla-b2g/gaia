@@ -22,8 +22,6 @@ then
   $AGENT test --reporter $REPORTER --server $TEST_AGENT_SERVER --wait-for-event="test data" --event-timeout="30000"
 else
   rm -f $TEST_OUTPUT;
-  echo $TEST_AGENT_SERVER
-  echo $REPORTER
   $AGENT test --reporter $REPORTER --server $TEST_AGENT_SERVER --wait-for-event="test data" --event-timeout="30000" > $TEST_OUTPUT
 fi
 
