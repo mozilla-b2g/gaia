@@ -98,7 +98,7 @@ var LockScreen = {
     this.camera.addEventListener('unload', this);
 
     /* switching panels */
-    window.addEventListener('keyup', this);
+    window.addEventListener('keyup', this, true);
 
     var self = this;
 
@@ -200,7 +200,10 @@ var LockScreen = {
         break;
 
       case 'keyup':
-        if (!this.locked || evt.keyCode !== evt.DOM_VK_ESCAPE ||
+        if (!this.locked)
+          break;
+
+        if (evt.keyCode !== evt.DOM_VK_ESCAPE &&
             evt.keyCode !== evt.DOM_VK_HOME)
           break;
 
@@ -294,7 +297,6 @@ var LockScreen = {
     this.locked = false;
 
     this.mainScreen.focus();
-    this.overlay.classList.add('unlocked');
     if (instant)
       this.overlay.classList.add('no-transition');
     else
@@ -320,7 +322,6 @@ var LockScreen = {
     this.switchPanel();
 
     this.overlay.focus();
-    this.overlay.classList.remove('unlocked');
     if (instant)
       this.overlay.classList.add('no-transition');
     else
@@ -448,7 +449,6 @@ var LockScreen = {
         delete this.overlay.dataset.passcodeStatus;
         this.unlock();
         this.passCodeEntered = '';
-        this.updatePassCodeUI();
       }).bind(this), this.kPassCodeSuccessTimeout);
     } else {
       this.overlay.dataset.passcodeStatus = 'error';
@@ -500,3 +500,5 @@ var LockScreen = {
     this.camera.dispatchEvent(generatedEvent);
   }
 };
+
+LockScreen.init();

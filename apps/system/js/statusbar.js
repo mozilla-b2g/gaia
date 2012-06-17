@@ -165,8 +165,11 @@ var StatusBar = {
 
     if (this.radioDisabled) {
       this.conn.textContent = _('airplane');
+      this.signal.hidden = true;
+      this.data.textContent = '';
       return;
     }
+    this.signal.hidden = false;
 
     // Update the operator name / SIM status.
     var title = '';
