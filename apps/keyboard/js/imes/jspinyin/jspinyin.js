@@ -4318,10 +4318,16 @@ var IAtomDictBase = {
    * Get lemma items with scores according to a spelling id stream.
    * This atom dictionary does not need to sort the returned items.
    *
-   * @param {string} spl_idStr The spelling id stream string.
-   * @return {Array.<LmaPsbItem>} The array of matched items.
+   * @param {Array.<number>} splid_str The spelling id stream buffer.
+   * @param {Array.<SearchUtility.LmaPsbItem>} lpi_items Buffer used to fill in
+   *    the lemmas matched.
+   * @param {number} start The start position of the buffer.
+   * @param {number} lpi_max The length of the buffer that could be used.
+   * @return {number} The number of matched items which have been filled in to
+   *    lpi_items.
    */
-  get_lpis: function atomDictBase_get_lpis(splid_str) {},
+  get_lpis:
+      function atomDictBase_get_lpis(splid_str, lpi_items, start, lpi_max) {},
 
   /**
    * Get a lemma string (The Chinese string) by the given lemma id.
@@ -4335,10 +4341,14 @@ var IAtomDictBase = {
    *
    * @param {number} id_lemma The lemma id to get the result.
    * @param {Array.<number>} splids The buffer of the spl_ids. There may be
-   *    half ids in spl_ids to be updated to full ids。.
+   *    half ids in spl_ids to be updated to full ids.
+   * @param {number} start The start position of the buffer.
+   * @param {number} splids_max The length of the buffer from the start
+   *    position.
    * @return {number} The number of ids in the buffer.
    */
-  get_lemma_splids: function atomDictBase_get_lemma_splids(id_lemma, splids) {},
+  get_lemma_splids: function atomDictBase_get_lemma_splids(id_lemma, splids,
+      start, splids_max) {},
 
   /**
    * Function used for prediction.
@@ -4348,10 +4358,14 @@ var IAtomDictBase = {
    *    length should be less than or equal to kMaxPredictSize.
    * @param {number} used The number of items have been used from the
    *    beiginning of buffer. An atom dictionary can just ignore it.
-   * @return {Array.<NPredictItem>} The array of prediction result from this
-   *    atom dictionary.
+   * @param {number} start The start position of the buffer.
+   * @param {number} npre_max The length of the buffer from the start position.
+   * @param {number} b4_used specifies how many items have been used before the
+   *    start position of the buffer.
+   * @return {number} The number of newly added items.
    */
-  predict: function atomDictBase_predict(last_hzs, used) {},
+  predict: function atomDictBase_predict(last_hzs, npre_items, start, npre_max,
+                                         b4_used) {},
 
   /**
    * Add a lemma to the dictionary. If the dictionary allows to add new
@@ -4583,22 +4597,255 @@ DictTrie.prototype = {
   /**
    * @override
    */
-  get_lpis: function dictTrie_get_lpis(splid_str) {},
+  get_lpis: function dictTrie_get_lpis(splid_str, lma_buf, start, max_lma_buf) {
+    var splid_str_len = splid_str.length;
+    if (splid_str_len > DictDef.kMaxLemmaSize) {
+      return 0;
+    }
+
+    var MAX_EXTENDBUF_LEN = 200;
+
+    var node_fr_le0 = []; // Nodes from.
+    var node_to_le0 = []; // Nodes to.
+    var node_fr_ge1 = [];
+    var node_to_ge1 = [];
+    var node_fr_num = 1;
+    var node_to_num = 0;
+    node_fr_le0[0] = this.root_[0];
+    if (null === node_fr_le0[0]) {
+      return 0;
+    }
+
+    var spl_pos = 0;
+
+    while (spl_pos < splid_str_len) {
+      var id_num = 1;
+      var id_start = splid_str[spl_pos];
+      // If it is a half id
+      if (this.spl_trie_.is_half_id(splid_str[spl_pos])) {
+        var ret = this.spl_trie_.half_to_full(splid_str[spl_pos]);
+        id_num = ret.num;
+        id_start = ret.spl_id_start;
+        assert(id_num > 0);
+      }
+
+      // Extend the nodes
+      if (0 == spl_pos) {  // From LmaNodeLE0 (root) to LmaNodeLE0 nodes
+        for (var node_fr_pos = 0; node_fr_pos < node_fr_num; node_fr_pos++) {
+          var node = node_fr_le0[node_fr_pos];
+          assert(node == root_[0] && 1 == node_fr_num);
+          var son_start =
+            this.splid_le0_index_[id_start - SpellingTrie.kFullSplIdStart];
+          var son_end = this.splid_le0_index_[id_start + id_num -
+                                              SpellingTrie.kFullSplIdStart];
+          for (var son_pos = son_start; son_pos < son_end; son_pos++) {
+            assert(1 == node.son_1st_off);
+            var node_son = this.root_[son_pos];
+            assert(node_son.spl_idx >= id_start &&
+                   node_son.spl_idx < id_start + id_num);
+            if (node_to_num < MAX_EXTENDBUF_LEN) {
+              node_to_le0[node_to_num] = node_son;
+              node_to_num++;
+            }
+            // id_start + id_num - 1 is the last one, which has just been
+            // recorded.
+            if (node_son.spl_idx >= id_start + id_num - 1) {
+              break;
+            }
+          }
+        }
+
+        spl_pos++;
+        if (spl_pos >= splid_str_len || node_to_num == 0)
+          break;
+        // Prepare the nodes for next extending
+        // next time, from LmaNodeLE0 to LmaNodeGE1
+        var node_tmp = node_fr_le0;
+        node_fr_le0 = node_to_le0;
+        node_to_le0 = null;
+        node_to_ge1 = node_tmp;
+      } else if (1 == spl_pos) {  // From LmaNodeLE0 to LmaNodeGE1 nodes
+        for (var node_fr_pos = 0; node_fr_pos < node_fr_num; node_fr_pos++) {
+          var node = node_fr_le0[node_fr_pos];
+          for (var son_pos = 0; son_pos < node.num_of_son;
+               son_pos++) {
+            assert(node.son_1st_off <= this.lma_node_num_ge1_);
+            var node_son = this.nodes_ge1_[node.son_1st_off + son_pos];
+            if (node_son.spl_idx >= id_start &&
+                node_son.spl_idx < id_start + id_num) {
+              if (node_to_num < MAX_EXTENDBUF_LEN) {
+                node_to_ge1[node_to_num] = node_son;
+                node_to_num++;
+              }
+            }
+            // id_start + id_num - 1 is the last one, which has just been
+            // recorded.
+            if (node_son.spl_idx >= id_start + id_num - 1)
+              break;
+          }
+        }
+
+        spl_pos++;
+        if (spl_pos >= splid_str_len || node_to_num == 0)
+          break;
+        // Prepare the nodes for next extending
+        // next time, from LmaNodeGE1 to LmaNodeGE1
+        node_fr_ge1 = node_to_ge1[0];
+        node_to_ge1 = node_fr_le0[0];
+        node_fr_le0 = null;
+        node_to_le0 = null;
+      } else {  // From LmaNodeGE1 to LmaNodeGE1 nodes
+        for (var node_fr_pos = 0; node_fr_pos < node_fr_num; node_fr_pos++) {
+          var node = node_fr_ge1[node_fr_pos];
+          for (var son_pos = 0; son_pos < node.num_of_son;
+               son_pos++) {
+            assert(node.son_1st_off_l > 0 || node.son_1st_off_h > 0);
+            var node_son = this.nodes_ge1_[this.get_son_offset(node) + son_pos];
+            if (node_son.spl_idx >= id_start &&
+                node_son.spl_idx < id_start + id_num) {
+              if (node_to_num < MAX_EXTENDBUF_LEN) {
+                node_to_ge1[node_to_num] = node_son;
+                node_to_num++;
+              }
+            }
+            // id_start + id_num - 1 is the last one, which has just been
+            // recorded.
+            if (node_son.spl_idx >= id_start + id_num - 1)
+              break;
+          }
+        }
+
+        spl_pos++;
+        if (spl_pos >= splid_str_len || node_to_num == 0)
+          break;
+        // Prepare the nodes for next extending
+        // next time, from LmaNodeGE1 to LmaNodeGE1
+        var node_tmp = node_fr_ge1;
+        node_fr_ge1 = node_to_ge1;
+        node_to_ge1 = node_tmp;
+      }
+
+      // The number of node for next extending
+      node_fr_num = node_to_num;
+      node_to_num = 0;
+    }  // while
+
+    if (0 == node_to_num)
+      return 0;
+
+    var ngram = NGram.get_instance();
+    var lma_num = 0;
+
+    // If the length is 1, and the splid is a one-char Yunmu like 'a', 'o', 'e',
+    // only those candidates for the full matched one-char id will be returned.
+    if (1 == splid_str_len && this.spl_trie_.is_half_id_yunmu(splid_str[0])) {
+      node_to_num = node_to_num > 0 ? 1 : 0;
+    }
+
+    for (var node_pos = 0; node_pos < node_to_num; node_pos++) {
+      var num_of_homo = 0;
+      if (spl_pos <= 1) {  // Get from LmaNodeLE0 nodes
+        var node_le0 = node_to_le0[node_pos];
+        num_of_homo = node_le0.num_of_homo;
+        for (var homo_pos = 0; homo_pos < num_of_homo; homo_pos++) {
+          var ch_pos = lma_num + homo_pos;
+          lma_buf[start + ch_pos].id =
+              this.get_lemma_id_by_offset(node_le0.homo_idx_buf_off + homo_pos);
+          lma_buf[start + ch_pos].lma_len = 1;
+          lma_buf[start + ch_pos].psb =
+            ngram.get_uni_psb(lma_buf[start + ch_pos].id);
+
+          if (lma_num + homo_pos >= max_lma_buf - 1)
+            break;
+        }
+      } else {  // Get from LmaNodeGE1 nodes
+        var node_ge1 = node_to_ge1[node_pos];
+        num_of_homo = node_ge1.num_of_homo;
+        for (var homo_pos = 0; homo_pos < num_of_homo; homo_pos++) {
+          var ch_pos = lma_num + homo_pos;
+          var node_homo_off = this.get_homo_idx_buf_offset(node_ge1);
+          lma_buf[start + ch_pos].id =
+            get_lemma_id_by_offset(node_homo_off + homo_pos);
+          lma_buf[start + ch_pos].lma_len = splid_str_len;
+          lma_buf[start + ch_pos].psb =
+            ngram.get_uni_psb(lma_buf[start + ch_pos].id);
+
+          if (lma_num + homo_pos >= max_lma_buf - 1)
+            break;
+        }
+      }
+
+      lma_num += num_of_homo;
+      if (lma_num >= max_lma_buf) {
+        lma_num = max_lma_buf;
+        break;
+      }
+    }
+    return lma_num;
+  },
 
   /**
    * @override
    */
-  get_lemma_str: function dictTrie_get_lemma_str(id_lemma) {},
+  get_lemma_str: function dictTrie_get_lemma_str(id_lemma) {
+    return this.dict_list_.get_lemma_str(id_lemma);
+  },
 
   /**
    * @override
    */
-  get_lemma_splids: function dictTrie_get_lemma_splids(id_lemma, splids) {},
+  get_lemma_splids: function dictTrie_get_lemma_splids(id_lemma, splids, start,
+                                                       splids_max) {
+    var lma_str = this.get_lemma_str(id_lemma);
+    var lma_len = lma_str.length;
+    assert(lma_len == splids_max, 'get_lemma_splids assertion error.' +
+      StringUtils.format('lma_len({0}) != splids_max{1}', lma_len, splids_max));
+
+    var spl_mtrx = [];//[kMaxLemmaSize * 5];
+    var spl_start = [];//[kMaxLemmaSize + 1];
+    spl_start[0] = 0;
+    var try_num = 1;
+
+    for (var pos = 0; pos < lma_len; pos++) {
+      var cand_splids_this = 0;
+      if (this.spl_trie_.is_full_id(splids[pos])) {
+        spl_mtrx.push(splids[pos]);
+        cand_splids_this = 1;
+      } else {
+        var splids_this = this.dict_list_.get_splids_for_hanzi(lma_str[pos],
+            splids[pos]);
+        cand_splids_this = splids_this.length;
+        spl_mtrx = spl_mtrx.concat(splids_this);
+        assert(cand_splids_this > 0);
+      }
+      spl_start[pos + 1] = spl_start[pos] + cand_splids_this;
+      try_num *= cand_splids_this;
+    }
+
+    for (var try_pos = 0; try_pos < try_num; try_pos++) {
+      var mod = 1;
+      for (var pos = 0; pos < lma_len; pos++) {
+        var radix = spl_start[pos + 1] - spl_start[pos];
+        splids[pos] = spl_mtrx[spl_start[pos] + try_pos / mod % radix];
+        mod *= radix;
+      }
+
+      if (this.try_extend(splids, start, lma_len, id_lemma)) {
+        return lma_len;
+      }
+    }
+
+    return 0;
+  },
 
   /**
    * @override
    */
-  predict: function dictTrie_predict(last_hzs, used) {},
+  predict: function dictTrie_predict(last_hzs, npre_items, start, npre_max,
+                                     b4_used) {
+    return this.dict_list_.predict(last_hzs, npre_items, start, npre_max,
+                                   b4_used);
+  },
 
   /**
    * @override
@@ -4656,7 +4903,10 @@ DictTrie.prototype = {
    * @override
    */
   set_total_lemma_count_of_others:
-      function dictTrie_set_total_lemma_count_of_others(count) {},
+      function dictTrie_set_total_lemma_count_of_others(count) {
+    var ngram = NGram.get_instance();
+    ngram.set_total_freq_none_sys(count);
+  },
 
   /**
    * @override
@@ -4664,20 +4914,49 @@ DictTrie.prototype = {
   flush_cache: function dictTrie_flush_cache() {},
 
   get_lemma_id_by_str: function dictTrie_get_lemma_id_by_str(lemma_str) {
+    if (!lemma_str)
+        return 0;
+    var lemma_len = lemma_str.length;
+    if (lemma_len > DictDef.kMaxLemmaSize) {
+      return 0;
+    }
 
+    return this.dict_list_.get_lemma_id(lemma_str);
   },
 
   /**
    * Fill the lemmas with highest scores to the prediction buffer.
    * his_len is the history length to fill in the prediction buffer.
    * @param {Array.<NPredictItem>} npre_items The buffer to be filled.
-   * @param {number} used The number of items have been used from the
-   * beiginning of buffer.
-   * @param {number} The number of lemmas filled.
+   * @param {number} start The start position of the buffer.
+   * @param {number} npre_max The length of the buffer from the start position.
+   * @param {number} b4_used specifies how many items have been used before the
+   *    start position of the buffer.
+   * @return {number} The number of newly added items.
    */
-  predict_top_lmas:
-      function dictTrie_predict_top_lmas(his_len, npre_items, used) {
+  predict_top_lmas: function dictTrie_predict_top_lmas(his_len, npre_items,
+      start, npre_max, b4_used) {
+    var ngram = NGram.get_instance();
 
+    var item_num = 0;
+    var top_lmas_id_offset = this.lma_idx_buf_len_ /
+      DictDef.kLemmaIdSize - this.top_lmas_num_;
+    var top_lmas_pos = 0;
+    while (item_num < npre_max && top_lmas_pos < this.top_lmas_num_) {
+      this.npre_items[start + item_num] = new SearchUtility.NPredictItem();
+      var top_lma_id =
+        this.get_lemma_id_by_offset(top_lmas_id_offset + top_lmas_pos);
+      top_lmas_pos += 1;
+      var str = this.dict_list_.get_lemma_str(top_lma_id);
+      if (!str) {
+        continue;
+      }
+      npre_items[start + item_num].pre_hzs = str;
+      npre_items[start + item_num].psb = ngram.get_uni_psb(top_lma_id);
+      npre_items[start + item_num].his_len = his_len;
+      item_num++;
+    }
+    return item_num;
   },
 
   /* ==== Private ==== */
@@ -4760,11 +5039,11 @@ DictTrie.prototype = {
 
   /**
    * Get the offset of sons for a node.
-   * @param {LmaNodeGE1} node The given node.
+   * @param {DictDef.LmaNodeGE1} node The given node.
    * @return {number} The offset of the sons.
    */
   get_son_offset: function dictTrie_get_son_offset(node) {
-
+    return node.son_1st_off_l + (node.son_1st_off_h << 16);
   },
 
   /**
@@ -4773,14 +5052,19 @@ DictTrie.prototype = {
    * @return {number} The offset.
    */
   get_homo_idx_buf_offset: function dictTrie_get_homo_idx_buf_offset(node) {
-
+    return node.homo_idx_buf_off_l + (node.homo_idx_buf_off_h << 16);
   },
 
   /**
    * Get the lemma id by the offset.
    */
   get_lemma_id_by_offset: function dictTrie_get_lemma_id_by_offset(id_offset) {
-
+    var id = 0;
+    for (var pos = DictDef.kLemmaIdSize - 1; pos >= 0; pos--) {
+      id = (id << 8) +
+        this.lma_idx_buf_[id_offset * DictDef.kLemmaIdSize + pos];
+    }
+    return id;
   },
 
   load_dict_by_fp: function dictTrie_load_dict_by_fp(fp) {
@@ -4798,7 +5082,19 @@ DictTrie.prototype = {
    */
   fill_lpi_buffer_le0:
       function dictTrie_fill_lpi_buffer_le0(lpi_items, start, max_size, node) {
-
+    var lpi_num = 0;
+    var ngram = NGram.get_instance();
+    for (var homo = 0; homo < node.num_of_homo; homo++) {
+      lpi_items[start + lpi_num].id =
+        this.get_lemma_id_by_offset(node.homo_idx_buf_off + homo);
+      lpi_items[start + lpi_num].lma_len = 1;
+      lpi_items[start + lpi_num].psb =
+        ngram.get_uni_psb(lpi_items[start + lpi_num].id);
+      lpi_num++;
+      if (lpi_num >= lpi_max)
+        break;
+    }
+    return lpi_num;
   },
 
   /**
@@ -4815,13 +5111,28 @@ DictTrie.prototype = {
   fill_lpi_buffer_ge1:
     function dictTrie_fill_lpi_buffer_ge1(lpi_items, start, max_size,
                                           homo_buf_off, node, lma_len) {
+    var lpi_num = 0;
+    var ngram = NGram.get_instance();
+    for (var homo = 0; homo < node.num_of_homo; homo++) {
+      lpi_items[start + lpi_num].id =
+        this.get_lemma_id_by_offset(homo_buf_off + homo);
+      lpi_items[start + lpi_num].lma_len = lma_len;
+      lpi_items[start + lpi_num].psb =
+          ngram.get_uni_psb(lpi_items[start + lpi_num].id);
+      lpi_num++;
+      if (lpi_num >= lpi_max)
+        break;
+    }
+
+    return lpi_num;
   },
 
   /**
    * Extend in the trie from level 0.
    * @param {number} from_handle The mile stone handle from which we extend.
    * @param {SearchUtility.DictExtPara} dep Extra dictionary parameters.
-   * @param {Array.<LmaPsbItem>} lpi_items The buffer to save the result.
+   * @param {Array.<SearchUtility.LmaPsbItem>} lpi_items The buffer to save the
+   *    result.
    * @param {number} start The start position of the buffer.
    * @param {number} lpi_max The maximum number of items to save.
    * @return {{handle: number, lpi_num: number}} handle - The mile stone handle;
@@ -4829,7 +5140,8 @@ DictTrie.prototype = {
    */
   extend_dict0: function dictTrie_extend_dict0(from_handle, dep, lpi_items,
                                                start, lpi_max) {
-    assert(null !== dep && 0 == from_handle, 'extend_dict0 assertion error.');
+    assert(null !== dep && 0 == from_handle, 'extend_dict0 assertion error.' +
+           'Invalid arguments.');
     var ret = {handle: 0, lpi_num: 0};
     var lpi_num = 0;
     var ret_handle = 0;
@@ -4838,52 +5150,60 @@ DictTrie.prototype = {
     var id_start = dep.id_start;
     var id_num = dep.id_num;
 
-    /*
-    LpiCache& lpi_cache = LpiCache::get_instance();
-    bool cached = lpi_cache.is_cached(splid);
+    var lpi_cache = LpiCache.get_instance();
+    var cached = lpi_cache.is_cached(splid);
 
     // 2. Begin exgtending
     // 2.1 Get the LmaPsbItem list
-    LmaNodeLE0 *node = root_;
-    size_t son_start = splid_le0_index_[id_start - kFullSplIdStart];
-    size_t son_end = splid_le0_index_[id_start + id_num - kFullSplIdStart];
-    for (size_t son_pos = son_start; son_pos < son_end; son_pos++) {
-      assert(1 == node->son_1st_off);
-      LmaNodeLE0 *son = root_ + son_pos;
-      assert(son->spl_idx >= id_start && son->spl_idx < id_start + id_num);
+    var node = this.root_[0];
+    var son_start =
+      this.splid_le0_index_[id_start - SpellingTrie.kFullSplIdStart];
+    var son_end =
+      this.splid_le0_index_[id_start + id_num - SpellingTrie.kFullSplIdStart];
+    for (var son_pos = son_start; son_pos < son_end; son_pos++) {
+      assert(1 == node.son_1st_off,
+             'extend_dict0 assertion error. Invalid tree node.');
+      var son = this.root_[son_pos];
+      assert(son.spl_idx >= id_start && son.spl_idx < id_start + id_num,
+             'extend_dict0 assertion error. Invalid spl_idx: ' + son.spl_idx);
 
-      if (!cached && *lpi_num < lpi_max) {
-        bool need_lpi = true;
-        if (spl_trie_->is_half_id_yunmu(splid) && son_pos != son_start)
+      if (!cached && lpi_num < lpi_max) {
+        var need_lpi = true;
+        if (this.spl_trie_.is_half_id_yunmu(splid) && son_pos != son_start) {
           need_lpi = false;
+        }
 
-        if (need_lpi)
-          *lpi_num += fill_lpi_buffer(lpi_items + (*lpi_num),
-                                      lpi_max - *lpi_num, son);
-      }
-
-      // If necessary, fill in a new mile stone.
-      if (son->spl_idx == id_start) {
-        if (mile_stones_pos_ < kMaxMileStone &&
-            parsing_marks_pos_ < kMaxParsingMark) {
-          parsing_marks_[parsing_marks_pos_].node_offset = son_pos;
-          parsing_marks_[parsing_marks_pos_].node_num = id_num;
-          mile_stones_[mile_stones_pos_].mark_start = parsing_marks_pos_;
-          mile_stones_[mile_stones_pos_].mark_num = 1;
-          ret_handle = mile_stones_pos_;
-          parsing_marks_pos_++;
-          mile_stones_pos_++;
+        if (need_lpi) {
+          lpi_num += this.fill_lpi_buffer_le0(lpi_items, lpi_num,
+                                              lpi_max - lpi_num,
+                                              son);
         }
       }
 
-      if (son->spl_idx >= id_start + id_num -1)
+      // If necessary, fill in a new mile stone.
+      if (son.spl_idx == id_start) {
+        if (this.mile_stones_pos_ < DictTrie.kMaxMileStone &&
+            this.parsing_marks_pos_ < DictTrie.kMaxParsingMark) {
+          this.parsing_marks_[this.parsing_marks_pos_].node_offset = son_pos;
+          this.parsing_marks_[this.parsing_marks_pos_].node_num = id_num;
+          this.mile_stones_[this.mile_stones_pos_].mark_start =
+            parsing_marks_pos_;
+          this.mile_stones_[this.mile_stones_pos_].mark_num = 1;
+          ret_handle = this.mile_stones_pos_;
+          this.parsing_marks_pos_++;
+          this. mile_stones_pos_++;
+        }
+      }
+
+      if (son.spl_idx >= id_start + id_num - 1)
         break;
     }
 
-    //  printf("----- parsing marks: %d, mile stone: %d \n", parsing_marks_pos_,
-    //      mile_stones_pos_);
-     */
-    return ret_handle;
+    debug(StringUtils.format('----- parsing marks: {0}, mile stone: {1}',
+                             this.parsing_marks_pos_, this.mile_stones_pos_));
+    ret.handle = ret_handle;
+    ret.lpi_num = lpi_num;
+    return ret;
   },
 
   /**
@@ -4898,9 +5218,86 @@ DictTrie.prototype = {
    */
   extend_dict1: function dictTrie_extend_dict1(from_handle, dep, lpi_items,
                                                start, lpi_max) {
+    assert(null !== dep && from_handle > 0 &&
+           from_handle < this.mile_stones_pos_,
+           'extend_dict1 assertion error. Invalid arguments.');
 
+    var ret = {handle: 0, lpi_num: 0};
+    var ret_handle = 0;
+    var lpi_num = 0;
+
+    // 1. If this is a half Id, get its corresponding full starting Id and
+    // number of full Id.
+    var ret_val = 0;
+
+    var id_start = dep.id_start;
+    var id_num = dep.id_num;
+
+    // 2. Begin extending.
+    var mile_stone = this.mile_stones_[from_handle];
+
+    for (var h_pos = 0; h_pos < mile_stone.mark_num; h_pos++) {
+      var p_mark = this.parsing_marks_[mile_stone.mark_start + h_pos];
+      var ext_num = p_mark.node_num;
+      for (var ext_pos = 0; ext_pos < ext_num; ext_pos++) {
+        var node = this.root_[p_mark.node_offset + ext_pos];
+        var found_start = 0;
+        var found_num = 0;
+        for (var son_pos = 0; son_pos < node.num_of_son; son_pos++) {
+          assert(node.son_1st_off <= this.lma_node_num_ge1_);
+          var son = this.nodes_ge1_[node.son_1st_off + son_pos];
+          if (son.spl_idx >= id_start &&
+              son.spl_idx < id_start + id_num) {
+            if (lpi_num < lpi_max) {
+              var homo_buf_off = this.get_homo_idx_buf_offset(son);
+              lpi_num += this.fill_lpi_buffer_ge1(lpi_items, lpi_num,
+                                          lpi_max - lpi_num, homo_buf_off, son,
+                                          2);
+            }
+
+            // If necessary, fill in the new DTMI
+            if (0 == found_num) {
+              found_start = son_pos;
+            }
+            found_num++;
+          }
+          if (son.spl_idx >= id_start + id_num - 1 || son_pos ==
+              node.num_of_son - 1) {
+            if (found_num > 0) {
+              if (this.mile_stones_pos_ < DictTrie.kMaxMileStone &&
+                  this.parsing_marks_pos_ < DictTrie.kMaxParsingMark) {
+                this.parsing_marks_[this.parsing_marks_pos_].node_offset =
+                  node.son_1st_off + found_start;
+                this.parsing_marks_[this.parsing_marks_pos_].node_num =
+                  found_num;
+                if (0 == ret_val) {
+                  this.mile_stones_[this.mile_stones_pos_].mark_start =
+                    this.parsing_marks_pos_;
+                }
+                this.parsing_marks_pos_++;
+              }
+
+              this.ret_val++;
+            }
+            break;
+          }  // for son_pos
+        }  // for ext_pos
+      }  // for h_pos
+    }
+
+    if (ret_val > 0) {
+      this.mile_stones_[this.mile_stones_pos_].mark_num = ret_val;
+      ret_handle = mile_stones_pos_;
+      this.mile_stones_pos_++;
+      ret_val = 1;
+    }
+
+    debug(StringUtils.format('----- parsing marks: {0}, mile stone: {1}',
+                             this.parsing_marks_pos_, this.mile_stones_pos_));
+    ret.handle = ret_handle;
+    ret.lpi_num = lpi_num;
+    return ret;
   },
-
 
   /**
    * Extend in the trie from level 2.
@@ -4914,7 +5311,85 @@ DictTrie.prototype = {
    */
   extend_dict2: function dictTrie_extend_dict2(from_handle, dep, lpi_items,
                                                start, lpi_max) {
+    assert(null !== dep && from_handle > 0 &&
+           from_handle < this.mile_stones_pos_,
+           'extend_dict1 assertion error. Invalid arguments.');
 
+    var ret = {handle: 0, lpi_num: 0};
+    var ret_handle = 0;
+    var lpi_num = 0;
+
+    // 1. If this is a half Id, get its corresponding full starting Id and
+    // number of full Id.
+    var ret_val = 0;
+
+    var id_start = dep.id_start;
+    var id_num = dep.id_num;
+
+    // 2. Begin extending.
+    var mile_stone = this.mile_stones_[from_handle];
+
+    for (var h_pos = 0; h_pos < mile_stone.mark_num; h_pos++) {
+      var p_mark = this.parsing_marks_[mile_stone.mark_start + h_pos];
+      var ext_num = p_mark.node_num;
+      for (var ext_pos = 0; ext_pos < ext_num; ext_pos++) {
+        var node = this.nodes_ge1_[p_mark.node_offset + ext_pos];
+        var found_start = 0;
+        var found_num = 0;
+
+        for (var son_pos = 0; son_pos < node.num_of_son; son_pos++) {
+          assert(node.son_1st_off_l > 0 || node.son_1st_off_h > 0);
+          var son = this.nodes_ge1_[this.get_son_offset(node) + son_pos];
+          if (son.spl_idx >= id_start &&
+              son.spl_idx < id_start + id_num) {
+            if (lpi_num < lpi_max) {
+              var homo_buf_off = this.get_homo_idx_buf_offset(son);
+              lpi_num += this.fill_lpi_buffer_ge1(lpi_items, lpi_num,
+                                          lpi_max - lpi_num, homo_buf_off, son,
+                                          dep.splids_extended + 1);
+            }
+
+            // If necessary, fill in the new DTMI
+            if (0 == found_num) {
+              found_start = son_pos;
+            }
+            found_num++;
+          }
+          if (son.spl_idx >= id_start + id_num - 1 || son_pos ==
+              node.num_of_son - 1) {
+            if (found_num > 0) {
+              if (this.mile_stones_pos_ < DictTrie.kMaxMileStone &&
+                  this.parsing_marks_pos_ < DictTrie.kMaxParsingMark) {
+                this.parsing_marks_[this.parsing_marks_pos_].node_offset =
+                  this.get_son_offset(node) + found_start;
+                this.parsing_marks_[this.parsihng_marks_pos_].node_num =
+                  found_num;
+                if (0 == ret_val) {
+                  this.mile_stones_[this.mile_stones_pos_].mark_start =
+                    this.parsing_marks_pos_;
+                }
+                this.parsing_marks_pos_++;
+              }
+
+              ret_val++;
+            }
+            break;
+          }
+        }  // for son_pos
+      }  // for ext_pos
+    }  // for h_pos
+
+    if (ret_val > 0) {
+      this.mile_stones_[this.mile_stones_pos_].mark_num = ret_val;
+      ret_handle = this.mile_stones_pos_;
+      this.mile_stones_pos_++;
+    }
+
+    debug(StringUtils.format('----- parsing marks: {0}, mile stone: {1}',
+                             this.parsing_marks_pos_, this.mile_stones_pos_));
+    ret.handle = ret_handle;
+    ret.lpi_num = lpi_num;
+    return ret;
   },
 
   /**
@@ -4922,9 +5397,75 @@ DictTrie.prototype = {
    * be successfully gotten, return true;
    * The given spelling ids are all valid full ids.
    * @param {Array.<number>} splids The given spelling id buffer.
+   * @param {number} start The start position of the buffer.
+   * @param {number} splid_num The buffer length from the start position.
+   * @return {boolean} true if success.
    */
-  try_extend: function dictTrie_try_extend(splids, id_lemma) {
+  try_extend: function dictTrie_try_extend(splids, start, splid_num, id_lemma) {
+    if (0 == splid_num || null === splids) {
+       return false;
+    }
 
+    var node = this.root_[this.splid_le0_index_[splids[0] -
+                                                SpellingTrie.kFullSplIdStart]];
+
+    for (var pos = 1; pos < splid_num; pos++) {
+      if (1 == pos) {
+        var node_le0 = node;
+        var node_son;
+        var son_pos;
+        for (son_pos = 0; son_pos < node_le0.num_of_son; son_pos++) {
+          assert(node_le0.son_1st_off <= this.lma_node_num_ge1_);
+          node_son = this.nodes_ge1_[node_le0.son_1st_off] + son_pos;
+          if (node_son.spl_idx == splids[pos]) {
+            break;
+          }
+        }
+        if (son_pos < node_le0.num_of_son) {
+          node = node_son;
+        } else {
+          return false;
+        }
+      } else {
+        var node_ge1 = node;
+        var node_son;
+        var son_pos;
+        for (son_pos = 0; son_pos < node_ge1.num_of_son; son_pos++) {
+          assert(node_ge1.son_1st_off_l > 0 || node_ge1.son_1st_off_h > 0);
+          node_son = this.nodes_ge1_[this.get_son_offset(node_ge1) + son_pos];
+          if (node_son.spl_idx == splids[pos]) {
+            break;
+          }
+        }
+        if (son_pos < node_ge1.num_of_son) {
+          node = node_son;
+        } else {
+          return false;
+        }
+      }
+    }
+
+    if (1 == splid_num) {
+      var node_le0 = node;
+      var num_of_homo = node_le0.num_of_homo;
+      for (var homo_pos = 0; homo_pos < num_of_homo; homo_pos++) {
+        var id_this =
+         this.get_lemma_id_by_offset(node_le0.homo_idx_buf_off + homo_pos);
+        if (id_this == id_lemma) {
+          return true;
+        }
+      }
+    } else {
+      var node_ge1 = node;
+      var num_of_homo = node_ge1.num_of_homo;
+      for (var homo_pos = 0; homo_pos < num_of_homo; homo_pos++) {
+        var node_homo_off = this.get_homo_idx_buf_offset(node_ge1);
+        if (this.get_lemma_id_by_offset(node_homo_off + homo_pos) == id_lemma)
+          return true;
+      }
+    }
+
+    return false;
   },
 
   save_dict_by_fp: function dictTrie_save_dict_by_fp(fp) {
@@ -6160,20 +6701,23 @@ DictList.prototype = {
   /**
    * @param {string} last_hzs stores the last n Chinese characters history,
    * its length should be less or equal than DictDef.kMaxPredictSize.
-   * @param {Array.<NPredictItem>} npre_items is used to store the result.
-   * @param {number} used specifies how many items have been used from the
-   * beiginning of npre_items.
+   * @param {Array.<NPredictItem>} npre_items The buffer used to save the
+   *    result.
+   * @param {number} start The start position of the buffer.
+   * @param {number} npre_max The length of the buffer from the start position.
+   * @param {number} b4_used specifies how many items have been used before the
+   *    start position of the buffer.
    * @return {number} The number of newly added items.
    */
-  predict: function dictList_predict(last_hzs, npre_items, used) {
+  predict: function dictList_predict(last_hzs, npre_items, start, npre_max,
+                                     b4_used) {
     // 1. Prepare work
     var hzs_len = last_hzs.length;
-    var npre_max = npre_items.length;
     var cmp_func = this.cmp_func_[hzs_len - 1];
 
     var ngram = NGram.get_instance();
 
-    var item_num = used;
+    var item_num = 0;
 
     // 2. Do prediction
     for (var pre_len = 1; pre_len <= DictDef.kMaxPredictSize + 1 - hzs_len;
@@ -6184,33 +6728,34 @@ DictList.prototype = {
         continue;
       while (w_buf < this.start_pos_[word_len] &&
              cmp_func(this.buf_[w_buf], last_hzs) == 0 &&
-             item_num < npre_max) {
-        npre_items[item_num] = new SearchUtility.NPredictItem();
-        npre_items[item_num].pre_hzs =
+             start + item_num < npre_max) {
+        npre_items[start + item_num] = new SearchUtility.NPredictItem();
+        npre_items[start + item_num].pre_hzs =
           this.buf_.substring(w_buf + hzs_len, w_buf + hzs_len + pre_len);
-        npre_items[item_num].psb =
+        npre_items[start + item_num].psb =
           ngram.get_uni_psb((w_buf - this.start_pos_[word_len - 1]) /
           word_len + this.start_id_[word_len - 1]);
-        npre_items[item_num].his_len = hzs_len;
+        npre_items[start + item_num].his_len = hzs_len;
         item_num++;
         w_buf += word_len;
       }
     }
 
-    var new_num = used;
-    for (var i = used; i < item_num; i++) {
+    var new_num = 0;
+    for (var i = 0; i < item_num; i++) {
       // Try to find it in the existing items
       var e_pos;
-      for (e_pos = 0; e_pos < used; e_pos++) {
-        if (npre_items[e_pos].pre_hzs == npre_items[i].pre_hzs) {
+      for (e_pos = 1; e_pos <= b4_used; e_pos++) {
+        if (npre_items[start - e_pos].pre_hzs ==
+            npre_items[start + i].pre_hzs) {
           break;
         }
       }
-      if (e_pos < used)
+      if (e_pos < b4_used)
         continue;
 
       // If not found, append it to the buffer
-      npre_items[new_num] = npre_items[i];
+      npre_items[start + new_num] = npre_items[start + i];
       new_num++;
     }
     return new_num;
@@ -6219,6 +6764,7 @@ DictList.prototype = {
   /**
    * If half_splid is a valid half spelling id, return those full spelling
    * ids which share this half id.
+   * @return {Array.<number>} The full spelling ids array.
    */
   get_splids_for_hanzi:
       function dictList_get_splids_for_hanzi(hanzi, half_splid) {
@@ -7172,7 +7718,7 @@ SpellingTrie.prototype = {
   },
 
   /**
-   * @return {num: Integer, spl_id_start: Integer} num is the number of full ids
+   * @return {num: number, spl_id_start: number} num is the number of full ids
    * for the given half id, and spl_id_start is the first full id.
    */
   half_to_full: function spellingTrie_half_to_full(half_id) {
