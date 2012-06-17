@@ -4241,27 +4241,27 @@ var IAtomDictBase = {
   /**
    * Load an atom dictionary from a file.
    *
-   * @param {String} file_name The file name to load dictionary.
-   * @param {Integer} start_id The starting id used for this atom dictionary.
-   * @param {Integer} end_id The end id (included) which can be used for this
+   * @param {string} file_name The file name to load dictionary.
+   * @param {number} start_id The starting id used for this atom dictionary.
+   * @param {number} end_id The end id (included) which can be used for this
    * atom dictionary. User dictionary will always use the last id space, so it
    * can ignore this paramter. All other atom dictionaries should check this
    * parameter.
-   * @return {Boolean} true if succeed.
+   * @return {boolean} true if succeed.
    */
   load_dict: function atomDictBase_load(file_name, start_id, end_id) {},
 
   /**
    * Close this atom dictionary.
    *
-   * @return {Boolean} true if succeed.
+   * @return {boolean} true if succeed.
    */
   close: function atomDictBase_close() {},
 
   /**
    * Get the total number of lemmas in this atom dictionary.
    *
-   * @return {Integer} The total number of lemmas.
+   * @return {number} The total number of lemmas.
    */
   number_of_lemmas: function atomDictBase_number_of_lemmas() {},
 
@@ -4290,9 +4290,9 @@ var IAtomDictBase = {
    * can be totally ignored.
    *
    * @param {number} from_step From which step(included) the MileStoneHandle
-   * objects should be reset.
+   *    objects should be reset.
    * @param {number} from_handle The ealiest MileStoneHandle object for step
-   * from_step.
+   *    from_step.
    */
   reset_milestones:
       function atomDictBase_reset_milestones(from_step, from_handle) {},
@@ -4301,38 +4301,42 @@ var IAtomDictBase = {
    * Used to extend in this dictionary. The handle returned should keep valid
    * until reset_milestones() is called.
    *
-   * @param {Integer} from_handle Its previous returned extended handle without
+   * @param {number} from_handle Its previous returned extended handle without
    * the new spelling id, it can be used to speed up the extending.
    * @param {SearchUtility.DictExtPara} dep The paramter used for extending.
-   * @return {handle: Integer, items: LmaPsbItem[]} . handle is the new mile
-   * stone for this extending. 0 if fail. items is filled in with the lemmas
-   * matched.
+   * @param {Array.<SearchUtility.LmaPsbItem>} lpi_items Used to fill in the
+   *    lemmas matched.
+   * @param {number} start The start position of lpi_items.
+   * @return {{handle: number, lpi_num: number}} handle
+   *    is the new mile stone for this extending. 0 if fail. lpi_num is the
+   *    number of items saved.
    */
-  extend_dict: function atomDictBase_extend_dict(from_handle, dep) {},
+  extend_dict:
+    function atomDictBase_extend_dict(from_handle, dep, lpi_items, start) {},
 
   /**
    * Get lemma items with scores according to a spelling id stream.
    * This atom dictionary does not need to sort the returned items.
    *
-   * @param {String} spl_idStr The spelling id stream string.
-   * @return {LmaPsbItem[]} The array of matched items.
+   * @param {string} spl_idStr The spelling id stream string.
+   * @return {Array.<LmaPsbItem>} The array of matched items.
    */
   get_lpis: function atomDictBase_get_lpis(splid_str) {},
 
   /**
    * Get a lemma string (The Chinese string) by the given lemma id.
    *
-   * @param {Integer} lemmaId The lemma id to get the string.
+   * @param {number} lemmaId The lemma id to get the string.
    */
   get_lemma_str: function atomDictBase_get_lemma_str(id_lemma) {},
 
   /**
    * Get the full spelling ids for the given lemma id.
    *
-   * @param {Integer} id_lemma The lemma id to get the result.
-   * @param {Integer[]} splids The buffer of the spl_ids. There may be half ids
-   * in spl_ids to be updated to full ids。.
-   * @return {Integer} The number of ids in the buffer.
+   * @param {number} id_lemma The lemma id to get the result.
+   * @param {Array.<number>} splids The buffer of the spl_ids. There may be
+   *    half ids in spl_ids to be updated to full ids。.
+   * @return {number} The number of ids in the buffer.
    */
   get_lemma_splids: function atomDictBase_get_lemma_splids(id_lemma, splids) {},
 
@@ -4340,12 +4344,12 @@ var IAtomDictBase = {
    * Function used for prediction.
    * No need to sort the newly added items.
    *
-   * @param {String} last_hzs The last n Chinese characters(called Hanzi), its
-   * length should be less than or equal to kMaxPredictSize.
+   * @param {string} last_hzs The last n Chinese characters(called Hanzi), its
+   *    length should be less than or equal to kMaxPredictSize.
    * @param {number} used The number of items have been used from the
-   * beiginning of buffer. An atom dictionary can just ignore it.
-   * @return {NPredictItem[]} The array of prediction result from this atom
-   * dictionary.
+   *    beiginning of buffer. An atom dictionary can just ignore it.
+   * @return {Array.<NPredictItem>} The array of prediction result from this
+   *    atom dictionary.
    */
   predict: function atomDictBase_predict(last_hzs, used) {},
 
@@ -4353,10 +4357,10 @@ var IAtomDictBase = {
    * Add a lemma to the dictionary. If the dictionary allows to add new
    * items and this item does not exist, add it.
    *
-   * @param {String} splids The Chinese string of the lemma.
-   * @param {Integer[]} splids The spelling ids of the lemma.
-   * @param {Integer} count The frequency count for this lemma.
-   * @return {Integer} The id if succeed, 0 if fail.
+   * @param {string} splids The Chinese string of the lemma.
+   * @param {Array.<number>} splids The spelling ids of the lemma.
+   * @param {number} count The frequency count for this lemma.
+   * @return {number} The id if succeed, 0 if fail.
    */
   put_lemma: function atomDictBase_put_lemma(lemma_str, splids, count) {},
 
@@ -4393,9 +4397,9 @@ var IAtomDictBase = {
   /**
    * Get the lemma score.
    *
-   * @param {String} lemma_str The Chinese string of the lemma.
-   * @param {Integer[]} splids The spelling ids of the lemma.
-   * @return {Integer} The score of the lamm, or 0 if fail.
+   * @param {string} lemma_str The Chinese string of the lemma.
+   * @param {Array.<number>} splids The spelling ids of the lemma.
+   * @return {number} The score of the lamm, or 0 if fail.
    */
   get_lemma_score_by_content:
       function atomDictBase_get_lemma_score_by_content(lemma_str, splids) {},
@@ -4403,22 +4407,22 @@ var IAtomDictBase = {
   /**
    * If the dictionary allowed, remove a lemma from it.
    *
-   * @param {Integer} lemmaId The id of the lemma to remove.
-   * @return {Boolean} true if succeed.
+   * @param {number} lemmaId The id of the lemma to remove.
+   * @return {boolean} true if succeed.
    */
   remove_lemma: function atomDictBase_remove_lemma(lemma_id) {},
 
   /**
    * Get the total occuring count of this atom dictionary.
    *
-   * @return {Integer} The total occuring count of this atom dictionary.
+   * @return {number} The total occuring count of this atom dictionary.
    */
   get_total_lemma_count: function atomDictBase_get_total_lemma_count() {},
 
   /**
    * Set the total occuring count of other atom dictionaries.
    *
-   * @param {Integer} count The total occuring count of other atom dictionaies.
+   * @param {number} count The total occuring count of other atom dictionaies.
    */
   set_total_lemma_count_of_others:
       function atomDictBase_set_total_lemma_count_of_others(count) {},
@@ -4487,12 +4491,20 @@ DictTrie.prototype = {
   /* ==== Public ==== */
 
   /**
-   * Construct the tree from the file fn_raw.
-   * fn_validhzs provide the valid hanzi list. If fn_validhzs is
-   * NULL, only chars in GB2312 will be included.
+   * Build dictionary trie from the file fn_raw. File fn_validhzs provides
+   * valid chars. If fn_validhzs is NULL, only chars in GB2312 will be
+   * included.
+   * @param {string} fn_raw The raw data file name.
+   * @param {string} fn_validhzs The valid hanzi file name.
+   * @param {DictTrie} dict_trie The DictTrie to be built.
+   * @param {function(boolean)} callback The function object that is
+   *    called when the operation is finished. The boolean parameter indicates
+   *    whether the dict is built successfully.
+   * @return {void} No return value.
    */
-  build_dict: function dictTrie_build_dict(fn_raw, fn_validhzs) {
-    return false;
+  build_dict: function dictTrie_build_dict(fn_raw, fn_validhzs, callback) {
+    var dict_builder = new DictBuilder();
+    dict_builder.build_dict(fn_raw, fn_validhzs, this, callback);
   },
 
   /**
@@ -4501,10 +4513,6 @@ DictTrie.prototype = {
    */
   save_dict: function dictTrie_save_dict(filename) {
     return false;
-  },
-
-  convert_to_hanzis: function dictTrie_convert_to_hanzis(str) {
-
   },
 
   /**
@@ -4534,12 +4542,43 @@ DictTrie.prototype = {
    */
   reset_milestones:
       function dictTrie_reset_milestones(from_step, from_handle) {
+    if (0 == from_step) {
+      this.parsing_marks_pos_ = 0;
+      this.mile_stones_pos_ = DictTrie.kFirstValidMileStoneHandle;
+    } else {
+      if (from_handle > 0 && from_handle < this.mile_stones_pos_) {
+        this.mile_stones_pos_ = from_handle;
+
+        var mile_stone = this.mile_stones_[from_handle];
+        this.parsing_marks_pos_ = mile_stone.mark_start;
+      }
+    }
   },
 
   /**
    * @override
    */
-  extend_dict: function dictTrie_extend_dict(from_handle, dep) {},
+  extend_dict:
+      function dictTrie_extend_dict(from_handle, dep, lpi_items, start) {
+    var defaultValue = {handle: 0, lpi_num: 0};
+    if (null === dep) {
+      return defaultValue;
+    }
+
+    // from DictDef.LmaNodeLE0 (root) to DictDef.LmaNodeLE0
+    if (0 == from_handle) {
+      assert(0 == dep.splids_extended, 'extend_dict assertion error.');
+      return extend_dict0(from_handle, dep, lpi_items, start);
+    }
+
+    // from DictDef.LmaNodeLE0 to DictDef.LmaNodeGE1
+    if (1 == dep.splids_extended) {
+      return extend_dict1(from_handle, dep, lpi_items, start);
+    }
+
+    // From DictDef.LmaNodeGE1 to DictDef.LmaNodeGE1
+    return extend_dict2(from_handle, dep, lpi_items, start);
+  },
 
   /**
    * @override
@@ -4785,12 +4824,66 @@ DictTrie.prototype = {
    * @param {Array.<LmaPsbItem>} lpi_items The buffer to save the result.
    * @param {number} start The start position of the buffer.
    * @param {number} lpi_max The maximum number of items to save.
-   * @return {{handle: number, lpi_num: number}} handle - The mile stone handle,
+   * @return {{handle: number, lpi_num: number}} handle - The mile stone handle;
    *    lpi_num - The number of items saved.
    */
   extend_dict0: function dictTrie_extend_dict0(from_handle, dep, lpi_items,
                                                start, lpi_max) {
+    assert(null !== dep && 0 == from_handle, 'extend_dict0 assertion error.');
+    var ret = {handle: 0, lpi_num: 0};
+    var lpi_num = 0;
+    var ret_handle = 0;
 
+    var splid = dep.splids[dep.splids_extended];
+    var id_start = dep.id_start;
+    var id_num = dep.id_num;
+
+    /*
+    LpiCache& lpi_cache = LpiCache::get_instance();
+    bool cached = lpi_cache.is_cached(splid);
+
+    // 2. Begin exgtending
+    // 2.1 Get the LmaPsbItem list
+    LmaNodeLE0 *node = root_;
+    size_t son_start = splid_le0_index_[id_start - kFullSplIdStart];
+    size_t son_end = splid_le0_index_[id_start + id_num - kFullSplIdStart];
+    for (size_t son_pos = son_start; son_pos < son_end; son_pos++) {
+      assert(1 == node->son_1st_off);
+      LmaNodeLE0 *son = root_ + son_pos;
+      assert(son->spl_idx >= id_start && son->spl_idx < id_start + id_num);
+
+      if (!cached && *lpi_num < lpi_max) {
+        bool need_lpi = true;
+        if (spl_trie_->is_half_id_yunmu(splid) && son_pos != son_start)
+          need_lpi = false;
+
+        if (need_lpi)
+          *lpi_num += fill_lpi_buffer(lpi_items + (*lpi_num),
+                                      lpi_max - *lpi_num, son);
+      }
+
+      // If necessary, fill in a new mile stone.
+      if (son->spl_idx == id_start) {
+        if (mile_stones_pos_ < kMaxMileStone &&
+            parsing_marks_pos_ < kMaxParsingMark) {
+          parsing_marks_[parsing_marks_pos_].node_offset = son_pos;
+          parsing_marks_[parsing_marks_pos_].node_num = id_num;
+          mile_stones_[mile_stones_pos_].mark_start = parsing_marks_pos_;
+          mile_stones_[mile_stones_pos_].mark_num = 1;
+          ret_handle = mile_stones_pos_;
+          parsing_marks_pos_++;
+          mile_stones_pos_++;
+        }
+      }
+
+      if (son->spl_idx >= id_start + id_num -1)
+        break;
+    }
+
+    //  printf("----- parsing marks: %d, mile stone: %d \n", parsing_marks_pos_,
+    //      mile_stones_pos_);
+     */
+    return ret_handle;
   },
 
   /**
@@ -4838,6 +4931,103 @@ DictTrie.prototype = {
     return false;
   }
 };
+
+/**
+ * Used to cache SearchUtility.LmaPsbItem list for half spelling ids.
+ * Lpi stands for LmaPsbItem.
+ * @constructor
+ * @private
+ */
+var LpiCache = function lpiCache_constructor() {
+  this.lpi_cache_ = [];
+  this.lpi_cache_len_ = [];
+  for (var id = 0; id < SpellingTrie.kFullSplIdStart; id++) {
+    this.lpi_cache_[id] = new SearchUtility.LmaPsbItem();
+    this.lpi_cache_len_[id] = 0;
+  }
+};
+
+LpiCache.get_instance = function lpiCache_get_instance() {
+  if (LpiCache.instance_ == null) {
+    LpiCache.instance_ = new LpiCache();
+  }
+  return LpiCache.instance_;
+};
+
+LpiCache.instance_ = null;
+
+LpiCache.kMaxLpiCachePerId = 15;
+
+LpiCache.prototype = {
+  /* ==== Public ==== */
+
+  /**
+   * Test if the LPI list of the given splid  has been cached.
+   * If splid is a full spelling id, it returns false, because we only cache
+   * list for half ids.
+   */
+  is_cached: function lpiCache_is_cached(splid) {
+    if (splid > SpellingTrie.kFullSplIdStart) {
+      return false;
+    }
+    return this.lpi_cache_len_[splid] != 0;
+  },
+
+  /**
+   * Put LPI list to cahce. If the length of the list, lpi_num, is longer than
+   * the cache buffer. the list will be truncated, and function returns the
+   * maximum length of the cache buffer.
+   * Note: splid must be a half id, and lpi_items must be not NULL. The
+   * caller of this function should guarantee this.
+   * @param {number} splid The splid of the given LPI list.
+   * @param {Array.<SearchUtility.LmaPsbItem>} lpi_items The LPI list buffer.
+   * @param {number} lpi_num The length of the LPI list which could be used.
+   * @return {number} The number of LPI item cached.
+   */
+  put_cache: function lpiCache_put_cache(splid, lpi_items, lpi_num) {
+    var num = Math.min(LpiCache.kMaxLpiCachePerId, lpi_num);
+
+    var lpi_cache_this = splid * LpiCache.kMaxLpiCachePerId;
+    for (var pos = 0; pos < num; pos++) {
+      this.lpi_cache_[lpi_cache_this + pos] = lpi_items[pos];
+    }
+
+    this.lpi_cache_len_[splid] = num;
+    return num;
+  },
+
+  /**
+   * Get the cached list for the given half id.
+   * Note: splid must be a half id, and lpi_items must be not NULL. The
+   * caller of this function should guarantee this.
+   * @param {number} splid the given half id.
+   * @param {Array.<SearchUtility.LmaPsbItem>} lpi_items The LPI list buffer.
+   * @param {number} lpi_max The length of the LPI list which could be used.
+   * @return {number} the length of the cached buffer.
+   */
+  get_cache: function lpiCache_get_cache(splid, lpi_items, lpi_max) {
+    var num = Math.min(this.lpi_cache_len_[splid], lpi_max);
+
+    var lpi_cache_this = splid * LpiCache.kMaxLpiCachePerId;
+    for (var pos = 0; pos < num; pos++) {
+      lpi_items[pos] = this.lpi_cache_[lpi_cache_this + pos];
+    }
+    return num;
+  },
+
+  /* ==== Private ==== */
+
+  /**
+   * @type Array.<SearchUtility.LmaPsbItem>
+   */
+  lpi_cache_: null,
+
+  /**
+   * @type Array.<number>
+   */
+  lpi_cache_len_: null
+};
+
 
 var DictBuilder = function dictBuilder_constructor() {
 };
@@ -6755,7 +6945,7 @@ SpellingTrie.get_instance = function get_instance() {
   return SpellingTrie.instance_;
 };
 
-SpellingTrie.kFullspl_idStart = kHalfSpellingIdNum + 1;
+SpellingTrie.kFullSplIdStart = kHalfSpellingIdNum + 1;
 SpellingTrie.kMaxYmNum = 64;
 SpellingTrie.kValidSplCharNum = 26;
 SpellingTrie.kHalfIdShengmuMask = 0x01;
@@ -6859,10 +7049,10 @@ SpellingTrie.prototype = {
     if (!spl_id)
       return {valid: false, spl_id: spl_id};
 
-    if (spl_id >= SpellingTrie.kFullspl_idStart) {
+    if (spl_id >= SpellingTrie.kFullSplIdStart) {
       return {valid: true, spl_id: spl_id};
     }
-    if (spl_id < SpellingTrie.kFullspl_idStart) {
+    if (spl_id < SpellingTrie.kFullSplIdStart) {
       var ch = SpellingTrie.kHalfId2Sc_[spl_id];
       if (ch > 'Z') {
         // For half ids of Zh/Ch/Sh, map to z/c/s (low case)
@@ -6882,15 +7072,15 @@ SpellingTrie.prototype = {
 
   // Test if the given id is a half id.
   is_half_id: function spellingTrie_is_half_id(spl_id) {
-    if (0 == spl_id || spl_id >= SpellingTrie.kFullspl_idStart)
+    if (0 == spl_id || spl_id >= SpellingTrie.kFullSplIdStart)
       return false;
 
     return true;
   },
 
   is_full_id: function spellingTrie_is_full_id(spl_id) {
-    if (spl_id < SpellingTrie.kFullspl_idStart ||
-        spl_id >= SpellingTrie.kFullspl_idStart + this.spelling_num_)
+    if (spl_id < SpellingTrie.kFullSplIdStart ||
+        spl_id >= SpellingTrie.kFullSplIdStart + this.spelling_num_)
       return false;
     return true;
   },
@@ -6898,7 +7088,7 @@ SpellingTrie.prototype = {
   // Test if the given id is a one-char Yunmu id (obviously, it is also a half
   // id), such as 'A', 'E' and 'O'.
   is_half_id_yunmu: function spellingTrie_is_half_id_yunmu(spl_id) {
-    if (0 == spl_id || spl_id >= SpellingTrie.kFullspl_idStart)
+    if (0 == spl_id || spl_id >= SpellingTrie.kFullSplIdStart)
       return false;
 
     var ch = SpellingTrie.kHalfId2Sc_[spl_id];
@@ -6976,7 +7166,7 @@ SpellingTrie.prototype = {
 
   // Return the number of full ids for the given half id.
   half2full_num: function spellingTrie_half2full_num(half_id) {
-    if (null == this.root_ || half_id >= SpellingTrie.kFullspl_idStart)
+    if (null == this.root_ || half_id >= SpellingTrie.kFullSplIdStart)
       return 0;
     return this.h2f_num_[half_id];
   },
@@ -6986,7 +7176,7 @@ SpellingTrie.prototype = {
    * for the given half id, and spl_id_start is the first full id.
    */
   half_to_full: function spellingTrie_half_to_full(half_id) {
-    if (null == this.root_ || half_id >= SpellingTrie.kFullspl_idStart) {
+    if (null == this.root_ || half_id >= SpellingTrie.kFullSplIdStart) {
       return {num: 0, spl_id_start: 0};
     }
 
@@ -6998,12 +7188,12 @@ SpellingTrie.prototype = {
   // Not frequently used, low efficient.
   // Return 0 if fails.
   full_to_half: function spellingTrie_full_to_half(full_id) {
-    if (null == this.root_ || full_id < SpellingTrie.kFullspl_idStart ||
-        full_id > this.spelling_num_ + SpellingTrie.kFullspl_idStart) {
+    if (null == this.root_ || full_id < SpellingTrie.kFullSplIdStart ||
+        full_id > this.spelling_num_ + SpellingTrie.kFullSplIdStart) {
       return 0;
     }
 
-    return this.f2h_[full_id - SpellingTrie.kFullspl_idStart];
+    return this.f2h_[full_id - SpellingTrie.kFullSplIdStart];
   },
 
   // To test whether a half id is compatible with a full id.
@@ -7063,8 +7253,8 @@ SpellingTrie.prototype = {
   get_spelling_str: function spellingTrie_get_spelling_str(spl_id) {
     this.splstr_queried_ = '';
 
-    if (spl_id >= SpellingTrie.kFullspl_idStart) {
-      spl_id -= SpellingTrie.kFullspl_idStart;
+    if (spl_id >= SpellingTrie.kFullSplIdStart) {
+      spl_id -= SpellingTrie.kFullSplIdStart;
       this.splstr_queried_ = this.spelling_buf_[spl_id].str;
     } else {
       if (spl_id == StringUtils.charDiff('C', 'A') + 1 + 1) {
@@ -7103,7 +7293,7 @@ SpellingTrie.prototype = {
 
   // The Yunmu id list for the spelling ids (for half ids of Shengmu,
   // the Yunmu id is 0).
-  // The length of the list is spelling_num_ + kFullspl_idStart,
+  // The length of the list is spelling_num_ + kFullSplIdStart,
   // so that spl_ym_ids_[spl_id] is the Yunmu id of the spl_id.
   // @type Integer[]
   spl_ym_ids_: null,
@@ -7128,9 +7318,9 @@ SpellingTrie.prototype = {
   // h2f means half to full.
   // A half id can be a ShouZiMu id (id to represent the first char of a full
   // spelling, including Shengmu and Yunmu), or id of zh/ch/sh.
-  // [1..SpellingTrie.kFullspl_idStart-1] is the range of half id.
-  h2f_start_: null,          // @type Integer[SpellingTrie.kFullspl_idStart]
-  h2f_num_: null,            // @type Integer[SpellingTrie.kFullspl_idStart]
+  // [1..SpellingTrie.kFullSplIdStart-1] is the range of half id.
+  h2f_start_: null,          // @type Integer[SpellingTrie.kFullSplIdStart]
+  h2f_num_: null,            // @type Integer[SpellingTrie.kFullSplIdStart]
 
   /** Map from full id to half id.
    * @type Integer[]
@@ -7209,7 +7399,7 @@ SpellingTrie.prototype = {
 
         if (spelling_endable) {
           node_current.spelling_idx =
-            SpellingTrie.kFullspl_idStart + item_start_next;
+            SpellingTrie.kFullSplIdStart + item_start_next;
         }
 
         if (spelling_last_start.str.length > level + 1 ||
@@ -7273,7 +7463,7 @@ SpellingTrie.prototype = {
         if (is_half) {
           if (this.h2f_num_[node_current.spelling_idx] > 0) {
             this.h2f_start_[node_current.spelling_idx] =
-              item_start_next + SpellingTrie.kFullspl_idStart;
+              item_start_next + SpellingTrie.kFullSplIdStart;
           } else {
             this.h2f_start_[node_current.spelling_idx] = 0;
           }
@@ -7305,7 +7495,7 @@ SpellingTrie.prototype = {
 
     if (spelling_endable) {
       node_current.spelling_idx =
-        SpellingTrie.kFullspl_idStart + item_start_next;
+        SpellingTrie.kFullSplIdStart + item_start_next;
     }
 
     if (spelling_last_start.str.length > level + 1 ||
@@ -7367,7 +7557,7 @@ SpellingTrie.prototype = {
     if (is_half) {
       if (this.h2f_num_[node_current.spelling_idx] > 0) {
         this.h2f_start_[node_current.spelling_idx] =
-          item_start_next + SpellingTrie.kFullspl_idStart;
+          item_start_next + SpellingTrie.kFullSplIdStart;
       } else {
         this.h2f_start_[node_current.spelling_idx] = 0;
       }
@@ -7381,10 +7571,10 @@ SpellingTrie.prototype = {
   build_f2h: function spellingTrie_build_f2h() {
     this.f2h_ = [];
 
-    for (var hid = 0; hid < SpellingTrie.kFullspl_idStart; hid++) {
+    for (var hid = 0; hid < SpellingTrie.kFullSplIdStart; hid++) {
       for (var fid = this.h2f_start_[hid];
            fid < this.h2f_start_[hid] + this.h2f_num_[hid]; fid++) {
-        this.f2h_[fid - SpellingTrie.kFullspl_idStart] = hid;
+        this.f2h_[fid - SpellingTrie.kFullSplIdStart] = hid;
       }
     }
 
@@ -7440,7 +7630,7 @@ SpellingTrie.prototype = {
     // Generate the maping from the spelling ids to the Yunmu ids.
     this.spl_ym_ids_ = [];
 
-    for (var id = 1; id < this.spelling_num_ + SpellingTrie.kFullspl_idStart;
+    for (var id = 1; id < this.spelling_num_ + SpellingTrie.kFullSplIdStart;
          id++) {
       var str = this.get_spelling_str(id);
 
