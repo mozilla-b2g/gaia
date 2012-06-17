@@ -668,7 +668,9 @@ var WindowManager = (function() {
         // Otherwise, make the homescreen visible.
         // Also, if the card switcher is visible, then hide it.
         if (!LockScreen.locked && !e.defaultPrevented) {
-          setDisplayedApp(null);
+          // The attention screen can 'eat' this event
+          if (!e.defaultPrevented)
+            setDisplayedApp(null);
           if (CardsView.cardSwitcherIsShown())
             CardsView.hideCardSwitcher();
         }
