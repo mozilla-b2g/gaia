@@ -175,6 +175,11 @@ if (DEBUG) {
   content += "\n";
 }
 
+// https://bugzilla.mozilla.org/show_bug.cgi?id=764718
+// Until this bug is fixed, window.close is allowed for content
+// windows.
+content += "user_pref(\"dom.allow_scripts_to_close_windows\", true);\n";
+
 writeContent(content);
 dump("\n" + content);
 
