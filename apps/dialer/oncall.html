@@ -4,41 +4,74 @@
     <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
     <title>Dialer</title>
-    <link rel="stylesheet" type="text/css" href="style/dialer.css">
     <link rel="stylesheet" type="text/css" href="style/keyboard.css">
+    <link rel="stylesheet" type="text/css" href="style/oncall.css">
+    <script type="application/javascript" src="js/oncall.js"></script>
+    <script type="application/javascript" src="js/contacts.js"></script>
+    <script type="application/javascript" src="js/recents.js"></script>
+    <script type="application/javascript" src="js/key_handler.js"></script>
+    <script type="application/javascript" src="js/proximity.js"></script>
     <link rel="resource" type="application/l10n" href="locale/dialer.properties">
-    <!-- Compatibility -->
     <script>
-      if (document.location.protocol === 'file:') {
-        var paths = document.location.pathname.split('/');
-        paths.pop();
-        paths.pop();
-        paths.pop();
-        var src = 'file://' + paths.join('/') + '/webapi.js';
-      } else {
-        var host = document.location.host;
-        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-        var src = 'http://' + domain + '/webapi.js';
-      }
+      var host = document.location.host;
+      var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+      var src = 'http://' + domain + '/webapi.js';
       document.write('<script src="' + src + '"><\/script>');
     </script>
-    <script type="application/javascript" src="js/helper.js"></script>
-    <script type="application/javascript" src="js/contacts.js"></script>
-    <script type="application/javascript" src="js/notification_helper.js"></script>
-    <script type="application/javascript" src="js/dialer.js"></script>
-    <script type="application/javascript" src="js/key_handler.js"></script>
-    <script type="application/javascript" src="js/recents.js"></script>
   </head>
 
   <body class="hidden">
-    <article id="views">
-    <article id="keyboard-view" class="view">
-    <input type="hidden" id="phone-number"></input>
-    <div id="fake-phone-number-view"></div>
-    <div id="phone-number-view-container">
-      <div id="phone-number-view" class="phone-number-font"></div>
+    <div id="call-screen">
+      <div id="call-screen-top">
+        <div id="call-number-view-container">
+          <span id="call-number-view"></span>
+        </div>
+        <div id="call-picture">
+          <img src="style/images/unknown-contact.png" alt="profile" />
+        </div>
+        <div id="call-duration-view-container">
+          <span id="call-duration-view">
+          </span>
+        </div>
+      </div>
+      <div id="call-actions-container">
+        <div id="call-actions-top">
+          <div id="call-actions">
+            <div data-action="toggleMute" onclick="OnCallHandler.execute(this.dataset.action);">
+              <div id="mute-button"></div>
+              <span data-l10n-id="mute">Mute</span>
+            </div>
+            <div data-action="toggleKeypad" onclick="OnCallHandler.execute(this.dataset.action);">
+              <div id="keypad-button"></div>
+              <span data-l10n-id="keypad">Keypad</span>
+            </div>
+            <div data-action="toggleSpeaker" onclick="OnCallHandler.execute(this.dataset.action);">
+              <div id="speaker-button"></div>
+              <span data-l10n-id="speaker">Speaker</span>
+            </div>
+          </div>
+          <div id="call-actions">
+            <div>
+              <div id="contacts-button"></div>
+              <span data-l10n-id="mute"> Mute </span>
+            </div>
+            <div>
+              <div id="recents-button"></div>
+              <span data-l10n-id="keypad">Keypad</span>
+            </div>
+            <div>
+              <div id="write-msg-button"></div>
+              <span data-l10n-id="speaker">Speaker</span>
+            </div>
+          </div>
+        </div>
+        <div id="call-button">
+          <div id="end-call" onclick="OnCallHandler.execute('end');"><span data-l10n-id="end"> End </span></div>
+          <div id="accept-call" onclick="OnCallHandler.execute('answer');"><span data-l10n-id="answer"> Answer </span></div>
+        </div>
+      </div>
     </div>
-
+    <div id="screen-off"></div>
     <article id="keyboard-container">
       <section id="kb-keypad" onmousedown="KeyHandler.keyDown(event);" onmouseup="KeyHandler.keyUp(event);">
         <div class="kb-keypad-cell">
@@ -190,18 +223,6 @@
           </div>
         </div>
       </section>
-      <section id="kb-callbar">
-        <button id="kb-callbar-add-contact" onmousedown="KeyHandler.keyDown(event);" onmouseup="KeyHandler.keyUp(event);">
-          <div class="i-add-contact">
-          </div>
-        </button>
-        <button id="kb-callbar-call-action"  data-value="make-call" onmousedown="KeyHandler.keyDown(event);" onmouseup="KeyHandler.keyUp(event);">
-          <div class="i-call">
-          </div>
-        </button>
-      </section>
-    </article>
-    </article>
     </article>
   </body>
 </html>
