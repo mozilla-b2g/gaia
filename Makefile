@@ -299,18 +299,20 @@ update-common: common-install
 test-agent-config: test-agent-bootstrap-apps
 	@rm -f $(TEST_AGENT_CONFIG)
 	@touch $(TEST_AGENT_CONFIG)
-	@echo '{"tests": [' >> $(TEST_AGENT_CONFIG)
-
+	@rm -f /tmp/test-agent-config;
 	# Build json array of all test files
-	(for d in ${GAIA_APP_SRCDIRS} ; do find $$d -name "*_test.js" | \
-		sed "s:$$d/::" | \
+	for d in ${GAIA_APP_SRCDIRS}; \
+	do \
+		find $$d -name '*_test.js' | sed "s:$$d/::g"  >> /tmp/test-agent-config; \
+	done;
+	@echo '{"tests": [' >> $(TEST_AGENT_CONFIG)
+	@cat /tmp/test-agent-config |  \
 		sed 's:\(.*\):"\1":' | \
 		sed -e ':a' -e 'N' -e '$$!ba' -e 's/\n/,\
-	/g'; done) >> $(TEST_AGENT_CONFIG)
-
+	/g' >> $(TEST_AGENT_CONFIG);
 	@echo '  ]}' >> $(TEST_AGENT_CONFIG);
 	@echo "Built test ui config file: $(TEST_AGENT_CONFIG)"
-
+	@rm -f /tmp/test-agent-config
 
 .PHONY: test-agent-bootstrap-apps
 test-agent-bootstrap-apps:
@@ -322,7 +324,6 @@ test-agent-bootstrap-apps:
 			cp -f ./common/test/boilerplate/_sandbox.html $$d/test/unit/_sandbox.html; \
 	done
 	@echo "Done bootstrapping test proxies/sandboxes";
-
 # Temp make file method until we can switch
 # over everything in test
 .PHONY: test-agent-test
@@ -426,13 +427,12 @@ update-offline-manifests:
 # working on just gaia itself, and you already have B2G firmware on your
 # phone, and you have adb in your path, then you can use the install-gaia
 # target to update the gaia files and reboot b2g
-PROFILE_PATH = /data/b2g/mozilla/`$(ADB) shell ls -1 /data/b2g/mozilla/ | grep default | tr -d [:cntrl:]`
+PROFILE_PATH = /data/local/
 install-gaia: profile
 	$(ADB) start-server
 	$(ADB) shell rm -r /cache/*
 	python build/install-gaia.py "$(ADB)"
 
-	# Until bug 746121 lands, push user.js in the profile
 	$(ADB) push profile/user.js ${PROFILE_PATH}/user.js
 
 	@echo "Installed gaia into profile/."
@@ -442,5 +442,6 @@ install-gaia: profile
 install-media-samples:
 	$(ADB) push media-samples/DCIM /sdcard/DCIM
 	$(ADB) push media-samples/videos /sdcard/videos
+	$(ADB) push media-samples/music /sdcard/music
 
 demo: install-media-samples install-gaia

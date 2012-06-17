@@ -1,114 +1,55 @@
 html, body {
-  position: relative;
   width: 100%;
   height: 100%;
   overflow: hidden;
   margin: 0;
-
-  font-size: 2.5mozmm;
   color: white;
   font-family: 'Open Sans', sans-serif;
-
-  background: #000;
-}
-
-@font-face {
-  font-family: 'Open Sans';
-  src: url('fonts/Open-Sans.woff');
-}
-@font-face {
-  font-family: 'Open Sans';
-  font-weight: bold;
-  src: url('fonts/Open-Sans-Bold.woff');
-}
-@font-face {
-  font-family: 'Open Sans';
-  font-weight: 600;
-  src: url('fonts/Open-Sans-Semibold.woff');
+  font-size: 10px;
+  background: black;
 }
 
 html * {
   overflow: hidden;
 }
 
-@media all and (min-resolution: 200dpi) {
-  html, body {
-    font-size: 2mozmm;
+@font-face {
+  font-family: 'Open Sans';
+  src: url('fonts/Open-Sans.woff');
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  font-weight: bold;
+  src: url('fonts/Open-Sans-Bold.woff');
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  font-weight: 600;
+  src: url('fonts/Open-Sans-Semibold.woff');
+}
+
+@media screen and (max-device-height: 800px) { 
+  html {
+    font-size: 13.5px;
   }
 }
 
-/* === Application Header === */
-
-#tabs {
-  position: absolute;
-  width: 100%;
-  height: 96px;
-  bottom: 0;
-
-	background: url(images/app-texture.png) 50% 50%,
-              -moz-linear-gradient(top, hsla(0,0%,0%,.3) 0%, hsla(0,0%,20%,0) 8%, hsla(0,0%,0%,0.1) 80%, hsla(0,0%,0%,.2) 100%),
-              -moz-radial-gradient(center top, hsla(0,100%,0%,0) 0%, hsla(0,0%,0%,0) 70%, hsla(0,0%,10%,.1) 100%),
-              -moz-radial-gradient(center bottom, hsla(0,100%,0%,0) 0%, hsla(0,0%,0%,0) 70%, hsla(0,0%,10%,.2) 100%),
-              hsla(212,8%,39%,1);
-}
-
-#tabs fieldset {
-  list-style: none;
-	width: -moz-calc(100% - 30px);
-	height: 96px;
-  padding: 0;
-  margin: 0 auto;
-
-  border: 0;
-}
-
-#tabs label {
-  float: left;
-  display: block;
-  width: -moz-calc(100% / 3);
-  height: 100%;
-
-  padding: 0;
-  margin: 0;
-
-  background-position: center center;
-  background-repeat: no-repeat;
-}
-
-#tabs input[type="radio"] {
-  display: none;
-}
-
-#keyboard-label {
-  background: url(images/keypad-icon.png);
-}
-#keyboard-label[data-active] {
-  background:url(images/current-tab.png) center -2px no-repeat, url(images/keypad-icon-active.png) center center no-repeat;
-}
-#contacts-label {
-  background: url(images/contacts-icon.png);
-}
-#contacts-label[data-active]{
-  background:url(images/current-tab.png) center -2px no-repeat, url(images/contacts-icon-active.png) center center no-repeat;
-}
-#recents-label {
-  background: url(images/recents-icon.png);
-}
-#recents-label[data-active] {
-  background:url(images/current-tab.png) center -2px no-repeat, url(images/recents-icon-active.png) center center no-repeat;
+@media screen and (max-device-height: 480px) { 
+  html {
+    font-size: 10px;
+  }
 }
 
 /* === Application Views === */
 #views {
   position: absolute;
   top: 0;
-  height: -moz-calc(100% - 96px);
+  height: 100%;
   width: 100%;
-
-  border-radius: 10px 10px 0 0;
-
-  background: url(images/keypad-bg.png) center bottom repeat-x #F6F6F6;
-  background-size: 480px 100%;
+  background: white;
+  border-radius: 10px;
 }
 
 #views > .view {
@@ -116,690 +57,163 @@ html * {
   width: 100%;
 }
 
-.top-bar {
-	height: 7.5mozmm;
-  line-height: 7.5mozmm;
-
-  font-size: 3.2mozmm;
-  text-align: center;
-
-  border-bottom: 2px solid #A3A3A3;
-  background: url(images/app-texture.png) 50% 50%, -moz-linear-gradient(top, hsla(0,0%,96%,1), hsla(0,0%,92%,1) );
-}
-
-.top-bar a.add {
-  position: absolute;
-  display: block;
-  width: 6mozmm;
-  height: 6mozmm;
-  top: 0.75mozmm;
-  right: 0.75mozmm;
-
-	color: #7D8389;
-  text-align: center;
-  line-height: 6mozmm;
-  text-decoration: none;
-  text-shadow: #929292 0 1px;
-  font-size: 2em;
-  font-weight: bold;
-
-  border-radius: 5px 5px 5px 5px;
-}
-.top-bar a.add:active, .top-bar a.add:focus {
-  color: #FF6600;
-  outline: none;
-}
-
 /* === Keyboard View === */
+@font-face {
+  font-family: 'Keyboard Symbols';
+  font-weight: 600;
+  src: url('fonts/Keyboard-Symbols.woff');
+}
+
+.phone-number-font {
+  font-size:18pt;
+  color:white;
+}
+
+.kb-keypad-number {
+  font-size:25pt;
+  color:white;
+}
+
+.kb-keypad-text {
+  font-size:6pt;
+  color:white;
+}
+
+
 #keyboard-view {
   width: 100%;
-}
-
-#phone-number-view-container {
-  overflow: hidden;
-  width: 100%;
-  margin: 0;
-  padding: 0px;
-
-  border-top: 2px solid rgba(255, 255, 255, 0.1);
-  background: url("images/dialing-pattern.png") repeat-x scroll 0 0pt,
-              -moz-linear-gradient(center top , rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.2) 100%) repeat scroll 0 0%,
-              -moz-linear-gradient(bottom, hsla(0,0%,0%,.3) 0%, hsla(0,0%,20%,0) 12%, hsla(0,0%,0%,0.1) 80%, hsla(0,0%,0%,.2) 100%),
-              none repeat scroll 0 0 #565D65;
-}
-
-#phone-number-view-container > div {
-  display: block;
-  position: relative;
-  height: 11mozmm;
-  margin: auto;
-
-  color: #FFFFFF;
-  font-size: 5mozmm;
-  line-height: 11mozmm;
-  text-align: center;
-  white-space: nowrap;
-  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
-}
-
-#phone-number-view {
-  display: inline-block;
-  width: -moz-calc(100% - 24mozmm);
-}
-
-.keyboard-key[data-value="del"] {
-	position: absolute;
-	display: block;
-	right: 0;
-	top: 0;
-	width: 11mozmm;
-	height: 11mozmm;
-
-  border: 0;
-  background: url(images/backspace.png) 50% 50% no-repeat;
-  background-size: 10mozmm 10mozmm;
-}
-.keyboard-key[data-value="del"]:active {
-  background: url(images/backspace-active.png) 50% 50% no-repeat;
-  background-size: 10mozmm 10mozmm;
+  height:100%;
 }
 
 #fake-phone-number-view {
   position: absolute;
   line-height: 0;
-
   visibility: hidden;
 }
 
+#phone-number-view-container {
+  width:100%;
+  height:-moz-calc(100% - 34.5rem);
+  background: #1e2328;
+  width:100%;
+  text-align:center;
+  display: table;
+  table-layout: fixed;
+}
+
+#phone-number-view {
+  display:table-cell;
+  vertical-align:middle;
+  width: -moz-calc(100% - 3rem);
+}
+
 #keyboard-container {
-  height: -moz-calc(100% - 11mozmm);
+  width:100%;
+  background: green;
+  height:34.5rem;
 }
 
-#mainKeyset {
-  width: 100%;
-  height: -moz-calc(100% - 15mozmm);
-  min-height: 265px;
-  padding: 0;
-  margin: 0;
-
-  font-size: 3mozmm;
+#kb-keypad {
+  height:-moz-calc(100% - 6.5rem);
+  width:100%;
+  display:table;
+  table-layout:fixed;
+  background:red;
 }
 
-.keyboard-row {
-  margin: 0;
-  padding: 0;
-  height: -moz-calc(100% / 4);
-  width: 100%;
+.kb-keypad-cell {
+  display:table-cell;
+  border-right:1px solid black;
 }
 
-.keyboard-row .keyboard-key {
-  float: left;
-  width: -moz-calc(100% / 3 - 2px);
-  height: -moz-calc(100% - 36px);
-  padding: 34px 0 0 0;
-
-  border: 1px solid rgba(192, 192, 192, 0.800);
-
-  font-size: 16.5px;
-  font-weight: 600;
-  text-align: center;
+.kb-keypad-cell:last-child {
+  border:0;
 }
 
-.keyboard-key > span {
-  display: block;
-
-  pointer-events: none;
-
-  color: hsla(0,0%,20%,1);
-  font-size: 3em;
-  line-height: 0.9em;
+.kb-keypad-cell-small {
+  width:10rem;
 }
 
-.keyboard-key > span:last-child {
-  color: hsl(0,0%,60%);
-  text-transform: uppercase;
-  font-size: 1em;
+.kb-keypad-key {
+  background: #2d2642; /* Old browsers */
+  background: -moz-linear-gradient(top, #2d2642 0%, #0f1214 100%); /* FF3.6+ */
+  border:0;
+  border-right:1px solid #313A47;
+  border-bottom:1px solid #313A47;
+  height:7rem;
+  vertical-align:middle;
 }
 
-.keyboard-row:first-child .keyboard-key {
-  border-top: 0;
-  height: -moz-calc(100% - 35px);
+.kb-keypad-key:last-child {
+  border-right:0;
+  border-bottom:0;
 }
 
-.keyboard-row:last-child .keyboard-key {
-  border-bottom: 2px solid rgba(192, 192, 192, 0.800);
-  height: -moz-calc(100% - 37px);
+.kb-keypad-key-label-container {
+  width:100%;
+  height:100%;
+  display:table;
 }
 
-.keyboard-key:active {
-  background: rgba(0, 0, 0, .07);
-}
-.keyboard-key:active > span:first-child {
-  color: #000;
-}
-
-#additionalKeyset {
-  width: 100%;
-  height: 15mozmm;
-  padding: 0;
-  margin: 0;
+.kb-keypad-key-label {
+  display:table-cell;
+  text-align:center;
+  vertical-align:middle;
 }
 
-.keyboard-key[data-value="call"] {
-  width: 100%;
-  height: 100%;
-  margin: 0;
-
-  border: 0;
-
-  background-repeat: no-repeat;
-  background-size: 100% 100%;
-  background-position: 0 0;
-  background-image: url(images/call-button-bg.png);
-}
-
-.keyboard-key[data-value="call"]:active {
-  background-color: transparent;
-}
-.keyboard-key[data-value="call"]:active span {
-  color: white;
-  color: #A9A9A9;
-}
-
-.keyboard-key[data-value="call"] span {
-	display: block;
-
-  color: white;
-  line-height: 15mozmm;
-  font-size: 37px;
-  font-weight: bold;
-  text-align: center;
-  text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5);
-  text-transform: none;
-}
-
-@media all and (max-height: 500px) {
-  #mainKeyset {
-    min-height: 165px;
-    height: -moz-calc(100% - 11mozmm);
-  }
-
-  .keyboard-row .keyboard-key {
-    height: -moz-calc(100% - 12px);
-    padding: 10px 0 0;
-  }
-
-  .keyboard-row:first-child .keyboard-key {
-    border-top: 0;
-    height: -moz-calc(100% - 11px);
-  }
-
-  .keyboard-row:last-child .keyboard-key {
-    border-bottom: 2px solid rgba(192, 192, 192, 0.800);
-    height: -moz-calc(100% - 13px);
-  }
-
-  .keyboard-row .keyboard-key span {
-    font-size: 1.3em;
-    line-height: 1.8em;
-  }
-
-  .keyboard-key span:last-child {
-    display: none;
-  }
-
-  #additionalKeyset {
-    width: 100%;
-    height: 12mozmm;
-  }
-
-  .keyboard-key[data-value="call"] span {
-    font-size: 3mozmm;
-    line-height: 12mozmm;
-    display: block;
-  }
-
-  #contacts-shortcuts-background {
-    display: none;
-  }
-
-  #contacts-shortcuts {
-    display: none;
-  }
-}
-
-/* === Contacts View === */
-
-#contacts-view-scrollable {
-  overflow-y: scroll;
-  height: -moz-calc(100% - 7.5mozmm);
-}
-
-#favorites-container {
-  /* XXX adding 8px to fill the void left by the scrollbar */
-  width: -moz-calc(100% + 8px);
-}
-
-#contacts-container {
-  /* XXX adding 8px to fill the void left by the scrollbar */
-  width: -moz-calc(100% + 8px);
-}
-
-#contacts-container-top {
-  position: absolute;
-  top: 7.5mozmm;
-  width: 100%;
-  height: 10px;
-
-  border: 0;
-  background: -moz-linear-gradient(top, hsla(0,0%,0%,.3) 0%, hsla(0,0%,20%,0) 90%, hsla(0,0%,0%,.0) 100%);
-
-  z-index: 10;
-}
-
-#contacts-search-container {
-  position: relative;
-  margin-top: 1.25mozmm;
-  margin-left: 2mozmm;
-  padding: 0;
-  width: -moz-calc(100% - 10mozmm);
-  height: -moz-calc(5mozmm - 6px);
-
-  border: 3px solid #7B8288;
-  border-radius: 50px 50px 50px 50px;
-
-  background: #fff;
-}
-
-#contacts-search {
-  position: absolute;
-  top: 0;
-  left: 0;
-  margin: 0;
-  padding: 0 0 0 32px;
-  width: -moz-calc(100% - 15px - 15px);
-  height: 100%;
-
-  background: url("images/input-icon-search.png") no-repeat scroll 8px 50%, -moz-linear-gradient(center top , rgba(0, 0, 0, 0.2) 0px, rgba(255, 255, 255, 0) 20px, #FFFFFF 100%) repeat scroll 0 0 #FFFFFF;
-
-  font-size: 20px;
-
-  border: 0;
-}
-
-.contact-header {
-  position: relative;
-  height: 3.5mozmm;
-  padding: 0 14px 0 20px;
-  overflow: visible;
-
-  background: url(images/diagonal-pattern.png) 0 0, hsla(60,13%,94%,1);
-
-  font-weight: 600;
-  color: #FFFFFF;
-
-  border-top: 1px solid hsla(0,0%,100%,1);
-  border-bottom: 1px solid hsla(0,0%,80%,1);
-
+.kb-keypad-key-label > span {
   pointer-events: none;
 }
 
-.contact-header span {
-  position: absolute;
-  top: -1mozmm;
-  left: 2mozmm;
-  width: 5.5mozmm;
-  height: 5.5mozmm;
-
-  line-height: 5.5mozmm;
-  color: hsla(0,0%,100%,1);
-  text-align: center;
-  font-size: 24px;
-  font-weight: bold;
-  text-transform: uppercase;
-
-  background: url(images/contacts-circle.png);
-  background-size: 100% 100%;
+.del-digit {
+  margin:0 auto;
+  background:url(images/dialer_icon_delete.png) 50% 50% no-repeat;
+  background-size: 3.8rem 2.8rem;
 }
 
-.contact {
-  padding: 0 14px 0 4mozmm;
-  height: 7.2mozmm;
-  width: -moz-calc(100% - 2px);
-
-  border-bottom: 1px solid #CCCCCC;
-  border-top: 1px solid #FFFFFF;
-  color: hsla(0,0%,20%,1);
-	background: none;
-
-  line-height: 7.2mozmm;
-  font-size: 26px;
+#kb-callbar {
+  background:black;
+  height:6.5rem;
+  padding:1rem 1.5rem;
 }
 
-.contact > span:last-child {
-  font-weight: bold;
+#kb-callbar-add-contact {
+  float:left;
+  display:inline-block;
+  height:4.5rem;
+  width:9rem;
+  background: -moz-linear-gradient(top, #19191a 0%, #242b36 100%); /* FF3.6+ */
+  border:.1rem solid #242B36;
+  border-radius:.5rem;
 }
 
-.contact * {
-  pointer-events: none;
+#kb-callbar-call-action {
+  float:right;
+  display:inline-block;
+  height:4.5rem;
+  width:19rem;
+  border:0;
+  border-radius:.5rem;
+  background: -moz-linear-gradient(top, #84c82c 0%, #5f9b0a 100%); /* FF3.6+ */
 }
 
-.display-name {
-  display: block;
-  color:hsla(0,0%,20%,1);
-  pointer-events: none;
+.i-add-contact {
+  margin: auto;
+  width: 2.6rem;
+  height: 2.5rem;
+  background: url(images/dialer_icon_contact.png);
+  background-size: 2.6rem 2.5rem;
 }
 
-#contacts-shortcuts-background {
-  position: fixed;
-  right: 0;
-  top: 11.1mozmm;
-  width: 32px;
-  height: -moz-calc(100% - 14.5mozmm - 96px);
-
-  background: none;
-  border-radius: 4px;
+.i-call {
+  margin:0 auto;
+  background-image:url("images/dialer_icon_call.png");
+  width:2.6rem;
+  height:2.5rem;
+  background-repeat:no-repeat;
+  background-size: 2.6rem 2.5rem;
 }
 
-#contacts-shortcuts-background.tracking {
-  background: rgba(0, 0, 0, 0.1);
-}
-
-#contacts-shortcuts {
-  position: fixed;
-  right: 0;
-  top: 12.6mozmm;
-  width: 32px;
-  height: -moz-calc(100% - 17.5mozmm - 96px);
-}
-
-#contacts-shortcuts > a {
-  display: block;
-  width: 32px;
-  height: -moz-calc(100% / 26);
-  margin: 0;
-
-  color: #999999;
-  font-weight: 600;
-  font-size: 14px;
-  text-align: center;
-
-  cursor: default;
-  -moz-user-select: none;
-}
-
-/* === Contact detail View === */
-#contacts-overlay {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-
-  background-color: rgba(0, 0, 0, 0.6);
-
-  z-index: -1;
-}
-#contacts-overlay.displayed {
-  z-index: 20;
-}
-
-#contact-details-container {
-  position: absolute;
-  top: 12.5%;
-  left: 7%;
-  width: 86%;
-  height: 71%;
-
-  overflow: visible;
-  box-shadow: 0 3px 5px black;
-
-  border-radius:5px;
-  background: url(images/app-texture.png) 50% 50%,
-              -moz-linear-gradient(bottom, hsla(0,0%,60%,1) 0,
-              hsla(0,0%,0%,.1) 1px, hsla(0,0%,0%,0) 30%, hsla(0,0%,0%,0) 100%), hsla(0,0%,96%,1);
-
-  -moz-transition-property: -moz-transform;
-  -moz-transition-duration: 0.30s;
-  -moz-transition-timing-function: linear;
-
-  -moz-transform: translateY(100%);
-}
-
-#contact-details-container.displayed {
-  -moz-transform: translateY(0);
-}
-
-#contact-details-view {
-  padding: 24px;
-  -moz-transition: opacity 0.15s ease;
-}
-
-#contact-details-view button,
-#contact-details-view input[type="submit"]
-{
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
-  width: 13mozmm;
-  height: 6mozmm;
-  padding: 0 8px;
-
-  border-radius: 10px;
-  border: 2px #EBEBEB solid;
-
-  line-height: 6mozmm;
-  font-size: 1.3em;
-  color: #666;
-  font-weight: normal;
-  text-transform: none;
-  text-align: center;
-  text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.5);
-
-  background: -moz-linear-gradient(center top , #F7F7F7 0pt, #EDEBEE 1px, #DDDDDD 100%);
-
-  border: 1px solid #A0A09C;
-  border-radius: 5px;
-}
-
-#contact-details-view button[data-action='destroy'] {
-	right:auto;
-	left:20px;
-	color: hsl(0,0%,100%);
-	border-color: hsl(360, 84%, 34%);
-	background: -moz-linear-gradient(center top , hsl(4, 98%, 60%) 0, hsl(0, 99%, 45%) 100%);
-}
-
-#contact-details-view .entry span {
-  display: block;
-  float: left;
-  width: 20%;
-  margin-right: 5%;
-
-  color: #EE6700;
-  text-align: right;
-  text-transform: uppercase;
-  font-size: 18px;
-  font-weight: bold;
-  line-height: 46px;
-}
-
-#contact-details-view .value {
-  display: block;
-  float: left;
-  width: 75%;
-  color: #000;
-  background: none;
-  border: none;
-  padding: 0;
-  margin: 0;
-
-  font-size: 24px;
-  font-weight: 600;
-  line-height: 46px;
-  text-align: left;
-}
-
-label.favorite {
-  position: absolute;
-  top: 32px;
-  right: 32px;
-  width: 64px;
-  height: 64px;
-  display: block;
-}
-
-label.favorite > input[type=checkbox] {
-  display: none;
-}
-
-label.favorite > input[type=checkbox] + span {
-  display: block;
-  float: right;
-  width: 30px;
-  height: 30px;
-
-  background: url(images/star-off.png);
-}
-
-#contact-details-edit label.favorite > input[type=checkbox]:checked + span {
-  background: url(images/star-on.png);
-}
-
-#contact-photo {
-  position: absolute;
-  width: 140px;
-  height: 140px;
-
-  border: 1px solid #999999;
-  border-radius: 5px 5px 5px 5px;
-}
-
-#contact-photo img {
-  width: 140px;
-  height: 140px;
-}
-
-#contact-details-top {
-  clear: both;
-}
-
-#contact-name {
-  margin: 32px 10px 64px 152px;
-  width: -moz-calc(100% - 140px - 25px);
-  height: 40px;
-
-  font-size: 26px;
-  font-weight: bold;
-  color: #000000;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-#contact-name input {
-  text-align: left;
-}
-
-#contact-name > div {
-  padding: 2px 10px;
-}
-
-#contact-details-view .entry {
-  width: 100%;
-  margin: 30px auto;
-  clear: both;
-
-  overflow: hidden;
-
-  text-align: center;
-
-  background: url(images/contact-input-bg.png) bottom center no-repeat;
-  background-size: 100% 100%;
-}
-
-#contact-details-view > .entry > div {
-  position: relative;
-  padding: 12px;
-
-  border-top: 2px #EBEBEB solid;
-
-  text-overflow: ellipsis;
-  overflow: hidden;
-}
-
-#contact-details-show > .entry > * {
-  pointer-events: none;
-}
-
-#contact-details-view > .entry > div[data-action='add'] {
-  display: none;
-}
-
-#contact-details-view > .entry > div:first-child {
-  border-top: 0px;
-}
-
-#contact-details-view .delete-button {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 44px;
-  height: 56px;
-  margin: 0;
-
-  background-image: url(images/delete.png);
-  background-repeat: no-repeat;
-  background-size: 24px 24px;
-  background-position: center center;
-
-  display: none;
-}
-
-#contact-details-line {
-  position: absolute;
-  right: 10px;
-  left: 10px;
-  bottom: -8px;
-  height: 8px;
-
-  border-radius: 0 0 5px 5px;
-  background: -moz-linear-gradient(bottom, hsla(25,100%,35%,1) 0%, hsla(25,100%,42%,1) 1px, hsla(25,100%,26%,1) 100%);
-}
-/* === Contact Edit === */
-
-#contact-details-edit {
-  margin-top : 162px;
-}
-
-#contact-details-edit .entry {
-  margin: 10px 0;
-}
-
-#contact-details-edit .entry input {
-  float: left;
-  width: -moz-calc(100% - 124px);
-  margin-top: 8px;
-  padding: 0 10px;
-
-  background: -moz-linear-gradient(rgba(204, 204, 204, 0.5), rgba(204, 204, 204, 0) 95%) repeat scroll 0 0 transparent;
-  border: 2px solid;
-  border-radius: 5px 5px 5px 5px;
-  -moz-border-top-colors: #ccc #fff;
-  -moz-border-right-colors: #ccc #fff;
-  -moz-border-bottom-colors: #ccc #fff;
-  -moz-border-left-colors: #ccc #fff;
-
-  color: #333333;
-  font-size: 22px;
-}
-
-#contact-details-view.editing #contact-details-show,
-#contact-details-edit {
-  display: none;
-}
-
-#contact-details-view.editing #contact-details-edit {
-  display: block;
-}
 
 /* === Call Screen === */
 
@@ -811,12 +225,8 @@ label.favorite > input[type=checkbox] + span {
   height: 100%;
   margin: 0 0 1px 0;
   border: 0;
-
   border-radius: 10px;
-  background: url(images/call-screen-bg.png) center top no-repeat #575B66;
-
-  font-size: 7mozmm;
-
+  background: LightGray;
   -moz-transform: translateY(-100%);
   z-index: 100;
 }
@@ -836,93 +246,158 @@ label.favorite > input[type=checkbox] + span {
   -moz-transform: translateY(0);
 }
 
-#call-screen-top {
-  height: -moz-calc(63% - 64px);
-  padding: 64px 0 0 40px;
+#call-screen.calling #call-screen-top {
+  height: 60%;
+}
 
-	background-image: url(images/call-screen-bg-top.png);
-  background-position: 0 0;
-  background-repeat: no-repeat;
+#call-screen.in-call #call-screen-top {
+  height: 60%;
 }
 
 #call-screen.incoming #call-screen-top {
-  height: -moz-calc(82% - 64px);
-	background-image: url(images/call-screen-bg-top-large.png);
+  height: 86%;
 }
 
-#call-status-view {
-  font-size: 1.3em;
-	text-shadow:0 0 3px hsla(0,0%,0%,.5);
+#call-screen.calling #call-number-view-container {
+  color: DarkGray;
+  height: 20%;
+  padding: 0 5% 0 5%;
 }
 
-#call-picture {
-  width: 140px;
-  height: 140px;
-  margin: 32px 0;
-
-  border-radius: 5px;
+#call-screen.in-call #call-number-view-container {
+  color: DarkGray;
+  height: 20%;
+  padding: 0 5% 0 5%;
 }
 
-#call-picture img {
-  width: 140px;
-  height: 140px;
+#call-screen.incoming #call-number-view-container {
+  color: DarkGray;
+  height: 12%;
+  padding: 0 5% 0 5%;
 }
 
-#call-screen.incoming #call-picture,
-#call-screen.incoming #call-picture img {
-  width: 320px;
-  height: 320px;
+#call-screen.calling #call-number-view {
+  font-size: 4rem;
 }
 
-#call-number-view {
-  color: #929CA4;
-  font-size: 0.6em;
+#call-screen.in-call #call-number-view {
+  font-size: 4rem;
 }
 
-#call-actions-container {
-  position: absolute;
-  bottom: 0;
+#call-screen.incoming #call-number-view {
+  font-size: 4rem;
+}
+
+#call-screen.calling #call-picture {
+  height: 80%;
   width: 100%;
-  height: 37%;
+  padding: 0 5% 5% 5%;
+}
+
+#call-screen.in-call #call-picture {
+  height: 50%;
+  width: 100%;
+  padding: 0 5% 0 5%;
+}
+
+#call-screen.incoming #call-picture {
+  height: 88%;
+  width: 100%;
+  padding: 0 5% 5% 5%;
+}
+
+#call-screen.calling #call-picture img {
+  height: 95%;
+  width: 90%;	
+  margin: auto;
+}
+
+#call-screen.in-call #call-picture img {
+  height: 100%;
+  margin: auto;
+}
+
+#call-screen.incoming #call-picture img {
+  height: 95%;
+  width: 90%;	
+  margin: auto;
+}
+
+#call-screen.calling #call-duration-view-container {
+  display: none;
+}
+
+#call-screen.in-call #call-duration-view-container {
+  color: DarkGray;
+  height: 30%;
+  padding: 0 5% 0 5%;
+}
+
+#call-screen.incoming #call-duration-view-container {
+  display: none;
+}
+
+#call-screen.in-call #call-duration-view {
+  font-size: 6rem;
+}
+
+#call-screen.calling #call-actions-container {
+  height: 40%;
+}
+
+#call-screen.in-call #call-actions-container {
+  height: 40%;
 }
 
 #call-screen.incoming #call-actions-container {
-  height: 18%;
+  height: 14%;
 }
 
-#call-actions {
-  width: -moz-calc(100% - 80px);
-  margin: 20px auto 0 auto;
+#call-screen.calling #call-actions-top {
+  height: 65%;
+  width: 100%;
+  padding: 0 5% 5% 5%;
 }
 
-#call-screen.incoming #call-actions {
+#call-screen.in-call #call-actions-top {
+  height: 65%;
+  width: 100%;
+  padding: 0 5% 5% 5%;
+}
+
+#call-screen.incoming #call-actions-top {
   display: none;
+}
+
+#call-screen.calling #call-actions {
+  width: 90%;
+  height: 50%;
+}
+
+#call-screen.in-call #call-actions {
+  width: 90%;
+  height: 50%;
 }
 
 #call-actions > div {
   float: left;
-  display: block;
-  width: -moz-calc(100% / 3);
-  padding: 0;
-  margin: 0;
+  width: -moz-calc(100% / 3 - 2px);
+  height: -moz-calc(100% - 1px);
+  border-right: solid 1px LightGray;
+  border-bottom: solid 1px LightGray;
+}
 
-  text-align: center;
+#call-actions > div:last-child {
+  border-right: none;
 }
 
 #call-actions > div > span {
-  display: block;
-
-	color: hsla(208,9%,61%,1);
-  font-size: 0.25em;
-  line-height: 2.2em;
+  display: none;
 }
 
 #call-actions > div > div {
-  margin: auto;
-  width: -moz-calc(100% - 30px);
-  height: 70px;
-  border-radius: 5px;
-
+  width: 100%;
+  height: 100%;
   background-color: rgba(0, 0, 0, 0.1);
   background-repeat: no-repeat;
   background-position: 50% 50%;
@@ -949,30 +424,44 @@ label.favorite > input[type=checkbox] + span {
   background-image: url(images/mute-icon-active.png);
 }
 
-#call-button {
-  position: absolute;
-  bottom: 25px;
+#contacts-button {
+  background-image: url(images/contacts-icon.png);
+}
+
+#recents-button {
+  background-image: url(images/recents-icon.png);
+}
+
+#write-msg-button {
+  background-image: url(images/dialer_icon_message.png);
+}
+
+#call-screen.calling #call-button {
+  height: 35%;
   width: 100%;
-  height: 36.8%;
+  padding: 0 5% 5% 5%;
+}
+
+#call-screen.in-call #call-button {
+  height: 35%;
+  width: 100%;
+  padding: 0 5% 5% 5%;
 }
 
 #call-screen.incoming #call-button {
+  width: 100%;
   height: 100%;
-  bottom: 0;
+  padding: 0 5% 5% 5%;
 }
 
 #call-button > div {
   float: left;
   display: table;
-  width: -moz-calc(100% / 2 - 1px);
-  height: 100%;
-  margin: 0;
-
-  font-size: 0.6em;
+  font-size: 2rem;
   font-weight: bold;
   text-align: center;
+  height: 75%;
   text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5);
-
   background-position: 50% 50%;
   background-repeat: no-repeat;
 }
@@ -983,165 +472,73 @@ label.favorite > input[type=checkbox] + span {
 }
 
 #accept-call {
-	background-image: url(images/accept-call-bg.png);
-  border-right: 2px solid;
-  -moz-border-right-colors: #838B8D #494E56;
+  background: DarkGray;
 }
+
 #accept-call:active {
   color: #A9A9A9;
+  background: LightGray;
 }
 
 #end-call {
-	background-image: url(images/end-call-bg.png);
+  background: DarkGray;
+  border-right: solid 2px LightGray;
 }
+
 #end-call:active {
-  color: #A9A9A9;
+  background: LightGray;
 }
 
 #call-screen.calling #end-call {
-  width: 100%;
-	background-image: url(images/end-call-bg-large.png);
+  width: 90%;
 }
-#call-screen.calling #end-call:active {
-  color: #A9A9A9;
+
+#call-screen.in-call #end-call {
+  width: 90%;
+}
+
+#call-screen.incoming #end-call {
+  width: -moz-calc(90% / 2 - 1px);
 }
 
 #call-screen.calling #accept-call {
   display: none;
 }
 
-#mainKeyset.overlay {
+#call-screen.in-call #accept-call {
+  display: none;
+}
+
+#call-screen.incoming #accept-call {
+  width: -moz-calc(90% / 2 - 1px);
+}
+
+#kb-keypad.overlay {
   position: absolute;
   top: 0;
-  height: 72%;
-
-  background: url(images/call-screen-bg.png) center top no-repeat #575B66;
-
-  color: white;
+  height: 40%;
   z-index: 500;
 }
 
-#mainKeyset.overlay .keyboard-row .keyboard-key {
-  border: 1px solid #bcbcbc;
-}
-
-#mainKeyset.overlay .keyboard-key > span {
-  color: white;
-}
-
-#mainKeyset.overlay .keyboard-key:active {
-  background: rgba(255, 255, 255, .3);
-}
-
 /* == Screen turn off hack == */
+
 #screen-off {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-
   background: black;
   z-index: 1000;
-
   display: none;
 }
+
 #screen-off.displayed {
   display: block;
 }
 
-/* === Recents === */
-#recents-view {
-  overflow-y: scroll;
-}
-
-.recent {
-  position: relative;
-  padding: 0;
-  height: -moz-calc(96px - 2px);
-  width: -moz-calc(100% + 8px);
-
-  border-bottom: 1px solid #CCCCCC;
-  border-top: 1px solid #FFFFFF;
-  color: hsla(0,0%,20%,1);
-	background: none;
-
-  line-height: 7.2mozmm;
-  font-size: 26px;
-}
-
-.recent > * {
-  pointer-events: none;
-}
-
-.recent:first-child {
-  border-top: 0;
-  height: -moz-calc(96px - 1px);
-}
-
-.recent img {
-  float: left;
-  width: 96px;
-  height: 100%;
-}
-
-.recent .type {
-  position: absolute;
-  top: 46px;
-  right: 16px;
-  width: 31px;
-  height: 22px;
-
-  background-repeat: no-repeat;
-  background-position: center center;
-}
-.recent.incoming .type {
-  background-image: url("images/incoming.png");
-}
-.recent.incoming-connected .type {
-  background-image: url("images/incoming-connected.png");
-}
-.recent.incoming-refused .type {
-  background-image: url("images/incoming-refused.png");
-}
-
-.recent.outgoing .type {
-  background-image: url("images/outgoing.png");
-}
-.recent.outgoing-connected .type {
-  background-image: url("images/outgoing-connected.png");
-}
-.recent.outgoing-refused .type {
-  background-image: url("images/outgoing-refused.png");
-}
-
-.recent .name {
-  margin-left: 112px;
-  font-weight: bold;
-}
-
-.recent .number {
-  position: absolute;
-  bottom: 8px;
-  left: 112px;
-  right: 0;
-
-  color: #666666;
-
-  font-size: 0.8em;
-}
-
-.recent .timestamp {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-
-  color: #999999;
-  font-size: 16px;
-  line-height: 1.4em;
-}
-
 /* localization */
+
 body.hidden *[data-l10n-id] {
   visibility: hidden;
 }

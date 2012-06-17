@@ -4,10 +4,11 @@
   }
 
   var Month = Calendar.Template.create({
-    busy: '<span class="busy-{value}">&nbsp;</span>',
+    busy: '<span class="{value}">&nbsp;</span>',
 
     currentMonth: [
       '<span class="month">{month}</span>',
+      ' ',
       '<span class="year">{year}</span>'
     ].join(''),
 

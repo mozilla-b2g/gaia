@@ -5,8 +5,11 @@
     <meta http-equiv="pragma" content="no-cache">
     <title>Music</title> 
     <link rel="stylesheet" href="style/music.css" type="text/css" />
-    <script type="text/javascript" src="js/music.js"></script>
+    <!-- Use external libraries of mp3 and ogg -->
+    <script type="text/javascript" src="js/ext/id3-minimized.js"></script>
+    <script type="text/javascript" src="js/ext/ogg.js"></script>
     <script type="text/javascript" src="js/utils.js"></script>
+    <script type="text/javascript" src="js/music.js"></script>
   </head>
 
   <body>
@@ -71,6 +74,9 @@
       <button id="tabs-artists" class="tabs-button" disabled=true>Artists</button>
       <button id="tabs-albums" class="tabs-button" disabled=true>Albums</button>
       <button id="tabs-more" class="tabs-button" disabled=true>More</button>
+  	</div>
+  	<div id="nosongs">
+  	  <div id="nosongs-text">No Songs</div>
   	</div>
   </body>
 </html>
