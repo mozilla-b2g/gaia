@@ -4371,10 +4371,10 @@ var IAtomDictBase = {
    * Add a lemma to the dictionary. If the dictionary allows to add new
    * items and this item does not exist, add it.
    *
-   * @param {string} splids The Chinese string of the lemma.
+   * @param {string} lemma_str The Chinese string of the lemma.
    * @param {Array.<number>} splids The spelling ids of the lemma.
    * @param {number} count The frequency count for this lemma.
-   * @return {number} The id if succeed, 0 if fail.
+   * @return {number} The lemma id if succeed, 0 if fail.
    */
   put_lemma: function atomDictBase_put_lemma(lemma_str, splids, count) {},
 
@@ -6629,8 +6629,798 @@ DictBuilder.prototype = {
 var UserDict = function userDict_constructor() {
 };
 
+// In-Memory-Only flag for each lemma
+UserDict.kUserDictLemmaFlagRemove = 1;
+
+// Highest bit in offset tells whether corresponding lemma is removed
+UserDict.kUserDictOffsetFlagRemove = (1 << 31);
+
+// Maximum possible for the offset
+UserDict.kUserDictOffsetMask = ~(1 << 31);
+
+// Bit width for last modified time, from 1 to 16
+UserDict.kUserDictLMTBitWidth = 16;
+
+// Granularity for last modified time in second
+UserDict.kUserDictLMTGranularity = 60 * 60 * 24 * 7;
+// Maximum frequency count
+UserDict.kUserDictMaxFrequency = 0xFFFF;
+
+UserDict.kUserDictLMTSince = new Date(2012, 1, 1, 0, 0, 0).getTime();
+
+// Be sure size is 4xN
+UserDict.UserDictInfo = function userDictInfo_constructor() {
+};
+
+UserDict.UserDictInfo.prototype = {
+  /**
+   * When limitation reached, how much percentage will be reclaimed (1 ~ 100)
+   */
+  reclaim_ratio: 0,
+
+  /**
+   * maximum lemma count, 0 means no limitation
+   */
+  limit_lemma_count: 0,
+
+  /**
+   * Maximum lemma size, it's different from
+   * whole disk file size or in-mem dict size
+   * 0 means no limitation
+   */
+  limit_lemma_size: 0,
+
+  /**
+   * Total lemma count including deleted and inuse
+   * Also indicate offsets_ size
+   */
+  lemma_count: 0,
+
+  /**
+   * Total size of lemmas including used and freed
+   */
+  lemma_size: 0,
+
+  /**
+   * Freed lemma count
+   */
+  free_count: 0,
+
+  /**
+   * Freed lemma size in byte
+   */
+  free_size: 0,
+
+  total_nfreq: 0
+};
+
+UserDict.kUserDictVersion = 0x00000001;
+
+UserDict.kUserDictPreAlloc = 32;
+UserDict.kUserDictAverageNchar = 8;
+
+/**
+ * @enum
+ */
+UserDict.UserDictState = {
+  // Keep in order
+  USER_DICT_NONE: 0,
+  USER_DICT_SYNC: 1,
+  USER_DICT_SCORE_DIRTY: 2,
+  USER_DICT_OFFSET_DIRTY: 3,
+  USER_DICT_LEMMA_DIRTY: 4,
+  USER_DICT_DEFRAGMENTED: 5
+};
+
+UserDict.UserDictSearchable = function userDictSearchable_constructor() {
+  this.splid_start = [];
+  this.splid_count = [];
+  this.signature = [];
+  for (var i = 0; i < DictDef.kMaxLemmaSize; i++) {
+    this.splid_start[i] = 0;
+    this.splid_count[i] = 0;
+    if (i % 4 == 0) {
+      this.signature[i / 4] = 0;
+    }
+  }
+};
+
+UserDict.UserDictSearchable.prototype = {
+  splids_len: 0,
+
+  /**
+   * The length is DictDef.kMaxLemmaSize.
+   * @type Array.<number>
+   */
+  splid_start: null,
+
+  /**
+   * The length is DictDef.kMaxLemmaSize.
+   * @type Array.<number>
+   */
+  splid_count: null,
+
+  /**
+   * Compact inital letters for both FuzzyCompareSpellId and cache system
+   * The length is DictDef.kMaxLemmaSize / 4.
+   * @type Array.<number>
+   */
+  signature: null
+};
+
+/**
+ * @enum
+ */
+UserDict.UserDictCacheType = {
+  USER_DICT_CACHE: 0,
+  USER_DICT_MISS_CACHE: 1
+};
+
+UserDict.kUserDictCacheSize = 4;
+UserDict.kUserDictMissCacheSize = DictDef.kMaxLemmaSize - 1;
+
+UserDict.UserDictMissCache = function userDictMissCache_constructor() {
+  this.signatures = [];
+  for (var i = 0; i < UserDict.kUserDictMissCacheSize; i++) {
+    this.signatures[i] = [];
+    for (var j = 0; j < DictDef.kMaxLemmaSize / 4; j++) {
+      this.signatures[i][j] = 0;
+    }
+  }
+};
+
+UserDict.UserDictMissCache.prototype = {
+  /**
+   * @type Array.<Array.<number>>
+   */
+  signatures: null,
+
+  head: 0,
+
+  tail: 0
+};
+
+UserDict.UserDictCache = function userDictCache_constructor() {
+  this.signatures = [];
+  for (var i = 0; i < UserDict.kUserDictCacheSize; i++) {
+    this.signatures[i] = [];
+    for (var j = 0; j < DictDef.kMaxLemmaSize / 4; j++) {
+      this.signatures[i][j] = 0;
+    }
+  }
+
+  this.offsets = [];
+  this.lengths = [];
+  for (var i = 0; i < UserDict.kUserDictCacheSize; i++) {
+    this.offsets[i] = 0;
+    this.lengths[i] = 0;
+  }
+};
+
+UserDict.UserDictCache.prototype = {
+  /**
+   * @type Array.<Array.<number>>
+   */
+  signatures: null, //[kUserDictCacheSize][kMaxLemmaSize / 4];
+
+  /**
+   * The length is UserDict.kUserDictCacheSize
+   * @type Array.<number>
+   */
+  offsets: null,
+
+  /**
+   * The length is UserDict.kUserDictCacheSize
+   * @type Array.<number>
+   */
+  lengths: null,
+
+  // Ring buffer
+  head: 0,
+  tail: 0
+};
+
+UserDict.UserDictScoreOffsetPair =
+    function userDictScoreOffsetPair_constructor() {
+};
+
+UserDict.UserDictScoreOffsetPair.prototype = {
+  score: 0,
+  uoffset_index: 0
+};
+
 UserDict.prototype = {
-  __proto__: IAtomDictBase
+  __proto__: IAtomDictBase,
+
+  /* ==== Public ==== */
+
+  /**
+   * @override
+   */
+  load_dict: function userDict_load(file_name, start_id, end_id) {},
+
+  /**
+   * @override
+   */
+  close: function userDict_close() {},
+
+  /**
+   * @override
+   */
+  number_of_lemmas: function userDict_number_of_lemmas() {},
+
+  /**
+   * @override
+   */
+  reset_milestones:
+      function userDict_reset_milestones(from_step, from_handle) {},
+
+  /**
+   * @override
+   */
+  extend_dict:
+    function userDict_extend_dict(from_handle, dep, lpi_items, start) {},
+
+  /**
+   * @override
+   */
+  get_lpis:
+      function userDict_get_lpis(splid_str, lpi_items, start, lpi_max) {},
+
+  /**
+   * @override
+   */
+  get_lemma_str: function userDict_get_lemma_str(id_lemma) {},
+
+  /**
+   * @override
+   */
+  get_lemma_splids: function userDict_get_lemma_splids(id_lemma, splids,
+      start, splids_max) {},
+
+  /**
+   * @override
+   */
+  predict: function userDict_predict(last_hzs, npre_items, start, npre_max,
+                                         b4_used) {},
+
+  /**
+   * @override
+   */
+  put_lemma: function userDict_put_lemma(lemma_str, splids, count) {},
+
+  /**
+   * @override
+   */
+  update_lemma:
+      function userDict_update_lemma(lemma_id, delta_count, selected) {},
+
+  /**
+   * @override
+   */
+  get_lemma_id: function userDict_get_lemma_id(lemma_str, splids) {},
+
+  /**
+   * @override
+   */
+  get_lemma_score_by_id:
+      function userDict_get_lemma_score_by_id(lemma_id) {},
+
+  /**
+   * @override
+   */
+  get_lemma_score_by_content:
+      function userDict_get_lemma_score_by_content(lemma_str, splids) {},
+
+  /**
+   * @override
+   */
+  remove_lemma: function userDict_remove_lemma(lemma_id) {},
+
+  /**
+   * @override
+   */
+  get_total_lemma_count: function userDict_get_total_lemma_count() {},
+
+  /**
+   * @override
+   */
+  set_total_lemma_count_of_others:
+      function userDict_set_total_lemma_count_of_others(count) {},
+
+  /**
+   * @override
+   */
+  flush_cache: function userDict_flush_cache() {},
+
+  /**
+   * @param {number} max_lemma_count Maximum lemma count, 0 means no limitation.
+   * @param {number} max_lemma_size Maximum lemma size.
+   * @param {number} reclaim_ratio When limitation reached, how much percentage
+   *    will be reclaimed (1 ~ 100).
+   */
+  set_limit: function userDict_set_limit(max_lemma_count, max_lemma_size,
+                                         reclaim_ratio) {
+
+  },
+
+  reclaim: function userDict_reclaim() {
+
+  },
+
+  defragment: function userDict_defragment() {
+
+  },
+
+  /* ==== Private ==== */
+
+  /**
+   * @type number
+   */
+  total_other_nfreq_: 0,
+
+  /**
+   * @type number
+   */
+  load_time_: 0,
+
+  /**
+   * @type number
+   */
+  start_id_: 0,
+
+  /**
+   * @type number
+   */
+  version_: 0,
+
+  /**
+   * @type Array.<number>
+   */
+  lemmas_: null,
+
+  /**
+   * Correspond to offsets_
+   * @type Array.<number>
+   */
+  scores_: null,
+
+
+  // Following two fields are only valid in memory
+
+  /**
+   * @type Array.<number>
+   */
+  ids_: null,
+
+  /**
+   * @type Array.<number>
+   */
+  predicts_: null,
+
+  /**
+   * @type Array.<number>
+   */
+  offsets_by_id_: null,
+
+  lemma_count_left_: 0,
+  lemma_size_left_: 0,
+
+  dict_file_: '',
+
+  /**
+   * @type UserDict.UserDictInfo
+   */
+  dict_info_: null,
+
+  /**
+   * @type UserDict.UserDictState
+   */
+  state_: UserDict.UserDictState.USER_DICT_NONE,
+
+  /**
+   * The length is DictDef.kMaxLemmaSize.
+   * @type Array.<UserDict.UserDictMissCache>
+   */
+  miss_caches_: null,
+
+  /**
+   * The length is DictDef.kMaxLemmaSize.
+   * @type Array.<UserDict.UserDictCache>
+   */
+  caches_: null,
+
+  cache_init: function userDict_() {
+
+  },
+
+  /**
+   * Push a cache object.
+   * @param {UserDict.UserDictCacheType} type The type of the cache object.
+   * @param {UserDict.UserDictSearchable} searchable The object to be cached.
+   * @param {number} offset The cache object offset.
+   * @param {number} length The cache object length.
+   * @return {void} No return value.
+   */
+  cache_push: function userDict_cache_push(type, searchable, offset, length) {
+
+  },
+
+  /**
+   * Check whether a cache obejct is hit.
+   * @param {UserDict.UserDictSearchable} searchable The object to be checked.
+   * @return {success: boolean, offset: number, length: number} success - true
+   *    if hit; offset - the offset of the cache object if hit;
+   *    length -  the length of the cache object if hit.
+   */
+  cache_hit: function userDict_cache_hit(searchable) {
+
+  },
+
+  /**
+   * Load a cache obejct
+   * @param {UserDict.UserDictSearchable} searchable The object to be loaded.
+   * @return {success: boolean, offset: number, length: number}
+   *    success - true if success;
+   *    offset - the offset of the cache object if success;
+   *    length -  the length of the cache object if success.
+   */
+  load_cache: function userDict_load_cache(searchable) {
+
+  },
+
+  /**
+   * Save a cache object.
+   * @param {UserDict.UserDictCacheType} type The type of the cache object.
+   * @param {UserDict.UserDictSearchable} searchable The object to be saved.
+   * @param {number} offset The cache object offset.
+   * @param {number} length The cache object length.
+   * @return {void} No return value.
+   */
+  save_cache: function userDict_save_cache(searchable, offset, length) {
+
+  },
+
+  /**
+   * @return {void} No return value.
+   */
+  reset_cache: function userDict_reset_cache() {
+
+  },
+
+  /**
+   * Load miss cache
+   * @param {UserDict.UserDictSearchable} searchable The object to be loaded.
+   * @return {boolean} true if success.
+   */
+  load_miss_cache: function userDict_load_miss_cache(searchable) {
+
+  },
+
+  /**
+   * Save miss cache
+   * @param {UserDict.UserDictSearchable} searchable The object to be saved.
+   * @return {void} No return value.
+   */
+  save_miss_cache: function userDict_save_miss_cache(searchable) {
+
+  },
+
+  /**
+   * @return {void} No return value.
+   */
+  reset_miss_cache: function userDict_save_miss_cache() {
+
+  },
+
+  translate_score: function userDict_translate_score(f) {
+
+  },
+
+  extract_score_freq: function userDict_extract_score_freq(raw_score) {
+
+  },
+
+  extract_score_lmt: function userDict_extract_score_lmt(raw_score) {
+
+  },
+
+  build_score: function userDict_extract_score_lmt(lmt, freq) {
+
+  },
+
+  /**
+   * Add a lemma to the dictionary.
+   *
+   * @param {string} lemma_str The Chinese string of the lemma.
+   * @param {Array.<number>} splids The spelling ids of the lemma.
+   * @param {number} count The frequency count for this lemma.
+   * @param {number} lmt The last modified time stamp.
+   * @return {number} The id if succeed, 0 if fail.
+   */
+  _put_lemma: function userDict_put_lemma(lemma_str, splids, count, lmt) {
+
+  },
+
+  /**
+   * Get lemma items with scores according to a spelling id stream.
+   *
+   * @param {Array.<number>} splid_str The spelling id stream buffer.
+   * @param {Array.<SearchUtility.LmaPsbItem>} lpi_items Buffer used to fill in
+   *    the lemmas matched.
+   * @param {number} start The start position of the buffer.
+   * @param {number} lpi_max The length of the buffer that could be used.
+   * @return {{lpi_num: number, need_extend: boolean}}
+   *    lpi_num - the number of matched items which have been filled into
+   *    lpi_items; need_extend - whether need extend.
+   */
+  _get_lpis: function userDict_get_lpis(splid_str, lpi_items, start, pi_max) {
+
+  },
+
+  /**
+   * Get the score of a lemma.
+   * @param {string} lemma_str The lemma string.
+   * @param {Array.<number>} splid_str The spelling ids of the lemma.
+   * @return {number} The lemma score.
+   */
+  _get_lemma_score_by_str:
+      function userDict_get_lemma_score_by_str(lemma_str, splids) {
+
+  },
+
+  _get_lemma_score_by_id: function userDict_get_lemma_score_by_id(lemma_id) {
+
+  },
+
+  /**
+   * @param {Array.<number>} id1 spelling id array.
+   * @param {UserDict.UserDictSearchable} searchable The searchable object.
+   * @return {boolean} true if id1 is a fuzzy prefix of searchable.
+   */
+  is_fuzzy_prefix_spell_id:
+      function userDict_is_fuzzy_prefix_spell_id(id1, searchable) {
+
+  },
+
+  /**
+   * @param {Array.<number>} fullids spelling id array.
+   * @param {UserDict.UserDictSearchable} searchable The searchable object.
+   * @return {boolean} true if fullids is prefix of searchable.
+   */
+  is_prefix_spell_id:
+      function userDict_is_prefix_spell_id(fullids, searchable) {
+
+  },
+
+  /**
+   * Get the dict size by UserDict.UserDictInfo.
+   * @param {UserDict.UserDictInfo} info The dict info.
+   * @return {number} The file size.
+   */
+  get_dict_file_size: function userDict_get_dict_file_size(info) {
+
+  },
+
+  /**
+   * Reset the dict by dict file.
+   * @param {string} file The name of the dict file.
+   * @return {boolean} true if success.
+   */
+  reset: function userDict_reset(file) {
+
+  },
+
+  /**
+   * Validate the dict file.
+   * @param {string} file The name of the dict file.
+   * @return {boolean} true if the file is valid.
+   */
+  validate: function userDict_validate(file) {
+
+  },
+
+  /**
+   * Load dict file.
+   * @param {string} file The file name.
+   * @param {number} start_id The start id of the user lemmas.
+   * @return {boolean} true if success.
+   */
+  load: function userDict_load(file, start_id) {
+
+  },
+
+  is_valid_state: function userDict_is_valid_state() {
+
+  },
+
+  is_valid_lemma_id: function userDict_is_valid_lemma_id(id) {
+
+  },
+
+  get_max_lemma_id: function userDict_get_max_lemma_id() {
+
+  },
+
+  set_lemma_flag: function userDict_set_lemma_flag(offset, flag) {
+
+  },
+
+  get_lemma_flag: function userDict_get_lemma_flag(offset) {
+
+  },
+
+  /**
+   * Get character number of the lemma
+   */
+  get_lemma_nchar: function userDict_get_lemma_nchar(offset) {
+
+  },
+
+  /**
+   * Get the spelling id array of a lemma.
+   * @param {number} offset The offset of the lemma.
+   * @param {number} length The length of the lemma.
+   * @return {Array.<number>} The spelling id array.
+   */
+  get_lemma_spell_ids: function userDict_get_lemma_spell_ids(offset, length) {
+
+  },
+
+  get_lemma_word: function userDict_get_lemma_word(offset) {
+
+  },
+
+  /**
+   * Prepare searchable to fasten locate process
+   * @param {UserDict.UserDictSearchable} searchable The searchable object.
+   * @param {Array.<number>} splids The spelling id array.
+   * @return {void} No return value.
+   */
+  prepare_locate: function userDict_prepare_locate(searchable, splids) {
+
+  },
+
+  /**
+   * Compare initial letters only.
+   * @param {Array.<number>} id1 The spelling id array.
+   * @param {UserDict.UserDictSearchable} searchable The searchable object.
+   * @return {number} 1 - id1 > searchable;
+   *     0 - id1 == searchable;
+   *     -1 - id1 < searchable.
+   */
+  fuzzy_compare_spell_id:
+      function userDict_fuzzy_compare_spell_id(id1, searchable) {
+
+  },
+
+  /**
+   * Compare exactly two spell ids
+   * First argument must be a full id spell id.
+   * @param {Array.<number>} fullids The spelling id array.
+   * @param {UserDict.UserDictSearchable} searchable The searchable object.
+   * @return {number} 1 - fullids > searchable;
+   *     0 - fullids == searchable;
+   *     -1 - fullids < searchable.
+   */
+  equal_spell_id: function userDict_equal_spell_id(fullids, searchable) {
+
+  },
+
+  /**
+   * Find first item by initial letters.
+   * @param {UserDict.UserDictSearchable} searchable The searchable object.
+   */
+  locate_first_in_offsets:
+      function userDict_locate_first_in_offsets(searchable) {
+
+  },
+
+  /**
+   * Add a lemma to the dictionary.
+   *
+   * @param {string} lemma_str The Chinese string of the lemma.
+   * @param {Array.<number>} splids The spelling ids of the lemma.
+   * @param {number} count The frequency count for this lemma.
+   * @param {number} lmt The last modified time stamp.
+   * @return {number} The lemma id if succeed, 0 if fail.
+   */
+  append_a_lemma:
+      function userDict_append_a_lemma(lemma_str, splids, count, lmt) {
+
+  },
+
+  /**
+   * Check if a lemma is in dictionary.
+   * @param {string} lemma_str The lemma string.
+   * @param {Array.<number>} splid_str The spelling id array of the lemma.
+   * @return {number} The offset of the lemma if exists. Otherwize -1.
+   */
+  locate_in_offsets: function userDict_locate_in_offsets(lemma_str, splid_str) {
+
+  },
+
+  remove_lemma_by_offset_index:
+      function userDict_remove_lemma_by_offset_index(offset_index) {
+
+  },
+
+  /**
+   * @param {string} words The words to be located.
+   */
+  locate_where_to_insert_in_predicts:
+      function userDict_locate_where_to_insert_in_predicts(words) {
+
+  },
+
+  /**
+   * @param {string} words The words to be located.
+   */
+  locate_first_in_predicts: function userDict_locate_first_in_predicts(words) {
+
+  },
+
+  remove_lemma_from_predict_list:
+      function userDict_remove_lemma_from_predict_list(offset) {
+
+  },
+
+  write_back_score: function userDict_write_back_score(fd) {
+
+  },
+
+  write_back_offset: function userDict_write_back_offset(fd) {
+
+  },
+
+  write_back_lemma: function userDict_write_back_lemma(fd) {
+
+  },
+
+  write_back_all: function userDict_write_back_all(fd) {
+
+  },
+
+  write_back: function userDict_write_back() {
+
+  },
+
+  /**
+   * @param {Array.<UserDict.UserDictScoreOffsetPair>} sop The sore offset parir
+   *    array.
+   */
+  swap: function userDict_swap(sop, i, j) {
+
+  },
+
+  /**
+   * @param {Array.<UserDict.UserDictScoreOffsetPair>} sop The sore offset parir
+   *    array.
+   */
+  shift_down: function userDict_shift_down(sop, i, n) {
+
+  }
+
+  // On-disk format for each lemma
+  // +-------------+
+  // | Version (4) |
+  // +-------------+
+  // +-----------+-----------+--------------------+-------------------+
+  // | Spare (1) | Nchar (1) | Splids (2 x Nchar) | Lemma (2 x Nchar) |
+  // +-----------+-----------+--------------------+-------------------+
+  // ...
+  // +-----------------------+     +-------------+      <---Offset of offset
+  // | Offset1 by_splids (4) | ... | OffsetN (4) |
+  // +-----------------------+     +-------------+
+  // +----------------------+     +-------------+
+  // | Offset1 by_lemma (4) | ... | OffsetN (4) |
+  // +----------------------+     +-------------+
+  // +------------+     +------------+
+  // | Score1 (4) | ... | ScoreN (4) |
+  // +------------+     +------------+
+  // +----------------+
+  // | Dict Info (4x) |
+  // +----------------+
 };
 
 var DictList = function dictList_constructor() {
