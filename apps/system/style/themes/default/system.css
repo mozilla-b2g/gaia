@@ -39,19 +39,19 @@ div.windowSprite {
 
 /* Tasks Manager */
 
-#taskManager li {
+#cardsView li {
   background-color: #00f;
 }
 
-#taskManager li > a {
+#cardsView li > a {
   background: url('images/tasks/close.png') no-repeat;
 }
 
-#taskManager li > a:active {
+#cardsView li > a:active {
   background: url('images/tasks/close-active.png') no-repeat;
 }
 
-#taskManager li > h1 {
+#cardsView li > h1 {
   text-align: center;
   color: #fff;
   font-size: 2em;
