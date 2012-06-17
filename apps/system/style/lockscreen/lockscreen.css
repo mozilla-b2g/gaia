@@ -13,7 +13,7 @@
   -moz-transition: -moz-transform 0.3s ease;
 }
 
-#lockscreen.unlocked {
+#screen:not(.locked) > #lockscreen {
   -moz-transform: translateY(-moz-calc(-100% - 32px));
 }
 
