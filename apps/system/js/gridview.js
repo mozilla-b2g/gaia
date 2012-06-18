@@ -4,7 +4,7 @@
 'use strict';
 
 var GridView = {
-  grid: document.getElementById('debug-grid'),
+  grid: null,
 
   get visible() {
     return this.grid && this.grid.style.display === 'block';
@@ -35,6 +35,7 @@ var GridView = {
       grid = document.createElement('div');
       grid.id = 'debug-grid';
 
+      this.grid = grid;
       document.body.appendChild(grid);
     }
 
