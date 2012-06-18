@@ -1,0 +1,82 @@
+#modal_dialog {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10000;
+  display: none;
+  vertical-align: middle;
+}
+
+#modal_dialog_table {
+  display: table;
+  height: 100%;
+  width: 100%;
+}
+
+#modal_dialog_tablecell {
+  display: table-cell;
+  height: 100%;
+  width: 100%;
+  vertical-align: middle;
+}
+
+#alert, #confirm, #prompt {
+  width: 100%;
+  background: black;
+  color: white;
+  border-radius: 6px 6px 6px 6px;
+  border-top: #aaa;
+  border-bottom: #ddd;
+  text-align: center;
+  opacity: 0.6;
+  padding: 1em;
+  -moz-box-sizing: border-box;
+  display: none;
+}
+
+#prompt input {
+  border-radius: 3px 3px 3px 3px;
+  height: 60px;
+  font-size: 30px;
+  width: 100%;
+  color: black;
+  -moz-box-sizing: border-box;
+}
+
+.message-container {
+  text-align: left;
+  width: 100%;
+  color: white;
+  padding: 1em;
+  min-height: 30px;
+  border-radius: 6px 6px 0 0;
+  font-size: 25px;
+  -moz-box-sizing: border-box;
+}
+
+#modal_dialog button {
+  text-align: left;
+  width: 200px;
+  height: 60px;
+  background: white;
+  color: black;
+  font-size: 30px;
+  border-radius: 6px 6px 6px 6px;
+  margin: 3px;
+}
+
+#modal_dialog button:active {
+  background: #eee;
+}
+
+/* remove ugly dotted outline when focus */
+#modal_dialog button::-moz-focus-inner {
+  border: 0;
+}
+
+
+#modal_dialog.visible,#alert.visible,#confirm.visible,#prompt.visible {
+  display: block;
+}
