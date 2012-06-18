@@ -32,6 +32,12 @@ var UtilityTray = {
 
   handleEvent: function ut_handleEvent(evt) {
     switch (evt.type) {
+      case 'screenchange':
+        if (this.shown && !evt.detail.screenEnabled)
+          this.hide(true);
+
+        break;
+
       case 'touchstart':
         if (LockScreen.locked)
           return;
@@ -45,12 +51,6 @@ var UtilityTray = {
         evt.target.setCapture(true);
 
         this.onTouchStart(evt.touches[0]);
-        break;
-
-      case 'screenchange':
-        if (this.shown && !evt.detail.screenEnabled)
-          this.hide(true);
-
         break;
 
       case 'touchmove':
