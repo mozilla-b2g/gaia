@@ -135,7 +135,7 @@ ul li > label + *, ul li > label + * + * { /* text ellipsis */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: -moz-calc(100% - 96px);
+  max-width: -moz-calc(100% - 66px);
 }
 
 ul li > small {
@@ -167,7 +167,7 @@ ul li > small + a {
 .view label > span {
   position: absolute;
   top: -moz-calc(50% - 22px);
-  right: 20px;
+  right: 12px;
   -moz-box-sizing: border-box;
   display: block;
   width: 42px;
