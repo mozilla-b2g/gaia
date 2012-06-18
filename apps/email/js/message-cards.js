@@ -15,13 +15,12 @@ function MessageListCard(domNode, mode, args) {
   domNode.getElementsByClassName('msg-compose-btn')[0]
     .addEventListener('click', this.onCompose.bind(this), false);
 
-  // clicking shows the message reader for a message
-  bindContainerHandler(this.messagesContainer, 'click',
-                       this.onClickMessage.bind(this));
-  // press-and-hold shows the single-message mutation options
-  // (gaia/b2g maps a press for 1 second to context menu)
-  bindContainerHandler(this.messagesContainer, 'contextmenu',
-                       this.onHoldMessage.bind(this));
+  bindContainerClickAndHold(
+    this.messagesContainer,
+    // clicking shows the message reader for a message
+    this.onClickMessage.bind(this),
+    // press-and-hold shows the single-message mutation options
+    this.onHoldMessage.bind(this));
 
   domNode.getElementsByClassName('msg-refresh-btn')[0]
     .addEventListener('click', this.onRefresh.bind(this), false);
@@ -29,10 +28,6 @@ function MessageListCard(domNode, mode, args) {
   this.curFolder = null;
   this.messagesSlice = null;
   this.showFolder(args.folder);
-
-  // Right now, the contextmenu event does not suppress the subsequent click,
-  // so we set this flag when we see contextmenu.
-  this._suppressClick = false;
 }
 MessageListCard.prototype = {
   postInsert: function() {
@@ -156,12 +151,6 @@ MessageListCard.prototype = {
   },
 
   onClickMessage: function(messageNode, event) {
-    // hack while contextmenu still generates a click as well...
-    if (this._suppressClick) {
-      this._suppressClick = false;
-      return;
-    }
-
     // For now, let's do the async load before we trigger the card to try and
     // avoid reflows during animation or visual popping.
     Cards.eatEventsUntilNextCard();
@@ -177,12 +166,6 @@ MessageListCard.prototype = {
   },
 
   onHoldMessage: function(messageNode, event) {
-    // suppress the subsequent click if this was actually a left click
-    if (event.button === 0)
-      this._suppressClick = true;
-    else
-      event.preventDefault();
-
     var header = messageNode.message;
     Cards.popupMenuForNode(
       this.buildEditMenuForMessage(header), messageNode,

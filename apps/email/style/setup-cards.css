@@ -24,3 +24,22 @@
   margin: 10px 60px;
   width: 200px;
 }
+
+.tng-header-item {
+  font-weight: bold;
+  background-color: #eee;
+}
+.tng-header-item, .tng-item {
+  display: block;
+  width: 100%;
+  border-bottom: 1px solid gray;
+  padding: 6px;
+  margin: 0;
+}
+
+.tng-account-item-label {
+  margin: 0;
+}
+.tng-account-add {
+  font-style: italic;
+}

@@ -26,6 +26,7 @@ var App = {
             dieOnFatalError('We have an account without an inbox!', foldersSlice.items);
 
           Cards.assertNoCards();
+
           // Push the navigation cards
           Cards.pushCard(
             'account-picker', 'default', 'none',

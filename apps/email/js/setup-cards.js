@@ -1,3 +1,4 @@
+'use strict';
 /**
  * Card definitions/logic for adding accounts, changing accounts, and
  * generally managing our settings.
@@ -23,6 +24,9 @@ var MAIL_SERVICES = [
   }
 ];
 
+/**
+ * Pick which provider to use / other.
+ */
 function SetupPickServiceCard(domNode, mode, args) {
   this.domNode = domNode;
 
@@ -71,6 +75,10 @@ Cards.defineCard({
   constructor: SetupPickServiceCard,
 });
 
+/**
+ * Enter basic account info card (name, e-mail address, password) to try and
+ * autoconfigure an account.
+ */
 function SetupAccountInfoCard(domNode, mode, args) {
   this.domNode = domNode;
 
@@ -134,6 +142,9 @@ Cards.defineCard({
   constructor: SetupAccountInfoCard,
 });
 
+/**
+ * Show a spinner until success, or errors when there is failure.
+ */
 function SetupProgressCard(domNode, mode, args) {
   var backButton = domNode.getElementsByClassName('sup-back-btn')[0];
   backButton.addEventListener('click', this.onBack.bind(this), false);
@@ -201,6 +212,9 @@ Cards.defineCard({
   constructor: SetupProgressCard,
 });
 
+/**
+ * Setup is done; add another account?
+ */
 function SetupDoneCard(domNode, mode, args) {
   domNode.getElementsByClassName('sup-add-another-account-btn')[0]
     .addEventListener('click', this.onAddAnother.bind(this), false);
@@ -236,4 +250,149 @@ Cards.defineCard({
     },
   },
   constructor: SetupDoneCard,
+});
+
+/**
+ * Global settings, list of accounts.
+ */
+function SettingsMainCard(domNode, mode, args) {
+  this.acctsSlice = MailAPI.viewAccounts(false);
+  this.acctsSlice.onsplice = this.onAccountsSplice.bind(this);
+
+  this.accountsContainer =
+    domNode.getElementsByClassName('tng-accounts-container')[0];
+  bindContainerClickAndHold(this.accountsContainer,
+                            this.onClickAccount.bind(this),
+                            this.onHoldAccount.bind(this));
+
+  domNode.getElementsByClassName('tng-account-add')[0]
+    .addEventListener('click', this.onClickAddAccount.bind(this), false);
+}
+SettingsMainCard.prototype = {
+  onClose: function() {
+    // We instantaneously transitioned to this card, so instantaneously
+    // transition back.  There is no UX spec for this; we could very well go
+    // animated for this.
+    Cards.removeCardAndSuccessors(this.domNode, 'none');
+    Cards.moveToCard(['folder-picker', 'default'], 'immediate');
+  },
+
+  onAccountsSplice: function(index, howMany, addedItems,
+                             requested, moreExpected) {
+    var accountsContainer = this.accountsContainer;
+
+    var account;
+    if (howMany) {
+      for (var i = index + howMany - 1; i >= index; i--) {
+        account = msgSlice.items[i];
+        accountsContainer.removeChild(account.element);
+      }
+    }
+
+    var insertBuddy = (index >= accountsContainer.childElementCount) ?
+                        null : accountsContainer.children[index],
+        self = this;
+    addedItems.forEach(function(account) {
+      var accountNode = account.element =
+        tngNodes['account-item'].cloneNode(true);
+      accountNode.account = account;
+      self.updateAccountDom(account, true);
+      accountsContainer.insertBefore(accountNode, insertBuddy);
+    });
+  },
+
+  updateAccountDom: function(account, firstTime) {
+    var accountNode = account.element;
+
+    if (firstTime) {
+      accountNode.getElementsByClassName('tng-account-item-label')[0]
+        .textContent = account.name;
+    }
+  },
+
+  onClickAccount: function(accountNode, event) {
+    // XXX we would show account settings if we had any...
+  },
+
+  onHoldAccount: function(accountNode, event) {
+    Cards.popupMenuForNode(
+      tngNodes['account-menu'].cloneNode(true), accountNode,
+      ['menu-item'],
+      function(clickedNode) {
+        if (!clickedNode)
+          return;
+
+        switch (clickedNode.classList[0]) {
+          case 'tng-account-menu-delete':
+            // Delete the account and re-do the startup process again in order
+            // to avoid having to deal with either of the following annoying
+            // complexities specially:
+            // - The user deleted the last account!
+            // - The user delete the account that was being displayed
+            accountNode.account.deleteAccount();
+            Cards.removeCardAndSuccessors(null, 'none');
+            App.showMessageViewOrSetup();
+            break;
+        }
+      });
+
+  },
+
+  onClickAddAccount: function() {
+    // We want to tear down all cards and divert to the add flow; it will
+    // re-create the standard stack once the addition cycle completes.
+    Cards.removeCardAndSuccessors(null, 'none');
+    Cards.pushCard(
+      'setup-pick-service', 'default', 'immediate',
+      {});
+  },
+
+  die: function() {
+    this.acctsSlice.die();
+  }
+};
+Cards.defineCard({
+  name: 'settings-main',
+  modes: {
+    default: {
+      tray: false
+    },
+  },
+  constructor: SettingsMainCard,
+});
+
+/**
+ * Per-account settings, maybe some metadata.
+ */
+function SettingsAccountCard(domNode, mode, args) {
+}
+SettingsAccountCard.prototype = {
+};
+Cards.defineCard({
+  name: 'settings-account',
+  modes: {
+    default: {
+      tray: false
+    },
+  },
+  constructor: SettingsAccountCard,
+});
+
+/**
+ * Quasi-secret card for troubleshooting/debugging support.  Not part of the
+ * standard UX flow, potentially not to be localized, and potentially not to
+ * be shipped after initial dogfooding.
+ */
+function SettingsDebugCard(domNode, mode, args) {
+}
+SettingsDebugCard.prototype = {
+};
+Cards.defineCard({
+  name: 'settings-debug',
+  modes: {
+    default: {
+      tray: false
+    }
+  },
+  constructor: SettingsDebugCard,
 });

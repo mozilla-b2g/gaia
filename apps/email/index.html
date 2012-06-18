@@ -325,10 +325,31 @@
 
       <!-- Main settings menu, root of all (mail) settings -->
       <div class="card-settings-main card">
+        <div class="tng-main-header top-header">
+          <button class="tng-main-close-btn header-left-btn"
+                  data-l10n-id="settings-close">ClosE</button>
+          <h2 class="tng-main-header-label header-label"
+              data-l10n-id="settings-main-header">MaiL SettingS</h2>
+        </div>
+        <div class="scrollregion-below-header">
+          <h3 class="tng-main-accounts-label tng-header-item"
+              data-l10n-id="settings-account-section">AccountS</h3>
+          <div class="tng-accounts-container"></div>
+          <a class="tng-account-add tng-item"
+             data-l10n-id="settings-account-add">AdD AccounT</a>
+        </div>
       </div>
 
       <!-- Per-account settings menu; largely read-only for now -->
       <div class="card-settings-account card">
+        <div class="tng-account-header top-header">
+          <button class="tng-back-btn back-btn header-left-btn">&lt;</button>
+          <h2 class="tng-account-header-label header-label"></h2>
+        </div>
+      </div>
+
+      <!-- Developer debug page; for those in the know -->
+      <div class="card-settings-debug card">
       </div>
     </div>
     <!-- Widget nodes for folder cards; styles use the fld prefix -->
@@ -391,6 +412,15 @@
     </div>
     <!-- Widget nodes for the settings cards; styles use the tng prefix -->
     <div id="templ-tng">
+      <a class="tng-account-item tng-item">
+        <h4 class="tng-account-item-label"></h4>
+        <!-- we may want to expose some other info in this row -->
+      </a>
+
+      <ul class="tng-account-menu menu">
+        <li class="tng-account-menu-delete menu-item"
+            data-l10n-id="settings-account-delete">DeletE AccounT</li>
+      </ul>
     </div>
   </div>
 </body>

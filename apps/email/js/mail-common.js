@@ -61,6 +61,36 @@ function bindContainerHandler(containerNode, eventName, func) {
   }, false);
 }
 
+/**
+ * Bind both 'click' and 'contextmenu' (synthetically created by b2g), plus
+ * handling click suppression that is currently required because we still
+ * see the click event.  We also suppress contextmenu's default event so that
+ * we don't trigger the browser's right-click menu when operating in firefox.
+ */
+function bindContainerClickAndHold(containerNode, clickFunc, holdFunc) {
+  var suppressClick = false;
+  bindContainerHandler(
+    containerNode, 'click',
+    function(node, event) {
+      if (suppressClick) {
+        suppressClick = false;
+        return;
+      }
+      clickFunc(node, event);
+    });
+  bindContainerHandler(
+    containerNode, 'contextmenu',
+    function(node, event) {
+      // suppress the subsequent click if this was actually a left click
+      if (event.button === 0)
+        suppressClick = true;
+      else // avoid firefox context menu...
+        event.preventDefault();
+
+      return holdFunc(node, event);
+    });
+}
+
 const UI_WIDTH = 320, UI_HEIGHT = 480;
 
 /**
@@ -273,9 +303,20 @@ var Cards = {
    *     An arguments object to provide to the card's constructor when
    *     instantiating.
    *   }
+   *   @param[placement #:optional @oneof[
+   *     @case[undefined]{
+   *       The card gets pushed onto the end of the stack.
+   *     }
+   *     @case['left']{
+   *       The card gets inserted to the left of the current card.
+   *     }
+   *     @case['right']{
+   *       The card gets inserted to the right of the current card.
+   *     }
+   *   }
    * ]
    */
-  pushCard: function(type, mode, showMethod, args) {
+  pushCard: function(type, mode, showMethod, args, placement) {
     var cardDef = this._cardDefs[type];
     if (!cardDef)
       throw new Error('No such card def type: ' + type);
@@ -292,17 +333,35 @@ var Cards = {
       modeDef: modeDef,
       cardImpl: cardImpl,
     };
-    var cardIndex = this._cardStack.length;
-    this._cardStack.push(cardInst);
-    this._cardsNode.appendChild(domNode);
+    var cardIndex, insertBuddy;
+    if (!placement) {
+      cardIndex = this._cardStack.length;
+      insertBuddy = null;
+    }
+    else if (placement === 'left') {
+      cardIndex = this._activeCardIndex++;
+      insertBuddy = this._cardsNode.children[cardIndex];
+    }
+    else if (placement === 'right') {
+      cardIndex = this._activeCardIndex + 1;
+      if (cardIndex >= this._cardStack.length)
+        insertBuddy = null;
+      else
+        insertBuddy = this._cardsNode.children[cardIndex];
+    }
+    this._cardStack.splice(cardIndex, 0, cardInst);
+    this._cardsNode.insertBefore(domNode, insertBuddy);
     this._adjustCardSizes();
     if ('postInsert' in cardImpl)
       cardImpl.postInsert();
 
-    // XXX for now, always animate... (Need to disable 'left' as an animatable
-    // property, set left, and then re-enable.  Need to trigger one or more
-    // reflows for that to work right.)
     if (showMethod !== 'none') {
+      // If we want to animate and we just inserted the card to the left, then
+      // we need to update our position so that the user perceives animation.
+      // (Otherwise our offset is already showing the new card.)
+      if (showMethod === 'animate' && placement === 'left')
+        this._showCard(this._activeCardIndex, 'immediate');
+
       this._showCard(cardIndex, showMethod);
     }
   },
@@ -337,8 +396,8 @@ var Cards = {
       return this._findCardUsingImpl(query);
   },
 
-  moveToCard: function(query) {
-    this._showCard(this._findCard(query), 'animate');
+  moveToCard: function(query, showMethod) {
+    this._showCard(this._findCard(query), showMethod || 'animate');
   },
 
   tellCard: function(query, what) {
