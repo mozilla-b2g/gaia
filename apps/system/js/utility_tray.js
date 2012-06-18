@@ -17,8 +17,13 @@ var UtilityTray = {
   init: function ut_init() {
     var events = ['touchstart', 'touchmove', 'touchend'];
 
+    // XXX: Always use Mouse2Touch here.
+    // We cannot reliably detect touch support normally
+    // by evaluate (document instanceof DocumentTouch) on Desktop B2G.
+
     events.forEach(function bindEvents(name) {
-      window.addEventListener(name, this);
+      // window.addEventListener(name, this);
+      Mouse2Touch.addEventHandler(window, name, this);
     }, this);
 
     this.overlay.addEventListener('transitionend', this);
