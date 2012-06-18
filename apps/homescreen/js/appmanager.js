@@ -127,6 +127,18 @@ var Applications = (function() {
     return coreApplications.indexOf(origin) !== -1;
   };
 
+  var deviceWidth = document.documentElement.clientWidth;
+
+  /*
+   *  Returns the size of the icon
+   *
+   *  {Array} Sizes orderer largest to smallest
+   *
+   */
+  function getIconSize(sizes) {
+    return sizes[(deviceWidth < 480) ? sizes.length - 1 : 0];
+  }
+
   /*
    *  Returns an icon given an origin
    *
@@ -154,7 +166,7 @@ var Applications = (function() {
     // application to it (technically, manifests are supposed to
     // have those). Otherwise return the url directly as it could be
     // a data: url.
-    var icon = icons[sizes[0]];
+    var icon = icons[getIconSize(sizes)];
     if (icon.indexOf('data:') !== 0) {
       icon = origin + icon;
     }
@@ -205,4 +217,3 @@ var Applications = (function() {
     getManifest: getManifest
   };
 })();
-

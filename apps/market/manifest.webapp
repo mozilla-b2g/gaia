@@ -54,6 +54,7 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "120": "/style/icons/Market.png"
+    "120": "/style/icons/Market.png",
+    "60": "/style/icons/60/Market.png"
   }
 }
