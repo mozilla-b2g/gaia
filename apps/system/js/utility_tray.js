@@ -15,16 +15,17 @@ var UtilityTray = {
   screen: document.getElementById('screen'),
 
   init: function ut_init() {
-    var events = ['touchstart', 'touchmove', 'touchend'];
+    var touchEvents = ['touchstart', 'touchmove', 'touchend'];
 
     // XXX: Always use Mouse2Touch here.
     // We cannot reliably detect touch support normally
     // by evaluate (document instanceof DocumentTouch) on Desktop B2G.
-
-    events.forEach(function bindEvents(name) {
+    touchEvents.forEach(function bindEvents(name) {
       // window.addEventListener(name, this);
       Mouse2Touch.addEventHandler(window, name, this);
     }, this);
+
+    window.addEventListener('screenchange', this);
 
     this.overlay.addEventListener('transitionend', this);
   },
@@ -42,6 +43,12 @@ var UtilityTray = {
         this.active = true;
 
         this.onTouchStart(evt.touches[0]);
+        break;
+
+      case 'screenchange':
+        if (this.locked && !evt.detail.screenEnabled)
+          this.unlock(true);
+
         break;
 
       case 'touchmove':
