@@ -128,6 +128,23 @@ body {
   padding-bottom: 7px;
 }
 
+#browser-settings {
+  background: url("images/settings-white.png");
+  width: 24px;
+  height: 24px;
+  position: absolute;
+  right: 0px;
+  bottom: 10px;
+  color: white;
+  z-index: 100;
+  display: block;
+  cursor: pointer;
+}
+
+#browser-settings:active, #browser-settings:hover {
+  background: url("images/settings.png");
+}
+
 #main-screen {
   -moz-transition: 0.2s ease-in-out;
   margin: 0;
