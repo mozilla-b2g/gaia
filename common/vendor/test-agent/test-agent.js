@@ -696,8 +696,11 @@
     var key;
 
     this._cached = {};
+
+    //queue stuff
+    this._queue = [];
+
     this.doneCallbacks = [];
-    this.pending = 0;
 
     if (typeof(options) === 'undefined') {
       options = {};
@@ -713,12 +716,21 @@
   Loader.prototype = {
 
     /**
+     * Queue for script loads.
+     */
+    _queue: null,
+
+    /**
+     * Used for queue identification.
+     */
+    _currentId: null,
+
+    /**
      * Prefix for all loaded files
      *
      * @type String
      */
     prefix: '',
-
 
     /**
      * javascript content type.
@@ -760,19 +772,6 @@
       this._cached = {};
     },
 
-    /**
-     * _decrements pending and fires done callbacks
-     */
-    _decrementPending: function _decrementPending() {
-      if (this.pending > 0) {
-        this.pending--;
-      }
-
-      if (this.pending <= 0) {
-        this._fireCallbacks();
-      }
-    },
-
     _fireCallbacks: function _fireCallbacks() {
       var callback;
       while ((callback = this.doneCallbacks.shift())) {
@@ -792,6 +791,27 @@
     },
 
     /**
+     * Begins an item in the queue.
+     */
+    _begin: function() {
+      var item = this._queue[0];
+
+      if (item) {
+        item();
+      } else {
+        this._fireCallbacks();
+      }
+    },
+
+    /**
+     * Moves to the next item in the queue.
+     */
+    _next: function() {
+      this._queue.shift();
+      this._begin();
+    },
+
+    /**
      * Loads given script into current target window.
      * If file has been previously loaded it will not
      * be loaded again.
@@ -799,7 +819,24 @@
      * @param {String} url location to load script from.
      * @param {String} callback callback when script loading is complete.
      */
-    require: function require(url, callback) {
+    require: function(url, callback) {
+      this._queue.push(
+        this._require.bind(this, url, callback)
+      );
+
+      if (this._queue.length === 1) {
+        this._begin();
+      }
+    },
+
+    /**
+     * Function that does the actual require work work.
+     * Handles calling ._next on cached file or on onload
+     * success.
+     *
+     * @private
+     */
+    _require: function require(url, callback) {
       var prefix = this.prefix,
           suffix = '',
           self = this,
@@ -808,13 +845,9 @@
 
       if (url in this._cached) {
         if (callback) {
-          if (this.pending) {
-            this.done(callback);
-          } else {
-            callback();
-          }
+          callback();
         }
-        return;
+        return this._next();
       }
 
       if (this.bustCache) {
@@ -830,14 +863,12 @@
       element.src = url;
       element.async = false;
       element.type = this.type;
-      element.onload = function scriptOnLoad() {
+      element.onload = function onload() {
         if (callback) {
           callback();
         }
-        self._decrementPending();
-      };
-
-      this.pending++;
+        self._next();
+      }
 
       document.getElementsByTagName('head')[0].appendChild(element);
     }

@@ -32,7 +32,12 @@ DEBUG?=0
 
 REPORTER=Spec
 
-GAIA_APP_SRCDIRS?=apps
+GAIA_APP_SRCDIRS?=apps test_apps
+
+ifeq ($(MAKECMDGOALS), demo)
+GAIA_DOMAIN=thisdomaindoesnotexist.org
+GAIA_APP_SRCDIRS=apps
+endif
 
 
 ###############################################################################
@@ -90,7 +95,7 @@ ifeq ($(strip $(NPM)),)
 	NPM := `which npm`
 endif
 
-TEST_AGENT_CONFIG="./apps/test-agent/config.json"
+TEST_AGENT_CONFIG="./test_apps/test-agent/config.json"
 
 #Marionette testing variables
 #make sure we're python 2.7.x
@@ -165,7 +170,7 @@ ifneq ($(DEBUG),1)
 	@rm -rf profile/OfflineCache
 	@mkdir -p profile/OfflineCache
 	@cd ..
-	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)$(GAIA_PORT)"' build/offline-cache.js
+	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)$(GAIA_PORT)"; const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)"' build/offline-cache.js
 	@echo "Done"
 endif
 
@@ -294,18 +299,20 @@ update-common: common-install
 test-agent-config: test-agent-bootstrap-apps
 	@rm -f $(TEST_AGENT_CONFIG)
 	@touch $(TEST_AGENT_CONFIG)
-	@echo '{"tests": [' >> $(TEST_AGENT_CONFIG)
-
+	@rm -f /tmp/test-agent-config;
 	# Build json array of all test files
-	(for d in ${GAIA_APP_SRCDIRS} ; do find $$d -name "*_test.js" | \
-		sed "s:$$d/::" | \
+	for d in ${GAIA_APP_SRCDIRS}; \
+	do \
+		find $$d -name '*_test.js' | sed "s:$$d/::g"  >> /tmp/test-agent-config; \
+	done;
+	@echo '{"tests": [' >> $(TEST_AGENT_CONFIG)
+	@cat /tmp/test-agent-config |  \
 		sed 's:\(.*\):"\1":' | \
 		sed -e ':a' -e 'N' -e '$$!ba' -e 's/\n/,\
-	/g'; done) >> $(TEST_AGENT_CONFIG)
-
+	/g' >> $(TEST_AGENT_CONFIG);
 	@echo '  ]}' >> $(TEST_AGENT_CONFIG);
 	@echo "Built test ui config file: $(TEST_AGENT_CONFIG)"
-
+	@rm -f /tmp/test-agent-config
 
 .PHONY: test-agent-bootstrap-apps
 test-agent-bootstrap-apps:
@@ -317,7 +324,6 @@ test-agent-bootstrap-apps:
 			cp -f ./common/test/boilerplate/_sandbox.html $$d/test/unit/_sandbox.html; \
 	done
 	@echo "Done bootstrapping test proxies/sandboxes";
-
 # Temp make file method until we can switch
 # over everything in test
 .PHONY: test-agent-test
@@ -360,7 +366,7 @@ lint:
 	@# cubevid
 	@# crystalskull
 	@# towerjelly
-	@gjslint --nojsdoc -r apps -e 'cubevid,crystalskull,towerjelly'
+	@gjslint --nojsdoc -r apps -e 'cubevid,crystalskull,towerjelly,email,music/js/ext'
 
 # Generate a text file containing the current changeset of Gaia
 # XXX I wonder if this should be a replace-in-file hack. This would let us
@@ -399,6 +405,7 @@ forward:
 update-offline-manifests:
 	for d in `find ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
 	do \
+		rm -rf $$d/manifest.appcache ;\
 		if [ -f $$d/manifest.webapp ] ;\
 		then \
 			echo \\t$$d ;  \
@@ -420,13 +427,12 @@ update-offline-manifests:
 # working on just gaia itself, and you already have B2G firmware on your
 # phone, and you have adb in your path, then you can use the install-gaia
 # target to update the gaia files and reboot b2g
-PROFILE_PATH = /data/b2g/mozilla/`$(ADB) shell ls -1 /data/b2g/mozilla/ | grep default | tr -d [:cntrl:]`
+PROFILE_PATH = /data/local/
 install-gaia: profile
 	$(ADB) start-server
 	$(ADB) shell rm -r /cache/*
 	python build/install-gaia.py "$(ADB)"
 
-	# Until bug 746121 lands, push user.js in the profile
 	$(ADB) push profile/user.js ${PROFILE_PATH}/user.js
 
 	@echo "Installed gaia into profile/."
@@ -435,3 +441,7 @@ install-gaia: profile
 
 install-media-samples:
 	$(ADB) push media-samples/DCIM /sdcard/DCIM
+	$(ADB) push media-samples/videos /sdcard/videos
+	$(ADB) push media-samples/music /sdcard/music
+
+demo: install-media-samples install-gaia

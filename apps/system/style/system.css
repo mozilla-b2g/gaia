@@ -14,6 +14,14 @@ body {
   height: 100%;
 }
 
+#screen.screenoff {
+  background: #000;
+}
+
+#screen.screenoff > * {
+  visibility: hidden;
+}
+
 #homescreen {
   position: absolute;
   left: 0px;
@@ -90,61 +98,6 @@ div.windowSprite.closed {
 
 div.windowSprite.faded {
   opacity: 0;
-}
-
-#taskManager {
-  opacity: 0;
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  -moz-transform: scale(0);
-  -moz-transition: all 0.4s ease;
-  -moz-user-select: none;
-  overflow: scroll;
-  background-color: rgba(0, 0, 0, 0.8);
-  z-index: 10001;
-}
-
-#taskManager.active {
-  opacity: 1;
-  -moz-transform: scale(1);
-}
-
-#taskManager ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
-  white-space: nowrap;
-  text-align: center;
-}
-
-#taskManager li {
-  display: inline-block;
-  width: 100%;
-  height: 100%;
-  margin: 0 -25%;
-  position: relative;
-  -moz-transform: scale(0.4);
-}
-
-#taskManager li > a {
-  display: block;
-  width: 64px;
-  height: 64px;
-  position: absolute;
-  top: -32px;
-  right: -32px;
-  -moz-transform: scale(2.5);
-}
-
-#taskManager li > h1 {
-  position: absolute;
-  top: 100%;
-  width: 100%;
 }
 
 .accessibility-invert {

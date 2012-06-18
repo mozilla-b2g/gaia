@@ -75,7 +75,7 @@ var LockScreen = {
     this.getAllElements();
     this.updateMuteState();
 
-    this.lockIfEnabled();
+    this.lockIfEnabled(true);
     this.overlay.classList.remove('uninit');
 
     /* Status changes */
@@ -92,6 +92,13 @@ var LockScreen = {
 
     /* Passcode input pad*/
     this.passcodePad.addEventListener('click', this);
+
+    /* Camera app frame load/unload */
+    this.camera.addEventListener('load', this);
+    this.camera.addEventListener('unload', this);
+
+    /* switching panels */
+    window.addEventListener('keyup', this, true);
 
     var self = this;
 
@@ -143,8 +150,10 @@ var LockScreen = {
         break;
 
       case 'screenchange':
-        this.lockIfEnabled();
-        this.switchPanel();
+        // XXX: If the screen is not turned off by ScreenManager
+        // we would need to lock the screen again
+        // when it's being turned back on
+        this.lockIfEnabled(true);
         break;
 
       case 'mozChromeEvent':
@@ -188,6 +197,35 @@ var LockScreen = {
         this.overlay.classList.remove('touch');
 
         this.handleGesture(dx, dy);
+        break;
+
+      case 'keyup':
+        if (!this.locked)
+          break;
+
+        if (evt.keyCode !== evt.DOM_VK_ESCAPE &&
+            evt.keyCode !== evt.DOM_VK_HOME)
+          break;
+
+        this.switchPanel();
+        break;
+
+      case 'load':
+        this.camera.contentWindow.addEventListener(
+          'keydown', (this.redirectKeyEventFromFrame).bind(this));
+        this.camera.contentWindow.addEventListener(
+          'keypress', (this.redirectKeyEventFromFrame).bind(this));
+        this.camera.contentWindow.addEventListener(
+          'keyup', (this.redirectKeyEventFromFrame).bind(this));
+        break;
+
+      case 'unload':
+        this.camera.contentWindow.removeEventListener(
+          'keydown', (this.redirectKeyEventFromFrame).bind(this));
+        this.camera.contentWindow.removeEventListener(
+          'keypress', (this.redirectKeyEventFromFrame).bind(this));
+        this.camera.contentWindow.removeEventListener(
+          'keyup', (this.redirectKeyEventFromFrame).bind(this));
         break;
     }
   },
@@ -246,11 +284,11 @@ var LockScreen = {
     }
   },
 
-  lockIfEnabled: function ls_lockIfEnabled() {
+  lockIfEnabled: function ls_lockIfEnabled(instant) {
     if (this.enabled) {
-      this.lock(true);
+      this.lock(instant);
     } else {
-      this.unlock(true);
+      this.unlock(instant);
     }
   },
 
@@ -258,7 +296,7 @@ var LockScreen = {
     var wasAlreadyUnlocked = !this.locked;
     this.locked = false;
 
-    this.overlay.classList.add('unlocked');
+    this.mainScreen.focus();
     if (instant)
       this.overlay.classList.add('no-transition');
     else
@@ -281,7 +319,9 @@ var LockScreen = {
     var wasAlreadyLocked = this.locked;
     this.locked = true;
 
-    this.overlay.classList.remove('unlocked');
+    this.switchPanel();
+
+    this.overlay.focus();
     if (instant)
       this.overlay.classList.add('no-transition');
     else
@@ -300,16 +340,54 @@ var LockScreen = {
     }
   },
 
+  loadPanel: function ls_loadPanel(panel) {
+    switch (panel) {
+      case 'passcode':
+        break;
+
+      case 'camera':
+        // load the camera iframe
+        this.camera.src = './camera/';
+        break;
+
+      case 'emergency':
+        break;
+    }
+  },
+
+  unloadPanel: function ls_loadPanel(panel) {
+    switch (panel) {
+      case 'passcode':
+        // Reset passcode panel
+        this.passCodeEntered = '';
+        this.updatePassCodeUI();
+        break;
+
+      case 'camera':
+        // unload the camera iframe
+        this.camera.src = './blank.html';
+        break;
+
+      case 'emergency':
+        break;
+    }
+  },
+
   switchPanel: function ls_switchPanel(panel) {
-    if (panel) {
-      this.overlay.dataset.panel = panel;
-    } else {
-      delete this.overlay.dataset.panel;
+    var overlay = this.overlay;
+    if (('panel' in overlay.dataset) && panel == overlay.dataset.panel)
+      return;
+
+    if ('panel' in overlay.dataset) {
+      this.unloadPanel(overlay.dataset.panel);
     }
 
-    // Reset passcode panel
-    this.passCodeEntered = '';
-    this.updatePassCodeUI();
+    if (panel) {
+      overlay.dataset.panel = panel;
+      this.loadPanel(panel);
+    } else {
+      delete overlay.dataset.panel;
+    }
   },
 
   updateTime: function ls_updateTime() {
@@ -371,7 +449,6 @@ var LockScreen = {
         delete this.overlay.dataset.passcodeStatus;
         this.unlock();
         this.passCodeEntered = '';
-        this.updatePassCodeUI();
       }).bind(this), this.kPassCodeSuccessTimeout);
     } else {
       this.overlay.dataset.passcodeStatus = 'error';
@@ -395,8 +472,10 @@ var LockScreen = {
     // ID of elements to create references
     var elements = ['mute', 'clock', 'cal-day', 'cal-date',
         'notification', 'notification-icon', 'notification-title',
-        'notification-detail', 'notification-time', 'area-unlock',
-        'area-start', 'area-camera', 'passcode-code', 'passcode-pad'];
+        'notification-detail', 'notification-time',
+        'area-unlock', 'area-start', 'area-camera',
+        'passcode-code', 'passcode-pad',
+        'camera'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
@@ -410,5 +489,16 @@ var LockScreen = {
 
     this.overlay = document.getElementById('lockscreen');
     this.mainScreen = document.getElementById('screen');
+  },
+
+  redirectKeyEventFromFrame: function ls_redirectKeyEventFromFrame(evt) {
+    var generatedEvent = document.createEvent('KeyboardEvent');
+    generatedEvent.initKeyEvent(evt.type, true, true, evt.view, evt.ctrlKey,
+                                evt.altKey, evt.shiftKey, evt.metaKey,
+                                evt.keyCode, evt.charCode);
+
+    this.camera.dispatchEvent(generatedEvent);
   }
 };
+
+LockScreen.init();

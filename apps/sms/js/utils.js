@@ -195,7 +195,6 @@ function escapeHTML(str, escapeQuotes) {
 if (!navigator.mozSettings) {
   window.addEventListener('load', function loadWithoutSettings() {
     selectedLocale = 'en-US';
-    ContactDataManager.init();
     ConversationView.init();
     ConversationListView.init();
   });
