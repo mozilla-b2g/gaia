@@ -10,6 +10,11 @@ function startup() {
   SourceView.init();
   Shortcuts.init();
 
+  // We need to be sure to get the focus in order to wake up the screen
+  // if the phone goes to sleep before any user interaction.
+  // Apparently it works because no other window has the focus at this point.
+  window.focus();
+
   // This is code copied from
   // http://dl.dropbox.com/u/8727858/physical-events/index.html
   // It appears to workaround the Nexus S bug where we're not
