@@ -122,9 +122,7 @@
           <a href="#about" data-l10n-id="aboutPhone">About Phone</a>
         </li>
         <li>
-          <a href="#accessibility">
-            <span data-l10n-id="accessibility">Accessibility</span>
-          </a>
+          <a href="#accessibility" data-l10n-id="accessibility">Accessibility</a>
         </li>
         <li hidden>
           <a href="#helpAndFeedback" data-l10n-id="helpAndFeedback">Help &amp; Feedback</a>
@@ -149,14 +147,14 @@
       </header>
 
       <ul>
-        <li id="status">
+        <li id="wifi-enabled">
           <label>
             <input type="checkbox" />
             <span></span>
           </label>
           <a data-l10n-id="wifi">Wi-Fi</a>
         </li>
-        <li id="notification">
+        <li hidden>
           <label>
             <input type="checkbox" name="wifi.notification"/>
             <span></span>
@@ -181,7 +179,7 @@
       </header>
 
       <ul>
-        <li id="dataNetwork">
+        <li>
           <small></small>
           <a data-l10n-id="dataNetwork">Carrier</a>
         </li>
@@ -231,21 +229,21 @@
       </header>
 
       <ul>
-        <li id="ring-default">
+        <li>
           <label>
             <input type="radio" name="homescreen.ring" value="classic.wav" checked="true" />
             <span></span>
           </label>
           <a data-l10n-id="default">Default</a>
         </li>
-        <li id="ring-bosscaling">
+        <li>
           <label>
             <input type="radio" name="homescreen.ring" value="bosscaling.wav"/>
             <span></span>
           </label>
           <a data-l10n-id="bosscaling">Bosscaling</a>
         </li>
-        <li id="ring-goodnight">
+        <li>
           <label>
             <input type="radio" name="homescreen.ring" value="goodnight.wav"/>
             <span></span>
@@ -256,14 +254,14 @@
 
       <h2 data-l10n-id="phone">Phone</h2>
       <ul>
-        <li id="vibrator">
+        <li>
           <label>
             <input type="checkbox" name="phone.vibration.incoming"/>
             <span></span>
           </label>
           <a data-l10n-id="vibrate">Vibrate</a>
         </li>
-        <li id="ring">
+        <li>
           <label>
             <input type="checkbox" name="phone.ring.incoming" checked="true" />
             <span></span>
@@ -274,14 +272,14 @@
 
       <h2 data-l10n-id="messages">Messages</h2>
       <ul>
-        <li id="vibrator">
+        <li>
           <label>
             <input type="checkbox" name="sms.vibration.received"/>
             <span></span>
           </label>
           <a data-l10n-id="vibrate">Vibrate</a>
         </li>
-        <li id="ring">
+        <li>
           <label>
             <input type="checkbox" name="sms.ring.received" checked="true" />
             <span></span>
@@ -300,7 +298,7 @@
       </header>
 
       <ul>
-        <li id="brightness-level">
+        <li>
           <a data-l10n-id="brightness">Brightness level</a>
           <progress data-name="screen.brightness" value="5" max="10"></progress>
         </li>
@@ -323,21 +321,21 @@
       </header>
 
       <ul>
-        <li id="wallpaper-default">
+        <li>
           <label>
             <input type="radio" name="homescreen.wallpaper" value="default.png" checked="true" />
             <span></span>
           </label>
           <a data-l10n-id="default">Default</a>
         </li>
-        <li id="wallpaper-water">
+        <li>
           <label>
             <input type="radio" name="homescreen.wallpaper" value="water.png"/>
             <span></span>
           </label>
           <a data-l10n-id="water">Water</a>
         </li>
-        <li id="wallpaper-leaves">
+        <li>
           <label>
             <input type="radio" name="homescreen.wallpaper" value="leaves.png"/>
             <span></span>
@@ -358,77 +356,77 @@
       </header>
 
       <ul>
-        <li id="language-ar">
+        <li>
           <label class="checkbox">
             <input type="radio" name="language.current" value="ar"/>
             <span class="checkbox-inner"></span>
           </label>
           <a>العربية</a>
         </li>
-        <li id="language-de">
+        <li>
           <label>
             <input type="radio" name="language.current" value="de"/>
             <span></span>
           </label>
           <a dir="ltr">Deutsch</a>
         </li>
-        <li id="language-el">
+        <li>
           <label>
             <input type="radio" name="language.current" value="el"/>
             <span></span>
           </label>
           <a dir="ltr">Ελληνικά</a>
         </li>
-        <li id="language-en-us">
+        <li>
           <label>
             <input type="radio" name="language.current" value="en-US" checked="true" />
             <span></span>
           </label>
           <a dir="ltr">English (US)</a>
         </li>
-        <li id="language-es">
+        <li>
           <label>
             <input type="radio" name="language.current" value="es"/>
             <span></span>
           </label>
           <a dir="ltr">Español</a>
         </li>
-        <li id="language-fr">
+        <li>
           <label>
             <input type="radio" name="language.current" value="fr"/>
             <span></span>
           </label>
           <a dir="ltr">Français</a>
         </li>
-        <li id="language-it">
+        <li>
           <label>
             <input type="radio" name="language.current" value="it"/>
             <span></span>
           </label>
           <a dir="ltr">Italiano</a>
         </li>
-        <li id="language-pt-br">
+        <li>
           <label>
             <input type="radio" name="language.current" value="pt-BR"/>
             <span></span>
           </label>
           <a dir="ltr">Português (do Brasil)</a>
         </li>
-        <li id="language-ru">
+        <li>
           <label>
             <input type="radio" name="language.current" value="ru"/>
             <span></span>
           </label>
           <a dir="ltr">Русский</a>
         </li>
-        <li id="language-tr">
+        <li>
           <label>
             <input type="radio" name="language.current" value="tr"/>
             <span></span>
           </label>
           <a dir="ltr">Türkçe</a>
         </li>
-        <li id="language-zh-tw">
+        <li>
           <label>
             <input type="radio" name="language.current" value="zh-TW"/>
             <span></span>
@@ -629,7 +627,7 @@
       </header>
 
       <ul>
-        <li id="ums_enabled">
+        <li>
           <label>
             <input type="checkbox" name="ums.enabled"/>
             <span></span>
@@ -648,7 +646,7 @@
       </header>
 
       <ul>
-        <li id="invert">
+        <li>
           <label>
             <input type="checkbox" name="accessibility.invert"/>
             <span></span>

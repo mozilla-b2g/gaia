@@ -57,7 +57,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
       get switching() { return switching; },
       update: updateState
     };
-  }) (document.querySelector('#status input[type=checkbox]'),
+  }) (document.querySelector('#wifi-enabled input[type=checkbox]'),
       document.querySelector('#wifi-desc'));
 
   // network list
