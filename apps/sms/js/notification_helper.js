@@ -8,25 +8,18 @@ var NotificationHelper = {
   _referencesArray: [],
 
   getIconURI: function nc_getIconURI(app) {
-    var ret = null;
-
     var icons = app.manifest.icons;
+    if (!icons)
+      return null;
 
-    if (icons) {
-      var sizes = Object.keys(icons).map(function parse(str) {
-        return parseInt(str, 10);
-      });
+    var sizes = Object.keys(icons).map(function parse(str) {
+      return parseInt(str, 10);
+    });
+    sizes.sort(function(x, y) { return y - x; });
 
-      sizes.sort(function(x, y) { return y - x; });
-
-      var HVGA = document.documentElement.clientWidth < 480;
-
-      var index = sizes[(HVGA) ? sizes.length - 1 : 0];
-
-      ret = app.installOrigin + icons[index];
-    }
-
-    return ret;
+    var HVGA = document.documentElement.clientWidth < 480;
+    var index = sizes[HVGA ? sizes.length - 1 : 0];
+    return app.installOrigin + icons[index];
   },
 
   send: function nc_send(title, body, icon, clickCB, closeCB) {
