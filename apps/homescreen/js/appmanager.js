@@ -35,18 +35,20 @@ var Applications = (function() {
 
   installer.oninstall = function install(event) {
     var app = event.application;
-    installedApps[app.origin] = app;
+    if (!installedApps[app.origin]) {
+      installedApps[app.origin] = app;
 
-    var icon = getIcon(app.origin);
-    if (icon) {
-      window.applicationCache.mozAdd(icon);
-    }
-
-    callbacks.forEach(function(callback) {
-      if (callback.type == 'install') {
-        callback.callback(app);
+      var icon = getIcon(app.origin);
+      if (icon) {
+        window.applicationCache.mozAdd(icon);
       }
-    });
+
+      callbacks.forEach(function(callback) {
+        if (callback.type == 'install') {
+          callback.callback(app);
+        }
+      });
+    }
   };
 
   document.documentElement.lang = 'en-US';
