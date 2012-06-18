@@ -120,6 +120,12 @@ var QuickSettings = {
             break;
 
           case this.fullApp:
+            // XXX: This should be replaced probably by Web Activities
+            var host = document.location.host;
+            var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+            Applications.getByOrigin('http://settings.' + domain).launch();
+
+            UtilityTray.hide();
             break;
         }
         break;
