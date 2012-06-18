@@ -64,9 +64,9 @@ li img {
   padding: 0;
 }
 li p {
-  width: -moz-calc(100% / 3 - 15px);
+  width: -moz-calc((100% / 3) - 15px);
   margin-top: 10px;
-  margin-left: -moz-calc(100% * 2 / 3 + 10px);
+  margin-left: -moz-calc((100% * 2 / 3) + 10px);
   margin-right: 5px;
   margin-bottom: 0px;
   padding: 0;
