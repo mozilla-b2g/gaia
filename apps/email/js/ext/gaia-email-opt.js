@@ -5525,6 +5525,15 @@ MailAccount.prototype = {
   modifyAccount: function() {
     throw new Error("NOT YET IMPLEMENTED");
   },
+
+  /**
+   * Delete the account and all its associated data.  No privacy guarantees are
+   * provided; we just delete the data from the database, so it's up to the
+   * (IndexedDB) database's guarantees on that.
+   */
+  deleteAccount: function() {
+    this._api._deleteAccount(this);
+  },
 };
 
 /**
@@ -5558,11 +5567,6 @@ MailSenderIdentity.prototype = {
 };
 
 function MailFolder(api, wireRep) {
-  // Accounts have a somewhat different wireRep serialization, but we can best
-  // tell by the id's; a folder's id is derived from the account with a dash
-  // separating.
-  var isAccount = wireRep.id.indexOf('/') === -1;
-
   this._api = api;
   this.id = wireRep.id;
 
@@ -5604,9 +5608,9 @@ function MailFolder(api, wireRep) {
    *   for styling purposes.
    * }
    */
-  this.type = isAccount ? 'account' : wireRep.type;
+  this.type = wireRep.type;
 
-  this.selectable = !isAccount && wireRep.type !== 'nomail';
+  this.selectable = (wireRep.type !== 'account') && (wireRep.type !== 'nomail');
 
   this.onchange = null;
   this.onremove = null;
@@ -6479,6 +6483,13 @@ MailAPI.prototype = {
     delete this._pendingRequests[msg.handle];
 
     req.callback.call(null, msg.error);
+  },
+
+  _deleteAccount: function ma__deleteAccount(account) {
+    this.__bridgeSend({
+      type: 'deleteAccount',
+      accountId: account.id,
+    });
   },
 
   /**
@@ -10530,11 +10541,42 @@ function toBridgeWireOn(x) {
   return x.toBridgeWire();
 }
 
-function cmpFolderMarkers(a, b) {
-  var d = a[0].localeCompare(b[0]);
-  if (d)
-    return d;
-  return a[1].localeCompare(b[1]);
+const FOLDER_TYPE_TO_SORT_PRIORITY = {
+  account: 'a',
+  inbox: 'c',
+  starred: 'e',
+  drafts: 'g',
+  sent: 'i',
+  junk: 'k',
+  trash: 'm',
+  archive: 'o',
+  normal: 'z',
+  // nomail folders are annoying since they are basically just hierarchy,
+  //  but they are also rare and should only happen amongst normal folders.
+  nomail: 'z',
+};
+
+/**
+ * Make a folder sorting function that groups folders by account, puts the
+ * account header first in that group, maps priorities using
+ * FOLDER_TYPE_TO_SORT_PRIORITY, then sorts by path within that.
+ *
+ * This is largely necessitated by localeCompare being at the mercy of glibc's
+ * locale database and failure to fallback to unicode code points for
+ * comparison purposes.
+ */
+function makeFolderSortString(acctId, folder) {
+  // '!' is before alphanum, so is a good separator for variable length id's
+  return acctId + '!' + FOLDER_TYPE_TO_SORT_PRIORITY[folder.type] + '!' +
+    folder.path.toLocaleLowerCase();
+}
+
+function strcmp(a, b) {
+  if (a < b)
+    return -1;
+  else if (a > b)
+    return 1;
+  return 0;
 }
 
 /**
@@ -10593,13 +10635,85 @@ MailBridge.prototype = {
       });
   },
 
+  _cmd_deleteAccount: function mb__cmd_deleteAccount(msg) {
+    this.universe.deleteAccount(msg.accountId);
+  },
+
   _cmd_viewAccounts: function mb__cmd_viewAccounts(msg) {
     var proxy = this._slices[msg.handle] =
           new SliceBridgeProxy(this, 'accounts', msg.handle);
+    proxy.markers = this.universe.accounts.map(function(x) { return x.id; });
+
     this._slicesByType['accounts'].push(proxy);
     var wireReps = this.universe.accounts.map(toBridgeWireOn);
     // send all the accounts in one go.
     proxy.sendSplice(0, 0, wireReps, true, false);
+  },
+
+  notifyAccountAdded: function(account) {
+    var accountWireRep = account.toBridgeWire();
+    var i, proxy, slices, wireSplice = null;
+    // -- notify account slices
+    slices = this._slicesByType['accounts'];
+    for (i = 0; i < slices.length; i++) {
+      proxy = slices[i];
+      proxy.sendSplice(proxy.markers.length, 0, [accountWireRep], false, false);
+      proxy.markers.push(account.id);
+    }
+
+    // -- notify folder slices
+    accountWireRep = account.toBridgeFolder();
+    slices = this._slicesByType['folders'];
+    var startMarker = makeFolderSortString(account.id, accountWireRep),
+        idxStart;
+    for (i = 0; i < slices.length; i++) {
+      proxy = slices[i];
+      // If it's filtered to an account, it can't care about us.  (You can't
+      // know about an account before it's created.)
+      if (proxy.mode === 'account')
+        continue;
+
+      idxStart = bsearchForInsert(proxy.markers, startMarker, strcmp);
+      wireSplice = [accountWireRep];
+      var markerSpliceArgs = [idxStart, 0, startMarker];
+      for (var iFolder = 0; iFolder < account.folders.length; iFolder++) {
+        var folder = account.folders[iFolder];
+        wireSplice.push(folder);
+        markerSpliceArgs.push(makeFolderSortString(account.id, folder));
+      }
+      proxy.sendSplice(idxStart, 0, wireSplice);
+      proxy.markers.splice.apply(proxy.markers, markerSpliceArgs);
+    }
+  },
+
+  notifyAccountRemoved: function(accountId) {
+    var i, proxy, slices;
+    // -- notify account slices
+    slices = this._slicesByType['accounts'];
+    for (i = 0; i < slices.length; i++) {
+      proxy = slices[i];
+      var idx = proxy.markers.indexOf(accountId);
+      if (idx !== -1) {
+        proxy.sendSplice(idx, 1, [], false, false);
+        proxy.markers.splice(idx, 1);
+      }
+    }
+
+    // -- notify folder slices
+    slices = this._slicesByType['folders'];
+    var startMarker = accountId + '!!',
+        endMarker = accountId + '!|';
+    for (i = 0; i < slices.length; i++) {
+      proxy = slices[i];
+      var idxStart = bsearchForInsert(proxy.markers, startMarker,
+                                      strcmp),
+          idxEnd = bsearchForInsert(proxy.markers, endMarker,
+                                    strcmp);
+      if (idxEnd !== idxStart) {
+        proxy.sendSplice(idxStart, idxEnd - idxStart, [], false, false);
+        proxy.markers.splice(idxStart, idxEnd - idxStart);
+      }
+    }
   },
 
   _cmd_viewSenderIdentities: function mb__cmd_viewSenderIdentities(msg) {
@@ -10612,25 +10726,24 @@ MailBridge.prototype = {
   },
 
   notifyFolderAdded: function(accountId, folderMeta) {
-    var newMarker = [accountId, folderMeta.path];
-
+    var newMarker = makeFolderSortString(accountId, folderMeta);
     var slices = this._slicesByType['folders'];
     for (var i = 0; i < slices.length; i++) {
       var proxy = slices[i];
-      var idx = bsearchForInsert(proxy.markers, newMarker, cmpFolderMarkers);
+      var idx = bsearchForInsert(proxy.markers, newMarker, strcmp);
       proxy.sendSplice(idx, 0, [folderMeta], false, false);
       proxy.markers.splice(idx, 0, newMarker);
     }
   },
 
   notifyFolderRemoved: function(accountId, folderMeta) {
-    var marker = [accountId, folderMeta.path];
+    var marker = makeFolderSortString(accountId, folderMeta);
 
     var slices = this._slicesByType['folders'];
     for (var i = 0; i < slices.length; i++) {
       var proxy = slices[i];
 
-      var idx = bsearchMaybeExists(proxy.markers, marker, cmpFolderMarkers);
+      var idx = bsearchMaybeExists(proxy.markers, marker, strcmp);
       if (idx === null)
         continue;
       proxy.sendSplice(idx, 1, [], false, false);
@@ -10648,11 +10761,12 @@ MailBridge.prototype = {
 
     var wireReps = [];
 
+    // folders currently come sorted by path
     function pushAccountFolders(acct) {
       for (var iFolder = 0; iFolder < acct.folders.length; iFolder++) {
         var folder = acct.folders[iFolder];
         wireReps.push(folder);
-        markers.push([acct.id, folder.path]);
+        markers.push([acct.id, makeFolderSortString(acct.id, folder)]);
       }
     }
 
@@ -10661,12 +10775,17 @@ MailBridge.prototype = {
         this.universe.getAccountForAccountId(msg.argument));
     }
     else {
-      var accounts = this.universe.accounts;
+      var accounts = this.universe.accounts.concat();
+
+      // sort accounts by their id's
+      accounts.sort(function (a, b) {
+        return a.id.localeCompare(b.id);
+      });
 
       for (var iAcct = 0; iAcct < accounts.length; iAcct++) {
         var acct = accounts[iAcct];
-        wireReps.push(acct.toBridgeWire());
-        markers.push([acct.id, '']);
+        wireReps.push(acct.toBridgeFolder());
+        markers.push([acct.id, ACCT_FOLDER_SENTINEL]);
         pushAccountFolders(acct);
       }
     }
@@ -11458,6 +11577,7 @@ ImapDB.prototype = {
       this._db.transaction([TBL_FOLDER_INFO, TBL_HEADER_BLOCKS,
                            TBL_BODY_BLOCKS],
                            'readwrite');
+    trans.onerror = this._fatalError;
     trans.objectStore(TBL_FOLDER_INFO).put(folderInfo, accountId);
     var headerStore = trans.objectStore(TBL_HEADER_BLOCKS),
         bodyStore = trans.objectStore(TBL_BODY_BLOCKS), i;
@@ -11486,7 +11606,7 @@ ImapDB.prototype = {
       for (i = 0; i < deletedFolderIds.length; i++) {
         var folderId = deletedFolderIds[i],
             range = IDBKeyRange.bound(folderId + ':',
-                                      folderId + ':\ufffe',
+                                      folderId + ':\ufff0',
                                       false, false)
         headerStore.delete(range);
         bodyStore.delete(range);
@@ -11497,6 +11617,25 @@ ImapDB.prototype = {
       trans.addEventListener('complete', callback);
 
     return trans;
+  },
+
+  /**
+   * Delete all traces of an account from the database.
+   */
+  deleteAccount: function(accountId, reuseTrans) {
+    var trans = reuseTrans ||
+      this._db.transaction([TBL_CONFIG, TBL_FOLDER_INFO, TBL_HEADER_BLOCKS,
+                           TBL_BODY_BLOCKS],
+                           'readwrite');
+    trans.onerror = this._fatalError;
+
+    trans.objectStore(TBL_CONFIG).delete('accountDef:' + accountId);
+    trans.objectStore(TBL_FOLDER_INFO).delete(accountId);
+    var range = IDBKeyRange.bound(accountId + '/',
+                                  accountId + '/\ufff0',
+                                  false, false);
+    trans.objectStore(TBL_HEADER_BLOCKS).delete(range);
+    trans.objectStore(TBL_BODY_BLOCKS).delete(range);
   },
 };
 
@@ -11958,7 +12097,7 @@ define('mailparser/mailparser',['require','exports','module','stream','util','mi
 /**
  * @fileOverview This is the main file for the MailParser library to parse raw e-mail data
  * @author <a href="mailto:andris@node.ee">Andris Reinman</a>
- * @version 0.2.22
+ * @version 0.2.23
  */
 
 var Stream = require('stream').Stream,
@@ -11981,9 +12120,9 @@ var STATES = {
 
 /**
  * <p>Creates instance of MailParser which in turn extends Stream</p>
- * 
+ *
  * <p>Options object has the following properties:</p>
- * 
+ *
  * <ul>
  *   <li><b>debug</b> - if set to true print all incoming lines to console</li>
  *   <li><b>streamAttachments</b> - if set to true, stream attachments instead of including them</li>
@@ -11991,65 +12130,65 @@ var STATES = {
  *   <li><b>defaultCharset</b> - the default charset for text/plain, text/html content, if not set reverts to Latin-1
  *   <li><b>showAttachmentLinks</b></li> - if set to true, show inlined attachment links
  * </ul>
- * 
+ *
  * @constructor
  * @param {Object} [options] Optional options object
  */
 function MailParser(options){
-    
+
     // Make MailParser a Stream object
     Stream.call(this);
     this.writable = true;
-    
-    /** 
+
+    /**
      * Options object
      * @public  */ this.options = options || {};
-     
-    /** 
+
+    /**
      * Indicates current state the parser is in
      * @private */ this._state         = STATES.header;
-    
-    /** 
+
+    /**
      * The remaining data from the previos chunk which is waiting to be processed
      * @private */ this._remainder     = "";
-    
-    /** 
+
+    /**
      * The complete tree structure of the e-mail
      * @public  */ this.mimeTree       = this._createMimeNode();
-    
-    /** 
+
+    /**
      * Current node of the multipart mime tree that is being processed
      * @private */ this._currentNode   = this.mimeTree;
 
     // default values for the root node
     this._currentNode.priority = "normal";
-     
-    /** 
+
+    /**
      * An object of already used attachment filenames
      * @private */ this._fileNames     = {};
-     
-    /** 
+
+    /**
      * An array of multipart nodes
      * @private */ this._multipartTree = [];
-     
-     
-    /** 
+
+
+    /**
      * Cache for iconv converter objects
      * @private */ this._iconv         = {};
-     
+
     /**
      * This is the final mail structure object that is returned to the client
      * @public  */ this.mailData       = {};
-     
-    /** 
+
+    /**
      * Line counter for debugging
      * @private */ this._lineCounter   = 0;
-     
-    /** 
+
+    /**
      * Did the last chunk end with \r
      * @private */ this._lineFeed      = false;
-   
-   /** 
+
+   /**
      * Is the "headers" event already emitted
      * @private */ this._headersSent   = false;
 }
@@ -12058,108 +12197,117 @@ utillib.inherits(MailParser, Stream);
 
 /**
  * <p>Writes a value to the MailParser stream<p>
- * 
+ *
  * @param {Buffer|String} chunk The data to be written to the MailParser stream
  * @param {String} [encoding] The encoding to be used when "chunk" is a string
  * @returns {Boolean} Returns true
  */
 MailParser.prototype.write = function(chunk, encoding){
-    if(typeof chunk == "string"){
-        chunk = new Buffer(chunk, encoding);
-    }
-    
-    if(chunk && chunk.length){
-        this._remainder += chunk.toString("binary");
+    if( this._write(chunk, encoding) ){
         process.nextTick(this._process.bind(this));
-        return true;
-    }else{
-        return true;
     }
+    return true;
 };
 
 /**
- * <p>Terminates the MailParser stream</p> 
- * 
+ * <p>Terminates the MailParser stream</p>
+ *
  * <p>If "chunk" is set, writes it to the Stream before terminating.</p>
- * 
+ *
  * @param {Buffer|String} chunk The data to be written to the MailParser stream
  * @param {String} [encoding] The encoding to be used when "chunk" is a string
  */
 MailParser.prototype.end = function(chunk, encoding){
-    if(typeof chunk == "string"){
-        chunk = new Buffer(chunk, encoding);
-    }
-    
+    this._write(chunk, encoding);
+
     if(this.options.debug && this._remainder){
         console.log("REMAINDER: "+this._remainder);
     }
-    
-    chunk = chunk && chunk.toString("binary") || "";
-    
-    // if the last chunk ended with \r and this one begins
-    // with \n, it's a split line ending. Since the last \r
-    // was already used, skip the \n
-    if(this._lineFeed && chunk.charAt(0) == "\n"){
-        chunk = chunk.substr(1);
-    }
-    this._lineFeed = chunk.substr(-1) == "\r";
-    
-    this._remainder += chunk;
 
     process.nextTick(this._process.bind(this, true));
 };
 
 /**
+ * <p>Normalizes CRLF's before writing to the Mailparser stream, does <i>not</i> call `_process`<p>
+ *
+ * @param {Buffer|String} chunk The data to be written to the MailParser stream
+ * @param {String} [encoding] The encoding to be used when "chunk" is a string
+ * @returns {Boolean} Returns true if writing the chunk was successful
+ */
+MailParser.prototype._write = function(chunk, encoding){
+    if(typeof chunk == "string"){
+        chunk = new Buffer(chunk, encoding);
+    }
+
+    chunk = chunk && chunk.toString("binary") || "";
+
+    // if the last chunk ended with \r and this one begins
+    // with \n, it's a split line ending. Since the last \r
+    // was already used, skip the \n
+    if(this._lineFeed && chunk.charAt(0) === "\n"){
+        chunk = chunk.substr(1);
+    }
+    this._lineFeed = chunk.substr(-1) === "\r";
+
+    if(chunk && chunk.length){
+        this._remainder += chunk;
+        return true;
+    }
+    return false;
+};
+
+
+/**
  * <p>Processes the data written to the MailParser stream</p>
- * 
+ *
  * <p>The data is split into lines and each line is processed individually. Last
  * line in the batch is preserved as a remainder since it is probably not a
  * complete line but just the beginning of it. The remainder is later prepended
  * to the next batch of data.</p>
- * 
+ *
  * @param {Boolean} [finalPart=false] if set to true indicates that this is the last part of the stream
  */
 MailParser.prototype._process = function(finalPart){
-    
+
     finalPart = !!finalPart;
-    
+
     var lines = this._remainder.split(/\r?\n|\r/),
         line, i, len;
-        
+
     if(!finalPart){
         this._remainder = lines.pop();
-        // force line to 1MB chunks if needed 
+        // force line to 1MB chunks if needed
         if(this._remainder.length>1048576){
             this._remainder = this._remainder.replace(/(.{1048576}(?!\r?\n|\r))/g,"$&\n");
         }
     }
-    
+
     for(i=0, len=lines.length; i < len; i++){
         line = lines[i];
-        
+
         if(this.options.unescapeSMTP && line.substr(0,2)==".."){
             line = line.substr(1);
         }
-        
+
         if(this.options.debug){
             console.log("LINE " + (++this._lineCounter) + " ("+this._state+"): "+line);
         }
-        
+
         if(this._state == STATES.header){
             if(this._processStateHeader(line) === true){
                 continue;
             }
         }
-        
+
         if(this._state == STATES.body){
-            
+
             if(this._processStateBody(line) === true){
                 continue;
             }
-            
+
         }
     }
-    
+
     if(finalPart){
         if(this._state == STATES.header && this._remainder){
             this._processStateHeader(this._remainder);
@@ -12174,25 +12322,25 @@ MailParser.prototype._process = function(finalPart){
         this._state = STATES.finished;
         process.nextTick(this._processMimeTree.bind(this));
     }
-    
-    
+
+
 };
 
 /**
  * <p>Processes a line while in header state</p>
- * 
+ *
  * <p>If header state ends and body starts, detect if the contents is an attachment
  * and create a stream for it if needed</p>
- * 
+ *
  * @param {String} line The contents of a line to be processed
  * @returns {Boolean} If state changes to body retuns true
  */
 MailParser.prototype._processStateHeader = function(line){
-    var boundary, i, len, attachment, 
+    var boundary, i, len, attachment,
         lastPos = this._currentNode.headers.length - 1,
         textContent = false, extension;
 
-    // Check if the header endas and body starts
+    // Check if the header ends and body starts
     if(!line.length){
         if(lastPos>=0){
             this._processHeaderLine(lastPos);
@@ -12201,43 +12349,43 @@ MailParser.prototype._processStateHeader = function(line){
             this.emit("headers", this._currentNode.parsedHeaders);
             this._headersSent = true;
         }
-        
+
         this._state = STATES.body;
-        
+
         // if there's unprocessed header data, do it now
         if(lastPos >= 0){
             this._processHeaderLine(lastPos);
         }
-        
+
         // this is a very simple e-mail, no content type set
         if(!this._currentNode.parentNode && !this._currentNode.meta.contentType){
             this._currentNode.meta.contentType = "text/plain";
         }
-        
+
         textContent = ["text/plain", "text/html"].indexOf(this._currentNode.meta.contentType || "") >= 0;
-        
+
         // detect if this is an attachment or a text node (some agents use inline dispositions for text)
         if(textContent && (!this._currentNode.meta.contentDisposition || this._currentNode.meta.contentDisposition == "inline")){
             this._currentNode.attachment = false;
-        }else if((!textContent || ["attachment", "inline"].indexOf(this._currentNode.meta.contentDisposition)>=0) && 
+        }else if((!textContent || ["attachment", "inline"].indexOf(this._currentNode.meta.contentDisposition)>=0) &&
           !this._currentNode.meta.mimeMultipart){
             this._currentNode.attachment = true;
         }
-        
+
         // handle attachment start
         if(this._currentNode.attachment){
-            
+
             this._currentNode.checksum = crypto.createHash("md5");
-            
+
             this._currentNode.meta.generatedFileName = this._generateFileName(this._currentNode.meta.fileName, this._currentNode.meta.contentType);
-            
+
             extension = this._currentNode.meta.generatedFileName.split(".").pop().toLowerCase();
-            
+
             // Update content-type if it's an application/octet-stream and file extension is available
             if(this._currentNode.meta.contentType == "application/octet-stream" && mimelib.contentTypes[extension]){
                 this._currentNode.meta.contentType = mimelib.contentTypes[extension];
             }
-            
+
             attachment = this._currentNode.meta;
             if(this.options.streamAttachments){
                 if(this._currentNode.meta.transferEncoding == "base64"){
@@ -12248,16 +12396,16 @@ MailParser.prototype._processStateHeader = function(line){
                     this._currentNode.stream = new Streams.BinaryStream();
                 }
                 attachment.stream = this._currentNode.stream;
-                
+
                 this.emit("attachment", attachment);
             }else{
                 this._currentNode.content = undefined;
             }
         }
-        
+
         return true;
     }
-    
+
     // unfold header lines if needed
     if(line.match(/^\s+/) && lastPos>=0){
         this._currentNode.headers[lastPos] += " " + line.trim();
@@ -12268,45 +12416,45 @@ MailParser.prototype._processStateHeader = function(line){
             this._processHeaderLine(lastPos);
         }
     }
-    
+
     return false;
 };
 
 /**
  * <p>Processes a line while in body state</p>
- * 
+ *
  * @param {String} line The contents of a line to be processed
  * @returns {Boolean} If body ends return true
  */
 MailParser.prototype._processStateBody = function(line){
     var i, len, node,
         nodeReady = false;
-    
+
     // Handle multipart boundaries
     if(line.substr(0, 2) == "--"){
         for(i=0, len = this._multipartTree.length; i<len; i++){
-            
+
             // check if a new element block starts
             if(line == "--" + this._multipartTree[i].boundary){
-                
+
                 if(this._currentNode.content || this._currentNode.stream){
                     this._finalizeContents();
                 }
-                
+
                 node = this._createMimeNode(this._multipartTree[i].node);
                 this._multipartTree[i].node.childNodes.push(node);
                 this._currentNode = node;
                 this._state = STATES.header;
                 nodeReady = true;
                 break;
-            }else 
+            }else
             // check if a multipart block ends
               if(line == "--" + this._multipartTree[i].boundary + "--"){
-                
+
                 if(this._currentNode.content || this._currentNode.stream){
                     this._finalizeContents();
                 }
-                
+
                 if(this._multipartTree[i].node.parentNode){
                     this._currentNode = this._multipartTree[i].node.parentNode;
                 }else{
@@ -12321,44 +12469,44 @@ MailParser.prototype._processStateBody = function(line){
     if(nodeReady){
         return true;
     }
-    
+
     // handle text or attachment line
-    if(["text/plain", "text/html"].indexOf(this._currentNode.meta.contentType || "")>=0 && 
+    if(["text/plain", "text/html"].indexOf(this._currentNode.meta.contentType || "")>=0 &&
       !this._currentNode.attachment){
         this._handleTextLine(line);
     }else if(this._currentNode.attachment){
         this._handleAttachmentLine(line);
     }
-    
+
     return false;
 };
 
 /**
  * <p>Processes a complete unfolded header line</p>
- * 
+ *
  * <p>Processes a line from current node headers array and replaces its value.
  * Input string is in the form of "X-Mailer: PHP" and its replacement would be
  * an object <code>{key: "x-mailer", value: "PHP"}</code></p>
- * 
+ *
  * <p>Additionally node meta object will be filled also, for example with data from
  * To: From: Cc: etc fields.</p>
- * 
+ *
  * @param {Number} pos Which header element (from an header lines array) should be processed
  */
 MailParser.prototype._processHeaderLine = function(pos){
     var key, value, parts, line;
-    
+
     pos = pos || 0;
-    
+
     if(!(line = this._currentNode.headers[pos]) || typeof line != "string"){
         return;
     }
 
     parts = line.split(":");
-    
+
     key = parts.shift().toLowerCase().trim();
     value = parts.join(":").trim();
-    
+
     switch(key){
         case "content-type":
             this._parseContentType(value);
@@ -12407,10 +12555,10 @@ MailParser.prototype._processHeaderLine = function(pos){
             this._currentNode.meta.messageId = this._trimQuotes(value);
             break;
         case "references":
-            this._currentNode.meta.messageReferences = this._trimQuotes(value);
+            this._parseReferences(value);
             break;
         case "in-reply-to":
-            this._currentNode.meta.inReplyTo = this._trimQuotes(value);
+            this._parseInReplyTo(value);
             break;
         case "thread-index":
             this._currentNode.meta.threadIndex = value;
@@ -12428,25 +12576,25 @@ MailParser.prototype._processHeaderLine = function(pos){
             this._currentNode.meta.contentId = this._trimQuotes(value);
             break;
     }
-    
+
     if(this._currentNode.parsedHeaders[key]){
         if(!Array.isArray(this._currentNode.parsedHeaders[key])){
             this._currentNode.parsedHeaders[key] = [this._currentNode.parsedHeaders[key]];
-        } 
+        }
         this._currentNode.parsedHeaders[key].push(this._replaceMimeWords(value));
     }else{
         this._currentNode.parsedHeaders[key] = this._replaceMimeWords(value);
     }
-    
+
     this._currentNode.headers[pos] = {key: key, value: value};
 };
 
 /**
  * <p>Creates an empty node element for the mime tree</p>
- * 
+ *
  * <p>Created element includes parentNode property and a childNodes array. This is
  * needed to later walk the whole mime tree</p>
- * 
+ *
  * @param {Object} [parentNode] the parent object for the created node
  * @returns {Object} node element for the mime tree
  */
@@ -12458,53 +12606,53 @@ MailParser.prototype._createMimeNode = function(parentNode){
         meta: {},
         childNodes: []
     };
-    
+
     return node;
 };
 
 /**
  * <p>Splits a header value into key-value pairs</p>
- * 
+ *
  * <p>Splits on <code>;</code> - the first value will be set as <code>defaultValue</code> property and will
  * not be handled, others will be split on <code>=</code> to key-value pairs</p>
- * 
+ *
  * <p>For example <code>content-type: text/plain; charset=utf-8</code> will become:</p>
- * 
+ *
  * <pre>
  * {
  *     defaultValue: "text/plain",
  *     charset: "utf-8"
  * }
  * </pre>
- * 
+ *
  * @param {String} value A string to be splitted into key-value pairs
  * @returns {Object} a key-value object, with defaultvalue property
  */
 MailParser.prototype._parseHeaderLineWithParams = function(value){
     var key, parts, returnValue = {};
-    
+
     parts = value.split(";");
     returnValue.defaultValue = parts.shift().toLowerCase();
-    
+
     for(var i=0, len = parts.length; i<len; i++){
         value = parts[i].split("=");
         key = value.shift().trim().toLowerCase();
         value = value.join("=").trim();
-        
+
         // trim quotes
         value = this._trimQuotes(value);
         returnValue[key] = value;
     }
-    
+
     return returnValue;
 };
 
 /**
  * <p>Parses a Content-Type header field value</p>
- * 
+ *
  * <p>Fetches additional properties from the content type (charset etc.) and fills
  * current node meta object with this data</p>
- * 
+ *
  * @param {String} value Content-Type string
  * @returns {Object} parsed contenttype object
  */
@@ -12524,14 +12672,16 @@ MailParser.prototype._parseContentType = function(value){
         if(value.charset){
             value.charset = value.charset.toLowerCase();
             if(value.charset.substr(0,4)=="win-"){
-                value.charset = "windows-"+value.charset.substr(4); 
+                value.charset = "windows-"+value.charset.substr(4);
+            }else if(value.charset == "ks_c_5601-1987"){
+                value.charset = "cp949";
             }else if(value.charset.match(/^utf\d/)){
                 value.charset = "utf-"+value.charset.substr(3);
             }else if(value.charset.match(/^latin[\-_]?\d/)){
-                value.charset = "iso-8859-"+value.charset.replace(/\D/g,""); 
+                value.charset = "iso-8859-"+value.charset.replace(/\D/g,"");
             }else if(value.charset.match(/^(us\-)?ascii$/)){
-                value.charset = "utf-8"; 
-            }  
+                value.charset = "utf-8";
+            }
             this._currentNode.meta.charset = value.charset;
         }
         if(value.format){
@@ -12543,11 +12693,11 @@ MailParser.prototype._parseContentType = function(value){
         if(value.boundary){
             this._currentNode.meta.mimeBoundary = value.boundary;
         }
-        
+
         if(!this._currentNode.meta.fileName && (fileName = this._detectFilename(value))){
             this._currentNode.meta.fileName = fileName;
         }
-        
+
         if(value.boundary){
             this._currentNode.meta.mimeBoundary = value.boundary;
             this._multipartTree.push({
@@ -12555,30 +12705,30 @@ MailParser.prototype._parseContentType = function(value){
                 node: this._currentNode
             });
         }
-    } 
+    }
     return value;
 };
 
 /**
  * <p>Parses file name from a Content-Type or Content-Disposition field</p>
- * 
+ *
  * <p>Supports <a href="http://tools.ietf.org/html/rfc2231">RFC2231</a> for
  * folded filenames</p>
- * 
+ *
  * @param {Object} value Parsed Content-(Type|Disposition) object
  * @return {String} filename
  */
 MailParser.prototype._detectFilename = function(value){
     var fileName="", i=0, parts, encoding, name;
-    
+
     if(value.name){
         return this._replaceMimeWords(value.name);
     }
-    
+
     if(value.filename){
         return this._replaceMimeWords(value.filename);
     }
-    
+
     // RFC2231
     if(value["name*"]){
         fileName = value["name*"];
@@ -12593,7 +12743,7 @@ MailParser.prototype._detectFilename = function(value){
             fileName += value["filename*"+(i++)+"*"];
         }
     }
-    
+
     if(fileName){
         parts = fileName.split("'");
         encoding = parts.shift();
@@ -12607,17 +12757,17 @@ MailParser.prototype._detectFilename = function(value){
 
 /**
  * <p>Parses Content-Disposition header field value</p>
- * 
+ *
  * <p>Fetches filename to current node meta object</p>
- * 
+ *
  * @param {String} value A Content-Disposition header field
  */
 MailParser.prototype._parseContentDisposition = function(value){
     var returnValue = {},
         fileName;
-    
+
     value = this._parseHeaderLineWithParams(value);
-    
+
     if(value){
         if(value.defaultValue){
             this._currentNode.meta.contentDisposition = value.defaultValue.trim().toLowerCase();
@@ -12629,8 +12779,36 @@ MailParser.prototype._parseContentDisposition = function(value){
 };
 
 /**
+ * <p>Parses "References" header</p>
+ *
+ * @param {String} value References header field
+ */
+MailParser.prototype._parseReferences = function(value){
+    this._currentNode.references = (this._currentNode.references || []).concat(
+            (value || "").toString().
+                trim().
+                split(/\s+/).
+                map(this._trimQuotes.bind(this))
+        );
+}
+
+/**
+ * <p>Parses "In-Reply-To" header</p>
+ *
+ * @param {String} value In-Reply-To header field
+ */
+MailParser.prototype._parseInReplyTo = function(value){
+    this._currentNode.inReplyTo = (this._currentNode.inReplyTo || []).concat(
+            (value || "").toString().
+                trim().
+                split(/\s+/).
+                map(this._trimQuotes.bind(this))
+        );
+}
+
+/**
  * <p>Parses the priority of the e-mail</p>
- * 
+ *
  * @param {String} value The priority value
  * @returns {String} priority string low|normal|high
  */
@@ -12660,14 +12838,21 @@ MailParser.prototype._parsePriority = function(value){
 
 /**
  * <p>Processes a line in text/html or text/plain node</p>
- * 
+ *
  * <p>Append the line to the content property</p>
- * 
- * @param {String} line A line to be processed 
+ *
+ * @param {String} line A line to be processed
  */
 MailParser.prototype._handleTextLine = function(line){
-    
-    if(["quoted-printable", "base64"].indexOf(this._currentNode.meta.transferEncoding)>=0 || this._currentNode.meta.textFormat != "flowed"){
+    var encoding = this._currentNode.meta.transferEncoding;
+    if(encoding === "base64"){
+        if(typeof this._currentNode.content != "string"){
+            this._currentNode.content = line.trim();
+        }else{
+            this._currentNode.content += line.trim();
+        }
+    }
+    else if(encoding === "quoted-printable" || this._currentNode.meta.textFormat != "flowed"){
         if(typeof this._currentNode.content != "string"){
             this._currentNode.content = line;
         }else{
@@ -12684,16 +12869,16 @@ MailParser.prototype._handleTextLine = function(line){
         }else{
             this._currentNode.content += "\n"+line;
         }
-    }  
+    }
 };
 
 /**
  * <p>Processes a line in an attachment node</p>
- * 
+ *
  * <p>If a stream is set up for the attachment write the line to the
  * stream as a Buffer object, otherwise append it to the content property</p>
- * 
- * @param {String} line A line to be processed 
+ *
+ * @param {String} line A line to be processed
  */
 MailParser.prototype._handleAttachmentLine = function(line){
     if(!this._currentNode.attachment){
@@ -12717,7 +12902,7 @@ MailParser.prototype._handleAttachmentLine = function(line){
 
 /**
  * <p>Finalizes a node processing</p>
- * 
+ *
  * <p>If the node is a text/plain or text/html, convert it to UTF-8 encoded string
  * If it is an attachment, convert it to a Buffer or if an attachment stream is
  * set up, close the stream</p>
@@ -12726,13 +12911,13 @@ MailParser.prototype._finalizeContents = function(){
     var streamInfo;
 
     if(this._currentNode.content){
-        
+
         if(!this._currentNode.attachment){
-            
+
             if(this._currentNode.meta.contentType == "text/html"){
                  this._currentNode.meta.charset = this._detectHTMLCharset(this._currentNode.content) || this._currentNode.meta.charset || this.options.defaultCharset || "iso-8859-1";
             }
-            
+
             if(this._currentNode.meta.transferEncoding == "quoted-printable"){
                 this._currentNode.content = mimelib.decodeQuotedPrintable(this._currentNode.content, false, this._currentNode.meta.charset || this.options.defaultCharset || "iso-8859-1");
             }else if(this._currentNode.meta.transferEncoding == "base64"){
@@ -12752,7 +12937,7 @@ MailParser.prototype._finalizeContents = function(){
             this._currentNode.meta.checksum = this._currentNode.checksum.digest("hex");
             this._currentNode.meta.length = this._currentNode.content.length;
         }
-        
+
     }
 
     if(this._currentNode.stream){
@@ -12768,25 +12953,25 @@ MailParser.prototype._finalizeContents = function(){
 
 /**
  * <p>Processes the mime tree</p>
- * 
+ *
  * <p>Finds text parts and attachments from the tree. If there's several text/plain
  * or text/html parts, push the ones from the lower parts of the tree to the
  * alternatives array</p>
- * 
+ *
  * <p>Emits "end" when finished</p>
  */
 MailParser.prototype._processMimeTree = function(){
     var level = 0, htmlLevel, textLevel,
         returnValue = {}, i, len;
-    
+
     this.mailData = {html:[], text:[], alternatives:[], attachments:[]};
-    
+
     if(!this.mimeTree.meta.mimeMultipart){
         this._processMimeNode(this.mimeTree, 0);
     }else{
         this._walkMimeTree(this.mimeTree);
     }
-    
+
     if(this.mailData.html.length){
         for(i=0, len=this.mailData.html.length; i<len; i++){
             if(!returnValue.html || this.mailData.html[i].level < htmlLevel){
@@ -12812,7 +12997,7 @@ MailParser.prototype._processMimeTree = function(){
             }
         }
     }
-    
+
     if(this.mailData.text.length){
         for(i=0, len=this.mailData.text.length; i<len; i++){
             if(!returnValue.text || this.mailData.text[i].level < textLevel){
@@ -12838,33 +13023,41 @@ MailParser.prototype._processMimeTree = function(){
             }
         }
     }
-    
+
     returnValue.headers = this.mimeTree.parsedHeaders;
-    
+
     if(this.mimeTree.subject){
-        returnValue.subject = this.mimeTree.subject;        
+        returnValue.subject = this.mimeTree.subject;
     }
-    
+
+    if(this.mimeTree.references){
+        returnValue.references = this.mimeTree.references;
+    }
+
+    if(this.mimeTree.inReplyTo){
+        returnValue.inReplyTo = this.mimeTree.inReplyTo;
+    }
+
     if(this.mimeTree.priority){
-        returnValue.priority = this.mimeTree.priority;        
+        returnValue.priority = this.mimeTree.priority;
     }
-    
+
     if(this.mimeTree.from){
-        returnValue.from = this.mimeTree.from;        
+        returnValue.from = this.mimeTree.from;
     }
-    
+
     if(this.mimeTree.to){
-        returnValue.to = this.mimeTree.to;        
+        returnValue.to = this.mimeTree.to;
     }
-    
+
     if(this.mimeTree.cc){
-        returnValue.cc = this.mimeTree.cc;        
+        returnValue.cc = this.mimeTree.cc;
     }
-    
+
     if(this.mimeTree.bcc){
-        returnValue.bcc = this.mimeTree.bcc;        
+        returnValue.bcc = this.mimeTree.bcc;
     }
-    
+
     if(this.mailData.attachments.length){
         returnValue.attachments = [];
         for(i=0, len=this.mailData.attachments.length; i<len; i++){
@@ -12877,7 +13070,7 @@ MailParser.prototype._processMimeTree = function(){
 
 /**
  * <p>Walks the mime tree and runs processMimeNode on each node of the tree</p>
- * 
+ *
  * @param {Object} node A mime tree node
  * @param {Number} [level=0] current depth
  */
@@ -12891,16 +13084,16 @@ MailParser.prototype._walkMimeTree = function(node, level){
 
 /**
  * <p>Processes of a node in the mime tree</p>
- * 
+ *
  * <p>Pushes the node into appropriate <code>this.mailData</code> array (<code>text/html</code> to <code>this.mailData.html</code> array etc)</p>
- * 
+ *
  * @param {Object} node A mime tree node
  * @param {Number} [level=0] current depth
  * @param {String} mimeMultipart Type of multipart we are dealing with (if any)
  */
 MailParser.prototype._processMimeNode = function(node, level, mimeMultipart){
     var i, len;
-    
+
     level = level || 0;
 
     if(!node.attachment){
@@ -12926,7 +13119,7 @@ MailParser.prototype._processMimeNode = function(node, level, mimeMultipart){
             node.meta.content = node.content;
         }
         this.mailData.attachments.push({content: node.meta || {}, level: level});
-        
+
         if(this.options.showAttachmentLinks && mimeMultipart == "mixed" && this.mailData.html.length){
             for(i=0, len = this.mailData.html.length; i<len; i++){
                 if(this.mailData.html[i].level == level){
@@ -12935,49 +13128,49 @@ MailParser.prototype._processMimeNode = function(node, level, mimeMultipart){
                 }
             }
         }
-    }  
+    }
 };
 
 /**
  * <p>Joins two HTML blocks by removing the header of the added element<p>
- * 
+ *
  * @param {Object} htmlNode Original HTML contents node object
  * @param {String} newHTML HTML text to add to the original object node
  */
 MailParser.prototype._joinHTMLNodes = function(htmlNode, newHTML){
     var inserted = false;
-    
+
     // process new HTML
     newHTML = (newHTML || "").toString("utf-8").trim();
-    
+
     // remove doctype from the beginning
     newHTML = newHTML.replace(/^\s*<\!doctype( [^>]*)?>/gi, "");
-    
+
     // remove <head> and <html> blocks
     newHTML = newHTML.replace(/<head( [^>]*)?>(.*)<\/head( [^>]*)?>/gi, "").
                     replace(/<\/?html( [^>]*)?>/gi, "").
                     trim();
-    
+
     // keep only text between <body> tags (if <body exists)
     newHTML.replace(/<body(?: [^>]*)?>(.*)<\/body( [^>]*)?>/gi, function(match, body){
         newHTML = body.trim();
     });
-    
+
     htmlNode.content = (htmlNode.content || "").toString("utf-8").trim();
-    
+
     htmlNode.content = htmlNode.content.replace(/<\/body( [^>]*)?>/i, function(match){
         inserted = true;
         return "<br/>\n" + newHTML + match;
     });
-    
+
     if(!inserted){
-        htmlNode.content += "<br/>\n" + newHTML; 
+        htmlNode.content += "<br/>\n" + newHTML;
     }
 };
 
 /**
  * <p>Adds filename placeholder to the HTML if needed</p>
- * 
+ *
  * @param {Object} htmlNode Original HTML contents node object
  * @param {String} attachment Attachment meta object
  */
@@ -12990,20 +13183,20 @@ MailParser.prototype._joinHTMLAttachment = function(htmlNode, attachment){
     newHTML = "\n<div class=\"mailparser-attachment\"><a href=\"cid:"+cid+"\">&lt;" + fname + "&gt;</a></div>";
 
     htmlNode.content = (htmlNode.content || "").toString("utf-8").trim();
-    
+
     htmlNode.content = htmlNode.content.replace(/<\/body( [^>]*)?>/i, function(match){
         inserted = true;
         return "<br/>\n" + newHTML + match;
     });
-    
+
     if(!inserted){
-        htmlNode.content += "<br/>\n" + newHTML; 
+        htmlNode.content += "<br/>\n" + newHTML;
     }
 };
 
 /**
  * <p>Converts a string from one charset to another</p>
- * 
+ *
  * @param {Buffer|String} value A String to be converted
  * @param {String} fromCharset source charset
  * @param {String} [toCharset="UTF-8"] destination charset
@@ -13012,26 +13205,26 @@ MailParser.prototype._joinHTMLAttachment = function(htmlNode, attachment){
 MailParser.prototype._convertString = function(value, fromCharset, toCharset){
     toCharset = (toCharset || "utf-8").toUpperCase();
     fromCharset = (fromCharset || "utf-8").toUpperCase();
-    
+
     value = typeof value=="string"?new Buffer(value, "binary"):value;
-    
+
     if(toCharset == fromCharset){
         return value;
     }
-    
+
     try{ // in case there is no such charset or EINVAL occurs leave the string untouched
         if(!this._iconv[fromCharset+toCharset]){
             this._iconv[fromCharset+toCharset] = new Iconv(fromCharset, toCharset+'//TRANSLIT//IGNORE');
         }
         value = this._iconv[fromCharset+toCharset].convert(value);
     }catch(E){}
-    
+
     return value;
 };
 
 /**
  * <p>Encodes a header string to UTF-8</p>
- * 
+ *
  * @param {String} value String to be encoded
  * @returns {String} UTF-8 encoded string
  */
@@ -13042,7 +13235,7 @@ MailParser.prototype._encodeString = function(value){
 
 /**
  * <p>Replaces mime words in a string with UTF-8 encoded strings</p>
- * 
+ *
  * @param {String} value String to be converted
  * @returns {String} converted string
  */
@@ -13056,14 +13249,14 @@ MailParser.prototype._replaceMimeWords = function(value){
 
 /**
  * <p>Removes enclosing quotes ("", '', &lt;&gt;) from a string</p>
- * 
+ *
  * @param {String} value String to be converted
  * @returns {String} converted string
  */
 MailParser.prototype._trimQuotes = function(value){
     value = (value || "").trim();
-    if((value.charAt(0)=='"' && value.charAt(value.length-1)=='"') || 
-      (value.charAt(0)=="'" && value.charAt(value.length-1)=="'") || 
+    if((value.charAt(0)=='"' && value.charAt(value.length-1)=='"') ||
+      (value.charAt(0)=="'" && value.charAt(value.length-1)=="'") ||
       (value.charAt(0)=="<" && value.charAt(value.length-1)==">")){
         value = value.substr(1,value.length-2);
     }
@@ -13072,32 +13265,32 @@ MailParser.prototype._trimQuotes = function(value){
 
 /**
  * <p>Generates a context unique filename for an attachment</p>
- * 
+ *
  * <p>If a filename already exists, append a number to it</p>
- * 
+ *
  * <ul>
  *     <li>file.txt</li>
  *     <li>file-1.txt</li>
  *     <li>file-2.txt</li>
  * </ul>
- * 
+ *
  * @param {String} fileName source filename
  * @param {String} contentType source content type
  * @returns {String} generated filename
  */
 MailParser.prototype._generateFileName = function(fileName, contentType){
     var ext, defaultExt = "";
-    
+
     if(contentType){
         defaultExt = mimelib.contentTypesReversed[contentType];
         defaultExt = defaultExt?"."+defaultExt:"";
     }
-    
+
     fileName = fileName || "attachment"+defaultExt;
-    
+
     // remove path if it is included in the filename
     fileName = fileName.toString().split(/[\/\\]+/).pop().replace(/^\.+/,"") || "attachment";
-    
+
     if(fileName in this._fileNames){
         this._fileNames[fileName]++;
         ext = fileName.substr((fileName.lastIndexOf(".") || 0)+1);
@@ -13109,18 +13302,18 @@ MailParser.prototype._generateFileName = function(fileName, contentType){
     }else{
         this._fileNames[fileName] = 0;
     }
-    return fileName;  
+    return fileName;
 };
 
 
 /**
  * <p>Replaces character set to UTF-8 in HTML &lt;meta&gt; tags</p>
- * 
+ *
  * @param {String} HTML html contents
  * @returns {String} updated HTML
  */
 MailParser.prototype._updateHTMLCharset = function(html){
-    
+
     html = html.replace(/\n/g,"\u0000").
         replace(/<meta[^>]*>/gi, function(meta){
             if(meta.match(/http\-equiv\s*=\s*"?content\-type/i)){
@@ -13132,23 +13325,23 @@ MailParser.prototype._updateHTMLCharset = function(html){
             return meta;
         }).
         replace(/\u0000/g,"\n");
-    
+
     return html;
 };
 
 /**
  * <p>Detects the charset of an HTML file</p>
- * 
+ *
  * @param {String} HTML html contents
  * @returns {String} Charset for the HTML
  */
 MailParser.prototype._detectHTMLCharset = function(html){
     var charset, input, meta;
-    
+
     if(typeof html !=" string"){
         html = html.toString("ascii");
     }
-    
+
     if((meta = html.match(/<meta\s+http-equiv=["']content-type["'][^>]*?>/i))){
         input = meta[0];
     }
@@ -13166,6 +13359,7 @@ MailParser.prototype._detectHTMLCharset = function(html){
 
     return charset;
 };
+
 });
 define('imap',['require','exports','module','util','rdcommon/log','events','mailparser/mailparser'],function(require, exports, module) {
 var util = require('util'), $log = require('rdcommon/log'),
@@ -17303,22 +17497,35 @@ MessageGenerator.prototype = {
     // use two subjects for the snippet to get it good and long.
     headerInfo.snippet = this.makeSubject() + ' ' + this.makeSubject();
 
-    bodyInfo.bodyText = headerInfo.snippet + '\n' +
-      'This message is automatically created for you by robots.\n' +
-      '\nThe robots may or may not be friendly.\n' +
-      'They definitely do not know latin, which is why no lorax gypsum.\n' +
-      '\nI am endeavouring to write more words now because scrolling turns' +
-      ' out to be something important to test.  I know, I know.  You also' +
-      ' are surprised that scrolling is important?  Who would have thunk?\n' +
-      '\nI actually have some synthetic markov chain stuff lying around, do' +
-      ' you think that would go better?  Perhaps?  Possibly?  Potentially?' +
-      ' Pertinent?\n' +
-      '\nTo-do:\n' +
-      '1: Write more made-up text.\n' +
-      '2: Cheat and just add more lines...\n' +
-      '\n\n\n\n' +
-      '3: ...\n' +
-      '\nIt is a tiny screen we target, thank goodness!';
+    var rawBody = aArgs.rawBody || null,
+        replaceHeaders = aArgs.replaceHeaders || null;
+
+    // If a raw body was provided, try and take mailcomposer's logic out of
+    // the picture by providing a stub body that we can replace after the
+    // MIME structure has been built.  (Alternately, we could fall back to
+    // Thunderbird's synthetic mime header stuff, but that is much more
+    // limited...)
+    if (rawBody) {
+      bodyInfo.bodyText = '::BODYTEXT::';
+    }
+    else {
+      bodyInfo.bodyText = headerInfo.snippet + '\n' +
+        'This message is automatically created for you by robots.\n' +
+        '\nThe robots may or may not be friendly.\n' +
+        'They definitely do not know latin, which is why no lorax gypsum.\n' +
+        '\nI am endeavouring to write more words now because scrolling turns' +
+        ' out to be something important to test.  I know, I know.  You also' +
+        ' are surprised that scrolling is important?  Who would have thunk?\n' +
+        '\nI actually have some synthetic markov chain stuff lying around, do' +
+        ' you think that would go better?  Perhaps?  Possibly?  Potentially?' +
+        ' Pertinent?\n' +
+        '\nTo-do:\n' +
+        '1: Write more made-up text.\n' +
+        '2: Cheat and just add more lines...\n' +
+        '\n\n\n\n' +
+        '3: ...\n' +
+        '\nIt is a tiny screen we target, thank goodness!';
+    }
 
     if (this._mode === 'info') {
       return {
@@ -17351,6 +17558,18 @@ MessageGenerator.prototype = {
       };
       composer._composeMessage();
       process.immediate = false;
+
+      if (rawBody)
+        data = data.replace('::BODYTEXT::', rawBody);
+      if (replaceHeaders) {
+        for (var headerName in replaceHeaders) {
+          var headerValue = replaceHeaders[headerName],
+              headerRE = new RegExp('^' + headerName + ': [^\r]+\r\n', 'm');
+          data = data.replace(headerRE, headerName + ': ' + headerValue +
+                              '\r\n');
+        }
+      }
+
       return {
         date: new Date(headerInfo.date),
         headerInfo: headerInfo,
@@ -17365,8 +17584,9 @@ MessageGenerator.prototype = {
   MAKE_MESSAGES_DEFAULTS: {
     count: 10,
   },
-  MAKE_MESSAGES_PROPAGATE: ['attachments', 'body', 'cc', 'from', 'inReplyTo',
-                            'subject', 'to', 'clobberHeaders', 'junk', 'read'],
+  MAKE_MESSAGES_PROPAGATE: ['attachments', 'body',
+                            'cc', 'from', 'to', 'inReplyTo',
+                            'subject', 'clobberHeaders', 'junk', 'read'],
   /**
    * Given a set definition, produce a list of synthetic messages.
    *
@@ -17417,6 +17637,11 @@ MessageGenerator.prototype = {
 
     var count = aSetDef.count || this.MAKE_MESSAGES_DEFAULTS.count;
     var messagsPerThread = aSetDef.msgsPerThread || 1;
+    var rawBodies = aSetDef.hasOwnProperty('rawBodies') ? aSetDef.rawBodies
+                                                        : null,
+        replaceHeaders = aSetDef.hasOwnProperty('replaceHeaders') ?
+                           aSetDef.replaceHeaders : null;
+
     var lastMessage = null;
     for (var iMsg = 0; iMsg < count; iMsg++) {
       // primitive threading support...
@@ -17424,6 +17649,12 @@ MessageGenerator.prototype = {
         args.inReplyTo = lastMessage;
       else if (!("inReplyTo" in aSetDef))
         args.inReplyTo = null;
+
+      if (rawBodies)
+        args.rawBody = rawBodies[iMsg];
+      if (replaceHeaders)
+        args.replaceHeaders = replaceHeaders[iMsg];
+
       lastMessage = this.makeMessage(args);
       if (this._mode === 'info') {
         lastMessage.headerInfo.id = '' + iMsg;
@@ -17536,6 +17767,14 @@ FakeAccount.prototype = {
           connInfo: this.accountDef.connInfo
         },
       ]
+    };
+  },
+  toBridgeFolder: function() {
+    return {
+      id: this.accountDef.id,
+      name: this.accountDef.name,
+      path: this.accountDef.name,
+      type: 'account',
     };
   },
 
@@ -18728,13 +18967,16 @@ console.log("backoff! had", serverUIDs.length, "from", curDaysDelta,
             mparser._currentNode = mparser._createMimeNode(null);
             // nb: mparser._multipartTree is an empty list (always)
             mparser._currentNode.meta.contentType =
-              partDef.type + '/' + partDef.subtype;
+              partDef.type.toLowerCase() + '/' +
+              partDef.subtype.toLowerCase();
             mparser._currentNode.meta.charset =
-              partDef.params && partDef.params.charset;
+              partDef.params && partDef.params.charset &&
+              partDef.params.charset.toLowerCase();
             mparser._currentNode.meta.transferEncoding =
-              partDef.encoding;
+              partDef.encoding && partDef.encoding.toLowerCase();
             mparser._currentNode.meta.textFormat =
-              partDef.params && partDef.params.format;
+              partDef.params && partDef.params.format &&
+              partDef.params.format.toLowerCase();
           }
           function bodyParseBuffer(buffer) {
             process.immediate = true;
@@ -18745,7 +18987,12 @@ console.log("backoff! had", serverUIDs.length, "from", curDaysDelta,
             process.immediate = true;
             mparser._process(true);
             process.immediate = false;
-            return mparser._currentNode.content;
+            // We end up having provided an extra newline that we don't
+            // want, so let's cut it off if it exists.
+            var content = mparser._currentNode.content;
+            if (content.charCodeAt(content.length - 1) === 10)
+              content = content.substring(0, content.length - 1);
+            return content;
           }
 
           // XXX imap.js is currently not capable of issuing/parsing multiple
@@ -20633,6 +20880,9 @@ function ImapAccount(universe, accountId, credentials, connInfo, folderInfos,
                                        this._LOG);
     folderPubs.push(folderInfo.$meta);
   }
+  this.folders.sort(function(a, b) {
+    return a.path.localeCompare(b.path);
+  });
 }
 exports.ImapAccount = ImapAccount;
 ImapAccount.prototype = {
@@ -21386,7 +21636,6 @@ CompositeAccount.prototype = {
     return {
       id: this.accountDef.id,
       name: this.accountDef.name,
-      path: this.accountDef.name, // allows it to masquerade as a folder
       type: this.accountDef.type,
 
       identities: this.identities,
@@ -21406,6 +21655,14 @@ CompositeAccount.prototype = {
           connInfo: this.accountDef.sendConnInfo,
         }
       ],
+    };
+  },
+  toBridgeFolder: function() {
+    return {
+      id: this.accountDef.id,
+      name: this.accountDef.name,
+      path: this.accountDef.name,
+      type: 'account',
     };
   },
 
@@ -21627,7 +21884,7 @@ Configurators['fake'] = {
   tryToCreateAccount: function cfg_fake(universe, userDetails, domainInfo,
                                         callback, _LOG) {
     var credentials = {
-      username: userDetails.username,
+      username: userDetails.emailAddress,
       password: userDetails.password,
     };
     var accountId = $a64.encodeInt(universe.config.nextAccountNum++);
@@ -21927,6 +22184,41 @@ MailUniverse.prototype = {
                                            callback, this._LOG);
   },
 
+  /**
+   * Shutdown the account, forget about it, nuke associated database entries.
+   */
+  deleteAccount: function(accountId) {
+    var savedEx = null;
+    var account = this._accountsById[accountId];
+    try {
+      account.shutdown();
+    }
+    catch (ex) {
+      // save the failure until after we have done other cleanup.
+      savedEx = ex;
+    }
+    this._db.deleteAccount(accountId);
+
+    delete this._accountsById[accountId];
+    var idx = this.accounts.indexOf(account);
+    this.accounts.splice(idx, 1);
+
+    for (var i = 0; i < account.identities.length; i++) {
+      var identity = account.identities[i];
+      idx = this.identities.indexOf(identity);
+      this.identities.splice(idx, 1);
+      delete this._identitiesById[identity.id];
+    }
+
+    delete this._opsByAccount[accountId];
+    delete this._opCompletionListenersByAccount[accountId];
+
+    this.__notifyRemovedAccount(accountId);
+
+    if (savedEx)
+      throw savedEx;
+  },
+
   saveAccountDef: function(accountDef, folderInfo) {
     this._db.saveAccountDef(this.config, accountDef, folderInfo);
   },
@@ -21955,6 +22247,8 @@ MailUniverse.prototype = {
       this._identitiesById[identity.id] = identity;
     }
 
+    this.__notifyAddedAccount(account);
+
     // - check for mutations that still need to be processed
     for (var i = 0; i < account.mutations.length; i++) {
       var op = account.mutations[i];
@@ -21963,6 +22257,20 @@ MailUniverse.prototype = {
     }
 
     return account;
+  },
+
+  __notifyAddedAccount: function(account) {
+    for (var iBridge = 0; iBridge < this._bridges.length; iBridge++) {
+      var bridge = this._bridges[iBridge];
+      bridge.notifyAccountAdded(account);
+    }
+  },
+
+  __notifyRemovedAccount: function(accountId) {
+    for (var iBridge = 0; iBridge < this._bridges.length; iBridge++) {
+      var bridge = this._bridges[iBridge];
+      bridge.notifyAccountRemoved(accountId);
+    }
   },
 
   __notifyAddedFolder: function(accountId, folderMeta) {
