@@ -1,15 +1,32 @@
 
+@font-face {
+  font-family: 'Open Sans';
+  src: url('fonts/Open-Sans.woff');
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  font-weight: bold;
+  src: url('fonts/Open-Sans-Bold.woff');
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  font-weight: 600;
+  src: url('fonts/Open-Sans-Semibold.woff');
+}
+
 @media screen and (max-device-width: 800px) and (max-device-height: 800px) and
              (min-device-width: 480px) and (min-device-height: 480px) {
   html {
-  font-size: 10px;
+    font-size: 10px;
   }
 }
 
 @media screen and (max-device-width: 480px) and (max-device-height: 480px) {
+  /** font-size: 7.3px; 10px aiming at devices with 219dpi, 7.3px for 160dpi, 6px for?? */
   html {
     font-size: 6px;  
-    /** font-size: 7.3px; 10px aiming at devices with 219dpi, 7.3px for 160dpi, 6px for?? */
   }
 }
 
@@ -20,8 +37,8 @@
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
     border-top: solid 0.3rem #9b9b9b;
+  }
 }
-
 
 html, body {
   height: 100%;
@@ -39,24 +56,8 @@ body {
   font-family: 'Open Sans', sans-serif;
 }
 
-@font-face {
-  font-family: 'Open Sans';
-  src: url('fonts/Open-Sans.woff');
-}
-@font-face {
-  font-family: 'Open Sans';
-  font-weight: bold;
-  src: url('fonts/Open-Sans-Bold.woff');
-}
-@font-face {
-  font-family: 'Open Sans';
-  font-weight: 600;
-  src: url('fonts/Open-Sans-Semibold.woff');
-}
-
 .panel {
   position: absolute;
-  display: block;
   width: 100%;
   height: 100%;
   -moz-transition: -moz-transform 0.3s ease;
@@ -109,7 +110,6 @@ body.conversation #msg-conversations {
   -moz-transition: -moz-transform 0.3s ease, width 0s linear 0.5s;
 }
 
-
 .toolbar {
   -moz-box-sizing: border-box;
   position: absolute;
@@ -151,9 +151,6 @@ body.conversation #msg-conversations {
 
 .toolbar-panel-fixed-item {
   -moz-box-flex: 0;
-}
-
-
 }
 
 .list {
@@ -233,8 +230,6 @@ input, textarea {
   text-decoration: none;
 }
 
-/* Search (hidden for now)
- * 
 #msg-search-container {
   padding-right: 1.6rem;
   margin: 0;
@@ -270,7 +265,6 @@ body.msg-search-result-mode #msg-search-container {
 body.msg-search-mode #msg-conversations-list {
   top: 12.2rem;
 }
-*/
 
 #msg-title-container {
   padding: 0;
@@ -306,7 +300,6 @@ body.msg-search-mode #msg-conversations-list {
 body.edit-mode #msg-conversations-list > a {
   padding: 1.3rem 1.6rem 0 11.2rem;
   -moz-transition: padding 0.3s ease-out;
-/** -moz-transform: translateX(9rem); **/
 }
 
 #msg-conversations-list > a:active {
@@ -402,7 +395,7 @@ body.edit-mode #msg-conversations-list > a > span {
 #msg-conversations-list .name {
   font-size: 2.6rem;
   color: rgb(18, 47, 64);
-  line-height: 30.2rem;
+  line-height: 3.2rem;
   font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -430,7 +423,7 @@ body.edit-mode #msg-conversations-list > a > span {
   right: 1.6rem;
   text-align: right;
   color: hsla(0,0%,0%,.5);
-  font-size: 10.8rem;
+  font-size: 1.8rem;
 }
 
 #msg-conversations-list .unread-tag {
@@ -517,7 +510,6 @@ body.edit-mode #msg-conversations-list .msg {
   display: none;
 }
 
-/**
 body.msg-search-result-mode .search-hide {
   display: none;
 }
@@ -525,7 +517,6 @@ body.msg-search-result-mode .search-hide {
 body.msg-search-result-mode .search-show {
   display: block;
 }
- */
 
 body.edit-mode .edit-hide {
   display: none;
@@ -738,16 +729,16 @@ body.edit-mode #view-list .time {
 
 
 #view-list > div .sender {
-    margin-right: 4rem;
-    margin-left: 1.5rem;
+  margin-right: 4rem;
+  margin-left: 1.5rem;
 }
 #view-list > div .sender::before {
   left: -0.56rem;
 }
 
 #view-list > div .receiver {
-    margin-left: 4rem;
-    margin-right: 1.5rem;
+  margin-left: 4rem;
+  margin-right: 1.5rem;
 }
 #view-list > div .receiver::before {
   right: -0.56rem;
@@ -864,9 +855,6 @@ body.edit-mode #view-list > div.message-block {
   max-height: 20rem;
 }
 
-#view-msg-send-container {
-}
-
 #view-msg-send {
   margin: 1.4rem 0 0 1.6rem;
   min-width: 9.6rem;
@@ -896,51 +884,38 @@ body.hidden *[data-l10n-id] {
 }
 
 .confirmation-panel {
-    text-align: center;
-    background: rgba(0,0,0,0.4);
-    -moz-transition: -moz-transform 0.3s ease, width 0s linear 0.5s;
-    width: 0rem;
-    z-index: 1;   
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+
+  text-align: center;
+  background: rgba(0,0,0,0.4);
+  width: 0rem;
+  z-index: 1;   
 }
 
-#msg-confirmation-panel {
-  -moz-transform: translateX(-100%);  
-}
-
-#view-confirmation-panel {
-  -moz-transform: translateX(100%);  
-}
-
-body.view-confirmation-pending #view-confirmation-panel {
-    -moz-transform: translateX(0);
-    -moz-transition: -moz-transform 0.3s ease;
-    width: 100%;
-    z-index: 10;
-}
-
-body.msg-confirmation-pending #msg-confirmation-panel {
-    -moz-transform: translateX(0);
-    -moz-transition: -moz-transform 0.3s ease;
-    width: 100%;
-    z-index: 10;
+#view-confirmation-panel, #msg-confirmation-panel {
+  width: 100%;
+  z-index: 10;
 }
 
 .confirmation-dialog {
-    background: rgb(255,255,255);
-    opacity: 1; 
-    border-radius: 0.8rem;
-    margin: 10rem 2rem 0rem;
-    display: block;
-    padding: 3rem 7rem;
+  background: rgb(255,255,255);
+  opacity: 1; 
+  border-radius: 0.8rem;
+  margin: 10rem 2rem 0rem;
+  padding: 3rem 7rem;
 }
 .confirmation-dialog p {
-    font-size: 2rem;
+  font-size: 2rem;
 }
+
 .confirmation-dialog h2 {
-    font-size: 2rem;
+  font-size: 2rem;
 }
 .confirmation-dialog .button {
-    margin: 2rem 1.5rem 0rem;
+  margin: 2rem 1.5rem 0rem;
 }
 
 .groupHeader {
