@@ -61,6 +61,7 @@
   },
   "default_locale": "en-US",
   "background_page": "/background.html",
+  "attention_page": "/oncall.html",
   "icons": {
     "120": "/style/icons/Dialer.png"
   },
