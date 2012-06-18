@@ -4,16 +4,16 @@
 'use strict';
 
 // The modal dialog listen to mozbrowsershowmodalprompt event.
-// Blocking the current app and then show cutom modal dialog(alert/confirm/prompt)
+// Blocking the current app and then show cutom modal dialog
+// (alert/confirm/prompt)
 
 var ModalDialog = {
   blocked: false,
   promptType: null,
-  cancel: function cancelDialog(){
+  cancel: function cancelDialog() {
     // Create a virtual mouse event
     var evt = document.createEvent('MouseEvents');
     evt.initEvent('click', true, false);
-    console.log('====',this.promptType,'====');
 
     switch (this.promptType) {
       case 'alert':
@@ -31,22 +31,21 @@ var ModalDialog = {
   }
 };
 
-(function customModalDialog(){
-    window.addEventListener('mozbrowsershowmodalprompt', function(ev){
+(function customModalDialog() {
+    window.addEventListener('mozbrowsershowmodalprompt', function(ev) {
       ev.preventDefault();
 
-      var alert_ok = document.getElementById('alert-ok'); 
-      var prompt_ok = document.getElementById('prompt-ok'); 
-      var prompt_cancel = document.getElementById('prompt-cancel'); 
-      var confirm_ok = document.getElementById('confirm-ok'); 
-      var confirm_cancel = document.getElementById('confirm-cancel'); 
+      var alert_ok = document.getElementById('alert-ok');
+      var prompt_ok = document.getElementById('prompt-ok');
+      var prompt_cancel = document.getElementById('prompt-cancel');
+      var confirm_ok = document.getElementById('confirm-ok');
+      var confirm_cancel = document.getElementById('confirm-cancel');
 
       /* event listener function for all modal dialog buttons */
       var clickHandler = function customClickHandler(event) {
-        console.log('=====',event,'=====');
         document.getElementById('modal_dialog').classList.remove('visible');
 
-        switch(ev.detail.promptType) {
+        switch (ev.detail.promptType) {
           case 'alert':
             alert_ok.removeEventListener('click', clickHandler);
             document.getElementById('alert').classList.remove('visible');
@@ -56,7 +55,8 @@ var ModalDialog = {
             prompt_ok.removeEventListener('click', clickHandler);
             prompt_cancel.addEventListener('click', clickHandler);
             if (event.target.dataset.buttonType == 'yes') {
-              ev.detail.returnValue = document.getElementById('prompt-input').value;
+              var input = document.getElementById('prompt-input');
+              ev.detail.returnValue = input.value;
             }
             else
             {
@@ -90,24 +90,27 @@ var ModalDialog = {
       document.getElementById('modal_dialog').classList.add('visible');
       ModalDialog.blocked = true;
 
+      var message = ev.detail.message;
+
       switch (ev.detail.promptType) {
         case 'alert':
           alert_ok.addEventListener('click', clickHandler);
-          document.getElementById('alert-message').textContent = ev.detail.message;
+          document.getElementById('alert-message').textContent = message;
           document.getElementById('alert').classList.add('visible');
           break;
         case 'prompt':
+          var initial = ev.detail.promptType;
           prompt_ok.addEventListener('click', clickHandler);
           prompt_cancel.addEventListener('click', clickHandler);
           document.getElementById('prompt').classList.add('visible');
-          document.getElementById('prompt-input').value = ev.detail.initialValue;
-          document.getElementById('prompt-message').textContent = ev.detail.message;
+          document.getElementById('prompt-input').value = initial;
+          document.getElementById('prompt-message').textContent = message;
           break;
         case 'confirm':
           confirm_ok.addEventListener('click', clickHandler);
           confirm_cancel.addEventListener('click', clickHandler);
           document.getElementById('confirm').classList.add('visible');
-          document.getElementById('confirm-message').textContent = ev.detail.message;
+          document.getElementById('confirm-message').textContent = message;
           break;
         default:
           break;
