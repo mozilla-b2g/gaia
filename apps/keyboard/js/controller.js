@@ -5,7 +5,7 @@
 
 'use strict';
 
-// The controller is in charge of capture events and translate them into 
+// The controller is in charge of capture events and translate them into
 // keyboard interactions, send keys and coordinate rendering.
 const IMEController = (function() {
 
@@ -186,7 +186,8 @@ const IMEController = (function() {
       layoutName = inputType + 'Layout';
 
     // let look for a layout overriding or fallback to defaults
-    var layout = Keyboards[_baseLayoutName][layoutName] || Keyboards[layoutName];
+    var layout = Keyboards[_baseLayoutName][layoutName] ||
+                 Keyboards[layoutName];
 
     // look for keyspace (it behaves as the placeholder for special keys)
     var where = false;
@@ -809,7 +810,7 @@ const IMEController = (function() {
 
         // Keyboard updated: all buttons recreated so event target is lost.
         var capsLockKey = document.querySelector(
-          'button[data-keycode="'+KeyboardEvent.DOM_VK_CAPS_LOCK+'"]'
+          'button[data-keycode="' + KeyboardEvent.DOM_VK_CAPS_LOCK + '"]'
         );
         IMERender.setUpperCaseLock(
           capsLockKey,

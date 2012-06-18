@@ -5,8 +5,8 @@
 // its performance but is not allowed to communicate with the controller nor
 // manager.
 //
-// XXX: The only thing worth to be remebered is the KEY element must be the 
-// deepest interactive HTML element on the hierarchy or, if none, simply the 
+// XXX: The only thing worth to be remebered is the KEY element must be the
+// deepest interactive HTML element on the hierarchy or, if none, simply the
 // deepest element. This element must contain dataset attributes.
 const IMERender = (function() {
 
@@ -153,9 +153,9 @@ const IMERender = (function() {
 
     if (pendingSymbolPanel) {
 
-      if (typeof highlightStart === 'undefined' 
-          || typeof highlightEnd === 'undefined' 
-          || typeof highlightState === 'undefined') {
+      if (typeof highlightStart === 'undefined' ||
+          typeof highlightEnd === 'undefined' ||
+          typeof highlightState === 'undefined') {
         pendingSymbolPanel.textContent = symbols;
         return;
       }
@@ -215,10 +215,10 @@ const IMERender = (function() {
   var showKeyboardAlternatives = function(key, keyboards, current, switchCode) {
     var dataset, className, content = '';
     var menu = this.menu;
-    
+
     var cssWidth = key.style.width;
-    menu.classList.add("kbr-menu-lang");
-    key.classList.add("kbr-menu-on");
+    menu.classList.add('kbr-menu-lang');
+    key.classList.add('kbr-menu-on');
 
     for (var i = 0, kbr; kbr = keyboards[i]; i += 1) {
       className = 'keyboard-key';
@@ -243,7 +243,7 @@ const IMERender = (function() {
     _menuKey = key;
     key.parentNode.replaceChild(_altContainer, key);
 
-    _altContainer.querySelectorAll("span")[0].appendChild(menu);
+    _altContainer.querySelectorAll('span')[0].appendChild(menu);
     menu.style.display = 'block';
   };
 
@@ -251,7 +251,7 @@ const IMERender = (function() {
   // original char.
   var showAlternativesCharMenu = function(key, altChars) {
     var content = '', cssWidth = key.style.width;
-    
+
     var original = altChars[0];
     altChars = altChars.slice(1);
 
@@ -260,13 +260,13 @@ const IMERender = (function() {
 
     // Place the menu to the left and adds the original key at the end
     if (left) {
-      this.menu.classList.add("kbr-menu-left");
+      this.menu.classList.add('kbr-menu-left');
       altCharsCurrent.push(original);
       altCharsCurrent = altCharsCurrent.concat(altChars);
 
     // Place menu on the right and adds the original key at the beginning
     } else {
-      this.menu.classList.add("kbr-menu-right");
+      this.menu.classList.add('kbr-menu-right');
       altCharsCurrent = altChars.reverse();
       altCharsCurrent.push(original);
     }
@@ -291,7 +291,7 @@ const IMERender = (function() {
     key.parentNode.replaceChild(_altContainer, key);
 
     // Adjust menu style
-    _altContainer .querySelectorAll("span")[0].appendChild(this.menu);
+    _altContainer .querySelectorAll('span')[0].appendChild(this.menu);
     this.menu.style.display = 'block';
   };
 
