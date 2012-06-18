@@ -352,6 +352,17 @@ window.addEventListener('keyup', function keyPressHandler(evt) {
   }
 });
 
+// The handler above is unlikely to actually be called.  Instead,
+// the Back button (bound to escape) is caught by gecko and takes
+// us out of fullscreen mode. So we listen for full-screen changes
+// and when we leave fullscreen mode, we show the thumbnails as above
+document.addEventListener('mozfullscreenchange', function leaveFullScreen() {
+  if (!document.mozFullScreenElement) {
+    showThumbnails();
+  }
+});
+
+
 // We get a resize event when the user rotates the screen
 window.addEventListener('resize', function resizeHandler(evt) {
   // Abandon any current pan or zoom and reset the current photo view
@@ -493,6 +504,8 @@ function showThumbnails() {
   photos.classList.add('hidden');
   playerControls.classList.add('hidden');
   thumbnailsDisplayed = true;
+  if (document.mozFullScreenElement)
+    document.mozCancelFullScreen();
 }
 
 // A utility function to insert an <img src="url"> tag into an element
@@ -557,6 +570,9 @@ function showPhoto(n) {
     photos.classList.remove('hidden');
     playerControls.classList.remove('hidden');
     thumbnailsDisplayed = false;
+    // If we're not already in fullscreen mode, go into it
+    if (document.mozFullScreenElement !== photos)
+      photos.mozRequestFullScreen();
   }
 
   displayImageInFrame(n - 1, previousPhotoFrame);
