@@ -41,6 +41,8 @@ var UtilityTray = {
           return;
 
         this.active = true;
+        // XXX: required for Mouse2Touch fake events to function
+        evt.target.setCapture(true);
 
         this.onTouchStart(evt.touches[0]);
         break;
@@ -61,7 +63,10 @@ var UtilityTray = {
       case 'touchend':
         if (!this.active)
           return;
-          this.active = false;
+
+        this.active = false;
+        // XXX: required for Mouse2Touch fake events to function
+        document.releaseCapture();
 
         this.onTouchEnd(evt.changedTouches[0]);
         break;
