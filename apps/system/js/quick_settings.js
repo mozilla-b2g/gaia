@@ -56,6 +56,67 @@ var QuickSettings = {
             break;
 
           case this.powerSave:
+            var enabled = (this.powerSave.dataset.enabled == 'true');
+            this.powerSave.dataset.enabled = !enabled;
+            if (!enabled) {
+              // Keep the original states
+              this._powerSaveResume = {
+                wifi: (this.wifi.dataset.enabled == 'true'),
+                data: (this.data.dataset.enabled == 'true'),
+                bluetooth: (this.bluetooth.dataset.enabled == 'true')
+              };
+
+              // Turn off Wifi
+              var wifiManager = navigator.mozWifiManager;
+              if (wifiManager) {
+                wifiManager.setEnabled(false);
+                this.wifi.dataset.enabled = false;
+              }
+
+              // Turn off Data
+              this.data.dataset.enabled = false;
+
+              navigator.mozSettings.getLock().set({
+                'ril.data.enabled': false });
+
+              // Turn off Bluetooth
+              var bluetooth = navigator.mozBluetooth;
+              if (bluetooth) {
+                bluetooth.setEnabled(false);
+                this.bluetooth.dataset.enabled = false;
+              }
+
+              // XXX: How do I turn off GPS?
+
+            } else if (this._powerSaveResume) {
+              if (this._powerSaveResume.wifi) {
+                // Turn on Wifi
+                var wifiManager = navigator.mozWifiManager;
+                if (wifiManager) {
+                  wifiManager.setEnabled(true);
+                  this.wifi.dataset.enabled = true;
+                }
+              }
+
+              if (this._powerSaveResume.data) {
+                // Turn on Data
+                this.data.dataset.enabled = true;
+                navigator.mozSettings.getLock().set({
+                  'ril.data.enabled': true });
+              }
+
+              if (this._powerSaveResume.bluetooth) {
+                // Turn on Bluetooth
+                var wifiManager = navigator.mozBluetooth;
+                if (bluetooth) {
+                  bluetooth.setEnabled(true);
+                  this.bluetooth.dataset.enabled = true;
+                }
+              }
+
+              delete this._powerSaveResume;
+            }
+
             break;
 
           case this.fullApp:
