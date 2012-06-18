@@ -46,6 +46,13 @@ var QuickSettings = {
             break;
 
           case this.bluetooth:
+            var bluetooth = navigator.mozBluetooth;
+            if (!bluetooth)
+              return;
+
+            var enabled = (this.bluetooth.dataset.enabled == 'true');
+            bluetooth.setEnabled(!enabled);
+            this.bluetooth.dataset.enabled = !enabled;
             break;
 
           case this.powerSave:
@@ -66,7 +73,8 @@ var QuickSettings = {
     var wifiManager = navigator.mozWifiManager;
     this.wifi.dataset.enabled = !!(wifiManager && wifiManager.enabled);
 
-
+    var bluetooth = navigator.mozBluetooth;
+    this.bluetooth.dataset.enabled = !!(bluetooth && bluetooth.enabled);
   },
 
   getAllElements: function qs_getAllElements() {
