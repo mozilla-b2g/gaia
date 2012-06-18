@@ -13,35 +13,41 @@ var CardsView = (function() {
   var DISPLAY_APP_ICON = true;
   var USER_DEFINED_ORDERING = false;
 
+  // If 'true', scrolling moves the list one card
+  // at time, and snaps the list so the current card
+  // is centered in the view
+  // If 'false', use free, physics-based scrolling
+  // (Gaia default)
+  var SNAPPING_SCROLLING = true;
+
   var cardsView = document.getElementById('cardsView');
   var cardsList = cardsView.getElementsByTagName('ul')[0];
   var displayedApp,
-      runningApps;
+      runningApps,
+      currentDisplayed = 0;
 
   // Build and display the card switcher overlay
   // Note that we rebuild the switcher each time we need it rather
   // than trying to keep it in sync with app launches.  Performance is
   // not an issue here given that the user has to hold the HOME button down
   // for one second before the switcher will appear.
-  //
-  // FIXME: Currently tasks are displayed in the order in which
-  // they were launched. We might want to change this to most recently
-  // used order. Or, we might want to keep the apps in launch order, but
-  // scroll so that the current task is always shown
   function showCardSwitcher() {
     // Apps info from WindowManager
     displayedApp = WindowManager.getDisplayedApp();
     runningApps = WindowManager.getRunningApps();
 
-    // If user is not able to sort apps manualy, 
+    // If user is not able to sort apps manualy,
     // display most recetly active apps on the far left
     if (!USER_DEFINED_ORDERING) {
       var sortable = [];
-      for (var origin in runningApps) sortable.push({origin: origin, app: runningApps[origin]});
+      for (var origin in runningApps)
+        sortable.push({origin: origin, app: runningApps[origin]});
+
       sortable.sort(function(a, b) {
         return b.app.launchTime - a.app.launchTime;
       });
       runningApps = {};
+
       // I assume that object properties are enumerated in
       // the same order they were defined.
       // There is nothing baout that in spec, but I've never
@@ -52,6 +58,12 @@ var CardsView = (function() {
     } else {
       // user ordering actions
     }
+
+    if (SNAPPING_SCROLLING) {
+      cardsView.style.overflow = 'hidden'; //disabling native scrolling
+      cardsView.addEventListener('mousedown', this);
+    }
+
     // First add an item to the cardsList for each running app
     for (var origin in runningApps)
       addCard(origin, runningApps[origin]);
@@ -76,7 +88,7 @@ var CardsView = (function() {
 
       //display app icon on the tab
       if (DISPLAY_APP_ICON) {
-        var icons = runningApps[origin].manifest.icons;
+        var icons = app.manifest.icons;
         var iconSrc = origin + icons[Object.keys(icons)[0]];
         var appIcon = document.createElement('img');
 
@@ -140,10 +152,70 @@ var CardsView = (function() {
     return cardsView.classList.contains('active');
   }
 
+  //scrolling cards
+  var initialCardViewPosition, initialTouchPosition;
+  var threshold = window.innerWidth / 4;
+
+  function alignCard(number) {
+    cardsView.scrollLeft = cardsList.children[number].offsetLeft;
+  }
+
+  function onStartEvent(evt) {
+    evt.stopPropagation();
+    cardsView.addEventListener('mousemove', CardsView);
+    cardsView.addEventListener('mouseup', CardsView);
+
+    initialCardViewPosition = cardsView.scrollLeft;
+    initialTouchPosition = evt.touches ? evt.touches[0].pageX : evt.pageX;
+  }
+
+  function onMoveEvent(evt) {
+    evt.stopPropagation();
+    var touchPosition = evt.touches ? evt.touches[0].pageX : evt.pageX;
+    var difference = initialTouchPosition - touchPosition;
+    cardsView.scrollLeft = initialCardViewPosition + difference;
+  }
+
+  function onEndEvent(evt) {
+    evt.stopPropagation();
+    cardsView.removeEventListener('mousemove', CardsView);
+    cardsView.removeEventListener('mouseup', CardsView);
+    var touchPosition = evt.touches ? evt.touches[0].pageX : evt.pageX;
+    var difference = initialTouchPosition - touchPosition;
+    if (Math.abs(difference) > threshold) {
+      if (
+        difference > 0 &&
+        currentDisplayed < WindowManager.getNumberOfRunningApps() - 1
+      ) {
+        currentDisplayed++;
+        alignCard(currentDisplayed);
+      } else if (difference < 0 && currentDisplayed > 0) {
+        currentDisplayed--;
+        alignCard(currentDisplayed);
+      }
+    } else {
+      alignCard(currentDisplayed);
+    }
+  }
+
+  function cv_handleEvent(evt) {
+    switch (evt.type) {
+      case 'mousedown':
+        onStartEvent(evt);
+        break;
+      case 'mousemove':
+        onMoveEvent(evt);
+        break;
+      case 'mouseup':
+        onEndEvent(evt);
+        break;
+    }
+  }
   // Public API of CardsView
   return {
     showCardSwitcher: showCardSwitcher,
     hideCardSwitcher: hideCardSwitcher,
-    cardSwitcherIsShown: cardSwitcherIsShown
+    cardSwitcherIsShown: cardSwitcherIsShown,
+    handleEvent: cv_handleEvent
   };
 })();
