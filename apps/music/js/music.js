@@ -314,7 +314,7 @@ var PlayerView = {
       this.audio.play();
     }
 
-    this.playControl.textContent = 'Pause';
+    this.playControl.innerHTML = '||';
   },
 
   pause: function pv_pause() {
@@ -322,7 +322,7 @@ var PlayerView = {
 
     this.audio.pause();
 
-    this.playControl.textContent = 'Play';
+    this.playControl.innerHTML = '&#9654;';
   },
 
   next: function pv_next() {
