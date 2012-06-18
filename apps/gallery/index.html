@@ -22,16 +22,16 @@
       document.write('<script src="' + src + '"><\/script>');
     </script>
     <script defer src="js/GestureDetector.js"></script>
+    <script defer src="js/JPEGMetadata.js"></script>
     <script defer src="js/gallery.js"></script>
   </head>
 
   <body class="hidden">
-    <header id="header">
-      <h1 data-l10n-id="pictures">Pictures</h1>
-    </header>
-
     <!-- Thumbnails inserted here -->
-    <ul id="thumbnails"></ul>
+    <ul id="thumbnails">
+      <!-- We'll hide this as soon as we find a photo -->
+      <h1 id="nophotos" data-l10n-id="nophotos">No Photos</h1>
+    </ul>
 
     <!-- Photos inserted here -->
     <div id="photos" class="hidden">

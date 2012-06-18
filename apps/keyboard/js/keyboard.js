@@ -3,7 +3,7 @@
 
 'use strict';
 
-// Duplicated code in severla places
+// Duplicated code in several places
 // TODO Better settings observe interface?
 
 var SettingsListener = {
@@ -45,7 +45,6 @@ const IMEManager = {
   ALTERNATE_LAYOUT: -2,
   SWITCH_KEYBOARD: -3,
   TOGGLE_CANDIDATE_PANEL: -4,
-  DOT_COM: -5,
 
   // IME Engines are self registering here.
   IMEngines: {},
@@ -65,13 +64,14 @@ const IMEManager = {
   keyboardSettingGroups: {
     'english': ['en'],
     'dvorak': ['en-Dvorak'],
-    'otherlatins': ['fr', 'de', 'nb', 'sk', 'tr'],
+    'otherlatins': ['fr', 'de', 'nb', 'sk', 'tr', 'es', 'pt_BR'],
     'cyrillic': ['ru', 'sr-Cyrl'],
     'hebrew': ['he'],
     'zhuyin': ['zh-Hant-Zhuyin'],
     'pinyin': ['zh-Hans-Pinyin'],
     'arabic': ['ar'],
-    'greek': ['el']
+    'greek': ['el'],
+    'japanese': ['jp-kanji']
   },
 
   enableSetting: function km_enableSetting(theKey) {
@@ -104,7 +104,6 @@ const IMEManager = {
     }
 
     if (!this.keyboards.length) {
-      console.warn('[keyboard] no keyboard layouts present');
       this.keyboards = [].concat(this.keyboardSettingGroups['english']);
     }
 
@@ -283,46 +282,91 @@ const IMEManager = {
     var before = (window.innerWidth / 2 > target.offsetLeft);
     var dataset = target.dataset;
 
-    if (before) {
-      content += '<span class="keyboard-key" ' +
-        'data-keycode="' + dataset.keycode + '" ' +
-        'data-active="true"' +
-        'style="width:' + cssWidth + '"' +
-        '>' +
-        target.innerHTML +
-        '</span>';
+    // To store all the accent characters, including the original one
+    var altCharSet = [];
+    var MENU_PADDING = 7;
+    var altChars;
+
+    // handle special key set separated by space
+    if (target.dataset.alt.indexOf(' ') != -1) {
+      altChars = target.dataset.alt.split(' ');
+    } else {
+      altChars = target.dataset.alt.split('');
     }
 
-    var altChars = target.dataset.alt.split('');
     if (!before)
       altChars = altChars.reverse();
 
     altChars.forEach(function(keyChar) {
-      content += '<span class="keyboard-key" ' +
-        'data-keycode="' + keyChar.charCodeAt(0) + '"' +
-        'style="width:' + cssWidth + '"' +
-        '>' +
-        keyChar +
-        '</span>';
-    });
 
-    if (!before) {
+      if (keyChar === '')
+        return;
+
+      var keyCode = keyChar.keyCode || keyChar.charCodeAt(0);
+      var label = keyChar.label || keyChar;
+
+      altCharSet.push({keyCode: keyCode, label: label});
+    }.bind(this));
+
+    function buildAccentKey(key) {
+
+      // handle composite key
+      var compositeKeyHTML = '';
+      if (key.label.length > 1) {
+         var compositeKeyHTML = ' data-compositekey="' + key.label + '" ';
+      }
+
+      var activeAttribute = key.active ? 'data-active="true"' : '';
       content += '<span class="keyboard-key" ' +
-        'data-keycode="' + dataset.keycode + '" ' +
-        'data-active="true"' +
+        'data-keycode="' + key.keyCode + '" ' +
+         activeAttribute +
+         compositeKeyHTML +
         'style="width:' + cssWidth + '"' +
         '>' +
-        target.innerHTML +
+        key.label +
         '</span>';
     }
+
+    var menuEstimatedWidth = (target.offsetWidth + 4) *
+                             (altCharSet.length + 1) + 12;
+
+    var left = target.offsetLeft;
+    left += (before) ? -MENU_PADDING :
+                       (MENU_PADDING - menuEstimatedWidth + target.offsetWidth);
+
+    // put the original char in the middle
+    var middle = before ? (target.offsetLeft + menuEstimatedWidth >=
+                           window.innerWidth) :
+                          (left <= 0);
+
+    // determine the position to insert the original key
+    var position = 0;
+
+    if (middle) {
+      position = Math.ceil(target.offsetLeft / (target.offsetWidth + 2)) - 1;
+    } else if (!before) {
+      position = altCharSet.length;
+    }
+
+    // insert the original key
+    altCharSet.splice(position, 0,
+        {keyCode: dataset.keycode, label: target.innerHTML, active: true});
+
+    altCharSet.forEach(buildAccentKey);
 
     menu.innerHTML = content;
     menu.className = 'show';
 
-    menu.style.top = target.offsetTop + 'px';
-
     var left = target.offsetLeft;
-    left += (before) ? -7 : (7 - menu.offsetWidth + target.offsetWidth);
+
+    if (!middle) {
+      left += (before) ? -MENU_PADDING :
+                         (MENU_PADDING - menu.offsetWidth + target.offsetWidth);
+    } else {
+      left -= position * (target.offsetWidth + 4) + MENU_PADDING;
+    }
+
+    menu.style.top = target.offsetTop + 'px';
     menu.style.left = left + 'px';
 
     delete target.dataset.active;
@@ -342,28 +386,21 @@ const IMEManager = {
       this.addEventListener('mouseover', this.redirect);
     };
 
-    var sibling = target;
-    if (before) {
-      var index = 0;
+    // Redirect the mouseOver event
+    var eventTargets = target.parentElement.childNodes;
+    var count = menu.childNodes.length;
+    var keyOrder = Math.ceil(target.offsetLeft / (target.offsetWidth + 2)) - 1;
+    var startIndex = (middle) ? 0 :
+                                (before) ? keyOrder : keyOrder - count + 1;
 
-      while (menu.childNodes.item(index)) {
-        redirectMouseOver.call(sibling, menu.childNodes.item(index));
-        sibling = sibling.nextSibling;
-        index++;
-      }
-    } else {
-      var index = menu.childNodes.length - 1;
-
-      while (menu.childNodes.item(index)) {
-        redirectMouseOver.call(sibling, menu.childNodes.item(index));
-        sibling = sibling.previousSibling;
-        index--;
+    for (var i = 0; i < count; i++, startIndex++) {
+      if (eventTargets[startIndex]) {
+        redirectMouseOver.call(eventTargets[startIndex], menu.childNodes[i]);
       }
     }
 
     this._currentMenuKey = target;
-
-    this.currentKey = (before) ? menu.firstChild : menu.lastChild;
+    this.currentKey = menu.childNodes[position];
 
     this.updateKeyHighlight();
 
@@ -466,9 +503,8 @@ const IMEManager = {
 
     // Handling showime and hideime events, as they are received only in System
     // https://bugzilla.mozilla.org/show_bug.cgi?id=754083
-
-    window.addEventListener('message', function receiver(e) {
-      var event = JSON.parse(e.data);
+    window.addEventListener('message', function receiver(evt) {
+      var event = JSON.parse(evt.data);
       IMEManager.handleEvent(event);
     });
   },
@@ -512,8 +548,12 @@ const IMEManager = {
       sendCandidates: function(candidates) {
         self.showCandidates(candidates);
       },
-      sendPendingSymbols: function(symbols) {
-        self.showPendingSymbols(symbols);
+      sendPendingSymbols: function(
+                              symbols, highlightStart,
+                              highlightEnd, highlightState) {
+        self.showPendingSymbols(
+            symbols, highlightStart,
+            highlightEnd, highlightState);
       },
       sendKey: function(keyCode) {
         switch (keyCode) {
@@ -547,6 +587,12 @@ const IMEManager = {
   hideIMETimer: 0,
   handleEvent: function km_handleEvent(evt) {
 
+    var notNormalKey = function notNormalKey(key) {
+        var keyCode = parseInt(key.dataset.keycode);
+        return (!keyCode && !key.dataset.selection &&
+                !key.dataset.compositekey);
+    }
+
     var target = evt.target;
     switch (evt.type) {
       case 'showime':
@@ -568,10 +614,6 @@ const IMEManager = {
 
         break;
 
-      case 'appclose':
-        this._closingWindow = null;
-        break;
-
       case 'resize':
         if (this.ime.dataset.hidden)
           return;
@@ -584,12 +626,9 @@ const IMEManager = {
         break;
 
       case 'transitionend':
-        if (!this.ime.dataset.hidden) { // showIME transitionend
-          this.updateTargetWindowHeight();
-        } else { // hideIME transitionend
-
+        if (this.ime.dataset.hidden)
           this.ime.innerHTML = '';
-        }
+        this.updateTargetWindowHeight();
         break;
 
       case 'mousedown':
@@ -598,7 +637,7 @@ const IMEManager = {
         this.currentKey = target;
         this.isPressing = true;
 
-        if (!keyCode && !target.dataset.selection)
+        if (notNormalKey(target))
           return;
 
         this.updateKeyHighlight();
@@ -637,8 +676,7 @@ const IMEManager = {
           return;
 
         var keyCode = parseInt(target.dataset.keycode);
-
-        if (!keyCode && !target.dataset.selection)
+        if (notNormalKey(target))
           return;
 
         if (this.currentKey)
@@ -714,7 +752,7 @@ const IMEManager = {
 
         var target = this.currentKey;
         var keyCode = parseInt(target.dataset.keycode);
-        if (!keyCode && !target.dataset.selection)
+        if (notNormalKey(target))
           return;
 
         var dataset = target.dataset;
@@ -739,6 +777,19 @@ const IMEManager = {
         // used in space key double tap handling
         if (keyCode != KeyEvent.DOM_VK_SPACE)
           delete this.isContinousSpacePressed;
+
+        var sendCompositeKey = function sendCompositeKey(compositeKey) {
+            compositeKey.split('').forEach(function sendEachKey(key) {
+              window.navigator.mozKeyboard.sendKey(0, key.charCodeAt(0));
+            });
+        }
+
+        // Handle composite key
+        var compositeKey = target.dataset.compositekey;
+        if (compositeKey) {
+          sendCompositeKey(compositeKey);
+          return;
+        }
 
         switch (keyCode) {
           case this.BASIC_LAYOUT:
@@ -797,12 +848,6 @@ const IMEManager = {
               this.ime.classList.remove('full-candidate-panel');
             }
             this.updateTargetWindowHeight();
-            break;
-
-          case this.DOT_COM:
-            ('.com').split('').forEach((function sendDotCom(key) {
-              window.navigator.mozKeyboard.sendKey(0, key.charCodeAt(0));
-            }).bind(this));
             break;
 
           case KeyEvent.DOM_VK_ALT:
@@ -913,7 +958,12 @@ const IMEManager = {
         layout = Keyboards['telLayout'];
       break;
       default:
-        layout = Keyboards[keyboard] || Keyboards[this.currentKeyboard];
+        // Use the localized version of various keyboard layouts
+        // (symbol, number, etc.) if it is defined
+        if (Keyboards[this.currentKeyboard][keyboard])
+          layout = Keyboards[this.currentKeyboard][keyboard];
+        else
+          layout = Keyboards[keyboard] || Keyboards[this.currentKeyboard];
       break;
     }
 
@@ -931,11 +981,14 @@ const IMEManager = {
 
     var size = (width / (layout.width || 10));
 
-    var buildKey = function buildKey(code, label, className, ratio, alt) {
+    var buildKey = function buildKey(code, label, className, ratio, alt,
+                                     compositeKey) {
+
       return '<span class="keyboard-key ' + className + '"' +
-        ' data-keycode="' + code + '"' +
+        (code ? ' data-keycode="' + code + '"' : '') +
         ' style="width:' + (size * ratio - 4) + 'px"' +
-        ((alt) ? ' data-alt=' + alt : '') +
+        ((alt) ? ' data-alt="' + alt + '" ' : '') +
+        (compositeKey ? ' data-compositekey="' + compositeKey + '" ' : '') +
       '>' + label + '</span>';
     };
 
@@ -949,6 +1002,7 @@ const IMEManager = {
           KeyEvent.DOM_VK_RETURN,
           KeyEvent.DOM_VK_ALT
         ];
+
         var keyChar = key.value;
 
         // This gives layout author the ability to rewrite toUpperCase()
@@ -1025,7 +1079,7 @@ const IMEManager = {
                 ratio -= size * 2;
                 content += buildKey(46, '.', '', size);
                 content += buildKey(47, '/', '', size);
-                content += buildKey(this.DOT_COM, '.com', '', ratio);
+                content += buildKey(undefined, '.com', '', ratio, '', '.com');
               break;
               case 'email':
                 ratio -= 2;
@@ -1076,7 +1130,8 @@ const IMEManager = {
 
         var className = '';
 
-        if (code < 0 || specialCodes.indexOf(code) > -1)
+        // Not to highlight composite key (like R$) as special key
+        if ((code < 0 || specialCodes.indexOf(code) > -1) && !key.compositeKey)
           className += ' keyboard-key-special';
 
         if (code == KeyEvent.DOM_VK_CAPS_LOCK)
@@ -1089,7 +1144,8 @@ const IMEManager = {
           alt = layout.alt[key.value].toUpperCase();
         }
 
-        content += buildKey(code, keyChar, className, key.ratio || 1, alt);
+        content += buildKey(code, keyChar, className, key.ratio || 1, alt,
+                            key.compositeKey);
 
       }).bind(this));
       content += '</div>';
@@ -1132,8 +1188,16 @@ const IMEManager = {
   },
 
   updateTargetWindowHeight: function km_updateTargetWindowHeight() {
-    var resizeAction = {action: 'resize', height: this.ime.scrollHeight + 'px'};
-    parent.postMessage(JSON.stringify(resizeAction), '*');
+    var height;
+    if (this.ime.dataset.hidden) {
+      height = 0;
+    } else {
+      height = this.ime.scrollHeight;
+    }
+
+    var message = {action: 'updateHeight',
+      keyboardHeight: height, hidden: !!this.ime.dataset.hidden};
+    parent.postMessage(JSON.stringify(message), '*');
   },
 
   showIME: function km_showIME(type) {
@@ -1173,7 +1237,6 @@ const IMEManager = {
         this.currentEngine.show(type);
       }
     }
-    this.updateTargetWindowHeight();
   },
 
   hideIME: function km_hideIME(imminent) {
@@ -1194,12 +1257,33 @@ const IMEManager = {
       }, 0);
 
       ime.innerHTML = '';
+      this.updateTargetWindowHeight();
     }
   },
 
-  showPendingSymbols: function km_showPendingSymbols(symbols) {
+  showPendingSymbols: function km_showPendingSymbols(
+                          symbols, highlightStart,
+                          highlightEnd, highlightState) {
+
+    var HIGHLIGHT_COLOR_TABLE = {
+      'red': 'keyboard-pending-symbols-highlight-red',
+      'green': 'keyboard-pending-symbols-highlight-green',
+      'blue': 'keyboard-pending-symbols-highlight-blue'
+    };
+
     var pendingSymbolPanel = this.pendingSymbolPanel;
-    pendingSymbolPanel.textContent = symbols;
+
+    if (typeof highlightStart === 'undefined' ||
+        typeof highlightEnd === 'undefined' ||
+        typeof highlightState === 'undefined') {
+      pendingSymbolPanel.textContent = symbols;
+      return;
+    }
+
+    pendingSymbolPanel.innerHTML = "<span class='" +
+      HIGHLIGHT_COLOR_TABLE[highlightState] + "'>" +
+      symbols.slice(highlightStart, highlightEnd) +
+      '</span>' + symbols.substr(highlightEnd);
   },
 
   showCandidates: function km_showCandidates(candidates, noWindowHeightUpdate) {

@@ -1,0 +1,366 @@
+html, body {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+
+  font-size: 2.5mozmm;
+  color: white;
+  font-family: 'Open Sans', sans-serif;
+
+  background: transparent;
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  src: url('fonts/Open-Sans.woff');
+}
+@font-face {
+  font-family: 'Open Sans';
+  font-weight: bold;
+  src: url('fonts/Open-Sans-Bold.woff');
+}
+@font-face {
+  font-family: 'Open Sans';
+  font-weight: 600;
+  src: url('fonts/Open-Sans-Semibold.woff');
+}
+
+html * {
+  overflow: hidden;
+}
+
+@media all and (min-resolution: 200dpi) {
+  html, body {
+    font-size: 2mozmm;
+  }
+}
+
+/* === Call Screen === */
+
+#call-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0 0 1px 0;
+  border: 0;
+  border-radius: 10px;
+  background: LightGray;
+  -moz-transform: translateY(-100%);
+  z-index: 100;
+}
+
+#call-screen.animate {
+  -moz-transition: -moz-transform 0.5s ease;
+}
+
+#call-screen.prerender {
+  -moz-transform: translateY(-moz-calc(-100% + 1px));
+}
+
+#call-screen.displayed {
+  -moz-transform: translateY(0);
+}
+
+#call-screen.displayed.prerender {
+  -moz-transform: translateY(-1px); 
+}
+
+#call-screen.calling #call-screen-top {
+  height: 60%;
+}
+
+#call-screen.in-call #call-screen-top {
+  height: 60%;
+}
+
+#call-screen.incoming #call-screen-top {
+  height: 86%;
+}
+
+#call-screen.calling #call-number-view-container {
+  color: DarkGray;
+  height: 20%;
+  padding: 0 5% 0 5%;
+}
+
+#call-screen.in-call #call-number-view-container {
+  color: DarkGray;
+  height: 20%;
+  padding: 0 5% 0 5%;
+}
+
+#call-screen.incoming #call-number-view-container {
+  color: DarkGray;
+  height: 12%;
+  padding: 0 5% 0 5%;
+}
+
+#call-screen.calling #call-number-view {
+  font-size: 4rem;
+}
+
+#call-screen.in-call #call-number-view {
+  font-size: 4rem;
+}
+
+#call-screen.incoming #call-number-view {
+  font-size: 4rem;
+}
+
+#call-screen.calling #call-picture {
+  height: 80%;
+  width: 100%;
+  padding: 0 5% 5% 5%;
+}
+
+#call-screen.in-call #call-picture {
+  height: 50%;
+  width: 100%;
+  padding: 0 5% 0 5%;
+}
+
+#call-screen.incoming #call-picture {
+  height: 88%;
+  width: 100%;
+  padding: 0 5% 5% 5%;
+}
+
+#call-screen.calling #call-picture img {
+  height: 95%;
+  width: 90%;	
+  margin: auto;
+}
+
+#call-screen.in-call #call-picture img {
+  height: 100%;
+  margin: auto;
+}
+
+#call-screen.incoming #call-picture img {
+  height: 95%;
+  width: 90%;	
+  margin: auto;
+}
+
+#call-screen.calling #call-duration-view-container {
+  display: none;
+}
+
+#call-screen.in-call #call-duration-view-container {
+  color: DarkGray;
+  height: 30%;
+  padding: 0 5% 0 5%;
+}
+
+#call-screen.incoming #call-duration-view-container {
+  display: none;
+}
+
+#call-screen.in-call #call-duration-view {
+  font-size: 6rem;
+}
+
+#call-screen.calling #call-actions-container {
+  height: 40%;
+}
+
+#call-screen.in-call #call-actions-container {
+  height: 40%;
+}
+
+#call-screen.incoming #call-actions-container {
+  height: 14%;
+}
+
+#call-screen.calling #call-actions-top {
+  height: 65%;
+  width: 100%;
+  padding: 0 5% 5% 5%;
+}
+
+#call-screen.in-call #call-actions-top {
+  height: 65%;
+  width: 100%;
+  padding: 0 5% 5% 5%;
+}
+
+#call-screen.incoming #call-actions-top {
+  display: none;
+}
+
+#call-screen.calling #call-actions {
+  width: 90%;
+  height: 50%;
+}
+
+#call-screen.in-call #call-actions {
+  width: 90%;
+  height: 50%;
+}
+
+#call-actions > div {
+  float: left;
+  width: -moz-calc(100% / 3 - 2px);
+  height: -moz-calc(100% - 1px);
+  border-right: solid 1px LightGray;
+  border-bottom: solid 1px LightGray;
+}
+
+#call-actions > div:last-child {
+  border-right: none;
+}
+
+#call-actions > div > span {
+  display: none;
+}
+
+#call-actions > div > div {
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.1);
+  background-repeat: no-repeat;
+  background-position: 50% 50%;
+}
+
+#speaker-button {
+  background-image: url(images/speaker-icon.png);
+}
+#speaker-button.speak {
+  background-image: url(images/speaker-icon-active.png);
+}
+
+#keypad-button {
+  background-image: url(images/keypad-icon.png);
+}
+#keypad-button.displayed {
+  background-image: url(images/keypad-icon-active.png);
+}
+
+#mute-button {
+  background-image: url(images/mute-icon.png);
+}
+#mute-button.mute {
+  background-image: url(images/mute-icon-active.png);
+}
+
+#contacts-button {
+  background-image: url(images/contacts-icon.png);
+}
+
+#recents-button {
+  background-image: url(images/recents-icon.png);
+}
+
+#write-msg-button {
+  background-image: url(images/dialer_icon_message.png);
+}
+
+#call-screen.calling #call-button {
+  height: 35%;
+  width: 100%;
+  padding: 0 5% 5% 5%;
+}
+
+#call-screen.in-call #call-button {
+  height: 35%;
+  width: 100%;
+  padding: 0 5% 5% 5%;
+}
+
+#call-screen.incoming #call-button {
+  width: 100%;
+  height: 100%;
+  padding: 0 5% 5% 5%;
+}
+
+#call-button > div {
+  float: left;
+  display: table;
+  font-size: 2rem;
+  font-weight: bold;
+  text-align: center;
+  height: 75%;
+  text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.5);
+  background-position: 50% 50%;
+  background-repeat: no-repeat;
+}
+
+#call-button > div > span {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+#accept-call {
+  background: DarkGray;
+}
+
+#accept-call:active {
+  color: #A9A9A9;
+  background: LightGray;
+}
+
+#end-call {
+  background: DarkGray;
+  border-right: solid 2px LightGray;
+}
+
+#end-call:active {
+  background: LightGray;
+}
+
+#call-screen.calling #end-call {
+  width: 90%;
+}
+
+#call-screen.in-call #end-call {
+  width: 90%;
+}
+
+#call-screen.incoming #end-call {
+  width: -moz-calc(90% / 2 - 1px);
+}
+
+#call-screen.calling #accept-call {
+  display: none;
+}
+
+#call-screen.in-call #accept-call {
+  display: none;
+}
+
+#call-screen.incoming #accept-call {
+  width: -moz-calc(90% / 2 - 1px);
+}
+
+#kb-keypad {
+  display: none;
+}
+
+#kb-keypad.overlay {
+  display: table;
+  position: absolute;
+  top: 0;
+  height: 40%;
+  z-index: 500;
+}
+
+/* == Screen turn off hack == */
+
+#screen-off {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: black;
+  z-index: 1000;
+  display: none;
+}
+
+#screen-off.displayed {
+  display: block;
+}

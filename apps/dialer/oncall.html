@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html manifest="manifest.appcache">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="pragma" content="no-cache">
+    <title>Dialer</title>
+    <link rel="stylesheet" type="text/css" href="style/keyboard.css">
+    <link rel="stylesheet" type="text/css" href="style/oncall.css">
+    <script type="application/javascript" src="js/oncall.js"></script>
+    <script type="application/javascript" src="js/contacts.js"></script>
+    <script type="application/javascript" src="js/recents.js"></script>
+    <script type="application/javascript" src="js/key_handler.js"></script>
+    <script type="application/javascript" src="js/proximity.js"></script>
+    <link rel="resource" type="application/l10n" href="locale/dialer.properties">
+    <script>
+      var host = document.location.host;
+      var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+      var src = 'http://' + domain + '/webapi.js';
+      document.write('<script src="' + src + '"><\/script>');
+    </script>
+  </head>
+
+  <body class="hidden">
+    <div id="call-screen">
+      <div id="call-screen-top">
+        <div id="call-number-view-container">
+          <span id="call-number-view"></span>
+        </div>
+        <div id="call-picture">
+          <img src="style/images/unknown-contact.png" alt="profile" />
+        </div>
+        <div id="call-duration-view-container">
+          <span id="call-duration-view">
+          </span>
+        </div>
+      </div>
+      <div id="call-actions-container">
+        <div id="call-actions-top">
+          <div id="call-actions">
+            <div data-action="toggleMute" onclick="OnCallHandler.execute(this.dataset.action);">
+              <div id="mute-button"></div>
+              <span data-l10n-id="mute">Mute</span>
+            </div>
+            <div data-action="toggleKeypad" onclick="OnCallHandler.execute(this.dataset.action);">
+              <div id="keypad-button"></div>
+              <span data-l10n-id="keypad">Keypad</span>
+            </div>
+            <div data-action="toggleSpeaker" onclick="OnCallHandler.execute(this.dataset.action);">
+              <div id="speaker-button"></div>
+              <span data-l10n-id="speaker">Speaker</span>
+            </div>
+          </div>
+          <div id="call-actions">
+            <div>
+              <div id="contacts-button"></div>
+              <span data-l10n-id="mute"> Mute </span>
+            </div>
+            <div>
+              <div id="recents-button"></div>
+              <span data-l10n-id="keypad">Keypad</span>
+            </div>
+            <div>
+              <div id="write-msg-button"></div>
+              <span data-l10n-id="speaker">Speaker</span>
+            </div>
+          </div>
+        </div>
+        <div id="call-button">
+          <div id="end-call" onclick="OnCallHandler.execute('end');"><span data-l10n-id="end"> End </span></div>
+          <div id="accept-call" onclick="OnCallHandler.execute('answer');"><span data-l10n-id="answer"> Answer </span></div>
+        </div>
+      </div>
+    </div>
+    <div id="screen-off"></div>
+    <article id="keyboard-container">
+      <section id="kb-keypad" onmousedown="KeyHandler.keyDown(event);" onmouseup="KeyHandler.keyUp(event);">
+        <div class="kb-keypad-cell">
+          <div class="kb-keypad-key">
+            <div class="kb-keypad-key-label-container">
+              <div class="kb-keypad-key-label" data-value="1">
+                <span class="kb-keypad-number">
+                  1
+                </span>
+                <span  class="kb-keypad-text">
+                  .
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="kb-keypad-key">
+            <div class="kb-keypad-key-label-container">
+              <div class="kb-keypad-key-label" data-value="4">
+                <span class="kb-keypad-number">
+                  4
+                </span>
+                <span  class="kb-keypad-text">
+                  GHI
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="kb-keypad-key">
+            <div class="kb-keypad-key-label-container">
+              <div class="kb-keypad-key-label" data-value="7">
+                <span class="kb-keypad-number">
+                  7
+                </span>
+                <span  class="kb-keypad-text">
+                  PQRS
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="kb-keypad-key">
+            <div class="kb-keypad-key-label-container">
+              <div class="kb-keypad-key-label" data-value="*">
+                <span class="kb-keypad-number">
+                  *
+                </span>
+                <span  class="kb-keypad-text">
+                  #
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="kb-keypad-cell">
+          <div class="kb-keypad-key">
+            <div class="kb-keypad-key-label-container">
+              <div class="kb-keypad-key-label" data-value="2">
+                <span class="kb-keypad-number">
+                  2
+                </span>
+                <span  class="kb-keypad-text">
+                  ABC
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="kb-keypad-key">
+            <div class="kb-keypad-key-label-container">
+              <div class="kb-keypad-key-label" data-value="5">
+                <span class="kb-keypad-number">
+                  5
+                </span>
+                <span  class="kb-keypad-text">
+                  JKL
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="kb-keypad-key">
+            <div class="kb-keypad-key-label-container">
+              <div class="kb-keypad-key-label" data-value="8">
+                <span class="kb-keypad-number">
+                  8
+                </span>
+                <span  class="kb-keypad-text">
+                  TUV
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="kb-keypad-key">
+            <div class="kb-keypad-key-label-container">
+              <div class="kb-keypad-key-label" data-value="0">
+                <span class="kb-keypad-number">
+                  0
+                </span>
+                <span  class="kb-keypad-text">
+                  +
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="kb-keypad-cell">
+          <div class="kb-keypad-key">
+            <div class="kb-keypad-key-label-container">
+              <div class="kb-keypad-key-label" data-value="3">
+                <span class="kb-keypad-number">
+                  3
+                </span>
+                <span  class="kb-keypad-text">
+                  DEF
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="kb-keypad-key">
+            <div class="kb-keypad-key-label-container">
+              <div class="kb-keypad-key-label" data-value="6">
+                <span class="kb-keypad-number">
+                  6
+                </span>
+                <span  class="kb-keypad-text">
+                  MNO
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="kb-keypad-key">
+            <div class="kb-keypad-key-label-container">
+              <div class="kb-keypad-key-label" data-value="9">
+                <span class="kb-keypad-number">
+                  9
+                </span>
+                <span  class="kb-keypad-text">
+                  WXYZ
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="kb-keypad-key">
+            <div class="kb-keypad-key-label-container">
+              <div class="kb-keypad-key-label del-digit" data-value="del-digit">
+                <span class="kb-keypad-number">
+                </span>
+                <span  class="kb-keypad-text">
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </article>
+  </body>
+</html>

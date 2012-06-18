@@ -4,6 +4,7 @@
 'use strict';
 
 // Based on Resig's pretty date
+var localeStr = document.mozL10n.get;
 function prettyDate(time) {
 
   switch (time.constructor) {
@@ -27,12 +28,12 @@ function prettyDate(time) {
   }
 
   return day_diff == 0 && (
-    diff < 60 && 'Just Now' ||
-    diff < 120 && '1 Minute Ago' ||
-    diff < 3600 && Math.floor(diff / 60) + ' Minutes Ago' ||
-    diff < 7200 && '1 Hour Ago' ||
-    diff < 86400 && Math.floor(diff / 3600) + ' Hours Ago') ||
-    day_diff == 1 && 'Yesterday' ||
+    diff < 60 && localeStr('justNow') ||
+    diff < 120 && localeStr('aMinuteAgo') ||
+    diff < 3600 && Math.floor(diff / 60) + ' ' + localeStr('minutesAgo') ||
+    diff < 7200 && localeStr('anHourAgo') ||
+    diff < 86400 && Math.floor(diff / 3600) + ' ' + localeStr('hoursAgo')) ||
+    day_diff == 1 && localeStr('yesterday') ||
     day_diff < 7 && (new Date(time)).toLocaleFormat('%A') ||
     (new Date(time)).toLocaleFormat('%x');
 }
@@ -47,12 +48,9 @@ function prettyDate(time) {
   };
   var timer = setInterval(updatePrettyDate, 60 * 1000);
 
-  window.addEventListener('message', function visibleAppUpdatePrettyDate(evt) {
-    var data = evt.data;
-    if (data.message !== 'visibilitychange')
-      return;
+  document.addEventListener('mozvisibilitychange', function visibility(e) {
     clearTimeout(timer);
-    if (!data.hidden) {
+    if (!document.mozHidden) {
       updatePrettyDate();
       timer = setInterval(updatePrettyDate, 60 * 1000);
     }
