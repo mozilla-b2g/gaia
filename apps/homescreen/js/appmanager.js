@@ -39,7 +39,8 @@ var Applications = (function() {
       installedApps[app.origin] = app;
 
       var icon = getIcon(app.origin);
-      if (icon) {
+      // No need to put data: URIs in the cache
+      if (icon && icon.indexOf("data:") == -1) {
         window.applicationCache.mozAdd(icon);
       }
 
