@@ -56,7 +56,8 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "120": "/style/icons/Settings.png"
+    "120": "/style/icons/Settings.png",
+    "60": "/style/icons/60/Settings.png"
   },
   "orientation": "portrait-primary"
 }
