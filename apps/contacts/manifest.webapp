@@ -21,6 +21,7 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "120": "/style/icons/Contacts.png"
+    "120": "/style/icons/Contacts.png",
+    "60": "/style/icons/60/Contacts.png"
   }
 }
