@@ -691,8 +691,11 @@ var WindowManager = (function() {
       // and if the card switcher is not already shown
       timer = null;
 
-      if (!ModalDialog.blocked && !LockScreen.locked && !CardsView.cardSwitcherIsShown())
+      if (!ModalDialog.blocked &&
+          !LockScreen.locked &&
+          !CardsView.cardSwitcherIsShown()) {
         CardsView.showCardSwitcher();
+      }
     }
   }());
 
