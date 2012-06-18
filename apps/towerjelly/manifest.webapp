@@ -8,8 +8,8 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "icons": {
-    "120": "/style/icons/Towerjelly.png"
+    "120": "/style/icons/Towerjelly.png",
+    "60": "/style/icons/60/Towerjelly.png"
   },
   "orientation": "portrait-primary"
 }
-
