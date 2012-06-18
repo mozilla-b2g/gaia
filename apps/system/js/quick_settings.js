@@ -9,6 +9,13 @@ var QuickSettings = {
 
     this.overlay.addEventListener('click', this);
     window.addEventListener('utilitytrayshow', this);
+
+    var self = this;
+
+    SettingsListener.observe('ril.data.enabled', true, function(value) {
+      self.data.enabled = value;
+    });
+
   },
 
   handleEvent: function qs_handleEvent(evt) {
@@ -27,6 +34,15 @@ var QuickSettings = {
             break;
 
           case this.data:
+            var enabled = (this.data.dataset.enabled == 'true');
+            // the actual mozSettings request is async,
+            // but we want to be responsive to user input
+            // and double click so we'll change the UI state here
+            this.data.dataset.enabled = !enabled;
+
+            navigator.mozSettings.getLock().set({
+              'ril.data.enabled': !enabled });
+
             break;
 
           case this.bluetooth:
