@@ -4,8 +4,6 @@
 'use strict';
 
 function startup() {
-  ScreenManager.init();
-  LockScreen.init();
   PinLock.init();
   SoundManager.init();
   SleepMenu.init();
@@ -131,4 +129,3 @@ try {
     }
   };
 } catch (e) {}
-

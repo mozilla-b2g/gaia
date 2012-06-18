@@ -49,6 +49,7 @@ suite('batch', function() {
 
     test('with timer', function(done) {
       var expected = {}, i = 0;
+      this.timeout(3000);
 
       expected.one = {
         g1: {
@@ -80,7 +81,7 @@ suite('batch', function() {
         }
       };
 
-      subject.waitTime = 1;
+      subject.waitTime = 100;
       assert.isFalse(subject.willRun());
 
       subject.action('g1', 'add', 1);

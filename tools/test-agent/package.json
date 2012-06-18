@@ -5,7 +5,7 @@
   "dependencies": {
     "test-agent": "0.6.3",
     "marionette-client": "0.3.0",
-    "b2g-scripts": "0.2.1",
+    "b2g-scripts": "0.3.0",
     "chai": "0.5.3",
     "mocha": "~1.0"
   }

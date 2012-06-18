@@ -66,7 +66,6 @@ var Recents = {
       setreq.onsuccess = (function() {
         if (this.view) {
           var entry = this.createEntry(recentCall);
-
           var firstEntry = this.view.firstChild;
           this.view.insertBefore(entry, firstEntry);
         }

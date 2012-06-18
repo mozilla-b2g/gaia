@@ -50,6 +50,10 @@
     <link rel="stylesheet" type="text/css" href="style/lockscreen/lockscreen.css">
     <script defer src="js/lockscreen.js"></script>
 
+    <!-- Attention Screen -->
+    <link rel="stylesheet" type="text/css" href="style/attention_screen.css">
+    <script defer src="js/attention_screen.js"></script>
+
     <!-- Statusbar -->
     <link rel="stylesheet" type="text/css" href="style/statusbar/statusbar.css">
     <script defer src="js/statusbar.js"></script>
@@ -62,9 +66,9 @@
     <link rel="stylesheet" type="text/css" href="style/permission_manager/permission_manager.css">
     <script defer src="js/permission_manager.js"></script>
 
-    <!-- Task Manager -->
-    <link rel="stylesheet" type="text/css" href="style/task_manager/task_manager.css">
-    <script defer src="js/windows/task_manager.js"></script>
+    <!-- Cards View -->
+    <link rel="stylesheet" type="text/css" href="style/cards_view/cards_view.css">
+    <script defer src="js/cards_view/cards_view.js"></script>
 
     <!-- Windows -->
     <script defer src="js/windows/window_manager.js"></script>
@@ -78,7 +82,7 @@
   </head>
 
   <body onload="startup()">
-    <div id="screen">
+    <div id="screen" class="screenoff locked">
 
       <!-- keyboard -->
       <iframe id="keyboardFrame" class="hide"></iframe>
@@ -131,27 +135,6 @@
         <div id="grippy">
         </div>
       </div>
-
-      <div id="statusbar">
-        <div id="statusbar-signal">
-          <span></span>
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
-        <div id="statusbar-conn"></div>
-        <div id="statusbar-data"></div>
-        <div id="statusbar-wifi" hidden></div>
-        <div id="statusbar-padding"></div>
-        <div id="statusbar-notification" hidden></div>
-        <div id="statusbar-mute" hidden></div>
-        <div id="statusbar-battery">
-          <div id="statusbar-battery-fuel"></div>
-          <div id="statusbar-battery-charging" hidden></div>
-        </div>
-        <div id="statusbar-time"></div>
-      </div>
-
 
       <div id="lockscreen" class="uninit screenoff">
         <div id="lockscreen-container">
@@ -226,9 +209,34 @@
         </div>
       </div>
 
+      <div id="statusbar">
+        <div id="statusbar-signal">
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <div id="statusbar-conn"></div>
+        <div id="statusbar-data"></div>
+        <div id="statusbar-wifi" hidden></div>
+        <div id="statusbar-padding"></div>
+        <div id="statusbar-notification" hidden></div>
+        <div id="statusbar-mute" hidden></div>
+        <div id="statusbar-battery">
+          <div id="statusbar-battery-fuel"></div>
+          <div id="statusbar-battery-charging" hidden></div>
+        </div>
+        <div id="statusbar-time"></div>
+      </div>
+
+      <!-- attention screen -->
+      <div id="attention-screen">
+        <div id="attention-bar"></div>
+      </div>
+
     </div>
 
-    <div id="taskManager">
+    <div id="cardsView">
       <ul>
 
       </ul>
