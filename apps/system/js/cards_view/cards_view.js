@@ -22,9 +22,28 @@ var CardsView = (function() {
 
   var cardsView = document.getElementById('cardsView');
   var cardsList = cardsView.getElementsByTagName('ul')[0];
-  var displayedApp,
-      runningApps,
-      currentDisplayed = 0;
+  var displayedApp;
+  var runningApps;
+  var currentDisplayed = 0;
+  var HVGA = document.documentElement.clientWidth < 480;
+
+  /*
+   * Returns an icon URI
+   *
+   * @param{String} the app's origin
+   */
+  function getIconURI(origin) {
+    var icons = runningApps[origin].manifest.icons;
+
+    var sizes = Object.keys(icons).map(function parse(str) {
+      return parseInt(str, 10);
+    });
+
+    sizes.sort(function(x, y) { return y - x; });
+
+    var index = sizes[(HVGA) ? sizes.length - 1 : 0];
+    return origin + icons[index];
+  }
 
   // Build and display the card switcher overlay
   // Note that we rebuild the switcher each time we need it rather
@@ -88,12 +107,10 @@ var CardsView = (function() {
 
       //display app icon on the tab
       if (DISPLAY_APP_ICON) {
-        var icons = app.manifest.icons;
-        var iconSrc = origin + icons[Object.keys(icons)[0]];
         var appIcon = document.createElement('img');
 
         appIcon.classList.add('appIcon');
-        appIcon.src = iconSrc;
+        appIcon.src = getIconURI(origin);
         card.appendChild(appIcon);
       }
 
