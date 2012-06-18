@@ -44,5 +44,5 @@ var SessionHistory = function() {
         this.historyIndex = history.push(url) - 1;
       }
     }
-  }
+  };
 };

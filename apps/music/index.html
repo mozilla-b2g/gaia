@@ -5,8 +5,11 @@
     <meta http-equiv="pragma" content="no-cache">
     <title>Music</title> 
     <link rel="stylesheet" href="style/music.css" type="text/css" />
-    <script type="text/javascript" src="js/music.js"></script>
+    <!-- Use external libraries of mp3 and ogg -->
+    <script type="text/javascript" src="js/ext/id3-minimized.js"></script>
+    <script type="text/javascript" src="js/ext/ogg.js"></script>
     <script type="text/javascript" src="js/utils.js"></script>
+    <script type="text/javascript" src="js/music.js"></script>
   </head>
 
   <body>
@@ -50,12 +53,12 @@
   	      </div>
   	    </div>
   	    <div id="player-seek">
-  	      <span class="player-seek-elapsed">00:00</span>
+  	      <span id="player-seek-elapsed">00:00</span>
   	      <div id="player-seek-bar">
-  	        <progress id="player-seek-bar-progress" value="50" max="100"></progress>
+  	        <progress id="player-seek-bar-progress" value="0"></progress>
   	        <div id="player-seek-bar-indicator"></div>
   	      </div>
-  	      <span class="player-seek-remaining">99:99</span>
+  	      <span id="player-seek-remaining">00:00</span>
   	    </div>
   	    <div id="player-controls">
   	      <button id="player-controls-previous" class="player-controls-button">Previous</button>
@@ -71,6 +74,9 @@
       <button id="tabs-artists" class="tabs-button" disabled=true>Artists</button>
       <button id="tabs-albums" class="tabs-button" disabled=true>Albums</button>
       <button id="tabs-more" class="tabs-button" disabled=true>More</button>
+  	</div>
+  	<div id="nosongs">
+  	  <div id="nosongs-text">No Songs</div>
   	</div>
   </body>
 </html>

@@ -14,6 +14,24 @@ body {
   overflow: hidden;
 }
 
+/* 320x480 phones */
+@media (orientation: portrait) and (width: 320px),
+       (orientation: landscape) and (width: 480px) {
+
+  body {
+    font-size: 0.6em;
+  }
+}
+
+/* 480x800 phones */
+@media (orientation: portrait) and (width: 480px),
+       (orientation: landscape) and (width: 800px) {
+
+  body {
+    font-size: 1em;
+  }
+}
+
 body.tiles-mode #title-back {
   display: none;
 }
@@ -127,6 +145,7 @@ body.player-mode #views-player {
 
 #title {  
   position: absolute;
+  display: table;
   top: 0px;
   left: 0px;
   width: 100%;
@@ -146,23 +165,20 @@ body.player-mode #views-player {
 }
 
 #title-back-text {
-  font-size: 6em;
+  font-size: 3em;
   font-weight: bold;
   text-align: center;
   line-height: 0.4em;
 }
 
 #title-text {  
-  position: absolute;
-  top: 0px;
-  left: 0px;
+  display: table-cell;
+  vertical-align: middle;
   width: 100%;
-  height: 100%;
   color: #000;
   font-size: 2em;
   font-weight: bolder;
   text-align: center;
-  line-height: 2.3em;
 }
 
 #search {
@@ -190,14 +206,15 @@ body.player-mode #views-player {
 
 #views-tiles {
   width: 100%;
-  height: 91%;
+  height: 82%;
   overflow: hidden;
   background-color: rgba(0, 0, 0, 0.2);
 }
 
 #views-list {
   width: 100%;
-  height: auto;
+  height: 82%;
+  overflow-y: auto;
 }
 
 #views-player {
@@ -235,6 +252,36 @@ body.player-mode #views-player {
   border: 1px solid rgba(0, 0, 0, 0.4);
 }
 
+/* 320x480 phones */
+@media (orientation: portrait) and (width: 320px),
+       (orientation: landscape) and (width: 480px) {
+
+  .main-tile {
+    width: 210px;
+    height: 210px;
+  }
+
+  .sub-tile {
+    width: 104px;
+    height: 104px;
+  }
+}
+
+/* 480x800 phones */
+@media (orientation: portrait) and (width: 480px),
+       (orientation: landscape) and (width: 800px) {
+
+  .main-tile {
+    width: 318px;
+    height: 318px;
+  }
+
+  .sub-tile {
+    width: 158px;
+    height: 158px;
+  }
+}
+
 #player-cover {
   position: relative;
   width: 100%;
@@ -247,38 +294,36 @@ body.player-mode #views-player {
   position: absolute;
   width: 100%;
   text-align: center;
-  font-size: 450px;
-  line-height: 420px;
+  font-size: 28em;
+  line-height: 100%;
   color: black;
 }
 
 #player-cover-title,
 #player-cover-artist {
+  position: relative;
+  z-index: 1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 #player-cover-title {
-  position: absolute;
-  top: 0%;
   width: 100%;
-  height: 13%;
+  height: auto;
   text-align: center;
   font-size: 2.5em;
   font-weight: bolder;
-  line-height: 2em;
+  padding-top: 0.5em;
+  padding-bottom: 0.2em;
 }
 
 #player-cover-artist {
-  position: absolute;
-  top: 13%;
   width: 100%;
-  height: 10%;
+  height: auto;
   text-align: center;
   font-size: 1.5em;
   font-weight: bolder;
-  line-height: 1.5em;
 }
 
 #player-cover-buttons {
@@ -299,7 +344,7 @@ body.player-mode #views-player {
 #player-album-shuffle, 
 #player-album-repeat {
   width: -moz-calc(25% - 40px);
-  height: 70%;
+  height: 1.2em;
   padding: 0px;
   border-radius: 20px;
   margin-left: 20px;
@@ -317,21 +362,20 @@ body.player-mode #views-player {
 }
 
 #player-seek {
-  opacity: 0.3;
   width: 100%;
   height: 12%;
   background: -moz-linear-gradient(center top , #00ADEE, #0078A5) repeat scroll 0 0 transparent;
 }
 
-.player-seek-elapsed, 
+#player-seek-elapsed, 
 #player-seek-bar, 
-.player-seek-remaining {
+#player-seek-remaining {
   position: relative;
   float: left;
 }
 
-.player-seek-elapsed, 
-.player-seek-remaining {  
+#player-seek-elapsed, 
+#player-seek-remaining {  
   top: 36%;
   width: 20%;
   font-size: 1.5em;
@@ -470,6 +514,24 @@ body.player-mode #views-player {
 .tabs-button:disabled,
 .player-controls-button:disabled {
   opacity: 1;
+}
+
+#nosongs {
+  position: absolute;
+  top: 0px;
+  display: table;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.75);
+  z-index: 100;
+}
+
+#nosongs-text {
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
+  font-size: 3em;
+  font-weight: bold;
 }
 
 .hidden {

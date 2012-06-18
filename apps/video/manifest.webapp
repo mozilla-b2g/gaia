@@ -4,7 +4,7 @@
   "launch_path": "/",
   "developer": {
     "name": "The Gaia Team",
-    "url": "https://github.com/andreasgal/gaia"
+    "url": "https://github.com/mozilla-b2g/gaia"
   },
   "locales": {
     "ar": {
@@ -55,6 +55,7 @@
   "default_locale": "en-US",
   "hackKillMe": true,
   "icons": {
-    "120": "/style/icons/Video.png"
+    "120": "/style/icons/Video.png",
+    "60": "/style/icons/60/Video.png"
   }
 }

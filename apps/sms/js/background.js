@@ -1,12 +1,11 @@
 'use strict';
 
-(function () {
+(function() {
 
 var mozSms = navigator.mozSms;
-var mozNotification = navigator.mozNotification;
 var mozSettings = navigator.mozSettings;
 
-if (!mozSms || !mozNotification || !mozSettings)
+if (!mozSms || !mozSettings)
   return;
 
 var activeSMSSound;
@@ -54,24 +53,23 @@ mozSms.addEventListener('received', function received(evt) {
     }
   }
 
-  var notification = mozNotification.createNotification(
-    message.sender, message.body
-  );
-  notification.onclick = function notiClick() {
+  navigator.mozApps.getSelf().onsuccess = function(evt) {
+    var app = evt.target.result;
 
-    // Switch to the clicked message conversation panel
-    // XXX: we somehow need to get access to the window object
-    // of the original web app to do this.
-    // window.parent.location.hash = '#num=' + message.sender;
+    var iconURL = NotificationHelper.getIconURI(app);
 
-    // Asking to launch itself
-    navigator.mozApps.getSelf().onsuccess = function(evt) {
-      var app = evt.target.result;
+    var notiClick = function() {
+      // Switch to the clicked message conversation panel
+      // XXX: we somehow need to get access to the window object
+      // of the original web app to do this.
+      // window.parent.location.hash = '#num=' + message.sender;
+
+      // Asking to launch itself
       app.launch();
     };
-  };
 
-  notification.show();
+    NotificationHelper.send(message.sender, message.body, iconURL, notiClick);
+  };
 });
 
 }());

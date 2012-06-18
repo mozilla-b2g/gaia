@@ -1,0 +1,27 @@
+{
+  "name": "FM Radio",
+  "description": "Gaia FM Radio",
+  "launch_path": "/",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "permissions": [
+    "mozFM"
+  ],
+  "locales": {
+    "en-US": {
+      "name": "FM Radio",
+      "description": "Gaia FM Radio"
+    },
+    "zh-CN": {
+      "name": "收音机",
+      "description": "收音机"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "128": "/style/icons/Fm.png",
+    "60": "/style/icons/60/Fm.png"
+  }
+}

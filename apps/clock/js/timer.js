@@ -78,7 +78,7 @@ var Timer = {
 
   updateChrono: function ti_updateChrono(remaining) {
     var currentValue = this.chronoView.innerHTML;
-    var newValue =  new Date(remaining).toLocaleFormat('%M:%S');
+    var newValue = new Date(remaining).toLocaleFormat('%M:%S');
     if (currentValue != newValue)
       this.chronoView.innerHTML = newValue;
   },

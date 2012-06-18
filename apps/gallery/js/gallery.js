@@ -157,8 +157,8 @@ storages.forEach(function(storage, storageIndex) {
         return;
       var file = cursor.result;
 
-      // If this isn't a jpeg image, skip it
-      if (file.type !== 'image/jpeg') {
+      // If this isn't a jpeg or png image, skip it
+      if (file.type !== 'image/jpeg' && file.type !== 'image/png') {
         cursor.continue();
         return;
       }
@@ -169,48 +169,76 @@ storages.forEach(function(storage, storageIndex) {
         size: file.size                  // for detecting changes
       };
 
-      // Otherwise read its metadata
-      readJPEGMetadata(file,
-                       function(metadata) {
-                         imagedata.width = metadata.width;
-                         imagedata.height = metadata.height;
-                         imagedata.thumbnail = metadata.thumbnail || null;
-                         imagedata.date = null;
-                         if (metadata.exif) {
-                           imagedata.date =
-                             parseDate(metadata.exif.DateTimeOriginal ||
-                                       metadata.exif.DateTime ||
-                                       null);
-                         }
+      // Get metadata for the image and then move on to the next image
+      if (file.type === 'image/png') {
+        var testimg = document.createElement('img');
+        var url = URL.createObjectURL(file);
+        testimg.src = url;
+        testimg.onload = function() {
+          try {
+            URL.revokeObjectURL(url);
+            imagedata.width = testimg.width;
+            imagedata.height = testimg.height;
+            addImage(imagedata);
+          }
+          catch (e) {
+            console.error(e);
+          }
+          finally {
+            cursor.continue();
+          }
+        };
+      }
+      else if (file.type === 'image/jpeg') {
+        // XXX
+        // Rather than trying to read the metadata, I could also just
+        // put the jpeg image into an <img> tag to get its width
+        // and height. I'll need to do this anyway if I want to create
+        // a thumbnail for it, so maybe that would be good enough for now?
+        // Sorting by file modified date might be good enough, if I
+        // can get that.
+        readJPEGMetadata(file,
+                         function(metadata) {
+                           try {
+                             imagedata.width = metadata.width;
+                             imagedata.height = metadata.height;
+                             imagedata.thumbnail = metadata.thumbnail || null;
+                             imagedata.date = null;
+                             if (metadata.exif) {
+                               imagedata.date =
+                                 parseDate(metadata.exif.DateTimeOriginal ||
+                                           metadata.exif.DateTime ||
+                                           null);
+                             }
 
-                         // If this is the first image we've found,
-                         // remove the "no images" message
-                         if (images.length === 0)
-                           document.getElementById('nophotos')
-                           .classList.add('hidden');
+                             // add this image and its metadata to our list
+                             addImage(imagedata);
+                           }
+                           catch (e) {
+                             console.log(e);
+                           }
+                           finally {
+                             cursor.continue();
+                           }
 
-                         // add this image and its metadata to our list
-                         addImage(imagedata);
-
-                         cursor.continue();
-
-                         // Utility function for converting EXIF date strings
-                         // to ISO date strings to timestamps
-                         function parseDate(s) {
-                           if (!s)
-                             return null;
-                           // Replace the first two colons with dashes and
-                           // replace the first space with a T
-                           return Date.parse(s.replace(':', '-')
-                                             .replace(':', '-')
-                                             .replace(' ', 'T'));
-                         }
-                       },
-                       function() {
-                         // Error reading jpeg
-                         console.warn('Malformed JPEG image', file.name);
-                         cursor.continue();
-                       });
+                           // Utility function for converting EXIF date strings
+                           // to ISO date strings to timestamps
+                           function parseDate(s) {
+                             if (!s)
+                               return null;
+                             // Replace the first two colons with dashes and
+                             // replace the first space with a T
+                             return Date.parse(s.replace(':', '-')
+                                               .replace(':', '-')
+                                               .replace(' ', 'T'));
+                           }
+                         },
+                         function() {
+                           // Error reading jpeg
+                           console.warn('Malformed JPEG image', file.name);
+                           cursor.continue();
+                         });
+      }
     };
   }
   catch (e) {
@@ -224,7 +252,13 @@ storages.forEach(function(storage, storageIndex) {
 var images = [];
 
 function addImage(imagedata) {
-  images.push(imagedata);          // remember the image
+  // If this is the first image we've found,
+  // remove the "no images" message
+  if (images.length === 0)
+    document.getElementById('nophotos')
+    .classList.add('hidden');
+
+  images.push(imagedata);            // remember the image
   addThumbnail(images.length - 1);   // display its thumbnail
 }
 
@@ -317,6 +351,17 @@ window.addEventListener('keyup', function keyPressHandler(evt) {
     evt.preventDefault();
   }
 });
+
+// The handler above is unlikely to actually be called.  Instead,
+// the Back button (bound to escape) is caught by gecko and takes
+// us out of fullscreen mode. So we listen for full-screen changes
+// and when we leave fullscreen mode, we show the thumbnails as above
+document.addEventListener('mozfullscreenchange', function leaveFullScreen() {
+  if (!document.mozFullScreenElement) {
+    showThumbnails();
+  }
+});
+
 
 // We get a resize event when the user rotates the screen
 window.addEventListener('resize', function resizeHandler(evt) {
@@ -459,6 +504,8 @@ function showThumbnails() {
   photos.classList.add('hidden');
   playerControls.classList.add('hidden');
   thumbnailsDisplayed = true;
+  if (document.mozFullScreenElement)
+    document.mozCancelFullScreen();
 }
 
 // A utility function to insert an <img src="url"> tag into an element
@@ -523,6 +570,9 @@ function showPhoto(n) {
     photos.classList.remove('hidden');
     playerControls.classList.remove('hidden');
     thumbnailsDisplayed = false;
+    // If we're not already in fullscreen mode, go into it
+    if (document.mozFullScreenElement !== photos)
+      photos.mozRequestFullScreen();
   }
 
   displayImageInFrame(n - 1, previousPhotoFrame);

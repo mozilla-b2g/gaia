@@ -48,20 +48,22 @@ body {
   margin: 0;
   overflow-y: scroll;
   overflow-x: hidden;
-  /* If we want 4 thumbnails per row, and want to scroll up and down, then */
-  /* apparently we have to add some extra pixels for an invisible scrollbar */
-  /* There ought to be a way to get scrolling without extra space, though */
+  /* If we want to scroll up and down, then apparently we have to add */
+  /* some extra width to keep the scrollbar offscreen */
   width: -moz-calc(100% + 10px);
   height: 100%;
   background-color: #000;
 }
 
 .thumbnail {
-  width: 120px;  /* sizes overridden in media queries below */
+  /* sizes overridden in media queries below */
+  width: 120px;
   height: 120px;
   margin: 0;
   padding: 0;
-  border: solid black 1px;
+  /* borders only on right and bottom */
+  border-right: solid black 1px;
+  border-bottom: solid black 1px;
   overflow: hidden;
   /* default to left-to-right, but overridden for rtl languages below */
   float: left;  
@@ -81,24 +83,17 @@ body {
        (orientation: landscape) and (width: 480px) {
 
     .thumbnail {    
-        width: 80px;  /* 4 or 6 thumbnails per row portrait/landscape */
-        height: 80px;
+        width: 107px;
+        height: 107px;
     }    
 }
 
 /* 480x800 phones portrait */
-@media (orientation: portrait) and (width: 480px) {
-    .thumbnail {       /* four thumbnails per row */
-        width: 120px;
-        height: 120px;
-    }    
-}
-
-/* 480x800 phones landscape */
-@media (orientation: landscape) and (width: 800px) {
-    .thumbnail {
-        width: 100px;  /* eight thumbnails per row */
-        height: 100px;
+@media (orientation: portrait) and (width: 480px), 
+       (orientation: landscape) and (width: 800px) {
+    .thumbnail {       
+        width: 160px;
+        height: 160px;
     }    
 }
 

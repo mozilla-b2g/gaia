@@ -1,3 +1,5 @@
+'use strict';
+
 var ProximityHandler = {
   // XXX: due to some issue with event dispatch when the screen
   // is disabled, we just put a black div on screen for now.

@@ -12,7 +12,7 @@ var Camera = {
   },
 
   get captureButton() {
-    return document.getElementById('capture-button'); 
+    return document.getElementById('capture-button');
   },
 
   get galleryButton() {
@@ -39,9 +39,9 @@ var Camera = {
 
     width = document.body.clientHeight;
     height = document.body.clientWidth;
-      
-    var top = ((width/2) - ((height)/2));
-    var left = -((width/2) - (height/2));
+
+    var top = ((width / 2) - ((height) / 2));
+    var left = -((width / 2) - (height / 2));
     viewfinder.style.top = top + 'px';
     viewfinder.style.left = left + 'px';
 
@@ -55,11 +55,11 @@ var Camera = {
       height: height,
       width: width,
       camera: camera
-    }
+    };
 
     viewfinder.style.width = width + 'px';
     viewfinder.style.height = height + 'px';
-    if(navigator.mozCamera)
+    if (navigator.mozCamera)
       viewfinder.src = navigator.mozCamera.getCameraURI(config);
   },
 
@@ -74,7 +74,7 @@ var Camera = {
   toggleCamera: function toggleCamera() {
     this._camera = 1 - this._camera;
     this.setSource(this._camera);
-  },
+  }
 
 };
 
@@ -82,19 +82,13 @@ window.addEventListener('DOMContentLoaded', function CameraInit() {
   Camera.init();
 });
 
-// Bug 690056 implement a visibility API, and it's likely that
-// we want this event to be fire when an app come back to life
-// or is minimized (it does not now).
-window.addEventListener('message', function CameraPause(evt) {
-  if (evt.data.message !== 'visibilitychange')
-    return;
-
-  if (evt.data.hidden) {
+document.addEventListener('mozvisibilitychange', function visibility(e) {
+  if (document.mozHidden) {
     // If we're hidden, stop the video
     Camera.pause();
   } else {
     // If we become visible again, first reconfigure the camera
-    // in case the screen has rotated or something, and then 
+    // in case the screen has rotated or something, and then
     // resume the video.
     Camera.setSource(Camera._camera);
     Camera.resume();

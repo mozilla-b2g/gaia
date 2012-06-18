@@ -4,7 +4,7 @@
   "launch_path": "/",
   "developer": {
     "name": "The Gaia Team",
-    "url": "https://github.com/andreasgal/gaia"
+    "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": [
     "telephony",
@@ -61,8 +61,10 @@
   },
   "default_locale": "en-US",
   "background_page": "/background.html",
+  "attention_page": "/oncall.html",
   "icons": {
-    "120": "/style/icons/Dialer.png"
+    "120": "/style/icons/Dialer.png",
+    "60": "/style/icons/60/Dialer.png"
   },
   "orientation": "portrait-primary"
 }
