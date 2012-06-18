@@ -67,8 +67,10 @@ header h1 a:active {
   line-height: 40px;
   font-size: 0.85em;
   color: #333;
-  border-bottom: 2px solid #c3c9cb;
-  background: url(images/diagonal-pattern.png) repeat scroll 0 0 #F1F1ED;
+  /*border-bottom: 2px solid #c3c9cb;*/
+  /*background: url(images/diagonal-pattern.png) repeat scroll 0 0 #F1F1ED;*/
+  border-bottom: 1px solid #fbb;
+  background: url(images/diagonal-pattern.png) repeat scroll 0 0 #fcc;
 }
 
 /* View - Slide Horizontal Transition */
@@ -98,7 +100,7 @@ body.hidden #root {
   -moz-transition: none;
 }
 
-/* Table View */
+/* Table View: line height = 64px, border included */
 ul {
   margin: 0;
   padding: 0;
@@ -106,12 +108,13 @@ ul {
   list-style: none;
 }
 
-ul li { /* 96px, including a 2px border */
+ul li {
   position: relative;
-  height: 94px;
+  border-bottom: 1px solid #c3c9cb;
   background-color: #f5f5f5;
-  border-bottom: 2px solid #c3c9cb;
   color: #555;
+  -moz-box-sizing: border-box;
+  height: 64px;
 }
 
 ul li:active {
@@ -122,41 +125,34 @@ ul li:active {
 
 ul li > a {
   display: block;
-  padding: 20px;
-  /* XXX height/line-height must be adjusted if the container height changes */
-  height:      54px; /* -moz-calc(100% - 40px); */
-  line-height: 54px; /* -moz-calc(100% - 40px); */
   text-decoration: none;
   outline: 0;
   color: #555;
+  -moz-box-sizing: border-box;
+  height: 64px;
+  line-height: 64px;
+  padding: 0 20px;
 }
 
-ul li > a, ul li > span, ul li > small { /* text ellipsis */
+ul li > label + *, ul li > label + * + * { /* text ellipsis */
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: -moz-calc(100% - 120px);
-}
-
-/* */
-ul li > span {
-  position: absolute;
-  left: 20px;
-  bottom: 50%;
+  max-width: -moz-calc(100% - 96px);
 }
 
 ul li > small {
   position: absolute;
   left: 20px;
   top: 50%;
-  padding-top: 0;
+  padding-top: 8px;
   font-size: 0.65em;
   color: #888;
 }
 
 ul li > small + a {
-  line-height: 42px;
+  line-height: 58px;
 }
 
 /* fake input boxes for checkboxes & radio buttons */
@@ -174,11 +170,12 @@ ul li > small + a {
 
 .view label > span {
   position: absolute;
-  top: -moz-calc(50% - 34px);
+  top: -moz-calc(50% - 22px);
   right: 20px;
+  -moz-box-sizing: border-box;
   display: block;
-  width: 64px;
-  height: 64px;
+  width: 42px;
+  height: 42px;
   border: none;
 }
 
@@ -191,9 +188,7 @@ ul li > small + a {
 }
 
 .view label > input[type=checkbox] + span {
-  width: 60px;
-  height: 60px;
-  border: 4px solid;
+  border: 2px solid;
   border-radius: 5px;
   -moz-border-top-colors: #c3c9cb #c3c9cb #fff #fff;
   -moz-border-right-colors: #c3c9cb #c3c9cb #fff #fff;

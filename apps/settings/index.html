@@ -38,11 +38,11 @@
       <h2 data-l10n-id="networkAndConnectivity">Network &amp; Connectivity</h2>
       <ul>
         <li hidden>
-          <a data-l10n-id="airplaneMode">Airplane Mode</a>
           <label>
             <input type="checkbox" name="airplane.enabled" checked="true" />
             <span></span>
           </label>
+          <a data-l10n-id="airplaneMode">Airplane Mode</a>
         </li>
         <li>
           <small id="wifi-desc" data-l10n-id="disconnected">offline</small>
@@ -121,6 +121,11 @@
         <li>
           <a href="#about" data-l10n-id="aboutPhone">About Phone</a>
         </li>
+        <li>
+          <a href="#accessibility">
+            <span data-l10n-id="accessibility">Accessibility</span>
+          </a>
+        </li>
         <li hidden>
           <a href="#helpAndFeedback" data-l10n-id="helpAndFeedback">Help &amp; Feedback</a>
         </li>
@@ -133,29 +138,6 @@
           <a href="#battery" data-l10n-id="battery">Battery</a>
         </li>
       </ul>
-
-      <!-- <ul>
-        <li>
-          <a href="#phone">
-            <span data-l10n-id="phone">Phone</span>
-          </a>
-        </li>
-        <li>
-          <a href="#storage">
-            <span data-l10n-id="storage">Storage</span>
-          </a>
-        </li>
-        <li>
-          <a href="#accessibility">
-            <span data-l10n-id="accessibility">Accessibility</span>
-          </a>
-        </li>
-        <li>
-          <a href="#about">
-            <span data-l10n-id="about">About</span>
-          </a>
-        </li>
-      </ul> -->
     </section>
 
     <!-- Connectivity :: Wi-Fi -->
@@ -168,19 +150,19 @@
 
       <ul>
         <li id="status">
-          <span data-l10n-id="wifi">Wi-Fi</span>
           <label>
             <input type="checkbox" />
             <span></span>
           </label>
+          <a data-l10n-id="wifi">Wi-Fi</a>
         </li>
         <li id="notification">
-          <span data-l10n-id="networkNotification">Network notification</span>
-          <small data-l10n-id="networkNotification-expl">Notify me when an open network is available</small>
           <label>
             <input type="checkbox" name="wifi.notification"/>
             <span></span>
           </label>
+          <small data-l10n-id="networkNotification-expl">Notify me when an open network is available</small>
+          <a data-l10n-id="networkNotification">Network notification</a>
         </li>
       </ul>
 
@@ -200,24 +182,24 @@
 
       <ul>
         <li id="dataNetwork">
-          <span data-l10n-id="dataNetwork">Carrier</span>
           <small></small>
+          <a data-l10n-id="dataNetwork">Carrier</a>
         </li>
         <li>
-          <span data-l10n-id="dataConnection">Data Connection</span>
-          <small data-l10n-id="dataConnection-expl"></small>
           <label>
             <input type="checkbox" name="ril.data.enabled"/>
             <span></span>
           </label>
+          <small data-l10n-id="dataConnection-expl"></small>
+          <a data-l10n-id="dataConnection">Data Connection</a>
         </li>
         <li>
-          <span data-l10n-id="dataRoaming">Data Roaming</span>
-          <small data-l10n-id="dataRoaming-expl"></small>
           <label>
             <input type="checkbox" name="ril.data.roaming.enabled"/>
             <span></span>
           </label>
+          <small data-l10n-id="dataRoaming-expl"></small>
+          <a data-l10n-id="dataRoaming">Data Roaming</a>
         </li>
       </ul>
 
@@ -250,25 +232,61 @@
 
       <ul>
         <li id="ring-default">
-          <a data-l10n-id="default">Default</a>
           <label>
             <input type="radio" name="homescreen.ring" value="classic.wav" checked="true" />
             <span></span>
           </label>
+          <a data-l10n-id="default">Default</a>
         </li>
         <li id="ring-bosscaling">
-          <a data-l10n-id="bosscaling">Bosscaling</a>
           <label>
             <input type="radio" name="homescreen.ring" value="bosscaling.wav"/>
             <span></span>
           </label>
+          <a data-l10n-id="bosscaling">Bosscaling</a>
         </li>
         <li id="ring-goodnight">
-          <a data-l10n-id="goodmight">GoodMight</a>
           <label>
             <input type="radio" name="homescreen.ring" value="goodnight.wav"/>
             <span></span>
           </label>
+          <a data-l10n-id="goodmight">GoodMight</a>
+        </li>
+      </ul>
+
+      <h2 data-l10n-id="phone">Phone</h2>
+      <ul>
+        <li id="vibrator">
+          <label>
+            <input type="checkbox" name="phone.vibration.incoming"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="vibrate">Vibrate</a>
+        </li>
+        <li id="ring">
+          <label>
+            <input type="checkbox" name="phone.ring.incoming" checked="true" />
+            <span></span>
+          </label>
+          <a data-l10n-id="ring">Ring</a>
+        </li>
+      </ul>
+
+      <h2 data-l10n-id="messages">Messages</h2>
+      <ul>
+        <li id="vibrator">
+          <label>
+            <input type="checkbox" name="sms.vibration.received"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="vibrate">Vibrate</a>
+        </li>
+        <li id="ring">
+          <label>
+            <input type="checkbox" name="sms.ring.received" checked="true" />
+            <span></span>
+          </label>
+          <a data-l10n-id="ring">Ring</a>
         </li>
       </ul>
     </section>
@@ -287,11 +305,11 @@
           <progress data-name="screen.brightness" value="5" max="10"></progress>
         </li>
         <li>
-          <a data-l10n-id="automatic-brightness">Automatic Brightness</a>
           <label>
             <input type="checkbox" name="screen.automatic-brightness" checked="true"/>
             <span></span>
           </label>
+          <a data-l10n-id="automatic-brightness">Automatic Brightness</a>
         </li>
       </ul>
     </section>
@@ -306,25 +324,25 @@
 
       <ul>
         <li id="wallpaper-default">
-          <a data-l10n-id="default">Default</a>
           <label>
             <input type="radio" name="homescreen.wallpaper" value="default.png" checked="true" />
             <span></span>
           </label>
+          <a data-l10n-id="default">Default</a>
         </li>
         <li id="wallpaper-water">
-          <a data-l10n-id="water">Water</a>
           <label>
             <input type="radio" name="homescreen.wallpaper" value="water.png"/>
             <span></span>
           </label>
+          <a data-l10n-id="water">Water</a>
         </li>
         <li id="wallpaper-leaves">
-          <a data-l10n-id="leaves">Leaves</a>
           <label>
             <input type="radio" name="homescreen.wallpaper" value="leaves.png"/>
             <span></span>
           </label>
+          <a data-l10n-id="leaves">Leaves</a>
         </li>
       </ul>
     </section>
@@ -341,81 +359,81 @@
 
       <ul>
         <li id="language-ar">
-          <a>العربية</a>
           <label class="checkbox">
             <input type="radio" name="language.current" value="ar"/>
             <span class="checkbox-inner"></span>
           </label>
+          <a>العربية</a>
         </li>
         <li id="language-de">
-          <a dir="ltr">Deutsch</a>
           <label>
             <input type="radio" name="language.current" value="de"/>
             <span></span>
           </label>
+          <a dir="ltr">Deutsch</a>
         </li>
         <li id="language-el">
-          <a dir="ltr">Ελληνικά</a>
           <label>
             <input type="radio" name="language.current" value="el"/>
             <span></span>
           </label>
+          <a dir="ltr">Ελληνικά</a>
         </li>
         <li id="language-en-us">
-          <a dir="ltr">English (US)</a>
           <label>
             <input type="radio" name="language.current" value="en-US" checked="true" />
             <span></span>
           </label>
+          <a dir="ltr">English (US)</a>
         </li>
         <li id="language-es">
-          <a dir="ltr">Español</a>
           <label>
             <input type="radio" name="language.current" value="es"/>
             <span></span>
           </label>
+          <a dir="ltr">Español</a>
         </li>
         <li id="language-fr">
-          <a dir="ltr">Français</a>
           <label>
             <input type="radio" name="language.current" value="fr"/>
             <span></span>
           </label>
+          <a dir="ltr">Français</a>
         </li>
         <li id="language-it">
-          <a dir="ltr">Italiano</a>
           <label>
             <input type="radio" name="language.current" value="it"/>
             <span></span>
           </label>
+          <a dir="ltr">Italiano</a>
         </li>
         <li id="language-pt-br">
-          <a dir="ltr">Português (do Brasil)</a>
           <label>
             <input type="radio" name="language.current" value="pt-BR"/>
             <span></span>
           </label>
+          <a dir="ltr">Português (do Brasil)</a>
         </li>
         <li id="language-ru">
-          <a dir="ltr">Русский</a>
           <label>
             <input type="radio" name="language.current" value="ru"/>
             <span></span>
           </label>
+          <a dir="ltr">Русский</a>
         </li>
         <li id="language-tr">
-          <a dir="ltr">Türkçe</a>
           <label>
             <input type="radio" name="language.current" value="tr"/>
             <span></span>
           </label>
+          <a dir="ltr">Türkçe</a>
         </li>
         <li id="language-zh-tw">
-          <a dir="ltr">正體中文</a>
           <label>
             <input type="radio" name="language.current" value="zh-TW"/>
             <span></span>
           </label>
+          <a dir="ltr">正體中文</a>
         </li>
       </ul>
     </section>
@@ -430,97 +448,97 @@
 
       <ul>
         <li>
-          <a data-l10n-id="vibration">Vibration</a>
           <label>
             <input type="checkbox" name="keyboard.vibration"/>
             <span></span>
           </label>
+          <a data-l10n-id="vibration">Vibration</a>
         </li>
         <li>
-          <a data-l10n-id="clickSound">Click sound</a>
           <label>
             <input type="checkbox" name="keyboard.clicksound" checked="true" />
             <span></span>
           </label>
+          <a data-l10n-id="clickSound">Click sound</a>
         </li>
       </ul>
 
       <h2>Layouts</h2>
       <ul>
         <li>
-          <a data-l10n-id="english">English</a>
           <label>
             <input type="checkbox" name="keyboard.layouts.english" checked="true" />
             <span></span>
           </label>
+          <a data-l10n-id="english">English</a>
         </li>
         <li>
-          <a data-l10n-id="dvorak">English (Dvorak)</a>
           <label>
             <input type="checkbox" name="keyboard.layouts.dvorak"/>
             <span></span>
           </label>
+          <a data-l10n-id="dvorak">English (Dvorak)</a>
         </li>
         <li>
-          <span data-l10n-id="latin">Other Latin scripts</span>
-          <small data-l10n-id="latin-desc">French, German, Norwegian Bokmal, Slovak, Turkish</small>
           <label>
             <input type="checkbox" name="keyboard.layouts.otherlatins"/>
             <span></span>
           </label>
+          <small data-l10n-id="latin-desc">French, German, Norwegian Bokmal, Slovak, Turkish</small>
+          <a data-l10n-id="latin">Other Latin scripts</a>
         </li>
         <li>
-          <span data-l10n-id="cyrillic">Cyrillic scripts</span>
-          <small data-l10n-id="cyrillic-desc">Russian, Serbian (Cyrillic)</small>
           <label>
             <input type="checkbox" name="keyboard.layouts.cyrillic"/>
             <span></span>
           </label>
+          <small data-l10n-id="cyrillic-desc">Russian, Serbian (Cyrillic)</small>
+          <a data-l10n-id="cyrillic">Cyrillic scripts</a>
         </li>
         <li>
-          <a data-l10n-id="arabic">Arabic</a>
           <label>
             <input type="checkbox" name="keyboard.layouts.arabic"/>
             <span></span>
           </label>
+          <a data-l10n-id="arabic">Arabic</a>
         </li>
         <li>
-          <a data-l10n-id="hebrew">Hebrew</a>
           <label>
             <input type="checkbox" name="keyboard.layouts.hebrew"/>
             <span></span>
           </label>
+          <a data-l10n-id="hebrew">Hebrew</a>
         </li>
         <li>
-          <span data-l10n-id="traditionalChinese">Traditional Chinese</span>
-          <small data-l10n-id="traditionalChinese-desc">Zhuyin</small>
           <label>
             <input type="checkbox" name="keyboard.layouts.zhuyin"/>
             <span></span>
           </label>
+          <small data-l10n-id="traditionalChinese-desc">Zhuyin</small>
+          <a data-l10n-id="traditionalChinese">Traditional Chinese</a>
         </li>
         <li>
-          <span data-l10n-id="simplifiedChinese">Simplified Chinese</span>
-          <small data-l10n-id="simplifiedChinese-desc">Pinyin</small>
           <label>
             <input type="checkbox" name="keyboard.layouts.pinyin"/>
             <span></span>
           </label>
+          <small data-l10n-id="simplifiedChinese-desc">Pinyin</small>
+          <a data-l10n-id="simplifiedChinese">Simplified Chinese</a>
         </li>
         <li>
-          <span data-l10n-id="jp-kanji">Japanese</span>
-          <small data-l10n-id="jp-kanji-desc">Kanji</small>
           <label>
             <input type="checkbox" name="keyboard.layouts.japanese"/>
             <span></span>
           </label>
+          <small data-l10n-id="jp-kanji-desc">Kanji</small>
+          <a data-l10n-id="jp-kanji">Japanese</a>
         </li>
         <li>
-          <a data-l10n-id="greek">Greek</a>
           <label>
             <input type="checkbox" name="keyboard.layouts.greek"/>
             <span></span>
           </label>
+          <a data-l10n-id="greek">Greek</a>
         </li>
       </ul>
     </section>
@@ -538,19 +556,19 @@
 
       <ul>
         <li>
-          <a data-l10n-id="lockScreen">Lock Screen</a>
           <label>
             <input type="checkbox" name="lockscreen.enabled" checked="true"/>
             <span></span>
           </label>
+          <a data-l10n-id="lockScreen">Lock Screen</a>
         </li>
         <li>
-          <a data-l10n-id="passcode-lock">Passcode Lock</a>
-          <small data-l10n-id="passcode-lock-desc">Passcode: 0000</small>
           <label>
             <input type="checkbox" name="lockscreen.passcode-lock.enabled" checked="true"/>
             <span></span>
           </label>
+          <small data-l10n-id="passcode-lock-desc">Passcode: 0000</small>
+          <a data-l10n-id="passcode-lock">Passcode Lock</a>
         </li>
       </ul>
     </section>
@@ -560,101 +578,82 @@
     <!-- [TODO] Security :: App Permissions -->
     <!-- [TODO] Security :: Do Not Track -->
 
-    <!-- XXX Phone -->
-    <section class="view" id="phone">
-      <ul>
-        <li id="vibrator">
-          <a data-l10n-id="vibrate">Vibrate</a>
-          <label>
-            <input type="checkbox" name="phone.vibration.incoming"/>
-            <span></span>
-          </label>
-        </li>
-        <li id="ring">
-          <a data-l10n-id="ring">Ring</a>
-          <label>
-            <input type="checkbox" name="phone.ring.incoming" checked="true" />
-            <span></span>
-          </label>
-        </li>
-      </ul>
-      <h2 data-l10n-id="messages">Messages</h2>
-      <ul>
-        <li id="vibrator">
-          <a data-l10n-id="vibrate">Vibrate</a>
-          <label>
-            <input type="checkbox" name="sms.vibration.received"/>
-            <span></span>
-          </label>
-        </li>
-        <li id="ring">
-          <a data-l10n-id="ring">Ring</a>
-          <label>
-            <input type="checkbox" name="sms.ring.received" checked="true" />
-            <span></span>
-          </label>
-        </li>
-      </ul>
-    </section>
-
-    <!-- XXX Storage -->
-    <section class="view" id="storage">
-      <ul>
-        <li id="ums_enabled">
-          <a data-l10n-id="umsEnabled">USB Mass Storage Enabled</a>
-          <label>
-            <input type="checkbox" name="ums.enabled"/>
-            <span></span>
-          </label>
-        </li>
-      </ul>
-    </section>
-
-    <!-- XXX Accessibility -->
-    <section class="view" id="accessibility">
-      <ul>
-        <li id="invert">
-          <a data-l10n-id="invertColors">Invert Colors</a>
-          <label>
-            <input type="checkbox" name="accessibility.invert"/>
-            <span></span>
-          </label>
-        </li>
-      </ul>
-    </section>
-
-    <!-- XXX About -->
+    <!-- Device :: About -->
     <section class="view" id="about">
+      <header>
+        <h1>
+          <a href="#root" data-l10n-id="aboutPhone">About Phone</a>
+        </h1>
+      </header>
+
       <h2 data-l10n-id="gitInfo"> Git commit info </h2>
       <ul>
         <li>
-          <span id="gaia-commit-date"></span>
           <small id="gaia-commit-hash"></small>
+          <a id="gaia-commit-date"></a>
         </li>
       </ul>
 
       <h2 data-l10n-id="debug">Debug</h2>
       <ul>
         <li>
-          <a data-l10n-id="grid">Grid</a>
           <label>
             <input type="checkbox" name="debug.grid.enabled"/>
             <span></span>
           </label>
+          <a data-l10n-id="grid">Grid</a>
         </li>
         <li>
-          <a data-l10n-id="fps-monitor">Show frames per second</a>
           <label>
             <input type="checkbox" name="debug.fps.enabled"/>
             <span></span>
           </label>
+          <a data-l10n-id="fps-monitor">Show frames per second</a>
         </li>
         <li>
-          <a data-l10n-id="paint-flashing">Flash repainted area</a>
           <label>
             <input type="checkbox" name="debug.paint-flashing.enabled"/>
             <span></span>
           </label>
+          <a data-l10n-id="paint-flashing">Flash repainted area</a>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Device :: Storage -->
+    <section class="view" id="storage">
+      <header>
+        <h1>
+          <a href="#root" data-l10n-id="storage">Storage</a>
+        </h1>
+      </header>
+
+      <ul>
+        <li id="ums_enabled">
+          <label>
+            <input type="checkbox" name="ums.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="umsEnabled">USB Mass Storage Enabled</a>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Device :: Accessibility -->
+    <section class="view" id="accessibility">
+      <header>
+        <h1>
+          <a href="#root" data-l10n-id="accessibility">Accessibility</a>
+        </h1>
+      </header>
+
+      <ul>
+        <li id="invert">
+          <label>
+            <input type="checkbox" name="accessibility.invert"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="invertColors">Invert Colors</a>
         </li>
       </ul>
     </section>
