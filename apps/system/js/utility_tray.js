@@ -4,7 +4,7 @@
 'use strict';
 
 var UtilityTray = {
-  locked: false,
+  shown: false,
 
   active: false,
 
@@ -35,9 +35,9 @@ var UtilityTray = {
       case 'touchstart':
         if (LockScreen.locked)
           return;
-        if (this.locked && evt.target !== this.overlay)
+        if (this.shown && evt.target !== this.overlay)
           return;
-        if (!this.locked && evt.target !== this.statusbar)
+        if (!this.shown && evt.target !== this.statusbar)
           return;
 
         this.active = true;
@@ -46,8 +46,8 @@ var UtilityTray = {
         break;
 
       case 'screenchange':
-        if (this.locked && !evt.detail.screenEnabled)
-          this.unlock(true);
+        if (this.shown && !evt.detail.screenEnabled)
+          this.hide(true);
 
         break;
 
@@ -67,7 +67,7 @@ var UtilityTray = {
         break;
 
       case 'transitionend':
-        if (!this.locked)
+        if (!this.shown)
           this.screen.classList.remove('utility-tray');
         break;
     }
@@ -83,7 +83,7 @@ var UtilityTray = {
   onTouchMove: function ut_onTouchMove(touch) {
     var screenHeight = this.overlay.getBoundingClientRect().height;
     var dy = -(this.startY - touch.pageY);
-    if (this.locked)
+    if (this.shown)
       dy += screenHeight;
     dy = Math.min(screenHeight, dy);
 
@@ -96,28 +96,42 @@ var UtilityTray = {
     var screenHeight = this.overlay.getBoundingClientRect().height;
     var dy = -(this.startY - touch.pageY);
     var offset = Math.abs(dy);
-    if ((!this.locked && offset > screenHeight / 4) ||
-        (this.locked && offset < 10))
-      this.lock();
+    if ((!this.shown && offset > screenHeight / 4) ||
+        (this.shown && offset < 10))
+      this.show();
     else
-      this.unlock();
+      this.hide();
   },
 
-  unlock: function ut_unlock(instant) {
+  hide: function ut_hide(instant) {
+    var alreadyHidden = !this.shown;
     var style = this.overlay.style;
     style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
     style.MozTransform = 'translateY(0)';
-    this.locked = false;
+    this.shown = false;
     if (instant)
       this.screen.classList.remove('utility-tray');
+
+    if (!alreadyHidden) {
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent('utilitytrayhide', true, true, null);
+      window.dispatchEvent(evt);
+    }
   },
 
-  lock: function ut_lock(dy) {
+  show: function ut_show(dy) {
+    var alreadyShown = this.shown;
     var style = this.overlay.style;
     style.MozTransition = '-moz-transform 0.2s linear';
     style.MozTransform = 'translateY(100%)';
-    this.locked = true;
+    this.shown = true;
     this.screen.classList.add('utility-tray');
+
+    if (!alreadyShown) {
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent('utilitytrayshow', true, true, null);
+      window.dispatchEvent(evt);
+    }
   }
 };
 
