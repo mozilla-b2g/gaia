@@ -76,13 +76,7 @@
         navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
           var app = evt.target.result;
 
-          // Taking the first icon for now
-          // TODO: define the size
-          var icons = app.manifest.icons;
-          var iconURL = null;
-          if (icons) {
-            iconURL = app.installOrigin + icons[Object.keys(icons)[0]];
-          }
+          var iconURL = NotificationHelper.getIconURI(app);
 
           var notiClick = function() {
             // Asking to launch itself

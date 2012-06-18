@@ -63,7 +63,8 @@
   "background_page": "/background.html",
   "attention_page": "/oncall.html",
   "icons": {
-    "120": "/style/icons/Dialer.png"
+    "120": "/style/icons/Dialer.png",
+    "60": "/style/icons/60/Dialer.png"
   },
   "orientation": "portrait-primary"
 }
