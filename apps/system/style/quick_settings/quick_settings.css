@@ -19,22 +19,26 @@
   padding: 0 5px;
 }
 
+#quick-settings > a:active {
+  color: #000;
+  background-color: #ccc;
+}
+
 /* XXX: need icons here */
 #quick-settings > a:not(#quick-settings-full-app)::before {
   content: '';
   display: block;
   width: 30px;
   height: 30px;
-  background-color: #ccc;
+  background-color: #c66;
   border-radius: 5px;
   margin: 5px auto;
 }
 
-#quick-settings > a:active {
-  color: #000;
-  background-color: #ccc;
-}
-
 #quick-settings > a:active::before {
   background-color: #000;
+}
+
+#quick-settings > a[data-enabled="true"]::before {
+  background-color: #6c6 !important;
 }

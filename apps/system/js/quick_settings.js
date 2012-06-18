@@ -8,26 +8,49 @@ var QuickSettings = {
     this.getAllElements();
 
     this.overlay.addEventListener('click', this);
+    window.addEventListener('utilitytrayshow', this);
   },
 
   handleEvent: function qs_handleEvent(evt) {
     evt.preventDefault();
-    switch (evt.target) {
-      case this.wifi:
+    switch (evt.type) {
+      case 'click':
+        switch (evt.target) {
+          case this.wifi:
+            var wifiManager = navigator.mozWifiManager;
+            if (!wifiManager)
+              return;
+
+            var enabled = (this.wifi.dataset.enabled == 'true');
+            wifiManager.setEnabled(!enabled);
+            this.wifi.dataset.enabled = !enabled;
+            break;
+
+          case this.data:
+            break;
+
+          case this.bluetooth:
+            break;
+
+          case this.powerSave:
+            break;
+
+          case this.fullApp:
+            break;
+        }
         break;
 
-      case this.data:
-        break;
-
-      case this.bluetooth:
-        break;
-
-      case this.powerSave:
-        break;
-
-      case this.fullApp:
+      case 'utilitytrayshow':
+        this.updateStatus();
         break;
     }
+  },
+
+  updateStatus: function qs_updateStatus() {
+    var wifiManager = navigator.mozWifiManager;
+    this.wifi.dataset.enabled = !!(wifiManager && wifiManager.enabled);
+
+
   },
 
   getAllElements: function qs_getAllElements() {
