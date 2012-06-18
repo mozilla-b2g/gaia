@@ -27,137 +27,110 @@
     <script type="text/javascript" src="js/wifi.js"></script>
   </head>
   <body class="hidden">
-    <header>
-      <h1 data-l10n-id="settings">Settings</h1>
-    </header>
 
-    <div id="root" class="view" data-title="Settings">
+    <!-- Main List -->
+    <section class="view" id="root">
+      <header>
+        <h1 data-l10n-id="settings">Settings</h1>
+      </header>
+
+      <!-- Main :: Network & Connectivity -->
       <h2 data-l10n-id="networkAndConnectivity">Network &amp; Connectivity</h2>
       <ul>
-        <li>
-          <span data-l10n-id="airplaneMode">Airplane Mode</span>
+        <li hidden>
+          <a data-l10n-id="airplaneMode">Airplane Mode</a>
           <label>
             <input type="checkbox" name="airplane.enabled" checked="true" />
             <span></span>
           </label>
         </li>
         <li>
-          <a href="#wifi">
-            <small id="wifi-desc"></small>
-            <span data-l10n-id="wifi">Wi-Fi</span>
-          </a>
+          <small id="wifi-desc" data-l10n-id="disconnected">offline</small>
+          <a href="#wifi" data-l10n-id="wifi">Wi-Fi</a>
         </li>
         <li>
-          <a href="#data">
-            <small id="data-desc"></small>
-            <span data-l10n-id="cellularAndData">Cellular &amp; Data</span>
-          </a>
+          <small id="data-desc"></small>
+          <a href="#data" data-l10n-id="cellularAndData">Cellular &amp; Data</a>
         </li>
-        <li>
-          <a href="#bluetooth">
-            <small id="bluetooth-desc"></small>
-            <span data-l10n-id="bluetooth">Bluetooth</span>
-          </a>
+        <li hidden>
+          <small id="bluetooth-desc"></small>
+          <a href="#bluetooth" data-l10n-id="bluetooth">Bluetooth</a>
         </li>
       </ul>
+
+      <!-- Main :: Personalization -->
       <h2 data-l10n-id="personalization">Personalization</h2>
       <ul>
         <li>
-          <a href="#sound">
-            <span data-l10n-id="sound">Sound</span>
-          </a>
+          <a href="#sounds" data-l10n-id="sound">Sound</a>
         </li>
         <li>
-          <a href="brightness">
-            <span data-l10n-id="brightness">Brightness</span>
-          </a>
+          <a href="#brightness" data-l10n-id="brightness">Brightness</a>
         </li>
         <li>
-          <a href="#wallpaper">
-            <span data-l10n-id="wallpaper">Wallpaper</span>
-          </a>
+          <a href="#wallpaper" data-l10n-id="wallpaper">Wallpaper</a>
+        </li>
+        <li hidden>
+          <small id="time-desc"></small>
+          <a href="#time" data-l10n-id="timeAndDate">Time &amp; Date</a>
         </li>
         <li>
-          <a href="#time">
-            <small id="time-desc"></small>
-            <span data-l10n-id="timeAndDate">Time &amp; Date</span>
-          </a>
+          <small id="language-desc"></small>
+          <a href="#languages" data-l10n-id="languageAndRegion">Language &amp; Region</a>
         </li>
         <li>
-          <a href="#languages">
-            <small id="language-desc"></small>
-            <span data-l10n-id="languageAndRegion">Language &amp; Region</span>
-          </a>
-        </li>
-        <li>
-          <a href="#keyboard">
-            <small id="keyboard-desc"></small>
-            <span data-l10n-id="keyboard">Keyboard</span>
-          </a>
+          <small id="keyboard-desc"></small>
+          <a href="#keyboard" data-l10n-id="keyboard">Keyboard</a>
         </li>
       </ul>
-      <h2 data-l10n-id="accounts">Accounts</h2>
-      <ul>
+
+      <!-- Main :: Accounts -->
+      <h2 hidden data-l10n-id="accounts">Accounts</h2>
+      <ul hidden>
         <li>
-          <a href="#persona">
-            <span data-l10n-id="persona">Persona</span>
-          </a>
+          <a href="#persona" data-l10n-id="persona">Persona</a>
         </li>
         <li>
-          <a href="#mail">
-            <span data-l10n-id="mail">Mail</span>
-          </a>
+          <a href="#mail" data-l10n-id="mail">Mail</a>
         </li>
       </ul>
+
+      <!-- Main :: Security & Privacy -->
       <h2 data-l10n-id="securityAndPrivacy">Security &amp; Privacy</h2>
       <ul>
         <li>
-          <a href="#phoneLock">
-            <small id="phoneLock-desc"></small>
-            <span data-l10n-id="phoneLock">Phone Lock</span>
-          </a>
+          <small id="phoneLock-desc"></small>
+          <a href="#phoneLock" data-l10n-id="phoneLock">Phone Lock</a>
         </li>
-        <li>
-          <a href="#simCardLock">
-            <small id="simCardLock-desc"></small>
-            <span data-l10n-id="simCardLock">SIM Card Lock</span>
-          </a>
+        <li hidden>
+          <small id="simCardLock-desc"></small>
+          <a href="#simCardLock" data-l10n-id="simCardLock">SIM Card Lock</a>
         </li>
-        <li>
-          <a href="#appPermissions">
-            <span data-l10n-id="appPermissions">App Permissions</span>
-          </a>
+        <li hidden>
+          <a href="#appPermissions" data-l10n-id="appPermissions">App Permissions</a>
         </li>
-        <li>
-          <a href="#doNotTrack">
-            <small id="doNotTrack-desc"></small>
-            <span data-l10n-id="doNotTrack">Do Not Track</span>
-          </a>
+        <li hidden>
+          <small id="doNotTrack-desc"></small>
+          <a href="#doNotTrack" data-l10n-id="doNotTrack">Do Not Track</a>
         </li>
       </ul>
+
+      <!-- Main :: Device -->
       <h2 data-l10n-id="device">Device</h2>
       <ul>
         <li>
-          <a href="#about">
-            <span data-l10n-id="aboutPhone">About Phone</span>
-          </a>
+          <a href="#about" data-l10n-id="aboutPhone">About Phone</a>
+        </li>
+        <li hidden>
+          <a href="#helpAndFeedback" data-l10n-id="helpAndFeedback">Help &amp; Feedback</a>
         </li>
         <li>
-          <a href="#helpAndFeedback">
-            <span data-l10n-id="helpAndFeedback">Help &amp; Feedback</span>
-          </a>
+          <small id="storage-desc"></small>
+          <a href="#storage" data-l10n-id="storage">Storage</a>
         </li>
-        <li>
-          <a href="#storage">
-            <small id="storage-desc"></small>
-            <span data-l10n-id="storage">Storage</span>
-          </a>
-        </li>
-        <li>
-          <a href="#battery">
-            <small id="battery-desc"></small>
-            <span data-l10n-id="battery">Battery</span>
-          </a>
+        <li hidden>
+          <small id="battery-desc"></small>
+          <a href="#battery" data-l10n-id="battery">Battery</a>
         </li>
       </ul>
 
@@ -183,14 +156,19 @@
           </a>
         </li>
       </ul> -->
-    </div>
+    </section>
 
-    <!-- Wi-Fi -->
-    <div id="wifi" class="view" data-title="WiFi">
+    <!-- Connectivity :: Wi-Fi -->
+    <section class="view" id="wifi">
+      <header>
+        <h1>
+          <a href="#root" data-l10n-id="wifi">Wi-Fi</a>
+        </h1>
+      </header>
+
       <ul>
         <li id="status">
           <span data-l10n-id="wifi">Wi-Fi</span>
-          <small data-l10n-id="disconnected">offline</small>
           <label>
             <input type="checkbox" />
             <span></span>
@@ -205,14 +183,21 @@
           </label>
         </li>
       </ul>
+
       <h2 data-l10n-id="wifiNetworks"> Wi-Fi networks </h2>
       <ul id="wifi-networks">
         <!-- filled by wifi.js -->
       </ul>
-    </div>
+    </section>
 
-    <!-- 3G/data -->
-    <div id="data" class="view" data-title="data">
+    <!-- Connectivity :: 3G/data -->
+    <section class="view" id="data">
+      <header>
+        <h1>
+          <a href="#root" data-l10n-id="cellularAndData">Cellular &amp; Data</a>
+        </h1>
+      </header>
+
       <ul>
         <li id="dataNetwork">
           <span data-l10n-id="dataNetwork">Carrier</span>
@@ -235,6 +220,7 @@
           </label>
         </li>
       </ul>
+
       <h2> Advanced Settings </h2>
       <form action="#">
         <p data-l10n-id="apn">APN</p>
@@ -250,73 +236,109 @@
         <p data-l10n-id="mmsc">MMSC</p>
         <input type="text" name="ril.data.mmsc" />
       </form>
-    </div>
+    </section>
 
-    <!-- Phone -->
-    <div id="phone" class="view" data-title="Phone">
+    <!-- [TODO] Connectivity :: Bluetooth -->
+
+    <!-- Personalization :: Sound -->
+    <section class="view" id="sounds">
+      <header>
+        <h1>
+          <a href="#root" data-l10n-id="sound">Sound</a>
+        </h1>
+      </header>
+
       <ul>
-        <li id="vibrator">
-          <a data-l10n-id="vibrate">Vibrate</a>
+        <li id="ring-default">
+          <a data-l10n-id="default">Default</a>
           <label>
-            <input type="checkbox" name="phone.vibration.incoming"/>
+            <input type="radio" name="homescreen.ring" value="classic.wav" checked="true" />
             <span></span>
           </label>
         </li>
-        <li id="ring">
-          <a data-l10n-id="ring">Ring</a>
+        <li id="ring-bosscaling">
+          <a data-l10n-id="bosscaling">Bosscaling</a>
           <label>
-            <input type="checkbox" name="phone.ring.incoming" checked="true" />
+            <input type="radio" name="homescreen.ring" value="bosscaling.wav"/>
+            <span></span>
+          </label>
+        </li>
+        <li id="ring-goodnight">
+          <a data-l10n-id="goodmight">GoodMight</a>
+          <label>
+            <input type="radio" name="homescreen.ring" value="goodnight.wav"/>
             <span></span>
           </label>
         </li>
       </ul>
-      <h2 data-l10n-id="messages">Messages</h2>
+    </section>
+
+    <!-- Personalization :: Brightness -->
+    <section class="view" id="brightness">
+      <header>
+        <h1>
+          <a href="#root" data-l10n-id="brightness">Brightness</a>
+        </h1>
+      </header>
+
       <ul>
-        <li id="vibrator">
-          <a data-l10n-id="vibrate">Vibrate</a>
-          <label>
-            <input type="checkbox" name="sms.vibration.received"/>
-            <span></span>
-          </label>
+        <li id="brightness-level">
+          <a data-l10n-id="brightness">Brightness level</a>
+          <progress data-name="screen.brightness" value="5" max="10"></progress>
         </li>
-        <li id="ring">
-          <a data-l10n-id="ring">Ring</a>
+        <li>
+          <a data-l10n-id="automatic-brightness">Automatic Brightness</a>
           <label>
-            <input type="checkbox" name="sms.ring.received" checked="true" />
+            <input type="checkbox" name="screen.automatic-brightness" checked="true"/>
             <span></span>
           </label>
         </li>
       </ul>
-    </div>
+    </section>
 
-    <!-- Storage -->
-    <div id="storage" class="view" data-title="Storage">
+    <!-- Personalization :: Wallpaper -->
+    <section class="view" id="wallpaper">
+      <header>
+        <h1>
+          <a href="#root" data-l10n-id="wallpaper">Wallpaper</a>
+        </h1>
+      </header>
+
       <ul>
-        <li id="ums_enabled">
-          <a data-l10n-id="umsEnabled">USB Mass Storage Enabled</a>
+        <li id="wallpaper-default">
+          <a data-l10n-id="default">Default</a>
           <label>
-            <input type="checkbox" name="ums.enabled"/>
+            <input type="radio" name="homescreen.wallpaper" value="default.png" checked="true" />
+            <span></span>
+          </label>
+        </li>
+        <li id="wallpaper-water">
+          <a data-l10n-id="water">Water</a>
+          <label>
+            <input type="radio" name="homescreen.wallpaper" value="water.png"/>
+            <span></span>
+          </label>
+        </li>
+        <li id="wallpaper-leaves">
+          <a data-l10n-id="leaves">Leaves</a>
+          <label>
+            <input type="radio" name="homescreen.wallpaper" value="leaves.png"/>
             <span></span>
           </label>
         </li>
       </ul>
-    </div>
+    </section>
 
-    <!-- Accessibility -->
-    <div id="accessibility" class="view" data-title="Accessibility">
-      <ul>
-        <li id="invert">
-          <a data-l10n-id="invertColors">Invert Colors</a>
-          <label>
-            <input type="checkbox" name="accessibility.invert"/>
-            <span></span>
-          </label>
-        </li>
-      </ul>
-    </div>
+    <!-- [TODO] Personalization :: Time & Date -->
 
-    <!-- Languages -->
-    <div id="languages" class="view" data-title="Languages">
+    <!-- Personalization :: Language & Region -->
+    <section class="view" id="languages">
+      <header>
+        <h1>
+          <a href="#root" data-l10n-id="languageAndRegion">Language &amp; Region</a>
+        </h1>
+      </header>
+
       <ul>
         <li id="language-ar">
           <a>العربية</a>
@@ -396,31 +418,16 @@
           </label>
         </li>
       </ul>
-    </div>
+    </section>
 
-    <!-- About -->
-    <div id="about" class="view" data-title="About">
-      <h2 data-l10n-id="gitInfo"> Git commit info </h2>
-      <ul>
-        <li>
-          <span id="gaia-commit-date"></span>
-          <small id="gaia-commit-hash"></small>
-        </li>
-      </ul>
-      <h2 data-l10n-id="debug">Debug</h2>
-      <ul>
-        <li>
-          <a data-l10n-id="grid">Grid</a>
-          <label>
-            <input type="checkbox" name="debug.grid.enabled"/>
-            <span></span>
-          </label>
-        </li>
-      </ul>
-    </div>
+    <!-- Personalization :: Keyboard -->
+    <section class="view" id="keyboard">
+      <header>
+        <h1>
+          <a href="#root" data-l10n-id="keyboard">Keyboard</a>
+        </h1>
+      </header>
 
-    <!-- Keyboard -->
-    <div id="keyboard" class="view" data-title="Display">
       <ul>
         <li>
           <a data-l10n-id="vibration">Vibration</a>
@@ -437,6 +444,7 @@
           </label>
         </li>
       </ul>
+
       <h2>Layouts</h2>
       <ul>
         <li>
@@ -515,49 +523,20 @@
           </label>
         </li>
       </ul>
-    </div>
+    </section>
 
-    <!-- Sounds -->
-    <div id="sounds" class="view" data-title="Sounds">
-      <ul>
-        <li id="ring-default">
-          <a data-l10n-id="default">Default</a>
-          <label>
-            <input type="radio" name="homescreen.ring" value="classic.wav" checked="true" />
-            <span></span>
-          </label>
-        </li>
-        <li id="ring-bosscaling">
-          <a data-l10n-id="bosscaling">Bosscaling</a>
-          <label>
-            <input type="radio" name="homescreen.ring" value="bosscaling.wav"/>
-            <span></span>
-          </label>
-        </li>
-        <li id="ring-goodnight">
-          <a data-l10n-id="goodmight">GoodMight</a>
-          <label>
-            <input type="radio" name="homescreen.ring" value="goodnight.wav"/>
-            <span></span>
-          </label>
-        </li>
-      </ul>
-    </div>
+    <!-- [TODO] Accounts :: Persona -->
+    <!-- [TODO] Accounts :: Mail -->
 
-    <!-- Display -->
-    <div id="display" class="view" data-title="Display">
+    <!-- Security :: Phone Lock -->
+    <section class="view" id="phoneLock">
+      <header>
+        <h1>
+          <a href="#root" data-l10n-id="phoneLock">Phone Lock</a>
+        </h1>
+      </header>
+
       <ul>
-        <li id="brightness">
-          <a data-l10n-id="brightness">Brightness level</a>
-          <progress id="brightness-level" data-name="screen.brightness" value="5" max="10"></progress>
-        </li>
-        <li id="automatic-brightness">
-          <a data-l10n-id="automatic-brightness">Automatic Brightness</a>
-          <label>
-            <input type="checkbox" name="screen.automatic-brightness" checked="true"/>
-            <span></span>
-          </label>
-        </li>
         <li>
           <a data-l10n-id="lockScreen">Lock Screen</a>
           <label>
@@ -574,34 +553,96 @@
           </label>
         </li>
       </ul>
-    </div>
+    </section>
 
-    <!-- Wallpapers -->
-    <div id="wallpapers" class="view" data-title="Wallpapers">
+    <!-- [TODO] Security :: Phone Lock -->
+    <!-- [TODO] Security :: SIM Card Lock -->
+    <!-- [TODO] Security :: App Permissions -->
+    <!-- [TODO] Security :: Do Not Track -->
+
+    <!-- XXX Phone -->
+    <section class="view" id="phone">
       <ul>
-        <li id="wallpaper-default">
-          <a data-l10n-id="default">Default</a>
+        <li id="vibrator">
+          <a data-l10n-id="vibrate">Vibrate</a>
           <label>
-            <input type="radio" name="homescreen.wallpaper" value="default.png" checked="true" />
+            <input type="checkbox" name="phone.vibration.incoming"/>
             <span></span>
           </label>
         </li>
-        <li id="wallpaper-water">
-          <a data-l10n-id="water">Water</a>
+        <li id="ring">
+          <a data-l10n-id="ring">Ring</a>
           <label>
-            <input type="radio" name="homescreen.wallpaper" value="water.png"/>
-            <span></span>
-          </label>
-        </li>
-        <li id="wallpaper-leaves">
-          <a data-l10n-id="leaves">Leaves</a>
-          <label>
-            <input type="radio" name="homescreen.wallpaper" value="leaves.png"/>
+            <input type="checkbox" name="phone.ring.incoming" checked="true" />
             <span></span>
           </label>
         </li>
       </ul>
-    </div>
+      <h2 data-l10n-id="messages">Messages</h2>
+      <ul>
+        <li id="vibrator">
+          <a data-l10n-id="vibrate">Vibrate</a>
+          <label>
+            <input type="checkbox" name="sms.vibration.received"/>
+            <span></span>
+          </label>
+        </li>
+        <li id="ring">
+          <a data-l10n-id="ring">Ring</a>
+          <label>
+            <input type="checkbox" name="sms.ring.received" checked="true" />
+            <span></span>
+          </label>
+        </li>
+      </ul>
+    </section>
+
+    <!-- XXX Storage -->
+    <section class="view" id="storage">
+      <ul>
+        <li id="ums_enabled">
+          <a data-l10n-id="umsEnabled">USB Mass Storage Enabled</a>
+          <label>
+            <input type="checkbox" name="ums.enabled"/>
+            <span></span>
+          </label>
+        </li>
+      </ul>
+    </section>
+
+    <!-- XXX Accessibility -->
+    <section class="view" id="accessibility">
+      <ul>
+        <li id="invert">
+          <a data-l10n-id="invertColors">Invert Colors</a>
+          <label>
+            <input type="checkbox" name="accessibility.invert"/>
+            <span></span>
+          </label>
+        </li>
+      </ul>
+    </section>
+
+    <!-- XXX About -->
+    <section class="view" id="about">
+      <h2 data-l10n-id="gitInfo"> Git commit info </h2>
+      <ul>
+        <li>
+          <span id="gaia-commit-date"></span>
+          <small id="gaia-commit-hash"></small>
+        </li>
+      </ul>
+      <h2 data-l10n-id="debug">Debug</h2>
+      <ul>
+        <li>
+          <a data-l10n-id="grid">Grid</a>
+          <label>
+            <input type="checkbox" name="debug.grid.enabled"/>
+            <span></span>
+          </label>
+        </li>
+      </ul>
+    </section>
 
     <!-- Dialog Boxes -->
     <div id="dialogs">
@@ -703,5 +744,6 @@
 
       </div>
     </div>
+
   </body>
 </html>

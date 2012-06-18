@@ -19,13 +19,12 @@ header {
   line-height: 62px;
   text-align: center;
   background-color: #fff;
-  background-image: -moz-linear-gradient(#fff, #eaeae4);
-  border-bottom: solid 2px #a3a3a3;
-  border-radius: 8px 8px 0 0;
-}
-
-body > header {
-  display: none;
+  background: -moz-linear-gradient(#fff, #eaeae4);
+  /*border-bottom: solid 2px #a3a3a3;*/
+  /*border-radius: 8px 8px 0 0;*/
+  border-bottom:1px solid #ccc;
+  border-radius: 6px 6px 0 0;
+  color:#555;
 }
 
 header h1 {
@@ -36,6 +35,18 @@ header h1 {
   font-family: "Open Sans", sans-serif;
   font-weight: bold;
   font-size: 1em;
+}
+
+header h1 a {
+  display: block;
+  text-decoration: none;
+  background: url(images/header-left-arrow.png) no-repeat 20px 50%;
+  color:#555 !important;
+}
+
+header h1 a:active {
+  background: url(images/header-left-arrow.png) no-repeat 20px 50%,
+    -moz-linear-gradient(#eaeae4, #fff);
 }
 
 /* View */
@@ -57,7 +68,7 @@ header h1 {
   font-size: 0.85em;
   color: #333;
   border-bottom: 2px solid #c3c9cb;
-  background: url("images/diagonal-pattern.png") repeat scroll 0 0 #F1F1ED;
+  background: url(images/diagonal-pattern.png) repeat scroll 0 0 #F1F1ED;
 }
 
 /* View - Slide Horizontal Transition */
@@ -112,7 +123,7 @@ ul li:active {
 ul li > a {
   display: block;
   padding: 20px;
-  /* XXX height/line-height must be adjusted it the container height changes */
+  /* XXX height/line-height must be adjusted if the container height changes */
   height:      54px; /* -moz-calc(100% - 40px); */
   line-height: 54px; /* -moz-calc(100% - 40px); */
   text-decoration: none;
@@ -128,6 +139,7 @@ ul li > a, ul li > span, ul li > small { /* text ellipsis */
   max-width: -moz-calc(100% - 120px);
 }
 
+/* */
 ul li > span {
   position: absolute;
   left: 20px;
@@ -138,8 +150,13 @@ ul li > small {
   position: absolute;
   left: 20px;
   top: 50%;
+  padding-top: 0;
   font-size: 0.65em;
   color: #888;
+}
+
+ul li > small + a {
+  line-height: 42px;
 }
 
 /* fake input boxes for checkboxes & radio buttons */
@@ -191,17 +208,17 @@ ul li > small {
 }
 
 /* brightness level */
-li#brightness:active {
+#brightness-level:active {
   background-color: #f5f5f5;
   text-shadow: none;
   color: #555;
 }
 
-li#brightness a {
+#brightness-level a {
   max-width: -moz-calc(60% - 50px);
 }
 
-li#brightness progress {
+#brightness-level progress {
   width: 40%;
   height: 40%;
   position: absolute;

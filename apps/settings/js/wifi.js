@@ -8,9 +8,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
   var _ = document.mozL10n.get;
 
   // main wifi button
-  var gStatus = (function wifiStatus(element) {
-    var checkbox = element.querySelector('input[type=checkbox]');
-    var infoBlock = element.querySelector('small');
+  var gStatus = (function wifiStatus(checkbox, infoBlock) {
     var switching = false;
 
     // current state
@@ -59,7 +57,8 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
       get switching() { return switching; },
       update: updateState
     };
-  }) (document.getElementById('status'));
+  }) (document.querySelector('#status input[type=checkbox]'),
+      document.querySelector('#wifi-desc'));
 
   // network list
   var gNetworkList = (function networkList(list) {
@@ -154,7 +153,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
         var ssids = Object.getOwnPropertyNames(networks);
         ssids.sort(function(a, b) {
           return isConnected(networks[b]) ? 100 :
-            networks[b].signal - networks[a].signal;
+              networks[b].signal - networks[a].signal;
         });
 
         // create list
@@ -306,7 +305,7 @@ window.addEventListener('localized', function scanWifiNetworks(evt) {
       var security = dialog.querySelector('*[data-security]');
       if (security)
         security.textContent = (keys && keys.length) ?
-          keys.join(', ') : _('securityNone');
+            keys.join(', ') : _('securityNone');
 
       var signal = dialog.querySelector('*[data-signal]');
       if (signal) {
