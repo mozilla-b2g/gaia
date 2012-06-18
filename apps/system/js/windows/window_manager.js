@@ -63,6 +63,7 @@ var WindowManager = (function() {
   //    name: the app's name
   //    manifest: the app's manifest object
   //    frame: the iframe element that the app is displayed in
+  //    launchTime: last time when app gets active
   // }
   //
   var runningApps = {};
@@ -484,7 +485,8 @@ var WindowManager = (function() {
     runningApps[origin] = {
       name: name,
       manifest: manifest,
-      frame: frame
+      frame: frame,
+      launchTime: +(new Date())
     };
 
     numRunningApps++;

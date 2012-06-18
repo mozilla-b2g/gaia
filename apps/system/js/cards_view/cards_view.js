@@ -11,6 +11,7 @@ var CardsView = (function() {
 
   //display icon of an app on top of app's card
   var DISPLAY_APP_ICON = true;
+  var USER_DEFINED_ORDERING = false;
 
   var cardsView = document.getElementById('cardsView');
   var cardsList = cardsView.getElementsByTagName('ul')[0];
@@ -28,11 +29,29 @@ var CardsView = (function() {
   // used order. Or, we might want to keep the apps in launch order, but
   // scroll so that the current task is always shown
   function showCardSwitcher() {
-
     // Apps info from WindowManager
     displayedApp = WindowManager.getDisplayedApp();
     runningApps = WindowManager.getRunningApps();
 
+    // If user is not able to sort apps manualy, 
+    // display most recetly active apps on the far left
+    if (!USER_DEFINED_ORDERING) {
+      var sortable = [];
+      for (var origin in runningApps) sortable.push({origin: origin, app: runningApps[origin]});
+      sortable.sort(function(a, b) {
+        return b.app.launchTime - a.app.launchTime;
+      });
+      runningApps = {};
+      // I assume that object properties are enumerated in
+      // the same order they were defined.
+      // There is nothing baout that in spec, but I've never
+      // seen any unexpected behavior.
+      sortable.forEach(function(element) {
+        runningApps[element.origin] = element.app;
+      });
+    } else {
+      // user ordering actions
+    }
     // First add an item to the cardsList for each running app
     for (var origin in runningApps)
       addCard(origin, runningApps[origin]);
