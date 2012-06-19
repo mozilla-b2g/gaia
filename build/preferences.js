@@ -129,6 +129,9 @@ domains.push(GAIA_DOMAIN);
     let perms = manifest.permissions;
     if (perms) {
       for each(let name in perms) {
+        if (!permissions[name])
+          return;
+
         permissions[name].urls.push(rootURL);
 
         // special case for the telephony API which needs full URLs
