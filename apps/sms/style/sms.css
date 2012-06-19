@@ -294,6 +294,8 @@ body.msg-search-mode #msg-conversations-list {
   border-bottom: 0.1rem solid hsla(223,7%,81%,1);
   width: 100%;
   -moz-transition: padding 0.3s ease-out;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 
@@ -698,6 +700,7 @@ body.conversation-new-msg #view-num {
   text-shadow: 0 0.1rem 0 #ddd;
   line-height: 3.2rem;
   text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 #view-list > div .time {
