@@ -54,6 +54,7 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "120": "/style/icons/Gallery.png"
+    "120": "/style/icons/Gallery.png",
+    "60": "/style/icons/60/Gallery.png"
   }
 }

@@ -4,7 +4,9 @@ var KeyboardManager = (function() {
 
   var KEYBOARD_ID = 'keyboardFrame';
 
-  // TODO: Retrieve it from Settings, allowing 3rd party keyboards
+  // XXX TODO: Retrieve it from Settings, allowing 3rd party keyboards
+  var host = document.location.host;
+  var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
   var KEYBOARD_URL = 'http://keyboard.' + domain;
 
   var keyboardFrame;

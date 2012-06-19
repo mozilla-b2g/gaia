@@ -407,7 +407,7 @@ const GridManager = (function() {
 
       pages.list[index].destroy(); // Destroy page
       pages.list.splice(index, 1); // Removes page from the list
-      pages.total = index - 1; // Reset total number of pages
+      pages.total--; // Reset total number of pages
       updatePaginationBar();
     },
 
@@ -736,4 +736,3 @@ const GridManager = (function() {
     }
   };
 })();
-

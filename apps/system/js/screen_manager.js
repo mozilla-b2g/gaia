@@ -25,6 +25,9 @@ var ScreenManager = {
     /* Respect the information from DeviceLight sensor */
     window.addEventListener('devicelight', this);
 
+    /* fullscreenchange event */
+    window.addEventListener('mozfullscreenchange', this);
+
     this.screen = document.getElementById('screen');
     this.screen.classList.remove('screenoff');
 
@@ -61,8 +64,16 @@ var ScreenManager = {
 
         break;
 
-        // The screenshot module also listens for the SLEEP key and
-        // may call preventDefault() on the keyup and keydown events.
+      case 'mozfullscreenchange':
+        if (document.mozFullScreen) {
+          this.screen.classList.add('fullscreen');
+        } else {
+          this.screen.classList.remove('fullscreen');
+        }
+        break;
+
+      // The screenshot module also listens for the SLEEP key and
+      // may call preventDefault() on the keyup and keydown events.
       case 'keydown':
         if (evt.keyCode !== evt.DOM_VK_SLEEP && evt.keyCode !== evt.DOM_VK_HOME)
           return;

@@ -63,6 +63,7 @@ var WindowManager = (function() {
   //    name: the app's name
   //    manifest: the app's manifest object
   //    frame: the iframe element that the app is displayed in
+  //    launchTime: last time when app gets active
   // }
   //
   var runningApps = {};
@@ -76,7 +77,7 @@ var WindowManager = (function() {
   // an app is loading
   var localizedLoading = 'Loading...';
   window.addEventListener('localized', function() {
-    localizedLoading = document.mozL10n.get('loading');
+    localizedLoading = navigator.mozL10n.get('loading');
   });
 
   // Public function. Return the origin of the currently displayed app
@@ -281,6 +282,17 @@ var WindowManager = (function() {
     });
   }
 
+  //last time app was launched,
+  //needed to display them in proper
+  //order on CardsView
+  function updateLaunchTime(origin) {
+    if (!runningApps[origin]) {
+      return;
+    } else {
+      runningApps[origin].launchTime = Date.now();
+    }
+  }
+
   // Switch to a different app
   function setDisplayedApp(origin, callback) {
     var currentApp = displayedApp, newApp = origin;
@@ -300,6 +312,7 @@ var WindowManager = (function() {
     // Case 2: homescreen->app
     else if (currentApp == null) {
       setAppSize(newApp);
+      updateLaunchTime(newApp);
       openWindow(newApp, callback);
     }
     // Case 3: app->homescreen
@@ -310,6 +323,7 @@ var WindowManager = (function() {
     // Case 4: app-to-app transition
     else {
       setAppSize(newApp);
+      updateLaunchTime(newApp);
       openWindow(newApp, function() {
         closeWindow(currentApp, true, callback);
       });
@@ -484,7 +498,8 @@ var WindowManager = (function() {
     runningApps[origin] = {
       name: name,
       manifest: manifest,
-      frame: frame
+      frame: frame,
+      launchTime: Date.now()
     };
 
     numRunningApps++;
@@ -596,10 +611,15 @@ var WindowManager = (function() {
     // homescreen. Unlike the Home key, apps can intercept this event
     // and use it for their own purposes.
     if (e.keyCode === e.DOM_VK_ESCAPE &&
+        !ModalDialog.blocked &&
         !e.defaultPrevented &&
         displayedApp !== null) {
 
       setDisplayedApp(null); // back to the homescreen
+    }
+
+    if (e.keyCode === e.DOM_VK_ESCAPE && ModalDialog.blocked) {
+      ModalDialog.cancelHandler();
     }
   });
 
@@ -667,7 +687,7 @@ var WindowManager = (function() {
         // the we also itnore it
         // Otherwise, make the homescreen visible.
         // Also, if the card switcher is visible, then hide it.
-        if (!LockScreen.locked && !e.defaultPrevented) {
+        if (!ModalDialog.blocked && !LockScreen.locked && !e.defaultPrevented) {
           // The attention screen can 'eat' this event
           if (!e.defaultPrevented)
             setDisplayedApp(null);
@@ -686,8 +706,11 @@ var WindowManager = (function() {
       // and if the card switcher is not already shown
       timer = null;
 
-      if (!LockScreen.locked && !CardsView.cardSwitcherIsShown())
+      if (!ModalDialog.blocked &&
+          !LockScreen.locked &&
+          !CardsView.cardSwitcherIsShown()) {
         CardsView.showCardSwitcher();
+      }
     }
   }());
 
