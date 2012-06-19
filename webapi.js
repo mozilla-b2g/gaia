@@ -1123,6 +1123,13 @@
     loadLocale(navigator.language, translateFragment);
   });
 
+  // load the appropriate locale if the language setting has changed
+  if ('mozSettings' in navigator && navigator.mozSettings) {
+    navigator.mozSettings.addObserver('language.current', function(event) {
+      loadLocale(event.settingValue, translateFragment);
+    });
+  }
+
   // Public API
   document.mozL10n = {
     // get a localized string

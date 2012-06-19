@@ -183,11 +183,3 @@ window.addEventListener('localized', function showPanel() {
   }
 });
 
-// translate Settings UI if a new locale is selected
-if ('mozSettings' in navigator && navigator.mozSettings) {
-  navigator.mozSettings.onsettingchange = function(event) {
-    if (event.settingName == 'language.current')
-      document.mozL10n.language.code = event.settingValue;
-  };
-}
-
