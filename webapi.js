@@ -281,12 +281,17 @@
 (function(window) {
   // see https://github.com/fabi1cazenave/webL10n
 
-  var gL10nData = {},
-      gTextData = '',
-      gTextProp = 'textContent',
-      gLanguage = '',
-      gMacros = {};
+  var gL10nData = {};
+  var gTextData = '';
+  var gTextProp = 'textContent';
+  var gLanguage = '';
+  var gMacros = {};
 
+  var gDEBUG = false;
+  function consoleWarn(message) {
+    if (gDEBUG)
+      console.warn('[l10n] ' + message);
+  };
 
   /**
    * DOM helpers for the so-called "HTML API".
@@ -306,13 +311,16 @@
   function getL10nAttributes(element) {
     if (!element)
       return {};
-    var l10nId = element.getAttribute('data-l10n-id'),
-        l10nArgs = element.getAttribute('data-l10n-args'),
-        args = {};
-    if (l10nArgs) try {
-      args = JSON.parse(l10nArgs);
-    } catch (e) {
-      console.warn('[l10n] could not parse arguments for #' + l10nId);
+
+    var l10nId = element.getAttribute('data-l10n-id');
+    var l10nArgs = element.getAttribute('data-l10n-args');
+    var args = {};
+    if (l10nArgs) {
+      try {
+        args = JSON.parse(l10nArgs);
+      } catch (e) {
+        consoleWarn('could not parse arguments for #' + l10nId);
+      }
     }
     return { id: l10nId, args: args };
   }
@@ -482,7 +490,6 @@
 
   // load and parse all resources for the specified locale
   function loadLocale(lang, callback) {
-    /*jshint newcap: false */
     clear();
 
     // check all <link type="application/l10n" href="..." /> nodes
@@ -504,13 +511,12 @@
 
     // load all resource files
     function l10nResourceLink(link) {
-      /*jshint validthis: true*/
       var href = link.href;
       var type = link.type;
       this.load = function(lang, callback) {
         var applied = lang;
         parseResource(href, lang, callback, function() {
-          console.warn(href + ' not found.');
+          consoleWarn(href + ' not found.');
           applied = '';
         });
         return applied; // return lang if found, an empty string if not found
@@ -941,7 +947,7 @@
     // return a function that gives the plural form name for a given integer
     var index = locales2rules[lang.replace(/-.*$/, '')];
     if (!(index in pluralRules)) {
-      console.warn('[l10n] plural form unknown for [' + lang + ']');
+      consoleWarn('plural form unknown for [' + lang + ']');
       return function() { return 'other'; };
     }
     return pluralRules[index];
@@ -985,7 +991,7 @@
   function getL10nData(key, args) {
     var data = gL10nData[key];
     if (!data)
-      console.warn('[l10n] #' + key + ' missing for [' + gLanguage + ']');
+      consoleWarn('#' + key + ' missing for [' + gLanguage + ']');
 
     /** This is where l10n expressions should be processed.
       * The plan is to support C-style expressions from the l20n project;
@@ -1043,7 +1049,7 @@
       } else if (arg in gL10nData) {
         sub = gL10nData[arg][gTextProp];
       } else {
-        console.warn('[l10n] could not find argument {{' + arg + '}}');
+        consoleWarn('could not find argument {{' + arg + '}}');
         return str;
       }
 
@@ -1063,7 +1069,7 @@
     // get the related l10n object
     var data = getL10nData(l10n.id, l10n.args);
     if (!data) {
-      console.warn('[l10n] #' + l10n.id + ' missing for [' + gLanguage + ']');
+      consoleWarn('#' + l10n.id + ' missing for [' + gLanguage + ']');
       return;
     }
 
@@ -1089,7 +1095,7 @@
           }
         }
         if (!found) {
-          console.log('WTF ?');
+          consoleWarn('unexpected error, could not translate element content');
         }
       }
       delete data[gTextProp];

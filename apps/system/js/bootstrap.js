@@ -79,7 +79,7 @@ try {
   };
 } catch (e) {}
 
-/* === Localization ===
+/* === Localization === */
 /* set the 'lang' and 'dir' attributes to <html> when the page is translated */
 window.addEventListener('localized', function onlocalized() {
   document.documentElement.lang = document.mozL10n.language.code;
