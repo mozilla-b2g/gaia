@@ -80,7 +80,7 @@
   window.addEventListener('mozChromeEvent', function ss_onMozChromeEvent(e) {
     if (e.detail.type === 'save-screenshot-success') {
       // Vibrate again when the screenshot is saved
-      navigator.mozVibrate([100, 100]);  // pause buzz
+      navigator.mozVibrate(100);
 
       // Display filename in a notification
       navigator.mozNotification

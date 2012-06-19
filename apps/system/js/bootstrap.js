@@ -10,6 +10,11 @@ function startup() {
   SourceView.init();
   Shortcuts.init();
 
+  // We need to be sure to get the focus in order to wake up the screen
+  // if the phone goes to sleep before any user interaction.
+  // Apparently it works because no other window has the focus at this point.
+  window.focus();
+
   // This is code copied from
   // http://dl.dropbox.com/u/8727858/physical-events/index.html
   // It appears to workaround the Nexus S bug where we're not
@@ -53,58 +58,6 @@ var Shortcuts = {
     document.location.reload();
   }
 };
-
-// XXX This crap should live in webapi.js for compatibility
-var Mouse2Touch = {
-  'mousedown': 'touchstart',
-  'mousemove': 'touchmove',
-  'mouseup': 'touchend'
-};
-
-var Touch2Mouse = {
-  'touchstart': 'mousedown',
-  'touchmove': 'mousemove',
-  'touchend': 'mouseup'
-};
-
-var ForceOnWindow = {
-  'touchmove': true,
-  'touchend': true
-};
-
-function AddEventHandlers(target, listener, eventNames) {
-  for (var n = 0; n < eventNames.length; ++n) {
-    var name = eventNames[n];
-    target = ForceOnWindow[name] ? window : target;
-    name = Touch2Mouse[name] || name;
-    target.addEventListener(name, {
-      handleEvent: function(e) {
-        if (Mouse2Touch[e.type]) {
-          var original = e;
-          e = {
-            type: Mouse2Touch[original.type],
-            target: original.target,
-            touches: [original],
-            preventDefault: function() {
-              original.preventDefault();
-            }
-          };
-          e.changedTouches = e.touches;
-        }
-        return listener.handleEvent(e);
-      }
-    }, true);
-  }
-}
-
-function RemoveEventHandlers(target, listener, eventNames) {
-  for (var n = 0; n < eventNames.length; ++n) {
-    var name = eventNames[n];
-    target = ForceOnWindow[name] ? window : target;
-    name = Touch2Mouse[name] || name;
-    target.removeEventListener(name, listener);
-  }
-}
 
 window.addEventListener('mozfullscreenchange', function onfullscreen(e) {
   var classes = document.getElementById('screen').classList;

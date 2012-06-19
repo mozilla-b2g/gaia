@@ -22,10 +22,6 @@ body {
 
 /* Notification Screen */
 
-#grippy {
-  background: #111 url(images/grippy.png) no-repeat 50% 50%;
-}
-
 #notifications-container .notification > a.close {
   background: url('images/notifications/close.png') center center no-repeat;
   background-size: 40px 40px;

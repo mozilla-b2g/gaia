@@ -59,7 +59,8 @@
   "default_locale": "en-US",
   "background_page": "/background.html#0",
   "icons": {
-    "120": "/style/icons/Sms.png"
+    "120": "/style/icons/Sms.png",
+    "60": "/style/icons/60/Sms.png"
   },
   "orientation": "portrait-primary"
 }

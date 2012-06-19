@@ -5,6 +5,8 @@
     <meta http-equiv="pragma" content="no-cache">
     <!-- System -->
     <script>
+    // The following code loads a shared WebAPI shim from webapi.js
+    (function webapiJSLoader() {
       if (document.location.protocol === 'file:') {
         var paths = document.location.pathname.split('/');
         paths.pop();
@@ -17,12 +19,14 @@
         var src = 'http://' + domain + '/webapi.js';
       }
       document.write('<script src="' + src + '"><\/script>');
+    })();
     </script>
     <link rel="stylesheet" type="text/css" href="style/system.css">
     <script defer src="js/settings_listener.js"></script>
     <script defer src="js/applications.js"></script>
     <script defer src="js/screen_manager.js"></script>
     <script defer src="js/background_service.js"></script>
+    <script defer src="js/mouse2touch.js"></script>
     <script defer src="js/bootstrap.js"></script>
     <script defer src="js/screenshot.js"></script>
     <script defer src="js/sound_manager.js"></script>
@@ -58,9 +62,17 @@
     <link rel="stylesheet" type="text/css" href="style/statusbar/statusbar.css">
     <script defer src="js/statusbar.js"></script>
 
+    <!-- Utility Tray -->
+    <link rel="stylesheet" type="text/css" href="style/utility_tray/utility_tray.css">
+    <script defer src="js/utility_tray.js"></script>
+
+    <!-- Quick Settings -->
+    <link rel="stylesheet" type="text/css" href="style/quick_settings/quick_settings.css">
+    <script defer src="js/quick_settings.js"></script>
+
     <!-- Notifications -->
     <link rel="stylesheet" type="text/css" href="style/notifications/notifications.css">
-    <script defer src="js/notifications/notifications.js"></script>
+    <script defer src="js/notifications.js"></script>
 
     <!-- Permission Manager -->
     <link rel="stylesheet" type="text/css" href="style/permission_manager/permission_manager.css">
@@ -98,6 +110,7 @@
         <!-- application windows are added here -->
       </div>
 
+<<<<<<< HEAD
       <div id="modal-dialog">
         <div id="modal-dialog-table">
           <div id="modal-dialog-tablecell">
@@ -129,10 +142,24 @@
         </div>
       </div>
 
-      <div id="notifications-screen">
+      <!-- utility tray -->
+      <div id="utility-tray">
+        <!-- quick settings -->
+        <div id="quick-settings">
+          <a href="#" id="quick-settings-wifi" data-enabled="false" data-l10n-id="quick-settings-wifi">Wifi</a>
+          <a href="#" id="quick-settings-data" data-enabled="false" data-l10n-id="quick-settings-data">Data</a>
+          <a href="#" id="quick-settings-bluetooth" data-enabled="false" data-l10n-id="quick-settings-bluebooth">Bluetooth</a>
+          <a href="#" id="quick-settings-power-save" data-enabled="false" data-l10n-id="quick-settings-power-save">Power</a>
+          <a href="#" id="quick-settings-full-app" data-enabled="false" data-l10n-id="quick-settings-full-app">Go to Settings</a>
+        </div>
+
+        <!-- TBD: credit module -->
+
+        <!-- notifications -->
         <div id="notifications-container">
         </div>
-        <div id="grippy">
+
+        <div id="utility-tray-grippy">
         </div>
       </div>
 

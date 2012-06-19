@@ -28,8 +28,7 @@
   display: inline-block;
   float: left;
   text-align: center;
-  /* It SHOULD be 2.5rem but status bar is 32px instead of 20px */
-  padding-bottom: 2.3rem;
+  padding-bottom: 2.2rem;
   font-family:'Open Sans';
 }
 
@@ -71,6 +70,7 @@
 /* text label */
 .apps ol > li > div > span > span {
   font-size: -moz-calc(6 * 0.226rem); /* 6pt */
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
 }
 
 .labelWrapper {
@@ -81,7 +81,7 @@
   display: block;
   width: 94%; /* At least 6% of margin between labels of different apps */
   position: relative;
-  height: 1.5rem; /* 15px in otoro */
+  height: 1.6rem; /* 15px in otoro */
   margin: 0 auto;
 }
 
@@ -98,7 +98,6 @@
   margin-bottom: .5rem;
   box-shadow: 0 0 5px 5px #666;
   -moz-transform: scale(1.1);
-  border-radius: 1rem;
   width: 6rem;
   height: 6rem;
 }
@@ -148,7 +147,8 @@
   opacity: .8;
 }
 
-.apps[data-transitioning] ol > li > div > img, .apps[data-transitioning] ol > li > div {
+.apps[data-transitioning] ol > li > div > img,
+.apps[data-transitioning] ol > li > div {
   -moz-animation-name: none;
 }
 
@@ -159,3 +159,4 @@
 .apps ol > li[data-dragging] {
   opacity: 0;
 }
+

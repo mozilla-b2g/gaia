@@ -21,6 +21,7 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "128": "/style/icons/Fm.png"
+    "128": "/style/icons/Fm.png",
+    "60": "/style/icons/60/Fm.png"
   }
 }
