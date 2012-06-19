@@ -75,26 +75,22 @@ if (!contacts.app) {
       emailContainer = document.getElementById('contacts-form-email');
       navigation = new navigationStack('view-contacts-list');
 
-      // Listen Back Button
-      var backButtons = document.getElementsByClassName('back-button');
-      for (var i = 0; i < backButtons.length; i++) {
-        backButtons[i].onclick = function() {
-          navigation.back();
-        };
-      }
-
       loadContacts();
+    };
+
+    var goBack = function() {
+      navigation.back();
     };
 
     var addNewPhone = function() {
       insertEmptyPhone();
       return false;
-    }
+    };
 
     var addNewEmail = function() {
       insertEmptyEmail();
       return false;
-    }
+    };
 
     var loadContacts = function loadContacts(mode) {
       getContactsByGroup(function(contacts) {
@@ -183,11 +179,11 @@ if (!contacts.app) {
       contactName.innerHTML = contact.name;
 
       var listContainer = document.getElementById('details-list');
-      for(var tel in contact.tel) {
+      for (var tel in contact.tel) {
         var telField = {number: contact.tel[tel].number, tel_type: '', notes: '', type: 'tel'};
         owd.templates.append(listContainer, telField);
       }
-      for(var email in contact.email) {
+      for (var email in contact.email) {
         var emailField = {email: contact.email[email], email_tag: '', type: 'email'};
         owd.templates.append(listContainer, emailField);
       }
@@ -200,11 +196,11 @@ if (!contacts.app) {
       formTitle = 'Edit contact';
       buildActions([{label: 'Finish', icon: 'i-finish'}]);
 
-      for(var tel in currentContact.tel) {
+      for (var tel in currentContact.tel) {
         var telField = {number: currentContact.tel[tel].number, type: '', notes: ''};
         phonesContainer.appendChild(owd.templates.render(phoneTemplate, telField));
       }
-      for(var email in currentContact.email) {
+      for (var email in currentContact.email) {
         var emailField = {email: currentContact.email[email], type: ''};
         emailContainer.appendChild(owd.templates.render(emailTemplate, emailField));
       }
@@ -235,7 +231,7 @@ if (!contacts.app) {
     //********** Contact Form **************//
 
     var buildActions = function(actions) {
-      for(var i in actions) {
+      for (var i in actions) {
         var action = document.createElement('li');
         action.onclick = actions[i].callback;
         var link = document.createElement('a');
@@ -243,7 +239,7 @@ if (!contacts.app) {
         var icon = document.createElement('i');
         icon.className = actions[i].icon;
         icon.innerHTML = actions[i].label;
-        link.appendChild(icon)
+        link.appendChild(icon);
         action.appendChild(link);
         formActions.appendChild(action);
       }
@@ -306,7 +302,8 @@ if (!contacts.app) {
         'showEdit' : showEdit,
         'showAdd': showAdd,
         'addNewPhone' : addNewPhone,
-        'addNewEmail' : addNewEmail
+        'addNewEmail' : addNewEmail,
+        'goBack' : goBack
       }
     };
           //
