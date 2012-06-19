@@ -74,3 +74,36 @@ try {
     }
   };
 } catch (e) {}
+
+/* === Localization ===
+*  This thing here will push setting change into mozL10n for it to
+*  load the new locale.
+*  Each time mozL10n loads the new locale (including first load),
+*  it will dispatch a 'localized' event.
+*
+*  XXX: mozL10n should handle setting change by itself if possible.
+*
+*/
+
+(function l10n() {
+  var called = false;
+  SettingsListener.observe('language.current', 'en-US',
+    (function localeChanged(lang) {
+      // Skip the first callback firing
+      if (!called) {
+        called = true;
+        return;
+      }
+
+      // Update <html> lang attribute
+      document.documentElement.lang = lang;
+      // Setting the code properties here will make mozL10n translate
+      // HTML again
+      document.mozL10n.language.code = lang;
+
+      // Update <html> dir attribute
+      document.documentElement.dir =
+        document.mozL10n.language.direction;
+    }).bind(this)
+  );
+})();
