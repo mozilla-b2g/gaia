@@ -605,7 +605,8 @@
     gL10nData = {};
     gTextData = '';
     gLanguage = '';
-    gMacros = {};
+    // TODO: clear all non predefined macros.
+    // There's no such macro /yet/ but we're planning to have some...
   }
 
   // rules for plural forms (shared with JetPack)
