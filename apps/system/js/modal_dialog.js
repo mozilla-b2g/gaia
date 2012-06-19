@@ -93,7 +93,7 @@ var ModalDialog = {
 
         case 'prompt':
           this.prompt.classList.add('visible');
-          this.promptInput.value = this.evt.detail.promptType;
+          this.promptInput.value = this.evt.detail.initialValue;
           this.promptMessage.textContent = message;
           break;
 
