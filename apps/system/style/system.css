@@ -25,9 +25,9 @@ body {
 #homescreen {
   position: absolute;
   left: 0px;
-  top: 32px;
+  top: 20px;
   width: 100%;
-  height: -moz-calc(100% - 32px);
+  height: -moz-calc(100% - 20px);
   border: 0px;
   overflow: hidden;
 }
