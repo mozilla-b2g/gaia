@@ -54,11 +54,8 @@ var Shortcuts = {
   }
 };
 
-window.addEventListener('mozfullscreenchange', function onfullscreen(e) {
-  var classes = document.getElementById('screen').classList;
-  document.mozFullScreen ?
-    classes.add('fullscreen') : classes.remove('fullscreen');
-});
+/* === focuschange === */
+/* XXX: should go to keyboard_manager.js */
 
 try {
   window.navigator.mozKeyboard.onfocuschange = function onfocuschange(evt) {
