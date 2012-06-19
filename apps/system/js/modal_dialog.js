@@ -55,7 +55,6 @@ var ModalDialog = {
   // Default event handler
   handleEvent: function md_handleEvent(evt) {
     switch (evt.type) {
-
       case 'mozbrowsershowmodalprompt':
         evt.preventDefault();
         this.overlay.classList.add('visible');
@@ -87,15 +86,18 @@ var ModalDialog = {
           this.alertMessage.textContent = message;
           this.alert.classList.add('visible');
           break;
+
         case 'prompt':
           this.prompt.classList.add('visible');
           this.promptInput.value = this.evt.detail.promptType;
           this.promptMessage.textContent = message;
           break;
+
         case 'confirm':
           this.confirm.classList.add('visible');
           this.confirmMessage.textContent = message;
           break;
+
         default:
           break;
       }
@@ -109,14 +111,17 @@ var ModalDialog = {
       case 'alert':
         this.alert.classList.remove('visible');
         break;
+
       case 'prompt':
         this.evt.detail.returnValue = this.promptInput.value;
         this.prompt.classList.remove('visible');
         break;
+
       case 'confirm':
         this.evt.detail.returnValue = true;
         this.confirm.classList.remove('visible');
         break;
+
       default:
         break;
     }
@@ -124,7 +129,7 @@ var ModalDialog = {
 
     // Let WindowManager know it can return to home now.
     this.blocked = false;
-    //this.evt = null;
+    this.evt = null;
   },
 
   // When user clicks cancel button on confirm/prompt or
@@ -136,11 +141,13 @@ var ModalDialog = {
       case 'alert':
         this.alert.classList.remove('visible');
         break;
+
       case 'prompt':
         /* return null when click cancel */
         this.evt.detail.returnValue = null;
         this.prompt.classList.remove('visible');
         break;
+
       case 'confirm':
         /* return false when click cancel */
         this.evt.detail.returnValue = false;
@@ -153,7 +160,7 @@ var ModalDialog = {
 
     // Let WindowManager know it can return to home now.
     this.blocked = false;
-    //this.evt = null;
+    this.evt = null;
   }
 };
 
