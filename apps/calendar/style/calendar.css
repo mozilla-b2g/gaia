@@ -1,0 +1,56 @@
+* {
+  -moz-box-sizing: border-box;
+   box-sizing: border-box;
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  src: url('fonts/Open-Sans.woff');
+}
+@font-face {
+  font-family: 'Open Sans';
+  font-weight: bold;
+  src: url('fonts/Open-Sans-Bold.woff');
+}
+@font-face {
+  font-family: 'Open Sans';
+  font-weight: 600;
+  src: url('fonts/Open-Sans-Semibold.woff');
+}
+
+h3,
+h4,
+h5,
+menu,
+header,
+section {
+  /* unscrew up heights */
+  font-size: 100%;
+  padding: 0px;
+  margin: 0px;
+  width: 100%;
+}
+
+ol,
+menu li,
+ol li {
+  list-style: none;
+  margin: 0px;
+  padding: 0px;
+}
+
+
+html, body {
+  font-family: 'Open Sans';
+  padding: 0px;
+  margin: 0px;
+}
+
+
+.ltr {
+  text-align: left;
+}
+
+.rtl {
+  text-align: right;
+}

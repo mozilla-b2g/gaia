@@ -1,21 +1,39 @@
 #!/bin/bash
 
-cd $B2G_HOME/gaia
+cd $GAIA_PATH;
 
 # start test agent server put it in the background
-make -C $B2G_HOME/gaia test-agent-server &
+make -C $GAIA_PATH test-agent-config
+make -C $GAIA_PATH test-agent-server &
+AGENT_PID=`jobs -p | tail -n 1`;
 
 # wait for emulator to connect to ws server
-sleep 4
+sleep 5
 
-AGENT=$B2G_HOME/gaia/tools/test-agent/node_modules/test-agent/bin/js-test-agent
+AGENT=./tools/test-agent/node_modules/test-agent/bin/js-test-agent
 
-rm -f $B2G_HOME/test-output.xml
 
 echo "Running tests"
-$AGENT test \
-  --reporter XUnit \
-  --server $TEST_AGENT_SERVER > $B2G_HOME/test-output.xml
+echo $OUTPUT_FILE;
+echo $AGENT;
+
+if [ "$TEST_OUTPUT" == 'stdout' ];
+then
+  $AGENT test --reporter $REPORTER --server $TEST_AGENT_SERVER --wait-for-event="test data" --event-timeout="30000"
+else
+  rm -f $TEST_OUTPUT;
+  $AGENT test --reporter $REPORTER --server $TEST_AGENT_SERVER --wait-for-event="test data" --event-timeout="30000" > $TEST_OUTPUT
+fi
+
+EXIT_STATUS=$?
+
+if [ "$EXIT_STATUS" == "0" ];
+then
+  echo "GAIA: TESTS PASS";
+else
+  echo "GAIA: TESTS FAIL";
+fi
 
 # kill background server
-kill %1
+kill $AGENT_PID;
+exit $EXIT_STATUS;

@@ -28,7 +28,10 @@
   <body class="hidden">
     <div id="view" class="panel">
       <div id="view-toolbar" class="toolbar toolbar-top">
-        <a href="#" id="view-back" data-l10n-id="messages">Messages</a>
+        <a href="#" id="view-back" class="button back-button">
+          <h2 data-l10n-id="messages">Messages</h2>
+          <div class="back-button-img"></div>
+        </a>
         <h2 id="view-name">
 
         </h2>
@@ -42,22 +45,49 @@
             <textarea type="text" id="view-msg-text"></textarea>
           </div>
           <div id="view-msg-send-container" class="toolbar-panel-fixed-item">
-            <button id="view-msg-send" class="button" data-l10n-id="send">Send</button>
+            <button id="view-msg-send" class="button text-button" data-l10n-id="send">Send</button>
           </div>
         </div>
       </div>
     </div>
     <div id="msg-conversations" class="panel">
       <div id="msg-toolbar" class="toolbar toolbar-top">
-        <div id="msg-search-container">
-          <input id="msg-search" type="search" />
+        <a href="#" id="msg-conversations-back" class="button back-button edit-show">
+          <h2 data-l10n-id="back">Back</h2>
+          <div class="back-button-img"></div>
+        </a>
+        <div id="msg-title-container" data-l10n-id="messages">Messages
+        </div>
+        <a href="#num=*" id="msg-new-message" class="button edit-hide" data-l10n-id="new">New</a>
+      </div>
+      <div id="msg-search-container" class="toolbar">
+        <div id="msg-search-toolbar-panel" class="toolbar-panel">
+          <div id="msg-search-input-container" class="toolbar-panel-item">
+            <input id="msg-search" type="search" />
+          </div>
+          <div id="msg-search-cancel-container" class="toolbar-panel-fixed-item">
+            <button id="msg-search-cancel" class="button text-button search-show"
+                    data-l10n-id="cancel">Cancel</button>
+          </div>
         </div>
       </div>
       <div id="msg-conversations-list" class="list">
       </div>
+      <div id="msg-undo-toolbar" class="toolbar">
+        <div id="msg-undo-title-container" data-l10n-id="conversationDeleted">Conversation deleted
+        </div>
+        <button id="msg-undo-button" class="button text-button" data-l10n-id="undo">Undo</button>
+      </div>
       <div id="msg-bottom-toolbar" class="toolbar toolbar-bottom">
         <div id="msg-new-message-container">
-          <a href="#num=*" id="msg-new-message" class="button" data-l10n-id="newMessage">New Message</a>
+          <a href="#_edit" id="msg-edit-button" class="button text-button edit-hide search-hide"
+                  data-l10n-id="edit">Edit</a>
+          <a href="#searchresult_edit" id="msg-search-edit-button" class="button text-button edit-hide search-show"
+                  data-l10n-id="edit">Edit</a>
+          <a href="#search" id="msg-search-button" class="button text-button edit-hide search-hide"
+                  data-l10n-id="search">Search</a>
+          <button id="msg-delete-button" class="button text-button edit-show"
+                  data-l10n-id="delete">Delete</button>
         </div>
       </div>
     </div>

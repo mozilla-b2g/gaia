@@ -1,5 +1,5 @@
 ###############################################################################
-# Global configurations                                                       #
+# Global configurations.  Protip: set your own overrides in a local.mk file.  #
 #                                                                             #
 # GAIA_DOMAIN : change that if you plan to use a different domain to update   #
 #               your applications or want to use a local domain               #
@@ -15,16 +15,29 @@
 #                                                                             #
 # REPORTER    : Mocha reporter to use for test output.                        #
 #                                                                             #
+# GAIA_APP_SRCDIRS : list of directories to search for web apps               #
+#                                                                             #
 ###############################################################################
+-include local.mk
+
 GAIA_DOMAIN?=gaiamobile.org
 
 HOMESCREEN?=http://system.$(GAIA_DOMAIN)
+
+LOCAL_DOMAINS?=1
 
 ADB?=adb
 
 DEBUG?=0
 
 REPORTER=Spec
+
+GAIA_APP_SRCDIRS?=apps test_apps
+
+ifeq ($(MAKECMDGOALS), demo)
+GAIA_DOMAIN=thisdomaindoesnotexist.org
+GAIA_APP_SRCDIRS=apps
+endif
 
 
 ###############################################################################
@@ -82,7 +95,7 @@ ifeq ($(strip $(NPM)),)
 	NPM := `which npm`
 endif
 
-TEST_AGENT_CONFIG="./apps/test-agent/config.json"
+TEST_AGENT_CONFIG="./test_apps/test-agent/config.json"
 
 #Marionette testing variables
 #make sure we're python 2.7.x
@@ -109,21 +122,38 @@ webapp-manifests:
 	@echo "Generated webapps"
 	@mkdir -p profile/webapps
 	@echo { > profile/webapps/webapps.json
-	@cd apps; \
+	for d in `find ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
+	do \
+	  if [ -f $$d/manifest.webapp ]; \
+		then \
+			n=$$(basename $$d); \
+			mkdir -p profile/webapps/$$n; \
+			cp $$d/manifest.webapp profile/webapps/$$n/manifest.webapp  ;\
+			cp $$d/manifest.webapp profile/webapps/$$n/manifest.json  ;\
+			(\
+			echo \"$$n\": { ;\
+			echo \"origin\": \"http://$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
+			echo \"installOrigin\": \"http://$$n.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
+			echo \"receipt\": null, ;\
+			echo \"installTime\": 132333986000, ;\
+			echo \"manifestURL\": \"http://$$n.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp\" ;\
+			echo },) >> profile/webapps/webapps.json;\
+		fi \
+	done
+	@cd external-apps; \
 	for d in `find * -maxdepth 0 -type d` ;\
 	do \
 	  if [ -f $$d/manifest.webapp ]; \
 		then \
 		  mkdir -p ../profile/webapps/$$d; \
 		  cp $$d/manifest.webapp ../profile/webapps/$$d/manifest.webapp  ;\
-		  cp $$d/manifest.webapp ../profile/webapps/$$d/manifest.json  ;\
                   (\
 			echo \"$$d\": { ;\
-			echo \"origin\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
-			echo \"installOrigin\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)\", ;\
+			echo \"origin\": \"`cat $$d/origin`\", ;\
+			echo \"installOrigin\": \"`cat $$d/origin`\", ;\
 			echo \"receipt\": null, ;\
 			echo \"installTime\": 132333986000, ;\
-			echo \"manifestURL\": \"http://$$d.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp\" ;\
+			echo \"manifestURL\": \"`cat $$d/origin`/manifest.webapp\" ;\
 			echo },) >> ../profile/webapps/webapps.json;\
 		fi \
 	done
@@ -140,16 +170,17 @@ ifneq ($(DEBUG),1)
 	@rm -rf profile/OfflineCache
 	@mkdir -p profile/OfflineCache
 	@cd ..
-	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)$(GAIA_PORT)"' build/offline-cache.js
+	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)$(GAIA_PORT)"; const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)"' build/offline-cache.js
 	@echo "Done"
 endif
 
 
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up
 # some commands for invoking it. But it is platform dependent
+XULRUNNER_BASE_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner
 ifeq ($(SYS),Darwin)
 # We're on a mac
-XULRUNNER_DOWNLOAD=ftp://ftp.mozilla.org/pub/xulrunner/nightly/2012/05/2012-05-08-03-05-17-mozilla-central/xulrunner-15.0a1.en-US.mac-x86_64.sdk.tar.bz2
+XULRUNNER_DOWNLOAD=$(XULRUNNER_BASE_URL)/nightly/2012/05/2012-05-08-03-05-17-mozilla-central/xulrunner-15.0a1.en-US.mac-x86_64.sdk.tar.bz2
 XULRUNNER=./xulrunner-sdk/bin/run-mozilla.sh
 XPCSHELL=./xulrunner-sdk/bin/xpcshell
 
@@ -162,9 +193,9 @@ else
 # downloads and installs locally xulrunner to run the xpchsell
 # script that creates the offline cache
 ifeq ($(ARCH),x86_64)
-XULRUNNER_DOWNLOAD=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/11.0/runtimes/xulrunner-11.0.en-US.linux-x86_64.tar.bz2
+XULRUNNER_DOWNLOAD=$(XULRUNNER_BASE_URL)/releases/11.0/runtimes/xulrunner-11.0.en-US.linux-x86_64.tar.bz2
 else
-XULRUNNER_DOWNLOAD=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/11.0/runtimes/xulrunner-11.0.en-US.linux-i686.tar.bz2
+XULRUNNER_DOWNLOAD=$(XULRUNNER_BASE_URL)/releases/11.0/runtimes/xulrunner-11.0.en-US.linux-i686.tar.bz2
 endif
 XULRUNNER=./xulrunner/run-mozilla.sh
 XPCSHELL=./xulrunner/xpcshell
@@ -174,23 +205,36 @@ install-xulrunner :
 endif
 
 settingsdb :
+ifeq ($(SYS),Darwin)
 	@echo "B2G pre-populate settings DB."
 	$(XULRUNNER) $(XPCSHELL) -e 'const PROFILE_DIR = "$(CURDIR)/profile"' build/settings.js
+else 
+	@echo "Can't populate on Linux. You can still install."
+endif
 
-DB_PATH = /data/b2g/mozilla/`$(ADB) shell ls -1 /data/b2g/mozilla/ | grep default | tr -d [:cntrl:]`/indexedDB
+DB_TARGET_PATH = /data/b2g/mozilla/`$(ADB) shell ls -1 /data/b2g/mozilla/ | grep default | tr -d [:cntrl:]`/indexedDB
+ifneq ($(SYS),Darwin)
+DB_SOURCE_PATH = $(CURDIR)/build/indexeddb
+else
+DB_SOURCE_PATH = profile/indexedDB/chrome
+endif
 .PHONY: install-settingsdb
 install-settingsdb: settingsdb install-xulrunner
 	$(ADB) start-server
-	$(ADB) push profile/indexedDB/chrome/2588645841ssegtnti ${DB_PATH}/chrome/2588645841ssegtnti
-	$(ADB) push profile/indexedDB/chrome/2588645841ssegtnti.sqlite ${DB_PATH}/chrome/2588645841ssegtnti.sqlite
+	$(ADB) push $(DB_SOURCE_PATH)/2588645841ssegtnti ${DB_TARGET_PATH}/chrome/2588645841ssegtnti
+	$(ADB) push $(DB_SOURCE_PATH)/2588645841ssegtnti.sqlite ${DB_TARGET_PATH}/chrome/2588645841ssegtnti.sqlite
 	$(ADB) shell kill $(shell $(ADB) shell toolbox ps | grep "b2g" | awk '{ print $$2; }')
-	@echo 'Rebooting b2g now. This only works on Mac now!'
+	@echo 'Rebooting b2g now. '
 
 # Generate profile/prefs.js
 preferences: install-xulrunner
 	@echo "Generating prefs.js..."
 	@mkdir -p profile
-	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)$(GAIA_PORT)"; const DEBUG = $(DEBUG); const HOMESCREEN = "$(HOMESCREEN)"; GAIA_PORT = "$(GAIA_PORT)"' build/preferences.js
+	$(XULRUNNER) $(XPCSHELL) -e 'const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)/profile"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)"; const DEBUG = $(DEBUG); const LOCAL_DOMAINS = $(LOCAL_DOMAINS); const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)"' build/preferences.js
+	if [ -f custom-prefs.js ]; \
+	  then \
+	    cat custom-prefs.js >> profile/user.js; \
+	  fi
 	@echo "Done"
 
 
@@ -255,22 +299,24 @@ update-common: common-install
 test-agent-config: test-agent-bootstrap-apps
 	@rm -f $(TEST_AGENT_CONFIG)
 	@touch $(TEST_AGENT_CONFIG)
-	@echo '{"tests": [' >> $(TEST_AGENT_CONFIG)
-
+	@rm -f /tmp/test-agent-config;
 	# Build json array of all test files
-	@(find ./apps -name "*_test.js" | \
-		sed 's:./apps/::' | \
+	for d in ${GAIA_APP_SRCDIRS}; \
+	do \
+		find $$d -name '*_test.js' | sed "s:$$d/::g"  >> /tmp/test-agent-config; \
+	done;
+	@echo '{"tests": [' >> $(TEST_AGENT_CONFIG)
+	@cat /tmp/test-agent-config |  \
 		sed 's:\(.*\):"\1":' | \
 		sed -e ':a' -e 'N' -e '$$!ba' -e 's/\n/,\
-	/g') >> $(TEST_AGENT_CONFIG)
-
+	/g' >> $(TEST_AGENT_CONFIG);
 	@echo '  ]}' >> $(TEST_AGENT_CONFIG);
 	@echo "Built test ui config file: $(TEST_AGENT_CONFIG)"
-
+	@rm -f /tmp/test-agent-config
 
 .PHONY: test-agent-bootstrap-apps
 test-agent-bootstrap-apps:
-	for d in `find apps/* -maxdepth 0 -type d` ;\
+	for d in `find ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
 	do \
 		  mkdir -p $$d/test/unit ; \
 		  mkdir -p $$d/test/integration ; \
@@ -278,7 +324,6 @@ test-agent-bootstrap-apps:
 			cp -f ./common/test/boilerplate/_sandbox.html $$d/test/unit/_sandbox.html; \
 	done
 	@echo "Done bootstrapping test proxies/sandboxes";
-
 # Temp make file method until we can switch
 # over everything in test
 .PHONY: test-agent-test
@@ -315,6 +360,13 @@ endif
 # Utils                                                                       #
 ###############################################################################
 
+# Lint apps
+lint:
+	@# ignore lint on:
+	@# cubevid
+	@# crystalskull
+	@# towerjelly
+	@gjslint --nojsdoc -r apps -e 'cubevid,crystalskull,towerjelly,email,music/js/ext'
 
 # Generate a text file containing the current changeset of Gaia
 # XXX I wonder if this should be a replace-in-file hack. This would let us
@@ -351,13 +403,13 @@ forward:
 
 # update the manifest.appcache files to match what's actually there
 update-offline-manifests:
-	@cd apps; \
-	for d in `find * -maxdepth 0 -type d` ;\
+	for d in `find ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
 	do \
+		rm -rf $$d/manifest.appcache ;\
 		if [ -f $$d/manifest.webapp ] ;\
 		then \
-			echo \\t$$d ;\
-			cd $$d ;\
+			echo \\t$$d ;  \
+			( cd $$d ; \
 			echo "CACHE MANIFEST" > manifest.appcache ;\
 			cat `find * -type f | sort -nfs` | $(MD5SUM) | cut -f 1 -d ' ' | sed 's/^/\#\ Version\ /' >> manifest.appcache ;\
 			find * -type f | grep -v tools | sort >> manifest.appcache ;\
@@ -366,7 +418,7 @@ update-offline-manifests:
 			echo "NETWORK:" >> manifest.appcache ;\
 			echo "http://*" >> manifest.appcache ;\
 			echo "https://*" >> manifest.appcache ;\
-			cd .. ;\
+			) ;\
 		fi \
 	done
 
@@ -375,16 +427,21 @@ update-offline-manifests:
 # working on just gaia itself, and you already have B2G firmware on your
 # phone, and you have adb in your path, then you can use the install-gaia
 # target to update the gaia files and reboot b2g
-PROFILE_PATH = /data/b2g/mozilla/`$(ADB) shell ls -1 /data/b2g/mozilla/ | grep default | tr -d [:cntrl:]`
+PROFILE_PATH = /data/local/
 install-gaia: profile
 	$(ADB) start-server
 	$(ADB) shell rm -r /cache/*
 	python build/install-gaia.py "$(ADB)"
 
-	# Until bug 746121 lands, push user.js in the profile
 	$(ADB) push profile/user.js ${PROFILE_PATH}/user.js
 
 	@echo "Installed gaia into profile/."
 	$(ADB) shell kill $(shell $(ADB) shell toolbox ps | grep "b2g" | awk '{ print $$2; }')
 	@echo 'Rebooting b2g now'
 
+install-media-samples:
+	$(ADB) push media-samples/DCIM /sdcard/DCIM
+	$(ADB) push media-samples/videos /sdcard/videos
+	$(ADB) push media-samples/music /sdcard/music
+
+demo: install-media-samples install-gaia

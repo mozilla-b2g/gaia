@@ -5,6 +5,11 @@
   width: -moz-calc(100%);
   height: -moz-calc(100%);
   overflow: hidden;
+
+  background-color: #fff;
+  -moz-user-select: none;
+
+  -moz-transition: -moz-transform 0.3s ease;
 }
 
 #pinkeypadscreen > #pinkeypadscreen-container {
@@ -55,27 +60,29 @@
 
 #pinkeypadscreen-pad {
   -moz-box-sizing: border-box;
-  border: 1px solid #fff;
+  border: 1px solid #919191;
   position: absolute;
   bottom: 0;
   height: 500px;
   width: 100%;
-  background-color: rgba(0, 0, 0, 0.9);
 }
 
 #pinkeypadscreen-pad > a {
   -moz-box-sizing: border-box;
   display: block;
   float: left;
-  width: 33.333%;
-  height: 100px;
+  width: -moz-calc(33.333% - 16px);
+  height: 84px;
+  margin: 8px;
   text-align: center;
-  border: 1px solid #fff;
+  border: 1px solid #919191;
+  border-radius: 8px;
+  outline: none;
 
-  font-size: 80px;
-  line-height: 100px;
+  font-size: 64px;
+  line-height: 84px;
 
-  color: #fff;
+  color: #919191;
   text-decoration: none;
 }
 
@@ -85,10 +92,10 @@
 }
 
 #pinkeypadscreen-pad > a.pinkeypadscreen-pad-func {
-  font-size: 30px;
+  font-size: 20px;
 }
 
 #pinkeypadscreen-pad > a.pinkeypadscreen-pad-func-full {
   width: 100%;
-  font-size: 30px;
+  font-size: 20px;
 }

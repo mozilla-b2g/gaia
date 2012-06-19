@@ -1,0 +1,64 @@
+#attention-screen {
+  position: absolute;
+  top: 0px;
+  width: 100%;
+  height: -moz-calc(100% + 32px);
+  overflow: hidden;
+
+  /* Show it above fullscreen - see https://mxr.mozilla.org/mozilla-central/source/layout/style/ua.css#218 */
+  z-index: 2147483647;
+
+  -moz-transition: -moz-transform 0.5s ease;
+  display: none;
+}
+
+#attention-screen.displayed {
+  display: block;
+}
+
+#attention-screen.status {
+  -moz-transform: translateY(-moz-calc(-100% + 32px));
+}
+
+#attention-screen > iframe {
+  border: 0;
+  width: 100%;
+  height: -moz-calc(100% - 64px);
+  margin-top: 32px;
+
+  background-color: transparent;
+}
+
+#attention-screen > #attention-bar {
+  position: absolute;
+  bottom: 2px;
+  width: 100%;
+  height: 28px;
+
+  z-index: 1000;
+  opacity: 0.1;
+  background-color: #22b04d;
+  border-radius: 14px;
+
+  display: none;
+
+  -moz-animation-duration: 1s;
+  -moz-animation-iteration-count: infinite;
+  -moz-animation-direction: alternate;
+  -moz-animation-timing-function: ease;
+  -moz-animation-name: pulse;
+}
+
+@-moz-keyframes pulse {
+  from {
+    opacity: 0.1;
+  }
+
+  to {
+    opacity: 0.5;
+  }
+}
+
+#attention-screen.status > #attention-bar {
+  display: block;
+}

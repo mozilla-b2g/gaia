@@ -5,8 +5,11 @@
     <meta http-equiv="pragma" content="no-cache">
     <title>Music</title> 
     <link rel="stylesheet" href="style/music.css" type="text/css" />
-    <script type="text/javascript" src="js/music.js"></script>
+    <!-- Use external libraries of mp3 and ogg -->
+    <script type="text/javascript" src="js/ext/id3-minimized.js"></script>
+    <script type="text/javascript" src="js/ext/ogg.js"></script>
     <script type="text/javascript" src="js/utils.js"></script>
+    <script type="text/javascript" src="js/music.js"></script>
   </head>
 
   <body>
@@ -18,7 +21,25 @@
   	</div>
   	<div id="search"></div>
   	<div id="views">
-  	  <div id="views-tiles" class="view"></div>
+  	  <div id="views-tiles" class="view">
+  	    <div id="tiles-recently" class="main-tile">
+  	      <div class="main-tile-text">
+  	        Click
+            <br>
+            to
+            <br>
+            Start!
+  	      </div>
+  	    </div>
+  	    <div class="sub-tile"><br></div>
+  	    <div class="sub-tile"><br></div>
+  	    <div class="sub-tile"><br></div>
+  	    <div class="sub-tile"><br></div>
+  	    <div class="sub-tile"><br></div>
+  	    <div class="sub-tile"><br></div>
+  	    <div class="sub-tile"><br></div>
+  	    <div class="sub-tile"><br></div>
+  	  </div>
   	  <div id="views-list" class="view"></div>
   	  <div id="views-player" class="view">
   	    <div id="player-cover">
@@ -32,27 +53,30 @@
   	      </div>
   	    </div>
   	    <div id="player-seek">
-  	      <span class="player-seek-elapsed">00:00</span>
+  	      <span id="player-seek-elapsed">00:00</span>
   	      <div id="player-seek-bar">
-  	        <progress id="player-seek-bar-progress" value="50" max="100"></progress>
+  	        <progress id="player-seek-bar-progress" value="0"></progress>
   	        <div id="player-seek-bar-indicator"></div>
   	      </div>
-  	      <span class="player-seek-remaining">99:99</span>
+  	      <span id="player-seek-remaining">00:00</span>
   	    </div>
   	    <div id="player-controls">
-  	      <button id="player-controls-previous" class="player-controls-button" disabled=true>Previous</button>
-  	      <button id="player-controls-play" class="player-controls-button" disabled=true>Play</button>
-  	      <button id="player-controls-next" class="player-controls-button" disabled=true>Next</button>
+  	      <button id="player-controls-previous" class="player-controls-button">Previous</button>
+  	      <button id="player-controls-play" class="player-controls-button">Play</button>
+  	      <button id="player-controls-next" class="player-controls-button">Next</button>
   	    </div>
   	    <audio id="player-audio" class="hidden" controls autoplay></audio>
   	  </div>
   	</div>
   	<div id="tabs">
-      <button id="tabs-top" class="tabs-button" disabled=true>Top</button>
+      <button id="tabs-mix" class="tabs-button" disabled=true>Mix</button>
       <button id="tabs-playlists" class="tabs-button" disabled=true>Playlists</button>
-      <button id="tabs-artist" class="tabs-button" disabled=true>Artist</button>
+      <button id="tabs-artists" class="tabs-button" disabled=true>Artists</button>
       <button id="tabs-albums" class="tabs-button" disabled=true>Albums</button>
       <button id="tabs-more" class="tabs-button" disabled=true>More</button>
+  	</div>
+  	<div id="nosongs">
+  	  <div id="nosongs-text">No Songs</div>
   	</div>
   </body>
 </html>

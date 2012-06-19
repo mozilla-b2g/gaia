@@ -15,7 +15,11 @@ var Contacts = {
   },
 
   setup: function contactsSetup() {
-    document.getElementById('contacts').addEventListener('change',
+    var tab = document.getElementById('contacts');
+    if (!tab)
+      return;
+
+    tab.addEventListener('change',
       (function contactTabChanged(evt) {
         // loading contacts the first time the view appears
         this.load();
@@ -254,6 +258,9 @@ var Contacts = {
 
 var ShortcutsHandler = {
   setup: function sh_setup() {
+    if (!this.shortcutsBar)
+      return;
+
     ['touchstart', 'touchmove', 'touchend'].forEach((function(evt) {
       this.shortcutsBar.addEventListener(evt, this, true);
     }).bind(this));
@@ -313,6 +320,9 @@ var ContactDetails = {
   _keyboardDisplayed: false,
 
   setup: function cd_setup() {
+    if (!this.container)
+      return;
+
     window.addEventListener('keyup', this, true);
     window.addEventListener('resize', this, true);
 
@@ -484,11 +494,18 @@ var ContactDetails = {
       }
 
       var req = navigator.mozContacts.save(contact);
-      req.onsuccess = (function() {
-        this.render();
-        this.endEditing();
+      req.onsuccess = function contactSaveSuccess() {
+
+        // Fetching the contact from the backend again since
+        // a mozContact can only be edited once.
+        Contacts.findByID(contact.id, function reFind(newContact) {
+          ContactDetails.contact = newContact;
+          ContactDetails.endEditing();
+        });
+
         Contacts.reload();
-      }.bind(this));
+
+      };
     }
   },
 

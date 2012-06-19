@@ -105,6 +105,9 @@
             <span data-l10n-id="about">About</span>
           </a>
         </li>
+        <li>
+          <a href="#debug"><span data-l10n-id="debug">Debug</span></a>
+        </li>
       </ul>
     </div>
 
@@ -330,12 +333,29 @@
           <small id="gaia-commit-hash"></small>
         </li>
       </ul>
-      <h2 data-l10n-id="debug">Debug</h2>
+    </div>
+
+    <!-- Debug -->
+    <div id="debug" class="view" data-title="Data">
       <ul>
         <li>
           <a data-l10n-id="grid">Grid</a>
           <label>
             <input type="checkbox" name="debug.grid.enabled"/>
+            <span></span>
+          </label>
+        </li>
+        <li>
+          <a data-l10n-id="fps-monitor">Show frames per second</a>
+          <label>
+            <input type="checkbox" name="debug.fps.enabled"/>
+            <span></span>
+          </label>
+        </li>
+        <li>
+          <a data-l10n-id="paint-flashing">Flash repainted area</a>
+          <label>
+            <input type="checkbox" name="debug.paint-flashing.enabled"/>
             <span></span>
           </label>
         </li>
@@ -423,6 +443,14 @@
           </label>
         </li>
         <li>
+          <span data-l10n-id="jp-kanji">Japanese</span>
+          <small data-l10n-id="jp-kanji-desc">Kanji</small>
+          <label>
+            <input type="checkbox" name="keyboard.layouts.japanese"/>
+            <span></span>
+          </label>
+        </li>
+        <li>
           <a data-l10n-id="greek">Greek</a>
           <label>
             <input type="checkbox" name="keyboard.layouts.greek"/>
@@ -465,6 +493,13 @@
         <li id="brightness">
           <a data-l10n-id="brightness">Brightness level</a>
           <progress id="brightness-level" data-name="screen.brightness" value="5" max="10"></progress>
+        </li>
+        <li id="automatic-brightness">
+          <a data-l10n-id="automatic-brightness">Automatic Brightness</a>
+          <label>
+            <input type="checkbox" name="screen.automatic-brightness" checked="true"/>
+            <span></span>
+          </label>
         </li>
         <li>
           <a data-l10n-id="lockScreen">Lock Screen</a>
