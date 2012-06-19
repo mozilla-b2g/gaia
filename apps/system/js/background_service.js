@@ -30,9 +30,21 @@ var BackgroundServiceManager = (function bsm() {
     close(origin);
   });
 
+  /* Check if the app has the permission to open a background page */
+  var hasBackgroundPermission = function bsm_checkPermssion(app) {
+    if (!app || !app.manifest.permissions ||
+        app.manifest.permissions.indexOf('background') == -1) {
+      return false;
+    }
+    return true;
+  };
+
   /* The open function is responsible of containing the iframe */
   var open = function bsm_open(origin) {
     var app = Applications.getByOrigin(origin);
+    if (!hasBackgroundPermission(app))
+      return false;
+
     if (!app || !app.manifest.background_page)
       return false;
 
