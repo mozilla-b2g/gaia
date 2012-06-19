@@ -49,7 +49,6 @@ var Browser = {
     this.urlButton.addEventListener('click', this.go.bind(this));
     this.forwardButton.addEventListener('click', this.goForward.bind(this));
     this.urlInput.addEventListener('focus', this.urlFocus.bind(this));
-    this.urlInput.addEventListener('blur', this.urlBlur.bind(this));
     this.history.addEventListener('click', this.followLink.bind(this));
     this.tabsBadge.addEventListener('click',
       this.handleTabsBadgeClicked.bind(this));
@@ -297,10 +296,6 @@ var Browser = {
     }
   },
 
-  urlBlur: function browser_urlBlur() {
-    this.urlInput.value = this.currentTab.title || this.currentTab.url;
-  },
-
   setUrlButtonMode: function browser_setUrlButtonMode(mode) {
     this.urlButtonMode = mode;
     switch (mode) {
@@ -538,6 +533,7 @@ var Browser = {
       this.setTabVisibility(this.currentTab, true);
     }
     this.switchScreen(this.PAGE_SCREEN);
+    this.urlInput.value = this.currentTab.title || this.currentTab.url;
     this.tabsBadge.innerHTML = Object.keys(this.tabs).length;
   },
 
