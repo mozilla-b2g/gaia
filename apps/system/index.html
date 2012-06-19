@@ -34,6 +34,10 @@
     <script defer src="js/storage.js"></script>
     <script defer src="js/gridview.js"></script>
 
+    <!-- Modal Dialog -->
+    <link rel="stylesheet" type="text/css" href="style/modal_dialog/modal_dialog.css">
+    <script defer src="js/modal_dialog.js"></script>
+
     <!-- Accessibility -->
     <link rel="stylesheet" type="text/css" href="style/accessibility/accessibility.css">
     <script defer src="js/accessibility.js"></script>
@@ -104,6 +108,36 @@
 
       <div id="windows">
         <!-- application windows are added here -->
+      </div>
+
+      <div id="modal-dialog">
+        <div id="modal-dialog-table">
+          <div id="modal-dialog-tablecell">
+            <div id="modal-dialog-alert">
+              <div class="modal-dialog-message-container">
+                <span id="modal-dialog-alert-message"></span>
+              </div>
+              <button id="modal-dialog-alert-ok" data-i10n-id="ok">OK</button>
+            </div>
+
+            <div id="modal-dialog-confirm">
+              <div class="modal-dialog-message-container">
+                <span id="modal-dialog-confirm-message"></span>
+              </div>
+              <button id="modal-dialog-confirm-ok" data-i10n-id="ok">OK</button>
+              <button id="modal-dialog-confirm-cancel" data-i10n-id="cancel">Cancel</button>
+            </div>
+
+            <div id="modal-dialog-prompt">
+              <div class="modal-dialog-message-container">
+                <span id="modal-dialog-prompt-message"></span>
+                <input id="modal-dialog-prompt-input" />
+              </div>
+              <button id="modal-dialog-prompt-ok" data-i10n-id="ok">OK</button>
+              <button id="modal-dialog-prompt-cancel" data-i10n-id="cancel">Cancel</button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- utility tray -->
