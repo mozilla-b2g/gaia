@@ -50,6 +50,7 @@ function populateTemplateNodes() {
  */
 function bindContainerHandler(containerNode, eventName, func) {
   containerNode.addEventListener(eventName, function(event) {
+console.warn('eeeeeee');
     var node = event.target;
     // bail if they clicked on the container and not a child...
     if (node === containerNode)
@@ -68,12 +69,17 @@ function bindContainerHandler(containerNode, eventName, func) {
  * we don't trigger the browser's right-click menu when operating in firefox.
  */
 function bindContainerClickAndHold(containerNode, clickFunc, holdFunc) {
-  var suppressClick = false;
+  // Rather than tracking suppressClick ourselves in here, we maintain the
+  // state globally in Cards.  The rationale is that popup menus will be
+  // triggered on contextmenu, which transfers responsibility of the click
+  // event to the popup handling logic.  There is also no chance for multiple
+  // contextmenu events overlapping (that we would consider reasonable).
   bindContainerHandler(
     containerNode, 'click',
     function(node, event) {
-      if (suppressClick) {
-        suppressClick = false;
+console.log('container click handling', Cards._suppressClick, event.button);
+      if (Cards._suppressClick) {
+        Cards._suppressClick = false;
         return;
       }
       clickFunc(node, event);
@@ -82,8 +88,10 @@ function bindContainerClickAndHold(containerNode, clickFunc, holdFunc) {
     containerNode, 'contextmenu',
     function(node, event) {
       // suppress the subsequent click if this was actually a left click
-      if (event.button === 0)
-        suppressClick = true;
+      if (event.button === 0) {
+        console.log('context from 0 observed, suppressing');
+        Cards._suppressClick = true;
+      }
       else // avoid firefox context menu...
         event.preventDefault();
 
@@ -172,6 +180,12 @@ var Cards = {
    */
   _animatingDeadDomNodes: [],
 
+
+  /**
+   * Annoying logic related to contextmenu event handling; search for the uses
+   * for more info.
+   */
+  _suppressClick: false,
   /**
    * Is a tray card visible, suggesting that we need to intercept clicks in the
    * tray region so that we can transition back to the thing visible because of
@@ -228,6 +242,15 @@ var Cards = {
    * back to the visible thing (which must be to our right currently.)
    */
   _onMaybeIntercept: function(event) {
+console.log("intercept event observed", event.type, this._suppressClick);
+    // Contextmenu-derived click suppression wants to gobble an explicitly
+    // expected event, and so takes priority over other types of suppression.
+    if (event.type === 'click' && this._suppressClick) {
+console.warn('suppress firing');
+      this._suppressClick = false;
+      event.stopPropagation();
+      return;
+    }
     if (this._eatingEventsUntilNextCard) {
       event.stopPropagation();
       return;

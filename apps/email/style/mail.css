@@ -81,6 +81,10 @@ button {
   padding-bottom: 6px;
   z-index: 999;
 }
+.top-header.top-edit-header {
+  background: -moz-linear-gradient(to top, #ffffff 0, #a3a3a3 5px, #888888 5px, #999999 6px, #bbbbbb 6px, #cccccc 100%);
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%,  #cccccc), color-stop(100%, #bbbbbb));
+}
 
 .header-label {
   color: white;
@@ -124,6 +128,9 @@ button {
   width: 100%;
   height: 48px;
   background-color: rgba(0, 0, 0, 0.4);
+}
+.bottom-toolbar.bottom-edit-toolbar {
+  background-color: rgba(0, 0, 64, 0.4);
 }
 .bottom-btn {
   height: 48px;

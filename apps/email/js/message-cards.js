@@ -10,11 +10,7 @@ function MessageListCard(domNode, mode, args) {
   this.messagesContainer =
     domNode.getElementsByClassName('msg-messages-container')[0];
 
-  domNode.getElementsByClassName('msg-folder-list-btn')[0]
-    .addEventListener('click', this.onShowFolders.bind(this), false);
-  domNode.getElementsByClassName('msg-compose-btn')[0]
-    .addEventListener('click', this.onCompose.bind(this), false);
-
+  // - message actions
   bindContainerClickAndHold(
     this.messagesContainer,
     // clicking shows the message reader for a message
@@ -22,8 +18,35 @@ function MessageListCard(domNode, mode, args) {
     // press-and-hold shows the single-message mutation options
     this.onHoldMessage.bind(this));
 
+  // - header buttons: non-edit mode
+  domNode.getElementsByClassName('msg-folder-list-btn')[0]
+    .addEventListener('click', this.onShowFolders.bind(this), false);
+  domNode.getElementsByClassName('msg-compose-btn')[0]
+    .addEventListener('click', this.onCompose.bind(this), false);
+
+  // - toolbar: non-edit mode
+  domNode.getElementsByClassName('msg-edit-btn')[0]
+    .addEventListener('click', this.setEditMode.bind(this, true), false);
   domNode.getElementsByClassName('msg-refresh-btn')[0]
     .addEventListener('click', this.onRefresh.bind(this), false);
+
+  // - header buttons: edit mode
+  domNode.getElementsByClassName('msg-listedit-cancel-btn')[0]
+    .addEventListener('click', this.setEditMode.bind(this, false), false);
+
+  // - toolbar: edit mode
+  domNode.getElementsByClassName('msg-star-btn')[0]
+    .addEventListener('click', this.onStarMessages.bind(this, true), false);
+  domNode.getElementsByClassName('msg-unstar-btn')[0]
+    .addEventListener('click', this.onStarMessages.bind(this, false), false);
+  domNode.getElementsByClassName('msg-mark-read-btn')[0]
+    .addEventListener('click', this.onMarkMessagesRead.bind(this, true), false);
+  domNode.getElementsByClassName('msg-mark-unread-btn')[0]
+    .addEventListener('click', this.onMarkMessagesRead.bind(this, false),
+                      false);
+
+  this.editMode = false;
+  this.selectedMessages = null;
 
   this.curFolder = null;
   this.messagesSlice = null;
@@ -32,6 +55,105 @@ function MessageListCard(domNode, mode, args) {
 MessageListCard.prototype = {
   postInsert: function() {
     this._hideSearchBoxByScrolling();
+  },
+
+  setEditMode: function(editMode) {
+    var domNode = this.domNode;
+    var normalHeader = domNode.getElementsByClassName('msg-list-header')[0],
+        editHeader = domNode.getElementsByClassName('msg-listedit-header')[0],
+        normalToolbar =
+          domNode.getElementsByClassName('msg-list-action-toolbar')[0],
+        editToolbar =
+          domNode.getElementsByClassName('msg-listedit-action-toolbar')[0];
+
+    this.editMode = editMode;
+
+    if (editMode) {
+      normalHeader.classList.add('collapsed');
+      normalToolbar.classList.add('collapsed');
+      editHeader.classList.remove('collapsed');
+      editToolbar.classList.remove('collapsed');
+
+      this.selectedMessages = [];
+      this.selectedMessagesUpdated();
+    }
+    else {
+      normalHeader.classList.remove('collapsed');
+      normalToolbar.classList.remove('collapsed');
+      editHeader.classList.add('collapsed');
+      editToolbar.classList.add('collapsed');
+
+      // (Do this based on the DOM nodes actually present; if the user has been
+      // scrolling a lot, this.selectedMessages may contain messages that no
+      // longer have a domNode around.)
+      var selectedMsgNodes =
+        domNode.getElementsByClassName('msg-header-item-selected');
+      for (var i = 0; i < selectedMsgNodes.length; i++) {
+        selectedMsgNodes[i].classList.remove('msg-header-item-selected');
+      }
+
+      this.selectedMessages = null;
+    }
+
+    // UXXX do we want to disable the buttons if nothing is selected?
+  },
+
+  /**
+   * Update the edit mode UI bits sensitive to a change in the set of selected
+   * messages.  This means: the label that says how many messages are selected,
+   * whether the buttons are enabled, which of the toggle-pairs are visible.
+   */
+  selectedMessagesUpdated: function() {
+    var headerNode =
+      this.domNode.getElementsByClassName('msg-listedit-header-label')[0];
+    headerNode.textContent =
+      document.mozL10n.get('message-multiedit-header',
+                           { n: this.selectedMessages.length });
+
+    var starBtn =
+          this.domNode.getElementsByClassName('msg-star-btn')[0],
+        unstarBtn =
+          this.domNode.getElementsByClassName('msg-unstar-btn')[0],
+        readBtn =
+          this.domNode.getElementsByClassName('msg-mark-read-btn')[0],
+        unreadBtn =
+          this.domNode.getElementsByClassName('msg-mark-unread-btn')[0];
+
+    // Enabling/disabling rules (not UX-signed-off):  Our bias is that people
+    // want to star messages and mark messages unread (since it they naturally
+    // end up unread), so unless messages are all in this state, we assume that
+    // is the desired action.
+    var numStarred = 0, numRead = 0;
+    for (var i = 0; i < this.selectedMessages.length; i++) {
+      var msg = this.selectedMessages[i];
+      if (msg.isStarred)
+        numStarred++;
+      if (msg.isRead)
+        numRead++;
+    }
+
+    // Show unstar if everything is starred, otherwise star
+    if (numStarred && numStarred === this.selectedMessages.length) {
+      // show 'unstar'
+      starBtn.classList.add('collapsed');
+      unstarBtn.classList.remove('collapsed');
+    }
+    else {
+      // show 'star'
+      starBtn.classList.remove('collapsed');
+      unstarBtn.classList.add('collapsed');
+    }
+    // Show read if everything is unread, otherwise unread
+    if (this.selectedMessages.length && numRead === 0) {
+      // show 'read'
+      readBtn.classList.remove('collapsed');
+      unreadBtn.classList.add('collapsed');
+    }
+    else {
+      // show 'unread'
+      readBtn.classList.add('collapsed');
+      unreadBtn.classList.remove('collapsed');
+    }
   },
 
   _hideSearchBoxByScrolling: function() {
@@ -151,10 +273,24 @@ MessageListCard.prototype = {
   },
 
   onClickMessage: function(messageNode, event) {
+    var header = messageNode.message;
+    if (this.editMode) {
+      var idx = this.selectedMessages.indexOf(header);
+      if (idx !== -1) {
+        this.selectedMessages.splice(idx, 1);
+        messageNode.classList.remove('msg-header-item-selected');
+      }
+      else {
+        this.selectedMessages.push(header);
+        messageNode.classList.add('msg-header-item-selected');
+      }
+      this.selectedMessagesUpdated();
+      return;
+    }
+
     // For now, let's do the async load before we trigger the card to try and
     // avoid reflows during animation or visual popping.
     Cards.eatEventsUntilNextCard();
-    var header = messageNode.message;
     header.getBody(function gotBody(body) {
       Cards.pushCard(
         'message-reader', 'default', 'animate',
@@ -174,7 +310,10 @@ MessageListCard.prototype = {
         if (!clickedNode)
           return;
 
+        var op = null;
         switch (clickedNode.classList[0]) {
+          // All of these mutations are immediately reflected, easily observed
+          // and easily undone, so we don't show them as toaster actions.
           case 'msg-edit-menu-star':
             header.setStarred(true);
             break;
@@ -187,12 +326,29 @@ MessageListCard.prototype = {
           case 'msg-edit-menu-mark-unread':
             header.setRead(false);
             break;
+
+          // Deletion, and moves, on the other hand, require a lot of manual
+          // labor, so we need to expose their undo op's.
         }
+        if (op)
+          Toaster.logMutation(op);
       });
   },
 
   onRefresh: function() {
     this.messagesSlice.refresh();
+  },
+
+  onStarMessages: function(/* curried by bind */ beStarred) {
+    var op = MailAPI.markMessagesStarred(this.selectedMessages, beStarred);
+    this.setEditMode(false);
+    Toaster.logMutation(op);
+  },
+
+  onMarkMessagesRead: function(/* curried by bind */ beRead) {
+    var op = MailAPI.markMessagesRead(this.selectedMessages, beRead);
+    this.setEditMode(false);
+    Toaster.logMutation(op);
   },
 
   buildEditMenuForMessage: function(header) {
