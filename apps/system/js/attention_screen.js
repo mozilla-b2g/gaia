@@ -53,6 +53,10 @@ var AttentionScreen = {
     this.screen.appendChild(attentionFrame);
     this.screen.classList.add('displayed');
 
+    // XXX: before probing ScreenManager.screenEnabled,
+    // sync it's value with mozPower
+    ScreenManager._syncScreenEnabledValue();
+
     // We want the user attention, so we need to turn the screen on
     // if it's off.
     this._screenInitiallyDisabled = !ScreenManager.screenEnabled;
