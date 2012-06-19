@@ -24,7 +24,7 @@
   border: 0;
   width: 100%;
   /* we have the 20px status bar on top and the 20px
-   * attention-bar at the bottom, we need to remove 64px
+   * attention-bar at the bottom, we need to remove 40px
    * to the iframe height. */
   height: -moz-calc(100% - 40px);
   margin-top: 20px;
