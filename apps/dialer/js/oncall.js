@@ -189,17 +189,17 @@ var OnCallHandler = {
   },
 
   answer: function ch_answer() {
-    this.currentCall.answer();
+    OnCallHandler.currentCall.answer();
   },
 
   end: function ch_end() {
-    if (this.recentsEntry &&
-       (this.recentsEntry.type.indexOf('-connected') == -1)) {
-      this.recentsEntry.type += '-refused';
+    if (OnCallHandler.recentsEntry &&
+       (OnCallHandler.recentsEntry.type.indexOf('-connected') == -1)) {
+      OnCallHandler.recentsEntry.type += '-refused';
     }
 
-    if (this.currentCall)
-      this.currentCall.hangUp();
+    if (OnCallHandler.currentCall)
+      OnCallHandler.currentCall.hangUp();
 
     // We're not waiting for a disconnected statechange
     // If the user touch the 'end' button we wants to get
