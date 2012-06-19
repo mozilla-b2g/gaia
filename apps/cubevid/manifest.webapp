@@ -53,7 +53,6 @@
     }
   },
   "default_locale": "en-US",
-  "hackKillMe": true,
   "icons": {
     "120": "/style/icons/Cubevid.png",
     "60": "/style/icons/60/Cubevid.png"
