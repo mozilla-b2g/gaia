@@ -12,9 +12,11 @@ var SettingsListener = {
   },
 
   onchange: function sl_onchange(evt) {
-    var callback = this._callbacks[evt.settingName];
-    if (callback) {
-      callback(evt.settingValue);
+    var callbacks = this._callbacks[evt.settingName];
+    if (callbacks.length) {
+      callbacks.forEach(function sl_each(callback) {
+        callback(evt.settingValue);
+      });
     }
   },
 
@@ -31,7 +33,10 @@ var SettingsListener = {
         req.result[name] : defaultValue);
     }));
 
-    this._callbacks[name] = callback;
+    if (!this._callbacks[name])
+      this._callbacks[name] = [];
+
+    this._callbacks[name].push(callback);
   }
 };
 
