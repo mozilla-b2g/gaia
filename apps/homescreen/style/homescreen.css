@@ -37,7 +37,6 @@ section,footer,nav,a,img {
   background-color: #ff4e00;
   -moz-transition: -moz-transform .2s ease;
   visibility: hidden;
-  border-radius: .15rem;
 }
 
 #icongrid {
