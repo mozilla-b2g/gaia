@@ -1,0 +1,54 @@
+
+#listmenu_modal {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* Show it above fullscreen - see https://mxr.mozilla.org/mozilla-central/source/layout/style/ua.css#218 */
+  z-index: 2147483647;
+  background-color: rgba(0,0,0,0.4);
+  -moz-transition: opacity 0.5s ease;
+  display: none;
+}
+
+#listmenu_modal.visible {
+  display: block;
+}
+
+.list-menu {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  width: 320px;
+  height: 300px;
+  margin: 0 0 0 -160px;
+  background: -moz-linear-gradient(center top , rgb(244, 244, 244), rgb(234, 234, 234)) repeat scroll 0% 0% white;
+  border-radius: 8px;
+  border: 1px solid hsla(0,0%,0%,0);
+}
+
+.list-menu div {
+  height: 73px;
+  line-height: 73px;
+  font-size: 26px;
+  color: #778;
+  padding: 0 20px 0 100px;
+  border-top: 1px solid hsla(0, 0%, 100%,0.2);
+  border-bottom: 1px solid hsla(0, 0%, 0%,0.4);
+}
+
+.list-menu div[data-value] {
+  background-repeat: no-repeat;
+  background-position: 0 50%;
+}
+
+.list-menu div:first-child {
+  border-radius: 9px 9px 0 0;
+  border-top-color: transparent;
+}
+
+.list-menu div:last-child {
+  border-radius: 0 0 9px 9px;
+  border-bottom-color: transparent;
+}
