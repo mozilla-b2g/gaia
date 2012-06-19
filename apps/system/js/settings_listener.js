@@ -13,7 +13,7 @@ var SettingsListener = {
 
   onchange: function sl_onchange(evt) {
     var callbacks = this._callbacks[evt.settingName];
-    if (callbacks.length) {
+    if (callbacks) {
       callbacks.forEach(function sl_each(callback) {
         callback(evt.settingValue);
       });
