@@ -23,6 +23,9 @@
 #attention-screen > iframe {
   border: 0;
   width: 100%;
+  /* we have the 32px status bar on top and the 32px
+   * attention-bar at the bottom, we need to remove 64px
+   * to the iframe height. */
   height: -moz-calc(100% - 64px);
   margin-top: 32px;
 
