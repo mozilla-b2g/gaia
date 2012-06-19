@@ -289,8 +289,32 @@ var PlayerView = {
     this.audio.addEventListener('timeupdate', this);
   },
 
+  showInfo: function pv_showInfo() {
+    this.caption.classList.remove('resetSilde');
+    this.caption.classList.add('slideDown');
+
+    this.coverControl.classList.remove('resetSilde');
+    this.coverControl.classList.add('slideUp');
+
+    if (this.timeoutID)
+      window.clearTimeout(this.timeoutID);
+
+    this.timeoutID = window.setTimeout(
+      function() {
+        this.caption.classList.remove('slideDown');
+        this.caption.classList.add('resetSilde');
+
+        this.coverControl.classList.remove('slideUp');
+        this.coverControl.classList.add('resetSilde');
+      }.bind(this),
+      5000
+    );
+  },
+
   play: function pv_play(target) {
     this.isPlaying = true;
+
+    this.showInfo();
 
     if (target) {
       var targetIndex = parseInt(target.dataset.index);
@@ -393,25 +417,7 @@ var PlayerView = {
       case 'click':
         switch (target.id) {
           case 'player-cover-image':
-            this.caption.classList.remove('resetSilde');
-            this.caption.classList.add('slideDown');
-
-            this.coverControl.classList.remove('resetSilde');
-            this.coverControl.classList.add('slideUp');
-
-            if (this.timeoutID)
-              window.clearTimeout(this.timeoutID);
-
-            this.timeoutID = window.setTimeout(
-              function () {
-                this.caption.classList.remove('slideDown');
-                this.caption.classList.add('resetSilde');
-
-                this.coverControl.classList.remove('slideUp');
-                this.coverControl.classList.add('resetSilde');
-              }.bind(this),
-              5000
-            );
+            this.showInfo();
 
             break;
 

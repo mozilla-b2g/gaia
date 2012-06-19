@@ -246,6 +246,7 @@ body.player-mode #views-player {
   width: 100%;
   height: 90%;
   overflow-y: auto;
+  background: -moz-linear-gradient(center top, #303030 0%, #000000 100%) repeat scroll 0 0 transparent;
 }
 
 #views-player {
@@ -334,17 +335,17 @@ body.player-mode #views-player {
 
 .slideDown {
   -moz-transform: translateY(100%);
-  -moz-transition: -moz-transform 500ms ease-in-out;
+  -moz-transition: -moz-transform 700ms ease-in-out;
 }
 
 .slideUp {
   -moz-transform: translateY(-100%);
-  -moz-transition: -moz-transform 500ms ease-in-out;
+  -moz-transition: -moz-transform 700ms ease-in-out;
 }
 
 .resetSilde {
   -moz-transform: translateY(0%);
-  -moz-transition: -moz-transform 500ms ease-in-out;
+  -moz-transition: -moz-transform 700ms ease-in-out;
 }
 
 #player-cover-caption,
