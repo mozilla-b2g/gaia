@@ -1,5 +1,89 @@
 'use strict';
 
+var CallUI={
+  
+  init:function cm_init(){
+    //Add events to our DOM
+    document.getElementById('mute').addEventListener('mouseup',OnCallHandler.toggleMute,false);
+    document.getElementById('keypad-visibility').addEventListener('mouseup',OnCallHandler.toggleKeypad,false);
+    document.getElementById('speaker').addEventListener('mouseup',OnCallHandler.toggleSpeaker,false);
+    document.getElementById('co-basic-answer').addEventListener('mouseup',OnCallHandler.answer,false);
+    document.getElementById('co-basic-reject').addEventListener('mouseup',OnCallHandler.end,false);
+  },
+  update:function cm_update(phone_number){
+    //Updating phone number in screen
+    document.getElementById('cs-h-info-primary').innerHTML=phone_number;
+    KeypadManager.phoneNumber = phone_number;
+    document.getElementById('phone-number-view').value=KeypadManager.phoneNumber;
+    KeypadManager.util.moveCaretToEnd(document.getElementById('phone-number-view'));
+  },
+  cleanTimer:function cm_cleanTime(){
+    //TODO Review this functionality
+    clearInterval(CallUI.timer);
+  },
+  render:function cm_render(layout_type){
+    // Method which renders our call screen with different layouts: 
+    // 0 Outgoing call before answer
+    // 1 Outgoing call after answer
+    // 2 Incoming Call
+    switch(layout_type){
+      case 0:
+        document.getElementById('call-duration').innerHTML="...";
+        document.getElementById('co-basic-answer').classList.add('hide');
+        document.getElementById('co-advanced').classList.remove('transparent');
+        document.getElementById('keypad-visibility').setAttribute('disabled','disabled');
+        break;
+      case 1:
+        //TODO Review of using "toggle" despite of "contains"+add/remove
+        if(!document.getElementById('co-basic-answer').classList.contains('hide')){
+          document.getElementById('co-basic-answer').classList.add('hide');
+        }
+        if(!document.getElementById('co-basic-answer').classList.contains('transparent')){
+          document.getElementById('co-advanced').classList.remove('transparent');
+        }
+
+        document.getElementById('keypad-visibility').removeAttribute('disabled');
+        document.getElementById('call-duration').innerHTML="00:00";
+        
+        //TODO Implement this functionality with UX design about how time has to be shown. 
+        // Create a method which manage Time in dialer
+        // var sec=0;
+        // CallUI.timer=setInterval(function(){
+        //  sec++;
+
+        //  var minutes=Math.floor(sec/60);
+        //  var seconds=sec%60;
+        //  if(minutes<10){
+        //    minutes='0'+minutes;
+        //  }
+
+        //  if(seconds<10){
+        //    seconds='0'+seconds;
+        //  }
+
+        //  document.getElementById('call-duration').innerHTML=minutes+':'+seconds;
+        // },1000);
+        
+        break;
+      case 2:
+        document.getElementById('co-basic-answer').classList.remove('hide');
+        document.getElementById('co-advanced').classList.add('transparent');
+        document.getElementById('call-duration').innerHTML="";
+        break;
+    }
+  },
+  ui:{
+    show:function cm_show(){
+      document.getElementById('call-screen').classList.add('call-screen-show');
+    },
+    hide:function cm_hide(){
+      CallUI.update(KeypadManager.phoneNumber);
+
+      document.getElementById('views').classList.toggle('show');
+    }
+  }
+};
+
 var OnCallHandler = {
   currentCall: null,
   _screenLock: null,
@@ -11,10 +95,6 @@ var OnCallHandler = {
     var screenClass = hash.slice(1, hash.length);
     this.screen.classList.add(screenClass);
 
-    // Somehow the muted property appears to true after initialization.
-    // Set it to false.
-    navigator.mozTelephony.muted = false;
-
     // Animating the screen in the viewport.
     this.toggleScreen();
 
@@ -24,14 +104,17 @@ var OnCallHandler = {
     var self = this;
     var telephony = window.navigator.mozTelephony;
     if (telephony) {
+      // Somehow the muted property appears to true after initialization.
+      // Set it to false.
+      telephony.muted = false;
       telephony.oncallschanged = function och_callsChanged(evt) {
         telephony.calls.forEach(function callIterator(call) {
           self.currentCall = call;
           call.addEventListener('statechange', self);
 
-          self.numberView.textContent = call.number || 'Anonymous';
-          self.statusView.textContent = (screenClass == 'incoming') ?
-                                        'Call from...' : 'Calling...';
+          //Update UI properly
+          CallUI.update(call.number);
+          CallUI.render(2);
 
           self.lookupContact(call.number);
 
@@ -60,38 +143,21 @@ var OnCallHandler = {
   },
 
   connected: function ch_connected() {
-    this.screen.classList.remove('incoming');
-    this.screen.classList.add('calling');
-    this.statusView.innerHTML = '00:00';
+    // Update UI properly.
+    CallUI.render(1);
 
     this.recentsEntry.type += '-connected';
 
+    /*
     this._ticker = setInterval(function ch_updateTimer(self, startTime) {
       var elapsed = new Date(Date.now() - startTime);
       self.statusView.innerHTML = elapsed.toLocaleFormat('%M:%S');
     }, 1000, this, Date.now());
+    */
   },
 
-  answer: function ch_answer() {
-    this.currentCall.answer();
-  },
+  disconnected: function ch_disconnected() {
 
-  end: function ch_end() {
-    if (this.recentsEntry &&
-       (this.recentsEntry.type.indexOf('-connected') == -1)) {
-      this.recentsEntry.type += '-refused';
-    }
-
-    if (this.currentCall)
-      this.currentCall.hangUp();
-
-    // We're not waiting for a disconnected statechange
-    // If the user touch the 'end' button we wants to get
-    // out of the call-screen right away.
-    this.disconnected();
-  },
-
-  disconnected: function och_disconnected() {
     if (this.currentCall) {
       this.currentCall.removeEventListener('statechange', this);
       this.currentCall = null;
@@ -101,8 +167,6 @@ var OnCallHandler = {
       this.toggleMute();
     if (this.speakerButton.classList.contains('speak'))
       this.toggleSpeaker();
-    if (this.keypadButton.classList.contains('displayed'))
-      this.toggleKeypad();
 
     if (this._ticker)
       clearInterval(this._ticker);
@@ -121,12 +185,34 @@ var OnCallHandler = {
 
     // Out animation before closing the window
     this.toggleScreen();
+
+  },
+
+  answer: function ch_answer() {
+    this.currentCall.answer();
+  },
+
+  end: function ch_end() {
+    if (this.recentsEntry &&
+       (this.recentsEntry.type.indexOf('-connected') == -1)) {
+      this.recentsEntry.type += '-refused';
+    }
+
+    if (this.currentCall)
+      this.currentCall.hangUp();
+
+    // We're not waiting for a disconnected statechange
+    // If the user touch the 'end' button we wants to get
+    // out of the call-screen right away.
+    OnCallHandler.disconnected();
+
   },
 
   get screen() {
     delete this.screen;
     return this.screen = document.getElementById('call-screen');
   },
+
   get numberView() {
     delete this.numberView;
     return this.numberView = document.getElementById('call-number-view');
@@ -141,27 +227,32 @@ var OnCallHandler = {
   },
   get muteButton() {
     delete this.muteButton;
-    return this.muteButton = document.getElementById('mute-button');
+    return this.muteButton = document.getElementById('mute');
   },
   get speakerButton() {
     delete this.speakerButton;
-    return this.speakerButton = document.getElementById('speaker-button');
+    return this.speakerButton = document.getElementById('speaker');
   },
   get keypadButton() {
     delete this.keypadButton;
-    return this.keypadButton = document.getElementById('keypad-button');
+    return this.keypadButton = document.getElementById('keypad-visibility');
   },
   get keypadView() {
     delete this.keypadView;
     return this.keypadView = document.getElementById('kb-keypad');
   },
+  get keypadCallbarBackAction() {
+    delete this.keypadCallbarBackAction;
+    return this.keypadCallbarBackAction = document.getElementById('kb-callbar-back-action');
+  },
 
   toggleScreen: function ch_toggleScreen() {
-    var callScreen = this.screen;
+
+    var callScreen = OnCallHandler.screen;
     callScreen.classList.remove('animate');
     callScreen.classList.toggle('prerender');
 
-    var displayed = this._displayed;
+    var displayed = OnCallHandler._displayed;
     // hardening against the unavailability of MozAfterPaint
     var finished = false;
 
@@ -198,43 +289,39 @@ var OnCallHandler = {
     });
     var securityTimeout = window.setTimeout(finishTransition, 100);
 
-    this._displayed = !this._displayed;
+    OnCallHandler._displayed = !OnCallHandler._displayed;
   },
 
   toggleMute: function ch_toggleMute() {
-    this.muteButton.classList.toggle('mute');
+    OnCallHandler.muteButton.classList.toggle('mute');
     navigator.mozTelephony.muted = !navigator.mozTelephony.muted;
   },
 
   toggleKeypad: function ch_toggleKeypad() {
-    this.keypadButton.classList.toggle('displayed');
-    this.keypadView.classList.toggle('overlay');
+
+    //Render keyboard properly
+    KeypadManager.render(1);
+    //Show it hidding call screen
+    CallUI.ui.hide();
+
   },
 
   toggleSpeaker: function ch_toggleSpeaker() {
-    this.speakerButton.classList.toggle('speak');
-    navigator.mozTelephony.speakerEnabled =
-      !navigator.mozTelephony.speakerEnabled;
+    OnCallHandler.speakerButton.classList.toggle('speak');
+    navigator.mozTelephony.speakerEnabled = !navigator.mozTelephony.speakerEnabled;
   },
 
   lookupContact: function och_lookupContact(number) {
     Contacts.findByNumber(number, (function(contact) {
-      this.numberView.innerHTML = contact.name;
+    OnCallHandler.numberView.innerHTML = contact.name;
     }).bind(this));
   },
 
-  execute: function och_execute(action) {
-    if (!this[action]) {
-      this.end();
-      return;
-    }
-
-    this[action]();
-  }
 };
 
 window.addEventListener('load', function callSetup(evt) {
   window.removeEventListener('load', callSetup);
+  KeypadManager.init();
+  CallUI.init();
   OnCallHandler.setup();
-  KeyHandler.init();
 });

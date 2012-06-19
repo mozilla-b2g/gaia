@@ -86,8 +86,6 @@ var CallHandler = {
 window.addEventListener('localized', function startup(evt) {
   window.removeEventListener('localized', startup);
 
-  KeyHandler.init();
-
   // Set the 'lang' and 'dir' attributes to <html> when the page is translated
   var html = document.querySelector('html');
   var lang = document.mozL10n.language;
@@ -96,4 +94,9 @@ window.addEventListener('localized', function startup(evt) {
 
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('hidden');
+});
+
+window.addEventListener('load', function callSetup(evt) {
+  window.removeEventListener('load', callSetup);
+    KeypadManager.init();
 });
