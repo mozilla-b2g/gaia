@@ -1088,21 +1088,11 @@ var ConversationView = {
 };
 
 window.addEventListener('localized', function showBody() {
-  // TODO get the [lang]-[REGION] setting if any
-  if (navigator.mozSettings) {
-    var request = navigator.mozSettings.getLock().get('language.current');
-    request.onsuccess = function() {
-      ConversationView.init();
-      ConversationListView.init();
-    }
-  }
+  ConversationView.init();
+  ConversationListView.init();
 
   // Set the 'lang' and 'dir' attributes to <html> when the page is translated
-  if (document.mozL10n && document.mozL10n.language) {
-    var lang = document.mozL10n.language;
-    var html = document.querySelector('html');
-    html.setAttribute('lang', lang.code);
-    html.setAttribute('dir', lang.direction);
-  }
+  document.documentElement.lang = document.mozL10n.language.code;
+  document.documentElement.dir = document.mozL10n.language.direction;
 });
 
