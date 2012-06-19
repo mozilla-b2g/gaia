@@ -38,7 +38,7 @@ var AttentionScreen = {
   },
 
   open: function as_open(evt) {
-    if (evt.detail.name != '_attention')
+    if (evt.detail.features != 'attention')
       return;
 
     // preventDefault means "we're handling this popup; let it through."

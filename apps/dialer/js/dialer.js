@@ -66,7 +66,7 @@ var CallHandler = {
   call: function ch_call(number) {
     var host = document.location.host;
     window.open('http://' + host + '/oncall.html#calling',
-                '_attention');
+                'dialer_calling', 'attention');
 
     var sanitizedNumber = number.replace(/-/g, '');
 
