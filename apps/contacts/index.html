@@ -1,128 +1,287 @@
 <!DOCTYPE html>
+
 <html manifest="manifest.appcache">
   <head>
-    <meta charset="utf-8">
-    <meta http-equiv="pragma" content="no-cache">
-    <title>Contacts</title>
-    <link rel="stylesheet" type="text/css" href="style/contacts.css">
-    <link rel="resource" type="application/l10n" href="locale/contacts.properties">
-    <!-- Compatibility -->
-    <script>
-      if (document.location.protocol === 'file:') {
-        var paths = document.location.pathname.split('/');
-        paths.pop();
-        paths.pop();
-        paths.pop();
-        var src = 'file://' + paths.join('/') + '/webapi.js';
-      } else {
-        var host = document.location.host;
-        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-        var src = 'http://' + domain + '/webapi.js';
-      }
-      document.write('<script src="' + src + '"><\/script>');
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <link href="bootzilla/css/package.css" rel="stylesheet">
+    <link href="style/contacts.css" rel="stylesheet">
+    <link rel="resource" type="application/l10n" href="locale/contacts.properties"/>
+
+    <script class="events" type="text/xml">
+      <listener observer="#edit-contact-button" event="click" function="contacts.app.ui.showEdit" />
+      <listener observer="#groups-list" event="click" function="contacts.app.ui.showDetails" />
+      <listener observer="#add-contact-button" event="click" function="contacts.app.ui.showAdd" />
+      <listener observer="#add-new-phone" event="click" function="contacts.app.ui.addNewPhone" />
+      <listener observer="#add-new-email" event="click" function="contacts.app.ui.addNewEmail" />
     </script>
-    <script type="application/javascript" src="js/contacts.js"></script>
   </head>
+  <body class="app-contacts">
 
-  <body>
-    <div id="views">
-      <div id="contacts-view" class="view">
-        <div class="top-bar">
-            <div id="contacts-search-container">
-              <input id="contacts-search" type="search" onmousedown="this.focus();"
-              oninput="Contacts.filter(event.target.value);" />
+    <!-- Contacts List Section -->
+    <section id='view-contacts-list' class="view vw-noscroll view-contacts-list">
+      <div class="vw-inner">
+        <header class="vw-header">
+          <ul class="pull-right stack vw-actions">
+            <li id='add-contact-button'><a href="#" title="Add contact"><i class="i-add" data-l10n-id="add">Add</i></a></li>
+          </ul>
+          <h1 data-l10n-id="contacts">Contacts</h1>
+        </header>
+        <article class="vw-body">
+          <div class="vw-jumper">
+            <p class="vw-jmp-current hide"><abbr title="Contacts by "></abbr></p>
+            <ol class="vw-jmp-inner">
+              <li><a href="#"><i class="i-search"></i></a></li>
+              <li><a href="#"><i class="i-fav-dark"></i></a></li>
+              <li><a href="#"><abbr title="Jump to A">A</abbr></a></li>
+              <li><a href="#"><abbr title="Jump to B">B</abbr></a></li>
+              <li><a href="#"><abbr title="Jump to C">C</abbr></a></li>
+              <li><a href="#"><abbr title="Jump to D">D</abbr></a></li>
+              <li><a href="#"><abbr title="Jump to E">E</abbr></a></li>
+              <li><a href="#"><abbr title="Jump to F">F</abbr></a></li>
+              <li><a href="#"><abbr title="Jump to G">G</abbr></a></li>
+              <li><a href="#"><abbr title="Jump to H">H</abbr></a></li>
+              <li><a href="#"><abbr title="Jump to I">I</abbr></a></li>
+              <li><a href="#"><abbr title="Jump to J">J</abbr></a></li>
+              <li><a href="#"><abbr title="Jump to K">K</abbr></a></li>
+              <li><a href="#"><abbr title="Jump to L">L</abbr></a></li>
+              <li><a href="#"><abbr title="Jump to M">M</abbr></a></li>
+              <li><a href="#"><abbr title="Jump to N">N</abbr></a></li>
+              <li><a href="#"><abbr title="Jump to Ñ">Ñ</abbr></a></li>
+              <li><a href="#"><abbr title="Jump to O">O</abbr></a></li>
+              <li><a href="#"><abbr title="Jump to P">P</abbr></a></li>
+              <li><a href="#"><abbr title="Jump to Q">Q</abbr></a></li>
+              <li><a href="#"><abbr title="Jump to R">R</abbr></a></li>
+              <li><a href="#"><abbr title="Jump to S">S</abbr></a></li>
+              <li><a href="#"><abbr title="Jump to T">T</abbr></a></li>
+              <li><a href="#"><abbr title="Jump to U">U</abbr></a></li>
+              <li><a href="#"><abbr title="Jump to V">V</abbr></a></li>
+              <li><a href="#"><abbr title="Jump to W">W</abbr></a></li>
+              <li><a href="#"><abbr title="Jump to X">X</abbr></a></li>
+              <li><a href="#"><abbr title="Jump to Y">Y</abbr></a></li>
+              <li><a href="#"><abbr title="Jump to Z">Z</abbr></a></li>
+            </ol>
+          </div>
+          <div class="vw-bdy-inner">
+            <ol class="block-list" id="groups-list">
+              <li data-template>
+                <h2 id="group-#group#" class="blck-title">
+                  <abbr title="Contacts listed #group#">#group#</abbr>
+                </h2>
+                <ol id="contacts-list">
+                  <li data-template class="blck-item" data-uuid="#id#">
+                    <a href="#" class="item">
+                      <figure class="itm-media pull-right blck-media c-#photo#">
+                        <img src="#photo#" alt="#givenName#">
+                      </figure>
+                      <p class="itm-body">
+                        <strong class="blck-name">#givenName# <b>#familyName#</b></strong>
+                      </p>
+                    </a>
+                  </li>
+                </ol>
+              </li>
+            </ol>
+          </div>
+        </article>
+      </div> <!-- vw-inner -->
+    </section>
+
+    <!-- Contact Details Section -->
+    <section id='view-contact-details' class="view view-contact-profile vw-right">
+      <div class="vw-inner">
+        <header id='details-view-header' class="vw-header">
+          <ul class="pull-right stack vw-actions">
+            <li id='edit-contact-button'><a href="#" title="Edit contact"><i class="i-edit" data-l10n-id="edit">Edit</i></a></li>
+          </ul>
+          <p class="vw-back pull-left"><a class='back-button' title="Back" href="#"><i class="i-back">Back</i></a></p>
+          <h1 id='contact-name-title' data-template data-l10n-id="contacts">#name#</h1>
+        </header>
+        <article class="vw-body">
+          <div class="vw-bdy-inner">
+            <div class="appcnts-profile-head">
+              <!-- Default img so far, as UX have to define what to do when no image -->
+              <figure  id='cover-img'><img data-template src="#photo#" alt=""></figure>
+              <nav class="tabs">
+                <ul class="grid">
+                  <li id='info-tab' class="active"><a href="#"><i class="i-profile">Information</i></a></li>
+                  <li id='feed-tab'><a href="#"><i class="i-log">Feed</i></a></li>
+                </ul>
+              </nav>
             </div>
-          <a id="contact-add" class="add" href="#" onclick="Contacts.create()">+</a>
-        </div>
+            <section class="appcnts-profile-section">
+              <!--
+              We need some UX clarifications before using this field
+              <h1 id='tag_field' data-template>#tag_field#</h1>
+              -->
+              <ul id='details-list'>
+                <li data-template data-condition= "type === 'tel'">
+                  <h2>#tel_type#</h2>
+                  <div class="item">
+                    <div class="itm-media pull-right">
+                      <button class="action"><i class="i-message">Message</i></button>
+                    </div>
+                    <div class="itm-body-exp">
+                      <button class="action">
+                        <i class="i-call">Call</i>
+                        <b>#number#</b>
+                        <em>#notes#</em>
+                      </button>
+                    </div>
+                  </div>
+                </li>
 
-        <div id="contacts-container-top"></div>
-        <div id="contacts-view-scrollable">
-          <div id="favorites-container" onclick="Contacts.showDetails(event)"></div>
-          <div id="contacts-container" onclick="Contacts.showDetails(event)"></div>
-        </div>
+                <li data-template data-condition= "type === 'email'">
+                  <h2>#email_tag#</h2>
+                  <div class="item">
+                    <div class="itm-body-exp">
+                      <button class="action">
+                        <i class="i-email">E-mail</i>
+                        <b>#email#</b>
+                      </button>
+                    </div>
+                  </div>
+                </li>
 
-        <div id="contacts-shortcuts-background"></div>
-        <div id="contacts-shortcuts" onclick="Contacts.anchor(event.target.name);">
-          <a name="A">A</a>
-          <a name="B">B</a>
-          <a name="C">C</a>
-          <a name="D">D</a>
-          <a name="E">E</a>
-          <a name="F">F</a>
-          <a name="G">G</a>
-          <a name="H">H</a>
-          <a name="I">I</a>
-          <a name="J">J</a>
-          <a name="K">K</a>
-          <a name="L">L</a>
-          <a name="M">M</a>
-          <a name="N">N</a>
-          <a name="O">O</a>
-          <a name="P">P</a>
-          <a name="Q">Q</a>
-          <a name="R">R</a>
-          <a name="S">S</a>
-          <a name="T">T</a>
-          <a name="U">U</a>
-          <a name="V">V</a>
-          <a name="W">W</a>
-          <a name="X">X</a>
-          <a name="Y">Y</a>
-          <a name="Z">Z</a>
-        </div>
+              </ul>
+            </section>
+          </div>
+        </article>
       </div>
-    </div>
+    </section>
 
-    <div id="contacts-overlay">
-      <div id="contact-details-container">
-        <div id="contact-details-view">
-          <div id="contact-photo">
+    <!-- Edit Section -->
+    <section id='view-contact-form' class="view view-edit-contact vw-right">
+      <div class="vw-inner">
+        <header class="vw-header">
+          <ul id='contact-form-actions' class="pull-right stack vw-actions">
+          </ul>
+          <p class="vw-back pull-left"><a class='back-button' href="#" title="Back"><i class="i-back">Back</i></a></p>
+          <h1 id='contact-form-title'></h1>
+        </header>
+
+        <article class="vw-body">
+          <div class="vw-bdy-inner">
+            <form action="#" class="fill-flow">
+              <fieldset class="item">
+                <legend class="hide">Main information</legend>
+                <a href="#" class="itm-media ff-media">
+                  <img src="#photo#" alt="">
+                </a>
+                <div class="itm-body-exp">
+                  <p class="ff-row">
+                    <label class="hide" for="user_name">Name:</label>
+                    <input class="textfield" type="text" value="#givenName#" id="givenName">
+                  </p>
+                  <p class="ff-row">
+                    <label class="hide" for="user_lastname">Last name:</label>
+                    <input class="textfield" type="text" value="#familyName#" id="familyName">
+                  </p>
+                </div>
+              </fieldset>
+
+              <fieldset data-template class="ff-row">
+                <legend>Work information</legend>
+                <dl class="setbox">
+                  <dt class="sbox-title"><a href="#">Company <i class="i-arrow i-arw-bottom sbox-icon">Expand</i></a></dt>
+                  <dd class="sbox-body">
+                    <p class="sbox-item">
+                      <label class="hide" for="user_company">Company name:</label>
+                      <input class="textfield" type="text" value="#org#" id="org">
+                    </p>
+                  </dd>
+                </dl>
+              <!--
+                The perfect approach to this component is to use the fieldset as setbox container
+                and the sbox-title using a legend, but this bug prevent us to use in that way
+                https://bugzilla.mozilla.org/show_bug.cgi?id=261037
+              -->
+                <button class="ff-row-action">
+                  <i class="i-delete">Delete this field</i>
+                </button>
+              </fieldset>
+
+              <!-- PHONE TEMPLATE -->
+              <dl id='add-phone' data-template class="setbox">
+                <dt class="sbox-title"><a href="#">#type# <i class="i-arrow i-arw-bottom sbox-icon">Expand</i></a></dt>
+                <dd class="sbox-body">
+                  <p class="sbox-item">
+                    <label class="hide" for="type_#number#">Phone number:</label>
+                    <input name="number[]" class="textfield" type="number" value="#number#" id="type_#number#">
+                  </p>
+                  <p class="sbox-item">
+                    <label class="hide" for="notes_#number#">Name:</label>
+                    <input name="notes[]" class="textfield" type="text" value="#notes#" id="notes_#number#">
+                  </p>
+                </dd>
+              </dl>
+
+              <!-- EMAIL TEMPLATE -->
+              <dl id='add-email' data-template class="setbox">
+                <dt class="sbox-title"><a href="#">#type# <i class="i-arrow i-arw-bottom sbox-icon">Expand</i></a></dt>
+                <dd class="sbox-body">
+                  <p class="sbox-item">
+                    <label class="hide" for="user_email">e-mail:</label>
+                    <input name="email[]" class="textfield" type="mail" value="#email#" id="user_email">
+                  </p>
+                </dd>
+              </dl>
+
+              <fieldset class="ff-row">
+                <legend>Phone numbers</legend>
+                  <div id='contacts-form-phones'>
+                    <!-- ITERATING OVER PHONE TEMPLATE HERE -->
+                  </div>
+                <button onclick='return false;' class="ff-row-action">
+                  <i class="i-delete">Delete this field</i>
+                </button>
+              </fieldset>
+
+              <button onclick='return false;' id='add-new-phone' class="ff-row action act-add">
+                <i class="i-add"></i>
+                <b>Add phone number</b>
+              </button>
+
+              <fieldset id='contacts-form-email'  class="ff-row">
+                <legend>E-mail address</legend>
+                  <div id='contacts-form-phones'>
+                    <!-- ITERATING OVER EMAIL TEMPLATE HERE -->
+                  </div>
+                <button onclick='return false;' class="ff-row-action">
+                  <i class="i-delete">Delete this field</i>
+                </button>
+              </fieldset>
+
+              <button onclick='return false;' id='add-new-email' class="ff-row action act-add">
+                <i class="i-add"></i>
+                <b>Add email address</b>
+              </button>
+
+              <fieldset class="ff-row">
+                <legend>Address</legend>
+                <dl class="setbox">
+                  <dt class="sbox-title"><a href="#">Work <i class="i-arrow i-arw-bottom sbox-icon">Expand</i></a></dt>
+                  <dd class="sbox-body">
+                    <p class="sbox-item">
+                      <label class="hide" for="user_email">Street:</label>
+                      <input class="textfield" type="text" value="Ronda de la comunicación" id="user_email">
+                    </p>
+                  </dd>
+                </dl>
+                <button class="ff-row-action">
+                  <i class="i-delete">Delete this field</i>
+                </button>
+              </fieldset>
+
+            </form>
           </div>
-          <div id="contact-details-show">
-            <div id="contact-details-top">
-              <div id="contact-name">
-              </div>
-            </div>
-            <div id="contact-phone" class="entry" data-action="call" onclick="ContactDetails.execute(event)">
-              <span data-l10n-id="phone">phone</span>
-              <div class="value"></div>
-            </div>
-            <div id="contact-email" class="entry">
-              <span data-l10n-id="email">email</span>
-              <div class="value"></div>
-            </div>
-            <button data-l10n-id="edit" data-action="edit" onclick="ContactDetails.execute(event)">Edit</button>
-          </div>
-         <form id="contact-details-edit" onsubmit="ContactDetails.save(this)" action="#">
-            <label class="favorite">
-              <input id="favorited" type="checkbox" />
-              <span></span>
-            </label>
-            <div class="entry">
-              <span data-l10n-id="firstName">First</span>
-              <input id="contact-given-name-field" data-action="autoscroll" onfocus="ContactDetails.execute(event)" />
-            </div>
-            <div class="entry">
-              <span data-l10n-id="lastName">Last</span>
-              <input id="contact-family-name-field" data-action="autoscroll" required="true" onfocus="ContactDetails.execute(event)" />
-            </div>
-            <div class="entry" data-action="call">
-              <span data-l10n-id="phone">phone</span>
-              <input id="contact-phone-field" type="tel" data-action="autoscroll" onfocus="ContactDetails.execute(event)" />
-            </div>
-            <div class="entry">
-              <span data-l10n-id="email">email</span>
-              <input id="contact-email-field" type="email" data-action="autoscroll" onfocus="ContactDetails.execute(event)" />
-            </div>
-            <div>
-              <input type="submit" value="Done" data-l10n-id="done" />
-            </div>
-            <button data-l10n-id="delete" data-action="destroy" onclick="ContactDetails.execute(event);">Delete</button>
-          </form>
-          <div id="contact-details-line">
-          </div>
-        </div>
+        </article>
       </div>
-    </div>
+    </section>
+  <script type="text/javascript" src="js/xmlevents.js"></script>
+  <script type="text/javascript" src="js/templates.js"></script>
+  <script type="text/javascript" src="js/contacts.js"></script>
+  <script type="text/javascript" src="bootzilla/js/responsive.js"></script>
+  <script type="text/javascript" src="js/alphascroll.js"></script>
   </body>
 </html>

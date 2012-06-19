@@ -1,27 +1,17 @@
 {
   "name": "Contacts",
-  "description": "Gaia Contacts",
-  "launch_path": "/",
+  "description": "OWD contacts",
   "developer": {
-    "name": "The Gaia Team",
-    "url": "https://github.com/mozilla-b2g/gaia"
+    "name": "Telefonica PDI - OWD Team",
+    "url": "http://openwebdevice.com"
   },
   "permissions": [
-    "contacts"
+    "contacts",
+    "power",
+    "mozApps"
   ],
-  "locales": {
-    "en-US": {
-      "name": "Contacts",
-      "description": "Default Contacts application"
-    },
-    "fr": {
-      "name": "Contacts",
-      "description": "Application de contacts par défaut"
-    }
-  },
-  "default_locale": "en-US",
   "icons": {
-    "120": "/style/icons/Contacts.png",
-    "60": "/style/icons/60/Contacts.png"
+    "120": "/style/icons/icon.png"
   }
 }
+

@@ -1,0 +1,88 @@
+/**
+ * LISTS.CSS
+ * High level strcutures for crafting lists
+ * ------------------------------------------------------*/
+
+/* BLOCK-LIST: vertical elements list*/
+.block-list { padding-left: 1rem; }
+	.blck-item { border-bottom: solid 1px #dbdbdb; min-height: 6rem; }
+	.blck-item:last-child { border-bottom: none; }
+
+		/* Base set-up*/
+		.blck-title { font-size: 1.8rem; color: #ff5f19; border-bottom: solid 1px #ff5f19; }
+		.blck-name {
+			font-size: 2rem;
+			font-family: System Sans, Sans-serif, Arial;
+			color: #333;
+			display: block;
+			margin: 0.7rem 0;
+		}
+		.blck-category {
+			font-size: 1.4rem;
+			line-height: 1em;
+			font-style: normal;
+			color: #666;
+			display: block;
+			margin-bottom: 0.7rem;
+		}
+
+		/* Media crop */
+		.blck-media {
+			width: 6rem;
+			height: 6rem;
+			text-align: right;
+			overflow: hidden;
+		}
+
+
+/* SELECTION-LIST:  Items to be selected and used in another view */
+.selection-list { border-radius: 0.3rem; border: solid 1px #c8c8c8; overflow: hidden; }
+.selection-list, .selection-list + .textfield { margin-bottom: 1rem; }
+
+	.selection-list > li { background: #fff; border-bottom: solid 1px #c8c8c8; font: 1.4rem/2.6em System Sans Semibold, Sans-serif; }
+	.selection-list > li:last-child { border-bottom: none; }
+
+		.selection-list > li > a {
+			display: block;
+			color: #333;
+			position: relative;
+			padding:  0 0 0 1.8rem;
+		}
+			/* This elements defines if the item is selected or not */
+			.slcl-state { position: absolute; right: 0.5rem; top: 50%; margin-top: -1.5rem; }
+
+
+/* INFINITE-SCROLL:  Sets overflows and loding states */
+.infinite-scroll {
+	overflow-y: auto;
+	overflow-x: none;
+}
+	.infinite-scroll-loader {
+		display: none;
+		width: 100%;
+		height: 12px;
+		text-align: center;
+		background-image: url(/bootzilla/gphx/bitmap/default/loaders/squares.gif);
+		background-position: center;
+		background-repeat: no-repeat;
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

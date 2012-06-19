@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html manifest="manifest.appcache">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="pragma" content="no-cache">
+		<title>Contacts List</title>
+
+		<!-- BOOTZILLA -->
+		<link rel="stylesheet" type="text/css" href="../bootzilla/css/package.css">
+		<script type="text/javascript" src="../bootzilla/js/responsive.js"></script>
+
+		<!-- CONTACTS -->
+		<link rel="stylesheet" type="text/css" href="../style/contacts.css">
+
+		<script>
+			var host = document.location.host;
+			var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+			var src = 'http://' + domain + '/webapi.js';
+			document.write('<script src="' + src + '"><\/script>');
+		</script>
+
+	</head>
+	<body class="app-contacts">
+		<section class="view vw-noscroll view-contacts-list">
+			<div class="vw-inner">
+				<header class="vw-header">
+					<ul class="pull-right stack vw-actions">
+						<li><a href="#" title="Add contact"><i class="i-add">Add</i></a></li>
+					</ul>
+					<h1>Contacts</h1>
+				</header>
+
+				<article class="vw-body">
+					<div class="vw-jumper">
+						<p class="vw-jmp-current hide"><abbr title="Contacts by G">G</abbr></p>
+						<ol class="vw-jmp-inner">
+							<li><a href="#"><i class="i-search"></i></a></li>
+							<li><a href="#"><i class="i-fav-dark"></i></a></li>
+							<li><a href="#"><abbr title="Jump to A">A</abbr></a></li>
+							<li><a href="#"><abbr title="Jump to B">B</abbr></a></li>
+							<li><a href="#"><abbr title="Jump to C">C</abbr></a></li>
+							<li><a href="#"><abbr title="Jump to D">D</abbr></a></li>
+							<li><a href="#"><abbr title="Jump to E">E</abbr></a></li>
+							<li><a href="#"><abbr title="Jump to F">F</abbr></a></li>
+							<li><a href="#"><abbr title="Jump to G">G</abbr></a></li>
+							<li><a href="#"><abbr title="Jump to H">H</abbr></a></li>
+							<li><a href="#"><abbr title="Jump to I">I</abbr></a></li>
+							<li><a href="#"><abbr title="Jump to J">J</abbr></a></li>
+							<li><a href="#"><abbr title="Jump to K">K</abbr></a></li>
+							<li><a href="#"><abbr title="Jump to L">L</abbr></a></li>
+							<li><a href="#"><abbr title="Jump to M">M</abbr></a></li>
+							<li><a href="#"><abbr title="Jump to N">N</abbr></a></li>
+							<li><a href="#"><abbr title="Jump to Ñ">Ñ</abbr></a></li>
+							<li><a href="#"><abbr title="Jump to O">O</abbr></a></li>
+							<li><a href="#"><abbr title="Jump to P">P</abbr></a></li>
+							<li><a href="#"><abbr title="Jump to Q">Q</abbr></a></li>
+							<li><a href="#"><abbr title="Jump to R">R</abbr></a></li>
+							<li><a href="#"><abbr title="Jump to S">S</abbr></a></li>
+							<li><a href="#"><abbr title="Jump to T">T</abbr></a></li>
+							<li><a href="#"><abbr title="Jump to U">U</abbr></a></li>
+							<li><a href="#"><abbr title="Jump to V">V</abbr></a></li>
+							<li><a href="#"><abbr title="Jump to W">W</abbr></a></li>
+							<li><a href="#"><abbr title="Jump to X">X</abbr></a></li>
+							<li><a href="#"><abbr title="Jump to Y">Y</abbr></a></li>
+							<li><a href="#"><abbr title="Jump to Z">Z</abbr></a></li>
+						</ol>
+					</div>
+					<div class="vw-bdy-inner">
+						<ol class="block-list">
+							<li>
+								<h2 class="blck-title"><i class="i-fav-color">Favourite</i></h2>
+								<ol>
+									<li class="blck-item">
+										<a href="#" class="item">
+											<figure class="itm-media pull-right blck-media"><img src="dummy/60x60.jpg" alt="Margarita Gómez"></figure>
+											<p class="itm-body">
+												<strong class="blck-name">Margarita <b>Gómez</b></strong>
+												<em class="blck-category">Family</em>
+											</p>
+										</a>
+									</li>
+
+									<li class="blck-item">
+										<a href="#" class="item">
+											<p class="itm-body">
+												<strong class="blck-name">Jose <b>Rodríguez</b></strong>
+												<em class="blck-category">Work</em>
+											</p>
+										</a>
+									</li>
+								</ol>
+							</li>
+
+							<li>
+								<h2 class="blck-title"><abbr title="Contacts listed A">A</abbr></h2>
+								<ol>
+									<li class="blck-item">
+										<a href="#" class="item">
+											<figure class="itm-media pull-right blck-media"><img src="dummy/60x60.jpg" alt="Margarita Gómez"></figure>
+											<p class="itm-body">
+												<strong class="blck-name">Mark <b>Alfeinto</b></strong>
+											</p>
+										</a>
+									</li>
+
+									<li class="blck-item">
+										<a href="#" class="item">
+											<p class="itm-body">
+												<strong class="blck-name">Stefano <b>Alonso</b></strong>
+												<em class="blck-category">Friend of Raffael</em>
+											</p>
+										</a>
+									</li>
+								</ol>
+							</li>
+
+							<li>
+								<h2 class="blck-title"><abbr title="Contacts listed by B">B</abbr></h2>
+								<ol>
+									<li class="blck-item">
+										<a href="#" class="item">
+											<figure class="itm-media pull-right blck-media"><img src="dummy/60x60.jpg" alt="Margarita Gómez"></figure>
+											<p class="itm-body">
+												<strong class="blck-name">Jose <b>Brufau</b></strong>
+											</p>
+										</a>
+									</li>
+								</ol>
+							</li>
+						</ol>
+					</div>
+				</article>
+
+				<nav class="vw-nav">
+					<ul class="grid">
+						<li><a href="#" title="Log"><i class="i-log">Communications Log</i></a></li>
+						<li><a href="#" title="Contacts"><i class="i-contacts">Contacts</i></a></li>
+						<li><a href="#" title="Messages"><i class="i-messages">Messages</i></a></li>
+						<li><a href="#" title="Apps"><i class="i-grid">Apps</i></a></li>
+					</ul>
+				</nav>
+			</div>
+		</section>
+	</body>
+</html>

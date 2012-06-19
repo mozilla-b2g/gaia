@@ -1,0 +1,33 @@
+/**
+ * FONTS.CSS
+ * All the font families used in B2G
+ * ------------------------------------------------------*/
+
+ 
+@font-face {
+  font-family: 'System Sans';
+  font-style: normal;
+  font-weight: normal;
+  src: local('Open Sans'), local('OpenSans'), url('/bootzilla/fonts/opensans-regular-webfont.woff') format('woff');
+}
+
+@font-face {
+  font-family: 'System Sans Light';
+  font-style: normal;
+  font-weight: normal;
+  src: local('Open Sans Light'), local('OpenSans-light'), url('/bootzilla/fonts/opensans-light-webfont.woff') format('woff');
+}
+
+@font-face {
+  font-family: 'System Sans Semibold';
+  font-style: normal;
+  font-weight: normal;
+  src: local('Open Sans Semibold'), local('OpenSans-semibold'), url('/bootzilla/fonts/opensans-semibold-webfont.woff') format('woff');
+}
+
+@font-face {
+  font-family: 'System Sans Bold';
+  font-style: normal;
+  font-weight: normal;
+  src: local('Open Sans Bold'), local('OpenSans-bold'), url('/bootzilla/fonts/opensans-bold-webfont.woff') format('woff');
+}
