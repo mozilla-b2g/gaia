@@ -1,11 +1,14 @@
-Sources of the external libraries
+id3-minimized.js is an ID3 metadata reader for MP3 files.
 
-Mp3(ID3):
+The code was written by Jacob Seidelin and António Afonso and released
+as open-source at https://github.com/aadsm/JavaScript-ID3-Reader/.
+Portions of the code (see
+https://github.com/aadsm/JavaScript-ID3-Reader/blob/master/src/id3.js,
+for example) are under the MIT license. Other portions (such as
+https://github.com/aadsm/JavaScript-ID3-Reader/blob/master/src/stringutils.js)
+are under the BSD license. Other files in the repo do not specify a license.
 
-  https://github.com/aadsm/JavaScript-ID3-Reader/blob/master/src/id3.js
-
-Ogg:
-
-  http://paul.cx/public/ogg.js
-
-For details of copyright and license, please reference to the source links.
+ogg.js is a metadata reader for ogg music files. It was written by
+Paul Adenot. See http://paul.cx/public/ogg.js. I've asked Paul to
+contribute code directly to Gaia in the form of a pull request, and
+when he does that we'll remove the library from this directory.
