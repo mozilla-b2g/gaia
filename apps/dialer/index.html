@@ -5,6 +5,7 @@
     <meta http-equiv="pragma" content="no-cache">
     <title>Dialer</title>
     <link rel="stylesheet" type="text/css" href="style/dialer.css">
+    <link rel="stylesheet" type="text/css" href="style/keyboard.css">
     <link rel="resource" type="application/l10n" href="locale/dialer.properties">
     <!-- Compatibility -->
     <script>
@@ -25,230 +26,182 @@
     <script type="application/javascript" src="js/contacts.js"></script>
     <script type="application/javascript" src="js/notification_helper.js"></script>
     <script type="application/javascript" src="js/dialer.js"></script>
+    <script type="application/javascript" src="js/key_handler.js"></script>
     <script type="application/javascript" src="js/recents.js"></script>
-    <script type="application/javascript" src="js/proximity.js"></script>
   </head>
 
   <body class="hidden">
-    <div id="views">
-      <div id="contacts-view" class="view" hidden="true">
-        <div class="top-bar">
-            <div id="contacts-search-container">
-              <input id="contacts-search" type="search" onmousedown="this.focus();"
-              oninput="Contacts.filter(event.target.value);" />
-            </div>
-          <a id="contact-add" class="add" href="#" onclick="Contacts.create()">+</a>
-        </div>
-
-        <div id="contacts-container-top"></div>
-        <div id="contacts-view-scrollable">
-          <div id="favorites-container" onclick="Contacts.showDetails(event)"></div>
-          <div id="contacts-container" onclick="Contacts.showDetails(event)"></div>
-        </div>
-
-        <div id="contacts-shortcuts-background"></div>
-        <div id="contacts-shortcuts" onclick="Contacts.anchor(event.target.name);">
-          <a name="A">A</a>
-          <a name="B">B</a>
-          <a name="C">C</a>
-          <a name="D">D</a>
-          <a name="E">E</a>
-          <a name="F">F</a>
-          <a name="G">G</a>
-          <a name="H">H</a>
-          <a name="I">I</a>
-          <a name="J">J</a>
-          <a name="K">K</a>
-          <a name="L">L</a>
-          <a name="M">M</a>
-          <a name="N">N</a>
-          <a name="O">O</a>
-          <a name="P">P</a>
-          <a name="Q">Q</a>
-          <a name="R">R</a>
-          <a name="S">S</a>
-          <a name="T">T</a>
-          <a name="U">U</a>
-          <a name="V">V</a>
-          <a name="W">W</a>
-          <a name="X">X</a>
-          <a name="Y">Y</a>
-          <a name="Z">Z</a>
-        </div>
-      </div>
-
-      <div id="keyboard-view" class="view">
-        <input type="hidden" id="phone-number"></input>
-        <div id="fake-phone-number-view"></div>
-        <div id="phone-number-view-container">
-          <div onmousedown="KeyHandler.keyDown(event);" onmouseup="KeyHandler.keyUp(event);">
-            <div id="phone-number-view"></div>
-            <div class="keyboard-key" data-value="del"></div>
-          </div>
-        </div>
-
-        <div id="keyboard-container">
-          <div id="mainKeyset" onmousedown="KeyHandler.keyDown(event);" onmouseup="KeyHandler.keyUp(event);">
-            <div class="keyboard-row">
-              <div class="keyboard-key" data-value="1">
-                <span>1</span>
-                <span />
-              </div>
-              <div class="keyboard-key" data-value="2">
-                <span>2</span>
-                <span>abc</span>
-              </div>
-              <div class="keyboard-key" data-value="3">
-                <span>3</span>
-                <span>def</span>
-              </div>
-            </div>
-            <div class="keyboard-row">
-              <div class="keyboard-key" data-value="4">
-                <span>4</span>
-                <span>ghi</span>
-              </div>
-              <div class="keyboard-key" data-value="5">
-                <span>5</span>
-                <span>jkl</span>
-              </div>
-              <div class="keyboard-key" data-value="6">
-                <span>6</span>
-                <span>mno</span>
-              </div>
-            </div>
-            <div class="keyboard-row">
-              <div class="keyboard-key" data-value="7">
-                <span>7</span>
-                <span>pqrs</span>
-              </div>
-              <div class="keyboard-key" data-value="8">
-                <span>8</span>
-                <span>tuv</span>
-              </div>
-              <div class="keyboard-key" data-value="9">
-                <span>9</span>
-                <span>wxyz</span>
-              </div>
-            </div>
-            <div class="keyboard-row">
-              <div class="keyboard-key" data-value="*">
-                <span>&#x2217;</span>
-                <span/>
-              </div>
-              <div class="keyboard-key" data-value="0">
-                <span>0</span>
-                <span>+</span>
-              </div>
-              <div class="keyboard-key" data-value="#">
-                <span>#</span>
-                <span/>
-              </div>
-            </div>
-          </div>
-          <div id="additionalKeyset" onclick="KeyHandler.keyDown(event)">
-            <div class="keyboard-key" data-value="call">
-              <span data-l10n-id="call">Call</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div id="recents-view" class="view" onclick="CallHandler.call(event.target.dataset.number)">
-      </div>
+    <article id="views">
+    <article id="keyboard-view" class="view">
+    <input type="hidden" id="phone-number"></input>
+    <div id="fake-phone-number-view"></div>
+    <div id="phone-number-view-container">
+      <div id="phone-number-view" class="phone-number-font"></div>
     </div>
 
-    <div id="tabs" onclick="choiceChanged(event.target)">
-      <fieldset>
-        <label id="keyboard-label" for="keyboard" data-choice="keyboard" data-active="true"><input id="keyboard" type="radio" name="tabs" checked="checked" /></label>
-        <label id="recents-label" for="recents" data-choice="recents"><input id="recents" type="radio" name="tabs" checked="" /></label>
-        <label id="contacts-label" for="contacts" data-choice="contacts"><input id="contacts" type="radio" name="tabs" checked="" /></label>
-      </fieldset>
-    </div>
-
-    <div id="contacts-overlay">
-      <div id="contact-details-container">
-        <div id="contact-details-view">
-          <div id="contact-photo">
-          </div>
-          <div id="contact-details-show">
-            <div id="contact-details-top">
-              <div id="contact-name">
+    <article id="keyboard-container">
+      <section id="kb-keypad" onmousedown="KeyHandler.keyDown(event);" onmouseup="KeyHandler.keyUp(event);">
+        <div class="kb-keypad-cell">
+          <div class="kb-keypad-key">
+            <div class="kb-keypad-key-label-container">
+              <div class="kb-keypad-key-label" data-value="1">
+                <span class="kb-keypad-number">
+                  1
+                </span>
+                <span  class="kb-keypad-text">
+                  .
+                </span>
               </div>
             </div>
-            <div id="contact-phone" class="entry" data-action="call" onclick="ContactDetails.execute(event)">
-              <span data-l10n-id="phone">phone</span>
-              <div class="value"></div>
-            </div>
-            <div id="contact-email" class="entry">
-              <span data-l10n-id="email">email</span>
-              <div class="value"></div>
-            </div>
-            <button data-l10n-id="edit" data-action="edit" onclick="ContactDetails.execute(event)">Edit</button>
           </div>
-         <form id="contact-details-edit" onsubmit="ContactDetails.save(this)" action="#">
-            <label class="favorite">
-              <input id="favorited" type="checkbox" />
-              <span></span>
-            </label>
-            <div class="entry">
-              <span data-l10n-id="firstName">First</span>
-              <input id="contact-given-name-field" data-action="autoscroll" onfocus="ContactDetails.execute(event)" />
+          <div class="kb-keypad-key">
+            <div class="kb-keypad-key-label-container">
+              <div class="kb-keypad-key-label" data-value="4">
+                <span class="kb-keypad-number">
+                  4
+                </span>
+                <span  class="kb-keypad-text">
+                  GHI
+                </span>
+              </div>
             </div>
-            <div class="entry">
-              <span data-l10n-id="lastName">Last</span>
-              <input id="contact-family-name-field" data-action="autoscroll" required="true" onfocus="ContactDetails.execute(event)" />
-            </div>
-            <div class="entry" data-action="call">
-              <span data-l10n-id="phone">phone</span>
-              <input id="contact-phone-field" type="tel" data-action="autoscroll" onfocus="ContactDetails.execute(event)" />
-            </div>
-            <div class="entry">
-              <span data-l10n-id="email">email</span>
-              <input id="contact-email-field" type="email" data-action="autoscroll" onfocus="ContactDetails.execute(event)" />
-            </div>
-            <div>
-              <input type="submit" value="Done" data-l10n-id="done" />
-            </div>
-            <button data-l10n-id="delete" data-action="destroy" onclick="ContactDetails.execute(event);">Delete</button>
-          </form>
-          <div id="contact-details-line">
           </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="call-screen">
-      <div id="call-screen-top">
-        <div id="call-status-view">
-        </div>
-        <div id="call-picture">
-          <img src="style/images/contact-placeholder.png" alt="profile" />
-        </div>
-        <div id="call-number-view">
-        </div>
-      </div>
-      <div id="call-actions-container">
-        <div id="call-actions">
-          <div data-action="toggleMute" onclick="CallHandler.execute(this.dataset.action);">
-            <div id="mute-button"></div>
-            <span data-l10n-id="mute">Mute</span>
+          <div class="kb-keypad-key">
+            <div class="kb-keypad-key-label-container">
+              <div class="kb-keypad-key-label" data-value="7">
+                <span class="kb-keypad-number">
+                  7
+                </span>
+                <span  class="kb-keypad-text">
+                  PQRS
+                </span>
+              </div>
+            </div>
           </div>
-          <div data-action="toggleKeypad" onclick="CallHandler.execute(this.dataset.action);">
-            <div id="keypad-button"></div>
-            <span data-l10n-id="keypad">Keypad</span>
-          </div>
-          <div data-action="toggleSpeaker" onclick="CallHandler.execute(this.dataset.action);">
-            <div id="speaker-button"></div>
-            <span data-l10n-id="speaker">Speaker</span>
+          <div class="kb-keypad-key">
+            <div class="kb-keypad-key-label-container">
+              <div class="kb-keypad-key-label" data-value="*">
+                <span class="kb-keypad-number">
+                  *
+                </span>
+                <span  class="kb-keypad-text">
+                  #
+                </span>
+              </div>
+            </div>
           </div>
         </div>
-        <div id="call-button">
-          <div id="accept-call" onclick="CallHandler.execute('answer');"><span data-l10n-id="answer">Answer</span></div>
-          <div id="end-call" onclick="CallHandler.execute('end');"><span data-l10n-id="end">End</span></div>
+        <div class="kb-keypad-cell">
+          <div class="kb-keypad-key">
+            <div class="kb-keypad-key-label-container">
+              <div class="kb-keypad-key-label" data-value="2">
+                <span class="kb-keypad-number">
+                  2
+                </span>
+                <span  class="kb-keypad-text">
+                  ABC
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="kb-keypad-key">
+            <div class="kb-keypad-key-label-container">
+              <div class="kb-keypad-key-label" data-value="5">
+                <span class="kb-keypad-number">
+                  5
+                </span>
+                <span  class="kb-keypad-text">
+                  JKL
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="kb-keypad-key">
+            <div class="kb-keypad-key-label-container">
+              <div class="kb-keypad-key-label" data-value="8">
+                <span class="kb-keypad-number">
+                  8
+                </span>
+                <span  class="kb-keypad-text">
+                  TUV
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="kb-keypad-key">
+            <div class="kb-keypad-key-label-container">
+              <div class="kb-keypad-key-label" data-value="0">
+                <span class="kb-keypad-number">
+                  0
+                </span>
+                <span  class="kb-keypad-text">
+                  +
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-    <div id="screen-off"></div>
+        <div class="kb-keypad-cell">
+          <div class="kb-keypad-key">
+            <div class="kb-keypad-key-label-container">
+              <div class="kb-keypad-key-label" data-value="3">
+                <span class="kb-keypad-number">
+                  3
+                </span>
+                <span  class="kb-keypad-text">
+                  DEF
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="kb-keypad-key">
+            <div class="kb-keypad-key-label-container">
+              <div class="kb-keypad-key-label" data-value="6">
+                <span class="kb-keypad-number">
+                  6
+                </span>
+                <span  class="kb-keypad-text">
+                  MNO
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="kb-keypad-key">
+            <div class="kb-keypad-key-label-container">
+              <div class="kb-keypad-key-label" data-value="9">
+                <span class="kb-keypad-number">
+                  9
+                </span>
+                <span  class="kb-keypad-text">
+                  WXYZ
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="kb-keypad-key">
+            <div class="kb-keypad-key-label-container">
+              <div class="kb-keypad-key-label del-digit" data-value="del-digit">
+                <span class="kb-keypad-number">
+                </span>
+                <span  class="kb-keypad-text">
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section id="kb-callbar">
+        <button id="kb-callbar-add-contact" onmousedown="KeyHandler.keyDown(event);" onmouseup="KeyHandler.keyUp(event);">
+          <div class="i-add-contact">
+          </div>
+        </button>
+        <button id="kb-callbar-call-action"  data-value="make-call" onmousedown="KeyHandler.keyDown(event);" onmouseup="KeyHandler.keyUp(event);">
+          <div class="i-call">
+          </div>
+        </button>
+      </section>
+    </article>
+    </article>
+    </article>
   </body>
 </html>

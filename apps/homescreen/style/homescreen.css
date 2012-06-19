@@ -121,3 +121,8 @@ button {
    outline: none;
 }
 
+@media screen and (min-device-width: 480px) {
+  html {
+    font-size: 13.3px;
+  }
+}

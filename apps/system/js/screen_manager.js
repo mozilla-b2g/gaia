@@ -25,6 +25,12 @@ var ScreenManager = {
     /* Respect the information from DeviceLight sensor */
     window.addEventListener('devicelight', this);
 
+    /* fullscreenchange event */
+    window.addEventListener('mozfullscreenchange', this);
+
+    this.screen = document.getElementById('screen');
+    this.screen.classList.remove('screenoff');
+
     var self = this;
 
     SettingsListener.observe('screen.automatic-brightness', true,
@@ -58,8 +64,16 @@ var ScreenManager = {
 
         break;
 
-        // The screenshot module also listens for the SLEEP key and
-        // may call preventDefault() on the keyup and keydown events.
+      case 'mozfullscreenchange':
+        if (document.mozFullScreen) {
+          this.screen.classList.add('fullscreen');
+        } else {
+          this.screen.classList.remove('fullscreen');
+        }
+        break;
+
+      // The screenshot module also listens for the SLEEP key and
+      // may call preventDefault() on the keyup and keydown events.
       case 'keydown':
         if (evt.keyCode !== evt.DOM_VK_SLEEP && evt.keyCode !== evt.DOM_VK_HOME)
           return;
@@ -97,6 +111,7 @@ var ScreenManager = {
     navigator.mozPower.screenBrightness = 0.0;
 
     this.screenEnabled = false;
+    this.screen.classList.add('screenoff');
     setTimeout(function realScreenOff() {
       navigator.mozPower.screenEnabled = false;
     }, 20);
@@ -112,6 +127,7 @@ var ScreenManager = {
 
     navigator.mozPower.screenEnabled = this.screenEnabled = true;
     navigator.mozPower.screenBrightness = this._brightness;
+    this.screen.classList.remove('screenoff');
 
     this.fireScreenChangeEvent();
     return true;
@@ -149,3 +165,5 @@ var ScreenManager = {
     window.dispatchEvent(evt);
   }
 };
+
+ScreenManager.init();

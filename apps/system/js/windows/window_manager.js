@@ -100,10 +100,10 @@ var WindowManager = (function() {
     else
       start(origin);
 
-    // launch() can be called from outside the task switcher
+    // launch() can be called from outside the card switcher
     // hiding it if needed
-    if (TaskManager.taskSwitcherIsShown())
-      hideTaskSwitcher();
+    if (CardsView.cardSwitcherIsShown())
+      CardsView.cardTaskSwitcher();
   }
 
   function isRunning(origin) {
@@ -289,7 +289,7 @@ var WindowManager = (function() {
     // 1) The new app is already displayed: do nothing
     // 2) We're going from the homescreen to an app
     // 3) We're going from an app to the homescreen
-    // 4) We're going from one app to another (via task switcher)
+    // 4) We're going from one app to another (via card switcher)
 
     // Case 1
     if (currentApp == newApp) {
@@ -557,7 +557,7 @@ var WindowManager = (function() {
   });
 
   // Listen for the Back button.  We need both a capturing listener
-  // and a regular listener for this.  If the task switcher (or some
+  // and a regular listener for this.  If the card switcher (or some
   // other overlay) is displayed, the capturing listener can intercept
   // the back key and use it to take down the overlay.  Otherwise, the
   // back button should go to the displayed app first, so it can use
@@ -578,12 +578,12 @@ var WindowManager = (function() {
   //   https://github.com/andreasgal/gaia/issues/753#issuecomment-4559674
   //
   // This is the capturing listener for Back.
-  // TODO: right now this only knows about the task switcher, but
+  // TODO: right now this only knows about the card switcher, but
   // there might be other things that it needs to be able to dismiss
   //
   window.addEventListener('keyup', function(e) {
-    if (e.keyCode === e.DOM_VK_ESCAPE && TaskManager.taskSwitcherIsShown()) {
-      TaskManager.hideTaskSwitcher();
+    if (e.keyCode === e.DOM_VK_ESCAPE && CardsView.cardSwitcherIsShown()) {
+      CardsView.hideCardSwitcher();
       e.preventDefault();
       e.stopPropagation();
     }
@@ -596,10 +596,15 @@ var WindowManager = (function() {
     // homescreen. Unlike the Home key, apps can intercept this event
     // and use it for their own purposes.
     if (e.keyCode === e.DOM_VK_ESCAPE &&
+        !ModalDialog.blocked &&
         !e.defaultPrevented &&
         displayedApp !== null) {
 
       setDisplayedApp(null); // back to the homescreen
+    }
+
+    if (e.keyCode === e.DOM_VK_ESCAPE && ModalDialog.blocked) {
+      ModalDialog.cancelHandler();
     }
   });
 
@@ -666,11 +671,13 @@ var WindowManager = (function() {
         // If the event has defualtPrevented (from the screenshot module)
         // the we also itnore it
         // Otherwise, make the homescreen visible.
-        // Also, if the task switcher is visible, then hide it.
-        if (!LockScreen.locked && !e.defaultPrevented) {
-          setDisplayedApp(null);
-          if (TaskManager.taskSwitcherIsShown())
-            TaskManager.hideTaskSwitcher();
+        // Also, if the card switcher is visible, then hide it.
+        if (!ModalDialog.blocked && !LockScreen.locked && !e.defaultPrevented) {
+          // The attention screen can 'eat' this event
+          if (!e.defaultPrevented)
+            setDisplayedApp(null);
+          if (CardsView.cardSwitcherIsShown())
+            CardsView.hideCardSwitcher();
         }
       }
 
@@ -681,11 +688,14 @@ var WindowManager = (function() {
     function longPressHandler() {
       // If the timer fires, then this was a long press on the home key
       // So bring up the app switcher overlay if we're not locked
-      // and if the task switcher is not already shown
+      // and if the card switcher is not already shown
       timer = null;
 
-      if (!LockScreen.locked && !TaskManager.taskSwitcherIsShown())
-        TaskManager.showTaskSwitcher();
+      if (!ModalDialog.blocked &&
+          !LockScreen.locked &&
+          !CardsView.cardSwitcherIsShown()) {
+        CardsView.showCardSwitcher();
+      }
     }
   }());
 

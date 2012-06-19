@@ -35,18 +35,21 @@ var Applications = (function() {
 
   installer.oninstall = function install(event) {
     var app = event.application;
-    installedApps[app.origin] = app;
+    if (!installedApps[app.origin]) {
+      installedApps[app.origin] = app;
 
-    var icon = getIcon(app.origin);
-    if (icon) {
-      window.applicationCache.mozAdd(icon);
-    }
-
-    callbacks.forEach(function(callback) {
-      if (callback.type == 'install') {
-        callback.callback(app);
+      var icon = getIcon(app.origin);
+      // No need to put data: URIs in the cache
+      if (icon && icon.indexOf("data:") == -1) {
+        window.applicationCache.mozAdd(icon);
       }
-    });
+
+      callbacks.forEach(function(callback) {
+        if (callback.type == 'install') {
+          callback.callback(app);
+        }
+      });
+    }
   };
 
   document.documentElement.lang = 'en-US';
@@ -127,6 +130,18 @@ var Applications = (function() {
     return coreApplications.indexOf(origin) !== -1;
   };
 
+  var deviceWidth = document.documentElement.clientWidth;
+
+  /*
+   *  Returns the size of the icon
+   *
+   *  {Array} Sizes orderer largest to smallest
+   *
+   */
+  function getIconSize(sizes) {
+    return sizes[(deviceWidth < 480) ? sizes.length - 1 : 0];
+  }
+
   /*
    *  Returns an icon given an origin
    *
@@ -154,7 +169,7 @@ var Applications = (function() {
     // application to it (technically, manifests are supposed to
     // have those). Otherwise return the url directly as it could be
     // a data: url.
-    var icon = icons[sizes[0]];
+    var icon = icons[getIconSize(sizes)];
     if (icon.indexOf('data:') !== 0) {
       icon = origin + icon;
     }
@@ -205,4 +220,3 @@ var Applications = (function() {
     getManifest: getManifest
   };
 })();
-

@@ -191,7 +191,7 @@
     },
 
     _updateEvents: function(date) {
-      var date = date || this.controller.selectedDay;
+      date = date || this.controller.selectedDay;
       var html = this._renderDay(date);
 
       this.eventsElement().innerHTML = html;

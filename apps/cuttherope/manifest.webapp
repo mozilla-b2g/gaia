@@ -11,7 +11,8 @@
     "url": "http://cuttherope.ie"
   },
   "icons": {
-    "120": "/style/icons/Cuttherope.png"
+    "120": "/style/icons/Cuttherope.png",
+    "60": "/style/icons/60/Cuttherope.png"
   },
   "orientation": "landscape"
 }
