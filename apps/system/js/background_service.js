@@ -12,16 +12,33 @@ var BackgroundServiceManager = (function bsm() {
     The iframes will be append to body */
   var frames = {};
 
+  /* The name of the background window open by background_page in
+    manifest. */
+  var AUTO_OPEN_BG_PAGE_NAME = 'background';
+
   /* Init */
   window.addEventListener('applicationready', function bsm_init(evt) {
     var applications = evt.detail.applications;
-    Object.keys(applications).forEach(open);
+    Object.keys(applications).forEach(function bsm_each(origin) {
+      if (!applications[origin].manifest.background_page)
+        return;
+
+      // XXX: this work as if background_page is always a path not a full URL.
+      var url = origin + applications[origin].manifest.background_page;
+      open(origin, AUTO_OPEN_BG_PAGE_NAME, url);
+    });
   });
 
   /* OnInstall */
   window.addEventListener('applicationinstall', function bsm_oninstall(evt) {
-    var origin = evt.detail.application.origin;
-    open(origin);
+    var app = evt.detail.application;
+    var origin = app.origin;
+    if (!app.manifest.background_page)
+      return;
+
+    // XXX: this work as if background_page is always a path not a full URL.
+    var url = origin + app.manifest.background_page;
+    open(origin, AUTO_OPEN_BG_PAGE_NAME, url);
   });
 
   /* OnUninstall */
@@ -40,35 +57,54 @@ var BackgroundServiceManager = (function bsm() {
   };
 
   /* The open function is responsible of containing the iframe */
-  var open = function bsm_open(origin) {
+  var open = function bsm_open(origin, name, url) {
     var app = Applications.getByOrigin(origin);
-    if (!hasBackgroundPermission(app))
+    if (!app || !hasBackgroundPermission(app))
       return false;
 
-    if (!app || !app.manifest.background_page)
-      return false;
+    if (frames[origin] && frames[origin][name])
+      return frames[origin][name];
 
     var frame = document.createElement('iframe');
     frame.className = 'backgroundWindow';
     frame.setAttribute('mozbrowser', 'true');
     frame.setAttribute('mozapp', app.manifestURL);
-    frame.src = origin + app.manifest.background_page;
-    frames[origin] = frame;
+    frame.src = url;
+
+    if (!frames[origin])
+      frames[origin] = {};
+    frames[origin][name] = frame;
 
     document.body.appendChild(frame);
-    return true;
+    return frames[origin][name];
   };
 
   /* The close function will remove the iframe from DOM and
     delete the reference */
-  var close = function bsm_close(origin) {
-    var frame = frames[origin];
+  var close = function bsm_close(origin, name) {
+    if (!frames[origin])
+      return false;
+
+    if (typeof name == 'undefined') {
+      // Close all windows
+      Object.keys(frames[origin]).forEach(function closeEach(name) {
+        document.body.removeChild(frames[origin][name]);
+        frames[origin][name] = null;
+      });
+      delete frames[origin];
+      return true;
+    }
+
+    // Close one window
+    var frame = frames[origin][name];
     if (!frame)
       return false;
 
     document.body.removeChild(frame);
+    frame = null;
 
-    delete frames[origin];
+    if (!Object.keys(frames[origin]).length)
+      delete frames[origin];
     return true;
   };
 
