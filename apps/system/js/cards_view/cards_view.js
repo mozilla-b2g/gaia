@@ -69,7 +69,7 @@ var CardsView = (function() {
 
       // I assume that object properties are enumerated in
       // the same order they were defined.
-      // There is nothing baout that in spec, but I've never
+      // There is nothing about that in spec, but I've never
       // seen any unexpected behavior.
       sortable.forEach(function(element) {
         runningApps[element.origin] = element.app;

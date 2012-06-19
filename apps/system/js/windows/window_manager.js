@@ -289,7 +289,7 @@ var WindowManager = (function() {
     if (!runningApps[origin]) {
       return;
     } else {
-      runningApps[origin].launchTime = +(new Date());
+      runningApps[origin].launchTime = Date.now();
     }
   }
 
@@ -499,7 +499,7 @@ var WindowManager = (function() {
       name: name,
       manifest: manifest,
       frame: frame,
-      launchTime: +(new Date())
+      launchTime: Date.now()
     };
 
     numRunningApps++;
