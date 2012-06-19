@@ -29,6 +29,35 @@ var BackgroundServiceManager = (function bsm() {
     });
   });
 
+  /* mozbrowseropenwindow */
+  window.addEventListener('mozbrowseropenwindow', function bsm_winopen(evt) {
+    if (evt.detail.features !== 'background')
+      return;
+
+    // preventDefault means "we're handling this popup; let it through."
+    evt.preventDefault();
+    // stopPropagation means we are not allowing
+    // Popup Manager to handle this event
+    evt.stopPropagation();
+
+    // XXX: this is sad. Getting origin from manifest URL.
+    var manifestURL = evt.target.getAttribute('mozapp');
+    var origin = manifestURL.substr(0, manifestURL.indexOf('/'));
+
+    var frame = open(origin, evt.detail.name, evt.detail.url);
+    if (frame)
+      evt.detail.frameElement = frame;
+  }, true);
+
+  /* mozbrowserclose */
+  window.addEventListener('mozbrowserclose', function bsm_winclose(evt) {
+    if (!'frameType' in evt.target.dataset ||
+        evt.target.dataset.frameType !== 'background')
+      return;
+
+    close(evt.target.dataset.frameOrigin, evt.target.dataset.frameName);
+  }, true);
+
   /* OnInstall */
   window.addEventListener('applicationinstall', function bsm_oninstall(evt) {
     var app = evt.detail.application;
@@ -70,6 +99,9 @@ var BackgroundServiceManager = (function bsm() {
     frame.setAttribute('mozbrowser', 'true');
     frame.setAttribute('mozapp', app.manifestURL);
     frame.src = url;
+    frame.dataset.frameType = 'background';
+    frame.dataset.frameName = name;
+    frame.dataset.frameOrigin = origin;
 
     if (!frames[origin])
       frames[origin] = {};
