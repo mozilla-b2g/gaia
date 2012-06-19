@@ -13,8 +13,8 @@ var AttentionScreen = {
   },
 
   init: function as_init() {
-    window.addEventListener('mozbrowseropenwindow', this);
-    window.addEventListener('mozbrowserclose', this);
+    window.addEventListener('mozbrowseropenwindow', this, true);
+    window.addEventListener('mozbrowserclose', this, true);
 
     this.bar.addEventListener('click', this);
     window.addEventListener('keyup', this, true);
