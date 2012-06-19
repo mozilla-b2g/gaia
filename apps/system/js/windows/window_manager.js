@@ -596,10 +596,15 @@ var WindowManager = (function() {
     // homescreen. Unlike the Home key, apps can intercept this event
     // and use it for their own purposes.
     if (e.keyCode === e.DOM_VK_ESCAPE &&
+        !ModalDialog.blocked &&
         !e.defaultPrevented &&
         displayedApp !== null) {
 
       setDisplayedApp(null); // back to the homescreen
+    }
+
+    if (e.keyCode === e.DOM_VK_ESCAPE && ModalDialog.blocked) {
+      ModalDialog.cancelHandler();
     }
   });
 
@@ -667,7 +672,7 @@ var WindowManager = (function() {
         // the we also itnore it
         // Otherwise, make the homescreen visible.
         // Also, if the card switcher is visible, then hide it.
-        if (!LockScreen.locked && !e.defaultPrevented) {
+        if (!ModalDialog.blocked && !LockScreen.locked && !e.defaultPrevented) {
           // The attention screen can 'eat' this event
           if (!e.defaultPrevented)
             setDisplayedApp(null);
@@ -686,8 +691,11 @@ var WindowManager = (function() {
       // and if the card switcher is not already shown
       timer = null;
 
-      if (!LockScreen.locked && !CardsView.cardSwitcherIsShown())
+      if (!ModalDialog.blocked &&
+          !LockScreen.locked &&
+          !CardsView.cardSwitcherIsShown()) {
         CardsView.showCardSwitcher();
+      }
     }
   }());
 
