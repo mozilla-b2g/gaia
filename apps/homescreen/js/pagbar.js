@@ -2,7 +2,7 @@
 'use strict';
 
 const PaginationBar = (function() {
-  var style, percentage = '%', pTotal;
+  var style, percentage = '%', previousTotal;
 
   return {
    /*
@@ -34,9 +34,9 @@ const PaginationBar = (function() {
     */
     update: function pb_update(current, total) {
 
-      if (pTotal !== total) {
+      if (previousTotal !== total) {
         style.width = (100 / total) + percentage;
-        pTotal = total;
+        previousTotal = total;
       }
 
       style.MozTransform = 'translateX(' + current * 100 + '%)';
