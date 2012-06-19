@@ -241,14 +241,24 @@ const GridManager = (function() {
    * Renders the homescreen from the database
    */
   function renderFromDB() {
+    var renderedApps = [];
     HomeState.getAppsByPage(
       function iterate(apps) {
         pageHelper.push(apps);
+        // Accumulating apps from DB
+        renderedApps = renderedApps.concat(apps);
       },
       function onsuccess(results) {
         if (results === 0) {
           renderFromMozApps();
           return;
+        }
+
+        console.log('Check installed apps that are not saved in the DB');
+        renderedApps = Applications.listInstalledApps(renderedApps);
+        for (var origin in renderedApps) {
+          console.log('Installing app: ' + origin);
+          GridManager.install(renderedApps[origin]);
         }
 
         // Grid was loaded from DB

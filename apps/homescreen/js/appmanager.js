@@ -86,6 +86,29 @@ var Applications = (function() {
   };
 
   /*
+   *  Lists installed apps
+   *
+   *  {Array} List of applications that will be removed from result
+   *
+   */
+  function listInstalledApps(exceptions) {
+    var ret = {};
+    for (var i in installedApps) {
+      ret[i] = installedApps[i];
+    }
+
+    var len = exceptions.length;
+    for (var i = 0; i < len; i++) {
+      var origin = exceptions[i];
+      if (origin in ret) {
+        delete ret[origin];
+      }
+    }
+
+    return ret;
+  };
+
+  /*
    *  Returns the origin for an apllication
    *
    *  {Object} Moz application
@@ -217,6 +240,7 @@ var Applications = (function() {
     getOrigin: getOrigin,
     getName: getName,
     getIcon: getIcon,
-    getManifest: getManifest
+    getManifest: getManifest,
+    listInstalledApps: listInstalledApps
   };
 })();
