@@ -5,7 +5,7 @@
 
 window.addEventListener('localized', function scanWifiNetworks(evt) {
   var wifiManager = navigator.mozWifiManager;
-  var _ = document.mozL10n.get;
+  var _ = navigator.mozL10n.get;
 
   // main wifi button
   var gStatus = (function wifiStatus(checkbox, infoBlock) {
