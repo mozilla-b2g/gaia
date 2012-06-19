@@ -336,16 +336,20 @@ html * {
   width: -moz-calc(90% / 2 - 1px);
 }
 
-#kb-keypad {
+#keyboard-container {
   display: none;
 }
 
-#kb-keypad.overlay {
-  display: table;
+#keyboard-container.overlay {
+  display: block;
   position: absolute;
   top: 0;
-  height: 40%;
+  height: 60%;
   z-index: 500;
+}
+
+#keyboard-container.overlay .kb-keypad-key {
+  height: -moz-calc(100% / 4);
 }
 
 /* == Screen turn off hack == */
