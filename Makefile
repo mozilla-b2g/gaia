@@ -440,8 +440,8 @@ install-gaia: profile
 	@echo 'Rebooting b2g now'
 
 install-media-samples:
-	$(ADB) push media-samples/DCIM /sdcard/DCIM
-	$(ADB) push media-samples/videos /sdcard/videos
-	$(ADB) push media-samples/music /sdcard/music
+	$(ADB) push media-samples/Pictures /sdcard/Pictures
+	$(ADB) push media-samples/Movies /sdcard/Movies
+	$(ADB) push media-samples/Music /sdcard/Music
 
 demo: install-media-samples install-gaia
