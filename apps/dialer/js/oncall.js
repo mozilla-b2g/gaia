@@ -1,51 +1,63 @@
 'use strict';
 
-var CallUI={
-  
-  init:function cm_init(){
+var CallUI = {
+  init: function cm_init() {
     //Add events to our DOM
-    document.getElementById('mute').addEventListener('mouseup',OnCallHandler.toggleMute,false);
-    document.getElementById('keypad-visibility').addEventListener('mouseup',OnCallHandler.toggleKeypad,false);
-    document.getElementById('speaker').addEventListener('mouseup',OnCallHandler.toggleSpeaker,false);
-    document.getElementById('co-basic-answer').addEventListener('mouseup',OnCallHandler.answer,false);
-    document.getElementById('co-basic-reject').addEventListener('mouseup',OnCallHandler.end,false);
+    document.getElementById('mute').addEventListener(
+      'mouseup', OnCallHandler.toggleMute, false);
+    document.getElementById('keypad-visibility').addEventListener(
+      'mouseup', OnCallHandler.toggleKeypad, false);
+    document.getElementById('speaker').addEventListener(
+      'mouseup', OnCallHandler.toggleSpeaker, false);
+    document.getElementById('co-basic-answer').addEventListener(
+      'mouseup', OnCallHandler.answer, false);
+    document.getElementById('co-basic-reject').addEventListener(
+      'mouseup', OnCallHandler.end, false);
   },
-  update:function cm_update(phone_number){
+  update: function cm_update(phone_number) {
     //Updating phone number in screen
-    document.getElementById('cs-h-info-primary').innerHTML=phone_number;
+    document.getElementById('cs-h-info-primary').innerHTML = phone_number;
     KeypadManager.phoneNumber = phone_number;
-    document.getElementById('phone-number-view').value=KeypadManager.phoneNumber;
-    KeypadManager.util.moveCaretToEnd(document.getElementById('phone-number-view'));
+    document.getElementById('phone-number-view').value =
+      KeypadManager.phoneNumber;
+    KeypadManager.util.moveCaretToEnd(
+      document.getElementById('phone-number-view'));
   },
-  cleanTimer:function cm_cleanTime(){
+  cleanTimer: function cm_cleanTime() {
     //TODO Review this functionality
     clearInterval(CallUI.timer);
   },
-  render:function cm_render(layout_type){
-    // Method which renders our call screen with different layouts: 
+  render: function cm_render(layout_type) {
+    // Method which renders our call screen with different layouts:
     // 0 Outgoing call before answer
     // 1 Outgoing call after answer
     // 2 Incoming Call
-    switch(layout_type){
+    switch (layout_type) {
       case 0:
-        document.getElementById('call-duration').innerHTML="...";
+        document.getElementById('call-duration').innerHTML = '...';
         document.getElementById('co-basic-answer').classList.add('hide');
         document.getElementById('co-advanced').classList.remove('transparent');
-        document.getElementById('keypad-visibility').setAttribute('disabled','disabled');
+        document.getElementById('keypad-visibility').setAttribute(
+          'disabled', 'disabled');
         break;
       case 1:
         //TODO Review of using "toggle" despite of "contains"+add/remove
-        if(!document.getElementById('co-basic-answer').classList.contains('hide')){
+        if (!document.getElementById('co-basic-answer')
+          .classList.contains('hide')) {
           document.getElementById('co-basic-answer').classList.add('hide');
         }
-        if(!document.getElementById('co-basic-answer').classList.contains('transparent')){
-          document.getElementById('co-advanced').classList.remove('transparent');
+        if (!document.getElementById('co-basic-answer').classList
+          .contains('transparent')) {
+          document.getElementById('co-advanced').classList.remove(
+            'transparent');
         }
 
-        document.getElementById('keypad-visibility').removeAttribute('disabled');
-        document.getElementById('call-duration').innerHTML="00:00";
-        
-        //TODO Implement this functionality with UX design about how time has to be shown. 
+        document.getElementById('keypad-visibility').removeAttribute(
+          'disabled');
+        document.getElementById('call-duration').innerHTML = '00:00';
+
+        //TODO Implement this functionality with UX design about how time
+        // has to be shown.
         // Create a method which manage Time in dialer
         // var sec=0;
         // CallUI.timer=setInterval(function(){
@@ -63,20 +75,20 @@ var CallUI={
 
         //  document.getElementById('call-duration').innerHTML=minutes+':'+seconds;
         // },1000);
-        
+
         break;
       case 2:
         document.getElementById('co-basic-answer').classList.remove('hide');
         document.getElementById('co-advanced').classList.add('transparent');
-        document.getElementById('call-duration').innerHTML="";
+        document.getElementById('call-duration').innerHTML = '';
         break;
     }
   },
-  ui:{
-    show:function cm_show(){
+  ui: {
+    show: function cm_show() {
       document.getElementById('call-screen').classList.add('call-screen-show');
     },
-    hide:function cm_hide(){
+    hide: function cm_hide() {
       CallUI.update(KeypadManager.phoneNumber);
 
       document.getElementById('views').classList.toggle('show');
@@ -247,7 +259,8 @@ var OnCallHandler = {
   },
   get keypadCallbarBackAction() {
     delete this.keypadCallbarBackAction;
-    return this.keypadCallbarBackAction = document.getElementById('kb-callbar-back-action');
+    return (this.keypadCallbarBackAction =
+      document.getElementById('kb-callbar-back-action'));
   },
 
   toggleScreen: function ch_toggleScreen() {
@@ -312,14 +325,15 @@ var OnCallHandler = {
 
   toggleSpeaker: function ch_toggleSpeaker() {
     OnCallHandler.speakerButton.classList.toggle('speak');
-    navigator.mozTelephony.speakerEnabled = !navigator.mozTelephony.speakerEnabled;
+    navigator.mozTelephony.speakerEnabled =
+      !navigator.mozTelephony.speakerEnabled;
   },
 
   lookupContact: function och_lookupContact(number) {
     Contacts.findByNumber(number, (function(contact) {
     OnCallHandler.numberView.innerHTML = contact.name;
     }).bind(this));
-  },
+  }
 
   _syncSpeakerEnabled: function och_syncSpeakerEnabled() {
     if (navigator.mozTelephony.speakerEnabled) {
