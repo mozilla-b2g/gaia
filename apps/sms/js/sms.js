@@ -955,7 +955,7 @@ var ConversationView = {
       break;
 
       case 'click':
-        var targetIsMessage = evt.target.classList.contains('message');
+        var targetIsMessage = ~evt.target.className.indexOf('message');
         if (evt.currentTarget == this.view && targetIsMessage) {
           this.onListItemClicked(evt);
         }
