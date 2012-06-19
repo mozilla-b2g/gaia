@@ -265,6 +265,8 @@
       setTimeout(function() {
         self.connected = network;
         network.connected = true;
+        self.connection.status = 'connected';
+        self.connection.network = network;
         if (self.onconnect)
           self.onconnect(networkEvent);
       }, 2000);
@@ -273,7 +275,12 @@
     },
 
     // returns a network object for the currently connected network (if any)
-    connected: null
+    connected: null,
+
+    connection: {
+      status: 'disconnected',
+      network: null
+    }
   };
 })(this);
 
