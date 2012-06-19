@@ -33,7 +33,7 @@
     if (locales && locales[lang] && locales[lang].name)
       name = locales[lang].name;
 
-    var str = document.mozL10n.get('install', {
+    var str = navigator.mozL10n.get('install', {
       'name': name, 'origin': app.origin
     });
     requestPermission(str, function() { sendResponse(detail.id, true); },

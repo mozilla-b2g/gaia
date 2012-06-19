@@ -74,7 +74,7 @@
     window.dispatchEvent(new CustomEvent('mozContentEvent', screenshotProps));
   }
 
-  var _ = document.mozL10n.get;
+  var _ = navigator.mozL10n.get;
 
   // Handle notifications that screenshots have been taken
   window.addEventListener('mozChromeEvent', function ss_onMozChromeEvent(e) {

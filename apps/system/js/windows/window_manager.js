@@ -76,7 +76,7 @@ var WindowManager = (function() {
   // an app is loading
   var localizedLoading = 'Loading...';
   window.addEventListener('localized', function() {
-    localizedLoading = document.mozL10n.get('loading');
+    localizedLoading = navigator.mozL10n.get('loading');
   });
 
   // Public function. Return the origin of the currently displayed app
