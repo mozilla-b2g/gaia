@@ -63,7 +63,7 @@
 
     var host = document.location.host;
     window.open('http://' + host + '/oncall.html#incoming',
-                '_attention');
+                'dialer_incoming', 'attention');
 
     call.onstatechange = function callStateChange() {
       call.onstatechange = null;

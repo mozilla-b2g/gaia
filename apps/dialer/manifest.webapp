@@ -11,7 +11,8 @@
     "contacts",
     "power",
     "mozApps",
-    "mobileconnection"
+    "mobileconnection",
+    "background"
   ],
   "locales": {
     "ar": {
