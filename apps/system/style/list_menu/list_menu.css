@@ -1,5 +1,4 @@
-
-#listmenu_modal {
+#listmenu {
   position: absolute;
   top: 0;
   left: 0;
@@ -12,7 +11,7 @@
   display: none;
 }
 
-#listmenu_modal.visible {
+#listmenu.visible {
   display: block;
 }
 

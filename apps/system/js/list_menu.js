@@ -9,6 +9,11 @@ var ListMenu = {
     return this.element = document.getElementById('listmenu');
   },
 
+  get container() {
+    delete this.container;
+    return this.container = document.getElementById('listmenu-container');
+  },
+
   get visible() {
     return this.element.classList.contains('visible');
   },
@@ -18,19 +23,20 @@ var ListMenu = {
   },
 
   request: function lm_request(list_items, handler) {
-    this.element.innerHTML = '';
-    list_items.forEach(function render_item(element, index, array){
+    this.container.innerHTML = '';
+    list_items.forEach(function render_item(element){
       var item = document.createElement('div');
       item.dataset.value = element.value;
-      item.textContext = element.label;
-      this.element.appendChild(item);
+      item.textContent = element.label;
+      this.container.appendChild(item);
 
       if (handler) {
         this.onreturn = handler;
       } else {
         this.onreturn = function lm_onreturn(){};
       }
-    });
+    }, this);
+    this.show();
   },
 
   show: function lm_show() {
@@ -60,3 +66,5 @@ var ListMenu = {
     }
   }
 };
+
+ListMenu.init();

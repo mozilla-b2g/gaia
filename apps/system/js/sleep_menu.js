@@ -48,6 +48,7 @@ var SleepMenu = {
     window.addEventListener('volumechange', this);
     window.addEventListener('keydown', this, true);
     window.addEventListener('keyup', this, true);
+    console.log('=====INIT SM DONE=====');
   },
 
   updateItems: function sm_updateItems() {
@@ -57,7 +58,7 @@ var SleepMenu = {
     }  
   },
 
-  items: function sm_generateItems() {
+  generateItems: function sm_generateItems() {
     var items = [];
     var settings = window.navigator.mozSettings;
 
@@ -76,11 +77,13 @@ var SleepMenu = {
     items.push(this.restart);
     items.push(this.power);
 
+    console.log('======',items.length,'======');
     return items;
   },
 
   // Event handler for addEventListener
   handleEvent: function sm_handleEvent(evt) {
+    console.log('=====',evt.type,'=====',ListMenu.visible);
     switch (evt.type) {
       case 'volumechange':
         this.updateVolumeStatus();
@@ -91,6 +94,7 @@ var SleepMenu = {
         // can call defaultPrevented() on keydown and key up events.
         if (evt.keyCode == evt.DOM_VK_SLEEP &&
             !evt.defultPrevented && !ListMenu.visible) {
+          console.log('=======',ListMenu.visible,'=======');
           this._longpressTriggered = false;
           this._sleepMenuTimeout = window.setTimeout((function sm_timeout() {
             this.show();
@@ -129,6 +133,7 @@ var SleepMenu = {
   },
 
   show: function sm_show() { 
+    console.log('=====sm show=====');
     ListMenu.request(this.generateItems(), this.handler);
   },
 
