@@ -62,7 +62,7 @@ var ModalDialog = {
 
         // check if there is another modal dialog now.
         // unblock the previous mozbrowsershowmodalprompt event
-        if (!this.evt) {
+        if (this.evt) {
           this.evt.detail.unblock();
         }
 
