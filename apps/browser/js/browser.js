@@ -165,6 +165,9 @@ var Browser = {
         break;
 
       case 'mozbrowserlocationchange':
+        if (evt.detail === 'about:blank') {
+          return;
+        }
         tab.url = evt.detail;
         this.updateHistory(evt.detail);
         if (isCurrentTab) {
