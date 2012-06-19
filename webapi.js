@@ -284,7 +284,7 @@
   };
 })(this);
 
-// document.mozL10n
+// navigator.mozL10n
 (function(window) {
   // see https://github.com/fabi1cazenave/webL10n
 
@@ -1144,7 +1144,7 @@
   }
 
   // Public API
-  document.mozL10n = {
+  navigator.mozL10n = {
     // get a localized string
     get: function(key, args, fallback) {
       var data = getL10nData(key, args) || fallback;

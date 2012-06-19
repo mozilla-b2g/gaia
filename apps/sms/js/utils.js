@@ -4,7 +4,7 @@
 'use strict';
 
 // Based on Resig's pretty date
-var localeStr = document.mozL10n.get;
+var localeStr = navigator.mozL10n.get;
 function prettyDate(time) {
 
   switch (time.constructor) {

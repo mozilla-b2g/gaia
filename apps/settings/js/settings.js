@@ -166,8 +166,8 @@ window.addEventListener('keyup', function goBack(event) {
 
 // set the 'lang' and 'dir' attributes to <html> when the page is translated
 window.addEventListener('localized', function showPanel() {
-  document.documentElement.lang = document.mozL10n.language.code;
-  document.documentElement.dir = document.mozL10n.language.direction;
+  document.documentElement.lang = navigator.mozL10n.language.code;
+  document.documentElement.dir = navigator.mozL10n.language.direction;
 
   // <body> children are hidden until the UI is translated
   if (document.body.classList.contains('hidden')) {

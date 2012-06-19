@@ -150,7 +150,7 @@ var StatusBar = {
     if (!conn || !conn.voice)
       return;
 
-    var _ = document.mozL10n.get;
+    var _ = navigator.mozL10n.get;
     /* Information about voice connection */
     var voice = conn.voice;
     /* Information about data connection */
