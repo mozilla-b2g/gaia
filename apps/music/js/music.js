@@ -265,6 +265,10 @@ var PlayerView = {
     this.title = document.getElementById('player-cover-title');
     this.artist = document.getElementById('player-cover-artist');
 
+    this.timeoutID;
+    this.caption = document.getElementById('player-cover-caption');
+    this.coverControl = document.getElementById('player-cover-buttons');
+
     this.seekBar = document.getElementById('player-seek-bar-progress');
     this.seekElapsed = document.getElementById('player-seek-elapsed');
     this.seekRemaining = document.getElementById('player-seek-remaining');
@@ -388,6 +392,29 @@ var PlayerView = {
     switch (evt.type) {
       case 'click':
         switch (target.id) {
+          case 'player-cover-image':
+            this.caption.classList.remove('resetSilde');
+            this.caption.classList.add('slideDown');
+
+            this.coverControl.classList.remove('resetSilde');
+            this.coverControl.classList.add('slideUp');
+
+            if (this.timeoutID)
+              window.clearTimeout(this.timeoutID);
+
+            this.timeoutID = window.setTimeout(
+              function () {
+                this.caption.classList.remove('slideDown');
+                this.caption.classList.add('resetSilde');
+
+                this.coverControl.classList.remove('slideUp');
+                this.coverControl.classList.add('resetSilde');
+              }.bind(this),
+              5000
+            );
+
+            break;
+
           case 'player-seek-bar-progress':
             // target is the seek bar, and evt.layerX is the clicked position
             var seekTime = evt.layerX / target.clientWidth * target.max;

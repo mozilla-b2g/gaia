@@ -332,6 +332,21 @@ body.player-mode #views-player {
   text-shadow: 0.2em 0.5em 0.1em #660000, -0.3em 0.1em 0.1em #006600, 0.4em -0.3em 0.1em #000066;
 }
 
+.slideDown {
+  -moz-transform: translateY(100%);
+  -moz-transition: -moz-transform 500ms ease-in-out;
+}
+
+.slideUp {
+  -moz-transform: translateY(-100%);
+  -moz-transition: -moz-transform 500ms ease-in-out;
+}
+
+.resetSilde {
+  -moz-transform: translateY(0%);
+  -moz-transition: -moz-transform 500ms ease-in-out;
+}
+
 #player-cover-caption,
 #player-cover-buttons {
   position: absolute;
@@ -341,7 +356,7 @@ body.player-mode #views-player {
 }
 
 #player-cover-caption {
-  top: 0px;
+  top: -16%;
 }
 
 #player-cover-title,
@@ -372,7 +387,7 @@ body.player-mode #views-player {
 }
 
 #player-cover-buttons {
-  bottom: 0px;
+  bottom: -16%;
 }
 
 #player-album-shuffle, 
