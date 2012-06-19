@@ -2,12 +2,17 @@
   display: none;
 }
 
+#screen:not(.utility-tray) > #utility-tray {
+  opacity: 0;
+  top: -moz-calc(-100% + 60px);
+}
+
 #utility-tray {
   position: absolute;
   z-index: 9996;
-  top: -moz-calc(-100% + 64px);
+  top: -moz-calc(-100% + 40px);
   width: -moz-calc(100%);
-  height: -moz-calc(100% - 32px);
+  height: -moz-calc(100% - 20px);
   background-color: #222;
 }
 
@@ -16,7 +21,7 @@
   position: absolute;
   bottom: 0;
   width: 100%;
-  height: 30px;
+  height: 20px;
 
   border-bottom: 1px solid #111;
   border-top: 1px solid #111;
