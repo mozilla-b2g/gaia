@@ -55,7 +55,7 @@ var CardsView = (function() {
     displayedApp = WindowManager.getDisplayedApp();
     runningApps = WindowManager.getRunningApps();
     currentDisplayed = 0;
-    
+
     // If user is not able to sort apps manualy,
     // display most recetly active apps on the far left
     if (!USER_DEFINED_ORDERING) {
