@@ -66,7 +66,7 @@ var CallHandler = {
   call: function ch_call(number) {
     var host = document.location.host;
     window.open('http://' + host + '/oncall.html#calling',
-                '_attention');
+                'dialer_calling', 'attention');
 
     var sanitizedNumber = number.replace(/-/g, '');
 
@@ -87,10 +87,8 @@ window.addEventListener('localized', function startup(evt) {
   window.removeEventListener('localized', startup);
 
   // Set the 'lang' and 'dir' attributes to <html> when the page is translated
-  var html = document.querySelector('html');
-  var lang = document.mozL10n.language;
-  html.lang = lang.code;
-  html.dir = lang.direction;
+  document.documentElement.lang = navigator.mozL10n.language.code;
+  document.documentElement.dir = navigator.mozL10n.language.direction;
 
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('hidden');

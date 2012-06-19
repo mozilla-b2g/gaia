@@ -60,10 +60,19 @@ window.addEventListener('DOMContentLoaded', function() {
         return;
       }
 
+      // XXX if we don't have metadata about the video name
+      // do the best we can with the file name
+      function fileNameToVideoName(filename) {
+        return filename
+          .replace(/\.(webm|ogv|mp4)$/, '')
+          .replace(/[_\.]/g, ' ');
+      }
+
       // Otherwise, collect data about the video.
       // There are the things we know about it already
       var videodata = {
         name: file.name,
+        title: fileNameToVideoName(file.name),
         type: file.type,
         size: file.size
       };
@@ -135,7 +144,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
     var title = document.createElement('p');
     title.className = 'name';
-    title.textContent = videodata.name;
+    title.textContent = videodata.title;
 
     var duration = document.createElement('p');
     duration.className = 'time';
@@ -372,10 +381,8 @@ window.addEventListener('DOMContentLoaded', function() {
 
 // Set the 'lang' and 'dir' attributes to <html> when the page is translated
 window.addEventListener('localized', function showBody() {
-  var html = document.querySelector('html');
-  var lang = document.mozL10n.language;
-  html.lang = lang.code;
-  html.dir = lang.direction;
+  document.documentElement.lang = navigator.mozL10n.language.code;
+  document.documentElement.dir = navigator.mozL10n.language.direction;
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('hidden');
 });

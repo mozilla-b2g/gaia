@@ -2,7 +2,7 @@
   position: absolute;
   top: 0px;
   width: 100%;
-  height: -moz-calc(100% + 32px);
+  height: -moz-calc(100% + 20px);
   overflow: hidden;
 
   /* Show it above fullscreen - see https://mxr.mozilla.org/mozilla-central/source/layout/style/ua.css#218 */
@@ -17,14 +17,17 @@
 }
 
 #attention-screen.status {
-  -moz-transform: translateY(-moz-calc(-100% + 32px));
+  -moz-transform: translateY(-moz-calc(-100% + 20px));
 }
 
 #attention-screen > iframe {
   border: 0;
   width: 100%;
-  height: -moz-calc(100% - 64px);
-  margin-top: 32px;
+  /* we have the 20px status bar on top and the 20px
+   * attention-bar at the bottom, we need to remove 40px
+   * to the iframe height. */
+  height: -moz-calc(100% - 40px);
+  margin-top: 20px;
 
   background-color: transparent;
 }
