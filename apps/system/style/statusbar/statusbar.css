@@ -12,8 +12,7 @@
 
   width: 100%;
   -moz-box-sizing: border-box;
-  height: 32px;
-  padding: 2px;
+  height: 20px;
 
   color: #999;
   background: #000 url('images/grippy.png') no-repeat 50% 50%;
@@ -35,21 +34,21 @@
 
 #statusbar-mute {
   width: 20px;
-  margin: 2px 4px;
+  margin: 2px;
   background: url("images/mute.png") no-repeat 50% 50%;
 }
 
 #statusbar-notification {
   width: 20px;
-  margin: 2px 4px;
+  margin: 2px;
   background: url("images/notification-dot.png") no-repeat 50% 50%;
 }
 
 #statusbar-conn {
   text-shadow: 0 0 3px hsla(0,0%,0%,.5);
-  line-height: 30px;
-  font-size: 14px;
-  margin: 0 4px;
+  line-height: 20px;
+  font-size: 12px;
+  margin: 0 2px;
 }
 
 #statusbar-signal {
@@ -61,10 +60,10 @@
   position: absolute;
   content: 'R';
   display: block;
-  font-size: 10px;
-  line-height: 10px;
-  top: 6px;
-  left: 6px;
+  font-size: 8px;
+  line-height: 8px;
+  top: 2px;
+  left: 4px;
 }
 
 #statusbar-signal > span {
@@ -79,23 +78,23 @@
 }
 
 #statusbar-signal > span:nth-child(1) { /* poor signal */
-  margin-top: 17px;
-  height: 3px;
+  margin-top: 12px;
+  height: 2px;
 }
 
 #statusbar-signal > span:nth-child(2) { /* medium signal */
-  margin-top: 13px;
-  height: 7px;
+  margin-top: 8px;
+  height: 6px;
 }
 
 #statusbar-signal span:nth-child(3) { /* good signal */
-  margin-top: 10px;
-  height: 10px;
+  margin-top: 5px;
+  height: 9px;
 }
 
 #statusbar-signal > span:nth-child(4) { /* awesome signal */
-  margin-top: 6px;
-  height: 14px;
+  margin-top: 2px;
+  height: 12px;
 }
 
 *[dir=rtl] #statusbar-signal > span {
@@ -103,8 +102,8 @@
 }
 
 #statusbar-wifi {
-  width: 30px;
-  background: url("images/wifi/wifi-0.png") 50% 8px no-repeat;
+  width: 20px;
+  background: url("images/wifi/wifi-0.png") 50% 2px no-repeat;
 }
 
 #statusbar-wifi.signal-level0 {
@@ -129,17 +128,17 @@
 
 #statusbar-time {
   text-shadow: 0 0 3px hsla(0,0%,0%,.5);
-  line-height: 30px;
-  font-size: 14px;
-  margin: 0 4px;
+  line-height: 20px;
+  font-size: 12px;
+  margin: 0 2px;
 }
 
 #statusbar-data {
-  font-size: 10px;
-  line-height: 16px;
+  font-size: 8px;
+  line-height: 10px;
   text-align: center;
-  padding: 0 2px;
-  margin: 6px 4px 8px 4px;
+  padding: 0 1px;
+  margin: 4px;
   border: 1px solid #999;
 }
 
@@ -149,7 +148,7 @@
 
 #statusbar-battery {
   float:right;
-  margin: 8px 3px;
+  margin: 2px;
   padding: 5px 7px 5px 5px;
   width: 29px;
   background: url("images/battery/battery-main.png");
