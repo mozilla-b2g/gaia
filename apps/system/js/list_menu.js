@@ -14,17 +14,15 @@ var ListMenu = {
   },
 
   init: function lm_init() {
-    window.addEventListener('screenchange', this);
     window.addEventListener('click', this, true);
-    window.addEventListener('keydown', this, true);
-    window.addEventListener('keyup', this, true);
   },
 
-  create: function lm_create(list_items, handler) {
+  request: function lm_request(list_items, handler) {
+    this.element.innerHTML = '';
     list_items.forEach(function render_item(element, index, array){
       var item = document.createElement('div');
-      item.dataset.i10nId = element.i10nId;
       item.dataset.value = element.value;
+      item.textContext = element.label;
       this.element.appendChild(item);
 
       if (handler) {
@@ -59,31 +57,6 @@ var ListMenu = {
         this.onreturn(action);
         break;
 
-      case 'keyup':
-        if (this.visible) {
-          if (evt.keyCode == evt.DOM_VK_ESCAPE ||
-              evt.keyCode == evt.DOM_VK_HOME) {
-
-              this.hide();
-              evt.stopPropagation();
-          }
-
-          if (evt.keyCode == evt.DOM_VK_SLEEP &&
-              this._longpressTriggered) {
-            evt.stopPropagation();
-            this._longpressTriggered = false;
-          }
-
-          return;
-        }
-
-        if (!this._listMenuTimeout || evt.keyCode != evt.DOM_VK_SLEEP)
-          return;
-
-        window.clearTimeout(this._listMenuTimeout);
-        this._listMenuTimeout = null;
-
-        break;
     }
   }
 };
