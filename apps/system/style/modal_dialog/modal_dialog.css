@@ -58,6 +58,10 @@
   -moz-box-sizing: border-box;
 }
 
+#modal-dialog-prompt-message {
+  display: block;
+}
+
 #modal-dialog button {
   text-align: left;
   width: 200px;

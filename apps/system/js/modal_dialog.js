@@ -29,9 +29,9 @@ var ModalDialog = {
     };
 
     // Loop and add element with camel style name to Modal Dialog attribute.
-    this.elements.forEach((function createElementRef(name) {
+    this.elements.forEach(function createElementRef(name) {
       this[toCamelCase(name)] = document.getElementById(this.prefix + name);
-    }).bind(this));
+    }, this);
 
     this.overlay = document.getElementById('modal-dialog');
   },
@@ -43,7 +43,7 @@ var ModalDialog = {
     // Get all elements initially.
     this.getAllElements();
 
-    // Bind event
+    // Bind events
     window.addEventListener('mozbrowsershowmodalprompt', this);
     this.alertOk.addEventListener('click', this);
     this.confirmOk.addEventListener('click', this);
@@ -59,6 +59,13 @@ var ModalDialog = {
         evt.preventDefault();
         this.overlay.classList.add('visible');
         this.blocked = true;
+
+        // check if there is another modal dialog now.
+        // unblock the previous mozbrowsershowmodalprompt event
+        if (!this.evt) {
+          this.evt.detail.unblock();
+        }
+
         this.evt = evt;
         this.show();
         break;
@@ -70,9 +77,6 @@ var ModalDialog = {
         } else {
           this.confirmHandler();
         }
-        break;
-
-      default:
         break;
     }
   },
@@ -97,9 +101,6 @@ var ModalDialog = {
           this.confirm.classList.add('visible');
           this.confirmMessage.textContent = message;
           break;
-
-        default:
-          break;
       }
   },
 
@@ -121,9 +122,6 @@ var ModalDialog = {
         this.evt.detail.returnValue = true;
         this.confirm.classList.remove('visible');
         break;
-
-      default:
-        break;
     }
     this.evt.detail.unblock();
 
@@ -133,7 +131,7 @@ var ModalDialog = {
   },
 
   // When user clicks cancel button on confirm/prompt or
-  // clicks OK button on alert
+  // when the user try to escape the dialog with the escape key
   cancelHandler: function md_cancelHandler() {
     this.overlay.classList.remove('visible');
 
@@ -152,8 +150,6 @@ var ModalDialog = {
         /* return false when click cancel */
         this.evt.detail.returnValue = false;
         this.confirm.classList.remove('visible');
-        break;
-      default:
         break;
     }
     this.evt.detail.unblock();
