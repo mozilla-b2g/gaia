@@ -33,6 +33,15 @@ var ScreenManager = {
 
     var self = this;
 
+    this.idleObserver.onidle = function scm_onidle() {
+      self.turnScreenOff();
+    };
+
+    SettingsListener.observe('screen.timeout', 60,
+    function screenTimeoutChanged(value) {
+      self.setIdleTimeout(value);
+    });
+
     SettingsListener.observe('screen.automatic-brightness', true,
     function deviceLightSettingChanged(value) {
       if (typeof value === 'string')
@@ -51,7 +60,6 @@ var ScreenManager = {
   },
 
   handleEvent: function scm_handleEvent(evt) {
-    this._syncScreenEnabledValue();
     switch (evt.type) {
       case 'devicelight':
         if (!this._deviceLightEnabled || !this.screenEnabled)
@@ -96,7 +104,6 @@ var ScreenManager = {
   },
 
   toggleScreen: function scm_toggleScreen() {
-    this._syncScreenEnabledValue();
     if (this.screenEnabled)
       this.turnScreenOff();
     else
@@ -104,7 +111,6 @@ var ScreenManager = {
   },
 
   turnScreenOff: function scm_turnScreenOff() {
-    this._syncScreenEnabledValue();
     if (!this.screenEnabled)
       return false;
 
@@ -121,7 +127,6 @@ var ScreenManager = {
   },
 
   turnScreenOn: function scm_turnScreenOn() {
-    this._syncScreenEnabledValue();
     if (this.screenEnabled)
       return false;
 
@@ -151,10 +156,28 @@ var ScreenManager = {
     this._deviceLightEnabled = enabled;
   },
 
-  // XXX: this function is needed here because mozPower.screenEnabled
-  // can be changed by shell.js instead of us.
-  _syncScreenEnabledValue: function scm_syncScreenEnabledValue() {
-    this.screenEnabled = navigator.mozPower.screenEnabled;
+  // The idleObserver that we will pass to IdleAPI
+  idleObserver: {
+    time: 60,
+    onidle: null,
+    onactive: null,
+  },
+
+  setIdleTimeout: function scm_setIdleTimeout(time) {
+    if (!navigator.addIdleObserver)
+      return;
+
+    // Remove the original observer.
+    navigator.removeIdleObserver();
+
+    // If time = 0, then there is no idle timeout to set.
+    if (!time)
+      return;
+
+    var self = this;
+    this.idleObserver.time = time;
+
+    navigator.addIdleObserver();
   },
 
   fireScreenChangeEvent: function scm_fireScreenChangeEvent() {
