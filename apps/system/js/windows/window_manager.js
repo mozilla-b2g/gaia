@@ -604,7 +604,7 @@ var WindowManager = (function() {
     }
 
     if (e.keyCode === e.DOM_VK_ESCAPE && ModalDialog.blocked) {
-      ModalDialog.cancel();
+      ModalDialog.cancelHandler();
     }
   });
 

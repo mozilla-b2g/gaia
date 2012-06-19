@@ -1,4 +1,4 @@
-#modal_dialog {
+#modal-dialog {
   position: absolute;
   top: 0;
   left: 0;
@@ -9,20 +9,22 @@
   vertical-align: middle;
 }
 
-#modal_dialog_table {
+#modal-dialog-table {
   display: table;
   height: 100%;
   width: 100%;
 }
 
-#modal_dialog_tablecell {
+#modal-dialog-tablecell {
   display: table-cell;
   height: 100%;
   width: 100%;
   vertical-align: middle;
 }
 
-#alert, #confirm, #prompt {
+#modal-dialog-alert, 
+#modal-dialog-confirm, 
+#modal-dialog-prompt {
   width: 100%;
   background: black;
   color: white;
@@ -36,7 +38,7 @@
   display: none;
 }
 
-#prompt input {
+#modal-dialog-prompt input {
   border-radius: 3px 3px 3px 3px;
   height: 60px;
   font-size: 30px;
@@ -45,7 +47,7 @@
   -moz-box-sizing: border-box;
 }
 
-.message-container {
+.modal-dialog-message-container {
   text-align: left;
   width: 100%;
   color: white;
@@ -56,7 +58,7 @@
   -moz-box-sizing: border-box;
 }
 
-#modal_dialog button {
+#modal-dialog button {
   text-align: left;
   width: 200px;
   height: 60px;
@@ -67,16 +69,19 @@
   margin: 3px;
 }
 
-#modal_dialog button:active {
+#modal-dialog button:active {
   background: #eee;
 }
 
 /* remove ugly dotted outline when focus */
-#modal_dialog button::-moz-focus-inner {
+#modal-dialog button::-moz-focus-inner {
   border: 0;
 }
 
 
-#modal_dialog.visible,#alert.visible,#confirm.visible,#prompt.visible {
+#modal-dialog.visible,
+#modal-dialog-alert.visible,
+#modal-dialog-confirm.visible,
+#modal-dialog-prompt.visible {
   display: block;
 }
