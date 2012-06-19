@@ -381,10 +381,8 @@ window.addEventListener('DOMContentLoaded', function() {
 
 // Set the 'lang' and 'dir' attributes to <html> when the page is translated
 window.addEventListener('localized', function showBody() {
-  var html = document.querySelector('html');
-  var lang = document.mozL10n.language;
-  html.lang = lang.code;
-  html.dir = lang.direction;
+  document.documentElement.lang = document.mozL10n.language.code;
+  document.documentElement.dir = document.mozL10n.language.direction;
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('hidden');
 });
