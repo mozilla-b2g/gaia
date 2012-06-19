@@ -833,7 +833,14 @@ var ConversationView = {
 
         var pic = 'style/images/contact-placeholder.png';
 
-        var body = msg.body.replace(/\n/g, '<br />');
+        //Split body in different lines if the sms contains \n
+        var msgLines = msg.body.split('\n');
+        //Apply the escapeHTML body to each line
+        msgLines.forEach(function(line, index) {
+          msgLines[index] = escapeHTML(line);
+        });
+        //Join them back with <br />
+        var body = msgLines.join('<br />');
         var timestamp = msg.timestamp.getTime();
 
         fragment += '<div class="message-block" ' + 'data-num="' + dataNum +
@@ -841,7 +848,7 @@ var ConversationView = {
                     '  <input type="checkbox" class="fake-checkbox"/>' +
                     '  <span></span>' +
                     '  <div class="message-container ' + className + '>' +
-                    '    <div class="text">' + escapeHTML(body) + '</div>' +
+                    '    <div class="text">' + body + '</div>' +
                     '    <div class="time" data-time="' + timestamp + '">' +
                     prettyDate(msg.timestamp) + '</div>' +
                     '  </div>' +
