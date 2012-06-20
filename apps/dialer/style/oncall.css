@@ -334,6 +334,22 @@ button[disabled] .i-keypad{
   height: -moz-calc(100% / 4);
 }
 
+.i-start-call{
+  margin:1rem auto;
+  background:url('images/dialer_icon_call.png') ;
+  background-size: 2.6rem 2.4rem;
+  width:2.6rem;
+  height:2.4rem;
+}
+
+.i-hangup{
+  margin:1.6rem auto;
+  background:url('images/dialer_icon_hang-up.png') ;
+  background-size: 3.6rem 1.3rem;
+  width:3.6rem;
+  height:1.3rem;
+}
+
 /* == Screen turn off hack == */
 
 #screen-off {

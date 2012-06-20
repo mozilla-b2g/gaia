@@ -155,6 +155,10 @@ var OnCallHandler = {
   },
 
   connected: function ch_connected() {
+    // When the call is connected the speaker state is reset
+    // keeping in sync...
+    this._syncSpeakerEnabled();
+
     // Update UI properly.
     CallUI.render(1);
 
@@ -329,6 +333,14 @@ var OnCallHandler = {
     Contacts.findByNumber(number, (function(contact) {
     OnCallHandler.numberView.innerHTML = contact.name;
     }).bind(this));
+  },
+
+  _syncSpeakerEnabled: function och_syncSpeakerEnabled() {
+    if (navigator.mozTelephony.speakerEnabled) {
+      this.speakerButton.classList.add('speak');
+    } else {
+      this.speakerButton.classList.remove('speak');
+    }
   }
 
 };
