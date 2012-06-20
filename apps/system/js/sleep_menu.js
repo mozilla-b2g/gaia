@@ -4,9 +4,8 @@
 'use strict';
 
 var SleepMenu = {
-
   // Indicate setting status of ril.radio.disabled
-  isRadioEnabled: true,
+  isFlightModeEnabled: true,
 
   // Indicate setting status of volume
   isVolumeEnabled: !!SoundManager.currentVolume,
@@ -19,7 +18,7 @@ var SleepMenu = {
       if (typeof value === 'string')
         value = (value == 'true');
 
-      self.isRadioEnabled = value;
+      self.isFlightModeEnabled = value;
     });
 
     SettingsListener.observe('phone.ring.incoming', true,
@@ -78,7 +77,7 @@ var SleepMenu = {
       }
     };
 
-    if (this.isRadioEnabled) {
+    if (this.isFlightModeEnabled) {
       items.push(options.ground);
     } else {
       items.push(options.airplane);
@@ -166,6 +165,8 @@ var SleepMenu = {
           req.onsuccess = function() {
             var newValue = !req.result[settingName];
             settings.getLock().set({'ril.radio.disabled': newValue});
+            var wifiManager = navigator.mozWifiManager;
+            wifiManager.setEnabled(!newValue);
           };
         }
         break;
