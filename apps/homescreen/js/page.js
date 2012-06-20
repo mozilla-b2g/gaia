@@ -191,20 +191,24 @@ Page.prototype = {
   transitionDuration: 0.2,
 
  /*
-  * Moves the page to the right of the screen
+  * Moves the page to the end of the screen
   */
-  moveToRight: function() {
+  moveToEnd: function() {
     var style = this.container.style;
-    style.MozTransform = 'translateX(100%)';
+    var rtl = (document.documentElement.dir == 'rtl');
+    style.MozTransform = rtl ? 'translateX(-100%)' : 'translateX(100%)';
+    //style.MozTransform = GridManager.dirCtrl.translateNext;
     this.setTranstionDuration(style, this.transitionDuration);
   },
 
  /*
-  * Moves the page to the left of the screen
+  * Moves the page to the beginning of the screen
   */
-  moveToLeft: function() {
+  moveToBegin: function() {
     var style = this.container.style;
-    style.MozTransform = 'translateX(-100%)';
+    var rtl = (document.documentElement.dir == 'rtl');
+    style.MozTransform = rtl ? 'translateX(100%)' : 'translateX(-100%)';
+    //style.MozTransform = GridManager.dirCtrl.translatePrev;
     this.setTranstionDuration(style, this.transitionDuration);
   },
 

@@ -503,6 +503,10 @@
     // and load the resource files
     var langLinks = getL10nResourceLinks();
     var langCount = langLinks.length;
+    if (langCount == 0) {
+      fireL10nReadyEvent(lang);
+      return;
+    }
 
     // start the callback when all resources are loaded
     var onResourceLoaded = null;
@@ -512,7 +516,7 @@
       if (gResourceCount >= langCount) {
         if (callback) // execute the [optional] callback
           callback();
-        fireL10nReadyEvent(lang); // fire a 'localized' DOM event
+        fireL10nReadyEvent(lang);
       }
     };
 

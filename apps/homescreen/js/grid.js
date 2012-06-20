@@ -57,15 +57,18 @@ const GridManager = (function() {
    */
   function pan(movementX) {
     var currentPage = pages.current;
+    //var rtl = (document.documentElement.dir == 'rtl');
+    //var offsetPrev = rtl ? '100%' : '-100%';
+    //var offsetNext = rtl ? '-100%' : '100%';
 
     pageHelper.getCurrent().moveTo(movementX + 'px');
 
     if (currentPage > 0) {
-      pageHelper.getPrevious().moveTo('-100% + ' + movementX + 'px');
+      pageHelper.getPrevious().moveTo(dirCtrl.offsetPrev + ' + ' + movementX + 'px');
     }
 
     if (currentPage < pages.total - 1) {
-      pageHelper.getNext().moveTo('100% + ' + movementX + 'px');
+      pageHelper.getNext().moveTo(dirCtrl.offsetNext + ' + ' + movementX + 'px');
     }
   }
 
@@ -80,11 +83,11 @@ const GridManager = (function() {
       var currentPage = pages.current;
 
       if (currentPage > 0) {
-        pageHelper.getPrevious().moveToLeft();
+        pageHelper.getPrevious().moveToBegin();
       }
 
       if (currentPage < pages.total - 1) {
-        pageHelper.getNext().moveToRight();
+        pageHelper.getNext().moveToEnd();
       }
 
       pageHelper.getCurrent().moveToCenter(transEndCallbck);
@@ -99,7 +102,7 @@ const GridManager = (function() {
   function goNext(transEndCallbck) {
     var nextPage = pageHelper.getNext();
     var curPage = pageHelper.getCurrent();
-    curPage.moveToLeft();
+    curPage.moveToBegin();
     nextPage.moveToCenter(transEndCallbck);
     pages.current++;
     updatePaginationBar();
@@ -111,7 +114,7 @@ const GridManager = (function() {
   function goPrev(transEndCallbck) {
     var prevPage = pageHelper.getPrevious();
     var curPage = pageHelper.getCurrent();
-    curPage.moveToRight();
+    curPage.moveToEnd();
     prevPage.moveToCenter(transEndCallbck);
     pages.current--;
     updatePaginationBar();
@@ -185,13 +188,16 @@ const GridManager = (function() {
     var difX = status.cCoords.x - status.iCoords.x;
     var absDifX = Math.abs(difX);
     var threshold = window.innerWidth / 4;
+    //var rtl = (document.documentElement.dir == 'rtl');
+    //var forward = rtl ? (difX > 0) : (difX < 0);
+    var forward = dirCtrl.goesForward(difX);
     if (absDifX > threshold) {
       var currentPage = pages.current;
-      if (difX < 0 && currentPage < pages.total - 1) {
-        // Swipe from right to left
-       goNext(onTransitionEnd);
-      } else if (difX > 0 && currentPage > 0) {
-        // Swipe from left to right
+      if (forward && currentPage < pages.total - 1) {
+        // Swipe to next page
+        goNext(onTransitionEnd);
+      } else if (!forward && currentPage > 0) {
+        // Swipe to previous page
         goPrev(onTransitionEnd);
       } else {
         // Bouncing effect for first or last page
@@ -266,7 +272,9 @@ const GridManager = (function() {
    */
   function render() {
     Applications.addEventListener('ready', function onAppsReady() {
+      dirCtrl = getDirCtrl();
       HomeState.init(renderFromDB, renderFromMozApps);
+      localize();
     });
   }
 
@@ -275,21 +283,44 @@ const GridManager = (function() {
    *
    * Currently we only translate the app names
    */
-  function addLanguageListener() {
-    window.addEventListener('localized', function() {
 
-      // set the 'lang' and 'dir' attributes to <html> when the page is translated
-      document.documentElement.lang = navigator.mozL10n.language.code;
-      document.documentElement.dir = navigator.mozL10n.language.direction;
+  // right-to-left compatibility
+  function getDirCtrl() {
+    function goesLeft(x) { return (x > 0); }
+    function goesRight(x) { return (x < 0); }
+    function limitLeft(x) { return (x < limits.left); }
+    function limitRight(x) { return (x > limits.right); }
+    var rtl = (document.documentElement.dir == 'rtl');
+    return {
+      offsetPrev: rtl ? '100%' : '-100%',
+      offsetNext: rtl ? '-100%' : '100%',
+      limitPrev: rtl ? limitRight : limitLeft,
+      limitNext: rtl ? limitLeft : limitRight,
+      translatePrev: rtl ? 'translateX(100%)' : 'translateX(-100%)',
+      translateNext: rtl ? 'translateX(-100%)' : 'translateX(100%)',
+      goesForward: rtl ? goesLeft : goesRight
+    };
+  }
+  var dirCtrl = {};
 
-      // translate each page
-      var total = pageHelper.total();
-      for (var i = 0; i < total; i++) {
-        pages.list[i].translate();
-      }
-    });
+  function localize() {
+    // set the 'lang' and 'dir' attributes to <html> when the page is translated
+    document.documentElement.lang = navigator.mozL10n.language.code;
+    document.documentElement.dir = navigator.mozL10n.language.direction;
+
+    // switch RTL-sensitive methods accordingly
+    dirCtrl = getDirCtrl();
+
+    // translate each page
+    var total = pageHelper.total();
+    for (var i = 0; i < total; i++) {
+      pages.list[i].translate();
+    }
   }
 
+  function addLanguageListener() {
+    window.addEventListener('localized', localize);
+  }
 
   /*
    * Checks empty pages and deletes them
@@ -381,7 +412,7 @@ const GridManager = (function() {
       if (index === 0) {
         page.moveToCenter();
       } else {
-        page.moveToRight();
+        page.moveToEnd();
       }
 
       pages.list.push(page);
@@ -527,8 +558,13 @@ const GridManager = (function() {
      checkLimits: function() {
       var x = status.cCoords.x;
       this.isDropDisabled = false;
+      //var rtl = (document.documentElement.dir == 'rtl');
+      //var prev = rtl ? (x > limits.right) : (x < limits.left);
+      //var next = rtl ? (x < limits.left) : (x > limits.right);
 
-      if (x > limits.right) {
+      //if (x > limits.right) {
+      //if (next) {
+      if (dirCtrl.limitNext(x)) {
         this.isDropDisabled = true;
         var curPageObj = pageHelper.getCurrent();
         if (pages.current < pages.total - 1 && !this.isTranslatingPages) {
@@ -543,7 +579,9 @@ const GridManager = (function() {
           goNext();
           this.setTranslatingPages(true);
         }
-      } else if (x < limits.left) {
+      //} else if (x < limits.left) {
+      //} else if (prev) {
+      } else if (dirCtrl.limitPrev(x)) {
         this.isDropDisabled = true;
         if (pages.current > 0 && !this.isTranslatingPages) {
           pageHelper.getCurrent().remove(draggableIcon);
@@ -738,6 +776,11 @@ const GridManager = (function() {
      */
     isEditMode: function gm_isEditMode() {
       return currentMode === 'edit';
-    }
+    },
+
+    /*
+     * Exports the dirCtrl utils
+     */
+    get dirCtrl() { return dirCtrl; }
   };
 })();
