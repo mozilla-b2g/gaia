@@ -1,6 +1,6 @@
 ﻿'use strict';
 
-var contacts = {};
+var contacts = window.contacts || {};
 contacts.api = navigator.mozContacts;
 
 var navigationStack = (function(currentView) {
@@ -45,7 +45,6 @@ if (!contacts.app) {
   contacts.app = (function() {
     var contactsListView,
         contactDetailsView,
-        groupsList,
         contactName,
         coverImg,
         editView,
@@ -59,10 +58,11 @@ if (!contacts.app) {
 
     var currentContact = {};
 
+    var cList = contacts.List;
+
     // Init selectors
     var init = function contacts_init() {
       contactsListView = 'view-contacts-list';
-      groupsList = document.getElementById('groups-list');
       editView = 'view-contact-form';
       contactDetailsView = 'view-contact-details';
       contactName = document.getElementById('contact-name-title');
@@ -75,7 +75,14 @@ if (!contacts.app) {
       emailContainer = document.getElementById('contacts-form-email');
       navigation = new navigationStack('view-contacts-list');
 
-      loadContacts();
+      cList.init('groups-list');
+      cList.load();
+      cList.addEventListener('click', function(contact) {
+        console.log('Contact clicked: ' + contact.id);
+        currentContact = contact;
+        doShowContactDetails(contact);
+      });
+
     };
 
     var goBack = function() {
@@ -90,81 +97,6 @@ if (!contacts.app) {
     var addNewEmail = function() {
       insertEmptyEmail();
       return false;
-    };
-
-    var loadContacts = function loadContacts(mode) {
-      getContactsByGroup(function(contacts) {
-        for (var group in contacts) {
-          iterateOverGroup(group, contacts[group], mode);
-        }
-      }, function() {
-        console.log('ERROR Retrieving contacts');
-      });
-    };
-
-    var iterateOverGroup = function iterateOverGroup(group, contacts, mode) {
-      if (group && group.trim().length > 0 && contacts.length > 0) {
-        var gElem = owd.templates.append(groupsList, {
-          group: group
-        });
-
-        owd.templates.append(gElem.querySelector('#contacts-list'), contacts);
-      }
-    };
-
-    var getContactById = function(contactID, successCb, errorCb) {
-      var options = {
-        filterBy: ['id'],
-        filterOp: 'equals',
-        filterValue: contactID
-      };
-
-      var request = contacts.api.find(options);
-      request.onsuccess = function findCallback() {
-        if (request.result.length === 0)
-          errorCb();
-
-        successCb(request.result[0]);
-       };
-
-       request.onerror = errorCb;
-    }
-
-    var getContactsByGroup = function(successCb, errorCb) {
-      var options = {
-        sortBy: 'familyName',
-        sortOrder: 'ascending'
-      };
-      var request = contacts.api.find(options);
-      request.onsuccess = function findCallback() {
-        var result = {};
-        var contacts = request.result;
-        for (var i = 0; i < contacts.length; i++) {
-          var letter = contacts[i].familyName[0].charAt(0).toUpperCase();
-          if (!result.hasOwnProperty(letter)) {
-            result[letter] = [];
-          }
-          result[letter].push(contacts[i]);
-        }
-        successCb(result);
-       };
-
-       request.onerror = errorCb;
-      // // Mocking contacts retrievement so far
-      //    var result = {A: [{name: 'Alberto Pastor', familyName: 'Aastor', givenName: 'Alberto',
-      //                         org: 'Telefónica Digital', tel: [{number: '12312123'}, {number: '44543'}],
-      //                         email: ['test@test.com'], photo: 'templates/dummy/320x75.jpg'},
-      //                       {name: 'Test', familyName: 'Aaa', givenName: 'aaa'}],
-      //                  D: [{name: 'Alberto Pastor', familyName: 'Bastor', givenName: 'Alberto'},
-      //                      {name: 'Test', familyName: 'Baa', givenName: 'aaa'}],
-      //                  E: [{name: 'Alberto Pastor', familyName: 'Bastor', givenName: 'Alberto'},
-      //                      {name: 'Test', familyName: 'Baa', givenName: 'aaa'}],
-      //                  F: [{name: 'Alberto Pastor', familyName: 'Bastor', givenName: 'Alberto'},
-      //                      {name: 'Test', familyName: 'Baa', givenName: 'aaa'}],
-      //                  H: [{name: 'Alberto Pastor', familyName: 'Bastor', givenName: 'Alberto'},
-      //                      {name: 'Test', familyName: 'Baa', givenName: 'aaa'}]
-      //                  };
-      //    successCb(result);
     };
 
     //
@@ -285,20 +217,9 @@ if (!contacts.app) {
       return row;
     };
 
-    var showContactDetails = function(evt) {
-      var dataset = evt.target.dataset;
-      if (dataset && 'uuid' in dataset) {
-        getContactById(dataset.uuid, function(contact) {
-          currentContact = contact;
-          doShowContactDetails(contact);
-        }, function() {});
-      }
-    }
-
     return {
       'init': init,
       'ui' : {
-        'showDetails': showContactDetails,
         'showEdit' : showEdit,
         'showAdd': showAdd,
         'addNewPhone' : addNewPhone,
