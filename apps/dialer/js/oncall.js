@@ -1,6 +1,7 @@
 'use strict';
 
 var CallUI = {
+  _ticker: null,
   init: function cm_init() {
     //Add events to our DOM
     document.getElementById('mute').addEventListener(
@@ -23,9 +24,15 @@ var CallUI = {
     KeypadManager.util.moveCaretToEnd(
       document.getElementById('phone-number-view'));
   },
-  cleanTimer: function cm_cleanTime() {
-    //TODO Review this functionality
-    clearInterval(CallUI.timer);
+  startTimer: function cm_startTimer() {
+    this._ticker = setInterval(function cm_updateTimer(self, startTime) {
+      var elapsed = new Date(Date.now() - startTime);
+      document.getElementById('call-duration').innerHTML = elapsed.toLocaleFormat('%M:%S');
+    }, 1000, this, Date.now());
+  },
+  clearTimer: function cm_clearTimer() {
+    if (this._ticker)
+      clearInterval(this._ticker);
   },
   render: function cm_render(layout_type) {
     // Method which renders our call screen with different layouts:
@@ -99,7 +106,6 @@ var CallUI = {
 var OnCallHandler = {
   currentCall: null,
   _screenLock: null,
-  _ticker: null,
   _displayed: false,
 
   setup: function och_setup() {
@@ -161,15 +167,10 @@ var OnCallHandler = {
 
     // Update UI properly.
     CallUI.render(1);
+    CallUI.startTimer();
 
     this.recentsEntry.type += '-connected';
 
-    /*
-    this._ticker = setInterval(function ch_updateTimer(self, startTime) {
-      var elapsed = new Date(Date.now() - startTime);
-      self.statusView.innerHTML = elapsed.toLocaleFormat('%M:%S');
-    }, 1000, this, Date.now());
-    */
   },
 
   disconnected: function ch_disconnected() {
@@ -184,8 +185,7 @@ var OnCallHandler = {
     if (this.speakerButton.classList.contains('speak'))
       this.toggleSpeaker();
 
-    if (this._ticker)
-      clearInterval(this._ticker);
+    CallUI.clearTimer();
 
     if (this.recentsEntry) {
       Recents.add(this.recentsEntry);
