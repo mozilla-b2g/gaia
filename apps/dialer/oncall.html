@@ -5,11 +5,11 @@
     <meta http-equiv="pragma" content="no-cache">
     <title>Dialer</title>
     <link rel="stylesheet" type="text/css" href="style/oncall.css">
-    <link rel="stylesheet" type="text/css" href="style/keyboard.css">
+    <link rel="stylesheet" type="text/css" href="style/keypad.css">
     <script type="application/javascript" src="js/helper.js"></script>
     <script type="application/javascript" src="js/contacts.js"></script>
     <script type="application/javascript" src="js/notification_helper.js"></script>
-    <script type="application/javascript" src="js/key_handler.js"></script>
+    <script type="application/javascript" src="js/keypad.js"></script>
     <script type="application/javascript" src="js/oncall.js"></script>
     <script type="application/javascript" src="js/recents.js"></script>
     <script type="application/javascript" src="js/proximity.js"></script>
@@ -33,15 +33,14 @@
             </section>
           </article>
         </div>
-      </header> 
+      </header>
       <article id="call-container" class="grid-row">
         <div class="grid-wrapper grid">
           <section id="call-info" class="grid-row">
              <div class="grid-wrapper grid">
                 <div id="call-duration" class="grid-cell grid-v-align call-duration-style font-light">
-                   
-                </div> 
-             </div>            
+                </div>
+             </div>
           </section>
           <footer id="call-options" class="grid-row">
             <div class="grid-wrapper grid">
@@ -50,17 +49,17 @@
                   <span class="grid-cell options-column">
                     <button id="mute" class="co-advanced-option grid-wraper grid center">
                       <span class="i-mute">
-                      </span>  
+                      </span>
                     </button>
                     <button class="co-advanced-option grid-wraper grid center" disabled="disabled">
                       <span class="i-contacts">
-                      </span> 
+                      </span>
                     </button>
                   </span>
                   <span class="grid-cell options-column">
                     <button id="keypad-visibility" class="co-advanced-option grid-wraper grid center">
                       <span class="i-keypad">
-                      </span> 
+                      </span>
                     </button>
                     <button class="co-advanced-option grid-wraper grid" disabled="disabled">
                       <span class="i-timeline">
@@ -90,7 +89,7 @@
                     <div class="grid-wrapper">
                       <div class="i-start-call">
                       </div>
-                    </div> 
+                    </div>
                   </section>
                 </div>
               </footer>
@@ -120,7 +119,7 @@
                 <div class="kb-keypad-key-label-container">
                   <div class="kb-keypad-key-label" data-value="1">
                     <span class="kb-keypad-number font-light">1</span>
-                    <span  class="kb-keypad-text font-semibold"></span>  
+                    <span  class="kb-keypad-text font-semibold"></span>
                   </div>
                 </div>
               </div>
@@ -128,7 +127,7 @@
                 <div class="kb-keypad-key-label-container">
                   <div class="kb-keypad-key-label"  data-value="4">
                     <span class="kb-keypad-number  font-light">4</span>
-                    <span  class="kb-keypad-text font-semibold">GHI</span>  
+                    <span  class="kb-keypad-text font-semibold">GHI</span>
                   </div>
                 </div>
               </div>
@@ -136,7 +135,7 @@
                 <div class="kb-keypad-key-label-container">
                   <div class="kb-keypad-key-label" data-value="7">
                     <span class="kb-keypad-number  font-light">7</span>
-                    <span class="kb-keypad-text font-semibold">PQRS</span>  
+                    <span class="kb-keypad-text font-semibold">PQRS</span>
                   </div>
                 </div>
               </div>
@@ -144,7 +143,7 @@
                 <div class="kb-keypad-key-label-container">
                   <div class="kb-keypad-key-label kb-keypad-key-label-centered" data-value="*">
                     <span class="kb-keypad-number font-light kb-keypad-delete-asterisc ">*</span>
-                    <span class="kb-keypad-text font-semibold"></span>  
+                    <span class="kb-keypad-text font-semibold"></span>
                   </div>
                 </div>
               </div>
@@ -154,7 +153,7 @@
                 <div class="kb-keypad-key-label-container">
                   <div class="kb-keypad-key-label" data-value="2">
                     <span class="kb-keypad-number font-light">2</span>
-                    <span class="kb-keypad-text font-semibold font-semibold">ABC</span>  
+                    <span class="kb-keypad-text font-semibold font-semibold">ABC</span>
                   </div>
                 </div>
               </div>
@@ -162,7 +161,7 @@
                 <div class="kb-keypad-key-label-container">
                   <div class="kb-keypad-key-label" data-value="5">
                     <span class="kb-keypad-number font-light">5</span>
-                    <span class="kb-keypad-text font-semibold">JKL</span>  
+                    <span class="kb-keypad-text font-semibold">JKL</span>
                   </div>
                 </div>
               </div>
@@ -170,7 +169,7 @@
                 <div class="kb-keypad-key-label-container">
                   <div class="kb-keypad-key-label" data-value="8">
                     <span class="kb-keypad-number font-light">8</span>
-                    <span  class="kb-keypad-text font-semibold">TUV</span>  
+                    <span  class="kb-keypad-text font-semibold">TUV</span>
                   </div>
                 </div>
               </div>
@@ -178,7 +177,7 @@
                 <div class="kb-keypad-key-label-container">
                   <div class="kb-keypad-key-label" data-value="0">
                     <span class="kb-keypad-number font-light">0</span>
-                    <span class="kb-keypad-text font-semibold">+</span>  
+                    <span class="kb-keypad-text font-semibold">+</span>
                   </div>
                 </div>
               </div>
@@ -188,7 +187,7 @@
                 <div class="kb-keypad-key-label-container">
                   <div class="kb-keypad-key-label" data-value="3">
                     <span class="kb-keypad-number font-light">3</span>
-                    <span  class="kb-keypad-text font-semibold">DEF</span>  
+                    <span  class="kb-keypad-text font-semibold">DEF</span>
                   </div>
                 </div>
               </div>
@@ -196,7 +195,7 @@
                 <div class="kb-keypad-key-label-container">
                   <div class="kb-keypad-key-label" data-value="6">
                     <span class="kb-keypad-number font-light">6</span>
-                    <span  class="kb-keypad-text font-semibold">MNO</span>  
+                    <span  class="kb-keypad-text font-semibold">MNO</span>
                   </div>
                 </div>
               </div>
@@ -204,7 +203,7 @@
                 <div class="kb-keypad-key-label-container">
                   <div class="kb-keypad-key-label" data-value="9">
                     <span class="kb-keypad-number font-light">9</span>
-                    <span  class="kb-keypad-text font-semibold">WXYZ</span>  
+                    <span  class="kb-keypad-text font-semibold">WXYZ</span>
                   </div>
                 </div>
               </div>
@@ -212,7 +211,7 @@
                 <div class="kb-keypad-key-label-container">
                   <div class="kb-keypad-key-label  kb-keypad-key-label-centered" data-type="dial" data-value="#">
                     <span class="kb-keypad-number font-light">#</span>
-                    <span  class="kb-keypad-text font-semibold"></span>  
+                    <span  class="kb-keypad-text font-semibold"></span>
                   </div>
                 </div>
               </div>
@@ -220,14 +219,14 @@
           </section>
           <section id="kb-callbar">
             <span role="button" id="kb-callbar-add-contact"  data-type="action" data-value="add-contact" >
-              <div class="i-add-contact"></div>  
+              <div class="i-add-contact"></div>
             </span>
             <span role="button" id="kb-callbar-call-action"  data-type="action" data-value="make-call">
-              <div class="i-call"></div>  
+              <div class="i-call"></div>
             </span>
             <span role="button" id="kb-callbar-back-action"  data-type="action" data-value="back"  class="hide">
               <div class="i-back">
-              </div>  
+              </div>
             </span>
           </section>
         </article>
