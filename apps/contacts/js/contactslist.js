@@ -147,7 +147,6 @@ if (!contacts.List) {
       var item = groupsList.querySelector('li[data-uuid=\"' + id + '\"]');
       if (item) {
         var group = item.querySelector('b').textContent.charAt(0).toUpperCase();
-        console.log(group)
         var ol = item.parentNode;
         ol.removeChild(item);
         if (ol.children.length === 1) {
