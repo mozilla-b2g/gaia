@@ -53,9 +53,9 @@
     }
   },
   "default_locale": "en-US",
-  "hackKillMe": true,
   "icons": {
-    "120": "/style/icons/Crystalskull.png"
+    "120": "/style/icons/Crystalskull.png",
+    "60": "/style/icons/60/Crystalskull.png"
   },
   "orientation": "portrait-primary"
 }

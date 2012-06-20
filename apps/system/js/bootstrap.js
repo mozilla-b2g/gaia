@@ -59,64 +59,8 @@ var Shortcuts = {
   }
 };
 
-// XXX This crap should live in webapi.js for compatibility
-var Mouse2Touch = {
-  'mousedown': 'touchstart',
-  'mousemove': 'touchmove',
-  'mouseup': 'touchend'
-};
-
-var Touch2Mouse = {
-  'touchstart': 'mousedown',
-  'touchmove': 'mousemove',
-  'touchend': 'mouseup'
-};
-
-var ForceOnWindow = {
-  'touchmove': true,
-  'touchend': true
-};
-
-function AddEventHandlers(target, listener, eventNames) {
-  for (var n = 0; n < eventNames.length; ++n) {
-    var name = eventNames[n];
-    target = ForceOnWindow[name] ? window : target;
-    name = Touch2Mouse[name] || name;
-    target.addEventListener(name, {
-      handleEvent: function(e) {
-        if (Mouse2Touch[e.type]) {
-          var original = e;
-          e = {
-            type: Mouse2Touch[original.type],
-            target: original.target,
-            touches: [original],
-            preventDefault: function() {
-              original.preventDefault();
-            }
-          };
-          e.changedTouches = e.touches;
-        }
-        return listener.handleEvent(e);
-      }
-    }, true);
-  }
-}
-
-function RemoveEventHandlers(target, listener, eventNames) {
-  for (var n = 0; n < eventNames.length; ++n) {
-    var name = eventNames[n];
-    target = ForceOnWindow[name] ? window : target;
-    name = Touch2Mouse[name] || name;
-    target.removeEventListener(name, listener);
-  }
-}
-
-window.addEventListener('mozfullscreenchange', function onfullscreen(e) {
-  var classes = document.getElementById('screen').classList;
-  document.mozFullScreen ?
-    classes.add('fullscreen') : classes.remove('fullscreen');
-});
-
+/* === focuschange === */
+/* XXX: should go to keyboard_manager.js */
 try {
   window.navigator.mozKeyboard.onfocuschange = function onfocuschange(evt) {
     switch (evt.detail.type) {
@@ -134,3 +78,11 @@ try {
     }
   };
 } catch (e) {}
+
+/* === Localization === */
+/* set the 'lang' and 'dir' attributes to <html> when the page is translated */
+window.addEventListener('localized', function onlocalized() {
+  document.documentElement.lang = navigator.mozL10n.language.code;
+  document.documentElement.dir = navigator.mozL10n.language.direction;
+});
+

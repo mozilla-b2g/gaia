@@ -2,9 +2,9 @@
   position: absolute;
   /* Show it above fullscreen - see https://mxr.mozilla.org/mozilla-central/source/layout/style/ua.css#218 */
   z-index: 2147483647;
-  top: 32px;
+  top: 20px;
   width: -moz-calc(100%);
-  height: -moz-calc(100% - 32px);
+  height: -moz-calc(100% - 20px);
   overflow: hidden;
 
   background-color: #fff;
@@ -14,7 +14,7 @@
 }
 
 #screen:not(.locked) > #lockscreen {
-  -moz-transform: translateY(-moz-calc(-100% - 32px));
+  -moz-transform: translateY(-moz-calc(-100% - 20px));
 }
 
 #lockscreen.no-transition {

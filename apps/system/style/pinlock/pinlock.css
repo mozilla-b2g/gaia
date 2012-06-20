@@ -14,8 +14,8 @@
 
 #pinkeypadscreen > #pinkeypadscreen-container {
   width: 100%;
-  margin-top: 32px;
-  height: -moz-calc(100% - 32px);
+  margin-top: 20px;
+  height: -moz-calc(100% - 20px);
 }
 
 #pinkeypadscreen-desc {

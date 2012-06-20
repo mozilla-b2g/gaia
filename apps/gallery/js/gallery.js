@@ -296,11 +296,8 @@ function addThumbnail(imagenum) {
 // Wait for the "localized" event before displaying the document content
 window.addEventListener('localized', function showBody() {
   // Set the 'lang' and 'dir' attributes to <html> when the page is translated
-  var html = document.documentElement;
-  var lang = document.mozL10n.language;
-  html.setAttribute('lang', lang.code);
-  html.setAttribute('dir', lang.direction);
-  languageDirection = lang.direction;
+  document.documentElement.lang = navigator.mozL10n.language.code;
+  document.documentElement.dir = navigator.mozL10n.language.direction;
 
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('hidden');
@@ -351,6 +348,17 @@ window.addEventListener('keyup', function keyPressHandler(evt) {
     evt.preventDefault();
   }
 });
+
+// The handler above is unlikely to actually be called.  Instead,
+// the Back button (bound to escape) is caught by gecko and takes
+// us out of fullscreen mode. So we listen for full-screen changes
+// and when we leave fullscreen mode, we show the thumbnails as above
+document.addEventListener('mozfullscreenchange', function leaveFullScreen() {
+  if (!document.mozFullScreenElement) {
+    showThumbnails();
+  }
+});
+
 
 // We get a resize event when the user rotates the screen
 window.addEventListener('resize', function resizeHandler(evt) {
@@ -493,6 +501,8 @@ function showThumbnails() {
   photos.classList.add('hidden');
   playerControls.classList.add('hidden');
   thumbnailsDisplayed = true;
+  if (document.mozFullScreenElement)
+    document.mozCancelFullScreen();
 }
 
 // A utility function to insert an <img src="url"> tag into an element
@@ -557,6 +567,9 @@ function showPhoto(n) {
     photos.classList.remove('hidden');
     playerControls.classList.remove('hidden');
     thumbnailsDisplayed = false;
+    // If we're not already in fullscreen mode, go into it
+    if (document.mozFullScreenElement !== photos)
+      photos.mozRequestFullScreen();
   }
 
   displayImageInFrame(n - 1, previousPhotoFrame);

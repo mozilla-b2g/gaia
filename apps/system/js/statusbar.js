@@ -7,13 +7,6 @@ var StatusBar = {
   radioDisabled: false,
 
   init: function sb_init() {
-    // XXX: is this the correct way to probe language changes?
-    SettingsListener.observe('language.current', 'en-US',
-      (function localeChanged(value) {
-        this.updateConnection();
-      }).bind(this)
-    );
-
     SettingsListener.observe('ril.radio.disabled', false,
       (function rilDisable(value) {
         this.radioDisabled = value;
@@ -26,10 +19,7 @@ var StatusBar = {
 
     window.addEventListener('screenchange', this);
     this.addListeners();
-
-    this.updateBattery();
-    this.updateConnection();
-    this.updateWifi();
+    this.updateAll();
   },
 
   handleEvent: function sb_handleEvent(evt) {
@@ -37,6 +27,7 @@ var StatusBar = {
       case 'screenchange':
         if (evt.detail.screenEnabled) {
           this.addListeners();
+          this.updateAll();
         } else {
           this.removeListeners();
         }
@@ -60,6 +51,13 @@ var StatusBar = {
     }
   },
 
+  updateAll: function sb_updateAll() {
+    this.updateClock();
+    this.updateBattery();
+    this.updateConnection();
+    this.updateWifi();
+  },
+
   addListeners: function sb_addListeners() {
     var battery = window.navigator.mozBattery;
     if (battery) {
@@ -80,8 +78,6 @@ var StatusBar = {
       wifiManager.onstatuschange =
         wifiManager.connectionInfoUpdate = (this.updateWifi).bind(this);
     }
-
-    this.updateClock();
 
     window.addEventListener('volumechange', this);
   },
@@ -157,7 +153,7 @@ var StatusBar = {
     if (!conn || !conn.voice)
       return;
 
-    var _ = document.mozL10n.get;
+    var _ = navigator.mozL10n.get;
     /* Information about voice connection */
     var voice = conn.voice;
     /* Information about data connection */
@@ -165,6 +161,7 @@ var StatusBar = {
 
     if (this.radioDisabled) {
       this.conn.textContent = _('airplane');
+      this.comm.dataset.l10nId = 'airplane';
       this.signal.hidden = true;
       this.data.textContent = '';
       return;
@@ -172,28 +169,29 @@ var StatusBar = {
     this.signal.hidden = false;
 
     // Update the operator name / SIM status.
+    var titleL10nId = '';
     var title = '';
     switch (conn.cardState) {
       case 'absent':
-        title = _('noSimCard');
+        titleL10nId = 'noSimCard';
         break;
       case 'pin_required':
-        title = _('pinCodeRequired');
+        titleL10nId = 'pinCodeRequired';
         break;
       case 'puk_required':
-        title = _('pukCodeRequired');
+        titleL10nId = 'pukCodeRequired';
         break;
       case 'network_locked':
-        title = _('networkLocked');
+        titleL10nId = 'networkLocked';
         break;
     }
 
-    if (!title) {
+    if (!titleL10nId) {
       if (!voice.connected) {
         if (voice.emergencyCallsOnly) {
-          title = _('emergencyCallsOnly');
+          titleL10nId = 'emergencyCallsOnly';
         } else {
-          title = _('searching');
+          titleL10nId = 'searching';
         }
       } else {
         // voice.network will be introduced by bug 761482
@@ -209,7 +207,16 @@ var StatusBar = {
       }
     }
 
-    this.conn.textContent = title;
+    if (title) {
+      this.conn.textContent = title;
+      delete this.conn.dataset.l10nId;
+    } else if (titleL10nId) {
+      this.conn.textContent = _(titleL10nId) || '';
+      this.conn.dataset.l10nId = titleL10nId;
+    } else {
+      this.conn.textContent = '';
+      delete this.conn.dataset.l10nId;
+    }
 
     // Update the 3G/data status.
     // XXX: need icon for 3G/EDGE/etc instead of expose the type text
