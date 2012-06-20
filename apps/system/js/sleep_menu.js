@@ -4,37 +4,14 @@
 'use strict';
 
 var SleepMenu = {
-  airplane: {
-      label: 'airplane',
-      value: 'airplane'
-  },
-  ground: {
-      label: 'ground',
-      value: 'airplane'
-  },
-  silent: {
-      label: 'silent',
-      value: 'silent'
-  },
-  normal: {
-      label: 'normal',
-      value: 'normal'
-  },
-  restart: {
-      label: 'restart',
-      value: 'restart'
-  },
-  power: {
-      label: 'power',
-      value: 'power'
-  },
 
+  // Indicate setting status of ril.radio.disabled
   isRadioEnabled: true,
 
+  // Indicate setting status of volume
   isVolumeEnabled: !!SoundManager.currentVolume,
 
   init: function sm_init() {
-
     var self = this;
 
     SettingsListener.observe('ril.radio.disabled', true,
@@ -44,57 +21,93 @@ var SleepMenu = {
 
       self.isRadioEnabled = value;
     });
-    
+
+    SettingsListener.observe('phone.ring.incoming', true,
+    function radioSettingsChanged(value) {
+      if (typeof value === 'string')
+        value = (value == 'true');
+
+      self.isVolumeEnabled = value;
+    });
+
     window.addEventListener('volumechange', this);
     window.addEventListener('keydown', this, true);
     window.addEventListener('keyup', this, true);
-    console.log('=====INIT SM DONE=====');
   },
 
+  // Update items only if list menu is visible
   updateItems: function sm_updateItems() {
-    this.isVolumeEnabled = !!VolumeManager.currentVolume;
     if (ListMenu.visible) {
-      ListMenu.request(this.generateItems(), this.handler);
-    }  
+      this.show();
+    }
   },
 
+  // Generate items
   generateItems: function sm_generateItems() {
     var items = [];
     var settings = window.navigator.mozSettings;
+    var _ = document.mozL10n.get;
+    var options = {
+      airplane: {
+        label: _('airplane'),
+        value: 'airplane',
+        icon: '/style/sleep_menu/images/airplane.png'
+      },
+      ground: {
+        label: _('ground'),
+        value: 'airplane'
+      },
+      silent: {
+        label: _('silent'),
+        value: 'silent',
+        icon: '/style/sleep_menu/images/vibration.png'
+      },
+      normal: {
+        label: _('normal'),
+        value: 'normal'
+      },
+      restart: {
+        label: _('restart'),
+        value: 'restart',
+        icon: '/style/sleep_menu/images/power-off.png'
+      },
+      power: {
+        label: _('power'),
+        value: 'power',
+        icon: '/style/sleep_menu/images/restart.png'
+      }
+    };
 
-    if (this.isRadioEanbled) {
-      items.push(this.ground);
+    if (this.isRadioEnabled) {
+      items.push(options.ground);
     } else {
-      items.push(this.airplane);
+      items.push(options.airplane);
     }
 
     if (this.isVolumeEnabled) {
-      items.push(this.silent);
+      items.push(options.silent);
     } else {
-      items.push(this.normal);
+      items.push(options.normal);
     }
 
-    items.push(this.restart);
-    items.push(this.power);
+    items.push(options.restart);
+    items.push(options.power);
 
-    console.log('======',items.length,'======');
     return items;
   },
 
   // Event handler for addEventListener
   handleEvent: function sm_handleEvent(evt) {
-    console.log('=====',evt.type,'=====',ListMenu.visible);
     switch (evt.type) {
       case 'volumechange':
         this.updateVolumeStatus();
         break;
-        
+
       case 'keydown':
         // The screenshot module also listens for the SLEEP key and
         // can call defaultPrevented() on keydown and key up events.
         if (evt.keyCode == evt.DOM_VK_SLEEP &&
             !evt.defultPrevented && !ListMenu.visible) {
-          console.log('=======',ListMenu.visible,'=======');
           this._longpressTriggered = false;
           this._sleepMenuTimeout = window.setTimeout((function sm_timeout() {
             this.show();
@@ -105,7 +118,7 @@ var SleepMenu = {
         break;
 
       case 'keyup':
-        if (this.visible) {
+        if (ListMenu.visible) {
           if (evt.keyCode == evt.DOM_VK_ESCAPE ||
               evt.keyCode == evt.DOM_VK_HOME) {
 
@@ -122,23 +135,23 @@ var SleepMenu = {
           return;
         }
 
-        if (!this._listMenuTimeout || evt.keyCode != evt.DOM_VK_SLEEP)
+        if (!this._sleepMenuTimeout || evt.keyCode != evt.DOM_VK_SLEEP)
           return;
 
-        window.clearTimeout(this._listMenuTimeout);
-        this._listMenuTimeout = null;
+        window.clearTimeout(this._sleepMenuTimeout);
+        this._sleepMenuTimeout = null;
 
         break;
     }
   },
 
-  show: function sm_show() { 
-    console.log('=====sm show=====');
+  show: function sm_show() {
     ListMenu.request(this.generateItems(), this.handler);
   },
 
   updateVolumeStatus: function sm_updateVolumeStatus() {
     if (this.isVolumeEnabled !== !!SoundManager.currentVolume) {
+      this.isVolumeEnabled = !!SoundManager.currentVolume;
       this.updateItems();
     }
   },
@@ -156,7 +169,7 @@ var SleepMenu = {
           };
         }
         break;
-  
+
       case 'silent':
         var settings = window.navigator.mozSettings;
         if (settings)

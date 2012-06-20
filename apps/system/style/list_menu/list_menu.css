@@ -27,6 +27,25 @@
   border: 1px solid hsla(0,0%,0%,0);
 }
 
+/* 320x480 phones */
+@media (orientation: portrait) and (width: 320px),
+       (orientation: landscape) and (width: 480px) {
+  .list-menu {
+    width: 280px;
+    margin: 0 0 0 -140px;
+  }
+}
+
+/* 480x800 phones */
+@media (orientation: portrait) and (width: 480px),
+       (orientation: landscape) and (width: 800px) {
+  .list-menu {
+    width: 320px;
+    margin: 0 0 0 -160px;
+  }
+}
+
+
 .list-menu div {
   height: 73px;
   line-height: 73px;

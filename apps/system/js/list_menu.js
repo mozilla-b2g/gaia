@@ -18,24 +18,30 @@ var ListMenu = {
     return this.element.classList.contains('visible');
   },
 
+  // Listen to click event only
   init: function lm_init() {
     window.addEventListener('click', this, true);
   },
 
+  // Pass an array of list items and handler for clicking on the items
   request: function lm_request(list_items, handler) {
     this.container.innerHTML = '';
-    list_items.forEach(function render_item(element){
+    list_items.forEach(function render_item(element) {
       var item = document.createElement('div');
       item.dataset.value = element.value;
       item.textContent = element.label;
+      if (element.icon) {
+        item.style.backgroundImage = 'url('+element.icon+')';
+      }
       this.container.appendChild(item);
 
       if (handler) {
         this.onreturn = handler;
       } else {
-        this.onreturn = function lm_onreturn(){};
+        this.onreturn = function lm_onreturn() {};
       }
     }, this);
+
     this.show();
   },
 
@@ -52,7 +58,7 @@ var ListMenu = {
 
   handleEvent: function lm_handleEvent(evt) {
     switch (evt.type) {
-      case 'screenchange': 
+      case 'screenchange':
         if (!evt.detail.screenEnabled)
           this.hide();
         break;
