@@ -13,7 +13,14 @@ if (!contacts.AlphaScroll) {
     var letterElemType = 'ABBR', prefixGroup = '#group-';
 
     var currentLetterAbbr = doc.querySelector('.vw-jmp-current > abbr');
-    var currentLetterClassList = doc.querySelector('.vw-jmp-current').classList;
+    var currentLetter = doc.querySelector('.vw-jmp-current');
+
+    var alphabet = [];
+    for(var i = 65; i <= 90; i++) {
+      alphabet.push({letter: String.fromCharCode(i)});
+    }
+    owd.templates.append(doc.querySelector('.vw-jmp-inner'), alphabet);
+    alphabet = [];
 
     var cas = contacts.AlphaScroll = {
       state: {
@@ -39,11 +46,11 @@ if (!contacts.AlphaScroll) {
           var groupContainer = doc.querySelector(prefixGroup + currentLetter);
           if (groupContainer) {
             currentLetterAbbr.textContent = currentLetter;
-            currentLetterClassList.remove("hide");
+            delete currentLetter.hidden;
             clearTimeout(state.timeout);
             lContacts.scrollTop = groupContainer.offsetTop;
             state.timeout = setTimeout(function() {
-              currentLetterClassList.add("hide");
+              currentLetter.hidden = true;
             }, 3000);
           }
         }
