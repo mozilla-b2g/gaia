@@ -16,6 +16,12 @@ if (!contacts.List) {
 
     var init = function load(elem) {
       groupsList = doc.getElementById(elem);
+      // Populating blocks
+      var alphabet = [];
+      for(var i = 65; i <= 90; i++) {
+        alphabet.push({group: String.fromCharCode(i)});
+      }
+      owd.templates.append(groupsList, alphabet);
       groupsList.addEventListener('click', pickContact);
     }
 
@@ -31,11 +37,13 @@ if (!contacts.List) {
 
     var iterateOverGroup = function iterateOverGroup(group, contacts) {
       if (group && group.trim().length > 0 && contacts.length > 0) {
-        var gElem = owd.templates.append(groupsList, {
-          group: group
-        });
-
-        owd.templates.append(gElem.querySelector('#contacts-list'), contacts);
+        var olElem = groupsList.querySelector('#contacts-list-' + group);
+        if (olElem) {
+          if (contacts.length > 0) {
+            owd.templates.append(olElem, contacts);
+            showGroup(group);
+          }
+        }
       }
     };
 
@@ -88,18 +96,78 @@ if (!contacts.List) {
 
     var pickContact = function pickContact(evt) {
       var dataset = evt.target.dataset;
-        if (dataset && 'uuid' in dataset) {
-          getContactById(dataset.uuid, function(contact) {
-            callbacks.forEach(function(callback) {
-              callback(contact);
-            });
+      if (dataset && 'uuid' in dataset) {
+        getContactById(dataset.uuid, function(contact) {
+          callbacks.forEach(function(callback) {
+            callback(contact);
+          });
         }, function() {});
       }
+    }
+
+    var add = function add(id) {
+      getContactById(id, function(contact) {
+        var newLi, familyName = contact.familyName[0];
+        var group = familyName.charAt(0).toUpperCase();
+        var list = groupsList.querySelector('#contacts-list-' + group);
+        var liElems = list.getElementsByTagName('li');
+        var len = liElems.length;
+        for (var i = 1; i < len; i++) {
+          var liElem = liElems[i];
+          var fName = liElem.querySelector('b').textContent;
+          if (fName >= familyName) {
+            newLi = owd.templates.render(liElems[0], contact);
+            list.insertBefore(newLi, liElem);
+            break;
+          }
+        }
+
+        if(!newLi) {
+          owd.templates.append(list, contact);
+        }
+
+        if (list.children.length === 2) {
+          // template + new record
+          showGroup(group);
+        }
+      }, function() {});
+    }
+
+    var hideGroup = function hideGroup(group) {
+      groupsList.querySelector('#group-' +
+                                     group).classList.add('hide');
+    }
+
+    var showGroup = function showGroup(group) {
+      groupsList.querySelector('#group-' +
+                                     group).classList.remove('hide');
+    }
+
+    var remove = function remove(id) {
+      var item = groupsList.querySelector('li[data-uuid=\"' + id + '\"]');
+      if (item) {
+        var group = item.querySelector('b').textContent.charAt(0).toUpperCase();
+        console.log(group)
+        var ol = item.parentNode;
+        ol.removeChild(item);
+        if (ol.children.length === 1) {
+          // Only template
+          hideGroup(group);
+        }
+      }
+    }
+
+    var reload = function reload(id) {
+      remove(id);
+      add(id);
     }
 
     return {
       'init': init,
       'load': load,
+      'removeContact': remove,
+      'addContact': add,
+      'reloadContact': reload,
       'addEventListener': addEventListener
     };
 

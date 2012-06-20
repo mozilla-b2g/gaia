@@ -44,7 +44,7 @@ if (!contacts.AlphaScroll) {
             currentLetter && currentLetter !== state.letter) {
           state.letter = currentLetter;
           var groupContainer = doc.querySelector(prefixGroup + currentLetter);
-          if (groupContainer) {
+          if (groupContainer && groupContainer.clientHeight > 0) {
             currentLetterAbbr.textContent = currentLetter;
             currentLetterClassList.remove("hide");
             clearTimeout(state.timeout);
