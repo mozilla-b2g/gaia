@@ -6,12 +6,25 @@
     "url": "http://openwebdevice.com"
   },
   "permissions": [
-    "contacts",
-    "power",
-    "mozApps"
+    "contacts"
   ],
+  "locales": {
+    "en-US": {
+      "name": "Contacts",
+      "description": "Default Contacts application"
+    },
+    "fr": {
+      "name": "Contacts",
+      "description": "Application de contacts par défaut"
+    },
+    "es": {
+      "name": "Contactos",
+      "description": "Aplicación de contactos por defecto"
+    }
+  },
+  "default_locale": "en-US",
   "icons": {
-    "120": "/style/icons/icon.png"
+    "120": "/style/icons/Contacts.png",
+    "60": "/style/icons/60/Contacts.png"
   }
 }
-
