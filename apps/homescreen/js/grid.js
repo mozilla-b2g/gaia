@@ -230,7 +230,6 @@ const GridManager = (function() {
 
     // Renders pagination bar
     updatePaginationBar(true);
-
     addLanguageListener();
 
     // Saving initial state
@@ -272,19 +271,25 @@ const GridManager = (function() {
   }
 
   /*
-   * Translates the UI
+   * UI Localization
    *
    * Currently we only translate the app names
    */
   function addLanguageListener() {
-    SettingsListener.observe('language.current', 'en-US', function(lang) {
-      document.documentElement.lang = lang;
+    window.addEventListener('localized', function() {
+
+      // set the 'lang' and 'dir' attributes to <html> when the page is translated
+      document.documentElement.lang = navigator.mozL10n.language.code;
+      document.documentElement.dir = navigator.mozL10n.language.direction;
+
+      // translate each page
       var total = pageHelper.total();
       for (var i = 0; i < total; i++) {
         pages.list[i].translate();
       }
     });
   }
+
 
   /*
    * Checks empty pages and deletes them

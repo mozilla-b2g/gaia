@@ -52,14 +52,6 @@ var Applications = (function() {
     }
   };
 
-  document.documentElement.lang = 'en-US';
-
-  SettingsListener.getValue('language.current', function(lang) {
-    if (lang && lang.length > 0) {
-      document.documentElement.lang = lang;
-    }
-  });
-
   /*
    * Returns all installed applications
    */
@@ -190,7 +182,7 @@ var Applications = (function() {
     }
 
     if ('locales' in manifest) {
-      var locale = manifest.locales[document.documentElement.lang];
+      var locale = manifest.locales[navigator.language];
       if (locale && locale.name) {
         return locale.name;
       }
