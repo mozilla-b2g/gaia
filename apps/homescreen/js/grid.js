@@ -263,23 +263,23 @@ const GridManager = (function() {
    */
   function renderFromDB() {
     HomeState.getAppsByPage(
-      function iterate(apps) {
-        pageHelper.push(apps);
-      },
-      function onsuccess(results) {
-        if (results === 0) {
-          renderFromMozApps();
-          return;
-        }
+        function iterate(apps) {
+          pageHelper.push(apps);
+        },
+        function onsuccess(results) {
+          if (results === 0) {
+            renderFromMozApps();
+            return;
+          }
 
-        // Grid was loaded from DB
-        updatePaginationBar(true);
-        addLanguageListener();
-      },
-      function onerror() {
-        // Error recovering info about apps
-        renderFromMozApps();
-      }
+          // Grid was loaded from DB
+          updatePaginationBar(true);
+          addLanguageListener();
+        },
+        function onerror() {
+          // Error recovering info about apps
+          renderFromMozApps();
+        }
     );
   }
 
@@ -551,7 +551,7 @@ const GridManager = (function() {
      * Furthermore, this method is in charge of creating a new page when
      * it's needed
      */
-     checkLimits: function() {
+    checkLimits: function() {
       var x = status.cCoords.x;
       this.isDropDisabled = false;
 
@@ -638,7 +638,7 @@ const GridManager = (function() {
           // Dragging outside <ol> element -> move to last position
           var currentPage = pageHelper.getCurrent();
           if (overlapElem.className === 'page' &&
-            draggableIcon !== currentPage.getLastIcon()) {
+              draggableIcon !== currentPage.getLastIcon()) {
             currentPage.remove(draggableIcon);
             currentPage.append(draggableIcon);
           }

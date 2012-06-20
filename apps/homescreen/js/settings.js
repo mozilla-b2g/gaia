@@ -9,7 +9,7 @@ window.addEventListener('DOMContentLoaded', function wallpaper() {
   var settingName = 'homescreen.wallpaper';
   function setWallpaper(value) {
     document.getElementById('icongrid').style.backgroundImage =
-      'url(resources/images/backgrounds/' + (value || 'default.png') + ')';
+        'url(resources/images/backgrounds/' + (value || 'default.png') + ')';
   }
 
   // initial value

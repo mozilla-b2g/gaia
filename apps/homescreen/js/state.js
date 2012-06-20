@@ -106,7 +106,7 @@ const HomeState = (function() {
 
       var results = 0;
       newTxn('readonly', function(txn, store) {
-       var index = store.index('byPage');
+        var index = store.index('byPage');
         var request = index.openCursor();
         request.onsuccess = function(event) {
           var cursor = event.target.result;

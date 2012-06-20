@@ -31,7 +31,7 @@ var Applications = (function() {
         callback.callback(app);
       }
     });
-   };
+  };
 
   installer.oninstall = function install(event) {
     var app = event.application;
