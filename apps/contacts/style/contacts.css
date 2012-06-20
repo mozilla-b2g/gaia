@@ -20,3 +20,11 @@
 .appcnts-profile-section h1 { font: 1.4rem/1.5em System Sans Semibold, Sans-serif; border-bottom: solid 1px #dbd9d9; margin-bottom: 1rem; }
 .appcnts-profile-section li .itm-body-exp { padding-bottom: 1rem; }
 	.appcnts-profile-section h2 { text-transform: uppercase; font-size: 1.4rem; }
+
+.c-null {
+  display: none;
+}
+
+.blck-item > * {
+  pointer-events: none;
+}
