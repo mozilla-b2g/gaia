@@ -139,7 +139,7 @@ var BackgroundServiceManager = (function bsm() {
       return false;
 
     document.body.removeChild(frame);
-    frame = null;
+    delete frames[origin][name];
 
     if (!Object.keys(frames[origin]).length)
       delete frames[origin];
