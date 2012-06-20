@@ -25,7 +25,6 @@ html, body {
   height: 100%;
 }
 
-#screen.fullscreen #keyboard { z-index: 9999; }
 
 #keyboard {
   position: absolute;
