@@ -195,9 +195,7 @@ Page.prototype = {
   */
   moveToEnd: function() {
     var style = this.container.style;
-    var rtl = (document.documentElement.dir == 'rtl');
-    style.MozTransform = rtl ? 'translateX(-100%)' : 'translateX(100%)';
-    //style.MozTransform = GridManager.dirCtrl.translateNext;
+    style.MozTransform = GridManager.dirCtrl.translateNext;
     this.setTranstionDuration(style, this.transitionDuration);
   },
 
@@ -206,9 +204,7 @@ Page.prototype = {
   */
   moveToBegin: function() {
     var style = this.container.style;
-    var rtl = (document.documentElement.dir == 'rtl');
-    style.MozTransform = rtl ? 'translateX(100%)' : 'translateX(-100%)';
-    //style.MozTransform = GridManager.dirCtrl.translatePrev;
+    style.MozTransform = GridManager.dirCtrl.translatePrev;
     this.setTranstionDuration(style, this.transitionDuration);
   },
 

@@ -30,6 +30,26 @@ const GridManager = (function() {
     right: 0
   };
 
+  // right-to-left compatibility
+  var dirCtrl = {};
+  function getDirCtrl() {
+    function goesLeft(x) { return (x > 0); }
+    function goesRight(x) { return (x < 0); }
+    function limitLeft(x) { return (x < limits.left); }
+    function limitRight(x) { return (x > limits.right); }
+    var rtl = (document.documentElement.dir == 'rtl');
+    return {
+      offsetPrev: rtl ? '100%' : '-100%',
+      offsetNext: rtl ? '-100%' : '100%',
+      limitPrev: rtl ? limitRight : limitLeft,
+      limitNext: rtl ? limitLeft : limitRight,
+      translatePrev: rtl ? 'translateX(100%)' : 'translateX(-100%)',
+      translateNext: rtl ? 'translateX(-100%)' : 'translateX(100%)',
+      goesForward: rtl ? goesLeft : goesRight
+    };
+  }
+
+
   /*
    * Returns the coordinates x and y given an event. The returned object
    * is composed of two attributes named x and y
@@ -57,18 +77,16 @@ const GridManager = (function() {
    */
   function pan(movementX) {
     var currentPage = pages.current;
-    //var rtl = (document.documentElement.dir == 'rtl');
-    //var offsetPrev = rtl ? '100%' : '-100%';
-    //var offsetNext = rtl ? '-100%' : '100%';
+    var move = movementX + 'px';
 
-    pageHelper.getCurrent().moveTo(movementX + 'px');
+    pageHelper.getCurrent().moveTo(move);
 
     if (currentPage > 0) {
-      pageHelper.getPrevious().moveTo(dirCtrl.offsetPrev + ' + ' + movementX + 'px');
+      pageHelper.getPrevious().moveTo(dirCtrl.offsetPrev + ' + ' + move);
     }
 
     if (currentPage < pages.total - 1) {
-      pageHelper.getNext().moveTo(dirCtrl.offsetNext + ' + ' + movementX + 'px');
+      pageHelper.getNext().moveTo(dirCtrl.offsetNext + ' + ' + move);
     }
   }
 
@@ -188,8 +206,6 @@ const GridManager = (function() {
     var difX = status.cCoords.x - status.iCoords.x;
     var absDifX = Math.abs(difX);
     var threshold = window.innerWidth / 4;
-    //var rtl = (document.documentElement.dir == 'rtl');
-    //var forward = rtl ? (difX > 0) : (difX < 0);
     var forward = dirCtrl.goesForward(difX);
     if (absDifX > threshold) {
       var currentPage = pages.current;
@@ -283,26 +299,6 @@ const GridManager = (function() {
    *
    * Currently we only translate the app names
    */
-
-  // right-to-left compatibility
-  function getDirCtrl() {
-    function goesLeft(x) { return (x > 0); }
-    function goesRight(x) { return (x < 0); }
-    function limitLeft(x) { return (x < limits.left); }
-    function limitRight(x) { return (x > limits.right); }
-    var rtl = (document.documentElement.dir == 'rtl');
-    return {
-      offsetPrev: rtl ? '100%' : '-100%',
-      offsetNext: rtl ? '-100%' : '100%',
-      limitPrev: rtl ? limitRight : limitLeft,
-      limitNext: rtl ? limitLeft : limitRight,
-      translatePrev: rtl ? 'translateX(100%)' : 'translateX(-100%)',
-      translateNext: rtl ? 'translateX(-100%)' : 'translateX(100%)',
-      goesForward: rtl ? goesLeft : goesRight
-    };
-  }
-  var dirCtrl = {};
-
   function localize() {
     // set the 'lang' and 'dir' attributes to <html> when the page is translated
     document.documentElement.lang = navigator.mozL10n.language.code;
@@ -558,12 +554,7 @@ const GridManager = (function() {
      checkLimits: function() {
       var x = status.cCoords.x;
       this.isDropDisabled = false;
-      //var rtl = (document.documentElement.dir == 'rtl');
-      //var prev = rtl ? (x > limits.right) : (x < limits.left);
-      //var next = rtl ? (x < limits.left) : (x > limits.right);
 
-      //if (x > limits.right) {
-      //if (next) {
       if (dirCtrl.limitNext(x)) {
         this.isDropDisabled = true;
         var curPageObj = pageHelper.getCurrent();
@@ -579,8 +570,6 @@ const GridManager = (function() {
           goNext();
           this.setTranslatingPages(true);
         }
-      //} else if (x < limits.left) {
-      //} else if (prev) {
       } else if (dirCtrl.limitPrev(x)) {
         this.isDropDisabled = true;
         if (pages.current > 0 && !this.isTranslatingPages) {

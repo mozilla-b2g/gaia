@@ -498,6 +498,7 @@
   // load and parse all resources for the specified locale
   function loadLocale(lang, callback) {
     clear();
+    gLanguage = lang;
 
     // check all <link type="application/l10n" href="..." /> nodes
     // and load the resource files
@@ -534,7 +535,6 @@
       };
     }
 
-    gLanguage = lang;
     for (var i = 0; i < langCount; i++) {
       var resource = new l10nResourceLink(langLinks[i]);
       var rv = resource.load(lang, onResourceLoaded);
