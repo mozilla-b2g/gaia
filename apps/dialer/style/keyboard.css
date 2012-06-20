@@ -16,7 +16,7 @@
 
 #phone-number-view-container {
   width:100%;
-  height:-moz-calc(100% - 34.5rem);
+  height:-moz-calc(100% - (34.5rem + 6.5rem));
   background: #1e2328;
   width:100%;
   text-align:center;
@@ -53,13 +53,13 @@
   
 #keyboard-container {
   width:100%;
-  height:34.5rem;
+  height: -moz-calc(34.5rem + 6.5rem);
 }
 
 #kb-keypad{
   background: #2d3642; 
   background: -moz-linear-gradient(top, #2d3642 0%, #0f1214 100%); 
-  height:-moz-calc(100% - 6.5rem);
+  height:-moz-calc(100% - (6.5rem + 6.5rem));
   width:100%;
   display:table;
   table-layout:fixed;
@@ -158,7 +158,7 @@
   margin:1rem auto;
   width: 2.6rem;
   height: 2.5rem;
-  background: url(images/dialer_icon_contact.png);
+  background: url("images/dialer_icon_addcontact.png");
   background-size: 2.6rem 2.5rem;
 }
 
@@ -188,4 +188,51 @@
 .kb-keypad-number{
   font-size:-moz-calc(25*0.226rem);
   color:white;
+}
+
+#kb-toolbar {
+  background:black;
+  height:6.5rem;
+  width:100%;
+  display:table;
+  table-layout:fixed;
+  border-spacing: 1.5rem 1rem;
+}
+
+#kb-toolbar-call-log, #kb-toolbar-contact-list, #kb-toolbar-keypad {
+  display:table-cell;
+  width:7rem;
+  background: -moz-linear-gradient(top, #242b36 0%, #19191a 100%); 
+  border:.1rem solid #242B36;
+  border-radius:.2rem;
+  opacity:0.5;
+}
+
+#kb-toolbar-call-log.selected, #kb-toolbar-contact-list.selected, #kb-toolbar-keypad.selected {
+  background:black;
+  opacity:0.7;
+}
+
+.i-call-log {
+  margin:1rem auto;
+  width: 2.6rem;
+  height: 2.5rem;
+  background: url("images/dialer_icon_clock.png");
+  background-size: 2.6rem 2.5rem;
+}
+
+.i-contact-list {
+  margin:1rem auto;
+  width: 2.6rem;
+  height: 2.5rem;
+  background: url("images/dialer_icon_contact.png");
+  background-size: 2.6rem 2.5rem;
+}
+
+.i-keypad {
+  margin:1rem auto;
+  width: 2.6rem;
+  height: 2.5rem;
+  background: url("images/dialer_icon_keypad.png");
+  background-size: 2.6rem 2.5rem;
 }
