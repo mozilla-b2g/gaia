@@ -225,7 +225,7 @@ var WindowManager = (function() {
     }
 
     // If we're not doing an animation, then just switch directly
-    // to the closed state. 
+    // to the closed state.
     if (instant) {
       frame.classList.remove('active');
       if (callback)
