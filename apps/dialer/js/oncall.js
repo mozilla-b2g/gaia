@@ -35,19 +35,20 @@ var CallUI = {
       clearInterval(this._ticker);
   },
   render: function cm_render(layout_type) {
-    // Method which renders our call screen with different layouts:
-    // 0 Outgoing call before answer
-    // 1 Outgoing call after answer
-    // 2 Incoming Call
     switch (layout_type) {
-      case 0:
+      case 'outgoing':
         document.getElementById('call-duration').innerHTML = '...';
         document.getElementById('co-basic-answer').classList.add('hide');
         document.getElementById('co-advanced').classList.remove('transparent');
         document.getElementById('keypad-visibility').setAttribute(
           'disabled', 'disabled');
         break;
-      case 1:
+      case 'incoming':
+        document.getElementById('co-basic-answer').classList.remove('hide');
+        document.getElementById('co-advanced').classList.add('transparent');
+        document.getElementById('call-duration').innerHTML = '';
+        break;
+      case 'connected':
         //TODO Review of using "toggle" despite of "contains"+add/remove
         if (!document.getElementById('co-basic-answer')
           .classList.contains('hide')) {
@@ -63,31 +64,6 @@ var CallUI = {
           'disabled');
         document.getElementById('call-duration').innerHTML = '00:00';
 
-        //TODO Implement this functionality with UX design about how time
-        // has to be shown.
-        // Create a method which manage Time in dialer
-        // var sec=0;
-        // CallUI.timer=setInterval(function(){
-        //  sec++;
-
-        //  var minutes=Math.floor(sec/60);
-        //  var seconds=sec%60;
-        //  if(minutes<10){
-        //    minutes='0'+minutes;
-        //  }
-
-        //  if(seconds<10){
-        //    seconds='0'+seconds;
-        //  }
-
-        //  document.getElementById('call-duration').innerHTML=minutes+':'+seconds;
-        // },1000);
-
-        break;
-      case 2:
-        document.getElementById('co-basic-answer').classList.remove('hide');
-        document.getElementById('co-advanced').classList.add('transparent');
-        document.getElementById('call-duration').innerHTML = '';
         break;
     }
   },
@@ -110,8 +86,7 @@ var OnCallHandler = {
 
   setup: function och_setup() {
     var hash = document.location.hash;
-    var screenClass = hash.slice(1, hash.length);
-    this.screen.classList.add(screenClass);
+    var typeOfCall = hash.slice(1, hash.length);
 
     // Animating the screen in the viewport.
     this.toggleScreen();
@@ -128,20 +103,24 @@ var OnCallHandler = {
       telephony.oncallschanged = function och_callsChanged(evt) {
         telephony.calls.forEach(function callIterator(call) {
           self.currentCall = call;
-          call.addEventListener('statechange', self);
 
-          //Update UI properly
           CallUI.update(call.number);
-          CallUI.render(2);
+          CallUI.render(typeOfCall);
 
           self.lookupContact(call.number);
 
           self.recentsEntry = {
             date: Date.now(),
-            type: (screenClass == 'incoming') ?
-                   'incoming' : 'outgoing',
+            type: typeOfCall,
             number: call.number
           };
+
+          // Some race condition can cause the call to be already
+          // connected when we get here.
+          if (call.state == 'connected')
+            self.connected();
+
+          call.addEventListener('statechange', self);
         });
       }
     }
@@ -166,7 +145,7 @@ var OnCallHandler = {
     this._syncSpeakerEnabled();
 
     // Update UI properly.
-    CallUI.render(1);
+    CallUI.render('connected');
     CallUI.startTimer();
 
     this.recentsEntry.type += '-connected';
@@ -233,14 +212,6 @@ var OnCallHandler = {
     delete this.numberView;
     return this.numberView = document.getElementById('call-number-view');
   },
-  get statusView() {
-    delete this.statusView;
-    return this.statusView = document.getElementById('call-status-view');
-  },
-  get actionsView() {
-    delete this.actionsView;
-    return this.actionsView = document.getElementById('call-actions-container');
-  },
   get muteButton() {
     delete this.muteButton;
     return this.muteButton = document.getElementById('mute');
@@ -248,19 +219,6 @@ var OnCallHandler = {
   get speakerButton() {
     delete this.speakerButton;
     return this.speakerButton = document.getElementById('speaker');
-  },
-  get keypadButton() {
-    delete this.keypadButton;
-    return this.keypadButton = document.getElementById('keypad-visibility');
-  },
-  get keypadView() {
-    delete this.keypadView;
-    return this.keypadView = document.getElementById('keyboard-container');
-  },
-  get keypadCallbarBackAction() {
-    delete this.keypadCallbarBackAction;
-    return (this.keypadCallbarBackAction =
-      document.getElementById('kb-callbar-back-action'));
   },
 
   toggleScreen: function ch_toggleScreen() {
