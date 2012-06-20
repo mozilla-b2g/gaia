@@ -444,7 +444,7 @@ install-gaia: profile
 # Note that we'll soon have to rename Pictures back to DCIM.
 install-media-samples:
 	$(ADB) shell 'if test -d /sdcard/DCIM; then mv /sdcard/DCIM /sdcard/Pictures; fi'
-	$(ADB) shell 'if test -d /sdcard/music; then mv /sdcard/music /sdcard/temp; mv /sdcard/temp /sdcard/Music; fi'
+	$(ADB) shell 'if test -d /sdcard/music; then mv /sdcard/music /sdcard/music.temp; mv /sdcard/music.temp /sdcard/Music; fi'
 	$(ADB) shell 'if test -d /sdcard/videos; then mv /sdcard/videos /sdcard/Movies;	fi'
 
 	$(ADB) push media-samples/Pictures /sdcard/Pictures
