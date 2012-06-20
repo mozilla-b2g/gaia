@@ -95,8 +95,10 @@ var BackgroundServiceManager = (function bsm() {
     if (!app || !hasBackgroundPermission(app))
       return false;
 
-    if (frames[origin] && frames[origin][name])
+    if (frames[origin] && frames[origin][name]) {
+      frames[origin][name].src = url;
       return frames[origin][name];
+    }
 
     var frame = document.createElement('iframe');
     frame.className = 'backgroundWindow';
