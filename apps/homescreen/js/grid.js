@@ -241,12 +241,11 @@ const GridManager = (function() {
    * Renders the homescreen from the database
    */
   function renderFromDB() {
-    var renderedApps = [];
+    var appsInDB = [];
     HomeState.getAppsByPage(
       function iterate(apps) {
         pageHelper.push(apps);
-        // Accumulating apps from DB
-        renderedApps = renderedApps.concat(apps);
+        appsInDB = appsInDB.concat(apps);
       },
       function onsuccess(results) {
         if (results === 0) {
@@ -254,11 +253,17 @@ const GridManager = (function() {
           return;
         }
 
-        console.log('Check installed apps that are not saved in the DB');
-        renderedApps = Applications.listInstalledApps(renderedApps);
-        for (var origin in renderedApps) {
-          console.log('Installing app: ' + origin);
-          GridManager.install(renderedApps[origin]);
+        var installedApps = Applications.getInstalledApplications();
+        var len = appsInDB.length;
+        for (var i = 0; i < len; i++) {
+          var origin = appsInDB[i];
+          if (origin in installedApps) {
+            delete installedApps[origin];
+          }
+        }
+
+        for (var origin in installedApps) {
+          GridManager.install(installedApps[origin]);
         }
 
         // Grid was loaded from DB

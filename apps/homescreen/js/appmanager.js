@@ -86,23 +86,13 @@ var Applications = (function() {
   };
 
   /*
-   *  Lists installed apps
-   *
-   *  {Array} List of applications that will be removed from result
-   *
+   *  Returns installed apps
    */
-  function listInstalledApps(exceptions) {
+  function getInstalledApplications() {
     var ret = {};
+
     for (var i in installedApps) {
       ret[i] = installedApps[i];
-    }
-
-    var len = exceptions.length;
-    for (var i = 0; i < len; i++) {
-      var origin = exceptions[i];
-      if (origin in ret) {
-        delete ret[origin];
-      }
     }
 
     return ret;
@@ -241,6 +231,6 @@ var Applications = (function() {
     getName: getName,
     getIcon: getIcon,
     getManifest: getManifest,
-    listInstalledApps: listInstalledApps
+    getInstalledApplications: getInstalledApplications
   };
 })();
