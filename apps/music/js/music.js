@@ -265,6 +265,10 @@ var PlayerView = {
     this.title = document.getElementById('player-cover-title');
     this.artist = document.getElementById('player-cover-artist');
 
+    this.timeoutID;
+    this.caption = document.getElementById('player-cover-caption');
+    this.coverControl = document.getElementById('player-cover-buttons');
+
     this.seekBar = document.getElementById('player-seek-bar-progress');
     this.seekElapsed = document.getElementById('player-seek-elapsed');
     this.seekRemaining = document.getElementById('player-seek-remaining');
@@ -285,8 +289,38 @@ var PlayerView = {
     this.audio.addEventListener('timeupdate', this);
   },
 
+  // This function is for the animation on the album art (cover).
+  // The info (album, artist) will initially show up when a song being played,
+  // if users does not tap the album art (cover) again,
+  // then it will be disappeared after 5 seconds
+  // however, if a user taps before 5 seconds ends,
+  // then the timeout will be cleared to keep the info on screen.
+  showInfo: function pv_showInfo() {
+    this.caption.classList.remove('resetSilde');
+    this.caption.classList.add('slideDown');
+
+    this.coverControl.classList.remove('resetSilde');
+    this.coverControl.classList.add('slideUp');
+
+    if (this.timeoutID)
+      window.clearTimeout(this.timeoutID);
+
+    this.timeoutID = window.setTimeout(
+      function pv_hideInfo() {
+        this.caption.classList.remove('slideDown');
+        this.caption.classList.add('resetSilde');
+
+        this.coverControl.classList.remove('slideUp');
+        this.coverControl.classList.add('resetSilde');
+      }.bind(this),
+      5000
+    );
+  },
+
   play: function pv_play(target) {
     this.isPlaying = true;
+
+    this.showInfo();
 
     if (target) {
       var targetIndex = parseInt(target.dataset.index);
@@ -314,7 +348,7 @@ var PlayerView = {
       this.audio.play();
     }
 
-    this.playControl.textContent = 'Pause';
+    this.playControl.innerHTML = '||';
   },
 
   pause: function pv_pause() {
@@ -322,7 +356,7 @@ var PlayerView = {
 
     this.audio.pause();
 
-    this.playControl.textContent = 'Play';
+    this.playControl.innerHTML = '&#9654;';
   },
 
   next: function pv_next() {
@@ -388,6 +422,11 @@ var PlayerView = {
     switch (evt.type) {
       case 'click':
         switch (target.id) {
+          case 'player-cover-image':
+            this.showInfo();
+
+            break;
+
           case 'player-seek-bar-progress':
             // target is the seek bar, and evt.layerX is the clicked position
             var seekTime = evt.layerX / target.clientWidth * target.max;
