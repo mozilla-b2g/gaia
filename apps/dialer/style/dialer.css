@@ -1,29 +1,18 @@
 @font-face {
-  font-family: 'FontLight';
-  src: url('fonts/opensans-light-webfont.woff');
-}
-
-@font-face {
   font-family: 'FontRegular';
-  src: url('fonts/opensans-regular-webfont.woff');
+  src: url('fonts/Open-Sans.woff');
 }
 
 @font-face {
   font-family: 'FontSemibold';
   font-weight: 600;
-  src: url('fonts/opensans-semibold-webfont.woff');
+  src: url('fonts/Open-Sans-Semibold.woff');
 }
 
 @font-face {
   font-family: 'FontBold';
   font-weight: bold;
-  src: url('fonts/opensans-bold-webfont.woff');
-}
-
-@font-face {
-  font-family: 'Keyboard Symbols';
-  font-weight: 600;
-  src: url('fonts/Keyboard-Symbols.woff');
+  src: url('fonts/Open-Sans-Bold.woff');
 }
 
 html, body {
@@ -32,7 +21,6 @@ html, body {
   overflow: hidden;
   margin: 0;
   color: white;
-  /* font-family: 'FontSemibold', sans-serif; */
   font-family: 'Open Sans', sans-serif;
   font-size: 10px;
   background: black;
@@ -40,10 +28,6 @@ html, body {
 
 html * {
   overflow: hidden;
-}
-
-.font-light{
-  font-family:'FontLight';
 }
 
 .font-regular{
