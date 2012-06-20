@@ -13,7 +13,7 @@ if (!contacts.AlphaScroll) {
     var letterElemType = 'ABBR', prefixGroup = '#group-';
 
     var currentLetterAbbr = doc.querySelector('.vw-jmp-current > abbr');
-    var currentLetter = doc.querySelector('.vw-jmp-current');
+    var currentLetterClassList = doc.querySelector('.vw-jmp-current').classList;
 
     var alphabet = [];
     for(var i = 65; i <= 90; i++) {
@@ -46,11 +46,11 @@ if (!contacts.AlphaScroll) {
           var groupContainer = doc.querySelector(prefixGroup + currentLetter);
           if (groupContainer) {
             currentLetterAbbr.textContent = currentLetter;
-            delete currentLetter.hidden;
+            currentLetterClassList.remove("hide");
             clearTimeout(state.timeout);
             lContacts.scrollTop = groupContainer.offsetTop;
             state.timeout = setTimeout(function() {
-              currentLetter.hidden = true;
+              currentLetterClassList.add("hide");
             }, 3000);
           }
         }
