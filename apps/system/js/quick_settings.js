@@ -13,7 +13,7 @@ var QuickSettings = {
     var self = this;
 
     SettingsListener.observe('ril.data.enabled', true, function(value) {
-      self.data.enabled = value;
+      self.data.dataset.enabled = value;
     });
 
   },
