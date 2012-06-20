@@ -82,15 +82,15 @@ var NotificationScreen = {
 
       var event = document.createEvent('CustomEvent');
       event.initCustomEvent('mozContentEvent', true, true, {
-        type: closing ?
-          'desktop-notification-close' : 'desktop-notification-click',
+        type: 'desktop-notification-' + (closing ? 'close' : 'click'),
         id: target.dataset.notificationID
       });
       window.dispatchEvent(event);
 
       // And hide the Utility Tray
-      if (!closing)
-        UtilityTray.unlock();
+      if (!closing) {
+        UtilityTray.hide(true);
+      }
     });
   },
 

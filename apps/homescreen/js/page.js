@@ -68,11 +68,13 @@ Icon.prototype = {
 
     container.appendChild(icon);
 
-    // Menu button to delete the app
-    var options = document.createElement('span');
-    options.className = 'options';
-    options.dataset.origin = this.descriptor.origin;
-    container.appendChild(options);
+    if (!Applications.isCore(this.descriptor.origin)) {
+      // Menu button to delete the app
+      var options = document.createElement('span');
+      options.className = 'options';
+      options.dataset.origin = this.descriptor.origin;
+      container.appendChild(options);
+    }
 
     target.appendChild(container);
   },

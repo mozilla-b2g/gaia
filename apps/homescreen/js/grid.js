@@ -262,14 +262,29 @@ const GridManager = (function() {
    * Renders the homescreen from the database
    */
   function renderFromDB() {
+    var appsInDB = [];
     HomeState.getAppsByPage(
         function iterate(apps) {
           pageHelper.push(apps);
+          appsInDB = appsInDB.concat(apps);
         },
         function onsuccess(results) {
           if (results === 0) {
             renderFromMozApps();
             return;
+          }
+
+          var installedApps = Applications.getInstalledApplications();
+          var len = appsInDB.length;
+          for (var i = 0; i < len; i++) {
+            var origin = appsInDB[i];
+            if (origin in installedApps) {
+              delete installedApps[origin];
+            }
+          }
+
+          for (var origin in installedApps) {
+            GridManager.install(installedApps[origin]);
           }
 
           // Grid was loaded from DB

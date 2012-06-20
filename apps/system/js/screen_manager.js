@@ -97,10 +97,11 @@ var ScreenManager = {
 
   toggleScreen: function scm_toggleScreen() {
     this._syncScreenEnabledValue();
-    if (this.screenEnabled)
+    if (this.screenEnabled) {
       this.turnScreenOff();
-    else
+    } else {
       this.turnScreenOn();
+    }
   },
 
   turnScreenOff: function scm_turnScreenOff() {

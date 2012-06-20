@@ -60,6 +60,10 @@ var OnCallHandler = {
   },
 
   connected: function ch_connected() {
+    // When the call is connected the speaker state is reset
+    // keeping in sync...
+    this._syncSpeakerEnabled();
+
     this.screen.classList.remove('incoming');
     this.screen.classList.add('calling');
     this.statusView.innerHTML = '00:00';
@@ -230,6 +234,14 @@ var OnCallHandler = {
     }
 
     this[action]();
+  },
+
+  _syncSpeakerEnabled: function och_syncSpeakerEnabled() {
+    if (navigator.mozTelephony.speakerEnabled) {
+      this.speakerButton.classList.add('speak');
+    } else {
+      this.speakerButton.classList.remove('speak');
+    }
   }
 };
 
