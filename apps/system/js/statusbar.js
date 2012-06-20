@@ -20,6 +20,7 @@ var StatusBar = {
     window.addEventListener('screenchange', this);
     this.addListeners();
 
+    this.updateClock();
     this.updateBattery();
     this.updateConnection();
     this.updateWifi();
@@ -30,6 +31,11 @@ var StatusBar = {
       case 'screenchange':
         if (evt.detail.screenEnabled) {
           this.addListeners();
+
+          this.updateClock();
+          this.updateBattery();
+          this.updateConnection();
+          this.updateWifi();
         } else {
           this.removeListeners();
         }
@@ -73,8 +79,6 @@ var StatusBar = {
       wifiManager.onstatuschange =
         wifiManager.connectionInfoUpdate = (this.updateWifi).bind(this);
     }
-
-    this.updateClock();
 
     window.addEventListener('volumechange', this);
   },
