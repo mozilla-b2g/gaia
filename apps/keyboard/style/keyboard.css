@@ -180,20 +180,7 @@ button:-moz-focus-inner{
 
 /* menu from right */
 #keyboard-accent-char-menu.kbr-menu-right { left: auto; right: -1px; }
-
 #keyboard-accent-char-menu .keyboard-key { margin: 0 0.2em; }
-#keyboard-accent-char-menu .first-char:after {
-  background-color: #EBEBEB;
-  content: "";
-  display: block;
-  height: 7px;
-  margin-top: 2.5rem;
-  position: absolute;
-  width: inherit;
-  border-radius: 20px;
-  left: -1px;
-}
-
 #keyboard-accent-char-menu .keyboard-key.highlighted {
   box-shadow: 0 0 0 2px #53B6CC;
   background: -moz-linear-gradient(#fff, #ebebeb);
