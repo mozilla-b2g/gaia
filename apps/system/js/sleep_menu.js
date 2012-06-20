@@ -8,26 +8,67 @@ var SleepMenu = {
   isFlightModeEnabled: true,
 
   // Indicate setting status of volume
-  isVolumeEnabled: !!SoundManager.currentVolume,
+  isVolumeEnabled: true,
 
-  init: function sm_init() {
+  // Reserve settings before turn on flight mode
+  reservedSetting: {
+    data: true,
+    wifi: true,
+    bluetooth: true,
+
+    // reserve for geolocation
+    geolocation: false
+  },
+
+  handler: function sm_handler() {
     var self = this;
 
-    SettingsListener.observe('ril.radio.disabled', true,
-    function radioSettingsChanged(value) {
-      if (typeof value === 'string')
-        value = (value == 'true');
-
-      self.isFlightModeEnabled = value;
+    SettingsListener.observe('ril.data.disabled', true,
+      function radioSettingsChanged(value) {
+        if (self.isFlightModeEnabled) {
+          self.reservedSettings.data = !value;
+        }
     });
+  },
 
-    SettingsListener.observe('phone.ring.incoming', true,
-    function radioSettingsChanged(value) {
-      if (typeof value === 'string')
-        value = (value == 'true');
+  restoreSettings: function sm_restoreSettings() {
+    var settings = navigator.mozSettings;
+    if (settings && this.reservedSettings.data) {
+      settings.getLock().set({'ril.data.disabled': this.reservedSettings.data});
+    }
 
-      self.isVolumeEnabled = value;
-    });
+    var wifiManager = navigator.mozWifiManager;
+    if (wifiManager && this.reservedSettings.wifi) {
+      wifiManager.setEnabled(!!this.reservedSettings.wifi);
+    }
+
+    var bluetooth = navigator.mozBluetooth;
+    if (bluetooth && this.reservedSettings.bluetooth) {
+      bluetooth.setEnabled(!!this.reservedSettings.bluetooth);
+    }
+  },
+
+  fetchSettings: function sm_fetchSettings() {
+    var settings = navigator.mozSettings;
+    if (settings) {
+      var req = settings.getLock().get(this.umsEnabled);
+      req.onsuccess = function sm_EnabledFetched() {
+        self.reservedSettings.data = !!req.result['ril.data.disabled'];
+      };
+    }
+
+    var wifiManager = navigator.mozWifiManager;
+    if (wifiManager) {
+      this.reservedSettings.wifi = !!wifiManager.enabled;
+    }
+
+    var bluetooth = navigator.mozBluetooth;
+    if (bluetooth) {
+      this.reservedSettings.bluetooth = !!bluetooth.enabled;
+    }
+  },
+
+  init: function sm_init() {
 
     window.addEventListener('volumechange', this);
     window.addEventListener('keydown', this, true);
@@ -52,8 +93,8 @@ var SleepMenu = {
         value: 'airplane',
         icon: '/style/sleep_menu/images/airplane.png'
       },
-      ground: {
-        label: _('ground'),
+      airplaneOff: {
+        label: _('airplaneOff'),
         value: 'airplane'
       },
       silent: {
@@ -61,9 +102,9 @@ var SleepMenu = {
         value: 'silent',
         icon: '/style/sleep_menu/images/vibration.png'
       },
-      normal: {
+      silentOff: {
         label: _('normal'),
-        value: 'normal'
+        value: 'silentOff'
       },
       restart: {
         label: _('restart'),
@@ -98,10 +139,6 @@ var SleepMenu = {
   // Event handler for addEventListener
   handleEvent: function sm_handleEvent(evt) {
     switch (evt.type) {
-      case 'volumechange':
-        this.updateVolumeStatus();
-        break;
-
       case 'keydown':
         // The screenshot module also listens for the SLEEP key and
         // can call defaultPrevented() on keydown and key up events.
@@ -148,39 +185,67 @@ var SleepMenu = {
     ListMenu.request(this.generateItems(), this.handler);
   },
 
-  updateVolumeStatus: function sm_updateVolumeStatus() {
-    if (this.isVolumeEnabled !== !!SoundManager.currentVolume) {
-      this.isVolumeEnabled = !!SoundManager.currentVolume;
-      this.updateItems();
-    }
-  },
-
   handler: function sm_handler(action) {
     switch (action) {
       case 'airplane':
+        // Airplane mode should turn off
+        //
+        // Radio ('ril.radio.disabled'`)
+        // Data ('ril.data.disabled'`)
+        // Wifi
+        // Bluetooth
+        // Geolocation
+        //
+        // It should also save the status of the latter 4 items
+        // so when leaving the airplane mode we could know which one to turn on.
+
         var settings = window.navigator.mozSettings;
         if (settings) {
-          var settingName = 'ril.radio.disabled';
-          var req = settings.getLock().get(settingName);
-          req.onsuccess = function() {
-            var newValue = !req.result[settingName];
-            settings.getLock().set({'ril.radio.disabled': newValue});
-            var wifiManager = navigator.mozWifiManager;
-            wifiManager.setEnabled(!newValue);
-          };
+          this.isFlightModeEnabled = !this.isFlightModeEnabled;
+
+          if (this.isFlightModeEnabled) {
+            this.fetchSettings();
+          } else {
+            this.restoreSettings();
+          }
+
+          settings.getLock().set({
+            'ril.radio.disabled': this.isFlightModeEnabled,
+            'ril.data.disabled': this.isFlightModeEnabled
+          });
+
+          var bluetooth = navigator.mozBluetooth;
+          if (bluetooth) {
+            bluetooth.setEnabled(this.isFlightModeEnabled);
+          }
+
+          var wifiManager = navigator.mozWifiManager;
+          if (wifiManager) {
+            wifiManager.setEnabled(this.isFlightModeEnabled);
+          }
         }
         break;
 
       case 'silent':
         var settings = window.navigator.mozSettings;
         if (settings)
-          settings.getLock().set({ 'phone.ring.incoming': false});
+        {
+          settings.getLock().set({
+            'phone.ring.incoming': false,
+            'phone.vibration.incoming': true
+          });
+        }
         break;
 
-      case 'normal':
+      case 'silentOff':
         var settings = window.navigator.mozSettings;
         if (settings)
-          settings.getLock().set({'phone.ring.incoming': true});
+        {
+          settings.getLock().set({
+            'phone.ring.incoming': true,
+            'phone.vibration.incoming': false
+          });
+        }
         break;
 
       case 'restart':

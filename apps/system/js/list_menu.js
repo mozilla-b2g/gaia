@@ -31,14 +31,14 @@ var ListMenu = {
       item.dataset.value = element.value;
       item.textContent = element.label;
       if (element.icon) {
-        item.style.backgroundImage = 'url('+element.icon+')';
+        item.style.backgroundImage = 'url(' + element.icon + ')';
       }
       this.container.appendChild(item);
 
       if (handler) {
         this.onreturn = handler;
       } else {
-        this.onreturn = function lm_onreturn() {};
+        this.onreturn = null;
       }
     }, this);
 
@@ -53,9 +53,6 @@ var ListMenu = {
     this.element.classList.remove('visible');
   },
 
-  onreturn: function lm_onReturn() {
-  },
-
   handleEvent: function lm_handleEvent(evt) {
     switch (evt.type) {
       case 'screenchange':
@@ -65,10 +62,14 @@ var ListMenu = {
 
       case 'click':
         var action = evt.target.dataset.value;
+        if (!action) {
+          return;
+        }
         this.hide();
-        this.onreturn(action);
+        if (this.onreturn) {
+          this.onreturn(action);
+        }
         break;
-
     }
   }
 };
