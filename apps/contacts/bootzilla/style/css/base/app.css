@@ -1,0 +1,233 @@
+/**
+ * APP.CSS
+ * Layout set-up for creating common app layouts
+ *
+ * Z-INDEX:
+ * 	5 	= .vw-bdy-inner
+ * 	10 	= .vw-header
+ * 	10 	= .vw-jumper
+ * ------------------------------------------------------*/
+
+
+/* VIEWS TRANSITIONS */
+.vw-right			{ -moz-transform: translateX(100%); }
+.vw-left			{ -moz-transform: translateX(-100%); }
+.vw-top			{ -moz-transform: translateY(-100%); }
+.vw-bottom		{ -moz-transform: translateY(100%); }
+.vw-fade			{ opacity: 0; }
+.vw-scale			{ -moz-transform: scale(0.2); -moz-transform-origin: center center; }
+.vw-flip 			{ -moz-transform: rotateY(180deg); }
+.vw-flip-revert		{ -moz-transform: rotateY(-180deg); }
+
+
+/* MULTICARD LEGACY: is a duplicated functionality must be reviewed; */
+section.multiCard > section {
+  top: 0;
+  height: 100%;
+  width: 100%;
+  position: fixed;
+  overflow: hidden;
+}
+
+section[data-position] {
+  -moz-transition: -moz-transform .2s ease-in;
+}
+
+section[data-position = 'top'] {
+  -moz-transform: translate(0, -100%);
+}
+
+section[data-position = 'down'] {
+  -moz-transform: translate(0, 100%);
+}
+
+section[data-position = 'right'] {
+  -moz-transform: translate(100%, 0);
+}
+
+section[data-position = 'left'] {
+  -moz-transform: translate(-100%, 0);
+}
+
+section[data-position = 'home'] {
+  -moz-transform: translate(0, 0);
+}
+
+
+/* VIEW */
+.view {
+	position: fixed;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	-moz-transition: all 0.4s ease;
+	-moz-transform-style: preserve-3d;
+	-moz-backface-visibility: hidden;
+}
+	.vw-inner {
+		width: 100%;
+		height: 100%;
+		display: -moz-box;
+		-moz-box-orient: vertical;
+		overflow: hidden;
+		border-radius: 0.8rem;
+	}
+
+		/* COMMON SET-UP */
+		.vw-header, .vw-nav a { height: 4.8rem; }
+		.vw-header, .vw-nav {
+			overflow: hidden;
+			position: relative;
+			color: #fff;
+			background-image: -moz-linear-gradient(top, #cc6523, #bb492d);
+		}
+
+
+		/* HEADER */
+		.vw-header {
+			background-color: #ff6400;
+			box-shadow: inset 0 -1px 0 0 rgba(0, 0, 0, 0.25), 0 2px 4px -4px rgba(0, 0, 0, 0.99);
+			position: relative;
+			z-index: 10;
+		}
+			.vw-header a { display: block; padding: 1rem;  }
+			.vw-header h1 {
+				font: 2.1rem/4.8rem System Sans Light, Sans-serif;
+				text-align: left;
+				text-overflow: ellipsis;
+				display: block;
+				overflow: hidden;
+				margin-left: 3rem;
+				height: 100%
+			}
+
+			/* Back button */
+			.vw-back a {
+				padding: 1.1rem 0.7rem 1rem 1px;
+				background: rgba(0, 0, 0, 0.1);
+				border-right: solid 1px rgba(0, 0, 0, 0.2);
+				box-shadow: 0 1px 0 1px rgba(255, 255, 255, 0.3);
+			}
+
+			/* Generic actions in header */
+			.vw-actions { height: 100%; float: right; letter-spacing: -0.4rem;  }
+				.vw-actions li {
+					height: 50%;
+					border-left: solid 1px rgba(255, 255, 255, 0.3);
+					border-right: solid 1px rgba(0, 0, 0, 0.2);
+					display: inline-block;
+					vertical-align: middle;
+					letter-spacing: 0;
+				}
+				.vw-actions li:first-child { border-left: none; }
+				.vw-actions li:last-child { border-right: none; }
+
+					.vw-actions a { margin-top: -25%; }
+					.vw-actions:before {
+						content: "";
+						display: inline-block;
+						vertical-align: middle;
+						width: 1px;
+						height: 100%;
+						margin-left: -1px;
+					}
+
+
+		/* BODY */
+		.vw-body { position: relative; -moz-box-flex: 1; height: 0; }
+			.vw-bdy-inner {
+				overflow: auto;
+				position: absolute;
+				left: 0;
+				top: 0;
+				bottom: 0;
+				z-index: 5;
+				width: 100%;
+				-moz-box-sizing: border-box;
+				padding: 1.4rem 2rem;
+				background: #f4f4f4;
+				color: #333;
+				text-align: left;
+			}
+
+			/* Removes scroll from the view body inner */
+			.vw-noscroll .vw-bdy-inner { width: -moz-calc(100% + 0.8rem); }
+
+
+		/* NAV */
+		.vw-nav { background: #000; }
+			.vw-nav li { border-right: solid 1px rgba(255, 255, 255, 0.1); }
+			.vw-nav li:last-child { border: none; }
+				.vw-nav a { display: block; color: #fff; }
+					.vw-nav a:before {
+						content: "";
+						display: inline-block;
+						vertical-align: middle;
+						width: 1px;
+						height: 100%;
+						margin-left: -1px;
+					}
+
+				.vw-nav-labeled a { position: relative; }
+					.vw-nav-labeled i { margin-top: -2rem; }
+					.vw-nav-labeled a:after {
+						content: attr(title);
+						font: 1.2rem/2rem System Sans Semibold, Sans-serif;
+						text-align: center;
+						position: absolute;
+						bottom: 0;
+						left: 0;
+						right: 0;
+						white-space: nowrap;
+					} 
+
+
+		/* JUMPER: Goes directly to some point in the scroll; */
+		.vw-jumper {
+			position: absolute;
+			right: 0;
+			top: 0;
+			bottom: 1rem;
+			z-index: 10;
+		}
+			.vw-jumper:active .vw-jmp-inner, .vw-jumper.active .vw-jmp-inner  { background: #999; }
+			.vw-jmp-current {
+				position: absolute;
+				right: 4rem;
+				top: 30%;
+				width: 10.5rem;
+				background: rgba(0, 0, 0, 0.7);
+				font: 6rem/10.5rem System Sans Light, Sans-serif;
+				color: #fff;
+				text-align: center;
+				pointer-events: none;
+			}
+			.vw-jmp-inner {
+				display: -moz-box;
+				-moz-box-orient: vertical;
+				height: 100%;
+				padding: 0.3rem 0;
+				border-radius: 4rem;
+				opacity: 0.6;
+			}
+				.vw-jumper li {
+					font-size: 1.1rem;
+					line-height: 1em;
+					text-align: center;
+					text-transform: uppercase;
+					-moz-box-flex: 1;
+					width: 2.5rem;
+				}
+					.vw-jmp-inner a, .vw-jmp-inner abbr { display: block; color: #333; width: 100%; }
+						.vw-jmp-inner i { width: 1.2rem; height: 1.2rem; }
+
+
+
+
+
+
+
+
+
+

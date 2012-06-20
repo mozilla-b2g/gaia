@@ -1,0 +1,76 @@
+<!--
+
+    MODULE: Remote Console
+
+    This document defines a user interface for the Remote Console
+
+    Product: Open Web Device
+
+    Copyright(c) 2012 Telefónica I+D S.A.U.
+
+    LICENSE: TBD
+
+    @author José M. Cantera (jmcf@tid.es)
+
+-->
+<!DOCTYPE html>
+
+<html>
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1.0">
+      <title>Remote Console</title>
+
+      <style>
+        p {
+            margin:0.5%;
+        }
+
+        .error {
+          color: red;
+        }
+
+        html,body {
+          width: 95%;
+          margin: 1% auto;
+        }
+
+        fieldset {
+            margin:1%;
+        }
+
+      </style>
+
+    </head>
+
+    <body>
+      <fieldset>
+        <label>Remote Connection:
+            <input type=url id="address" required size=40 maxlength=100
+                                                  placeholder='Enter WS URI'>
+        </label>
+        <button type=button onclick="owd.rconsole.setupWS()">Connect!</button>
+        <button style="margin-left:10%" type=button
+                onclick="owd.rconsole.disconnect()">Disconnect</button>
+        <button style="margin-left:10%" type=button
+                onclick="owd.rconsole.clear()">Clear</button>
+      </fieldset>
+
+      <fieldset>
+        <legend>Filters</legend>
+        <label>By Device: <input id=fdevice type=text size=15></label>
+        <label>By Component: <input id=fcomponent type=text size=30></label>
+        <button type=button onclick="owd.rconsole.filter()">Filter!</button>
+      </fieldset>
+
+      <fieldset>
+        <legend>Remote Execution</legend>
+        <textarea id="expression" rows=10 cols=80></textarea>
+        <button type=button onclick="owd.rconsole.rexec()">Execute Remotely</button>
+      </fieldset>
+
+        <div id="content"></div>
+
+        <script src="system/utils/rconsole.js"></script>
+    </body>
+</html>
