@@ -288,9 +288,9 @@ var OnCallHandler = {
   },
 
   lookupContact: function och_lookupContact(number) {
-    Contacts.findByNumber(number, (function(contact) {
-    OnCallHandler.numberView.innerHTML = contact.name;
-    }).bind(this));
+    Contacts.findByNumber(number, function lookupContact(contact) {
+      CallUI.update(contact.name);
+    });
   },
 
   _syncSpeakerEnabled: function och_syncSpeakerEnabled() {
