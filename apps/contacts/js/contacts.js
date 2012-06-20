@@ -16,6 +16,8 @@ var navigationStack = (function(currentView) {
   stack.push({ view: currentView, transition: ''});
 
   this.go = function(nextView, transition) {
+    if (_currentView === nextView)
+      return;
     var current = document.getElementById(_currentView);
     var next = document.getElementById(nextView);
     current.classList.add(transitions[transition].to);
@@ -46,6 +48,8 @@ if (!contacts.app) {
     var contactsListView,
         contactDetailsView,
         contactName,
+        givenName,
+        familyName,
         coverImg,
         editView,
         navigation,
@@ -54,7 +58,9 @@ if (!contacts.app) {
         phoneTemplate,
         emailTemplate,
         phonesContainer,
-        emailContainer;
+        emailContainer,
+        numberPhones,
+        numberEmails;
 
     var currentContact = {};
 
@@ -74,7 +80,8 @@ if (!contacts.app) {
       phonesContainer = document.getElementById('contacts-form-phones');
       emailContainer = document.getElementById('contacts-form-email');
       navigation = new navigationStack('view-contacts-list');
-
+      givenName = document.getElementById('givenName');
+      familyName = document.getElementById('familyName');
       cList.init('groups-list');
       cList.load();
       cList.addEventListener('click', function(contact) {
@@ -82,20 +89,23 @@ if (!contacts.app) {
         currentContact = contact;
         doShowContactDetails(contact);
       });
-
+      numberEmails = 0;
+      numberPhones = 0;
     };
 
-    var goBack = function() {
+    var goBack = function goBack() {
       navigation.back();
     };
 
-    var addNewPhone = function() {
-      insertEmptyPhone();
+    var addNewPhone = function addNewPhone() {
+      numberPhones++;
+      insertEmptyPhone(numberPhones);
       return false;
     };
 
-    var addNewEmail = function() {
-      insertEmptyEmail();
+    var addNewEmail = function addNewEmail() {
+      numberEmails++;
+      insertEmptyEmail(numberEmails);
       return false;
     };
 
@@ -107,7 +117,7 @@ if (!contacts.app) {
 
     };
 
-    var doShowContactDetails = function(contact) {
+    var doShowContactDetails = function doShowContactDetails(contact) {
       contactName.innerHTML = contact.name;
 
       var listContainer = document.getElementById('details-list');
@@ -123,41 +133,83 @@ if (!contacts.app) {
       navigation.go(contactDetailsView, 'right-left');
     };
 
-    var showEdit = function() {
+    var showEdit = function showEdit() {
       resetForm();
       formTitle = 'Edit contact';
       buildActions([{label: 'Finish', icon: 'i-finish'}]);
 
       for (var tel in currentContact.tel) {
-        var telField = {number: currentContact.tel[tel].number, type: '', notes: ''};
+        var telField = {number: currentContact.tel[tel].number, type: '', notes: '', i: tel};
         phonesContainer.appendChild(owd.templates.render(phoneTemplate, telField));
       }
       for (var email in currentContact.email) {
-        var emailField = {email: currentContact.email[email], type: ''};
+        var emailField = {email: currentContact.email[email], type: '', i: email};
         emailContainer.appendChild(owd.templates.render(emailTemplate, emailField));
       }
       navigation.go(editView, 'right-left');
     };
 
-    var showAdd = function() {
+    var showAdd = function showAdd() {
       resetForm();
-      insertEmptyPhone();
-      insertEmptyEmail();
+      insertEmptyPhone(0);
+      insertEmptyEmail(0);
       buildActions([
         { label: 'Cancel', icon: 'i-cancel', callback: navigation.back },
-        { label: 'Finish', icon: 'i-finish', callback: navigation.back}
+        { label: 'Finish', icon: 'i-finish', callback: saveContact}
       ]);
 
       navigation.go(editView, 'right-left');
     };
 
-    var insertEmptyPhone = function() {
-      var telField = {number: '', type: '', notes: ''};
+    var saveContact = function saveContact(successCb, errorCb) {
+      var form = document.querySelector('#view-contact-form form');
+      var fields = document.querySelectorAll('#view-contact-form form input');
+      var myContact = {};
+      for (var i = 0; i < fields.length; i++) {
+        var value = fields[i].value;
+        if(value === "")
+          continue;
+        var name = fields[i].name;
+        myContact[name] = myContact[name] || [];
+        var index = 0;
+        if (fields[i].dataset.arrayindex) {
+          // Array element
+          var index = fields[i].dataset.arrayindex;
+        }
+        if (fields[i].dataset.field) {
+          var field = fields[i].dataset.field;
+          // Hash inside
+          myContact[name][index] = myContact[name][index] || {};
+          myContact[name][index][field] = value;
+        } else {
+          // No hash
+          myContact[name][index] = myContact[name][index] || [];
+          myContact[name][index] = value;
+        }
+      }
+      doSaveContact(myContact, function() {
+        navigation.back();
+      }, function errorCb() {
+        console.error("Error saving contact");
+      });
+    };
+    
+    var doSaveContact = function doSaveContact(myContact, successCb, errorCb) {
+      // TODO: VALIDATE FORM FIRST
+      var contact = new mozContact();
+      contact.init(myContact);
+      var request = navigator.mozContacts.save(contact);
+      request.onsuccess = successCb;
+      request.onerror = errorCb;
+    }
+
+    var insertEmptyPhone = function insertEmptyPhone(index) {
+      var telField = {number: '', type: '', notes: '', i: index};
       phonesContainer.appendChild(owd.templates.render(phoneTemplate, telField));
     };
 
-    var insertEmptyEmail = function() {
-      var emailField = {email: '', type: ''};
+    var insertEmptyEmail = function insertEmptyEmail(index) {
+      var emailField = {email: '', type: '', i: index};
       emailContainer.appendChild(owd.templates.render(emailTemplate, emailField));
     };
     //********** Contact Form **************//
