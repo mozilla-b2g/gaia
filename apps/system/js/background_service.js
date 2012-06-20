@@ -42,7 +42,11 @@ var BackgroundServiceManager = (function bsm() {
 
     // XXX: this is sad. Getting origin from manifest URL.
     var manifestURL = evt.target.getAttribute('mozapp');
-    var origin = manifestURL.substr(0, manifestURL.indexOf('/'));
+    var origin = (function getOrigin() {
+      var a = document.createElement('a');
+      a.href = manifestURL;
+      return a.protocol + '//' + a.hostname;
+    })();
 
     var frame = open(origin, evt.detail.name, evt.detail.url);
     if (frame)
