@@ -333,7 +333,7 @@ var OnCallHandler = {
     Contacts.findByNumber(number, (function(contact) {
     OnCallHandler.numberView.innerHTML = contact.name;
     }).bind(this));
-  }
+  },
 
   _syncSpeakerEnabled: function och_syncSpeakerEnabled() {
     if (navigator.mozTelephony.speakerEnabled) {
