@@ -198,13 +198,14 @@ const IMEController = (function() {
 
     // look for keyspace (it behaves as the placeholder for special keys)
     var where = false;
-    for (var r = 0, row; !where && (row = layout.keys[r]); r += 1)
+    for (var r = 0, row; !where && (row = layout.keys[r]); r += 1) {
       for (var c = 0, space; space = layout.keys[r][c]; c += 1) {
         if (space.keyCode == KeyboardEvent.DOM_VK_SPACE) {
           where = r;
           break;
         }
       }
+    }
 
     // if found, add special keys
     if (where) {
