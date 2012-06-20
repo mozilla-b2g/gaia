@@ -289,6 +289,12 @@ var PlayerView = {
     this.audio.addEventListener('timeupdate', this);
   },
 
+  // This function is for the animation on the album art (cover).
+  // The info (album, artist) will initially show up when a song being played,
+  // if users does not tap the album art (cover) again,
+  // then it will be disappeared after 5 seconds
+  // however, if a user taps before 5 seconds ends,
+  // then the timeout will be cleared to keep the info on screen.
   showInfo: function pv_showInfo() {
     this.caption.classList.remove('resetSilde');
     this.caption.classList.add('slideDown');
@@ -300,7 +306,7 @@ var PlayerView = {
       window.clearTimeout(this.timeoutID);
 
     this.timeoutID = window.setTimeout(
-      function() {
+      function pv_hideInfo() {
         this.caption.classList.remove('slideDown');
         this.caption.classList.add('resetSilde');
 
