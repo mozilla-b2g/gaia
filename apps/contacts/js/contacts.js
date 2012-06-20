@@ -45,33 +45,37 @@ var navigationStack = (function(currentView) {
 if (!contacts.app) {
 
   contacts.app = (function() {
-    var contactsListView,
-        contactDetailsView,
-        contactName,
+    // Pointers to Views ids
+    var contactsListView = 'view-contacts-list';
+    var editView = 'view-contact-form';
+    var contactDetailsView = 'view-contact-details';
+
+    //Navigation stack
+    var navigation = new navigationStack('view-contacts-list');
+
+    //Initializations
+    var numberEmails = 0;
+    var numberPhones = 0;
+    var contactName,
         givenName,
         familyName,
         coverImg,
-        editView,
-        navigation,
         formTitle,
         formActions,
         phoneTemplate,
         emailTemplate,
         phonesContainer,
-        emailContainer,
-        numberPhones,
-        numberEmails;
+        emailContainer;
 
     var currentContact = {};
 
     var cList = contacts.List;
 
     // Init selectors
-    var init = function contacts_init() {
-      contactsListView = 'view-contacts-list';
-      editView = 'view-contact-form';
-      contactDetailsView = 'view-contact-details';
+    var init = function contactsInit() {
       contactName = document.getElementById('contact-name-title');
+      givenName = document.getElementById('givenName');
+      familyName = document.getElementById('familyName');
       coverImg = document.getElementById('cover-img');
       formTitle = document.getElementById('contact-form-title');
       formActions = document.getElementById('contact-form-actions');
@@ -79,9 +83,6 @@ if (!contacts.app) {
       emailTemplate = document.getElementById('add-email');
       phonesContainer = document.getElementById('contacts-form-phones');
       emailContainer = document.getElementById('contacts-form-email');
-      navigation = new navigationStack('view-contacts-list');
-      givenName = document.getElementById('givenName');
-      familyName = document.getElementById('familyName');
       cList.init('groups-list');
       cList.load();
       cList.addEventListener('click', function(contact) {
@@ -89,8 +90,6 @@ if (!contacts.app) {
         currentContact = contact;
         doShowContactDetails(contact);
       });
-      numberEmails = 0;
-      numberPhones = 0;
     };
 
     var goBack = function goBack() {
@@ -122,11 +121,19 @@ if (!contacts.app) {
 
       var listContainer = document.getElementById('details-list');
       for (var tel in contact.tel) {
-        var telField = {number: contact.tel[tel].number, tel_type: '', notes: '', type: 'tel'};
+        var telField = {
+          number: contact.tel[tel].number,
+          tel_type: '',
+          notes: '',
+          type: 'tel'
+        };
         owd.templates.append(listContainer, telField);
       }
       for (var email in contact.email) {
-        var emailField = {email: contact.email[email], email_tag: '', type: 'email'};
+        var emailField = {
+          email: contact.email[email],
+          email_tag: '', type: 'email'
+        };
         owd.templates.append(listContainer, emailField);
       }
       owd.templates.append(coverImg, contact);
@@ -135,22 +142,34 @@ if (!contacts.app) {
 
     var showEdit = function showEdit() {
       resetForm();
-      formTitle = 'Edit contact';
+      formTitle.innerHTML = 'Edit contact';
       buildActions([{label: 'Finish', icon: 'i-finish'}]);
 
       for (var tel in currentContact.tel) {
-        var telField = {number: currentContact.tel[tel].number, type: '', notes: '', i: tel};
-        phonesContainer.appendChild(owd.templates.render(phoneTemplate, telField));
+        var telField = {
+          number: currentContact.tel[tel].number,
+          type: '',
+          notes: '',
+          i: tel
+        };
+        var template = owd.templates.render(phoneTemplate, telField);
+        phonesContainer.appendChild(template);
       }
       for (var email in currentContact.email) {
-        var emailField = {email: currentContact.email[email], type: '', i: email};
-        emailContainer.appendChild(owd.templates.render(emailTemplate, emailField));
+        var emailField = {
+          email: currentContact.email[email],
+          type: '',
+          i: email
+        };
+        var template = owd.templates.render(emailTemplate, emailField);
+        emailContainer.appendChild(template);
       }
       navigation.go(editView, 'right-left');
     };
 
     var showAdd = function showAdd() {
       resetForm();
+      formTitle.innerHTML = 'Add Contact';
       insertEmptyPhone(0);
       insertEmptyEmail(0);
       buildActions([
@@ -167,7 +186,7 @@ if (!contacts.app) {
       var myContact = {};
       for (var i = 0; i < fields.length; i++) {
         var value = fields[i].value;
-        if(value === "")
+        if (value === '')
           continue;
         var name = fields[i].name;
         myContact[name] = myContact[name] || [];
@@ -190,10 +209,10 @@ if (!contacts.app) {
       doSaveContact(myContact, function() {
         navigation.back();
       }, function errorCb() {
-        console.error("Error saving contact");
+        console.error('Error saving contact');
       });
     };
-    
+
     var doSaveContact = function doSaveContact(myContact, successCb, errorCb) {
       // TODO: VALIDATE FORM FIRST
       var contact = new mozContact();
@@ -204,13 +223,24 @@ if (!contacts.app) {
     }
 
     var insertEmptyPhone = function insertEmptyPhone(index) {
-      var telField = {number: '', type: '', notes: '', i: index};
-      phonesContainer.appendChild(owd.templates.render(phoneTemplate, telField));
+      var telField = {
+        number: '',
+        type: '',
+        notes: '',
+        i: index
+      };
+      var template = owd.templates.render(phoneTemplate, telField);
+      phonesContainer.appendChild(template);
     };
 
     var insertEmptyEmail = function insertEmptyEmail(index) {
-      var emailField = {email: '', type: '', i: index};
-      emailContainer.appendChild(owd.templates.render(emailTemplate, emailField));
+      var emailField = {
+        email: '',
+        type: '',
+        i: index
+      };
+      var template = owd.templates.render(emailTemplate, emailField);
+      emailContainer.appendChild(template);
     };
 
     var buildActions = function(actions) {
@@ -245,27 +275,6 @@ if (!contacts.app) {
       delIcon.className = 'i-delete';
       delButton.appendChild(delIcon);
       return delButton;
-    };
-
-    var buildFormRow = function(label, id, type, value) {
-      var row = document.createElement('p');
-      row.className = 'ff-row';
-
-      var labelElem = document.createElement('label');
-      labelElem.className = 'hide';
-      labelElem.for = id;
-      labelElem.innerHTML = label;
-      row.appendChild(labelElem);
-
-      var input = document.createElement('input');
-      input.className = 'textfield';
-      input.type = type;
-      if (value)
-        input.value = value;
-      input.id = id;
-      row.appendChild(input);
-
-      return row;
     };
 
     return {
