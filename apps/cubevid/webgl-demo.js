@@ -314,6 +314,19 @@ function videoDone() {
   videoElement.play();
 }
 
+// Pause and restart when visibility changes
+document.addEventListener('mozvisibilitychange', function visibilityChange() {
+  if (document.mozHidden) {
+    videoElement.pause();
+    // drawScene will stop when we become hidden
+  }
+  else {
+    videoElement.play();
+    drawScene();
+  }
+});
+
+
 //
 // drawScene
 //
@@ -390,7 +403,8 @@ function drawScene() {
   }
   
   lastCubeUpdateTime = currentTime;
-  window.mozRequestAnimationFrame(drawScene, canvas);
+  if (!document.mozHidden) 
+    window.mozRequestAnimationFrame(drawScene, canvas);
 }
 
 //
