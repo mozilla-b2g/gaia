@@ -20,10 +20,8 @@ document.addEventListener('mozvisibilitychange', function visibility(e) {
     Recents.startUpdatingDates();
 
     var choice = params['choice'];
-    var contacts = document.getElementById('contacts-label');
-    if (choice == 'contact' || contacts.hasAttribute('data-active')) {
+    if (choice == 'contact') {
       Contacts.load();
-      choiceChanged(contacts);
     }
   } else {
     Recents.stopUpdatingDates();
@@ -65,7 +63,7 @@ var CallHandler = {
   // callbacks
   call: function ch_call(number) {
     var host = document.location.host;
-    window.open('http://' + host + '/oncall.html#calling',
+    window.open('http://' + host + '/oncall.html#outgoing',
                 'dialer_calling', 'attention');
 
     var sanitizedNumber = number.replace(/-/g, '');
@@ -86,15 +84,12 @@ var CallHandler = {
 window.addEventListener('localized', function startup(evt) {
   window.removeEventListener('localized', startup);
 
+  KeypadManager.init();
+
   // Set the 'lang' and 'dir' attributes to <html> when the page is translated
   document.documentElement.lang = navigator.mozL10n.language.code;
   document.documentElement.dir = navigator.mozL10n.language.direction;
 
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('hidden');
-});
-
-window.addEventListener('load', function callSetup(evt) {
-  window.removeEventListener('load', callSetup);
-    KeypadManager.init();
 });
