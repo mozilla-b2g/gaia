@@ -86,6 +86,19 @@ var Applications = (function() {
   };
 
   /*
+   *  Returns installed apps
+   */
+  function getInstalledApplications() {
+    var ret = {};
+
+    for (var i in installedApps) {
+      ret[i] = installedApps[i];
+    }
+
+    return ret;
+  };
+
+  /*
    *  Returns the origin for an apllication
    *
    *  {Object} Moz application
@@ -217,6 +230,7 @@ var Applications = (function() {
     getOrigin: getOrigin,
     getName: getName,
     getIcon: getIcon,
-    getManifest: getManifest
+    getManifest: getManifest,
+    getInstalledApplications: getInstalledApplications
   };
 })();
