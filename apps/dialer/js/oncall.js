@@ -87,7 +87,7 @@ var CallScreen = {
   },
 
   toggleKeypad: function cm_toggleKeypad() {
-    KeypadManager.render('keyPadVisibleDuringCall');
+    KeypadManager.render('oncall');
     this.update(KeypadManager._phoneNumber);
     this.views.classList.toggle('show');
   },
@@ -150,6 +150,7 @@ var OnCallHandler = {
   currentCall: null,
   _screenLock: null,
   _displayed: false,
+  _disconnected: false,
 
   setup: function och_setup() {
     var hash = document.location.hash;
@@ -215,6 +216,10 @@ var OnCallHandler = {
   },
 
   disconnected: function ch_disconnected() {
+    if (this._disconnected)
+      return;
+
+    this._disconnected = true;
 
     if (this.currentCall) {
       this.currentCall.removeEventListener('statechange', this);
@@ -262,7 +267,7 @@ var OnCallHandler = {
     CallScreen.screen.classList.remove('animate');
     CallScreen.screen.classList.toggle('prerender');
 
-    var displayed = OnCallHandler._displayed;
+    var displayed = this._displayed;
     // hardening against the unavailability of MozAfterPaint
     var finished = false;
 
