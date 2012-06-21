@@ -1,3 +1,18 @@
+/*
+ * DeviceStorageDB.js
+ * 
+ * This library uses the DeviceStorage API and the IndexedDB API to present
+ * a simple view of media files stored on a device.  If given a function
+ * for parsing metadata, it will automatically extract media metadata from
+ * each file and store it in the database along with the filename.
+ * 
+ * The idea is that a media app should just be able to create a 
+ * DeviceStorageDB object and then list the files on it, passing in
+ * filtering and sorting criteria.  When files are added or removed, 
+ * DSDB will be notified by the DeviceStorage API and will pass those
+ * notifications on to media apps.  DSDB should generally handle any
+ * rescanning that needs to be done, so that media apps don't have to do it
+ */
 var createDeviceStorageDB = (function() {
 
   // The media type is a device storage type: "pictures", "movies", "music".
@@ -90,42 +105,6 @@ var createDeviceStorageDB = (function() {
     };
   }
 
-
-
-
-
-  /*
-   * DeviceStorageDB.js
-   * 
-   * This library uses the DeviceStorage API and the IndexedDB API to present
-   * a simple view of media files stored on a device.  If given a function
-   * for parsing metadata, it will automatically extract media metadata from
-   * each file and store it in the database along with the filename.
-   * 
-   * The idea is that a media app should just be able to create a 
-   * DeviceStorageDB object and then list the files on it, passing in
-   * filtering and sorting criteria.  When files are added or removed, 
-   * DSDB will be notified by the DeviceStorage API and will pass those
-   * notifications on to media apps.  DSDB should generally handle any
-   * rescanning that needs to be done, so that media apps don't have to do it
-   
-   different scan methods to quickly look for new files 
-   and to (slowly) look for deleted files?
-   deliver added and deleted scan results in two different phases?
-
-
-   
-   Typical app usage:
-
-   fsdb = new DeviceStorageDB(...);
-   fsdb.enumerate(..., enumerateHandler);  // Start listing whats in the db
-   fsdb.onchange = changeHandler;  // Listen for db changes
-   fsdb.scan();         // And (more slowly) scan the fs for changes
-
-   
-
-  */
-
   function DeviceStorageDB(storage, db, options) {
     this.storage = storage;
     this.db = db;
@@ -171,8 +150,6 @@ var createDeviceStorageDB = (function() {
     //    metadata: // whatever object the metadata parser returns
     // }
     // 
-    // XXX: rather than property and direction, can I pass in an 
-    // IDBKeyRange (or whatever it is?)  Then that would also work for searches
     // 
     enumerate: function(key, range, direction, callback) {
       // The first three arguments are optional, but the callback
@@ -264,15 +241,6 @@ var createDeviceStorageDB = (function() {
       // to the database, then report them with the fileAdded callback
       function saveAndReportQuickScanResults() {
       }
-    },
-
-    // XXX
-    // Should I have full event listeners, or just callbacks?
-    // Should it just be one type of event, or separate events/callbacks
-    // for added/removed/mounted/unmounted?  Maybe I can just mirror
-    // what device storage does here?  If they are callbacks, can I just
-    // pass them to the constructor or do I need properties to set?
-    addEventListener: function(type, callback) {
     },
   };
 
