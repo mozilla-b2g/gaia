@@ -104,7 +104,6 @@ if (!contacts.List) {
       request.onsuccess = function findCallback() {
         if (request.result.length === 0)
           errorCb();
-
         successCb(request.result[0]);
        };
 
@@ -128,34 +127,32 @@ if (!contacts.List) {
       }
     }
 
-    var add = function add(id) {
-      getContactById(id, function(contact) {
-        var newLi, givenName = contact.givenName[0];
-        var group = getGroupName(givenName);
-        var list = groupsList.querySelector('#contacts-list-' + group);
-        var liElems = list.getElementsByTagName('li');
-        var len = liElems.length;
-        for (var i = 1; i < len; i++) {
-          var liElem = liElems[i];
-          var gName = liElem.querySelector('strong').textContent;
-          if (gName >= givenName) {
-            newLi = owd.templates.render(liElems[0], contact);
-            list.insertBefore(newLi, liElem);
-            lazyload.reload();
-            break;
-          }
-        }
-
-        if (!newLi) {
-          owd.templates.append(list, contact);
+    var addToList = function addToList(contact) {
+      var newLi, givenName = contact.givenName[0];
+      var group = getGroupName(givenName);
+      var list = groupsList.querySelector('#contacts-list-' + group);
+      var liElems = list.getElementsByTagName('li');
+      var len = liElems.length;
+      for (var i = 1; i < len; i++) {
+        var liElem = liElems[i];
+        var gName = liElem.querySelector('strong').textContent;
+        if (gName >= givenName) {
+          newLi = owd.templates.render(liElems[0], contact);
+          list.insertBefore(newLi, liElem);
           lazyload.reload();
+          break;
         }
+      }
 
-        if (list.children.length === 2) {
-          // template + new record
-          showGroup(group);
-        }
-      }, function() {});
+      if (!newLi) {
+        owd.templates.append(list, contact);
+        lazyload.reload();
+      }
+
+      if (list.children.length === 2) {
+        // template + new record
+        showGroup(group);
+      }
     }
 
     var hideGroup = function hideGroup(group) {
@@ -200,8 +197,14 @@ if (!contacts.List) {
     }
 
     var reload = function reload(id) {
-      remove(id);
-      add(id);
+      if (typeof(id) == 'string') {
+        remove(id);
+        getContactById(contact, addToList, function() {});
+      } else {
+        var contact = id;
+        remove(contact.id);
+        addToList(contact);
+      }
     }
 
     return {
