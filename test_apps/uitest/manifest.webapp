@@ -8,5 +8,8 @@
   "fullscreen": true,
   "icons": {
     "120": "/style/icons/Uitest.png"
-  }
+  },
+  "permissions": [
+    "background"
+  ]
 }
