@@ -212,7 +212,7 @@ else
 	@echo "Can't populate on Linux. You can still install."
 endif
 
-DB_TARGET_PATH = /data/b2g/mozilla/`$(ADB) shell ls -1 /data/b2g/mozilla/ | grep default | tr -d [:cntrl:]`/indexedDB
+DB_TARGET_PATH = /data/local/indexedDB
 ifneq ($(SYS),Darwin)
 DB_SOURCE_PATH = $(CURDIR)/build/indexeddb
 else
@@ -382,8 +382,7 @@ stamp-commit-hash:
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 delete-databases:
-	$(ADB) shell rm -r /data/b2g/mozilla/*.default/indexedDB/*
-
+	$(ADB) shell rm -r /data/local/indexedDB/*
 
 # Take a screenshot of the device and put it in screenshot.png
 screenshot:
