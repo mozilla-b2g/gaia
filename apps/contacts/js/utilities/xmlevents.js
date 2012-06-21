@@ -48,13 +48,14 @@ if (!owd.xmlevents) {
     /**
      *  Attachs the specified listener to the subTree
      *
-     *  @param listenerId id of the listener element to be attached.
-     *  @param subTree on which perform the attachment (document by default).
+     *  @param {String} listenerId id of the listener element to be attached.
+     *  @param {HTMLDOMElement} subTree on which perform the attachment
+     *  (document by default).
      *
      *  subTree can be either a selector or a HTMLDOMElement
      *
      */
-    xmlEvents.attach = function(listenerId,subTree) {
+    xmlEvents.attach = function(listenerId, subTree) {
       var listener = listeners[listenerId];
 
       if (listener) {
@@ -65,10 +66,13 @@ if (!owd.xmlevents) {
     /**
      *  Returns an enriched handler for listening to an event
      *
-     *  @f the original handler
+     *  @param {function} f the original handler.
      *
-     *  @prevent boolean indicating whether preventDefault must be invoked
-     *  @stop boolean indicating whether stopPropagation must be invoked
+     *  @param {boolean} prevent indicating
+     *  whether preventDefault must be invoked.
+     *
+     *  @param {boolean} stop indicating whether stopPropagation
+     *  must be invoked.
      *
      *
      */
@@ -128,8 +132,8 @@ if (!owd.xmlevents) {
     /**
      *  Adds a listener to the specified subTree
      *
-     *  @listener listener object with all the listener params
-     *  @subTree subTree (if not specified it will be the whole document)
+     *  @param {listener} listener with all the listener params.
+     *  @param {HTMLDomElement} subTree (document by default).
      *
      *
      */
