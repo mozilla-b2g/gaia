@@ -123,6 +123,11 @@ var ModalDialog = {
         this.confirm.classList.remove('visible');
         break;
     }
+
+    if (this.evt.isPseudo && this.evt.callback) {
+      this.evt.callback(this.evt.detail.returnValue);
+    }
+
     this.evt.detail.unblock();
 
     // Let WindowManager know it can return to home now.
@@ -152,11 +157,69 @@ var ModalDialog = {
         this.confirm.classList.remove('visible');
         break;
     }
+
+    if (this.evt.isPseudo && this.evt.callback) {
+      this.evt.callback(this.evt.detail.returnValue);
+    }
+
     this.evt.detail.unblock();
 
     // Let WindowManager know it can return to home now.
     this.blocked = false;
     this.evt = null;
+  },
+
+  alert: function(text, callback) {
+    this.makePseudoEvent({
+      type: 'alert',
+      text: text,
+      callback: callback
+    });
+  },
+
+  confirm: function(text, callback, cancel) {
+    this.makePseudoEvent({
+      type: 'alert',
+      text: text,
+      callback: callback,
+      cancel: cancel
+    });
+  },
+
+  prompt: function(text, default_value, callback) {
+    this.makePseudoEvent({
+      type: 'alert',
+      text: text,
+      initialValue: default_value,
+      callback: callback
+    });
+  },
+
+  makePseudoEvent: function(configuration) {
+    if (this.evt) {
+      this.evt.detail.unblock();
+    }
+
+    var pseudo_evt = {
+      isPseudo: true,
+      detail: {
+        unblock: null
+      }
+    };
+
+    pseudo_evt.detail.message = configuration.text;
+    pseudo_evt.callback = configuration.callback;
+    switch (configuration.type) {
+      case 'alert':
+        break;
+      case 'confirm':
+        break;
+      case 'prompt':
+        pseudo_evt.detail.initialValue = configuration.initialValue;
+        break;
+    }
+    this.evt = pseudo_evt;
+    this.show();
   }
 };
 
