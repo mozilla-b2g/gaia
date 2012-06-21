@@ -59,6 +59,7 @@ if (!contacts.app) {
     var detailsHeader,
         phoneDetailsTemplate,
         emailDetailsTemplate,
+        detailsName,
         givenName,
         familyName,
         coverImg,
@@ -78,6 +79,7 @@ if (!contacts.app) {
       detailsHeader = document.getElementById('details-view-header');
       givenName = document.getElementById('givenName');
       familyName = document.getElementById('familyName');
+      detailsName = document.getElementById('contact-name-title');
       coverImg = document.getElementById('cover-img');
       formTitle = document.getElementById('contact-form-title');
       formActions = document.getElementById('contact-form-actions');
@@ -121,8 +123,7 @@ if (!contacts.app) {
     };
 
     var doShowContactDetails = function doShowContactDetails(contact) {
-      owd.templates.append(detailsHeader, {name: contact.name});
-
+      detailsName.textContent = contact.name;
       var listContainer = document.getElementById('details-list');
       listContainer.innerHTML = '';
       for (var tel in contact.tel) {
