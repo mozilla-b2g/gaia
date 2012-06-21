@@ -1,5 +1,4 @@
-
-#sleep {
+#listmenu {
   position: absolute;
   top: 0;
   left: 0;
@@ -12,11 +11,11 @@
   display: none;
 }
 
-#sleep.visible {
+#listmenu.visible {
   display: block;
 }
 
-.sleep-menu {
+.list-menu {
   position: absolute;
   top: 20%;
   left: 50%;
@@ -28,7 +27,26 @@
   border: 1px solid hsla(0,0%,0%,0);
 }
 
-.sleep-menu div {
+/* 320x480 phones */
+@media (orientation: portrait) and (width: 320px),
+       (orientation: landscape) and (width: 480px) {
+  .list-menu {
+    width: 280px;
+    margin: 0 0 0 -140px;
+  }
+}
+
+/* 480x800 phones */
+@media (orientation: portrait) and (width: 480px),
+       (orientation: landscape) and (width: 800px) {
+  .list-menu {
+    width: 320px;
+    margin: 0 0 0 -160px;
+  }
+}
+
+
+.list-menu div {
   height: 73px;
   line-height: 73px;
   font-size: 26px;
@@ -38,32 +56,17 @@
   border-bottom: 1px solid hsla(0, 0%, 0%,0.4);
 }
 
-.sleep-menu div[data-value="power"] {
-  background: url(./images/power-off.png) no-repeat 0 50%;
+.list-menu div[data-value] {
+  background-repeat: no-repeat;
+  background-position: 0 50%;
 }
 
-.sleep-menu div[data-value="restart"] {
-  background: url(./images/restart.png) no-repeat 0 50%;
-}
-
-.sleep-menu div[data-value="airplane"] {
-  background: url(./images/airplane.png) no-repeat 0 50%;
-}
-
-.sleep-menu div[data-value="normal"] {
-  background: url(./images/normal.png) no-repeat 0 50%;
-}
-
-.sleep-menu div[data-value="silent"] {
-  background: url(./images/vibration.png) no-repeat 0 50%;
-}
-
-.sleep-menu div:first-child {
+.list-menu div:first-child {
   border-radius: 9px 9px 0 0;
   border-top-color: transparent;
 }
 
-.sleep-menu div:last-child {
+.list-menu div:last-child {
   border-radius: 0 0 9px 9px;
   border-bottom-color: transparent;
 }
