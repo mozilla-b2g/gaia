@@ -129,7 +129,7 @@ var SleepMenu = {
         // The screenshot module also listens for the SLEEP key and
         // can call defaultPrevented() on keydown and key up events.
         if (evt.keyCode == evt.DOM_VK_SLEEP &&
-            !evt.defultPrevented && !ListMenu.visible) {
+            !evt.defaultPrevented && !ListMenu.visible) {
           this._longpressTriggered = false;
           this._sleepMenuTimeout = window.setTimeout((function sm_timeout() {
             this.show();
