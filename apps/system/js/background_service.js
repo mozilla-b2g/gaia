@@ -40,13 +40,8 @@ var BackgroundServiceManager = (function bsm() {
     // Popup Manager to handle this event
     evt.stopPropagation();
 
-    // XXX: this is sad. Getting origin from manifest URL.
     var manifestURL = evt.target.getAttribute('mozapp');
-    var origin = (function getOrigin() {
-      var a = document.createElement('a');
-      a.href = manifestURL;
-      return a.protocol + '//' + a.hostname;
-    })();
+    var origin = evt.target.dataset.frameOrigin;
 
     var frame = open(origin, evt.detail.name, evt.detail.url);
     if (frame)

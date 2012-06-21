@@ -47,7 +47,9 @@ var AttentionScreen = {
     var attentionFrame = document.createElement('iframe');
     attentionFrame.setAttribute('mozbrowser', 'true');
     attentionFrame.setAttribute('mozapp', evt.target.getAttribute('mozapp'));
-    attentionFrame.dataset.attentionFrame = true;
+    attentionFrame.dataset.frameType = 'attention';
+    attentionFrame.dataset.frameName = evt.detail.name;
+    attentionFrame.dataset.frameOrigin = evt.target.dataset.frameOrigin;
     attentionFrame.src = evt.detail.url;
 
     this.screen.appendChild(attentionFrame);
@@ -67,7 +69,8 @@ var AttentionScreen = {
   },
 
   close: function as_close(evt) {
-    if (!evt.target.dataset.attentionFrame)
+    if (!'frameType' in evt.target.dataset ||
+        evt.target.dataset.frameType !== 'attention')
       return;
 
     this.screen.classList.remove('displayed');

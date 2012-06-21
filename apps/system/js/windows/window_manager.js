@@ -352,6 +352,8 @@ var WindowManager = (function() {
     frame.id = 'appframe' + nextAppId++;
     frame.className = 'appWindow';
     frame.setAttribute('mozallowfullscreen', 'true');
+    frame.dataset.frameType = 'window';
+    frame.dataset.frameOrigin = origin;
 
     if (manifest.hackNetworkBound) {
       var style = 'font-family: OpenSans,sans-serif;' +
