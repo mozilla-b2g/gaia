@@ -87,7 +87,7 @@ var CallScreen = {
   },
 
   toggleKeypad: function cm_toggleKeypad() {
-    KeypadManager.render('keyPadVisibleDuringCall');
+    KeypadManager.render('oncall');
     this.update(KeypadManager._phoneNumber);
     this.views.classList.toggle('show');
   },
