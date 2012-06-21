@@ -11,6 +11,11 @@ var gTonesFrequencies = {
   '*': [941, 1209], '0': [941, 1336], '#': [941, 1477]
 };
 
+var keypadSoundIsEnabled = true;
+SettingsListener.observe('phone.ring.keypad', true, function(value) {
+  keypadSoundIsEnabled = !!value;
+});
+
 var TonePlayer = {
   _sampleRate: 4000,
 
@@ -232,8 +237,18 @@ var KeypadManager = {
         event.stopPropagation();
 
     if (event.type == 'mousedown') {
-      //Play key sound
-      TonePlayer.play(gTonesFrequencies[key]);
+      if (keypadSoundIsEnabled) {
+        TonePlayer.play(gTonesFrequencies[key]);
+      }
+
+      // Sending the DTMF tone
+      var telephony = navigator.mozTelephony;
+      if (telephony) {
+        telephony.startTone(key);
+        window.setTimeout(function ch_stopTone() {
+          telephony.stopTone();
+        }, 100);
+      }
 
       // Manage "Hold action" in "0" key
       if (key == '0') {
@@ -263,9 +278,4 @@ var KeypadManager = {
       }
 
   },
-  handleEvent: function kh_handleEvent(event) {
-    //TODO Use it if is necessary to control more events
-
-  }
-
 };
