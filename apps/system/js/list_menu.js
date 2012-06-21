@@ -74,11 +74,14 @@ var ListMenu = {
         break;
 
       case 'keyup':
-        if (evt.keyCode == evt.DOM_VK_ESCAPE ||
+        if (this.visible) {
+          if (evt.keyCode == evt.DOM_VK_ESCAPE ||
             evt.keyCode == evt.DOM_VK_HOME) {
             this.hide();
             evt.stopPropagation();
+          }
         }
+        break;
     }
   }
 };
