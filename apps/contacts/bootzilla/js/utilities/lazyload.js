@@ -78,10 +78,6 @@ const lazyload = (function(doc) {
     }
   }
 
-  var addListener = function addListener(fn) {
-    callbacks.push(callback);
-  }
-
   return {
     'init': init,
     'reload': reload
