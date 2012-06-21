@@ -11,24 +11,13 @@ var SleepMenu = {
   isVolumeEnabled: true,
 
   // Reserve settings before turn on flight mode
-  reservedSetting: {
+  reservedSettings: {
     data: true,
     wifi: true,
     bluetooth: true,
 
     // reserve for geolocation
     geolocation: false
-  },
-
-  handler: function sm_handler() {
-    var self = this;
-
-    SettingsListener.observe('ril.data.disabled', true,
-      function radioSettingsChanged(value) {
-        if (self.isFlightModeEnabled) {
-          self.reservedSettings.data = !value;
-        }
-    });
   },
 
   restoreSettings: function sm_restoreSettings() {
@@ -69,7 +58,6 @@ var SleepMenu = {
   },
 
   init: function sm_init() {
-
     window.addEventListener('volumechange', this);
     window.addEventListener('keydown', this, true);
     window.addEventListener('keyup', this, true);
@@ -119,7 +107,7 @@ var SleepMenu = {
     };
 
     if (this.isFlightModeEnabled) {
-      items.push(options.ground);
+      items.push(options.airplaneOff);
     } else {
       items.push(options.airplane);
     }
@@ -127,7 +115,7 @@ var SleepMenu = {
     if (this.isVolumeEnabled) {
       items.push(options.silent);
     } else {
-      items.push(options.normal);
+      items.push(options.silentOff);
     }
 
     items.push(options.restart);
@@ -182,7 +170,10 @@ var SleepMenu = {
   },
 
   show: function sm_show() {
-    ListMenu.request(this.generateItems(), this.handler);
+    var self = this;
+    ListMenu.request(this.generateItems(), function(action) {
+      self.handler(action);
+    });
   },
 
   handler: function sm_handler(action) {
@@ -216,12 +207,12 @@ var SleepMenu = {
 
           var bluetooth = navigator.mozBluetooth;
           if (bluetooth) {
-            bluetooth.setEnabled(this.isFlightModeEnabled);
+            bluetooth.setEnabled(!this.isFlightModeEnabled);
           }
 
           var wifiManager = navigator.mozWifiManager;
           if (wifiManager) {
-            wifiManager.setEnabled(this.isFlightModeEnabled);
+            wifiManager.setEnabled(!this.isFlightModeEnabled);
           }
         }
         break;
@@ -234,6 +225,7 @@ var SleepMenu = {
             'phone.ring.incoming': false,
             'phone.vibration.incoming': true
           });
+          this.isVolumeEnabled = false;
         }
         break;
 
@@ -245,6 +237,7 @@ var SleepMenu = {
             'phone.ring.incoming': true,
             'phone.vibration.incoming': false
           });
+          this.isVolumeEnabled = true;
         }
         break;
 

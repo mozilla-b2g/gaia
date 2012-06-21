@@ -26,14 +26,14 @@ var ListMenu = {
   // Pass an array of list items and handler for clicking on the items
   request: function lm_request(list_items, handler) {
     this.container.innerHTML = '';
-    list_items.forEach(function render_item(element) {
-      var item = document.createElement('div');
-      item.dataset.value = element.value;
-      item.textContent = element.label;
-      if (element.icon) {
-        item.style.backgroundImage = 'url(' + element.icon + ')';
+    list_items.forEach(function render_item(item) {
+      var item_div = document.createElement('div');
+      item_div.dataset.value = item.value;
+      item_div.textContent = item.label;
+      if (item.icon) {
+        item_div.style.backgroundImage = 'url(' + item.icon + ')';
       }
-      this.container.appendChild(item);
+      this.container.appendChild(item_div);
 
       if (handler) {
         this.onreturn = handler;
