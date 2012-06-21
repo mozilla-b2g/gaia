@@ -214,6 +214,10 @@ if (!contacts.app) {
           myContact[name][index] = value;
         }
       }
+      var givenName = '' || myContact.givenName[0];
+      var familyName = '' || myContact.familyName[0];
+      myContact.name = givenName + ' ' + familyName;
+
       doSaveContact(myContact, function(contact) {
         cList.addContact(contact.id);
         navigation.back();
