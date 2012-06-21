@@ -7,8 +7,6 @@
   }
 
   /* === Setup === */
-  SettingsListener.init();
-
   var ringtonePlayer = new Audio();
   ringtonePlayer.loop = true;
 
