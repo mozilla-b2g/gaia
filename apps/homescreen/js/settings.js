@@ -1,58 +1,26 @@
 
 'use strict';
 
-var SettingsListener = {
-  _callbacks: {},
+window.addEventListener('DOMContentLoaded', function wallpaper() {
+  var settings = navigator.mozSettings;
+  if (!settings)
+    return;
 
-  init: function sl_init() {
-    if ('mozSettings' in navigator && navigator.mozSettings)
-      navigator.mozSettings.onsettingchange = this.onchange.bind(this);
-  },
-
-  onchange: function sl_onchange(evt) {
-    var callback = this._callbacks[evt.settingName];
-    if (callback) {
-      callback(evt.settingValue);
-    }
-  },
-
-  observe: function sl_observe(name, defaultValue, callback) {
-    var settings = window.navigator.mozSettings;
-    if (!settings) {
-      window.setTimeout(function() { callback(defaultValue); });
-      return;
-    }
-
-    var req = settings.getLock().get(name);
-    req.addEventListener('success', (function onsuccess() {
-      callback(typeof(req.result[name]) != 'undefined' ?
-        req.result[name] : defaultValue);
-    }));
-
-    this._callbacks[name] = callback;
-  },
-
-  getValue: function sl_getValue(name, callback) {
-    var settings = window.navigator.mozSettings;
-    if (!settings) {
-      window.setTimeout(function() { callback(''); });
-      return;
-    }
-
-    var req = settings.getLock().get(name);
-    req.addEventListener('success', (function onsuccess() {
-      callback(req.result[name]);
-    }));
-  }
-};
-
-SettingsListener.init();
-
-/* === Wallpapers === */
-
-SettingsListener.observe('homescreen.wallpaper', 'default.png',
-  function(value) {
+  var settingName = 'homescreen.wallpaper';
+  function setWallpaper(value) {
     document.getElementById('icongrid').style.backgroundImage =
-      'url(resources/images/backgrounds/' + value + ')';
+        'url(resources/images/backgrounds/' + (value || 'default.png') + ')';
   }
-);
+
+  // initial value
+  var request = settings.getLock().get(settingName);
+  request.onsuccess = function onsuccess() {
+    setWallpaper(request.result[settingName]);
+  };
+
+  // setting observer
+  settings.addObserver(settingName, function onchange(event) {
+    setWallpaper(event.settingValue);
+  });
+});
+
