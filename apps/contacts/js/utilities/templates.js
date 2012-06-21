@@ -39,9 +39,9 @@ if (!owd.templates) {
       /**
        *  Returns a target HTMLElement from a selector or HTMLElement itself
        *
-       *  @element HTMLElement or Selector
+       *  @param {HTMLElement or Selector} element target element.
        *
-       *  @return HTMLElement.
+       *  @return {HTMLElement} HTMLElement according to the selector or itself.
        *
        *
        */
@@ -58,10 +58,10 @@ if (!owd.templates) {
       *    Given a target HTML element which contains a template set
       *    returns the template that will have to be applied over the data
       *
-      *    @target HTMLElement which contains the template
-      *    @data to be used on the template
+      *    @param {HTMLElement} target which contains the template.
+      *    @param {Object} data to be used on the template.
       *
-      *    @return HTMLElement with the template.
+      *    @return {HTMLElement} HTMLElement with the template.
       *
       */
       function getTemplate(target, data) {
@@ -129,9 +129,9 @@ if (!owd.templates) {
       /**
        *   Returns a function used to replace data on a template
        *
-       *   @param data the data to be used on the template.
+       *   @param {Object} data the data to be used on the template.
        *
-       *   @return function.
+       *   @return {function} to be used.
        *
        */
       function templateReplace(data) {
@@ -163,14 +163,15 @@ if (!owd.templates) {
        *  passed as parameter
        *  The new element will be appended as a child
        *
-       *  @param ele container lement that contains the template and which will
-       *   contain the new instance. Can be an HTMLElement or a CSS selector.
+       *  @param {HTMLElement} ele container lement that contains the template
+       *  and which will contain the new instance. Can be an HTMLElement
+       *  or a CSS selector.
        *
-       *  @param data object or array with the data displayed by the template.
+       *  @param {object or array} data with the data displayed by the template.
        *
-       *  @param mode oneOf ('A','P').
+       *  @param {String} mode oneOf ('A','P').
        *
-       *  @return the HTMLElement (or last element if data is an array).
+       *  @return {HTMLElement} (or last element if data is an array).
        *
        *
        */
@@ -230,12 +231,13 @@ if (!owd.templates) {
        *  as parameter
        *  The new element will be appended as a child
        *
-       *  @param ele container element that contains the template and which will
-       *   contain the new instance. Can be an HTMLElement or a CSS selector.
+       *  @param {HTMLElement or String} ele container element that
+       *  contains the template and which will contain the new instance.
+       *  Can be an HTMLElement or a CSS selector.
        *
-       *  @param data object or array with the data displayed by the template.
+       *  @param {object or array} data with the data displayed by the template.
        *
-       *  @return HTML element (or last element if data is an array).
+       *  @return {HTMLelement} (or last element if data is an array).
        *
        *
        */
@@ -251,13 +253,14 @@ if (!owd.templates) {
        *
        *   The template is assumed to be a child of the element passed
        *   as parameter
-       *   @param ele container element that contains the template and
-       *   which will contain the new instance.
+       *
+       *   @param {HTMLElement or String} ele container element that
+       *   contains the template and which will contain the new instance.
        *   Can be an HTMLElement or a CSS selector.
        *
-       *   @param data object or array with the data displayed by the template.
+       *   @param {Object or Array} data with the data displayed.
        *
-       *   @return HTMLElement added.
+       *   @return {HTMLElement} added.
        *
        *
        */
@@ -271,10 +274,10 @@ if (!owd.templates) {
       /**
        *  Renders the content specified by a template with object data
        *
-       *  @param eleTemplate the template HTMLElement itself.
-       *  @param data the data to be used.
+       *  @param {HTMLElement} eleTemplate the template itself.
+       *  @param {Object} data the data to be used.
        *
-       *  @return a new HTMLElement according to the template and with the data.
+       *  @return {HTMLElement} according to the template and with the data.
        *
        *
        */
@@ -316,7 +319,7 @@ if (!owd.templates) {
       /**
        *  Clears a container element
        *
-       *  @param element (selector or HTML element).
+       *  @param {HTMLElement or String} element (selector or HTML element).
        *
        *
        */
