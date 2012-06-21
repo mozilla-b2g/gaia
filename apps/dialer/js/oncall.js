@@ -30,7 +30,8 @@ var CallScreen = {
 
   get contactPrimaryInfo() {
     delete this.contactPrimaryInfo;
-    return this.contactPrimaryInfo = document.getElementById('cs-h-info-primary');
+    return this.contactPrimaryInfo =
+      document.getElementById('cs-h-info-primary');
   },
 
   get callDuration() {
@@ -86,9 +87,8 @@ var CallScreen = {
   },
 
   toggleKeypad: function cm_toggleKeypad() {
-    KeypadManager.render("keyPadVisibleDuringCall");
+    KeypadManager.render('keyPadVisibleDuringCall');
     this.update(KeypadManager._phoneNumber);
-    // KeypadManager.kbKeypad.classList.add("no-toolbar");
     this.views.classList.toggle('show');
   },
 
@@ -324,7 +324,7 @@ window.addEventListener('load', function callSetup(evt) {
   KeypadManager.init();
   // In the case of the oncall.html page (during the call),
   //  the lower 3 button toolbar is not shown.
-  KeypadManager.phoneNumberViewContainer.classList.add("no-toolbar"); 
+  KeypadManager.phoneNumberViewContainer.classList.add('no-toolbar');
   CallScreen.init();
   OnCallHandler.setup();
 });

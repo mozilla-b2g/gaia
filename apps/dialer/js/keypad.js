@@ -53,7 +53,8 @@ var KeypadManager = {
 
   get phoneNumberViewContainer() {
     delete this.phoneNumberViewContainer;
-    return this.phoneNumberViewContainer = document.getElementById('phone-number-view-container');
+    return this.phoneNumberViewContainer =
+      document.getElementById('phone-number-view-container');
 
   },
 
@@ -64,12 +65,14 @@ var KeypadManager = {
 
   get kbCallBarAddContact() {
     delete this.kbCallBarAddContact;
-    return this.kbCallBarAddContact = document.getElementById('kb-callbar-add-contact');
+    return this.kbCallBarAddContact =
+      document.getElementById('kb-callbar-add-contact');
   },
 
   get kbCallBarCallAction() {
     delete this.kbCallBarCallAction;
-    return this.kbCallBarCallAction = document.getElementById('kb-callbar-call-action');
+    return this.kbCallBarCallAction =
+      document.getElementById('kb-callbar-call-action');
   },
 
   get kbDelete() {
@@ -79,7 +82,8 @@ var KeypadManager = {
 
   get kbCallBarBackAction() {
     delete this.kbCallBarBackAction;
-    return this.kbCallBarBackAction = document.getElementById('kb-callbar-back-action');
+    return this.kbCallBarBackAction =
+      document.getElementById('kb-callbar-back-action');
   },
 
   init: function kh_init() {
@@ -108,7 +112,7 @@ var KeypadManager = {
     TonePlayer.init();
 
     //Update UI properly
-    this.render("default");
+    this.render('default');
 
   },
 
@@ -128,14 +132,14 @@ var KeypadManager = {
 
   render: function hk_render(layout_type) {
     switch (layout_type) {
-      case "keyPadVisibleDuringCall":
+      case 'keyPadVisibleDuringCall':
         KeypadManager.kbCallBarCallAction.classList.add('hide');
         KeypadManager.kbCallBarAddContact.classList.add('hide');
         KeypadManager.kbDelete.classList.add('hide');
         KeypadManager.kbCallBarBackAction.classList
           .remove('hide');
         break;
-      case "default":
+      case 'default':
         // Default layout.
         KeypadManager.kbCallBarCallAction.classList
           .remove('hide');
