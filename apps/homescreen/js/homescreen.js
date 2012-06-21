@@ -23,7 +23,7 @@ const Homescreen = (function() {
   // Click on the Home/ESC button to reset the mode of the grid
   window.addEventListener('keydown', function onkeydown(event) {
     if (event.keyCode === event.DOM_VK_HOME ||
-        event.keyCode == event.DOM_VK_ESCAPE) {
+        event.keyCode === event.DOM_VK_ESCAPE) {
       GridManager.setMode('normal');
       Permissions.hide();
     }

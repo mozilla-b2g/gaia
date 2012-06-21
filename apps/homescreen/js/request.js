@@ -101,9 +101,9 @@ var Permissions = (function() {
           var request = pending.shift();
           window.setTimeout(function() {
             Permissions.show(request.header,
-                            request.message,
-                            request.yescallback,
-                            request.nocallback);
+                             request.message,
+                             request.yescallback,
+                             request.nocallback);
           });
         }
       }
