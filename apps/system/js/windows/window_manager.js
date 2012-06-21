@@ -352,6 +352,8 @@ var WindowManager = (function() {
     frame.id = 'appframe' + nextAppId++;
     frame.className = 'appWindow';
     frame.setAttribute('mozallowfullscreen', 'true');
+    frame.dataset.frameType = 'window';
+    frame.dataset.frameOrigin = origin;
 
     if (manifest.hackNetworkBound) {
       var style = 'font-family: OpenSans,sans-serif;' +
@@ -532,6 +534,16 @@ var WindowManager = (function() {
       appendFrame(origin, e.detail.url,
                   app.manifest.name, app.manifest, app.manifestURL);
     }
+  });
+
+  // If the application tried to close themselves by calling window.close()
+  // we will handle that here
+  window.addEventListener('mozbrowserclose', function(e) {
+    if (!'frameType' in e.target.dataset ||
+        e.target.dataset.frameType !== 'window')
+      return;
+
+    kill(e.target.dataset.frameOrigin);
   });
 
   // Stop running the app with the specified origin

@@ -104,7 +104,6 @@ html * {
   top: 0;
   height: 100%;
   width: 100%;
-  background: white;
   border-radius: 10px;
   z-index: -1;
   -moz-transform: translateY(-100%);
@@ -309,7 +308,8 @@ button[disabled] .i-keypad{
   width:3.6rem;
   height:1.3rem;
 }
- 
+
+/*
 #keyboard-container {
   display: none;
 }
@@ -325,6 +325,7 @@ button[disabled] .i-keypad{
 #keyboard-container.overlay .kb-keypad-key {
   height: -moz-calc(100% / 4);
 }
+ */
 
 .i-start-call{
   margin:1rem auto;

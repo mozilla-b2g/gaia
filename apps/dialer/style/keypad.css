@@ -16,13 +16,17 @@
 
 #phone-number-view-container {
   width:100%;
-  height:-moz-calc(100% - (34.5rem + 6.5rem));
+  height:-moz-calc(100% - 38rem);
   background: #1e2328;
   width:100%;
   text-align:center;
   display: table;
   table-layout: fixed;
-  border-spacing:1.5rem;
+  border-spacing: 1.5rem 0rem;
+}
+
+#phone-number-view-container.no-toolbar {
+  height:-moz-calc(100% - 34rem);
 }
 
 #phone-number-view{
@@ -53,13 +57,13 @@
   
 #keyboard-container {
   width:100%;
-  height: -moz-calc(34.5rem + 6.5rem);
+  height: 38rem;
 }
 
 #kb-keypad{
   background: #2d3642; 
   background: -moz-linear-gradient(top, #2d3642 0%, #0f1214 100%); 
-  height:-moz-calc(100% - (6.5rem + 6.5rem));
+  height:-moz-calc(100% - 10rem);
   width:100%;
   display:table;
   table-layout:fixed;
@@ -114,28 +118,31 @@
 
 #kb-callbar{
   background:black;
-  height:6.5rem;
+  height:6rem;
   width:100%;
   display:table;
   table-layout:fixed;
-  border-spacing: 1.5rem 1rem;
+  border-spacing: 1rem 1rem;
 }
 
 #kb-callbar-add-contact{
   display:table-cell;
-  width:7rem;
+  width:9rem;
   background: -moz-linear-gradient(top, #242b36 0%, #19191a 100%); 
   border:.1rem solid #242B36;
   border-radius:.2rem;
   opacity:0.5;
+  vertical-align: middle;
 }
 
 #kb-callbar-call-action{
   display:table-cell;
+  width: 100%;
   background: #84c82c; 
   border:0;
   border-radius:.2rem;
-  background: -moz-linear-gradient(top, #84c82c 0%, #5f9b0a 100%); 
+  background: -moz-linear-gradient(top, #84c82c 0%, #5f9b0a 100%);
+  vertical-align: middle;
 }
 
 #kb-callbar-call-action:active{
@@ -147,7 +154,8 @@
   background: #84c82c; 
   border:0;
   border-radius:.2rem;
-  background: -moz-linear-gradient(top, #242b36 0%, #19191a 100%); 
+  background: -moz-linear-gradient(top, #242b36 0%, #19191a 100%);
+  vertical-align: middle;
 }
 
 #kb-callbar-back-action:active{
@@ -155,28 +163,32 @@
 }
 
 .i-add-contact{
-  margin:1rem auto;
+  margin: auto;
   width: 2.6rem;
   height: 2.5rem;
-  background: url("images/dialer_icon_addcontact.png");
+  background-image: url("images/dialer_icon_addcontact.png");
+  background-repeat: no-repeat;
   background-size: 2.6rem 2.5rem;
+  background-position: center;
 }
 
 .i-call{
-  margin:1rem auto;
+  margin: auto;
+  width: 2.6rem;
+  height: 2.5rem;
   background-image:url("images/dialer_icon_call.png");
-  width:2.6rem;
-  height:2.5rem;
-  background-repeat:no-repeat;
+  background-repeat: no-repeat;
   background-size: 2.6rem 2.5rem;
+  background-position: center;
 }
 
 .i-back{
-  margin:1rem auto;
+  margin: auto;
+  width: 2.6rem;
+  height: 2.5rem;
   background: red;
-  width:2.6rem;
-  height:2.5rem;
-  background-repeat:no-repeat;
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 .phone-number-font{
@@ -192,20 +204,19 @@
 
 #kb-toolbar {
   background:black;
-  height:6.5rem;
+  height:4rem;
   width:100%;
   display:table;
   table-layout:fixed;
-  border-spacing: 1.5rem 1rem;
 }
 
 #kb-toolbar-call-log, #kb-toolbar-contact-list, #kb-toolbar-keypad {
   display:table-cell;
-  width:7rem;
   background: -moz-linear-gradient(top, #242b36 0%, #19191a 100%); 
   border:.1rem solid #242B36;
   border-radius:.2rem;
   opacity:0.5;
+  vertical-align: middle;
 }
 
 #kb-toolbar-call-log.selected, #kb-toolbar-contact-list.selected, #kb-toolbar-keypad.selected {
@@ -214,25 +225,31 @@
 }
 
 .i-call-log {
-  margin:1rem auto;
+  margin: auto;
   width: 2.6rem;
   height: 2.5rem;
-  background: url("images/dialer_icon_clock.png");
+  background-image:url("images/dialer_icon_clock.png");
+  background-repeat: no-repeat;
   background-size: 2.6rem 2.5rem;
+  background-position: center;
 }
 
 .i-contact-list {
-  margin:1rem auto;
+  margin: auto;
   width: 2.6rem;
   height: 2.5rem;
-  background: url("images/dialer_icon_contact.png");
+  background-image: url("images/dialer_icon_contact.png");
+  background-repeat: no-repeat;
   background-size: 2.6rem 2.5rem;
+  background-position: center;
 }
 
 .i-keypad {
-  margin:1rem auto;
+  margin: auto;
   width: 2.6rem;
   height: 2.5rem;
-  background: url("images/dialer_icon_keypad.png");
+  background-image: url("images/dialer_icon_keypad.png");
+  background-repeat: no-repeat;
   background-size: 2.6rem 2.5rem;
+  background-position: center;
 }

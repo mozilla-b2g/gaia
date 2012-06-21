@@ -28,6 +28,33 @@ var CallScreen = {
     return this.keypadButton = document.getElementById('keypad-visibility');
   },
 
+  get contactPrimaryInfo() {
+    delete this.contactPrimaryInfo;
+    return this.contactPrimaryInfo = document.getElementById('cs-h-info-primary');
+  },
+
+  get callDuration() {
+    delete this.callDuration;
+    return this.callDuration = document.getElementById('call-duration');
+
+  },
+
+  get callToolbar() {
+    delete this.callToolbar;
+    return this.callToolbar = document.getElementById('co-advanced');
+
+  },
+
+  get screen() {
+    delete this.screen;
+    return this.screen = document.getElementById('call-screen');
+  },
+
+  get views() {
+    delete this.views;
+    return this.views = document.getElementById('views');
+  },
+
   init: function cm_init() {
     this.muteButton.addEventListener('mouseup', this.toggleMute.bind(this));
     this.keypadButton.addEventListener('mouseup', this.toggleKeypad.bind(this));
@@ -40,12 +67,12 @@ var CallScreen = {
   },
 
   update: function cm_update(phone_number) {
-    document.getElementById('cs-h-info-primary').innerHTML = phone_number;
-    KeypadManager.phoneNumber = phone_number;
-    document.getElementById('phone-number-view').value =
-      KeypadManager.phoneNumber;
-    KeypadManager.util.moveCaretToEnd(
-      document.getElementById('phone-number-view'));
+    this.contactPrimaryInfo.innerHTML = phone_number;
+    KeypadManager._phoneNumber = phone_number;
+    KeypadManager.phoneNumberView.value =
+      KeypadManager._phoneNumber;
+    KeypadManager.moveCaretToEnd(
+      KeypadManager.phoneNumberView);
   },
 
   toggleMute: function cm_toggleMute() {
@@ -59,14 +86,16 @@ var CallScreen = {
   },
 
   toggleKeypad: function cm_toggleKeypad() {
-    KeypadManager.render(1);
-    this.hide();
+    KeypadManager.render("keyPadVisibleDuringCall");
+    this.update(KeypadManager._phoneNumber);
+    // KeypadManager.kbKeypad.classList.add("no-toolbar");
+    this.views.classList.toggle('show');
   },
 
   startTimer: function cm_startTimer() {
     this._ticker = setInterval(function cm_updateTimer(self, startTime) {
       var elapsed = new Date(Date.now() - startTime);
-      document.getElementById('call-duration').innerHTML =
+      CallScreen.callDuration.innerHTML =
         elapsed.toLocaleFormat('%M:%S');
     }, 1000, this, Date.now());
   },
@@ -79,15 +108,15 @@ var CallScreen = {
   render: function cm_render(layout_type) {
     switch (layout_type) {
       case 'outgoing':
-        document.getElementById('call-duration').innerHTML = '...';
+        this.callDuration.innerHTML = '...';
         this.answerButton.classList.add('hide');
-        document.getElementById('co-advanced').classList.remove('transparent');
+        this.callToolbar.classList.remove('transparent');
         this.keypadButton.setAttribute('disabled', 'disabled');
         break;
       case 'incoming':
         this.answerButton.classList.remove('hide');
-        document.getElementById('co-advanced').classList.add('transparent');
-        document.getElementById('call-duration').innerHTML = '';
+        this.callToolbar.classList.add('transparent');
+        this.callDuration.innerHTML = '';
         break;
       case 'connected':
         // When the call is connected the speaker state is reset
@@ -97,23 +126,15 @@ var CallScreen = {
         this.answerButton.classList.add('hide');
 
         if (!this.answerButton.classList.contains('transparent')) {
-          document.getElementById('co-advanced').classList.remove(
+          this.callToolbar.classList.remove(
             'transparent');
         }
 
         this.keypadButton.removeAttribute('disabled');
-        document.getElementById('call-duration').innerHTML = '00:00';
+        this.callDuration.innerHTML = '00:00';
 
         break;
     }
-  },
-
-  show: function cm_show() {
-    document.getElementById('call-screen').classList.add('call-screen-show');
-  },
-  hide: function cm_hide() {
-    this.update(KeypadManager.phoneNumber);
-    document.getElementById('views').classList.toggle('show');
   },
 
   _syncSpeakerEnabled: function och_syncSpeakerEnabled() {
@@ -237,14 +258,9 @@ var OnCallHandler = {
     this.disconnected();
   },
 
-  get screen() {
-    delete this.screen;
-    return this.screen = document.getElementById('call-screen');
-  },
-
   toggleScreen: function ch_toggleScreen() {
-    this.screen.classList.remove('animate');
-    this.screen.classList.toggle('prerender');
+    CallScreen.screen.classList.remove('animate');
+    CallScreen.screen.classList.toggle('prerender');
 
     var displayed = OnCallHandler._displayed;
     // hardening against the unavailability of MozAfterPaint
@@ -263,12 +279,12 @@ var OnCallHandler = {
       finished = true;
 
       window.setTimeout(function cs_transitionNextLoop() {
-        self.screen.classList.add('animate');
-        self.screen.classList.toggle('displayed');
-        self.screen.classList.toggle('prerender');
+        CallScreen.screen.classList.add('animate');
+        CallScreen.screen.classList.toggle('displayed');
+        CallScreen.screen.classList.toggle('prerender');
 
-        self.screen.addEventListener('transitionend', function trWait() {
-          self.screen.removeEventListener('transitionend', trWait);
+        CallScreen.screen.addEventListener('transitionend', function trWait() {
+          CallScreen.screen.removeEventListener('transitionend', trWait);
 
           // We did animate the call screen off the viewport
           // now closing the window.
@@ -306,6 +322,9 @@ var OnCallHandler = {
 window.addEventListener('load', function callSetup(evt) {
   window.removeEventListener('load', callSetup);
   KeypadManager.init();
+  // In the case of the oncall.html page (during the call),
+  //  the lower 3 button toolbar is not shown.
+  KeypadManager.phoneNumberViewContainer.classList.add("no-toolbar"); 
   CallScreen.init();
   OnCallHandler.setup();
 });

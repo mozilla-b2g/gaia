@@ -26,7 +26,7 @@
    *    //in 10ms handleBatch will receive both items in an array.
    *
    *
-   * You can use add a 'verify' option to filter
+   * You can set a 'verify' option to filter
    * incoming items.
    *
    *
@@ -96,7 +96,7 @@
      *
      *
      *    //now when the batch fires
-     *    //the handler you will receive the groups object.
+     *    //the handler will receive the groups object.
      *
      * @param {String} group group of actions.
      * @param {String} action name of action.

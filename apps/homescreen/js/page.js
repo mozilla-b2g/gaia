@@ -18,13 +18,13 @@ var Icon = function Icon(app) {
 };
 
 Icon.prototype = {
- /*
-  * Renders the icon into the page
-  *
-  * @param{Object} where the icon should be rendered
-  *
-  * @param{Object} where the draggable element should be appened
-  */
+  /*
+   * Renders the icon into the page
+   *
+   * @param{Object} where the icon should be rendered
+   *
+   * @param{Object} where the draggable element should be appened
+   */
   render: function icon_render(target, page) {
     /*
      * <li class="icon" dataset-origin="zzz">
@@ -51,7 +51,7 @@ Icon.prototype = {
 
     img.onerror = function imgError() {
       img.src =
-        'http://' + document.location.host + '/resources/images/Unknown.png';
+          'http://' + document.location.host + '/resources/images/Unknown.png';
     }
 
     // Label
@@ -68,30 +68,32 @@ Icon.prototype = {
 
     container.appendChild(icon);
 
-    // Menu button to delete the app
-    var options = document.createElement('span');
-    options.className = 'options';
-    options.dataset.origin = this.descriptor.origin;
-    container.appendChild(options);
+    if (!Applications.isCore(this.descriptor.origin)) {
+      // Menu button to delete the app
+      var options = document.createElement('span');
+      options.className = 'options';
+      options.dataset.origin = this.descriptor.origin;
+      container.appendChild(options);
+    }
 
     target.appendChild(container);
   },
 
- /*
-  * Translates the label of the icon
-  */
+  /*
+   * Translates the label of the icon
+   */
   translate: function icon_translate() {
     var desc = this.descriptor;
     this.label.textContent = desc.name = Applications.getName(desc.origin);
   },
 
- /*
-  * This method is invoked when the drag gesture starts
-  *
-  * @param{int} x-coordinate
-  *
-  * @param{int} y-coordinate
-  */
+  /*
+   * This method is invoked when the drag gesture starts
+   *
+   * @param{int} x-coordinate
+   *
+   * @param{int} y-coordinate
+   */
   onDragStart: function icon_onDragStart(x, y) {
     this.initX = x;
     this.initY = y;
@@ -110,21 +112,21 @@ Icon.prototype = {
     this.dragabbleSection.appendChild(draggableElem);
   },
 
- /*
-  * This method is invoked when the draggable elem is moving
-  *
-  * @param{int} x-coordinate
-  *
-  * @param{int} y-coordinate
-  */
+  /*
+   * This method is invoked when the draggable elem is moving
+   *
+   * @param{int} x-coordinate
+   *
+   * @param{int} y-coordinate
+   */
   onDragMove: function icon_onDragMove(x, y) {
     this.draggableElem.style.MozTransform =
-      'translate(' + (x - this.initX) + 'px,' + (y - this.initY) + 'px)';
+        'translate(' + (x - this.initX) + 'px,' + (y - this.initY) + 'px)';
   },
 
- /*
-  * This method is invoked when the drag gesture finishes
-  */
+  /*
+   * This method is invoked when the drag gesture finishes
+   */
   onDragStop: function icon_onDragStop() {
     delete this.container.dataset.dragging;
     this.dragabbleSection.removeChild(this.draggableElem);
@@ -146,13 +148,13 @@ Page.prototype = {
     center: 'center'
   },
 
- /*
-  * Renders a page for a list of apps
-  *
-  * @param{Array} list of apps
-  *
-  * @param{Object} target DOM element container
-  */
+  /*
+   * Renders a page for a list of apps
+   *
+   * @param{Array} list of apps
+   *
+   * @param{Object} target DOM element container
+   */
   render: function(apps, target) {
     this.container = target;
     var len = apps.length;
@@ -174,43 +176,43 @@ Page.prototype = {
     target.appendChild(this.olist);
   },
 
- /*
-  * Sets the duration of the translations
-  *
-  * @param{Object} style object for a DOM element
-  *
-  * @param{int} the duration in milliseconds
-  */
+  /*
+   * Sets the duration of the translations
+   *
+   * @param{Object} style object for a DOM element
+   *
+   * @param{int} the duration in milliseconds
+   */
   setTranstionDuration: function(style, duration) {
     style.MozTransition = duration ? ('all ' + duration + 's ease') : '';
   },
 
- /*
-  * Duration of the transition defined in seconds
-  */
+  /*
+   * Duration of the transition defined in seconds
+   */
   transitionDuration: 0.2,
 
- /*
-  * Moves the page to the right of the screen
-  */
-  moveToRight: function() {
+  /*
+   * Moves the page to the end of the screen
+   */
+  moveToEnd: function() {
     var style = this.container.style;
-    style.MozTransform = 'translateX(100%)';
+    style.MozTransform = GridManager.dirCtrl.translateNext;
     this.setTranstionDuration(style, this.transitionDuration);
   },
 
- /*
-  * Moves the page to the left of the screen
-  */
-  moveToLeft: function() {
+  /*
+   * Moves the page to the beginning of the screen
+   */
+  moveToBegin: function() {
     var style = this.container.style;
-    style.MozTransform = 'translateX(-100%)';
+    style.MozTransform = GridManager.dirCtrl.translatePrev;
     this.setTranstionDuration(style, this.transitionDuration);
   },
 
- /*
-  * Moves the page to the center of the screen
-  */
+  /*
+   * Moves the page to the center of the screen
+   */
   moveToCenter: function(onTransitionEnd) {
     var cont = this.container;
     var style = cont.style;
@@ -224,36 +226,36 @@ Page.prototype = {
     }
   },
 
- /*
-  * Applies a translation to the page
-  *
-  * @param{String} the app origin
-  */
+  /*
+   * Applies a translation to the page
+   *
+   * @param{String} the app origin
+   */
   moveTo: function(translate) {
     var style = this.container.style;
     style.MozTransform = 'translateX(-moz-calc(' + translate + '))';
     this.setTranstionDuration(style, 0);
   },
 
- /*
-  * Returns an icon given an origin
-  *
-  * @param{String} the app origin
-  */
+  /*
+   * Returns an icon given an origin
+   *
+   * @param{String} the app origin
+   */
   getIcon: function(origin) {
     return this.icons[origin];
   },
 
- /*
-  * Changes position between two icons
-  *
-  * @param{String} origin icon
-  *
-  * @param{String} target icon
-  *
-  * @param{int} negative values indicate going upwards and positive
-  *             values indicate going backwards
-  */
+  /*
+   * Changes position between two icons
+   *
+   * @param{String} origin icon
+   *
+   * @param{String} target icon
+   *
+   * @param{int} negative values indicate going upwards and positive
+   *             values indicate going backwards
+   */
   drop: function(origin, target, dir) {
     var icons = this.icons;
     var onode = icons[origin].container;
@@ -265,11 +267,11 @@ Page.prototype = {
     this.olist.insertBefore(onode, tnode);
   },
 
- /*
-  * Implements the tap behaviour
-  *
-  * @param{Object} DOM element
-  */
+  /*
+   * Implements the tap behaviour
+   *
+   * @param{Object} DOM element
+   */
   tap: function(elem) {
     if (GridManager.isEditMode()) {
       if (elem.className === 'options') {
@@ -280,11 +282,11 @@ Page.prototype = {
     }
   },
 
- /*
-  * Adds an icon to the begining of the page
-  *
-  * @param{Object} icon object
-  */
+  /*
+   * Adds an icon to the begining of the page
+   *
+   * @param{Object} icon object
+   */
   prependIcon: function(icon) {
     var olist = this.olist;
     if (olist.childNodes.length > 0) {
@@ -295,11 +297,11 @@ Page.prototype = {
     this.icons[icon.descriptor.origin] = icon;
   },
 
- /*
-  * Moves an icon to the first position
-  *
-  * @param{Object} icon object
-  */
+  /*
+   * Moves an icon to the first position
+   *
+   * @param{Object} icon object
+   */
   moveIconToFirstChild: function(icon) {
     var olist = this.olist;
     if (olist.childNodes.length > 0) {
@@ -307,27 +309,27 @@ Page.prototype = {
     }
   },
 
- /*
-  * Removes the last icon of the page and returns it
-  */
+  /*
+   * Removes the last icon of the page and returns it
+   */
   popIcon: function() {
     var icon = this.getLastIcon();
     this.remove(icon);
     return icon;
   },
 
- /*
-  * Returns the last icon of the page
-  */
+  /*
+   * Returns the last icon of the page
+   */
   getLastIcon: function() {
     return this.icons[this.olist.lastChild.dataset.origin];
   },
 
- /*
-  * Appends an icon to the end of the page
-  *
-  * @param{Object} moz app or icon object
-  */
+  /*
+   * Appends an icon to the end of the page
+   *
+   * @param{Object} moz app or icon object
+   */
   append: function(app) {
     if (app.type && app.type === 'ApplicationIcon') {
       this.olist.appendChild(app.container);
@@ -340,11 +342,11 @@ Page.prototype = {
     }
   },
 
- /*
-  * Removes an application or icon from the page
-  *
-  * @param{Object} moz app or icon object
-  */
+  /*
+   * Removes an application or icon from the page
+   *
+   * @param{Object} moz app or icon object
+   */
   remove: function(app) {
     var icon = app;
     if ('ApplicationIcon' !== app.type) {
@@ -355,24 +357,24 @@ Page.prototype = {
     delete this.icons[icon.descriptor.origin];
   },
 
- /*
-  * Destroys the component page
-  */
+  /*
+   * Destroys the component page
+   */
   destroy: function() {
     delete this.icons;
     this.container.parentNode.removeChild(this.container);
   },
 
- /*
-  * Returns the number of apps
-  */
+  /*
+   * Returns the number of apps
+   */
   getNumApps: function() {
     return this.olist.childNodes.length;
   },
 
- /*
-  * Translates the label of the icons
-  */
+  /*
+   * Translates the label of the icons
+   */
   translate: function(lang) {
     var icons = this.icons;
     for (var origin in icons) {
@@ -380,9 +382,9 @@ Page.prototype = {
     }
   },
 
- /*
-  * Returns the list of apps
-  */
+  /*
+   * Returns the list of apps
+   */
   getAppsList: function() {
     var nodes = this.olist.childNodes;
     return Array.prototype.map.call(nodes, function extractOrigin(node) {

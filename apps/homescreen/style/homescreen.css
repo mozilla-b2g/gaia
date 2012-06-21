@@ -125,3 +125,8 @@ button {
     font-size: 13.3px;
   }
 }
+
+html[dir=rtl] .apps ol > li {
+  float: right;
+}
+
