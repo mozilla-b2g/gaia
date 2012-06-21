@@ -30,6 +30,18 @@ if (!contacts.List) {
         for (var group in contacts) {
           iterateOverGroup(group, contacts[group]);
         }
+        lazyload.init('#groups-container', '#groups-container img',
+                      function load(images) {
+                        var len = images.length;
+                        for (var i = 0; i < len; i++) {
+                          var image = images[i];
+                          var src = image.dataset.src;
+                          if (src && src !== 'null') {
+                            console.log(src);
+                            image.src = src;
+                          }
+                        }
+                      });
       }, function() {
         console.log('ERROR Retrieving contacts');
       });
@@ -118,12 +130,14 @@ if (!contacts.List) {
           if (fName >= familyName) {
             newLi = owd.templates.render(liElems[0], contact);
             list.insertBefore(newLi, liElem);
+            lazyload.reload();
             break;
           }
         }
 
         if(!newLi) {
           owd.templates.append(list, contact);
+          lazyload.reload();
         }
 
         if (list.children.length === 2) {
@@ -153,6 +167,7 @@ if (!contacts.List) {
           // Only template
           hideGroup(group);
         }
+        lazyload.reload();
       }
     }
 
