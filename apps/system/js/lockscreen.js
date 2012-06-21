@@ -399,8 +399,7 @@ var LockScreen = {
     // XXX: respect clock format in Settings
     this.clock.textContent = d.toLocaleFormat('%R');
 
-    this.calDay.textContent = d.toLocaleFormat('%a');
-    this.calDate.textContent = d.getDate();
+    this.date.textContent = d.toLocaleFormat('%A %e %B');
 
     var self = this;
     window.setTimeout(function ls_clockTimeout() {
@@ -470,7 +469,7 @@ var LockScreen = {
 
   getAllElements: function ls_getAllElements() {
     // ID of elements to create references
-    var elements = ['mute', 'clock', 'cal-day', 'cal-date',
+    var elements = ['mute', 'clock', 'date',
         'notification', 'notification-icon', 'notification-title',
         'notification-detail', 'notification-time',
         'area-unlock', 'area-start', 'area-camera',

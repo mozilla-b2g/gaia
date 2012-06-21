@@ -7,7 +7,9 @@
   height: -moz-calc(100% - 20px);
   overflow: hidden;
 
-  background-color: #fff;
+  background: #000 url('./images/DSC_4861.jpg') 50% 50% no-repeat;
+  background-size: cover;
+
   -moz-user-select: none;
 
   -moz-transition: -moz-transform 0.3s ease;
@@ -42,106 +44,92 @@
   position: absolute;
   top: 0;
   left: 0;
-  height: 80px;
+  height: 100px;
   width: 100%;
-  border-bottom: 1px solid #919191;
   -moz-box-sizing: border-box;
-  -moz-transition: -moz-transform 0.5s ease;
+  padding: 12px 24px 12px 16px;
+  color: #fff;
+  text-shadow: 0 0 3px #333;
 }
 
 .uninit #lockscreen-header {
-  -moz-transform: translateY(-100%);
+  display: none;
 }
 
 #lockscreen-mute {
-  float: left;
-  width: 80px;
-  height: 80px;
+  float: right;
+  width: 40px;
+  height: 40px;
+  margin-top: 8px;
 
-  background: url('./images/mute.png') center center no-repeat;
+  text-align: center;
+  font-size: 12px;
+  border: 1px solid #fff;
+  border-radius: 10px;
+}
+
+/* XXX: need icon */
+#lockscreen-mute::before {
+  content: 'Mute Icon';
 }
 
 #lockscreen-clock {
-  float: right;
-  width: 160px;
-  height: 80px;
-  font: 60px 'Open Sans', sans-serif;
-  line-height: 80px;
-  color: #919191;
+  font: 50px 'Open Sans', sans-serif;
+  line-height: 54px;
 }
 
-#lockscreen-cal {
-  float: right;
-  width: -moz-calc(80px - 16px);
-  height: -moz-calc(80px - 16px);
-  -moz-box-sizing: border-box;
-
-  border: 1px solid #919191;
-  margin: 8px;
-}
-
-#lockscreen-cal-day {
-  display: block;
-  height: 16px;
-  width: 100%;
-  font: 12px 'Open Sans', sans-serif;
-  line-height: 16px;
-  text-align: center;
-  text-transform: uppercase;
-  color: #fff;
-  background-color: #919191;
-}
-
-#lockscreen-cal-date {
-  display: block;
-  height: 44px;
-  font: 36px 'Open Sans', sans-serif;
-  line-height: 44px;
-  text-align: center;
-  color: #919191;
+#lockscreen-date {
+  font: 16px 'Open Sans', sans-serif;
 }
 
 #lockscreen-notification {
   position: absolute;
-  top: 80px;
+  top: 96px;
   left: 0;
-  height: 80px;
+  height: 60px;
   width: 100%;
-  border-bottom: 1px solid #919191;
+  border-top: 1px solid #333;
+  border-bottom: 1px solid #000;
   -moz-box-sizing: border-box;
-  padding: 8px;
+  padding: 8px 26px;
   overflow: hidden;
+  background-color: rgba(0, 0, 0, 0.8);
 }
 
 #lockscreen-notification-icon {
   float: left;
   display: block;
-  width: 64px;
-  height: 64px;
+  width: 32px;
+  height: 32px;
   -moz-box-sizing: border-box;
-  margin-right: 8px;
+  margin-top: 2px;
+  margin-right: 12px;
 }
 
 #lockscreen-notification-title {
-  font: 24px 'Open Sans', sans-serif;
-  line-height: 32px;
-  color: #919191;
-  font-weight: bold;
+  font: 16px 'Open Sans', sans-serif;
+  line-height: 20px;
+  color: #ccc;
+  font-weight: 600;
+  overflow: hidden;
+  white-space: nowrap;
   text-overflow: ellipsis;
 }
 
 #lockscreen-notification-detail {
-  font: 20px 'Open Sans', sans-serif;
-  line-height: 32px;
-  color: #919191;
+  font: 14px 'Open Sans', sans-serif;
+  line-height: 20px;
+  color: #ccc;
+  overflow: hidden;
+  white-space: nowrap;
   text-overflow: ellipsis;
 }
 
 #lockscreen-notification-time {
   float: right;
   font: 16px 'Open Sans', sans-serif;
-  line-height: 32px;
-  color: #919191;
+  line-height: 20px;
+  color: #52b6cc;
 }
 
 .lockscreen-handle {
