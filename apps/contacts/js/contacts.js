@@ -206,7 +206,8 @@ if (!contacts.app) {
           myContact[name][index] = value;
         }
       }
-      doSaveContact(myContact, function() {
+      doSaveContact(myContact, function(contact) {
+        cList.addContact(contact.id);
         navigation.back();
       }, function errorCb() {
         console.error('Error saving contact');
@@ -218,7 +219,7 @@ if (!contacts.app) {
       var contact = new mozContact();
       contact.init(myContact);
       var request = navigator.mozContacts.save(contact);
-      request.onsuccess = successCb;
+      request.onsuccess = successCb(contact);
       request.onerror = errorCb;
     }
 
