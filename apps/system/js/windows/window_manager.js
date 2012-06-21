@@ -536,6 +536,16 @@ var WindowManager = (function() {
     }
   });
 
+  // If the application tried to close themselves by calling window.close()
+  // we will handle that here
+  window.addEventListener('mozbrowserclose', function(e) {
+    if (!'frameType' in e.target.dataset ||
+        e.target.dataset.frameType !== 'window')
+      return;
+
+    kill(e.target.dataset.frameOrigin);
+  });
+
   // Stop running the app with the specified origin
   function kill(origin) {
     if (!isRunning(origin))
