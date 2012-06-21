@@ -65,4 +65,5 @@
     border-radius: .6rem;
     top: 50%;
     margin-top: -4rem;
+    pointer-events: none;
 }
