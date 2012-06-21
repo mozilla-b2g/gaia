@@ -78,13 +78,22 @@ body.conversation .conversation-hide{
   display:none;
 }
 
-/*body.edit-mode .conversation-hide{
+body.edit-mode .conversation-hide{
   display:table-cell !important;
-}*/
+}
 
-/*body.edit-mode .hide-bottom{
+body.conversation-new-msg .contact-show{
+  display:block;
+}
+
+
+
+
+body.edit-mode .hide-bottom{
   display:none;
-}*/
+}
+
+
 
 
 
@@ -309,9 +318,9 @@ body.msg-search-mode #msg-conversations-list {
   margin-left:3rem;
   /*text-align: center;*/
   line-height: 6rem;
- color:#ffffff;
-    font-size: -webkit-calc(10 * 0.226rem);
-    font-size: -moz-calc(10 * 0.226rem);
+  color:#ffffff;
+  font-size: -webkit-calc(10 * 0.226rem);
+  font-size: -moz-calc(10 * 0.226rem);
 }
 
 #msg-conversations-list {
@@ -649,15 +658,23 @@ body.edit-mode .edit-hide-element {
 }
 #view-done-button {
   position: absolute;
-  margin: 0.6rem 0 0 2.4rem;
+  cursor:pointer;
+
+  padding:1.4rem 0;
+  width:7rem;
+  right:2rem;
+  text-align:center;
+  font-size: -moz-calc(10 * 0.226rem);
+  color:#ffffff;
 }
 
 #view-edit-button { 
   right: 0rem;
-  margin-top: 0.6rem;
-  margin-right: 2.4rem; 
+  width:4rem;
+  margin-right: 2rem; 
   position: absolute;
-  min-width: 10rem;
+ 
+  height:100%;
 }
   
 
@@ -676,7 +693,7 @@ body.edit-mode #view-edit-button {
   width:4rem;
   margin-right: 1rem; 
   position: absolute;
-  
+  display:none;
   height:100%;
  
 }
@@ -695,13 +712,14 @@ body.edit-mode #view-add-button {
 
 
 #view-name {
-  font-size: 2.6rem;
-  font-weight: bold;
-  margin: 0 9.6rem;
   padding: 0;
-  line-height: 6.4rem;
-  text-align: center;
-  color: rgb(51, 51, 51);
+  margin: 0;
+  margin-left:3rem;
+  font-weight:regular;
+  line-height: 6rem;
+  color:#ffffff;
+  font-size: -webkit-calc(10 * 0.226rem);
+  font-size: -moz-calc(10 * 0.226rem);
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
@@ -833,8 +851,8 @@ body.conversation-new-msg #view-num {
 }
 
 #view-list > div .text {
-  font-size: 2.4rem;
-  font-weight: 600;
+  font-size: -moz-calc(6*0.226rem);
+  
   color: rgb(18, 47, 64);
   text-shadow: 0 0.1rem 0 #ddd;
   line-height: 3.2rem;
@@ -995,12 +1013,21 @@ body.edit-mode #view-list > div.message-block {
 
   .vw-bottom-toolbar-element{
     display:table-cell;
+    
+
     /*background:yellow;*/
   }
 
     .vw-bottom-toolbar-btn{
-      background:yellow;
-      /*display:none;*/
+      background: -moz-linear-gradient(top, #b50404 0%, #850a0a 100%); 
+      background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#b50404), color-stop(100%,#850a0a)); 
+      background: linear-gradient(top, #b50404 0%,#850a0a 100%);
+      vertical-align: middle;
+      text-align: center;
+      font-size:-moz-calc(7*0.226rem);
+      font-size:-webkit-calc(7*0.226rem);
+      color:#ffffff;
+      display:table-cell;
     }
 
 #view-msg-send{
@@ -1082,9 +1109,9 @@ body.hidden *[data-l10n-id] {
 .confirmation-dialog {
   background: rgb(255,255,255);
   opacity: 1; 
-  border-radius: 0.8rem;
-  margin: 10rem 2rem 0rem;
-  padding: 3rem 7rem;
+  border-radius: 0.3rem;
+  margin: 2rem 2rem;
+  padding: 1rem 1rem;
 }
 .confirmation-dialog p {
   font-size: 2rem;
@@ -1093,8 +1120,29 @@ body.hidden *[data-l10n-id] {
 .confirmation-dialog h2 {
   font-size: 2rem;
 }
-.confirmation-dialog .button {
-  margin: 2rem 1.5rem 0rem;
+
+
+.vw-confirm-options{
+  
+  display:table;
+  table-layout:fixed;
+  width:100%;
+  height:4rem;
+  border-spacing:.5rem 0rem;
+}
+
+.vw-confirm-option {
+  display:table-cell;
+  background: -moz-linear-gradient(top, #b50404 0%, #850a0a 100%); 
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#b50404), color-stop(100%,#850a0a)); 
+  background: linear-gradient(top, #b50404 0%,#850a0a 100%);
+  vertical-align: middle;
+  text-align: center;
+  font-size:-moz-calc(7*0.226rem);
+  font-size:-webkit-calc(7*0.226rem);
+  color:#ffffff;
+  border-radius:.4rem;
+ /* margin: 2rem 1.5rem 0rem;*/
 }
 
 .groupHeader {

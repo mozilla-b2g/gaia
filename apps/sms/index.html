@@ -33,11 +33,16 @@
           <i class="i-back"></i>
         </a>
         <!-- <a href="#" id="view-back" class="button text-button edit-hide" data-l10n-id="back">Back</a> -->
-        <button id="view-done-button" onclick="ConversationView.exitEditMode()" class="button text-button edit-show" data-l10n-id="done">Done</button>
-        <a href="#edit" id="view-edit-button" class="button text-button edit-hide" data-l10n-id="edit">
+        <div role="button" id="view-done-button" onclick="ConversationView.exitEditMode()" class="edit-show" data-l10n-id="done">
+          Done
+        </div>
+        <!-- <a href="#edit" id="view-edit-button" class="button text-button edit-hide" data-l10n-id="edit">
           Edit
+        </a> -->
+        <a href="#edit" id="view-edit-button" class="edit-hide">
+          <i class="i-edit"></i>
         </a>
-        <a id="view-add-button" class="edit-hide">
+        <a id="view-add-button" class="contact-show">
           <i class="i-contact"></i>
         </a>
         <h2 id="view-name"></h2>
@@ -120,18 +125,27 @@
         <div id="msg-confirmation-dialog" class="confirmation-dialog">
             <p>Are you sure you want to clear all conversations</p>
             <h2>This cannot be undone</h2>
-            <button id="msg-cancel-button" onclick="ConversationListView.hideConfirmationDialog();" class="button text-button">Cancel</button>
-            <button id="msg-accept-button" onclick="ConversationListView.executeAllMessagesDelete();" class="button text-button">Yes</button>
+            <section class="vw-confirm-options">
+              <div id="view-cancel-button" onclick="ConversationListView.hideConfirmationDialog();" class="vw-confirm-option">Cancel</div>
+              <div id="view-accept-button" onclick="ConversationListView.executeAllMessagesDelete();" class="vw-confirm-option">Yes</div>
+            </section> 
+            <!-- <button id="msg-cancel-button" onclick="ConversationListView.hideConfirmationDialog();" class="button text-button">Cancel</button>
+            <button id="msg-accept-button" onclick="ConversationListView.executeAllMessagesDelete();" class="button text-button">Yes</button> -->
         </div>
     </div>
     
     <!-- Confirmation message for dangerous operations on conversation view-->
-    <div id="view-confirmation-panel" class="confirmation-panel" hidden>
+    <div id="view-confirmation-panel" class="confirmation-panel" hidden> 
+    
         <div id="view-confirmation-dialog" class="confirmation-dialog">
             <p>Are you sure you want to clear all messages from this conversation</p>
             <h2>This cannot be undone</h2>
-            <button id="view-cancel-button" onclick="ConversationView.hideConfirmationDialog();" class="button text-button">Cancel</button>
-            <button id="view-accept-button" onclick="ConversationView.deleteAllMessages();" class="button text-button">Yes</button>
+            <section class="vw-confirm-options">
+              <div id="view-cancel-button" onclick="ConversationView.hideConfirmationDialog();" class="vw-confirm-option">Cancel</div>
+              <div id="view-accept-button" onclick="ConversationView.deleteAllMessages();" class="vw-confirm-option">Yes</div>
+            </section>
+            <!-- <button id="view-cancel-button" onclick="ConversationView.hideConfirmationDialog();" class="button text-button">Cancel</button>
+            <button id="view-accept-button" onclick="ConversationView.deleteAllMessages();" class="button text-button">Yes</button> -->
         </div>
     </div>
   </body>
