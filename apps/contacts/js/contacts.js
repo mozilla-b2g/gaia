@@ -85,8 +85,8 @@ if (!contacts.app) {
       formActions = document.getElementById('contact-form-actions');
       phoneTemplate = document.getElementById('add-phone');
       emailTemplate = document.getElementById('add-email');
-      phoneDetailsTemplate =document.getElementById('phone-details-template');
-      emailDetailsTemplate =document.getElementById('email-details-template');
+      phoneDetailsTemplate = document.getElementById('phone-details-template');
+      emailDetailsTemplate = document.getElementById('email-details-template');
       phonesContainer = document.getElementById('contacts-form-phones');
       emailContainer = document.getElementById('contacts-form-email');
       cList.init('groups-list');

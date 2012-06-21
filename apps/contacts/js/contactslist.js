@@ -18,7 +18,7 @@ if (!contacts.List) {
       groupsList = doc.getElementById(elem);
       // Populating blocks
       var alphabet = [];
-      for(var i = 65; i <= 90; i++) {
+      for (var i = 65; i <= 90; i++) {
         var letter = String.fromCharCode(i);
         alphabet.push({group: letter, letter: letter});
       }
@@ -79,7 +79,7 @@ if (!contacts.List) {
           } else {
             ret.push(contacts[i]);
           }
-          
+
           group = letter;
         }
 
@@ -146,7 +146,7 @@ if (!contacts.List) {
           }
         }
 
-        if(!newLi) {
+        if (!newLi) {
           owd.templates.append(list, contact);
           lazyload.reload();
         }
@@ -185,11 +185,11 @@ if (!contacts.List) {
     var getGroupName = function getGroupName(txt) {
       var ret = txt.charAt(0).toUpperCase();
 
-      ret = ret.replace(/[ÁÀ]/ig,"A");
-      ret = ret.replace(/[ÉÈ]/ig,"E");
-      ret = ret.replace(/[ÍÌ]/ig,"I");
-      ret = ret.replace(/[ÓÒ]/ig,"O");
-      ret = ret.replace(/[ÚÙ]/ig,"U");
+      ret = ret.replace(/[ÁÀ]/ig, 'A');
+      ret = ret.replace(/[ÉÈ]/ig, 'E');
+      ret = ret.replace(/[ÍÌ]/ig, 'I');
+      ret = ret.replace(/[ÓÒ]/ig, 'O');
+      ret = ret.replace(/[ÚÙ]/ig, 'U');
 
       var code = ret.charCodeAt(0);
       if (code < 65 || code > 90) {

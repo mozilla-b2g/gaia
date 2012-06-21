@@ -16,7 +16,7 @@ if (!contacts.AlphaScroll) {
     var currentLetterClassList = doc.querySelector('.vw-jmp-current').classList;
 
     var alphabet = [];
-    for(var i = 65; i <= 90; i++) {
+    for (var i = 65; i <= 90; i++) {
       alphabet.push({letter: String.fromCharCode(i)});
     }
     owd.templates.append(doc.querySelector('.vw-jmp-inner'), alphabet);
@@ -46,11 +46,11 @@ if (!contacts.AlphaScroll) {
           var groupContainer = doc.querySelector(prefixGroup + currentLetter);
           if (groupContainer && groupContainer.clientHeight > 0) {
             currentLetterAbbr.textContent = currentLetter;
-            currentLetterClassList.remove("hide");
+            currentLetterClassList.remove('hide');
             clearTimeout(state.timeout);
             lContacts.scrollTop = groupContainer.offsetTop;
             state.timeout = setTimeout(function() {
-              currentLetterClassList.add("hide");
+              currentLetterClassList.add('hide');
             }, 3000);
           }
         }
@@ -62,7 +62,7 @@ if (!contacts.AlphaScroll) {
           this.onMove(evt);
         }
       }
-    }
+    };
 
     cas.start();
 
