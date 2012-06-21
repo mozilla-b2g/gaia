@@ -30,6 +30,26 @@ const GridManager = (function() {
     right: 0
   };
 
+  // right-to-left compatibility
+  var dirCtrl = {};
+  function getDirCtrl() {
+    function goesLeft(x) { return (x > 0); }
+    function goesRight(x) { return (x < 0); }
+    function limitLeft(x) { return (x < limits.left); }
+    function limitRight(x) { return (x > limits.right); }
+    var rtl = (document.documentElement.dir == 'rtl');
+    return {
+      offsetPrev: rtl ? '100%' : '-100%',
+      offsetNext: rtl ? '-100%' : '100%',
+      limitPrev: rtl ? limitRight : limitLeft,
+      limitNext: rtl ? limitLeft : limitRight,
+      translatePrev: rtl ? 'translateX(100%)' : 'translateX(-100%)',
+      translateNext: rtl ? 'translateX(-100%)' : 'translateX(100%)',
+      goesForward: rtl ? goesLeft : goesRight
+    };
+  }
+
+
   /*
    * Returns the coordinates x and y given an event. The returned object
    * is composed of two attributes named x and y
@@ -57,15 +77,16 @@ const GridManager = (function() {
    */
   function pan(movementX) {
     var currentPage = pages.current;
+    var move = movementX + 'px';
 
-    pageHelper.getCurrent().moveTo(movementX + 'px');
+    pageHelper.getCurrent().moveTo(move);
 
     if (currentPage > 0) {
-      pageHelper.getPrevious().moveTo('-100% + ' + movementX + 'px');
+      pageHelper.getPrevious().moveTo(dirCtrl.offsetPrev + ' + ' + move);
     }
 
     if (currentPage < pages.total - 1) {
-      pageHelper.getNext().moveTo('100% + ' + movementX + 'px');
+      pageHelper.getNext().moveTo(dirCtrl.offsetNext + ' + ' + move);
     }
   }
 
@@ -80,11 +101,11 @@ const GridManager = (function() {
       var currentPage = pages.current;
 
       if (currentPage > 0) {
-        pageHelper.getPrevious().moveToLeft();
+        pageHelper.getPrevious().moveToBegin();
       }
 
       if (currentPage < pages.total - 1) {
-        pageHelper.getNext().moveToRight();
+        pageHelper.getNext().moveToEnd();
       }
 
       pageHelper.getCurrent().moveToCenter(transEndCallbck);
@@ -99,7 +120,7 @@ const GridManager = (function() {
   function goNext(transEndCallbck) {
     var nextPage = pageHelper.getNext();
     var curPage = pageHelper.getCurrent();
-    curPage.moveToLeft();
+    curPage.moveToBegin();
     nextPage.moveToCenter(transEndCallbck);
     pages.current++;
     updatePaginationBar();
@@ -111,7 +132,7 @@ const GridManager = (function() {
   function goPrev(transEndCallbck) {
     var prevPage = pageHelper.getPrevious();
     var curPage = pageHelper.getCurrent();
-    curPage.moveToRight();
+    curPage.moveToEnd();
     prevPage.moveToCenter(transEndCallbck);
     pages.current--;
     updatePaginationBar();
@@ -185,13 +206,14 @@ const GridManager = (function() {
     var difX = status.cCoords.x - status.iCoords.x;
     var absDifX = Math.abs(difX);
     var threshold = window.innerWidth / 4;
+    var forward = dirCtrl.goesForward(difX);
     if (absDifX > threshold) {
       var currentPage = pages.current;
-      if (difX < 0 && currentPage < pages.total - 1) {
-        // Swipe from right to left
-       goNext(onTransitionEnd);
-      } else if (difX > 0 && currentPage > 0) {
-        // Swipe from left to right
+      if (forward && currentPage < pages.total - 1) {
+        // Swipe to next page
+        goNext(onTransitionEnd);
+      } else if (!forward && currentPage > 0) {
+        // Swipe to previous page
         goPrev(onTransitionEnd);
       } else {
         // Bouncing effect for first or last page
@@ -230,7 +252,6 @@ const GridManager = (function() {
 
     // Renders pagination bar
     updatePaginationBar(true);
-
     addLanguageListener();
 
     // Saving initial state
@@ -243,37 +264,37 @@ const GridManager = (function() {
   function renderFromDB() {
     var appsInDB = [];
     HomeState.getAppsByPage(
-      function iterate(apps) {
-        pageHelper.push(apps);
-        appsInDB = appsInDB.concat(apps);
-      },
-      function onsuccess(results) {
-        if (results === 0) {
-          renderFromMozApps();
-          return;
-        }
-
-        var installedApps = Applications.getInstalledApplications();
-        var len = appsInDB.length;
-        for (var i = 0; i < len; i++) {
-          var origin = appsInDB[i];
-          if (origin in installedApps) {
-            delete installedApps[origin];
+        function iterate(apps) {
+          pageHelper.push(apps);
+          appsInDB = appsInDB.concat(apps);
+        },
+        function onsuccess(results) {
+          if (results === 0) {
+            renderFromMozApps();
+            return;
           }
-        }
 
-        for (var origin in installedApps) {
-          GridManager.install(installedApps[origin]);
-        }
+          var installedApps = Applications.getInstalledApplications();
+          var len = appsInDB.length;
+          for (var i = 0; i < len; i++) {
+            var origin = appsInDB[i];
+            if (origin in installedApps) {
+              delete installedApps[origin];
+            }
+          }
 
-        // Grid was loaded from DB
-        updatePaginationBar(true);
-        addLanguageListener();
-      },
-      function onerror() {
-        // Error recovering info about apps
-        renderFromMozApps();
-      }
+          for (var origin in installedApps) {
+            GridManager.install(installedApps[origin]);
+          }
+
+          // Grid was loaded from DB
+          updatePaginationBar(true);
+          addLanguageListener();
+        },
+        function onerror() {
+          // Error recovering info about apps
+          renderFromMozApps();
+        }
     );
   }
 
@@ -282,23 +303,34 @@ const GridManager = (function() {
    */
   function render() {
     Applications.addEventListener('ready', function onAppsReady() {
+      dirCtrl = getDirCtrl();
       HomeState.init(renderFromDB, renderFromMozApps);
+      localize();
     });
   }
 
   /*
-   * Translates the UI
+   * UI Localization
    *
    * Currently we only translate the app names
    */
+  function localize() {
+    // set the 'lang' and 'dir' attributes to <html> when the page is translated
+    document.documentElement.lang = navigator.mozL10n.language.code;
+    document.documentElement.dir = navigator.mozL10n.language.direction;
+
+    // switch RTL-sensitive methods accordingly
+    dirCtrl = getDirCtrl();
+
+    // translate each page
+    var total = pageHelper.total();
+    for (var i = 0; i < total; i++) {
+      pages.list[i].translate();
+    }
+  }
+
   function addLanguageListener() {
-    SettingsListener.observe('language.current', 'en-US', function(lang) {
-      document.documentElement.lang = lang;
-      var total = pageHelper.total();
-      for (var i = 0; i < total; i++) {
-        pages.list[i].translate();
-      }
-    });
+    window.addEventListener('localized', localize);
   }
 
   /*
@@ -391,7 +423,7 @@ const GridManager = (function() {
       if (index === 0) {
         page.moveToCenter();
       } else {
-        page.moveToRight();
+        page.moveToEnd();
       }
 
       pages.list.push(page);
@@ -534,11 +566,11 @@ const GridManager = (function() {
      * Furthermore, this method is in charge of creating a new page when
      * it's needed
      */
-     checkLimits: function() {
+    checkLimits: function() {
       var x = status.cCoords.x;
       this.isDropDisabled = false;
 
-      if (x > limits.right) {
+      if (dirCtrl.limitNext(x)) {
         this.isDropDisabled = true;
         var curPageObj = pageHelper.getCurrent();
         if (pages.current < pages.total - 1 && !this.isTranslatingPages) {
@@ -553,7 +585,7 @@ const GridManager = (function() {
           goNext();
           this.setTranslatingPages(true);
         }
-      } else if (x < limits.left) {
+      } else if (dirCtrl.limitPrev(x)) {
         this.isDropDisabled = true;
         if (pages.current > 0 && !this.isTranslatingPages) {
           pageHelper.getCurrent().remove(draggableIcon);
@@ -621,7 +653,7 @@ const GridManager = (function() {
           // Dragging outside <ol> element -> move to last position
           var currentPage = pageHelper.getCurrent();
           if (overlapElem.className === 'page' &&
-            draggableIcon !== currentPage.getLastIcon()) {
+              draggableIcon !== currentPage.getLastIcon()) {
             currentPage.remove(draggableIcon);
             currentPage.append(draggableIcon);
           }
@@ -748,6 +780,11 @@ const GridManager = (function() {
      */
     isEditMode: function gm_isEditMode() {
       return currentMode === 'edit';
-    }
+    },
+
+    /*
+     * Exports the dirCtrl utils
+     */
+    get dirCtrl() { return dirCtrl; }
   };
 })();
