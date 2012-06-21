@@ -20,7 +20,8 @@ var SleepMenu = {
     geolocation: false
   },
 
-  // XXX:
+  // XXX: bug#766895
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=766895
   turnOffFlightMode: function sm_turnOffFlightMode() {
     var settings = navigator.mozSettings;
     if (settings && this.reservedSettings.data) {
