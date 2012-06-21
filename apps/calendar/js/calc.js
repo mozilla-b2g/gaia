@@ -27,17 +27,9 @@
      * @return {Boolean} true when today.
      */
     isToday: function(date) {
-      var today = this.today,
-          month = date.getMonth() == today.getMonth(),
-          day = date.getDate() == today.getDate(),
-          year = date.getYear() == today.getYear();
-
-
-      if (month && day && year) {
-         return true;
-      }
-
-      return false;
+      return date.getMonth() == this.today.getMonth() &&
+             date.getDate() == this.today.getDate() &&
+             date.getFullYear() == this.today.getFullYear();
     },
 
     /**
@@ -78,11 +70,9 @@
             date = new Date(parts[0], parts[1]);
             break;
         }
-
-        return date;
       }
 
-      return false;
+      return date;
     },
 
     /**
@@ -100,10 +90,6 @@
     },
 
     createDay: function(date, day, month, year) {
-      day = day || 0;
-      month = month || 0;
-      year = year || 0;
-
       return new Date(
         year || date.getFullYear(),
         month || date.getMonth(),
@@ -126,17 +112,10 @@
       //local day position
       var currentDay = startDate.getDay(),
           startDay = startDate.getDate() - currentDay,
-          weeksDayStart,
-          weekDay,
-          result = [],
-          i = 1;
+          weeksDayStart = this.createDay(startDate, startDay),
+          result = [weeksDayStart];
 
-
-      //clone day
-      weeksDayStart = this.createDay(startDate, startDay);
-      result.push(weeksDayStart);
-
-      for (; i < 7; i++) {
+      for (var i = 1; i < 7; i++) {
         result.push(new Date(
           weeksDayStart.getFullYear(),
           weeksDayStart.getMonth(),
@@ -150,7 +129,7 @@
     /**
      * Checks if date is in the past
      *
-     * @param {Date} value date to check.
+     * @param {Date} date to check.
      * @return {Boolean} true when date is in the past.
      */
     isPast: function(date) {
@@ -160,11 +139,11 @@
     /**
      * Checks if date is in the future
      *
-     * @param {Date} value date to check.
+     * @param {Date} date to check.
      * @return {Boolean} true when date is in the future.
      */
-    isFuture: function(value) {
-      return !this.isPast(value);
+    isFuture: function(date) {
+      return !this.isPast(date);
     },
 
     /**
@@ -185,14 +164,12 @@
         return this.PRESENT;
       }
 
-      states = '';
-
       // 2. the date is in the past (real time)
       if (this.isPast(day)) {
-        states += this.PAST;
+        states = this.PAST;
       // 3. the date is in the future (real time)
       } else {
-        states += this.FUTURE;
+        states = this.FUTURE;
       }
 
       // 4. the date is not in the current month (relative time)

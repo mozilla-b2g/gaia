@@ -2,7 +2,7 @@
 'use strict';
 
 const PaginationBar = (function() {
-  var style, percentage = '%';
+  var style, percentage = '%', previousTotal;
 
   return {
    /*
@@ -33,10 +33,13 @@ const PaginationBar = (function() {
     * @param {int} total number of pages
     */
     update: function pb_update(current, total) {
-      var div = 100 / total;
-      style.width = div + percentage;
-      style.marginLeft = current * div + percentage;
+
+      if (previousTotal !== total) {
+        style.width = (100 / total) + percentage;
+        previousTotal = total;
+      }
+
+      style.MozTransform = 'translateX(' + current * 100 + '%)';
     }
   };
 }());
-

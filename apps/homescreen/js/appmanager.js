@@ -39,7 +39,8 @@ var Applications = (function() {
       installedApps[app.origin] = app;
 
       var icon = getIcon(app.origin);
-      if (icon) {
+      // No need to put data: URIs in the cache
+      if (icon && icon.indexOf('data:') == -1) {
         window.applicationCache.mozAdd(icon);
       }
 
@@ -82,6 +83,19 @@ var Applications = (function() {
     // Trailing '/'
     var trimmedOrigin = origin.slice(0, origin.length - 1);
     return installedApps[trimmedOrigin];
+  };
+
+  /*
+   *  Returns installed apps
+   */
+  function getInstalledApplications() {
+    var ret = {};
+
+    for (var i in installedApps) {
+      ret[i] = installedApps[i];
+    }
+
+    return ret;
   };
 
   /*
@@ -216,6 +230,7 @@ var Applications = (function() {
     getOrigin: getOrigin,
     getName: getName,
     getIcon: getIcon,
-    getManifest: getManifest
+    getManifest: getManifest,
+    getInstalledApplications: getInstalledApplications
   };
 })();

@@ -59,7 +59,6 @@
 .apps ol > li > div > img {
   width: 6rem;
   height: 6rem;
-  border-radius: 50%; /* rounded icons */
 }
 
 /* label wrapper */
@@ -97,9 +96,7 @@
 
 .apps .draggable > img {
   margin-bottom: .5rem;
-  box-shadow: 0 0 5px 5px #666;
   -moz-transform: scale(1.1);
-  border-radius: 50%; /* rounded icons */
   width: 6rem;
   height: 6rem;
 }
@@ -160,10 +157,4 @@
 
 .apps ol > li[data-dragging] {
   opacity: 0;
-}
-
-@media screen and (min-device-width: 480px) {
-  .apps ol > li > div > img, .apps .draggable > img {
-    border-radius: .5rem; /* squared icons */
-  }
 }

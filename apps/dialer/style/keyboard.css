@@ -74,8 +74,7 @@
 }
 
 .kb-keypad-key {
-  background: #2d2642; /* Old browsers */
-  background: -moz-linear-gradient(top, #2d2642 0%, #0f1214 100%); /* FF3.6+ */
+  background: -moz-linear-gradient(top, #2d2642 0%, #0f1214 100%);
   border:0;
   border-right:1px solid #313A47;
   border-bottom:1px solid #313A47;

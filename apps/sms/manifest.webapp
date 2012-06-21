@@ -8,7 +8,8 @@
   },
   "permissions": [
     "sms",
-    "contacts"
+    "contacts",
+    "background"
   ],
   "locales": {
     "ar": {
