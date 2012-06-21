@@ -4,6 +4,8 @@ var indexedDB = window.indexedDB || window.webkitIndexedDB ||
   window.mozIndexedDB || window.msIndexedDB;
 
 var GlobalHistory = {
+  DEFAULT_ICON_EXPIRATION: 86400000, // One day
+
   init: function gh_init(callback) {
     this.db.open(callback);
   },
@@ -27,6 +29,7 @@ var GlobalHistory = {
   },
 
   setPageTitle: function gh_setPageTitle(uri, title, callback) {
+    // TODO: Stop this from deleting favicon
     var place = {
       uri: uri,
       title: title
@@ -34,19 +37,73 @@ var GlobalHistory = {
     this.db.updatePlace(place, callback);
   },
 
-  setPageIcon: function gh_setPageIcon(uri, icon, callback) {
+  setPageIconUri: function gh_setPageIconUri(uri, iconUri, callback) {
+    // Set icon URI for corresponding place URI
     this.db.getPlace(uri, function(place) {
       // if place already exists, just set icon
       if (place) {
-        place.icon = icon;
+        place.iconUri = iconUri;
       } else { // otherwise create a new place
         place = {
           uri: uri,
           title: uri,
-          icon: icon
+          iconUri: iconUri
         };
       }
-      GlobalHistory.db.updatePlace(place, callback);
+      if (callback) {
+        GlobalHistory.db.updatePlace(place, callback);
+      } else {
+        GlobalHistory.db.updatePlace(place);
+      }
+    });
+  },
+
+  setIconData: function gh_setIconData(iconUri, data, callback, failed) {
+    var now = new Date().valueOf();
+    var iconEntry = {
+      uri: iconUri,
+      data: data,
+      expiration: now + this.DEFAULT_ICON_EXPIRATION,
+      failed: failed
+    };
+    this.db.saveIcon(iconEntry, callback);
+  },
+
+  setAndLoadIconForPage: function gh_setAndLoadIconForPage(uri,
+    iconUri, callback) {
+    this.setPageIconUri(uri, iconUri);
+    // If icon is not already cached or has expired, load it
+    var now = new Date().valueOf();
+    this.db.getIcon(iconUri, (function(icon) {
+      if (icon && icon.expiration > now)
+        return;
+      var xhr = new XMLHttpRequest({mozSystem: true});
+      xhr.open('GET', iconUri, true);
+      xhr.responseType = 'blob';
+      xhr.addEventListener('load', (function() {
+        // 0 is due to https://bugzilla.mozilla.org/show_bug.cgi?id=716491
+        if (xhr.status === 200 || xhr.status === 0) {
+          this.setIconData(iconUri, xhr.response, callback);
+        } else {
+          this.setIconData(iconUri, null, callback, true);
+          console.log('error fetching icon: ' + xhr.status);
+        }
+      }).bind(this), false);
+      xhr.onerror = function getIconError() {
+        console.log('Error fetching icon');
+      };
+      xhr.send();
+    }).bind(this));
+  },
+
+  isFailedIcon: function gh_isFailedIcon(iconUri, callback) {
+    this.db.getIcon(iconUri, function(iconEntry) {
+      var now = new Date().valueOf();
+      if (iconEntry && iconEntry.failed && iconEntry.expiration > now) {
+        callback(true);
+      } else {
+        callback(false);
+      }
     });
   },
 
@@ -61,7 +118,7 @@ GlobalHistory.db = {
   _db: null,
 
   open: function db_open(callback) {
-    const DB_VERSION = 1;
+    const DB_VERSION = 2;
     const DB_NAME = 'browser';
     var request = indexedDB.open(DB_NAME, DB_VERSION);
 
@@ -96,6 +153,11 @@ GlobalHistory.db = {
 
     // Index visits by timestamp
     visitStore.createIndex('timestamp', 'timestamp', { unique: false });
+
+    // Create or overwrite icon cache
+    if (db.objectStoreNames.contains('icons'))
+      db.deleteObjectStore('icons');
+    var iconStore = db.createObjectStore('icons', { keyPath: 'uri' });
   },
 
   savePlace: function db_savePlace(place, callback) {
@@ -186,6 +248,7 @@ GlobalHistory.db = {
       return function(e) {
           var place = e.target.result;
           visit.title = place.title;
+          visit.iconUri = place.iconUri;
           history.push(visit);
         };
     }
@@ -237,6 +300,58 @@ GlobalHistory.db = {
     request.onerror = function(e) {
       console.log('Error clearing visits object store');
     };
+  },
+
+  clearIcons: function db_clearIcons(callback) {
+    var db = GlobalHistory.db._db;
+    var transaction = db.transaction('icons',
+      IDBTransaction.READ_WRITE);
+    transaction.onerror = function dbTransactionError(e) {
+      console.log('Transaction error while trying to clear icons');
+    };
+    var objectStore = transaction.objectStore('icons');
+    var request = objectStore.clear();
+    request.onsuccess = function() {
+      callback();
+    };
+    request.onerror = function(e) {
+      console.log('Error clearing icons object store');
+    };
+  },
+
+  saveIcon: function db_saveIcon(iconEntry, callback) {
+    var transaction = this._db.transaction(['icons'],
+     IDBTransaction.READ_WRITE);
+    transaction.onerror = function dbTransactionError(e) {
+      console.log('Transaction error while trying to save icon');
+    };
+
+    var objectStore = transaction.objectStore('icons');
+    var request = objectStore.put(iconEntry);
+
+    request.onsuccess = function onsuccess(e) {
+      if (callback)
+        callback();
+    };
+
+    request.onerror = function onerror(e) {
+      console.log('Error while saving icon');
+    };
+  },
+
+  getIcon: function db_getIcon(iconUri, callback) {
+    var db = this._db;
+    var request = db.transaction('icons').objectStore('icons').get(iconUri);
+
+    request.onsuccess = function(event) {
+      callback(event.target.result);
+    };
+
+    request.onerror = function(event) {
+      if (event.target.errorCode == IDBDatabaseException.NOT_FOUND_ERR)
+        callback();
+    };
+
   }
 
 };
