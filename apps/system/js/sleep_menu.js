@@ -5,10 +5,13 @@
 
 var SleepMenu = {
   // Indicate setting status of ril.radio.disabled
-  isFlightModeEnabled: true,
+  isFlightModeEnabled: false,
 
   // Indicate setting status of volume
   isSilentModeEnabled: false,
+
+  // Indicate if the change is done by eventHandler
+  token: false,
 
   // Reserve settings before turn on flight mode
   reservedSettings: {
@@ -40,29 +43,42 @@ var SleepMenu = {
   onFlightMode: function sm_onFlightMode() {
     var settings = navigator.mozSettings;
     if (settings) {
-      var req = settings.getLock().get(this.umsEnabled);
+      var req = settings.getLock().get('ril.data.disabled');
       req.onsuccess = function sm_EnabledFetched() {
         self.reservedSettings.data = req.result['ril.data.disabled'];
-        settings.getLock().set({'ril.data.disabled': this.isFlightModeEnabled});
+        settings.getLock().set({'ril.data.disabled': true});
       };
     }
 
     var wifiManager = navigator.mozWifiManager;
     if (wifiManager) {
       this.reservedSettings.wifi = wifiManager.enabled;
-      wifiManager.setEnabled(!this.isFlightModeEnabled);
+      wifiManager.setEnabled(false);
     }
 
     var bluetooth = navigator.mozBluetooth;
     if (bluetooth) {
       this.reservedSettings.bluetooth = bluetooth.enabled;
-      bluetooth.setEnabled(!this.isFlightModeEnabled);
+      bluetooth.setEnabled(false);
     }
   },
 
   init: function sm_init() {
     window.addEventListener('keydown', this, true);
     window.addEventListener('keyup', this, true);
+
+    var self = this;
+    SettingsListener.observe('ril.data.disabled', false, function(value) {
+      if (!self.isFlightModeEnabled) {
+        self.reservedSettings.data = value;
+      } else {
+        if (self.token) {
+          self.token = false;
+        } else {
+          self.reservedSettings.data = false;
+        }
+      }
+    });
   },
 
   // Update items only if list menu is visible
@@ -197,6 +213,7 @@ var SleepMenu = {
           this.isFlightModeEnabled = !this.isFlightModeEnabled;
 
           if (this.isFlightModeEnabled) {
+            this.token = true;
             this.onFlightMode();
           } else {
             this.offFlightMode();
