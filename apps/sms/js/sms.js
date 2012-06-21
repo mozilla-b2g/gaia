@@ -412,7 +412,7 @@ var ConversationListView = {
       content = dayOfWeek[new Date(conversation.timestamp).getDay()];
     } else {
       var date = new Date(conversation.timestamp);
-      return date.getFullYear() + '-' +
+      content = date.getFullYear() + '-' +
              (date.getMonth() + 1) + '-' +
              date.getDate();
     }
