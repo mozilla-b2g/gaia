@@ -10,9 +10,6 @@ var SleepMenu = {
   // Indicate setting status of volume
   isSilentModeEnabled: false,
 
-  // Indicate if the change is done by eventHandler
-  token: false,
-
   // Reserve settings before turn on flight mode
   reservedSettings: {
     data: true,
@@ -23,7 +20,8 @@ var SleepMenu = {
     geolocation: false
   },
 
-  offFlightMode: function sm_offFlightMode() {
+  // XXX:
+  turnOffFlightMode: function sm_turnOffFlightMode() {
     var settings = navigator.mozSettings;
     if (settings && this.reservedSettings.data) {
       settings.getLock().set({'ril.data.disabled': this.reservedSettings.data});
@@ -31,17 +29,18 @@ var SleepMenu = {
 
     var wifiManager = navigator.mozWifiManager;
     if (wifiManager && this.reservedSettings.wifi && !wifiManager.enabled) {
-      wifiManager.setEnabled(this.reservedSettings.wifi);
+      wifiManager.setEnabled(true);
     }
 
     var bluetooth = navigator.mozBluetooth;
     if (bluetooth && this.reservedSettings.bluetooth && !bluetooth.enabled) {
-      bluetooth.setEnabled(this.reservedSettings.bluetooth);
+      bluetooth.setEnabled(true);
     }
   },
 
-  onFlightMode: function sm_onFlightMode() {
+  turnOnFlightMode: function sm_turnOnFlightMode() {
     var settings = navigator.mozSettings;
+    var self = this;
     if (settings) {
       var req = settings.getLock().get('ril.data.disabled');
       req.onsuccess = function sm_EnabledFetched() {
@@ -66,26 +65,6 @@ var SleepMenu = {
   init: function sm_init() {
     window.addEventListener('keydown', this, true);
     window.addEventListener('keyup', this, true);
-
-    var self = this;
-    SettingsListener.observe('ril.data.disabled', false, function(value) {
-      if (!self.isFlightModeEnabled) {
-        self.reservedSettings.data = value;
-      } else {
-        if (self.token) {
-          self.token = false;
-        } else {
-          self.reservedSettings.data = false;
-        }
-      }
-    });
-  },
-
-  // Update items only if list menu is visible
-  updateItems: function sm_updateItems() {
-    if (ListMenu.visible) {
-      this.show();
-    }
   },
 
   // Generate items
@@ -161,13 +140,6 @@ var SleepMenu = {
 
       case 'keyup':
         if (ListMenu.visible) {
-          if (evt.keyCode == evt.DOM_VK_ESCAPE ||
-              evt.keyCode == evt.DOM_VK_HOME) {
-
-              ListMenu.hide();
-              evt.stopPropagation();
-          }
-
           if (evt.keyCode == evt.DOM_VK_SLEEP &&
               this._longpressTriggered) {
             evt.stopPropagation();
@@ -213,10 +185,9 @@ var SleepMenu = {
           this.isFlightModeEnabled = !this.isFlightModeEnabled;
 
           if (this.isFlightModeEnabled) {
-            this.token = true;
-            this.onFlightMode();
+            this.turnOnFlightMode();
           } else {
-            this.offFlightMode();
+            this.turnOffFlightMode();
           }
 
           settings.getLock().set({

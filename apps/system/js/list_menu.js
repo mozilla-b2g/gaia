@@ -21,6 +21,8 @@ var ListMenu = {
   // Listen to click event only
   init: function lm_init() {
     window.addEventListener('click', this, true);
+    window.addEventListener('screenchange', this, true);
+    window.addEventListener('keyup', this, true);
   },
 
   // Pass an array of list items and handler for clicking on the items
@@ -70,6 +72,13 @@ var ListMenu = {
           this.onreturn(action);
         }
         break;
+
+      case 'keyup':
+        if (evt.keyCode == evt.DOM_VK_ESCAPE ||
+            evt.keyCode == evt.DOM_VK_HOME) {
+            this.hide();
+            evt.stopPropagation();
+        }
     }
   }
 };
