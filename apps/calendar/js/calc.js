@@ -27,8 +27,8 @@
      * @return {Boolean} true when today.
      */
     isToday: function(date) {
-      return date.getMonth()    == this.today.getMonth() &&
-             date.getDate()     == this.today.getDate()  &&
+      return date.getMonth() == this.today.getMonth() &&
+             date.getDate() == this.today.getDate() &&
              date.getFullYear() == this.today.getFullYear();
     },
 
@@ -113,7 +113,7 @@
       var currentDay = startDate.getDay(),
           startDay = startDate.getDate() - currentDay,
           weeksDayStart = this.createDay(startDate, startDay),
-          result = [weeksDayStart],
+          result = [weeksDayStart];
 
       for (var i = 1; i < 7; i++) {
         result.push(new Date(
