@@ -2,7 +2,7 @@
  * UI infrastructure code and utility code for the gaia email app.
  **/
 
-var mozL10n = document.mozL10n;
+var mozL10n = navigator.mozL10n;
 
 function dieOnFatalError(msg) {
   console.error('FATAL:', msg);

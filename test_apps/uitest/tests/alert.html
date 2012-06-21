@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Alert/prompt test</title>
+    <style>
+    button {
+      font-size: 40px;
+    }
+    </style>
+  </head>
+  <body>
+    <h1>Alert/Prompt/Confirm</h1>
+
+    <h2>Call on mozbrowser frame:</h2>
+    <p><button onclick="window.parent.alert('Hello world!')">Alert</button></p>
+    <p><button onclick="window.parent.alert(window.parent.confirm('Hello world?'))">Confirm</button></p>
+    <p><button onclick="window.parent.alert(window.parent.prompt('Hello world:', 'initial value'))">Prompt</button></p>
+
+    <h2>Call on this iframe within mozbrowser:</h2>
+    <p><button onclick="alert('Hello world!')">Alert</button></p>
+    <p><button onclick="alert(confirm('Hello world?'))">Confirm</button></p>
+    <p><button onclick="alert(prompt('Hello world:', 'initial value'))">Prompt</button></p>
+
+    <p>Press the hardware back button to go back.</p>
+  </body>
+</html>

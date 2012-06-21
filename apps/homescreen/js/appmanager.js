@@ -31,7 +31,7 @@ var Applications = (function() {
         callback.callback(app);
       }
     });
-   };
+  };
 
   installer.oninstall = function install(event) {
     var app = event.application;
@@ -40,7 +40,7 @@ var Applications = (function() {
 
       var icon = getIcon(app.origin);
       // No need to put data: URIs in the cache
-      if (icon && icon.indexOf("data:") == -1) {
+      if (icon && icon.indexOf('data:') == -1) {
         window.applicationCache.mozAdd(icon);
       }
 
@@ -51,14 +51,6 @@ var Applications = (function() {
       });
     }
   };
-
-  document.documentElement.lang = 'en-US';
-
-  SettingsListener.getValue('language.current', function(lang) {
-    if (lang && lang.length > 0) {
-      document.documentElement.lang = lang;
-    }
-  });
 
   /*
    * Returns all installed applications
@@ -83,6 +75,19 @@ var Applications = (function() {
     // Trailing '/'
     var trimmedOrigin = origin.slice(0, origin.length - 1);
     return installedApps[trimmedOrigin];
+  };
+
+  /*
+   *  Returns installed apps
+   */
+  function getInstalledApplications() {
+    var ret = {};
+
+    for (var i in installedApps) {
+      ret[i] = installedApps[i];
+    }
+
+    return ret;
   };
 
   /*
@@ -190,7 +195,7 @@ var Applications = (function() {
     }
 
     if ('locales' in manifest) {
-      var locale = manifest.locales[document.documentElement.lang];
+      var locale = manifest.locales[navigator.language];
       if (locale && locale.name) {
         return locale.name;
       }
@@ -217,6 +222,7 @@ var Applications = (function() {
     getOrigin: getOrigin,
     getName: getName,
     getIcon: getIcon,
-    getManifest: getManifest
+    getManifest: getManifest,
+    getInstalledApplications: getInstalledApplications
   };
 })();

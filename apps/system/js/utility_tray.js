@@ -41,9 +41,8 @@ var UtilityTray = {
       case 'touchstart':
         if (LockScreen.locked)
           return;
-        if (this.shown && evt.target !== this.overlay)
-          return;
-        if (!this.shown && evt.target !== this.statusbar)
+        if (evt.target !== this.overlay &&
+            evt.target !== this.statusbar)
           return;
 
         this.active = true;
@@ -82,7 +81,7 @@ var UtilityTray = {
     this.startX = touch.pageX;
     this.startY = touch.pageY;
     this.screen.classList.add('utility-tray');
-    this.onTouchMove({ pageY: touch.pageY + 32 });
+    this.onTouchMove({ pageY: touch.pageY });
   },
 
   onTouchMove: function ut_onTouchMove(touch) {
@@ -101,11 +100,16 @@ var UtilityTray = {
     var screenHeight = this.overlay.getBoundingClientRect().height;
     var dy = -(this.startY - touch.pageY);
     var offset = Math.abs(dy);
+
+    if (!this.shown && offset == 0)
+      this.hide(true);
+
     if ((!this.shown && offset > screenHeight / 4) ||
-        (this.shown && offset < 10))
+        (this.shown && offset < 10)) {
       this.show();
-    else
+    } else {
       this.hide();
+    }
   },
 
   hide: function ut_hide(instant) {

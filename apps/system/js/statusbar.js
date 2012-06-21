@@ -19,10 +19,7 @@ var StatusBar = {
 
     window.addEventListener('screenchange', this);
     this.addListeners();
-
-    this.updateBattery();
-    this.updateConnection();
-    this.updateWifi();
+    this.updateAll();
   },
 
   handleEvent: function sb_handleEvent(evt) {
@@ -30,6 +27,7 @@ var StatusBar = {
       case 'screenchange':
         if (evt.detail.screenEnabled) {
           this.addListeners();
+          this.updateAll();
         } else {
           this.removeListeners();
         }
@@ -53,6 +51,13 @@ var StatusBar = {
     }
   },
 
+  updateAll: function sb_updateAll() {
+    this.updateClock();
+    this.updateBattery();
+    this.updateConnection();
+    this.updateWifi();
+  },
+
   addListeners: function sb_addListeners() {
     var battery = window.navigator.mozBattery;
     if (battery) {
@@ -73,8 +78,6 @@ var StatusBar = {
       wifiManager.onstatuschange =
         wifiManager.connectionInfoUpdate = (this.updateWifi).bind(this);
     }
-
-    this.updateClock();
 
     window.addEventListener('volumechange', this);
   },
@@ -150,7 +153,7 @@ var StatusBar = {
     if (!conn || !conn.voice)
       return;
 
-    var _ = document.mozL10n.get;
+    var _ = navigator.mozL10n.get;
     /* Information about voice connection */
     var voice = conn.voice;
     /* Information about data connection */

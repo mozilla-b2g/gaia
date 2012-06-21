@@ -4,7 +4,6 @@
   "launch_path": "/",
   "orientation": "landscape-primary",
   "fullscreen": true,
-  "hackKillMe": true,
   "hackNetworkBound": "true",
   "developer": {
     "name": "CutTheRope",

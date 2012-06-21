@@ -16,14 +16,14 @@
   src: url('fonts/Open-Sans-Semibold.woff');
 }
 
-@media screen and (max-device-width: 800px) and (max-device-height: 800px) and
-             (min-device-width: 480px) and (min-device-height: 480px) {
+@media screen and (max-width: 800px) and (max-height: 800px) and
+                  (min-width: 480px) and (min-height: 480px) {
   html {
     font-size: 10px;
   }
 }
 
-@media screen and (max-device-width: 480px) and (max-device-height: 480px) {
+@media screen and (max-width: 480px) and (max-height: 480px) {
   /** font-size: 7.3px; 10px aiming at devices with 219dpi, 7.3px for 160dpi, 6px for?? */
   html {
     font-size: 6px;  
@@ -294,6 +294,8 @@ body.msg-search-mode #msg-conversations-list {
   border-bottom: 0.1rem solid hsla(223,7%,81%,1);
   width: 100%;
   -moz-transition: padding 0.3s ease-out;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 
@@ -698,6 +700,7 @@ body.conversation-new-msg #view-num {
   text-shadow: 0 0.1rem 0 #ddd;
   line-height: 3.2rem;
   text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 #view-list > div .time {

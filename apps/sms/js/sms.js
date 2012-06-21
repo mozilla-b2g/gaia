@@ -302,47 +302,24 @@ var ConversationListView = {
 
         var read = message.read;
         var conversation = conversations[num];
-        if (conversation && !conversation.hidden) {
+        if (conversation) {
           conversation.unreadCount += !read ? 1 : 0;
           continue;
         }
 
-        if (!conversation) {
-          conversations[num] = {
-            'hidden': false,
-            'body': message.body,
-            'name': num,
-            'num': num,
-            'timestamp': message.timestamp.getTime(),
-            'unreadCount': !read ? 1 : 0,
-            'id': i
-          };
-        } else {
-          conversation.hidden = false;
-          conversation.timestamp = message.timestamp.getTime();
-          conversation.body = message.body;
-        }
+        conversations[num] = {
+          'body': message.body,
+          'name': num,
+          'num': num,
+          'timestamp': message.timestamp.getTime(),
+          'unreadCount': !read ? 1 : 0,
+          'id': i
+        };
       }
 
       var fragment = '';
-      var orderedConversations = [];
       for (var num in conversations) {
-        /*
-          Push an array containing [timestamp, conversation]
-          so we can order the list by timestamp.
-        */
-        orderedConversations.push([conversations[num].timestamp,
-                                  conversations[num]]);
-      }
-
-      orderedConversations.sort(function sortByTimestamp(a, b) {
-        return b[0] - a[0];
-      });
-
-      // Now we have the ordered conversations
-      var conversation;
-      for (var i in orderedConversations) {
-        conversation = orderedConversations[i][1];
+        conversation = conversations[num];
         if (self.delNumList.indexOf(conversation.num) > -1) {
           continue;
         }
@@ -384,18 +361,12 @@ var ConversationListView = {
     var bodyText = conversation.body.split('\n')[0];
     var bodyHTML = reg ? this.createHighlightHTML(bodyText, reg) :
                            escapeHTML(bodyText);
-    var listClass = '';
-    if (conversation.hidden) {
-      listClass = 'hide';
-    } else if (conversation.unreadCount > 0) {
-      listClass = 'unread';
-    }
 
     return '<a href="#num=' + conversation.num + '"' +
            ' data-num="' + conversation.num + '"' +
            ' data-name="' + dataName + '"' +
            ' data-notempty="' + (conversation.timestamp ? 'true' : '') + '"' +
-           ' class="' + listClass + '">' +
+           ' class="' + (conversation.unreadCount > 0 ? 'unread' : '') + '">' +
            '<input type="checkbox" class="fake-checkbox"/>' + '<span></span>' +
            '  <div class="name">' + name + '</div>' +
            '  <div class="msg">' + bodyHTML + '</div>' +
@@ -833,7 +804,14 @@ var ConversationView = {
 
         var pic = 'style/images/contact-placeholder.png';
 
-        var body = msg.body.replace(/\n/g, '<br />');
+        //Split body in different lines if the sms contains \n
+        var msgLines = msg.body.split('\n');
+        //Apply the escapeHTML body to each line
+        msgLines.forEach(function(line, index) {
+          msgLines[index] = escapeHTML(line);
+        });
+        //Join them back with <br />
+        var body = msgLines.join('<br />');
         var timestamp = msg.timestamp.getTime();
 
         fragment += '<div class="message-block" ' + 'data-num="' + dataNum +
@@ -841,7 +819,7 @@ var ConversationView = {
                     '  <input type="checkbox" class="fake-checkbox"/>' +
                     '  <span></span>' +
                     '  <div class="message-container ' + className + '>' +
-                    '    <div class="text">' + escapeHTML(body) + '</div>' +
+                    '    <div class="text">' + body + '</div>' +
                     '    <div class="time" data-time="' + timestamp + '">' +
                     prettyDate(msg.timestamp) + '</div>' +
                     '  </div>' +
@@ -955,7 +933,7 @@ var ConversationView = {
       break;
 
       case 'click':
-        var targetIsMessage = evt.target.classList.contains('message');
+        var targetIsMessage = ~evt.target.className.indexOf('message');
         if (evt.currentTarget == this.view && targetIsMessage) {
           this.onListItemClicked(evt);
         }
@@ -1081,21 +1059,11 @@ var ConversationView = {
 };
 
 window.addEventListener('localized', function showBody() {
-  // TODO get the [lang]-[REGION] setting if any
-  if (navigator.mozSettings) {
-    var request = navigator.mozSettings.getLock().get('language.current');
-    request.onsuccess = function() {
-      ConversationView.init();
-      ConversationListView.init();
-    }
-  }
+  ConversationView.init();
+  ConversationListView.init();
 
   // Set the 'lang' and 'dir' attributes to <html> when the page is translated
-  if (document.mozL10n && document.mozL10n.language) {
-    var lang = document.mozL10n.language;
-    var html = document.querySelector('html');
-    html.setAttribute('lang', lang.code);
-    html.setAttribute('dir', lang.direction);
-  }
+  document.documentElement.lang = navigator.mozL10n.language.code;
+  document.documentElement.dir = navigator.mozL10n.language.direction;
 });
 

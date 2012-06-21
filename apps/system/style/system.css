@@ -25,9 +25,9 @@ body {
 #homescreen {
   position: absolute;
   left: 0px;
-  top: 32px;
+  top: 20px;
   width: 100%;
-  height: -moz-calc(100% - 32px);
+  height: -moz-calc(100% - 20px);
   border: 0px;
   overflow: hidden;
 }
@@ -58,7 +58,7 @@ body {
   padding: 0;
   overflow: auto;
   left: 0;
-  top: 32px;
+  top: 20px;
   z-index: 1;
 
 /*
@@ -83,10 +83,10 @@ body {
 
 div.windowSprite {
   position: absolute;
-  top: 32px;
+  top: 20px;
   left: 0;
   width: 100%;
-  height: -moz-calc(100% - 32px);
+  height: -moz-calc(100% - 20px);
   z-index: 9999;
   -moz-transition: -moz-transform 0.5s ease, opacity 0.5s ease;
 }

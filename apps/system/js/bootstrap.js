@@ -61,7 +61,6 @@ var Shortcuts = {
 
 /* === focuschange === */
 /* XXX: should go to keyboard_manager.js */
-
 try {
   window.navigator.mozKeyboard.onfocuschange = function onfocuschange(evt) {
     switch (evt.detail.type) {
@@ -80,35 +79,10 @@ try {
   };
 } catch (e) {}
 
-/* === Localization ===
-*  This thing here will push setting change into mozL10n for it to
-*  load the new locale.
-*  Each time mozL10n loads the new locale (including first load),
-*  it will dispatch a 'localized' event.
-*
-*  XXX: mozL10n should handle setting change by itself if possible.
-*
-*/
+/* === Localization === */
+/* set the 'lang' and 'dir' attributes to <html> when the page is translated */
+window.addEventListener('localized', function onlocalized() {
+  document.documentElement.lang = navigator.mozL10n.language.code;
+  document.documentElement.dir = navigator.mozL10n.language.direction;
+});
 
-(function l10n() {
-  var called = false;
-  SettingsListener.observe('language.current', 'en-US',
-    (function localeChanged(lang) {
-      // Skip the first callback firing
-      if (!called) {
-        called = true;
-        return;
-      }
-
-      // Update <html> lang attribute
-      document.documentElement.lang = lang;
-      // Setting the code properties here will make mozL10n translate
-      // HTML again
-      document.mozL10n.language.code = lang;
-
-      // Update <html> dir attribute
-      document.documentElement.dir =
-        document.mozL10n.language.direction;
-    }).bind(this)
-  );
-})();
