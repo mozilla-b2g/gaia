@@ -16,9 +16,11 @@ var ModalDialog = {
   prefix: 'modal-dialog-',
 
   // DOM
-  elements: ['alert', 'alert-ok', 'alert-message',
+  elementID: ['alert', 'alert-ok', 'alert-message',
     'prompt', 'prompt-ok', 'prompt-cancel', 'prompt-input', 'prompt-message',
     'confirm', 'confirm-ok', 'confirm-cancel', 'confirm-message'],
+
+  elements: {},
 
   // Get all elements when inited.
   getAllElements: function md_getAllElements() {
@@ -29,8 +31,9 @@ var ModalDialog = {
     };
 
     // Loop and add element with camel style name to Modal Dialog attribute.
-    this.elements.forEach(function createElementRef(name) {
-      this[toCamelCase(name)] = document.getElementById(this.prefix + name);
+    this.elementID.forEach(function createElementRef(name) {
+      this.elements[toCamelCase(name)] =
+        document.getElementById(this.prefix + name);
     }, this);
 
     this.overlay = document.getElementById('modal-dialog');
@@ -45,11 +48,11 @@ var ModalDialog = {
 
     // Bind events
     window.addEventListener('mozbrowsershowmodalprompt', this);
-    this.alertOk.addEventListener('click', this);
-    this.confirmOk.addEventListener('click', this);
-    this.confirmCancel.addEventListener('click', this);
-    this.promptOk.addEventListener('click', this);
-    this.promptCancel.addEventListener('click', this);
+    this.elements.alertOk.addEventListener('click', this);
+    this.elements.confirmOk.addEventListener('click', this);
+    this.elements.confirmCancel.addEventListener('click', this);
+    this.elements.promptOk.addEventListener('click', this);
+    this.elements.promptCancel.addEventListener('click', this);
   },
 
   // Default event handler
@@ -57,12 +60,11 @@ var ModalDialog = {
     switch (evt.type) {
       case 'mozbrowsershowmodalprompt':
         evt.preventDefault();
-        this.overlay.classList.add('visible');
         this.blocked = true;
 
         // check if there is another modal dialog now.
         // unblock the previous mozbrowsershowmodalprompt event
-        if (this.evt) {
+        if (this.evt && this.evt.detail.unblock) {
           this.evt.detail.unblock();
         }
 
@@ -71,8 +73,8 @@ var ModalDialog = {
         break;
 
       case 'click':
-        if (evt.currentTarget === this.confirmCancel ||
-            evt.currentTarget === this.promptCancel) {
+        if (evt.currentTarget === this.elements.confirmCancel ||
+            evt.currentTarget === this.elements.promptCancel) {
           this.cancelHandler();
         } else {
           this.confirmHandler();
@@ -84,22 +86,23 @@ var ModalDialog = {
   // Show relative dialog and set message/input value well
   show: function md_show() {
       var message = this.evt.detail.message;
+      this.overlay.classList.add('visible');
 
       switch (this.evt.detail.promptType) {
         case 'alert':
-          this.alertMessage.textContent = message;
-          this.alert.classList.add('visible');
+          this.elements.alertMessage.textContent = message;
+          this.elements.alert.classList.add('visible');
           break;
 
         case 'prompt':
-          this.prompt.classList.add('visible');
-          this.promptInput.value = this.evt.detail.initialValue;
-          this.promptMessage.textContent = message;
+          this.elements.prompt.classList.add('visible');
+          this.elements.promptInput.value = this.evt.detail.initialValue;
+          this.elements.promptMessage.textContent = message;
           break;
 
         case 'confirm':
-          this.confirm.classList.add('visible');
-          this.confirmMessage.textContent = message;
+          this.elements.confirm.classList.add('visible');
+          this.elements.confirmMessage.textContent = message;
           break;
       }
   },
@@ -110,17 +113,17 @@ var ModalDialog = {
 
     switch (this.evt.detail.promptType) {
       case 'alert':
-        this.alert.classList.remove('visible');
+        this.elements.alert.classList.remove('visible');
         break;
 
       case 'prompt':
         this.evt.detail.returnValue = this.promptInput.value;
-        this.prompt.classList.remove('visible');
+        this.elements.prompt.classList.remove('visible');
         break;
 
       case 'confirm':
         this.evt.detail.returnValue = true;
-        this.confirm.classList.remove('visible');
+        this.elements.confirm.classList.remove('visible');
         break;
     }
 
@@ -142,19 +145,19 @@ var ModalDialog = {
 
     switch (this.evt.detail.promptType) {
       case 'alert':
-        this.alert.classList.remove('visible');
+        this.elements.alert.classList.remove('visible');
         break;
 
       case 'prompt':
         /* return null when click cancel */
         this.evt.detail.returnValue = null;
-        this.prompt.classList.remove('visible');
+        this.elements.prompt.classList.remove('visible');
         break;
 
       case 'confirm':
         /* return false when click cancel */
         this.evt.detail.returnValue = false;
-        this.confirm.classList.remove('visible');
+        this.elements.confirm.classList.remove('visible');
         break;
     }
 
@@ -169,6 +172,7 @@ var ModalDialog = {
     this.evt = null;
   },
 
+  // The below is for system apps to use.
   alert: function(text, callback) {
     this.makePseudoEvent({
       type: 'alert',
@@ -179,7 +183,7 @@ var ModalDialog = {
 
   confirm: function(text, callback, cancel) {
     this.makePseudoEvent({
-      type: 'alert',
+      type: 'confirm',
       text: text,
       callback: callback,
       cancel: cancel
@@ -188,7 +192,7 @@ var ModalDialog = {
 
   prompt: function(text, default_value, callback) {
     this.makePseudoEvent({
-      type: 'alert',
+      type: 'prompt',
       text: text,
       initialValue: default_value,
       callback: callback
@@ -196,7 +200,7 @@ var ModalDialog = {
   },
 
   makePseudoEvent: function(configuration) {
-    if (this.evt) {
+    if (this.evt && this.evt.detail.unblock) {
       this.evt.detail.unblock();
     }
 
@@ -209,6 +213,7 @@ var ModalDialog = {
 
     pseudo_evt.detail.message = configuration.text;
     pseudo_evt.callback = configuration.callback;
+    pseudo_evt.detail.promptType = configuration.type;
     switch (configuration.type) {
       case 'alert':
         break;

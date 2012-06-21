@@ -72,7 +72,7 @@ var SleepMenu = {
   generateItems: function sm_generateItems() {
     var items = [];
     var settings = window.navigator.mozSettings;
-    var _ = navigator.mozL10n.get;
+    var _ = document.mozL10n.get;
     var options = {
       airplane: {
         label: _('airplane'),
@@ -227,17 +227,11 @@ var SleepMenu = {
         break;
 
       case 'restart':
-        ModalDialog.confirm('the_system_will_reboot', function(value) {
-          if (value)
-            navigator.mozPower.reboot();
-        });
+        navigator.mozPower.reboot();
         break;
 
       case 'power':
-        ModalDialog.confirm('the_system_will_poweroff', function(value) {
-          if (value)
-            navigator.mozPower.powerOff();
-        });
+        navigator.mozPower.powerOff();
         break;
     }
   }
