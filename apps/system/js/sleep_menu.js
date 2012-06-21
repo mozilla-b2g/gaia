@@ -8,7 +8,7 @@ var SleepMenu = {
   isFlightModeEnabled: true,
 
   // Indicate setting status of volume
-  isVolumeEnabled: true,
+  isSilentModeEnabled: false,
 
   // Reserve settings before turn on flight mode
   reservedSettings: {
@@ -20,45 +20,47 @@ var SleepMenu = {
     geolocation: false
   },
 
-  restoreSettings: function sm_restoreSettings() {
+  offFlightMode: function sm_offFlightMode() {
     var settings = navigator.mozSettings;
     if (settings && this.reservedSettings.data) {
       settings.getLock().set({'ril.data.disabled': this.reservedSettings.data});
     }
 
     var wifiManager = navigator.mozWifiManager;
-    if (wifiManager && this.reservedSettings.wifi) {
-      wifiManager.setEnabled(!!this.reservedSettings.wifi);
+    if (wifiManager && this.reservedSettings.wifi && !wifiManager.enabled) {
+      wifiManager.setEnabled(this.reservedSettings.wifi);
     }
 
     var bluetooth = navigator.mozBluetooth;
-    if (bluetooth && this.reservedSettings.bluetooth) {
-      bluetooth.setEnabled(!!this.reservedSettings.bluetooth);
+    if (bluetooth && this.reservedSettings.bluetooth && !bluetooth.enabled) {
+      bluetooth.setEnabled(this.reservedSettings.bluetooth);
     }
   },
 
-  fetchSettings: function sm_fetchSettings() {
+  onFlightMode: function sm_onFlightMode() {
     var settings = navigator.mozSettings;
     if (settings) {
       var req = settings.getLock().get(this.umsEnabled);
       req.onsuccess = function sm_EnabledFetched() {
-        self.reservedSettings.data = !!req.result['ril.data.disabled'];
+        self.reservedSettings.data = req.result['ril.data.disabled'];
+        settings.getLock().set({'ril.data.disabled': this.isFlightModeEnabled});
       };
     }
 
     var wifiManager = navigator.mozWifiManager;
     if (wifiManager) {
-      this.reservedSettings.wifi = !!wifiManager.enabled;
+      this.reservedSettings.wifi = wifiManager.enabled;
+      wifiManager.setEnabled(!this.isFlightModeEnabled);
     }
 
     var bluetooth = navigator.mozBluetooth;
     if (bluetooth) {
-      this.reservedSettings.bluetooth = !!bluetooth.enabled;
+      this.reservedSettings.bluetooth = bluetooth.enabled;
+      bluetooth.setEnabled(!this.isFlightModeEnabled);
     }
   },
 
   init: function sm_init() {
-    window.addEventListener('volumechange', this);
     window.addEventListener('keydown', this, true);
     window.addEventListener('keyup', this, true);
   },
@@ -112,7 +114,7 @@ var SleepMenu = {
       items.push(options.airplane);
     }
 
-    if (this.isVolumeEnabled) {
+    if (!this.isSilentModeEnabled) {
       items.push(options.silent);
     } else {
       items.push(options.silentOff);
@@ -195,49 +197,43 @@ var SleepMenu = {
           this.isFlightModeEnabled = !this.isFlightModeEnabled;
 
           if (this.isFlightModeEnabled) {
-            this.fetchSettings();
+            this.onFlightMode();
           } else {
-            this.restoreSettings();
+            this.offFlightMode();
           }
 
           settings.getLock().set({
-            'ril.radio.disabled': this.isFlightModeEnabled,
-            'ril.data.disabled': this.isFlightModeEnabled
+            'ril.radio.disabled': this.isFlightModeEnabled
           });
-
-          var bluetooth = navigator.mozBluetooth;
-          if (bluetooth) {
-            bluetooth.setEnabled(!this.isFlightModeEnabled);
-          }
-
-          var wifiManager = navigator.mozWifiManager;
-          if (wifiManager) {
-            wifiManager.setEnabled(!this.isFlightModeEnabled);
-          }
         }
         break;
 
+      // About silent and silentOff
+      // * Turn on silent mode will cause:
+      //   * Turn off ringtone no matter if ring is on or off.
+      //   * Turn on vibration no matter if vibration is on or off.
+      // * Turn off silent mode will cause:
+      //   * Turn on ringtone no matter if ring is on or off.
+      //   * Turn off vibration no matter if vibration is on or off.
       case 'silent':
         var settings = window.navigator.mozSettings;
-        if (settings)
-        {
+        if (settings) {
           settings.getLock().set({
             'phone.ring.incoming': false,
             'phone.vibration.incoming': true
           });
-          this.isVolumeEnabled = false;
+          this.isSilentModeEnabled = true;
         }
         break;
 
       case 'silentOff':
         var settings = window.navigator.mozSettings;
-        if (settings)
-        {
+        if (settings) {
           settings.getLock().set({
             'phone.ring.incoming': true,
             'phone.vibration.incoming': false
           });
-          this.isVolumeEnabled = true;
+          this.isSilentModeEnabled = false;
         }
         break;
 
