@@ -4,7 +4,7 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <link href="bootzilla/style/css/package.css" rel="stylesheet">
+    <link href="style/css/package.css" rel="stylesheet">
     <link href="style/contacts.css" rel="stylesheet">
     <link rel="resource" type="application/l10n" href="locale/contacts.properties"/>
 
@@ -76,47 +76,44 @@
             <div class="appcnts-profile-head">
               <!-- Default img so far, as UX have to define what to do when no image -->
               <figure  id='cover-img'><img data-template src="#photo#" alt=""></figure>
-              <nav class="tabs">
-                <ul class="grid">
-                  <li id='info-tab' class="active"><a href="#"><i class="i-profile">Information</i></a></li>
-                  <li id='feed-tab'><a href="#"><i class="i-log">Feed</i></a></li>
-                </ul>
-              </nav>
             </div>
             <section class="appcnts-profile-section">
               <!--
               We need some UX clarifications before using this field
               <h1 id='tag_field' data-template>#tag_field#</h1>
               -->
+
+              <!-- Phone Template -->
+              <li id='phone-details-template' data-template>
+                <h2>#tel_type#</h2>
+                <div class="item">
+                  <div class="itm-media pull-right">
+                    <button class="action"><i class="i-message">Message</i></button>
+                  </div>
+                  <div class="itm-body-exp">
+                    <button class="action">
+                      <i class="i-call">Call</i>
+                      <b>#number#</b>
+                      <em>#notes#</em>
+                    </button>
+                  </div>
+                </div>
+              </li>
+              <!-- Email Template -->
+              <li id='email-details-template' data-template>
+                <h2>#email_tag#</h2>
+                <div class="item">
+                  <div class="itm-body-exp">
+                    <button class="action">
+                      <i class="i-email">E-mail</i>
+                      <b>#email#</b>
+                    </button>
+                  </div>
+                </div>
+              </li>
+
               <ul id='details-list'>
-                <li data-template data-condition= "type === 'tel'">
-                  <h2>#tel_type#</h2>
-                  <div class="item">
-                    <div class="itm-media pull-right">
-                      <button class="action"><i class="i-message">Message</i></button>
-                    </div>
-                    <div class="itm-body-exp">
-                      <button class="action">
-                        <i class="i-call">Call</i>
-                        <b>#number#</b>
-                        <em>#notes#</em>
-                      </button>
-                    </div>
-                  </div>
-                </li>
-
-                <li data-template data-condition= "type === 'email'">
-                  <h2>#email_tag#</h2>
-                  <div class="item">
-                    <div class="itm-body-exp">
-                      <button class="action">
-                        <i class="i-email">E-mail</i>
-                        <b>#email#</b>
-                      </button>
-                    </div>
-                  </div>
-                </li>
-
+                <!-- Iterating mails and phones here -->
               </ul>
             </section>
           </div>
@@ -246,10 +243,10 @@
         </article>
       </div>
     </section>
-  <script type="text/javascript" src="bootzilla/js/base/responsive.js"></script>
-  <script type="text/javascript" src="bootzilla/js/utilities/xmlevents.js"></script>
-  <script type="text/javascript" src="bootzilla/js/utilities/templates.js"></script>
-  <script type="text/javascript" src="bootzilla/js/utilities/lazyload.js"></script>
+  <script type="text/javascript" src="js/utilities/responsive.js"></script>
+  <script type="text/javascript" src="js/utilities/xmlevents.js"></script>
+  <script type="text/javascript" src="js/utilities/templates.js"></script>
+  <script type="text/javascript" src="js/utilities/lazyload.js"></script>
   <script type="text/javascript" src="js/contactslist.js"></script>
   <script type="text/javascript" src="js/contacts.js"></script>
   <script type="text/javascript" src="js/alphascroll.js"></script>
