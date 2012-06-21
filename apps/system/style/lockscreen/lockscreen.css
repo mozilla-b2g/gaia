@@ -246,29 +246,38 @@
   display: none;
 }
 
+#lockscreen-passcode-status {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100px;
+  margin: 0;
+  padding: 20px 28px;
+  -moz-box-sizing: border-box;
+  font-size: 32px;
+  line-height: 32px;
+  text-shadow: 0 0 3px #333;
+}
+
 /* Smiley */
 #lockscreen-panel-passcode::before {
   content: ': )';
   position: absolute;
   display: block;
 
-  top: 16px;
-  width: 100%;
+  top: 30px;
+  width: 20%;
+  right: 20px;
   text-align: center;
 
-  color: #ccc;
-  font-size: 80px;
+  color: #fff;
+  text-shadow: 0 0 3px #333;
+  font-size: 40px;
   font-weight: 600;
   letter-spacing: -2px;
   line-height: 1.1em;
   text-shadow: 0 0 10px rgba(255, 255, 255, .4), 0 0 3px rgba(255, 255, 255, .3);
-}
-
-@media screen and (height: 800px) {
-  #lockscreen-panel-passcode::before {
-    top: 80px;
-    font-size: 100px;
-  }
 }
 
 [data-passcode-status="error"] #lockscreen-panel-passcode::before {
@@ -281,53 +290,45 @@
 
 #lockscreen-passcode-code {
   position: absolute;
-  bottom: 240px;
-  height: 80px;
+  bottom: 214px;
+  height: 72px;
   width: 100%;
-  background-color: rgba(255, 255, 255, 0.5);
+  background: -moz-linear-gradient(#2b2e33, #424851);
   margin: 0;
-}
-
-@media screen and (height: 800px) {
-  #lockscreen-passcode-code {
-    bottom: 400px;
-    height: 120px;
-  }
+  padding: 0 8px;
+  -moz-box-sizing: border-box;
+  border-top: #434953;
+  border-bottom: #000;
 }
 
 #lockscreen-passcode-code > span {
   -moz-box-sizing: border-box;
   display: block;
   float: left;
-  width: 25%;
-  height: 100%;
+  width: -moz-calc(25% - 8px);
+  margin: 16px 4px;
+  height: -moz-calc(100% - 32px);
   text-align: center;
-  border: 15px solid #919191;
-  box-shadow: 0 0 10px #fff inset;
+  box-shadow: 0 0 8px #999 inset;
+  background-color: #fff;
+  border-radius: 5px;
 
   position: relative;
 }
 
-@media screen and (height: 800px) {
-  #lockscreen-passcode-code > span {
-    border: 20px solid #919191;
-  }
+[data-passcode-status="error"] #lockscreen-passcode-code > span {
+  box-shadow: 0 0 8px #f00 inset;
 }
 
-
-[data-passcode-status="error"] #keypadscreen-code > span {
-  box-shadow: 0 0 10px #f00 inset;
-}
-
-[data-passcode-status="error"] #keypadscreen-code > span[data-dot]::before {
+[data-passcode-status="error"] #lockscreen-passcode-code > span[data-dot]::before {
   background-color: #f00;
 }
 
-[data-passcode-status="success"] #keypadscreen-code > span {
-  box-shadow: 0 0 10px #0c0 inset;
+[data-passcode-status="success"] #lockscreen-passcode-code > span {
+  box-shadow: 0 0 8px #0c0 inset;
 }
 
-[data-passcode-status="success"] #keypadscreen-code > span[data-dot]::before {
+[data-passcode-status="success"] #lockscreen-passcode-code > span[data-dot]::before {
   background-color: #0c0;
 }
 
@@ -346,60 +347,51 @@
   margin-top: -15px;
 }
 
-@media screen and (height: 800px) {
-  #lockscreen-passcode-code > span[data-dot]::before {
-    width: 50px;
-    height: 50px;
-    border-radius: 25px;
-    margin-left: -25px;
-    margin-top: -25px;
-  }
-}
-
 #lockscreen-passcode-pad {
   -moz-box-sizing: border-box;
-  border: 1px solid #919191;
   position: absolute;
   bottom: 0;
-  height: 240px;
+  height: 214px;
   width: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
 }
-
-@media screen and (height: 800px) {
-  #lockscreen-passcode-pad {
-    height: 400px;
-  }
-}
-
 
 #lockscreen-passcode-pad > a {
   -moz-box-sizing: border-box;
   display: block;
   float: left;
-  width: -moz-calc(33.333% - 8px);
-  height: 52px;
-  margin: 4px;
-  text-align: center;
-  border: 1px solid #919191;
-  border-radius: 8px;
+  width: 33.333%;
+  height: 50px;
+  border-top: 1px solid rgba(255, 255, 255, 0.8);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.8);
   outline: none;
+  padding: 0 20px;
 
-  font-size: 40px;
-  line-height: 52px;
+  font-size: 32px;
+  line-height: 50px;
 
-  color: #919191;
+  color: #fff;
   text-decoration: none;
+  text-shadow: 0 0 3px #000;
 }
 
-@media screen and (height: 800px) {
-  #lockscreen-passcode-pad > a {
-    width: -moz-calc(33.333% - 16px);
-    height: 84px;
-    margin: 8px;
+#lockscreen-passcode-pad > a > span {
+  pointer-events: none;
+  font-size: 12px;
+  padding: 12px;
+}
 
-    font-size: 64px;
-    line-height: 84px;
-  }
+.passcode-entered #lockscreen-passcode-pad > a[data-key="c"] {
+  display: none;
+}
+
+#lockscreen-passcode-pad > a[data-key="b"] {
+  display: none;
+  text-align: center;
+}
+
+.passcode-entered #lockscreen-passcode-pad > a[data-key="b"] {
+  display: block;
 }
 
 #lockscreen-passcode-pad > a:active {
@@ -408,13 +400,11 @@
 }
 
 #lockscreen-passcode-pad > a.lockscreen-passcode-pad-func {
-  font-size: 16px;
-}
-
-@media screen and (height: 800px) {
-  #lockscreen-passcode-pad > a.lockscreen-passcode-pad-func {
-    font-size: 20px;
-  }
+  font-size: 12px;
+  line-height: 16px;
+  padding: 10px 0;
+  text-align: center;
+  text-transform: uppercase;
 }
 
 #lockscreen-panel-emergency-call {

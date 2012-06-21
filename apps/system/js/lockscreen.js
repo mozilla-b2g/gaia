@@ -267,12 +267,12 @@ var LockScreen = {
       case 'e': // Emergency Call
         this.switchPanel('emergency-call');
         break;
-      case 'b':
-        if (!this.passCodeEntered) {
-          this.switchPanel();
-          break;
-        }
 
+      case 'c':
+        this.switchPanel();
+        break;
+
+      case 'b':
         this.passCodeEntered =
           this.passCodeEntered.substr(0, this.passCodeEntered.length - 1);
         this.updatePassCodeUI();
@@ -433,13 +433,19 @@ var LockScreen = {
   },
 
   updatePassCodeUI: function lockscreen_updatePassCodeUI() {
+    if (this.passCodeEntered) {
+      this.overlay.classList.add('passcode-entered');
+    } else {
+      this.overlay.classList.remove('passcode-entered');
+    }
     var i = 4;
     while (i--) {
       var span = this.passcodeCode.childNodes[i];
-      if (this.passCodeEntered.length > i)
+      if (this.passCodeEntered.length > i) {
         span.dataset.dot = true;
-      else
+      } else {
         delete span.dataset.dot;
+      }
     }
   },
 
