@@ -57,7 +57,7 @@ if (!contacts.List) {
 
     var getContactsByGroup = function getContactsByGroup(successCb, errorCb) {
       var options = {
-        sortBy: 'givenName',
+        sortBy: 'familyName',
         sortOrder: 'ascending'
       };
 
