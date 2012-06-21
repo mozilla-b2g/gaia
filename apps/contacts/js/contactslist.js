@@ -69,7 +69,7 @@ if (!contacts.List) {
         var result = {};
         var contacts = request.result;
         for (var i = 0; i < contacts.length; i++) {
-          var letter = contacts[i].familyName[0].charAt(0).toUpperCase();
+          var letter = getGroupName(contacts[i].familyName[0]);
           if (!result.hasOwnProperty(letter)) {
             result[letter] = [];
           }
@@ -119,7 +119,7 @@ if (!contacts.List) {
     var add = function add(id) {
       getContactById(id, function(contact) {
         var newLi, familyName = contact.familyName[0];
-        var group = familyName.charAt(0).toUpperCase();
+        var group = getGroupName(familyName);
         var list = groupsList.querySelector('#contacts-list-' + group);
         var liElems = list.getElementsByTagName('li');
         var len = liElems.length;
@@ -159,7 +159,7 @@ if (!contacts.List) {
     var remove = function remove(id) {
       var item = groupsList.querySelector('li[data-uuid=\"' + id + '\"]');
       if (item) {
-        var group = item.querySelector('b').textContent.charAt(0).toUpperCase();
+        var group = getGroupName(item.querySelector('b').textContent);
         var ol = item.parentNode;
         ol.removeChild(item);
         if (ol.children.length === 1) {
@@ -168,6 +168,18 @@ if (!contacts.List) {
         }
         lazyload.reload();
       }
+    }
+
+    var getGroupName = function getGroupName(txt) {
+      var ret = txt.charAt(0).toUpperCase();
+
+      ret = ret.replace(/[ÁÀ]/ig,"A");
+      ret = ret.replace(/[ÉÈ]/ig,"E");
+      ret = ret.replace(/[ÍÌ]/ig,"I");
+      ret = ret.replace(/[ÓÒ]/ig,"O");
+      ret = ret.replace(/[ÚÙ]/ig,"U");
+
+      return ret;
     }
 
     var reload = function reload(id) {
