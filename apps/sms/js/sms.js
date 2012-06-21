@@ -367,6 +367,7 @@ var ConversationListView = {
            ' data-name="' + dataName + '"' +
            ' data-notempty="' + (conversation.timestamp ? 'true' : '') + '"' +
            ' class="' + (conversation.unreadCount > 0 ? 'unread' : '') + '">' +
+           '<span class="unread-mark"><i class="i-unread-mark"></i></span>' +
            '<input type="checkbox" class="fake-checkbox"/>' + '<span></span>' +
            '  <div class="name">' + name + '</div>' +
            '  <div class="msg">' + bodyHTML + '</div>' +
