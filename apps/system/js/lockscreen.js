@@ -87,8 +87,8 @@ var LockScreen = {
     window.addEventListener('mozChromeEvent', this);
 
     /* Gesture */
-    this.areaStart.addEventListener('mousedown', this);
-    window.addEventListener('mouseup', this);
+    this.areaCamera.addEventListener('mousedown', this);
+    this.areaUnlock.addEventListener('mousedown', this);
 
     /* Passcode input pad*/
     this.passcodePad.addEventListener('click', this);
@@ -183,20 +183,22 @@ var LockScreen = {
       case 'mousedown':
         this._touch = {
           x: evt.screenX,
-          y: evt.screenY
+          y: evt.screenY,
+          target: evt.target
         };
         this.overlay.classList.add('touch');
+        window.addEventListener('mouseup', this);
         break;
 
       case 'mouseup':
-        if (!this._touch)
-          return;
         var dx = evt.screenX - this._touch.x;
         var dy = evt.screenY - this._touch.y;
+        var target = this._touch.target;
         delete this._touch;
-        this.overlay.classList.remove('touch');
 
-        this.handleGesture(dx, dy);
+        this.handleGesture(dx, dy, target);
+        this.overlay.classList.remove('touch');
+        window.removeEventListener('mouseup', this);
         break;
 
       case 'keyup':
@@ -230,32 +232,34 @@ var LockScreen = {
     }
   },
 
-  handleGesture: function ls_handleGesture(dx, dy) {
+  handleGesture: function ls_handleGesture(dx, dy, target) {
     var dim = {
       x: this.overlay.offsetWidth,
       y: this.overlay.offsetHeight
     };
 
-    // These are gesture rule with camera gesture
-
     var ratioX = dx / this.overlay.offsetWidth;
     var ratioY = dy / this.overlay.offsetHeight;
 
-    if (Math.abs(ratioY) > 0.2) {
-      // Go upwards - do nothing
+    // Do nothing if not moving upward
+    if (ratioY > -0.1)
       return;
-    }
 
-    if (ratioX > 0.2) {
-      this.switchPanel('camera');
-    } else if (ratioX < -0.2) {
-      // Moving left to unlock icon
-      if (!this.passCodeEnabled) {
-        this.unlock();
-      } else {
-        this.switchPanel('passcode');
-      }
-    }
+    switch (target) {
+      case this.areaCamera:
+        // Moving up from the camera icon
+        this.switchPanel('camera');
+        break;
+
+      case this.areaUnlock:
+        // Moving up from the unlock icon
+        if (!this.passCodeEnabled) {
+          this.unlock();
+        } else {
+          this.switchPanel('passcode');
+        }
+        break;
+    };
   },
 
   handlePassCodeInput: function ls_handlePassCodeInput(key) {
@@ -472,7 +476,7 @@ var LockScreen = {
     var elements = ['mute', 'clock', 'date',
         'notification', 'notification-icon', 'notification-title',
         'notification-detail', 'notification-time',
-        'area-unlock', 'area-start', 'area-camera',
+        'area-unlock', 'area-camera',
         'passcode-code', 'passcode-pad',
         'camera'];
 
