@@ -43,9 +43,12 @@ var BackgroundServiceManager = (function bsm() {
     var manifestURL = evt.target.getAttribute('mozapp');
     var origin = evt.target.dataset.frameOrigin;
 
-    var frame = open(origin, evt.detail.name, evt.detail.url);
-    if (frame)
-      evt.detail.frameElement = frame;
+    var detail = evt.detail;
+    var opened = open(origin, detail.name, detail.url, detail.frameElement);
+    if (!opened) {
+      // Nullified unopened frame element.
+      evt.detail.frameElement = null;
+    }
   }, true);
 
   /* mozbrowserclose */
@@ -85,17 +88,20 @@ var BackgroundServiceManager = (function bsm() {
   };
 
   /* The open function is responsible of containing the iframe */
-  var open = function bsm_open(origin, name, url) {
+  var open = function bsm_open(origin, name, url, frame) {
     var app = Applications.getByOrigin(origin);
     if (!app || !hasBackgroundPermission(app))
       return false;
 
     if (frames[origin] && frames[origin][name]) {
-      frames[origin][name].src = url;
-      return frames[origin][name];
+      // XXX: the window with the same name is opened but we cannot
+      // return the window reference back to mozbrowseropenwindow request
+      return false;
     }
 
-    var frame = document.createElement('iframe');
+    if (!frame) {
+      frame = document.createElement('iframe');
+    }
     frame.className = 'backgroundWindow';
     frame.setAttribute('mozbrowser', 'true');
     frame.setAttribute('mozapp', app.manifestURL);
@@ -109,7 +115,7 @@ var BackgroundServiceManager = (function bsm() {
     frames[origin][name] = frame;
 
     document.body.appendChild(frame);
-    return frames[origin][name];
+    return true;
   };
 
   /* The close function will remove the iframe from DOM and

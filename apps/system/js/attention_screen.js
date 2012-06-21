@@ -44,7 +44,7 @@ var AttentionScreen = {
     // preventDefault means "we're handling this popup; let it through."
     evt.preventDefault();
 
-    var attentionFrame = document.createElement('iframe');
+    var attentionFrame = evt.detail.frameElement;
     attentionFrame.setAttribute('mozbrowser', 'true');
     attentionFrame.setAttribute('mozapp', evt.target.getAttribute('mozapp'));
     attentionFrame.dataset.frameType = 'attention';
@@ -64,8 +64,6 @@ var AttentionScreen = {
     this._screenInitiallyDisabled = !ScreenManager.screenEnabled;
     if (this._screenInitiallyDisabled)
       ScreenManager.turnScreenOn();
-
-    evt.detail.frameElement = attentionFrame;
   },
 
   close: function as_close(evt) {
