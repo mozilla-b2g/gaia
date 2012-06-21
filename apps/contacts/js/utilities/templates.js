@@ -137,7 +137,6 @@ if (!owd.templates) {
       function templateReplace(data) {
         return function(text,property) {
           var ret;
-          // window.console.log("Replacing inner: " + t);
           if (property.indexOf('.') === -1) {
             ret = data[property];
           }

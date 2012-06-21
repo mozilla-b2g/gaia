@@ -78,7 +78,6 @@ if (typeof window.responsive === 'undefined') {
     font_size = font_size.toFixed(2);
     root.style.fontSize = font_size + '%';
 
-    window.console.log('Responsive has been executed!');
   };
 
   scale.bind(responsive)();

@@ -92,7 +92,6 @@ if (!contacts.app) {
       cList.init('groups-list');
       cList.load();
       cList.addEventListener('click', function(contact) {
-        console.log('Contact clicked: ' + contact.id);
         currentContact = contact;
         doShowContactDetails(contact);
       });
