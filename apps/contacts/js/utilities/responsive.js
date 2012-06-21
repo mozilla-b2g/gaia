@@ -9,42 +9,43 @@
  *
  *  @author Ismael González (igonzaleznicolas@gmail.com)
  *
- *  This files is in charge of calculating the amoutn of resizing needed for the device
+ *  This files is in charge of calculating the amount
+ *  of resizing needed for the device
  *
 */
 
-if(typeof window.responsive === 'undefined') {
+if (typeof window.responsive === 'undefined') {
   (function(document) {
 
   var responsive = window.responsive = {};
 
   //Base config
-  responsive.base =  {
+  responsive.base = {
     font: 62.5,
     width: 320,
     height: 480,
     pixelRatio: 1,
-    ratio: function () {
+    ratio: function() {
        return this.height / this.width;
     }
   };
 
   //Get some information of the device
-  responsive.device =  {
-    width: function () {
+  responsive.device = {
+    width: function() {
       return window.innerWidth;
     },
-    height: function () {
+    height: function() {
       return window.innerHeight;
     },
-    pixelRatio: function () {
-      if ( window.devicePixelRatio  ) {
+    pixelRatio: function() {
+      if (window.devicePixelRatio) {
         return window.devicePixelRatio;
       } else {
         return base.pixelRatio;
       }
     },
-    ratio: function () {
+    ratio: function() {
       var raw = this.height() / this.width();
       decimal_split(raw);
     }
@@ -56,7 +57,7 @@ if(typeof window.responsive === 'undefined') {
     var deviceWidth = this.device.width();
     var deviceHeight = this.device.height();
 
-    var scale_ratio =  deviceWidth / this.base.width;
+    var scale_ratio = deviceWidth / this.base.width;
 
     scale_ratio = scale_ratio.toFixed(2);
 
@@ -64,18 +65,18 @@ if(typeof window.responsive === 'undefined') {
     var font_size = this.base.font;
 
     //Check for non base width devices
-    if (  this.base.width != deviceWidth) {
+    if (this.base.width != deviceWidth) {
       font_size = scale_ratio * this.base.font;
     }
 
     //Check for portrait devices
-    if ( deviceWidth === deviceHeight || deviceWidth > deviceHeight ) {
+    if (deviceWidth === deviceHeight || deviceWidth > deviceHeight) {
       font_size = deviceWidth / 1000 * this.base.font;
     }
 
     //Apply final font-size
     font_size = font_size.toFixed(2);
-    root.style.fontSize = font_size + "%";
+    root.style.fontSize = font_size + '%';
 
     window.console.log('Responsive has been executed!');
   };

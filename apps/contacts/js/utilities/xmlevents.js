@@ -34,10 +34,10 @@
 var owd = window.owd || {};
 
 
-if(!owd.xmlevents) {
+if (!owd.xmlevents) {
   (function() {
     // Automagically attach the event handlers
-    window.addEventListener('DOMContentLoaded',attachHandlers);
+    window.addEventListener('DOMContentLoaded', attachHandlers);
 
     // To store the list of listeners
     var listeners = {};
@@ -48,8 +48,8 @@ if(!owd.xmlevents) {
     /**
      *  Attachs the specified listener to the subTree
      *
-     *  @param listenerId id of the listener element to be attached
-     *  @param subTree on which perform the attachment (document by default)
+     *  @param listenerId id of the listener element to be attached.
+     *  @param subTree on which perform the attachment (document by default).
      *
      *  subTree can be either a selector or a HTMLDOMElement
      *
@@ -57,8 +57,8 @@ if(!owd.xmlevents) {
     xmlEvents.attach = function(listenerId,subTree) {
       var listener = listeners[listenerId];
 
-      if(listener) {
-        addEventListener(listener,subTree);
+      if (listener) {
+        addEventListener(listener, subTree);
       }
     };  // xmlevents.attach
 
@@ -72,14 +72,14 @@ if(!owd.xmlevents) {
      *
      *
      */
-    function getHandler(f,prevent,stop) {
+    function getHandler(f, prevent, stop) {
       return function(e) {
         f(e);
-        if(prevent === true) {
+        if (prevent === true) {
           e.preventDefault();
         }
 
-        if(stop === true) {
+        if (stop === true) {
           e.stopPropagation();
         }
       };
@@ -91,19 +91,20 @@ if(!owd.xmlevents) {
      *
      */
     function attachHandlers() {
-      var scrBlocks = document.querySelectorAll('script.events[type="text/xml"]');
+      var selector = 'script.events[type="text/xml"]';
+      var scrBlocks = document.querySelectorAll(selector);
 
-      if(scrBlocks && scrBlocks.length > 0) {
+      if (scrBlocks && scrBlocks.length > 0) {
         var totalBlocks = scrBlocks.length;
 
-        for(var c = 0; c < totalBlocks; c++) {
-          var xmlContent = '<listeners>' + scrBlocks.item(c).textContent
-                                + '</listeners>';
+        for (var c = 0; c < totalBlocks; c++) {
+          var content = scrBlocks.item(c).textContent;
+          var xmlContent = '<listeners>' + content + '</listeners>';
 
           var oParser = new DOMParser();
-          var doc = oParser.parseFromString(xmlContent,"text/xml");
+          var doc = oParser.parseFromString(xmlContent, 'text/xml');
 
-          if(doc.documentElement.nodeName === "parsererror") {
+          if (doc.documentElement.nodeName === 'parsererror') {
               window.console.log('Error while parsing the listeners');
           }
           else {
@@ -111,7 +112,7 @@ if(!owd.xmlevents) {
 
             var nlisteners = elements.length;
 
-            for(var counter = 0; counter < nlisteners; counter++) {
+            for (var counter = 0; counter < nlisteners; counter++) {
               parseListener(elements[counter]);
             }
           } // totalBlocks iteration
@@ -120,7 +121,7 @@ if(!owd.xmlevents) {
 
       // Event handler is removed
       window.setTimeout(function() {
-        window.removeEventListener('DOMContentLoaded',attachHandlers) }, 0);
+        window.removeEventListener('DOMContentLoaded', attachHandlers) }, 0);
     } // attachHandlers
 
 
@@ -132,12 +133,12 @@ if(!owd.xmlevents) {
      *
      *
      */
-    function addEventListener(listener,subTree) {
+    function addEventListener(listener, subTree) {
       var sel = listener.target;
 
-      if(listener.observer && listener.target) {
+      if (listener.observer && listener.target) {
         sel = listener.observer + ' ' + listener.target;
-      } else if(listener.observer) {
+      } else if (listener.observer) {
         sel = listener.observer;
       }
 
@@ -145,18 +146,18 @@ if(!owd.xmlevents) {
       var tree = document;
 
       // Checking whether it is a DOM element or a selector to a DOM element
-      if(subTree && !subTree.tagName) {
+      if (subTree && !subTree.tagName) {
         tree = document.querySelector(subTree);
       }
-      else if(subTree && subTree.tagName) {
+      else if (subTree && subTree.tagName) {
         tree = subTree;
       }
 
       // the affected elements
       var elements = tree.querySelectorAll(sel);
 
-      if(elements.length > 0) {
-        for(var i = 0; i < elements.length; i++) {
+      if (elements.length > 0) {
+        for (var i = 0; i < elements.length; i++) {
           elements.item(i).addEventListener(listener.eventx,
                                             listener.theFunction,
                                                 listener.useCapture);
@@ -182,7 +183,7 @@ if(!owd.xmlevents) {
       // Check whether phase is capture or not
       var phase = e.getAttribute('phase');
       listener.useCapture = false;
-      if(phase && phase === 'capture') {
+      if (phase && phase === 'capture') {
         listener.useCapture = true;
       }
 
@@ -194,23 +195,25 @@ if(!owd.xmlevents) {
       listener.prevent = false;
       listener.stop = false;
 
-      if(defAction && defAction === 'cancel') {
+      if (defAction && defAction === 'cancel') {
         listener.prevent = true;
       }
 
-      if(propagate && propagate === 'stop') {
+      if (propagate && propagate === 'stop') {
         listener.stop = true;
       }
 
-      if(typeof fx === "function") {
-        if(listener.prevent || listener.stop) {
-          listener.theFunction = getHandler(fx,listener.prevent,listener.stop);
+      if (typeof fx === 'function') {
+        if (listener.prevent || listener.stop) {
+          var preventMethod = listener.prevent;
+          var stopMethod = listener.stop;
+          listener.theFunction = getHandler(fx, preventMethod, stopMethod);
         }
 
-        if(id) {
+        if (id) {
           listeners[id] = listener;
         }
-        
+
         addEventListener(listener);
       }
     } // parseListener

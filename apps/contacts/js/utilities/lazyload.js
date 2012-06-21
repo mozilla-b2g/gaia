@@ -75,7 +75,7 @@ const lazyload = (function(doc) {
     return {
       'inside': ((elemBottom >= viewTop) && (elemTop <= viewBottom)),
       'below': elemTop > viewBottom
-    }
+    };
   }
 
   return {
