@@ -72,7 +72,7 @@ var SleepMenu = {
   generateItems: function sm_generateItems() {
     var items = [];
     var settings = window.navigator.mozSettings;
-    var _ = document.mozL10n.get;
+    var _ = navigator.mozL10n.get;
     var options = {
       airplane: {
         label: _('airplane'),
