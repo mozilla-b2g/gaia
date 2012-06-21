@@ -19,17 +19,16 @@ if (!contacts.List) {
       // Populating blocks
       var alphabet = [];
       for(var i = 65; i <= 90; i++) {
-        alphabet.push({group: String.fromCharCode(i)});
+        var letter = String.fromCharCode(i);
+        alphabet.push({group: letter, letter: letter});
       }
+      alphabet.push({group: 'und', letter: '#'});
       owd.templates.append(groupsList, alphabet);
       groupsList.addEventListener('click', pickContact);
     }
 
     var load = function load() {
-      getContactsByGroup(function(contacts) {
-        for (var group in contacts) {
-          iterateOverGroup(group, contacts[group]);
-        }
+      getContactsByGroup(function() {
         lazyload.init('#groups-container', '#groups-container img',
                       function load(images) {
                         var len = images.length;
@@ -47,35 +46,48 @@ if (!contacts.List) {
     };
 
     var iterateOverGroup = function iterateOverGroup(group, contacts) {
-      if (group && group.trim().length > 0 && contacts.length > 0) {
+      if (contacts.length > 0) {
         var olElem = groupsList.querySelector('#contacts-list-' + group);
         if (olElem) {
-          if (contacts.length > 0) {
-            owd.templates.append(olElem, contacts);
-            showGroup(group);
-          }
+          owd.templates.append(olElem, contacts);
+          showGroup(group);
         }
       }
     };
 
     var getContactsByGroup = function getContactsByGroup(successCb, errorCb) {
       var options = {
-        sortBy: 'familyName',
+        sortBy: 'givenName',
         sortOrder: 'ascending'
       };
 
       var request = api.find(options);
       request.onsuccess = function findCallback() {
-        var result = {};
         var contacts = request.result;
-        for (var i = 0; i < contacts.length; i++) {
-          var letter = getGroupName(contacts[i].familyName[0]);
-          if (!result.hasOwnProperty(letter)) {
-            result[letter] = [];
-          }
-          result[letter].push(contacts[i]);
+        var len = contacts.length;
+        var ret = [], group;
+        if (len > 0) {
+          group = getGroupName(contacts[0].givenName[0]);
         }
-        successCb(result);
+
+        for (var i = 0; i < len; i++) {
+          var letter = getGroupName(contacts[i].givenName[0]);
+
+          if (letter !== group) {
+            iterateOverGroup(group, ret);
+            ret = [contacts[i]];
+          } else {
+            ret.push(contacts[i]);
+          }
+          
+          group = letter;
+        }
+
+        if (ret.length > 0) {
+          iterateOverGroup(group, ret);
+        }
+
+        successCb();
       };
 
       request.onerror = errorCb;
@@ -118,15 +130,15 @@ if (!contacts.List) {
 
     var add = function add(id) {
       getContactById(id, function(contact) {
-        var newLi, familyName = contact.familyName[0];
-        var group = getGroupName(familyName);
+        var newLi, givenName = contact.givenName[0];
+        var group = getGroupName(givenName);
         var list = groupsList.querySelector('#contacts-list-' + group);
         var liElems = list.getElementsByTagName('li');
         var len = liElems.length;
         for (var i = 1; i < len; i++) {
           var liElem = liElems[i];
-          var fName = liElem.querySelector('b').textContent;
-          if (fName >= familyName) {
+          var gName = liElem.querySelector('strong').textContent;
+          if (gName >= givenName) {
             newLi = owd.templates.render(liElems[0], contact);
             list.insertBefore(newLi, liElem);
             lazyload.reload();
@@ -178,6 +190,11 @@ if (!contacts.List) {
       ret = ret.replace(/[ÍÌ]/ig,"I");
       ret = ret.replace(/[ÓÒ]/ig,"O");
       ret = ret.replace(/[ÚÙ]/ig,"U");
+
+      var code = ret.charCodeAt(0);
+      if (code < 65 || code > 90) {
+        ret = 'und';
+      }
 
       return ret;
     }
