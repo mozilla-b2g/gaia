@@ -37,7 +37,6 @@ if (!contacts.List) {
                           var image = images[i];
                           var src = image.dataset.src;
                           if (src && src !== 'null') {
-                            console.log(src);
                             image.src = src;
                           }
                         }
