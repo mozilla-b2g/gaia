@@ -64,7 +64,7 @@ if (!owd.templates) {
       *    @return HTMLElement with the template.
       *
       */
-      function getTemplate(target,data) {
+      function getTemplate(target, data) {
         var template;
         var templates = target.querySelectorAll('*[data-template]');
 
@@ -116,8 +116,8 @@ if (!owd.templates) {
               }
             }
             else if (!template) {
-              // Just to be sure that if there is no a condition something will be
-              // selected
+              // Just to be sure that if there is no a condition
+              // something will be selected
               template = templates.item(c);
             }
           } // Iteration trying to find a template
@@ -135,7 +135,7 @@ if (!owd.templates) {
        *
        */
       function templateReplace(data) {
-        return function(text,property) {
+        return function(text, property) {
           var ret;
           if (property.indexOf('.') === -1) {
             ret = data[property];
@@ -157,9 +157,10 @@ if (!owd.templates) {
       }
 
       /**
-       *  Adds (append or prepend) a new instance HTMLElement (or array of) of a template
-       *
-       *  The template is assumed to be a child of the element passed as parameter
+       *  Adds (append or prepend) a new instance HTMLElement (or array of)
+       *  of a template
+       *  The template is assumed to be a child of the element
+       *  passed as parameter
        *  The new element will be appended as a child
        *
        *  @param ele container lement that contains the template and which will
@@ -173,7 +174,7 @@ if (!owd.templates) {
        *
        *
        */
-      function add(element,data,mode) {
+      function add(element, data, mode) {
         // It is supported both the element itself or a selector
         var target = getTarget(element);
         var newElem;
@@ -183,7 +184,8 @@ if (!owd.templates) {
           theData = data;
         }
 
-        // Optimization to avoid trying to find a template when only one is needed
+        // Optimization to avoid trying to find a template when
+        // only one is needed
         var multiTemplate = true;
         var template;
         var idx = 0;
@@ -224,7 +226,8 @@ if (!owd.templates) {
       /**
        *  Appends a new instance HTMLElement (or array of) of a template
        *
-       *  The template is assumed to be a child of the element passed as parameter
+       *  The template is assumed to be a child of the element passed
+       *  as parameter
        *  The new element will be appended as a child
        *
        *  @param ele container element that contains the template and which will
@@ -236,7 +239,7 @@ if (!owd.templates) {
        *
        *
        */
-      Templates.append = function(element,data) {
+      Templates.append = function(element, data) {
         var f = add.bind(this);
 
         return f(element, data, 'A');
@@ -246,10 +249,11 @@ if (!owd.templates) {
       /**
        *   Prepends a new instance (or array of) of a template
        *
-       *   The template is assumed to be a child of the element passed as parameter
-       *
-       *   @param ele container element that contains the template and which will
-       *   contain the new instance. Can be an HTMLElement or a CSS selector.
+       *   The template is assumed to be a child of the element passed
+       *   as parameter
+       *   @param ele container element that contains the template and
+       *   which will contain the new instance.
+       *   Can be an HTMLElement or a CSS selector.
        *
        *   @param data object or array with the data displayed by the template.
        *
@@ -257,7 +261,7 @@ if (!owd.templates) {
        *
        *
        */
-      Templates.prepend = function(element,data) {
+      Templates.prepend = function(element, data) {
          var f = add.bind(this);
 
         return f(element, data, 'P');
@@ -274,7 +278,7 @@ if (!owd.templates) {
        *
        *
        */
-      Templates.render = function(eleTemplate,data) {
+      Templates.render = function(eleTemplate, data) {
         var newElem = eleTemplate.cloneNode(true);
         newElem.removeAttribute('data-template');
         newElem.removeAttribute('data-condition');
