@@ -55,7 +55,7 @@ if (!contacts.List) {
       }
     };
 
-    var buildContacts = function buildContacts(contacts) {
+    var buildContacts = function buildContacts(contacts, successCb) {
       var len = contacts.length;
       var ret = [], group;
       if (len > 0) {
@@ -78,11 +78,13 @@ if (!contacts.List) {
       if (ret.length > 0) {
         iterateOverGroup(group, ret);
       }
+
+      successCb();
     }
 
     var getContactsByGroup = function gCtByGroup(successCb, errorCb, contacts) {
       if (typeof contacts !== 'undefined') {
-        buildContacts(contacts);
+        buildContacts(contacts, successCb);
       } else {
         var options = {
           sortBy: 'familyName',
@@ -91,8 +93,7 @@ if (!contacts.List) {
 
         var request = api.find(options);
         request.onsuccess = function findCallback() {
-          buildContacts(request.result);
-          successCb();
+          buildContacts(request.result, successCb);
         };
 
         request.onerror = errorCb;
