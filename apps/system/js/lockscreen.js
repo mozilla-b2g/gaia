@@ -83,6 +83,7 @@ var LockScreen = {
     window.addEventListener('screenchange', this);
 
     /* Notification */
+    // XXX: Move to notifications.js
     this.notification.addEventListener('click', this);
     window.addEventListener('mozChromeEvent', this);
 
