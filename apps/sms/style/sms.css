@@ -16,21 +16,20 @@
   src: url('fonts/Open-Sans-Semibold.woff');
 }
 
-/*
-//TODO This Query must be based on PPI (Resolution)
-@media screen and (max-width: 800px) and (max-height: 800px) and
-                  (min-width: 480px) and (min-height: 480px) {
-  html {
+@media screen and (min-resolution: 200dpi) {
+
+  html{
+    font-size: 13.5px;
+  }
+}
+
+@media screen and (max-resolution: 200dpi) {
+
+  html{
     font-size: 10px;
   }
 }
 
-@media screen and (max-width: 480px) and (max-height: 480px) {
- 
-  html {
-    font-size: 6px;  
-  }
-}*/
 
 /* media queries for removing rounded border when keyboard is shown */
 @media screen and (max-height: 70rem) {
@@ -48,7 +47,7 @@ html, body {
   margin: 0;
   overflow-x: hidden;
   overflow-y: hidden;
-  font-size:10px;
+  
   font-family: 'Open Sans', sans-serif;
 }
 

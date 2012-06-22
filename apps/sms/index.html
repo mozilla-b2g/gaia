@@ -30,19 +30,19 @@
     <div id="view" class="panel">
       <div id="view-toolbar" class="toolbar toolbar-top">
         <a href="#" id="view-back" class="edit-hide">
-          <i class="i-back"></i>
+          <div class="i-back"></div>
         </a>
         <div role="button" id="view-done-button" onclick="ConversationView.exitEditMode()" class="edit-show" data-l10n-id="done">
           Done
         </div>
         <a href="#edit" id="view-edit-button" class="edit-hide">
-          <i class="i-edit"></i>
+          <div class="i-edit"></div>
         </a>
         <a id="view-add-button" class="contact-show">
-          <i class="i-contact"></i>
+          <div class="i-contact"></div>
         </a>
         <h2 id="view-name"></h2>
-        <input type="tel" id="view-num" /> 
+        <input type="tel" id="view-num" />
       </div>
       <div id="view-list" class="list">
       </div>
@@ -70,13 +70,13 @@
     <div id="msg-conversations" class="panel">
       <div id="msg-toolbar" class="toolbar toolbar-top">
         <a href="#" id="msg-conversations-back" class="edit-show">
-          <i class="i-back"></i>
+          <div class="i-back"></div>
         </a>
         <a href="#num=*" id="msg-new-message" class="edit-hide">
-          <i class="i-add"></i>
+          <div class="i-add"></div>
         </a>
         <a href="#edit" id="msg-edit-button" class="edit-hide">
-          <i class="i-edit"></i>
+          <div class="i-edit"></div>
         </a>
         <div id="msg-title-container" data-l10n-id="messages">Messages</div>
       </div>
@@ -99,8 +99,7 @@
         <div id="msg-edit-options-bar">
           <div id="msg-delete-all-button" onclick="ConversationListView.showConfirmationDialog();" class="btn-bottom-bar" data-l10n-id="delete-all">Delete all</div>
           <div id="msg-delete-button" onclick="ConversationListView.executeMessageDelete();" class="btn-bottom-bar " data-l10n-id="delete">Delete</div>
-          <!-- <a href="#searchresult_edit" id="msg-search-edit-button" class="button text-button edit-hide search-show" data-l10n-id="edit" hidden>Edit</a>
-          <a href="#search" id="msg-search-button" class="button text-button edit-hide search-hide" data-l10n-id="search" hidden>Search</a> -->
+         
         </div>
       </div>
     </div>
