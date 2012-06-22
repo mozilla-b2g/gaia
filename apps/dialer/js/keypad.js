@@ -121,12 +121,14 @@ var KeypadManager = {
   render: function hk_render(layout_type) {
     switch (layout_type) {
       case 'oncall':
+        this.phoneNumberViewContainer.classList.add('no-toolbar');
         this.kbCallBarCallAction.classList.add('hide');
         this.kbCallBarAddContact.classList.add('hide');
         this.kbDelete.classList.add('hide');
         this.kbCallBarBackAction.classList.remove('hide');
         break;
       case 'default':
+        this.phoneNumberViewContainer.classList.remove('no-toolbar');
         this.kbCallBarCallAction.classList.remove('hide');
         this.kbCallBarAddContact.classList.remove('hide');
         this.kbDelete.classList.remove('hide');
@@ -147,10 +149,10 @@ var KeypadManager = {
     // Depending of the event type
     if (event.type == 'mousedown') {
       // Start holding event management
-      this._hold_timer = setTimeout(function() {
+      this._hold_timer = setTimeout(function(self) {
         // After .400s we consider that is a "Hold action"
-        this._hold_active = true;
-      },400);
+        self._hold_active = true;
+      }, 400, this);
     } else if (event.type == 'mouseup') {
       // In is a "Hold action" end
       if (this._hold_active) {
@@ -209,9 +211,9 @@ var KeypadManager = {
 
         // Manage "Hold action" in "0" key
         if (key == '0') {
-          this._hold_timer = setTimeout(function() {
-            this._hold_active = true;
-          }, 400);
+          this._hold_timer = setTimeout(function(self) {
+            self._hold_active = true;
+          }, 400, this);
         }
       } else if (event.type == 'mouseup') {
         if (key == '0') {
