@@ -74,9 +74,9 @@ html * {
   display:table;
   table-layout:fixed;
 }
-#kb-callbar-call-action.hide,
-#kb-callbar-add-contact.hide,
-#kb-callbar-back-action.hide,
+#keypad-callbar-call-action.hide,
+#keypad-callbar-add-contact.hide,
+#keypad-callbar-back-action.hide,
 #co-basic-answer.hide {
   display: none;
 }
