@@ -62,30 +62,30 @@ var KeypadManager = {
 
   get kbKeypad() {
     delete this.kbKeypad;
-    return this.kbKeypad = document.getElementById('kb-keypad');
+    return this.kbKeypad = document.getElementById('keypad');
   },
 
   get kbCallBarAddContact() {
     delete this.kbCallBarAddContact;
     return this.kbCallBarAddContact =
-      document.getElementById('kb-callbar-add-contact');
+      document.getElementById('keypad-callbar-add-contact');
   },
 
   get kbCallBarCallAction() {
     delete this.kbCallBarCallAction;
     return this.kbCallBarCallAction =
-      document.getElementById('kb-callbar-call-action');
+      document.getElementById('keypad-callbar-call-action');
   },
 
   get kbDelete() {
     delete this.kbDelete;
-    return this.kbDelete = document.getElementById('kb-delete');
+    return this.kbDelete = document.getElementById('keypad-delete');
   },
 
   get kbCallBarBackAction() {
     delete this.kbCallBarBackAction;
     return this.kbCallBarBackAction =
-      document.getElementById('kb-callbar-back-action');
+      document.getElementById('keypad-callbar-back-action');
   },
 
   init: function kh_init() {

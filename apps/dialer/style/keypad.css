@@ -1,6 +1,6 @@
-.kb-keypad-text{
-  font-size:-moz-calc(6*0.226rem);
-  color:#96AAB4;
+.keypad-text {
+  font-size: -moz-calc(6*0.226rem);
+  color: #96AAB4;
 }
 
 #keyboard-view {
@@ -38,21 +38,21 @@
   -moz-user-select: none;
 }
 
-#kb-delete{
-  text-align:center;
-  width:4rem;
+#keypad-delete {
+  text-align: center;
+  width: 4rem;
 }
 
-#kb-delete:active{
+#keypad-delete:active {
   opacity:0.7;
 }
 
-.i-delete{
-  width:3.8rem;
-  height:2.8rem;
-  background:url('images/dialer_icon_delete.png') ;
+#keypad-delete > div {
+  width: 3.8rem;
+  height: 2.8rem;
+  background: url('images/dialer_icon_delete.png') ;
   background-size: 3.8rem 2.8rem;
-  background-repeat:no-repeat;
+  background-repeat: no-repeat;
 }
 
 #keyboard-container {
@@ -60,104 +60,100 @@
   height: 38rem;
 }
 
-#kb-keypad{
+#keypad {
   background: -moz-linear-gradient(top, #2d3642 0%, #0f1214 100%);
-  height:-moz-calc(100% - 10rem);
-  width:100%;
-  display:table;
-  table-layout:fixed;
+  height: -moz-calc(100% - 10rem);
+  width: 100%;
+  display: table;
+  table-layout: fixed;
 }
 
-.kb-keypad-cell{
-  display:table-cell;
-  border-right:1px solid #313A47;
+.keypad-cell {
+  display: table-cell;
+  border-right: 1px solid #313A47;
 }
 
-.kb-keypad-cell:last-child{
-  border:0;
+.keypad-cell:last-child {
+  border: 0;
 }
 
-.kb-keypad-cell-small{
-  width:10rem;
+.keypad-key {
+  border: 0;
+  border-bottom: 1px solid #313A47;
+  height: 7rem;
+  vertical-align: middle;
+  position: relative;
 }
 
-.kb-keypad-key{
-  border:0;
-  border-bottom:1px solid #313A47;
-  height:7rem;
-  vertical-align:middle;
-  position:relative;
+.keypad-key:active {
+  background: black;
+  opacity: 0.7;
 }
 
-.kb-keypad-key:active{
-  background:black;
-  opacity:0.7;
-}
-
-.kb-keypad-key-label-container{
+.keypad-key-label-container{
   width:100%;
   height:100%;
   display:table;
 }
 
-.kb-keypad-key-label{
+.keypad-key-label {
   display:table-cell;
   padding-left:1.5rem;
   vertical-align:middle;
 }
 
-.kb-keypad-key-label-centered{
+.keypad-key-label-centered {
   padding-left:0;
   text-align:center;
 }
 
-#kb-callbar{
-  background:black;
-  height:6rem;
-  width:100%;
-  display:table;
-  table-layout:fixed;
+#keypad-callbar {
+  background: black;
+  height: 6rem;
+  width: 100%;
+  display: table;
+  table-layout: fixed;
   border-spacing: 1rem 1rem;
 }
 
-#kb-callbar-add-contact {
-  display:table-cell;
-  width:9rem;
+#keypad-callbar-add-contact {
+  display: table-cell;
+  width: 9rem;
   background: -moz-linear-gradient(top, #242b36 0%, #19191a 100%); 
-  border:.1rem solid #242B36;
-  border-radius:.2rem;
-  opacity:0.5;
+  border: .1rem solid #242B36;
+  border-radius: .2rem;
+  opacity: 0.5;
   vertical-align: middle;
 }
 
-#kb-callbar-call-action {
-  display:table-cell;
+#keypad-callbar-call-action {
+  display: table-cell;
   width: 100%;
   background: #84c82c;
-  border:0;
-  border-radius:.2rem;
+  border: 0;
+  border-radius: .2rem;
   background: -moz-linear-gradient(top, #84c82c 0%, #5f9b0a 100%);
   vertical-align: middle;
 }
 
-#kb-callbar-call-action:active {
-  opacity:0.7;
+#keypad-callbar-call-action:active {
+  opacity: 0.7;
 }
 
-#kb-callbar-back-action {
-  display:table-cell;
+#keypad-callbar-back-action {
+  display: table-cell;
   background: #84c82c;
-  border:0;
-  border-radius:.2rem;
+  border: 0;
+  border-radius: .2rem;
   background: -moz-linear-gradient(top, #242b36 0%, #19191a 100%);
   vertical-align: middle;
 }
 
-#kb-callbar-back-action:active {
-  opacity:0.7;
+#keypad-callbar-back-action:active {
+  opacity: 0.7;
 }
 
-.i-add-contact{
+.icon-add-contact {
   margin: auto;
   width: 2.6rem;
   height: 2.5rem;
@@ -167,17 +163,17 @@
   background-position: center;
 }
 
-.i-call{
+#keypad-callbar-call-action > div {
   margin: auto;
   width: 2.6rem;
   height: 2.5rem;
-  background-image:url("images/dialer_icon_call.png");
+  background-image: url("images/dialer_icon_call.png");
   background-repeat: no-repeat;
   background-size: 2.6rem 2.5rem;
   background-position: center;
 }
 
-.i-back{
+#keypad-callbar-back-action > div {
   margin: auto;
   width: 2.6rem;
   height: 2.5rem;
@@ -186,18 +182,18 @@
   background-position: center;
 }
 
-.phone-number-font{
+.phone-number-font {
   font-size:-moz-calc(18*0.226rem);
   color:white;
   font-family:'FontRegular';
 }
 
-.kb-keypad-number{
-  font-size:-moz-calc(25*0.226rem);
-  color:white;
+.keypad-number {
+  font-size: -moz-calc(25*0.226rem);
+  color: white;
 }
 
-#kb-toolbar {
+#keypad-toolbar {
   background:black;
   height:4rem;
   width:100%;
@@ -205,7 +201,7 @@
   table-layout:fixed;
 }
 
-#kb-toolbar-call-log, #kb-toolbar-contact-list, #kb-toolbar-keypad {
+#keypad-toolbar-call-log, #keypad-toolbar-contact-list, #keypad-toolbar-keypad {
   display:table-cell;
   background: -moz-linear-gradient(top, #242b36 0%, #19191a 100%); 
   border:.1rem solid #242B36;
@@ -214,12 +210,12 @@
   vertical-align: middle;
 }
 
-#kb-toolbar-call-log.selected, #kb-toolbar-contact-list.selected, #kb-toolbar-keypad.selected {
+#keypad-toolbar-call-log.selected, #keypad-toolbar-contact-list.selected, #keypad-toolbar-keypad.selected {
   background:black;
   opacity:0.7;
 }
 
-.i-call-log {
+#keypad-toolbar-call-log > div{
   margin: auto;
   width: 2.6rem;
   height: 2.5rem;
@@ -229,7 +225,7 @@
   background-position: center;
 }
 
-.i-contact-list {
+#keypad-toolbar-contact-list > div {
   margin: auto;
   width: 2.6rem;
   height: 2.5rem;
@@ -239,7 +235,7 @@
   background-position: center;
 }
 
-.i-keypad {
+.icon-keypad {
   margin: auto;
   width: 2.6rem;
   height: 2.5rem;
