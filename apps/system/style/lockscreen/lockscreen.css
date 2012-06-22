@@ -82,6 +82,28 @@
   font: 16px 'Open Sans', sans-serif;
 }
 
+@media screen and (height: 800px) {
+  #lockscreen-header {
+    height: 150px;
+    padding: 16px 36px 16px 24px;
+  }
+  #lockscreen-mute {
+    width: 60px;
+    height: 60px;
+    margin-top: 12px;
+    font-size: 18px;
+    border-radius: 15px;
+  }
+  #lockscreen-clock {
+    font: 75px 'Open Sans', sans-serif;
+    line-height: 81px;
+  }
+
+  #lockscreen-date {
+    font: 24px 'Open Sans', sans-serif;
+  }
+}
+
 #lockscreen-notification {
   position: absolute;
   top: 96px;
@@ -132,6 +154,32 @@
   color: #52b6cc;
 }
 
+@media screen and (height: 800px) {
+  #lockscreen-notification {
+    top: 150px;
+    height: 90px;
+    padding: 12px 42px;
+  }
+  #lockscreen-notification-icon {
+    width: 48px;
+    height: 48px;
+    margin-right: 18px;
+  }
+  #lockscreen-notification-title {
+    font: 24px 'Open Sans', sans-serif;
+    line-height: 30px;
+  }
+  #lockscreen-notification-detail {
+    font: 21px 'Open Sans', sans-serif;
+    line-height: 30px;
+  }
+
+  #lockscreen-notification-time {
+    font: 24px 'Open Sans', sans-serif;
+    line-height: 30px;
+  }
+}
+
 .lockscreen-handle {
   position: absolute;
   border-radius: 27px;
@@ -142,6 +190,30 @@
   background-color: rgba(0, 0, 0, 0.3);
   bottom: 22px;
   -moz-transition: -moz-transform 0.3s ease 0.5s;
+}
+
+#lockscreen-area-unlock {
+  left: 30px;
+}
+
+#lockscreen-area-camera {
+  right: 30px;
+}
+
+@media screen and (height: 800px) {
+  .lockscreen-handle {
+    width: 100px;
+    height: 100px;
+    border-radius: 50px;
+    bottom: 50px;
+  }
+  #lockscreen-area-unlock {
+    left: 50px;
+  }
+
+  #lockscreen-area-camera {
+    right: 50px;
+  }
 }
 
 .touch .lockscreen-handle {
@@ -169,12 +241,16 @@
   -moz-transform: translateY(-24px);
 }
 
-#lockscreen-area-unlock {
-  left: 30px;
-}
-
-#lockscreen-area-camera {
-  right: 30px;
+@media screen and (height: 800px) {
+  .lockscreen-panel:not([id])::after {
+    bottom: -36px;
+    height: 36px;
+    font-size: 24px;
+    line-height: 36px;
+  }
+  .touch .lockscreen-panel:not([id])::after {
+    -moz-transform: translateY(-36px);
+  }
 }
 
 /* CSS icon of a lock */
@@ -288,6 +364,20 @@
   content: "\\o/";
 }
 
+@media screen and (height: 800px) {
+  #lockscreen-passcode-status {
+    height: 150px;
+    padding: 30px 42px;
+    font-size: 48px;
+    line-height: 48px;
+  }
+  #lockscreen-panel-passcode::before {
+    top: 45px;
+    right: 30px;
+    font-size: 60px;
+  }
+}
+
 #lockscreen-passcode-code {
   position: absolute;
   bottom: 214px;
@@ -345,6 +435,27 @@
   left: 50%;
   margin-left: -15px;
   margin-top: -15px;
+}
+
+@media screen and (height: 800px) {
+  #lockscreen-passcode-code {
+    bottom: 320px;
+    height: 108px;
+    padding: 0 12px;
+  }
+  #lockscreen-passcode-code > span {
+    width: -moz-calc(25% - 12px);
+    margin: 24px 6px;
+    height: -moz-calc(100% - 48px);
+    border-radius: 7.5px;
+  }
+  #lockscreen-passcode-code > span[data-dot]::before {
+    width: 45px;
+    height: 45px;
+    border-radius: 22.5px;
+    margin-left: -22.5px;
+    margin-top: -22.5px;
+  }
 }
 
 #lockscreen-passcode-pad {
@@ -412,6 +523,27 @@
   padding: 10px 0;
   text-align: center;
   text-transform: uppercase;
+}
+
+@media screen and (height: 800px) {
+  #lockscreen-passcode-pad {
+    height: 320px;
+  }
+  #lockscreen-passcode-pad > a {
+    padding: 0 30px;
+    height: 75px;
+    font-size: 48px;
+    line-height: 75px;
+  }
+  #lockscreen-passcode-pad > a > span {
+    font-size: 18px;
+    padding: 18px;
+  }
+  #lockscreen-passcode-pad > a.lockscreen-passcode-pad-func {
+    font-size: 18px;
+    line-height: 24px;
+    padding: 15px 0;
+  }
 }
 
 #lockscreen-panel-emergency-call {
