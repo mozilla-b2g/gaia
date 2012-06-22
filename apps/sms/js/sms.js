@@ -279,6 +279,7 @@ var ConversationListView = {
 
   updateConversationList: function cl_updateCL(pendingMsg) {
     var self = this;
+    this._lastHeader=undefined;
     /*
       TODO: Conversation list is always order by contact family names
       not the timestamp.
