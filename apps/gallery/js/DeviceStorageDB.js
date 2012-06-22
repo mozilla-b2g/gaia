@@ -35,35 +35,26 @@ var createDeviceStorageDB = (function() {
   //      The index name will be the same as the keypath.
   //   version: If you ever change any of the items above, increment the
   //     version numbers. This will delete all existing data in the DB and
-  //     start over.
+  //     start over. The default version is 1.
   //
   function createDeviceStorageDB(options, callback) {
     var mediaType = options.mediaType;
     var storage;
     try {
-      storage = navigator.getDeviceStorage(mediaType)[0];
+      var storageAreas = navigator.getDeviceStorage(mediaType);
+      storage = storageAreas[0];
     }
     catch (e) {
       console.error("createDeviceStorageDB: can't get DeviceStorage object");
       return;
     }
 
-    var indexedDB = window.indexedDB || window.mozIndexedDB;
-
-    // The second argument is optional
-    if (arguments.length == 2) {
-      callback = options;
-      options = undefined;
-    }
-    if (!options)
-      options = {};
-
     var indexes = options.indexes || [];
-    var version = options.version || 0;
+    var version = options.version || 1;
     var directory = options.directory || '';
 
     var dbname = 'DeviceStorage/' + mediaType + '/' + directory;
-    var openRequest = indexedDB.open(dbname, version);
+    var openRequest = window.mozIndexedDB.open(dbname, version);
 
     // This should never happen for Gaia apps
     openRequest.onerror = function(e) {
@@ -77,6 +68,8 @@ var createDeviceStorageDB = (function() {
 
     // This is where we create (or delete and recreate) the database
     openRequest.onupgradeneeded = function(e) {
+      console.log("onupgradeneeded")
+
       var db = openRequest.result;
 
       // If there are already existing object stores, delete them all
@@ -115,7 +108,7 @@ var createDeviceStorageDB = (function() {
     this.db = db;
     this.mediaType = options.mediaType;
     this.onchange = options.onchange;
-    this.directory = options.directory;
+    this.directory = options.directory || "";
     this.mimeTypes = options.mimeTypes || [];
     this.metadataParser = options.metadataParser;
     this.lastScanTime = null;
@@ -132,7 +125,7 @@ var createDeviceStorageDB = (function() {
     // XXX If the file does not exist, what happens? I think the
     // callback is called with null or undefined. Depends on DeviceStorage impl.
     getFile: function(filename, callback, errback) {
-      var getRequest = storage.get(filename);
+      var getRequest = this.storage.get(filename);
       getRequest.onsuccess = function() {
         callback(getRequest.result);
       };
@@ -165,8 +158,18 @@ var createDeviceStorageDB = (function() {
     enumerate: function(key, range, direction, callback) {
       // The first three arguments are optional, but the callback
       // is required, and we don't want to have to pass three nulls
-      if (arguments.length > 0 && arguments.length < 4)
-        callback = arguments[arguments.length - 1];
+      if (arguments.length === 1) {
+        callback = key;
+        key = undefined;
+      }
+      else if (argument.length === 2) {
+        callback = range;
+        range = undefined;
+      }
+      else if (argument.length === 3) {
+        callback = direction;
+        direction = undefined;
+      }
 
       var store = this.db.transaction('files').objectStore('files');
       var index;
@@ -179,7 +182,16 @@ var createDeviceStorageDB = (function() {
         index = store;
 
       // Now create a cursor for the store or index.
-      var cursorRequest = index.openCursor(range, direction);
+      var cursorRequest;
+      if (range) {
+        if (direction)
+          cursorRequest = index.openCursor(range, direction);
+        else
+          cursorRequest = index.openCursor(range);
+      }
+      else {
+        cursorRequest = index.openCursor();
+      }
 
       cursorRequest.onsuccess = function() {
         var cursor = cursorRequest.result;
@@ -237,8 +249,9 @@ var createDeviceStorageDB = (function() {
         dsdb.lastScanDate = new Date();
         cursor.onsuccess = function() {
           var result = cursor.result;
-          if (result)
+          if (result) {
             processNewFile(result);
+          }
           else {// When no more files
             if (newfiles.length > 0)
               saveAndReportQuickScanResults();  // report new files we found
@@ -252,11 +265,17 @@ var createDeviceStorageDB = (function() {
         // Then call cursor.continue to move on to the next file
         function processNewFile(file) {
           try {
+            // Skip the file if it isn't the right type
+            if (dsdb.mimeTypes && dsdb.mimeTypes.indexOf(file.type) === -1) {
+              cursor.continue();
+              return;
+            }
+
             var fileinfo = {
               name: file.name,
               type: file.type,
               size: file.size,
-              date: file.lastModifiedDate
+              date: file.lastModifiedDate.getTime()
             };
             newfiles.push(fileinfo);
 
@@ -271,7 +290,7 @@ var createDeviceStorageDB = (function() {
             }
             else {
               fileinfo.metadata = null;
-              callback();
+              cursor.continue();
             }
           }
           catch (e) {
@@ -283,7 +302,7 @@ var createDeviceStorageDB = (function() {
         // Take all the file info objects we found and save them
         // to the database, then report them with the fileAdded callback
         function saveAndReportQuickScanResults() {
-          var transaction = this.db.transaction('files', 'readwrite');
+          var transaction = dsdb.db.transaction('files', 'readwrite');
           var store = transaction.objectStore('files');
 
           // Save the new files
@@ -321,25 +340,29 @@ var createDeviceStorageDB = (function() {
       // created files.  (Report deleted files first because we model
       // file changes as deletions followed by creations)
       function fullScan() {
-        var store = this.db.transaction('files').objectStore('files');
+        var store = dsdb.db.transaction('files').objectStore('files');
         var getAllRequest = store.getAll();
 
         getAllRequest.onsuccess = function() {
           var dbfiles = getAllRequest.result;  // Should already be sorted
 
           // Now get all the files in device storage
-          var cursor = dsdb.storage.enumerate(dsdb.directory);
           var dsfiles = [];
+          var cursor = dsdb.storage.enumerate(dsdb.directory);
+            
           cursor.onsuccess = function() {
             var file = cursor.result;
             if (file) {
-              // XXX: should I just save the file here?
-              dsfiles.push({
-                name: file.name,
-                type: file.type,
-                size: file.size,
-                date: file.lastModifiedDate
-              });
+              if (!dsdb.mimeTypes || dsdb.mimeTypes.indexOf(file.type) !== -1) {
+                // XXX: should I just save the file here?
+                dsfiles.push({
+                  name: file.name,
+                  type: file.type,
+                  size: file.size,
+                  date: file.lastModifiedDate.getTime()
+                });
+              }
+              cursor.continue();
             }
             else { // When no more files
               compareLists(dbfiles, dsfiles);
@@ -348,6 +371,8 @@ var createDeviceStorageDB = (function() {
         }
 
         function compareLists(dbfiles, dsfiles) {
+          console.log("compareLists", dbfiles.length, dsfiles.length);
+
           // The dbfiles are sorted when we get them from the db.
           // But the ds files are not sorted
           dsfiles.sort(function(a, b) {
@@ -366,14 +391,14 @@ var createDeviceStorageDB = (function() {
             // Get the next DeviceStorage file or null
             var dsfile;
             if (dsindex < dsfiles.length)
-              dsfile = dsfiles.dsfiles[dsindex];
+              dsfile = dsfiles[dsindex];
             else
               dsfile = null;
 
             // Get the next DB file or null
             var dbfile;
             if (dbindex < dbfiles.length)
-              dbfile = dbfiles.dbfiles[dbindex];
+              dbfile = dbfiles[dbindex];
             else
               dbfile = null;
 
@@ -401,7 +426,7 @@ var createDeviceStorageDB = (function() {
             // 4a: date and size are the same for both: do nothing
             // 4b: file has changed: it is both a deletion and a creation
             if (dsfile.name === dbfile.name) {
-              if (dsfile.date !== dbfile.date || dsfile.size !== dsfile.size) {
+              if (dsfile.date !== dbfile.date || dsfile.size !== dbfile.size) {
                 deletedFiles.push(dbfile);
                 createdFiles.push(dsfile);
               }
@@ -433,7 +458,8 @@ var createDeviceStorageDB = (function() {
 
           // Deal with the deleted files first
           if (deletedFiles.length > 0) {
-            var transaction = this.db.transaction('files', 'readwrite');
+            console.log("deleted files:", deletedFiles.length);
+            var transaction = dsdb.db.transaction('files', 'readwrite');
             var store = transaction.objectStore('files');
             deletedFiles.forEach(function(fileinfo) {
               store.delete(fileinfo.name);
@@ -443,12 +469,18 @@ var createDeviceStorageDB = (function() {
             transaction.oncomplete = function() {
               dsdb.onchange('deleted', deletedFiles);
 
-              if (createdFiles.length > 1)
+              if (createdFiles.length > 0)
                 handleCreatedFiles();
             };
           }
+          else if (createdFiles.length > 0) {
+            // If there were no deleted files, we still need to 
+            // handle the created ones.  Especially for first-run
+            handleCreatedFiles();
+          }
 
           function handleCreatedFiles() {
+            console.log("Created files:", createdFiles.length);
             if (dsdb.metadataParser) {
               // If we've got a metadata parser, get file metadata and
               // then store the files
@@ -464,7 +496,10 @@ var createDeviceStorageDB = (function() {
           // and then calls the callback. We
           function getMetadataForFile(n, callback) {
             var fileinfo = createdFiles[n];
-            var fileRequest = storage.get(fileinfo.name);
+            var fileRequest = dsdb.storage.get(fileinfo.name);
+            fileRequest.onerror = function() {
+              console.log("filerequest error", fileRequest.error.name);
+            };
             fileRequest.onsuccess = function() {
               var file = fileRequest.result;
               dsdb.metadataParser(file, function(metadata) {
@@ -479,7 +514,7 @@ var createDeviceStorageDB = (function() {
           }
 
           function storeCreatedFiles() {
-            var transaction = this.db.transaction('files', 'readwrite');
+            var transaction = dsdb.db.transaction('files', 'readwrite');
             var store = transaction.objectStore('files');
             for (var i = 0; i < createdFiles.length; i++) {
               store.add(createdFiles[i]);

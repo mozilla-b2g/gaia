@@ -139,6 +139,163 @@ var transitioning = false;
 // This will be set to "ltr" or "rtl" when we get our localized event
 var languageDirection;
 
+var dsdbOptions = {
+  mediaType: 'pictures',
+  onchange: dsdbChangeHandler,
+  metadataParser: metadataParser,
+  indexes: ["metadata.date"],
+  mimeTypes: ["image/jpeg", "image/png"]
+};
+
+var photodb;
+
+function dsdbCallback(dsdb) {
+  photodb = dsdb;
+  buildUI(dsdb);  // List files we already know about
+  dsdb.scan();             // Go look for more.
+}
+
+function dsdbChangeHandler(type, files) {
+  console.log("dsdb onchange", type);
+  destroyUI();
+  buildUI(this);  // Would be more efficient to just change them.
+}
+
+window.addEventListener('load', function() {
+  createDeviceStorageDB(dsdbOptions, dsdbCallback);
+});
+
+function metadataParser(file, callback) {
+  // Get metadata for the image and then move on to the next image
+  if (file.type === 'image/png') {
+    var testimg = document.createElement('img');
+    var url = URL.createObjectURL(file);
+    testimg.src = url;
+    testimg.onload = function() {
+      URL.revokeObjectURL(url);
+      imagedata.width = testimg.width;
+      imagedata.height = testimg.height;
+      callback({
+        width: testimg.width,
+        height: testimg.height,
+        date: file.lastModifiedDate
+      });
+    };
+  }
+  else if (file.type === 'image/jpeg') {
+    // XXX
+    // Rather than trying to read the metadata, I could also just
+    // put the jpeg image into an <img> tag to get its width
+    // and height. I'll need to do this anyway if I want to create
+    // a thumbnail for it, so maybe that would be good enough for now?
+    // Sorting by file modified date might be good enough, if I
+    // can get that.
+    readJPEGMetadata(file,
+                     function(data) {
+                       var metadata = {
+                         width: data.width,
+                         height: data.height,
+                         thumbnail: data.thumbnail,
+                         date: file.lastModifiedDate
+                       };
+                       
+                       if (data.exif &&
+                           (data.exif.DateTimeOriginal ||
+                            data.exif.DateTime)) {
+                         metadata.date =
+                           parseDate(data.exif.DateTimeOriginal ||
+                                     data.exif.DateTime);
+                       }
+                       
+                       callback(metadata);
+
+                       // Utility function for converting EXIF date strings
+                       // to ISO date strings to timestamps
+                       function parseDate(s) {
+                         if (!s)
+                           return null;
+                         // Replace the first two colons with dashes and
+                         // replace the first space with a T
+                         return Date.parse(s.replace(':', '-')
+                                           .replace(':', '-')
+                                           .replace(' ', 'T'));
+                       }
+                     },
+                     function() {
+                       // Error reading jpeg
+                       console.warn('Malformed JPEG image', file.name);
+                       callback({});
+                     });
+  }
+}
+
+var images = [];
+
+function destroyUI() {
+  images = [];
+
+  var items = thumbnails.querySelectorAll('li');
+  for(var i = 0; i < items.length; i++) 
+    thumbnails.removeChild(items[i])
+
+  document.getElementById('nophotos')
+    .classList.remove('hidden');
+}
+
+
+
+// Rename this method to initUI or something
+function buildUI(dsdb) {
+  // An array of image data structures that represents all the photos we
+  // found in device storage, along with the metadata we've extracted
+  dsdb.enumerate(function(imagedata) {
+    addImage(imagedata);
+  });
+}
+
+function addImage(imagedata) {
+  // If this is the first image we've found,
+  // remove the "no images" message
+  if (images.length === 0)
+    document.getElementById('nophotos')
+    .classList.add('hidden');
+  
+  images.push(imagedata);            // remember the image
+  addThumbnail(images.length - 1);   // display its thumbnail
+}
+
+//
+// Create the <img> elements for the thumbnails
+//
+function addThumbnail(imagenum) {
+  var li = document.createElement('li');
+  li.dataset.index = imagenum;
+  li.classList.add('thumbnail');
+  thumbnails.appendChild(li);
+
+  var imagedata = images[imagenum];
+  if (imagedata.thumbnail) {
+    console.log("using built-in thumbnail");
+    var url = URL.createObjectURL(imagedata.thumbnail.blob);
+    li.style.backgroundImage = 'url("' + url + '")';
+    // XXX When is it save to revoke?
+    // URL.revokeObjectURL(url);
+  }
+  else {
+    console.log("creating thumbnail");
+    // XXX: modify the metadata parser so it always generates
+    // a thumbnail and we never have this inefficient case
+    photodb.getFile(imagedata.name, function(file) {
+      var url = URL.createObjectURL(file);
+      li.style.backgroundImage = 'url("' + url + '")';
+      // XXX when is it safe to revoke this. Can't use onload...
+      // URL.revokeObjectURL(url);
+    });
+  }
+}
+
+
+/*
 
 // When the app starts, we scan device storage for photos.
 // For now, we just do this each time. But we really need to store
@@ -246,7 +403,6 @@ storages.forEach(function(storage, storageIndex) {
   }
 });
 
-
 // An array of image data structures that represents all the photos we
 // found in device storage, along with the metadata we've extracted
 var images = [];
@@ -261,33 +417,8 @@ function addImage(imagedata) {
   images.push(imagedata);            // remember the image
   addThumbnail(images.length - 1);   // display its thumbnail
 }
+*/
 
-//
-// Create the <img> elements for the thumbnails
-//
-// XXX: this doesn't work. Need to figure out what the
-// appropriate argumetns are, and store the entire
-// photo with thumnail, size, etc.
-function addThumbnail(imagenum) {
-  var li = document.createElement('li');
-  li.dataset.index = imagenum;
-  li.classList.add('thumbnail');
-  thumbnails.appendChild(li);
-
-  var imagedata = images[imagenum];
-  if (imagedata.thumbnail) {
-    var url = URL.createObjectURL(imagedata.thumbnail.blob);
-    li.style.backgroundImage = 'url("' + url + '")';
-  }
-  else {
-    var request = storages[imagedata.storageIndex].get(imagedata.name);
-    request.onsuccess = function() {
-      var file = request.result;
-      var url = URL.createObjectURL(file);
-      li.style.backgroundImage = 'url("' + url + '")';
-    }
-  }
-}
 
 //
 // Event handlers
