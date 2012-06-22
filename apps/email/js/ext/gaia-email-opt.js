@@ -11854,7 +11854,7 @@ MailBridge.prototype = {
           break;
       }
     }
-    account.saveAccountState();
+    this.universe.saveAccountDef(accountDef, null);
   },
 
   _cmd_deleteAccount: function mb__cmd_deleteAccount(msg) {
