@@ -27,7 +27,7 @@ if (!contacts.List) {
       groupsList.addEventListener('click', pickContact);
     }
 
-    var load = function load() {
+    var load = function load(contacts) {
       getContactsByGroup(function() {
         lazyload.init('#groups-container', '#groups-container img',
                       function load(images) {
@@ -42,7 +42,7 @@ if (!contacts.List) {
                       });
       }, function() {
         console.log('ERROR Retrieving contacts');
-      });
+      }, contacts);
     };
 
     var iterateOverGroup = function iterateOverGroup(group, contacts) {
@@ -55,42 +55,48 @@ if (!contacts.List) {
       }
     };
 
-    var getContactsByGroup = function getContactsByGroup(successCb, errorCb) {
-      var options = {
-        sortBy: 'familyName',
-        sortOrder: 'ascending'
-      };
+    var buildContacts = function buildContacts(contacts) {
+      var len = contacts.length;
+      var ret = [], group;
+      if (len > 0) {
+        group = getGroupName(contacts[0]);
+      }
 
-      var request = api.find(options);
-      request.onsuccess = function findCallback() {
-        var contacts = request.result;
-        var len = contacts.length;
-        var ret = [], group;
-        if (len > 0) {
-          group = getGroupName(contacts[0]);
-        }
+      for (var i = 0; i < len; i++) {
+        var letter = getGroupName(contacts[i]);
 
-        for (var i = 0; i < len; i++) {
-          var letter = getGroupName(contacts[i]);
-
-          if (letter !== group) {
-            iterateOverGroup(group, ret);
-            ret = [contacts[i]];
-          } else {
-            ret.push(contacts[i]);
-          }
-
-          group = letter;
-        }
-
-        if (ret.length > 0) {
+        if (letter !== group) {
           iterateOverGroup(group, ret);
+          ret = [contacts[i]];
+        } else {
+          ret.push(contacts[i]);
         }
 
-        successCb();
-      };
+        group = letter;
+      }
 
-      request.onerror = errorCb;
+      if (ret.length > 0) {
+        iterateOverGroup(group, ret);
+      }
+    }
+
+    var getContactsByGroup = function getContactsByGroup(successCb, errorCb, contacts) {
+      if (typeof contacts !== 'undefined') {
+        buildContacts(contacts);
+      } else {
+        var options = {
+          sortBy: 'familyName',
+          sortOrder: 'ascending'
+        };
+
+        var request = api.find(options);
+        request.onsuccess = function findCallback() {
+          buildContacts(request.result);
+          successCb();
+        };
+
+        request.onerror = errorCb;
+        }
     }
 
     var getContactById = function(contactID, successCb, errorCb) {
