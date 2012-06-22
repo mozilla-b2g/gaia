@@ -16,14 +16,14 @@ var ModalDialog = {
   prefix: 'modal-dialog-',
 
   // DOM
-  elementID: ['alert', 'alert-ok', 'alert-message',
-    'prompt', 'prompt-ok', 'prompt-cancel', 'prompt-input', 'prompt-message',
-    'confirm', 'confirm-ok', 'confirm-cancel', 'confirm-message'],
-
   elements: {},
 
   // Get all elements when inited.
   getAllElements: function md_getAllElements() {
+    var elementsID = ['alert', 'alert-ok', 'alert-message',
+      'prompt', 'prompt-ok', 'prompt-cancel', 'prompt-input', 'prompt-message',
+      'confirm', 'confirm-ok', 'confirm-cancel', 'confirm-message'];
+
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
         return p1.toUpperCase();
@@ -31,7 +31,7 @@ var ModalDialog = {
     };
 
     // Loop and add element with camel style name to Modal Dialog attribute.
-    this.elementID.forEach(function createElementRef(name) {
+    elementsID.forEach(function createElementRef(name) {
       this.elements[toCamelCase(name)] =
         document.getElementById(this.prefix + name);
     }, this);
@@ -173,7 +173,7 @@ var ModalDialog = {
   },
 
   // The below is for system apps to use.
-  alert: function(text, callback) {
+  alert: function md_alert(text, callback) {
     this.makePseudoEvent({
       type: 'alert',
       text: text,
@@ -181,7 +181,7 @@ var ModalDialog = {
     });
   },
 
-  confirm: function(text, callback, cancel) {
+  confirm: function md_confirm(text, callback, cancel) {
     this.makePseudoEvent({
       type: 'confirm',
       text: text,
@@ -190,7 +190,7 @@ var ModalDialog = {
     });
   },
 
-  prompt: function(text, default_value, callback) {
+  prompt: function md_prompt(text, default_value, callback) {
     this.makePseudoEvent({
       type: 'prompt',
       text: text,
@@ -199,31 +199,25 @@ var ModalDialog = {
     });
   },
 
-  makePseudoEvent: function(configuration) {
+  showWithPseudoEvent: function md_showWithPseudoEvent(config) {
     if (this.evt && this.evt.detail.unblock) {
       this.evt.detail.unblock();
     }
 
-    var pseudo_evt = {
+    var pseudoEvt = {
       isPseudo: true,
       detail: {
         unblock: null
       }
     };
 
-    pseudo_evt.detail.message = configuration.text;
-    pseudo_evt.callback = configuration.callback;
-    pseudo_evt.detail.promptType = configuration.type;
-    switch (configuration.type) {
-      case 'alert':
-        break;
-      case 'confirm':
-        break;
-      case 'prompt':
-        pseudo_evt.detail.initialValue = configuration.initialValue;
-        break;
+    pseudoEvt.detail.message = config.text;
+    pseudoEvt.callback = config.callback;
+    pseudoEvt.detail.promptType = config.type;
+    if (config.type == 'prompt') {
+        pseudoEvt.detail.initialValue = config.initialValue;
     }
-    this.evt = pseudo_evt;
+    this.evt = pseudoEvt;
     this.show();
   }
 };
