@@ -127,7 +127,7 @@ if (!contacts.app) {
       reloadContactDetails(contact);
       navigation.go(contactDetailsView, 'right-left');
     };
-    
+
     var reloadContactDetails = function reloadContactDetails(contact) {
       detailsName.textContent = contact.name;
       var listContainer = document.getElementById('details-list');

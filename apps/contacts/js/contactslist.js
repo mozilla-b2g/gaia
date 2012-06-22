@@ -80,7 +80,7 @@ if (!contacts.List) {
       }
     }
 
-    var getContactsByGroup = function getContactsByGroup(successCb, errorCb, contacts) {
+    var getContactsByGroup = function gCtByGroup(successCb, errorCb, contacts) {
       if (typeof contacts !== 'undefined') {
         buildContacts(contacts);
       } else {
