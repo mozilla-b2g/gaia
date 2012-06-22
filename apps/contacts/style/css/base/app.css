@@ -137,7 +137,8 @@ section[data-position = 'home'] {
 		/* BODY */
 		.vw-body { position: relative; -moz-box-flex: 1; height: 0; }
 			.vw-bdy-inner {
-				overflow: auto;
+				overflow-x: hidden;
+				overflow-y: auto;
 				position: absolute;
 				left: 0;
 				top: 0;
