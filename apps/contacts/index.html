@@ -3,18 +3,26 @@
 <html manifest="manifest.appcache">
   <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <link href="style/css/package.css" rel="stylesheet">
+    <link href="style/css/base/fonts.css" rel="stylesheet">
+    <link href="style/css/base/root.css" rel="stylesheet">
+    <link href="style/css/base/app.css" rel="stylesheet">
+
+    <link href="style/css/components/buttons.css" rel="stylesheet">
+    <link href="style/css/components/icons.css" rel="stylesheet">
+    <link href="style/css/components/layout.css" rel="stylesheet">
+    <link href="style/css/components/forms.css" rel="stylesheet">
+    <link href="style/css/components/lists.css" rel="stylesheet">
+    <link href="style/css/components/navigations.css" rel="stylesheet">
+
     <link href="style/contacts.css" rel="stylesheet">
     <link rel="resource" type="application/l10n" href="locale/contacts.properties"/>
 
-    <script class="events" type="text/xml">
-      <listener observer="#edit-contact-button" event="click" function="contacts.app.ui.showEdit" />
-      <listener observer="#add-contact-button" event="click" function="contacts.app.ui.showAdd" />
-      <listener observer="#add-new-phone" event="click" function="contacts.app.ui.addNewPhone" />
-      <listener observer="#add-new-email" event="click" function="contacts.app.ui.addNewEmail" />
-      <listener observer=".back-button" event="click" function="contacts.app.ui.goBack" />
-    </script>
+    <script defer type="text/javascript" src="js/utilities/responsive.js"></script>
+    <script defer type="text/javascript" src="js/utilities/templates.js"></script>
+
+    <script defer type="text/javascript" src="js/contacts_list.js"></script>
+    <script defer type="text/javascript" src="js/contacts_shortcuts.js"></script>
+    <script defer type="text/javascript" src="js/contacts.js"></script>
   </head>
   <body class="app-contacts">
 
@@ -23,19 +31,29 @@
       <div class="vw-inner">
         <header class="vw-header">
           <ul class="pull-right stack vw-actions">
-            <li id='add-contact-button'><a href="#" title="Add contact"><i class="i-add" data-l10n-id="add">Add</i></a></li>
+            <li id='add-contact-button' onclick="contacts.app.ui.showAdd();">
+              <a href="#" title="Add contact">
+                <i class="i-add" data-l10n-id="add">Add</i>
+              </a>
+            </li>
           </ul>
           <h1 data-l10n-id="contacts">Contacts</h1>
         </header>
         <article class="vw-body">
           <div class="vw-jumper">
-            <p class="vw-jmp-current hide"><abbr title="Contacts by "></abbr></p>
+            <abbr class="vw-jmp-current hide" title="Contacts by "></abbr>
+
             <ol class="vw-jmp-inner">
               <li><a href="#"><i class="i-search"></i></a></li>
               <li><a href="#"><i class="i-fav-dark"></i></a></li>
-              <li data-template><a href="#"><abbr title="Jump to #letter#">#letter#</abbr></a></li>
+              <li data-template>
+                <a href="#">
+                  <abbr class="letter" title="Jump to #letter#">#letter#</abbr>
+                </a>
+              </li>
             </ol>
           </div>
+
           <div id="groups-container" class="vw-bdy-inner">
             <ol class="block-list" id="groups-list">
               <li data-template>
@@ -66,9 +84,17 @@
       <div class="vw-inner">
         <header id='details-view-header' class="vw-header">
           <ul class="pull-right stack vw-actions">
-            <li id='edit-contact-button'><a href="#" title="Edit contact"><i class="i-edit" data-l10n-id="edit">Edit</i></a></li>
+            <li id='edit-contact-button' onclick="contacts.app.ui.showEdit();">
+              <a href="#" title="Edit contact">
+                <i class="i-edit" data-l10n-id="edit">Edit</i>
+              </a>
+            </li>
           </ul>
-          <p class="vw-back pull-left"><a class='back-button' title="Back" href="#"><i class="i-back">Back</i></a></p>
+          <p class="vw-back pull-left">
+            <a class='back-button' title="Back" href="#" onclick="contacts.app.ui.goBack();">
+              <i class="i-back">Back</i>
+            </a>
+          </p>
           <h1 id='contact-name-title'></h1>
         </header>
         <article class="vw-body">
@@ -127,7 +153,11 @@
         <header class="vw-header">
           <ul id='contact-form-actions' class="pull-right stack vw-actions">
           </ul>
-          <p class="vw-back pull-left"><a class='back-button' href="#" title="Back"><i class="i-back">Back</i></a></p>
+          <p class="vw-back pull-left">
+            <a class='back-button' title="Back" href="#" onclick="contacts.app.ui.goBack();">
+              <i class="i-back">Back</i>
+            </a>
+          </p>
           <h1 id='contact-form-title'></h1>
         </header>
 
@@ -204,7 +234,7 @@
                 </button>
               </fieldset>
 
-              <button onclick='return false;' id='add-new-phone' class="ff-row action act-add">
+              <button onclick='contacts.app.ui.addNewPhone(); return false;' id='add-new-phone' class="ff-row action act-add">
                 <i class="i-add"></i>
                 <b>Add phone number</b>
               </button>
@@ -219,7 +249,7 @@
                 </button>
               </fieldset>
 
-              <button onclick='return false;' id='add-new-email' class="ff-row action act-add">
+              <button onclick='contacts.app.ui.addNewEmail(); return false;' id='add-new-email' class="ff-row action act-add">
                 <i class="i-add"></i>
                 <b>Add email address</b>
               </button>
@@ -244,12 +274,6 @@
         </article>
       </div>
     </section>
-  <script type="text/javascript" src="js/utilities/responsive.js"></script>
-  <script type="text/javascript" src="js/utilities/xmlevents.js"></script>
-  <script type="text/javascript" src="js/utilities/templates.js"></script>
-  <script type="text/javascript" src="js/utilities/lazyload.js"></script>
-  <script type="text/javascript" src="js/contactslist.js"></script>
-  <script type="text/javascript" src="js/contacts.js"></script>
-  <script type="text/javascript" src="js/alphascroll.js"></script>
   </body>
 </html>
+

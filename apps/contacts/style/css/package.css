@@ -1,8 +1,0 @@
-/**
- * PACKAGE.CSS
- * Embed all the css files from bootzilla/css/*
- * ------------------------------------------------------*/
-
- 
-@import url("base/package.css");
-@import url("components/package.css");

@@ -68,7 +68,7 @@
 		width: 100%;
 		height: 12px;
 		text-align: center;
-		background-image: url(/bootzilla/gphx/bitmap/default/loaders/squares.gif);
+		background-image: url(../../gphx/bitmap/default/loaders/squares.gif);
 		background-position: center;
 		background-repeat: no-repeat;
 	}

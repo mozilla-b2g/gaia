@@ -46,7 +46,6 @@ if (!contacts.app) {
 
   contacts.app = (function() {
     // Pointers to Views ids
-    var contactsListView = 'view-contacts-list';
     var editView = 'view-contact-form';
     var contactDetailsView = 'view-contact-details';
 
@@ -73,7 +72,7 @@ if (!contacts.app) {
 
     var currentContact = {};
 
-    var cList = contacts.List;
+    var contactsList = contacts.List;
 
     // Init selectors
     var init = function contactsInit() {
@@ -91,16 +90,15 @@ if (!contacts.app) {
       emailDetailsTemplate = document.getElementById('email-details-template');
       phonesContainer = document.getElementById('contacts-form-phones');
       emailContainer = document.getElementById('contacts-form-email');
-      cList.init('groups-list');
-      cList.load();
-      cList.addEventListener('click', function(contact) {
+
+      var list = document.getElementById('groups-list');
+      contactsList.init(list);
+      contactsList.load();
+
+      contactsList.handleClick(function onclick(contact) {
         currentContact = contact;
         doShowContactDetails(contact);
       });
-    };
-
-    var goBack = function goBack() {
-      navigation.back();
     };
 
     var addNewPhone = function addNewPhone() {
@@ -238,13 +236,13 @@ if (!contacts.app) {
       var givenNameField = '' || myContact.givenName[0];
       var familyNameField = '' || myContact.familyName[0];
       myContact.name = givenNameField + ' ' + familyNameField;
-      var successCb = function(contact) {
-        cList.reloadContact(contact);
+      successCb = function(contact) {
+        contactsList.refresh(contact);
         reloadContactDetails(contact);
         navigation.back();
       };
 
-      var errorCb = function() {
+      errorCb = function() {
         console.error('Error saving contact');
       }
       var contact;
@@ -351,13 +349,14 @@ if (!contacts.app) {
         'showAdd': showAdd,
         'addNewPhone' : addNewPhone,
         'addNewEmail' : addNewEmail,
-        'goBack' : goBack
+        'goBack' : navigation.back
       }
     };
   })();
 }
 
-window.addEventListener('load', function initIMEManager(evt) {
-  window.removeEventListener('load', initIMEManager);
+window.addEventListener('load', function initContacts(evt) {
+  window.removeEventListener('load', initContacts);
   contacts.app.init();
 });
+
