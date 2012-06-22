@@ -28,6 +28,12 @@ var CallScreen = {
     return this.keypadButton = document.getElementById('keypad-visibility');
   },
 
+  get callContainer() {
+    delete this.contactContainer;
+    return this.contactContainer =
+      document.getElementById('call-container');
+  },
+
   get contactPrimaryInfo() {
     delete this.contactPrimaryInfo;
     return this.contactPrimaryInfo =
@@ -74,6 +80,14 @@ var CallScreen = {
       KeypadManager._phoneNumber;
     KeypadManager.moveCaretToEnd(
       KeypadManager.phoneNumberView);
+  },
+
+  /*
+   * Sets the caller contact image in the background container.
+   * @param {String} image_url The URL of the image.
+   */
+  setCallerContactImage: function cm_setCallerContactImage(image_url) {
+    this.callContainer.style.backgroundImage = "url(" + image_url + ")";
   },
 
   toggleMute: function cm_toggleMute() {
