@@ -11,6 +11,11 @@ var gTonesFrequencies = {
   '*': [941, 1209], '0': [941, 1336], '#': [941, 1477]
 };
 
+var keypadSoundIsEnabled = true;
+SettingsListener.observe('phone.ring.keypad', true, function(value) {
+  keypadSoundIsEnabled = !!value;
+});
+
 var TonePlayer = {
   _sampleRate: 4000,
 
@@ -150,7 +155,9 @@ var KeyHandler = {
         this.updateFontSize();
       }
 
-      TonePlayer.play(gTonesFrequencies[key]);
+      if (keypadSoundIsEnabled) {
+        TonePlayer.play(gTonesFrequencies[key]);
+      }
 
       // Sending the DTMF tone
       var telephony = navigator.mozTelephony;

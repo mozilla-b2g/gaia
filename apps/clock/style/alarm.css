@@ -1,0 +1,425 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: "Open Sans", sans-serif;
+  overflow: hidden !important;
+}
+
+header {
+  height: 8rem;
+  text-align: center;
+  background-color: #F7F7F7;
+  color: #000000;
+  border-bottom: solid 0.2rem #a3a3a3;
+  font: 1.3rem 'Open Sans', sans-serif;
+  line-height: 4.5rem;
+}
+
+/* ------------- Button ------------- */
+a.button, span.button {
+  margin: 0.4rem;
+  padding: 1.2rem 1.2rem 1rem 1.2rem;
+  border: 0.4rem solid;
+  border-radius: 1rem;
+  background: transparent;
+  color: #000000;
+  display: inline-block;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  font: bold 2rem 'Open Sans', sans-serif;
+  line-height: 2.2rem;
+  -moz-border-top-colors: #6F6F6F #4D4D4D #4D4D4D #6F6F6F;
+  -moz-border-right-colors: #6F6F6F #4D4D4D #4D4D4D #6F6F6F;
+  -moz-border-left-colors: #6F6F6F #4D4D4D #4D4D4D #6F6F6F;
+  -moz-border-bottom-colors: #6F6F6F #4D4D4D #4D4D4D #6F6F6F;
+}
+
+a.button.left {
+  position: absolute;
+  top: 0.6rem;
+  left: 0.1rem;
+}
+
+a.button.right {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.1rem;
+}
+
+.plus-icon {
+  font: bold 4.6rem 'Open Sans', sans-serif;
+  vertical-align: bottom;
+  line-height: 1.9rem;
+  pointer-events: none;
+}
+
+a.abstract-menu {
+  display: block;
+  height:      auto; /* 5.4rem; -moz-calc(100% - 4rem); */
+  line-height: normal; /* 5.4rem; -moz-calc(100% - 4rem); */
+  width: -moz-calc(100% - 8.5rem);
+  text-decoration: none;
+  text-align: right;
+  outline: 0;
+  color: #555;
+  font: 2.4rem/3rem 'Open Sans',sans-serif;
+}
+
+.view label.text {
+  text-align: right;
+  padding: 2rem 0;
+  text-indent: 2rem;
+  direction: rtl;
+}
+
+/* View */
+.view {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border: 0;
+  width: -moz-calc(100% + 0.8rem); /* scrollbar bug */
+  height: 100%;
+}
+
+/* View - Slide Horizontal Transition */
+.view {
+  -moz-transition: -moz-transform 0.5s ease, width 0s linear 0.5s;
+  -moz-transform: translateX(100%);
+  width: 0;
+}
+
+#alarm-view {
+  -moz-transform: translateX(-100%);
+}
+
+#alarm-view:target,
+.view:target {
+  -moz-transition: -moz-transform 0.5s ease, width 0s linear 0s;
+  -moz-transform: none;
+  width: 100%;
+}
+
+body.hidden #alarm-view {
+  -moz-transform: none;
+  -moz-transition: none;
+}
+
+#alarm-view.active {
+  -moz-transform: none;
+  -moz-transition: none;
+  width: 100%;
+}
+
+#alarm {
+  background-color: #305B5E;
+}
+
+#repeat {
+  background-color: #305B5E;
+}
+
+#sound {
+  background-color: #305B5E;
+}
+
+#snooze {
+  background-color: #305B5E;
+}
+
+#color {
+  background-color: #305B5E;
+}
+
+li.singleline {
+  height: 7.5rem;
+}
+
+li.multiline {
+  height: 8.5rem;
+}
+
+.view-alarm-lbl {
+  color: black;
+  font: 2.4rem/2.4rem 'Open Sans',sans-serif;
+  top: 2.5rem;
+  height: auto;
+  width: 14rem;
+}
+
+/* Table View */
+#alarms-tableView {
+/*  overflow-y: auto;  */
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  list-style: none;
+}
+
+ul li { /* 9.6rem, including a 0.2rem border */
+  position: relative;
+  height: 9rem;
+  background-color: #FFFFFF;
+  border-top: 0.1rem solid #D5D5D5;
+  outline:#ACACAC solid 0.2rem;
+  border-bottom: 0.1rem solid #B3B3B3;
+  color: #555;
+}
+
+ul li:active {
+  background-color: rgba(0, 0, 0, .07);
+  text-shadow: #999 0 -0.1rem 0;
+  color: #222;
+}
+
+ul li > a {
+  display: block;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+  height:      5.4rem; /* -moz-calc(100% - 4rem); */
+  line-height: 5.4rem; /* -moz-calc(100% - 4rem); */
+  text-decoration: none;
+  outline: 0;
+  color: #555;
+}
+
+ul li > a, ul li > span, ul li > small { /* text ellipsis */
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  position: absolute;
+  width: -moz-calc(100% - 6rem + 2 * 0.4rem + 1rem);
+  left: -moz-calc(6rem + 2 * 0.4rem + 1rem);
+}
+
+#alarm-del {
+  color: red;
+  font: 2.4rem/2.4rem 'Open Sans',sans-serif;
+  height: 100%;
+  left: 2rem;
+  width: 100%;
+}
+
+ul li > span {
+  position: absolute;
+  left: 2rem;
+}
+
+ul li > small {
+  position: absolute;
+  left: 2rem;
+  top: 50%;
+  font-size: 0.9em;
+  color: #888;
+}
+
+.alarmList-time {
+  float: left;
+  width: 32%;
+  padding-top: 1rem;
+  text-align: right;
+}
+
+.alarmList-detail {
+  float: left;
+  width: 50%;
+  padding-left: 1.4rem;
+  text-align: left;
+}
+
+.alarmList-direction {
+  float: left;
+  width: 4%;
+  padding-top: 4%;
+  height: auto;
+  font: bold 2rem 'Open Sans', sans-serif;
+  line-height: 2rem;
+  color: black;
+}
+
+/* fake input boxes for checkboxes & radio buttons */
+.view label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.view label.alarmList {
+  width: -moz-calc(6rem + 2 * 0.4rem + 1rem);
+}
+
+.view label > input {
+  display: none;
+}
+
+.view label > span {
+  position: absolute;
+  top: -moz-calc(50% - 1.7rem);
+  right: 1.4rem;
+  display: block;
+  width: 6.4rem;
+  height: 6.4rem;
+  border: none;
+}
+
+.view label > input[type=radio] + span {
+  background: url(images/radio-off.png) no-repeat scroll center center;
+}
+
+.view label > input[type=radio]:checked + span {
+  background: url(images/radio-on.png) no-repeat scroll center center;
+}
+
+.view label > input[type=checkbox] + span {
+  width: 4.6rem;
+  height: 4.6rem;
+  border: 0.4rem solid;
+  border-radius: 1.3rem;
+  -moz-border-top-colors: #696969 #4D4D4D #4D4D4D #696969;
+  -moz-border-right-colors: #696969 #4D4D4D #4D4D4D #696969;
+  -moz-border-bottom-colors: #696969 #4D4D4D #4D4D4D #696969;
+  -moz-border-left-colors: #696969 #4D4D4D #4D4D4D #696969;
+  background: -moz-linear-gradient(#eaeae4, #ffffff);
+}
+
+.view label > input[type=checkbox]:checked + span {
+  background: url(images/checked.png) no-repeat scroll center center,
+    -moz-linear-gradient(#ffffff, #eaeae4);
+}
+
+/* ----------- Inputs ------------- */
+
+select, input, textarea {
+  clear: both;
+  background:none;
+  border:0.2rem solid orange;
+  border-radius: 0.5rem;
+  font-size: 1em;
+}
+
+select:focus, input:focus, textarea:focus {
+  background: #FFF;
+}
+
+select.right {
+  width: 7rem;
+}
+
+input.right {
+  width: -moz-calc(100% - 20rem);
+  margin:1rem 0.8rem 0.3rem 18rem;
+  height: 5rem;
+  font: 2.4rem/3rem 'Open Sans',sans-serif;
+  color: #660000;
+}
+/* ----------- Input Error ---------- */
+input ~ * {
+  color:#E00;
+  margin: -1rem 0rem 0rem 2rem;
+}
+
+input ~ *:empty {
+  display:none;
+}
+
+/* ----------- TableView ---------- */
+.tableView p {
+  padding: 0;
+  margin-right: 2.8rem;
+}
+
+.tableView {
+  height: -moz-calc(100% -6.2rem);
+  
+}
+#alarms.tableView {
+  width: 100%;
+  height: auto;
+  max-height: 46%;
+  position: absolute;
+  bottom: 0rem;
+  border-top: 0.1rem solid #D5D5D5;
+  outline:#ACACAC solid 0.2rem;
+  border-bottom: 0.1rem solid #B3B3B3;
+}
+
+li img {
+  position: absolute;
+  vertical-align: middle;
+  margin-right:1rem;
+}
+
+.description {
+  position: relative;
+  float: left;
+  width: 100%;
+  height: auto;
+  line-height: normal;
+  pointer-events: none;
+}
+
+.alarmList-time span.time {
+  height: auto;
+  font: 3.8rem 'Open Sans', sans-serif;
+  line-height: 3.8rem;
+  color: black;
+}
+
+.alarmList-time span.hour24-state {
+  height: auto;
+  font: 2rem 'Open Sans', sans-serif;
+  line-height: 1.8rem;
+  color: #4D4D4D;
+}
+
+.alarmList-detail .label {
+  height: auto;
+  font: bold 2rem 'Open Sans', sans-serif;
+  line-height: 2rem;
+  color: black;
+  padding-top: 2%;
+}
+
+.alarmList-detail .repeat {
+  height: auto;
+  font: 1.8rem 'Open Sans', sans-serif;
+  line-height: 1.8rem;
+  color: #4D4D4D;
+  padding-top: 0.8rem;
+}
+
+.alarmList-detail .hiddenSummary {
+  display: none;
+}
+
+.alarmList-detail .paddingTop {
+  padding-top: 1.9rem;
+}
+
+.lebal {
+  height: auto;
+}
+
+/* 320x480 phones */
+@media (orientation: portrait) and (width: 320px),
+       (orientation: landscape) and (width: 480px) {
+  html {
+    font-size: 6px;
+  }
+}
+
+/* 480x800 phones */
+@media (orientation: portrait) and (width: 480px),
+       (orientation: landscape) and (width: 800px) {
+  html {
+    font-size: 10px;
+  }
+}

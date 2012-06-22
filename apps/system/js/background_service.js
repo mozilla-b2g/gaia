@@ -34,23 +34,15 @@ var BackgroundServiceManager = (function bsm() {
     if (evt.detail.features !== 'background')
       return;
 
-    // preventDefault means "we're handling this popup; let it through."
-    evt.preventDefault();
     // stopPropagation means we are not allowing
     // Popup Manager to handle this event
     evt.stopPropagation();
 
-    // XXX: this is sad. Getting origin from manifest URL.
     var manifestURL = evt.target.getAttribute('mozapp');
-    var origin = (function getOrigin() {
-      var a = document.createElement('a');
-      a.href = manifestURL;
-      return a.protocol + '//' + a.hostname;
-    })();
+    var origin = evt.target.dataset.frameOrigin;
 
-    var frame = open(origin, evt.detail.name, evt.detail.url);
-    if (frame)
-      evt.detail.frameElement = frame;
+    var detail = evt.detail;
+    open(origin, detail.name, detail.url, detail.frameElement);
   }, true);
 
   /* mozbrowserclose */
@@ -90,17 +82,20 @@ var BackgroundServiceManager = (function bsm() {
   };
 
   /* The open function is responsible of containing the iframe */
-  var open = function bsm_open(origin, name, url) {
+  var open = function bsm_open(origin, name, url, frame) {
     var app = Applications.getByOrigin(origin);
     if (!app || !hasBackgroundPermission(app))
       return false;
 
     if (frames[origin] && frames[origin][name]) {
-      frames[origin][name].src = url;
-      return frames[origin][name];
+      // XXX: the window with the same name is opened but we cannot
+      // return the window reference back to mozbrowseropenwindow request
+      return false;
     }
 
-    var frame = document.createElement('iframe');
+    if (!frame) {
+      frame = document.createElement('iframe');
+    }
     frame.className = 'backgroundWindow';
     frame.setAttribute('mozbrowser', 'true');
     frame.setAttribute('mozapp', app.manifestURL);
@@ -114,7 +109,7 @@ var BackgroundServiceManager = (function bsm() {
     frames[origin][name] = frame;
 
     document.body.appendChild(frame);
-    return frames[origin][name];
+    return true;
   };
 
   /* The close function will remove the iframe from DOM and

@@ -41,13 +41,16 @@ var AttentionScreen = {
     if (evt.detail.features != 'attention')
       return;
 
-    // preventDefault means "we're handling this popup; let it through."
-    evt.preventDefault();
+    // stopPropagation means we are not allowing
+    // Popup Manager to handle this event
+    evt.stopPropagation();
 
-    var attentionFrame = document.createElement('iframe');
+    var attentionFrame = evt.detail.frameElement;
     attentionFrame.setAttribute('mozbrowser', 'true');
     attentionFrame.setAttribute('mozapp', evt.target.getAttribute('mozapp'));
-    attentionFrame.dataset.attentionFrame = true;
+    attentionFrame.dataset.frameType = 'attention';
+    attentionFrame.dataset.frameName = evt.detail.name;
+    attentionFrame.dataset.frameOrigin = evt.target.dataset.frameOrigin;
     attentionFrame.src = evt.detail.url;
 
     this.screen.appendChild(attentionFrame);
@@ -62,12 +65,11 @@ var AttentionScreen = {
     this._screenInitiallyDisabled = !ScreenManager.screenEnabled;
     if (this._screenInitiallyDisabled)
       ScreenManager.turnScreenOn();
-
-    evt.detail.frameElement = attentionFrame;
   },
 
   close: function as_close(evt) {
-    if (!evt.target.dataset.attentionFrame)
+    if (!'frameType' in evt.target.dataset ||
+        evt.target.dataset.frameType !== 'attention')
       return;
 
     this.screen.classList.remove('displayed');

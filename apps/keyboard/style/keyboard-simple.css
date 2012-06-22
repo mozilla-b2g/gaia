@@ -1,0 +1,39 @@
+
+#keyboard {
+  background: #454D58;
+}
+
+.keyboard-key > span {
+  background: #ebebeb;
+  box-shadow: none;
+}
+
+.keyboard-key.highlighted {
+  box-shadow: none;
+}
+.keyboard-key.highlighted > span {
+  background: #ebebeb;
+}
+
+#keyboard-accent-char-menu {
+  background: #ebebeb;
+}
+
+#keyboard-accent-char-menu .keyboard-key.highlighted {
+  box-shadow: none;
+  background: #ebebeb;
+}
+
+#keyboard-candidate-panel span,
+#keyboard-candidate-panel[data-truncated]::after {
+  background: rgb(161,158,153);
+}
+
+#keyboard-candidate-panel-toggle-button {
+  background: rgb(161,158,153);
+}
+
+#keyboard-candidate-panel span[data-active],
+#keyboard-candidate-panel-toggle-button[data-active] {
+  background: rgb(161,158,153);
+}
