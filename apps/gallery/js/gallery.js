@@ -173,8 +173,6 @@ function metadataParser(file, callback) {
     testimg.src = url;
     testimg.onload = function() {
       URL.revokeObjectURL(url);
-      imagedata.width = testimg.width;
-      imagedata.height = testimg.height;
       callback({
         width: testimg.width,
         height: testimg.height,
@@ -235,11 +233,14 @@ function destroyUI() {
   images = [];
 
   var items = thumbnails.querySelectorAll('li');
-  for(var i = 0; i < items.length; i++) 
-    thumbnails.removeChild(items[i])
+  for(var i = 0; i < items.length; i++) {
+    var thumbnail = items[i];
+    var url = thumbnail.style.backgroundImage.splice(5,-2);
+    URL.revokeObjectURL(url);
+    thumbnails.removeChild(thumbnail)
+  }
 
-  document.getElementById('nophotos')
-    .classList.remove('hidden');
+  document.getElementById('nophotos').classList.remove('hidden');
 }
 
 
@@ -278,7 +279,7 @@ function addThumbnail(imagenum) {
     console.log("using built-in thumbnail");
     var url = URL.createObjectURL(imagedata.thumbnail.blob);
     li.style.backgroundImage = 'url("' + url + '")';
-    // XXX When is it save to revoke?
+    // XXX When is it save to revoke?  Currently doing it in destroyUI()
     // URL.revokeObjectURL(url);
   }
   else {
@@ -505,7 +506,8 @@ window.addEventListener('resize', function resizeHandler(evt) {
       return;
 
     var imagedata = images[n];
-    var fit = fitImageToScreen(imagedata.width, imagedata.height);
+    var fit = fitImageToScreen(imagedata.metadata.width,
+                               imagedata.metadata.height);
     var style = img.style;
     style.width = fit.width + 'px';
     style.height = fit.height + 'px';
@@ -654,12 +656,15 @@ function displayImageInFrame(n, frame) {
 
   // Asynchronously set the image url
   var imagedata = images[n];
-  storages[imagedata.storageIndex].get(imagedata.name).onsuccess = function(e) {
-    img.src = URL.createObjectURL(e.target.result);
-  };
+  photodb.getFile(imagedata.name, function(file) {
+    var url = URL.createObjectURL(file);
+    img.src = url;
+    img.onload = function() { URL.revokeObjectURL(url); };
+  });
 
   // Figure out the size and position of the image
-  var fit = fitImageToScreen(images[n].width, images[n].height);
+  var fit = fitImageToScreen(images[n].metadata.width,
+                             images[n].metadata.height);
   var style = img.style;
   style.width = fit.width + 'px';
   style.height = fit.height + 'px';
@@ -711,7 +716,9 @@ function showPhoto(n) {
 
   // Create the PhotoState object that stores the photo pan/zoom state
   // And use it to apply CSS styles to the photo and photo frames.
-  photoState = new PhotoState(currentPhoto, images[n].width, images[n].height);
+  photoState = new PhotoState(currentPhoto,
+                              images[n].metadata.width,
+                              images[n].metadata.height);
   photoState.setFrameStyles(currentPhotoFrame,
                             previousPhotoFrame,
                             nextPhotoFrame);
@@ -762,8 +769,8 @@ function nextPhoto(time) {
   // Start with default pan and zoom state for the new photo
   // And also reset the translation caused by swiping the photos
   photoState = new PhotoState(currentPhoto,
-                              images[currentPhotoIndex].width,
-                              images[currentPhotoIndex].height);
+                              images[currentPhotoIndex].metadata.width,
+                              images[currentPhotoIndex].metadata.height);
   photoState.setFrameStyles(currentPhotoFrame,
                             previousPhotoFrame,
                             nextPhotoFrame);
@@ -824,8 +831,8 @@ function previousPhoto(time) {
 
   // Create a new photo state
   photoState = new PhotoState(currentPhoto,
-                              images[currentPhotoIndex].width,
-                              images[currentPhotoIndex].height);
+                              images[currentPhotoIndex].metadata.width,
+                              images[currentPhotoIndex].metadata.height);
   photoState.setFrameStyles(currentPhotoFrame,
                             previousPhotoFrame,
                             nextPhotoFrame);
