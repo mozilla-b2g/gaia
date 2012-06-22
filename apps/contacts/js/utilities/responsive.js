@@ -1,19 +1,3 @@
-/*
- *  Name: Responsive
- *
- *  Product: Open Web Device
- *
- *  Copyright(c) 2012 Telefónica I+D S.A.U.
- *
- *  LICENSE: TBD
- *
- *  @author Ismael González (igonzaleznicolas@gmail.com)
- *
- *  This files is in charge of calculating the amount
- *  of resizing needed for the device
- *
-*/
-
 if (typeof window.responsive === 'undefined') {
   (function(document) {
 

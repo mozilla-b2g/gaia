@@ -1,40 +1,10 @@
-/*
- *  Module: Templates
- *
- *  Product: Open Web Device
- *
- *  Copyright(c) 2012 Telefónica I+D S.A.U.
- *
- *  LICENSE: TBD
- *
- *  @author José M. Cantera (jmcf@tid.es)
- *
- *  The module allows to work with HTML templates in client-side JS environments
- *
- * @example
- *
- *   <ul id="theList">
- *    <li data-template>
- *      <dl>
- *         <dt>#name#</dt>
- *         <dd class="img"><img src="#contactImg#"></dd>
- *      </dl>
- *    </li>
- *   </ul>
- *
- *   var myObj = { name: 'Nice Name!', contactImg: 'myImg.jpg' };
- *   owd.templates.append('#theList',myObj);
- *
- *
-*/
+var utils = window.utils || {};
 
-var owd = window.owd || {};
-
-if (!owd.templates) {
+if (!utils.templates) {
    (function() {
      // 'use strict';
 
-      var Templates = owd.templates = {};
+      var Templates = utils.templates = {};
 
       /**
        *  Returns a target HTMLElement from a selector or HTMLElement itself

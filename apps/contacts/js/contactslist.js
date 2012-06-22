@@ -23,7 +23,7 @@ if (!contacts.List) {
         alphabet.push({group: letter, letter: letter});
       }
       alphabet.push({group: 'und', letter: '#'});
-      owd.templates.append(groupsList, alphabet);
+      utils.templates.append(groupsList, alphabet);
       groupsList.addEventListener('click', pickContact);
     }
 
@@ -49,7 +49,7 @@ if (!contacts.List) {
       if (contacts.length > 0) {
         var olElem = groupsList.querySelector('#contacts-list-' + group);
         if (olElem) {
-          owd.templates.append(olElem, contacts);
+          utils.templates.append(olElem, contacts);
           showGroup(group);
         }
       }
@@ -137,7 +137,7 @@ if (!contacts.List) {
         var liElem = liElems[i];
         var gName = liElem.querySelector('strong').textContent;
         if (gName >= givenName) {
-          newLi = owd.templates.render(liElems[0], contact);
+          newLi = utils.templates.render(liElems[0], contact);
           list.insertBefore(newLi, liElem);
           lazyload.reload();
           break;
@@ -145,7 +145,7 @@ if (!contacts.List) {
       }
 
       if (!newLi) {
-        owd.templates.append(list, contact);
+        utils.templates.append(list, contact);
         lazyload.reload();
       }
 

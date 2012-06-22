@@ -134,7 +134,7 @@ if (!contacts.app) {
           notes: '',
           type: 'tel'
         };
-        var template = owd.templates.render(phoneDetailsTemplate, telField);
+        var template = utils.templates.render(phoneDetailsTemplate, telField);
         listContainer.appendChild(template);
       }
       for (var email in contact.email) {
@@ -142,10 +142,10 @@ if (!contacts.app) {
           email: contact.email[email],
           email_tag: '', type: 'email'
         };
-        var template = owd.templates.render(emailDetailsTemplate, emailField);
+        var template = utils.templates.render(emailDetailsTemplate, emailField);
         listContainer.appendChild(template);
       }
-      owd.templates.append(coverImg, contact);
+      utils.templates.append(coverImg, contact);
       navigation.go(contactDetailsView, 'right-left');
     };
 
@@ -170,7 +170,7 @@ if (!contacts.app) {
           notes: '',
           i: tel
         };
-        var template = owd.templates.render(phoneTemplate, telField);
+        var template = utils.templates.render(phoneTemplate, telField);
         phonesContainer.appendChild(template);
         numberPhones++;
       }
@@ -180,7 +180,7 @@ if (!contacts.app) {
           type: '',
           i: email
         };
-        var template = owd.templates.render(emailTemplate, emailField);
+        var template = utils.templates.render(emailTemplate, emailField);
         emailContainer.appendChild(template);
         numberEmails++;
       }
@@ -287,7 +287,7 @@ if (!contacts.app) {
         notes: '',
         i: index
       };
-      var template = owd.templates.render(phoneTemplate, telField);
+      var template = utils.templates.render(phoneTemplate, telField);
       phonesContainer.appendChild(template);
     };
 
@@ -297,7 +297,7 @@ if (!contacts.app) {
         type: '',
         i: index
       };
-      var template = owd.templates.render(emailTemplate, emailField);
+      var template = utils.templates.render(emailTemplate, emailField);
       emailContainer.appendChild(template);
     };
 

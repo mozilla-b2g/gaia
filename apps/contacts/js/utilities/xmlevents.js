@@ -1,40 +1,8 @@
-/*
- *  Module: XML Events
- *
- *  Product: Open Web Device
- *
- *  Copyright(c) 2012 Telefónica I+D S.A.U.
- *
- *  LICENSE: TBD
- *
- *  @author José M. Cantera (jmcf@tid.es)
- *
- *  .defaultAction can be 'cancel' or 'perform' ('perform' by default)
- *
- *  .propagate can be 'continue' or 'stop' ('continue' by default)
- *
- *  .phase can be one of ['bubble','capture','default'] ('default' by default)
- *
- *
- *  @example
- *
- *  <listener id="l1" event="touchstart" observer="#myContainer">
- *
- *  @example
- *
- *  <listener id="l2" event="click" target="#myElement"
- *              observer="#myContainer" phase="capture"
- *              defaultAction="cancel"  propagate="stop" />
- *
- *
-*/
-
 'use strict';
 
-var owd = window.owd || {};
+var utils = window.utils || {};
 
-
-if (!owd.xmlevents) {
+if (!utils.xmlevents) {
   (function() {
     // Automagically attach the event handlers
     window.addEventListener('DOMContentLoaded', attachHandlers);
@@ -43,7 +11,7 @@ if (!owd.xmlevents) {
     var listeners = {};
 
     // Auxiliary Variable for creating the API
-    var xmlEvents = owd.xmlevents = {};
+    var xmlEvents = utils.xmlevents = {};
 
     /**
      *  Attachs the specified listener to the subTree
