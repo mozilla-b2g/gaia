@@ -6583,6 +6583,32 @@ function MailAccount(api, wireRep) {
   this.type = wireRep.type;
   this.name = wireRep.name;
 
+  /**
+   * Is the account currently enabled, as in will we talk to the server?
+   * Accounts will be automatically disabled in cases where it would be
+   * counter-productive for us to keep trying to access the server.
+   *
+   * For example: the user's password being (apparently) bad, or gmail getting
+   * upset about the amount of data transfer and locking the account out for the
+   * rest of the day.
+   */
+  this.enabled = wireRep.enabled;
+  /**
+   * @listof[@oneof[
+   *   @case['login-failed']{
+   *     The login explicitly failed, suggesting that the user's password is
+   *     bad.  Other possible interpretations include the account settings are
+   *     somehow wrong now, the server is experiencing a transient failure,
+   *     or who knows.
+   *   }
+   * ]]{
+   *   A list of known problems with the account which explain why the account
+   *   might not be `enabled`.  Once a problem is believed to have been
+   *   addressed, `clearProblems` should be called.
+   * }
+   */
+  this.problems = wireRep.problems;
+
   this.identities = [];
   for (var iIdent = 0; iIdent < wireRep.identities.length; iIdent++) {
     this.identities.push(new MailSenderIdentity(this._api,
@@ -6608,8 +6634,23 @@ MailAccount.prototype = {
     };
   },
 
-  modifyAccount: function() {
-    throw new Error("NOT YET IMPLEMENTED");
+  /**
+   * Tell the back-end to clear the list of problems with the account, re-enable
+   * it, and try and connect.
+   */
+  clearProblems: function() {
+    this._api._clearAccountProblems(this);
+  },
+
+  /**
+   * @args[
+   *   @param[mods @dict[
+   *     @key[password String]
+   *   ]]
+   * ]
+   */
+  modifyAccount: function(mods) {
+    this._api._modifyAccount(this, mods);
   },
 
   /**
@@ -7286,14 +7327,29 @@ var unexpectedBridgeDataError = reportError,
     reportClientCodeError = reportError;
 
 /**
- *
+ * The public API exposed to the client via the MailAPI global.
  */
 function MailAPI() {
   this._nextHandle = 1;
-  this.onstatuschange = null;
 
   this._slices = {};
   this._pendingRequests = {};
+
+  /**
+   * @func[
+   *   @args[
+   *     @param[account MailAccount]
+   *   ]
+   * ]{
+   *   A callback invoked when we fail to login to an account and the server
+   *   explicitly told us the login failed and we have no reason to suspect
+   *   the login was temporarily disabled.
+   *
+   *   The account is put in a disabled/offline state until such time as the
+   *
+   * }
+   */
+  this.onbadlogin = null;
 }
 exports.MailAPI = MailAPI;
 MailAPI.prototype = {
@@ -7329,6 +7385,11 @@ MailAPI.prototype = {
                     '\n', ex.stack);
       return;
     }
+  },
+
+  _recv_badLogin: function ma__recv_badLogin(msg) {
+    if (this.onbadlogin)
+      this.onbadlogin(new MailAccount(this, msg.account));
   },
 
   _recv_sliceSplice: function ma__recv_sliceSplice(msg) {
@@ -7524,6 +7585,9 @@ MailAPI.prototype = {
    *     The username and password didn't check out.  We don't know which one
    *     is wrong, just that one of them is wrong.
    *   }
+   *   @case['unknown']{
+   *     We don't know what happened; count this as our bug for not knowing.
+   *   }
    *   @case[null]{
    *     No error, the account was created and everything is terrific.
    *   }
@@ -7569,6 +7633,21 @@ MailAPI.prototype = {
     delete this._pendingRequests[msg.handle];
 
     req.callback.call(null, msg.error);
+  },
+
+  _clearAccountProblems: function ma__clearAccountProblems(account) {
+    this.__bridgeSend({
+      type: 'clearAccountProblems',
+      accountId: account.id,
+    });
+  },
+
+  _modifyAccount: function ma__modifyAccount(account, mods) {
+    this.__bridgeSend({
+      type: 'modifyAccount',
+      accountId: account.id,
+      mods: mods,
+    });
   },
 
   _deleteAccount: function ma__deleteAccount(account) {
@@ -7920,7 +7999,6 @@ MailAPI.prototype = {
   },
 
   _recv_sent: function(msg) {
-    console.log("processing sent", msg.handle);
     var req = this._pendingRequests[msg.handle];
     if (!req) {
       unexpectedBridgeDataError('Bad handle for sent:', msg.handle);
@@ -11674,6 +11752,7 @@ function strcmp(a, b) {
  */
 function MailBridge(universe) {
   this.universe = universe;
+  this.universe.registerBridge(this);
 
   this._LOG = LOGFAB.MailBridge(this, universe._LOG, null);
   /** @dictof[@key[handle] @value[BridgedViewSlice]]{ live slices } */
@@ -11723,8 +11802,71 @@ MailBridge.prototype = {
       });
   },
 
+  _cmd_clearAccountProblems: function mb__cmd_clearAccountProblems(msg) {
+    var account = this.universe.getAccountForAccountId(msg.accountId),
+        self = this;
+
+    account.checkAccount(function(err) {
+      // If we succeeded or the problem was not an authentication, assume
+      // everything went fine and clear the problems.
+      if (!err || err !== 'bad-user-or-pass') {
+        self.universe.clearAccountProblems(account);
+      }
+      // The login information is still bad; re-send the bad login notification.
+      else {
+        // This is only being sent over this, the same bridge the clear request
+        // came from rather than sent via the mailuniverse.  No point having the
+        // notifications stack up on inactive UIs.
+        self.notifyBadLogin(account);
+      }
+    });
+  },
+
+  _cmd_modifyAccount: function mb__cmd_modifyAccount(msg) {
+    var account = this.universe.getAccountForAccountId(msg.accountId),
+        accountDef = account.accountDef;
+
+    for (var key in msg.mods) {
+      var val = msg.mods[key];
+
+      switch (key) {
+        case 'name':
+          accountDef.name = val;
+          break;
+
+        case 'username':
+          accountDef.credentials.username = val;
+          break;
+        case 'password':
+          accountDef.credentials.password = val;
+          break;
+
+        case 'identities':
+          // TODO: support identity mutation
+          // we expect a list of identity mutation objects, namely an id and the
+          // rest are attributes to change
+          break;
+
+        case 'servers':
+          // TODO: support server mutation
+          // we expect a list of server mutation objects; namely, the type names
+          // the server and the rest are attributes to change
+          break;
+      }
+    }
+    account.saveAccountState();
+  },
+
   _cmd_deleteAccount: function mb__cmd_deleteAccount(msg) {
     this.universe.deleteAccount(msg.accountId);
+  },
+
+  notifyBadLogin: function mb_notifyBadLogin(account) {
+console.log('sending bad login');
+    this.__sendMessage({
+      type: 'badLogin',
+      account: account.toBridgeWire(),
+    });
   },
 
   _cmd_viewAccounts: function mb__cmd_viewAccounts(msg) {
@@ -11738,7 +11880,7 @@ MailBridge.prototype = {
     proxy.sendSplice(0, 0, wireReps, true, false);
   },
 
-  notifyAccountAdded: function(account) {
+  notifyAccountAdded: function mb_notifyAccountAdded(account) {
     var accountWireRep = account.toBridgeWire();
     var i, proxy, slices, wireSplice = null;
     // -- notify account slices
@@ -15119,8 +15261,17 @@ ImapConnection.prototype.connect = function(loginCb) {
       }
 
 
-      var recentReq = self._state.requests.shift(),
-          recentCmd = recentReq.command;
+      var recentReq = self._state.requests.shift();
+      if (!recentReq) {
+        // We expect this to happen in the case where our callback above
+        // resulted in our connection being killed.  So just bail in that case.
+        if (self._state.status === STATES.NOCONNECT)
+          return;
+        // This is unexpected and bad.  Log a poor man's error for now.
+        console.error('IMAP: Somehow no recentReq for data:', data);
+        return;
+      }
+      var recentCmd = recentReq.command;
       if (self._LOG) self._LOG.cmd_end(recentReq.prefix, recentCmd, /^LOGIN$/.test(recentCmd) ? '***BLEEPING OUT LOGON***' : recentReq.cmddata);
       if (self._state.requests.length === 0
           && recentCmd !== 'LOGOUT') {
@@ -15622,7 +15773,9 @@ ImapConnection.prototype.__defineGetter__('seq', function() {
 /****** Private Functions ******/
 
 ImapConnection.prototype._fnTmrConn = function(loginCb) {
-  loginCb(new Error('Connection timed out'));
+  var err = new Error('Connection timed out');
+  err.type = 'timeout';
+  loginCb(err);
   this._state.conn.close();
 }
 
@@ -18036,8 +18189,10 @@ define('rdimap/imapclient/smtpacct',[
     exports
   ) {
 
-function SmtpAccount(universe, accountId, credentials, connInfo, _parentLog) {
+function SmtpAccount(universe, compositeAccount, accountId, credentials,
+                     connInfo, _parentLog) {
   this.universe = universe;
+  this.compositeAccount = compositeAccount;
   this.accountId = accountId;
   this.credentials = credentials;
   this.connInfo = connInfo;
@@ -18051,6 +18206,10 @@ SmtpAccount.prototype = {
   type: 'smtp',
   toString: function() {
     return '[SmtpAccount: ' + this.id + ']';
+  },
+
+  get numActiveConns() {
+    return this._activeConnections.length;
   },
 
   _makeConnection: function() {
@@ -18122,6 +18281,7 @@ SmtpAccount.prototype = {
    */
   sendMessage: function(composedMessage, callback) {
     var conn = this._makeConnection(), bailed = false, sendingMessage = false;
+    this._activeConnections.push(conn);
 
     // - Optimistic case
     // Send the envelope once the connection is ready (fires again after
@@ -18202,12 +18362,17 @@ SmtpAccount.prototype = {
         // the connection gets automatically closed.
       });
       conn.on('end', function() {
+        var idx = this._activeConnections.indexOf(conn);
+        if (idx !== -1)
+          this._activeConnections.splice(idx, 1);
+        else
+          console.error('Dead unknown connection?');
         if (bailed)
           return;
         callback('connection-lost', null);
         bailed = true;
         // (the connection is already closed if we are here)
-      });
+      }.bind(this));
   },
 
 
@@ -18814,6 +18979,9 @@ function FakeAccount(universe, accountDef, folderInfo, receiveProtoConn, _LOG) {
   this.id = accountDef.id;
   this.accountDef = accountDef;
 
+  this.enabled = true;
+  this.problems = [];
+
   var generator = new MessageGenerator();
 
   this.identities = accountDef.identities;
@@ -18873,6 +19041,9 @@ FakeAccount.prototype = {
       path: this.accountDef.name,
       type: this.accountDef.type,
 
+      enabled: this.enabled,
+      problems: this.problems,
+
       identities: this.identities,
 
       credentials: {
@@ -18894,6 +19065,10 @@ FakeAccount.prototype = {
       path: this.accountDef.name,
       type: 'account',
     };
+  },
+
+  get numActiveConns() {
+    return 0;
   },
 
   saveAccountState: function(reuseTrans) {
@@ -21909,10 +22084,12 @@ function cmpFolderPubPath(a, b) {
  * API in such a way that we never know the API.  Se a vida e.
  *
  */
-function ImapAccount(universe, accountId, credentials, connInfo, folderInfos,
+function ImapAccount(universe, compositeAccount, accountId, credentials,
+                     connInfo, folderInfos,
                      dbConn,
                      _parentLog, existingProtoConn) {
   this.universe = universe;
+  this.compositeAccount = compositeAccount;
   this.id = accountId;
 
   this._credentials = credentials;
@@ -21924,13 +22101,8 @@ function ImapAccount(universe, accountId, credentials, connInfo, folderInfos,
 
   this._jobDriver = new $imapjobs.ImapJobDriver(this);
 
-  if (existingProtoConn) {
-    this._ownedConns.push({
-        conn: existingProtoConn,
-        inUse: false,
-        folderId: null,
-      });
-  }
+  if (existingProtoConn)
+    this._reuseConnection(existingProtoConn);
 
   // Yes, the pluralization is suspect, but unambiguous.
   /** @dictof[@key[FolderId] @value[ImapFolderStorage] */
@@ -22297,6 +22469,10 @@ ImapAccount.prototype = {
     this._LOG.__die();
   },
 
+  get numActiveConns() {
+    return this._ownedConns.length;
+  },
+
   /**
    * Mechanism for an `ImapFolderConn` to request an IMAP protocol connection.
    * This is to potentially support some type of (bounded) connection pooling
@@ -22345,7 +22521,20 @@ ImapAccount.prototype = {
     this._makeConnection(folderId, callback);
   },
 
-  _makeConnection: function(folderId, callback) {
+  checkAccount: function(callback) {
+    var self = this;
+    this._makeConnection(
+      ':check',
+      function success(conn) {
+        self.__folderDoneWithConnection(null, conn);
+        callback(null);
+      },
+      function badness(err) {
+        callback(err);
+      });
+  },
+
+  _makeConnection: function(folderId, callback, errback) {
     this._LOG.createConnection(folderId);
     var opts = {
       host: this._connInfo.hostname,
@@ -22362,20 +22551,66 @@ ImapAccount.prototype = {
         inUse: true,
         folderId: folderId,
       });
-    conn.on('close', function() {
-      });
-    conn.on('error', function(err) {
-        // this hears about connection errors too
-        console.warn('Connection error:', err);
-      });
+    this._bindConnectionDeathHandlers(conn);
     conn.connect(function(err) {
       if (err) {
-        console.error('Connection error:', err);
+        var errName;
+        switch (err.type) {
+          // error-codes as defined in `MailApi.js` for tryToCreateAccount
+          case 'NO':
+          case 'no':
+            errName = 'bad-user-or-pass';
+            this.universe.__reportAccountProblem(this.compositeAccount,
+                                                 errName);
+            break;
+          case 'timeout':
+            errName = 'unresponsive-server';
+            break;
+          default:
+            errName = 'unknown';
+            break;
+        }
+        console.error('Connect error:', errName, 'formal:', err, 'on',
+                      this._connInfo.hostname, this._connInfo.port);
+        if (errback)
+          errback(errName);
+        conn.die();
       }
-      if (!err) {
+      else {
         callback(conn);
       }
-    });
+    }.bind(this));
+  },
+
+  _reuseConnection: function(existingProtoConn) {
+    // We don't want the probe being kept alive and we certainly don't need its
+    // listeners.
+    existingProtoConn.removeAllListeners();
+    this._ownedConns.push({
+        conn: existingProtoConn,
+        inUse: false,
+        folderId: null,
+      });
+    this._bindConnectionDeathHandlers(existingProtoConn);
+  },
+
+  _bindConnectionDeathHandlers: function(conn) {
+    // on close, stop tracking the connection in our list of live connections
+    conn.on('close', function() {
+      for (var i = 0; i < this._ownedConns.length; i++) {
+        var connInfo = this._ownedConns[i];
+        if (connInfo.conn === conn) {
+          this._LOG.deadConnection(connInfo.folderId);
+          this._ownedConns.splice(i, 1);
+          return;
+        }
+      }
+    }.bind(this));
+    conn.on('error', function(err) {
+      // this hears about connection errors too
+      console.warn('Conn steady error:', err, 'on',
+                   this._connInfo.hostname, this._connInfo.port);
+    }.bind(this));
   },
 
   __folderDoneWithConnection: function(folderId, conn) {
@@ -22632,6 +22867,8 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
       createConnection: {},
       reuseConnection: {},
       releaseConnection: {},
+      deadConnection: {},
+      connectionMismatch: {},
     },
     TEST_ONLY_events: {
       createFolder: { path: false },
@@ -22640,6 +22877,8 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
       createConnection: { folderId: false },
       reuseConnection: { folderId: false },
       releaseConnection: { folderId: false },
+      deadConnection: { folderId: false },
+      connectionMismatch: { folderId: false },
     },
     errors: {
       folderAlreadyHasConn: { folderId: false },
@@ -22721,6 +22960,13 @@ function CompositeAccount(universe, accountDef, folderInfo, dbConn,
   this.universe = universe;
   this.id = accountDef.id;
   this.accountDef = accountDef;
+
+  // Currently we don't persist the disabled state of an account because it's
+  // easier for the UI to be edge-triggered right now and ensure that the
+  // triggering occurs once each session.
+  this.enabled = true;
+  this.problems = [];
+
   // XXX for now we are stealing the universe's logger
   this._LOG = _LOG;
 
@@ -22735,12 +22981,12 @@ function CompositeAccount(universe, accountDef, folderInfo, dbConn,
 
   this._receivePiece =
     new PIECE_ACCOUNT_TYPE_TO_CLASS[accountDef.receiveType](
-      universe,
+      universe, this,
       accountDef.id, accountDef.credentials, accountDef.receiveConnInfo,
       folderInfo, dbConn, this._LOG, receiveProtoConn);
   this._sendPiece =
     new PIECE_ACCOUNT_TYPE_TO_CLASS[accountDef.sendType](
-      universe,
+      universe, this,
       accountDef.id, accountDef.credentials,
       accountDef.sendConnInfo, dbConn, this._LOG);
 
@@ -22759,6 +23005,9 @@ CompositeAccount.prototype = {
       name: this.accountDef.name,
       type: this.accountDef.type,
 
+      enabled: this.enabled,
+      problems: this.problems,
+
       identities: this.identities,
 
       credentials: {
@@ -22770,10 +23019,12 @@ CompositeAccount.prototype = {
         {
           type: this.accountDef.receiveType,
           connInfo: this.accountDef.receiveConnInfo,
+          activeConns: this._receivePiece.numActiveConns,
         },
         {
           type: this.accountDef.sendType,
           connInfo: this.accountDef.sendConnInfo,
+          activeConns: this._sendPiece.numActiveConns,
         }
       ],
     };
@@ -22789,6 +23040,15 @@ CompositeAccount.prototype = {
 
   saveAccountState: function(reuseTrans) {
     return this._receivePiece.saveAccountState(reuseTrans);
+  },
+
+  /**
+   * Check that the account is healthy in that we can login at all.
+   */
+  checkAccount: function(callback) {
+    // Since we use the same credential for both cases, we can just have the
+    // IMAP account attempt to establish a connection and forget about SMTP.
+    this._receivePiece.checkAccount(callback);
   },
 
   /**
@@ -23264,17 +23524,25 @@ MailUniverse.prototype = {
     if (!wasOnline && this.online) {
       // - check if we have any pending actions to run and run them if so.
       for (var iAcct = 0; iAcct < this.accounts.length; iAcct++) {
-        var account = this.accounts[iAcct],
-            queue = this._opsByAccount[account.id];
-        if (queue.length &&
-            // (it's possible there is still an active job right now)
-            (queue[0].status !== 'doing' && queue[0].status !== 'undoing')) {
-          var op = queue[0];
-          account.runOp(
-            op, op.desire,
-            this._opCompleted.bind(this, account, op));
-        }
+        this._resumeOpProcessingForAccount(this.accounts[iAcct]);
       }
+    }
+  },
+
+  /**
+   * Start processing ops for an account if it's able and has ops to run.
+   */
+  _resumeOpProcessingForAccount: function(account) {
+    var queue = this._opsByAccount[account.id];
+    if (!account.enabled)
+      return;
+    if (queue.length &&
+        // (it's possible there is still an active job right now)
+        (queue[0].status !== 'doing' && queue[0].status !== 'undoing')) {
+      var op = queue[0];
+      account.runOp(
+        op, op.desire,
+        this._opCompleted.bind(this, account, op));
     }
   },
 
@@ -23378,6 +23646,38 @@ MailUniverse.prototype = {
     }
 
     return account;
+  },
+
+  /**
+   * Self-reporting by an account that it is experiencing difficulties.
+   *
+   * We mutate its state for it, and generate a notification if this is a new
+   * problem.
+   */
+  __reportAccountProblem: function(account, problem) {
+    // nothing to do if the problem is already known
+    if (account.problems.indexOf(problem) !== -1)
+      return;
+    account.problems.push(problem);
+    account.enabled = false;
+
+    if (problem === 'bad-user-or-pass')
+      this.__notifyBadLogin(account);
+  },
+
+  clearAccountProblems: function(account) {
+    // TODO: this would be a great time to have any slices that had stalled
+    // syncs do whatever it takes to make them happen again.
+    account.enabled = true;
+    account.problems = [];
+    this._resumeOpProcessingForAccount(account);
+  },
+
+  __notifyBadLogin: function(account) {
+    for (var iBridge = 0; iBridge < this._bridges.length; iBridge++) {
+      var bridge = this._bridges[iBridge];
+      bridge.notifyBadLogin(account);
+    }
   },
 
   __notifyAddedAccount: function(account) {
@@ -23527,7 +23827,7 @@ MailUniverse.prototype = {
     // shift the running op off.
     queue.shift();
 
-    if (queue.length) {
+    if (queue.length && this.online && account.enabled) {
       op = queue[0];
       account.runOp(
         op, op.desire,
@@ -23566,7 +23866,7 @@ MailUniverse.prototype = {
       account.runOp(op, op.desire === 'do' ? 'local_do' : 'local_undo');
 
     // - initiate async execution if this is the first op
-    if (this.online && queue.length === 1)
+    if (this.online && account.enabled && queue.length === 1)
       account.runOp(
         op, op.desire,
         this._opCompleted.bind(this, account, op));
