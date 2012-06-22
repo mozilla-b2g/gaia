@@ -46,7 +46,7 @@
                   <li data-template class="blck-item" data-uuid="#id#">
                     <a href="#" class="item">
                       <figure class="itm-media pull-right blck-media">
-                        <img src="" data-src="#photo#">
+                         <img alt="" style="background-image: url(#photo#);">
                       </figure>
                       <p class="itm-body">
                         <strong class="blck-name">#givenName# <b>#familyName#</b></strong>
@@ -74,7 +74,8 @@
         <article class="vw-body">
           <div class="vw-bdy-inner">
             <div class="appcnts-profile-head">
-              <figure><img id='cover-img' src="" alt=""></figure>
+              <!-- Default img so far, as UX have to define what to do when no image -->
+              <figure  id='cover-img'><img data-template alt="" style="background-image: url(#photo#);"></figure>
             </div>
             <section class="appcnts-profile-section">
               <!--
@@ -163,7 +164,7 @@
               <fieldset class="item">
                 <legend class="hide">Main information</legend>
                 <a href="#" class="itm-media ff-media">
-                  <img src="#photo#" alt="">
+                  <img alt="" style="background-image: url(#photo#);">
                 </a>
                 <div class="itm-body-exp">
                   <p class="ff-row">
