@@ -34,8 +34,6 @@ var BackgroundServiceManager = (function bsm() {
     if (evt.detail.features !== 'background')
       return;
 
-    // preventDefault means "we're handling this popup; let it through."
-    evt.preventDefault();
     // stopPropagation means we are not allowing
     // Popup Manager to handle this event
     evt.stopPropagation();
@@ -44,11 +42,7 @@ var BackgroundServiceManager = (function bsm() {
     var origin = evt.target.dataset.frameOrigin;
 
     var detail = evt.detail;
-    var opened = open(origin, detail.name, detail.url, detail.frameElement);
-    if (!opened) {
-      // Nullified unopened frame element.
-      evt.detail.frameElement = null;
-    }
+    open(origin, detail.name, detail.url, detail.frameElement);
   }, true);
 
   /* mozbrowserclose */
