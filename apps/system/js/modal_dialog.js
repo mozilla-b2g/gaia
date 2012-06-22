@@ -180,7 +180,7 @@ var ModalDialog = {
 
   // The below is for system apps to use.
   alert: function md_alert(text, callback) {
-    this.makePseudoEvent({
+    this.showWithPseudoEvent({
       type: 'alert',
       text: text,
       callback: callback
@@ -188,7 +188,7 @@ var ModalDialog = {
   },
 
   confirm: function md_confirm(text, callback, cancel) {
-    this.makePseudoEvent({
+    this.showWithPseudoEvent({
       type: 'confirm',
       text: text,
       callback: callback,
@@ -197,7 +197,7 @@ var ModalDialog = {
   },
 
   prompt: function md_prompt(text, default_value, callback) {
-    this.makePseudoEvent({
+    this.showWithPseudoEvent({
       type: 'prompt',
       text: text,
       initialValue: default_value,
