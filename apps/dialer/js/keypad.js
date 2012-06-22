@@ -121,12 +121,14 @@ var KeypadManager = {
   render: function hk_render(layout_type) {
     switch (layout_type) {
       case 'oncall':
+        this.phoneNumberViewContainer.classList.add('no-toolbar');
         this.kbCallBarCallAction.classList.add('hide');
         this.kbCallBarAddContact.classList.add('hide');
         this.kbDelete.classList.add('hide');
         this.kbCallBarBackAction.classList.remove('hide');
         break;
       case 'default':
+        this.phoneNumberViewContainer.classList.remove('no-toolbar');
         this.kbCallBarCallAction.classList.remove('hide');
         this.kbCallBarAddContact.classList.remove('hide');
         this.kbDelete.classList.remove('hide');
@@ -150,7 +152,7 @@ var KeypadManager = {
       this._hold_timer = setTimeout(function() {
         // After .400s we consider that is a "Hold action"
         this._hold_active = true;
-      },400);
+      }, 400);
     } else if (event.type == 'mouseup') {
       // In is a "Hold action" end
       if (this._hold_active) {
