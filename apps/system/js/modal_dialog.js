@@ -45,18 +45,21 @@ var ModalDialog = {
   init: function md_init() {
     // Get all elements initially.
     this.getAllElements();
+    var elements = this.elements;
 
     // Bind events
     window.addEventListener('mozbrowsershowmodalprompt', this);
-    this.elements.alertOk.addEventListener('click', this);
-    this.elements.confirmOk.addEventListener('click', this);
-    this.elements.confirmCancel.addEventListener('click', this);
-    this.elements.promptOk.addEventListener('click', this);
-    this.elements.promptCancel.addEventListener('click', this);
+
+    for (var id in elements) {
+      if (elements[id].tagName.toLowerCase() == 'button') {
+        elements[id].addEventListener('click', this);
+      }
+    }
   },
 
   // Default event handler
   handleEvent: function md_handleEvent(evt) {
+    var elements = this.elements;
     switch (evt.type) {
       case 'mozbrowsershowmodalprompt':
         evt.preventDefault();
@@ -73,8 +76,8 @@ var ModalDialog = {
         break;
 
       case 'click':
-        if (evt.currentTarget === this.elements.confirmCancel ||
-            evt.currentTarget === this.elements.promptCancel) {
+        if (evt.currentTarget === elements.confirmCancel ||
+            evt.currentTarget === elements.promptCancel) {
           this.cancelHandler();
         } else {
           this.confirmHandler();
@@ -86,23 +89,24 @@ var ModalDialog = {
   // Show relative dialog and set message/input value well
   show: function md_show() {
       var message = this.evt.detail.message;
+      var elements = this.elements;
       this.overlay.classList.add('visible');
 
       switch (this.evt.detail.promptType) {
         case 'alert':
-          this.elements.alertMessage.textContent = message;
-          this.elements.alert.classList.add('visible');
+          elements.alertMessage.textContent = message;
+          elements.alert.classList.add('visible');
           break;
 
         case 'prompt':
-          this.elements.prompt.classList.add('visible');
-          this.elements.promptInput.value = this.evt.detail.initialValue;
-          this.elements.promptMessage.textContent = message;
+          elements.prompt.classList.add('visible');
+          elements.promptInput.value = this.evt.detail.initialValue;
+          elements.promptMessage.textContent = message;
           break;
 
         case 'confirm':
-          this.elements.confirm.classList.add('visible');
-          this.elements.confirmMessage.textContent = message;
+          elements.confirm.classList.add('visible');
+          elements.confirmMessage.textContent = message;
           break;
       }
   },
@@ -110,20 +114,21 @@ var ModalDialog = {
   // When user clicks OK button on alert/confirm/prompt
   confirmHandler: function md_confirmHandler() {
     this.overlay.classList.remove('visible');
+    var elements = this.elements;
 
     switch (this.evt.detail.promptType) {
       case 'alert':
-        this.elements.alert.classList.remove('visible');
+        elements.alert.classList.remove('visible');
         break;
 
       case 'prompt':
-        this.evt.detail.returnValue = this.promptInput.value;
-        this.elements.prompt.classList.remove('visible');
+        this.evt.detail.returnValue = elements.promptInput.value;
+        elements.prompt.classList.remove('visible');
         break;
 
       case 'confirm':
         this.evt.detail.returnValue = true;
-        this.elements.confirm.classList.remove('visible');
+        elements.confirm.classList.remove('visible');
         break;
     }
 
@@ -142,22 +147,23 @@ var ModalDialog = {
   // when the user try to escape the dialog with the escape key
   cancelHandler: function md_cancelHandler() {
     this.overlay.classList.remove('visible');
+    var elements = this.elements;
 
     switch (this.evt.detail.promptType) {
       case 'alert':
-        this.elements.alert.classList.remove('visible');
+        elements.alert.classList.remove('visible');
         break;
 
       case 'prompt':
         /* return null when click cancel */
         this.evt.detail.returnValue = null;
-        this.elements.prompt.classList.remove('visible');
+        elements.prompt.classList.remove('visible');
         break;
 
       case 'confirm':
         /* return false when click cancel */
         this.evt.detail.returnValue = false;
-        this.elements.confirm.classList.remove('visible');
+        elements.confirm.classList.remove('visible');
         break;
     }
 
