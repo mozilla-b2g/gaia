@@ -347,7 +347,7 @@ var WindowManager = (function() {
     }
   }
 
-  function appendFrame(origin, url, name, manifest, manifestURL) {
+  function appendFrame(origin, url, name, manifest, manifestURL, background) {
     var frame = document.createElement('iframe');
     frame.id = 'appframe' + nextAppId++;
     frame.className = 'appWindow';
@@ -491,6 +491,12 @@ var WindowManager = (function() {
 
     numRunningApps++;
 
+    // Launching this application without bring it to the foreground
+    if (background) {
+      frame.src = url;
+      return;
+    }
+
     // Now animate the window opening and actually set the iframe src
     // when that is done.
     setDisplayedApp(origin, function() {
@@ -523,16 +529,44 @@ var WindowManager = (function() {
   // The mozApps API launch() method generates an event that we handle
   // here to do the actual launching of the app
   window.addEventListener('mozChromeEvent', function(e) {
-    if (e.detail.type === 'webapps-launch') {
-      var origin = e.detail.origin;
-      if (isRunning(origin)) {
-        setDisplayedApp(origin);
-        return;
-      }
+    var origin = e.detail.origin;
+    switch (e.detail.type) {
+      // mozApps API is asking us to launch the app
+      case 'webapps-launch':
+        if (isRunning(origin)) {
+          setDisplayedApp(origin);
+          return;
+        }
 
-      var app = Applications.getByOrigin(origin);
-      appendFrame(origin, e.detail.url,
-                  app.manifest.name, app.manifest, app.manifestURL);
+        var app = Applications.getByOrigin(origin);
+        if (!app)
+          return;
+
+        appendFrame(origin, e.detail.url,
+                    app.manifest.name, app.manifest, app.manifestURL, false);
+        break;
+
+      // System Message Handler API is asking us to open the specific URL
+      // that handles the pending system message.
+      case 'open-app':
+        // If the app is opened then there is nothing to do.
+        // window_manager have no way to help the given app to handle
+        // this request
+        if (isRunning(origin))
+          return;
+
+        var app = Applications.getByOrigin(origin);
+        if (!app)
+          return;
+
+        // XXX: We do not know whether the URL required (e.detail.url)
+        // is the app itself, or a background service page,
+        // or some thing else launched with window.open,
+        // but we'll launch the launch_path of the app in background anyway.
+        appendFrame(origin, app.origin + app.launch_path,
+                    app.manifest.name, app.manifest, app.manifestURL, true);
+
+        break;
     }
   });
 
