@@ -440,12 +440,13 @@ var LockScreen = {
   },
 
   updatePassCodeUI: function lockscreen_updatePassCodeUI() {
-    if (this.overlay.dataset.passcodeStatus)
+    var overlay = this.overlay;
+    if (overlay.dataset.passcodeStatus)
       return;
     if (this.passCodeEntered) {
-      this.overlay.classList.add('passcode-entered');
+      overlay.classList.add('passcode-entered');
     } else {
-      this.overlay.classList.remove('passcode-entered');
+      overlay.classList.remove('passcode-entered');
     }
     var i = 4;
     while (i--) {
