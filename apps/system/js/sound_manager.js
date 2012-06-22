@@ -27,6 +27,11 @@ var SoundManager = {
   init: function soundManager_init() {
     window.addEventListener('keydown', this);
     window.addEventListener('keyup', this);
+
+    var self = this;
+    SettingsListener.observe('sound.volume', this.currentVolume, function soundManager_observe(value) {
+      self.currentVolume = value*10;
+    });
   },
 
   handleEvent: function soundManager_handleEvent(evt) {
@@ -72,15 +77,15 @@ var SoundManager = {
     callback();
     clearTimeout(this._timer);
 
-    if (!this.kRepeatTimeout)
+    if (!this.kKeyRepeatTimeout)
       return;
 
     this._timer = window.setTimeout((function volumeTimeout() {
-      actionCallback();
+      callback();
       this._timer = setInterval(function volumeInterval() {
         callback();
-      }, this.kRepeatRate);
-    }).bind(this), this.kRepeatTimeout);
+      }, this.kKeyRepeatRate);
+    }).bind(this), this.kKeyRepeatTimeout);
   },
 
   changeVolume: function soundManager_changeVolume(delta) {
@@ -111,6 +116,11 @@ var SoundManager = {
     this._timeout = window.setTimeout(function hideSound() {
       classes.remove('visible');
     }, 1500);
+
+    var settings = navigator.mozSettings;
+    if (settings) {
+      settings.getLock().set({'sound.volume': this.currentVolume/10});
+    }
 
     this.fireVolumeChangeEvent();
   },
