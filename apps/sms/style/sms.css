@@ -55,7 +55,6 @@ body {
   margin: 0;
   width: 100%;
   height: 100%;
-  /*background-color: #000;*/
   font-family: 'Open Sans', sans-serif;
 }
 
@@ -87,16 +86,9 @@ body.conversation-new-msg .contact-show{
   display:block;
 }
 
-
-
-
 body.edit-mode .hide-bottom{
   display:none;
 }
-
-
-
-
 
 /* View - Slide Horizontal Transition */
 /* XXX hack: the width is adjusted (0-100%) with a delayed transition in order
@@ -299,7 +291,6 @@ body.msg-search-mode #msg-conversations-list {
   padding: 0;
   margin: 0;
   margin-left:3rem;
-  /*text-align: center;*/
   line-height: 6rem;
   color:#ffffff;
   font-size: -webkit-calc(10 * 0.226rem);
@@ -307,8 +298,7 @@ body.msg-search-mode #msg-conversations-list {
 }
 
 #msg-conversations-list {
-  /*background: url("images/app-texture.png") repeat scroll 50% 50%, rgb(243, 243, 243);*/
-  -moz-transition: top 0.3s ease;
+ -moz-transition: top 0.3s ease;
 }
 
 #msg-conversations-list > a {
@@ -328,9 +318,6 @@ body.msg-search-mode #msg-conversations-list {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
-
-
 
 body.edit-mode #msg-conversations-list > a {
   padding: 1.3rem 1.6rem 0 13.2rem;
@@ -353,12 +340,9 @@ body.edit-mode #msg-conversations-list > a {
   border-top-color: transparent;
 }
 
-
-
 #msg-conversations-list > a .unread-mark{
   display:none;
 }
-
 
 a.unread .unread-mark{
   display:block !important;
@@ -370,7 +354,7 @@ a.unread .unread-mark{
   border-style:none !important;
 
 }
- a.unread .unread-mark .i-unread-mark{
+  a.unread .unread-mark .i-unread-mark{
     
     display:block;
     width:.9rem;
@@ -378,7 +362,6 @@ a.unread .unread-mark{
     margin:4.3rem auto;
     background-image: url('images/updates.png');
   }
- 
 
 /* fake input boxes for checkboxes*/
 #msg-conversations-list label {
@@ -516,7 +499,6 @@ body.edit-mode #msg-conversations-list .msg {
   margin: 0;
   height:100%;
   width:100%;
-  /*background:blue;*/
   display:table;
   border-spacing: 2rem 1rem;
   table-layout:fixed;
