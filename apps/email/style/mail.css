@@ -72,6 +72,10 @@ button {
   background-color: white;
 }
 
+.form-card {
+  overflow: auto;
+}
+
 .top-header {
   background: -moz-linear-gradient(to top, #ffffff 0, #a3a3a3 5px, #992f21 5px, #992f21 6px, #bb492d 6px, #cc6523 100%);
   background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%,  #cc6523), color-stop(100%, #bb492d));

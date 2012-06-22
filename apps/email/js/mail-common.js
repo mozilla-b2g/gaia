@@ -50,7 +50,6 @@ function populateTemplateNodes() {
  */
 function bindContainerHandler(containerNode, eventName, func) {
   containerNode.addEventListener(eventName, function(event) {
-console.warn('eeeeeee');
     var node = event.target;
     // bail if they clicked on the container and not a child...
     if (node === containerNode)
@@ -77,7 +76,6 @@ function bindContainerClickAndHold(containerNode, clickFunc, holdFunc) {
   bindContainerHandler(
     containerNode, 'click',
     function(node, event) {
-console.log('container click handling', Cards._suppressClick, event.button);
       if (Cards._suppressClick) {
         Cards._suppressClick = false;
         return;
@@ -87,13 +85,13 @@ console.log('container click handling', Cards._suppressClick, event.button);
   bindContainerHandler(
     containerNode, 'contextmenu',
     function(node, event) {
+      // Always preventDefault, as this terminates processing of the click as a
+      // drag event.
+      event.preventDefault();
       // suppress the subsequent click if this was actually a left click
       if (event.button === 0) {
-        console.log('context from 0 observed, suppressing');
         Cards._suppressClick = true;
       }
-      else // avoid firefox context menu...
-        event.preventDefault();
 
       return holdFunc(node, event);
     });
@@ -150,7 +148,7 @@ var Cards = {
    * }
    */
   _cardStack: [],
-  _activeCardIndex: null,
+  activeCardIndex: null,
 
   /**
    * The DOM node that contains the _containerNode ("#cardContainer") and which
@@ -242,11 +240,9 @@ var Cards = {
    * back to the visible thing (which must be to our right currently.)
    */
   _onMaybeIntercept: function(event) {
-console.log("intercept event observed", event.type, this._suppressClick);
     // Contextmenu-derived click suppression wants to gobble an explicitly
     // expected event, and so takes priority over other types of suppression.
     if (event.type === 'click' && this._suppressClick) {
-console.warn('suppress firing');
       this._suppressClick = false;
       event.stopPropagation();
       return;
@@ -264,7 +260,7 @@ console.warn('suppress firing');
         (event.clientX >
          this._containerNode.offsetWidth - this.TRAY_GUTTER_WIDTH)) {
       event.stopPropagation();
-      this.moveToCard(this._activeCardIndex + 1);
+      this.moveToCard(this.activeCardIndex + 1);
     }
   },
 
@@ -362,11 +358,11 @@ console.warn('suppress firing');
       insertBuddy = null;
     }
     else if (placement === 'left') {
-      cardIndex = this._activeCardIndex++;
+      cardIndex = this.activeCardIndex++;
       insertBuddy = this._cardsNode.children[cardIndex];
     }
     else if (placement === 'right') {
-      cardIndex = this._activeCardIndex + 1;
+      cardIndex = this.activeCardIndex + 1;
       if (cardIndex >= this._cardStack.length)
         insertBuddy = null;
       else
@@ -383,7 +379,7 @@ console.warn('suppress firing');
       // we need to update our position so that the user perceives animation.
       // (Otherwise our offset is already showing the new card.)
       if (showMethod === 'animate' && placement === 'left')
-        this._showCard(this._activeCardIndex, 'immediate');
+        this._showCard(this.activeCardIndex, 'immediate');
 
       this._showCard(cardIndex, showMethod);
     }
@@ -555,14 +551,25 @@ console.warn('suppress firing');
    *       or more cards and the last card will use a transition of 'immediate'.
    *     }
    *   ]]
+   *   @param[numCards #:optional Number]{
+   *     The number of cards to remove.  If omitted, all the cards to the right
+   *     of this card are removed as well.
+   *   }
+   *   @param[nextCardSpec #:optional]{
+   *     If a showMethod is not 'none', the card to show after removal.
+   *   }
    * ]
    */
-  removeCardAndSuccessors: function(cardDomNode, showMethod) {
+  removeCardAndSuccessors: function(cardDomNode, showMethod, numCards,
+                                    nextCardSpec) {
     if (!this._cardStack.length)
       return;
 
     var firstIndex, iCard, cardInst;
-    if (cardDomNode == null) {
+    if (cardDomNode === undefined) {
+      throw new Error('undefined is not a valid card spec!');
+    }
+    else if (cardDomNode === null) {
       firstIndex = 0;
     }
     else {
@@ -576,9 +583,11 @@ console.warn('suppress firing');
       if (firstIndex === undefined)
         throw new Error('No card represented by that DOM node');
     }
+    if (!numCards)
+      numCards = this._cardStack.length - firstIndex;
 
     var deadCardInsts = this._cardStack.splice(
-                          firstIndex, this._cardStack.length - firstIndex);
+                          firstIndex, numCards);
     for (iCard = 0; iCard < deadCardInsts.length; iCard++) {
       cardInst = deadCardInsts[iCard];
       try {
@@ -599,7 +608,9 @@ console.warn('suppress firing');
     }
     if (showMethod !== 'none') {
       var nextCardIndex = null;
-      if (this._cardStack.length)
+      if (nextCardSpec)
+        nextCardIndex = this._findCard(nextCardSpec);
+      else if (this._cardStack.length)
         nextCardIndex = this._cardStack.length - 1;
       this._showCard(nextCardIndex, showMethod);
     }
@@ -642,7 +653,7 @@ console.warn('suppress firing');
       this._eatingEventsUntilNextCard = false;
     }
 
-    this._activeCardIndex = cardIndex;
+    this.activeCardIndex = cardIndex;
     if (cardInst)
       this._trayActive = cardInst.modeDef.tray;
   },
@@ -655,6 +666,10 @@ console.warn('suppress firing');
         if (domNode.parentNode)
           domNode.parentNode.removeChild(domNode);
       });
+      // Our coordinate space may have been affected, so update and re-show
+      // the current card.
+      this._adjustCardSizes();
+      this._showCard(this.activeCardIndex, 'immediate');
     }
   },
 

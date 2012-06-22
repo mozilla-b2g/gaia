@@ -89,6 +89,7 @@ function SetupAccountInfoCard(domNode, mode, args) {
   nextButton.addEventListener('click', this.onNext.bind(this), false);
 
   // placeholders need to be translated; they aren't automatically done
+  // XXX actually, can we just have the l10n use ".placeholder"?
   this.nameNode = this.domNode.getElementsByClassName('sup-info-name')[0];
   this.nameNode.setAttribute('placeholder',
                              mozL10n.get('setup-info-name-placeholder'));
@@ -253,11 +254,64 @@ Cards.defineCard({
 });
 
 /**
+ * Asks the user to re-enter their password for the account
+ */
+function SetupFixPassword(domNode, mode, args) {
+  this.domNode = domNode;
+  this.account = args.account;
+  this.restoreCard = args.restoreCard;
+
+  var accountNode =
+    domNode.getElementsByClassName('sup-bad-password-account')[0];
+  accountNode.textContent = this.account.name;
+
+  var useButton = domNode.getElementsByClassName('sup-use-password-btn')[0];
+  useButton.addEventListener('click', this.onUsePassword.bind(this), false);
+
+  this.passwordNode =
+    this.domNode.getElementsByClassName('sup-info-password')[0];
+  this.passwordNode.setAttribute(
+    'placeholder', mozL10n.get('setup-info-password-placeholder'));
+}
+SetupFixPassword.prototype = {
+  /**
+   * Assume we will be successful; update the password, trigger a reauth
+   * attempt, then close the card.
+   */
+  onUsePassword: function() {
+    var password = this.passwordNode.value;
+    if (password)
+      this.account.modifyAccount({ password: password });
+    this.account.clearProblems();
+    Cards.removeCardAndSuccessors(this.domNode, 'animate', 1,
+                                  this.restoreCard);
+  },
+
+  die: function() {
+    // no special cleanup required
+  },
+};
+Cards.defineCard({
+  name: 'setup-fix-password',
+  modes: {
+    default: {
+      tray: false,
+    }
+  },
+  constructor: SetupFixPassword,
+});
+
+/**
  * Global settings, list of accounts.
  */
 function SettingsMainCard(domNode, mode, args) {
+  this.domNode = domNode;
+
   this.acctsSlice = MailAPI.viewAccounts(false);
   this.acctsSlice.onsplice = this.onAccountsSplice.bind(this);
+
+  domNode.getElementsByClassName('tng-close-btn')[0]
+    .addEventListener('click', this.onClose.bind(this), false);
 
   this.accountsContainer =
     domNode.getElementsByClassName('tng-accounts-container')[0];
@@ -270,11 +324,8 @@ function SettingsMainCard(domNode, mode, args) {
 }
 SettingsMainCard.prototype = {
   onClose: function() {
-    // We instantaneously transitioned to this card, so instantaneously
-    // transition back.  There is no UX spec for this; we could very well go
-    // animated for this.
-    Cards.removeCardAndSuccessors(this.domNode, 'none');
-    Cards.moveToCard(['folder-picker', 'default'], 'immediate');
+    Cards.removeCardAndSuccessors(this.domNode, 'animate', 1,
+                                  ['folder-picker', 'navigation']);
   },
 
   onAccountsSplice: function(index, howMany, addedItems,

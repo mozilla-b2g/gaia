@@ -36,6 +36,9 @@
   padding: 6px;
   margin: 0;
 }
+.tng-inert-item {
+  color: gray;
+}
 
 .tng-account-item-label {
   margin: 0;
