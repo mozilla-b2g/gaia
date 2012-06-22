@@ -67,11 +67,11 @@ if (!contacts.List) {
         var len = contacts.length;
         var ret = [], group;
         if (len > 0) {
-          group = getGroupName(contacts[0].givenName[0]);
+          group = getGroupName(contacts[0]);
         }
 
         for (var i = 0; i < len; i++) {
-          var letter = getGroupName(contacts[i].givenName[0]);
+          var letter = getGroupName(contacts[i]);
 
           if (letter !== group) {
             iterateOverGroup(group, ret);
@@ -128,15 +128,17 @@ if (!contacts.List) {
     }
 
     var addToList = function addToList(contact) {
-      var newLi, givenName = contact.givenName[0];
-      var group = getGroupName(givenName);
+      var newLi;
+      var group = getGroupName(contact);
+      var cName = contact.familyName[0] + contact.givenName[0];
       var list = groupsList.querySelector('#contacts-list-' + group);
       var liElems = list.getElementsByTagName('li');
       var len = liElems.length;
       for (var i = 1; i < len; i++) {
         var liElem = liElems[i];
-        var gName = liElem.querySelector('strong').textContent;
-        if (gName >= givenName) {
+        var name = liElem.querySelector('b').textContent +
+                   liElem.querySelector('strong').textContent;
+        if (name >= cName) {
           newLi = utils.templates.render(liElems[0], contact);
           list.insertBefore(newLi, liElem);
           lazyload.reload();
@@ -168,20 +170,20 @@ if (!contacts.List) {
     var remove = function remove(id) {
       var item = groupsList.querySelector('li[data-uuid=\"' + id + '\"]');
       if (item) {
-        var group = getGroupName(item.querySelector('b').textContent);
         var ol = item.parentNode;
         ol.removeChild(item);
         if (ol.children.length === 1) {
           // Only template
-          hideGroup(group);
+          hideGroup(ol.dataset.group);
         }
         lazyload.reload();
       }
     }
 
-    var getGroupName = function getGroupName(txt) {
-      var ret = txt.charAt(0).toUpperCase();
+    var getGroupName = function getGroupName(contact) {
+      var ret = contact.familyName[0] + contact.givenName[0];
 
+      ret = ret.charAt(0).toUpperCase();
       ret = ret.replace(/[ÁÀ]/ig, 'A');
       ret = ret.replace(/[ÉÈ]/ig, 'E');
       ret = ret.replace(/[ÍÌ]/ig, 'I');
@@ -211,7 +213,6 @@ if (!contacts.List) {
       'init': init,
       'load': load,
       'removeContact': remove,
-      'addContact': add,
       'reloadContact': reload,
       'addEventListener': addEventListener
     };
