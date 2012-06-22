@@ -1020,7 +1020,7 @@
 
   // Expose to IMEManager if we are in Gaia homescreen
   if (typeof IMEManager !== 'undefined') {
-    IMEManager.IMEngines.jskanji = jskanji;
+    IMEController.IMEngines.jskanji = jskanji;
   }
 
   /* copy from jszhuyin */
