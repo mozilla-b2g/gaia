@@ -274,12 +274,18 @@ var LockScreen = {
         break;
 
       case 'b':
+        if (this.overlay.dataset.passcodeStatus)
+          return;
+
         this.passCodeEntered =
           this.passCodeEntered.substr(0, this.passCodeEntered.length - 1);
         this.updatePassCodeUI();
 
         break;
       default:
+        if (this.overlay.dataset.passcodeStatus)
+          return;
+
         this.passCodeEntered += key;
         this.updatePassCodeUI();
 
@@ -434,6 +440,8 @@ var LockScreen = {
   },
 
   updatePassCodeUI: function lockscreen_updatePassCodeUI() {
+    if (this.overlay.dataset.passcodeStatus)
+      return;
     if (this.passCodeEntered) {
       this.overlay.classList.add('passcode-entered');
     } else {
