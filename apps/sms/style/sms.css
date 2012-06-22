@@ -200,7 +200,7 @@ input, textarea {
                 hsl(32,100%,38%) 99%, hsl(31,100%,50%) 100%);
 }
 
-.btn-bottom-bar{
+.button-bottom-bar{
   background: -moz-linear-gradient(top, #b50404 0%, #850a0a 100%); 
   background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#b50404), color-stop(100%,#850a0a)); 
   background: linear-gradient(top, #b50404 0%,#850a0a 100%);
@@ -353,7 +353,7 @@ a.unread .unread-mark{
   border-style:none !important;
 
 }
-  a.unread .unread-mark .i-unread-mark{
+  a.unread .unread-mark .icon-unread-mark{
     
     display:block;
     width:.9rem;
@@ -511,7 +511,7 @@ body.edit-mode #msg-conversations-list .msg {
   height: 100%;
 }
 
-  .i-add{
+  .icon-add{
     display:block;
     background-image: url('images/add.png');
     height:1.6rem;
@@ -527,7 +527,7 @@ body.edit-mode #msg-conversations-list .msg {
  
   height:100%;
 }
-  .i-edit{
+  .icon-edit{
     display:block;
     background-image: url('images/edit.png');
     height:2rem;
@@ -545,7 +545,7 @@ body.edit-mode #msg-conversations-list .msg {
   box-shadow: 0.1rem 0 0 0.01rem rgba(255, 255, 255, 0.3)
 }
 
-  .i-back{
+  .icon-back{
     display:block;
     background-image: url('images/back.png');
     height:2.7rem;
@@ -632,7 +632,7 @@ body.edit-mode #view-edit-button {
   height:100%;
  
 }
-  .i-contact{
+  .icon-contact{
     display:block;
     background-image: url('images/contacts_icon.png');
     
@@ -942,11 +942,11 @@ body.edit-mode #view-list > div.message-block {
   table-layout:fixed;
 }
 
-  .vw-bottom-toolbar-element{
+  .view-bottom-toolbar-element{
     display:table-cell;
   }
 
-    .vw-bottom-toolbar-btn{
+    .view-bottom-toolbar-button{
       background: -moz-linear-gradient(top, #b50404 0%, #850a0a 100%); 
       background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#b50404), color-stop(100%,#850a0a)); 
       background: linear-gradient(top, #b50404 0%,#850a0a 100%);
@@ -1021,7 +1021,7 @@ body.hidden *[data-l10n-id] {
 }
 
 
-.vw-confirm-options{
+.view-confirm-options{
   
   display:table;
   table-layout:fixed;
@@ -1030,7 +1030,7 @@ body.hidden *[data-l10n-id] {
   border-spacing:.5rem 0rem;
 }
 
-.vw-confirm-option {
+.view-confirm-option {
   display:table-cell;
   background: -moz-linear-gradient(top, #b50404 0%, #850a0a 100%); 
   background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#b50404), color-stop(100%,#850a0a)); 
