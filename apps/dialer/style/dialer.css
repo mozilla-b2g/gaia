@@ -52,49 +52,41 @@ html * {
   color:white;
 }
 
-.grid-wrapper{
+.grid-wrapper {
   width:100%;
   height:100%;
 }
 
-.grid-v-align{
+.grid-v-align {
   vertical-align:middle;
 }
 
-.grid-row{
+.grid-row {
   display:table-row;
 }
 
-.grid-cell{
+.grid-cell {
   display:table-cell;
 }
 
-.grid{
+.grid {
   display:table;
   table-layout:fixed;
 }
 
-.hide{
-  display:none !important;
-}
-
-.transparent{
-  visibility: hidden !important;
-}
-
-.layout-row{
+.layout-row {
   display:table-row;
 }
 
-.layout-cell{
+.layout-cell {
   display:table-cell;
 }
 
-.layout-centered{
+.layout-centered {
   vertical-align:middle;
 }
 
-.center{
+.center {
   text-align:center;
 }
 

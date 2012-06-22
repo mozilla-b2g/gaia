@@ -45,7 +45,7 @@
 
 #kb-delete:active{
   opacity:0.7;
-  }
+}
 
 .i-delete{
   width:3.8rem;
@@ -54,15 +54,14 @@
   background-size: 3.8rem 2.8rem;
   background-repeat:no-repeat;
 }
-  
+
 #keyboard-container {
   width:100%;
   height: 38rem;
 }
 
 #kb-keypad{
-  background: #2d3642; 
-  background: -moz-linear-gradient(top, #2d3642 0%, #0f1214 100%); 
+  background: -moz-linear-gradient(top, #2d3642 0%, #0f1214 100%);
   height:-moz-calc(100% - 10rem);
   width:100%;
   display:table;
@@ -80,7 +79,7 @@
 
 .kb-keypad-cell-small{
   width:10rem;
-} 
+}
 
 .kb-keypad-key{
   border:0;
@@ -95,15 +94,11 @@
   opacity:0.7;
 }
 
-.kb-keypad-delete-asterisc{
-  font-family:Arial !important;
-}
-      
 .kb-keypad-key-label-container{
   width:100%;
   height:100%;
   display:table;
-}  
+}
 
 .kb-keypad-key-label{
   display:table-cell;
@@ -125,7 +120,7 @@
   border-spacing: 1rem 1rem;
 }
 
-#kb-callbar-add-contact{
+#kb-callbar-add-contact {
   display:table-cell;
   width:9rem;
   background: -moz-linear-gradient(top, #242b36 0%, #19191a 100%); 
@@ -135,30 +130,30 @@
   vertical-align: middle;
 }
 
-#kb-callbar-call-action{
+#kb-callbar-call-action {
   display:table-cell;
   width: 100%;
-  background: #84c82c; 
+  background: #84c82c;
   border:0;
   border-radius:.2rem;
   background: -moz-linear-gradient(top, #84c82c 0%, #5f9b0a 100%);
   vertical-align: middle;
 }
 
-#kb-callbar-call-action:active{
+#kb-callbar-call-action:active {
   opacity:0.7;
 }
 
-#kb-callbar-back-action{
+#kb-callbar-back-action {
   display:table-cell;
-  background: #84c82c; 
+  background: #84c82c;
   border:0;
   border-radius:.2rem;
   background: -moz-linear-gradient(top, #242b36 0%, #19191a 100%);
   vertical-align: middle;
 }
 
-#kb-callbar-back-action:active{
+#kb-callbar-back-action:active {
   opacity:0.7;
 }
 

@@ -124,11 +124,7 @@ var CallScreen = {
         this._syncSpeakerEnabled();
 
         this.answerButton.classList.add('hide');
-
-        if (!this.answerButton.classList.contains('transparent')) {
-          this.callToolbar.classList.remove(
-            'transparent');
-        }
+        this.callToolbar.classList.remove('transparent');
 
         this.keypadButton.removeAttribute('disabled');
         this.callDuration.innerHTML = '00:00';
