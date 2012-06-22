@@ -152,7 +152,7 @@ var photodb;
 function dsdbCallback(dsdb) {
   photodb = dsdb;
   buildUI(dsdb);  // List files we already know about
-  dsdb.scan();             // Go look for more.
+  dsdb.scan();    // Go look for more.
 }
 
 function dsdbChangeHandler(type, files) {
@@ -164,68 +164,6 @@ function dsdbChangeHandler(type, files) {
 window.addEventListener('load', function() {
   createDeviceStorageDB(dsdbOptions, dsdbCallback);
 });
-
-function metadataParser(file, callback) {
-  // Get metadata for the image and then move on to the next image
-  if (file.type === 'image/png') {
-    var testimg = document.createElement('img');
-    var url = URL.createObjectURL(file);
-    testimg.src = url;
-    testimg.onload = function() {
-      URL.revokeObjectURL(url);
-      callback({
-        width: testimg.width,
-        height: testimg.height,
-        date: file.lastModifiedDate
-      });
-    };
-  }
-  else if (file.type === 'image/jpeg') {
-    // XXX
-    // Rather than trying to read the metadata, I could also just
-    // put the jpeg image into an <img> tag to get its width
-    // and height. I'll need to do this anyway if I want to create
-    // a thumbnail for it, so maybe that would be good enough for now?
-    // Sorting by file modified date might be good enough, if I
-    // can get that.
-    readJPEGMetadata(file,
-                     function(data) {
-                       var metadata = {
-                         width: data.width,
-                         height: data.height,
-                         thumbnail: data.thumbnail,
-                         date: file.lastModifiedDate
-                       };
-                       
-                       if (data.exif &&
-                           (data.exif.DateTimeOriginal ||
-                            data.exif.DateTime)) {
-                         metadata.date =
-                           parseDate(data.exif.DateTimeOriginal ||
-                                     data.exif.DateTime);
-                       }
-                       
-                       callback(metadata);
-
-                       // Utility function for converting EXIF date strings
-                       // to ISO date strings to timestamps
-                       function parseDate(s) {
-                         if (!s)
-                           return null;
-                         // Replace the first two colons with dashes and
-                         // replace the first space with a T
-                         return Date.parse(s.replace(':', '-')
-                                           .replace(':', '-')
-                                           .replace(' ', 'T'));
-                       }
-                     },
-                     function() {
-                       // Error reading jpeg
-                       console.warn('Malformed JPEG image', file.name);
-                       callback({});
-                     });
-  }
-}
 
 var images = [];
 
@@ -243,18 +181,14 @@ function destroyUI() {
   document.getElementById('nophotos').classList.remove('hidden');
 }
 
-
-
-// Rename this method to initUI or something
 function buildUI(dsdb) {
-  // An array of image data structures that represents all the photos we
-  // found in device storage, along with the metadata we've extracted
-  dsdb.enumerate(function(imagedata) {
-    addImage(imagedata);
-  });
+  console.log("buildUI");
+  // Enumerate existing image entries in the database and add thumbnails
+  dsdb.enumerate(addImage);
 }
 
 function addImage(imagedata) {
+  console.log("addImage", imagedata.name);
   // If this is the first image we've found,
   // remove the "no images" message
   if (images.length === 0)
@@ -275,151 +209,12 @@ function addThumbnail(imagenum) {
   thumbnails.appendChild(li);
 
   var imagedata = images[imagenum];
-  if (imagedata.thumbnail) {
-    console.log("using built-in thumbnail");
-    var url = URL.createObjectURL(imagedata.thumbnail.blob);
-    li.style.backgroundImage = 'url("' + url + '")';
-    // XXX When is it save to revoke?  Currently doing it in destroyUI()
-    // URL.revokeObjectURL(url);
-  }
-  else {
-    console.log("creating thumbnail");
-    // XXX: modify the metadata parser so it always generates
-    // a thumbnail and we never have this inefficient case
-    photodb.getFile(imagedata.name, function(file) {
-      var url = URL.createObjectURL(file);
-      li.style.backgroundImage = 'url("' + url + '")';
-      // XXX when is it safe to revoke this. Can't use onload...
-      // URL.revokeObjectURL(url);
-    });
-  }
+  // XXX When is it save to revoke this url? 
+  // Can't do it on load as I would with an <img>
+  // Currently doing it in destroyUI()
+  var url = URL.createObjectURL(imagedata.metadata.thumbnail);
+  li.style.backgroundImage = 'url("' + url + '")';
 }
-
-
-/*
-
-// When the app starts, we scan device storage for photos.
-// For now, we just do this each time. But we really need to store
-// filenames and image metadata (including thumbnails) in a database.
-var storages = navigator.getDeviceStorage('pictures');
-
-storages.forEach(function(storage, storageIndex) {
-  try {
-    var cursor = storage.enumerate();
-    cursor.onerror = function() {
-      console.error('Error in DeviceStorage.enumerate()', cursor.error.name);
-    };
-
-    cursor.onsuccess = function() {
-      if (!cursor.result)
-        return;
-      var file = cursor.result;
-
-      // If this isn't a jpeg or png image, skip it
-      if (file.type !== 'image/jpeg' && file.type !== 'image/png') {
-        cursor.continue();
-        return;
-      }
-
-      var imagedata = {
-        storageIndex: storageIndex,  // XXX Use storage.type instead?
-        name: file.name,                  // so we can look it up again
-        size: file.size                  // for detecting changes
-      };
-
-      // Get metadata for the image and then move on to the next image
-      if (file.type === 'image/png') {
-        var testimg = document.createElement('img');
-        var url = URL.createObjectURL(file);
-        testimg.src = url;
-        testimg.onload = function() {
-          try {
-            URL.revokeObjectURL(url);
-            imagedata.width = testimg.width;
-            imagedata.height = testimg.height;
-            addImage(imagedata);
-          }
-          catch (e) {
-            console.error(e);
-          }
-          finally {
-            cursor.continue();
-          }
-        };
-      }
-      else if (file.type === 'image/jpeg') {
-        // XXX
-        // Rather than trying to read the metadata, I could also just
-        // put the jpeg image into an <img> tag to get its width
-        // and height. I'll need to do this anyway if I want to create
-        // a thumbnail for it, so maybe that would be good enough for now?
-        // Sorting by file modified date might be good enough, if I
-        // can get that.
-        readJPEGMetadata(file,
-                         function(metadata) {
-                           try {
-                             imagedata.width = metadata.width;
-                             imagedata.height = metadata.height;
-                             imagedata.thumbnail = metadata.thumbnail || null;
-                             imagedata.date = null;
-                             if (metadata.exif) {
-                               imagedata.date =
-                                 parseDate(metadata.exif.DateTimeOriginal ||
-                                           metadata.exif.DateTime ||
-                                           null);
-                             }
-
-                             // add this image and its metadata to our list
-                             addImage(imagedata);
-                           }
-                           catch (e) {
-                             console.log(e);
-                           }
-                           finally {
-                             cursor.continue();
-                           }
-
-                           // Utility function for converting EXIF date strings
-                           // to ISO date strings to timestamps
-                           function parseDate(s) {
-                             if (!s)
-                               return null;
-                             // Replace the first two colons with dashes and
-                             // replace the first space with a T
-                             return Date.parse(s.replace(':', '-')
-                                               .replace(':', '-')
-                                               .replace(' ', 'T'));
-                           }
-                         },
-                         function() {
-                           // Error reading jpeg
-                           console.warn('Malformed JPEG image', file.name);
-                           cursor.continue();
-                         });
-      }
-    };
-  }
-  catch (e) {
-    console.error('Exception while enumerating files:', e);
-  }
-});
-
-// An array of image data structures that represents all the photos we
-// found in device storage, along with the metadata we've extracted
-var images = [];
-
-function addImage(imagedata) {
-  // If this is the first image we've found,
-  // remove the "no images" message
-  if (images.length === 0)
-    document.getElementById('nophotos')
-    .classList.add('hidden');
-
-  images.push(imagedata);            // remember the image
-  addThumbnail(images.length - 1);   // display its thumbnail
-}
-*/
-
 
 //
 // Event handlers
