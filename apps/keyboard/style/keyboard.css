@@ -230,7 +230,7 @@ button:-moz-focus-inner{
     .keyboard-key[data-keycode="-2"] > span , .keyboard-key.highlighted[data-keycode="-2"] > span,
     .keyboard-key.special-key span, .keyboard-key.special-key.highlighted span
       { 
-        font-size: 1.8rem;
+        font-size: 1.5rem;
         line-height: 4rem;
         font-family: 'Keyboard Symbols', sans-serif;
         color: #5B6574;
@@ -354,10 +354,11 @@ button:-moz-focus-inner{
   border-top: 1px solid #e8e8ff;
   border-bottom: 1px solid #808098;
   display: none;
+  margin: -1rem;
 }
 #keyboard.candidate-panel #keyboard-candidate-panel {
   display: block;
-  width: -moz-calc(100% - 62px);
+  width: -moz-calc(100% - 62px + 2rem);
   overflow-y: hidden;
 }
 
@@ -369,8 +370,8 @@ button:-moz-focus-inner{
   display: block;
   position: absolute;
   white-space: normal;
-  top: -2px;
-  bottom: 0;
+  top: -moz-calc(-2px + 1rem);
+  bottom: -1rem;
   height: 100%;
   width: 100%;
   border: none;
