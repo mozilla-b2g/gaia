@@ -19,7 +19,7 @@ if (!contacts.AlphaScroll) {
     for (var i = 65; i <= 90; i++) {
       alphabet.push({letter: String.fromCharCode(i)});
     }
-    owd.templates.append(doc.querySelector('.vw-jmp-inner'), alphabet);
+    utils.templates.append(doc.querySelector('.vw-jmp-inner'), alphabet);
     alphabet = [];
 
     var cas = contacts.AlphaScroll = {
