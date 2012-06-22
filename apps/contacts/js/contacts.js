@@ -150,7 +150,8 @@ if (!contacts.app) {
         var template = utils.templates.render(emailDetailsTemplate, emailField);
         listContainer.appendChild(template);
       }
-      coverImg.src = contact.photo || '';
+      var photo = contact.photo || '';
+      coverImg.style.backgroundImage = 'url(' + photo + ')';
     };
 
     var showEdit = function showEdit() {
