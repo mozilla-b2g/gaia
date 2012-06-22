@@ -139,31 +139,19 @@ var transitioning = false;
 // This will be set to "ltr" or "rtl" when we get our localized event
 var languageDirection;
 
-var dsdbOptions = {
-  mediaType: 'pictures',
-  onchange: dsdbChangeHandler,
-  metadataParser: metadataParser,
+var photodb = new MediaDB('pictures', metadataParser, {
   indexes: ["metadata.date"],
   mimeTypes: ["image/jpeg", "image/png"]
-};
-
-var photodb;
-
-function dsdbCallback(dsdb) {
-  photodb = dsdb;
-  buildUI(dsdb);  // List files we already know about
-  dsdb.scan();    // Go look for more.
+});
+photodb.onready = function() {
+  buildUI(photodb);  // List files we already know about
+  photodb.scan();    // Go look for more.
 }
-
-function dsdbChangeHandler(type, files) {
+photodb.onchange = function(type, files) {
   console.log("dsdb onchange", type);
   destroyUI();
   buildUI(this);  // Would be more efficient to just change them.
 }
-
-window.addEventListener('load', function() {
-  createDeviceStorageDB(dsdbOptions, dsdbCallback);
-});
 
 var images = [];
 
@@ -188,6 +176,9 @@ function buildUI(dsdb) {
 }
 
 function addImage(imagedata) {
+  if (imagedata === null)  // No more images
+    return;
+
   console.log("addImage", imagedata.name);
   // If this is the first image we've found,
   // remove the "no images" message
