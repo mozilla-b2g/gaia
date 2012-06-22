@@ -29,21 +29,30 @@ var GlobalHistory = {
   },
 
   setPageTitle: function gh_setPageTitle(uri, title, callback) {
-    // TODO: Stop this from deleting favicon
-    var place = {
-      uri: uri,
-      title: title
-    };
-    this.db.updatePlace(place, callback);
+    this.db.getPlace(uri, (function(place) {
+      // If place already exists, just set title
+      if (place) {
+        place.title = title;
+      // otherwise create new place
+      } else {
+        place = {
+          uri: uri,
+          title: title
+        };
+      }
+      this.db.updatePlace(place, callback);
+    }).bind(this));
+
   },
 
   setPageIconUri: function gh_setPageIconUri(uri, iconUri, callback) {
     // Set icon URI for corresponding place URI
-    this.db.getPlace(uri, function(place) {
+    this.db.getPlace(uri, (function(place) {
       // if place already exists, just set icon
       if (place) {
         place.iconUri = iconUri;
-      } else { // otherwise create a new place
+      // otherwise create a new place
+      } else {
         place = {
           uri: uri,
           title: uri,
@@ -51,11 +60,11 @@ var GlobalHistory = {
         };
       }
       if (callback) {
-        GlobalHistory.db.updatePlace(place, callback);
+        this.db.updatePlace(place, callback);
       } else {
-        GlobalHistory.db.updatePlace(place);
+        this.db.updatePlace(place);
       }
-    });
+    }).bind(this));
   },
 
   setIconData: function gh_setIconData(iconUri, data, callback, failed) {
@@ -94,17 +103,6 @@ var GlobalHistory = {
       };
       xhr.send();
     }).bind(this));
-  },
-
-  isFailedIcon: function gh_isFailedIcon(iconUri, callback) {
-    this.db.getIcon(iconUri, function(iconEntry) {
-      var now = new Date().valueOf();
-      if (iconEntry && iconEntry.failed && iconEntry.expiration > now) {
-        callback(true);
-      } else {
-        callback(false);
-      }
-    });
   },
 
   getHistory: function gh_getHistory(callback) {
@@ -321,7 +319,7 @@ GlobalHistory.db = {
 
   saveIcon: function db_saveIcon(iconEntry, callback) {
     var transaction = this._db.transaction(['icons'],
-     IDBTransaction.READ_WRITE);
+      IDBTransaction.READ_WRITE);
     transaction.onerror = function dbTransactionError(e) {
       console.log('Transaction error while trying to save icon');
     };
@@ -340,8 +338,8 @@ GlobalHistory.db = {
   },
 
   getIcon: function db_getIcon(iconUri, callback) {
-    var db = this._db;
-    var request = db.transaction('icons').objectStore('icons').get(iconUri);
+    var request = this._db.transaction('icons').objectStore('icons').
+      get(iconUri);
 
     request.onsuccess = function(event) {
       callback(event.target.result);

@@ -170,11 +170,7 @@ var Browser = {
           var a = document.createElement('a');
           a.href = tab.url;
           var iconUrl = a.protocol + '//' + a.hostname + '/' + 'favicon.ico';
-          // Only try to load the icon if this hasn't already failed
-          GlobalHistory.isFailedIcon(iconUrl, function(failed) {
-            if (!failed)
-              GlobalHistory.setAndLoadIconForPage(tab.url, iconUrl);
-          });
+          GlobalHistory.setAndLoadIconForPage(tab.url, iconUrl);
         }
 
         break;
@@ -365,31 +361,31 @@ var Browser = {
   },
 
   drawHistoryEntry: function browser_drawHistoryEntry(visit) {
-      var entry = document.createElement('li');
-      var link = document.createElement('a');
-      link.href = visit.uri;
-      var title = document.createElement('span');
-      title.textContent = visit.title ? visit.title : visit.uri;
-      var url = document.createElement('small');
-      url.textContent = visit.uri;
-      link.appendChild(title);
-      link.appendChild(url);
-      entry.appendChild(link);
-      this.history.lastChild.appendChild(entry);
+    var entry = document.createElement('li');
+    var link = document.createElement('a');
+    var title = document.createElement('span');
+    var url = document.createElement('small');
+    link.href = visit.uri;
+    title.textContent = visit.title ? visit.title : visit.uri;
+    url.textContent = visit.uri;
+    link.appendChild(title);
+    link.appendChild(url);
+    entry.appendChild(link);
+    this.history.lastChild.appendChild(entry);
 
-      if (!visit.iconUri) {
+    if (!visit.iconUri) {
+      link.style.backgroundImage = 'url(' + this.DEFAULT_FAVICON + ')';
+      return;
+    }
+
+    GlobalHistory.db.getIcon(visit.iconUri, (function(icon) {
+      if (icon && icon.failed != true && icon.data) {
+        var imgUrl = window.URL.createObjectURL(icon.data);
+        link.style.backgroundImage = 'url(' + imgUrl + ')';
+      } else {
         link.style.backgroundImage = 'url(' + this.DEFAULT_FAVICON + ')';
-        return;
       }
-
-      GlobalHistory.db.getIcon(visit.iconUri, (function(icon) {
-        if (icon && icon.failed != true) {
-          var imgUrl = window.URL.createObjectURL(icon.data);
-          link.style.backgroundImage = 'url(' + imgUrl + ')';
-        } else {
-          link.style.backgroundImage = 'url(' + this.DEFAULT_FAVICON + ')';
-        }
-      }).bind(this));
+    }).bind(this));
   },
 
   drawHistoryHeading: function browser_drawHistoryHeading(threshold,

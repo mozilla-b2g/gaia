@@ -147,57 +147,6 @@ suite('Global History', function() {
       });
     });
 
-    test('isFailedIcon - true', function(done) {
-      var now = new Date().valueOf();
-      var iconEntryFailed = {
-        uri: 'http://mozilla.org/favicon1.ico',
-        data: null,
-        expiration: now + 86400000,
-        failed: true
-      };
-      GlobalHistory.db.saveIcon(iconEntryFailed, function() {
-        GlobalHistory.isFailedIcon(iconEntryFailed.uri, function(failed) {
-          done(function() {
-            assert.equal(true, failed);
-          });
-        });
-      });
-    });
-
-    test('isFailedIcon - false', function(done) {
-      var now = new Date().valueOf();
-      var iconEntrySuccessful = {
-        uri: 'http://mozilla.org/favicon2.ico',
-        data: null,
-        expiration: now + 86400000,
-        failed: null
-      };
-      GlobalHistory.db.saveIcon(iconEntrySuccessful, function() {
-        GlobalHistory.isFailedIcon(iconEntrySuccessful.uri, function(failed) {
-          done(function() {
-            assert.equal(true, (failed != true));
-          });
-        });
-      });
-    });
-
-    test('isFailedIcon - expired', function(done) {
-      var now = new Date().valueOf();
-      var iconEntryExpired = {
-        uri: 'http://mozilla.org/favicon3.ico',
-        data: null,
-        expiration: now - 86400000,
-        failed: true
-      };
-      GlobalHistory.db.saveIcon(iconEntryExpired, function() {
-        GlobalHistory.isFailedIcon(iconEntryExpired.uri, function(failed) {
-          done(function() {
-            assert.equal(true, (failed != true));
-          });
-        });
-      });
-    });
-
   });
 
 });
