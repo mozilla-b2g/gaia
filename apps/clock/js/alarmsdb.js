@@ -100,15 +100,15 @@ var AlarmsDB = {
   },
 
   delete: function ad_delete(database, storeName, callback, key) {
-      var txn = database.transaction(storeName, 'readwrite');
-      var store = txn.objectStore(storeName);
-      var request = store.delete(key);
+    var txn = database.transaction(storeName, 'readwrite');
+    var store = txn.objectStore(storeName);
+    var request = store.delete(key);
 
-      request.onsuccess = callback;
+    request.onsuccess = callback;
 
-      request.onerror = function(e) {
-        console.error('Delete operation failure: ', database.name,
-          storeName, e.message, putreq.errorCode);
-      };
+    request.onerror = function(e) {
+      console.error('Delete operation failure: ', database.name,
+        storeName, e.message, putreq.errorCode);
+    };
   }
 };

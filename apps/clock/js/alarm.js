@@ -110,6 +110,9 @@ var AlarmList = {
 
   init: function al_init() {
     document.getElementById('alarm-new').addEventListener('click', this);
+    this.alarms.addEventListener('click', this);
+    this.alarms.addEventListener('mousedown', this);
+    this.alarms.addEventListener('mouseup', this);
     this.refresh();
   },
 
@@ -122,14 +125,13 @@ var AlarmList = {
 
   fillList: function al_fillList(alarmDataList) {
     this.alarmList = alarmDataList;
-    this.alarms.innerHTML = '';
     var content = '';
 
     alarmDataList.forEach(function al_fillEachList(alarm) {
       var summaryRepeat = summarizeDaysOfWeek(alarm.repeat);
       var paddingTop = (summaryRepeat == 'Never') ? 'paddingTop' : '';
       var hiddenSummary = (summaryRepeat == 'Never') ? 'hiddenSummary' : '';
-      var isChecked = alarm.enable ? ' checked="true"' : '';
+      var isChecked = alarm.enabled ? ' checked="true"' : '';
       var hour = (alarm.hour > 12) ? alarm.hour - 12 : alarm.hour;
       var hour12state = (alarm.hour > 12) ? 'PM' : 'AM';
 
@@ -154,37 +156,35 @@ var AlarmList = {
                  '        <div class="repeat ' + hiddenSummary + '">' +
                             summaryRepeat + '</div>' +
                  '      </div>' +
-                 '      <div class="alarmList-direction"> >' +
+                 '      <div class="alarmList-direction"> &gt' +
                  '      </div>' +
                  '    </div>' +
                  '  </a>' +
                  '</li>';
-    }, this);
+    });
 
     this.alarms.innerHTML = content;
-    this.alarms.addEventListener('click', this);
-    this.alarms.addEventListener('mousedown', this);
-    this.alarms.addEventListener('mouseup', this);
   },
 
   getAlarmFromList: function al_getAlarmFromList(id) {
     for (var i = 0; i < this.alarmList.length; i++) {
       if (this.alarmList[i].id == id)
-        return this.alarmList[i] || null;
+        return this.alarmList[i];
     }
+    return null;
   },
 
-  updateAlarmEnableState: function al_updateAlarmEnableState(enable, alarm) {
-    if (alarm.enable == enable)
+  updateAlarmEnableState: function al_updateAlarmEnableState(enabled, alarm) {
+    if (alarm.enabled == enabled)
       return;
 
-    alarm.enable = enable;
+    alarm.enabled = enabled;
 
     var self = this;
     AlarmsDB.putAlarm(alarm, function al_putAlarmList() {
       self.refresh();
     });
-    if (enable) {
+    if (enabled) {
       FakeAlarmManager.set(alarm);
     } else {
       FakeAlarmManager.cancel(alarm);
@@ -358,23 +358,25 @@ var AlarmEditView = {
       label: 'Alarm',
       hour: '10',
       minute: '00',
-      enable: 'enabled',
+      enabled: true,
       repeat: '0000000',
       sound: 'classic.wav',
-      snooze: '5',
+      snooze: 5,
       color: 'Darkorange'
     };
   },
 
   load: function aev_load(alarm) {
-    if (!alarm) alarm = this.getDefaultAlarm();
+    if (!alarm)
+      alarm = this.getDefaultAlarm();
+
     this.alarm = alarm;
 
     this.element.dataset.id = alarm.id;
     this.labelInput.value = alarm.label;
     this.hourInput.value = alarm.hour;
     this.minuteInput.value = alarm.minute;
-    this.enableInput.checked = alarm.enable;
+    this.enableInput.checked = alarm.enabled;
 
     if (alarm.id) {
       this.alarmTitle.innerHTML = 'Edit Alarm';
@@ -409,8 +411,7 @@ var AlarmEditView = {
   },
 
   save: function aev_save() {
-    if (this.element.dataset.id != 'undefined' &&
-        this.element.dataset.id != '') {
+    if (this.element.dataset.id != '') {
       this.alarm.id = parseInt(this.element.dataset.id);
     } else {
       delete this.alarm.id;
@@ -420,7 +421,7 @@ var AlarmEditView = {
     this.alarm.label = this.labelInput.value;
     this.alarm.hour = this.hourInput.value;
     this.alarm.minute = this.minuteInput.value;
-    this.alarm.enable = this.enableInput.checked;
+    this.alarm.enabled = this.enableInput.checked;
 
     if (!this.alarm.label) {
       this.labelInput.nextElementSibling.textContent = 'Required';
@@ -437,7 +438,7 @@ var AlarmEditView = {
       AlarmsDB.putAlarm(this.alarm, function al_putAlarmList() {
         AlarmList.refresh();
       });
-      if (this.alarm.enable) {
+      if (this.alarm.enabled) {
         FakeAlarmManager.set(this.alarm);
       } else {
         FakeAlarmManager.cancel(this.alarm);
@@ -450,7 +451,7 @@ var AlarmEditView = {
   delete: function aev_delete() {
     if (!this.element.dataset.id)
       return;
-      
+
     var id = parseInt(this.element.dataset.id);
     AlarmsDB.deleteAlarm(id, function al_deletedAlarm() {
       AlarmList.refresh();
