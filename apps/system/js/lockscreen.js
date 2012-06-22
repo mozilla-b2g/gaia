@@ -260,7 +260,7 @@ var LockScreen = {
           this.switchPanel('passcode');
         }
         break;
-    };
+    }
   },
 
   handlePassCodeInput: function ls_handlePassCodeInput(key) {
