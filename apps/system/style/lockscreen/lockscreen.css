@@ -385,9 +385,16 @@
   display: none;
 }
 
+@font-face {
+  font-family: 'Keyboard Symbols';
+  font-weight: 600;
+  src: url('fonts/Keyboard-Symbols.woff');
+}
+
 #lockscreen-passcode-pad > a[data-key="b"] {
   display: none;
   text-align: center;
+  font-family: 'Keyboard Symbols', sans-serif;
 }
 
 .passcode-entered #lockscreen-passcode-pad > a[data-key="b"] {
