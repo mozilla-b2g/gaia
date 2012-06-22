@@ -93,9 +93,11 @@ if (!contacts.app) {
       emailContainer = document.getElementById('contacts-form-email');
       cList.init('groups-list');
       cList.load();
-      cList.addEventListener('click', function(contact) {
-        currentContact = contact;
-        doShowContactDetails(contact);
+      cList.addEventListener('click', function(uuid) {
+        cList.getContactById(uuid, function(contact) {
+          currentContact = contact;
+          doShowContactDetails(contact);
+        }, function() {});
       });
     };
 

@@ -125,11 +125,9 @@ if (!contacts.List) {
     var pickContact = function pickContact(evt) {
       var dataset = evt.target.dataset;
       if (dataset && 'uuid' in dataset) {
-        getContactById(dataset.uuid, function(contact) {
-          callbacks.forEach(function(callback) {
-            callback(contact);
-          });
-        }, function() {});
+        callbacks.forEach(function(callback) {
+          callback(dataset.uuid);
+        });
       }
     }
 
@@ -219,6 +217,7 @@ if (!contacts.List) {
       'init': init,
       'load': load,
       'removeContact': remove,
+      'getContactById': getContactById,
       'reloadContact': reload,
       'addEventListener': addEventListener
     };
