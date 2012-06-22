@@ -15,7 +15,9 @@
   font-weight: 600;
   src: url('fonts/Open-Sans-Semibold.woff');
 }
+
 /*
+//TODO This Query must be based on PPI (Resolution)
 @media screen and (max-width: 800px) and (max-height: 800px) and
                   (min-width: 480px) and (min-height: 480px) {
   html {
@@ -28,15 +30,15 @@
   html {
     font-size: 6px;  
   }
-}
-*/
+}*/
+
 /* media queries for removing rounded border when keyboard is shown */
 @media screen and (max-height: 70rem) {
   .toolbar-bottom {
     bottom: 0;
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
-    /*border-top: solid 0.3rem #9b9b9b;*/
+   
   }
 }
 
@@ -146,20 +148,15 @@ body.conversation #msg-conversations {
   left: 0;
   right: 0;
   background: -moz-linear-gradient(top, #cd6723 0%, #bb482d 100%); 
-  /*background-color: #fff;*/
-  /*background: url("images/app-texture.png") repeat scroll 50% 50%, -moz-linear-gradient(center top , rgb(244, 244, 244), rgb(234, 234, 234)) repeat scroll 0% 0% transparent;*/
   margin: 0;
   padding: 0;
 }
 
 .toolbar-top {
   top: 0;
-  /*border-top-left-radius: 0.8rem;
-  border-top-right-radius: 0.8rem;*/
   height: 6.4rem;
   -moz-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  /*border-bottom: solid 0.3rem #9b9b9b;*/
   z-index: 5;
 }
 
@@ -167,9 +164,7 @@ body.conversation #msg-conversations {
   bottom: 0;
   height: 6rem;
   background: rgba(0,0,0,.3);
-  /*border-bottom-left-radius: 0.8rem;
-  border-bottom-right-radius: 0.8rem;
-  border-top: solid 0.3rem #9b9b9b;*/
+  
 }
 
 .toolbar-panel {
@@ -198,17 +193,6 @@ body.conversation #msg-conversations {
 }
 
 input, textarea {
- /* -moz-box-sizing: border-box;
-  border: solid 0.1rem #2c2c2c;
-  border-radius: .2rem;
-  height: 4rem;
-  margin: 1.3rem 1.5rem;
-  font-size: 2rem;
-  line-height: 2.5rem;
-  font-family: 'Open Sans', sans-serif;
-  padding: 0;
-  box-shadow:  inset -1px .1rem 3px rgba(0,0,0,.7);*/
-  /*background: -moz-linear-gradient(center top , rgba(0, 0, 0, 0.2) 0rem, rgba(255, 255, 255, 0) 2rem, rgb(255, 255, 255) 100%) repeat scroll 0% 0% rgb(255, 255, 255);*/
 }
 
 .button {
@@ -370,17 +354,7 @@ body.edit-mode #msg-conversations-list > a {
   border-top-color: transparent;
 }
 
-/*#msg-conversations-list > a.unread::before {
-  position: absolute;
-  content: "";
-  display: block;
-  top: 0rem;
-  left: 0rem;
-  width: 3rem;
-  height: 100%;
-  padding-top: -0.2rem;
-  background: -moz-linear-gradient(45deg, gray, #EDEDED);
-}*/
+
 
 #msg-conversations-list > a .unread-mark{
   display:none;
@@ -600,23 +574,7 @@ body.edit-mode #msg-conversations-list .msg {
     margin:1.65rem auto;
   }    
 
-#msg-delete-button { /** , #msg-search-edit-button {  **/
-  /*right: 0rem;
-  top: 0rem;
-  margin-top: 1.4rem;
-  margin-right: 2.4rem;  
-  position: absolute;
-  min-width: 12rem;*/
-}
 
-#msg-delete-all-button {
-  /*left: 0rem;
-  top: 0rem;
-  margin-top: 1.4rem;
-  margin-left: 2.4rem;  
-  position: absolute;
-  min-width: 15rem;*/
-}
 
 .edit-hide { /** .search-hide { **/
   display: block;
@@ -783,7 +741,6 @@ body.conversation-new-msg #view-num {
 }
 
 #view-list {
-  /*background: url('images/conversation-view-list-bg.png');*/
   bottom: 5.5rem;
 }
 
@@ -995,9 +952,7 @@ body.edit-mode #view-list > div.message-block {
   background:rgba(0,0,0,.7);
   height:5.5rem;
   
-  /*background: url('images/diagonal-gray-pattern.png'),
-  -moz-linear-gradient(center top , rgb(244, 244, 244), rgb(234, 234, 234)) repeat scroll 0% 0% transparent;
-  padding-right: 1.6rem;*/
+ 
 }
 
 #view-bottom-toolbar-panel {
@@ -1014,8 +969,6 @@ body.edit-mode #view-list > div.message-block {
   .vw-bottom-toolbar-element{
     display:table-cell;
     
-
-    /*background:yellow;*/
   }
 
     .vw-bottom-toolbar-btn{
@@ -1047,18 +1000,6 @@ body.edit-mode #view-list > div.message-block {
   resize: none;
   font-size:-moz-calc(7 * 0.226rem);
 
-/*  padding: 0 1rem;
-  width: -moz-calc(100% - 1.6rem);
-  display: block;
-  resize: none;
-  font-size: 2.4rem;
-  font-weight: bold;
-  line-height: 4.4rem;
-  margin: 1.4rem 0 0 1.6rem;
-  overflow: auto;
-  overflow-x: auto;
-  min-height: 5rem;
-  max-height: 20rem;*/
 }
 
 #view-msg-send {
@@ -1066,23 +1007,6 @@ body.edit-mode #view-list > div.message-block {
   min-width: 9.6rem;
 }
 
-#view-delete-button { 
- /* right: 0rem;
-  top: 0rem;
-  margin-top: 1.4rem;
-  margin-right: 2.4rem;  
-  position: absolute;
-  min-width: 12rem;*/
-}
-
-#view-delete-all-button {
-  /*left: 0rem;
-  top: 0rem;
-  margin-top: 1.4rem;
-  margin-left: 2.4rem;  
-  position: absolute;
-  min-width: 15rem;*/
-}
 
 /* localization */
 body.hidden *[data-l10n-id] {
@@ -1142,7 +1066,7 @@ body.hidden *[data-l10n-id] {
   font-size:-webkit-calc(7*0.226rem);
   color:#ffffff;
   border-radius:.4rem;
- /* margin: 2rem 1.5rem 0rem;*/
+
 }
 
 .groupHeader {
@@ -1154,6 +1078,6 @@ body.hidden *[data-l10n-id] {
   color:#ff4e00;
   text-transform: uppercase;
   font-family: 'Open Sans', sans-serif;
-  /*font-size: 1rem;*/
+ 
 }
 
