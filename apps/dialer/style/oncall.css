@@ -198,7 +198,7 @@ body.hidden *[data-l10n-id] {
   border-top:0;
 }
 
-.i-mute{
+#mute > span {
   display:inline-block;
   background-color: #DDD;
   background:url('images/dialer_icon_mute.png') ;
@@ -211,11 +211,21 @@ body.hidden *[data-l10n-id] {
   background-color: #bcbcbc;
 }
 
-button[disabled] .i-keypad{
+.icon-contacts {
+  display: inline-block;
+  background-color: #DDD;
+  background: url('images/dialer_icon_contact.png');
+  background-size: 2.2rem 2.4rem;
+  width: 2.2rem;
+  height: 2.4rem;
+  opacity: 0.3;
+}
+
+button[disabled] .icon-keypad {
   opacity:.3;
 }
 
-.i-keypad{
+.icon-keypad {
   display:inline-block;
   background-color: #DDD;
   background:url('images/dialer_icon_dialer.png') ;
@@ -224,7 +234,7 @@ button[disabled] .i-keypad{
   height:2.5rem;
 }
 
-.i-speaker{
+#speaker span {
   display:inline-block;
   background-color: #DDD;
   background:url('images/dialer_icon_headphones.png') ;
@@ -237,17 +247,7 @@ button[disabled] .i-keypad{
   background-color: #bcbcbc;
 }
 
-.i-contacts{
-  display:inline-block;
-  background-color: #DDD;
-  background:url('images/dialer_icon_contact.png') ;
-  background-size: 2.2rem 2.4rem;
-  width:2.2rem;
-  height:2.4rem;
-  opacity:0.3;
-}
-
-.i-timeline{
+.icon-timeline{
   display:inline-block;
   background-color: #DDD;
   background:url('images/dialer_icon_history.png');
@@ -257,7 +257,7 @@ button[disabled] .i-keypad{
   opacity:0.3;
 }
 
-.i-message{
+.icon-message{
   display:inline-block;
   background-color: #DDD;
   background:url('images/dialer_icon_message.png');
@@ -295,7 +295,7 @@ button[disabled] .i-keypad{
   border-radius:.3rem;
 }
 
-.i-start-call{
+.icon-start-call{
   margin:1rem auto;
   background:url('images/dialer_icon_call.png') ;
   background-size: 2.6rem 2.4rem;
@@ -303,41 +303,7 @@ button[disabled] .i-keypad{
   height:2.4rem;
 }
 
-.i-hangup{
-  margin:1.6rem auto;
-  background:url('images/dialer_icon_hang-up.png') ;
-  background-size: 3.6rem 1.3rem;
-  width:3.6rem;
-  height:1.3rem;
-}
-
-/*
-#keyboard-container {
-  display: none;
-}
-
-#keyboard-container.overlay {
-  display: block;
-  position: absolute;
-  top: 0;
-  height: 60%;
-  z-index: 500;
-}
-
-#keyboard-container.overlay .kb-keypad-key {
-  height: -moz-calc(100% / 4);
-}
- */
-
-.i-start-call{
-  margin:1rem auto;
-  background:url('images/dialer_icon_call.png') ;
-  background-size: 2.6rem 2.4rem;
-  width:2.6rem;
-  height:2.4rem;
-}
-
-.i-hangup{
+.icon-hangup{
   margin:1.6rem auto;
   background:url('images/dialer_icon_hang-up.png') ;
   background-size: 3.6rem 1.3rem;

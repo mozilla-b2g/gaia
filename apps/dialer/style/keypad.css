@@ -47,7 +47,7 @@
   opacity:0.7;
 }
 
-.i-delete{
+#kb-delete > div {
   width:3.8rem;
   height:2.8rem;
   background:url('images/dialer_icon_delete.png') ;
@@ -157,7 +157,7 @@
   opacity:0.7;
 }
 
-.i-add-contact{
+.icon-add-contact {
   margin: auto;
   width: 2.6rem;
   height: 2.5rem;
@@ -167,7 +167,7 @@
   background-position: center;
 }
 
-.i-call{
+#kb-callbar-call-action > div {
   margin: auto;
   width: 2.6rem;
   height: 2.5rem;
@@ -177,7 +177,7 @@
   background-position: center;
 }
 
-.i-back{
+#kb-callbar-back-action > div {
   margin: auto;
   width: 2.6rem;
   height: 2.5rem;
@@ -186,7 +186,7 @@
   background-position: center;
 }
 
-.phone-number-font{
+.phone-number-font {
   font-size:-moz-calc(18*0.226rem);
   color:white;
   font-family:'FontRegular';
@@ -219,7 +219,7 @@
   opacity:0.7;
 }
 
-.i-call-log {
+#kb-toolbar-call-log > div{
   margin: auto;
   width: 2.6rem;
   height: 2.5rem;
@@ -229,7 +229,7 @@
   background-position: center;
 }
 
-.i-contact-list {
+#kb-toolbar-contact-list > div {
   margin: auto;
   width: 2.6rem;
   height: 2.5rem;
@@ -239,7 +239,7 @@
   background-position: center;
 }
 
-.i-keypad {
+.icon-keypad {
   margin: auto;
   width: 2.6rem;
   height: 2.5rem;
