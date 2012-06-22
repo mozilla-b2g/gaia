@@ -211,7 +211,6 @@ if (!contacts.List) {
       'init': init,
       'load': load,
       'removeContact': remove,
-      'addContact': add,
       'reloadContact': reload,
       'addEventListener': addEventListener
     };
