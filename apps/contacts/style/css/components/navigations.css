@@ -1,0 +1,52 @@
+/**
+ * NAVIGATIONS.CSS
+ * High level strcutures with visual styles for navigation use cases.
+ * ------------------------------------------------------*/
+
+
+/* TABBED NAVIGATION */
+.tabs { background: #e8e8e8; }
+	.tabs .pull-right { margin-left: 0.8rem; }
+
+	.tabs li {
+		background: #676d75;
+		box-shadow: 
+			inset -1px 0 0 0 rgba(255, 255, 255, 0.05), 
+			inset 1px 0 0 0 rgba(255, 255, 255, 0.05);
+	}
+	.tabs li:not(.active) + li {
+		box-shadow: 
+			inset -1px 0 0 0 rgba(255, 255, 255, 0.05), 
+			inset 1px 0 0 0 rgba(0, 0, 0, 0.1);
+	}
+
+	/* Active state */
+	.tabs .active {
+		background: #303740;
+		position: relative;
+		box-shadow: 
+			inset -1px 0 0 0 rgba(0, 0, 0, 0.1), 
+			inset 1px 0 0 0 rgba(0, 0, 0, 0.1);
+	}
+		.tabs .active:after {
+			content: "";
+			position: absolute;
+			left: 50%;
+			top: 100%;
+			margin-left: -0.5rem;
+			width: 0;
+			height: 0;
+			border: solid 0.5rem transparent;
+			border-top-color: #303740;
+		}
+
+		.tabs a { display: block; color: #fff; height: 3.6rem; }
+			.tabs a strong { vertical-align: middle; }
+			.tabs a:after {
+				content: "";
+				display: inline-block;
+				vertical-align: middle;
+				width: 1px;
+				height: 100%;
+				margin-left: -1px;
+			}
