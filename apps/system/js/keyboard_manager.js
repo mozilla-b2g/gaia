@@ -33,14 +33,15 @@ var KeyboardManager = (function() {
       if (!app)
         return;
 
-      var currentApp = WindowManager.getAppFrame(app);
       // Reset the height of the app
       WindowManager.setAppSize(app);
+      var currentApp = WindowManager.getAppFrame(app);
 
       if (!message.hidden) {
         currentApp.style.height =
-          (currentApp.offsetHeight - message.keyboardHeight) + 'px';
+          (parseInt(currentApp.style.height) - message.keyboardHeight) + 'px';
         currentApp.classList.add('keyboardOn');
+        keyboardFrame.classList.remove('hide');
       } else {
         currentApp.classList.remove('keyboardOn');
         keyboardFrame.classList.add('hide');
@@ -61,18 +62,6 @@ var KeyboardManager = (function() {
       // finished.
       //
       switch (evt.type) {
-        case 'showime':
-          // Allow the keyboardFrame to show before the height adjustment
-          keyboardFrame.classList.remove('hide');
-          break;
-
-        case 'hideime':
-          // Allow the app to occupy the entire screen behind the keyboard
-          // before the transition
-          var app = WindowManager.getDisplayedApp();
-          if (app)
-            WindowManager.setAppSize(app);
-          break;
 
         case 'appwillclose':
           // Hide the keyboardFrame!

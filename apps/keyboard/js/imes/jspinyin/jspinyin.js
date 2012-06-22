@@ -2391,7 +2391,7 @@ if (typeof define === 'function' && define.amd)
 
 // Expose to IMEManager if we are in Gaia homescreen
 if (typeof IMEManager !== 'undefined')
-  IMEManager.IMEngines.jspinyin = jspinyin;
+  IMEController.IMEngines.jspinyin = jspinyin;
 
 // For unit tests
 if (typeof Test !== 'undefined') {
