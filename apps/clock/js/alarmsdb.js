@@ -6,24 +6,20 @@ var AlarmsDB = {
   STORENAME: 'alarms',
 
   // Database methods
-  getAlarmList: function ad_getAlarmList(gotAlarmListHandler) {
-    this.query(this.DBNAME, this.STORENAME, this.load,
-      gotAlarmListHandler);
+  getAlarmList: function ad_getAlarmList(callback) {
+    this.query(this.DBNAME, this.STORENAME, this.load, callback);
   },
 
-  putAlarm: function ad_putAlarm(alarm, putAlarmHandler) {
-    this.query(this.DBNAME, this.STORENAME, this.put,
-      putAlarmHandler, alarm);
+  putAlarm: function ad_putAlarm(alarm, callback) {
+    this.query(this.DBNAME, this.STORENAME, this.put, callback, alarm);
   },
 
-  getAlarm: function ad_getAlarm(key, getSuccessHandler) {
-    this.query(this.DBNAME, this.STORENAME, this.get,
-      getSuccessHandler, key);
+  getAlarm: function ad_getAlarm(key, callback) {
+    this.query(this.DBNAME, this.STORENAME, this.get, callback, key);
   },
 
-  deleteAlarm: function ad_deleteAlarm(key, deletedAlarmHandler) {
-    this.query(this.DBNAME, this.STORENAME, this.delete,
-      deletedAlarmHandler, key);
+  deleteAlarm: function ad_deleteAlarm(key, callback) {
+    this.query(this.DBNAME, this.STORENAME, this.delete, callback, key);
   },
 
   query: function ad_query(dbName, storeName, func, callback, data) {

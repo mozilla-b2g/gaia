@@ -26,8 +26,9 @@ var ClockView = {
     var d = new Date();
 
     // XXX: respect clock format in Settings
-    var hour = d.toLocaleFormat('%I'); //24h by $H
-    hour = (hour.substr(0, 1) == '0') ? hour.slice(1) : hour;
+    var hour = d.getHours() % 12;
+    if (!hour)
+      hour = 12;
     this.time.textContent = hour + d.toLocaleFormat(':%M');
     this.hourState.textContent = d.toLocaleFormat('%p');
     this.daydate.textContent = d.toLocaleFormat('%A, %B %e');
@@ -55,7 +56,7 @@ var ClockView = {
 
 var AlarmList = {
 
-  alarmlist: [],
+  alarmList: [],
 
   get alarms() {
     delete this.alarms;
@@ -90,7 +91,7 @@ var AlarmList = {
       case 'click':
         switch (link.id) {
           case 'alarm-new':
-            AlarmEditView.load(AlarmEditView.getDefaultAlarm());
+            AlarmEditView.load();
             break;
 
           case 'input-enable':
@@ -120,12 +121,11 @@ var AlarmList = {
   },
 
   fillList: function al_fillList(alarmDataList) {
-    this.alarmlist = [];
+    this.alarmList = alarmDataList;
     this.alarms.innerHTML = '';
     var content = '';
 
-    alarmDataList.forEach(function(alarm, index) {
-      this.alarmlist[index] = alarm;
+    alarmDataList.forEach(function al_fillEachList(alarm) {
       var summaryRepeat = summarizeDaysOfWeek(alarm.repeat);
       var paddingTop = (summaryRepeat == 'Never') ? 'paddingTop' : '';
       var hiddenSummary = (summaryRepeat == 'Never') ? 'hiddenSummary' : '';
@@ -159,7 +159,7 @@ var AlarmList = {
                  '    </div>' +
                  '  </a>' +
                  '</li>';
-    }.bind(this));
+    }, this);
 
     this.alarms.innerHTML = content;
     this.alarms.addEventListener('click', this);
@@ -168,11 +168,10 @@ var AlarmList = {
   },
 
   getAlarmFromList: function al_getAlarmFromList(id) {
-    for (var i = 0; i < this.alarmlist.length; i++) {
-      if (this.alarmlist[i].id == id)
-        return this.alarmlist[i];
+    for (var i = 0; i < this.alarmList.length; i++) {
+      if (this.alarmList[i].id == id)
+        return this.alarmList[i] || null;
     }
-    return '';
   },
 
   updateAlarmEnableState: function al_updateAlarmEnableState(enable, alarm) {
@@ -329,7 +328,7 @@ var AlarmEditView = {
 
     switch (input.id) {
       case 'alarm-save':
-        if (!this.updateCurrent()) {
+        if (!this.save()) {
           evt.preventDefault();
           return false;
         }
@@ -354,20 +353,21 @@ var AlarmEditView = {
 
   getDefaultAlarm: function aev_getDefaultAlarm() {
     // Reset the required message with default value
-    this.alarm.id = '';
-    this.alarm.label = 'Alarm';
-    this.alarm.hour = '10';
-    this.alarm.minute = '00';
-    this.alarm.enable = 'enabled';
-    this.alarm.repeat = '0000000';
-    this.alarm.sound = 'classic.wav';
-    this.alarm.snooze = '5';
-    this.alarm.color = 'Darkorange';
-
-    return this.alarm;
+    return {
+      id: '',
+      label: 'Alarm',
+      hour: '10',
+      minute: '00',
+      enable: 'enabled',
+      repeat: '0000000',
+      sound: 'classic.wav',
+      snooze: '5',
+      color: 'Darkorange'
+    };
   },
 
   load: function aev_load(alarm) {
+    if (!alarm) alarm = this.getDefaultAlarm();
     this.alarm = alarm;
 
     this.element.dataset.id = alarm.id;
@@ -408,8 +408,7 @@ var AlarmEditView = {
     this.colorMenu.innerHTML = this.alarm.color;
   },
 
-  updateCurrent: function aev_updateCurrent() {
-
+  save: function aev_save() {
     if (this.element.dataset.id != 'undefined' &&
         this.element.dataset.id != '') {
       this.alarm.id = parseInt(this.element.dataset.id);
@@ -448,17 +447,14 @@ var AlarmEditView = {
     return !error;
   },
 
-  getCurrent: function aev_getCurrent(alarmID, getSuccessHandler) {
-    AlarmsDB.getAlarm(alarmID, getSuccessHandler);
-  },
-
   delete: function aev_delete() {
-    if (this.element.dataset.id != '') {
-      var id = parseInt(this.element.dataset.id);
-      AlarmsDB.deleteAlarm(id, function al_deletedAlarm() {
-        AlarmList.refresh();
-      });
-    }
+    if (!this.element.dataset.id)
+      return;
+      
+    var id = parseInt(this.element.dataset.id);
+    AlarmsDB.deleteAlarm(id, function al_deletedAlarm() {
+      AlarmList.refresh();
+    });
   }
 
 };
@@ -654,12 +650,12 @@ window.addEventListener('DOMContentLoaded', function() {
   ColorPickerView.init();
 });
 
-window.addEventListener('keyup', function goBack(event) {
+window.addEventListener('keyup', function goBack(evt) {
   if (document.location.hash != '#root' &&
-      event.keyCode === event.DOM_VK_ESCAPE) {
+      evt.keyCode === evt.DOM_VK_ESCAPE) {
 
-    event.preventDefault();
-    event.stopPropagation();
+    evt.preventDefault();
+    evt.stopPropagation();
 
     document.location.hash = 'root';
   }
