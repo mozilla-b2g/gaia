@@ -51,11 +51,11 @@ a.button.right {
   font: bold 4.6rem 'Open Sans', sans-serif;
   vertical-align: bottom;
   line-height: 1.9rem;
+  pointer-events: none;
 }
 
 a.abstract-menu {
   display: block;
-  /* XXX height/line-height must be adjusted it the container height changes */
   height:      auto; /* 5.4rem; -moz-calc(100% - 4rem); */
   line-height: normal; /* 5.4rem; -moz-calc(100% - 4rem); */
   width: -moz-calc(100% - 8.5rem);
@@ -181,7 +181,6 @@ ul li > a {
   display: block;
   padding-top: 2rem;
   padding-bottom: 2rem;
-  /* XXX height/line-height must be adjusted it the container height changes */
   height:      5.4rem; /* -moz-calc(100% - 4rem); */
   line-height: 5.4rem; /* -moz-calc(100% - 4rem); */
   text-decoration: none;
@@ -197,6 +196,14 @@ ul li > a, ul li > span, ul li > small { /* text ellipsis */
   position: absolute;
   width: -moz-calc(100% - 6rem + 2 * 0.4rem + 1rem);
   left: -moz-calc(6rem + 2 * 0.4rem + 1rem);
+}
+
+#alarm-del {
+  color: red;
+  font: 2.4rem/2.4rem 'Open Sans',sans-serif;
+  height: 100%;
+  left: 2rem;
+  width: 100%;
 }
 
 ul li > span {
@@ -393,7 +400,7 @@ li img {
   display: none;
 }
 
-.alarmList-detail .singleLine {
+.alarmList-detail .paddingTop {
   padding-top: 1.9rem;
 }
 

@@ -1,8 +1,32 @@
 'use strict';
 
-var AlarmsTestDB = {
+var AlarmsDB = {
 
-  query: function(dbName, storeName, func, callback, data) {
+  DBNAME: 'alarms',
+  STORENAME: 'alarms',
+
+  // Database methods
+  getAlarmList: function ad_getAlarmList(gotAlarmListHandler) {
+    this.query(this.DBNAME, this.STORENAME, this.load,
+      gotAlarmListHandler);
+  },
+
+  putAlarm: function ad_putAlarm(alarm, putAlarmHandler) {
+    this.query(this.DBNAME, this.STORENAME, this.put,
+      putAlarmHandler, alarm);
+  },
+
+  getAlarm: function ad_getAlarm(key, getSuccessHandler) {
+    this.query(this.DBNAME, this.STORENAME, this.get,
+      getSuccessHandler, key);
+  },
+
+  deleteAlarm: function ad_deleteAlarm(key, deletedAlarmHandler) {
+    this.query(this.DBNAME, this.STORENAME, this.delete,
+      deletedAlarmHandler, key);
+  },
+
+  query: function ad_query(dbName, storeName, func, callback, data) {
 
     var request = mozIndexedDB.open(dbName, 5);
 
@@ -25,7 +49,7 @@ var AlarmsTestDB = {
     };
   },
 
-  put: function(database, storeName, callback, item) {
+  put: function ad_put(database, storeName, callback, item) {
     var txn = database.transaction(storeName, 'readwrite');
     var store = txn.objectStore(storeName);
 
@@ -42,7 +66,7 @@ var AlarmsTestDB = {
     };
   },
 
-  load: function(database, storeName, callback) {
+  load: function ad_load(database, storeName, callback) {
     var alarms = [];
 
     var txn = database.transaction(storeName);
@@ -64,7 +88,7 @@ var AlarmsTestDB = {
     };
   },
 
-  get: function(database, storeName, callback, key) {
+  get: function ad_get(database, storeName, callback, key) {
     var txn = database.transaction(storeName);
     var store = txn.objectStore(storeName);
     var request = store.get(key);
@@ -79,7 +103,7 @@ var AlarmsTestDB = {
     };
   },
 
-  delete: function(database, storeName, callback, key) {
+  delete: function ad_delete(database, storeName, callback, key) {
       var txn = database.transaction(storeName, 'readwrite');
       var store = txn.objectStore(storeName);
       var request = store.delete(key);
