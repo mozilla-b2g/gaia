@@ -124,6 +124,11 @@ if (!contacts.app) {
     };
 
     var doShowContactDetails = function doShowContactDetails(contact) {
+      reloadContactDetails(contact);
+      navigation.go(contactDetailsView, 'right-left');
+    };
+    
+    var reloadContactDetails = function reloadContactDetails(contact) {
       detailsName.textContent = contact.name;
       var listContainer = document.getElementById('details-list');
       listContainer.innerHTML = '';
@@ -146,7 +151,6 @@ if (!contacts.app) {
         listContainer.appendChild(template);
       }
       coverImg.src = contact.photo || '';
-      navigation.go(contactDetailsView, 'right-left');
     };
 
     var showEdit = function showEdit() {
@@ -235,6 +239,7 @@ if (!contacts.app) {
       myContact.name = givenNameField + ' ' + familyNameField;
       var successCb = function(contact) {
         cList.reloadContact(contact);
+        reloadContactDetails(contact);
         navigation.back();
       };
 
@@ -321,7 +326,6 @@ if (!contacts.app) {
       currentContactId.value = '';
       givenName.value = '';
       familyName.value = '';
-      coverImg.src = '';
       var phones = document.getElementById('contacts-form-phones');
       var emails = document.getElementById('contacts-form-email');
       phones.innerHTML = '';
