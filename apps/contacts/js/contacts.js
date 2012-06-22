@@ -145,7 +145,7 @@ if (!contacts.app) {
         var template = utils.templates.render(emailDetailsTemplate, emailField);
         listContainer.appendChild(template);
       }
-      utils.templates.append(coverImg, contact);
+      coverImg.src = contact.photo || '';
       navigation.go(contactDetailsView, 'right-left');
     };
 
@@ -321,6 +321,7 @@ if (!contacts.app) {
       currentContactId.value = '';
       givenName.value = '';
       familyName.value = '';
+      coverImg.src = '';
       var phones = document.getElementById('contacts-form-phones');
       var emails = document.getElementById('contacts-form-email');
       phones.innerHTML = '';
