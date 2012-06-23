@@ -2,18 +2,18 @@
 'use strict';
 
 (function initScrollbar(doc) {
-  var jumper = doc.querySelector('.vw-jumper');
+  var jumper = doc.querySelector('.view-jumper');
   jumper.addEventListener('mousedown', scrollTo);
   jumper.addEventListener('mousemove', scrollTo);
 
-  var scrollable = doc.querySelector('.vw-bdy-inner');
-  var overlay = doc.querySelector('.vw-jmp-current');
+  var scrollable = doc.querySelector('.view-body-inner');
+  var overlay = doc.querySelector('.view-jumper-current');
 
   var alphabet = [];
   for (var i = 65; i <= 90; i++) {
     alphabet.push({ letter: String.fromCharCode(i) });
   }
-  utils.templates.append(doc.querySelector('.vw-jmp-inner'), alphabet);
+  utils.templates.append(doc.querySelector('.view-jumper-inner'), alphabet);
 
   var overlayTimeout = 0;
   var previous = null;
@@ -23,7 +23,7 @@
     evt.stopPropagation();
 
     var current = evt.target.textContent;
-    if (overlay.textContent === current) {
+    if (!current || overlay.textContent === current) {
       return;
     }
 

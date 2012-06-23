@@ -1,5 +1,4 @@
-﻿
-'use strict';
+﻿'use strict';
 
 var contacts = window.contacts || {};
 
