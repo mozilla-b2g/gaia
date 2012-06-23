@@ -19,6 +19,8 @@ var Browser = {
   TABS_SCREEN: 'tabs-screen',
   AWESOME_SCREEN: 'awesome-screen',
 
+  DEFAULT_FAVICON: 'style/images/favicon.png',
+
   urlButtonMode: null,
 
   init: function browser_init() {
@@ -162,6 +164,15 @@ var Browser = {
             }
           }).bind(this);
         }
+
+        // If no icon URL found yet, try loading from default location
+        if (!tab.iconUrl) {
+          var a = document.createElement('a');
+          a.href = tab.url;
+          var iconUrl = a.protocol + '//' + a.hostname + '/' + 'favicon.ico';
+          GlobalHistory.setAndLoadIconForPage(tab.url, iconUrl);
+        }
+
         break;
 
       case 'mozbrowserlocationchange':
@@ -193,9 +204,7 @@ var Browser = {
       case 'mozbrowsericonchange':
         if (evt.detail && evt.detail != tab.iconUrl) {
           tab.iconUrl = evt.detail;
-          this.getIcon(tab.iconUrl, function(icon) {
-            GlobalHistory.setPageIcon(tab.url, icon);
-          });
+          GlobalHistory.setAndLoadIconForPage(tab.url, tab.iconUrl);
         }
         break;
 
@@ -222,19 +231,6 @@ var Browser = {
         evt.preventDefault();
         break;
     }
-  },
-
-  getIcon: function browser_getIcon(iconUrl, callback) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', iconUrl, true);
-    xhr.responseType = 'blob';
-    xhr.addEventListener('load', function() {
-      if (xhr.status === 200) {
-        var blob = xhr.response;
-        callback(blob);
-      }
-    }, false);
-    xhr.send();
   },
 
   navigate: function browser_navigate(url) {
@@ -365,11 +361,31 @@ var Browser = {
   },
 
   drawHistoryEntry: function browser_drawHistoryEntry(visit) {
-      var li = document.createElement('li');
-      li.innerHTML = '<a href="' + visit.uri + '"><span>' +
-        (visit.title ? visit.title : visit.uri) +
-        '</span><small>' + visit.uri + '</small></a>';
-      this.history.lastChild.appendChild(li);
+    var entry = document.createElement('li');
+    var link = document.createElement('a');
+    var title = document.createElement('span');
+    var url = document.createElement('small');
+    link.href = visit.uri;
+    title.textContent = visit.title ? visit.title : visit.uri;
+    url.textContent = visit.uri;
+    link.appendChild(title);
+    link.appendChild(url);
+    entry.appendChild(link);
+    this.history.lastChild.appendChild(entry);
+
+    if (!visit.iconUri) {
+      link.style.backgroundImage = 'url(' + this.DEFAULT_FAVICON + ')';
+      return;
+    }
+
+    GlobalHistory.db.getIcon(visit.iconUri, (function(icon) {
+      if (icon && icon.failed != true && icon.data) {
+        var imgUrl = window.URL.createObjectURL(icon.data);
+        link.style.backgroundImage = 'url(' + imgUrl + ')';
+      } else {
+        link.style.backgroundImage = 'url(' + this.DEFAULT_FAVICON + ')';
+      }
+    }).bind(this));
   },
 
   drawHistoryHeading: function browser_drawHistoryHeading(threshold,
