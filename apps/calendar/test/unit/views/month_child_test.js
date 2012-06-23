@@ -2,7 +2,7 @@ requireCommon('test/synthetic_gestures.js');
 
 requireApp('calendar/test/unit/helper.js', function() {
 
-  requireApp('calendar/vendor/gesture_detector.js');
+  requireApp('calendar/js/ext/gesture_detector.js');
   requireCalendarController();
   requireApp('calendar/js/templates/month.js');
   requireApp('calendar/js/batch.js');
