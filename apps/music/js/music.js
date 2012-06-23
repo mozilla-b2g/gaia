@@ -3,30 +3,82 @@
 /*
  * This is Music Application of Gaia
  */
+var songs = [];
 
-// Hard-coded ogg files as testing songs
-var songs = [
-  {
-    file: 'audio/jonobacon-freesoftwaresong2.ogg',
-    title: 'The Free Software Song',
-    artist: 'Jono Bacon'
-  },
-  {
-    file: 'audio/b2g.ogg',
-    title: 'Boot to Gecko',
-    artist: 'Brendan Eich'
-  },
-  {
-    file: 'audio/Salt_Creek.ogg',
-    title: 'Salt Creek',
-    artist: 'The Rogue Bluegrass Band'
-  },
-  {
-    file: 'audio/treasure_island_01-02_stevenson.ogg',
-    title: 'Treasure Island',
-    artist: 'Read by Adrian Praetzellis'
+// When the app starts, we scan device storage for musics.
+// For now, we just do this each time. But we really need to store
+// filenames and audio metadata in a database.
+var storages = navigator.getDeviceStorage('music');
+
+storages.forEach(function(storage, storageIndex) {
+  try {
+    var cursor = storage.enumerate();
+
+    cursor.onerror = function() {
+      console.error('Error in DeviceStorage.enumerate()', cursor.error.name);
+    };
+
+    cursor.onsuccess = function() {
+      if (!cursor.result)
+        return;
+
+      // If this is the first song we've found,
+      // hide the "no songs" message
+      if (songs.length === 0) {
+        document.getElementById('nosongs').style.display = 'none';
+      }
+
+      var file = cursor.result;
+
+      var songData = {
+        storageIndex: storageIndex,
+        name: file.name
+      };
+
+      // Meta-data parsing of mp3 and ogg files
+      // On B2G devices, file.type of mp3 format is missing
+      // use file extension instead of file.type
+      var extension = file.name.slice(-4);
+
+      if (extension === '.mp3') {
+
+        ID3.loadTags(file.name, function() {
+          var tags = ID3.getAllTags(file.name);
+
+          songData.album = tags.album;
+          songData.artist = tags.artist;
+          songData.title = tags.title;
+
+          songs.push(songData);
+          ListView.updateList(songData);
+
+          cursor.continue();
+        }, {
+          dataReader: FileAPIReader(file)
+        });
+
+      } else if (extension === '.ogg') {
+        var oggfile = new OggFile(file, function() {
+
+          songData.album = oggfile.metadata.ALBUM;
+          songData.artist = oggfile.metadata.ARTIST;
+          songData.title = oggfile.metadata.TITLE;
+
+          songs.push(songData);
+          ListView.updateList(songData);
+
+          cursor.continue();
+        });
+        oggfile.parse();
+      } else {
+        cursor.continue();
+      }
+    };
   }
-];
+  catch (e) {
+    console.error('Exception while enumerating files:', e);
+  }
+});
 
 // This App. has three modes, TILES, LIST and PLAYER
 var MODE_TILES = 1;
@@ -81,7 +133,16 @@ var TitleBar = {
         if (!target)
           return;
 
-        changeMode(MODE_PLAYER);
+        switch (target.id) {
+          case 'title-back':
+            changeMode(MODE_LIST);
+
+            break;
+          case 'title-text':
+            changeMode(MODE_PLAYER);
+
+            break;
+        }
 
         break;
 
@@ -136,31 +197,29 @@ var ListView = {
 
   init: function lv_init() {
     this.dataSource = [];
+    this.index = 0;
 
     this.view.addEventListener('click', this);
 
-    this.updateList(songs);
+    this.dataSource = songs;
   },
 
-  updateList: function lv_updateList(source) {
-    var content = '';
-    var index = 0;
+  updateList: function lv_updateList(songData) {
+    var songTitle = (songData.title) ? songData.title : 'Unknown';
 
-    source.forEach(function(song) {
-      content += '<li class="song">' +
-                 '  <a href="#" id="' + escapeHTML(song.file, true) + '" ' +
-                 '   data-title="' + escapeHTML(song.title, true) + '" ' +
-                 '   data-artist="' + escapeHTML(song.artist, true) + '" ' +
-                 '   data-index="' + index + '" ' + '>' +
-                 '    ' + escapeHTML(song.title) + ' - ' +
-                          escapeHTML(song.artist) +
-                 '  </a>' +
-                 '</li>';
-      index++;
-    });
-    this.view.innerHTML = content;
+    var li = document.createElement('li');
+    li.className = 'song';
 
-    this.dataSource = source;
+    var a = document.createElement('a');
+    a.href = '#';
+    a.dataset.index = this.index;
+    a.textContent = (this.index + 1) + '. ' + songTitle;
+
+    li.appendChild(a);
+
+    this.view.appendChild(li);
+
+    this.index++;
   },
 
   handleEvent: function lv_handleEvent(evt) {
@@ -212,8 +271,12 @@ var PlayerView = {
   },
 
   init: function pv_init() {
-    this.title = document.getElementById('player-cover-title');
     this.artist = document.getElementById('player-cover-artist');
+    this.album = document.getElementById('player-cover-album');
+
+    this.timeoutID;
+    this.caption = document.getElementById('player-cover-caption');
+    this.coverControl = document.getElementById('player-cover-buttons');
 
     this.seekBar = document.getElementById('player-seek-bar-progress');
     this.seekElapsed = document.getElementById('player-seek-elapsed');
@@ -222,6 +285,7 @@ var PlayerView = {
     this.playControl = document.getElementById('player-controls-play');
 
     this.isPlaying = false;
+    this.playingFormat = '';
     this.dataSource = [];
     this.currentIndex = 0;
 
@@ -234,19 +298,73 @@ var PlayerView = {
     this.audio.addEventListener('timeupdate', this);
   },
 
+  // This function is for the animation on the album art (cover).
+  // The info (album, artist) will initially show up when a song being played,
+  // if users does not tap the album art (cover) again,
+  // then it will be disappeared after 5 seconds
+  // however, if a user taps before 5 seconds ends,
+  // then the timeout will be cleared to keep the info on screen.
+  showInfo: function pv_showInfo() {
+    this.caption.classList.remove('resetSilde');
+    this.caption.classList.add('slideDown');
+
+    this.coverControl.classList.remove('resetSilde');
+    this.coverControl.classList.add('slideUp');
+
+    if (this.timeoutID)
+      window.clearTimeout(this.timeoutID);
+
+    this.timeoutID = window.setTimeout(
+      function pv_hideInfo() {
+        this.caption.classList.remove('slideDown');
+        this.caption.classList.add('resetSilde');
+
+        this.coverControl.classList.remove('slideUp');
+        this.coverControl.classList.add('resetSilde');
+      }.bind(this),
+      5000
+    );
+  },
+
   play: function pv_play(target) {
     this.isPlaying = true;
 
+    this.showInfo();
+
     if (target) {
-      this.title.textContent = target.dataset.title;
-      this.artist.textContent = target.dataset.artist;
-      this.audio.src = target.id;
-      this.currentIndex = parseInt(target.dataset.index);
+      var targetIndex = parseInt(target.dataset.index);
+      var songData = songs[targetIndex];
+
+      TitleBar.changeTitleText((songData.title) ? songData.title : 'Unknown');
+      this.artist.textContent = (songData.artist) ? songData.artist : 'Unknown';
+      this.album.textContent = (songData.album) ? songData.album : 'Unknown';
+      this.currentIndex = targetIndex;
+
+      // An object URL must be released by calling window.URL.revokeObjectURL()
+      // when we no longer need them
+      this.audio.onloadeddata = function(evt) {
+        window.URL.revokeObjectURL(this.src);
+      }
+
+      storages[songData.storageIndex].get(songData.name).onsuccess =
+        function(evt) {
+          // On B2G devices, file.type of mp3 format is missing
+          // use file extension instead of file.type
+          this.playingFormat = evt.target.result.name.slice(-4);
+
+          this.audio.src = window.URL.createObjectURL(evt.target.result);
+
+          // when play a new song, reset the seekBar first
+          // this can prevent showing wrong duration
+          // due to b2g cannot get some mp3's duration
+          // and the seekBar can still show 00:00 to -00:00
+          this.setSeekBar(0, 0, 0);
+        }.bind(this);
     } else {
       this.audio.play();
     }
 
-    this.playControl.textContent = 'Pause';
+    this.playControl.innerHTML = '||';
   },
 
   pause: function pv_pause() {
@@ -254,7 +372,7 @@ var PlayerView = {
 
     this.audio.pause();
 
-    this.playControl.textContent = 'Play';
+    this.playControl.innerHTML = '&#9654;';
   },
 
   next: function pv_next() {
@@ -279,27 +397,41 @@ var PlayerView = {
     this.play(songElements[this.currentIndex].firstElementChild);
   },
 
+  updateSeekBar: function pv_updateSeekBar() {
+    if (this.isPlaying) {
+      this.seekAudio();
+    }
+  },
+
   seekAudio: function pv_seekAudio(seekTime) {
     if (seekTime)
       this.audio.currentTime = seekTime;
 
-    var endTime =
-      Math.floor(this.audio.buffered.end(this.audio.buffered.length - 1));
-    var startTime = Math.floor(this.audio.startTime);
-    var currentTime = Math.floor(this.audio.currentTime);
+    // mp3 returns in microseconds
+    // ogg returns in seconds
+    // note this may be a bug cause mp3 shows wrong duration in
+    // gecko's native audio player
+    // A related Bug 740124 in Bugzilla
+    var startTime = this.audio.startTime;
 
+    var originalEndTime =
+      this.audio.buffered.end(this.audio.buffered.length - 1);
+    var endTime = (originalEndTime > 1000000) ?
+      Math.floor(originalEndTime / 1000000) :
+      originalEndTime;
+
+    var currentTime = this.audio.currentTime;
+
+    this.setSeekBar(startTime, endTime, currentTime);
+  },
+
+  setSeekBar: function pv_setSeekBar(startTime, endTime, currentTime) {
     this.seekBar.min = startTime;
     this.seekBar.max = endTime;
     this.seekBar.value = currentTime;
 
     this.seekElapsed.textContent = formatTime(currentTime);
     this.seekRemaining.textContent = '-' + formatTime(endTime - currentTime);
-  },
-
-  updateSeekBar: function pv_updateSeekBar() {
-    if (this.isPlaying) {
-      this.seekAudio();
-    }
   },
 
   handleEvent: function pv_handleEvent(evt) {
@@ -310,6 +442,11 @@ var PlayerView = {
     switch (evt.type) {
       case 'click':
         switch (target.id) {
+          case 'player-cover-image':
+            this.showInfo();
+
+            break;
+
           case 'player-seek-bar-progress':
             // target is the seek bar, and evt.layerX is the clicked position
             var seekTime = evt.layerX / target.clientWidth * target.max;

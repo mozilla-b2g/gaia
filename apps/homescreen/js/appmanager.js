@@ -31,31 +31,26 @@ var Applications = (function() {
         callback.callback(app);
       }
     });
-   };
+  };
 
   installer.oninstall = function install(event) {
     var app = event.application;
-    installedApps[app.origin] = app;
+    if (!installedApps[app.origin]) {
+      installedApps[app.origin] = app;
 
-    var icon = getIcon(app.origin);
-    if (icon) {
-      window.applicationCache.mozAdd(icon);
-    }
-
-    callbacks.forEach(function(callback) {
-      if (callback.type == 'install') {
-        callback.callback(app);
+      var icon = getIcon(app.origin);
+      // No need to put data: URIs in the cache
+      if (icon && icon.indexOf('data:') == -1) {
+        window.applicationCache.mozAdd(icon);
       }
-    });
-  };
 
-  document.documentElement.lang = 'en-US';
-
-  SettingsListener.getValue('language.current', function(lang) {
-    if (lang && lang.length > 0) {
-      document.documentElement.lang = lang;
+      callbacks.forEach(function(callback) {
+        if (callback.type == 'install') {
+          callback.callback(app);
+        }
+      });
     }
-  });
+  };
 
   /*
    * Returns all installed applications
@@ -80,6 +75,19 @@ var Applications = (function() {
     // Trailing '/'
     var trimmedOrigin = origin.slice(0, origin.length - 1);
     return installedApps[trimmedOrigin];
+  };
+
+  /*
+   *  Returns installed apps
+   */
+  function getInstalledApplications() {
+    var ret = {};
+
+    for (var i in installedApps) {
+      ret[i] = installedApps[i];
+    }
+
+    return ret;
   };
 
   /*
@@ -127,6 +135,18 @@ var Applications = (function() {
     return coreApplications.indexOf(origin) !== -1;
   };
 
+  var deviceWidth = document.documentElement.clientWidth;
+
+  /*
+   *  Returns the size of the icon
+   *
+   *  {Array} Sizes orderer largest to smallest
+   *
+   */
+  function getIconSize(sizes) {
+    return sizes[(deviceWidth < 480) ? sizes.length - 1 : 0];
+  }
+
   /*
    *  Returns an icon given an origin
    *
@@ -154,7 +174,7 @@ var Applications = (function() {
     // application to it (technically, manifests are supposed to
     // have those). Otherwise return the url directly as it could be
     // a data: url.
-    var icon = icons[sizes[0]];
+    var icon = icons[getIconSize(sizes)];
     if (icon.indexOf('data:') !== 0) {
       icon = origin + icon;
     }
@@ -175,7 +195,7 @@ var Applications = (function() {
     }
 
     if ('locales' in manifest) {
-      var locale = manifest.locales[document.documentElement.lang];
+      var locale = manifest.locales[navigator.language];
       if (locale && locale.name) {
         return locale.name;
       }
@@ -202,7 +222,7 @@ var Applications = (function() {
     getOrigin: getOrigin,
     getName: getName,
     getIcon: getIcon,
-    getManifest: getManifest
+    getManifest: getManifest,
+    getInstalledApplications: getInstalledApplications
   };
 })();
-

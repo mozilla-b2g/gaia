@@ -2,6 +2,7 @@ html, body {
   font-family: "Open Sans", sans-serif;
   height: 100%;
   margin: 0 auto;
+  background-color: black;
 }
 
 @font-face {
@@ -19,7 +20,6 @@ html, body {
   src: url("fonts/Open-Sans-Semibold.woff");
 }
 
-
 #novideos {
   margin: 0;
   margin-top: 40%;
@@ -34,37 +34,29 @@ html, body {
 }
 
 
-/* git nail list */
 ul {
-  /*width: 100%;*/
   width: -moz-calc(100% + 8px);
   margin: 0 auto;
   padding: 0;
   height: 100%;
   overflow-y: scroll;
-  background-color: #e0e5ea;
 }
 ul li:first-child {
   border-top: none;
 }
 li {
   margin: 0;
-  padding: 0 20px 0 144px;
-  height: 94px;
-  border-top: 1px solid rgba(255, 255, 255, 0.4);
-  border-bottom: 2px solid #c3c9cb;
+  height: -moz-calc(100% / 4); 
+  width: 100%;
+  border-bottom: 1px solid black;
   position: relative;
   list-style-type: none;
   overflow: hidden;
-  background-color: #f5f5f5;
-}
-li:active, li.active {
-  /*background: -moz-linear-gradient(center top , #FFCE75 0pt, rgba(255, 212, 153, 0.2) 2px, rgba(255, 148, 0, 0.4) 20%, #C16700 98%, #C16700 99%, #FF8300 100%) repeat scroll 0 0%, -moz-linear-gradient(center top , #FFCE75 0pt, #FF9400 2px, #C16700 98%, #C16700 99%, #FF8300 100%) repeat scroll 0 0 transparent;*/
-  background-color: rgba(0, 0, 0, .07);
+  background-color: #222;
 }
 li img {
-  width: 128px;
-  height: 94px;
+  width: -moz-calc(100% * 2 / 3);
+  height: 100%;
   overflow: hidden;
   position: absolute;
   left: 0;
@@ -72,23 +64,24 @@ li img {
   padding: 0;
 }
 li p {
-  margin: 0;
+  width: -moz-calc((100% / 3) - 15px);
+  margin-top: 10px;
+  margin-left: -moz-calc((100% * 2 / 3) + 10px);
+  margin-right: 5px;
+  margin-bottom: 0px;
   padding: 0;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  text-overflow: ellipsis; 
 }
-p.name {
-  height: 30px;
-  margin-top: 12px;
-  color: #333;
+li p.name {
+  color: #fff;
   font-weight: 600;
-  font-size: 26px;
+  font-size: 18px;
 }
-p.time {
-  font-size: 22px;
-  color: #666;
-  text-shadow: 0 1px 0 #ddd;
+li p.time {
+  margin-top: 4px;
+  font-size: 16px;
+  color: #bbb;
 }
 
 /* fullscreen video player */

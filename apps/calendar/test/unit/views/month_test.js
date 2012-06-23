@@ -261,7 +261,7 @@ suite('views/month', function() {
         subject.currentChild.element.id
       );
 
-      assert.deepEqual(controller.currentMonth, now);
+      assert.deepEqual(controller.currentMonth.valueOf(), now.valueOf());
     });
 
   });

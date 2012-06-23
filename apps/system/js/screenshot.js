@@ -2,15 +2,21 @@
 //
 // This system module takes a screenshot of the currently running app
 // or homescreen and stores it with DeviceStorage when the user
-// presses the home and sleep buttons at the same time.
+// presses the home and sleep buttons at the same time. It communicates
+// with gecko code running in b2g/chrome/content/shell.js using a private
+// event-based API. It is the gecko code that creates and saves the screenshot.
 //
-// XXX somehow also need to prevent the home and sleep buttons from
-// doing anything. Home works on key up not key down, so I may need to
-// have the user press home first then sleep.
+// Other modules that listen for the home and sleep buttons should
+// ignore those events if defaultPrevented is set on them. Note that
+// defaultPrevented will only be set on the key up events and the key
+// down event for the button that was pressed second. The key down
+// event for the button that is pressed first will not be defaultPrevented.
 //
 // This script must be used with the defer attribute.
-// And it probably needs to run before the window_manager.js script
+//
+// This script probably needs to run before the window_manager.js script
 // which tries to prevent propagation of the HOME key to other modules.
+//
 (function() {
   // Register capturing handlers for both keydown and keyup
   window.addEventListener('keydown', keyDownHandler, true);
@@ -27,7 +33,6 @@
       homeKeyDown = true;
     if (e.keyCode === e.DOM_VK_SLEEP)
       sleepKeyDown = true;
-
     if (homeKeyDown && sleepKeyDown) {
       e.preventDefault();
       takeScreenshot();
@@ -53,97 +58,47 @@
     }
   }
 
+
   function takeScreenshot() {
-    try {
-      var app = WindowManager.getDisplayedApp();
-      var frame;
-      if (app) {
-        frame = WindowManager.getAppFrame(app);
+    // Give feedback that the screenshot request was received
+    navigator.mozVibrate(100);
+
+    // Let chrome know we'd like a screenshot.
+    // This is a completely non-standard undocumented API
+    // for communicating with our chrome code.
+    var screenshotProps = {
+      detail: {
+        type: 'save-screenshot'
       }
-      else {
-        frame = document.getElementById('homescreen');
-      }
-
-      var screenshotRequest = frame.getScreenshot();
-
-      screenshotRequest.onerror = function() {
-        console.error('screenshot error', screenshotRequest.error);
-      };
-
-      screenshotRequest.onsuccess = function(e) {
-        try {
-          // Feedback that the screenshot was taken
-          // TODO: play a sound instead?
-          navigator.mozVibrate(100);
-
-          // Here is the result of the screenshot
-          var dataurl = e.target.result;
-
-          // Annoyingly, the screenshot API gives us a data url
-          // instead of the blob that we really want. So we have to
-          // render it to an image, and then copy that image into a canvas
-          // to convert it to a file that we can save
-          var img = document.createElement('img');
-          img.src = dataurl;
-          img.onload = function() {
-            try {
-              var canvas = document.createElement('canvas');
-              var context = canvas.getContext('2d');
-              canvas.width = img.width;
-              canvas.height = img.height;
-              context.drawImage(img, 0, 0, img.width, img.height);
-              var blob = canvas.mozGetAsFile('', 'image/png');
-              var storages = navigator.getDeviceStorage('pictures');
-              var storage = storages[storages.length - 1];
-
-              var origin = app ? app : 'homescreen';
-              origin = origin.replace('http://', '');
-              origin = origin.replace('.gaiamobile.org', '');
-
-              // Start with an ISO date/time string
-              var timestamp = (new Date().toISOString());
-              // Get rid of milliseconds and timezone
-              timestamp = timestamp.substring(0, timestamp.lastIndexOf('.'));
-              // Convert colons; they're no good in filenames
-              timestamp = timestamp.replace(/:/g, '-');
-              // Get rid of the strange capital T, too
-              timestamp = timestamp.replace('T', '-');
-
-              var filename = 'screenshots/' + origin + '-' + timestamp + '.png';
-
-              var storageRequest = storage.addNamed(blob, filename);
-              storageRequest.onerror = function() {
-                console.error('addNamed() error',
-                              storageRequest.error,
-                              storageRequest.error.name);
-              }
-              storageRequest.onsuccess = function() {
-                try {
-                  // Vibrate again when the screenshot is saved
-                  navigator.mozVibrate([100, 100]);  // pause buzz
-
-                  // Display filename in a notification
-                  navigator.mozNotification
-                    .createNotification('Screenshot saved', filename)
-                    .show();
-                }
-                catch (e) {
-                  console.error(e);
-                }
-              };
-            }
-            catch (e) {
-              console.error(e);
-            }
-          }
-        }
-        catch (e) {
-          console.error(e);
-        }
-      }
-    }
-    catch (e) {
-      console.error(e);
-    }
+    };
+    window.dispatchEvent(new CustomEvent('mozContentEvent', screenshotProps));
   }
+
+  var _ = navigator.mozL10n.get;
+
+  // Handle notifications that screenshots have been taken
+  window.addEventListener('mozChromeEvent', function ss_onMozChromeEvent(e) {
+    if (e.detail.type === 'save-screenshot-success') {
+      // Vibrate again when the screenshot is saved
+      navigator.mozVibrate(100);
+
+      // Display filename in a notification
+      navigator.mozNotification
+        .createNotification(_('screenshotSaved'), e.detail.filename)
+        .show();
+    }
+    else if (e.detail.type === 'save-screenshot-no-card') {
+      // Display filename in a notification
+      navigator.mozNotification
+        .createNotification(_('screenshotFailed'), _('screenshotNoSDCard'))
+        .show();
+    }
+    else if (e.detail.type === 'save-screenshot-error') {
+      // Display filename in a notification
+      navigator.mozNotification
+        .createNotification(_('screenshotFailed'),
+                            _('screenshotStorageError', e.detail))
+        .show();
+    }
+  });
 }());

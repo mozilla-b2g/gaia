@@ -1,16 +1,3 @@
-#screen.fullscreen:not(.locked) > #notifications-screen {
-  display: none;
-}
-
-#notifications-screen {
-  position: absolute;
-  z-index: 9996;
-  top: -moz-calc(-100% + 64px);
-  width: -moz-calc(100%);
-  height: -moz-calc(100% - 32px);
-  background-color: #222;
-}
-
 #notifications-container .notification {
   position: relative;
   background-image: url("images/notifications.png");
@@ -63,20 +50,3 @@
   height: 64px;
   margin: 8px;
 }
-
-#grippy {
-  pointer-events: none;
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  height: 30px;
-
-  border-bottom: 1px solid #111;
-  border-top: 1px solid #111;
-}
-
-#state-notifications[data-visible] {
-  width: 32px;
-  height: 32px;
-}
-

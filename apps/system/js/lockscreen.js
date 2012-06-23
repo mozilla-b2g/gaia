@@ -83,12 +83,13 @@ var LockScreen = {
     window.addEventListener('screenchange', this);
 
     /* Notification */
+    // XXX: Move to notifications.js
     this.notification.addEventListener('click', this);
     window.addEventListener('mozChromeEvent', this);
 
     /* Gesture */
-    this.areaStart.addEventListener('mousedown', this);
-    window.addEventListener('mouseup', this);
+    this.areaCamera.addEventListener('mousedown', this);
+    this.areaUnlock.addEventListener('mousedown', this);
 
     /* Passcode input pad*/
     this.passcodePad.addEventListener('click', this);
@@ -98,7 +99,7 @@ var LockScreen = {
     this.camera.addEventListener('unload', this);
 
     /* switching panels */
-    window.addEventListener('keyup', this);
+    window.addEventListener('keyup', this, true);
 
     var self = this;
 
@@ -183,24 +184,29 @@ var LockScreen = {
       case 'mousedown':
         this._touch = {
           x: evt.screenX,
-          y: evt.screenY
+          y: evt.screenY,
+          target: evt.target
         };
         this.overlay.classList.add('touch');
+        window.addEventListener('mouseup', this);
         break;
 
       case 'mouseup':
-        if (!this._touch)
-          return;
         var dx = evt.screenX - this._touch.x;
         var dy = evt.screenY - this._touch.y;
+        var target = this._touch.target;
         delete this._touch;
-        this.overlay.classList.remove('touch');
 
-        this.handleGesture(dx, dy);
+        this.handleGesture(dx, dy, target);
+        this.overlay.classList.remove('touch');
+        window.removeEventListener('mouseup', this);
         break;
 
       case 'keyup':
-        if (!this.locked || evt.keyCode !== evt.DOM_VK_ESCAPE ||
+        if (!this.locked)
+          break;
+
+        if (evt.keyCode !== evt.DOM_VK_ESCAPE &&
             evt.keyCode !== evt.DOM_VK_HOME)
           break;
 
@@ -227,31 +233,33 @@ var LockScreen = {
     }
   },
 
-  handleGesture: function ls_handleGesture(dx, dy) {
+  handleGesture: function ls_handleGesture(dx, dy, target) {
     var dim = {
       x: this.overlay.offsetWidth,
       y: this.overlay.offsetHeight
     };
 
-    // These are gesture rule with camera gesture
-
     var ratioX = dx / this.overlay.offsetWidth;
     var ratioY = dy / this.overlay.offsetHeight;
 
-    if (Math.abs(ratioY) > 0.2) {
-      // Go upwards - do nothing
+    // Do nothing if not moving upward
+    if (ratioY > -0.1)
       return;
-    }
 
-    if (ratioX > 0.2) {
-      this.switchPanel('camera');
-    } else if (ratioX < -0.2) {
-      // Moving left to unlock icon
-      if (!this.passCodeEnabled) {
-        this.unlock();
-      } else {
-        this.switchPanel('passcode');
-      }
+    switch (target) {
+      case this.areaCamera:
+        // Moving up from the camera icon
+        this.switchPanel('camera');
+        break;
+
+      case this.areaUnlock:
+        // Moving up from the unlock icon
+        if (!this.passCodeEnabled) {
+          this.unlock();
+        } else {
+          this.switchPanel('passcode');
+        }
+        break;
     }
   },
 
@@ -260,11 +268,14 @@ var LockScreen = {
       case 'e': // Emergency Call
         this.switchPanel('emergency-call');
         break;
+
+      case 'c':
+        this.switchPanel();
+        break;
+
       case 'b':
-        if (!this.passCodeEntered) {
-          this.switchPanel();
-          break;
-        }
+        if (this.overlay.dataset.passcodeStatus)
+          return;
 
         this.passCodeEntered =
           this.passCodeEntered.substr(0, this.passCodeEntered.length - 1);
@@ -272,6 +283,9 @@ var LockScreen = {
 
         break;
       default:
+        if (this.overlay.dataset.passcodeStatus)
+          return;
+
         this.passCodeEntered += key;
         this.updatePassCodeUI();
 
@@ -294,7 +308,6 @@ var LockScreen = {
     this.locked = false;
 
     this.mainScreen.focus();
-    this.overlay.classList.add('unlocked');
     if (instant)
       this.overlay.classList.add('no-transition');
     else
@@ -320,7 +333,6 @@ var LockScreen = {
     this.switchPanel();
 
     this.overlay.focus();
-    this.overlay.classList.remove('unlocked');
     if (instant)
       this.overlay.classList.add('no-transition');
     else
@@ -398,8 +410,7 @@ var LockScreen = {
     // XXX: respect clock format in Settings
     this.clock.textContent = d.toLocaleFormat('%R');
 
-    this.calDay.textContent = d.toLocaleFormat('%a');
-    this.calDate.textContent = d.getDate();
+    this.date.textContent = d.toLocaleFormat('%A %e %B');
 
     var self = this;
     window.setTimeout(function ls_clockTimeout() {
@@ -429,13 +440,22 @@ var LockScreen = {
   },
 
   updatePassCodeUI: function lockscreen_updatePassCodeUI() {
+    var overlay = this.overlay;
+    if (overlay.dataset.passcodeStatus)
+      return;
+    if (this.passCodeEntered) {
+      overlay.classList.add('passcode-entered');
+    } else {
+      overlay.classList.remove('passcode-entered');
+    }
     var i = 4;
     while (i--) {
       var span = this.passcodeCode.childNodes[i];
-      if (this.passCodeEntered.length > i)
+      if (this.passCodeEntered.length > i) {
         span.dataset.dot = true;
-      else
+      } else {
         delete span.dataset.dot;
+      }
     }
   },
 
@@ -448,7 +468,6 @@ var LockScreen = {
         delete this.overlay.dataset.passcodeStatus;
         this.unlock();
         this.passCodeEntered = '';
-        this.updatePassCodeUI();
       }).bind(this), this.kPassCodeSuccessTimeout);
     } else {
       this.overlay.dataset.passcodeStatus = 'error';
@@ -470,10 +489,10 @@ var LockScreen = {
 
   getAllElements: function ls_getAllElements() {
     // ID of elements to create references
-    var elements = ['mute', 'clock', 'cal-day', 'cal-date',
+    var elements = ['mute', 'clock', 'date',
         'notification', 'notification-icon', 'notification-title',
         'notification-detail', 'notification-time',
-        'area-unlock', 'area-start', 'area-camera',
+        'area-unlock', 'area-camera',
         'passcode-code', 'passcode-pad',
         'camera'];
 
@@ -500,3 +519,5 @@ var LockScreen = {
     this.camera.dispatchEvent(generatedEvent);
   }
 };
+
+LockScreen.init();

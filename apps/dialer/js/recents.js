@@ -63,10 +63,11 @@ var Recents = {
       var setreq = store.put(recentCall);
 
       setreq.onsuccess = (function() {
-        var entry = this.createEntry(recentCall);
-
-        var firstEntry = this.view.firstChild;
-        this.view.insertBefore(entry, firstEntry);
+        if (this.view) {
+          var entry = this.createEntry(recentCall);
+          var firstEntry = this.view.firstChild;
+          this.view.insertBefore(entry, firstEntry);
+        }
       }).bind(this);
 
       setreq.onerror = function(e) {
@@ -105,6 +106,9 @@ var Recents = {
   },
 
   render: function re_render() {
+    if (!this.view)
+      return;
+
     this.view.innerHTML = '';
 
     this.history((function(history) {
@@ -144,7 +148,7 @@ var Recents = {
   },
 
   startUpdatingDates: function re_startUpdatingDates() {
-    if (this._prettyDatesInterval)
+    if (this._prettyDatesInterval || !this.view)
       return;
 
     var self = this;
