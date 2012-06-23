@@ -128,20 +128,20 @@ body {
   padding-bottom: 7px;
 }
 
-#browser-settings {
+#browser-settings-icon {
   background: url("images/settings-white.png");
   width: 24px;
   height: 24px;
   position: absolute;
-  right: 0px;
-  bottom: 10px;
-  color: white;
+  right: 30px;
+  top: 24px;
   z-index: 100;
   display: block;
   cursor: pointer;
+  border: 0px;
 }
 
-#browser-settings:active, #browser-settings:hover {
+#browser-settings-icon:active, #browser-settings-icon:hover {
   background: url("images/settings.png");
 }
 

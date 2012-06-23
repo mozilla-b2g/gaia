@@ -18,6 +18,7 @@ var Browser = {
   PAGE_SCREEN: 'page-screen',
   TABS_SCREEN: 'tabs-screen',
   AWESOME_SCREEN: 'awesome-screen',
+  BROWSERSETTINGS_SCREEN: 'browserSettings-screen',
 
   urlButtonMode: null,
 
@@ -39,6 +40,7 @@ var Browser = {
     this.tabsList = document.getElementById('tabs-list');
     this.mainScreen = document.getElementById('main-screen');
     this.tabCover = document.getElementById('tab-cover');
+    this.browserSettings = document.getElementById('browser-settings-icon');
 
     // Add event listeners
     window.addEventListener('submit', this);
@@ -53,6 +55,8 @@ var Browser = {
     this.history.addEventListener('click', this.followLink.bind(this));
     this.tabsBadge.addEventListener('click',
       this.handleTabsBadgeClicked.bind(this));
+    this.browserSettings.addEventListener('click', this.handleBrowserSettingsClicked.bind(this));
+      
 
     this.tabsSwipeMngr.browser = this;
     ['mousedown', 'pan', 'tap', 'swipe'].forEach(function(evt) {
@@ -116,6 +120,26 @@ var Browser = {
       return;
     }
     this.showTabScreen();
+  },
+  
+  // Browser settings is the button at the bottom left, used to show browser settings
+  // and the about page
+  handleBrowserSettingsClicked: function browser_handleBrowserSettingsClicked() {
+    
+    this.showBrowserSettingsScreen();
+    
+    /*if (this.currentScreen === this.TABS_SCREEN) {
+      var tabId = this.createTab();
+      this.selectTab(tabId);
+      this.showAwesomeScreen();
+      return;
+    }
+    if (this.currentScreen === this.AWESOME_SCREEN &&
+        this.previousScreen === this.PAGE_SCREEN) {
+      this.showPageScreen();
+      return;
+    }
+    this.showTabScreen();*/
   },
 
   // Each browser gets their own listener
@@ -517,6 +541,16 @@ var Browser = {
     this.tabsBadge.innerHTML = '×';
     this.switchScreen(this.AWESOME_SCREEN);
     this.tabCover.style.display = 'none';
+  },
+  
+   showBrowserSettingsScreen: function browser_showBrowserSettingsScreen() {
+    
+   /* GlobalHistory.getHistory(this.showGlobalHistory.bind(this));
+    this.urlInput.focus();
+    this.setUrlButtonMode(this.GO);
+    this.tabsBadge.innerHTML = '×';*/
+    this.switchScreen(this.BROWSERSETTINGS_SCREEN);
+    //this.tabCover.style.display = 'none';
   },
 
   showPageScreen: function browser_showPageScreen() {
