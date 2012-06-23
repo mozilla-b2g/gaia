@@ -13,6 +13,8 @@ var ScreenManager = {
   */
   screenEnabled: true,
 
+  _inTransition: false,
+
   _deviceLightEnabled: true,
 
   _brightness: 0.5,
@@ -31,7 +33,12 @@ var ScreenManager = {
     var self = this;
 
     this.idleObserver.onidle = function scm_onidle() {
-      self.turnScreenOff();
+      self.turnScreenOff(false);
+    };
+
+    this.idleObserver.onactive = function scm_onactive() {
+      if (self._inTransition)
+        self.turnScreenOn();
     };
 
     SettingsListener.observe('screen.timeout', 60,
@@ -59,7 +66,8 @@ var ScreenManager = {
   handleEvent: function scm_handleEvent(evt) {
     switch (evt.type) {
       case 'devicelight':
-        if (!this._deviceLightEnabled || !this.screenEnabled)
+        if (!this._deviceLightEnabled || !this.screenEnabled ||
+            this._inTransition)
           return;
 
         // This is a rather naive but pretty effective heuristic
@@ -77,7 +85,7 @@ var ScreenManager = {
 
         if (!evt.defaultPrevented)
           this._turnOffScreenOnKeyup = true;
-        if (!this.screenEnabled) {
+        if (!this.screenEnabled || this._inTransition) {
           this.turnScreenOn();
           this._turnOffScreenOnKeyup = false;
         }
@@ -86,7 +94,7 @@ var ScreenManager = {
       case 'keyup':
         if (this.screenEnabled && this._turnOffScreenOnKeyup &&
             evt.keyCode == evt.DOM_VK_SLEEP && !evt.defaultPrevented)
-          this.turnScreenOff();
+          this.turnScreenOff(true);
 
         break;
     }
@@ -99,23 +107,57 @@ var ScreenManager = {
       this.turnScreenOn();
   },
 
-  turnScreenOff: function scm_turnScreenOff() {
-    if (!this.screenEnabled)
+  turnScreenOff: function scm_turnScreenOff(instant) {
+    if (!this.screenEnabled || this._inTransition)
       return false;
 
-    navigator.mozPower.screenBrightness = 0.0;
+    var self = this;
+    var screenBrightness = navigator.mozPower.screenBrightness;
 
-    this.screenEnabled = false;
-    this.screen.classList.add('screenoff');
-    setTimeout(function realScreenOff() {
-      navigator.mozPower.screenEnabled = false;
-    }, 20);
+    var dim = function scm_dim() {
+      if (!self._inTransition)
+        return;
 
-    this.fireScreenChangeEvent();
+      screenBrightness -= 0.02;
+
+      if (screenBrightness <= 0) {
+        finish();
+        return;
+      }
+
+      navigator.mozPower.screenBrightness = screenBrightness;
+      setTimeout(dim, 10);
+    };
+
+    var finish = function scm_finish() {
+
+      self.screenEnabled = false;
+      self._inTransition = false;
+      self.screen.classList.add('screenoff');
+      setTimeout(function realScreenOff() {
+        navigator.mozPower.screenEnabled = false;
+      }, 20);
+
+      this.fireScreenChangeEvent();
+    };
+
+    if (instant) {
+      finish();
+    } else {
+      this._inTransition = true;
+      dim();
+    }
+
     return true;
   },
 
   turnScreenOn: function scm_turnScreenOn() {
+    if (this._inTransition) {
+      // The user had cancel the turnScreenOff action.
+      this._inTransition = false;
+      navigator.mozPower.screenBrightness = this._brightness;
+      return;
+    }
     if (this.screenEnabled)
       return false;
 
