@@ -18,14 +18,14 @@
 
 @media screen and (min-resolution: 200dpi) {
 
-  html{
+  html {
     font-size: 13.5px;
   }
 }
 
 @media screen and (max-resolution: 200dpi) {
 
-  html{
+  html {
     font-size: 10px;
   }
 }
@@ -69,23 +69,23 @@ body.conversation .panel {
   -moz-transform: translateX(-100%);
 }
 
-body.conversation-new-msg .conversation-hide{
+body.conversation-new-msg .conversation-hide {
   display: none;
 }
 
-body.conversation .conversation-hide{
+body.conversation .conversation-hide {
   display: none;
 }
 
-body.edit-mode .conversation-hide{
+body.edit-mode .conversation-hide {
   display: table-cell !important;
 }
 
-body.conversation-new-msg .contact-show{
+body.conversation-new-msg .contact-show {
   display: block;
 }
 
-body.edit-mode .hide-bottom{
+body.edit-mode .hide-bottom {
   display: none;
 }
 
@@ -199,7 +199,7 @@ input, textarea {
                 hsl(32,100%,38%) 99%, hsl(31,100%,50%) 100%);
 }
 
-.button-bottom-bar{
+.button-bottom-bar {
   background: -moz-linear-gradient(top, #b50404 0%, #850a0a 100%); 
   vertical-align: middle;
   text-align: center;
@@ -334,11 +334,11 @@ body.edit-mode #msg-conversations-list > a {
   border-top-color: transparent;
 }
 
-#msg-conversations-list > a .unread-mark{
+#msg-conversations-list > a .unread-mark {
   display: none;
 }
 
-a.unread .unread-mark{
+a.unread .unread-mark {
   display: block !important;
   width: 3rem !important;
   left: 0rem !important;
@@ -349,7 +349,7 @@ a.unread .unread-mark{
 
 }
 
-a.unread .unread-mark .icon-unread-mark{
+a.unread .unread-mark .icon-unread-mark {
   display: block;
   width: .9rem;
   height: .9rem;
@@ -440,7 +440,7 @@ body.edit-mode #msg-conversations-list > a > span {
   text-overflow: ellipsis;
 }
 
-#msg-conversations-list .msg .highlight{
+#msg-conversations-list .msg .highlight {
   background: rgb(255, 255, 0);
 }
 
@@ -523,7 +523,7 @@ body.edit-mode #msg-conversations-list .msg {
   height: 100%;
 }
 
-.icon-edit{
+.icon-edit {
   display: block;
   background-image: url('images/edit.png');
   height: 2rem;
@@ -541,7 +541,7 @@ body.edit-mode #msg-conversations-list .msg {
   box-shadow: 0.1rem 0 0 0.01rem rgba(255, 255, 255, 0.3)
 }
 
-.icon-back{
+.icon-back {
   display: block;
   background-image: url('images/back.png');
   height: 2.7rem;
@@ -626,7 +626,7 @@ body.edit-mode #view-edit-button {
  
 }
 
-.icon-contact{
+.icon-contact {
   display: block;
   background-image: url('images/contacts_icon.png');
     
@@ -672,7 +672,6 @@ body.conversation-new-msg #view-edit-button {
   -moz-box-sizing: border-box;
   width: -moz-calc(100% - 9rem);
   font-size: -moz-calc(6 * 0.226rem);
-
 }
 
 body.conversation-new-msg #view-num {
@@ -847,7 +846,7 @@ body.edit-mode #view-list > div.message-block {
 }
 
 
-#view-list > div.message-block:active > div.message-container{
+#view-list > div.message-block:active > div.message-container {
   background: rgba(183,214,54,.6);
 }
 
@@ -931,20 +930,20 @@ body.edit-mode #view-list > div.message-block {
   table-layout: fixed;
 }
 
-.view-bottom-toolbar-element{
+.view-bottom-toolbar-element {
   display: table-cell;
 }
 
-.view-bottom-toolbar-button{
+.view-bottom-toolbar-button {
   background: -moz-linear-gradient(top, #b50404 0%, #850a0a 100%); 
   vertical-align: middle;
   text-align: center;
-  font-size: -moz-calc(7*0.226rem);
+  font-size: -moz-calc(7 * 0.226rem);
   color: #ffffff;
   display: table-cell;
 }
 
-#view-msg-send{
+#view-msg-send {
   width: 6.5rem;
   text-align: center;
   vertical-align: middle;
@@ -1005,7 +1004,7 @@ body.hidden *[data-l10n-id] {
   font-size: 2rem;
 }
 
-.view-confirm-options{
+.view-confirm-options {
   display: table;
   table-layout: fixed;
   width: 100%;
@@ -1018,7 +1017,7 @@ body.hidden *[data-l10n-id] {
   background: -moz-linear-gradient(top, #b50404 0%, #850a0a 100%); 
   vertical-align: middle;
   text-align: center;
-  font-size: -moz-calc(7*0.226rem);
+  font-size: -moz-calc(7 * 0.226rem);
   color: #ffffff;
   border-radius: .4rem;
 
@@ -1028,7 +1027,7 @@ body.hidden *[data-l10n-id] {
   border-bottom: solid 1px #ff4e00;
   padding-left: 3rem;
   padding-top: 1rem;
-  font-size: -moz-calc(6*0.226rem);
+  font-size: -moz-calc(6 * 0.226rem);
   color: #ff4e00;
   text-transform: uppercase;
   font-family: 'Open Sans', sans-serif;
