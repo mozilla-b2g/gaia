@@ -41,8 +41,8 @@ body {
 #tray {
   -moz-transition: 0.2s ease-in-out;
   position: absolute;
-  left: 70px;
-  right: 20px;
+  left: 50px;
+  right: 0px;
   top: 0;
   bottom: 0;
   color: white;
@@ -64,7 +64,7 @@ body {
   border-top: 1px solid #333;
   overflow-y: auto;
   position:absolute;
-  top: 72px;
+  top: 70px;
   bottom: 20px;
   left: 0;
   right: 0;
