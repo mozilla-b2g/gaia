@@ -338,7 +338,7 @@ Page.prototype = {
       // This is a moz app
       var icon = new Icon(app);
       icon.render(this.olist, this.container);
-      this.icons[app.origin] = icon;
+      this.icons[Applications.getOrigin(app)] = icon;
     }
   },
 
@@ -351,7 +351,7 @@ Page.prototype = {
     var icon = app;
     if ('ApplicationIcon' !== app.type) {
       // This is a moz app
-      icon = this.icons[app.origin];
+      icon = this.icons[Applications.getOrigin(app)];
     }
     this.olist.removeChild(icon.container);
     delete this.icons[icon.descriptor.origin];
@@ -392,4 +392,3 @@ Page.prototype = {
     });
   }
 };
-

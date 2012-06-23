@@ -1,0 +1,246 @@
+.keypad-text {
+  font-size: -moz-calc(6*0.226rem);
+  color: #96AAB4;
+}
+
+#keyboard-view {
+  width: 100%;
+  height:100%;
+}
+
+#fake-phone-number-view {
+  position: absolute;
+  line-height: 0;
+  visibility: hidden;
+}
+
+#phone-number-view-container {
+  width:100%;
+  height:-moz-calc(100% - 38rem);
+  background: #1e2328;
+  width:100%;
+  text-align:center;
+  display: table;
+  table-layout: fixed;
+  border-spacing: 1.5rem 0rem;
+}
+
+#phone-number-view-container.no-toolbar {
+  height:-moz-calc(100% - 34rem);
+}
+
+#phone-number-view{
+  width:100%;
+  border:0;
+  background:transparent;
+  text-align: right;
+  cursor:none;
+  -moz-user-select: none;
+}
+
+#keypad-delete {
+  text-align: center;
+  width: 4rem;
+}
+
+#keypad-delete:active {
+  opacity:0.7;
+}
+
+#keypad-delete > div {
+  width: 3.8rem;
+  height: 2.8rem;
+  background: url('images/dialer_icon_delete.png') ;
+  background-size: 3.8rem 2.8rem;
+  background-repeat: no-repeat;
+}
+
+#keyboard-container {
+  width:100%;
+  height: 38rem;
+}
+
+#keypad {
+  background: -moz-linear-gradient(top, #2d3642 0%, #0f1214 100%);
+  height: -moz-calc(100% - 10rem);
+  width: 100%;
+  display: table;
+  table-layout: fixed;
+}
+
+.keypad-cell {
+  display: table-cell;
+  border-right: 1px solid #313A47;
+}
+
+.keypad-cell:last-child {
+  border: 0;
+}
+
+.keypad-key {
+  border: 0;
+  border-bottom: 1px solid #313A47;
+  height: 7rem;
+  vertical-align: middle;
+  position: relative;
+}
+
+.keypad-key:active {
+  background: black;
+  opacity: 0.7;
+}
+
+.keypad-key-label-container{
+  width:100%;
+  height:100%;
+  display:table;
+}
+
+.keypad-key-label {
+  display:table-cell;
+  padding-left:1.5rem;
+  vertical-align:middle;
+}
+
+.keypad-key-label-centered {
+  padding-left:0;
+  text-align:center;
+}
+
+#keypad-callbar {
+  background: black;
+  height: 6rem;
+  width: 100%;
+  display: table;
+  table-layout: fixed;
+  border-spacing: 1rem 1rem;
+}
+
+#keypad-callbar-add-contact {
+  display: table-cell;
+  width: 9rem;
+  background: -moz-linear-gradient(top, #242b36 0%, #19191a 100%); 
+  border: .1rem solid #242B36;
+  border-radius: .2rem;
+  opacity: 0.5;
+  vertical-align: middle;
+}
+
+#keypad-callbar-call-action {
+  display: table-cell;
+  width: 100%;
+  background: #84c82c;
+  border: 0;
+  border-radius: .2rem;
+  background: -moz-linear-gradient(top, #84c82c 0%, #5f9b0a 100%);
+  vertical-align: middle;
+}
+
+#keypad-callbar-call-action:active {
+  opacity: 0.7;
+}
+
+#keypad-callbar-back-action {
+  display: table-cell;
+  background: #84c82c;
+  border: 0;
+  border-radius: .2rem;
+  background: -moz-linear-gradient(top, #242b36 0%, #19191a 100%);
+  vertical-align: middle;
+}
+
+#keypad-callbar-back-action:active {
+  opacity: 0.7;
+}
+
+.icon-add-contact {
+  margin: auto;
+  width: 2.6rem;
+  height: 2.5rem;
+  background-image: url("images/dialer_icon_addcontact.png");
+  background-repeat: no-repeat;
+  background-size: 2.6rem 2.5rem;
+  background-position: center;
+}
+
+#keypad-callbar-call-action > div {
+  margin: auto;
+  width: 2.6rem;
+  height: 2.5rem;
+  background-image: url("images/dialer_icon_call.png");
+  background-repeat: no-repeat;
+  background-size: 2.6rem 2.5rem;
+  background-position: center;
+}
+
+#keypad-callbar-back-action > div {
+  margin: auto;
+  width: 2.6rem;
+  height: 2.5rem;
+  background: red;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.phone-number-font {
+  font-size:-moz-calc(18*0.226rem);
+  color:white;
+  font-family:'FontRegular';
+}
+
+.keypad-number {
+  font-size: -moz-calc(25*0.226rem);
+  color: white;
+}
+
+#keypad-toolbar {
+  background:black;
+  height:4rem;
+  width:100%;
+  display:table;
+  table-layout:fixed;
+}
+
+#keypad-toolbar-call-log, #keypad-toolbar-contact-list, #keypad-toolbar-keypad {
+  display:table-cell;
+  background: -moz-linear-gradient(top, #242b36 0%, #19191a 100%); 
+  border:.1rem solid #242B36;
+  border-radius:.2rem;
+  opacity:0.5;
+  vertical-align: middle;
+}
+
+#keypad-toolbar-call-log.selected, #keypad-toolbar-contact-list.selected, #keypad-toolbar-keypad.selected {
+  background:black;
+  opacity:0.7;
+}
+
+#keypad-toolbar-call-log > div{
+  margin: auto;
+  width: 2.6rem;
+  height: 2.5rem;
+  background-image:url("images/dialer_icon_clock.png");
+  background-repeat: no-repeat;
+  background-size: 2.6rem 2.5rem;
+  background-position: center;
+}
+
+#keypad-toolbar-contact-list > div {
+  margin: auto;
+  width: 2.6rem;
+  height: 2.5rem;
+  background-image: url("images/dialer_icon_contact.png");
+  background-repeat: no-repeat;
+  background-size: 2.6rem 2.5rem;
+  background-position: center;
+}
+
+.icon-keypad {
+  margin: auto;
+  width: 2.6rem;
+  height: 2.5rem;
+  background-image: url("images/dialer_icon_keypad.png");
+  background-repeat: no-repeat;
+  background-size: 2.6rem 2.5rem;
+  background-position: center;
+}

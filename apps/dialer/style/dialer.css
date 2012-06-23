@@ -1,3 +1,20 @@
+@font-face {
+  font-family: 'FontRegular';
+  src: url('fonts/Open-Sans.woff');
+}
+
+@font-face {
+  font-family: 'FontSemibold';
+  font-weight: 600;
+  src: url('fonts/Open-Sans-Semibold.woff');
+}
+
+@font-face {
+  font-family: 'FontBold';
+  font-weight: bold;
+  src: url('fonts/Open-Sans-Bold.woff');
+}
+
 html, body {
   width: 100%;
   height: 100%;
@@ -13,42 +30,71 @@ html * {
   overflow: hidden;
 }
 
-@font-face {
-  font-family: 'Open Sans';
-  src: url('fonts/Open-Sans.woff');
+.font-regular{
+  font-family:'FontRegular';
 }
 
-@font-face {
-  font-family: 'Open Sans';
-  font-weight: bold;
-  src: url('fonts/Open-Sans-Bold.woff');
+.font-semibold{
+  font-family:'FontSemibold';
 }
 
-@font-face {
-  font-family: 'Open Sans';
-  font-weight: 600;
-  src: url('fonts/Open-Sans-Semibold.woff');
+.font-bold{
+  font-family:'FontBold';
 }
 
-@media screen and (max-device-height: 800px) { 
-  html {
-    font-size: 13.5px;
-  }
+.contact-primary-info{
+  font-size:-moz-calc(15*0.226rem);
+  color:black;
 }
 
-@media screen and (max-device-height: 480px) { 
-  html {
-    font-size: 10px;
-  }
+.contact-secondary-info{
+  font-size:-moz-calc(6*0.226rem);
+  color:white;
 }
 
-/* === Application Views === */
+.grid-wrapper {
+  width:100%;
+  height:100%;
+}
+
+.grid-v-align {
+  vertical-align:middle;
+}
+
+.grid-row {
+  display:table-row;
+}
+
+.grid-cell {
+  display:table-cell;
+}
+
+.grid {
+  display:table;
+  table-layout:fixed;
+}
+
+.layout-row {
+  display:table-row;
+}
+
+.layout-cell {
+  display:table-cell;
+}
+
+.layout-centered {
+  vertical-align:middle;
+}
+
+.center {
+  text-align:center;
+}
+
 #views {
   position: absolute;
   top: 0;
   height: 100%;
   width: 100%;
-  background: white;
   border-radius: 10px;
 }
 
@@ -56,8 +102,6 @@ html * {
   height: 100%;
   width: 100%;
 }
-
-/* localization */
 
 body.hidden *[data-l10n-id] {
   visibility: hidden;

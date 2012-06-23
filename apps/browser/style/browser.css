@@ -329,9 +329,13 @@ input::-moz-focus-inner {
   text-decoration: none;
   color: #000;
   border-bottom: solid 1px #ccc;
+  padding-left: 32px;
+  background-repeat: no-repeat;
+  background-position: 8px 20px;
+  background-size: 16px 16px;
 }
 #awesomescreen li a:hover, #awesomescreen li a:active {
-  background: #EEE;
+  background-color: #EEE;
 }
 
 #awesomescreen li span {

@@ -101,7 +101,11 @@ let permissions = {
   "mozFM": {
     "urls": [],
     "pref": "dom.mozFMRadio.whitelist"
-  }
+  },
+  "systemXHR": {
+    "urls": [],
+    "pref": "dom.systemXHR.whitelist"
+  },
 };
 
 let content = "";
