@@ -15,6 +15,10 @@ var ScreenManager = {
 
   _inTransition: false,
 
+  _idled: false,
+
+  _screenWakeLocked: false,
+
   _deviceLightEnabled: true,
 
   _brightness: 0.5,
@@ -34,14 +38,44 @@ var ScreenManager = {
     this.screen.classList.remove('screenoff');
 
     var self = this;
+    var power = navigator.mozPower;
+
+    power.addWakeLockListener(function scm_handleWakeLock(topic, state) {
+      switch (topic) {
+        case 'screen':
+          self._screenWakeLocked = (state == 'locked-foreground');
+
+          if (self._screenWakeLocked) {
+            // Turn screen on if wake lock is acquire
+            self.turnScreenOn();
+          } else {
+            // Turn screen off if we are already idled
+            // and wake lock is released
+            if (self._idled)
+              self.turnScreenOff(false);
+          }
+          break;
+
+        case 'cpu':
+          power.cpuSleepAllowed = (state != 'locked-foreground' &&
+                                   state != 'locked-background');
+          break;
+
+        case 'wifi':
+          // Do we need to do anything in Gaia?
+          break;
+      }
+    });
 
     this.idleObserver.onidle = function scm_onidle() {
-      self.turnScreenOff(false);
+      self._idled = true;
+      if (!self._screenWakeLocked)
+        self.turnScreenOff(false);
     };
 
     this.idleObserver.onactive = function scm_onactive() {
-      if (self._inTransition)
-        self.turnScreenOn();
+      self._idled = false;
+      self.turnScreenOn();
     };
 
     SettingsListener.observe('screen.timeout', 60,
