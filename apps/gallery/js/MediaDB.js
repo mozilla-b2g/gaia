@@ -1,14 +1,9 @@
 'use strict';
 
+//
 // TODO:
 //
-// test indexes and sorting
-// update enumerate to accept "name" as a key and map it to the object store
-//   need this to sort files backward, e.g.
-// figure out and document happens in getFile() if the named file doesn't
-//   exist: callback(null) or error?
-// Persist the lastScanTime value! Use local storage?
-// lastScanTime should be updated everytime we get a DS notification
+// Why do I get a blank screen if I kill the app and restart?
 //
 
 /*
@@ -130,7 +125,8 @@
  * as its first argument, and a callback as its second. It looks the named
  * file up with DeviceStorage and passes it to the callback function. You can
  * pass an optional error callback as the third argument. Any error reported
- * by DeviceStorage will be passed to this argument.
+ * by DeviceStorage will be passed to this argument. If the named file does
+ * not exist, the error callback will be invoked.
  *
  * If you set the onchange property of a MediaDB object to a function, it will
  * be called whenever files are added or removed from the DeviceStorage
@@ -188,7 +184,6 @@ function MediaDB(mediaType, metadataParser, options) {
   this.version = options.version || 1;
   this.directory = options.directory || '';
   this.mimeTypes = options.mimeTypes;
-  this.lastScanTime = null;
   this.ready = false;
 
   // Define a dummy metadata parser if we're not given one
@@ -218,8 +213,11 @@ function MediaDB(mediaType, metadataParser, options) {
 
   // Set up IndexedDB
   var indexedDB = window.indexedDB || window.mozIndexedDB;
-  var dbname = 'MediaDB/' + mediaType + '/' + this.directory;
-  var openRequest = indexedDB.open(dbname, this.version);
+  this.dbname = 'MediaDB/' + mediaType + '/' + this.directory;
+  var openRequest = indexedDB.open(this.dbname, this.version);
+
+  this.lastScanTime =
+    parseInt(localStorage.getItem(this.dbname + '.lastScanTime')) || null;
 
   // This should never happen for Gaia apps
   openRequest.onerror = function(e) {
@@ -323,36 +321,24 @@ MediaDB.prototype = {
       callback = key;
       key = undefined;
     }
-    else if (argument.length === 2) {
+    else if (arguments.length === 2) {
       callback = range;
       range = undefined;
     }
-    else if (argument.length === 3) {
+    else if (arguments.length === 3) {
       callback = direction;
       direction = undefined;
     }
 
     var store = this.db.transaction('files').objectStore('files');
-    var index;
 
-    // If a key is specified, look up the index for that key.
-    // Otherwise, just use the basic object store with filename keys.
-    if (key)
-      index = store.index(key);
-    else
-      index = store;
+    // If a key other than "name" is specified, then use the index for that
+    // key instead of the store.
+    if (key && key !== 'name')
+      store = store.index(key);
 
     // Now create a cursor for the store or index.
-    var cursorRequest;
-    if (range) {
-      if (direction)
-        cursorRequest = index.openCursor(range, direction);
-      else
-        cursorRequest = index.openCursor(range);
-    }
-    else {
-      cursorRequest = index.openCursor();
-    }
+    var cursorRequest = store.openCursor(range || null, direction || 'next');
 
     cursorRequest.onsuccess = function() {
       var cursor = cursorRequest.result;
@@ -399,10 +385,9 @@ MediaDB.prototype = {
     // First, scan for new files since the last scan, if there was one
     // When the quickScan is done it will begin a full scan.  If we don't
     // have a last scan date, then we just begin a full scan immediately
-    if (media.lastScanDate)
-      quickScan(media.lastScanDate);
+    if (media.lastScanTime)
+      quickScan(media.lastScanTime);
     else {
-      media.lastScanDate = new Date();
       fullScan();
     }
 
@@ -411,9 +396,9 @@ MediaDB.prototype = {
       var newfiles = [];
 
       var cursor = media.storage.enumerate(media.directory, {
-        since: media.lastScanDate
+        since: new Date(date)
       });
-      media.lastScanDate = new Date();
+
       cursor.onsuccess = function() {
         var result = cursor.result;
         if (result) {
@@ -502,6 +487,9 @@ MediaDB.prototype = {
     // created files.  (Report deleted files first because we model
     // file changes as deletions followed by creations)
     function fullScan() {
+      media.lastScanTime = Date.now();
+      localStorage[media.dbname + '.lastScanTime'] = media.lastScanTime;
+
       var store = media.db.transaction('files').objectStore('files');
       var getAllRequest = store.getAll();
 
@@ -665,7 +653,11 @@ MediaDB.prototype = {
           var transaction = media.db.transaction('files', 'readwrite');
           var store = transaction.objectStore('files');
           for (var i = 0; i < createdFiles.length; i++) {
-            store.add(createdFiles[i]);
+            store.add(createdFiles[i]).onerror = function(e) {
+              // XXX: 6/22: this is failing AbortError on otoro
+              console.error(e.target.error.name + ' while storing fileinfo');
+              e.stopPropagation();
+            };
           }
 
           // Now once we're done storing the files deliver a notification

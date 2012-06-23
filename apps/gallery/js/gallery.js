@@ -182,7 +182,8 @@ function destroyUI() {
 
 function buildUI(dsdb) {
   // Enumerate existing image entries in the database and add thumbnails
-  dsdb.enumerate(addImage);
+  // List the all, and sort them in descending order by date.
+  dsdb.enumerate('metadata.date', null, 'prev', addImage);
 }
 
 function addImage(imagedata) {
