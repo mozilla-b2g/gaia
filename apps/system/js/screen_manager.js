@@ -238,7 +238,7 @@ var ScreenManager = {
   idleObserver: {
     time: 60,
     onidle: null,
-    onactive: null,
+    onactive: null
   },
 
   setIdleTimeout: function scm_setIdleTimeout(time) {
