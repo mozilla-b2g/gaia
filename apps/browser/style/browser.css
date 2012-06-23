@@ -186,6 +186,11 @@ body {
 
 #toolbar-end {
   border-top: solid 2px #a3a3a3;
+  display: none;
+}
+
+.page-screen #toolbar-end {
+  display: block;
 }
 
 #url-bar {
