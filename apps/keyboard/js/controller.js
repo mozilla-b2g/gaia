@@ -103,6 +103,8 @@ const IMEController = (function() {
         return 'number';
       break;
     }
+
+    return null;
   }
 
   // Check if current layout requires IME
@@ -466,7 +468,7 @@ const IMEController = (function() {
     function getWindowTop(obj) {
       var top;
       top = obj.offsetTop;
-      while (obj = obj.offsetParent) {
+      while (!!(obj = obj.offsetParent)) {
         top += obj.offsetTop;
       }
       return top;
@@ -475,7 +477,7 @@ const IMEController = (function() {
     function getWindowLeft(obj) {
       var left;
       left = obj.offsetLeft;
-      while (obj = obj.offsetParent) {
+      while (!!(obj = obj.offsetParent)) {
         left += obj.offsetLeft;
       }
       return left;
