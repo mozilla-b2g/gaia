@@ -359,6 +359,18 @@ input::-moz-focus-inner {
   pointer-events: none;
 }
 
+.awesome-screen #url-bar {
+  border: 2px solid orange;
+}
+
+.awesome-screen #toolbar-start {
+  background: transparent;
+}
+
+.awesome-screen #tabs-badge {
+  width: 60px;
+}
+
 #history{
   height: 100%;
   overflow-y: auto;
