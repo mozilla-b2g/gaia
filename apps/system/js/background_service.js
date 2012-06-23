@@ -74,11 +74,14 @@ var BackgroundServiceManager = (function bsm() {
 
   /* Check if the app has the permission to open a background page */
   var hasBackgroundPermission = function bsm_checkPermssion(app) {
-    if (!app || !app.manifest.permissions ||
-        app.manifest.permissions.indexOf('background') == -1) {
+    if (!app || !app.manifest.permissions)
       return false;
-    }
-    return true;
+
+    var permissions = Object.keys(app.manifest.permissions).map(function map_perm(key) {
+      return app.manifest.permissions[key];
+    });
+
+    return (permissions.indexOf('background') != -1)
   };
 
   /* The open function is responsible of containing the iframe */
