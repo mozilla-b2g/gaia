@@ -252,9 +252,7 @@ var ScreenManager = {
     if (!time)
       return;
 
-    var self = this;
     this.idleObserver.time = time;
-
     navigator.addIdleObserver(this.idleObserver);
   },
 
