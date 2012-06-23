@@ -686,7 +686,8 @@ var ConversationView = {
   },
 
   getNumFromHash: function cv_getNumFromHash() {
-    return (/\bnum=(.+)(&|$)/.exec(window.location.hash) || [])[1];
+    var num = /\bnum=(.+)(&|$)/.exec(window.location.hash);
+    return num ? num[1] : null;
   },
 
   scrollViewToBottom: function cv_scrollViewToBottom(animateFromPos) {
