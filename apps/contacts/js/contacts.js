@@ -54,6 +54,12 @@ if (!contacts.app) {
     var navigation = new navigationStack('view-contacts-list');
 
     //Initializations
+    var TAG_OPTIONS = {
+      'phone-type' : [
+        {value: 'Home'},
+        {value: 'Work'}
+      ]
+    };
     var numberEmails = 0;
     var numberPhones = 0;
     var detailsHeader,
@@ -69,7 +75,9 @@ if (!contacts.app) {
         phoneTemplate,
         emailTemplate,
         phonesContainer,
-        emailContainer;
+        emailContainer,
+        selectedTag,
+        selectedTagIndex;
 
     var currentContact = {};
 
@@ -105,6 +113,54 @@ if (!contacts.app) {
       navigation.back();
     };
 
+    var goToPhoneType = function goToPhoneType(target) {
+      var options = TAG_OPTIONS['phone-type'];
+      fillTagOptions(options, target.dataset.update);
+      navigation.go('view-select-tag', 'right-left');
+    };
+
+    var fillTagOptions = function fillTagOptions(options, update) {
+      var list = document.getElementById('tags-list');
+      list.innerHTML = '';
+      for (var o in options) {
+        var newTag = document.createElement('li');
+        var link = document.createElement('a');
+        link.href = '#';
+        link.dataset.index = o;
+        link.onclick = function(event) {
+          var index = event.target.dataset.index;
+          selectTag(event.target, update);
+          navigation.back();
+        };
+        link.textContent = options[o].value;
+        if (o === selectedTagIndex) {
+          selectTag(link);
+        }
+        newTag.appendChild(link);
+        list.appendChild(newTag);
+      }
+    };
+
+    var selectTag = function selectTag(link, update) {
+      var index = link.dataset.index;
+      if (update) {
+        var toUpdate = document.getElementById(update);
+        toUpdate.value = TAG_OPTIONS['phone-type'][index].value;
+      }
+
+      if (selectedTag) {
+        // TODO: Regex
+        var tagContent = selectedTag.innerHTML;
+        var findIcon = tagContent.indexOf('<');
+        selectedTag.innerHTML = tagContent.substr(0, findIcon);
+      }
+      var icon = document.createElement('i');
+      icon.className = 'slcl-state i-selected';
+      link.appendChild(icon);
+      selectedTag = link;
+      selectedTagIndex = index;
+    };
+
     var addNewPhone = function addNewPhone() {
       insertEmptyPhone(numberPhones);
       numberPhones++;
@@ -137,9 +193,8 @@ if (!contacts.app) {
       for (var tel in contact.tel) {
         var telField = {
           number: contact.tel[tel].number,
-          tel_type: '',
-          notes: '',
-          type: 'tel'
+          type: contact.tel[tel]['type'],
+          notes: ''
         };
         var template = utils.templates.render(phoneDetailsTemplate, telField);
         listContainer.appendChild(template);
@@ -147,7 +202,8 @@ if (!contacts.app) {
       for (var email in contact.email) {
         var emailField = {
           email: contact.email[email],
-          email_tag: '', type: 'email'
+          email_tag: '',
+          type: 'email'
         };
         var template = utils.templates.render(emailDetailsTemplate, emailField);
         listContainer.appendChild(template);
@@ -173,7 +229,7 @@ if (!contacts.app) {
       for (var tel in currentContact.tel) {
         var telField = {
           number: currentContact.tel[tel].number,
-          type: '',
+          type: currentContact.tel[tel].type,
           notes: '',
           i: tel
         };
@@ -207,7 +263,7 @@ if (!contacts.app) {
       navigation.go(editView, 'right-left');
     };
 
-    var saveContact = function saveContact(successCb, errorCb) {
+    var saveContact = function saveContact() {
       var form = document.querySelector('#view-contact-form form');
       var fields = document.querySelectorAll('#view-contact-form form input');
       var myContact = {};
@@ -353,7 +409,8 @@ if (!contacts.app) {
         'showAdd': showAdd,
         'addNewPhone' : addNewPhone,
         'addNewEmail' : addNewEmail,
-        'goBack' : goBack
+        'goBack' : goBack,
+        'goToPhoneType': goToPhoneType
       }
     };
   })();

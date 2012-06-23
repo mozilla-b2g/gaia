@@ -75,7 +75,6 @@
         <article class="vw-body">
           <div class="vw-bdy-inner">
             <div class="appcnts-profile-head">
-              <!-- Default img so far, as UX have to define what to do when no image -->
               <figure><img id='cover-img' alt="" style=""></figure>
             </div>
             <section class="appcnts-profile-section">
@@ -86,7 +85,7 @@
 
               <!-- Phone Template -->
               <li id='phone-details-template' data-template>
-                <h2>#tel_type#</h2>
+                <h2>#type#</h2>
                 <div class="item">
                   <div class="itm-media pull-right">
                     <button class="action"><i class="i-message">Message</i></button>
@@ -134,11 +133,17 @@
 
         <!-- PHONE TEMPLATE -->
         <dl id='add-phone' data-template class="setbox">
-          <dt class="sbox-title"><a href="#">#type# <i class="i-arrow i-arw-bottom sbox-icon">Expand</i></a></dt>
+          <dt class="sbox-title">
+            <a data-update='type_#i#' onclick="contacts.app.ui.goToPhoneType(this)" href="#">
+              #type# 
+              <i class="i-arrow i-arw-bottom sbox-icon">Expand</i>
+            </a>
+          <input type="hidden" name="tel" value="#type#" id="type_#i#" data-field="type" data-arrayindex="#i#" \>
+          </dt>
           <dd class="sbox-body">
             <p class="sbox-item">
               <label class="hide" for="tel_#i#">Phone number:</label>
-              <input placeholder="Phone" data-field="number" data-arrayindex="#i#" name="tel" class="textfield" type="number" value="#number#" id="tel_#i#">
+              <input placeholder="Phone" data-field="number" data-arrayindex="#i#" name="tel" class="textfield" type="number" value="#number#" id="number_#i#">
             </p>
             <p class="sbox-item">
               <label class="hide" for="notes_#i#">Name:</label>
@@ -241,6 +246,23 @@
                 </button>
               </fieldset>
             </form>
+          </div>
+        </article>
+      </div>
+    </section>
+    
+    <section id="view-select-tag" class="view view-select-tag vw-right">
+      <div class="vw-inner">
+        <header class="vw-header">
+          <p class="vw-back pull-left"><a href="#" title="Back"><i class="i-back">Back</i></a></p>
+          <h1>Label</h1>
+        </header>
+
+        <article class="vw-body">
+          <div class="vw-bdy-inner">
+            <ul id="tags-list" class="selection-list">
+            </ul>
+            <input class="textfield" type="text" placeholder="Custom Tag" value="">
           </div>
         </article>
       </div>
