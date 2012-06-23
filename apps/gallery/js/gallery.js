@@ -140,18 +140,17 @@ var transitioning = false;
 var languageDirection;
 
 var photodb = new MediaDB('pictures', metadataParser, {
-  indexes: ["metadata.date"],
-  mimeTypes: ["image/jpeg", "image/png"]
+  indexes: ['metadata.date'],
+  mimeTypes: ['image/jpeg', 'image/png']
 });
 photodb.onready = function() {
   buildUI(photodb);  // List files we already know about
   photodb.scan();    // Go look for more.
-}
+};
 photodb.onchange = function(type, files) {
-  console.log("dsdb onchange", type);
   destroyUI();
   buildUI(this);  // Would be more efficient to just change them.
-}
+};
 
 var images = [];
 
@@ -159,18 +158,17 @@ function destroyUI() {
   images = [];
 
   var items = thumbnails.querySelectorAll('li');
-  for(var i = 0; i < items.length; i++) {
+  for (var i = 0; i < items.length; i++) {
     var thumbnail = items[i];
-    var url = thumbnail.style.backgroundImage.splice(5,-2);
+    var url = thumbnail.style.backgroundImage.splice(5, -2);
     URL.revokeObjectURL(url);
-    thumbnails.removeChild(thumbnail)
+    thumbnails.removeChild(thumbnail);
   }
 
   document.getElementById('nophotos').classList.remove('hidden');
 }
 
 function buildUI(dsdb) {
-  console.log("buildUI");
   // Enumerate existing image entries in the database and add thumbnails
   dsdb.enumerate(addImage);
 }
@@ -179,13 +177,12 @@ function addImage(imagedata) {
   if (imagedata === null)  // No more images
     return;
 
-  console.log("addImage", imagedata.name);
   // If this is the first image we've found,
   // remove the "no images" message
   if (images.length === 0)
     document.getElementById('nophotos')
     .classList.add('hidden');
-  
+
   images.push(imagedata);            // remember the image
   addThumbnail(images.length - 1);   // display its thumbnail
 }
@@ -200,7 +197,7 @@ function addThumbnail(imagenum) {
   thumbnails.appendChild(li);
 
   var imagedata = images[imagenum];
-  // XXX When is it save to revoke this url? 
+  // XXX When is it save to revoke this url?
   // Can't do it on load as I would with an <img>
   // Currently doing it in destroyUI()
   var url = URL.createObjectURL(imagedata.metadata.thumbnail);

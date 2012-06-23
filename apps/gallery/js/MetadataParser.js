@@ -10,7 +10,7 @@
 //    date:      /* timestamp photo was taken or file was modified */
 //    exif:      /* for jpeg images an object of additional EXIF data */
 // }
-// 
+//
 var metadataParser = (function() {
   // If we generate our own thumbnails, aim for this size
   var THUMBNAIL_WIDTH = 160;
@@ -19,17 +19,17 @@ var metadataParser = (function() {
   function metadataParser(file, callback, errback) {
     if (file.type === 'image/jpeg') {
       // For jpeg images, we can read metadata right out of the file
-      parseJPEGMetadata(file, 
+      parseJPEGMetadata(file,
                         function(data) {
                           // If we got dimensions and thumbnail, we're done
                           // Otherwise, keep going to get more metadata
                           if (data.width && data.height && data.thumbnail)
                             callback(data);
                           else
-                            parseImageMetadata(file, data, callback)
+                            parseImageMetadata(file, data, callback);
                         },
                         function(errmsg) {
-                          // If something went wrong, fallback on the 
+                          // If something went wrong, fallback on the
                           // basic image parser
                           console.error(errmsg);
                           parseImageMetadata(file, {}, callback);
@@ -54,7 +54,7 @@ var metadataParser = (function() {
     img.src = url;
     img.onload = function() {
       URL.revokeObjectURL(url);
-      if (!metadata.width) 
+      if (!metadata.width)
         metadata.width = img.width;
       if (!metadata.height)
         metadata.height = img.height;
@@ -87,16 +87,16 @@ var metadataParser = (function() {
       // canvas to create the thumbnail
       var w = Math.round(THUMBNAIL_WIDTH / scale);
       var h = Math.round(THUMBNAIL_HEIGHT / scale);
-      var x = Math.round((img.width - w)/2);
-      var y = Math.round((img.height - h)/2);
-      
+      var x = Math.round((img.width - w) / 2);
+      var y = Math.round((img.height - h) / 2);
+
       // Draw that region of the image into the canvas, scaling it down
-      context.drawImage(img, x, y, w, h, 
+      context.drawImage(img, x, y, w, h,
                         0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
 
       // Now extract the thumbnail from the canvas as a jpeg file
-      metadata.thumbnail = canvas.mozGetAsFile(file.name + ".thumbnail.jpeg",
-                                               "image/jpeg");
+      metadata.thumbnail = canvas.mozGetAsFile(file.name + '.thumbnail.jpeg',
+                                               'image/jpeg');
       callback(metadata);
     };
   }
