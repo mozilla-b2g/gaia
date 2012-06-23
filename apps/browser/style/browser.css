@@ -222,6 +222,7 @@ body {
   -moz-box-flex: 1;
   border: none;
   background-color: transparent;
+  text-overflow: ellipsis;
 }
 
 #url-input:invalid {
