@@ -45,8 +45,6 @@ section,footer,nav,a,img {
   position: fixed;
   top: 0;
   left: 0;
-  background-image: url('../resources/images/background.jpg');
-  background-size: cover;
   z-index: 2;
 }
 

@@ -41,3 +41,15 @@ var SettingsListener = {
 };
 
 SettingsListener.init();
+
+function setWallpaper(value) {
+  var url = 'url(resources/images/backgrounds/' + value + ')';
+
+  var lockscreen = document.getElementById('lockscreen');
+  lockscreen.style.backgroundImage = url;
+
+  document.body.style.backgroundImage = url;
+}
+
+SettingsListener.observe('homescreen.wallpaper', 'default.png', setWallpaper);
+
