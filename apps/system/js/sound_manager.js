@@ -29,8 +29,9 @@ var SoundManager = {
     window.addEventListener('keyup', this);
 
     var self = this;
-    SettingsListener.observe('sound.volume', this.currentVolume, function soundManager_observe(value) {
-      self.currentVolume = value*10;
+    SettingsListener.observe('audio.volume.master', this.currentVolume,
+      function soundManager_observe(value) {
+        self.currentVolume = value * 10;
     });
   },
 
@@ -119,7 +120,7 @@ var SoundManager = {
 
     var settings = navigator.mozSettings;
     if (settings) {
-      settings.getLock().set({'sound.volume': this.currentVolume/10});
+      settings.getLock().set({'audio.volume.master': this.currentVolume / 10});
     }
 
     this.fireVolumeChangeEvent();
