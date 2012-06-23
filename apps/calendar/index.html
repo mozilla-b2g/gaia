@@ -15,6 +15,7 @@
   <script defer src="/js/template.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/responder.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/ext/gesture_detector.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/ext/page.js" type="text/javascript" charset="utf-8"></script>
 
   <!--- templates -->
   <script defer src="/js/templates/month.js" type="text/javascript" charset="utf-8"></script>
@@ -35,7 +36,7 @@
 
   <title>Gaia Calendar</title>
 </head>
-<body>
+<body onload="Calendar.init();">
 
 <section id="top-toolbar">
   <header class="toolbar">

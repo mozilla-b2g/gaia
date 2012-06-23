@@ -57,19 +57,6 @@
   /**
    * Hack this should be localized.
    */
-  proto.dayNames = [
-    'sun',
-    'mon',
-    'tue',
-    'wed',
-    'thu',
-    'fri',
-    'sat'
-  ];
-
-  /**
-   * Hack this should be localized.
-   */
   proto.monthNames = [
     'January',
     'Feburary',
