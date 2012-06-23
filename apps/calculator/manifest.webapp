@@ -54,7 +54,8 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "120": "/style/icons/Calculator.png"
+    "120": "/style/icons/Calculator.png",
+    "60": "/style/icons/60/Calculator.png"
   },
   "orientation": "portrait-primary"
 }

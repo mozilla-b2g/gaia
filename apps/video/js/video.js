@@ -5,6 +5,7 @@ window.addEventListener('DOMContentLoaded', function() {
     return document.getElementById(id);
   }
   var player = $('player');
+  var playing = false;
 
   // if this is true then the video tag is showing
   // if false, then the gallery is showing
@@ -60,10 +61,19 @@ window.addEventListener('DOMContentLoaded', function() {
         return;
       }
 
+      // XXX if we don't have metadata about the video name
+      // do the best we can with the file name
+      function fileNameToVideoName(filename) {
+        return filename
+          .replace(/\.(webm|ogv|mp4)$/, '')
+          .replace(/[_\.]/g, ' ');
+      }
+
       // Otherwise, collect data about the video.
       // There are the things we know about it already
       var videodata = {
         name: file.name,
+        title: fileNameToVideoName(file.name),
         type: file.type,
         size: file.size
       };
@@ -135,7 +145,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
     var title = document.createElement('p');
     title.className = 'name';
-    title.textContent = videodata.name;
+    title.textContent = videodata.title;
 
     var duration = document.createElement('p');
     duration.className = 'time';
@@ -159,12 +169,47 @@ window.addEventListener('DOMContentLoaded', function() {
   }
 
   // When we exit fullscreen mode, stop playing the video.
-  // This happens automatically when the user uses the back button.
+  // This happens automatically when the user uses the back button (because
+  // back is Escape, which is also the "leave fullscreen mode" command).
+  // It also happens when the user uses the Home button to go to the
+  // homescreen or another app.
+  //
+  // XXX:
+  // If the user switches to the homescreen, we want to pause the video,
+  // of course, but we'd like to come right back to it and be able to resume
+  // in place. That's a little tricky because we get the mozvisiblitychange
+  // event after we get the mozfullscreenchange event. So for now, we just
+  // go back to the thumbnail view and loose the user's place when the user
+  // presses the Home button.
   document.addEventListener('mozfullscreenchange', function() {
-    if (document.mozFullScreenElement === null) {
+    if (document.mozFullScreenElement === null)
       hidePlayer();
+  });
+
+/*
+ * XXX
+ * This code is commented out because the mozvisibilitychange event is
+ * delivered after the mozfullscreenchange event, so by the time we get
+ * it the video is already paused. We either need to get gecko to deliver
+ * the events in the other order, or do something clever with timers, or
+ * just add code to retain the user's current playback position for resuming
+ * videos from the thumbnail screen
+ *
+  // Pause on visibility change
+  document.addEventListener('mozvisibilitychange', function visibilityChange() {
+    if (document.mozHidden && playing) {
+      // If we've been hidden, stop playing the video
+      pause();
+    }
+    else {
+      // If we've just become visible again, go back into fullscreen mode
+      // if we are supposed to be in fullscreen
+      if (playerShowing && !document.mozFullScreenElement) {
+        $('videoFrame').mozRequestFullScreen();
+      }
     }
   });
+*/
 
   // show|hide controls over the player
   $('videoControls').addEventListener('click', function(event) {
@@ -211,16 +256,13 @@ window.addEventListener('DOMContentLoaded', function() {
     // Go into full screen mode
     $('videoFrame').mozRequestFullScreen();
 
-    // Don't blank the screen while the video is playing
-    screenLock = navigator.requestWakeLock('screen');
-
     // Get the video file and start the player
     storage.get(data.name).onsuccess = function(event) {
       var file = event.target.result;
       var url = URL.createObjectURL(file);
       player.src = url;
-      player.play();
       setPlayerSize();
+      play();
     }
   }
 
@@ -257,32 +299,40 @@ window.addEventListener('DOMContentLoaded', function() {
       hidePlayer();
   });
 
+  function play() {
+    // Switch the button icon
+    $('play').classList.remove('paused');
+
+    // Start playing
+    player.play();
+    playing = true;
+
+    // Don't let the screen go to sleep
+    if (!screenLock)
+      screenLock = navigator.requestWakeLock('screen');
+  }
+
+  function pause() {
+    // Switch the button icon
+    $('play').classList.add('paused');
+
+    // Stop playing the video
+    player.pause();
+    playing = false;
+
+    // Let the screen go to sleep
+    if (screenLock) {
+      screenLock.unlock();
+      screenLock = null;
+    }
+  }
+
   // Handle clicks on the play/pause button
   $('play').addEventListener('click', function() {
-    if (player.paused) {
-      // Switch the button icon
-      this.classList.remove('paused');
-
-      // Start playing
-      player.play();
-
-      // Don't let the screen go to sleep
-      if (!screenLock)
-        screenLock = navigator.requestWakeLock('screen');
-    }
-    else {
-      // Switch the button icon
-      this.classList.add('paused');
-
-      // Stop playing the video
-      player.pause();
-
-      // Let the screen go to sleep
-      if (screenLock) {
-        screenLock.unlock();
-        screenLock = null;
-      }
-    }
+    if (player.paused)
+      play();
+    else
+      pause();
   });
 
   // XXX: the back and forward buttons aren't working for my webm videos
@@ -372,10 +422,8 @@ window.addEventListener('DOMContentLoaded', function() {
 
 // Set the 'lang' and 'dir' attributes to <html> when the page is translated
 window.addEventListener('localized', function showBody() {
-  var html = document.querySelector('html');
-  var lang = document.mozL10n.language;
-  html.lang = lang.code;
-  html.dir = lang.direction;
+  document.documentElement.lang = navigator.mozL10n.language.code;
+  document.documentElement.dir = navigator.mozL10n.language.direction;
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('hidden');
 });

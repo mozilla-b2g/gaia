@@ -1363,6 +1363,6 @@
 
   // Expose to IMEManager if we are in Gaia homescreen
   if (typeof IMEManager !== 'undefined')
-    IMEManager.IMEngines.jszhuyin = jszhuyin;
+    IMEController.IMEngines.jszhuyin = jszhuyin;
 
 })();

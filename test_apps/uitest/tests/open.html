@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Open test</title>
+    <style>
+    button {
+      font-size: 40px;
+    }
+    </style>
+    <script>
+    if (window.alert !== window.parent.alert)
+      window.alert = window.parent.alert;
+    </script>
+  </head>
+  <body>
+    <h1>window.open</h1>
+
+    <h2>Call on mozbrowser frame:</h2>
+    <p><button onclick="alert('Window: ' + window.parent.open('./popup.html'))">window.open</button></p>
+    <p><button onclick="alert('Window: ' + window.parent.open('./popup.html#attention', 'at', 'attention'))">
+      window.open(url, name, 'attention')</button></p>
+    <p><button onclick="alert('Window: ' + window.parent.open('./popup.html#background', 'bg', 'background'))">
+      window.open(url, name, 'background')</button></p>
+    <p><button onclick="window.parent.close()">window.close()</button></p>
+
+    <h2>Call on this iframe within mozbrowser:</h2>
+    <p><button onclick="alert('Window: ' + window.open('./popup.html'))">window.open</button></p>
+    <p><button onclick="alert('Window: ' + window.open('./popup.html#attention', 'at', 'attention'))">
+      window.open(url, name, 'attention')</button></p>
+    <p><button onclick="alert('Window: ' + window.open('./popup.html#background', 'bg', 'background'))">
+      window.open(url, name, 'background')</button></p>
+
+    <p>Press the hardware back button to go back.</p>
+  </body>
+</html>

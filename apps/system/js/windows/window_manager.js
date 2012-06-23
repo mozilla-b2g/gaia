@@ -63,6 +63,7 @@ var WindowManager = (function() {
   //    name: the app's name
   //    manifest: the app's manifest object
   //    frame: the iframe element that the app is displayed in
+  //    launchTime: last time when app gets active
   // }
   //
   var runningApps = {};
@@ -76,7 +77,7 @@ var WindowManager = (function() {
   // an app is loading
   var localizedLoading = 'Loading...';
   window.addEventListener('localized', function() {
-    localizedLoading = document.mozL10n.get('loading');
+    localizedLoading = navigator.mozL10n.get('loading');
   });
 
   // Public function. Return the origin of the currently displayed app
@@ -100,10 +101,10 @@ var WindowManager = (function() {
     else
       start(origin);
 
-    // launch() can be called from outside the task switcher
+    // launch() can be called from outside the card switcher
     // hiding it if needed
-    if (TaskManager.taskSwitcherIsShown())
-      hideTaskSwitcher();
+    if (CardsView.cardSwitcherIsShown())
+      CardsView.cardTaskSwitcher();
   }
 
   function isRunning(origin) {
@@ -224,11 +225,7 @@ var WindowManager = (function() {
     }
 
     // If we're not doing an animation, then just switch directly
-    // to the closed state. Note that we don't handle the hackKillMe
-    // flag here. If we bring up the task switcher and switch to another
-    // app then the video or camera or whatever should keep running
-    // in the background. Its only animated transitions to the homescreen
-    // that should kill those resource-intensive apps.
+    // to the closed state.
     if (instant) {
       frame.classList.remove('active');
       if (callback)
@@ -254,14 +251,6 @@ var WindowManager = (function() {
     frame.classList.remove('active');
     windows.classList.remove('active');
 
-    // If this is an hackKillMe app, set the apps iframe's src attribute
-    // to an empty file to get rid of whatever resource-intensive
-    // app it is currently running. For some reason actually removing
-    // the iframe from the document here does not work, so we remove it
-    // after the transition below.
-    if (manifest.hackKillMe)
-      frame.src = 'blank.html';
-
     // Query css to flush this change
     var width = document.documentElement.clientWidth;
 
@@ -270,15 +259,23 @@ var WindowManager = (function() {
     sprite.classList.add('closed');
 
     // When the transition ends, discard the sprite.
-    // For hackKillMe apps, stop running the app, too
     sprite.addEventListener('transitionend', function transitionListener() {
       sprite.removeEventListener('transitionend', transitionListener);
       document.body.removeChild(sprite);
-      if (manifest.hackKillMe)
-        kill(origin);
       if (callback)
         callback();
     });
+  }
+
+  //last time app was launched,
+  //needed to display them in proper
+  //order on CardsView
+  function updateLaunchTime(origin) {
+    if (!runningApps[origin]) {
+      return;
+    } else {
+      runningApps[origin].launchTime = Date.now();
+    }
   }
 
   // Switch to a different app
@@ -289,7 +286,7 @@ var WindowManager = (function() {
     // 1) The new app is already displayed: do nothing
     // 2) We're going from the homescreen to an app
     // 3) We're going from an app to the homescreen
-    // 4) We're going from one app to another (via task switcher)
+    // 4) We're going from one app to another (via card switcher)
 
     // Case 1
     if (currentApp == newApp) {
@@ -300,6 +297,7 @@ var WindowManager = (function() {
     // Case 2: homescreen->app
     else if (currentApp == null) {
       setAppSize(newApp);
+      updateLaunchTime(newApp);
       openWindow(newApp, callback);
     }
     // Case 3: app->homescreen
@@ -310,6 +308,7 @@ var WindowManager = (function() {
     // Case 4: app-to-app transition
     else {
       setAppSize(newApp);
+      updateLaunchTime(newApp);
       openWindow(newApp, function() {
         closeWindow(currentApp, true, callback);
       });
@@ -353,6 +352,8 @@ var WindowManager = (function() {
     frame.id = 'appframe' + nextAppId++;
     frame.className = 'appWindow';
     frame.setAttribute('mozallowfullscreen', 'true');
+    frame.dataset.frameType = 'window';
+    frame.dataset.frameOrigin = origin;
 
     if (manifest.hackNetworkBound) {
       var style = 'font-family: OpenSans,sans-serif;' +
@@ -484,7 +485,8 @@ var WindowManager = (function() {
     runningApps[origin] = {
       name: name,
       manifest: manifest,
-      frame: frame
+      frame: frame,
+      launchTime: Date.now()
     };
 
     numRunningApps++;
@@ -534,6 +536,16 @@ var WindowManager = (function() {
     }
   });
 
+  // If the application tried to close themselves by calling window.close()
+  // we will handle that here
+  window.addEventListener('mozbrowserclose', function(e) {
+    if (!'frameType' in e.target.dataset ||
+        e.target.dataset.frameType !== 'window')
+      return;
+
+    kill(e.target.dataset.frameOrigin);
+  });
+
   // Stop running the app with the specified origin
   function kill(origin) {
     if (!isRunning(origin))
@@ -557,7 +569,7 @@ var WindowManager = (function() {
   });
 
   // Listen for the Back button.  We need both a capturing listener
-  // and a regular listener for this.  If the task switcher (or some
+  // and a regular listener for this.  If the card switcher (or some
   // other overlay) is displayed, the capturing listener can intercept
   // the back key and use it to take down the overlay.  Otherwise, the
   // back button should go to the displayed app first, so it can use
@@ -578,12 +590,12 @@ var WindowManager = (function() {
   //   https://github.com/andreasgal/gaia/issues/753#issuecomment-4559674
   //
   // This is the capturing listener for Back.
-  // TODO: right now this only knows about the task switcher, but
+  // TODO: right now this only knows about the card switcher, but
   // there might be other things that it needs to be able to dismiss
   //
   window.addEventListener('keyup', function(e) {
-    if (e.keyCode === e.DOM_VK_ESCAPE && TaskManager.taskSwitcherIsShown()) {
-      TaskManager.hideTaskSwitcher();
+    if (e.keyCode === e.DOM_VK_ESCAPE && CardsView.cardSwitcherIsShown()) {
+      CardsView.hideCardSwitcher();
       e.preventDefault();
       e.stopPropagation();
     }
@@ -596,10 +608,15 @@ var WindowManager = (function() {
     // homescreen. Unlike the Home key, apps can intercept this event
     // and use it for their own purposes.
     if (e.keyCode === e.DOM_VK_ESCAPE &&
+        !ModalDialog.blocked &&
         !e.defaultPrevented &&
         displayedApp !== null) {
 
       setDisplayedApp(null); // back to the homescreen
+    }
+
+    if (e.keyCode === e.DOM_VK_ESCAPE && ModalDialog.blocked) {
+      ModalDialog.cancelHandler();
     }
   });
 
@@ -666,11 +683,13 @@ var WindowManager = (function() {
         // If the event has defualtPrevented (from the screenshot module)
         // the we also itnore it
         // Otherwise, make the homescreen visible.
-        // Also, if the task switcher is visible, then hide it.
-        if (!LockScreen.locked && !e.defaultPrevented) {
-          setDisplayedApp(null);
-          if (TaskManager.taskSwitcherIsShown())
-            TaskManager.hideTaskSwitcher();
+        // Also, if the card switcher is visible, then hide it.
+        if (!ModalDialog.blocked && !LockScreen.locked && !e.defaultPrevented) {
+          // The attention screen can 'eat' this event
+          if (!e.defaultPrevented)
+            setDisplayedApp(null);
+          if (CardsView.cardSwitcherIsShown())
+            CardsView.hideCardSwitcher();
         }
       }
 
@@ -681,11 +700,14 @@ var WindowManager = (function() {
     function longPressHandler() {
       // If the timer fires, then this was a long press on the home key
       // So bring up the app switcher overlay if we're not locked
-      // and if the task switcher is not already shown
+      // and if the card switcher is not already shown
       timer = null;
 
-      if (!LockScreen.locked && !TaskManager.taskSwitcherIsShown())
-        TaskManager.showTaskSwitcher();
+      if (!ModalDialog.blocked &&
+          !LockScreen.locked &&
+          !CardsView.cardSwitcherIsShown()) {
+        CardsView.showCardSwitcher();
+      }
     }
   }());
 

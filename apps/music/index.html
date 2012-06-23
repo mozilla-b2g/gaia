@@ -5,16 +5,19 @@
     <meta http-equiv="pragma" content="no-cache">
     <title>Music</title> 
     <link rel="stylesheet" href="style/music.css" type="text/css" />
-    <script type="text/javascript" src="js/music.js"></script>
+    <!-- Use external libraries of mp3 and ogg -->
+    <script type="text/javascript" src="js/ext/id3-minimized.js"></script>
+    <script type="text/javascript" src="js/ext/ogg.js"></script>
     <script type="text/javascript" src="js/utils.js"></script>
+    <script type="text/javascript" src="js/music.js"></script>
   </head>
 
   <body>
   	<div id="title">
-  	  <div id="title-text">Music</div>
-  	  <button id="title-back" class="title-back-button" disabled=true>
+  	  <button id="title-back" class="title-back-button">
   	    <span id="title-back-text">&#8249;</span>
   	  </button>
+  	  <div id="title-text">Music</div>
   	</div>
   	<div id="search"></div>
   	<div id="views">
@@ -34,6 +37,7 @@
   	    <div class="sub-tile"><br></div>
   	    <div class="sub-tile"><br></div>
   	    <div class="sub-tile"><br></div>
+  	    <div id="tiles-recently" class="main-tile"></div>
   	    <div class="sub-tile"><br></div>
   	    <div class="sub-tile"><br></div>
   	  </div>
@@ -41,11 +45,13 @@
   	  <div id="views-player" class="view">
   	    <div id="player-cover">
   	      <div id="player-cover-image">&#9834;</div>
-  	      <div id="player-cover-title">Song Title</div>
-  	      <div id="player-cover-artist">Song Artist</div>
+  	      <div id="player-cover-caption">
+            <div id="player-cover-artist">Song Artist</div>
+            <div id="player-cover-album">Song Album</div>
+  	      </div>
   	      <div id="player-cover-buttons">
   	        <button id="player-album-shuffle" class="player-cover-button" disabled=true>S</button>
-  	        <div id="player-album-rating">&#9733;&nbsp;&nbsp;&#9733;&nbsp;&nbsp;&#9733;&nbsp;&nbsp;&#9733;</div>
+  	        <div id="player-album-rating">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
   	        <button id="player-album-repeat" class="player-cover-button" disabled=true>R</button>
   	      </div>
   	    </div>
@@ -58,9 +64,9 @@
   	      <span id="player-seek-remaining">00:00</span>
   	    </div>
   	    <div id="player-controls">
-  	      <button id="player-controls-previous" class="player-controls-button">Previous</button>
-  	      <button id="player-controls-play" class="player-controls-button">Play</button>
-  	      <button id="player-controls-next" class="player-controls-button">Next</button>
+  	      <button id="player-controls-play" class="player-controls-button">&#9654;</button>
+  	      <button id="player-controls-previous" class="player-controls-button">&#9621;&#9664;&#9664;</button>
+  	      <button id="player-controls-next" class="player-controls-button">&#9654;&#9654;&#9615;</button>
   	    </div>
   	    <audio id="player-audio" class="hidden" controls autoplay></audio>
   	  </div>
@@ -71,6 +77,9 @@
       <button id="tabs-artists" class="tabs-button" disabled=true>Artists</button>
       <button id="tabs-albums" class="tabs-button" disabled=true>Albums</button>
       <button id="tabs-more" class="tabs-button" disabled=true>More</button>
+  	</div>
+  	<div id="nosongs">
+  	  <div id="nosongs-text">No Songs</div>
   	</div>
   </body>
 </html>

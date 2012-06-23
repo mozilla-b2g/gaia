@@ -23,7 +23,7 @@ const Homescreen = (function() {
   // Click on the Home/ESC button to reset the mode of the grid
   window.addEventListener('keydown', function onkeydown(event) {
     if (event.keyCode === event.DOM_VK_HOME ||
-        event.keyCode == event.DOM_VK_ESCAPE) {
+        event.keyCode === event.DOM_VK_ESCAPE) {
       GridManager.setMode('normal');
       Permissions.hide();
     }
@@ -57,9 +57,6 @@ const Homescreen = (function() {
      */
     showAppDialog: function showAppDialog(origin) {
       // FIXME: localize this message
-      if (Applications.isCore(origin))
-        return;
-
       var app = Applications.getByOrigin(origin);
       var title = 'Remove ' + app.manifest.name;
       var body = 'This application will be uninstalled fully from your mobile';

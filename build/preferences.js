@@ -97,7 +97,15 @@ let permissions = {
   "mobileconnection": {
     "urls": [],
     "pref": "dom.mobileconnection.whitelist"
-  }
+  },
+  "mozFM": {
+    "urls": [],
+    "pref": "dom.mozFMRadio.whitelist"
+  },
+  "systemXHR": {
+    "urls": [],
+    "pref": "dom.systemXHR.whitelist"
+  },
 };
 
 let content = "";
@@ -125,17 +133,24 @@ domains.push(GAIA_DOMAIN);
     let perms = manifest.permissions;
     if (perms) {
       for each(let name in perms) {
+        if (!permissions[name])
+          return;
+
         permissions[name].urls.push(rootURL);
 
         // special case for the telephony API which needs full URLs
         if (name == 'telephony')
           if (manifest.background_page)
             permissions[name].urls.push(rootURL + manifest.background_page);
+        if (manifest.attention_page)
+          permissions[name].urls.push(rootURL + manifest.attention_page);
       }
     }
   });
 });
 
+//XXX: only here while waiting for https://bugzilla.mozilla.org/show_bug.cgi?id=764718 to be fixed
+content += "user_pref(\"dom.allow_scripts_to_close_windows\", true);\n\n";
 content += "user_pref(\"b2g.privileged.domains\", \"" + privileges.join(",") + "\");\n\n";
 
 if (LOCAL_DOMAINS) {
@@ -170,6 +185,11 @@ if (DEBUG) {
   content += "user_pref(\"device.storage.enabled\", true);\n";
   content += "\n";
 }
+
+// https://bugzilla.mozilla.org/show_bug.cgi?id=764718
+// Until this bug is fixed, window.close is allowed for content
+// windows.
+content += "user_pref(\"dom.allow_scripts_to_close_windows\", true);\n";
 
 writeContent(content);
 dump("\n" + content);
