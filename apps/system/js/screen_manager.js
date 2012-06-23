@@ -157,7 +157,7 @@ var ScreenManager = {
       return;
 
     // Remove the original observer.
-    navigator.removeIdleObserver();
+    navigator.removeIdleObserver(this.idleObserver);
 
     // If time = 0, then there is no idle timeout to set.
     if (!time)
@@ -166,7 +166,7 @@ var ScreenManager = {
     var self = this;
     this.idleObserver.time = time;
 
-    navigator.addIdleObserver();
+    navigator.addIdleObserver(this.idleObserver);
   },
 
   fireScreenChangeEvent: function scm_fireScreenChangeEvent() {
