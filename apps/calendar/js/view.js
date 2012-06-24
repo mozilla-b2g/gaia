@@ -14,7 +14,9 @@
    * with view in its prototype. .seen can be used
    * to detect if the view has ever been activated.
    */
-  function View() {}
+  function View(selector) {
+    this.element = document.querySelector(selector);
+  }
 
   View.prototype = {
     seen: false,
@@ -34,7 +36,6 @@
     },
 
     oninactive: function() {
-      console.log('? hit');
       if (this.element) {
         this.element.classList.remove(this.activeClass);
       }

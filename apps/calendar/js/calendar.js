@@ -15,6 +15,11 @@ Calendar.init = function calendar_init() {
   route.add('/', monthView, monthDayView);
   route.add('/month', monthView, monthDayView);
 
+  //temp routes
+  route.add('/day', new Calendar.View('#day-view'));
+  route.add('/week', new Calendar.View('#week-view'));
+  route.add('/add', new Calendar.View('#add-event-view'));
+
   route.start();
 
   //quick hack for today button

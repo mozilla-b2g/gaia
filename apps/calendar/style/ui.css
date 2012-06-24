@@ -30,6 +30,14 @@ html, body {
   height: -moz-calc(100% - 18mozmm);
 }
 
+#views > section {
+  display: none
+}
+
+#views > section.active {
+  display: block;
+}
+
 /* view heights */
 
 #month-view {
