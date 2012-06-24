@@ -3,6 +3,18 @@
 
 'use strict';
 
+// see http://stackoverflow.com/a/4673436
+String.prototype.format = function() {
+  var args = arguments;
+  return this.replace(/{(\d+)}/g, function(match, number) { 
+    return typeof args[number] != 'undefined'
+      ? args[number]
+      : match
+    ;
+  });
+};
+
+
 // Based on Resig's pretty date
 var localeStr = navigator.mozL10n.get;
 function prettyDate(time) {
@@ -30,9 +42,9 @@ function prettyDate(time) {
   return day_diff == 0 && (
     diff < 60 && localeStr('justNow') ||
     diff < 120 && localeStr('aMinuteAgo') ||
-    diff < 3600 && Math.floor(diff / 60) + ' ' + localeStr('minutesAgo') ||
+    diff < 3600 && localeStr('minutesAgo').format(Math.floor(diff / 60)) ||
     diff < 7200 && localeStr('anHourAgo') ||
-    diff < 86400 && Math.floor(diff / 3600) + ' ' + localeStr('hoursAgo')) ||
+    diff < 86400 && localeStr('hoursAgo').format(Math.floor(diff / 3600)) ||
     day_diff == 1 && localeStr('yesterday') ||
     day_diff < 7 && (new Date(time)).toLocaleFormat('%A') ||
     (new Date(time)).toLocaleFormat('%x');
