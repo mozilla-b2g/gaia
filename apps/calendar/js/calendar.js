@@ -1,47 +1,21 @@
 Calendar.init = function calendar_init() {
+  var Views = Calendar.Views;
+  var Models = Calendar.Models;
 
-  var views = {},
-      activeViews = [];
+  var route = new Calendar.Router(page);
 
   var controller = new Calendar.Controller({
-    eventList: new Calendar.Models.Events(),
-    busytime: new Calendar.Models.Busytime()
+    eventList: new Models.Events(),
+    busytime: new Models.Busytime()
   });
 
-  function createView(name, obj) {
-    var view;
-    if (name in views) {
-      view = views[name];
-      view.onactive();
-    } else {
-      view = new Calendar.Views[name]({ controller: controller });
-      view.render();
-    }
+  var monthView = new Views.Month({ controller: controller });
+  var monthDayView = new Views.MonthsDay({ controller: controller });
 
-    activeViews.push(view);
-  }
+  route.add('/', monthView, monthDayView);
+  route.add('/month', monthView, monthDayView);
 
-  function clearViews() {
-    var view;
-
-    while (view = activeViews.pop()) {
-      if ('oninactive' in view) {
-        view.oninactive();
-      }
-    }
-  }
-
-  function showMonth(ctx, next) {
-    createView('Month');
-    createView('MonthsDay');
-
-    next();
-  }
-
-  page('/', showMonth, clearViews);
-  page('/month', showMonth, clearViews);
-
-  page.start();
+  route.start();
 
   //quick hack for today button
   var today = document.querySelector('#view-selector .today');

@@ -31,8 +31,8 @@ suite('views/month', function() {
     var div = document.createElement('div');
     div.id = 'test';
     div.innerHTML = [
-      '<div class="monthView"></div>',
-      '<div class="monthHeader"></div>'
+      '<div id="month-view"><div class="monthView"></div>',
+      '<div class="monthHeader"></div></div>'
     ].join('');
 
     document.body.appendChild(div);
@@ -52,8 +52,9 @@ suite('views/month', function() {
   test('initialization', function() {
     assert.equal(subject.monthSelector, '#test .monthView');
     assert.equal(subject.currentMonthSelector, '#test .monthHeader');
-    assert.instanceOf(subject, Calendar.Responder);
+    assert.instanceOf(subject, Calendar.View);
     assert.equal(subject.controller, controller);
+    assert.equal(subject.element, document.querySelector('#month-view'));
   });
 
   suite('events', function() {
@@ -77,6 +78,10 @@ suite('views/month', function() {
       assert.equal(calledActivateMonth, date);
     });
 
+  });
+
+  test('#onfirstseen', function() {
+    assert.equal(subject.onfirstseen, subject.render);
   });
 
   test('#monthsDisplayElement', function() {

@@ -30,8 +30,14 @@ html, body {
   height: -moz-calc(100% - 18mozmm);
 }
 
-#views > section {
-  height: 100%;
+/* view heights */
+
+#month-view {
+  height: 55%;
+}
+
+#month-days-view {
+  height: 45%;
 }
 
 /* month view */
@@ -81,26 +87,27 @@ html, body {
   /*height: 3.6mozmm;*/
 }
 
-#month .month li,
+#month-view .month li,
 #month-days li {
   width: 14.28%;
   line-height: 120%;
   font-weight: bold;
 }
 
-.rtl #month-days li,
-.rtl #month .month li {
+.rtl #month-days-view li,
+.rtl #month-view .month li {
   float: right;
 }
 
 .ltr #month-days li,
-.ltr #month .month li {
+.ltr #month-view .month li {
   float: left;
 }
 
 /* sub: day header row */
 
 #month-days {
+  height: 4mozmm;
   clear: both;
 }
 
@@ -114,7 +121,7 @@ html, body {
 }
 
 #month-displays {
-  height: 50%;
+  height: -moz-calc(100% - 4mozmm);
 }
 
 section.month {
@@ -340,4 +347,3 @@ Indicators are in units of 12
     height: -moz-calc(100% - 3mozmm);
   }
 }
-

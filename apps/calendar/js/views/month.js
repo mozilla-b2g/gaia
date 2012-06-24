@@ -17,6 +17,8 @@
     var self = this,
         key;
 
+    Calendar.View.call(this);
+
     if (typeof(options) === 'undefined') {
       options = {};
     }
@@ -29,14 +31,13 @@
 
     this.selectedDay = null;
     this.children = {};
-
-    Calendar.Responder.call(this);
+    this.element = document.querySelector('#month-view');
 
     this._initEvents();
   };
 
   var proto = Month.prototype = Object.create(
-    Calendar.Responder.prototype
+    Calendar.View.prototype
   );
 
   /**
@@ -109,15 +110,15 @@
     new GestureDetector(months).startDetecting();
 
     months.addEventListener('swipe', function(data) {
-      self._onSwipe.apply(self, arguments);
+      self._onswipe.apply(self, arguments);
     });
 
     months.addEventListener('tap', function(data) {
-      self._onTap.apply(self, arguments);
+      self._ontap.apply(self, arguments);
     }, false);
   };
 
-  proto._onTap = function(event) {
+  proto._ontap = function(event) {
     var target = event.target,
         id,
         date,
@@ -138,7 +139,7 @@
 
   };
 
-  proto._onSwipe = function(event) {
+  proto._onswipe = function(event) {
     var direction = event.detail.direction;
     if (direction === 'right') {
       this.previous();
@@ -147,6 +148,7 @@
     }
   };
 
+  
   /**
    * Returns month header html blob.
    *
@@ -271,6 +273,8 @@
 
     this.controller.setCurrentMonth(now);
   }
+
+  proto.onfirstseen = proto.render;
 
   Calendar.Views.Month = Month;
 
