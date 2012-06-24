@@ -148,7 +148,6 @@
     }
   };
 
-  
   /**
    * Returns month header html blob.
    *
