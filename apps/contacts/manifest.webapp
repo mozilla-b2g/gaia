@@ -1,6 +1,6 @@
 {
   "name": "Contacts",
-  "description": "OWD contacts",
+  "description": "Default Contacts application",
   "developer": {
     "name": "Telefonica PDI - OWD Team",
     "url": "http://openwebdevice.com"
@@ -9,17 +9,17 @@
     "contacts"
   ],
   "locales": {
-    "en-US": {
-      "name": "Contacts",
-      "description": "Default Contacts application"
+    "de": {
+      "name": "Kontakte",
+      "description": "Standard-Applikation f√ºr Kontakte"
     },
     "fr": {
       "name": "Contacts",
-      "description": "Application de contacts par défaut"
+      "description": "Application de contacts par d√©faut"
     },
     "es": {
       "name": "Contactos",
-      "description": "Aplicación de contactos por defecto"
+      "description": "Aplicaci√≥n de contactos por defecto"
     }
   },
   "default_locale": "en-US",
