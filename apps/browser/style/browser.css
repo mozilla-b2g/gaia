@@ -214,6 +214,27 @@ body {
   height:18px;
 }
 
+#ssl-indicator {
+  width: 24px;
+  height: 24px;
+  margin-right: 10px;
+  text-indent: -1000em;
+}
+
+#ssl-indicator[value=insecure], #ssl-indicator[value=''] {
+    display:none;
+}
+
+#ssl-indicator[value=secure] {
+  background: url(images/site_security_verified.png) no-repeat center center;
+  display:block;
+}
+
+#ssl-indicator[value=broken] {
+  background: url(images/site_security_verified.png) no-repeat center center;
+  display:block;
+}
+
 #url-input {
   font-family: 'Open Sans';
   font-size: 18px;
