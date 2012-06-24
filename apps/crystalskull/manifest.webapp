@@ -4,7 +4,7 @@
   "launch_path": "/",
   "developer": {
     "name": "The J3D Team",
-    "url": "https://github.com/andreasgal/gaia"
+    "url": "https://github.com/mozilla-b2g/gaia"
   },
   "locales": {
     "ar": {
@@ -53,9 +53,9 @@
     }
   },
   "default_locale": "en-US",
-  "hackKillMe": true,
   "icons": {
-    "120": "/style/icons/Crystalskull.png"
+    "120": "/style/icons/Crystalskull.png",
+    "60": "/style/icons/60/Crystalskull.png"
   },
   "orientation": "portrait-primary"
 }

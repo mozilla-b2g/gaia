@@ -1,0 +1,164 @@
+/* Common/framework styling */
+
+.collapsed {
+  display: none !important;
+}
+.hidden {
+  display: hidden !important;
+}
+
+html {
+  width: 100%;
+  height: 100%;
+}
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: black;
+}
+
+button {
+  background-color: #5e5e5e;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #323232;
+  color: #FFFFFF;
+  font-size: 16px;
+  font-weight: bold;
+  height: 32px;
+
+  -webkit-border-radius: 3px;
+     -moz-border-radius: 3px;
+       -o-border-radius: 3px;
+          border-radius: 3px;
+}
+
+#cardContainer {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  left: 0;
+  overflow: hidden;
+}
+#cards {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition-property: left;
+  transition-duration: 300ms;
+  transition-timing-function: linear;
+  -moz-transition-property: left;
+  -moz-transition-duration: 300ms;
+  -moz-transition-timing-function: linear;
+  -webkit-transition-property: left;
+  -webkit-transition-duration: 300ms;
+  -webkit-transition-timing-function: linear;
+  -o-transition-property: left;
+  -o-transition-duration: 300ms;
+  -otransition-timing-function: linear;
+
+  /* To trigger hardward acceleration for webkit:
+     http://www.html5rocks.com/en/tutorials/speed/quick/#toc-hwaccel
+     May need to remove */
+  -webkit-transform: translateZ(0);
+}
+
+.card {
+  float: left;
+  position: relative;
+  overflow: hidden;
+  background-color: white;
+}
+
+.top-header {
+  background: -moz-linear-gradient(to top, #ffffff 0, #a3a3a3 5px, #992f21 5px, #992f21 6px, #bb492d 6px, #cc6523 100%);
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%,  #cc6523), color-stop(100%, #bb492d));
+  height: 52px;
+  width: 100%;
+  padding: 0;
+  padding-bottom: 6px;
+  z-index: 999;
+}
+
+.header-label {
+  color: white;
+  line-height: 52px;
+  margin: 0;
+  text-align: center;
+}
+.header-left-btn, .header-right-btn {
+  position: absolute;
+  top: 0px;
+  height: 48px; 
+
+  border: none;
+  background: none;
+  font-size: 24px;
+  font-weight: bold;
+}
+.header-left-btn {
+  left: 0px;
+}
+.header-right-btn {
+  right: 0px;
+}
+
+.scrollregion {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.scrollregion-below-header {
+  overflow-y: auto;
+  overflow-x: hidden;
+  height: -moz-calc(100% - 58px);
+  height: -webkit-calc(100% - 58px);
+  height: calc(100% - 58px);
+}
+
+.bottom-toolbar {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 48px;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+.bottom-btn {
+  height: 48px;
+}
+/* create a space the size of the toolbar since it is absolute...*/
+.bottom-toolbar-spacer {
+  display: block;
+  height: 48px;
+}
+
+.popup {
+  position: absolute;
+  margin: 0;
+}
+.popup-mask {
+  pointer-events: none;
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.menu {
+  width: 260px;
+  padding: 8px;
+  border: 1px solid black;
+  border-radius: 6px;
+  background-color: white;
+}
+
+.menu-item {
+  padding: 4px;
+  font-size: 160%;
+  border-bottom: 1px solid gray;
+  display: block;
+}
+.menu-item:last-child {
+  border-bottom: none;
+}
+

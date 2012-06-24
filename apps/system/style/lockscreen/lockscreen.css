@@ -1,10 +1,10 @@
-
 #lockscreen {
   position: absolute;
-  z-index: 20000;
-  top: 0px;
+  /* Show it above fullscreen - see https://mxr.mozilla.org/mozilla-central/source/layout/style/ua.css#218 */
+  z-index: 2147483647;
+  top: 20px;
   width: -moz-calc(100%);
-  height: -moz-calc(100%);
+  height: -moz-calc(100% - 20px);
   overflow: hidden;
 
   background-color: #fff;
@@ -13,8 +13,8 @@
   -moz-transition: -moz-transform 0.3s ease;
 }
 
-#lockscreen.unlocked {
-  -moz-transform: translateY(-100%);
+#screen:not(.locked) > #lockscreen {
+  -moz-transform: translateY(-moz-calc(-100% - 20px));
 }
 
 #lockscreen.no-transition {
@@ -23,8 +23,7 @@
 
 #lockscreen-container {
   width: 100%;
-  margin-top: 32px;
-  height: -moz-calc(100% - 32px);
+  height: 100%;
 }
 
 .lockscreen-panel {
@@ -40,7 +39,7 @@
 }
 
 #lockscreen-header {
-  position: absolute:
+  position: absolute;
   top: 0;
   left: 0;
   height: 80px;
@@ -114,16 +113,13 @@
   overflow: hidden;
 }
 
-#lockscreen-notification::before {
-  /* TBD: notification icon. This is a place holder */
-  content: '';
-  display: block;
+#lockscreen-notification-icon {
   float: left;
+  display: block;
   width: 64px;
   height: 64px;
   -moz-box-sizing: border-box;
   margin-right: 8px;
-  border: 1px solid #919191;
 }
 
 #lockscreen-notification-title {
@@ -274,16 +270,23 @@
   position: absolute;
   display: block;
 
-  top: 80px;
+  top: 16px;
   width: 100%;
   text-align: center;
 
   color: #ccc;
-  font-size: 100px;
+  font-size: 80px;
   font-weight: 600;
   letter-spacing: -2px;
   line-height: 1.1em;
   text-shadow: 0 0 10px rgba(255, 255, 255, .4), 0 0 3px rgba(255, 255, 255, .3);
+}
+
+@media screen and (height: 800px) {
+  #lockscreen-panel-passcode::before {
+    top: 80px;
+    font-size: 100px;
+  }
 }
 
 [data-passcode-status="error"] #lockscreen-panel-passcode::before {
@@ -296,11 +299,18 @@
 
 #lockscreen-passcode-code {
   position: absolute;
-  bottom: 400px;
-  height: 120px;
+  bottom: 240px;
+  height: 80px;
   width: 100%;
   background-color: rgba(255, 255, 255, 0.5);
   margin: 0;
+}
+
+@media screen and (height: 800px) {
+  #lockscreen-passcode-code {
+    bottom: 400px;
+    height: 120px;
+  }
 }
 
 #lockscreen-passcode-code > span {
@@ -310,11 +320,18 @@
   width: 25%;
   height: 100%;
   text-align: center;
-  border: 20px solid #919191;
+  border: 15px solid #919191;
   box-shadow: 0 0 10px #fff inset;
 
   position: relative;
 }
+
+@media screen and (height: 800px) {
+  #lockscreen-passcode-code > span {
+    border: 20px solid #919191;
+  }
+}
+
 
 [data-passcode-status="error"] #keypadscreen-code > span {
   box-shadow: 0 0 10px #f00 inset;
@@ -337,14 +354,24 @@
   display: block;
   position: absolute;
 
-  width: 50px;
-  height: 50px;
+  width: 30px;
+  height: 30px;
   background-color: #000;
-  border-radius: 25px;
+  border-radius: 15px;
   top: 50%;
   left: 50%;
-  margin-left: -25px;
-  margin-top: -25px;
+  margin-left: -15px;
+  margin-top: -15px;
+}
+
+@media screen and (height: 800px) {
+  #lockscreen-passcode-code > span[data-dot]::before {
+    width: 50px;
+    height: 50px;
+    border-radius: 25px;
+    margin-left: -25px;
+    margin-top: -25px;
+  }
 }
 
 #lockscreen-passcode-pad {
@@ -352,27 +379,45 @@
   border: 1px solid #919191;
   position: absolute;
   bottom: 0;
-  height: 400px;
+  height: 240px;
   width: 100%;
 }
+
+@media screen and (height: 800px) {
+  #lockscreen-passcode-pad {
+    height: 400px;
+  }
+}
+
 
 #lockscreen-passcode-pad > a {
   -moz-box-sizing: border-box;
   display: block;
   float: left;
-  width: -moz-calc(33.333% - 16px);
-  height: 84px;
-  margin: 8px;
+  width: -moz-calc(33.333% - 8px);
+  height: 52px;
+  margin: 4px;
   text-align: center;
   border: 1px solid #919191;
   border-radius: 8px;
   outline: none;
 
-  font-size: 64px;
-  line-height: 84px;
+  font-size: 40px;
+  line-height: 52px;
 
   color: #919191;
   text-decoration: none;
+}
+
+@media screen and (height: 800px) {
+  #lockscreen-passcode-pad > a {
+    width: -moz-calc(33.333% - 16px);
+    height: 84px;
+    margin: 8px;
+
+    font-size: 64px;
+    line-height: 84px;
+  }
 }
 
 #lockscreen-passcode-pad > a:active {
@@ -381,7 +426,13 @@
 }
 
 #lockscreen-passcode-pad > a.lockscreen-passcode-pad-func {
-  font-size: 20px;
+  font-size: 16px;
+}
+
+@media screen and (height: 800px) {
+  #lockscreen-passcode-pad > a.lockscreen-passcode-pad-func {
+    font-size: 20px;
+  }
 }
 
 #lockscreen-panel-emergency-call {
@@ -404,6 +455,13 @@
   top: 0;
   left: 0;
   display: none;
+  background-color: #fff;
+}
+
+#lockscreen-camera {
+  width: 100%;
+  height: 100%;
+  border: none;
 }
 
 [data-panel="camera"] #lockscreen-panel-camera {

@@ -1,33 +1,26 @@
-var SettingsListener = {
-  _callbacks: {},
 
-  init: function sl_init() {
-    if ('mozSettings' in navigator && navigator.mozSettings)
-      navigator.mozSettings.onsettingchange = this.onchange.bind(this);
-  },
+'use strict';
 
-  onchange: function sl_onchange(evt) {
-    var callback = this._callbacks[evt.settingName];
-    if (callback) {
-      callback(evt.settingValue);
-    }
-  },
+window.addEventListener('DOMContentLoaded', function wallpaper() {
+  var settings = navigator.mozSettings;
+  if (!settings)
+    return;
 
-  observe: function sl_observe(name, defaultValue, callback) {
-    var settings = window.navigator.mozSettings;
-    if (!settings) {
-      window.setTimeout(function() { callback(defaultValue); });
-      return;
-    }
-
-    var req = settings.getLock().get(name);
-    req.addEventListener('success', (function onsuccess() {
-      callback(typeof(req.result[name]) != 'undefined' ?
-        req.result[name] : defaultValue);
-    }));
-
-    this._callbacks[name] = callback;
+  var settingName = 'homescreen.wallpaper';
+  function setWallpaper(value) {
+    document.getElementById('icongrid').style.backgroundImage =
+        'url(resources/images/backgrounds/' + (value || 'default.png') + ')';
   }
-};
 
-SettingsListener.init();
+  // initial value
+  var request = settings.getLock().get(settingName);
+  request.onsuccess = function onsuccess() {
+    setWallpaper(request.result[settingName]);
+  };
+
+  // setting observer
+  settings.addObserver(settingName, function onchange(event) {
+    setWallpaper(event.settingValue);
+  });
+});
+

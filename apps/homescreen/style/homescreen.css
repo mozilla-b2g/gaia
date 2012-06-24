@@ -1,175 +1,132 @@
-@font-face {
-  font-family: 'Open Sans';
-  src: url('fonts/Open-Sans.woff');
-}
-
-@font-face {
-  font-family: 'Open Sans';
-  font-weight: bold;
-  src: url('fonts/Open-Sans-Bold.woff');
-}
-
-@font-face {
-  font-family: 'Open Sans';
-  font-weight: 600;
-  src: url('fonts/Open-Sans-Semibold.woff');
-}
-
-body {
+html, body {
   width: 100%;
   height: 100%;
-  margin: 0px;
-  padding: 0px;
+  padding: 0;
+  margin: 0;
+  border: none;
   overflow: hidden;
-  font-family: 'Open Sans Semibold', sans-serif;
-  color: white;
-  font-size: 15px;
+  font-size: 10px;
 }
 
-#home {
+html {
+  font-size: 10px;
+}
+
+* {
+  -moz-user-select:none;
+}
+
+section,footer,nav,a,img {
+  margin:  0;
+  padding: 0;
+  border:none;
+}
+
+#paginationBar {
   width: 100%;
-  height: 100%;
-  overflow: hidden;
-  position: absolute;
+  height: .3rem;
+  position: fixed;
   top: 0;
   left: 0;
-
-  border-radius: 8px;
-  background-color: #000;
-  background-attachment: fixed;
-  background-clip: border-box;
-  background-image: url(backgrounds/default.png);
-  background-origin: padding-box;
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-size: 100%;
+  z-index: 3;
 }
 
-#apps {
-  position: absolute;
-  top: 0;
-  margin-top: 20px;
-
-  /* height = -margin-top +100% - dots.height - shortcuts.height*/
-  height: -moz-calc(-20px + 100% - 14px - 135px);
+#paginationBar > .paginationScroller {
   width: 100%;
-}
-
-#dots {
-  position: absolute;
-  bottom: 140px;
-  height: 14px;
-  line-height: 14px;
-  text-align: center;
-  width: 100%;
-}
-
-.page {
-  position: absolute;
-  left: 0px;
-  top: 0px;
-  width: -moz-calc(100%);
-  overflow: hidden;
-}
-
-/* 
- * When changing the icon size, also update homescreen.js
- */
-.icon {
-  position: relative;
-  float: left;
-
-  width: 79px;
-  height: 79px;
-  margin: 30px 20px;
-  border-radius: 10px;
-  text-align: center;
-}
-
-*[dir=rtl] .icon {
-  float: right;
-}
-
-.icon > * {
-  pointer-events: none;
-}
-
-.icon > div {
-  display: inline-block;
-
-  width: 79px;
-  height: 79px;
-  text-align: center;
-  color: white;
-}
-
-.icon > .label {
-  margin-top: 10px;
-}
-
-.icon.hidden {
+  height: 100%;
+  background-color: #ff4e00;
+  -moz-transition: -moz-transform .2s ease;
   visibility: hidden;
 }
 
-body > .icon {
-  z-index: 100000;
-  box-shadow: 0 0 5px 5px #666;
-}
-
-.edit .icon:before {
-  content: url(icons/close.png);
-  position: absolute;
-  top: -10px;
-  right: -10px;
-}
-
-.dot {
-  display: inline-block;
-  height: 5px;
-  background-color: transparent;
-
-  width: 10px;
-  height: 10px;
-  background-color: rgba(255,255,255,0.5);
-  margin-left: 5px;
-  margin-right: 5px;
-  border-radius: 50%;
-}
-
-.dot.active {
-  background-color: white;
-}
-
-/*
- * Localization: RTL layout
- */
-
-*[dir=rtl] .page {
-  left: auto;
-}
-
-/* Shortcuts */
-
-#shortcuts {
-  position: absolute;
-  bottom: 0;
-  height: 135px;
+#icongrid {
   width: 100%;
-  background: rgba(0,0,0,0.1);
+  height: -moz-calc(100% - 4rem);
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-image: url('../resources/images/background.jpg');
+  background-size: cover;
+  z-index: 2;
 }
 
-#shortcuts .shortcut {
-  float: left;
+/* START footer */
+
+#footer {
+  height: 4rem;
+  width: 100%;
+  position: fixed;
+  bottom: 0;
+  z-index: 10000;
+  background-color: black;
+}
+
+#footer[data-mode = 'edit'] .dock > li {
+  opacity: 0.2;
+}
+
+#footer nav {
+  height: 100%;
+  width: 100%;
+}
+
+#footer .dock {
+  height: 100%;
+  width: 100%;
+  max-width: 32rem;
+  padding: 0;
+  margin: 0 auto;
+  list-style: none;
+}
+
+#footer .dock > li {
+  height: 100%;
   width: 25%;
-  margin: 5px 0;
-  text-align: center;
+  float: left;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: auto;
+  font: 0/0 a;
 }
 
-#shortcuts .shortcut img {
-  display: block;
-  height: 79px;
-  height: 79px;
-  border-radius: 10px;
-  margin: 10px auto 15px auto;
+#footer .dock > .logs {
+  background-image: url('../resources/images/footer/1.png');
+}
+
+#footer .dock > .contacts {
+  background-image: url('../resources/images/footer/2.png');
+}
+
+#footer .dock > .messages {
+  background-image: url('../resources/images/footer/3.png');
+}
+
+#footer .dock > .phone {
+  background-image: url('../resources/images/footer/4.png');
+}
+
+/* END footer */
+
+button:focus::-moz-focus-inner {
+  border-color: transparent !important;
+}
+
+button::-moz-focus-inner {
+  border: none;
+  padding: 0;
+}
+
+button {
+   outline: none;
+}
+
+@media screen and (min-width: 480px) {
+  html {
+    font-size: 13.3px;
+  }
+}
+
+html[dir=rtl] .apps ol > li {
+  float: right;
 }
 

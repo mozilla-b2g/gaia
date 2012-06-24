@@ -1,0 +1,153 @@
+/* === Keyboard View === */
+@font-face {
+  font-family: 'Keyboard Symbols';
+  font-weight: 600;
+  src: url('fonts/Keyboard-Symbols.woff');
+}
+
+.phone-number-font {
+  font-size:18pt;
+  color:white;
+}
+
+.kb-keypad-number {
+  font-size:25pt;
+  color:white;
+}
+
+.kb-keypad-text {
+  font-size:6pt;
+  color:white;
+}
+
+
+#keyboard-view {
+  width: 100%;
+  height:100%;
+}
+
+#fake-phone-number-view {
+  position: absolute;
+  line-height: 0;
+  visibility: hidden;
+}
+
+#phone-number-view-container {
+  width:100%;
+  height:-moz-calc(100% - 34.5rem);
+  background: #1e2328;
+  width:100%;
+  text-align:center;
+  display: table;
+  table-layout: fixed;
+}
+
+#phone-number-view {
+  display:table-cell;
+  vertical-align:middle;
+  width: -moz-calc(100% - 3rem);
+}
+
+#keyboard-container {
+  width:100%;
+  height:34.5rem;
+}
+
+#kb-keypad {
+  height:-moz-calc(100% - 6.5rem);
+  width:100%;
+  display:table;
+  table-layout:fixed;
+}
+
+.kb-keypad-cell {
+  display:table-cell;
+  border-right:1px solid black;
+}
+
+.kb-keypad-cell:last-child {
+  border:0;
+}
+
+.kb-keypad-cell-small {
+  width:10rem;
+}
+
+.kb-keypad-key {
+  background: -moz-linear-gradient(top, #2d2642 0%, #0f1214 100%);
+  border:0;
+  border-right:1px solid #313A47;
+  border-bottom:1px solid #313A47;
+  height:7rem;
+  vertical-align:middle;
+}
+
+.kb-keypad-key:last-child {
+  border-right:0;
+  border-bottom:0;
+}
+
+.kb-keypad-key-label-container {
+  width:100%;
+  height:100%;
+  display:table;
+}
+
+.kb-keypad-key-label {
+  display:table-cell;
+  text-align:center;
+  vertical-align:middle;
+}
+
+.kb-keypad-key-label > span {
+  pointer-events: none;
+}
+
+.del-digit {
+  margin:0 auto;
+  background:url(images/dialer_icon_delete.png) 50% 50% no-repeat;
+  background-size: 3.8rem 2.8rem;
+}
+
+#kb-callbar {
+  background:black;
+  height:6.5rem;
+  padding:1rem 1.5rem;
+}
+
+#kb-callbar-add-contact {
+  float:left;
+  display:inline-block;
+  height:4.5rem;
+  width:9rem;
+  background: -moz-linear-gradient(top, #19191a 0%, #242b36 100%); /* FF3.6+ */
+  border:.1rem solid #242B36;
+  border-radius:.5rem;
+}
+
+#kb-callbar-call-action {
+  float:right;
+  display:inline-block;
+  height:4.5rem;
+  width:19rem;
+  border:0;
+  border-radius:.5rem;
+  background: -moz-linear-gradient(top, #84c82c 0%, #5f9b0a 100%); /* FF3.6+ */
+}
+
+.i-add-contact {
+  margin: auto;
+  width: 2.6rem;
+  height: 2.5rem;
+  background: url(images/dialer_icon_contact.png);
+  background-size: 2.6rem 2.5rem;
+}
+
+.i-call {
+  margin:0 auto;
+  background-image:url("images/dialer_icon_call.png");
+  width:2.6rem;
+  height:2.5rem;
+  background-repeat:no-repeat;
+  background-size: 2.6rem 2.5rem;
+}

@@ -1,0 +1,20 @@
+{
+  "name": "E-Mail",
+  "description": "Gaia E-Mail",
+  "launch_path": "/",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "locales": {
+    "en-US": {
+      "name": "E-Mail",
+      "description": "Gaia E-Mail"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "79": "/style/icons/Email.png",
+    "60": "/style/icons/60/Email.png"
+  }
+}

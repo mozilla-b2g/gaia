@@ -1,18 +1,52 @@
-
-#statusbar {
-  display: -moz-box;
-  overflow: hidden;
+#notifications-container .notification {
   position: relative;
-  z-index: 20001;
-  -moz-box-orient: horizontal;
+  background-image: url("images/notifications.png");
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
 
-  width: 100%;
-  -moz-box-sizing: border-box;
-  height: 32px;
-  padding: 2px;
+  height: 80px;
+  font-weight: bold;
 }
 
-#statusbar > * {
-  -moz-box-flex: 0;
+#notifications-container .notification div {
   pointer-events: none;
+}
+
+#notifications-container .notification > div:first-of-type {
+  margin: 0 0 0 85px;
+  padding: 20px 0 0 0;
+
+  font-size: 2.5mozmm;
+  line-height: 2.5mozmm;
+  color: #111;
+}
+
+#notifications-container .notification > div {
+  margin: 0 0 0 85px;
+  padding: 0;
+  width: -moz-calc(100% - 105px);
+  height: 25px;
+
+  font-size: 2mozmm;
+  color: #666;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#notifications-container .notification > a.close {
+  display: block;
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  width: 80px;
+  height: 80px;
+}
+
+#notifications-container .notification > img {
+  float: left;
+  display: block;
+  width: 64px;
+  height: 64px;
+  margin: 8px;
 }

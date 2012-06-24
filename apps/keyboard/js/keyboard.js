@@ -3,7 +3,7 @@
 
 'use strict';
 
-// Duplicated code in severla places
+// Duplicated code in several places
 // TODO Better settings observe interface?
 
 var SettingsListener = {
@@ -70,7 +70,8 @@ const IMEManager = {
     'zhuyin': ['zh-Hant-Zhuyin'],
     'pinyin': ['zh-Hans-Pinyin'],
     'arabic': ['ar'],
-    'greek': ['el']
+    'greek': ['el'],
+    'japanese': ['jp-kanji']
   },
 
   enableSetting: function km_enableSetting(theKey) {
@@ -103,7 +104,6 @@ const IMEManager = {
     }
 
     if (!this.keyboards.length) {
-      console.warn('[keyboard] no keyboard layouts present');
       this.keyboards = [].concat(this.keyboardSettingGroups['english']);
     }
 
@@ -503,9 +503,8 @@ const IMEManager = {
 
     // Handling showime and hideime events, as they are received only in System
     // https://bugzilla.mozilla.org/show_bug.cgi?id=754083
-
-    window.addEventListener('message', function receiver(e) {
-      var event = JSON.parse(e.data);
+    window.addEventListener('message', function receiver(evt) {
+      var event = JSON.parse(evt.data);
       IMEManager.handleEvent(event);
     });
   },
@@ -549,8 +548,12 @@ const IMEManager = {
       sendCandidates: function(candidates) {
         self.showCandidates(candidates);
       },
-      sendPendingSymbols: function(symbols) {
-        self.showPendingSymbols(symbols);
+      sendPendingSymbols: function(
+                              symbols, highlightStart,
+                              highlightEnd, highlightState) {
+        self.showPendingSymbols(
+            symbols, highlightStart,
+            highlightEnd, highlightState);
       },
       sendKey: function(keyCode) {
         switch (keyCode) {
@@ -611,10 +614,6 @@ const IMEManager = {
 
         break;
 
-      case 'appclose':
-        this._closingWindow = null;
-        break;
-
       case 'resize':
         if (this.ime.dataset.hidden)
           return;
@@ -627,12 +626,9 @@ const IMEManager = {
         break;
 
       case 'transitionend':
-        if (!this.ime.dataset.hidden) { // showIME transitionend
-          this.updateTargetWindowHeight();
-        } else { // hideIME transitionend
-
+        if (this.ime.dataset.hidden)
           this.ime.innerHTML = '';
-        }
+        this.updateTargetWindowHeight();
         break;
 
       case 'mousedown':
@@ -1192,8 +1188,16 @@ const IMEManager = {
   },
 
   updateTargetWindowHeight: function km_updateTargetWindowHeight() {
-    var resizeAction = {action: 'resize', height: this.ime.scrollHeight + 'px'};
-    parent.postMessage(JSON.stringify(resizeAction), '*');
+    var height;
+    if (this.ime.dataset.hidden) {
+      height = 0;
+    } else {
+      height = this.ime.scrollHeight;
+    }
+
+    var message = {action: 'updateHeight',
+      keyboardHeight: height, hidden: !!this.ime.dataset.hidden};
+    parent.postMessage(JSON.stringify(message), '*');
   },
 
   showIME: function km_showIME(type) {
@@ -1233,7 +1237,6 @@ const IMEManager = {
         this.currentEngine.show(type);
       }
     }
-    this.updateTargetWindowHeight();
   },
 
   hideIME: function km_hideIME(imminent) {
@@ -1254,12 +1257,33 @@ const IMEManager = {
       }, 0);
 
       ime.innerHTML = '';
+      this.updateTargetWindowHeight();
     }
   },
 
-  showPendingSymbols: function km_showPendingSymbols(symbols) {
+  showPendingSymbols: function km_showPendingSymbols(
+                          symbols, highlightStart,
+                          highlightEnd, highlightState) {
+
+    var HIGHLIGHT_COLOR_TABLE = {
+      'red': 'keyboard-pending-symbols-highlight-red',
+      'green': 'keyboard-pending-symbols-highlight-green',
+      'blue': 'keyboard-pending-symbols-highlight-blue'
+    };
+
     var pendingSymbolPanel = this.pendingSymbolPanel;
-    pendingSymbolPanel.textContent = symbols;
+
+    if (typeof highlightStart === 'undefined' ||
+        typeof highlightEnd === 'undefined' ||
+        typeof highlightState === 'undefined') {
+      pendingSymbolPanel.textContent = symbols;
+      return;
+    }
+
+    pendingSymbolPanel.innerHTML = "<span class='" +
+      HIGHLIGHT_COLOR_TABLE[highlightState] + "'>" +
+      symbols.slice(highlightStart, highlightEnd) +
+      '</span>' + symbols.substr(highlightEnd);
   },
 
   showCandidates: function km_showCandidates(candidates, noWindowHeightUpdate) {

@@ -198,7 +198,7 @@
     };
 
     var sendCandidates = function ime_sendCandidates(candidates) {
-      firstCandidate = (candidates[0])? candidates[0][0] : '';
+      firstCandidate = (candidates[0]) ? candidates[0][0] : '';
       settings.sendCandidates(candidates);
     };
 
@@ -319,7 +319,8 @@
 
           if (!candidates.length) {
             // candidates unavailable; output symbols
-            candidates.push([syllablesInBuffer.join('').replace(/\*/g, ''), 'whole']);
+            var syllabe = syllablesInBuffer.join('').replace(/\*/g, '');
+            candidates.push([syllable, 'whole']);
           }
 
           sendCandidates(candidates);
