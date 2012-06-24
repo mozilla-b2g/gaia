@@ -28,3 +28,7 @@
 
   background: #111 url('images/grippy.png') no-repeat 50% 50%;
 }
+
+#quick-settings {
+    z-index: 9997;
+}
