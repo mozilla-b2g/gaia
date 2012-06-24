@@ -20,14 +20,25 @@ EVENT TIME COLOR: #333
 html, body {
   margin: 0;
   padding: 0;
-  font-size: 2.7mozmm;
+  font-size: 13.5px;
   height: 100%;
   background: white;
   line-height: 100%;
 }
 
+
+/* Device Layouts */
+
+@media screen and (max-width: 480px) {
+  html, body {
+    font-size: 11px;
+  }
+}
+
+/* view management */
+
 #views {
-  height: -moz-calc(100% - 18mozmm);
+  height: -moz-calc(100% - 6.65rem);
 }
 
 #views > section {
@@ -48,6 +59,15 @@ html, body {
   height: 45%;
 }
 
+/* temp views */
+
+#day-view,
+#week-view,
+#add-event-view {
+  text-align: center;
+  padding-top: 5rem;
+}
+
 /* month view */
 /* sub: toolbar  */
 
@@ -58,7 +78,7 @@ html, body {
 #top-toolbar header.toolbar {
   width: 100%;
   overflow: hidden;
-  padding: 2.5mozmm 1.5mozmm;
+  padding: 0.9rem 0.6rem;
   border-bottom: 2px solid black;
 }
 
@@ -115,7 +135,7 @@ html, body {
 /* sub: day header row */
 
 #month-days {
-  height: 4mozmm;
+  height: 1.48rem;
   clear: both;
 }
 
@@ -125,11 +145,11 @@ html, body {
   background-color: #AAA;
   text-transform: uppercase;
   font-size: 90%;
-  padding: 0.5mozmm 0;
+  padding: 0.185rem 0;
 }
 
 #month-displays {
-  height: -moz-calc(100% - 4mozmm);
+  height: -moz-calc(100% - 1.48rem);
 }
 
 section.month {
@@ -154,7 +174,7 @@ section.month {
 }
 
 .rtl section.month li > .day {
-  padding-left: 0.8mozmm;
+  padding-left: 0.296rem;
 }
 
 .ltr section.month li {
@@ -162,7 +182,7 @@ section.month {
 }
 
 .ltr section.month li > .day {
-  padding-right: 0.8mozmm;
+  padding-right: 0.296rem;
 }
 
 section.month ol {
@@ -204,8 +224,8 @@ section.month li.other-month {
 
 section.month li .busy-indicator,
 section.month li .busy-indicator > span{
-  height: 1.2mozmm;
-  padding-top: 1mozmm;
+  height: 0.444mozmm;
+  padding-top: 0.37rem;
 }
 
 section.month li .busy-indicator {
@@ -266,11 +286,11 @@ Indicators are in units of 12
 #months-day-view {
   border-top: 2px solid #B0B0B0;
   background-color: white;
-  height: -moz-calc(50% - 3.5mozmm);
+  height: -moz-calc(50% - 1.295rem);
 }
 
 #months-day-view .day-events {
-  height: -moz-calc(100% - 4.3mozmm);
+  height: -moz-calc(100% - 1.591rem);
   overflow-y: auto;
 }
 
@@ -284,14 +304,14 @@ Indicators are in units of 12
 /** sub: view selector **/
 
 #bottom-toolbar {
-  height: 9mozmm;
+  height: 3.33rem;
   background: #EFEFEF;
 }
 
 #view-selector {
-  margin-top: 1mozmm;
+  margin-top: 0.37rem;
   border-top: 1px solid black;
-  padding: 1.5mozmm 1.5mozmm;
+  padding: 0.55rem 0.55rem;
   overflow: hidden;
 }
 
@@ -310,7 +330,7 @@ Indicators are in units of 12
 
 #view-selector > li.today {
   width: -moz-calc(30% - 2mozmm);
-  margin-right: 2mozmm;
+  margin-right: 0.74rem;
 }
 
 #view-selector menu li.week {
@@ -330,12 +350,12 @@ body[data-path="/month"] .time-selection .month {
 }
 
 #view-selector > li a {
-  padding: 1.5mozmm 2mozmm;
+  padding: 0.55rem 0.74rem;
   display: block;
 }
 
 #view-selector > li {
-  height: 5.9mozmm;
+  height: 2.18rem;
   text-align: center;
   font-weight: bold;
   color: black;
@@ -349,16 +369,4 @@ body[data-path="/month"] .time-selection .month {
 
 #view-selector menu li {
   width: 33%;
-}
-
-/* DEVICE SETTINGS */
-
-@media screen and (max-width: 480px) {
-  html, body {
-    font-size: 2mozmm;
-  }
-
-  #months-day-view .day-events {
-    height: -moz-calc(100% - 3mozmm);
-  }
 }
