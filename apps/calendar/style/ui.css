@@ -322,6 +322,13 @@ Indicators are in units of 12
   width: 70%;
 }
 
+/**  Selected items */
+body[data-path="/day"] .time-selection .day,
+body[data-path="/week"] .time-selection .week,
+body[data-path="/month"] .time-selection .month {
+  text-decoration: underline;
+}
+
 #view-selector > li a {
   padding: 1.5mozmm 2mozmm;
   display: block;

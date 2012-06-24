@@ -12,13 +12,20 @@ Calendar.init = function calendar_init() {
   var monthView = new Views.Month({ controller: controller });
   var monthDayView = new Views.MonthsDay({ controller: controller });
 
-  route.add('/', monthView, monthDayView);
-  route.add('/month', monthView, monthDayView);
+  function setPath(path) {
+    return function(ctx, next) {
+      document.body.setAttribute('data-path', path);
+      next();
+    }
+  }
+
+  route.add('/', setPath('/month'), monthView, monthDayView);
+  route.add('/month', setPath('/month'), monthView, monthDayView);
 
   //temp routes
-  route.add('/day', new Calendar.View('#day-view'));
-  route.add('/week', new Calendar.View('#week-view'));
-  route.add('/add', new Calendar.View('#add-event-view'));
+  route.add('/day', setPath('/day'), new Calendar.View('#day-view'));
+  route.add('/week', setPath('/week'), new Calendar.View('#week-view'));
+  route.add('/add', setPath('/add'), new Calendar.View('#add-event-view'));
 
   route.start();
 
