@@ -50,7 +50,7 @@ contacts.List = (function() {
     }
   };
 
-  var buildContacts = function buildContacts(contacts) {
+  var buildContacts = function buildContacts(contacts, successCb) {
     var group = null;
 
     var count = contacts.length;
@@ -75,11 +75,13 @@ contacts.List = (function() {
     if (ret.length > 0) {
       iterateOverGroup(group, ret);
     }
+
+    successCb();
   }
 
   var getContactsByGroup = function gCtByGroup(successCb, errorCb, contacts) {
     if (typeof contacts !== 'undefined') {
-      buildContacts(contacts);
+      buildContacts(contacts, successCb);
       return;
     }
 
@@ -90,8 +92,7 @@ contacts.List = (function() {
 
     var request = navigator.mozContacts.find(options);
     request.onsuccess = function findCallback() {
-      buildContacts(request.result);
-      successCb();
+      buildContacts(request.result, successCb);
     };
 
     request.onerror = errorCb;
@@ -199,20 +200,18 @@ contacts.List = (function() {
 
   function onClickHandler(evt) {
     var dataset = evt.target.dataset;
-    if (!dataset || !('uuid' in dataset))
-      return;
-
-    getContactById(dataset.uuid, function(contact) {
-      callbacks.forEach(function onclickListener(callback) {
-        callback(contact);
+    if (dataset && 'uuid' in dataset) {
+      callbacks.forEach(function(callback) {
+        callback(dataset.uuid);
       });
-    });
+    }
   }
 
   return {
     'init': init,
     'load': load,
     'refresh': refresh,
+    'getContactById': getContactById,
     'handleClick': handleClick
   };
 })();

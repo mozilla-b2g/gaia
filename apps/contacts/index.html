@@ -61,6 +61,7 @@
                 </h2>
                 <ol id="contacts-list-#group#" data-group="#group#">
                   <li data-template class="block-item" data-uuid="#id#">
+                    <span class="checkbox hide"><input type="checkbox"><i></i></span>
                     <a href="#" class="item">
                       <figure class="item-media pull-right block-media">
                          <img alt="" style="background-image: url(#photo#);">
@@ -98,8 +99,7 @@
         </header>
         <article class="view-body">
           <div class="view-body-inner">
-            <div class="contact-header">
-              <!-- Default img so far, as UX have to define what to do when no image -->
+            <div class="appcnts-profile-head">
               <figure><img id='cover-img' alt="" style=""></figure>
             </div>
             <section id="contact-detail">
@@ -110,7 +110,7 @@
 
               <!-- Phone Template -->
               <li id='phone-details-template' data-template>
-                <h2>#tel_type#</h2>
+                <h2>#type#</h2>
                 <div class="item">
                   <div class="item-media pull-right">
                     <button class="action"><span role="button" class="icon-message">Message</span></button>
@@ -162,11 +162,17 @@
 
         <!-- PHONE TEMPLATE -->
         <dl id='add-phone' data-template class="setbox">
-          <dt class="setbox-title"><a href="#">#type# <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span></a></dt>
+          <dt class="setbox-title">
+            <a data-update='type_#i#' onclick="contacts.app.ui.goToPhoneType(this)" href="#">
+              #type# 
+              <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>
+            </a>
+          <input type="hidden" name="tel" value="#type#" id="type_#i#" data-field="type" data-arrayindex="#i#" \>
+          </dt>
           <dd class="setbox-body">
             <p class="setbox-item">
               <label class="hide" for="tel_#i#">Phone number:</label>
-              <input placeholder="Phone" data-field="number" data-arrayindex="#i#" name="tel" class="textfield" type="number" value="#number#" id="tel_#i#">
+              <input placeholder="Phone" data-field="number" data-arrayindex="#i#" name="tel" class="textfield" type="number" value="#number#" id="number_#i#">
             </p>
             <p class="setbox-item">
               <label class="hide" for="notes_#i#">Name:</label>
@@ -269,6 +275,26 @@
                 </button>
               </fieldset>
             </form>
+          </div>
+        </article>
+      </div>
+    </section>
+    <section id="view-select-tag" class="view view-select-tag view-right">
+      <div class="view-inner">
+        <header class="view-header">
+          <p class="view-back pull-left">
+            <a class='back-button' title="Back" href="#" onclick="contacts.app.ui.goBack();">
+              <span role="button" class="icon-back">Back</span>
+            </a>
+          </p>
+          <h1>Label</h1>
+        </header>
+
+        <article class="view-body">
+          <div class="view-body-inner">
+            <ul id="tags-list" class="selection-list">
+            </ul>
+            <input class="textfield" type="text" placeholder="Custom Tag" value="">
           </div>
         </article>
       </div>
