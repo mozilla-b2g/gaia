@@ -41,8 +41,9 @@ var AttentionScreen = {
     if (evt.detail.features != 'attention')
       return;
 
-    // preventDefault means "we're handling this popup; let it through."
-    evt.preventDefault();
+    // stopPropagation means we are not allowing
+    // Popup Manager to handle this event
+    evt.stopPropagation();
 
     var attentionFrame = evt.detail.frameElement;
     attentionFrame.setAttribute('mozbrowser', 'true');

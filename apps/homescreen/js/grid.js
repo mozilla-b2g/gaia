@@ -743,7 +743,7 @@ const GridManager = (function() {
     uninstall: function gm_uninstall(app) {
       var index = 0;
       var total = pages.total;
-      var origin = app.origin.toString();
+      var origin = Applications.getOrigin(app).toString();
 
       while (index < total) {
         var page = pages.list[index];

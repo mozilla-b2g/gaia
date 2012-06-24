@@ -34,8 +34,6 @@ var BackgroundServiceManager = (function bsm() {
     if (evt.detail.features !== 'background')
       return;
 
-    // preventDefault means "we're handling this popup; let it through."
-    evt.preventDefault();
     // stopPropagation means we are not allowing
     // Popup Manager to handle this event
     evt.stopPropagation();
@@ -44,11 +42,7 @@ var BackgroundServiceManager = (function bsm() {
     var origin = evt.target.dataset.frameOrigin;
 
     var detail = evt.detail;
-    var opened = open(origin, detail.name, detail.url, detail.frameElement);
-    if (!opened) {
-      // Nullified unopened frame element.
-      evt.detail.frameElement = null;
-    }
+    open(origin, detail.name, detail.url, detail.frameElement);
   }, true);
 
   /* mozbrowserclose */
@@ -80,11 +74,14 @@ var BackgroundServiceManager = (function bsm() {
 
   /* Check if the app has the permission to open a background page */
   var hasBackgroundPermission = function bsm_checkPermssion(app) {
-    if (!app || !app.manifest.permissions ||
-        app.manifest.permissions.indexOf('background') == -1) {
+    if (!app || !app.manifest.permissions)
       return false;
-    }
-    return true;
+
+    var permissions = Object.keys(app.manifest.permissions).map(function map_perm(key) {
+      return app.manifest.permissions[key];
+    });
+
+    return (permissions.indexOf('background') != -1)
   };
 
   /* The open function is responsible of containing the iframe */

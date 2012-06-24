@@ -133,7 +133,16 @@ var TitleBar = {
         if (!target)
           return;
 
-        changeMode(MODE_PLAYER);
+        switch (target.id) {
+          case 'title-back':
+            changeMode(MODE_LIST);
+
+            break;
+          case 'title-text':
+            changeMode(MODE_PLAYER);
+
+            break;
+        }
 
         break;
 
@@ -262,8 +271,8 @@ var PlayerView = {
   },
 
   init: function pv_init() {
-    this.title = document.getElementById('player-cover-title');
     this.artist = document.getElementById('player-cover-artist');
+    this.album = document.getElementById('player-cover-album');
 
     this.timeoutID;
     this.caption = document.getElementById('player-cover-caption');
@@ -326,8 +335,9 @@ var PlayerView = {
       var targetIndex = parseInt(target.dataset.index);
       var songData = songs[targetIndex];
 
-      this.title.textContent = (songData.title) ? songData.title : 'Unknown';
+      TitleBar.changeTitleText((songData.title) ? songData.title : 'Unknown');
       this.artist.textContent = (songData.artist) ? songData.artist : 'Unknown';
+      this.album.textContent = (songData.album) ? songData.album : 'Unknown';
       this.currentIndex = targetIndex;
 
       // An object URL must be released by calling window.URL.revokeObjectURL()
@@ -343,6 +353,12 @@ var PlayerView = {
           this.playingFormat = evt.target.result.name.slice(-4);
 
           this.audio.src = window.URL.createObjectURL(evt.target.result);
+
+          // when play a new song, reset the seekBar first
+          // this can prevent showing wrong duration
+          // due to b2g cannot get some mp3's duration
+          // and the seekBar can still show 00:00 to -00:00
+          this.setSeekBar(0, 0, 0);
         }.bind(this);
     } else {
       this.audio.play();
@@ -381,6 +397,12 @@ var PlayerView = {
     this.play(songElements[this.currentIndex].firstElementChild);
   },
 
+  updateSeekBar: function pv_updateSeekBar() {
+    if (this.isPlaying) {
+      this.seekAudio();
+    }
+  },
+
   seekAudio: function pv_seekAudio(seekTime) {
     if (seekTime)
       this.audio.currentTime = seekTime;
@@ -395,23 +417,21 @@ var PlayerView = {
     var originalEndTime =
       this.audio.buffered.end(this.audio.buffered.length - 1);
     var endTime = (originalEndTime > 1000000) ?
-      originalEndTime / 1000000 :
+      Math.floor(originalEndTime / 1000000) :
       originalEndTime;
 
     var currentTime = this.audio.currentTime;
 
+    this.setSeekBar(startTime, endTime, currentTime);
+  },
+
+  setSeekBar: function pv_setSeekBar(startTime, endTime, currentTime) {
     this.seekBar.min = startTime;
     this.seekBar.max = endTime;
     this.seekBar.value = currentTime;
 
     this.seekElapsed.textContent = formatTime(currentTime);
     this.seekRemaining.textContent = '-' + formatTime(endTime - currentTime);
-  },
-
-  updateSeekBar: function pv_updateSeekBar() {
-    if (this.isPlaying) {
-      this.seekAudio();
-    }
   },
 
   handleEvent: function pv_handleEvent(evt) {

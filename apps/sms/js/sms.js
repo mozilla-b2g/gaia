@@ -279,6 +279,7 @@ var ConversationListView = {
 
   updateConversationList: function cl_updateCL(pendingMsg) {
     var self = this;
+    this._lastHeader = undefined;
     /*
       TODO: Conversation list is always order by contact family names
       not the timestamp.
@@ -367,6 +368,7 @@ var ConversationListView = {
            ' data-name="' + dataName + '"' +
            ' data-notempty="' + (conversation.timestamp ? 'true' : '') + '"' +
            ' class="' + (conversation.unreadCount > 0 ? 'unread' : '') + '">' +
+           '<span class="unread-mark"><i class="i-unread-mark"></i></span>' +
            '<input type="checkbox" class="fake-checkbox"/>' + '<span></span>' +
            '  <div class="name">' + name + '</div>' +
            '  <div class="msg">' + bodyHTML + '</div>' +
@@ -411,7 +413,7 @@ var ConversationListView = {
       content = dayOfWeek[new Date(conversation.timestamp).getDay()];
     } else {
       var date = new Date(conversation.timestamp);
-      return date.getFullYear() + '-' +
+      content = date.getFullYear() + '-' +
              (date.getMonth() + 1) + '-' +
              date.getDate();
     }
@@ -684,7 +686,8 @@ var ConversationView = {
   },
 
   getNumFromHash: function cv_getNumFromHash() {
-    return (/\bnum=(.+)(&|$)/.exec(window.location.hash) || [])[1];
+    var num = /\bnum=(.+)(&|$)/.exec(window.location.hash);
+    return num ? num[1] : null;
   },
 
   scrollViewToBottom: function cv_scrollViewToBottom(animateFromPos) {

@@ -41,8 +41,8 @@ body {
 #tray {
   -moz-transition: 0.2s ease-in-out;
   position: absolute;
-  left: 70px;
-  right: 20px;
+  left: 50px;
+  right: 0px;
   top: 0;
   bottom: 0;
   color: white;
@@ -64,7 +64,7 @@ body {
   border-top: 1px solid #333;
   overflow-y: auto;
   position:absolute;
-  top: 72px;
+  top: 70px;
   bottom: 20px;
   left: 0;
   right: 0;
@@ -186,6 +186,11 @@ body {
 
 #toolbar-end {
   border-top: solid 2px #a3a3a3;
+  display: none;
+}
+
+.page-screen #toolbar-end {
+  display: block;
 }
 
 #url-bar {
@@ -217,6 +222,7 @@ body {
   -moz-box-flex: 1;
   border: none;
   background-color: transparent;
+  text-overflow: ellipsis;
 }
 
 #url-input:invalid {
@@ -329,9 +335,13 @@ input::-moz-focus-inner {
   text-decoration: none;
   color: #000;
   border-bottom: solid 1px #ccc;
+  padding-left: 32px;
+  background-repeat: no-repeat;
+  background-position: 8px 20px;
+  background-size: 16px 16px;
 }
 #awesomescreen li a:hover, #awesomescreen li a:active {
-  background: #EEE;
+  background-color: #EEE;
 }
 
 #awesomescreen li span {
@@ -347,6 +357,18 @@ input::-moz-focus-inner {
   overflow: hidden;
   white-space: nowrap;
   pointer-events: none;
+}
+
+.awesome-screen #url-bar {
+  border: 2px solid orange;
+}
+
+.awesome-screen #toolbar-start {
+  background: transparent;
+}
+
+.awesome-screen #tabs-badge {
+  width: 60px;
 }
 
 #history{
