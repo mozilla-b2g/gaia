@@ -32,6 +32,14 @@ var UtilityTray = {
 
   handleEvent: function ut_handleEvent(evt) {
     switch (evt.type) {
+      case 'keyup':
+        if(this.shown && evt.keyCode === evt.DOM_VK_ESCAPE) {
+
+          evt.preventDefault();
+          evt.stopPropagation();
+
+          this.hide();
+        }
       case 'screenchange':
         if (this.shown && !evt.detail.screenEnabled)
           this.hide(true);
