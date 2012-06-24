@@ -5,5 +5,12 @@
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
+  "locales": {
+    "de": {
+      "name": "Tastatur",
+      "description": "Gaia Tastatur"
+    }
+  },
+  "default_locale": "en-US"
   "permissions": []
 }
