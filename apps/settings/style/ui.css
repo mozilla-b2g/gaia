@@ -39,7 +39,7 @@ header h1 a {
   display: block;
   text-decoration: none;
   background: url(images/header-left-arrow.png) no-repeat 20px 50%;
-  color:#555 !important;
+  color: #555 !important;
 }
 
 header h1 a:active {
