@@ -75,6 +75,8 @@
   background: url("../../gphx/bitmap/default/forms/check-default.png") no-repeat center top;
   background-size: 100% auto;
 }
+.block-list [type="checkbox"]:checked + i { background-position: center bottom; } 
+
 
 /* Media crop */
 .block-media {
