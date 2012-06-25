@@ -1,0 +1,31 @@
+
+
+.view-header {
+  height:5rem;
+  background: -webkit-linear-gradient(top, #cd6723 0%, #bb482d 100%); 
+  background: -moz-linear-gradient(top, #cd6723 0%, #bb482d 100%); 
+  background: linear-gradient(top, #cd6723 0%,#bb482d 100%);
+  -webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  -moz-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Reset of H1 style. Will be in Gecko */
+
+  h1 {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
+}
+  .view-header h1{
+    
+  }
+
+.view-body{
+  background:red;
+}
+
+

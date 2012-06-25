@@ -106,17 +106,21 @@ var Recents = {
   },
 
   render: function re_render() {
-    if (!this.view)
-      return;
+    // if (!this.view)
+    //   return;
 
-    this.view.innerHTML = '';
 
-    this.history((function(history) {
-      for (var i = 0; i < history.length; i++) {
-        var entry = this.createEntry(history[i]);
-        this.view.appendChild(entry);
-      }
-    }).bind(this));
+    // this.view.innerHTML = '';
+
+    // this.view.innerHTML = 'Commslog';
+
+
+    // this.history((function(history) {
+    //   for (var i = 0; i < history.length; i++) {
+    //     var entry = this.createEntry(history[i]);
+    //     this.view.appendChild(entry);
+    //   }
+    // }).bind(this));
   },
 
   history: function re_history(callback) {
