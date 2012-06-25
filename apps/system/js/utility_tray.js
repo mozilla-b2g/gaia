@@ -147,9 +147,9 @@ var UtilityTray = {
   },
 
   show: function ut_show(dy) {
-    var alreadyShown = this.shown,
-        trayStyle = this.overlay.style,
-        firstShownStyle = this.firstShown.style;
+    var alreadyShown = this.shown;
+    var trayStyle = this.overlay.style;
+    var firstShownStyle = this.firstShown.style;
 
     trayStyle.MozTransition = '-moz-transform 0.2s linear';
     trayStyle.MozTransform = 'translateY(100%)';
