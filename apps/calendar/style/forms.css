@@ -11,6 +11,11 @@ input, textarea {
   width: 100%;
 }
 
+select {
+  border: none;
+  background: transparent;
+}
+
 input[type="checkbox"] {
   width: inherit;
 }
@@ -90,9 +95,6 @@ fieldset li.all-day {
   width: 30%;
 }
 
-fieldset li.all-day > label {
-}
-
 .rtl fieldset li.location,
 .rtl fieldset li.all-day {
   float: right;
@@ -105,7 +107,8 @@ fieldset li.all-day > label {
 
 .rtl fieldset li.end-time,
 .ltr fieldset li.start-time {
-  width: 50%;
+  width: -moz-calc(50% - 1px);
+  border-right: 1px solid #CCC;
   float: left
 }
 
@@ -118,7 +121,8 @@ fieldset li.all-day > label {
 
 .rtl fieldset li.alert,
 .ltr fieldset li.repeat {
-  width: 50%;
+  width: -moz-calc(50% - 1px);
+  border-right: 1px solid #CCC;
   float: left
 }
 
