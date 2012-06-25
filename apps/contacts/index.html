@@ -30,7 +30,7 @@
       <div class="view-inner">
         <header class="view-header">
           <ul class="pull-right stack view-actions">
-            <li id='add-contact-button' onclick="contacts.app.ui.showAdd();">
+            <li id='add-contact-button' onclick="Contacts.showAdd();">
               <a href="#" title="Add contact">
                 <span role="button" class="icon-add" data-l10n-id="add">Add</span>
               </a>
@@ -86,14 +86,14 @@
       <div class="view-inner">
         <header id='details-view-header' class="view-header">
           <ul class="pull-right stack view-actions">
-            <li id='edit-contact-button' onclick="contacts.app.ui.showEdit();">
+            <li id='edit-contact-button' onclick="Contacts.showEdit();">
               <a href="#" title="Edit contact">
                 <span role="button" class="icon-edit" data-l10n-id="edit">Edit</span>
               </a>
             </li>
           </ul>
           <p class="view-back pull-left">
-            <a class='back-button' title="Back" href="#" onclick="contacts.app.ui.goBack();">
+            <a class='back-button' title="Back" href="#" onclick="Contacts.goBack();">
               <span role="button" class="icon-back">Back</span>
             </a>
           </p>
@@ -155,7 +155,7 @@
           <ul id='contact-form-actions' class="pull-right stack view-actions">
           </ul>
           <p class="view-back pull-left">
-            <a class='back-button' title="Back" href="#" onclick="contacts.app.ui.goBack();">
+            <a class='back-button' title="Back" href="#" onclick="Contacts.goBack();">
               <span role="button" class="icon-back">Back</span>
             </a>
           </p>
@@ -165,7 +165,7 @@
         <!-- PHONE TEMPLATE -->
         <dl id='add-phone' data-template class="setbox fillflow-row">
           <dt class="setbox-title">
-              <a data-taglist='phone-type' onmousedown="contacts.app.ui.goToSelectTag(event); return false;" name="tel" value="#type#" id="tel_type_#i#" data-field="type" data-arrayindex="#i#">#type#</a>
+              <a data-taglist='phone-type' onmousedown="Contacts.goToSelectTag(event); return false;" name="tel" value="#type#" id="tel_type_#i#" data-field="type" data-arrayindex="#i#">#type#</a>
               <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>
           </dt>
           <dd class="setbox-body">
@@ -184,7 +184,7 @@
         <dl id='add-email' data-template class="setbox">
           <!-- Commented while we don't have an email type field in contacts -->
           <!-- <dt class="setbox-title">
-              <input type="text" data-taglist='email-type' onclick="contacts.app.ui.goToSelectTag(event)" name="email" value="#type#" id="email_type_#i#" data-field="type" data-arrayindex="#i#">
+              <input type="text" data-taglist='email-type' onclick="Contacts.goToSelectTag(event)" name="email" value="#type#" id="email_type_#i#" data-field="type" data-arrayindex="#i#">
                 <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>
               </input>
             </dt> -->
@@ -243,7 +243,7 @@
                 </button>
               </fieldset>
 
-              <button onclick='contacts.app.ui.addNewPhone(); return false;' id='add-new-phone' class="fillflow-row action action-add">
+              <button onclick='Contacts.addNewPhone(); return false;' id='add-new-phone' class="fillflow-row action action-add">
                 <span role="button" class="icon-add"></span>
                 <b>Add phone number</b>
               </button>
@@ -258,7 +258,7 @@
                 </button>
               </fieldset>
 
-              <button onclick='contacts.app.ui.addNewEmail(); return false;' id='add-new-email' class="fillflow-row action action-add">
+              <button onclick='Contacts.addNewEmail(); return false;' id='add-new-email' class="fillflow-row action action-add">
                 <span role="button" class="icon-add"></span>
                 <b>Add email address</b>
               </button>
@@ -287,14 +287,14 @@
       <div class="view-inner">
         <header class="view-header">
           <p class="view-back pull-left">
-            <a class='back-button' title="Back" href="#" onclick="contacts.app.ui.goBack();">
+            <a class='back-button' title="Back" href="#" onclick="Contacts.goBack();">
               <span role="button" class="icon-back">Back</span>
             </a>
           </p>
           <ul class="pull-right stack view-actions">
             <li>
             </li>
-            <li onclick="contacts.app.ui.goBack();">
+            <li onclick="Contacts.goBack();">
               <a href="#" title="Done">Done
               </a>
             </li>
