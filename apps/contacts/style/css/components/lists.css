@@ -8,7 +8,7 @@
   -moz-transform: translateX(2rem); 
 }
 
-.blck-item { 
+.block-item { 
   border-bottom: solid 1px #dbdbdb;
   min-height: 6rem;
   position: relative;
