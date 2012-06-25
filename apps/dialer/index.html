@@ -6,6 +6,7 @@
     <title>Dialer</title>
     <link rel="stylesheet" type="text/css" href="style/dialer.css">
     <link rel="stylesheet" type="text/css" href="style/keypad.css">
+    <link rel="stylesheet" type="text/css" href="style/commslog.css">
     <link rel="resource" type="application/l10n" href="locale/dialer.properties">
     <!-- Compatibility -->
     <script>
@@ -165,11 +166,21 @@
           </section>
         </article>
       </section>
-      <section role="tabpanel" id="contacts-view">
+      <section class="view" role="tabpanel" id="contacts-view">
         Contacts view
       </section>
-      <section role="tabpanel" id="recents-view">
-        Recents View
+      <section class="view" role="tabpanel" id="recents-view">
+        <div class="grid-wrapper grid">
+          <header class="grid-row view-header">
+            <div class="grid-wrapper grid">
+              <h1 class="grid-cell grid-v-align">asdads</h1>
+              <section class="grid-cell grid-v-align"> Options bar</section>
+            </div>
+          </header>
+          <article class="grid-row view-body">
+            asd
+          </article>
+        </div>
       </section>
     </article>
     <nav id="main-toolbar" class="toolbar grid center">
@@ -187,7 +198,8 @@
     <script>
       //If no entry point, redirect to the keyboard-view
       if(document.location.href.indexOf("#") == -1) {
-        document.location.href = "#keyboard-view";
+        // document.location.href = "#keyboard-view";
+        document.location.href = "#recents-view";
       }
     </script>
 </html>

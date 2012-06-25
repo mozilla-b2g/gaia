@@ -121,7 +121,9 @@ body.hidden *[data-l10n-id] {
     border-style: none;
   }
 
-/* Toolbar icons */
+
+/* Toolbar Icon */
+
 .icon {
   pointer-events:none;
   margin:0 auto;
