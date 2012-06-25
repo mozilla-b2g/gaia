@@ -62,7 +62,7 @@ contacts.List = (function() {
     for (var i = 0; i < count; i++) {
       contacts[i].name = contacts[i].name || '';
       contacts[i].familyName = contacts[i].familyName || '';
-      contacts[i].givenName = contacts[i].givenName || ''
+      contacts[i].givenName = contacts[i].givenName || '';
       var letter = getGroupName(contacts[i]);
 
       if (letter === group) {
@@ -124,7 +124,7 @@ contacts.List = (function() {
     var group = getGroupName(contact);
     var cName = contact.name || '';
     contact.familyName = contact.familyName || '';
-    contact.givenName = contact.givenName || ''
+    contact.givenName = contact.givenName || '';
     var list = groupsList.querySelector('#contacts-list-' + group);
     var liElems = list.getElementsByTagName('li');
     var len = liElems.length;

@@ -278,7 +278,7 @@ contacts.app = (function() {
     myContact['givenName'] = givenName.value || '';
     myContact['familyName'] = familyName.value || '';
     myContact.name = myContact['givenName'] + ' ' + myContact['familyName'];
-    
+
     getPhones(myContact);
     getEmails(myContact);
 
@@ -305,12 +305,13 @@ contacts.app = (function() {
     }
     doSaveContact(contact, successCb, errorCb);
   };
-  
+
   var getPhones = function getPhones(contact) {
-    var phones = document.querySelectorAll('#view-contact-form form input[data-field="number"]');
-    for(var p in phones) {
+    var selector = '#view-contact-form form input[data-field="number"]';
+    var phones = document.querySelectorAll(selector);
+    for (var p in phones) {
       var numberField = phones[p].value;
-      if(numberField) {
+      if (numberField) {
         var typeField = document.getElementById('tel_type_' + p).value || '';
         var notes = document.getElementById('notes_' + p).value || '';
         contact['tel'] = contact['tel'] || [];
@@ -324,12 +325,12 @@ contacts.app = (function() {
   };
 
   var getEmails = function getEmails(contact) {
-    var emails = document.querySelectorAll('#view-contact-form form input[name="email"]');
-    for(var e in emails) {
+    var selector = '#view-contact-form form input[name="email"]';
+    var emails = document.querySelectorAll(selector);
+    for (var e in emails) {
       var emailField = emails[e].value;
-      if(emailField) {
+      if (emailField) {
         // TODO: Save type
-        // var typeField = document.getElementById('email_type_' + e).value || '';
         contact['email'] = contact['email'] || [];
         contact['email'][e] = emailField;
       }
