@@ -50,8 +50,26 @@ contacts.app = (function() {
   var navigation = new navigationStack('view-contacts-list');
 
   //Initializations
+  var TAG_OPTIONS = {
+    'phone-type' : [
+      {value: 'Mobile'},
+      {value: 'Home'},
+      {value: 'Work'},
+      {value: 'Personal'},
+      {value: 'Fax Home'},
+      {value: 'Fax Office'},
+      {value: 'Other Fax'},
+      {value: 'Another'}
+    ],
+    'email-type' : [
+      {value: 'Personal'},
+      {value: 'Home'},
+      {value: 'Work'}
+    ]
+  };
   var numberEmails = 0;
   var numberPhones = 0;
+  var selectedTagIndex = 0;
   var detailsHeader,
       currentContactId,
       phoneDetailsTemplate,
@@ -65,7 +83,8 @@ contacts.app = (function() {
       phoneTemplate,
       emailTemplate,
       phonesContainer,
-      emailContainer;
+      emailContainer,
+      selectedTag;
 
   var currentContact = {};
 
@@ -92,21 +111,21 @@ contacts.app = (function() {
     contactsList.init(list);
     contactsList.load();
 
-    contactsList.handleClick(function onclick(contact) {
-      currentContact = contact;
-      doShowContactDetails(contact);
+    contactsList.handleClick(function onclick(uuid) {
+      contactsList.getContactById(uuid, function(contact) {
+        currentContact = contact;
+        doShowContactDetails(contact);
+      }, function() {});
     });
   };
 
   var addNewPhone = function addNewPhone() {
     insertEmptyPhone(numberPhones);
-    numberPhones++;
     return false;
   };
 
   var addNewEmail = function addNewEmail() {
     insertEmptyEmail(numberEmails);
-    numberEmails++;
     return false;
   };
 
@@ -124,25 +143,21 @@ contacts.app = (function() {
     listContainer.innerHTML = '';
     for (var tel in contact.tel) {
       var telField = {
-        number: contact.tel[tel].number,
-        tel_type: '',
-        notes: '',
-        type: 'tel'
+        number: contact.tel[tel].number || '',
+        type: contact.tel[tel].type || TAG_OPTIONS['phone-type'][0].value,
+        notes: ''
       };
-
       var template = utils.templates.render(phoneDetailsTemplate, telField);
       listContainer.appendChild(template);
     }
-
     for (var email in contact.email) {
       var emailField = {
         email: contact.email[email],
-        email_tag: '', type: 'email'
+        type: ''
       };
       var template = utils.templates.render(emailDetailsTemplate, emailField);
       listContainer.appendChild(template);
     }
-
     var photo = contact.photo || '';
     coverImg.style.backgroundImage = 'url(' + photo + ')';
   };
@@ -165,7 +180,7 @@ contacts.app = (function() {
     for (var tel in currentContact.tel) {
       var telField = {
         number: currentContact.tel[tel].number,
-        type: '',
+        type: currentContact.tel[tel].type,
         notes: '',
         i: tel
       };
@@ -189,6 +204,58 @@ contacts.app = (function() {
     navigation.go(editView, 'right-left');
   };
 
+  var goToSelectTag = function goToSelectTag(event) {
+    var tagList = event.target.dataset.taglist;
+    var options = TAG_OPTIONS[tagList];
+    fillTagOptions(options, tagList, event.target);
+    navigation.go('view-select-tag', 'right-left');
+  };
+
+  var fillTagOptions = function fillTagOptions(options, tagList, update) {
+    var list = document.getElementById('tags-list');
+    list.innerHTML = '';
+    var selectedLink;
+    for (var o in options) {
+      var newTag = document.createElement('li');
+      var link = document.createElement('a');
+      link.href = '#';
+      link.dataset.index = o;
+      link.onclick = function(event) {
+        var index = event.target.dataset.index;
+        selectTag(event.target, tagList, update);
+      };
+      link.textContent = options[o].value;
+      selectedLink = selectedLink || link;
+      if (update.textContent == TAG_OPTIONS[tagList][o].value) {
+        selectedLink = link;
+      }
+      newTag.appendChild(link);
+      list.appendChild(newTag);
+    }
+    selectTag(selectedLink);
+  };
+
+  var selectTag = function selectTag(link, tagList, update) {
+    var index = link.dataset.index;
+    if (update) {
+      update.textContent = TAG_OPTIONS[tagList][index].value;
+    }
+
+    if (selectedTag) {
+      // TODO: Regex
+      var tagContent = selectedTag.innerHTML;
+      var findIcon = tagContent.indexOf('<');
+      selectedTag.innerHTML = tagContent.substr(0, findIcon);
+    }
+    var icon = document.createElement('span');
+    icon.className = 'slcl-state icon-selected';
+    icon.setAttribute('role', 'button');
+    link.appendChild(icon);
+    selectedTag = link;
+    selectedTagIndex = index;
+  };
+
+
   var showAdd = function showAdd() {
     resetForm();
     formTitle.innerHTML = 'Add Contact';
@@ -202,57 +269,35 @@ contacts.app = (function() {
     navigation.go(editView, 'right-left');
   };
 
-  var saveContact = function saveContact(successCb, errorCb) {
+  var saveContact = function saveContact() {
     var form = document.querySelector('#view-contact-form form');
     var fields = document.querySelectorAll('#view-contact-form form input');
     var myContact = {};
-    for (var i = 0; i < fields.length; i++) {
-      var value = fields[i].value;
-      if (value === '')
-        continue;
 
-      var name = fields[i].name;
-      if (name === 'id') {
-        myContact['id'] = value;
-        continue;
-      }
+    myContact['id'] = document.getElementById('contact-form-id').value;
 
-      myContact[name] = myContact[name] || [];
-      var index = 0;
-      if (fields[i].dataset.arrayindex) {
-        // Array element
-        var index = fields[i].dataset.arrayindex;
-      }
+    myContact['givenName'] = [givenName.value] || [''];
+    myContact['familyName'] = [familyName.value] || [''];
+    myContact.name = myContact['givenName'][0];
+    myContact.name += ' ' + myContact['familyName'][0];
 
-      if (fields[i].dataset.field) {
-        var field = fields[i].dataset.field;
-        // Hash inside
-        myContact[name][index] = myContact[name][index] || {};
-        myContact[name][index][field] = value;
-      } else {
-        // No hash
-        myContact[name][index] = myContact[name][index] || [];
-        myContact[name][index] = value;
-      }
-    }
+    getPhones(myContact);
+    getEmails(myContact);
 
-    var givenNameField = '' || myContact.givenName[0];
-    var familyNameField = '' || myContact.familyName[0];
-    myContact.name = givenNameField + ' ' + familyNameField;
-    successCb = function(contact) {
+    var successCb = function(contact) {
       contactsList.refresh(contact);
       reloadContactDetails(contact);
       navigation.back();
     };
 
-    errorCb = function() {
+    var errorCb = function() {
       console.error('Error saving contact');
     }
 
     var contact;
     if (myContact.id) {
       //Editing a contact
-      for (field in myContact) {
+      for (var field in myContact) {
         currentContact[field] = myContact[field];
       }
       contact = currentContact;
@@ -260,8 +305,39 @@ contacts.app = (function() {
       contact = new mozContact();
       contact.init(myContact);
     }
-
     doSaveContact(contact, successCb, errorCb);
+  };
+
+  var getPhones = function getPhones(contact) {
+    var selector = '#view-contact-form form input[data-field="number"]';
+    var phones = document.querySelectorAll(selector);
+    for (var p in phones) {
+      var numberField = phones[p].value;
+      if (numberField) {
+        var selector = 'tel_type_' + p;
+        var typeField = document.getElementById(selector).textContent || '';
+        var notes = document.getElementById('notes_' + p).value || '';
+        contact['tel'] = contact['tel'] || [];
+        // TODO: Save notes
+        contact['tel'][p] = {
+          number: numberField,
+          type: typeField
+        };
+      }
+    }
+  };
+
+  var getEmails = function getEmails(contact) {
+    var selector = '#view-contact-form form input[name="email"]';
+    var emails = document.querySelectorAll(selector);
+    for (var e in emails) {
+      var emailField = emails[e].value;
+      if (emailField) {
+        // TODO: Save type
+        contact['email'] = contact['email'] || [];
+        contact['email'][e] = emailField;
+      }
+    }
   };
 
   var doSaveContact = function doSaveContact(contact, successCb, errorCb) {
@@ -292,12 +368,13 @@ contacts.app = (function() {
   var insertEmptyPhone = function insertEmptyPhone(index) {
     var telField = {
       number: '',
-      type: '',
+      type: TAG_OPTIONS['phone-type'][0].value,
       notes: '',
       i: index
     };
     var template = utils.templates.render(phoneTemplate, telField);
     phonesContainer.appendChild(template);
+    numberPhones++;
   };
 
   var insertEmptyEmail = function insertEmptyEmail(index) {
@@ -309,6 +386,7 @@ contacts.app = (function() {
 
     var template = utils.templates.render(emailTemplate, emailField);
     emailContainer.appendChild(template);
+    numberEmails++;
   };
 
   var buildActions = function(actions) {
@@ -360,7 +438,8 @@ contacts.app = (function() {
       'showAdd': showAdd,
       'addNewPhone' : addNewPhone,
       'addNewEmail' : addNewEmail,
-      'goBack' : navigation.back
+      'goBack' : navigation.back,
+      'goToSelectTag': goToSelectTag
     }
   };
 })();
@@ -369,4 +448,3 @@ window.addEventListener('load', function initContacts(evt) {
   window.removeEventListener('load', initContacts);
   contacts.app.init();
 });
-

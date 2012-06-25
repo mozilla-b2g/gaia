@@ -96,6 +96,9 @@
 
 .view-actions a {
   margin-top: -25%;
+  color: #fff;
+  font-size: 1.4rem;
+  line-height: 3.3rem;
 }
 
 .view-actions:before {
@@ -116,7 +119,8 @@
 }
 
 .view-body-inner {
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   position: absolute;
   left: 0;
   top: 0;
