@@ -111,6 +111,13 @@ var WindowManager = (function() {
     return runningApps.hasOwnProperty(origin);
   }
 
+  function getAppFrame(origin) {
+    if (isRunning(origin))
+      return runningApps[origin].frame;
+    else
+      return null;
+  }
+
   // Set the size of the app's iframe to match the size of the screen.
   // We have to call this on resize events (which happen when the
   // phone orientation is changed). And also when an app is launched
@@ -526,12 +533,13 @@ var WindowManager = (function() {
     app.launch();
   }
 
-  // The mozApps API launch() method generates an event that we handle
-  // here to do the actual launching of the app
+  // There are two types of mozChromeEvent we need to handle
+  // in order to launch the app for Gecko
   window.addEventListener('mozChromeEvent', function(e) {
     var origin = e.detail.origin;
     switch (e.detail.type) {
       // mozApps API is asking us to launch the app
+      // We will launch it in foreground
       case 'webapps-launch':
         if (isRunning(origin)) {
           setDisplayedApp(origin);
@@ -548,22 +556,33 @@ var WindowManager = (function() {
 
       // System Message Handler API is asking us to open the specific URL
       // that handles the pending system message.
+      // We will launch it in background.
       case 'open-app':
-        // If the app is opened then there is nothing to do.
-        // window_manager have no way to help the given app to handle
-        // this request
-        if (isRunning(origin))
-          return;
+        if (isRunning(origin)) {
+          var frame = getAppFrame(origin);
+          // If the app is opened and it is loaded to the correct page,
+          // then there is nothing to do.
+          if (frame.src === e.detail.url)
+            return;
+
+          // If the app is in foreground, it's too risky to change it's
+          // URL. We'll ignore this request.
+          if (displayedApp === origin)
+            return;
+
+          // Rewrite the URL of the app frame to the requested URL.
+          // XXX: We could ended opening URls not for the app frame
+          // in the app frame. But we don't care.
+          frame.src = e.detail.url;
+        }
 
         var app = Applications.getByOrigin(origin);
         if (!app)
           return;
 
-        // XXX: We do not know whether the URL required (e.detail.url)
-        // is the app itself, or a background service page,
-        // or some thing else launched with window.open,
-        // but we'll launch the launch_path of the app in background anyway.
-        appendFrame(origin, app.origin + app.launch_path,
+        // XXX: We could ended opening URls not for the app frame
+        // in the app frame. But we don't care.
+        appendFrame(origin, e.detail.url,
                     app.manifest.name, app.manifest, app.manifestURL, true);
 
         break;
@@ -752,12 +771,7 @@ var WindowManager = (function() {
     getDisplayedApp: getDisplayedApp,
     setOrientationForApp: setOrientationForApp,
     setAppSize: setAppSize,
-    getAppFrame: function(origin) {
-      if (isRunning(origin))
-        return runningApps[origin].frame;
-      else
-        return null;
-    },
+    getAppFrame: getAppFrame,
     getNumberOfRunningApps: function() {
       return numRunningApps;
     },
