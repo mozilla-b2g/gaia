@@ -574,6 +574,7 @@ var WindowManager = (function() {
           // XXX: We could ended opening URls not for the app frame
           // in the app frame. But we don't care.
           frame.src = e.detail.url;
+          return;
         }
 
         var app = Applications.getByOrigin(origin);
