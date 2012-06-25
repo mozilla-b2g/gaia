@@ -1,0 +1,260 @@
+html, body {
+  padding: 0;
+  border: 0;
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: url("images/app-texture.png") repeat scroll 0 0 #F4F4F4;
+}
+
+div {
+  position: relative;
+}
+
+a {
+  outline: 0 none;
+  text-decoration: none;
+  color: #555;
+}
+
+a:active {
+  color: #000;
+}
+
+div.table-view {
+  display: table;
+}
+
+div.table-view > div {
+  display: table-row;
+}
+
+div.table-view > div > div {
+  display: table-cell;
+}
+
+div#containter {
+  height: 100%;
+  width: 100%;
+}
+
+div#title-bar {
+  height: 20px;
+}
+
+div#freq-view {
+  height: 100px;
+  width: 100%;
+}
+
+div#freq-view a {
+  outline: 0 none;
+  text-decoration: none;
+  color: #555;
+}
+
+div#freq-view a#bookmark-btn {
+  position: relative;
+  top: -24px;
+  font-size: 50px;
+  cursor: pointer;
+}
+
+div#freq-view a#bookmark-btn:after {
+  content: "♡";
+}
+
+div#freq-view a.in-fav-list:after {
+  content: "♥" !important;
+}
+
+div#freq-view label#frequency {
+  font-size: 80px;
+}
+
+div#freq-view label#frequency:after {
+  content: "MHz";
+  font-size: 40px;
+  padding-left: 10px;
+}
+
+div#freq-ops {
+  height: 80px;
+  text-align: center;
+}
+
+div#freq-ops > a {
+  font-size: 80px;
+  padding-right: 30px;
+  position: relative;
+  top: -25px;
+}
+
+div#freq-ops > a:last-child {
+  padding-right: 0;
+}
+
+div#freq-ops > a#freq-op-seekdown:after {
+  content: "«";
+}
+
+div#freq-ops > a#freq-op-100khz-down:after {
+  content: "<";
+}
+
+div#freq-ops > a#freq-op-seekup:after {
+  content: "»";
+}
+
+div#freq-ops > a#freq-op-100khz-up:after {
+  content: ">";
+}
+
+div.auto {
+  height: -moz-calc(100% - 200px);
+  overflow: hidden;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -ms-box-sizing: border-box;
+  box-sizing: border-box;
+  margin: 0 0 -60px 0;
+  padding: 0 0 60px 0;
+  clear: both;
+}
+
+div#fav-list {
+  float: left;
+  overflow: auto;
+  height: 100%;
+  width: 100%;
+}
+
+div#fav-list > div#fav-list-container {
+  max-height: 100%;
+  position: absolute;
+  bottom: 2px;
+  width: 100%;
+}
+
+div#fav-list > div#fav-list-container > div {
+  font-size: 45px;
+  height: 65px;
+  text-align: right;
+  width: 100%;
+  clear: both;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -ms-box-sizing: border-box;
+  box-sizing: border-box;
+  padding-right: -moz-calc(50% - 110px);
+}
+
+div#fav-list > div#fav-list-container > div.selected,
+div#fav-list > div#fav-list-container > div:active {
+  background-color: lightGray;
+}
+
+div#fav-list > div#fav-list-container > div:after {
+  content: "MHz";
+  font-size: 28px;
+  padding-left: 10px;
+}
+
+div#fav-list > div#fav-list-container > div:before {
+  content: "♥";
+  font-size: 30px;
+  left: 0;
+  position: absolute;
+  padding: 10px 0 0 40px;
+}
+
+div#status-bar {
+  height: 60px;
+}
+
+div#status-bar > div > div {
+  float: left; width: 33%; height: 100%;
+  font-size: 32px;
+  text-align: center;
+}
+
+div#switch-bar a.poweron:after {
+  content: "ON";
+}
+
+div#switch-bar a.poweroff:after {
+  content: "OFF";
+}
+
+div#switch-bar a.speaker:after {
+  content: "Speaker";
+}
+
+div#switch-bar a.headset:after {
+  content: "Headset";
+}
+
+div#switch-bar a#edit-btn {
+  display: none;
+}
+
+div#switch-bar a.edit:after {
+  content: "Edit";
+}
+
+div#edit-bar {
+  display: none;
+}
+
+div#edit-bar a.cancel:after {
+  content: "Cancel";
+}
+
+div#edit-bar a.delete:after {
+  content: "Delete";
+}
+
+/***  styles for antenna warning box ****/
+div#antenna-warning {
+  display: none;
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  font-size: 50px;
+  color: #FFF;
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+div#antenna-warning div {
+  text-align: center;
+  vertical-align: middle;
+}
+/******* end *******/
+
+/***** styles for popup delete box ****/
+div#popup-del-box {
+  display: none;
+  position: absolute;
+  height: 40px;
+  width: 150px;
+  top: 0;
+  left: 0;
+  border: 1px solid #555;
+  border-radius: 10px;
+  text-align: center;
+  background-color: #F4F4F4;
+  z-index: 1000;
+}
+
+div#popup-del-box a#popup-del-btn:after {
+  content: "Delete";
+  font-size: 30px;
+}
+/******* end *******/
+
