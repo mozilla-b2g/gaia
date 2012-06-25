@@ -30,7 +30,7 @@
       <div class="view-inner">
         <header class="view-header">
           <ul class="pull-right stack view-actions">
-            <li id='add-contact-button' onclick="contacts.app.ui.showAdd();">
+            <li id='add-contact-button' onclick="Contacts.showAdd();">
               <a href="#" title="Add contact">
                 <span role="button" class="icon-add" data-l10n-id="add">Add</span>
               </a>
@@ -61,6 +61,9 @@
                 </h2>
                 <ol id="contacts-list-#group#" data-group="#group#">
                   <li data-template class="block-item" data-uuid="#id#">
+                    <span class="checkbox">
+                      <input type="checkbox" name="#uid#"><i></i>
+                    </span>
                     <a href="#" class="item">
                       <figure class="item-media pull-right block-media">
                          <img alt="" style="background-image: url(#photo#);">
@@ -83,14 +86,14 @@
       <div class="view-inner">
         <header id='details-view-header' class="view-header">
           <ul class="pull-right stack view-actions">
-            <li id='edit-contact-button' onclick="contacts.app.ui.showEdit();">
+            <li id='edit-contact-button' onclick="Contacts.showEdit();">
               <a href="#" title="Edit contact">
                 <span role="button" class="icon-edit" data-l10n-id="edit">Edit</span>
               </a>
             </li>
           </ul>
           <p class="view-back pull-left">
-            <a class='back-button' title="Back" href="#" onclick="contacts.app.ui.goBack();">
+            <a class='back-button' title="Back" href="#" onclick="Contacts.goBack();">
               <span role="button" class="icon-back">Back</span>
             </a>
           </p>
@@ -99,7 +102,6 @@
         <article class="view-body">
           <div class="view-body-inner">
             <div class="contact-header">
-              <!-- Default img so far, as UX have to define what to do when no image -->
               <figure><img id='cover-img' alt="" style=""></figure>
             </div>
             <section id="contact-detail">
@@ -110,7 +112,7 @@
 
               <!-- Phone Template -->
               <li id='phone-details-template' data-template>
-                <h2>#tel_type#</h2>
+                <h2>#type#</h2>
                 <div class="item">
                   <div class="item-media pull-right">
                     <button class="action"><span role="button" class="icon-message">Message</span></button>
@@ -153,7 +155,7 @@
           <ul id='contact-form-actions' class="pull-right stack view-actions">
           </ul>
           <p class="view-back pull-left">
-            <a class='back-button' title="Back" href="#" onclick="contacts.app.ui.goBack();">
+            <a class='back-button' title="Back" href="#" onclick="Contacts.goBack();">
               <span role="button" class="icon-back">Back</span>
             </a>
           </p>
@@ -161,12 +163,15 @@
         </header>
 
         <!-- PHONE TEMPLATE -->
-        <dl id='add-phone' data-template class="setbox">
-          <dt class="setbox-title"><a href="#">#type# <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span></a></dt>
+        <dl id='add-phone' data-template class="setbox fillflow-row">
+          <dt class="setbox-title">
+              <a data-taglist='phone-type' onmousedown="Contacts.goToSelectTag(event); return false;" name="tel" value="#type#" id="tel_type_#i#" data-field="type" data-arrayindex="#i#">#type#</a>
+              <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>
+          </dt>
           <dd class="setbox-body">
             <p class="setbox-item">
               <label class="hide" for="tel_#i#">Phone number:</label>
-              <input placeholder="Phone" data-field="number" data-arrayindex="#i#" name="tel" class="textfield" type="number" value="#number#" id="tel_#i#">
+              <input placeholder="Phone" data-field="number" data-arrayindex="#i#" name="tel" class="textfield" type="tel" value="#number#" id="number_#i#">
             </p>
             <p class="setbox-item">
               <label class="hide" for="notes_#i#">Name:</label>
@@ -177,11 +182,16 @@
 
         <!-- EMAIL TEMPLATE -->
         <dl id='add-email' data-template class="setbox">
-          <dt class="setbox-title"><a href="#">#type# <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span></a></dt>
+          <!-- Commented while we don't have an email type field in contacts -->
+          <!-- <dt class="setbox-title">
+              <input type="text" data-taglist='email-type' onclick="Contacts.goToSelectTag(event)" name="email" value="#type#" id="email_type_#i#" data-field="type" data-arrayindex="#i#">
+                <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>
+              </input>
+            </dt> -->
           <dd class="setbox-body">
             <p class="setbox-item">
               <label class="hide" for="email_#i#">e-mail:</label>
-              <input placeholder="Email" data-arrayindex="#i#" name="email" class="textfield" type="mail" value="#email#" id="email_#i#">
+              <input placeholder="Email" data-arrayindex="#i#" name="email" class="textfield" type="email" value="#email#" id="email_#i#">
             </p>
           </dd>
         </dl>
@@ -223,7 +233,7 @@
                 https://bugzilla.mozilla.org/show_bug.cgi?id=261037
               </fieldset> -->
 
-              <fieldset class="fillflow-row">
+              <fieldset>
                 <legend>Phone numbers</legend>
                   <div id='contacts-form-phones'>
                     <!-- Iterating over phone template here -->
@@ -233,7 +243,7 @@
                 </button>
               </fieldset>
 
-              <button onclick='contacts.app.ui.addNewPhone(); return false;' id='add-new-phone' class="fillflow-row action action-add">
+              <button onclick='Contacts.addNewPhone(); return false;' id='add-new-phone' class="fillflow-row action action-add">
                 <span role="button" class="icon-add"></span>
                 <b>Add phone number</b>
               </button>
@@ -248,7 +258,7 @@
                 </button>
               </fieldset>
 
-              <button onclick='contacts.app.ui.addNewEmail(); return false;' id='add-new-email' class="fillflow-row action action-add">
+              <button onclick='Contacts.addNewEmail(); return false;' id='add-new-email' class="fillflow-row action action-add">
                 <span role="button" class="icon-add"></span>
                 <b>Add email address</b>
               </button>
@@ -273,6 +283,33 @@
         </article>
       </div>
     </section>
+    <section id="view-select-tag" class="view view-select-tag view-right">
+      <div class="view-inner">
+        <header class="view-header">
+          <p class="view-back pull-left">
+            <a class='back-button' title="Back" href="#" onclick="Contacts.goBack();">
+              <span role="button" class="icon-back">Back</span>
+            </a>
+          </p>
+          <ul class="pull-right stack view-actions">
+            <li>
+            </li>
+            <li onclick="Contacts.goBack();">
+              <a href="#" title="Done">Done
+              </a>
+            </li>
+          </ul>
+          <h1>Label</h1>
+        </header>
+
+        <article class="view-body">
+          <div class="view-body-inner">
+            <ul id="tags-list" class="selection-list">
+            </ul>
+            <input class="textfield" type="text" placeholder="Custom Tag" value="">
+          </div>
+        </article>
+      </div>
+    </section>
   </body>
 </html>
-
