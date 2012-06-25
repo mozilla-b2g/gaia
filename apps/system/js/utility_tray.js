@@ -12,7 +12,7 @@ var UtilityTray = {
 
   statusbar: document.getElementById('statusbar'),
 
-  quickSettings: document.getElementById('quick-settings'),
+  firstShown: document.getElementById('utility-tray-first-shown'),
 
   gripBar: document.getElementById('utility-tray-grippy'),
 
@@ -98,15 +98,15 @@ var UtilityTray = {
     dy = Math.min(screenHeight, dy);
 
     if (dy > gripBarHeight) {
-      var quickSettingsHeight = this.quickSettings.getBoundingClientRect().height;
+      var firstShownHeight = this.firstShown.getBoundingClientRect().height;
 
-      if (dy < quickSettingsHeight + gripBarHeight) {
-        newHeight = screenHeight - quickSettingsHeight - gripBarHeight;
+      if (dy < firstShownHeight + gripBarHeight) {
+        newHeight = screenHeight - firstShownHeight - gripBarHeight;
       } else {
         newHeight = screenHeight - dy;
       }
-      this.quickSettings.style.MozTransition = '';
-      this.quickSettings.style.MozTransform = 'translateY(' + newHeight + 'px)';
+      this.firstShown.style.MozTransition = '';
+      this.firstShown.style.MozTransform = 'translateY(' + newHeight + 'px)';
     }
 
     var style = this.overlay.style;
@@ -149,13 +149,13 @@ var UtilityTray = {
   show: function ut_show(dy) {
     var alreadyShown = this.shown,
         trayStyle = this.overlay.style,
-        quickSettingsStyle = this.quickSettings.style;
+        firstShownStyle = this.firstShown.style;
 
     trayStyle.MozTransition = '-moz-transform 0.2s linear';
     trayStyle.MozTransform = 'translateY(100%)';
 
-    quickSettingsStyle.MozTransition = '-moz-transform 0.2s linear';
-    quickSettingsStyle.MozTransform = 'translateY(0px)';
+    firstShownStyle.MozTransition = '-moz-transform 0.2s linear';
+    firstShownStyle.MozTransform = 'translateY(0px)';
 
     this.shown = true;
     this.screen.classList.add('utility-tray');
