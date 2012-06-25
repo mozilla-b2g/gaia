@@ -161,7 +161,7 @@
         </header>
 
         <!-- PHONE TEMPLATE -->
-        <dl id='add-phone' data-template class="setbox">
+        <dl id='add-phone' data-template class="setbox fillflow-row">
           <dt class="setbox-title">
            <label>
               <input type="text" data-taglist='phone-type' onclick="contacts.app.ui.goToSelectTag(event)" name="tel" value="#type#" id="tel_type_#i#" data-field="type" data-arrayindex="#i#">
@@ -233,7 +233,7 @@
                 https://bugzilla.mozilla.org/show_bug.cgi?id=261037
               </fieldset> -->
 
-              <fieldset class="fillflow-row">
+              <fieldset>
                 <legend>Phone numbers</legend>
                   <div id='contacts-form-phones'>
                     <!-- Iterating over phone template here -->
