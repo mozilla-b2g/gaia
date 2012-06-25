@@ -520,7 +520,7 @@
 #lockscreen-passcode-pad > a.lockscreen-passcode-pad-func {
   font-size: 12px;
   line-height: 16px;
-  padding: 10px 0;
+  padding: 10px;
   text-align: center;
   text-transform: uppercase;
 }
@@ -542,7 +542,7 @@
   #lockscreen-passcode-pad > a.lockscreen-passcode-pad-func {
     font-size: 18px;
     line-height: 24px;
-    padding: 15px 0;
+    padding: 15px;
   }
 }
 

@@ -1150,9 +1150,12 @@
   // Public API
   navigator.mozL10n = {
     // get a localized string
-    get: function(key, args, fallback) {
+    get: function l10n_get(key, args, fallback) {
       var data = getL10nData(key, args) || fallback;
-      return data ? data.textContent : '{{' + key + '}}';
+      if (data) {
+        return 'textContent' in data ? data.textContent : '';
+      }
+      return '{{' + key + '}}';
     },
 
     // get|set the document language and direction
