@@ -10,6 +10,7 @@
     requireApp('calendar/js/models/events.js');
     requireApp('calendar/js/calc.js');
     requireApp('calendar/js/controller.js');
+    requireApp('calendar/js/view.js');
   }
 
   function createController(fn) {
