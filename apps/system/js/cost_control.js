@@ -92,7 +92,6 @@ var CostControl = {
   topUp: function() {
     //TODO
   }
-
 };
 
 CostControl.init();
