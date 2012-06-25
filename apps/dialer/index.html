@@ -32,8 +32,8 @@
     <script type="application/javascript" src="js/proximity.js"></script>
   </head>
   <body class="hidden">
-    <article id="views">
-      <article id="keyboard-view" class="view">
+    <article id="views" role="tablist">
+      <article id="keyboard-view" class="view" role="tabpanel">
         <div id="phone-number-view-container">
           <div class="grid-cell grid-v-align">
             <div class="grid-wrapper">
@@ -163,21 +163,40 @@
               </div>
             </span>
           </section>
-          <section id="keypad-toolbar">
-            <span role="button" id="keypad-toolbar-call-log" data-type="action" data-value="call-log">
-              <div>
-              </div>
-            </span>
-            <span role="button" id="keypad-toolbar-contact-list" data-type="action" data-value="contact-list">
-              <div>
-              </div>
-            </span>
-            <span role="button" id="keypad-toolbar-keypad" data-type="action" data-value"keypad" class="selected">
-              <div class="icon-keypad"></div>
-            </span>
-          </section>
         </article>
       </article>
+        <article role="tabpanel" id="contacts-view">
+        </article>
+        <article role="tabpanel" id="recents-view">				
+        </article>
+    </article>
+    <article id="toolbar">
+      <nav id="keypad-toolbar">
+        <span role="button" id="keypad-toolbar-call-log" data-type="action" data-value="call-log">
+          <a href="#recents-view">
+            <div>
+            </div>
+          </a>
+        </span>
+        <span role="button" id="keypad-toolbar-contact-list" data-type="action" data-value="contact-list">
+          <a href="#contacts-view">	
+            <div>
+            </div>
+          </a>
+        </span>
+        <span role="button" id="keypad-toolbar-keypad" data-type="action" data-value"keypad" class="selected">
+          <a href="#keyboard-view">
+            <div class="icon-keypad">
+            </div>
+          </a>
+        </span>
+      </nav>
     </article>
   </body>
+    <script>
+      //If no entry point, redirect to the keyboard-view
+      if(document.location.href.indexOf("#") == -1) {
+        document.location.href = "#keyboard-view";
+      }
+    </script>
 </html>

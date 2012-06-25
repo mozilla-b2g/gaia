@@ -106,3 +106,16 @@ html * {
 body.hidden *[data-l10n-id] {
   visibility: hidden;
 }
+
+#toolbar {
+	position: absolute;
+	bottom: 0;
+}
+
+*[role=tablist] *[role=tabpanel] {
+	display:none;
+}
+
+*[role=tablist] *:target {
+	display: block;
+}
