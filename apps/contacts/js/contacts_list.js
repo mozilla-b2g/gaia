@@ -125,9 +125,12 @@ contacts.List = (function() {
     var len = liElems.length;
     for (var i = 1; i < len; i++) {
       var liElem = liElems[i];
+      var familyName = liElem.querySelector('strong > b').textContent.trim();
+      var givenName = liElem.querySelector('strong');
+      givenName = givenName.childNodes[0].nodeValue.trim();
       var name = getStringToBeOrdered({
-        familyName: [liElem.querySelector('strong > b').textContent.trim()],
-        givenName:  [liElem.querySelector('strong').childNodes[0].nodeValue.trim()]
+        familyName: [familyName],
+        givenName: [givenName]
       });
       if (name >= cName) {
         newLi = utils.templates.render(liElems[0], contact);

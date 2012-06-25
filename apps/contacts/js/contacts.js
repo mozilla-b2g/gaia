@@ -315,7 +315,8 @@ contacts.app = (function() {
     for (var p in phones) {
       var numberField = phones[p].value;
       if (numberField) {
-        var typeField = document.getElementById('tel_type_' + p).textContent || '';
+        var selector = 'tel_type_' + p;
+        var typeField = document.getElementById(selector).textContent || '';
         var notes = document.getElementById('notes_' + p).value || '';
         contact['tel'] = contact['tel'] || [];
         // TODO: Save notes
