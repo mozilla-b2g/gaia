@@ -73,7 +73,7 @@ const IMERender = (function() {
         var ratio = key.ratio || 1;
 
         //key with + key separation in rems
-        var keyWidth = ratio;
+        var keyWidth = (((widthRatio * ratio) * 2.6) + ((widthRatio * ratio) - 1) * 0.4);
         var dataset = [{'key': 'row', 'value': nrow}];
         dataset.push({'key': 'column', 'value': ncolumn});
         dataset.push({'key': 'keycode', 'value': code});
@@ -238,7 +238,7 @@ const IMERender = (function() {
 
     // Replace with the container
     _altContainer = document.createElement('div');
-    _altContainer.style.MozBoxFlex = '1';
+//    _altContainer.style.MozBoxFlex = '1';
     _altContainer.innerHTML = key.innerHTML;
     _altContainer.className = key.className;
     _menuKey = key;
@@ -285,7 +285,7 @@ const IMERender = (function() {
 
     // Replace with the container
     _altContainer = document.createElement('div');
-    _altContainer.style.MozBoxFlex = '1';
+//    _altContainer.style.MozBoxFlex = '1';
     _altContainer.innerHTML = key.innerHTML;
     _altContainer.className = key.className;
     _menuKey = key;
@@ -358,7 +358,8 @@ const IMERender = (function() {
     dataset.forEach(function(data) {
       content += ' data-' + data.key + '="' + data.value + '" ';
     });
-    content += ' style="-moz-box-flex:' + width + '"';
+//    content += ' style="-moz-box-flex:' + width + '"';
+    content +=  ' style="width:' + width + 'rem"';
     content += '><span>' + label + '</span></button>';
     return content;
   };
