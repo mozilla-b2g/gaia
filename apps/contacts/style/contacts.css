@@ -10,7 +10,9 @@
   background-size: 100% auto;
 }
 
-.view-contacts-list .block-list { padding-right: 1rem; }
+.view-contacts-list .block-list {
+  padding-right: 1rem;
+}
 
 
 /* Contact detail main section */
