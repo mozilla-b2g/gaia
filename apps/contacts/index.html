@@ -163,11 +163,9 @@
         <!-- PHONE TEMPLATE -->
         <dl id='add-phone' data-template class="setbox">
           <dt class="setbox-title">
-            <a data-update='type_#i#' onclick="contacts.app.ui.goToPhoneType(this)" href="#">
-              #type# 
+            <input type="text" data-taglist='phone-type' onclick="contacts.app.ui.goToSelectTag(event)" name="tel" value="#type#" id="tel_type_#i#" data-field="type" data-arrayindex="#i#">
               <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>
-            </a>
-          <input type="hidden" name="tel" value="#type#" id="type_#i#" data-field="type" data-arrayindex="#i#" \>
+            </input>
           </dt>
           <dd class="setbox-body">
             <p class="setbox-item">
@@ -183,7 +181,12 @@
 
         <!-- EMAIL TEMPLATE -->
         <dl id='add-email' data-template class="setbox">
-          <dt class="setbox-title"><a href="#">#type# <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span></a></dt>
+          <!-- Commented while we don't have an email type field in contacts -->
+          <!-- <dt class="setbox-title">
+              <input type="text" data-taglist='email-type' onclick="contacts.app.ui.goToSelectTag(event)" name="email" value="#type#" id="email_type_#i#" data-field="type" data-arrayindex="#i#">
+                <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>
+              </input>
+            </dt> -->
           <dd class="setbox-body">
             <p class="setbox-item">
               <label class="hide" for="email_#i#">e-mail:</label>

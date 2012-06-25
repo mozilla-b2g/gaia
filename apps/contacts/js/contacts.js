@@ -52,12 +52,24 @@ contacts.app = (function() {
   //Initializations
   var TAG_OPTIONS = {
     'phone-type' : [
+      {value: 'Mobile'},
+      {value: 'Home'},
+      {value: 'Work'},
+      {value: 'Personal'},
+      {value: 'Fax Home'},
+      {value: 'Fax Office'},
+      {value: 'Other Fax'},
+      {value: 'Another'}
+    ],
+    'email-type' : [
+      {value: 'Personal'},
       {value: 'Home'},
       {value: 'Work'}
     ]
   };
   var numberEmails = 0;
   var numberPhones = 0;
+  var selectedTagIndex = 0;
   var detailsHeader,
       currentContactId,
       phoneDetailsTemplate,
@@ -72,8 +84,7 @@ contacts.app = (function() {
       emailTemplate,
       phonesContainer,
       emailContainer,
-      selectedTag,
-      selectedTagIndex;
+      selectedTag;
 
   var currentContact = {};
 
@@ -135,7 +146,7 @@ contacts.app = (function() {
     for (var tel in contact.tel) {
       var telField = {
         number: contact.tel[tel].number,
-        type: contact.tel[tel].type,
+        type: contact.tel[tel].type || TAG_OPTIONS['phone-type'][0].value,
         notes: ''
       };
       var template = utils.templates.render(phoneDetailsTemplate, telField);
@@ -144,8 +155,7 @@ contacts.app = (function() {
     for (var email in contact.email) {
       var emailField = {
         email: contact.email[email],
-        email_tag: '',
-        type: 'email'
+        type: ''
       };
       var template = utils.templates.render(emailDetailsTemplate, emailField);
       listContainer.appendChild(template);
@@ -196,15 +206,17 @@ contacts.app = (function() {
     navigation.go(editView, 'right-left');
   };
 
-  var goToPhoneType = function goToPhoneType(target) {
-    var options = TAG_OPTIONS['phone-type'];
-    fillTagOptions(options, target.dataset.update);
+  var goToSelectTag = function goToSelectTag(event) {
+    var tagList = event.target.dataset.taglist;
+    var options = TAG_OPTIONS[tagList];
+    fillTagOptions(options, tagList, event.target);
     navigation.go('view-select-tag', 'right-left');
   };
 
-  var fillTagOptions = function fillTagOptions(options, update) {
+  var fillTagOptions = function fillTagOptions(options, tagList, update) {
     var list = document.getElementById('tags-list');
     list.innerHTML = '';
+    var selectedLink;
     for (var o in options) {
       var newTag = document.createElement('li');
       var link = document.createElement('a');
@@ -212,23 +224,23 @@ contacts.app = (function() {
       link.dataset.index = o;
       link.onclick = function(event) {
         var index = event.target.dataset.index;
-        selectTag(event.target, update);
+        selectTag(event.target, tagList, update);
         navigation.back();
       };
       link.textContent = options[o].value;
-      if (o === selectedTagIndex) {
-        selectTag(link);
+      if (update.value == TAG_OPTIONS[tagList][o].value) {
+        selectedLink = link;
       }
       newTag.appendChild(link);
       list.appendChild(newTag);
     }
+    selectTag(selectedLink);
   };
 
-  var selectTag = function selectTag(link, update) {
+  var selectTag = function selectTag(link, tagList, update) {
     var index = link.dataset.index;
     if (update) {
-      var toUpdate = document.getElementById(update);
-      toUpdate.value = TAG_OPTIONS['phone-type'][index].value;
+      update.value = TAG_OPTIONS[tagList][index].value;
     }
 
     if (selectedTag) {
@@ -349,7 +361,7 @@ contacts.app = (function() {
   var insertEmptyPhone = function insertEmptyPhone(index) {
     var telField = {
       number: '',
-      type: '',
+      type: TAG_OPTIONS['phone-type'][0].value,
       notes: '',
       i: index
     };
@@ -418,7 +430,7 @@ contacts.app = (function() {
       'addNewPhone' : addNewPhone,
       'addNewEmail' : addNewEmail,
       'goBack' : navigation.back,
-      'goToPhoneType': goToPhoneType
+      'goToSelectTag': goToSelectTag
     }
   };
 })();
