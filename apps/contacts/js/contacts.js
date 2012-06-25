@@ -226,7 +226,8 @@ contacts.app = (function() {
         navigation.back();
       };
       link.textContent = options[o].value;
-      if (update.value == TAG_OPTIONS[tagList][o].value) {
+      selectedLink = selectedLink || link;
+      if (update.textContent == TAG_OPTIONS[tagList][o].value) {
         selectedLink = link;
       }
       newTag.appendChild(link);
@@ -238,7 +239,7 @@ contacts.app = (function() {
   var selectTag = function selectTag(link, tagList, update) {
     var index = link.dataset.index;
     if (update) {
-      update.value = TAG_OPTIONS[tagList][index].value;
+      update.textContent = TAG_OPTIONS[tagList][index].value;
     }
 
     if (selectedTag) {
@@ -278,7 +279,8 @@ contacts.app = (function() {
 
     myContact['givenName'] = [givenName.value] || [''];
     myContact['familyName'] = [familyName.value] || [''];
-    myContact.name = myContact['givenName'][0] + ' ' + myContact['familyName'][0];
+    myContact.name = myContact['givenName'][0];
+    myContact.name += ' ' + myContact['familyName'][0];
 
     getPhones(myContact);
     getEmails(myContact);
@@ -313,7 +315,7 @@ contacts.app = (function() {
     for (var p in phones) {
       var numberField = phones[p].value;
       if (numberField) {
-        var typeField = document.getElementById('tel_type_' + p).value || '';
+        var typeField = document.getElementById('tel_type_' + p).textContent || '';
         var notes = document.getElementById('notes_' + p).value || '';
         contact['tel'] = contact['tel'] || [];
         // TODO: Save notes
