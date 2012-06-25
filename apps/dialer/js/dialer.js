@@ -82,29 +82,33 @@ var CallHandler = {
 };
 
 var NavbarManager = {
-  init: function nm_init(){
-   
-    window.addEventListener('hashchange',function(event){
+  init: function nm_init() {
+
+    window.addEventListener('hashchange' , function(event) {
 
       //TODO Implement it with building blocks: 
       // https://github.com/jcarpenter/Gaia-UI-Building-Blocks/blob/master/inprogress/tabs.css
       // https://github.com/jcarpenter/Gaia-UI-Building-Blocks/blob/master/inprogress/tabs.html
 
-      document.getElementById('option-recents').classList.remove('toolbar-option-selected');
-      document.getElementById('option-contacts').classList.remove('toolbar-option-selected');
-      document.getElementById('option-keypad').classList.remove('toolbar-option-selected');
+      var option_recent = document.getElementById('option-recents');
+      var option_contacts = document.getElementById('option-contacts');
+      var option_keypad = document.getElementById('option-keypad');
+
+      option_recent.classList.remove('toolbar-option-selected');
+      option_contacts.classList.remove('toolbar-option-selected');
+      option_keypad.classList.remove('toolbar-option-selected');
       
       var destination = window.location.hash;
       
-      switch(destination){
+      switch (destination) {
         case '#recents-view':
-          document.getElementById('option-recents').classList.add('toolbar-option-selected');
+          option_recent.classList.add('toolbar-option-selected');
           break;
         case '#contacts-view':
-          document.getElementById('option-contacts').classList.add('toolbar-option-selected');
+          option_contacts.classList.add('toolbar-option-selected');
           break;
         case '#keyboard-view':
-          document.getElementById('option-keypad').classList.add('toolbar-option-selected');
+          option_keypad.classList.add('toolbar-option-selected');
           break;
       }
     });
