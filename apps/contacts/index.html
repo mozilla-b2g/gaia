@@ -26,7 +26,7 @@
 
   <body class="app-contacts">
     <!-- Contacts List Section -->
-    <section id='view-contacts-list' class="view view-noscroll view-contacts-list" data-state="selection">
+    <section id='view-contacts-list' class="view view-noscroll view-contacts-list">
       <div class="view-inner">
         <header class="view-header">
           <ul class="pull-right stack view-actions">
@@ -163,9 +163,10 @@
         <!-- PHONE TEMPLATE -->
         <dl id='add-phone' data-template class="setbox">
           <dt class="setbox-title">
-            <input type="text" data-taglist='phone-type' onclick="contacts.app.ui.goToSelectTag(event)" name="tel" value="#type#" id="tel_type_#i#" data-field="type" data-arrayindex="#i#">
+           <label>
+              <input type="text" data-taglist='phone-type' onclick="contacts.app.ui.goToSelectTag(event)" name="tel" value="#type#" id="tel_type_#i#" data-field="type" data-arrayindex="#i#">
               <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>
-            </input>
+           </label>
           </dt>
           <dd class="setbox-body">
             <p class="setbox-item">
