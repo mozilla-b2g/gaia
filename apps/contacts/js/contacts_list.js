@@ -63,6 +63,14 @@ contacts.List = (function() {
       contacts[i].name = contacts[i].name || '';
       contacts[i].familyName = contacts[i].familyName || '';
       contacts[i].givenName = contacts[i].givenName || '';
+
+      // To support properly the middle name
+      if(contacts[i].givenName.length > 0) {
+        if(contacts[i].additionalName.length > 0) {
+          contacts[i].givenName +=  ' ' + contacts[i].additionalName || '';
+        }
+      }
+
       var letter = getGroupName(contacts[i]);
 
       if (letter === group) {
@@ -124,7 +132,16 @@ contacts.List = (function() {
     var group = getGroupName(contact);
     var cName = contact.name || '';
     contact.familyName = contact.familyName || '';
+
+
     contact.givenName = contact.givenName || '';
+    // To support properly the middle name
+    if(contacts[i].givenName.length > 0) {
+      if(contacts[i].additionalName.length > 0) {
+        contacts[i].givenName +=  ' ' + contacts[i].additionalName || '';
+      }
+    }
+
     var list = groupsList.querySelector('#contacts-list-' + group);
     var liElems = list.getElementsByTagName('li');
     var len = liElems.length;
@@ -221,4 +238,3 @@ contacts.List = (function() {
     'handleClick': handleClick
   };
 })();
-
