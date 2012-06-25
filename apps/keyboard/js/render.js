@@ -57,7 +57,10 @@ const IMERender = (function() {
     var layoutWidth = layout.width || 10;
     var widthRatio = 10 / layoutWidth;
 
-    resizeUI();
+    var totalWidth = document.getElementById('keyboard').clientWidth;
+    var placeHolderWidth = totalWidth / layoutWidth;
+
+//    resizeUI();
 
     layout.upperCase = layout.upperCase || {};
     layout.keys.forEach((function buildKeyboardRow(row, nrow) {
@@ -73,7 +76,8 @@ const IMERender = (function() {
         var ratio = key.ratio || 1;
 
         //key with + key separation in rems
-        var keyWidth = (((widthRatio * ratio) * 2.6) + ((widthRatio * ratio) - 1) * 0.4);
+        //var keyWidth = (((widthRatio * ratio) * 2.6) + ((widthRatio * ratio) - 1) * 0.4);
+        var keyWidth = placeHolderWidth * ratio;
         var dataset = [{'key': 'row', 'value': nrow}];
         dataset.push({'key': 'column', 'value': ncolumn});
         dataset.push({'key': 'keycode', 'value': code});
@@ -359,8 +363,8 @@ const IMERender = (function() {
       content += ' data-' + data.key + '="' + data.value + '" ';
     });
 //    content += ' style="-moz-box-flex:' + width + '"';
-    content +=  ' style="width:' + width + 'rem"';
-    content += '><span>' + label + '</span></button>';
+    content +=  ' style="width:' + width + 'px"';
+    content += '><span class="keyboard-key-bound"><span>' + label + '</span></span></button>';
     return content;
   };
 
