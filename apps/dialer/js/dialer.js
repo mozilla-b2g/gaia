@@ -62,10 +62,6 @@ var CallHandler = {
 
   // callbacks
   call: function ch_call(number) {
-    var host = document.location.host;
-    window.open('http://' + host + '/oncall.html#outgoing',
-                'dialer_calling', 'attention');
-
     var sanitizedNumber = number.replace(/-/g, '');
 
     var telephony = window.navigator.mozTelephony;
