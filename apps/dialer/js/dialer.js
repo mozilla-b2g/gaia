@@ -81,11 +81,41 @@ var CallHandler = {
   }
 };
 
+var NavbarManager = {
+  init: function nm_init(){
+   
+    window.addEventListener('hashchange',function(event){
+
+      //TODO Implement it with building blocks: 
+      // https://github.com/jcarpenter/Gaia-UI-Building-Blocks/blob/master/inprogress/tabs.css
+      // https://github.com/jcarpenter/Gaia-UI-Building-Blocks/blob/master/inprogress/tabs.html
+
+      document.getElementById('option-recents').classList.remove('toolbar-option-selected');
+      document.getElementById('option-contacts').classList.remove('toolbar-option-selected');
+      document.getElementById('option-keypad').classList.remove('toolbar-option-selected');
+      
+      var destination = window.location.hash;
+      
+      switch(destination){
+        case '#recents-view':
+          document.getElementById('option-recents').classList.add('toolbar-option-selected');
+          break;
+        case '#contacts-view':
+          document.getElementById('option-contacts').classList.add('toolbar-option-selected');
+          break;
+        case '#keyboard-view':
+          document.getElementById('option-keypad').classList.add('toolbar-option-selected');
+          break;
+      }
+    });
+  }
+};
+
 window.addEventListener('localized', function startup(evt) {
   window.removeEventListener('localized', startup);
 
   KeypadManager.init();
-
+  NavbarManager.init();
   // Set the 'lang' and 'dir' attributes to <html> when the page is translated
   document.documentElement.lang = navigator.mozL10n.language.code;
   document.documentElement.dir = navigator.mozL10n.language.direction;
