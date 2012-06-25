@@ -1,0 +1,12 @@
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
+'use strict';
+
+var CostControl = {
+  init: function cc_init() {
+
+  },
+};
+
+CostControl.init();
