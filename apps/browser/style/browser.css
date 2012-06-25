@@ -215,24 +215,25 @@ body {
 }
 
 #ssl-indicator {
+  display: block;
   width: 24px;
   height: 24px;
   margin-right: 10px;
   text-indent: -1000em;
-}
-
-#ssl-indicator[value=insecure], #ssl-indicator[value=''] {
-    display:none;
+  background-repeat: no-repeat;
+  background-position: center center;
 }
 
 #ssl-indicator[value=secure] {
-  background: url(images/site_security_verified.png) no-repeat center center;
-  display:block;
+  background-image: url(images/site_security_verified.png);
 }
 
 #ssl-indicator[value=broken] {
-  background: url(images/site_security_verified.png) no-repeat center center;
-  display:block;
+  background-image: url(images/site_security_verified.png);
+}
+
+#ssl-indicator[value=insecure], #ssl-indicator[value=''] {
+  display: none;
 }
 
 #url-input {
