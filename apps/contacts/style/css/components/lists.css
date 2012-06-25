@@ -3,11 +3,6 @@
 .block-list {
   padding-left: 1rem;
 }
-
-.block-list.edition { 
-  -moz-transform: translateX(2rem); 
-}
-
 .block-item { 
   border-bottom: solid 1px #dbdbdb;
   min-height: 6rem;
@@ -43,7 +38,7 @@
 }
 
 .block-list .checkbox {
-  display: block;
+  display: none;
   pointer-events: all;
   position: absolute;
   right: 100%;
@@ -76,6 +71,13 @@
   background-size: 100% auto;
 }
 .block-list [type="checkbox"]:checked + i { background-position: center bottom; } 
+
+
+/* Selection state */
+[data-state="selection"] .block-list { padding-left: 3rem }
+[data-state="selection"] .block-list .checkbox { display: block; }
+
+
 
 
 /* Media crop */

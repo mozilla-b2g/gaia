@@ -39,6 +39,7 @@ textarea.textfield {
   line-height: 1.6rem;
   text-transform: uppercase;
 }
+  .setbox-title input {  }
 
 .setbox-title a {
   color: #333;
