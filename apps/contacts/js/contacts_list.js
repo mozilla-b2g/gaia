@@ -119,7 +119,13 @@ contacts.List = (function() {
   var addToList = function addToList(contact) {
     var newLi;
     var group = getGroupName(contact);
+<<<<<<< HEAD
     var cName = getStringToBeOrdered(contact);
+=======
+    var cName = contact.name || '';
+    contact.familyName = contact.familyName || '';
+    contact.givenName = contact.givenName || '';
+>>>>>>> 880ded309f6e6ae892299688460f8ac6cf392519
     var list = groupsList.querySelector('#contacts-list-' + group);
     var liElems = list.getElementsByTagName('li');
     var len = liElems.length;

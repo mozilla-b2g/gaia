@@ -3,7 +3,7 @@
 .block-list {
   padding-left: 1rem;
 }
-.block-item { 
+.block-item {
   border-bottom: solid 1px #dbdbdb;
   min-height: 6rem;
   position: relative;
@@ -47,11 +47,11 @@
   width: 2.2rem;
   height: 2.2rem;
 }
-.block-list .checkbox * { 
+.block-list .checkbox * {
   pointer-events: all;
 }
 
-.block-list [type="checkbox"] { 
+.block-list [type="checkbox"] {
   opacity: 0;
   width: 100%;
   height: 100%;
@@ -70,14 +70,12 @@
   background: url("../../gphx/bitmap/default/forms/check-default.png") no-repeat center top;
   background-size: 100% auto;
 }
-.block-list [type="checkbox"]:checked + i { background-position: center bottom; } 
+.block-list [type="checkbox"]:checked + i { background-position: center bottom; }
 
 
 /* Selection state */
-[data-state="selection"] .block-list { padding-left: 3rem }
+[data-state="selection"] .block-list { padding-left: 1.9rem; }
 [data-state="selection"] .block-list .checkbox { display: block; }
-
-
 
 
 /* Media crop */
@@ -92,7 +90,7 @@
   width: 100%;
   height: 100%;
   background: transparent no-repeat center center;
-  background-size: 100% auto; 
+  background-size: 100% auto;
 }
 
 /* SELECTION-LIST:  Items to be selected and used in another view */
@@ -130,5 +128,3 @@
   top: 50%;
   margin-top: -1.5rem;
 }
-
-

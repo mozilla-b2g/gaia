@@ -61,7 +61,9 @@
                 </h2>
                 <ol id="contacts-list-#group#" data-group="#group#">
                   <li data-template class="block-item" data-uuid="#id#">
-                    <span class="checkbox"><input type="checkbox"><i></i></span>
+                    <span class="checkbox">
+                      <input type="checkbox" name="#uid#"><i></i>
+                    </span>
                     <a href="#" class="item">
                       <figure class="item-media pull-right block-media">
                          <img alt="" style="background-image: url(#photo#);">
@@ -161,7 +163,7 @@
         </header>
 
         <!-- PHONE TEMPLATE -->
-        <dl id='add-phone' data-template class="setbox">
+        <dl id='add-phone' data-template class="setbox fillflow-row">
           <dt class="setbox-title">
            <label>
               <input type="text" data-taglist='phone-type' onclick="contacts.app.ui.goToSelectTag(event)" name="tel" value="#type#" id="tel_type_#i#" data-field="type" data-arrayindex="#i#">
@@ -233,7 +235,7 @@
                 https://bugzilla.mozilla.org/show_bug.cgi?id=261037
               </fieldset> -->
 
-              <fieldset class="fillflow-row">
+              <fieldset>
                 <legend>Phone numbers</legend>
                   <div id='contacts-form-phones'>
                     <!-- Iterating over phone template here -->

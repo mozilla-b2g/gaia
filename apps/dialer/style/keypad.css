@@ -215,7 +215,7 @@
   opacity:0.7;
 }
 
-#keypad-toolbar-call-log > div{
+#keypad-toolbar-call-log * > div{
   margin: auto;
   width: 2.6rem;
   height: 2.5rem;
@@ -225,7 +225,7 @@
   background-position: center;
 }
 
-#keypad-toolbar-contact-list > div {
+#keypad-toolbar-contact-list * > div {
   margin: auto;
   width: 2.6rem;
   height: 2.5rem;
