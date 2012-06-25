@@ -28,7 +28,7 @@
   text-align: center;
 }
 
-#cardsView li {
+#cardsView .card {
   display: inline-block;
   width: 100%;
   height: 100%;
@@ -38,27 +38,17 @@
   -moz-transform: scale(0.6);
 }
 
-#cardsView li:first-child {
+#cardsView .card:first-child {
   margin: 0;
 }
 
-#cardsView li > a {
-  display: block;
-  width: 64px;
-  height: 64px;
-  position: absolute;
-  top: -32px;
-  right: -32px;
-  -moz-transform: scale(1.8);
-}
-
-#cardsView li > h1 {
+#cardsView .card > h1 {
   position: absolute;
   top: 100%;
   width: 100%;
 }
 
-#cardsView li > img.appIcon {
+#cardsView .card > img.appIcon {
     position: relative;
     height: 8rem;
     width: 8rem;

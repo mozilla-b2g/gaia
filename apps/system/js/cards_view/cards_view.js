@@ -107,6 +107,7 @@ var CardsView = (function() {
       // Build a card representation of each window.
       // And add it to the card switcher
       var card = document.createElement('li');
+      card.classList.add('card');
       card.style.background = '-moz-element(#' + app.frame.id + ') no-repeat';
       card.dataset['origin'] = origin;
 
@@ -131,8 +132,8 @@ var CardsView = (function() {
   }
 
   function runApp() {
-      hideCardSwitcher();
-      WindowManager.launch(this.dataset['origin']);
+    hideCardSwitcher();
+    WindowManager.launch(this.dataset['origin']);
   }
 
   function hideCardSwitcher() {
@@ -155,12 +156,12 @@ var CardsView = (function() {
   }
 
   //scrolling cards
-  var initialCardViewPosition,
-      initialTouchPosition = {};
-  var threshold = window.innerWidth / 4,
+  var initialCardViewPosition;
+  var initialTouchPosition = {};
+  var threshold = window.innerWidth / 4;
       // Distance after which dragged card starts moving
-      moveCardThreshold = window.innerHeight / 6,
-      removeCardThreshold = window.innerHeight / 4;
+  var moveCardThreshold = window.innerHeight / 6;
+  var removeCardThreshold = window.innerHeight / 4;
 
   function alignCard(number) {
     cardsView.scrollLeft = cardsList.children[number].offsetLeft;
@@ -170,7 +171,6 @@ var CardsView = (function() {
     evt.stopPropagation();
     cardsView.addEventListener('mousemove', CardsView);
     cardsView.addEventListener('mouseup', CardsView);
-
 
     initialCardViewPosition = cardsView.scrollLeft;
     initialTouchPosition = {
@@ -186,7 +186,7 @@ var CardsView = (function() {
         y: evt.touches ? evt.touches[0].pageY : evt.pageY
     };
 
-    if (evt.target.nodeName === 'LI' && MANUAL_CLOSING) {
+    if (evt.target.classList.contains('card') && MANUAL_CLOSING) {
       var differenceY = initialTouchPosition.y - touchPosition.y;
       if (differenceY > moveCardThreshold) {
         evt.target.style.MozTransform = 'scale(0.6) translate(0, -' +
@@ -212,7 +212,7 @@ var CardsView = (function() {
     };
 
     // if the element we start dragging on is a card
-    if (evt.target.nodeName === 'LI' && MANUAL_CLOSING) {
+    if (evt.target.classList.contains('card') && MANUAL_CLOSING) {
       var differenceY = initialTouchPosition.y - touchPosition.y;
       if (differenceY > removeCardThreshold) {
         // Without removing the listener before closing card
