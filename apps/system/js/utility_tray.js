@@ -33,13 +33,16 @@ var UtilityTray = {
   handleEvent: function ut_handleEvent(evt) {
     switch (evt.type) {
       case 'keyup':
-        if(this.shown && evt.keyCode === evt.DOM_VK_ESCAPE) {
+        if(!this.shown || evt.keyCode !== evt.DOM_VK_ESCAPE)
+          return;
 
-          evt.preventDefault();
-          evt.stopPropagation();
+        // doesn't work right now, see https://github.com/mozilla-b2g/gaia/issues/1663
+        evt.preventDefault();
+        evt.stopPropagation();
 
-          this.hide();
-        }
+        this.hide();
+        break;
+
       case 'screenchange':
         if (this.shown && !evt.detail.screenEnabled)
           this.hide(true);
