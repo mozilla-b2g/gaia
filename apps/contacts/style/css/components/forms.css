@@ -40,7 +40,15 @@ textarea.textfield {
   text-transform: uppercase;
 }
    .setbox-title label { position: relative; display: block; }
-     .setbox-title input { border: none; background: none; display: block; width: 100%; }
+     .setbox-title input {
+      border: none;
+      background: none;
+      display: block;
+      width: 100%;
+      font-size: 1.2rem;
+      line-height: 1.6rem;
+      text-transform: uppercase;
+    }
 
 .setbox-title a {
   color: #333;
@@ -56,7 +64,7 @@ textarea.textfield {
   width: 1px;
   height: 100%;
   min-height: 4rem;
-  margin-left: -1px;
+  margin-left: -0.44rem;
 }
 
 .setbox-icon {
@@ -65,7 +73,7 @@ textarea.textfield {
   top: 50%;
 }
 
-.setbox-icon.icon-arrow {
+.setbox .setbox-icon.icon-arrow[role="button"] {
   margin-top: -0.2rem;
 }
 
