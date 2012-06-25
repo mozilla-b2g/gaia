@@ -5,7 +5,10 @@
   <link rel="stylesheet" type="text/css" href="./style/calendar.css">
   <link rel="stylesheet" type="text/css" href="./style/ui.css">
   <link rel="stylesheet" type="text/css" href="./style/events.css">
-  <link rel="stylesheet" type="text/css" href="./style/hacks.css">
+
+  <!--- vendor -->
+  <script defer src="/js/ext/gesture_detector.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/ext/page.js" type="text/javascript" charset="utf-8"></script>
 
   <!--- utils -->
   <script defer src="/js/calc.js" type="text/javascript" charset="utf-8"></script>
@@ -14,7 +17,8 @@
   <script defer src="/js/set.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/template.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/responder.js" type="text/javascript" charset="utf-8"></script>
-  <script defer src="/js/gesture_detector.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/view.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/router.js" type="text/javascript" charset="utf-8"></script>
 
   <!--- templates -->
   <script defer src="/js/templates/month.js" type="text/javascript" charset="utf-8"></script>
@@ -35,7 +39,7 @@
 
   <title>Gaia Calendar</title>
 </head>
-<body>
+<body onload="Calendar.init();">
 
 <section id="top-toolbar">
   <header class="toolbar">
@@ -46,7 +50,7 @@
     <h3 id="current-month-year">
     </h3>
 
-    <a data-l10n-id="buttons.new-event" role="button" class="new-event" href="#new-event">
+    <a data-l10n-id="buttons.new-event" role="button" class="new-event" href="/add">
       New Event
     </a>
   </header>
@@ -54,7 +58,7 @@
 
 <section id="views">
 
-  <section id="month">
+  <section id="month-view">
     <!--- title row all the days this will be static -->
     <header id="month-days" role="row">
       <ol role="row">
@@ -77,18 +81,30 @@
 
     </section>
 
-    <!---
-    When a day is selected you have
-    access to the details here
-    -->
+  </section>
 
-    <section id="months-day-view">
-      <header class="toolbar">
-        <h3 id="selected-day-title"></h3>
-      </header>
-       <section id="event-list" class="day-events">
-      </section>
+  <!---
+  When a day is selected you have
+  access to the details here
+  -->
+  <section id="months-day-view">
+    <header class="toolbar">
+      <h3 id="selected-day-title"></h3>
+    </header>
+     <section id="event-list" class="day-events">
     </section>
+  </section>
+
+  <section id="day-view">
+    [Day] Coming soon....
+  </section>
+
+  <section id="week-view">
+    [Week] Coming soon...
+  </section>
+
+  <section id="add-event-view">
+    [Add] Coming soon...
   </section>
 </section>
 
@@ -101,13 +117,13 @@
     <li class="time-selection">
       <menu>
         <li class="month">
-          <a href="#view-month">MONTH</a>
+          <a href="/month">MONTH</a>
         </li>
         <li class="week">
-          <a href="#view-week">WEEK</a>
+          <a href="/week">WEEK</a>
         </li>
         <li class="day">
-          <a href="#view-day">DAY</a>
+          <a href="/day">DAY</a>
         </li>
       </menu>
     </li>

@@ -34,19 +34,15 @@ var BackgroundServiceManager = (function bsm() {
     if (evt.detail.features !== 'background')
       return;
 
-    // preventDefault means "we're handling this popup; let it through."
-    evt.preventDefault();
     // stopPropagation means we are not allowing
     // Popup Manager to handle this event
     evt.stopPropagation();
 
-    // XXX: this is sad. Getting origin from manifest URL.
     var manifestURL = evt.target.getAttribute('mozapp');
-    var origin = manifestURL.substr(0, manifestURL.indexOf('/'));
+    var origin = evt.target.dataset.frameOrigin;
 
-    var frame = open(origin, evt.detail.name, evt.detail.url);
-    if (frame)
-      evt.detail.frameElement = frame;
+    var detail = evt.detail;
+    open(origin, detail.name, detail.url, detail.frameElement);
   }, true);
 
   /* mozbrowserclose */
@@ -78,23 +74,32 @@ var BackgroundServiceManager = (function bsm() {
 
   /* Check if the app has the permission to open a background page */
   var hasBackgroundPermission = function bsm_checkPermssion(app) {
-    if (!app || !app.manifest.permissions ||
-        app.manifest.permissions.indexOf('background') == -1) {
+    if (!app || !app.manifest.permissions)
       return false;
-    }
-    return true;
+
+    var keys = Object.keys(app.manifest.permissions);
+    var permissions = keys.map(function map_perm(key) {
+      return app.manifest.permissions[key];
+    });
+
+    return (permissions.indexOf('background') != -1);
   };
 
   /* The open function is responsible of containing the iframe */
-  var open = function bsm_open(origin, name, url) {
+  var open = function bsm_open(origin, name, url, frame) {
     var app = Applications.getByOrigin(origin);
     if (!app || !hasBackgroundPermission(app))
       return false;
 
-    if (frames[origin] && frames[origin][name])
-      return frames[origin][name];
+    if (frames[origin] && frames[origin][name]) {
+      // XXX: the window with the same name is opened but we cannot
+      // return the window reference back to mozbrowseropenwindow request
+      return false;
+    }
 
-    var frame = document.createElement('iframe');
+    if (!frame) {
+      frame = document.createElement('iframe');
+    }
     frame.className = 'backgroundWindow';
     frame.setAttribute('mozbrowser', 'true');
     frame.setAttribute('mozapp', app.manifestURL);
@@ -108,7 +113,7 @@ var BackgroundServiceManager = (function bsm() {
     frames[origin][name] = frame;
 
     document.body.appendChild(frame);
-    return frames[origin][name];
+    return true;
   };
 
   /* The close function will remove the iframe from DOM and
@@ -133,7 +138,7 @@ var BackgroundServiceManager = (function bsm() {
       return false;
 
     document.body.removeChild(frame);
-    frame = null;
+    delete frames[origin][name];
 
     if (!Object.keys(frames[origin]).length)
       delete frames[origin];

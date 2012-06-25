@@ -16,19 +16,20 @@
   src: url('fonts/Open-Sans-Semibold.woff');
 }
 
-@media screen and (max-width: 800px) and (max-height: 800px) and
-                  (min-width: 480px) and (min-height: 480px) {
+@media screen and (min-resolution: 200dpi) {
+
+  html {
+    font-size: 13.5px;
+  }
+}
+
+@media screen and (max-resolution: 200dpi) {
+
   html {
     font-size: 10px;
   }
 }
 
-@media screen and (max-width: 480px) and (max-height: 480px) {
-  /** font-size: 7.3px; 10px aiming at devices with 219dpi, 7.3px for 160dpi, 6px for?? */
-  html {
-    font-size: 6px;  
-  }
-}
 
 /* media queries for removing rounded border when keyboard is shown */
 @media screen and (max-height: 70rem) {
@@ -36,7 +37,7 @@
     bottom: 0;
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
-    border-top: solid 0.3rem #9b9b9b;
+   
   }
 }
 
@@ -46,13 +47,13 @@ html, body {
   margin: 0;
   overflow-x: hidden;
   overflow-y: hidden;
+  font-family: 'Open Sans', sans-serif;
 }
 
 body {
   margin: 0;
   width: 100%;
   height: 100%;
-  background-color: #000;
   font-family: 'Open Sans', sans-serif;
 }
 
@@ -66,6 +67,26 @@ body {
 
 body.conversation .panel {
   -moz-transform: translateX(-100%);
+}
+
+body.conversation-new-msg .conversation-hide {
+  display: none;
+}
+
+body.conversation .conversation-hide {
+  display: none;
+}
+
+body.edit-mode .conversation-hide {
+  display: table-cell !important;
+}
+
+body.conversation-new-msg .contact-show {
+  display: block;
+}
+
+body.edit-mode .hide-bottom {
+  display: none;
 }
 
 /* View - Slide Horizontal Transition */
@@ -116,27 +137,23 @@ body.conversation #msg-conversations {
   display: block;
   left: 0;
   right: 0;
-  background-color: #fff;
-  background: url("images/app-texture.png") repeat scroll 50% 50%, -moz-linear-gradient(center top , rgb(244, 244, 244), rgb(234, 234, 234)) repeat scroll 0% 0% transparent;
+  background: -moz-linear-gradient(top, #cd6723 0%, #bb482d 100%); 
   margin: 0;
   padding: 0;
 }
 
 .toolbar-top {
   top: 0;
-  border-top-left-radius: 0.8rem;
-  border-top-right-radius: 0.8rem;
   height: 6.4rem;
-  border-bottom: solid 0.3rem #9b9b9b;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   z-index: 5;
 }
 
 .toolbar-bottom {
   bottom: 0;
-  height: 8rem;
-  border-bottom-left-radius: 0.8rem;
-  border-bottom-right-radius: 0.8rem;
-  border-top: solid 0.3rem #9b9b9b;
+  height: 6rem;
+  background: rgba(0,0,0,.3);
+  
 }
 
 .toolbar-panel {
@@ -165,16 +182,6 @@ body.conversation #msg-conversations {
 }
 
 input, textarea {
-  -moz-box-sizing: border-box;
-  border: solid 0.3rem #7d8389;
-  border-radius: 2rem;
-  height: 4rem;
-  margin: 1.3rem 1.5rem;
-  font-size: 2rem;
-  line-height: 2.5rem;
-  font-family: 'Open Sans', sans-serif;
-  padding: 0;
-  background: -moz-linear-gradient(center top , rgba(0, 0, 0, 0.2) 0rem, rgba(255, 255, 255, 0) 2rem, rgb(255, 255, 255) 100%) repeat scroll 0% 0% rgb(255, 255, 255);
 }
 
 .button {
@@ -190,6 +197,15 @@ input, textarea {
                 hsl(32,100%,38%) 98%, hsl(32,100%,38%) 99%, hsl(31,100%,50%) 100%),
               -moz-linear-gradient(top, hsl(39,100%,73%) 0, hsla(35,100%,50%,1) 0.2rem, hsl(32,100%,38%) 98%,
                 hsl(32,100%,38%) 99%, hsl(31,100%,50%) 100%);
+}
+
+.button-bottom-bar {
+  background: -moz-linear-gradient(top, #b50404 0%, #850a0a 100%); 
+  vertical-align: middle;
+  text-align: center;
+  font-size: -moz-calc(7*0.226rem);
+  color: #ffffff;
+  display: table-cell;
 }
 
 .back-button {
@@ -269,15 +285,14 @@ body.msg-search-mode #msg-conversations-list {
 #msg-title-container {
   padding: 0;
   margin: 0;
-  text-align: center;
+  margin-left: 3rem;
   line-height: 6rem;
-  font-size: 2.4rem;
-  font-weight: bold;  
+  color: #ffffff;
+  font-size: -moz-calc(10 * 0.226rem);
 }
 
 #msg-conversations-list {
-  background: url("images/app-texture.png") repeat scroll 50% 50%, rgb(243, 243, 243);
-  -moz-transition: top 0.3s ease;
+ -moz-transition: top 0.3s ease;
 }
 
 #msg-conversations-list > a {
@@ -289,7 +304,7 @@ body.msg-search-mode #msg-conversations-list {
   position: relative;
   /* Remove the thumbnail for current stage.
    *padding need to 11.2rem + img width when social network integration is ready*/
-  padding: 1.3rem 1.6rem 0 2.2rem;
+  padding: 1.3rem 1.6rem 0 5rem;
   border-top: 0.1rem solid hsla(207,22%,92%,1);
   border-bottom: 0.1rem solid hsla(223,7%,81%,1);
   width: 100%;
@@ -298,9 +313,8 @@ body.msg-search-mode #msg-conversations-list {
   text-overflow: ellipsis;
 }
 
-
 body.edit-mode #msg-conversations-list > a {
-  padding: 1.3rem 1.6rem 0 11.2rem;
+  padding: 1.3rem 1.6rem 0 13.2rem;
   -moz-transition: padding 0.3s ease-out;
 }
 
@@ -320,16 +334,27 @@ body.edit-mode #msg-conversations-list > a {
   border-top-color: transparent;
 }
 
-#msg-conversations-list > a.unread::before {
-  position: absolute;
-  content: "";
+#msg-conversations-list > a .unread-mark {
+  display: none;
+}
+
+a.unread .unread-mark {
+  display: block !important;
+  width: 3rem !important;
+  left: 0rem !important;
+  height: 100% !important;
+  top: 0 !important;
+  background: transparent !important;
+  border-style: none !important;
+
+}
+
+a.unread .unread-mark .icon-unread-mark {
   display: block;
-  top: 0rem;
-  left: 0rem;
-  width: 1rem;
-  height: 100%;
-  padding-top: -0.2rem;
-  background: -moz-linear-gradient(45deg, gray, #EDEDED);
+  width: .9rem;
+  height: .9rem;
+  margin: 4.3rem auto;
+  background-image: url('images/updates.png');
 }
 
 /* fake input boxes for checkboxes*/
@@ -348,7 +373,7 @@ body.edit-mode #msg-conversations-list > a {
 #msg-conversations-list > a > span {
   position: absolute;
   top: -moz-calc(50% - 3.4rem);
-  left: 2rem;
+  left: 4rem;
   display: block;
   width: 6.4rem;
   height: 6.4rem;
@@ -415,7 +440,7 @@ body.edit-mode #msg-conversations-list > a > span {
   text-overflow: ellipsis;
 }
 
-#msg-conversations-list .msg .highlight{
+#msg-conversations-list .msg .highlight {
   background: rgb(255, 255, 0);
 }
 
@@ -463,52 +488,73 @@ body.edit-mode #msg-conversations-list .msg {
   margin: 0;
 }
 
-#msg-new-message {
-  margin-top: 0.6rem;
-  margin-left: 2.4rem;
-  top: 0rem;
-  left: 0rem;
-  min-width: 10rem;
-  outline: none;
-  position: absolute;
+#msg-edit-options-bar {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  width: 100%;
+  display: table;
+  border-spacing: 2rem 1rem;
+  table-layout: fixed;
 }
 
-#msg-edit-button { /** , #msg-search-edit-button {  **/
+#msg-new-message {
   right: 0rem;
-  margin-top: 0.6rem;
-  margin-right: 2.4rem; 
+  width: 4rem;
+  margin-right: 6rem; 
   position: absolute;
-  min-width: 10rem;
+  height: 100%;
+}
+
+.icon-add {
+  display: block;
+  background-image: url('images/add.png');
+  height: 1.6rem;
+  width: 1.5rem;
+  margin: 2.2rem auto;
+}
+
+#msg-edit-button, #msg-search-edit-button {
+  right: 0rem;
+  width: 4rem;
+  margin-right: 2rem; 
+  position: absolute;
+ 
+  height: 100%;
+}
+
+.icon-edit {
+  display: block;
+  background-image: url('images/edit.png');
+  height: 2rem;
+  width: 1.9rem;
+  margin: 2rem auto;
 }
 
 #msg-conversations-back {
   position: absolute;
-  margin: 0.6rem 0 0 2.4rem;
+  
+  height: 100%;
+  width: 2rem;
+  text-align: center;
+  border-right: solid .1rem rgba(0, 0, 0, 0.2);
+  box-shadow: 0.1rem 0 0 0.01rem rgba(255, 255, 255, 0.3)
 }
 
-#msg-delete-button { /** , #msg-search-edit-button {  **/
-  right: 0rem;
-  top: 0rem;
-  margin-top: 1.4rem;
-  margin-right: 2.4rem;  
-  position: absolute;
-  min-width: 12rem;
-}
+.icon-back {
+  display: block;
+  background-image: url('images/back.png');
+  height: 2.7rem;
+  width: 1.1rem;
 
-#msg-delete-all-button {
-  left: 0rem;
-  top: 0rem;
-  margin-top: 1.4rem;
-  margin-left: 2.4rem;  
-  position: absolute;
-  min-width: 15rem;
-}
+  margin: 1.65rem auto;
+}    
 
-.edit-hide { /** .search-hide { **/
+.edit-hide, .search-hide { 
   display: block;
 }
 
-.edit-show { /** .search-show { **/
+.edit-show, .search-show { 
   display: none;
 }
 
@@ -528,52 +574,79 @@ body.edit-mode .edit-show {
   display: block;
 }
 
+body.edit-mode .edit-hide-element {
+  background: red !important;
+}
+
 #view-back {
   position: absolute;
-  margin: 0.6rem 0 0 2.4rem;
+  height: 100%;
+  width: 2rem;
+  text-align: center;
+  border-right: solid .1rem rgba(0, 0, 0, 0.2);
+  box-shadow: 0.1rem 0 0 0.01rem rgba(255, 255, 255, 0.3);
 }
+
 #view-done-button {
   position: absolute;
-  margin: 0.6rem 0 0 2.4rem;
+  cursor: pointer;
+  padding: 1.4rem 0;
+  width: 7rem;
+  right: 2rem;
+  text-align: center;
+  font-size: -moz-calc(10 * 0.226rem);
+  color: #ffffff;
 }
 
 #view-edit-button { 
   right: 0rem;
-  margin-top: 0.6rem;
-  margin-right: 2.4rem; 
+  width: 4rem;
+  margin-right: 2rem; 
   position: absolute;
-  min-width: 10rem;
+ 
+  height: 100%;
 }
+  
 
 body.conversation-new-msg #view-edit-button #view-name {
   display: none;
 }
+
 body.edit-mode #view-edit-button {
   display: none;
 }
 
 #view-add-button {
   right: 0rem;
-  margin-top: 0.6rem;
-  margin-right: 2.4rem; 
+  width: 4rem;
+  margin-right: 1rem; 
   position: absolute;
-  min-width: 10rem;
   display: none;
+  height: 100%;
+ 
+}
+
+.icon-contact {
+  display: block;
+  background-image: url('images/contacts_icon.png');
+    
+  height: 2.4rem;
+  width: 2.2rem;
+  margin: 1.8rem auto;
 }
 
 body.edit-mode #view-add-button {
   display: none;
 }
 
-
 #view-name {
-  font-size: 2.6rem;
-  font-weight: bold;
-  margin: 0 9.6rem;
   padding: 0;
-  line-height: 6.4rem;
-  text-align: center;
-  color: rgb(51, 51, 51);
+  margin: 0;
+  margin-left: 3rem;
+  font-weight: normal;
+  line-height: 6rem;
+  color: #ffffff;
+  font-size: -moz-calc(10 * 0.226rem);
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
@@ -583,12 +656,22 @@ body.conversation-new-msg #view-name {
   display: none;
 }
 
-#view-num {
+body.conversation-new-msg #view-add-button {
+  display: block;
+}
+
+body.conversation-new-msg #view-edit-button {
   display: none;
-  margin: 1rem 15.2rem;
+}
+
+#view-num {
+  height: 4rem;
+  display: none;
+  margin: 1rem 5rem 1rem 3rem;
   padding: 0 2rem;
   -moz-box-sizing: border-box;
-  width: -moz-calc(100% - 30rem);
+  width: -moz-calc(100% - 9rem);
+  font-size: -moz-calc(6 * 0.226rem);
 }
 
 body.conversation-new-msg #view-num {
@@ -626,10 +709,8 @@ body.conversation-new-msg #view-num {
 }
 
 #view-list {
-  background: url('images/conversation-view-list-bg.png');
-  bottom: 8rem;
+  bottom: 5.5rem;
 }
-
 
 #view-list > div .message-container {
   background: url("images/app-texture.png") repeat scroll 50% 50%, rgb(191, 204, 215);
@@ -694,8 +775,8 @@ body.conversation-new-msg #view-num {
 }
 
 #view-list > div .text {
-  font-size: 2.4rem;
-  font-weight: 600;
+  font-size: -moz-calc(6*0.226rem);
+  
   color: rgb(18, 47, 64);
   text-shadow: 0 0.1rem 0 #ddd;
   line-height: 3.2rem;
@@ -765,7 +846,7 @@ body.edit-mode #view-list > div.message-block {
 }
 
 
-#view-list > div.message-block:active > div.message-container{
+#view-list > div.message-block:active > div.message-container {
   background: rgba(183,214,54,.6);
 }
 
@@ -835,27 +916,49 @@ body.edit-mode #view-list > div.message-block {
   
 
 #view-bottom-toolbar {
-  background: url('images/diagonal-gray-pattern.png'),
-  -moz-linear-gradient(center top , rgb(244, 244, 244), rgb(234, 234, 234)) repeat scroll 0% 0% transparent;
-  padding-right: 1.6rem;
+  background: rgba(0,0,0,.7);
+  height: 5.5rem;
 }
 
-#view-msg-text-container {
+#view-bottom-toolbar-panel {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  width: 100%;
+  display: table;
+  border-spacing: .5rem 1rem;
+  table-layout: fixed;
+}
+
+.view-bottom-toolbar-element {
+  display: table-cell;
+}
+
+.view-bottom-toolbar-button {
+  background: -moz-linear-gradient(top, #b50404 0%, #850a0a 100%); 
+  vertical-align: middle;
+  text-align: center;
+  font-size: -moz-calc(7 * 0.226rem);
+  color: #ffffff;
+  display: table-cell;
+}
+
+#view-msg-send {
+  width: 6.5rem;
+  text-align: center;
+  vertical-align: middle;
+  font-size: -moz-calc(7 * 0.226rem);
+  color: white;
+  cursor: pointer;
 }
 
 #view-msg-text {
-  padding: 0 1rem;
-  width: -moz-calc(100% - 1.6rem);
-  display: block;
+  height: 3rem;
+  width: 100%;
+  margin: 0 !important;
+  -moz-box-sizing: border-box;
   resize: none;
-  font-size: 2.4rem;
-  font-weight: bold;
-  line-height: 4.4rem;
-  margin: 1.4rem 0 0 1.6rem;
-  overflow: auto;
-  overflow-x: auto;
-  min-height: 5rem;
-  max-height: 20rem;
+  font-size: -moz-calc(7 * 0.226rem);
 }
 
 #view-msg-send {
@@ -863,23 +966,6 @@ body.edit-mode #view-list > div.message-block {
   min-width: 9.6rem;
 }
 
-#view-delete-button { 
-  right: 0rem;
-  top: 0rem;
-  margin-top: 1.4rem;
-  margin-right: 2.4rem;  
-  position: absolute;
-  min-width: 12rem;
-}
-
-#view-delete-all-button {
-  left: 0rem;
-  top: 0rem;
-  margin-top: 1.4rem;
-  margin-left: 2.4rem;  
-  position: absolute;
-  min-width: 15rem;
-}
 
 /* localization */
 body.hidden *[data-l10n-id] {
@@ -906,9 +992,9 @@ body.hidden *[data-l10n-id] {
 .confirmation-dialog {
   background: rgb(255,255,255);
   opacity: 1; 
-  border-radius: 0.8rem;
-  margin: 10rem 2rem 0rem;
-  padding: 3rem 7rem;
+  border-radius: 0.3rem;
+  margin: 2rem 2rem;
+  padding: 1rem 1rem;
 }
 .confirmation-dialog p {
   font-size: 2rem;
@@ -917,12 +1003,34 @@ body.hidden *[data-l10n-id] {
 .confirmation-dialog h2 {
   font-size: 2rem;
 }
-.confirmation-dialog .button {
-  margin: 2rem 1.5rem 0rem;
+
+.view-confirm-options {
+  display: table;
+  table-layout: fixed;
+  width: 100%;
+  height: 4rem;
+  border-spacing: .5rem 0rem;
+}
+
+.view-confirm-option {
+  display: table-cell;
+  background: -moz-linear-gradient(top, #b50404 0%, #850a0a 100%); 
+  vertical-align: middle;
+  text-align: center;
+  font-size: -moz-calc(7 * 0.226rem);
+  color: #ffffff;
+  border-radius: .4rem;
+
 }
 
 .groupHeader {
+  border-bottom: solid 1px #ff4e00;
+  padding-left: 3rem;
+  padding-top: 1rem;
+  font-size: -moz-calc(6 * 0.226rem);
+  color: #ff4e00;
+  text-transform: uppercase;
   font-family: 'Open Sans', sans-serif;
-  font-size: 1rem;
+ 
 }
 

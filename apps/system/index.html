@@ -21,7 +21,7 @@
       document.write('<script src="' + src + '"><\/script>');
     })();
     </script>
-    <link rel="stylesheet" type="text/css" href="style/system.css">
+    <link rel="stylesheet" type="text/css" href="style/system/system.css">
     <script defer src="js/settings_listener.js"></script>
     <script defer src="js/applications.js"></script>
     <script defer src="js/screen_manager.js"></script>
@@ -32,6 +32,9 @@
     <script defer src="js/sound_manager.js"></script>
     <script defer src="js/source_view.js"></script>
     <script defer src="js/storage.js"></script>
+
+    <!-- Grid View -->
+    <link rel="stylesheet" type="text/css" href="style/gridview/gridview.css">
     <script defer src="js/gridview.js"></script>
 
     <!-- Modal Dialog -->
@@ -42,8 +45,11 @@
     <link rel="stylesheet" type="text/css" href="style/accessibility/accessibility.css">
     <script defer src="js/accessibility.js"></script>
 
+    <!-- List Menu -->
+    <link rel="stylesheet" type="text/css" href="style/list_menu/list_menu.css">
+    <script defer src="js/list_menu.js"></script>
+
     <!-- Sleep Menu -->
-    <link rel="stylesheet" type="text/css" href="style/sleep_menu/sleep_menu.css">
     <script defer src="js/sleep_menu.js"></script>
 
     <!-- PIN Unlocking -->
@@ -142,16 +148,18 @@
 
       <!-- utility tray -->
       <div id="utility-tray">
-        <!-- quick settings -->
-        <div id="quick-settings">
-          <a href="#" id="quick-settings-wifi" data-enabled="false" data-l10n-id="quick-settings-wifi">Wifi</a>
-          <a href="#" id="quick-settings-data" data-enabled="false" data-l10n-id="quick-settings-data">Data</a>
-          <a href="#" id="quick-settings-bluetooth" data-enabled="false" data-l10n-id="quick-settings-bluebooth">Bluetooth</a>
-          <a href="#" id="quick-settings-power-save" data-enabled="false" data-l10n-id="quick-settings-power-save">Power</a>
-          <a href="#" id="quick-settings-full-app" data-enabled="false" data-l10n-id="quick-settings-full-app">Go to Settings</a>
-        </div>
+        <div id="utility-tray-first-shown">
+          <!-- quick settings -->
+          <div id="quick-settings">
+            <a href="#" id="quick-settings-wifi" data-enabled="false" data-l10n-id="quick-settings-wifi">Wifi</a>
+            <a href="#" id="quick-settings-data" data-enabled="false" data-l10n-id="quick-settings-data">Data</a>
+            <a href="#" id="quick-settings-bluetooth" data-enabled="false" data-l10n-id="quick-settings-bluebooth">Bluetooth</a>
+            <a href="#" id="quick-settings-power-save" data-enabled="false" data-l10n-id="quick-settings-power-save">Power</a>
+            <a href="#" id="quick-settings-full-app" data-enabled="false" data-l10n-id="quick-settings-full-app">Go to Settings</a>
+          </div>
 
-        <!-- TBD: credit module -->
+          <!-- TBD: credit module -->
+        </div>
 
         <!-- notifications -->
         <div id="notifications-container">
@@ -166,11 +174,8 @@
           <div class="lockscreen-panel">
             <div id="lockscreen-header">
               <div id="lockscreen-mute" hidden></div>
-              <div id="lockscreen-cal">
-                <span id="lockscreen-cal-day"></span>
-                <span id="lockscreen-cal-date"></span>
-              </div>
               <div id="lockscreen-clock"></div>
+              <div id="lockscreen-date"></div>
             </div>
             <div id="lockscreen-notification" hidden>
               <div id="lockscreen-notification-time"></div>
@@ -178,31 +183,31 @@
               <div id="lockscreen-notification-title"></div>
               <div id="lockscreen-notification-detail"></div>
             </div>
-            <div id="lockscreen-area-start" class="lockscreen-handle"></div>
             <div id="lockscreen-area-unlock" class="lockscreen-handle"></div>
             <div id="lockscreen-area-camera" class="lockscreen-handle"></div>
           </div>
           <div id="lockscreen-panel-passcode" class="lockscreen-panel">
+            <p id="lockscreen-passcode-status" data-l10n-id="enter-security-code">Enter Security&nbsp;Code</p>
             <p id="lockscreen-passcode-code"><span></span><span></span><span></span><span></span></p>
             <div id="lockscreen-passcode-pad">
               <a href="#" data-key="1">1</a>
-              <a href="#" data-key="2">2</a>
-              <a href="#" data-key="3">3</a>
-              <a href="#" data-key="4">4</a>
-              <a href="#" data-key="5">5</a>
-              <a href="#" data-key="6">6</a>
-              <a href="#" data-key="7">7</a>
-              <a href="#" data-key="8">8</a>
-              <a href="#" data-key="9">9</a>
-              <a href="#" data-key="e" class="lockscreen-passcode-pad-func">Emergency</a>
+              <a href="#" data-key="2">2<span>ABC<span></a>
+              <a href="#" data-key="3">3<span>DEF<span></a>
+              <a href="#" data-key="4">4<span>GHI<span></a>
+              <a href="#" data-key="5">5<span>JKL<span></a>
+              <a href="#" data-key="6">6<span>MNO<span></a>
+              <a href="#" data-key="7">7<span>PQRS<span></a>
+              <a href="#" data-key="8">8<span>TUV<span></a>
+              <a href="#" data-key="9">9<span>WXYZ<span></a>
+              <a href="#" data-key="e" data-l10n-id="emergency-call-button" class="lockscreen-passcode-pad-func">Emergency Call</a>
               <a href="#" data-key="0">0</a>
-              <a href="#" data-key="b" class="lockscreen-passcode-pad-func">Back</a>
+              <a href="#" data-key="c" data-l10n-id="cancel-button" class="lockscreen-passcode-pad-func">Cancel</a>
+              <a href="#" data-key="b">⌫</a>
             </div>
           </div>
           <div id="lockscreen-panel-emergency-call" class="lockscreen-panel tbd">
             <h1>Emergency call panel</h1>
             <p>To be done.</p>
-            <p>Turn off screen to go back.</p>
           </div>
           <div id="lockscreen-panel-camera" class="lockscreen-panel">
             <iframe id="lockscreen-camera" src="blank.html"></iframe>
@@ -267,13 +272,12 @@
       </ul>
     </div>
 
-    <div id="sleep">
-      <div class="sleep-menu">
-        <div data-l10n-id="airplane" data-value="airplane">Airplane Mode</div>
-        <div data-l10n-id="silent" data-value="silent" id="silent">Silent Mode</div>
-        <div data-l10n-id="normal" data-value="normal" id="normal" hidden>Normal Mode</div>
-        <div data-l10n-id="restart" data-value="restart">Restart</div>
-        <div data-l10n-id="power" data-value="power">Power Off</div>
+    <div id="listmenu">
+      <div id="listmenu-table">
+        <div id="listmenu-tablecell">
+          <div class="list-menu" id="listmenu-container">
+          </div>
+        </div>
       </div>
     </div>
 
