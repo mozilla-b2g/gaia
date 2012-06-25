@@ -275,10 +275,10 @@ contacts.app = (function() {
     var myContact = {};
 
     myContact['id'] = document.getElementById('contact-form-id').value;
-    myContact['givenName'] = givenName.value || '';
-    myContact['familyName'] = familyName.value || '';
-    myContact.name = myContact['givenName'] + ' ' + myContact['familyName'];
-    
+    myContact['givenName'] = [givenName.value] || [''];
+    myContact['familyName'] = [familyName.value] || [''];
+    myContact.name = myContact['givenName'][0] + ' ' + myContact['familyName'][0];
+
     getPhones(myContact);
     getEmails(myContact);
 
@@ -305,7 +305,7 @@ contacts.app = (function() {
     }
     doSaveContact(contact, successCb, errorCb);
   };
-  
+
   var getPhones = function getPhones(contact) {
     var phones = document.querySelectorAll('#view-contact-form form input[data-field="number"]');
     for(var p in phones) {
@@ -444,4 +444,3 @@ window.addEventListener('load', function initContacts(evt) {
   window.removeEventListener('load', initContacts);
   contacts.app.init();
 });
-

@@ -60,9 +60,6 @@ contacts.List = (function() {
 
     var ret = [];
     for (var i = 0; i < count; i++) {
-      contacts[i].name = contacts[i].name || '';
-      contacts[i].familyName = contacts[i].familyName || '';
-      contacts[i].givenName = contacts[i].givenName || ''
       var letter = getGroupName(contacts[i]);
 
       if (letter === group) {
@@ -122,16 +119,17 @@ contacts.List = (function() {
   var addToList = function addToList(contact) {
     var newLi;
     var group = getGroupName(contact);
-    var cName = contact.name || '';
-    contact.familyName = contact.familyName || '';
-    contact.givenName = contact.givenName || ''
+    var cName = getStringToBeOrdered(contact);
     var list = groupsList.querySelector('#contacts-list-' + group);
     var liElems = list.getElementsByTagName('li');
     var len = liElems.length;
     for (var i = 1; i < len; i++) {
       var liElem = liElems[i];
-      var name = liElem.querySelector('b').textContent +
-                 liElem.querySelector('strong').textContent;
+      var name = getStringToBeOrdered({
+        familyName: [liElem.querySelector('strong > b').textContent.trim()],
+        givenName:  [liElem.querySelector('strong').childNodes[0].nodeValue.trim()]
+      });
+      console.log('#' + name + '# >= #' + cName + '#');
       if (name >= cName) {
         newLi = utils.templates.render(liElems[0], contact);
         list.insertBefore(newLi, liElem);
@@ -169,10 +167,17 @@ contacts.List = (function() {
     }
   }
 
+  var getStringToBeOrdered = function getStringToBeOrdered(contact) {
+    var ret = [];
+
+    ret.push(contact.familyName ? contact.familyName[0] : '');
+    ret.push(contact.givenName ? contact.givenName[0] : '');
+
+    return ret.join('');
+  }
+
   var getGroupName = function getGroupName(contact) {
-    var familyName = contact.familyName ? contact.familyName[0] : '';
-    var givenName = contact.givenName ? contact.givenName[0] : '';
-    var ret = familyName + givenName;
+    var ret = getStringToBeOrdered(contact);
 
     ret = ret.charAt(0).toUpperCase();
     ret = ret.replace(/[ÁÀ]/ig, 'A');
@@ -221,4 +226,3 @@ contacts.List = (function() {
     'handleClick': handleClick
   };
 })();
-
