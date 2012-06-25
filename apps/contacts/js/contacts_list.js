@@ -51,15 +51,14 @@ contacts.List = (function() {
   };
 
   function normalizeName(contact) {
-    var gname = contact.givenName ? contact.givenName[0] : '';
-    var addName = contact.additionalName ? contact.additionalName[0] : '';
+    var name = contact.givenName ? contact.givenName[0] : '';
+    var additionalName =
+      contact.additionalName ? contact.additionalName[0] : '';
 
-    if(gname.length > 0) {
-      if(addName.length > 0) {
-        gname += ' ' + addName;
-      }
+    if (name.length > 0 && additionalName.length > 0) {
+      name += ' ' + additionalName;
     }
-    contact.givenName[0] = gname;
+    contact.givenName[0] = name;
   }
 
   var buildContacts = function buildContacts(contacts, successCb) {
@@ -242,3 +241,4 @@ contacts.List = (function() {
     'handleClick': handleClick
   };
 })();
+

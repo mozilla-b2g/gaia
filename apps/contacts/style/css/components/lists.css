@@ -70,13 +70,20 @@
   background: url("../../gphx/bitmap/default/forms/check-default.png") no-repeat center top;
   background-size: 100% auto;
 }
-.block-list [type="checkbox"]:checked + i { background-position: center bottom; }
+
+.block-list [type="checkbox"]:checked + span[role="button"] {
+  background-position: center bottom;
+}
 
 
 /* Selection state */
-[data-state="selection"] .block-list { padding-left: 1.9rem; }
-[data-state="selection"] .block-list .checkbox { display: block; }
+[data-state="selection"] .block-list {
+  padding-left: 1.9rem;
+}
 
+[data-state="selection"] .block-list .checkbox {
+  display: block;
+}
 
 /* Media crop */
 .block-media {
@@ -128,3 +135,4 @@
   top: 50%;
   margin-top: -1.5rem;
 }
+
