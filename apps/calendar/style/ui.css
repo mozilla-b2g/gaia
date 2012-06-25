@@ -62,52 +62,47 @@ html, body {
 /* temp views */
 
 #day-view,
-#week-view,
-#add-event-view {
+#week-view {
   text-align: center;
   padding-top: 5rem;
 }
 
-/* month view */
-/* sub: toolbar  */
 
-#top-toolbar {
-  /*height: 8mozmm;*/
-}
+/* add event view */
 
-#top-toolbar header.toolbar {
+#add-event-view {
+  /* completely override other views */
+  background: white;
+  z-index: 10;
+  position: absolute;
+  top: 0px;
   width: 100%;
-  overflow: hidden;
-  padding: 0.9rem 0.6rem;
-  border-bottom: 2px solid black;
+  height: 100%
 }
 
-#top-toolbar header.toolbar h3,
-#top-toolbar header.toolbar a {
-  display: block;
-  float: left;
-  width: 33%;
-}
-
-.rtl #top-toolbar header.toolbar h3,
-.rtl #top-toolbar header.toolbar a {
-  float: right;
-}
-
-#top-toolbar header.toolbar h3 {
-  text-align: center;
-}
-
-.rtl #top-toolbar header.toolbar a.new-event,
-.ltr #top-toolbar header.toolbar a.accounts {
-  text-align: left;
-}
-
-.rtl #top-toolbar header.toolbar a.accounts,
-.ltr #top-toolbar header.toolbar a.new-event {
+.rtl header[role="toolbar"] a.cancel,
+.ltr header[role="toolbar"] a.save {
   text-align: right;
 }
 
+.ltr header[role="toolbar"] a.cancel,
+.rtl header[role="toolbar"] a.save {
+  text-align: left;
+}
+
+/* common top toolbars */
+
+.rtl header[role="toolbar"] a.new-event,
+.ltr header[role="toolbar"] a.accounts {
+  text-align: left;
+}
+
+.rtl header[role="toolbar"] a.accounts,
+.ltr header[role="toolbar"] a.new-event {
+  text-align: right;
+}
+
+/* month view */
 /* sub common: day headers, day boxes */
 
 #month-days {
@@ -122,7 +117,7 @@ html, body {
   font-weight: bold;
 }
 
-.rtl #month-days-view li,
+.rtl #month-days li,
 .rtl #month-view .month li {
   float: right;
 }
@@ -294,7 +289,7 @@ Indicators are in units of 12
   overflow-y: auto;
 }
 
-#months-day-view  header.toolbar {
+#months-day-view  header {
   background-color: #E2E2E2;
   border-bottom: 1px solid #CCC;
   text-align: center;

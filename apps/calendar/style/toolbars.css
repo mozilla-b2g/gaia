@@ -1,0 +1,23 @@
+header[role="toolbar"] {
+  width: 100%;
+  overflow: hidden;
+  padding: 0.9rem 0.6rem;
+  border-bottom: 2px solid black;
+  height: 2.95rem;
+}
+
+header[role="toolbar"] h3,
+header[role="toolbar"] a {
+  display: block;
+  float: left;
+  width: 33%;
+}
+
+.rtl header[role="toolbar"] h3,
+.rtl header[role="toolbar"] a {
+  float: right;
+}
+
+header[role="toolbar"] h3 {
+  text-align: center;
+}
