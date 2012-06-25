@@ -88,7 +88,7 @@ MessageListCard.prototype = {
       // longer have a domNode around.)
       var selectedMsgNodes =
         domNode.getElementsByClassName('msg-header-item-selected');
-      for (var i = 0; i < selectedMsgNodes.length; i++) {
+      for (var i = selectedMsgNodes.length - 1; i >= 0; i--) {
         selectedMsgNodes[i].classList.remove('msg-header-item-selected');
       }
 
