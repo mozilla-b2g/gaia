@@ -60,6 +60,9 @@ contacts.List = (function() {
 
     var ret = [];
     for (var i = 0; i < count; i++) {
+      contacts[i].name = contacts[i].name || '';
+      contacts[i].familyName = contacts[i].familyName || '';
+      contacts[i].givenName = contacts[i].givenName || ''
       var letter = getGroupName(contacts[i]);
 
       if (letter === group) {
@@ -119,7 +122,9 @@ contacts.List = (function() {
   var addToList = function addToList(contact) {
     var newLi;
     var group = getGroupName(contact);
-    var cName = contact.familyName[0] + contact.givenName[0];
+    var cName = contact.name || '';
+    contact.familyName = contact.familyName || '';
+    contact.givenName = contact.givenName || ''
     var list = groupsList.querySelector('#contacts-list-' + group);
     var liElems = list.getElementsByTagName('li');
     var len = liElems.length;
@@ -165,7 +170,9 @@ contacts.List = (function() {
   }
 
   var getGroupName = function getGroupName(contact) {
-    var ret = contact.familyName[0] + contact.givenName[0];
+    var familyName = contact.familyName ? contact.familyName[0] : '';
+    var givenName = contact.givenName ? contact.givenName[0] : '';
+    var ret = familyName + givenName;
 
     ret = ret.charAt(0).toUpperCase();
     ret = ret.replace(/[ÁÀ]/ig, 'A');
@@ -178,7 +185,6 @@ contacts.List = (function() {
     if (code < 65 || code > 90) {
       ret = 'und';
     }
-
     return ret;
   }
 

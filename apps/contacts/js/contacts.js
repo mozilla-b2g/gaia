@@ -121,13 +121,11 @@ contacts.app = (function() {
 
   var addNewPhone = function addNewPhone() {
     insertEmptyPhone(numberPhones);
-    numberPhones++;
     return false;
   };
 
   var addNewEmail = function addNewEmail() {
     insertEmptyEmail(numberEmails);
-    numberEmails++;
     return false;
   };
 
@@ -145,7 +143,7 @@ contacts.app = (function() {
     listContainer.innerHTML = '';
     for (var tel in contact.tel) {
       var telField = {
-        number: contact.tel[tel].number,
+        number: contact.tel[tel].number || '',
         type: contact.tel[tel].type || TAG_OPTIONS['phone-type'][0].value,
         notes: ''
       };
@@ -275,39 +273,15 @@ contacts.app = (function() {
     var form = document.querySelector('#view-contact-form form');
     var fields = document.querySelectorAll('#view-contact-form form input');
     var myContact = {};
-    for (var i = 0; i < fields.length; i++) {
-      var value = fields[i].value;
-      if (value === '')
-        continue;
 
-      var name = fields[i].name;
-      if (name === 'id') {
-        myContact['id'] = value;
-        continue;
-      }
+    myContact['id'] = document.getElementById('contact-form-id').value;
+    myContact['givenName'] = givenName.value || '';
+    myContact['familyName'] = familyName.value || '';
+    myContact.name = myContact['givenName'] + ' ' + myContact['familyName'];
+    
+    getPhones(myContact);
+    getEmails(myContact);
 
-      myContact[name] = myContact[name] || [];
-      var index = 0;
-      if (fields[i].dataset.arrayindex) {
-        // Array element
-        var index = fields[i].dataset.arrayindex;
-      }
-
-      if (fields[i].dataset.field) {
-        var field = fields[i].dataset.field;
-        // Hash inside
-        myContact[name][index] = myContact[name][index] || {};
-        myContact[name][index][field] = value;
-      } else {
-        // No hash
-        myContact[name][index] = myContact[name][index] || [];
-        myContact[name][index] = value;
-      }
-    }
-
-    var givenNameField = '' || myContact.givenName[0];
-    var familyNameField = '' || myContact.familyName[0];
-    myContact.name = givenNameField + ' ' + familyNameField;
     var successCb = function(contact) {
       contactsList.refresh(contact);
       reloadContactDetails(contact);
@@ -321,7 +295,7 @@ contacts.app = (function() {
     var contact;
     if (myContact.id) {
       //Editing a contact
-      for (field in myContact) {
+      for (var field in myContact) {
         currentContact[field] = myContact[field];
       }
       contact = currentContact;
@@ -329,8 +303,37 @@ contacts.app = (function() {
       contact = new mozContact();
       contact.init(myContact);
     }
-
     doSaveContact(contact, successCb, errorCb);
+  };
+  
+  var getPhones = function getPhones(contact) {
+    var phones = document.querySelectorAll('#view-contact-form form input[data-field="number"]');
+    for(var p in phones) {
+      var numberField = phones[p].value;
+      if(numberField) {
+        var typeField = document.getElementById('tel_type_' + p).value || '';
+        var notes = document.getElementById('notes_' + p).value || '';
+        contact['tel'] = contact['tel'] || [];
+        // TODO: Save notes
+        contact['tel'][p] = {
+          number: numberField,
+          type: typeField
+        };
+      }
+    }
+  };
+
+  var getEmails = function getEmails(contact) {
+    var emails = document.querySelectorAll('#view-contact-form form input[name="email"]');
+    for(var e in emails) {
+      var emailField = emails[e].value;
+      if(emailField) {
+        // TODO: Save type
+        // var typeField = document.getElementById('email_type_' + e).value || '';
+        contact['email'] = contact['email'] || [];
+        contact['email'][e] = emailField;
+      }
+    }
   };
 
   var doSaveContact = function doSaveContact(contact, successCb, errorCb) {
@@ -367,6 +370,7 @@ contacts.app = (function() {
     };
     var template = utils.templates.render(phoneTemplate, telField);
     phonesContainer.appendChild(template);
+    numberPhones++;
   };
 
   var insertEmptyEmail = function insertEmptyEmail(index) {
@@ -378,6 +382,7 @@ contacts.app = (function() {
 
     var template = utils.templates.render(emailTemplate, emailField);
     emailContainer.appendChild(template);
+    numberEmails++;
   };
 
   var buildActions = function(actions) {
