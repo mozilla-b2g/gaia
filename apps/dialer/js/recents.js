@@ -109,7 +109,7 @@ var Recents = {
     if (!this.view)
       return;
 
-    this.view.innerHTML = 'Commslog';
+    this.view.innerHTML = '';
 
     this.history((function(history) {
       for (var i = 0; i < history.length; i++) {

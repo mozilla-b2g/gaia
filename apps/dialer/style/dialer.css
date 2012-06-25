@@ -79,7 +79,6 @@ html * {
 }
 
 #views {
-  /*position: absolute;*/
   top: 0;
   height: -moz-calc(100% - 4rem);
   width: 100%;
@@ -122,13 +121,11 @@ body.hidden *[data-l10n-id] {
     border-style: none;
   }
 
-/* icons */
-.icon{
+/* Toolbar icons */
+.icon {
   pointer-events:none;
   margin:0 auto;
 }
-
-/* Icons of toolbar of dialer */
 
 .icon-recents {
   width: 2.5rem;

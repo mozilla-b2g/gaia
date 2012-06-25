@@ -97,9 +97,9 @@ var NavbarManager = {
       option_recent.classList.remove('toolbar-option-selected');
       option_contacts.classList.remove('toolbar-option-selected');
       option_keypad.classList.remove('toolbar-option-selected');
-      
+
       var destination = window.location.hash;
-      
+
       switch (destination) {
         case '#recents-view':
           option_recent.classList.add('toolbar-option-selected');
