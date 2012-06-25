@@ -223,7 +223,6 @@ contacts.app = (function() {
       link.onclick = function(event) {
         var index = event.target.dataset.index;
         selectTag(event.target, tagList, update);
-        navigation.back();
       };
       link.textContent = options[o].value;
       selectedLink = selectedLink || link;
