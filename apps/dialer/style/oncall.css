@@ -1,27 +1,10 @@
-@font-face {
-  font-family: 'FontRegular';
-  src: url('fonts/Open-Sans.woff');
-}
-
-@font-face {
-  font-family: 'FontSemibold';
-  font-weight: 600;
-  src: url('fonts/Open-Sans-Semibold.woff');
-}
-
-@font-face {
-  font-family: 'FontBold';
-  font-weight: bold;
-  src: url('fonts/Open-Sans-Bold.woff');
-}
-
 html, body {
   position: relative;
   width: 100%;
   height: 100%;
   overflow: hidden;
   margin: 0;
-  font-family: 'Open Sans', sans-serif;
+  font-family: FontRegular, sans-serif;
   font-size: 10px;
   color: white;
   background: transparent;
