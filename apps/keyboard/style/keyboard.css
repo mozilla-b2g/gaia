@@ -127,6 +127,26 @@
   border-bottom: none;
 }
 
+.keyboard-key.highlighted:last-child  > .visual-wrapper > span {
+  right: -1px;
+  border-bottom-right-radius: 0;
+  border-bottom:none;
+}
+
+.keyboard-key.highlighted:last-child  > .visual-wrapper > span:after {
+  border:none;
+}
+
+.keyboard-key.highlighted:first-child  > .visual-wrapper > span {
+  left: -1px;
+  border-bottom-left-radius: 0;
+  border-bottom:none;
+}
+
+.keyboard-key.highlighted:first-child  > .visual-wrapper > span:after {
+  border:none;
+}
+
 /*  SPECIAL KEYS */
 .keyboard-key.special-key > .visual-wrapper > span,
 .keyboard-key.special-key.highlighted > .visual-wrapper > span { 
