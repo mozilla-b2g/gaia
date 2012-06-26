@@ -402,7 +402,6 @@ var ConversationListView = {
     var diff = today.getTime() - conversation.timestamp;
     var day = 1000 * 60 * 60 * 24; //Miliseconds for a day
 
-    //TODO: Localize
     var content;
     var _ = navigator.mozL10n.get;
     if (diff <= 0) {
