@@ -152,11 +152,8 @@ var Contacts = (function() {
     resetForm();
     formTitle.innerHTML = 'Edit contact';
     var editActions = [
-      {
-        label: 'Finish',
-        icon: 'icon-finish',
-        callback: saveContact
-      }
+      { label: '' },
+      { label: 'Done', callback: saveContact }
     ];
 
     buildActions(editActions);
@@ -255,8 +252,8 @@ var Contacts = (function() {
     insertEmptyPhone(0);
     insertEmptyEmail(0);
     buildActions([
-      { label: 'Cancel', icon: 'icon-cancel', callback: navigation.back },
-      { label: 'Finish', icon: 'icon-finish', callback: saveContact}
+      { label: '' },
+      { label: 'Done', callback: saveContact}
     ]);
 
     edit();
@@ -365,13 +362,16 @@ var Contacts = (function() {
 
       var link = document.createElement('a');
       link.title = actions[i].label;
-
-      var icon = document.createElement('span');
-      icon.setAttribute('role', 'button');
-      icon.className = actions[i].icon;
-      icon.innerHTML = actions[i].label;
-
-      link.appendChild(icon);
+      link.href = "#";
+      if (actions[i].icon) {
+        var icon = document.createElement('span');
+        icon.setAttribute('role', 'button');
+        icon.className = actions[i].icon;
+        icon.innerHTML = actions[i].label;
+        link.appendChild(icon);
+      } else {
+        link.textContent = actions[i].label;
+      }
       action.appendChild(link);
       formActions.appendChild(action);
     }
