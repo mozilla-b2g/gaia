@@ -1,0 +1,40 @@
+#cost-control-left {
+	float: left;
+	width: 65%;
+}
+
+#cost-control-right {
+	float: right;
+	width: 35%;
+}
+
+#cost-control-right > a {
+    display: table-cell;
+    width: 20%;
+    outline: medium none;
+    height: 100%;
+    color: rgb(255, 255, 255);
+    text-align: center;
+    text-decoration: none;
+    vertical-align: middle;
+    font-size: 14px;
+    line-height: 18px;
+    padding: 0px 5px;
+}
+
+
+#cost-control-remaining-credit-text {
+}
+
+#cost-control-spent, #cost-control-currency {
+	font-size: 32px;
+}
+
+#cost-control-date {}
+
+#cost-control {
+	height: 60px;
+	width: 100%;
+	background-color: rgb(0, 0, 0);
+	display: table;
+}
