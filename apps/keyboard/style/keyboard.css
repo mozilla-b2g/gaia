@@ -206,7 +206,8 @@
   border-radius: 0.3rem;
   background: -moz-linear-gradient(#fff, #ebebeb);
   border: 1px solid #61646A;
-  white-space: nowrap;
+/*  white-space: nowrap;*/
+  max-width:300px;
   overflow: visible;
   padding: 0 0.5rem;
   display: none;
