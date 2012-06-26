@@ -123,7 +123,7 @@ var Contacts = (function() {
   var reloadContactDetails = function reloadContactDetails(contact) {
     detailsName.textContent = contact.name;
     var orgTitle = document.getElementById('org-title');
-    if(contact.org) {
+    if(contact.org && contact.org[0] != '') {
       orgTitle.textContent = contact.org[0];
       orgTitle.className = '';
     } else {
