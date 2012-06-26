@@ -6882,6 +6882,7 @@ UserDict.prototype = {
         callback(isOk);
       }
     }
+    this.dict_file_ = file_name;
     if (!file_name) {
       doCallback();
       return;
@@ -6893,7 +6894,7 @@ UserDict.prototype = {
 
     var taskQueue = new TaskQueue(
         function load_taskQueueOnCompleteCallback(queueData) {
-      isOK = self.load(dictJson, start_id);
+      isOk = self.load(dictJson, start_id);
       doCallback();
     });
 
@@ -6912,7 +6913,6 @@ UserDict.prototype = {
       // Open the raw dict files
       FileSystemService.read(file_name,
           function readUserDictFileCallback(str) {
-        var dictJson = null;
         try {
           dictJson = JSON.parse(str);
         } catch (ex) {}
@@ -6930,6 +6930,7 @@ UserDict.prototype = {
    * @override
    */
   close_dict: function userDict_close_dict(callback) {
+    debug('UserDict#close_dict');
     var self = this;
     var isOk = false;
     function doCallback() {
@@ -6985,7 +6986,7 @@ UserDict.prototype = {
       });
       taskQueue.push(function userDict_writeUserDictFile(taskQueue, taskData) {
         // Open the raw dict files
-        FileSystemService.write(file_name, dictStr,
+        FileSystemService.write(self.dict_file_, dictStr,
             function rawReadCallback(success) {
           isOk = success;
           processNextWithDelay();
@@ -8087,9 +8088,11 @@ UserDict.prototype = {
     var version = UserDict.kUserDictVersion;
     var info = new UserDict.UserDictInfo();
     var lemmas = [];
+    var predicts = [];
+    var scores = [];
     // By default, no limitation for lemma count and size
     // thereby, reclaim_ratio is never used
-    return {version: version, info: info, lemmas: lemmas};
+    return {info: info, lemmas: lemmas, predicts:predicts, scores: scores};
   },
 
   /**
@@ -8128,6 +8131,9 @@ UserDict.prototype = {
    * @return {boolean} true if success.
    */
   load: function userDict_load(dictJson, start_id) {
+    if (!dictJson) {
+      return false;
+    }
     this.dict_info_ = dictJson.info;
     this.lemmas_ = dictJson.lemmas;
     this.ids_ = [];
