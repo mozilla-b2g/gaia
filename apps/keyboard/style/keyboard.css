@@ -1,4 +1,4 @@
-/* MEDIA DEFINITIOS */
+/* MEDIA DEFINITIONS */
 @media screen and (max--moz-device-pixel-ratio: 1.5) {
   html {
     font-size: 15px;
@@ -30,45 +30,46 @@
 }
 
 /* RESET */
-* { margin:0; padding:none; }
+* {
+  margin: 0;
+  padding: 0;
+}
 
 /* KEYBOARD */
 #keyboard {
-  position:absolute;
-  bottom:0;
-  width:100%;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
 }
 
 /* ROW */
 .keyboard-row {
-  width:100%;
+  width: 100%;
   white-space: nowrap;
 }
 
 /* BUTTONS: LOGIC KEYS */
 .keyboard-key {
   -moz-box-sizing: border-box;
-  box-sizing: boder-box;
-  padding:0.25rem 0.1rem;
-/*  border:1px solid red;*/
-  border:none;
-  background:none;
+  padding: 0.25rem 0.1rem;
+  border: none;
+  background: none;
   min-width: 2.6rem;
   display: inline-block;
 }
 
 .keyboard-row:first-child .keyboard-key {
-  padding-top:0.5rem;
+  padding-top: 0.5rem;
 }
 
 /* VISUAL KEYS */
 .keyboard-key > .visual-wrapper {
-  display:inline-block;
-  height:4rem;
-  width:100%;
+  display: inline-block;
+  height: 4rem;
+  width: 100%;
   border: none;
-  background:transparent;
-  position:relative;
+  background: transparent;
+  position: relative;
   text-align: center;
 }
 
@@ -130,21 +131,21 @@
 .keyboard-key.highlighted:last-child  > .visual-wrapper > span {
   right: -1px;
   border-bottom-right-radius: 0;
-  border-bottom:none;
+  border-bottom: none;
 }
 
 .keyboard-key.highlighted:last-child  > .visual-wrapper > span:after {
-  border:none;
+  border: none;
 }
 
 .keyboard-key.highlighted:first-child  > .visual-wrapper > span {
   left: -1px;
   border-bottom-left-radius: 0;
-  border-bottom:none;
+  border-bottom: none;
 }
 
 .keyboard-key.highlighted:first-child  > .visual-wrapper > span:after {
-  border:none;
+  border: none;
 }
 
 /*  SPECIAL KEYS */
@@ -362,7 +363,8 @@
   border: none;
   border-top: 2px solid #a3a3a3;
   z-index: 1;
-  margin:0; padding:0;
+  margin: 0;
+  padding: 0;
   overflow-x: hidden;
   overflow-y: auto;
 }
