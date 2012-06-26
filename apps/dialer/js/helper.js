@@ -27,16 +27,13 @@ function prettyDate(time) {
 function headerDate(time) {
   var diff = (Date.now() - time) / 1000;
   var day_diff = Math.floor(diff / 86400);
-  
   if (isNaN(day_diff))
     return '(incorrect date)';
 
   if (day_diff < 0 || diff < 0) {
-    // future time
     return (new Date(time)).toLocaleFormat('%x %R');
   }
-  
-  return day_diff == 0 && 'Today'||
+  return day_diff == 0 && 'Today' ||
     day_diff == 1 && 'Yesterday' ||
     day_diff < 4 && (new Date(time)).toLocaleFormat('%A') ||
     (new Date(time)).toLocaleFormat('%x');
