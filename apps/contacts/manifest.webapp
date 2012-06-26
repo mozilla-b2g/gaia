@@ -11,15 +11,19 @@
   "locales": {
     "de": {
       "name": "Kontakte",
-      "description": "Standard-Applikation für Kontakte"
+      "description": "Gaia Kontakte"
     },
-    "fr": {
+    "en-US": {
       "name": "Contacts",
-      "description": "Application de contacts par défaut"
+      "description": "Gaia Contacts"
     },
     "es": {
       "name": "Contactos",
-      "description": "Aplicación de contactos por defecto"
+      "description": "Contactos de Gaia"
+    },
+    "fr": {
+      "name": "Contacts",
+      "description": "Contacts Gaia"
     }
   },
   "default_locale": "en-US",
