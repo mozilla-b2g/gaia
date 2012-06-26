@@ -25,7 +25,7 @@ var SmsIntegration = (function() {
   
   return {
     sendSms: function(phoneNumber) {
-      smsApp.launch('#' + phoneNumber);
+      smsApp.launch('#num=' + phoneNumber);
     }
   };
   
