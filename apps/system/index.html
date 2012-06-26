@@ -175,10 +175,16 @@
 
           <!-- cost control -->
           <div id="cost-control">
-            <p id="cost-control-remaining-credit-text" data-l10n-id="cost-control-remaining-credit-text">Remaining credit as of <time id="cost-control-date">XX/XX/XXXX</time></p>
-            <p id="cost-control-spent" data-l10n-id="cost-control-spent-refreshing">Refreshing…</p>
-            <button id="cost-control-check-now" data-l10n-id="cost-control-check">Check now!</button>
-            <button id="cost-control-topup" data-l10n-id="cost-control-topup">Top up!</button>
+            <div id="cost-control-left">
+              <p id="cost-control-remaining-credit-text" data-l10n-id="cost-control-remaining-credit-text">Remaining credit as of <span id="cost-control-date">XX/XX/XXXX</span></p>
+              <p id="cost-control-container"><span id="cost-control-spent" data-l10n-id="cost-control-spent-refreshing">Refreshing…</span><span id="cost-control-currency">€</span></p>
+            </div>
+            <div id="cost-control-right">
+              <!-- Should be hidden -->
+              <button id="cost-control-check-now" data-l10n-id="cost-control-check">Check now!</button>
+              <!-- End of hidden -->
+              <a href="#" id="cost-control-topup" data-l10n-id="cost-control-topup">Top up!</a>
+            </div>
           </div>
         </div>
 
