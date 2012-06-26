@@ -9,9 +9,6 @@
 }
 .view[data-state="active"], .cache[data-state="active"], .views[data-state="active"] { z-index: 100; }
 
-/*.views { background: blue; }
-.cache { background: red; }*/
-
 .cache { pointer-events: none; }
 .cache .view {
   background-color: transparent;

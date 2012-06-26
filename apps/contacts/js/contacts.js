@@ -26,8 +26,6 @@ function navigationStack(currentView) {
     var currentMirror = document.getElementById(current.dataset.mirror);
     var nextMirror =document.getElementById(next.dataset.mirror);
 
-    current.dataset.state = "inactive";
-    app.dataset.state = "inactive";
     cache.dataset.state = "active";
 
     clearTimeout(transitionTimeout);
@@ -37,6 +35,7 @@ function navigationStack(currentView) {
     }, 1);
 
     nextMirror.addEventListener("transitionend", function nocache(){
+        current.dataset.state = "inactive";
         next.dataset.state = "active";
         app.dataset.state = "active";
         cache.dataset.state = "inactive";
