@@ -56,25 +56,18 @@ var Recents = {
 
 
   add: function re_add(recentCall) {
+    // Recents.render();
     this.getDatabase((function(database) {
       var txn = database.transaction(this.STORENAME, 'readwrite');
       var store = txn.objectStore(this.STORENAME);
-
+      
       var setreq = store.put(recentCall);
       
-      setreq.onsuccess = (function(){
-        console.log("**** *** *** DB INIT ** **** *****");
+      setreq.onsuccess = function(){
 
-        this.render();
-        console.log("**** *** *** DB FIN ** **** *****");
-      }).bind(this);
-      // setreq.onsuccess = (function() {
-
-      //   console.log("***** REPINTADA!!!! *******");
-      //   Recents.render();
-
-      //   console.log("***** NEW DATABASE ITEM ADDED *******");
-        
+     
+      };
+      
       //     //TODO Check if we are in other day
       //       // if(Recents.getDayDate(recentCall.date)!=Recents.current_token)
       //       // {
@@ -86,20 +79,12 @@ var Recents = {
       //     //   document.getElementById(Recents.current_token).insertBefore(Recents.createEntry(recentCall), document.getElementById(Recents.current_token).firstChild);
       //     //   console.log("****** INSERT BEFORE END *****");
       //     // }
-          
-
-      //     // var entry = this.createEntry(recentCall);
-      //     // var firstEntry = this.view.firstChild;
-      //     // this.view.insertBefore(entry, firstEntry);
-       
-      // }).bind(this);
-
+     
       setreq.onerror = function(e) {
         console.log('dialerRecents add failure: ', e.message, setreq.errorCode);
       };
     }).bind(this));
   },
-
   createEntry: function re_createEntry(recent) {
     var entry = document.createElement('li');
     entry.classList.add('log-item');
@@ -138,66 +123,14 @@ var Recents = {
     //   return;
     console.log("**** RENDER INIT BIS *****");
     
-    this.view.innerHTML = '';
-
-   
     
-    // this.history((function(history) {
-      // // MOCKUP
-      // var history=[];
-      // for (var i = 1; i < 100; i++) {
-        
-      //     var date=i*100000000;
-        
-      //   var com_log={
-      //     date:date,
-      //     type:1,
-      //     number:'002020202020'
 
-      //   }
-      //   history.push(com_log);
-        
-
-      // }
-
-    // this.history.call(this,function(history){
-      // alert("START");
-      // alert(JSON.stringify(history));
-      // this.view.innerHTML=JSON.stringify(history);
     this.history((function(recents){
       console.log("************** Pintar la historia!!!!! **********");
       console.log(JSON.stringify(recents));
 
-      // // MOCKUP
-      // var history=[];
-      // for (var i = 1; i < 100; i++) {
-        
-      //     var date=i*100000000;
-        
-      //   var com_log={
-      //     date:date,
-      //     type:1,
-      //     number:'002020202020'
-
-      //   }
-      //   history.push(com_log);
-        
-
-      // }
-
-
       
       this.view.innerHTML='';
-    // }).bind(this));
-    // this.history(function(recents){
-    //   alert("START");
-    //   alert(JSON.stringify(recents));
-    //   alert("FIN");
-    // }).bind(this);
-      //Sort by DATE
-      // recents.sort(function(a,b){
-      //   return a.date-b.date;
-      // });
 
       Recents.current_token=0;
       
@@ -234,11 +167,10 @@ var Recents = {
       
 
       
-     }//FOR END
+      }//FOR END
      console.log("************** FIN la historia!!!!! **********");
-     // alert("FIN");
-    // }) ; 
-  }).bind(this));
+    
+    }).bind(this));
 
     
   },
