@@ -18,7 +18,7 @@ var debug = function(str) {
       console.log.apply(this, arguments);
     }
   }
-  if (typeof print == 'function') {
+  if (typeof Test != 'undefined') {
     print('jspinyin: ' + str + '\n');
   }
 };
@@ -4247,16 +4247,24 @@ var IAtomDictBase = {
    * atom dictionary. User dictionary will always use the last id space, so it
    * can ignore this paramter. All other atom dictionaries should check this
    * parameter.
-   * @return {boolean} true if succeed.
+   * @param {DictTrie} dict_trie The DictTrie to be built.
+   * @param {function(boolean)} callback The function object that is
+   *    called when the operation is finished. The boolean parameter indicates
+   *    whether the operation is successful.
+   * @return {void} No return value.
    */
-  load_dict: function atomDictBase_load(file_name, start_id, end_id) {},
+  load_dict: function atomDictBase_load(file_name, start_id, end_id, callback) {
+  },
 
   /**
    * Close this atom dictionary.
    *
-   * @return {boolean} true if succeed.
+   * @param {function(boolean)} callback The function object that is
+   *    called when the operation is finished. The boolean parameter indicates
+   *    whether the operation is successful.
+   * @return {void} No return value.
    */
-  close: function atomDictBase_close() {},
+  close_dict: function atomDictBase_close_dict(callback) {},
 
   /**
    * Get the total number of lemmas in this atom dictionary.
@@ -4307,12 +4315,13 @@ var IAtomDictBase = {
    * @param {Array.<SearchUtility.LmaPsbItem>} lpi_items Used to fill in the
    *    lemmas matched.
    * @param {number} start The start position of lpi_items.
+   * @param {number} lpi_max The length of lpi_items from the start position.
    * @return {{handle: number, lpi_num: number}} handle
    *    is the new mile stone for this extending. 0 if fail. lpi_num is the
    *    number of items saved.
    */
-  extend_dict:
-    function atomDictBase_extend_dict(from_handle, dep, lpi_items, start) {},
+  extend_dict: function atomDictBase_extend_dict(from_handle, dep, lpi_items,
+                                                 start, lpi_max) {},
 
   /**
    * Get lemma items with scores according to a spelling id stream.
@@ -4534,13 +4543,13 @@ DictTrie.prototype = {
    * The SpellingTrie instance/DictList will be also loaded
    * @override
    */
-  load_dict: function dictTrie_load(file_name, start_id, end_id) {
+  load_dict: function dictTrie_load(file_name, start_id, end_id, callback) {
   },
 
   /**
    * @override
    */
-  close_dict: function dictTrie_close_dict() {
+  close_dict: function dictTrie_close_dict(callback) {
     return true;
   },
 
@@ -4572,8 +4581,8 @@ DictTrie.prototype = {
   /**
    * @override
    */
-  extend_dict:
-      function dictTrie_extend_dict(from_handle, dep, lpi_items, start) {
+  extend_dict: function dictTrie_extend_dict(from_handle, dep, lpi_items, start,
+                                             lpi_max) {
     var defaultValue = {handle: 0, lpi_num: 0};
     if (null === dep) {
       return defaultValue;
@@ -4581,17 +4590,17 @@ DictTrie.prototype = {
 
     // from DictDef.LmaNodeLE0 (root) to DictDef.LmaNodeLE0
     if (0 == from_handle) {
-      assert(0 == dep.splids_extended, 'extend_dict assertion error.');
-      return extend_dict0(from_handle, dep, lpi_items, start);
+      asert(0 == dep.splids_extended, 'extend_dict assertion error.');
+      return extend_dict0(from_handle, dep, lpi_items, start, lpi_max);
     }
 
     // from DictDef.LmaNodeLE0 to DictDef.LmaNodeGE1
     if (1 == dep.splids_extended) {
-      return extend_dict1(from_handle, dep, lpi_items, start);
+      return extend_dict1(from_handle, dep, lpi_items, start, lpi_max);
     }
 
     // From DictDef.LmaNodeGE1 to DictDef.LmaNodeGE1
-    return extend_dict2(from_handle, dep, lpi_items, start);
+    return extend_dict2(from_handle, dep, lpi_items, start, lpi_max);
   },
 
   /**
@@ -4927,7 +4936,8 @@ DictTrie.prototype = {
   /**
    * Fill the lemmas with highest scores to the prediction buffer.
    * his_len is the history length to fill in the prediction buffer.
-   * @param {Array.<NPredictItem>} npre_items The buffer to be filled.
+   * @param {Array.<SearchUtility.NPredictItem>} npre_items The buffer to be
+   *    filled.
    * @param {number} start The start position of the buffer.
    * @param {number} npre_max The length of the buffer from the start position.
    * @param {number} b4_used specifies how many items have been used before the
@@ -4951,6 +4961,7 @@ DictTrie.prototype = {
       if (!str) {
         continue;
       }
+      npre_items[start + item_num] = new SearchUtility.NPredictItem();
       npre_items[start + item_num].pre_hzs = str;
       npre_items[start + item_num].psb = ngram.get_uni_psb(top_lma_id);
       npre_items[start + item_num].his_len = his_len;
@@ -6627,7 +6638,10 @@ DictBuilder.prototype = {
 };
 
 var UserDict = function userDict_constructor() {
+  this.dict_info_ = new UserDict.UserDictInfo();
 };
+
+UserDict.PREDICT_ENABLED = true;
 
 // In-Memory-Only flag for each lemma
 UserDict.kUserDictLemmaFlagRemove = 1;
@@ -6636,7 +6650,7 @@ UserDict.kUserDictLemmaFlagRemove = 1;
 UserDict.kUserDictOffsetFlagRemove = (1 << 31);
 
 // Maximum possible for the offset
-UserDict.kUserDictOffsetMask = ~(1 << 31);
+UserDict.kUserDictOffsetMask = 0xffffffff;
 
 // Bit width for last modified time, from 1 to 16
 UserDict.kUserDictLMTBitWidth = 16;
@@ -6677,7 +6691,8 @@ UserDict.UserDictInfo.prototype = {
   lemma_count: 0,
 
   /**
-   * Total size of lemmas including used and freed
+   * TODO remove this member variable and use lemma_count only.
+   * Total size of lemmas including used and freed.
    */
   lemma_size: 0,
 
@@ -6829,109 +6844,409 @@ UserDict.UserDictScoreOffsetPair.prototype = {
   uoffset_index: 0
 };
 
+UserDict.Lemma = function lemma_constructor() {
+  this.splid_arr = [];
+};
+
+UserDict.Lemma.prototype = {
+  flag: 0,
+
+  hanzi_str: '',
+
+  /**
+   * The spelling IDs of the lemma.
+   * @type Array.<number>
+   */
+  splid_arr: null
+};
+
 UserDict.prototype = {
   __proto__: IAtomDictBase,
 
   /* ==== Public ==== */
 
   /**
+   * The format of the user dict file is:
+   *    {info: UserDict.UserDictInfo,
+   *    lemmas: Array.<UserDict.Lemma>,
+   *    predicts: Array.<number>,
+   *    scores: Array.<number>}
    * @override
    */
-  load_dict: function userDict_load(file_name, start_id, end_id) {},
+  load_dict: function userDict_load(file_name, start_id, end_id, callback) {
+    debug('UserDict#load_dict: ' + file_name);
+    var self = this;
+    var isOk = false;
+    function doCallback() {
+      if (callback) {
+        callback(isOk);
+      }
+    }
+    if (!file_name) {
+      doCallback();
+      return;
+    }
+
+    this.start_id_ = start_id;
+
+    var dictJson = null;
+
+    var taskQueue = new TaskQueue(
+        function load_taskQueueOnCompleteCallback(queueData) {
+      isOK = self.load(dictJson, start_id);
+      doCallback();
+    });
+
+    var processNextWithDelay =
+        function load_rocessNextWithDelay() {
+      if (typeof setTimeout != 'undefined') {
+        setTimeout(function nextTask() {
+          taskQueue.processNext();
+        }, 0);
+      } else {
+        taskQueue.processNext();
+      }
+    };
+
+    taskQueue.push(function userDict_openUserDictFile(taskQueue, taskData) {
+      // Open the raw dict files
+      FileSystemService.read(file_name,
+          function readUserDictFileCallback(str) {
+        var dictJson = null;
+        try {
+          dictJson = JSON.parse(str);
+        } catch (ex) {}
+        if (!dictJson || !self.validate(dictJson)) {
+          dictJson = self.reset();
+        }
+        processNextWithDelay();
+      });
+    });
+
+    taskQueue.processNext();
+  },
 
   /**
    * @override
    */
-  close: function userDict_close() {},
+  close_dict: function userDict_close_dict(callback) {
+    var self = this;
+    var isOk = false;
+    function doCallback() {
+      if (callback) {
+        callback(isOk);
+      }
+    }
+    if (this.state_ == UserDict.UserDictState.USER_DICT_NONE) {
+      doCallback();
+      return;
+    }
+
+    var dictStr = '';
+
+    var taskQueue = new TaskQueue(
+        function close_taskQueueOnCompleteCallback(queueData) {
+      this.lemmas_ = [];
+      this.offsets_by_id_ = [];
+      this.scores_ = [];
+      this.ids_ = [];
+      this.predicts_ = [];
+
+      this.version_ = 0;
+      this.dict_file_ = '';
+      this.dict_info_ = new UserDict.UserDictInfo();
+      this.lemma_count_left_ = 0;
+      this.lemma_size_left_ = 0;
+      this.state_ = UserDict.UserDictState.USER_DICT_NONE;
+
+      doCallback();
+    });
+
+    var processNextWithDelay =
+        function close_rocessNextWithDelay() {
+      if (typeof setTimeout != 'undefined') {
+        setTimeout(function nextTask() {
+          taskQueue.processNext();
+        }, 0);
+      } else {
+        taskQueue.processNext();
+      }
+    };
+
+    // If dictionary is written back by others,
+    // we can not simply write back here
+    // To do a safe flush, we have to discard all newly added
+    // lemmas and try to reload dict file.
+    if (this.state_ != UserDict.UserDictState.USER_DICT_SYNC &&
+        this.load_time_ > this.g_last_update_) {
+      taskQueue.push(function prepaireUserDictFile(taskQueue, taskData) {
+        dictStr = JSON.stringify(self.write_back());
+        processNextWithDelay();
+      });
+      taskQueue.push(function userDict_writeUserDictFile(taskQueue, taskData) {
+        // Open the raw dict files
+        FileSystemService.write(file_name, dictStr,
+            function rawReadCallback(success) {
+          isOk = success;
+          processNextWithDelay();
+        });
+      });
+    }
+  },
 
   /**
    * @override
    */
-  number_of_lemmas: function userDict_number_of_lemmas() {},
+  number_of_lemmas: function userDict_number_of_lemmas() {
+    return this.dict_info_.lemma_count;
+  },
 
   /**
    * @override
    */
   reset_milestones:
-      function userDict_reset_milestones(from_step, from_handle) {},
+      function userDict_reset_milestones(from_step, from_handle) {
+    return;
+  },
 
   /**
    * @override
    */
-  extend_dict:
-    function userDict_extend_dict(from_handle, dep, lpi_items, start) {},
+  extend_dict: function userDict_extend_dict(from_handle, dep, lpi_items, start,
+                                             lpi_max) {
+    var ret = {handle: 0, lpi_num: 0};
+    if (this.is_valid_state() == false) {
+      return ret;
+    }
+
+    var lpi_num = 0;
+    var ret_handle = 0;
+
+    var need_extend = false;
+
+    var result = this._get_lpis(dep.splids, lpi_items, lpi_max);
+    lpi_num = result.lpi_num;
+    need_extend = result.need_extend;
+    ret.handle = (lpi_num > 0 || need_extend) ? 1 : 0;
+    ret.lpi_num = lpi_num;
+    return ret;
+  },
 
   /**
    * @override
    */
   get_lpis:
-      function userDict_get_lpis(splid_str, lpi_items, start, lpi_max) {},
+      function userDict_get_lpis(splid_str, lpi_items, start, lpi_max) {
+    var ret = this._get_lpis(splid_str, lpi_items, start, lpi_max);
+    return ret.lpi_num;
+  },
 
   /**
    * @override
    */
-  get_lemma_str: function userDict_get_lemma_str(id_lemma) {},
+  get_lemma_str: function userDict_get_lemma_str(id_lemma) {
+    var str = '';
+    if (this.is_valid_state() == false) {
+      return str;
+    }
+    if (this.is_valid_lemma_id(id_lemma) == false)
+      return str;
+    var offset = this.offsets_by_id_[id_lemma - this.start_id_];
+    str = this.get_lemma_word(offset);
+    return str;
+  },
 
   /**
    * @override
    */
   get_lemma_splids: function userDict_get_lemma_splids(id_lemma, splids,
-      start, splids_max) {},
+      start, splids_max) {
+    if (this.is_valid_lemma_id(id_lemma) == false) {
+      return 0;
+    }
+    var offset = this.offsets_by_id_[id_lemma - this.start_id_];
+    var nchar = this.get_lemma_nchar(offset);
+    var ids = this.get_lemma_spell_ids(offset);
+    var n = Math.min(nchar, splids_max);
+    for (var i = 0; i < n; i++) {
+      splids[start + i] = ids[i];
+    }
+    return n;
+  },
 
   /**
    * @override
    */
   predict: function userDict_predict(last_hzs, npre_items, start, npre_max,
-                                         b4_used) {},
+                                     b4_used) {
+    var hzs_len = last_hzs.length;
+    var new_added = 0;
+    var end = this.dict_info_.lemma_count - 1;
+    var j = this.locate_first_in_predicts(last_hzs);
+    if (j == -1)
+      return 0;
+
+    while (j <= end) {
+      var offset = this.predicts_[j];
+      // Ignore deleted lemmas
+      if (offset & UserDict.kUserDictOffsetFlagRemove) {
+        j++;
+        continue;
+      }
+      var nchar = this.get_lemma_nchar(offset);
+      var words = this.get_lemma_word(offset);
+      var splids = this.get_lemma_spell_ids(offset);
+
+      if (nchar <= hzs_len) {
+        j++;
+        continue;
+      }
+
+      if (words.indexOf(last_hzs) == 0) {
+        if (new_added >= npre_max) {
+          return new_added;
+        }
+        var len = Math.min(DictDef.kMaxPredictSize, nchar);
+        npre_items[new_added] = new SearchUtility.NPredictItem();
+        npre_items[new_added].pre_hzs = words.substring(0, len);
+        npre_items[new_added].psb =
+          this.get_lemma_score_by_content(words, splids);
+        npre_items[new_added].his_len = hzs_len;
+        new_added++;
+      } else {
+        break;
+      }
+
+      j++;
+    }
+    return new_added;
+  },
 
   /**
    * @override
    */
-  put_lemma: function userDict_put_lemma(lemma_str, splids, count) {},
+  put_lemma: function userDict_put_lemma(lemma_str, splids, count) {
+    return this._put_lemma(lemma_str, splids, count, new Date().getTime());
+  },
 
   /**
    * @override
    */
   update_lemma:
-      function userDict_update_lemma(lemma_id, delta_count, selected) {},
+      function userDict_update_lemma(lemma_id, delta_count, selected) {
+    if (this.is_valid_state() == false) {
+      return 0;
+    }
+    if (this.is_valid_lemma_id(lemma_id) == false) {
+      return 0;
+    }
+    var offset = this.offsets_by_id_[lemma_id - this.start_id_];
+    var lemma_len = this.get_lemma_nchar(offset);
+    var lemma_str = this.get_lemma_word(offset);
+    var splids = this.get_lemma_spell_ids(offset);
+
+    var off = this.locate_in_offsets(lemma_str, splids);
+    if (off != -1) {
+      var score = this.scores_[off];
+      var count = this.extract_score_freq(score);
+      var lmt = this.extract_score_lmt(score);
+      if (count + delta_count > UserDict.kUserDictMaxFrequency ||
+          count + delta_count < count) {
+        delta_count = UserDict.kUserDictMaxFrequency - count;
+      }
+      count += delta_count;
+      this.dict_info_.total_nfreq += delta_count;
+      if (selected) {
+        lmt = new Date().getTime();
+      }
+      this.scores_[off] = this.build_score(lmt, count);
+      if (this.state_ < UserDict.UserDictState.USER_DICT_SCORE_DIRTY) {
+        this.state_ = UserDict.UserDictState.USER_DICT_SCORE_DIRTY;
+      }
+
+      debug('update_lemma');
+      return this.ids_[off];
+    }
+    return 0;
+  },
 
   /**
    * @override
    */
-  get_lemma_id: function userDict_get_lemma_id(lemma_str, splids) {},
+  get_lemma_id: function userDict_get_lemma_id(lemma_str, splids) {
+    var off = this.locate_in_offsets(lemma_str, splids);
+    if (off == -1) {
+      return 0;
+    }
+
+    return this.ids_[off];
+  },
 
   /**
    * @override
    */
   get_lemma_score_by_id:
-      function userDict_get_lemma_score_by_id(lemma_id) {},
+      function userDict_get_lemma_score_by_id(lemma_id) {
+    if (this.is_valid_state() == false)
+      return 0;
+    if (this.is_valid_lemma_id(lemma_id) == false)
+      return 0;
+
+    return this.translate_score(this._get_lemma_score_by_id(lemma_id));
+  },
 
   /**
    * @override
    */
   get_lemma_score_by_content:
-      function userDict_get_lemma_score_by_content(lemma_str, splids) {},
+      function userDict_get_lemma_score_by_content(lemma_str, splids) {
+    if (this.is_valid_state() == false)
+      return 0;
+    return this.translate_score(this._get_lemma_score_by_content(lemma_str,
+                                                                 splids));
+  },
 
   /**
    * @override
    */
-  remove_lemma: function userDict_remove_lemma(lemma_id) {},
+  remove_lemma: function userDict_remove_lemma(lemma_id) {
+    if (this.is_valid_state() == false) {
+      return 0;
+    }
+    if (this.is_valid_lemma_id(lemma_id) == false) {
+      return false;
+    }
+    var offset = this.offsets_by_id_[lemma_id - this.start_id_];
+
+    var nchar = this.get_lemma_nchar(offset);
+    var spl = this.get_lemma_spell_ids(offset);
+    var wrd = this.get_lemma_word(offset);
+
+    var off = this.locate_in_offsets(wrd, spl);
+
+    return this.remove_lemma_by_offset_index(off);
+  },
 
   /**
    * @override
    */
-  get_total_lemma_count: function userDict_get_total_lemma_count() {},
+  get_total_lemma_count: function userDict_get_total_lemma_count() {
+    return this.dict_info_.total_nfreq;
+  },
 
   /**
    * @override
    */
   set_total_lemma_count_of_others:
-      function userDict_set_total_lemma_count_of_others(count) {},
+      function userDict_set_total_lemma_count_of_others(count) {
+    this.total_other_nfreq_ = count;
+  },
 
   /**
    * @override
    */
-  flush_cache: function userDict_flush_cache() {},
+  flush_cache: function userDict_flush_cache() {
+  },
 
   /**
    * @param {number} max_lemma_count Maximum lemma count, 0 means no limitation.
@@ -6941,15 +7256,225 @@ UserDict.prototype = {
    */
   set_limit: function userDict_set_limit(max_lemma_count, max_lemma_size,
                                          reclaim_ratio) {
-
+    this.dict_info_.limit_lemma_count = max_lemma_count;
+    this.dict_info_.limit_lemma_size = max_lemma_size;
+    if (reclaim_ratio > 100) {
+      reclaim_ratio = 100;
+    }
+    this.dict_info_.reclaim_ratio = reclaim_ratio;
   },
 
   reclaim: function userDict_reclaim() {
+    if (this.is_valid_state() == false) {
+      return;
+    }
 
+    switch (this.dict_info_.reclaim_ratio) {
+      case 0:
+        return;
+      case 100:
+        // TODO: CLEAR to be implemented
+        assert(false);
+        return;
+      default:
+        break;
+    }
+
+    // XXX Reclaim is only based on count, not size
+    var count = this.dict_info_.lemma_count;
+    var rc = count * this.dict_info_.reclaim_ratio / 100;
+
+    var score_offset_pairs = [];
+    for (var i = 0; i < rc; i++) {
+      score_offset_pairs[i] = new UserDict.UserDictScoreOffsetPair();
+    }
+
+    for (var i = 0; i < rc; i++) {
+      var s = this.scores_[i];
+      this.score_offset_pairs[i].score = s;
+      this.score_offset_pairs[i].offset_index = i;
+    }
+
+    for (var i = (rc + 1) / 2; i >= 0; i--) {
+      this.shift_down(score_offset_pairs, i, rc);
+    }
+
+    for (var i = rc; i < this.dict_info_.lemma_count; i++) {
+      var s = this.scores_[i];
+      if (s < score_offset_pairs[0].score) {
+        score_offset_pairs[0].score = s;
+        score_offset_pairs[0].offset_index = i;
+        this.shift_down(score_offset_pairs, 0, rc);
+      }
+    }
+
+    for (var i = 0; i < rc; i++) {
+      var off = score_offset_pairs[i].offset_index;
+      this.remove_lemma_by_offset_index(off);
+    }
+    if (rc > 0) {
+      if (this.state_ < UserDict.UserDictState.USER_DICT_OFFSET_DIRTY)
+        this.state_ = UserDict.UserDictState.USER_DICT_OFFSET_DIRTY;
+    }
   },
 
   defragment: function userDict_defragment() {
+    if (this.is_valid_state() == false) {
+      return;
+    }
+    // Fixup offsets_, set REMOVE flag to lemma's flag if needed
+    var first_freed = 0;
+    var first_inuse = 0;
+    while (first_freed < this.dict_info_.lemma_count) {
+      // Find first freed offset
+      while ((this.lemmas_[first_freed].flag &
+              UserDict.kUserDictLemmaFlagRemove) == 0 &&
+             first_freed < this.dict_info_.lemma_count) {
+        first_freed++;
+      }
+      if (first_freed < dict_info_.lemma_count) {
+        // Save REMOVE flag to lemma flag
+        var off = first_freed;
+        this.set_lemma_flag(off, UserDict.kUserDictLemmaFlagRemove);
+      } else {
+        break;
+      }
+      // Find first inuse offse after first_freed
+      first_inuse = first_freed + 1;
+      while ((this.lemmas_[first_inuse].flag &
+              UserDict.kUserDictLemmaFlagRemove) == 0 &&
+             (first_inuse < this.dict_info_.lemma_count)) {
+        // Save REMOVE flag to lemma flag
+        var off = first_inuse;
+        this.set_lemma_flag(off, kUserDictLemmaFlagRemove);
+        first_inuse++;
+      }
+      if (first_inuse >= dict_info_.lemma_count) {
+        break;
+      }
+      // Swap scores_
+      tmp = this.scores_[first_inuse];
+      this.scores_[first_inuse] = this.scores_[first_freed];
+      this.scores_[first_freed] = tmp;
+      // Swap ids_
+      var tmpid = this.ids_[first_inuse];
+      this.ids_[first_inuse] = this.ids_[first_freed];
+      this.ids_[first_freed] = tmpid;
+      // Go on
+      first_freed++;
+    }
+    // Fixup predicts_
+    first_freed = 0;
+    first_inuse = 0;
+    while (first_freed < this.dict_info_.lemma_count) {
+      // Find first freed offset
+      while ((this.predicts_[first_freed] &
+              UserDict.kUserDictOffsetFlagRemove) == 0 &&
+              first_freed < dict_info_.lemma_count) {
+        first_freed++;
+      }
+      if (first_freed >= this.dict_info_.lemma_count) {
+        break;
+      }
+      // Find first inuse offse after first_freed
+      first_inuse = first_freed + 1;
+      while ((this.predicts_[first_inuse] &
+              UserDict.kUserDictOffsetFlagRemove) &&
+             (first_inuse < this.dict_info_.lemma_count)) {
+        first_inuse++;
+      }
+      if (first_inuse >= this.dict_info_.lemma_count) {
+        break;
+      }
+      // Swap offsets_
+      var tmp = this.predicts_[first_inuse];
+      this.predicts_[first_inuse] = this.predicts_[first_freed];
+      this.predicts_[first_freed] = tmp;
+      // Go on
+      first_freed++;
+    }
+    this.dict_info_.lemma_count = first_freed;
+    // Fixup lemmas_
+    var begin = 0;
+    var end = 0;
+    var dst = 0;
+    var total_size = this.dict_info_.lemma_size + this.lemma_size_left_;
+    var total_count = this.dict_info_.lemma_count + this.lemma_count_left_;
+    var real_size = total_size - this.lemma_size_left_;
+    while (dst < real_size) {
+      var flag = this.get_lemma_flag(dst);
+      var nchr = this.get_lemma_nchar(dst);
+      if ((flag & UserDict.kUserDictLemmaFlagRemove) == 0) {
+        dst++;
+        continue;
+      }
+      break;
+    }
+    if (dst >= real_size) {
+      return;
+    }
 
+    end = dst;
+    while (end < real_size) {
+      begin = end + get_lemma_nchar(end) * 4 + 2;
+      while (true) {
+        // not used any more
+        if (begin >= real_size)
+          break;
+        var flag = this.get_lemma_flag(begin);
+        var nchr = this.get_lemma_nchar(begin);
+        if (flag & UserDict.kUserDictLemmaFlagRemove) {
+          begin += nchr * 4 + 2;
+          continue;
+        }
+        break;
+      }
+      end = begin + nchr * 4 + 2;
+      while (end < real_size) {
+        var eflag = get_lemma_flag(end);
+        var enchr = get_lemma_nchar(end);
+        if ((eflag & UserDict.kUserDictLemmaFlagRemove) == 0) {
+          end += enchr * 4 + 2;
+          continue;
+        }
+        break;
+      }
+      this.memmove(lemmas_, dst, begin, end - begin);
+      for (var j = 0; j < this.dict_info_.lemma_count; j++) {
+        if (j >= begin && j < end) {
+          this.offsets_by_id_[ids_[j] - this.start_id_] = begin - dst;
+        }
+        if (this.predicts_[j] >= begin && this.predicts_[j] < end) {
+          this.predicts_[j] -= (begin - dst);
+        }
+      }
+      dst += (end - begin);
+    }
+
+    this.dict_info_.free_count = 0;
+    this.dict_info_.free_size = 0;
+    this.dict_info_.lemma_size = dst;
+    lemma_size_left_ = total_size - this.dict_info_.lemma_size;
+    lemma_count_left_ = total_count - this.dict_info_.lemma_count;
+
+    // XXX Without following code,
+    // offsets_by_id_ is not reordered.
+    // That's to say, all removed lemmas' ids are not collected back.
+    // There may not be room for addition of new lemmas due to
+    // offsests_by_id_ reason, although lemma_size_left_ is fixed.
+    // By default, we do want defrag as fast as possible, because
+    // during defrag procedure, other peers can not write new lemmas
+    // to user dictionary file.
+    // XXX If write-back is invoked immediately after
+    // this defragment, no need to fix up following in-mem data.
+    for (var i = 0; i < this.dict_info_.lemma_count; i++) {
+      this.ids_[i] = this.start_id_ + i;
+      this.offsets_by_id_[i] = i;
+    }
+
+    this.state_ = UserDict.UserDictState.USER_DICT_DEFRAGMENTED;
+
+    debug('defragment');
   },
 
   /* ==== Private ==== */
@@ -6958,6 +7483,11 @@ UserDict.prototype = {
    * @type number
    */
   total_other_nfreq_: 0,
+
+  /**
+   * @type number
+   */
+  g_last_update_: 0,
 
   /**
    * @type number
@@ -6975,7 +7505,8 @@ UserDict.prototype = {
   version_: 0,
 
   /**
-   * @type Array.<number>
+   * Array to store the spelling IDs and lemma strings.
+   * @type Array.<UserDict.Lemma>
    */
   lemmas_: null,
 
@@ -7004,6 +7535,8 @@ UserDict.prototype = {
   offsets_by_id_: null,
 
   lemma_count_left_: 0,
+
+  // TODO remove this member variable and use lemma_count_left_ only.
   lemma_size_left_: 0,
 
   dict_file_: '',
@@ -7030,8 +7563,9 @@ UserDict.prototype = {
    */
   caches_: null,
 
-  cache_init: function userDict_() {
-
+  cache_init: function userDict_cache_init() {
+    this.reset_cache();
+    this.reset_miss_cache();
   },
 
   /**
@@ -7043,18 +7577,40 @@ UserDict.prototype = {
    * @return {void} No return value.
    */
   cache_push: function userDict_cache_push(type, searchable, offset, length) {
-
+    switch (type) {
+      case UserDict.UserDictCacheType.USER_DICT_MISS_CACHE:
+        this.save_miss_cache(searchable);
+        break;
+      case UserDict.UserDictCacheType.USER_DICT_CACHE:
+        this.save_cache(searchable, offset, length);
+        break;
+      default:
+        break;
+    }
   },
 
   /**
    * Check whether a cache obejct is hit.
    * @param {UserDict.UserDictSearchable} searchable The object to be checked.
-   * @return {success: boolean, offset: number, length: number} success - true
+   * @return {{success: boolean, offset: number, length: number}} success - true
    *    if hit; offset - the offset of the cache object if hit;
    *    length -  the length of the cache object if hit.
    */
   cache_hit: function userDict_cache_hit(searchable) {
-
+    var ret = {success: false, offset: 0, length: 0};
+    var hit = this.load_miss_cache(searchable);
+    if (hit) {
+      ret.offset = 0;
+      ret.length = 0;
+      ret.success = true;
+      return ret;
+    }
+    var load_cache_ret = this.load_cache(searchable, offset, length);
+    var hit = load_cache_ret.success;
+    if (hit) {
+      return ret;
+    }
+    return ret;
   },
 
   /**
@@ -7066,7 +7622,38 @@ UserDict.prototype = {
    *    length -  the length of the cache object if success.
    */
   load_cache: function userDict_load_cache(searchable) {
+    var ret = {success: false, offset: 0, length: 0};
+    var cache = this.caches_[searchable.splids_len - 1];
+    if (cache.head == cache.tail) {
+      return ret;
+    }
 
+    var j;
+    var sig_len = DictDef.kMaxLemmaSize / 4;
+    var i = cache.head;
+    while (1) {
+      j = 0;
+      for (; j < sig_len; j++) {
+        if (cache.signatures[i][j] != searchable.signature[j]) {
+          break;
+        }
+      }
+      if (j < sig_len) {
+        i++;
+        if (i >= UserDict.kUserDictCacheSize) {
+          i -= UserDict.kUserDictCacheSize;
+        }
+        if (i == cache.tail) {
+          break;
+        }
+        continue;
+      }
+      ret.offset = cache.offsets[i];
+      ret.length = cache.lengths[i];
+      ret.success = true;
+      return ret;
+    }
+    return ret;
   },
 
   /**
@@ -7078,14 +7665,37 @@ UserDict.prototype = {
    * @return {void} No return value.
    */
   save_cache: function userDict_save_cache(searchable, offset, length) {
+    var cache = this.caches_[searchable.splids_len - 1];
+    var next = cache.tail;
 
+    cache.offsets[next] = offset;
+    cache.lengths[next] = length;
+    var sig_len = DictDef.kMaxLemmaSize / 4;
+    var j = 0;
+    for (; j < sig_len; j++) {
+      cache.signatures[next][j] = searchable.signature[j];
+    }
+
+    if (++next >= UserDict.kUserDictCacheSize) {
+      next -= UserDict.kUserDictCacheSize;
+    }
+    if (next == cache.head) {
+      cache.head++;
+      if (cache.head >= UserDict.kUserDictCacheSize) {
+        cache.head -= UserDict.kUserDictCacheSize;
+      }
+    }
+    cache.tail = next;
   },
 
   /**
    * @return {void} No return value.
    */
   reset_cache: function userDict_reset_cache() {
-
+    this.caches_ = [];
+    for (var i = 0; i < DictDef.kMaxLemmaSize; i++) {
+      this.caches_[i] = new UserDict.UserDictCache();
+    }
   },
 
   /**
@@ -7094,7 +7704,34 @@ UserDict.prototype = {
    * @return {boolean} true if success.
    */
   load_miss_cache: function userDict_load_miss_cache(searchable) {
+    var cache = this.miss_caches_[searchable.splids_len - 1];
+    if (cache.head == cache.tail) {
+      return false;
+    }
 
+    var j;
+    var sig_len = UserDict.kMaxLemmaSize / 4;
+    var i = cache.head;
+    while (1) {
+      j = 0;
+      for (; j < sig_len; j++) {
+        if (cache.signatures[i][j] != searchable.signature[j]) {
+          break;
+        }
+      }
+      if (j < sig_len) {
+        i++;
+        if (i >= UserDict.kUserDictMissCacheSize) {
+          i -= UserDict.kUserDictMissCacheSize;
+        }
+        if (i == cache.tail) {
+          break;
+        }
+        continue;
+      }
+      return true;
+    }
+    return false;
   },
 
   /**
@@ -7103,30 +7740,91 @@ UserDict.prototype = {
    * @return {void} No return value.
    */
   save_miss_cache: function userDict_save_miss_cache(searchable) {
+    var cache = this.miss_caches_[searchable.splids_len - 1];
+    var next = cache.tail;
 
+    var sig_len = UserDict.kMaxLemmaSize / 4;
+    var j = 0;
+    for (; j < sig_len; j++) {
+      cache.signatures[next][j] = searchable.signature[j];
+    }
+
+    if (++next >= UserDict.kUserDictMissCacheSize) {
+      next -= UserDict.kUserDictMissCacheSize;
+    }
+    if (next == cache.head) {
+      cache.head++;
+      if (cache.head >= UserDict.kUserDictMissCacheSize) {
+        cache.head -= UserDict.kUserDictMissCacheSize;
+      }
+    }
+    cache.tail = next;
   },
 
   /**
    * @return {void} No return value.
    */
   reset_miss_cache: function userDict_save_miss_cache() {
-
+    this.miss_icaches_ = [];
+    for (var i = 0; i < DictDef.kMaxLemmaSize; i++) {
+      this.miss_icaches_[i] = new UserDict.UserDictMissCache();
+    }
   },
 
-  translate_score: function userDict_translate_score(f) {
+  extract_lower_n_bits: function userDict_extract_lower_n_bits(number, n) {
+    var move = 32 - n;
+    return number << move >> move;
+  },
 
+  translate_score: function userDict_translate_score(raw_score) {
+    // 1) ori_freq: original user frequency
+    var ori_freq = this.extract_score_freq(raw_score);
+    // 2) lmt_off: lmt index (week offset for example)
+    var lmt_off = ((raw_score & 0xffff0000) >> 16);
+    if (UserDict.kUserDictLMTBitWidth < 16) {
+      var mask = ~(1 << kUserDictLMTBitWidth);
+      lmt_off &= mask;
+    }
+    // 3) now_off: current time index (current week offset for example)
+    // assuming load_time_ is around current time
+    var now_off = this.load_time_;
+    now_off = (now_off - UserDict.kUserDictLMTSince) /
+      UserDict.kUserDictLMTGranularity;
+    now_off = (now_off << (64 - UserDict.kUserDictLMTBitWidth));
+    now_off = (now_off >> (64 - UserDict.kUserDictLMTBitWidth));
+    // 4) factor: decide expand-factor
+    var delta = now_off - lmt_off;
+    if (delta > 4)
+      delta = 4;
+    var factor = 80 - (delta << 4);
+
+    var tf = (double)(this.dict_info_.total_nfreq + total_other_nfreq_);
+    return Math.log(factor * ori_freq / tf) * NGram.kLogValueAmplifier;
   },
 
   extract_score_freq: function userDict_extract_score_freq(raw_score) {
-
+    var freq = (raw_score & 0x0000ffff);
+    return freq;
   },
 
   extract_score_lmt: function userDict_extract_score_lmt(raw_score) {
-
+    var lmt = ((raw_score & 0xffff0000) >> 16);
+    if (UserDict.kUserDictLMTBitWidth < 16) {
+      var mask = ~(1 << UserDict.kUserDictLMTBitWidth);
+      lmt &= mask;
+    }
+    lmt = lmt * UserDict.kUserDictLMTGranularity + UserDict.kUserDictLMTSince;
+    return lmt;
   },
 
   build_score: function userDict_extract_score_lmt(lmt, freq) {
-
+    lmt = (lmt - UserDict.kUserDictLMTSince) / UserDict.kUserDictLMTGranularity;
+    lmt = (lmt << (32 - UserDict.kUserDictLMTBitWidth));
+    lmt = (lmt >> (32 - UserDict.kUserDictLMTBitWidth));
+    var s = freq;
+    s &= 0x0000ffff;
+    s = (lmt16 << 16) | s;
+    return s;
   },
 
   /**
@@ -7139,7 +7837,46 @@ UserDict.prototype = {
    * @return {number} The id if succeed, 0 if fail.
    */
   _put_lemma: function userDict_put_lemma(lemma_str, splids, count, lmt) {
+    var lemma_len = lemma_str;
+    if (this.is_valid_state() == false) {
+      return 0;
+    }
+    var off = this.locate_in_offsets(lemma_str, splids);
+    if (off != -1) {
+      var delta_score = count - this.scores_[off];
+      this.dict_info_.total_nfreq += delta_score;
+      this.scores_[off] = this.build_score(lmt, count);
+      if (this.state_ < UserDict.UserDictState.USER_DICT_SCORE_DIRTY) {
+        this.state_ = UserDict.UserDictState.USER_DICT_SCORE_DIRTY;
+      }
+      debug('_put_lemma(update)');
+      return this.ids_[off];
+    } else {
+      if ((this.dict_info_.limit_lemma_count > 0 &&
+          this.dict_info_.lemma_count >= this.dict_info_.limit_lemma_count) ||
+          (this.dict_info_.limit_lemma_size > 0 &&
+           this.dict_info_.lemma_size + (2 + (lemma_len << 2)) >
+           this.dict_info_.limit_lemma_size)) {
+        // XXX Don't defragment here, it's too time-consuming.
+        return 0;
+      }
+      var flushed = 0;
+      if (this.lemma_count_left_ == 0 ||
+          this.lemma_size_left_ < (2 + (lemma_len << 2))) {
 
+        // XXX When there is no space for new lemma, we flush to disk
+        // flush_cache() may be called by upper user
+        // and better place shoule be found instead of here
+        this.flush_cache();
+        flushed = 1;
+        // Or simply return and do nothing
+        // return 0;
+      }
+      debug(flushed ? '_put_lemma(flush+add)' : '_put_lemma(add)');
+      var id = this.append_a_lemma(lemma_str, splids, count, lmt);
+      return id;
+    }
+    return 0;
   },
 
   /**
@@ -7150,12 +7887,95 @@ UserDict.prototype = {
    *    the lemmas matched.
    * @param {number} start The start position of the buffer.
    * @param {number} lpi_max The length of the buffer that could be used.
-   * @return {{lpi_num: number, need_extend: boolean}}
-   *    lpi_num - the number of matched items which have been filled into
-   *    lpi_items; need_extend - whether need extend.
+   * @return {number} The number of matched items which have been filled into.
    */
-  _get_lpis: function userDict_get_lpis(splid_str, lpi_items, start, pi_max) {
+  _get_lpis: function userDict_get_lpis(splid_str, lpi_items, lpi_items_start,
+                                        lpi_max) {
+    var ret = {};
+    if (this.is_valid_state() == false) {
+      return 0;
+    }
+    if (lpi_max <= 0) {
+      return 0;
+    }
 
+    if (this.load_time_.tv_sec < this.g_last_update_.tv_sec ||
+      (this.load_time_.tv_sec == this.g_last_update_.tv_sec &&
+       this.load_time_.tv_usec < this.g_last_update_.tv_usec)) {
+      // Others updated disk file, have to reload
+      this.flush_cache();
+    }
+
+    var searchable = new UserDict.UserDictSearchable();
+    this.prepare_locate(searchable, splid_str);
+
+    var max_off = this.dict_info_.lemma_count;
+    var middle;
+    var cache_hit_ret = this.cache_hit(searchable);
+    var cached = cache_hit_ret.success;
+    var start = cache_hit_ret.number;
+    var count = cache_hit_ret.length;
+    if (cached) {
+      middle = start;
+      max_off = start + count;
+    } else {
+      middle = this.locate_first_in_offsets(searchable);
+      start = middle;
+    }
+
+    if (middle == -1) {
+      if (!cached) {
+        this.cache_push(UserDict.UserDictCacheType.USER_DICT_MISS_CACHE,
+                        searchable, 0, 0);
+      }
+      return 0;
+    }
+
+    var lpi_current = 0;
+
+    var fuzzy_break = false;
+    var prefix_break = false;
+    while (middle < max_off && !fuzzy_break && !prefix_break) {
+      if (lpi_current >= lpi_max) {
+        break;
+      }
+      var offset = middle;
+      // Ignore deleted lemmas
+      if (offset & UserDict.kUserDictOffsetFlagRemove) {
+        middle++;
+        continue;
+      }
+      var nchar = get_lemma_nchar(offset);
+      var splids = get_lemma_spell_ids(offset);
+      if (!cached && 0 != this.fuzzy_compare_spell_id(splids, searchable)) {
+        fuzzy_break = true;
+      }
+
+      if (prefix_break == false) {
+        if (this.is_fuzzy_prefix_spell_id(splids, searchable)) {
+          // do nothing
+        } else {
+          prefix_break = true;
+        }
+      }
+
+      if (this.equal_spell_id(splids, searchable) == true) {
+        lpi_items[lpi_items_start + lpi_current].psb =
+          translate_score(scores_[middle]);
+        lpi_items[lpi_items_start + lpi_current].id = ids_[middle];
+        lpi_items[lpi_items_start + lpi_current].lma_len = nchar;
+        lpi_current++;
+      }
+      middle++;
+    }
+
+    if (!cached) {
+      count = middle - start;
+      this.cache_push(UserDict.UserDictCacheType.USER_DICT_CACHE, searchable,
+                      start, count);
+    }
+
+    return lpi_current;
   },
 
   /**
@@ -7164,13 +7984,37 @@ UserDict.prototype = {
    * @param {Array.<number>} splid_str The spelling ids of the lemma.
    * @return {number} The lemma score.
    */
-  _get_lemma_score_by_str:
+  _get_lemma_score_by_content:
       function userDict_get_lemma_score_by_str(lemma_str, splids) {
+    if (this.is_valid_state() == false)
+      return 0;
 
+    var off = this.locate_in_offsets(lemma_str, splids);
+    if (off == -1) {
+      return 0;
+    }
+
+    return this.scores_[off];
   },
 
   _get_lemma_score_by_id: function userDict_get_lemma_score_by_id(lemma_id) {
+    if (this.is_valid_state() == false)
+      return 0;
+    if (this.is_valid_lemma_id(lemma_id) == false)
+      return 0;
 
+    var offset = this.offsets_by_id_[lemma_id - this.start_id_];
+
+    var nchar = this.get_lemma_nchar(offset);
+    var spl = this.get_lemma_spell_ids(offset);
+    var wrd = this.get_lemma_word(offset);
+
+    var off = this.locate_in_offsets(wrd, spl);
+    if (off == -1) {
+      return 0;
+    }
+
+    return this.scores_[off];
   },
 
   /**
@@ -7180,7 +8024,22 @@ UserDict.prototype = {
    */
   is_fuzzy_prefix_spell_id:
       function userDict_is_fuzzy_prefix_spell_id(id1, searchable) {
+    var len1 = id1.length;
+    if (len1 < searchable.splids_len) {
+      return 0;
+    }
 
+    var spl_trie = SpellingTrie.get_instance();
+    var i = 0;
+    for (i = 0; i < searchable.splids_len; i++) {
+      var py1 = spl_trie.get_spelling_str(id1[i]);
+      var off = 8 * (i % 4);
+      var py2 = ((searchable.signature[i / 4] & (0xff << off)) >> off);
+      if (py1 == py2)
+        continue;
+      return 0;
+    }
+    return 1;
   },
 
   /**
@@ -7190,7 +8049,22 @@ UserDict.prototype = {
    */
   is_prefix_spell_id:
       function userDict_is_prefix_spell_id(fullids, searchable) {
+    var fulllen = fullids.length;
+    if (fulllen < searchable.splids_len) {
+      return false;
+    }
 
+    var i = 0;
+    for (; i < searchable.splids_len; i++) {
+      var start_id = searchable.splid_start[i];
+      var count = searchable.splid_count[i];
+      if (fullids[i] >= start_id && fullids[i] < start_id + count) {
+        continue;
+      } else {
+        return false;
+      }
+    }
+    return true;
   },
 
   /**
@@ -7199,76 +8073,128 @@ UserDict.prototype = {
    * @return {number} The file size.
    */
   get_dict_file_size: function userDict_get_dict_file_size(info) {
-
+    return 4 + info.lemma_size + (info.lemma_count << 3) +
+            (info.lemma_count << 2) +
+            sizeof(info);
   },
 
   /**
-   * Reset the dict by dict file.
-   * @param {string} file The name of the dict file.
-   * @return {boolean} true if success.
+   * Reset the dict.
+   * @return {object} The JSON object of the dict file after resetting.
    */
-  reset: function userDict_reset(file) {
-
+  reset: function userDict_reset() {
+    debug('UserDict#reset');
+    var version = UserDict.kUserDictVersion;
+    var info = new UserDict.UserDictInfo();
+    var lemmas = [];
+    // By default, no limitation for lemma count and size
+    // thereby, reclaim_ratio is never used
+    return {version: version, info: info, lemmas: lemmas};
   },
 
   /**
    * Validate the dict file.
-   * @param {string} file The name of the dict file.
+   * @param {object} dictJson The json object of the dict file.
    * @return {boolean} true if the file is valid.
    */
-  validate: function userDict_validate(file) {
+  validate: function userDict_validate(dictJson) {
+    debug('Validating user dictionary file...');
+    if (!dictJson) {
+      return false;
+    }
 
+    var version = dictJson.version;
+    var lemma_count = dictJson.lemmas ? dictJson.lemmas.length : 0;
+    var info = dictJson.info;
+    if (!info) {
+      return false;
+    }
+    if (version != UserDict.kUserDictVersion) {
+      debug('User dict version mismatch.');
+      return false;
+    }
+    if (lemma_count != info.lemma_count) {
+      debug('The number of lemmas mismatch.');
+      return false;
+    }
+
+    return true;
   },
 
   /**
    * Load dict file.
-   * @param {string} file The file name.
+   * @param {object} dictJson The JSON object of the dict file.
    * @param {number} start_id The start id of the user lemmas.
    * @return {boolean} true if success.
    */
-  load: function userDict_load(file, start_id) {
+  load: function userDict_load(dictJson, start_id) {
+    this.dict_info_ = dictJson.info;
+    this.lemmas_ = dictJson.lemmas;
+    this.ids_ = [];
+    this.offsets_by_id_ = [];
+    for (var i = 0; i < this.dict_info_.lemma_count; i++) {
+      this.ids_[i] = start_id + i;
+      this.offsets_by_id_[i] = i;
+    }
+    this.scores_ = dictJson.scores;
 
+    if (UserDict.PREDICT_ENABLED) {
+      this.predicts_ = dictJson.predicts;
+    }
+    this.lemma_count_left_ = UserDict.kUserDictPreAlloc;
+    this.lemma_size_left_ = UserDict.kUserDictPreAlloc *
+      (2 + (UserDict.kUserDictAverageNchar << 2));
+    this.state_ = UserDict.UserDictState.USER_DICT_SYNC;
+
+    return true;
   },
 
   is_valid_state: function userDict_is_valid_state() {
-
+    if (this.state_ == UserDict.UserDictState.USER_DICT_NONE) {
+      return false;
+    }
+    return true;
   },
 
   is_valid_lemma_id: function userDict_is_valid_lemma_id(id) {
-
+    if (id >= this.start_id_ && id <= this.get_max_lemma_id()) {
+      return true;
+    }
+    return false;
   },
 
   get_max_lemma_id: function userDict_get_max_lemma_id() {
-
+    // When a lemma is deleted, we don't not claim its id back for
+    // simplicity and performance
+    return this.start_id_ + this.dict_info_.lemma_count - 1;
   },
 
   set_lemma_flag: function userDict_set_lemma_flag(offset, flag) {
-
+    this.lemmas_[offset].flag |= flag;
   },
 
   get_lemma_flag: function userDict_get_lemma_flag(offset) {
-
+    return this.lemmas_[offset].flag;
   },
 
   /**
    * Get character number of the lemma
    */
   get_lemma_nchar: function userDict_get_lemma_nchar(offset) {
-
+    return this.lemmas_[offset].hanzi_str.length;
   },
 
   /**
    * Get the spelling id array of a lemma.
    * @param {number} offset The offset of the lemma.
-   * @param {number} length The length of the lemma.
    * @return {Array.<number>} The spelling id array.
    */
-  get_lemma_spell_ids: function userDict_get_lemma_spell_ids(offset, length) {
-
+  get_lemma_spell_ids: function userDict_get_lemma_spell_ids(offset) {
+    return this.lemmas_[offset].slice();
   },
 
   get_lemma_word: function userDict_get_lemma_word(offset) {
-
+    return this.lemmas_[offset].hanzi_str;
   },
 
   /**
@@ -7278,7 +8204,28 @@ UserDict.prototype = {
    * @return {void} No return value.
    */
   prepare_locate: function userDict_prepare_locate(searchable, splids) {
+    var splid_str_len = splids.length;
+    searchable.splids_len = splid_str_len;
+    searchable.signature = [];
+    var sig_size = DictDef.kMaxLemmaSize / 4;
+    for (var i = 0; i < sig_size; i++) {
+      searchable.signature[i] = 0;
+    }
 
+    var spl_trie = SpellingTrie.get_instance();
+    var i = 0;
+    for (; i < splid_str_len; i++) {
+      if (spl_trie.is_half_id(splid_str[i])) {
+        searchable.splid_count[i] =
+            spl_trie.half_to_full(splid_str[i],
+                                  searchable.splid_start[i]);
+      } else {
+        searchable.splid_count[i] = 1;
+        searchable.splid_start[i] = splid_str[i];
+      }
+      var py = spl_trie.get_spelling_str(splid_str[i]).charCodeAt(0);
+      searchable.signature[i >> 2] |= (py << (8 * (i % 4)));
+    }
   },
 
   /**
@@ -7291,7 +8238,29 @@ UserDict.prototype = {
    */
   fuzzy_compare_spell_id:
       function userDict_fuzzy_compare_spell_id(id1, searchable) {
+    var len1 = id1.length;
+    if (len1 < searchable.splids_len) {
+      return -1;
+    }
+    if (len1 > searchable.splids_len) {
+      return 1;
+    }
 
+    var spl_trie = SpellingTrie.get_instance();
+    var i = 0;
+    for (i = 0; i < len1; i++) {
+      var py1 = spl_trie.get_spelling_str(id1[i]).charCodeAt(0);
+      var off = 8 * (i % 4);
+      var py2 = ((searchable.signature[i / 4] & (0xff << off)) >> off);
+      if (py1 == py2) {
+        continue;
+      }
+      if (py1 > py2) {
+        return 1;
+      }
+      return -1;
+    }
+    return 0;
   },
 
   /**
@@ -7304,7 +8273,20 @@ UserDict.prototype = {
    *     -1 - fullids < searchable.
    */
   equal_spell_id: function userDict_equal_spell_id(fullids, searchable) {
+    var fulllen = fullids.length;
+    if (fulllen != searchable.plids_len)
+      return false;
 
+    var i = 0;
+    for (; i < fulllen; i++) {
+      var start_id = searchable.splid_start[i];
+      var count = searchable.splid_count[i];
+      if (fullids[i] >= start_id && fullids[i] < start_id + count)
+        continue;
+      else
+        return false;
+    }
+    return true;
   },
 
   /**
@@ -7313,7 +8295,35 @@ UserDict.prototype = {
    */
   locate_first_in_offsets:
       function userDict_locate_first_in_offsets(searchable) {
+    var begin = 0;
+    var end = this.dict_info_.lemma_count - 1;
+    var middle = -1;
 
+    var first_prefix = middle;
+    var last_matched = middle;
+
+    while (begin <= end) {
+      middle = (begin + end) >> 1;
+      var offset = middle;
+      var splids = this.get_lemma_spell_ids(offset);
+      var cmp = this.fuzzy_compare_spell_id(splids, searchable);
+      var pre = this.is_fuzzy_prefix_spell_id(splids, searchable);
+
+      if (pre) {
+        first_prefix = middle;
+      }
+
+      if (cmp < 0) {
+        begin = middle + 1;
+      } else if (cmp > 0) {
+        end = middle - 1;
+      } else {
+        end = middle - 1;
+        last_matched = middle;
+      }
+    }
+
+    return first_prefix;
   },
 
   /**
@@ -7327,7 +8337,74 @@ UserDict.prototype = {
    */
   append_a_lemma:
       function userDict_append_a_lemma(lemma_str, splids, count, lmt) {
+    var lemma_len = lemma_str.length;
+    var id = this.get_max_lemma_id() + 1;
+    var offset = this.dict_info_.lemma_size;
+    if (offset > UserDict.kUserDictOffsetMask) {
+      return 0;
+    }
 
+    var lemma = new UserDict.Lemma();
+    lemma.flag = 0;
+    lemma.hanzi_str = lemma_str;
+    for (var i = 0; i < lemma_len; i++) {
+      lemma.splid_arr[i] = splids[i];
+    }
+    this.lemmas_[offset] = lemma;
+    var off = this.dict_info_.lemma_count;
+    this.scores_[off] = this.build_score(lmt, count);
+    this.ids_[off] = id;
+    this.predicts_[off] = offset;
+
+    this.offsets_by_id_[id - start_id_] = offset;
+
+    this.dict_info_.lemma_count++;
+    this.dict_info_.lemma_size += (2 + (lemma_len << 2));
+    this.lemma_count_left_--;
+    this.lemma_size_left_ -= (2 + (lemma_len << 2));
+
+    // Sort
+
+    var searchable = new UserDict.UserDictSearchable();
+    this.prepare_locate(searchable, splids);
+
+    var i = 0;
+    while (i < off) {
+      offset = i;
+      var spl = get_lemma_spell_ids(offset);
+
+      if (0 <= this.fuzzy_compare_spell_id(spl, searchable))
+        break;
+      i++;
+    }
+
+    if (i != off) {
+      temp = this.scores_[off];
+      this.memmove(this.scores_, i + 1, i, (off - i) << 2);
+      this.scores_[i] = temp;
+
+      temp = this.ids_[off];
+      this.memmove(this.ids_, i + 1, i, (off - i) << 2);
+      this.ids_[i] = temp;
+    }
+
+    var j = 0;
+    var words_new = this.get_lemma_word(this.predicts_[off]);
+    j = this.locate_where_to_insert_in_predicts(words_new);
+    if (j != off) {
+      var temp = this.predicts_[off];
+      this.memmove(this.predicts_, j + 1, j, (off - j) << 2);
+      this.predicts_[j] = temp;
+    }
+
+    if (this.state_ < UserDict.UserDictState.USER_DICT_LEMMA_DIRTY) {
+      this.state_ = UserDict.UserDictState.USER_DICT_LEMMA_DIRTY;
+    }
+
+    this.cache_init();
+
+    this.dict_info_.total_nfreq += count;
+    return id;
   },
 
   /**
@@ -7337,12 +8414,92 @@ UserDict.prototype = {
    * @return {number} The offset of the lemma if exists. Otherwize -1.
    */
   locate_in_offsets: function userDict_locate_in_offsets(lemma_str, splid_str) {
+    var lemma_len = lemma_str.length;
+    var max_off = this.dict_info_.lemma_count;
 
+    var searchable = new UserDict.UserDictSearchable();
+    this.prepare_locate(searchable, splid_str);
+    var off;
+    var cache_ret = this.load_cache(searchable);
+    var cached = cache_ret.success;
+    var start = cache_ret.offset;
+    var count = cache_ret.length;
+    if (cached) {
+      off = start;
+      max_off = start + count;
+    } else {
+      off = this.locate_first_in_offsets(searchable);
+      start = off;
+    }
+    var off = this.locate_first_in_offsets(searchable);
+
+    if (off == -1) {
+      return off;
+    }
+
+    while (off < max_off) {
+      var offset = off;
+      if (offset & UserDict.kUserDictOffsetFlagRemove) {
+        off++;
+        continue;
+      }
+      var splids = this.get_lemma_spell_ids(offset);
+      if (!cached && 0 != this.fuzzy_compare_spell_id(splids, searchable))
+        break;
+      if (0 != this.fuzzy_compare_spell_id(splids, searchable))
+        break;
+
+      if (this.equal_spell_id(splids, searchable) == true) {
+        var str = this.get_lemma_word(offset);
+        var i = 0;
+        for (i = 0; i < lemma_len; i++) {
+          if (str[i] == lemma_str[i])
+            continue;
+          break;
+        }
+        if (i < lemma_len) {
+          off++;
+          continue;
+        }
+        // No need to save_cache here, since current function is invoked by
+        // put_lemma. It's rarely possible for a user input same lemma twice.
+        // That means first time user type a new lemma, it is newly added into
+        // user dictionary, then it's possible that user type the same lemma
+        // again.
+        // Another reason save_cache can not be invoked here is this function
+        // aborts when lemma is found, and it never knows the count.
+        return off;
+      }
+      off++;
+    }
+    return -1;
   },
 
   remove_lemma_by_offset_index:
       function userDict_remove_lemma_by_offset_index(offset_index) {
+    if (this.is_valid_state() == false) {
+      return 0;
+    }
 
+    var off = offset_index;
+    if (off == -1) {
+      return false;
+    }
+
+    var offset = off;
+    var nchar = this.get_lemma_nchar(offset);
+
+    this.lemmas_[off].flag |= UserDict.kUserDictLemmaFlagRemove;
+
+    this.remove_lemma_from_predict_list(offset);
+
+    this.dict_info_.free_count++;
+    this.dict_info_.free_size += (2 + (nchar << 2));
+
+    if (this.state_ < UserDict.UserDictState.USER_DICT_OFFSET_DIRTY) {
+      this.state_ = UserDict.UserDictState.USER_DICT_OFFSET_DIRTY;
+    }
+    return true;
   },
 
   /**
@@ -7350,39 +8507,126 @@ UserDict.prototype = {
    */
   locate_where_to_insert_in_predicts:
       function userDict_locate_where_to_insert_in_predicts(words) {
+    var lemma_len = words.length;
+    var begin = 0;
+    var end = this.dict_info_.lemma_count - 1;
+    var middle = end;
 
+    var last_matched = middle;
+
+    while (begin <= end) {
+      middle = (begin + end) >> 1;
+      var offset = middle;
+      var nchar = this.get_lemma_nchar(offset);
+      var ws = this.get_lemma_word(offset);
+
+      var minl = nchar < lemma_len ? nchar : lemma_len;
+      var k = 0;
+      var cmp = 0;
+
+      for (; k < minl; k++) {
+        if (ws[k] < words[k]) {
+          cmp = -1;
+          break;
+        } else if (ws[k] > words[k]) {
+          cmp = 1;
+          break;
+        }
+      }
+      if (cmp == 0) {
+        if (nchar < lemma_len)
+          cmp = -1;
+        else if (nchar > lemma_len)
+          cmp = 1;
+      }
+
+      if (cmp < 0) {
+        begin = middle + 1;
+        last_matched = middle;
+      } else if (cmp > 0) {
+        end = middle - 1;
+      } else {
+        end = middle - 1;
+        last_matched = middle;
+      }
+    }
+
+    return last_matched;
   },
 
   /**
    * @param {string} words The words to be located.
    */
   locate_first_in_predicts: function userDict_locate_first_in_predicts(words) {
+    var lemma_len = words.length;
+    var begin = 0;
+    var end = this.dict_info_.lemma_count - 1;
+    var middle = -1;
 
+    var last_matched = middle;
+
+    while (begin <= end) {
+      middle = (begin + end) >> 1;
+      var offset = middle;
+      var nchar = this.get_lemma_nchar(offset);
+      var ws = this.get_lemma_word(offset);
+
+      var minl = nchar < lemma_len ? nchar : lemma_len;
+      var k = 0;
+      var cmp = 0;
+
+      for (; k < minl; k++) {
+        if (ws[k] < words[k]) {
+          cmp = -1;
+          break;
+        } else if (ws[k] > words[k]) {
+          cmp = 1;
+          break;
+        }
+      }
+      if (cmp == 0) {
+        if (nchar >= lemma_len)
+          last_matched = middle;
+        if (nchar < lemma_len)
+          cmp = -1;
+        else if (nchar > lemma_len)
+          cmp = 1;
+      }
+
+      if (cmp < 0) {
+        begin = middle + 1;
+      } else if (cmp > 0) {
+        end = middle - 1;
+      } else {
+        end = middle - 1;
+      }
+    }
+
+    return last_matched;
   },
 
   remove_lemma_from_predict_list:
       function userDict_remove_lemma_from_predict_list(offset) {
-
+    var i = 0;
+    for (; i < this.dict_info_.lemma_count; i++) {
+      var off = (this.predicts_[i]);
+      if (off == offset) {
+        this.predicts_[i] |= UserDict.kUserDictOffsetFlagRemove;
+        break;
+      }
+    }
   },
 
-  write_back_score: function userDict_write_back_score(fd) {
-
-  },
-
-  write_back_offset: function userDict_write_back_offset(fd) {
-
-  },
-
-  write_back_lemma: function userDict_write_back_lemma(fd) {
-
-  },
-
-  write_back_all: function userDict_write_back_all(fd) {
-
-  },
-
+  /**
+   * Create the JSON object of the user dict file.
+   * @return {ojbect} The JSON object.
+   */
   write_back: function userDict_write_back() {
-
+    var info = this.dict_info_;
+    var lemmas = this.lemmas_;
+    var predicts = this.predicts_;
+    var scores = this.scores_;
+    return {info: info, lemmas: lemmas, predicts: predicts, scores: scores};
   },
 
   /**
@@ -7390,7 +8634,9 @@ UserDict.prototype = {
    *    array.
    */
   swap: function userDict_swap(sop, i, j) {
-
+    var tmp = sop[i];
+    sop[i] = sop[j];
+    sop[j] = tmp;
   },
 
   /**
@@ -7398,7 +8644,37 @@ UserDict.prototype = {
    *    array.
    */
   shift_down: function userDict_shift_down(sop, i, n) {
+    var par = i;
+    while (par < n) {
+      var left = par * 2 + 1;
+      var right = left + 1;
+      if (left >= n && right >= n)
+        break;
+      if (right >= n) {
+        if (sop[left].score > sop[par].score) {
+          this.swap(sop, left, par);
+          par = left;
+          continue;
+        }
+      } else if (sop[left].score > sop[right].score &&
+                 sop[left].score > sop[par].score) {
+        this.swap(sop, left, par);
+        par = left;
+        continue;
+      } else if (sop[right].score > sop[left].score &&
+                 sop[right].score > sop[par].score) {
+        this.swap(sop, right, par);
+        par = right;
+        continue;
+      }
+      break;
+    }
+  },
 
+  memmove: function userDict_memmove(array, dest, src, n) {
+    for (var i = 0; i < n; i++) {
+      array[dest + i] = array[src + i];
+    }
   }
 
   // On-disk format for each lemma
@@ -7491,8 +8767,8 @@ DictList.prototype = {
   /**
    * @param {string} last_hzs stores the last n Chinese characters history,
    * its length should be less or equal than DictDef.kMaxPredictSize.
-   * @param {Array.<NPredictItem>} npre_items The buffer used to save the
-   *    result.
+   * @param {Array.<SearchUtility.NPredictItem>} npre_items The buffer used to
+   *    save the result.
    * @param {number} start The start position of the buffer.
    * @param {number} npre_max The length of the buffer from the start position.
    * @param {number} b4_used specifies how many items have been used before the
@@ -9157,6 +10433,7 @@ if (typeof Test !== 'undefined') {
   Test.DictBuilder = DictBuilder;
   Test.MyStdlib = MyStdlib;
   Test.SearchUtility = SearchUtility;
+  Test.UserDict = UserDict;
 }
 
 })();
