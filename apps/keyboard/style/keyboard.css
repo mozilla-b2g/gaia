@@ -39,6 +39,7 @@
 
 .keyboard-row {
   width:100%;
+  white-space: nowrap;
 }
 
 /* BUTTONS: LOGIC KEYS */
@@ -165,7 +166,6 @@
   bottom: 0;
   height: 100%;
 }
-
 /* MENU FOR SPECIAL KEY */
 .keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper{
   background: #ebebeb;
@@ -191,6 +191,7 @@
   margin: 0 -2px -1px;
 }
 
+/* ALTERNATIVES */
 
 /* KEYS STATES */
 

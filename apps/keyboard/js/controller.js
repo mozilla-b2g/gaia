@@ -980,7 +980,7 @@ const IMEController = (function() {
       if (IMERender.ime.dataset.hidden)
         return;
 
-      IMERender.resizeUI();
+      IMERender.resizeUI(_currentLayout);
       _updateTargetWindowHeight(); // this case is not captured by the mutation
                                    // observer so we handle it apart
     },
