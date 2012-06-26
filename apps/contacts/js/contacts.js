@@ -270,6 +270,7 @@ var Contacts = (function() {
       id: document.getElementById('contact-form-id').value,
       givenName: name,
       familyName: lastName,
+      additionalName: '',
       name: name[0] + ' ' + lastName[0]
     }
 
@@ -408,4 +409,3 @@ var Contacts = (function() {
     'goToSelectTag': goToSelectTag
   };
 })();
-
