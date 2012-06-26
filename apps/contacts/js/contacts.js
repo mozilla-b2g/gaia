@@ -170,7 +170,7 @@ var Contacts = (function() {
     currentContactId.value = currentContact.id;
     givenName.value = currentContact.givenName;
     familyName.value = currentContact.familyName;
-
+    company.value = currentContact.org;
     for (var tel in currentContact.tel) {
       var telField = {
         number: currentContact.tel[tel].number,
