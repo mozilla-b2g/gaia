@@ -7,9 +7,14 @@
   width: 100%;
   height: 100%;
 }
-.view[data-state="active"], .cache[data-state="active"], .views[data-state="active"] { z-index: 100; }
+.view[data-state="active"], .cache[data-state="active"], .views[data-state="active"] {
+  z-index: 100; 
+}
 
-.cache { pointer-events: none; }
+.cache { 
+  pointer-events: none;
+}
+
 .cache .view {
   background-color: transparent;
   background-repeat: no-repeat;

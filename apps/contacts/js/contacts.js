@@ -10,8 +10,8 @@ function navigationStack(currentView) {
   };
 
   var _currentView = currentView;
-  var app = document.getElementById("app");
-  var cache = document.getElementById("cache");
+  var app = document.getElementById('app');
+  var cache = document.getElementById('cache');
   var transitionTimeout = 0;
 
   var stack = [];
@@ -21,31 +21,31 @@ var revertTransition = function(transition) {
   return {
     from: transitions[transition].to,
     to: transitions[transition].from
-  }
+  };
 };
 
   var setAppView = function(current, next) {
-      current.dataset.state = "inactive";
-      next.dataset.state = "active";
+      current.dataset.state = 'inactive';
+      next.dataset.state = 'active';
   };
 
   var setCacheView = function(current, next, transition) {
     var currentMirror = document.getElementById(current.dataset.mirror);
-    var nextMirror =document.getElementById(next.dataset.mirror);
+    var nextMirror = document.getElementById(next.dataset.mirror);
     var move = transitions[transition] || transition;
 
-    cache.dataset.state = "active";
+    cache.dataset.state = 'active';
     clearTimeout(transitionTimeout);
     transitionTimeout = setTimeout(function animate() {
       currentMirror.classList.add(move.to);
       nextMirror.classList.remove(move.from);
     }, 1);
 
-    nextMirror.addEventListener("transitionend", function nocache(){
+    nextMirror.addEventListener('transitionend', function nocache() {
         setAppView(current, next);
-        app.dataset.state = "active";
-        cache.dataset.state = "inactive";
-        nextMirror.removeEventListener("transitionend", nocache);
+        app.dataset.state = 'active';
+        cache.dataset.state = 'inactive';
+        nextMirror.removeEventListener('transitionend', nocache);
     });
   };
 
@@ -56,12 +56,12 @@ var revertTransition = function(transition) {
     var current = document.getElementById(_currentView);
     var next = document.getElementById(nextView);
 
-  if ( transition == "none" ) {
+  if (transition == 'none') {
     setAppView(current, next);
   } else {
     setCacheView(current, next, transition);
   }
-    
+
     stack.push({ view: _currentView, transition: transition});
     _currentView = nextView;
   };
@@ -74,8 +74,10 @@ var revertTransition = function(transition) {
     var nextView = stack.pop();
     var next = document.getElementById(nextView.view);
 
-    if ( transitions[nextView.transition].from == "none" || transitions[nextView.transition].to == "none" ) {
-      setAppView(current, next);   
+    var from = transitions[nextView.transition].from;
+    var to = transitions[nextView.transition].to;
+    if (from == 'none' || to == 'none') {
+      setAppView(current, next);
     } else {
       var reverted = revertTransition(nextView.transition);
       setCacheView(current, next, reverted);
@@ -167,7 +169,7 @@ var Contacts = (function() {
   var reloadContactDetails = function reloadContactDetails(contact) {
     detailsName.textContent = contact.name;
     var orgTitle = document.getElementById('org-title');
-    if(contact.org && contact.org[0] != '') {
+    if (contact.org && contact.org[0] != '') {
       orgTitle.textContent = contact.org[0];
       orgTitle.className = '';
     } else {
@@ -417,7 +419,7 @@ var Contacts = (function() {
 
       var link = document.createElement('a');
       link.title = actions[i].label;
-      link.href = "#";
+      link.href = '#';
       if (actions[i].icon) {
         var icon = document.createElement('span');
         icon.setAttribute('role', 'button');
