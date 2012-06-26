@@ -12,7 +12,6 @@
   var overlay = doc.querySelector('.view-jumper-current');
   var overlayContent = doc.querySelector('#current-jumper');
   var overlayStyle = overlay.style;
-  overlayStyle.opacity = '0';
 
   var alphabet = [];
   for (var i = 65; i <= 90; i++) {
@@ -24,13 +23,17 @@
   var previous = null;
 
   function scrollStart(evt) {
+    overlayStyle.MozTransitionDelay = '0s';
+    overlayStyle.MozTransitionDuration = '0s';
     overlayStyle.opacity = '1';
     scrollTo(evt);
   }
-  
+
   function scrollEnd(evt) {
     evt.preventDefault();
     evt.stopPropagation();
+    overlayStyle.MozTransitionDelay = '0.3s';
+    overlayStyle.MozTransitionDuration = '0.2s';
     overlayStyle.opacity = '0';
   }
 
