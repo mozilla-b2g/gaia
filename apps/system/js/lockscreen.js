@@ -64,19 +64,12 @@ var LockScreen = {
   */
   kPassCodeTriesTimeout: 10000,
 
-  isUninit: true,
-
   /* init */
   init: function ls_init() {
-    if (!this.isUninit)
-      return;
-    this.isUninit = false;
-
     this.getAllElements();
     this.updateMuteState();
 
     this.lockIfEnabled(true);
-    this.overlay.classList.remove('uninit');
 
     /* Status changes */
     window.addEventListener('volumechange', this);
@@ -113,6 +106,7 @@ var LockScreen = {
     SettingsListener.observe(
       'lockscreen.wallpaper', 'default.png', function(value) {
       self.updateBackground(value);
+      self.overlay.classList.remove('uninit');
     });
 
 
@@ -137,7 +131,7 @@ var LockScreen = {
       this.enabled = val;
     }
 
-    if (!this.enabled && this.locked && !this.isUninit) {
+    if (!this.enabled && this.locked) {
       this.unlock();
     }
   },
