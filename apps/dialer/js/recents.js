@@ -82,7 +82,6 @@ var Recents = {
     html_structure += "<div class='grid-cell grid-v-align'><div class='icon ";
 
     // Depending on call type we add icon
-    
     if (recent.type.indexOf('dialing') != -1) {
       html_structure += 'icon-outgoing';
     } else {
