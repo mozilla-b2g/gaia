@@ -11,7 +11,6 @@ var Recents = {
   },
 
   init: function re_init() {
-
     this._openreq = mozIndexedDB.open(this.DBNAME);
 
     var self = this;
@@ -56,122 +55,123 @@ var Recents = {
 
 
   add: function re_add(recentCall) {
-    // Recents.render();
+   
     this.getDatabase((function(database) {
       var txn = database.transaction(this.STORENAME, 'readwrite');
       var store = txn.objectStore(this.STORENAME);
       
       var setreq = store.put(recentCall);
-      
+       
       setreq.onsuccess = function(){
+        //TODO Update commslog when call received/made
 
-     
       };
-      
-      //     //TODO Check if we are in other day
-      //       // if(Recents.getDayDate(recentCall.date)!=Recents.current_token)
-      //       // {
-      //       //Repaint
-            
-      //     // }else{
-      //     //   //Append
-      //     //   console.log("****** INSERT BEFORE INIT*****");
-      //     //   document.getElementById(Recents.current_token).insertBefore(Recents.createEntry(recentCall), document.getElementById(Recents.current_token).firstChild);
-      //     //   console.log("****** INSERT BEFORE END *****");
-      //     // }
-     
+    
       setreq.onerror = function(e) {
         console.log('dialerRecents add failure: ', e.message, setreq.errorCode);
       };
     }).bind(this));
+
+
   },
   createEntry: function re_createEntry(recent) {
+    // Create element
     var entry = document.createElement('li');
-    entry.classList.add('log-item');
-   
-    
-   
-    var html_structure = "<section class='icon-container grid center'>";
-        //TODO Ponemos un SWITCH para añadir una u otra clase
-          html_structure += "<div class='grid-cell grid-v-align'><div class='icon icon-incoming'></div></div>"
-        html_structure += "</section>";
-        html_structure += "<section class='log-item-info grid'>";
-          html_structure +="<div class='grid-cell grid-v-align'>"
-          //TODO Añadir la consulta a la BBDD
-            html_structure +="<section class='primary-info ellipsis'>"+recent.number+"</section>"
-            html_structure +="<section class='secondary-info ellipsis'>"+prettyDate(recent.date)+"</section>"
-          html_structure +="</div>"
-        html_structure += "</section>";
-    
-     entry.innerHTML = html_structure;
-    
-    // if (recent.number) {
-    //   Contacts.findByNumber(recent.number, (function(contact) {
-    //     this.querySelector('.name').textContent = contact.name;
-    //     this.querySelector('.number').textContent = contact.tel[0].number;
-    //   }).bind(entry));
-    // }
 
+    // Add class
+    entry.classList.add('log-item');
+    
+    // Create HTML structure
+    var html_structure = "<section class='icon-container grid center'>";
+    html_structure += "<div class='grid-cell grid-v-align'><div class='icon ";
+    // Depending on call type we add icon      
+    if(recent.type.indexOf("outgoing") != -1) {
+      html_structure += "icon-outgoing";
+    }else {
+      if(recent.type != "incoming") {
+        html_structure += "icon-incoming";
+      }else {
+        html_structure += "icon-missed";
+      }
+    }
+
+    html_structure +="'></div></div>";
+    html_structure += "</section>";
+    html_structure += "<section class='log-item-info grid'>";
+    html_structure +="<div class='grid-cell grid-v-align'>"
+    
+    //Check if contact is in Agenda
+    Contacts.findByNumber(recent.number, function findContact(contact) {
+      if (contact) {
+        html_structure +="<section class='primary-info ellipsis'>"+
+        (contact.name || recent.number)+"</section>";
+      }
+    });
+    
+    html_structure +="<section class='primary-info ellipsis'>"+recent.number+"</section>"
+    html_structure +="<section class='secondary-info ellipsis'>"
+    +prettyDate(recent.date)+"</section>"
+    html_structure +="</div>"
+    html_structure += "</section>";
+    
+    entry.innerHTML = html_structure;
+    
     return entry;
   },
-  checkHeaders: function re_checkHeaders(){
-    alert("Check Headers");
-  },
   render: function re_render() {
-    console.log("**** RENDER INIT *****");
-    // if (!this.view)
-    //   return;
-    console.log("**** RENDER INIT BIS *****");
     
-    
-
-    this.history((function(recents){
-      console.log("************** Pintar la historia!!!!! **********");
-      console.log(JSON.stringify(recents));
-
+    Recents.history(function(recents){
+      //Clean DOM
+      document.getElementById('contacts-container').innerHTML='';
       
-      this.view.innerHTML='';
 
-      Recents.current_token=0;
-      
-      for (var i = 0; i < recents.length; i++) {
-        // alert(i);
-        var token_tmp = Recents.getDayDate(recents[i].date);
-        // alert(token_tmp);
-        if(token_tmp > Recents.current_token){
+      if(recents.length>0) {
+        //Update token
+        Recents.current_token=0;
+        
+        for (var i = 0; i < recents.length; i++) {
+          // We retrieve temp token
+          var token_tmp = Recents.getDayDate(recents[i].date);
           
-          Recents.current_token = token_tmp;
-          //Toca añadir un header
-          var html_structure = "<section data-timestamp="+Recents.current_token+">";
-          html_structure+="<h2>";
-          html_structure+=prettyDate(Recents.current_token);
-          html_structure+="</h2>";
-          html_structure+="<ol id='"+Recents.current_token+"'  class='log-group'>";
-          
-          //TODO 
-          // html_structure+=this.createEntry(history[i]);
-
-          html_structure+="</ol>";
-          html_structure+="</section>";
-
-
-          this.view.innerHTML+=html_structure;
-
-          document.getElementById(Recents.current_token).appendChild(this.createEntry(recents[i]));
-        }else{
-          // document.getElementById(current_token).innerHTML+=this.createEntry(history[i]);
-          document.getElementById(Recents.current_token).appendChild(this.createEntry(recents[i]));
-        }
+          // Compare tokens
+          if(token_tmp > Recents.current_token) {
+            // Update token
+            Recents.current_token = token_tmp;
+            // Create structure
+            var html_structure = "<section data-timestamp=" + Recents.current_token + ">";
+            html_structure += "<h2>";
+            html_structure += headerDate(Recents.current_token);
+            html_structure += "</h2>";
+            html_structure += "<ol id='" + Recents.current_token + "'  class='log-group'>";
+            html_structure+="</ol>";
+            html_structure+="</section>";
 
 
-      
+            document.getElementById('contacts-container').innerHTML+=html_structure;
+            document.getElementById(Recents.current_token).appendChild(Recents.createEntry(recents[i]));
+          }else{
+            document.getElementById(Recents.current_token).appendChild(Recents.createEntry(recents[i]));
+          }
 
-      
-      }//FOR END
-     console.log("************** FIN la historia!!!!! **********");
-    
-    }).bind(this));
+        }// FOR END
+      }else {
+        var no_result = document.createElement('section');
+        no_result.classList.add('grid');
+        no_result.classList.add('grid-wrapper');
+        no_result.classList.add('center');
 
+        no_result.innerHTML = '<div class="grid-cell grid-v-align">' +
+        '<header class="header-noresult">' +
+        '<section class="header-text-noresult">CALL, CHAT, TEXT...</section>' +
+        '<section class="header-text-noresult">START COMMUNICATING NOW</section>' +
+        '</header>' +
+        '<section><div class="icon-noresult"></div></section>' +
+        '</div>';
+        // document.getElementById('contacts-container').innerHTML='<section></section>';
+        document.getElementById('contacts-container').appendChild(no_result);
+
+      }// IF ELSE END
+    });
     
   },
   getDayDate: function re_getDayDate(timestamp){

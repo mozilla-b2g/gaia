@@ -80,6 +80,9 @@ var CallHandler = {
 var NavbarManager = {
   init: function nm_init() {
 
+    document.getElementById('option-recents').addEventListener('click',function(){
+       Recents.render();
+    });
     window.addEventListener('hashchange' , function(event) {
 
       // TODO Implement it with building blocks:
@@ -97,8 +100,6 @@ var NavbarManager = {
       
       switch (destination) {
         case '#recents-view':
-          Recents.render();
-          // Recents.checkHeaders();
           option_recent.classList.add('toolbar-option-selected');
           break;
         case '#contacts-view':
