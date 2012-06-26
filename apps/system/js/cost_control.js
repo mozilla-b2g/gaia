@@ -5,6 +5,7 @@
 
 var CostControl = {
   init: function cc_init() {
+    console.log("---- Cost control init -----");
     //For USSD (TopUp)
     this.conn = window.navigator.mozMobileConnection;
     //For SMS (Cost)
@@ -13,61 +14,53 @@ var CostControl = {
     this.getInitialBalance();
     //And update it
     this.updateBalance();
-    //this.waitingUpdate = false;
-  },
-
-  addListener: function() {
-    conn.addEventListener('ussdreceived', this);
-  },
-
-  removeListener: function() {
-    conn.removeEventListener('ussdreceived', this);
+    this.checkNowButton = document.getElementById("cost-control-check-now");
+    this.checkNowButton.addEventListener('click', (function() {
+      this.updateBalance();
+    }).bind(this));
   },
 
   handleEvent: function cc_handleEvent(evt) {
+    console.log(evt.type);
     switch (evt.type) {
-      console.log(evt.type);
       case 'ussdreceived':
         this.toppedUp(evt);
         break;
       case 'received':
         this.updatedBalance(evt);
+        break;
     }
   },
 
   getInitialBalance: function() {
-    this.getSavedBalance();
+    this.balanceText = document.getElementById("cost-control-spent");
+    this.dateText = document.getElementById("cost-control-date");
+    this.balanceText.innerHTML = this.getSavedBalance();
+    this.dateText.innerHMLT = this.getSavedDate();
     this.updateBalance();
-    //ussdreceived
-    //cancelussd()
   },
 
   updateBalance: function() {
-    //Send USSD to check
-    //Listen USSD message
-    //this.cost= result from ussd;
-    this.waitingBalance = true;
+    console.log("Sending SMS to get balance");
+    this.updateUI(true);
     window.clearTimeout(this.timeout);
-    var result = sms.send("*5000", "");
-    //We need to check for errors
-    result.onerror = function() {
-      console.log("There was an error sending the check balance SMS!!");
-      this.removeListener('received', this);
-    }.bind(this);
+    //Fake TODO
+    this.sms.send("690243624", "mensaje para pedir saldo");
     //We listen for the sms a prudential time, then, we just skip any received sms
-    this.timeout = window.setTimeout(function() {
-      this.removeListener('received', this);
-    }, 15000). bind(this); //FIXME, seconds to wait
-    saveCost(cost);
-    this.removeListener();
+    this.timeout = window.setTimeout((function() {
+      console.log("Removing listener for incoming balance check SMS");
+      this.sms.removeEventListener('received', this);
+      this.updateUI(false);
+    }).bind(this), 1500); //FIXME, milliseconds to wait
+    this.sms.addEventListener('received', this);
   },
   updatedBalance: function(message) {
     console.log("-- SMS -- Evt: " + message);
     console.log("-- SMS -- Evt.type: " + message.type);
     window.clearTimeout(this.timeout);
     //Fake
-    var parsedBalance = getSavedBalance() + 3.2;
-    saveBalance(parsedBalance);
+    var parsedBalance = this.getSavedBalance() + 3.2;
+    this.saveBalance(parsedBalance);
     this.updateUI(false);
   },
 
@@ -75,7 +68,11 @@ var CostControl = {
     //TODO
     if (waiting) {
       this.waitingBalance = true;
+      this.dateText.innerHTML = this.getSavedDate();
+      this.balanceText.innerHTML = this.getSavedBalance() + "--refreshing";
     } else {
+      this.dateText.innerHTML = this.dateText();
+      this.balanceText.innerHTML = this.getSavedBalance();
       this.waitingBalance = false;
     }
   },
@@ -84,8 +81,15 @@ var CostControl = {
     return window.localStorage.getItem("balance");
   },
 
+  getSavedDate: function() {
+    return window.localStorage.getItem("date");
+  },
+
   saveBalance: function(balance) {
+    var date = new Date();
+    var d = date.getDate() + "/" + date.getMonth() + "/" + date.getYear() + " at " + date.getHours() + ":" + date.getMinutes();
     window.localStorage.setItem("balance", balance);
+    window.localStorage.setItem("date", d);
   },
 
   topUp: function() {
