@@ -241,14 +241,14 @@ const IMERender = (function() {
     _menuKey = key;
     key.parentNode.replaceChild(_altContainer, key);
 
-    _altContainer.querySelectorAll('span')[0].appendChild(menu);
+    _altContainer.querySelectorAll('.visual-wrapper > span')[0].appendChild(menu);
     menu.style.display = 'block';
   };
 
   // Show char alternatives. The first element of altChars is ALWAYS the
   // original char.
   var showAlternativesCharMenu = function(key, altChars) {
-    var content = '', cssWidth = key.style.width;
+    var content = '', cssWidth = key.scrollWidth;
 
     var original = altChars[0];
     altChars = altChars.slice(1);
@@ -282,6 +282,7 @@ const IMERender = (function() {
 
     // Replace with the container
     _altContainer = document.createElement('div');
+    _altContainer.style.display = 'inline-block';
     _altContainer.style.width = key.style.width;
     _altContainer.innerHTML = key.innerHTML;
     _altContainer.className = key.className;
@@ -289,7 +290,9 @@ const IMERender = (function() {
     key.parentNode.replaceChild(_altContainer, key);
 
     // Adjust menu style
-    _altContainer .querySelectorAll('.keyboard-key-bound span')[0].appendChild(this.menu);
+    _altContainer
+      .querySelectorAll('.visual-wrapper > span')[0]
+      .appendChild(this.menu);
     this.menu.style.display = 'block';
   };
 
@@ -374,7 +377,7 @@ const IMERender = (function() {
       content += ' data-' + data.key + '="' + data.value + '" ';
     });
     content +=  ' style="width:' + width + 'px"';
-    content += '><span class="keyboard-key-bound"><span>' + label + '</span></span></button>';
+    content += '><span class="visual-wrapper"><span>' + label + '</span></span></button>';
     return content;
   };
 
