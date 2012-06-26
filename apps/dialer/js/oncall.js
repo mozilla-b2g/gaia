@@ -16,13 +16,13 @@ var CallScreen = {
   get answerButton() {
     delete this.answerButton;
     return this.answerButton = document
-      .getElementById('callbar-start-call-wrapper');
+      .getElementById('callbar-answer');
   },
 
   get rejectButton() {
     delete this.rejectButton;
     return this.rejectButton = document
-      .getElementById('callbar-hang-up-action-wrapper');
+      .getElementById('callbar-hang-up');
   },
 
   get keypadButton() {
@@ -39,7 +39,13 @@ var CallScreen = {
   get contactPrimaryInfo() {
     delete this.contactPrimaryInfo;
     return this.contactPrimaryInfo =
-      document.getElementById('cs-h-info-primary');
+      document.getElementById('contact-primary-info');
+  },
+
+  get fakeContactPrimaryInfo() {
+    delete this.fakeContactPrimaryInfo;
+    return this.fakeContactPrimaryInfo =
+      document.getElementById('fake-contact-primary-info');
   },
 
   get callDuration() {
@@ -125,7 +131,7 @@ var CallScreen = {
 
   render: function cm_render(layout_type) {
     switch (layout_type) {
-      case 'outgoing':
+      case 'dialing':
         this.callDuration.innerHTML = 'Connecting';
         this.callDuration.classList.add('connecting');
         this.answerButton.classList.add('hide');

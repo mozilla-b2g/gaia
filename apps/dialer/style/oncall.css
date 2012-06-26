@@ -12,12 +12,12 @@
 @font-face {
   font-family: 'FontBold';
   font-weight: bold;
-  src: url('fonts/opensans-bold-webfont.woff');
+  src: url('fonts/Open-Sans-Bold.woff');
 }
 
 @font-face {
   font-family: 'FontLight';
-  src: url('fonts/opensans-light-webfont.woff');
+  src: url('fonts/Open-Sans-Light.woff');
 }
 
 html, body {
@@ -48,7 +48,7 @@ html * {
   font-family:'FontBold';
 }
 
-#phone-number-view{
+#phone-number-view {
   width:100%;
   border:0;
   background:transparent;
@@ -62,7 +62,7 @@ html * {
   color:black;
 }
 
-#cs-h-info-primary{
+#contact-primary-info {
   width:100%;
   border:0;
   background:transparent;
@@ -71,7 +71,7 @@ html * {
   -moz-user-select: none;
 }
 
-#fake-cs-h-info-primary{
+#fake-contact-primary-info {
   position: absolute;
   line-height: 0;
   visibility: hidden;
@@ -106,7 +106,7 @@ html * {
 
 #keypad-callbar.hide,
 #keypad-hide-bar.hide,
-#callbar-start-call-wrapper.hide {
+#callbar-answer.hide {
   display: none;
 }
 
@@ -118,15 +118,15 @@ html * {
   display:table-row;
 }
 
-.layout-cell{
+.layout-cell {
   display:table-cell;
 }
 
-.layout-centered{
+.layout-centered {
   vertical-align:middle;
 }
 
-.center{
+.center {
   text-align:center;
 }
 
@@ -189,21 +189,21 @@ body.hidden *[data-l10n-id] {
   background:#52B6CC;
 }
 
-.cs-h-info{
+.contact-info {
   overflow: hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
   padding: 0 0 0 2rem;
 }
 
-#call-duration{
+#call-duration {
   color:white;
   font-size: -moz-calc(25*0.226rem);
   padding: 2rem 1rem 2rem 2rem;
   float: left;
 }
 
-#call-duration.connecting{
+#call-duration.connecting {
   font-size: -moz-calc(25*0.226rem / 2);
 }
 
@@ -236,16 +236,16 @@ body.hidden *[data-l10n-id] {
   background-position: center;
 }
 
-#call-options{
+#call-options {
   height:9.5rem;
 }
 
 #co-advanced {
   opacity: 1.0;
-  height: 9.5;
+  height: 9.5rem;
 }
 
-.co-advanced-option{
+.co-advanced-option {
   background: rgba(0,0,0,.8);
   height: 9.5rem;
   width: 100%;
@@ -310,17 +310,17 @@ button[disabled] .icon-keypad-visibility {
   opacity: 1.0;
 }
 
-#callbar-hang-up-action-wrapper {
+#callbar-hang-up {
   float: left;
   height: 6.5rem;
   width: 50%;
 }
 
-#callbar-hang-up-action-wrapper.full-space {
+#callbar-hang-up.full-space {
   width: 100%;
 }
 
-#callbar-start-call-wrapper {
+#callbar-answer {
   height: 6.5rem;
   width: 50%;
 }
@@ -338,12 +338,12 @@ button[disabled] .icon-keypad-visibility {
   margin: 1rem .5rem 1.5rem 1.5rem;
 }
 
-#callbar-hang-up-action-wrapper.full-space > #callbar-hang-up-action {
+#callbar-hang-up.full-space > #callbar-hang-up-action {
   margin: 1rem 1.5rem 1.5rem 1.5rem;
 }
 
 #callbar-hang-up-action > div {
-  margin: -moz-calc((4rem - 4rem)/2) auto;
+  margin: 0 auto;
   background-image: url('images/ActionIcon_40x40_hangup.png');
   background-repeat: no-repeat;
   background-size: 4rem 4rem;

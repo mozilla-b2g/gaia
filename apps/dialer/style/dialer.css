@@ -12,12 +12,12 @@
 @font-face {
   font-family: 'FontBold';
   font-weight: bold;
-  src: url('fonts/opensans-bold-webfont.woff');
+  src: url('fonts/Open-Sans-Bold.woff');
 }
 
 @font-face {
   font-family: 'FontLight';
-  src: url('fonts/opensans-light-webfont.woff');
+  src: url('fonts/Open-Sans-Light.woff');
 }
 
 html, body {
@@ -35,24 +35,24 @@ html * {
   overflow: hidden;
 }
 
-.font-regular{
+.font-regular {
   font-family:'FontRegular';
 }
 
-.font-semibold{
+.font-semibold {
   font-family:'FontSemibold';
 }
 
-.font-bold{
+.font-bold {
   font-family:'FontBold';
 }
 
-.contact-primary-info{
+.contact-primary-info {
   font-size:-moz-calc(15*0.226rem);
   color:black;
 }
 
-.contact-secondary-info{
+.contact-secondary-info {
   font-size:-moz-calc(6*0.226rem);
   color:white;
 }
@@ -112,15 +112,15 @@ body.hidden *[data-l10n-id] {
   width:100%;
 }
 
-  .toolbar-option{
+  .toolbar-option {
     opacity:0.3;
   }
 
-  .toolbar-option-selected{
+  .toolbar-option-selected {
     opacity:1;
   }
 
-  .toolbar-option:active{
+  .toolbar-option:active {
     opacity:1;
     border:0;
     border-style: none;
