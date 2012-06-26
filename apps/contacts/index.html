@@ -40,12 +40,12 @@
         </header>
         <article class="view-body">
           <div class="view-jumper">
-            <abbr class="view-jumper-current hide" title="Contacts by "></abbr>
+            <abbr class="view-jumper-current" title="Contacts by "></abbr>
 
             <ol class="view-jumper-inner">
               <li><a href="#"><span role="button" class="icon-search"></span></a></li>
               <li><a href="#"><span role="button" class="icon-fav-dark"></span></a></li>
-              <li data-template>
+              <li data-template data-letter="#letter#">
                 <a href="#">
                   <abbr class="letter" title="Jump to #letter#">#letter#</abbr>
                 </a>
@@ -273,5 +273,8 @@
         </article>
       </div>
     </section>
+
+    <div id="current-jumper"></div>
+    
   </body>
 </html>
