@@ -372,10 +372,11 @@ var ConversationListView = {
            '<input type="checkbox" class="fake-checkbox"/>' + '<span></span>' +
            '  <div class="name">' + name + '</div>' +
            (!conversation.timestamp ? '' :
-           '  <div class="time" data-time="' + conversation.timestamp + '">' +
+           '  <div class="time ' + (conversation.unreadCount > 0 ? 'unread' : '') + '" data-time="' + conversation.timestamp + '">' +
              giveHourMinute(conversation.timestamp) + '</div>') +
-           '  <div class="msg">' + bodyHTML + '</div>' +           
-           '<div class="unread-tag">' + conversation.unreadCount + '</div></a>';
+           '  <div class="msg">"' + bodyHTML + '"</div>' +
+           '<div class="unread-tag"></div>' +
+           '<div class="photo"></div></a>';
   },
 
   // Adds a new grouping header if necessary (today, tomorrow, ...)
@@ -798,10 +799,10 @@ var ConversationView = {
         var dataId = msg.id; // uuid
 
         var outgoing = (msg.delivery == 'sent' || msg.delivery == 'sending');
-        var num = outgoing ? msg.receiver : msg.sender;
+        var num = outgoing ? msg.sender : msg.receiver ;
         var dataNum = num;
 
-        var className = (outgoing ? 'receiver' : 'sender') + '"';
+        var className = (outgoing ? 'sender' : 'receiver') + '"';
         if (msg.delivery == 'sending')
           className = 'receiver pending"';
 
@@ -822,9 +823,12 @@ var ConversationView = {
                     '  <input type="checkbox" class="fake-checkbox"/>' +
                     '  <span></span>' +
                     '  <div class="message-container ' + className + '>' +
-                    '    <div class="text">' + body + '</div>' +
+                    '    <div class="message-bubble"></div>' +
                     '    <div class="time" data-time="' + timestamp + '">' +
-                    prettyDate(msg.timestamp) + '</div>' +
+                    // '    <div class="time">' +
+                         giveHourMinute(msg.timestamp) + 
+                    '    </div>' +
+                    '    <div class="text">' + body + '</div>' +
                     '  </div>' +
                     '</div>';
       }
