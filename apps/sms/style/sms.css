@@ -1,19 +1,24 @@
 
 @font-face {
-  font-family: 'Open Sans';
+  font-family: 'FontLight';
+  src: url('fonts/opensans-light-webfont.woff');
+}
+
+@font-face {
+  font-family: 'FontRegular';
   src: url('fonts/Open-Sans.woff');
 }
 
 @font-face {
-  font-family: 'Open Sans';
-  font-weight: bold;
-  src: url('fonts/Open-Sans-Bold.woff');
+  font-family: 'FontSemibold';
+  font-weight: 600;
+  src: url('fonts/Open-Sans-Semibold.woff');
 }
 
 @font-face {
-  font-family: 'Open Sans';
-  font-weight: 600;
-  src: url('fonts/Open-Sans-Semibold.woff');
+  font-family: 'FontBold';
+  font-weight: bold;
+  src: url('fonts/Open-Sans-Bold.woff');
 }
 
 @media screen and (min-resolution: 200dpi) {
@@ -304,7 +309,7 @@ body.msg-search-mode #msg-conversations-list {
   position: relative;
   /* Remove the thumbnail for current stage.
    *padding need to 11.2rem + img width when social network integration is ready*/
-  padding: 1.3rem 1.6rem 0 5rem;
+  padding: 1.3rem 1.6rem 0 3rem;
   border-top: 0.1rem solid hsla(207,22%,92%,1);
   border-bottom: 0.1rem solid hsla(223,7%,81%,1);
   width: 100%;
@@ -420,10 +425,11 @@ body.edit-mode #msg-conversations-list > a > span {
 }
 
 #msg-conversations-list .name {
-  font-size: 2.6rem;
-  color: rgb(18, 47, 64);
-  line-height: 3.2rem;
-  font-weight: 600;
+  font-family: 'FontRegular';
+  font-size: -moz-calc(8 * 0.226rem);
+  color: #000000;
+/*  line-height: 3.2rem;
+  font-weight: 600;*/
   overflow: hidden;
   text-overflow: ellipsis;
   width: -moz-calc(100% - 6rem);
