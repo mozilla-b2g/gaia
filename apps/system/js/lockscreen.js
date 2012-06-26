@@ -81,6 +81,7 @@ var LockScreen = {
     window.addEventListener('mozChromeEvent', this);
 
     /* Gesture */
+    this.areaHandle.addEventListener('mousedown', this);
     this.areaCamera.addEventListener('mousedown', this);
     this.areaUnlock.addEventListener('mousedown', this);
 
@@ -187,7 +188,7 @@ var LockScreen = {
           y: evt.screenY,
           target: evt.target
         };
-        this.overlay.classList.add('touch');
+        this.overlay.classList.add('touched');
         window.addEventListener('mouseup', this);
         break;
 
@@ -198,7 +199,7 @@ var LockScreen = {
         delete this._touch;
 
         this.handleGesture(dx, dy, target);
-        this.overlay.classList.remove('touch');
+        this.overlay.classList.remove('touched');
         window.removeEventListener('mouseup', this);
         break;
 
@@ -501,7 +502,7 @@ var LockScreen = {
     var elements = ['mute', 'clock', 'date',
         'notification', 'notification-icon', 'notification-title',
         'notification-detail', 'notification-time',
-        'area-unlock', 'area-camera',
+        'area-unlock', 'area-camera', 'area-handle',
         'passcode-code', 'passcode-pad',
         'camera'];
 
