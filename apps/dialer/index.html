@@ -170,15 +170,42 @@
         Contacts view
       </section>
       <section class="view" role="tabpanel" id="recents-view">
-        <div class="grid-wrapper grid">
-          <header class="grid-row view-header">
+        <div class="grid-wrapper">
+          <header class="view-header">
             <div class="grid-wrapper grid">
-              <h1 class="grid-cell grid-v-align">asdads</h1>
-              <section class="grid-cell grid-v-align"> Options bar</section>
+              <h1 class="grid-cell grid-v-align">Comms log</h1>
+              <section class="grid-cell grid-v-align view-header-options">
+                <div class="grid-wrapper grid">
+                  <span class="grid-cell grid-v-align">
+                    <div class="icon icon-edit">
+                    </div>
+                  </span>
+                </div>
+              </section>
             </div>
           </header>
-          <article class="grid-row view-body">
-            asd
+          <article id="contacts-container" class="view-body">
+           
+            <!-- <section>
+              <h2>
+                Today
+              </h2>
+              <ol class="log-group">
+                <li class="log-item">
+                  <section class="icon-container grid center">
+                    <div class="grid-cell grid-v-align">
+                      a
+                    </div>
+                  </section>
+                  <section class="log-item-info grid">
+                    <div class="grid-cell grid-v-align">
+                      <section class="primary-info ellipsis">Primary alksdj alksdj aklsdj alksjd aklsj dlaks jdklas jdklas jdalksjd alksdj alks djalsdk jalksdj </section>
+                      <section class="secondary-info ellipsis">Secondary</section>
+                    </div>
+                  </section>
+                </li>
+              </ol>
+            </section> -->
           </article>
         </div>
       </section>
@@ -198,8 +225,8 @@
     <script>
       //If no entry point, redirect to the keyboard-view
       if(document.location.href.indexOf("#") == -1) {
-        // document.location.href = "#keyboard-view";
-        document.location.href = "#recents-view";
+        document.location.href = "#keyboard-view";
+        
       }
     </script>
 </html>

@@ -1,3 +1,9 @@
+
+@font-face {
+  font-family: 'FontLight';
+  src: url('fonts/opensans-light-webfont.woff');
+}
+
 @font-face {
   font-family: 'FontRegular';
   src: url('fonts/Open-Sans.woff');

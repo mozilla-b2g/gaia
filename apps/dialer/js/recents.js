@@ -7,7 +7,7 @@ var Recents = {
 
   get view() {
     delete this.view;
-    return this.view = document.getElementById('recents-view');
+    return this.view = document.getElementById('contacts-container');
   },
 
   init: function re_init() {
@@ -61,14 +61,38 @@ var Recents = {
       var store = txn.objectStore(this.STORENAME);
 
       var setreq = store.put(recentCall);
+      
+      setreq.onsuccess = (function(){
+        console.log("**** *** *** DB INIT ** **** *****");
 
-      setreq.onsuccess = (function() {
-        if (this.view) {
-          var entry = this.createEntry(recentCall);
-          var firstEntry = this.view.firstChild;
-          this.view.insertBefore(entry, firstEntry);
-        }
+        this.render();
+        console.log("**** *** *** DB FIN ** **** *****");
       }).bind(this);
+      // setreq.onsuccess = (function() {
+
+      //   console.log("***** REPINTADA!!!! *******");
+      //   Recents.render();
+
+      //   console.log("***** NEW DATABASE ITEM ADDED *******");
+        
+      //     //TODO Check if we are in other day
+      //       // if(Recents.getDayDate(recentCall.date)!=Recents.current_token)
+      //       // {
+      //       //Repaint
+            
+      //     // }else{
+      //     //   //Append
+      //     //   console.log("****** INSERT BEFORE INIT*****");
+      //     //   document.getElementById(Recents.current_token).insertBefore(Recents.createEntry(recentCall), document.getElementById(Recents.current_token).firstChild);
+      //     //   console.log("****** INSERT BEFORE END *****");
+      //     // }
+          
+
+      //     // var entry = this.createEntry(recentCall);
+      //     // var firstEntry = this.view.firstChild;
+      //     // this.view.insertBefore(entry, firstEntry);
+       
+      // }).bind(this);
 
       setreq.onerror = function(e) {
         console.log('dialerRecents add failure: ', e.message, setreq.errorCode);
@@ -77,52 +101,153 @@ var Recents = {
   },
 
   createEntry: function re_createEntry(recent) {
-    var innerFragment = '<img src="style/images/contact-placeholder.png"' +
-                        '  alt="profile" />' +
-                        '<div class="name">' +
-                        '  ' + (recent.number || 'Anonymous') +
-                        '</div>' +
-                        '<div class="number"></div>' +
-                        '<div class="timestamp" data-time="' +
-                        '  ' + recent.date + '">' +
-                        '  ' + prettyDate(recent.date) +
-                        '</div>' +
-                        '<div class="type"></div>';
-
-    var entry = document.createElement('div');
-    entry.classList.add('recent');
-    entry.classList.add(recent.type);
-    entry.dataset.number = recent.number;
-    entry.innerHTML = innerFragment;
-
-    if (recent.number) {
-      Contacts.findByNumber(recent.number, (function(contact) {
-        this.querySelector('.name').textContent = contact.name;
-        this.querySelector('.number').textContent = contact.tel[0].number;
-      }).bind(entry));
-    }
+    var entry = document.createElement('li');
+    entry.classList.add('log-item');
+   
+    
+   
+    var html_structure = "<section class='icon-container grid center'>";
+        //TODO Ponemos un SWITCH para añadir una u otra clase
+          html_structure += "<div class='grid-cell grid-v-align'><div class='icon icon-incoming'></div></div>"
+        html_structure += "</section>";
+        html_structure += "<section class='log-item-info grid'>";
+          html_structure +="<div class='grid-cell grid-v-align'>"
+          //TODO Añadir la consulta a la BBDD
+            html_structure +="<section class='primary-info ellipsis'>"+recent.number+"</section>"
+            html_structure +="<section class='secondary-info ellipsis'>"+prettyDate(recent.date)+"</section>"
+          html_structure +="</div>"
+        html_structure += "</section>";
+    
+     entry.innerHTML = html_structure;
+    
+    // if (recent.number) {
+    //   Contacts.findByNumber(recent.number, (function(contact) {
+    //     this.querySelector('.name').textContent = contact.name;
+    //     this.querySelector('.number').textContent = contact.tel[0].number;
+    //   }).bind(entry));
+    // }
 
     return entry;
   },
-
+  checkHeaders: function re_checkHeaders(){
+    alert("Check Headers");
+  },
   render: function re_render() {
+    console.log("**** RENDER INIT *****");
     // if (!this.view)
     //   return;
+    console.log("**** RENDER INIT BIS *****");
+    
+    this.view.innerHTML = '';
 
-
-    // this.view.innerHTML = '';
-
-    // this.view.innerHTML = 'Commslog';
-
-
+   
+    
     // this.history((function(history) {
-    //   for (var i = 0; i < history.length; i++) {
-    //     var entry = this.createEntry(history[i]);
-    //     this.view.appendChild(entry);
-    //   }
-    // }).bind(this));
-  },
+      // // MOCKUP
+      // var history=[];
+      // for (var i = 1; i < 100; i++) {
+        
+      //     var date=i*100000000;
+        
+      //   var com_log={
+      //     date:date,
+      //     type:1,
+      //     number:'002020202020'
 
+      //   }
+      //   history.push(com_log);
+        
+
+      // }
+
+    // this.history.call(this,function(history){
+      // alert("START");
+      // alert(JSON.stringify(history));
+      // this.view.innerHTML=JSON.stringify(history);
+    this.history((function(recents){
+      console.log("************** Pintar la historia!!!!! **********");
+      console.log(JSON.stringify(recents));
+
+      // // MOCKUP
+      // var history=[];
+      // for (var i = 1; i < 100; i++) {
+        
+      //     var date=i*100000000;
+        
+      //   var com_log={
+      //     date:date,
+      //     type:1,
+      //     number:'002020202020'
+
+      //   }
+      //   history.push(com_log);
+        
+
+      // }
+
+
+      
+      this.view.innerHTML='';
+    // }).bind(this));
+    // this.history(function(recents){
+    //   alert("START");
+    //   alert(JSON.stringify(recents));
+    //   alert("FIN");
+    // }).bind(this);
+      //Sort by DATE
+      // recents.sort(function(a,b){
+      //   return a.date-b.date;
+      // });
+
+      Recents.current_token=0;
+      
+      for (var i = 0; i < recents.length; i++) {
+        // alert(i);
+        var token_tmp = Recents.getDayDate(recents[i].date);
+        // alert(token_tmp);
+        if(token_tmp > Recents.current_token){
+          
+          Recents.current_token = token_tmp;
+          //Toca añadir un header
+          var html_structure = "<section data-timestamp="+Recents.current_token+">";
+          html_structure+="<h2>";
+          html_structure+=prettyDate(Recents.current_token);
+          html_structure+="</h2>";
+          html_structure+="<ol id='"+Recents.current_token+"'  class='log-group'>";
+          
+          //TODO 
+          // html_structure+=this.createEntry(history[i]);
+
+          html_structure+="</ol>";
+          html_structure+="</section>";
+
+
+          this.view.innerHTML+=html_structure;
+
+          document.getElementById(Recents.current_token).appendChild(this.createEntry(recents[i]));
+        }else{
+          // document.getElementById(current_token).innerHTML+=this.createEntry(history[i]);
+          document.getElementById(Recents.current_token).appendChild(this.createEntry(recents[i]));
+        }
+
+
+      
+
+      
+     }//FOR END
+     console.log("************** FIN la historia!!!!! **********");
+     // alert("FIN");
+    // }) ; 
+  }).bind(this));
+
+    
+  },
+  getDayDate: function re_getDayDate(timestamp){
+
+    var date = new Date(timestamp);
+    var start_date = new Date(date.getFullYear(),date.getMonth(),date.getDate());
+    return start_date.getTime();
+  },
   history: function re_history(callback) {
     this.getDatabase((function(database) {
       var recents = [];
