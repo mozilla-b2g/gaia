@@ -638,7 +638,6 @@ var Cards = {
       else {
         this._eatingEventsUntilNextCard = true;
       }
-console.log('setting transform', targetLeft);
       cardsNode.style.MozTransform = targetLeft;
 
       if (showMethod === 'immediate') {
