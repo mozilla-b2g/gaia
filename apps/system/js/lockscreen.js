@@ -112,8 +112,7 @@ var LockScreen = {
 
     SettingsListener.observe(
       'lockscreen.wallpaper', 'default.png', function(value) {
-      var url = 'url(resources/images/backgrounds/' + value + ')';
-      self.overlay.style.backgroundImage = url;
+      self.updateBackground(value);
     });
 
 
@@ -491,6 +490,15 @@ var LockScreen = {
         this.passCodeEntered = '';
         this.updatePassCodeUI();
       }).bind(this), timeout);
+    }
+  },
+
+  updateBackground: function ls_updateBackground(value) {
+    var panels = document.querySelectorAll('.lockscreen-panel');
+    var url = 'url(resources/images/backgrounds/' + value + ')';
+
+    for (var i = 0; i < panels.length; i++) {
+      panels[i].style.backgroundImage = url;
     }
   },
 

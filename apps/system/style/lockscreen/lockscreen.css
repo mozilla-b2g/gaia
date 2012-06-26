@@ -7,11 +7,6 @@
   height: -moz-calc(100% - 20px);
   overflow: hidden;
 
-  background-color: #000;
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: 50% 50%;
-
   -moz-user-select: none;
 
   -moz-transition: -moz-transform 0.3s ease;
@@ -34,6 +29,11 @@
   width: 100%;
   height: 100%;
   position: absolute;
+
+  background-color: #000;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: 50% 50%;
 }
 
 .lockscreen-panel.tbd {
@@ -225,7 +225,7 @@
 /* XXX: copy from alt design visual
 *       need better indication for swiping action instead a label
 */
-.lockscreen-panel:not([id])::after {
+#lockascreen-main-panel::after {
   content: 'Swipe up to unlock';
   position: absolute;
   bottom: -24px;
@@ -239,18 +239,18 @@
   -moz-transition: -moz-transform 0.3s ease 0.5s;
 }
 
-.touch .lockscreen-panel:not([id])::after {
+.touch #lockascreen-main-panel::after {
   -moz-transform: translateY(-24px);
 }
 
 @media screen and (height: 800px) {
-  .lockscreen-panel:not([id])::after {
+  #lockascreen-main-panel::after {
     bottom: -36px;
     height: 36px;
     font-size: 24px;
     line-height: 36px;
   }
-  .touch .lockscreen-panel:not([id])::after {
+  .touch #lockascreen-main-panel::after {
     -moz-transform: translateY(-36px);
   }
 }
