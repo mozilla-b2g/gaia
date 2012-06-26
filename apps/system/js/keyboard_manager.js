@@ -2,7 +2,7 @@
 
 var KeyboardManager = (function() {
 
-  var KEYBOARD_ID = 'keyboardFrame';
+  var KEYBOARD_ID = 'keyboard';
 
   // XXX TODO: Retrieve it from Settings, allowing 3rd party keyboards
   var host = document.location.host;
