@@ -1,6 +1,30 @@
 
 'use strict';
 
+var ApplicationMock = function(app, entry_point, 
+        origin, manifest, manifestURL, 
+        receips, installOrigin, installTime) {
+  this.app = app;
+  this.entry_point = entry_point;
+  this.origin = origin;
+  this.manifest = manifest;
+  this.manifestURL = manifestURL;
+  this.receips = receips;
+  this.installOrigin = installOrigin;
+  this.installTime = installTime;
+  this.manifest.use_manifest = true;
+};
+
+ApplicationMock.prototype = {
+  launch: function(startPoint) {
+    this.app.launch(this.entry_point + this.manifest.launch_path);
+  },
+
+  uninstall: function() {
+    this.app.uninstall();
+  }
+};
+
 var Applications = (function() {
   var installedApps = {};
 
@@ -11,7 +35,37 @@ var Applications = (function() {
     var apps = e.target.result;
     apps.forEach(function parseApp(app) {
       if (app.manifest.icons) {
-        installedApps[app.origin] = app;
+        /*
+        * If the manifest contains entry points, iterate over them
+        * and add a fake app object for each one.
+        */
+        if (app.manifest.entry_points) {
+          for (var i in app.manifest.entry_points) {
+            if (!app.manifest.entry_points[i].hasOwnProperty('icons')) {
+              continue;
+            }
+            
+            var alternativeOrigin = app.origin + '/' + i;
+            var manifest = {};
+            //Clone the manifest
+            for(var j in app.manifest) {
+              manifest[j] = app.manifest[j];
+            }
+            //Delete the locales, this is not translated yet
+            delete manifest.locales;
+            manifest.name = app.manifest.entry_points[i].name;
+            manifest.launch_path = app.manifest.entry_points[i].path;
+            manifest.icons = app.manifest.entry_points[i].icons;
+            manifest.origin = alternativeOrigin;
+            var newApp = new ApplicationMock(app, i,
+              alternativeOrigin, manifest, app.manifestURL, app.receips,
+              app.installOrigin, app.installTime);
+              
+            installedApps[alternativeOrigin] = newApp;
+          }
+        } else {
+          installedApps[app.origin] = app;
+        }
       }
     });
 

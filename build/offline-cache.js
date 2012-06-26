@@ -223,6 +223,18 @@ appSrcDirs.forEach(function parseDirectory(directoryName) {
           let iconURL = domain + webappManifest.icons[size];
           iconsURL.push(iconURL);
         });
+      } 
+      if (webappManifest.entry_points) {
+        for(var entry_point in webappManifest.entry_points) {
+          let ep = webappManifest.entry_points[entry_point];
+          if(ep.icons) {
+            let sizes = Object.keys(ep.icons);
+            sizes.forEach(function iconIterator(size) {
+              let iconURL = domain + '/' + entry_point + ep.icons[size];
+              iconsURL.push(iconURL);
+            });
+          }
+        }
       }
     }
 
