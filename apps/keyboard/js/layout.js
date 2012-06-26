@@ -24,7 +24,7 @@ const Keyboards = {
         { value: ';' }, { value: '/' }, { value: '?' },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [
-        { value: ' ', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
+        { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
@@ -47,7 +47,7 @@ const Keyboards = {
         { value: '¢' }, { value: '\\' }, { value: '=' },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [
-        { value: ' ', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
+        { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
@@ -113,7 +113,7 @@ const Keyboards = {
         { value: 'b' }, { value: 'n' }, { value: 'm' },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [
-        { value: ' ', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
+        { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
@@ -148,7 +148,7 @@ const Keyboards = {
         { value: 'b' }, { value: 'n' }, { value: "'", keyCode: 39 },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [
-        { value: ' ', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
+        { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
@@ -183,7 +183,7 @@ const Keyboards = {
         { value: 'b' }, { value: 'n' }, { value: 'm' },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [
-        { value: ' ', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
+        { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
@@ -209,7 +209,7 @@ const Keyboards = {
         { value: 'נ' }, { value: 'מ' }, { value: 'צ' }, { value: 'ת' },
         { value: 'ץ' }, { value: '?' }
       ], [
-        { value: ' ', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
+        { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
@@ -252,7 +252,7 @@ const Keyboards = {
         { value: 'b' },{ value: 'n' },{ value: 'm' },
         { value: '⌫', ratio: 2, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [
-        { value: ' ', ratio: 9, keyCode: KeyboardEvent.DOM_VK_SPACE },
+        { value: '&nbsp', ratio: 9, keyCode: KeyboardEvent.DOM_VK_SPACE },
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
@@ -280,7 +280,7 @@ const Keyboards = {
           { value: 'и' }, { value: 'т' }, { value: 'ь' }, { value: 'б' },
           { value: 'ю' }, { value: '⌫', keyCode: KeyEvent.DOM_VK_BACK_SPACE }
         ], [
-          { value: ' ', ratio: 9, keyCode: KeyboardEvent.DOM_VK_SPACE },
+          { value: '&nbsp', ratio: 9, keyCode: KeyboardEvent.DOM_VK_SPACE },
           { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
         ]
     ]
@@ -308,7 +308,7 @@ const Keyboards = {
         { value: 'н' }, { value: 'м' }, { value: 'ђ' }, { value: 'ж' },
         { value: '⌫', keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [
-        { value: ' ', ratio: 9, keyCode: KeyboardEvent.DOM_VK_SPACE },
+        { value: '&nbsp', ratio: 9, keyCode: KeyboardEvent.DOM_VK_SPACE },
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
@@ -347,7 +347,7 @@ const Keyboards = {
         { value: 'b' }, { value: 'n' }, { value: 'm' },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [
-        { value: ' ', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
+        { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
@@ -385,7 +385,7 @@ const Keyboards = {
         { value: 'b' }, { value: 'n' }, { value: 'm' },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [
-        { value: ' ', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
+        { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
@@ -424,7 +424,7 @@ const Keyboards = {
         { value: 'b' }, { value: 'm' }, { value: 'w' }, { value: 'v' },
         { value: 'z' }
       ], [
-        { value: ' ', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
+        { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
@@ -459,7 +459,7 @@ const Keyboards = {
         { value: 'ㄡ'},{ value: 'ㄥ'},
         { value: '⌫', keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [
-        { value: ' ', ratio: 9, keyCode: KeyboardEvent.DOM_VK_SPACE },
+        { value: '&nbsp', ratio: 9, keyCode: KeyboardEvent.DOM_VK_SPACE },
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
@@ -659,7 +659,7 @@ const Keyboards = {
         { value: 'د' }, { value: 'ز' }, { value: 'ر' }, { value: 'و' },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [
-        { value: ' ', ratio: 9, keyCode: KeyboardEvent.DOM_VK_SPACE },
+        { value: '&nbsp', ratio: 9, keyCode: KeyboardEvent.DOM_VK_SPACE },
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ],
@@ -733,7 +733,7 @@ const Keyboards = {
         { value: 'β' }, { value: 'ν' }, { value: 'μ' },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [
-        { value: ' ', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
+        { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
@@ -753,7 +753,10 @@ const Keyboards = {
       l: '£',
       n: 'ń',
       y: '¥',
-      r: 'R$ '
+      r: 'R$ ',
+      '.': ',¿?¡!;:',
+      ':)': ':) :D :( ;D :* :/',
+      '.com': '.es .org .eu'
     },
     keys: [
       [
@@ -770,7 +773,8 @@ const Keyboards = {
         { value: 'b' }, { value: 'n' }, { value: 'm' },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [
-        { value: ' ', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
+        { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
+//        { value: ':)', compositeKey:':)', ratio: 2 },
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ],
@@ -798,12 +802,12 @@ const Keyboards = {
           { value: '(' } , { value: ')' }, { value: '€' }, { value: '&' },
           { value: '@' }, { value: '%' }
         ], [
-          { value: 'ALT', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
+          { value: '#+=', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
           { value: '¿' }, { value: '?' }, { value: '¡' }, { value: '!' },
           { value: '\"' }, { value: '\'' }, { value: '*' },
           { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
         ], [
-          { value: ' ', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
+          { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
           { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
         ]
       ]
@@ -819,12 +823,12 @@ const Keyboards = {
           { value: '<' }, { value: '>' }, { value: '$' }, { value: '£' },
           { value: '¥' }, { value: '•' }
         ], [
-          { value: 'ALT', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
+          { value: '123', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
           { value: '¿' }, { value: '?' }, { value: '¡' }, { value: '!' },
           { value: '\"' }, { value: '\'' }, {value: '*' },
           { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
         ], [
-          { value: ' ', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
+          { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
           { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
         ]
       ]
@@ -861,7 +865,7 @@ const Keyboards = {
         { value: 'b' }, { value: 'n' }, { value: 'm' },
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [
-        { value: ' ', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
+        { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ],
@@ -895,7 +899,7 @@ const Keyboards = {
           { value: '\"' }, { value: '\'' }, { value: '*' },
           { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
         ], [
-          { value: ' ', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
+          { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
           { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
         ]
       ]
@@ -916,7 +920,7 @@ const Keyboards = {
           { value: '\"' }, { value: '\'' }, { value: '*' },
           { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
         ], [
-          { value: ' ', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
+          { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
           { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
         ]
       ]
@@ -981,7 +985,7 @@ const Keyboards = {
         { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ], [
         { value: '&#x1f310;', keyCode: -3}, { value: 'A', keyCode: -21 },
-        { value: ' ', keyCode: KeyEvent.DOM_VK_SPACE, ratio: 5},
+        { value: '&nbsp', keyCode: KeyEvent.DOM_VK_SPACE, ratio: 5},
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]

@@ -102,6 +102,11 @@
           <h2 class="msg-list-header-folder-label header-label"></h2>
           <button class="msg-compose-btn header-right-btn">+</button>
         </div>
+        <div class="msg-listedit-header top-edit-header top-header collapsed">
+          <button class="msg-listedit-cancel-btn header-left-btn"
+                  data-l10n-id="message-multiedit-cancel">CanceL</button>
+          <h3 class="msg-listedit-header-label header-label"></h3>
+        </div>
         <div class="msg-list-scrollouter">
           <!-- exists so we can force a minimum height -->
           <div class="msg-list-scrollinner">
@@ -109,10 +114,12 @@
             <!-- The search textbox hides under the lip of the messages. 
                  As soon as any typing happens in it, we push the search
                  controls card. -->
+            <!-- deferred for now
             <div class="msg-search-tease-bar">
               <input class="msg-search-text-tease" type="text"
                      placeholder="SearcH MaiL"/>
             </div>
+            -->
             <div class="msg-messages-container">
             </div>
             <div class="bottom-toolbar-spacer"></div>
@@ -125,6 +132,12 @@
           <button class="msg-search-btn bottom-btn">SearcH</button>
           <button class="msg-edit-btn bottom-btn">EdiT</button>
           <button class="msg-refresh-btn bottom-btn">RefresH</button>
+        </div>
+        <div class="msg-listedit-action-toolbar bottom-edit-toolbar bottom-toolbar collapsed">
+          <button class="msg-star-btn bottom-btn">StaR</button>
+          <button class="msg-unstar-btn bottom-btn">UnStaR</button>
+          <button class="msg-mark-read-btn bottom-btn">MarK</button>
+          <button class="msg-mark-unread-btn bottom-btn">UnMarK</button>
         </div>
       </div>
 
@@ -266,7 +279,7 @@
         </div>
       </div>
       <!-- Enter your e-mail address, password, name -->
-      <div class="card-setup-account-info card">
+      <div class="card-setup-account-info form-card card">
         <div class="sup-account-header top-header">
           <button class="sup-back-btn header-left-btn back-btn">&lt;</button>
           <h2 class="sup-account-header-label header-label"
@@ -278,8 +291,8 @@
         </h2>
         <div class="sup-form">
           <input class="sup-info-name sup-form-text" type="text"
-                 placeholder="NamE" />
-          <input class="sup-info-email sup-form-text" type="text"
+                 inputmode="titlecase" placeholder="NamE" />
+          <input class="sup-info-email sup-form-text" type="email"
                  placeholder="EmaiL AddresS" />
           <input class="sup-info-password sup-form-text" type="password"
                  placeholder="PassworD" />
@@ -323,12 +336,59 @@
         </button>
       </div>
 
+      <div class="card-setup-fix-password card">
+        <div class="sup-account-header top-header">
+          <h2 class="sup-account-header-label header-label"
+              data-l10n-id="setup-bad-password-header">BaD PassworD</h2>
+        </div>
+        <div class="scrollregion-below-header">
+          <h2 class="sup-bad-password-label sup-form-label"
+              data-l10n-id="setup-bad-password">BaD PassworD FoR</h2>
+          <span class="sup-bad-password-account"></span>
+
+          <input class="sup-info-password sup-form-text" type="password"
+                 placeholder="PassworD" />
+          <button class="sup-use-password-btn sup-form-btn"
+                  data-l10n-id="setup-fix-password">UsE PassworD</button>
+        </div>
+      </div>
+
       <!-- Main settings menu, root of all (mail) settings -->
       <div class="card-settings-main card">
+        <div class="tng-main-header top-header">
+          <button class="tng-close-btn header-left-btn"
+                  data-l10n-id="settings-close">ClosE</button>
+          <h2 class="tng-main-header-label header-label"
+              data-l10n-id="settings-main-header">MaiL SettingS</h2>
+        </div>
+        <div class="scrollregion-below-header">
+          <h3 class="tng-main-accounts-label tng-header-item"
+              data-l10n-id="settings-account-section">AccountS</h3>
+          <div class="tng-accounts-container"></div>
+          <a class="tng-account-add tng-item"
+             data-l10n-id="settings-account-add">AdD AccounT</a>
+          <h3 class="tng-main-about-label tng-header-item"
+              data-l10n-id="settings-about-section">AbouT</h3>
+          <a class="tng-email-lib-version tng-inert-item tng-item">v1</a>
+        </div>
       </div>
 
       <!-- Per-account settings menu; largely read-only for now -->
       <div class="card-settings-account card">
+        <div class="tng-account-header top-header">
+          <button class="tng-back-btn back-btn header-left-btn">&lt;</button>
+          <h2 class="tng-account-header-label header-label"></h2>
+        </div>
+      </div>
+
+      <!-- Developer debug page; for those in the know -->
+      <div class="card-settings-debug card">
+        <div class="tng-debug-header top-header">
+          <button class="tng-close-btn header-left-btn"
+                  data-l10n-id="settings-close">ClosE</button>
+          <h2 class="tng-main-header-label header-label"
+              data-l10n-id="settings-main-header">MaiL SettingS</h2>
+        </div>
       </div>
     </div>
     <!-- Widget nodes for folder cards; styles use the fld prefix -->
@@ -391,6 +451,15 @@
     </div>
     <!-- Widget nodes for the settings cards; styles use the tng prefix -->
     <div id="templ-tng">
+      <a class="tng-account-item tng-item">
+        <h4 class="tng-account-item-label"></h4>
+        <!-- we may want to expose some other info in this row -->
+      </a>
+
+      <ul class="tng-account-menu menu">
+        <li class="tng-account-menu-delete menu-item"
+            data-l10n-id="settings-account-delete">DeletE AccounT</li>
+      </ul>
     </div>
   </div>
 </body>

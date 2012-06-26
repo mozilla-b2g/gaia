@@ -39,25 +39,22 @@ button {
   width: 100%;
   height: 100%;
   position: relative;
-  left: 0;
   overflow: hidden;
+  -moz-transform: translateX(0px);
 }
 #cards {
   position: absolute;
   top: 0;
   left: 0;
-  transition-property: left;
-  transition-duration: 300ms;
-  transition-timing-function: linear;
-  -moz-transition-property: left;
+  -moz-transition-property: -moz-transform;
   -moz-transition-duration: 300ms;
-  -moz-transition-timing-function: linear;
-  -webkit-transition-property: left;
+  -moz-transition-timing-function: ease;
+  -webkit-transition-property: -webkit-transform;
   -webkit-transition-duration: 300ms;
-  -webkit-transition-timing-function: linear;
-  -o-transition-property: left;
+  -webkit-transition-timing-function: ease;
+  -o-transition-property: -o-transform;
   -o-transition-duration: 300ms;
-  -otransition-timing-function: linear;
+  -otransition-timing-function: ease;
 
   /* To trigger hardward acceleration for webkit:
      http://www.html5rocks.com/en/tutorials/speed/quick/#toc-hwaccel
@@ -72,6 +69,10 @@ button {
   background-color: white;
 }
 
+.form-card {
+  overflow: auto;
+}
+
 .top-header {
   background: -moz-linear-gradient(to top, #ffffff 0, #a3a3a3 5px, #992f21 5px, #992f21 6px, #bb492d 6px, #cc6523 100%);
   background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%,  #cc6523), color-stop(100%, #bb492d));
@@ -80,6 +81,10 @@ button {
   padding: 0;
   padding-bottom: 6px;
   z-index: 999;
+}
+.top-header.top-edit-header {
+  background: -moz-linear-gradient(to top, #ffffff 0, #a3a3a3 5px, #888888 5px, #999999 6px, #bbbbbb 6px, #cccccc 100%);
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%,  #cccccc), color-stop(100%, #bbbbbb));
 }
 
 .header-label {
@@ -124,6 +129,9 @@ button {
   width: 100%;
   height: 48px;
   background-color: rgba(0, 0, 0, 0.4);
+}
+.bottom-toolbar.bottom-edit-toolbar {
+  background-color: rgba(0, 0, 64, 0.4);
 }
 .bottom-btn {
   height: 48px;
