@@ -41,6 +41,21 @@
   background-position: 50% 50%;
 }
 
+.lockscreen-panel::before {
+  content: '';
+  display: block;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* Replace this with radical gradient */
+  background-image: url('./images/mask.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: 50% 50%;
+}
+
 .lockscreen-panel.tbd {
   color: #919191;
   text-align: center;
@@ -332,7 +347,7 @@
 }
 
 /* Smiley */
-#lockscreen-panel-passcode::before {
+#lockscreen-panel-passcode::after {
   content: ': )';
   position: absolute;
   display: block;
@@ -351,11 +366,11 @@
   text-shadow: 0 0 10px rgba(255, 255, 255, .4), 0 0 3px rgba(255, 255, 255, .3);
 }
 
-[data-passcode-status="error"] #lockscreen-panel-passcode::before {
+[data-passcode-status="error"] #lockscreen-panel-passcode::after {
   content: ":'(";
 }
 
-[data-passcode-status="success"] #lockscreen-panel-passcode::before {
+[data-passcode-status="success"] #lockscreen-panel-passcode::after {
   content: "\\o/";
 }
 
@@ -366,7 +381,7 @@
     font-size: 48px;
     line-height: 48px;
   }
-  #lockscreen-panel-passcode::before {
+  #lockscreen-panel-passcode::after {
     top: 45px;
     right: 30px;
     font-size: 60px;
