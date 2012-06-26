@@ -334,23 +334,23 @@ var Contacts = (function() {
     }
   };
 
-  var insertEmptyPhone = function insertEmptyPhone(index) {
+  var insertEmptyPhone = function insertEmptyPhone() {
     var telField = {
       number: '',
       type: TAG_OPTIONS['phone-type'][0].value,
       notes: '',
-      i: index || 0
+      i: numberPhones || 0
     };
     var template = utils.templates.render(phoneTemplate, telField);
     phonesContainer.appendChild(template);
     numberPhones++;
   };
 
-  var insertEmptyEmail = function insertEmptyEmail(index) {
+  var insertEmptyEmail = function insertEmptyEmail() {
     var emailField = {
       email: '',
       type: '',
-      i: index || 0
+      i: numberEmails || 0
     };
 
     var template = utils.templates.render(emailTemplate, emailField);
