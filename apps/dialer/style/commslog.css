@@ -26,7 +26,7 @@
 
 
   .view-header h1 {
-    font-family: FontLight;
+    font-family: FontRegular;
     padding-left: 3rem;
     box-sizing: border-box;
     overflow: hidden;
@@ -59,6 +59,7 @@
 }
 
   .view-body h2 {
+    font-family: FontRegular;
     border-bottom: solid 1px #ff4e00;
     padding-left: 3rem;
     padding-top:1rem;
@@ -133,12 +134,14 @@
         }
 
         .primary-info {
+          font-family: FontRegular;
           font-size: -moz-calc(8*0.226rem);
           font-size: -webkit-calc(8*0.226rem);
           color: #000000;
         }
           
         .secondary-info {
+          font-family: FontRegular;
           font-size: -moz-calc(6*0.226rem);
           font-size: -webkit-calc(6*0.226rem);
           color: #b5b5b5;

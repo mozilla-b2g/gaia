@@ -6,19 +6,19 @@
 
 @font-face {
   font-family: 'FontRegular';
-  src: url('fonts/Open-Sans.woff');
+  src: url('fonts/opensans-regular-webfont.woff');
 }
 
 @font-face {
   font-family: 'FontSemibold';
   font-weight: 600;
-  src: url('fonts/Open-Sans-Semibold.woff');
+  src: url('fonts/opensans-semibold-webfont.woff');
 }
 
 @font-face {
   font-family: 'FontBold';
   font-weight: bold;
-  src: url('fonts/Open-Sans-Bold.woff');
+  src: url('fonts/opensans-bold-webfont.woff');
 }
 
 html, body {
