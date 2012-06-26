@@ -782,8 +782,8 @@ const GridManager = (function() {
 
       goTo(index, function() {
         setTimeout(function() {
-          pageHelper.getCurrent().applyInstallingEffect(
-                           Applications.getOrigin(app));
+          pageHelper.getCurrent().
+              applyInstallingEffect(Applications.getOrigin(app));
         }, 200);
       });
 
