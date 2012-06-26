@@ -9,7 +9,7 @@ from marionette_test import MarionetteTestCase
 class TestLaunch(MarionetteTestCase):
     def test_launch(self):
         apps = ['cuttherope','music','dialer','gallery','video','clock','browser','sms','camera',
-                'calculator','market','cubevid','crystalskull','towerjelly','penguinpop','settings']
+                'calculator','cubevid','crystalskull','towerjelly','penguinpop','settings']
 
         #kill all apps we're testing, then launch
         for app in apps:
