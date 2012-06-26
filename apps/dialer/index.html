@@ -34,7 +34,7 @@
   </head>
   <body class="hidden">
     <article id="views" role="tablist">
-      <section id="keyboard-view" class="view" role="tabpanel">
+      <section id="keyboard-view" role="tabpanel">
         <div id="phone-number-view-container">
           <div class="grid-cell grid-v-align">
             <div class="grid-wrapper">
@@ -166,10 +166,10 @@
           </section>
         </article>
       </section>
-      <section class="view" role="tabpanel" id="contacts-view">
+      <section role="tabpanel" id="contacts-view">
         Contacts view
       </section>
-      <section class="view" role="tabpanel" id="recents-view">
+      <section role="tabpanel" id="recents-view">
         <div class="grid-wrapper">
           <header class="view-header">
             <div class="grid-wrapper grid">
@@ -202,10 +202,9 @@
     </nav>
   </body>
     <script>
-      //If no entry point, redirect to the keyboard-view
+      // If no entry point, redirect to the keyboard-view
       if(document.location.href.indexOf("#") == -1) {
         document.location.href = "#keyboard-view";
-        
       }
     </script>
 </html>

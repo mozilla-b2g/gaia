@@ -90,7 +90,7 @@ html * {
   width: 100%;
 }
 
-#views > .view {
+#views > *[role=tabpanel] {
   height: 100%;
   width: 100%;
 }
