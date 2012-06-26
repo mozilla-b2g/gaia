@@ -103,6 +103,8 @@ const IMERender = (function() {
       showPendingSymbols('');
       showCandidates([], true);
     }
+
+    resizeUI();
   };
 
   // Effecto for hide IME
