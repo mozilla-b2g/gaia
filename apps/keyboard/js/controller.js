@@ -902,7 +902,7 @@ const IMEController = (function() {
 
     // Support function for render
     function isSpecialKeyObj(key) {
-      var hasSpecialCode = !KeyEvent.DOM_VK_SPACE &&
+      var hasSpecialCode = key.keyCode !== KeyEvent.DOM_VK_SPACE &&
                            key.keyCode &&
                            specialCodes.indexOf(key.keyCode) !== -1;
       return hasSpecialCode || key.keyCode <= 0;
@@ -980,7 +980,7 @@ const IMEController = (function() {
       if (IMERender.ime.dataset.hidden)
         return;
 
-      IMERender.resizeUI();
+      IMERender.resizeUI(_currentLayout);
       _updateTargetWindowHeight(); // this case is not captured by the mutation
                                    // observer so we handle it apart
     },
