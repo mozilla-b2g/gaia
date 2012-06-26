@@ -45,15 +45,13 @@
 
 /* Add style */
 .action-add {
-  background: -moz-linear-gradient(bottom, #696f77, #7b7e82);
-  border: solid 1px #82868b;
+  background: -moz-linear-gradient(bottom, #ccc, #fafafa);
+  border: solid 1px #bcbcbc;
   box-shadow: none;
-  color: #fff;
+  color: #333;
   text-align: center;
 }
+.action-add span.icon-add[role="button"] { background: url(/style/gphx/bitmap/default/buttons/plus_sign.png) no-repeat center center; }
 
-.action-add:active {
-  opacity: 0.8;
-  border-color: #82868b;
-}
+.action-add:active { background: -moz-linear-gradient(bottom, #fafafa, #ccc); }
 
