@@ -272,7 +272,7 @@ var Contacts = (function() {
       familyName: lastName,
       additionalName: '',
       name: name[0] + ' ' + lastName[0]
-    }
+    };
 
     getPhones(myContact);
     getEmails(myContact);
