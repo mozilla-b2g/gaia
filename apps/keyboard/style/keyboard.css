@@ -39,6 +39,7 @@
 
 .keyboard-row {
   width:100%;
+  white-space: nowrap;
 }
 
 /* BUTTONS: LOGIC KEYS */
@@ -47,7 +48,6 @@
   -moz-box-sizing: border-box;
   box-sizing: boder-box;
   padding:0.25rem 0.1rem;
-/*  border:1px solid red;*/
   border:none;
   background:none;
 }
@@ -165,6 +165,8 @@
   bottom: 0;
   height: 100%;
 }
+
+/* ALTERNATIVES */
 
 /* KEYS STATES */
 

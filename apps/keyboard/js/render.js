@@ -55,12 +55,8 @@ const IMERender = (function() {
 
     var content = '';
     var layoutWidth = layout.width || 10;
-    var widthRatio = 10 / layoutWidth;
-
     var totalWidth = document.getElementById('keyboard').clientWidth;
     var placeHolderWidth = totalWidth / layoutWidth;
-
-//    resizeUI();
 
     layout.upperCase = layout.upperCase || {};
     layout.keys.forEach((function buildKeyboardRow(row, nrow) {
@@ -75,8 +71,6 @@ const IMERender = (function() {
         var className = isSpecialKey(key) ? 'special-key' : '';
         var ratio = key.ratio || 1;
 
-        //key with + key separation in rems
-        //var keyWidth = (((widthRatio * ratio) * 2.6) + ((widthRatio * ratio) - 1) * 0.4);
         var keyWidth = placeHolderWidth * ratio;
         var dataset = [{'key': 'row', 'value': nrow}];
         dataset.push({'key': 'column', 'value': ncolumn});
@@ -242,7 +236,6 @@ const IMERender = (function() {
 
     // Replace with the container
     _altContainer = document.createElement('div');
-//    _altContainer.style.MozBoxFlex = '1';
     _altContainer.innerHTML = key.innerHTML;
     _altContainer.className = key.className;
     _menuKey = key;
@@ -289,14 +282,14 @@ const IMERender = (function() {
 
     // Replace with the container
     _altContainer = document.createElement('div');
-//    _altContainer.style.MozBoxFlex = '1';
+    _altContainer.style.width = key.style.width;
     _altContainer.innerHTML = key.innerHTML;
     _altContainer.className = key.className;
     _menuKey = key;
     key.parentNode.replaceChild(_altContainer, key);
 
     // Adjust menu style
-    _altContainer .querySelectorAll('span')[0].appendChild(this.menu);
+    _altContainer .querySelectorAll('.keyboard-key-bound span')[0].appendChild(this.menu);
     this.menu.style.display = 'block';
   };
 
@@ -312,15 +305,33 @@ const IMERender = (function() {
   };
 
   // Recalculate dimensions for the current render
-  var resizeUI = function() {
-     if (window.innerWidth > 0 && window.innerWidth < window.innerHeight) {
-        var changeScale = window.innerWidth / 32;
-        document.documentElement.style.fontSize = changeScale + 'px';
+  var resizeUI = function(layout) {
+    var changeScale, scale, kbr;
+
+    // Font size recalc
+    if (window.innerWidth > 0 && window.innerWidth < window.innerHeight) {
+      changeScale = window.innerWidth / 32;
+      document.documentElement.style.fontSize = changeScale + 'px';
+    }
+    if (window.innerWidth > window.innerHeight) {
+      changeScale = window.innerWidth / 64;
+      document.documentElement.style.fontSize = changeScale + 'px';
+    }
+
+    // Width calc
+    var layoutWidth = layout.width || 10;
+    var totalWidth = document.getElementById('keyboard').clientWidth;
+    var placeHolderWidth = totalWidth / layoutWidth;
+    kbr = document.getElementById('keyboard');
+
+    var ratio, keys, rows = document.querySelectorAll('.keyboard-row');
+    for (var r = 0, row; row = rows[r]; r += 1) {
+      keys = row.childNodes;
+      for (var k = 0, key; key = keys[k]; k += 1) {
+        ratio = layout.keys[r][k].ratio || 1;
+        key.style.width = (placeHolderWidth * ratio) + 'px';
       }
-      if (window.innerWidth > window.innerHeight) {
-        var changeScale = window.innerWidth / 64;
-        document.documentElement.style.fontSize = changeScale + 'px';
-      }
+    }
   };
 
   //
@@ -362,7 +373,6 @@ const IMERender = (function() {
     dataset.forEach(function(data) {
       content += ' data-' + data.key + '="' + data.value + '" ';
     });
-//    content += ' style="-moz-box-flex:' + width + '"';
     content +=  ' style="width:' + width + 'px"';
     content += '><span class="keyboard-key-bound"><span>' + label + '</span></span></button>';
     return content;
