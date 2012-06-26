@@ -63,6 +63,10 @@ function enableFM(enable) {
     console.log(e);
   }
 
+  if (null == request) {
+    return;
+  }
+
   request.onsuccess = function turnon_onsuccess() {
     console.log('FM status is changed to ' + mozFMRadio.enabled);
   };
@@ -78,6 +82,10 @@ function setFreq(freq) {
     request = mozFMRadio.setFrequency(freq);
   } catch (e) {
     console.log(e);
+  }
+
+  if (null == request) {
+    return;
   }
 
   request.onsuccess = function setfreq_onsuccess() {
@@ -112,6 +120,10 @@ function seekUp() {
     console.log(e);
   }
 
+  if (null == request) {
+    return;
+  }
+
   request.onsuccess = function seekup_onsuccess() {
     $('current_freq').innerHTML = mozFMRadio.frequency;
     console.log('Seek up complete, and got new program.');
@@ -128,6 +140,10 @@ function seekDown() {
     request = mozFMRadio.seekDown();
   } catch (e) {
     console.log(e);
+  }
+
+  if (null == request) {
+    return;
   }
 
   request.onsuccess = function seekdown_onsuccess() {
@@ -176,6 +192,54 @@ var favoritesList = {
                          this.cancelEdit.bind(this), false);
     $('delete-button').addEventListener('click',
                          this.delSelectedItems.bind(this), false);
+    var self = this;
+    var _timeout = null;
+    var _container = $('fav-list-container');
+    var _elem = null;
+
+    function _onmouseup(event) {
+      window.clearTimeout(_timeout);
+      // only exec the logic when mouseup the same element as mousedown
+      if (event.target == _elem) {
+        if (!self.editing) {
+          setFreq(self._getElemFreq(event.target));
+        } else {
+          event.target.classList.toggle('selected');
+        }
+      }
+      _removeEventListeners();
+    }
+
+    function _removeEventListeners() {
+      _container.removeEventListener('mouseup', _onmouseup, false);
+      document.body.removeEventListener('mousemove',
+                                        _onmousemove_body, false);
+      _elem = null;
+    }
+
+    function _onmousemove_body(event) {
+      // If mouse moved, do not show popup.
+      window.clearTimeout(_timeout);
+    }
+
+    _container.addEventListener('mousedown', function _onmousedown(event) {
+      _removeEventListeners();
+      _container.addEventListener('mouseup', _onmouseup, false);
+
+      if (self.editing) {
+        return;
+      }
+
+      _elem = event.target;
+      document.body.addEventListener('mousemove', _onmousemove_body, false);
+
+      window.clearTimeout(_timeout);
+      _timeout = window.setTimeout(function() {
+        // prevent opening the frequency
+        _removeEventListeners();
+        self._showPopupDelUI(event);
+      }, 1000);
+    }, false);
   },
 
   _save: function() {
@@ -195,33 +259,6 @@ var favoritesList = {
     elem.id = this._getUIElemId(item);
     elem.textContent = item.frequency;
     container.appendChild(elem);
-
-    var self = this;
-    var _timeout = null;
-
-    function onmouseup_item(event) {
-      window.clearTimeout(_timeout);
-      if (!self.editing) {
-        setFreq(self._getElemFreq(event.target));
-      } else {
-        event.target.classList.toggle('selected');
-      }
-    }
-
-    elem.addEventListener('mousedown', function onmousedown_item(event) {
-      elem.addEventListener('mouseup', onmouseup_item, false);
-
-      if (self.editing) {
-        return;
-      }
-
-      window.clearTimeout(_timeout);
-      _timeout = window.setTimeout(function() {
-        // prevent opening the frequency
-        elem.removeEventListener('mouseup', onmouseup_item, false);
-        self._showPopupDelUI(elem, event);
-      }, 1000);
-    }, false);
 
     this._autoShowHideEditBtn();
   },
@@ -250,7 +287,8 @@ var favoritesList = {
     return parseFloat(elem.id.substring(elem.id.indexOf('-') + 1));
   },
 
-  _showPopupDelUI: function(elem, event) {
+  _showPopupDelUI: function(event) {
+    var element = event.target;
     // Show popup just below the cursor
     var box = $('popup-delete-box');
     box.hidden = false;
@@ -262,7 +300,7 @@ var favoritesList = {
     box.style.left = left + 'px';
 
     function _onclick_delete_button(event) {
-      self.remove(self._getElemFreq(elem));
+      self.remove(self._getElemFreq(element));
       updateFreqUI();
       _hidePopup();
       _clearEventListeners();
@@ -327,9 +365,9 @@ var favoritesList = {
     updateFreqUI();
   },
 
-  forEach: function(f) {
+  forEach: function(callback) {
     for (var freq in this._favList) {
-      f(this._favList[freq]);
+      callback(this._favList[freq]);
     }
   },
 
