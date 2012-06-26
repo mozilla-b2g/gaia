@@ -29,9 +29,7 @@ function prettyDate(time) {
 
   return day_diff == 0 && ( // today?
       diff < 60 && _('justNow') ||
-      diff < 120 && _('aMinuteAgo') ||
       diff < 3600 && _('minutesAgo', { minutes: Math.floor(diff / 60) }) ||
-      diff < 7200 && _('anHourAgo') ||
       diff < 86400 && _('hoursAgo', { hours: Math.floor(diff / 3600) })
   ) ||
       day_diff == 1 && _('yesterday') || // yesterday?
