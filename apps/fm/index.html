@@ -1,20 +1,37 @@
-
-<html>
+<!DOCTYPE html>
+<html manifest="manifest.appcache">
   <head>
     <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
-    <title>FM Raio</title>
+    <title>FM Radio</title>
     <link rel="stylesheet" href="style/fm.css" type="text/css" />
+    <link rel="resource" type="application/l10n" href="locale/fm.properties"/>
+    <!-- Compatibility -->
+    <script>
+      if (document.location.protocol === 'file:') {
+        var paths = document.location.pathname.split('/');
+        paths.pop();
+        paths.pop();
+        paths.pop();
+        var src = 'file://' + paths.join('/') + '/webapi.js';
+      } else {
+        var host = document.location.host;
+        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+        var src = 'http://' + domain + '/webapi.js';
+      }
+      document.write('<script src="' + src + '"><\/script>');
+    </script>
+
     <script src="js/fm.js"></script>
   </head>
 
-  <body>
+  <body class="hidden">
     <div id="containter">
       <div id="title-bar"></div>
       <div id="freq-view">
         <div style="text-align: center;">
           <label id="frequency">0</label>
-          <a id="bookmark-btn" herf="#bookmark"></a>
+          <a id="bookmark-button" href="#bookmark"></a>
         </div>
       </div>
       <div id="freq-ops">
@@ -29,33 +46,39 @@
         </div>
       </div>
       <div id="status-bar">
-        <div id="switch-bar">
+        <div id="switch-bar" class="poweroff">
           <div>
-            <a id="power-switch" href="#power-switch" class="poweroff"></a>
+            <a id="power-switch" href="#power-switch">
+              <label class="poweron" data-l10n-id="on">ON</label>
+              <label class="poweroff" data-l10n-id="off">OFF</label>
+            </a>
           </div>
           <div>
-            <a id="audio-routing-switch" href="#audio-routing-switch" class="speaker"></a>
+            <a id="audio-routing-switch" href="#audio-routing-switch" class="speaker">
+              <label class="speaker" data-l10n-id="speaker">Speaker</label>
+              <label class="headset" data-l10n-id="headset">Headset</label>
+            </a>
           </div>
           <div>
-            <a id="edit-btn" href="#edit" class="edit"></a>
+            <a id="edit-button" href="#edit" class="edit" hidden="hidden" data-l10n-id="edit">Edit</a>
           </div>
         </div>
-        <div id="edit-bar">
+        <div id="edit-bar" hidden="hidden">
           <div>
-            <a id="delete-btn" href="#delete" class="delete"></a>
+            <a id="delete-button" href="#delete" class="delete" data-l10n-id="delete">Delete</a>
           </div>
           <div></div>
           <div>
-            <a id="cancel-btn" href="#cancel" class="cancel"></a>
+            <a id="cancel-button" href="#cancel" class="cancel" data-l10n-id="cancel">Cancel</a>
           </div>
         </div>
       </div>
     </div>
-    <div id="antenna-warning" class="table-view">
-      <div><div>Please plugin your headset to use the FM Radio</div></div>
+    <div id="antenna-warning" hidden="hidden">
+      <div><div data-l10n-id="noantenna">Please plugin your headset to use the FM Radio</div></div>
     </div>
-    <div id="popup-del-box">
-      <a id="popup-del-btn" href="#popup-delete" class="delete"></a>
+    <div id="popup-delete-box" hidden="hidden">
+      <a id="popup-delete-button" href="#popup-delete" class="delete" data-l10n-id="delete">Delete</a>
     </div>
   </body>
 </html>
