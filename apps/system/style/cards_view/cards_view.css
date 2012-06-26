@@ -38,6 +38,14 @@
   -moz-transform: scale(0.6);
 }
 
+#cardsView li[data-edit = 'true'] {
+  position: absolute;
+  z-index: 30000;
+  opacity: 0.8;
+  top: 0;
+  left: 0;
+}
+
 #cardsView li:first-child {
   margin: 0;
 }

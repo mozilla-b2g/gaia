@@ -11,7 +11,7 @@ var CardsView = (function() {
 
   //display icon of an app on top of app's card
   var DISPLAY_APP_ICON = true;
-  var USER_DEFINED_ORDERING = false;
+  var USER_DEFINED_ORDERING = true;
   // If 'true', scrolling moves the list one card
   // at time, and snaps the list so the current card
   // is centered in the view
@@ -78,7 +78,7 @@ var CardsView = (function() {
         runningApps[element.origin] = element.app;
       });
     } else {
-      // user ordering actions
+      cardsView.addEventListener('contextmenu', this);
     }
 
     if (SNAPPING_SCROLLING) {
@@ -107,6 +107,7 @@ var CardsView = (function() {
       // Build a card representation of each window.
       // And add it to the card switcher
       var card = document.createElement('li');
+      card.classList.add('card');
       card.style.background = '-moz-element(#' + app.frame.id + ') no-repeat';
       card.dataset['origin'] = origin;
 
@@ -259,6 +260,18 @@ var CardsView = (function() {
     }
   }
 
+  function manualOrderStart(evt) {
+    evt.preventDefault();
+    var element = evt.target;
+    if (element.classList.contains('card')) {
+      // I don't want to rebuild all the CSS for the CardsView
+      // so appending the element as the last child solves margin
+      // problem with the first card
+      element.parentNode.appendChild(element);
+      element.dataset['edit'] = true;
+    }
+  }
+
   function cv_handleEvent(evt) {
     switch (evt.type) {
       case 'mousedown':
@@ -269,6 +282,9 @@ var CardsView = (function() {
         break;
       case 'mouseup':
         onEndEvent(evt);
+        break;
+      case 'contextmenu':
+        manualOrderStart(evt);
         break;
     }
   }
