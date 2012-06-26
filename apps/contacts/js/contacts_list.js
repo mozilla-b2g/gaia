@@ -50,6 +50,7 @@ contacts.List = (function() {
     }
   };
 
+
   var buildContacts = function buildContacts(contacts, successCb) {
     var group = null;
 

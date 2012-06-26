@@ -19,7 +19,10 @@ body {
   height: 100%;
   margin: 0px;
   padding: 0px;
-  background: black;
+  background-color: #000;
+  background-size: cover;
+  background-repeat: no-repeat;
+
   overflow: hidden;
 
   font-family: 'Open Sans', sans-serif;

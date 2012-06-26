@@ -39,16 +39,21 @@ textarea.textfield {
   line-height: 1.6rem;
   text-transform: uppercase;
 }
-   .setbox-title label { position: relative; display: block; }
-     .setbox-title input {
-      border: none;
-      background: none;
-      display: block;
-      width: 100%;
-      font-size: 1.2rem;
-      line-height: 1.6rem;
-      text-transform: uppercase;
-    }
+
+.setbox-title label {
+  position: relative;
+  display: block;
+}
+
+.setbox-title input {
+  border: none;
+  background: none;
+  display: block;
+  width: 100%;
+  font-size: 1.2rem;
+  line-height: 1.6rem;
+  text-transform: uppercase;
+}
 
 .setbox-title a {
   color: #333;
