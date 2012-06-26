@@ -5,7 +5,8 @@ function navigationStack(currentView) {
     'left-right': { from: 'view-left', to: 'view-right'},
     'top-bottom': { from: 'view-bottom', to: 'view-top'},
     'right-left': { from: 'view-right', to: 'view-left'},
-    'bottom-top': { from: 'view-top', to: 'view-bottom'}
+    'bottom-top': { from: 'view-top', to: 'view-bottom'},
+    'none': { from: 'none', to: 'none'}
   };
 
   var _currentView = currentView;
@@ -23,6 +24,10 @@ function navigationStack(currentView) {
     var current = document.getElementById(_currentView);
     var next = document.getElementById(nextView);
 
+  if ( transition == "none" ) {
+    current.dataset.state = "inactive";
+    next.dataset.state = "active";
+  } else {
     var currentMirror = document.getElementById(current.dataset.mirror);
     var nextMirror =document.getElementById(next.dataset.mirror);
 
@@ -41,7 +46,8 @@ function navigationStack(currentView) {
         cache.dataset.state = "inactive";
         nextMirror.removeEventListener("transitionend", nocache);
     });
-
+  }
+    
     stack.push({ view: _currentView, transition: transition});
     _currentView = nextView;
   };
@@ -54,26 +60,28 @@ function navigationStack(currentView) {
     var nextView = stack.pop();
     var next = document.getElementById(nextView.view);
 
-    var currentMirror = document.getElementById(current.dataset.mirror);
-    var nextMirror =document.getElementById(next.dataset.mirror);
+    if ( transitions[nextView.transition].from == "none" || transitions[nextView.transition].to == "none" ) {
+       current.dataset.state = "inactive";
+       next.dataset.state = "active";      
+    } else {
+      var currentMirror = document.getElementById(current.dataset.mirror);
+      var nextMirror =document.getElementById(next.dataset.mirror);
+      cache.dataset.state = "active";
+      clearTimeout(transitionTimeout);
+      transitionTimeout = setTimeout(function animate() {
+        currentMirror.classList.add(transitions[nextView.transition].from);
+        nextMirror.classList.remove(transitions[nextView.transition].to);
+        console.log(transitions[nextView.transition].to)
+      }, 1);
 
-    current.dataset.state = "inactive";
-    app.dataset.state = "inactive";
-    cache.dataset.state = "active";
-
-    clearTimeout(transitionTimeout);
-    transitionTimeout = setTimeout(function animate() {
-      currentMirror.classList.add(transitions[nextView.transition].from);
-      nextMirror.classList.remove(transitions[nextView.transition].to);
-    }, 1);
-
-    nextMirror.addEventListener("transitionend", function nocache(){
-        next.dataset.state = "active";      
-        app.dataset.state = "active";
-        cache.dataset.state = "inactive";
-        nextMirror.removeEventListener("transitionend", nocache);
-    });
-
+      nextMirror.addEventListener("transitionend", function nocache(){
+          current.dataset.state = "inactive";
+          next.dataset.state = "active";      
+          app.dataset.state = "active";
+          cache.dataset.state = "inactive";
+          nextMirror.removeEventListener("transitionend", nocache);
+      });
+    }
     _currentView = nextView.view;
   };
 }
