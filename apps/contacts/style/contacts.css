@@ -10,18 +10,22 @@
   background-size: 100% auto;
 }
 
+.view-contacts-list .block-list {
+  padding-right: 1rem;
+}
+
 /* Contact detail main section */
-.contact-detail h1 {
+#contact-detail h1 {
   font: 1.4rem/1.5em System Sans Semibold, Sans-serif;
   border-bottom: solid 1px #dbd9d9;
   margin-bottom: 1rem;
 }
 
-.contact-detail li .itm-body-exp {
+#contact-detail li .item-body-exp {
   padding-bottom: 1rem;
 }
 
-.contact-detail h2 {
+#contact-detail h2 {
   text-transform: uppercase;
   font-size: 1.4rem;
 }

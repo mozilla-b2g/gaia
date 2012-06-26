@@ -115,6 +115,28 @@ const GridManager = (function() {
   }
 
   /*
+   * Navigates to one page
+   */
+  function goTo(index, transEndCallbck) {
+    var currentPage = pages.current;
+
+    if (currentPage !== index) {
+      if (currentPage < index) {
+        pageHelper.getCurrent().moveToBegin();
+      } else {
+        pageHelper.getCurrent().moveToEnd();
+      }
+      pages.current = index;
+
+      pageHelper.getCurrent().moveToCenter(transEndCallbck);
+
+      updatePaginationBar();
+    } else {
+      transEndCallbck();
+    }
+  }
+
+  /*
    * Navigates to next page
    */
   function goNext(transEndCallbck) {
@@ -336,6 +358,25 @@ const GridManager = (function() {
   /*
    * Checks empty pages and deletes them
    */
+  function checkFirstPageWithGap() {
+    var index = 0;
+    var total = pages.total;
+
+    var maxPerPage = pageHelper.getMaxPerPage();
+    while (index < total) {
+      var page = pages.list[index];
+      if (page.getNumApps() < maxPerPage) {
+        break;
+      }
+      index++;
+    }
+
+    return index;
+  }
+
+  /*
+   * Checks empty pages and deletes them
+   */
   function checkEmptyPages() {
     var index = 0;
     var total = pages.total;
@@ -411,7 +452,7 @@ const GridManager = (function() {
      *
      * @param {Array} initial list of apps or icons
      */
-    push: function(apps) {
+    push: function(apps, appsFromMarket) {
       var index = this.total();
       var page = new Page(index);
 
@@ -420,16 +461,21 @@ const GridManager = (function() {
       container.appendChild(pageElement);
 
       page.render(apps, pageElement);
-      if (index === 0) {
-        page.moveToCenter();
-      } else {
-        page.moveToEnd();
+
+      if (!appsFromMarket) {
+        if (index === 0) {
+          page.moveToCenter();
+        } else {
+          page.moveToEnd();
+        }
       }
 
       pages.list.push(page);
       pages.total = index + 1;
 
-      updatePaginationBar();
+      if (!appsFromMarket) {
+        updatePaginationBar();
+      }
     },
 
     /*
@@ -724,15 +770,25 @@ const GridManager = (function() {
      * {Object} moz app
      */
     install: function gm_install(app) {
-      var lastPage = pageHelper.getLast();
-      if (lastPage.getNumApps() < pageHelper.getMaxPerPage()) {
-        lastPage.append(app);
+      var index = checkFirstPageWithGap();
+      var origin = Applications.getOrigin(app);
+      Applications.getManifest(origin).hidden = true;
+
+      if (index < pages.total) {
+        pages.list[index].append(app);
       } else {
-        pageHelper.push([app]);
+        pageHelper.push([app], true);
       }
 
-      // Saving the last page
-      pageHelper.save(pages.total - 1);
+      goTo(index, function() {
+        setTimeout(function() {
+          pageHelper.getCurrent().
+              applyInstallingEffect(Applications.getOrigin(app));
+        }, 200);
+      });
+
+      // Saving the page
+      pageHelper.save(index);
     },
 
     /*

@@ -32,6 +32,15 @@
   font-family:'Open Sans';
 }
 
+.apps ol > li.hidden {
+  -moz-transform: scale(0);
+}
+
+.apps ol > li.visible {
+  -moz-transform: scale(1);
+  -moz-transition: -moz-transform 1.2s ease;
+}
+
 /* Maximum 16 icons for page */
 .apps ol > li:nth-child(17) {
   display: none;

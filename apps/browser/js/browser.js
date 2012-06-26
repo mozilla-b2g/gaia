@@ -562,7 +562,7 @@ var Browser = {
       loading: false,
       session: new SessionHistory(),
       screenshot: null,
-      security: null,
+      security: null
     };
 
     browserEvents.forEach(function attachBrowserEvent(type) {

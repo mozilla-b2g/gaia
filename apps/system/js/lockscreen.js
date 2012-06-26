@@ -111,6 +111,13 @@ var LockScreen = {
     });
 
     SettingsListener.observe(
+      'lockscreen.wallpaper', 'default.png', function(value) {
+      var url = 'url(resources/images/backgrounds/' + value + ')';
+      self.overlay.style.backgroundImage = url;
+    });
+
+
+    SettingsListener.observe(
         'lockscreen.passcode-lock.enabled', true, function(value) {
       if (typeof value === 'string')
         value = (value == 'true');
