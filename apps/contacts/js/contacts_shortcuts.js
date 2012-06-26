@@ -2,28 +2,31 @@
 'use strict';
 
 (function initScrollbar(doc) {
-  var jumper = doc.querySelector('.view-jumper');
+  var jumper = doc.querySelector('.view-jumper-inner');
   jumper.addEventListener('mousedown', scrollTo);
   jumper.addEventListener('mousemove', scrollTo);
 
-  var scrollable = doc.querySelector('.view-body-inner');
+  var scrollable = doc.querySelector('#groups-container');
   var overlay = doc.querySelector('.view-jumper-current');
+  var overlayContent = doc.querySelector('#current-jumper');
+  var overlayStyle = overlay.style;
+  overlayStyle.opacity = '0';
 
   var alphabet = [];
   for (var i = 65; i <= 90; i++) {
     alphabet.push({ letter: String.fromCharCode(i) });
   }
-  utils.templates.append(doc.querySelector('.view-jumper-inner'), alphabet);
+  utils.templates.append(jumper, alphabet);
 
-  var overlayTimeout = 0;
+  var overlayTimeout = 0, scrollToTimeout = 0;
   var previous = null;
 
   function scrollTo(evt) {
     evt.preventDefault();
     evt.stopPropagation();
 
-    var current = evt.target.textContent;
-    if (!current || overlay.textContent === current) {
+    var current = evt.target.dataset.letter;
+    if (previous === current) {
       return;
     }
 
@@ -31,14 +34,18 @@
     if (!groupContainer || groupContainer.clientHeight <= 0)
       return;
 
-    scrollable.scrollTop = groupContainer.offsetTop;
-    overlay.textContent = current;
-    overlay.classList.remove('hide');
+    overlayContent.textContent = current;
+    overlayStyle.opacity = '1';
+
+    previous = current;
 
     clearTimeout(overlayTimeout);
     overlayTimeout = setTimeout(function hideOverlay() {
-      overlay.classList.add('hide');
-    }, 3000);
-  }
-})(document);
+      overlayStyle.opacity = '0';
+    }, 1000);
 
+    scrollable.scrollTop = groupContainer.offsetTop;
+
+  }
+
+})(document);

@@ -34,3 +34,6 @@
   pointer-events: none;
 }
 
+.view-jumper-inner > li > * {
+  pointer-events: none;
+}

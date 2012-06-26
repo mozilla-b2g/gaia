@@ -157,17 +157,22 @@
   right: 4rem;
   top: 30%;
   width: 10.5rem;
+  height: 10.5rem;
+  background: -moz-element(#current-jumper);
+  pointer-events: none;
+}
+
+#current-jumper {
+  width: 10.5rem;
   background: rgba(0, 0, 0, 0.7);
   font: 6rem/10.5rem System Sans Light, Sans-serif;
   color: #fff;
   text-align: center;
-  pointer-events: none;
 }
 
 .view-jumper-inner {
   display: -moz-box;
   -moz-box-orient: vertical;
-  height: 100%;
   padding: 0.3rem 0;
   border-radius: 4rem;
   opacity: 0.6;
@@ -175,11 +180,11 @@
 
 .view-jumper li {
   font-size: 1.1rem;
-  line-height: 1em;
+  line-height: 1.3em;
   text-align: center;
   text-transform: uppercase;
   -moz-box-flex: 1;
-  width: 2.5rem;
+  width: 4.5rem;
 }
 
 .view-jumper-inner a, .view-jumper-inner abbr {
