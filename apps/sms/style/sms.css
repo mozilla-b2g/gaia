@@ -426,7 +426,7 @@ body.edit-mode #msg-conversations-list > a > span {
   font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
-  width: -moz-calc(100% - 11rem);
+  width: -moz-calc(100% - 6rem);
 }
 
 #msg-conversations-list .msg {
@@ -434,10 +434,13 @@ body.edit-mode #msg-conversations-list > a > span {
   text-shadow: 0 0.1rem 0 #ddd;
   font-size: 2.2rem;
   height: 3.2rem;
-  width: -moz-calc(100% - 7rem);
+  width: -moz-calc(100% - 16rem);
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  position: absolute;
+  top: 5rem;
+  left: 11rem;
 }
 
 #msg-conversations-list .msg .highlight {
@@ -446,11 +449,10 @@ body.edit-mode #msg-conversations-list > a > span {
 
 #msg-conversations-list .time {
   position: absolute;
-  top: 0.9rem;
-  right: 1.6rem;
-  text-align: right;
+  top: 5rem;
   color: hsla(0,0%,0%,.5);
   font-size: 1.8rem;
+  width: 10rem;
 }
 
 #msg-conversations-list .unread-tag {

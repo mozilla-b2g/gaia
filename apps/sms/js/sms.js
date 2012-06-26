@@ -371,10 +371,10 @@ var ConversationListView = {
            '<span class="unread-mark"><i class="i-unread-mark"></i></span>' +
            '<input type="checkbox" class="fake-checkbox"/>' + '<span></span>' +
            '  <div class="name">' + name + '</div>' +
-           '  <div class="msg">' + bodyHTML + '</div>' +
            (!conversation.timestamp ? '' :
            '  <div class="time" data-time="' + conversation.timestamp + '">' +
-             prettyDate(conversation.timestamp) + '</div>') +
+             giveHourMinute(conversation.timestamp) + '</div>') +
+           '  <div class="msg">' + bodyHTML + '</div>' +           
            '<div class="unread-tag">' + conversation.unreadCount + '</div></a>';
   },
 
