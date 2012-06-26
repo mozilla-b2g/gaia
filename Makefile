@@ -366,7 +366,7 @@ lint:
 	@# cubevid
 	@# crystalskull
 	@# towerjelly
-	@gjslint --nojsdoc -r apps -e 'cubevid,crystalskull,towerjelly,email,music/js/ext'
+	@gjslint --nojsdoc -r apps -e 'cubevid,crystalskull,towerjelly,email,music/js/ext,calendar/js/ext'
 
 # Generate a text file containing the current changeset of Gaia
 # XXX I wonder if this should be a replace-in-file hack. This would let us
@@ -440,13 +440,12 @@ install-gaia: profile
 
 # Copy demo media to the sdcard.
 # If we've got old style directories on the phone, rename them first.
-# Note that we'll soon have to rename Pictures back to DCIM.
 install-media-samples:
-	$(ADB) shell 'if test -d /sdcard/DCIM; then mv /sdcard/DCIM /sdcard/Pictures; fi'
+	$(ADB) shell 'if test -d /sdcard/Pictures; then mv /sdcard/Pictures /sdcard/DCIM; fi'
 	$(ADB) shell 'if test -d /sdcard/music; then mv /sdcard/music /sdcard/music.temp; mv /sdcard/music.temp /sdcard/Music; fi'
 	$(ADB) shell 'if test -d /sdcard/videos; then mv /sdcard/videos /sdcard/Movies;	fi'
 
-	$(ADB) push media-samples/Pictures /sdcard/Pictures
+	$(ADB) push media-samples/DCIM /sdcard/DCIM
 	$(ADB) push media-samples/Movies /sdcard/Movies
 	$(ADB) push media-samples/Music /sdcard/Music
 

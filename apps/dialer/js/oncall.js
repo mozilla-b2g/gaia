@@ -117,7 +117,7 @@ var CallScreen = {
 
   render: function cm_render(layout_type) {
     switch (layout_type) {
-      case 'outgoing':
+      case 'dialing':
         this.callDuration.innerHTML = '...';
         this.answerButton.classList.add('hide');
         this.callToolbar.classList.remove('transparent');
@@ -168,36 +168,41 @@ var OnCallHandler = {
     this._screenLock = navigator.requestWakeLock('screen');
     ProximityHandler.enable();
 
-    var self = this;
     var telephony = window.navigator.mozTelephony;
     if (telephony) {
       // Somehow the muted property appears to true after initialization.
       // Set it to false.
       telephony.muted = false;
+
+      var self = this;
       telephony.oncallschanged = function och_callsChanged(evt) {
         telephony.calls.forEach(function callIterator(call) {
-          self.currentCall = call;
-
-          CallScreen.update(call.number);
-          CallScreen.render(typeOfCall);
-
-          self.lookupContact(call.number);
-
-          self.recentsEntry = {
-            date: Date.now(),
-            type: typeOfCall,
-            number: call.number
-          };
-
-          // Some race condition can cause the call to be already
-          // connected when we get here.
-          if (call.state == 'connected')
-            self.connected();
-
-          call.addEventListener('statechange', self);
+          self.setupForCall(call, typeOfCall);
         });
       }
     }
+  },
+
+  setupForCall: function och_setupForCall(call, typeOfCall) {
+    this.currentCall = call;
+
+    CallScreen.update(call.number);
+    CallScreen.render(typeOfCall);
+
+    this.lookupContact(call.number);
+
+    this.recentsEntry = {
+      date: Date.now(),
+      type: typeOfCall,
+      number: call.number
+    };
+
+    // Some race condition can cause the call to be already
+    // connected or disconnected when we get here.
+    if (call.state == 'connected')
+      this.connected();
+
+    call.addEventListener('statechange', this);
   },
 
   handleEvent: function och_handleEvent(evt) {

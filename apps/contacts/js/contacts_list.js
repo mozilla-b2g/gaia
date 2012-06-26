@@ -50,7 +50,18 @@ contacts.List = (function() {
     }
   };
 
-  var buildContacts = function buildContacts(contacts) {
+  function normalizeName(contact) {
+    var name = contact.givenName ? contact.givenName[0] : '';
+    var additionalName =
+      contact.additionalName ? contact.additionalName[0] : '';
+
+    if (name.length > 0 && additionalName.length > 0) {
+      name += ' ' + additionalName;
+    }
+    contact.givenName[0] = name;
+  }
+
+  var buildContacts = function buildContacts(contacts, successCb) {
     var group = null;
 
     var count = contacts.length;
@@ -75,11 +86,13 @@ contacts.List = (function() {
     if (ret.length > 0) {
       iterateOverGroup(group, ret);
     }
+
+    successCb();
   }
 
   var getContactsByGroup = function gCtByGroup(successCb, errorCb, contacts) {
     if (typeof contacts !== 'undefined') {
-      buildContacts(contacts);
+      buildContacts(contacts, successCb);
       return;
     }
 
@@ -90,8 +103,7 @@ contacts.List = (function() {
 
     var request = navigator.mozContacts.find(options);
     request.onsuccess = function findCallback() {
-      buildContacts(request.result);
-      successCb();
+      buildContacts(request.result, successCb);
     };
 
     request.onerror = errorCb;
@@ -118,14 +130,20 @@ contacts.List = (function() {
   var addToList = function addToList(contact) {
     var newLi;
     var group = getGroupName(contact);
-    var cName = contact.familyName[0] + contact.givenName[0];
+    var cName = getStringToBeOrdered(contact);
+
     var list = groupsList.querySelector('#contacts-list-' + group);
     var liElems = list.getElementsByTagName('li');
     var len = liElems.length;
     for (var i = 1; i < len; i++) {
       var liElem = liElems[i];
-      var name = liElem.querySelector('b').textContent +
-                 liElem.querySelector('strong').textContent;
+      var familyName = liElem.querySelector('strong > b').textContent.trim();
+      var givenName = liElem.querySelector('strong');
+      givenName = givenName.childNodes[0].nodeValue.trim();
+      var name = getStringToBeOrdered({
+        familyName: [familyName],
+        givenName: [givenName]
+      });
       if (name >= cName) {
         newLi = utils.templates.render(liElems[0], contact);
         list.insertBefore(newLi, liElem);
@@ -163,8 +181,18 @@ contacts.List = (function() {
     }
   }
 
+  var getStringToBeOrdered = function getStringToBeOrdered(contact) {
+    var ret = [];
+
+    ret.push(contact.familyName ? contact.familyName[0] : '');
+    normalizeName(contact);
+    ret.push(contact.givenName ? contact.givenName[0] : '');
+
+    return ret.join('');
+  }
+
   var getGroupName = function getGroupName(contact) {
-    var ret = contact.familyName[0] + contact.givenName[0];
+    var ret = getStringToBeOrdered(contact);
 
     ret = ret.charAt(0).toUpperCase();
     ret = ret.replace(/[ÁÀ]/ig, 'A');
@@ -177,7 +205,6 @@ contacts.List = (function() {
     if (code < 65 || code > 90) {
       ret = 'und';
     }
-
     return ret;
   }
 
@@ -199,20 +226,18 @@ contacts.List = (function() {
 
   function onClickHandler(evt) {
     var dataset = evt.target.dataset;
-    if (!dataset || !('uuid' in dataset))
-      return;
-
-    getContactById(dataset.uuid, function(contact) {
-      callbacks.forEach(function onclickListener(callback) {
-        callback(contact);
+    if (dataset && 'uuid' in dataset) {
+      callbacks.forEach(function(callback) {
+        callback(dataset.uuid);
       });
-    });
+    }
   }
 
   return {
     'init': init,
     'load': load,
     'refresh': refresh,
+    'getContactById': getContactById,
     'handleClick': handleClick
   };
 })();
