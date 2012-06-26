@@ -271,7 +271,7 @@ var Contacts = (function() {
       givenName: givenName,
       familyName: familyName,
       name: givenName[0] + ' ' + familyName[0]
-    }
+    };
 
     getPhones(myContact);
     getEmails(myContact);

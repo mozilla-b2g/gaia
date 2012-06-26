@@ -78,7 +78,7 @@ var NotificationScreen = {
         target = target.parentNode;
       }
 
-      var notificationID = target.dataset.notificationID
+      var notificationID = target.dataset.notificationID;
 
       var event = document.createEvent('CustomEvent');
       event.initCustomEvent('mozContentEvent', true, true, {
