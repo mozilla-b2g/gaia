@@ -70,6 +70,7 @@ var Contacts = (function() {
   var currentContactId,
       detailsName,
       givenName,
+      company,
       familyName,
       formTitle,
       formActions,
@@ -86,6 +87,7 @@ var Contacts = (function() {
   window.addEventListener('load', function initContacts(evt) {
     currentContactId = document.getElementById('contact-form-id');
     givenName = document.getElementById('givenName');
+    company = document.getElementById('org');
     familyName = document.getElementById('familyName');
     detailsName = document.getElementById('contact-name-title');
     formTitle = document.getElementById('contact-form-title');
@@ -120,6 +122,14 @@ var Contacts = (function() {
   //
   var reloadContactDetails = function reloadContactDetails(contact) {
     detailsName.textContent = contact.name;
+    var orgTitle = document.getElementById('org-title');
+    if(contact.org) {
+      orgTitle.textContent = contact.org[0];
+      orgTitle.className = '';
+    } else {
+      orgTitle.className = 'hide';
+      orgTitle.textContent = '';
+    }
     var listContainer = document.getElementById('details-list');
     listContainer.innerHTML = '';
 
@@ -262,12 +272,13 @@ var Contacts = (function() {
   var saveContact = function saveContact() {
     var name = [givenName.value] || [''];
     var lastName = [familyName.value] || [''];
-
+    var org = [company.value] || [''];
     var myContact = {
       id: document.getElementById('contact-form-id').value,
       givenName: name,
       familyName: lastName,
       additionalName: '',
+      org: org,
       name: name[0] + ' ' + lastName[0]
     };
 
@@ -382,6 +393,7 @@ var Contacts = (function() {
     currentContactId.value = '';
     givenName.value = '';
     familyName.value = '';
+    company.value = '';
     var phones = document.getElementById('contacts-form-phones');
     var emails = document.getElementById('contacts-form-email');
     phones.innerHTML = '';
