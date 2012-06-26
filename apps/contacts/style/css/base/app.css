@@ -160,6 +160,7 @@
   height: 10.5rem;
   background: -moz-element(#current-jumper);
   pointer-events: none;
+  -moz-transition: opacity .5s ease;
 }
 
 #current-jumper {

@@ -3,8 +3,10 @@
 
 (function initScrollbar(doc) {
   var jumper = doc.querySelector('.view-jumper-inner');
-  jumper.addEventListener('mousedown', scrollTo);
+  jumper.addEventListener('mousedown', scrollStart);
   jumper.addEventListener('mousemove', scrollTo);
+  jumper.addEventListener('mouseleave', scrollEnd);
+  jumper.addEventListener('mouseup', scrollEnd);
 
   var scrollable = doc.querySelector('#groups-container');
   var overlay = doc.querySelector('.view-jumper-current');
@@ -21,6 +23,17 @@
   var overlayTimeout = 0, scrollToTimeout = 0;
   var previous = null;
 
+  function scrollStart(evt) {
+    overlayStyle.opacity = '1';
+    scrollTo(evt);
+  }
+  
+  function scrollEnd(evt) {
+    evt.preventDefault();
+    evt.stopPropagation();
+    overlayStyle.opacity = '0';
+  }
+
   function scrollTo(evt) {
     evt.preventDefault();
     evt.stopPropagation();
@@ -35,14 +48,8 @@
       return;
 
     overlayContent.textContent = current;
-    overlayStyle.opacity = '1';
 
     previous = current;
-
-    clearTimeout(overlayTimeout);
-    overlayTimeout = setTimeout(function hideOverlay() {
-      overlayStyle.opacity = '0';
-    }, 1000);
 
     scrollable.scrollTop = groupContainer.offsetTop;
 
