@@ -9,6 +9,9 @@ function navigationStack(currentView) {
   };
 
   var _currentView = currentView;
+  var cache = document.getElementById("cache");
+  var app = document.getElementById("app");
+  var transitionTimeout = 0;
 
   var stack = [];
   stack.push({ view: currentView, transition: ''});
@@ -19,8 +22,26 @@ function navigationStack(currentView) {
 
     var current = document.getElementById(_currentView);
     var next = document.getElementById(nextView);
-    current.classList.add(transitions[transition].to);
-    next.classList.remove(transitions[transition].from);
+
+    var currentMirror = document.getElementById(current.dataset.mirror);
+    var nextMirror =document.getElementById(next.dataset.mirror);
+
+    current.dataset.state = "inactive";
+    app.dataset.state = "inactive";
+    cache.dataset.state = "active";
+
+    clearTimeout(transitionTimeout);
+    transitionTimeout = setTimeout(function animate() {
+      currentMirror.classList.add(transitions[transition].to);
+      nextMirror.classList.remove(transitions[transition].from);
+    }, 1);
+
+    nextMirror.addEventListener("transitionend", function nocache(){
+        next.dataset.state = "active";
+        app.dataset.state = "active";
+        cache.dataset.state = "inactive";
+        nextMirror.removeEventListener("transitionend", nocache);
+    });
 
     stack.push({ view: _currentView, transition: transition});
     _currentView = nextView;
@@ -33,8 +54,26 @@ function navigationStack(currentView) {
     var current = document.getElementById(_currentView);
     var nextView = stack.pop();
     var next = document.getElementById(nextView.view);
-    current.classList.add(transitions[nextView.transition].from);
-    next.classList.remove(transitions[nextView.transition].to);
+
+    var currentMirror = document.getElementById(current.dataset.mirror);
+    var nextMirror =document.getElementById(next.dataset.mirror);
+
+    current.dataset.state = "inactive";
+    app.dataset.state = "inactive";
+    cache.dataset.state = "active";
+
+    clearTimeout(transitionTimeout);
+    transitionTimeout = setTimeout(function animate() {
+      currentMirror.classList.add(transitions[nextView.transition].from);
+      nextMirror.classList.remove(transitions[nextView.transition].to);
+    }, 1);
+
+    nextMirror.addEventListener("transitionend", function nocache(){
+        next.dataset.state = "active";      
+        app.dataset.state = "active";
+        cache.dataset.state = "inactive";
+        nextMirror.removeEventListener("transitionend", nocache);
+    });
 
     _currentView = nextView.view;
   };
