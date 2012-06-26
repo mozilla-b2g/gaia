@@ -403,14 +403,14 @@ var ConversationListView = {
 
     //TODO: Localize
     var content;
+    var _ = navigator.mozL10n.get;
     if (diff <= 0) {
-      content = 'TODAY';
+      content = _('today');
     } else if (diff > 0 && diff < day * 2) {
-      content = 'YESTERDAY';
+      content = _('yesterday');
     } else if (diff < 4 * day) {
-      var dayOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday',
-                       'Thursday', 'Friday', 'Saturday'];
-      content = dayOfWeek[new Date(conversation.timestamp).getDay()];
+      var dayOfWeek = new Date(conversation.timestamp).getDay();
+      content = _('dayOfWeek-' + dayOfWeek);
     } else {
       var date = new Date(conversation.timestamp);
       content = date.getFullYear() + '-' +
