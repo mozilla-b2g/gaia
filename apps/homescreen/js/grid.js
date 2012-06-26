@@ -788,7 +788,7 @@ const GridManager = (function() {
       });
 
       // Saving the page
-      //pageHelper.save(index);
+      pageHelper.save(index);
     },
 
     /*
