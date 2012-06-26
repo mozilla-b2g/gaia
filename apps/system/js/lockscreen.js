@@ -104,7 +104,7 @@ var LockScreen = {
     });
 
     SettingsListener.observe(
-      'lockscreen.wallpaper', 'default.png', function(value) {
+      'lockscreen.wallpaper', 'balloon.png', function(value) {
       self.updateBackground(value);
       self.overlay.classList.remove('uninit');
     });
