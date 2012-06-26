@@ -557,16 +557,17 @@ var WindowManager = (function() {
           setDisplayedApp(origin, null, e.detail.url);
           return;
         }
-        
+
         var app = Applications.getByOrigin(origin);
         var name = app.manifest.name;
         //Check if it's a virtual app from a entry point
-        if(app.manifest.entry_points) {
-          for(var ep in app.manifest.entry_points) {
+        var entryPoints = app.manifest.entry_points;
+        if (entryPoints) {
+          for (var ep in entryPoints) {
             var path = e.detail.url.substr(e.detail.origin.length + 1); //Remove the origin and /
-            if(path.indexOf(ep) == 0 && (ep + app.manifest.entry_points[ep].path) == path) {
+            if (path.indexOf(ep) == 0 && (ep + entryPoints[ep].path) == path) {
               origin = origin + '/' + ep;
-              name = app.manifest.entry_points[ep].name;
+              name = entryPoints[ep].name;
             }
           }
         }

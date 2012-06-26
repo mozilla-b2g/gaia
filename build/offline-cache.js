@@ -224,9 +224,11 @@ appSrcDirs.forEach(function parseDirectory(directoryName) {
           iconsURL.push(iconURL);
         });
       } 
-      if (webappManifest.entry_points) {
-        for(var entry_point in webappManifest.entry_points) {
-          let ep = webappManifest.entry_points[entry_point];
+      
+      var entryPoints = webappManifest.entry_points;
+      if (entryPoints) {
+        for(var entry_point in entryPoints) {
+          let ep = entryPoints[entry_point];
           if(ep.icons) {
             let sizes = Object.keys(ep.icons);
             sizes.forEach(function iconIterator(size) {

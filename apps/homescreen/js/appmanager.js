@@ -1,26 +1,37 @@
 
 'use strict';
 
-var ApplicationMock = function(app, entry_point, 
-        origin, manifest, manifestURL, 
-        receips, installOrigin, installTime) {
+var ApplicationMock = function(app, launchPath, alternativeOrigin) {
+
   this.app = app;
-  this.entry_point = entry_point;
-  this.origin = origin;
-  this.manifest = manifest;
-  this.manifestURL = manifestURL;
-  this.receips = receips;
-  this.installOrigin = installOrigin;
-  this.installTime = installTime;
+  this.entry_point = launchPath;
+  this.origin = alternativeOrigin;
+  //Clone the manifest
+  this.manifest = {};
+  for (var field in app.manifest) {
+    this.manifest[field] = app.manifest[field];
+  }
+  
+  var entryPoint = app.manifest.entry_points[launchPath];
+  this.manifest.name = entryPoint.name;
+  this.manifest.launch_path = entryPoint.path;
+  this.manifest.icons = entryPoint.icons;
+  this.manifest.origin = alternativeOrigin;
+
+  this.manifestURL = app.manifestURL;
+  this.receips = app.receips;
+  this.installOrigin = app.installOrigin;
+  this.installTime = app.installTime;
+
   this.manifest.use_manifest = true;
 };
 
 ApplicationMock.prototype = {
-  launch: function(startPoint) {
+  launch: function _launch(startPoint) {
     this.app.launch(this.entry_point + this.manifest.launch_path);
   },
 
-  uninstall: function() {
+  uninstall: function _uninstall() {
     this.app.uninstall();
   }
 };
@@ -39,28 +50,19 @@ var Applications = (function() {
         * If the manifest contains entry points, iterate over them
         * and add a fake app object for each one.
         */
-        if (app.manifest.entry_points) {
-          for (var i in app.manifest.entry_points) {
-            if (!app.manifest.entry_points[i].hasOwnProperty('icons')) {
+        var entryPoints = app.manifest.entry_points;
+        if (entryPoints) {
+          for (var launchPath in entryPoints) {
+            if (!entryPoints[launchPath].hasOwnProperty('icons')) {
               continue;
             }
             
-            var alternativeOrigin = app.origin + '/' + i;
-            var manifest = {};
-            //Clone the manifest
-            for(var j in app.manifest) {
-              manifest[j] = app.manifest[j];
-            }
-            //Delete the locales, this is not translated yet
-            delete manifest.locales;
-            manifest.name = app.manifest.entry_points[i].name;
-            manifest.launch_path = app.manifest.entry_points[i].path;
-            manifest.icons = app.manifest.entry_points[i].icons;
-            manifest.origin = alternativeOrigin;
-            var newApp = new ApplicationMock(app, i,
-              alternativeOrigin, manifest, app.manifestURL, app.receips,
-              app.installOrigin, app.installTime);
-              
+            var alternativeOrigin = app.origin + '/' + launchPath;
+
+            var newApp = new ApplicationMock(app,
+                                  launchPath,
+                                  alternativeOrigin);
+
             installedApps[alternativeOrigin] = newApp;
           }
         } else {
