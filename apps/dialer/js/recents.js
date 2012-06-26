@@ -55,18 +55,14 @@ var Recents = {
 
 
   add: function re_add(recentCall) {
-   
     this.getDatabase((function(database) {
       var txn = database.transaction(this.STORENAME, 'readwrite');
       var store = txn.objectStore(this.STORENAME);
-      
       var setreq = store.put(recentCall);
-       
-      setreq.onsuccess = function(){
+      setreq.onsuccess = function() {
         //TODO Update commslog when call received/made
 
       };
-    
       setreq.onerror = function(e) {
         console.log('dialerRecents add failure: ', e.message, setreq.errorCode);
       };
@@ -80,77 +76,76 @@ var Recents = {
 
     // Add class
     entry.classList.add('log-item');
-    
     // Create HTML structure
     var html_structure = "<section class='icon-container grid center'>";
     html_structure += "<div class='grid-cell grid-v-align'><div class='icon ";
-    // Depending on call type we add icon      
-    if(recent.type.indexOf("outgoing") != -1) {
-      html_structure += "icon-outgoing";
-    }else {
-      if(recent.type != "incoming") {
-        html_structure += "icon-incoming";
-      }else {
-        html_structure += "icon-missed";
+
+    // Depending on call type we add icon
+
+    if (recent.type.indexOf('outgoing') != -1) {
+      html_structure += 'icon-outgoing';
+    } else {
+      if (recent.type != 'incoming') {
+        html_structure += 'icon-incoming';
+      } else {
+        html_structure += 'icon-missed';
       }
     }
 
-    html_structure +="'></div></div>";
-    html_structure += "</section>";
+    html_structure += "'></div></div>";
+    html_structure += '</section>';
     html_structure += "<section class='log-item-info grid'>";
-    html_structure +="<div class='grid-cell grid-v-align'>"
-    
+    html_structure += "<div class='grid-cell grid-v-align'>";
     //Check if contact is in Agenda
     Contacts.findByNumber(recent.number, function findContact(contact) {
-      if (contact) {
-        html_structure +="<section class='primary-info ellipsis'>"+
-        (contact.name || recent.number)+"</section>";
+      if (contact) {
+        html_structure += "<section class='primary-info ellipsis'>";
+        html_structure += (contact.name || recent.number) + '</section>';
       }
     });
-    
-    html_structure +="<section class='primary-info ellipsis'>"+recent.number+"</section>"
-    html_structure +="<section class='secondary-info ellipsis'>"
-    +prettyDate(recent.date)+"</section>"
-    html_structure +="</div>"
-    html_structure += "</section>";
-    
+    html_structure += "<section class='primary-info ellipsis'>";
+    html_structure += recent.number + '</section>';
+    html_structure += "<section class='secondary-info ellipsis'>";
+    html_structure += prettyDate(recent.date) + '</section>';
+    html_structure += '</div>';
+    html_structure += '</section>';
+
     entry.innerHTML = html_structure;
-    
     return entry;
   },
   render: function re_render() {
-    
-    Recents.history(function(recents){
+    Recents.history(function(recents) {
       //Clean DOM
-      document.getElementById('contacts-container').innerHTML='';
-      
-
-      if(recents.length>0) {
+      var dom_container = document.getElementById('contacts-container');
+      dom_container.innerHTML = '';
+      if (recents.length > 0) {
         //Update token
-        Recents.current_token=0;
-        
+        Recents.current_token = 0;
         for (var i = 0; i < recents.length; i++) {
           // We retrieve temp token
           var token_tmp = Recents.getDayDate(recents[i].date);
-          
           // Compare tokens
-          if(token_tmp > Recents.current_token) {
+          if (token_tmp > Recents.current_token) {
             // Update token
             Recents.current_token = token_tmp;
             // Create structure
-            var html_structure = "<section data-timestamp=" + Recents.current_token + ">";
-            html_structure += "<h2>";
+            var html_structure = '<section data-timestamp=' +
+            Recents.current_token + '>';
+            html_structure += '<h2>';
             html_structure += headerDate(Recents.current_token);
-            html_structure += "</h2>";
-            html_structure += "<ol id='" + Recents.current_token + "'  class='log-group'>";
-            html_structure+="</ol>";
-            html_structure+="</section>";
+            html_structure += '</h2>';
+            html_structure += "<ol id='" + Recents.current_token +
+            "' class='log-group'>";
+            html_structure += '</ol>';
+            html_structure += '</section>';
 
 
-            document.getElementById('contacts-container').innerHTML+=html_structure;
-            document.getElementById(Recents.current_token).appendChild(Recents.createEntry(recents[i]));
-          }else{
-            document.getElementById(Recents.current_token).appendChild(Recents.createEntry(recents[i]));
+            dom_container.innerHTML += html_structure;
+            document.getElementById(Recents.current_token).
+            appendChild(Recents.createEntry(recents[i]));
+          }else {
+            document.getElementById(Recents.current_token).
+            appendChild(Recents.createEntry(recents[i]));
           }
 
         }// FOR END
@@ -163,7 +158,8 @@ var Recents = {
         no_result.innerHTML = '<div class="grid-cell grid-v-align">' +
         '<header class="header-noresult">' +
         '<section class="header-text-noresult">CALL, CHAT, TEXT...</section>' +
-        '<section class="header-text-noresult">START COMMUNICATING NOW</section>' +
+        '<section class="header-text-noresult">' +
+        'START COMMUNICATING NOW</section>' +
         '</header>' +
         '<section><div class="icon-noresult"></div></section>' +
         '</div>';
@@ -172,12 +168,12 @@ var Recents = {
 
       }// IF ELSE END
     });
-    
   },
-  getDayDate: function re_getDayDate(timestamp){
+  getDayDate: function re_getDayDate(timestamp) {
 
     var date = new Date(timestamp);
-    var start_date = new Date(date.getFullYear(),date.getMonth(),date.getDate());
+    var start_date = new Date(date.getFullYear(),
+    date.getMonth(), date.getDate());
     return start_date.getTime();
   },
   history: function re_history(callback) {
