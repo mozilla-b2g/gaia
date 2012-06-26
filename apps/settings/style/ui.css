@@ -198,6 +198,12 @@ ul li > small + a {
     -moz-linear-gradient(#ffffff, #eaeae4);
 }
 
+.view label > progress {
+  float: right;
+  width: 150px;
+  margin: 22px 20px 0 0;
+}
+
 /* brightness level */
 #brightness-level:active {
   background-color: #f5f5f5;
